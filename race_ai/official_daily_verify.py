@@ -58,7 +58,7 @@ def fetch_and_parse(day:date,kind:str="K")->dict:
                     if re.fullmatch(r'\d+\.\d+',x):return 'DECIMAL'
                     if re.fullmatch(r'(?:F|L)\.?\d*',x):return 'START_FAULT'
                     return 'TEXT'+str(len(x))
-                print('tokens:',[typ(t) for t in toks[:10]],file=sys.stderr)
+                print('tokens:',[typ(t) for t in toks[:18]],'tail:',[typ(t) for t in toks[-6:]],file=sys.stderr)
                 count+=1
                 if count>=16:
                     break
