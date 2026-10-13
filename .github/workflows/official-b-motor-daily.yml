@@ -1,0 +1,29 @@
+name: RACE AI official B motor daily check
+on:
+  schedule:
+    - cron: '30 22 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  official-b-motor:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Inspect today's official B allocations (07:30 JST target)
+        shell: bash
+        run: |
+          DAY="$(TZ=Asia/Tokyo date +%F)"
+          python -m race_ai.official_motor_day_verify --date "$DAY" --output official-b-motors-today.json
+      - name: Save metadata only, no official raw B data
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: official-b-motor-today-metadata
+          path: official-b-motors-today.json
+          if-no-files-found: warn
+          retention-days: 30
