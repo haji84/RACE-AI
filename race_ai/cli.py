@@ -2,6 +2,7 @@
 import argparse
 import json
 from pathlib import Path
+from .video import index_video
 from .core import (connect, import_official, histories, save_exhibition,
                    exhibition_asof, record_entry_evidence, pair_summary, SourceError)
 
@@ -20,10 +21,16 @@ def main():
     s=sub.add_parser('exhibition-import');s.add_argument('json_file')
     s=sub.add_parser('exhibition-at');s.add_argument('--race-id',required=True);s.add_argument('--asof',required=True)
     s=sub.add_parser('entry-evidence');s.add_argument('json_file')
+    s=sub.add_parser('video-index');s.add_argument('file');s.add_argument('--rights-confirmed',action='store_true')
+    s.add_argument('--sample-seconds',type=float,default=2.0)
     s=sub.add_parser('pair');s.add_argument('--challenger',required=True)
     s.add_argument('--defender',required=True);s.add_argument('--asof',required=True)
     a=p.parse_args()
     try:
+        if a.command=='video-index':
+            print(json.dumps(index_video(a.file,rights_confirmed=a.rights_confirmed,
+                 sample_seconds=a.sample_seconds),ensure_ascii=False,indent=2))
+            return
         with connect(a.db) as db:
             if a.command in ('import-k','import-b'):
                 result=import_official(db,a.file,a.command[-1].upper(),a.date,a.published_at,a.captured_at)
