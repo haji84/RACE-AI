@@ -130,12 +130,14 @@ def _snapshot_asof(db:sqlite3.Connection, race_id:str, lane:int, asof:str)->dict
     measures=exhibition_asof(db,race_id,asof)
     subset={r['metric']:r for r in measures if r['lane']==lane}
     required=('display','lap','turn','straight','start_exhibition')
+    motor_kinds=('display','lap','turn','straight')
     return dict(metrics={
         key:({'value':subset[key]['value'],'captured_at':subset[key]['captured_at'],
               'source_sha256':subset[key]['sha'],'missing_reason':subset[key]['missing_reason']}
              if key in subset else {'value':None,'missing_reason':'not supplied or not published by decision time'})
         for key in required},
         complete=all(key in subset and subset[key]['value'] is not None for key in required),
+        original_exhibition_complete=all(key in subset and subset[key]['value'] is not None for key in motor_kinds),
         available_count=sum(key in subset and subset[key]['value'] is not None for key in required))
 
 
@@ -213,12 +215,17 @@ def build_daily(input_dir:str|Path,asof:str, *, persist_db:str=':memory:')->dict
         n_known=sum(r['historical_observations']>0 for r in reports)
         n_with_exhibition=sum(any(s['available_count']>0 for s in r['current_exhibition']) for r in reports)
         n_with_previous=sum(r['prior_meet'] is not None for r in reports)
+        n_full_exhibition=sum(any(s['original_exhibition_complete'] for s in r['current_exhibition']) for r in reports)
+        inventory_day=datetime.fromisoformat(utc(parsed['inventory']['captured_at'])).astimezone(JST).date()
+        inventory_fresh=inventory_day==day
         status='COVERAGE_INCOMPLETE'
         if len({r['venue'] for r in reports})<24:
             status='PARTIAL_VENUE_SCOPE'
-        if n_known==n and n_with_exhibition==n and n_with_previous==n and len({r['venue'] for r in reports})==24:
+        if n_known==n and n_full_exhibition==n and n_with_previous==n and inventory_fresh and len({r['venue'] for r in reports})==24:
             # Does not mean all venue motor inventories are independently complete.
             status='INPUT_COVERAGE_PRESENT_NOT_INDEPENDENTLY_VERIFIED'
+        if not inventory_fresh:
+            status='STALE_INVENTORY_SOURCE'
         return dict(report_date_jst=day.isoformat(),decision_at=cutoff,
            generated_at=datetime.now(timezone.utc).isoformat(timespec='seconds'),
            status=status,inventory_scope='ONLY MOTORS ENUMERATED IN USER-PROVIDED INVENTORY',
@@ -227,7 +234,9 @@ def build_daily(input_dir:str|Path,asof:str, *, persist_db:str=':memory:')->dict
            number_of_venues=len({r['venue'] for r in reports}),
            inventory_count=n,history_count=n_known,
            current_exhibition_motor_count=n_with_exhibition,
+           original_exhibition_complete_motor_count=n_full_exhibition,
            previous_meet_known_count=n_with_previous,
+           inventory_fresh_today=inventory_fresh,
            source_sha256={k:v for k,v in digests.items() if v is not None},
            source_snapshot_capture_at=parsed['inventory']['captured_at'],
            motors=reports)
