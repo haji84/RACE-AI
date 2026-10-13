@@ -28,5 +28,7 @@ jobs:
         run: |
           python -c "import ctypes.util,shutil;print('libarchive',ctypes.util.find_library('archive'));print('7z',shutil.which('7z'));print('bsdtar',shutil.which('bsdtar'))"
       - name: One official K archive GET - decode in memory and count races; no archive retained
+        env:
+          RACE_AI_DEBUG_LAYOUT: '1'
         run: |
           python -m race_ai.official_daily_verify --date 2026-10-13 --kind K
