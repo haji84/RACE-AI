@@ -16,3 +16,14 @@ jobs:
       - name: One GET / metadata only / no raw API storage
         run: |
           python -m race_ai.public_day_feed --date 2026-10-13 --probe-only
+  official-lzh-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: One official K archive GET - header/hash only; no archive retained
+        run: |
+          python -m race_ai.official_archive_probe --date 2026-10-13 --kind K
