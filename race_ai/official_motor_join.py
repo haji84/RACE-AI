@@ -130,7 +130,19 @@ def parse_motor_history(text: str, *, venue: str, motor_no: int, source_url: str
 
 def parse_official_racer_profile(text: str, *, expected_name: str,
                                  source_url: str, captured_at: str) -> dict:
-    norm=_normal(text)
+    if '<html' in text.lower() or '<body' in text.lower():
+        # Decode the visible profile text only. Do not parse IDs out of attributes.
+        class PlainText(HTMLParser):
+            def __init__(self):
+                super().__init__()
+                self.chunks=[]
+            def handle_data(self,data):
+                self.chunks.append(data)
+        visible=PlainText()
+        visible.feed(text)
+        norm=_normal(' '.join(visible.chunks))
+    else:
+        norm=_normal(text)
     if not source_url.startswith('https://'):
         raise OfficialSourceError('HTTPS racer source URL required')
     if _name(expected_name) not in _name(norm):
@@ -139,6 +151,12 @@ def parse_official_racer_profile(text: str, *, expected_name: str,
     cohort=re.search(r'登録期\s*(\d{1,3})期',norm)
     if not number or not cohort:
         raise OfficialSourceError('official racer ID or registration cohort missing')
+    # Profiles from /data/racersearch/profile?toban=XXXX must not silently bind
+    # a different registered racer than the URL identifies.
+    from urllib.parse import parse_qs,urlsplit
+    params=parse_qs(urlsplit(source_url).query)
+    if 'toban' in params and number.group(1) not in params['toban']:
+        raise OfficialSourceError('profile URL registration number mismatch')
     return dict(racer_name=_name(expected_name),racer_id=number.group(1),
                 registration_cohort=int(cohort.group(1)),source_url=source_url,
                 captured_at=captured_at)
@@ -193,17 +211,25 @@ def audit_previous_meet(history: list[dict], profiles: list[dict], *,
 def load_join(motor_file: str|Path,profile_files: list[str|Path], *,
               venue: str,motor_no: int,motor_source: str,
               profile_sources: list[str], captured_at: str,
-              target_meet_start: str,cohort_debut_months: dict[int,str]) -> dict:
+              target_meet_start: str,cohort_debut_months: dict[int,str],
+              expected_profile_names: list[str]|None=None) -> dict:
     if len(profile_files)!=len(profile_sources):
         raise OfficialSourceError('each profile file requires its own official source URL')
+    if expected_profile_names is not None and len(expected_profile_names)!=len(profile_files):
+        raise OfficialSourceError('one expected racer name per profile is required')
     motor_bytes=Path(motor_file).read_bytes()
     motor_text=motor_bytes.decode('utf-8-sig')
     history=parse_motor_history(motor_text,venue=venue,motor_no=motor_no,
                                source_url=motor_source,captured_at=captured_at)
     profiles=[]
-    for file,url in zip(profile_files,profile_sources):
+    for i,(file,url) in enumerate(zip(profile_files,profile_sources)):
         text=Path(file).read_text(encoding='utf-8-sig')
-        first=_name(re.split(r'[（(]',_normal(text.splitlines()[0]))[0])
+        if expected_profile_names is not None:
+            first=_name(expected_profile_names[i])
+        elif '<html' in text.lower() or '<body' in text.lower():
+            raise OfficialSourceError('raw HTML profile requires explicit expected_profile_names')
+        else:
+            first=_name(re.split(r'[（(]',_normal(text.splitlines()[0]))[0])
         # Header must be an operator-provided profile identity, NOT free text guessing.
         if not first or not re.fullmatch(r'[\u3040-\u30ff\u3400-\u9fff\w]+',first):
             raise OfficialSourceError('first profile line must be racer name')
