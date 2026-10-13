@@ -174,7 +174,9 @@ def parse_k(raw: bytes, day: str) -> list[dict]:
 
 
 def parse_b(raw: bytes, day: str) -> list[dict]:
-    text = _decode(raw)
+    # Official B uses full-width １Ｒ and Ｈ１８００ｍ headings.
+    import unicodedata
+    text = unicodedata.normalize('NFKC',_decode(raw))
     if 'STARTB' not in text[:200]:
         raise SourceError('not a B program text')
     output = []
