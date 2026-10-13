@@ -24,6 +24,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Report installed archive decoders
+        run: |
+          python -c "import ctypes.util,shutil;print('libarchive',ctypes.util.find_library('archive'));print('7z',shutil.which('7z'));print('bsdtar',shutil.which('bsdtar'))"
       - name: One official K archive GET - header/hash only; no archive retained
         run: |
           python -m race_ai.official_archive_probe --date 2026-10-13 --kind K
