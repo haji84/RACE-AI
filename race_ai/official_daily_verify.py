@@ -45,18 +45,18 @@ def fetch_and_parse(day:date,kind:str="K")->dict:
             count=0
             for line in view:
                 if not started:
-                    if re.match(r'^\\s*1R\\s+.*?H\\s*\\d{3,4}m',line,re.I):
+                    if re.match(r'^\s*1R\s+.*?H\s*\d{3,4}m',line,re.I):
                         started=True
                     continue
-                if re.match(r'^\\s*2R\\s+.*?H\\s*\\d{3,4}m',line,re.I):
+                if re.match(r'^\s*2R\s+.*?H\s*\d{3,4}m',line,re.I):
                     break
                 toks=line.strip().split()
                 if not toks:
                     continue
                 def typ(x):
                     if x.isdigit():return 'N'+str(len(x))
-                    if re.fullmatch(r'\\d+\\.\\d+',x):return 'DECIMAL'
-                    if re.fullmatch(r'(?:F|L)\\.?\\d*',x):return 'START_FAULT'
+                    if re.fullmatch(r'\d+\.\d+',x):return 'DECIMAL'
+                    if re.fullmatch(r'(?:F|L)\.?\d*',x):return 'START_FAULT'
                     return 'TEXT'+str(len(x))
                 print('tokens:',[typ(t) for t in toks[:10]],file=sys.stderr)
                 count+=1
