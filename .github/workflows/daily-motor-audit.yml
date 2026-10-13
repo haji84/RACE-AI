@@ -17,12 +17,14 @@ jobs:
       - name: Generate only source-backed motor report
         shell: bash
         run: |
-          python -m race_ai.daily --input-dir data/live --output daily-report.json
+          python -m race_ai.daily --input-dir data/live --output daily-report.json --html-output daily-report.html
       - name: Preserve diagnostic report even when missing sources
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: race-ai-daily-motor-audit
-          path: daily-report.json
+          path: |
+            daily-report.json
+            daily-report.html
           if-no-files-found: warn
           retention-days: 14
