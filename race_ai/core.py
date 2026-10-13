@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS exhibition (
 CREATE TABLE IF NOT EXISTS entry_evidence (
  event_id TEXT PRIMARY KEY, race_id TEXT NOT NULL,
  challenger TEXT NOT NULL, defender TEXT NOT NULL,
- event_type TEXT NOT NULL CHECK(event_type IN ('attempt','resistance','displacement','deep_inside')),
+ event_type TEXT NOT NULL CHECK(event_type IN ('attempt','success','resistance','defense_success','displacement','deep_inside')),
  outcome TEXT CHECK(outcome IN ('yes','no','unknown')),
  evidence_level TEXT NOT NULL CHECK(evidence_level IN ('HUMAN_REVIEWED','VERIFIED_VIDEO','UNKNOWN')),
  clip_ref TEXT, reviewer TEXT, rights_confirmed INTEGER NOT NULL,
@@ -304,13 +304,27 @@ def record_entry_evidence(db:sqlite3.Connection, payload:dict)->str:
 
 
 def pair_summary(db:sqlite3.Connection, challenger:str, defender:str, asof:str)->dict:
+    """Evidence-gated directional pair counts; distinct race is the denominator.
+
+    An attempt is not its own success. Both must have independently reviewed
+    labels for the same pair/race. This is descriptive, not a causal model.
+    """
     cutoff=utc(asof)
-    rows=db.execute('''SELECT * FROM entry_evidence WHERE challenger=? AND defender=?
-       AND published_at IS NOT NULL AND published_at<=? AND captured_at<=?
-       AND event_type='attempt' AND outcome IN ('yes','no')''',
-       (challenger,defender,cutoff,cutoff)).fetchall()
-    n=len(rows)
-    success=sum(r['outcome']=='yes' for r in rows)
-    # Conservative prior is an illustrative uniform Beta(1,1), not empirically calibrated.
-    return dict(challenger=challenger,defender=defender,n=n,observed_rate=success/n if n else None,
-                smoothed_rate=(success+1)/(n+2),exploratory=n<10,prior='Beta(1,1); not calibrated')
+    rows=db.execute("""SELECT * FROM entry_evidence WHERE challenger=? AND defender=?
+        AND published_at IS NOT NULL AND published_at<=? AND captured_at<=?
+        AND outcome IN ('yes','no')""",(challenger,defender,cutoff,cutoff)).fetchall()
+    yes=lambda kind: {r['race_id'] for r in rows if r['event_type']==kind and r['outcome']=='yes'}
+    encounters={r['race_id'] for r in rows if r['event_type']=='attempt'}
+    attempted=yes('attempt')
+    succeeded=yes('success') & attempted
+    resisted=yes('resistance') & attempted
+    defended=yes('defense_success') & resisted
+    return dict(challenger=challenger,defender=defender,
+                reviewed_encounters=len(encounters),attempts=len(attempted),
+                confirmed_successes=len(succeeded),resistances=len(resisted),
+                confirmed_defenses=len(defended),
+                attack_frequency=(len(attempted)+1)/(len(encounters)+2),
+                success_given_attempt=(len(succeeded)+1)/(len(attempted)+2),
+                defense_given_resistance=(len(defended)+1)/(len(resisted)+2),
+                exploratory=len(encounters)<10,
+                prior='Beta(1,1) descriptive smoothing; not calibrated')
