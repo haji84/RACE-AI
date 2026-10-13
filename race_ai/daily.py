@@ -247,7 +247,9 @@ def main()->None:
     p.add_argument('--input-dir',default='data/live')
     p.add_argument('--asof',help='ISO-8601 time with UTC offset (defaults to execution time)')
     p.add_argument('--output',default='daily-report.json')
+    p.add_argument('--html-output',default='daily-report.html')
     a=p.parse_args()
+    from .daily_view import save_daily_html
     cutoff=a.asof or datetime.now(timezone.utc).isoformat(timespec='seconds')
     try:
         result=build_daily(a.input_dir,cutoff)
@@ -255,9 +257,11 @@ def main()->None:
         result={'status':'SAFE_STOP_MISSING_OR_INVALID_SOURCE','reason':str(exc),
                 'asof':cutoff,'motors':[],'auto_web_collection':False}
         Path(a.output).write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+        save_daily_html(result,a.html_output)
         print(result['status']+': '+str(exc),file=sys.stderr)
         raise SystemExit(2)
     Path(a.output).write_text(json.dumps(result,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+    save_daily_html(result,a.html_output)
     print(f"{result['status']}: {result['inventory_count']} listed motors, "+
           f"{result['history_count']} with results, "+
           f"{result['current_exhibition_motor_count']} with today's exhibition")
