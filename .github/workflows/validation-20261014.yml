@@ -1,0 +1,27 @@
+name: RACE AI 2026-10-14 motor validation
+on:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  official-b-motor-previous-day:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Parse real October 13 B motor numbers and compare within each racing venue
+        run: python -m race_ai.official_motor_day_verify --date 2026-10-13 --venue 19 --race 9
+  official-b-motor-today:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify today's pre-race official B motor allocation
+        run: python -m race_ai.official_motor_day_verify --date 2026-10-14 --venue 19 --race 1
