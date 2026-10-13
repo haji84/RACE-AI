@@ -3,6 +3,7 @@ import argparse
 import json
 from pathlib import Path
 from .video import index_video
+from .motor import setup_motor, import_motor_observation, import_motor_service, analyze_motor
 from .core import (connect, import_official, histories, save_exhibition,
                    exhibition_asof, record_entry_evidence, pair_summary, SourceError)
 
@@ -23,6 +24,11 @@ def main():
     s=sub.add_parser('entry-evidence');s.add_argument('json_file')
     s=sub.add_parser('video-index');s.add_argument('file');s.add_argument('--rights-confirmed',action='store_true')
     s.add_argument('--sample-seconds',type=float,default=2.0)
+    s=sub.add_parser('motor-observation');s.add_argument('json_file')
+    s=sub.add_parser('motor-service');s.add_argument('json_file')
+    s=sub.add_parser('motor-report');s.add_argument('--venue',required=True)
+    s.add_argument('--cycle',required=True);s.add_argument('--motor',type=int,required=True)
+    s.add_argument('--asof',required=True);s.add_argument('--target-meeting-id')
     s=sub.add_parser('pair');s.add_argument('--challenger',required=True)
     s.add_argument('--defender',required=True);s.add_argument('--asof',required=True)
     a=p.parse_args()
@@ -32,7 +38,15 @@ def main():
                  sample_seconds=a.sample_seconds),ensure_ascii=False,indent=2))
             return
         with connect(a.db) as db:
-            if a.command in ('import-k','import-b'):
+            if a.command.startswith('motor-'):
+                setup_motor(db)
+            if a.command=='motor-observation':
+                result=import_motor_observation(db,json.loads(Path(a.json_file).read_text()))
+            elif a.command=='motor-service':
+                result=import_motor_service(db,json.loads(Path(a.json_file).read_text()))
+            elif a.command=='motor-report':
+                result=analyze_motor(db,a.venue,a.cycle,a.motor,a.asof,target_meeting_id=a.target_meeting_id)
+            elif a.command in ('import-k','import-b'):
                 result=import_official(db,a.file,a.command[-1].upper(),a.date,a.published_at,a.captured_at)
             elif a.command=='stats':
                 result=histories(db,a.racer,a.lane,a.course,a.asof)
