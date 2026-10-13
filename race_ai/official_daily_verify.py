@@ -18,7 +18,7 @@ from .official_archive_probe import official_url,inspect_lzh,HOST,MAX_ARCHIVE_BY
 from .official_lzh_extract import extract_daily_lzh
 
 
-def fetch_and_parse(day:date,kind:str="K")->dict:
+def fetch_and_parse(day:date,kind:str="K",*,include_rows:bool=False):
     url=official_url(day,kind)
     opener=request.build_opener(StrictRedirect)
     req=request.Request(url,headers={"User-Agent":"RACE-AI-official-daily-integrity/0.12",
@@ -74,7 +74,7 @@ def fetch_and_parse(day:date,kind:str="K")->dict:
         raise SourceError('not every race has six parsed entrants')
     if len(venues)>24:
         raise SourceError('unreasonable official venue count')
-    return dict(date_jst=day.isoformat(),kind=kind,source_url=url,
+    summary=dict(date_jst=day.isoformat(),kind=kind,source_url=url,
       download_sha256=meta['sha256'],
       extracted_text_sha256=hashlib.sha256(text).hexdigest(),
       retrieved_at=datetime.now(timezone.utc).isoformat(timespec='seconds'),
@@ -84,6 +84,7 @@ def fetch_and_parse(day:date,kind:str="K")->dict:
       venues=sorted(venues),parsed_results_verified_against_official_site=False,
       complete_24_venue_calendar_checked=False,
       status='STRUCTURAL_ACCEPTED_REQUIRES_OFFICIAL_RECONCILIATION')
+    return (summary,rows) if include_rows else summary
 
 
 def main():
