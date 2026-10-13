@@ -111,4 +111,31 @@ class MotorTests(unittest.TestCase):
         import_motor_observation(self.db,row)
         self.assertEqual(analyze_motor(self.db,'19','2026-A',11,'2026-10-03T00:00:00+09:00')['finish_sample_n'],1)
 
+    def test_previous_meet_uses_meet_identity_not_latest_race(self):
+        first=self.race(race_id='20261001-19-01',racer_id='5001',baseline=.15)
+        first['meeting_id']='2026-09-30_shimonoseki'
+        import_motor_observation(self.db,first)
+        latest=self.race(race_id='20261002-19-01',racer_id='4011',
+                         label='other',baseline=.45,
+                         race_at='2026-10-02T13:00:00+09:00',
+                         published_at='2026-10-02T16:00:00+09:00',
+                         captured_at='2026-10-02T17:00:00+09:00')
+        latest['meeting_id']='2026-10-02_shimonoseki'
+        import_motor_observation(self.db,latest)
+        result=analyze_motor(self.db,'19','2026-A',11,
+            '2026-10-03T00:00:00+09:00',target_meeting_id='2026-10-02_shimonoseki')
+        self.assertEqual(result['previous_meet']['meeting_id'],'2026-09-30_shimonoseki')
+        self.assertEqual(result['previous_meet']['rookie_starts'],1)
+        self.assertEqual(result['previous_meet']['starts'],1)
+        self.assertEqual(result['latest_observed_rider']['racer_id'],'4011')
+        self.assertIsNone(analyze_motor(self.db,'19','2026-A',11,
+            '2026-10-03T00:00:00+09:00')['previous_meet'])
+
+    def test_missing_meeting_ids_do_not_fabricate_previous_meet(self):
+        import_motor_observation(self.db,self.race(baseline=.2))
+        r=analyze_motor(self.db,'19','2026-A',11,
+          '2026-10-03T00:00:00+09:00',target_meeting_id='2026-10-03')
+        self.assertIsNone(r['previous_meet'])
+
 if __name__=='__main__':unittest.main()
+
