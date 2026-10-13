@@ -16,7 +16,7 @@ from .core import SourceError, source, utc
 MOTOR_SCHEMA = """
 CREATE TABLE IF NOT EXISTS motor_observation (
  venue TEXT NOT NULL, motor_cycle TEXT NOT NULL, motor_no INTEGER NOT NULL,
- race_id TEXT NOT NULL, racer_id TEXT NOT NULL, lane INTEGER NOT NULL,
+ race_id TEXT NOT NULL, meeting_id TEXT, racer_id TEXT NOT NULL, lane INTEGER NOT NULL,
  actual_course INTEGER NOT NULL, finish INTEGER, race_at TEXT NOT NULL,
  racer_experience_starts INTEGER, rider_label TEXT NOT NULL,
  baseline_top2 REAL, baseline_model TEXT, baseline_decision_at TEXT,
@@ -68,6 +68,9 @@ def import_motor_observation(db:sqlite3.Connection,record:dict)->dict:
     race_id=str(record.get('race_id',''))
     if not re.fullmatch(r'\d{8}-\d{2}-\d{2}',race_id) or not race_id.startswith(venue,9):
         raise SourceError('race ID must be YYYYMMDD-VV-RR for venue')
+    meeting_id=record.get('meeting_id')
+    if meeting_id is not None and (not isinstance(meeting_id,str) or not re.fullmatch(r'[A-Za-z0-9_.-]{3,80}', meeting_id)):
+        raise SourceError('invalid meeting_id (explicit event identity required)')
     finish=record.get('finish')
     if finish is not None and (type(finish) is not int or finish not in range(1,7)):
         raise SourceError('finish must be 1..6 or null')
@@ -99,10 +102,11 @@ def import_motor_observation(db:sqlite3.Connection,record:dict)->dict:
     elif model is not None or baseline_at is not None:
         raise SourceError('baseline fields must be supplied together')
     raw=json.dumps(record,sort_keys=True,ensure_ascii=False).encode('utf-8')
+    setup_motor(db)
     with db:
         digest=source(db,'MOTOR_RESULT',raw,record.get('source_name','manual'),published,captured,False)
-        db.execute('''INSERT OR IGNORE INTO motor_observation VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
-                   (venue,cycle,no,race_id,racer_id,lane,course,finish,race_at,
+        db.execute('''INSERT OR IGNORE INTO motor_observation VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)''',
+                   (venue,cycle,no,race_id,meeting_id,racer_id,lane,course,finish,race_at,
                     experience,rider_label,baseline,model,baseline_at,published,captured,digest))
     return {'sha256':digest,'accepted_as':'unverified_operator_source',
             'baseline_audited':False,'rows':1}
@@ -124,6 +128,7 @@ def import_motor_service(db:sqlite3.Connection,record:dict)->dict:
     if not service_at<=published<=captured:
         raise SourceError('service timestamps out of order')
     raw=json.dumps(record,sort_keys=True,ensure_ascii=False).encode('utf-8')
+    setup_motor(db)
     with db:
         digest=source(db,'MOTOR_SERVICE',raw,record.get('source_name','manual'),published,captured,False)
         db.execute('INSERT OR IGNORE INTO motor_service VALUES (?,?,?,?,?,?,?,?,?)',
@@ -144,7 +149,8 @@ def _recent_asof(db:sqlite3.Connection,venue:str,cycle:str,no:int,cutoff:str):
 
 
 def analyze_motor(db:sqlite3.Connection, venue:str,motor_cycle:str,motor_no:int,
-                  asof:str,half_life_days:float=45,prior_races:float=10)->dict:
+                  asof:str,half_life_days:float=45,prior_races:float=10,
+                  target_meeting_id:str|None=None)->dict:
     """Descriptive, shrinkage-adjusted motor signal; NEVER claimed calibrated.
 
     The baseline is supposed to condition on racer ability, course and opponents,
@@ -152,6 +158,8 @@ def analyze_motor(db:sqlite3.Connection, venue:str,motor_cycle:str,motor_no:int,
     """
     venue,cycle,no=_validate_identity(dict(venue=venue,motor_cycle=motor_cycle,motor_no=motor_no))
     cutoff=utc(asof)
+    if target_meeting_id is not None and (not isinstance(target_meeting_id,str) or not re.fullmatch(r'[A-Za-z0-9_.-]{3,80}',target_meeting_id)):
+        raise SourceError('invalid target meeting identity')
     if not math.isfinite(half_life_days) or half_life_days<=0 or not math.isfinite(prior_races) or prior_races<=0:
         raise SourceError('half-life and prior strength must be positive')
     setup_motor(db)
@@ -171,6 +179,20 @@ def analyze_motor(db:sqlite3.Connection, venue:str,motor_cycle:str,motor_no:int,
                 'rider_label':r['rider_label'],'lane':r['lane'],'course':r['actual_course'],
                 'finish':r['finish'],'top2_expected':r['baseline_top2']}
     recent=[summary(r) for r in rows[:10]]
+    prior_meeting=None
+    if target_meeting_id is not None:
+        # The most recent *different* meet before asof. Missing IDs never count.
+        match=next((r['meeting_id'] for r in rows if r['meeting_id'] is not None
+                    and r['meeting_id']!=target_meeting_id),None)
+        if match is not None:
+            group=[r for r in rows if r['meeting_id']==match]
+            finished=[r for r in group if r['finish'] is not None]
+            prior_meeting={'meeting_id':match,'starts':len(group),
+                           'rookie_starts':sum(r['rider_label']=='rookie' for r in group),
+                           'riders':sorted({r['racer_id'] for r in group}),
+                           'raw_top2_rate':round(sum(r['finish']<=2 for r in finished)/len(finished),6) if finished else None,
+                           'baseline_coverage':sum(r['baseline_top2'] is not None for r in group),
+                           'status':'descriptive_only_not_rider_adjusted'}
     total_rate=(sum(r['finish']<=2 for r in valid)/len(valid)) if valid else None
     n_rookie=sum(r['rider_label']=='rookie' for r in valid)
     signal=None; effective_n=None
@@ -189,7 +211,9 @@ def analyze_motor(db:sqlite3.Connection, venue:str,motor_cycle:str,motor_no:int,
       'finish_sample_n':len(valid),'rookie_ridden_n':n_rookie,
       'adjusted_rider_neutral_residual':signal,'adjusted_sample_n':len(adjusted),
       'adjusted_effective_n':round(effective_n,3) if effective_n is not None else None,
-      'recent_10':recent,'latest_previous_rider':summary(latest) if latest else None,
+      'recent_10':recent,'latest_observed_rider':summary(latest) if latest else None,
+      'latest_previous_rider':summary(latest) if latest else None,
+      'previous_meet':prior_meeting,
       'confidence':'NOT_VALIDATED' if signal is not None else 'INSUFFICIENT_BASELINE',
       'interpretation':'A residual is not a calibrated win probability or intrinsic motor speed.',
       'warnings':['Previous rider grade alone never alters motor scoring.',
