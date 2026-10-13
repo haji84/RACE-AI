@@ -86,6 +86,18 @@ class OfficialMotorJoinTests(unittest.TestCase):
             parse_motor_history(txt,venue='06',motor_no=12,
                source_url=MOTOR_URL,captured_at=CAPTURE)
 
+    def test_saved_html_profile_requires_explicit_identity(self):
+        html='<html><body><h2>成田 華音（出場予定）</h2><p>登録番号</p><span>5466</span><p>登録期</p><span>138期</span></body></html>'
+        p=parse_official_racer_profile(html,expected_name='成田華音',
+                source_url=RACER_URL,captured_at=CAPTURE)
+        self.assertEqual(p['racer_id'],'5466')
+        self.assertEqual(p['registration_cohort'],138)
+
+    def test_official_profile_url_racer_id_must_match(self):
+        with self.assertRaises(OfficialSourceError):
+            parse_official_racer_profile((FIX/'racer_5466_excerpt.txt').read_text(),
+                  expected_name='成田華音',source_url='https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4436',captured_at=CAPTURE)
+
     def test_html_four_column_rows(self):
         html="""<h4>12番モーターの節間成績</h4><table><tr>
         <th>開催期間</th><th>競走タイトル</th><th>使用選手</th><th>節間成績</th></tr>
