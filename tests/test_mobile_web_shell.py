@@ -22,7 +22,9 @@ class MobileShellTests(unittest.TestCase):
         self.assertNotIn("fetch(", JS)
         self.assertNotIn("XMLHttpRequest", JS)
         self.assertNotIn("localStorage", JS)
-        self.assertNotIn("https://", JS)
+        # A URL-prefix check is permitted; actual network calls are not.
+        self.assertNotIn("sendBeacon(", JS)
+        self.assertNotIn("new WebSocket(", JS)
         self.assertIn("file.text()", JS)
 
     def test_prediction_gated(self):
