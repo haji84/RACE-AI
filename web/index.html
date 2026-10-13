@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#eef4f7">
+  <meta name="robots" content="noindex,nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'none'; connect-src 'none'; form-action 'none'; object-src 'none'; base-uri 'none'">
+  <title>RACE AI | ボートレース先行版</title>
+  <meta name="description" content="RACE AI ボートレース先行版。出典と取得時刻を確認できるローカルJSON閲覧画面。">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap bar-content"><div class="brand"><span class="brand-icon" aria-hidden="true">R</span><span>RACE <b>AI</b></span></div><span class="edition">BOAT FIRST · PREVIEW</span></div>
+  </header>
+  <main class="wrap">
+    <section class="intro">
+      <p class="eyebrow">RACE INTELLIGENCE</p>
+      <h1>今日のレースを、<br><span>根拠から見る。</span></h1>
+      <p class="intro-sub">ボートレース先行版。データの出典と取得時刻を明示し、未取得の数値は作りません。</p>
+    </section>
+    <nav class="sports" aria-label="競技を選択">
+      <button type="button" class="sport active" data-sport="boat" aria-pressed="true"><span class="symbol" aria-hidden="true">🚤</span><strong>ボートレース</strong><small class="available">先行版</small></button>
+      <button type="button" class="sport" data-sport="horse" aria-pressed="false"><span class="symbol" aria-hidden="true">🏇</span><strong>競馬</strong><small>Coming soon...</small></button>
+      <button type="button" class="sport" data-sport="cycle" aria-pressed="false"><span class="symbol" aria-hidden="true">🚴</span><strong>競輪</strong><small>Coming soon...</small></button>
+      <button type="button" class="sport" data-sport="auto" aria-pressed="false"><span class="symbol" aria-hidden="true">🏍️</span><strong>オートレース</strong><small>Coming soon...</small></button>
+    </nav>
+    <section id="coming" class="panel coming" hidden>
+      <p class="eyebrow">IN DEVELOPMENT</p><h2 id="coming-title">Coming soon...</h2>
+      <p>現在開発中です。ボートレース先行版の動作には影響しません。</p>
+      <button type="button" class="secondary" id="return-boat">ボートレースへ戻る</button>
+    </section>
+    <div id="boat-view">
+      <section class="panel import-panel">
+        <div><p class="eyebrow">DATA INPUT · LOCAL ONLY</p><h2>レースデータを開く</h2>
+          <p class="muted">利用権限を確認済みの正規化済みJSONを選択。ファイルは端末内だけで読み取り、サーバーへ送信しません。</p></div>
+        <label class="file-action" for="race-file">JSONファイルを選ぶ<input id="race-file" type="file" accept=".json,application/json"></label>
+        <p id="file-message" class="message" role="status" aria-live="polite">ファイル未選択。架空の予想やレースは表示しません。</p>
+      </section>
+      <section class="source" aria-label="データの状態">
+        <span id="source-state" class="state-pill">データ未取得</span>
+        <span id="source-date">対象日：未取得</span>
+        <span id="source-time">初回確認時刻：未取得</span>
+      </section>
+      <section class="stats" aria-label="データ件数">
+        <div class="stat"><span>開催場</span><strong id="venues-total">―</strong></div>
+        <div class="stat"><span>収録レース</span><strong id="races-total">―</strong></div>
+        <div class="stat"><span>6艇そろったレース</span><strong id="complete-total">―</strong></div>
+      </section>
+      <section class="panel race-panel">
+        <div class="section-head"><div><p class="eyebrow">RACE DETAIL</p><h2>出走データ</h2></div><span class="note">出走表と展示を確認</span></div>
+        <div class="filters"><label>開催場<select id="venue-select" disabled><option value="">データ未取得</option></select></label>
+          <label>レース<select id="race-select" disabled><option value="">データ未取得</option></select></label></div>
+        <p class="muted" id="race-meta">データを選択すると、登録番号・モーター・展示情報を表示します。</p>
+        <div class="table-scroll"><table><thead><tr><th>艇</th><th>選手</th><th>モーター</th><th>平均ST</th><th>展示タイム</th><th>展示進入</th></tr></thead><tbody id="racers-body"><tr><td colspan="6" class="empty">レース未選択</td></tr></tbody></table></div>
+        <div class="notice"><strong>予想・買い目はまだ公開対象外</strong><p>実レースの精度検証、発走前オッズの時点管理、120通りの確率校正が完了するまで、予想・期待値を表示しません。</p></div>
+      </section>
+    </div>
+    <footer>RACE AI · データの不足は「未取得」と表示 · 自動投票なし · 本画面は先行開発版</footer>
+  </main>
+</body>
+</html>
