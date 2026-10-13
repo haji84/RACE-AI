@@ -32,3 +32,4 @@ jobs:
           RACE_AI_DEBUG_LAYOUT: '1'
         run: |
           python -m race_ai.official_daily_verify --date 2026-10-13 --kind K
+          python -m race_ai.official_daily_verify --date 2026-10-13 --kind B
