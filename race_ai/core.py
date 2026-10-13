@@ -200,7 +200,7 @@ def import_official(db: sqlite3.Connection, path: str | Path, kind: str,
         raise SourceError('extract LZH safely to B/K .TXT first; never execute archives')
     records = parse_k(raw,day) if kind=='K' else parse_b(raw,day)
     with db:
-        digest = source(db,kind,raw,Path(path).name,published_at,captured_at,True)
+        digest = source(db,kind,raw,Path(path).name,published_at,captured_at,False)
         for r in records:
             if kind=='K':
                 db.execute('INSERT OR IGNORE INTO starts VALUES (?,?,?,?,?,?,?,?,?,?,?)',
