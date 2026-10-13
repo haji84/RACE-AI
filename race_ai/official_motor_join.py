@@ -203,7 +203,7 @@ def load_join(motor_file: str|Path,profile_files: list[str|Path], *,
     profiles=[]
     for file,url in zip(profile_files,profile_sources):
         text=Path(file).read_text(encoding='utf-8-sig')
-        first=_name(re.split(r'（|\\(',_normal(text.splitlines()[0]))[0])
+        first=_name(re.split(r'[（(]',_normal(text.splitlines()[0]))[0])
         # Header must be an operator-provided profile identity, NOT free text guessing.
         if not first or not re.fullmatch(r'[\u3040-\u30ff\u3400-\u9fff\w]+',first):
             raise OfficialSourceError('first profile line must be racer name')
