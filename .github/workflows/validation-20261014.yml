@@ -14,7 +14,9 @@ jobs:
         with:
           python-version: '3.12'
       - name: Parse real October 13 B motor numbers and compare within each racing venue
-        run: python -m race_ai.official_motor_day_verify --date 2026-10-13 --venue 19 --race 9
+        run: |
+          python -m race_ai.official_motor_day_verify --date 2026-10-13 --venue 19 --race 9 --output b-motor-20261013.json
+          python -m race_ai.motor_spotcheck --metadata-json b-motor-20261013.json --official-reference-json tests/fixtures/official_20261013_19_09_motor_reference.json
   official-b-motor-today:
     runs-on: ubuntu-latest
     timeout-minutes: 7
@@ -24,4 +26,24 @@ jobs:
         with:
           python-version: '3.12'
       - name: Verify today's pre-race official B motor allocation
-        run: python -m race_ai.official_motor_day_verify --date 2026-10-14 --venue 19 --race 1
+        run: python -m race_ai.official_motor_day_verify --date 2026-10-14 --venue 19 --race 1 --output b-motor-20261014.json
+  metadata-artifact:
+    runs-on: ubuntu-latest
+    timeout-minutes: 7
+    needs: [official-b-motor-today, official-b-motor-previous-day]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Confirm both days in one auditable metadata package
+        run: |
+          python -m race_ai.official_motor_day_verify --date 2026-10-13 --output b-motor-20261013.json
+          python -m race_ai.official_motor_day_verify --date 2026-10-14 --output b-motor-20261014.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: official-motor-b-metadata-20261013-14
+          path: b-motor-202610*.json
+          if-no-files-found: warn
+          retention-days: 30
