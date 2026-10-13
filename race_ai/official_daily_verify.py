@@ -34,7 +34,35 @@ def fetch_and_parse(day:date,kind:str="K")->dict:
     meta=inspect_lzh(raw)
     entry_name=kind+day.strftime('%y%m%d')+'.TXT'
     text=extract_daily_lzh(raw,entry_name)
-    rows=(parse_k(text,day.isoformat()) if kind=='K' else parse_b(text,day.isoformat()))
+    try:
+        rows=(parse_k(text,day.isoformat()) if kind=='K' else parse_b(text,day.isoformat()))
+    except SourceError:
+        if __import__('os').environ.get('RACE_AI_DEBUG_LAYOUT')=='1':
+            import re
+            view=text.decode('cp932',errors='replace').splitlines()
+            started=False
+            print('SANITIZED_ROW_LAYOUT (no names/registration numbers)',file=sys.stderr)
+            count=0
+            for line in view:
+                if not started:
+                    if re.match(r'^\\s*1R\\s+.*?H\\s*\\d{3,4}m',line,re.I):
+                        started=True
+                    continue
+                if re.match(r'^\\s*2R\\s+.*?H\\s*\\d{3,4}m',line,re.I):
+                    break
+                toks=line.strip().split()
+                if not toks:
+                    continue
+                def typ(x):
+                    if x.isdigit():return 'N'+str(len(x))
+                    if re.fullmatch(r'\\d+\\.\\d+',x):return 'DECIMAL'
+                    if re.fullmatch(r'(?:F|L)\\.?\\d*',x):return 'START_FAULT'
+                    return 'TEXT'+str(len(x))
+                print('tokens:',[typ(t) for t in toks[:10]],file=sys.stderr)
+                count+=1
+                if count>=16:
+                    break
+        raise
     ids={(x['race_id'],x['lane']) for x in rows}
     if len(ids)!=len(rows):
         raise SourceError('duplicate lane in official parsed text')
