@@ -1,0 +1,44 @@
+{
+  "source": "https://www.boatrace.jp/owpc/pc/race/racelist?hd=20261013&jcd=19&rno=9",
+  "observed_at": "2026-10-14",
+  "race_id": "20261013-19-09",
+  "validation_scope": "Independent official website race card motor/boat columns; fixed historical numeric facts",
+  "boats": [
+    {
+      "lane": 1,
+      "motor_no": 68,
+      "motor_top2_rate": 27.36,
+      "boat_no": 22
+    },
+    {
+      "lane": 2,
+      "motor_no": 57,
+      "motor_top2_rate": 41.9,
+      "boat_no": 52
+    },
+    {
+      "lane": 3,
+      "motor_no": 72,
+      "motor_top2_rate": 25.47,
+      "boat_no": 30
+    },
+    {
+      "lane": 4,
+      "motor_no": 25,
+      "motor_top2_rate": 28.18,
+      "boat_no": 64
+    },
+    {
+      "lane": 5,
+      "motor_no": 59,
+      "motor_top2_rate": 37.74,
+      "boat_no": 50
+    },
+    {
+      "lane": 6,
+      "motor_no": 16,
+      "motor_top2_rate": 34.95,
+      "boat_no": 33
+    }
+  ]
+}
