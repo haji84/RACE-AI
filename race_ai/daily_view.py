@@ -21,7 +21,7 @@ def render_daily_html(report:dict)->str:
         for m in records:
             prev=m.get('prior_meet') or {}
             if prev:
-                rider=f"{prev.get('meeting_id','不明')} / 新人経験 {_h(prev.get('rookie_starts'))}走"
+                rider=f"{_h(prev.get('meeting_id','不明'))} / 新人経験 {_h(prev.get('rookie_starts'))}走"
             else:
                 rider="未取得"
             adjusted=m.get('rider_adjusted_motor_residual')
