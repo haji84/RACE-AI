@@ -1,0 +1,29 @@
+name: RACE AI daily official B-K integrity
+on:
+  schedule:
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  official-daily-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify yesterday's official B/K in memory (JST 07:00 target)
+        shell: bash
+        run: |
+          DAY="$(TZ=Asia/Tokyo date -d yesterday +%F)"
+          python -m race_ai.official_daily_reconcile --date "$DAY" --output official-daily-status.json
+      - name: Save only aggregate metadata, not original B/K files
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: race-ai-official-archive-integrity
+          path: official-daily-status.json
+          if-no-files-found: warn
+          retention-days: 14
