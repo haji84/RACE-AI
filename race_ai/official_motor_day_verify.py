@@ -72,10 +72,15 @@ def main():
     p.add_argument("--date",required=True)
     p.add_argument("--venue",default="19")
     p.add_argument("--race",type=int,default=1)
+    p.add_argument("--output",help="write derived metadata-only JSON snapshot")
     a=p.parse_args()
     try:
-        print(json.dumps(verify(date.fromisoformat(a.date),a.venue,a.race),
-              ensure_ascii=False,indent=2))
+        result=verify(date.fromisoformat(a.date),a.venue,a.race)
+        rendered=json.dumps(result,ensure_ascii=False,indent=2)
+        if a.output:
+            from pathlib import Path
+            Path(a.output).write_text(rendered+"\n",encoding="utf-8")
+        print(rendered)
     except (SourceError,ValueError,TypeError) as exc:
         print("SAFE_STOP: "+str(exc),file=sys.stderr)
         raise SystemExit(2)
