@@ -45,6 +45,23 @@ class PipelineTests(unittest.TestCase):
         self.assertEqual(lane6['course'],5)
         self.assertEqual(next(r for r in rows if r['lane']==1)['racer_id'],'4171')
 
+    def test_k_absent_racer_has_no_fake_course_or_start(self):
+        original=k_file().decode('cp932')
+        lines=original.splitlines()
+        found=False
+        for i,line in enumerate(lines):
+            if line.lstrip().startswith('06') and '  5 4005 ' in line:
+                lines[i]='K0 5 4005 欠場'
+                found=True
+                break
+        self.assertTrue(found)
+        parsed=parse_k(('\n'.join(lines)+'\n').encode('cp932'),'2020-07-14')
+        self.assertEqual(len(parsed),6)
+        absent=next(r for r in parsed if r['lane']==5)
+        self.assertEqual(absent['st_status'],'ABSENT')
+        self.assertIsNone(absent['course'])
+        self.assertIsNone(absent['st'])
+
     def test_b_program(self):
         self.assertEqual(len(parse_b(b_file(),'2020-07-14')),6)
         r=import_official(self.db,self.write('B200714.TXT',b_file()),'B','2020-07-14',self.published,self.captured)

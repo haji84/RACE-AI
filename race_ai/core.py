@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS provenance (
 );
 CREATE TABLE IF NOT EXISTS starts (
  race_id TEXT NOT NULL, lane INTEGER NOT NULL CHECK(lane BETWEEN 1 AND 6),
- racer_id TEXT NOT NULL, course INTEGER NOT NULL CHECK(course BETWEEN 1 AND 6),
+ racer_id TEXT NOT NULL, course INTEGER CHECK(course BETWEEN 1 AND 6),
  st REAL, st_status TEXT NOT NULL, finish INTEGER,
  race_at TEXT NOT NULL, published_at TEXT NOT NULL, captured_at TEXT NOT NULL,
  sha TEXT NOT NULL REFERENCES provenance(sha),
@@ -137,8 +137,9 @@ def parse_k(raw: bytes, day: str) -> list[dict]:
             header = re.match(r'^\s*(\d{1,2})R\s+.*?H\s*\d{3,4}m', line, re.I)
             if header:
                 if race is not None:
-                    if len(rows) != 6 or {r['lane'] for r in rows} != set(range(1, 7)) or {r['course'] for r in rows} != set(range(1,7)):
-                        raise SourceError(f'incomplete/nonunique result: {race}')
+                    if (len(rows) != 6 or {r['lane'] for r in rows} != set(range(1, 7))
+                        or len({r['course'] for r in rows if r['course'] is not None}) != sum(r['course'] is not None for r in rows)):
+                        raise SourceError(f'incomplete/nonunique result: venue={venue} race={race} rows={len(rows)}')
                     output.extend(rows)
                 race = int(header.group(1))
                 rows = []
@@ -146,8 +147,18 @@ def parse_k(raw: bytes, day: str) -> list[dict]:
             if race is None or not (1 <= race <= 12):
                 continue
             # Official sample: 01  6 4034 name 56 47 6.82 5 0.09 1.50.3
-            m = re.match(r'^\s*(\d{2}|F|L|欠|失|転|落|沈)\s+([1-6])\s+(\d{4})\s+.*?\s+\d{1,3}\s+\d{1,3}\s+\d\.\d{2}\s+([1-6])\s+((?:F|L)?(?:0?\.\d{2})|F|L|--)(?:\s|$)', line)
+            m = re.match(r'^\s*(\d{2}|[FKLS][012]?|欠|失|転|落|沈|妨|エ|不|不完)\s+([1-6])\s+(\d{4})\s+.*?\s+([1-6])\s+((?:F|L)?(?:0?\.\d{2})|F|L|--)(?:\s|$)', line)
             if not m:
+                # Official K keeps an entry for an absent racer without any
+                # start/course/finish. Never invent the missed start from lane.
+                tokens=line.strip().split()
+                if (len(tokens)>=3 and tokens[0] in ('欠','欠場','K0','K1')
+                    and re.fullmatch(r'[1-6]',tokens[1])
+                    and re.fullmatch(r'\d{4}',tokens[2])):
+                    rows.append(dict(race_id=_race_id(day,venue,race),
+                      lane=int(tokens[1]),racer_id=tokens[2],course=None,
+                      st=None,st_status='ABSENT',finish=None,
+                      race_at=day+'T00:00:00+00:00'))
                 continue
             rank, lane, racer_id, course, st_text = m.groups()
             status = 'OK' if re.fullmatch(r'0?\.\d{2}', st_text) else ('F' if st_text.startswith('F') else ('L' if st_text.startswith('L') else 'MISSING'))
@@ -163,7 +174,9 @@ def parse_k(raw: bytes, day: str) -> list[dict]:
 
 
 def parse_b(raw: bytes, day: str) -> list[dict]:
-    text = _decode(raw)
+    # Official B uses full-width １Ｒ and Ｈ１８００ｍ headings.
+    import unicodedata
+    text = unicodedata.normalize('NFKC',_decode(raw))
     if 'STARTB' not in text[:200]:
         raise SourceError('not a B program text')
     output = []
@@ -217,7 +230,7 @@ def _asof_rows(db: sqlite3.Connection, asof: str, racer_id: str) -> list[sqlite3
     # exclude after-decision revisions; latest captured snapshot per (race, boat).
     return db.execute('''SELECT * FROM (
       SELECT s.*, ROW_NUMBER() OVER(PARTITION BY race_id,lane ORDER BY captured_at DESC,sha DESC) AS rn
-      FROM starts s WHERE published_at<=? AND captured_at<=?
+      FROM starts s WHERE published_at<=? AND captured_at<=? AND st_status!='ABSENT'
     ) WHERE rn=1 AND racer_id=? ORDER BY race_at DESC,race_id DESC''', (cutoff,cutoff,racer_id)).fetchall()
 
 
