@@ -36,19 +36,21 @@ def fetch_and_parse(day:date,kind:str="K")->dict:
     text=extract_daily_lzh(raw,entry_name)
     try:
         rows=(parse_k(text,day.isoformat()) if kind=='K' else parse_b(text,day.isoformat()))
-    except SourceError:
+    except SourceError as problem:
         if __import__('os').environ.get('RACE_AI_DEBUG_LAYOUT')=='1':
             import re
             view=text.decode('cp932',errors='replace').splitlines()
+            matches=re.search(r'incomplete/nonunique result: (\d+)',str(problem))
+            target=int(matches.group(1)) if matches else 1
             started=False
             print('SANITIZED_ROW_LAYOUT (no names/registration numbers)',file=sys.stderr)
             count=0
             for line in view:
                 if not started:
-                    if re.match(r'^\s*1R\s+.*?H\s*\d{3,4}m',line,re.I):
+                    if re.match(r'^\s*'+str(target)+r'R\s+.*?H\s*\d{3,4}m',line,re.I):
                         started=True
                     continue
-                if re.match(r'^\s*2R\s+.*?H\s*\d{3,4}m',line,re.I):
+                if re.match(r'^\s*'+str(target+1)+r'R\s+.*?H\s*\d{3,4}m',line,re.I):
                     break
                 toks=line.strip().split()
                 if not toks:
