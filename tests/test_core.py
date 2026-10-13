@@ -105,6 +105,20 @@ class PipelineTests(unittest.TestCase):
         save_exhibition(self.db,p)
         self.assertEqual(exhibition_asof(self.db,'r','2030-01-01T00:00:00Z'),[])
 
+    def test_pair_success_requires_separate_observed_event(self):
+        p=dict(race_id='r2',challenger='4001',defender='4002',
+               outcome='yes',evidence_level='HUMAN_REVIEWED',rights_confirmed=True,
+               clip_ref='local:clip#t=04',reviewer='human',
+               published_at=self.published,captured_at=self.captured)
+        record_entry_evidence(self.db,dict(p,event_id='a',event_type='attempt'))
+        record_entry_evidence(self.db,dict(p,event_id='b',event_type='success'))
+        record_entry_evidence(self.db,dict(p,event_id='c',event_type='resistance'))
+        s=pair_summary(self.db,'4001','4002','2020-07-16T00:00:00Z')
+        self.assertEqual(s['confirmed_successes'],1)
+        self.assertEqual(s['resistances'],1)
+        self.assertEqual(s['confirmed_defenses'],0)
+        self.assertAlmostEqual(s['success_given_attempt'],2/3)
+
     def test_pair_no_unsourced_inference_and_small_sample(self):
         p=dict(event_id='clip1',race_id='r',challenger='4001',defender='4002',
                event_type='attempt',outcome='yes',evidence_level='ESTIMATED',
@@ -114,9 +128,12 @@ class PipelineTests(unittest.TestCase):
         p['evidence_level']='HUMAN_REVIEWED'
         record_entry_evidence(self.db,p)
         s=pair_summary(self.db,'4001','4002','2020-07-16T00:00:00+09:00')
-        self.assertEqual(s['n'],1)
-        self.assertAlmostEqual(s['smoothed_rate'],2/3)
+        self.assertEqual(s['reviewed_encounters'],1)
+        self.assertEqual(s['attempts'],1)
+        self.assertEqual(s['confirmed_successes'],0)
+        self.assertAlmostEqual(s['attack_frequency'],2/3)
+        self.assertAlmostEqual(s['success_given_attempt'],1/3)
         self.assertTrue(s['exploratory'])
-        self.assertEqual(pair_summary(self.db,'4002','4001','2020-07-16T00:00:00+09:00')['n'],0)
+        self.assertEqual(pair_summary(self.db,'4002','4001','2020-07-16T00:00:00+09:00')['attempts'],0)
 
 if __name__=='__main__':unittest.main()
