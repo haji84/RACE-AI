@@ -138,7 +138,7 @@ def parse_k(raw: bytes, day: str) -> list[dict]:
             if header:
                 if race is not None:
                     if len(rows) != 6 or {r['lane'] for r in rows} != set(range(1, 7)) or {r['course'] for r in rows} != set(range(1,7)):
-                        raise SourceError(f'incomplete/nonunique result: venue={venue} race={race} rows={len(rows)} lanes={len({r[\'lane\'] for r in rows})} courses={len({r[\'course\'] for r in rows})}')
+                        raise SourceError(f'incomplete/nonunique result: venue={venue} race={race} rows={len(rows)}')
                     output.extend(rows)
                 race = int(header.group(1))
                 rows = []
