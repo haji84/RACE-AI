@@ -82,6 +82,15 @@ class DailyCoverageTests(unittest.TestCase):
         self.assertIn('CURRENT_DAY_MOTOR_ASSIGNMENT',report['motors'][1]['needs'])
         self.assertIn('motor_observations',report['source_sha256'])
 
+    def test_stale_inventory_never_marked_fresh(self):
+        inventory=meta(venues=[dict(venue='19',motor_cycle='2026-A',motors=[11])])
+        inventory['published_at']='2026-10-12T20:00:00+09:00'
+        inventory['captured_at']='2026-10-12T21:00:00+09:00'
+        self.write('inventory',inventory)
+        report=build_daily(self.root,ASOF)
+        self.assertEqual(report['status'],'STALE_INVENTORY_SOURCE')
+        self.assertFalse(report['inventory_fresh_today'])
+
     def test_future_source_is_not_used(self):
         self.write('exhibition',meta(rows=[
           {**self.exhibition(),'captured_at':'2026-10-14T06:01:00+09:00'}]))
