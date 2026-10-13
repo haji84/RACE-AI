@@ -1,5 +1,7 @@
 """Release-shell invariants; structural tests, NOT browser E2E proof."""
 from pathlib import Path
+import shutil
+import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -25,7 +27,6 @@ class MobileShellTests(unittest.TestCase):
 
     def test_prediction_gated(self):
         self.assertIn("予想・買い目はまだ公開対象外", HTML)
-        self.assertIn("未来", JS) if False else None
         self.assertIn("未取得", JS)
 
     def test_xss_safety_basic(self):
@@ -39,6 +40,11 @@ class MobileShellTests(unittest.TestCase):
         self.assertIn("source_url", JS)
         self.assertIn("races !== count", JS)
         self.assertIn("6_000_000", JS)
+
+    def test_javascript_syntax_when_node_available(self):
+        if not shutil.which("node"):
+            self.skipTest("node unavailable")
+        subprocess.run(["node", "--check", str(ROOT / "web" / "app.js")], check=True)
 
     def test_mobile_responsive_layout(self):
         self.assertIn('name="viewport"', HTML)
