@@ -146,7 +146,7 @@ def parse_k(raw: bytes, day: str) -> list[dict]:
             if race is None or not (1 <= race <= 12):
                 continue
             # Official sample: 01  6 4034 name 56 47 6.82 5 0.09 1.50.3
-            m = re.match(r'^\s*(\d{2}|F|L|欠|失|転|落|沈)\s+([1-6])\s+(\d{4})\s+.*?\s+([1-6])\s+((?:F|L)?(?:0?\.\d{2})|F|L|--)(?:\s|$)', line)
+            m = re.match(r'^\s*(\d{2}|[FKLS][012]?|欠|失|転|落|沈|妨|エ|不|不完)\s+([1-6])\s+(\d{4})\s+.*?\s+([1-6])\s+((?:F|L)?(?:0?\.\d{2})|F|L|--)(?:\s|$)', line)
             if not m:
                 continue
             rank, lane, racer_id, course, st_text = m.groups()
