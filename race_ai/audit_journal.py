@@ -56,7 +56,6 @@ def append_report(db:sqlite3.Connection, report:dict)->dict:
         "venues":venues,"races":races,"boats":count,"status":report["status"]
     },ensure_ascii=False,sort_keys=True).encode()
     metadata_sha=hashlib.sha256(canonical).hexdigest()
-    db.execute(SCHEMA.replace("\n","\n")) if False else None
     db.executescript(SCHEMA)
     existing=db.execute("""SELECT metadata_sha256 FROM daily_snapshots
              WHERE day=? AND source_kind=? AND source_sha256=?""",
