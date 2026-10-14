@@ -25,7 +25,7 @@ def verify_github_oidc(token: str, *, jwks_client=None) -> dict:
         "repository": REPOSITORY,
         "repository_id": "1416489937",
         "repository_owner_id": "173585154",
-        "sub": "repo:haji84/RACE-AI:environment:blob-e2e-preview",
+        "sub": "repo:haji84@173585154/RACE-AI@1416489937:environment:blob-e2e-preview",
         "ref": REF,
         "repository_owner": "haji84",
         "workflow_ref": REPOSITORY+"/"+WORKFLOW+"@"+REF,
@@ -39,4 +39,3 @@ def verify_github_oidc(token: str, *, jwks_client=None) -> dict:
         print('PROBE_IDENTITY_MISMATCH ' + ','.join(mismatches), flush=True)
         raise ValueError("untrusted GitHub Actions identity")
     return claims
-
