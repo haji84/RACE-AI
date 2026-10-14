@@ -20,5 +20,5 @@ jobs:
           persist-credentials: false
       - name: Verify private Blob with GitHub OIDC
         env:
-          RACE_AI_PROBE_URL: ${{ vars.RACE_AI_PROBE_URL }}
+          RACE_AI_PROBE_URL: https://race-ai-preview-35zjg8yzl-qq1130034-1738.vercel.app/api/blob-probe
         run: python3 scripts/run_private_blob_probe.py
