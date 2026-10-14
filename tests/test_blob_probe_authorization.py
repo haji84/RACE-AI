@@ -10,17 +10,21 @@ probe=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(probe)
 
 class ProbeAuthorizationTests(unittest.TestCase):
-    def test_no_secret_rejected(self):
+    def test_no_bearer_rejected(self):
         with patch.dict(os.environ,{"VERCEL_ENV":"preview"},clear=True):
-            self.assertFalse(probe.authorized({"X-Race-AI-Probe-Secret":""}))
+            self.assertFalse(probe.authorized({}))
 
-    def test_production_rejected_even_with_secret(self):
-        secret="a"*40
-        with patch.dict(os.environ,{"VERCEL_ENV":"production","RACE_AI_PROBE_SECRET":secret},clear=True):
-            self.assertFalse(probe.authorized({"X-Race-AI-Probe-Secret":secret}))
+    def test_production_rejected(self):
+        with patch.dict(os.environ,{"VERCEL_ENV":"production"},clear=True):
+            with patch.object(probe,"verify_github_oidc",return_value={}):
+                self.assertFalse(probe.authorized({"Authorization":"Bearer example"}))
 
-    def test_preview_secret_required(self):
-        secret="a"*40
-        with patch.dict(os.environ,{"VERCEL_ENV":"preview","RACE_AI_PROBE_SECRET":secret},clear=True):
-            self.assertFalse(probe.authorized({"X-Race-AI-Probe-Secret":"wrong"}))
-            self.assertTrue(probe.authorized({"X-Race-AI-Probe-Secret":secret}))
+    def test_invalid_oidc_rejected(self):
+        with patch.dict(os.environ,{"VERCEL_ENV":"preview"},clear=True):
+            with patch.object(probe,"verify_github_oidc",side_effect=ValueError("invalid")):
+                self.assertFalse(probe.authorized({"Authorization":"Bearer example"}))
+
+    def test_valid_oidc_in_preview(self):
+        with patch.dict(os.environ,{"VERCEL_ENV":"preview"},clear=True):
+            with patch.object(probe,"verify_github_oidc",return_value={}):
+                self.assertTrue(probe.authorized({"Authorization":"Bearer example"}))
