@@ -13,10 +13,10 @@
 </head>
 <body>
   <header class="topbar">
-    <div class="wrap bar-content"><div class="brand"><span class="brand-icon" aria-hidden="true">R</span><span>RACE <b>AI</b></span></div><span class="edition">BOAT FIRST · PREVIEW</span></div>
+    <div class="wrap bar-content"><div class="brand"><span class="brand-icon" aria-hidden="true">≋</span><span>RACE <b>AI</b></span><small class="brand-sub">予想・分析・資金管理</small></div><span class="edition">BOAT FIRST · PREVIEW</span></div>
   </header>
   <main class="wrap">
-    <section class="intro">
+    <section class="intro" hidden>
       <p class="eyebrow">RACE INTELLIGENCE</p>
       <h1>今日のレースを、<br><span>根拠から見る。</span></h1>
       <p class="intro-sub">ボートレース先行版。データの出典と取得時刻を明示し、未取得の数値は作りません。</p>
@@ -41,7 +41,7 @@
       <button type="button" data-page="research">研究</button>
     </nav>
     <div id="boat-view">
-      <section class="panel dashboard" id="dashboard-home">
+      <section class="panel dashboard" id="dashboard-home">\n        <div class="home-heading"><div><p class="eyebrow">RACE INTELLIGENCE</p><h2>今日のレース</h2></div><button type="button" class="home-all" data-goto="races">全レースを見る →</button></div>
         <div class="section-head"><div><p class="eyebrow">RACE AI DASHBOARD</p><h2>ボートレース ホーム</h2></div><span class="state-pill warning">開発版</span></div>
         <p class="muted">取得できたデータだけを表示します。未検証のAI評価・推奨買い目・回収率は表示しません。</p>
         <div class="dashboard-metrics">
@@ -50,7 +50,7 @@
           <article><span>予想・買い目</span><strong>検証中</strong></article>
           <article><span>回収率</span><strong>未集計</strong></article>
         </div>
-        <div class="dashboard-actions"><button type="button" data-goto="races">全レースを見る →</button><button type="button" data-goto="detail">出走データを見る →</button></div>
+        <section class="home-feature" aria-label="おすすめレース"><div><span class="feature-label">AIのおすすめレース</span><h3 id="featured-race">データ取得待ち</h3><p id="featured-detail">当日の出走表が届き次第、開催場とレースを表示します。未検証の予想は公開しません。</p></div><button type="button" data-goto="races">レースを選ぶ →</button></section>\n        <div class="dashboard-actions"><button type="button" data-goto="races">全レースを見る →</button><button type="button" data-goto="detail">出走データを見る →</button></div>
       </section>
       <section class="panel page-placeholder" id="page-picks" hidden><p class="eyebrow">BET ALLOCATION</p><h2>買い目配分</h2><p class="muted">3連単120通りの確率校正、発走前オッズ、実レース検証が完了するまで推奨買い目は公開しません。予算・点数設定は今後接続します。</p><span class="state-pill warning">未検証・購入見送り</span></section>
       <section class="panel page-placeholder" id="page-results" hidden><p class="eyebrow">PERFORMANCE</p><h2>成績</h2><p class="muted">実際に記録した予想・購入・結果のみで集計します。架空の的中率や回収率は表示しません。</p></section>
@@ -62,13 +62,13 @@
         <div id="venue-buttons" class="venue-buttons" role="group" aria-label="開催場"></div>
         <div id="race-cards" class="race-cards" aria-live="polite"><p class="muted">本日のレース情報を確認中です。</p></div>
       </section>
-      <section class="panel import-panel">
+      <section class="panel import-panel" id="debug-import" hidden>
         <div><p class="eyebrow">DATA INPUT · LOCAL ONLY</p><h2>レースデータを開く</h2>
           <p class="muted">当日の出走データを自動確認します。配信権限や取得に問題がある場合は未取得と表示します。JSONの手動読込は検証用です。</p></div>
         <label class="file-action" for="race-file">検証用JSONを選ぶ<input id="race-file" type="file" accept=".json,application/json"></label>
         <p id="file-message" class="message" role="status" aria-live="polite">自動取得を確認しています。架空の予想やレースは表示しません。</p>
       </section>
-      <section class="source" aria-label="データの状態">
+      <details class="debug-toggle"><summary>検証用データの手動読み込み</summary><p class="muted">通常利用では不要です。自動取得が失敗した場合の検証専用。</p><button type="button" id="open-debug-import">検証用の読み込み画面を表示</button></details>\n      <section class="source" aria-label="データの状態">
         <span id="source-state" class="state-pill">データ未取得</span>
         <span id="source-date">対象日：未取得</span>
         <span id="source-time">初回確認時刻：未取得</span>
