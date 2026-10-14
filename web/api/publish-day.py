@@ -37,7 +37,11 @@ def checked_source(url, day):
 
 
 def read_bytes(client, key):
-    response = client.get(key, access='private', use_cache=False, timeout=10)
+    from vercel.blob import BlobNotFoundError
+    try:
+        response = client.get(key, access='private', use_cache=False, timeout=10)
+    except BlobNotFoundError:
+        return None
     if response is None:
         return None
     if response.status_code != 200 or not isinstance(response.content, bytes) or len(response.content) > MAX_BYTES:

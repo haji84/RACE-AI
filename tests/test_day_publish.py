@@ -58,6 +58,15 @@ class DayPublicationTests(unittest.TestCase):
         self.assertEqual(first['sha256'],second['sha256'])
         self.assertEqual(len(client.puts),2)
 
+    def test_actual_sdk_missing_blob_exception_allows_first_publication(self):
+        from vercel.blob.errors import BlobNotFoundError
+        class SdkClient(Client):
+            def get(self,key,**kwargs):
+                if key not in self.data:
+                    raise BlobNotFoundError()
+                return super().get(key,**kwargs)
+        self.assertEqual(self.module.publish_snapshot(snapshot(),now=NOW,client=SdkClient())['status'],'verified')
+
     def test_stale_unapproved_or_wrong_source_data_never_writes(self):
         for change in [{'date_jst':'2026-10-14'},{'publication_review':'synthetic-approval'},{'source_url':'https://attacker.example/feed'}, {'redistribution_authorized':False}]:
             with self.subTest(change=change):
@@ -84,10 +93,17 @@ class DayPublicationTests(unittest.TestCase):
     def test_nested_source_cannot_escape_approved_origin_or_race_identity(self):
         for url in ['https://attacker.example/program', 'https://www.boatrace.jp/owpc/pc/race/racelist?hd=20261015&jcd=18&rno=1']:
             data=snapshot(); data['venues'][0]['races'][0]['boats'][0]['detail_source_url']=url
+            data['venues'][0]['races'][0]['boats'][0]['detail_captured_at']='2026-10-15T03:00:00+09:00'
             client=Client()
             with self.subTest(url=url), self.assertRaises(ValueError):
                 self.module.publish_snapshot(data,now=NOW,client=client)
             self.assertEqual(client.puts,[])
+
+    def test_matching_same_day_detail_source_can_publish(self):
+        data=snapshot(); boat=data['venues'][0]['races'][0]['boats'][0]
+        boat['detail_source_url']='https://www.boatrace.jp/owpc/pc/race/racelist?hd=20261015&jcd=02&rno=1'
+        boat['detail_captured_at']='2026-10-15T03:00:00+09:00'
+        self.assertEqual(self.module.publish_snapshot(data,now=NOW,client=Client())['status'],'verified')
 
     def test_idempotent_day_recovers_missing_immutable_version(self):
         client=Client()
