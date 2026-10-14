@@ -16,8 +16,12 @@ Commit8bb7d69f9c8fb302055bc9e2609903d1e8f73e4b; tree293e81c2f88b6a0544dfea474b27
 | Trusted Sources rule | narrow exact repo/IDs/branch/workflow/env/audience, preview only; API returned404 not_found | external access unresolved |
 | PR60 Tokuyama worker | head efd12cac792cc7100387a1f4952db128d422e125; CI38608857764 success | Draft safe partial collector |
 | Worker independent review | detached navigation date-proof defect reproduced and fixed with3RED→GREEN tests;20worker tests pass | code fix verified, live feed unverified |
-| UI |8reference images individually reviewed; mobile/desktop and7views implemented in isolated lane; review and browser evidence being completed | testing/review |
-| Today reader SDK repair | separate bounded lane from PR59 using pinned official private get instead of hypothetical URL/OIDC storage auth | implementation/testing |
+| PR62 UI |head a6bc73d97d56e0f6626450e1883000763feb0643; CI38611271330 success;8references reviewed;7views;Chromium1440/390/320 synthetic flow passed | Draft software/browser verified, live/Safari unverified |
+| PR63 Today SDK reader |head eee30c0af9ec0c2532eaab82943d7dc251d2d77f; CI38612150125 success including pinned-runtime stage;16focused tests after independent review fixes | Draft SDK contract verified, real I/O unverified |
+
+## Integrated Preview checkpoint
+
+Branch test/p0-integrated-preview at38da67ab487e25de926c80533352cdae52523691; deployment dpl_AnpKANCiAisYw3aYtMrnTabzkCbR READY. Authenticated /200, /ui-model.js200, /api/today503 FEED_NOT_APPROVED, /api/blob-probe405. Auth + Worker + UI + API suite206 tests OK,1existing OpenCV skip with pinned dependencies; bare stage206 tests OK,20dependency skips. No combined-branch hosted CI is claimed; lane PR CI passed. See docs/evidence/20261015/INTEGRATION_CHECKPOINT.json and docs/P0_INITIAL_AUDIT_20261015.md.
 
 ## P0 not yet complete
 
@@ -31,7 +35,7 @@ SSO remains enabled for all deployments. Production remains dpl_5P4r39De9UGb1ZR5
 2. Resolve Vercel Trusted Sources404 using an authorized dashboard path. Browser fallback authorization is needed under current tool connection instructions; do not disable SSO or expose bypass secrets. Config details: docs/P0_PREVIEW_REPAIR_STATUS.md on PR59 branch.
 3. Run exact-head protected POST→private put/get→SHA→delete; save actual log and deployment IDs.
 4. Establish independently verified source rights; automatically acquire per-race details/time/meeting, reconcile registrations/motors, build allowed snapshot, then connect worker→Blob→SDK/API→UI.
-5. Finish separate UI/API review and synthetic/browser tests. Do not label these live E2E or actual Safari.
+5. Maintain corrected UI/API guards and completed synthetic/browser evidence; finish live E2E and actual Safari. UI session records are not persistent accounts.
 6. Review existing dependency stack before main integration; final general release requires user decision.
 
 GitHub Actions CI runs were observed. A continuously executing autonomous development scheduler has not been installed or demonstrated by this session.

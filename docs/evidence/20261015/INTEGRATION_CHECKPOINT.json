@@ -1,0 +1,72 @@
+{
+  "observed_at": "2026-10-14T18:06:30.435Z",
+  "integration_commit": "38da67ab487e25de926c80533352cdae52523691",
+  "integration_tree": "6fe9ccf28de1d18d70887f617774ba5355caa148",
+  "deployment_id": "dpl_AnpKANCiAisYw3aYtMrnTabzkCbR",
+  "deployment_url": "https://race-ai-preview-mi0p1cwnc-qq1130034-1738.vercel.app",
+  "environment": "preview",
+  "python_tests": {
+    "count": 206,
+    "result": "OK",
+    "pinned_runtime_skips": 1,
+    "bare_runtime_skips": 20
+  },
+  "browser": {
+    "engine": "Chromium",
+    "widths": [
+      1440,
+      390,
+      320
+    ],
+    "fixture": "synthetic",
+    "result": "pass"
+  },
+  "authenticated_deployment_fetch": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/ui-model.js",
+      "status": 200
+    },
+    {
+      "path": "/api/today",
+      "status": 503,
+      "body": "{\"error\": \"FEED_NOT_APPROVED\"}"
+    },
+    {
+      "path": "/api/blob-probe",
+      "status": 405,
+      "body": ""
+    }
+  ],
+  "api_pr": 63,
+  "api_head": "eee30c0af9ec0c2532eaab82943d7dc251d2d77f",
+  "api_ci_runs": [
+    {
+      "id": 38612150194,
+      "name": "RACE AI public source smoke (metadata only)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 109,
+      "jobs_url": "https://api.github.com/repos/haji84/RACE-AI/actions/runs/38612150194/jobs",
+      "logs_url": "https://api.github.com/repos/haji84/RACE-AI/actions/runs/38612150194/logs",
+      "workflow_id": 383710050
+    },
+    {
+      "id": 38612150125,
+      "name": "RACE AI unit tests",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 132,
+      "jobs_url": "https://api.github.com/repos/haji84/RACE-AI/actions/runs/38612150125/jobs",
+      "logs_url": "https://api.github.com/repos/haji84/RACE-AI/actions/runs/38612150125/logs",
+      "workflow_id": 383245492
+    }
+  ],
+  "verified_live_blob_roundtrip": false,
+  "verified_live_today_feed": false,
+  "verified_iphone_safari": false,
+  "production_changed": false
+}
