@@ -210,5 +210,47 @@ class TransportTests(unittest.TestCase):
             self.assertEqual(opener.return_value.open.call_args.kwargs['timeout'], TIMEOUT)
 
 
+class DetailCollectionBridgeTests(unittest.TestCase):
+    def test_detail_scope_required_and_normalized_metadata_is_joined(self):
+        from race_ai.official_racelist_worker import source_scope
+        from tests.test_official_racelist_adapter import fixture
+        calls = []
+        def index_transport(url, **bounds):
+            return FetchResponse(html(), url, 200, 'text/html')
+        def detail_transport(url, **bounds):
+            from urllib.parse import parse_qs, urlsplit
+            number = int(parse_qs(urlsplit(url).query)['rno'][0])
+            calls.append(number)
+            body = fixture(number=number)
+            for lane in range(1, 7):
+                body = body.replace(f'選手 {lane}', f'選手{number}-{lane}')
+            return FetchResponse(body.encode(), url, 200, 'text/html')
+        blocked = collect_tokuyama_day(DAY, rights=rights(), now=NOW,
+            transport=index_transport, detail_rights=[], detail_transport=detail_transport)
+        self.assertEqual(blocked['status'], 'DETAIL_SOURCE_RIGHTS_BLOCKED')
+        self.assertEqual(calls, [])
+        detail_rights = [RightsRecord('18', 'facts_ingest', 'allowed', source_scope('18'),
+            NOW.isoformat(), 'synthetic detail scope approval', 'test reviewer')]
+        result = collect_tokuyama_day(DAY, rights=rights(), now=NOW, transport=index_transport,
+            detail_rights=detail_rights, detail_transport=detail_transport)
+        self.assertEqual(result['status'], 'NORMALIZED_REQUIRES_PUBLICATION_APPROVAL')
+        self.assertEqual(calls, list(range(1, 13)))
+        snapshot = result['snapshot']
+        self.assertEqual(len(snapshot['sources']), 13)
+        self.assertEqual(snapshot['venues'][0]['races'][0]['closed_at'], '2026-10-15T08:03:00+09:00')
+        first = snapshot['venues'][0]['races'][0]['boats'][0]
+        self.assertEqual(first['boat_no'], 21)
+        self.assertEqual(first['average_st'], 0.17)
+        self.assertFalse(snapshot['redistribution_authorized'])
+        approval = dict(redistribution_authorized=True, source_url=endpoint(DAY),
+                        evidence_reference='synthetic index permission', reviewed_by='reviewer')
+        with self.assertRaisesRegex(ValueError, 'source approval'):
+            validate(snapshot, today=DAY, approval=approval)
+        approval['source_approvals'] = [dict(redistribution_authorized=True,
+            source_url=s['source_url'], evidence_reference='synthetic detail permission', reviewed_by='reviewer')
+            for s in snapshot['sources'][1:]]
+        self.assertEqual(validate(snapshot, today=DAY, approval=approval)['races'], 12)
+
+
 if __name__ == '__main__':
     unittest.main()

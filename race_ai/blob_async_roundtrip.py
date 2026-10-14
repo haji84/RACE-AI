@@ -47,6 +47,7 @@ async def verify_private_day(client, store: Path, *, day: date,
     data=read_current_snapshot(store,today=day)
     key=day_blob_key(day)
     raw=(json.dumps(data,ensure_ascii=False,separators=(",",":"))+"\n").encode()
+    if len(raw)>MAX_BYTES:raise ValueError("oversized snapshot")
     expected=hashlib.sha256(raw).hexdigest()
     if not execute:
         return {"status":"DRY_RUN","pathname":key,"sha256":expected}
@@ -55,11 +56,12 @@ async def verify_private_day(client, store: Path, *, day: date,
                                     add_random_suffix=False,overwrite=True))
     pathname=result.get("pathname") if isinstance(result,dict) else getattr(result,"pathname",None)
     if pathname!=key:raise ValueError("upload key mismatch")
-    response=await resolve(client.get(key,access="private"))
+    response=await resolve(client.get(key,access="private",use_cache=False,timeout=10))
     if response is None:raise ValueError("Blob not found")
     status=response.get("status_code",response.get("statusCode")) if isinstance(response,dict) else getattr(response,"status_code",getattr(response,"statusCode",None))
     if status is not None and status!=200:raise ValueError("unexpected Blob response")
-    stream=response.get("stream") if isinstance(response,dict) else getattr(response,"stream",None)
+    content=response.get("content") if isinstance(response,dict) else getattr(response,"content",None)
+    stream=content if isinstance(content,(bytes,bytearray)) else (response.get("stream") if isinstance(response,dict) else getattr(response,"stream",None))
     payload=await read_bounded(stream)
     if hashlib.sha256(payload).hexdigest()!=expected:
         raise ValueError("readback SHA mismatch")

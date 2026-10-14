@@ -10,7 +10,7 @@ JST=ZoneInfo("Asia/Tokyo")
 
 def fixture(day):
     return {"date_jst":day.isoformat(),"source_url":"https://example.org/synthetic",
-            "source_sha256":"a"*64,"first_observed_at":datetime.now(JST).isoformat(),
+            "source_sha256":"a"*64,"first_observed_at":datetime.combine(day,datetime.min.time(),tzinfo=JST).isoformat(),
             "venues":[{"venue":"18","races":[{"race_id":day.strftime("%Y%m%d")+"-18-01",
                 "boats":[{"lane":i,"racer_registration_id":str(4000+i),"motor_no":None}
                          for i in range(1,7)]}]}]}

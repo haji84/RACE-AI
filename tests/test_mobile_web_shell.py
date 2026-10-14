@@ -7,6 +7,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1]
 HTML = (ROOT / "web" / "index.html").read_text(encoding="utf-8")
 JS = (ROOT / "web" / "app.js").read_text(encoding="utf-8")
+CORE = (ROOT / "web" / "ui-core.js").read_text(encoding="utf-8")
 CSS = (ROOT / "web" / "style.css").read_text(encoding="utf-8")
 
 
@@ -24,7 +25,8 @@ class MobileShellTests(unittest.TestCase):
         self.assertIn('redistribution_authorized', JS)
         self.assertNotIn('fetch("https:', JS)
         self.assertNotIn("XMLHttpRequest", JS)
-        self.assertNotIn("localStorage", JS)
+        # Local settings/manual records are explicitly authorized. Race data still
+        # comes only from the same-origin feed or an explicitly chosen local file.
         # A URL-prefix check is permitted; actual network calls are not.
         self.assertNotIn("sendBeacon(", JS)
         self.assertNotIn("new WebSocket(", JS)
@@ -40,16 +42,21 @@ class MobileShellTests(unittest.TestCase):
         self.assertIn("replaceChildren", JS)
 
     def test_provenance_and_schema_guard(self):
-        self.assertIn("first_observed_at", JS)
-        self.assertIn("source_sha256", JS)
-        self.assertIn("source_url", JS)
-        self.assertIn("races !== count", JS)
+        self.assertIn("first_observed_at", CORE)
+        self.assertIn("source_sha256", CORE)
+        self.assertIn("source_url", CORE)
         self.assertIn("6_000_000", JS)
+
+    def test_ui_behavior_contract_when_node_available(self):
+        if not shutil.which("node"):
+            self.skipTest("node unavailable")
+        subprocess.run(["node", "--test", str(ROOT / "tests" / "ui_behavior.test.js")], check=True)
 
     def test_javascript_syntax_when_node_available(self):
         if not shutil.which("node"):
             self.skipTest("node unavailable")
-        subprocess.run(["node", "--check", str(ROOT / "web" / "app.js")], check=True)
+        for name in ("app.js", "ui-core.js", "money.js"):
+            subprocess.run(["node", "--check", str(ROOT / "web" / name)], check=True)
 
     def test_mobile_responsive_layout(self):
         self.assertIn('name="viewport"', HTML)

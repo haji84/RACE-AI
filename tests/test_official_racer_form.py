@@ -15,13 +15,13 @@ STAMP='2026-10-13T23:00:00+09:00'
 
 class RacerPriorFormTests(unittest.TestCase):
     def make(self):
-        motor=parse_motor_history((FIX/'hamanako_motor12_excerpt.txt').read_text(),
+        motor=parse_motor_history((FIX/'hamanako_motor12_excerpt.txt').read_text(encoding='utf-8'),
              venue='06',motor_no=12,source_url=MOTOR_URL,captured_at=STAMP)
-        p=parse_official_racer_profile((FIX/'racer_5466_excerpt.txt').read_text(),
+        p=parse_official_racer_profile((FIX/'racer_5466_excerpt.txt').read_text(encoding='utf-8'),
              expected_name='成田華音',source_url=PROFILE_URL,captured_at=STAMP)
         join=audit_previous_meet(motor,[p],target_meet_start='2026-09-19',
                                  cohort_debut_months={138:'2026-05'})
-        form=parse_racer_recent_meets((FIX/'racer_5466_recent3_excerpt.txt').read_text(),
+        form=parse_racer_recent_meets((FIX/'racer_5466_recent3_excerpt.txt').read_text(encoding='utf-8'),
              racer_name='成田華音',racer_id='5466',source_url=FORM_URL,captured_at=STAMP)
         return join,form
 

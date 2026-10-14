@@ -15,11 +15,11 @@ PRIOR_START='2026-09-19'
 
 class OfficialMotorJoinTests(unittest.TestCase):
     def history(self):
-        return parse_motor_history((FIX/'hamanako_motor12_excerpt.txt').read_text(),
+        return parse_motor_history((FIX/'hamanako_motor12_excerpt.txt').read_text(encoding='utf-8'),
            venue='06',motor_no=12,source_url=MOTOR_URL,captured_at=CAPTURE)
 
     def profile(self):
-        return parse_official_racer_profile((FIX/'racer_5466_excerpt.txt').read_text(),
+        return parse_official_racer_profile((FIX/'racer_5466_excerpt.txt').read_text(encoding='utf-8'),
              expected_name='成田華音',source_url=RACER_URL,captured_at=CAPTURE)
 
     def test_actual_motor_history_transcription_parses_with_final(self):
@@ -66,7 +66,7 @@ class OfficialMotorJoinTests(unittest.TestCase):
         self.assertEqual(res['motor_rows_parsed'],4)
 
     def test_malformed_motor_header_safe_stop(self):
-        txt=(FIX/'hamanako_motor12_excerpt.txt').read_text()
+        txt=(FIX/'hamanako_motor12_excerpt.txt').read_text(encoding='utf-8')
         with self.assertRaises(OfficialSourceError):
             parse_motor_history(txt,venue='06',motor_no=13,
               source_url=MOTOR_URL,captured_at=CAPTURE)
@@ -95,7 +95,7 @@ class OfficialMotorJoinTests(unittest.TestCase):
 
     def test_official_profile_url_racer_id_must_match(self):
         with self.assertRaises(OfficialSourceError):
-            parse_official_racer_profile((FIX/'racer_5466_excerpt.txt').read_text(),
+            parse_official_racer_profile((FIX/'racer_5466_excerpt.txt').read_text(encoding='utf-8'),
                   expected_name='成田華音',source_url='https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4436',captured_at=CAPTURE)
 
     def test_html_four_column_rows(self):

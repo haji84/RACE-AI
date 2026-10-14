@@ -107,7 +107,9 @@ class RaceLinks(TableParser):
 
 def collect_tokuyama_day(day: date, *, rights: list[RightsRecord],
                          now: datetime | None = None, transport=None,
-                         details: list[dict] | None = None) -> dict:
+                         details: list[dict] | None = None,
+                         detail_rights: list[RightsRecord] | None = None,
+                         detail_transport=None) -> dict:
     """Collect one current-day index or return an explicit failure/partial state.
 
     An allowed ingestion record must match this exact source URL or SOURCE_SCOPE
@@ -168,14 +170,33 @@ def collect_tokuyama_day(day: date, *, rights: list[RightsRecord],
     except (UnicodeError, SourceError, ValueError):
         return stopped('SOURCE_INVALID')
     report['race_count'] = 12
+    detail_sources = []
+    if details is not None and detail_rights is not None:
+        return stopped('DETAILS_INVALID')
+    if details is None and detail_rights is not None:
+        from .official_racelist_worker import collect_official_racelist
+        details = []
+        for number in range(1, 13):
+            collected = collect_official_racelist(day, '18', number, rights=detail_rights,
+                now=now if supplied_clock else None, transport=detail_transport)
+            if collected['status'] != 'OFFICIAL_BODY_IDENTITY_VERIFIED':
+                return {**stopped('DETAIL_' + collected['status']),
+                        'failed_race_id': f'{day:%Y%m%d}-18-{number:02d}'}
+            detail = collected['detail']
+            details.extend(detail['boats'])
+            detail_sources.append({key: detail[key] for key in
+                ('source_url', 'source_sha256', 'first_observed_at')})
     if details is None:
         return {**report, 'status': 'PARTIAL_INDEX_DETAILS_REQUIRED',
                 'partial_index': index,
                 'missing_fields': ['racer_registration_id', 'motor_no', 'closed_at']}
     try:
+        validation_now = now if supplied_clock else datetime.now(timezone.utc)
+        if validation_now.astimezone(JST).date() != day:
+            return stopped('DAY_INVALID')
         for row in details:
             captured = datetime.fromisoformat(row['captured_at'].replace('Z', '+00:00'))
-            if captured.tzinfo is None or captured > now or captured.astimezone(JST).date() != day:
+            if captured.tzinfo is None or captured > validation_now or captured.astimezone(JST).date() != day:
                 raise SourceError('detail timestamp invalid')
         joined = join_verified_details(index, details, day=day)
         for race in joined['races']:
@@ -184,7 +205,7 @@ def collect_tokuyama_day(day: date, *, rights: list[RightsRecord],
                     raise SourceError('duplicate racer or motor in a single race')
     except (SourceError, ValueError, TypeError, KeyError, AttributeError):
         return stopped('DETAILS_INVALID')
-    races = [{**race, 'closed_at': None, 'preview_available': False,
+    races = [{**race, 'closed_at': race.get('closed_at'), 'preview_available': False,
               'result_available': False} for race in joined['races']]
     snapshot = {**report, 'provider': 'TOKUYAMA_OFFICIAL_INDEX_WITH_VERIFIED_DETAILS',
                 'status': 'NORMALIZED_REQUIRES_PUBLICATION_APPROVAL',
@@ -193,4 +214,10 @@ def collect_tokuyama_day(day: date, *, rights: list[RightsRecord],
                 'current_motor_cycle_known': False,
                 'original_exhibition_supported': False,
                 'official_result_verified': False}
+    if detail_sources:
+        snapshot['sources'] = [{key: report[key] for key in
+            ('source_url', 'source_sha256', 'first_observed_at')}] + detail_sources
+        snapshot['last_observed_at'] = max(
+            (s['first_observed_at'] for s in snapshot['sources']),
+            key=lambda value: datetime.fromisoformat(value.replace('Z', '+00:00')))
     return {**report, 'status': snapshot['status'], 'snapshot': snapshot}

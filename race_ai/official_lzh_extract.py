@@ -7,11 +7,42 @@ from __future__ import annotations
 
 import ctypes
 import ctypes.util
+import io
 import re
 
 from .core import SourceError
 
 MAX_UNCOMPRESSED=20_000_000
+
+
+def _extract_portable(raw: bytes, expected_name: str) -> bytes:
+    """Pinned lhafile fallback, with no path extraction or archive execution."""
+    try:
+        import lhafile
+    except ImportError as exc:
+        raise SourceError('install libarchive or the pinned lhafile runtime') from exc
+    try:
+        with io.BytesIO(raw) as memory:
+            archive = lhafile.Lhafile(memory)
+            entries = archive.infolist()
+            if len(entries) != 1:
+                raise SourceError('expected exactly one daily text entry')
+            entry = entries[0]
+            name = entry.filename
+            if (not isinstance(name, str) or name.upper() != expected_name.upper()
+                    or '/' in name or '\\' in name or '..' in name
+                    or getattr(entry, 'directory', None)):
+                raise SourceError('unexpected archive entry name')
+            if not 0 < entry.file_size <= MAX_UNCOMPRESSED or not 0 < entry.compress_size <= len(raw):
+                raise SourceError('daily text outside size cap')
+            content = archive.read(name)
+            if not isinstance(content, bytes) or len(content) != entry.file_size or len(content) > MAX_UNCOMPRESSED:
+                raise SourceError('declared and actual daily text sizes differ')
+            return content
+    except SourceError:
+        raise
+    except Exception as exc:
+        raise SourceError('portable LZH validation or decompression failed') from exc
 
 
 def extract_daily_lzh(raw:bytes, expected_name:str)->bytes:
@@ -23,7 +54,7 @@ def extract_daily_lzh(raw:bytes, expected_name:str)->bytes:
     inspect_lzh(raw)
     libname=ctypes.util.find_library('archive')
     if not libname:
-        raise SourceError('libarchive not installed')
+        return _extract_portable(raw, expected_name)
     lib=ctypes.CDLL(libname)
     ptr=ctypes.c_void_p
     def api(symbol,result,args):

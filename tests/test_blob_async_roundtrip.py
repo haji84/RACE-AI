@@ -20,6 +20,20 @@ class AsyncClient:
         return {"status_code":200,"stream":stream()}
 
 class AsyncBlobTests(unittest.IsolatedAsyncioTestCase):
+    async def test_actual_sdk_content_bytes(self):
+        from types import SimpleNamespace
+        class Client(AsyncClient):
+            async def get(self, key, **kwargs):
+                self.read_options = kwargs
+                return SimpleNamespace(content=self.objects[key], status_code=200)
+        with tempfile.TemporaryDirectory() as tmp:
+            store = Path(tmp)
+            (store/'2026-10-14.json').write_text('{"date_jst":"2026-10-14","redistribution_authorized":true}', encoding='utf-8')
+            client = Client()
+            result = await verify_private_day(client, store, day=DAY, execute=True)
+            self.assertEqual(result['status'], 'BLOB_ASYNC_ROUNDTRIP_VERIFIED')
+            self.assertIs(client.read_options.get('use_cache'), False)
+
     async def test_async_stream(self):
         async def chunks():
             yield b"abc"

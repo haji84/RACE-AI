@@ -4,7 +4,8 @@ No guessing from names. Only same-day, same-race, same-lane records from an
 independently verified source are accepted; conflicting names fail closed.
 """
 from __future__ import annotations
-from datetime import date
+from datetime import date, datetime
+import math
 import re
 import unicodedata
 
@@ -40,6 +41,13 @@ def join_verified_details(index: dict, details: list[dict], *, day: date) -> dic
             raise SourceError("invalid racer registration")
         if type(motor) is not int or not 1 <= motor <= 999:
             raise SourceError("invalid motor number")
+        if row.get('boat_no') is not None and (type(row['boat_no']) is not int or not 1 <= row['boat_no'] <= 999):
+            raise SourceError('invalid boat number')
+        for field in ('average_st', 'national_win_rate', 'local_win_rate'):
+            value = row.get(field)
+            maximum = 1 if field == 'average_st' else 10
+            if value is not None and (type(value) not in (int, float) or not math.isfinite(value) or not 0 <= value <= maximum):
+                raise SourceError('invalid racer measurement')
         if canonical_name(row.get("name")) != canonical_name(expected[key].get("name")):
             raise SourceError("racer name conflict")
         matched[key]=row
@@ -48,12 +56,26 @@ def join_verified_details(index: dict, details: list[dict], *, day: date) -> dic
     output=[]
     for race in index["races"]:
         boats=[]
+        closing_values = {matched[(race['race_id'], boat['lane'])].get('closed_at') for boat in race['boats']}
+        if closing_values != {None}:
+            if len(closing_values) != 1 or None in closing_values:
+                raise SourceError('closing time conflicts across lanes')
+            from zoneinfo import ZoneInfo
+            try:
+                closing = datetime.fromisoformat(next(iter(closing_values)))
+                if closing.tzinfo is None or closing.astimezone(ZoneInfo('Asia/Tokyo')).date() != day:
+                    raise ValueError()
+            except (ValueError, TypeError):
+                raise SourceError('closing time day invalid')
         for boat in race["boats"]:
             row=matched[(race["race_id"],boat["lane"])]
+            additional = {key: row[key] for key in
+                ('boat_no', 'average_st', 'national_win_rate', 'local_win_rate', 'entry_status') if key in row}
             boats.append({**boat,"racer_registration_id":row["racer_registration_id"],
                           "motor_no":row["motor_no"],
+                          **additional,
                           "detail_source_url":row["source_url"],
                           "detail_captured_at":row["captured_at"]})
-        output.append({**race,"boats":boats})
+        output.append({**race,"boats":boats,"closed_at":next(iter(closing_values))})
     return {**index,"races":output,"detail_status":"ALL_SIX_LANES_EVIDENCE_JOINED",
             "redistribution_authorized":False}

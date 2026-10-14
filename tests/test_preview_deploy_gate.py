@@ -14,7 +14,7 @@ class PreviewDeployGateTests(unittest.TestCase):
     def fixture(self,root):
         bundle=root/"bundle"
         (bundle/"data").mkdir(parents=True)
-        for name in ("index.html","app.js","style.css"):
+        for name in ("index.html","app.js","style.css","ui-core.js","money.js"):
             (bundle/name).write_text("fixture",encoding="utf-8")
         day=datetime.now(JST).date().isoformat()
         (bundle/"data/today.json").write_text(json.dumps({

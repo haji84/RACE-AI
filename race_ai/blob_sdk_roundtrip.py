@@ -30,14 +30,20 @@ def upload_and_verify(client, store: Path, *, day: date, execute: bool=False) ->
     uploaded_path=uploaded.get("pathname") if isinstance(uploaded,dict) else getattr(uploaded,"pathname",None)
     if uploaded_path!=key:
         raise ValueError("Blob upload pathname mismatch")
-    retrieved=client.get(key,access="private")
+    retrieved=client.get(key,access="private",use_cache=False,timeout=10)
     if retrieved is None:
         raise ValueError("Blob readback missing")
-    stream=retrieved.get("stream") if isinstance(retrieved,dict) else getattr(retrieved,"stream",None)
+    status=retrieved.get("status_code",retrieved.get("statusCode")) if isinstance(retrieved,dict) else getattr(retrieved,"status_code",None)
+    if status is not None and status!=200:
+        raise ValueError("unexpected Blob response")
+    content=retrieved.get("content") if isinstance(retrieved,dict) else getattr(retrieved,"content",None)
+    stream=content if isinstance(content,(bytes,bytearray)) else (retrieved.get("stream") if isinstance(retrieved,dict) else getattr(retrieved,"stream",None))
     if stream is None:
         raise ValueError("Blob SDK stream missing")
     if isinstance(stream,(bytes,bytearray)):
         payload=bytes(stream)
+        if len(payload)>MAX_BYTES:
+            raise ValueError("Blob readback too large")
     else:
         chunks=[]
         total=0

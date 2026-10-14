@@ -28,6 +28,14 @@ class Response(io.BytesIO):
     def geturl(self): return self.url
 
 class ProbeRepairTests(unittest.TestCase):
+    def test_auth_failure_reports_only_stage_not_secret_exception(self):
+        probe = module('web/api/blob-probe.py', 'probe_auth_diagnostic')
+        out = io.StringIO()
+        with patch.dict(os.environ, {'VERCEL_ENV':'preview'}, clear=True), patch.object(probe, 'verify_github_oidc', side_effect=ValueError('PRIVATE_TOKEN')), patch('sys.stdout', out):
+            self.assertFalse(probe.authorized({'Authorization':'Bearer PRIVATE_TOKEN'}))
+        self.assertIn('PROBE_AUTH_REJECTED', out.getvalue())
+        self.assertNotIn('PRIVATE_TOKEN', out.getvalue())
+
     def test_secret_in_invalid_oidc_url_is_not_exposed(self):
         caller=module('scripts/run_private_blob_probe.py','caller_url')
         env={'RACE_AI_PROBE_URL':caller.PREVIEW_URL,'GITHUB_SHA':'b'*40,

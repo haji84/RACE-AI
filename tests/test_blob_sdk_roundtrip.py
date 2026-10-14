@@ -19,6 +19,30 @@ class FakeClient:
         return {"stream":iter([self.data[key][:10],self.data[key][10:]])} if key in self.data else None
 
 class BlobSdkRoundtripTests(unittest.TestCase):
+    def test_actual_sdk_content_bytes_and_fresh_read(self):
+        from types import SimpleNamespace
+        class Client(FakeClient):
+            def get(self, key, **kwargs):
+                self.read_options = kwargs
+                return SimpleNamespace(content=self.data[key], status_code=200)
+        with tempfile.TemporaryDirectory() as tmp:
+            store = Path(tmp)
+            (store/'2026-10-14.json').write_text('{"date_jst":"2026-10-14","redistribution_authorized":true}', encoding='utf-8')
+            client = Client()
+            self.assertEqual(upload_and_verify(client, store, day=DAY, execute=True)['status'], 'BLOB_ROUNDTRIP_VERIFIED')
+            self.assertIs(client.read_options.get('use_cache'), False)
+
+    def test_non_200_response_is_rejected_even_with_matching_content(self):
+        from types import SimpleNamespace
+        class Client(FakeClient):
+            def get(self, key, **kwargs):
+                return SimpleNamespace(content=self.data[key], status_code=304)
+        with tempfile.TemporaryDirectory() as tmp:
+            store = Path(tmp)
+            (store/'2026-10-14.json').write_text('{"date_jst":"2026-10-14","redistribution_authorized":true}', encoding='utf-8')
+            with self.assertRaisesRegex(ValueError, 'response'):
+                upload_and_verify(Client(), store, day=DAY, execute=True)
+
     def test_exact_path_and_readback(self):
         with tempfile.TemporaryDirectory() as tmp:
             store=Path(tmp)

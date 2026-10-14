@@ -21,7 +21,7 @@ def verify_preview_bundle(bundle: Path, approval: Path, *,
         raise ValueError("production or unexpected project is forbidden")
     if not bundle.is_dir() or bundle.is_symlink():
         raise ValueError("bundle missing or symlinked")
-    for name in ("index.html","app.js","style.css"):
+    for name in ("index.html","app.js","style.css","ui-core.js","money.js"):
         path=bundle/name
         if not path.is_file() or path.is_symlink():
             raise ValueError("missing web asset")
