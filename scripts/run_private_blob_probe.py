@@ -38,13 +38,23 @@ def run():
         with urllib.request.urlopen(req,timeout=25) as response:
             body=response.read(8193)
             status=response.status
+            response_type=response.headers.get("Content-Type","")
+            final_url=response.geturl()
+            if final_url!=url:
+                raise RuntimeError("PREVIEW_PROBE_REDIRECTED: check Vercel deployment protection")
     except urllib.error.HTTPError as exc:
         raise RuntimeError(f"PREVIEW_PROBE_REJECTED: HTTP {exc.code}") from None
     except urllib.error.URLError:
         raise RuntimeError("PREVIEW_PROBE_TRANSPORT_FAILED") from None
     if len(body)>8192 or status!=200:
         raise RuntimeError("PREVIEW_PROBE_RESPONSE_INVALID")
-    result=json.loads(body)
+    content_type=response_type
+    if "application/json" not in content_type.lower():
+        raise RuntimeError("PREVIEW_PROBE_NON_JSON_RESPONSE: check Vercel deployment protection")
+    try:
+        result=json.loads(body)
+    except ValueError:
+        raise RuntimeError("PREVIEW_PROBE_MALFORMED_JSON") from None
     if result.get("status")!="verified" or not result.get("pathname","").startswith("race-ai/probe/"):
         raise RuntimeError("PREVIEW_PROBE_RESULT_INVALID")
     print(json.dumps({"result":"BLOB_PROBE_VERIFIED","bytes":result.get("bytes")},sort_keys=True))
