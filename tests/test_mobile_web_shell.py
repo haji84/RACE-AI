@@ -19,7 +19,7 @@ class MobileShellTests(unittest.TestCase):
 
     def test_same_origin_only_data_access_in_frontend(self):
         self.assertIn("connect-src 'self'", HTML)
-        self.assertIn('fetch("./data/today.json"', JS)
+        self.assertIn('fetch("./api/today"', JS)
         self.assertIn('credentials:"same-origin"', JS)
         self.assertIn('redistribution_authorized', JS)
         self.assertNotIn('fetch("https:', JS)
