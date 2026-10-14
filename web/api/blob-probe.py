@@ -6,7 +6,7 @@ No user-supplied path or data is accepted.
 """
 from http.server import BaseHTTPRequestHandler
 from datetime import datetime,timezone
-from hmac import compare_digest
+from github_oidc import verify_github_oidc
 import hashlib
 import json
 import os
@@ -14,10 +14,16 @@ import secrets
 
 
 def authorized(headers):
-    expected=os.environ.get("RACE_AI_PROBE_SECRET","")
-    received=headers.get("X-Race-AI-Probe-Secret","")
-    return (os.environ.get("VERCEL_ENV")=="preview"
-            and len(expected)>=32 and compare_digest(expected,received))
+    if os.environ.get("VERCEL_ENV")!="preview":
+        return False
+    header=headers.get("Authorization","")
+    if not header.startswith("Bearer "):
+        return False
+    try:
+        verify_github_oidc(header[7:])
+        return True
+    except Exception:
+        return False
 
 
 async def roundtrip():
