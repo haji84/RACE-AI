@@ -10,6 +10,7 @@ import argparse
 import subprocess
 
 from .day_feed_store import read_current_snapshot
+from .blob_key import day_blob_key
 
 
 def upload_day(store: Path, *, day: date, scope: str, execute: bool=False) -> dict:
@@ -19,15 +20,18 @@ def upload_day(store: Path, *, day: date, scope: str, execute: bool=False) -> di
     if snapshot.get("date_jst")!=day.isoformat():
         raise ValueError("stale snapshot")
     path=store/(day.isoformat()+".json")
+    key=day_blob_key(day)
+    # CLI upload pathname behavior is not assumed: explicit key must be verified.
     args=["vercel","--scope",scope,"blob","put",str(path),"--access","private"]
     if not execute:
         return {"status":"DRY_RUN","date_jst":day.isoformat(),
-                "source_file":str(path),"cloud_upload":False}
+                "source_file":str(path),"cloud_upload":False,"required_blob_key":key}
     proc=subprocess.run(args,capture_output=True,text=True,timeout=60,check=False)
     if proc.returncode!=0:
         raise RuntimeError("Vercel private Blob upload failed (see local CLI logs)")
     return {"status":"UPLOAD_COMMAND_SUCCEEDED_REQUIRES_BLOB_READBACK",
-            "date_jst":day.isoformat(),"cloud_upload":True}
+            "date_jst":day.isoformat(),"cloud_upload":True,
+            "required_blob_key":key,"key_verified":False}
 
 
 def main():
