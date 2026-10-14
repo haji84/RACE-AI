@@ -16,7 +16,7 @@ class FakeClient:
         self.data[key]=data
         return {"pathname":key}
     def get(self,key,**kwargs):
-        return {"body":self.data.get(key)} if key in self.data else None
+        return {"stream":iter([self.data[key][:10],self.data[key][10:]])} if key in self.data else None
 
 class BlobSdkRoundtripTests(unittest.TestCase):
     def test_exact_path_and_readback(self):
