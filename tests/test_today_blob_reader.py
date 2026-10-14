@@ -9,15 +9,22 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
-from vercel.blob import GetBlobResult
+try:
+    from vercel.blob import GetBlobResult
+except ModuleNotFoundError as exc:
+    if exc.name != "vercel":
+        raise
+    GetBlobResult = None
 from race_ai.day_snapshot_publisher import validate as validate_published_snapshot
 from race_ai.public_day_feed import endpoint, normalize
 from tests.test_public_day_feed import make_provider
 
 MODULE = Path(__file__).resolve().parents[1] / "web/api/today.py"
-spec = importlib.util.spec_from_file_location("race_today_api", MODULE)
-api = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(api)
+api = None
+if GetBlobResult is not None:
+    spec = importlib.util.spec_from_file_location("race_today_api", MODULE)
+    api = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(api)
 
 
 def snapshot():
@@ -35,6 +42,7 @@ def snapshot():
     }
 
 
+@unittest.skipIf(GetBlobResult is None, "Blob SDK absent; pinned runtime CI stage required")
 class TodayBlobReaderTests(unittest.TestCase):
     def read(self, payload=None, *, content=None, result_changes=None, error=None):
         raw = content if content is not None else json.dumps(payload or snapshot()).encode()
