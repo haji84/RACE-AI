@@ -154,5 +154,49 @@
     return {results:d.finish_confirmed===true?d.results:[],payouts:(d.payouts||[]).filter(p=>verified(p.bet_type)),specialPayouts:(d.special_payouts||[]).filter(p=>verified(p.bet_type)),status:d.status,
       refundLabel:d.confirmed===true&&d.refund_policy_status==='EXPLICIT_FULL_RACE_REFUND'?'全額返還を確認':d.refund_policy_status==='NO_RETURNED_BOATS'&&Array.isArray(d.refunds)?'返還艇なし（取得時点）':'返還処理は未確定'};
   }
-  return {venueNames,pages,dayJst,validateReport,venueState,allRaces,filterRaces,cutoff,purchaseAvailability,timeLabel,parseRoute,text,validateRaceBundle,raceUpdatePhase,sortedOdds,confirmedResultView};
+  function validatePredictionReceipt(raw,{race,dateJst,now=Date.now()}={}){
+    const fail=message=>{throw new Error(message||'研究予測データの形式を確認できません。');};
+    const hash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
+    const time=value=>{if(!zoned(value))fail('予測・保存時刻の形式が不正です。');const n=Date.parse(value);if(n>now+60000||dayJst(new Date(n))!==dateJst)fail('予測・保存時刻と対象日が一致していません。');return n;};
+    const probability=value=>typeof value==='number'&&Number.isFinite(value)&&value>0&&value<1;
+    const near=(a,b)=>Math.abs(a-b)<1e-8;
+    const research=value=>value?.research_only===true&&value.validation_status==='UNVALIDATED'&&value.purchase_decision==='skip'&&Array.isArray(value.purchase_recommendations)&&!value.purchase_recommendations.length;
+    const s=raw?.snapshot,closing=race?cutoff(race,dateJst):null;
+    if(!race||closing===null||raw?.schema_version!==1||typeof raw.request_id!=='string'||!/^([1-9][0-9]{0,19})-([1-9][0-9]{0,3})$/.test(raw.request_id)||raw.cloud_eligible_pre_race!==true||!s||s.schema_version!==1||s.race_id!==race.race_id||s.date_jst!==dateJst||!hash(s.snapshot_id)||!hash(s.program_sha256)||raw.program_sha256!==s.program_sha256||!research(s))fail('研究用の予測・対象レースを確認できません。');
+    if(!zoned(s.closed_at)||Date.parse(s.closed_at)!==closing)fail('予測と出走表の締切時刻が一致していません。');
+    const asof=time(s.as_of),generated=time(s.generated_at),cloud=time(raw.cloud_saved_at);
+    if(!(asof<=generated&&generated<=cloud&&cloud<closing))fail('締切前に生成・保存された予測ではありません。');
+    const source=s.program_source;let url;try{url=new URL(source?.source_url);}catch{fail('番組表の取得元を確認できません。');}
+    if(url.protocol!=='https:'||url.hostname!=='www1.mbrace.or.jp'||url.port||url.username||url.password||url.hash||url.search||url.pathname!=='/od2/B/'+dateJst.slice(0,7).replace('-','')+'/b'+dateJst.slice(2).replaceAll('-','')+'.lzh'||source.source_sha256!==s.program_sha256)fail('研究予測と公式番組表の出典が一致していません。');
+    const captured=time(source.captured_at);if(captured>asof)fail('予測時点より後の番組表は使用できません。');
+    const program=new Map(race.boats.map(b=>[b.lane,b])),boats=s.program_boats;
+    if(program.size!==6||!Array.isArray(boats)||boats.length!==6||new Set(boats.map(b=>b.lane)).size!==6)fail('研究予測には照合済みの6艇が必要です。');
+    const canonical=value=>typeof value==='string'?value.normalize('NFKC').replace(/\s/g,''):'';
+    const ratings=new Map();
+    for(const b of boats){const expected=program.get(b.lane),rate=b.national_win_rate;if(!expected||b.racer_registration_id!==expected.racer_registration_id||canonical(b.name)!==canonical(expected.name)||(rate!==null&&(typeof rate!=='number'||!Number.isFinite(rate)||rate<0||rate>10)))fail('予測に使った選手・全国勝率を確認できません。');ratings.set(b.lane,rate);}
+    const expectedModels=[...ratings.values()].every(rate=>rate!==null)?2:1;
+    if(!Array.isArray(s.models)||s.models.length!==expectedModels)fail('比較モデルの構成が不正です。');
+    const modelIds=new Set(),positions=['first','second','third','fourth','fifth','sixth'];
+    for(const model of s.models){
+      const uniform=model.model_id==='official-program-uniform-pl';
+      if(!['official-program-uniform-pl','official-program-rating-pl'].includes(model.model_id)||modelIds.has(model.model_id)||model.model_version!=='1'||model.race_id!==race.race_id||!hash(model.content_sha256)||!research(model)||model.uncertainty?.not_calibrated!==true)fail('未検証の固定比較モデルではありません。');modelIds.add(model.model_id);
+      if(!uniform&&expectedModels!==2)fail('全国勝率が不足しているため得点比較は表示できません。');
+      if(!zoned(model.race_start_at)||!zoned(model.inputs?.race_start_at)||Date.parse(model.race_start_at)!==closing||Date.parse(model.inputs.race_start_at)!==closing)fail('モデルの締切時刻が一致していません。');
+      for(const [field,want]of [['as_of',asof],['generated_at',generated]])if(time(model[field])!==want||time(model.inputs?.[field])!==want)fail('モデルの予測時点が一致していません。');
+      if(model.inputs.race_id!==race.race_id||model.inputs.model_id!==model.model_id||model.inputs.model_version!==model.model_version||!Array.isArray(model.inputs.boats)||model.inputs.boats.length!==6||new Set(model.inputs.boats.map(b=>b.lane)).size!==6)fail('モデル入力と対象レースが一致していません。');
+      const strengths=new Map();for(const b of model.inputs.boats){const expected=program.get(b.lane),strength=uniform?1:Math.max(ratings.get(b.lane),0.01);if(!expected||b.racer_id!==expected.racer_registration_id||typeof b.strength!=='number'||!Number.isFinite(b.strength)||!near(b.strength,strength)||b.feature_kind!==(uniform?'uniform_baseline':'pre_race_strength')||b.source_ref!=='official-b:'+s.program_sha256||Object.keys(b).some(key=>!['lane','racer_id','strength','available_at','captured_at','generated_at','source_ref','feature_kind'].includes(key)))fail('研究モデルに対象外の特徴量が含まれています。');for(const field of ['available_at','captured_at','generated_at'])if(time(b[field])!==captured)fail('入力情報の取得時点が一致していません。');strengths.set(b.lane,b.strength);}
+      if(!Array.isArray(model.strengths)||model.strengths.length!==6||new Set(model.strengths.map(b=>b.lane)).size!==6||model.strengths.some(b=>!near(b.strength,strengths.get(b.lane))))fail('比較用の強さが入力値と一致していません。');
+      if(!Array.isArray(model.triples)||model.triples.length!==120)fail('3連単120通りの予測が不足しています。');
+      const combinations=new Set(),rankSums=Array.from({length:3},()=>new Map());let mass=0;
+      for(const row of model.triples){const combo=row.combination,key=Array.isArray(combo)?combo.join('-'):'';if(!Array.isArray(combo)||combo.length!==3||new Set(combo).size!==3||combo.some(n=>!Number.isInteger(n)||n<1||n>6)||combinations.has(key)||!probability(row.probability))fail('買い目の識別子・確率が不正です。');combinations.add(key);mass+=row.probability;combo.forEach((lane,index)=>rankSums[index].set(lane,(rankSums[index].get(lane)||0)+row.probability));if(uniform&&!near(row.probability,1/120))fail('均等な比較モデルに確率差を付けることはできません。');}
+      if(!near(mass,1))fail('120通りの確率合計が100％になっていません。');
+      if(!Array.isArray(model.marginals)||model.marginals.length!==6||new Set(model.marginals.map(b=>b.lane)).size!==6)fail('6艇の着順確率が不足しています。');const columns=Array(6).fill(0);
+      for(const row of model.marginals){if(!program.has(row.lane))fail('着順確率の艇番が一致していません。');let sum=0,top3=0;positions.forEach((position,index)=>{const p=row[position+'_probability'];if(!probability(p))fail('着順確率の数値が不正です。');sum+=p;columns[index]+=p;if(index<3){top3+=p;if(!near(p,rankSums[index].get(row.lane)))fail('3連単と着順確率が一致していません。');}if(uniform&&!near(p,1/6))fail('均等比較の着順確率が不正です。');});if(!near(sum,1)||!probability(row.top3_probability)||!near(top3,row.top3_probability))fail('着順確率の合計が一致していません。');}
+      if(columns.some(sum=>!near(sum,1)))fail('艇全体の着順確率合計が一致していません。');
+    }
+    if(!modelIds.has('official-program-uniform-pl')||(expectedModels===2&&!modelIds.has('official-program-rating-pl')))fail('必要な比較モデルがありません。');
+    return raw;
+  }
+  function sortedPredictionTriples(model){return (model?.triples||[]).slice().sort((a,b)=>b.probability-a.probability||a.combination.join('').localeCompare(b.combination.join('')));}
+  return {venueNames,pages,dayJst,validateReport,venueState,allRaces,filterRaces,cutoff,purchaseAvailability,timeLabel,parseRoute,text,validateRaceBundle,raceUpdatePhase,sortedOdds,confirmedResultView,validatePredictionReceipt,sortedPredictionTriples};
 });

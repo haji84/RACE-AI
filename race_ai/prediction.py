@@ -1,181 +1,19 @@
 """Interpretable research baseline and immutable, as-of-safe evaluation.
 
-No fitted accuracy or live purchase recommendation is claimed. Ranking
-probabilities describe strict orders; ties/cancellations are reported exclusions.
+Pure ranking functions are shared with the standalone web-root contract.
+No fitted accuracy or live purchase recommendation is claimed.
 """
 from __future__ import annotations
 
-import hashlib
-import itertools
 import json
 import math
 import re
-import sqlite3
 from datetime import datetime, timezone
 
-from .core import SourceError, summarize, utc
+from .core import summarize
 from .money import MoneyError, settle_bets
-
-
-class PredictionError(ValueError):
-    """Missing, nonfinite, temporally unavailable or inconsistent research input."""
-
-
-def _time(value):
-    if not isinstance(value, str) or not re.fullmatch(
-            r'[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(?:\.[0-9]{1,6})?(?:Z|[+-](?:[01][0-9]|2[0-3]):[0-5][0-9])', value):
-        raise PredictionError('timezone-aware ISO timestamp required')
-    try:
-        utc(value)  # Reuse existing timezone-required validation, retaining fractions below.
-        return datetime.fromisoformat(value.replace('Z', '+00:00')).astimezone(timezone.utc)
-    except (ValueError, TypeError, OverflowError) as exc:
-        raise PredictionError('timezone-aware ISO timestamp required') from exc
-
-
-def _stamp(value):
-    return _time(value).isoformat(timespec='microseconds')
-
-
-def _now():
-    return datetime.now(timezone.utc)
-
-
-def _id(value, name):
-    if not isinstance(value, str) or not re.fullmatch(r'[A-Za-z0-9_.:-]{1,128}', value):
-        raise PredictionError(f'invalid {name}')
-    return value
-
-
-def _description(value, name, maximum=1000):
-    if not isinstance(value, str) or not value.strip() or len(value) > maximum or any(ord(c) < 32 for c in value):
-        raise PredictionError(f'invalid {name}')
-    return value
-
-
-def _number(value, name, minimum, maximum):
-    if (isinstance(value, bool) or not isinstance(value, (int, float))
-            or not minimum <= value <= maximum or not math.isfinite(value)):
-        raise PredictionError(f'invalid finite {name}')
-    return float(value)
-
-
-def _json(value):
-    try:
-        return json.dumps(value, sort_keys=True, separators=(',', ':'), ensure_ascii=False, allow_nan=False)
-    except (TypeError, ValueError) as exc:
-        raise PredictionError('payload must be finite reproducible JSON') from exc
-
-
-def _sha(value):
-    return hashlib.sha256(_json(value).encode('utf-8')).hexdigest()
-
-
-def plackett_luce(strengths_by_lane):
-    """Exact enumeration of strict top-three orders plus all six rank marginals."""
-    if not isinstance(strengths_by_lane, dict) or len(strengths_by_lane) != 6:
-        raise PredictionError('exactly six distinct boat strengths required')
-    strengths = {}
-    for lane, value in strengths_by_lane.items():
-        if isinstance(lane, str) and re.fullmatch(r'[1-6]', lane):
-            lane = int(lane)
-        if type(lane) is not int or lane not in range(1, 7) or lane in strengths:
-            raise PredictionError('boat identities must be 1..6')
-        strengths[lane] = _number(value, 'strength', 1e-9, 1e9)
-    if set(strengths) != set(range(1, 7)):
-        raise PredictionError('boat identities must be 1..6')
-    lanes = tuple(range(1, 7))
-
-    def order_probability(order):
-        remaining, probability = list(lanes), 1.0
-        for lane in order:
-            probability *= strengths[lane] / math.fsum(strengths[x] for x in remaining)
-            remaining.remove(lane)
-        return probability
-
-    triples = [dict(combination=list(order), probability=order_probability(order))
-               for order in itertools.permutations(lanes, 3)]
-    mass = math.fsum(row['probability'] for row in triples)
-    for row in triples:
-        row['probability'] /= mass
-    full = [(order, order_probability(order)) for order in itertools.permutations(lanes)]
-    full_mass = math.fsum(value for _, value in full)
-    positions = ('first', 'second', 'third', 'fourth', 'fifth', 'sixth')
-    marginals = []
-    for lane in lanes:
-        row = dict(lane=lane)
-        for index, label in enumerate(positions):
-            row[label + '_probability'] = math.fsum(value for order, value in full if order[index] == lane) / full_mass
-        row['top3_probability'] = math.fsum(row[label + '_probability'] for label in positions[:3])
-        marginals.append(row)
-    return dict(triples=triples, marginals=marginals,
-                strengths=[dict(lane=lane, strength=strengths[lane]) for lane in lanes])
-
-
-def build_prediction(data):
-    """Build an unvalidated replayable forecast from explicit pre-race evidence."""
-    required = {'race_id', 'race_start_at', 'as_of', 'generated_at', 'boats', 'model_id', 'model_version', 'selection_reason'}
-    if not isinstance(data, dict) or set(data) != required:
-        raise PredictionError('prediction inputs require exactly the documented fields')
-    race, model, version = (_id(data[key], key) for key in ('race_id', 'model_id', 'model_version'))
-    reason = _description(data['selection_reason'], 'selection_reason')
-    start, cutoff, generated = (_time(data[key]) for key in ('race_start_at', 'as_of', 'generated_at'))
-    if not cutoff <= generated < start:
-        raise PredictionError('as_of <= generated_at < race_start_at required')
-    raw_boats = data['boats']
-    if not isinstance(raw_boats, list) or len(raw_boats) != 6:
-        raise PredictionError('exactly six boat snapshots required')
-    mandatory = {'lane', 'strength', 'available_at', 'captured_at', 'generated_at', 'source_ref', 'feature_kind'}
-    optional = {'racer_id', 'predicted_course', 'sample_n', 'historical_first_count'}
-    boats, seen = [], set()
-    for raw in raw_boats:
-        if not isinstance(raw, dict) or not mandatory <= set(raw) or set(raw) - mandatory - optional:
-            raise PredictionError('unsupported feature; current-race outcome features are forbidden')
-        lane = raw['lane']
-        if type(lane) is not int or lane not in range(1, 7) or lane in seen:
-            raise PredictionError('unique boat identities 1..6 required')
-        seen.add(lane)
-        available, capture, source_generated = (_time(raw[key]) for key in ('available_at', 'captured_at', 'generated_at'))
-        if not available <= capture <= cutoff or source_generated > cutoff:
-            raise PredictionError('evidence was unavailable at prediction cutoff')
-        if raw['feature_kind'] not in ('pre_race_strength', 'history_baseline', 'uniform_baseline'):
-            raise PredictionError('unsupported feature kind')
-        row = dict(lane=lane, strength=_number(raw['strength'], 'strength', 1e-9, 1e9),
-                   available_at=_stamp(raw['available_at']), captured_at=_stamp(raw['captured_at']),
-                   generated_at=_stamp(raw['generated_at']), source_ref=_description(raw['source_ref'], 'source_ref', 256),
-                   feature_kind=raw['feature_kind'])
-        if 'racer_id' in raw:
-            if not isinstance(raw['racer_id'], str) or not re.fullmatch(r'[0-9]{4}', raw['racer_id']):
-                raise PredictionError('racer_id must be four digits')
-            row['racer_id'] = raw['racer_id']
-        if 'predicted_course' in raw:
-            if type(raw['predicted_course']) is not int or raw['predicted_course'] not in range(1, 7):
-                raise PredictionError('predicted_course must be 1..6')
-            row['predicted_course'] = raw['predicted_course']
-        for key in ('sample_n', 'historical_first_count'):
-            if key in raw:
-                if type(raw[key]) is not int or not 0 <= raw[key] <= 1000000:
-                    raise PredictionError('invalid history count')
-                row[key] = raw[key]
-        if row.get('historical_first_count', 0) > row.get('sample_n', 0):
-            raise PredictionError('historical wins exceed sample count')
-        boats.append(row)
-    boats.sort(key=lambda row: row['lane'])
-    normalized = dict(race_id=race, race_start_at=_stamp(data['race_start_at']), as_of=_stamp(data['as_of']),
-                      generated_at=_stamp(data['generated_at']), boats=boats, model_id=model,
-                      model_version=version, selection_reason=reason)
-    distribution = plackett_luce({row['lane']: row['strength'] for row in boats})
-    payload = dict(inputs=normalized, race_id=race, model_id=model, model_version=version,
-                   selection_reason=reason, race_start_at=normalized['race_start_at'], as_of=normalized['as_of'],
-                   generated_at=normalized['generated_at'], research_only=True, validation_status='UNVALIDATED',
-                   purchase_decision='skip', purchase_recommendations=[],
-                   skip_reason='prediction_accuracy_unvalidated', **distribution,
-                   explanations=[dict(row, method='supplied_strength' if row['feature_kind'] != 'history_baseline'
-                                      else 'smoothed_same_predicted_course_historical_first_rate') for row in boats],
-                   uncertainty=dict(not_calibrated=True, method='unvalidated_strict_order_baseline',
-                       missing_racer_history=[row['racer_id'] for row in boats
-                                              if row.get('sample_n') == 0 and 'racer_id' in row]))
-    payload['content_sha256'] = _sha(payload)
-    return payload
+from web.research_contract import (PredictionError, _time, _stamp, _now, _id,
+    _description, _number, _json, _sha, plackett_luce, build_prediction)
 
 
 SCHEMA = """

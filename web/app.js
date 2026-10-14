@@ -6,6 +6,7 @@
   let report=null,selectedId='',page='home',tab='overview',feedState='loading',feedMessage='',requestSerial=0,controller=null,toastTimer,storageAvailable=true;
   let settings={...defaults},ledger=[],drafts=new Map(),savingPurchase=false,localStateHealthy=true;
   let raceUpdates=null,raceUpdatesState='idle',raceUpdatesMessage='',raceUpdatesId='',raceRequestSerial=0,raceController=null,knownRaceStops=new Map();
+  let predictionReceipt=null,predictionState='idle',predictionMessage='',predictionRaceId='',predictionModelId='',predictionSerial=0,predictionController=null;
   const SETTINGS_KEY='raceai.settings.v1',LEDGER_KEY='raceai.ledger.v1',STATE_LOCK='raceai.local-state.v1';
   const yen=n=>Number(n).toLocaleString('ja-JP')+'円';
   const node=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;};
@@ -59,7 +60,7 @@
     [ $('page-kicker').textContent,$('page-title').textContent,$('page-description').textContent ]=names[page];
     document.title=names[page][1]+' | RACE AI';
     if(updateHash){const hash='#/'+page+(page==='detail'&&selectedId?'/'+selectedId:'');if(location.hash!==hash)location.hash=hash;}
-    if(page==='detail'){renderDetail();loadRaceUpdates();}if(page==='picks')renderDraft();
+    if(page==='detail'){renderDetail();loadRaceUpdates();if(tab==='prediction')loadPrediction();}if(page==='picks')renderDraft();
   }
   function pickSport(sport){const boat=sport==='boat';$('boat-view').hidden=!boat;$('coming').hidden=boat;document.querySelectorAll('[data-sport]').forEach(b=>{const active=b.dataset.sport===sport;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});if(!boat)$('coming-title').textContent=({cycle:'競輪',auto:'オートレース',horse:'競馬'})[sport]+'は準備中です';}
   function laneBadge(lane){return node('span','lane-badge lane-'+lane,lane);}
@@ -105,10 +106,27 @@
     else if(code)title=UI.venueNames[Number(code)-1]+'のデータは未取得です';
     $('race-cards').replaceChildren(empty(title,description,{label:feedState==='historical'?'今日に戻る':'もう一度確認',run:()=>{$('race-date').value=today();loadAuthorizedDayFeed();}}));
   }
-  function clearRaceUpdates(){raceRequestSerial++;raceController?.abort();raceController=null;raceUpdates=null;raceUpdatesState='idle';raceUpdatesMessage='';raceUpdatesId='';}
+  function clearRaceUpdates(){raceRequestSerial++;raceController?.abort();raceController=null;raceUpdates=null;raceUpdatesState='idle';raceUpdatesMessage='';raceUpdatesId='';clearPrediction();}
   function selectRace(id){if(!all().some(r=>r.race_id===id))return;if(selectedId!==id)clearRaceUpdates();selectedId=id;refreshRaceSelect();renderDetail();renderDraft();}
   function updateFor(kind){return raceUpdates?.records.find(wrapper=>wrapper.record.kind===kind);}
   function programIdentity(race){return JSON.stringify([race.race_id,race.closed_at,race.boats.slice().sort((a,b)=>a.lane-b.lane).map(b=>[b.lane,b.racer_registration_id,b.name])]);}
+  function researchIdentity(race){return JSON.stringify([programIdentity(race),race.boats.slice().sort((a,b)=>a.lane-b.lane).map(b=>[b.lane,b.national_win_rate??null])]);}
+  function clearPrediction(){predictionSerial++;predictionController?.abort();predictionController=null;predictionReceipt=null;predictionState='idle';predictionMessage='';predictionRaceId='';predictionModelId='';}
+  async function loadPrediction(force=false){
+    const race=current();if(page!=='detail'||tab!=='prediction'||!race||report.date_jst!==today())return;
+    if(!force&&predictionRaceId===race.race_id&&predictionState!=='idle')return;
+    predictionController?.abort();const request=new AbortController(),serial=++predictionSerial,id=race.race_id,day=report.date_jst,identity=researchIdentity(race);predictionController=request;predictionReceipt=null;predictionRaceId=id;predictionState='loading';predictionMessage='締切前に保存された研究用の計算結果を確認しています。';renderDetailTab();
+    const valid=()=>serial===predictionSerial&&selectedId===id&&report?.date_jst===day&&today()===day&&current()&&researchIdentity(current())===identity;
+    const timeout=setTimeout(()=>request.abort(),15000);
+    try{
+      const response=await fetch('./api/prediction?race_id='+encodeURIComponent(id),{cache:'no-store',credentials:'same-origin',signal:request.signal}),body=await readRaceBody(response);if(!valid())return;
+      if(response.status===404){predictionState='unobtained';predictionMessage='このレースの研究予測はまだ保存されていません。';return;}
+      if(!response.ok)throw new Error('保存済みの研究予測を取得できませんでした。');
+      let raw;try{raw=JSON.parse(body);}catch{throw new Error('研究予測データの形式を確認できません。');}
+      const checked=UI.validatePredictionReceipt(raw,{race:current(),dateJst:day});if(!valid())return;predictionReceipt=checked;predictionState='ready';predictionMessage='締切前に生成・保存された研究用の確率です。精度と確率校正は未検証です。';predictionModelId=checked.snapshot.models.some(m=>m.model_id===predictionModelId)?predictionModelId:checked.snapshot.models.find(m=>m.model_id==='official-program-rating-pl')?.model_id||checked.snapshot.models[0].model_id;
+    }catch(error){if(!valid())return;predictionReceipt=null;predictionState='error';predictionMessage=error.name==='AbortError'?'研究予測の取得がタイムアウトしました。再確認してください。':error.message;}
+    finally{clearTimeout(timeout);if(valid()&&tab==='prediction')renderDetailTab();}
+  }
   async function readRaceBody(response){
     const max=256000;if(Number(response.headers.get('content-length')||0)>max)throw new Error('更新データが大きすぎます。');
     if(!response.body){const value=await response.text();if(new TextEncoder().encode(value).length>max)throw new Error('更新データが大きすぎます。');return value;}
@@ -183,9 +201,27 @@
     panel.append(node('p','result-refund',view.refundLabel));if(data.refund_boats?.length)panel.append(node('p','photo-note','原本に記載された返還対象艇：'+data.refund_boats.join('・')+'号艇。買い目ごとの返還額は未確定です。'));
     panel.append(node('p','photo-note','購入記録への自動精算は行っていません。未確認の券種や返還を、不的中として集計しません。'));return panel;
   }
+  function renderPrediction(){
+    const panel=node('section','research-prediction');panel.dataset.state=predictionState;
+    const notice=node('div','prediction-notice');notice.append(node('strong','','研究用・未検証'),node('span','','購入見送り'),node('p','','固定の単純なモデルによる比較です。学習・精度検証・確率校正は未実施です。推奨買い目や推奨金額は表示しません。'));panel.append(notice);
+    const state=node('div','race-update-status');state.dataset.state=predictionState;state.append(node('span','',({loading:'確認中',ready:'保存済み',unobtained:'未保存',error:'取得失敗',idle:'未取得'})[predictionState]),node('p','',predictionMessage||'このレースの保存済み研究予測を確認します。'));panel.append(state);
+    if(!predictionReceipt)return panel;
+    const snapshot=predictionReceipt.snapshot,proof=node('div','prediction-proof'),link=node('a','','公式番組表');link.href=snapshot.program_source.source_url;link.target='_blank';link.rel='noopener noreferrer';
+    proof.append(link,node('span','','番組表取得 '+stampLabel(snapshot.program_source.captured_at)),node('span','','情報の時点 '+stampLabel(snapshot.as_of)),node('span','','予測生成 '+stampLabel(snapshot.generated_at)),node('span','','クラウド保存 '+stampLabel(predictionReceipt.cloud_saved_at)),node('span','state-pill ready','締切前に生成・保存'));panel.append(proof);
+    const uniform=id=>id==='official-program-uniform-pl',label=id=>uniform(id)?'全艇同じ強さの比較基準':'全国勝率（得点）の単純比較';
+    const choice=node('label','prediction-model-choice','比較モデル'),select=node('select');select.id='prediction-model';select.setAttribute('aria-label','研究用の比較モデル');for(const m of snapshot.models)select.append(option(label(m.model_id),m.model_id));select.value=predictionModelId;select.addEventListener('change',()=>{predictionModelId=select.value;renderDetailTab();});choice.append(select);panel.append(choice);
+    const model=snapshot.models.find(m=>m.model_id===predictionModelId)||snapshot.models[0],isUniform=uniform(model.model_id),description=node('div','prediction-method');description.append(node('h3','',label(model.model_id)),node('p','',isUniform?'6艇を同じ強さと置く、比較用の均等な基準です。すべての3連単を同じ確率で扱います。':'番組表の全国勝率を、相対的な強さとして使う単純な計算です。全国勝率の得点を、そのまま1着確率として扱いません。0の得点には計算上0.01の下限を置きます。全国勝率は予測保存時の番組表の値です。'),node('small','','モデル '+model.model_id+' / バージョン '+model.model_version));panel.append(description);
+    if(snapshot.models.length===1)panel.append(node('p','photo-note','全国勝率が一部未取得のため、均等な比較基準のみを表示しています。'));
+    const percent=p=>p*100<0.01?'<0.01%':(p*100).toFixed(2)+'%',marginals=model.marginals.slice().sort((a,b)=>a.lane-b.lane),positions=['first','second','third','fourth','fifth','sixth'];
+    panel.append(node('h3','prediction-section-title','6艇の着順確率'),table(['艇','選手・登録番号','全国勝率（得点）','1着','2着','3着','4着','5着','6着','3着以内'],marginals.map(m=>{const b=snapshot.program_boats.find(b=>b.lane===m.lane);return [m.lane,UI.text(b.name)+' / '+b.racer_registration_id,b.national_win_rate,...positions.map(p=>percent(m[p+'_probability'])),percent(m.top3_probability)];})));
+    const ordered=UI.sortedPredictionTriples(model);panel.append(node('h3','prediction-section-title',isUniform?'均等な確率の表示例（艇番順）':'計算上の確率が高い組み合わせ（上位10通り）'),table(['順','3連単','研究用の確率'],ordered.slice(0,10).map((row,index)=>[index+1,row.combination.join('−'),percent(row.probability)])));
+    const more=node('details','prediction-all'),heading=node('summary','','120通りの研究用確率をすべて見る'),grid=node('div','prediction-probability-grid');for(const row of ordered){const item=node('div','prediction-probability');item.append(combination(row.combination),node('strong','',percent(row.probability)));grid.append(item);}more.append(heading,grid);panel.append(more,node('p','photo-note','確率は表示時に四捨五入するため、表示値の合計には丸め差があります。これらの確率が実際の的中率と一致するかは未検証です。'));
+    return panel;
+  }
   function renderDetailTab(){
     const race=current(),target=$('detail-tab-content'),heading=node('div','detail-tab-heading'),body=node('div','detail-tab-body');const labels={overview:'レースのポイント',entries:'出走表の確認',preview:'直前情報',analysis:'取得データの分析',history:'過去レース',prediction:'AI予想',bets:'このレースの買い目',video:'映像・展示解析'};
-    document.querySelectorAll('[data-tab]').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);b.setAttribute('aria-pressed',String(b.dataset.tab===tab));});heading.append(node('h2','',labels[tab]),button(raceUpdatesState==='loading'?'確認中…':'直前情報を更新','text-button',()=>loadRaceUpdates(true)));heading.lastElementChild.disabled=raceUpdatesState==='loading'||!race;target.replaceChildren(heading,body);
+    const predictionTab=tab==='prediction',loading=predictionTab?predictionState==='loading':raceUpdatesState==='loading';
+    document.querySelectorAll('[data-tab]').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);b.setAttribute('aria-pressed',String(b.dataset.tab===tab));});heading.append(node('h2','',labels[tab]),button(loading?'確認中…':predictionTab?'研究予測を再確認':'直前情報を更新','text-button',()=>predictionTab?loadPrediction(true):loadRaceUpdates(true)));heading.lastElementChild.disabled=loading||!race;target.replaceChildren(heading,body);
     if(!race){body.append(node('p','','全レースからレースを選ぶと、取得済みの情報を確認できます。'));return;}
     if(['overview','preview','analysis','history'].includes(tab))body.append(updateStatus());
     if(tab==='overview'){body.append(node('p','',raceName(race)+'の出走表は'+race.boats.length+'艇分を取得しています。直前情報は取得・保存時刻付きで別に確認できます。'),node('p','','選手の登録番号、モーター番号、平均STを出走表で確認してください。AIによる展開評価は精度検証待ちです。'));}
@@ -193,7 +229,7 @@
     if(tab==='preview')body.append(renderPreview());
     if(tab==='analysis')body.append(renderOdds(),renderOfficialResult(),table(['艇','モーター番号','モーター2連対率','ボート番号'],race.boats.map(b=>[b.lane,b.motor_no,b.motor_top2_rate,b.boat_no])),node('p','','機力の格付けは未検証です。'));
     if(tab==='history')body.append(renderOfficialResult(),node('p','','選手別の過去レース履歴は未接続です。上の結果は、現在選択しているレースの取得済み情報です。'));
-    if(tab==='prediction')body.append(node('p','','発走前に保存した予測確率、取得時刻付きオッズ、確率校正、実レース検証がそろうまで予想は公開しません。'),node('span','state-pill warning','予測精度未検証・購入見送り'));
+    if(tab==='prediction')body.append(renderPrediction());
     if(tab==='bets'){const records=ledger.filter(r=>r.race_id===selectedId);body.append(node('p','',records.length?'このレースの手動購入記録 '+records.length+'件があります。':'このレースの購入記録はまだありません。'));body.append(button('自分の買い目を記録 →','primary',()=>showPage('picks')));}
     if(tab==='video')body.append(node('p','','解析を許可された展示映像は未取得です。行き足・伸び足・回り足・ターン特性の映像評価は、実測の特徴量と検証証拠がそろい次第表示します。'));
   }
@@ -259,7 +295,7 @@
   function renderAll(){renderHome();renderRaces();renderDetail();renderMoney();renderDraft();renderResearch();}
   function clearReport(){clearRaceUpdates();report=null;selectedId='';refreshRaceSelect();renderSource();renderAll();}
   function showReport(data,manual=false){
-    const previous=current()?programIdentity(current()):null;report=data;const requested=UI.parseRoute(location.hash).raceId;selectedId=all().some(r=>r.race_id===(requested||selectedId))?(requested||selectedId):all()[0]?.race_id||'';if(!current()||programIdentity(current())!==previous)clearRaceUpdates();refreshRaceSelect();renderSource(manual);renderAll();if(page==='detail')loadRaceUpdates(true);
+    const previous=current()?programIdentity(current()):null,previousResearch=current()?researchIdentity(current()):null;report=data;const requested=UI.parseRoute(location.hash).raceId;selectedId=all().some(r=>r.race_id===(requested||selectedId))?(requested||selectedId):all()[0]?.race_id||'';if(!current()||programIdentity(current())!==previous)clearRaceUpdates();else if(researchIdentity(current())!==previousResearch)clearPrediction();refreshRaceSelect();renderSource(manual);renderAll();if(page==='detail'){loadRaceUpdates(true);if(tab==='prediction')loadPrediction(true);}
   }
   async function loadAuthorizedDayFeed(){
     const date=$('race-date').value;if(date!==today()){requestSerial++;controller?.abort();status('historical','履歴の配信は未接続です。今日の日付を選ぶと当日データを取得します。');clearReport();return;}
@@ -284,7 +320,7 @@
   document.querySelectorAll('[data-page],[data-goto]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page||b.dataset.goto)));
   document.querySelectorAll('[data-sport]').forEach(b=>b.addEventListener('click',()=>pickSport(b.dataset.sport)));$('return-boat').addEventListener('click',()=>pickSport('boat'));
   document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>updatePreferences({mode:b.dataset.mode})));$('longshot-home').addEventListener('change',()=>updatePreferences({longshot:$('longshot-home').checked}));
-  document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;renderDetailTab();}));$('detail-to-picks').addEventListener('click',()=>showPage('picks'));
+  document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;renderDetailTab();if(tab==='prediction')loadPrediction();}));$('detail-to-picks').addEventListener('click',()=>showPage('picks'));
   $('global-search').addEventListener('input',()=>{showPage('races');renderRaces();});for(const id of ['venue-select','race-number-filter','race-sort'])$(id).addEventListener('change',renderRaces);$('race-select').addEventListener('change',()=>{selectRace($('race-select').value);showPage('detail');});
   $('clear-filters').addEventListener('click',()=>{$('global-search').value='';$('venue-select').value='';$('race-number-filter').value='';$('race-sort').value='venue';renderRaces();});
   $('race-date').value=today();$('race-date').addEventListener('change',loadAuthorizedDayFeed);$('refresh-feed').addEventListener('click',loadAuthorizedDayFeed);
