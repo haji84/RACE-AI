@@ -21,6 +21,8 @@ def prepare_archive(store: Path, destination: Path, *, day: date,
                     archive_allowed: bool, evidence_reference: str) -> dict:
     if archive_allowed is not True or not evidence_reference.strip():
         raise ValueError("GitHub archival permission not independently established")
+    if destination.exists() or destination.is_symlink():
+        raise ValueError("archive path already exists")
     data=read_current_snapshot(store,today=day)
     if not data.get("redistribution_authorized"):
         raise ValueError("source cannot be republished")
@@ -28,8 +30,6 @@ def prepare_archive(store: Path, destination: Path, *, day: date,
     unknown=set(data)-ALLOWED_FIELDS
     if unknown:
         raise ValueError("unreviewed archive fields: "+",".join(sorted(unknown)))
-    if destination.exists() or destination.is_symlink():
-        raise ValueError("archive path already exists")
     payload={"schema_version":1,"date_jst":day.isoformat(),
              "archive_evidence_reference":evidence_reference,
              "snapshot":data}
