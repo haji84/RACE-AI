@@ -21,14 +21,22 @@ def verify_github_oidc(token: str, *, jwks_client=None) -> dict:
     claims=jwt.decode(token,key,algorithms=["RS256"],audience=AUDIENCE,
                       issuer=ISSUER,options={"require":["iss","aud","exp","iat","sub"]},
                       leeway=30)
-    if (claims.get("repository")!=REPOSITORY or
-        claims.get("repository_id")!="1416489937" or
-        claims.get("repository_owner_id")!="173585154" or
-        claims.get("sub")!="repo:haji84/RACE-AI:environment:blob-e2e-preview" or
-        claims.get("ref")!=REF or
-        claims.get("repository_owner")!="haji84" or
-        claims.get("event_name") not in ("push","workflow_dispatch") or
-        claims.get("workflow_ref")!=REPOSITORY+"/"+WORKFLOW+"@"+REF or
-        claims.get("environment")!="blob-e2e-preview"):
+    expected = {
+        "repository": REPOSITORY,
+        "repository_id": "1416489937",
+        "repository_owner_id": "173585154",
+        "sub": "repo:haji84/RACE-AI:environment:blob-e2e-preview",
+        "ref": REF,
+        "repository_owner": "haji84",
+        "workflow_ref": REPOSITORY+"/"+WORKFLOW+"@"+REF,
+        "environment": "blob-e2e-preview",
+    }
+    mismatches = [key for key, value in expected.items() if claims.get(key) != value]
+    if claims.get("event_name") not in ("push", "workflow_dispatch"):
+        mismatches.append("event_name")
+    if mismatches:
+        # Field names only. Never print token claims, token bytes or exception text.
+        print('PROBE_IDENTITY_MISMATCH ' + ','.join(mismatches), flush=True)
         raise ValueError("untrusted GitHub Actions identity")
     return claims
+
