@@ -1,1 +1,2 @@
 vercel
+PyJWT[crypto]>=2.8,<3
