@@ -43,7 +43,7 @@ jobs:
       - name: Checkout reviewed current-day collector
         uses: actions/checkout@v4
         with:
-          ref: 27af41b3745f35a1cfe60c9a4ceafc303742e1e2
+          ref: 00e1a58b5f37090e1a59c715c90f881ad878892c
           path: day-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -58,6 +58,31 @@ jobs:
           python -m race_ai.national_day_pipeline --date "$DAY" --review config/operator-official-facts.json --output "$RUNNER_TEMP/race-ai-day.json" --execute
       - name: Publish private current-day version and verify today API SHA
         env:
-          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-6dblviil1-qq1130034-1738.vercel.app/api/publish-day
-          RACE_AI_DAY_COMMIT_SHA: 27af41b3745f35a1cfe60c9a4ceafc303742e1e2
+          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-hurbtxr2m-qq1130034-1738.vercel.app/api/publish-day
+          RACE_AI_DAY_COMMIT_SHA: 00e1a58b5f37090e1a59c715c90f881ad878892c
         run: python day-source/scripts/publish_day_feed.py --feed "$RUNNER_TEMP/race-ai-day.json"
+      - name: Back up only the approved normalized day facts
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: official-day-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-day.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore the normalized backup into a separate directory
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: official-day-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-restored
+      - name: Verify exact restored backup bytes
+        run: |
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          folder = Path(os.environ['RUNNER_TEMP'])
+          original = (folder / 'race-ai-day.json').read_bytes()
+          restored = (folder / 'race-ai-restored' / 'race-ai-day.json').read_bytes()
+          if not original or len(original) > 6000000 or original != restored:
+              raise SystemExit('BACKUP_RESTORE_MISMATCH')
+          print(json.dumps({'result':'GITHUB_BACKUP_RESTORE_VERIFIED','bytes':len(restored),'file_sha256':hashlib.sha256(restored).hexdigest()}))
+          PY

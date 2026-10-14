@@ -6,6 +6,7 @@ establish that status. Source collection is opt-in and rights-scoped.
 """
 from datetime import date, datetime, timezone
 import hashlib
+from http.client import HTTPException
 import re
 from urllib import error, request
 from urllib.parse import parse_qs, urlsplit, urljoin
@@ -126,7 +127,7 @@ def collect_day_schedule(day, *, rights, execute=False, now=None, transport=None
             raise SourceError('invalid schedule response')
         observed = now if supplied_clock else datetime.now(timezone.utc)
         return parse_day_schedule(response.body, day=day, source_url=endpoint(day), observed_at=observed.isoformat())
-    except (error.URLError, OSError, TimeoutError):
+    except (error.URLError, OSError, TimeoutError, HTTPException):
         return {**report, 'status': 'SOURCE_UNAVAILABLE'}
     except (ValueError, UnicodeError, TypeError, AttributeError):
         return {**report, 'status': 'SOURCE_INVALID'}

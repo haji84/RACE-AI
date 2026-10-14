@@ -8,6 +8,7 @@ memory. A B failure preserves the verified schedule and explicit venue errors.
 import argparse
 from datetime import date, datetime, timezone
 import hashlib
+from http.client import HTTPException
 import json
 from pathlib import Path
 import re
@@ -24,6 +25,19 @@ from .tokuyama_day_worker import FetchResponse
 from .venue_source_rights import RightsRecord
 
 ARCHIVE_SCOPE = 'https://www1.mbrace.or.jp/od2/B/'
+SCHEDULE_FAILURE_CODES = {
+    'SOURCE_UNAVAILABLE': 'SCHEDULE_SOURCE_UNAVAILABLE',
+    'SOURCE_INVALID': 'SCHEDULE_SOURCE_INVALID',
+    'SOURCE_RIGHTS_BLOCKED': 'SCHEDULE_SOURCE_RIGHTS_BLOCKED',
+    'DAY_INVALID': 'SCHEDULE_DAY_INVALID',
+}
+
+
+class ScheduleCollectionError(SourceError):
+    """A fixed diagnostic code, never an upstream response or exception body."""
+    def __init__(self, status):
+        self.code = SCHEDULE_FAILURE_CODES.get(status, 'SCHEDULE_STATUS_INVALID') if isinstance(status, str) else 'SCHEDULE_STATUS_INVALID'
+        super().__init__(self.code)
 
 
 def validate_review(review, *, day, now):
@@ -66,8 +80,9 @@ def collect_national_day(day, *, review, execute=False, now=None,
                          review['evidence_reference'],review['reviewed_by']) for code in review['venue_codes']]
     schedule=collect_day_schedule(day,rights=rights,execute=True,now=now if supplied_clock else None,
                                   transport=schedule_transport)
-    if schedule['status']!='OFFICIAL_DAY_SCHEDULE_VERIFIED':
-        raise SourceError('official current-day schedule unavailable or invalid')
+    schedule_status = schedule.get('status') if isinstance(schedule, dict) else None
+    if schedule_status!='OFFICIAL_DAY_SCHEDULE_VERIFIED':
+        raise ScheduleCollectionError(schedule_status)
     programs=None
     errors={}
     try:
@@ -80,7 +95,7 @@ def collect_national_day(day, *, review, execute=False, now=None,
         captured=now if supplied_clock else datetime.now(timezone.utc)
         programs=normalize_b_snapshot(text,day=day,source_url=url,observed_at=captured.isoformat(),
                                       require_details=True,archive_sha256=info['sha256'])
-    except (ValueError,OSError,TimeoutError,TypeError):
+    except (ValueError,OSError,TimeoutError,TypeError,HTTPException):
         errors={code:'OFFICIAL_PROGRAM_UNAVAILABLE_OR_INVALID' for code in schedule['active_venues']}
     payload=merge_schedule_programs(schedule,programs,errors=errors)
     payload['publication_review']=review['evidence_reference']
@@ -114,8 +129,11 @@ def main():
             args.output.parent.mkdir(parents=True,exist_ok=True)
             args.output.write_text(json.dumps(result,ensure_ascii=False,separators=(',',':'))+'\n',encoding='utf-8')
         print(json.dumps({key:result[key] for key in ('status','date_jst','races','complete_six_boat_races','maximum_source_requests') if key in result},ensure_ascii=False))
-    except (ValueError,OSError,TypeError,KeyError):
-        print('SAFE_STOP: official day source or operator review invalid',file=sys.stderr)
+    except ScheduleCollectionError as failure:
+        print('SAFE_STOP: '+failure.code,file=sys.stderr)
+        raise SystemExit(2)
+    except (ValueError,OSError,TypeError,KeyError,HTTPException):
+        print('SAFE_STOP: NATIONAL_PIPELINE_INVALID',file=sys.stderr)
         raise SystemExit(2)
 
 

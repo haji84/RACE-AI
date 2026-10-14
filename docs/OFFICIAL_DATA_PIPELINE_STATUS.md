@@ -87,6 +87,21 @@ Reproduction:
 Omit `--execute` for a no-network/no-output dry-run. No upload or manual race
 input is required by this collection command.
 
+Schedule collection failure stops before the archive request or output write.
+The CLI emits only `SAFE_STOP: SCHEDULE_SOURCE_UNAVAILABLE`,
+`SCHEDULE_SOURCE_INVALID`, `SCHEDULE_SOURCE_RIGHTS_BLOCKED` or
+`SCHEDULE_DAY_INVALID`, according to the collector's fixed status. Unknown
+statuses become `SCHEDULE_STATUS_INVALID`; other failures become
+`NATIONAL_PIPELINE_INVALID`. Exception bodies, response content, URLs and tokens
+are never printed. An existing approved output remains unchanged on these
+failures. These categories identify the boundary, not a proven upstream cause.
+
+Workflow 38619867313 stopped during national collection at 04:00:05 JST before
+upload. Its old generic diagnostic lost the detailed failure category, so the
+underlying cause remains unknown. A subsequent bounded root probe obtained
+HTTP 200 and successfully parsed thirteen active venues. No parser acceptance
+rules were relaxed in response to this incident.
+
 ## Test evidence and limits
 
 72 targeted data-lane Python tests pass with `.venv/Scripts/python.exe -X utf8`.

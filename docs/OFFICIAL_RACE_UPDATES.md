@@ -14,6 +14,14 @@ retained as evidence; actual/preview course remains null until independent
 course proof is implemented. Image filename metadata is used only to identify
 boat numbers; no images or video are fetched or stored.
 
+Weather's displayed HH:mm has no source date. It is retained as
+source_reported_local_time with reported_at:null and
+freshness_status:UNKNOWN_SOURCE_TIME_HAS_NO_DATE. A displayed clock later than
+capture or closing is not relabelled as a same-day pre-race observation. This
+weather is not currently used by prediction. Odds racer headers preserve the
+six lane/name identities; the odds table does not publish registration IDs,
+so these remain null rather than being fabricated.
+
 Odds enumerate all120 distinct trifecta combinations. Missing values remain
 null. The official 締切時オッズ label marks a final market that can never be
 used as pre-race evidence. Generic data-not-ready pages become PENDING with no
@@ -58,6 +66,40 @@ storage_eligible_pre_race are separate fields; the pre-race query enforces the
 stricter storage gate. Database triggers protect the normal application path,
 not an administrator able to alter schema/files or the process clock.
 
+## Pure program merge and separate observation bundles
+
+`race_update_merge.merge_race_updates` makes a new approved day-feed object
+without network or database writes. It matches each stored observation to the
+program's race, closing time and six lane/registration identities. Odds use
+exact normalized source header names to bind the six lanes to the program.
+Every full record's content hash is checked; capture, availability and actual
+save must all precede the requested merge cutoff. Phase and storage eligibility
+are checked again, including for an existing summary. The original program's
+boats, approval and global sources are preserved.
+
+The default race.official_updates is a bounded summary containing schema_version,
+race_id, summary_only:true, history_included:false, source_record_count, records
+and latest. Records contain only the newest metadata per kind, with
+payload_omitted:true and no data. When merging another summary, total history
+count is unknown and becomes null. Earlier revisions remain in the independent
+append-only store/full bundle, not inside the day feed.
+
+`summary_only=False` returns the immutable per-race bundle with exactly
+schema_version:1, race_id, records and latest. Records retain the original
+source_url/source_sha256/captured_at/available_at plus snapshot_id, saved_at and
+storage_eligible_pre_race. Latest maps each observed kind to its snapshot ID.
+Changed bodies at the same URL keep their own hashes and timestamps; they are
+not added as duplicate day-feed source URLs. Identical retries are idempotent,
+and conflicting same-time revisions are rejected. Expanding a summary into a
+full bundle requires the original immutable records; omitted data is never
+reconstructed. One invalid observation rejects the whole pure merge without
+mutating the supplied feed. Retained bundles are revalidated even for an empty
+batch or an update to another race; they cannot bypass the merge cutoff or the
+requested summary/full mode.
+
+This merge is an offline integration contract. It does not itself expose the
+bundle through the cloud API or claim that an observation was published there.
+
 ## Single-race operator command
 
 ```powershell
@@ -86,7 +128,8 @@ boat tuples, closing time and whitespace-normalized names. Evidence is in
 2026-10-15-B-racelist-crosscheck.json. This is one verified race, not nationwide
 individual-page reconciliation.
 
-The parser/store/worker and independent payout-coverage tests pass. Cancellation,
+The parser/store/worker/merge and independent payout-coverage/boundary tests pass (35
+tests in the targeted run). Pure merge, cancellation,
 postponement, special payout and tie cases are synthetic rejection contracts;
 these exceptional real source cases were not observed. This lane does not add
 bulk polling, cloud persistence, automatic betting or measured model accuracy.

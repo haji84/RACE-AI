@@ -1,0 +1,28 @@
+{
+  "verification": "SYNTHETIC_OFFLINE_CONTRACT_TESTS",
+  "recorded_at": "2026-10-14T18:59:30+00:00",
+  "network_requests_for_merge_verification": 0,
+  "targeted_command": ".venv/Scripts/python.exe -X utf8 -m unittest tests.test_race_update_merge tests.test_race_update_merge_boundaries tests.test_official_race_updates tests.test_official_observation_store tests.test_official_update_worker tests.test_result_market_coverage",
+  "targeted_result": {"tests": 35, "failures": 0, "errors": 0},
+  "full_command": ".venv/Scripts/python.exe -X utf8 -m unittest discover -s tests",
+  "full_result": {"tests": 368, "failures": 0, "errors": 0, "skipped": 1},
+  "verified_contracts": [
+    "race, closing time, six lane and registration matching against program",
+    "odds lane and source name matching without fabricated registration IDs",
+    "immutable content hashes and actual save metadata",
+    "no final odds, results or late-saved preview promoted to pre-race",
+    "unsupported upstream publication timestamps rejected",
+    "existing summary temporal guards retained",
+    "conflicting duplicate existing snapshot metadata rejected",
+    "retained bundles revalidated against cutoff and output mode even for empty batches",
+    "bounded latest-only day summaries and separate full immutable history",
+    "original program and unique global source associations preserved",
+    "invalid batch does not mutate supplied feed"
+  ],
+  "limitations": [
+    "This test evidence is synthetic; it is not an actual current-day merge or cloud observation publication",
+    "Full stored real historical observations are evidenced separately in 2026-10-15-official-race-updates.json",
+    "Weather HH:mm has no source date and does not certify freshness",
+    "Cloud per-race reader and writer are a separate integration stage"
+  ]
+}
