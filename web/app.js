@@ -105,6 +105,8 @@
     ["venues-total", "races-total", "complete-total"].forEach((id) => { el(id).textContent = "―"; });
     el("home-venues").textContent = "未取得";
     el("home-races").textContent = "未取得";
+    el("featured-race").textContent="データ取得待ち";
+    el("featured-detail").textContent="当日の出走表が届き次第表示します。";
     el("source-state").textContent = "データ未取得";
     el("source-state").classList.remove("warning");
     el("source-date").textContent = "対象日：未取得";
@@ -241,6 +243,9 @@
     el("complete-total").textContent = String(data.complete_six_boat_races);
     el("home-venues").textContent = String(data.venues.length);
     el("home-races").textContent = String(data.races);
+    const first=data.venues.flatMap(v=>v.races.map(r=>({venue:v.venue,race:r})))[0];
+    el("featured-race").textContent=first ? venueNames[Number(first.venue)-1]+" "+Number(first.race.race_id.slice(-2))+"R" : "データ取得待ち";
+    el("featured-detail").textContent=first ? "出走表を確認できます。AI予想は検証中です。" : "当日の出走表が届き次第表示します。";
     const select = el("venue-select");
     select.replaceChildren();
     for (const v of data.venues) addOption(select, v.venue, "場コード " + v.venue);
@@ -269,8 +274,8 @@
   });
   async function loadAuthorizedDayFeed() {
     try {
-      const response = await fetch("./data/today.json", {cache:"no-store", credentials:"same-origin"});
-      if (response.status === 404) { el("file-message").textContent = "本日の配信データは準備中です。"; return; }
+      const response = await fetch("./api/today", {cache:"no-store", credentials:"same-origin"});
+      if (response.status === 404 || response.status === 503) { el("file-message").textContent = "本日の配信データは準備中です。"; return; }
       if (!response.ok) throw new Error("HTTP " + response.status);
       const body = await response.text();
       if (body.length > 6000000) throw new Error("データが大きすぎます");
@@ -282,13 +287,14 @@
       showReport({...checked.raw,races:checked.count,complete_six_boat_races:checked.complete});
       el("source-state").textContent = "配信許可フラグあり・原本未独立検証";
       el("file-message").textContent = "本日のデータを自動読込しました。";
-      showPage("races");
+      showPage("home");
     } catch (error) {
       clearStats();
       el("file-message").classList.add("error");
       el("file-message").textContent = "自動取得を利用できません：" + (error instanceof Error ? error.message : "不明なエラー");
     }
   }
+  el("open-debug-import").addEventListener("click", () => { el("debug-import").hidden = false; });
   clearStats();
   showPage("home");
   loadAuthorizedDayFeed();
