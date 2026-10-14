@@ -3,6 +3,7 @@ from race_ai.core import connect
 from race_ai.racer_history_bridge import analyze_imported_history
 
 ASOF="2026-10-14T09:00:00+09:00"
+CAPTURED_UTC="2026-10-13T18:00:00+00:00"
 
 
 class RacerHistoryBridgeTests(unittest.TestCase):
@@ -12,7 +13,7 @@ class RacerHistoryBridgeTests(unittest.TestCase):
                    ("a"*64,"K","fixture.txt",ASOF,ASOF,ASOF,0))
         db.execute("INSERT INTO starts VALUES (?,?,?,?,?,?,?,?,?,?,?)",
                    ("20261013-18-01",1,"4001",2,0.12,"OK",1,
-                    "2026-10-13T10:00:00+00:00",ASOF,ASOF,"a"*64))
+                    "2026-10-13T10:00:00+00:00",CAPTURED_UTC,CAPTURED_UTC,"a"*64))
         result=analyze_imported_history(db,racer_id="4001",asof=ASOF)
         groups=result["conditional_form"]["groups"]
         self.assertTrue(any(x["dimension"]=="lane" and x["number"]==1 for x in groups))
