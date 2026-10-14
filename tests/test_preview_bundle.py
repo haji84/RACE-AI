@@ -14,7 +14,7 @@ class PreviewBundleTests(unittest.TestCase):
     def fixture(self, root):
         web=root/"web"
         web.mkdir()
-        for name in ("index.html","app.js","style.css"):
+        for name in ("index.html","app.js","style.css","ui-model.js"):
             (web/name).write_text("fixture "+name,encoding="utf-8")
         day=datetime.now(JST).date().isoformat()
         source=root/"snapshot.json"
@@ -37,6 +37,7 @@ class PreviewBundleTests(unittest.TestCase):
             output=root/"build"
             package_preview(web,source,approval,output)
             self.assertTrue((output/"index.html").exists())
+            self.assertEqual((output/"ui-model.js").read_text(),"fixture ui-model.js")
             data=json.loads((output/"data/today.json").read_text(encoding="utf-8"))
             self.assertEqual(data["races"],1)
             self.assertIsNone(data["venues"][0]["races"][0]["boats"][0]["motor_no"])
