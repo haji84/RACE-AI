@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#eef4f7">
   <meta name="robots" content="noindex,nofollow">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'none'; connect-src 'none'; form-action 'none'; object-src 'none'; base-uri 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'none'; connect-src 'self'; form-action 'none'; object-src 'none'; base-uri 'none'">
   <title>RACE AI | ボートレース先行版</title>
   <meta name="description" content="RACE AI ボートレース先行版。出典と取得時刻を確認できるローカルJSON閲覧画面。">
   <link rel="stylesheet" href="./style.css">
@@ -58,9 +58,9 @@
       <div id="data-pages">
       <section class="panel import-panel">
         <div><p class="eyebrow">DATA INPUT · LOCAL ONLY</p><h2>レースデータを開く</h2>
-          <p class="muted">利用権限を確認済みの正規化済みJSONを選択。ファイルは端末内だけで読み取り、サーバーへ送信しません。</p></div>
-        <label class="file-action" for="race-file">JSONファイルを選ぶ<input id="race-file" type="file" accept=".json,application/json"></label>
-        <p id="file-message" class="message" role="status" aria-live="polite">ファイル未選択。架空の予想やレースは表示しません。</p>
+          <p class="muted">当日の出走データを自動確認します。配信権限や取得に問題がある場合は未取得と表示します。JSONの手動読込は検証用です。</p></div>
+        <label class="file-action" for="race-file">検証用JSONを選ぶ<input id="race-file" type="file" accept=".json,application/json"></label>
+        <p id="file-message" class="message" role="status" aria-live="polite">自動取得を確認しています。架空の予想やレースは表示しません。</p>
       </section>
       <section class="source" aria-label="データの状態">
         <span id="source-state" class="state-pill">データ未取得</span>
