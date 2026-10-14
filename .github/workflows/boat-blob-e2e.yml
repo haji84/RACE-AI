@@ -5,9 +5,14 @@ on:
       collection:
         description: Research uses saved day facts; day collection only when missing or at least six hours old
         type: choice
-        options: [research, race, day]
+        options: [research, result, race, day]
         default: research
         required: true
+      result_race_id:
+        description: Current-day closed race to reconcile with its previously saved forecast
+        type: string
+        required: false
+        default: '20261015-14-01'
   push:
     branches: [feat/boat-oidc-probe-auth]
     paths:
@@ -50,7 +55,7 @@ jobs:
       - name: Checkout reviewed current-day collector
         uses: actions/checkout@v4
         with:
-          ref: e948e123cf41a8ec1c5796629a74e30a562bb572
+          ref: df99984eede564aff259f7ecb962801d77231041
           path: day-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -67,8 +72,8 @@ jobs:
       - name: Publish private current-day version and verify today API SHA
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
         env:
-          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-h0upx8ni5-qq1130034-1738.vercel.app/api/publish-day
-          RACE_AI_DAY_COMMIT_SHA: e948e123cf41a8ec1c5796629a74e30a562bb572
+          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-1zr61hp97-qq1130034-1738.vercel.app/api/publish-day
+          RACE_AI_DAY_COMMIT_SHA: df99984eede564aff259f7ecb962801d77231041
         run: python day-source/scripts/publish_day_feed.py --feed "$RUNNER_TEMP/race-ai-day.json"
       - name: Back up only the approved normalized day facts
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
@@ -101,13 +106,19 @@ jobs:
 
       - name: Collect one race, publish immutable observations and verify race API
         id: race
-        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'race'
+        if: github.event_name == 'push' || inputs.collection == 'race' || inputs.collection == 'result'
         env:
-          RACE_AI_RACE_PUBLISH_URL: https://race-ai-preview-h0upx8ni5-qq1130034-1738.vercel.app/api/publish-race
-          RACE_AI_RACE_COMMIT_SHA: e948e123cf41a8ec1c5796629a74e30a562bb572
+          RACE_AI_RACE_PUBLISH_URL: https://race-ai-preview-1zr61hp97-qq1130034-1738.vercel.app/api/publish-race
+          RACE_AI_RACE_COMMIT_SHA: df99984eede564aff259f7ecb962801d77231041
+          RACE_AI_RESULT_MODE: ${{ inputs.collection == 'race' && 'auto' || 'result' }}
+          RACE_AI_RESULT_RACE_ID: ${{ inputs.result_race_id || '20261015-14-01' }}
         run: |
           result=0
-          python day-source/scripts/publish_race_updates.py --review day-source/config/operator-official-facts.json --output "$RUNNER_TEMP/race-ai-race.json" --execute || result=$?
+          if [ "$RACE_AI_RESULT_MODE" = result ]; then
+            python day-source/scripts/publish_race_updates.py --mode result --race-id "$RACE_AI_RESULT_RACE_ID" --review day-source/config/operator-official-facts.json --output "$RUNNER_TEMP/race-ai-race.json" --execute || result=$?
+          else
+            python day-source/scripts/publish_race_updates.py --review day-source/config/operator-official-facts.json --output "$RUNNER_TEMP/race-ai-race.json" --execute || result=$?
+          fi
           if [ -f "$RUNNER_TEMP/race-ai-race.request.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
           exit "$result"
       - name: Back up only normalized approved race facts and receipts
@@ -144,10 +155,10 @@ jobs:
 
       - name: Generate durable pre-cutoff research prediction and verify API
         id: research
-        if: github.event_name == 'push' || inputs.collection == 'research'
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'research'
         env:
-          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-h0upx8ni5-qq1130034-1738.vercel.app/api/publish-prediction
-          RACE_AI_RESEARCH_COMMIT_SHA: e948e123cf41a8ec1c5796629a74e30a562bb572
+          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-1zr61hp97-qq1130034-1738.vercel.app/api/publish-prediction
+          RACE_AI_RESEARCH_COMMIT_SHA: df99984eede564aff259f7ecb962801d77231041
         run: |
           result=0
           python day-source/scripts/publish_research_prediction.py --output "$RUNNER_TEMP/race-ai-research.json" --execute || result=$?
