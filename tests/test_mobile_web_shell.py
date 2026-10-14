@@ -17,9 +17,12 @@ class MobileShellTests(unittest.TestCase):
         self.assertIn("Coming soon...", HTML)
         self.assertIn('data-sport="boat"', HTML)
 
-    def test_no_remote_data_access_in_frontend(self):
-        self.assertIn("connect-src 'none'", HTML)
-        self.assertNotIn("fetch(", JS)
+    def test_same_origin_only_data_access_in_frontend(self):
+        self.assertIn("connect-src 'self'", HTML)
+        self.assertIn('fetch("./data/today.json"', JS)
+        self.assertIn('credentials:"same-origin"', JS)
+        self.assertIn('redistribution_authorized', JS)
+        self.assertNotIn('fetch("https:', JS)
         self.assertNotIn("XMLHttpRequest", JS)
         self.assertNotIn("localStorage", JS)
         # A URL-prefix check is permitted; actual network calls are not.
