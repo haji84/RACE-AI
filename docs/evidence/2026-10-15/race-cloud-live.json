@@ -1,0 +1,81 @@
+{
+  "run_id": 38646273445,
+  "job_id": 116133793161,
+  "workflow_commit": "3bfd77f5de38f29910d7784ef6398ce5331d1241",
+  "application_commit": "6f359e30251da8a463e34634954889bc1c097e30",
+  "deployment_url": "https://race-ai-preview-d24yv8qs3-qq1130034-1738.vercel.app",
+  "date_jst": "2026-10-15",
+  "race_id": "20261015-14-01",
+  "closed_at": "2026-10-15T08:35:00+09:00",
+  "program_sha256": "10500e7a5b908aeae2adb5915a4a3a2fdfcf34f49a1d6c6b53b48d3c0f389b80",
+  "published_at": "2026-10-14T22:15:32.851987+00:00",
+  "day_collection_steps": "all five skipped; existing healthy day program reused",
+  "api_status": 200,
+  "independent_api_get_full_canonical_sha_verified": true,
+  "publication_report": {
+    "backup_file_sha256": "3871095211f8c405dec1a4df8fcdbe90580060184749245edb0ed8b52a46186b",
+    "commit_sha": "6f359e30251da8a463e34634954889bc1c097e30",
+    "failed_kinds": {},
+    "race_id": "20261015-14-01",
+    "records": [
+      {
+        "captured_at": "2026-10-14T22:15:25.958777+00:00",
+        "cloud_eligible_pre_race": true,
+        "cloud_saved_at": "2026-10-14T22:15:29.245513+00:00",
+        "kind": "beforeinfo",
+        "snapshot_id": "da16c9a54358e932d0b19a80494c4fd01057fb6ffd0d51a32bdf0e74870f2446",
+        "source_sha256": "849201b02db5a331e2c17758587051db033065572c44493ce21ca1540e3f673a",
+        "status": "PENDING"
+      },
+      {
+        "captured_at": "2026-10-14T22:15:26.372601+00:00",
+        "cloud_eligible_pre_race": true,
+        "cloud_saved_at": "2026-10-14T22:15:31.700729+00:00",
+        "kind": "odds3t",
+        "snapshot_id": "bdef6358f1e6decd163b3fea56e06eaeeabb3af896c6ed3234058d9dd17eb58e",
+        "source_sha256": "6a8e659ef57c0aaf2b3dcb92ec51259162c5306f991d6875d17cf2117b1d7492",
+        "status": "PARTIAL"
+      }
+    ],
+    "result": "OFFICIAL_RACE_API_VERIFIED",
+    "sha256": "3871095211f8c405dec1a4df8fcdbe90580060184749245edb0ed8b52a46186b"
+  },
+  "market": {
+    "slots": 120,
+    "priced": 9,
+    "unknown": 111,
+    "unknown_policy": "literal source 0.0 is null with SOURCE_ZERO_PLACEHOLDER; no interpretation of the reason for zero"
+  },
+  "backup": {
+    "artifact_id": 11931928393,
+    "retention_days": 14,
+    "zip_sha256": "acd562b09b50f5d0ad1002f2a921474fe713599b15dc219288be9c094846256e",
+    "restored_files": [
+      {
+        "result": "RACE_BACKUP_RESTORE_VERIFIED",
+        "file": "race-ai-race.request.json",
+        "bytes": 15225,
+        "file_sha256": "68be01e5469a92796b88bc19fdcec1cccf78eb6bba0a049be57aad360450685d"
+      },
+      {
+        "result": "RACE_BACKUP_RESTORE_VERIFIED",
+        "file": "race-ai-race.json",
+        "bytes": 15701,
+        "file_sha256": "3871095211f8c405dec1a4df8fcdbe90580060184749245edb0ed8b52a46186b"
+      }
+    ],
+    "restore": "separate directory; exact bytes and SHA verified"
+  },
+  "browser": {
+    "desktop_width": 1440,
+    "mobile_width": 390,
+    "horizontal_overflow": false,
+    "priced_slots": 9,
+    "unknown_slots": 111,
+    "images": [
+      "desktop-cloud-race-odds.png",
+      "mobile-cloud-race-odds.png"
+    ]
+  },
+  "claim_limits": "One real current-day race. Beforeinfo is an observed PENDING state, odds are PARTIAL, result not yet available. Does not establish full24-venue observation coverage, actual prediction performance, physical iPhone acceptance or Production readiness."
+}
