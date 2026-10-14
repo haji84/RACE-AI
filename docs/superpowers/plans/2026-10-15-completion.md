@@ -15,6 +15,12 @@ Architecture: rights-scoped official collector -> normalized dated snapshot -> p
 3. UI: reference-aligned desktop side navigation, mobile header/bottom navigation, home/races/detail/bets/performance/research/settings. Automatic today loading with venue/date/search/race controls and meaningful states. Local purchase records/settings use shared money logic; no fictional odds, people, grades or performance. Six-boat cards use number identities where image rights unknown.
 4. Calculation: shared settlement and allocation engine, 100-yen units, budget/duplicate limits, odds/expected return definitions, zero-spend null rates, refund/dead-heat/special payout handling from official values. Test specified examples and invalid inputs.
 
+## Live research save checkpoint
+
+Functional commit e948e123: standalone shared stdlib PL contract; server-generated frozen B inputs; uniform reference and untrained 0..10 rating-point strengths (floor0.01, omit when missing);120 triples and six rank marginals; immutable forecast, measured cloud-save receipt, nonce retries, latest reference, protected GET and selected-tab UI. No trained model, outcome feature, fabricated accuracy or purchase recommendation.
+
+Independent review fixed permissive ISO offset parsing and future-cutoff UI classification. Windows/Linux CI38649731803 executed456 cases each, no failures/one optional OpenCV skip;23 JS checks. Scoped workflow38649960735 saved Naruto1R before08:35 at07:47:32 JST; API/backup29768bytes/SHA verified independently and desktop/mobile proof saved. Next reconcile its later actual result and expose shared-cohort evaluation; never construct earlier predictions from later pages.
+
 ## Validation and remaining stages
 
 Run existing full Python suite before and after changes; JS syntax and behavior tests; API rejection and integration tests; real Blob evidence distinct from mocks; collector metadata distinct from publication permission; browser interactions at iPhone and desktop widths. Save screenshots and evidence without secrets or copyrighted source originals.
