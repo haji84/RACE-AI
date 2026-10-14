@@ -29,6 +29,13 @@ from web.race_contract import stamp
 JST=ZoneInfo('Asia/Tokyo')
 
 
+class RaceSourceFailure(ValueError):
+    """Only fixed kind/status codes; never originals, transport details or tokens."""
+    def __init__(self,failed):
+        super().__init__('RACE_ALL_SOURCES_UNAVAILABLE')
+        self.failed_kinds=dict(failed)
+
+
 def selection_options(mode,race_id):
     if not isinstance(mode,str) or mode not in {'auto','result'} or (race_id is not None and mode!='result'):
         raise ValueError('RACE_SELECTION_MODE_INVALID')
@@ -102,7 +109,7 @@ def collect_bundle(feed,review,*,now=None,collector=collect_race_update,clock=No
                 continue
             save_observation(db,observation)
             records.append(latest_observation(db,race['race_id'],kind,as_of=clock()))
-    if not records:raise ValueError('RACE_ALL_SOURCES_UNAVAILABLE')
+    if not records:raise RaceSourceFailure(failed)
     return bundle_for_race(race,records,now=clock()),failed
 
 
@@ -157,6 +164,8 @@ if __name__=='__main__':
     parser.add_argument('--execute',action='store_true');args=parser.parse_args()
     try:run(args.review,args.output,execute=args.execute,mode=args.mode,race_id=args.race_id)
     except (ValueError,RuntimeError,OSError,sqlite3.Error) as error:
+        if isinstance(error,RaceSourceFailure):
+            print(json.dumps({'result':'OFFICIAL_RACE_SOURCES_REJECTED','failed_kinds':error.failed_kinds},sort_keys=True))
         code=str(error)
         allowed={'RACE_ALL_SOURCES_UNAVAILABLE','RACE_SELECTION_MODE_INVALID','RESULT_RACE_ID_INVALID',
                  'RACE_API_READBACK_MISMATCH','CURRENT_APPROVED_PROGRAM_REQUIRED','RACE_BUNDLE_TOO_LARGE',

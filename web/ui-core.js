@@ -198,5 +198,42 @@
     return raw;
   }
   function sortedPredictionTriples(model){return (model?.triples||[]).slice().sort((a,b)=>b.probability-a.probability||a.combination.join('').localeCompare(b.combination.join('')));}
-  return {venueNames,pages,dayJst,validateReport,venueState,allRaces,filterRaces,cutoff,purchaseAvailability,timeLabel,parseRoute,text,validateRaceBundle,raceUpdatePhase,sortedOdds,confirmedResultView,validatePredictionReceipt,sortedPredictionTriples};
+  function validateEvaluation(raw,{race,dateJst,now=Date.now(),predictionReceipt=null}={}){
+    const fail=message=>{throw new Error(message||'研究評価データの形式を確認できません。');};
+    const hash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
+    const time=value=>{if(!zoned(value))fail('研究評価の時刻形式が不正です。');const n=Date.parse(value);if(n>now+60000||dayJst(new Date(n))!==dateJst)fail('研究評価の時刻と対象日が一致していません。');return n;};
+    const finite=(value,low,high=Infinity)=>typeof value==='number'&&Number.isFinite(value)&&value>=low&&value<=high;
+    const near=(a,b)=>Math.abs(a-b)<1e-8;
+    const reasons={PREDICTION_NOT_SAVED:['PREDICTION_DURABLE_PRE_RACE_PROOF_MISSING'],RESULT_NOT_OBTAINED:['OFFICIAL_RESULT_NOT_OBTAINED'],RESULT_PENDING:['OFFICIAL_RESULT_PENDING'],RESULT_UNSUPPORTED:['OFFICIAL_RESULT_STATUS_UNSUPPORTED','OFFICIAL_REFUND_OUTCOME_UNSUPPORTED','OFFICIAL_TOP3_NOT_UNIQUE'],EVALUATED:[null]};
+    const closing=race?cutoff(race,dateJst):null;
+    if(!raw||!race||closing===null||raw.schema_version!==1||raw.race_id!==race.race_id||raw.date_jst!==dateJst||!zoned(raw.closed_at)||Date.parse(raw.closed_at)!==closing||!reasons[raw.status]?.includes(raw.exclusion_reason)||raw.research_only!==true||raw.validation_status!=='UNVALIDATED'||raw.purchase_decision!=='skip'||!Array.isArray(raw.purchase_recommendations)||raw.purchase_recommendations.length||raw.comparison_scope!=='same_race_and_information_cutoff'||!Array.isArray(raw.common_race_ids)||!Array.isArray(raw.models))fail('研究評価の対象・比較条件を確認できません。');
+    const evaluated=raw.status==='EVALUATED',asof=time(raw.as_of),p=raw.prediction_proof,r=raw.result_proof;
+    if(evaluated&&!predictionReceipt)fail('評価対象の予測原本を取得できないため、比較指標の表示を停止しています。再確認してください。');
+    if(evaluated?(raw.common_race_ids.length!==1||raw.common_race_ids[0]!==race.race_id||raw.models.length<1||raw.models.length>2):(raw.common_race_ids.length!==0||raw.models.length!==0))fail('共通レース数・評価対象数に矛盾があります。');
+    if(raw.status==='PREDICTION_NOT_SAVED'?(p!==null||predictionReceipt!==null):!p)fail('締切前に保存された予測の証拠が不足しています。');
+    if(p){
+      if(!hash(p.snapshot_id)||!hash(p.program_sha256)||typeof p.request_id!=='string'||!/^([1-9][0-9]{0,19})-([1-9][0-9]{0,3})$/.test(p.request_id))fail('予測の保存識別子が不正です。');
+      const predicted=time(p.as_of),generated=time(p.generated_at),saved=time(p.cloud_saved_at);if(!(predicted<=generated&&generated<=saved&&saved<closing&&saved<=asof))fail('予測が締切前に生成・保存されたことを確認できません。');
+      if(predictionReceipt){const checked=validatePredictionReceipt(predictionReceipt,{race,dateJst,now}),s=checked.snapshot;for(const [key,want]of [['snapshot_id',s.snapshot_id],['request_id',checked.request_id],['program_sha256',s.program_sha256]])if(p[key]!==want)fail('表示中の予測と評価対象が一致していません。');for(const [key,want]of [['as_of',s.as_of],['generated_at',s.generated_at],['cloud_saved_at',checked.cloud_saved_at]])if(time(p[key])!==Date.parse(want))fail('表示中の予測と評価の情報時点が一致していません。');}
+    }
+    if(raw.status==='RESULT_NOT_OBTAINED'&&r!==null)fail('結果未取得の区分に矛盾があります。');
+    if(['RESULT_PENDING','RESULT_UNSUPPORTED','EVALUATED'].includes(raw.status)&&!r)fail('公式結果の取得証拠が不足しています。');
+    if(r){
+      if(!hash(r.snapshot_id)||!hash(r.source_sha256)||!['PENDING','settled','dead_heat','special','cancelled','no_contest','postponed'].includes(r.status)||typeof r.finish_confirmed!=='boolean'||typeof r.financial_confirmed!=='boolean')fail('公式結果の確認状態が不正です。');
+      let source;try{source=new URL(r.source_url);}catch{fail('公式結果の取得元を確認できません。');}const [,venue,number]=race.race_id.split('-');
+      if(source.protocol!=='https:'||source.hostname!=='www.boatrace.jp'||source.port||source.username||source.password||source.hash||source.pathname!=='/owpc/pc/race/raceresult'||source.searchParams.getAll('hd').join()!==dateJst.replaceAll('-','')||source.searchParams.getAll('jcd').join()!==venue||source.searchParams.getAll('rno').length!==1||Number(source.searchParams.get('rno'))!==Number(number))fail('公式結果の取得元と対象レースが一致していません。');
+      const captured=time(r.captured_at),saved=time(r.cloud_saved_at);if(captured>saved||saved>asof||(['settled','dead_heat','special'].includes(r.status)&&captured<closing))fail('公式結果の取得・保存時刻が不正です。');
+      if(r.top3!==null&&(!Array.isArray(r.top3)||r.top3.length!==3||new Set(r.top3).size!==3||r.top3.some(lane=>!Number.isInteger(lane)||lane<1||lane>6)))fail('一意の上位3艇を確認できません。');
+      if(evaluated&&(r.status!=='settled'||r.finish_confirmed!==true||!Array.isArray(r.top3)||asof<closing))fail('着順未確定・中止などの結果は評価できません。');
+      if(raw.status==='RESULT_PENDING'&&r.finish_confirmed===true)fail('着順の確認状態と未確定区分が一致していません。');
+    }
+    const ids=new Set(),expected=predictionReceipt?.snapshot.models;
+    for(const m of raw.models){
+      if(!['official-program-uniform-pl','official-program-rating-pl'].includes(m.model_id)||ids.has(m.model_id)||m.model_version!=='1'||m.race_count!==1||m.ticket_count!==120||!finite(m.multiclass_brier,0,2)||!finite(m.log_loss,0)||!finite(m.winner_probability,Number.MIN_VALUE,1)||!near(m.log_loss,-Math.log(m.winner_probability)))fail('評価対象数・比較指標が不正です。');ids.add(m.model_id);
+      if(expected){const model=expected.find(item=>item.model_id===m.model_id&&item.model_version===m.model_version);if(!model)fail('予測と評価のモデルが一致していません。');let brier=0,winner;for(const row of model.triples){const hit=row.combination.join()===r.top3.join();brier+=(row.probability-Number(hit))**2;if(hit)winner=row.probability;}if(!near(m.multiclass_brier,brier)||!near(m.winner_probability,winner))fail('表示中の予測と公式着順から計算した評価値が一致していません。');}
+    }
+    if(evaluated&&(!ids.has('official-program-uniform-pl')||(expected&&expected.length!==raw.models.length)))fail('同じ条件で比較できるモデルが不足しています。');
+    return raw;
+  }
+  return {venueNames,pages,dayJst,validateReport,venueState,allRaces,filterRaces,cutoff,purchaseAvailability,timeLabel,parseRoute,text,validateRaceBundle,raceUpdatePhase,sortedOdds,confirmedResultView,validatePredictionReceipt,sortedPredictionTriples,validateEvaluation};
 });

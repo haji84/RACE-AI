@@ -173,8 +173,9 @@ class RacePublishCallerTests(unittest.TestCase):
 
     def test_all_failed_sources_never_produce_a_publishable_bundle(self):
         def collector(*args,**kwargs):return {'status':'SOURCE_INVALID'}
-        with self.assertRaisesRegex(ValueError,'RACE_ALL_SOURCES_UNAVAILABLE'):
+        with self.assertRaisesRegex(ValueError,'RACE_ALL_SOURCES_UNAVAILABLE') as caught:
             CALLER.collect_bundle(self.feed(),{},now=datetime.fromisoformat('2026-10-15T07:00:00+09:00'),collector=collector)
+        self.assertEqual(caught.exception.failed_kinds,{'beforeinfo':'SOURCE_INVALID','odds3t':'SOURCE_INVALID'})
 
 
 if __name__=='__main__':unittest.main()

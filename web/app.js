@@ -7,6 +7,7 @@
   let settings={...defaults},ledger=[],drafts=new Map(),savingPurchase=false,localStateHealthy=true;
   let raceUpdates=null,raceUpdatesState='idle',raceUpdatesMessage='',raceUpdatesId='',raceRequestSerial=0,raceController=null,knownRaceStops=new Map();
   let predictionReceipt=null,predictionState='idle',predictionMessage='',predictionRaceId='',predictionModelId='',predictionSerial=0,predictionController=null;
+  let evaluation=null,evaluationState='idle',evaluationMessage='',evaluationRaceId='',evaluationSerial=0,evaluationController=null;
   const SETTINGS_KEY='raceai.settings.v1',LEDGER_KEY='raceai.ledger.v1',STATE_LOCK='raceai.local-state.v1';
   const yen=n=>Number(n).toLocaleString('ja-JP')+'円';
   const node=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;};
@@ -111,11 +112,12 @@
   function updateFor(kind){return raceUpdates?.records.find(wrapper=>wrapper.record.kind===kind);}
   function programIdentity(race){return JSON.stringify([race.race_id,race.closed_at,race.boats.slice().sort((a,b)=>a.lane-b.lane).map(b=>[b.lane,b.racer_registration_id,b.name])]);}
   function researchIdentity(race){return JSON.stringify([programIdentity(race),race.boats.slice().sort((a,b)=>a.lane-b.lane).map(b=>[b.lane,b.national_win_rate??null])]);}
-  function clearPrediction(){predictionSerial++;predictionController?.abort();predictionController=null;predictionReceipt=null;predictionState='idle';predictionMessage='';predictionRaceId='';predictionModelId='';}
+  function clearEvaluation(){evaluationSerial++;evaluationController?.abort();evaluationController=null;evaluation=null;evaluationState='idle';evaluationMessage='';evaluationRaceId='';}
+  function clearPrediction(){predictionSerial++;predictionController?.abort();predictionController=null;predictionReceipt=null;predictionState='idle';predictionMessage='';predictionRaceId='';predictionModelId='';clearEvaluation();}
   async function loadPrediction(force=false){
     const race=current();if(page!=='detail'||tab!=='prediction'||!race||report.date_jst!==today())return;
-    if(!force&&predictionRaceId===race.race_id&&predictionState!=='idle')return;
-    predictionController?.abort();const request=new AbortController(),serial=++predictionSerial,id=race.race_id,day=report.date_jst,identity=researchIdentity(race);predictionController=request;predictionReceipt=null;predictionRaceId=id;predictionState='loading';predictionMessage='締切前に保存された研究用の計算結果を確認しています。';renderDetailTab();
+    if(!force&&predictionRaceId===race.race_id&&predictionState!=='idle'){if(predictionState!=='loading')loadEvaluation();return;}
+    predictionController?.abort();clearEvaluation();const request=new AbortController(),serial=++predictionSerial,id=race.race_id,day=report.date_jst,identity=researchIdentity(race);predictionController=request;predictionReceipt=null;predictionRaceId=id;predictionState='loading';predictionMessage='締切前に保存された研究用の計算結果を確認しています。';renderDetailTab();
     const valid=()=>serial===predictionSerial&&selectedId===id&&report?.date_jst===day&&today()===day&&current()&&researchIdentity(current())===identity;
     const timeout=setTimeout(()=>request.abort(),15000);
     try{
@@ -125,6 +127,21 @@
       let raw;try{raw=JSON.parse(body);}catch{throw new Error('研究予測データの形式を確認できません。');}
       const checked=UI.validatePredictionReceipt(raw,{race:current(),dateJst:day});if(!valid())return;predictionReceipt=checked;predictionState='ready';predictionMessage='締切前に生成・保存された研究用の確率です。精度と確率校正は未検証です。';predictionModelId=checked.snapshot.models.some(m=>m.model_id===predictionModelId)?predictionModelId:checked.snapshot.models.find(m=>m.model_id==='official-program-rating-pl')?.model_id||checked.snapshot.models[0].model_id;
     }catch(error){if(!valid())return;predictionReceipt=null;predictionState='error';predictionMessage=error.name==='AbortError'?'研究予測の取得がタイムアウトしました。再確認してください。':error.message;}
+    finally{clearTimeout(timeout);if(valid()&&tab==='prediction'){renderDetailTab();loadEvaluation();}}
+  }
+  async function loadEvaluation(){
+    const race=current();if(page!=='detail'||tab!=='prediction'||!race||report.date_jst!==today()||predictionState==='loading')return;
+    if(evaluationRaceId===race.race_id&&evaluationState!=='idle')return;
+    evaluationController?.abort();const request=new AbortController(),serial=++evaluationSerial,id=race.race_id,day=report.date_jst,identity=researchIdentity(race),saved=predictionReceipt;evaluationController=request;evaluation=null;evaluationRaceId=id;evaluationState='loading';evaluationMessage='保存済みの予測と公式結果を、同じレース・情報時点で照合しています。';renderDetailTab();
+    const valid=()=>serial===evaluationSerial&&selectedId===id&&report?.date_jst===day&&today()===day&&current()&&researchIdentity(current())===identity&&predictionReceipt===saved;
+    const timeout=setTimeout(()=>request.abort(),15000);
+    try{
+      const response=await fetch('./api/evaluation?race_id='+encodeURIComponent(id),{cache:'no-store',credentials:'same-origin',signal:request.signal}),body=await readRaceBody(response);if(!valid())return;
+      if(response.status===404){evaluationState='unobtained';evaluationMessage='このレースの研究評価はまだ取得できません。';return;}
+      if(!response.ok)throw new Error('研究評価を取得できませんでした。');
+      let raw;try{raw=JSON.parse(body);}catch{throw new Error('研究評価データの形式を確認できません。');}
+      const checked=UI.validateEvaluation(raw,{race:current(),dateJst:day,predictionReceipt:saved});if(!valid())return;evaluation=checked;evaluationState='ready';evaluationMessage='取得済みの公式結果との照合状況です。';
+    }catch(error){if(!valid())return;evaluation=null;evaluationState='error';evaluationMessage=error.name==='AbortError'?'研究評価の取得がタイムアウトしました。再確認してください。':error.message;}
     finally{clearTimeout(timeout);if(valid()&&tab==='prediction')renderDetailTab();}
   }
   async function readRaceBody(response){
@@ -205,7 +222,7 @@
     const panel=node('section','research-prediction');panel.dataset.state=predictionState;
     const notice=node('div','prediction-notice');notice.append(node('strong','','研究用・未検証'),node('span','','購入見送り'),node('p','','固定の単純なモデルによる比較です。学習・精度検証・確率校正は未実施です。推奨買い目や推奨金額は表示しません。'));panel.append(notice);
     const state=node('div','race-update-status');state.dataset.state=predictionState;state.append(node('span','',({loading:'確認中',ready:'保存済み',unobtained:'未保存',error:'取得失敗',idle:'未取得'})[predictionState]),node('p','',predictionMessage||'このレースの保存済み研究予測を確認します。'));panel.append(state);
-    if(!predictionReceipt)return panel;
+    if(!predictionReceipt){panel.append(renderEvaluation());return panel;}
     const snapshot=predictionReceipt.snapshot,proof=node('div','prediction-proof'),link=node('a','','公式番組表');link.href=snapshot.program_source.source_url;link.target='_blank';link.rel='noopener noreferrer';
     proof.append(link,node('span','','番組表取得 '+stampLabel(snapshot.program_source.captured_at)),node('span','','情報の時点 '+stampLabel(snapshot.as_of)),node('span','','予測生成 '+stampLabel(snapshot.generated_at)),node('span','','クラウド保存 '+stampLabel(predictionReceipt.cloud_saved_at)),node('span','state-pill ready','締切前に生成・保存'));panel.append(proof);
     const uniform=id=>id==='official-program-uniform-pl',label=id=>uniform(id)?'全艇同じ強さの比較基準':'全国勝率（得点）の単純比較';
@@ -216,11 +233,28 @@
     panel.append(node('h3','prediction-section-title','6艇の着順確率'),table(['艇','選手・登録番号','全国勝率（得点）','1着','2着','3着','4着','5着','6着','3着以内'],marginals.map(m=>{const b=snapshot.program_boats.find(b=>b.lane===m.lane);return [m.lane,UI.text(b.name)+' / '+b.racer_registration_id,b.national_win_rate,...positions.map(p=>percent(m[p+'_probability'])),percent(m.top3_probability)];})));
     const ordered=UI.sortedPredictionTriples(model);panel.append(node('h3','prediction-section-title',isUniform?'均等な確率の表示例（艇番順）':'計算上の確率が高い組み合わせ（上位10通り）'),table(['順','3連単','研究用の確率'],ordered.slice(0,10).map((row,index)=>[index+1,row.combination.join('−'),percent(row.probability)])));
     const more=node('details','prediction-all'),heading=node('summary','','120通りの研究用確率をすべて見る'),grid=node('div','prediction-probability-grid');for(const row of ordered){const item=node('div','prediction-probability');item.append(combination(row.combination),node('strong','',percent(row.probability)));grid.append(item);}more.append(heading,grid);panel.append(more,node('p','photo-note','確率は表示時に四捨五入するため、表示値の合計には丸め差があります。これらの確率が実際の的中率と一致するかは未検証です。'));
-    return panel;
+    panel.append(renderEvaluation());return panel;
+  }
+  function renderEvaluation(){
+    const panel=node('section','research-evaluation');panel.dataset.state=evaluationState;panel.dataset.raceId=evaluationRaceId;panel.append(node('h3','prediction-section-title','公式結果との研究用の照合'));
+    if(!evaluation){const state=node('div','race-update-status');state.dataset.state=evaluationState;state.append(node('span','',({loading:'確認中',error:'取得失敗',unobtained:'未取得',idle:'未取得'})[evaluationState]),node('p','',evaluationMessage||'保存済みの予測を確認したあと、公式結果と照合します。'));panel.append(state);return panel;}
+    const status=evaluation.status,labels={PREDICTION_NOT_SAVED:'締切前の予測が未保存',RESULT_NOT_OBTAINED:'公式結果が未取得',RESULT_PENDING:'公式着順が未確定',RESULT_UNSUPPORTED:'今回の評価対象外',EVALUATED:'公式着順と照合済み'},descriptions={PREDICTION_NOT_SAVED:'締切前にクラウドへ保存された予測がないため、比較指標は計算しません。',RESULT_NOT_OBTAINED:'公式結果を取得できていないため、比較指標は未取得です。',RESULT_PENDING:'着順が確定するまで、比較指標は未確定です。',RESULT_UNSUPPORTED:({OFFICIAL_RESULT_STATUS_UNSUPPORTED:'中止・延期・同着・特払いなど、通常の一意の着順を比較できない結果です。',OFFICIAL_REFUND_OUTCOME_UNSUPPORTED:'返還を伴う結果のため、この比較から除外しています。',OFFICIAL_TOP3_NOT_UNIQUE:'上位3艇の一意の着順を確認できないため、この比較から除外しています。'})[evaluation.exclusion_reason],EVALUATED:'同じレース・同じ情報時点の保存済み予測を、公式の上位3艇と比較しています。'};
+    const state=node('div','evaluation-status');state.append(node('span','state-pill '+(status==='EVALUATED'?'ready':'unobtained'),labels[status]),node('p','muted',descriptions[status]));panel.append(state);
+    if(status==='EVALUATED'){
+      panel.append(node('p','evaluation-sample','共通1レース（N=1）・各モデル120通りの3連単'),node('p','evaluation-caution','標本数が小さいため、モデルの優劣・精度・確率校正は未検証です。この1レースから採用モデルや購入判断を決めません。'));
+      const scores=table(['比較モデル','Brierスコア','対数損失','確定した3連単への予測確率'],evaluation.models.map(m=>[(m.model_id==='official-program-uniform-pl'?'全艇同じ強さの比較基準':'全国勝率（得点）の単純比較')+' / v'+m.model_version,m.multiclass_brier.toFixed(6),m.log_loss.toFixed(6),(m.winner_probability*100<0.01?'<0.01':(m.winner_probability*100).toFixed(2))+'%']));scores.classList.add('evaluation-scores');panel.append(scores,node('p','photo-note','Brierスコアは120通りの確率と実際の着順との差の二乗和、対数損失は確定した3連単に付けた確率から求めます。どちらも小さいほど、この結果に対する確率のずれが小さい指標です。的中率や品質の等級ではありません。'));
+    }
+    const result=evaluation.result_proof;
+    if(result){
+      const outcome=node('div','evaluation-outcome');if(result.finish_confirmed&&result.top3){outcome.append(node('strong','','公式の上位3艇'),combination(result.top3));}const disposition=({cancelled:'レース中止',no_contest:'競走不成立',postponed:'レース延期'})[result.status];outcome.append(node('span','',disposition||(result.finish_confirmed?'着順確定':'着順は未確定')),node('span','',result.financial_confirmed?'払戻・返還も確認済み':'払戻・返還は確認中'));panel.append(outcome);
+      const proof=node('div','prediction-proof evaluation-result-proof'),link=node('a','','公式結果');link.href=result.source_url;link.target='_blank';link.rel='noopener noreferrer';proof.append(link,node('span','','結果取得 '+stampLabel(result.captured_at)),node('span','','クラウド保存 '+stampLabel(result.cloud_saved_at)));panel.append(proof);
+    }
+    const prediction=evaluation.prediction_proof;if(prediction)panel.append(node('p','photo-note evaluation-prediction-proof','評価対象の予測：情報の時点 '+stampLabel(prediction.as_of)+' ／ 生成 '+stampLabel(prediction.generated_at)+' ／ クラウド保存 '+stampLabel(prediction.cloud_saved_at)));
+    panel.append(node('p','photo-note','評価確認 '+stampLabel(evaluation.as_of)+'。研究用・未検証／購入見送り。'));return panel;
   }
   function renderDetailTab(){
     const race=current(),target=$('detail-tab-content'),heading=node('div','detail-tab-heading'),body=node('div','detail-tab-body');const labels={overview:'レースのポイント',entries:'出走表の確認',preview:'直前情報',analysis:'取得データの分析',history:'過去レース',prediction:'AI予想',bets:'このレースの買い目',video:'映像・展示解析'};
-    const predictionTab=tab==='prediction',loading=predictionTab?predictionState==='loading':raceUpdatesState==='loading';
+    const predictionTab=tab==='prediction',loading=predictionTab?predictionState==='loading'||evaluationState==='loading':raceUpdatesState==='loading';
     document.querySelectorAll('[data-tab]').forEach(b=>{b.classList.toggle('active',b.dataset.tab===tab);b.setAttribute('aria-pressed',String(b.dataset.tab===tab));});heading.append(node('h2','',labels[tab]),button(loading?'確認中…':predictionTab?'研究予測を再確認':'直前情報を更新','text-button',()=>predictionTab?loadPrediction(true):loadRaceUpdates(true)));heading.lastElementChild.disabled=loading||!race;target.replaceChildren(heading,body);
     if(!race){body.append(node('p','','全レースからレースを選ぶと、取得済みの情報を確認できます。'));return;}
     if(['overview','preview','analysis','history'].includes(tab))body.append(updateStatus());

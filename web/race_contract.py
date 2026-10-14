@@ -151,13 +151,16 @@ def _metadata(record,race,now,*,summary=False,require_same_day=False):
     _require(record['status'] in {'AVAILABLE','PARTIAL','PENDING'},'unsupported observation status')
     if 'rights_review' in record: _text(record['rights_review'],200)
     if 'missing_reason' in record:
-        _require(record['missing_reason'] in {'OFFICIAL_PAGE_HAS_NO_DATA','OFFICIAL_RESULT_NOT_PUBLISHED'}|set(PLACEHOLDER_KINDS),'unsupported missing reason')
+        _require(record['missing_reason'] in {'OFFICIAL_PAGE_HAS_NO_DATA','OFFICIAL_RESULT_NOT_PUBLISHED','OFFICIAL_RESULT_PAYOUT_ONLY'}|set(PLACEHOLDER_KINDS),'unsupported missing reason')
     verified=record['body_identity_verified'];data=record.get('data')
     if verified: _require(_time(record.get('closed_at'))==closed,'observation and program cutoff mismatch')
     else:
         _require(record.get('closed_at') is None and record['status']=='PENDING' and (summary or data is None),'unverified body cannot carry facts')
         _require(record.get('missing_reason')=='OFFICIAL_PAGE_HAS_NO_DATA','unverified pending reason missing')
     reason=record.get('missing_reason')
+    if reason=='OFFICIAL_RESULT_PAYOUT_ONLY':
+        _require(verified and kind=='raceresult' and record['status']=='PENDING' and (summary or data is None),
+                 'payout-only observation must be a verified pending result without finish facts')
     if reason in PLACEHOLDER_KINDS:
         _require(verified and kind==PLACEHOLDER_KINDS[reason] and record['status']=='PENDING','placeholder body/kind not verified')
         _placeholder_identities(record.get('observed_racers'),identities,kind)
@@ -343,7 +346,7 @@ def validate_record(record,race,now,*,require_same_day=False):
         if record['data'] is None:
             _require(record['status']=='PENDING','null body cannot carry available facts')
             if record['body_identity_verified']:
-                _require((record['kind']=='raceresult' and record.get('missing_reason')=='OFFICIAL_RESULT_NOT_PUBLISHED') or record.get('missing_reason') in PLACEHOLDER_KINDS,'verified null data lacks pending evidence')
+                _require((record['kind']=='raceresult' and record.get('missing_reason') in {'OFFICIAL_RESULT_NOT_PUBLISHED','OFFICIAL_RESULT_PAYOUT_ONLY'}) or record.get('missing_reason') in PLACEHOLDER_KINDS,'verified null data lacks pending evidence')
             return record
         _require(record['body_identity_verified'] and 'missing_reason' not in record,'nonverified facts or conflicting missing reason')
         if record['kind']=='beforeinfo': _preview(record,identities)

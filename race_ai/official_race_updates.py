@@ -232,26 +232,56 @@ def odds_data(frame):
                 source_reported_time_label=label)
 
 
-def result_data(frame,base):
-    table=table_with(frame,'着','枠','ボートレーサー','レースタイム')
-    starts=start_rows(frame,'スタート情報');results=[]
-    for row in (row for body in table.find('tbody') for row in body.find('tr')):
-        values=cells(row)
-        if len(values)!=4: raise SourceError('finish row incomplete')
-        finish,lane=values[0].text().strip(),values[1].text().strip()
-        racer=re.fullmatch(r'\s*([0-9]{4})(?!\d)\s*(.+?)\s*',values[2].text())
-        if not re.fullmatch(r'[1-6]',lane) or not values[1].has('is-boatColor'+lane) or not racer: raise SourceError('finish identity unverified')
-        if finish not in {'1','2','3','4','5','6','欠','転','落','沈','失','妨','不','F','L'}: raise SourceError('unsupported finish disposition')
-        lane=int(lane);st=starts[lane]
-        results.append(dict(race_id=base['race_id'],lane=lane,racer_registration_id=racer.group(1),name=racer.group(2).strip(),
-            finish=int(finish) if finish.isdecimal() else None,finish_status='FINISHED' if finish.isdecimal() else finish,
-            actual_st=st['st'],actual_st_status=st['st_status'],actual_raw_st=st['raw_st'],actual_course=None,
-            verified_official=True,source_url=base['source_url'],captured_at=base['captured_at']))
-    if len(results)!=6 or len({r['lane'] for r in results})!=6 or len({r['racer_registration_id'] for r in results})!=6: raise SourceError('six unique results required')
+def payout_only_result(frame):
+    """Recognize only the observed complete payout/empty-details profile.
+
+    Winning tickets are not finish records. No values from this table become
+    outcomes or settlement facts until six actual finish/ST identities exist.
+    """
+    tables=list(frame.find('table'))
+    for table in tables:
+        head=next(table.find('thead'),None)
+        if head is not None and (any(label in head.text() for label in ('ボートレーサー','レースタイム','スタート情報','着順'))
+                or any(n.text().strip() in {'着','枠'} for n in head.find('th'))):
+            return False
+    if list(frame.find(css='table1_boatImage1Time')) or any('racersearch/profile' in a.attrs.get('href','') for a in frame.find('a')):
+        return False
+    if len(tables)!=5: raise SourceError('unsupported payout-only result table set')
+    payout_table=table_with(frame,'勝式','組番','払戻金')
+    head=one(payout_table.find('thead'),'payout-only header')
+    if [re.sub(r'\s+','',n.text()) for n in head.find('th')]!=['勝式','組番','払戻金','人気']:
+        raise SourceError('payout-only header incomplete')
+    expected_rows={'trifecta':2,'trio':2,'exacta':2,'quinella':2,'quinella_place':5,'win':2,'place':3}
+    bodies=list(payout_table.find('tbody'));seen=set()
+    if len(bodies)!=7: raise SourceError('payout-only markets incomplete or duplicate')
+    for body in bodies:
+        rows=list(body.find('tr'));first=cells(rows[0]) if rows else []
+        label=re.sub(r'\s+','',first[0].text()) if first else ''
+        if label not in BET_TYPES: raise SourceError('payout-only market unknown')
+        kind=BET_TYPES[label][0]
+        if kind in seen or len(first)!=4 or len(rows)!=expected_rows[kind] or first[0].attrs.get('rowspan')!=str(len(rows)):
+            raise SourceError('payout-only market layout invalid')
+        seen.add(kind)
+    for label in ('返還','決まり手','備考'):
+        table=table_with(frame,label);head=one(table.find('thead'),'payout-only auxiliary header')
+        body=one(table.find('tbody'),'payout-only auxiliary body');row=one(body.find('tr'),'payout-only auxiliary row')
+        if ([n.text().strip() for n in head.find('th')]!=[label] or len(cells(row))!=1 or body.text().strip()
+                or list(body.find('img')) or list(body.find(css='numberSet1_number'))):
+            raise SourceError('payout-only auxiliary facts unsupported')
+    payouts,specials,available,returned=parse_payouts(frame)
+    counts={kind:sum(p['bet_type']==kind for p in payouts) for kind in expected_rows}
+    if (specials or returned or available!=set(expected_rows)
+            or counts!={'trifecta':1,'trio':1,'exacta':1,'quinella':1,'quinella_place':3,'win':1,'place':2}):
+        raise SourceError('payout-only positive market coverage incomplete')
+    return True
+
+
+def parse_payouts(frame):
     payouts=[];specials=[];seen=set();available_markets=set()
     payout_table=table_with(frame,'勝式','組番','払戻金')
     for row in expanded_rows(payout_table,4):
         label,combination,amount,_=(cell.text().strip() for cell in row)
+        label=re.sub(r'\s+','',label)
         if label not in BET_TYPES: raise SourceError('unsupported official payout type')
         available_markets.add(BET_TYPES[label][0])
         if not combination and not amount: continue
@@ -272,6 +302,26 @@ def result_data(frame,base):
         text=n.text().strip()
         if not re.fullmatch(r'[1-6]',text) or int(text) in refunded: raise SourceError('invalid returned boat evidence')
         refunded.append(int(text))
+    return payouts,specials,available_markets,refunded
+
+
+def result_data(frame,base):
+    table=table_with(frame,'着','枠','ボートレーサー','レースタイム')
+    starts=start_rows(frame,'スタート情報');results=[]
+    for row in (row for body in table.find('tbody') for row in body.find('tr')):
+        values=cells(row)
+        if len(values)!=4: raise SourceError('finish row incomplete')
+        finish,lane=values[0].text().strip(),values[1].text().strip()
+        racer=re.fullmatch(r'\s*([0-9]{4})(?!\d)\s*(.+?)\s*',values[2].text())
+        if not re.fullmatch(r'[1-6]',lane) or not values[1].has('is-boatColor'+lane) or not racer: raise SourceError('finish identity unverified')
+        if finish not in {'1','2','3','4','5','6','欠','転','落','沈','失','妨','不','F','L'}: raise SourceError('unsupported finish disposition')
+        lane=int(lane);st=starts[lane]
+        results.append(dict(race_id=base['race_id'],lane=lane,racer_registration_id=racer.group(1),name=racer.group(2).strip(),
+            finish=int(finish) if finish.isdecimal() else None,finish_status='FINISHED' if finish.isdecimal() else finish,
+            actual_st=st['st'],actual_st_status=st['st_status'],actual_raw_st=st['raw_st'],actual_course=None,
+            verified_official=True,source_url=base['source_url'],captured_at=base['captured_at']))
+    if len(results)!=6 or len({r['lane'] for r in results})!=6 or len({r['racer_registration_id'] for r in results})!=6: raise SourceError('six unique results required')
+    payouts,specials,available_markets,refunded=parse_payouts(frame)
     statuses=[r['finish'] for r in results if r['finish'] is not None]
     status='special' if specials else ('dead_heat' if len(statuses)!=len(set(statuses)) else 'settled')
     top3=[next(r['lane'] for r in results if r['finish']==n) for n in range(1,4)] if status=='settled' and all(statuses.count(n)==1 for n in range(1,4)) else None
@@ -324,6 +374,13 @@ def parse_update(raw,*,kind,day,venue,race_no,source_url,captured_at,entries=Non
             status='AVAILABLE' if present==120 else ('PARTIAL' if present else 'PENDING')
             if data['odds_phase']=='final': base.update(eligible_pre_race=False,information_phase='final_market')
         else:
+            if entries is not None:
+                contextual=[]
+                for entry in entries:
+                    if 'race_id' in entry and entry['race_id']!=base['race_id']:
+                        raise SourceError('explicit result program race identity conflict')
+                    contextual.append({**entry,'race_id':base['race_id']})
+                entries=contextual
             messages=list(frame.find(css='heading1_mainLabel'))
             text=' '.join(message.text().strip() for message in messages)
             cancellation=next((status for marker,status in (('レース中止','cancelled'),('不成立','no_contest'),('レース延期','postponed')) if marker in text),None)
@@ -339,9 +396,18 @@ def parse_update(raw,*,kind,day,venue,race_no,source_url,captured_at,entries=Non
                     refund_policy_status='EXPLICIT_FULL_RACE_REFUND',top3=None)}
             if any(marker in frame.text() for marker in ('結果はまだありません。','レース結果はありません。','データがありません。')):
                 return {**base,'status':'PENDING','data':None,'missing_reason':'OFFICIAL_RESULT_NOT_PUBLISHED'}
+            if payout_only_result(frame):
+                if datetime.fromisoformat(base['captured_at'])<datetime.fromisoformat(base['closed_at']):
+                    raise SourceError('payout-only result precedes scheduled closing')
+                return {**base,'status':'PENDING','data':None,'missing_reason':'OFFICIAL_RESULT_PAYOUT_ONLY'}
             data=result_data(frame,base);status='AVAILABLE'
             if datetime.fromisoformat(base['captured_at'])<datetime.fromisoformat(base['closed_at']): raise SourceError('normal results observed before scheduled closing')
             if entries is not None:
+                expected={entry['lane']:entry for entry in entries}
+                for racer in data['results']:
+                    known=expected.get(racer['lane'])
+                    if known is not None and 'name' in known and canonical_name(known['name'])!=canonical_name(racer['name']):
+                        raise SourceError('result and program racer name conflict')
                 # Reuse the existing venue bridge's verified column contract
                 # where it applies. The canonical table is only an in-memory
                 # projection of already identified source cells, not a source

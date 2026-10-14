@@ -28,4 +28,4 @@ jobs:
           node --check web/app.js
           node --check web/money.js
           node --check web/ui-core.js
-          node --test tests/ui_behavior.test.js tests/ui_race_updates.test.js tests/ui_prediction.test.js
+          node --test tests/ui_behavior.test.js tests/ui_race_updates.test.js tests/ui_prediction.test.js tests/ui_evaluation.test.js
