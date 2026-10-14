@@ -22,6 +22,9 @@ def verify_github_oidc(token: str, *, jwks_client=None) -> dict:
                       issuer=ISSUER,options={"require":["iss","aud","exp","iat","sub"]},
                       leeway=30)
     if (claims.get("repository")!=REPOSITORY or
+        claims.get("repository_id")!="1416489937" or
+        claims.get("repository_owner_id")!="173585154" or
+        claims.get("sub")!="repo:haji84/RACE-AI:environment:blob-e2e-preview" or
         claims.get("ref")!=REF or
         claims.get("repository_owner")!="haji84" or
         claims.get("event_name") not in ("push","workflow_dispatch") or
