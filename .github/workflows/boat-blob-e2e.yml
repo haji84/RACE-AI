@@ -22,3 +22,5 @@ jobs:
         env:
           RACE_AI_PROBE_URL: https://race-ai-preview-35zjg8yzl-qq1130034-1738.vercel.app/api/blob-probe
         run: python3 scripts/run_private_blob_probe.py
+
+# OIDC Preview E2E trigger; no shared secret is used.
