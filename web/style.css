@@ -15,3 +15,18 @@
 .table-scroll th,.table-scroll td{white-space:nowrap}
 .table-scroll .empty{white-space:normal}
 @media(max-width:640px){.race-panel{padding:14px;min-width:0}.race-panel .filters{min-width:0}.race-panel .filters label{min-width:0;flex:1 1 125px}.race-panel .filters select{width:100%;min-width:0}.table-scroll{border-radius:8px}.table-scroll table{min-width:650px}}
+
+/* RACE AI multi-page responsive dashboard */
+.app-nav{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;padding:8px 0 18px;scrollbar-width:thin}
+.app-nav button{flex:0 0 auto;border:1px solid #d5e4ec;border-radius:12px;padding:11px 16px;background:#fff;color:#34546c;font-weight:800}
+.app-nav button.active{background:linear-gradient(115deg,#087b98,#115c9c);color:#fff;border-color:#087b98}
+.dashboard{background:linear-gradient(150deg,#fff 55%,#edf8fb)}
+.dashboard-metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:19px 0}
+.dashboard-metrics article{min-width:0;background:#fff;border:1px solid #dbe9ee;border-radius:13px;padding:15px;display:flex;flex-direction:column;gap:7px;box-shadow:0 2px 10px #1b5d7a0d}
+.dashboard-metrics span{color:#647b8d;font-size:12px;font-weight:700}
+.dashboard-metrics strong{color:#103c61;font-size:clamp(16px,2.5vw,25px)}
+.dashboard-actions{display:flex;gap:9px;flex-wrap:wrap}
+.dashboard-actions button{border:0;border-radius:10px;padding:12px 17px;background:#0b7899;color:white;font-weight:800}
+.dashboard-actions button+button{background:#eaf4f9;color:#175a7b}
+.page-placeholder{min-height:190px}
+@media(max-width:640px){.app-nav{position:sticky;top:0;z-index:3;background:#f0f5f7;padding:8px 0 12px}.app-nav button{padding:10px 13px;font-size:12px}.dashboard-metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.dashboard-metrics article{padding:12px}.dashboard-metrics strong{font-size:20px}.dashboard-actions button{flex:1 1 140px}}
