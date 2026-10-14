@@ -54,7 +54,8 @@ def read_blob(client, key):
         return None
     if result is None: return None
     url=https_url(result.url)
-    if (result.status_code!=200 or result.pathname!=key or url.path!='/'+key or url.query
+    # SDK 0.11.6 includes its exact cache bypass query in GetBlobResult.url.
+    if (result.status_code!=200 or result.pathname!=key or url.path!='/'+key or url.query not in ('','cache=0')
             or not re.fullmatch(r'[A-Za-z0-9]+\.private\.blob\.vercel-storage\.com',url.hostname or '')
             or not isinstance(result.content_type,str) or result.content_type.split(';')[0].strip().lower()!='application/json'
             or not isinstance(result.content,bytes) or not 0<len(result.content)<=MAX_BYTES

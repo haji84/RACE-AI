@@ -124,5 +124,22 @@ class RaceCloudTests(unittest.TestCase):
         self.client.get=malicious
         with self.assertRaises(ValueError):self.read()
 
+    def test_pinned_sdk_cache_bypass_query_is_accepted_but_other_queries_are_not(self):
+        original_get=self.client.get
+        def sdk_response(key,**kwargs):
+            result=original_get(key,**kwargs)
+            if result is not None:result.url+='?cache=0'
+            return result
+        self.client.get=sdk_response
+        self.publish()
+        self.assertEqual(self.read()['race_id'],self.program['race_id'])
+        for query in ['cache=1','cache=0&token=unknown','cache=0&cache=0','download=1']:
+            def wrong_query(key,**kwargs):
+                result=original_get(key,**kwargs)
+                if result is not None:result.url+='?'+query
+                return result
+            self.client.get=wrong_query
+            with self.subTest(query=query),self.assertRaises(ValueError):self.read()
+
 
 if __name__=='__main__':unittest.main()
