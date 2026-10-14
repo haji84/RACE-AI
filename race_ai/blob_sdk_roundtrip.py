@@ -33,7 +33,22 @@ def upload_and_verify(client, store: Path, *, day: date, execute: bool=False) ->
     retrieved=client.get(key,access="private")
     if retrieved is None:
         raise ValueError("Blob readback missing")
-    payload=retrieved.get("body") if isinstance(retrieved,dict) else getattr(retrieved,"body",None)
-    if not isinstance(payload,bytes) or hashlib.sha256(payload).hexdigest()!=expected:
+    stream=retrieved.get("stream") if isinstance(retrieved,dict) else getattr(retrieved,"stream",None)
+    if stream is None:
+        raise ValueError("Blob SDK stream missing")
+    if isinstance(stream,(bytes,bytearray)):
+        payload=bytes(stream)
+    else:
+        chunks=[]
+        total=0
+        for chunk in stream:
+            if not isinstance(chunk,bytes):
+                raise ValueError("Blob SDK returned invalid stream chunk")
+            total+=len(chunk)
+            if total>MAX_BYTES:
+                raise ValueError("Blob readback too large")
+            chunks.append(chunk)
+        payload=b"".join(chunks)
+    if hashlib.sha256(payload).hexdigest()!=expected:
         raise ValueError("Blob readback content mismatch")
     return {"status":"BLOB_ROUNDTRIP_VERIFIED","pathname":key,"sha256":expected}
