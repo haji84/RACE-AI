@@ -1,15 +1,14 @@
 {
   "observed_at": "2026-10-14T18:06:30.435Z",
-  "integration_commit": "38da67ab487e25de926c80533352cdae52523691",
-  "integration_tree": "6fe9ccf28de1d18d70887f617774ba5355caa148",
-  "deployment_id": "dpl_AnpKANCiAisYw3aYtMrnTabzkCbR",
-  "deployment_url": "https://race-ai-preview-mi0p1cwnc-qq1130034-1738.vercel.app",
+  "integration_commit": "eb18b01e2e2149f99d47c3fb4260789a0759d9db",
+  "integration_tree": "a4d402aec717d629cb9d708d81641091091b4a1a",
+  "deployment_id": "dpl_Eqvs7BaMxSEbciGrPMwvZDHYAxKD",
+  "deployment_url": "https://race-ai-preview-6zqfk97dn-qq1130034-1738.vercel.app",
   "environment": "preview",
   "python_tests": {
-    "count": 206,
+    "count": 208,
     "result": "OK",
-    "pinned_runtime_skips": 1,
-    "bare_runtime_skips": 20
+    "pinned_runtime_skips": 1
   },
   "browser": {
     "engine": "Chromium",
@@ -65,8 +64,10 @@
       "workflow_id": 383245492
     }
   ],
-  "verified_live_blob_roundtrip": false,
+  "verified_live_blob_roundtrip": true,
   "verified_live_today_feed": false,
   "verified_iphone_safari": false,
-  "production_changed": false
+  "production_changed": false,
+  "latest_auth_head": "610b90cd9667de60d75729e3137e4e1919d4cb1a",
+  "blob_proof": "LIVE_BLOB_PROOF.json"
 }

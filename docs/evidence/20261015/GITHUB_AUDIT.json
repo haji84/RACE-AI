@@ -12,17 +12,17 @@
       "draft": true,
       "base": "feat/boat-actions-private-blob-e2e",
       "head": "feat/boat-oidc-probe-auth",
-      "head_sha": "cab804e72f314885166cf8e801814026ea38cfa6",
+      "head_sha": "610b90cd9667de60d75729e3137e4e1919d4cb1a",
       "ci_runs": [
         {
-          "id": 38608293147,
-          "name": "RACE AI public source smoke (metadata only)",
+          "id": 38611720204,
+          "name": "RACE AI unit tests",
           "status": "completed",
           "conclusion": "success"
         },
         {
-          "id": 38608293444,
-          "name": "RACE AI unit tests",
+          "id": 38611720171,
+          "name": "RACE AI public source smoke (metadata only)",
           "status": "completed",
           "conclusion": "success"
         }
@@ -339,7 +339,7 @@
       "ci": "success"
     }
   ],
-  "real_blob_e2e_verified": false,
+  "real_blob_e2e_verified": true,
   "real_today_feed_verified": false,
   "actual_iphone_safari_verified": false
 }

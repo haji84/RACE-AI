@@ -14,6 +14,8 @@
 
 ## Vercel・認証・Blob
 
+最終再確認でPR #59のheadが610b90cd9667de60d75729e3137e4e1919d4cb1aへ進み、最新E2E38611712685が成功していました。以前のHTTP302／設定API404を現在の通信障害として扱わず、実行ログを確認して以下を補正しました。最新CI38611720204も成功しています。
+
 プロジェクトrace-ai-preview、team `team_YGrZkBR7MyYxkq3K9XkTBhqu`、project `prj_B6XEB1mdFUCmOlip8eUMeBvod5FR` を確認しました。SSO保護は全デプロイで有効です。
 
 | 検証対象 | 確認結果 |
@@ -23,13 +25,15 @@
 | UI配信（認証済み取得） | `/` 200、`/ui-model.js` 200 |
 | `/api/today` | 503 `FEED_NOT_APPROVED`。実データ配信未完成 |
 | `/api/blob-probe` | 修復後GET 405／Allow POST。旧Previewの500／github_oidc import失敗は修復 |
-| Actions実通信 | run `38608285654`、job `116004737677`：OIDC発行成功後、POSTはHTTP302で停止 |
-| 保護層 | リダイレクト先がvercel.comの認証画面。Function到達前に保護層で停止。過去runの403の厳密な履歴原因までは未確定 |
-| 接続設定 | GitHub Trusted SourcesをPreviewだけ・正確なrepo/数値ID/branch/workflow/environment/audience/subjectに限定した公式API設定を準備。APIは404 `Deployment Protection Trusted Sources not found`。設定成功していない |
-| Blob | private store `store_K4bSVFm5Bub7EdQf`、Previewのトークン適用先メタデータは確認。実put/get/SHA/deleteは未実証 |
+| Actions実通信 | 最新run `38611712685`、job `116016956898`：OIDC発行、POST、private put/get、SHA一致、削除まで成功。61bytes、SHA `23a9b6603b16b27a2bda95b0fbf677c31065c6113da22fd40238575ab733fd72` |
+| 保護層 | 旧runの302はvercel.comの認証画面。後続の識別子修正を経て最新通信は成功。SSOは全デプロイで有効。過去runの403の厳密な履歴原因までは未確定 |
+| 接続設定 | 以前の狭いTrusted Sources設定APIは404。最新通信は成功したため再設定しない。実際のGitHub subjectは `repo:haji84@173585154/RACE-AI@1416489937:environment:blob-e2e-preview` に固定 |
+| Blob | private store `store_K4bSVFm5Bub7EdQf`、Previewの適用先を確認。検証用キーの実put/get/SHA/delete成功。公式当日データの日別キー保存は未実証 |
 | Production | `dpl_5P4r39De9UGb1ZR5UXmDBzmop3Wb` READY、commit `d8c9ca88b5d20b58bdc9dcdeefba17718d43ca79`。本作業では変更なし |
 
 Productionの旧RACE_AI_PROBE_SECRETは設定名・適用先を監査しました。値の取得、削除、公開はしていません。Production影響を調べる前に削除しません。新有料リソースも追加していません。
+
+実通信のログと限界は [Blob実通信証拠](evidence/20261015/LIVE_BLOB_PROOF.json) に保存しました。内部生成の検証JSONであり、公式実レースの保存成功とは区別します。未承認・日付違いの実配信E2E拒否は残っています。
 
 ## 当日データ
 
@@ -53,7 +57,7 @@ Chromiumの1440px、390px、320pxで画面遷移、フィルタ、買い目点�
 
 認証修復、データWorker、API、UI、独立レビューを担当分離して進めました。共通モデルを複数担当が同時編集しないようにし、UIのPreviewバンドルへのJS同梱漏れは親が修正しました。auth＋Worker＋UI統合状態でPython193 tests OK（既存OpenCV 1 skip）、ブラウザ操作試験成功を確認しました。APIレビューの未来公開時刻・登録番号／モーター重複・結果フラグ／集計件数の矛盾を修正し、APIも含めた206 tests OK（既存OpenCV 1 skip）を確認しました。API PR #63の最初のCIはSDK未導入の初期テスト段階で失敗しました。依存テストを明示的に第2段階で実行する構成に修正し、最新head eee30c0af9ec0c2532eaab82943d7dc251d2d77f のCI38612150125は両段階とも成功しました。未導入状態での206件中20件skipと、固定依存導入後の1件skipは区別します。
 
-統合Previewは test/p0-integrated-preview、commit38da67ab487e25de926c80533352cdae52523691、deployment dpl_AnpKANCiAisYw3aYtMrnTabzkCbR（READY）です。認証済み取得で /200、/ui-model.js200、/api/today503 FEED_NOT_APPROVED、/api/blob-probe405を確認しました。統合ブランチ自身のホストCI成功は報告しません。詳細は [統合検証記録](evidence/20261015/INTEGRATION_CHECKPOINT.json) に保存しています。
+統合Previewは test/p0-integrated-preview、commiteb18b01e2e2149f99d47c3fb4260789a0759d9db、deployment dpl_Eqvs7BaMxSEbciGrPMwvZDHYAxKD（READY）です。認証済み取得で /200、/ui-model.js200、/api/today503 FEED_NOT_APPROVED、/api/blob-probe405を確認しました。最新のPR #59認証変更を統合して208 tests OK（既存OpenCV 1 skip）を確認しました。統合ブランチ自身のホストCI成功は報告しません。詳細は [統合検証記録](evidence/20261015/INTEGRATION_CHECKPOINT.json) に保存しています。
 
 次の順序を維持します。
 
@@ -62,6 +66,6 @@ Chromiumの1440px、390px、320pxで画面遷移、フィルタ、買い目点�
 3. Worker→Blob→SDK API→UIを実データで検証し、全国24会場と実機Safariへ展開。
 4. 発走前予想保存・共通計算・公式結果照合・校正・履歴・運用の完成条件へ進む。
 
-現在の主な外部条件は、Vercelの設定API404、事実データの取得／公開条件、写真・映像の個別利用条件、実機検証です。一般公開や大幅な権限変更・新契約は最終承認が必要です。Vercelサービス用コネクターが失敗した後の管理画面へのブラウザ切替は、現在のブラウザ接続規則がユーザー承認を要求しています。保護の無条件解除やProduction操作は代替にしません。
+現在の主な外部条件は、事実データの取得／公開条件、写真・映像の個別利用条件、実機検証です。認証接続と通常のBlob実通信は最新runで成功しています。一般公開や大幅な権限変更・新契約は最終承認が必要です。最新接続は成功しているため、以前の404を理由にしたブラウザ切替や保護解除は不要です。Production操作は代替にしません。
 
 常駐自律開発や当日実データの定期取得が動作しているとは報告しません。保存済みの正本・PR・監査情報から次のセッションで再開できます。
