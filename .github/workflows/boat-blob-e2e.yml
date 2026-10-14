@@ -50,7 +50,7 @@ jobs:
       - name: Checkout reviewed current-day collector
         uses: actions/checkout@v4
         with:
-          ref: f7a70adb7b7f690e8cc3a74a7943cd28dc693ab8
+          ref: 6f359e30251da8a463e34634954889bc1c097e30
           path: day-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -67,8 +67,8 @@ jobs:
       - name: Publish private current-day version and verify today API SHA
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
         env:
-          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-821slcczo-qq1130034-1738.vercel.app/api/publish-day
-          RACE_AI_DAY_COMMIT_SHA: f7a70adb7b7f690e8cc3a74a7943cd28dc693ab8
+          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-d24yv8qs3-qq1130034-1738.vercel.app/api/publish-day
+          RACE_AI_DAY_COMMIT_SHA: 6f359e30251da8a463e34634954889bc1c097e30
         run: python day-source/scripts/publish_day_feed.py --feed "$RUNNER_TEMP/race-ai-day.json"
       - name: Back up only the approved normalized day facts
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
@@ -103,8 +103,8 @@ jobs:
         id: race
         if: github.event_name == 'push' || inputs.collection == 'race'
         env:
-          RACE_AI_RACE_PUBLISH_URL: https://race-ai-preview-821slcczo-qq1130034-1738.vercel.app/api/publish-race
-          RACE_AI_RACE_COMMIT_SHA: f7a70adb7b7f690e8cc3a74a7943cd28dc693ab8
+          RACE_AI_RACE_PUBLISH_URL: https://race-ai-preview-d24yv8qs3-qq1130034-1738.vercel.app/api/publish-race
+          RACE_AI_RACE_COMMIT_SHA: 6f359e30251da8a463e34634954889bc1c097e30
         run: |
           result=0
           python day-source/scripts/publish_race_updates.py --review day-source/config/operator-official-facts.json --output "$RUNNER_TEMP/race-ai-race.json" --execute || result=$?
