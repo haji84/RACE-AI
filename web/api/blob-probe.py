@@ -19,14 +19,17 @@ def verify_github_oidc(token):
 
 def authorized(headers):
     if os.environ.get("VERCEL_ENV")!="preview":
+        print('PROBE_AUTH_REJECTED environment', flush=True)
         return False
     header=headers.get("Authorization","")
     if not header.startswith("Bearer "):
+        print('PROBE_AUTH_REJECTED bearer_missing', flush=True)
         return False
     try:
         verify_github_oidc(header[7:])
         return True
-    except Exception:
+    except Exception as error:
+        print('PROBE_AUTH_REJECTED ' + type(error).__name__, flush=True)
         return False
 
 
@@ -85,7 +88,8 @@ class handler(BaseHTTPRequestHandler):
                 return
             result=asyncio.run(roundtrip())
             status=200
-        except Exception:
+        except Exception as error:
+            print('PROBE_STORAGE_REJECTED ' + type(error).__name__, flush=True)
             result={"status":"probe_failed"}
             status=503
         body=json.dumps(result).encode("utf-8")
@@ -102,3 +106,4 @@ class handler(BaseHTTPRequestHandler):
         self.send_header("Cache-Control","no-store")
         self.send_header("Content-Length","0")
         self.end_headers()
+
