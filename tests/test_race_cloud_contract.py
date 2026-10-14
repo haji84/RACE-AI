@@ -118,6 +118,28 @@ class RaceCloudContractTests(unittest.TestCase):
             record=self.record('odds3t');mutation(record);self.rehash(record)
             with self.subTest(mutation=mutation),self.assertRaises(ValueError): validate_record(record,self.race,NOW)
 
+    def test_zero_placeholder_slot_reason_requires_verified_current_clock_profile(self):
+        record=self.record('odds3t')
+        record['data']['source_reported_time_label']='オッズ更新時間 7:06'
+        record['status']='PARTIAL'
+        for row in record['data']['odds'][9:]: row.update(odds=None,availability='PENDING',missing_reason='SOURCE_ZERO_PLACEHOLDER')
+        self.rehash(record)
+        self.assertEqual(validate_record(record,self.race,NOW),record)
+        mutations=[lambda r:r['data']['odds'][9].pop('missing_reason'),
+            lambda r:r['data']['odds'][9].update(missing_reason=True),
+            lambda r:r['data']['odds'][9].update(missing_reason='NO_BETS'),
+            lambda r:r['data']['odds'][0].update(missing_reason='SOURCE_ZERO_PLACEHOLDER'),
+            lambda r:r['data'].update(source_reported_time_label='08:00現在'),
+            lambda r:r['data'].update(source_reported_time_label='オッズ更新時間 7:99'),
+            lambda r:r['data'].update(source_reported_time_label='締切時オッズ',odds_phase='final')]
+        for mutation in mutations:
+            changed=copy.deepcopy(record);mutation(changed);self.rehash(changed)
+            with self.subTest(mutation=mutation),self.assertRaises(ValueError): validate_record(changed,self.race,NOW)
+        all_zero=copy.deepcopy(record)
+        for row in all_zero['data']['odds']: row.update(odds=None,availability='PENDING',missing_reason='SOURCE_ZERO_PLACEHOLDER')
+        all_zero['status']='PENDING';self.rehash(all_zero)
+        with self.assertRaises(ValueError): validate_record(all_zero,self.race,NOW)
+
     def test_payout_types_winner_coverage_and_derived_readiness_are_checked(self):
         mutations=[lambda r:r['data'].update(confirmed=True,settlement_ready=True),
             lambda r:r['data']['verified_market_types'].append('win'),

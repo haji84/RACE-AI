@@ -234,10 +234,13 @@ def _odds(record,identities):
     _require(data['odds_phase'] in {'observed','final'},'unsupported odds phase')
     label=_text(data['source_reported_time_label'],100)
     _require(('締切時オッズ' in label)==(data['odds_phase']=='final'),'odds source label/phase conflict')
+    current_clock=re.fullmatch(r'\s*オッズ更新時間\s+(?:[01]?[0-9]|2[0-3]):[0-5][0-9]\s*',label) is not None
+    if 'オッズ更新時間' in label: _require(current_clock,'invalid source odds update clock')
+    if current_clock: _require(data['odds_phase']=='observed','current odds clock cannot certify final market')
     rows=data['odds'];_require(isinstance(rows,list) and len(rows)==120,'all120 odds slots required')
     seen=set();present=0
     for row in rows:
-        _keys(row,{'combination','odds','availability'});combination=row['combination']
+        _keys(row,{'combination','odds','availability'},{'missing_reason'});combination=row['combination']
         _require(isinstance(combination,list) and len(combination)==3,'invalid odds combination')
         for lane in combination: _integer(lane,1,6)
         key=tuple(combination);_require(len(set(key))==3 and key not in seen,'duplicate odds combination');seen.add(key)
@@ -246,7 +249,12 @@ def _odds(record,identities):
             _require(isinstance(price,str) and re.fullmatch(r'[0-9]+(?:\.[0-9]{1,2})?',price) is not None,'invalid odds string')
             _require(Decimal(1)<=Decimal(price)<=Decimal(1000000),'odds outside bounds');present+=1
         _require(row['availability']==('PENDING' if price is None else 'AVAILABLE'),'odds availability conflict')
+        if 'missing_reason' in row:
+            _require(current_clock and price is None and row['availability']=='PENDING' and row['missing_reason']=='SOURCE_ZERO_PLACEHOLDER','invalid source-zero slot disposition')
+        if current_clock and price is None:
+            _require(row.get('missing_reason')=='SOURCE_ZERO_PLACEHOLDER','current null odds slot needs source-zero evidence')
     _require(seen==set(itertools.permutations(range(1,7),3)),'odds identity coverage incomplete')
+    if current_clock: _require(present>0,'all-zero current market needs null pending envelope')
     _require(record['status']==('AVAILABLE' if present==120 else 'PARTIAL' if present else 'PENDING'),'market availability conflict')
 
 

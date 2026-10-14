@@ -120,9 +120,39 @@ class OfficialUpdateTests(unittest.TestCase):
         with self.assertRaises(SourceError):
             parse_update(page('odds3t',body),kind='odds3t',day=DAY,venue='18',race_no=1,
                 source_url=endpoint(DAY,'18',1,'odds3t'),captured_at=CAPTURE,entries=entries)
-        for invalid in (body.replace('0.0','15.5',1),body.replace('オッズ更新時間','不明'),
+        for invalid in (odds().replace('15.5','0.0',1),body.replace('オッズ更新時間','不明'),
                         body.replace('6:48','26:48'),body.replace('rowspan="4"','rowspan="3"',1)):
             with self.assertRaises(SourceError): self.parse('odds3t',invalid)
+
+    def test_current_clock_profile_mixed_source_zeros_are_unknown_slots_not_zero_prices(self):
+        clock='<p class="title2_add">オッズ更新時間 <span>7:06</span></p>'
+        body=odds().replace('15.5','0.0').replace('0.0','6.7',9).replace('<p class="tab4_time">08:00現在</p>',clock)
+        data=self.parse('odds3t',body)
+        self.assertEqual(data['status'],'PARTIAL')
+        self.assertEqual(data['data']['source_reported_time_label'],'オッズ更新時間 7:06')
+        self.assertIsNone(data['upstream_published_at'])
+        self.assertEqual(data['available_at'],data['captured_at'])
+        rows=data['data']['odds']
+        self.assertEqual(len(rows),120)
+        self.assertEqual(sum(row['odds']=='6.7' and 'missing_reason' not in row for row in rows),9)
+        self.assertEqual(sum(row['odds'] is None and row.get('missing_reason')=='SOURCE_ZERO_PLACEHOLDER' and row['availability']=='PENDING' for row in rows),111)
+        entries=[dict(lane=n,racer_registration_id=str(4000+n),name='選手'+str(n)) for n in range(1,7)]
+        entries[0]['name']='別選手'
+        with self.assertRaises(SourceError):
+            parse_update(page('odds3t',body),kind='odds3t',day=DAY,venue='18',race_no=1,
+                source_url=endpoint(DAY,'18',1,'odds3t'),captured_at=CAPTURE,entries=entries)
+        for invalid in (body.replace('7:06','7:99'),body+clock,body.replace(clock,''),
+                        body+'<p class="tab4_time">締切時オッズ</p>',body+'<p class="tab4_time">08:00現在</p>',
+                        body.replace('0.0','--',1),body.replace('rowspan="4"','rowspan="3"',1)):
+            with self.subTest(invalid=invalid[-50:]),self.assertRaises(SourceError): self.parse('odds3t',invalid)
+
+    def test_current_clock_profile_all_positive_odds_retains_actual_clock_text(self):
+        body=odds().replace('<p class="tab4_time">08:00現在</p>',
+            '<p class="title2_add">オッズ更新時間 <span>7:06</span></p>')
+        data=self.parse('odds3t',body)
+        self.assertEqual(data['status'],'AVAILABLE')
+        self.assertEqual(data['data']['source_reported_time_label'],'オッズ更新時間 7:06')
+        self.assertTrue(all('missing_reason' not in row for row in data['data']['odds']))
 
     def test_result_finish_actual_st_payout_and_refund_are_explicit(self):
         data=self.parse('raceresult',results(),stamp='2026-10-15T09:00:00+09:00')

@@ -197,7 +197,7 @@ def odds_data(frame):
             raise SourceError('odds racer header identity mismatch')
     rows=expanded_rows(table,18)
     if len(rows)!=20: raise SourceError('all120 trifecta slots required')
-    odds={};zero_slots=0
+    odds={};zero_slots=0;ordinary_missing=0
     for row in rows:
         for first in range(1,7):
             second,third,value=row[(first-1)*3:first*3]
@@ -207,19 +207,25 @@ def odds_data(frame):
             key=(first,int(a),int(b));text=value.text().strip()
             if key in odds: raise SourceError('duplicate odds combination')
             if text=='0.0': price=None;zero_slots+=1
-            elif text in MISSING: price=None
+            elif text in MISSING: price=None;ordinary_missing+=1
             else:
                 if not re.fullmatch(r'[0-9]+(?:\.[0-9]{1,2})?',text) or not Decimal(1)<=Decimal(text)<=Decimal(1000000): raise SourceError('invalid official odds')
                 price=format(Decimal(text),'f')
             odds[key]=dict(combination=list(key),odds=price,availability='PENDING' if price is None else 'AVAILABLE')
+            if text=='0.0': odds[key]['missing_reason']='SOURCE_ZERO_PLACEHOLDER'
     if set(odds)!=set(itertools.permutations(range(1,7),3)): raise SourceError('odds coverage incomplete')
-    if zero_slots:
-        if zero_slots!=120 or list(frame.find(css='tab4_time')): raise SourceError('mixed or unsupported zero odds placeholder')
+    legacy_labels=list(frame.find(css='tab4_time'))
+    if zero_slots and legacy_labels: raise SourceError('unsupported zero odds under normal or final label')
+    if not legacy_labels:
         update=one((p for p in frame.find('p') if 'オッズ更新時間' in p.text()),'odds placeholder update clock')
         if not re.fullmatch(r'\s*オッズ更新時間\s+(?:[01]?[0-9]|2[0-3]):[0-5][0-9]\s*',update.text()): raise SourceError('odds placeholder clock invalid')
+        if ordinary_missing: raise SourceError('unsupported missing slot in current odds profile')
+        label=update.text().strip()
+    else:
+        label=one(legacy_labels,'odds observation label').text().strip()
+    if zero_slots==120:
         return PendingData('OFFICIAL_ODDS_ALL_ZERO_PLACEHOLDER',
             [dict(lane=n,name=head[2*n-1].text().strip(),racer_registration_id=None) for n in range(1,7)])
-    label=one(frame.find(css='tab4_time'),'odds observation label').text().strip()
     racers=[dict(lane=n,name=head[2*n-1].text().strip(),racer_registration_id=None,
                  registration_status='NOT_PUBLISHED_IN_ODDS_TABLE') for n in range(1,7)]
     return dict(odds=[odds[key] for key in sorted(odds)],racers=racers,odds_phase='final' if '締切時オッズ' in label else 'observed',
@@ -313,6 +319,7 @@ def parse_update(raw,*,kind,day,venue,race_no,source_url,captured_at,entries=Non
             data=odds_data(frame)
             if isinstance(data,PendingData):
                 return pending_record(base,data,entries)
+            check_observed_program(data['racers'],entries)
             present=sum(row['odds'] is not None for row in data['odds'])
             status='AVAILABLE' if present==120 else ('PARTIAL' if present else 'PENDING')
             if data['odds_phase']=='final': base.update(eligible_pre_race=False,information_phase='final_market')
@@ -359,16 +366,20 @@ def parse_update(raw,*,kind,day,venue,race_no,source_url,captured_at,entries=Non
 
 
 def pending_record(base,data,entries):
+    check_observed_program(data.racers,entries)
+    return {**base,'status':'PENDING','data':None,'missing_reason':data.reason,'observed_racers':data.racers}
+
+
+def check_observed_program(racers,entries):
     if entries is not None:
         known={r['lane']:r for r in entries}
         if len(entries)!=6 or set(known)!=set(range(1,7)): raise SourceError('pending observation program identities incomplete')
-        for racer in data.racers:
+        for racer in racers:
             program=known[racer['lane']]
             if racer['racer_registration_id'] is not None and racer['racer_registration_id']!=program['racer_registration_id']:
                 raise SourceError('pending observation and program registration conflict')
             if 'name' not in program or canonical_name(racer['name'])!=canonical_name(program['name']):
                 raise SourceError('pending observation and program name conflict')
-    return {**base,'status':'PENDING','data':None,'missing_reason':data.reason,'observed_racers':data.racers}
 
 
 def settlement_for_market(observation,bet_type):
