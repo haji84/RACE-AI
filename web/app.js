@@ -212,6 +212,29 @@
       el("file-message").classList.add("error");
     }
   });
+  async function loadAuthorizedDayFeed() {
+    try {
+      const response = await fetch("./data/today.json", {cache:"no-store", credentials:"same-origin"});
+      if (response.status === 404) { el("file-message").textContent = "本日の配信データは準備中です。"; return; }
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const body = await response.text();
+      if (body.length > 6000000) throw new Error("データが大きすぎます");
+      const checked = validate(JSON.parse(body));
+      const today = new Intl.DateTimeFormat("en-CA", {timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit"}).format(new Date());
+      if (checked.raw.date_jst !== today) throw new Error("対象日が本日ではありません");
+      if (checked.raw.redistribution_authorized !== true) throw new Error("再配信許可を確認できません");
+      if (Date.parse(checked.raw.first_observed_at) > Date.now() + 60000) throw new Error("取得時刻が未来です");
+      showReport({...checked.raw,races:checked.count,complete_six_boat_races:checked.complete});
+      el("source-state").textContent = "配信許可フラグあり・原本未独立検証";
+      el("file-message").textContent = "本日のデータを自動読込しました。";
+      showPage("races");
+    } catch (error) {
+      clearStats();
+      el("file-message").classList.add("error");
+      el("file-message").textContent = "自動取得を利用できません：" + (error instanceof Error ? error.message : "不明なエラー");
+    }
+  }
   clearStats();
   showPage("home");
+  loadAuthorizedDayFeed();
 })();
