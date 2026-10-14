@@ -23,6 +23,10 @@ BET_TYPES={'3連単':('trifecta',3,False),'3連複':('trio',3,True),'2連単':('
            '2連複':('quinella',2,True),'拡連複':('quinella_place',2,True),'単勝':('win',1,False),'複勝':('place',1,False)}
 
 
+class PendingData:
+    def __init__(self,reason,racers): self.reason=reason;self.racers=racers
+
+
 def endpoint(day,venue,race_no,kind):
     from .official_racelist_adapter import endpoint as race_endpoint
     if kind not in KINDS: raise SourceError('unsupported official update kind')
@@ -92,10 +96,14 @@ def context(raw,kind,day,venue,race_no,source_url,captured_at):
                   'eligible_pre_race':kind!='raceresult' and captured<datetime.fromisoformat(closed)}
 
 
-def start_rows(frame,label):
+def start_rows(frame,label,*,allow_empty=False):
     table=table_with(frame,label)
+    rows=list(one(table.find('tbody'),'start rows').find('tr'))
+    if (allow_empty and len(rows)==6 and all(cells(row) and not row.text().strip() and not list(row.find('img'))
+            and not list(row.find(css='table1_boatImage1Number')) and not list(row.find(css='table1_boatImage1Time')) for row in rows)):
+        return None
     result={}
-    for row in one(table.find('tbody'),'start rows').find('tr'):
+    for row in rows:
         image=one((n for n in row.find('img') if re.fullmatch(r'/static_extra/pc/images/img_boat2_[1-6]\.png',n.attrs.get('src',''))),'start boat identity')
         lane=int(image.attrs['src'][-5])
         displayed=one(row.find(css='table1_boatImage1Number'),'start number').text().strip()
@@ -110,7 +118,7 @@ def start_rows(frame,label):
 
 def preview_data(frame):
     table=table_with(frame,'ボートレーサー','展示','チルト')
-    starts=start_rows(frame,'スタート展示')
+    starts=start_rows(frame,'スタート展示',allow_empty=True)
     boats=[]
     for body in table.find('tbody'):
         row=next(body.find('tr'),None);values=cells(row) if row else []
@@ -122,12 +130,16 @@ def preview_data(frame):
         if (u.scheme!='https' or u.netloc!=HOST or u.path!='/owpc/pc/data/racersearch/profile'
                 or set(q)!={'toban'} or len(q['toban'])!=1 or not re.fullmatch(r'[0-9]{4}',q['toban'][0])):
             raise SourceError('preview registration unverified')
-        lane=int(lane);st=starts[lane]
+        lane=int(lane);st=starts[lane] if starts is not None else dict(st=None,st_status='PENDING',raw_st='')
         boats.append(dict(lane=lane,racer_registration_id=q['toban'][0],name=profile.text().strip(),
             display_time=number(values[4].text(),minimum=0.01),tilt=number(values[5].text(),minimum=-10,maximum=10),
             preview_st=st['st'],preview_st_status=st['st_status'],preview_raw_st=st['raw_st'],
             preview_course=None,actual_course=None))
     if len(boats)!=6 or len({b['lane'] for b in boats})!=6 or len({b['racer_registration_id'] for b in boats})!=6: raise SourceError('preview identities incomplete or duplicate')
+    if starts is None:
+        if any(b['display_time'] is not None or b['tilt'] is not None for b in boats): raise SourceError('empty exhibition grid conflicts with published preview metrics')
+        return PendingData('OFFICIAL_PREVIEW_EMPTY_EXHIBITION_GRID',
+            [{key:b[key] for key in ('lane','racer_registration_id','name')} for b in sorted(boats,key=lambda b:b['lane'])])
     weather=dict(air_temperature_c=None,water_temperature_c=None,wind_speed_mps=None,wave_height_cm=None,
                  wind_direction_source_code=None,weather_label=None,source_reported_local_time=None,
                  reported_at=None,freshness_status='UNKNOWN_SOURCE_TIME_HAS_NO_DATE')
@@ -185,7 +197,7 @@ def odds_data(frame):
             raise SourceError('odds racer header identity mismatch')
     rows=expanded_rows(table,18)
     if len(rows)!=20: raise SourceError('all120 trifecta slots required')
-    odds={}
+    odds={};zero_slots=0
     for row in rows:
         for first in range(1,7):
             second,third,value=row[(first-1)*3:first*3]
@@ -194,12 +206,19 @@ def odds_data(frame):
                 raise SourceError('invalid odds combination identity')
             key=(first,int(a),int(b));text=value.text().strip()
             if key in odds: raise SourceError('duplicate odds combination')
-            if text in MISSING: price=None
+            if text=='0.0': price=None;zero_slots+=1
+            elif text in MISSING: price=None
             else:
                 if not re.fullmatch(r'[0-9]+(?:\.[0-9]{1,2})?',text) or not Decimal(1)<=Decimal(text)<=Decimal(1000000): raise SourceError('invalid official odds')
                 price=format(Decimal(text),'f')
             odds[key]=dict(combination=list(key),odds=price,availability='PENDING' if price is None else 'AVAILABLE')
     if set(odds)!=set(itertools.permutations(range(1,7),3)): raise SourceError('odds coverage incomplete')
+    if zero_slots:
+        if zero_slots!=120 or list(frame.find(css='tab4_time')): raise SourceError('mixed or unsupported zero odds placeholder')
+        update=one((p for p in frame.find('p') if 'オッズ更新時間' in p.text()),'odds placeholder update clock')
+        if not re.fullmatch(r'\s*オッズ更新時間\s+(?:[01]?[0-9]|2[0-3]):[0-5][0-9]\s*',update.text()): raise SourceError('odds placeholder clock invalid')
+        return PendingData('OFFICIAL_ODDS_ALL_ZERO_PLACEHOLDER',
+            [dict(lane=n,name=head[2*n-1].text().strip(),racer_registration_id=None) for n in range(1,7)])
     label=one(frame.find(css='tab4_time'),'odds observation label').text().strip()
     racers=[dict(lane=n,name=head[2*n-1].text().strip(),racer_registration_id=None,
                  registration_status='NOT_PUBLISHED_IN_ODDS_TABLE') for n in range(1,7)]
@@ -286,10 +305,14 @@ def parse_update(raw,*,kind,day,venue,race_no,source_url,captured_at,entries=Non
         if frame is None: return base
         if kind=='beforeinfo':
             data=preview_data(frame)
+            if isinstance(data,PendingData):
+                return pending_record(base,data,entries)
             present=sum(b['display_time'] is not None or b['preview_st'] is not None for b in data['boats'])
             status='AVAILABLE' if present==6 else ('PARTIAL' if present else 'PENDING')
         elif kind=='odds3t':
             data=odds_data(frame)
+            if isinstance(data,PendingData):
+                return pending_record(base,data,entries)
             present=sum(row['odds'] is not None for row in data['odds'])
             status='AVAILABLE' if present==120 else ('PARTIAL' if present else 'PENDING')
             if data['odds_phase']=='final': base.update(eligible_pre_race=False,information_phase='final_market')
@@ -333,6 +356,19 @@ def parse_update(raw,*,kind,day,venue,race_no,source_url,captured_at,entries=Non
     except (ValueError,UnicodeError,TypeError,AttributeError,KeyError,InvalidOperation) as exc:
         if isinstance(exc,SourceError): raise
         raise SourceError('official race update malformed') from exc
+
+
+def pending_record(base,data,entries):
+    if entries is not None:
+        known={r['lane']:r for r in entries}
+        if len(entries)!=6 or set(known)!=set(range(1,7)): raise SourceError('pending observation program identities incomplete')
+        for racer in data.racers:
+            program=known[racer['lane']]
+            if racer['racer_registration_id'] is not None and racer['racer_registration_id']!=program['racer_registration_id']:
+                raise SourceError('pending observation and program registration conflict')
+            if 'name' not in program or canonical_name(racer['name'])!=canonical_name(program['name']):
+                raise SourceError('pending observation and program name conflict')
+    return {**base,'status':'PENDING','data':None,'missing_reason':data.reason,'observed_racers':data.racers}
 
 
 def settlement_for_market(observation,bet_type):

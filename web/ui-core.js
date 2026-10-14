@@ -84,5 +84,75 @@
     return {page:pages.includes(parts[0])?parts[0]:'home',raceId:racePattern.test(parts[1]||'')?parts[1]:null};
   }
   function text(value){return (typeof value==='string'&&value.trim())?value.slice(0,100):typeof value==='number'&&Number.isFinite(value)?String(value):'未取得';}
-  return {venueNames,pages,dayJst,validateReport,venueState,allRaces,filterRaces,cutoff,purchaseAvailability,timeLabel,parseRoute,text};
+  const updateKinds=['beforeinfo','odds3t','raceresult'];
+  const marketSizes={trifecta:3,trio:3,exacta:2,quinella:2,quinella_place:2,win:1,place:1};
+  function validateRaceBundle(raw,{race,dateJst,now=Date.now()}={}){
+    const fail=message=>{throw new Error(message||'レース更新データの形式を確認できません。');};
+    const hash=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
+    const stamp=value=>{if(!zoned(value))fail('取得時刻の形式が不正です。');const n=Date.parse(value);if(n>now+60000||dayJst(new Date(n))!==dateJst)fail('取得時刻と対象日を確認できません。');return n;};
+    const measure=(value,low,high)=>value===null||value===undefined||(typeof value==='number'&&Number.isFinite(value)&&value>=low&&value<=high);
+    if(!race||!raw||raw.schema_version!==1||raw.race_id!==race.race_id||raw.date_jst!==dateJst||!hash(raw.program_sha256)||!Array.isArray(raw.records)||raw.records.length>3||!raw.latest||typeof raw.latest!=='object'||Array.isArray(raw.latest))fail('対象レース・日付が一致していません。');
+    const closing=cutoff(race,dateJst);if(closing===null||!zoned(raw.closed_at)||Date.parse(raw.closed_at)!==closing)fail('レースの締切時刻が一致していません。');
+    const published=stamp(raw.published_at),program=new Map(race.boats.map(b=>[b.lane,b])),ids=new Set(),kinds=new Set();
+    const canonical=value=>typeof value==='string'?value.normalize('NFKC').replace(/\s/g,''):'';
+    for(const wrapper of raw.records){
+      const record=wrapper?.record,kind=record?.kind;
+      if(!record||record.schema_version!==1||record.race_id!==race.race_id||!updateKinds.includes(kind)||kinds.has(kind)||!hash(record.snapshot_id)||ids.has(record.snapshot_id)||!hash(record.source_sha256)||wrapper.program_sha256!==raw.program_sha256||raw.latest[kind]!==record.snapshot_id||!['AVAILABLE','PARTIAL','PENDING'].includes(record.status))fail();
+      ids.add(record.snapshot_id);kinds.add(kind);
+      let source;try{source=new URL(record.source_url);}catch{fail('取得元を確認できません。');}
+      const [,venue,number]=race.race_id.split('-');
+      if(source.protocol!=='https:'||source.hostname!=='www.boatrace.jp'||source.port||source.username||source.password||source.hash||source.pathname!=='/owpc/pc/race/'+kind||source.searchParams.getAll('hd').join()!==dateJst.replaceAll('-','')||source.searchParams.getAll('jcd').join()!==venue||Number(source.searchParams.get('rno'))!==Number(number)||source.searchParams.getAll('rno').length!==1)fail('取得元と対象レースが一致していません。');
+      const captured=stamp(record.captured_at),available=stamp(record.available_at),saved=stamp(record.saved_at),cloud=stamp(wrapper.cloud_saved_at);
+      if(available!==captured||captured>saved||saved>cloud||cloud>published||record.upstream_published_at!==null)fail('取得・保存時刻の順序が不正です。');
+      const data=record.data,verified=record.body_identity_verified===true,final=kind==='odds3t'&&data?.odds_phase==='final';
+      const phase=kind==='raceresult'?'official_result':final?'final_market':'pre_race_observation';
+      const eligible=verified&&kind!=='raceresult'&&captured<closing&&!final;
+      if(record.information_phase!==phase||record.eligible_pre_race!==eligible||record.storage_eligible_pre_race!==(eligible&&saved<closing)||wrapper.cloud_eligible_pre_race!==(eligible&&saved<closing&&cloud<closing))fail('締切前後の区分が不正です。');
+      if(verified&&(!zoned(record.closed_at)||Date.parse(record.closed_at)!==closing))fail('出走表と更新情報の締切が一致していません。');
+      if(!verified&&(record.status!=='PENDING'||data!==null))fail('未確認の出走データは表示できません。');
+      if(data===null)continue;
+      if(!data||typeof data!=='object'||Array.isArray(data))fail();
+      const rows=kind==='beforeinfo'?data.boats:kind==='raceresult'?data.results:data.racers;
+      const emptyDisposition=kind==='raceresult'&&['cancelled','no_contest','postponed'].includes(data.status)&&Array.isArray(rows)&&!rows.length;
+      if(!emptyDisposition){
+        if(!Array.isArray(rows)||rows.length!==6||new Set(rows.map(b=>b.lane)).size!==6)fail('6艇の選手照合が一致していません。');
+        for(const row of rows){const entry=program.get(row.lane);if(!entry)fail('艇番が一致していません。');if(kind==='odds3t'?(canonical(row.name)!==canonical(entry.name)||![null,entry.racer_registration_id].includes(row.racer_registration_id)):row.racer_registration_id!==entry.racer_registration_id)fail('登録番号・選手が出走表と一致していません。');}
+      }
+      if(kind==='beforeinfo'){
+        for(const b of rows)if(!measure(b.display_time,0,100)||!measure(b.preview_st,0,1)||!measure(b.tilt,-10,10)||b.actual_course!=null||['actual_st','finish','payouts','result_course'].some(key=>key in b)||(b.preview_course!=null&&(!Number.isInteger(b.preview_course)||b.preview_course<1||b.preview_course>6)))fail('展示情報に矛盾があります。');
+        const w=data.weather||{};for(const [key,low,high]of [['wind_speed_mps',0,100],['wave_height_cm',0,1000],['air_temperature_c',-40,60],['water_temperature_c',-10,60]])if(!measure(w[key],low,high))fail('気象情報の数値が不正です。');
+      }
+      if(kind==='odds3t'){
+        if(!['observed','final'].includes(data.odds_phase)||!Array.isArray(data.odds)||data.odds.length!==120)fail('3連単120通りのオッズを確認できません。');
+        const combinations=new Set();let count=0;
+        for(const row of data.odds){const combo=row.combination,key=Array.isArray(combo)?combo.join('-'):'';if(!Array.isArray(combo)||combo.length!==3||new Set(combo).size!==3||combo.some(n=>!Number.isInteger(n)||n<1||n>6)||combinations.has(key))fail('買い目の識別子が不正です。');combinations.add(key);if(row.odds!==null){if(typeof row.odds!=='string'||!/^\d+(?:\.\d{1,2})?$/.test(row.odds)||Number(row.odds)<1||Number(row.odds)>1000000||row.availability!=='AVAILABLE')fail('オッズの数値が不正です。');count++;}else if(row.availability!=='PENDING')fail('未取得オッズの区分が不正です。');}
+        if(record.status!==(count===120?'AVAILABLE':count?'PARTIAL':'PENDING'))fail('オッズの取得状態に矛盾があります。');
+      }
+      if(kind==='raceresult'){
+        if(!['settled','dead_heat','special','cancelled','no_contest','postponed'].includes(data.status)||typeof data.confirmed!=='boolean'||typeof data.settlement_ready!=='boolean'||(data.finish_confirmed!==undefined&&typeof data.finish_confirmed!=='boolean'))fail('結果の確認状態が不正です。');
+        if(!emptyDisposition&&captured<closing)fail('締切前の結果を表示できません。');
+        for(const row of rows)if((row.finish!=null&&(!Number.isInteger(row.finish)||row.finish<1||row.finish>6))||!measure(row.actual_st,0,1)||(row.actual_course!=null&&(!Number.isInteger(row.actual_course)||row.actual_course<1||row.actual_course>6)))fail('本番の着順・STが不正です。');
+        for(const field of ['payouts','special_payouts','verified_market_types','refund_boats'])if(!Array.isArray(data[field]))fail('結果・払戻の確認情報が不足しています。');
+        for(const p of [...data.payouts,...data.special_payouts]){if(!marketSizes[p.bet_type]||!Number.isSafeInteger(p.payout_per_100_yen)||p.payout_per_100_yen<=0)fail('確定払戻の数値が不正です。');if(p.combination&&(!Array.isArray(p.combination)||p.combination.length!==marketSizes[p.bet_type]||new Set(p.combination).size!==p.combination.length||p.combination.some(n=>!Number.isInteger(n)||n<1||n>6)))fail('払戻の買い目が不正です。');}
+        if(data.refund_boats.some(n=>!Number.isInteger(n)||n<1||n>6)||new Set(data.refund_boats).size!==data.refund_boats.length)fail('返還艇が不正です。');
+      }
+    }
+    if(Object.keys(raw.latest).length!==raw.records.length||Object.entries(raw.latest).some(([kind,id])=>!updateKinds.includes(kind)||!ids.has(id)))fail('最新の更新情報が一致していません。');
+    return raw;
+  }
+  function raceUpdatePhase(wrapper,closed){
+    const r=wrapper.record;if(r.kind==='raceresult')return {label:'公式結果・事後情報',preRace:false};
+    if(r.kind==='odds3t'&&r.data?.odds_phase==='final')return {label:'締切時オッズ・事前予想には使用しません',preRace:false};
+    if(wrapper.cloud_eligible_pre_race===true)return {label:'締切前に取得・保存',preRace:true};
+    return {label:Date.parse(r.captured_at)>=Date.parse(closed)?'締切後に取得・事前予想には使用しません':'締切後に保存・事前予想には使用しません',preRace:false};
+  }
+  function sortedOdds(record){return (record?.data?.odds||[]).slice().sort((a,b)=>(a.odds===null?Infinity:Number(a.odds))-(b.odds===null?Infinity:Number(b.odds))||a.combination.join('').localeCompare(b.combination.join('')));}
+  function confirmedResultView(record){
+    const d=record?.kind==='raceresult'&&record.status!=='PENDING'?record.data:null;
+    if(!d)return {results:[],payouts:[],specialPayouts:[],refundLabel:'未確定',status:'pending'};
+    const verified=kind=>d.verified_market_types?.includes(kind)&&['VERIFIED','VERIFIED_EXPLICIT_SPECIAL_PAYOUT'].includes(d.winning_coverage_status?.[kind]);
+    return {results:d.finish_confirmed===true?d.results:[],payouts:(d.payouts||[]).filter(p=>verified(p.bet_type)),specialPayouts:(d.special_payouts||[]).filter(p=>verified(p.bet_type)),status:d.status,
+      refundLabel:d.confirmed===true&&d.refund_policy_status==='EXPLICIT_FULL_RACE_REFUND'?'全額返還を確認':d.refund_policy_status==='NO_RETURNED_BOATS'&&Array.isArray(d.refunds)?'返還艇なし（取得時点）':'返還処理は未確定'};
+  }
+  return {venueNames,pages,dayJst,validateReport,venueState,allRaces,filterRaces,cutoff,purchaseAvailability,timeLabel,parseRoute,text,validateRaceBundle,raceUpdatePhase,sortedOdds,confirmedResultView};
 });

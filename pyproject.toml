@@ -8,4 +8,4 @@ description = "Offline, provenance-aware boat-race research"
 requires-python = ">=3.10"
 dependencies = []
 [tool.setuptools.packages.find]
-include = ["race_ai*"]
+include = ["race_ai*", "web"]

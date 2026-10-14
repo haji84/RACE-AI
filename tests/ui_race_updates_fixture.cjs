@@ -1,0 +1,12 @@
+const DAY='2026-10-15',NOW=Date.parse(DAY+'T10:00:00+09:00');
+const race=()=>({race_id:'20261015-18-01',closed_at:DAY+'T07:00:00+09:00',boats:Array.from({length:6},(_,i)=>({lane:i+1,racer_registration_id:String(4001+i),name:'合成検証 '+(i+1)}))});
+function bundle(kind='beforeinfo'){
+ const captured=DAY+(kind==='raceresult'?'T08:00:00+09:00':'T06:00:00+09:00'),saved=DAY+(kind==='raceresult'?'T08:01:00+09:00':'T06:01:00+09:00'),cloud=DAY+(kind==='raceresult'?'T08:02:00+09:00':'T06:02:00+09:00');
+ const base={schema_version:1,race_id:race().race_id,kind,source_url:'https://www.boatrace.jp/owpc/pc/race/'+kind+'?rno=1&jcd=18&hd=20261015',source_sha256:'a'.repeat(64),captured_at:captured,available_at:captured,upstream_published_at:null,eligible_pre_race:kind!=='raceresult',information_phase:kind==='raceresult'?'official_result':'pre_race_observation',status:'AVAILABLE',body_identity_verified:true,closed_at:race().closed_at,snapshot_id:({beforeinfo:'b',odds3t:'d',raceresult:'e'})[kind].repeat(64),saved_at:saved,storage_eligible_pre_race:kind!=='raceresult'};
+ if(kind==='beforeinfo')base.data={boats:race().boats.map(b=>({...b,display_time:6.9,preview_st:0.15,preview_st_status:'OK',preview_raw_st:'.15',preview_course:null,actual_course:null})),weather:{wind_speed_mps:3,wave_height_cm:1}};
+ if(kind==='odds3t'){const rows=[];for(let a=1;a<=6;a++)for(let b=1;b<=6;b++)for(let c=1;c<=6;c++)if(new Set([a,b,c]).size===3)rows.push({combination:[a,b,c],odds:'15.5',availability:'AVAILABLE'});base.data={odds:rows,odds_phase:'observed',racers:race().boats.map(b=>({...b,racer_registration_id:null}))};}
+ if(kind==='raceresult')base.data={status:'settled',finish_confirmed:true,confirmed:false,settlement_ready:false,results:race().boats.map((b,i)=>({...b,race_id:race().race_id,finish:i+1,finish_status:'FINISHED',actual_st:0.1,actual_st_status:'OK',actual_raw_st:'.10',actual_course:null})),payouts:[{bet_type:'trifecta',combination:[1,2,3],payout_per_100_yen:610}],special_payouts:[],verified_market_types:['trifecta'],winning_coverage_status:{trifecta:'VERIFIED'},refund_boats:[],refunds:[],refund_policy_status:'NO_RETURNED_BOATS'};
+ return {schema_version:1,race_id:race().race_id,date_jst:DAY,closed_at:race().closed_at,program_sha256:'c'.repeat(64),published_at:DAY+'T09:00:00+09:00',latest:{[kind]:base.snapshot_id},records:[{record:base,cloud_saved_at:cloud,cloud_eligible_pre_race:base.eligible_pre_race,program_sha256:'c'.repeat(64)}]};
+}
+
+module.exports={bundle,race,DAY,NOW};

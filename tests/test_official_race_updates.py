@@ -90,6 +90,40 @@ class OfficialUpdateTests(unittest.TestCase):
         self.assertEqual(data['status'],'PENDING')
         self.assertIsNone(data['data']['boats'][0]['display_time'])
 
+    def test_observed_empty_exhibition_grid_is_pending_only_with_six_entry_identities(self):
+        blank='<table><thead><tr><th>スタート展示</th></tr></thead><tbody>'+''.join('<tr><td></td></tr>' for _ in range(6))+'</tbody></table>'
+        body=preview().replace(starts(),blank).replace('6.92','').replace('<td>0.0</td>','<td></td>')
+        data=self.parse('beforeinfo',body)
+        self.assertEqual(data['status'],'PENDING');self.assertTrue(data['body_identity_verified'])
+        self.assertIsNone(data['data'])
+        self.assertEqual(data['missing_reason'],'OFFICIAL_PREVIEW_EMPTY_EXHIBITION_GRID')
+        self.assertEqual(data['observed_racers'][0]['racer_registration_id'],'4001')
+        arguments=dict(kind='beforeinfo',day=DAY,venue='18',race_no=1,source_url=endpoint(DAY,'18',1,'beforeinfo'),captured_at=CAPTURE)
+        entries=[dict(racer) for racer in data['observed_racers']]
+        self.assertEqual(parse_update(page('beforeinfo',body),entries=entries,**arguments)['status'],'PENDING')
+        entries[0]['racer_registration_id']='4999'
+        with self.assertRaises(SourceError): parse_update(page('beforeinfo',body),entries=entries,**arguments)
+        for invalid in (body.replace('toban=4001','toban=4002'),body.replace(blank,blank.replace('<tr><td></td></tr>','',1)),
+                        body.replace(blank,blank.replace('<td></td>','<td>.11</td>',1))):
+            with self.assertRaises(SourceError): self.parse('beforeinfo',invalid)
+
+    def test_all_zero_odds_placeholder_requires_complete_grid_and_update_clock(self):
+        body=odds().replace('15.5','0.0').replace('<p class="tab4_time">08:00現在</p>',
+            '<p class="title2_add">オッズ更新時間 <span>6:48</span></p>')
+        data=self.parse('odds3t',body)
+        self.assertEqual(data['status'],'PENDING');self.assertTrue(data['body_identity_verified'])
+        self.assertIsNone(data['data'])
+        self.assertEqual(data['missing_reason'],'OFFICIAL_ODDS_ALL_ZERO_PLACEHOLDER')
+        self.assertIsNone(data['observed_racers'][0]['racer_registration_id'])
+        entries=[dict(lane=n,racer_registration_id=str(4000+n),name='選手'+str(n)) for n in range(1,7)]
+        entries[0]['name']='別選手'
+        with self.assertRaises(SourceError):
+            parse_update(page('odds3t',body),kind='odds3t',day=DAY,venue='18',race_no=1,
+                source_url=endpoint(DAY,'18',1,'odds3t'),captured_at=CAPTURE,entries=entries)
+        for invalid in (body.replace('0.0','15.5',1),body.replace('オッズ更新時間','不明'),
+                        body.replace('6:48','26:48'),body.replace('rowspan="4"','rowspan="3"',1)):
+            with self.assertRaises(SourceError): self.parse('odds3t',invalid)
+
     def test_result_finish_actual_st_payout_and_refund_are_explicit(self):
         data=self.parse('raceresult',results(),stamp='2026-10-15T09:00:00+09:00')
         self.assertFalse(data['eligible_pre_race'])

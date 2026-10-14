@@ -1,4 +1,5 @@
 from datetime import datetime,timezone
+from http.client import BadStatusLine,IncompleteRead
 import json
 from pathlib import Path
 import unittest
@@ -46,3 +47,12 @@ class OfficialUpdateWorkerTests(unittest.TestCase):
         result=collect_race_update(DAY,'18',1,'beforeinfo',review=review(),execute=True,now=NOW,
             transport=lambda *a,**kw:FetchResponse('<p>データがありません。</p>'.encode(),url,200,'text/html'))
         self.assertEqual(result['status'],'PENDING');self.assertIsNone(result['data'])
+
+    def test_http_protocol_failures_are_sanitized_source_unavailable(self):
+        for failure in (BadStatusLine('secret upstream body'),IncompleteRead(b'secret partial response',500)):
+            transport=Mock(side_effect=failure)
+            with self.subTest(failure=type(failure).__name__):
+                result=collect_race_update(DAY,'18',1,'beforeinfo',review=review(),execute=True,now=NOW,transport=transport)
+                self.assertEqual(result['status'],'SOURCE_UNAVAILABLE')
+                self.assertNotIn('secret',str(result));self.assertNotIn('partial',str(result))
+                transport.assert_called_once()

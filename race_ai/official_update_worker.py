@@ -5,6 +5,7 @@ responses become pending observations, never zero odds or losing results.
 """
 import argparse
 from datetime import date,datetime,timezone
+from http.client import HTTPException
 import json
 from pathlib import Path
 import sqlite3
@@ -50,7 +51,7 @@ def collect_race_update(day,venue,race_no,kind,*,review,execute=False,now=None,t
     if not execute: return {**base,'status':'DRY_RUN','network_requests':0,'maximum_source_requests':1}
     try:
         response=(transport or fetch_update)(url,timeout=TIMEOUT,max_bytes=MAX_BYTES)
-    except (error.URLError,OSError,TimeoutError): return {**base,'status':'SOURCE_UNAVAILABLE'}
+    except (error.URLError,OSError,TimeoutError,HTTPException): return {**base,'status':'SOURCE_UNAVAILABLE'}
     except SourceError: return {**base,'status':'SOURCE_INVALID'}
     if (not isinstance(response,FetchResponse) or response.status!=200 or response.url!=url
             or not isinstance(response.body,bytes) or len(response.body)>MAX_BYTES
