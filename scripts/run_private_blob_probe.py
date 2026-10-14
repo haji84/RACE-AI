@@ -13,15 +13,21 @@ from urllib.parse import urlsplit
 
 def run():
     url=os.environ.get("RACE_AI_PROBE_URL","")
-    secret=os.environ.get("RACE_AI_PROBE_SECRET","")
+    oidc_url=os.environ.get("ACTIONS_ID_TOKEN_REQUEST_URL","")
+    oidc_auth=os.environ.get("ACTIONS_ID_TOKEN_REQUEST_TOKEN","")
     parts=urlsplit(url)
     if (parts.scheme!="https" or not parts.hostname or
         not parts.hostname.endswith(".vercel.app") or
         parts.path!="/api/blob-probe" or parts.query or parts.fragment or
-        len(secret)<32):
+        not oidc_url.startswith("https://") or not oidc_auth):
         raise RuntimeError("missing or invalid Preview URL/secret")
+    separator="&" if "?" in oidc_url else "?"
+    token_request=urllib.request.Request(oidc_url+separator+"audience=race-ai-preview-blob-probe",
+        headers={"Authorization":"Bearer "+oidc_auth})
+    with urllib.request.urlopen(token_request,timeout=15) as oidc_response:
+        oidc=json.loads(oidc_response.read(16384))["value"]
     req=urllib.request.Request(url,data=b"",method="POST",
-        headers={"X-Race-AI-Probe-Secret":secret,"Content-Type":"application/octet-stream"})
+        headers={"Authorization":"Bearer "+oidc,"Content-Type":"application/octet-stream"})
     try:
         with urllib.request.urlopen(req,timeout=25) as response:
             body=response.read(8193)
