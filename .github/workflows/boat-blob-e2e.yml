@@ -5,6 +5,9 @@ on:
     branches: [feat/boat-oidc-probe-auth]
     paths:
       - .github/workflows/boat-blob-e2e.yml
+      - scripts/run_private_blob_probe.py
+      - web/api/blob-probe.py
+      - web/api/github_oidc.py
 permissions:
   contents: read
   id-token: write
