@@ -16,7 +16,15 @@ class TodayBlobReaderTests(unittest.TestCase):
             self.assertEqual(status,503)
             self.assertEqual(data["error"],"FEED_NOT_APPROVED")
 
-    def test_arbitrary_host_rejected(self):\n        with patch.dict(os.environ,{"RACE_AI_FEED_APPROVED":"1",\n             "VERCEL_OIDC_TOKEN":"fixture-token",\n             "RACE_AI_BLOB_BASE_URL":"https://example.org"},clear=True):\n            status,data=api.load_feed()\n            self.assertEqual(status,503)\n            self.assertEqual(data["error"],"FEED_STORE_NOT_CONFIGURED")\n\n    def test_missing_store_configuration(self):
+    def test_arbitrary_host_rejected(self):
+        with patch.dict(os.environ,{"RACE_AI_FEED_APPROVED":"1",
+             "VERCEL_OIDC_TOKEN":"fixture-token",
+             "RACE_AI_BLOB_BASE_URL":"https://example.org"},clear=True):
+            status,data=api.load_feed()
+            self.assertEqual(status,503)
+            self.assertEqual(data["error"],"FEED_STORE_NOT_CONFIGURED")
+
+    def test_missing_store_configuration(self):
         with patch.dict(os.environ,{"RACE_AI_FEED_APPROVED":"1"},clear=True):
             status,data=api.load_feed()
             self.assertEqual(status,503)
