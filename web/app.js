@@ -6,6 +6,22 @@
   const sports = Array.from(document.querySelectorAll("[data-sport]"));
   const sportNames = { horse: "競馬", cycle: "競輪", auto: "オートレース" };
   let report = null;
+  const pages = ["home","races","detail","picks","results","research"];
+  function showPage(page) {
+    if (!pages.includes(page)) return;
+    document.querySelectorAll("[data-page]").forEach(button => {
+      const active = button.dataset.page === page;
+      button.classList.toggle("active", active);
+      if (active) button.setAttribute("aria-current","page");
+      else button.removeAttribute("aria-current");
+    });
+    el("dashboard-home").hidden = page !== "home";
+    for (const name of ["picks","results","research"]) el("page-" + name).hidden = page !== name;
+    el("data-pages").hidden = page !== "races" && page !== "detail";
+  }
+  document.querySelectorAll("[data-page]").forEach(button => button.addEventListener("click", () => showPage(button.dataset.page)));
+  document.querySelectorAll("[data-goto]").forEach(button => button.addEventListener("click", () => showPage(button.dataset.goto)));
+
 
   function pickSport(sport) {
     const isBoat = sport === "boat";
@@ -87,6 +103,8 @@
 
   function clearStats() {
     ["venues-total", "races-total", "complete-total"].forEach((id) => { el(id).textContent = "―"; });
+    el("home-venues").textContent = "未取得";
+    el("home-races").textContent = "未取得";
     el("source-state").textContent = "データ未取得";
     el("source-state").classList.remove("warning");
     el("source-date").textContent = "対象日：未取得";
@@ -167,6 +185,8 @@
     el("venues-total").textContent = String(data.venues.length);
     el("races-total").textContent = String(data.races);
     el("complete-total").textContent = String(data.complete_six_boat_races);
+    el("home-venues").textContent = String(data.venues.length);
+    el("home-races").textContent = String(data.races);
     const select = el("venue-select");
     select.replaceChildren();
     for (const v of data.venues) addOption(select, v.venue, "場コード " + v.venue);
@@ -193,4 +213,5 @@
     }
   });
   clearStats();
+  showPage("home");
 })();

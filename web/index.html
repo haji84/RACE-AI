@@ -32,7 +32,30 @@
       <p>現在開発中です。ボートレース先行版の動作には影響しません。</p>
       <button type="button" class="secondary" id="return-boat">ボートレースへ戻る</button>
     </section>
+    <nav class="app-nav" aria-label="ボートレース内のページ">
+      <button type="button" data-page="home" aria-current="page">ホーム</button>
+      <button type="button" data-page="races">全レース</button>
+      <button type="button" data-page="detail">レース詳細</button>
+      <button type="button" data-page="picks">買い目</button>
+      <button type="button" data-page="results">成績</button>
+      <button type="button" data-page="research">研究</button>
+    </nav>
     <div id="boat-view">
+      <section class="panel dashboard" id="dashboard-home">
+        <div class="section-head"><div><p class="eyebrow">RACE AI DASHBOARD</p><h2>ボートレース ホーム</h2></div><span class="state-pill warning">開発版</span></div>
+        <p class="muted">取得できたデータだけを表示します。未検証のAI評価・推奨買い目・回収率は表示しません。</p>
+        <div class="dashboard-metrics">
+          <article><span>本日の開催場</span><strong id="home-venues">未取得</strong></article>
+          <article><span>収録レース</span><strong id="home-races">未取得</strong></article>
+          <article><span>予想・買い目</span><strong>検証中</strong></article>
+          <article><span>回収率</span><strong>未集計</strong></article>
+        </div>
+        <div class="dashboard-actions"><button type="button" data-goto="races">全レースを見る →</button><button type="button" data-goto="detail">出走データを見る →</button></div>
+      </section>
+      <section class="panel page-placeholder" id="page-picks" hidden><p class="eyebrow">BET ALLOCATION</p><h2>買い目配分</h2><p class="muted">3連単120通りの確率校正、発走前オッズ、実レース検証が完了するまで推奨買い目は公開しません。予算・点数設定は今後接続します。</p><span class="state-pill warning">未検証・購入見送り</span></section>
+      <section class="panel page-placeholder" id="page-results" hidden><p class="eyebrow">PERFORMANCE</p><h2>成績</h2><p class="muted">実際に記録した予想・購入・結果のみで集計します。架空の的中率や回収率は表示しません。</p></section>
+      <section class="panel page-placeholder" id="page-research" hidden><p class="eyebrow">RESEARCH</p><h2>研究</h2><p class="muted">実進入別ST、展示、モーター、前付け耐性の検証結果を段階的に追加します。</p></section>
+      <div id="data-pages">
       <section class="panel import-panel">
         <div><p class="eyebrow">DATA INPUT · LOCAL ONLY</p><h2>レースデータを開く</h2>
           <p class="muted">利用権限を確認済みの正規化済みJSONを選択。ファイルは端末内だけで読み取り、サーバーへ送信しません。</p></div>
@@ -58,6 +81,7 @@
         <div class="notice"><strong>予想・買い目はまだ公開対象外</strong><p>実レースの精度検証、発走前オッズの時点管理、120通りの確率校正が完了するまで、予想・期待値を表示しません。</p></div>
       </section>
     </div>
+      </div>
     <footer>RACE AI · データの不足は「未取得」と表示 · 自動投票なし · 本画面は先行開発版 · Preview自動更新検証</footer>
   </main>
 </body>
