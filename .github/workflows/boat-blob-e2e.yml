@@ -11,11 +11,14 @@ on:
 permissions:
   contents: read
   id-token: write
+concurrency:
+  group: race-ai-preview-official-day-publisher
+  cancel-in-progress: false
 jobs:
   private-blob-roundtrip:
     if: github.repository == 'haji84/RACE-AI' && github.ref == 'refs/heads/feat/boat-oidc-probe-auth'
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     environment: blob-e2e-preview
     steps:
       - uses: actions/checkout@v4
@@ -35,3 +38,26 @@ jobs:
         run: python3 scripts/run_private_blob_probe.py
 
 # OIDC Preview E2E trigger; no shared secret is used.
+
+
+      - name: Checkout reviewed current-day collector
+        uses: actions/checkout@v4
+        with:
+          ref: a923d3d5a87b9212ffcdbd8ca998ca93a026c095
+          path: day-source
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned collector runtime
+        run: python -m pip install -r day-source/requirements-worker.txt
+      - name: Automatically collect approved current JST official facts
+        working-directory: day-source
+        run: |
+          DAY=$(TZ=Asia/Tokyo date +%F)
+          python -m race_ai.national_day_pipeline --date "$DAY" --review config/operator-official-facts.json --output "$RUNNER_TEMP/race-ai-day.json" --execute
+      - name: Publish private current-day version and verify today API SHA
+        env:
+          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-4790pqacg-qq1130034-1738.vercel.app/api/publish-day
+          RACE_AI_DAY_COMMIT_SHA: a923d3d5a87b9212ffcdbd8ca998ca93a026c095
+        run: python day-source/scripts/publish_day_feed.py --feed "$RUNNER_TEMP/race-ai-day.json"
