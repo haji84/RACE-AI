@@ -12,10 +12,10 @@ def fixture():
 
 
 class OfficialBSnapshotTests(unittest.TestCase):
-    def test_no_motor_data_cannot_be_published(self):
-        with self.assertRaises(SourceError):
-            normalize_b_snapshot(fixture(), day=date(2026,10,14),
-                source_url="https://example.org/official", observed_at="2026-10-14T08:00:00+09:00")
+    def test_no_motor_data_is_explicitly_unknown(self):
+        result = normalize_b_snapshot(fixture(), day=date(2026,10,14),
+            source_url="https://example.org/official", observed_at="2026-10-14T08:00:00+09:00")
+        self.assertIsNone(result["venues"][0]["races"][0]["boats"][0]["motor_no"])
 
     def test_valid_motor_join_preserves_unknown_fields(self):
         motors = {(f"20261014-18-01", i): i+10 for i in range(1,7)}

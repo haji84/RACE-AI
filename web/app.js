@@ -80,7 +80,7 @@
           if (!boat || !Number.isInteger(boat.lane) || boat.lane < 1 || boat.lane > 6
             || lanes.has(boat.lane)
             || !/^\d{4}$/.test(boat.racer_registration_id || "")
-            || !Number.isInteger(boat.motor_no) || boat.motor_no < 1 || boat.motor_no > 999)
+            || (boat.motor_no !== null && ( !Number.isInteger(boat.motor_no) || boat.motor_no < 1 || boat.motor_no > 999)))
             throw new Error("艇・選手・モーターの記録が不正です。");
           lanes.add(boat.lane);
         }

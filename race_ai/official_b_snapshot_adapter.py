@@ -15,7 +15,7 @@ from .core import SourceError, parse_b
 
 def normalize_b_snapshot(raw: bytes, *, day: date, source_url: str,
                          observed_at: str, motors: dict | None = None) -> dict:
-    """Construct race identities from official B; fail closed on absent motor data."""
+    """Construct race identities from official B; preserve absent motor data as unknown."""
     records = parse_b(raw, day.isoformat())
     if not source_url.startswith("https://"):
         raise SourceError("source must be HTTPS")
@@ -32,8 +32,8 @@ def normalize_b_snapshot(raw: bytes, *, day: date, source_url: str,
             for row in sorted(rows, key=lambda item: item["lane"]):
                 key = (rid, row["lane"])
                 motor = motors.get(key) if motors else None
-                if not isinstance(motor, int) or not 1 <= motor <= 999:
-                    raise SourceError("motor allocation unavailable; cannot publish incomplete race")
+                if motor is not None and (type(motor) is not int or not 1 <= motor <= 999):
+                    raise SourceError("invalid motor allocation")
                 boats.append({"lane": row["lane"],
                               "racer_registration_id": row["racer_id"],
                               "motor_no": motor,
