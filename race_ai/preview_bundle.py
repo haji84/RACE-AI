@@ -17,7 +17,7 @@ from zoneinfo import ZoneInfo
 from .day_snapshot_publisher import validate
 
 JST = ZoneInfo("Asia/Tokyo")
-STATIC = ("index.html", "app.js", "style.css")
+STATIC = ("index.html", "app.js", "style.css", "ui-model.js")
 
 
 def package_preview(web: Path, snapshot: Path, approval: Path, output: Path, *,
