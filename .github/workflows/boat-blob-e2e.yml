@@ -2,15 +2,15 @@ name: RACE AI Preview Blob E2E
 on:
   workflow_dispatch:
   push:
-    branches:
-      - feat/boat-actions-private-blob-e2e
+    branches: [feat/boat-oidc-probe-auth]
     paths:
       - .github/workflows/boat-blob-e2e.yml
 permissions:
   contents: read
+  id-token: write
 jobs:
   private-blob-roundtrip:
-    if: github.repository == 'haji84/RACE-AI' && github.ref == 'refs/heads/feat/boat-actions-private-blob-e2e'
+    if: github.repository == 'haji84/RACE-AI' && github.ref == 'refs/heads/feat/boat-oidc-probe-auth'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     environment: blob-e2e-preview
@@ -18,15 +18,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Verify required secrets exist
+      - name: Verify private Blob with GitHub OIDC
         env:
-          PROBE_SECRET: ${{ secrets.RACE_AI_PROBE_SECRET }}
-          PROBE_URL: ${{ vars.RACE_AI_PROBE_URL }}
-        run: |
-          test -n "$PROBE_SECRET" || { echo "Probe secret missing"; exit 1; }
-          test -n "$PROBE_URL" || { echo "Probe URL missing"; exit 1; }
-      - name: Verify private Blob roundtrip
-        env:
-          RACE_AI_PROBE_SECRET: ${{ secrets.RACE_AI_PROBE_SECRET }}
           RACE_AI_PROBE_URL: ${{ vars.RACE_AI_PROBE_URL }}
+          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
+          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
         run: python3 scripts/run_private_blob_probe.py
