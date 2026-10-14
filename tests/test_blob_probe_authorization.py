@@ -1,10 +1,12 @@
 import importlib.util
 import os
+import sys
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 PATH=Path(__file__).resolve().parents[1]/"web/api/blob-probe.py"
+sys.path.insert(0,str(PATH.parent))
 spec=importlib.util.spec_from_file_location("blob_probe",PATH)
 probe=importlib.util.module_from_spec(spec)
 spec.loader.exec_module(probe)
