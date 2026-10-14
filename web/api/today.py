@@ -21,7 +21,10 @@ def load_feed():
         return 503,{"error":"FEED_NOT_APPROVED"}
     token=os.environ.get("VERCEL_OIDC_TOKEN") or os.environ.get("BLOB_READ_WRITE_TOKEN")
     base=os.environ.get("RACE_AI_BLOB_BASE_URL","").rstrip("/")
-    host=urlsplit(base)\n    if (not token or host.scheme!="https" or not host.hostname or\n        not host.hostname.endswith(".private.blob.vercel-storage.com") or\n        host.path or host.query or host.fragment or host.username or host.password):
+    host=urlsplit(base)
+    if (not token or host.scheme!="https" or not host.hostname or
+        not host.hostname.endswith(".private.blob.vercel-storage.com") or
+        host.path or host.query or host.fragment or host.username or host.password):
         return 503,{"error":"FEED_STORE_NOT_CONFIGURED"}
     # Exact day-specific key prevents yesterday's snapshot being used today.
     url=base+"/race-ai/day/"+quote(current_day())+".json"
