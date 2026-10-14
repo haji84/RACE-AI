@@ -116,6 +116,7 @@
       addOption(el(id), "", "データ未取得");
     }
     emptyRow("レース未選択");
+    renderVenueBrowser();
   }
 
   function emptyRow(message) {
@@ -171,9 +172,62 @@
     select.disabled = false;
     renderRace();
   }
-  el("venue-select").addEventListener("change", updateRaceChoices);
+  el("venue-select").addEventListener("change", () => { updateRaceChoices(); renderVenueBrowser(); });
   el("race-select").addEventListener("change", renderRace);
 
+  const venueNames = ["桐生","戸田","江戸川","平和島","多摩川","浜名湖","蒲郡","常滑","津","三国","びわこ","住之江","尼崎","鳴門","丸亀","児島","宮島","徳山","下関","若松","芦屋","福岡","唐津","大村"];
+  function renderVenueBrowser() {
+    const container=el("venue-buttons");
+    const cards=el("race-cards");
+    container.replaceChildren();
+    cards.replaceChildren();
+    const venues=report?.venues || [];
+    const selected=el("venue-select").value;
+    el("venue-browser-state").textContent=venues.length ? "取得済み " + venues.length + "場" : "本日のデータ未取得";
+    venueNames.forEach((name,index)=>{
+      const code=String(index+1).padStart(2,"0");
+      const available=venues.some(v=>v.venue===code);
+      const button=document.createElement("button");
+      button.type="button";
+      button.className="venue-button"+(code===selected ? " selected" : "");
+      button.textContent=name;
+      button.disabled=!available;
+      button.setAttribute("aria-pressed",String(code===selected && available));
+      button.addEventListener("click",()=>{
+        el("venue-select").value=code;
+        updateRaceChoices();
+        renderVenueBrowser();
+      });
+      container.append(button);
+    });
+    const venue=venues.find(v=>v.venue===selected);
+    if (!venue) {
+      const message=document.createElement("p");
+      message.className="muted";
+      message.textContent="本日の開催情報は未取得です。取得でき次第ここに表示します。";
+      cards.append(message);
+      return;
+    }
+    venue.races.slice().sort((a,b)=>a.race_id.localeCompare(b.race_id)).forEach(race=>{
+      const button=document.createElement("button");
+      button.type="button";button.className="race-card";
+      const number=Number(race.race_id.slice(-2));
+      const heading=document.createElement("strong");
+      heading.textContent=venueNames[Number(venue.venue)-1]+" "+number+"R";
+      const detail=document.createElement("span");
+      detail.textContent="締切 "+asText(race.closed_at)+" · "+race.boats.length+"艇";
+      const names=document.createElement("small");
+      names.textContent=race.boats.slice().sort((a,b)=>a.lane-b.lane).map(b=>b.lane+" "+asText(b.name)).join(" / ");
+      button.append(heading,detail,names);
+      button.addEventListener("click",()=>{
+        el("race-select").value=race.race_id;
+        renderRace();
+        showPage("detail");
+        document.querySelector(".race-panel")?.scrollIntoView({block:"start",behavior:"smooth"});
+      });
+      cards.append(button);
+    });
+  }
   function showReport(data) {
     report = data;
     el("file-message").classList.remove("error");
@@ -192,6 +246,7 @@
     for (const v of data.venues) addOption(select, v.venue, "場コード " + v.venue);
     select.disabled = false;
     updateRaceChoices();
+    renderVenueBrowser();
   }
 
   el("race-file").addEventListener("change", async (event) => {

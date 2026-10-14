@@ -56,6 +56,12 @@
       <section class="panel page-placeholder" id="page-results" hidden><p class="eyebrow">PERFORMANCE</p><h2>成績</h2><p class="muted">実際に記録した予想・購入・結果のみで集計します。架空の的中率や回収率は表示しません。</p></section>
       <section class="panel page-placeholder" id="page-research" hidden><p class="eyebrow">RESEARCH</p><h2>研究</h2><p class="muted">実進入別ST、展示、モーター、前付け耐性の検証結果を段階的に追加します。</p></section>
       <div id="data-pages">
+      <section class="panel venue-browser" aria-label="会場とレースを選ぶ">
+        <div class="section-head"><div><p class="eyebrow">TODAY'S BOAT RACES</p><h2>開催場からレースを選ぶ</h2></div><span class="state-pill" id="venue-browser-state">取得待ち</span></div>
+        <p class="muted">開催場を選択すると、その会場のレース一覧を表示します。データ未取得の会場は選択できません。</p>
+        <div id="venue-buttons" class="venue-buttons" role="group" aria-label="開催場"></div>
+        <div id="race-cards" class="race-cards" aria-live="polite"><p class="muted">本日のレース情報を確認中です。</p></div>
+      </section>
       <section class="panel import-panel">
         <div><p class="eyebrow">DATA INPUT · LOCAL ONLY</p><h2>レースデータを開く</h2>
           <p class="muted">当日の出走データを自動確認します。配信権限や取得に問題がある場合は未取得と表示します。JSONの手動読込は検証用です。</p></div>
