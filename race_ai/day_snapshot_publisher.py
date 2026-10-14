@@ -70,7 +70,7 @@ def validate(payload: object, *, today: date, approval: dict) -> dict:
                 if not re.fullmatch(r"[0-9]{4}", str(boat.get("racer_registration_id", ""))):
                     raise ValueError("invalid racer")
                 motor = boat.get("motor_no")
-                if type(motor) is not int or not 1 <= motor <= 999:
+                if motor is not None and (type(motor) is not int or not 1 <= motor <= 999):
                     raise ValueError("invalid motor")
             count += 1
             completed += len(boats) == 6
