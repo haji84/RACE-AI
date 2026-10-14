@@ -1,0 +1,63 @@
+{
+  "kind": "real_cloud_official_day_end_to_end",
+  "verified_at": "2026-10-15T03:31:20+09:00",
+  "repository": "haji84/RACE-AI",
+  "workflow_run_url": "https://github.com/haji84/RACE-AI/actions/runs/38615282135",
+  "job_id": 116028668718,
+  "workflow_commit": "fe82abf1e4b7a100a4ce35f1c5634d8fb8dd2ccb",
+  "application_commit": "72b12d750882f343feaf4d74816b6cd5a5fb7083",
+  "deployment_id": "dpl_897zW8gxyJ81HsynNs56LiFmn78v",
+  "deployment_url": "https://race-ai-preview-o7f54ik64-qq1130034-1738.vercel.app",
+  "today_http_status": 200,
+  "today_cache_control": "no-store",
+  "date_jst": "2026-10-15",
+  "venues": 24,
+  "active_venues": [
+    "02",
+    "04",
+    "06",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "20",
+    "21",
+    "22",
+    "24"
+  ],
+  "no_event_venues": [
+    "01",
+    "03",
+    "05",
+    "07",
+    "08",
+    "09",
+    "16",
+    "17",
+    "18",
+    "19",
+    "23"
+  ],
+  "races": 156,
+  "boats": 936,
+  "first_observed_at": "2026-10-14T18:27:38.870600+00:00",
+  "last_observed_at": "2026-10-14T18:27:39.582668+00:00",
+  "canonical_payload_sha256": "e4f9f0e96666e3e368966cb68b3392fc805d6a1ce4b1fa84655ca8d7de7efa37",
+  "version_pathname": "race-ai/versions/2026-10-15/e4f9f0e96666e3e368966cb68b3392fc805d6a1ce4b1fa84655ca8d7de7efa37.json",
+  "checks": [
+    "Actual GitHub OIDC signed workflow identity accepted by existing Preview protection",
+    "Two bounded official source GETs on runner, current JST day computed automatically",
+    "Private Blob put and exact byte/SHA readback verified",
+    "Same workflow GET /api/today canonical SHA equals full collected payload",
+    "Separate authenticated connector GET /api/today returned HTTP200 and 24 venue states/156 races/936 boats"
+  ],
+  "permission_evidence": "user-confirmation-2026-10-15-official-facts",
+  "limits": [
+    "Not Production publication",
+    "Recurring schedule not installed",
+    "Current-day program facts do not establish forecast accuracy or live odds/results availability",
+    "Source originals and credentials not stored in this evidence"
+  ]
+}

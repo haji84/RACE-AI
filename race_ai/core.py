@@ -67,7 +67,9 @@ def utc(value: str) -> str:
         raise SourceError('invalid ISO timestamp') from exc
     if parsed.tzinfo is None or parsed.utcoffset() is None:
         raise SourceError('timezone required')
-    return parsed.astimezone(timezone.utc).isoformat(timespec='seconds')
+    # A capture at .900 must never become available at an earlier .100 cutoff.
+    # Fixed precision keeps newly stored UTC values lexically sortable in SQLite.
+    return parsed.astimezone(timezone.utc).isoformat(timespec='microseconds')
 
 
 def connect(path: str | Path) -> sqlite3.Connection:
@@ -230,8 +232,8 @@ def _asof_rows(db: sqlite3.Connection, asof: str, racer_id: str) -> list[sqlite3
     # exclude after-decision revisions; latest captured snapshot per (race, boat).
     return db.execute('''SELECT * FROM (
       SELECT s.*, ROW_NUMBER() OVER(PARTITION BY race_id,lane ORDER BY captured_at DESC,sha DESC) AS rn
-      FROM starts s WHERE published_at<=? AND captured_at<=? AND st_status!='ABSENT'
-    ) WHERE rn=1 AND racer_id=? ORDER BY race_at DESC,race_id DESC''', (cutoff,cutoff,racer_id)).fetchall()
+      FROM starts s WHERE published_at<=? AND captured_at<=?
+    ) WHERE rn=1 AND st_status!='ABSENT' AND racer_id=? ORDER BY race_at DESC,race_id DESC''', (cutoff,cutoff,racer_id)).fetchall()
 
 
 def summarize(rows: list[sqlite3.Row], count: int = 10) -> dict:

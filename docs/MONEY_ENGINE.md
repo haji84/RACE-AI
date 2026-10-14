@@ -67,6 +67,8 @@ The caller supplies a complete result whose source and completeness it has verif
 
 The example is synthetic. `confirmed: true` is a caller assertion, not cryptographic source evidence. An unconfirmed, pending, mismatched or missing result is rejected instead of recorded as a loss. An explicitly complete, empty payout list means every effective purchased ticket missed. Prediction-time odds cannot affect final settlement.
 
+When the adapter supplies `verified_market_types`, every purchased ticket type must appear in that explicit list; an unverified market cannot be treated as a miss merely because its payout row is absent. The list must contain distinct supported type names. Legacy records without the field retain the caller's assertion that `confirmed: true` means the entire result is complete.
+
 - `settled`: apply every listed winning combination; other effective tickets miss.
 - `dead_heat`: apply every listed winning combination independently; use each official value without dividing or inventing it.
 - `special`: require nonempty `special_payouts`, e.g. `[{"bet_type":"trifecta","payout_per_100_yen":70}]`. The number 70 is an explicit synthetic input, never a default. Apply it to effective tickets of that type. Ordinary payouts may coexist for other types. Duplicate or conflicting ordinary/special entries are rejected.

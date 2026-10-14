@@ -4,7 +4,8 @@
   const names={home:['おかえりなさい','今日も、データを味方に。','レースを知る。根拠を確かめる。あなたの判断を、ここから。'],races:['全国24場の開催情報','全レース一覧','開催場とレースを選んで、出走データを確認しましょう。'],detail:['出走表と直前情報','レース詳細','取得した情報と、その時点を確かめる。'],picks:['自分の判断を記録','買い目配分','予算の範囲で、買い目と購入記録を整理します。'],results:['確定結果から振り返る','成績分析','購入・返還・払戻を区別し、実際の記録から検証します。'],research:['判断の根拠と検証','研究','取得できたデータと、予想の検証状況を確認します。'],settings:['自分に合った使い方','設定','資金と表示の設定は、このブラウザに保存されます。']};
   const defaults={dayBudget:0,raceBudget:0,lossLimit:0,maxBets:8,mode:'balanced',longshot:false,autoRefresh:true};
   let report=null,selectedId='',page='home',tab='overview',feedState='loading',feedMessage='',requestSerial=0,controller=null,toastTimer,storageAvailable=true;
-  let settings={...defaults},ledger=[],drafts=new Map();
+  let settings={...defaults},ledger=[],drafts=new Map(),savingPurchase=false,localStateHealthy=true;
+  const SETTINGS_KEY='raceai.settings.v1',LEDGER_KEY='raceai.ledger.v1',STATE_LOCK='raceai.local-state.v1';
   const yen=n=>Number(n).toLocaleString('ja-JP')+'円';
   const node=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;};
   const button=(label,cls,action)=>{const b=node('button',cls,label);b.type='button';b.addEventListener('click',action);return b;};
@@ -20,23 +21,35 @@
   function setMessage(id,message,error=false){$(id).textContent=message;$(id).classList.toggle('error',error);}
   function toast(message,error=false){clearTimeout(toastTimer);$('toast').textContent=message;$('toast').classList.toggle('error',error);$('toast').hidden=false;toastTimer=setTimeout(()=>$('toast').hidden=true,4500);}
   function persist(key,value){try{localStorage.setItem(key,JSON.stringify(value));return true;}catch{storageAvailable=false;toast('端末への保存ができません。ブラウザの保存設定を確認してください。',true);return false;}}
+  function readLocalState(){
+    const raw=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'null'),next={...defaults};
+    if(raw!==null){
+      if(typeof raw!=='object'||Array.isArray(raw))throw new Error('保存済みの設定を確認できません。');
+      for(const key of ['dayBudget','raceBudget','lossLimit']){if(!Number.isSafeInteger(raw[key])||raw[key]<0||raw[key]>10000000||raw[key]%100)throw new Error('保存済みの予算設定が不正です。');next[key]=raw[key];}
+      if(![8,16,24,32].includes(raw.maxBets)||!['hit','balanced','return'].includes(raw.mode))throw new Error('保存済みの表示設定が不正です。');
+      next.maxBets=raw.maxBets;next.mode=raw.mode;
+      for(const key of ['longshot','autoRefresh']){if(typeof raw[key]!=='boolean')throw new Error('保存済みの表示設定が不正です。');next[key]=raw[key];}
+    }
+    const saved=JSON.parse(localStorage.getItem(LEDGER_KEY)||'[]');
+    if(!Array.isArray(saved))throw new Error('保存済みの購入記録を確認できません。');
+    // This UI has no official-result verification channel. Persist manual records only.
+    const records=saved.map(({id,race_id,purchased_at,bets})=>({id,race_id,purchased_at,bets}));summary(records);
+    return {settings:next,ledger:records.map(r=>({...r,purchase_day:UI.dayJst(new Date(r.purchased_at)),source:'manual'}))};
+  }
+  function applyLocalState(state){settings=state.settings;ledger=state.ledger;localStateHealthy=true;}
   function restore(){
-    try{
-      const raw=JSON.parse(localStorage.getItem('raceai.settings.v1')||'null');
-      if(raw&&typeof raw==='object'){
-        for(const key of ['dayBudget','raceBudget','lossLimit'])if(Number.isSafeInteger(raw[key])&&raw[key]>=0&&raw[key]<=10000000&&raw[key]%100===0)settings[key]=raw[key];
-        if([8,16,24,32].includes(raw.maxBets))settings.maxBets=raw.maxBets;
-        if(['hit','balanced','return'].includes(raw.mode))settings.mode=raw.mode;
-        for(const key of ['longshot','autoRefresh'])if(typeof raw[key]==='boolean')settings[key]=raw[key];
-      }
-      const saved=JSON.parse(localStorage.getItem('raceai.ledger.v1')||'[]');
-      if(Array.isArray(saved)){
-        // This UI has no official-result verification channel. Persist manual records only.
-        const records=saved.map(({id,race_id,purchased_at,bets})=>({id,race_id,purchased_at,bets}));
-        summary(records);
-        ledger=records.map(r=>({...r,purchase_day:UI.dayJst(new Date(r.purchased_at)),source:'manual'}));
-      }
-    }catch{storageAvailable=false;ledger=[];}
+    try{applyLocalState(readLocalState());}catch{storageAvailable=false;localStateHealthy=false;}
+  }
+  async function editLocalState(action,requiresLock=false){
+    const execute=()=>{let state;try{state=readLocalState();}catch{localStateHealthy=false;throw new Error('保存済みデータを確認できないため、上書きを停止しました。');}applyLocalState(state);return action(state);};
+    if(navigator.locks?.request)return navigator.locks.request(STATE_LOCK,{mode:'exclusive'},execute);
+    if(requiresLock)throw new Error('このブラウザでは購入記録を安全に保存できません。対応する新しいブラウザで開いてください。');
+    return execute();
+  }
+  function refreshLocalViews(){syncSettings();renderMoney();renderDraft();}
+  async function updatePreferences(patch){
+    try{await editLocalState(()=>{const next={...settings,...patch};if(!persist(SETTINGS_KEY,next))throw new Error('表示設定を保存できませんでした。');settings=next;});refreshLocalViews();}
+    catch(error){toast(error.message,true);}
   }
   function showPage(next,updateHash=true){
     page=UI.pages.includes(next)?next:'home';pickSport('boat');
@@ -125,14 +138,17 @@
     const s=summary(todayLedger()),remaining=Math.max(0,settings.dayBudget-s.total_stake_yen);
     $('metric-budget').textContent=settings.dayBudget?yen(settings.dayBudget):'未設定';$('metric-spent').textContent=yen(s.total_stake_yen);$('metric-remaining').textContent=settings.dayBudget?yen(remaining):'未設定';$('metric-purchases').textContent='記録 '+s.purchase_count+'レース';$('metric-roi').textContent=s.actual_roi_percent===null?'―':s.actual_roi_percent+'%';$('metric-hits').textContent='― / '+s.settled_count;
     $('sidebar-budget').textContent=settings.dayBudget?yen(remaining):'未設定';$('sidebar-spent').textContent=yen(s.total_stake_yen);$('sidebar-remaining').textContent=settings.dayBudget?yen(remaining):'未設定';$('nav-pick-count').textContent=String(ledger.length);
+    const budgetUsed=settings.dayBudget?Math.min(100,s.total_stake_yen/settings.dayBudget*100):0;$('budget-meter').setAttribute('stroke-dasharray',budgetUsed.toFixed(2)+' 100');
     $('result-record-count').textContent=ledger.length+'件';renderHistory('purchase-history',todayLedger());renderHistory('results-history',ledger);
   }
   function renderHistory(id,records){
     const container=$(id);if(!records.length){container.replaceChildren(empty('購入記録はまだありません','レースを選び、自分の買い目を記録すると、ここに表示します。'));return;}
     container.replaceChildren(...records.slice().reverse().map(record=>{const n=node('article','ledger-record'),header=node('div','ledger-record-header'),list=node('div','ledger-record-list'),code=record.race_id.slice(9,11);header.append(node('strong','',UI.venueNames[Number(code)-1]+' '+Number(record.race_id.slice(-2))+'R'),node('small','',record.purchase_day+' · 手動記録'));for(const bet of record.bets){const item=node('span');item.append(combination(bet.combination),node('b','',yen(bet.stake_yen)));list.append(item);}n.append(header,list,node('p','','公式結果の照合待ち · 成績集計には含めていません。'));return n;}));
   }
-  function purchaseGate(){
-    const race=current();if(!race)return {allowed:false,reason:'全レースから記録するレースを選んでください。'};
+  function purchaseGate(raceId=selectedId){
+    const race=all().find(r=>r.race_id===raceId);if(!race)return {allowed:false,reason:'全レースから記録するレースを選んでください。'};
+    if(!navigator.locks?.request)return {allowed:false,reason:'このブラウザでは購入記録を安全に保存できません。対応する新しいブラウザで開いてください。'};
+    if(!localStateHealthy)return {allowed:false,reason:'保存済みデータを確認できないため、新しい購入記録の保存を停止しています。'};
     if(report.date_jst!==today())return {allowed:false,reason:'当日のレース以外は、新規記録を停止しています。'};
     if(report.redistribution_authorized!==true)return {allowed:false,reason:'配信許可を確認できない検証データでは、購入記録を保存できません。'};
     if(!settings.dayBudget||!settings.raceBudget||!settings.lossLimit)return {allowed:false,reason:'設定で1日・1レース予算と損失上限を保存してください。'};
@@ -142,7 +158,7 @@
     const rows=draft(),gate=purchaseGate();$('pick-race-title').textContent=raceName(current());$('purchase-availability').textContent=gate.reason;$('add-bet').disabled=!gate.allowed;
     let checked;try{checked=Money.validate_purchase(rows,limits());const recorded=ledger.filter(r=>r.race_id===selectedId).flatMap(r=>r.bets);const cumulative=Money.validate_purchase([...recorded,...rows],limits());checked={...checked,remaining_budget_yen:cumulative.remaining_budget_yen};}catch(error){checked={total_stake_yen:rows.reduce((s,r)=>s+r.stake_yen,0),remaining_budget_yen:0,allocation_percent:[]};if(rows.length)setMessage('bet-message','設定上限を超えています。買い目を減らすか予算を確認してください。',true);}
     $('draft-bets').replaceChildren(...rows.map((bet,index)=>{const n=node('article','draft-bet');n.append(combination(bet.combination),node('strong','',yen(bet.stake_yen)),node('small','',checked.allocation_percent[index]?checked.allocation_percent[index]+'%':'―'),button('×','remove-bet',()=>{drafts.set(selectedId,rows.filter((_,i)=>i!==index));setMessage('bet-message','買い目を削除しました。');renderDraft();}));n.lastElementChild.setAttribute('aria-label',bet.combination.join('-')+'を削除');return n;}));
-    $('draft-total').textContent=yen(checked.total_stake_yen);$('draft-remaining').textContent=settings.raceBudget?yen(checked.remaining_budget_yen):'未設定';$('save-purchase').disabled=!gate.allowed||!rows.length||checked.total_stake_yen>settings.raceBudget;
+    $('draft-total').textContent=yen(checked.total_stake_yen);$('draft-remaining').textContent=settings.raceBudget?yen(checked.remaining_budget_yen):'未設定';$('save-purchase').disabled=savingPurchase||!gate.allowed||!rows.length||checked.total_stake_yen>settings.raceBudget;
   }
   function moneyError(error){
     const m=String(error.message);if(/duplicate/.test(m))return '同じ買い目が候補または購入記録にあります。重複は記録できません。';if(/distinct|combination/.test(m))return '1〜6の異なる艇番を選択してください。';if(/maximum number|cumulative race/.test(m))return '1レースの買い目点数または予算の上限を超えています。';if(/budget|limit/.test(m))return 'レース予算・1日予算・損失上限を超えるため記録できません。';if(/100-yen|stake/.test(m))return '金額は100円以上、100円単位の整数で入力してください。';return '入力内容を確認してください：'+m;
@@ -150,8 +166,15 @@
   function addBet(event){event.preventDefault();const gate=purchaseGate();if(!gate.allowed){setMessage('bet-message',gate.reason,true);return;}const row={race_id:selectedId,bet_type:'trifecta',combination:['bet-first','bet-second','bet-third'].map(id=>Number($(id).value)),stake_yen:Number($('bet-amount').value)};
     try{const checked=Money.validate_purchase([...draft(),row],limits());const testRecord={id:'check',race_id:selectedId,purchased_at:new Date().toISOString(),bets:checked.bets};Money.append_purchase(ledger,testRecord,limits());drafts.set(selectedId,checked.bets);setMessage('bet-message','未購入の買い目に追加しました。');renderDraft();}catch(error){setMessage('bet-message',moneyError(error),true);}
   }
-  function savePurchase(){const gate=purchaseGate();if(!gate.allowed){setMessage('bet-message',gate.reason,true);renderDraft();return;}if(!draft().length)return;
-    try{const next=Money.append_purchase(ledger,{id:crypto.randomUUID(),race_id:selectedId,purchased_at:new Date().toISOString(),bets:draft()},limits());if(!persist('raceai.ledger.v1',next)){setMessage('bet-message','保存に失敗しました。購入記録は追加していません。',true);return;}ledger=next;drafts.delete(selectedId);setMessage('bet-message','手動の購入記録を保存しました。投票は行っていません。');renderMoney();renderDraft();toast('購入記録をこの端末に保存しました。');}catch(error){setMessage('bet-message',moneyError(error),true);}
+  async function savePurchase(){if(savingPurchase)return;const gate=purchaseGate();if(!gate.allowed){setMessage('bet-message',gate.reason,true);renderDraft();return;}if(!draft().length)return;
+    const raceId=selectedId,bets=structuredClone(draft());savingPurchase=true;renderDraft();
+    try{await editLocalState(()=>{
+      const latestGate=purchaseGate(raceId);if(!latestGate.allowed)throw new Error(latestGate.reason);
+      const next=Money.append_purchase(ledger,{id:crypto.randomUUID(),race_id:raceId,purchased_at:new Date().toISOString(),bets},limits());
+      if(!persist(LEDGER_KEY,next))throw new Error('保存に失敗しました。購入記録は追加していません。');ledger=next;
+    },true);drafts.delete(raceId);setMessage('bet-message','手動の購入記録を保存しました。投票は行っていません。');toast('購入記録をこの端末に保存しました。');}
+    catch(error){setMessage('bet-message',error instanceof Money.MoneyError?moneyError(error):error.message,true);}
+    finally{savingPurchase=false;refreshLocalViews();}
   }
   function exportLedger(){const data=JSON.stringify({schema:'raceai.manual-ledger.v1',exported_at:new Date().toISOString(),records:ledger},null,2);const url=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=node('a');a.href=url;a.download='raceai-purchases-'+today()+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
   function renderResearch(){
@@ -159,7 +182,7 @@
     $('data-quality').replaceChildren(...fields.map(([label,key])=>{const count=boats.filter(b=>b[key]!=null&&b[key]!=='').length,n=node('article','quality-item'),track=node('div','quality-track');n.dataset.level=!count?'empty':count===boats.length?'complete':'partial';n.append(node('span','',label),node('strong','',report?count+' / '+boats.length:'未取得'),node('small','',report?'取得艇数 / 収録艇数':'出走表の到着待ち'));track.append(node('i'));n.append(track);return n;}));
   }
   function renderSource(manual=false){
-    $('source-state').textContent=report?(manual?'手動JSON・原本未独立検証':'配信許可フラグあり・原本未独立検証'):'データ未取得';$('source-date').textContent=report?.date_jst||'未取得';$('source-time').textContent=report?.first_observed_at?new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(report.first_observed_at))+' JST':'未取得';$('source-origin').replaceChildren();
+    $('source-state').textContent=report?(manual?'検証用ファイル':report.test_data?'合成テストデータ':/^(www1\.mbrace\.or\.jp|www\.boatrace\.jp|www\.boatrace-tokuyama\.jp)$/.test(new URL(report.source_url).hostname)?'公式番組表・開催一覧':'出走データを取得済み'):'データ未取得';$('source-date').textContent=report?.date_jst||'未取得';$('source-time').textContent=report?.first_observed_at?new Intl.DateTimeFormat('ja-JP',{timeZone:'Asia/Tokyo',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'}).format(new Date(report.first_observed_at))+' JST':'未取得';$('source-origin').replaceChildren();
     if(report){const a=node('a','',new URL(report.source_url).hostname);a.href=report.source_url;a.target='_blank';a.rel='noopener noreferrer';a.title=report.source_url;$('source-origin').append(a);}else $('source-origin').textContent='未取得';
   }
   function renderAll(){renderHome();renderRaces();renderDetail();renderMoney();renderDraft();renderResearch();}
@@ -180,17 +203,16 @@
     }catch(error){if(serial!==requestSerial)return;status('error',error.name==='AbortError'?'取得がタイムアウトしました。更新ボタンから再確認できます。':'自動取得を利用できません：'+error.message);clearReport();setMessage('file-message',feedMessage,true);}
     finally{clearTimeout(timeout);if(serial===requestSerial){$('refresh-feed').disabled=false;$('refresh-feed').classList.remove('loading');}}
   }
-  function saveSettings(event){event.preventDefault();try{
+  async function saveSettings(event){event.preventDefault();try{
     const next={...settings,dayBudget:Number($('setting-day-budget').value),raceBudget:Number($('setting-race-budget').value),lossLimit:Number($('setting-loss-limit').value),maxBets:Number($('setting-max-bets').value),mode:$('setting-mode').value,longshot:$('setting-longshot').checked,autoRefresh:$('setting-auto-refresh').checked};
     for(const key of ['dayBudget','raceBudget','lossLimit'])if(!Number.isSafeInteger(next[key])||next[key]<0||next[key]>10000000||next[key]%100)throw new Error('予算と損失上限は0〜10,000,000円の100円単位で入力してください。');
     if(next.raceBudget>next.dayBudget||next.lossLimit>next.dayBudget)throw new Error('1レース予算と損失上限は、1日予算以下に設定してください。');
-    if(summary(todayLedger()).total_stake_yen>next.dayBudget)throw new Error('1日予算は、本日の記録済み購入額以上に設定してください。');
     Money.validate_purchase([],{budget_yen:next.raceBudget,day_budget_yen:next.dayBudget,loss_limit_yen:next.lossLimit,max_bets:next.maxBets});
-    if(!persist('raceai.settings.v1',next))throw new Error('ブラウザに設定を保存できませんでした。');settings=next;syncSettings();renderMoney();renderDraft();setMessage('settings-message','設定をこのブラウザに保存しました。');toast('設定を保存しました。');
+    await editLocalState(()=>{if(summary(todayLedger()).total_stake_yen>next.dayBudget)throw new Error('1日予算は、本日の記録済み購入額以上に設定してください。');if(!persist(SETTINGS_KEY,next))throw new Error('ブラウザに設定を保存できませんでした。');settings=next;});refreshLocalViews();setMessage('settings-message','設定をこのブラウザに保存しました。');toast('設定を保存しました。');
   }catch(error){setMessage('settings-message',error.message,true);}}
   document.querySelectorAll('[data-page],[data-goto]').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page||b.dataset.goto)));
   document.querySelectorAll('[data-sport]').forEach(b=>b.addEventListener('click',()=>pickSport(b.dataset.sport)));$('return-boat').addEventListener('click',()=>pickSport('boat'));
-  document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{settings.mode=b.dataset.mode;persist('raceai.settings.v1',settings);syncSettings();toast('表示設定を変更しました。AI予想は検証中です。');}));$('longshot-home').addEventListener('change',()=>{settings.longshot=$('longshot-home').checked;persist('raceai.settings.v1',settings);syncSettings();});
+  document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>updatePreferences({mode:b.dataset.mode})));$('longshot-home').addEventListener('change',()=>updatePreferences({longshot:$('longshot-home').checked}));
   document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{tab=b.dataset.tab;renderDetailTab();}));$('detail-to-picks').addEventListener('click',()=>showPage('picks'));
   $('global-search').addEventListener('input',()=>{showPage('races');renderRaces();});for(const id of ['venue-select','race-number-filter','race-sort'])$(id).addEventListener('change',renderRaces);$('race-select').addEventListener('change',()=>{selectRace($('race-select').value);showPage('detail');});
   $('clear-filters').addEventListener('click',()=>{$('global-search').value='';$('venue-select').value='';$('race-number-filter').value='';$('race-sort').value='venue';renderRaces();});
@@ -201,6 +223,7 @@
   $('notifications').addEventListener('click',()=>toast($('feed-status-title').textContent+'。'+feedMessage));$('open-debug-import').addEventListener('click',()=>$('debug-import').hidden=false);
   $('race-file').addEventListener('change',async event=>{const file=event.target.files?.[0];if(!file)return;requestSerial++;controller?.abort();try{if(file.size>6_000_000)throw new Error('6MBを超えるファイルは読み取れません。');if(!/\.json$/i.test(file.name))throw new Error('JSONファイルを選択してください。');const content=await file.text();const data=UI.validateReport(JSON.parse(content));if(data.date_jst!==today())throw new Error('対象日が本日ではありません。過去データを当日として表示できません。');$('race-date').value=data.date_jst;status('manual','端末内の検証データです。原本の独立検証・配信許可の証明とは区別します。');showReport(data,true);setMessage('file-message','端末内で読み込みました。サーバーへ送信していません。');}catch(error){status('error','検証用JSONの読み込みを停止しました：'+error.message);clearReport();setMessage('file-message',error.message,true);}finally{$('refresh-feed').disabled=false;$('refresh-feed').classList.remove('loading');}});
   window.addEventListener('hashchange',()=>{const route=UI.parseRoute(location.hash);if(route.raceId)selectRace(route.raceId);showPage(route.page,false);});
+  window.addEventListener('storage',event=>{if(event.storageArea!==localStorage||![null,SETTINGS_KEY,LEDGER_KEY].includes(event.key))return;try{applyLocalState(readLocalState());refreshLocalViews();}catch{localStateHealthy=false;renderDraft();toast('別のタブの保存データを確認できないため、新規記録を停止しました。',true);}});
   let lastDay=today();function checkDay(){const day=today();if(day!==lastDay){lastDay=day;$('race-date').value=day;drafts.clear();clearReport();loadAuthorizedDayFeed();renderMoney();}else if(page==='picks')renderDraft();}
   setInterval(checkDay,30000);setInterval(()=>{if(settings.autoRefresh&&document.visibilityState==='visible'&&$('race-date').value===today())loadAuthorizedDayFeed();},180000);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){checkDay();if(settings.autoRefresh&&$('race-date').value===today())loadAuthorizedDayFeed();}});

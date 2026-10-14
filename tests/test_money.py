@@ -251,6 +251,13 @@ class MoneyTests(unittest.TestCase):
                             probability='0.8', odds='2') for lane in (1, 2)]
         self.assertEqual(self.money.validate_purchase(overlapping, dict(budget_yen=1000))['total_stake_yen'], 200)
 
+    def test_explicit_partial_market_evidence_cannot_settle_an_unverified_type(self):
+        official = result(verified_market_types=['exacta'])
+        with self.assertRaises(self.money.MoneyError):
+            self.money.settle_bets([bet()], official)
+        checked = self.money.settle_bets([bet()], result(verified_market_types=['trifecta']))
+        self.assertEqual(checked['net_profit_yen'], -100)
+
 
 if __name__ == '__main__':
     unittest.main()

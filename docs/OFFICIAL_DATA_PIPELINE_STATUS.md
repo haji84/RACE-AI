@@ -1,96 +1,119 @@
 # Official day-data pipeline evidence — 2026-10-15
 
-The implementation now connects the existing Tokuyama index collector to a
-separately scoped official common-site detail collector, the approved local
-day store, private Blob SDK upload/readback, and `/api/today`. No source rights
-were granted, no automatic source schedule was enabled, and no official day
-snapshot was published as part of this change.
+The data lane now produces an owner-approved actual current-day nationwide
+feed. The owner's factual-data attestation is recorded in
+[DATA_PERMISSION_CONFIRMATION.md](DATA_PERMISSION_CONFIRMATION.md). It is an
+operator attestation, not an independent legal audit; photograph and video
+rights remain separate.
 
-## Implemented behavior
+## Implementation
 
-- `official_racelist_adapter.py` parses supplied UTF-8 HTML without networking.
-  The schedule in the race content frame must establish the expected date and
-  venue for all twelve race links, identify the selected race, and agree with
-  the race tabs. The six entry bodies must agree on lane color/text,
-  registration text/profile links, unique racer/motor/boat identities, and
-  closing time. Malformed tables, stale/swapped identities, absent entries,
-  conflicting links and duplicate allocations fail closed. Known missing
-  statistics remain null. Explicit current-row withdrawal markers are retained.
-- `official_racelist_worker.py` allows one bounded GET only after a reviewed
-  `facts_ingest` record matches the exact dated race URL or the fixed venue
-  scope `https://www.boatrace.jp/owpc/pc/race/racelist?jcd=18`. Tokuyama index
-  permission does not authorize this separate source. The limit is 1 MB,
-  timeout is 10 seconds, redirects are rejected, and capture occurs after GET.
-- `collect_tokuyama_day` can optionally collect twelve details. It retains all
-  thirteen source URLs, body hashes and actual capture times. It uses the
-  existing name/race/lane join and retains closing times, boat numbers and
-  available statistics. Candidates always have
-  `redistribution_authorized: false` until the publisher validates approval.
-- Multi-source publication requires the primary approval and an explicit
-  matching entry in `source_approvals` for every additional source URL. An
-  index approval cannot authorize common-site details. No approval switches or
-  fabricated production records were added.
-- `tokuyama_feed_pipeline.py` defaults to a no-network/no-write dry-run. Its
-  explicit `--execute` path collects, validates and atomically stages approved
-  data. `--upload-blob` additionally uses the existing private SDK roundtrip
-  verifier and exact `race-ai/day/YYYY-MM-DD.json` key. Rights and approval
-  files must be supplied by the operator; unavailable or unapproved data stops.
-- `/api/today` uses `BlobClient.get(pathname, access="private", timeout=8,
-  use_cache=False)`. The pinned PyPI `vercel==0.11.6` implementation returns
-  `GetBlobResult.content: bytes`; it does not return the stream shown in some
-  current web documentation. The API validates metadata, private origin,
-  exact key, content type, bounded decoded content and declared size, full
-  venue/race/lane identities, source hashes, publication flag and as-of times.
-  It rejects duplicate JSON keys, nonfinite numbers, invalid UTF-8 emission,
-  previous-day/future captures and JST-midnight crossings. Missing values are
-  retained. It needs `BLOB_READ_WRITE_TOKEN` and `RACE_AI_FEED_APPROVED=1`;
-  deployment OIDC alone is not a Blob read/write credential.
+- `official_racelist_adapter.py` parses supplied official HTML without network
+  activity. Date, venue and selected race must agree across the complete race
+  schedule and tabs within one content frame. Lane text/color, registration
+  text/profile links, unique racer/motor/boat allocations and closing time are
+  checked. Malformed tables, stale/swapped identities, absent entries and
+  conflicting links fail closed. Optional missing statistics remain null.
+- `official_racelist_worker.py` performs one bounded GET only after independent
+  source-scoped ingestion approval. Tokuyama index permission does not cover
+  common-site details. Responses are capped at 1 MB with a 10-second timeout;
+  redirects are rejected and capture occurs after the response.
+- The existing Tokuyama worker optionally joins twelve official details through
+  the existing race/lane/name join. It retains all thirteen source URL/hash/time
+  records. Candidates remain unpublished until publisher approval. Its operator
+  CLI defaults to a no-network/no-write dry-run.
+- `official_day_schedule.py` verifies the current nationwide index's date title,
+  full-year refresh URL, complete table/header/notes and each row's venue image,
+  dated meeting and dated entry links. Only the verified complete day listing
+  establishes non-listed venues as `NO_EVENT`. An empty page, truncated table
+  or failed request cannot establish no event.
+- `official_b_snapshot_adapter.py` reuses the existing registration/lane parser
+  and offers strict program detail mode. It independently verifies Japanese
+  full-year date headers, race headings, closing times and six distinct racer,
+  motor and boat identities. Names, grade and available national/local/motor/
+  boat statistics come from the program. B does not supply average ST or
+  exhibition measurements; those fields remain null.
+- `national_day_pipeline.py` checks the recorded operator review and performs
+  exactly one current official index GET plus one current B archive GET. It
+  extracts B safely in memory and reconciles venue codes with the schedule.
+  Source HTML/archive/text is not saved. B failure preserves the verified
+  schedule, marks active venues `ERROR`, and retains separate `NO_EVENT`
+  states. Healthy, partial, missing and error states are independent.
+- Multi-source publication requires a matching approval for every observed URL.
+  The operator review can supply those records only for its recorded factual
+  purposes and source scopes. Neither CLI adds a permission-granting flag.
+- `/api/today` uses the pinned `vercel==0.11.6` `BlobClient.get` with private
+  access, exact date key, eight-second timeout and cache bypass. The actual
+  package returns `GetBlobResult.content: bytes`, not a stream. The reader
+  validates private origin, exact key, JSON content type, byte/declared size,
+  complete venue/race/lane identities and as-of times. It rejects duplicate JSON
+  keys, nonfinite numbers, invalid UTF-8 emission, stale/future captures and JST
+  midnight crossings. Empty venues require an explicit availability state and
+  schedule source URL/hash/capture matching a unique top-level source record.
+  Race program references receive the same association check. The complete
+  active venue set must agree with the twenty-four venue states.
 
-The SDK buffers the HTTP body before returning `.content`; the API's 6 MB
-check bounds accepted/served content, not SDK network buffering. HTTP content
-length may describe compressed bytes, so it and decoded bytes are bounded
-independently. Permission for source publication and the feed environment gate
-must remain unset until independently established.
+The API requires `BLOB_READ_WRITE_TOKEN` and `RACE_AI_FEED_APPROVED=1`; deployment
+OIDC alone is not a Blob credential. The SDK buffers the HTTP body before
+returning content, so the API's 6 MB cap bounds accepted/served content rather
+than SDK network buffering. Compressed HTTP content length and decoded content
+are bounded separately because equality is not guaranteed.
 
-## Verification evidence
+## Actual current-day verification
 
-58 targeted Python tests pass using `.venv/Scripts/python.exe -X utf8`, covering
-the parser, scoped collector, index/detail bridge, publisher, pipeline and API.
-Tests were written before each new implementation; missing modules/interfaces
-and rejection gaps were observed failing before repairs.
+The explicit two-request CLI completed on 2026-10-15 at approximately 03:17 JST.
+The approved output passed the same `api.today.validate_feed` used by the API.
+It contains 13 `READY` venues, 11 `NO_EVENT` venues, 156 complete races and 936
+boats. Index and B active codes agree exactly:
+`02,04,06,10,11,12,13,14,15,20,21,22,24`.
 
-The complete synthetic integration test performs thirteen injected source
-responses -> twelve races/seventy-two lanes -> reviewed test-only publication
-records -> atomic local JSON -> private SDK-shaped put/get/SHA -> `/api/today`.
-It checks exact pathname, private access, no random suffix, overwrite behavior,
-all source metadata and preservation of the twelve complete races. It is an
-offline contract test; it is not evidence of cloud traffic or actual races.
+The current-day index was captured at `2026-10-14T18:17:19.816293+00:00`, SHA-256
+`7ee7d1d5981f67040995407ae43055c3b5ea9e49458ca0f643d46ba199de8232`.
+The B archive was captured at `2026-10-14T18:17:29.157972+00:00`, archive SHA-256
+`d1943dbff930d78a76c1342858b20ff5fefcbaf51b3dae52b24ecc5e2747d5ef`,
+extracted text SHA-256
+`17044ffb0bb9a74852a59e31123e630efabc58186d8dad63d6bd38ef241f6998`.
+The approved payload SHA-256 was
+`5438656a8a2844ba2ab18c520759c38f90912ac5fb3af2c24cdc67c1d0d0c4a7`.
+Cloud publication/readback/API display are tracked by the root's separate live
+E2E evidence; these local collection facts do not claim those cloud operations.
 
-Full-suite snapshot during parallel UI work: 254 tests ran, 252 passed, one
-OpenCV-dependent test skipped and one existing mobile CSS assertion failed
-while the UI stylesheet was being replaced. The failure was reported to the
-UI implementation lane; a final shared-suite rerun is required after its write.
+Reproduction:
 
-## Bounded official-source observations
+```powershell
+.venv/Scripts/python.exe -X utf8 -m race_ai.national_day_pipeline --date 2026-10-15 --review config/operator-official-facts.json --output <protected-output-path> --execute
+```
 
-On 2026-10-15 JST the requested Tokuyama `20261015` common-site 1R URL returned
-HTTP 200, `text/html`, 13,995 bytes, with the explicit message
-`データがありません。` and no entry table. HTTP success does not establish
-race data or absence of an event; this body is rejected by the adapter.
+Omit `--execute` for a no-network/no-output dry-run. No upload or manual race
+input is required by this collection command.
 
-A historical `20261014` Tokuyama 1R response returned HTTP 200, UTF-8 HTML,
-69,928 bytes. Its SHA-256 was
-`25cff9efa4a024f83d3e346444ba87d31e2d5996f79ed50b84cdeb06cbf86e7e`.
-The observed structure contains six entry bodies and a closing time of 08:43.
-An offline structural parser audit used an explicitly test-only matching
-capture timestamp. Actual retrieval occurred on the following day, so this is
-not valid current-day provenance and was not staged or published. The source
-original was held only outside the repository temporarily and removed after
-the audit. No source original is committed.
+## Test evidence and limits
 
-Still unproved: an approved actual current-day twelve-race/seventy-two-boat
-Tokuyama collection, official B/K reconciliation for that same meeting, the
-motor allocation cycle, current exhibition/result collection, all twenty-four
-venues against actual pages, and real cloud publication/readback/API display.
-The generic common-site parser accepts the twenty-four venue codes; that is a
-structural capability, not a claim of twenty-four-venue live verification.
+72 targeted data-lane Python tests pass with `.venv/Scripts/python.exe -X utf8`.
+Each new parser, worker and pipeline interface was first observed failing its
+new tests, then implemented. Rejection regressions cover stale/duplicate/swapped
+identities, malformed tables, scopes, provenance, timestamps, missing values,
+no-event/error distinctions and SDK response semantics.
+
+A synthetic thirteen-source -> twelve-race/seventy-two-boat -> approved local
+store -> SDK-shaped private put/get/SHA -> API test passes. It is an offline
+contract test, distinct from actual collection and real cloud E2E.
+
+The last clean shared suite before integration ran 296 tests: 295 passed and
+one OpenCV-dependent test skipped. A later run coincided with temporary
+conflict markers in root-owned authentication files; the root was notified.
+Run the final shared suite after integration.
+
+A bounded Tokuyama 20261015 detail URL returned HTTP 200 with the explicit
+message データがありません。 and no entry table; it was rejected. The verified
+national schedule subsequently established that Tokuyama is not scheduled on
+this day. A historical 20261014 Tokuyama 1R body (69,928 bytes, SHA-256
+`25cff9efa4a024f83d3e346444ba87d31e2d5996f79ed50b84cdeb06cbf86e7e`)
+was used only for a structural parser audit with an explicitly test-only
+matching capture timestamp. Actual retrieval was on the next day, so it was
+never a current-day candidate or publication. Its original was removed.
+
+Still unproved: same-meeting B/K/result reconciliation, motor allocation cycle,
+current exhibition/result collection, and individual live detail validation at
+all twenty-four venues. The generic detail parser accepts twenty-four codes;
+that capability is not a claim of twenty-four-venue detail-page verification.

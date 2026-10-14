@@ -10,6 +10,7 @@ from datetime import date, datetime, timezone
 import hashlib
 import json
 from pathlib import Path
+import re
 import sys
 from urllib import request
 
@@ -43,7 +44,7 @@ def fetch_archive(url, *, max_bytes=MAX_ARCHIVE_BYTES, timeout=25):
     # the owner's source scope. This boundary never accepts arbitrary hosts.
     from urllib.parse import urlsplit
     u=urlsplit(url)
-    if (u.scheme != 'https' or u.netloc != 'www1.mbrace.or.jp' or not u.path.startswith('/od2/B/')
+    if (u.scheme != 'https' or u.netloc != 'www1.mbrace.or.jp' or not re.fullmatch(r'/od2/B/[0-9]{6}/b[0-9]{6}\.lzh',u.path)
             or u.query or u.fragment or max_bytes != MAX_ARCHIVE_BYTES or timeout != 25):
         raise SourceError('unexpected archive endpoint or fetch bounds')
     req=request.Request(url,headers={'User-Agent':'RACE-AI-authorized-national-worker/0.15','Accept':'application/octet-stream'})

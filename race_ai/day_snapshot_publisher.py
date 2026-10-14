@@ -147,6 +147,20 @@ def validate(payload: object, *, today: date, approval: dict, now: datetime | No
         raise ValueError("race count mismatch")
     if payload.get("complete_six_boat_races") not in (None, completed):
         raise ValueError("complete race count mismatch")
+    if payload.get('schedule_verified') is True:
+        for venue in venues:
+            no_event = venue.get('no_event')
+            expected_basis = ('NOT_LISTED_IN_COMPLETE_DAY_INDEX' if no_event is True
+                              else 'LISTED_IN_COMPLETE_DAY_INDEX')
+            if (type(no_event) is not bool or venue.get('schedule_verified') is not True
+                    or venue.get('schedule_basis') != expected_basis):
+                raise ValueError('complete schedule venue proof incomplete')
+            source_reference(venue, 'schedule', payload, today, now)
+        active = payload.get('active_venues')
+        if (not isinstance(active,list) or any(not isinstance(code,str) for code in active)
+                or len(active)!=len(set(active)) or len(venues) not in (0,24)
+                or set(active)!={venue['venue'] for venue in venues if venue.get('no_event') is False}):
+            raise ValueError('complete schedule active venue set conflicts')
     return {**payload, "races": count, "complete_six_boat_races": completed,
             "redistribution_authorized": True}
 

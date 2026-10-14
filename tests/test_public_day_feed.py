@@ -1,5 +1,5 @@
 """Offline schema/rights/identity test fixtures. No network required."""
-from datetime import date
+from datetime import date, datetime
 from pathlib import Path
 import hashlib
 import json
@@ -92,7 +92,8 @@ class ProviderSchemaTests(unittest.TestCase):
 
     def test_no_result_leakage_before_observation_time(self):
         result=convert(make_provider(result=True))
-        self.assertEqual(result["first_observed_at"],"2026-10-14T05:55:00+00:00")
+        self.assertEqual(datetime.fromisoformat(result["first_observed_at"]),
+                         datetime.fromisoformat(OBSERVED.replace("Z", "+00:00")))
         self.assertIsNone(result["upstream_published_at"])
         self.assertNotIn("official_available_at"," ".join(result))
 

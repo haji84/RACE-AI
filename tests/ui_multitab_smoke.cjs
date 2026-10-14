@@ -1,0 +1,31 @@
+/** Same-origin two-tab persistence tests. No real races or user browser profile. */
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http');
+const {createRequire}=require('node:module');
+const packages=process.env.RACE_AI_NODE_MODULES||'C:/Users/qq113/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules';
+const {chromium}=createRequire(path.join(packages,'package.json'))('playwright');
+const root=path.resolve(__dirname,'../web');
+const day=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+const fixture=()=>({date_jst:day(),first_observed_at:new Date().toISOString(),source_url:'https://example.org/synthetic',source_sha256:'a'.repeat(64),redistribution_authorized:true,test_data:'SYNTHETIC_ONLY_NOT_REAL_RACES',venues:[{venue:'18',races:[{race_id:day().replaceAll('-','')+'-18-01',closed_at:day()+'T23:59:00+09:00',boats:Array.from({length:6},(_,i)=>({lane:i+1,racer_registration_id:String(4001+i),name:'合成検証 '+(i+1),motor_no:i+1}))}]}]});
+const server=http.createServer((req,res)=>{if(req.url==='/api/today'){res.setHeader('content-type','application/json');res.end(JSON.stringify(fixture()));return;}const name=req.url.split('?')[0]==='/'?'index.html':req.url.split('?')[0].slice(1);if(!['index.html','style.css','app.js','ui-core.js','money.js'].includes(name)){res.statusCode=404;res.end();return;}res.setHeader('content-type',name.endsWith('.js')?'application/javascript':name.endsWith('.css')?'text/css':'text/html');res.end(fs.readFileSync(path.join(root,name)));});
+(async()=>{await new Promise(r=>server.listen(0,'127.0.0.1',r));const browser=await chromium.launch({headless:true,channel:process.env.RACE_AI_BROWSER_CHANNEL||'msedge'});try{
+ const base='http://127.0.0.1:'+server.address().port;
+ async function open(context){const p=await context.newPage();await p.goto(base);await p.waitForFunction(()=>document.querySelector('#feed-banner').dataset.state==='ready');return p;}
+ async function configure(p,budget){await p.locator('.desktop-nav [data-page="settings"]').click();for(const id of ['setting-day-budget','setting-race-budget','setting-loss-limit'])await p.locator('#'+id).fill(String(budget));await p.locator('#settings-form button[type="submit"]').click();await p.waitForFunction(()=>document.querySelector('#settings-message').textContent.includes('保存'));}
+ async function prepare(p,third){await p.locator('.desktop-nav [data-page="picks"]').click();await p.locator('#bet-third').selectOption(String(third));await p.locator('#add-bet').click();assert.equal(await p.locator('.draft-bet').count(),1);}
+ // Both tabs deliberately prepare from the same initial balance. Two valid writes must survive.
+ const context=await browser.newContext({viewport:{width:1440,height:900}}),a=await open(context);await configure(a,200);const b=await open(context);await prepare(a,3);await prepare(b,4);await Promise.all([a.locator('#save-purchase').click(),b.locator('#save-purchase').click()]);
+ await a.waitForFunction(()=>document.querySelector('#bet-message').textContent.includes('保存'));
+ await b.waitForFunction(()=>document.querySelector('#bet-message').textContent.includes('保存'));
+ let stored=await a.evaluate(()=>JSON.parse(localStorage.getItem('raceai.ledger.v1')));assert.equal(stored.length,2,'concurrent tabs must preserve both accepted records');assert.deepEqual(stored.flatMap(r=>r.bets.map(x=>x.combination.join('-'))).sort(),['1-2-3','1-2-4']);
+ await a.waitForFunction(()=>document.querySelector('#metric-spent').textContent==='200円');await b.waitForFunction(()=>document.querySelector('#metric-spent').textContent==='200円');
+ // A settings form cannot reduce the budget below another tab's recorded purchases.
+ await b.locator('.desktop-nav [data-page="settings"]').click();for(const id of ['setting-day-budget','setting-race-budget','setting-loss-limit'])await b.locator('#'+id).fill('100');await b.locator('#settings-form button[type="submit"]').click();await b.waitForFunction(()=>document.querySelector('#settings-message').classList.contains('error'));assert.equal(await b.evaluate(()=>JSON.parse(localStorage.getItem('raceai.settings.v1')).dayBudget),200);
+ await context.close();
+ // With only one unit left, exactly one of two queued purchases may succeed.
+ const tight=await browser.newContext({viewport:{width:1440,height:900}}),c=await open(tight);await configure(c,100);const d=await open(tight);await prepare(c,3);await prepare(d,4);await Promise.all([c.locator('#save-purchase').click(),d.locator('#save-purchase').click()]);
+ await Promise.all([c.waitForFunction(()=>/保存|予算|上限/.test(document.querySelector('#bet-message').textContent)),d.waitForFunction(()=>/保存|予算|上限/.test(document.querySelector('#bet-message').textContent))]);
+ const messages=await Promise.all([c.locator('#bet-message').innerText(),d.locator('#bet-message').innerText()]);assert.equal(messages.filter(m=>m.includes('手動の購入記録を保存')).length,1,'only one concurrent purchase is within the shared budget');stored=await c.evaluate(()=>JSON.parse(localStorage.getItem('raceai.ledger.v1')));assert.equal(stored.length,1);await c.waitForFunction(()=>document.querySelector('#metric-spent').textContent==='100円');await d.waitForFunction(()=>document.querySelector('#metric-spent').textContent==='100円');
+ // Browser without cross-tab locking must explicitly disable recording instead of claiming safe writes.
+ const unsupported=await tight.newPage();await unsupported.addInitScript(()=>Object.defineProperty(navigator,'locks',{value:undefined}));await unsupported.goto(base+'/#/picks');await unsupported.waitForFunction(()=>document.querySelector('#feed-banner').dataset.state==='ready');assert.equal(await unsupported.locator('#save-purchase').isDisabled(),true);assert.match(await unsupported.locator('#purchase-availability').innerText(),/ブラウザ/);await tight.close();
+ console.log('PASS: simultaneous accepted records retained; daily budget enforced across two tabs; settings cannot undercut shared purchases; storage events synchronize totals; unsupported locking fails closed.');
+ }finally{await browser.close();server.close();}})().catch(error=>{console.error(error);process.exitCode=1;});

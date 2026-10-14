@@ -36,6 +36,7 @@ CASES = [
     dict(name='decimal allocation rounding', op='validate_purchase', args=[[B, B2, dict(B, combination=[3, 1, 2])], L],
         want=dict(allocation_percent=['33.34', '33.33', '33.33'])),
     dict(name='all misses', op='settle_bets', args=[[B, B2], O], want=dict(net_profit_yen=-200, actual_roi_percent='0')),
+    dict(name='explicit verified market miss', op='settle_bets', args=[[B], dict(O, verified_market_types=['trifecta'])], want=dict(net_profit_yen=-100)),
     dict(name='official per100 payout', op='settle_bets', args=[[dict(B, stake_yen=200)], dict(O, payouts=[PAYOUT])],
         want=dict(payout_yen=3000, net_profit_yen=2800, actual_roi_percent='1500')),
     dict(name='four ticket result', op='settle_bets', args=[[
@@ -112,6 +113,7 @@ for name, op, args in [
     ('incoherent mutually exclusive probabilities', 'recommend_allocation', [[
         dict(B, probability='0.6', odds='15'), dict(B2, probability='0.6', odds='15')], L,
         dict(validated=True, data_complete=True)]),
+    ('partial market must not settle other type', 'settle_bets', [[B], dict(O, verified_market_types=['exacta'])]),
 ]:
     CASES.append(dict(name=name, op=op, args=args, error=True))
 

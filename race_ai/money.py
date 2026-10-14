@@ -195,6 +195,12 @@ def settle_bets(bets, official_result):
     race = _text(official_result.get('race_id'), 'race_id')
     if any(row['race_id'] != race for row in rows):
         raise MoneyError('result and purchase race mismatch')
+    if 'verified_market_types' in official_result:
+        markets = official_result['verified_market_types']
+        if (not isinstance(markets, list) or any(not isinstance(x, str) or x not in BET_TYPES for x in markets)
+                or len(set(markets)) != len(markets)
+                or any(row['bet_type'] not in markets for row in rows)):
+            raise MoneyError('purchased market has no complete verified official result')
     status = official_result.get('status')
     if status not in ('settled', 'dead_heat', 'special') + REFUND_STATUSES:
         raise MoneyError('result is not final')

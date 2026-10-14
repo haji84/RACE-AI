@@ -25,6 +25,7 @@
     if(options.automatic&&raw.date_jst!==options.today) throw new Error('対象日が本日ではありません。');
     if(options.automatic&&raw.redistribution_authorized!==true) throw new Error('再配信許可を確認できません。');
     if(!zoned(raw.first_observed_at)) throw new Error('初回確認時刻に時差情報がありません。');
+    if(dayJst(new Date(raw.first_observed_at))!==raw.date_jst)throw new Error('取得時刻と対象日が一致していません。');
     if(Date.parse(raw.first_observed_at)>(options.now??Date.now())+60000) throw new Error('取得時刻が未来です。');
     let source;try{source=new URL(raw.source_url);}catch{throw new Error('取得元の証拠情報が不足しています。');}
     if(source.protocol!=='https:'||source.username||source.password||!/^[a-f0-9]{64}$/.test(raw.source_sha256||'')) throw new Error('取得元の証拠情報が不足しています。');

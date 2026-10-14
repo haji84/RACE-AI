@@ -184,6 +184,20 @@ def validate_feed(data, *, day, now):
         raise ValueError('race count mismatch')
     if type(data.get('complete_six_boat_races')) is not int or data['complete_six_boat_races'] != completed:
         raise ValueError('complete race count mismatch')
+    if data.get('schedule_verified') is True:
+        for venue in venues:
+            no_event = venue.get('no_event')
+            expected_basis = ('NOT_LISTED_IN_COMPLETE_DAY_INDEX' if no_event is True
+                              else 'LISTED_IN_COMPLETE_DAY_INDEX')
+            if (type(no_event) is not bool or venue.get('schedule_verified') is not True
+                    or venue.get('schedule_basis') != expected_basis):
+                raise ValueError('complete schedule venue proof incomplete')
+            source_reference(venue, 'schedule', sources, day=day, now=now)
+        active = data.get('active_venues')
+        if (not isinstance(active,list) or any(not isinstance(code,str) for code in active)
+                or len(active)!=len(set(active)) or len(venues) not in (0,24)
+                or set(active)!={venue['venue'] for venue in venues if venue.get('no_event') is False}):
+            raise ValueError('complete schedule active venue set conflicts')
     return data
 
 

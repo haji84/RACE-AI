@@ -12,6 +12,9 @@
   "source_scopes": [
     "https://www.boatrace.jp/owpc/pc/race/index",
     "https://www.boatrace.jp/owpc/pc/race/racelist",
+    "https://www.boatrace.jp/owpc/pc/race/beforeinfo",
+    "https://www.boatrace.jp/owpc/pc/race/odds3t",
+    "https://www.boatrace.jp/owpc/pc/race/raceresult",
     "https://www1.mbrace.or.jp/od2/B/",
     "https://www1.mbrace.or.jp/od2/K/",
     "https://www.boatrace-tokuyama.jp/modules/raceinfo/"

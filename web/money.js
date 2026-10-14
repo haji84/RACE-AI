@@ -144,6 +144,13 @@
     if (!object(official) || official.confirmed !== true) throw new MoneyError('confirmed complete official result required');
     const race_id = text(official.race_id, 'race_id'), status = official.status;
     if (rows.some(row => row.race_id !== race_id)) throw new MoneyError('result and purchase race mismatch');
+    if (own(official, 'verified_market_types')) {
+      const markets = official.verified_market_types;
+      if (!Array.isArray(markets) || markets.some(x => typeof x !== 'string' || !own(TYPES, x))
+          || new Set(markets).size !== markets.length || rows.some(row => !markets.includes(row.bet_type))) {
+        throw new MoneyError('purchased market has no complete verified official result');
+      }
+    }
     if (!['settled', 'dead_heat', 'special', ...REFUNDS].includes(status)) throw new MoneyError('result is not final');
     const payouts = official.payouts, refundRows = own(official, 'refunds') ? official.refunds : [],
       specials = own(official, 'special_payouts') ? official.special_payouts : [];

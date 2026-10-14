@@ -6,6 +6,7 @@ test('rejects stale or unapproved automatic data rather than displaying it as to
   assert.equal(UI.validateReport(snapshot(),{today:'2026-10-15',automatic:true,now:Date.parse('2026-10-15T08:00:00+09:00')}).races,1);
   assert.throws(()=>UI.validateReport({...snapshot(),date_jst:'2026-10-14'},{today:'2026-10-15',automatic:true}),/対象日/);
   assert.throws(()=>UI.validateReport({...snapshot(),redistribution_authorized:false},{today:'2026-10-15',automatic:true}),/配信/);
+  assert.throws(()=>UI.validateReport({...snapshot(),first_observed_at:'2026-10-14T23:59:00+09:00'},{today:'2026-10-15',automatic:true}),/取得時刻/);
 });
 test('rejects duplicate boat identities and race/day identity mismatches',()=>{
   const data=snapshot();data.venues[0].races[0].boats.push({...data.venues[0].races[0].boats[0]});
