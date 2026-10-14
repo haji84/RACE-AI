@@ -43,7 +43,7 @@ jobs:
       - name: Checkout reviewed current-day collector
         uses: actions/checkout@v4
         with:
-          ref: 72b12d750882f343feaf4d74816b6cd5a5fb7083
+          ref: 27af41b3745f35a1cfe60c9a4ceafc303742e1e2
           path: day-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -58,6 +58,6 @@ jobs:
           python -m race_ai.national_day_pipeline --date "$DAY" --review config/operator-official-facts.json --output "$RUNNER_TEMP/race-ai-day.json" --execute
       - name: Publish private current-day version and verify today API SHA
         env:
-          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-o7f54ik64-qq1130034-1738.vercel.app/api/publish-day
-          RACE_AI_DAY_COMMIT_SHA: 72b12d750882f343feaf4d74816b6cd5a5fb7083
+          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-6dblviil1-qq1130034-1738.vercel.app/api/publish-day
+          RACE_AI_DAY_COMMIT_SHA: 27af41b3745f35a1cfe60c9a4ceafc303742e1e2
         run: python day-source/scripts/publish_day_feed.py --feed "$RUNNER_TEMP/race-ai-day.json"

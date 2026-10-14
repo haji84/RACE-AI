@@ -1,0 +1,66 @@
+{
+  "kind": "reviewed_preview_refinement_live",
+  "application_commit": "27af41b3745f35a1cfe60c9a4ceafc303742e1e2",
+  "deployment_id": "dpl_BW45CDYDqLipaGKFCDEGAoRJ5Vrn",
+  "url": "https://race-ai-preview-6dblviil1-qq1130034-1738.vercel.app",
+  "workflow_commit": "d36d6cf42cd6b1cd9f90681d5d546ad59d1fd9fd",
+  "workflow_run_id": 38617313415,
+  "workflow_job_id": 116035610649,
+  "result": "OFFICIAL_DAY_API_VERIFIED",
+  "date_jst": "2026-10-15",
+  "venue_states": 24,
+  "active_venues": 13,
+  "races": 156,
+  "boats": 936,
+  "payload_sha256": "557093a0d18cdfd1f34b32257bfe0e15c33a374b32eaf9a7c42f7761ab039cf8",
+  "ci_run_id": 38617110476,
+  "ci": {
+    "windows": {
+      "job_id": 116034916968,
+      "conclusion": "success",
+      "tests": 315,
+      "skipped": 1
+    },
+    "ubuntu": {
+      "job_id": 116034917158,
+      "conclusion": "success",
+      "tests": 315,
+      "skipped": 1
+    },
+    "javascript_unit_tests": {
+      "tests": 8,
+      "passed": 8
+    }
+  },
+  "health": {
+    "http_status": 200,
+    "ready": true,
+    "venue_states": 24,
+    "active_venues": 13,
+    "races": 156
+  },
+  "browser": {
+    "actual_data": true,
+    "desktop": "1440x1000",
+    "mobile": "390x844",
+    "mobile_scroll_width": 375,
+    "verified": [
+      "24venue availability controls",
+      "戸田12R venue/race filter",
+      "Six registration/motor rows in race detail",
+      "Automatic same-origin feed",
+      "Natural Japanese source labels"
+    ],
+    "screenshots": [
+      "desktop-cloud-home-reviewed.jpg",
+      "mobile-cloud-home-reviewed.jpg",
+      "desktop-cloud-detail.jpg"
+    ]
+  },
+  "production_changed": false,
+  "limits": [
+    "Physical iPhone Safari not tested",
+    "Forecast accuracy not established",
+    "This evidence covers the listed exact commit, not future commits"
+  ]
+}

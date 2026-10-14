@@ -93,6 +93,9 @@ class OfficialRaceListTests(unittest.TestCase):
         self.assertIsNone(data['boats'][0]['average_st'])
         self.assertIsNone(data['boats'][0]['national_win_rate'])
 
+    def test_upcoming_race_header_color_does_not_look_like_selected_race(self):
+        self.assertEqual(self.parse(fixture().replace('is-thColor2','is-thColor3'))['race_id'],'20261015-18-01')
+
     def test_capture_requires_timezone_and_matching_jst_date(self):
         for timestamp in ('2026-10-15T07:00:00', '2026-10-14T07:00:00+09:00', 'invalid'):
             with self.subTest(timestamp=timestamp), self.assertRaises(SourceError):

@@ -1,7 +1,7 @@
 {
   "kind": "synthetic_money_calculation_contract",
-  "observed_at": "2026-10-14T18:17:59.476955+00:00",
-  "case_count": 66,
+  "observed_at": "2026-10-14T18:45:43.371182+00:00",
+  "case_count": 68,
   "all_passed": true,
   "limits": "Synthetic only; no real predictions, source completeness, or purchases.",
   "cases": [
@@ -885,6 +885,95 @@
               "combination": [
                 2,
                 1,
+                3
+              ],
+              "stake_yen": 100,
+              "refund_yen": 0,
+              "effective_stake_yen": 100,
+              "payout_yen": 0,
+              "net_profit_yen": -100
+            }
+          ]
+        }
+      },
+      "passed": true
+    },
+    {
+      "name": "explicit verified market miss",
+      "operation": "settle_bets",
+      "inputs": [
+        [
+          {
+            "race_id": "20261015-18-01",
+            "bet_type": "trifecta",
+            "combination": [
+              1,
+              2,
+              3
+            ],
+            "stake_yen": 100
+          }
+        ],
+        {
+          "race_id": "20261015-18-01",
+          "status": "settled",
+          "confirmed": true,
+          "payouts": [],
+          "verified_market_types": [
+            "trifecta"
+          ]
+        }
+      ],
+      "expected_literal": {
+        "net_profit_yen": -100
+      },
+      "python": {
+        "value": {
+          "race_id": "20261015-18-01",
+          "status": "settled",
+          "total_stake_yen": 100,
+          "refund_yen": 0,
+          "effective_stake_yen": 100,
+          "payout_yen": 0,
+          "cash_return_yen": 0,
+          "net_profit_yen": -100,
+          "actual_roi_percent": "0",
+          "rows": [
+            {
+              "race_id": "20261015-18-01",
+              "bet_type": "trifecta",
+              "combination": [
+                1,
+                2,
+                3
+              ],
+              "stake_yen": 100,
+              "refund_yen": 0,
+              "effective_stake_yen": 100,
+              "payout_yen": 0,
+              "net_profit_yen": -100
+            }
+          ]
+        }
+      },
+      "browser_node": {
+        "value": {
+          "race_id": "20261015-18-01",
+          "status": "settled",
+          "total_stake_yen": 100,
+          "refund_yen": 0,
+          "effective_stake_yen": 100,
+          "payout_yen": 0,
+          "cash_return_yen": 0,
+          "net_profit_yen": -100,
+          "actual_roi_percent": "0",
+          "rows": [
+            {
+              "race_id": "20261015-18-01",
+              "bet_type": "trifecta",
+              "combination": [
+                1,
+                2,
                 3
               ],
               "stake_yen": 100,
@@ -3644,6 +3733,43 @@
         {
           "validated": true,
           "data_complete": true
+        }
+      ],
+      "expected_literal": {
+        "error": true
+      },
+      "python": {
+        "error": true
+      },
+      "browser_node": {
+        "error": true
+      },
+      "passed": true
+    },
+    {
+      "name": "partial market must not settle other type",
+      "operation": "settle_bets",
+      "inputs": [
+        [
+          {
+            "race_id": "20261015-18-01",
+            "bet_type": "trifecta",
+            "combination": [
+              1,
+              2,
+              3
+            ],
+            "stake_yen": 100
+          }
+        ],
+        {
+          "race_id": "20261015-18-01",
+          "status": "settled",
+          "confirmed": true,
+          "payouts": [],
+          "verified_market_types": [
+            "exacta"
+          ]
         }
       ],
       "expected_literal": {

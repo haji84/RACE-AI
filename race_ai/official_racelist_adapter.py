@@ -155,7 +155,7 @@ def parse_official_racelist(raw: bytes, *, day: date, venue: str, race_no: int,
         link = one(cell.find('a'), 'race schedule link')
         if identity(link.attrs.get('href', '')) != (expected[0], venue, n) or link.text().strip() != f'{n}R':
             raise SourceError('body date, venue or race mismatch')
-        if not cell.has('is-thColor2'):
+        if not cell.has('is-thColor2') and not cell.has('is-thColor3'):
             selected.append(n)
     if selected != [race_no]:
         raise SourceError('selected race mismatch')
