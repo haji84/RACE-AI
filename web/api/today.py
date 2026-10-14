@@ -7,7 +7,7 @@ from http.server import BaseHTTPRequestHandler
 from datetime import datetime
 from zoneinfo import ZoneInfo
 from urllib.request import Request,urlopen
-from urllib.parse import quote
+from urllib.parse import quote,urlsplit
 import json
 import os
 
@@ -19,9 +19,9 @@ def current_day():
 def load_feed():
     if os.environ.get("RACE_AI_FEED_APPROVED")!="1":
         return 503,{"error":"FEED_NOT_APPROVED"}
-    token=os.environ.get("BLOB_READ_WRITE_TOKEN")
+    token=os.environ.get("VERCEL_OIDC_TOKEN") or os.environ.get("BLOB_READ_WRITE_TOKEN")
     base=os.environ.get("RACE_AI_BLOB_BASE_URL","").rstrip("/")
-    if not token or not base.startswith("https://"):
+    host=urlsplit(base)\n    if (not token or host.scheme!="https" or not host.hostname or\n        not host.hostname.endswith(".private.blob.vercel-storage.com") or\n        host.path or host.query or host.fragment or host.username or host.password):
         return 503,{"error":"FEED_STORE_NOT_CONFIGURED"}
     # Exact day-specific key prevents yesterday's snapshot being used today.
     url=base+"/race-ai/day/"+quote(current_day())+".json"
