@@ -21,6 +21,4 @@ jobs:
       - name: Verify private Blob with GitHub OIDC
         env:
           RACE_AI_PROBE_URL: ${{ vars.RACE_AI_PROBE_URL }}
-          ACTIONS_ID_TOKEN_REQUEST_URL: ${{ env.ACTIONS_ID_TOKEN_REQUEST_URL }}
-          ACTIONS_ID_TOKEN_REQUEST_TOKEN: ${{ env.ACTIONS_ID_TOKEN_REQUEST_TOKEN }}
         run: python3 scripts/run_private_blob_probe.py
