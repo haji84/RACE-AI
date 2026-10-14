@@ -1,0 +1,71 @@
+{
+  "kind": "real_preview_official_day_and_github_backup_restore",
+  "verified_at": "2026-10-15T04:13:55+09:00",
+  "application_commit": "3b39fc43bb9360c7b1d4711335532172157db127",
+  "workflow_commit": "1b571ae1530f170ee9755bfe7df5042c54a3cb6e",
+  "run_id": 38621533602,
+  "job_id": 116050009891,
+  "run_url": "https://github.com/haji84/RACE-AI/actions/runs/38621533602",
+  "deployment_id": "dpl_FuMJdzBGchht2NrnEgKmPkhP8SGs",
+  "deployment_url": "https://race-ai-preview-4rurcxven-qq1130034-1738.vercel.app",
+  "official_day_api": {
+    "boats": 936,
+    "commit_sha": "3b39fc43bb9360c7b1d4711335532172157db127",
+    "date_jst": "2026-10-15",
+    "races": 156,
+    "result": "OFFICIAL_DAY_API_VERIFIED",
+    "sha256": "66096732ad027bba11324eacbde7c5bd2c9fe7d8fcba045819ff998b70d35a83",
+    "venue_states": 24,
+    "version_pathname": "race-ai/versions/2026-10-15/66096732ad027bba11324eacbde7c5bd2c9fe7d8fcba045819ff998b70d35a83.json"
+  },
+  "backup_restore": {
+    "result": "GITHUB_BACKUP_RESTORE_VERIFIED",
+    "bytes": 349735,
+    "file_sha256": "d72ec06f239cd5592b2ebbbba2e24d216aa190f31d75d349d6a6dbb9c9a332c0"
+  },
+  "artifact": {
+    "id": 11922690344,
+    "name": "official-day-38621533602-1",
+    "archive_bytes": 32070,
+    "archive_digest": "sha256:97914022d9c94b85141c144a5673b8e31818794581bd273af2541920bdfdd986",
+    "expires_at": "2026-10-28T19:12:14Z",
+    "retention_days": 14
+  },
+  "ci": {
+    "run_id": 38621190109,
+    "ubuntu_job_id": 116048867016,
+    "windows_job_id": 116048867444,
+    "tests_per_os": 372,
+    "skipped_per_os": 1,
+    "failures": 0,
+    "ui_unit_checks": 8
+  },
+  "separate_health_fetch": {
+    "http_status": 200,
+    "ready": true,
+    "venue_states": 24,
+    "active_venues": 13,
+    "races": 156,
+    "last_observed_at": "2026-10-14T19:12:07.367587+00:00"
+  },
+  "checks": [
+    "Actual scoped GitHub OIDC authentication and private Blob verification",
+    "Current JST official day collected with two bounded source GETs",
+    "Private Blob version saved and API canonical SHA equals collected logical payload",
+    "GitHub received only the approved normalized JSON file",
+    "Official download action restored that artifact to a separate directory",
+    "Restored file equals original in every byte and file SHA",
+    "Separate authenticated /api/health read actual Blob and returned ready/HTTP200"
+  ],
+  "hash_definitions": {
+    "canonical_payload_sha256": "Sorted-key compact UTF-8 JSON used for Blob/API comparison",
+    "file_sha256": "Exact normalized JSON file bytes including original serialization/newline",
+    "archive_digest": "GitHub artifact ZIP digest; not the JSON-file digest"
+  },
+  "limits": [
+    "Preview only; main and Production unchanged",
+    "Fourteen-day recovery backup is not indefinite historical archive",
+    "Cloud per-race API and actual pre-race accuracy evidence remain open",
+    "No source originals, environment files, purchase records or credentials uploaded"
+  ]
+}
