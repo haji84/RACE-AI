@@ -88,7 +88,7 @@ jobs:
       - name: Checkout reviewed current-day collector
         uses: actions/checkout@v4
         with:
-          ref: 325ddce19ae999d626782a9929e6511c17d60ba1
+          ref: a4889c443d168c45df253c28086ebed7ba566e18
           path: day-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -279,9 +279,10 @@ jobs:
           RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-prediction
           RACE_AI_RESEARCH_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
           RACE_AI_COHORT_SELECTION: ${{ inputs.cohort_selection || 'next-per-venue' }}
+          RACE_AI_COHORT_MAX_SECONDS: ${{ inputs.cohort_selection == 'all-upcoming' && '480' || '240' }}
         run: |
           result=0
-          python day-source/scripts/publish_research_cohort.py --output-dir "$RUNNER_TEMP/race-ai-cohort" --selection "$RACE_AI_COHORT_SELECTION" --max-races 24 --max-seconds 240 --max-reads 313 --execute || result=$?
+          python day-source/scripts/publish_research_cohort.py --output-dir "$RUNNER_TEMP/race-ai-cohort" --selection "$RACE_AI_COHORT_SELECTION" --max-races 24 --max-seconds "$RACE_AI_COHORT_MAX_SECONDS" --max-reads 313 --execute || result=$?
           if [ -f "$RUNNER_TEMP/race-ai-cohort/manifest.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
           exit "$result"
       - name: Back up only normalized cohort requests receipts and manifest
@@ -334,7 +335,9 @@ jobs:
               raise SystemExit('COHORT_MANIFEST_COVERAGE_CONFLICT')
           slots=manifest['request_backups']
           if not (0<=manifest['posts_attempted']<=manifest['write_slots_used']==len(slots)<=manifest['max_races']<=24
-                  and 0<=manifest['reads_used']<=manifest['max_reads']<=313 and 0<manifest['max_seconds']<=240):
+                  and 0<=manifest['reads_used']<=manifest['max_reads']<=313
+                  and manifest['selection'] in {'next-per-venue','all-upcoming'}
+                  and 0<manifest['max_seconds']<=(480 if manifest['selection']=='all-upcoming' else 240)):
               raise SystemExit('COHORT_MANIFEST_BUDGET_CONFLICT')
           if {row['race_id']+'.request.json' for row in slots}!={name for name in names if name.endswith('.request.json')}:
               raise SystemExit('COHORT_REQUEST_BACKUP_COVERAGE_CONFLICT')
@@ -716,3 +719,4 @@ jobs:
           verify_backups(restored,manifest)
           print(json.dumps({'result':'NAME_BOUND_RESULT_BACKUP_RESTORE_VERIFIED','status':manifest['status'],'files':len(names)}))
           PY
+
