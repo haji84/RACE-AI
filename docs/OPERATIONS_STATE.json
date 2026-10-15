@@ -694,5 +694,28 @@
     "all156_program_digests_unchanged": true
   },
   "trusted_workflow_pinned_application_commit": "6b0a85d379d9247937973dcc34ce55da22f982f8",
-  "trusted_workflow_pinned_preview_url": "https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app"
+  "trusted_workflow_pinned_preview_url": "https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app",
+  "in_progress_name_bound_result": {
+    "status": "TASK1_TASK2_REVIEWED_LOCAL_TASK3_IMPLEMENTATION_ACTIVE_NO_LIVE_SOURCE_REQUEST",
+    "plan": "docs/superpowers/plans/2026-10-15-name-bound-result.md",
+    "workspace": ".superpowers/sdd/2026-10-15-name-bound-result",
+    "task1_commit": "0ccb3ddbec4f674ff6ebdf2f90111ffff4c26beb",
+    "task2_commit": "a397f6ac756ad235b03e1edfe9bc4173182b4b5b",
+    "local_python_tests": 897,
+    "task1_task2_independent_review_findings": 0,
+    "official_requests": 0,
+    "trusted_workflow_unchanged": "0cf0bb45d830c599aa1b201f74c285eea1120831",
+    "prospective_race_id": "20261015-15-07",
+    "prospective_forecast_request_id": "38708771146-1",
+    "own_name_binding_request_id": "38703196877-1",
+    "live_label_collected": false,
+    "pending": [
+      "Task3 bounded caller and manual mode with independent review",
+      "Broad final review and latest exact Windows/Linux CI/READY",
+      "Trusted workflow reviewed pin update, all-active-state/lease/currentday/closed/absent preflight",
+      "One new7R result acquisition only, full artifact/API restore and independent three-score audit",
+      "Protected actual UI, preserved4/v1 APIs and evidence/PR/heartbeat update"
+    ],
+    "recorded_at": "2026-10-15T10:53:26.491068+00:00"
+  }
 }
