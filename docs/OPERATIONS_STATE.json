@@ -14,11 +14,29 @@
   "last_verified_day_job_id": 116050009891,
   "last_verified_date_jst": "2026-10-15",
   "last_verified_payload_sha256": "66096732ad027bba11324eacbde7c5bd2c9fe7d8fcba045819ff998b70d35a83",
-  "last_verified_backup": {"artifact_id":11922690344,"retention_days":14,"restore":"exact_bytes_and_sha_verified"},
+  "last_verified_backup": {
+    "artifact_id": 11922690344,
+    "retention_days": 14,
+    "restore": "exact_bytes_and_sha_verified"
+  },
   "cloud_recurring_schedule_installed": false,
   "cloud_schedule_gate": "main is configured to create and auto-assign Production deployments; main cron requires release configuration review",
-  "development_heartbeat": {"id":"race-ai", "status":"ACTIVE", "interval_hours":1, "requires":"local computer and app running"},
-  "last_exact_head_ci": {"commit":"ceddba957d6600ee41cb4f280834dff7296d2f34", "run_id":38656460335, "tests_per_os":499, "skipped_per_os":1, "windows":"success", "ubuntu":"success", "javascript_tests":31, "scope":"functional live comparison checkpoint; later evidence-only successors use PR64 checks"},
+  "development_heartbeat": {
+    "id": "race-ai",
+    "status": "ACTIVE",
+    "interval_hours": 1,
+    "requires": "local computer and app running"
+  },
+  "last_exact_head_ci": {
+    "commit": "8458fa568225d03312b25209e78213730000d42d",
+    "run_id": 38661265889,
+    "tests_per_os": 534,
+    "skipped_per_os": 1,
+    "windows": "success",
+    "ubuntu": "success",
+    "javascript_tests": 44,
+    "scope": "functional settlement/cohort checkpoint; later evidence-only successors use PR64 checks"
+  },
   "last_verified_race_application_commit": "ceddba957d6600ee41cb4f280834dff7296d2f34",
   "last_verified_race_deployment_url": "https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app",
   "last_verified_race_run_id": 38656820577,
@@ -26,11 +44,28 @@
   "last_verified_race_id": "20261015-14-01",
   "last_verified_race_payload_sha256": "807e24a3dd1413ebcf417ae240448b4ddd250382aa3ba22b2689c4bcb67374c7",
   "last_verified_race_observation_at": "2026-10-14T23:54:11.098124+00:00",
-  "last_verified_race_states": {"beforeinfo":"PENDING", "odds3t":"PARTIAL", "priced_odds":9, "unknown_odds":111, "raceresult":"AVAILABLE", "finish_confirmed":true, "financial_confirmed":true, "top3":[1,3,5]},
-  "last_verified_race_backup": {"artifact_id":11936823309, "retention_days":14, "restore":"request and API response exact bytes/SHA verified on runner and independently downloaded"},
-  "trusted_workflow_commit": "36aafb2f4816f31a72f72237ed230cfaf3272cde",
-  "trusted_workflow_content_sha": "b18d25932db739458378dea50cb4f7aa8aac58fb",
-  "trusted_workflow_default_mode": "push: one dated target result plus read-only evaluation; dispatch defaults research, evaluation/result/race/day explicit",
+  "last_verified_race_states": {
+    "beforeinfo": "PENDING",
+    "odds3t": "PARTIAL",
+    "priced_odds": 9,
+    "unknown_odds": 111,
+    "raceresult": "AVAILABLE",
+    "finish_confirmed": true,
+    "financial_confirmed": true,
+    "top3": [
+      1,
+      3,
+      5
+    ]
+  },
+  "last_verified_race_backup": {
+    "artifact_id": 11936823309,
+    "retention_days": 14,
+    "restore": "request and API response exact bytes/SHA verified on runner and independently downloaded"
+  },
+  "trusted_workflow_commit": "98a350d236939d54a380eaefed83b95d65386ed4",
+  "trusted_workflow_content_sha": "c5d616cb8d3fbdf2e675653652a9660e27a5365f",
+  "trusted_workflow_default_mode": "push: bounded next-upcoming race per active venue cohort; dispatch defaults single research, cohort/evaluation/result/race/day explicit",
   "trusted_workflow_dated_result_target": "20261015-14-01 (completed proof; stale Japan-local dates reject before official GET)",
   "race_collection_policy": "auto: first upcoming race up to two beforeinfo/odds GETs; result: one closed current-day race, optional exact ID even while others are upcoming; do not poll a completed proof without changed code or known revision",
   "race_cloud_contract": "immutable observation and separate actual-cloud-save receipt; latest per kind; serialized writer only; never backdate late ingress",
@@ -44,7 +79,11 @@
   "last_verified_prediction_cloud_saved_at": "2026-10-14T22:47:32.345733+00:00",
   "last_verified_prediction_closed_at": "2026-10-15T08:35:00+09:00",
   "last_verified_prediction_payload_sha256": "42c3fb88cae0c6c00c8482026c97fc0eb40f2a328903edbe203851f4b46fe1f8",
-  "last_verified_prediction_backup": {"artifact_id":11933394189, "retention_days":14, "restore":"request and receipt exact bytes/SHA verified on runner and independently downloaded"},
+  "last_verified_prediction_backup": {
+    "artifact_id": 11933394189,
+    "retention_days": 14,
+    "restore": "request and receipt exact bytes/SHA verified on runner and independently downloaded"
+  },
   "last_verified_evaluation_application_commit": "ceddba957d6600ee41cb4f280834dff7296d2f34",
   "last_verified_evaluation_run_id": 38656820577,
   "last_verified_evaluation_job_id": 116168436828,
@@ -52,15 +91,66 @@
   "last_verified_evaluation_status": "EVALUATED",
   "last_verified_result_snapshot_id": "3e2f83afb1ce69f2fd9d203b60a624e4445624ca7a19c3cfb11bc499a5429b18",
   "last_verified_result_cloud_saved_at": "2026-10-14T23:54:14.972502+00:00",
-  "last_verified_evaluation_backup": {"artifact_id":11937187652, "bytes":1646, "sha256":"c00f51760ab63deb85cd84b2ccb3a9f0e96ac216f854dc3c10f82ad51eeb3320", "retention_days":14, "restore":"exact bytes/SHA and replay at frozen evaluation as_of verified independently"},
-  "research_state": {"validation_status":"UNVALIDATED", "purchase_decision":"skip", "purchase_recommendations":[], "actual_races_with_saved_prediction":1, "actual_result_cohorts_evaluated":1, "models":["official-program-uniform-pl/v1","official-program-rating-pl/v1"], "source":"frozen same-day approved B program points; untrained fixed comparisons; N=1 does not validate or select a model"},
+  "last_verified_evaluation_backup": {
+    "artifact_id": 11937187652,
+    "bytes": 1646,
+    "sha256": "c00f51760ab63deb85cd84b2ccb3a9f0e96ac216f854dc3c10f82ad51eeb3320",
+    "retention_days": 14,
+    "restore": "exact bytes/SHA and replay at frozen evaluation as_of verified independently"
+  },
+  "research_state": {
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "actual_races_with_saved_prediction": 14,
+    "actual_result_cohorts_evaluated": 1,
+    "models": [
+      "official-program-uniform-pl/v1",
+      "official-program-rating-pl/v1"
+    ],
+    "source": "frozen same-day approved B program points; untrained fixed comparisons; N=1 does not validate or select a model"
+  },
   "next_priority": [
-    "Connect positively confirmed official markets/refunds to existing local ledger settlement; never infer missing payout/refund data or place a wager",
-    "Extend immutable forecast/result history and same-cutoff model comparisons across real races/days, with transparent exclusions and no backfilled earlier predictions",
-    "Extend durable pre-cutoff research predictions across races and actual observations; keep UNVALIDATED and recommendations empty until held-out evidence qualifies",
-    "Extend verified observations to all venues with bounded acquisition, freshness and failure visibility",
+    "Enable immutable historical program/prediction/result reading and past-day ledger settlement without relaxing current-day writers or backdating",
+    "Collect later confirmed results for actual13-venue cohort and extend same-cutoff aggregate evaluation; no inferred early results",
+    "Extend per-venue next-race cohort to continuous all-race coverage with bounded acquisition and transparent failures",
     "Install reviewed cloud scheduling without Production promotion or expanding Preview trust",
-    "Collect genuine pre-race observations and later results for held-out evaluation",
-    "Complete model calibration, motor allocation reconciliation, permitted video and physical iPhone acceptance"
-  ]
+    "Collect genuine pre-race observations/results across multiple days for held-out calibration and model selection",
+    "Complete motor allocation reconciliation, permitted video, durable user cloud separation, long-term recovery and physical iPhone acceptance"
+  ],
+  "last_verified_settlement": {
+    "application_commit": "8458fa568225d03312b25209e78213730000d42d",
+    "deployment_url": "https://race-ai-preview-goqv814q6-qq1130034-1738.vercel.app",
+    "race_id": "20261015-14-01",
+    "as_of": "2026-10-15T00:40:34.059897+00:00",
+    "status": "SETTLEMENT_READY",
+    "verified_markets": 7,
+    "canonical_report_bytes": 2509,
+    "report_sha256": "daa10afe9bbc1a9ba7e3e3ef4e1c34166fd0abad199ef7bbf304538b6f812ad3",
+    "real_preview_purchase_records": 0,
+    "actual_ledger_writes": 0,
+    "scope": "current-day fresh API authority; arithmetic verification hypothetical; historical reader next"
+  },
+  "last_verified_cohort": {
+    "application_commit": "8458fa568225d03312b25209e78213730000d42d",
+    "deployment_url": "https://race-ai-preview-goqv814q6-qq1130034-1738.vercel.app",
+    "run_id": 38661487317,
+    "job_id": 116183541403,
+    "request_id": "38661487317-1",
+    "started_at": "2026-10-15T00:42:15.083027+00:00",
+    "finished_at": "2026-10-15T00:43:42.558308+00:00",
+    "new_races": 13,
+    "venues": 13,
+    "total_saved_races": 14,
+    "minimum_saved_seconds_before_close": 641.953205,
+    "manifest_sha256": "329f7b836f5a1180b9878a6ead15123f28180d614cb56edf058a81be0891a7ab",
+    "artifact_id": 11939740037,
+    "zip_sha256": "bb5ab0887b4c10659c158dbef2ed40e18a03642e2e510fb5f1ed9d1614a15d41",
+    "normalized_bytes": 395151,
+    "files": 27,
+    "retention_days": 14,
+    "independent_api_receipts_verified": 13,
+    "official_source_requests": 0,
+    "scope": "one next future race per active venue; all156 not yet covered; evaluated cohort remainsN1"
+  }
 }

@@ -23,27 +23,27 @@
 
 Owner: isolated backend implementer. Files: `web/settlement_contract.py`, `web/api/settlement.py`, narrow shared receipt-check extraction in `web/race_contract.py` and `web/evaluation_contract.py` if needed, `tests/test_settlement_contract.py`, `tests/test_web_settlement_api.py`. Reuse full existing validators, not weak flag checks or duplicated money arithmetic. Export `build_settlement_report(race_bundle, race, now)`.
 
-- [ ] Write and observe failing behavior tests for complete winning/losing markets, partial coverage, pending payout-only, missing result, explicit refund, unsupported return/tie and special payout.
-- [ ] Implement minimal pure checked report, preserving input objects and strict proof chain; reject tampered identity/hash/cloud clocks/market coverage and day mismatch.
-- [ ] Implement API using stored approved program, current race reader and actual clock; test query/no-store, absent result, close-on-error, 422/503 and midnight handling.
-- [ ] Run focused and full Python suite. Return owned diff and verification evidence; root commits integrated change.
+- [x] Write and observe failing behavior tests for complete winning/losing markets, partial coverage, pending payout-only, missing result, explicit refund, unsupported return/tie and special payout.
+- [x] Implement minimal pure checked report, preserving input objects and strict proof chain; reject tampered identity/hash/cloud clocks/market coverage and day mismatch.
+- [x] Implement API using stored approved program, current race reader and actual clock; test query/no-store, absent result, close-on-error, 422/503 and midnight handling.
+- [x] Run focused and full Python suite. Return owned diff and verification evidence; root commits integrated change.
 
 ## Task 2: Browser accounting, audit and display
 
 Owner: isolated UI implementer. Files: `web/settlement.js`, `web/app.js`, `web/index.html`, narrow `web/style.css`, `tests/ui_settlement.test.js`, `tests/ui_settlement_browser.cjs`. Backend files and existing shared money engine are outside this task.
 
-- [ ] Write and observe failing pure/browser regressions: 400 yen at official1580 per100 returns6320/net5920; losing record; pending missing market; local forged result ignored; same snapshot idempotent; correction appends proof; stale response/race/day and API failure cannot retain confirmation; two-tab audit update preserves both.
-- [ ] Implement `RaceSettlement` response validation and ledger projection using `RaceMoney` functions. Purchase ledger is never changed by settlement; audit is not financial authority after reload.
-- [ ] Automatically fetch bounded same-origin reports for relevant current-day recorded races; integrate safe reload/storage/abort behavior and accurate financial history/status display. Show all-history versus today totals honestly.
-- [ ] Run all JS tests and six browser regressions; full Python suite at integration boundary. No live user records or hypothetical real purchases are created.
+- [x] Write and observe failing pure/browser regressions: 400 yen at official1580 per100 returns6320/net5920; losing record; pending missing market; local forged result ignored; same snapshot idempotent; correction appends proof; stale response/race/day and API failure cannot retain confirmation; two-tab audit update preserves both.
+- [x] Implement `RaceSettlement` response validation and ledger projection using `RaceMoney` functions. Purchase ledger is never changed by settlement; audit is not financial authority after reload.
+- [x] Automatically fetch bounded same-origin reports for relevant current-day recorded races; integrate safe reload/storage/abort behavior and accurate financial history/status display. Show all-history versus today totals honestly.
+- [x] Run all JS tests and six browser regressions; full Python suite at integration boundary. No live user records or hypothetical real purchases are created.
 
 ## Task 3: Independent review and real verification
 
 Owner: root plus fresh independent reviewer. Root owns CI configuration, evidence/operations docs and PR metadata.
 
-- [ ] Review changes against spec including partial-market false losses, refunds, special payouts, evidence correction rollback, mutated local storage and cross-tab concurrency; fix confirmed findings with regression tests.
-- [ ] Run Python/JS/full browser checks, push functional commit, verify exact-head Windows/Linux CI and protected Preview.
-- [ ] Read actual Naruto1R settlement report and independently replay against stored result proof. Demonstrate arithmetic only as a clearly labelled hypothetical calculation; create no actual purchase or ledger record. No additional official source GET needed.
+- [x] Review changes against spec including partial-market false losses, refunds, special payouts, evidence correction rollback, mutated local storage and cross-tab concurrency; fix confirmed findings with regression tests.
+- [x] Run Python/JS/full browser checks, push functional commit, verify exact-head Windows/Linux CI and protected Preview.
+- [x] Read actual Naruto1R settlement report and independently replay against stored result proof. Demonstrate arithmetic only as a clearly labelled hypothetical calculation; create no actual purchase or ledger record. No additional official source GET needed.
 - [ ] Record source proof, empty real ledger, tests, current-day scope and remaining historical/multirace work. Update Draft PR64 and continue the next executable completion requirement.
 
 ## Preflight consistency and rulings
@@ -64,3 +64,5 @@ Progress: starting from functional/evidence head87169ab, clean shared completion
 ## Parallel next increment: bounded national research cohort
 
 Root owns `scripts/publish_research_cohort.py` and `tests/test_research_cohort_caller.py`, independent of settlement files. Select at most24 upcoming races, one earliest race per active venue, from the same approved current-day feed. Default limit24, caller can lower it; require120-second margin initially and again before each POST. Never create past predictions, rewrite a saved prediction, or collect official source pages. Existing `/api/publish-prediction` remains the only server-generated writer under the same scoped OIDC workflow. A GET of an existing prediction must fully validate its receipt before skipping; malformed existing evidence stops the run. New requests/receipts and a bounded manifest are exclusive normalized files in a new output directory. On partial failure retain completed files for backup; never include credentials. Reuse the single-race caller's readback verifier. A JST day rollover or expired target skips remaining writes, preserving completed evidence. Test selection, no-network dry run, no-overwrite, existing-preservation, exact new readback, time rollover and partial failure. Add an explicit cohort mode to the dedicated workflow only after reviewed code, CI and exact Preview readiness; pin immutable targets, maintain existing concurrency and trust. Back up and byte-restore only the normalized cohort directory. Actual cohort size and later evaluated races remain separate.
+
+Checkpoint8458fa5: backend26new tests; cohort9new tests including independently reproduced filesystem-delay boundary; full534Python perOS (one optional skip),44JS and6Edge regressions. Independent review resolved the cohort margin finding and confirmed no remainingP1/P2. Live settlement API all7markets replays; actualledger0. Scopedcohortrun38661487317 saved13new races across13venues09:42–09:43JST;27files395151normalizedbytes restored from artifact11939740037 and all13APIreceiptSHAs independently match. OriginalNaruto1forecastunchanged; totals14saved versusN1evaluated, UNVALIDATED/skip. Evidence-only successor/PR update pending; next historicalreader design underway.

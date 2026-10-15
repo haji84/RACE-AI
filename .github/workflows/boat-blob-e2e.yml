@@ -5,7 +5,7 @@ on:
       collection:
         description: Research uses saved day facts; day collection only when missing or at least six hours old
         type: choice
-        options: [research, evaluation, result, race, day]
+        options: [research, cohort, evaluation, result, race, day]
         default: research
         required: true
       result_race_id:
@@ -55,7 +55,7 @@ jobs:
       - name: Checkout reviewed current-day collector
         uses: actions/checkout@v4
         with:
-          ref: ceddba957d6600ee41cb4f280834dff7296d2f34
+          ref: 8458fa568225d03312b25209e78213730000d42d
           path: day-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -72,8 +72,8 @@ jobs:
       - name: Publish private current-day version and verify today API SHA
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
         env:
-          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app/api/publish-day
-          RACE_AI_DAY_COMMIT_SHA: ceddba957d6600ee41cb4f280834dff7296d2f34
+          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-goqv814q6-qq1130034-1738.vercel.app/api/publish-day
+          RACE_AI_DAY_COMMIT_SHA: 8458fa568225d03312b25209e78213730000d42d
         run: python day-source/scripts/publish_day_feed.py --feed "$RUNNER_TEMP/race-ai-day.json"
       - name: Back up only the approved normalized day facts
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
@@ -106,10 +106,10 @@ jobs:
 
       - name: Collect one race, publish immutable observations and verify race API
         id: race
-        if: github.event_name == 'push' || inputs.collection == 'race' || inputs.collection == 'result'
+        if: inputs.collection == 'race' || inputs.collection == 'result'
         env:
-          RACE_AI_RACE_PUBLISH_URL: https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app/api/publish-race
-          RACE_AI_RACE_COMMIT_SHA: ceddba957d6600ee41cb4f280834dff7296d2f34
+          RACE_AI_RACE_PUBLISH_URL: https://race-ai-preview-goqv814q6-qq1130034-1738.vercel.app/api/publish-race
+          RACE_AI_RACE_COMMIT_SHA: 8458fa568225d03312b25209e78213730000d42d
           RACE_AI_RESULT_MODE: ${{ inputs.collection == 'race' && 'auto' || 'result' }}
           RACE_AI_RESULT_RACE_ID: ${{ inputs.result_race_id || '20261015-14-01' }}
         run: |
@@ -157,8 +157,8 @@ jobs:
         id: research
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'research'
         env:
-          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app/api/publish-prediction
-          RACE_AI_RESEARCH_COMMIT_SHA: ceddba957d6600ee41cb4f280834dff7296d2f34
+          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-goqv814q6-qq1130034-1738.vercel.app/api/publish-prediction
+          RACE_AI_RESEARCH_COMMIT_SHA: 8458fa568225d03312b25209e78213730000d42d
         run: |
           result=0
           python day-source/scripts/publish_research_prediction.py --output "$RUNNER_TEMP/race-ai-research.json" --execute || result=$?
@@ -198,10 +198,10 @@ jobs:
 
       - name: Independently replay protected research evaluation from durable receipts
         id: evaluation
-        if: success() && (inputs.collection == 'evaluation' || (steps.race.outputs.backup_exists == 'true' && (github.event_name == 'push' || inputs.collection == 'result')))
+        if: success() && (inputs.collection == 'evaluation' || (steps.race.outputs.backup_exists == 'true' && inputs.collection == 'result'))
         env:
-          RACE_AI_EVALUATION_URL: https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app/api/evaluation
-          RACE_AI_EVALUATION_COMMIT_SHA: ceddba957d6600ee41cb4f280834dff7296d2f34
+          RACE_AI_EVALUATION_URL: https://race-ai-preview-goqv814q6-qq1130034-1738.vercel.app/api/evaluation
+          RACE_AI_EVALUATION_COMMIT_SHA: 8458fa568225d03312b25209e78213730000d42d
           RACE_AI_EVALUATION_RACE_ID: ${{ inputs.result_race_id || '20261015-14-01' }}
         run: |
           python day-source/scripts/verify_research_evaluation.py --race-id "$RACE_AI_EVALUATION_RACE_ID" --output "$RUNNER_TEMP/race-ai-evaluation.json" --execute
@@ -233,4 +233,62 @@ jobs:
           if not original or len(original) > 256000 or original != restored:
               raise SystemExit('EVALUATION_BACKUP_RESTORE_MISMATCH')
           print(json.dumps({'result':'RESEARCH_EVALUATION_BACKUP_RESTORE_VERIFIED','bytes':len(restored),'file_sha256':hashlib.sha256(restored).hexdigest()}))
+          PY
+
+
+      - name: Save bounded upcoming national research cohort without replacing forecasts
+        id: cohort
+        if: github.event_name == 'push' || inputs.collection == 'cohort'
+        env:
+          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-goqv814q6-qq1130034-1738.vercel.app/api/publish-prediction
+          RACE_AI_RESEARCH_COMMIT_SHA: 8458fa568225d03312b25209e78213730000d42d
+        run: |
+          result=0
+          python day-source/scripts/publish_research_cohort.py --output-dir "$RUNNER_TEMP/race-ai-cohort" --max-races 24 --execute || result=$?
+          if [ -f "$RUNNER_TEMP/race-ai-cohort/manifest.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
+          exit "$result"
+      - name: Back up only normalized cohort requests receipts and manifest
+        if: always() && steps.cohort.outputs.backup_exists == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: research-cohort-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-cohort/*.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore cohort backup into a separate directory
+        if: always() && steps.cohort.outputs.backup_exists == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: research-cohort-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-cohort-restored
+      - name: Verify every normalized cohort backup byte and receipt digest
+        if: always() && steps.cohort.outputs.backup_exists == 'true'
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, re
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP'])
+          original = root / 'race-ai-cohort'
+          restored = root / 'race-ai-cohort-restored'
+          names = sorted(p.name for p in original.iterdir())
+          if names != sorted(p.name for p in restored.iterdir()) or not 1 <= len(names) <= 49:
+              raise SystemExit('COHORT_BACKUP_FILE_COVERAGE_MISMATCH')
+          for name in names:
+              if name != 'manifest.json' and not re.fullmatch(r'[0-9]{8}-(0[1-9]|1[0-9]|2[0-4])-(0[1-9]|1[0-2])\.(request|receipt)\.json', name):
+                  raise SystemExit('COHORT_BACKUP_UNEXPECTED_FILE')
+              before, after = (original / name).read_bytes(), (restored / name).read_bytes()
+              if not 0 < len(after) <= 256000 or before != after:
+                  raise SystemExit('COHORT_BACKUP_RESTORE_MISMATCH')
+              print(json.dumps({'result':'COHORT_BACKUP_RESTORE_VERIFIED','file':name,'bytes':len(after),'file_sha256':hashlib.sha256(after).hexdigest()}))
+          manifest = json.loads((restored / 'manifest.json').read_bytes())
+          if manifest['validation_status'] != 'UNVALIDATED' or manifest['purchase_decision'] != 'skip' or manifest['purchase_recommendations'] != [] or manifest['official_source_requests'] != 0:
+              raise SystemExit('COHORT_RESEARCH_STATE_CONFLICT')
+          for saved in manifest['saved']:
+              for kind in ('request','receipt'):
+                  raw = (restored / (saved['race_id']+'.'+kind+'.json')).read_bytes()
+                  metadata = saved[kind+'_backup']
+                  if len(raw) != metadata['bytes'] or hashlib.sha256(raw).hexdigest() != metadata['sha256']:
+                      raise SystemExit('COHORT_MANIFEST_DIGEST_CONFLICT')
+          print(json.dumps({'result':'COHORT_MANIFEST_RESTORE_VERIFIED','status':manifest['status'],'saved':len(manifest['saved']),'preserved':len(manifest['preserved']),'skipped':len(manifest['skipped'])}))
           PY

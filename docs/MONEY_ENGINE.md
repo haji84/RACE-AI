@@ -2,6 +2,14 @@
 
 Implemented in `race_ai/money.py` and dependency-free `web/money.js`. Browser code exposes `globalThis.RaceMoney`; Node uses `require('./web/money.js')`. Both implementations expose the same snake_case function names and JSON field names. This is a calculation engine for records and estimates. It does not place purchases or establish that a result, probability, or model has been independently verified.
 
+## Verified cloud result connection
+
+`web/settlement_contract.py` and read-only `/api/settlement?race_id=...` verify the full current-day immutable program/result/cloud-receipt chain and export a complete Money-compatible result for each positively covered market. Missing market coverage, returned-boat mappings and unverified ties cannot establish losses. Explicit full-race refunds and explicit per-100 special payouts retain their separate accounting.
+
+`web/settlement.js` validates the same-origin projection and independently matches the six-boat program digest. It derives settled records through the existing Money engine without changing the original manual purchase ledger. A missing purchased market leaves the entire record pending. Separate local audit versions retain corrections, but restored audit entries and local `official_result` claims never establish current financial confirmation. Fresh API evidence is required after reload, day/program changes or failures. All-history totals and today's funding totals are labelled separately. Historical reading remains a following stage.
+
+Live evidence is `evidence/2026-10-15/official-ledger-settlement-live.json`: actual Naruto1R confirms all seven markets, while the real Preview ledger remains empty. The 400-yen/1–3–5 example at official1580 per100 yields6320 payout/5920 net only as a hypothetical arithmetic check, never an actual purchase or ROI claim.
+
 ## Numbers and rounding
 
 - Actual monetary inputs and outputs are integer yen within JavaScript's safe integer range, 0 through 9,007,199,254,740,991. Purchases and refunds use 100-yen units. Purchased ticket stakes must be positive; the estimate function accepts zero. JSON numeric values such as `100.0` are accepted only when their value is an integer, then normalized to an integer. Booleans, numeric strings for yen, fractions, missing values, negative amounts, infinities and NaN are rejected with `MoneyError`.
