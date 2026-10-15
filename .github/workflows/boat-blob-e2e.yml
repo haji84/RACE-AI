@@ -8,6 +8,12 @@ on:
         options: [research, exhibition, original, cohort, evaluation, result, race, day]
         default: research
         required: true
+      cohort_selection:
+        description: Scope of saved B-only baselines; each batch preserves existing receipts and writes at most24
+        type: choice
+        options: [next-per-venue, all-upcoming]
+        default: next-per-venue
+        required: false
       exhibition_race_id:
         description: Exact current-day upcoming race for paired saved forecasts
         type: string
@@ -40,7 +46,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 70414805d5048f44190640e74ef56b7da15ec7df
+          ref: 358d1fab651e70df699708cde18b96b80a0e080e
           persist-credentials: false
       - name: Diagnose runner identity (non-secret)
         run: |
@@ -52,8 +58,8 @@ jobs:
           if [ -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]; then echo "OIDC_REQUEST_TOKEN_MISSING"; exit 1; fi
       - name: Verify private Blob with GitHub OIDC
         env:
-          RACE_AI_PROBE_URL: https://race-ai-preview-oh9rdr93x-qq1130034-1738.vercel.app/api/blob-probe
-          RACE_AI_PROBE_COMMIT_SHA: 70414805d5048f44190640e74ef56b7da15ec7df
+          RACE_AI_PROBE_URL: https://race-ai-preview-qs4a1x8aa-qq1130034-1738.vercel.app/api/blob-probe
+          RACE_AI_PROBE_COMMIT_SHA: 358d1fab651e70df699708cde18b96b80a0e080e
         run: python3 scripts/run_private_blob_probe.py
 
 # OIDC Preview E2E trigger; no shared secret is used.
@@ -62,7 +68,7 @@ jobs:
       - name: Checkout reviewed current-day collector
         uses: actions/checkout@v4
         with:
-          ref: 70414805d5048f44190640e74ef56b7da15ec7df
+          ref: 358d1fab651e70df699708cde18b96b80a0e080e
           path: day-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -79,8 +85,8 @@ jobs:
       - name: Publish private current-day version and verify today API SHA
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
         env:
-          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-oh9rdr93x-qq1130034-1738.vercel.app/api/publish-day
-          RACE_AI_DAY_COMMIT_SHA: 70414805d5048f44190640e74ef56b7da15ec7df
+          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-qs4a1x8aa-qq1130034-1738.vercel.app/api/publish-day
+          RACE_AI_DAY_COMMIT_SHA: 358d1fab651e70df699708cde18b96b80a0e080e
         run: python day-source/scripts/publish_day_feed.py --feed "$RUNNER_TEMP/race-ai-day.json"
       - name: Back up only the approved normalized day facts
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
@@ -113,11 +119,11 @@ jobs:
 
       - name: Collect one race, publish immutable observations and verify race API
         id: race
-        if: github.event_name == 'push' || inputs.collection == 'exhibition' || inputs.collection == 'original' || inputs.collection == 'race' || inputs.collection == 'result'
+        if: inputs.collection == 'exhibition' || inputs.collection == 'original' || inputs.collection == 'race' || inputs.collection == 'result'
         env:
-          RACE_AI_RACE_PUBLISH_URL: https://race-ai-preview-oh9rdr93x-qq1130034-1738.vercel.app/api/publish-race
-          RACE_AI_RACE_COMMIT_SHA: 70414805d5048f44190640e74ef56b7da15ec7df
-          RACE_AI_RESULT_MODE: ${{ github.event_name == 'push' && 'exhibition' || inputs.collection == 'exhibition' && 'exhibition' || inputs.collection == 'original' && 'exhibition' || inputs.collection == 'race' && 'auto' || 'result' }}
+          RACE_AI_RACE_PUBLISH_URL: https://race-ai-preview-qs4a1x8aa-qq1130034-1738.vercel.app/api/publish-race
+          RACE_AI_RACE_COMMIT_SHA: 358d1fab651e70df699708cde18b96b80a0e080e
+          RACE_AI_RESULT_MODE: ${{ inputs.collection == 'exhibition' && 'exhibition' || inputs.collection == 'original' && 'exhibition' || inputs.collection == 'race' && 'auto' || 'result' }}
           RACE_AI_RESULT_RACE_ID: ${{ inputs.result_race_id || '20261015-14-01' }}
           RACE_AI_EXHIBITION_RACE_ID: ${{ inputs.exhibition_race_id || '20261015-14-08' }}
         run: |
@@ -167,8 +173,8 @@ jobs:
         id: research
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'research'
         env:
-          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-oh9rdr93x-qq1130034-1738.vercel.app/api/publish-prediction
-          RACE_AI_RESEARCH_COMMIT_SHA: 70414805d5048f44190640e74ef56b7da15ec7df
+          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-qs4a1x8aa-qq1130034-1738.vercel.app/api/publish-prediction
+          RACE_AI_RESEARCH_COMMIT_SHA: 358d1fab651e70df699708cde18b96b80a0e080e
         run: |
           result=0
           python day-source/scripts/publish_research_prediction.py --output "$RUNNER_TEMP/race-ai-research.json" --execute || result=$?
@@ -210,8 +216,8 @@ jobs:
         id: evaluation
         if: success() && (inputs.collection == 'evaluation' || (steps.race.outputs.backup_exists == 'true' && inputs.collection == 'result'))
         env:
-          RACE_AI_EVALUATION_URL: https://race-ai-preview-oh9rdr93x-qq1130034-1738.vercel.app/api/evaluation
-          RACE_AI_EVALUATION_COMMIT_SHA: 70414805d5048f44190640e74ef56b7da15ec7df
+          RACE_AI_EVALUATION_URL: https://race-ai-preview-qs4a1x8aa-qq1130034-1738.vercel.app/api/evaluation
+          RACE_AI_EVALUATION_COMMIT_SHA: 358d1fab651e70df699708cde18b96b80a0e080e
           RACE_AI_EVALUATION_RACE_ID: ${{ inputs.result_race_id || '20261015-14-01' }}
         run: |
           python day-source/scripts/verify_research_evaluation.py --race-id "$RACE_AI_EVALUATION_RACE_ID" --output "$RUNNER_TEMP/race-ai-evaluation.json" --execute
@@ -248,13 +254,14 @@ jobs:
 
       - name: Save bounded upcoming national research cohort without replacing forecasts
         id: cohort
-        if: inputs.collection == 'cohort'
+        if: github.event_name == 'push' || inputs.collection == 'cohort'
         env:
-          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-oh9rdr93x-qq1130034-1738.vercel.app/api/publish-prediction
-          RACE_AI_RESEARCH_COMMIT_SHA: 70414805d5048f44190640e74ef56b7da15ec7df
+          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-qs4a1x8aa-qq1130034-1738.vercel.app/api/publish-prediction
+          RACE_AI_RESEARCH_COMMIT_SHA: 358d1fab651e70df699708cde18b96b80a0e080e
+          RACE_AI_COHORT_SELECTION: ${{ github.event_name == 'push' && 'all-upcoming' || inputs.cohort_selection || 'next-per-venue' }}
         run: |
           result=0
-          python day-source/scripts/publish_research_cohort.py --output-dir "$RUNNER_TEMP/race-ai-cohort" --max-races 24 --execute || result=$?
+          python day-source/scripts/publish_research_cohort.py --output-dir "$RUNNER_TEMP/race-ai-cohort" --selection "$RACE_AI_COHORT_SELECTION" --max-races 24 --max-seconds 240 --max-reads 313 --execute || result=$?
           if [ -f "$RUNNER_TEMP/race-ai-cohort/manifest.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
           exit "$result"
       - name: Back up only normalized cohort requests receipts and manifest
@@ -294,6 +301,30 @@ jobs:
           manifest = json.loads((restored / 'manifest.json').read_bytes())
           if manifest['validation_status'] != 'UNVALIDATED' or manifest['purchase_decision'] != 'skip' or manifest['purchase_recommendations'] != [] or manifest['official_source_requests'] != 0:
               raise SystemExit('COHORT_RESEARCH_STATE_CONFLICT')
+          if manifest['schema_version'] != 2 or manifest['status'] not in {'COMPLETED','BATCH_LIMIT_REACHED','TIME_LIMIT_REACHED','READ_LIMIT_REACHED','STOPPED'}:
+              raise SystemExit('COHORT_MANIFEST_STATE_INVALID')
+          selected, attempted = manifest['selected_race_ids'], manifest['attempted_race_ids']
+          groups = [[row['race_id'] for row in manifest[kind]] for kind in ('saved','preserved','skipped')]
+          finished = [identifier for group in groups for identifier in group]
+          if (len(selected)!=len(set(selected)) or len(attempted)!=len(set(attempted)) or len(finished)!=len(set(finished))
+              or not set(finished)<=set(attempted)<=set(selected)
+              or manifest['not_attempted_race_ids']!=[identifier for identifier in selected if identifier not in attempted]
+              or manifest['pending_race_ids']!=[identifier for identifier in selected if identifier not in finished]
+              or manifest['status']=='COMPLETED' and manifest['pending_race_ids']):
+              raise SystemExit('COHORT_MANIFEST_COVERAGE_CONFLICT')
+          slots=manifest['request_backups']
+          if not (0<=manifest['posts_attempted']<=manifest['write_slots_used']==len(slots)<=manifest['max_races']<=24
+                  and 0<=manifest['reads_used']<=manifest['max_reads']<=313 and 0<manifest['max_seconds']<=240):
+              raise SystemExit('COHORT_MANIFEST_BUDGET_CONFLICT')
+          if {row['race_id']+'.request.json' for row in slots}!={name for name in names if name.endswith('.request.json')}:
+              raise SystemExit('COHORT_REQUEST_BACKUP_COVERAGE_CONFLICT')
+          if {row['race_id']+'.receipt.json' for row in manifest['saved']}!={name for name in names if name.endswith('.receipt.json')}:
+              raise SystemExit('COHORT_RECEIPT_BACKUP_COVERAGE_CONFLICT')
+          for row in slots:
+              raw=(restored/(row['race_id']+'.request.json')).read_bytes()
+              meta=row['request_backup']
+              if len(raw)!=meta['bytes'] or hashlib.sha256(raw).hexdigest()!=meta['sha256']:
+                  raise SystemExit('COHORT_REQUEST_BACKUP_DIGEST_CONFLICT')
           for saved in manifest['saved']:
               for kind in ('request','receipt'):
                   raw = (restored / (saved['race_id']+'.'+kind+'.json')).read_bytes()
@@ -307,8 +338,8 @@ jobs:
         id: exhibition
         if: success() && inputs.collection == 'exhibition' && steps.race.outputs.backup_exists == 'true'
         env:
-          RACE_AI_EXHIBITION_PUBLISH_URL: https://race-ai-preview-oh9rdr93x-qq1130034-1738.vercel.app/api/publish-exhibition-prediction
-          RACE_AI_EXHIBITION_COMMIT_SHA: 70414805d5048f44190640e74ef56b7da15ec7df
+          RACE_AI_EXHIBITION_PUBLISH_URL: https://race-ai-preview-qs4a1x8aa-qq1130034-1738.vercel.app/api/publish-exhibition-prediction
+          RACE_AI_EXHIBITION_COMMIT_SHA: 358d1fab651e70df699708cde18b96b80a0e080e
         run: |
           result=0
           python day-source/scripts/publish_exhibition_prediction.py --race-input "$RUNNER_TEMP/race-ai-race.json" --output-dir "$RUNNER_TEMP/race-ai-exhibition" --execute || result=$?
@@ -363,11 +394,11 @@ jobs:
 
       - name: Collect and freeze separate original-enhanced exhibition forecast
         id: original
-        if: success() && (github.event_name == 'push' || inputs.collection == 'original') && steps.race.outputs.backup_exists == 'true'
+        if: success() && inputs.collection == 'original' && steps.race.outputs.backup_exists == 'true'
         working-directory: day-source
         env:
-          RACE_AI_ORIGINAL_PUBLISH_URL: https://race-ai-preview-oh9rdr93x-qq1130034-1738.vercel.app/api/publish-original-exhibition
-          RACE_AI_ORIGINAL_COMMIT_SHA: 70414805d5048f44190640e74ef56b7da15ec7df
+          RACE_AI_ORIGINAL_PUBLISH_URL: https://race-ai-preview-qs4a1x8aa-qq1130034-1738.vercel.app/api/publish-original-exhibition
+          RACE_AI_ORIGINAL_COMMIT_SHA: 358d1fab651e70df699708cde18b96b80a0e080e
           RACE_AI_EXHIBITION_RACE_ID: ${{ inputs.exhibition_race_id || '20261015-14-08' }}
         run: |
           result=0
@@ -442,3 +473,4 @@ jobs:
                   raise SystemExit('ORIGINAL_RESEARCH_STATE_CONFLICT')
           print(json.dumps({'result':'ORIGINAL_ALL_CONTENT_RESTORE_VERIFIED','files':len(names)}))
           PY
+
