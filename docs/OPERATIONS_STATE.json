@@ -150,7 +150,7 @@
     "source": "frozen same-day approved B program points; untrained fixed comparisons; N=1 does not validate or select a model"
   },
   "next_priority": [
-    "Accumulate new exact eligible target display/originalv2 with their own six-registration proof and full backup/API verification; Marugame4R38699263834-1 is completed and must not be reacquired; live B abbreviation reconciliation case is still needed (Marugame7R18:04 has3584, requires its own proof, not reused3Rproof)",
+    "Preserve completed Marugame4R and7R name-bound v2/ownnameproofs. Marugame7R exercised3584 B abbreviation with independentproof, numeric receipt38708771146-1 at17:52:50JST. Do not reacquire eithercompletednumeric/racelist without correction; newtargets needownproof/currentcutoff.",
     "Complete any missing current-day upcoming B-only snapshots shown by current coverage without rewriting existing receipts; no duplicate serialized writer or repeated completed all-upcoming job",
     "Accumulate actual physical pre-exhibition saves/after-exhibition pairs with independent exhibition clocks; current B-only labels and later complete measures alone do not establish physical phase",
     "Advance verified boat/lane identity, foreground masking, camera/world calibration and measurement ground truth; color/image-affine estimates are not boat performance or prediction inputs",
@@ -536,7 +536,7 @@
     }
   ],
   "name_bound_exhibition_implementation": {
-    "status": "ONE_RACE_TWO_MODELS_BACKUP_API_REPLAY_DESKTOP_MOBILE_VERIFIED",
+    "status": "TWO_RACES_TWO_MODELS_FULL_BACKUP_API_AND_REPLAY_VERIFIED_UI7_PENDING",
     "application_commit": "28ee0ced23b3fe2ec28cda9c1de9a7ad5387839d",
     "models": [
       "name-bound-display/v2",
@@ -563,7 +563,7 @@
     "live_numeric_target": "20261015-15-04",
     "live_name_binding_request_id": "38696849355-1",
     "previous_attempt_evidence": "docs/evidence/2026-10-15/name-bound-exhibition-local-bound-stop.json",
-    "live_numeric_races": 1,
+    "live_numeric_races": 2,
     "run_id": 38699263834,
     "job_id": 116303201374,
     "artifact_id": 11955560704,
@@ -589,15 +589,39 @@
     "ui_input_rows": 6,
     "ui_probability_rows": 240,
     "mobile_horizontal_access_verified": true,
-    "live_abbreviation_expansion_exercised": false,
+    "live_abbreviation_expansion_exercised": true,
     "local_screenshots": [
       "artifacts/local/name-bound-desktop-live.jpg",
       "artifacts/local/name-bound-mobile-live.jpg",
       "artifacts/local/name-bound-mobile-probabilities-live.jpg"
-    ]
+    ],
+    "previous_completed_numeric_target": "20261015-15-04",
+    "additional_live_numeric": {
+      "race_id": "20261015-15-07",
+      "request_id": "38708771146-1",
+      "run_id": 38708771146,
+      "job_id": 116334672413,
+      "artifact_id": 11959458778,
+      "name_binding_request_id": "38703196877-1",
+      "baseline_request_id": "38677457884-1",
+      "cloud_saved_at": "2026-10-15T08:52:49.479151+00:00",
+      "receipt_confirmed_at": "2026-10-15T08:52:50.687626+00:00",
+      "seconds_before_close": 669.312374,
+      "envelope_bytes": 114084,
+      "envelope_sha256": "ad1bbf97ae747ccf42488e5d1a85e430002fd94d0f706a344bf82ada9ec5f6bd",
+      "files": 6,
+      "bytes": 160680,
+      "live_abbreviation_expansion_exercised": true,
+      "completed_numeric_target_must_not_be_reacquired": true,
+      "full_backup_restored": true,
+      "latest_and_pinned_api_match": true,
+      "independent_720_replay": true,
+      "live_ui_verified": false,
+      "evidence": "docs/evidence/2026-10-15/name-bound-marugame7-live.json"
+    }
   },
   "new_name_bound_evaluation": {
-    "status": "IMPLEMENTING_READ_ONLY_FROZEN_THREE_PHASE_EVALUATION",
+    "status": "API_AND_ACTUAL_PC_MOBILE_UI_VERIFIED_DEDICATED_WORKFLOW_PENDING",
     "forecast_request_id": "38699263834-1",
     "race_id": "20261015-15-04",
     "result_run_id": 38705582381,
@@ -605,9 +629,25 @@
     "result_cloud_saved_at": "2026-10-15T08:26:12.377761+00:00",
     "result_payload_bytes": 4958,
     "result_payload_sha256": "65cf65d7a532220a8688fbb3e3051f5cd9bd96d32944be055fb9d9d9897ac2fe",
-    "new_v2_evaluation_live_verified": false,
+    "new_v2_evaluation_live_verified": true,
     "result_is_label_only": true,
-    "completed_result_must_not_be_reacquired": true
+    "completed_result_must_not_be_reacquired": true,
+    "api_live_verified": true,
+    "api_evidence": "docs/evidence/2026-10-15/name-bound-evaluation-api-live.json",
+    "api_application_commit": "07c78da7e7572714a4ef15ac463362b366d818eb",
+    "api_preview": "https://race-ai-preview-lk0nkma38-qq1130034-1738.vercel.app",
+    "api_as_of": "2026-10-15T08:37:51.734623+00:00",
+    "ui_live_verified": true,
+    "workflow_verifier_live_verified": false,
+    "ui_commit": "558240bb52140d49097f81dd05f05e9d659d9656",
+    "ui_preview": "https://race-ai-preview-bgajnjvyu-qq1130034-1738.vercel.app",
+    "ui_widths": [
+      1440,
+      390
+    ],
+    "ui_rows": 3,
+    "ui_page_horizontal_overflow": false,
+    "clock_skew_evidence": "docs/evidence/2026-10-15/name-bound-evaluation-clock-interop.json"
   },
   "prior_day_refresh_success": {
     "run_id": 38671430255,
