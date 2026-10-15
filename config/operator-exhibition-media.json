@@ -73,7 +73,7 @@
       "drm_or_license_exchange": false
     }
   ],
-  "source_scope_status": "VERIFIED_NARUTO_METADATA_MASTER_AND_VOD_CHILD; MEDIA_DECODE_UNVERIFIED",
+  "source_scope_status": "VERIFIED_ALL_VENUE_PLAYER_MAPPING; NARUTO_VOD_TRANSIENT_DECODE_VERIFIED; BOAT_ANALYSIS_UNVERIFIED",
   "venue_codes": [
     "01",
     "02",
@@ -110,7 +110,7 @@
   "implemented_resolver_venues": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
   "all_venue_player_mapping_verified": true,
   "all_venue_recording_availability_verified": false,
-  "raw_video_segment_acquisition_verified": false,
+  "raw_video_segment_acquisition_verified": true,
   "boat_analysis_verified": false,
-  "latest_resolver_evidence": "docs/evidence/2026-10-15/exhibition-video-metadata-live.json"
+  "latest_resolver_evidence": "docs/evidence/2026-10-15/exhibition-video-decode-live.json"
 }

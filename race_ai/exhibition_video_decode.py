@@ -172,24 +172,28 @@ def _candidates(frame):
         for index in range(1, count):
             x, y, w, h, area = map(int, stats[index])
             if 4 <= w and 4 <= h and 25 <= area <= width * height * .10:
-                found.append(dict(color=color, x=float(centers[index][0]), y=float(centers[index][1]), area=area))
+                found.append(dict(color=color, x=float(centers[index][0]), y=float(centers[index][1]),
+                                  area=area, box=[x, y, w, h]))
     return sorted(found, key=lambda c: -c['area'])[:12]
 
 
 def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
-                       sample_interval=2.0, segment_limit=MAX_SEGMENTS, elapsed_limit=90):
+                       sample_interval=2.0, segment_limit=MAX_SEGMENTS, elapsed_limit=90, camera_motion=False):
     """A consumed lease returns derived evidence only. Runtime fails before media GETs."""
     start = stamp(clock()); validate_descriptor(descriptor, race, start)
     require(descriptor['status'] == 'AVAILABLE' and lease is not None, 'VIDEO_RECORDING_UNAVAILABLE')
     require(type(sample_interval) in (int, float) and .5 <= sample_interval <= 10
             and type(segment_limit) is int and 1 <= segment_limit <= MAX_SEGMENTS
-            and type(elapsed_limit) in (int, float) and 1 <= elapsed_limit <= 120, 'VIDEO_PROCESSING_BOUNDS_INVALID')
+            and type(elapsed_limit) in (int, float) and 1 <= elapsed_limit <= 120
+            and type(camera_motion) is bool, 'VIDEO_PROCESSING_BOUNDS_INVALID')
     try:
         import av
         import cv2
     except (ImportError, OSError):
         raise SourceError('VIDEO_DECODE_RUNTIME_UNAVAILABLE') from None
     fetch = fetch or bounded_fetch
+    if camera_motion:
+        from .video_camera_motion import estimate_camera_motion, candidate_point_residual
     def process(master_url):
         began = time.monotonic(); total = 0; last = instant(start); media = descriptor['media']
         require(_resource(master_url,media['id'],media['source_id'],signed=True)==media['source_url_without_query'],
@@ -216,6 +220,8 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
         segments = parse_vod(child_raw, media['id'], media['source_id'], variant); child_raw = None
         tracks = []; previous = None; keys = {}; decoded = sampled = completed = 0; offset = 0.0
         sharpness = []; sizes = set(); segment_hash = hashlib.sha256()
+        previous_pixels = None; previous_candidates = []; previous_second = None
+        camera_attempts = camera_accepted = 0; camera_rejections = {}; camera_rmse = []; camera_inliers = []
         try:
             for number, segment in enumerate(segments[:segment_limit]):
                 decoded_before_segment = decoded
@@ -227,6 +233,7 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
                         require(len(key) == 16, 'VIDEO_HLS_KEY_BYTES_INVALID'); keys[segment.key_url] = key
                     raw = _decrypt(raw, keys[segment.key_url], segment.iv)
                 local_tracks = []; first_pts = None; next_sample = 0.0; previous = None
+                previous_pixels = None; previous_candidates = []; previous_second = None
                 with av.open(io.BytesIO(raw), format='mpegts', mode='r') as container:
                     require(len(container.streams.video) == 1, 'VIDEO_STREAM_COUNT_INVALID')
                     for frame in container.decode(video=0):
@@ -245,25 +252,62 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
                         pixels = frame.to_ndarray(format='bgr24')
                         gray = cv2.cvtColor(pixels, cv2.COLOR_BGR2GRAY)
                         sharpness.append(float(cv2.Laplacian(gray, cv2.CV_64F).var()))
-                        # Scene cuts reset associations; camera displacement is intentionally uncalibrated.
+                        # Segment/cut boundaries never create a cross-shot camera estimate or association.
                         thumbnail = cv2.resize(gray, (32, 18))
                         if previous is not None and float(cv2.absdiff(previous, thumbnail).mean()) > 35:
                             local_tracks = []
+                            previous_pixels = None; previous_candidates = []; previous_second = None
                         previous = thumbnail; candidates = _candidates(pixels); used = set()
+                        motion = None
+                        if camera_motion and previous_pixels is not None:
+                            motion = estimate_camera_motion(previous_pixels, pixels,
+                                previous_exclusions=[c['box'] for c in previous_candidates],
+                                current_exclusions=[c['box'] for c in candidates])
+                            camera_attempts += 1
+                            if motion['accepted']:
+                                camera_accepted += 1
+                                camera_rmse.append(motion['reprojection_rmse_pixels'])
+                                camera_inliers.append(motion['inlier_ratio'])
+                            else:
+                                status = motion['status']
+                                camera_rejections[status] = camera_rejections.get(status, 0) + 1
+                                if status in {'UNVERIFIED_SCENE_CHANGE', 'UNVERIFIED_SIZE_CHANGE'}:
+                                    local_tracks = []
                         for candidate in candidates:
-                            matches = [(math.hypot(t['last_x']-candidate['x'], t['last_y']-candidate['y']), i, t)
-                                       for i,t in enumerate(local_tracks) if i not in used and t['color']==candidate['color']
-                                       and offset+position-t['last_second'] <= sample_interval*1.5]
+                            matches = []
+                            for i, t in enumerate(local_tracks):
+                                if i in used or t['color'] != candidate['color'] or offset+position-t['last_second'] > sample_interval*1.5:
+                                    continue
+                                residual = None
+                                if motion is not None and t['last_second'] == previous_second:
+                                    residual = candidate_point_residual(motion,
+                                        (t['last_x'], t['last_y']), (candidate['x'], candidate['y']))
+                                distance = (residual['residual_distance_pixels'] if residual and residual['accepted'] else
+                                    math.hypot(t['last_x']-candidate['x'], t['last_y']-candidate['y']))
+                                matches.append((distance, i, t, residual))
                             match = min(matches, default=None, key=lambda x:x[0])
                             if match and match[0] <= frame.width*.15:
-                                _, index, track = match; used.add(index)
+                                _, index, track, residual = match; used.add(index)
+                                if camera_motion:
+                                    if residual and residual['accepted']:
+                                        track['corrected_transitions'] += 1
+                                        track['corrected_dx'] += residual['residual_dx_pixels']
+                                        track['corrected_dy'] += residual['residual_dy_pixels']
+                                    else:
+                                        track['all_transitions_corrected'] = False
                                 track.update(last_x=candidate['x'],last_y=candidate['y'],last_second=offset+position,samples=track['samples']+1)
                             else:
                                 require(len(tracks) < MAX_TRACKS, 'VIDEO_CANDIDATE_LIMIT_EXCEEDED')
                                 track=dict(color=candidate['color'],first_x=candidate['x'],first_y=candidate['y'],
                                            last_x=candidate['x'],last_y=candidate['y'],first_second=offset+position,
                                            last_second=offset+position,samples=1,segment=number)
+                                if camera_motion:
+                                    track.update(corrected_dx=0.0, corrected_dy=0.0, corrected_transitions=0,
+                                                 all_transitions_corrected=True)
                                 tracks.append(track);local_tracks.append(track);used.add(len(local_tracks)-1)
+                        if camera_motion:
+                            previous_pixels = pixels
+                            previous_candidates = candidates; previous_second = offset+position
                         pixels = gray = thumbnail = None
                         require(time.monotonic()-began < elapsed_limit, 'VIDEO_PROCESSING_TIME_EXCEEDED')
                 require(decoded>decoded_before_segment,'VIDEO_SEGMENT_NO_FRAMES_DECODED')
@@ -287,9 +331,29 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
                 candidate_tracks=[dict(color=t['color'],segment=t['segment'],samples=t['samples'],
                   first_second=t['first_second'],last_second=t['last_second'],dx_pixels=t['last_x']-t['first_x'],
                   dy_pixels=t['last_y']-t['first_y']) for t in tracks if t['samples']>=2])
+            if camera_motion:
+                eligible_tracks = [t for t in tracks if t['samples'] >= 2]
+                result.update(analysis_version='transient-hls-color-candidates/v2',
+                    metric_units='IMAGE_PIXELS_WITH_OPTIONAL_CAMERA_ESTIMATE_NOT_BOAT_PERFORMANCE',
+                    camera_motion=dict(attempted_pairs=camera_attempts, accepted_pairs=camera_accepted,
+                        rejected_pairs=camera_attempts-camera_accepted, rejection_counts=camera_rejections,
+                        mean_accepted_inlier_ratio=sum(camera_inliers)/len(camera_inliers) if camera_inliers else None,
+                        mean_accepted_reprojection_rmse_pixels=sum(camera_rmse)/len(camera_rmse) if camera_rmse else None,
+                        scope='BACKGROUND_AFFINE_IMAGE_ESTIMATE_ONLY', boat_identity='UNVERIFIED',
+                        world_calibration='UNVERIFIED', prediction_eligible=False,
+                        residual_basis='SUM_OF_PAIR_RESIDUALS_IN_EACH_CURRENT_FRAME_NOT_WORLD_DISPLACEMENT'),
+                    candidate_tracks_total=len(eligible_tracks), candidate_tracks_returned=min(len(eligible_tracks), 500),
+                    candidate_tracks_truncated=len(eligible_tracks)>500)
+                result['candidate_tracks'] = [dict(output,
+                    camera_corrected_transitions=t['corrected_transitions'],
+                    camera_corrected_dx_pixels=t['corrected_dx'] if t['all_transitions_corrected'] else None,
+                    camera_corrected_dy_pixels=t['corrected_dy'] if t['all_transitions_corrected'] else None,
+                    camera_correction_status='IMAGE_ESTIMATE_ONLY' if t['all_transitions_corrected'] else 'UNVERIFIED')
+                    for output, t in zip(result['candidate_tracks'][:500], eligible_tracks[:500])]
             result['snapshot_id']=hashlib.sha256(canonical(result)).hexdigest()
             require(time.monotonic()-began < elapsed_limit, 'VIDEO_PROCESSING_TIME_EXCEEDED')
             return result
         finally:
-            keys.clear(); segments.clear(); tracks.clear(); raw = previous = None
+            keys.clear(); segments.clear(); tracks.clear(); raw = previous = previous_pixels = None
+            previous_candidates.clear()
     return lease.consume(process)
