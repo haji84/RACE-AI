@@ -1,11 +1,13 @@
 """Bounded ordinary public-player metadata resolver, not video/CV analysis.
 
-Only the observed Naruto mapping is supported. No media GETs, keys, DRM work,
+Stadium identifiers are pinned to an observed official player asset; this does
+not establish media availability at every venue. No media GETs, keys, DRM work,
 original retention or new permission are provided here. Signed playback URLs
 live only inside a nonserializable one-use transient-processing lease.
 """
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
+from types import MappingProxyType
 import hashlib
 import json
 import math
@@ -19,7 +21,20 @@ from web.race_contract import canonical, program_digest, stamp, JST
 
 PLAYER = 'https://front.player.boatrace-cdn.jp'
 PROJECT = 'cp-boatrace-prod'
-STADIUMS = {'14': '14naruto'}
+STADIUMS = MappingProxyType({
+    '01': '01kiryu', '02': '02toda', '03': '03edogawa', '04': '04heiwajima',
+    '05': '05tamagawa', '06': '06hamanako', '07': '07gamagori', '08': '08tokoname',
+    '09': '09tsu', '10': '10mikuni', '11': '11biwako', '12': '12suminoe',
+    '13': '13amagasaki', '14': '14naruto', '15': '15marugame', '16': '16kojima',
+    '17': '17miyajima', '18': '18tokuyama', '19': '19shimonoseki', '20': '20wakamatsu',
+    '21': '21ashiya', '22': '22fukuoka', '23': '23karatsu', '24': '24omura',
+})
+STADIUM_MAPPING_EVIDENCE = {
+    'source_url': 'https://race.boatcast.jp/assets/js/main.js',
+    'source_sha256': '83f1bf539388ee9ca3a652d90b42b89ff4657b40f72d010a3a0cf77aa2a9fe51',
+    'captured_at': '2026-10-15T01:58:56.015670+00:00',
+    'coverage': 'IDENTIFIERS_ONLY_MEDIA_AVAILABILITY_UNVERIFIED',
+}
 MAX_BYTES = 1024 * 1024
 MAX_DERIVED_BYTES = 256000
 TIMEOUT = 10
@@ -185,11 +200,14 @@ class EphemeralMediaLease:
             url = None
 
 
-def resolve_exhibition_source(race, *, stadium='14naruto', fetch=None, clock=utc_now,
+def resolve_exhibition_source(race, *, stadium=None, fetch=None, clock=utc_now,
                               player_duration_seconds=None):
     """At most index+metadata GETs; no playback resource is ever fetched here."""
     try:
         start = instant(clock())
+        if stadium is None:
+            program_digest(race)
+            stadium = STADIUMS.get(race['race_id'][9:11])
         index_url, metadata_url, player_url, ref = _paths(race, stadium)
         require(instant(race['closed_at']).astimezone(JST).date() == start.astimezone(JST).date(),
                 'CURRENT_VIDEO_RACE_REQUIRED')

@@ -7,6 +7,7 @@ import pickle
 import unittest
 
 from race_ai.core import SourceError
+import race_ai.exhibition_video_source as video_source
 from race_ai.exhibition_video_source import (SourceResponse, resolve_exhibition_source,
                                              validate_descriptor)
 from web.race_contract import canonical
@@ -56,6 +57,47 @@ def run(fetch=None,**kwargs):
 class ExhibitionVideoSourceTests(unittest.TestCase):
     def rehash(self,value):
         value['snapshot_id']=hashlib.sha256(canonical({k:v for k,v in value.items() if k!='snapshot_id'})).hexdigest()
+
+    def test_all24_stadium_identifiers_are_pinned_to_observed_official_mapping(self):
+        expected={
+            '01':'01kiryu','02':'02toda','03':'03edogawa','04':'04heiwajima',
+            '05':'05tamagawa','06':'06hamanako','07':'07gamagori','08':'08tokoname',
+            '09':'09tsu','10':'10mikuni','11':'11biwako','12':'12suminoe',
+            '13':'13amagasaki','14':'14naruto','15':'15marugame','16':'16kojima',
+            '17':'17miyajima','18':'18tokuyama','19':'19shimonoseki','20':'20wakamatsu',
+            '21':'21ashiya','22':'22fukuoka','23':'23karatsu','24':'24omura'}
+        self.assertEqual(dict(video_source.STADIUMS),expected)
+        proof=getattr(video_source,'STADIUM_MAPPING_EVIDENCE',None)
+        self.assertIsInstance(proof,dict)
+        self.assertEqual(proof['source_url'],'https://race.boatcast.jp/assets/js/main.js')
+        self.assertRegex(proof['source_sha256'],r'^[0-9a-f]{64}$')
+        self.assertEqual(proof['source_sha256'],'83f1bf539388ee9ca3a652d90b42b89ff4657b40f72d010a3a0cf77aa2a9fe51')
+        self.assertEqual(proof['captured_at'],'2026-10-15T01:58:56.015670+00:00')
+        self.assertEqual(proof['coverage'],'IDENTIFIERS_ONLY_MEDIA_AVAILABILITY_UNVERIFIED')
+
+    def test_default_verified_mapping_selects_each_stadium_with_only_a_fake_pending_index(self):
+        expected=['01kiryu','02toda','03edogawa','04heiwajima','05tamagawa','06hamanako',
+                  '07gamagori','08tokoname','09tsu','10mikuni','11biwako','12suminoe',
+                  '13amagasaki','14naruto','15marugame','16kojima','17miyajima','18tokuyama',
+                  '19shimonoseki','20wakamatsu','21ashiya','22fukuoka','23karatsu','24omura']
+        for venue,stadium in enumerate(expected,1):
+            with self.subTest(venue=venue):
+                race=program();race['race_id']=f'20261015-{venue:02d}-05'
+                index=recording()
+                for row in index['races'].values():row.update(ref_id='',source_type='')
+                fetch=FakeFetch(index=index)
+                descriptor,lease=resolve_exhibition_source(race,fetch=fetch,
+                    clock=lambda:datetime.fromisoformat(NOW))
+                self.assertEqual(descriptor['stadium'],stadium)
+                self.assertEqual(descriptor['status'],'PENDING');self.assertIsNone(lease)
+                self.assertEqual(len(fetch.calls),1)
+                self.assertIn(f'/20261015/{stadium}/exhibition/setting.json',fetch.calls[0]['url'])
+                self.assertIn(f'stadium={stadium}&raceType=exhibition',fetch.calls[0]['headers']['Referer'])
+
+    def test_known_mapping_never_accepts_another_venues_explicit_stadium(self):
+        fetch=FakeFetch()
+        with self.assertRaises(SourceError):run(fetch,stadium='06hamanako')
+        self.assertFalse(fetch.calls)
 
     def test_normal_public_resolution_is_two_bounded_gets_without_api_key_or_video_get(self):
         fetch=FakeFetch();descriptor,lease=run(fetch,player_duration_seconds=348)

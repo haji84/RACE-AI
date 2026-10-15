@@ -13,8 +13,21 @@
   "photo_publish": false,
   "derived_features_protected_preview": true,
   "derived_features_public_publish": false,
+  "original_numeric_ingest": true,
+  "original_numeric_store": true,
+  "original_numeric_protected_preview": true,
   "independent_legal_audit_provided": false,
   "source_scopes": [
+    {
+      "component": "original_numeric",
+      "origin": "https://race.boatcast.jp",
+      "path_template": "/txt/{venue}/bc_oriten_{day}_{venue}_{race}.txt"
+    },
+    {
+      "component": "standard_numeric",
+      "origin": "https://race.boatcast.jp",
+      "path_template": "/hp_txt/{venue}/bc_j_tkz_{day}_{venue}_{race}.txt"
+    },
     {
       "component": "official_exhibition_page",
       "origin": "https://race.boatcast.jp",
@@ -48,9 +61,19 @@
       "project": "cp-boatrace-prod",
       "resolution": "ONLY_PUBLIC_OFFICIAL_PLAYER_RETURNED_EXHIBITION_RESOURCE",
       "credentials": "EPHEMERAL_NORMAL_PLAYER_ACCESS_ONLY_NO_PERSISTENCE"
+    },
+    {
+      "component": "standard_hls_identity_aes",
+      "origin": "https://key.streaks.jp",
+      "path_scope": "/{exact_media_id}/{exact_source_id}/{player_returned_opaque_identifier}",
+      "method": "AES-128",
+      "keyformat": "identity",
+      "source": "ordinary public exhibition player child playlist",
+      "retention": "RAM_ONLY_NO_URI_OR_KEY_RECORDING",
+      "drm_or_license_exchange": false
     }
   ],
-  "source_scope_status": "VERIFIED_NARUTO_METADATA_AND_PUBLIC_MASTER_MANIFEST_ONLY",
+  "source_scope_status": "VERIFIED_NARUTO_METADATA_MASTER_AND_VOD_CHILD; MEDIA_DECODE_UNVERIFIED",
   "venue_codes": [
     "01",
     "02",
@@ -84,10 +107,9 @@
     "player_playback_verified": true,
     "boat_analysis_verified": false
   },
-  "implemented_resolver_venues": [
-    "14"
-  ],
-  "all_venue_player_mapping_verified": false,
+  "implemented_resolver_venues": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
+  "all_venue_player_mapping_verified": true,
+  "all_venue_recording_availability_verified": false,
   "raw_video_segment_acquisition_verified": false,
   "boat_analysis_verified": false,
   "latest_resolver_evidence": "docs/evidence/2026-10-15/exhibition-video-metadata-live.json"

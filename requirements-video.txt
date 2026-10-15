@@ -1,0 +1,4 @@
+# Bounded offline/transient decoding only; excluded from Vercel web runtime.
+av==19.0.1
+numpy==2.5.4
+opencv-python-headless==5.0.0.93

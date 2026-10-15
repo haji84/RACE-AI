@@ -7,6 +7,7 @@ from api.github_oidc import verify_github_oidc
 from api.today import load_feed,create_blob_client,utc_now,JST
 from api.race_store import decode,find_program,REVIEW
 from api.exhibition_store import publish_exhibition_prediction,request_identifier,ExhibitionUnavailable
+from api.original_prediction_store import publish_original_prediction
 
 
 class handler(BaseHTTPRequestHandler):
@@ -41,7 +42,9 @@ class handler(BaseHTTPRequestHandler):
             raw=self.rfile.read(size)
             if len(raw)!=size: raise ValueError('body truncated')
             request=decode(raw)
-            if (not isinstance(request,dict) or set(request)!={'publication_review','race_id','request_id'}
+            fields={'publication_review','race_id','request_id'}
+            if (not isinstance(request,dict) or set(request) not in (fields,fields|{'variant'})
+                    or ('variant' in request and request['variant']!='original-v1')
                     or request['publication_review']!=REVIEW):
                 raise ValueError('exact publication request required')
             request_identifier(request['request_id'])
@@ -53,7 +56,11 @@ class handler(BaseHTTPRequestHandler):
                 raise ValueError('JST_MIDNIGHT_CROSSED')
             race=find_program(feed,request['race_id'],now)
             client=create_blob_client(os.environ['BLOB_READ_WRITE_TOKEN'])
-            result=publish_exhibition_prediction(request,race,client=client,now=now,clock=utc_now)
+            if request.get('variant')=='original-v1':
+                result=publish_original_prediction({key:value for key,value in request.items() if key!='variant'},race,
+                    client=client,now=now,clock=utc_now)
+            else:
+                result=publish_exhibition_prediction(request,race,client=client,now=now,clock=utc_now)
             if utc_now().astimezone(JST).date()!=before.astimezone(JST).date():
                 raise ValueError('JST_MIDNIGHT_CROSSED')
             self.respond(200,{**result,'commit_sha':commit})

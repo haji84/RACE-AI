@@ -13,7 +13,7 @@ const server=http.createServer((req,res)=>{
   const value=clone((id===ID?(mode==='equal'?equal:fixture):second).post_receipt);if(mode==='wrong-race')value.snapshot.race_id=SECOND;if(mode==='bad-delta')value.snapshot.deltas.marginals[0].first.delta_probability=0.5;const delay=mode==='slow'&&id===ID?450:0;setTimeout(()=>res.end(JSON.stringify(value)),delay);return;
  }
  if(req.url.startsWith('/api/')){res.statusCode=404;res.end('{}');return;}
- const name=req.url.split('?')[0]==='/'?'index.html':req.url.split('?')[0].slice(1);if(!['index.html','style.css','app.js','ui-core.js','money.js','settlement.js','exhibition.js'].includes(name)){res.statusCode=404;res.end();return;}res.setHeader('content-type',name.endsWith('.js')?'application/javascript':name.endsWith('.css')?'text/css':'text/html');res.end(fs.readFileSync(path.join(web,name)));
+ const name=req.url.split('?')[0]==='/'?'index.html':req.url.split('?')[0].slice(1);if(!['index.html','style.css','app.js','ui-core.js','money.js','settlement.js','exhibition.js','original-exhibition.js'].includes(name)){res.statusCode=404;res.end();return;}res.setHeader('content-type',name.endsWith('.js')?'application/javascript':name.endsWith('.css')?'text/css':'text/html');res.end(fs.readFileSync(path.join(web,name)));
 });
 (async()=>{
  const digest=await require('../web/settlement.js').programDigest(second.race);second.post_receipt.program_identity_sha256=digest;second.post_receipt.snapshot.program_identity_sha256=digest;

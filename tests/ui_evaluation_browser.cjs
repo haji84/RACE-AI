@@ -24,7 +24,7 @@ const server=http.createServer((req,res)=>{
   setTimeout(()=>res.end(JSON.stringify(value)),delay);return;
  }
  const name=req.url.split('?')[0]==='/'?'index.html':req.url.split('?')[0].slice(1);
- if(!['index.html','style.css','app.js','ui-core.js','money.js','settlement.js','exhibition.js'].includes(name)){res.statusCode=404;res.end();return;}
+ if(!['index.html','style.css','app.js','ui-core.js','money.js','settlement.js','exhibition.js','original-exhibition.js'].includes(name)){res.statusCode=404;res.end();return;}
  res.setHeader('content-type',name.endsWith('.js')?'application/javascript':name.endsWith('.css')?'text/css':'text/html');res.end(fs.readFileSync(path.join(web,name)));
 });
 (async()=>{
