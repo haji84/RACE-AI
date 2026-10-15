@@ -5,9 +5,14 @@ on:
       collection:
         description: Research uses saved day facts; day collection only when missing or at least six hours old
         type: choice
-        options: [research, exhibition, original, cohort, evaluation, result, race, day]
+        options: [research, exhibition, original, cohort, evaluation, result, race, day, name-binding]
         default: research
         required: true
+      name_binding_race_id:
+        description: Exact current-day future race with an existing frozen baseline
+        type: string
+        required: false
+        default: ''
       cohort_selection:
         description: Scope of saved B-only baselines; each batch preserves existing receipts and writes at most24
         type: choice
@@ -254,11 +259,11 @@ jobs:
 
       - name: Save bounded upcoming national research cohort without replacing forecasts
         id: cohort
-        if: github.event_name == 'push' || inputs.collection == 'cohort'
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'cohort'
         env:
           RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-qs4a1x8aa-qq1130034-1738.vercel.app/api/publish-prediction
           RACE_AI_RESEARCH_COMMIT_SHA: 358d1fab651e70df699708cde18b96b80a0e080e
-          RACE_AI_COHORT_SELECTION: ${{ github.event_name == 'push' && 'all-upcoming' || inputs.cohort_selection || 'next-per-venue' }}
+          RACE_AI_COHORT_SELECTION: ${{ inputs.cohort_selection || 'next-per-venue' }}
         run: |
           result=0
           python day-source/scripts/publish_research_cohort.py --output-dir "$RUNNER_TEMP/race-ai-cohort" --selection "$RACE_AI_COHORT_SELECTION" --max-races 24 --max-seconds 240 --max-reads 313 --execute || result=$?
@@ -472,4 +477,59 @@ jobs:
               if directory=='published' and (manifest['result'] not in {'ORIGINAL_EXHIBITION_PARTIAL_VERIFIED','ORIGINAL_EXHIBITION_PREDICTION_VERIFIED'} or manifest['validation_status']!='UNVALIDATED' or manifest['purchase_decision']!='skip' or manifest['purchase_recommendations']!=[] or manifest['official_source_requests']!=0):
                   raise SystemExit('ORIGINAL_RESEARCH_STATE_CONFLICT')
           print(json.dumps({'result':'ORIGINAL_ALL_CONTENT_RESTORE_VERIFIED','files':len(names)}))
+          PY
+
+      - name: Collect one independent official name binding
+        id: name_binding
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'name-binding'
+        env:
+          RACE_AI_NAME_BINDING_PUBLISH_URL: https://race-ai-preview-qs4a1x8aa-qq1130034-1738.vercel.app/api/publish-name-binding
+          RACE_AI_NAME_BINDING_COMMIT_SHA: 358d1fab651e70df699708cde18b96b80a0e080e
+          RACE_AI_NAME_BINDING_RACE_ID: ${{ inputs.name_binding_race_id }}
+        run: |
+          result=0
+          python day-source/scripts/publish_name_binding.py --review day-source/config/operator-official-facts.json --race-id "$RACE_AI_NAME_BINDING_RACE_ID" --output-dir "$RUNNER_TEMP/race-ai-name-binding" --execute || result=$?
+          if [ -f "$RUNNER_TEMP/race-ai-name-binding/manifest.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
+          exit "$result"
+      - name: Back up normalized name binding evidence
+        if: always() && steps.name_binding.outputs.backup_exists == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: name-binding-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-name-binding/*.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore normalized name binding evidence
+        if: always() && steps.name_binding.outputs.backup_exists == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: name-binding-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-name-binding-restored
+      - name: Verify all normalized name binding backup bytes
+        if: always() && steps.name_binding.outputs.backup_exists == 'true'
+        run: |
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])
+          original,restored=root/'race-ai-name-binding',root/'race-ai-name-binding-restored'
+          allowed={'baseline.json','name-proof.json','request.json','receipt.json','manifest.json'}
+          names={p.name for p in original.iterdir()}
+          if not names<=allowed or 'manifest.json' not in names or names!={p.name for p in restored.iterdir()}:
+              raise SystemExit('NAME_BINDING_BACKUP_COVERAGE_INVALID')
+          for name in sorted(names):
+              before,after=(original/name).read_bytes(),(restored/name).read_bytes()
+              if not 0<len(after)<=64000 or before!=after:raise SystemExit('NAME_BINDING_BACKUP_BYTES_INVALID')
+          manifest=json.loads((restored/'manifest.json').read_bytes())
+          if manifest['status'] not in {'COMPLETED','STOPPED','TIME_LIMIT_REACHED'} or manifest['validation_status']!='UNVALIDATED' or manifest['purchase_decision']!='skip' or manifest['purchase_recommendations']!=[]:
+              raise SystemExit('NAME_BINDING_MANIFEST_INVALID')
+          if not 0<=manifest['official_source_requests']<=1 or not 0<=manifest['posts_attempted']<=1 or not 0<=manifest['reads_used']<=4 or manifest['max_seconds']!=180:
+              raise SystemExit('NAME_BINDING_BUDGET_INVALID')
+          if set(manifest['backups'])!=names-{'manifest.json'}:raise SystemExit('NAME_BINDING_BACKUP_COVERAGE_INVALID')
+          for name,meta in manifest['backups'].items():
+              raw=(restored/name).read_bytes()
+              if len(raw)!=meta['bytes'] or hashlib.sha256(raw).hexdigest()!=meta['sha256']:raise SystemExit('NAME_BINDING_BACKUP_DIGEST_INVALID')
+          if manifest['status']=='COMPLETED' and names!=allowed:raise SystemExit('NAME_BINDING_INCOMPLETE')
+          print(json.dumps({'result':'NAME_BINDING_BACKUP_RESTORE_VERIFIED','status':manifest['status'],'files':len(names)}))
           PY
