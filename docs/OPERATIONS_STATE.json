@@ -65,18 +65,42 @@
     "prompt_updated_for_name_bound_v2": true
   },
   "last_exact_head_ci": {
-    "commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
-    "run_id": 38725509564,
-    "push_run_id": 38725503956,
-    "windows_job_id": 116390228511,
-    "linux_job_id": 116390228654,
-    "python_tests_each": 919,
+    "commit": "953dd03a4f12e42dd770c84c22c5a7d000add9a2",
+    "run_id": 38735645411,
+    "push_run_id": 38735636996,
+    "windows_job_id": 116424131607,
+    "linux_job_id": 116424131186,
+    "python_tests_each": 947,
     "javascript_tests_each": 187,
     "failures": 0,
     "skips": 0,
-    "windows_python_seconds": 257.524,
-    "linux_python_seconds": 174.988,
-    "scope": "Functional325 verified; final evidence/pin-only successor exactCI/READY recorded in PR64 and heartbeat to avoid a self-referential commit."
+    "windows_python_seconds": 357.788,
+    "linux_python_seconds": 191.056,
+    "windows_log_summary": [
+      "2026-10-15T12:35:52.7416260Z # tests 8",
+      "2026-10-15T12:35:52.7418078Z # pass 8",
+      "2026-10-15T12:35:52.7418434Z # fail 0",
+      "2026-10-15T12:35:52.7420561Z # skipped 0",
+      "2026-10-15T12:40:49.4378470Z Ran 947 tests in 357.788s",
+      "2026-10-15T12:40:49.4378863Z OK",
+      "2026-10-15T12:40:58.4790414Z # tests 187",
+      "2026-10-15T12:40:58.4790923Z # pass 187",
+      "2026-10-15T12:40:58.4791180Z # fail 0",
+      "2026-10-15T12:40:58.4791703Z # skipped 0"
+    ],
+    "linux_log_summary": [
+      "2026-10-15T12:34:59.3092538Z # tests 8",
+      "2026-10-15T12:34:59.3092876Z # pass 8",
+      "2026-10-15T12:34:59.3093027Z # fail 0",
+      "2026-10-15T12:34:59.3093359Z # skipped 0",
+      "2026-10-15T12:37:39.5595546Z Ran 947 tests in 191.056s",
+      "2026-10-15T12:37:39.5595692Z OK",
+      "2026-10-15T12:37:43.3303397Z # tests 187",
+      "2026-10-15T12:37:43.3303612Z # pass 187",
+      "2026-10-15T12:37:43.3303717Z # fail 0",
+      "2026-10-15T12:37:43.3303932Z # skipped 0"
+    ],
+    "scope": "Functional953 verified; docs-only successor exactCI/READY/API recorded inPR64/heartbeat without selfreference."
   },
   "last_verified_race_application_commit": "ceddba957d6600ee41cb4f280834dff7296d2f34",
   "last_verified_race_deployment_url": "https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app",
@@ -154,11 +178,13 @@
     "source": "118 frozen B snapshots, two name-bound numeric races4R/7R and both separate labels; same-day feature-phase comparisons, no held-out/multi-day validation or adoption.",
     "name_bound_v2_result_race_count": 2,
     "name_bound_v2_numeric_races": 2,
-    "physical_exhibition_pairs_verified": 0
+    "physical_exhibition_pairs_verified": 0,
+    "archived_common_cohort_race_count": 2,
+    "archived_common_cohort_day_count": 1
   },
   "next_priority": [
     "Accumulate independently timed physical pre-exhibition saves and after-exhibition pairs. B-only names/publication absence do not prove physical phase. Keep all118 frozen baselines and completed4R/7R forecast/name/result envelopes unchanged.",
-    "Build multi-day held-out accuracy/calibration/adoption evidence from immutable versions and separately acquired labels.4R/7R are two same-day v2 examples, each reportN=1; remainUNVALIDATED/skip/[].",
+    "Accumulate prospective multi-day held-out accuracy/calibration/adoption evidence. Immutable4R/7R offline common-cohort aggregate nowverified N2/day1; no new labels and no adoption. Keep versions separate and future sources out of frozen inputs.",
     "Advance verified boat/lane identity, camera/world calibration and measurement ground truth; color/image-affine estimates do not validate boat performance or forecast inputs. All-race video and continuous coverage unfinished.",
     "Last real day acquisition17:32:29.679228JST; next6h eligibility23:32:29.679228JST unless current-day API missing. No repeated completed source/day/cohort targets; check all running states/lease/currentJST/cutoff/newtarget and same trusted mode.",
     "Preserve Toda1displayv1/Naruto8originalv1/Naruto7video/Amagasaki5camera and all completed3R/4R/7R proofs/numeric/result receipts.7R result38726468766-1 is complete; do not redispatch it. Both source-smoke files manual-only before everypush.",
@@ -281,13 +307,15 @@
     "all_races_verified": false
   },
   "last_local_full_suite": {
-    "python_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
-    "python_tests": 919,
+    "python_commit": "953dd03a4f12e42dd770c84c22c5a7d000add9a2",
+    "python_tests": 947,
     "python_skipped": 0,
-    "python_duration_seconds": 184.044,
-    "javascript_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+    "python_duration_seconds": 265.125,
+    "javascript_commit": "953dd03a4f12e42dd770c84c22c5a7d000add9a2",
     "javascript_tests": 187,
-    "scope": "Task3 full local suite on exact functional commit; finalCI independently verifies Windows/Linux.",
+    "javascript_skipped": 0,
+    "javascript_duration_seconds": 4.7959417,
+    "scope": "Task2 full local suite read byroot; exacthead Windows/LinuxCI independent.",
     "live_boat_analysis_verified": false
   },
   "prior_camera_local_full_suite": {
@@ -419,29 +447,17 @@
     "all_races_verified": false
   },
   "latest_functional_preview": {
-    "commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
-    "url": "https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app",
-    "same_application_tree_as_actual_publisher": false,
-    "same_backend_tree_as_actual_publisher": false,
-    "actual_publisher_commit": "28ee0ced23b3fe2ec28cda9c1de9a7ad5387839d",
-    "name_proof_full_bytes_verified": true,
-    "selected_baseline_full_bytes_verified": true,
-    "legacy_post_variants_full_bytes_verified": true,
-    "current_day_full_bytes_verified": true,
-    "frontend_regressions": 9,
-    "frontend_regression_scope": "Prior nine full browser flows at5485 retained; new evaluation has187 total JS regressions and actual PC/mobile/race-switch checks. New browser harness authored/syntax checked but not executed.",
-    "live_ui_widths": [
-      1440,
-      390
-    ],
-    "publisher_contracts_preserved": true,
-    "actual_evaluation_verifier_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
-    "new_ui_actual_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
-    "new_ui_web_tree_identical": true,
-    "new_javascript_tests": 187,
+    "commit": "953dd03a4f12e42dd770c84c22c5a7d000add9a2",
+    "url": "https://race-ai-preview-exlargeu9-qq1130034-1738.vercel.app",
+    "deployment_id": "dpl_6ghWZkh7mnrrnXi2snBPwxVF2tji",
+    "state": "READY",
+    "scope": "Offline-only archive CLI increment; web/API/workflow trees identical to4803, existing actual UI at325 retained.",
+    "selected_preserved_api_gets": 5,
+    "selected_full_payloads_unchanged": true,
+    "all118_apis_reread": false,
+    "new_aggregate_dashboard_verified": false,
     "actual_result_publisher_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
-    "actual_daily_numeric_publisher_commit": "28ee0ced23b3fe2ec28cda9c1de9a7ad5387839d",
-    "name_bound_result_full_bytes_verified": true
+    "actual_daily_numeric_publisher_commit": "28ee0ced23b3fe2ec28cda9c1de9a7ad5387839d"
   },
   "prior_successful_original_attempt": {
     "run_id": 38672101542,
@@ -1019,5 +1035,75 @@
     "verified_video_boat_performance": false,
     "model_adoption_validated": false,
     "recorded_at": "2026-10-15T11:27:53.576099+00:00"
+  },
+  "archived_name_bound_cohort": {
+    "status": "OFFLINE_ARCHIVE_AGGREGATE_VERIFIED_DO_NOT_REPEAT_WITHOUT_CHANGE",
+    "application_commit": "953dd03a4f12e42dd770c84c22c5a7d000add9a2",
+    "as_of": "2026-10-15T12:35:40.216914+00:00",
+    "input_count": 2,
+    "race_count": 2,
+    "day_count": 1,
+    "physical_exhibition_pairs_verified": 0,
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "output_files": 13,
+    "output_bytes": 263426,
+    "zip_bytes": 57994,
+    "zip_sha256": "1a3fa821375dc6c08d82d5cf5c233337723cab05165a8d52fc2936d78cec1235",
+    "immutable_input_archives": [
+      "38715147499",
+      "38726468766"
+    ],
+    "new_official_source_requests": 0,
+    "new_cloud_writes": 0,
+    "audit_findings": 0,
+    "evidence": "docs/evidence/2026-10-15/archived-cohort-live.json",
+    "dashboard_integration": false,
+    "formal_completion": false,
+    "owned_workspace_cleanup": {
+      "status": "AUTOMATIC_APPROVAL_REJECTED_DIRECTORY_RETAINED",
+      "reason": "blocked by policy",
+      "action": "recursive removal of verified owned SDD directory",
+      "directory": ".superpowers/sdd/2026-10-15-archived-name-bound-cohort",
+      "archive_full_bytes_still_verified": true,
+      "source_checkout_preserved": true,
+      "requires_new_authority_or_policy_change_before_retry": true
+    }
+  },
+  "prior_functional_preview_before_archived_cohort": {
+    "commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+    "url": "https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app",
+    "same_application_tree_as_actual_publisher": false,
+    "same_backend_tree_as_actual_publisher": false,
+    "actual_publisher_commit": "28ee0ced23b3fe2ec28cda9c1de9a7ad5387839d",
+    "name_proof_full_bytes_verified": true,
+    "selected_baseline_full_bytes_verified": true,
+    "legacy_post_variants_full_bytes_verified": true,
+    "current_day_full_bytes_verified": true,
+    "frontend_regressions": 9,
+    "frontend_regression_scope": "Prior nine full browser flows at5485 retained; new evaluation has187 total JS regressions and actual PC/mobile/race-switch checks. New browser harness authored/syntax checked but not executed.",
+    "live_ui_widths": [
+      1440,
+      390
+    ],
+    "publisher_contracts_preserved": true,
+    "actual_evaluation_verifier_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+    "new_ui_actual_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+    "new_ui_web_tree_identical": true,
+    "new_javascript_tests": 187,
+    "actual_result_publisher_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+    "actual_daily_numeric_publisher_commit": "28ee0ced23b3fe2ec28cda9c1de9a7ad5387839d",
+    "name_bound_result_full_bytes_verified": true
+  },
+  "prior_local_full_suite_before_archived_cohort": {
+    "python_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+    "python_tests": 919,
+    "python_skipped": 0,
+    "python_duration_seconds": 184.044,
+    "javascript_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+    "javascript_tests": 187,
+    "scope": "Task3 full local suite on exact functional commit; finalCI independently verifies Windows/Linux.",
+    "live_boat_analysis_verified": false
   }
 }

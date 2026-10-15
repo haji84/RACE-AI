@@ -26,20 +26,20 @@
 **Files:** Create race_ai/name_bound_archive.py and tests/test_name_bound_archive.py only.
 **Interfaces:** build_archived_name_bound_cohort(entries, *, now); validate_archived_name_bound_cohort(report, entries, *, now). Exact entry/manifest/report/observation/model schemas, constants and hashing in spec. No caller imports/network.
 
-- [ ] RED: synthetic five/six-file inputs replay full existing frozen forecasts/labels/reports; two race IDs, historical multi-day replay and strict audit future/naive/rollback cases. No source or filefixture dependencies outside synthetic test helpers. Original as_of and every input immutable.
-- [ ] RED: exact1..24/8MB/perfile256k/output256k; missing/extra/duplicate/type/nonfinite/hash/program/parent/request/nonce/clock/manifest/counters/signature/coefficients/repaired tampering reject. Complete old4/0/0 vs new5/1/1 manifests remain distinct.
-- [ ] RED: valid excluded statuses produce empty/real exclusions; corrupted excluded record/report rejects. Duplicate race across nonces rejects. Common cohort only, distinctdays notoutcomes; math.fsum means and paired differences independent expected arithmetic, allN=0 fields. No holdout/calibration/adoption/physical claim even multi-day/highN.
-- [ ] Implement minimal strict pure module using existing pure report/envelope builders at immutable stored as_of; no old current-day caller verifier. Focused GREEN; self-review and commit only own files. Report exact RED/GREEN, schemas/interfaces, limitations. Full suite waits Task2 to avoid duplicate whole-suite run.
+- [x] RED: synthetic five/six-file inputs replay full existing frozen forecasts/labels/reports; two race IDs, historical multi-day replay and strict audit future/naive/rollback cases. No source or filefixture dependencies outside synthetic test helpers. Original as_of and every input immutable.
+- [x] RED: exact1..24/8MB/perfile256k/output256k; missing/extra/duplicate/type/nonfinite/hash/program/parent/request/nonce/clock/manifest/counters/signature/coefficients/repaired tampering reject. Complete old4/0/0 vs new5/1/1 manifests remain distinct.
+- [x] RED: valid excluded statuses produce empty/real exclusions; corrupted excluded record/report rejects. Duplicate race across nonces rejects. Common cohort only, distinctdays notoutcomes; math.fsum means and paired differences independent expected arithmetic, allN=0 fields. No holdout/calibration/adoption/physical claim even multi-day/highN.
+- [x] Implement minimal strict pure module using existing pure report/envelope builders at immutable stored as_of; no old current-day caller verifier. Focused GREEN; self-review and commit only own files. Report exact RED/GREEN, schemas/interfaces, limitations. Full suite waits Task2 to avoid duplicate whole-suite run.
 
 ### Task 2: Exclusive local archive CLI and full restore
 
 **Files:** Create scripts/evaluate_name_bound_archive.py and tests/test_evaluate_name_bound_archive.py only.
 **Interfaces:** run(archive_dirs, output_dir, *, execute=False); verify_output(folder, *, now). Consumes Task1 exact entry contract. CLI/output/index/counters in spec; no new execution-completion flag. Error fixed NAME_BOUND_ARCHIVE_STOPPED and CLI exit2.
 
-- [ ] RED: dry0clock/FS/network; exact5/6files and canonical duplicate-free JSON/bounds; all inputs validated before output; nonsymlink ancestry/output root, exclusive child writes; foreign directory and unknown/partial/oversized/repaired archive rejects without changes.
-- [ ] RED: real temp-directory complete2cohort copies all11originalfiles plusreport/index byte-for-byte and restore; inputorder deterministic; full index/file/report hashing/types/counters/ids and aggregate replay reject rehashed tampering. Fresh actual audit clock nondecreasing and beyond stored as_of.
-- [ ] RED: failed open/write/readback/close/final verify cannot return or print success, may keep owned partial files, never truncates/removes/retries/overwrites. No network/auth/subprocess/source calls or absolute input paths in evidence/error text. Distinguish old input source counters from current literal0.
-- [ ] Implement GREEN, focused bothtasks; run full Python and existing187JS once, git diff --check; self-review and commit own files. No operational execution on actual archives, no push/trusted mutation/source/browser/otheragents. Report interfaces/counts/concerns to root.
+- [x] RED: dry0clock/FS/network; exact5/6files and canonical duplicate-free JSON/bounds; all inputs validated before output; nonsymlink ancestry/output root, exclusive child writes; foreign directory and unknown/partial/oversized/repaired archive rejects without changes.
+- [x] RED: real temp-directory complete2cohort copies all11originalfiles plusreport/index byte-for-byte and restore; inputorder deterministic; full index/file/report hashing/types/counters/ids and aggregate replay reject rehashed tampering. Fresh actual audit clock nondecreasing and beyond stored as_of.
+- [x] RED: failed open/write/readback/close/final verify cannot return or print success, may keep owned partial files, never truncates/removes/retries/overwrites. No network/auth/subprocess/source calls or absolute input paths in evidence/error text. Distinguish old input source counters from current literal0.
+- [x] Implement GREEN, focused bothtasks; run full Python and existing187JS once, git diff --check; self-review and commit own files. No operational execution on actual archives, no push/trusted mutation/source/browser/otheragents. Report interfaces/counts/concerns to root.
 
 ## Root integration gate
 

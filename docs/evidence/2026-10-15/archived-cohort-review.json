@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "base": "4803ace2ea6130b98581183f9e816a9684211cf1",
+  "feature_commit": "953dd03a4f12e42dd770c84c22c5a7d000add9a2",
+  "actionable_findings": 0,
+  "rulings_in_ledger_order": [
+    "use a separate retrospective offline archive operation instead of relaxing current-day live validators or reacquiring completed sources — safely uses existing full immutable evidence and its original report clock — cost if wrong is that dashboard integration and automated archive delivery remain later work.",
+    "keep holdout, calibration, adoption and physical timing unverified regardless of aggregate size or score improvement — sample/day counts alone do not establish a prospective protocol or independent event clock — cost if wrong is delayed adoption until additional evidence is supplied.",
+    "require identical ordered three-phase model IDs/versions/parameters across the common cohort instead of pooling unlike configurations — avoids mixing versions or feature definitions in an average — cost if wrong is that legitimate cross-version research needs separate cohort calls.",
+    "persist an integrity index and computed report without an execution-COMPLETED marker — a delayed/failed final close must not turn a partial operation into a success claim — cost if wrong is that invocation success needs the CLI result and full restore verification rather than one standalone marker file.",
+    "when Windows cannot create a real symlink, execute equivalent fail-closed and preservation assertions using injected OS-link metadata instead of skipping or passing an empty test — keeps executable security coverage without new privileges — cost if wrong is that actual Windows link creation remains unexercised in that environment and must not be claimed."
+  ],
+  "task1": {
+    "verdict": "PASS",
+    "findings": 0,
+    "report": "# Task 1 independent spec and quality review\n\nReviewed base `616664ee2e5d92a935e58d1af1f9ea6f4c1ec240` to head `183f404f2c0e14b8922ae2bd089bb98f66b50345` using the supplied diff package, Task 1 brief/report, and archived-cohort specification. Scope: the new pure library and synthetic tests. The supplied diff package was read once; a small test-helper excerpt and the named pure integration entry points were inspected separately. Root-owned documentation changes are outside this review.\n\n## Spec verdict: PASS\n\nNo actionable spec findings.\n\n- `race_ai/name_bound_archive.py:50–82` bounds every complete original canonical file, includes manifests in the combined budget, distinguishes the exact five- and six-file generations, and validates exact manifest schemas, literal integer counters/budgets, commit/nonce bindings, and every backup's complete bytes/digest. Legacy `request` must be null.\n- `race_ai/name_bound_archive.py:85–117` bounds unchanged original `evaluation.as_of` by aware actual audit time and requires the original Japan-local race day. Publication archives first validate the complete result envelope; their exact request binds its race, manifest nonce, forecast nonce, runner clock, and entire canonical snapshot. The existing pure evaluation builder then validates the frozen forecast/parents and full result bundle at that original clock. Entire canonical report equality and non-null result proof are required before any exclusion is accepted. Original parser/source/save clock strings are not rewritten.\n- `race_ai/name_bound_archive.py:120–166` rejects duplicate races across nonces and incompatible ordered model signatures, including excluded archives. Sorting, original-object hashes, exclusion/observation fields, common evaluated cohort, distinct evaluated dates, three ordered models, 120 tickets per race, `math.fsum` means, and per-race paired differences match the specification. N=0 retains real exclusions with empty aggregate models/evaluated IDs/dates. Research/nonadoption/holdout/calibration/physical-timing fields stay fixed at every sample count.\n- `race_ai/name_bound_archive.py:169–188` provides the specified interfaces, fixed normalized validation failure, output ceiling, detached output, and full aggregate replay at its unchanged saved audit time bounded by actual `now`. Inputs are not mutated. No clock measurement, filesystem, network caller import, acquisition, forecast generation, or publication is added.\n\n## Quality verdict: PASS\n\nNo actionable quality findings or severity/line comments.\n\nThe small production module keeps input inventory, manifest checks, immutable replay, and cohort reduction separate. Complete canonical equality closes repaired-hash and literal-type substitutions at the report boundaries. Reusing the existing pure builders preserves their forecast, source, parent, and result identities instead of recreating a weaker parallel validator. The only integration inspection beyond the change concerned those named pure entry points and the original manifest constants; this was not a repeated general audit of existing contracts.\n\nThe synthetic tests cover both generations, order independence, input immutability/detachment, original audit clocks, historical days, publication bindings, malformed and corrupted exclusions, duplicate races with distinct nonces, signatures, repaired forecast/hash/parameter/coefficient mutations, aggregate tampering, and exact per-file/combined limits. Expected score arithmetic is independently derived from the original distributions and truth; paired deltas are explicitly computed before averaging. The 24-race/24-day case checks that larger synthetic samples do not imply adoption. Test-only relocation rebuilds synthetic evidence before archival; it does not change production replay clocks or read retained source artifacts.\n\n## Verification provenance and remaining gates\n\nThis is a static review. I did not run tests, subprocess-based runtime checks, network requests, browsers, retained 4R/7R archive replay, source acquisition, or live/API/CI/Preview gates. The implementer's final focused result is reported as 11 passing tests in 50.375 seconds; I have not independently rerun it. The full suite remains intentionally assigned to Task 2/root.\n\nTask 2/root must still establish strict filesystem/canonical-file parsing, duplicate-key rejection, symlink and complete-tree checks, exclusive writes, fresh actual CLI clocks, complete output restoration/index verification, and the actual retained-archive arithmetic audit and integration gates. These are deferred contract gates, not Task 1 defects. Internal hashes and deterministic replay do not establish independent source authenticity or physical exhibition timing; formal completion remains false.\n"
+  },
+  "task2": {
+    "verdict": "PASS",
+    "findings": 0,
+    "report": "# Task 2 independent spec and quality review\n\nReviewed base `183f404f2c0e14b8922ae2bd089bb98f66b50345` through head `953dd03a4f12e42dd770c84c22c5a7d000add9a2` against `task-2-brief.md` and `docs/superpowers/specs/2026-10-15-archived-name-bound-cohort.md`.\n\n## Spec verdict: PASS\n\nActionable spec findings: **0** (no P0, P1, P2, or P3 findings).\n\n- `run` returns immediately on dry execution before inspecting arguments or measuring a clock (`scripts/evaluate_name_bound_archive.py:199`). Execute reads and fully replays every archive before the exclusive output creation (`:205`, `:212`, `:219`). Exact five/six-file sets, the 24-input limit, per-file and combined bounds, duplicate-key rejection, and canonical byte equality are enforced.\n- Files, directories, lexical ancestors (including ancestors before `..`), Windows reparse points/junctions, and read descriptors are checked (`:43`, `:50`, `:80`). Descriptor device/inode and size checks bracket bounded reads; writes use exclusive `xb`, descriptor/path identity checks, exact write counts, completed context-manager close, and bounded byte-for-byte readback (`:136`). Existing outputs and child collisions fail without overwrite, cleanup, or retry.\n- The complete output tree, exact index schemas and literal integer counters, file/report byte counts and hashes, sorted unique race identities, forecast identities, archive kinds, and full aggregate replay are verified (`:151`). Original canonical files, including manifests and their historical counters, are copied unchanged. New invocation counters are literal integer zero. Source paths do not enter index/error text.\n- The initial actual aware audit clock dates only the new aggregate. The post-write actual clock must be aware and nondecreasing (`:232`). Task 1's `_replay` retains original `evaluation.as_of` and requires it to be no later than actual audit time; `validate_archived_name_bound_cohort` rebuilds at saved aggregate `as_of`, bounded by supplied actual restore time. No live validator clock rule is weakened.\n- All caught file open/write/readback/close/replay errors normalize to the fixed error, and the CLI returns 2 without success JSON (`:239`). The late index-close test explicitly proves that even a subsequently restorable complete tree does not establish successful invocation (`tests/test_evaluate_name_bound_archive.py:394`). The index has no execution-completion marker.\n\n## Quality verdict: PASS\n\nActionable quality findings: **0** (no P0, P1, P2, or P3 findings).\n\nThe small CLI separates filesystem/JSON handling, exclusive writes, complete restore validation, and public error normalization. Its imports and calls stay within standard-library and existing pure validation/replay interfaces. Tests use synthetic temporary archives and cover byte preservation, deterministic ordering, strict metadata/bounds, repaired tampering, aware/fresh clocks, failed operation boundaries, retained partial output, exclusive collisions, and fixed CLI failure output.\n\nThe unavailable physical Windows symlink privilege is accurately disclosed. The fallback at `tests/test_evaluate_name_bound_archive.py:232` injects link metadata over real temporary paths and executes the rejection/no-output/unchanged-original assertions without skipping. The separate reparse-point cases (`:277`, `:377`) also exercise valid-input output ancestry and restore ancestry/file rejection. This is meaningful fail-closed metadata coverage; it is not evidence that this host created a physical symlink.\n\n## Review scope and evidence\n\nRead the review package once. The package output truncated part of `test_all_invalid_inputs_fail_before_output_creation`; read only that named method to recover the omitted text. Outside the diff, inspected only the named clock/replay/builder/validator integration paths and shared bounds/file-set constants needed to assess actual-time and replay behavior. Used targeted line searches to locate review references.\n\nNo tests were run in this review, as instructed. The implementation report records 28 focused Python tests, 947 full Python tests, and 187 JavaScript tests passing with zero skips; those are worker-reported execution results, not an independent rerun. No network/browser/source access, actual retained archive access, Git mutation, subagent, or root-owned document edit occurred. The root actual offline replay/ZIP/independent arithmetic audit and approved CI/READY/API integration gates remain root responsibilities. This review does not require changes to the trusted workflow or live validators and does not establish formal completion.\n"
+  },
+  "final": {
+    "verdict": "PASS",
+    "findings": 0,
+    "report": "# Final independent integration review\n\nReviewed base `4803ace2ea6130b98581183f9e816a9684211cf1` through head `953dd03a4f12e42dd770c84c22c5a7d000add9a2` against the archived-name-bound-cohort specification and implementation plan. Read both prior task reviews (each PASS with zero findings) and the final review package once. The tool truncated the package's middle; recovered only the omitted production-module tail, CLI, CLI tests, and synthetic archive-helper portion from their named files. Inspected the existing named canonical/clock, evaluation-builder, result-envelope/conversion entry points and manifest field constants solely for boundary compatibility.\n\n## Verdict: PASS\n\nActionable findings: **0**. No P0, P1, P2, or P3 findings; no severity/line comments required. This is the final static integration review, not the actual retained-archive output audit.\n\nThe implementation supplies the specified pure interfaces and separate local CLI without changing an existing live validator, API, UI, dependency, or workflow. The historical exception is confined to immutable original evaluation replay. Both archive generations pass their original full evidence and unchanged `evaluation.as_of` through the existing pure contracts; publication requests bind to their own fully validated result receipt before conversion. The CLI supplies the actual aware audit clock, and restore validates the aggregate at its saved audit time bounded by the fresh actual clock. No new forecast generation or live-route backdating is introduced.\n\nThe library and CLI agree on exact original file sets, per-file/combined/count limits, archive kind, race/forecast identities, canonical bytes, and manifest inventory. Every supplied archive is replayed before output creation, including exclusions. Sorting the archives and the observations by race produces the same deterministic cohort/index order; duplicates and incompatible model signatures reject before they can affect a denominator. The existing evaluation builder's baseline/display/original model ordering matches the signature and aggregate reduction ordering. All three models use the same evaluated race cohort; paired deltas use per-race differences before averaging. Distinct evaluated dates and race counts remain separate from the 120 ticket outcomes.\n\nThe output path joins the contracts correctly: original bytes, including historical acquisition counters, are copied into complete indexed archives; only the new invocation counters are zero. Final restore rechecks the exact tree, canonical inventory and hashes, bindings/order, and full report replay. The final aware/nondecreasing clock check and completed writes/readbacks precede successful return. A complete but late-failed write can leave a restorable inventory without claiming successful CLI completion, as required. Errors remain bounded and paths are not exposed in success metadata or normalized failure text.\n\nThe resulting aggregate retains research-only, UNVALIDATED, skip, empty purchase recommendations, physical timing false, holdout NOT_ESTABLISHED, calibration NOT_EVALUATED, and adoption NOT_EVALUATED. Synthetic multi-day/large-cohort tests do not change those claims. No extra adoption, precision, independence, or prospective-validation conclusion is added.\n\n## Evidence and exact declined scope\n\nThis review is static. The root reports independently reading results of 947 Python tests and 187 JavaScript tests with zero failures and zero skips; I did not run or independently inspect those test logs. Prior task reviews supply their own focused audit provenance. I did not repeat their general per-line security/function audit.\n\nAs instructed, I did not run tests or runtime experiments; open, inspect, replay, copy, hash, or otherwise process the retained actual 4R/7R archives; create or inspect actual aggregate output or ZIPs; perform independent actual-distribution arithmetic; access network, browser, official sources, cloud storage, live APIs, CI, Preview/READY, or trusted jobs; mutate Git, branches, commits, PRs, or root-owned unstaged documents; spawn subagents; or change production/test/spec/plan files. My only write is this review artifact in the assigned SDD workspace.\n\nThe clean static review releases the review prerequisite for the root's separately authorized one-time offline invocation. It does not establish that invocation, output/ZIP restoration, actual two-race/one-day arithmetic, or current CI/READY/API integration checks have happened. Those remain required next gates. Internal replay/inventory integrity does not establish independent source authenticity, physical exhibition timing, prospective multi-day evidence, model adoption, dashboard integration, or formal completion. Formal completion remains false.\n"
+  },
+  "independent_actual_artifact_audit": {
+    "path": "docs/evidence/2026-10-15/archived-cohort-artifact-audit.md",
+    "verdict": "PASS",
+    "findings": 0,
+    "sha256": "a64bf26cac2893c32fc572796647fa41be3d2cc9dab944c7f78cc13ecfca962b"
+  },
+  "owned_sdd_archive": {
+    "path": "artifacts/local/archived-cohort-sdd-953dd03.zip",
+    "files": 15,
+    "uncompressed_bytes": 424699,
+    "zip_bytes": 104015,
+    "zip_sha256": "0a8533de65b71267545fb86cc3ed020e83daaddefd5b255ac49f5d78532891fb",
+    "all_full_bytes_verified": true,
+    "files_inventory": {
+      "final-review.md": {
+        "bytes": 4777,
+        "sha256": "3dc5c08a94628cbb8b39bae79f58ef53c058d684607f82795261938840d685ad"
+      },
+      "plan-path": {
+        "bytes": 122,
+        "sha256": "80c71fd2b90c2d36544f05360d452f58d3998f83d87daadcefc537375912e0ac"
+      },
+      "progress.md": {
+        "bytes": 7418,
+        "sha256": "99d27f15f326c76ed538f302248a30f952f575b74cc7ae7ce66e1336f55a996f"
+      },
+      "review-183f404..953dd03.diff": {
+        "bytes": 39281,
+        "sha256": "74db34f15603fe520b7a652b004d917eb8f99136dc8ccfb1fcce3bd1df35a6d5"
+      },
+      "review-616664e..183f404.diff": {
+        "bytes": 41403,
+        "sha256": "9f1cae9d6437edb271b6c2d7f8642934f4dc4d26087e17e9ee1f05bd2a0368d9"
+      },
+      "review-final-4803ace..953dd03.diff": {
+        "bytes": 96361,
+        "sha256": "62ee89918c96a9043ef66873b20d6e6bbc339736402833bb0f74dc94b9a8b5d8"
+      },
+      "task-1-brief.md": {
+        "bytes": 1613,
+        "sha256": "2e33da20f113ce1818c78af257c65393a3a3cc87f9ee660ff8e1499ce97d1ab8"
+      },
+      "task-1-report.md": {
+        "bytes": 13929,
+        "sha256": "5b7aae881d58311b76ff3d80f6574c27ff8d571632ca2c8067d800bbeee26ba0"
+      },
+      "task-1-review.md": {
+        "bytes": 4787,
+        "sha256": "5c658ffee01cdb131c59f83a4dac0df11f5781c221fef9f3cbc9d2b987c29b95"
+      },
+      "task-2-brief.md": {
+        "bytes": 2204,
+        "sha256": "82e289bd1630d99005d693bd5b052c3b3ee9cf806c5f403a72ba80034e95b9e4"
+      },
+      "task-2-focused.log": {
+        "bytes": 103,
+        "sha256": "13c7adec3146e4ba8cbd054ed15a3ca7c77a1ae88a67900daf13f4741c3bd405"
+      },
+      "task-2-js.log": {
+        "bytes": 13224,
+        "sha256": "29238443d1f2fb8c2e45b6da0fdab73797675b6ccb7d97a49b249bcfcf4ba749"
+      },
+      "task-2-python.log": {
+        "bytes": 181644,
+        "sha256": "c348f3cecfed8da8f65a750bbd278de5e16a2dc345f657b8d56fa25bc9bcfa9e"
+      },
+      "task-2-report.md": {
+        "bytes": 13235,
+        "sha256": "0bb48be3463c0f8a0d55c6b76e8a3835eea51e422159a87810d00732cab63da3"
+      },
+      "task-2-review.md": {
+        "bytes": 4598,
+        "sha256": "65432010449a4aaa4d19a3e7281fd5790d8d2c546f7f3a20597bb2c9bdd5da8d"
+      }
+    }
+  },
+  "physical_windows_symlink_creation_exercised": false,
+  "windows_link_metadata_rejection_and_junction_tests_executed": true,
+  "integration": "Owner-authorized existing Draft PR64 update; preserve checkout and branch. No main/merge/Production/new trust.",
+  "recorded_at": "2026-10-15T12:43:42.477244+00:00",
+  "owned_workspace_cleanup": {
+    "status": "AUTOMATIC_APPROVAL_REJECTED_DIRECTORY_RETAINED",
+    "reason": "blocked by policy",
+    "action": "recursive removal of verified owned SDD directory",
+    "directory": ".superpowers/sdd/2026-10-15-archived-name-bound-cohort",
+    "archive_full_bytes_still_verified": true,
+    "source_checkout_preserved": true,
+    "requires_new_authority_or_policy_change_before_retry": true
+  }
+}
