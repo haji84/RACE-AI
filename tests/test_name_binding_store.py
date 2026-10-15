@@ -130,5 +130,20 @@ class NameBindingStoreTests(unittest.TestCase):
         bad=copy.deepcopy(self.request);bad['snapshot']['source']['parser']='x'*64000
         with self.assertRaises(ValueError):self.publish(bad)
         self.assertEqual(self.client.puts,[])
+    def test_successive_baselines_resolve_previous_proofs_own_immutable_nonce(self):
+        self.publish();first=self.read();base_a=copy.deepcopy(self.base)
+        baseline_bytes={k:v for k,v in self.client.data.items() if '/prediction-' in k}
+        base_b=copy.deepcopy(base_a);base_b['request_id']='123458-1'
+        base_b['snapshot']=research_contract.build_research_bundle(self.feed,self.race,NOW-timedelta(minutes=1))
+        base_b['cloud_saved_at']=facts.stamp(NOW-timedelta(minutes=1));seed_baseline(self.client,base_b)
+        self.base=base_b;new=copy.deepcopy(self.request);new['request_id']='123459-1';new['baseline_request_id']=base_b['request_id']
+        new['snapshot']['baseline_snapshot_id']=base_b['snapshot']['snapshot_id']
+        new['snapshot']['snapshot_id']=self.store.digest({k:v for k,v in new['snapshot'].items() if k!='snapshot_id'})
+        self.client.data[f"race-ai/predictions/{self.race['race_id']}.json"]=b'corrupt mutable latest'
+        self.publish(new,now=NOW+timedelta(seconds=1))
+        self.assertEqual(self.read(now=NOW+timedelta(seconds=1))['receipt']['request_id'],'123459-1')
+        self.assertEqual(self.read('123459-1',NOW+timedelta(seconds=1))['receipt']['baseline_request_id'],'123458-1')
+        self.base=base_a;self.assertEqual(self.read('123456-1',NOW+timedelta(seconds=1)),first)
+        self.assertEqual({k:self.client.data[k] for k in baseline_bytes},baseline_bytes)
 
 if __name__=='__main__':unittest.main()

@@ -1,7 +1,10 @@
 """Protected name proof APIs use exact immutable baseline nonces."""
 import json
+import copy
+from datetime import timedelta
 import unittest
-from web.race_contract import canonical
+from web.race_contract import canonical,stamp
+from web import research_contract
 from unittest.mock import patch
 from tests.test_exhibition_api import route,ClosingBlob
 from tests import test_exhibition_api as api_helpers
@@ -57,5 +60,23 @@ class NameBindingApiTests(unittest.TestCase):
         self.assertEqual(self.reader.load_name_binding(self.race['race_id'])[0],404)
         self.publish();del self.client.data[f"race-ai/name-binding-finalizations/{self.race['race_id']}/{self.request['request_id']}.json"]
         self.assertEqual(self.reader.load_name_binding(self.race['race_id'],self.request['request_id'])[0],422)
+    def test_new_baseline_publication_preserves_both_pinned_api_receipts(self):
+        self.publish();old=self.reader.load_name_binding(self.race['race_id'],'123456-1')[1]
+        old_baselines={k:v for k,v in self.client.data.items() if '/prediction-' in k}
+        base_b=copy.deepcopy(self.base);base_b['request_id']='123458-1'
+        base_b['snapshot']=research_contract.build_research_bundle(self.feed,self.race,NOW-timedelta(minutes=1))
+        base_b['cloud_saved_at']=stamp(NOW-timedelta(minutes=1));seed_baseline(self.client,base_b)
+        self.request=copy.deepcopy(self.request);self.request['request_id']='123459-1';self.request['baseline_request_id']='123458-1'
+        self.request['snapshot']['baseline_snapshot_id']=base_b['snapshot']['snapshot_id']
+        import hashlib
+        self.request['snapshot']['snapshot_id']=hashlib.sha256(canonical({k:v for k,v in self.request['snapshot'].items() if k!='snapshot_id'})).hexdigest()
+        with patch.object(self.writer,'utc_now',return_value=NOW+timedelta(seconds=1)):
+            self.publish()
+        self.client.data[f"race-ai/predictions/{self.race['race_id']}.json"]=b'corrupt latest'
+        with patch.object(self.reader,'utc_now',return_value=NOW+timedelta(seconds=1)):
+            self.assertEqual(self.reader.load_name_binding(self.race['race_id'])[1]['receipt']['request_id'],'123459-1')
+            self.assertEqual(self.reader.load_name_binding(self.race['race_id'],'123456-1'),(200,old))
+            self.assertEqual(self.reader.load_name_binding(self.race['race_id'],'123459-1')[0],200)
+        self.assertEqual({k:self.client.data[k] for k in old_baselines},old_baselines)
 
 if __name__=='__main__':unittest.main()

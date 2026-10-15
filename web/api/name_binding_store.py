@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 import hashlib
 import re
 from api.race_store import REVIEW,JST,canonical,decode,instant,checked_race_id,read_blob,put_verified
-from api.prediction_store import request_identifier
+from api.prediction_store import request_identifier,read_prediction
 from evaluation_contract import _checked_prediction
 from name_binding_contract import validate_name_binding,validate_name_binding_receipt
 
@@ -133,7 +133,11 @@ def publish_name_binding(request,race,baseline,*,client,now,clock=None):
         return metadata(envelope,race)
     checked_receipt(provisional,race,baseline,now)
     require(now<closed)
-    previous=read_name_binding(race,baseline,client=client,now=now)
+    previous_nonce=baseline_request_hint(race,client=client,now=now)
+    previous=None
+    if previous_nonce is not None:
+        previous_baseline=read_prediction(race,client=client,now=now,request_id=previous_nonce)
+        previous=read_name_binding(race,previous_baseline,client=client,now=now)
     key=version_key(race['race_id'],snapshot['snapshot_id']);old=bounded_read(client,key)
     if old is None:bounded_put(client,key,snapshot)
     else:require(old==canonical(snapshot))
