@@ -24,12 +24,15 @@ class NationalDayDiagnosticBoundaryTests(unittest.TestCase):
             with patch('sys.argv', ['national_day_pipeline', '--date', DAY.isoformat(),
                        '--review', str(review_path), '--output', str(output), '--execute']), \
                  patch('race_ai.national_day_pipeline.datetime') as clock, \
+                 patch('race_ai.official_day_schedule.datetime') as schedule_clock, \
                  patch('race_ai.official_day_schedule.fetch_schedule', side_effect=
-                       http.client.BadStatusLine('SYNTHETIC_UPSTREAM_BODY_MUST_NOT_BE_LOGGED')), \
+                       http.client.BadStatusLine('SYNTHETIC_UPSTREAM_BODY_MUST_NOT_BE_LOGGED')) as schedule_fetch, \
                  patch('race_ai.national_day_pipeline.fetch_archive') as archive, \
                  redirect_stderr(stderr):
                 clock.now.return_value = NOW
                 clock.fromisoformat.side_effect = datetime.fromisoformat
+                schedule_clock.now.return_value = NOW
+                schedule_clock.fromisoformat.side_effect = datetime.fromisoformat
                 failure = None
                 try:
                     main()
@@ -44,6 +47,7 @@ class NationalDayDiagnosticBoundaryTests(unittest.TestCase):
             self.assertNotIn('SYNTHETIC_UPSTREAM_BODY', stderr.getvalue())
             self.assertEqual(output.read_text(encoding='utf-8'), 'previous-approved-feed')
             archive.assert_not_called()
+            schedule_fetch.assert_called_once()
 
 
 if __name__ == '__main__':

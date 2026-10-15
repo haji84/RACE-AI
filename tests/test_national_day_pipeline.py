@@ -74,14 +74,18 @@ class NationalPipelineTests(unittest.TestCase):
             stderr=io.StringIO()
             with patch('sys.argv',['national_day_pipeline','--date',DAY.isoformat(),'--review',str(review_path),'--output',str(output),'--execute']), \
                  patch('race_ai.national_day_pipeline.datetime') as clock, \
-                 patch('race_ai.official_day_schedule.fetch_schedule',side_effect=unavailable), \
+                 patch('race_ai.official_day_schedule.datetime') as schedule_clock, \
+                 patch('race_ai.official_day_schedule.fetch_schedule',side_effect=unavailable) as schedule_fetch, \
                  patch('race_ai.national_day_pipeline.fetch_archive') as archive, redirect_stderr(stderr):
                 clock.now.return_value=NOW;clock.fromisoformat.side_effect=datetime.fromisoformat
+                schedule_clock.now.return_value=NOW
+                schedule_clock.fromisoformat.side_effect=datetime.fromisoformat
                 with self.assertRaises(SystemExit) as failure: main()
             self.assertEqual(failure.exception.code,2)
             self.assertEqual(stderr.getvalue(),'SAFE_STOP: SCHEDULE_SOURCE_UNAVAILABLE\n')
             self.assertEqual(output.read_text(encoding='utf-8'),'previous-approved-feed')
             archive.assert_not_called()
+            schedule_fetch.assert_called_once()
 
     def test_cli_unexpected_failure_never_prints_exception_text(self):
         with tempfile.TemporaryDirectory() as folder:
