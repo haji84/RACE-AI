@@ -25,7 +25,7 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
 from publish_day_feed import NoRedirect, get_json, validate_target, canonical_sha
 from race_ai.official_update_worker import collect_race_update
 from race_ai.official_observation_store import setup_store, save_observation, latest_observation
-from race_ai.race_update_merge import bundle_for_race
+from race_ai.race_update_merge import bundle_for_race,check_record
 from web.race_contract import stamp
 
 JST=ZoneInfo('Asia/Tokyo')
@@ -143,8 +143,17 @@ def collect_bundle(feed,review,*,now=None,collector=collect_race_update,clock=No
                 status=observation.get('status')
                 failed[kind]=status if status in {'SOURCE_RIGHTS_BLOCKED','SOURCE_UNAVAILABLE','SOURCE_INVALID'} else 'SOURCE_INVALID'
                 continue
-            save_observation(db,observation)
-            records.append(latest_observation(db,race['race_id'],kind,as_of=clock()))
+            try:
+                save_observation(db,observation)
+                record=latest_observation(db,race['race_id'],kind,as_of=clock())
+                # Parsing checks a source's own structure; the complete frozen
+                # program identity contract can still reject its returned facts.
+                # Fail that kind closed before assembling any publishable bundle.
+                check_record(record,race,clock())
+            except ValueError:
+                failed[kind]='SOURCE_INVALID'
+                continue
+            records.append(record)
     if not records:raise RaceSourceFailure(failed)
     return bundle_for_race(race,records,now=clock()),failed
 

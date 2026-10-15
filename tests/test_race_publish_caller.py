@@ -267,5 +267,34 @@ class RacePublishCallerTests(unittest.TestCase):
             CALLER.collect_bundle(self.feed(),{},now=datetime.fromisoformat('2026-10-15T07:00:00+09:00'),collector=collector)
         self.assertEqual(caught.exception.failed_kinds,{'beforeinfo':'SOURCE_INVALID','odds3t':'SOURCE_INVALID'})
 
+    def test_postparse_name_conflict_is_rejected_per_kind_without_discarding_valid_odds(self):
+        helper=merge_fixtures.RaceUpdateMergeTests();feed=helper.feed();feed['schedule_verified']=True
+        feed['venues'][0]['status']='READY';feed['venues'] += [{'status':'NO_EVENT','races':[]} for _ in range(23)]
+        now=datetime.fromisoformat('2026-10-15T07:02:00+09:00')
+        def collector(day,venue,number,kind,**kwargs):
+            record=helper.observation(kind)
+            if kind=='beforeinfo':record['data']['boats'][0]['name']='選手1追加字'
+            return {key:value for key,value in record.items() if key not in {'snapshot_id','saved_at','storage_eligible_pre_race'}}
+        with patch('race_ai.official_observation_store.utc_now',return_value=now):
+            bundle,failed=CALLER.collect_bundle(feed,{},now=now,clock=lambda:now,collector=collector,mode='exhibition')
+        self.assertEqual(failed,{'beforeinfo':'SOURCE_INVALID'})
+        self.assertEqual([row['kind'] for row in bundle['records']],['odds3t'])
+        self.assertEqual(feed['venues'][0]['races'][0]['boats'][0]['name'],'選手1')
+
+    def test_all_postparse_name_conflicts_have_fixed_safe_source_failure(self):
+        helper=merge_fixtures.RaceUpdateMergeTests();feed=helper.feed();feed['schedule_verified']=True
+        feed['venues'][0]['status']='READY';feed['venues'] += [{'status':'NO_EVENT','races':[]} for _ in range(23)]
+        now=datetime.fromisoformat('2026-10-15T07:02:00+09:00');calls=[]
+        def collector(day,venue,number,kind,**kwargs):
+            calls.append(kind);record=helper.observation(kind)
+            rows=record['data']['boats' if kind=='beforeinfo' else 'racers'];rows[0]['name']='選手1追加字'
+            return {key:value for key,value in record.items() if key not in {'snapshot_id','saved_at','storage_eligible_pre_race'}}
+        with patch('race_ai.official_observation_store.utc_now',return_value=now):
+            with self.assertRaises(CALLER.RaceSourceFailure) as caught:
+                CALLER.collect_bundle(feed,{},now=now,clock=lambda:now,collector=collector,mode='exhibition')
+        self.assertEqual(str(caught.exception),'RACE_ALL_SOURCES_UNAVAILABLE')
+        self.assertEqual(caught.exception.failed_kinds,{'beforeinfo':'SOURCE_INVALID','odds3t':'SOURCE_INVALID'})
+        self.assertEqual(calls,['beforeinfo','odds3t'])
+
 
 if __name__=='__main__':unittest.main()

@@ -174,5 +174,31 @@
     "saved_day_payload_unchanged": true,
     "repeat_started": false,
     "repair": "explicit immutable deployment and app-commit pin; exact commit gate retained"
+  },
+  "last_verified_post_application": {
+    "commit": "d91b6d14aa27d71a605fa110003552f3a48d89d1",
+    "deployment_url": "https://race-ai-preview-hbzev0t8w-qq1130034-1738.vercel.app",
+    "deployment_id": "dpl_HgnDjB2mnhpJdhmZRy8DKwmfQKAN",
+    "ci_run_id": 38665587065,
+    "windows": "success",
+    "ubuntu": "success",
+    "python_tests": 600,
+    "python_skipped": 1,
+    "javascript_tests": 51,
+    "real_post_receipt_saved": false
+  },
+  "last_post_collection_attempt": {
+    "run_id": 38665753291,
+    "job_id": 116197213208,
+    "workflow_commit": "f73be150b4a70123e9fac088596a8e3a87e823de",
+    "result": "SOURCE_IDENTITY_REJECTED_BEFORE_CLOUD_WRITE",
+    "race_id": "20261015-04-01",
+    "cutoff": "2026-10-15T10:30:00+09:00",
+    "cause": "approved B name 松田大志 differs from official beforeinfo 松田 大志郎 for same registration4544",
+    "probe_verified": true,
+    "new_post_saved": false,
+    "original_baselines_unchanged": true,
+    "repair": "per-kind strict-validation isolation; no identity weakening or B baseline renaming",
+    "remaining": "verified full-name reconciliation for truncated B names"
   }
 }
