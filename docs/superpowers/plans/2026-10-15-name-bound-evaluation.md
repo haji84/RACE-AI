@@ -37,7 +37,7 @@
 
 ### Task 2: Explicit selected-forecast result comparison UI
 
-**Files:** Create web/name-bound-evaluation.js, tests/ui_name_bound_evaluation.test.js, tests/ui_name_bound_evaluation_browser.cjs; modify web/app.js, web/index.html, web/style.css. Minimally add new asset basename to existing browser harness static allowlists (same scope as previous name-bound asset), .github/workflows/unit.yml Node checks/test list. No legacy validator edits.
+**Files:** Create web/name-bound-evaluation.js, tests/ui_name_bound_evaluation.test.js, tests/ui_name_bound_evaluation_browser.cjs; modify web/app.js, web/index.html, web/style.css. Minimally add new asset basename to existing browser harness static allowlists (same scope as previous name-bound asset), .github/workflows/tests.yml Node checks/test list. No legacy validator edits.
 **Consumes:** Task1 frozen report exact schema, current RaceNameBoundExhibition.validateNameBoundComparison and Settlement.programDigest-validated nbEnvelope.
 **Produces:** validateNameBoundEvaluation(report,forecast,race,now=Date.now()), renderNameBoundEvaluation(report,forecast,race,now=Date.now()); UMD window RaceNameBoundEvaluation. App explicit GET name-bound-evaluation with exact selected forecast nonce. Clear/abort eval state when clearNameBound/reset/day/race/newversion; keep valid numeric comparison on eval failures. No purchase/ledger/source changes.
 
