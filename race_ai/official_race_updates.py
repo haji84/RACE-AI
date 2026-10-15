@@ -136,8 +136,12 @@ def preview_data(frame):
             preview_st=st['st'],preview_st_status=st['st_status'],preview_raw_st=st['raw_st'],
             preview_course=None,actual_course=None))
     if len(boats)!=6 or len({b['lane'] for b in boats})!=6 or len({b['racer_registration_id'] for b in boats})!=6: raise SourceError('preview identities incomplete or duplicate')
-    if starts is None:
-        if any(b['display_time'] is not None or b['tilt'] is not None for b in boats): raise SourceError('empty exhibition grid conflicts with published preview metrics')
+    if starts is None and any(b['display_time'] is not None for b in boats):
+        raise SourceError('empty exhibition grid conflicts with published preview metrics')
+    # Tilt, weight and weather can already be printed before exhibition. Only
+    # display timing and explicit exhibition ST dispositions establish its data;
+    # an all-missing measurement grid carries identities, never zero features.
+    if all(b['display_time'] is None and b['preview_st_status']=='PENDING' for b in boats):
         return PendingData('OFFICIAL_PREVIEW_EMPTY_EXHIBITION_GRID',
             [{key:b[key] for key in ('lane','racer_registration_id','name')} for b in sorted(boats,key=lambda b:b['lane'])])
     weather=dict(air_temperature_c=None,water_temperature_c=None,wind_speed_mps=None,wave_height_cm=None,

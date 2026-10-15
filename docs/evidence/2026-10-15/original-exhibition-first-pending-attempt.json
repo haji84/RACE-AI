@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "application_commit": "70414805d5048f44190640e74ef56b7da15ec7df",
+  "workflow_commit": "406ff2d0a85e0fc1578dfa4a69452914b35098c6",
+  "run_id": 38671020560,
+  "job_id": 116213918602,
+  "race_id": "20261015-14-08",
+  "closed_at": "2026-10-15T11:49:00+09:00",
+  "result": "NO_ORIGINAL_FORECAST_SAVED",
+  "race_result": "OFFICIAL_RACE_API_PARTIAL_VERIFIED",
+  "beforeinfo_state": "SOURCE_INVALID",
+  "odds_state": "AVAILABLE",
+  "odds_captured_at": "2026-10-15T02:27:12.118033+00:00",
+  "odds_cloud_saved_at": "2026-10-15T02:27:14.907148+00:00",
+  "race_payload_sha256": "12883cb09c19ec71c94b8af811be7ad8d22faf2219acc1d57b75ff1c942b7c35",
+  "race_artifact_id": 11944287438,
+  "race_artifact_zip_sha256": "9f083c24bc9fd4ab45cc36119915e4409b32e21b578ab8964b81de63861fc568",
+  "original_collection": "HTTP error before normalized observation; no model write or claim of analyzed missing data",
+  "later_one_get_diagnostic": {
+    "captured_at": "2026-10-15T02:29:30.234268+00:00",
+    "source_sha256": "7fadfe87d03b8f1f0a7b8fa489cb4ef19e71ac051b3730eeae57e5d0714e8a7e",
+    "failure": "empty exhibition grid conflicts with published preview metrics"
+  },
+  "recording_index_check": {
+    "captured_at": "2026-10-15T02:33:46.151722+00:00",
+    "status": "PENDING"
+  },
+  "original_source_body_retained": false,
+  "automatic_repeat_without_changed_source_or_code": false
+}

@@ -3,7 +3,7 @@
   "original_exhibition_implementation": {
     "variant": "original-v1",
     "model": "official-display-original-pl/v1",
-    "status": "implemented_independently_reviewed_pending_exact_head_ci_and_preview",
+    "status": "exact_head_ci_passed_and_preview_routes_verified; first actual target not yet published",
     "source_requests_per_selected_race": 2,
     "immutable_separate_namespaces": true,
     "legacy_fourteen_baselines_and_display_only_v1_preserved": true,
@@ -36,20 +36,20 @@
   "production_release_authorized": false,
   "preview_project": "race-ai-preview",
   "preview_team_id": "team_YGrZkBR7MyYxkq3K9XkTBhqu",
-  "last_verified_application_commit": "3b39fc43bb9360c7b1d4711335532172157db127",
-  "last_verified_application_commit_scope": "day feed end-to-end run; race observations have separate pins below",
-  "last_verified_deployment_url": "https://race-ai-preview-4rurcxven-qq1130034-1738.vercel.app",
+  "last_verified_application_commit": "70414805d5048f44190640e74ef56b7da15ec7df",
+  "last_verified_application_commit_scope": "fresh day update and immutable baseline/v1 API preservation; original model actual proof pending",
+  "last_verified_deployment_url": "https://race-ai-preview-oh9rdr93x-qq1130034-1738.vercel.app",
   "trusted_workflow_branch": "feat/boat-oidc-probe-auth",
   "trusted_workflow_path": ".github/workflows/boat-blob-e2e.yml",
   "trusted_workflow_name": "RACE AI Preview Blob E2E",
-  "last_verified_day_run_id": 38621533602,
-  "last_verified_day_job_id": 116050009891,
+  "last_verified_day_run_id": 38671430255,
+  "last_verified_day_job_id": 116215215715,
   "last_verified_date_jst": "2026-10-15",
-  "last_verified_payload_sha256": "66096732ad027bba11324eacbde7c5bd2c9fe7d8fcba045819ff998b70d35a83",
+  "last_verified_payload_sha256": "90b6c8c4ab12dcd76818e810587af6e3ca2d5bd3c4afe291dd4935255f7387d7",
   "last_verified_backup": {
-    "artifact_id": 11922690344,
+    "artifact_id": 11944303249,
     "retention_days": 14,
-    "restore": "exact_bytes_and_sha_verified"
+    "restore": "349735 exact file bytes/SHA and349734 canonical API bytes independently verified"
   },
   "cloud_recurring_schedule_installed": false,
   "cloud_schedule_gate": "main is configured to create and auto-assign Production deployments; main cron requires release configuration review",
@@ -61,14 +61,14 @@
     "prompt_updated_for_exhibition_requirements": true
   },
   "last_exact_head_ci": {
-    "commit": "8458fa568225d03312b25209e78213730000d42d",
-    "run_id": 38661265889,
-    "tests_per_os": 534,
-    "skipped_per_os": 1,
+    "commit": "70414805d5048f44190640e74ef56b7da15ec7df",
+    "run_id": 38670611391,
+    "tests_per_os": 667,
+    "skipped_per_os": 0,
     "windows": "success",
     "ubuntu": "success",
-    "javascript_tests": 44,
-    "scope": "functional settlement/cohort checkpoint; later evidence-only successors use PR64 checks"
+    "javascript_tests": 59,
+    "scope": "original model/store/UI/caller and real synthetic MPEG-TS/AES decoding; initial YAML quoting failure fixed before this success"
   },
   "last_verified_race_application_commit": "ceddba957d6600ee41cb4f280834dff7296d2f34",
   "last_verified_race_deployment_url": "https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app",
@@ -96,9 +96,9 @@
     "retention_days": 14,
     "restore": "request and API response exact bytes/SHA verified on runner and independently downloaded"
   },
-  "trusted_workflow_commit": "46b9962ff233a2bc4f96894ed6939c18546f384b",
-  "trusted_workflow_content_sha": "3ce453e9b665533214f606fc3a52b64e068de23c",
-  "trusted_workflow_default_mode": "push: exact current-day dated exhibition comparison; all explicit dispatch modes retained",
+  "trusted_workflow_commit": "406ff2d0a85e0fc1578dfa4a69452914b35098c6",
+  "trusted_workflow_content_sha": "fbb814f3d49a10071601b96a972a3e5e81e8efcc",
+  "trusted_workflow_default_mode": "push: exact current-day original-enhanced comparison; display-only v1 is explicit exhibition dispatch only",
   "trusted_workflow_dated_result_target": "20261015-14-01 (completed proof; stale Japan-local dates reject before official GET)",
   "race_collection_policy": "auto: first upcoming race up to two beforeinfo/odds GETs; result: one closed current-day race, optional exact ID even while others are upcoming; do not poll a completed proof without changed code or known revision",
   "race_cloud_contract": "immutable observation and separate actual-cloud-save receipt; latest per kind; serialized writer only; never backdate late ingress",
@@ -144,13 +144,13 @@
     "source": "frozen same-day approved B program points; untrained fixed comparisons; N=1 does not validate or select a model"
   },
   "next_priority": [
-    "Implement immutable original-timing ingress/cloud receipts and a separate versioned post-exhibition model; do not alter display-onlyv1 or fourteen baselines",
-    "Implement actual transient exhibition-video decode, boat attribution/tracking, measurement-quality gates and evidence; metadata/indexing is not boat analysis",
+    "Complete protected original-v1 source/model/API/backup/UI actual proof when source becomes AVAILABLE before cutoff; retain original14 and displayv1",
+    "Implement verified boat attribution, camera calibration and performance measurement after successful one-clip transient decode; color tracks are not boat evidence",
     "Add independently evidenced full-name aliases for abbreviated B names with strict registration/source/clock binding; preserve frozen program hashes",
     "Extend validated acquisition and paired forecasts to all upcoming races with bounded requests and honest coverage",
     "Collect later confirmed outcomes for frozen pre/post forecasts and same-cutoff paired/aggregate evaluation",
     "Enable immutable historical reading and past-day ledger settlement",
-    "Repair reviewed day-job refresh through pinned immutable application without repeated failed acquisition or broadening trust; install reviewed recurring schedule withoutProduction",
+    "Install reviewed cloud recurring schedule withoutProduction; day refresh repair and one fresh acquisition now verified",
     "Complete held-out model evidence, motor reconciliation, durable user cloud separation, long-term recovery and physical iPhone acceptance"
   ],
   "last_verified_settlement": {
@@ -198,16 +198,14 @@
     "boat_feature_accuracy_validated": false
   },
   "last_day_refresh_attempt": {
-    "run_id": 38621533602,
-    "attempt": 2,
-    "job_id": 116192774910,
-    "requested_at": "2026-10-15T01:12:18+00:00",
-    "result": "FAILED_BEFORE_OFFICIAL_SOURCE_ACQUISITION",
-    "stage": "PREVIEW_PROBE_HTTP_409",
-    "cause": "old workflow SHA compared against advanced branch-alias deployment",
-    "saved_day_payload_unchanged": true,
+    "run_id": 38671430255,
+    "job_id": 116215215715,
+    "requested_at": "2026-10-15T02:31:19.947890+00:00",
+    "result": "SUCCESS",
+    "last_real_acquisition_at": "2026-10-15T02:31:38.658781+00:00",
+    "cause": "over6hours since previous successful source acquisition; fixed immutable Preview/app pin",
     "repeat_started": false,
-    "repair": "explicit immutable deployment and app-commit pin; exact commit gate retained"
+    "all156_program_digests_unchanged": true
   },
   "last_verified_post_application": {
     "commit": "d91b6d14aa27d71a605fa110003552f3a48d89d1",
@@ -276,5 +274,26 @@
     "javascript_tests": 51,
     "independent_review": "passed; reproduced URL/derived-size issues fixed; actual post receipt and video metadata boundaries verified",
     "live_boat_analysis_verified": false
+  },
+  "prior_day_refresh_failure": {
+    "run_id": 38621533602,
+    "attempt": 2,
+    "job_id": 116192774910,
+    "requested_at": "2026-10-15T01:12:18+00:00",
+    "result": "FAILED_BEFORE_OFFICIAL_SOURCE_ACQUISITION",
+    "stage": "PREVIEW_PROBE_HTTP_409",
+    "cause": "old workflow SHA compared against advanced branch-alias deployment",
+    "saved_day_payload_unchanged": true,
+    "repeat_started": false,
+    "repair": "explicit immutable deployment and app-commit pin; exact commit gate retained"
+  },
+  "last_original_attempt": {
+    "run_id": 38671020560,
+    "job_id": 116213918602,
+    "race_id": "20261015-14-08",
+    "result": "NO_ORIGINAL_FORECAST_SAVED_SOURCE_NOT_READY",
+    "new_baselines": 0,
+    "new_original_models": 0,
+    "evidence": "docs/evidence/2026-10-15/original-exhibition-first-pending-attempt.json"
   }
 }

@@ -88,7 +88,8 @@ class OfficialUpdateTests(unittest.TestCase):
         self.assertTrue(all(row['odds'] is None for row in data['data']['odds']))
         data=self.parse('beforeinfo',preview().replace('6.92','--').replace('.11','--').replace('.12','--').replace('.13','--').replace('.14','--').replace('.15','--').replace('.16','--'))
         self.assertEqual(data['status'],'PENDING')
-        self.assertIsNone(data['data']['boats'][0]['display_time'])
+        self.assertIsNone(data['data'])
+        self.assertEqual(len(data['observed_racers']),6)
 
     def test_observed_empty_exhibition_grid_is_pending_only_with_six_entry_identities(self):
         blank='<table><thead><tr><th>スタート展示</th></tr></thead><tbody>'+''.join('<tr><td></td></tr>' for _ in range(6))+'</tbody></table>'
