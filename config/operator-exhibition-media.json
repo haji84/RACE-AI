@@ -50,7 +50,7 @@
       "credentials": "EPHEMERAL_NORMAL_PLAYER_ACCESS_ONLY_NO_PERSISTENCE"
     }
   ],
-  "source_scope_status": "OFFICIAL_PLAYER_AND_LINKED_MEDIA_IDENTITIES_VERIFIED_BOUNDED_RESOLVER_PENDING",
+  "source_scope_status": "VERIFIED_NARUTO_METADATA_AND_PUBLIC_MASTER_MANIFEST_ONLY",
   "venue_codes": [
     "01",
     "02",
@@ -83,5 +83,12 @@
     "duration_seconds": 348,
     "player_playback_verified": true,
     "boat_analysis_verified": false
-  }
+  },
+  "implemented_resolver_venues": [
+    "14"
+  ],
+  "all_venue_player_mapping_verified": false,
+  "raw_video_segment_acquisition_verified": false,
+  "boat_analysis_verified": false,
+  "latest_resolver_evidence": "docs/evidence/2026-10-15/exhibition-video-metadata-live.json"
 }

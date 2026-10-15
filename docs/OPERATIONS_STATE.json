@@ -25,7 +25,8 @@
     "id": "race-ai",
     "status": "ACTIVE",
     "interval_hours": 1,
-    "requires": "local computer and app running"
+    "requires": "local computer and app running",
+    "prompt_updated_for_exhibition_requirements": true
   },
   "last_exact_head_ci": {
     "commit": "8458fa568225d03312b25209e78213730000d42d",
@@ -63,9 +64,9 @@
     "retention_days": 14,
     "restore": "request and API response exact bytes/SHA verified on runner and independently downloaded"
   },
-  "trusted_workflow_commit": "98a350d236939d54a380eaefed83b95d65386ed4",
-  "trusted_workflow_content_sha": "c5d616cb8d3fbdf2e675653652a9660e27a5365f",
-  "trusted_workflow_default_mode": "push: bounded next-upcoming race per active venue cohort; dispatch defaults single research, cohort/evaluation/result/race/day explicit",
+  "trusted_workflow_commit": "46b9962ff233a2bc4f96894ed6939c18546f384b",
+  "trusted_workflow_content_sha": "3ce453e9b665533214f606fc3a52b64e068de23c",
+  "trusted_workflow_default_mode": "push: exact current-day dated exhibition comparison; all explicit dispatch modes retained",
   "trusted_workflow_dated_result_target": "20261015-14-01 (completed proof; stale Japan-local dates reject before official GET)",
   "race_collection_policy": "auto: first upcoming race up to two beforeinfo/odds GETs; result: one closed current-day race, optional exact ID even while others are upcoming; do not poll a completed proof without changed code or known revision",
   "race_cloud_contract": "immutable observation and separate actual-cloud-save receipt; latest per kind; serialized writer only; never backdate late ingress",
@@ -111,12 +112,13 @@
     "source": "frozen same-day approved B program points; untrained fixed comparisons; N=1 does not validate or select a model"
   },
   "next_priority": [
-    "Complete protected live immutable pre/post exhibition forecast comparison, preserving original baseline/source receipts",
-    "Integrate verified BOATCAST per-venue original timing parser and scoped ephemeral exhibition-video analysis; never claim absent boat attribution/calibration",
-    "Extend validated collection and paired forecasts to all upcoming races with bounded requests and truthful coverage",
-    "Collect later confirmed outcomes for saved forecasts and same-cutoff aggregate evaluation without backdating",
-    "Enable immutable historical readers and past-day ledger settlement",
-    "Install reviewed recurring cloud scheduling without Production promotion or expanded trust",
+    "Implement immutable original-timing ingress/cloud receipts and a separate versioned post-exhibition model; do not alter display-onlyv1 or fourteen baselines",
+    "Implement actual transient exhibition-video decode, boat attribution/tracking, measurement-quality gates and evidence; metadata/indexing is not boat analysis",
+    "Add independently evidenced full-name aliases for abbreviated B names with strict registration/source/clock binding; preserve frozen program hashes",
+    "Extend validated acquisition and paired forecasts to all upcoming races with bounded requests and honest coverage",
+    "Collect later confirmed outcomes for frozen pre/post forecasts and same-cutoff paired/aggregate evaluation",
+    "Enable immutable historical reading and past-day ledger settlement",
+    "Repair reviewed day-job refresh through pinned immutable application without repeated failed acquisition or broadening trust; install reviewed recurring schedule withoutProduction",
     "Complete held-out model evidence, motor reconciliation, durable user cloud separation, long-term recovery and physical iPhone acceptance"
   ],
   "last_verified_settlement": {
@@ -200,5 +202,47 @@
     "original_baselines_unchanged": true,
     "repair": "per-kind strict-validation isolation; no identity weakening or B baseline renaming",
     "remaining": "verified full-name reconciliation for truncated B names"
+  },
+  "trusted_workflow_dated_exhibition_target": "20261015-02-01 (completed proof; do not refetch on rerun; exactcurrentday/120-second margin rejects late starts)",
+  "last_verified_post_exhibition": {
+    "application_commit": "22dcb7a684ae97e73297778aa9a6403126fb898a",
+    "deployment_url": "https://race-ai-preview-bki3g4gtr-qq1130034-1738.vercel.app",
+    "run_id": 38666581412,
+    "job_id": 116199807989,
+    "race_id": "20261015-02-01",
+    "request_id": "38666581412-1",
+    "post_cloud_saved_at": "2026-10-15T01:37:20.338106+00:00",
+    "post_snapshot_id": "7056a6cf28d05c14e8f81a987283736481a0735c25bf1d245e9438459094d7d6",
+    "post_sha256": "f3f8dfba829ab894596bf667d5b3afaae4e9e0242304e9920c759cc54e64635d",
+    "seconds_before_close": 579.661894,
+    "baseline_unchanged": true,
+    "baseline_cloud_saved_at": "2026-10-15T00:42:58.963162+00:00",
+    "post_artifact_id": 11940799482,
+    "race_artifact_id": 11941890159,
+    "independent_api_and_archive_full_bytes_replay": true,
+    "known_post_races": 1,
+    "known_baseline_races": 14,
+    "original_times_and_video_used": false,
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": []
+  },
+  "last_verified_video_metadata": {
+    "race_id": "20261015-14-06",
+    "captured_at": "2026-10-15T01:43:57.488316+00:00",
+    "snapshot_id": "3e3b68af7d5733a0625e03a83e5bd3ff88821bc58c79f13aab17e95471af8756",
+    "capture_eligible_pre_race": true,
+    "public_master_manifest_verified": true,
+    "segments_fetched": 0,
+    "raw_source_persisted": false,
+    "boat_features": "NONE",
+    "all_races_verified": false
+  },
+  "last_local_full_suite": {
+    "python_tests": 615,
+    "skipped": 1,
+    "javascript_tests": 51,
+    "independent_review": "passed; reproduced URL/derived-size issues fixed; actual post receipt and video metadata boundaries verified",
+    "live_boat_analysis_verified": false
   }
 }
