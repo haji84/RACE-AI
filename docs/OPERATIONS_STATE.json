@@ -36,9 +36,9 @@
   "production_release_authorized": false,
   "preview_project": "race-ai-preview",
   "preview_team_id": "team_YGrZkBR7MyYxkq3K9XkTBhqu",
-  "last_verified_application_commit": "dc6fbccf7b6e88ba832422c3d97aebc34cdf35e3",
-  "last_verified_application_commit_scope": "independent six-registration official name-proof foundation; immutable baseline pins, finalized receipt, full protected API and five-file restore; no alias-aware model yet",
-  "last_verified_deployment_url": "https://race-ai-preview-f1phpv4hd-qq1130034-1738.vercel.app",
+  "last_verified_application_commit": "b221039adf632934ac07112b1df0a04609cb31d4",
+  "last_verified_application_commit_scope": "one race separately frozen display/original v2, all normalized backups/API and independent720 replay; authoritative weather UI parity corrected; actualPC1440/mobile390 comparison verified",
+  "last_verified_deployment_url": "https://race-ai-preview-3s77geq4f-qq1130034-1738.vercel.app",
   "trusted_workflow_branch": "feat/boat-oidc-probe-auth",
   "trusted_workflow_path": ".github/workflows/boat-blob-e2e.yml",
   "trusted_workflow_name": "RACE AI Preview Blob E2E",
@@ -59,19 +59,20 @@
     "interval_hours": 1,
     "requires": "local computer and app running",
     "prompt_updated_for_exhibition_requirements": true,
-    "prompt_updated_for_name_binding": true
+    "prompt_updated_for_name_binding": true,
+    "prompt_updated_for_name_bound_v2": true
   },
   "last_exact_head_ci": {
-    "commit": "cbf46cd5b5811b566bfada45e044d2fab236c3b2",
-    "run_id": 38684894699,
-    "ubuntu_job_id": 116257388010,
-    "windows_job_id": 116257388279,
-    "tests_per_os": 769,
+    "commit": "b221039adf632934ac07112b1df0a04609cb31d4",
+    "run_id": 38700224201,
+    "windows_job_id": 116306353879,
+    "ubuntu_job_id": 116306354146,
+    "tests_per_os": 816,
     "skipped_per_os": 0,
     "windows": "success",
     "ubuntu": "success",
-    "javascript_tests": 59,
-    "scope": "latest reviewed functional and Preview-pin commit; later evidence-only successors checked through PR CI"
+    "javascript_tests": 110,
+    "scope": "b221 UI correction verified; evidence-only successors require exact CI/READY/API verification; see PR64 latest checks for their outcome"
   },
   "last_verified_race_application_commit": "ceddba957d6600ee41cb4f280834dff7296d2f34",
   "last_verified_race_deployment_url": "https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app",
@@ -99,8 +100,8 @@
     "retention_days": 14,
     "restore": "request and API response exact bytes/SHA verified on runner and independently downloaded"
   },
-  "trusted_workflow_commit": "ca11332d1af49438e27d22ffdb90585b3941200c",
-  "trusted_workflow_content_sha": "be05324133a8c7693998cbf0a5b0ced6b22704a4",
+  "trusted_workflow_commit": "9d4caed8397a470533bd6ebf5ff15015e57e3987",
+  "trusted_workflow_content_sha": "8f8609c7384c2a46d6e45fbf4f616617756ae778",
   "trusted_workflow_default_mode": "push: probe only; all source and cohort acquisition modes require explicit workflow_dispatch inputs",
   "trusted_workflow_dated_result_target": "20261015-14-01 (completed proof; stale Japan-local dates reject before official GET)",
   "race_collection_policy": "auto: first upcoming race up to two beforeinfo/odds GETs; result: one closed current-day race, optional exact ID even while others are upcoming; do not poll a completed proof without changed code or known revision",
@@ -147,12 +148,12 @@
     "source": "frozen same-day approved B program points; untrained fixed comparisons; N=1 does not validate or select a model"
   },
   "next_priority": [
-    "Use the completed Marugame3R saved registration/name proof in a separately versioned alias-aware exhibition/original observation, model and comparison UI; preserve raw B names, baseline and v1; no repeat racelist GET",
-    "Complete any missing current-day upcoming B-only snapshots shown by current coverage, without rewriting existing receipts; no duplicate serialized writer",
-    "Accumulate new actual pre-exhibition save/after-exhibition pairs with independently established exhibition clocks; current B-only labels alone do not establish physical phase",
-    "Advance verified boat/lane identity, foreground masking, camera/world calibration and measurement ground truth; color/image affine estimates are not boat performance or prediction inputs",
-    "Collect new eligible original/display/video variants only for new targets and actual source changes; keep Toda1, Naruto8, Naruto7 and Amagasaki5 completed proofs unchanged",
-    "Accumulate held-out multi-day outcomes and calibrated/adoption evidence; preserve UNVALIDATED/skip/empty recommendations",
+    "Accumulate new exact eligible target display/originalv2 with their own six-registration proof and full backup/API verification; Marugame4R38699263834-1 is completed and must not be reacquired; live B abbreviation reconciliation case is still needed (Marugame7R18:04 has3584, requires its own proof, not reused3Rproof)",
+    "Complete any missing current-day upcoming B-only snapshots shown by current coverage without rewriting existing receipts; no duplicate serialized writer or repeated completed all-upcoming job",
+    "Accumulate actual physical pre-exhibition saves/after-exhibition pairs with independent exhibition clocks; current B-only labels and later complete measures alone do not establish physical phase",
+    "Advance verified boat/lane identity, foreground masking, camera/world calibration and measurement ground truth; color/image-affine estimates are not boat performance or prediction inputs",
+    "Connect frozen name-boundv2 models to separately captured post-race result labels and aggregate held-out multi-day calibration/adoption evidence; never feed outcomes back into pre-race inputs; keep UNVALIDATED/skip/[]",
+    "Preserve completed Toda1displayv1/Naruto8originalv1/Naruto7video/Amagasaki5camera and all118baseline receipts; new sources only new targets or specific correction grounds",
     "Long-term history/user-cloud/restore/drills, iPhone hardware/accessibility and release-independent cloud scheduling remain formal completion conditions"
   ],
   "last_verified_settlement": {
@@ -271,6 +272,16 @@
     "all_races_verified": false
   },
   "last_local_full_suite": {
+    "python_commit": "28ee0ced23b3fe2ec28cda9c1de9a7ad5387839d",
+    "python_tests": 816,
+    "python_skipped": 0,
+    "python_duration_seconds": 59.451,
+    "javascript_commit": "b221039adf632934ac07112b1df0a04609cb31d4",
+    "javascript_tests": 110,
+    "scope": "local source correction full Python suite, then UI-only full JavaScript suite; latest b221 full Python is independently verified by Windows/Linux CI",
+    "live_boat_analysis_verified": false
+  },
+  "prior_camera_local_full_suite": {
     "python_tests": 714,
     "skipped": 0,
     "javascript_tests": 59,
@@ -399,15 +410,21 @@
     "all_races_verified": false
   },
   "latest_functional_preview": {
-    "commit": "cbf46cd5b5811b566bfada45e044d2fab236c3b2",
-    "url": "https://race-ai-preview-mhnk3ithm-qq1130034-1738.vercel.app",
-    "web_tree": "7c82f8c53d7d1ce26b56a657afd57a0132a58ba4",
-    "same_web_tree_as_actual_publisher": true,
+    "commit": "b221039adf632934ac07112b1df0a04609cb31d4",
+    "url": "https://race-ai-preview-3s77geq4f-qq1130034-1738.vercel.app",
+    "same_application_tree_as_actual_publisher": false,
+    "same_backend_tree_as_actual_publisher": true,
+    "actual_publisher_commit": "28ee0ced23b3fe2ec28cda9c1de9a7ad5387839d",
     "name_proof_full_bytes_verified": true,
     "selected_baseline_full_bytes_verified": true,
     "legacy_post_variants_full_bytes_verified": true,
     "current_day_full_bytes_verified": true,
-    "frontend_assets_unchanged_since": "0525d8670631ad31094ee6031fc154dea4870524"
+    "frontend_regressions": 9,
+    "frontend_regression_scope": "5485 full flows; b221 targeted actualdesktop/mobile and51contract regressions",
+    "live_ui_widths": [
+      1440,
+      390
+    ]
   },
   "prior_successful_original_attempt": {
     "run_id": 38672101542,
@@ -473,5 +490,87 @@
     "completion_branch_fix_commit": "dc6fbccf7b6e88ba832422c3d97aebc34cdf35e3",
     "trusted_branch_fix_commit": "ca11332d1af49438e27d22ffdb90585b3941200c",
     "subsequent_completion_and_trusted_commits_show_no_automatic_source_smoke": true
+  },
+  "additional_independent_name_bindings": [
+    {
+      "race_id": "20261015-15-04",
+      "request_id": "38696849355-1",
+      "run_id": 38696849355,
+      "job_id": 116295324558,
+      "artifact_id": 11954206419,
+      "receipt_confirmed_at": "2026-10-15T07:09:45.409075+00:00",
+      "files": 5,
+      "bytes": 38661,
+      "envelope_bytes": 3392,
+      "envelope_sha256": "563bea870b31950417cbc0c9d03dfbb6f930c9bd876f1f28ea199634173dacbb",
+      "all_full_bytes_restored": true,
+      "latest_and_pinned_api_match": true,
+      "name_relations": {
+        "EXACT_CANONICAL_NAME": 6
+      },
+      "completed_racelist_must_not_be_reacquired": true,
+      "evidence": "docs/evidence/2026-10-15/name-binding-marugame4-live.json"
+    }
+  ],
+  "name_bound_exhibition_implementation": {
+    "status": "ONE_RACE_TWO_MODELS_BACKUP_API_REPLAY_DESKTOP_MOBILE_VERIFIED",
+    "application_commit": "28ee0ced23b3fe2ec28cda9c1de9a7ad5387839d",
+    "models": [
+      "name-bound-display/v2",
+      "name-bound-original/v2"
+    ],
+    "source_limits": {
+      "official_html_bytes": 1000000,
+      "official_html_timeout_seconds": 10,
+      "each_tsv_bytes": 1048576,
+      "each_tsv_timeout_seconds": 15,
+      "max_transport_attempts": 3
+    },
+    "caller_limits": {
+      "max_seconds": 240,
+      "max_api_reads": 4,
+      "max_posts": 1
+    },
+    "all_existing_baselines_and_v1_preserved": true,
+    "physical_exhibition_timing_verified": false,
+    "video_used": false,
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "live_numeric_target": "20261015-15-04",
+    "live_name_binding_request_id": "38696849355-1",
+    "previous_attempt_evidence": "docs/evidence/2026-10-15/name-bound-exhibition-local-bound-stop.json",
+    "live_numeric_races": 1,
+    "run_id": 38699263834,
+    "job_id": 116303201374,
+    "artifact_id": 11955560704,
+    "request_id": "38699263834-1",
+    "cloud_saved_at": "2026-10-15T07:31:29.954248+00:00",
+    "receipt_confirmed_at": "2026-10-15T07:31:30.835577+00:00",
+    "seconds_before_close": 689.164423,
+    "envelope_sha256": "53d56c8445f1089b313e76c81c326a91b9bc2bf946d97dba6a67ba8eee6d3825",
+    "envelope_bytes": 113892,
+    "normalized_backup_files": 6,
+    "normalized_backup_bytes": 160468,
+    "full_backup_restored": true,
+    "latest_and_pinned_api_match": true,
+    "independent_720_replay": true,
+    "completed_numeric_target_must_not_be_reacquired": true,
+    "evidence": "docs/evidence/2026-10-15/name-bound-exhibition-live.json",
+    "ui_commit": "b221039adf632934ac07112b1df0a04609cb31d4",
+    "ui_url": "https://race-ai-preview-3s77geq4f-qq1130034-1738.vercel.app",
+    "ui_widths": [
+      1440,
+      390
+    ],
+    "ui_input_rows": 6,
+    "ui_probability_rows": 240,
+    "mobile_horizontal_access_verified": true,
+    "live_abbreviation_expansion_exercised": false,
+    "local_screenshots": [
+      "artifacts/local/name-bound-desktop-live.jpg",
+      "artifacts/local/name-bound-mobile-live.jpg",
+      "artifacts/local/name-bound-mobile-probabilities-live.jpg"
+    ]
   }
 }
