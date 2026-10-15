@@ -38,7 +38,7 @@ function validateNameBoundEvaluation(value,forecast,race,now=Date.now()){
    const top=result.top3;check(top===null||Array.isArray(top)&&top.length===3&&new Set(top).size===3&&top.every(lane=>Number.isInteger(lane)&&lane>=1&&lane<=6));
    const url=new URL(result.source_url),[date,venue,raceNo]=race.race_id.split('-');
    check(typeof result.source_url==='string'&&url.protocol==='https:'&&url.hostname==='www.boatrace.jp'&&!url.port&&!url.username&&!url.password&&!url.hash&&url.pathname==='/owpc/pc/race/raceresult'&&[...url.searchParams.keys()].sort().join()==='hd,jcd,rno'&&url.searchParams.get('hd')===date&&url.searchParams.get('jcd')===venue&&/^[0-9]{1,2}$/.test(url.searchParams.get('rno'))&&Number(url.searchParams.get('rno'))===Number(raceNo));
-   if(['PENDING','postponed'].includes(result.status)){expected='RESULT_PENDING';reason='OFFICIAL_RESULT_PENDING';}
+   if(result.status==='PENDING'||result.status==='postponed'&&!result.financial_confirmed){expected='RESULT_PENDING';reason='OFFICIAL_RESULT_PENDING';}
    else if(result.status!=='settled'){expected='RESULT_UNSUPPORTED';reason='OFFICIAL_RESULT_STATUS_UNSUPPORTED';}
    else if(!result.finish_confirmed){expected='RESULT_PENDING';reason='OFFICIAL_RESULT_PENDING';}
    else if(refunds.length){expected='RESULT_UNSUPPORTED';reason='OFFICIAL_REFUND_OUTCOME_UNSUPPORTED';}
