@@ -1,6 +1,5 @@
 name: RACE AI public source smoke (metadata only)
 on:
-  pull_request:
   workflow_dispatch:
 permissions:
   contents: read
