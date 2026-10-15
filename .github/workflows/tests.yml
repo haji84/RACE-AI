@@ -36,4 +36,7 @@ jobs:
           node --check web/settlement.js
           node --check web/exhibition.js
           node --check web/original-exhibition.js
-          node --test tests/ui_behavior.test.js tests/ui_race_updates.test.js tests/ui_prediction.test.js tests/ui_evaluation.test.js tests/ui_settlement.test.js tests/ui_exhibition.test.js tests/ui_original_exhibition.test.js tests/ui_name_bound_exhibition.test.js
+          node --check web/name-bound-exhibition.js
+          node --check web/name-bound-evaluation.js
+          node --check tests/ui_name_bound_evaluation_browser.cjs
+          node --test tests/ui_behavior.test.js tests/ui_race_updates.test.js tests/ui_prediction.test.js tests/ui_evaluation.test.js tests/ui_settlement.test.js tests/ui_exhibition.test.js tests/ui_original_exhibition.test.js tests/ui_name_bound_exhibition.test.js tests/ui_name_bound_evaluation.test.js

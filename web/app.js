@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const UI=globalThis.RaceUI,Money=globalThis.RaceMoney,Settlement=globalThis.RaceSettlement,Exhibition=globalThis.RaceExhibition,Original=globalThis.RaceOriginalExhibition,NameBound=globalThis.RaceNameBoundExhibition,$=id=>document.getElementById(id);
+  const UI=globalThis.RaceUI,Money=globalThis.RaceMoney,Settlement=globalThis.RaceSettlement,Exhibition=globalThis.RaceExhibition,Original=globalThis.RaceOriginalExhibition,NameBound=globalThis.RaceNameBoundExhibition,NameBoundEvaluation=globalThis.RaceNameBoundEvaluation,$=id=>document.getElementById(id);
   const names={home:['おかえりなさい','今日も、データを味方に。','レースを知る。根拠を確かめる。あなたの判断を、ここから。'],races:['全国24場の開催情報','全レース一覧','開催場とレースを選んで、出走データを確認しましょう。'],detail:['出走表と直前情報','レース詳細','取得した情報と、その時点を確かめる。'],picks:['自分の判断を記録','買い目配分','予算の範囲で、買い目と購入記録を整理します。'],results:['確定結果から振り返る','成績分析','購入・返還・払戻を区別し、実際の記録から検証します。'],research:['判断の根拠と検証','研究','取得できたデータと、予想の検証状況を確認します。'],settings:['自分に合った使い方','設定','資金と表示の設定は、このブラウザに保存されます。']};
   const defaults={dayBudget:0,raceBudget:0,lossLimit:0,maxBets:8,mode:'balanced',longshot:false,autoRefresh:true};
   let report=null,selectedId='',page='home',tab='overview',feedState='loading',feedMessage='',requestSerial=0,controller=null,toastTimer,storageAvailable=true;
@@ -10,6 +10,7 @@
   let postReceipt=null,postBaselineReceipt=null,postState='idle',postMessage='',postRaceId='',postSerial=0,postController=null,phaseInventory=new Map();
   let originalReceipt=null,originalBaseline=null,originalState='idle',originalMessage='',originalRaceId='',originalSerial=0,originalController=null;
   let nbEnvelope=null,nbState='idle',nbMessage='',nbRaceId='',nbSerial=0,nbController=null;
+  let nbEvaluation=null,nbEvaluationState='idle',nbEvaluationMessage='',nbEvaluationSerial=0,nbEvaluationController=null;
   let evaluation=null,evaluationState='idle',evaluationMessage='',evaluationRaceId='',evaluationSerial=0,evaluationController=null;
   let settlementReports=new Map(),settlementErrors=new Map(),settlementAudit=[],settlementSerial=0,settlementControllers=new Set(),settlementState='idle';
   const SETTINGS_KEY='raceai.settings.v1',LEDGER_KEY='raceai.ledger.v1',STATE_LOCK='raceai.local-state.v1';
@@ -203,7 +204,7 @@
     }catch(error){if(!valid())return;postReceipt=null;postBaselineReceipt=null;postState='error';postMessage=error.name==='AbortError'?'展示後予想の取得がタイムアウトしました。':error.message;}
     finally{clearTimeout(timeout);if(valid()){updatePhase(id,{post:postState});if(tab==='prediction')renderDetailTab();}}
   }
-  function clearNameBound(){nbSerial++;nbController?.abort();nbController=null;nbEnvelope=null;nbState='idle';nbMessage='';nbRaceId='';}
+  function clearNameBound(){clearNameBoundEvaluation();nbSerial++;nbController?.abort();nbController=null;nbEnvelope=null;nbState='idle';nbMessage='';nbRaceId='';}
   async function loadNameBound(){
     const race=current();if(page!=='detail'||tab!=='prediction'||!race||report.date_jst!==today())return;
     clearNameBound();const request=new AbortController(),serial=nbSerial,id=race.race_id,day=report.date_jst,identity=programIdentity(race);nbController=request;nbRaceId=id;nbState='loading';nbMessage='選択したレースの保存済み比較を確認しています。';renderDetailTab();
@@ -226,6 +227,30 @@
     const head=node('div','section-head'),action=button(nbState==='loading'?'確認中…':'保存済み展示比較を確認','outline-button',loadNameBound);action.id='load-name-bound-exhibition';action.disabled=nbState==='loading';head.append(node('h3','prediction-section-title','保存済みの展示比較'),action);panel.append(head,node('p','photo-note','B情報のみ比較元・通常展示反映・オリジナル展示反映を、同じ固定比較元で確認します。選択レースのみを読み込みます。'));
     const status=node('p','message',nbMessage||'保存済み比較は未取得です。');status.setAttribute('role','status');panel.append(status);
     if(nbEnvelope){try{const content=node('div','nb-content');const parsed=new DOMParser().parseFromString(NameBound.renderNameBoundComparison(nbEnvelope,current()),'text/html');content.append(...parsed.body.childNodes);panel.append(content);}catch{clearNameBound();panel.dataset.state='error';status.textContent='比較の対象日・固定入力を確認できません。';}}
+    if(nbEnvelope)panel.append(renderNameBoundEvaluationPanel());
+    return panel;
+  }
+  function clearNameBoundEvaluation(){nbEvaluationSerial++;nbEvaluationController?.abort();nbEvaluationController=null;nbEvaluation=null;nbEvaluationState='idle';nbEvaluationMessage='';}
+  async function loadNameBoundEvaluation(){
+    const race=current();if(page!=='detail'||tab!=='prediction'||!race||report.date_jst!==today()||!nbEnvelope||nbState!=='ready')return;
+    clearNameBoundEvaluation();const request=new AbortController(),serial=nbEvaluationSerial,id=race.race_id,day=report.date_jst,identity=programIdentity(race),nbEnvelopeRef=nbEnvelope,nonce=nbEnvelopeRef.receipt.request_id,forecastSerial=nbSerial;
+    nbEvaluationController=request;nbEvaluationState='loading';nbEvaluationMessage='この保存番号の予想と、取得済みの公式結果を照合しています。';renderDetailTab();
+    const valid=()=>serial===nbEvaluationSerial&&forecastSerial===nbSerial&&selectedId===id&&report?.date_jst===day&&today()===day&&current()&&programIdentity(current())===identity&&nbEnvelope===nbEnvelopeRef&&nbEnvelopeRef.receipt.request_id===nonce;
+    const timeout=setTimeout(()=>request.abort(),15000);
+    try{
+      const response=await fetch('./api/name-bound-evaluation?race_id='+encodeURIComponent(id)+'&forecast_request_id='+encodeURIComponent(nonce),{cache:'no-store',credentials:'same-origin',signal:request.signal}),body=await readRaceBody(response);if(!valid())return;
+      if(response.status===404){nbEvaluationState='unobtained';nbEvaluationMessage='指定した保存番号の予想を取得できませんでした。';return;}
+      if(!response.ok)throw new Error('保存済み予想と公式結果の照合を取得できませんでした。');
+      const checked=NameBoundEvaluation.validateNameBoundEvaluation(JSON.parse(body),nbEnvelopeRef,race,Date.now());if(!valid())return;
+      nbEvaluation=checked;nbEvaluationState='ready';nbEvaluationMessage=checked.status==='EVALUATED'?'保存済みの3段階の予想を、1レースの公式着順と照合しました。':'公式結果の取得・確定状況を表示しています。';
+    }catch(error){if(!valid())return;nbEvaluation=null;nbEvaluationState='error';nbEvaluationMessage=error.name==='AbortError'?'結果との照合がタイムアウトしました。':error.message;}
+    finally{clearTimeout(timeout);if(valid()&&tab==='prediction')renderDetailTab();}
+  }
+  function renderNameBoundEvaluationPanel(){
+    const panel=node('section','nb-evaluation');panel.dataset.state=nbEvaluationState;
+    const head=node('div','section-head'),action=button(nbEvaluationState==='loading'?'照合中…':'保存済み予想を結果と照合','outline-button',loadNameBoundEvaluation);action.id='load-name-bound-evaluation';action.disabled=nbEvaluationState==='loading';head.append(node('h3','prediction-section-title','公式結果との照合'),action);panel.append(head,node('p','photo-note','表示中の保存番号に固定して、取得済みの公式結果と比較します。'));
+    const status=node('p','message',nbEvaluationMessage||'結果との照合は未実行です。');status.setAttribute('role','status');panel.append(status);
+    if(nbEvaluation){try{const content=node('div','nb-evaluation-content');const parsed=new DOMParser().parseFromString(NameBoundEvaluation.renderNameBoundEvaluation(nbEvaluation,nbEnvelope,current()),'text/html');content.append(...parsed.body.childNodes);panel.append(content);}catch{clearNameBoundEvaluation();panel.dataset.state='error';status.textContent='結果照合の対象・固定リンク・スコアを確認できません。';}}
     return panel;
   }
   async function loadOriginal(){
