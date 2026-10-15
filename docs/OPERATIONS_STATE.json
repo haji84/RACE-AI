@@ -42,15 +42,15 @@
   "trusted_workflow_branch": "feat/boat-oidc-probe-auth",
   "trusted_workflow_path": ".github/workflows/boat-blob-e2e.yml",
   "trusted_workflow_name": "RACE AI Preview Blob E2E",
-  "last_verified_day_run_id": 38761590081,
-  "last_verified_day_job_id": 116513988419,
+  "last_verified_day_run_id": 38811179135,
+  "last_verified_day_job_id": 116684495572,
   "last_verified_date_jst": "2026-10-16",
-  "last_verified_payload_sha256": "5dcddee8c61db1d1397805d19d559be66a12ce883c85528566f3a15d896e3923",
+  "last_verified_payload_sha256": "c9bcf98abe5f0ac68428a7a3c1c633864121556ab95c7059636a8a353bc24d57",
   "last_verified_backup": {
-    "artifact_id": 11985428253,
+    "artifact_id": 12007734183,
     "file": "race-ai-day.json",
     "bytes": 349880,
-    "sha256": "67c9f3d4782e0b2c3c02efe56d5bafa70591d02f3babe30242a4c9a77e0a95b2",
+    "sha256": "37ee661ba478376d8af9d734af0868f7533315ba0edf4004fae8076bec8d1d28",
     "all_content_restored": true
   },
   "cloud_recurring_schedule_installed": false,
@@ -209,7 +209,7 @@
     "Day16 Naruto1R20261016-14-01 closes08:35JST; own six-name proof38798278470-1 complete at04:59:43.547448JST, no racelist repeat. Use saved baseline38764082826-1 and own proof only for new eligible separately versioned numeric/temporal observations. Physical exhibition pairs0. Preserve day16all156/day15all118 and completed4R/7R evidence; no same-day cohort repeat without concrete new missing set.",
     "Accumulate prospective multi-day held-out accuracy/calibration/adoption evidence. Immutable4R/7R offline common-cohort aggregate nowverified N2/day1; no new labels and no adoption. Keep versions separate and future sources out of frozen inputs.",
     "Advance verified boat/lane identity, camera/world calibration and measurement ground truth; color/image-affine estimates do not validate boat performance or forecast inputs. All-race video and continuous coverage unfinished.",
-    "Last actual day acquisition2026-10-16 00:35:23.711762JST run38761590081, newday16 afterexactdated404. Fullbackup and bothPreviewAPIs independentlyverified. Next6h2026-10-16 06:35:23.711762JST unless currentday positivelymissing; no repeats. Preserve day15refresh38756184875 and all156program identities.",
+    "Last actual day acquisition2026-10-16 06:37:05.445882JST run38811179135, authorized six-hour refresh. Fullbackup and twoPreviewAPIs independentlyverified; all156program identities and frozenNaruto1 parents preserved despite changed rawBarchiveSHA. Next6h2026-10-16 12:37:05.445882JST unless currentday positivelymissing; no repeats. Preserve firstday16acquisition38761590081/day15refresh38756184875 and completedbaselines.",
     "Preserve Toda1displayv1/Naruto8originalv1/Naruto7video/Amagasaki5camera and all completed3R/4R/7R proofs/numeric/result receipts.7R result38726468766-1 is complete; do not redispatch it. Both source-smoke files manual-only before everypush.",
     "Long-term history, motor-change periods, user-cloud/restore/drills, hardwareiPhone and release-independent cloud scheduling remain formal completion conditions; noProduction/main/voting/payment."
   ],
@@ -258,14 +258,14 @@
     "boat_feature_accuracy_validated": false
   },
   "last_day_refresh_attempt": {
-    "run_id": 38761590081,
-    "job_id": 116513988419,
-    "artifact_id": 11985428253,
+    "run_id": 38811179135,
+    "job_id": 116684495572,
+    "artifact_id": 12007734183,
     "result": "SUCCESS",
-    "last_real_acquisition_at": "2026-10-15T15:35:23.711762+00:00",
-    "cause": "CURRENT_DAY_EXACT_DATED_NOT_SAVED",
+    "last_real_acquisition_at": "2026-10-15T21:37:05.445882+00:00",
+    "cause": "AUTHORIZED_SIX_HOUR_REFRESH",
     "repeat_started": false,
-    "evidence": "docs/evidence/2026-10-16/new-day16-live.json"
+    "evidence": "docs/evidence/2026-10-16/day-refresh0635-live.json"
   },
   "last_verified_post_application": {
     "commit": "d91b6d14aa27d71a605fa110003552f3a48d89d1",
@@ -2985,7 +2985,7 @@
     "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca"
   },
   "trusted_worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-  "updated_at": "2026-10-15T20:06:46.398850+00:00",
+  "updated_at": "2026-10-15T21:41:54.854136+00:00",
   "current_day16_prospective_target": {
     "race_id": "20261016-14-01",
     "request_id": "38798278470-1",
@@ -3011,5 +3011,17 @@
     "physical_exhibition_timing_verified": false,
     "numeric_v2_saved": false,
     "video_measured": false
+  },
+  "last_verified_day_refresh": {
+    "run_id": 38811179135,
+    "previous_last_real_acquisition": "2026-10-15T15:35:23.711762+00:00",
+    "last_real_acquisition": "2026-10-15T21:37:05.445882+00:00",
+    "next_six_hour_eligible_at": "2026-10-16T03:37:05.445882+00:00",
+    "all156_program_digests_unchanged": true,
+    "source_archive_sha_changed": true,
+    "extracted_program_text_sha_unchanged": true,
+    "frozen_naruto1_parents_compatible_with_new_day": true,
+    "independent_artifact_audit_findings": 0,
+    "evidence": "docs/evidence/2026-10-16/day-refresh0635-live.json"
   }
 }
