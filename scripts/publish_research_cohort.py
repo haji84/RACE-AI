@@ -4,6 +4,10 @@ Defaults to one next eligible race per active venue; all-upcoming scans at most
 288 races. Each batch creates at most 24 new request/receipt pairs, independently
 of preserved receipt reads. No official source requests or user purchases.
 Existing scoped Preview OIDC and server-side generation only.
+All-upcoming may explicitly use at most 480 seconds to scan preserved receipts;
+the default and next-per-venue ceiling remain 240 seconds.
+Extended runs reacquire the same scoped short-lived OIDC session after 180
+monotonic seconds. OIDC calls are counted separately from business API reads.
 """
 import argparse
 from datetime import datetime, timedelta, timezone
@@ -129,7 +133,8 @@ def run(output_dir, *, execute=False, max_races=24, selection='next-per-venue', 
     also includes an interrupted candidate without a verified or cutoff outcome.
     """
     _selection_options(max_races, selection)
-    if type(max_seconds) not in (int, float) or not math.isfinite(max_seconds) or not 0 < max_seconds <= 240:
+    ceiling = 480 if selection == 'all-upcoming' else 240
+    if type(max_seconds) not in (int, float) or not math.isfinite(max_seconds) or not 0 < max_seconds <= ceiling:
         raise ValueError('COHORT_TIME_LIMIT_INVALID')
     if max_reads is None:
         max_reads = MAX_READS if selection == 'all-upcoming' else 1 + max_races * 2
@@ -158,6 +163,7 @@ def run(output_dir, *, execute=False, max_races=24, selection='next-per-venue', 
         started_at=start.isoformat(), finished_at=None, status='COMPLETED',
         selection=selection, max_races=max_races, max_seconds=max_seconds, max_reads=max_reads,
         reads_used=0, write_slots_used=0, posts_attempted=0, elapsed_seconds=0,
+        oidc_session_attempts=0, oidc_sessions_ready=0,
         selected_race_ids=[], attempted_race_ids=[], not_attempted_race_ids=[], pending_race_ids=[],
         saved=[], preserved=[], skipped=[], request_backups=[], failure=None, failure_race_id=None,
         validation_status='UNVALIDATED', purchase_decision='skip', purchase_recommendations=[], official_source_requests=0)
@@ -172,15 +178,38 @@ def run(output_dir, *, execute=False, max_races=24, selection='next-per-venue', 
         if manifest['reads_used'] >= max_reads:
             raise _BudgetStop('READ_LIMIT_REACHED')
 
+    def authorized(request, reserve):
+        nonlocal opener, headers, session_started
+        if max_seconds > 240 and monotonic() - session_started >= 180:
+            # workflow_session uses the same fixed issuer/audience/commit and a
+            # bounded HTTP call. Neither expiry checks nor trust are relaxed.
+            check_time(reserve + HTTP_SECONDS)
+            manifest['oidc_session_attempts'] += 1
+            try:
+                opener, headers = workflow_session(commit)
+            except Exception:
+                # Issuer errors, including HTTP404, never mean a forecast is
+                # absent. Keep them outside the business missing-data code.
+                raise RuntimeError('COHORT_OIDC_RENEWAL_FAILED') from None
+            manifest['oidc_sessions_ready'] += 1
+            session_started = monotonic()
+        return urllib.request.Request(request.full_url, data=request.data,
+            method=request.get_method(), headers=headers)
+
     def read(request, *, limit):
         check_time(HTTP_SECONDS)
         check_reads()
+        request = authorized(request, HTTP_SECONDS)
+        check_time(HTTP_SECONDS)
         manifest['reads_used'] += 1
         return get_json(opener, request, limit=limit)
 
     try:
         check_time(HTTP_SECONDS)
+        manifest['oidc_session_attempts'] += 1
         opener, headers = workflow_session(commit)
+        manifest['oidc_sessions_ready'] += 1
+        session_started = monotonic()
         feed = read(urllib.request.Request(base+'/today', headers=headers), limit=6_000_000)
         races = choose_cohort(feed, start, max_races, selection=selection)
         manifest['date_jst'] = feed['date_jst']
@@ -230,6 +259,7 @@ def run(output_dir, *, execute=False, max_races=24, selection='next-per-venue', 
             request_backup = _write(request_path, request)
             manifest['request_backups'].append(dict(race_id=identifier, request_backup=request_backup))
             publication = urllib.request.Request(url, data=_read_backup(request_path, request), method='POST', headers=headers)
+            publication = authorized(publication, 2 * HTTP_SECONDS)
             check_time(2 * HTTP_SECONDS)
             clock = datetime.now(timezone.utc)
             if clock.astimezone(JST).date().isoformat() != feed['date_jst'] or instant(race['closed_at']) <= clock + MARGIN:

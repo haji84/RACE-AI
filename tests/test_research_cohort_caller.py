@@ -144,6 +144,165 @@ class CohortCallerTests(unittest.TestCase):
             self.assertEqual(result['selected_race_ids'], ['20261015-01-01', '20261015-02-01'])
             self.assertEqual(result['selection'], 'next-per-venue')
 
+    def test_all_upcoming_extended_budget_reaches_new_tail_after_132_slow_preserved_reads(self):
+        feed = self.queue(13, 12)
+        races = [race for venue in feed['venues'] for race in venue['races']]
+        existing = {race['race_id']: self.receipt(feed, race, '987654-1') for race in races[:132]}
+        prior = copy.deepcopy(existing)
+        for seconds, expected_saved in ((240, 0), (480, 24)):
+            elapsed = [0.0]
+            original = self.transport(feed, existing)
+            def transport(opener, request, *, limit):
+                try:
+                    return original(opener, request, limit=limit)
+                finally:
+                    elapsed[0] += 2.0
+            with self.subTest(seconds=seconds), tempfile.TemporaryDirectory() as folder, self.environment(), self.session(folder, transport), patch.object(self.module, 'monotonic', side_effect=lambda: elapsed[0]):
+                try:
+                    result = self.module.run(Path(folder)/'cohort', execute=True, selection='all-upcoming', max_seconds=seconds)
+                except ValueError as error:
+                    self.fail(f'bounded all-upcoming tail scan rejected: {error}')
+                self.assertEqual(len(result['saved']), expected_saved)
+                self.assertEqual(result['posts_attempted'], expected_saved)
+                self.assertEqual(existing, prior)
+                if seconds == 240:
+                    self.assertEqual(result['status'], 'TIME_LIMIT_REACHED')
+                    self.assertEqual(len(list((Path(folder)/'cohort').glob('*.json'))), 1)
+                else:
+                    self.assertEqual(result['status'], 'COMPLETED')
+                    self.assertEqual(len(result['preserved']), 132)
+                    self.assertEqual(result['pending_race_ids'], [])
+                    self.assertEqual(result['reads_used'], 181)
+                    self.assertEqual(result['elapsed_seconds'], 410.0)
+                    self.assertEqual(len(list((Path(folder)/'cohort').glob('*.json'))), 49)
+
+    def test_extended_all_upcoming_budget_still_stops_on_monotonic_expiry(self):
+        feed = self.queue(1, 3)
+        existing = {race['race_id']: self.receipt(feed, race) for race in feed['venues'][0]['races']}
+        elapsed = [0.0]
+        original = self.transport(feed, existing)
+        def transport(opener, request, *, limit):
+            response = original(opener, request, limit=limit)
+            if '/prediction?' in request.full_url:
+                elapsed[0] = 480.0
+            return response
+        with tempfile.TemporaryDirectory() as folder, self.environment(), self.session(folder, transport), patch.object(self.module, 'monotonic', side_effect=lambda: elapsed[0]):
+            try:
+                result = self.module.run(Path(folder)/'cohort', execute=True, selection='all-upcoming', max_seconds=480)
+            except ValueError as error:
+                self.fail(f'extended monotonic stop could not run: {error}')
+            self.assertEqual(result['status'], 'TIME_LIMIT_REACHED')
+            self.assertEqual(result['reads_used'], 2)
+            self.assertEqual(result['posts_attempted'], 0)
+            self.assertEqual(len(result['preserved']), 1)
+            self.assertEqual(result['pending_race_ids'], ['20261015-01-02', '20261015-01-03'])
+            self.assertEqual(result['elapsed_seconds'], 480.0)
+
+    def test_extended_run_renews_same_commit_session_before_short_lived_headers_expire(self):
+        feed = self.queue(13, 12)
+        races = [race for venue in feed['venues'] for race in venue['races']]
+        existing = {race['race_id']: self.receipt(feed, race, '987654-1') for race in races[:132]}
+        elapsed, issued = [0.0], {}
+        original = self.transport(feed, existing)
+        def session(commit):
+            self.assertEqual(commit, 'a'*40)
+            token = 'Bearer synthetic-session-'+str(len(issued)+1)
+            issued[token] = elapsed[0]+300
+            return object(), {'Authorization':token, 'X-Race-AI-Commit':commit}
+        def transport(opener, request, *, limit):
+            token = request.get_header('Authorization')
+            if token not in issued or elapsed[0] >= issued[token]:
+                raise RuntimeError('SYNTHETIC_OIDC_EXPIRED')
+            try:
+                return original(opener, request, limit=limit)
+            finally:
+                elapsed[0] += 2.0
+        with tempfile.TemporaryDirectory() as folder, self.environment(), self.session(folder, transport), patch.object(self.module, 'workflow_session', side_effect=session), patch.object(self.module, 'monotonic', side_effect=lambda: elapsed[0]):
+            try:
+                result = self.module.run(Path(folder)/'cohort', execute=True, selection='all-upcoming', max_seconds=480)
+            except RuntimeError as error:
+                self.fail(f'extended run reused expired headers: {error}')
+            self.assertEqual(result['status'], 'COMPLETED')
+            self.assertEqual(len(result['saved']), 24)
+            self.assertEqual(result['reads_used'], 181)
+            self.assertEqual(result['posts_attempted'], 24)
+            self.assertEqual(result['oidc_session_attempts'], 3)
+            self.assertEqual(result['oidc_sessions_ready'], 3)
+
+    def test_failed_session_renewal_stops_before_new_lookup_or_post_and_redacts_failure(self):
+        feed = self.queue(1, 2)
+        first = feed['venues'][0]['races'][0]
+        elapsed = [0.0]
+        original = self.transport(feed, {first['race_id']:self.receipt(feed, first)})
+        def transport(opener, request, *, limit):
+            response = original(opener, request, limit=limit)
+            if '/prediction?' in request.full_url:
+                elapsed[0] = 180.0
+            return response
+        with tempfile.TemporaryDirectory() as folder, self.environment(), self.session(folder, transport), patch.object(self.module, 'workflow_session', side_effect=[(object(), {}), RuntimeError('PRIVATE_ISSUER_DETAIL')]), patch.object(self.module, 'monotonic', side_effect=lambda: elapsed[0]):
+            path = Path(folder)/'cohort'
+            with self.assertRaises(RuntimeError):
+                self.module.run(path, execute=True, selection='all-upcoming', max_seconds=480)
+            manifest = json.loads((path/'manifest.json').read_bytes())
+            self.assertEqual(manifest['status'], 'STOPPED')
+            self.assertEqual(manifest['failure'], 'RuntimeError')
+            self.assertEqual(manifest['reads_used'], 2)
+            self.assertEqual(manifest['posts_attempted'], 0)
+            self.assertEqual(manifest['oidc_session_attempts'], 2)
+            self.assertEqual(manifest['oidc_sessions_ready'], 1)
+            self.assertNotIn('PRIVATE_ISSUER_DETAIL', json.dumps(manifest))
+
+    def test_session_renewal_crossing_cutoff_keeps_request_backup_without_post(self):
+        feed = self.queue(1, 1)
+        elapsed, clock = [0.0], [NOW]
+        original = self.transport(feed)
+        sessions = [0]
+        def session(commit):
+            sessions[0] += 1
+            if sessions[0] == 2:
+                clock[0] = NOW+timedelta(hours=1)
+            return object(), {}
+        def transport(opener, request, *, limit):
+            try:
+                return original(opener, request, limit=limit)
+            finally:
+                if '/prediction?' in request.full_url:
+                    elapsed[0] = 180.0
+        with tempfile.TemporaryDirectory() as folder, self.environment(), self.session(folder, transport, clock=lambda:clock[0]), patch.object(self.module, 'workflow_session', side_effect=session), patch.object(self.module, 'monotonic', side_effect=lambda: elapsed[0]):
+            path = Path(folder)/'cohort'
+            result = self.module.run(path, execute=True, selection='all-upcoming', max_seconds=480)
+            self.assertEqual(result['status'], 'COMPLETED')
+            self.assertEqual(result['posts_attempted'], 0)
+            self.assertEqual(result['saved'], [])
+            self.assertEqual(result['skipped'], [{'race_id':'20261015-01-01','reason':'JST_DAY_OR_CUTOFF_MARGIN_CHANGED'}])
+            self.assertEqual(len(list(path.glob('*.request.json'))), 1)
+            self.assertEqual(result['oidc_sessions_ready'], 2)
+
+    def test_issuer_404_during_renewal_is_not_a_missing_forecast_and_never_allocates_a_write(self):
+        feed = self.queue(1, 2)
+        first = feed['venues'][0]['races'][0]
+        elapsed = [0.0]
+        original = self.transport(feed, {first['race_id']:self.receipt(feed, first)})
+        def transport(opener, request, *, limit):
+            response = original(opener, request, limit=limit)
+            if '/prediction?' in request.full_url:
+                elapsed[0] = 180.0
+            return response
+        with tempfile.TemporaryDirectory() as folder, self.environment(), self.session(folder, transport), patch.object(self.module, 'workflow_session', side_effect=[(object(), {}), RuntimeError('DAY_PUBLISH_HTTP_404'), (object(), {})]), patch.object(self.module, 'monotonic', side_effect=lambda: elapsed[0]):
+            path = Path(folder)/'cohort'
+            try:
+                self.module.run(path, execute=True, selection='all-upcoming', max_seconds=480)
+            except (ValueError, RuntimeError):
+                pass
+            manifest = json.loads((path/'manifest.json').read_bytes())
+            self.assertEqual(manifest['status'], 'STOPPED')
+            self.assertEqual(manifest['reads_used'], 2)
+            self.assertEqual(manifest['posts_attempted'], 0)
+            self.assertEqual(manifest['write_slots_used'], 0)
+            self.assertEqual(manifest['request_backups'], [])
+            self.assertEqual(manifest['oidc_session_attempts'], 2)
+            self.assertEqual(manifest['oidc_sessions_ready'], 1)
+
     def test_preserved_reads_have_independent_cap_and_honest_unattempted_tail(self):
         feed = self.queue(1, 4)
         existing = {r['race_id']: self.receipt(feed, r, '987654-1') for r in feed['venues'][0]['races']}
@@ -240,7 +399,8 @@ class CohortCallerTests(unittest.TestCase):
                 self.assertEqual(result['not_attempted_race_ids'], ['20261015-01-02'])
 
     def test_budget_options_reject_invalid_or_oversized_values_without_side_effects(self):
-        for options in ({'selection':'any'}, {'max_seconds':0}, {'max_seconds':241}, {'max_seconds':True},
+        for options in ({'selection':'any'}, {'max_seconds':0}, {'max_seconds':241},
+                        {'selection':'all-upcoming','max_seconds':481}, {'max_seconds':True},
                         {'max_seconds':float('nan')}, {'max_seconds':float('inf')},
                         {'max_reads':0}, {'max_reads':314}, {'max_reads':True}, {'max_reads':1.5}):
             with self.subTest(options=options), tempfile.TemporaryDirectory() as folder, patch.object(self.module, 'workflow_session', side_effect=AssertionError('network')):
