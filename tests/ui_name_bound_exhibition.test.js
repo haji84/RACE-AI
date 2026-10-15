@@ -3,6 +3,10 @@ let api;try{api=require('../web/name-bound-exhibition.js');}catch{}
 const clone=()=>structuredClone(fixture.envelope),now=Date.parse(fixture.now);
 test('new independently pinned comparison module exists',()=>assert.equal(typeof api?.validateNameBoundComparison,'function'));
 test('valid complete synthetic envelope replays both models',()=>assert.equal(api.validateNameBoundComparison(fixture.envelope,fixture.race,now),fixture.envelope));
+test('accepts null and integer wind direction source codes from 0 through 99',()=>{for(const code of [null,0,11,99]){const v=clone();v.inputs.beforeinfo_record.data.weather.wind_direction_source_code=code;assert.equal(api.validateNameBoundComparison(v,fixture.race,now),v);}});
+test('rejects non-integer or out-of-range wind direction source codes',()=>{for(const code of ['11',true,11.5,-1,100]){const v=clone();v.inputs.beforeinfo_record.data.weather.wind_direction_source_code=code;assert.throws(()=>api.validateNameBoundComparison(v,fixture.race,now),`wind code ${JSON.stringify(code)}`);}});
+test('accepts source weather numeric limits from the contract',()=>{for(const [field,value]of [['air_temperature_c',-40],['air_temperature_c',60],['water_temperature_c',-10],['water_temperature_c',60],['wave_height_cm',0],['wave_height_cm',1000],['wind_speed_mps',0],['wind_speed_mps',100]]){const v=clone();v.inputs.beforeinfo_record.data.weather[field]=value;assert.equal(api.validateNameBoundComparison(v,fixture.race,now),v,`${field}=${value}`);}});
+test('rejects source weather numeric values beyond the contract',()=>{for(const [field,value]of [['air_temperature_c',-40.01],['air_temperature_c',60.01],['water_temperature_c',-10.01],['water_temperature_c',60.01],['wave_height_cm',-0.01],['wave_height_cm',1000.01],['wind_speed_mps',-0.01],['wind_speed_mps',100.01]]){const v=clone();v.inputs.beforeinfo_record.data.weather[field]=value;assert.throws(()=>api.validateNameBoundComparison(v,fixture.race,now),`${field}=${value}`);}});
 const cases={
  'invalid name category':v=>v.name_binding.receipt.snapshot.bindings[0].verified_full_name+='\uE000',
  'forecast fractional schema':v=>v.receipt.schema_version=1.1,
