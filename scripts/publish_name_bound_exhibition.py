@@ -53,7 +53,7 @@ def inventory(folder):
 
 def verify_response(report,envelope,request,race,baseline,binding,commit,now):
     validate_name_bound_envelope(envelope,race,now=now)
-    require(report==dict(metadata(envelope,race),commit_sha=commit))
+    require(canonical(report)==canonical(dict(metadata(envelope,race),commit_sha=commit)))
     require(canonical(envelope['baseline'])==canonical(baseline) and canonical(envelope['name_binding'])==canonical(binding))
     require(canonical(envelope['inputs'])==canonical(request['inputs']))
     require(all(envelope['receipt'][k]==request[k] for k in ('request_id','baseline_request_id','name_binding_request_id')))
@@ -83,6 +83,28 @@ def verify_backups(folder,manifest):
         snapshot=values['baseline.json']['snapshot'];source=snapshot['program_source']
         race=dict(race_id=snapshot['race_id'],closed_at=snapshot['closed_at'],boats=snapshot['program_boats'],program_source_url=source['source_url'],program_source_sha256=source['source_sha256'],program_observed_at=source['captured_at'])
         verify_response(dict(metadata(envelope,race),commit_sha=manifest['commit_sha']),envelope,request,race,values['baseline.json'],values['name-binding.json'],manifest['commit_sha'],instant(envelope['finalization']['receipt_confirmed_at']))
+
+def finalize_manifest(folder,manifest,guard):
+    """Finalize only this invocation's exclusively owned manifest handle."""
+    with (folder/'manifest.json').open('x+b') as handle:
+        def persist():
+            raw=canonical(manifest);require(0<len(raw)<=MAX_BYTES)
+            handle.seek(0);handle.truncate(0);handle.write(raw);handle.flush()
+            handle.seek(0);require(handle.read()==raw)
+        try:
+            persist()
+            if manifest['status']=='COMPLETED':
+                guard();verify_backups(folder,manifest);guard()
+        except BudgetExhausted:
+            manifest.update(status='TIME_LIMIT_REACHED',failure_reason='NAME_BOUND_EXHIBITION_TIME_LIMIT')
+            manifest['backups']=inventory(folder)
+            persist()
+        except (ValueError,RuntimeError,OSError,KeyError,TypeError,AttributeError,OverflowError,UnicodeError,RecursionError):
+            manifest.update(status='STOPPED',failure_reason='NAME_BOUND_EXHIBITION_STOPPED')
+            manifest['backups']=inventory(folder)
+            persist()
+    return manifest
+
 
 def run(facts_review,media_review,output_dir,*,race_id,name_binding_request_id,execute=False):
     if not execute:return None
@@ -148,11 +170,7 @@ def run(facts_review,media_review,output_dir,*,race_id,name_binding_request_id,e
     manifest['backups']=inventory(folder)
     # Account for all actual residual bytes, including failed writes, without JSON normalization.
     if time.monotonic()-started>240:manifest.update(status='TIME_LIMIT_REACHED',failure_reason='NAME_BOUND_EXHIBITION_TIME_LIMIT')
-    write_checked(folder,'manifest.json',manifest)
-    if manifest['status']=='COMPLETED':
-        # Late readback/serialization cannot return a successful publication.
-        guard();verify_backups(folder,manifest);guard()
-    return manifest
+    return finalize_manifest(folder,manifest,guard)
 
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)

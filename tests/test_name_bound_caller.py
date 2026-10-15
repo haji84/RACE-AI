@@ -27,6 +27,40 @@ class CallerTests(unittest.TestCase):
             self.assertEqual(result['status'],'STOPPED')
             self.assertEqual(result['official_source_requests'],0)
 
+class FinalManifestTests(unittest.TestCase):
+    def check_failure(self,error,status):
+        import json
+        from unittest.mock import patch
+        with TemporaryDirectory() as d:
+            folder=Path(d)
+            manifest=caller.run('missing','missing',folder/'other',race_id='bad',name_binding_request_id='bad',execute=True)
+            folder=folder/'final';folder.mkdir()
+            manifest.update(status='COMPLETED',failure_reason=None)
+            checked=[]
+            def guard():
+                checked.append(True)
+                raise error
+            with patch.object(caller,'verify_backups'):
+                result=caller.finalize_manifest(folder,manifest,guard)
+            self.assertEqual(result['status'],status)
+            retained=json.loads((folder/'manifest.json').read_bytes())
+            self.assertEqual(retained,result)
+            self.assertNotEqual(retained['status'],'COMPLETED')
+            self.assertTrue(checked)
+            with self.assertRaises(FileExistsError):caller.finalize_manifest(folder,manifest,lambda:None)
+    def test_final_readback_crosses_deadline(self):
+        self.check_failure(caller.BudgetExhausted(),'TIME_LIMIT_REACHED')
+    def test_final_clock_failure_truthful_manifest(self):
+        self.check_failure(ValueError('clock'),'STOPPED')
+
+    def test_cli_failure_exit_two(self):
+        import subprocess,sys,os
+        with TemporaryDirectory() as d:
+            env=dict(os.environ);env.pop('RACE_AI_NAME_BOUND_PUBLISH_URL',None)
+            result=subprocess.run([sys.executable,'scripts/publish_name_bound_exhibition.py','--facts-review','missing','--media-review','missing','--output-dir',str(Path(d)/'out'),'--race-id','bad','--name-binding-request-id','bad','--execute'],capture_output=True,text=True,env=env)
+            self.assertEqual(result.returncode,2)
+            self.assertIn('"status": "STOPPED"',result.stdout)
+
 class ReplayTests(unittest.TestCase):
     def setUp(self):
         from tests.test_name_bound_store import StoreTests
@@ -39,6 +73,8 @@ class ReplayTests(unittest.TestCase):
         report=dict(self.store.s.metadata(self.envelope,self.store.race),commit_sha='a'*40)
         args=(report,self.envelope,self.request,self.store.race,self.store.base,self.store.binding,'a'*40,NOW)
         caller.verify_response(*args)
+        changed=deepcopy(report);changed['research_only']=1
+        with self.assertRaises(ValueError):caller.verify_response(changed,*args[1:])
         changed=deepcopy(report);changed['extra']=1
         with self.assertRaises(ValueError):caller.verify_response(changed,*args[1:])
         changed=deepcopy(self.request);changed['request_id']='999-1'
