@@ -18,7 +18,7 @@ function validateNameBoundEvaluation(value,forecast,race,now=Date.now()){
   const day=UI.dayJst(new Date(now)),clock=BigInt(Math.floor(now))*1000n;
   function time(v){const match=typeof v==='string'&&/^(\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d)(?:\.(\d{1,6}))?(Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.exec(v);check(match);const ms=Date.parse(v),local=new Date(match[1]+'Z');check(Number.isFinite(ms)&&Number.isFinite(local.getTime())&&local.toISOString().slice(0,19)===match[1]&&UI.dayJst(new Date(ms))===day);return BigInt(ms)*1000n+BigInt((match[2]||'').padEnd(6,'0').slice(3));}
   const close=time(race.closed_at),asOf=time(value.as_of);
-  check(value.schema_version===1&&value.race_id===race.race_id&&value.date_jst===day&&time(value.closed_at)===close&&asOf<=clock);
+  check(value.schema_version===1&&value.race_id===race.race_id&&value.date_jst===day&&time(value.closed_at)===close&&asOf<=clock+60000000n);
   check(value.research_only===true&&value.validation_status==='UNVALIDATED'&&value.purchase_decision==='skip'&&value.comparison_scope===SCOPE&&value.physical_exhibition_timing_verified===false);same(value.purchase_recommendations,[]);
   const {receipt:r,finalization:f,baseline:b,inputs:i,name_binding:n}=forecast,s=r.snapshot,p=value.forecast_proof;
   exact(p,'request_id snapshot_id envelope_sha256 baseline_request_id baseline_snapshot_id baseline_receipt_sha256 name_binding_request_id input_snapshot_id generated_at cloud_saved_at receipt_confirmed_at');
