@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "review_type": "owner_attestation",
+  "evidence_reference": "user-confirmation-2026-10-15-exhibition-private-analysis",
+  "evidence_document": "docs/EXHIBITION_MEDIA_OWNER_CONFIRMATION.md",
+  "reviewed_by": "project-owner",
+  "reviewed_at": "2026-10-15T10:05:52.000+09:00",
+  "owner_statement": "ファイルパスはないが利用していいと調べたら出てきた。",
+  "video_internal_analysis": true,
+  "temporary_video_processing": true,
+  "video_store": false,
+  "video_publish": false,
+  "photo_publish": false,
+  "derived_features_protected_preview": true,
+  "derived_features_public_publish": false,
+  "independent_legal_audit_provided": false,
+  "source_scopes": [
+    {
+      "component": "official_exhibition_page",
+      "origin": "https://race.boatcast.jp",
+      "path": "/replay",
+      "query_keys": [
+        "jo",
+        "md"
+      ],
+      "verified_example": "https://race.boatcast.jp/replay?jo=14&md=T"
+    },
+    {
+      "component": "official_player",
+      "origin": "https://front.player.boatrace-cdn.jp",
+      "path": "/player/vod",
+      "race_type": "exhibition",
+      "service": "boatcast"
+    },
+    {
+      "component": "official_player_recording_index",
+      "origin": "https://front.player.boatrace-cdn.jp",
+      "path_prefix": "/setting/vod/",
+      "observed_example": "/setting/vod/20261015/14naruto/exhibition/setting.json"
+    },
+    {
+      "component": "player_linked_hls",
+      "origins": [
+        "https://manifest.streaks.jp",
+        "https://variants.streaks.jp",
+        "https://live-cp-boatrace-prod.streaks.jp"
+      ],
+      "project": "cp-boatrace-prod",
+      "resolution": "ONLY_PUBLIC_OFFICIAL_PLAYER_RETURNED_EXHIBITION_RESOURCE",
+      "credentials": "EPHEMERAL_NORMAL_PLAYER_ACCESS_ONLY_NO_PERSISTENCE"
+    }
+  ],
+  "source_scope_status": "OFFICIAL_PLAYER_AND_LINKED_MEDIA_IDENTITIES_VERIFIED_BOUNDED_RESOLVER_PENDING",
+  "venue_codes": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23",
+    "24"
+  ],
+  "stream_access_url_store": false,
+  "observed_video_example": {
+    "race_id": "20261015-14-05",
+    "duration_seconds": 348,
+    "player_playback_verified": true,
+    "boat_analysis_verified": false
+  }
+}

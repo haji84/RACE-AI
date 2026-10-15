@@ -5,9 +5,11 @@ At most two upcoming preview/odds GETs, or one closed-race result GET. No pollin
 source originals, Blob credentials, or manufactured historical availability.
 Explicit --mode result selects the most recent closed race even while others
 are upcoming. Before the first current-day closing, result mode is a no-op.
+Exhibition mode selects only preview/odds with over120 seconds before close;
+it never falls back to result acquisition.
 """
 import argparse
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 import hashlib
 import json
 import os
@@ -27,6 +29,7 @@ from race_ai.race_update_merge import bundle_for_race
 from web.race_contract import stamp
 
 JST=ZoneInfo('Asia/Tokyo')
+EXHIBITION_MARGIN=timedelta(seconds=120)
 
 
 class RaceSourceFailure(ValueError):
@@ -37,13 +40,14 @@ class RaceSourceFailure(ValueError):
 
 
 def selection_options(mode,race_id):
-    if not isinstance(mode,str) or mode not in {'auto','result'} or (race_id is not None and mode!='result'):
+    if not isinstance(mode,str) or mode not in {'auto','result','exhibition'} or (race_id is not None and mode=='auto'):
         raise ValueError('RACE_SELECTION_MODE_INVALID')
     if race_id is not None:
+        invalid='EXHIBITION_RACE_ID_INVALID' if mode=='exhibition' else 'RESULT_RACE_ID_INVALID'
         if not isinstance(race_id,str) or not re.fullmatch(r'[0-9]{8}-(0[1-9]|1[0-9]|2[0-4])-(0[1-9]|1[0-2])',race_id):
-            raise ValueError('RESULT_RACE_ID_INVALID')
+            raise ValueError(invalid)
         try:datetime.strptime(race_id[:8],'%Y%m%d')
-        except ValueError as error:raise ValueError('RESULT_RACE_ID_INVALID') from error
+        except ValueError as error:raise ValueError(invalid) from error
 
 
 def select_race(feed,now,mode='auto',race_id=None):
@@ -54,7 +58,34 @@ def select_race(feed,now,mode='auto',race_id=None):
         raise ValueError('CURRENT_APPROVED_PROGRAM_REQUIRED')
     closing=lambda race:datetime.fromisoformat(stamp(race['closed_at']))
     day=now.astimezone(JST).date();prefix=day.strftime('%Y%m%d')+'-'
-    if race_id is not None and not race_id.startswith(prefix):raise ValueError('RESULT_RACE_ID_INVALID')
+    if race_id is not None and not race_id.startswith(prefix):
+        raise ValueError('EXHIBITION_RACE_ID_INVALID' if mode=='exhibition' else 'RESULT_RACE_ID_INVALID')
+    if mode=='exhibition':
+        candidates=[];seen=set();venues=set()
+        for venue in feed['venues']:
+            if not isinstance(venue,dict) or not isinstance(venue.get('races'),list):
+                raise ValueError('CURRENT_APPROVED_PROGRAM_REQUIRED')
+            code=venue.get('venue')
+            if code is not None:
+                if not isinstance(code,str) or not re.fullmatch(r'0[1-9]|1[0-9]|2[0-4]',code) or code in venues:
+                    raise ValueError('CURRENT_APPROVED_PROGRAM_REQUIRED')
+                venues.add(code)
+            if venue.get('status')!='READY':continue
+            for race in venue['races']:
+                identifier=race.get('race_id')
+                if (not isinstance(identifier,str) or not re.fullmatch(prefix+r'(0[1-9]|1[0-9]|2[0-4])-(0[1-9]|1[0-2])',identifier)
+                        or identifier in seen or (code is not None and identifier[9:11]!=code)
+                        or closing(race).astimezone(JST).date()!=day):
+                    raise ValueError('CURRENT_APPROVED_PROGRAM_REQUIRED')
+                seen.add(identifier)
+                boats=race.get('boats')
+                if not isinstance(boats,list) or len(boats)!=6:continue
+                if (any(not isinstance(boat,dict) or type(boat.get('lane')) is not int for boat in boats)
+                        or {boat['lane'] for boat in boats}!=set(range(1,7))):
+                    raise ValueError('CURRENT_APPROVED_PROGRAM_REQUIRED')
+                if closing(race)>now+EXHIBITION_MARGIN and (race_id is None or identifier==race_id):
+                    candidates.append(race)
+        return (min(candidates,key=lambda r:(closing(r),r['race_id'])),('beforeinfo','odds3t')) if candidates else (None,())
     races=[race for venue in feed['venues'] if venue.get('status')=='READY' for race in venue['races']
            if len(race['boats'])==6 and isinstance(race.get('race_id'),str) and race['race_id'].startswith(prefix)
            and closing(race).tzinfo is not None and closing(race).astimezone(JST).date()==day]
@@ -95,6 +126,11 @@ def collect_bundle(feed,review,*,now=None,collector=collect_race_update,clock=No
     clock=clock or (lambda:datetime.now(timezone.utc))
     now=now or clock();race,kinds=select_race(feed,now,mode=mode,race_id=race_id)
     if race is None:return None,{}
+    if mode=='exhibition':
+        # Selection and credential/program reads can consume the margin. Recheck
+        # this exact identity at the actual clock; never substitute another race.
+        race,kinds=select_race(feed,clock(),mode=mode,race_id=race['race_id'])
+        if race is None:return None,{}
     day=datetime.strptime(race['race_id'][:8],'%Y%m%d').date();venue=race['race_id'][9:11];number=int(race['race_id'][-2:])
     records=[];failed={}
     with sqlite3.connect(':memory:') as db:
@@ -127,7 +163,8 @@ def run(review_path,output_path,*,execute=False,mode='auto',race_id=None):
     feed=get_json(opener,urllib.request.Request(base+'/today',headers=headers),limit=6_000_000)
     bundle,failed=collect_bundle(feed,review,mode=mode,race_id=race_id)
     if bundle is None:
-        print(json.dumps({'result':'NO_CLOSED_RACE' if mode=='result' else 'NO_ACTIVE_RACE','date_jst':feed['date_jst']}));return
+        missing='NO_CLOSED_RACE' if mode=='result' else 'NO_UPCOMING_EXHIBITION_RACE' if mode=='exhibition' else 'NO_ACTIVE_RACE'
+        print(json.dumps({'result':missing,'date_jst':feed['date_jst']}));return
     request={'publication_review':'user-confirmation-2026-10-15-official-facts','bundle':bundle}
     raw=json.dumps(request,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode('utf-8')
     if len(raw)>256000:raise ValueError('RACE_BUNDLE_TOO_LARGE')
@@ -159,15 +196,15 @@ def run(review_path,output_path,*,execute=False,mode='auto',race_id=None):
 if __name__=='__main__':
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--review',required=True,type=Path);parser.add_argument('--output',required=True,type=Path)
-    parser.add_argument('--mode',choices=('auto','result'),default='auto')
-    parser.add_argument('--race-id',help='Exact approved current-day closed race; requires --mode result')
+    parser.add_argument('--mode',choices=('auto','result','exhibition'),default='auto')
+    parser.add_argument('--race-id',help='Exact current-day race; result requires closed, exhibition requires over120s before close')
     parser.add_argument('--execute',action='store_true');args=parser.parse_args()
     try:run(args.review,args.output,execute=args.execute,mode=args.mode,race_id=args.race_id)
     except (ValueError,RuntimeError,OSError,sqlite3.Error) as error:
         if isinstance(error,RaceSourceFailure):
             print(json.dumps({'result':'OFFICIAL_RACE_SOURCES_REJECTED','failed_kinds':error.failed_kinds},sort_keys=True))
         code=str(error)
-        allowed={'RACE_ALL_SOURCES_UNAVAILABLE','RACE_SELECTION_MODE_INVALID','RESULT_RACE_ID_INVALID',
+        allowed={'RACE_ALL_SOURCES_UNAVAILABLE','RACE_SELECTION_MODE_INVALID','RESULT_RACE_ID_INVALID','EXHIBITION_RACE_ID_INVALID',
                  'RACE_API_READBACK_MISMATCH','CURRENT_APPROVED_PROGRAM_REQUIRED','RACE_BUNDLE_TOO_LARGE',
                  'RACE_WORKFLOW_CONFIG_INVALID','OIDC_TOKEN_INVALID','RACE_PUBLISH_TARGET_INVALID','PUBLISH_TARGET_INVALID'}
         stage=code if code in allowed or re.fullmatch(r'DAY_PUBLISH_HTTP_[0-9]{3}',code) else type(error).__name__

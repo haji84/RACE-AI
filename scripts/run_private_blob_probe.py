@@ -18,14 +18,18 @@ class NoRedirect(urllib.request.HTTPRedirectHandler):
 def run():
     oidc_url = os.environ.get('ACTIONS_ID_TOKEN_REQUEST_URL', '')
     oidc_auth = os.environ.get('ACTIONS_ID_TOKEN_REQUEST_TOKEN', '')
+    configured_url = os.environ.get('RACE_AI_PROBE_URL','')
     try:
-        configured=urlsplit(os.environ.get('RACE_AI_PROBE_URL',''))
+        configured=urlsplit(configured_url)
+        configured_port=configured.port
         issuer_request=urlsplit(oidc_url)
     except ValueError:
         raise RuntimeError('PROBE_CONFIG_INVALID') from None
-    commit = os.environ.get('GITHUB_SHA', '')
-    if (configured.scheme != 'https' or not configured.hostname or
-        not configured.hostname.endswith('.vercel.app') or configured.path != '/api/blob-probe' or
+    pinned = os.environ.get('RACE_AI_PROBE_COMMIT_SHA')
+    commit = pinned if pinned is not None else os.environ.get('GITHUB_SHA', '')
+    if (configured.scheme != 'https' or
+        not re.fullmatch(r'race-ai-preview-[a-z0-9-]+-qq1130034-1738\.vercel\.app',configured.hostname or '') or
+        configured_port not in (None,443) or any(ord(c)<=32 or ord(c)>126 for c in configured_url) or configured.path != '/api/blob-probe' or
         configured.username or configured.password or configured.query or configured.fragment or
         issuer_request.scheme!='https' or not issuer_request.hostname or
         not issuer_request.hostname.endswith('.actions.githubusercontent.com') or
@@ -33,9 +37,11 @@ def run():
         any(ord(c)<=32 or ord(c)>126 for c in oidc_url) or
         not re.fullmatch('[A-Za-z0-9_.-]+',oidc_auth) or not re.fullmatch('[0-9a-f]{40}', commit)):
         raise RuntimeError('PROBE_CONFIG_INVALID')
-    # Existing workflow's old immutable URL is a config presence guard only.
-    # The branch alias is scoped and its response must match this exact commit.
-    url = PREVIEW_URL
+    # Reviewed immutable URL+app commit pins remain usable when the dedicated
+    # workflow branch advances. Legacy callers still verify their own branch
+    # deployment. Both paths require the existing OIDC identity and exact app
+    # commit; no fallback or trust expansion occurs after a pin mismatch.
+    url = configured.geturl() if pinned is not None else PREVIEW_URL
     opener = urllib.request.build_opener(NoRedirect())
     separator = '&' if '?' in oidc_url else '?'
     token_request = urllib.request.Request(oidc_url + separator + 'audience=race-ai-preview-blob-probe',

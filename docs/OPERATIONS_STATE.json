@@ -111,12 +111,13 @@
     "source": "frozen same-day approved B program points; untrained fixed comparisons; N=1 does not validate or select a model"
   },
   "next_priority": [
-    "Enable immutable historical program/prediction/result reading and past-day ledger settlement without relaxing current-day writers or backdating",
-    "Collect later confirmed results for actual13-venue cohort and extend same-cutoff aggregate evaluation; no inferred early results",
-    "Extend per-venue next-race cohort to continuous all-race coverage with bounded acquisition and transparent failures",
-    "Install reviewed cloud scheduling without Production promotion or expanding Preview trust",
-    "Collect genuine pre-race observations/results across multiple days for held-out calibration and model selection",
-    "Complete motor allocation reconciliation, permitted video, durable user cloud separation, long-term recovery and physical iPhone acceptance"
+    "Complete protected live immutable pre/post exhibition forecast comparison, preserving original baseline/source receipts",
+    "Integrate verified BOATCAST per-venue original timing parser and scoped ephemeral exhibition-video analysis; never claim absent boat attribution/calibration",
+    "Extend validated collection and paired forecasts to all upcoming races with bounded requests and truthful coverage",
+    "Collect later confirmed outcomes for saved forecasts and same-cutoff aggregate evaluation without backdating",
+    "Enable immutable historical readers and past-day ledger settlement",
+    "Install reviewed recurring cloud scheduling without Production promotion or expanded trust",
+    "Complete held-out model evidence, motor reconciliation, durable user cloud separation, long-term recovery and physical iPhone acceptance"
   ],
   "last_verified_settlement": {
     "application_commit": "8458fa568225d03312b25209e78213730000d42d",
@@ -152,5 +153,26 @@
     "independent_api_receipts_verified": 13,
     "official_source_requests": 0,
     "scope": "one next future race per active venue; all156 not yet covered; evaluated cohort remainsN1"
+  },
+  "exhibition_media_owner_confirmation": {
+    "evidence_reference": "user-confirmation-2026-10-15-exhibition-private-analysis",
+    "config": "config/operator-exhibition-media.json",
+    "private_transient_analysis": true,
+    "public_or_persistent_raw_video": false,
+    "source_player_verified": true,
+    "all_race_analysis_verified": false,
+    "boat_feature_accuracy_validated": false
+  },
+  "last_day_refresh_attempt": {
+    "run_id": 38621533602,
+    "attempt": 2,
+    "job_id": 116192774910,
+    "requested_at": "2026-10-15T01:12:18+00:00",
+    "result": "FAILED_BEFORE_OFFICIAL_SOURCE_ACQUISITION",
+    "stage": "PREVIEW_PROBE_HTTP_409",
+    "cause": "old workflow SHA compared against advanced branch-alias deployment",
+    "saved_day_payload_unchanged": true,
+    "repeat_started": false,
+    "repair": "explicit immutable deployment and app-commit pin; exact commit gate retained"
   }
 }

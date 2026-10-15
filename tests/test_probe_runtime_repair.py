@@ -28,6 +28,43 @@ class Response(io.BytesIO):
     def geturl(self): return self.url
 
 class ProbeRepairTests(unittest.TestCase):
+    def test_reviewed_immutable_preview_pin_survives_workflow_branch_moving(self):
+        caller=module('scripts/run_private_blob_probe.py','probe_immutable_pin')
+        target='https://race-ai-preview-synthetic-qq1130034-1738.vercel.app/api/blob-probe'
+        env={'RACE_AI_PROBE_URL':target,'RACE_AI_PROBE_COMMIT_SHA':'a'*40,'GITHUB_SHA':'b'*40,
+             'ACTIONS_ID_TOKEN_REQUEST_URL':'https://token.actions.githubusercontent.com/token',
+             'ACTIONS_ID_TOKEN_REQUEST_TOKEN':'runtime-token'}
+        requests=[]
+        def open_request(request,**kwargs):
+            requests.append(request)
+            if len(requests)==1:return Response({'value':'private-token'},request.full_url)
+            return Response(dict(status='verified',pathname='race-ai/probe/'+'c'*32+'.json',sha256='c'*64,
+                bytes=10,cleanup='deleted',commit_sha='a'*40),request.full_url)
+        with patch.dict(os.environ,env,clear=True),patch.object(caller.urllib.request,'build_opener') as build:
+            build.return_value.open.side_effect=open_request
+            caller.run()
+        self.assertEqual(requests[-1].full_url,target)
+        self.assertEqual(requests[-1].get_header('X-race-ai-commit'),'a'*40)
+
+    def test_invalid_explicit_pin_stops_before_oidc_request(self):
+        caller=module('scripts/run_private_blob_probe.py','probe_invalid_pin')
+        env={'RACE_AI_PROBE_URL':caller.PREVIEW_URL,'RACE_AI_PROBE_COMMIT_SHA':'invalid','GITHUB_SHA':'b'*40,
+             'ACTIONS_ID_TOKEN_REQUEST_URL':'https://token.actions.githubusercontent.com/token',
+             'ACTIONS_ID_TOKEN_REQUEST_TOKEN':'runtime-token'}
+        with patch.dict(os.environ,env,clear=True),patch.object(caller.urllib.request,'build_opener',side_effect=AssertionError('network')):
+            with self.assertRaisesRegex(RuntimeError,'^PROBE_CONFIG_INVALID$'):caller.run()
+
+    def test_explicit_pin_cannot_send_oidc_to_another_vercel_tenant_or_port(self):
+        caller=module('scripts/run_private_blob_probe.py','probe_target_scope')
+        env={'RACE_AI_PROBE_COMMIT_SHA':'a'*40,'GITHUB_SHA':'b'*40,
+             'ACTIONS_ID_TOKEN_REQUEST_URL':'https://token.actions.githubusercontent.com/token',
+             'ACTIONS_ID_TOKEN_REQUEST_TOKEN':'runtime-token'}
+        for target in ['https://unrelated-tenant.vercel.app/api/blob-probe',
+                       'https://race-ai-preview-synthetic-qq1130034-1738.vercel.app:8443/api/blob-probe',
+                       'https://race-ai-preview-synthetic-qq1130034-1738.vercel.app/api/blob-probe\n']:
+            with self.subTest(target=target),patch.dict(os.environ,{**env,'RACE_AI_PROBE_URL':target},clear=True),patch.object(caller.urllib.request,'build_opener',side_effect=AssertionError('network')):
+                with self.assertRaisesRegex(RuntimeError,'^PROBE_CONFIG_INVALID$'):caller.run()
+
     def test_auth_failure_reports_only_stage_not_secret_exception(self):
         probe = module('web/api/blob-probe.py', 'probe_auth_diagnostic')
         out = io.StringIO()

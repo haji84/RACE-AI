@@ -364,3 +364,49 @@ def validate_summary(record,race,now,*,require_same_day=False):
         return record
     except (TypeError,KeyError,AttributeError,OverflowError) as exc:
         raise ValueError('invalid observation summary') from exc
+
+
+def validate_cloud_bundle(value, race, now):
+    """Validate complete cloud manifest/receipts and return receipts by kind."""
+    day, closed, _ = _program(race)
+    now = _time(now)
+    if value is None:
+        return {}
+    fields = {'schema_version', 'race_id', 'date_jst', 'closed_at', 'program_sha256', 'published_at', 'latest', 'records'}
+    _require(isinstance(value, dict) and set(value) == fields and type(value['schema_version']) is int
+             and value['schema_version'] == 1, 'exact supported cloud race bundle required')
+    _require(0 < len(canonical(value)) <= 256_000, 'cloud race bundle exceeds bounded JSON contract')
+    identity_hash = program_digest(race)
+    published = _time(value['published_at'])
+    _require(value['race_id'] == race['race_id'] and value['date_jst'] == day.isoformat()
+             and _time(value['closed_at']) == closed and value['program_sha256'] == identity_hash
+             and published <= now and published.astimezone(JST).date() == day,
+             'race bundle program/manifest proof conflicts')
+    latest, receipts = value['latest'], value['records']
+    _require(isinstance(latest, dict) and 1 <= len(latest) <= 3 and set(latest) <= KINDS
+             and isinstance(receipts, list) and len(receipts) == len(latest),
+             'current race must carry one full receipt per latest kind')
+    ids = set()
+    for identifier in latest.values():
+        _require(isinstance(identifier, str) and re.fullmatch(r'[0-9a-f]{64}', identifier) is not None
+                 and identifier not in ids, 'invalid or duplicate latest observation identity')
+        ids.add(identifier)
+    by_kind = {}
+    for receipt in receipts:
+        fields = {'record', 'program_sha256', 'cloud_saved_at', 'cloud_eligible_pre_race'}
+        _require(isinstance(receipt, dict) and set(receipt) == fields, 'exact cloud observation receipt required')
+        record = validate_record(receipt['record'], race, now, require_same_day=True)
+        kind = record['kind']
+        _require(kind not in by_kind and latest.get(kind) == record['snapshot_id']
+                 and receipt['program_sha256'] == identity_hash and record.get('rights_review') == 'user-confirmation-2026-10-15-official-facts',
+                 'observation receipt identity/review conflicts')
+        saved = _time(receipt['cloud_saved_at'])
+        eligible = record['storage_eligible_pre_race'] and saved < closed
+        _require(_time(record['saved_at']) <= saved <= published <= now
+                 and saved.astimezone(JST).date() == day
+                 and type(receipt['cloud_eligible_pre_race']) is bool
+                 and receipt['cloud_eligible_pre_race'] == eligible,
+                 'observation cloud save precedes readback or exceeds manifest/as-of')
+        by_kind[kind] = receipt
+    _require(set(by_kind) == set(latest), 'latest race receipt coverage conflicts')
+    return by_kind

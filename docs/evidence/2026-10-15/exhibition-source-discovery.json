@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "race_id": "20261015-14-05",
+  "source_inspection_only": true,
+  "all_race_coverage_verified": false,
+  "parser_real_response_replay_verified": false,
+  "parser_tests": "synthetic equivalent source format",
+  "raw_source_persisted": false,
+  "cloud_saved": false,
+  "model_used": false,
+  "body_date_verified": false,
+  "registration_source": "separately verified approved B program joined by lane and six normalized names",
+  "sources": [
+    {
+      "component": "original",
+      "url": "https://race.boatcast.jp/txt/14/bc_oriten_20261015_14_05.txt",
+      "bytes": 265,
+      "sha256": "240ec12edcecdbc15cdaebdf232715dadb17a514dd78beef0167bae6190b4484",
+      "captured_at": "2026-10-15T01:13:35.128913+00:00"
+    },
+    {
+      "component": "standard",
+      "url": "https://race.boatcast.jp/hp_txt/14/bc_j_tkz_20261015_14_05.txt",
+      "bytes": 452,
+      "sha256": "cf3ca24dabc76aad1f219ee273afaeef5d5ad18301ecbea857383b651f189e7d",
+      "captured_at": "2026-10-15T01:13:45.760888+00:00"
+    }
+  ],
+  "metric_order": [
+    "display_s",
+    "lap_s",
+    "turn_s",
+    "straight_s"
+  ],
+  "values": [
+    {
+      "lane": 1,
+      "racer_registration_id": "5138",
+      "values": [
+        6.81,
+        36.42,
+        5.94,
+        6.93
+      ]
+    },
+    {
+      "lane": 2,
+      "racer_registration_id": "5172",
+      "values": [
+        6.84,
+        36.39,
+        5.81,
+        6.9
+      ]
+    },
+    {
+      "lane": 3,
+      "racer_registration_id": "5255",
+      "values": [
+        6.72,
+        35.94,
+        5.76,
+        6.89
+      ]
+    },
+    {
+      "lane": 4,
+      "racer_registration_id": "5328",
+      "values": [
+        6.93,
+        37.69,
+        5.82,
+        7.09
+      ]
+    },
+    {
+      "lane": 5,
+      "racer_registration_id": "5131",
+      "values": [
+        6.8,
+        36.97,
+        6.6,
+        6.8
+      ]
+    },
+    {
+      "lane": 6,
+      "racer_registration_id": "5137",
+      "values": [
+        6.74,
+        37.03,
+        6.6,
+        7.0
+      ]
+    }
+  ],
+  "video": {
+    "official_player_playback_verified": true,
+    "duration_seconds": 348,
+    "raw_video_persisted": false,
+    "boat_attribution_verified": false,
+    "feature_measurements_verified": false
+  },
+  "measurement_definition": "venue-defined first exhibition circuit; no cross-venue calibration; source has no dated body or registration identifiers",
+  "operator_attestation": "user-confirmation-2026-10-15-exhibition-private-analysis"
+}

@@ -1,7 +1,7 @@
 import importlib.util
 from contextlib import redirect_stdout
 import copy
-from datetime import datetime
+from datetime import datetime,timedelta
 from io import StringIO
 import json
 import os
@@ -30,6 +30,96 @@ class RacePublishCallerTests(unittest.TestCase):
         race,kinds=CALLER.select_race(self.feed(),datetime.fromisoformat('2026-10-15T09:00:00+09:00'))
         self.assertEqual(race['race_id'],'20261015-18-02')
         self.assertEqual(kinds,('beforeinfo','odds3t'))
+
+    def test_exhibition_skips_nearly_closed_and_selects_only_two_preview_kinds(self):
+        now=datetime.fromisoformat('2026-10-15T08:58:00+09:00')
+        race,kinds=CALLER.select_race(self.feed(),now,mode='exhibition')
+        self.assertEqual(race['race_id'],'20261015-18-02')
+        self.assertEqual(kinds,('beforeinfo','odds3t'))
+        race,_=CALLER.select_race(self.feed(),now-timedelta(microseconds=1),mode='exhibition')
+        self.assertEqual(race['race_id'],'20261015-18-01')
+
+    def test_exhibition_explicit_identity_never_substitutes_other_race(self):
+        now=datetime.fromisoformat('2026-10-15T08:58:00+09:00')
+        self.assertEqual(CALLER.select_race(self.feed(),now,mode='exhibition',race_id='20261015-18-01'),(None,()))
+        race,kinds=CALLER.select_race(self.feed(),now,mode='exhibition',race_id='20261015-18-02')
+        self.assertEqual(race['race_id'],'20261015-18-02');self.assertEqual(kinds,('beforeinfo','odds3t'))
+        self.assertEqual(CALLER.select_race(self.feed(),now,mode='exhibition',race_id='20261015-18-03'),(None,()))
+
+    def test_exhibition_never_falls_back_to_closed_result_or_calls_collector(self):
+        now=datetime.fromisoformat('2026-10-15T11:00:00+09:00');collector=Mock()
+        self.assertEqual(CALLER.select_race(self.feed(),now,mode='exhibition'),(None,()))
+        self.assertEqual(CALLER.collect_bundle(self.feed(),{},now=now,clock=lambda:now,collector=collector,mode='exhibition'),(None,{}))
+        collector.assert_not_called()
+
+    def test_exhibition_rechecks_actual_margin_before_first_source_fetch(self):
+        selected=datetime.fromisoformat('2026-10-15T08:57:59+09:00');actual=selected+timedelta(seconds=1)
+        collector=Mock()
+        self.assertEqual(CALLER.collect_bundle(self.feed(),{},now=selected,clock=lambda:actual,
+            collector=collector,mode='exhibition',race_id='20261015-18-01'),(None,{}))
+        collector.assert_not_called()
+
+    def test_exhibition_collection_fetches_only_exact_preview_and_odds_kinds(self):
+        helper=merge_fixtures.RaceUpdateMergeTests();feed=helper.feed();feed['schedule_verified']=True
+        feed['venues'][0]['status']='READY';feed['venues'] += [{'status':'NO_EVENT','races':[]} for _ in range(23)]
+        now=datetime.fromisoformat('2026-10-15T07:02:00+09:00');calls=[]
+        def collector(day,venue,number,kind,**kwargs):
+            calls.append((venue,number,kind))
+            record=helper.observation(kind)
+            return {key:value for key,value in record.items() if key not in {'snapshot_id','saved_at','storage_eligible_pre_race'}}
+        with patch('race_ai.official_observation_store.utc_now',return_value=now):
+            bundle,failed=CALLER.collect_bundle(feed,{},now=now,clock=lambda:now,collector=collector,
+                mode='exhibition',race_id='20261015-18-01')
+        self.assertEqual(calls,[('18',1,'beforeinfo'),('18',1,'odds3t')])
+        self.assertEqual(failed,{})
+        self.assertEqual(bundle['race_id'],'20261015-18-01')
+        self.assertEqual({record['kind'] for record in bundle['records']},{'beforeinfo','odds3t'})
+
+    def test_exhibition_skips_incomplete_sixboat_program(self):
+        feed=self.feed();feed['venues'][0]['races'][0]['boats'].pop()
+        now=datetime.fromisoformat('2026-10-15T07:00:00+09:00')
+        race,_=CALLER.select_race(feed,now,mode='exhibition')
+        self.assertEqual(race['race_id'],'20261015-18-02')
+        feed['venues'][0]['races'][1]['boats'][0]['lane']=2
+        with self.assertRaises(ValueError):CALLER.select_race(feed,now,mode='exhibition')
+
+    def test_exhibition_rejects_stale_invalid_duplicate_and_venue_conflicting_program(self):
+        now=datetime.fromisoformat('2026-10-15T07:00:00+09:00')
+        for race_id in ['20261014-18-01','20260230-18-01','../escape','20261015-25-01']:
+            with self.subTest(race_id=race_id),self.assertRaises(ValueError):
+                CALLER.select_race(self.feed(),now,mode='exhibition',race_id=race_id)
+        mutations=[lambda f:f['venues'][0]['races'].append(copy.deepcopy(f['venues'][0]['races'][0])),
+                   lambda f:f['venues'][0]['races'][0].update(race_id='20261015-25-01'),
+                   lambda f:f['venues'][0].update(venue='17'),
+                   lambda f:f['venues'][0]['races'][0].update(closed_at='2026-10-14T09:00:00+09:00')]
+        for mutate in mutations:
+            feed=self.feed();mutate(feed)
+            with self.subTest(mutation=repr(mutate)),self.assertRaises(ValueError):CALLER.select_race(feed,now,mode='exhibition')
+
+    def test_exhibition_run_no_upcoming_fetches_day_only_and_writes_nothing(self):
+        now=datetime.fromisoformat('2026-10-15T11:00:00+09:00');logs=StringIO()
+        with tempfile.TemporaryDirectory() as folder:
+            review=Path(folder)/'review.json';review.write_text('{}',encoding='utf-8');output=Path(folder)/'unused.json'
+            with patch.dict('os.environ',{'RACE_AI_RACE_PUBLISH_URL':'https://race-ai-preview-test-qq1130034-1738.vercel.app/api/publish-race'}), \
+                 patch.object(CALLER,'workflow_session',return_value=(object(),{})), \
+                 patch.object(CALLER,'get_json',return_value=self.feed()) as http, \
+                 patch('race_ai.official_update_worker.fetch_update',side_effect=AssertionError('official source GET')) as official, \
+                 patch.object(CALLER,'datetime',wraps=datetime) as clock,redirect_stdout(logs):
+                clock.now.return_value=now
+                CALLER.run(review,output,execute=True,mode='exhibition')
+            self.assertEqual(http.call_count,1);official.assert_not_called()
+            self.assertEqual(json.loads(logs.getvalue())['result'],'NO_UPCOMING_EXHIBITION_RACE')
+            self.assertEqual(list(Path(folder).iterdir()),[review])
+
+    def test_cli_exhibition_explicit_identity_dry_run_is_two_get_bound_no_writes(self):
+        with tempfile.TemporaryDirectory() as folder:
+            env={**os.environ,'RACE_AI_RACE_PUBLISH_URL':'https://race-ai-preview-test-qq1130034-1738.vercel.app/api/publish-race'}
+            command=[sys.executable,str(ROOT/'scripts/publish_race_updates.py'),'--mode','exhibition','--race-id','20261015-18-01',
+                     '--review',str(Path(folder)/'absent.json'),'--output',str(Path(folder)/'unused.json')]
+            result=subprocess.run(command,env=env,cwd=folder,capture_output=True,text=True)
+            self.assertEqual(result.returncode,0,result.stderr)
+            self.assertEqual(json.loads(result.stdout),{'result':'DRY_RUN','network_requests':0,'maximum_official_source_requests':2})
+            self.assertEqual(list(Path(folder).iterdir()),[])
 
     def test_all_closed_selects_one_result_without_backdating(self):
         race,kinds=CALLER.select_race(self.feed(),datetime.fromisoformat('2026-10-15T11:00:00+09:00'))
