@@ -25,3 +25,12 @@
 @media(max-width:380px){.prediction-probability .lane-badge{width:14px;height:14px;font-size:8px}.prediction-probability>strong{font-size:9px}.prediction-probability-grid{padding:5px;gap:4px}.prediction-notice>span{font-size:8px}.prediction-model-choice{display:block}.prediction-model-choice select{display:block;width:100%;margin-top:6px}}
 .research-evaluation{border-top:1px solid #deebf3;margin-top:24px;padding-top:3px}.evaluation-status{display:flex;align-items:center;gap:9px 13px;flex-wrap:wrap;margin:12px 0}.evaluation-status>p{font-size:10px;line-height:1.8;margin:0;flex:1;min-width:180px}.evaluation-sample{font-size:12px;color:#326e86;font-weight:800;margin:15px 0 7px}.evaluation-caution{font-size:10px;line-height:1.9;color:#967746;background:#fff8e9;border:1px solid #eee2c7;padding:10px 12px;border-radius:6px;margin:0 0 14px}.evaluation-scores th,.evaluation-scores td{font-variant-numeric:tabular-nums}.evaluation-scores th:not(:first-child),.evaluation-scores td:not(:first-child){text-align:right}.evaluation-outcome{display:flex;align-items:center;gap:10px 14px;flex-wrap:wrap;padding:12px 13px;background:#eff8f8;border:1px solid #d9e9ed;border-radius:7px;margin:17px 0 10px}.evaluation-outcome>strong{font-size:11px;color:#3c7c8b}.evaluation-outcome>span{font-size:9px;color:#688b9b}.evaluation-outcome .lane-badge{height:23px;width:23px;font-size:13px}.evaluation-outcome .combination{gap:5px}.evaluation-result-proof{margin-bottom:10px}.evaluation-prediction-proof{line-height:1.9}
 @media(max-width:700px){.research-evaluation{margin-top:20px}.evaluation-status{gap:7px}.evaluation-status>p{font-size:9px}.evaluation-sample{font-size:11px}.evaluation-caution{font-size:9px;padding:9px 10px}.evaluation-outcome{gap:8px 10px;padding:10px}.evaluation-outcome>span{font-size:8px}.evaluation-outcome .lane-badge{height:21px;width:21px;font-size:12px}}
+/* Verified financial projection and source evidence. */
+.settlement-totals{display:flex;flex-wrap:wrap;gap:12px 24px;margin:20px 0;color:var(--muted,#627187)}
+.settlement-totals strong{color:var(--text,#162339);margin-left:6px}
+.settlement-proof{display:block;overflow-wrap:anywhere;margin-top:8px;color:var(--muted,#627187);font-size:11px;line-height:1.6}
+.settlement-record-status{overflow-wrap:anywhere;line-height:1.7}
+#settlement-status[data-state="error"]{color:#a83b3b}
+#page-results .section-head{flex-wrap:wrap;gap:12px}
+#page-results .performance-grid article{min-width:0}
+#page-results .performance-grid strong{overflow-wrap:anywhere;white-space:normal}

@@ -1,6 +1,6 @@
 'use strict';
 (() => {
-  const UI=globalThis.RaceUI,Money=globalThis.RaceMoney,$=id=>document.getElementById(id);
+  const UI=globalThis.RaceUI,Money=globalThis.RaceMoney,Settlement=globalThis.RaceSettlement,$=id=>document.getElementById(id);
   const names={home:['おかえりなさい','今日も、データを味方に。','レースを知る。根拠を確かめる。あなたの判断を、ここから。'],races:['全国24場の開催情報','全レース一覧','開催場とレースを選んで、出走データを確認しましょう。'],detail:['出走表と直前情報','レース詳細','取得した情報と、その時点を確かめる。'],picks:['自分の判断を記録','買い目配分','予算の範囲で、買い目と購入記録を整理します。'],results:['確定結果から振り返る','成績分析','購入・返還・払戻を区別し、実際の記録から検証します。'],research:['判断の根拠と検証','研究','取得できたデータと、予想の検証状況を確認します。'],settings:['自分に合った使い方','設定','資金と表示の設定は、このブラウザに保存されます。']};
   const defaults={dayBudget:0,raceBudget:0,lossLimit:0,maxBets:8,mode:'balanced',longshot:false,autoRefresh:true};
   let report=null,selectedId='',page='home',tab='overview',feedState='loading',feedMessage='',requestSerial=0,controller=null,toastTimer,storageAvailable=true;
@@ -8,7 +8,9 @@
   let raceUpdates=null,raceUpdatesState='idle',raceUpdatesMessage='',raceUpdatesId='',raceRequestSerial=0,raceController=null,knownRaceStops=new Map();
   let predictionReceipt=null,predictionState='idle',predictionMessage='',predictionRaceId='',predictionModelId='',predictionSerial=0,predictionController=null;
   let evaluation=null,evaluationState='idle',evaluationMessage='',evaluationRaceId='',evaluationSerial=0,evaluationController=null;
+  let settlementReports=new Map(),settlementErrors=new Map(),settlementAudit=[],settlementSerial=0,settlementControllers=new Set(),settlementState='idle';
   const SETTINGS_KEY='raceai.settings.v1',LEDGER_KEY='raceai.ledger.v1',STATE_LOCK='raceai.local-state.v1';
+  const AUDIT_KEY='raceai.result-audit.v1';
   const yen=n=>Number(n).toLocaleString('ja-JP')+'円';
   const node=(tag,cls,text)=>{const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=String(text);return n;};
   const button=(label,cls,action)=>{const b=node('button',cls,label);b.type='button';b.addEventListener('click',action);return b;};
@@ -35,7 +37,7 @@
     }
     const saved=JSON.parse(localStorage.getItem(LEDGER_KEY)||'[]');
     if(!Array.isArray(saved))throw new Error('保存済みの購入記録を確認できません。');
-    // This UI has no official-result verification channel. Persist manual records only.
+    // Restored financial claims are never authority; fresh same-origin reports project settlement separately.
     const records=saved.map(({id,race_id,purchased_at,bets})=>({id,race_id,purchased_at,bets}));summary(records);
     return {settings:next,ledger:records.map(r=>({...r,purchase_day:UI.dayJst(new Date(r.purchased_at)),source:'manual'}))};
   }
@@ -50,6 +52,51 @@
     return execute();
   }
   function refreshLocalViews(){syncSettings();renderMoney();renderDraft();}
+  function clearSettlements(){settlementSerial++;for(const c of settlementControllers)c.abort();settlementControllers.clear();settlementReports.clear();settlementErrors.clear();settlementState='idle';}
+  function ledgerIdentity(){return JSON.stringify(ledger);}
+  async function saveSettlementAudit(checked,valid){
+    await editLocalState(()=>{
+      if(!valid())return;
+      const saved=JSON.parse(localStorage.getItem(AUDIT_KEY)||'[]'),next=Settlement.appendAudit(saved,checked,new Date().toISOString());
+      if(!valid())return;
+      if(next.length!==saved.length&&!persist(AUDIT_KEY,next))throw new Error('公式照合の証拠履歴を保存できませんでした。');
+      settlementAudit=next;
+    },true);
+  }
+  async function loadSettlements(){
+    clearSettlements();
+    if(!Settlement){settlementState='error';renderMoney();return;}
+    if(!localStateHealthy||!report||feedState==='manual'||report.date_jst!==today()||report.redistribution_authorized!==true){renderMoney();return;}
+    const day=today(),feed=report,serial=settlementSerial,localIdentity=ledgerIdentity(),ids=[...new Set(todayLedger().map(r=>r.race_id))].filter(id=>all().some(r=>r.race_id===id));
+    if(!ids.length){renderMoney();return;}
+    const valid=()=>serial===settlementSerial&&report===feed&&report?.date_jst===day&&today()===day&&$('race-date').value===day&&ledgerIdentity()===localIdentity&&localStateHealthy;
+    settlementState='loading';renderMoney();let cursor=0;
+    async function worker(){
+      while(cursor<ids.length&&valid()){
+        const id=ids[cursor++],race=all().find(r=>r.race_id===id),request=new AbortController();settlementControllers.add(request);
+        const timeout=setTimeout(()=>request.abort(),15000);
+        try{
+          const response=await fetch('./api/settlement?race_id='+encodeURIComponent(id),{cache:'no-store',credentials:'same-origin',signal:request.signal}),body=await readRaceBody(response);
+          if(!valid())return;if(!response.ok)throw new Error('公式結果の照合APIへの接続に失敗しました。');
+          const programSha256=await Settlement.programDigest(race);
+          const checked=Settlement.validateReport(JSON.parse(body),{race,dateJst:day,programSha256});
+          if(!valid())return;await saveSettlementAudit(checked,valid);if(!valid())return;settlementReports.set(id,checked);
+        }catch(error){if(!valid())return;settlementReports.delete(id);settlementErrors.set(id,error.name==='AbortError'?'公式結果の照合がタイムアウトしました。':error.message);}
+        finally{clearTimeout(timeout);settlementControllers.delete(request);if(valid())renderMoney();}
+      }
+    }
+    await Promise.all(Array.from({length:Math.min(3,ids.length)},worker));
+    if(valid()){settlementState=settlementErrors.size?'error':'ready';renderMoney();}
+    else if(serial===settlementSerial){
+      // The lock may discover a purchase saved before its storage event is delivered.
+      // Start again from that freshly read ledger rather than leaving loading stuck.
+      return loadSettlements();
+    }
+  }
+  function financialProjection(records){
+    if(Settlement)return Settlement.projectLedger(records,settlementReports,{dateJst:today(),races:feedState==='manual'?[]:all()});
+    return {records,summary:summary(records),details:new Map(),hit_count:0,effective_count:0};
+  }
   async function updatePreferences(patch){
     try{await editLocalState(()=>{const next={...settings,...patch};if(!persist(SETTINGS_KEY,next))throw new Error('表示設定を保存できませんでした。');settings=next;});refreshLocalViews();}
     catch(error){toast(error.message,true);}
@@ -274,15 +321,25 @@
     $('pick-race-budget').textContent=settings.raceBudget?yen(settings.raceBudget):'未設定';$('pick-day-budget').textContent=settings.dayBudget?yen(settings.dayBudget):'未設定';$('pick-mode').textContent=({hit:'的中重視',balanced:'バランス重視',return:'回収重視'})[settings.mode];$('pick-max').textContent=settings.maxBets+'点';
   }
   function renderMoney(){
-    const s=summary(todayLedger()),remaining=Math.max(0,settings.dayBudget-s.total_stake_yen);
-    $('metric-budget').textContent=settings.dayBudget?yen(settings.dayBudget):'未設定';$('metric-spent').textContent=yen(s.total_stake_yen);$('metric-remaining').textContent=settings.dayBudget?yen(remaining):'未設定';$('metric-purchases').textContent='記録 '+s.purchase_count+'レース';$('metric-roi').textContent=s.actual_roi_percent===null?'―':s.actual_roi_percent+'%';$('metric-hits').textContent='― / '+s.settled_count;
+    const projection=financialProjection(todayLedger()),s=projection.summary,history=financialProjection(ledger),h=history.summary,remaining=Math.max(0,settings.dayBudget-s.total_stake_yen);
+    $('metric-budget').textContent=settings.dayBudget?yen(settings.dayBudget):'未設定';$('metric-spent').textContent=yen(s.total_stake_yen);$('metric-remaining').textContent=settings.dayBudget?yen(remaining):'未設定';$('metric-purchases').textContent='記録 '+s.purchase_count+'件';$('metric-roi').textContent=s.actual_roi_percent===null?'―':s.actual_roi_percent+'%';$('metric-hits').textContent=projection.effective_count?projection.hit_count+' / '+projection.effective_count:'― / 0';
     $('sidebar-budget').textContent=settings.dayBudget?yen(remaining):'未設定';$('sidebar-spent').textContent=yen(s.total_stake_yen);$('sidebar-remaining').textContent=settings.dayBudget?yen(remaining):'未設定';$('nav-pick-count').textContent=String(ledger.length);
     const budgetUsed=settings.dayBudget?Math.min(100,s.total_stake_yen/settings.dayBudget*100):0;$('budget-meter').setAttribute('stroke-dasharray',budgetUsed.toFixed(2)+' 100');
-    $('result-record-count').textContent=ledger.length+'件';renderHistory('purchase-history',todayLedger());renderHistory('results-history',ledger);
+    for(const [id,key]of [['result-total-stake','total_stake_yen'],['result-effective','settled_effective_stake_yen'],['result-payout','payout_yen'],['result-net','net_profit_yen'],['result-pending','pending_stake_yen'],['result-refund','refund_yen']])$(id).textContent=yen(h[key]);
+    $('result-roi').textContent=h.actual_roi_percent===null?'―':h.actual_roi_percent+'%';$('result-hit-count').textContent=history.hit_count+' / '+history.effective_count+'件（返還・特払だけの的中を除外）';
+    $('settlement-status').dataset.state=settlementState;$('settlement-status').textContent=!Settlement?'公式照合の機能を読み込めませんでした。再読み込みしてください。':settlementState==='loading'?'記録済みレースの公式結果を確認中です。':settlementState==='error'?'公式結果の照合に失敗しました。該当レースの確定表示を解除しました。再確認してください。':settlementState==='ready'?'当日の公式証拠を確認しました。証拠が不足する購入記録は保留です。':'当日の出走表と公式証拠がそろうまで、購入記録は保留です。';
+    $('refresh-settlement').disabled=settlementState==='loading';$('result-record-count').textContent=ledger.length+'件';renderHistory('purchase-history',todayLedger(),projection);renderHistory('results-history',ledger,history);
   }
-  function renderHistory(id,records){
+  function renderHistory(id,records,projection){
     const container=$(id);if(!records.length){container.replaceChildren(empty('購入記録はまだありません','レースを選び、自分の買い目を記録すると、ここに表示します。'));return;}
-    container.replaceChildren(...records.slice().reverse().map(record=>{const n=node('article','ledger-record'),header=node('div','ledger-record-header'),list=node('div','ledger-record-list'),code=record.race_id.slice(9,11);header.append(node('strong','',UI.venueNames[Number(code)-1]+' '+Number(record.race_id.slice(-2))+'R'),node('small','',record.purchase_day+' · 手動記録'));for(const bet of record.bets){const item=node('span');item.append(combination(bet.combination),node('b','',yen(bet.stake_yen)));list.append(item);}n.append(header,list,node('p','','公式結果の照合待ち · 成績集計には含めていません。'));return n;}));
+    container.replaceChildren(...records.slice().reverse().map(record=>{
+      const n=node('article','ledger-record'),header=node('div','ledger-record-header'),list=node('div','ledger-record-list'),code=record.race_id.slice(9,11),detail=projection.details.get(record.id),settled=detail?.settlement;
+      header.append(node('strong','',UI.venueNames[Number(code)-1]+' '+Number(record.race_id.slice(-2))+'R'),node('small','',record.purchase_day+' · 手動記録'));for(const bet of record.bets){const item=node('span');item.append(combination(bet.combination),node('b','',yen(bet.stake_yen)));list.append(item);}
+      n.dataset.settlement=settled?'settled':'pending';n.append(header,list,node('p','settlement-record-status',settled?detail.reason+' · 払戻 '+yen(settled.payout_yen)+' · 返還 '+yen(settled.refund_yen)+' · 収支 '+yen(settled.net_profit_yen):(settlementErrors.get(record.race_id)||detail?.reason||'公式結果の照合待ち')+' · 成績集計は保留です。'));
+      if(detail?.report?.result_proof){const proof=detail.report.result_proof,a=node('a','','公式結果の証拠');a.href=proof.source_url;a.target='_blank';a.rel='noopener noreferrer';n.append(a,node('small','settlement-proof','取得 '+proof.captured_at+' / 保存 '+proof.cloud_saved_at+' / ID '+proof.snapshot_id));}
+      const audit=settlementAudit.filter(e=>e.race_id===record.race_id);if(audit.length)n.append(node('small','settlement-proof','端末の証拠履歴 '+audit.length+'版（履歴だけでは確定しません）'));
+      return n;
+    }));
   }
   function purchaseGate(raceId=selectedId){
     const race=all().find(r=>r.race_id===raceId);if(!race)return {allowed:false,reason:'全レースから記録するレースを選んでください。'};
@@ -315,7 +372,7 @@
       if(!persist(LEDGER_KEY,next))throw new Error('保存に失敗しました。購入記録は追加していません。');ledger=next;
     },true);drafts.delete(raceId);setMessage('bet-message','手動の購入記録を保存しました。投票は行っていません。');toast('購入記録をこの端末に保存しました。');}
     catch(error){setMessage('bet-message',error instanceof Money.MoneyError?moneyError(error):error.message,true);}
-    finally{savingPurchase=false;refreshLocalViews();}
+    finally{savingPurchase=false;refreshLocalViews();loadSettlements();}
   }
   function exportLedger(){const data=JSON.stringify({schema:'raceai.manual-ledger.v1',exported_at:new Date().toISOString(),records:ledger},null,2);const url=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=node('a');a.href=url;a.download='raceai-purchases-'+today()+'.json';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
   function renderResearch(){
@@ -327,13 +384,13 @@
     if(report){const a=node('a','',new URL(report.source_url).hostname);a.href=report.source_url;a.target='_blank';a.rel='noopener noreferrer';a.title=report.source_url;$('source-origin').append(a);}else $('source-origin').textContent='未取得';
   }
   function renderAll(){renderHome();renderRaces();renderDetail();renderMoney();renderDraft();renderResearch();}
-  function clearReport(){clearRaceUpdates();report=null;selectedId='';refreshRaceSelect();renderSource();renderAll();}
+  function clearReport(){clearRaceUpdates();clearSettlements();report=null;selectedId='';refreshRaceSelect();renderSource();renderAll();}
   function showReport(data,manual=false){
-    const previous=current()?programIdentity(current()):null,previousResearch=current()?researchIdentity(current()):null;report=data;const requested=UI.parseRoute(location.hash).raceId;selectedId=all().some(r=>r.race_id===(requested||selectedId))?(requested||selectedId):all()[0]?.race_id||'';if(!current()||programIdentity(current())!==previous)clearRaceUpdates();else if(researchIdentity(current())!==previousResearch)clearPrediction();refreshRaceSelect();renderSource(manual);renderAll();if(page==='detail'){loadRaceUpdates(true);if(tab==='prediction')loadPrediction(true);}
+    const previous=current()?programIdentity(current()):null,previousResearch=current()?researchIdentity(current()):null;clearSettlements();report=data;const requested=UI.parseRoute(location.hash).raceId;selectedId=all().some(r=>r.race_id===(requested||selectedId))?(requested||selectedId):all()[0]?.race_id||'';if(!current()||programIdentity(current())!==previous)clearRaceUpdates();else if(researchIdentity(current())!==previousResearch)clearPrediction();refreshRaceSelect();renderSource(manual);renderAll();loadSettlements();if(page==='detail'){loadRaceUpdates(true);if(tab==='prediction')loadPrediction(true);}
   }
   async function loadAuthorizedDayFeed(){
     const date=$('race-date').value;if(date!==today()){requestSerial++;controller?.abort();status('historical','履歴の配信は未接続です。今日の日付を選ぶと当日データを取得します。');clearReport();return;}
-    controller?.abort();controller=new AbortController();const requestController=controller,serial=++requestSerial;status('loading','許可を確認した当日データを自動で読み込みます。');renderRaces();const timeout=setTimeout(()=>requestController.abort(),10000);
+    controller?.abort();clearSettlements();renderMoney();controller=new AbortController();const requestController=controller,serial=++requestSerial;status('loading','許可を確認した当日データを自動で読み込みます。');renderRaces();const timeout=setTimeout(()=>requestController.abort(),10000);
     try{
       const response=await fetch("./api/today", {cache:"no-store", credentials:"same-origin",signal:requestController.signal});
       const body=await response.text();if(serial!==requestSerial)return;if(body.length>6_000_000)throw new Error('データが大きすぎます。');let raw;try{raw=JSON.parse(body);}catch{if(response.ok)throw new Error('配信データの形式を確認できません。');}
@@ -361,10 +418,13 @@
   for(let i=1;i<=12;i++)$('race-number-filter').append(option(i+'R',String(i)));UI.venueNames.forEach((name,i)=>$('venue-select').append(option(name,String(i+1).padStart(2,'0'))));
   ['bet-first','bet-second','bet-third'].forEach((id,i)=>{for(let lane=1;lane<=6;lane++)$(id).append(option(String(lane),String(lane)));$(id).value=String(i+1);});
   $('bet-form').addEventListener('submit',addBet);$('save-purchase').addEventListener('click',savePurchase);$('settings-form').addEventListener('submit',saveSettings);$('export-ledger').addEventListener('click',exportLedger);$('export-ledger-settings').addEventListener('click',exportLedger);
+  $('refresh-settlement').addEventListener('click',loadSettlements);
   $('notifications').addEventListener('click',()=>toast($('feed-status-title').textContent+'。'+feedMessage));$('open-debug-import').addEventListener('click',()=>$('debug-import').hidden=false);
   $('race-file').addEventListener('change',async event=>{const file=event.target.files?.[0];if(!file)return;requestSerial++;controller?.abort();try{if(file.size>6_000_000)throw new Error('6MBを超えるファイルは読み取れません。');if(!/\.json$/i.test(file.name))throw new Error('JSONファイルを選択してください。');const content=await file.text();const data=UI.validateReport(JSON.parse(content));if(data.date_jst!==today())throw new Error('対象日が本日ではありません。過去データを当日として表示できません。');$('race-date').value=data.date_jst;status('manual','端末内の検証データです。原本の独立検証・配信許可の証明とは区別します。');showReport(data,true);setMessage('file-message','端末内で読み込みました。サーバーへ送信していません。');}catch(error){status('error','検証用JSONの読み込みを停止しました：'+error.message);clearReport();setMessage('file-message',error.message,true);}finally{$('refresh-feed').disabled=false;$('refresh-feed').classList.remove('loading');}});
   window.addEventListener('hashchange',()=>{const route=UI.parseRoute(location.hash);if(route.raceId)selectRace(route.raceId);showPage(route.page,false);});
-  window.addEventListener('storage',event=>{if(event.storageArea!==localStorage||![null,SETTINGS_KEY,LEDGER_KEY].includes(event.key))return;try{applyLocalState(readLocalState());refreshLocalViews();}catch{localStateHealthy=false;renderDraft();toast('別のタブの保存データを確認できないため、新規記録を停止しました。',true);}});
+  window.addEventListener('storage',event=>{if(event.storageArea!==localStorage||![null,SETTINGS_KEY,LEDGER_KEY,AUDIT_KEY].includes(event.key))return;
+    if(event.key===AUDIT_KEY){try{const value=JSON.parse(localStorage.getItem(AUDIT_KEY)||'[]');Settlement?.appendAudit(value,{result_proof:null},'');settlementAudit=value;renderMoney();}catch{toast('別のタブの照合履歴を確認できません。',true);}return;}
+    clearSettlements();try{applyLocalState(readLocalState());refreshLocalViews();loadSettlements();}catch{localStateHealthy=false;renderMoney();renderDraft();toast('別のタブの保存データを確認できないため、新規記録を停止しました。',true);}});
   let lastDay=today();function checkDay(){const day=today();if(day!==lastDay){lastDay=day;$('race-date').value=day;drafts.clear();knownRaceStops.clear();clearReport();loadAuthorizedDayFeed();renderMoney();}else if(page==='picks')renderDraft();}
   setInterval(checkDay,30000);setInterval(()=>{if(settings.autoRefresh&&document.visibilityState==='visible'&&$('race-date').value===today())loadAuthorizedDayFeed();},180000);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){checkDay();if(settings.autoRefresh&&$('race-date').value===today())loadAuthorizedDayFeed();}});
