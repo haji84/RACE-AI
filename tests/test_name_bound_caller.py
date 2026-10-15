@@ -53,6 +53,24 @@ class FinalManifestTests(unittest.TestCase):
     def test_final_clock_failure_truthful_manifest(self):
         self.check_failure(ValueError('clock'),'STOPPED')
 
+    def test_failed_final_inventory_retains_failure_not_completed(self):
+        import json
+        from unittest.mock import patch
+        with TemporaryDirectory() as d:
+            folder=Path(d)
+            manifest=caller.run('missing','missing',folder/'template',race_id='bad',name_binding_request_id='bad',execute=True)
+            folder=folder/'final';folder.mkdir()
+            manifest.update(status='COMPLETED',failure_reason=None)
+            def final_verify(*args):
+                (folder/'inputs.json').write_bytes(b'x'*(caller.MAX_BYTES+1))
+                raise ValueError('oversize residual')
+            with patch.object(caller,'verify_backups',side_effect=final_verify):
+                with self.assertRaises(ValueError):caller.finalize_manifest(folder,manifest,lambda:None)
+            retained=json.loads((folder/'manifest.json').read_bytes())
+            self.assertEqual(retained['status'],'STOPPED')
+            self.assertEqual(retained['failure_reason'],'NAME_BOUND_EXHIBITION_STOPPED')
+            with self.assertRaises(ValueError):caller.verify_backups(folder,retained)
+
     def test_cli_failure_exit_two(self):
         import subprocess,sys,os
         with TemporaryDirectory() as d:

@@ -97,10 +97,13 @@ def finalize_manifest(folder,manifest,guard):
                 guard();verify_backups(folder,manifest);guard()
         except BudgetExhausted:
             manifest.update(status='TIME_LIMIT_REACHED',failure_reason='NAME_BOUND_EXHIBITION_TIME_LIMIT')
+            # Make failure truthful before residual inspection can itself fail.
+            persist()
             manifest['backups']=inventory(folder)
             persist()
         except (ValueError,RuntimeError,OSError,KeyError,TypeError,AttributeError,OverflowError,UnicodeError,RecursionError):
             manifest.update(status='STOPPED',failure_reason='NAME_BOUND_EXHIBITION_STOPPED')
+            persist()
             manifest['backups']=inventory(folder)
             persist()
     return manifest
