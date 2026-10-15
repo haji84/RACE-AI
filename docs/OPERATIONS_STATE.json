@@ -7,7 +7,7 @@
     "source_requests_per_selected_race": 2,
     "immutable_separate_namespaces": true,
     "legacy_fourteen_baselines_and_display_only_v1_preserved": true,
-    "local_python_tests": 673,
+    "local_python_tests": 714,
     "local_python_skips": 0,
     "javascript_tests": 59,
     "edge_regressions": 8,
@@ -36,9 +36,9 @@
   "production_release_authorized": false,
   "preview_project": "race-ai-preview",
   "preview_team_id": "team_YGrZkBR7MyYxkq3K9XkTBhqu",
-  "last_verified_application_commit": "70414805d5048f44190640e74ef56b7da15ec7df",
-  "last_verified_application_commit_scope": "fresh day update and immutable baseline/v1 API preservation; original model actual proof pending",
-  "last_verified_deployment_url": "https://race-ai-preview-oh9rdr93x-qq1130034-1738.vercel.app",
+  "last_verified_application_commit": "358d1fab651e70df699708cde18b96b80a0e080e",
+  "last_verified_application_commit_scope": "bounded all-upcoming baseline publication; full saved API/backup replay; preserved existing15 and both post variants; no official reacquisition",
+  "last_verified_deployment_url": "https://race-ai-preview-qs4a1x8aa-qq1130034-1738.vercel.app",
   "trusted_workflow_branch": "feat/boat-oidc-probe-auth",
   "trusted_workflow_path": ".github/workflows/boat-blob-e2e.yml",
   "trusted_workflow_name": "RACE AI Preview Blob E2E",
@@ -61,14 +61,14 @@
     "prompt_updated_for_exhibition_requirements": true
   },
   "last_exact_head_ci": {
-    "commit": "9e9af5101131d656c3c57643c38fdb32f5214735",
-    "run_id": 38673028502,
-    "tests_per_os": 673,
+    "commit": "5b4315bfef96b0b55b41217c9d649aac24690815",
+    "run_id": 38677454686,
+    "tests_per_os": 714,
     "skipped_per_os": 0,
     "windows": "success",
     "ubuntu": "success",
     "javascript_tests": 59,
-    "scope": "final normalized-label application; later documentation-only successor checks visible on PR64"
+    "scope": "latest functional camera-size guard; later evidence-only successors verified through PR checks"
   },
   "last_verified_race_application_commit": "ceddba957d6600ee41cb4f280834dff7296d2f34",
   "last_verified_race_deployment_url": "https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app",
@@ -96,9 +96,9 @@
     "retention_days": 14,
     "restore": "request and API response exact bytes/SHA verified on runner and independently downloaded"
   },
-  "trusted_workflow_commit": "406ff2d0a85e0fc1578dfa4a69452914b35098c6",
-  "trusted_workflow_content_sha": "fbb814f3d49a10071601b96a972a3e5e81e8efcc",
-  "trusted_workflow_default_mode": "push: exact current-day original-enhanced comparison; display-only v1 is explicit exhibition dispatch only",
+  "trusted_workflow_commit": "e06c3f6fcee44af9547c022d812f15254ef541a0",
+  "trusted_workflow_content_sha": "16b61d4369ef88190cd156ae99f2f67c5778592e",
+  "trusted_workflow_default_mode": "push: bounded all-upcoming B-only baseline cohort; day/race/exhibition/original/result remain explicit dispatches",
   "trusted_workflow_dated_result_target": "20261015-14-01 (completed proof; stale Japan-local dates reject before official GET)",
   "race_collection_policy": "auto: first upcoming race up to two beforeinfo/odds GETs; result: one closed current-day race, optional exact ID even while others are upcoming; do not poll a completed proof without changed code or known revision",
   "race_cloud_contract": "immutable observation and separate actual-cloud-save receipt; latest per kind; serialized writer only; never backdate late ingress",
@@ -135,7 +135,7 @@
     "validation_status": "UNVALIDATED",
     "purchase_decision": "skip",
     "purchase_recommendations": [],
-    "actual_races_with_saved_prediction": 15,
+    "actual_races_with_saved_prediction": 118,
     "actual_result_cohorts_evaluated": 1,
     "models": [
       "official-program-uniform-pl/v1",
@@ -144,14 +144,13 @@
     "source": "frozen same-day approved B program points; untrained fixed comparisons; N=1 does not validate or select a model"
   },
   "next_priority": [
-    "Extend immutable original-enhanced paired forecasts to all upcoming races; collect B-only snapshots before actual exhibition and retain verified coverage/missing states",
-    "Implement verified boat attribution, camera correction and physical measurement quality after one complete transient VOD decode; keep color candidates out of prediction",
-    "Add independently evidenced full-name aliases for abbreviated B names with strict registration/source/clock binding; preserve frozen program hashes",
-    "Extend validated acquisition and paired forecasts to all upcoming races with bounded requests and honest coverage",
-    "Collect later confirmed outcomes for frozen pre/post forecasts and same-cutoff paired/aggregate evaluation",
-    "Enable immutable historical reading and past-day ledger settlement",
-    "Install reviewed cloud recurring schedule withoutProduction; day refresh repair and one fresh acquisition now verified",
-    "Complete held-out model evidence, motor reconciliation, durable user cloud separation, long-term recovery and physical iPhone acceptance"
+    "Complete any missing current-day upcoming B-only snapshots shown by current coverage, without rewriting existing receipts; no duplicate serialized writer",
+    "Accumulate new actual pre-exhibition save/after-exhibition pairs with independently established exhibition clocks; current B-only labels alone do not establish physical phase",
+    "Advance verified boat/lane identity, foreground masking, camera/world calibration and measurement ground truth; color/image affine estimates are not boat performance or prediction inputs",
+    "Collect new eligible original/display/video variants only for new targets and actual source changes; keep Toda1, Naruto8, Naruto7 and Amagasaki5 completed proofs unchanged",
+    "Resolve abbreviated B names via registration-linked independent official proof in a separate immutable alias contract; never loosen matching by prefixes",
+    "Accumulate held-out multi-day outcomes and calibrated/adoption evidence; preserve UNVALIDATED/skip/empty recommendations",
+    "Long-term history/user-cloud/restore/drills, iPhone hardware/accessibility and release-independent cloud scheduling remain formal completion conditions"
   ],
   "last_verified_settlement": {
     "application_commit": "8458fa568225d03312b25209e78213730000d42d",
@@ -269,10 +268,10 @@
     "all_races_verified": false
   },
   "last_local_full_suite": {
-    "python_tests": 615,
-    "skipped": 1,
-    "javascript_tests": 51,
-    "independent_review": "passed; reproduced URL/derived-size issues fixed; actual post receipt and video metadata boundaries verified",
+    "python_tests": 714,
+    "skipped": 0,
+    "javascript_tests": 59,
+    "independent_review": "passed: bounded caller, scene/size resets,20 camera integration tests, normalized actual evidence; subsequent cohort batches independently replayed",
     "live_boat_analysis_verified": false
   },
   "prior_day_refresh_failure": {
@@ -288,13 +287,20 @@
     "repair": "explicit immutable deployment and app-commit pin; exact commit gate retained"
   },
   "last_original_attempt": {
-    "run_id": 38672101542,
-    "job_id": 116217378198,
-    "result": "SUCCESS",
-    "race_id": "20261015-14-08",
-    "reason_for_retry": "recording index changed PENDING at02:33 toAVAILABLE at02:38; actual new exhibition values became AVAILABLE",
-    "source_originals_retained": false,
-    "completed_target_reacquired_after_success": false
+    "run_id": 38678946953,
+    "job_id": 116238842931,
+    "race_id": "20261015-13-06",
+    "result": "FAILED_BEFORE_RACE_OR_ORIGINAL_CLOUD_WRITES",
+    "failed_kinds": {
+      "beforeinfo": "SOURCE_INVALID",
+      "odds3t": "SOURCE_INVALID"
+    },
+    "new_original_prediction_created": false,
+    "known_baselines": 118,
+    "baseline_unchanged": true,
+    "evidence": "docs/evidence/2026-10-15/original-exhibition-additional-attempt.json",
+    "beforeinfo_detail_unresolved": true,
+    "post_close_diagnostic_not_prediction_input": true
   },
   "last_verified_original_exhibition": {
     "application_commit": "70414805d5048f44190640e74ef56b7da15ec7df",
@@ -329,5 +335,80 @@
       "artifacts/local/original-mobile-probabilities-latest.jpg"
     ]
   },
-  "release_status": "INCOMPLETE: all-race continuous coverage, video boat performance, held-out accuracy and remaining formal handbook conditions"
+  "release_status": "INCOMPLETE: all-race continuous coverage, video boat performance, held-out accuracy and remaining formal handbook conditions",
+  "all_upcoming_baseline_coverage": {
+    "coverage_checked_at": "2026-10-15T04:01:52.705906+00:00",
+    "current_eligible_future_races": 95,
+    "current_eligible_future_missing": [],
+    "all_current_eligible_future_saved": true,
+    "new_saved_races": 103,
+    "baseline_total_races": 118,
+    "normalized_backup_files": 213,
+    "normalized_backup_bytes": 3336785,
+    "all_new_cloud_saves_before_cutoff": true,
+    "physical_pre_exhibition_capture_established": false,
+    "current_unclosed_races": 96,
+    "current_unclosed_missing": [],
+    "all_current_unclosed_saved": true,
+    "current_day_races_without_any_baseline": 38,
+    "evidence": "docs/evidence/2026-10-15/all-upcoming-cohort-live.json",
+    "batch_run_ids": [
+      38675852511,
+      38676273510,
+      38676688119,
+      38677058935,
+      38677457884,
+      38677932946,
+      38678274314
+    ]
+  },
+  "transient_video_camera_v2": {
+    "race_id": "20261015-13-05",
+    "analysis_completed_at": "2026-10-15T03:29:51.889586+00:00",
+    "segments_decoded": 57,
+    "frames_decoded": 10260,
+    "frames_sampled": 171,
+    "camera_motion": {
+      "accepted_pairs": 29,
+      "attempted_pairs": 101,
+      "boat_identity": "UNVERIFIED",
+      "mean_accepted_inlier_ratio": 0.9547470941722587,
+      "mean_accepted_reprojection_rmse_pixels": 0.1951550595264945,
+      "prediction_eligible": false,
+      "rejected_pairs": 72,
+      "rejection_counts": {
+        "UNVERIFIED_INSUFFICIENT_FEATURES": 2,
+        "UNVERIFIED_INSUFFICIENT_INLIERS": 13,
+        "UNVERIFIED_INSUFFICIENT_TRACKS": 3,
+        "UNVERIFIED_INVALID_TRANSFORM": 2,
+        "UNVERIFIED_SCENE_CHANGE": 2,
+        "UNVERIFIED_SPATIAL_SUPPORT": 50
+      },
+      "residual_basis": "SUM_OF_PAIR_RESIDUALS_IN_EACH_CURRENT_FRAME_NOT_WORLD_DISPLACEMENT",
+      "scope": "BACKGROUND_AFFINE_IMAGE_ESTIMATE_ONLY",
+      "world_calibration": "UNVERIFIED"
+    },
+    "seconds_before_close": 488.110414,
+    "prediction_eligible": false,
+    "boat_identity": "UNVERIFIED",
+    "world_calibration": "UNVERIFIED",
+    "evidence": "docs/evidence/2026-10-15/exhibition-camera-motion-live.json",
+    "all_races_verified": false
+  },
+  "latest_functional_preview": {
+    "commit": "5b4315bfef96b0b55b41217c9d649aac24690815",
+    "url": "https://race-ai-preview-k76jryaxt-qq1130034-1738.vercel.app",
+    "saved_baseline_full_bytes_verified": true,
+    "web_tree": "dd2c625d5c45615436b05883c03556e565ec6bcb",
+    "same_web_tree_as_actual_publisher": true
+  },
+  "prior_successful_original_attempt": {
+    "run_id": 38672101542,
+    "job_id": 116217378198,
+    "result": "SUCCESS",
+    "race_id": "20261015-14-08",
+    "reason_for_retry": "recording index changed PENDING at02:33 toAVAILABLE at02:38; actual new exhibition values became AVAILABLE",
+    "source_originals_retained": false,
+    "completed_target_reacquired_after_success": false
+  }
 }
