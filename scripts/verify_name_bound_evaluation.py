@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 import re
+import stat
 import sys
 import time
 import urllib.request
@@ -129,29 +130,60 @@ def verify_backups(folder, manifest):
         raise ValueError('NAME_BOUND_EVALUATION_BACKUP_REJECTED') from exc
 
 
+def reopen_owned_manifest(path, identity):
+    """Open without truncation, then prove the descriptor is still our file."""
+    before = path.lstat()
+    require(stat.S_ISREG(before.st_mode) and (before.st_dev,before.st_ino) == identity)
+    descriptor = os.open(path, os.O_RDWR | getattr(os,'O_NOFOLLOW',0) | getattr(os,'O_NONBLOCK',0))
+    try:
+        opened, current = os.fstat(descriptor), path.lstat()
+        require(stat.S_ISREG(opened.st_mode) and stat.S_ISREG(current.st_mode)
+            and (opened.st_dev,opened.st_ino) == identity == (current.st_dev,current.st_ino))
+        return os.fdopen(descriptor,'r+b')
+    except BaseException:
+        os.close(descriptor)
+        raise
+
+
 def finalize_manifest(folder, manifest, guard):
-    """Rewrite only this invocation's exclusive handle if final IO fails."""
-    with (folder/'manifest.json').open('x+b') as handle:
-        def persist():
-            raw = canonical(manifest); require(0 < len(raw) <= MAX_BYTES)
-            handle.seek(0); handle.truncate(0); handle.write(raw); handle.flush()
-            handle.seek(0); require(handle.read() == raw)
-        def failure(status):
-            manifest.update(status=status, failure_reason=REASONS[status])
-            # Truthful state is durable before forensic inventory can itself fail.
-            persist()
-            manifest['backups'] = inventory(folder)
-            persist()
-        try:
-            manifest['backups'] = inventory(folder)
-            persist()
-            guard()
-            verify_backups(folder, manifest)
-            guard()
-        except BudgetExhausted:
-            failure('TIME_LIMIT_REACHED')
-        except ERRORS:
-            failure('STOPPED')
+    """Account for final close; recover only the exclusively created file."""
+    path, identity = folder/'manifest.json', None
+    def persist(handle):
+        raw = canonical(manifest); require(0 < len(raw) <= MAX_BYTES)
+        handle.seek(0); handle.truncate(0); handle.write(raw); handle.flush()
+        handle.seek(0); require(handle.read() == raw)
+    def failure(handle,status):
+        manifest.update(status=status, failure_reason=REASONS[status])
+        # Truthful state is durable before forensic inventory can itself fail.
+        persist(handle)
+        manifest['backups'] = inventory(folder)
+        persist(handle)
+    try:
+        with path.open('x+b') as handle:
+            owned = os.fstat(handle.fileno())
+            require(stat.S_ISREG(owned.st_mode) and owned.st_ino != 0)
+            identity = owned.st_dev, owned.st_ino
+            try:
+                manifest['backups'] = inventory(folder)
+                persist(handle)
+                guard()
+                verify_backups(folder, manifest)
+                guard()
+            except BudgetExhausted:
+                failure(handle,'TIME_LIMIT_REACHED')
+            except ERRORS:
+                failure(handle,'STOPPED')
+        guard()
+    except ERRORS as error:
+        if identity is None: raise
+        status = 'TIME_LIMIT_REACHED' if isinstance(error,BudgetExhausted) else 'STOPPED'
+        try: guard()
+        except BudgetExhausted: status = 'TIME_LIMIT_REACHED'
+        except ERRORS: pass
+        # The original handle may already be closed. Check the path before and
+        # after opening, and fstat the nontruncating descriptor before any write.
+        with reopen_owned_manifest(path,identity) as handle:
+            failure(handle,status)
     return manifest
 
 

@@ -9,6 +9,8 @@ import json
 from pathlib import Path
 import re
 import shutil
+import stat
+from types import SimpleNamespace
 from tempfile import TemporaryDirectory
 import textwrap
 import unittest
@@ -247,6 +249,83 @@ class EvaluationCallerTests(unittest.TestCase):
         with patch.object(Path,'open',delayed): result=self.run_caller()
         self.assertEqual(result['status'],'TIME_LIMIT_REACHED')
         self.assertEqual(result,self.retained())
+
+    def test_final_close_error_or_elapsed_time_cannot_retain_completed(self):
+        original_open=Path.open
+        elapsed=self.elapsed
+        for mode,status in [('error','STOPPED'),('delay','TIME_LIMIT_REACHED')]:
+            self.folder=Path(self.folder_context.name)/('final-close-'+mode)
+            self.opener.calls=[]; elapsed[0]=0
+            class ClosingHandle:
+                def __init__(self,handle): self.handle=handle
+                def __enter__(self): return self
+                def __getattr__(self,name): return getattr(self.handle,name)
+                def __exit__(self,*args):
+                    result=self.handle.__exit__(*args)
+                    if mode=='delay': elapsed[0]=181
+                    else: raise OSError('final close synthetic secret')
+                    return result
+            def close_fault(path,*args,**kwargs):
+                handle=original_open(path,*args,**kwargs)
+                return ClosingHandle(handle) if path.name=='manifest.json' and args and args[0]=='x+b' else handle
+            with self.subTest(mode=mode),patch.object(Path,'open',close_fault):
+                try: result=self.run_caller()
+                except OSError: self.fail('final close error must persist and return a failed manifest')
+                self.assertEqual(result['status'],status)
+                self.assertEqual(result,self.retained())
+                self.assertNotEqual(result['status'],'COMPLETED')
+
+    def test_close_recovery_never_overwrites_foreign_manifest_replacement(self):
+        original_open=Path.open
+        owned=self.folder_context.name
+        class ReplacingHandle:
+            def __init__(self,handle,path): self.handle=handle; self.path=path
+            def __enter__(self): return self
+            def __getattr__(self,name): return getattr(self.handle,name)
+            def __exit__(self,*args):
+                self.handle.__exit__(*args)
+                self.path.rename(Path(owned)/'owned-before-replacement.json')
+                self.path.write_bytes(b'foreign-owner-data')
+                raise OSError('close after foreign replacement')
+        def replaced(path,*args,**kwargs):
+            handle=original_open(path,*args,**kwargs)
+            return ReplacingHandle(handle,path) if path.name=='manifest.json' and args and args[0]=='x+b' else handle
+        with patch.object(Path,'open',replaced),self.assertRaises((OSError,ValueError)):
+            self.run_caller()
+        self.assertEqual((self.folder/'manifest.json').read_bytes(),b'foreign-owner-data')
+
+    def test_owned_reopen_rejects_symlink_metadata_before_or_after_open(self):
+        self.folder.mkdir(); path=self.folder/'manifest.json'
+        path.write_bytes(b'owned-original')
+        owned=path.stat(); identity=owned.st_dev,owned.st_ino
+        original_lstat=Path.lstat
+        link=SimpleNamespace(st_mode=stat.S_IFLNK,st_dev=owned.st_dev,st_ino=owned.st_ino)
+        for point in (1,2):
+            calls=[]
+            def changed(target,*args,**kwargs):
+                if target==path:
+                    calls.append(True)
+                    if len(calls)==point: return link
+                return original_lstat(target,*args,**kwargs)
+            with self.subTest(point=point),patch.object(Path,'lstat',changed),self.assertRaises(ValueError):
+                self.c.reopen_owned_manifest(path,identity)
+            self.assertEqual(path.read_bytes(),b'owned-original')
+
+    def test_owned_reopen_rejects_foreign_replacement_during_open_without_truncating(self):
+        self.folder.mkdir(); path=self.folder/'manifest.json'
+        path.write_bytes(b'owned-original')
+        owned=path.stat(); identity=owned.st_dev,owned.st_ino
+        original_open=self.c.os.open
+        retained=Path(self.folder_context.name)/'owned-retained.json'
+        def replaced(target,flags,*args,**kwargs):
+            if Path(target)==path:
+                path.rename(retained)
+                path.write_bytes(b'foreign-owner-data')
+            return original_open(target,flags,*args,**kwargs)
+        with patch.object(self.c.os,'open',side_effect=replaced),self.assertRaises(ValueError):
+            self.c.reopen_owned_manifest(path,identity)
+        self.assertEqual(path.read_bytes(),b'foreign-owner-data')
+        self.assertEqual(retained.read_bytes(),b'owned-original')
 
     def test_final_verification_failure_and_failed_inventory_persist_stopped_first(self):
         original=self.c.verify_backups
