@@ -5,11 +5,11 @@ on:
       collection:
         description: Research uses saved day facts; day collection only when missing or at least six hours old
         type: choice
-        options: [research, exhibition, original, cohort, evaluation, result, race, day, name-binding, name-bound-exhibition, name-bound-evaluation]
+        options: [research, exhibition, original, cohort, evaluation, result, race, day, name-binding, name-bound-exhibition, name-bound-evaluation, name-bound-result]
         default: research
         required: true
       name_bound_race_id:
-        description: Exact current-day future race with finalized pinned name proof
+        description: Exact current-day race for name-bound forecast, saved evaluation, or postclose result label
         type: string
         required: false
         default: ''
@@ -19,7 +19,7 @@ on:
         required: false
         default: ''
       name_bound_forecast_request_id:
-        description: Exact saved immutable name-bound forecast request id for read-only evaluation
+        description: Exact saved immutable name-bound forecast request id for evaluation or postclose result label
         type: string
         required: false
         default: ''
@@ -66,7 +66,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 6b0a85d379d9247937973dcc34ce55da22f982f8
+          ref: 325ddce19ae999d626782a9929e6511c17d60ba1
           persist-credentials: false
       - name: Diagnose runner identity (non-secret)
         run: |
@@ -78,8 +78,8 @@ jobs:
           if [ -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]; then echo "OIDC_REQUEST_TOKEN_MISSING"; exit 1; fi
       - name: Verify private Blob with GitHub OIDC
         env:
-          RACE_AI_PROBE_URL: https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app/api/blob-probe
-          RACE_AI_PROBE_COMMIT_SHA: 6b0a85d379d9247937973dcc34ce55da22f982f8
+          RACE_AI_PROBE_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/blob-probe
+          RACE_AI_PROBE_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
         run: python3 scripts/run_private_blob_probe.py
 
 # OIDC Preview E2E trigger; no shared secret is used.
@@ -88,7 +88,7 @@ jobs:
       - name: Checkout reviewed current-day collector
         uses: actions/checkout@v4
         with:
-          ref: 6b0a85d379d9247937973dcc34ce55da22f982f8
+          ref: 325ddce19ae999d626782a9929e6511c17d60ba1
           path: day-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -105,8 +105,8 @@ jobs:
       - name: Publish private current-day version and verify today API SHA
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
         env:
-          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app/api/publish-day
-          RACE_AI_DAY_COMMIT_SHA: 6b0a85d379d9247937973dcc34ce55da22f982f8
+          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-day
+          RACE_AI_DAY_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
         run: python day-source/scripts/publish_day_feed.py --feed "$RUNNER_TEMP/race-ai-day.json"
       - name: Back up only the approved normalized day facts
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
@@ -141,8 +141,8 @@ jobs:
         id: race
         if: inputs.collection == 'exhibition' || inputs.collection == 'original' || inputs.collection == 'race' || inputs.collection == 'result'
         env:
-          RACE_AI_RACE_PUBLISH_URL: https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app/api/publish-race
-          RACE_AI_RACE_COMMIT_SHA: 6b0a85d379d9247937973dcc34ce55da22f982f8
+          RACE_AI_RACE_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-race
+          RACE_AI_RACE_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
           RACE_AI_RESULT_MODE: ${{ inputs.collection == 'exhibition' && 'exhibition' || inputs.collection == 'original' && 'exhibition' || inputs.collection == 'race' && 'auto' || 'result' }}
           RACE_AI_RESULT_RACE_ID: ${{ inputs.result_race_id || '20261015-14-01' }}
           RACE_AI_EXHIBITION_RACE_ID: ${{ inputs.exhibition_race_id || '20261015-14-08' }}
@@ -193,8 +193,8 @@ jobs:
         id: research
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'research'
         env:
-          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app/api/publish-prediction
-          RACE_AI_RESEARCH_COMMIT_SHA: 6b0a85d379d9247937973dcc34ce55da22f982f8
+          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-prediction
+          RACE_AI_RESEARCH_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
         run: |
           result=0
           python day-source/scripts/publish_research_prediction.py --output "$RUNNER_TEMP/race-ai-research.json" --execute || result=$?
@@ -236,8 +236,8 @@ jobs:
         id: evaluation
         if: success() && (inputs.collection == 'evaluation' || (steps.race.outputs.backup_exists == 'true' && inputs.collection == 'result'))
         env:
-          RACE_AI_EVALUATION_URL: https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app/api/evaluation
-          RACE_AI_EVALUATION_COMMIT_SHA: 6b0a85d379d9247937973dcc34ce55da22f982f8
+          RACE_AI_EVALUATION_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/evaluation
+          RACE_AI_EVALUATION_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
           RACE_AI_EVALUATION_RACE_ID: ${{ inputs.result_race_id || '20261015-14-01' }}
         run: |
           python day-source/scripts/verify_research_evaluation.py --race-id "$RACE_AI_EVALUATION_RACE_ID" --output "$RUNNER_TEMP/race-ai-evaluation.json" --execute
@@ -276,8 +276,8 @@ jobs:
         id: cohort
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'cohort'
         env:
-          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app/api/publish-prediction
-          RACE_AI_RESEARCH_COMMIT_SHA: 6b0a85d379d9247937973dcc34ce55da22f982f8
+          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-prediction
+          RACE_AI_RESEARCH_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
           RACE_AI_COHORT_SELECTION: ${{ inputs.cohort_selection || 'next-per-venue' }}
         run: |
           result=0
@@ -358,8 +358,8 @@ jobs:
         id: exhibition
         if: success() && inputs.collection == 'exhibition' && steps.race.outputs.backup_exists == 'true'
         env:
-          RACE_AI_EXHIBITION_PUBLISH_URL: https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app/api/publish-exhibition-prediction
-          RACE_AI_EXHIBITION_COMMIT_SHA: 6b0a85d379d9247937973dcc34ce55da22f982f8
+          RACE_AI_EXHIBITION_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-exhibition-prediction
+          RACE_AI_EXHIBITION_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
         run: |
           result=0
           python day-source/scripts/publish_exhibition_prediction.py --race-input "$RUNNER_TEMP/race-ai-race.json" --output-dir "$RUNNER_TEMP/race-ai-exhibition" --execute || result=$?
@@ -417,8 +417,8 @@ jobs:
         if: success() && inputs.collection == 'original' && steps.race.outputs.backup_exists == 'true'
         working-directory: day-source
         env:
-          RACE_AI_ORIGINAL_PUBLISH_URL: https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app/api/publish-original-exhibition
-          RACE_AI_ORIGINAL_COMMIT_SHA: 6b0a85d379d9247937973dcc34ce55da22f982f8
+          RACE_AI_ORIGINAL_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-original-exhibition
+          RACE_AI_ORIGINAL_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
           RACE_AI_EXHIBITION_RACE_ID: ${{ inputs.exhibition_race_id || '20261015-14-08' }}
         run: |
           result=0
@@ -498,8 +498,8 @@ jobs:
         id: name_binding
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'name-binding'
         env:
-          RACE_AI_NAME_BINDING_PUBLISH_URL: https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app/api/publish-name-binding
-          RACE_AI_NAME_BINDING_COMMIT_SHA: 6b0a85d379d9247937973dcc34ce55da22f982f8
+          RACE_AI_NAME_BINDING_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-name-binding
+          RACE_AI_NAME_BINDING_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
           RACE_AI_NAME_BINDING_RACE_ID: ${{ inputs.name_binding_race_id }}
         run: |
           result=0
@@ -553,8 +553,8 @@ jobs:
         id: name_bound
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'name-bound-exhibition'
         env:
-          RACE_AI_NAME_BOUND_PUBLISH_URL: https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app/api/publish-name-bound-exhibition
-          RACE_AI_NAME_BOUND_COMMIT_SHA: 6b0a85d379d9247937973dcc34ce55da22f982f8
+          RACE_AI_NAME_BOUND_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-name-bound-exhibition
+          RACE_AI_NAME_BOUND_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
           RACE_AI_NAME_BOUND_RACE_ID: ${{ inputs.name_bound_race_id }}
           RACE_AI_NAME_BOUND_BINDING_REQUEST_ID: ${{ inputs.name_bound_binding_request_id }}
         run: |
@@ -608,8 +608,8 @@ jobs:
         id: name_bound_evaluation
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'name-bound-evaluation'
         env:
-          RACE_AI_NAME_BOUND_EVALUATION_URL: https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app/api/name-bound-evaluation
-          RACE_AI_NAME_BOUND_EVALUATION_COMMIT_SHA: 6b0a85d379d9247937973dcc34ce55da22f982f8
+          RACE_AI_NAME_BOUND_EVALUATION_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/name-bound-evaluation
+          RACE_AI_NAME_BOUND_EVALUATION_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
           RACE_AI_NAME_BOUND_RACE_ID: ${{ inputs.name_bound_race_id }}
           RACE_AI_NAME_BOUND_FORECAST_REQUEST_ID: ${{ inputs.name_bound_forecast_request_id }}
         run: |
@@ -657,4 +657,62 @@ jobs:
           manifest=json.loads((restored/'manifest.json').read_bytes())
           verify_backups(restored,manifest)
           print(json.dumps({'result':'NAME_BOUND_EVALUATION_BACKUP_RESTORE_VERIFIED','status':manifest['status'],'files':len(names)}))
+          PY
+
+      - name: Publish bounded name-bound official result
+        id: name_bound_result
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'name-bound-result'
+        env:
+          RACE_AI_NAME_BOUND_RESULT_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-name-bound-result
+          RACE_AI_NAME_BOUND_RESULT_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
+          RACE_AI_NAME_BOUND_RACE_ID: ${{ inputs.name_bound_race_id }}
+          RACE_AI_NAME_BOUND_FORECAST_REQUEST_ID: ${{ inputs.name_bound_forecast_request_id }}
+        run: |
+          result=0
+          python day-source/scripts/publish_name_bound_result.py --race-id "$RACE_AI_NAME_BOUND_RACE_ID" --forecast-request-id "$RACE_AI_NAME_BOUND_FORECAST_REQUEST_ID" --output-dir "$RUNNER_TEMP/race-ai-name-bound-result" --execute || result=$?
+          if [ -f "$RUNNER_TEMP/race-ai-name-bound-result/manifest.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
+          exit "$result"
+      - name: Back up normalized name-bound result evidence
+        if: always() && steps.name_bound_result.outputs.backup_exists == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: name-bound-result-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/race-ai-name-bound-result/program.json
+            ${{ runner.temp }}/race-ai-name-bound-result/forecast.json
+            ${{ runner.temp }}/race-ai-name-bound-result/request.json
+            ${{ runner.temp }}/race-ai-name-bound-result/result.json
+            ${{ runner.temp }}/race-ai-name-bound-result/evaluation.json
+            ${{ runner.temp }}/race-ai-name-bound-result/manifest.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore normalized name-bound result evidence
+        if: always() && steps.name_bound_result.outputs.backup_exists == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: name-bound-result-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-name-bound-result-restored
+      - name: Verify every name-bound result byte and full replay
+        if: always() && steps.name_bound_result.outputs.backup_exists == 'true'
+        run: |
+          python - <<'PY'
+          import json,os,sys
+          from pathlib import Path
+          sys.path.insert(0,str(Path('day-source').resolve()))
+          from scripts.publish_name_bound_result import ALLOWED,MAX_BYTES,verify_backups
+          root=Path(os.environ['RUNNER_TEMP'])
+          original,restored=root/'race-ai-name-bound-result',root/'race-ai-name-bound-result-restored'
+          names={p.name for p in original.iterdir()}
+          if not names<=ALLOWED or 'manifest.json' not in names or names!={p.name for p in restored.iterdir()}:
+              raise SystemExit('NAME_BOUND_RESULT_BACKUP_COVERAGE_INVALID')
+          for name in names:
+              if (original/name).is_symlink() or (restored/name).is_symlink():
+                  raise SystemExit('NAME_BOUND_RESULT_BACKUP_LINK_INVALID')
+              before,after=(original/name).read_bytes(),(restored/name).read_bytes()
+              if not 0<len(after)<=MAX_BYTES or before!=after:
+                  raise SystemExit('NAME_BOUND_RESULT_BACKUP_BYTES_INVALID')
+          manifest=json.loads((restored/'manifest.json').read_bytes())
+          verify_backups(restored,manifest)
+          print(json.dumps({'result':'NAME_BOUND_RESULT_BACKUP_RESTORE_VERIFIED','status':manifest['status'],'files':len(names)}))
           PY
