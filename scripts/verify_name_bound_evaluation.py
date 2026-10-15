@@ -145,8 +145,10 @@ def reopen_owned_manifest(path, identity):
         raise
 
 
-def finalize_manifest(folder, manifest, guard):
+def finalize_manifest(folder, manifest, guard, *, inventory_fn=None, verify_fn=None):
     """Account for final close; recover only the exclusively created file."""
+    inventory_fn = inventory if inventory_fn is None else inventory_fn
+    verify_fn = verify_backups if verify_fn is None else verify_fn
     path, identity = folder/'manifest.json', None
     def persist(handle):
         raw = canonical(manifest); require(0 < len(raw) <= MAX_BYTES)
@@ -156,7 +158,7 @@ def finalize_manifest(folder, manifest, guard):
         manifest.update(status=status, failure_reason=REASONS[status])
         # Truthful state is durable before forensic inventory can itself fail.
         persist(handle)
-        manifest['backups'] = inventory(folder)
+        manifest['backups'] = inventory_fn(folder)
         persist(handle)
     try:
         with path.open('x+b') as handle:
@@ -164,10 +166,10 @@ def finalize_manifest(folder, manifest, guard):
             require(stat.S_ISREG(owned.st_mode) and owned.st_ino != 0)
             identity = owned.st_dev, owned.st_ino
             try:
-                manifest['backups'] = inventory(folder)
+                manifest['backups'] = inventory_fn(folder)
                 persist(handle)
                 guard()
-                verify_backups(folder, manifest)
+                verify_fn(folder, manifest)
                 guard()
             except BudgetExhausted:
                 failure(handle,'TIME_LIMIT_REACHED')
