@@ -61,14 +61,14 @@
     "prompt_updated_for_exhibition_requirements": true
   },
   "last_exact_head_ci": {
-    "commit": "8d6c554eb1036ccdbb8ea5d13fc96dfc43e101b2",
-    "run_id": 38672225940,
+    "commit": "9e9af5101131d656c3c57643c38fdb32f5214735",
+    "run_id": 38673028502,
     "tests_per_os": 673,
     "skipped_per_os": 0,
     "windows": "success",
     "ubuntu": "success",
     "javascript_tests": 59,
-    "scope": "functional pending-normalization head; subsequent label/evidence-only successors verified in PR64 checks"
+    "scope": "final normalized-label application; later documentation-only successor checks visible on PR64"
   },
   "last_verified_race_application_commit": "ceddba957d6600ee41cb4f280834dff7296d2f34",
   "last_verified_race_deployment_url": "https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app",
@@ -314,7 +314,20 @@
     "new_baseline_is_B_only_generated_after_exhibition": true,
     "video_used": false,
     "validation_status": "UNVALIDATED",
-    "evidence": "docs/evidence/2026-10-15/original-exhibition-forecast-live.json"
+    "evidence": "docs/evidence/2026-10-15/original-exhibition-forecast-live.json",
+    "latest_verified_ui_commit": "9e9af5101131d656c3c57643c38fdb32f5214735",
+    "latest_verified_ui_url": "https://race-ai-preview-76n6gy4wk-qq1130034-1738.vercel.app",
+    "latest_post_full_bytes_unchanged": true,
+    "live_ui_widths": [
+      1440,
+      390
+    ],
+    "mobile_table_horizontal_access_verified": true,
+    "local_ui_screenshots": [
+      "artifacts/local/original-desktop-latest.jpg",
+      "artifacts/local/original-mobile-latest.jpg",
+      "artifacts/local/original-mobile-probabilities-latest.jpg"
+    ]
   },
   "release_status": "INCOMPLETE: all-race continuous coverage, video boat performance, held-out accuracy and remaining formal handbook conditions"
 }

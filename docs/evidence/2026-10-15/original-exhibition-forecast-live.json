@@ -14,11 +14,19 @@
   "variant": "original-v1",
   "model": "official-display-original-pl/v1",
   "measurements_used": 24,
-  "metrics": ["display_time_s", "lap_s", "turn_s", "straight_s"],
+  "metrics": [
+    "display_time_s",
+    "lap_s",
+    "turn_s",
+    "straight_s"
+  ],
   "boat_identity_binding": "exact URLs and six normalized full names from independently approved B program; TSV body lacks date, registration IDs and closing time",
   "beforeinfo_captured_at": "2026-10-15T02:39:22.581473+00:00",
   "beforeinfo_cloud_saved_at": "2026-10-15T02:39:26.299508+00:00",
-  "original_sources_captured_at": ["2026-10-15T02:39:37.102989+00:00", "2026-10-15T02:39:37.626800+00:00"],
+  "original_sources_captured_at": [
+    "2026-10-15T02:39:37.102989+00:00",
+    "2026-10-15T02:39:37.626800+00:00"
+  ],
   "original_runner_saved_at": "2026-10-15T02:39:37.628456+00:00",
   "original_cloud_saved_at": "2026-10-15T02:39:43.737774+00:00",
   "baseline_generated_at": "2026-10-15T02:39:50.199228+00:00",
@@ -29,7 +37,12 @@
   "seconds_before_close": 535.613716,
   "original_snapshot_id": "67797f4d772aeeeb83ad779440fb3b70842e4177d23e1f10ec6b08ff8df4c074",
   "post_snapshot_id": "549e8702e1f0934dcad1e31e72451065a7a0fdb702055a8a9ce594b0d8be6518",
-  "api_full_canonical_bytes": {"original": 2834, "post": 41130, "race": 12498, "baseline": 29754},
+  "api_full_canonical_bytes": {
+    "original": 2834,
+    "post": 41130,
+    "race": 12498,
+    "baseline": 29754
+  },
   "api_full_canonical_sha256": {
     "original": "b69c53a88339f94878109ee71b5d74d49d7426e2d8f7ec5263299d93c5e40eb4",
     "post": "51e5f640b87da2e3a96bf56d80aa873f13e35ec7c6e261274225ca11d62ed026",
@@ -58,8 +71,36 @@
   "purchase_decision": "skip",
   "purchase_recommendations": [],
   "source_originals_or_ephemeral_media_credentials_retained": false,
-  "exact_functional_head_ci": {"commit": "8d6c554eb1036ccdbb8ea5d13fc96dfc43e101b2", "run_id": 38672225940, "windows_job_id": 116217763048, "ubuntu_job_id": 116217762772, "python_tests_each": 673, "python_skips_each": 0, "javascript_tests": 59},
+  "exact_functional_head_ci": {
+    "commit": "8d6c554eb1036ccdbb8ea5d13fc96dfc43e101b2",
+    "run_id": 38672225940,
+    "windows_job_id": 116217763048,
+    "ubuntu_job_id": 116217762772,
+    "python_tests_each": 673,
+    "python_skips_each": 0,
+    "javascript_tests": 59
+  },
   "browser_regressions": 8,
   "desktop_and_mobile_live_ui": "24 measurements, four contributions, fixed B-only comparator and actual save times verified on protected Preview; normalized-save labels clarified",
-  "remaining": "all-race/venue ongoing coverage, actual pre-exhibition temporal pairs, verified boat identity/camera geometry/measurement, held-out accuracy and calibration"
+  "remaining": "all-race/venue ongoing coverage, actual pre-exhibition temporal pairs, verified boat identity/camera geometry/measurement, held-out accuracy and calibration",
+  "latest_verified_application": {
+    "commit": "9e9af5101131d656c3c57643c38fdb32f5214735",
+    "preview_url": "https://race-ai-preview-76n6gy4wk-qq1130034-1738.vercel.app",
+    "ci_run_id": 38673028502,
+    "windows_job_id": 116220288071,
+    "ubuntu_job_id": 116220288438,
+    "python_tests_each": 673,
+    "python_skips_each": 0,
+    "javascript_tests": 59,
+    "full_post_bytes_unchanged": true,
+    "desktop_width": 1440,
+    "desktop_scroll_width": 1425,
+    "mobile_width": 390,
+    "mobile_scroll_width": 375,
+    "mobile_table_scroll_left": 290.3999938964844,
+    "mobile_table_client_width": 314,
+    "mobile_table_scroll_width": 605,
+    "six_value_rows": true,
+    "normalized_save_labels_verified": true
+  }
 }
