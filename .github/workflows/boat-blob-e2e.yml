@@ -5,9 +5,14 @@ on:
       collection:
         description: Research uses saved day facts; day collection only when missing or at least six hours old
         type: choice
-        options: [research, race, day]
+        options: [research, evaluation, result, race, day]
         default: research
         required: true
+      result_race_id:
+        description: Current-day closed race to reconcile with its previously saved forecast
+        type: string
+        required: false
+        default: '20261015-14-01'
   push:
     branches: [feat/boat-oidc-probe-auth]
     paths:
@@ -50,7 +55,7 @@ jobs:
       - name: Checkout reviewed current-day collector
         uses: actions/checkout@v4
         with:
-          ref: e948e123cf41a8ec1c5796629a74e30a562bb572
+          ref: ceddba957d6600ee41cb4f280834dff7296d2f34
           path: day-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -67,8 +72,8 @@ jobs:
       - name: Publish private current-day version and verify today API SHA
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
         env:
-          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-h0upx8ni5-qq1130034-1738.vercel.app/api/publish-day
-          RACE_AI_DAY_COMMIT_SHA: e948e123cf41a8ec1c5796629a74e30a562bb572
+          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app/api/publish-day
+          RACE_AI_DAY_COMMIT_SHA: ceddba957d6600ee41cb4f280834dff7296d2f34
         run: python day-source/scripts/publish_day_feed.py --feed "$RUNNER_TEMP/race-ai-day.json"
       - name: Back up only the approved normalized day facts
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
@@ -101,13 +106,19 @@ jobs:
 
       - name: Collect one race, publish immutable observations and verify race API
         id: race
-        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'race'
+        if: github.event_name == 'push' || inputs.collection == 'race' || inputs.collection == 'result'
         env:
-          RACE_AI_RACE_PUBLISH_URL: https://race-ai-preview-h0upx8ni5-qq1130034-1738.vercel.app/api/publish-race
-          RACE_AI_RACE_COMMIT_SHA: e948e123cf41a8ec1c5796629a74e30a562bb572
+          RACE_AI_RACE_PUBLISH_URL: https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app/api/publish-race
+          RACE_AI_RACE_COMMIT_SHA: ceddba957d6600ee41cb4f280834dff7296d2f34
+          RACE_AI_RESULT_MODE: ${{ inputs.collection == 'race' && 'auto' || 'result' }}
+          RACE_AI_RESULT_RACE_ID: ${{ inputs.result_race_id || '20261015-14-01' }}
         run: |
           result=0
-          python day-source/scripts/publish_race_updates.py --review day-source/config/operator-official-facts.json --output "$RUNNER_TEMP/race-ai-race.json" --execute || result=$?
+          if [ "$RACE_AI_RESULT_MODE" = result ]; then
+            python day-source/scripts/publish_race_updates.py --mode result --race-id "$RACE_AI_RESULT_RACE_ID" --review day-source/config/operator-official-facts.json --output "$RUNNER_TEMP/race-ai-race.json" --execute || result=$?
+          else
+            python day-source/scripts/publish_race_updates.py --review day-source/config/operator-official-facts.json --output "$RUNNER_TEMP/race-ai-race.json" --execute || result=$?
+          fi
           if [ -f "$RUNNER_TEMP/race-ai-race.request.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
           exit "$result"
       - name: Back up only normalized approved race facts and receipts
@@ -144,10 +155,10 @@ jobs:
 
       - name: Generate durable pre-cutoff research prediction and verify API
         id: research
-        if: github.event_name == 'push' || inputs.collection == 'research'
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'research'
         env:
-          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-h0upx8ni5-qq1130034-1738.vercel.app/api/publish-prediction
-          RACE_AI_RESEARCH_COMMIT_SHA: e948e123cf41a8ec1c5796629a74e30a562bb572
+          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app/api/publish-prediction
+          RACE_AI_RESEARCH_COMMIT_SHA: ceddba957d6600ee41cb4f280834dff7296d2f34
         run: |
           result=0
           python day-source/scripts/publish_research_prediction.py --output "$RUNNER_TEMP/race-ai-research.json" --execute || result=$?
@@ -183,4 +194,43 @@ jobs:
               if not original or len(original) > 256000 or original != restored:
                   raise SystemExit('RESEARCH_BACKUP_RESTORE_MISMATCH')
               print(json.dumps({'result':'RESEARCH_BACKUP_RESTORE_VERIFIED','file':name,'bytes':len(restored),'file_sha256':hashlib.sha256(restored).hexdigest()}))
+          PY
+
+      - name: Independently replay protected research evaluation from durable receipts
+        id: evaluation
+        if: success() && (inputs.collection == 'evaluation' || (steps.race.outputs.backup_exists == 'true' && (github.event_name == 'push' || inputs.collection == 'result')))
+        env:
+          RACE_AI_EVALUATION_URL: https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app/api/evaluation
+          RACE_AI_EVALUATION_COMMIT_SHA: ceddba957d6600ee41cb4f280834dff7296d2f34
+          RACE_AI_EVALUATION_RACE_ID: ${{ inputs.result_race_id || '20261015-14-01' }}
+        run: |
+          python day-source/scripts/verify_research_evaluation.py --race-id "$RACE_AI_EVALUATION_RACE_ID" --output "$RUNNER_TEMP/race-ai-evaluation.json" --execute
+          if [ -f "$RUNNER_TEMP/race-ai-evaluation.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
+      - name: Back up only the verified normalized evaluation report
+        if: success() && steps.evaluation.outputs.backup_exists == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: research-evaluation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-evaluation.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore evaluation report into a separate directory
+        if: success() && steps.evaluation.outputs.backup_exists == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: research-evaluation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-evaluation-restored
+      - name: Verify exact restored evaluation report bytes
+        if: success() && steps.evaluation.outputs.backup_exists == 'true'
+        run: |
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          folder = Path(os.environ['RUNNER_TEMP'])
+          original = (folder / 'race-ai-evaluation.json').read_bytes()
+          restored = (folder / 'race-ai-evaluation-restored' / 'race-ai-evaluation.json').read_bytes()
+          if not original or len(original) > 256000 or original != restored:
+              raise SystemExit('EVALUATION_BACKUP_RESTORE_MISMATCH')
+          print(json.dumps({'result':'RESEARCH_EVALUATION_BACKUP_RESTORE_VERIFIED','bytes':len(restored),'file_sha256':hashlib.sha256(restored).hexdigest()}))
           PY

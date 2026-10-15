@@ -21,6 +21,10 @@ Functional commit e948e123: standalone shared stdlib PL contract; server-generat
 
 Independent review fixed permissive ISO offset parsing and future-cutoff UI classification. Windows/Linux CI38649731803 executed456 cases each, no failures/one optional OpenCV skip;23 JS checks. Scoped workflow38649960735 saved Naruto1R before08:35 at07:47:32 JST; API/backup29768bytes/SHA verified independently and desktop/mobile proof saved. Next reconcile its later actual result and expose shared-cohort evaluation; never construct earlier predictions from later pages.
 
+## Live forecast/result comparison checkpoint
+
+Functional commit ceddba957: read-only evaluation API/shared pure contract/UI, frozen cohort proof, fixed source diagnostics, strictly pending payout-only profile and contextual program IDs. CI38656460335 executed499 cases per OS with zero failures/one skip;31 JS checks. Workflow38656820577 captured full Naruto1R result08:54 after earlier payout-only diagnostic08:42, saved08:54:14, and compared the unchanged07:47 forecast at08:54:31. Top3=1-3-5; each fixed model120 outcomes; actual commonN=1. Result20391bytes and evaluation1646bytes restored exactly, independent API/direct PL/Brier/log-loss and frozen report replay verified. UNVALIDATED/skip persists; no model adoption or ledger settlement.
+
 ## Validation and remaining stages
 
 Run existing full Python suite before and after changes; JS syntax and behavior tests; API rejection and integration tests; real Blob evidence distinct from mocks; collector metadata distinct from publication permission; browser interactions at iPhone and desktop widths. Save screenshots and evidence without secrets or copyrighted source originals.

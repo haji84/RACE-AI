@@ -1,0 +1,214 @@
+{
+  "status": "LIVE_FORECAST_RESULT_COMPARISON_VERIFIED_NOT_MODEL_VALIDATION",
+  "date_jst": "2026-10-15",
+  "application_commit": "ceddba957d6600ee41cb4f280834dff7296d2f34",
+  "deployment_id": "dpl_B9SwXvPj1K4ZoThH8CF71o9Qjcjz",
+  "deployment_url": "https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app",
+  "workflow": {
+    "branch": "feat/boat-oidc-probe-auth",
+    "name": "RACE AI Preview Blob E2E",
+    "commit": "36aafb2f4816f31a72f72237ed230cfaf3272cde",
+    "content_sha": "b18d25932db739458378dea50cb4f7aa8aac58fb",
+    "run_id": 38656820577,
+    "job_id": 116168436828,
+    "url": "https://github.com/haji84/RACE-AI/actions/runs/38656820577",
+    "result": "success",
+    "official_result_gets": 1,
+    "official_day_gets": 0,
+    "research_prediction_writes": 0,
+    "read_only_evaluation_official_source_gets": 0
+  },
+  "race_publication": {
+    "backup_file_sha256": "807e24a3dd1413ebcf417ae240448b4ddd250382aa3ba22b2689c4bcb67374c7",
+    "commit_sha": "ceddba957d6600ee41cb4f280834dff7296d2f34",
+    "failed_kinds": {},
+    "race_id": "20261015-14-01",
+    "records": [
+      {
+        "captured_at": "2026-10-14T22:15:25.958777+00:00",
+        "cloud_eligible_pre_race": true,
+        "cloud_saved_at": "2026-10-14T22:15:29.245513+00:00",
+        "kind": "beforeinfo",
+        "snapshot_id": "da16c9a54358e932d0b19a80494c4fd01057fb6ffd0d51a32bdf0e74870f2446",
+        "source_sha256": "849201b02db5a331e2c17758587051db033065572c44493ce21ca1540e3f673a",
+        "status": "PENDING"
+      },
+      {
+        "captured_at": "2026-10-14T22:15:26.372601+00:00",
+        "cloud_eligible_pre_race": true,
+        "cloud_saved_at": "2026-10-14T22:15:31.700729+00:00",
+        "kind": "odds3t",
+        "snapshot_id": "bdef6358f1e6decd163b3fea56e06eaeeabb3af896c6ed3234058d9dd17eb58e",
+        "source_sha256": "6a8e659ef57c0aaf2b3dcb92ec51259162c5306f991d6875d17cf2117b1d7492",
+        "status": "PARTIAL"
+      },
+      {
+        "captured_at": "2026-10-14T23:54:11.098124+00:00",
+        "cloud_eligible_pre_race": false,
+        "cloud_saved_at": "2026-10-14T23:54:14.972502+00:00",
+        "kind": "raceresult",
+        "snapshot_id": "3e2f83afb1ce69f2fd9d203b60a624e4445624ca7a19c3cfb11bc499a5429b18",
+        "source_sha256": "595777936b1d1685eb194953f209a9bdf95c1ac72a751f635fac1a1ac0652618",
+        "status": "AVAILABLE"
+      }
+    ],
+    "result": "OFFICIAL_RACE_API_VERIFIED",
+    "sha256": "807e24a3dd1413ebcf417ae240448b4ddd250382aa3ba22b2689c4bcb67374c7"
+  },
+  "evaluation": {
+    "backup_file_sha256": "c00f51760ab63deb85cd84b2ccb3a9f0e96ac216f854dc3c10f82ad51eeb3320",
+    "bytes": 1646,
+    "common_race_ids": [
+      "20261015-14-01"
+    ],
+    "evaluation_as_of": "2026-10-14T23:54:31.733735+00:00",
+    "models": [
+      {
+        "log_loss": 4.787491742782046,
+        "model_id": "official-program-uniform-pl",
+        "model_version": "1",
+        "multiclass_brier": 0.9916666666666667,
+        "race_count": 1,
+        "ticket_count": 120,
+        "winner_probability": 0.008333333333333333
+      },
+      {
+        "log_loss": 4.169530718714927,
+        "model_id": "official-program-rating-pl",
+        "model_version": "1",
+        "multiclass_brier": 0.9820737383779724,
+        "race_count": 1,
+        "ticket_count": 120,
+        "winner_probability": 0.015459513282150344
+      }
+    ],
+    "official_source_requests": 0,
+    "prediction_proof": {
+      "as_of": "2026-10-14T22:47:30.427482+00:00",
+      "cloud_saved_at": "2026-10-14T22:47:32.345733+00:00",
+      "generated_at": "2026-10-14T22:47:30.427482+00:00",
+      "program_sha256": "d1943dbff930d78a76c1342858b20ff5fefcbaf51b3dae52b24ecc5e2747d5ef",
+      "request_id": "38649960735-1",
+      "snapshot_id": "39903bd8761ab77a3365c1eb12cbcd25c88d9e1e560af627aec00640529ba01e"
+    },
+    "purchase_decision": "skip",
+    "race_id": "20261015-14-01",
+    "result": "RESEARCH_EVALUATION_API_REPLAY_VERIFIED",
+    "result_proof": {
+      "captured_at": "2026-10-14T23:54:11.098124+00:00",
+      "cloud_saved_at": "2026-10-14T23:54:14.972502+00:00",
+      "financial_confirmed": true,
+      "finish_confirmed": true,
+      "snapshot_id": "3e2f83afb1ce69f2fd9d203b60a624e4445624ca7a19c3cfb11bc499a5429b18",
+      "source_sha256": "595777936b1d1685eb194953f209a9bdf95c1ac72a751f635fac1a1ac0652618",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceresult?rno=1&jcd=14&hd=20261015",
+      "status": "settled",
+      "top3": [
+        1,
+        3,
+        5
+      ]
+    },
+    "sha256": "c00f51760ab63deb85cd84b2ccb3a9f0e96ac216f854dc3c10f82ad51eeb3320",
+    "status": "EVALUATED",
+    "validation_status": "UNVALIDATED"
+  },
+  "backup_restore": [
+    {
+      "result": "RACE_BACKUP_RESTORE_VERIFIED",
+      "file": "race-ai-race.request.json",
+      "bytes": 4659,
+      "file_sha256": "a961080cfe3e6a0059c77f8d2cf88860030f487cb31193f13c382b894926f91c"
+    },
+    {
+      "result": "RACE_BACKUP_RESTORE_VERIFIED",
+      "file": "race-ai-race.json",
+      "bytes": 20391,
+      "file_sha256": "807e24a3dd1413ebcf417ae240448b4ddd250382aa3ba22b2689c4bcb67374c7"
+    },
+    {
+      "result": "RESEARCH_EVALUATION_BACKUP_RESTORE_VERIFIED",
+      "bytes": 1646,
+      "file_sha256": "c00f51760ab63deb85cd84b2ccb3a9f0e96ac216f854dc3c10f82ad51eeb3320"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 11937187652,
+      "name": "research-evaluation-38656820577-1",
+      "zip_bytes": 986,
+      "zip_sha256": "7830e858f004e7730b077f9896128b63f274263d1d3ce83df60fe7ccc4f2aceb",
+      "expires_at": "2026-10-28T23:54:31Z",
+      "retention_days": 14
+    },
+    {
+      "id": 11936823309,
+      "name": "official-race-38656820577-1",
+      "zip_bytes": 4010,
+      "zip_sha256": "804def8719875ff5847194d098badffa4e87043ada55b6337610c6d0d10555f1",
+      "expires_at": "2026-10-28T23:54:21Z",
+      "retention_days": 14
+    }
+  ],
+  "independent_verification": {
+    "protected_race_api_full_sha256": "807e24a3dd1413ebcf417ae240448b4ddd250382aa3ba22b2689c4bcb67374c7",
+    "protected_prediction_full_sha256_unchanged": "42c3fb88cae0c6c00c8482026c97fc0eb40f2a328903edbe203851f4b46fe1f8",
+    "fresh_evaluation_replay_at_its_own_as_of": true,
+    "direct_pl_order_probability_and_all120_brier_log_loss_math": true,
+    "downloaded_both_zips_and_all_three_files_verified": true,
+    "backup_evaluation_exact_replay_at_frozen_as_of": true,
+    "note": "Live evaluation as_of changes on each GET; compare deterministic replay at each report's own as_of, not hashes across different times."
+  },
+  "ci": {
+    "commit": "ceddba957d6600ee41cb4f280834dff7296d2f34",
+    "run_id": 38656460335,
+    "windows_job_id": 116167292515,
+    "ubuntu_job_id": 116167292689,
+    "windows": "success",
+    "ubuntu": "success",
+    "python_cases_executed_per_os": 499,
+    "failures_per_os": 0,
+    "skips_per_os": 1,
+    "javascript_passes": 31
+  },
+  "independent_review": {
+    "remaining_P1_P2": 0,
+    "regressions": [
+      "scored UI requires a matching frozen forecast, including prediction503/evaluation200",
+      "output proof cannot mutate the source receipt",
+      "payout-only page is verified pending, not inferred finish/settlement",
+      "missing parent race_id is contextualized, explicit wrong/null child identity rejected",
+      "fixed failure kind/status diagnostics do not log source bodies or credentials"
+    ],
+    "synthetic_browser_suites": 5
+  },
+  "source_sequence": {
+    "first_failed_attempt": "result-cloud-initial-rejection.json",
+    "separate_diagnostic_capture": "2026-10-14T23:42:30.451575+00:00",
+    "diagnostic_source_sha256": "bd77978e6a02ff981675ce1656797099c93d926b03fd289bfb4e3f1410908f70",
+    "diagnostic_status": "verified payout-only PENDING; raw memory discarded",
+    "fresh_e2e_capture": "2026-10-14T23:54:11.098124+00:00",
+    "fresh_e2e_source_sha256": "595777936b1d1685eb194953f209a9bdf95c1ac72a751f635fac1a1ac0652618",
+    "fresh_e2e_status": "full six-boat finish/ST details AVAILABLE; unique1-3-5 and all market payouts confirmed",
+    "no_source_original_uploaded": true
+  },
+  "screenshots": [
+    "desktop-live-evaluation.jpg",
+    "mobile-live-evaluation.jpg"
+  ],
+  "limits": {
+    "actual_result_cohorts_evaluated": 1,
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "no_adopted_model": true,
+    "no_automatic_ledger_settlement": true,
+    "not_yet_verified": [
+      "multi-day held-out performance and calibration",
+      "national ongoing observation/forecast coverage",
+      "user-separated cloud ledger",
+      "PC-free schedule",
+      "physical iPhone and permitted video"
+    ]
+  }
+}
