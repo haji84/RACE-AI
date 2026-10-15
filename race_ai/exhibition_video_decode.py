@@ -259,6 +259,9 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
                             previous_pixels = None; previous_candidates = []; previous_second = None
                         previous = thumbnail; candidates = _candidates(pixels); used = set()
                         motion = None
+                        if camera_motion and previous_pixels is not None and previous_pixels.shape != pixels.shape:
+                            # Reset before the estimator's minimum-size validation can hide a size change.
+                            local_tracks = []; previous_pixels = None; previous_candidates = []; previous_second = None
                         if camera_motion and previous_pixels is not None:
                             motion = estimate_camera_motion(previous_pixels, pixels,
                                 previous_exclusions=[c['box'] for c in previous_candidates],

@@ -11,10 +11,10 @@ from tests.test_exhibition_video_decode import synthetic_ts, master, child
 
 
 class CameraDecodeIntegrationTests(unittest.TestCase):
-    def analyze(self, *, playlist=None, **kwargs):
+    def analyze(self, *, playlist=None, encoded=None, **kwargs):
         from race_ai.exhibition_video_decode import analyze_exhibition
         descriptor, lease = run()
-        raw = synthetic_ts()
+        raw = encoded or synthetic_ts()
         def fetch(url, **options):
             body, mime = (master().encode(), 'application/vnd.apple.mpegurl') if 'manifest.streaks.jp/' in url else (
                 ((playlist or child()).encode(), 'application/x-mpegURL') if 'variants.streaks.jp/' in url else (raw, 'video/mp2t'))
@@ -97,6 +97,28 @@ class CameraDecodeIntegrationTests(unittest.TestCase):
         self.assertEqual(result['segments_decoded'], 2)
         self.assertEqual(result['camera_motion']['attempted_pairs'], result['frames_sampled'] - 2)
         self.assertEqual({track['segment'] for track in result['candidate_tracks']}, {0, 1})
+
+    def test_size_change_resets_even_when_new_frame_is_below_camera_minimum(self):
+        import av
+        import numpy as np
+        from fractions import Fraction
+        from types import SimpleNamespace
+        frames = []
+        for index, (width, height) in enumerate(((160, 96), (80, 48))):
+            pixels = np.full((height, width, 3), [40, 60, 60], dtype=np.uint8)
+            pixels[20:30, 10:30] = [0, 0, 255]
+            frame = av.VideoFrame.from_ndarray(pixels, format='bgr24')
+            frame.pts, frame.time_base = index, Fraction(1, 2)
+            frames.append(frame)
+        class Container:
+            streams = SimpleNamespace(video=[object()])
+            def __enter__(self): return self
+            def __exit__(self, *args): return False
+            def decode(self, **kwargs): return iter(frames)
+        with patch('av.open', return_value=Container()):
+            result = self.analyze(camera_motion=True, encoded=b'SYNTHETIC_DECODER_INPUT')
+        self.assertEqual(result['candidate_tracks'], [])
+        self.assertEqual(result['camera_motion']['attempted_pairs'], 0)
 
 
 if __name__ == '__main__':
