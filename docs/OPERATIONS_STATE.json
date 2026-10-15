@@ -3,17 +3,17 @@
   "original_exhibition_implementation": {
     "variant": "original-v1",
     "model": "official-display-original-pl/v1",
-    "status": "exact_head_ci_passed_and_preview_routes_verified; first actual target not yet published",
+    "status": "actual_source_model_api_full_backup_replay_verified",
     "source_requests_per_selected_race": 2,
     "immutable_separate_namespaces": true,
     "legacy_fourteen_baselines_and_display_only_v1_preserved": true,
-    "local_python_tests": 667,
+    "local_python_tests": 673,
     "local_python_skips": 0,
     "javascript_tests": 59,
     "edge_regressions": 8,
     "validation_status": "UNVALIDATED",
     "video_used": false,
-    "live_original_prediction_count": 0
+    "live_original_prediction_count": 1
   },
   "transient_video_decode": {
     "race_id": "20261015-14-07",
@@ -61,14 +61,14 @@
     "prompt_updated_for_exhibition_requirements": true
   },
   "last_exact_head_ci": {
-    "commit": "70414805d5048f44190640e74ef56b7da15ec7df",
-    "run_id": 38670611391,
-    "tests_per_os": 667,
+    "commit": "8d6c554eb1036ccdbb8ea5d13fc96dfc43e101b2",
+    "run_id": 38672225940,
+    "tests_per_os": 673,
     "skipped_per_os": 0,
     "windows": "success",
     "ubuntu": "success",
     "javascript_tests": 59,
-    "scope": "original model/store/UI/caller and real synthetic MPEG-TS/AES decoding; initial YAML quoting failure fixed before this success"
+    "scope": "functional pending-normalization head; subsequent label/evidence-only successors verified in PR64 checks"
   },
   "last_verified_race_application_commit": "ceddba957d6600ee41cb4f280834dff7296d2f34",
   "last_verified_race_deployment_url": "https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app",
@@ -135,7 +135,7 @@
     "validation_status": "UNVALIDATED",
     "purchase_decision": "skip",
     "purchase_recommendations": [],
-    "actual_races_with_saved_prediction": 14,
+    "actual_races_with_saved_prediction": 15,
     "actual_result_cohorts_evaluated": 1,
     "models": [
       "official-program-uniform-pl/v1",
@@ -144,8 +144,8 @@
     "source": "frozen same-day approved B program points; untrained fixed comparisons; N=1 does not validate or select a model"
   },
   "next_priority": [
-    "Complete protected original-v1 source/model/API/backup/UI actual proof when source becomes AVAILABLE before cutoff; retain original14 and displayv1",
-    "Implement verified boat attribution, camera calibration and performance measurement after successful one-clip transient decode; color tracks are not boat evidence",
+    "Extend immutable original-enhanced paired forecasts to all upcoming races; collect B-only snapshots before actual exhibition and retain verified coverage/missing states",
+    "Implement verified boat attribution, camera correction and physical measurement quality after one complete transient VOD decode; keep color candidates out of prediction",
     "Add independently evidenced full-name aliases for abbreviated B names with strict registration/source/clock binding; preserve frozen program hashes",
     "Extend validated acquisition and paired forecasts to all upcoming races with bounded requests and honest coverage",
     "Collect later confirmed outcomes for frozen pre/post forecasts and same-cutoff paired/aggregate evaluation",
@@ -288,12 +288,33 @@
     "repair": "explicit immutable deployment and app-commit pin; exact commit gate retained"
   },
   "last_original_attempt": {
-    "run_id": 38671020560,
-    "job_id": 116213918602,
+    "run_id": 38672101542,
+    "job_id": 116217378198,
+    "result": "SUCCESS",
     "race_id": "20261015-14-08",
-    "result": "NO_ORIGINAL_FORECAST_SAVED_SOURCE_NOT_READY",
-    "new_baselines": 0,
-    "new_original_models": 0,
-    "evidence": "docs/evidence/2026-10-15/original-exhibition-first-pending-attempt.json"
-  }
+    "reason_for_retry": "recording index changed PENDING at02:33 toAVAILABLE at02:38; actual new exhibition values became AVAILABLE",
+    "source_originals_retained": false,
+    "completed_target_reacquired_after_success": false
+  },
+  "last_verified_original_exhibition": {
+    "application_commit": "70414805d5048f44190640e74ef56b7da15ec7df",
+    "readback_commit": "8d6c554eb1036ccdbb8ea5d13fc96dfc43e101b2",
+    "run_id": 38672101542,
+    "job_id": 116217378198,
+    "race_id": "20261015-14-08",
+    "request_id": "38672101542-1",
+    "post_cloud_saved_at": "2026-10-15T02:40:04.386284+00:00",
+    "seconds_before_close": 535.613716,
+    "post_snapshot_id": "549e8702e1f0934dcad1e31e72451065a7a0fdb702055a8a9ce594b0d8be6518",
+    "post_sha256": "51e5f640b87da2e3a96bf56d80aa873f13e35ec7c6e261274225ca11d62ed026",
+    "original_artifact_id": 11944349641,
+    "race_artifact_id": 11944089575,
+    "all_full_bytes_restored": true,
+    "original14_and_displayv1_unchanged": true,
+    "new_baseline_is_B_only_generated_after_exhibition": true,
+    "video_used": false,
+    "validation_status": "UNVALIDATED",
+    "evidence": "docs/evidence/2026-10-15/original-exhibition-forecast-live.json"
+  },
+  "release_status": "INCOMPLETE: all-race continuous coverage, video boat performance, held-out accuracy and remaining formal handbook conditions"
 }
