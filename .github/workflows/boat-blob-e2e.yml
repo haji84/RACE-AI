@@ -88,7 +88,7 @@ jobs:
       - name: Checkout reviewed current-day collector
         uses: actions/checkout@v4
         with:
-          ref: 325ddce19ae999d626782a9929e6511c17d60ba1
+          ref: a4889c443d168c45df253c28086ebed7ba566e18
           path: day-source
           persist-credentials: false
       - uses: actions/setup-python@v5
