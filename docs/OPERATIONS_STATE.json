@@ -510,6 +510,26 @@
       },
       "completed_racelist_must_not_be_reacquired": true,
       "evidence": "docs/evidence/2026-10-15/name-binding-marugame4-live.json"
+    },
+    {
+      "race_id": "20261015-15-07",
+      "request_id": "38703196877-1",
+      "run_id": 38703196877,
+      "job_id": 116316121074,
+      "artifact_id": 11957136973,
+      "receipt_confirmed_at": "2026-10-15T08:06:01.109464+00:00",
+      "files": 5,
+      "bytes": 38699,
+      "envelope_bytes": 3399,
+      "envelope_sha256": "19081807fcf198d96ebd9b355ebb543ae4d46bf6db2f56804cf5e8630f19c2a0",
+      "name_relations": {
+        "EXACT_CANONICAL_NAME": 5,
+        "VERIFIED_B_ABBREVIATION": 1
+      },
+      "completed_racelist_must_not_be_reacquired": true,
+      "all_full_bytes_restored": true,
+      "latest_and_pinned_api_match": true,
+      "evidence": "docs/evidence/2026-10-15/name-binding-marugame7-live.json"
     }
   ],
   "name_bound_exhibition_implementation": {
@@ -572,5 +592,18 @@
       "artifacts/local/name-bound-mobile-live.jpg",
       "artifacts/local/name-bound-mobile-probabilities-live.jpg"
     ]
+  },
+  "new_name_bound_evaluation": {
+    "status": "IMPLEMENTING_READ_ONLY_FROZEN_THREE_PHASE_EVALUATION",
+    "forecast_request_id": "38699263834-1",
+    "race_id": "20261015-15-04",
+    "result_run_id": 38705582381,
+    "result_job_id": 116324061469,
+    "result_cloud_saved_at": "2026-10-15T08:26:12.377761+00:00",
+    "result_payload_bytes": 4958,
+    "result_payload_sha256": "65cf65d7a532220a8688fbb3e3051f5cd9bd96d32944be055fb9d9d9897ac2fe",
+    "new_v2_evaluation_live_verified": false,
+    "result_is_label_only": true,
+    "completed_result_must_not_be_reacquired": true
   }
 }
