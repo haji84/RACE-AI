@@ -1,0 +1,265 @@
+{
+  "status": "LIVE_NEW_ALIAS_BOUND_RESULT_FULL_RESTORE_API_PC_MOBILE_AND_INDEPENDENT_AUDIT_VERIFIED",
+  "evaluation_status": "EVALUATED",
+  "run_id": 38726468766,
+  "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+  "workflow_commit": "ff95b0f0dd7c273cad5bd589ca19e0a7d0b97e0a",
+  "race_id": "20261015-15-07",
+  "request_id": "38726468766-1",
+  "forecast_request_id": "38708771146-1",
+  "own_name_binding_request_id": "38703196877-1",
+  "files": 6,
+  "bytes": 131648,
+  "file_digests": {
+    "evaluation.json": {
+      "bytes": 2815,
+      "sha256": "3ff42a19f39eecdde14dcf191921ab2045d2b0d9bf6aeb6f169b92c82927050a"
+    },
+    "forecast.json": {
+      "bytes": 114084,
+      "sha256": "ad1bbf97ae747ccf42488e5d1a85e430002fd94d0f706a344bf82ada9ec5f6bd"
+    },
+    "manifest.json": {
+      "bytes": 977,
+      "sha256": "94de6970dee13d9ceac1c165010201f7527c9a168b1de10fbd81a6f2650eb667"
+    },
+    "program.json": {
+      "bytes": 2164,
+      "sha256": "9c70fea0087ebbabcc1ebef1fb99aeda091660beb1d43ff64115edc266602b2c"
+    },
+    "request.json": {
+      "bytes": 5617,
+      "sha256": "dd9c19c4dd17388ebd4638ff4a8aad2cbd25539761dd4caefbff7766016ee9b0"
+    },
+    "result.json": {
+      "bytes": 5991,
+      "sha256": "c861d42201798ee5e498f1e8f7ecd01d318826ad83d7c58201ed94b04574dc92"
+    }
+  },
+  "zip_bytes": 28452,
+  "zip_sha256": "ca374b6a3518381dcbdf085b8b08b2630812cbdcd1b0560d89df90dc4d41e13b",
+  "models": [
+    {
+      "forecast_cloud_saved_at": "2026-10-15T03:43:06.587121+00:00",
+      "forecast_generated_at": "2026-10-15T03:43:04.898884+00:00",
+      "log_loss": 4.139447814436214,
+      "model_id": "official-program-rating-pl",
+      "model_version": "1",
+      "multiclass_brier": 0.9794557900275646,
+      "phase": "B_ONLY_BASELINE",
+      "race_count": 1,
+      "ticket_count": 120,
+      "winner_probability": 0.015931646301203212
+    },
+    {
+      "forecast_cloud_saved_at": "2026-10-15T08:52:49.479151+00:00",
+      "forecast_generated_at": "2026-10-15T08:52:48.321347+00:00",
+      "log_loss": 4.041310846317648,
+      "model_id": "name-bound-display",
+      "model_version": "2",
+      "multiclass_brier": 0.9770665599817572,
+      "phase": "DISPLAY_V2",
+      "race_count": 1,
+      "ticket_count": 120,
+      "winner_probability": 0.017574419946130793
+    },
+    {
+      "forecast_cloud_saved_at": "2026-10-15T08:52:49.479151+00:00",
+      "forecast_generated_at": "2026-10-15T08:52:48.321347+00:00",
+      "log_loss": 3.8865363000214233,
+      "model_id": "name-bound-original",
+      "model_version": "2",
+      "multiclass_brier": 0.9717730225453218,
+      "phase": "ORIGINAL_V2",
+      "race_count": 1,
+      "ticket_count": 120,
+      "winner_probability": 0.020516285367926268
+    }
+  ],
+  "top3": [
+    2,
+    1,
+    4
+  ],
+  "report_as_of": "2026-10-15T11:19:58.584791+00:00",
+  "parents_read_at": "2026-10-15T11:19:34.810205+00:00",
+  "source_captured_at": "2026-10-15T11:19:38.778825+00:00",
+  "memory_saved_at": "2026-10-15T11:19:38.797799+00:00",
+  "generated_at": "2026-10-15T11:19:38.798608+00:00",
+  "runner_saved_at": "2026-10-15T11:19:39.010073+00:00",
+  "cloud_saved_at": "2026-10-15T11:19:44.948540+00:00",
+  "receipt_confirmed_at": "2026-10-15T11:19:45.665083+00:00",
+  "forecast_full_bytes_unchanged": true,
+  "validation_status": "UNVALIDATED",
+  "purchase_decision": "skip",
+  "purchase_recommendations": [],
+  "pinned_latest_full_match": true,
+  "label_bytes": 5991,
+  "label_sha256": "c861d42201798ee5e498f1e8f7ecd01d318826ad83d7c58201ed94b04574dc92",
+  "frozen_forecast_latest_full_match": true,
+  "old4forecast_and_result_full_unchanged": true,
+  "fresh_evaluation_full_replay": true,
+  "fresh_report_as_of": "2026-10-15T11:21:53.662660+00:00",
+  "fresh_report_sha256": "8618f8375d3aba12fed1818926959858b72c3e25ec78b9f10340b074d0d94cad",
+  "job_id": 116393457858,
+  "artifact_id": 11968143092,
+  "workflow_content_sha": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca",
+  "preview_url": "https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app",
+  "deployment_id": "dpl_8qJuyFB23ZKTptxWdjWySYN8dSbo",
+  "deployment_state": "READY",
+  "caller_application_gets": 5,
+  "caller_posts": 1,
+  "caller_official_transport_attempts": 1,
+  "caller_budget_seconds": 240,
+  "scope": "Counts belong to the result caller. Existing shared Blob scratch put/get/delete is separate; no whole-workflow no-write claim.",
+  "raw_official_html_retained": false,
+  "no_completed_numeric_racelist_or_old_result_reacquired": true,
+  "pinned_latest_api_full_match": true,
+  "independent_artifact_audit": "docs/evidence/2026-10-15/name-bound-result-artifact-audit.md",
+  "selected_preserved_payloads": {
+    "preserved": [
+      {
+        "name": "day",
+        "bytes": 349743,
+        "sha256": "e3adb164bf9e65adc23e3f4aacc011401d0498e5f0efd0904b8823be53a65fd2"
+      },
+      {
+        "name": "toda-v1",
+        "bytes": 36189,
+        "sha256": "f3f8dfba829ab894596bf667d5b3afaae4e9e0242304e9920c759cc54e64635d"
+      },
+      {
+        "name": "naruto-prediction-v1",
+        "bytes": 41130,
+        "sha256": "51e5f640b87da2e3a96bf56d80aa873f13e35ec7c6e261274225ca11d62ed026"
+      },
+      {
+        "name": "proof3",
+        "bytes": 3405,
+        "sha256": "19960fb8d38ee0357af481d7a80ad46bad337bd254365fa10da26d614c32b73b"
+      },
+      {
+        "name": "proof4",
+        "bytes": 3392,
+        "sha256": "563bea870b31950417cbc0c9d03dfbb6f930c9bd876f1f28ea199634173dacbb"
+      },
+      {
+        "name": "proof7",
+        "bytes": 3399,
+        "sha256": "19081807fcf198d96ebd9b355ebb543ae4d46bf6db2f56804cf5e8630f19c2a0"
+      },
+      {
+        "name": "forecast7",
+        "bytes": 114084,
+        "sha256": "ad1bbf97ae747ccf42488e5d1a85e430002fd94d0f706a344bf82ada9ec5f6bd"
+      },
+      {
+        "name": "forecast4",
+        "bytes": 113892,
+        "sha256": "53d56c8445f1089b313e76c81c326a91b9bc2bf946d97dba6a67ba8eee6d3825"
+      },
+      {
+        "name": "result4",
+        "bytes": 4958,
+        "sha256": "65cf65d7a532220a8688fbb3e3051f5cd9bd96d32944be055fb9d9d9897ac2fe"
+      }
+    ],
+    "old4fresh_report_full_replayed": true,
+    "report_as_of": "2026-10-15T11:13:14.193903+00:00",
+    "scope": "Selected immutable parents and old APIs, not all118 reread"
+  },
+  "all118_apis_reread": false,
+  "ui": {
+    "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+    "requested_widths": [
+      1440,
+      390
+    ],
+    "scores": 3,
+    "inputs": 6,
+    "probability_rows": 240,
+    "own_forecast_request_id": "38708771146-1",
+    "own_abbreviation_expansion": true,
+    "top3": [
+      2,
+      1,
+      4
+    ],
+    "page_widths_desktop": [
+      1425,
+      1425
+    ],
+    "page_widths_mobile": [
+      375,
+      375
+    ],
+    "mobile_keyboard_scroll_left": 621.5999755859375,
+    "mobile_keyboard_scroll_max": 622,
+    "mobile_last_cloud_save_column_visible": true,
+    "actual7to4_switch_clears_scores": true,
+    "viewport_reset": true,
+    "screenshots": [
+      {
+        "file": "C:\\Users\\qq113\\OneDrive\\ドキュメント\\ChatGPT\\raceai\\artifacts\\local\\name-bound-result-desktop-live.jpg",
+        "mime": "image/jpeg",
+        "bytes": 95728,
+        "sha256": "1a0773db384de96e0fb0159639363014327013569f224c6b78fc2890195e1c46",
+        "pixels": [
+          1367,
+          980
+        ]
+      },
+      {
+        "file": "C:\\Users\\qq113\\OneDrive\\ドキュメント\\ChatGPT\\raceai\\artifacts\\local\\name-bound-result-mobile-live.jpg",
+        "mime": "image/jpeg",
+        "bytes": 38323,
+        "sha256": "42148886f1fd2ab27c61e8e2aa857307bcc7ea4fff301522cdba8e183d1c9cfa",
+        "pixels": [
+          375,
+          811
+        ]
+      },
+      {
+        "file": "C:\\Users\\qq113\\OneDrive\\ドキュメント\\ChatGPT\\raceai\\artifacts\\local\\name-bound-result-mobile-right-live.jpg",
+        "mime": "image/jpeg",
+        "bytes": 40437,
+        "sha256": "376e8564f739f5810e7b3386dbcc918a6c552df27283fcea320992c2dd37fada",
+        "pixels": [
+          375,
+          811
+        ]
+      }
+    ]
+  },
+  "ci": {
+    "commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+    "run_id": 38725509564,
+    "push_run_id": 38725503956,
+    "windows_job_id": 116390228511,
+    "linux_job_id": 116390228654,
+    "python_tests_each": 919,
+    "javascript_tests_each": 187,
+    "failures": 0,
+    "skips": 0,
+    "windows_python_seconds": 257.524,
+    "linux_python_seconds": 174.988
+  },
+  "trust": {
+    "existing_oidc_subject_environment_permissions_serialization_preserved": true,
+    "all_deployments_protection": true,
+    "main_sha": "8bb7d69f9c8fb302055bc9e2609903d1e8f73e4b",
+    "production_release": false,
+    "new_secrets": false,
+    "source_smoke_both_manual_only": true,
+    "source_smoke_blob": "73e66eeffec11de68443b6185e8b1e87ccf167b8",
+    "pin_sha_replacements": 14,
+    "pin_host_replacements": 12,
+    "push_probe_run_id": 38726318271
+  },
+  "formal_completion": false,
+  "physical_pre_exhibition_pairs_verified": 0,
+  "multi_day_held_out_validation": false,
+  "verified_video_boat_performance": false,
+  "model_adoption_validated": false,
+  "recorded_at": "2026-10-15T11:27:53.576099+00:00"
+}
