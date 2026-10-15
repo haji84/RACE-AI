@@ -130,5 +130,55 @@ class NameBoundEvaluationApiTests(unittest.TestCase):
         with patch.object(self.api,'utc_now',side_effect=[self.now,self.now,self.now,self.now,midnight]):
             self.assertEqual(self.api.load_name_bound_evaluation(self.race['race_id'],'123499-1'),(422,{'error':'NAME_BOUND_EVALUATION_DATA_REJECTED'}))
 
+    def test_separate_label_first_replays_all_three_scores_without_legacy_read(self):
+        from tests.test_name_bound_result_store import seed_label
+        from tests.test_name_bound_result import label_fixture
+        from web import name_bound_result as contract
+        from web.name_bound_evaluation import build_name_bound_evaluation
+        race,forecast,label,now=label_fixture(contract)
+        seed_label(self.client,race,label)
+        # A corrupt legacy result cannot interfere with a fully finalized separate label.
+        self.client.data[f'race-ai/races/{race["race_id"]}.json']=b'{private-secret'
+        original=copy.deepcopy(self.client.data)
+        with patch.object(self.api,'read_current_race',side_effect=AssertionError('legacy path forbidden')):
+            status,report=self.api.load_name_bound_evaluation(race['race_id'],'123499-1')
+        self.assertEqual(status,200,report)
+        expected=build_name_bound_evaluation(forecast,contract.result_bundle(label,race,forecast,now=now),race,now)
+        self.assertEqual(report,expected)
+        self.assertEqual((report['schema_version'],report['status'],len(report['models'])),(1,'EVALUATED',3))
+        self.assertEqual([m['phase'] for m in report['models']],['B_ONLY_BASELINE','DISPLAY_V2','ORIGINAL_V2'])
+        self.assertEqual(self.client.data,original);self.assertEqual(self.client.puts,[])
+
+    def test_invalid_separate_label_never_falls_back_to_valid_legacy(self):
+        key=f'race-ai/name-bound-result-latest/{self.race["race_id"]}/123499-1.json'
+        for raw in (b'null',b'{}',b'{invalid'):
+            self.client.data[key]=raw
+            with self.subTest(raw=raw),patch.object(self.api,'read_current_race',side_effect=AssertionError('fallback forbidden')):
+                self.assertEqual(self.api.load_name_bound_evaluation(self.race['race_id'],'123499-1'),
+                    (422,{'error':'NAME_BOUND_EVALUATION_DATA_REJECTED'}))
+
+    def test_other_forecast_label_is_ignored_and_absence_before_close_preserves_empty_report(self):
+        self.client.data[f'race-ai/name-bound-result-latest/{self.race["race_id"]}/123498-1.json']=b'{invalid'
+        from web.name_bound_evaluation import build_name_bound_evaluation
+        status,report=self.api.load_name_bound_evaluation(self.race['race_id'],'123499-1')
+        self.assertEqual(status,200)
+        self.assertEqual(report,build_name_bound_evaluation(self.forecast,self.bundle,self.race,self.now))
+        del self.client.data[f'race-ai/races/{self.race["race_id"]}.json']
+        preclose=facts._time(self.race['closed_at'])-timedelta(seconds=1)
+        with patch.object(self.api,'utc_now',return_value=preclose):
+            status,report=self.api.load_name_bound_evaluation(self.race['race_id'],'123499-1')
+        self.assertEqual(status,200,report)
+        self.assertEqual(report,build_name_bound_evaluation(self.forecast,None,self.race,preclose))
+
+    def test_separate_label_postread_midnight_cannot_score(self):
+        from tests.test_name_bound_result_store import seed_label
+        from tests.test_name_bound_result import label_fixture
+        from web import name_bound_result as contract
+        race,_,label,_=label_fixture(contract);seed_label(self.client,race,label)
+        midnight=self.now.astimezone(facts.JST).replace(hour=0,minute=0,second=0,microsecond=0)+timedelta(days=1)
+        with patch.object(self.api,'utc_now',side_effect=[self.now,self.now,self.now,self.now,midnight]):
+            self.assertEqual(self.api.load_name_bound_evaluation(self.race['race_id'],'123499-1'),
+                (422,{'error':'NAME_BOUND_EVALUATION_DATA_REJECTED'}))
+
 
 if __name__ == '__main__': unittest.main()

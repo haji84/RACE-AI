@@ -6,6 +6,8 @@ from urllib.parse import urlsplit, parse_qs
 from api.today import load_feed, create_blob_client, utc_now, JST
 from api.race_store import find_program, checked_race_id, read_current_race, canonical, MAX_BYTES
 from api.name_bound_exhibition_store import read_name_bound_exhibition, request_identifier
+from api.name_bound_result_store import read_name_bound_result
+from name_bound_result import result_bundle
 from name_bound_inputs import _context
 from name_bound_evaluation import build_name_bound_evaluation
 
@@ -27,10 +29,14 @@ def load_name_bound_evaluation(race_id, forecast_request_id):
         if forecast is None:
             return 404, {'error':'NAME_BOUND_PREDICTION_NOT_SAVED'}
         projected = _context(race, forecast['baseline'], forecast['name_binding'], context_clock)[3]
-        results = read_current_race(projected, client=client, now=utc_now())
+        label_clock = utc_now()
+        label = read_name_bound_result(race, forecast, client=client, now=label_clock)
+        results = (read_current_race(projected, client=client, now=label_clock) if label is None else None)
         now = utc_now()
         if now.astimezone(JST).date() != before.astimezone(JST).date():
             raise ValueError('JST_MIDNIGHT_CROSSED')
+        if label is not None:
+            results = result_bundle(label, race, forecast, now=now)
         report = build_name_bound_evaluation(forecast, results, race, now)
         if len(canonical(report)) > MAX_BYTES:
             raise ValueError('NAME_BOUND_EVALUATION_RESPONSE_TOO_LARGE')
