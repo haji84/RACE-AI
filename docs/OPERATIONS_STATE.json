@@ -42,14 +42,16 @@
   "trusted_workflow_branch": "feat/boat-oidc-probe-auth",
   "trusted_workflow_path": ".github/workflows/boat-blob-e2e.yml",
   "trusted_workflow_name": "RACE AI Preview Blob E2E",
-  "last_verified_day_run_id": 38671430255,
-  "last_verified_day_job_id": 116215215715,
+  "last_verified_day_run_id": 38706348062,
+  "last_verified_day_job_id": 116326611854,
   "last_verified_date_jst": "2026-10-15",
-  "last_verified_payload_sha256": "90b6c8c4ab12dcd76818e810587af6e3ca2d5bd3c4afe291dd4935255f7387d7",
+  "last_verified_payload_sha256": "e3adb164bf9e65adc23e3f4aacc011401d0498e5f0efd0904b8823be53a65fd2",
   "last_verified_backup": {
-    "artifact_id": 11944303249,
-    "retention_days": 14,
-    "restore": "349735 exact file bytes/SHA and349734 canonical API bytes independently verified"
+    "artifact_id": 11958128336,
+    "file": "race-ai-day.json",
+    "bytes": 349744,
+    "sha256": "fb799bee99b2f1481431f5cc9778b51231475d804eaffb395b2bea841cfa1a98",
+    "all_content_restored": true
   },
   "cloud_recurring_schedule_installed": false,
   "cloud_schedule_gate": "main is configured to create and auto-assign Production deployments; main cron requires release configuration review",
@@ -201,14 +203,15 @@
     "boat_feature_accuracy_validated": false
   },
   "last_day_refresh_attempt": {
-    "run_id": 38671430255,
-    "job_id": 116215215715,
-    "requested_at": "2026-10-15T02:31:19.947890+00:00",
+    "run_id": 38706348062,
+    "job_id": 116326611854,
+    "requested_at": "2026-10-15T08:32:05.360786+00:00",
     "result": "SUCCESS",
-    "last_real_acquisition_at": "2026-10-15T02:31:38.658781+00:00",
-    "cause": "over6hours since previous successful source acquisition; fixed immutable Preview/app pin",
+    "last_real_acquisition_at": "2026-10-15T08:32:29.679228+00:00",
+    "cause": "over6hours since previous successful source acquisition; same reviewed pinned collector and workflow",
     "repeat_started": false,
-    "all156_program_digests_unchanged": true
+    "all156_program_digests_unchanged": true,
+    "evidence": "docs/evidence/2026-10-15/day-refresh-1732-live.json"
   },
   "last_verified_post_application": {
     "commit": "d91b6d14aa27d71a605fa110003552f3a48d89d1",
@@ -605,5 +608,15 @@
     "new_v2_evaluation_live_verified": false,
     "result_is_label_only": true,
     "completed_result_must_not_be_reacquired": true
+  },
+  "prior_day_refresh_success": {
+    "run_id": 38671430255,
+    "job_id": 116215215715,
+    "requested_at": "2026-10-15T02:31:19.947890+00:00",
+    "result": "SUCCESS",
+    "last_real_acquisition_at": "2026-10-15T02:31:38.658781+00:00",
+    "cause": "over6hours since previous successful source acquisition; fixed immutable Preview/app pin",
+    "repeat_started": false,
+    "all156_program_digests_unchanged": true
   }
 }

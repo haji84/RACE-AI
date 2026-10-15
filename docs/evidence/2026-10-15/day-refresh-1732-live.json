@@ -1,0 +1,56 @@
+{
+  "status": "AUTHORIZED_SIX_HOUR_DAY_REFRESH_FULL_RESTORE_API_AND156_PROGRAMS_VERIFIED",
+  "run_id": 38706348062,
+  "job_id": 116326611854,
+  "artifact_id": 11958128336,
+  "application_commit": "28ee0ced23b3fe2ec28cda9c1de9a7ad5387839d",
+  "workflow_commit": "9d4caed8397a470533bd6ebf5ff15015e57e3987",
+  "workflow_content_sha": "8f8609c7384c2a46d6e45fbf4f616617756ae778",
+  "date_jst": "2026-10-15",
+  "previous_last_real_acquisition": "2026-10-15T02:31:38.658781+00:00",
+  "last_real_acquisition": "2026-10-15T08:32:29.679228+00:00",
+  "sources": [
+    {
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/index?hd=20261015",
+      "source_sha256": "d10651c0744b3c6f65cf887bcc9bd02db2cf6d71b765088c66f195cfdc89c819",
+      "first_observed_at": "2026-10-15T08:32:29.117833+00:00"
+    },
+    {
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261015.lzh",
+      "source_sha256": "25c2a3632bc998c336c106e728550642a0ebc0f435ea74a9be463bcffcc4a96e",
+      "first_observed_at": "2026-10-15T08:32:29.679228+00:00",
+      "extracted_text_sha256": "0caf16f7f0f0b15c0a77ad452c9a7aa7c8c3fb18f51a23334652361512584788",
+      "source_hash_scope": "downloaded_archive"
+    }
+  ],
+  "official_source_requests": 2,
+  "active_venues": [
+    "02",
+    "04",
+    "06",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "20",
+    "21",
+    "22",
+    "24"
+  ],
+  "races": 156,
+  "complete_six_boat_races": 156,
+  "boats": 936,
+  "all156_program_digests_unchanged": true,
+  "backup_bytes": 349744,
+  "backup_sha256": "fb799bee99b2f1481431f5cc9778b51231475d804eaffb395b2bea841cfa1a98",
+  "api_canonical_bytes": 349743,
+  "api_canonical_sha256": "e3adb164bf9e65adc23e3f4aacc011401d0498e5f0efd0904b8823be53a65fd2",
+  "zip_bytes": 32091,
+  "zip_sha256": "a550461ae566665181ad13dd63bd4b0b9d94f529c8502be78aae22a30397f78b",
+  "retention_days": 14,
+  "source_originals_retained": false,
+  "repeat_started": false,
+  "evidence_note": "Backup includes trailing newline; API canonical body omits newline. All normalized values and all156 retained program digests match. Owner-authorized same dedicated job after six hours; no duplicate dispatch."
+}
