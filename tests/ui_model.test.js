@@ -1,0 +1,16 @@
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const modelPath = path.join(__dirname, '../web/ui-model.js');
+assert.ok(fs.existsSync(modelPath), 'manual ticket model must exist');
+const model = require(modelPath);
+assert.equal(model.validateTicket([1,3,2],700), null);
+for (const [lanes, amount] of [[[1,1,2],700],[[0,3,2],700],[[1,3,2],50],[[1,3,2],-100],[[1,3,2],Infinity]]) assert.ok(model.validateTicket(lanes, amount));
+assert.deepEqual(model.allocate(2000,3),[700,700,600]);
+assert.deepEqual(model.allocate(200,3),[100,100,0]);
+assert.deepEqual(model.allocate(3200,32),Array(32).fill(100));
+assert.deepEqual(model.allocate(3200,33),[]);
+assert.deepEqual(model.summarize([]), {spent:0,returned:0,purchases:0,settled:0,hits:0,roi:null,hitRate:null});
+assert.deepEqual(model.summarize([{amount:700,payout:null},{amount:500,payout:2000},{amount:400,payout:0}]), {spent:1600,returned:2000,purchases:3,settled:2,hits:1,roi:2000/900*100,hitRate:50});
+assert.equal(model.summarize([{amount:700,payout:null}]).roi,null);
+console.log('UI model behavior passed');
