@@ -10,7 +10,7 @@ import re
 from api.race_store import REVIEW,JST,canonical,decode,instant,checked_race_id,read_blob,put_verified
 from api.prediction_store import request_identifier,read_prediction
 from evaluation_contract import _checked_prediction
-from name_binding_contract import validate_name_binding,validate_name_binding_receipt
+from name_binding_contract import validate_name_binding,validate_name_binding_receipt,validate_finalized_name_binding
 
 MAX_BYTES=64_000
 REQUEST={'publication_review','race_id','request_id','baseline_request_id','snapshot','runner_saved_at'}
@@ -52,22 +52,9 @@ def checked_receipt(receipt,race,baseline,now):
     return value
 
 def validate_finalized_binding(envelope,race,baseline,*,now):
-    """Pure replay of server evidence; does not itself claim cloud persistence."""
-    try:
-        require(isinstance(envelope,dict) and set(envelope)=={'receipt','finalization'} and len(canonical(envelope))<=MAX_BYTES)
-        receipt=checked_receipt(envelope['receipt'],race,baseline,now)
-        marker=envelope['finalization'];require(isinstance(marker,dict) and set(marker)==MARKER)
-        require(type(marker['schema_version']) is int and marker['schema_version']==1
-            and marker['race_id']==race['race_id'] and marker['request_id']==receipt['request_id']
-            and marker['baseline_request_id']==receipt['baseline_request_id']
-            and marker['snapshot_id']==receipt['snapshot']['snapshot_id']
-            and all(marker[k]==receipt[k] for k in PINS) and marker['receipt_sha256']==digest(receipt))
-        confirmed=instant(marker['receipt_confirmed_at'])
-        require(instant(receipt['cloud_saved_at'])<=confirmed<instant(race['closed_at']) and confirmed<=instant(now)
-            and confirmed.astimezone(JST).date()==instant(now).astimezone(JST).date())
-        return copy.deepcopy(envelope)
-    except (ValueError,TypeError,KeyError,AttributeError,OverflowError,UnicodeError,RecursionError) as exc:
-        raise ValueError('NAME_BINDING_FINALIZATION_INVALID') from exc
+    """Delegate the shared pure replay without changing its envelope/error."""
+    return validate_finalized_name_binding(envelope,race,baseline,now=now)
+
 
 def resolve_request_id(race,*,client,now,request_id=None):
     checked_race_id(race['race_id'],instant(now))

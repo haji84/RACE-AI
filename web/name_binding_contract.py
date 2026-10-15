@@ -11,8 +11,10 @@ import unicodedata
 
 if __package__:
     from . import race_contract as facts
+    from .evaluation_contract import _checked_prediction
 else:
     import race_contract as facts
+    from evaluation_contract import _checked_prediction
 
 
 MAX_BYTES = 64_000
@@ -195,3 +197,36 @@ def project_name_bound_program(snapshot, race, *, baseline_snapshot_id, b_progra
     for boat in projected['boats']:
         boat['name'] = names[boat['lane']]
     return projected
+
+
+def validate_finalized_name_binding(envelope, race, baseline, *, now):
+    """Pure replay of server evidence; does not itself claim cloud persistence."""
+    try:
+        _require(isinstance(envelope, dict) and set(envelope) == {'receipt', 'finalization'}
+            and len(facts.canonical(envelope)) <= MAX_BYTES)
+        clock = facts._time(now)
+        day, closed, _ = facts._program(race)
+        _require(clock.astimezone(facts.JST).date() == day)
+        checked = _checked_prediction(baseline, race, clock, day, closed)
+        _require(checked is not None)
+        pins = dict(baseline_snapshot_id=checked['snapshot']['snapshot_id'],
+            b_program_sha256=checked['snapshot']['program_sha256'])
+        receipt = validate_name_binding_receipt(envelope['receipt'], race, **pins, now=clock)
+        _require(receipt['baseline_request_id'] == baseline['request_id']
+            and facts._time(baseline['cloud_saved_at']) <= facts._time(receipt['snapshot']['source']['captured_at']))
+        marker = envelope['finalization']
+        pin_fields = ('baseline_snapshot_id', 'b_program_sha256', 'program_identity_sha256')
+        _keys(marker, {'schema_version', 'race_id', 'request_id', 'baseline_request_id',
+            'snapshot_id', *pin_fields, 'receipt_sha256', 'receipt_confirmed_at'})
+        _require(type(marker['schema_version']) is int and marker['schema_version'] == 1
+            and marker['race_id'] == race['race_id'] and marker['request_id'] == receipt['request_id']
+            and marker['baseline_request_id'] == receipt['baseline_request_id']
+            and marker['snapshot_id'] == receipt['snapshot']['snapshot_id']
+            and all(marker[k] == receipt[k] for k in pin_fields)
+            and marker['receipt_sha256'] == hashlib.sha256(facts.canonical(receipt)).hexdigest())
+        confirmed = facts._time(marker['receipt_confirmed_at'])
+        _require(facts._time(receipt['cloud_saved_at']) <= confirmed < closed and confirmed <= clock
+            and confirmed.astimezone(facts.JST).date() == clock.astimezone(facts.JST).date())
+        return copy.deepcopy(envelope)
+    except (ValueError, TypeError, KeyError, AttributeError, OverflowError, UnicodeError, RecursionError) as exc:
+        raise ValueError('NAME_BINDING_FINALIZATION_INVALID') from exc
