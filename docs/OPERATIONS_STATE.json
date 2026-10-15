@@ -36,9 +36,9 @@
   "production_release_authorized": false,
   "preview_project": "race-ai-preview",
   "preview_team_id": "team_YGrZkBR7MyYxkq3K9XkTBhqu",
-  "last_verified_application_commit": "b221039adf632934ac07112b1df0a04609cb31d4",
-  "last_verified_application_commit_scope": "one race separately frozen display/original v2, all normalized backups/API and independent720 replay; authoritative weather UI parity corrected; actualPC1440/mobile390 comparison verified",
-  "last_verified_deployment_url": "https://race-ai-preview-3s77geq4f-qq1130034-1738.vercel.app",
+  "last_verified_application_commit": "6b0a85d379d9247937973dcc34ce55da22f982f8",
+  "last_verified_application_commit_scope": "Read-only three-phase evaluation API/caller verified live. Actual UI exercised at558240b; its entire web tree equals6b. Official fact acquisition remains pinned28ee; this is not a new source-publisher claim.",
+  "last_verified_deployment_url": "https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app",
   "trusted_workflow_branch": "feat/boat-oidc-probe-auth",
   "trusted_workflow_path": ".github/workflows/boat-blob-e2e.yml",
   "trusted_workflow_name": "RACE AI Preview Blob E2E",
@@ -65,16 +65,16 @@
     "prompt_updated_for_name_bound_v2": true
   },
   "last_exact_head_ci": {
-    "commit": "b221039adf632934ac07112b1df0a04609cb31d4",
-    "run_id": 38700224201,
-    "windows_job_id": 116306353879,
-    "ubuntu_job_id": 116306354146,
-    "tests_per_os": 816,
+    "commit": "6b0a85d379d9247937973dcc34ce55da22f982f8",
+    "run_id": 38713333457,
+    "windows_job_id": 116349898630,
+    "ubuntu_job_id": 116349898365,
+    "tests_per_os": 849,
     "skipped_per_os": 0,
     "windows": "success",
     "ubuntu": "success",
-    "javascript_tests": 110,
-    "scope": "b221 UI correction verified; evidence-only successors require exact CI/READY/API verification; see PR64 latest checks for their outcome"
+    "javascript_tests": 187,
+    "scope": "Functional6b verified; later evidence/workflow-pin-only successor exact CI/READY is recorded in PR64 and heartbeat to avoid a self-referential commit."
   },
   "last_verified_race_application_commit": "ceddba957d6600ee41cb4f280834dff7296d2f34",
   "last_verified_race_deployment_url": "https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app",
@@ -102,8 +102,8 @@
     "retention_days": 14,
     "restore": "request and API response exact bytes/SHA verified on runner and independently downloaded"
   },
-  "trusted_workflow_commit": "9d4caed8397a470533bd6ebf5ff15015e57e3987",
-  "trusted_workflow_content_sha": "8f8609c7384c2a46d6e45fbf4f616617756ae778",
+  "trusted_workflow_commit": "0cf0bb45d830c599aa1b201f74c285eea1120831",
+  "trusted_workflow_content_sha": "e6381faa68d2b1a40dd09b3901b664d4af9bcfa3",
   "trusted_workflow_default_mode": "push: probe only; all source and cohort acquisition modes require explicit workflow_dispatch inputs",
   "trusted_workflow_dated_result_target": "20261015-14-01 (completed proof; stale Japan-local dates reject before official GET)",
   "race_collection_policy": "auto: first upcoming race up to two beforeinfo/odds GETs; result: one closed current-day race, optional exact ID even while others are upcoming; do not poll a completed proof without changed code or known revision",
@@ -142,21 +142,26 @@
     "purchase_decision": "skip",
     "purchase_recommendations": [],
     "actual_races_with_saved_prediction": 118,
-    "actual_result_cohorts_evaluated": 1,
+    "actual_result_cohorts_evaluated": 2,
     "models": [
       "official-program-uniform-pl/v1",
-      "official-program-rating-pl/v1"
+      "official-program-rating-pl/v1",
+      "name-bound-display/v2",
+      "name-bound-original/v2"
     ],
-    "source": "frozen same-day approved B program points; untrained fixed comparisons; N=1 does not validate or select a model"
+    "source": "118 frozen same-day B snapshots, two name-bound numeric races, one labeled v2 race. Different feature phases; N=1 does not validate or select a model.",
+    "name_bound_v2_result_race_count": 1,
+    "name_bound_v2_numeric_races": 2,
+    "physical_exhibition_pairs_verified": 0
   },
   "next_priority": [
-    "Preserve completed Marugame4R and7R name-bound v2/ownnameproofs. Marugame7R exercised3584 B abbreviation with independentproof, numeric receipt38708771146-1 at17:52:50JST. Do not reacquire eithercompletednumeric/racelist without correction; newtargets needownproof/currentcutoff.",
-    "Complete any missing current-day upcoming B-only snapshots shown by current coverage without rewriting existing receipts; no duplicate serialized writer or repeated completed all-upcoming job",
-    "Accumulate actual physical pre-exhibition saves/after-exhibition pairs with independent exhibition clocks; current B-only labels and later complete measures alone do not establish physical phase",
-    "Advance verified boat/lane identity, foreground masking, camera/world calibration and measurement ground truth; color/image-affine estimates are not boat performance or prediction inputs",
-    "Connect frozen name-boundv2 models to separately captured post-race result labels and aggregate held-out multi-day calibration/adoption evidence; never feed outcomes back into pre-race inputs; keep UNVALIDATED/skip/[]",
-    "Preserve completed Toda1displayv1/Naruto8originalv1/Naruto7video/Amagasaki5camera and all118baseline receipts; new sources only new targets or specific correction grounds",
-    "Long-term history/user-cloud/restore/drills, iPhone hardware/accessibility and release-independent cloud scheduling remain formal completion conditions"
+    "Implement a separate alias-aware result-label ingestion contract bound to the exact race/registration/own independent name proof. Marugame7R has an alias-bound forecast but no result label; do not retry the known strict legacy collector or borrow3R proof.",
+    "Accumulate independently timed physical pre-exhibition saves and after-exhibition pairs; B-only labels do not prove physical phase. Keep all118 baselines and completed4R/7R forecasts/name proofs/results unchanged.",
+    "Build multi-day held-out accuracy/calibration/adoption evidence from frozen versions and separately acquired labels. The new4R three-model evaluation is N=1 and remains UNVALIDATED/skip/[].",
+    "Advance verified boat/lane identity, camera/world calibration and measurement ground truth; color/image-affine estimates do not validate boat performance or forecast inputs. All-race video and continuous coverage remain unfinished.",
+    "Current day actual acquisition is17:32:29.679228JST; next6h eligibility23:32:29.679228JST unless current-day API missing. Do not rerun completed day/cohort/source targets without grounds; check all running states/lease/current date/cutoff before any new exact target.",
+    "Preserve Toda1displayv1/Naruto8originalv1/Naruto7video/Amagasaki5camera and all completed3R/4R/7R proofs and numeric receipts. Both source-smoke files must stay manual-only before every push.",
+    "Long-term history, motor-change periods, user-cloud/restore/drills, hardware iPhone and release-independent cloud scheduling remain formal completion conditions; no Production/main/voting/payment."
   ],
   "last_verified_settlement": {
     "application_commit": "8458fa568225d03312b25209e78213730000d42d",
@@ -413,21 +418,26 @@
     "all_races_verified": false
   },
   "latest_functional_preview": {
-    "commit": "b221039adf632934ac07112b1df0a04609cb31d4",
-    "url": "https://race-ai-preview-3s77geq4f-qq1130034-1738.vercel.app",
+    "commit": "6b0a85d379d9247937973dcc34ce55da22f982f8",
+    "url": "https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app",
     "same_application_tree_as_actual_publisher": false,
-    "same_backend_tree_as_actual_publisher": true,
+    "same_backend_tree_as_actual_publisher": false,
     "actual_publisher_commit": "28ee0ced23b3fe2ec28cda9c1de9a7ad5387839d",
     "name_proof_full_bytes_verified": true,
     "selected_baseline_full_bytes_verified": true,
     "legacy_post_variants_full_bytes_verified": true,
     "current_day_full_bytes_verified": true,
     "frontend_regressions": 9,
-    "frontend_regression_scope": "5485 full flows; b221 targeted actualdesktop/mobile and51contract regressions",
+    "frontend_regression_scope": "Prior nine full browser flows at5485 retained; new evaluation has187 total JS regressions and actual PC/mobile/race-switch checks. New browser harness authored/syntax checked but not executed.",
     "live_ui_widths": [
       1440,
       390
-    ]
+    ],
+    "publisher_contracts_preserved": true,
+    "actual_evaluation_verifier_commit": "6b0a85d379d9247937973dcc34ce55da22f982f8",
+    "new_ui_actual_commit": "558240bb52140d49097f81dd05f05e9d659d9656",
+    "new_ui_web_tree_identical": true,
+    "new_javascript_tests": 187
   },
   "prior_successful_original_attempt": {
     "run_id": 38672101542,
@@ -536,7 +546,7 @@
     }
   ],
   "name_bound_exhibition_implementation": {
-    "status": "TWO_RACES_TWO_MODELS_FULL_BACKUP_API_AND_REPLAY_VERIFIED_UI7_PENDING",
+    "status": "TWO_RACES_TWO_MODELS_FULL_BACKUP_API_REPLAY_AND_ACTUAL_UI_VERIFIED",
     "application_commit": "28ee0ced23b3fe2ec28cda9c1de9a7ad5387839d",
     "models": [
       "name-bound-display/v2",
@@ -616,12 +626,15 @@
       "full_backup_restored": true,
       "latest_and_pinned_api_match": true,
       "independent_720_replay": true,
-      "live_ui_verified": false,
-      "evidence": "docs/evidence/2026-10-15/name-bound-marugame7-live.json"
+      "live_ui_verified": true,
+      "evidence": "docs/evidence/2026-10-15/name-bound-marugame7-live.json",
+      "ui_commit": "558240bb52140d49097f81dd05f05e9d659d9656",
+      "ui_verification_scope": "Actual DOM six input rows/240 probabilities/own nonce/abbreviation expansion; no full numeric screenshot claimed.",
+      "result_collected": false
     }
   },
   "new_name_bound_evaluation": {
-    "status": "API_AND_ACTUAL_PC_MOBILE_UI_VERIFIED_DEDICATED_WORKFLOW_PENDING",
+    "status": "READ_ONLY_API_ACTUAL_PC_MOBILE_UI_DEDICATED_WORKFLOW_FULL_RESTORE_AND_INDEPENDENT_AUDIT_VERIFIED",
     "forecast_request_id": "38699263834-1",
     "race_id": "20261015-15-04",
     "result_run_id": 38705582381,
@@ -638,7 +651,7 @@
     "api_preview": "https://race-ai-preview-lk0nkma38-qq1130034-1738.vercel.app",
     "api_as_of": "2026-10-15T08:37:51.734623+00:00",
     "ui_live_verified": true,
-    "workflow_verifier_live_verified": false,
+    "workflow_verifier_live_verified": true,
     "ui_commit": "558240bb52140d49097f81dd05f05e9d659d9656",
     "ui_preview": "https://race-ai-preview-bgajnjvyu-qq1130034-1738.vercel.app",
     "ui_widths": [
@@ -647,7 +660,28 @@
     ],
     "ui_rows": 3,
     "ui_page_horizontal_overflow": false,
-    "clock_skew_evidence": "docs/evidence/2026-10-15/name-bound-evaluation-clock-interop.json"
+    "clock_skew_evidence": "docs/evidence/2026-10-15/name-bound-evaluation-clock-interop.json",
+    "workflow_run_id": 38715147499,
+    "workflow_job_id": 116355917147,
+    "workflow_artifact_id": 11963110547,
+    "workflow_commit": "0cf0bb45d830c599aa1b201f74c285eea1120831",
+    "workflow_content_sha": "e6381faa68d2b1a40dd09b3901b664d4af9bcfa3",
+    "application_commit": "6b0a85d379d9247937973dcc34ce55da22f982f8",
+    "preview_url": "https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app",
+    "report_as_of": "2026-10-15T09:44:50.093237+00:00",
+    "report_bytes": 2813,
+    "report_sha256": "e653f485a8d1910a05dbc58ba0db91d7a347148f8ba0fd7d1fcd24cdc0a84a46",
+    "restored_files": 5,
+    "restored_bytes": 124632,
+    "full_restore_independent_audit": true,
+    "evidence": "docs/evidence/2026-10-15/name-bound-evaluation-live.json",
+    "caller_reads": 4,
+    "caller_posts": 0,
+    "caller_official_requests": 0,
+    "scope": "Read-only caller; existing shared Blob scratch probe separate.",
+    "ui_mobile_keyboard_last_column_visible": true,
+    "ui_actual_race_switch_clears_old_evaluation": true,
+    "completed_verifier_must_not_be_repeated_without_change": true
   },
   "prior_day_refresh_success": {
     "run_id": 38671430255,
@@ -658,5 +692,7 @@
     "cause": "over6hours since previous successful source acquisition; fixed immutable Preview/app pin",
     "repeat_started": false,
     "all156_program_digests_unchanged": true
-  }
+  },
+  "trusted_workflow_pinned_application_commit": "6b0a85d379d9247937973dcc34ce55da22f982f8",
+  "trusted_workflow_pinned_preview_url": "https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app"
 }
