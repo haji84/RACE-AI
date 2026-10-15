@@ -2985,7 +2985,7 @@
     "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca"
   },
   "trusted_worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-  "updated_at": "2026-10-15T22:53:28.750185+00:00",
+  "updated_at": "2026-10-15T23:27:17.165354+00:00",
   "current_day16_prospective_target": {
     "race_id": "20261016-14-01",
     "request_id": "38798278470-1",
@@ -3040,16 +3040,22 @@
   },
   "current_day16_exhibition_readiness": {
     "race_id": "20261016-14-01",
-    "captured_at": "2026-10-15T22:34:05.264265+00:00",
-    "beforeinfo_status": "PENDING",
-    "beforeinfo_missing_reason": "OFFICIAL_PREVIEW_EMPTY_EXHIBITION_GRID",
+    "beforeinfo_status": "SOURCE_UNAVAILABLE",
+    "beforeinfo_missing_reason": null,
     "video_metadata_error": "VIDEO_SOURCE_AUTH_UNAVAILABLE",
-    "official_beforeinfo_attempts": 1,
+    "official_beforeinfo_attempts": 7,
     "recording_index_attempts": 1,
     "media_gets": 0,
     "cloud_posts": 0,
     "new_predictions": 0,
     "physical_exhibition_phase_verified": false,
-    "evidence": "docs/evidence/2026-10-16/program-clock-v3-local.json"
+    "evidence": "docs/evidence/2026-10-16/naruto1-readiness-stage.json",
+    "latest_attempt_completed_at": "2026-10-15T23:22:28.849797+00:00",
+    "last_transport_error_type": "TimeoutError",
+    "last_transport_elapsed_seconds": 10.234,
+    "workflow_dispatched": false,
+    "numeric_remote_absence_verified": false,
+    "initial_beforeinfo_captured_at": "2026-10-15T22:34:05.264265+00:00",
+    "last_successful_beforeinfo_captured_at": "2026-10-15T23:09:43.930892+00:00"
   }
 }
