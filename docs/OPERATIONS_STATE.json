@@ -101,7 +101,7 @@
   },
   "trusted_workflow_commit": "ca11332d1af49438e27d22ffdb90585b3941200c",
   "trusted_workflow_content_sha": "be05324133a8c7693998cbf0a5b0ced6b22704a4",
-  "trusted_workflow_default_mode": "push: bounded all-upcoming B-only baseline cohort; day/race/exhibition/original/result remain explicit dispatches",
+  "trusted_workflow_default_mode": "push: probe only; all source and cohort acquisition modes require explicit workflow_dispatch inputs",
   "trusted_workflow_dated_result_target": "20261015-14-01 (completed proof; stale Japan-local dates reject before official GET)",
   "race_collection_policy": "auto: first upcoming race up to two beforeinfo/odds GETs; result: one closed current-day race, optional exact ID even while others are upcoming; do not poll a completed proof without changed code or known revision",
   "race_cloud_contract": "immutable observation and separate actual-cloud-save receipt; latest per kind; serialized writer only; never backdate late ingress",
@@ -235,7 +235,7 @@
     "repair": "per-kind strict-validation isolation; no identity weakening or B baseline renaming",
     "remaining": "verified full-name reconciliation for truncated B names"
   },
-  "trusted_workflow_dated_exhibition_target": "20261015-02-01 (completed proof; do not refetch on rerun; exactcurrentday/120-second margin rejects late starts)",
+  "trusted_workflow_dated_exhibition_target": "default20261015-14-08 is completed; Toda1 20261015-02-01 is also completed; neither may be refetched without concrete correction grounds; use a new exact current-day future target",
   "last_verified_post_exhibition": {
     "application_commit": "22dcb7a684ae97e73297778aa9a6403126fb898a",
     "deployment_url": "https://race-ai-preview-bki3g4gtr-qq1130034-1738.vercel.app",
