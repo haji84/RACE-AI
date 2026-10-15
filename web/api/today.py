@@ -235,7 +235,18 @@ def load_feed():
         day = before.astimezone(JST).date()
         key = f'race-ai/day/{day.isoformat()}.json'
         client = create_blob_client(token)
-        result = client.get(key, access='private', timeout=8, use_cache=False)
+        from vercel.blob import BlobNotFoundError
+        try:
+            result = client.get(key, access='private', timeout=8, use_cache=False)
+        except BlobNotFoundError as exc:
+            if type(exc) is not BlobNotFoundError:
+                raise
+            after = utc_now()
+            if (before.tzinfo is None or before.utcoffset() is None
+                    or after.tzinfo is None or after.utcoffset() is None
+                    or after < before or after.astimezone(JST).date() != day):
+                raise ValueError('missing feed clock invalid')
+            return 404, {'error': 'FEED_NOT_SAVED', 'date_jst': day.isoformat()}
         if result is None or result.status_code != 200 or result.pathname != key:
             raise ValueError('unexpected Blob result')
         url = https_url(result.url)

@@ -173,3 +173,61 @@ class TodayBlobReaderTests(unittest.TestCase):
             result = api.load_feed()
         self.assertEqual(result, (503, {'error': 'FEED_STORE_UNAVAILABLE'}))
         self.client.close.assert_called_once()
+
+    def missing(self, error, *, after=NOW):
+        client = Mock()
+        client.get.side_effect = error
+        with patch.dict(os.environ, ENV, clear=True), \
+             patch.object(api, 'create_blob_client', return_value=client), \
+             patch.object(api, 'utc_now', side_effect=[NOW, after]):
+            result = api.load_feed()
+        client.get.assert_called_once_with(KEY, access='private', timeout=8, use_cache=False)
+        client.close.assert_called_once()
+        return result
+
+    def test_exact_sdk_missing_is_current_day_absence(self):
+        from vercel.blob import BlobNotFoundError
+        self.assertEqual(self.missing(BlobNotFoundError()),
+                         (404, {'error': 'FEED_NOT_SAVED', 'date_jst': DAY}))
+
+    def test_missing_cannot_survive_midnight_or_clock_rollback(self):
+        from vercel.blob import BlobNotFoundError
+        for after in (NOW + timedelta(days=1), NOW - timedelta(microseconds=1)):
+            with self.subTest(after=after):
+                self.assertEqual(self.missing(BlobNotFoundError(), after=after),
+                                 (503, {'error': 'FEED_STORE_UNAVAILABLE'}))
+
+    def test_missing_looking_errors_and_status_are_not_absence(self):
+        for error in (RuntimeError('404 BlobNotFoundError secret'),
+                      PermissionError('private credential denied'),
+                      TimeoutError('secret transport URL')):
+            with self.subTest(error=type(error).__name__):
+                self.assertEqual(self.missing(error),
+                                 (503, {'error': 'FEED_STORE_UNAVAILABLE'}))
+        self.assertEqual(self.load(result=response(status_code=404)),
+                         (503, {'error': 'FEED_STORE_UNAVAILABLE'}))
+
+    def test_none_sdk_result_is_not_typed_absence(self):
+        client = Mock()
+        client.get.return_value = None
+        with patch.dict(os.environ, ENV, clear=True), \
+             patch.object(api, 'create_blob_client', return_value=client), \
+             patch.object(api, 'utc_now', return_value=NOW):
+            self.assertEqual(api.load_feed(),
+                             (503, {'error': 'FEED_STORE_UNAVAILABLE'}))
+        client.close.assert_called_once()
+
+    def test_missing_constructor_exception_is_not_get_absence(self):
+        from vercel.blob import BlobNotFoundError
+        with patch.dict(os.environ, ENV, clear=True), \
+             patch.object(api, 'create_blob_client', side_effect=BlobNotFoundError()), \
+             patch.object(api, 'utc_now', return_value=NOW):
+            self.assertEqual(api.load_feed(),
+                             (503, {'error': 'FEED_STORE_UNAVAILABLE'}))
+
+    def test_subclass_of_missing_error_is_not_exact_sdk_absence(self):
+        from vercel.blob import BlobNotFoundError
+        class OtherMissing(BlobNotFoundError):
+            pass
+        self.assertEqual(self.missing(OtherMissing()),
+                         (503, {'error': 'FEED_STORE_UNAVAILABLE'}))
