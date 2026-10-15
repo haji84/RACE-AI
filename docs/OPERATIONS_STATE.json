@@ -206,7 +206,7 @@
     }
   },
   "next_priority": [
-    "Use frozen day16 all156 B baselines and own actualsave clocks for new independently timed physical pre-exhibition/after-exhibition pairs. All156 fully verified; no repeat same-day cohort job without concrete correction/new missing set. Preserve day15 all118 and completed4R/7R forecasts/name/result envelopes.",
+    "Day16 Naruto1R20261016-14-01 closes08:35JST; own six-name proof38798278470-1 complete at04:59:43.547448JST, no racelist repeat. Use saved baseline38764082826-1 and own proof only for new eligible separately versioned numeric/temporal observations. Physical exhibition pairs0. Preserve day16all156/day15all118 and completed4R/7R evidence; no same-day cohort repeat without concrete new missing set.",
     "Accumulate prospective multi-day held-out accuracy/calibration/adoption evidence. Immutable4R/7R offline common-cohort aggregate nowverified N2/day1; no new labels and no adoption. Keep versions separate and future sources out of frozen inputs.",
     "Advance verified boat/lane identity, camera/world calibration and measurement ground truth; color/image-affine estimates do not validate boat performance or forecast inputs. All-race video and continuous coverage unfinished.",
     "Last actual day acquisition2026-10-16 00:35:23.711762JST run38761590081, newday16 afterexactdated404. Fullbackup and bothPreviewAPIs independentlyverified. Next6h2026-10-16 06:35:23.711762JST unless currentday positivelymissing; no repeats. Preserve day15refresh38756184875 and all156program identities.",
@@ -584,6 +584,25 @@
       "all_full_bytes_restored": true,
       "latest_and_pinned_api_match": true,
       "evidence": "docs/evidence/2026-10-15/name-binding-marugame7-live.json"
+    },
+    {
+      "race_id": "20261016-14-01",
+      "request_id": "38798278470-1",
+      "run_id": 38798278470,
+      "job_id": 116640353110,
+      "artifact_id": 12003490999,
+      "receipt_confirmed_at": "2026-10-15T19:59:43.547448+00:00",
+      "files": 5,
+      "bytes": 38631,
+      "envelope_bytes": 3380,
+      "envelope_sha256": "a7bafb20240b3e4d14c360edc8522f07464c0d53a4bb912bfd37d8eec965bf5d",
+      "name_relations": {
+        "EXACT_CANONICAL_NAME": 6
+      },
+      "all_full_bytes_restored": true,
+      "latest_and_pinned_api_match": true,
+      "completed_racelist_must_not_be_reacquired": true,
+      "evidence": "docs/evidence/2026-10-16/name-binding-naruto1-live.json"
     }
   ],
   "name_bound_exhibition_implementation": {
@@ -2966,5 +2985,31 @@
     "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca"
   },
   "trusted_worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-  "updated_at": "2026-10-15T17:38:37.502088+00:00"
+  "updated_at": "2026-10-15T20:06:46.398850+00:00",
+  "current_day16_prospective_target": {
+    "race_id": "20261016-14-01",
+    "request_id": "38798278470-1",
+    "run_id": 38798278470,
+    "job_id": 116640353110,
+    "artifact_id": 12003490999,
+    "receipt_confirmed_at": "2026-10-15T19:59:43.547448+00:00",
+    "files": 5,
+    "bytes": 38631,
+    "envelope_bytes": 3380,
+    "envelope_sha256": "a7bafb20240b3e4d14c360edc8522f07464c0d53a4bb912bfd37d8eec965bf5d",
+    "name_relations": {
+      "EXACT_CANONICAL_NAME": 6
+    },
+    "all_full_bytes_restored": true,
+    "latest_and_pinned_api_match": true,
+    "completed_racelist_must_not_be_reacquired": true,
+    "evidence": "docs/evidence/2026-10-16/name-binding-naruto1-live.json",
+    "closed_at_jst": "2026-10-16T08:35:00+09:00",
+    "baseline_request_id": "38764082826-1",
+    "baseline_cloud_saved_at": "2026-10-15T15:52:34.176159+00:00",
+    "status": "OWN_NAME_PROOF_READY_WAIT_FOR_EXHIBITION_NUMERICS",
+    "physical_exhibition_timing_verified": false,
+    "numeric_v2_saved": false,
+    "video_measured": false
+  }
 }

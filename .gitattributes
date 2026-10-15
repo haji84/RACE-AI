@@ -1,3 +1,4 @@
 # Keep hash-bound audit documents byte-identical on Windows and Linux.
 docs/evidence/2026-10-16/cohort16-all-batches-artifact-audit.md text eol=lf
 docs/evidence/2026-10-16/cohort16-all-batches-audit.json text eol=lf
+docs/evidence/2026-10-16/name-binding-naruto1-artifact-audit.md text eol=lf
