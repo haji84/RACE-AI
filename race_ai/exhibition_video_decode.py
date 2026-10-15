@@ -178,14 +178,15 @@ def _candidates(frame):
 
 
 def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
-                       sample_interval=2.0, segment_limit=MAX_SEGMENTS, elapsed_limit=90, camera_motion=False):
+                       sample_interval=2.0, segment_limit=MAX_SEGMENTS, elapsed_limit=90, camera_motion=False,
+                       program_clock=False):
     """A consumed lease returns derived evidence only. Runtime fails before media GETs."""
     start = stamp(clock()); validate_descriptor(descriptor, race, start)
     require(descriptor['status'] == 'AVAILABLE' and lease is not None, 'VIDEO_RECORDING_UNAVAILABLE')
     require(type(sample_interval) in (int, float) and .5 <= sample_interval <= 10
             and type(segment_limit) is int and 1 <= segment_limit <= MAX_SEGMENTS
             and type(elapsed_limit) in (int, float) and 1 <= elapsed_limit <= 120
-            and type(camera_motion) is bool, 'VIDEO_PROCESSING_BOUNDS_INVALID')
+            and type(camera_motion) is bool and type(program_clock) is bool, 'VIDEO_PROCESSING_BOUNDS_INVALID')
     try:
         import av
         import cv2
@@ -217,7 +218,14 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
         variant = select_variant(master_raw, media['id'], media['source_id']); master_raw = None
         child_raw = read(variant.url, MANIFEST_BYTES, MIME_HLS)
         child_sha = hashlib.sha256(child_raw).hexdigest()
-        segments = parse_vod(child_raw, media['id'], media['source_id'], variant); child_raw = None
+        segments = parse_vod(child_raw, media['id'], media['source_id'], variant)
+        timeline = None
+        if program_clock:
+            from .video_program_clock import assess_program_clock
+            timeline = assess_program_clock(child_raw,
+                [dict(sequence=s.sequence, duration=s.duration, discontinuity=s.discontinuity) for s in segments],
+                closed_at=race['closed_at'], captured_at=last)
+        child_raw = None
         tracks = []; previous = None; keys = {}; decoded = sampled = completed = 0; offset = 0.0
         sharpness = []; sizes = set(); segment_hash = hashlib.sha256()
         previous_pixels = None; previous_candidates = []; previous_second = None
@@ -353,6 +361,8 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
                     camera_corrected_dy_pixels=t['corrected_dy'] if t['all_transitions_corrected'] else None,
                     camera_correction_status='IMAGE_ESTIMATE_ONLY' if t['all_transitions_corrected'] else 'UNVERIFIED')
                     for output, t in zip(result['candidate_tracks'][:500], eligible_tracks[:500])]
+            if program_clock:
+                result.update(analysis_version='transient-hls-color-candidates/v3', program_clock=timeline)
             result['snapshot_id']=hashlib.sha256(canonical(result)).hexdigest()
             require(time.monotonic()-began < elapsed_limit, 'VIDEO_PROCESSING_TIME_EXCEEDED')
             return result

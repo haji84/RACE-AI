@@ -2985,7 +2985,7 @@
     "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca"
   },
   "trusted_worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-  "updated_at": "2026-10-15T21:41:54.854136+00:00",
+  "updated_at": "2026-10-15T22:53:28.750185+00:00",
   "current_day16_prospective_target": {
     "race_id": "20261016-14-01",
     "request_id": "38798278470-1",
@@ -3023,5 +3023,33 @@
     "frozen_naruto1_parents_compatible_with_new_day": true,
     "independent_artifact_audit_findings": 0,
     "evidence": "docs/evidence/2026-10-16/day-refresh0635-live.json"
+  },
+  "video_program_clock_v3": {
+    "status": "IMPLEMENTED_LOCAL_SYNTHETIC_VERIFIED_LIVE_MEDIA_UNVERIFIED",
+    "analysis_version": "transient-hls-color-candidates/v3",
+    "opt_in": "program_clock=True",
+    "local_python_tests": 981,
+    "javascript_tests": 187,
+    "initial_p2_findings_resolved": 2,
+    "open_review_findings": 0,
+    "independent_clock_verified": false,
+    "physical_exhibition_time_verified": false,
+    "frame_time_mapping": "NOT_COMPUTED",
+    "new_real_media_decodes": 0,
+    "evidence": "docs/evidence/2026-10-16/program-clock-v3-local.json"
+  },
+  "current_day16_exhibition_readiness": {
+    "race_id": "20261016-14-01",
+    "captured_at": "2026-10-15T22:34:05.264265+00:00",
+    "beforeinfo_status": "PENDING",
+    "beforeinfo_missing_reason": "OFFICIAL_PREVIEW_EMPTY_EXHIBITION_GRID",
+    "video_metadata_error": "VIDEO_SOURCE_AUTH_UNAVAILABLE",
+    "official_beforeinfo_attempts": 1,
+    "recording_index_attempts": 1,
+    "media_gets": 0,
+    "cloud_posts": 0,
+    "new_predictions": 0,
+    "physical_exhibition_phase_verified": false,
+    "evidence": "docs/evidence/2026-10-16/program-clock-v3-local.json"
   }
 }

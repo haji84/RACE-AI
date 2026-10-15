@@ -1,0 +1,154 @@
+{
+  "kind": "LOCAL_SOURCE_DECLARED_VIDEO_CLOCK_V3_VERIFICATION",
+  "recorded_at": "2026-10-15T22:53:28.750185+00:00",
+  "base_commit": "f0cb388c8c241c0c050555d2251c6ae8589af529",
+  "analysis_version": "transient-hls-color-candidates/v3",
+  "opt_in": "program_clock=True",
+  "legacy_default_false_v1_and_camera_v2_output_bytes_preserved_in_synthetic_tests": true,
+  "implementation_files": [
+    "race_ai/video_program_clock.py",
+    "race_ai/exhibition_video_decode.py"
+  ],
+  "test_file": "tests/test_video_program_clock.py",
+  "focused_tests": 20,
+  "independent_focused_and_legacy_tests": 36,
+  "independent_focused_seconds": 0.545,
+  "full_local_python_tests": 981,
+  "full_local_python_seconds": 292.946,
+  "full_local_python_failures": 0,
+  "full_local_python_skips": 0,
+  "javascript_tests": 187,
+  "javascript_failures": 0,
+  "javascript_skips": 0,
+  "initial_missing_assessor_red_observed": true,
+  "malformed_tags_and_invalid_offset_red_observed": true,
+  "initial_code_review": {
+    "path": "artifacts/local/program-clock-v3-code-review.md",
+    "bytes": 5563,
+    "sha256": "440430912f850b5a40ea04872804c2cbdaf53fa4975135d603a4e3cf33f5a4f6",
+    "report_text": "# Independent code review: bounded source-declared media clock v3\n\nBase: `f0cb388c8c241c0c050555d2251c6ae8589af529`. Scope: `race_ai/exhibition_video_decode.py`, new `race_ai/video_program_clock.py`, and its new tests. This is an independent review, not implementation delegation.\n\n## Verdict\n\nSpec/clock-quality boundary: **CHANGES REQUIRED**. Quality: **CHANGES REQUIRED**.\n\nActionable findings: **2 P2**. No P0, P1, or P3 findings.\n\n## [P2] Reject malformed known clock tags rather than ignoring them\n\nLocation: `race_ai/video_program_clock.py:100–115`.\n\nThe tag parser recognizes PDT only with the exact colon prefix and otherwise skips all comment/tag lines. Adding a bare `#EXT-X-PROGRAM-DATE-TIME` alongside an otherwise valid fully anchored playlist therefore still returns SOURCE_DECLARED_CLOCK_CONSISTENT with usable boundaries. Similar malformed known-tag spellings can evade structure checks. This promotes a malformed/ambiguous clock-bearing playlist under the intended strict quality contract.\n\nReject malformed forms of the known clock/sequence/discontinuity/duration/structure tags before treating unrelated extension/comment lines as ignorable. Add a focused malformed-bare/extra-tag regression requiring an unverified result with no boundaries/start/end. Keep legitimate unrelated HLS tags/comments separate from malformed recognized fields. The exact bare-PDT case was reproduced offline.\n\n## [P2] Validate UTC offset component ranges before datetime normalization\n\nLocation: `race_ai/video_program_clock.py:21,34–43`.\n\nDATETIME permits any two-digit timezone hour/minute components. Python datetime.fromisoformat normalizes malformed timezone minutes rather than reliably rejecting them. Anchors with `+00:60` or `+09:99` were accepted and produced SOURCE_DECLARED_CLOCK_CONSISTENT with usable normalized timestamps when the resulting UTC time passed the remaining checks. The absolute14-hour check does not catch these examples.\n\nRequire valid lexical timezone components before conversion (minute00–59, a valid bounded hour, and a valid edge at the chosen14-hour limit). Apply the same check to context strings and PDT strings. Add malformed-offset regressions that reject without usable timestamps; retain valid timezone-equivalence tests. Do not derive a source-declared clock from an invalid ISO8601 offset.\n\n## Other assessed behavior\n\n- The optional flag is an exact bool and defaults false. The unchanged v1/camera-only v2 paths gain no report fields, reads, clock calls, or auth/source operations when false. The existing valid runtime and HLS resource gates still run before segment decoding.\n- The assessor runs against the full already scoped child playlist and exact parser-derived sequence/duration/discontinuity metadata before the decode segment limit. Thus its complete metadata timeline remains distinct from the existing COMPLETE/PARTIAL_PLAYLIST decode coverage. It does not map segment first-media-sample PDT to the first decoded video frame or video PTS.\n- Missing/partial anchors, mismatched metadata, overlaps, excessive nondiscontinuous gaps, wrong-day/nonfuture/preclose violations, and failed suffixes return no usable prefix boundaries. Decimal microsecond duration accounting and explicit retained forward gaps avoid timestamp interpolation. Discontinuities permit forward gaps but never overlap.\n- Input bytes/lines/segments/durations are bounded; output contains at most100 boundary rows, fixed codes/claims, timestamps, counts, and a playlist hash. No URLs, token/key/resource locations, raw frames, or manifest text are emitted. Existing decoder elapsed/byte/frame/segment limits remain active.\n- The report explicitly retains source-declared-only scope, NOT_COMPUTED frame mapping, independent_clock_verified=false, physical_exhibition_time_verified=false, prediction_eligible=false, unverified boat identity/camera calibration, and no boat features. Child hash and final snapshot hash bind the new metadata. These claims match the supplied RFC distinction and do not establish physical event timing.\n- Tests cover exact anchors/hash, timezone equivalence, decimal durations, missing/duplicate anchors, discontinuity/overlap, nonfuture/cutoff/day/context checks, parser metadata equality, resource bounds, actual synthetic MPEG-TS v3 integration, media quality failure without invented timestamps, and false/default behavior. The two malformed-input classes above are not covered by the initially reviewed suite.\n\n## Offline verification and limits\n\nRan `.venv/Scripts/python.exe -m unittest tests.test_video_program_clock -q`: **16 tests, OK**,0.341s, exit0. Ran minimal pure-assessor probes: extra bare PDT, offset minute60, and offset minute99 each incorrectly returned a consistent usable timeline; these reproduce the two findings. No source/media/network requests were made; integration used the existing synthetic local transport fixture.\n\nRead the decoder diff/new files and only the named existing HLS parse/read/coverage integration needed for the review. The RFC source was supplied as context and was not fetched because network access was prohibited. Root may have in-flight stricter tests/fixes; the findings above describe the exact inspected/reproduced version and require focused follow-up before a final PASS.\n\nNo product edits, commits/Git mutations, external dispatch, credential access, source reacquisition, subagents, or operational evidence mutation were performed. Only this independent review report was written. No actual old clip was reacquired or analyzed by this reviewer.\n"
+  },
+  "final_code_review": {
+    "path": "artifacts/local/program-clock-v3-final-code-review.md",
+    "bytes": 4379,
+    "sha256": "16617bee20c38ccb95ed29f124e974998b7da03e36e5f6dc06365aad38738c21",
+    "report_text": "# Final independent code review: source-declared media clock v3\n\nBase: `f0cb388c8c241c0c050555d2251c6ae8589af529`. Initial findings remain unchanged in `program-clock-v3-code-review.md`.\n\n## Final verdict\n\nSpec/clock-quality boundary: **PASS**. Quality: **PASS**.\n\nResolved findings: **2 P2**. Open actionable findings: **0**.\n\n## Resolved findings\n\n1. **Malformed known tags reject.** `race_ai/video_program_clock.py:87–103` requires a single EXTM3U, exact VOD type, bounded optional discontinuity sequence, and exact known clock/duration/sequence/discontinuity tag forms before parsing. The reproduced bare PDT case now returns UNVERIFIED_PROGRAM_CLOCK_STRUCTURE with no usable boundaries. Genuine EXT-X-DISCONTINUITY-SEQUENCE:30 remains accepted as valid playlist metadata.\n2. **Invalid offset minutes reject before normalization.** The timestamp regex permits only valid minute00–59 components, hours00–13, or the exact14:00 edge (`:21–22`); `_instant` still requires aware bounded clocks. The reproduced +00:60/+09:99 cases now return UNVERIFIED_PROGRAM_CLOCK_VALUE with no usable boundaries. Valid +14:00 and equivalent timezone representations remain accepted. Context strings use the same parser.\n\n## Compatibility, coverage, and bounds\n\nThe decoder diff remains limited to the exact-bool opt-in, assessment of the already scoped full child playlist, and the additional v3 report/hash fields when enabled. Default/False v1 and camera-only v2 do not call the new assessor or add fields/clock reads/source requests. The new tests assert complete default-vs-False output equality for both v1 and v2, alongside existing legacy decode/camera tests.\n\nThe explicit `coverage_scope=WHOLE_PLAYLIST_METADATA_NOT_DECODE_COVERAGE` marker prevents the metadata timeline from implying complete decode. The actual synthetic MPEG-TS partial-decode test confirms one decoded segment while retaining two playlist clock-boundary rows and separate PARTIAL_PLAYLIST coverage. No frame-PTS/first-decoded-video-frame mapping is introduced.\n\nAll segment metadata still must match parser-derived sequence/duration/discontinuity exactly. Missing/ambiguous anchors and any failed suffix yield no usable prefix; one-millisecond forward rounding gaps are explicit, larger unmarked gaps and every overlap reject. Same-day, nonfuture-end, strict preclose, decimal duration, raw/line/segment/clip bounds remain. Known-tag checks are bounded by the existing byte/line limits; no new network, resource authorization, decryption, elapsed/frame/segment, or retention path is added.\n\nOutput retains only fixed codes/scopes, counts, hashes, and bounded UTC boundary rows. No resource URLs/tokens/keys/raw manifest/frames are emitted. independent_clock_verified, physical_exhibition_time_verified, and prediction_eligible remain false even for a consistent declared clock. Existing boat identity/camera calibration/features stay unverified/empty. RFC semantics remain source-declared first-media-sample boundaries only, with no verified event/physical exhibition or frame-clock claim.\n\n## Offline verification\n\nRan `.venv/Scripts/python.exe -m unittest tests.test_video_program_clock tests.test_exhibition_video_decode tests.test_exhibition_video_camera_integration -q`: **36 tests, OK**,0.545s, exit0. This includes the updated20 clock tests and legacy synthetic decode/camera integration. No network/source transport was used.\n\nRepeated the exact initial pure-assessor probes: bare PDT now rejects as STRUCTURE, invalid minute60/minute99 reject as VALUE, each with zero boundary rows and all three verification/eligibility flags false. Valid DSEQ30 and +14:00 produce two consistent rows while those flags remain false. These checks verify both fixes and avoid rejecting the retained genuine discontinuity-sequence syntax.\n\nRead the final assessor, decoder diff, and named new regression/partial-coverage tests. No new actionable issues were identified. Root's complete Python/JavaScript suites were running at the supplied boundary and were not claimed complete by this reviewer. No actual old media clip was acquired, decoded, or re-audited here.\n\nNo product/test edits, Git mutations/commits, network/browser/source requests, credentials, dispatch, subagents, or operational evidence changes were performed. Only this separate final review report was written; initial review history is preserved.\n"
+  },
+  "resolved_p2_findings": 2,
+  "open_findings": 0,
+  "primary_spec": "https://www.rfc-editor.org/rfc/rfc8216#section-4.3.2.6",
+  "source_clock_scope": "SOURCE_DECLARED_SEGMENT_BOUNDARIES_ONLY",
+  "coverage_scope": "WHOLE_PLAYLIST_METADATA_NOT_DECODE_COVERAGE",
+  "frame_time_mapping": "NOT_COMPUTED",
+  "every_segment_requires_explicit_anchor": true,
+  "partial_usable_clock_prefix_rejected": true,
+  "independent_clock_verified": false,
+  "physical_exhibition_time_verified": false,
+  "prediction_eligible": false,
+  "v3_real_media_execution": false,
+  "new_video_decode_count": 0,
+  "new_numeric_prediction_count": 0,
+  "boat_identity": "UNVERIFIED",
+  "world_calibration": "UNVERIFIED",
+  "validation_status": "UNVALIDATED",
+  "purchase_decision": "skip",
+  "purchase_recommendations": [],
+  "physical_exhibition_pairs_verified": 0,
+  "formal_completion": false,
+  "early_naruto1_readiness": {
+    "beforeinfo": {
+      "available_at": "2026-10-15T22:34:05.264265+00:00",
+      "body_identity_verified": true,
+      "captured_at": "2026-10-15T22:34:05.264265+00:00",
+      "closed_at": "2026-10-16T08:35:00+09:00",
+      "data": null,
+      "eligible_pre_race": true,
+      "information_phase": "pre_race_observation",
+      "kind": "beforeinfo",
+      "missing_reason": "OFFICIAL_PREVIEW_EMPTY_EXHIBITION_GRID",
+      "observed_racers": [
+        {
+          "lane": 1,
+          "name": "川原   涼",
+          "racer_registration_id": "5137"
+        },
+        {
+          "lane": 2,
+          "name": "永松  良教",
+          "racer_registration_id": "5237"
+        },
+        {
+          "lane": 3,
+          "name": "草川  壮良",
+          "racer_registration_id": "5353"
+        },
+        {
+          "lane": 4,
+          "name": "藤本  元輝",
+          "racer_registration_id": "5179"
+        },
+        {
+          "lane": 5,
+          "name": "仲本   舜",
+          "racer_registration_id": "5258"
+        },
+        {
+          "lane": 6,
+          "name": "港   理樹",
+          "racer_registration_id": "5427"
+        }
+      ],
+      "race_id": "20261016-14-01",
+      "rights_review": "user-confirmation-2026-10-15-official-facts",
+      "schema_version": 1,
+      "source_sha256": "ac78efe8a2b1628f1c41dc107684c0e99103da13aac9cc45cc3815f08cfa210c",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=1&jcd=14&hd=20261016",
+      "status": "PENDING",
+      "upstream_published_at": null
+    },
+    "cloud_posts": 0,
+    "complete_display_times": false,
+    "completed_at": "2026-10-15T22:34:05.578496+00:00",
+    "media_gets": 0,
+    "new_predictions": 0,
+    "official_beforeinfo_attempts": 1,
+    "physical_exhibition_phase_verified": false,
+    "race_id": "20261016-14-01",
+    "raw_media_or_source_originals_retained": false,
+    "started_at": "2026-10-15T22:33:55.840030+00:00",
+    "status": "READINESS_PROBE_COMPLETED",
+    "video_metadata_attempts": 1,
+    "video_metadata_error": "VIDEO_SOURCE_AUTH_UNAVAILABLE"
+  },
+  "source_probe_scope": "One beforeinfo GET and one recording-index attempt,0 mediaGET/0cloudPOST; originals not retained.",
+  "trusted_workflow_and_auth_changed": false,
+  "stored_baselines_or_completed_old_clips_reacquired": false,
+  "decisions": [
+    {
+      "choice": "Explicit source-declared clock only; physical/frame/integrity clocks remain distinct.",
+      "cost_if_wrong": "Using a media boundary as first video-frame/event time would create false chronology."
+    },
+    {
+      "choice": "All segments require explicit anchors and a valid complete metadata timeline.",
+      "cost_if_wrong": "Interpolating an invalid or missing suffix can manufacture before-exhibition evidence."
+    },
+    {
+      "choice": "Strict lexical timezone/calendar and known-tag syntax before datetime conversion.",
+      "cost_if_wrong": "Python normalization or ignored malformed tags could promote broken source declarations."
+    },
+    {
+      "choice": "Full metadata coverage differs from full actual decode coverage.",
+      "cost_if_wrong": "A partial video decode might be misreported as complete analysis."
+    },
+    {
+      "choice": "Opt-in v3; default/False v1 and camera-only v2 unchanged.",
+      "cost_if_wrong": "Historical analysis bytes/models could be silently reinterpreted."
+    }
+  ],
+  "final_evidence_review": {
+    "bytes": 4507,
+    "sha256": "fb95e0760c9b4b0913894af66a091637396a8a7d66a879375b23738494816de6",
+    "report_text": "# Independent final evidence/spec/state review: media clock v3\n\n## Verdict\n\nScoped evidence/spec/documentation integration: **PASS**.\n\nActionable findings: **0** (no P0, P1, P2, or P3 findings).\n\n## Reviewed consistency\n\nThe new spec, public local-verification JSON, latest completion chapter, and state video/readiness sections consistently describe an opt-in local/synthetic v3 feature. The program clock is source-declared first-media-sample segment metadata only, separate from decoded-frame time and actual decoded coverage. They retain NOT_COMPUTED frame mapping, UNVERIFIED boat/world geometry, independent/physical clock verification false, prediction eligibility false, zero physical exhibition pairs, UNVALIDATED/skip/empty recommendations, and formal completion false. No provider-clock authentication, physical event timing, new model, accuracy/adoption, or boat/world measurement is promoted.\n\nThe spec reflects the final reviewed contract: explicit full anchors, exact parser metadata, valid offset components/calendar, same-day/nonfuture/preclose ends, no interpolation or usable prefix, overlap rejection, explicit rounding gaps/discontinuities, resource bounds, default/False legacy behavior, and whole-playlist metadata distinct from partial decode. The optional discontinuity-sequence metadata is not confused with a discontinuity event. The source reference is documentary context; no live reference was fetched for this review.\n\nThe recorded tests match retained logs: Python981 in292.946s, OK without skipped status; JavaScript187 pass,0 fail,0 skipped. The existing independent final code review's36 focused/legacy tests remain historical execution evidence and were not rerun here. Initial2 P2 findings and final resolved0-open review texts match the actual ignored report files byte-for-byte, including their recorded bytes/SHA256 and embedded UTF-8 text. The initial findings history was not silently replaced with a clean first-review claim.\n\nThe retained early readiness object matches the public JSON's entire embedded object. Its actual22:34:05 UTC observation is07:34:05 JST on16October, for Naruto1R20261016-14-01 before08:35 cutoff. It retains beforeinfo PENDING/OFFICIAL_PREVIEW_EMPTY_EXHIBITION_GRID with null numeric data, while the separate recording-index result remains VIDEO_SOURCE_AUTH_UNAVAILABLE. Neither auth failure nor absent usable numerics is treated as proof that video is missing/unpublished. The recorded scope is one beforeinfo attempt plus one index attempt,0 media GETs,0 cloud POSTs,0 new predictions; the inspected probe flow never consumes a media lease or calls the new decoder.\n\nThe retained prior video profile contains PDT tags, grounding the feature without reacquiring completed old clips. No new v3 real-media execution is claimed. The full-playlist metadata scope is not presented as a measurement from the failed real index attempt or as a physical pre/post pair.\n\nThe state diff changes only its timestamp and adds the explicit local/synthetic video capability/readiness records. It leaves the274 baseline count, current Naruto target/name proof,06:37 daily-refresh evidence and next12:37:05.445882 JST condition intact. Trusted e071/blob74f4, worker a488, publisher325/psh, OIDC/environment/permissions/concurrency, and completed historical namespaces are not changed by these documentation additions. The only associated product changes are the separately reviewed optional decoder/clock feature; no new app/API/auth/workflow path is claimed.\n\n## Scope and remaining gates\n\nRead the new spec/evidence, newest completion chapter, named state diff, actual retained readiness JSON/probe flow, old profile tag count, full-suite summary logs, and embedded review bindings. No helpers or product functions were executed, no tests were rerun, and no actual old/new clip was acquired or decoded in this review.\n\nLatest-head Windows/Linux CI and protected Preview/full-API verification are explicitly pending follow-up records in PR64/heartbeat. The local981/187 PASS is not mislabeled as completed remote CI, new live v3 decode, or project completion. Real eligible media, independent physical event timing, numeric observation/publication, surveyed calibration/boat identity, and predictive validation remain separate measurements/gates.\n\nNo network/browser/source requests, credentials, dispatch, product/root-doc edits, Git mutations, subagents, or operational evidence changes were performed. Only this independent review report was written.\n",
+    "findings": 0
+  }
+}
