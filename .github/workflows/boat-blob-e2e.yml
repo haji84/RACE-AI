@@ -5,7 +5,7 @@ on:
       collection:
         description: Research uses saved day facts; day collection only when missing or at least six hours old
         type: choice
-        options: [research, exhibition, original, cohort, evaluation, result, race, day, name-binding, name-bound-exhibition]
+        options: [research, exhibition, original, cohort, evaluation, result, race, day, name-binding, name-bound-exhibition, name-bound-evaluation]
         default: research
         required: true
       name_bound_race_id:
@@ -15,6 +15,11 @@ on:
         default: ''
       name_bound_binding_request_id:
         description: Exact finalized immutable name proof request id
+        type: string
+        required: false
+        default: ''
+      name_bound_forecast_request_id:
+        description: Exact saved immutable name-bound forecast request id for read-only evaluation
         type: string
         required: false
         default: ''
@@ -597,4 +602,59 @@ jobs:
           manifest=json.loads((restored/'manifest.json').read_bytes())
           verify_backups(restored,manifest)
           print(json.dumps({'result':'NAME_BOUND_BACKUP_RESTORE_VERIFIED','status':manifest['status'],'files':len(names)}))
+          PY
+
+      - name: Verify frozen name-bound evaluation against saved official result
+        id: name_bound_evaluation
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'name-bound-evaluation'
+        env:
+          RACE_AI_NAME_BOUND_EVALUATION_URL: https://race-ai-preview-a80mun85y-qq1130034-1738.vercel.app/api/name-bound-evaluation
+          RACE_AI_NAME_BOUND_EVALUATION_COMMIT_SHA: 28ee0ced23b3fe2ec28cda9c1de9a7ad5387839d
+          RACE_AI_NAME_BOUND_RACE_ID: ${{ inputs.name_bound_race_id }}
+          RACE_AI_NAME_BOUND_FORECAST_REQUEST_ID: ${{ inputs.name_bound_forecast_request_id }}
+        run: |
+          result=0
+          python day-source/scripts/verify_name_bound_evaluation.py --race-id "$RACE_AI_NAME_BOUND_RACE_ID" --forecast-request-id "$RACE_AI_NAME_BOUND_FORECAST_REQUEST_ID" --output-dir "$RUNNER_TEMP/race-ai-name-bound-evaluation" --execute || result=$?
+          if [ -f "$RUNNER_TEMP/race-ai-name-bound-evaluation/manifest.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
+          exit "$result"
+      - name: Back up normalized name-bound evaluation evidence
+        if: always() && steps.name_bound_evaluation.outputs.backup_exists == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: name-bound-evaluation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/race-ai-name-bound-evaluation/program.json
+            ${{ runner.temp }}/race-ai-name-bound-evaluation/forecast.json
+            ${{ runner.temp }}/race-ai-name-bound-evaluation/result.json
+            ${{ runner.temp }}/race-ai-name-bound-evaluation/evaluation.json
+            ${{ runner.temp }}/race-ai-name-bound-evaluation/manifest.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore normalized name-bound evaluation evidence
+        if: always() && steps.name_bound_evaluation.outputs.backup_exists == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: name-bound-evaluation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-name-bound-evaluation-restored
+      - name: Verify every name-bound evaluation backup byte and manifest
+        if: always() && steps.name_bound_evaluation.outputs.backup_exists == 'true'
+        run: |
+          python - <<'PY'
+          import json,os,sys
+          from pathlib import Path
+          sys.path.insert(0,str(Path('day-source').resolve()))
+          from scripts.verify_name_bound_evaluation import ALLOWED,MAX_BYTES,verify_backups
+          root=Path(os.environ['RUNNER_TEMP'])
+          original,restored=root/'race-ai-name-bound-evaluation',root/'race-ai-name-bound-evaluation-restored'
+          names={p.name for p in original.iterdir()}
+          if not names<=ALLOWED or 'manifest.json' not in names or names!={p.name for p in restored.iterdir()}:
+              raise SystemExit('NAME_BOUND_EVALUATION_BACKUP_COVERAGE_INVALID')
+          for name in names:
+              before,after=(original/name).read_bytes(),(restored/name).read_bytes()
+              if not 0<len(after)<=MAX_BYTES or before!=after:
+                  raise SystemExit('NAME_BOUND_EVALUATION_BACKUP_BYTES_INVALID')
+          manifest=json.loads((restored/'manifest.json').read_bytes())
+          verify_backups(restored,manifest)
+          print(json.dumps({'result':'NAME_BOUND_EVALUATION_BACKUP_RESTORE_VERIFIED','status':manifest['status'],'files':len(names)}))
           PY
