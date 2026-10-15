@@ -5,7 +5,7 @@ import importlib
 import json
 from pathlib import Path
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, Mock, patch
 from urllib.error import URLError
 from tests.test_name_bound_inputs import fixture, bodies, NOW
 from race_ai import official_observation_store as memory
@@ -41,10 +41,52 @@ class SourceTests(unittest.TestCase):
         ticks=[NOW+timedelta(milliseconds=n*100) for n in range(20)]
         result=self.collect(clocks=ticks,saved_at=NOW+timedelta(milliseconds=250))
         self.assertEqual(result['status'],'COLLECTED');self.assertEqual(result['official_source_requests'],3)
-        self.assertEqual([x[1] for x in self.calls],[dict(timeout=10,max_bytes=1048576),dict(timeout=15,max_bytes=1048576),dict(timeout=15,max_bytes=1048576)])
+        self.assertEqual([x[1] for x in self.calls],[dict(timeout=10,max_bytes=1000000),dict(timeout=15,max_bytes=1048576),dict(timeout=15,max_bytes=1048576)])
         packet=result['snapshot'];self.assertGreater(packet['beforeinfo_record']['captured_at'],self.c.facts.stamp(NOW))
         self.assertEqual(packet['beforeinfo_record']['saved_at'],self.c.facts.stamp(NOW+timedelta(milliseconds=250)))
         self.assertEqual((self.race,self.base,self.binding),old);self.assertNotIn('<html',repr(result));self.assertNotIn('data=\n',repr(result))
+
+    def test_default_html_fetch_uses_its_contract_while_tsv_keeps_its_contract(self):
+        raw,first,second=bodies()
+        response=MagicMock()
+        response.__enter__.return_value=response
+        response.read.return_value=raw
+        response.geturl.side_effect=lambda:opener.open.call_args.args[0].full_url
+        response.status=200
+        response.headers={'Content-Type':'text/html; charset=utf-8'}
+        opener=Mock()
+        opener.open.return_value=response
+        tsv_calls=[]
+        def fetch_tsv(url,**options):
+            tsv_calls.append((url,options))
+            body=first if '/txt/' in url else second
+            return FetchResponse(body,url,200,'text/plain')
+        facts_review,media_review=reviews()
+        with patch('race_ai.official_update_worker.request.build_opener',return_value=opener) as build_opener, \
+             patch.object(memory,'utc_now',return_value=NOW):
+            result=self.c.collect_name_bound_inputs(self.race,self.base,self.binding,
+                parents_read_at=NOW-timedelta(seconds=60),facts_review=facts_review,
+                media_review=media_review,execute=True,transport_original=fetch_tsv,clock=lambda:NOW)
+        self.assertEqual(result['status'],'COLLECTED')
+        self.assertEqual(result['official_source_requests'],3)
+        build_opener.assert_called_once()
+        self.assertEqual(opener.open.call_args.kwargs,{'timeout':10})
+        self.assertEqual([options for _,options in tsv_calls],
+            [dict(timeout=15,max_bytes=1048576),dict(timeout=15,max_bytes=1048576)])
+
+    def test_html_response_over_its_transport_limit_is_rejected(self):
+        raw,first,second=bodies()
+        facts_review,media_review=reviews()
+        oversized=FetchResponse(raw+b' '*(1_000_001-len(raw)),
+            self.c.facts._endpoint(self.race['race_id'],'beforeinfo'),200,'text/html')
+        with patch.object(memory,'utc_now',return_value=NOW):
+            result=self.c.collect_name_bound_inputs(self.race,self.base,self.binding,
+                parents_read_at=NOW-timedelta(seconds=60),facts_review=facts_review,
+                media_review=media_review,execute=True,
+                transport_update=lambda url,**options:oversized,
+                transport_original=lambda url,**options:FetchResponse(first if '/txt/' in url else second,url,200,'text/plain'),
+                clock=lambda:NOW)
+        self.assertEqual(result,dict(status='SOURCE_INVALID',official_source_requests=1))
     def test_missing_display_stops_after_one_get(self):
         raw,first,second=bodies();raw=raw.replace(b'<td>6.92</td>',b'<td>-</td>')
         result=self.collect(raws=(raw,first,second))

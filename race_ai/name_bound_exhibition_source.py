@@ -10,6 +10,7 @@ from urllib import error
 
 from .official_update_worker import fetch_update, reviewed_scope
 from .official_race_updates import parse_update
+from .official_racelist_adapter import MAX_BYTES as OFFICIAL_HTML_MAX_BYTES
 from . import official_observation_store as memory
 from .tokuyama_day_worker import FetchResponse
 from web import race_contract as facts
@@ -60,21 +61,21 @@ def collect_name_bound_inputs(race, baseline, binding, *, parents_read_at, facts
             from scripts.collect_original_exhibition import _review, fetch_original
             _review(media_review, race, start)
         except (ValueError, TypeError, KeyError, AttributeError, OverflowError):return stopped('RIGHTS_BLOCKED')
-        def get(url, transport, timeout, types):
+        def get(url, transport, timeout, max_bytes, types):
             nonlocal count
             tick(margin=True)
             count += 1
-            try:response = transport(url, timeout=timeout, max_bytes=MAX_BYTES)
+            try:response = transport(url, timeout=timeout, max_bytes=max_bytes)
             except (error.URLError, OSError, TimeoutError, HTTPException):raise _Stop('SOURCE_UNAVAILABLE')
             except (ValueError, TypeError, AttributeError):raise _Stop('SOURCE_INVALID')
             captured = tick()
             if (not isinstance(response, FetchResponse) or type(response.status) is not int or response.status != 200
-                or response.url != url or not isinstance(response.body, bytes) or not 0 < len(response.body) <= MAX_BYTES
+                or response.url != url or not isinstance(response.body, bytes) or not 0 < len(response.body) <= max_bytes
                 or not isinstance(response.content_type, str) or response.content_type.split(';')[0].strip().lower() not in types):
                 raise _Stop('SOURCE_INVALID')
             return response.body, captured
         url = facts._endpoint(race['race_id'], 'beforeinfo')
-        raw, captured = get(url, transport_update or fetch_update, 10, {'text/html'})
+        raw, captured = get(url, transport_update or fetch_update, 10, OFFICIAL_HTML_MAX_BYTES, {'text/html'})
         observation = parse_update(raw, kind='beforeinfo', day=day, venue=race['race_id'][9:11],
             race_no=int(race['race_id'][-2:]), source_url=url, captured_at=facts.stamp(captured), entries=projected['boats'])
         del raw
@@ -92,7 +93,7 @@ def collect_name_bound_inputs(race, baseline, binding, *, parents_read_at, facts
         values = []; captures = []
         for component in ('original', 'standard'):
             raw, capture = get(endpoint(race['race_id'], component), transport_original or fetch_original,
-                15, {'text/plain', 'application/octet-stream', 'text/tab-separated-values'})
+                15, MAX_BYTES, {'text/plain', 'application/octet-stream', 'text/tab-separated-values'})
             values.append(raw); captures.append(capture)
         parsed_at = tick()
         original = parse_original(values[0], values[1], race=projected,
