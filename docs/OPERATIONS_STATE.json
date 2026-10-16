@@ -2971,7 +2971,7 @@
     "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca"
   },
   "trusted_worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-  "updated_at": "2026-10-16T04:46:26.794431+00:00",
+  "updated_at": "2026-10-16T07:34:43.258606+00:00",
   "current_day16_prospective_target": {
     "race_id": "20261016-14-01",
     "request_id": "38798278470-1",
@@ -4808,7 +4808,7 @@
     "evidence": "docs/evidence/2026-10-16/name-binding-omura1-live.json",
     "closed_at_jst": "2026-10-16T15:16:00+09:00",
     "baseline_request_id": "38774773544-1",
-    "status": "COMPLETE_OWN_NAME_PROOF_NORMAL_AND_ORIGINAL_V2_RESULT_NOT_SAVED",
+    "status": "COMPLETE_OWN_NAMES_NORMAL_ORIGINAL_V2_RESULT_AND_THREE_SCORE_EVALUATION",
     "numeric_v2_saved": true,
     "video_measured": false,
     "physical_exhibition_timing_verified": false,
@@ -4816,7 +4816,12 @@
     "numeric_run_id": 38859927859,
     "numeric_receipt_confirmed_at": "2026-10-16T06:13:23.611370+00:00",
     "numeric_seconds_before_close": 156.38863,
-    "numeric_evidence": "docs/evidence/2026-10-16/omura1-numeric-live.json"
+    "numeric_evidence": "docs/evidence/2026-10-16/omura1-numeric-live.json",
+    "result_label_acquired": true,
+    "result_request_id": "38865058137-1",
+    "result_run_id": 38865058137,
+    "result_evidence": "docs/evidence/2026-10-16/omura1-result-v2-live.json",
+    "completed_result_must_not_be_reacquired": true
   },
   "video_frame_timing_v4": {
     "schema_version": 1,
@@ -5169,5 +5174,349 @@
     "ordinary_live_player_path_observed": "/player/live",
     "live_exhibition_caption_directly_observed": "戸田10R 展示航走",
     "existing_vod_or_live_config_changed": false
+  },
+  "omura1_result_v2_publication": {
+    "schema_version": 1,
+    "recorded_at": "2026-10-16T07:34:43.258606+00:00",
+    "operation": "NEW_OWN_OMURA1_RESULT_V2_LABEL_AND_THREE_MODEL_EVALUATION",
+    "race_id": "20261016-24-01",
+    "forecast_request_id": "38859927859-1",
+    "name_binding_request_id": "38851355587-1",
+    "baseline_request_id": "38774773544-1",
+    "request_id": "38865058137-1",
+    "run_id": 38865058137,
+    "job_id": 116855840575,
+    "artifact_id": 12030831780,
+    "workflow_commit": "5a38336727c452ef0ba796f56b68434fe7b59837",
+    "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
+    "application_commit": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+    "result_disposition_contract": "official-result-dispositions/v2",
+    "top3": [
+      1,
+      4,
+      6
+    ],
+    "source_captured_at": "2026-10-16T07:06:22.989449+00:00",
+    "cloud_saved_at": "2026-10-16T07:06:29.072969+00:00",
+    "receipt_confirmed_at": "2026-10-16T07:06:30.097440+00:00",
+    "full_backup": {
+      "files": 6,
+      "bytes": 131798,
+      "zip_bytes": 28142,
+      "zip_sha256": "2d3c342c812ea9bed41d1ffa8e52e1faacde0c4c71a68b232f4e85023688ee59",
+      "file_digests": {
+        "evaluation.json": {
+          "bytes": 2815,
+          "sha256": "b4cc4ed2928b3b6ca67ed6b59b1b999e1a8ecb5be19e46d0b3e53b611fe2a97a"
+        },
+        "forecast.json": {
+          "bytes": 114038,
+          "sha256": "8fb51fbb1b0a018911f9cc44e9aee007cba6013ea443ddc3a4faf3b95e1f6532"
+        },
+        "manifest.json": {
+          "bytes": 1041,
+          "sha256": "959b6a4936527dd2a0b1178367ccac9e1738fddf382f255015784cf18c6ad9d2"
+        },
+        "program.json": {
+          "bytes": 2174,
+          "sha256": "917ddf5f1d614a785d78220e11db4566a4ed4155c07030d3cd4f309172b43956"
+        },
+        "request.json": {
+          "bytes": 5678,
+          "sha256": "f0a7dca1ec545ad1c29cbed4304da2337dd1d9645af5d3505970dcdcac6ec362"
+        },
+        "result.json": {
+          "bytes": 6052,
+          "sha256": "0edeca3fa0db0e59730f0fd8b5fdb7ac8a21a79f1cb99e8664680ab7dc2ea5aa"
+        }
+      }
+    },
+    "entire_frozen_forecast_unchanged": true,
+    "fixed_latest_publisher_result_api": {
+      "canonical_bytes": 6052,
+      "sha256": "0edeca3fa0db0e59730f0fd8b5fdb7ac8a21a79f1cb99e8664680ab7dc2ea5aa",
+      "complete_bytes_match": true
+    },
+    "business_operations": {
+      "api_gets": 5,
+      "posts": 1,
+      "official_source_attempts": 1,
+      "shared_blob_put_get_delete_counted_separately": true
+    },
+    "root_followup": {
+      "api_gets": 5,
+      "posts": 0,
+      "official_source_attempts": 0,
+      "evaluation_as_of": "2026-10-16T07:12:50.493098+00:00"
+    },
+    "artifact_evaluation": {
+      "as_of": "2026-10-16T07:06:43.365158+00:00",
+      "closed_at": "2026-10-16T06:16:00.000000+00:00",
+      "common_race_ids": [
+        "20261016-24-01"
+      ],
+      "comparison_scope": "SAME_RACE_DIFFERENT_FEATURE_PHASES_NOT_EQUAL_INFORMATION_CUTOFF",
+      "date_jst": "2026-10-16",
+      "exclusion_reason": null,
+      "forecast_proof": {
+        "baseline_receipt_sha256": "37d32e700e8e8cdb7f11423d78a960f45f90d46ee7f9c67b248ee0fcf2e1fd65",
+        "baseline_request_id": "38774773544-1",
+        "baseline_snapshot_id": "c0a0ce505a24c46fb48c2a1fde819f1f88ff938eb9cb829bac919257cf906b2f",
+        "cloud_saved_at": "2026-10-16T06:13:22.672489+00:00",
+        "envelope_sha256": "8fb51fbb1b0a018911f9cc44e9aee007cba6013ea443ddc3a4faf3b95e1f6532",
+        "generated_at": "2026-10-16T06:13:21.511988+00:00",
+        "input_snapshot_id": "332e6a7a89350c53fc92672344d08089900a94ad9da30378c4df6b8b464edb0d",
+        "name_binding_request_id": "38851355587-1",
+        "receipt_confirmed_at": "2026-10-16T06:13:23.611370+00:00",
+        "request_id": "38859927859-1",
+        "snapshot_id": "9d7f9c638a973829a61d7e674d4ebe1faa5ce86cbcd0395bc562144fe64ba474"
+      },
+      "models": [
+        {
+          "forecast_cloud_saved_at": "2026-10-15T17:11:16.967601+00:00",
+          "forecast_generated_at": "2026-10-15T17:11:15.135037+00:00",
+          "log_loss": 4.931001793515199,
+          "model_id": "official-program-rating-pl",
+          "model_version": "1",
+          "multiclass_brier": 0.9944420847502319,
+          "phase": "B_ONLY_BASELINE",
+          "race_count": 1,
+          "ticket_count": 120,
+          "winner_probability": 0.007219267442265116
+        },
+        {
+          "forecast_cloud_saved_at": "2026-10-16T06:13:22.672489+00:00",
+          "forecast_generated_at": "2026-10-16T06:13:21.511988+00:00",
+          "log_loss": 4.9757682658245095,
+          "model_id": "name-bound-display",
+          "model_version": "2",
+          "multiclass_brier": 0.9951245393901522,
+          "phase": "DISPLAY_V2",
+          "race_count": 1,
+          "ticket_count": 120,
+          "winner_probability": 0.006903213398749129
+        },
+        {
+          "forecast_cloud_saved_at": "2026-10-16T06:13:22.672489+00:00",
+          "forecast_generated_at": "2026-10-16T06:13:21.511988+00:00",
+          "log_loss": 4.959000532314765,
+          "model_id": "name-bound-original",
+          "model_version": "2",
+          "multiclass_brier": 0.9948308680657535,
+          "phase": "ORIGINAL_V2",
+          "race_count": 1,
+          "ticket_count": 120,
+          "winner_probability": 0.007019940531232049
+        }
+      ],
+      "physical_exhibition_timing_verified": false,
+      "purchase_decision": "skip",
+      "purchase_recommendations": [],
+      "race_id": "20261016-24-01",
+      "research_only": true,
+      "result_proof": {
+        "captured_at": "2026-10-16T07:06:22.989449+00:00",
+        "cloud_saved_at": "2026-10-16T07:06:29.072969+00:00",
+        "financial_confirmed": true,
+        "finish_confirmed": true,
+        "program_identity_sha256": "cd83be78aafa1abdbe23f77823f9df35739c2f44537d02e53d1c1edaf12effd4",
+        "refund_boats": [],
+        "snapshot_id": "59115333be359dcd07542f3e4a41ee456a60a91a199d3cad347b6407f10d98f9",
+        "source_sha256": "457640277186eedc5b319ab8337f0699c55dfec0933f407767bc4a7dcc42d306",
+        "source_url": "https://www.boatrace.jp/owpc/pc/race/raceresult?rno=1&jcd=24&hd=20261016",
+        "status": "settled",
+        "top3": [
+          1,
+          4,
+          6
+        ]
+      },
+      "schema_version": 1,
+      "status": "EVALUATED",
+      "validation_status": "UNVALIDATED"
+    },
+    "independent_audit": {
+      "status": "PASS",
+      "findings": 0,
+      "all_six_restored_files_and_five_api_bodies_checked": true,
+      "decimal_precision": 55,
+      "max_metric_error": 3.12e-16,
+      "report": "omura1-result-v2-artifact-audit.md",
+      "bytes": 8258,
+      "sha256": "d4f2d4aeb5632aaff406c448b0e2d3bdfc60092c46bbc77521709b98d5da8c69"
+    },
+    "restore_helper_review": {
+      "findings": 0,
+      "isolated_guards": 26,
+      "optimized_runtime_rejected_before_archive_io": true,
+      "resolved_inherited_p2": true,
+      "old_helpers_unchanged": true
+    },
+    "ui": {
+      "recorded_at": "2026-10-16T07:32:30.613346+00:00",
+      "reader_commit": "2e392c78f8451762fc7cb6cfd5880464bd90955c",
+      "reader_preview": "https://race-ai-preview-jv653j6hl-qq1130034-1738.vercel.app",
+      "race_id": "20261016-24-01",
+      "forecast_request_id": "38859927859-1",
+      "top3": [
+        1,
+        4,
+        6
+      ],
+      "desktop_viewport": {
+        "width": 1440,
+        "height": 1000,
+        "evaluation_rows": 3,
+        "visually_confirmed": true
+      },
+      "mobile_viewport": {
+        "width": 390,
+        "height": 844,
+        "evaluation_rows": 3,
+        "visually_confirmed": true,
+        "region_width": 314,
+        "scroll_width": 936,
+        "scroll_left": 621.5999755859375,
+        "keyboard_final_column_reached": true,
+        "key": "ArrowRight",
+        "presses": 30
+      },
+      "end_key_did_not_scroll_horizontally": true,
+      "viewport_reset": true,
+      "physical_iPhone_test": false,
+      "new_refresh_switch_regressions_repeated": false,
+      "web_code_unchanged": true,
+      "validation_status": "UNVALIDATED",
+      "purchase_decision": "skip",
+      "purchase_recommendations": []
+    },
+    "interpretation": "Both v2 models have worse Brier and log loss than B in this one N=1 race. No improvement, calibration, adoption or revenue claim.",
+    "saved_numeric_examples": 4,
+    "individually_evaluated_examples": 4,
+    "immutable_archived_aggregate": {
+      "race_count": 3,
+      "day_count": 2,
+      "bytes": 7173,
+      "sha256": "77c93e07046721de8cead6ef21515f7d190601db63b92abfaee82c43f95e20d6",
+      "unchanged": true
+    },
+    "previous_failures_reclassified": false,
+    "raw_source_retained": false,
+    "physical_exhibition_pairs": 0,
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "new_head_ci_preview": "PENDING_AFTER_COMMIT",
+    "day_last_real_acquisition_jst": "2026-10-16T12:54:49.102563+09:00",
+    "formal_completion": false,
+    "local_full_validation": {
+      "python_tests": 1030,
+      "python_seconds": 316.942,
+      "javascript_tests": 203,
+      "failures": 0,
+      "skips": 0,
+      "video_runtime_required": true
+    }
+  },
+  "normal_live_schedule_reader": {
+    "schema_version": 1,
+    "recorded_at": "2026-10-16T07:34:43.258606+00:00",
+    "scope": "NORMAL_LIVE_SCHEDULE_METADATA_ONLY",
+    "source_route_evidence": {
+      "public_script_url": "https://front.player.boatrace-cdn.jp/js/live.js",
+      "bytes": 10261,
+      "sha256": "eeb812473c139e2f32127b3e49774ffdeb48c97cef7821598e0e191f7ae465d8",
+      "captured_at": "2026-10-16T07:25:00.210263+00:00",
+      "route_template": "/setting/live/{stadium}/setting.json",
+      "player_path": "/player/live"
+    },
+    "actual_live_schedule": {
+      "boat_features": [],
+      "captured_at": "2026-10-16T07:29:48.257768+00:00",
+      "channel_ref": "lm-mix-24omura-tokyo",
+      "exhibition_detection_status": "UNVERIFIED",
+      "model_validation_status": "UNVALIDATED",
+      "player_url": "https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=24omura&sourceType=mix&dvr=1&audioMode=0&autoplay=0&bitrate=low",
+      "prediction_input_eligible": false,
+      "race_binding_status": "UNVERIFIED",
+      "requested_at": "2026-10-16T07:29:47.975994+00:00",
+      "requested_day_jst": "2026-10-16",
+      "schedule_status": "SCHEDULE_ACTIVE",
+      "scheduled_end_at": "2026-10-16T12:49:59.000000+00:00",
+      "scheduled_start_at": "2026-10-16T00:50:00.000000+00:00",
+      "schema_version": "normal-live-schedule/v1",
+      "setting_updated_at": "2026-10-15T22:00:42.000000+00:00",
+      "snapshot_id": "5de05a1f4aa18f5ff84c827c97ad3fee82eeb85202e285cf2b389c8422d91d8a",
+      "source_sha256": "b63a41f1fb71e39887f83e35739a15bedaee7247b45a556dc123a1dc1fcd3f2a",
+      "source_url": "https://front.player.boatrace-cdn.jp/setting/live/24omura/setting.json",
+      "stadium": "24omura",
+      "venue_code": "24",
+      "wall_clock_alignment_status": "UNVERIFIED"
+    },
+    "http_operation_scope": {
+      "known_metadata_get_attempts": 7,
+      "metadata_head_attempts": 1,
+      "manifest_segment_or_key_gets": 0,
+      "posts": 0,
+      "raw_html_script_json_or_media_saved": false,
+      "unmetered_earlier_browser_playback_excluded": true,
+      "failed_web_open_tool_separately_recorded": true
+    },
+    "initial_inspection_failure": {
+      "status": "UNAVAILABLE",
+      "exception_type": "AssertionError",
+      "initial_get_specific_cause_proven": false,
+      "later_head_status": 200,
+      "later_head_mime": "application/x-javascript",
+      "later_head_content_length": 10261,
+      "private_inspection_mime_gate_corrected_for_observed_mime": true,
+      "minified_line_initial_excerpt_truncated": true,
+      "second_minified_expression_inspection_did_not_change_source_hash": true
+    },
+    "contract": {
+      "metadata_gets_per_call": 1,
+      "timeout_seconds": 10,
+      "max_bytes": 16384,
+      "redirects_followed": false,
+      "current_jst_day_and_capture_window_checked": true,
+      "exact_four_rows_and_tokyo_ref_forms": true,
+      "live_dvr_windows_must_agree": true,
+      "predictive_input_always_disabled": true,
+      "vod_files_settings_workflows_unchanged": true,
+      "all24_path_tests": "SYNTHETIC_ONLY",
+      "actual_venue_count": 1,
+      "all_venue_playback_or_all_race_coverage": "UNVERIFIED",
+      "continuous_unattended_monitoring": "NOT_IMPLEMENTED",
+      "exhibition_interval_detector": "NOT_IMPLEMENTED",
+      "boat_identity_world_calibration_measurement": "UNVERIFIED"
+    },
+    "tdd": {
+      "red": "ModuleNotFoundError: race_ai.live_video_source",
+      "target_tests_passed": 29,
+      "new_tests": 13
+    },
+    "new_head_ci_preview": "PENDING_AFTER_COMMIT",
+    "physical_exhibition_pairs": 0,
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "formal_completion": false,
+    "independent_review": {
+      "findings": 0,
+      "target_tests": 29,
+      "independent_synthetic_probes": 18,
+      "report": "normal-live-schedule-review.md",
+      "bytes": 4191,
+      "sha256": "c638774914af1098a1cae5a4ef554c5e14467abbe1c8c95b70a974ca30d0814b",
+      "network_requests": 0
+    },
+    "local_full_validation": {
+      "python_tests": 1030,
+      "python_seconds": 316.942,
+      "javascript_tests": 203,
+      "failures": 0,
+      "skips": 0,
+      "video_runtime_required": true
+    }
   }
 }

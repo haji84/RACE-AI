@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-16T07:34:43.258606+00:00",
+  "scope": "NORMAL_LIVE_SCHEDULE_METADATA_ONLY",
+  "source_route_evidence": {
+    "public_script_url": "https://front.player.boatrace-cdn.jp/js/live.js",
+    "bytes": 10261,
+    "sha256": "eeb812473c139e2f32127b3e49774ffdeb48c97cef7821598e0e191f7ae465d8",
+    "captured_at": "2026-10-16T07:25:00.210263+00:00",
+    "route_template": "/setting/live/{stadium}/setting.json",
+    "player_path": "/player/live"
+  },
+  "actual_live_schedule": {
+    "boat_features": [],
+    "captured_at": "2026-10-16T07:29:48.257768+00:00",
+    "channel_ref": "lm-mix-24omura-tokyo",
+    "exhibition_detection_status": "UNVERIFIED",
+    "model_validation_status": "UNVALIDATED",
+    "player_url": "https://front.player.boatrace-cdn.jp/player/live?service=boatcast&stadium=24omura&sourceType=mix&dvr=1&audioMode=0&autoplay=0&bitrate=low",
+    "prediction_input_eligible": false,
+    "race_binding_status": "UNVERIFIED",
+    "requested_at": "2026-10-16T07:29:47.975994+00:00",
+    "requested_day_jst": "2026-10-16",
+    "schedule_status": "SCHEDULE_ACTIVE",
+    "scheduled_end_at": "2026-10-16T12:49:59.000000+00:00",
+    "scheduled_start_at": "2026-10-16T00:50:00.000000+00:00",
+    "schema_version": "normal-live-schedule/v1",
+    "setting_updated_at": "2026-10-15T22:00:42.000000+00:00",
+    "snapshot_id": "5de05a1f4aa18f5ff84c827c97ad3fee82eeb85202e285cf2b389c8422d91d8a",
+    "source_sha256": "b63a41f1fb71e39887f83e35739a15bedaee7247b45a556dc123a1dc1fcd3f2a",
+    "source_url": "https://front.player.boatrace-cdn.jp/setting/live/24omura/setting.json",
+    "stadium": "24omura",
+    "venue_code": "24",
+    "wall_clock_alignment_status": "UNVERIFIED"
+  },
+  "http_operation_scope": {
+    "known_metadata_get_attempts": 7,
+    "metadata_head_attempts": 1,
+    "manifest_segment_or_key_gets": 0,
+    "posts": 0,
+    "raw_html_script_json_or_media_saved": false,
+    "unmetered_earlier_browser_playback_excluded": true,
+    "failed_web_open_tool_separately_recorded": true
+  },
+  "initial_inspection_failure": {
+    "status": "UNAVAILABLE",
+    "exception_type": "AssertionError",
+    "initial_get_specific_cause_proven": false,
+    "later_head_status": 200,
+    "later_head_mime": "application/x-javascript",
+    "later_head_content_length": 10261,
+    "private_inspection_mime_gate_corrected_for_observed_mime": true,
+    "minified_line_initial_excerpt_truncated": true,
+    "second_minified_expression_inspection_did_not_change_source_hash": true
+  },
+  "contract": {
+    "metadata_gets_per_call": 1,
+    "timeout_seconds": 10,
+    "max_bytes": 16384,
+    "redirects_followed": false,
+    "current_jst_day_and_capture_window_checked": true,
+    "exact_four_rows_and_tokyo_ref_forms": true,
+    "live_dvr_windows_must_agree": true,
+    "predictive_input_always_disabled": true,
+    "vod_files_settings_workflows_unchanged": true,
+    "all24_path_tests": "SYNTHETIC_ONLY",
+    "actual_venue_count": 1,
+    "all_venue_playback_or_all_race_coverage": "UNVERIFIED",
+    "continuous_unattended_monitoring": "NOT_IMPLEMENTED",
+    "exhibition_interval_detector": "NOT_IMPLEMENTED",
+    "boat_identity_world_calibration_measurement": "UNVERIFIED"
+  },
+  "tdd": {
+    "red": "ModuleNotFoundError: race_ai.live_video_source",
+    "target_tests_passed": 29,
+    "new_tests": 13
+  },
+  "new_head_ci_preview": "PENDING_AFTER_COMMIT",
+  "physical_exhibition_pairs": 0,
+  "validation_status": "UNVALIDATED",
+  "purchase_decision": "skip",
+  "purchase_recommendations": [],
+  "formal_completion": false,
+  "independent_review": {
+    "findings": 0,
+    "target_tests": 29,
+    "independent_synthetic_probes": 18,
+    "report": "normal-live-schedule-review.md",
+    "bytes": 4191,
+    "sha256": "c638774914af1098a1cae5a4ef554c5e14467abbe1c8c95b70a974ca30d0814b",
+    "network_requests": 0
+  },
+  "local_full_validation": {
+    "python_tests": 1030,
+    "python_seconds": 316.942,
+    "javascript_tests": 203,
+    "failures": 0,
+    "skips": 0,
+    "video_runtime_required": true
+  }
+}
