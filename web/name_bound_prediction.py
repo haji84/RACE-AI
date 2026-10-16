@@ -23,7 +23,7 @@ def require(condition):
 
 def digest(value):return hashlib.sha256(facts.canonical(value)).hexdigest()
 
-def _assemble(inputs,race,baseline,binding,*,runner_saved_at,input_cloud_saved_at,parents_resolved_at,now):
+def _assemble(inputs,race,baseline,binding,*,runner_saved_at,input_cloud_saved_at,parents_resolved_at,now,_validated_strengths=None):
     clock,day,closed=display._clock(now,race)
     inputs=validate_name_bound_inputs(inputs,race,baseline,binding,now=clock)
     times=[facts._time(v) for v in (inputs['generated_at'],runner_saved_at,parents_resolved_at,input_cloud_saved_at,clock)]
@@ -47,6 +47,9 @@ def _assemble(inputs,race,baseline,binding,*,runner_saved_at,input_cloud_saved_a
             base_strength=strength,display_delta_seconds=contributions['display_time_s']['delta_seconds'],contributions=contributions,
             total_original_log_delta=total,display_adjusted_strength=adjusted(contributions['display_time_s']['log_strength_contribution']),
             original_adjusted_strength=adjusted(total)))
+    if _validated_strengths is not None:
+        for boat, strengths_pair in zip(boats,_validated_strengths):
+            boat['display_adjusted_strength'],boat['original_adjusted_strength']=strengths_pair
     forecasts=[];deltas=[]
     for kind,parameters in [('display',display.PARAMETERS),('original',PARAMETERS)]:
         model=dict(model_id='name-bound-'+kind,model_version='2',parameters=dict(parameters),
@@ -85,8 +88,25 @@ def validate_name_bound_prediction(snapshot,inputs,race,baseline,binding,*,now):
         link=snapshot['input_link']
         expected=_assemble(inputs,race,baseline,binding,runner_saved_at=link['runner_saved_at'],input_cloud_saved_at=link['input_cloud_saved_at'],
             parents_resolved_at=snapshot['parents_resolved_at'],now=generated)
+        if facts.canonical(snapshot)!=facts.canonical(expected):
+            # libm exp/log may differ by one representable value between hosts.
+            # Permit only these derived strengths, then reconstruct everything;
+            # never copy stored probabilities, deltas, metadata or hashes.
+            require(isinstance(snapshot.get('boats'),list) and len(snapshot['boats'])==6)
+            verified=[]
+            for lane,(source,reference) in enumerate(zip(snapshot['boats'],expected['boats']),1):
+                require(type(source['lane']) is int and source['lane']==reference['lane']==lane)
+                pair=[]
+                for field in ('display_adjusted_strength','original_adjusted_strength'):
+                    value=source[field];local=reference[field]
+                    require(type(value) is float and math.isfinite(value) and value>0)
+                    require(value in (math.nextafter(local,-math.inf),local,math.nextafter(local,math.inf)))
+                    pair.append(value)
+                verified.append(pair)
+            expected=_assemble(inputs,race,baseline,binding,runner_saved_at=link['runner_saved_at'],input_cloud_saved_at=link['input_cloud_saved_at'],
+                parents_resolved_at=snapshot['parents_resolved_at'],now=generated,_validated_strengths=verified)
         require(facts.canonical(snapshot)==facts.canonical(expected))
-        return expected
+        return copy.deepcopy(snapshot)
     except (ValueError,TypeError,KeyError,AttributeError,OverflowError,UnicodeError,RecursionError) as exc:
         raise ValueError('NAME_BOUND_PREDICTION_INVALID') from exc
 

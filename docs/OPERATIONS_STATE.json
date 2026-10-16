@@ -162,9 +162,9 @@
       "name-bound-display/v2",
       "name-bound-original/v2"
     ],
-    "source": "All274 frozen B baselines retained. Four separately saved own-name-bound numeric examples and four separate result evaluations across two days, including completed Omura1 result38865058137-1. The immutable archived aggregate remainsN3/day2 and excludes Omura1. Physicalpairs0; no held-out/calibration/adoption proof.",
+    "source": "All274 frozen B baselines unchanged. Six own-name numeric examples; four eligible evaluated results plus one separately saved excluded F/refund label. Fixed original7173B archived aggregate remainsN3/day2. Physicalpairs0, automatic hullIDs0, no held-out/calibration/adoption proof.",
     "name_bound_v2_result_race_count": 4,
-    "name_bound_v2_numeric_races": 4,
+    "name_bound_v2_numeric_races": 6,
     "physical_exhibition_pairs_verified": 0,
     "archived_common_cohort_race_count": 3,
     "archived_common_cohort_day_count": 2,
@@ -173,10 +173,13 @@
       "2026-10-15": 118,
       "2026-10-16": 156
     },
-    "historical_aggregate_ui": "IMPLEMENTED_PROTECTED_PREVIEW_VERIFIED_AT03c57; fixed7173B/N3/day2/original as_of unchanged, latest same-web evidence remains separate."
+    "historical_aggregate_ui": "IMPLEMENTED_PROTECTED_PREVIEW_VERIFIED_AT03c57; fixed7173B/N3/day2/original as_of unchanged, latest same-web evidence remains separate.",
+    "name_bound_v2_saved_result_labels": 5,
+    "name_bound_v2_excluded_result_races": 1,
+    "name_bound_v2_result_race_count_scope": "Eligible evaluated races only; excluded labels counted separately"
   },
   "next_priority": [
-    "Exclude overlays/structures through independently labeled vessel/digit association and measure missed frames before using motion; domain-specific validation, camera/world/time calibration, prospective physical pairs/all-race pipeline and held-out contribution remain required. Do not reacquire completed12/10/9/7 or failed8 without new concrete repair.",
+    "Keep completed10/12 names/numeric,10 result/video immutable. After12 cutoff and120s, only its exact result404 and fresh five-state/lease/current-day/own-forecast checks may authorize one new separate result label. No retrospective predictions. Validate domain-specific hull/digit labels and world/time/measurement quality on new held-out inputs before video adoption; continue prospective physical pairs/all-race capture. New JST-day exact missing allows one validated day update after00:00, not forced waiting until01:08.",
     "Physical exhibition before/after pairs0. Obtain new prospective pairs with independent physical clock and own-race proof; B-only/publication waiting/cutoff timing alone is not proof.",
     "All16th156 B baselines already verified; preserve274 total. Only missing next-day upcoming set may be added with same validated cohort/all-upcoming, each batch full restore/API and idle/lease/currentday checks.",
     "Last real daily capture2026-10-16 19:08:36.977875JST run38885213046, official2GET. Next6h2026-10-17 01:08:36.977875JST; exact current-day missing after midnight is separate. New equipment/rate changes3boats are not old forecast updates.",
@@ -2971,7 +2974,7 @@
     "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca"
   },
   "trusted_worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-  "updated_at": "2026-10-16T11:52:32.880610+00:00",
+  "updated_at": "2026-10-16T14:03:41.884952+00:00",
   "current_day16_prospective_target": {
     "race_id": "20261016-14-01",
     "request_id": "38798278470-1",
@@ -3052,303 +3055,32 @@
     "last_successful_beforeinfo_captured_at": "2026-10-15T23:09:43.930892+00:00"
   },
   "current_day16_latest_saved_comparison": {
-    "race_id": "20261016-14-02",
-    "closed_at_jst": "2026-10-16T09:01:00+09:00",
-    "baseline_request_id": "38764082826-1",
+    "race_id": "20261016-19-12",
+    "closed_at_jst": "2026-10-16T22:45:00+09:00",
+    "baseline_request_id": "38777785588-1",
+    "name_binding_request_id": "38907737025-1",
+    "numeric_request_id": "38908811972-1",
     "name_run": {
-      "run_id": 38825321604,
-      "job_id": 116731330712,
-      "artifact_id": 12014263629
+      "run_id": 38907737025,
+      "job_id": 116995484096,
+      "artifact_id": 12048862263
     },
     "numeric_run": {
-      "run_id": 38825983437,
-      "job_id": 116733439500,
-      "artifact_id": 12014244917
+      "run_id": 38908811972,
+      "job_id": 116999130681,
+      "artifact_id": 12048789839
     },
+    "receipt_confirmed_at": "2026-10-16T13:34:24.121527+00:00",
+    "seconds_before_close": 635.878473,
+    "all_files_and_fixed_latest_publisher_api_restored": true,
+    "result_label_acquired": false,
+    "video_used": false,
+    "physical_exhibition_before_after_pairs": 0,
+    "completed_name_numeric_must_not_be_reacquired": true,
     "validation_status": "UNVALIDATED",
     "purchase_decision": "skip",
     "purchase_recommendations": [],
-    "physical_exhibition_before_after_pairs": 0,
-    "result_label_acquired": true,
-    "name_binding_request_id": "38825321604-1",
-    "numeric_request_id": "38825983437-1",
-    "receipt_confirmed_at": "2026-10-15T23:51:13.195580+00:00",
-    "seconds_before_close": 586.80442,
-    "all_files_and_fixed_latest_publisher_api_restored": true,
-    "video_v3_current_day_post_forecast_diagnostic_completed": true,
-    "completed_name_numeric_and_video_must_not_be_reacquired": true,
-    "evidence": "docs/evidence/2026-10-16/naruto2-live.json",
-    "result_attempt": {
-      "run_id": 38828308110,
-      "job_id": 116740888144,
-      "artifact_id": 12015623765,
-      "status": "FAILED_STOPPED_FULL_PARTIAL_BACKUP_RESTORED",
-      "workflow_commit": "e071480037d918714ea87288e9bc9598480f256d",
-      "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
-      "race_id": "20261016-14-02",
-      "request_id": "38828308110-1",
-      "forecast_request_id": "38825983437-1",
-      "files": 3,
-      "bytes": 116984,
-      "zip_bytes": 23071,
-      "zip_sha256": "50cf55fe75398402a3c881cbad9804607ba5f5e3969eb8684a7a06205c2aae42",
-      "manifest": {
-        "backups": {
-          "forecast.json": {
-            "bytes": 114137,
-            "sha256": "ac66ceb2880019d3868aacf9ff65049c6113f0ce9ad94854f1e9457a88bdf117"
-          },
-          "program.json": {
-            "bytes": 2165,
-            "sha256": "cff0cbada6fecd5cae83a8264d1b1b8353061edd3dffb474917b7ec6a10babfe"
-          }
-        },
-        "commit_sha": "325ddce19ae999d626782a9929e6511c17d60ba1",
-        "failure_reason": "NAME_BOUND_EVALUATION_STOPPED",
-        "forecast_request_id": "38825983437-1",
-        "max_seconds": 240,
-        "official_source_requests": 1,
-        "operation": "NAME_BOUND_RESULT_PUBLICATION",
-        "posts_attempted": 0,
-        "purchase_decision": "skip",
-        "purchase_recommendations": [],
-        "race_id": "20261016-14-02",
-        "reads_used": 3,
-        "request_id": "38828308110-1",
-        "schema_version": 1,
-        "status": "STOPPED",
-        "validation_status": "UNVALIDATED"
-      },
-      "root_cause_proven": false,
-      "result_label_saved": false,
-      "raw_source_retained": false,
-      "full_forecast_bytes_unchanged": true,
-      "repeat_without_new_diagnostic_or_correction_forbidden": true
-    },
-    "result_source_diagnostic": {
-      "cloud_posts": 0,
-      "completed_at": "2026-10-16T00:23:40.476659+00:00",
-      "earlier_failed_run": "38828308110",
-      "earlier_failure_cause_proven": false,
-      "forecast_request_id": "38825983437-1",
-      "official_source_requests": 1,
-      "race_id": "20261016-14-02",
-      "raw_source_retained": false,
-      "response_summary": {
-        "body_bytes": 59168,
-        "html_mime": true,
-        "status": 200
-      },
-      "result_labels_saved": 0,
-      "scope": "POSTCLOSE_SOURCE_DIAGNOSTIC_NOT_PUBLICATION_OR_PREDICTION_INPUT",
-      "source_snapshot_discarded": true,
-      "started_at": "2026-10-16T00:23:31.805132+00:00",
-      "status": "SOURCE_INVALID",
-      "transport_elapsed_seconds": 8.5,
-      "worker_official_source_requests": 1
-    },
-    "result_phase_diagnostic": {
-      "cloud_posts": 0,
-      "completed_at": "2026-10-16T00:33:45.278055+00:00",
-      "contract_event_count": 4,
-      "contract_events": [
-        {
-          "stage": "VALIDATE_NORMALIZED_RECORD",
-          "state": "ENTERED"
-        },
-        {
-          "stage": "VALIDATE_NORMALIZED_RECORD",
-          "state": "RETURNED"
-        },
-        {
-          "stage": "PARSE_OFFICIAL_RESULT",
-          "state": "ENTERED"
-        },
-        {
-          "stage": "PARSE_OFFICIAL_RESULT",
-          "state": "REJECTED"
-        }
-      ],
-      "earlier_failed_run": "38828308110",
-      "earlier_failure_cause_proven": false,
-      "first_contract_rejection": {
-        "error_code": "RESULT_FINISH_DISPOSITION_UNSUPPORTED",
-        "stage": "PARSE_OFFICIAL_RESULT"
-      },
-      "forecast_request_id": "38825983437-1",
-      "last_contract_stage": "PARSE_OFFICIAL_RESULT",
-      "last_contract_stage_state": "REJECTED",
-      "official_source_requests": 1,
-      "race_id": "20261016-14-02",
-      "raw_source_retained": false,
-      "response_summary": {
-        "body_bytes": 59168,
-        "html_mime": true,
-        "status": 200
-      },
-      "result_labels_saved": 0,
-      "scope": "POSTCLOSE_SOURCE_DIAGNOSTIC_NOT_PUBLICATION_OR_PREDICTION_INPUT",
-      "source_snapshot_discarded": true,
-      "started_at": "2026-10-16T00:33:35.668571+00:00",
-      "status": "SOURCE_INVALID",
-      "transport_elapsed_seconds": 9.453,
-      "worker_official_source_requests": 1
-    },
-    "next_result_step": "COMPLETED explicit v2 own result38838005903-1; do not reacquire or republish without concrete correction grounds. Preserve original failed result_attempt and every diagnostic; old cause remains unproven.",
-    "result_finish_profile_diagnostic": {
-      "cloud_posts": 0,
-      "completed_at": "2026-10-16T01:11:46.477420+00:00",
-      "contract_event_count": 6,
-      "contract_events": [
-        {
-          "stage": "VALIDATE_NORMALIZED_RECORD",
-          "state": "ENTERED"
-        },
-        {
-          "stage": "VALIDATE_NORMALIZED_RECORD",
-          "state": "RETURNED"
-        },
-        {
-          "stage": "VALIDATE_NORMALIZED_RECORD",
-          "state": "ENTERED"
-        },
-        {
-          "stage": "VALIDATE_NORMALIZED_RECORD",
-          "state": "RETURNED"
-        },
-        {
-          "stage": "PARSE_OFFICIAL_RESULT",
-          "state": "ENTERED"
-        },
-        {
-          "stage": "PARSE_OFFICIAL_RESULT",
-          "state": "REJECTED"
-        }
-      ],
-      "earlier_failed_run": "38828308110",
-      "earlier_failure_cause_proven": false,
-      "finish_profile": {
-        "captured_at": "2026-10-16T01:11:46.475468+00:00",
-        "closed_at": "2026-10-16T09:01:00+09:00",
-        "disposition_semantics_verified": false,
-        "identity_count": 6,
-        "race_id": "20261016-14-02",
-        "result_label_saved": false,
-        "rows": [
-          {
-            "finish_codepoints": [
-              "U+0032"
-            ],
-            "finish_token": "2",
-            "lane": 1,
-            "name": "香月大輝",
-            "parser_allowlisted": true,
-            "racer_registration_id": "5338",
-            "source_codepoints": [
-              "U+FF12"
-            ],
-            "source_token": "２"
-          },
-          {
-            "finish_codepoints": [
-              "U+30A8"
-            ],
-            "finish_token": "エ",
-            "lane": 2,
-            "name": "山本幸也",
-            "parser_allowlisted": false,
-            "racer_registration_id": "5268",
-            "source_codepoints": [
-              "U+30A8"
-            ],
-            "source_token": "エ"
-          },
-          {
-            "finish_codepoints": [
-              "U+0031"
-            ],
-            "finish_token": "1",
-            "lane": 3,
-            "name": "藤原仙二",
-            "parser_allowlisted": true,
-            "racer_registration_id": "5255",
-            "source_codepoints": [
-              "U+FF11"
-            ],
-            "source_token": "１"
-          },
-          {
-            "finish_codepoints": [
-              "U+0035"
-            ],
-            "finish_token": "5",
-            "lane": 4,
-            "name": "廣部大明",
-            "parser_allowlisted": true,
-            "racer_registration_id": "5379",
-            "source_codepoints": [
-              "U+FF15"
-            ],
-            "source_token": "５"
-          },
-          {
-            "finish_codepoints": [
-              "U+0034"
-            ],
-            "finish_token": "4",
-            "lane": 5,
-            "name": "西丸侑太朗",
-            "parser_allowlisted": true,
-            "racer_registration_id": "5257",
-            "source_codepoints": [
-              "U+FF14"
-            ],
-            "source_token": "４"
-          },
-          {
-            "finish_codepoints": [
-              "U+0033"
-            ],
-            "finish_token": "3",
-            "lane": 6,
-            "name": "垂水悠",
-            "parser_allowlisted": true,
-            "racer_registration_id": "5199",
-            "source_codepoints": [
-              "U+FF13"
-            ],
-            "source_token": "３"
-          }
-        ],
-        "source_sha256": "ff5149511712c1d2262778c0439653b603e7068fafecdafc1a54b6b8aeae2ca9"
-      },
-      "first_contract_rejection": {
-        "error_code": "RESULT_FINISH_DISPOSITION_UNSUPPORTED",
-        "stage": "PARSE_OFFICIAL_RESULT"
-      },
-      "forecast_request_id": "38825983437-1",
-      "last_contract_stage": "PARSE_OFFICIAL_RESULT",
-      "last_contract_stage_state": "REJECTED",
-      "official_source_requests": 1,
-      "race_id": "20261016-14-02",
-      "raw_source_retained": false,
-      "response_summary": {
-        "body_bytes": 58966,
-        "html_mime": true,
-        "status": 200
-      },
-      "result_labels_saved": 0,
-      "scope": "POSTCLOSE_SOURCE_DIAGNOSTIC_NOT_PUBLICATION_OR_PREDICTION_INPUT",
-      "source_snapshot_discarded": true,
-      "started_at": "2026-10-16T01:11:36.836310+00:00",
-      "status": "SOURCE_INVALID",
-      "transport_elapsed_seconds": 9.406,
-      "worker_official_source_requests": 1,
-      "evidence": "docs/evidence/2026-10-16/result-disposition-v2-live.json"
-    },
-    "result_request_id": "38838005903-1",
-    "result_run_id": 38838005903,
-    "result_evidence": "docs/evidence/2026-10-16/result-v2-publication-live.json"
+    "evidence": "docs/evidence/2026-10-16/shimonoseki-exhibition-comparison-stage.json"
   },
   "loaded_comparison_day_refresh_fix": {
     "status": "ACTUAL_PC1440_MOBILE390_REFRESH_RETAIN_AND_RACE_SWITCH_CLEAR_VERIFIED",
@@ -4879,54 +4611,38 @@
     "next_step": "Verify exact new head Windows/Linux CI and protected Preview; only a new eligible target may exercise v4 transient processing. Continue verified lane identity/world calibration/measurement ground truth and independent physical clocks."
   },
   "current_day16_latest_name_bound_numeric": {
-    "schema_version": 1,
-    "recorded_at": "2026-10-16T06:24:59.759719+00:00",
-    "operation": "NEW_OWN_NAME_BOUND_OMURA1_NORMAL_AND_ORIGINAL_V2_PUBLICATION",
-    "race_id": "20261016-24-01",
-    "closed_at_jst": "2026-10-16T15:16:00+09:00",
-    "baseline_request_id": "38774773544-1",
-    "name_binding_request_id": "38851355587-1",
-    "numeric_request_id": "38859927859-1",
-    "run_id": 38859927859,
-    "job_id": 116839667449,
-    "artifact_id": 12029071214,
-    "workflow_commit": "5a38336727c452ef0ba796f56b68434fe7b59837",
-    "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
-    "worker_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-    "publisher_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
-    "reader_commit": "44f1d39db019a6243103cc265ae11f0807b55ab9",
-    "reader_deployment": "dpl_4pfs5dNYkbH4XfpGVx8gsr88i9bC",
-    "full_restore": {
+    "race_id": "20261016-19-12",
+    "numeric": {
       "status": "NAME_BOUND_FULL_RESTORE_AND_INDEPENDENT_720_REPLAY_VERIFIED",
-      "run_id": 38859927859,
-      "race_id": "20261016-24-01",
-      "request_id": "38859927859-1",
+      "run_id": 38908811972,
+      "race_id": "20261016-19-12",
+      "request_id": "38908811972-1",
       "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
       "files": 6,
-      "bytes": 160642,
-      "zip_bytes": 32153,
-      "zip_sha256": "92ce11eee5f4effce6fa0a54fe768ba698ed7ab9bf93d6f2d83fc79fc5fc67bd",
-      "envelope_bytes": 114038,
-      "envelope_sha256": "8fb51fbb1b0a018911f9cc44e9aee007cba6013ea443ddc3a4faf3b95e1f6532",
-      "input_snapshot_id": "332e6a7a89350c53fc92672344d08089900a94ad9da30378c4df6b8b464edb0d",
-      "prediction_snapshot_id": "9d7f9c638a973829a61d7e674d4ebe1faa5ce86cbcd0395bc562144fe64ba474",
-      "baseline_request_id": "38774773544-1",
-      "baseline_sha256": "37d32e700e8e8cdb7f11423d78a960f45f90d46ee7f9c67b248ee0fcf2e1fd65",
-      "name_binding_request_id": "38851355587-1",
+      "bytes": 160536,
+      "zip_bytes": 32211,
+      "zip_sha256": "96bd661aa0ac450e1006ca368e0539f71ca7343a52d8bf03cb85ae40538e1258",
+      "envelope_bytes": 113946,
+      "envelope_sha256": "5d8508da5ae2fa73bd1acf68e45968d61151e3e04a0111f7956367df824156eb",
+      "input_snapshot_id": "3608695722ede7b882634fded99026576e5fb22973560af8ae8356e94531f701",
+      "prediction_snapshot_id": "80a4ef347fef228ec80d07ccfe113361d45a5ef5c2c6df336e9760f2b2dfe008",
+      "baseline_request_id": "38777785588-1",
+      "baseline_sha256": "4a4705309ab7eab279a0b26a41816175241b5b5b79cf3e01eb6d87c39a7c82ff",
+      "name_binding_request_id": "38907737025-1",
       "source_captures": [
-        "2026-10-16T06:13:15.439963+00:00",
-        "2026-10-16T06:13:16.029021+00:00",
-        "2026-10-16T06:13:16.553618+00:00"
+        "2026-10-16T13:34:14.826011+00:00",
+        "2026-10-16T13:34:15.425170+00:00",
+        "2026-10-16T13:34:16.165122+00:00"
       ],
-      "input_generated_at": "2026-10-16T06:13:16.566634+00:00",
-      "runner_saved_at": "2026-10-16T06:13:16.655902+00:00",
-      "parents_resolved_at": "2026-10-16T06:13:20.272014+00:00",
-      "input_cloud_saved_at": "2026-10-16T06:13:21.511957+00:00",
-      "prediction_generated_at": "2026-10-16T06:13:21.511988+00:00",
-      "cloud_saved_at": "2026-10-16T06:13:22.672489+00:00",
-      "receipt_confirmed_at": "2026-10-16T06:13:23.611370+00:00",
-      "seconds_before_close": 156.38863,
-      "max_probability_error": 2.7755575615628914e-17,
+      "input_generated_at": "2026-10-16T13:34:16.172110+00:00",
+      "runner_saved_at": "2026-10-16T13:34:16.261522+00:00",
+      "parents_resolved_at": "2026-10-16T13:34:19.551214+00:00",
+      "input_cloud_saved_at": "2026-10-16T13:34:21.013745+00:00",
+      "prediction_generated_at": "2026-10-16T13:34:21.013777+00:00",
+      "cloud_saved_at": "2026-10-16T13:34:22.878315+00:00",
+      "receipt_confirmed_at": "2026-10-16T13:34:24.121527+00:00",
+      "seconds_before_close": 635.878473,
+      "max_probability_error": 8.326672684688674e-17,
       "official_source_requests": 3,
       "physical_exhibition_timing_verified": false,
       "raw_sources_retained": false,
@@ -4934,139 +4650,15 @@
       "validation_status": "UNVALIDATED",
       "purchase_decision": "skip"
     },
-    "fixed_latest_and_publisher_api": {
-      "get_count": 3,
-      "canonical_bytes": 114038,
-      "sha256": "8fb51fbb1b0a018911f9cc44e9aee007cba6013ea443ddc3a4faf3b95e1f6532",
-      "entire_receipt_match": true
+    "name_binding_request_id": "38907737025-1",
+    "independent_audit": {
+      "file": "artifacts/local/shimonoseki12-numeric-artifact-audit.md",
+      "bytes": 7448,
+      "sha256": "083fef81bbb951613b6e91d6bacf046cd650592be9e912abd211975e77ce0d4b"
     },
-    "own_parents_entire_match": [
-      {
-        "file": "baseline.json",
-        "retained": "omura1-numeric-preflight-baseline.json",
-        "bytes": 29757,
-        "sha256": "37d32e700e8e8cdb7f11423d78a960f45f90d46ee7f9c67b248ee0fcf2e1fd65",
-        "entire_parent_match": true
-      },
-      {
-        "file": "name-binding.json",
-        "retained": "omura1-numeric-preflight-binding.json",
-        "bytes": 3392,
-        "sha256": "a79253c4be36805b42d02d3b87eaa88c9a63807cf273f03681bd8e8310ba008b",
-        "entire_parent_match": true
-      }
-    ],
-    "business_source_counts": {
-      "api_gets": 4,
-      "api_posts": 1,
-      "official_source_attempts": 3,
-      "shared_blob_scratch_probe_is_separate": true
-    },
-    "dispatch": {
-      "race_id": "20261016-24-01",
-      "name_binding_request_id": "38851355587-1",
-      "workflow_lease": "5a38336727c452ef0ba796f56b68434fe7b59837",
-      "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
-      "worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-      "publisher_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
-      "started_at": "2026-10-16T06:12:39.201733+00:00",
-      "accepted_at": "2026-10-16T06:12:45.248586+00:00",
-      "status": "DISPATCH_ACCEPTED_DO_NOT_REDISPATCH"
-    },
-    "publication_change_evidence": {
-      "source": "normal official BOATCAST browser UI",
-      "normal_table_newly_selected_and_read_before": "2026-10-16T06:12:01Z",
-      "original_table_newly_selected_and_read_after": "2026-10-16T06:12:01Z",
-      "original_table_read_before": "2026-10-16T06:12:21Z",
-      "six_boat_numbers_names_and_numeric_columns_present": true,
-      "previous_pending_display_does_not_prove_all_sources_unpublished": true,
-      "raw_frames_or_html_retained": false
-    },
-    "unchanged": {
-      "all_274_baselines": true,
-      "own_name_proof": true,
-      "old_successes_and_failures": true,
-      "last_daily_acquisition_jst": "2026-10-16T12:54:49.102563+09:00",
-      "next_daily_six_hour_condition_jst": "2026-10-16T18:54:49.102563+09:00",
-      "oidc_and_preview_protection": true,
-      "product_and_workflow_trees": true
-    },
-    "validation_status": "UNVALIDATED",
-    "purchase_decision": "skip",
-    "purchase_recommendations": [],
-    "physical_exhibition_pairs_added": 0,
+    "evidence": "docs/evidence/2026-10-16/shimonoseki-exhibition-comparison-stage.json",
     "video_used": false,
-    "result_label_acquired": false,
-    "retrospective_evaluation_races": 3,
-    "retrospective_evaluation_days": 2,
-    "independent_artifact_review": {
-      "report": "omura1-numeric-artifact-audit.md",
-      "bytes": 6709,
-      "sha256": "3d2bb5a7f7d9980b9b34e9586c639ec6287143af467a1cd2e3b81802bdc92043",
-      "open_findings": 0
-    },
-    "new_evidence_head_ci": "PENDING_AFTER_COMMIT",
-    "new_evidence_preview": "PENDING_AFTER_COMMIT",
-    "independent_restore_helper_review": {
-      "report": "artifacts/local/omura1-numeric-restore-helper-review.md",
-      "isolated_checks": 35,
-      "sha256": "4873553bd6bcd5cbe387dbc73a6607a1028e83ba12164b57c566e45a8d32a1bc"
-    },
-    "ui_verification": {
-      "recorded_at": "2026-10-16T06:22:08.196264+00:00",
-      "deployment_id": "dpl_4pfs5dNYkbH4XfpGVx8gsr88i9bC",
-      "application_commit": "44f1d39db019a6243103cc265ae11f0807b55ab9",
-      "race_id": "20261016-24-01",
-      "request_id": "38859927859-1",
-      "pc": {
-        "viewport": [
-          1440,
-          1000
-        ],
-        "six_boats_and_both_probability_variants_visible": true,
-        "input_table_rows": 6,
-        "two_triple_delta_tables_rows": [
-          120,
-          120
-        ],
-        "source_clock_table_rows": 15,
-        "own_saved_number_visible": true,
-        "sources_and_real_clocks_expanded": true,
-        "screenshot_visually_inspected": true
-      },
-      "mobile": {
-        "viewport": [
-          390,
-          844
-        ],
-        "state": "ready",
-        "six_boats": 6,
-        "own_saved_number_visible": true,
-        "screenshot_visually_inspected": true,
-        "horizontal_keyboard_final_column_observed": {
-          "action": "click table scroll container, then ArrowRight keys",
-          "left": 258.3999938964844,
-          "client": 314,
-          "scroll": 573,
-          "last_column_reached": true
-        },
-        "keyboard_end_before_container_focus_did_not_scroll_horizontally": true,
-        "horizontal_position_persistence_not_claimed": true,
-        "switch_to_own_venue_2R": {
-          "old_request_absent": true,
-          "name_bound_panel_race": "",
-          "state": "idle",
-          "new_heading": "大村 2R"
-        }
-      },
-      "viewport_reset": true,
-      "result_evaluation_not_executed": true,
-      "raw_footage_or_frames_saved": false,
-      "physical_exhibition_timing_verified": false,
-      "actual_iphone": false,
-      "all_274_api_reverified": false
-    },
-    "prospective_ui_replay_does_not_establish_physical_pre_exhibition": true
+    "result_label_acquired": false
   },
   "official_live_monitoring_trial": {
     "schema_version": 1,
@@ -6217,5 +5809,1013 @@
     "Omura1 name/numeric/result and Naruto2/Marugame4/7 completed; do not rerun. Four individual evaluations versus fixed original7173B N3/2days aggregate remain distinct and unchanged.",
     "Need multi-day held-out video contribution/calibration/adoption plus world/time/camera/measurement truth. Source positions/background affine/digit/COCO regions do not establish boat performance; UNVALIDATED/skip/[] stay.",
     "History/motor-change/usercloud/longrestore/PC-free operation/hardwareiPhone formally unfinished. Preserve limited source/derivedprivatefalse/OIDC protection and both manual-only source-smoke before everypush; noProduction/main/voting/payment."
-  ]
+  ],
+  "prior_research_state_before_shimonoseki_stage": {
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "actual_races_with_saved_prediction": 274,
+    "actual_result_cohorts_evaluated": 4,
+    "models": [
+      "official-program-uniform-pl/v1",
+      "official-program-rating-pl/v1",
+      "name-bound-display/v2",
+      "name-bound-original/v2"
+    ],
+    "source": "All274 frozen B baselines retained. Four separately saved own-name-bound numeric examples and four separate result evaluations across two days, including completed Omura1 result38865058137-1. The immutable archived aggregate remainsN3/day2 and excludes Omura1. Physicalpairs0; no held-out/calibration/adoption proof.",
+    "name_bound_v2_result_race_count": 4,
+    "name_bound_v2_numeric_races": 4,
+    "physical_exhibition_pairs_verified": 0,
+    "archived_common_cohort_race_count": 3,
+    "archived_common_cohort_day_count": 2,
+    "frozen_day15_baseline_count": 118,
+    "baseline_counts_by_date": {
+      "2026-10-15": 118,
+      "2026-10-16": 156
+    },
+    "historical_aggregate_ui": "IMPLEMENTED_PROTECTED_PREVIEW_VERIFIED_AT03c57; fixed7173B/N3/day2/original as_of unchanged, latest same-web evidence remains separate."
+  },
+  "prior_next_priority_before_shimonoseki_stage": [
+    "Exclude overlays/structures through independently labeled vessel/digit association and measure missed frames before using motion; domain-specific validation, camera/world/time calibration, prospective physical pairs/all-race pipeline and held-out contribution remain required. Do not reacquire completed12/10/9/7 or failed8 without new concrete repair.",
+    "Physical exhibition before/after pairs0. Obtain new prospective pairs with independent physical clock and own-race proof; B-only/publication waiting/cutoff timing alone is not proof.",
+    "All16th156 B baselines already verified; preserve274 total. Only missing next-day upcoming set may be added with same validated cohort/all-upcoming, each batch full restore/API and idle/lease/currentday checks.",
+    "Last real daily capture2026-10-16 19:08:36.977875JST run38885213046, official2GET. Next6h2026-10-17 01:08:36.977875JST; exact current-day missing after midnight is separate. New equipment/rate changes3boats are not old forecast updates.",
+    "Omura1 name/numeric/result and Naruto2/Marugame4/7 completed; do not rerun. Four individual evaluations versus fixed original7173B N3/2days aggregate remain distinct and unchanged.",
+    "Need multi-day held-out video contribution/calibration/adoption plus world/time/camera/measurement truth. Source positions/background affine/digit/COCO regions do not establish boat performance; UNVALIDATED/skip/[] stay.",
+    "History/motor-change/usercloud/longrestore/PC-free operation/hardwareiPhone formally unfinished. Preserve limited source/derivedprivatefalse/OIDC protection and both manual-only source-smoke before everypush; noProduction/main/voting/payment."
+  ],
+  "prior_day16_latest_saved_comparison_before_shimonoseki_stage": {
+    "race_id": "20261016-14-02",
+    "closed_at_jst": "2026-10-16T09:01:00+09:00",
+    "baseline_request_id": "38764082826-1",
+    "name_run": {
+      "run_id": 38825321604,
+      "job_id": 116731330712,
+      "artifact_id": 12014263629
+    },
+    "numeric_run": {
+      "run_id": 38825983437,
+      "job_id": 116733439500,
+      "artifact_id": 12014244917
+    },
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "physical_exhibition_before_after_pairs": 0,
+    "result_label_acquired": true,
+    "name_binding_request_id": "38825321604-1",
+    "numeric_request_id": "38825983437-1",
+    "receipt_confirmed_at": "2026-10-15T23:51:13.195580+00:00",
+    "seconds_before_close": 586.80442,
+    "all_files_and_fixed_latest_publisher_api_restored": true,
+    "video_v3_current_day_post_forecast_diagnostic_completed": true,
+    "completed_name_numeric_and_video_must_not_be_reacquired": true,
+    "evidence": "docs/evidence/2026-10-16/naruto2-live.json",
+    "result_attempt": {
+      "run_id": 38828308110,
+      "job_id": 116740888144,
+      "artifact_id": 12015623765,
+      "status": "FAILED_STOPPED_FULL_PARTIAL_BACKUP_RESTORED",
+      "workflow_commit": "e071480037d918714ea87288e9bc9598480f256d",
+      "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+      "race_id": "20261016-14-02",
+      "request_id": "38828308110-1",
+      "forecast_request_id": "38825983437-1",
+      "files": 3,
+      "bytes": 116984,
+      "zip_bytes": 23071,
+      "zip_sha256": "50cf55fe75398402a3c881cbad9804607ba5f5e3969eb8684a7a06205c2aae42",
+      "manifest": {
+        "backups": {
+          "forecast.json": {
+            "bytes": 114137,
+            "sha256": "ac66ceb2880019d3868aacf9ff65049c6113f0ce9ad94854f1e9457a88bdf117"
+          },
+          "program.json": {
+            "bytes": 2165,
+            "sha256": "cff0cbada6fecd5cae83a8264d1b1b8353061edd3dffb474917b7ec6a10babfe"
+          }
+        },
+        "commit_sha": "325ddce19ae999d626782a9929e6511c17d60ba1",
+        "failure_reason": "NAME_BOUND_EVALUATION_STOPPED",
+        "forecast_request_id": "38825983437-1",
+        "max_seconds": 240,
+        "official_source_requests": 1,
+        "operation": "NAME_BOUND_RESULT_PUBLICATION",
+        "posts_attempted": 0,
+        "purchase_decision": "skip",
+        "purchase_recommendations": [],
+        "race_id": "20261016-14-02",
+        "reads_used": 3,
+        "request_id": "38828308110-1",
+        "schema_version": 1,
+        "status": "STOPPED",
+        "validation_status": "UNVALIDATED"
+      },
+      "root_cause_proven": false,
+      "result_label_saved": false,
+      "raw_source_retained": false,
+      "full_forecast_bytes_unchanged": true,
+      "repeat_without_new_diagnostic_or_correction_forbidden": true
+    },
+    "result_source_diagnostic": {
+      "cloud_posts": 0,
+      "completed_at": "2026-10-16T00:23:40.476659+00:00",
+      "earlier_failed_run": "38828308110",
+      "earlier_failure_cause_proven": false,
+      "forecast_request_id": "38825983437-1",
+      "official_source_requests": 1,
+      "race_id": "20261016-14-02",
+      "raw_source_retained": false,
+      "response_summary": {
+        "body_bytes": 59168,
+        "html_mime": true,
+        "status": 200
+      },
+      "result_labels_saved": 0,
+      "scope": "POSTCLOSE_SOURCE_DIAGNOSTIC_NOT_PUBLICATION_OR_PREDICTION_INPUT",
+      "source_snapshot_discarded": true,
+      "started_at": "2026-10-16T00:23:31.805132+00:00",
+      "status": "SOURCE_INVALID",
+      "transport_elapsed_seconds": 8.5,
+      "worker_official_source_requests": 1
+    },
+    "result_phase_diagnostic": {
+      "cloud_posts": 0,
+      "completed_at": "2026-10-16T00:33:45.278055+00:00",
+      "contract_event_count": 4,
+      "contract_events": [
+        {
+          "stage": "VALIDATE_NORMALIZED_RECORD",
+          "state": "ENTERED"
+        },
+        {
+          "stage": "VALIDATE_NORMALIZED_RECORD",
+          "state": "RETURNED"
+        },
+        {
+          "stage": "PARSE_OFFICIAL_RESULT",
+          "state": "ENTERED"
+        },
+        {
+          "stage": "PARSE_OFFICIAL_RESULT",
+          "state": "REJECTED"
+        }
+      ],
+      "earlier_failed_run": "38828308110",
+      "earlier_failure_cause_proven": false,
+      "first_contract_rejection": {
+        "error_code": "RESULT_FINISH_DISPOSITION_UNSUPPORTED",
+        "stage": "PARSE_OFFICIAL_RESULT"
+      },
+      "forecast_request_id": "38825983437-1",
+      "last_contract_stage": "PARSE_OFFICIAL_RESULT",
+      "last_contract_stage_state": "REJECTED",
+      "official_source_requests": 1,
+      "race_id": "20261016-14-02",
+      "raw_source_retained": false,
+      "response_summary": {
+        "body_bytes": 59168,
+        "html_mime": true,
+        "status": 200
+      },
+      "result_labels_saved": 0,
+      "scope": "POSTCLOSE_SOURCE_DIAGNOSTIC_NOT_PUBLICATION_OR_PREDICTION_INPUT",
+      "source_snapshot_discarded": true,
+      "started_at": "2026-10-16T00:33:35.668571+00:00",
+      "status": "SOURCE_INVALID",
+      "transport_elapsed_seconds": 9.453,
+      "worker_official_source_requests": 1
+    },
+    "next_result_step": "COMPLETED explicit v2 own result38838005903-1; do not reacquire or republish without concrete correction grounds. Preserve original failed result_attempt and every diagnostic; old cause remains unproven.",
+    "result_finish_profile_diagnostic": {
+      "cloud_posts": 0,
+      "completed_at": "2026-10-16T01:11:46.477420+00:00",
+      "contract_event_count": 6,
+      "contract_events": [
+        {
+          "stage": "VALIDATE_NORMALIZED_RECORD",
+          "state": "ENTERED"
+        },
+        {
+          "stage": "VALIDATE_NORMALIZED_RECORD",
+          "state": "RETURNED"
+        },
+        {
+          "stage": "VALIDATE_NORMALIZED_RECORD",
+          "state": "ENTERED"
+        },
+        {
+          "stage": "VALIDATE_NORMALIZED_RECORD",
+          "state": "RETURNED"
+        },
+        {
+          "stage": "PARSE_OFFICIAL_RESULT",
+          "state": "ENTERED"
+        },
+        {
+          "stage": "PARSE_OFFICIAL_RESULT",
+          "state": "REJECTED"
+        }
+      ],
+      "earlier_failed_run": "38828308110",
+      "earlier_failure_cause_proven": false,
+      "finish_profile": {
+        "captured_at": "2026-10-16T01:11:46.475468+00:00",
+        "closed_at": "2026-10-16T09:01:00+09:00",
+        "disposition_semantics_verified": false,
+        "identity_count": 6,
+        "race_id": "20261016-14-02",
+        "result_label_saved": false,
+        "rows": [
+          {
+            "finish_codepoints": [
+              "U+0032"
+            ],
+            "finish_token": "2",
+            "lane": 1,
+            "name": "香月大輝",
+            "parser_allowlisted": true,
+            "racer_registration_id": "5338",
+            "source_codepoints": [
+              "U+FF12"
+            ],
+            "source_token": "２"
+          },
+          {
+            "finish_codepoints": [
+              "U+30A8"
+            ],
+            "finish_token": "エ",
+            "lane": 2,
+            "name": "山本幸也",
+            "parser_allowlisted": false,
+            "racer_registration_id": "5268",
+            "source_codepoints": [
+              "U+30A8"
+            ],
+            "source_token": "エ"
+          },
+          {
+            "finish_codepoints": [
+              "U+0031"
+            ],
+            "finish_token": "1",
+            "lane": 3,
+            "name": "藤原仙二",
+            "parser_allowlisted": true,
+            "racer_registration_id": "5255",
+            "source_codepoints": [
+              "U+FF11"
+            ],
+            "source_token": "１"
+          },
+          {
+            "finish_codepoints": [
+              "U+0035"
+            ],
+            "finish_token": "5",
+            "lane": 4,
+            "name": "廣部大明",
+            "parser_allowlisted": true,
+            "racer_registration_id": "5379",
+            "source_codepoints": [
+              "U+FF15"
+            ],
+            "source_token": "５"
+          },
+          {
+            "finish_codepoints": [
+              "U+0034"
+            ],
+            "finish_token": "4",
+            "lane": 5,
+            "name": "西丸侑太朗",
+            "parser_allowlisted": true,
+            "racer_registration_id": "5257",
+            "source_codepoints": [
+              "U+FF14"
+            ],
+            "source_token": "４"
+          },
+          {
+            "finish_codepoints": [
+              "U+0033"
+            ],
+            "finish_token": "3",
+            "lane": 6,
+            "name": "垂水悠",
+            "parser_allowlisted": true,
+            "racer_registration_id": "5199",
+            "source_codepoints": [
+              "U+FF13"
+            ],
+            "source_token": "３"
+          }
+        ],
+        "source_sha256": "ff5149511712c1d2262778c0439653b603e7068fafecdafc1a54b6b8aeae2ca9"
+      },
+      "first_contract_rejection": {
+        "error_code": "RESULT_FINISH_DISPOSITION_UNSUPPORTED",
+        "stage": "PARSE_OFFICIAL_RESULT"
+      },
+      "forecast_request_id": "38825983437-1",
+      "last_contract_stage": "PARSE_OFFICIAL_RESULT",
+      "last_contract_stage_state": "REJECTED",
+      "official_source_requests": 1,
+      "race_id": "20261016-14-02",
+      "raw_source_retained": false,
+      "response_summary": {
+        "body_bytes": 58966,
+        "html_mime": true,
+        "status": 200
+      },
+      "result_labels_saved": 0,
+      "scope": "POSTCLOSE_SOURCE_DIAGNOSTIC_NOT_PUBLICATION_OR_PREDICTION_INPUT",
+      "source_snapshot_discarded": true,
+      "started_at": "2026-10-16T01:11:36.836310+00:00",
+      "status": "SOURCE_INVALID",
+      "transport_elapsed_seconds": 9.406,
+      "worker_official_source_requests": 1,
+      "evidence": "docs/evidence/2026-10-16/result-disposition-v2-live.json"
+    },
+    "result_request_id": "38838005903-1",
+    "result_run_id": 38838005903,
+    "result_evidence": "docs/evidence/2026-10-16/result-v2-publication-live.json"
+  },
+  "prior_day16_latest_name_bound_numeric_before_shimonoseki_stage": {
+    "schema_version": 1,
+    "recorded_at": "2026-10-16T06:24:59.759719+00:00",
+    "operation": "NEW_OWN_NAME_BOUND_OMURA1_NORMAL_AND_ORIGINAL_V2_PUBLICATION",
+    "race_id": "20261016-24-01",
+    "closed_at_jst": "2026-10-16T15:16:00+09:00",
+    "baseline_request_id": "38774773544-1",
+    "name_binding_request_id": "38851355587-1",
+    "numeric_request_id": "38859927859-1",
+    "run_id": 38859927859,
+    "job_id": 116839667449,
+    "artifact_id": 12029071214,
+    "workflow_commit": "5a38336727c452ef0ba796f56b68434fe7b59837",
+    "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
+    "worker_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
+    "publisher_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+    "reader_commit": "44f1d39db019a6243103cc265ae11f0807b55ab9",
+    "reader_deployment": "dpl_4pfs5dNYkbH4XfpGVx8gsr88i9bC",
+    "full_restore": {
+      "status": "NAME_BOUND_FULL_RESTORE_AND_INDEPENDENT_720_REPLAY_VERIFIED",
+      "run_id": 38859927859,
+      "race_id": "20261016-24-01",
+      "request_id": "38859927859-1",
+      "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+      "files": 6,
+      "bytes": 160642,
+      "zip_bytes": 32153,
+      "zip_sha256": "92ce11eee5f4effce6fa0a54fe768ba698ed7ab9bf93d6f2d83fc79fc5fc67bd",
+      "envelope_bytes": 114038,
+      "envelope_sha256": "8fb51fbb1b0a018911f9cc44e9aee007cba6013ea443ddc3a4faf3b95e1f6532",
+      "input_snapshot_id": "332e6a7a89350c53fc92672344d08089900a94ad9da30378c4df6b8b464edb0d",
+      "prediction_snapshot_id": "9d7f9c638a973829a61d7e674d4ebe1faa5ce86cbcd0395bc562144fe64ba474",
+      "baseline_request_id": "38774773544-1",
+      "baseline_sha256": "37d32e700e8e8cdb7f11423d78a960f45f90d46ee7f9c67b248ee0fcf2e1fd65",
+      "name_binding_request_id": "38851355587-1",
+      "source_captures": [
+        "2026-10-16T06:13:15.439963+00:00",
+        "2026-10-16T06:13:16.029021+00:00",
+        "2026-10-16T06:13:16.553618+00:00"
+      ],
+      "input_generated_at": "2026-10-16T06:13:16.566634+00:00",
+      "runner_saved_at": "2026-10-16T06:13:16.655902+00:00",
+      "parents_resolved_at": "2026-10-16T06:13:20.272014+00:00",
+      "input_cloud_saved_at": "2026-10-16T06:13:21.511957+00:00",
+      "prediction_generated_at": "2026-10-16T06:13:21.511988+00:00",
+      "cloud_saved_at": "2026-10-16T06:13:22.672489+00:00",
+      "receipt_confirmed_at": "2026-10-16T06:13:23.611370+00:00",
+      "seconds_before_close": 156.38863,
+      "max_probability_error": 2.7755575615628914e-17,
+      "official_source_requests": 3,
+      "physical_exhibition_timing_verified": false,
+      "raw_sources_retained": false,
+      "raw_hash_recomputed_after_disposal": false,
+      "validation_status": "UNVALIDATED",
+      "purchase_decision": "skip"
+    },
+    "fixed_latest_and_publisher_api": {
+      "get_count": 3,
+      "canonical_bytes": 114038,
+      "sha256": "8fb51fbb1b0a018911f9cc44e9aee007cba6013ea443ddc3a4faf3b95e1f6532",
+      "entire_receipt_match": true
+    },
+    "own_parents_entire_match": [
+      {
+        "file": "baseline.json",
+        "retained": "omura1-numeric-preflight-baseline.json",
+        "bytes": 29757,
+        "sha256": "37d32e700e8e8cdb7f11423d78a960f45f90d46ee7f9c67b248ee0fcf2e1fd65",
+        "entire_parent_match": true
+      },
+      {
+        "file": "name-binding.json",
+        "retained": "omura1-numeric-preflight-binding.json",
+        "bytes": 3392,
+        "sha256": "a79253c4be36805b42d02d3b87eaa88c9a63807cf273f03681bd8e8310ba008b",
+        "entire_parent_match": true
+      }
+    ],
+    "business_source_counts": {
+      "api_gets": 4,
+      "api_posts": 1,
+      "official_source_attempts": 3,
+      "shared_blob_scratch_probe_is_separate": true
+    },
+    "dispatch": {
+      "race_id": "20261016-24-01",
+      "name_binding_request_id": "38851355587-1",
+      "workflow_lease": "5a38336727c452ef0ba796f56b68434fe7b59837",
+      "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
+      "worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
+      "publisher_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+      "started_at": "2026-10-16T06:12:39.201733+00:00",
+      "accepted_at": "2026-10-16T06:12:45.248586+00:00",
+      "status": "DISPATCH_ACCEPTED_DO_NOT_REDISPATCH"
+    },
+    "publication_change_evidence": {
+      "source": "normal official BOATCAST browser UI",
+      "normal_table_newly_selected_and_read_before": "2026-10-16T06:12:01Z",
+      "original_table_newly_selected_and_read_after": "2026-10-16T06:12:01Z",
+      "original_table_read_before": "2026-10-16T06:12:21Z",
+      "six_boat_numbers_names_and_numeric_columns_present": true,
+      "previous_pending_display_does_not_prove_all_sources_unpublished": true,
+      "raw_frames_or_html_retained": false
+    },
+    "unchanged": {
+      "all_274_baselines": true,
+      "own_name_proof": true,
+      "old_successes_and_failures": true,
+      "last_daily_acquisition_jst": "2026-10-16T12:54:49.102563+09:00",
+      "next_daily_six_hour_condition_jst": "2026-10-16T18:54:49.102563+09:00",
+      "oidc_and_preview_protection": true,
+      "product_and_workflow_trees": true
+    },
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "physical_exhibition_pairs_added": 0,
+    "video_used": false,
+    "result_label_acquired": false,
+    "retrospective_evaluation_races": 3,
+    "retrospective_evaluation_days": 2,
+    "independent_artifact_review": {
+      "report": "omura1-numeric-artifact-audit.md",
+      "bytes": 6709,
+      "sha256": "3d2bb5a7f7d9980b9b34e9586c639ec6287143af467a1cd2e3b81802bdc92043",
+      "open_findings": 0
+    },
+    "new_evidence_head_ci": "PENDING_AFTER_COMMIT",
+    "new_evidence_preview": "PENDING_AFTER_COMMIT",
+    "independent_restore_helper_review": {
+      "report": "artifacts/local/omura1-numeric-restore-helper-review.md",
+      "isolated_checks": 35,
+      "sha256": "4873553bd6bcd5cbe387dbc73a6607a1028e83ba12164b57c566e45a8d32a1bc"
+    },
+    "ui_verification": {
+      "recorded_at": "2026-10-16T06:22:08.196264+00:00",
+      "deployment_id": "dpl_4pfs5dNYkbH4XfpGVx8gsr88i9bC",
+      "application_commit": "44f1d39db019a6243103cc265ae11f0807b55ab9",
+      "race_id": "20261016-24-01",
+      "request_id": "38859927859-1",
+      "pc": {
+        "viewport": [
+          1440,
+          1000
+        ],
+        "six_boats_and_both_probability_variants_visible": true,
+        "input_table_rows": 6,
+        "two_triple_delta_tables_rows": [
+          120,
+          120
+        ],
+        "source_clock_table_rows": 15,
+        "own_saved_number_visible": true,
+        "sources_and_real_clocks_expanded": true,
+        "screenshot_visually_inspected": true
+      },
+      "mobile": {
+        "viewport": [
+          390,
+          844
+        ],
+        "state": "ready",
+        "six_boats": 6,
+        "own_saved_number_visible": true,
+        "screenshot_visually_inspected": true,
+        "horizontal_keyboard_final_column_observed": {
+          "action": "click table scroll container, then ArrowRight keys",
+          "left": 258.3999938964844,
+          "client": 314,
+          "scroll": 573,
+          "last_column_reached": true
+        },
+        "keyboard_end_before_container_focus_did_not_scroll_horizontally": true,
+        "horizontal_position_persistence_not_claimed": true,
+        "switch_to_own_venue_2R": {
+          "old_request_absent": true,
+          "name_bound_panel_race": "",
+          "state": "idle",
+          "new_heading": "大村 2R"
+        }
+      },
+      "viewport_reset": true,
+      "result_evaluation_not_executed": true,
+      "raw_footage_or_frames_saved": false,
+      "physical_exhibition_timing_verified": false,
+      "actual_iphone": false,
+      "all_274_api_reverified": false
+    },
+    "prospective_ui_replay_does_not_establish_physical_pre_exhibition": true
+  },
+  "shimonoseki_exhibition_comparison_stage": {
+    "schema_version": "shimonoseki-exhibition-comparison-stage/v1",
+    "recorded_at": "2026-10-16T14:03:41.884952+00:00",
+    "base_head": "e5f569ce4bfa598601e16a3ffdaccdd9f728a09a",
+    "own_name_proofs": {
+      "20261016-19-10": {
+        "status": "NAME_BINDING_BACKUP_AND_PIN_REPLAY_VERIFIED",
+        "run_id": 38901836118,
+        "race_id": "20261016-19-10",
+        "request_id": "38901836118-1",
+        "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+        "files": 5,
+        "bytes": 38708,
+        "zip_bytes": 8233,
+        "zip_sha256": "7379b13d5692da50bd80466f671398173ac6654ab489818268b762695ecc7c7a",
+        "manifest_sha256": "d9f66dbeccdaad6be0afc8b520448246cdb7df082e3789dc18caceae8c576d3d",
+        "proof_snapshot_id": "b3accb2f6f6307f77fed11db0dd01e33ed4b010f8839fe434a77262abd7bce5d",
+        "source_body_sha256": "f47b8bf7c91c3b7bb9a9185825d738b4a9bfbaef27ab84a54c338cc925a6136d",
+        "source_captured_at": "2026-10-16T12:38:00.493363+00:00",
+        "generated_at": "2026-10-16T12:38:00.507297+00:00",
+        "runner_saved_at": "2026-10-16T12:38:00.508172+00:00",
+        "cloud_saved_at": "2026-10-16T12:38:04.639096+00:00",
+        "receipt_confirmed_at": "2026-10-16T12:38:06.045842+00:00",
+        "seconds_before_close": 773.954158,
+        "baseline_snapshot_id": "6db3a572f4b66dbf2671aafb4fe7038221753b9c1c6a929afba0492c42497aca",
+        "baseline_sha256": "bfb45618f5f1ea28a546c4041af35e2eb37fe280125e3b93685451f6685c068b",
+        "envelope_bytes": 3406,
+        "envelope_sha256": "d5483c0587cca282bb3306fb03dd8f8c35cd20bdb7d4c894ac3a13bd6fa59210",
+        "name_relations": {
+          "EXACT_CANONICAL_NAME": 5,
+          "VERIFIED_B_ABBREVIATION": 1
+        },
+        "official_source_requests": 1,
+        "original_baseline_unchanged": true,
+        "raw_source_retained": false,
+        "raw_source_hash_recomputed_after_disposal": false,
+        "alias_prediction_integration_complete": false,
+        "validation_status": "UNVALIDATED"
+      },
+      "20261016-19-12": {
+        "status": "NAME_BINDING_BACKUP_AND_PIN_REPLAY_VERIFIED",
+        "run_id": 38907737025,
+        "race_id": "20261016-19-12",
+        "request_id": "38907737025-1",
+        "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+        "files": 5,
+        "bytes": 38677,
+        "zip_bytes": 8182,
+        "zip_sha256": "932d324f2bdb44687f6752ca514f48dcd351785872affc68e5a1f502c46789a2",
+        "manifest_sha256": "b3f844647a8965bafb02353adb2e71055b19031962845a14b71d48798e71eaff",
+        "proof_snapshot_id": "88ac59dda9d65064259065ded7be3e39005a57788a8321c578b1142a996f3064",
+        "source_body_sha256": "8b1f162d840b2930b8fa41364b659e23934883b5661e8a8aee5a354909f9e984",
+        "source_captured_at": "2026-10-16T13:25:58.834854+00:00",
+        "generated_at": "2026-10-16T13:25:58.852777+00:00",
+        "runner_saved_at": "2026-10-16T13:25:58.853950+00:00",
+        "cloud_saved_at": "2026-10-16T13:26:03.103955+00:00",
+        "receipt_confirmed_at": "2026-10-16T13:26:04.192194+00:00",
+        "seconds_before_close": 1135.807806,
+        "baseline_snapshot_id": "7136ad363e4a44cbf0a2faf547f1406e38832a23186f46e796f34d660c021fab",
+        "baseline_sha256": "4a4705309ab7eab279a0b26a41816175241b5b5b79cf3e01eb6d87c39a7c82ff",
+        "envelope_bytes": 3400,
+        "envelope_sha256": "37f9e0bbd82092447a6c128036e2e87bf5cf9329c8faf963ee6d8ea0f4a330a2",
+        "name_relations": {
+          "EXACT_CANONICAL_NAME": 5,
+          "VERIFIED_B_ABBREVIATION": 1
+        },
+        "official_source_requests": 1,
+        "original_baseline_unchanged": true,
+        "raw_source_retained": false,
+        "raw_source_hash_recomputed_after_disposal": false,
+        "alias_prediction_integration_complete": false,
+        "validation_status": "UNVALIDATED"
+      }
+    },
+    "new_numeric_comparisons": {
+      "20261016-19-10": {
+        "status": "NAME_BOUND_FULL_RESTORE_AND_INDEPENDENT_720_REPLAY_VERIFIED",
+        "run_id": 38902754405,
+        "race_id": "20261016-19-10",
+        "request_id": "38902754405-1",
+        "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+        "files": 6,
+        "bytes": 160691,
+        "zip_bytes": 32502,
+        "zip_sha256": "fa7a2366b24590ad9c3bd3a39bf46506de47cb9d351c6c380edf043d95d8e0c0",
+        "envelope_bytes": 114078,
+        "envelope_sha256": "fb4a5b39d5e02aa3b5fd6b68f05443a3b99e60d6bc7c156ec091242430410f4c",
+        "input_snapshot_id": "97ee04a146e3b83e31838568d13fe2d53fa58134de5308a8b3f5350a525af43b",
+        "prediction_snapshot_id": "6f7c227e1c366da19d5ee3bd9fc243ba03e6ff67c332270c86d8770482f4bd8f",
+        "baseline_request_id": "38777785588-1",
+        "baseline_sha256": "bfb45618f5f1ea28a546c4041af35e2eb37fe280125e3b93685451f6685c068b",
+        "name_binding_request_id": "38901836118-1",
+        "source_captures": [
+          "2026-10-16T12:45:38.839443+00:00",
+          "2026-10-16T12:45:39.478927+00:00",
+          "2026-10-16T12:45:40.003596+00:00"
+        ],
+        "input_generated_at": "2026-10-16T12:45:40.008182+00:00",
+        "runner_saved_at": "2026-10-16T12:45:40.100235+00:00",
+        "parents_resolved_at": "2026-10-16T12:45:43.621207+00:00",
+        "input_cloud_saved_at": "2026-10-16T12:45:45.102563+00:00",
+        "prediction_generated_at": "2026-10-16T12:45:45.102593+00:00",
+        "cloud_saved_at": "2026-10-16T12:45:46.585201+00:00",
+        "receipt_confirmed_at": "2026-10-16T12:45:47.776153+00:00",
+        "seconds_before_close": 312.223847,
+        "max_probability_error": 1.734723475976807e-18,
+        "official_source_requests": 3,
+        "physical_exhibition_timing_verified": false,
+        "raw_sources_retained": false,
+        "raw_hash_recomputed_after_disposal": false,
+        "validation_status": "UNVALIDATED",
+        "purchase_decision": "skip"
+      },
+      "20261016-19-12": {
+        "status": "NAME_BOUND_FULL_RESTORE_AND_INDEPENDENT_720_REPLAY_VERIFIED",
+        "run_id": 38908811972,
+        "race_id": "20261016-19-12",
+        "request_id": "38908811972-1",
+        "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+        "files": 6,
+        "bytes": 160536,
+        "zip_bytes": 32211,
+        "zip_sha256": "96bd661aa0ac450e1006ca368e0539f71ca7343a52d8bf03cb85ae40538e1258",
+        "envelope_bytes": 113946,
+        "envelope_sha256": "5d8508da5ae2fa73bd1acf68e45968d61151e3e04a0111f7956367df824156eb",
+        "input_snapshot_id": "3608695722ede7b882634fded99026576e5fb22973560af8ae8356e94531f701",
+        "prediction_snapshot_id": "80a4ef347fef228ec80d07ccfe113361d45a5ef5c2c6df336e9760f2b2dfe008",
+        "baseline_request_id": "38777785588-1",
+        "baseline_sha256": "4a4705309ab7eab279a0b26a41816175241b5b5b79cf3e01eb6d87c39a7c82ff",
+        "name_binding_request_id": "38907737025-1",
+        "source_captures": [
+          "2026-10-16T13:34:14.826011+00:00",
+          "2026-10-16T13:34:15.425170+00:00",
+          "2026-10-16T13:34:16.165122+00:00"
+        ],
+        "input_generated_at": "2026-10-16T13:34:16.172110+00:00",
+        "runner_saved_at": "2026-10-16T13:34:16.261522+00:00",
+        "parents_resolved_at": "2026-10-16T13:34:19.551214+00:00",
+        "input_cloud_saved_at": "2026-10-16T13:34:21.013745+00:00",
+        "prediction_generated_at": "2026-10-16T13:34:21.013777+00:00",
+        "cloud_saved_at": "2026-10-16T13:34:22.878315+00:00",
+        "receipt_confirmed_at": "2026-10-16T13:34:24.121527+00:00",
+        "seconds_before_close": 635.878473,
+        "max_probability_error": 8.326672684688674e-17,
+        "official_source_requests": 3,
+        "physical_exhibition_timing_verified": false,
+        "raw_sources_retained": false,
+        "raw_hash_recomputed_after_disposal": false,
+        "validation_status": "UNVALIDATED",
+        "purchase_decision": "skip"
+      }
+    },
+    "new_result_label": {
+      "race_id": "20261016-19-10",
+      "request_id": "38907121743-1",
+      "run_id": 38907121743,
+      "job_id": 116993385920,
+      "artifact_id": 12048049331,
+      "restore": {
+        "recorded_at": "2026-10-16T13:24:35.552040+00:00",
+        "run_id": 38907121743,
+        "job_id": 116993385920,
+        "artifact_id": 12048049331,
+        "workflow_commit": "5a38336727c452ef0ba796f56b68434fe7b59837",
+        "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
+        "status": "COMPLETED_FULL_BACKUP_RESTORED",
+        "files": 6,
+        "bytes": 130907,
+        "zip_bytes": 28213,
+        "zip_sha256": "da56c941d25fbe8df2dabcf3eefda093d06d68cc81a689e58473e02dbfe1ccd1",
+        "file_digests": {
+          "evaluation.json": {
+            "bytes": 1815,
+            "sha256": "6fe2f717420c80c1f7d2d0a842c472f8932df4886ec6e5f5cebee4e52e36681a"
+          },
+          "forecast.json": {
+            "bytes": 114078,
+            "sha256": "fb4a5b39d5e02aa3b5fd6b68f05443a3b99e60d6bc7c156ec091242430410f4c"
+          },
+          "manifest.json": {
+            "bytes": 1041,
+            "sha256": "eb47879e885ee66ccd2fd1a7d09730d2481f3ca73caf003d33da9cc380955567"
+          },
+          "program.json": {
+            "bytes": 2177,
+            "sha256": "c3b0561ce237589f15603c5d4c42e690aa1599734aa68287e81f2660f277f1b1"
+          },
+          "request.json": {
+            "bytes": 5711,
+            "sha256": "794c3a54036e2c4b6cad977c91f4eadd27f741883d4f4f9d211a4aa2073470bb"
+          },
+          "result.json": {
+            "bytes": 6085,
+            "sha256": "7158c2e144fe370144890c169465869e8f62a2316a2d3b38d802251f27bb6e8a"
+          }
+        },
+        "manifest": {
+          "backups": {
+            "evaluation.json": {
+              "bytes": 1815,
+              "sha256": "6fe2f717420c80c1f7d2d0a842c472f8932df4886ec6e5f5cebee4e52e36681a"
+            },
+            "forecast.json": {
+              "bytes": 114078,
+              "sha256": "fb4a5b39d5e02aa3b5fd6b68f05443a3b99e60d6bc7c156ec091242430410f4c"
+            },
+            "program.json": {
+              "bytes": 2177,
+              "sha256": "c3b0561ce237589f15603c5d4c42e690aa1599734aa68287e81f2660f277f1b1"
+            },
+            "request.json": {
+              "bytes": 5711,
+              "sha256": "794c3a54036e2c4b6cad977c91f4eadd27f741883d4f4f9d211a4aa2073470bb"
+            },
+            "result.json": {
+              "bytes": 6085,
+              "sha256": "7158c2e144fe370144890c169465869e8f62a2316a2d3b38d802251f27bb6e8a"
+            }
+          },
+          "commit_sha": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+          "failure_reason": null,
+          "forecast_request_id": "38902754405-1",
+          "max_seconds": 240,
+          "official_source_requests": 1,
+          "operation": "NAME_BOUND_RESULT_PUBLICATION",
+          "posts_attempted": 1,
+          "purchase_decision": "skip",
+          "purchase_recommendations": [],
+          "race_id": "20261016-19-10",
+          "reads_used": 5,
+          "request_id": "38907121743-1",
+          "result_disposition_contract": "official-result-dispositions/v2",
+          "schema_version": 1,
+          "status": "COMPLETED",
+          "validation_status": "UNVALIDATED"
+        },
+        "full_forecast_bytes_unchanged": true,
+        "raw_source_retained": false,
+        "previous_unrelated_failed_runs_reclassified": false,
+        "independent_audit_pending": true,
+        "physical_exhibition_pairs": 0,
+        "validation_status": "UNVALIDATED",
+        "purchase_decision": "skip",
+        "purchase_recommendations": []
+      },
+      "top3": [
+        4,
+        2,
+        3
+      ],
+      "finish_confirmed": true,
+      "financial_confirmed": false,
+      "refund_boats": [
+        1
+      ],
+      "evaluation_status": "RESULT_UNSUPPORTED",
+      "exclusion_reason": "OFFICIAL_REFUND_OUTCOME_UNSUPPORTED",
+      "score_rows": 0,
+      "eligible_evaluated_races_added": 0,
+      "source_captured_at": "2026-10-16T13:21:16.524016+00:00",
+      "cloud_saved_at": "2026-10-16T13:21:23.198351+00:00",
+      "receipt_confirmed_at": "2026-10-16T13:21:24.222323+00:00"
+    },
+    "new_private_video": {
+      "race_id": "20261016-19-10",
+      "status": "COMPLETED_POSTCLOSE_RESEARCH",
+      "started_at": "2026-10-16T13:08:12.552621+00:00",
+      "finished_at": "2026-10-16T13:09:43.355354+00:00",
+      "metadata_gets": 2,
+      "media_related_gets": 61,
+      "requests": {
+        "index": 1,
+        "key": 1,
+        "master": 1,
+        "metadata": 1,
+        "playlist": 1,
+        "segment": 58
+      },
+      "segments": 58,
+      "frames": 10440,
+      "samples": 116,
+      "encoded_bytes": 25462214,
+      "declared_seconds": 348.0,
+      "raw_metadata_duration": 340,
+      "duration_unit_or_difference_resolved": false,
+      "yolox_candidates": 27,
+      "nanodet_candidates": 3,
+      "ocr_candidates": 1,
+      "number_tracks": 0,
+      "independently_viewed_same_jpeg_sheets": 6,
+      "fixed_frames_independently_viewed": 33,
+      "fixed_frame_yolox_single_hull_boxes": 4,
+      "fixed_frame_yolox_non_hull_boxes": 1,
+      "fixed_frame_nanodet_single_hull_boxes": 1,
+      "manual_consensus_hull_digit_frames": 2,
+      "sole_ocr_is_intro_overlay": true,
+      "root_written_labels_blind_frozen": false,
+      "second_observer_received_no_root_labels_before_lock": true,
+      "population_precision_recall_or_iou_verified": false,
+      "loopback_ipc_gets": 6,
+      "browser_media_gets": "NOT_INSTRUMENTED",
+      "normal_ram_cleanup_at": "2026-10-16T13:12:24.114718+00:00",
+      "seconds_child_start_to_cleanup": 251.562097,
+      "ram_limit_seconds": 300,
+      "parent_exit_code": 0,
+      "owned_jpeg_buffers_empty": true,
+      "source_frame_files": 0,
+      "live_chapter_actual_decode": false,
+      "video_prediction_input_eligible": false
+    },
+    "platform_replay_fix": {
+      "original_windows_strict_replay": "FAILED_CANONICAL_MISMATCH",
+      "diagnostic": {
+        "file": "artifacts/local/shimonoseki12-windows-replay-diagnostic.json",
+        "bytes": 107271,
+        "sha256": "3049578c551fb9dea10b2d13bbe4dc310393ff08491afd553bf558774f691c29"
+      },
+      "sole_strength_mismatch_lane": 3,
+      "source_hex": "0x1.b0d87cf7b277dp+2",
+      "windows_hex": "0x1.b0d87cf7b277cp+2",
+      "os_causation_proven": false,
+      "contract": "same-lane finite positive strict float, local or either immediately adjacent IEEE754 value; all models/deltas/metadata/hash reconstructed exactly",
+      "source_snapshot_and_receipt_unchanged": true,
+      "builder_compatibility": {
+        "recorded_at": "2026-10-16T13:54:01.877993+00:00",
+        "base": "e5f569ce4bfa598601e16a3ffdaccdd9f728a09a",
+        "default_generation_unchanged": [
+          {
+            "context": "synthetic",
+            "bytes": 70942,
+            "sha256": "5ddf946c94a3c5d9df3a13e53ccfc5cbe8264edd6b7c50494e0bfbd4e6fc98c6",
+            "all_content_equal": true
+          },
+          {
+            "context": "38902754405",
+            "bytes": 74078,
+            "sha256": "3757b5022c75aed90e2ce6055e73dbf89aee4fe9d40eccf8e897a965fcbcbb40",
+            "all_content_equal": true
+          },
+          {
+            "context": "38908811972",
+            "bytes": 73990,
+            "sha256": "4e939d6c9b3da6ed0d7bfe7c4eb080326cc7b5325cbc53d8f483759d240b8b38",
+            "all_content_equal": true
+          }
+        ],
+        "network_calls": 0,
+        "source_reacquisitions": 0
+      },
+      "new_regressions": 8,
+      "original_extraction_not_repeated": true,
+      "readonly_resume_initial_wrong_expected_commit_rejected": true,
+      "actual_source_commit": "325ddce19ae999d626782a9929e6511c17d60ba1"
+    },
+    "checks": {
+      "independent_report_integrities": [
+        {
+          "file": "artifacts/local/shimonoseki10-name-caller-review.md",
+          "bytes": 5767,
+          "sha256": "76dcc63599b1d2cd3a45c79734bddaebbddf22fd16104a4d6c427a03726cc2fa"
+        },
+        {
+          "file": "artifacts/local/shimonoseki10-name-artifact-audit.md",
+          "bytes": 3389,
+          "sha256": "b1c8a5a8be093d491b5af58ce6c5e3aef2ef467ec24df29167e9d4a35ea44c7b"
+        },
+        {
+          "file": "artifacts/local/shimonoseki10-numeric-caller-review.md",
+          "bytes": 5982,
+          "sha256": "10881798ec944ed9fb01922e9e6fc27858d3f1d5bb78372e942d4fd875a081ae"
+        },
+        {
+          "file": "artifacts/local/shimonoseki10-numeric-artifact-audit.md",
+          "bytes": 3960,
+          "sha256": "ebc2d911a08b781d9ab57de0986d87401060f3adea95c8c961d2f4c92863c252"
+        },
+        {
+          "file": "artifacts/local/shimonoseki10-video-caller-review.md",
+          "bytes": 5129,
+          "sha256": "ffc42e84ad385332ccad4a64f1455cec5a47dd55b2d01309bd396581e01b61c3"
+        },
+        {
+          "file": "artifacts/local/shimonoseki10-ram-supervisor-review.md",
+          "bytes": 3019,
+          "sha256": "bec82d5c28891b62f629f3710cf475b5f28a53a70a268babd12fce4f690de16b"
+        },
+        {
+          "file": "artifacts/local/shimonoseki10-independent-image-audit.md",
+          "bytes": 4377,
+          "sha256": "d0626c8e6d62102272b62d7ee1540017ef63dd6b179510f5b59e031889c79014"
+        },
+        {
+          "file": "artifacts/local/shimonoseki10-video-artifact-audit.md",
+          "bytes": 4692,
+          "sha256": "ff50e5cdb2b701517dc3aa65c6e786fdb517824b3a515493a5bc6efa54a3fed4"
+        },
+        {
+          "file": "artifacts/local/shimonoseki10-result-caller-review.md",
+          "bytes": 6274,
+          "sha256": "4434e33c50ba57d7007d40e8a7041ed087b8a698d9017899951d7d468f2c9e8c"
+        },
+        {
+          "file": "artifacts/local/shimonoseki10-result-v2-artifact-audit.md",
+          "bytes": 3913,
+          "sha256": "95e79b382c2cdcd1fac12d5d0ae7eb90a37b5e4cb710d4cd90fbde46feb73f1d"
+        },
+        {
+          "file": "artifacts/local/shimonoseki12-name-caller-review.md",
+          "bytes": 4456,
+          "sha256": "255411d11bd0da1bfc7bf8a5f08ded51fd870a956578091d84290182d5a5d53a"
+        },
+        {
+          "file": "artifacts/local/shimonoseki12-name-artifact-audit.md",
+          "bytes": 2525,
+          "sha256": "d664f6c1d20df3af32c1a6cfc51305f6d91a600bbf240d729d26ab30fceadabe"
+        },
+        {
+          "file": "artifacts/local/shimonoseki12-numeric-caller-review.md",
+          "bytes": 4817,
+          "sha256": "227d858297ada3866d9924a5789833cf7ea9431399465c3fc87ee5eee98e64ee"
+        },
+        {
+          "file": "artifacts/local/shimonoseki12-numeric-artifact-audit.md",
+          "bytes": 7448,
+          "sha256": "083fef81bbb951613b6e91d6bacf046cd650592be9e912abd211975e77ce0d4b"
+        },
+        {
+          "file": "artifacts/local/shimonoseki-platform-replay-review.md",
+          "bytes": 5625,
+          "sha256": "ccc12afb423215b03b9545693ccc34bfa687404d012f153cb20c3ca78238afa3"
+        }
+      ],
+      "open_findings": 0,
+      "new_helper_synthetic_groups": {
+        "name10": 62,
+        "numeric10": 71,
+        "video10": 27,
+        "ram_supervisor": 33,
+        "result10": 73,
+        "name12": 20,
+        "numeric12": 27
+      },
+      "prior_reference_ci": {
+        "head": "e5f569ce4bfa598601e16a3ffdaccdd9f728a09a",
+        "python_each_platform": 1090,
+        "javascript_each_platform": 203
+      },
+      "new_local_tests": {
+        "python": 1098,
+        "javascript": 203,
+        "failures": 0,
+        "skips": 0
+      },
+      "new_exact_head_ci_preview_api_backup": "PENDING_AFTER_COMMIT_AT_THIS_RECORDED_AT"
+    },
+    "preserved": {
+      "all_frozen_baselines": 274,
+      "day16_baselines": 156,
+      "day15_baselines": 118,
+      "eligible_individual_result_evaluations": 4,
+      "separately_saved_result_labels": 5,
+      "fixed_archived_cohort_races": 3,
+      "fixed_archived_cohort_days": 2,
+      "fixed_archived_cohort_bytes": 7173,
+      "archived_cohort_original_as_of_unchanged": true,
+      "daily_real_capture_jst": "2026-10-16T19:08:36.977875+09:00",
+      "next_same_day_six_hour_jst": "2026-10-17T01:08:36.977875+09:00",
+      "new_jst_day_exact_missing_is_separate": true,
+      "scripts_workflow_config_and_video_trees_unchanged": true,
+      "oidc_and_all_deployments_protection_unchanged": true,
+      "previous_success_failure_records_unchanged": true
+    },
+    "gates": {
+      "numeric_example_races": 6,
+      "automated_verified_hull_ids": 0,
+      "physical_exhibition_pairs": 0,
+      "world_and_physical_clock_calibration": "UNVERIFIED",
+      "all_race_video_forecasts_complete": false,
+      "held_out_calibration_and_adoption": "UNVALIDATED",
+      "validation_status": "UNVALIDATED",
+      "purchase_decision": "skip",
+      "purchase_recommendations": []
+    },
+    "next": "Keep completed10/12 names/numeric,10 result/video immutable. After12 cutoff and120s, only its exact result404 and fresh five-state/lease/current-day/own-forecast checks may authorize one new separate result label. No retrospective predictions. Validate domain-specific hull/digit labels and world/time/measurement quality on new held-out inputs before video adoption; continue prospective physical pairs/all-race capture. New JST-day exact missing allows one validated day update after00:00, not forced waiting until01:08."
+  }
 }
