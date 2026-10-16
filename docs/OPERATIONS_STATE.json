@@ -2971,7 +2971,7 @@
     "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca"
   },
   "trusted_worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-  "updated_at": "2026-10-16T07:34:43.258606+00:00",
+  "updated_at": "2026-10-16T08:10:56.074490+00:00",
   "current_day16_prospective_target": {
     "race_id": "20261016-14-01",
     "request_id": "38798278470-1",
@@ -5518,5 +5518,136 @@
       "skips": 0,
       "video_runtime_required": true
     }
+  },
+  "normal_live_chapter_reader": {
+    "schema_version": 1,
+    "recorded_at": "2026-10-16T08:10:56.072505+00:00",
+    "operation": "NEW_BOUNDED_PUBLISHER_LIVE_CHAPTER_SEEK_READER",
+    "base_head": "a21f289475e0dcd8e47440f1327a5aaf8aeca126",
+    "source_route": "https://front.player.boatrace-cdn.jp/setting/chapter/{stadium}/mix/chapter.json",
+    "public_code_evidence": {
+      "url": "https://front.player.boatrace-cdn.jp/js/live.js",
+      "sha256": "eeb812473c139e2f32127b3e49774ffdeb48c97cef7821598e0e191f7ae465d8",
+      "captured_at": "2026-10-16T07:57:08.461258+00:00",
+      "mapping": "ChapterBox02 item ordinal selects position_${ordinal+1}; value is passed to player.currentTime",
+      "raw_script_saved": false
+    },
+    "observed_publisher_label_order": [
+      "展示ピットアウト",
+      "周回展示",
+      "本番ピットアウト",
+      "スタート直前",
+      "1マーク"
+    ],
+    "ui_observation": {
+      "venue": "24",
+      "time_precision": "APPROXIMATE_NOT_INDEPENDENT_EVENT_CLOCK",
+      "chapter_mode_exited": true,
+      "player_remained_paused": true,
+      "browser_media_requests": "UNMETERED_NOT_ZERO_CLAIM"
+    },
+    "first_source_probe": {
+      "captured_at": "2026-10-16T07:56:20.884398+00:00",
+      "bytes": 1131,
+      "sha256": "ebc1c73451c43fcc2a1eb16a78357a170dd810279024ef00716781c2fe86a494",
+      "publisher_last_update": "2026-10-16T16:42:28+09:00",
+      "indexed_slots": 12,
+      "published_seek_points": 22,
+      "raw_json_retained": false
+    },
+    "actual_new_contract_call": {
+      "status": "COMPLETED_SEEK_METADATA_ONLY",
+      "captured_at": "2026-10-16T08:06:52.818659+00:00",
+      "metadata_get_attempts": 2,
+      "media_or_key_gets": 0,
+      "posts": 0,
+      "venue": "24",
+      "indexed_slots": 12,
+      "published_seek_points": 25,
+      "races_with_all_five_publisher_points": 5,
+      "exhibition_label_seek_points": 10,
+      "schedule_snapshot_id": "d2b11d4a9391ed115b34e7d237444815ae1005eefa132b9f64f2e44e8a6c1727",
+      "chapter_snapshot_id": "bf06a282d126ae2b9acfd5b3e02aebd1397153195c5f6a0bbe67e0600ebbee43",
+      "source_sha256": "fbc4e45e9a7cb1499d670d34442df228716cc78c5459d5404bbdb854c05c8515",
+      "reader_source_sha256": "5f2ff162e1867ff5a72959b78e01dc879836238df0b8c3a0460eccc9ef7f2717",
+      "raw_source_retained": false,
+      "detailed_derived_seek_points_publicly_published": false
+    },
+    "overall_known_http_operations": {
+      "metadata_get_attempts": 4,
+      "media_or_key_gets": 0,
+      "cloud_posts": 0,
+      "browser_requests_separate_unmetered": true,
+      "web_open_tool_inaccessible_separate": true
+    },
+    "reader_contract": {
+      "one_chapter_metadata_get": true,
+      "max_bytes": 65536,
+      "timeout_seconds": 10,
+      "max_parent_age_seconds": 90,
+      "no_redirects": true,
+      "hash_bound_schedule_snapshot_frozen_before_get": true,
+      "parent_scope_clocks_gates_rechecked_after_get": true,
+      "rows": 12,
+      "exact_position_keys": 5,
+      "positions": "POSITIVE_INTEGER_AT_MOST86400_OR_EXACT_EMPTY_STRING",
+      "supported_order": "OBSERVED_GLOBALLY_INCREASING_NONMISSING_PREFIX_ONLY; GAPS_OR_OTHER_PATTERNS_STOP_AS_UNSUPPORTED",
+      "indexed_race_numbers_are_publisher_labels_not_verified_frames": true,
+      "schedule_start_plus_offset_conversion": false,
+      "exhibition_intervals_inferred": false,
+      "player_time_origin": "UNVERIFIED",
+      "frame_race_phase_verification": "UNVERIFIED",
+      "physical_exhibition_timing": "UNVERIFIED",
+      "prediction_input_eligible": false,
+      "boat_features": []
+    },
+    "tdd": {
+      "initial_red": "ModuleNotFoundError: race_ai.live_video_chapters",
+      "mutable_parent_regression_red": "venue02 != venue24 when callback swapped the parent during GET",
+      "fix": "private canonical JSON copy before the request",
+      "new_tests": 14,
+      "focused_live_vod_tests": 43,
+      "focused_failures": 0,
+      "full_local_suite": {
+        "python_tests": 1044,
+        "seconds": 315.946,
+        "failures": 0,
+        "skips": 0,
+        "video_runtime_required": true,
+        "javascript_tree_unchanged": true,
+        "prior_exact_tree_ci_javascript_tests": 203,
+        "javascript_fresh_latest_head_ci": "PENDING_AFTER_COMMIT"
+      }
+    },
+    "independent_review": {
+      "status": "PASS",
+      "findings": 0,
+      "focused_tests": 43,
+      "independent_synthetic_probes": 19,
+      "retained_output_consistency_groups": 5,
+      "report": "live-chapter-reader-review.md",
+      "bytes": 5076,
+      "sha256": "b623e8b2ba1dedb9e46dc8a1f09874b3fe166f3d5829b7e86e1882cb4eedd7c0",
+      "source_sha256": "5f2ff162e1867ff5a72959b78e01dc879836238df0b8c3a0460eccc9ef7f2717",
+      "test_sha256": "ebe394ddc91309d45fcf119cc7ceb649495ed8f37363e6157adadd280a0c96d5",
+      "network_requests": 0,
+      "disposed_raw_source_hash_recomputed": false
+    },
+    "latest_head_ci_preview": "PENDING_AFTER_COMMIT",
+    "preserved": {
+      "all274_baselines": true,
+      "individual_result_count": 4,
+      "fixed_aggregate_races": 3,
+      "fixed_aggregate_days": 2,
+      "all_old_names_numeric_videos_results_failures": true,
+      "legacy_live_schedule_vod_config_workflows": true,
+      "last_daily_real_capture_jst": "2026-10-16T12:54:49.102563+09:00",
+      "next_daily_six_hours_jst": "2026-10-16T18:54:49.102563+09:00"
+    },
+    "physical_exhibition_pairs": 0,
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "formal_completion": false
   }
 }
