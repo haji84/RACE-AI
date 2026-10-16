@@ -36,3 +36,18 @@
 GORIQ mainにはAI-09の読み取り専用モデル評価機能（PR #1797）があるが、自動検出・GitHubコメント投稿をつなぐPR #1799は未統合で、実機の完走証拠も未達。GORIQ専用のコードがRACE AIのPRに対応済みとは見なさない。接続はローカル認証情報をモデルへ渡さない設計、最新head照合、別投稿主体、セキュリティ・権限・Human Gateを維持して別途審査する。
 
 本PilotのRead-only判定だけで「AI社員レビュー完了」「GitHub APPROVED」「統合許可」を宣言してはならない。
+
+
+## GORIQ AI-09 接続用の実装済み境界（PR #65）
+- `scripts/ai09-review-handoff.mjs` はRACE AIのPR、最新base/head、対象commitのGitHub Actionsチェック結果を読み取り、`GORIQ_AI09_ADVISORY_REQUEST_V1` の機械可読リクエストを生成する。
+- CIが最新SHAで揃わなければ `WAIT_FOR_EXACT_HEAD_CI`。揃った場合も `REQUEST_AI09` までで、モデルを起動したことにはならない。
+- AI-09が問題を指摘した場合のBuilder/Debugger修正指示は、現段階では権限を持たない助言レコード。修正の実行・完了を示さない。古いhead/baseや第三者の単なるコメントは正式レビュー証拠として採用しない。
+- `NO_ACTIONABLE_FINDINGS` でもGitHub正式承認、独立Reviewerアカウント、Human Gate、main統合の代替ではない。
+- 本接続はGitHub read-only、PRからの任意コード実行なし、秘密情報をモデルへ送らず、書込み/merge/権限変更/公開はゼロ。
+- GORIQ側PR #1799はCI成功済みだが、公開リポジトリ上のself-hosted ZBook隔離、当該正確なコミットの独立技術レビュー、workflowのissues:write有効化権限、実機Ollama→投稿のE2Eを満たすまで保留。RACE AIのレシート検証・限定権限のクロスリポジトリ投稿も未実装。
+- 独立レビューはAI-09。CodeRabbitは呼び出さず、成果を採用しない。GORIQの既存AI社員体系を再利用し、第三者サービスへの置換はしない。
+
+### 先行試験の実行方法
+`node --test tests/ai09-review-handoff.test.mjs`（GitHub上のPRでは、既存completion-controller-pilotのテストと同時に実行）。
+`node scripts/ai09-review-handoff.mjs --pr 65`（GitHub APIと読み取り権限が必要）。
+出力が `REQUEST_AI09` でもレビュー済みではない。実機モデルが独立処理し、レビューレシートが検証できるまで完成として計上しない。
