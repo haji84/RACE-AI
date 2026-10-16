@@ -2971,7 +2971,7 @@
     "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca"
   },
   "trusted_worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-  "updated_at": "2026-10-16T08:10:56.074490+00:00",
+  "updated_at": "2026-10-16T09:28:29.602129+00:00",
   "current_day16_prospective_target": {
     "race_id": "20261016-14-01",
     "request_id": "38798278470-1",
@@ -5649,5 +5649,168 @@
     "purchase_decision": "skip",
     "purchase_recommendations": [],
     "formal_completion": false
+  },
+  "video_number_marks_v5": {
+    "actual_video": {
+      "actual_new_product_v5_full_decode": false,
+      "all_pts_segments_consistent": 61,
+      "analysis_completed_at": "2026-10-16T08:53:50.175192+00:00",
+      "automated_verified_hull_ids": 0,
+      "capture_started_at": "2026-10-16T08:53:13.539139+00:00",
+      "declared_seconds": 366,
+      "duration_unit_or_difference_resolved": false,
+      "encoded_bytes_read": 26720899,
+      "frames_decoded": 10980,
+      "frames_sampled": 122,
+      "local_ocr_retained_observations": 25,
+      "local_ocr_unique_frames": 24,
+      "manual_subject_registration_pairs": 6,
+      "metadata_duration_raw": 358,
+      "originals_retained": false,
+      "race_id": "20261016-24-07",
+      "request_attempts": {
+        "index": 1,
+        "key": 1,
+        "master": 1,
+        "metadata": 1,
+        "playlist": 1,
+        "segment": 61
+      },
+      "resolution": [
+        854,
+        480
+      ],
+      "segments": 61,
+      "source_selection": "OFFICIAL_EXHIBITION_VOD_FALLBACK_NOT_LIVE_CHAPTER_DECODE"
+    },
+    "base_head": "252ae4772028b48ad7c3a6eff46b2031192184ae",
+    "gates": {
+      "all_race_video_forecasts_complete": false,
+      "physical_exhibition_pairs": 0,
+      "prediction_input_eligible": false,
+      "purchase_decision": "skip",
+      "purchase_recommendations": [],
+      "validation_status": "UNVALIDATED",
+      "world_calibration": "UNVERIFIED"
+    },
+    "implementation": {
+      "clip_window_contract": "explicit-only public-exhibition-clip-window/v1, opaque source integers, same pinned exhibition refs; old default still rejects",
+      "cloudfront_key_or_m_segment_scope_added": false,
+      "digits_are_unverified_markings": true,
+      "legacy_v1_to_v4_defaults_unchanged": true,
+      "local_ocr": "rapidocr3.10.0 / onnxruntime1.31.0 / 3 verified bundled models / CPU1 thread / explicit paths / no auto-download",
+      "new_live_media_scope_added": false,
+      "opt_in_number_observer": "transient-hls-number-marks/v5",
+      "source_files": {
+        "race_ai/exhibition_video_decode.py": "d66fc25aff2de7c8b170c21068c204e80cd15cbed37965bf551611b8f80bea5b",
+        "race_ai/local_number_ocr.py": "ba4934f29520dd2a0db760f0c4cd8fa364afc2661d73096e32a5728ba49dd54a",
+        "race_ai/video_number_marks.py": "908d993f22e8a068d9bd9e88042620eb8f84ea58d0d43209687b1c70537dcb2a",
+        "requirements-video.txt": "7d0be9fa027aa66585857aa1e9e7ae56b81c36b2595b221bdddb414c8a4aae38",
+        "tests/test_exhibition_clip_window.py": "c3ea416a599140b425b20d5f9838b97c42e9309c69d02b451071440575de702f",
+        "tests/test_local_number_ocr.py": "19d10a5f938fb7f1b7bdbee177f174d06c5f9ec418589c9d72ce7a5f82c163b2",
+        "tests/test_video_number_mark_integration.py": "20e095d37d32a0ac4743e96bcc11cea0aa1982308d5d1387cb4e1c20ef6cd197",
+        "tests/test_video_number_marks.py": "a216a61dd96de05d4a76c6a25d5636a77f0050c18eb3bc58898400189ee5fea5"
+      }
+    },
+    "live_access": {
+      "first_unencoded_request": "AUTH_UNAVAILABLE",
+      "initial_failure_root_cause_proven": false,
+      "later_exact_sdk_dvr_request": "MEDIA_NOT_FOUND",
+      "later_exact_sdk_live_request": "MEDIA_NOT_FOUND",
+      "normal_direct_player_display": "media could not be played"
+    },
+    "new_cloud_writes": 0,
+    "new_forecast_posts": 0,
+    "new_omura8_attempts": [
+      {
+        "requests": {
+          "index": 1,
+          "master": 1,
+          "metadata": 1
+        },
+        "stage_of_original_failure_proven": false,
+        "status": "STOPPED",
+        "variant": "default-v5"
+      },
+      {
+        "observed_error": "VIDEO_HLS_RESOURCE_SCOPE_INVALID",
+        "observed_stage": "parse_vod",
+        "requests": {
+          "index": 1,
+          "master": 1,
+          "metadata": 1,
+          "playlist": 1
+        },
+        "status": "STOPPED",
+        "variant": "explicit-window-v1"
+      }
+    ],
+    "next": [
+      "separate strict returned clip-key/segment contract without changing legacy defaults",
+      "verified body/hull region detector and independent frame-label audit",
+      "world/time calibration and quality",
+      "prospective all-race post versions and unchanged pre comparison",
+      "held-out video contribution and adoption evidence"
+    ],
+    "preserved": {
+      "baselines": 274,
+      "day_last_real_capture_jst": "2026-10-16T12:54:49.102563+09:00",
+      "day_next_six_hour_condition_jst": "2026-10-16T18:54:49.102563+09:00",
+      "frozen_cohort_days": 2,
+      "frozen_cohort_races": 3,
+      "individual_evaluated_races": 4,
+      "old_successes_and_failures_unchanged": true
+    },
+    "recorded_at": "2026-10-16T09:28:29.602129+00:00",
+    "review_fixes": [
+      "camera-confirmed cuts reset number associations before observation",
+      "OCR receives detached pixels to preserve camera history",
+      "positive bounded dimensions and huge-integer rejection",
+      "returned observations detach from internal history"
+    ],
+    "schema_version": "exhibition-number-vision-stage/v1",
+    "separate_stage_diagnoses": {
+      "child": {
+        "error": "VIDEO_HLS_RESOURCE_SCOPE_INVALID",
+        "key_requests": 0,
+        "media_segment_requests": 0,
+        "observed_key_origin": "https://d28jce9iiridbn.cloudfront.net",
+        "observed_segment_query_fields": [
+          "m"
+        ],
+        "requests": {
+          "index": 1,
+          "master": 1,
+          "metadata": 1,
+          "playlist": 1
+        }
+      },
+      "master": {
+        "error": "VIDEO_HLS_QUERY_INVALID",
+        "observed_fields": [
+          "start",
+          "end",
+          "vt"
+        ],
+        "requests": {
+          "index": 1,
+          "master": 1,
+          "metadata": 1
+        }
+      }
+    },
+    "source_originals_or_ephemeral_urls_tokens_keys_retained": false,
+    "verification": {
+      "focused_new_tests": 19,
+      "independent_review": "CODE_PASS_0_REPORTED; report_follows_at_its_own_timestamp",
+      "latest_exact_head_ci": "PENDING_AT_RECORDED_AT",
+      "latest_local_full_python": {
+        "failures": 0,
+        "seconds": 317.373,
+        "skips": 0,
+        "tests": 1063
+      },
+      "latest_preview": "PENDING_AT_RECORDED_AT"
+    }
   }
 }

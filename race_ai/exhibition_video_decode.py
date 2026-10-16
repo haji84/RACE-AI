@@ -38,6 +38,7 @@ class Variant:
     width: int
     height: int
     bandwidth: int
+    window: tuple[str, str] | None = field(default=None, repr=False)
 
 
 @dataclass(frozen=True)
@@ -82,8 +83,9 @@ def _url(value, host, path):
     return parsed
 
 
-def select_variant(raw, media_id, source_id):
-    lines = _text(raw); candidates = []
+def select_variant(raw, media_id, source_id, *, clip_window=False):
+    require(type(clip_window) is bool, 'VIDEO_HLS_CLIP_WINDOW_FLAG_INVALID')
+    lines = _text(raw); candidates = []; windows = set()
     for n, line in enumerate(lines):
         if not line.startswith('#EXT-X-STREAM-INF:'): continue
         attrs = _attributes(line.split(':', 1)[1])
@@ -97,12 +99,23 @@ def select_variant(raw, media_id, source_id):
         path = rf'/v5/{PROJECT}/{media_id}/{source_id}/manifest_([1-9][0-9]?)\.m3u8'
         parsed = _url(url, 'variants.streaks.jp', path)
         query = parse_qs(parsed.query, keep_blank_values=True)
-        require(set(query) == {'vt'} and len(query['vt']) == 1 and
+        fields = set(query)
+        require(fields == {'vt'} or (clip_window and fields == {'vt','start','end'}),
+                'VIDEO_HLS_QUERY_INVALID')
+        window = None
+        if fields != {'vt'}:
+            require(all(len(query[k]) == 1 and re.fullmatch(r'[1-9][0-9]{9}',query[k][0])
+                        for k in ('start','end')), 'VIDEO_HLS_CLIP_WINDOW_INVALID')
+            window = query['start'][0], query['end'][0]
+            require(0 < int(window[1])-int(window[0]) <= 600, 'VIDEO_HLS_CLIP_WINDOW_INVALID')
+        windows.add(window)
+        require(len(windows) == 1, 'VIDEO_HLS_CLIP_WINDOWS_MIXED')
+        require(len(query['vt']) == 1 and
                 re.fullmatch(r'[A-Za-z0-9._~+/=-]{1,8192}', query['vt'][0]) is not None,
                 'VIDEO_HLS_QUERY_INVALID')
         number = int(re.fullmatch(path, parsed.path)[1])
         if width * height <= MAX_PIXELS:
-            candidates.append(Variant(url, number, width, height, bandwidth))
+            candidates.append(Variant(url, number, width, height, bandwidth, window))
     require(1 <= len(candidates) <= 8, 'VIDEO_HLS_NO_BOUNDED_VARIANT')
     return min(candidates, key=lambda v: (v.bandwidth, v.width * v.height))
 
@@ -179,15 +192,25 @@ def _candidates(frame):
 
 def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
                        sample_interval=2.0, segment_limit=MAX_SEGMENTS, elapsed_limit=90, camera_motion=False,
-                       program_clock=False, frame_timing=False):
+                       program_clock=False, frame_timing=False,
+                       number_mark_ocr=None, number_mark_exclusions=None, clip_window=False):
     """A consumed lease returns derived evidence only. Runtime fails before media GETs."""
     start = stamp(clock()); validate_descriptor(descriptor, race, start)
     require(descriptor['status'] == 'AVAILABLE' and lease is not None, 'VIDEO_RECORDING_UNAVAILABLE')
     require(type(sample_interval) in (int, float) and .5 <= sample_interval <= 10
             and type(segment_limit) is int and 1 <= segment_limit <= MAX_SEGMENTS
             and type(elapsed_limit) in (int, float) and 1 <= elapsed_limit <= 120
-            and type(camera_motion) is bool and type(program_clock) is bool and type(frame_timing) is bool,
+            and type(camera_motion) is bool and type(program_clock) is bool and type(frame_timing) is bool
+            and type(clip_window) is bool,
             'VIDEO_PROCESSING_BOUNDS_INVALID')
+    require((number_mark_ocr is None and number_mark_exclusions is None)
+            or (callable(number_mark_ocr) and type(number_mark_exclusions) is list),
+            'VIDEO_NUMBER_MARK_CONTRACT_INVALID')
+    if number_mark_ocr is not None:
+        from .video_number_marks import NumberMarkTracker
+        # Detach caller-owned masks before any processing callback runs.
+        import json
+        number_mark_exclusions = json.loads(canonical(number_mark_exclusions))
     try:
         import av
         import cv2
@@ -219,7 +242,9 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
             return response.body
         master_raw = read(master_url, MANIFEST_BYTES, MIME_HLS)
         master_sha = hashlib.sha256(master_raw).hexdigest()
-        variant = select_variant(master_raw, media['id'], media['source_id']); master_raw = None
+        variant = (select_variant(master_raw, media['id'], media['source_id'], clip_window=True)
+                   if clip_window else select_variant(master_raw, media['id'], media['source_id']))
+        master_raw = None
         child_raw = read(variant.url, MANIFEST_BYTES, MIME_HLS)
         child_sha = hashlib.sha256(child_raw).hexdigest()
         segments = parse_vod(child_raw, media['id'], media['source_id'], variant)
@@ -234,7 +259,7 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
         sharpness = []; sizes = set(); segment_hash = hashlib.sha256()
         previous_pixels = None; previous_candidates = []; previous_second = None
         camera_attempts = camera_accepted = 0; camera_rejections = {}; camera_rmse = []; camera_inliers = []
-        frame_summaries = []
+        frame_summaries = []; number_tracker = None
         try:
             for number, segment in enumerate(segments[:segment_limit]):
                 decoded_before_segment = decoded
@@ -273,7 +298,8 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
                         sharpness.append(float(cv2.Laplacian(gray, cv2.CV_64F).var()))
                         # Segment/cut boundaries never create a cross-shot camera estimate or association.
                         thumbnail = cv2.resize(gray, (32, 18))
-                        if previous is not None and float(cv2.absdiff(previous, thumbnail).mean()) > 35:
+                        scene_cut = previous is not None and float(cv2.absdiff(previous, thumbnail).mean()) > 35
+                        if scene_cut:
                             local_tracks = []
                             previous_pixels = None; previous_candidates = []; previous_second = None
                         previous = thumbnail; candidates = _candidates(pixels); used = set()
@@ -295,6 +321,15 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
                                 camera_rejections[status] = camera_rejections.get(status, 0) + 1
                                 if status in {'UNVERIFIED_SCENE_CHANGE', 'UNVERIFIED_SIZE_CHANGE'}:
                                     local_tracks = []
+                                    scene_cut = True
+                        if number_mark_ocr is not None:
+                            if number_tracker is None:
+                                number_tracker = NumberMarkTracker(width=frame.width, height=frame.height,
+                                                                   exclusions=number_mark_exclusions)
+                            require((number_tracker.width, number_tracker.height) == (frame.width, frame.height),
+                                    'VIDEO_NUMBER_MARK_SIZE_CHANGED')
+                            number_tracker.observe(number_mark_ocr(pixels.copy()), second=offset+position,
+                                                   segment=number, scene_cut=scene_cut)
                         for candidate in candidates:
                             matches = []
                             for i, t in enumerate(local_tracks):
@@ -389,6 +424,13 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
                         wall_clock_mapping='NOT_COMPUTED_FIRST_MEDIA_SAMPLE_ALIGNMENT_UNVERIFIED',
                         source_frame_completeness_verified=False, independent_clock_verified=False,
                         physical_exhibition_time_verified=False, prediction_eligible=False))
+            if number_tracker is not None:
+                result.update(analysis_version='transient-hls-number-marks/v5',
+                              number_marks=number_tracker.finish())
+            if clip_window:
+                result['clip_window_contract'] = dict(schema_version='public-exhibition-clip-window/v1',
+                    opaque_source_window=list(variant.window) if variant.window else None,
+                    wall_clock_alignment='UNVERIFIED', prediction_eligible=False)
             result['snapshot_id']=hashlib.sha256(canonical(result)).hexdigest()
             require(time.monotonic()-began < elapsed_limit, 'VIDEO_PROCESSING_TIME_EXCEEDED')
             return result
