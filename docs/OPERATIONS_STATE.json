@@ -2985,7 +2985,7 @@
     "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca"
   },
   "trusted_worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-  "updated_at": "2026-10-15T23:27:17.165354+00:00",
+  "updated_at": "2026-10-16T00:23:45.780397+00:00",
   "current_day16_prospective_target": {
     "race_id": "20261016-14-01",
     "request_id": "38798278470-1",
@@ -3007,7 +3007,7 @@
     "closed_at_jst": "2026-10-16T08:35:00+09:00",
     "baseline_request_id": "38764082826-1",
     "baseline_cloud_saved_at": "2026-10-15T15:52:34.176159+00:00",
-    "status": "OWN_NAME_PROOF_READY_WAIT_FOR_EXHIBITION_NUMERICS",
+    "status": "CLOSED_WITHOUT_NEW_NUMERIC_FORECAST_SOURCE_TIMEOUT_RECORDED",
     "physical_exhibition_timing_verified": false,
     "numeric_v2_saved": false,
     "video_measured": false
@@ -3025,7 +3025,7 @@
     "evidence": "docs/evidence/2026-10-16/day-refresh0635-live.json"
   },
   "video_program_clock_v3": {
-    "status": "IMPLEMENTED_LOCAL_SYNTHETIC_VERIFIED_LIVE_MEDIA_UNVERIFIED",
+    "status": "IMPLEMENTED_AND_ONE_NEW_V3_REAL_CLIP_DECODED_TIMING_UNVALIDATED",
     "analysis_version": "transient-hls-color-candidates/v3",
     "opt_in": "program_clock=True",
     "local_python_tests": 981,
@@ -3035,8 +3035,11 @@
     "independent_clock_verified": false,
     "physical_exhibition_time_verified": false,
     "frame_time_mapping": "NOT_COMPUTED",
-    "new_real_media_decodes": 0,
-    "evidence": "docs/evidence/2026-10-16/program-clock-v3-local.json"
+    "new_real_media_decodes": 1,
+    "evidence": "docs/evidence/2026-10-16/program-clock-v3-local.json",
+    "latest_live_evidence": "docs/evidence/2026-10-16/naruto2-live.json",
+    "latest_live_race_id": "20261016-14-02",
+    "live_capture_eligible_pre_race": false
   },
   "current_day16_exhibition_readiness": {
     "race_id": "20261016-14-01",
@@ -3057,5 +3060,102 @@
     "numeric_remote_absence_verified": false,
     "initial_beforeinfo_captured_at": "2026-10-15T22:34:05.264265+00:00",
     "last_successful_beforeinfo_captured_at": "2026-10-15T23:09:43.930892+00:00"
+  },
+  "current_day16_latest_saved_comparison": {
+    "race_id": "20261016-14-02",
+    "closed_at_jst": "2026-10-16T09:01:00+09:00",
+    "baseline_request_id": "38764082826-1",
+    "name_run": {
+      "run_id": 38825321604,
+      "job_id": 116731330712,
+      "artifact_id": 12014263629
+    },
+    "numeric_run": {
+      "run_id": 38825983437,
+      "job_id": 116733439500,
+      "artifact_id": 12014244917
+    },
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "physical_exhibition_before_after_pairs": 0,
+    "result_label_acquired": false,
+    "name_binding_request_id": "38825321604-1",
+    "numeric_request_id": "38825983437-1",
+    "receipt_confirmed_at": "2026-10-15T23:51:13.195580+00:00",
+    "seconds_before_close": 586.80442,
+    "all_files_and_fixed_latest_publisher_api_restored": true,
+    "video_v3_current_day_post_forecast_diagnostic_completed": true,
+    "completed_name_numeric_and_video_must_not_be_reacquired": true,
+    "evidence": "docs/evidence/2026-10-16/naruto2-live.json",
+    "result_attempt": {
+      "run_id": 38828308110,
+      "job_id": 116740888144,
+      "artifact_id": 12015623765,
+      "status": "FAILED_STOPPED_FULL_PARTIAL_BACKUP_RESTORED",
+      "workflow_commit": "e071480037d918714ea87288e9bc9598480f256d",
+      "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+      "race_id": "20261016-14-02",
+      "request_id": "38828308110-1",
+      "forecast_request_id": "38825983437-1",
+      "files": 3,
+      "bytes": 116984,
+      "zip_bytes": 23071,
+      "zip_sha256": "50cf55fe75398402a3c881cbad9804607ba5f5e3969eb8684a7a06205c2aae42",
+      "manifest": {
+        "backups": {
+          "forecast.json": {
+            "bytes": 114137,
+            "sha256": "ac66ceb2880019d3868aacf9ff65049c6113f0ce9ad94854f1e9457a88bdf117"
+          },
+          "program.json": {
+            "bytes": 2165,
+            "sha256": "cff0cbada6fecd5cae83a8264d1b1b8353061edd3dffb474917b7ec6a10babfe"
+          }
+        },
+        "commit_sha": "325ddce19ae999d626782a9929e6511c17d60ba1",
+        "failure_reason": "NAME_BOUND_EVALUATION_STOPPED",
+        "forecast_request_id": "38825983437-1",
+        "max_seconds": 240,
+        "official_source_requests": 1,
+        "operation": "NAME_BOUND_RESULT_PUBLICATION",
+        "posts_attempted": 0,
+        "purchase_decision": "skip",
+        "purchase_recommendations": [],
+        "race_id": "20261016-14-02",
+        "reads_used": 3,
+        "request_id": "38828308110-1",
+        "schema_version": 1,
+        "status": "STOPPED",
+        "validation_status": "UNVALIDATED"
+      },
+      "root_cause_proven": false,
+      "result_label_saved": false,
+      "raw_source_retained": false,
+      "full_forecast_bytes_unchanged": true,
+      "repeat_without_new_diagnostic_or_correction_forbidden": true
+    },
+    "result_source_diagnostic": {
+      "cloud_posts": 0,
+      "completed_at": "2026-10-16T00:23:40.476659+00:00",
+      "earlier_failed_run": "38828308110",
+      "earlier_failure_cause_proven": false,
+      "forecast_request_id": "38825983437-1",
+      "official_source_requests": 1,
+      "race_id": "20261016-14-02",
+      "raw_source_retained": false,
+      "response_summary": {
+        "body_bytes": 59168,
+        "html_mime": true,
+        "status": 200
+      },
+      "result_labels_saved": 0,
+      "scope": "POSTCLOSE_SOURCE_DIAGNOSTIC_NOT_PUBLICATION_OR_PREDICTION_INPUT",
+      "source_snapshot_discarded": true,
+      "started_at": "2026-10-16T00:23:31.805132+00:00",
+      "status": "SOURCE_INVALID",
+      "transport_elapsed_seconds": 8.5,
+      "worker_official_source_requests": 1
+    }
   }
 }

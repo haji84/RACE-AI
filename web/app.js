@@ -146,7 +146,7 @@
     $('race-list-title').textContent=code?UI.venueNames[Number(code)-1]+'のレース':'レース一覧';$('race-count').textContent=report?rows.length+'レース / 収録 '+report.races+'レース':'未取得';
     if(rows.length){$('race-cards').replaceChildren(...rows.map(r=>{
       const n=node('article','race-card'),header=node('div','race-card-header'),time=node('div','race-card-time');time.append(node('span','','締切時刻'),node('strong','',UI.timeLabel(r,report.date_jst)));header.append(node('span','sport-badge','ボートレース'),node('h3','',raceName(r)),time);
-      const bottom=node('div','race-card-bottom'),phase=node('p','race-phase-status',Original?.phaseStatus(phaseInventory.get(r.race_id))||Exhibition?.phaseStatus(phaseInventory.get(r.race_id))||'展示前 未確認 · 展示後 未確認 · オリジナル反映 未確認');bottom.append(node('p','muted',r.preview_available?'展示情報あり · AI評価は未検証':'展示情報 未取得 · AI評価は未検証'),button('出走表・詳細を見る →','outline-button',()=>{selectRace(r.race_id);showPage('detail');}));n.append(header,racerStrip(r),phase,bottom);return n;
+      const bottom=node('div','race-card-bottom'),phase=node('p','race-phase-status',Original?.phaseStatus(phaseInventory.get(r.race_id))||Exhibition?.phaseStatus(phaseInventory.get(r.race_id))||'展示前 未確認 · 展示後v1 未確認 · オリジナル反映v1 未確認');bottom.append(node('p','muted',r.preview_available?'出走表の展示欄あり · AI評価は未検証':'出走表の展示欄 未取得 · AI評価は未検証'),button('出走表・詳細を見る →','outline-button',()=>{selectRace(r.race_id);showPage('detail');}));n.append(header,racerStrip(r),phase,bottom);return n;
     }));return;}
     if(feedState==='loading'){const n=node('div','skeleton-card');n.setAttribute('aria-label','レースデータを読み込み中');for(let i=0;i<3;i++)n.append(node('span'));$('race-cards').replaceChildren(n);return;}
     const state=code?UI.venueState(report,code):report?.status==='NO_EVENT'?'no-event':feedState;
@@ -191,7 +191,7 @@
     const timeout=setTimeout(()=>request.abort(),15000);
     try{
       const response=await fetch('./api/exhibition-prediction?race_id='+encodeURIComponent(id),{cache:'no-store',credentials:'same-origin',signal:request.signal}),body=await readRaceBody(response);if(!valid())return;
-      if(response.status===404){postState='unobtained';postMessage='展示後予想はまだ保存されていません。展示前予想を更新済みとして代用しません。';return;}
+      if(response.status===404){postState='unobtained';postMessage='通常展示反映v1は未保存です。v2の保存状況は上の「保存済みの展示比較」で確認できます。';return;}
       if(!response.ok)throw new Error('展示後予想の取得に失敗しました。');
       const raw=JSON.parse(body),link=raw?.snapshot?.baseline_link;let pinned=baseline;
       if(!pinned||pinned.request_id!==link?.request_id){
@@ -260,7 +260,7 @@
     const timeout=setTimeout(()=>request.abort(),15000);
     try{
       const response=await fetch('./api/exhibition-prediction?race_id='+encodeURIComponent(id)+'&variant=original-v1',{cache:'no-store',credentials:'same-origin',signal:request.signal}),body=await readRaceBody(response);if(!valid())return;
-      if(response.status===404){originalState='unobtained';originalMessage='オリジナル反映予想は未保存です。既存の展示後予想で代用しません。';return;}if(!response.ok)throw new Error('オリジナル反映予想の取得に失敗しました。');
+      if(response.status===404){originalState='unobtained';originalMessage='オリジナル展示反映v1は未保存です。v2の保存状況は上の「保存済みの展示比較」で確認できます。';return;}if(!response.ok)throw new Error('オリジナル反映予想の取得に失敗しました。');
       const raw=JSON.parse(body),link=raw?.snapshot?.baseline_link;let pinned=baseline;
       if(!pinned||pinned.request_id!==link?.request_id){if(typeof link?.request_id!=='string'||!/^([1-9][0-9]{0,19})-([1-9][0-9]{0,3})$/.test(link.request_id))throw new Error('オリジナル反映予想の比較元を確認できません。');const response=await fetch('./api/prediction?race_id='+encodeURIComponent(id)+'&request_id='+encodeURIComponent(link.request_id),{cache:'no-store',credentials:'same-origin',signal:request.signal}),body=await readRaceBody(response);if(!valid())return;if(!response.ok)throw new Error('オリジナル反映予想の固定された比較元を取得できません。');pinned=UI.validatePredictionReceipt(JSON.parse(body),{race:current(),dateJst:day});}
       if(!Original?.validateReceipt)throw new Error('オリジナル反映予想の検証機能を読み込めませんでした。');
@@ -310,7 +310,7 @@
   }
   function refreshRaceSelect(){const rows=all().filter(r=>!current()||r.venue===current().venue);$('race-select').replaceChildren(...rows.map(r=>option(raceName(r),r.race_id)));$('race-select').disabled=!rows.length;if(rows.length)$('race-select').value=selectedId;else $('race-select').append(option('データ未取得',''));}
   function renderDetail(){
-    const race=current(),preview=updateFor('beforeinfo')?.record.data;$('detail-title').textContent=raceName(race);$('detail-breadcrumb').textContent=raceName(race);$('detail-cutoff').textContent=race?UI.timeLabel(race,report.date_jst):'未取得';$('detail-cutoff-status').textContent=race?UI.purchaseAvailability(race,report.date_jst).reason:'時刻未確認';$('race-meta').textContent=race?report.date_jst+' · '+race.boats.length+'艇 · 展示 '+(preview?.boats?.some(b=>b.display_time!=null||b.preview_st!=null)?'取得済み':'未取得'):'取得済みのレースから出走表を確認できます。';$('detail-to-picks').disabled=!race;
+    const race=current(),preview=updateFor('beforeinfo')?.record.data;$('detail-title').textContent=raceName(race);$('detail-breadcrumb').textContent=raceName(race);$('detail-cutoff').textContent=race?UI.timeLabel(race,report.date_jst):'未取得';$('detail-cutoff-status').textContent=race?UI.purchaseAvailability(race,report.date_jst).reason:'時刻未確認';$('race-meta').textContent=race?report.date_jst+' · '+race.boats.length+'艇 · 出走表の展示欄 '+(preview?.boats?.some(b=>b.display_time!=null||b.preview_st!=null)?'取得済み':'未取得'):'取得済みのレースから出走表を確認できます。';$('detail-to-picks').disabled=!race;
     $('detail-racers').replaceChildren(...racerStrip(race,true).children);$('weather-chips').replaceChildren();
     const weather=preview?.weather||{};for(const [label,key,unit]of [['風速','wind_speed_mps','m/s'],['風向番号','wind_direction_source_code',''],['波高','wave_height_cm','cm']])$('weather-chips').append(node('span','',label+' '+(weather[key]!=null?UI.text(weather[key])+unit:'未取得')));
     if(race){$('racers-body').replaceChildren(...race.boats.slice().sort((a,b)=>a.lane-b.lane).map(b=>{const row=node('tr'),lane=node('td'),name=node('td');lane.append(laneBadge(b.lane));name.append(node('span','table-name',UI.text(b.name)),node('small','table-registration','登録 '+b.racer_registration_id));row.append(lane,name,...['motor_no','average_st','display_time','preview_course'].map(key=>node('td','',UI.text(b[key]))));return row;}));}
@@ -376,9 +376,9 @@
     panel.append(renderEvaluation());return panel;
   }
   function renderExhibition(){
-    const panel=node('section','exhibition-comparison');panel.dataset.state=postState;panel.dataset.raceId=postRaceId;panel.append(node('h3','prediction-section-title','展示後予想'),node('p','photo-note','公式展示タイムを取り込んだ別保存の研究予測です。映像・オリジナル展示の解析完了を意味しません。'));
-    const state=node('div','race-update-status');state.dataset.state=postState;state.append(node('span','',({loading:'確認中',ready:'保存済み',unobtained:'未保存',error:'取得失敗',idle:'未確認'})[postState]),node('p','',postMessage||'選択レースの保存済み展示後予想を確認します。'));panel.append(state);
-    if(!postReceipt){panel.append(node('p','muted','展示後の確率・変化量は未取得です。展示ST・風・オリジナル展示タイム・映像特徴量を使った予測は表示していません。'));return panel;}
+    const panel=node('section','exhibition-comparison');panel.dataset.state=postState;panel.dataset.raceId=postRaceId;panel.append(node('h3','prediction-section-title','通常展示反映 v1（旧保存版）'),node('p','photo-note','公式展示タイムを使うv1の保存状況です。上のv2比較とは別の保存版です。'));
+    const state=node('div','race-update-status');state.dataset.state=postState;state.append(node('span','',({loading:'確認中',ready:'保存済み',unobtained:'v1未保存',error:'取得失敗',idle:'未確認'})[postState]),node('p','',postMessage||'選択レースの通常展示反映v1を確認します。'));panel.append(state);
+    if(!postReceipt){panel.append(node('p','muted','このv1版の確率・変化量は表示できません。v2版は上の「保存済みの展示比較」で確認してください。'));return panel;}
     const s=postReceipt.snapshot,base=s.baseline_link,source=s.beforeinfo_link,percent=p=>(p*100).toFixed(2)+'%',delta=p=>(Math.abs(p)<1e-10?'0.00':(p>0?'+':'')+(p*100).toFixed(2))+'pt';
     const baselineLabel=base.model_id==='official-program-rating-pl'?'全国勝率（得点）の単純比較':'全艇同じ強さの比較基準';
     panel.append(node('p','post-comparison-baseline','比較元の展示前予想：'+baselineLabel+' ／ 保存リクエスト '+base.request_id+(predictionReceipt?.request_id!==base.request_id?'。左側の最新予想とは別の、固定された保存版に対する差です。':'。左側のモデル切替にかかわらず、この比較元に固定しています。')));
@@ -395,9 +395,9 @@
     return panel;
   }
   function renderOriginal(){
-    const panel=node('section','original-comparison');panel.dataset.state=originalState;panel.dataset.raceId=originalRaceId;const head=node('div','section-head'),action=button(originalState==='loading'?'確認中…':'オリジナル反映予想を確認','outline-button',loadOriginal);action.id='load-original-exhibition';action.disabled=originalState==='loading'||predictionState==='loading';head.append(node('h3','prediction-section-title','オリジナル展示を反映した別予想'),action);panel.append(head,node('p','photo-note','選択したレースだけを確認します。通常の展示タイムだけを使うv1モデルとは別の、未学習・未検証モデルです。'));
+    const panel=node('section','original-comparison');panel.dataset.state=originalState;panel.dataset.raceId=originalRaceId;const head=node('div','section-head'),action=button(originalState==='loading'?'確認中…':'オリジナル反映v1を確認','outline-button',loadOriginal);action.id='load-original-exhibition';action.disabled=originalState==='loading'||predictionState==='loading';head.append(node('h3','prediction-section-title','オリジナル展示反映 v1（旧保存版）'),action);panel.append(head,node('p','photo-note','選択レースのオリジナル展示反映v1を確認します。上のv2比較とは別の保存版です。'));
     const state=node('div','race-update-status');state.dataset.state=originalState;state.append(node('span','',({loading:'確認中',ready:'保存済み',unobtained:'未保存',error:'取得失敗',idle:'未確認'})[originalState]),node('p','',originalMessage||'元データと保存済みの別予想を取得するには、確認ボタンを押してください。'));panel.append(state);
-    if(!originalReceipt){panel.append(node('p','muted','オリジナル展示の実測値・確率は未取得です。映像特徴量を使った予測は表示していません。'));return panel;}
+    if(!originalReceipt){panel.append(node('p','muted','このv1版の実測値・確率は表示できません。v2版は上の「保存済みの展示比較」で確認してください。'));return panel;}
     const s=originalReceipt.snapshot,base=s.baseline_link,source=s.original_link,percent=p=>(p*100).toFixed(2)+'%',delta=p=>(Math.abs(p)<1e-10?'0.00':(p>0?'+':'')+(p*100).toFixed(2))+'pt';
     const baselineLabel=base.model_id==='official-program-rating-pl'?'全国勝率（得点）の単純比較':'全艇同じ強さの比較基準';panel.append(node('p','original-pinned-baseline','固定された比較元：'+baselineLabel+' ／ 保存リクエスト '+base.request_id+'。左側のモデル切替や最新の予想で、この比較元を置き換えません。'));
     const proof=node('div','original-proof');proof.append(node('span','','比較元クラウド保存 '+stampLabel(base.cloud_saved_at)));
@@ -441,7 +441,7 @@
     if(tab==='preview')body.append(renderPreview());
     if(tab==='analysis')body.append(renderOdds(),renderOfficialResult(),table(['艇','モーター番号','モーター2連対率','ボート番号'],race.boats.map(b=>[b.lane,b.motor_no,b.motor_top2_rate,b.boat_no])),node('p','','機力の格付けは未検証です。'));
     if(tab==='history')body.append(renderOfficialResult(),node('p','','選手別の過去レース履歴は未接続です。上の結果は、現在選択しているレースの取得済み情報です。'));
-    if(tab==='prediction'){const phases=node('div','exhibition-phases');phases.append(renderPrediction(),renderExhibition());body.append(phases,renderOriginal(),renderNameBound());}
+    if(tab==='prediction'){const phases=node('div','exhibition-phases');phases.append(renderPrediction(),renderExhibition());body.append(renderNameBound(),phases,renderOriginal());}
     if(tab==='bets'){const records=ledger.filter(r=>r.race_id===selectedId);body.append(node('p','',records.length?'このレースの手動購入記録 '+records.length+'件があります。':'このレースの購入記録はまだありません。'));body.append(button('自分の買い目を記録 →','primary',()=>showPage('picks')));}
     if(tab==='video')body.append(node('p','','解析を許可された展示映像は未取得です。行き足・伸び足・回り足・ターン特性の映像評価は、実測の特徴量と検証証拠がそろい次第表示します。'));
   }

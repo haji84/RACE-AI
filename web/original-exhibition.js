@@ -105,7 +105,7 @@
   }
   function phaseStatus({baseline='idle',post='idle',original='idle'}={}){
     const label=state=>({idle:'未確認',loading:'確認中',ready:'保存済み',unobtained:'未保存',error:'取得失敗'})[state]||'未確認';
-    return '展示前 '+label(baseline)+' · 展示後 '+label(post)+' · オリジナル反映 '+label(original)+' · 映像特徴量 未使用';
+    return '展示前 '+label(baseline)+' · 展示後v1 '+label(post)+' · オリジナル反映v1 '+label(original)+' · 映像特徴量 未使用';
   }
   return {phaseStatus,validateReceipt};
 });
