@@ -11,3 +11,18 @@ Use exact-head CI and independent reviewer evidence. Fix concrete failures, cap 
 Persist code, requirements, blockers, run/deployment IDs and next actions in GitHub. Do not claim this Work session keeps running after it ends. Scheduled autonomous execution must exist and have observed executions before being reported active.
 
 Do not merge the existing stacked Draft PRs wholesale. Confirm dependency order, latest head, differences, security and review. Public release remains a final user gate.
+
+
+## Completion-first autonomous execution standard
+
+For **every** RACE AI development task, optimize for verified product completion, not lines of code, number of PRs, or number of agent attempts.
+
+- Define a stable, testable Done condition and the exact main revision being verified. A requirement is complete only with required implementation, tests, integration, independent review where applicable, and actual UI/runtime/real-data proof. Keep mock, CI, preview, real-device and production evidence distinct; never accept AI assertions as machine evidence.
+- Prioritize the critical dependency path using explicit upstream blockers, downstream value, integration cost, testability and remaining work. Scores are scheduling heuristics, not guaranteed shortest time. Recompute the order when a blocker or dependency changes.
+- Reuse proven existing code and integration branches first. Before creating any new PR, check duplicate work and stacked PR ancestry. Merge only after exact-head CI, review, branch protection, safety gates and applicable integration acceptance.
+- Treat each task as implement → verify → review → integrate → actual outcome proof → update completion ledger. No code-only or PR-only Done. Reopen stale evidence when the implementation revision changes.
+- On CI failure or conflicting PRs, record observed failure and diagnose, test an alternative within authorization, and replan after three identical failed method attempts. Preserve state for restart; test concurrency, failed CI and crash/restart with real evidence before calling unattended recovery implemented.
+- Continue autonomous safe actions within granted scope, but never bypass Human Gates for public release, new costs, production/destructive actions, credentials, permissions, legal/source rights or security weakening.
+- Introduce the execution controller first as a read-only pilot in PR #65. Its five simulated fault-handling tests are not proof of production autonomous development. Require independent review and complete real workflow/real-machine verification before promoting this mechanism to the standard controller or copying it to other repositories.
+
+Priority: preserve existing requirements, repo protections, safety authority, review independence and product scope. If a completion policy conflicts with an existing higher-authority security restriction, retain the restriction and report the conflict.
