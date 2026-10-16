@@ -179,14 +179,15 @@ def _candidates(frame):
 
 def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
                        sample_interval=2.0, segment_limit=MAX_SEGMENTS, elapsed_limit=90, camera_motion=False,
-                       program_clock=False):
+                       program_clock=False, frame_timing=False):
     """A consumed lease returns derived evidence only. Runtime fails before media GETs."""
     start = stamp(clock()); validate_descriptor(descriptor, race, start)
     require(descriptor['status'] == 'AVAILABLE' and lease is not None, 'VIDEO_RECORDING_UNAVAILABLE')
     require(type(sample_interval) in (int, float) and .5 <= sample_interval <= 10
             and type(segment_limit) is int and 1 <= segment_limit <= MAX_SEGMENTS
             and type(elapsed_limit) in (int, float) and 1 <= elapsed_limit <= 120
-            and type(camera_motion) is bool and type(program_clock) is bool, 'VIDEO_PROCESSING_BOUNDS_INVALID')
+            and type(camera_motion) is bool and type(program_clock) is bool and type(frame_timing) is bool,
+            'VIDEO_PROCESSING_BOUNDS_INVALID')
     try:
         import av
         import cv2
@@ -195,6 +196,9 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
     fetch = fetch or bounded_fetch
     if camera_motion:
         from .video_camera_motion import estimate_camera_motion, candidate_point_residual
+    if frame_timing:
+        from .video_frame_timing import FrameTimingQuality
+        from fractions import Fraction
     def process(master_url):
         began = time.monotonic(); total = 0; last = instant(start); media = descriptor['media']
         require(_resource(master_url,media['id'],media['source_id'],signed=True)==media['source_url_without_query'],
@@ -230,6 +234,7 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
         sharpness = []; sizes = set(); segment_hash = hashlib.sha256()
         previous_pixels = None; previous_candidates = []; previous_second = None
         camera_attempts = camera_accepted = 0; camera_rejections = {}; camera_rmse = []; camera_inliers = []
+        frame_summaries = []
         try:
             for number, segment in enumerate(segments[:segment_limit]):
                 decoded_before_segment = decoded
@@ -241,6 +246,7 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
                         require(len(key) == 16, 'VIDEO_HLS_KEY_BYTES_INVALID'); keys[segment.key_url] = key
                     raw = _decrypt(raw, keys[segment.key_url], segment.iv)
                 local_tracks = []; first_pts = None; next_sample = 0.0; previous = None
+                timing_quality = FrameTimingQuality(segment.duration) if frame_timing else None
                 previous_pixels = None; previous_candidates = []; previous_second = None
                 with av.open(io.BytesIO(raw), format='mpegts', mode='r') as container:
                     require(len(container.streams.video) == 1, 'VIDEO_STREAM_COUNT_INVALID')
@@ -250,6 +256,11 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
                                 'VIDEO_DECODE_LIMIT_EXCEEDED')
                         require(0 < frame.width * frame.height <= MAX_PIXELS and frame.time is not None,
                                 'VIDEO_FRAME_GEOMETRY_OR_TIME_INVALID')
+                        if timing_quality is not None:
+                            # PyAV exposes AVRational in some wheels and Fraction in others.
+                            base = frame.time_base
+                            timing_quality.observe(frame.pts, Fraction(base.numerator, base.denominator)
+                                                   if base is not None else None)
                         sizes.add((frame.width, frame.height))
                         if first_pts is None: first_pts = frame.time
                         position = float(frame.time - first_pts)
@@ -322,6 +333,9 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
                         pixels = gray = thumbnail = None
                         require(time.monotonic()-began < elapsed_limit, 'VIDEO_PROCESSING_TIME_EXCEEDED')
                 require(decoded>decoded_before_segment,'VIDEO_SEGMENT_NO_FRAMES_DECODED')
+                if timing_quality is not None:
+                    frame_summaries.append(dict(timing_quality.finish(), sequence=segment.sequence,
+                                                discontinuity_before=segment.discontinuity))
                 raw = None; completed += 1; offset += segment.duration
             done = stamp(clock()); require(last <= instant(done) and instant(done).astimezone(JST).date()==instant(race['closed_at']).astimezone(JST).date(),
                                           'VIDEO_PROCESSING_CLOCK_INVALID')
@@ -363,6 +377,18 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
                     for output, t in zip(result['candidate_tracks'][:500], eligible_tracks[:500])]
             if program_clock:
                 result.update(analysis_version='transient-hls-color-candidates/v3', program_clock=timeline)
+            if frame_timing:
+                good = sum(item['relative_pts_consistent'] for item in frame_summaries)
+                result.update(analysis_version='transient-hls-color-candidates/v4',
+                    frame_timing=dict(schema_version=1,
+                        status='DECODED_SEGMENT_PTS_CONSISTENT' if good == completed else 'UNVERIFIED_DECODED_FRAME_TIMING',
+                        frames_observed=sum(item['frames_observed'] for item in frame_summaries),
+                        segments_assessed=completed, segments_with_consistent_pts=good,
+                        playlist_sha256=child_sha, segments=frame_summaries,
+                        coverage_scope='COMPLETE_DECODED_PLAYLIST' if completed == len(segments) else 'PARTIAL_DECODED_PLAYLIST',
+                        wall_clock_mapping='NOT_COMPUTED_FIRST_MEDIA_SAMPLE_ALIGNMENT_UNVERIFIED',
+                        source_frame_completeness_verified=False, independent_clock_verified=False,
+                        physical_exhibition_time_verified=False, prediction_eligible=False))
             result['snapshot_id']=hashlib.sha256(canonical(result)).hexdigest()
             require(time.monotonic()-began < elapsed_limit, 'VIDEO_PROCESSING_TIME_EXCEEDED')
             return result

@@ -176,7 +176,7 @@
     "historical_aggregate_ui": "IMPLEMENTED_LOCAL_VERIFIED; N3/day2 fixed snapshot, post-commit protected Preview pending at recorded_at"
   },
   "next_priority": [
-    "Accumulate a new accurately identified prospective physical exhibition-before/after pair with independent clocks. Completed Naruto2 ownname/numeric/v3/result38838005903-1 must not be reacquired or republished; original failed38828308110 stays failed/causeunproven. Preserve all274B baselines and completedoldlabels.",
+    "New exactOmura1R20261016-24-01 cutoff15:16JST: ownname38851355587-1 confirmed13:35:23.083812JST, baseline38774773544-1 unchanged. Use own proof only with new published eligible numeric/original observations before cutoff. Do not refetch completed racelist. Preserve274baselines/all oldcases. Physicalpairs0; independent clocks still required.",
     "Accumulate prospective multi-day held-out accuracy/calibration/adoption evidence. Three-race/two-day offline common-cohort aggregate now verified from unchanged old4R/7R plus new Naruto2 v2 result; no adoption. Old N2/day1 aggregate remains immutable; keep source times/versions separate.",
     "Advance verified boat/lane identity, camera/world calibration and measurement ground truth; color/image-affine estimates do not validate boat performance or forecast inputs. All-race video and continuous coverage unfinished.",
     "Last actual day acquisition2026-10-16 12:54:49.102563JST run38847861450. Same dedicated day job once after6h, fullbackup349883B/two APIs349882B/independent audit/all156program identities unchanged; saved Naruto2forecast/result/7173B aggregate unchanged. Next6h2026-10-16 18:54:49.102563JST unless currentday positivelymissing; no repeats. Preserve earlier daily versions and all274baselines.",
@@ -569,6 +569,25 @@
       "latest_and_pinned_api_match": true,
       "completed_racelist_must_not_be_reacquired": true,
       "evidence": "docs/evidence/2026-10-16/name-binding-naruto1-live.json"
+    },
+    {
+      "race_id": "20261016-24-01",
+      "request_id": "38851355587-1",
+      "run_id": 38851355587,
+      "job_id": 116813041934,
+      "artifact_id": 12024931929,
+      "receipt_confirmed_at": "2026-10-16T04:35:23.083812+00:00",
+      "files": 5,
+      "bytes": 38673,
+      "envelope_bytes": 3392,
+      "envelope_sha256": "a79253c4be36805b42d02d3b87eaa88c9a63807cf273f03681bd8e8310ba008b",
+      "name_relations": {
+        "EXACT_CANONICAL_NAME": 6
+      },
+      "all_full_bytes_restored": true,
+      "latest_and_pinned_api_match": true,
+      "completed_racelist_must_not_be_reacquired": true,
+      "evidence": "docs/evidence/2026-10-16/name-binding-omura1-live.json"
     }
   ],
   "name_bound_exhibition_implementation": {
@@ -2951,7 +2970,7 @@
     "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca"
   },
   "trusted_worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-  "updated_at": "2026-10-16T04:05:43.530812+00:00",
+  "updated_at": "2026-10-16T04:46:26.794431+00:00",
   "current_day16_prospective_target": {
     "race_id": "20261016-14-01",
     "request_id": "38798278470-1",
@@ -4767,5 +4786,99 @@
     },
     "latest_documentation_head_ci_preview": "Pending at recorded_at; postcommit actual results in PR64 and artifacts/local/day16-refresh1248-final-proof.json. Product trees unchanged from03c57.",
     "evidence": "docs/evidence/2026-10-16/day-refresh1248-live.json"
+  },
+  "current_day16_omura1_target": {
+    "race_id": "20261016-24-01",
+    "request_id": "38851355587-1",
+    "run_id": 38851355587,
+    "job_id": 116813041934,
+    "artifact_id": 12024931929,
+    "receipt_confirmed_at": "2026-10-16T04:35:23.083812+00:00",
+    "files": 5,
+    "bytes": 38673,
+    "envelope_bytes": 3392,
+    "envelope_sha256": "a79253c4be36805b42d02d3b87eaa88c9a63807cf273f03681bd8e8310ba008b",
+    "name_relations": {
+      "EXACT_CANONICAL_NAME": 6
+    },
+    "all_full_bytes_restored": true,
+    "latest_and_pinned_api_match": true,
+    "completed_racelist_must_not_be_reacquired": true,
+    "evidence": "docs/evidence/2026-10-16/name-binding-omura1-live.json",
+    "closed_at_jst": "2026-10-16T15:16:00+09:00",
+    "baseline_request_id": "38774773544-1",
+    "status": "COMPLETE_OWN_NAME_PROOF_NUMERIC_AND_VIDEO_NOT_OBSERVED",
+    "numeric_v2_saved": false,
+    "video_measured": false,
+    "physical_exhibition_timing_verified": false
+  },
+  "video_frame_timing_v4": {
+    "schema_version": 1,
+    "recorded_at": "2026-10-16T04:46:26.794431+00:00",
+    "operation": "OPT_IN_STREAMING_DECODED_FRAME_PTS_QUALITY_V4",
+    "base_commit": "2595f37a04d51606e2fd4576876dc663bdd462aa",
+    "analysis_version": "transient-hls-color-candidates/v4",
+    "implementation_files": {
+      "race_ai/video_frame_timing.py": {
+        "bytes": 3888,
+        "sha256": "7d74942bb32439b0f78dc2a676faf034e315576f4b69e12b81ca7fa444c5c0c6"
+      },
+      "race_ai/exhibition_video_decode.py": {
+        "bytes": 26254,
+        "sha256": "e9333d03fcdd5d76dcf84fb5cc5a15d79ba0709bdf47c27ddfd60d45cb45944f"
+      },
+      "tests/test_video_frame_timing.py": {
+        "bytes": 10227,
+        "sha256": "80f8c215961cc1c3d3481ec8231385e70f541c6629fa5391527b80c190b1d16c"
+      }
+    },
+    "explicit_option": "frame_timing=True",
+    "old_default_false_v1_v2_v3_preserved": true,
+    "checks": [
+      "all decoded frames before image subsampling",
+      "exact rational PTS span and min/max intervals",
+      "missing/duplicate/reversed/out-of-bound/timebase-change rejection",
+      "exclusive declared segment end",
+      "full-prefix timing and digest suppression on failure",
+      "separate segment/discontinuity assessors",
+      "no constant FPS or missing-frame count inference"
+    ],
+    "local_python_tests": 1017,
+    "local_python_failures": 0,
+    "local_python_skips": 0,
+    "javascript_tests": 203,
+    "targeted_video_tests": 49,
+    "independent_synthetic_checks": 19,
+    "independent_base_canonical_output_comparisons": 8,
+    "review_open_findings": 0,
+    "review_report": "frame-timing-v4-review.md",
+    "review_report_digest": {
+      "bytes": 4521,
+      "sha256": "1b19b0041808bd1033f6912a1fc0b09eeead47f04a3fb40dd3540836d3136e99"
+    },
+    "red_first": "12 new tests failed before implementation (missing module/option); new test total13 after explicit discontinuity case",
+    "actual_runtime_fix": "PyAV AVRational differs from Fraction; first integration failed before explicit exact numerator/denominator conversion; targeted tests then passed",
+    "physical_clock_mapping": "NOT_COMPUTED_FIRST_MEDIA_SAMPLE_ALIGNMENT_UNVERIFIED",
+    "source_frame_completeness_verified": false,
+    "independent_clock_verified": false,
+    "physical_exhibition_timing_verified": false,
+    "boat_identity": "UNVERIFIED",
+    "world_calibration": "UNVERIFIED",
+    "boat_performance_validated": false,
+    "new_official_source_requests": 0,
+    "media_requests": 0,
+    "cloud_posts": 0,
+    "real_v4_exhibition_processed": false,
+    "existing_videos_reacquired": false,
+    "detailed_features_public_publish": false,
+    "raw_media_or_frames_retained": false,
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "physical_exhibition_pairs_added": 0,
+    "formal_completion": false,
+    "latest_head_ci": "PENDING_AFTER_COMMIT",
+    "protected_preview": "PENDING_AFTER_COMMIT",
+    "next_step": "Verify exact new head Windows/Linux CI and protected Preview; only a new eligible target may exercise v4 transient processing. Continue verified lane identity/world calibration/measurement ground truth and independent physical clocks."
   }
 }

@@ -20,3 +20,7 @@ web/data/archived-cohort-20261016-ce380fb6.json -text
 docs/evidence/2026-10-16/archived-cohort-ui-stage.json text eol=lf
 docs/evidence/2026-10-16/day-refresh1248-live.json text eol=lf
 docs/evidence/2026-10-16/day-refresh1248-artifact-audit.md -text
+docs/evidence/2026-10-16/name-binding-omura1-artifact-audit.md -text
+docs/evidence/2026-10-16/frame-timing-v4-review.md -text
+docs/evidence/2026-10-16/name-binding-omura1-live.json text eol=lf
+docs/evidence/2026-10-16/frame-timing-v4-stage.json text eol=lf
