@@ -24,3 +24,7 @@ docs/evidence/2026-10-16/name-binding-omura1-artifact-audit.md -text
 docs/evidence/2026-10-16/frame-timing-v4-review.md -text
 docs/evidence/2026-10-16/name-binding-omura1-live.json text eol=lf
 docs/evidence/2026-10-16/frame-timing-v4-stage.json text eol=lf
+
+docs/evidence/2026-10-16/omura1-numeric-live.json text eol=lf
+docs/evidence/2026-10-16/omura1-numeric-artifact-audit.md -text
+docs/evidence/2026-10-16/live-monitor-trial.json text eol=lf
