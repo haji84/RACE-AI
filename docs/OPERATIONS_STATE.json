@@ -295,12 +295,12 @@
     "all_races_verified": false
   },
   "last_local_full_suite": {
-    "python_tests": 997,
-    "python_seconds": 312.992,
+    "python_tests": 998,
+    "python_seconds": 312.255,
     "javascript_tests": 195,
     "failures": 0,
     "skips": 0,
-    "evidence": "docs/evidence/2026-10-16/result-disposition-v2-live.json"
+    "evidence": "docs/evidence/2026-10-16/result-v2-ci-harness.json"
   },
   "prior_camera_local_full_suite": {
     "python_tests": 714,
@@ -2947,7 +2947,7 @@
     "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca"
   },
   "trusted_worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-  "updated_at": "2026-10-16T02:17:13.544363+00:00",
+  "updated_at": "2026-10-16T02:35:30.808544+00:00",
   "current_day16_prospective_target": {
     "race_id": "20261016-14-01",
     "request_id": "38798278470-1",
@@ -3336,13 +3336,14 @@
     "old_default_preserved": true,
     "new_result_label_saved": true,
     "evidence": "docs/evidence/2026-10-16/result-v2-publication-live.json",
-    "python_tests": 997,
+    "python_tests": 998,
     "javascript_tests": 195,
     "open_review_findings": 0,
     "archive_consumer_explicit_v2_compatible": true,
     "new_result_request_id": "38838005903-1",
     "publication_run_id": 38838005903,
-    "latest_head_verification_pending": false
+    "latest_head_verification_pending": false,
+    "ci_harness_correction": "docs/evidence/2026-10-16/result-v2-ci-harness.json"
   },
   "prior_exact_head_ci_before_result_v2": {
     "commit": "a4889c443d168c45df253c28086ebed7ba566e18",
@@ -4391,6 +4392,104 @@
     "holdout_status": "NOT_ESTABLISHED",
     "model_adoption_status": "NOT_EVALUATED",
     "video_boat_identity_world_calibration_measurement_unverified": true,
+    "formal_completion": false
+  },
+  "result_v2_ci_harness_correction": {
+    "recorded_at": "2026-10-16T02:35:30.808544+00:00",
+    "status": "REPRODUCED_FIXTURE_ENV_MISMATCH_CORRECTED_REVIEWED_FULL_LOCAL_SUITE_PASS",
+    "prior_head": "99eef90bd88b5c377cef1e00ee4be81667c11fe9",
+    "failed_ci": {
+      "recorded_at": "2026-10-16 02:30:46 UTC",
+      "commit": "99eef90bd88b5c377cef1e00ee4be81667c11fe9",
+      "ci_run_id": 38839905184,
+      "linux_job": 116777363686,
+      "linux_conclusion": "failure",
+      "windows_job": 116777363299,
+      "windows_conclusion": "cancelled",
+      "python_tests": 997,
+      "linux_python_seconds": 354.726,
+      "errors": 1,
+      "failing_test": "test_name_bound_result_caller.ResultCallerTests.test_workflow_is_manual_and_replays_all_six_files",
+      "error": "KeyError: RACE_AI_RESULT_DISPOSITION_CONTRACT",
+      "cause": "workflow restore replay fixture omitted the explicit selector injected by the real workflow",
+      "workflow_and_product_changed_for_fix": false,
+      "live_result_reacquisition": false,
+      "log_excerpt": [
+        "2026-10-16T02:26:34.0335811Z ERROR: test_workflow_is_manual_and_replays_all_six_files (test_name_bound_result_caller.ResultCallerTests.test_workflow_is_manual_and_replays_all_six_files)",
+        "2026-10-16T02:26:34.0336959Z ----------------------------------------------------------------------",
+        "2026-10-16T02:26:34.0337492Z Traceback (most recent call last):",
+        "2026-10-16T02:26:34.0346047Z   File \"/home/runner/work/RACE-AI/RACE-AI/tests/test_name_bound_result_caller.py\", line 344, in test_workflow_is_manual_and_replays_all_six_files",
+        "2026-10-16T02:26:34.0348109Z     with patch.dict(self.c.os.environ,{'RUNNER_TEMP':str(root)}),redirect_stdout(StringIO()):exec(compile(block,'<workflow>','exec'),{})",
+        "2026-10-16T02:26:34.0349195Z                                                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^",
+        "2026-10-16T02:26:34.0349888Z   File \"<workflow>\", line 3, in <module>",
+        "2026-10-16T02:26:34.0350760Z   File \"<frozen os>\", line 714, in __getitem__",
+        "2026-10-16T02:26:34.0364165Z KeyError: 'RACE_AI_RESULT_DISPOSITION_CONTRACT'",
+        "2026-10-16T02:26:34.0364527Z ",
+        "2026-10-16T02:26:34.0364763Z ----------------------------------------------------------------------",
+        "2026-10-16T02:26:34.0365316Z Ran 997 tests in 354.726s",
+        "2026-10-16T02:26:34.0365572Z ",
+        "2026-10-16T02:26:34.0365709Z FAILED (errors=1)"
+      ]
+    },
+    "local_reproduction": {
+      "test": "test_name_bound_result_caller.ResultCallerTests.test_workflow_is_manual_and_replays_all_six_files",
+      "tests": 1,
+      "errors": 1,
+      "error": "KeyError: RACE_AI_RESULT_DISPOSITION_CONTRACT"
+    },
+    "correction": "Existing legacy restore test now receives the explicit legacy selector injected by the actual workflow. New v2 test executes the real full restore block and rejects legacy/unknown/empty selectors for a v2 manifest.",
+    "product_or_workflow_validation_relaxed": false,
+    "product_code_unchanged": true,
+    "workflow_unchanged": true,
+    "focused_root": {
+      "tests": 2,
+      "seconds": 5.997,
+      "errors": 0,
+      "skips": 0
+    },
+    "independent_review": {
+      "tests": 2,
+      "seconds": 6.867,
+      "open_findings": 0,
+      "report": {
+        "bytes": 3218,
+        "sha256": "3a26be796fdbf6cdd9ab89df1cb33501c1bc6e09130c2c43be0bb8ed1c890146"
+      }
+    },
+    "full_local_python": {
+      "tests": 998,
+      "seconds": 312.255,
+      "failures": 0,
+      "errors": 0,
+      "skips": 0,
+      "required_video_runtime": true,
+      "log": {
+        "bytes": 194503,
+        "sha256": "8f0bdff7eb94968aac6761fa71ebe4b627629cc544d4661d1e5c37439dc31f40"
+      }
+    },
+    "javascript": {
+      "tests": 195,
+      "scope": "Unchanged JS tree; previous actual feature ad6 local/Windows/Linux195 proofs retained. Successor exact CI must run JS again."
+    },
+    "test_files": {
+      "tests/test_name_bound_result_caller.py": {
+        "bytes": 25378,
+        "sha256": "c467bbfe87028da040aed4415a45bf373a2b0656f849264548b74d728cf1d29c"
+      },
+      "tests/test_name_bound_result_caller_v2.py": {
+        "bytes": 5849,
+        "sha256": "eb3fccef01f23aa67f82cbd05fe3f4d40bddc47b481c2fc62b7f1eb4905de5fe"
+      }
+    },
+    "cloud_posts": 0,
+    "official_source_requests": 0,
+    "completed_result_and_archive_reacquisition": false,
+    "next_exact_head_ci_preview_pending": true,
+    "validation_status": "UNVALIDATED",
+    "physical_exhibition_pairs": 0,
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
     "formal_completion": false
   }
 }

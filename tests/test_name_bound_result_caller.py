@@ -341,9 +341,10 @@ class ResultCallerTests(unittest.TestCase):
         self.run_caller();root=Path(self.tmp.name)
         shutil.copytree(self.folder,root/'race-ai-name-bound-result');shutil.copytree(self.folder,root/'race-ai-name-bound-result-restored')
         block=textwrap.dedent(tail.split("python - <<'PY'\n",1)[1].split('          PY',1)[0])
-        with patch.dict(self.c.os.environ,{'RUNNER_TEMP':str(root)}),redirect_stdout(StringIO()):exec(compile(block,'<workflow>','exec'),{})
+        restore_env={'RUNNER_TEMP':str(root),'RACE_AI_RESULT_DISPOSITION_CONTRACT':'legacy'}
+        with patch.dict(self.c.os.environ,restore_env),redirect_stdout(StringIO()):exec(compile(block,'<workflow>','exec'),{})
         (root/'race-ai-name-bound-result-restored'/'request.json').write_bytes(b'changed')
-        with patch.dict(self.c.os.environ,{'RUNNER_TEMP':str(root)}),self.assertRaises(SystemExit):exec(compile(block,'<workflow>','exec'),{})
+        with patch.dict(self.c.os.environ,restore_env),self.assertRaises(SystemExit):exec(compile(block,'<workflow>','exec'),{})
 
 
 if __name__=='__main__': unittest.main()

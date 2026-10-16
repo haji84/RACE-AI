@@ -1,5 +1,8 @@
 """Explicit v2 selection and full normalized backup replay with controlled transport."""
-import copy,hashlib,inspect,json
+import copy,hashlib,inspect,json,re,shutil,sys,textwrap
+from contextlib import redirect_stdout
+from io import StringIO
+from pathlib import Path
 import unittest
 from unittest.mock import patch
 import tests.test_name_bound_result_caller as old
@@ -63,5 +66,23 @@ class ResultCallerV2Tests(unittest.TestCase):
             else:bad['result_disposition_contract']=version
             (self.folder/'manifest.json').write_bytes(canonical(bad))
             with self.subTest(version=version),self.assertRaises(ValueError):self.c.verify_backups(self.folder,bad)
+
+    def test_workflow_v2_replay_enforces_selected_manifest_contract(self):
+        self.assertEqual(self.run_v2()['status'],'COMPLETED')
+        root=Path(self.tmp.name)
+        for name in ('race-ai-name-bound-result','race-ai-name-bound-result-restored'):
+            shutil.copytree(self.folder,root/name)
+        workflow=Path('.github/workflows/boat-blob-e2e.yml').read_text(encoding='utf-8')
+        tail=workflow[workflow.index('      - name: Verify every name-bound result byte and full replay'):]
+        block=textwrap.dedent(re.search(r"python - <<'PY'\n(.*?)^          PY",tail,re.M|re.S).group(1))
+        for selected in (CONTRACT,'legacy','unknown',''):
+            env={'RUNNER_TEMP':str(root),'RACE_AI_RESULT_DISPOSITION_CONTRACT':selected}
+            with self.subTest(selected=selected),patch.dict(self.c.os.environ,env),patch.object(sys,'path',list(sys.path)):
+                if selected==CONTRACT:
+                    output=StringIO()
+                    with redirect_stdout(output):exec(compile(block,'<workflow>','exec'),{})
+                    self.assertEqual(json.loads(output.getvalue()),{'result':'NAME_BOUND_RESULT_BACKUP_RESTORE_VERIFIED','status':'COMPLETED','files':6})
+                else:
+                    with self.assertRaises(SystemExit):exec(compile(block,'<workflow>','exec'),{})
 
 if __name__=='__main__':unittest.main()
