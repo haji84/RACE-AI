@@ -16,3 +16,5 @@ docs/evidence/2026-10-16/result-v2-publication-artifact-audit.md text eol=lf
 docs/evidence/2026-10-16/archived-cohort-three-artifact-audit.md text eol=lf
 
 docs/evidence/2026-10-16/result-v2-ci-harness.json text eol=lf
+web/data/archived-cohort-20261016-ce380fb6.json -text
+docs/evidence/2026-10-16/archived-cohort-ui-stage.json text eol=lf

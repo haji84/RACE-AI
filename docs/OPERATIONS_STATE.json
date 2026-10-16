@@ -65,26 +65,30 @@
     "prompt_updated_for_name_bound_v2": true
   },
   "last_exact_head_ci": {
-    "commit": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
-    "run_id": 38836133330,
-    "windows_job_id": 116765581656,
-    "linux_job_id": 116765581872,
-    "python_tests_each": 997,
+    "commit": "4ef7ff64baadfdfb60de87a2a41740ead308bfce",
+    "run_id": 38841266260,
+    "windows_job_id": 116781664777,
+    "linux_job_id": 116781665073,
+    "python_tests_each": 998,
     "javascript_tests_each": 195,
     "failures": 0,
     "skips": 0,
-    "windows_python_seconds": 398.66,
-    "linux_python_seconds": 202.569,
     "preview": {
-      "id": "dpl_HqiX71MmWBkAKs8RW2YJ7m2dxzrm",
-      "url": "https://race-ai-preview-hhpqwut7w-qq1130034-1738.vercel.app",
+      "id": "dpl_Cjt1eZVfWQnTYsLvnipDbCnqw7BV",
+      "url": "https://race-ai-preview-m3dsqe81o-qq1130034-1738.vercel.app",
       "state": "READY",
-      "sha": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+      "sha": "4ef7ff64baadfdfb60de87a2a41740ead308bfce",
       "target": null,
-      "branch": "codex/race-ai-completion"
+      "created_once_with_existing_git_connection": true,
+      "automatic_creation_not_observed": true,
+      "new_secrets": false,
+      "project_settings_changed": false,
+      "protection": {
+        "enabled": true,
+        "deploymentType": "all"
+      }
     },
-    "recorded_at": "2026-10-16T02:17:13.544363+00:00",
-    "scope": "Feature ad6 actual exact head; final workflow/evidence successor CI/Preview will be recorded in PR64 and private proof after commit."
+    "scope": "Previous exact 4ef head actual proof retained. New UI head checks pending at this record; use post-commit PR64/private final proof."
   },
   "last_verified_race_application_commit": "ceddba957d6600ee41cb4f280834dff7296d2f34",
   "last_verified_race_deployment_url": "https://race-ai-preview-8dw6s5ra9-qq1130034-1738.vercel.app",
@@ -169,7 +173,8 @@
     "baseline_counts_by_date": {
       "2026-10-15": 118,
       "2026-10-16": 156
-    }
+    },
+    "historical_aggregate_ui": "IMPLEMENTED_LOCAL_VERIFIED; N3/day2 fixed snapshot, post-commit protected Preview pending at recorded_at"
   },
   "next_priority": [
     "Accumulate a new accurately identified prospective physical exhibition-before/after pair with independent clocks. Completed Naruto2 ownname/numeric/v3/result38838005903-1 must not be reacquired or republished; original failed38828308110 stays failed/causeunproven. Preserve all274B baselines and completedoldlabels.",
@@ -295,12 +300,12 @@
     "all_races_verified": false
   },
   "last_local_full_suite": {
-    "python_tests": 998,
-    "python_seconds": 312.255,
-    "javascript_tests": 195,
+    "python_tests": 1004,
+    "python_seconds": 317.468,
+    "javascript_tests": 203,
     "failures": 0,
     "skips": 0,
-    "evidence": "docs/evidence/2026-10-16/result-v2-ci-harness.json"
+    "evidence": "docs/evidence/2026-10-16/archived-cohort-ui-stage.json"
   },
   "prior_camera_local_full_suite": {
     "python_tests": 714,
@@ -2947,7 +2952,7 @@
     "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca"
   },
   "trusted_worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-  "updated_at": "2026-10-16T02:35:30.808544+00:00",
+  "updated_at": "2026-10-16T03:07:24.444375+00:00",
   "current_day16_prospective_target": {
     "race_id": "20261016-14-01",
     "request_id": "38798278470-1",
@@ -4490,6 +4495,112 @@
     "physical_exhibition_pairs": 0,
     "purchase_decision": "skip",
     "purchase_recommendations": [],
+    "formal_completion": false
+  },
+  "prior_exact_head_ci_before_archived_cohort_ui": {
+    "commit": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+    "run_id": 38836133330,
+    "windows_job_id": 116765581656,
+    "linux_job_id": 116765581872,
+    "python_tests_each": 997,
+    "javascript_tests_each": 195,
+    "failures": 0,
+    "skips": 0,
+    "windows_python_seconds": 398.66,
+    "linux_python_seconds": 202.569,
+    "preview": {
+      "id": "dpl_HqiX71MmWBkAKs8RW2YJ7m2dxzrm",
+      "url": "https://race-ai-preview-hhpqwut7w-qq1130034-1738.vercel.app",
+      "state": "READY",
+      "sha": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+      "target": null,
+      "branch": "codex/race-ai-completion"
+    },
+    "recorded_at": "2026-10-16T02:17:13.544363+00:00",
+    "scope": "Feature ad6 actual exact head; final workflow/evidence successor CI/Preview will be recorded in PR64 and private proof after commit."
+  },
+  "archived_cohort_dashboard": {
+    "recorded_at": "2026-10-16T03:07:24.444375+00:00",
+    "status": "IMPLEMENTED_REVIEWED_LOCAL_FULL_SUITE_PASS_PENDING_COMMIT_CI_PREVIEW",
+    "base_commit": "4ef7ff64baadfdfb60de87a2a41740ead308bfce",
+    "contract": "PINNED_READ_ONLY_HISTORICAL_AGGREGATE_V1",
+    "api": "/api/archived-cohort",
+    "report_bytes": 7173,
+    "report_sha256": "77c93e07046721de8cead6ef21515f7d190601db63b92abfaee82c43f95e20d6",
+    "snapshot_id": "ce380fb6a064adf4cd7e8d4d2ad33dcc9750d14ca4c0e920753f30d7d4d80655",
+    "original_as_of": "2026-10-16T02:10:43.089393+00:00",
+    "independent_arithmetic_audited_at": "2026-10-16T02:16:37.318964+00:00",
+    "original_aggregate_and_evaluation_clocks_unchanged": true,
+    "report_equals_previously_audited_aggregate": true,
+    "historical_scope_independent_of_current_day": true,
+    "current_day_api_rules_changed": false,
+    "new_official_source_requests": 0,
+    "new_cloud_writes": 0,
+    "prior_cli_or_artifact_replay_repeated": false,
+    "review": {
+      "open_findings": 0,
+      "resolved": "P2 redirect follow: redirect:error now makes origin B requests0 in independent loopback reproduction",
+      "focused_python": 6,
+      "focused_javascript": 8,
+      "bytes": 4418,
+      "sha256": "1bd3480779f204ad466136a04b5ec56c67d76b4a6318c8f50e1e905ae5264aa4",
+      "scope_limits": [
+        "Preview bundling and browser layout pending",
+        "statistical and video validation not established"
+      ]
+    },
+    "local_tests": {
+      "python": {
+        "started_at": "2026-10-16T03:01:57.247216+00:00",
+        "finished_at": "2026-10-16T03:07:14.714018+00:00",
+        "elapsed_seconds": 317.468,
+        "exit_code": 0,
+        "summary": [
+          "ℹ tests 8",
+          "ℹ pass 8",
+          "ℹ fail 0",
+          "ℹ skipped 0",
+          "Ran 1004 tests in 316.746s"
+        ],
+        "log_bytes": 195508,
+        "log_sha256": "1940a7c019b6a9f2990f0d95c7ce9a99b057b701b3a4fe82980ec48059e6c214"
+      },
+      "javascript": {
+        "started_at": "2026-10-16T03:01:57.247216+00:00",
+        "finished_at": "2026-10-16T03:02:02.134318+00:00",
+        "elapsed_seconds": 4.89,
+        "exit_code": 0,
+        "summary": [
+          "ℹ tests 203",
+          "ℹ pass 203",
+          "ℹ fail 0",
+          "ℹ skipped 0"
+        ],
+        "log_bytes": 14532,
+        "log_sha256": "233d2c8cecf95fb0688f465c1d3ca5dfe718bec05bac4ec46e098315676fec00"
+      }
+    },
+    "javascript_after_redirect_fix": {
+      "tests": 203,
+      "failures": 0,
+      "skips": 0,
+      "log_sha256": "47ece2cbeed9f8c67abc703702945327a443f4953243367cd7ca22eab0a4a4eb"
+    },
+    "preimplementation_red": "Python/Node missing module failures; redirect regression failed before fix and passed after",
+    "research": {
+      "races": 3,
+      "days": 2,
+      "physical_exhibition_pairs": 0,
+      "validation_status": "UNVALIDATED",
+      "purchase_decision": "skip",
+      "purchase_recommendations": [],
+      "holdout_status": "NOT_ESTABLISHED",
+      "calibration_status": "NOT_EVALUATED",
+      "model_adoption_status": "NOT_EVALUATED"
+    },
+    "latest_commit_ci_preview": "PENDING_AT_RECORDED_AT; post-commit actual proof is recorded in PR64 and artifacts/local/archived-cohort-ui-final-proof.json",
+    "production_release": false,
+    "main_merge": false,
     "formal_completion": false
   }
 }
