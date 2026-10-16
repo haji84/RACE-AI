@@ -1,0 +1,73 @@
+{
+  "observed_at": "2026-10-14T18:06:30.435Z",
+  "integration_commit": "eb18b01e2e2149f99d47c3fb4260789a0759d9db",
+  "integration_tree": "a4d402aec717d629cb9d708d81641091091b4a1a",
+  "deployment_id": "dpl_Eqvs7BaMxSEbciGrPMwvZDHYAxKD",
+  "deployment_url": "https://race-ai-preview-6zqfk97dn-qq1130034-1738.vercel.app",
+  "environment": "preview",
+  "python_tests": {
+    "count": 208,
+    "result": "OK",
+    "pinned_runtime_skips": 1
+  },
+  "browser": {
+    "engine": "Chromium",
+    "widths": [
+      1440,
+      390,
+      320
+    ],
+    "fixture": "synthetic",
+    "result": "pass"
+  },
+  "authenticated_deployment_fetch": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/ui-model.js",
+      "status": 200
+    },
+    {
+      "path": "/api/today",
+      "status": 503,
+      "body": "{\"error\": \"FEED_NOT_APPROVED\"}"
+    },
+    {
+      "path": "/api/blob-probe",
+      "status": 405,
+      "body": ""
+    }
+  ],
+  "api_pr": 63,
+  "api_head": "eee30c0af9ec0c2532eaab82943d7dc251d2d77f",
+  "api_ci_runs": [
+    {
+      "id": 38612150194,
+      "name": "RACE AI public source smoke (metadata only)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 109,
+      "jobs_url": "https://api.github.com/repos/haji84/RACE-AI/actions/runs/38612150194/jobs",
+      "logs_url": "https://api.github.com/repos/haji84/RACE-AI/actions/runs/38612150194/logs",
+      "workflow_id": 383710050
+    },
+    {
+      "id": 38612150125,
+      "name": "RACE AI unit tests",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 132,
+      "jobs_url": "https://api.github.com/repos/haji84/RACE-AI/actions/runs/38612150125/jobs",
+      "logs_url": "https://api.github.com/repos/haji84/RACE-AI/actions/runs/38612150125/logs",
+      "workflow_id": 383245492
+    }
+  ],
+  "verified_live_blob_roundtrip": true,
+  "verified_live_today_feed": false,
+  "verified_iphone_safari": false,
+  "production_changed": false,
+  "latest_auth_head": "610b90cd9667de60d75729e3137e4e1919d4cb1a",
+  "blob_proof": "LIVE_BLOB_PROOF.json"
+}

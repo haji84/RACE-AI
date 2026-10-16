@@ -1,0 +1,26 @@
+{
+  "verified_at_utc": "2026-10-14T18:03:14Z",
+  "verified_at_jst": "2026-10-15T03:03:14+09:00",
+  "kind": "real_preview_private_blob_communication",
+  "commit_sha": "610b90cd9667de60d75729e3137e4e1919d4cb1a",
+  "workflow_run_id": 38611712685,
+  "job_id": 116016956898,
+  "run_url": "https://github.com/haji84/RACE-AI/actions/runs/38611712685",
+  "deployment_id": "dpl_FHypH6piGUVeCeFrBYqyQYg6NK2N",
+  "oidc_issued": true,
+  "result": "BLOB_PROBE_VERIFIED",
+  "bytes": 61,
+  "sha256": "23a9b6603b16b27a2bda95b0fbf677c31065c6113da22fd40238575ab733fd72",
+  "cleanup": "deleted",
+  "sso_protection_still_enabled": true,
+  "raw_evidence": [
+    "2026-10-14T18:03:14.9897588Z OIDC_TOKEN_ISSUED",
+    "2026-10-14T18:03:14.9900325Z {\"bytes\":61,\"cleanup\":\"deleted\",\"commit_sha\":\"610b90cd9667de60d75729e3137e4e1919d4cb1a\",\"result\":\"BLOB_PROBE_VERIFIED\",\"sha256\":\"23a9b6603b16b27a2bda95b0fbf677c31065c6113da22fd40238575ab733fd72\"}"
+  ],
+  "limits": [
+    "Probe JSON is generated internally; no actual race data.",
+    "Wrong-day/unapproved race-feed refusal remains synthetic/API closed-gate evidence, not completed live negative-feed E2E.",
+    "Original historical HTTP403 cause is not fully established; later failures were stage-diagnosed and latest normal roundtrip succeeded.",
+    "No claim about Production storage or actual public feed."
+  ]
+}
