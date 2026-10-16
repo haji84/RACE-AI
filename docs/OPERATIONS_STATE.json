@@ -155,15 +155,15 @@
     "purchase_decision": "skip",
     "purchase_recommendations": [],
     "actual_races_with_saved_prediction": 274,
-    "actual_result_cohorts_evaluated": 4,
+    "actual_result_cohorts_evaluated": 5,
     "models": [
       "official-program-uniform-pl/v1",
       "official-program-rating-pl/v1",
       "name-bound-display/v2",
       "name-bound-original/v2"
     ],
-    "source": "All274 frozen B baselines unchanged. Six own-name numeric examples; four eligible evaluated results plus one separately saved excluded F/refund label. Fixed original7173B archived aggregate remainsN3/day2. Physicalpairs0, automatic hullIDs0, no held-out/calibration/adoption proof.",
-    "name_bound_v2_result_race_count": 4,
+    "source": "All274 frozen B baselines and six own-name numeric cases unchanged. Five eligible individual evaluations plus one excluded F/refund label. Fixed original7173B archive remainsN3/day2. Latest12R N1 both v2 Brier/logloss worse than B; no accuracy/calibration/adoption proof. Physicalpairs0/automated hullIDs0.",
+    "name_bound_v2_result_race_count": 5,
     "name_bound_v2_numeric_races": 6,
     "physical_exhibition_pairs_verified": 0,
     "archived_common_cohort_race_count": 3,
@@ -174,16 +174,16 @@
       "2026-10-16": 156
     },
     "historical_aggregate_ui": "IMPLEMENTED_PROTECTED_PREVIEW_VERIFIED_AT03c57; fixed7173B/N3/day2/original as_of unchanged, latest same-web evidence remains separate.",
-    "name_bound_v2_saved_result_labels": 5,
+    "name_bound_v2_saved_result_labels": 6,
     "name_bound_v2_excluded_result_races": 1,
     "name_bound_v2_result_race_count_scope": "Eligible evaluated races only; excluded labels counted separately"
   },
   "next_priority": [
-    "Keep completed10/12 names/numeric,10 result/video immutable. After12 cutoff and120s, only its exact result404 and fresh five-state/lease/current-day/own-forecast checks may authorize one new separate result label. No retrospective predictions. Validate domain-specific hull/digit labels and world/time/measurement quality on new held-out inputs before video adoption; continue prospective physical pairs/all-race capture. New JST-day exact missing allows one validated day update after00:00, not forced waiting until01:08.",
+    "Keep completed own12 result/name/numeric immutable. Validate new domain-specific hull/digit/body labels, camera/world/independent physical clock/measurement and held-out adoption. Obtain prospective physical pairs and next-day missing race cohort only with exact current-day missing API or verified six-hour day condition; new JST date00:00 missing is independent of next01:08 threshold.",
     "Physical exhibition before/after pairs0. Obtain new prospective pairs with independent physical clock and own-race proof; B-only/publication waiting/cutoff timing alone is not proof.",
     "All16th156 B baselines already verified; preserve274 total. Only missing next-day upcoming set may be added with same validated cohort/all-upcoming, each batch full restore/API and idle/lease/currentday checks.",
     "Last real daily capture2026-10-16 19:08:36.977875JST run38885213046, official2GET. Next6h2026-10-17 01:08:36.977875JST; exact current-day missing after midnight is separate. New equipment/rate changes3boats are not old forecast updates.",
-    "Omura1 name/numeric/result and Naruto2/Marugame4/7 completed; do not rerun. Four individual evaluations versus fixed original7173B N3/2days aggregate remain distinct and unchanged.",
+    "Omura1 name/numeric/result and Naruto2/Marugame4/7 completed; do not rerun. Five eligible individual evaluations plus one excluded label versus fixed original7173B N3/2days remain distinct; old aggregate/as_of unchanged.",
     "Need multi-day held-out video contribution/calibration/adoption plus world/time/camera/measurement truth. Source positions/background affine/digit/COCO regions do not establish boat performance; UNVALIDATED/skip/[] stay.",
     "History/motor-change/usercloud/longrestore/PC-free operation/hardwareiPhone formally unfinished. Preserve limited source/derivedprivatefalse/OIDC protection and both manual-only source-smoke before everypush; noProduction/main/voting/payment."
   ],
@@ -2974,7 +2974,7 @@
     "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca"
   },
   "trusted_worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-  "updated_at": "2026-10-16T14:03:41.884952+00:00",
+  "updated_at": "2026-10-16T14:40:59.944351+00:00",
   "current_day16_prospective_target": {
     "race_id": "20261016-14-01",
     "request_id": "38798278470-1",
@@ -3073,14 +3073,253 @@
     "receipt_confirmed_at": "2026-10-16T13:34:24.121527+00:00",
     "seconds_before_close": 635.878473,
     "all_files_and_fixed_latest_publisher_api_restored": true,
-    "result_label_acquired": false,
+    "result_label_acquired": true,
     "video_used": false,
     "physical_exhibition_before_after_pairs": 0,
     "completed_name_numeric_must_not_be_reacquired": true,
     "validation_status": "UNVALIDATED",
     "purchase_decision": "skip",
     "purchase_recommendations": [],
-    "evidence": "docs/evidence/2026-10-16/shimonoseki-exhibition-comparison-stage.json"
+    "evidence": "docs/evidence/2026-10-16/shimonoseki-exhibition-comparison-stage.json",
+    "result_closeout": {
+      "schema_version": "name-bound-result-closeout/v1",
+      "recorded_at": "2026-10-16T14:40:59.944351+00:00",
+      "base_head": "09823dc5ed726117fb07a77a2515c28316bae160",
+      "race_id": "20261016-19-12",
+      "request_id": "38916275797-1",
+      "forecast_request_id": "38908811972-1",
+      "name_binding_request_id": "38907737025-1",
+      "baseline_request_id": "38777785588-1",
+      "run_id": 38916275797,
+      "job_id": 117024458228,
+      "artifact_id": 12053105103,
+      "workflow_commit": "5a38336727c452ef0ba796f56b68434fe7b59837",
+      "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
+      "application_commit": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+      "initial_in_progress_run_snapshot_preserved": true,
+      "final_run": {
+        "id": 38916275797,
+        "head_sha": "5a38336727c452ef0ba796f56b68434fe7b59837",
+        "head_branch": "feat/boat-oidc-probe-auth",
+        "event": "workflow_dispatch",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-16T14:30:13Z",
+        "updated_at": "2026-10-16T14:31:12Z",
+        "run_attempt": 1
+      },
+      "source_captured_at": "2026-10-16T14:30:44.115584+00:00",
+      "cloud_saved_at": "2026-10-16T14:30:50.187389+00:00",
+      "receipt_confirmed_at": "2026-10-16T14:30:50.918993+00:00",
+      "top3": [
+        1,
+        2,
+        3
+      ],
+      "evaluation_as_of": "2026-10-16T14:31:05.123274+00:00",
+      "evaluation_status": "EVALUATED",
+      "models": [
+        {
+          "forecast_cloud_saved_at": "2026-10-15T17:35:02.988619+00:00",
+          "forecast_generated_at": "2026-10-15T17:35:01.199531+00:00",
+          "log_loss": 4.853573383911588,
+          "model_id": "official-program-rating-pl",
+          "model_version": "1",
+          "multiclass_brier": 0.9929562375925921,
+          "phase": "B_ONLY_BASELINE",
+          "race_count": 1,
+          "ticket_count": 120,
+          "winner_probability": 0.007800453671917985
+        },
+        {
+          "forecast_cloud_saved_at": "2026-10-16T13:34:22.878315+00:00",
+          "forecast_generated_at": "2026-10-16T13:34:21.013777+00:00",
+          "log_loss": 4.918316654274187,
+          "model_id": "name-bound-display",
+          "model_version": "2",
+          "multiclass_brier": 0.9938494665024995,
+          "phase": "DISPLAY_V2",
+          "race_count": 1,
+          "ticket_count": 120,
+          "winner_probability": 0.0073114281549083475
+        },
+        {
+          "forecast_cloud_saved_at": "2026-10-16T13:34:22.878315+00:00",
+          "forecast_generated_at": "2026-10-16T13:34:21.013777+00:00",
+          "log_loss": 5.031326775872513,
+          "model_id": "name-bound-original",
+          "model_version": "2",
+          "multiclass_brier": 0.9954900105691994,
+          "phase": "ORIGINAL_V2",
+          "race_count": 1,
+          "ticket_count": 120,
+          "winner_probability": 0.006530140787150653
+        }
+      ],
+      "model_adoption_status": "UNVALIDATED",
+      "single_race_both_v2_brier_and_log_loss_worse_than_baseline": true,
+      "restore": {
+        "recorded_at": "2026-10-16T14:32:43.674223+00:00",
+        "run_id": 38916275797,
+        "job_id": 117024458228,
+        "artifact_id": 12053105103,
+        "workflow_commit": "5a38336727c452ef0ba796f56b68434fe7b59837",
+        "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
+        "status": "COMPLETED_FULL_BACKUP_RESTORED",
+        "files": 6,
+        "bytes": 131726,
+        "zip_bytes": 28176,
+        "zip_sha256": "dd3ee5f546960117c768e6004c9314e4524a35af4cac25d38246c696cdf0543c",
+        "file_digests": {
+          "evaluation.json": {
+            "bytes": 2816,
+            "sha256": "3d56b1477785493cbd22ad547ababcda74774a8fdcde9898c92617889fb313f2"
+          },
+          "forecast.json": {
+            "bytes": 113946,
+            "sha256": "5d8508da5ae2fa73bd1acf68e45968d61151e3e04a0111f7956367df824156eb"
+          },
+          "manifest.json": {
+            "bytes": 1041,
+            "sha256": "7c2597afb139ed786dba370f32acb4a6f564c7875e7f81fb6967b3af99eaaa17"
+          },
+          "program.json": {
+            "bytes": 2173,
+            "sha256": "64252df912779f62c982aca63c15814012c52627d081f301f3fe8f922fa57f28"
+          },
+          "request.json": {
+            "bytes": 5688,
+            "sha256": "9c8878be1f1a757a644f848a37ef607eba69b072d82adbaa038e04a1bff42530"
+          },
+          "result.json": {
+            "bytes": 6062,
+            "sha256": "0133dd725b799cb096c8e53dc85d543f3c8364766c1d1f501d9777be73c9e5ba"
+          }
+        },
+        "manifest": {
+          "backups": {
+            "evaluation.json": {
+              "bytes": 2816,
+              "sha256": "3d56b1477785493cbd22ad547ababcda74774a8fdcde9898c92617889fb313f2"
+            },
+            "forecast.json": {
+              "bytes": 113946,
+              "sha256": "5d8508da5ae2fa73bd1acf68e45968d61151e3e04a0111f7956367df824156eb"
+            },
+            "program.json": {
+              "bytes": 2173,
+              "sha256": "64252df912779f62c982aca63c15814012c52627d081f301f3fe8f922fa57f28"
+            },
+            "request.json": {
+              "bytes": 5688,
+              "sha256": "9c8878be1f1a757a644f848a37ef607eba69b072d82adbaa038e04a1bff42530"
+            },
+            "result.json": {
+              "bytes": 6062,
+              "sha256": "0133dd725b799cb096c8e53dc85d543f3c8364766c1d1f501d9777be73c9e5ba"
+            }
+          },
+          "commit_sha": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+          "failure_reason": null,
+          "forecast_request_id": "38908811972-1",
+          "max_seconds": 240,
+          "official_source_requests": 1,
+          "operation": "NAME_BOUND_RESULT_PUBLICATION",
+          "posts_attempted": 1,
+          "purchase_decision": "skip",
+          "purchase_recommendations": [],
+          "race_id": "20261016-19-12",
+          "reads_used": 5,
+          "request_id": "38916275797-1",
+          "result_disposition_contract": "official-result-dispositions/v2",
+          "schema_version": 1,
+          "status": "COMPLETED",
+          "validation_status": "UNVALIDATED"
+        },
+        "full_forecast_bytes_unchanged": true,
+        "raw_source_retained": false,
+        "previous_unrelated_failed_runs_reclassified": false,
+        "independent_audit_pending": true,
+        "physical_exhibition_pairs": 0,
+        "validation_status": "UNVALIDATED",
+        "purchase_decision": "skip",
+        "purchase_recommendations": []
+      },
+      "independent_audit": {
+        "file": "artifacts/local/shimonoseki12-result-v2-artifact-audit.md",
+        "bytes": 8569,
+        "sha256": "dbb3acd82a87178a3f9c89c2339b490158cb57d19529d610055c2f7f38052802"
+      },
+      "caller_review": {
+        "file": "artifacts/local/shimonoseki12-result-caller-review.md",
+        "bytes": 6280,
+        "sha256": "685b88c986ae9a7078fac57d1a7eb294ebedab6f4c8360ccae9a505b6f7d273b"
+      },
+      "api_proof": {
+        "recorded_at": "2026-10-16T14:33:51.444482+00:00",
+        "root_gets": 3,
+        "posts": 0,
+        "official_source_gets": 0,
+        "responses": {
+          "fixed": {
+            "bytes": 6062,
+            "sha256": "0133dd725b799cb096c8e53dc85d543f3c8364766c1d1f501d9777be73c9e5ba",
+            "all_content_equal": true
+          },
+          "latest": {
+            "bytes": 6062,
+            "sha256": "0133dd725b799cb096c8e53dc85d543f3c8364766c1d1f501d9777be73c9e5ba",
+            "all_content_equal": true
+          },
+          "publisher": {
+            "bytes": 6062,
+            "sha256": "0133dd725b799cb096c8e53dc85d543f3c8364766c1d1f501d9777be73c9e5ba",
+            "all_content_equal": true
+          }
+        },
+        "transport_note": "Removed exactly one patch-added LF; original tool responses had none; no repeated GET"
+      },
+      "business_operations": {
+        "api_gets": 5,
+        "posts": 1,
+        "official_source_attempts": 1,
+        "shared_blob_probe_counted_separately": true
+      },
+      "root_operations": {
+        "dedicated_missing_gets": 1,
+        "result_readback_gets": 3,
+        "posts": 0,
+        "official_source_gets": 0
+      },
+      "gates": {
+        "frozen_baselines": 274,
+        "numeric_cases": 6,
+        "saved_result_labels": 6,
+        "eligible_individual_evaluations": 5,
+        "excluded_result_labels": 1,
+        "fixed_archived_cohort_n": 3,
+        "fixed_archived_cohort_days": 2,
+        "fixed_archived_cohort_bytes": 7173,
+        "physical_pairs": 0,
+        "automated_verified_hull_ids": 0,
+        "validation_status": "UNVALIDATED",
+        "purchase_decision": "skip",
+        "purchase_recommendations": [],
+        "formal_complete": false
+      },
+      "preserved": {
+        "own_forecast_bytes": 113946,
+        "own_forecast_sha256": "5d8508da5ae2fa73bd1acf68e45968d61151e3e04a0111f7956367df824156eb",
+        "no_old_name_numeric_result_or_video_reacquisition": true,
+        "no_retrospective_forecast": true,
+        "all_functional_trees_unchanged": true,
+        "oidc_and_all_deployments_protection_unchanged": true,
+        "daily_real_capture_jst": "2026-10-16T19:08:36.977875+09:00",
+        "old_failures_unchanged": true
+      },
+      "latest_head_ci_preview_backup": "PENDING_AFTER_COMMIT_AT_RECORDED_AT",
+      "next": "Keep completed own12 result/name/numeric immutable. Validate new domain-specific hull/digit/body labels, camera/world/independent physical clock/measurement and held-out adoption. Obtain prospective physical pairs and next-day missing race cohort only with exact current-day missing API or verified six-hour day condition; new JST date00:00 missing is independent of next01:08 threshold."
+    }
   },
   "loaded_comparison_day_refresh_fix": {
     "status": "ACTUAL_PC1440_MOBILE390_REFRESH_RETAIN_AND_RACE_SWITCH_CLEAR_VERIFIED",
@@ -4658,7 +4897,246 @@
     },
     "evidence": "docs/evidence/2026-10-16/shimonoseki-exhibition-comparison-stage.json",
     "video_used": false,
-    "result_label_acquired": false
+    "result_label_acquired": true,
+    "result_closeout": {
+      "schema_version": "name-bound-result-closeout/v1",
+      "recorded_at": "2026-10-16T14:40:59.944351+00:00",
+      "base_head": "09823dc5ed726117fb07a77a2515c28316bae160",
+      "race_id": "20261016-19-12",
+      "request_id": "38916275797-1",
+      "forecast_request_id": "38908811972-1",
+      "name_binding_request_id": "38907737025-1",
+      "baseline_request_id": "38777785588-1",
+      "run_id": 38916275797,
+      "job_id": 117024458228,
+      "artifact_id": 12053105103,
+      "workflow_commit": "5a38336727c452ef0ba796f56b68434fe7b59837",
+      "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
+      "application_commit": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+      "initial_in_progress_run_snapshot_preserved": true,
+      "final_run": {
+        "id": 38916275797,
+        "head_sha": "5a38336727c452ef0ba796f56b68434fe7b59837",
+        "head_branch": "feat/boat-oidc-probe-auth",
+        "event": "workflow_dispatch",
+        "status": "completed",
+        "conclusion": "success",
+        "created_at": "2026-10-16T14:30:13Z",
+        "updated_at": "2026-10-16T14:31:12Z",
+        "run_attempt": 1
+      },
+      "source_captured_at": "2026-10-16T14:30:44.115584+00:00",
+      "cloud_saved_at": "2026-10-16T14:30:50.187389+00:00",
+      "receipt_confirmed_at": "2026-10-16T14:30:50.918993+00:00",
+      "top3": [
+        1,
+        2,
+        3
+      ],
+      "evaluation_as_of": "2026-10-16T14:31:05.123274+00:00",
+      "evaluation_status": "EVALUATED",
+      "models": [
+        {
+          "forecast_cloud_saved_at": "2026-10-15T17:35:02.988619+00:00",
+          "forecast_generated_at": "2026-10-15T17:35:01.199531+00:00",
+          "log_loss": 4.853573383911588,
+          "model_id": "official-program-rating-pl",
+          "model_version": "1",
+          "multiclass_brier": 0.9929562375925921,
+          "phase": "B_ONLY_BASELINE",
+          "race_count": 1,
+          "ticket_count": 120,
+          "winner_probability": 0.007800453671917985
+        },
+        {
+          "forecast_cloud_saved_at": "2026-10-16T13:34:22.878315+00:00",
+          "forecast_generated_at": "2026-10-16T13:34:21.013777+00:00",
+          "log_loss": 4.918316654274187,
+          "model_id": "name-bound-display",
+          "model_version": "2",
+          "multiclass_brier": 0.9938494665024995,
+          "phase": "DISPLAY_V2",
+          "race_count": 1,
+          "ticket_count": 120,
+          "winner_probability": 0.0073114281549083475
+        },
+        {
+          "forecast_cloud_saved_at": "2026-10-16T13:34:22.878315+00:00",
+          "forecast_generated_at": "2026-10-16T13:34:21.013777+00:00",
+          "log_loss": 5.031326775872513,
+          "model_id": "name-bound-original",
+          "model_version": "2",
+          "multiclass_brier": 0.9954900105691994,
+          "phase": "ORIGINAL_V2",
+          "race_count": 1,
+          "ticket_count": 120,
+          "winner_probability": 0.006530140787150653
+        }
+      ],
+      "model_adoption_status": "UNVALIDATED",
+      "single_race_both_v2_brier_and_log_loss_worse_than_baseline": true,
+      "restore": {
+        "recorded_at": "2026-10-16T14:32:43.674223+00:00",
+        "run_id": 38916275797,
+        "job_id": 117024458228,
+        "artifact_id": 12053105103,
+        "workflow_commit": "5a38336727c452ef0ba796f56b68434fe7b59837",
+        "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
+        "status": "COMPLETED_FULL_BACKUP_RESTORED",
+        "files": 6,
+        "bytes": 131726,
+        "zip_bytes": 28176,
+        "zip_sha256": "dd3ee5f546960117c768e6004c9314e4524a35af4cac25d38246c696cdf0543c",
+        "file_digests": {
+          "evaluation.json": {
+            "bytes": 2816,
+            "sha256": "3d56b1477785493cbd22ad547ababcda74774a8fdcde9898c92617889fb313f2"
+          },
+          "forecast.json": {
+            "bytes": 113946,
+            "sha256": "5d8508da5ae2fa73bd1acf68e45968d61151e3e04a0111f7956367df824156eb"
+          },
+          "manifest.json": {
+            "bytes": 1041,
+            "sha256": "7c2597afb139ed786dba370f32acb4a6f564c7875e7f81fb6967b3af99eaaa17"
+          },
+          "program.json": {
+            "bytes": 2173,
+            "sha256": "64252df912779f62c982aca63c15814012c52627d081f301f3fe8f922fa57f28"
+          },
+          "request.json": {
+            "bytes": 5688,
+            "sha256": "9c8878be1f1a757a644f848a37ef607eba69b072d82adbaa038e04a1bff42530"
+          },
+          "result.json": {
+            "bytes": 6062,
+            "sha256": "0133dd725b799cb096c8e53dc85d543f3c8364766c1d1f501d9777be73c9e5ba"
+          }
+        },
+        "manifest": {
+          "backups": {
+            "evaluation.json": {
+              "bytes": 2816,
+              "sha256": "3d56b1477785493cbd22ad547ababcda74774a8fdcde9898c92617889fb313f2"
+            },
+            "forecast.json": {
+              "bytes": 113946,
+              "sha256": "5d8508da5ae2fa73bd1acf68e45968d61151e3e04a0111f7956367df824156eb"
+            },
+            "program.json": {
+              "bytes": 2173,
+              "sha256": "64252df912779f62c982aca63c15814012c52627d081f301f3fe8f922fa57f28"
+            },
+            "request.json": {
+              "bytes": 5688,
+              "sha256": "9c8878be1f1a757a644f848a37ef607eba69b072d82adbaa038e04a1bff42530"
+            },
+            "result.json": {
+              "bytes": 6062,
+              "sha256": "0133dd725b799cb096c8e53dc85d543f3c8364766c1d1f501d9777be73c9e5ba"
+            }
+          },
+          "commit_sha": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+          "failure_reason": null,
+          "forecast_request_id": "38908811972-1",
+          "max_seconds": 240,
+          "official_source_requests": 1,
+          "operation": "NAME_BOUND_RESULT_PUBLICATION",
+          "posts_attempted": 1,
+          "purchase_decision": "skip",
+          "purchase_recommendations": [],
+          "race_id": "20261016-19-12",
+          "reads_used": 5,
+          "request_id": "38916275797-1",
+          "result_disposition_contract": "official-result-dispositions/v2",
+          "schema_version": 1,
+          "status": "COMPLETED",
+          "validation_status": "UNVALIDATED"
+        },
+        "full_forecast_bytes_unchanged": true,
+        "raw_source_retained": false,
+        "previous_unrelated_failed_runs_reclassified": false,
+        "independent_audit_pending": true,
+        "physical_exhibition_pairs": 0,
+        "validation_status": "UNVALIDATED",
+        "purchase_decision": "skip",
+        "purchase_recommendations": []
+      },
+      "independent_audit": {
+        "file": "artifacts/local/shimonoseki12-result-v2-artifact-audit.md",
+        "bytes": 8569,
+        "sha256": "dbb3acd82a87178a3f9c89c2339b490158cb57d19529d610055c2f7f38052802"
+      },
+      "caller_review": {
+        "file": "artifacts/local/shimonoseki12-result-caller-review.md",
+        "bytes": 6280,
+        "sha256": "685b88c986ae9a7078fac57d1a7eb294ebedab6f4c8360ccae9a505b6f7d273b"
+      },
+      "api_proof": {
+        "recorded_at": "2026-10-16T14:33:51.444482+00:00",
+        "root_gets": 3,
+        "posts": 0,
+        "official_source_gets": 0,
+        "responses": {
+          "fixed": {
+            "bytes": 6062,
+            "sha256": "0133dd725b799cb096c8e53dc85d543f3c8364766c1d1f501d9777be73c9e5ba",
+            "all_content_equal": true
+          },
+          "latest": {
+            "bytes": 6062,
+            "sha256": "0133dd725b799cb096c8e53dc85d543f3c8364766c1d1f501d9777be73c9e5ba",
+            "all_content_equal": true
+          },
+          "publisher": {
+            "bytes": 6062,
+            "sha256": "0133dd725b799cb096c8e53dc85d543f3c8364766c1d1f501d9777be73c9e5ba",
+            "all_content_equal": true
+          }
+        },
+        "transport_note": "Removed exactly one patch-added LF; original tool responses had none; no repeated GET"
+      },
+      "business_operations": {
+        "api_gets": 5,
+        "posts": 1,
+        "official_source_attempts": 1,
+        "shared_blob_probe_counted_separately": true
+      },
+      "root_operations": {
+        "dedicated_missing_gets": 1,
+        "result_readback_gets": 3,
+        "posts": 0,
+        "official_source_gets": 0
+      },
+      "gates": {
+        "frozen_baselines": 274,
+        "numeric_cases": 6,
+        "saved_result_labels": 6,
+        "eligible_individual_evaluations": 5,
+        "excluded_result_labels": 1,
+        "fixed_archived_cohort_n": 3,
+        "fixed_archived_cohort_days": 2,
+        "fixed_archived_cohort_bytes": 7173,
+        "physical_pairs": 0,
+        "automated_verified_hull_ids": 0,
+        "validation_status": "UNVALIDATED",
+        "purchase_decision": "skip",
+        "purchase_recommendations": [],
+        "formal_complete": false
+      },
+      "preserved": {
+        "own_forecast_bytes": 113946,
+        "own_forecast_sha256": "5d8508da5ae2fa73bd1acf68e45968d61151e3e04a0111f7956367df824156eb",
+        "no_old_name_numeric_result_or_video_reacquisition": true,
+        "no_retrospective_forecast": true,
+        "all_functional_trees_unchanged": true,
+        "oidc_and_all_deployments_protection_unchanged": true,
+        "daily_real_capture_jst": "2026-10-16T19:08:36.977875+09:00",
+        "old_failures_unchanged": true
+      },
+      "latest_head_ci_preview_backup": "PENDING_AFTER_COMMIT_AT_RECORDED_AT",
+      "next": "Keep completed own12 result/name/numeric immutable. Validate new domain-specific hull/digit/body labels, camera/world/independent physical clock/measurement and held-out adoption. Obtain prospective physical pairs and next-day missing race cohort only with exact current-day missing API or verified six-hour day condition; new JST date00:00 missing is independent of next01:08 threshold."
+    }
   },
   "official_live_monitoring_trial": {
     "schema_version": 1,
@@ -6817,5 +7295,359 @@
       "purchase_recommendations": []
     },
     "next": "Keep completed10/12 names/numeric,10 result/video immutable. After12 cutoff and120s, only its exact result404 and fresh five-state/lease/current-day/own-forecast checks may authorize one new separate result label. No retrospective predictions. Validate domain-specific hull/digit labels and world/time/measurement quality on new held-out inputs before video adoption; continue prospective physical pairs/all-race capture. New JST-day exact missing allows one validated day update after00:00, not forced waiting until01:08."
+  },
+  "prior_research_state_before_shimonoseki12_result": {
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "actual_races_with_saved_prediction": 274,
+    "actual_result_cohorts_evaluated": 4,
+    "models": [
+      "official-program-uniform-pl/v1",
+      "official-program-rating-pl/v1",
+      "name-bound-display/v2",
+      "name-bound-original/v2"
+    ],
+    "source": "All274 frozen B baselines unchanged. Six own-name numeric examples; four eligible evaluated results plus one separately saved excluded F/refund label. Fixed original7173B archived aggregate remainsN3/day2. Physicalpairs0, automatic hullIDs0, no held-out/calibration/adoption proof.",
+    "name_bound_v2_result_race_count": 4,
+    "name_bound_v2_numeric_races": 6,
+    "physical_exhibition_pairs_verified": 0,
+    "archived_common_cohort_race_count": 3,
+    "archived_common_cohort_day_count": 2,
+    "frozen_day15_baseline_count": 118,
+    "baseline_counts_by_date": {
+      "2026-10-15": 118,
+      "2026-10-16": 156
+    },
+    "historical_aggregate_ui": "IMPLEMENTED_PROTECTED_PREVIEW_VERIFIED_AT03c57; fixed7173B/N3/day2/original as_of unchanged, latest same-web evidence remains separate.",
+    "name_bound_v2_saved_result_labels": 5,
+    "name_bound_v2_excluded_result_races": 1,
+    "name_bound_v2_result_race_count_scope": "Eligible evaluated races only; excluded labels counted separately"
+  },
+  "prior_current_day16_latest_saved_comparison_before_shimonoseki12_result": {
+    "race_id": "20261016-19-12",
+    "closed_at_jst": "2026-10-16T22:45:00+09:00",
+    "baseline_request_id": "38777785588-1",
+    "name_binding_request_id": "38907737025-1",
+    "numeric_request_id": "38908811972-1",
+    "name_run": {
+      "run_id": 38907737025,
+      "job_id": 116995484096,
+      "artifact_id": 12048862263
+    },
+    "numeric_run": {
+      "run_id": 38908811972,
+      "job_id": 116999130681,
+      "artifact_id": 12048789839
+    },
+    "receipt_confirmed_at": "2026-10-16T13:34:24.121527+00:00",
+    "seconds_before_close": 635.878473,
+    "all_files_and_fixed_latest_publisher_api_restored": true,
+    "result_label_acquired": false,
+    "video_used": false,
+    "physical_exhibition_before_after_pairs": 0,
+    "completed_name_numeric_must_not_be_reacquired": true,
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "evidence": "docs/evidence/2026-10-16/shimonoseki-exhibition-comparison-stage.json"
+  },
+  "prior_current_day16_latest_name_bound_numeric_before_shimonoseki12_result": {
+    "race_id": "20261016-19-12",
+    "numeric": {
+      "status": "NAME_BOUND_FULL_RESTORE_AND_INDEPENDENT_720_REPLAY_VERIFIED",
+      "run_id": 38908811972,
+      "race_id": "20261016-19-12",
+      "request_id": "38908811972-1",
+      "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+      "files": 6,
+      "bytes": 160536,
+      "zip_bytes": 32211,
+      "zip_sha256": "96bd661aa0ac450e1006ca368e0539f71ca7343a52d8bf03cb85ae40538e1258",
+      "envelope_bytes": 113946,
+      "envelope_sha256": "5d8508da5ae2fa73bd1acf68e45968d61151e3e04a0111f7956367df824156eb",
+      "input_snapshot_id": "3608695722ede7b882634fded99026576e5fb22973560af8ae8356e94531f701",
+      "prediction_snapshot_id": "80a4ef347fef228ec80d07ccfe113361d45a5ef5c2c6df336e9760f2b2dfe008",
+      "baseline_request_id": "38777785588-1",
+      "baseline_sha256": "4a4705309ab7eab279a0b26a41816175241b5b5b79cf3e01eb6d87c39a7c82ff",
+      "name_binding_request_id": "38907737025-1",
+      "source_captures": [
+        "2026-10-16T13:34:14.826011+00:00",
+        "2026-10-16T13:34:15.425170+00:00",
+        "2026-10-16T13:34:16.165122+00:00"
+      ],
+      "input_generated_at": "2026-10-16T13:34:16.172110+00:00",
+      "runner_saved_at": "2026-10-16T13:34:16.261522+00:00",
+      "parents_resolved_at": "2026-10-16T13:34:19.551214+00:00",
+      "input_cloud_saved_at": "2026-10-16T13:34:21.013745+00:00",
+      "prediction_generated_at": "2026-10-16T13:34:21.013777+00:00",
+      "cloud_saved_at": "2026-10-16T13:34:22.878315+00:00",
+      "receipt_confirmed_at": "2026-10-16T13:34:24.121527+00:00",
+      "seconds_before_close": 635.878473,
+      "max_probability_error": 8.326672684688674e-17,
+      "official_source_requests": 3,
+      "physical_exhibition_timing_verified": false,
+      "raw_sources_retained": false,
+      "raw_hash_recomputed_after_disposal": false,
+      "validation_status": "UNVALIDATED",
+      "purchase_decision": "skip"
+    },
+    "name_binding_request_id": "38907737025-1",
+    "independent_audit": {
+      "file": "artifacts/local/shimonoseki12-numeric-artifact-audit.md",
+      "bytes": 7448,
+      "sha256": "083fef81bbb951613b6e91d6bacf046cd650592be9e912abd211975e77ce0d4b"
+    },
+    "evidence": "docs/evidence/2026-10-16/shimonoseki-exhibition-comparison-stage.json",
+    "video_used": false,
+    "result_label_acquired": false
+  },
+  "prior_next_priority_before_shimonoseki12_result": [
+    "Keep completed10/12 names/numeric,10 result/video immutable. After12 cutoff and120s, only its exact result404 and fresh five-state/lease/current-day/own-forecast checks may authorize one new separate result label. No retrospective predictions. Validate domain-specific hull/digit labels and world/time/measurement quality on new held-out inputs before video adoption; continue prospective physical pairs/all-race capture. New JST-day exact missing allows one validated day update after00:00, not forced waiting until01:08.",
+    "Physical exhibition before/after pairs0. Obtain new prospective pairs with independent physical clock and own-race proof; B-only/publication waiting/cutoff timing alone is not proof.",
+    "All16th156 B baselines already verified; preserve274 total. Only missing next-day upcoming set may be added with same validated cohort/all-upcoming, each batch full restore/API and idle/lease/currentday checks.",
+    "Last real daily capture2026-10-16 19:08:36.977875JST run38885213046, official2GET. Next6h2026-10-17 01:08:36.977875JST; exact current-day missing after midnight is separate. New equipment/rate changes3boats are not old forecast updates.",
+    "Omura1 name/numeric/result and Naruto2/Marugame4/7 completed; do not rerun. Four individual evaluations versus fixed original7173B N3/2days aggregate remain distinct and unchanged.",
+    "Need multi-day held-out video contribution/calibration/adoption plus world/time/camera/measurement truth. Source positions/background affine/digit/COCO regions do not establish boat performance; UNVALIDATED/skip/[] stay.",
+    "History/motor-change/usercloud/longrestore/PC-free operation/hardwareiPhone formally unfinished. Preserve limited source/derivedprivatefalse/OIDC protection and both manual-only source-smoke before everypush; noProduction/main/voting/payment."
+  ],
+  "shimonoseki12_result_closeout": {
+    "schema_version": "name-bound-result-closeout/v1",
+    "recorded_at": "2026-10-16T14:40:59.944351+00:00",
+    "base_head": "09823dc5ed726117fb07a77a2515c28316bae160",
+    "race_id": "20261016-19-12",
+    "request_id": "38916275797-1",
+    "forecast_request_id": "38908811972-1",
+    "name_binding_request_id": "38907737025-1",
+    "baseline_request_id": "38777785588-1",
+    "run_id": 38916275797,
+    "job_id": 117024458228,
+    "artifact_id": 12053105103,
+    "workflow_commit": "5a38336727c452ef0ba796f56b68434fe7b59837",
+    "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
+    "application_commit": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+    "initial_in_progress_run_snapshot_preserved": true,
+    "final_run": {
+      "id": 38916275797,
+      "head_sha": "5a38336727c452ef0ba796f56b68434fe7b59837",
+      "head_branch": "feat/boat-oidc-probe-auth",
+      "event": "workflow_dispatch",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-10-16T14:30:13Z",
+      "updated_at": "2026-10-16T14:31:12Z",
+      "run_attempt": 1
+    },
+    "source_captured_at": "2026-10-16T14:30:44.115584+00:00",
+    "cloud_saved_at": "2026-10-16T14:30:50.187389+00:00",
+    "receipt_confirmed_at": "2026-10-16T14:30:50.918993+00:00",
+    "top3": [
+      1,
+      2,
+      3
+    ],
+    "evaluation_as_of": "2026-10-16T14:31:05.123274+00:00",
+    "evaluation_status": "EVALUATED",
+    "models": [
+      {
+        "forecast_cloud_saved_at": "2026-10-15T17:35:02.988619+00:00",
+        "forecast_generated_at": "2026-10-15T17:35:01.199531+00:00",
+        "log_loss": 4.853573383911588,
+        "model_id": "official-program-rating-pl",
+        "model_version": "1",
+        "multiclass_brier": 0.9929562375925921,
+        "phase": "B_ONLY_BASELINE",
+        "race_count": 1,
+        "ticket_count": 120,
+        "winner_probability": 0.007800453671917985
+      },
+      {
+        "forecast_cloud_saved_at": "2026-10-16T13:34:22.878315+00:00",
+        "forecast_generated_at": "2026-10-16T13:34:21.013777+00:00",
+        "log_loss": 4.918316654274187,
+        "model_id": "name-bound-display",
+        "model_version": "2",
+        "multiclass_brier": 0.9938494665024995,
+        "phase": "DISPLAY_V2",
+        "race_count": 1,
+        "ticket_count": 120,
+        "winner_probability": 0.0073114281549083475
+      },
+      {
+        "forecast_cloud_saved_at": "2026-10-16T13:34:22.878315+00:00",
+        "forecast_generated_at": "2026-10-16T13:34:21.013777+00:00",
+        "log_loss": 5.031326775872513,
+        "model_id": "name-bound-original",
+        "model_version": "2",
+        "multiclass_brier": 0.9954900105691994,
+        "phase": "ORIGINAL_V2",
+        "race_count": 1,
+        "ticket_count": 120,
+        "winner_probability": 0.006530140787150653
+      }
+    ],
+    "model_adoption_status": "UNVALIDATED",
+    "single_race_both_v2_brier_and_log_loss_worse_than_baseline": true,
+    "restore": {
+      "recorded_at": "2026-10-16T14:32:43.674223+00:00",
+      "run_id": 38916275797,
+      "job_id": 117024458228,
+      "artifact_id": 12053105103,
+      "workflow_commit": "5a38336727c452ef0ba796f56b68434fe7b59837",
+      "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
+      "status": "COMPLETED_FULL_BACKUP_RESTORED",
+      "files": 6,
+      "bytes": 131726,
+      "zip_bytes": 28176,
+      "zip_sha256": "dd3ee5f546960117c768e6004c9314e4524a35af4cac25d38246c696cdf0543c",
+      "file_digests": {
+        "evaluation.json": {
+          "bytes": 2816,
+          "sha256": "3d56b1477785493cbd22ad547ababcda74774a8fdcde9898c92617889fb313f2"
+        },
+        "forecast.json": {
+          "bytes": 113946,
+          "sha256": "5d8508da5ae2fa73bd1acf68e45968d61151e3e04a0111f7956367df824156eb"
+        },
+        "manifest.json": {
+          "bytes": 1041,
+          "sha256": "7c2597afb139ed786dba370f32acb4a6f564c7875e7f81fb6967b3af99eaaa17"
+        },
+        "program.json": {
+          "bytes": 2173,
+          "sha256": "64252df912779f62c982aca63c15814012c52627d081f301f3fe8f922fa57f28"
+        },
+        "request.json": {
+          "bytes": 5688,
+          "sha256": "9c8878be1f1a757a644f848a37ef607eba69b072d82adbaa038e04a1bff42530"
+        },
+        "result.json": {
+          "bytes": 6062,
+          "sha256": "0133dd725b799cb096c8e53dc85d543f3c8364766c1d1f501d9777be73c9e5ba"
+        }
+      },
+      "manifest": {
+        "backups": {
+          "evaluation.json": {
+            "bytes": 2816,
+            "sha256": "3d56b1477785493cbd22ad547ababcda74774a8fdcde9898c92617889fb313f2"
+          },
+          "forecast.json": {
+            "bytes": 113946,
+            "sha256": "5d8508da5ae2fa73bd1acf68e45968d61151e3e04a0111f7956367df824156eb"
+          },
+          "program.json": {
+            "bytes": 2173,
+            "sha256": "64252df912779f62c982aca63c15814012c52627d081f301f3fe8f922fa57f28"
+          },
+          "request.json": {
+            "bytes": 5688,
+            "sha256": "9c8878be1f1a757a644f848a37ef607eba69b072d82adbaa038e04a1bff42530"
+          },
+          "result.json": {
+            "bytes": 6062,
+            "sha256": "0133dd725b799cb096c8e53dc85d543f3c8364766c1d1f501d9777be73c9e5ba"
+          }
+        },
+        "commit_sha": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+        "failure_reason": null,
+        "forecast_request_id": "38908811972-1",
+        "max_seconds": 240,
+        "official_source_requests": 1,
+        "operation": "NAME_BOUND_RESULT_PUBLICATION",
+        "posts_attempted": 1,
+        "purchase_decision": "skip",
+        "purchase_recommendations": [],
+        "race_id": "20261016-19-12",
+        "reads_used": 5,
+        "request_id": "38916275797-1",
+        "result_disposition_contract": "official-result-dispositions/v2",
+        "schema_version": 1,
+        "status": "COMPLETED",
+        "validation_status": "UNVALIDATED"
+      },
+      "full_forecast_bytes_unchanged": true,
+      "raw_source_retained": false,
+      "previous_unrelated_failed_runs_reclassified": false,
+      "independent_audit_pending": true,
+      "physical_exhibition_pairs": 0,
+      "validation_status": "UNVALIDATED",
+      "purchase_decision": "skip",
+      "purchase_recommendations": []
+    },
+    "independent_audit": {
+      "file": "artifacts/local/shimonoseki12-result-v2-artifact-audit.md",
+      "bytes": 8569,
+      "sha256": "dbb3acd82a87178a3f9c89c2339b490158cb57d19529d610055c2f7f38052802"
+    },
+    "caller_review": {
+      "file": "artifacts/local/shimonoseki12-result-caller-review.md",
+      "bytes": 6280,
+      "sha256": "685b88c986ae9a7078fac57d1a7eb294ebedab6f4c8360ccae9a505b6f7d273b"
+    },
+    "api_proof": {
+      "recorded_at": "2026-10-16T14:33:51.444482+00:00",
+      "root_gets": 3,
+      "posts": 0,
+      "official_source_gets": 0,
+      "responses": {
+        "fixed": {
+          "bytes": 6062,
+          "sha256": "0133dd725b799cb096c8e53dc85d543f3c8364766c1d1f501d9777be73c9e5ba",
+          "all_content_equal": true
+        },
+        "latest": {
+          "bytes": 6062,
+          "sha256": "0133dd725b799cb096c8e53dc85d543f3c8364766c1d1f501d9777be73c9e5ba",
+          "all_content_equal": true
+        },
+        "publisher": {
+          "bytes": 6062,
+          "sha256": "0133dd725b799cb096c8e53dc85d543f3c8364766c1d1f501d9777be73c9e5ba",
+          "all_content_equal": true
+        }
+      },
+      "transport_note": "Removed exactly one patch-added LF; original tool responses had none; no repeated GET"
+    },
+    "business_operations": {
+      "api_gets": 5,
+      "posts": 1,
+      "official_source_attempts": 1,
+      "shared_blob_probe_counted_separately": true
+    },
+    "root_operations": {
+      "dedicated_missing_gets": 1,
+      "result_readback_gets": 3,
+      "posts": 0,
+      "official_source_gets": 0
+    },
+    "gates": {
+      "frozen_baselines": 274,
+      "numeric_cases": 6,
+      "saved_result_labels": 6,
+      "eligible_individual_evaluations": 5,
+      "excluded_result_labels": 1,
+      "fixed_archived_cohort_n": 3,
+      "fixed_archived_cohort_days": 2,
+      "fixed_archived_cohort_bytes": 7173,
+      "physical_pairs": 0,
+      "automated_verified_hull_ids": 0,
+      "validation_status": "UNVALIDATED",
+      "purchase_decision": "skip",
+      "purchase_recommendations": [],
+      "formal_complete": false
+    },
+    "preserved": {
+      "own_forecast_bytes": 113946,
+      "own_forecast_sha256": "5d8508da5ae2fa73bd1acf68e45968d61151e3e04a0111f7956367df824156eb",
+      "no_old_name_numeric_result_or_video_reacquisition": true,
+      "no_retrospective_forecast": true,
+      "all_functional_trees_unchanged": true,
+      "oidc_and_all_deployments_protection_unchanged": true,
+      "daily_real_capture_jst": "2026-10-16T19:08:36.977875+09:00",
+      "old_failures_unchanged": true
+    },
+    "latest_head_ci_preview_backup": "PENDING_AFTER_COMMIT_AT_RECORDED_AT",
+    "next": "Keep completed own12 result/name/numeric immutable. Validate new domain-specific hull/digit/body labels, camera/world/independent physical clock/measurement and held-out adoption. Obtain prospective physical pairs and next-day missing race cohort only with exact current-day missing API or verified six-hour day condition; new JST date00:00 missing is independent of next01:08 threshold."
   }
 }
