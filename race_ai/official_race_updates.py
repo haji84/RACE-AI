@@ -18,6 +18,7 @@ from .venue_result_reconciliation import reconcile_results
 from .venue_result_bridge import parse_and_reconcile
 
 KINDS={'beforeinfo','odds3t','raceresult'}
+RESULT_DISPOSITION_V2='official-result-dispositions/v2'
 MISSING={'','-','--','―','—','発売なし','欠場'}
 BET_TYPES={'3連単':('trifecta',3,False),'3連複':('trio',3,True),'2連単':('exacta',2,False),
            '2連複':('quinella',2,True),'拡連複':('quinella_place',2,True),'単勝':('win',1,False),'複勝':('place',1,False)}
@@ -318,7 +319,11 @@ def result_data(frame,base):
         finish,lane=values[0].text().strip(),values[1].text().strip()
         racer=re.fullmatch(r'\s*([0-9]{4})(?!\d)\s*(.+?)\s*',values[2].text())
         if not re.fullmatch(r'[1-6]',lane) or not values[1].has('is-boatColor'+lane) or not racer: raise SourceError('finish identity unverified')
-        if finish not in {'1','2','3','4','5','6','欠','転','落','沈','失','妨','不','F','L'}: raise SourceError('unsupported finish disposition')
+        dispositions={'1','2','3','4','5','6','欠','転','落','沈','失','妨','不','F','L'}
+        if base.get('result_disposition_contract')==RESULT_DISPOSITION_V2: dispositions.add('エ')
+        if finish not in dispositions: raise SourceError('unsupported finish disposition')
+        if finish=='エ' and source_cell_text(values[0]).strip()!='エ':
+            raise SourceError('unsupported finish disposition')
         lane=int(lane);st=starts[lane]
         results.append(dict(race_id=base['race_id'],lane=lane,racer_registration_id=racer.group(1),name=racer.group(2).strip(),
             finish=int(finish) if finish.isdecimal() else None,finish_status='FINISHED' if finish.isdecimal() else finish,
@@ -358,10 +363,18 @@ def result_data(frame,base):
         actual_course_status='UNKNOWN_REQUIRES_VERIFIED_COURSE_EVIDENCE')
 
 
-def parse_update(raw,*,kind,day,venue,race_no,source_url,captured_at,entries=None):
+def source_cell_text(node):
+    """Decoded cell characters before the legacy Node.text NFKC transform."""
+    return ''.join(source_cell_text(child) if isinstance(child,Node) else child for child in node.children)
+
+
+def parse_update(raw,*,kind,day,venue,race_no,source_url,captured_at,entries=None,result_disposition_contract=None):
     if kind not in KINDS: raise SourceError('unsupported update kind')
+    if result_disposition_contract is not None and (result_disposition_contract!=RESULT_DISPOSITION_V2 or kind!='raceresult'):
+        raise SourceError('unsupported result disposition contract')
     try:
         frame,base=context(raw,kind,day,venue,race_no,source_url,captured_at)
+        if result_disposition_contract is not None: base['result_disposition_contract']=result_disposition_contract
         if frame is None: return base
         if kind=='beforeinfo':
             data=preview_data(frame)
@@ -433,6 +446,13 @@ def parse_update(raw,*,kind,day,venue,race_no,source_url,captured_at,entries=Non
     except (ValueError,UnicodeError,TypeError,AttributeError,KeyError,InvalidOperation) as exc:
         if isinstance(exc,SourceError): raise
         raise SourceError('official race update malformed') from exc
+
+
+def parse_result_v2(raw,*,day,venue,race_no,source_url,captured_at,entries=None):
+    """Explicit literal-エ contract; no inferred finish, refund or responsibility."""
+    return parse_update(raw,kind='raceresult',day=day,venue=venue,race_no=race_no,
+        source_url=source_url,captured_at=captured_at,entries=entries,
+        result_disposition_contract=RESULT_DISPOSITION_V2)
 
 
 def pending_record(base,data,entries):

@@ -60,7 +60,11 @@ def _payload_bytes(entry):
 def _manifest(entry, payloads):
     manifest, kind = entry['manifest'], entry['archive_kind']
     publication = kind == RESULT_PUBLICATION
-    _require(isinstance(manifest, dict) and set(manifest) == (NEW_MANIFEST if publication else OLD_MANIFEST))
+    fields=NEW_MANIFEST if publication else OLD_MANIFEST
+    allowed=(fields,fields|{'result_disposition_contract'}) if publication else (fields,)
+    _require(isinstance(manifest, dict) and set(manifest) in allowed)
+    if 'result_disposition_contract' in manifest:
+        _require(manifest['result_disposition_contract']==facts.RESULT_DISPOSITION_V2)
     _require(type(manifest['schema_version']) is int and manifest['schema_version'] == 1
         and manifest['status'] == 'COMPLETED' and manifest['failure_reason'] is None
         and manifest['validation_status'] == 'UNVALIDATED' and manifest['purchase_decision'] == 'skip'
@@ -92,6 +96,8 @@ def _replay(entry, clock):
     if entry['archive_kind'] == RESULT_PUBLICATION:
         checked = validate_name_bound_result_envelope(result, race, forecast, now=replay)
         receipt, request = checked['receipt'], entry['request']
+        _require(receipt['snapshot']['result_record'].get('result_disposition_contract')
+            ==entry['manifest'].get('result_disposition_contract'))
         _require(isinstance(request, dict) and set(request) == REQUEST_FIELDS
             and request['publication_review'] == 'user-confirmation-2026-10-15-official-facts'
             and request['race_id'] == race['race_id'] and request['request_id'] == entry['manifest']['request_id'])

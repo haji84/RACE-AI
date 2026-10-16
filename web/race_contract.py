@@ -21,6 +21,8 @@ REQUIRED={'schema_version','race_id','kind','source_url','source_sha256','captur
           'available_at','upstream_published_at','eligible_pre_race','information_phase',
           'body_identity_verified','status','data'}|STORE_FIELDS
 OPTIONAL={'closed_at','missing_reason','rights_review','observed_racers'}
+RESULT_DISPOSITION_V2='official-result-dispositions/v2'
+OPTIONAL=OPTIONAL|{'result_disposition_contract'}
 PLACEHOLDER_KINDS={'OFFICIAL_PREVIEW_EMPTY_EXHIBITION_GRID':'beforeinfo','OFFICIAL_ODDS_ALL_ZERO_PLACEHOLDER':'odds3t'}
 MARKETS={'trifecta':(3,False),'trio':(3,True),'exacta':(2,False),'quinella':(2,True),
          'quinella_place':(2,True),'win':(1,False),'place':(1,False)}
@@ -133,6 +135,9 @@ def _metadata(record,race,now,*,summary=False,require_same_day=False):
     _keys(record,required,OPTIONAL)
     _require(type(record['schema_version']) is int and record['schema_version']==1,'unsupported observation schema')
     _require(record['race_id']==race['race_id'] and record['kind'] in KINDS,'observation and program race mismatch')
+    if 'result_disposition_contract' in record:
+        _require(record['kind']=='raceresult' and record['result_disposition_contract']==RESULT_DISPOSITION_V2,
+                 'unsupported result disposition contract')
     for key in ('snapshot_id','source_sha256'):
         _require(isinstance(record[key],str) and re.fullmatch(r'[0-9a-f]{64}',record[key]) is not None,'invalid observation hash')
     if summary: _require(record['payload_omitted'] is True,'invalid observation summary')
@@ -292,7 +297,10 @@ def _result(record,identities,captured,closed):
         _keys(row,row_fields)
         _require(row['race_id']==record['race_id'] and row['source_url']==record['source_url'] and _time(row['captured_at'])==captured and row['verified_official'] is True,'nested result provenance conflict')
         if row['finish_status']=='FINISHED': _integer(row['finish'],1,6);finishes.append(row['finish'])
-        else: _require(row['finish'] is None and row['finish_status'] in {'欠','転','落','沈','失','妨','不','F','L'},'invalid finish disposition')
+        else:
+            dispositions={'欠','転','落','沈','失','妨','不','F','L'}
+            if record.get('result_disposition_contract')==RESULT_DISPOSITION_V2: dispositions.add('エ')
+            _require(row['finish'] is None and row['finish_status'] in dispositions,'invalid finish disposition')
         _st(row['actual_st'],row['actual_st_status'],row['actual_raw_st']);_require(row['actual_course'] is None,'actual course unverified')
     payouts=data['payouts'];specials=data['special_payouts']
     _require(isinstance(payouts,list) and len(payouts)<=200 and isinstance(specials,list) and len(specials)<=7,'invalid payout arrays')

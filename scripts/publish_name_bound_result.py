@@ -22,7 +22,8 @@ from publish_day_feed import get_json, validate_target
 from publish_race_updates import workflow_session, select_race
 from scripts.verify_name_bound_evaluation import (REASONS, BudgetExhausted, finalize_manifest,
     identifiers, verify_response as verify_evaluation, ERRORS as OLD_ERRORS)
-from race_ai.name_bound_result_source import collect_name_bound_result
+from race_ai.name_bound_result_source import collect_name_bound_result,collect_name_bound_result_v2
+from race_ai.official_race_updates import RESULT_DISPOSITION_V2
 from race_ai.official_update_worker import fetch_update
 from api.name_bound_result_store import metadata, REVIEW, REQUEST
 from web.name_bound_result import (result_context, validate_name_bound_result,
@@ -89,7 +90,9 @@ def verify_result(envelope, request, race, forecast, now):
 def verify_backups(folder, manifest):
     """Check exact inventory, then replay all parents, label and three scores."""
     try:
-        require(isinstance(manifest,dict) and set(manifest) == MANIFEST)
+        require(isinstance(manifest,dict) and set(manifest) in (MANIFEST,MANIFEST|{'result_disposition_contract'}))
+        selected=manifest.get('result_disposition_contract')
+        require('result_disposition_contract' not in manifest or selected==RESULT_DISPOSITION_V2)
         require(type(manifest['schema_version']) is int and manifest['schema_version'] == 1
             and manifest['operation'] == 'NAME_BOUND_RESULT_PUBLICATION')
         require(type(manifest['max_seconds']) is int and manifest['max_seconds'] == MAX_SECONDS)
@@ -117,6 +120,7 @@ def verify_backups(folder, manifest):
                 raw = (folder/name).read_bytes(); value = json.loads(raw)
                 require(canonical(value) == raw); values[name] = value
             race,forecast,request,label,report = (values[n] for n in ('program.json','forecast.json','request.json','result.json','evaluation.json'))
+            require(request['snapshot']['result_record'].get('result_disposition_contract')==selected)
             require(race['race_id'] == manifest['race_id'] and request['request_id'] == manifest['request_id']
                 and request['forecast_request_id'] == manifest['forecast_request_id'])
             # The server's unchanged as_of is the replay clock. Only the existing
@@ -151,8 +155,9 @@ def latest_result(opener, request):
         return None
 
 
-def run(race_id, forecast_request_id, output_dir, *, execute=False):
+def run(race_id, forecast_request_id, output_dir, *, execute=False,result_disposition_contract=None):
     if not execute: return None
+    require(result_disposition_contract in (None,RESULT_DISPOSITION_V2))
     started = time.monotonic()
     identifiers(race_id,forecast_request_id)
     nonce = os.environ.get('GITHUB_RUN_ID','')+'-'+os.environ.get('GITHUB_RUN_ATTEMPT','')
@@ -169,6 +174,7 @@ def run(race_id, forecast_request_id, output_dir, *, execute=False):
         failure_reason=REASONS['STOPPED'],backups={},reads_used=0,posts_attempted=0,
         official_source_requests=0,max_seconds=MAX_SECONDS,validation_status='UNVALIDATED',
         purchase_decision='skip',purchase_recommendations=[])
+    if result_disposition_contract is not None:manifest['result_disposition_contract']=result_disposition_contract
     previous = None
     def guard(seconds=0):
         nonlocal previous
@@ -205,12 +211,14 @@ def run(race_id, forecast_request_id, output_dir, *, execute=False):
             manifest['official_source_requests'] += 1
             try: return fetch_update(source_url,**kwargs)
             finally: guard()
-        source = collect_name_bound_result(race,forecast,parents_read_at=parents_read_at,
+        collector=collect_name_bound_result if result_disposition_contract is None else collect_name_bound_result_v2
+        source = collector(race,forecast,parents_read_at=parents_read_at,
             facts_review=facts,execute=True,transport=transport,clock=guard)
         guard()
         require(isinstance(source,dict) and source.get('status') == 'COLLECTED'
             and type(source.get('official_source_requests')) is int
             and source['official_source_requests'] == manifest['official_source_requests'] == 1)
+        require(source['snapshot']['result_record'].get('result_disposition_contract')==result_disposition_contract)
         request = dict(publication_review=REVIEW,race_id=race_id,request_id=nonce,
             forecast_request_id=forecast_request_id,snapshot=source['snapshot'],runner_saved_at=stamp(guard()))
         validate_request(request,race,forecast,guard())
@@ -237,8 +245,10 @@ def run(race_id, forecast_request_id, output_dir, *, execute=False):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     for flag in ('race-id','forecast-request-id','output-dir'): parser.add_argument('--'+flag,required=True)
+    parser.add_argument('--result-disposition-contract',choices=[RESULT_DISPOSITION_V2])
     parser.add_argument('--execute',action='store_true'); args = parser.parse_args()
-    try: result = run(args.race_id,args.forecast_request_id,args.output_dir,execute=args.execute)
+    try: result = run(args.race_id,args.forecast_request_id,args.output_dir,execute=args.execute,
+        result_disposition_contract=args.result_disposition_contract)
     except ERRORS:
         print(REASONS['STOPPED']); raise SystemExit(2)
     print(json.dumps(result or {'status':'DRY_RUN','network_requests':0,'official_source_requests':0},sort_keys=True))

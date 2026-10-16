@@ -9,7 +9,7 @@ import sqlite3
 from urllib import error
 
 from .official_update_worker import fetch_update, reviewed_scope
-from .official_race_updates import parse_update
+from .official_race_updates import parse_update,parse_result_v2,RESULT_DISPOSITION_V2
 from .official_racelist_adapter import MAX_BYTES
 from . import official_observation_store as memory
 from .tokuyama_day_worker import FetchResponse
@@ -26,7 +26,7 @@ class _Stop(ValueError):
 
 
 def collect_name_bound_result(race, forecast, *, parents_read_at, facts_review,
-        execute=False, transport=None, clock=utc_now):
+        execute=False, transport=None, clock=utc_now, result_disposition_contract=None):
     """Validate before fetching, never retry, and count thrown attempts too."""
     count = 0
 
@@ -35,6 +35,8 @@ def collect_name_bound_result(race, forecast, *, parents_read_at, facts_review,
 
     if execute is not True:
         return stopped('DRY_RUN')
+    if result_disposition_contract not in (None,RESULT_DISPOSITION_V2):
+        return stopped('INPUT_INVALID')
     try:
         day, close, _ = facts._program(race)
     except (ValueError, TypeError, KeyError, AttributeError, OverflowError):
@@ -85,8 +87,10 @@ def collect_name_bound_result(race, forecast, *, parents_read_at, facts_review,
                 or response.url != url or not isinstance(response.body, bytes) or not 0 < len(response.body) <= MAX_BYTES
                 or not isinstance(response.content_type, str) or response.content_type.split(';')[0].strip().lower() != 'text/html'):
             raise _Stop('SOURCE_INVALID')
-        observation = parse_update(response.body, kind='raceresult', day=day, venue=race['race_id'][9:11],
-            race_no=int(race['race_id'][-2:]), source_url=url, captured_at=facts.stamp(captured), entries=projected['boats'])
+        arguments=dict(day=day,venue=race['race_id'][9:11],race_no=int(race['race_id'][-2:]),
+            source_url=url,captured_at=facts.stamp(captured),entries=projected['boats'])
+        observation = (parse_update(response.body,kind='raceresult',**arguments)
+            if result_disposition_contract is None else parse_result_v2(response.body,**arguments))
         del response
         observation['rights_review'] = facts_review['evidence_reference']
         with sqlite3.connect(':memory:') as db:
@@ -108,3 +112,10 @@ def collect_name_bound_result(race, forecast, *, parents_read_at, facts_review,
         return stopped(str(exc))
     except (ValueError, TypeError, KeyError, AttributeError, OverflowError, UnicodeError, RecursionError, sqlite3.Error):
         return stopped('SOURCE_INVALID')
+
+
+def collect_name_bound_result_v2(race,forecast,*,parents_read_at,facts_review,
+        execute=False,transport=None,clock=utc_now):
+    """Separate opt-in while retaining all clocks, identities and one-GET bounds."""
+    return collect_name_bound_result(race,forecast,parents_read_at=parents_read_at,facts_review=facts_review,
+        execute=execute,transport=transport,clock=clock,result_disposition_contract=RESULT_DISPOSITION_V2)
