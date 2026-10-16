@@ -2959,7 +2959,7 @@
     "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca"
   },
   "trusted_worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-  "updated_at": "2026-10-16T17:22:32.542951+00:00",
+  "updated_at": "2026-10-16T18:38:52.652594+00:00",
   "current_day16_prospective_target": {
     "race_id": "20261016-14-01",
     "request_id": "38798278470-1",
@@ -10100,5 +10100,122 @@
       "new_sourcepacket_restore": "PENDING_AT_RECORDED_AT",
       "later_evidence": "PR64 and artifacts/local/day17-final-* take precedence after completion"
     }
+  },
+  "prior_updated_at_before_hull_world": "2026-10-16T17:22:32.542951+00:00",
+  "hull_world_measurement_v1": {
+    "schema_version": "hull-quality-and-sampled-world-motion-stage/v1",
+    "recorded_at": "2026-10-16T18:38:52.652594+00:00",
+    "base_head": "e26eff2abf7912f8cbbca5bf379d31d22c4d35b8",
+    "implementation": {
+      "new_offline_modules": [
+        "race_ai/video_hull_quality.py",
+        "race_ai/video_world_motion.py"
+      ],
+      "source_files": {
+        "race_ai/video_hull_quality.py": {
+          "bytes": 10305,
+          "sha256": "caa54a87112eda2c925575557ecad1b80dc498a4293fbe14e84f966de0642df6"
+        },
+        "race_ai/video_world_motion.py": {
+          "bytes": 12966,
+          "sha256": "4455d39858d07446410716f666ee819b041911cdf5c31f8a55b4cc6b6226a7fe"
+        },
+        "tests/test_video_hull_quality.py": {
+          "bytes": 8375,
+          "sha256": "066a16aa6c68636ba6e3610046be9f412b031ce527f4b42c80490118d61d0ff4"
+        },
+        "tests/test_video_world_motion.py": {
+          "bytes": 9669,
+          "sha256": "6a91eb3f3f9beae678dc48e8bb03a768c949d312b0d1b283cf19cdc9ac340639"
+        },
+        "docs/superpowers/plans/2026-10-17-hull-quality-and-world-motion.md": {
+          "bytes": 3535,
+          "sha256": "67bae4a93fc6646b8506ebd213b5f5ea4c99ecd18f7d545a3365c6d9dd532f47"
+        }
+      },
+      "default_decoder_v1_to_v5_or_forecast_builder_changed": false,
+      "runtime_network_or_image_io": false,
+      "public_feature_publish": false,
+      "new_collector_or_model_forecast_integration": false
+    },
+    "quality_contract": {
+      "complete_agreeing_two_reviewer_frame_geometry": true,
+      "supplied_reviewers_and_freeze_clocks_authenticated": false,
+      "matching": "maximum cardinality then total IoU then stable IDs",
+      "foreground_digit_and_overlay_checks": true,
+      "duplicate_digits_not_arbitrarily_selected": true,
+      "evaluation_scope": "supplied finite dataset, not population accuracy or held-out certification"
+    },
+    "sampled_motion_contract": {
+      "per_frame_map_and_stable_world_landmarks": true,
+      "independent_named_check_landmarks": true,
+      "physical_clock_correspondence_references_and_JST_date": true,
+      "declared_frame_stride_with_no_missing_declared_samples": true,
+      "source_frame_completeness_or_unobserved_continuity_proven": false,
+      "requires_external_total_world_position_bounds_and_evidence_references": true,
+      "sparse_landmark_residual_is_not_global_bound": true,
+      "computed_quantities": [
+        "sampled polyline",
+        "endpoint displacement rates and mean velocity vectors",
+        "finite-difference velocity changes",
+        "three-point circle geometry"
+      ],
+      "actual_travelled_path_or_instantaneous_speed_acceleration_or_turn_skill_estimated": false,
+      "supplied_field_evidence_authenticated": false
+    },
+    "verification": {
+      "local_python": 1128,
+      "local_python_seconds": 349.24,
+      "local_js": 203,
+      "failures": 0,
+      "skips": 0,
+      "new_focused_tests": 30,
+      "independent_conditional_error_perturbations": 5000,
+      "independent_open_findings": 0,
+      "initial_findings_retained": true,
+      "reviews": {
+        "hull-world-code-review.md": {
+          "bytes": 15730,
+          "sha256": "36f84dcfae61fb6d60538e8259ce8d19c0a7a86f7aa817afc82d9f3ad781a1f3"
+        },
+        "hull-world-review-resolution.md": {
+          "bytes": 11218,
+          "sha256": "698d7ce60215ae2ebcb85182e5efbdd1c406a6e5115c876a7174311abde103de"
+        }
+      },
+      "new_head_ci_preview_api_pending_at_record": true
+    },
+    "existing_qualitative_input": {
+      "path": "artifacts/local/shimonoseki10-independent-image-audit.json",
+      "bytes": 20935,
+      "sha256": "33341aa45d2e6860980a9f1d86d389ce10e6028c9bd08fd1f1c86ff7b39a6dd0",
+      "new_geometric_contract_accepted": false,
+      "new_image_review_or_old_decode_performed": false
+    },
+    "operations": {
+      "baseline_confirmed_day17": 135,
+      "baseline_pending_day17": 33,
+      "uncertain_original_post": 1,
+      "baseline_total_all_days": 409,
+      "cohort_status": "STOPPED_UNCERTAIN_POST_DO_NOT_REDISPATCH",
+      "new_source_jobs": 0,
+      "new_official_or_media_requests": 0,
+      "new_forecast_posts": 0,
+      "trusted_pins_and_protection_changed": false,
+      "day_last_actual_capture_jst": "2026-10-17T00:38:58.455905+09:00",
+      "day_next_same_day_six_hour_jst": "2026-10-17T06:38:58.455905+09:00"
+    },
+    "gates": {
+      "new_actual_field_evaluations": 0,
+      "automated_verified_hull_ids": 0,
+      "physical_before_after_pairs": 0,
+      "prediction_input_eligible": false,
+      "boat_features": [],
+      "all_race_video_forecasts_complete": false,
+      "validation_status": "UNVALIDATED",
+      "purchase_decision": "skip",
+      "purchase_recommendations": []
+    },
+    "next": "New eligible own-race pictures with complete independent geometric labels, verified water/contact/clock/total-bound evidence, then held-out contribution and a separate prospective post model + immutable pre comparison. Do not reacquire completed old videos or restart held33."
   }
 }
