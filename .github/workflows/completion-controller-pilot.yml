@@ -5,6 +5,8 @@ on:
       - scripts/completion-controller.mjs
       - tests/completion-controller.test.mjs
       - tests/completion-controller.e2e.test.mjs
+      - tests/ai09-review-handoff.test.mjs
+      - scripts/ai09-review-handoff.mjs
       - config/completion-pilot.json
       - .github/workflows/completion-controller-pilot.yml
   workflow_dispatch:
@@ -21,11 +23,20 @@ jobs:
         with:
           node-version: '22'
       - name: Test deterministic controller and recovery
-        run: node --test tests/completion-controller.test.mjs tests/completion-controller.e2e.test.mjs
+        run: node --test tests/completion-controller.test.mjs tests/completion-controller.e2e.test.mjs tests/ai09-review-handoff.test.mjs
       - name: Read-only GitHub plan
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node scripts/completion-controller.mjs --github --catalog config/completion-pilot.json > /tmp/completion-plan.json
+      - name: Read-only AI09 handoff for this PR
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node scripts/ai09-review-handoff.mjs --pr "$PR_NUMBER" > /tmp/ai09-handoff.json
+          node -e 'const p=require("/tmp/ai09-handoff.json"); if(p.headSha!==process.env.PR_HEAD||p.mergeAuthorized||p.githubApprovalSatisfied||p.gitHubWritePerformed) process.exit(1)'
       - name: Assert pilot never claims product completion or merge authority
         run: |
           node -e 'const p=require("/tmp/completion-plan.json");if(p.product_completion_claim_allowed || !p.read_only || p.autonomous_merge_enabled)process.exit(1)'
