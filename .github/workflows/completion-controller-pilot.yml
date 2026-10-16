@@ -1,0 +1,30 @@
+name: completion-controller-pilot
+on:
+  pull_request:
+    paths:
+      - scripts/completion-controller.mjs
+      - tests/completion-controller.test.mjs
+      - config/completion-pilot.json
+      - .github/workflows/completion-controller-pilot.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test deterministic controller and recovery
+        run: node --test tests/completion-controller.test.mjs
+      - name: Read-only GitHub plan
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/completion-controller.mjs --github --catalog config/completion-pilot.json > /tmp/completion-plan.json
+      - name: Assert pilot never claims product completion or merge authority
+        run: |
+          node -e 'const p=require("/tmp/completion-plan.json");if(p.product_completion_claim_allowed || !p.read_only || p.autonomous_merge_enabled)process.exit(1)'
