@@ -2985,7 +2985,7 @@
     "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca"
   },
   "trusted_worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-  "updated_at": "2026-10-16T00:23:45.780397+00:00",
+  "updated_at": "2026-10-16T00:41:18.553745+00:00",
   "current_day16_prospective_target": {
     "race_id": "20261016-14-01",
     "request_id": "38798278470-1",
@@ -3156,6 +3156,60 @@
       "status": "SOURCE_INVALID",
       "transport_elapsed_seconds": 8.5,
       "worker_official_source_requests": 1
-    }
+    },
+    "result_phase_diagnostic": {
+      "cloud_posts": 0,
+      "completed_at": "2026-10-16T00:33:45.278055+00:00",
+      "contract_event_count": 4,
+      "contract_events": [
+        {
+          "stage": "VALIDATE_NORMALIZED_RECORD",
+          "state": "ENTERED"
+        },
+        {
+          "stage": "VALIDATE_NORMALIZED_RECORD",
+          "state": "RETURNED"
+        },
+        {
+          "stage": "PARSE_OFFICIAL_RESULT",
+          "state": "ENTERED"
+        },
+        {
+          "stage": "PARSE_OFFICIAL_RESULT",
+          "state": "REJECTED"
+        }
+      ],
+      "earlier_failed_run": "38828308110",
+      "earlier_failure_cause_proven": false,
+      "first_contract_rejection": {
+        "error_code": "RESULT_FINISH_DISPOSITION_UNSUPPORTED",
+        "stage": "PARSE_OFFICIAL_RESULT"
+      },
+      "forecast_request_id": "38825983437-1",
+      "last_contract_stage": "PARSE_OFFICIAL_RESULT",
+      "last_contract_stage_state": "REJECTED",
+      "official_source_requests": 1,
+      "race_id": "20261016-14-02",
+      "raw_source_retained": false,
+      "response_summary": {
+        "body_bytes": 59168,
+        "html_mime": true,
+        "status": 200
+      },
+      "result_labels_saved": 0,
+      "scope": "POSTCLOSE_SOURCE_DIAGNOSTIC_NOT_PUBLICATION_OR_PREDICTION_INPUT",
+      "source_snapshot_discarded": true,
+      "started_at": "2026-10-16T00:33:35.668571+00:00",
+      "status": "SOURCE_INVALID",
+      "transport_elapsed_seconds": 9.453,
+      "worker_official_source_requests": 1
+    },
+    "next_result_step": "Observe exact unsupported finish disposition as bounded normalized facts; do not guess token or relax parser."
+  },
+  "loaded_comparison_day_refresh_fix": {
+    "status": "IMPLEMENTED_EIGHT_REGRESSION_GROUPS_REVIEWED_LIVE_PENDING",
+    "javascript_tests": 195,
+    "evidence": "docs/evidence/2026-10-16/day-refresh-comparison-live.json",
+    "latest_head_verification_pending": true
   }
 }

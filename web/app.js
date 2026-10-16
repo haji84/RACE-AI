@@ -521,7 +521,7 @@
   }
   async function loadAuthorizedDayFeed(){
     const date=$('race-date').value;if(date!==today()){requestSerial++;controller?.abort();status('historical','履歴の配信は未接続です。今日の日付を選ぶと当日データを取得します。');clearReport();return;}
-    controller?.abort();clearNameBound();clearExhibition();clearOriginal();phaseInventory.clear();clearSettlements();renderMoney();if(tab==='prediction')renderDetailTab();controller=new AbortController();const requestController=controller,serial=++requestSerial;status('loading','許可を確認した当日データを自動で読み込みます。');renderRaces();const timeout=setTimeout(()=>requestController.abort(),10000);
+    controller?.abort();clearExhibition();clearOriginal();phaseInventory.clear();clearSettlements();renderMoney();if(tab==='prediction')renderDetailTab();controller=new AbortController();const requestController=controller,serial=++requestSerial;status('loading','許可を確認した当日データを自動で読み込みます。');renderRaces();const timeout=setTimeout(()=>requestController.abort(),10000);
     try{
       const response=await fetch("./api/today", {cache:"no-store", credentials:"same-origin",signal:requestController.signal});
       const body=await response.text();if(serial!==requestSerial)return;if(body.length>6_000_000)throw new Error('データが大きすぎます。');let raw;try{raw=JSON.parse(body);}catch{if(response.ok)throw new Error('配信データの形式を確認できません。');}
