@@ -42,15 +42,15 @@
   "trusted_workflow_branch": "feat/boat-oidc-probe-auth",
   "trusted_workflow_path": ".github/workflows/boat-blob-e2e.yml",
   "trusted_workflow_name": "RACE AI Preview Blob E2E",
-  "last_verified_day_run_id": 38847861450,
-  "last_verified_day_job_id": 116802344691,
+  "last_verified_day_run_id": 38885213046,
+  "last_verified_day_job_id": 116921192445,
   "last_verified_date_jst": "2026-10-16",
-  "last_verified_payload_sha256": "e7350fb5e3f6e0bc94f228e9c0820abbe2aea2280a1af71f7869b4d0bbff7ff5",
+  "last_verified_payload_sha256": "0188670122b9fd6773668bfa20cbbf7854b2a30de3034ed8983841ecd6b66be4",
   "last_verified_backup": {
-    "artifact_id": 12023628915,
+    "artifact_id": 12038917745,
     "file": "race-ai-day.json",
-    "bytes": 349883,
-    "sha256": "5c8d282fbd39adb2332985d02dd412e569a3826e44158408c8e58ac6a55e11eb",
+    "bytes": 349891,
+    "sha256": "7d84a52c5a8e1b7c228f81e4bd4df6a159e583a3a312aa27d94d89bf0c624dbd",
     "all_content_restored": true
   },
   "cloud_recurring_schedule_installed": false,
@@ -155,15 +155,15 @@
     "purchase_decision": "skip",
     "purchase_recommendations": [],
     "actual_races_with_saved_prediction": 274,
-    "actual_result_cohorts_evaluated": 3,
+    "actual_result_cohorts_evaluated": 4,
     "models": [
       "official-program-uniform-pl/v1",
       "official-program-rating-pl/v1",
       "name-bound-display/v2",
       "name-bound-original/v2"
     ],
-    "source": "All274 frozen B baselines retained. Four separately saved name-bound numeric examples across two days; three have separate result labels and the fixed N3/day2 offline aggregate. Omura1 numeric is saved but not evaluated. Exploratory only, physicalpairs0 and no held-out/calibration/adoption proof.",
-    "name_bound_v2_result_race_count": 3,
+    "source": "All274 frozen B baselines retained. Four separately saved own-name-bound numeric examples and four separate result evaluations across two days, including completed Omura1 result38865058137-1. The immutable archived aggregate remainsN3/day2 and excludes Omura1. Physicalpairs0; no held-out/calibration/adoption proof.",
+    "name_bound_v2_result_race_count": 4,
     "name_bound_v2_numeric_races": 4,
     "physical_exhibition_pairs_verified": 0,
     "archived_common_cohort_race_count": 3,
@@ -173,16 +173,16 @@
       "2026-10-15": 118,
       "2026-10-16": 156
     },
-    "historical_aggregate_ui": "IMPLEMENTED_LOCAL_VERIFIED; N3/day2 fixed snapshot, post-commit protected Preview pending at recorded_at"
+    "historical_aggregate_ui": "IMPLEMENTED_PROTECTED_PREVIEW_VERIFIED_AT03c57; fixed7173B/N3/day2/original as_of unchanged, latest same-web evidence remains separate."
   },
   "next_priority": [
-    "Omura1R20261016-24-01 ownname38851355587-1 and numeric38859927859-1 are COMPLETE; no reacquisition/republishing without concrete correction. Result label not acquired as of this record; later use own forecast/name and exact dedicated missing404/currentdate/postcutoff/fullidle/lease before a single bounded result operation. Keep274baselines/all old successes/failures. Physicalpairs0; new eligible races need independent physical exhibition clocks and own proof.",
-    "Normal official LIVE carries exhibition (Toda10R observed in10venue browser trial). Existing resolver/config remainVOD-only; build a separate limited live contract and date/race/phase/clock association. Never use page selection alone, mixed prior results/digests/CM or unknown phases as prediction input. Live detection/continuous coverage/boat identity/world calibration/measurement remainUNVERIFIED.",
-    "Accumulate prospective multi-day held-out accuracy/calibration/adoption evidence. Three-race/two-day offline common-cohort aggregate now verified from unchanged old4R/7R plus new Naruto2 v2 result; no adoption. Old N2/day1 aggregate remains immutable; keep source times/versions separate.",
-    "Advance verified boat/lane identity, camera/world calibration and measurement ground truth; color/image-affine estimates do not validate boat performance or forecast inputs. All-race video and continuous coverage unfinished.",
-    "Last actual day acquisition2026-10-16 12:54:49.102563JST run38847861450. Same dedicated day job once after6h, fullbackup349883B/two APIs349882B/independent audit/all156program identities unchanged; saved Naruto2forecast/result/7173B aggregate unchanged. Next6h2026-10-16 18:54:49.102563JST unless currentday positivelymissing; no repeats. Preserve earlier daily versions and all274baselines.",
-    "Preserve Toda1displayv1/Naruto8originalv1/Naruto7video/Amagasaki5camera and all completed3R/4R/7R proofs/numeric/result receipts.7R result38726468766-1 is complete; do not redispatch it. Both source-smoke files manual-only before everypush.",
-    "Long-term history, motor-change periods, user-cloud/restore/drills, hardwareiPhone and release-independent cloud scheduling remain formal completion conditions; noProduction/main/voting/payment."
+    "New9R explicit v5 completed57/10260/114; new10R generic-ROI v5 completed61/10980/122, but six clear introduction frames missed all vessel regions, automated verified hull IDs0. Do not reacquire completed9/10 or old7/8/media. Develop domain-specific body/number labels and quality validation; generic COCO cannot be adopted from this test.",
+    "Physical exhibition before/after pairs0. Obtain new prospective pairs with independent physical clock and own-race proof; B-only/publication waiting/cutoff timing alone is not proof.",
+    "All16th156 B baselines already verified; preserve274 total. Only missing next-day upcoming set may be added with same validated cohort/all-upcoming, each batch full restore/API and idle/lease/currentday checks.",
+    "Last real daily capture2026-10-16 19:08:36.977875JST run38885213046, official2GET. Next6h2026-10-17 01:08:36.977875JST; exact current-day missing after midnight is separate. New equipment/rate changes3boats are not old forecast updates.",
+    "Omura1 name/numeric/result and Naruto2/Marugame4/7 completed; do not rerun. Four individual evaluations versus fixed original7173B N3/2days aggregate remain distinct and unchanged.",
+    "Need multi-day held-out video contribution/calibration/adoption plus world/time/camera/measurement truth. Source positions/background affine/digit/COCO regions do not establish boat performance; UNVALIDATED/skip/[] stay.",
+    "History/motor-change/usercloud/longrestore/PC-free operation/hardwareiPhone formally unfinished. Preserve limited source/derivedprivatefalse/OIDC protection and both manual-only source-smoke before everypush; noProduction/main/voting/payment."
   ],
   "last_verified_settlement": {
     "application_commit": "8458fa568225d03312b25209e78213730000d42d",
@@ -229,14 +229,14 @@
     "boat_feature_accuracy_validated": false
   },
   "last_day_refresh_attempt": {
-    "run_id": 38847861450,
-    "job_id": 116802344691,
-    "artifact_id": 12023628915,
+    "run_id": 38885213046,
+    "job_id": 116921192445,
+    "artifact_id": 12038917745,
     "result": "SUCCESS",
-    "last_real_acquisition_at": "2026-10-16T03:54:49.102563+00:00",
+    "last_real_acquisition_at": "2026-10-16T10:08:36.977875+00:00",
     "cause": "AUTHORIZED_SIX_HOUR_REFRESH",
     "repeat_started": false,
-    "evidence": "docs/evidence/2026-10-16/day-refresh1248-live.json"
+    "evidence": "docs/evidence/2026-10-16/day-refresh1908-live.json"
   },
   "last_verified_post_application": {
     "commit": "d91b6d14aa27d71a605fa110003552f3a48d89d1",
@@ -2999,34 +2999,20 @@
     "video_measured": false
   },
   "last_verified_day_refresh": {
-    "run_id": 38847861450,
-    "job_id": 116802344691,
-    "artifact_id": 12023628915,
-    "previous_last_real_acquisition": "2026-10-15T21:37:05.445882+00:00",
-    "last_real_acquisition": "2026-10-16T03:54:49.102563+00:00",
-    "next_six_hour_eligible_at": "2026-10-16T09:54:49.102563+00:00",
+    "run_id": 38885213046,
+    "job_id": 116921192445,
+    "artifact_id": 12038917745,
+    "previous_last_real_acquisition": "2026-10-16T03:54:49.102563+00:00",
+    "last_real_acquisition": "2026-10-16T10:08:36.977875+00:00",
+    "next_six_hour_eligible_at": "2026-10-16T16:08:36.977875+00:00",
     "all156_program_digests_unchanged": true,
-    "source_archive_sha_changed": false,
-    "extracted_program_text_sha_unchanged": true,
+    "source_archive_sha_changed": true,
+    "extracted_program_text_sha_unchanged": false,
     "independent_artifact_audit_findings": 0,
-    "evidence": "docs/evidence/2026-10-16/day-refresh1248-live.json",
-    "retention_apis_unchanged": {
-      "forecast": {
-        "bytes": 114137,
-        "sha256": "ac66ceb2880019d3868aacf9ff65049c6113f0ce9ad94854f1e9457a88bdf117",
-        "unchanged": true
-      },
-      "result": {
-        "bytes": 6054,
-        "sha256": "dffd9754fedb0eb1af42eeb5df8a5a1896b30673b5081a9b33fb9981ce8cf803",
-        "unchanged": true
-      },
-      "aggregate": {
-        "bytes": 7173,
-        "sha256": "77c93e07046721de8cead6ef21515f7d190601db63b92abfaee82c43f95e20d6",
-        "unchanged": true
-      }
-    }
+    "evidence": "docs/evidence/2026-10-16/day-refresh1908-live.json",
+    "updated_boats": 3,
+    "frozen274_baselines_unchanged": true,
+    "current_day_missing_at_midnight_is_separate_from_six_hour_condition": true
   },
   "video_program_clock_v3": {
     "status": "IMPLEMENTED_AND_ONE_NEW_V3_REAL_CLIP_DECODED_TIMING_UNVALIDATED",
@@ -5812,5 +5798,316 @@
       },
       "latest_preview": "PENDING_AT_RECORDED_AT"
     }
+  },
+  "prior_verified_day_before1908": {
+    "last_verified_day_refresh": {
+      "run_id": 38847861450,
+      "job_id": 116802344691,
+      "artifact_id": 12023628915,
+      "previous_last_real_acquisition": "2026-10-15T21:37:05.445882+00:00",
+      "last_real_acquisition": "2026-10-16T03:54:49.102563+00:00",
+      "next_six_hour_eligible_at": "2026-10-16T09:54:49.102563+00:00",
+      "all156_program_digests_unchanged": true,
+      "source_archive_sha_changed": false,
+      "extracted_program_text_sha_unchanged": true,
+      "independent_artifact_audit_findings": 0,
+      "evidence": "docs/evidence/2026-10-16/day-refresh1248-live.json",
+      "retention_apis_unchanged": {
+        "forecast": {
+          "bytes": 114137,
+          "sha256": "ac66ceb2880019d3868aacf9ff65049c6113f0ce9ad94854f1e9457a88bdf117",
+          "unchanged": true
+        },
+        "result": {
+          "bytes": 6054,
+          "sha256": "dffd9754fedb0eb1af42eeb5df8a5a1896b30673b5081a9b33fb9981ce8cf803",
+          "unchanged": true
+        },
+        "aggregate": {
+          "bytes": 7173,
+          "sha256": "77c93e07046721de8cead6ef21515f7d190601db63b92abfaee82c43f95e20d6",
+          "unchanged": true
+        }
+      }
+    },
+    "last_verified_backup": {
+      "artifact_id": 12023628915,
+      "file": "race-ai-day.json",
+      "bytes": 349883,
+      "sha256": "5c8d282fbd39adb2332985d02dd412e569a3826e44158408c8e58ac6a55e11eb",
+      "all_content_restored": true
+    },
+    "last_verified_payload_sha256": "e7350fb5e3f6e0bc94f228e9c0820abbe2aea2280a1af71f7869b4d0bbff7ff5",
+    "last_verified_day_run_id": 38847861450,
+    "last_verified_day_job_id": 116802344691,
+    "last_day_refresh_attempt": {
+      "run_id": 38847861450,
+      "job_id": 116802344691,
+      "artifact_id": 12023628915,
+      "result": "SUCCESS",
+      "last_real_acquisition_at": "2026-10-16T03:54:49.102563+00:00",
+      "cause": "AUTHORIZED_SIX_HOUR_REFRESH",
+      "repeat_started": false,
+      "evidence": "docs/evidence/2026-10-16/day-refresh1248-live.json"
+    }
+  },
+  "day_refresh1908_verification": {
+    "active_venues": 13,
+    "all156_program_digests_unchanged": true,
+    "all_content_restored": true,
+    "api_canonical_bytes": 349890,
+    "api_canonical_sha256": "0188670122b9fd6773668bfa20cbbf7854b2a30de3034ed8983841ecd6b66be4",
+    "artifact_id": 12038917745,
+    "backup_bytes": 349891,
+    "backup_sha256": "7d84a52c5a8e1b7c228f81e4bd4df6a159e583a3a312aa27d94d89bf0c624dbd",
+    "baseline_count": 274,
+    "boats": 936,
+    "extracted_program_text_sha_unchanged": false,
+    "formal_completion": false,
+    "job_id": 116921192445,
+    "last_real_acquisition": "2026-10-16T10:08:36.977875+00:00",
+    "new_prediction_posts": 0,
+    "next_six_hour_eligible_at": "2026-10-16T16:08:36.977875+00:00",
+    "official_source_attempts": 2,
+    "physical_exhibition_pairs": 0,
+    "previous_last_real_acquisition": "2026-10-16T03:54:49.102563+00:00",
+    "prior_local_tool_result_parse_failure": "One earlier API tool result was incorrectly expected in structuredContent; no HTTP status was retained, no file or ledger or POST was made. Existing prior tool response established text JSON shape, then a new fresh GET was parsed correctly. This is not an API missing/error claim.",
+    "publisher_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "races": 156,
+    "reader_commit": "7b2e9106bfd35b4128059a984edb403ec09b649b",
+    "recorded_at": "2026-10-16T10:11:30.267458+00:00",
+    "run_id": 38885213046,
+    "schema_version": "day1855-full-restore/v1",
+    "source_archive_sha_changed": true,
+    "two_api_complete_bodies_equal": true,
+    "validation_status": "UNVALIDATED",
+    "venues": 24,
+    "worker_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
+    "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
+    "workflow_commit": "5a38336727c452ef0ba796f56b68434fe7b59837",
+    "zip_bytes": 32628,
+    "zip_sha256": "117e2e20a81709ebedb758bb0c350605b4c81935b453d5d272b18684ed6d798b",
+    "boat_feature_changes": {
+      "after_last_real_acquisition": "2026-10-16T10:08:36.977875+00:00",
+      "before_last_real_acquisition": "2026-10-16T03:54:49.102563+00:00",
+      "changes": [
+        {
+          "fields": {
+            "boat_no": {
+              "after": 46,
+              "before": 38
+            },
+            "boat_top2_rate": {
+              "after": 27.42,
+              "before": 34.8
+            }
+          },
+          "lane": 2,
+          "race_id": "20261016-01-08",
+          "registration": "3315"
+        },
+        {
+          "fields": {
+            "boat_no": {
+              "after": 65,
+              "before": 18
+            },
+            "boat_top2_rate": {
+              "after": 21.21,
+              "before": 29.05
+            }
+          },
+          "lane": 6,
+          "race_id": "20261016-01-11",
+          "registration": "4788"
+        },
+        {
+          "fields": {
+            "boat_no": {
+              "after": 55,
+              "before": 47
+            },
+            "boat_top2_rate": {
+              "after": 33.33,
+              "before": 36.36
+            }
+          },
+          "lane": 2,
+          "race_id": "20261016-02-11",
+          "registration": "5085"
+        }
+      ],
+      "future_feature_versions_required": true,
+      "identity_digest_all156_unchanged": true,
+      "old_forecasts_replaced": false,
+      "same_race_identity_does_not_mean_same_feature_input": true,
+      "schema_version": "day1855-program-feature-changes/v1"
+    },
+    "frozen_274_baselines_modified": false,
+    "current_day_missing_at_midnight_is_separate_from_six_hour_condition": true,
+    "independent_audit": {
+      "path": "artifacts/local/omura9-day1855-artifact-audit.md",
+      "sha256": "a65a24b704fc5f467d5d37166dca240cee2779982be536e18d9117f62f8e5f23",
+      "open_findings": 0
+    },
+    "scope": "Daily refresh; official2GET separate from video and shared Blob scratch. Existing baselines preserve original boat inputs; three later equipment/rate changes are not applied retroactively."
+  },
+  "generic_boat_regions_v1": {
+    "schema_version": "boat-region-vision-stage/v1",
+    "recorded_at": "2026-10-16T10:54:06.137718+00:00",
+    "base_head": "7b2e9106bfd35b4128059a984edb403ec09b649b",
+    "implementation": {
+      "generic_coco_boat_class_only": true,
+      "module": "race_ai/local_boat_regions.py",
+      "module_sha256": "6b383dd442ea7ceb2f997248f4f408d054f80d6cc0736264a899d51db607aab1",
+      "model_sha256": "4b82da9944b88577175ee23a459dce2e26e6e4be573def65b1055dc2d9720186",
+      "model_bytes": 3800954,
+      "model_source": "https://github.com/opencv/opencv_zoo/tree/ea593dd89b88d4b3978273a16f0d8cfe93d2e3ea/models/object_detection_nanodet",
+      "license": "Apache-2.0",
+      "runtime_network_calls": 0,
+      "max_rois": 12,
+      "roi_snapshot_before_ocr": true,
+      "legacy_decoder_defaults_and_web_workflows_unchanged": true,
+      "world_or_body_or_digit_association_verified": false
+    },
+    "new_product_v5_actual_race": {
+      "race_id": "20261016-24-09",
+      "started_at": "2026-10-16T10:06:08.078549+00:00",
+      "completed_at": "2026-10-16T10:08:05.883944+00:00",
+      "post_close_research": true,
+      "segments": 57,
+      "frames": 10260,
+      "samples": 114,
+      "declared_seconds": 342,
+      "encoded_bytes": 24983327,
+      "metadata_gets": 2,
+      "media_related_gets": 60,
+      "separate_shape_probe_gets": 4,
+      "number_candidate_observations": 5,
+      "overlay_marks_excluded": 135,
+      "continued_number_tracks": 0,
+      "background_affine_accepted_attempted": [
+        13,
+        46
+      ],
+      "automatic_verified_hull_ids": 0,
+      "originals_retained": false,
+      "source_selection": "OFFICIAL_EXHIBITION_VOD_NOT_LIVE_CHAPTER",
+      "raw_duration": 338,
+      "duration_difference_or_unit_resolved": false
+    },
+    "checks": {
+      "local_python": 1077,
+      "seconds": 312.884,
+      "failures": 0,
+      "skips": 0,
+      "focused": 14,
+      "independent_offline_probes": 28,
+      "product_review_open_findings": 0,
+      "exact_new_head_ci_preview_pending_at_record": true,
+      "new_actual_roi_completed_but_identity_or_accuracy_unverified": true,
+      "actual_source_caller_review_open_findings": 0
+    },
+    "gates": {
+      "automated_verified_hull_ids": 0,
+      "prediction_input_eligible": false,
+      "all_race_video_forecasts_complete": false,
+      "physical_exhibition_pairs": 0,
+      "world_calibration": "UNVERIFIED",
+      "validation_status": "UNVALIDATED",
+      "purchase_decision": "skip",
+      "purchase_recommendations": []
+    },
+    "old_omura8_deadline_correction": {
+      "closed_at_jst": "2026-10-16T18:25:00+09:00",
+      "grounding": "Both immutable previous Omura8 descriptors closed_at09:25UTC; no source reacquisition or old proof rewrite",
+      "cloudfront_key_or_m_query_supported": false
+    },
+    "next": "Separately reviewed one new actual generic-ROI examination, independent hull/number labels, camera/world/time and prospective forecast validation; retain all274 frozen forecasts and old completed sources.",
+    "new_actual_roi_examination": {
+      "race_id": "20261016-24-10",
+      "status": "COMPLETED_POSTCLOSE_RESEARCH",
+      "started_at": "2026-10-16T10:50:27.772791+00:00",
+      "finished_at": "2026-10-16T10:51:10.009065+00:00",
+      "post_close_only": true,
+      "seconds": 42.236274,
+      "requests": {
+        "index": 1,
+        "key": 1,
+        "master": 1,
+        "metadata": 1,
+        "playlist": 1,
+        "segment": 61
+      },
+      "metadata_gets": 2,
+      "media_related_gets": 64,
+      "segments": 61,
+      "frames": 10980,
+      "samples": 122,
+      "declared_seconds": 366.0,
+      "encoded_bytes": 26738339,
+      "region_candidates": 2,
+      "region_samples": [
+        18,
+        20
+      ],
+      "number_candidates": 0,
+      "number_tracks": 0,
+      "manual_six_visible_introduction_samples_detected": 0,
+      "manual_six_visible_introduction_samples_total": 6,
+      "recall_claim_scope": "six purposively selected introduction frames only; not population recall",
+      "manual_intro_registration_pairs": 6,
+      "precision_of_two_predicted_boxes": "UNMEASURED",
+      "all_relative_pts_consistent": 61,
+      "background_affine_accepted_attempted": [
+        16,
+        50
+      ],
+      "raw_metadata_duration": 365,
+      "raw_duration_unit_or_difference_resolved": false,
+      "automated_verified_hull_ids": 0,
+      "world_calibration": "UNVERIFIED",
+      "prediction_input_eligible": false,
+      "posts": 0,
+      "cloud_writes": 0,
+      "original_frames_disposed": true,
+      "scope": "New official exhibition VOD, not LIVE chapter decode. Generic COCO model fails six observed clear vessel introductions; not adopted for forecasts. Retained derivatives only."
+    }
+  },
+  "prior_next_priority_before_boat_regions": [
+    "Omura1R20261016-24-01 ownname38851355587-1 and numeric38859927859-1 are COMPLETE; no reacquisition/republishing without concrete correction. Result label not acquired as of this record; later use own forecast/name and exact dedicated missing404/currentdate/postcutoff/fullidle/lease before a single bounded result operation. Keep274baselines/all old successes/failures. Physicalpairs0; new eligible races need independent physical exhibition clocks and own proof.",
+    "Normal official LIVE carries exhibition (Toda10R observed in10venue browser trial). Existing resolver/config remainVOD-only; build a separate limited live contract and date/race/phase/clock association. Never use page selection alone, mixed prior results/digests/CM or unknown phases as prediction input. Live detection/continuous coverage/boat identity/world calibration/measurement remainUNVERIFIED.",
+    "Accumulate prospective multi-day held-out accuracy/calibration/adoption evidence. Three-race/two-day offline common-cohort aggregate now verified from unchanged old4R/7R plus new Naruto2 v2 result; no adoption. Old N2/day1 aggregate remains immutable; keep source times/versions separate.",
+    "Advance verified boat/lane identity, camera/world calibration and measurement ground truth; color/image-affine estimates do not validate boat performance or forecast inputs. All-race video and continuous coverage unfinished.",
+    "Last actual day acquisition2026-10-16 12:54:49.102563JST run38847861450. Same dedicated day job once after6h, fullbackup349883B/two APIs349882B/independent audit/all156program identities unchanged; saved Naruto2forecast/result/7173B aggregate unchanged. Next6h2026-10-16 18:54:49.102563JST unless currentday positivelymissing; no repeats. Preserve earlier daily versions and all274baselines.",
+    "Preserve Toda1displayv1/Naruto8originalv1/Naruto7video/Amagasaki5camera and all completed3R/4R/7R proofs/numeric/result receipts.7R result38726468766-1 is complete; do not redispatch it. Both source-smoke files manual-only before everypush.",
+    "Long-term history, motor-change periods, user-cloud/restore/drills, hardwareiPhone and release-independent cloud scheduling remain formal completion conditions; noProduction/main/voting/payment."
+  ],
+  "prior_research_state_before_boat_regions": {
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "actual_races_with_saved_prediction": 274,
+    "actual_result_cohorts_evaluated": 3,
+    "models": [
+      "official-program-uniform-pl/v1",
+      "official-program-rating-pl/v1",
+      "name-bound-display/v2",
+      "name-bound-original/v2"
+    ],
+    "source": "All274 frozen B baselines retained. Four separately saved name-bound numeric examples across two days; three have separate result labels and the fixed N3/day2 offline aggregate. Omura1 numeric is saved but not evaluated. Exploratory only, physicalpairs0 and no held-out/calibration/adoption proof.",
+    "name_bound_v2_result_race_count": 3,
+    "name_bound_v2_numeric_races": 4,
+    "physical_exhibition_pairs_verified": 0,
+    "archived_common_cohort_race_count": 3,
+    "archived_common_cohort_day_count": 2,
+    "frozen_day15_baseline_count": 118,
+    "baseline_counts_by_date": {
+      "2026-10-15": 118,
+      "2026-10-16": 156
+    },
+    "historical_aggregate_ui": "IMPLEMENTED_LOCAL_VERIFIED; N3/day2 fixed snapshot, post-commit protected Preview pending at recorded_at"
   }
 }

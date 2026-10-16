@@ -1,0 +1,103 @@
+{
+  "active_venues": 13,
+  "all156_program_digests_unchanged": true,
+  "all_content_restored": true,
+  "api_canonical_bytes": 349890,
+  "api_canonical_sha256": "0188670122b9fd6773668bfa20cbbf7854b2a30de3034ed8983841ecd6b66be4",
+  "artifact_id": 12038917745,
+  "backup_bytes": 349891,
+  "backup_sha256": "7d84a52c5a8e1b7c228f81e4bd4df6a159e583a3a312aa27d94d89bf0c624dbd",
+  "baseline_count": 274,
+  "boats": 936,
+  "extracted_program_text_sha_unchanged": false,
+  "formal_completion": false,
+  "job_id": 116921192445,
+  "last_real_acquisition": "2026-10-16T10:08:36.977875+00:00",
+  "new_prediction_posts": 0,
+  "next_six_hour_eligible_at": "2026-10-16T16:08:36.977875+00:00",
+  "official_source_attempts": 2,
+  "physical_exhibition_pairs": 0,
+  "previous_last_real_acquisition": "2026-10-16T03:54:49.102563+00:00",
+  "prior_local_tool_result_parse_failure": "One earlier API tool result was incorrectly expected in structuredContent; no HTTP status was retained, no file or ledger or POST was made. Existing prior tool response established text JSON shape, then a new fresh GET was parsed correctly. This is not an API missing/error claim.",
+  "publisher_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+  "purchase_decision": "skip",
+  "purchase_recommendations": [],
+  "races": 156,
+  "reader_commit": "7b2e9106bfd35b4128059a984edb403ec09b649b",
+  "recorded_at": "2026-10-16T10:11:30.267458+00:00",
+  "run_id": 38885213046,
+  "schema_version": "day1855-full-restore/v1",
+  "source_archive_sha_changed": true,
+  "two_api_complete_bodies_equal": true,
+  "validation_status": "UNVALIDATED",
+  "venues": 24,
+  "worker_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
+  "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
+  "workflow_commit": "5a38336727c452ef0ba796f56b68434fe7b59837",
+  "zip_bytes": 32628,
+  "zip_sha256": "117e2e20a81709ebedb758bb0c350605b4c81935b453d5d272b18684ed6d798b",
+  "boat_feature_changes": {
+    "after_last_real_acquisition": "2026-10-16T10:08:36.977875+00:00",
+    "before_last_real_acquisition": "2026-10-16T03:54:49.102563+00:00",
+    "changes": [
+      {
+        "fields": {
+          "boat_no": {
+            "after": 46,
+            "before": 38
+          },
+          "boat_top2_rate": {
+            "after": 27.42,
+            "before": 34.8
+          }
+        },
+        "lane": 2,
+        "race_id": "20261016-01-08",
+        "registration": "3315"
+      },
+      {
+        "fields": {
+          "boat_no": {
+            "after": 65,
+            "before": 18
+          },
+          "boat_top2_rate": {
+            "after": 21.21,
+            "before": 29.05
+          }
+        },
+        "lane": 6,
+        "race_id": "20261016-01-11",
+        "registration": "4788"
+      },
+      {
+        "fields": {
+          "boat_no": {
+            "after": 55,
+            "before": 47
+          },
+          "boat_top2_rate": {
+            "after": 33.33,
+            "before": 36.36
+          }
+        },
+        "lane": 2,
+        "race_id": "20261016-02-11",
+        "registration": "5085"
+      }
+    ],
+    "future_feature_versions_required": true,
+    "identity_digest_all156_unchanged": true,
+    "old_forecasts_replaced": false,
+    "same_race_identity_does_not_mean_same_feature_input": true,
+    "schema_version": "day1855-program-feature-changes/v1"
+  },
+  "frozen_274_baselines_modified": false,
+  "current_day_missing_at_midnight_is_separate_from_six_hour_condition": true,
+  "independent_audit": {
+    "path": "artifacts/local/omura9-day1855-artifact-audit.md",
+    "sha256": "a65a24b704fc5f467d5d37166dca240cee2779982be536e18d9117f62f8e5f23",
+    "open_findings": 0
+  },
+  "scope": "Daily refresh; official2GET separate from video and shared Blob scratch. Existing baselines preserve original boat inputs; three later equipment/rate changes are not applied retroactively."
+}
