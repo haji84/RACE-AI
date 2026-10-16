@@ -176,7 +176,7 @@
     "historical_aggregate_ui": "IMPLEMENTED_PROTECTED_PREVIEW_VERIFIED_AT03c57; fixed7173B/N3/day2/original as_of unchanged, latest same-web evidence remains separate."
   },
   "next_priority": [
-    "New9R explicit v5 completed57/10260/114; new10R generic-ROI v5 completed61/10980/122, but six clear introduction frames missed all vessel regions, automated verified hull IDs0. Do not reacquire completed9/10 or old7/8/media. Develop domain-specific body/number labels and quality validation; generic COCO cannot be adopted from this test.",
+    "Exclude overlays/structures through independently labeled vessel/digit association and measure missed frames before using motion; domain-specific validation, camera/world/time calibration, prospective physical pairs/all-race pipeline and held-out contribution remain required. Do not reacquire completed12/10/9/7 or failed8 without new concrete repair.",
     "Physical exhibition before/after pairs0. Obtain new prospective pairs with independent physical clock and own-race proof; B-only/publication waiting/cutoff timing alone is not proof.",
     "All16th156 B baselines already verified; preserve274 total. Only missing next-day upcoming set may be added with same validated cohort/all-upcoming, each batch full restore/API and idle/lease/currentday checks.",
     "Last real daily capture2026-10-16 19:08:36.977875JST run38885213046, official2GET. Next6h2026-10-17 01:08:36.977875JST; exact current-day missing after midnight is separate. New equipment/rate changes3boats are not old forecast updates.",
@@ -2971,7 +2971,7 @@
     "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca"
   },
   "trusted_worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
-  "updated_at": "2026-10-16T09:28:29.602129+00:00",
+  "updated_at": "2026-10-16T11:52:32.880610+00:00",
   "current_day16_prospective_target": {
     "race_id": "20261016-14-01",
     "request_id": "38798278470-1",
@@ -6109,5 +6109,113 @@
       "2026-10-16": 156
     },
     "historical_aggregate_ui": "IMPLEMENTED_LOCAL_VERIFIED; N3/day2 fixed snapshot, post-commit protected Preview pending at recorded_at"
-  }
+  },
+  "yolox_boat_regions_v1": {
+    "schema_version": "yolox-boat-regions-stage/v1",
+    "recorded_at": "2026-10-16T11:52:32.880610+00:00",
+    "base_head": "1770b79ba67b1ff1b95592a9a27d007e968976ee",
+    "implementation": {
+      "module": "race_ai/local_yolox_boat_regions.py",
+      "module_sha256": "414ee78fa22f9a5f5effbfa4648adace013b029857e16bce3aac780435dd7937",
+      "model_sha256": "c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063",
+      "model_bytes": 35858002,
+      "source_commit": "ea593dd89b88d4b3978273a16f0d8cfe93d2e3ea",
+      "model_source": "https://github.com/opencv/opencv_zoo/tree/ea593dd89b88d4b3978273a16f0d8cfe93d2e3ea/models/object_detection_yolox",
+      "license": "Apache-2.0",
+      "runtime_download_or_upload": false,
+      "max_regions": 12,
+      "legacy_model_decoder_defaults_web_scripts_config_workflow_unchanged": true,
+      "scope": "Separate explicit generic COCO hull-region candidate comparison, not race-trained identity/measurement model"
+    },
+    "actual_new_vod": {
+      "race_id": "20261016-24-12",
+      "status": "COMPLETED_POSTCLOSE_RESEARCH",
+      "started_at": "2026-10-16T11:47:11.934072+00:00",
+      "finished_at": "2026-10-16T11:48:18.530240+00:00",
+      "research_post_close_only": true,
+      "segments": 62,
+      "frames": 11160,
+      "samples": 124,
+      "declared_seconds": 372.0,
+      "encoded_bytes": 27221856,
+      "requests": {
+        "index": 1,
+        "key": 1,
+        "master": 1,
+        "metadata": 1,
+        "playlist": 1,
+        "segment": 62
+      },
+      "metadata_gets": 2,
+      "media_related_gets": 65,
+      "posts": 0,
+      "cloud_writes": 0,
+      "new_region_candidates": 30,
+      "legacy_region_candidates": 3,
+      "ocr_candidates": 1,
+      "number_tracks": 0,
+      "manual_new_categories": {
+        "BACKGROUND_FALSE": 2,
+        "HEADER_FALSE": 2,
+        "INTRO_OVERLAY_FALSE": 4,
+        "MULTIPLE_BOATS_IN_ONE_ROI": 1,
+        "SINGLE_VISIBLE_HULL": 21
+      },
+      "manual_selected_intro_detection": {
+        "new": 4,
+        "legacy": 0,
+        "selected_frames": 6,
+        "scope": "single observer/purposively selected frames; no IoU/held-out/population accuracy"
+      },
+      "ocr_only_row_from_false_overlay": true,
+      "raw_metadata_duration": 367,
+      "duration_unit_or_difference_resolved": false,
+      "all_relative_pts_consistent": 62,
+      "background_affine_accepted_attempted": [
+        15,
+        51
+      ],
+      "original_frames_files": 0,
+      "normal_ram_disposal_at": "2026-10-16T11:50:18.397445+00:00",
+      "observed_seconds_start_to_disposal": 186.463373,
+      "ram_limit_seconds": 300,
+      "parent_exit_code": 0,
+      "automated_verified_hull_ids": 0,
+      "prediction_input_eligible": false
+    },
+    "checks": {
+      "local_python": 1090,
+      "python_seconds": 327.909,
+      "javascript_tests": 203,
+      "failures": 0,
+      "skips": 0,
+      "new_tests": 13,
+      "independent_model_probes": 23,
+      "caller_synthetic_assertions": 49,
+      "model_review_open_findings": 0,
+      "caller_review_open_findings": 0,
+      "exact_new_head_ci_preview_pending_at_record": true
+    },
+    "gates": {
+      "automated_verified_hull_ids": 0,
+      "physical_exhibition_pairs": 0,
+      "world_calibration": "UNVERIFIED",
+      "independent_physical_clock": "UNVERIFIED",
+      "prediction_input_eligible": false,
+      "all_race_video_forecasts_complete": false,
+      "validation_status": "UNVALIDATED",
+      "purchase_decision": "skip",
+      "purchase_recommendations": []
+    },
+    "next": "Exclude overlays/structures through independently labeled vessel/digit association and measure missed frames before using motion; domain-specific validation, camera/world/time calibration, prospective physical pairs/all-race pipeline and held-out contribution remain required. Do not reacquire completed12/10/9/7 or failed8 without new concrete repair."
+  },
+  "prior_next_priority_before_yolox_regions": [
+    "New9R explicit v5 completed57/10260/114; new10R generic-ROI v5 completed61/10980/122, but six clear introduction frames missed all vessel regions, automated verified hull IDs0. Do not reacquire completed9/10 or old7/8/media. Develop domain-specific body/number labels and quality validation; generic COCO cannot be adopted from this test.",
+    "Physical exhibition before/after pairs0. Obtain new prospective pairs with independent physical clock and own-race proof; B-only/publication waiting/cutoff timing alone is not proof.",
+    "All16th156 B baselines already verified; preserve274 total. Only missing next-day upcoming set may be added with same validated cohort/all-upcoming, each batch full restore/API and idle/lease/currentday checks.",
+    "Last real daily capture2026-10-16 19:08:36.977875JST run38885213046, official2GET. Next6h2026-10-17 01:08:36.977875JST; exact current-day missing after midnight is separate. New equipment/rate changes3boats are not old forecast updates.",
+    "Omura1 name/numeric/result and Naruto2/Marugame4/7 completed; do not rerun. Four individual evaluations versus fixed original7173B N3/2days aggregate remain distinct and unchanged.",
+    "Need multi-day held-out video contribution/calibration/adoption plus world/time/camera/measurement truth. Source positions/background affine/digit/COCO regions do not establish boat performance; UNVALIDATED/skip/[] stay.",
+    "History/motor-change/usercloud/longrestore/PC-free operation/hardwareiPhone formally unfinished. Preserve limited source/derivedprivatefalse/OIDC protection and both manual-only source-smoke before everypush; noProduction/main/voting/payment."
+  ]
 }

@@ -42,3 +42,6 @@ race_ai/models/NANODET_LICENSE -text
 
 docs/evidence/2026-10-16/day-refresh1908-live.json text eol=lf
 docs/evidence/2026-10-16/boat-region-vision-stage.json text eol=lf
+
+race_ai/models/YOLOX_LICENSE -text
+docs/evidence/2026-10-16/yolox-boat-regions-stage.json text eol=lf
