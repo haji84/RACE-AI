@@ -23,6 +23,12 @@ on:
         type: string
         required: false
         default: ''
+      result_disposition_contract:
+        description: Explicit result disposition contract; default preserves legacy collection
+        type: choice
+        options: [legacy, official-result-dispositions/v2]
+        default: legacy
+        required: false
       name_binding_race_id:
         description: Exact current-day future race with an existing frozen baseline
         type: string
@@ -90,6 +96,13 @@ jobs:
         with:
           ref: a4889c443d168c45df253c28086ebed7ba566e18
           path: day-source
+          persist-credentials: false
+      - name: Checkout reviewed opt-in result disposition v2
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'name-bound-result' && inputs.result_disposition_contract == 'official-result-dispositions/v2'
+        uses: actions/checkout@v4
+        with:
+          ref: ad6d7d256e3477cf942a59d1afc1c9a5c29f652f
+          path: result-v2-source
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -666,13 +679,20 @@ jobs:
         id: name_bound_result
         if: github.event_name == 'workflow_dispatch' && inputs.collection == 'name-bound-result'
         env:
-          RACE_AI_NAME_BOUND_RESULT_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-name-bound-result
-          RACE_AI_NAME_BOUND_RESULT_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
+          RACE_AI_NAME_BOUND_RESULT_PUBLISH_URL: ${{ inputs.result_disposition_contract == 'official-result-dispositions/v2' && 'https://race-ai-preview-hhpqwut7w-qq1130034-1738.vercel.app/api/publish-name-bound-result' || 'https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-name-bound-result' }}
+          RACE_AI_NAME_BOUND_RESULT_COMMIT_SHA: ${{ inputs.result_disposition_contract == 'official-result-dispositions/v2' && 'ad6d7d256e3477cf942a59d1afc1c9a5c29f652f' || '325ddce19ae999d626782a9929e6511c17d60ba1' }}
+          RACE_AI_RESULT_DISPOSITION_CONTRACT: ${{ inputs.result_disposition_contract }}
           RACE_AI_NAME_BOUND_RACE_ID: ${{ inputs.name_bound_race_id }}
           RACE_AI_NAME_BOUND_FORECAST_REQUEST_ID: ${{ inputs.name_bound_forecast_request_id }}
         run: |
           result=0
-          python day-source/scripts/publish_name_bound_result.py --race-id "$RACE_AI_NAME_BOUND_RACE_ID" --forecast-request-id "$RACE_AI_NAME_BOUND_FORECAST_REQUEST_ID" --output-dir "$RUNNER_TEMP/race-ai-name-bound-result" --execute || result=$?
+          if [ "$RACE_AI_RESULT_DISPOSITION_CONTRACT" = "official-result-dispositions/v2" ]; then
+            python result-v2-source/scripts/publish_name_bound_result.py --race-id "$RACE_AI_NAME_BOUND_RACE_ID" --forecast-request-id "$RACE_AI_NAME_BOUND_FORECAST_REQUEST_ID" --output-dir "$RUNNER_TEMP/race-ai-name-bound-result" --result-disposition-contract "$RACE_AI_RESULT_DISPOSITION_CONTRACT" --execute || result=$?
+          elif [ "$RACE_AI_RESULT_DISPOSITION_CONTRACT" = "legacy" ]; then
+            python day-source/scripts/publish_name_bound_result.py --race-id "$RACE_AI_NAME_BOUND_RACE_ID" --forecast-request-id "$RACE_AI_NAME_BOUND_FORECAST_REQUEST_ID" --output-dir "$RUNNER_TEMP/race-ai-name-bound-result" --execute || result=$?
+          else
+            exit 2
+          fi
           if [ -f "$RUNNER_TEMP/race-ai-name-bound-result/manifest.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
           exit "$result"
       - name: Back up normalized name-bound result evidence
@@ -698,11 +718,17 @@ jobs:
           path: ${{ runner.temp }}/race-ai-name-bound-result-restored
       - name: Verify every name-bound result byte and full replay
         if: always() && steps.name_bound_result.outputs.backup_exists == 'true'
+        env:
+          RACE_AI_RESULT_DISPOSITION_CONTRACT: ${{ inputs.result_disposition_contract }}
         run: |
           python - <<'PY'
           import json,os,sys
           from pathlib import Path
-          sys.path.insert(0,str(Path('day-source').resolve()))
+          selected=os.environ['RACE_AI_RESULT_DISPOSITION_CONTRACT']
+          if selected not in ('legacy','official-result-dispositions/v2'):
+              raise SystemExit('RESULT_DISPOSITION_CONTRACT_INVALID')
+          collector='result-v2-source' if selected=='official-result-dispositions/v2' else 'day-source'
+          sys.path.insert(0,str(Path(collector).resolve()))
           from scripts.publish_name_bound_result import ALLOWED,MAX_BYTES,verify_backups
           root=Path(os.environ['RUNNER_TEMP'])
           original,restored=root/'race-ai-name-bound-result',root/'race-ai-name-bound-result-restored'
@@ -716,6 +742,9 @@ jobs:
               if not 0<len(after)<=MAX_BYTES or before!=after:
                   raise SystemExit('NAME_BOUND_RESULT_BACKUP_BYTES_INVALID')
           manifest=json.loads((restored/'manifest.json').read_bytes())
+          expected_contract=selected if selected=='official-result-dispositions/v2' else None
+          if manifest.get('result_disposition_contract')!=expected_contract:
+              raise SystemExit('RESULT_DISPOSITION_CONTRACT_MISMATCH')
           verify_backups(restored,manifest)
           print(json.dumps({'result':'NAME_BOUND_RESULT_BACKUP_RESTORE_VERIFIED','status':manifest['status'],'files':len(names)}))
           PY
