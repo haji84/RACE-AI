@@ -4,6 +4,7 @@ on:
     paths:
       - scripts/completion-controller.mjs
       - tests/completion-controller.test.mjs
+      - tests/completion-controller.e2e.test.mjs
       - config/completion-pilot.json
       - .github/workflows/completion-controller-pilot.yml
   workflow_dispatch:
@@ -20,7 +21,7 @@ jobs:
         with:
           node-version: '22'
       - name: Test deterministic controller and recovery
-        run: node --test tests/completion-controller.test.mjs
+        run: node --test tests/completion-controller.test.mjs tests/completion-controller.e2e.test.mjs
       - name: Read-only GitHub plan
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
