@@ -23,8 +23,16 @@ For **every** RACE AI development task, optimize for verified product completion
 - Treat each task as implement → verify → review → integrate → actual outcome proof → update completion ledger. No code-only or PR-only Done. Reopen stale evidence when the implementation revision changes.
 - On CI failure or conflicting PRs, record observed failure and diagnose, test an alternative within authorization, and replan after three identical failed method attempts. Preserve state for restart; test concurrency, failed CI and crash/restart with real evidence before calling unattended recovery implemented.
 - Continue autonomous safe actions within granted scope, but never bypass Human Gates for public release, new costs, production/destructive actions, credentials, permissions, legal/source rights or security weakening.
-- Introduce the execution controller first as a read-only pilot in PR #65. Its five simulated fault-handling tests are not proof of production autonomous development. Require independent review and complete real workflow/real-machine verification before promoting this mechanism to the standard controller or copying it to other repositories.
+- Introduce the execution controller first as a read-only pilot in PR #65. Its simulated fault-handling tests are not proof of production autonomous development. Require independent review and complete real workflow/real-machine verification before promoting this mechanism to the standard controller or copying it to other repositories.
 
 Priority: preserve existing requirements, repo protections, safety authority, review independence and product scope. If a completion policy conflicts with an existing higher-authority security restriction, retain the restriction and report the conflict.
 
 Reviewer policy (owner): Do NOT request, invoke, rely on, or count CodeRabbit as an independent reviewer. Use a separate authorized reviewer and inspect exact-head CI, code and security evidence. Bot-generated comments from CodeRabbit do not satisfy the review or merge gate.
+
+## AI社員による独立レビュー（CodeRabbit不使用）
+
+- CodeRabbitを依頼・起動・採用しない。過去のbotコメントやレビュー要約は完成条件、独立レビュー、PR承認の証拠に数えない。GitHub Appのインストール状態はこの文書だけで変更されない。
+- 開発担当Builderとレビュー担当を分離する。QAが再現テストを担当し、GORIQのAI-09 Reviewerが最新PR head/base SHAの差分、実装、関連仕様、CI、セキュリティ・回帰リスクを読み取り専用で点検する。指摘時はDebugger/Builderへ根拠・ファイル・再現条件を引き渡す。
+- 修正が入ればhead SHAを再照合し、AI-09が再審査。認証トークンはモデルに渡さず、PRコメント投稿は別の最小権限の検証済み投稿処理に分離する。AI-09の出力はAI_ASSERTEDの技術的助言でありGitHub APPROVEDではない。
+- GORIQのAI-09自動投稿PR #1799は未統合、ZBook実機からコメントまでの自動E2Eも未実証。RACE AIのPR #65へ接続済みと扱わない。実機・権限・独立性・CI・GitHub側承認の証拠が揃うまでは統合Gateを保留する。
+- 正式審査要件とHuman GateをAIの自己承認で置換しない。独立GitHubアカウント等のルールを省略・弱体化しない。
