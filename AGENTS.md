@@ -26,3 +26,5 @@ For **every** RACE AI development task, optimize for verified product completion
 - Introduce the execution controller first as a read-only pilot in PR #65. Its five simulated fault-handling tests are not proof of production autonomous development. Require independent review and complete real workflow/real-machine verification before promoting this mechanism to the standard controller or copying it to other repositories.
 
 Priority: preserve existing requirements, repo protections, safety authority, review independence and product scope. If a completion policy conflicts with an existing higher-authority security restriction, retain the restriction and report the conflict.
+
+Reviewer policy (owner): Do NOT request, invoke, rely on, or count CodeRabbit as an independent reviewer. Use a separate authorized reviewer and inspect exact-head CI, code and security evidence. Bot-generated comments from CodeRabbit do not satisfy the review or merge gate.
