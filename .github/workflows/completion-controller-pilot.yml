@@ -13,6 +13,7 @@ on:
 permissions:
   contents: read
   pull-requests: read
+  checks: read
 jobs:
   pilot:
     runs-on: ubuntu-latest
