@@ -193,9 +193,23 @@ def _candidates(frame):
 def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
                        sample_interval=2.0, segment_limit=MAX_SEGMENTS, elapsed_limit=90, camera_motion=False,
                        program_clock=False, frame_timing=False,
-                       number_mark_ocr=None, number_mark_exclusions=None, clip_window=False):
+                       number_mark_ocr=None, number_mark_exclusions=None, clip_window=False,
+                       normal_player_cdn_scope=None):
     """A consumed lease returns derived evidence only. Runtime fails before media GETs."""
+    # Only the explicitly registered transport path adds these snapshots. Legacy
+    # v1-v5 defaults keep their original grammar and behavior.
+    cdn_scope = None; cdn_admitted_at = None
+    if normal_player_cdn_scope is not None:
+        from copy import deepcopy
+        from .exhibition_video_cdn_contract import validate_normal_player_scope, parse_normal_player_vod
+        descriptor, race = deepcopy(descriptor), deepcopy(race)
+        normal_player_cdn_scope = deepcopy(normal_player_cdn_scope)
+        cdn_admitted_at = instant(clock())
+        cdn_scope = validate_normal_player_scope(normal_player_cdn_scope, race, cdn_admitted_at)
     start = stamp(clock()); validate_descriptor(descriptor, race, start)
+    if cdn_scope is not None:
+        require(cdn_admitted_at <= instant(start), 'VIDEO_PROCESSING_CLOCK_INVALID')
+        validate_normal_player_scope(cdn_scope, race, start)
     require(descriptor['status'] == 'AVAILABLE' and lease is not None, 'VIDEO_RECORDING_UNAVAILABLE')
     require(type(sample_interval) in (int, float) and .5 <= sample_interval <= 10
             and type(segment_limit) is int and 1 <= segment_limit <= MAX_SEGMENTS
@@ -229,6 +243,12 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
         headers = {'User-Agent': 'RaceAI bounded private exhibition analysis', 'Origin': PLAYER, 'Referer': PLAYER + '/'}
         def read(url, cap, mimes):
             nonlocal total, last
+            if cdn_scope is not None:
+                before = instant(clock())
+                require(last <= before, 'VIDEO_PROCESSING_CLOCK_INVALID')
+                validate_normal_player_scope(cdn_scope, race, before)
+                validate_descriptor(descriptor, race, start)
+                last = before
             require(time.monotonic() - began < elapsed_limit, 'VIDEO_PROCESSING_TIME_EXCEEDED')
             response = fetch(url, headers=headers, max_bytes=cap, timeout=min(10, elapsed_limit-(time.monotonic()-began)))
             require(time.monotonic()-began < elapsed_limit, 'VIDEO_PROCESSING_TIME_EXCEEDED')
@@ -239,6 +259,8 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
             total += len(response.body); require(total <= TOTAL_BYTES, 'VIDEO_MEDIA_TOTAL_BYTES_EXCEEDED')
             now = instant(clock()); require(last <= now and now.astimezone(JST).date() == instant(race['closed_at']).astimezone(JST).date(),
                                             'VIDEO_PROCESSING_CLOCK_INVALID'); last = now
+            if cdn_scope is not None:
+                validate_normal_player_scope(cdn_scope, race, now)
             return response.body
         master_raw = read(master_url, MANIFEST_BYTES, MIME_HLS)
         master_sha = hashlib.sha256(master_raw).hexdigest()
@@ -247,7 +269,9 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
         master_raw = None
         child_raw = read(variant.url, MANIFEST_BYTES, MIME_HLS)
         child_sha = hashlib.sha256(child_raw).hexdigest()
-        segments = parse_vod(child_raw, media['id'], media['source_id'], variant)
+        segments = (parse_normal_player_vod(child_raw, media['id'], media['source_id'], variant,
+                    key_namespace_sha256=cdn_scope['opaque_key_namespace_sha256'])
+                    if cdn_scope is not None else parse_vod(child_raw, media['id'], media['source_id'], variant))
         timeline = None
         if program_clock:
             from .video_program_clock import assess_program_clock
@@ -429,8 +453,20 @@ def analyze_exhibition(descriptor, lease, race, *, fetch=None, clock=utc_now,
                               number_marks=number_tracker.finish())
             if clip_window:
                 result['clip_window_contract'] = dict(schema_version='public-exhibition-clip-window/v1',
-                    opaque_source_window=list(variant.window) if variant.window else None,
+                    **(dict(opaque_source_window_present=variant.window is not None) if cdn_scope is not None
+                       else dict(opaque_source_window=list(variant.window) if variant.window else None)),
                     wall_clock_alignment='UNVERIFIED', prediction_eligible=False)
+            if cdn_scope is not None:
+                validate_normal_player_scope(cdn_scope, race, done)
+                from .exhibition_video_cdn_contract import REGISTERED_SCOPE_SHA256
+                result.update(analysis_version='transient-hls-normal-player-cdn/v6',
+                    transport_contract=dict(schema_version=cdn_scope['schema_version'],
+                        registration_sha256=REGISTERED_SCOPE_SHA256,
+                        observation_sha256=cdn_scope['evidence_sha256'],
+                        observed_target=cdn_scope['observed_target'], actual_target=race['race_id'],
+                        observation_at=cdn_scope['observed_at'], namespace_owner_authenticated=False,
+                        status='CONDITIONAL_REGISTERED_TRANSPORT_NOT_SOURCE_OWNER_AUTHENTICATION',
+                        physical_date_or_clock_verified=False, prediction_eligible=False))
             result['snapshot_id']=hashlib.sha256(canonical(result)).hexdigest()
             require(time.monotonic()-began < elapsed_limit, 'VIDEO_PROCESSING_TIME_EXCEEDED')
             return result

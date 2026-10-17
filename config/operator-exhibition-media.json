@@ -73,6 +73,29 @@
       "drm_or_license_exchange": false
     }
   ],
+  "normal_player_cdn_transport_registration": {
+    "schema_version": "normal-player-cdn/v1",
+    "registration_sha256": "5eaa11f6677ecb748cef05f6c9bbc13bb1525d67372628cf4041f2ec6220c1b5",
+    "observation_sha256": "8e7621c0e345175e905628e3aef7941e7bc3cf245b2dcd25c132fdc59c6952fd",
+    "evidence_reference": "docs/evidence/2026-10-17/normal-player-cdn-stage.json",
+    "permission_basis": "OWNER_20261017_SEPARATE_STRICT_NORMAL_PLAYER_CONTRACT",
+    "observed_target": "20261017-14-09",
+    "scope_day_jst": "2026-10-17",
+    "scope_venue": "14",
+    "max_observation_age_seconds": 21600,
+    "segment_origin": "https://j-live-cp-boatrace-prod.streaks.jp",
+    "segment_path": "/{exact_media_id}/{exact_source_id}/manifest_{exact_variant}_{exact_sequence}.ts",
+    "segment_query": "EMPTY_OR_LITERAL_m_DECIMAL10_UNIFORM",
+    "key_origin": "https://d28jce9iiridbn.cloudfront.net",
+    "key_path": "/{registered_private_HEX32_namespace}/{UUID36}",
+    "key_query": "EMPTY",
+    "namespace_hash_preimage": "RAW_HEX32_ASCII_CASE_SENSITIVE",
+    "encryption": "AES-128_IDENTITY_ONLY_RAM_ONLY",
+    "namespace_owner_authenticated": false,
+    "parent_child_binding": "REQUIRED_FROM_EACH_FRESH_EXACT_REF_RESOLVER",
+    "physical_clock_verified": false,
+    "prediction_eligible": false
+  },
   "source_scope_status": "VERIFIED_ALL_VENUE_PLAYER_MAPPING; NARUTO_VOD_TRANSIENT_DECODE_VERIFIED; BOAT_ANALYSIS_UNVERIFIED",
   "venue_codes": [
     "01",

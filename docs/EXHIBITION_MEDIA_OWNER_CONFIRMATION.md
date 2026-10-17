@@ -33,3 +33,12 @@
 RFC8216の通常再生処理であり、新規の認証情報作成、DRMライセンス交換、認証回避は行わない。
 鍵・鍵URL・配信トークン・元映像・フレームを保持しない。未知の方式・取得先・認証失敗は停止する。
 これは提供者との独立した契約確認や法的監査の記録ではない。
+
+
+## 2026-10-17 別の通常player CDN transport限定登録
+
+最新の所有者指示「通常playerと配信資源の具体対応・許可されたorigin/path形を別の新適格対象で確認し、別の厳密な媒体契約を独立検査してから同一RAM二担当幾何ラベルへ進む」に従い、通常player新9Rの観測へ結ぶ別登録を追加した。登録のcanonical SHAは `5eaa11f6677ecb748cef05f6c9bbc13bb1525d67372628cf4041f2ec6220c1b5`、観測全文SHAは `8e7621c0e345175e905628e3aef7941e7bc3cf245b2dcd25c132fdc59c6952fd`。旧legacy key scopeを一般化しない。
+
+新登録は当日/同会場/観測後6時間以内、同じprojectの各対象自身のexact ref→metadata→master→child、exact media/source/variant/sequence TSと固定query形、私用登録namespaceに限る条件付きtransportである。具体的source scopesはconfigの独立 `normal_player_cdn_transport_registration` に記す。鍵URI/namespace値/鍵bytesは保存しない。namespace hashはraw case-sensitive ASCII HEX32 component単独をpreimageとし、実hashは私用資料だけに置く。namespaceのproject所有者や物理日付/時計を認証したとはしない。identity AES-128のRAM処理以外の認証/DRM/license回避を許可しない。
+
+configのderived_features_public_publish=false、原映像/frame継続保存と一般公開の禁止、既存OIDC/環境/権限/直列化/AllDeployments保護を維持する。新10R実取得はVercel接続が正しい既存teamに403となりfresh当日witnessを得られず、source開始0のまま未実施。映像解析の所有者承認を再要求する事象ではなく、既存保護Preview/APIの接続復旧が必要な状態である。検証/失敗履歴はnormal-player-cdn-stage.jsonと後続PR64/private証拠を参照する。

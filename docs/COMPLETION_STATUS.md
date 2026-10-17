@@ -4,6 +4,18 @@
 **全体は開発中。一般公開と予測精度の完成判定は未達。**
 過去の段階計画より、本書と実測証拠を現在地の確認に使う。
 
+## 最新工程：通常playerの別CDN契約と実取得の接続停止
+
+新しい鳴門17日9Rの通常公開playerを一度だけ確認し、同じ資源一覧に親master/variantと別CDNのTS・identity AES鍵候補があることを観測した。再生クリック/再読込0だがpreloadがあり、ブラウザーの媒体/鍵/HTTP method/POST数は未計測で0ではない。静的script読取は別4GET。metadata本文との対応や鍵namespace所有者、物理的な映像日付/時計は認証していない。UIの744秒を根拠に600秒上限を増やさない。原映像/frame/一時URL/token/keyをファイルへ保存していない。
+
+既定v1〜5を保持し、別の明示v6 transportを追加した。私用登録のcanonical SHAを固定し、proofとnamespaceの同時差替え、対象日/会場/観測齢、各GET前後の時計逆行、混合origin/query、未知資源を拒否する。各レース自身のexact ref→metadata→master→child照合が必要で、観測targetと実targetを区別する。identity AESだけをRAMで処理し、namespace所有者/艇ID/世界座標/物理時計/性能/予測入力を認証しない。詳細派生特徴の一般公開false、OIDC/取得pinsと既存source scopesは維持した。
+
+時計P2の原RED3件を保持し、最終13focused/独立62/既定出力16比較・JS203は指摘/失敗0。最初の全local1139/583.690秒は時計修正前のmodule読込であり、最終source全件成功の証明にはしない。新10R callerのimport前guardとguard受渡しP2も元報告を保持して修正し、58隔離検査と実pins/登録照合が成功した。
+
+新10Rはfresh当日witness取得前に止め、parent/source/画像/ラベル/実品質評価0。Vercel native toolがdeployment lookup段階で404、記録済みの正しいproject teamへのdeployment GETも403 forbiddenとなった。アプリの当日未保存404とは扱わず、既存接続権限/信頼を拡大して回避しない。最新headの保護Preview/APIと実RAMラベルは接続復旧後の検証が必要。GitHub CI/全backup等はこのrecorded_atでは後続待ちで、PR64とprivate normal-player-cdn-final-*を優先する。残33停止/409B/日次07:21/次13:21・物理対0/自動認証艇0/UNVALIDATED/skip/[]/正式未完を維持する。
+
+証拠：`evidence/2026-10-17/normal-player-cdn-stage.json`。旧1R/5R/7R/8Rの原因は新9Rから遡及せず、旧映像を再取得しない。
+
 ## 運用更新：17日07:21の日次確認と残33件の停止維持
 
 前回00:38:58.455905 JSTから6時間以上を満たし、新しい正確な当日API本文と90秒witness、全5idle/専用lease5a/blob44eを確認して同じdayを一度だけ実行。run38975229434/job117222956270/artifact12078537132は成功、公式2GETで24場/14開催/168レース/1008艇。実取得07:21:36.248210〜07:21:37.644093 JST、次の同日6時間条件13:21:37.644093 JST。
