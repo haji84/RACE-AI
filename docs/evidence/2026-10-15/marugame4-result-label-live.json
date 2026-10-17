@@ -1,0 +1,376 @@
+{
+  "status": "OFFICIAL_RESULT_LABEL_FULL_BACKUP_API_AND_LEGACY_REPLAY_VERIFIED",
+  "race_id": "20261015-15-04",
+  "application_commit": "28ee0ced23b3fe2ec28cda9c1de9a7ad5387839d",
+  "workflow_commit": "9d4caed8397a470533bd6ebf5ff15015e57e3987",
+  "workflow_content_sha": "8f8609c7384c2a46d6e45fbf4f616617756ae778",
+  "run_id": 38705582381,
+  "job_id": 116324061469,
+  "closed_at": "2026-10-15T16:43:00+09:00",
+  "record": {
+    "cloud_eligible_pre_race": false,
+    "cloud_saved_at": "2026-10-15T08:26:12.377761+00:00",
+    "program_sha256": "05006d559925a1815bb9a8852b43c4d8618efd60f222f811cd3c9d3012a692df",
+    "record": {
+      "available_at": "2026-10-15T08:26:09.506977+00:00",
+      "body_identity_verified": true,
+      "captured_at": "2026-10-15T08:26:09.506977+00:00",
+      "closed_at": "2026-10-15T16:43:00+09:00",
+      "data": {
+        "actual_course_status": "UNKNOWN_REQUIRES_VERIFIED_COURSE_EVIDENCE",
+        "available_market_types": [
+          "exacta",
+          "place",
+          "quinella",
+          "quinella_place",
+          "trifecta",
+          "trio",
+          "win"
+        ],
+        "confirmed": true,
+        "entry_reconciliation": "RESULT_EVIDENCE_JOINED_NOT_INDEPENDENTLY_REVIEWED",
+        "finish_confirmed": true,
+        "payouts": [
+          {
+            "bet_type": "trifecta",
+            "combination": [
+              2,
+              3,
+              1
+            ],
+            "payout_per_100_yen": 7650
+          },
+          {
+            "bet_type": "trio",
+            "combination": [
+              1,
+              2,
+              3
+            ],
+            "payout_per_100_yen": 480
+          },
+          {
+            "bet_type": "exacta",
+            "combination": [
+              2,
+              3
+            ],
+            "payout_per_100_yen": 3650
+          },
+          {
+            "bet_type": "quinella",
+            "combination": [
+              2,
+              3
+            ],
+            "payout_per_100_yen": 1980
+          },
+          {
+            "bet_type": "quinella_place",
+            "combination": [
+              2,
+              3
+            ],
+            "payout_per_100_yen": 270
+          },
+          {
+            "bet_type": "quinella_place",
+            "combination": [
+              1,
+              2
+            ],
+            "payout_per_100_yen": 250
+          },
+          {
+            "bet_type": "quinella_place",
+            "combination": [
+              1,
+              3
+            ],
+            "payout_per_100_yen": 250
+          },
+          {
+            "bet_type": "win",
+            "combination": [
+              2
+            ],
+            "payout_per_100_yen": 270
+          },
+          {
+            "bet_type": "place",
+            "combination": [
+              2
+            ],
+            "payout_per_100_yen": 160
+          },
+          {
+            "bet_type": "place",
+            "combination": [
+              3
+            ],
+            "payout_per_100_yen": 320
+          }
+        ],
+        "refund_boats": [],
+        "refund_policy_status": "NO_RETURNED_BOATS",
+        "refunds": [],
+        "results": [
+          {
+            "actual_course": null,
+            "actual_raw_st": ".06",
+            "actual_st": 0.06,
+            "actual_st_status": "OK",
+            "captured_at": "2026-10-15T08:26:09.506977+00:00",
+            "finish": 3,
+            "finish_status": "FINISHED",
+            "lane": 1,
+            "name": "夏山  亮平",
+            "race_id": "20261015-15-04",
+            "racer_registration_id": "4462",
+            "source_url": "https://www.boatrace.jp/owpc/pc/race/raceresult?rno=4&jcd=15&hd=20261015",
+            "verified_official": true
+          },
+          {
+            "actual_course": null,
+            "actual_raw_st": ".14",
+            "actual_st": 0.14,
+            "actual_st_status": "OK",
+            "captured_at": "2026-10-15T08:26:09.506977+00:00",
+            "finish": 1,
+            "finish_status": "FINISHED",
+            "lane": 2,
+            "name": "白井  友晴",
+            "race_id": "20261015-15-04",
+            "racer_registration_id": "3696",
+            "source_url": "https://www.boatrace.jp/owpc/pc/race/raceresult?rno=4&jcd=15&hd=20261015",
+            "verified_official": true
+          },
+          {
+            "actual_course": null,
+            "actual_raw_st": ".11",
+            "actual_st": 0.11,
+            "actual_st_status": "OK",
+            "captured_at": "2026-10-15T08:26:09.506977+00:00",
+            "finish": 2,
+            "finish_status": "FINISHED",
+            "lane": 3,
+            "name": "森  晋太郎",
+            "race_id": "20261015-15-04",
+            "racer_registration_id": "4495",
+            "source_url": "https://www.boatrace.jp/owpc/pc/race/raceresult?rno=4&jcd=15&hd=20261015",
+            "verified_official": true
+          },
+          {
+            "actual_course": null,
+            "actual_raw_st": ".15",
+            "actual_st": 0.15,
+            "actual_st_status": "OK",
+            "captured_at": "2026-10-15T08:26:09.506977+00:00",
+            "finish": 5,
+            "finish_status": "FINISHED",
+            "lane": 4,
+            "name": "土屋  太朗",
+            "race_id": "20261015-15-04",
+            "racer_registration_id": "3441",
+            "source_url": "https://www.boatrace.jp/owpc/pc/race/raceresult?rno=4&jcd=15&hd=20261015",
+            "verified_official": true
+          },
+          {
+            "actual_course": null,
+            "actual_raw_st": ".14",
+            "actual_st": 0.14,
+            "actual_st_status": "OK",
+            "captured_at": "2026-10-15T08:26:09.506977+00:00",
+            "finish": 6,
+            "finish_status": "FINISHED",
+            "lane": 5,
+            "name": "吉田  和仁",
+            "race_id": "20261015-15-04",
+            "racer_registration_id": "4182",
+            "source_url": "https://www.boatrace.jp/owpc/pc/race/raceresult?rno=4&jcd=15&hd=20261015",
+            "verified_official": true
+          },
+          {
+            "actual_course": null,
+            "actual_raw_st": ".09",
+            "actual_st": 0.09,
+            "actual_st_status": "OK",
+            "captured_at": "2026-10-15T08:26:09.506977+00:00",
+            "finish": 4,
+            "finish_status": "FINISHED",
+            "lane": 6,
+            "name": "枝尾   賢",
+            "race_id": "20261015-15-04",
+            "racer_registration_id": "4148",
+            "source_url": "https://www.boatrace.jp/owpc/pc/race/raceresult?rno=4&jcd=15&hd=20261015",
+            "verified_official": true
+          }
+        ],
+        "settlement_ready": true,
+        "special_payouts": [],
+        "status": "settled",
+        "top3": [
+          2,
+          3,
+          1
+        ],
+        "verified_market_types": [
+          "exacta",
+          "place",
+          "quinella",
+          "quinella_place",
+          "trifecta",
+          "trio",
+          "win"
+        ],
+        "winning_coverage_status": {
+          "exacta": "VERIFIED",
+          "place": "VERIFIED",
+          "quinella": "VERIFIED",
+          "quinella_place": "VERIFIED",
+          "trifecta": "VERIFIED",
+          "trio": "VERIFIED",
+          "win": "VERIFIED"
+        }
+      },
+      "eligible_pre_race": false,
+      "information_phase": "official_result",
+      "kind": "raceresult",
+      "race_id": "20261015-15-04",
+      "rights_review": "user-confirmation-2026-10-15-official-facts",
+      "saved_at": "2026-10-15T08:26:09.527853+00:00",
+      "schema_version": 1,
+      "snapshot_id": "d6d6af206d8c60532afeef1d5c0ecb70682d4ba752155e6feba5c77224482c03",
+      "source_sha256": "fd8cca44fcccd6f8d3adf8055ed7085a84e2037cf1b03a3f2492b8de00b9831e",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceresult?rno=4&jcd=15&hd=20261015",
+      "status": "AVAILABLE",
+      "storage_eligible_pre_race": false,
+      "upstream_published_at": null
+    }
+  },
+  "api_bytes": 4958,
+  "api_sha256": "65cf65d7a532220a8688fbb3e3051f5cd9bd96d32944be055fb9d9d9897ac2fe",
+  "backups": [
+    {
+      "file": "race-ai-evaluation.json",
+      "bytes": 1645,
+      "sha256": "eac48b1311643b263620c736eaffabc4dfae73a49f98ef0bdb3cade48a845ba7"
+    },
+    {
+      "file": "race-ai-race.json",
+      "bytes": 4958,
+      "sha256": "65cf65d7a532220a8688fbb3e3051f5cd9bd96d32944be055fb9d9d9897ac2fe"
+    },
+    {
+      "file": "race-ai-race.request.json",
+      "bytes": 4659,
+      "sha256": "d93372e059ee25fff18cba6e8f9059e2e5d265046fdc705bc9cf129a5355389d"
+    }
+  ],
+  "artifacts": [
+    {
+      "id": 11958166829,
+      "zip_bytes": 2869,
+      "zip_sha256": "7cb03ec8209f05e70d5785d8f870b97cac7ff8c0117c0c84e25ec7f92f973849",
+      "retention_days": 14
+    },
+    {
+      "id": 11958785678,
+      "zip_bytes": 984,
+      "zip_sha256": "f5038fdbcf2591a76c2a600c8737c0d3e612d4deaba16e55ad615aa6b42df110",
+      "retention_days": 14
+    }
+  ],
+  "official_source_requests": 1,
+  "official_day_requests": 0,
+  "exhibition_source_requests": 0,
+  "forecast_writes": 0,
+  "raw_source_retained": false,
+  "result_is_label_only": true,
+  "legacy_evaluation": {
+    "as_of": "2026-10-15T08:26:25.214150+00:00",
+    "closed_at": "2026-10-15T07:43:00.000000+00:00",
+    "common_race_ids": [
+      "20261015-15-04"
+    ],
+    "comparison_scope": "same_race_and_information_cutoff",
+    "date_jst": "2026-10-15",
+    "exclusion_reason": null,
+    "models": [
+      {
+        "log_loss": 4.787491742782046,
+        "model_id": "official-program-uniform-pl",
+        "model_version": "1",
+        "multiclass_brier": 0.9916666666666667,
+        "race_count": 1,
+        "ticket_count": 120,
+        "winner_probability": 0.008333333333333333
+      },
+      {
+        "log_loss": 4.807484189586476,
+        "model_id": "official-program-rating-pl",
+        "model_version": "1",
+        "multiclass_brier": 0.992292005849442,
+        "race_count": 1,
+        "ticket_count": 120,
+        "winner_probability": 0.008168383974724941
+      }
+    ],
+    "prediction_proof": {
+      "as_of": "2026-10-15T03:37:41.096106+00:00",
+      "cloud_saved_at": "2026-10-15T03:37:42.772686+00:00",
+      "generated_at": "2026-10-15T03:37:41.096106+00:00",
+      "program_sha256": "ff1f4895a7895f2d6b03fba5ddcea0805331758dd0f91174d021ab892c9c62d2",
+      "request_id": "38677058935-1",
+      "snapshot_id": "1569007f47fce47b6a43b3a86647bf1e722fa71973344e61c75218180a3b472b"
+    },
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "race_id": "20261015-15-04",
+    "research_only": true,
+    "result_proof": {
+      "captured_at": "2026-10-15T08:26:09.506977+00:00",
+      "cloud_saved_at": "2026-10-15T08:26:12.377761+00:00",
+      "financial_confirmed": true,
+      "finish_confirmed": true,
+      "snapshot_id": "d6d6af206d8c60532afeef1d5c0ecb70682d4ba752155e6feba5c77224482c03",
+      "source_sha256": "fd8cca44fcccd6f8d3adf8055ed7085a84e2037cf1b03a3f2492b8de00b9831e",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceresult?rno=4&jcd=15&hd=20261015",
+      "status": "settled",
+      "top3": [
+        2,
+        3,
+        1
+      ]
+    },
+    "schema_version": 1,
+    "status": "EVALUATED",
+    "validation_status": "UNVALIDATED"
+  },
+  "new_v2_report_live_verified": false,
+  "independent_three_phase_reference_metrics": [
+    {
+      "model_id": "official-program-rating-pl",
+      "winner_probability": 0.008168383974724941,
+      "multiclass_brier": 0.992292005849442,
+      "log_loss": 4.807484189586476
+    },
+    {
+      "model_id": "name-bound-display",
+      "winner_probability": 0.008989863410291173,
+      "multiclass_brier": 0.9905605908629309,
+      "log_loss": 4.711657624130029
+    },
+    {
+      "model_id": "name-bound-original",
+      "winner_probability": 0.009685130318857897,
+      "multiclass_brier": 0.9891705634232364,
+      "log_loss": 4.637163526472054
+    }
+  ],
+  "validation_status": "UNVALIDATED",
+  "purchase_decision": "skip",
+  "purchase_recommendations": [],
+  "source_limit_bytes": 1000000,
+  "source_timeout_seconds": 10
+}

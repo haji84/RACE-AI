@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "date_jst": "2026-10-16",
+  "kind": "bounded_official_browser_live_monitoring_trial",
+  "observation_window_jst_approximate": "14:49–15:08",
+  "recorded_at": "2026-10-16T06:08:34Z",
+  "per_observation_precise_timestamps_recorded": false,
+  "product_head": "44f1d39db019a6243103cc265ae11f0807b55ab9",
+  "inventory_venue_count": 24,
+  "held_venue_codes": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "08",
+    "09",
+    "10",
+    "13",
+    "14",
+    "19",
+    "20",
+    "21",
+    "24"
+  ],
+  "finished_at_inventory_codes": [
+    "10",
+    "14",
+    "21"
+  ],
+  "no_event_at_inventory_codes": [
+    "05",
+    "06",
+    "07",
+    "11",
+    "12",
+    "15",
+    "16",
+    "17",
+    "18",
+    "22",
+    "23"
+  ],
+  "unique_live_venues_played_and_visually_inspected": 10,
+  "live_venue_codes": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "08",
+    "09",
+    "13",
+    "19",
+    "20",
+    "24"
+  ],
+  "conclusions": {
+    "live_broadcast_can_contain_exhibition_sailing": "OBSERVED_TODA_10R",
+    "all_venue_all_race_exhibition_coverage": "UNVERIFIED",
+    "page_selected_race_alone_is_video_identity": false,
+    "broadcast_can_mix_previous_results_future_header_digest_cm_and_exhibition": true,
+    "omura_all_official_sources_unpublished": "NOT_ESTABLISHED",
+    "physical_event_clock": "UNVERIFIED",
+    "boat_number_identification_tracking_world_calibration_performance": "UNVERIFIED",
+    "automated_live_exhibition_detector": "NOT_IMPLEMENTED",
+    "continuous_unattended_monitoring": "NOT_VERIFIED",
+    "prediction_input_eligibility": false
+  },
+  "implementation_gap": {
+    "existing_resolver_file": "race_ai/exhibition_video_source.py",
+    "existing_route": "VOD exhibition setting index and /player/vod",
+    "existing_source_scope_file": "config/operator-exhibition-media.json",
+    "live_source_contract_and_event_association": "NOT_IMPLEMENTED",
+    "next": "Define a separate limited normal-live source contract, establish broadcast date/race/phase and observation clocks, reject mismatches/unknown segments, then verify boat identification and measurement before any predictive use. Preserve existing VOD contracts and stored forecasts."
+  },
+  "retention": {
+    "raw_media_or_frame_files_saved_to_workspace": false,
+    "screenshots_temporarily_inspected_in_tool": true,
+    "expiring_playback_urls_tokens_or_keys_recorded": false,
+    "raw_footage_published": false,
+    "private_record_contains_derived_text_only": true
+  },
+  "side_effects": {
+    "product_config_or_workflow_changes": false,
+    "prediction_result_or_name_cloud_writes": 0,
+    "github_workflow_dispatches": 0,
+    "official_player_media_request_count": "NOT_INSTRUMENTED_BROWSER_PLAYBACK",
+    "existing_274_baselines_and_daily_acquisition_clock": "PRESERVED"
+  },
+  "new_numeric_observation_is_later_separate_evidence": "omura1-numeric-live.json",
+  "ordinary_live_player_path_observed": "/player/live",
+  "live_exhibition_caption_directly_observed": "戸田10R 展示航走",
+  "existing_vod_or_live_config_changed": false
+}

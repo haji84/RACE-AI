@@ -1,0 +1,432 @@
+{
+  "application_commit": "953dd03a4f12e42dd770c84c22c5a7d000add9a2",
+  "application_requests": 0,
+  "cli_exit_code": 0,
+  "cli_returned_at": "2026-10-15T12:35:41.514798+00:00",
+  "copied_originals_full_unchanged": true,
+  "file_digests": {
+    "index.json": {
+      "bytes": 1759,
+      "sha256": "f0a378115a409aa1094b59f984eed280e3fe6cc526978cb52949f9f615ca188e"
+    },
+    "input-001/evaluation.json": {
+      "bytes": 2813,
+      "sha256": "e653f485a8d1910a05dbc58ba0db91d7a347148f8ba0fd7d1fcd24cdc0a84a46"
+    },
+    "input-001/forecast.json": {
+      "bytes": 113892,
+      "sha256": "53d56c8445f1089b313e76c81c326a91b9bc2bf946d97dba6a67ba8eee6d3825"
+    },
+    "input-001/manifest.json": {
+      "bytes": 798,
+      "sha256": "4575fdd9d8c8d4cdf4355c59079eedab4bf9021fda0d7b85fd3782c1d1ce1c0f"
+    },
+    "input-001/program.json": {
+      "bytes": 2171,
+      "sha256": "84983f053ef03945006e212ba43d3ea44155f477d8f748b10ef26d5178c324b0"
+    },
+    "input-001/result.json": {
+      "bytes": 4958,
+      "sha256": "65cf65d7a532220a8688fbb3e3051f5cd9bd96d32944be055fb9d9d9897ac2fe"
+    },
+    "input-002/evaluation.json": {
+      "bytes": 2815,
+      "sha256": "3ff42a19f39eecdde14dcf191921ab2045d2b0d9bf6aeb6f169b92c82927050a"
+    },
+    "input-002/forecast.json": {
+      "bytes": 114084,
+      "sha256": "ad1bbf97ae747ccf42488e5d1a85e430002fd94d0f706a344bf82ada9ec5f6bd"
+    },
+    "input-002/manifest.json": {
+      "bytes": 977,
+      "sha256": "94de6970dee13d9ceac1c165010201f7527c9a168b1de10fbd81a6f2650eb667"
+    },
+    "input-002/program.json": {
+      "bytes": 2164,
+      "sha256": "9c70fea0087ebbabcc1ebef1fb99aeda091660beb1d43ff64115edc266602b2c"
+    },
+    "input-002/request.json": {
+      "bytes": 5617,
+      "sha256": "dd9c19c4dd17388ebd4638ff4a8aad2cbd25539761dd4caefbff7766016ee9b0"
+    },
+    "input-002/result.json": {
+      "bytes": 5991,
+      "sha256": "c861d42201798ee5e498f1e8f7ecd01d318826ad83d7c58201ed94b04574dc92"
+    },
+    "report.json": {
+      "bytes": 5387,
+      "sha256": "9614044549b83eef8bb52b93196c2549066c49af282222d42f359a73c821dc37"
+    }
+  },
+  "formal_completion": false,
+  "independently_restored_at": "2026-10-15T12:35:42.881706+00:00",
+  "index": {
+    "application_requests": 0,
+    "generated_at": "2026-10-15T12:35:40.216914+00:00",
+    "inputs": [
+      {
+        "archive_kind": "READ_ONLY_EVALUATION",
+        "directory": "input-001",
+        "files": {
+          "evaluation.json": {
+            "bytes": 2813,
+            "sha256": "e653f485a8d1910a05dbc58ba0db91d7a347148f8ba0fd7d1fcd24cdc0a84a46"
+          },
+          "forecast.json": {
+            "bytes": 113892,
+            "sha256": "53d56c8445f1089b313e76c81c326a91b9bc2bf946d97dba6a67ba8eee6d3825"
+          },
+          "manifest.json": {
+            "bytes": 798,
+            "sha256": "4575fdd9d8c8d4cdf4355c59079eedab4bf9021fda0d7b85fd3782c1d1ce1c0f"
+          },
+          "program.json": {
+            "bytes": 2171,
+            "sha256": "84983f053ef03945006e212ba43d3ea44155f477d8f748b10ef26d5178c324b0"
+          },
+          "result.json": {
+            "bytes": 4958,
+            "sha256": "65cf65d7a532220a8688fbb3e3051f5cd9bd96d32944be055fb9d9d9897ac2fe"
+          }
+        },
+        "forecast_request_id": "38699263834-1",
+        "race_id": "20261015-15-04"
+      },
+      {
+        "archive_kind": "RESULT_PUBLICATION",
+        "directory": "input-002",
+        "files": {
+          "evaluation.json": {
+            "bytes": 2815,
+            "sha256": "3ff42a19f39eecdde14dcf191921ab2045d2b0d9bf6aeb6f169b92c82927050a"
+          },
+          "forecast.json": {
+            "bytes": 114084,
+            "sha256": "ad1bbf97ae747ccf42488e5d1a85e430002fd94d0f706a344bf82ada9ec5f6bd"
+          },
+          "manifest.json": {
+            "bytes": 977,
+            "sha256": "94de6970dee13d9ceac1c165010201f7527c9a168b1de10fbd81a6f2650eb667"
+          },
+          "program.json": {
+            "bytes": 2164,
+            "sha256": "9c70fea0087ebbabcc1ebef1fb99aeda091660beb1d43ff64115edc266602b2c"
+          },
+          "request.json": {
+            "bytes": 5617,
+            "sha256": "dd9c19c4dd17388ebd4638ff4a8aad2cbd25539761dd4caefbff7766016ee9b0"
+          },
+          "result.json": {
+            "bytes": 5991,
+            "sha256": "c861d42201798ee5e498f1e8f7ecd01d318826ad83d7c58201ed94b04574dc92"
+          }
+        },
+        "forecast_request_id": "38708771146-1",
+        "race_id": "20261015-15-07"
+      }
+    ],
+    "network_requests": 0,
+    "official_source_requests": 0,
+    "operation": "OFFLINE_NAME_BOUND_ARCHIVE_COHORT",
+    "report_bytes": 5387,
+    "report_sha256": "9614044549b83eef8bb52b93196c2549066c49af282222d42f359a73c821dc37",
+    "schema_version": 1
+  },
+  "network_requests": 0,
+  "official_source_requests": 0,
+  "original_bytes": 256280,
+  "original_files": 11,
+  "output_bytes": 263426,
+  "output_files": 13,
+  "report": {
+    "as_of": "2026-10-15T12:35:40.216914+00:00",
+    "calibration_status": "NOT_EVALUATED",
+    "day_count": 1,
+    "evaluated_dates": [
+      "2026-10-15"
+    ],
+    "evaluated_race_ids": [
+      "20261015-15-04",
+      "20261015-15-07"
+    ],
+    "excluded": [],
+    "holdout_status": "NOT_ESTABLISHED",
+    "input_count": 2,
+    "model_adoption_status": "NOT_EVALUATED",
+    "models": [
+      {
+        "mean_brier_delta_from_baseline": 0.0,
+        "mean_log_loss": 4.473466002011345,
+        "mean_log_loss_delta_from_baseline": 0.0,
+        "mean_multiclass_brier": 0.9858738979385033,
+        "mean_winner_probability": 0.012050015137964077,
+        "model_id": "official-program-rating-pl",
+        "model_version": "1",
+        "phase": "B_ONLY_BASELINE",
+        "race_count": 2,
+        "ticket_count_per_race": 120
+      },
+      {
+        "mean_brier_delta_from_baseline": -0.00206032251615923,
+        "mean_log_loss": 4.376484235223838,
+        "mean_log_loss_delta_from_baseline": -0.09698176678750636,
+        "mean_multiclass_brier": 0.983813575422344,
+        "mean_winner_probability": 0.013282141678210983,
+        "model_id": "name-bound-display",
+        "model_version": "2",
+        "phase": "DISPLAY_V2",
+        "race_count": 2,
+        "ticket_count_per_race": 120
+      },
+      {
+        "mean_brier_delta_from_baseline": -0.005402104954224163,
+        "mean_log_loss": 4.2618499132467385,
+        "mean_log_loss_delta_from_baseline": -0.21161608876460658,
+        "mean_multiclass_brier": 0.9804717929842791,
+        "mean_winner_probability": 0.015100707843392083,
+        "model_id": "name-bound-original",
+        "model_version": "2",
+        "phase": "ORIGINAL_V2",
+        "race_count": 2,
+        "ticket_count_per_race": 120
+      }
+    ],
+    "observations": [
+      {
+        "archive_kind": "READ_ONLY_EVALUATION",
+        "date_jst": "2026-10-15",
+        "evaluation_sha256": "e653f485a8d1910a05dbc58ba0db91d7a347148f8ba0fd7d1fcd24cdc0a84a46",
+        "exclusion_reason": null,
+        "forecast_request_id": "38699263834-1",
+        "forecast_sha256": "53d56c8445f1089b313e76c81c326a91b9bc2bf946d97dba6a67ba8eee6d3825",
+        "manifest_sha256": "4575fdd9d8c8d4cdf4355c59079eedab4bf9021fda0d7b85fd3782c1d1ce1c0f",
+        "model_rows": [
+          {
+            "forecast_cloud_saved_at": "2026-10-15T03:37:42.772686+00:00",
+            "forecast_generated_at": "2026-10-15T03:37:41.096106+00:00",
+            "log_loss": 4.807484189586476,
+            "model_id": "official-program-rating-pl",
+            "model_version": "1",
+            "multiclass_brier": 0.992292005849442,
+            "phase": "B_ONLY_BASELINE",
+            "race_count": 1,
+            "ticket_count": 120,
+            "winner_probability": 0.008168383974724941
+          },
+          {
+            "forecast_cloud_saved_at": "2026-10-15T07:31:29.954248+00:00",
+            "forecast_generated_at": "2026-10-15T07:31:28.789415+00:00",
+            "log_loss": 4.711657624130029,
+            "model_id": "name-bound-display",
+            "model_version": "2",
+            "multiclass_brier": 0.9905605908629309,
+            "phase": "DISPLAY_V2",
+            "race_count": 1,
+            "ticket_count": 120,
+            "winner_probability": 0.008989863410291173
+          },
+          {
+            "forecast_cloud_saved_at": "2026-10-15T07:31:29.954248+00:00",
+            "forecast_generated_at": "2026-10-15T07:31:28.789415+00:00",
+            "log_loss": 4.637163526472054,
+            "model_id": "name-bound-original",
+            "model_version": "2",
+            "multiclass_brier": 0.9891705634232364,
+            "phase": "ORIGINAL_V2",
+            "race_count": 1,
+            "ticket_count": 120,
+            "winner_probability": 0.009685130318857897
+          }
+        ],
+        "original_evaluation_as_of": "2026-10-15T09:44:50.093237+00:00",
+        "program_sha256": "84983f053ef03945006e212ba43d3ea44155f477d8f748b10ef26d5178c324b0",
+        "race_id": "20261015-15-04",
+        "result_request_id": null,
+        "result_sha256": "65cf65d7a532220a8688fbb3e3051f5cd9bd96d32944be055fb9d9d9897ac2fe",
+        "status": "EVALUATED"
+      },
+      {
+        "archive_kind": "RESULT_PUBLICATION",
+        "date_jst": "2026-10-15",
+        "evaluation_sha256": "3ff42a19f39eecdde14dcf191921ab2045d2b0d9bf6aeb6f169b92c82927050a",
+        "exclusion_reason": null,
+        "forecast_request_id": "38708771146-1",
+        "forecast_sha256": "ad1bbf97ae747ccf42488e5d1a85e430002fd94d0f706a344bf82ada9ec5f6bd",
+        "manifest_sha256": "94de6970dee13d9ceac1c165010201f7527c9a168b1de10fbd81a6f2650eb667",
+        "model_rows": [
+          {
+            "forecast_cloud_saved_at": "2026-10-15T03:43:06.587121+00:00",
+            "forecast_generated_at": "2026-10-15T03:43:04.898884+00:00",
+            "log_loss": 4.139447814436214,
+            "model_id": "official-program-rating-pl",
+            "model_version": "1",
+            "multiclass_brier": 0.9794557900275646,
+            "phase": "B_ONLY_BASELINE",
+            "race_count": 1,
+            "ticket_count": 120,
+            "winner_probability": 0.015931646301203212
+          },
+          {
+            "forecast_cloud_saved_at": "2026-10-15T08:52:49.479151+00:00",
+            "forecast_generated_at": "2026-10-15T08:52:48.321347+00:00",
+            "log_loss": 4.041310846317648,
+            "model_id": "name-bound-display",
+            "model_version": "2",
+            "multiclass_brier": 0.9770665599817572,
+            "phase": "DISPLAY_V2",
+            "race_count": 1,
+            "ticket_count": 120,
+            "winner_probability": 0.017574419946130793
+          },
+          {
+            "forecast_cloud_saved_at": "2026-10-15T08:52:49.479151+00:00",
+            "forecast_generated_at": "2026-10-15T08:52:48.321347+00:00",
+            "log_loss": 3.8865363000214233,
+            "model_id": "name-bound-original",
+            "model_version": "2",
+            "multiclass_brier": 0.9717730225453218,
+            "phase": "ORIGINAL_V2",
+            "race_count": 1,
+            "ticket_count": 120,
+            "winner_probability": 0.020516285367926268
+          }
+        ],
+        "original_evaluation_as_of": "2026-10-15T11:19:58.584791+00:00",
+        "program_sha256": "9c70fea0087ebbabcc1ebef1fb99aeda091660beb1d43ff64115edc266602b2c",
+        "race_id": "20261015-15-07",
+        "result_request_id": "38726468766-1",
+        "result_sha256": "c861d42201798ee5e498f1e8f7ecd01d318826ad83d7c58201ed94b04574dc92",
+        "status": "EVALUATED"
+      }
+    ],
+    "operation": "OFFLINE_NAME_BOUND_ARCHIVE_COHORT",
+    "physical_exhibition_timing_verified": false,
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "race_count": 2,
+    "requested_race_ids": [
+      "20261015-15-04",
+      "20261015-15-07"
+    ],
+    "research_only": true,
+    "schema_version": 1,
+    "scope": "RETROSPECTIVE_ARCHIVE_REPLAY_DIFFERENT_FEATURE_PHASES",
+    "signature_sha256": "f9a9deb74051ad258831a9c0dac870ef80fb8ee6d88df5bdb2a56b459e801725",
+    "snapshot_id": "1f6bad744471de2bc127d89cde4ac70914994c33c545874030af53cec90717f1",
+    "status": "EXPLORATORY_AGGREGATE",
+    "validation_status": "UNVALIDATED"
+  },
+  "started_at": "2026-10-15T12:35:40.151096+00:00",
+  "status": "OFFLINE_ARCHIVE_AGGREGATE_FULLY_VERIFIED",
+  "zip_bytes": 57994,
+  "zip_full_restore": true,
+  "zip_sha256": "1a3fa821375dc6c08d82d5cf5c233337723cab05165a8d52fc2936d78cec1235",
+  "schema_version": 1,
+  "evaluation_scope": "Retrospective different-feature-phase research, same2races/1day; not same information cutoff or physically proven before/after.",
+  "independent_artifact_audit": "docs/evidence/2026-10-15/archived-cohort-artifact-audit.md",
+  "independent_full_report_reconstruction": true,
+  "independent_audit_findings": 0,
+  "protected_preview": {
+    "commit": "953dd03a4f12e42dd770c84c22c5a7d000add9a2",
+    "deployment_id": "dpl_6ghWZkh7mnrrnXi2snBPwxVF2tji",
+    "preview_url": "https://race-ai-preview-exlargeu9-qq1130034-1738.vercel.app",
+    "state": "READY",
+    "verified_at": "2026-10-15T12:37:36.636350+00:00",
+    "preserved": [
+      {
+        "name": "forecast4",
+        "bytes": 113892,
+        "sha256": "53d56c8445f1089b313e76c81c326a91b9bc2bf946d97dba6a67ba8eee6d3825",
+        "full_canonical_bytes_unchanged": true
+      },
+      {
+        "name": "forecast7",
+        "bytes": 114084,
+        "sha256": "ad1bbf97ae747ccf42488e5d1a85e430002fd94d0f706a344bf82ada9ec5f6bd",
+        "full_canonical_bytes_unchanged": true
+      },
+      {
+        "name": "result7-fixed",
+        "bytes": 5991,
+        "sha256": "c861d42201798ee5e498f1e8f7ecd01d318826ad83d7c58201ed94b04574dc92",
+        "full_canonical_bytes_unchanged": true
+      },
+      {
+        "name": "result7-latest",
+        "bytes": 5991,
+        "sha256": "c861d42201798ee5e498f1e8f7ecd01d318826ad83d7c58201ed94b04574dc92",
+        "full_canonical_bytes_unchanged": true
+      },
+      {
+        "name": "result4",
+        "bytes": 4958,
+        "sha256": "65cf65d7a532220a8688fbb3e3051f5cd9bd96d32944be055fb9d9d9897ac2fe",
+        "full_canonical_bytes_unchanged": true
+      }
+    ],
+    "api_gets": 5,
+    "posts": 0,
+    "official_source_requests": 0,
+    "scope": "Separate protected Preview integration GETs; offline CLI counters remain 0. Selected full envelopes, not all118 APIs reread. Web and workflow Git trees unchanged."
+  },
+  "ci": {
+    "commit": "953dd03a4f12e42dd770c84c22c5a7d000add9a2",
+    "run_id": 38735645411,
+    "push_run_id": 38735636996,
+    "windows_job_id": 116424131607,
+    "linux_job_id": 116424131186,
+    "python_tests_each": 947,
+    "javascript_tests_each": 187,
+    "failures": 0,
+    "skips": 0,
+    "windows_python_seconds": 357.788,
+    "linux_python_seconds": 191.056,
+    "windows_log_summary": [
+      "2026-10-15T12:35:52.7416260Z # tests 8",
+      "2026-10-15T12:35:52.7418078Z # pass 8",
+      "2026-10-15T12:35:52.7418434Z # fail 0",
+      "2026-10-15T12:35:52.7420561Z # skipped 0",
+      "2026-10-15T12:40:49.4378470Z Ran 947 tests in 357.788s",
+      "2026-10-15T12:40:49.4378863Z OK",
+      "2026-10-15T12:40:58.4790414Z # tests 187",
+      "2026-10-15T12:40:58.4790923Z # pass 187",
+      "2026-10-15T12:40:58.4791180Z # fail 0",
+      "2026-10-15T12:40:58.4791703Z # skipped 0"
+    ],
+    "linux_log_summary": [
+      "2026-10-15T12:34:59.3092538Z # tests 8",
+      "2026-10-15T12:34:59.3092876Z # pass 8",
+      "2026-10-15T12:34:59.3093027Z # fail 0",
+      "2026-10-15T12:34:59.3093359Z # skipped 0",
+      "2026-10-15T12:37:39.5595546Z Ran 947 tests in 191.056s",
+      "2026-10-15T12:37:39.5595692Z OK",
+      "2026-10-15T12:37:43.3303397Z # tests 187",
+      "2026-10-15T12:37:43.3303612Z # pass 187",
+      "2026-10-15T12:37:43.3303717Z # fail 0",
+      "2026-10-15T12:37:43.3303932Z # skipped 0"
+    ]
+  },
+  "review": "docs/evidence/2026-10-15/archived-cohort-review.json",
+  "trusted_workflow_unchanged": {
+    "branch": "feat/boat-oidc-probe-auth",
+    "commit": "ff95b0f0dd7c273cad5bd589ca19e0a7d0b97e0a",
+    "blob": "2807d1981b99eddbf7cdf0b7cd8f24562a991bca",
+    "pinned_application": "325ddce19ae999d626782a9929e6511c17d60ba1"
+  },
+  "all_deployments_protection_unchanged": true,
+  "currentday_live_validators_unchanged": true,
+  "ui_api_workflow_git_trees_unchanged": true,
+  "new_dashboard_aggregate_integration": false,
+  "no_actual_sources_or_forecasts_or_labels_created": true,
+  "artifact_zip": "artifacts/local/archived-cohort-offline-20261015.zip",
+  "recorded_at": "2026-10-15T12:43:42.477244+00:00",
+  "owned_workspace_cleanup": {
+    "status": "AUTOMATIC_APPROVAL_REJECTED_DIRECTORY_RETAINED",
+    "reason": "blocked by policy",
+    "action": "recursive removal of verified owned SDD directory",
+    "directory": ".superpowers/sdd/2026-10-15-archived-name-bound-cohort",
+    "archive_full_bytes_still_verified": true,
+    "source_checkout_preserved": true,
+    "requires_new_authority_or_policy_change_before_retry": true
+  }
+}

@@ -1,0 +1,147 @@
+{
+  "status": "COMPLETE_OWN_NAME_PROOF_NUMERIC_AND_VIDEO_NOT_OBSERVED",
+  "run_id": 38798278470,
+  "race_id": "20261016-14-01",
+  "request_id": "38798278470-1",
+  "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+  "files": 5,
+  "bytes": 38631,
+  "zip_bytes": 8061,
+  "zip_sha256": "f676c735cd7c807dd5bfeeef06ace2431f0772f48fac6205cbc818c19d5427d0",
+  "manifest_sha256": "a041fc49c190c754c156b924bd9f79c327f5d02c56851de2e2cbe09a2d9fcf69",
+  "proof_snapshot_id": "f8b09b2bcb4a77b603c65db262def6a3f7d32af795a394dcfd4c40f7f7c7a861",
+  "source_body_sha256": "4c80cc4d0b7329846bcc72d3a2926c233f1624e1b26a92c6e4bfed246f6b1273",
+  "source_captured_at": "2026-10-15T19:59:38.294629+00:00",
+  "generated_at": "2026-10-15T19:59:38.310879+00:00",
+  "runner_saved_at": "2026-10-15T19:59:38.311846+00:00",
+  "cloud_saved_at": "2026-10-15T19:59:42.482349+00:00",
+  "receipt_confirmed_at": "2026-10-15T19:59:43.547448+00:00",
+  "seconds_before_close": 12916.452552,
+  "baseline_snapshot_id": "c2f996a96bd0d46529615c500ef0aa96858b19305b0ac2649c4105fcd12c8402",
+  "baseline_sha256": "0d12977efba6f93a5aa6ffb70b98e86b9836423dc62ff09a93925eb99a02c84c",
+  "envelope_bytes": 3380,
+  "envelope_sha256": "a7bafb20240b3e4d14c360edc8522f07464c0d53a4bb912bfd37d8eec965bf5d",
+  "name_relations": {
+    "EXACT_CANONICAL_NAME": 6
+  },
+  "official_source_requests": 1,
+  "original_baseline_unchanged": true,
+  "raw_source_retained": false,
+  "raw_source_hash_recomputed_after_disposal": false,
+  "alias_prediction_integration_complete": false,
+  "validation_status": "UNVALIDATED",
+  "schema_version": 1,
+  "operation": "OWN_RACE_NAME_PROOF_PREPARATION",
+  "recorded_at": "2026-10-15T20:06:46.398850+00:00",
+  "job_id": 116640353110,
+  "artifact_id": 12003490999,
+  "artifact_retention_days": 14,
+  "workflow_branch": "feat/boat-oidc-probe-auth",
+  "workflow_commit": "e071480037d918714ea87288e9bc9598480f256d",
+  "workflow_blob": "74f4d7423fd50bafb5fefcb368f3c36f0243f3c9",
+  "worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
+  "publisher_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+  "publisher_url": "https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app",
+  "reader_commit": "3bb9788470a720f326b0e312210f11cf987b401c",
+  "reader_url": "https://race-ai-preview-bvr43v0qc-qq1130034-1738.vercel.app",
+  "reader_deployment_id": "dpl_GwZGUGvVKjmuU1FmhqGLNnBdUtzX",
+  "file_digests": {
+    "baseline.json": {
+      "bytes": 29751,
+      "sha256": "0d12977efba6f93a5aa6ffb70b98e86b9836423dc62ff09a93925eb99a02c84c"
+    },
+    "manifest.json": {
+      "bytes": 789,
+      "sha256": "a041fc49c190c754c156b924bd9f79c327f5d02c56851de2e2cbe09a2d9fcf69"
+    },
+    "name-proof.json": {
+      "bytes": 2242,
+      "sha256": "512f4b4e3a610a3178ed172764d9958112f012f62d5a7ea8df3247a4dc1fc526"
+    },
+    "receipt.json": {
+      "bytes": 3380,
+      "sha256": "a7bafb20240b3e4d14c360edc8522f07464c0d53a4bb912bfd37d8eec965bf5d"
+    },
+    "request.json": {
+      "bytes": 2469,
+      "sha256": "549c825c68ad8ddb2c6b38d12b23d2ac1ecfff62743dfa2d844415fa7f2af3f7"
+    }
+  },
+  "original_baseline_request_id": "38764082826-1",
+  "original_baseline_cloud_saved_at": "2026-10-15T15:52:34.176159+00:00",
+  "real_clocks_jst": {
+    "source_captured_at": "2026-10-16T04:59:38.294629+09:00",
+    "generated_at": "2026-10-16T04:59:38.310879+09:00",
+    "runner_saved_at": "2026-10-16T04:59:38.311846+09:00",
+    "cloud_saved_at": "2026-10-16T04:59:42.482349+09:00",
+    "receipt_confirmed_at": "2026-10-16T04:59:43.547448+09:00"
+  },
+  "closed_at_jst": "2026-10-16T08:35:00+09:00",
+  "api_latest_fixed_publisher_full_equal": true,
+  "baseline_full_unchanged_after_collection": true,
+  "caller_api_gets": 4,
+  "caller_posts": 1,
+  "caller_official_source_requests": 1,
+  "shared_blob_scratch_probe_separate": true,
+  "root_preview_api_preflight_gets": 5,
+  "root_preview_api_post_gets": 4,
+  "root_post_source_requests": 0,
+  "root_post_posts": 0,
+  "exact_404_witness": {
+    "race_id": "20261016-14-01",
+    "status": 404,
+    "body": {
+      "error": "NAME_BINDING_NOT_SAVED"
+    },
+    "application_commit": "3bb9788470a720f326b0e312210f11cf987b401c",
+    "deployment_id": "dpl_GwZGUGvVKjmuU1FmhqGLNnBdUtzX",
+    "request_url": "https://race-ai-preview-bvr43v0qc-qq1130034-1738.vercel.app/api/name-binding?race_id=20261016-14-01",
+    "captured_at": "2026-10-15T19:59:05.039Z"
+  },
+  "audit_report": "name-binding-naruto1-artifact-audit.md",
+  "audit_report_bytes": 6593,
+  "audit_report_sha256": "622bc7f0500348f53cc548cb74fe8488609a8212eb2a7d101d247da9a14e99d7",
+  "audit_report_encoding": "UTF-8 LF",
+  "independent_audit_open_findings": 0,
+  "operational_review": "# Independent operational review: day16 Naruto1R name binding\n\n## Verdict\n\nScoped operational helpers: **PASS after the focused idle-gate fix**.\n\nResolved findings: **1 P2**. Open actionable findings: **0**. The original finding is retained below as review history.\n\n## Initial P2, now resolved: require list-valued active-run inventories before declaring idle\n\nLocation: `artifacts/local/dispatch-name-binding16-reviewed.py:72–73`.\n\nThe reused five-state idle gate checks an integer total_count, its equality with len(workflow_runs), and workflow_runs falsiness, but never requires a list. A malformed successful response with total_count0 and workflow_runs{} or an empty string therefore passes as idle. That permits dispatch without a valid empty inventory for the queried state. This is the same fail-closed shape boundary previously corrected in the day/cohort caller.\n\nRequire a dictionary response and list-valued workflow_runs before evaluating count/emptiness, retaining literal integer count and exact full-inventory equality. Reusing the reviewed check_idle predicate is also suitable. Confirm malformed empty objects/strings reject and valid zero-count empty lists pass without network or dispatch before invocation.\n\n## Other assessed changes\n\n- The dispatcher uses separate day16 preflight filenames and an exact20261016-14-01 target. It validates the retained current-day feed/program, requires the actual current JST date and a cutoff more than180 seconds ahead, and validates an aware nonfuture witness no more than90 seconds old before ledger creation and again immediately before dispatch. The witness must carry exact NAME_BINDING_NOT_SAVED body, target URL, application3bb9788470a720f326b0e312210f11cf987b401c, and deployment dpl_GwZGUGvVKjmuU1FmhqGLNnBdUtzX. Missing/stale proof blocks invocation; the witness file was not yet present at review time, consistent with root's plan to refresh it after review.\n- The exact e071480037d918714ea87288e9bc9598480f256d lease and74f4d7423fd50bafb5fefcb368f3c36f0243f3c9 workflow blob are rechecked against authenticated fixed-repository endpoints before the single existing name-binding dispatch. The collection/race inputs are fixed, and no caller-created nonce is added.\n- The per-race ledger is exclusively created as outcome unknown before credential/remote work. Only HTTP204 from the exact dispatch URL allows transition to ACCEPTED_DO_NOT_REDISPATCH, with worker a488 and publisher325 kept separate. Existing/partial/unknown ledgers block automatic retry, including interrupted acknowledgement/write scenarios. No old target/archive/evidence file is removed or reused for the new preflight paths.\n- The downloader differs from its original only in ZIP output/artifact-name prefix, from name-bound-result to name-binding. Existing exact artifact/run/attempt/workflow-SHA/branch checks, bounds, no authenticated redirect, authorization-free storage request, exclusive output, and byte readback remain unchanged.\n- The verifier differs only in day16 feed/baseline input filenames. It retains optimized-mode rejection; exact five-file inventory; canonical byte/digest checks; completed manifest/request/counters; full finalized binding validation against retained program/baseline; exact run nonce; source identity; six-lane full-name/registration binding; original baseline equality; separate original source/generation/save/confirmation clocks; and research-only limits. It does not by itself establish current API full-body equality or independent artifact audit; root's stated restore/full-API/independent-audit gates remain necessary before marking completion.\n- Publisher325/psh and trusted workflow OIDC/permissions/environment/concurrency are unchanged in these helper adaptations. Root supplies that the a488 collector/source/auth modules match325; the prior worker-only pin review already checked the corresponding revision scope. No new product/auth/workflow change is proposed here.\n\n## Review scope and execution limits\n\nApplied the requesting-code-review workflow as the already dispatched independent reviewer. Rendered read-only diffs for all three supplied helper pairs, then inspected the new dispatch/verifier boundary needed for operational assessment. No helpers were imported or executed. Root's retained baseline/full-day/04:53JST missingness observations were supplied context, not independently queried; any eventual invocation needs a newly fresh witness and live idle/lease checks.\n\nNo tests, compilation, credentials, network/browser/source requests, workflow dispatch, download/restore, ledger/progress changes, Git mutation, subagent, repository/root-doc edits, or other operational mutation were performed. Only this independent review report was written. This review grants no source/publication authority and does not mark name binding complete.\n\n## Focused fix review: PASS\n\nThe actual `check_idle` function now requires an exact dictionary response, a literal integer total_count (excluding bool/float), an exact list workflow_runs, and count/list equality before testing emptiness (`artifacts/local/dispatch-name-binding16-reviewed.py:13–18`). Any nonempty inventory blocks. Every one of the five status queries invokes it (`:77–79`) before lease/blob and fresh absence checks. This resolves the sole P2; no new actionable findings were identified in the focused change.\n\nRoot reports the actual extracted predicate passed a positive empty-list case and eleven negative malformed/type/count/active cases, and the actual absence guard passed one positive and twelve negative cases with no network/dispatch. These checks were not rerun by this reviewer. Follow-up review read only the new guard/call site and changed no file except this report.\n\nThe fresh missingness witness remains pending after PASS. Static helper approval does not extend the earlier observation's age, establish current publisher idleness, authorize retry after an unknown outcome, or mark the name binding complete. Root must satisfy the fresh witness/lease/idle/cutoff gates, then restore and compare the full API envelope and obtain the independent audit before its completion claim.\n",
+  "guard_checks": {
+    "absence_positive": 1,
+    "absence_negative": 12,
+    "idle_positive": 1,
+    "idle_negative": 11,
+    "network_requests": 0,
+    "dispatches": 0
+  },
+  "product_auth_workflow_changes": false,
+  "new_secret_or_trust_expansion": false,
+  "source_smoke_manual_only_required_before_push": true,
+  "physical_exhibition_pairs_added": 0,
+  "physical_exhibition_timing_verified": false,
+  "post_exhibition_numeric_observed": false,
+  "video_used": false,
+  "model_accuracy_validated": false,
+  "purchase_decision": "skip",
+  "purchase_recommendations": [],
+  "formal_completion": false,
+  "preserved_day16_baselines": 156,
+  "preserved_day15_baselines": 118,
+  "all274_apis_reread": false,
+  "last_daily_acquisition_jst": "2026-10-16T00:35:23.711762+09:00",
+  "next_daily_six_hour_condition_jst": "2026-10-16T06:35:23.711762+09:00",
+  "next_step": "Use only this own saved proof with new eligible current-day numeric observations and separately versioned forecasts after exhibition publication; preserve all original baselines and actual clocks; do not re-fetch this racelist or infer physical exhibition timing.",
+  "github_artifact_metadata": {
+    "id": 12003490999,
+    "name": "name-binding-38798278470-1",
+    "size_in_bytes": 8061,
+    "digest": "sha256:f676c735cd7c807dd5bfeeef06ace2431f0772f48fac6205cbc818c19d5427d0",
+    "workflow_run": {
+      "id": 38798278470,
+      "repository_id": 1416489937,
+      "head_repository_id": 1416489937,
+      "head_branch": "feat/boat-oidc-probe-auth",
+      "head_sha": "e071480037d918714ea87288e9bc9598480f256d"
+    }
+  },
+  "github_artifact_digest_matches_download": true,
+  "final_documentation_review": "# Independent final documentation integration review: Naruto1R name proof\n\n## Verdict\n\nScoped documentation/evidence integration: **PASS**.\n\nActionable findings: **0** (no P0, P1, P2, or P3 findings).\n\n## Evidence reconciliation\n\nReviewed `docs/evidence/2026-10-16/name-binding-naruto1-live.json`, the new top section of `docs/COMPLETION_STATUS.md`, the current prospective-target/additional-binding entries in `docs/OPERATIONS_STATE.json`, retained summary `name-binding-summary-38798278470.json`, and the independent artifact audit. Every common summary field other than the intentionally expanded status matches the public live evidence.\n\nThe records consistently identify race 20261016-14-01, run 38798278470, request 38798278470-1, job 116640353110, artifact 12003490999, five files/38,631 expanded bytes, ZIP 8,061 bytes, and the same complete manifest/ZIP/envelope hashes. The caller counters remain four business API GETs, one POST, and one official-source request; the shared Blob scratch probe and root read-only API witnesses are separately labeled. These are retained recorded counter checks, not a fresh remote request recount by this reviewer.\n\nAll six name relations are EXACT_CANONICAL_NAME. Neither the evidence nor the new top section treats them as new abbreviation-resolution coverage. The original baseline remains request 38764082826-1 and snapshot c2f996a96bd0d46529615c500ef0aa96858b19305b0ac2649c4105fcd12c8402. Its full canonical digest agrees with the retained independent parent-preservation audit. The baseline totals remain day16 156 plus day15 118 = 274; the state diff does not modify those totals, and the evidence explicitly says all 274 APIs were not reread.\n\nSource capture 2026-10-15T19:59:38.294629+00:00 correctly converts to 2026-10-16 04:59:38.294629 JST. Cloud save/confirmation convert to 04:59:42.482349/04:59:43.547448 JST, ahead of the unchanged 08:35 cutoff by 12,916.452552 seconds. All distinct source/generated/runner/cloud/confirmation clocks remain intact. Last actual daily-source acquisition remains 00:35:23.711762 JST, with the next six-hour condition at 06:35:23.711762 JST; name-proof collection/save is not substituted for the daily acquisition clock.\n\nThe public/state/top-section claims keep physical exhibition pairs at zero, numeric v2/video work unobserved, accuracy/calibration/adoption unvalidated, purchase skipped, recommendations empty, and formal completion false. Raw source HTML disposal and the inability to recompute its original hash after disposal are accurately disclosed. The independent audit distinguishes the canonical 3,380-byte envelope from the API witnesses' extra terminal newline.\n\n## Provenance and hash binding\n\nPublisher325/psh, worker a488, reader3bb/bvr43v0qc, trusted workflow e071/blob74f4, and the unchanged OIDC/trust configuration remain distinct. No reader/worker SHA is presented as the artifact's publisher commit. The new current target says own proof ready while waiting for exhibition numerics; it does not claim physical timing or new predictive precision.\n\nThe audit report is exactly 6,593 bytes, UTF-8 with LF and no CR, and its full SHA256 is 622bc7f0500348f53cc548cb74fe8488609a8212eb2a7d101d247da9a14e99d7, matching the live evidence binding. `.gitattributes` adds only the exact audit-report path with `text eol=lf`; existing report rules remain unchanged.\n\nThe top section's GitHub artifact-digest phrase is supported by root's completed download gate, not solely a locally computed ZIP hash. Root confirmed actual metadata was observed at 20:00:15 UTC and its digest compared before restore. Focused read-only inspection of the newly retained metadata and matching public fields confirms artifact ID/name/run, trusted branch/e071 head SHA, size 8,061, and `sha256:f676c735cd7c807dd5bfeeef06ace2431f0772f48fac6205cbc818c19d5427d0` agree with the recorded downloaded ZIP. No additional GET was needed or performed for this review.\n\n## Scope and remaining gates\n\nRead-only tracked diff inspection shows only the exact LF rule, new completion chapter/prior-chapter label, and the stated state target/additional-binding/priority/timestamp updates. No product, workflow, tests, or script changes are part of this documentation increment. Root's whole-API/prior-state preservation observations and the independent audit were reviewed as retained evidence; this reviewer did not rerun their operations.\n\nNo tests, compilation, helper execution/import, credentials, network/browser/source access, Git mutation, dispatch, storage write, subagent, root-doc/repository edit, or other operational mutation was performed. Only this independent review report was written. Latest documentation-head CI/READY/API verification, PR integration, and automation updates remain root-owned pending gates; this PASS does not claim those steps are complete.\n"
+}

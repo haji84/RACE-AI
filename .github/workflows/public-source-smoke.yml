@@ -1,0 +1,34 @@
+name: RACE AI public source smoke (metadata only)
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  source-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: One GET / metadata only / no raw API storage
+        run: |
+          python -m race_ai.public_day_feed --date 2026-10-13 --probe-only
+  official-lzh-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Report installed archive decoders
+        run: |
+          python -c "import ctypes.util,shutil;print('libarchive',ctypes.util.find_library('archive'));print('7z',shutil.which('7z'));print('bsdtar',shutil.which('bsdtar'))"
+      - name: One official K archive GET - decode in memory and count races; no archive retained
+        env:
+          RACE_AI_DEBUG_LAYOUT: '1'
+        run: |
+          python -m race_ai.official_daily_verify --date 2026-10-13 --kind K
+          python -m race_ai.official_daily_verify --date 2026-10-13 --kind B

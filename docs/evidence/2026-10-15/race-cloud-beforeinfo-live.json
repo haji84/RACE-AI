@@ -1,0 +1,34 @@
+{
+  "run_id": 38645145718,
+  "job_id": 116130029337,
+  "workflow_commit": "2c1675eea1550b79b07f42a60967d75a630599d4",
+  "application_commit": "f7a70adb7b7f690e8cc3a74a7943cd28dc693ab8",
+  "deployment_url": "https://race-ai-preview-821slcczo-qq1130034-1738.vercel.app",
+  "status": "OFFICIAL_RACE_API_PARTIAL_VERIFIED",
+  "failed_kinds": {"odds3t":"SOURCE_INVALID"},
+  "day_collection_steps": "all five skipped; existing today API reused",
+  "race_id": "20261015-14-01",
+  "closed_at": "2026-10-15T08:35:00+09:00",
+  "api_status": 200,
+  "api_canonical_sha256": "e84c1e515913aafa36658f9424005c420806d66774fd36a451019371d6a93664",
+  "independent_api_get_full_sha_verified": true,
+  "canonical_response_bytes": 1758,
+  "records": [{
+    "kind": "beforeinfo", "status": "PENDING", "data": null,
+    "missing_reason": "OFFICIAL_PREVIEW_EMPTY_EXHIBITION_GRID",
+    "captured_at": "2026-10-14T22:05:56.313029+00:00",
+    "cloud_saved_at": "2026-10-14T22:05:59.535398+00:00",
+    "cloud_eligible_pre_race": true,
+    "snapshot_id": "c3f9de11f86e2ecddde1d53ba731637b77b872ce0fd74c8a22f1a06e9883ebbd",
+    "source_sha256": "9230d64d2d83d56a70c019425adb0e7adffc203564d5c374dd0dc3a47189de7d"
+  }],
+  "backup": {
+    "artifact_id": 11931782828,
+    "retention_days": 14,
+    "zip_sha256": "332cbabf4c641c3fa6367e691e8eaf49c9e5e9d32f5fd2be67d26f8e7deaf6ec",
+    "request": {"bytes":1460,"sha256":"225942861894d84f1f35b74bf8acea31ff2f0d38aaf62a9c017094bd97e50e1b"},
+    "response": {"bytes":1758,"sha256":"e84c1e515913aafa36658f9424005c420806d66774fd36a451019371d6a93664"},
+    "restore": "separate directory; exact bytes and SHA verified for both normalized files"
+  },
+  "limits": "The saved fact is an observed pending source state, not exhibition measurements, priced odds, model validation or a prediction. Source originals and credentials were not retained in the artifact."
+}

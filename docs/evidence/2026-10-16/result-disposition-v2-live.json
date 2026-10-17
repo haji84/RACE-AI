@@ -1,0 +1,322 @@
+{
+  "base_commit": "77d4ee5b544e0387a18134e1ecdc4f90db1bcc2a",
+  "diagnostic_backup": {
+    "all_content_restored": true,
+    "bytes": 31241,
+    "files": 8,
+    "members": {
+      "diagnose-naruto2-result-profile.py": {
+        "bytes": 9051,
+        "sha256": "ab059e6241ca6d6d0eb833250a0c2fcd9ee47129c8721ef7c0abed01f0a631a9"
+      },
+      "naruto2-result-profile-absence.json": {
+        "bytes": 318,
+        "sha256": "ec04ebb776b0e27319f2846951419573c51323d109f6d60695fb3583505522ed"
+      },
+      "naruto2-result-profile-caller-review.md": {
+        "bytes": 7777,
+        "sha256": "7794ad580ae67ef81c0d6d4b0e0925b4bd108b86abaeae6794b011a7f964971b"
+      },
+      "naruto2-result-profile-diagnostic.json": {
+        "bytes": 2652,
+        "sha256": "51db0e0ed01dc2b137c7a521b1996695c33055a64e983a3874e8defc44a7e747"
+      },
+      "naruto2-result-profile-idle-witness.json": {
+        "bytes": 590,
+        "sha256": "bea29e14d5f7fd75442647e877b24272b8a130836009fe8259737acdca5a32c1"
+      },
+      "prepare-naruto2-profile-witness.py": {
+        "bytes": 3577,
+        "sha256": "d682845b5b12c1b1f66b83a1142c9541f7b1612ea9907fb09bd28687a2f6692f"
+      },
+      "result_finish_profile.py": {
+        "bytes": 3694,
+        "sha256": "2a06e0713349999f04a1506e817e0a36f5a3f0ff89eb527fcdc2bb7daf884dc1"
+      },
+      "test_result_finish_profile.py": {
+        "bytes": 3582,
+        "sha256": "dc06bf8f376ed75b9f3570a580775917f57990fdb83881822bec6f13d81bd1c4"
+      }
+    },
+    "raw_html_retained": false,
+    "zip_bytes": 14494,
+    "zip_sha256": "4649972a4620fa89b8754b293c22ca08bfbaf0dc132e0bdadc02d0369636842a"
+  },
+  "diagnostic_is_not_a_saved_result_label": true,
+  "forecast_request_id": "38825983437-1",
+  "independent_reviews": {
+    "archive": {
+      "bytes": 5348,
+      "sha256": "9186f8a4fec52bad2d7e3cc5f626e0ea366b2bdde2a3766195a0fc0cbd1bc1a2"
+    },
+    "core_and_publisher": {
+      "bytes": 10209,
+      "sha256": "ede0a44152e024c6e115f9a69e26cf825e640c87b33b1804b8774e73f956bfea"
+    },
+    "core_and_publisher_pending": false,
+    "diagnostic_caller": {
+      "bytes": 7777,
+      "sha256": "7794ad580ae67ef81c0d6d4b0e0925b4bd108b86abaeae6794b011a7f964971b"
+    },
+    "evidence_audit_status": "PASS_FINAL_FIELDS_AWAIT_RECONCILIATION",
+    "open_findings": 0
+  },
+  "latest_head_ci_preview_and_new_v2_publication_pending": true,
+  "new_contract": {
+    "accepted_new_codepoint": "U+30A8",
+    "accepted_new_source_literal": "エ",
+    "default_parser_still_rejects_new_literal": true,
+    "existing_result_labels_and_forecasts_unchanged": true,
+    "financial_refund_inferred": false,
+    "numeric_finish_for_new_literal": null,
+    "responsibility_inferred": false,
+    "selection": "EXPLICIT_OPT_IN_ONLY",
+    "source_halfwidth_or_compatibility_normalization_rejected": true,
+    "source_identity_and_clocks_and_payout_checks_preserved": true,
+    "version": "official-result-dispositions/v2"
+  },
+  "next_steps": [
+    "Run and review full suite; verify exact functional CI and protected Preview before an explicitly selected v2 result job.",
+    "Preserve failed38828308110 and all diagnostic receipts; a later corrected v2 attempt is separate, not a retry claim.",
+    "Keep all physical timing, video measurement, held-out accuracy and formal completion gates unvalidated."
+  ],
+  "observation": {
+    "cloud_posts": 0,
+    "completed_at": "2026-10-16T01:11:46.477420+00:00",
+    "contract_event_count": 6,
+    "contract_events": [
+      {
+        "stage": "VALIDATE_NORMALIZED_RECORD",
+        "state": "ENTERED"
+      },
+      {
+        "stage": "VALIDATE_NORMALIZED_RECORD",
+        "state": "RETURNED"
+      },
+      {
+        "stage": "VALIDATE_NORMALIZED_RECORD",
+        "state": "ENTERED"
+      },
+      {
+        "stage": "VALIDATE_NORMALIZED_RECORD",
+        "state": "RETURNED"
+      },
+      {
+        "stage": "PARSE_OFFICIAL_RESULT",
+        "state": "ENTERED"
+      },
+      {
+        "stage": "PARSE_OFFICIAL_RESULT",
+        "state": "REJECTED"
+      }
+    ],
+    "earlier_failed_run": "38828308110",
+    "earlier_failure_cause_proven": false,
+    "finish_profile": {
+      "captured_at": "2026-10-16T01:11:46.475468+00:00",
+      "closed_at": "2026-10-16T09:01:00+09:00",
+      "disposition_semantics_verified": false,
+      "identity_count": 6,
+      "race_id": "20261016-14-02",
+      "result_label_saved": false,
+      "rows": [
+        {
+          "finish_codepoints": [
+            "U+0032"
+          ],
+          "finish_token": "2",
+          "lane": 1,
+          "name": "香月大輝",
+          "parser_allowlisted": true,
+          "racer_registration_id": "5338",
+          "source_codepoints": [
+            "U+FF12"
+          ],
+          "source_token": "２"
+        },
+        {
+          "finish_codepoints": [
+            "U+30A8"
+          ],
+          "finish_token": "エ",
+          "lane": 2,
+          "name": "山本幸也",
+          "parser_allowlisted": false,
+          "racer_registration_id": "5268",
+          "source_codepoints": [
+            "U+30A8"
+          ],
+          "source_token": "エ"
+        },
+        {
+          "finish_codepoints": [
+            "U+0031"
+          ],
+          "finish_token": "1",
+          "lane": 3,
+          "name": "藤原仙二",
+          "parser_allowlisted": true,
+          "racer_registration_id": "5255",
+          "source_codepoints": [
+            "U+FF11"
+          ],
+          "source_token": "１"
+        },
+        {
+          "finish_codepoints": [
+            "U+0035"
+          ],
+          "finish_token": "5",
+          "lane": 4,
+          "name": "廣部大明",
+          "parser_allowlisted": true,
+          "racer_registration_id": "5379",
+          "source_codepoints": [
+            "U+FF15"
+          ],
+          "source_token": "５"
+        },
+        {
+          "finish_codepoints": [
+            "U+0034"
+          ],
+          "finish_token": "4",
+          "lane": 5,
+          "name": "西丸侑太朗",
+          "parser_allowlisted": true,
+          "racer_registration_id": "5257",
+          "source_codepoints": [
+            "U+FF14"
+          ],
+          "source_token": "４"
+        },
+        {
+          "finish_codepoints": [
+            "U+0033"
+          ],
+          "finish_token": "3",
+          "lane": 6,
+          "name": "垂水悠",
+          "parser_allowlisted": true,
+          "racer_registration_id": "5199",
+          "source_codepoints": [
+            "U+FF13"
+          ],
+          "source_token": "３"
+        }
+      ],
+      "source_sha256": "ff5149511712c1d2262778c0439653b603e7068fafecdafc1a54b6b8aeae2ca9"
+    },
+    "first_contract_rejection": {
+      "error_code": "RESULT_FINISH_DISPOSITION_UNSUPPORTED",
+      "stage": "PARSE_OFFICIAL_RESULT"
+    },
+    "forecast_request_id": "38825983437-1",
+    "last_contract_stage": "PARSE_OFFICIAL_RESULT",
+    "last_contract_stage_state": "REJECTED",
+    "official_source_requests": 1,
+    "race_id": "20261016-14-02",
+    "raw_source_retained": false,
+    "response_summary": {
+      "body_bytes": 58966,
+      "html_mime": true,
+      "status": 200
+    },
+    "result_labels_saved": 0,
+    "scope": "POSTCLOSE_SOURCE_DIAGNOSTIC_NOT_PUBLICATION_OR_PREDICTION_INPUT",
+    "source_snapshot_discarded": true,
+    "started_at": "2026-10-16T01:11:36.836310+00:00",
+    "status": "SOURCE_INVALID",
+    "transport_elapsed_seconds": 9.406,
+    "worker_official_source_requests": 1
+  },
+  "original_failed_job_cause_still_unproven": true,
+  "physical_exhibition_before_after_pairs": 0,
+  "product_files": {
+    "race_ai/name_bound_archive.py": {
+      "bytes": 11333,
+      "sha256": "9876c8ee2b73a29d1e7b7478bbb8471ad97973f855a77789660538d9e26e9f93"
+    },
+    "race_ai/name_bound_result_source.py": {
+      "bytes": 5864,
+      "sha256": "209d3c4e71fb1c2c402e253821b27235e63feabd6bf0f4dfe2fb91cf854854a1"
+    },
+    "race_ai/official_race_updates.py": {
+      "bytes": 32600,
+      "sha256": "5b1a143213dcbaae7369776f3535ad654a9f7008f8b663d5954a1d37f0745304"
+    },
+    "scripts/publish_name_bound_result.py": {
+      "bytes": 14953,
+      "sha256": "6f73239eca0250417eb4d17afac7d187cc214f2191ed978d8b32fb5bfd0cb55d"
+    },
+    "web/race_contract.py": {
+      "bytes": 28538,
+      "sha256": "9a725f90478790a5f7c76355f1f807afa76cbeb79e1cf4047af248e473d50906"
+    }
+  },
+  "purchase_decision": "skip",
+  "purchase_recommendations": [],
+  "race_id": "20261016-14-02",
+  "recorded_at": "2026-10-16T01:35:11.009937+00:00",
+  "result_evaluation_name_bound_days": 1,
+  "result_evaluation_name_bound_races": 2,
+  "result_label_saved": false,
+  "root_tests": {
+    "archive_focused_seconds": 63.711,
+    "archive_focused_tests": 15,
+    "archive_red_failures": 2,
+    "archive_test_keyword_only_invocation_error_corrected_before_valid_red": true,
+    "core_red_groups": 7,
+    "focused_failures": 0,
+    "focused_seconds": 62.375,
+    "focused_skips": 0,
+    "focused_tests": 34,
+    "full_python_failures": 0,
+    "full_python_log": {
+      "bytes": 194321,
+      "sha256": "224065f22f98ed4a5eda80525a520ce116dbf05878486cd54e059d6aa19a34aa"
+    },
+    "full_python_seconds": 312.992,
+    "full_python_skips": 0,
+    "full_python_suite_pending": false,
+    "full_python_tests": 997,
+    "halfwidth_red_failures": 1,
+    "javascript_failures": 0,
+    "javascript_skips": 0,
+    "javascript_tests": 195,
+    "prior_focused_command_error": "Nonexistent tests.test_race_contract import; actual39tests passed, command had one loader error; corrected full discovery is authoritative.",
+    "publisher_red_groups": 5,
+    "supplementary_pre_archive_suite": {
+      "failures": 0,
+      "seconds": 304.318,
+      "skips": 0,
+      "tests": 993
+    }
+  },
+  "schema_version": 1,
+  "scope": {
+    "completed_name_numeric_video_reacquired": false,
+    "new_cloud_posts": 0,
+    "new_official_attempts": 1,
+    "no_cohort_repeat": true,
+    "no_daily_refresh": true,
+    "no_main_merge": true,
+    "no_production": true,
+    "no_trust_scope_changes": true
+  },
+  "test_files": {
+    "tests/test_name_bound_archive_v2.py": {
+      "bytes": 3101,
+      "sha256": "23055d580283cd658643cb8fecd1a0a1dd97cb1899df9e79fd384b1c3f12ee2c"
+    },
+    "tests/test_name_bound_result_caller_v2.py": {
+      "bytes": 4410,
+      "sha256": "532a480b365191efc62c4b91045cb79cec821c6ef397b452ba68b983b00a8b05"
+    },
+    "tests/test_official_result_disposition_v2.py": {
+      "bytes": 6147,
+      "sha256": "73094a1a747e87d4cd3956b44ccf0b91e286f0a83532f4f8e057ef20021e56d6"
+    }
+  },
+  "validation_status": "UNVALIDATED"
+}

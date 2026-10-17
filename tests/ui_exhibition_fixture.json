@@ -1,0 +1,5378 @@
+{
+  "synthetic": true,
+  "now": "2026-10-15T07:34:00+09:00",
+  "race": {
+    "race_id": "20261015-18-01",
+    "closed_at": "2026-10-15T08:43:00+09:00",
+    "program_source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261015.lzh",
+    "program_source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "program_observed_at": "2026-10-15T07:00:00+09:00",
+    "boats": [
+      {
+        "lane": 1,
+        "racer_registration_id": "4001",
+        "name": "選手1",
+        "national_win_rate": 6.0
+      },
+      {
+        "lane": 2,
+        "racer_registration_id": "4002",
+        "name": "選手2",
+        "national_win_rate": 5.0
+      },
+      {
+        "lane": 3,
+        "racer_registration_id": "4003",
+        "name": "選手3",
+        "national_win_rate": 4.0
+      },
+      {
+        "lane": 4,
+        "racer_registration_id": "4004",
+        "name": "選手4",
+        "national_win_rate": 3.0
+      },
+      {
+        "lane": 5,
+        "racer_registration_id": "4005",
+        "name": "選手5",
+        "national_win_rate": 2.0
+      },
+      {
+        "lane": 6,
+        "racer_registration_id": "4006",
+        "name": "選手6",
+        "national_win_rate": 1.0
+      }
+    ]
+  },
+  "baseline_receipt": {
+    "schema_version": 1,
+    "request_id": "123456-1",
+    "snapshot": {
+      "schema_version": 1,
+      "race_id": "20261015-18-01",
+      "date_jst": "2026-10-15",
+      "closed_at": "2026-10-14T23:43:00.000000+00:00",
+      "as_of": "2026-10-14T22:33:00.000000+00:00",
+      "generated_at": "2026-10-14T22:33:00.000000+00:00",
+      "program_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "program_source": {
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261015.lzh",
+        "source_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "captured_at": "2026-10-14T22:00:00.000000+00:00"
+      },
+      "program_boats": [
+        {
+          "lane": 1,
+          "racer_registration_id": "4001",
+          "name": "選手1",
+          "national_win_rate": 6.0
+        },
+        {
+          "lane": 2,
+          "racer_registration_id": "4002",
+          "name": "選手2",
+          "national_win_rate": 5.0
+        },
+        {
+          "lane": 3,
+          "racer_registration_id": "4003",
+          "name": "選手3",
+          "national_win_rate": 4.0
+        },
+        {
+          "lane": 4,
+          "racer_registration_id": "4004",
+          "name": "選手4",
+          "national_win_rate": 3.0
+        },
+        {
+          "lane": 5,
+          "racer_registration_id": "4005",
+          "name": "選手5",
+          "national_win_rate": 2.0
+        },
+        {
+          "lane": 6,
+          "racer_registration_id": "4006",
+          "name": "選手6",
+          "national_win_rate": 1.0
+        }
+      ],
+      "models": [
+        {
+          "inputs": {
+            "race_id": "20261015-18-01",
+            "race_start_at": "2026-10-14T23:43:00.000000+00:00",
+            "as_of": "2026-10-14T22:33:00.000000+00:00",
+            "generated_at": "2026-10-14T22:33:00.000000+00:00",
+            "boats": [
+              {
+                "lane": 1,
+                "strength": 1.0,
+                "available_at": "2026-10-14T22:00:00.000000+00:00",
+                "captured_at": "2026-10-14T22:00:00.000000+00:00",
+                "generated_at": "2026-10-14T22:00:00.000000+00:00",
+                "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "feature_kind": "uniform_baseline",
+                "racer_id": "4001"
+              },
+              {
+                "lane": 2,
+                "strength": 1.0,
+                "available_at": "2026-10-14T22:00:00.000000+00:00",
+                "captured_at": "2026-10-14T22:00:00.000000+00:00",
+                "generated_at": "2026-10-14T22:00:00.000000+00:00",
+                "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "feature_kind": "uniform_baseline",
+                "racer_id": "4002"
+              },
+              {
+                "lane": 3,
+                "strength": 1.0,
+                "available_at": "2026-10-14T22:00:00.000000+00:00",
+                "captured_at": "2026-10-14T22:00:00.000000+00:00",
+                "generated_at": "2026-10-14T22:00:00.000000+00:00",
+                "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "feature_kind": "uniform_baseline",
+                "racer_id": "4003"
+              },
+              {
+                "lane": 4,
+                "strength": 1.0,
+                "available_at": "2026-10-14T22:00:00.000000+00:00",
+                "captured_at": "2026-10-14T22:00:00.000000+00:00",
+                "generated_at": "2026-10-14T22:00:00.000000+00:00",
+                "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "feature_kind": "uniform_baseline",
+                "racer_id": "4004"
+              },
+              {
+                "lane": 5,
+                "strength": 1.0,
+                "available_at": "2026-10-14T22:00:00.000000+00:00",
+                "captured_at": "2026-10-14T22:00:00.000000+00:00",
+                "generated_at": "2026-10-14T22:00:00.000000+00:00",
+                "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "feature_kind": "uniform_baseline",
+                "racer_id": "4005"
+              },
+              {
+                "lane": 6,
+                "strength": 1.0,
+                "available_at": "2026-10-14T22:00:00.000000+00:00",
+                "captured_at": "2026-10-14T22:00:00.000000+00:00",
+                "generated_at": "2026-10-14T22:00:00.000000+00:00",
+                "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "feature_kind": "uniform_baseline",
+                "racer_id": "4006"
+              }
+            ],
+            "model_id": "official-program-uniform-pl",
+            "model_version": "1",
+            "selection_reason": "Uniform six-boat strict-order reference; no fitted accuracy or purchase recommendation."
+          },
+          "race_id": "20261015-18-01",
+          "model_id": "official-program-uniform-pl",
+          "model_version": "1",
+          "selection_reason": "Uniform six-boat strict-order reference; no fitted accuracy or purchase recommendation.",
+          "race_start_at": "2026-10-14T23:43:00.000000+00:00",
+          "as_of": "2026-10-14T22:33:00.000000+00:00",
+          "generated_at": "2026-10-14T22:33:00.000000+00:00",
+          "research_only": true,
+          "validation_status": "UNVALIDATED",
+          "purchase_decision": "skip",
+          "purchase_recommendations": [],
+          "skip_reason": "prediction_accuracy_unvalidated",
+          "triples": [
+            {
+              "combination": [
+                1,
+                2,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                2,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                2,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                2,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                3,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                3,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                3,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                3,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                4,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                4,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                4,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                4,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                5,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                5,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                5,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                5,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                6,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                6,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                6,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                1,
+                6,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                1,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                1,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                1,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                1,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                3,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                3,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                3,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                3,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                4,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                4,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                4,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                4,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                5,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                5,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                5,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                5,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                6,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                6,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                6,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                2,
+                6,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                1,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                1,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                1,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                1,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                2,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                2,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                2,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                2,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                4,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                4,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                4,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                4,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                5,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                5,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                5,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                5,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                6,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                6,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                6,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                3,
+                6,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                1,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                1,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                1,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                1,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                2,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                2,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                2,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                2,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                3,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                3,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                3,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                3,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                5,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                5,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                5,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                5,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                6,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                6,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                6,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                4,
+                6,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                1,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                1,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                1,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                1,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                2,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                2,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                2,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                2,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                3,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                3,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                3,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                3,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                4,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                4,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                4,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                4,
+                6
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                6,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                6,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                6,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                5,
+                6,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                1,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                1,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                1,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                1,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                2,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                2,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                2,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                2,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                3,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                3,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                3,
+                4
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                3,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                4,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                4,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                4,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                4,
+                5
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                5,
+                1
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                5,
+                2
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                5,
+                3
+              ],
+              "probability": 0.008333333333333333
+            },
+            {
+              "combination": [
+                6,
+                5,
+                4
+              ],
+              "probability": 0.008333333333333333
+            }
+          ],
+          "marginals": [
+            {
+              "lane": 1,
+              "first_probability": 0.16666666666666669,
+              "second_probability": 0.16666666666666669,
+              "third_probability": 0.16666666666666669,
+              "fourth_probability": 0.16666666666666669,
+              "fifth_probability": 0.16666666666666669,
+              "sixth_probability": 0.16666666666666669,
+              "top3_probability": 0.5
+            },
+            {
+              "lane": 2,
+              "first_probability": 0.16666666666666669,
+              "second_probability": 0.16666666666666669,
+              "third_probability": 0.16666666666666669,
+              "fourth_probability": 0.16666666666666669,
+              "fifth_probability": 0.16666666666666669,
+              "sixth_probability": 0.16666666666666669,
+              "top3_probability": 0.5
+            },
+            {
+              "lane": 3,
+              "first_probability": 0.16666666666666669,
+              "second_probability": 0.16666666666666669,
+              "third_probability": 0.16666666666666669,
+              "fourth_probability": 0.16666666666666669,
+              "fifth_probability": 0.16666666666666669,
+              "sixth_probability": 0.16666666666666669,
+              "top3_probability": 0.5
+            },
+            {
+              "lane": 4,
+              "first_probability": 0.16666666666666669,
+              "second_probability": 0.16666666666666669,
+              "third_probability": 0.16666666666666669,
+              "fourth_probability": 0.16666666666666669,
+              "fifth_probability": 0.16666666666666669,
+              "sixth_probability": 0.16666666666666669,
+              "top3_probability": 0.5
+            },
+            {
+              "lane": 5,
+              "first_probability": 0.16666666666666669,
+              "second_probability": 0.16666666666666669,
+              "third_probability": 0.16666666666666669,
+              "fourth_probability": 0.16666666666666669,
+              "fifth_probability": 0.16666666666666669,
+              "sixth_probability": 0.16666666666666669,
+              "top3_probability": 0.5
+            },
+            {
+              "lane": 6,
+              "first_probability": 0.16666666666666669,
+              "second_probability": 0.16666666666666669,
+              "third_probability": 0.16666666666666669,
+              "fourth_probability": 0.16666666666666669,
+              "fifth_probability": 0.16666666666666669,
+              "sixth_probability": 0.16666666666666669,
+              "top3_probability": 0.5
+            }
+          ],
+          "strengths": [
+            {
+              "lane": 1,
+              "strength": 1.0
+            },
+            {
+              "lane": 2,
+              "strength": 1.0
+            },
+            {
+              "lane": 3,
+              "strength": 1.0
+            },
+            {
+              "lane": 4,
+              "strength": 1.0
+            },
+            {
+              "lane": 5,
+              "strength": 1.0
+            },
+            {
+              "lane": 6,
+              "strength": 1.0
+            }
+          ],
+          "explanations": [
+            {
+              "lane": 1,
+              "strength": 1.0,
+              "available_at": "2026-10-14T22:00:00.000000+00:00",
+              "captured_at": "2026-10-14T22:00:00.000000+00:00",
+              "generated_at": "2026-10-14T22:00:00.000000+00:00",
+              "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "feature_kind": "uniform_baseline",
+              "racer_id": "4001",
+              "method": "supplied_strength"
+            },
+            {
+              "lane": 2,
+              "strength": 1.0,
+              "available_at": "2026-10-14T22:00:00.000000+00:00",
+              "captured_at": "2026-10-14T22:00:00.000000+00:00",
+              "generated_at": "2026-10-14T22:00:00.000000+00:00",
+              "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "feature_kind": "uniform_baseline",
+              "racer_id": "4002",
+              "method": "supplied_strength"
+            },
+            {
+              "lane": 3,
+              "strength": 1.0,
+              "available_at": "2026-10-14T22:00:00.000000+00:00",
+              "captured_at": "2026-10-14T22:00:00.000000+00:00",
+              "generated_at": "2026-10-14T22:00:00.000000+00:00",
+              "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "feature_kind": "uniform_baseline",
+              "racer_id": "4003",
+              "method": "supplied_strength"
+            },
+            {
+              "lane": 4,
+              "strength": 1.0,
+              "available_at": "2026-10-14T22:00:00.000000+00:00",
+              "captured_at": "2026-10-14T22:00:00.000000+00:00",
+              "generated_at": "2026-10-14T22:00:00.000000+00:00",
+              "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "feature_kind": "uniform_baseline",
+              "racer_id": "4004",
+              "method": "supplied_strength"
+            },
+            {
+              "lane": 5,
+              "strength": 1.0,
+              "available_at": "2026-10-14T22:00:00.000000+00:00",
+              "captured_at": "2026-10-14T22:00:00.000000+00:00",
+              "generated_at": "2026-10-14T22:00:00.000000+00:00",
+              "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "feature_kind": "uniform_baseline",
+              "racer_id": "4005",
+              "method": "supplied_strength"
+            },
+            {
+              "lane": 6,
+              "strength": 1.0,
+              "available_at": "2026-10-14T22:00:00.000000+00:00",
+              "captured_at": "2026-10-14T22:00:00.000000+00:00",
+              "generated_at": "2026-10-14T22:00:00.000000+00:00",
+              "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "feature_kind": "uniform_baseline",
+              "racer_id": "4006",
+              "method": "supplied_strength"
+            }
+          ],
+          "uncertainty": {
+            "not_calibrated": true,
+            "method": "unvalidated_strict_order_baseline",
+            "missing_racer_history": []
+          },
+          "content_sha256": "7be7d5ffc54b87685a295082e5895c09497ea854e17fab56452e5e28df3ee0a9"
+        },
+        {
+          "inputs": {
+            "race_id": "20261015-18-01",
+            "race_start_at": "2026-10-14T23:43:00.000000+00:00",
+            "as_of": "2026-10-14T22:33:00.000000+00:00",
+            "generated_at": "2026-10-14T22:33:00.000000+00:00",
+            "boats": [
+              {
+                "lane": 1,
+                "strength": 6.0,
+                "available_at": "2026-10-14T22:00:00.000000+00:00",
+                "captured_at": "2026-10-14T22:00:00.000000+00:00",
+                "generated_at": "2026-10-14T22:00:00.000000+00:00",
+                "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "feature_kind": "pre_race_strength",
+                "racer_id": "4001"
+              },
+              {
+                "lane": 2,
+                "strength": 5.0,
+                "available_at": "2026-10-14T22:00:00.000000+00:00",
+                "captured_at": "2026-10-14T22:00:00.000000+00:00",
+                "generated_at": "2026-10-14T22:00:00.000000+00:00",
+                "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "feature_kind": "pre_race_strength",
+                "racer_id": "4002"
+              },
+              {
+                "lane": 3,
+                "strength": 4.0,
+                "available_at": "2026-10-14T22:00:00.000000+00:00",
+                "captured_at": "2026-10-14T22:00:00.000000+00:00",
+                "generated_at": "2026-10-14T22:00:00.000000+00:00",
+                "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "feature_kind": "pre_race_strength",
+                "racer_id": "4003"
+              },
+              {
+                "lane": 4,
+                "strength": 3.0,
+                "available_at": "2026-10-14T22:00:00.000000+00:00",
+                "captured_at": "2026-10-14T22:00:00.000000+00:00",
+                "generated_at": "2026-10-14T22:00:00.000000+00:00",
+                "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "feature_kind": "pre_race_strength",
+                "racer_id": "4004"
+              },
+              {
+                "lane": 5,
+                "strength": 2.0,
+                "available_at": "2026-10-14T22:00:00.000000+00:00",
+                "captured_at": "2026-10-14T22:00:00.000000+00:00",
+                "generated_at": "2026-10-14T22:00:00.000000+00:00",
+                "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "feature_kind": "pre_race_strength",
+                "racer_id": "4005"
+              },
+              {
+                "lane": 6,
+                "strength": 1.0,
+                "available_at": "2026-10-14T22:00:00.000000+00:00",
+                "captured_at": "2026-10-14T22:00:00.000000+00:00",
+                "generated_at": "2026-10-14T22:00:00.000000+00:00",
+                "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "feature_kind": "pre_race_strength",
+                "racer_id": "4006"
+              }
+            ],
+            "model_id": "official-program-rating-pl",
+            "model_version": "1",
+            "selection_reason": "Untrained Plackett-Luce strengths=max(B national_win_rate points,0.01); 0..10 rating points, not a first-place probability; no fitted accuracy or purchase recommendation."
+          },
+          "race_id": "20261015-18-01",
+          "model_id": "official-program-rating-pl",
+          "model_version": "1",
+          "selection_reason": "Untrained Plackett-Luce strengths=max(B national_win_rate points,0.01); 0..10 rating points, not a first-place probability; no fitted accuracy or purchase recommendation.",
+          "race_start_at": "2026-10-14T23:43:00.000000+00:00",
+          "as_of": "2026-10-14T22:33:00.000000+00:00",
+          "generated_at": "2026-10-14T22:33:00.000000+00:00",
+          "research_only": true,
+          "validation_status": "UNVALIDATED",
+          "purchase_decision": "skip",
+          "purchase_recommendations": [],
+          "skip_reason": "prediction_accuracy_unvalidated",
+          "triples": [
+            {
+              "combination": [
+                1,
+                2,
+                3
+              ],
+              "probability": 0.038095238095238106
+            },
+            {
+              "combination": [
+                1,
+                2,
+                4
+              ],
+              "probability": 0.02857142857142857
+            },
+            {
+              "combination": [
+                1,
+                2,
+                5
+              ],
+              "probability": 0.019047619047619053
+            },
+            {
+              "combination": [
+                1,
+                2,
+                6
+              ],
+              "probability": 0.009523809523809526
+            },
+            {
+              "combination": [
+                1,
+                3,
+                2
+              ],
+              "probability": 0.03463203463203463
+            },
+            {
+              "combination": [
+                1,
+                3,
+                4
+              ],
+              "probability": 0.02077922077922078
+            },
+            {
+              "combination": [
+                1,
+                3,
+                5
+              ],
+              "probability": 0.013852813852813853
+            },
+            {
+              "combination": [
+                1,
+                3,
+                6
+              ],
+              "probability": 0.006926406926406926
+            },
+            {
+              "combination": [
+                1,
+                4,
+                2
+              ],
+              "probability": 0.02380952380952381
+            },
+            {
+              "combination": [
+                1,
+                4,
+                3
+              ],
+              "probability": 0.01904761904761905
+            },
+            {
+              "combination": [
+                1,
+                4,
+                5
+              ],
+              "probability": 0.009523809523809525
+            },
+            {
+              "combination": [
+                1,
+                4,
+                6
+              ],
+              "probability": 0.004761904761904762
+            },
+            {
+              "combination": [
+                1,
+                5,
+                2
+              ],
+              "probability": 0.014652014652014654
+            },
+            {
+              "combination": [
+                1,
+                5,
+                3
+              ],
+              "probability": 0.011721611721611723
+            },
+            {
+              "combination": [
+                1,
+                5,
+                4
+              ],
+              "probability": 0.008791208791208793
+            },
+            {
+              "combination": [
+                1,
+                5,
+                6
+              ],
+              "probability": 0.002930402930402931
+            },
+            {
+              "combination": [
+                1,
+                6,
+                2
+              ],
+              "probability": 0.006802721088435375
+            },
+            {
+              "combination": [
+                1,
+                6,
+                3
+              ],
+              "probability": 0.0054421768707483
+            },
+            {
+              "combination": [
+                1,
+                6,
+                4
+              ],
+              "probability": 0.004081632653061225
+            },
+            {
+              "combination": [
+                1,
+                6,
+                5
+              ],
+              "probability": 0.00272108843537415
+            },
+            {
+              "combination": [
+                2,
+                1,
+                3
+              ],
+              "probability": 0.03571428571428572
+            },
+            {
+              "combination": [
+                2,
+                1,
+                4
+              ],
+              "probability": 0.026785714285714284
+            },
+            {
+              "combination": [
+                2,
+                1,
+                5
+              ],
+              "probability": 0.01785714285714286
+            },
+            {
+              "combination": [
+                2,
+                1,
+                6
+              ],
+              "probability": 0.00892857142857143
+            },
+            {
+              "combination": [
+                2,
+                3,
+                1
+              ],
+              "probability": 0.029761904761904764
+            },
+            {
+              "combination": [
+                2,
+                3,
+                4
+              ],
+              "probability": 0.014880952380952382
+            },
+            {
+              "combination": [
+                2,
+                3,
+                5
+              ],
+              "probability": 0.009920634920634922
+            },
+            {
+              "combination": [
+                2,
+                3,
+                6
+              ],
+              "probability": 0.004960317460317461
+            },
+            {
+              "combination": [
+                2,
+                4,
+                1
+              ],
+              "probability": 0.020604395604395608
+            },
+            {
+              "combination": [
+                2,
+                4,
+                3
+              ],
+              "probability": 0.013736263736263738
+            },
+            {
+              "combination": [
+                2,
+                4,
+                5
+              ],
+              "probability": 0.006868131868131869
+            },
+            {
+              "combination": [
+                2,
+                4,
+                6
+              ],
+              "probability": 0.0034340659340659344
+            },
+            {
+              "combination": [
+                2,
+                5,
+                1
+              ],
+              "probability": 0.012755102040816327
+            },
+            {
+              "combination": [
+                2,
+                5,
+                3
+              ],
+              "probability": 0.008503401360544218
+            },
+            {
+              "combination": [
+                2,
+                5,
+                4
+              ],
+              "probability": 0.006377551020408163
+            },
+            {
+              "combination": [
+                2,
+                5,
+                6
+              ],
+              "probability": 0.0021258503401360546
+            },
+            {
+              "combination": [
+                2,
+                6,
+                1
+              ],
+              "probability": 0.005952380952380953
+            },
+            {
+              "combination": [
+                2,
+                6,
+                3
+              ],
+              "probability": 0.003968253968253969
+            },
+            {
+              "combination": [
+                2,
+                6,
+                4
+              ],
+              "probability": 0.0029761904761904765
+            },
+            {
+              "combination": [
+                2,
+                6,
+                5
+              ],
+              "probability": 0.0019841269841269845
+            },
+            {
+              "combination": [
+                3,
+                1,
+                2
+              ],
+              "probability": 0.030557677616501147
+            },
+            {
+              "combination": [
+                3,
+                1,
+                4
+              ],
+              "probability": 0.01833460656990069
+            },
+            {
+              "combination": [
+                3,
+                1,
+                5
+              ],
+              "probability": 0.01222307104660046
+            },
+            {
+              "combination": [
+                3,
+                1,
+                6
+              ],
+              "probability": 0.00611153552330023
+            },
+            {
+              "combination": [
+                3,
+                2,
+                1
+              ],
+              "probability": 0.02801120448179272
+            },
+            {
+              "combination": [
+                3,
+                2,
+                4
+              ],
+              "probability": 0.01400560224089636
+            },
+            {
+              "combination": [
+                3,
+                2,
+                5
+              ],
+              "probability": 0.009337068160597574
+            },
+            {
+              "combination": [
+                3,
+                2,
+                6
+              ],
+              "probability": 0.004668534080298787
+            },
+            {
+              "combination": [
+                3,
+                4,
+                1
+              ],
+              "probability": 0.014405762304921969
+            },
+            {
+              "combination": [
+                3,
+                4,
+                2
+              ],
+              "probability": 0.01200480192076831
+            },
+            {
+              "combination": [
+                3,
+                4,
+                5
+              ],
+              "probability": 0.0048019207683073235
+            },
+            {
+              "combination": [
+                3,
+                4,
+                6
+              ],
+              "probability": 0.0024009603841536617
+            },
+            {
+              "combination": [
+                3,
+                5,
+                1
+              ],
+              "probability": 0.00896358543417367
+            },
+            {
+              "combination": [
+                3,
+                5,
+                2
+              ],
+              "probability": 0.007469654528478057
+            },
+            {
+              "combination": [
+                3,
+                5,
+                4
+              ],
+              "probability": 0.004481792717086835
+            },
+            {
+              "combination": [
+                3,
+                5,
+                6
+              ],
+              "probability": 0.0014939309056956115
+            },
+            {
+              "combination": [
+                3,
+                6,
+                1
+              ],
+              "probability": 0.004201680672268907
+            },
+            {
+              "combination": [
+                3,
+                6,
+                2
+              ],
+              "probability": 0.0035014005602240898
+            },
+            {
+              "combination": [
+                3,
+                6,
+                4
+              ],
+              "probability": 0.0021008403361344537
+            },
+            {
+              "combination": [
+                3,
+                6,
+                5
+              ],
+              "probability": 0.0014005602240896359
+            },
+            {
+              "combination": [
+                4,
+                1,
+                2
+              ],
+              "probability": 0.019841269841269844
+            },
+            {
+              "combination": [
+                4,
+                1,
+                3
+              ],
+              "probability": 0.015873015873015876
+            },
+            {
+              "combination": [
+                4,
+                1,
+                5
+              ],
+              "probability": 0.007936507936507938
+            },
+            {
+              "combination": [
+                4,
+                1,
+                6
+              ],
+              "probability": 0.003968253968253969
+            },
+            {
+              "combination": [
+                4,
+                2,
+                1
+              ],
+              "probability": 0.01831501831501832
+            },
+            {
+              "combination": [
+                4,
+                2,
+                3
+              ],
+              "probability": 0.012210012210012212
+            },
+            {
+              "combination": [
+                4,
+                2,
+                5
+              ],
+              "probability": 0.006105006105006106
+            },
+            {
+              "combination": [
+                4,
+                2,
+                6
+              ],
+              "probability": 0.003052503052503053
+            },
+            {
+              "combination": [
+                4,
+                3,
+                1
+              ],
+              "probability": 0.013605442176870748
+            },
+            {
+              "combination": [
+                4,
+                3,
+                2
+              ],
+              "probability": 0.011337868480725625
+            },
+            {
+              "combination": [
+                4,
+                3,
+                5
+              ],
+              "probability": 0.0045351473922902496
+            },
+            {
+              "combination": [
+                4,
+                3,
+                6
+              ],
+              "probability": 0.0022675736961451248
+            },
+            {
+              "combination": [
+                4,
+                5,
+                1
+              ],
+              "probability": 0.005952380952380953
+            },
+            {
+              "combination": [
+                4,
+                5,
+                2
+              ],
+              "probability": 0.004960317460317461
+            },
+            {
+              "combination": [
+                4,
+                5,
+                3
+              ],
+              "probability": 0.003968253968253969
+            },
+            {
+              "combination": [
+                4,
+                5,
+                6
+              ],
+              "probability": 0.0009920634920634922
+            },
+            {
+              "combination": [
+                4,
+                6,
+                1
+              ],
+              "probability": 0.002801120448179272
+            },
+            {
+              "combination": [
+                4,
+                6,
+                2
+              ],
+              "probability": 0.0023342670401493935
+            },
+            {
+              "combination": [
+                4,
+                6,
+                3
+              ],
+              "probability": 0.0018674136321195146
+            },
+            {
+              "combination": [
+                4,
+                6,
+                5
+              ],
+              "probability": 0.0009337068160597573
+            },
+            {
+              "combination": [
+                5,
+                1,
+                2
+              ],
+              "probability": 0.011567379988432621
+            },
+            {
+              "combination": [
+                5,
+                1,
+                3
+              ],
+              "probability": 0.009253903990746097
+            },
+            {
+              "combination": [
+                5,
+                1,
+                4
+              ],
+              "probability": 0.006940427993059573
+            },
+            {
+              "combination": [
+                5,
+                1,
+                6
+              ],
+              "probability": 0.0023134759976865243
+            },
+            {
+              "combination": [
+                5,
+                2,
+                1
+              ],
+              "probability": 0.010741138560687433
+            },
+            {
+              "combination": [
+                5,
+                2,
+                3
+              ],
+              "probability": 0.007160759040458289
+            },
+            {
+              "combination": [
+                5,
+                2,
+                4
+              ],
+              "probability": 0.0053705692803437165
+            },
+            {
+              "combination": [
+                5,
+                2,
+                6
+              ],
+              "probability": 0.0017901897601145722
+            },
+            {
+              "combination": [
+                5,
+                3,
+                1
+              ],
+              "probability": 0.008020050125313285
+            },
+            {
+              "combination": [
+                5,
+                3,
+                2
+              ],
+              "probability": 0.0066833751044277365
+            },
+            {
+              "combination": [
+                5,
+                3,
+                4
+              ],
+              "probability": 0.004010025062656642
+            },
+            {
+              "combination": [
+                5,
+                3,
+                6
+              ],
+              "probability": 0.0013366750208855473
+            },
+            {
+              "combination": [
+                5,
+                4,
+                1
+              ],
+              "probability": 0.005639097744360903
+            },
+            {
+              "combination": [
+                5,
+                4,
+                2
+              ],
+              "probability": 0.0046992481203007525
+            },
+            {
+              "combination": [
+                5,
+                4,
+                3
+              ],
+              "probability": 0.0037593984962406017
+            },
+            {
+              "combination": [
+                5,
+                4,
+                6
+              ],
+              "probability": 0.0009398496240601504
+            },
+            {
+              "combination": [
+                5,
+                6,
+                1
+              ],
+              "probability": 0.0016708437761069341
+            },
+            {
+              "combination": [
+                5,
+                6,
+                2
+              ],
+              "probability": 0.0013923698134224451
+            },
+            {
+              "combination": [
+                5,
+                6,
+                3
+              ],
+              "probability": 0.0011138958507379562
+            },
+            {
+              "combination": [
+                5,
+                6,
+                4
+              ],
+              "probability": 0.0008354218880534671
+            },
+            {
+              "combination": [
+                6,
+                1,
+                2
+              ],
+              "probability": 0.005102040816326531
+            },
+            {
+              "combination": [
+                6,
+                1,
+                3
+              ],
+              "probability": 0.004081632653061225
+            },
+            {
+              "combination": [
+                6,
+                1,
+                4
+              ],
+              "probability": 0.003061224489795918
+            },
+            {
+              "combination": [
+                6,
+                1,
+                5
+              ],
+              "probability": 0.0020408163265306124
+            },
+            {
+              "combination": [
+                6,
+                2,
+                1
+              ],
+              "probability": 0.004761904761904763
+            },
+            {
+              "combination": [
+                6,
+                2,
+                3
+              ],
+              "probability": 0.0031746031746031746
+            },
+            {
+              "combination": [
+                6,
+                2,
+                4
+              ],
+              "probability": 0.0023809523809523816
+            },
+            {
+              "combination": [
+                6,
+                2,
+                5
+              ],
+              "probability": 0.0015873015873015873
+            },
+            {
+              "combination": [
+                6,
+                3,
+                1
+              ],
+              "probability": 0.003571428571428572
+            },
+            {
+              "combination": [
+                6,
+                3,
+                2
+              ],
+              "probability": 0.002976190476190477
+            },
+            {
+              "combination": [
+                6,
+                3,
+                4
+              ],
+              "probability": 0.001785714285714286
+            },
+            {
+              "combination": [
+                6,
+                3,
+                5
+              ],
+              "probability": 0.0011904761904761908
+            },
+            {
+              "combination": [
+                6,
+                4,
+                1
+              ],
+              "probability": 0.0025210084033613447
+            },
+            {
+              "combination": [
+                6,
+                4,
+                2
+              ],
+              "probability": 0.002100840336134454
+            },
+            {
+              "combination": [
+                6,
+                4,
+                3
+              ],
+              "probability": 0.001680672268907563
+            },
+            {
+              "combination": [
+                6,
+                4,
+                5
+              ],
+              "probability": 0.0008403361344537815
+            },
+            {
+              "combination": [
+                6,
+                5,
+                1
+              ],
+              "probability": 0.0015873015873015875
+            },
+            {
+              "combination": [
+                6,
+                5,
+                2
+              ],
+              "probability": 0.0013227513227513231
+            },
+            {
+              "combination": [
+                6,
+                5,
+                3
+              ],
+              "probability": 0.0010582010582010585
+            },
+            {
+              "combination": [
+                6,
+                5,
+                4
+              ],
+              "probability": 0.0007936507936507938
+            }
+          ],
+          "marginals": [
+            {
+              "lane": 1,
+              "first_probability": 0.28571428571428575,
+              "second_probability": 0.24849255491670352,
+              "third_probability": 0.20384275167556903,
+              "fourth_probability": 0.1495976675543239,
+              "fifth_probability": 0.08599883089047176,
+              "sixth_probability": 0.02635390924864609,
+              "top3_probability": 0.7380495923065583
+            },
+            {
+              "lane": 2,
+              "first_probability": 0.2380952380952381,
+              "second_probability": 0.2279104624305863,
+              "third_probability": 0.20774774760842873,
+              "fourth_probability": 0.1718675201647338,
+              "fifth_probability": 0.11362373436676843,
+              "sixth_probability": 0.040755297334244704,
+              "top3_probability": 0.6737534481342531
+            },
+            {
+              "lane": 3,
+              "first_probability": 0.1904761904761905,
+              "second_probability": 0.1970342522974102,
+              "third_probability": 0.20143061273092233,
+              "fourth_probability": 0.19291212743225128,
+              "fifth_probability": 0.15190562791181988,
+              "sixth_probability": 0.06624118915140588,
+              "top3_probability": 0.588941055504523
+            },
+            {
+              "lane": 4,
+              "first_probability": 0.14285714285714288,
+              "second_probability": 0.15757961079168512,
+              "third_probability": 0.17734472699642978,
+              "fourth_probability": 0.20336561013805596,
+              "fifth_probability": 0.203535203186906,
+              "sixth_probability": 0.11531770602978034,
+              "top3_probability": 0.4777814806452578
+            },
+            {
+              "lane": 5,
+              "first_probability": 0.09523809523809525,
+              "second_probability": 0.11090102707749767,
+              "third_probability": 0.13470728617787445,
+              "fourth_probability": 0.17573227426168603,
+              "fifth_probability": 0.2603332941568236,
+              "sixth_probability": 0.22308802308802309,
+              "top3_probability": 0.34084640849346737
+            },
+            {
+              "lane": 6,
+              "first_probability": 0.04761904761904762,
+              "second_probability": 0.05808209248611725,
+              "third_probability": 0.07492687481077574,
+              "fourth_probability": 0.10652480044894906,
+              "fifth_probability": 0.18460330948721043,
+              "sixth_probability": 0.5282438751478999,
+              "top3_probability": 0.1806280149159406
+            }
+          ],
+          "strengths": [
+            {
+              "lane": 1,
+              "strength": 6.0
+            },
+            {
+              "lane": 2,
+              "strength": 5.0
+            },
+            {
+              "lane": 3,
+              "strength": 4.0
+            },
+            {
+              "lane": 4,
+              "strength": 3.0
+            },
+            {
+              "lane": 5,
+              "strength": 2.0
+            },
+            {
+              "lane": 6,
+              "strength": 1.0
+            }
+          ],
+          "explanations": [
+            {
+              "lane": 1,
+              "strength": 6.0,
+              "available_at": "2026-10-14T22:00:00.000000+00:00",
+              "captured_at": "2026-10-14T22:00:00.000000+00:00",
+              "generated_at": "2026-10-14T22:00:00.000000+00:00",
+              "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "feature_kind": "pre_race_strength",
+              "racer_id": "4001",
+              "method": "supplied_strength"
+            },
+            {
+              "lane": 2,
+              "strength": 5.0,
+              "available_at": "2026-10-14T22:00:00.000000+00:00",
+              "captured_at": "2026-10-14T22:00:00.000000+00:00",
+              "generated_at": "2026-10-14T22:00:00.000000+00:00",
+              "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "feature_kind": "pre_race_strength",
+              "racer_id": "4002",
+              "method": "supplied_strength"
+            },
+            {
+              "lane": 3,
+              "strength": 4.0,
+              "available_at": "2026-10-14T22:00:00.000000+00:00",
+              "captured_at": "2026-10-14T22:00:00.000000+00:00",
+              "generated_at": "2026-10-14T22:00:00.000000+00:00",
+              "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "feature_kind": "pre_race_strength",
+              "racer_id": "4003",
+              "method": "supplied_strength"
+            },
+            {
+              "lane": 4,
+              "strength": 3.0,
+              "available_at": "2026-10-14T22:00:00.000000+00:00",
+              "captured_at": "2026-10-14T22:00:00.000000+00:00",
+              "generated_at": "2026-10-14T22:00:00.000000+00:00",
+              "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "feature_kind": "pre_race_strength",
+              "racer_id": "4004",
+              "method": "supplied_strength"
+            },
+            {
+              "lane": 5,
+              "strength": 2.0,
+              "available_at": "2026-10-14T22:00:00.000000+00:00",
+              "captured_at": "2026-10-14T22:00:00.000000+00:00",
+              "generated_at": "2026-10-14T22:00:00.000000+00:00",
+              "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "feature_kind": "pre_race_strength",
+              "racer_id": "4005",
+              "method": "supplied_strength"
+            },
+            {
+              "lane": 6,
+              "strength": 1.0,
+              "available_at": "2026-10-14T22:00:00.000000+00:00",
+              "captured_at": "2026-10-14T22:00:00.000000+00:00",
+              "generated_at": "2026-10-14T22:00:00.000000+00:00",
+              "source_ref": "official-b:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "feature_kind": "pre_race_strength",
+              "racer_id": "4006",
+              "method": "supplied_strength"
+            }
+          ],
+          "uncertainty": {
+            "not_calibrated": true,
+            "method": "unvalidated_strict_order_baseline",
+            "missing_racer_history": []
+          },
+          "content_sha256": "cd6941ff5674539def32ff208a89f2342bcff372e44f64b501ce78fb16c4f071"
+        }
+      ],
+      "research_only": true,
+      "validation_status": "UNVALIDATED",
+      "purchase_decision": "skip",
+      "purchase_recommendations": [],
+      "snapshot_id": "b690b3a941bdfd838ab806bff0b950b8e9903b6188a5ef4d949bcd21a4e07929"
+    },
+    "cloud_saved_at": "2026-10-14T22:33:01.000000+00:00",
+    "cloud_eligible_pre_race": true,
+    "program_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "race_bundle": {
+    "schema_version": 1,
+    "race_id": "20261015-18-01",
+    "date_jst": "2026-10-15",
+    "closed_at": "2026-10-15T08:43:00+09:00",
+    "program_sha256": "6997207272d4fa34c852cde77a24fc47d44b492f7dd4aa57835b133ff14aee87",
+    "published_at": "2026-10-14T22:33:03.000000+00:00",
+    "latest": {
+      "beforeinfo": "92e289410942e03bb72ceb33400a053653b691492ee9895790a4f15d74e141a3"
+    },
+    "records": [
+      {
+        "record": {
+          "schema_version": 1,
+          "race_id": "20261015-18-01",
+          "kind": "beforeinfo",
+          "source_url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=1&jcd=18&hd=20261015",
+          "source_sha256": "0ab3f79ac26adcfb2e36a3ba660e1a4b1ff6a5bd8a72437df8ccc1740be93ef5",
+          "captured_at": "2026-10-15T07:33:00+09:00",
+          "available_at": "2026-10-15T07:33:00+09:00",
+          "upstream_published_at": null,
+          "eligible_pre_race": true,
+          "information_phase": "pre_race_observation",
+          "body_identity_verified": true,
+          "closed_at": "2026-10-15T08:43:00+09:00",
+          "status": "AVAILABLE",
+          "data": {
+            "boats": [
+              {
+                "lane": 1,
+                "racer_registration_id": "4001",
+                "name": "選手1",
+                "display_time": 6.92,
+                "tilt": 0.0,
+                "preview_st": 0.11,
+                "preview_st_status": "OK",
+                "preview_raw_st": ".11",
+                "preview_course": null,
+                "actual_course": null
+              },
+              {
+                "lane": 2,
+                "racer_registration_id": "4002",
+                "name": "選手2",
+                "display_time": 6.92,
+                "tilt": 0.0,
+                "preview_st": 0.12,
+                "preview_st_status": "OK",
+                "preview_raw_st": ".12",
+                "preview_course": null,
+                "actual_course": null
+              },
+              {
+                "lane": 3,
+                "racer_registration_id": "4003",
+                "name": "選手3",
+                "display_time": 6.92,
+                "tilt": 0.0,
+                "preview_st": 0.13,
+                "preview_st_status": "OK",
+                "preview_raw_st": ".13",
+                "preview_course": null,
+                "actual_course": null
+              },
+              {
+                "lane": 4,
+                "racer_registration_id": "4004",
+                "name": "選手4",
+                "display_time": 6.92,
+                "tilt": 0.0,
+                "preview_st": 0.14,
+                "preview_st_status": "OK",
+                "preview_raw_st": ".14",
+                "preview_course": null,
+                "actual_course": null
+              },
+              {
+                "lane": 5,
+                "racer_registration_id": "4005",
+                "name": "選手5",
+                "display_time": 6.92,
+                "tilt": 0.0,
+                "preview_st": 0.15,
+                "preview_st_status": "OK",
+                "preview_raw_st": ".15",
+                "preview_course": null,
+                "actual_course": null
+              },
+              {
+                "lane": 6,
+                "racer_registration_id": "4006",
+                "name": "選手6",
+                "display_time": 6.92,
+                "tilt": 0.0,
+                "preview_st": 0.16,
+                "preview_st_status": "OK",
+                "preview_raw_st": ".16",
+                "preview_course": null,
+                "actual_course": null
+              }
+            ],
+            "weather": {
+              "air_temperature_c": null,
+              "water_temperature_c": null,
+              "wind_speed_mps": 6.0,
+              "wave_height_cm": 6.0,
+              "wind_direction_source_code": null,
+              "weather_label": null,
+              "source_reported_local_time": "08:00",
+              "reported_at": null,
+              "freshness_status": "UNKNOWN_SOURCE_TIME_HAS_NO_DATE"
+            }
+          },
+          "rights_review": "user-confirmation-2026-10-15-official-facts",
+          "snapshot_id": "92e289410942e03bb72ceb33400a053653b691492ee9895790a4f15d74e141a3",
+          "saved_at": "2026-10-14T22:33:01.000000+00:00",
+          "storage_eligible_pre_race": true
+        },
+        "program_sha256": "6997207272d4fa34c852cde77a24fc47d44b492f7dd4aa57835b133ff14aee87",
+        "cloud_saved_at": "2026-10-14T22:33:02.000000+00:00",
+        "cloud_eligible_pre_race": true
+      }
+    ]
+  },
+  "beforeinfo_receipt": {
+    "record": {
+      "schema_version": 1,
+      "race_id": "20261015-18-01",
+      "kind": "beforeinfo",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=1&jcd=18&hd=20261015",
+      "source_sha256": "0ab3f79ac26adcfb2e36a3ba660e1a4b1ff6a5bd8a72437df8ccc1740be93ef5",
+      "captured_at": "2026-10-15T07:33:00+09:00",
+      "available_at": "2026-10-15T07:33:00+09:00",
+      "upstream_published_at": null,
+      "eligible_pre_race": true,
+      "information_phase": "pre_race_observation",
+      "body_identity_verified": true,
+      "closed_at": "2026-10-15T08:43:00+09:00",
+      "status": "AVAILABLE",
+      "data": {
+        "boats": [
+          {
+            "lane": 1,
+            "racer_registration_id": "4001",
+            "name": "選手1",
+            "display_time": 6.92,
+            "tilt": 0.0,
+            "preview_st": 0.11,
+            "preview_st_status": "OK",
+            "preview_raw_st": ".11",
+            "preview_course": null,
+            "actual_course": null
+          },
+          {
+            "lane": 2,
+            "racer_registration_id": "4002",
+            "name": "選手2",
+            "display_time": 6.92,
+            "tilt": 0.0,
+            "preview_st": 0.12,
+            "preview_st_status": "OK",
+            "preview_raw_st": ".12",
+            "preview_course": null,
+            "actual_course": null
+          },
+          {
+            "lane": 3,
+            "racer_registration_id": "4003",
+            "name": "選手3",
+            "display_time": 6.92,
+            "tilt": 0.0,
+            "preview_st": 0.13,
+            "preview_st_status": "OK",
+            "preview_raw_st": ".13",
+            "preview_course": null,
+            "actual_course": null
+          },
+          {
+            "lane": 4,
+            "racer_registration_id": "4004",
+            "name": "選手4",
+            "display_time": 6.92,
+            "tilt": 0.0,
+            "preview_st": 0.14,
+            "preview_st_status": "OK",
+            "preview_raw_st": ".14",
+            "preview_course": null,
+            "actual_course": null
+          },
+          {
+            "lane": 5,
+            "racer_registration_id": "4005",
+            "name": "選手5",
+            "display_time": 6.92,
+            "tilt": 0.0,
+            "preview_st": 0.15,
+            "preview_st_status": "OK",
+            "preview_raw_st": ".15",
+            "preview_course": null,
+            "actual_course": null
+          },
+          {
+            "lane": 6,
+            "racer_registration_id": "4006",
+            "name": "選手6",
+            "display_time": 6.92,
+            "tilt": 0.0,
+            "preview_st": 0.16,
+            "preview_st_status": "OK",
+            "preview_raw_st": ".16",
+            "preview_course": null,
+            "actual_course": null
+          }
+        ],
+        "weather": {
+          "air_temperature_c": null,
+          "water_temperature_c": null,
+          "wind_speed_mps": 6.0,
+          "wave_height_cm": 6.0,
+          "wind_direction_source_code": null,
+          "weather_label": null,
+          "source_reported_local_time": "08:00",
+          "reported_at": null,
+          "freshness_status": "UNKNOWN_SOURCE_TIME_HAS_NO_DATE"
+        }
+      },
+      "rights_review": "user-confirmation-2026-10-15-official-facts",
+      "snapshot_id": "92e289410942e03bb72ceb33400a053653b691492ee9895790a4f15d74e141a3",
+      "saved_at": "2026-10-14T22:33:01.000000+00:00",
+      "storage_eligible_pre_race": true
+    },
+    "program_sha256": "6997207272d4fa34c852cde77a24fc47d44b492f7dd4aa57835b133ff14aee87",
+    "cloud_saved_at": "2026-10-14T22:33:02.000000+00:00",
+    "cloud_eligible_pre_race": true
+  },
+  "post_receipt": {
+    "schema_version": 1,
+    "request_id": "123457-1",
+    "snapshot": {
+      "schema_version": 1,
+      "phase": "post_exhibition",
+      "race_id": "20261015-18-01",
+      "date_jst": "2026-10-15",
+      "closed_at": "2026-10-14T23:43:00.000000+00:00",
+      "as_of": "2026-10-14T22:34:00.000000+00:00",
+      "generated_at": "2026-10-14T22:34:00.000000+00:00",
+      "program_identity_sha256": "6997207272d4fa34c852cde77a24fc47d44b492f7dd4aa57835b133ff14aee87",
+      "b_program_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "baseline_link": {
+        "request_id": "123456-1",
+        "snapshot_id": "b690b3a941bdfd838ab806bff0b950b8e9903b6188a5ef4d949bcd21a4e07929",
+        "receipt_sha256": "eccbffeed92894c68a6c293f8f174294d3a172611be5ed23e1a231b4653e05a7",
+        "cloud_saved_at": "2026-10-14T22:33:01.000000+00:00",
+        "model_id": "official-program-rating-pl"
+      },
+      "beforeinfo_link": {
+        "snapshot_id": "92e289410942e03bb72ceb33400a053653b691492ee9895790a4f15d74e141a3",
+        "receipt_sha256": "0dd28e7320836d26f50c8537c4e2ad855211bf0c1534d637bc8810386777f428",
+        "source_url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=1&jcd=18&hd=20261015",
+        "source_sha256": "0ab3f79ac26adcfb2e36a3ba660e1a4b1ff6a5bd8a72437df8ccc1740be93ef5",
+        "captured_at": "2026-10-14T22:33:00.000000+00:00",
+        "runner_saved_at": "2026-10-14T22:33:01.000000+00:00",
+        "cloud_saved_at": "2026-10-14T22:33:02.000000+00:00"
+      },
+      "boats": [
+        {
+          "lane": 1,
+          "racer_registration_id": "4001",
+          "display_time_seconds": 6.92,
+          "base_strength": 6.0,
+          "display_delta_seconds": -8.881784197001252e-16,
+          "adjusted_strength": 5.999999999999995
+        },
+        {
+          "lane": 2,
+          "racer_registration_id": "4002",
+          "display_time_seconds": 6.92,
+          "base_strength": 5.0,
+          "display_delta_seconds": -8.881784197001252e-16,
+          "adjusted_strength": 4.999999999999995
+        },
+        {
+          "lane": 3,
+          "racer_registration_id": "4003",
+          "display_time_seconds": 6.92,
+          "base_strength": 4.0,
+          "display_delta_seconds": -8.881784197001252e-16,
+          "adjusted_strength": 3.9999999999999964
+        },
+        {
+          "lane": 4,
+          "racer_registration_id": "4004",
+          "display_time_seconds": 6.92,
+          "base_strength": 3.0,
+          "display_delta_seconds": -8.881784197001252e-16,
+          "adjusted_strength": 2.999999999999998
+        },
+        {
+          "lane": 5,
+          "racer_registration_id": "4005",
+          "display_time_seconds": 6.92,
+          "base_strength": 2.0,
+          "display_delta_seconds": -8.881784197001252e-16,
+          "adjusted_strength": 1.9999999999999982
+        },
+        {
+          "lane": 6,
+          "racer_registration_id": "4006",
+          "display_time_seconds": 6.92,
+          "base_strength": 1.0,
+          "display_delta_seconds": -8.881784197001252e-16,
+          "adjusted_strength": 0.9999999999999991
+        }
+      ],
+      "feature_status": {
+        "display_time": {
+          "status": "AVAILABLE",
+          "used": true,
+          "reason": null
+        },
+        "preview_st": {
+          "status": "OBSERVED_UNUSED",
+          "used": false,
+          "reason": "NOT_USED_BY_DISPLAY_ONLY_MODEL"
+        },
+        "weather": {
+          "status": "SOURCE_TIME_UNVERIFIED_UNUSED",
+          "used": false,
+          "reason": "SOURCE_TIME_HAS_NO_DATE"
+        },
+        "original_exhibition": {
+          "status": "MISSING",
+          "used": false,
+          "reason": "ORIGINAL_SOURCE_NOT_INGESTED"
+        },
+        "exhibition_video": {
+          "status": "MISSING",
+          "used": false,
+          "reason": "NO_VALIDATED_BOAT_FEATURES"
+        }
+      },
+      "model": {
+        "model_id": "official-beforeinfo-display-pl",
+        "model_version": "1",
+        "parameters": {
+          "display_coefficient_per_second": 1.0,
+          "log_strength_min": -20.0,
+          "log_strength_max": 20.0,
+          "rating_floor": 0.01
+        },
+        "triples": [
+          {
+            "combination": [
+              1,
+              2,
+              3
+            ],
+            "probability": 0.038095238095238106
+          },
+          {
+            "combination": [
+              1,
+              2,
+              4
+            ],
+            "probability": 0.028571428571428577
+          },
+          {
+            "combination": [
+              1,
+              2,
+              5
+            ],
+            "probability": 0.019047619047619053
+          },
+          {
+            "combination": [
+              1,
+              2,
+              6
+            ],
+            "probability": 0.009523809523809526
+          },
+          {
+            "combination": [
+              1,
+              3,
+              2
+            ],
+            "probability": 0.03463203463203463
+          },
+          {
+            "combination": [
+              1,
+              3,
+              4
+            ],
+            "probability": 0.020779220779220783
+          },
+          {
+            "combination": [
+              1,
+              3,
+              5
+            ],
+            "probability": 0.013852813852813853
+          },
+          {
+            "combination": [
+              1,
+              3,
+              6
+            ],
+            "probability": 0.006926406926406926
+          },
+          {
+            "combination": [
+              1,
+              4,
+              2
+            ],
+            "probability": 0.023809523809523808
+          },
+          {
+            "combination": [
+              1,
+              4,
+              3
+            ],
+            "probability": 0.019047619047619053
+          },
+          {
+            "combination": [
+              1,
+              4,
+              5
+            ],
+            "probability": 0.009523809523809526
+          },
+          {
+            "combination": [
+              1,
+              4,
+              6
+            ],
+            "probability": 0.004761904761904763
+          },
+          {
+            "combination": [
+              1,
+              5,
+              2
+            ],
+            "probability": 0.01465201465201465
+          },
+          {
+            "combination": [
+              1,
+              5,
+              3
+            ],
+            "probability": 0.011721611721611723
+          },
+          {
+            "combination": [
+              1,
+              5,
+              4
+            ],
+            "probability": 0.008791208791208793
+          },
+          {
+            "combination": [
+              1,
+              5,
+              6
+            ],
+            "probability": 0.002930402930402931
+          },
+          {
+            "combination": [
+              1,
+              6,
+              2
+            ],
+            "probability": 0.006802721088435374
+          },
+          {
+            "combination": [
+              1,
+              6,
+              3
+            ],
+            "probability": 0.0054421768707483
+          },
+          {
+            "combination": [
+              1,
+              6,
+              4
+            ],
+            "probability": 0.004081632653061226
+          },
+          {
+            "combination": [
+              1,
+              6,
+              5
+            ],
+            "probability": 0.00272108843537415
+          },
+          {
+            "combination": [
+              2,
+              1,
+              3
+            ],
+            "probability": 0.03571428571428572
+          },
+          {
+            "combination": [
+              2,
+              1,
+              4
+            ],
+            "probability": 0.02678571428571429
+          },
+          {
+            "combination": [
+              2,
+              1,
+              5
+            ],
+            "probability": 0.01785714285714286
+          },
+          {
+            "combination": [
+              2,
+              1,
+              6
+            ],
+            "probability": 0.00892857142857143
+          },
+          {
+            "combination": [
+              2,
+              3,
+              1
+            ],
+            "probability": 0.02976190476190476
+          },
+          {
+            "combination": [
+              2,
+              3,
+              4
+            ],
+            "probability": 0.014880952380952384
+          },
+          {
+            "combination": [
+              2,
+              3,
+              5
+            ],
+            "probability": 0.00992063492063492
+          },
+          {
+            "combination": [
+              2,
+              3,
+              6
+            ],
+            "probability": 0.00496031746031746
+          },
+          {
+            "combination": [
+              2,
+              4,
+              1
+            ],
+            "probability": 0.020604395604395608
+          },
+          {
+            "combination": [
+              2,
+              4,
+              3
+            ],
+            "probability": 0.013736263736263736
+          },
+          {
+            "combination": [
+              2,
+              4,
+              5
+            ],
+            "probability": 0.006868131868131868
+          },
+          {
+            "combination": [
+              2,
+              4,
+              6
+            ],
+            "probability": 0.003434065934065934
+          },
+          {
+            "combination": [
+              2,
+              5,
+              1
+            ],
+            "probability": 0.012755102040816325
+          },
+          {
+            "combination": [
+              2,
+              5,
+              3
+            ],
+            "probability": 0.008503401360544217
+          },
+          {
+            "combination": [
+              2,
+              5,
+              4
+            ],
+            "probability": 0.006377551020408164
+          },
+          {
+            "combination": [
+              2,
+              5,
+              6
+            ],
+            "probability": 0.002125850340136054
+          },
+          {
+            "combination": [
+              2,
+              6,
+              1
+            ],
+            "probability": 0.005952380952380952
+          },
+          {
+            "combination": [
+              2,
+              6,
+              3
+            ],
+            "probability": 0.003968253968253968
+          },
+          {
+            "combination": [
+              2,
+              6,
+              4
+            ],
+            "probability": 0.0029761904761904765
+          },
+          {
+            "combination": [
+              2,
+              6,
+              5
+            ],
+            "probability": 0.001984126984126984
+          },
+          {
+            "combination": [
+              3,
+              1,
+              2
+            ],
+            "probability": 0.030557677616501137
+          },
+          {
+            "combination": [
+              3,
+              1,
+              4
+            ],
+            "probability": 0.01833460656990069
+          },
+          {
+            "combination": [
+              3,
+              1,
+              5
+            ],
+            "probability": 0.012223071046600458
+          },
+          {
+            "combination": [
+              3,
+              1,
+              6
+            ],
+            "probability": 0.006111535523300229
+          },
+          {
+            "combination": [
+              3,
+              2,
+              1
+            ],
+            "probability": 0.028011204481792715
+          },
+          {
+            "combination": [
+              3,
+              2,
+              4
+            ],
+            "probability": 0.01400560224089636
+          },
+          {
+            "combination": [
+              3,
+              2,
+              5
+            ],
+            "probability": 0.009337068160597572
+          },
+          {
+            "combination": [
+              3,
+              2,
+              6
+            ],
+            "probability": 0.004668534080298786
+          },
+          {
+            "combination": [
+              3,
+              4,
+              1
+            ],
+            "probability": 0.01440576230492197
+          },
+          {
+            "combination": [
+              3,
+              4,
+              2
+            ],
+            "probability": 0.01200480192076831
+          },
+          {
+            "combination": [
+              3,
+              4,
+              5
+            ],
+            "probability": 0.004801920768307324
+          },
+          {
+            "combination": [
+              3,
+              4,
+              6
+            ],
+            "probability": 0.002400960384153662
+          },
+          {
+            "combination": [
+              3,
+              5,
+              1
+            ],
+            "probability": 0.00896358543417367
+          },
+          {
+            "combination": [
+              3,
+              5,
+              2
+            ],
+            "probability": 0.007469654528478057
+          },
+          {
+            "combination": [
+              3,
+              5,
+              4
+            ],
+            "probability": 0.004481792717086836
+          },
+          {
+            "combination": [
+              3,
+              5,
+              6
+            ],
+            "probability": 0.0014939309056956115
+          },
+          {
+            "combination": [
+              3,
+              6,
+              1
+            ],
+            "probability": 0.004201680672268907
+          },
+          {
+            "combination": [
+              3,
+              6,
+              2
+            ],
+            "probability": 0.003501400560224089
+          },
+          {
+            "combination": [
+              3,
+              6,
+              4
+            ],
+            "probability": 0.002100840336134454
+          },
+          {
+            "combination": [
+              3,
+              6,
+              5
+            ],
+            "probability": 0.0014005602240896359
+          },
+          {
+            "combination": [
+              4,
+              1,
+              2
+            ],
+            "probability": 0.019841269841269844
+          },
+          {
+            "combination": [
+              4,
+              1,
+              3
+            ],
+            "probability": 0.01587301587301588
+          },
+          {
+            "combination": [
+              4,
+              1,
+              5
+            ],
+            "probability": 0.00793650793650794
+          },
+          {
+            "combination": [
+              4,
+              1,
+              6
+            ],
+            "probability": 0.00396825396825397
+          },
+          {
+            "combination": [
+              4,
+              2,
+              1
+            ],
+            "probability": 0.018315018315018316
+          },
+          {
+            "combination": [
+              4,
+              2,
+              3
+            ],
+            "probability": 0.01221001221001221
+          },
+          {
+            "combination": [
+              4,
+              2,
+              5
+            ],
+            "probability": 0.006105006105006105
+          },
+          {
+            "combination": [
+              4,
+              2,
+              6
+            ],
+            "probability": 0.0030525030525030525
+          },
+          {
+            "combination": [
+              4,
+              3,
+              1
+            ],
+            "probability": 0.013605442176870753
+          },
+          {
+            "combination": [
+              4,
+              3,
+              2
+            ],
+            "probability": 0.011337868480725627
+          },
+          {
+            "combination": [
+              4,
+              3,
+              5
+            ],
+            "probability": 0.004535147392290251
+          },
+          {
+            "combination": [
+              4,
+              3,
+              6
+            ],
+            "probability": 0.0022675736961451256
+          },
+          {
+            "combination": [
+              4,
+              5,
+              1
+            ],
+            "probability": 0.005952380952380955
+          },
+          {
+            "combination": [
+              4,
+              5,
+              2
+            ],
+            "probability": 0.004960317460317461
+          },
+          {
+            "combination": [
+              4,
+              5,
+              3
+            ],
+            "probability": 0.00396825396825397
+          },
+          {
+            "combination": [
+              4,
+              5,
+              6
+            ],
+            "probability": 0.0009920634920634924
+          },
+          {
+            "combination": [
+              4,
+              6,
+              1
+            ],
+            "probability": 0.002801120448179272
+          },
+          {
+            "combination": [
+              4,
+              6,
+              2
+            ],
+            "probability": 0.0023342670401493935
+          },
+          {
+            "combination": [
+              4,
+              6,
+              3
+            ],
+            "probability": 0.001867413632119515
+          },
+          {
+            "combination": [
+              4,
+              6,
+              5
+            ],
+            "probability": 0.0009337068160597575
+          },
+          {
+            "combination": [
+              5,
+              1,
+              2
+            ],
+            "probability": 0.011567379988432621
+          },
+          {
+            "combination": [
+              5,
+              1,
+              3
+            ],
+            "probability": 0.009253903990746099
+          },
+          {
+            "combination": [
+              5,
+              1,
+              4
+            ],
+            "probability": 0.0069404279930595746
+          },
+          {
+            "combination": [
+              5,
+              1,
+              6
+            ],
+            "probability": 0.0023134759976865247
+          },
+          {
+            "combination": [
+              5,
+              2,
+              1
+            ],
+            "probability": 0.010741138560687433
+          },
+          {
+            "combination": [
+              5,
+              2,
+              3
+            ],
+            "probability": 0.007160759040458289
+          },
+          {
+            "combination": [
+              5,
+              2,
+              4
+            ],
+            "probability": 0.005370569280343718
+          },
+          {
+            "combination": [
+              5,
+              2,
+              6
+            ],
+            "probability": 0.0017901897601145722
+          },
+          {
+            "combination": [
+              5,
+              3,
+              1
+            ],
+            "probability": 0.008020050125313285
+          },
+          {
+            "combination": [
+              5,
+              3,
+              2
+            ],
+            "probability": 0.0066833751044277365
+          },
+          {
+            "combination": [
+              5,
+              3,
+              4
+            ],
+            "probability": 0.004010025062656643
+          },
+          {
+            "combination": [
+              5,
+              3,
+              6
+            ],
+            "probability": 0.0013366750208855473
+          },
+          {
+            "combination": [
+              5,
+              4,
+              1
+            ],
+            "probability": 0.005639097744360904
+          },
+          {
+            "combination": [
+              5,
+              4,
+              2
+            ],
+            "probability": 0.0046992481203007525
+          },
+          {
+            "combination": [
+              5,
+              4,
+              3
+            ],
+            "probability": 0.003759398496240602
+          },
+          {
+            "combination": [
+              5,
+              4,
+              6
+            ],
+            "probability": 0.0009398496240601505
+          },
+          {
+            "combination": [
+              5,
+              6,
+              1
+            ],
+            "probability": 0.0016708437761069343
+          },
+          {
+            "combination": [
+              5,
+              6,
+              2
+            ],
+            "probability": 0.001392369813422445
+          },
+          {
+            "combination": [
+              5,
+              6,
+              3
+            ],
+            "probability": 0.0011138958507379562
+          },
+          {
+            "combination": [
+              5,
+              6,
+              4
+            ],
+            "probability": 0.0008354218880534673
+          },
+          {
+            "combination": [
+              6,
+              1,
+              2
+            ],
+            "probability": 0.00510204081632653
+          },
+          {
+            "combination": [
+              6,
+              1,
+              3
+            ],
+            "probability": 0.004081632653061225
+          },
+          {
+            "combination": [
+              6,
+              1,
+              4
+            ],
+            "probability": 0.003061224489795919
+          },
+          {
+            "combination": [
+              6,
+              1,
+              5
+            ],
+            "probability": 0.0020408163265306124
+          },
+          {
+            "combination": [
+              6,
+              2,
+              1
+            ],
+            "probability": 0.004761904761904761
+          },
+          {
+            "combination": [
+              6,
+              2,
+              3
+            ],
+            "probability": 0.0031746031746031737
+          },
+          {
+            "combination": [
+              6,
+              2,
+              4
+            ],
+            "probability": 0.0023809523809523807
+          },
+          {
+            "combination": [
+              6,
+              2,
+              5
+            ],
+            "probability": 0.0015873015873015869
+          },
+          {
+            "combination": [
+              6,
+              3,
+              1
+            ],
+            "probability": 0.003571428571428572
+          },
+          {
+            "combination": [
+              6,
+              3,
+              2
+            ],
+            "probability": 0.0029761904761904765
+          },
+          {
+            "combination": [
+              6,
+              3,
+              4
+            ],
+            "probability": 0.0017857142857142863
+          },
+          {
+            "combination": [
+              6,
+              3,
+              5
+            ],
+            "probability": 0.0011904761904761908
+          },
+          {
+            "combination": [
+              6,
+              4,
+              1
+            ],
+            "probability": 0.002521008403361345
+          },
+          {
+            "combination": [
+              6,
+              4,
+              2
+            ],
+            "probability": 0.002100840336134454
+          },
+          {
+            "combination": [
+              6,
+              4,
+              3
+            ],
+            "probability": 0.0016806722689075633
+          },
+          {
+            "combination": [
+              6,
+              4,
+              5
+            ],
+            "probability": 0.0008403361344537817
+          },
+          {
+            "combination": [
+              6,
+              5,
+              1
+            ],
+            "probability": 0.0015873015873015877
+          },
+          {
+            "combination": [
+              6,
+              5,
+              2
+            ],
+            "probability": 0.001322751322751323
+          },
+          {
+            "combination": [
+              6,
+              5,
+              3
+            ],
+            "probability": 0.0010582010582010585
+          },
+          {
+            "combination": [
+              6,
+              5,
+              4
+            ],
+            "probability": 0.0007936507936507941
+          }
+        ],
+        "marginals": [
+          {
+            "lane": 1,
+            "first_probability": 0.28571428571428575,
+            "second_probability": 0.24849255491670352,
+            "third_probability": 0.20384275167556903,
+            "fourth_probability": 0.1495976675543239,
+            "fifth_probability": 0.08599883089047176,
+            "sixth_probability": 0.02635390924864609,
+            "top3_probability": 0.7380495923065583
+          },
+          {
+            "lane": 2,
+            "first_probability": 0.23809523809523808,
+            "second_probability": 0.2279104624305863,
+            "third_probability": 0.2077477476084287,
+            "fourth_probability": 0.1718675201647338,
+            "fifth_probability": 0.11362373436676845,
+            "sixth_probability": 0.04075529733424472,
+            "top3_probability": 0.6737534481342531
+          },
+          {
+            "lane": 3,
+            "first_probability": 0.19047619047619047,
+            "second_probability": 0.1970342522974102,
+            "third_probability": 0.20143061273092236,
+            "fourth_probability": 0.19291212743225128,
+            "fifth_probability": 0.15190562791181988,
+            "sixth_probability": 0.06624118915140588,
+            "top3_probability": 0.588941055504523
+          },
+          {
+            "lane": 4,
+            "first_probability": 0.14285714285714288,
+            "second_probability": 0.15757961079168512,
+            "third_probability": 0.1773447269964298,
+            "fourth_probability": 0.20336561013805599,
+            "fifth_probability": 0.20353520318690596,
+            "sixth_probability": 0.11531770602978031,
+            "top3_probability": 0.47778148064525783
+          },
+          {
+            "lane": 5,
+            "first_probability": 0.09523809523809525,
+            "second_probability": 0.11090102707749767,
+            "third_probability": 0.13470728617787445,
+            "fourth_probability": 0.17573227426168603,
+            "fifth_probability": 0.2603332941568236,
+            "sixth_probability": 0.22308802308802309,
+            "top3_probability": 0.34084640849346737
+          },
+          {
+            "lane": 6,
+            "first_probability": 0.047619047619047616,
+            "second_probability": 0.05808209248611725,
+            "third_probability": 0.07492687481077574,
+            "fourth_probability": 0.10652480044894906,
+            "fifth_probability": 0.18460330948721043,
+            "sixth_probability": 0.5282438751479,
+            "top3_probability": 0.1806280149159406
+          }
+        ],
+        "strengths": [
+          {
+            "lane": 1,
+            "strength": 5.999999999999995
+          },
+          {
+            "lane": 2,
+            "strength": 4.999999999999995
+          },
+          {
+            "lane": 3,
+            "strength": 3.9999999999999964
+          },
+          {
+            "lane": 4,
+            "strength": 2.999999999999998
+          },
+          {
+            "lane": 5,
+            "strength": 1.9999999999999982
+          },
+          {
+            "lane": 6,
+            "strength": 0.9999999999999991
+          }
+        ]
+      },
+      "deltas": {
+        "triples": [
+          {
+            "combination": [
+              1,
+              2,
+              3
+            ],
+            "baseline_probability": 0.038095238095238106,
+            "post_probability": 0.038095238095238106,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              1,
+              2,
+              4
+            ],
+            "baseline_probability": 0.02857142857142857,
+            "post_probability": 0.028571428571428577,
+            "delta_probability": 6.938893903907228e-18
+          },
+          {
+            "combination": [
+              1,
+              2,
+              5
+            ],
+            "baseline_probability": 0.019047619047619053,
+            "post_probability": 0.019047619047619053,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              1,
+              2,
+              6
+            ],
+            "baseline_probability": 0.009523809523809526,
+            "post_probability": 0.009523809523809526,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              1,
+              3,
+              2
+            ],
+            "baseline_probability": 0.03463203463203463,
+            "post_probability": 0.03463203463203463,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              1,
+              3,
+              4
+            ],
+            "baseline_probability": 0.02077922077922078,
+            "post_probability": 0.020779220779220783,
+            "delta_probability": 3.469446951953614e-18
+          },
+          {
+            "combination": [
+              1,
+              3,
+              5
+            ],
+            "baseline_probability": 0.013852813852813853,
+            "post_probability": 0.013852813852813853,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              1,
+              3,
+              6
+            ],
+            "baseline_probability": 0.006926406926406926,
+            "post_probability": 0.006926406926406926,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              1,
+              4,
+              2
+            ],
+            "baseline_probability": 0.02380952380952381,
+            "post_probability": 0.023809523809523808,
+            "delta_probability": -3.469446951953614e-18
+          },
+          {
+            "combination": [
+              1,
+              4,
+              3
+            ],
+            "baseline_probability": 0.01904761904761905,
+            "post_probability": 0.019047619047619053,
+            "delta_probability": 3.469446951953614e-18
+          },
+          {
+            "combination": [
+              1,
+              4,
+              5
+            ],
+            "baseline_probability": 0.009523809523809525,
+            "post_probability": 0.009523809523809526,
+            "delta_probability": 1.734723475976807e-18
+          },
+          {
+            "combination": [
+              1,
+              4,
+              6
+            ],
+            "baseline_probability": 0.004761904761904762,
+            "post_probability": 0.004761904761904763,
+            "delta_probability": 8.673617379884035e-19
+          },
+          {
+            "combination": [
+              1,
+              5,
+              2
+            ],
+            "baseline_probability": 0.014652014652014654,
+            "post_probability": 0.01465201465201465,
+            "delta_probability": -3.469446951953614e-18
+          },
+          {
+            "combination": [
+              1,
+              5,
+              3
+            ],
+            "baseline_probability": 0.011721611721611723,
+            "post_probability": 0.011721611721611723,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              1,
+              5,
+              4
+            ],
+            "baseline_probability": 0.008791208791208793,
+            "post_probability": 0.008791208791208793,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              1,
+              5,
+              6
+            ],
+            "baseline_probability": 0.002930402930402931,
+            "post_probability": 0.002930402930402931,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              1,
+              6,
+              2
+            ],
+            "baseline_probability": 0.006802721088435375,
+            "post_probability": 0.006802721088435374,
+            "delta_probability": -8.673617379884035e-19
+          },
+          {
+            "combination": [
+              1,
+              6,
+              3
+            ],
+            "baseline_probability": 0.0054421768707483,
+            "post_probability": 0.0054421768707483,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              1,
+              6,
+              4
+            ],
+            "baseline_probability": 0.004081632653061225,
+            "post_probability": 0.004081632653061226,
+            "delta_probability": 8.673617379884035e-19
+          },
+          {
+            "combination": [
+              1,
+              6,
+              5
+            ],
+            "baseline_probability": 0.00272108843537415,
+            "post_probability": 0.00272108843537415,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              2,
+              1,
+              3
+            ],
+            "baseline_probability": 0.03571428571428572,
+            "post_probability": 0.03571428571428572,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              2,
+              1,
+              4
+            ],
+            "baseline_probability": 0.026785714285714284,
+            "post_probability": 0.02678571428571429,
+            "delta_probability": 6.938893903907228e-18
+          },
+          {
+            "combination": [
+              2,
+              1,
+              5
+            ],
+            "baseline_probability": 0.01785714285714286,
+            "post_probability": 0.01785714285714286,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              2,
+              1,
+              6
+            ],
+            "baseline_probability": 0.00892857142857143,
+            "post_probability": 0.00892857142857143,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              2,
+              3,
+              1
+            ],
+            "baseline_probability": 0.029761904761904764,
+            "post_probability": 0.02976190476190476,
+            "delta_probability": -3.469446951953614e-18
+          },
+          {
+            "combination": [
+              2,
+              3,
+              4
+            ],
+            "baseline_probability": 0.014880952380952382,
+            "post_probability": 0.014880952380952384,
+            "delta_probability": 1.734723475976807e-18
+          },
+          {
+            "combination": [
+              2,
+              3,
+              5
+            ],
+            "baseline_probability": 0.009920634920634922,
+            "post_probability": 0.00992063492063492,
+            "delta_probability": -1.734723475976807e-18
+          },
+          {
+            "combination": [
+              2,
+              3,
+              6
+            ],
+            "baseline_probability": 0.004960317460317461,
+            "post_probability": 0.00496031746031746,
+            "delta_probability": -8.673617379884035e-19
+          },
+          {
+            "combination": [
+              2,
+              4,
+              1
+            ],
+            "baseline_probability": 0.020604395604395608,
+            "post_probability": 0.020604395604395608,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              2,
+              4,
+              3
+            ],
+            "baseline_probability": 0.013736263736263738,
+            "post_probability": 0.013736263736263736,
+            "delta_probability": -1.734723475976807e-18
+          },
+          {
+            "combination": [
+              2,
+              4,
+              5
+            ],
+            "baseline_probability": 0.006868131868131869,
+            "post_probability": 0.006868131868131868,
+            "delta_probability": -8.673617379884035e-19
+          },
+          {
+            "combination": [
+              2,
+              4,
+              6
+            ],
+            "baseline_probability": 0.0034340659340659344,
+            "post_probability": 0.003434065934065934,
+            "delta_probability": -4.336808689942018e-19
+          },
+          {
+            "combination": [
+              2,
+              5,
+              1
+            ],
+            "baseline_probability": 0.012755102040816327,
+            "post_probability": 0.012755102040816325,
+            "delta_probability": -1.734723475976807e-18
+          },
+          {
+            "combination": [
+              2,
+              5,
+              3
+            ],
+            "baseline_probability": 0.008503401360544218,
+            "post_probability": 0.008503401360544217,
+            "delta_probability": -1.734723475976807e-18
+          },
+          {
+            "combination": [
+              2,
+              5,
+              4
+            ],
+            "baseline_probability": 0.006377551020408163,
+            "post_probability": 0.006377551020408164,
+            "delta_probability": 8.673617379884035e-19
+          },
+          {
+            "combination": [
+              2,
+              5,
+              6
+            ],
+            "baseline_probability": 0.0021258503401360546,
+            "post_probability": 0.002125850340136054,
+            "delta_probability": -4.336808689942018e-19
+          },
+          {
+            "combination": [
+              2,
+              6,
+              1
+            ],
+            "baseline_probability": 0.005952380952380953,
+            "post_probability": 0.005952380952380952,
+            "delta_probability": -8.673617379884035e-19
+          },
+          {
+            "combination": [
+              2,
+              6,
+              3
+            ],
+            "baseline_probability": 0.003968253968253969,
+            "post_probability": 0.003968253968253968,
+            "delta_probability": -8.673617379884035e-19
+          },
+          {
+            "combination": [
+              2,
+              6,
+              4
+            ],
+            "baseline_probability": 0.0029761904761904765,
+            "post_probability": 0.0029761904761904765,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              2,
+              6,
+              5
+            ],
+            "baseline_probability": 0.0019841269841269845,
+            "post_probability": 0.001984126984126984,
+            "delta_probability": -4.336808689942018e-19
+          },
+          {
+            "combination": [
+              3,
+              1,
+              2
+            ],
+            "baseline_probability": 0.030557677616501147,
+            "post_probability": 0.030557677616501137,
+            "delta_probability": -1.0408340855860843e-17
+          },
+          {
+            "combination": [
+              3,
+              1,
+              4
+            ],
+            "baseline_probability": 0.01833460656990069,
+            "post_probability": 0.01833460656990069,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              3,
+              1,
+              5
+            ],
+            "baseline_probability": 0.01222307104660046,
+            "post_probability": 0.012223071046600458,
+            "delta_probability": -1.734723475976807e-18
+          },
+          {
+            "combination": [
+              3,
+              1,
+              6
+            ],
+            "baseline_probability": 0.00611153552330023,
+            "post_probability": 0.006111535523300229,
+            "delta_probability": -8.673617379884035e-19
+          },
+          {
+            "combination": [
+              3,
+              2,
+              1
+            ],
+            "baseline_probability": 0.02801120448179272,
+            "post_probability": 0.028011204481792715,
+            "delta_probability": -6.938893903907228e-18
+          },
+          {
+            "combination": [
+              3,
+              2,
+              4
+            ],
+            "baseline_probability": 0.01400560224089636,
+            "post_probability": 0.01400560224089636,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              3,
+              2,
+              5
+            ],
+            "baseline_probability": 0.009337068160597574,
+            "post_probability": 0.009337068160597572,
+            "delta_probability": -1.734723475976807e-18
+          },
+          {
+            "combination": [
+              3,
+              2,
+              6
+            ],
+            "baseline_probability": 0.004668534080298787,
+            "post_probability": 0.004668534080298786,
+            "delta_probability": -8.673617379884035e-19
+          },
+          {
+            "combination": [
+              3,
+              4,
+              1
+            ],
+            "baseline_probability": 0.014405762304921969,
+            "post_probability": 0.01440576230492197,
+            "delta_probability": 1.734723475976807e-18
+          },
+          {
+            "combination": [
+              3,
+              4,
+              2
+            ],
+            "baseline_probability": 0.01200480192076831,
+            "post_probability": 0.01200480192076831,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              3,
+              4,
+              5
+            ],
+            "baseline_probability": 0.0048019207683073235,
+            "post_probability": 0.004801920768307324,
+            "delta_probability": 8.673617379884035e-19
+          },
+          {
+            "combination": [
+              3,
+              4,
+              6
+            ],
+            "baseline_probability": 0.0024009603841536617,
+            "post_probability": 0.002400960384153662,
+            "delta_probability": 4.336808689942018e-19
+          },
+          {
+            "combination": [
+              3,
+              5,
+              1
+            ],
+            "baseline_probability": 0.00896358543417367,
+            "post_probability": 0.00896358543417367,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              3,
+              5,
+              2
+            ],
+            "baseline_probability": 0.007469654528478057,
+            "post_probability": 0.007469654528478057,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              3,
+              5,
+              4
+            ],
+            "baseline_probability": 0.004481792717086835,
+            "post_probability": 0.004481792717086836,
+            "delta_probability": 8.673617379884035e-19
+          },
+          {
+            "combination": [
+              3,
+              5,
+              6
+            ],
+            "baseline_probability": 0.0014939309056956115,
+            "post_probability": 0.0014939309056956115,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              3,
+              6,
+              1
+            ],
+            "baseline_probability": 0.004201680672268907,
+            "post_probability": 0.004201680672268907,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              3,
+              6,
+              2
+            ],
+            "baseline_probability": 0.0035014005602240898,
+            "post_probability": 0.003501400560224089,
+            "delta_probability": -8.673617379884035e-19
+          },
+          {
+            "combination": [
+              3,
+              6,
+              4
+            ],
+            "baseline_probability": 0.0021008403361344537,
+            "post_probability": 0.002100840336134454,
+            "delta_probability": 4.336808689942018e-19
+          },
+          {
+            "combination": [
+              3,
+              6,
+              5
+            ],
+            "baseline_probability": 0.0014005602240896359,
+            "post_probability": 0.0014005602240896359,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              4,
+              1,
+              2
+            ],
+            "baseline_probability": 0.019841269841269844,
+            "post_probability": 0.019841269841269844,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              4,
+              1,
+              3
+            ],
+            "baseline_probability": 0.015873015873015876,
+            "post_probability": 0.01587301587301588,
+            "delta_probability": 3.469446951953614e-18
+          },
+          {
+            "combination": [
+              4,
+              1,
+              5
+            ],
+            "baseline_probability": 0.007936507936507938,
+            "post_probability": 0.00793650793650794,
+            "delta_probability": 1.734723475976807e-18
+          },
+          {
+            "combination": [
+              4,
+              1,
+              6
+            ],
+            "baseline_probability": 0.003968253968253969,
+            "post_probability": 0.00396825396825397,
+            "delta_probability": 8.673617379884035e-19
+          },
+          {
+            "combination": [
+              4,
+              2,
+              1
+            ],
+            "baseline_probability": 0.01831501831501832,
+            "post_probability": 0.018315018315018316,
+            "delta_probability": -3.469446951953614e-18
+          },
+          {
+            "combination": [
+              4,
+              2,
+              3
+            ],
+            "baseline_probability": 0.012210012210012212,
+            "post_probability": 0.01221001221001221,
+            "delta_probability": -1.734723475976807e-18
+          },
+          {
+            "combination": [
+              4,
+              2,
+              5
+            ],
+            "baseline_probability": 0.006105006105006106,
+            "post_probability": 0.006105006105006105,
+            "delta_probability": -8.673617379884035e-19
+          },
+          {
+            "combination": [
+              4,
+              2,
+              6
+            ],
+            "baseline_probability": 0.003052503052503053,
+            "post_probability": 0.0030525030525030525,
+            "delta_probability": -4.336808689942018e-19
+          },
+          {
+            "combination": [
+              4,
+              3,
+              1
+            ],
+            "baseline_probability": 0.013605442176870748,
+            "post_probability": 0.013605442176870753,
+            "delta_probability": 5.204170427930421e-18
+          },
+          {
+            "combination": [
+              4,
+              3,
+              2
+            ],
+            "baseline_probability": 0.011337868480725625,
+            "post_probability": 0.011337868480725627,
+            "delta_probability": 1.734723475976807e-18
+          },
+          {
+            "combination": [
+              4,
+              3,
+              5
+            ],
+            "baseline_probability": 0.0045351473922902496,
+            "post_probability": 0.004535147392290251,
+            "delta_probability": 1.734723475976807e-18
+          },
+          {
+            "combination": [
+              4,
+              3,
+              6
+            ],
+            "baseline_probability": 0.0022675736961451248,
+            "post_probability": 0.0022675736961451256,
+            "delta_probability": 8.673617379884035e-19
+          },
+          {
+            "combination": [
+              4,
+              5,
+              1
+            ],
+            "baseline_probability": 0.005952380952380953,
+            "post_probability": 0.005952380952380955,
+            "delta_probability": 1.734723475976807e-18
+          },
+          {
+            "combination": [
+              4,
+              5,
+              2
+            ],
+            "baseline_probability": 0.004960317460317461,
+            "post_probability": 0.004960317460317461,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              4,
+              5,
+              3
+            ],
+            "baseline_probability": 0.003968253968253969,
+            "post_probability": 0.00396825396825397,
+            "delta_probability": 8.673617379884035e-19
+          },
+          {
+            "combination": [
+              4,
+              5,
+              6
+            ],
+            "baseline_probability": 0.0009920634920634922,
+            "post_probability": 0.0009920634920634924,
+            "delta_probability": 2.168404344971009e-19
+          },
+          {
+            "combination": [
+              4,
+              6,
+              1
+            ],
+            "baseline_probability": 0.002801120448179272,
+            "post_probability": 0.002801120448179272,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              4,
+              6,
+              2
+            ],
+            "baseline_probability": 0.0023342670401493935,
+            "post_probability": 0.0023342670401493935,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              4,
+              6,
+              3
+            ],
+            "baseline_probability": 0.0018674136321195146,
+            "post_probability": 0.001867413632119515,
+            "delta_probability": 4.336808689942018e-19
+          },
+          {
+            "combination": [
+              4,
+              6,
+              5
+            ],
+            "baseline_probability": 0.0009337068160597573,
+            "post_probability": 0.0009337068160597575,
+            "delta_probability": 2.168404344971009e-19
+          },
+          {
+            "combination": [
+              5,
+              1,
+              2
+            ],
+            "baseline_probability": 0.011567379988432621,
+            "post_probability": 0.011567379988432621,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              5,
+              1,
+              3
+            ],
+            "baseline_probability": 0.009253903990746097,
+            "post_probability": 0.009253903990746099,
+            "delta_probability": 1.734723475976807e-18
+          },
+          {
+            "combination": [
+              5,
+              1,
+              4
+            ],
+            "baseline_probability": 0.006940427993059573,
+            "post_probability": 0.0069404279930595746,
+            "delta_probability": 1.734723475976807e-18
+          },
+          {
+            "combination": [
+              5,
+              1,
+              6
+            ],
+            "baseline_probability": 0.0023134759976865243,
+            "post_probability": 0.0023134759976865247,
+            "delta_probability": 4.336808689942018e-19
+          },
+          {
+            "combination": [
+              5,
+              2,
+              1
+            ],
+            "baseline_probability": 0.010741138560687433,
+            "post_probability": 0.010741138560687433,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              5,
+              2,
+              3
+            ],
+            "baseline_probability": 0.007160759040458289,
+            "post_probability": 0.007160759040458289,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              5,
+              2,
+              4
+            ],
+            "baseline_probability": 0.0053705692803437165,
+            "post_probability": 0.005370569280343718,
+            "delta_probability": 1.734723475976807e-18
+          },
+          {
+            "combination": [
+              5,
+              2,
+              6
+            ],
+            "baseline_probability": 0.0017901897601145722,
+            "post_probability": 0.0017901897601145722,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              5,
+              3,
+              1
+            ],
+            "baseline_probability": 0.008020050125313285,
+            "post_probability": 0.008020050125313285,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              5,
+              3,
+              2
+            ],
+            "baseline_probability": 0.0066833751044277365,
+            "post_probability": 0.0066833751044277365,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              5,
+              3,
+              4
+            ],
+            "baseline_probability": 0.004010025062656642,
+            "post_probability": 0.004010025062656643,
+            "delta_probability": 8.673617379884035e-19
+          },
+          {
+            "combination": [
+              5,
+              3,
+              6
+            ],
+            "baseline_probability": 0.0013366750208855473,
+            "post_probability": 0.0013366750208855473,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              5,
+              4,
+              1
+            ],
+            "baseline_probability": 0.005639097744360903,
+            "post_probability": 0.005639097744360904,
+            "delta_probability": 8.673617379884035e-19
+          },
+          {
+            "combination": [
+              5,
+              4,
+              2
+            ],
+            "baseline_probability": 0.0046992481203007525,
+            "post_probability": 0.0046992481203007525,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              5,
+              4,
+              3
+            ],
+            "baseline_probability": 0.0037593984962406017,
+            "post_probability": 0.003759398496240602,
+            "delta_probability": 4.336808689942018e-19
+          },
+          {
+            "combination": [
+              5,
+              4,
+              6
+            ],
+            "baseline_probability": 0.0009398496240601504,
+            "post_probability": 0.0009398496240601505,
+            "delta_probability": 1.0842021724855044e-19
+          },
+          {
+            "combination": [
+              5,
+              6,
+              1
+            ],
+            "baseline_probability": 0.0016708437761069341,
+            "post_probability": 0.0016708437761069343,
+            "delta_probability": 2.168404344971009e-19
+          },
+          {
+            "combination": [
+              5,
+              6,
+              2
+            ],
+            "baseline_probability": 0.0013923698134224451,
+            "post_probability": 0.001392369813422445,
+            "delta_probability": -2.168404344971009e-19
+          },
+          {
+            "combination": [
+              5,
+              6,
+              3
+            ],
+            "baseline_probability": 0.0011138958507379562,
+            "post_probability": 0.0011138958507379562,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              5,
+              6,
+              4
+            ],
+            "baseline_probability": 0.0008354218880534671,
+            "post_probability": 0.0008354218880534673,
+            "delta_probability": 2.168404344971009e-19
+          },
+          {
+            "combination": [
+              6,
+              1,
+              2
+            ],
+            "baseline_probability": 0.005102040816326531,
+            "post_probability": 0.00510204081632653,
+            "delta_probability": -8.673617379884035e-19
+          },
+          {
+            "combination": [
+              6,
+              1,
+              3
+            ],
+            "baseline_probability": 0.004081632653061225,
+            "post_probability": 0.004081632653061225,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              6,
+              1,
+              4
+            ],
+            "baseline_probability": 0.003061224489795918,
+            "post_probability": 0.003061224489795919,
+            "delta_probability": 8.673617379884035e-19
+          },
+          {
+            "combination": [
+              6,
+              1,
+              5
+            ],
+            "baseline_probability": 0.0020408163265306124,
+            "post_probability": 0.0020408163265306124,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              6,
+              2,
+              1
+            ],
+            "baseline_probability": 0.004761904761904763,
+            "post_probability": 0.004761904761904761,
+            "delta_probability": -2.6020852139652106e-18
+          },
+          {
+            "combination": [
+              6,
+              2,
+              3
+            ],
+            "baseline_probability": 0.0031746031746031746,
+            "post_probability": 0.0031746031746031737,
+            "delta_probability": -8.673617379884035e-19
+          },
+          {
+            "combination": [
+              6,
+              2,
+              4
+            ],
+            "baseline_probability": 0.0023809523809523816,
+            "post_probability": 0.0023809523809523807,
+            "delta_probability": -8.673617379884035e-19
+          },
+          {
+            "combination": [
+              6,
+              2,
+              5
+            ],
+            "baseline_probability": 0.0015873015873015873,
+            "post_probability": 0.0015873015873015869,
+            "delta_probability": -4.336808689942018e-19
+          },
+          {
+            "combination": [
+              6,
+              3,
+              1
+            ],
+            "baseline_probability": 0.003571428571428572,
+            "post_probability": 0.003571428571428572,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              6,
+              3,
+              2
+            ],
+            "baseline_probability": 0.002976190476190477,
+            "post_probability": 0.0029761904761904765,
+            "delta_probability": -4.336808689942018e-19
+          },
+          {
+            "combination": [
+              6,
+              3,
+              4
+            ],
+            "baseline_probability": 0.001785714285714286,
+            "post_probability": 0.0017857142857142863,
+            "delta_probability": 2.168404344971009e-19
+          },
+          {
+            "combination": [
+              6,
+              3,
+              5
+            ],
+            "baseline_probability": 0.0011904761904761908,
+            "post_probability": 0.0011904761904761908,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              6,
+              4,
+              1
+            ],
+            "baseline_probability": 0.0025210084033613447,
+            "post_probability": 0.002521008403361345,
+            "delta_probability": 4.336808689942018e-19
+          },
+          {
+            "combination": [
+              6,
+              4,
+              2
+            ],
+            "baseline_probability": 0.002100840336134454,
+            "post_probability": 0.002100840336134454,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              6,
+              4,
+              3
+            ],
+            "baseline_probability": 0.001680672268907563,
+            "post_probability": 0.0016806722689075633,
+            "delta_probability": 4.336808689942018e-19
+          },
+          {
+            "combination": [
+              6,
+              4,
+              5
+            ],
+            "baseline_probability": 0.0008403361344537815,
+            "post_probability": 0.0008403361344537817,
+            "delta_probability": 2.168404344971009e-19
+          },
+          {
+            "combination": [
+              6,
+              5,
+              1
+            ],
+            "baseline_probability": 0.0015873015873015875,
+            "post_probability": 0.0015873015873015877,
+            "delta_probability": 2.168404344971009e-19
+          },
+          {
+            "combination": [
+              6,
+              5,
+              2
+            ],
+            "baseline_probability": 0.0013227513227513231,
+            "post_probability": 0.001322751322751323,
+            "delta_probability": -2.168404344971009e-19
+          },
+          {
+            "combination": [
+              6,
+              5,
+              3
+            ],
+            "baseline_probability": 0.0010582010582010585,
+            "post_probability": 0.0010582010582010585,
+            "delta_probability": 0.0
+          },
+          {
+            "combination": [
+              6,
+              5,
+              4
+            ],
+            "baseline_probability": 0.0007936507936507938,
+            "post_probability": 0.0007936507936507941,
+            "delta_probability": 3.2526065174565133e-19
+          }
+        ],
+        "marginals": [
+          {
+            "lane": 1,
+            "first": {
+              "baseline_probability": 0.28571428571428575,
+              "post_probability": 0.28571428571428575,
+              "delta_probability": 0.0
+            },
+            "second": {
+              "baseline_probability": 0.24849255491670352,
+              "post_probability": 0.24849255491670352,
+              "delta_probability": 0.0
+            },
+            "third": {
+              "baseline_probability": 0.20384275167556903,
+              "post_probability": 0.20384275167556903,
+              "delta_probability": 0.0
+            },
+            "fourth": {
+              "baseline_probability": 0.1495976675543239,
+              "post_probability": 0.1495976675543239,
+              "delta_probability": 0.0
+            },
+            "fifth": {
+              "baseline_probability": 0.08599883089047176,
+              "post_probability": 0.08599883089047176,
+              "delta_probability": 0.0
+            },
+            "sixth": {
+              "baseline_probability": 0.02635390924864609,
+              "post_probability": 0.02635390924864609,
+              "delta_probability": 0.0
+            },
+            "top3": {
+              "baseline_probability": 0.7380495923065583,
+              "post_probability": 0.7380495923065583,
+              "delta_probability": 0.0
+            }
+          },
+          {
+            "lane": 2,
+            "first": {
+              "baseline_probability": 0.2380952380952381,
+              "post_probability": 0.23809523809523808,
+              "delta_probability": -2.7755575615628914e-17
+            },
+            "second": {
+              "baseline_probability": 0.2279104624305863,
+              "post_probability": 0.2279104624305863,
+              "delta_probability": 0.0
+            },
+            "third": {
+              "baseline_probability": 0.20774774760842873,
+              "post_probability": 0.2077477476084287,
+              "delta_probability": -2.7755575615628914e-17
+            },
+            "fourth": {
+              "baseline_probability": 0.1718675201647338,
+              "post_probability": 0.1718675201647338,
+              "delta_probability": 0.0
+            },
+            "fifth": {
+              "baseline_probability": 0.11362373436676843,
+              "post_probability": 0.11362373436676845,
+              "delta_probability": 2.7755575615628914e-17
+            },
+            "sixth": {
+              "baseline_probability": 0.040755297334244704,
+              "post_probability": 0.04075529733424472,
+              "delta_probability": 1.3877787807814457e-17
+            },
+            "top3": {
+              "baseline_probability": 0.6737534481342531,
+              "post_probability": 0.6737534481342531,
+              "delta_probability": 0.0
+            }
+          },
+          {
+            "lane": 3,
+            "first": {
+              "baseline_probability": 0.1904761904761905,
+              "post_probability": 0.19047619047619047,
+              "delta_probability": -2.7755575615628914e-17
+            },
+            "second": {
+              "baseline_probability": 0.1970342522974102,
+              "post_probability": 0.1970342522974102,
+              "delta_probability": 0.0
+            },
+            "third": {
+              "baseline_probability": 0.20143061273092233,
+              "post_probability": 0.20143061273092236,
+              "delta_probability": 2.7755575615628914e-17
+            },
+            "fourth": {
+              "baseline_probability": 0.19291212743225128,
+              "post_probability": 0.19291212743225128,
+              "delta_probability": 0.0
+            },
+            "fifth": {
+              "baseline_probability": 0.15190562791181988,
+              "post_probability": 0.15190562791181988,
+              "delta_probability": 0.0
+            },
+            "sixth": {
+              "baseline_probability": 0.06624118915140588,
+              "post_probability": 0.06624118915140588,
+              "delta_probability": 0.0
+            },
+            "top3": {
+              "baseline_probability": 0.588941055504523,
+              "post_probability": 0.588941055504523,
+              "delta_probability": 0.0
+            }
+          },
+          {
+            "lane": 4,
+            "first": {
+              "baseline_probability": 0.14285714285714288,
+              "post_probability": 0.14285714285714288,
+              "delta_probability": 0.0
+            },
+            "second": {
+              "baseline_probability": 0.15757961079168512,
+              "post_probability": 0.15757961079168512,
+              "delta_probability": 0.0
+            },
+            "third": {
+              "baseline_probability": 0.17734472699642978,
+              "post_probability": 0.1773447269964298,
+              "delta_probability": 2.7755575615628914e-17
+            },
+            "fourth": {
+              "baseline_probability": 0.20336561013805596,
+              "post_probability": 0.20336561013805599,
+              "delta_probability": 2.7755575615628914e-17
+            },
+            "fifth": {
+              "baseline_probability": 0.203535203186906,
+              "post_probability": 0.20353520318690596,
+              "delta_probability": -2.7755575615628914e-17
+            },
+            "sixth": {
+              "baseline_probability": 0.11531770602978034,
+              "post_probability": 0.11531770602978031,
+              "delta_probability": -2.7755575615628914e-17
+            },
+            "top3": {
+              "baseline_probability": 0.4777814806452578,
+              "post_probability": 0.47778148064525783,
+              "delta_probability": 5.551115123125783e-17
+            }
+          },
+          {
+            "lane": 5,
+            "first": {
+              "baseline_probability": 0.09523809523809525,
+              "post_probability": 0.09523809523809525,
+              "delta_probability": 0.0
+            },
+            "second": {
+              "baseline_probability": 0.11090102707749767,
+              "post_probability": 0.11090102707749767,
+              "delta_probability": 0.0
+            },
+            "third": {
+              "baseline_probability": 0.13470728617787445,
+              "post_probability": 0.13470728617787445,
+              "delta_probability": 0.0
+            },
+            "fourth": {
+              "baseline_probability": 0.17573227426168603,
+              "post_probability": 0.17573227426168603,
+              "delta_probability": 0.0
+            },
+            "fifth": {
+              "baseline_probability": 0.2603332941568236,
+              "post_probability": 0.2603332941568236,
+              "delta_probability": 0.0
+            },
+            "sixth": {
+              "baseline_probability": 0.22308802308802309,
+              "post_probability": 0.22308802308802309,
+              "delta_probability": 0.0
+            },
+            "top3": {
+              "baseline_probability": 0.34084640849346737,
+              "post_probability": 0.34084640849346737,
+              "delta_probability": 0.0
+            }
+          },
+          {
+            "lane": 6,
+            "first": {
+              "baseline_probability": 0.04761904761904762,
+              "post_probability": 0.047619047619047616,
+              "delta_probability": -6.938893903907228e-18
+            },
+            "second": {
+              "baseline_probability": 0.05808209248611725,
+              "post_probability": 0.05808209248611725,
+              "delta_probability": 0.0
+            },
+            "third": {
+              "baseline_probability": 0.07492687481077574,
+              "post_probability": 0.07492687481077574,
+              "delta_probability": 0.0
+            },
+            "fourth": {
+              "baseline_probability": 0.10652480044894906,
+              "post_probability": 0.10652480044894906,
+              "delta_probability": 0.0
+            },
+            "fifth": {
+              "baseline_probability": 0.18460330948721043,
+              "post_probability": 0.18460330948721043,
+              "delta_probability": 0.0
+            },
+            "sixth": {
+              "baseline_probability": 0.5282438751478999,
+              "post_probability": 0.5282438751479,
+              "delta_probability": 1.1102230246251565e-16
+            },
+            "top3": {
+              "baseline_probability": 0.1806280149159406,
+              "post_probability": 0.1806280149159406,
+              "delta_probability": 0.0
+            }
+          }
+        ]
+      },
+      "research_only": true,
+      "validation_status": "UNVALIDATED",
+      "purchase_decision": "skip",
+      "purchase_recommendations": [],
+      "snapshot_id": "08d2bf6b04cb253e25eb446f2527987016de84d532612874d11df779e182fc91"
+    },
+    "cloud_saved_at": "2026-10-14T22:34:00.000000+00:00",
+    "cloud_eligible_pre_race": true,
+    "program_identity_sha256": "6997207272d4fa34c852cde77a24fc47d44b492f7dd4aa57835b133ff14aee87"
+  }
+}

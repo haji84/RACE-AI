@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "result": "REAL_ORIGINAL_EXHIBITION_PARSE_VERIFIED",
+  "observation": {
+    "schema_version": 1,
+    "kind": "boatcast_original",
+    "race_id": "20261015-14-05",
+    "closed_at": "2026-10-15T01:21:00.000000+00:00",
+    "program_identity_sha256": "d339cf8e76a7b04fe24afc69d586f70aca005aa3cc47a797e6d51fffa39176cb",
+    "status": "AVAILABLE",
+    "body_date_verified": false,
+    "identity_evidence": "EXACT_SOURCE_URLS_AND_SIX_PROGRAM_NAMES",
+    "capture_eligible_pre_race": false,
+    "sources": [
+      {
+        "component": "original",
+        "source_url": "https://race.boatcast.jp/txt/14/bc_oriten_20261015_14_05.txt",
+        "source_sha256": "240ec12edcecdbc15cdaebdf232715dadb17a514dd78beef0167bae6190b4484",
+        "captured_at": "2026-10-15T01:26:59.604845+00:00",
+        "available_at": "2026-10-15T01:26:59.604845+00:00",
+        "upstream_published_at": null
+      },
+      {
+        "component": "standard",
+        "source_url": "https://race.boatcast.jp/hp_txt/14/bc_j_tkz_20261015_14_05.txt",
+        "source_sha256": "cf3ca24dabc76aad1f219ee273afaeef5d5ad18301ecbea857383b651f189e7d",
+        "captured_at": "2026-10-15T01:26:59.767880+00:00",
+        "available_at": "2026-10-15T01:26:59.767880+00:00",
+        "upstream_published_at": null
+      }
+    ],
+    "measurement_scope": {
+      "venue_code": "14",
+      "labels": {
+        "lap_s": "一　周",
+        "turn_s": "まわり足",
+        "straight_s": "直　線"
+      },
+      "definition_status": "VENUE_DEFINED_NOT_CROSS_VENUE_CALIBRATED"
+    },
+    "boats": [
+      {
+        "lane": 1,
+        "racer_registration_id": "5138",
+        "name": "村本大成",
+        "registration_source": "approved_program",
+        "display_time_s": 6.81,
+        "original_times": {
+          "lap_s": 36.42,
+          "turn_s": 5.94,
+          "straight_s": 6.93
+        },
+        "missing_reasons": {}
+      },
+      {
+        "lane": 2,
+        "racer_registration_id": "5172",
+        "name": "田村 慶",
+        "registration_source": "approved_program",
+        "display_time_s": 6.84,
+        "original_times": {
+          "lap_s": 36.39,
+          "turn_s": 5.81,
+          "straight_s": 6.9
+        },
+        "missing_reasons": {}
+      },
+      {
+        "lane": 3,
+        "racer_registration_id": "5255",
+        "name": "藤原仙二",
+        "registration_source": "approved_program",
+        "display_time_s": 6.72,
+        "original_times": {
+          "lap_s": 35.94,
+          "turn_s": 5.76,
+          "straight_s": 6.89
+        },
+        "missing_reasons": {}
+      },
+      {
+        "lane": 4,
+        "racer_registration_id": "5328",
+        "name": "井上慧人",
+        "registration_source": "approved_program",
+        "display_time_s": 6.93,
+        "original_times": {
+          "lap_s": 37.69,
+          "turn_s": 5.82,
+          "straight_s": 7.09
+        },
+        "missing_reasons": {}
+      },
+      {
+        "lane": 5,
+        "racer_registration_id": "5131",
+        "name": "江藤敦宏",
+        "registration_source": "approved_program",
+        "display_time_s": 6.8,
+        "original_times": {
+          "lap_s": 36.97,
+          "turn_s": 6.6,
+          "straight_s": 6.8
+        },
+        "missing_reasons": {}
+      },
+      {
+        "lane": 6,
+        "racer_registration_id": "5137",
+        "name": "川原 涼",
+        "registration_source": "approved_program",
+        "display_time_s": 6.74,
+        "original_times": {
+          "lap_s": 37.03,
+          "turn_s": 6.6,
+          "straight_s": 7.0
+        },
+        "missing_reasons": {}
+      }
+    ],
+    "snapshot_id": "57b1703e7efd28e065c1c607108b5c48a16684b81faea893ed6a721756fd7853"
+  },
+  "raw_source_persisted": false,
+  "cloud_saved": false,
+  "used_in_forecast": false,
+  "verified_timing_values": 24,
+  "scope": "new actual after-close capture validates parser only; cannot backfill a forecast"
+}

@@ -1,0 +1,8 @@
+YOLOX_s model and reference algorithms: OpenCV Zoo, Apache-2.0.
+Contributor: Sri Siddarth Chakaravarthy / OpenCV GSOC2022.
+Source commit: ea593dd89b88d4b3978273a16f0d8cfe93d2e3ea.
+Model: object_detection_yolox_2022nov.onnx, 35858002 bytes.
+SHA256: c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063.
+Race AI adapter changes: exact immutable model/head validation, verified RAM model load,
+actual integer-resize inversion, boat-only deterministic IoU NMS, array-only inputs,
+sanitized failures and unverified/non-prediction outputs. See YOLOX_LICENSE.

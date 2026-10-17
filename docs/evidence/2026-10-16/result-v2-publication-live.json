@@ -1,0 +1,991 @@
+{
+  "recorded_at": "2026-10-16T02:17:13.544363+00:00",
+  "status": "EXPLICIT_V2_RESULT_CLOUD_API_BACKUP_INDEPENDENT_ARITHMETIC_UI_VERIFIED",
+  "race_id": "20261016-14-02",
+  "forecast_request_id": "38825983437-1",
+  "name_binding_request_id": "38825321604-1",
+  "baseline_request_id": "38764082826-1",
+  "request_id": "38838005903-1",
+  "application_commit": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+  "workflow_commit": "5a38336727c452ef0ba796f56b68434fe7b59837",
+  "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
+  "workflow_probe_push": {
+    "run_id": 38837811535,
+    "status": "success",
+    "shared_blob_put_get_delete_separate_from_business_counts": true
+  },
+  "publication_run_id": 38838005903,
+  "publication_job_id": 116771361141,
+  "artifact_id": 12019613456,
+  "result_disposition_contract": "official-result-dispositions/v2",
+  "old_default_preserved": true,
+  "lane2": {
+    "registration_id": "5268",
+    "literal": "エ",
+    "codepoint": "U+30A8",
+    "numeric_finish": null,
+    "no_inferred_sixth_or_refund_or_responsibility": true
+  },
+  "top3": [
+    3,
+    1,
+    6
+  ],
+  "clocks": {
+    "available_at": "2026-10-16T01:59:15.825917+00:00",
+    "captured_at": "2026-10-16T01:59:15.825917+00:00",
+    "cloud_saved_at": "2026-10-16T01:59:21.962847+00:00",
+    "confirmed_at": "2026-10-16T01:59:22.632204+00:00",
+    "evaluation_as_of": "2026-10-16T01:59:35.293363+00:00",
+    "generated_at": "2026-10-16T01:59:15.847474+00:00",
+    "memory_saved_at": "2026-10-16T01:59:15.846635+00:00",
+    "parents_read_at": "2026-10-16T01:59:12.192427+00:00",
+    "runner_saved_at": "2026-10-16T01:59:16.055740+00:00"
+  },
+  "business_api_gets": 5,
+  "publication_posts": 1,
+  "official_source_requests": 1,
+  "backup": {
+    "files": 6,
+    "bytes": 131890,
+    "zip_bytes": 28481,
+    "zip_sha256": "f838ddf68cc93a5aab9e5ee04603bf8758abf3554cf0a08f6fa0f89fc440167e",
+    "file_digests": {
+      "evaluation.json": {
+        "bytes": 2813,
+        "sha256": "a40e7f748447ec059753d1a2209e822f860d121916cfdaad4dba142ccbf58352"
+      },
+      "forecast.json": {
+        "bytes": 114137,
+        "sha256": "ac66ceb2880019d3868aacf9ff65049c6113f0ce9ad94854f1e9457a88bdf117"
+      },
+      "manifest.json": {
+        "bytes": 1041,
+        "sha256": "8a908bf4c2979d3b507858f1b88a4b15db04362afe860a234485bf159af53c08"
+      },
+      "program.json": {
+        "bytes": 2165,
+        "sha256": "cff0cbada6fecd5cae83a8264d1b1b8353061edd3dffb474917b7ec6a10babfe"
+      },
+      "request.json": {
+        "bytes": 5680,
+        "sha256": "f67ebcd73352b077a4381dc8edc8b5d13882f03c1b057e7857b6cc47e9cbdf25"
+      },
+      "result.json": {
+        "bytes": 6054,
+        "sha256": "dffd9754fedb0eb1af42eeb5df8a5a1896b30673b5081a9b33fb9981ce8cf803"
+      }
+    },
+    "all_content_restored": true
+  },
+  "independent_audit": {
+    "archive": {
+      "bytes": 28481,
+      "sha256": "f838ddf68cc93a5aab9e5ee04603bf8758abf3554cf0a08f6fa0f89fc440167e"
+    },
+    "audited_at": "2026-10-16T02:04:20.692923+00:00",
+    "business_reads": 5,
+    "clocks": {
+      "available_at": "2026-10-16T01:59:15.825917+00:00",
+      "captured_at": "2026-10-16T01:59:15.825917+00:00",
+      "cloud_saved_at": "2026-10-16T01:59:21.962847+00:00",
+      "confirmed_at": "2026-10-16T01:59:22.632204+00:00",
+      "evaluation_as_of": "2026-10-16T01:59:35.293363+00:00",
+      "generated_at": "2026-10-16T01:59:15.847474+00:00",
+      "memory_saved_at": "2026-10-16T01:59:15.846635+00:00",
+      "parents_read_at": "2026-10-16T01:59:12.192427+00:00",
+      "runner_saved_at": "2026-10-16T01:59:16.055740+00:00"
+    },
+    "forecast_request_id": "38825983437-1",
+    "lane2": {
+      "finish_status_codepoint": "U+30A8",
+      "numeric_finish": null,
+      "registration_id": "5268"
+    },
+    "manifest_sha256": "8a908bf4c2979d3b507858f1b88a4b15db04362afe860a234485bf159af53c08",
+    "members": {
+      "evaluation.json": {
+        "bytes": 2813,
+        "sha256": "a40e7f748447ec059753d1a2209e822f860d121916cfdaad4dba142ccbf58352"
+      },
+      "forecast.json": {
+        "bytes": 114137,
+        "sha256": "ac66ceb2880019d3868aacf9ff65049c6113f0ce9ad94854f1e9457a88bdf117"
+      },
+      "manifest.json": {
+        "bytes": 1041,
+        "sha256": "8a908bf4c2979d3b507858f1b88a4b15db04362afe860a234485bf159af53c08"
+      },
+      "program.json": {
+        "bytes": 2165,
+        "sha256": "cff0cbada6fecd5cae83a8264d1b1b8353061edd3dffb474917b7ec6a10babfe"
+      },
+      "request.json": {
+        "bytes": 5680,
+        "sha256": "f67ebcd73352b077a4381dc8edc8b5d13882f03c1b057e7857b6cc47e9cbdf25"
+      },
+      "result.json": {
+        "bytes": 6054,
+        "sha256": "dffd9754fedb0eb1af42eeb5df8a5a1896b30673b5081a9b33fb9981ce8cf803"
+      }
+    },
+    "models": [
+      {
+        "full_orders_reconstructed": 720,
+        "log_loss": 4.497539969868569,
+        "max_pl_probability_error": 6.938893903907228e-18,
+        "model_id": "official-program-rating-pl",
+        "model_version": "1",
+        "multiclass_brier": 0.9877145144218503,
+        "probability_mass": 1.0,
+        "reported_score_absolute_errors": {
+          "log_loss": 0.0,
+          "multiclass_brier": 0.0,
+          "winner_probability": 0.0
+        },
+        "triples": 120,
+        "winner_probability": 0.011136358646462638
+      },
+      {
+        "full_orders_reconstructed": 720,
+        "log_loss": 4.416718961696215,
+        "max_pl_probability_error": 3.469446951953614e-18,
+        "model_id": "name-bound-display",
+        "model_version": "2",
+        "multiclass_brier": 0.9858374123899428,
+        "probability_mass": 1.0,
+        "reported_score_absolute_errors": {
+          "log_loss": 0.0,
+          "multiclass_brier": 0.0,
+          "winner_probability": 0.0
+        },
+        "triples": 120,
+        "winner_probability": 0.012073781908241429
+      },
+      {
+        "full_orders_reconstructed": 720,
+        "log_loss": 4.243336884953287,
+        "max_pl_probability_error": 3.469446951953614e-18,
+        "model_id": "name-bound-original",
+        "model_version": "2",
+        "multiclass_brier": 0.9819415589795787,
+        "probability_mass": 1.0,
+        "reported_score_absolute_errors": {
+          "log_loss": 0.0,
+          "multiclass_brier": 0.0,
+          "winner_probability": 0.0
+        },
+        "triples": 120,
+        "winner_probability": 0.01435959549036743
+      }
+    ],
+    "open_findings": 0,
+    "original_failed_run_cause_proven": false,
+    "physical_exhibition_timing_verified": false,
+    "posts": 1,
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "race_id": "20261016-14-02",
+    "raw_program_alias_preserved": true,
+    "request_id": "38838005903-1",
+    "restored_bytes": 131890,
+    "restored_files": 6,
+    "result_disposition_contract": "official-result-dispositions/v2",
+    "schema_version": 1,
+    "scope": "NEW_ARCHIVE_ONLY_NO_LIVE_API_OR_SOURCE",
+    "script_sha256": "267fc21ff9f05f85604d2239102accca59cf2ee39aae3d3fb7058db993fc08bd",
+    "six_own_identities_verified": true,
+    "source_attempts": 1,
+    "source_html_retained": false,
+    "status": "PASS",
+    "validation_status": "UNVALIDATED",
+    "winner": [
+      3,
+      1,
+      6
+    ]
+  },
+  "live_api": {
+    "recorded_at": "2026-10-16T02:02:32.909988+00:00",
+    "application_commit": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+    "deployment": "dpl_HqiX71MmWBkAKs8RW2YJ7m2dxzrm",
+    "api_gets": 4,
+    "posts": 0,
+    "official_requests": 0,
+    "bodies": {
+      "result-fixed": {
+        "bytes": 6054,
+        "sha256": "dffd9754fedb0eb1af42eeb5df8a5a1896b30673b5081a9b33fb9981ce8cf803",
+        "full_bytes_unchanged": true
+      },
+      "result-latest": {
+        "bytes": 6054,
+        "sha256": "dffd9754fedb0eb1af42eeb5df8a5a1896b30673b5081a9b33fb9981ce8cf803",
+        "full_bytes_unchanged": true
+      },
+      "forecast": {
+        "bytes": 114137,
+        "sha256": "ac66ceb2880019d3868aacf9ff65049c6113f0ce9ad94854f1e9457a88bdf117",
+        "full_bytes_unchanged": true
+      },
+      "evaluation": {
+        "as_of": "2026-10-16T02:02:12.468887+00:00",
+        "models": [
+          {
+            "forecast_cloud_saved_at": "2026-10-15T15:52:55.533703+00:00",
+            "forecast_generated_at": "2026-10-15T15:52:53.913483+00:00",
+            "log_loss": 4.497539969868569,
+            "model_id": "official-program-rating-pl",
+            "model_version": "1",
+            "multiclass_brier": 0.9877145144218503,
+            "phase": "B_ONLY_BASELINE",
+            "race_count": 1,
+            "ticket_count": 120,
+            "winner_probability": 0.011136358646462638
+          },
+          {
+            "forecast_cloud_saved_at": "2026-10-15T23:51:12.294920+00:00",
+            "forecast_generated_at": "2026-10-15T23:51:10.786807+00:00",
+            "log_loss": 4.416718961696215,
+            "model_id": "name-bound-display",
+            "model_version": "2",
+            "multiclass_brier": 0.9858374123899428,
+            "phase": "DISPLAY_V2",
+            "race_count": 1,
+            "ticket_count": 120,
+            "winner_probability": 0.012073781908241429
+          },
+          {
+            "forecast_cloud_saved_at": "2026-10-15T23:51:12.294920+00:00",
+            "forecast_generated_at": "2026-10-15T23:51:10.786807+00:00",
+            "log_loss": 4.243336884953287,
+            "model_id": "name-bound-original",
+            "model_version": "2",
+            "multiclass_brier": 0.9819415589795787,
+            "phase": "ORIGINAL_V2",
+            "race_count": 1,
+            "ticket_count": 120,
+            "winner_probability": 0.01435959549036743
+          }
+        ],
+        "exactly_recomputed_at_real_as_of": true
+      }
+    },
+    "validation_status": "UNVALIDATED",
+    "physical_exhibition_pairs": 0,
+    "purchase_decision": "skip",
+    "purchase_recommendations": []
+  },
+  "actual_ui": {
+    "recorded_at": "2026-10-16T02:07:21.068390+00:00",
+    "application_commit": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+    "deployment_id": "dpl_HqiX71MmWBkAKs8RW2YJ7m2dxzrm",
+    "race_id": "20261016-14-02",
+    "forecast_request_id": "38825983437-1",
+    "result_request_id": "38838005903-1",
+    "official_top3": [
+      3,
+      1,
+      6
+    ],
+    "pc_width": 1440,
+    "mobile_width": 390,
+    "pc_evaluation_rows": 3,
+    "mobile_evaluation_rows": 3,
+    "own_forecast_number_visible": true,
+    "name_expansion_visible": "5257: 西丸侑太 → 西丸侑太朗",
+    "pc_keyboard_scroll": {
+      "left": 195.1999969482422,
+      "client": 844,
+      "total": 1039,
+      "final_column": "予想クラウド保存"
+    },
+    "mobile_keyboard_scroll": {
+      "left": 621.5999755859375,
+      "client": 314,
+      "total": 936,
+      "final_column": "予想クラウド保存"
+    },
+    "end_key_alone_did_not_scroll": true,
+    "arrow_right_reached_last_column": true,
+    "pc_refresh_start_and_end_retained_rows": 3,
+    "mobile_refresh_start_and_end_retained_rows": 3,
+    "pc_race_switch": {
+      "from": "20261016-14-02",
+      "to": "20261016-14-03",
+      "evaluation_rows": 0,
+      "old_forecast_number_present": false
+    },
+    "mobile_race_switch": {
+      "from": "20261016-14-02",
+      "to": "20261016-14-03",
+      "evaluation_rows": 0,
+      "old_forecast_number_present": false
+    },
+    "viewport_reset": true,
+    "screenshots_emitted": true,
+    "hardware_iphone_test": false,
+    "all274_apis_reread": false,
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "physical_exhibition_pairs": 0
+  },
+  "feature_exact_head": {
+    "recorded_at": "2026-10-16 01:49:00 UTC",
+    "commit": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+    "ci_run_id": 38836133330,
+    "ci_jobs": [
+      {
+        "id": 116765581656,
+        "name": "unit (windows-latest)",
+        "conclusion": "success",
+        "summary": [
+          "2026-10-16T01:39:24.1807185Z # fail 0",
+          "2026-10-16T01:39:24.1808518Z # skipped 0",
+          "2026-10-16T01:45:00.3141997Z Ran 997 tests in 398.660s",
+          "2026-10-16T01:45:00.3142367Z OK",
+          "2026-10-16T01:45:18.6956113Z # tests 195",
+          "2026-10-16T01:45:18.6956436Z # pass 195",
+          "2026-10-16T01:45:18.6956596Z # fail 0",
+          "2026-10-16T01:45:18.6957069Z # skipped 0"
+        ]
+      },
+      {
+        "id": 116765581872,
+        "name": "unit (ubuntu-latest)",
+        "conclusion": "success",
+        "summary": [
+          "2026-10-16T01:38:26.1724711Z # fail 0",
+          "2026-10-16T01:38:26.1725130Z # skipped 0",
+          "2026-10-16T01:41:16.7530467Z Ran 997 tests in 202.569s",
+          "2026-10-16T01:41:16.7530673Z OK",
+          "2026-10-16T01:41:20.0388086Z # tests 195",
+          "2026-10-16T01:41:20.0388297Z # pass 195",
+          "2026-10-16T01:41:20.0388403Z # fail 0",
+          "2026-10-16T01:41:20.0388618Z # skipped 0"
+        ]
+      }
+    ],
+    "deployment": {
+      "id": "dpl_HqiX71MmWBkAKs8RW2YJ7m2dxzrm",
+      "url": "https://race-ai-preview-hhpqwut7w-qq1130034-1738.vercel.app",
+      "state": "READY",
+      "sha": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+      "target": null,
+      "branch": "codex/race-ai-completion"
+    },
+    "api_get_attempts": 6,
+    "cloud_posts": 0,
+    "official_source_requests": 0,
+    "full_bodies_unchanged": [
+      "day",
+      "forecast",
+      "binding",
+      "baseline"
+    ],
+    "exact_result_missing404": true,
+    "wrong_initial_baseline_route_not_absence": true,
+    "new_ui_tested": false,
+    "all274_api_reread": false
+  },
+  "historical_failed_run": {
+    "run_id": 38828308110,
+    "status": "FAILED_STOPPED",
+    "cause_proven": false,
+    "rewritten": false,
+    "retried": false
+  },
+  "current_workflow_trust": {
+    "subject_environment_permissions_serialization_protection_unchanged": true,
+    "new_secret": false,
+    "all_deployments_protection_maintained": true
+  },
+  "aggregate": {
+    "status": "NEW_THREE_RACE_TWO_DAY_OFFLINE_AGGREGATE_FULL_RESTORE",
+    "as_of": "2026-10-16T02:10:43.089393+00:00",
+    "race_count": 3,
+    "day_count": 2,
+    "original_files": 17,
+    "original_bytes": 388170,
+    "output_files": 19,
+    "output_bytes": 397881,
+    "zip_bytes": 87662,
+    "zip_sha256": "60fd9c766ab4bfc0991899c8072c0ac61237f95aabdf456eba3af8cd195fbb06",
+    "full_originals_unchanged": true,
+    "all_content_restored": true,
+    "network_requests": 0,
+    "official_source_requests": 0,
+    "cloud_posts": 0,
+    "report": {
+      "as_of": "2026-10-16T02:10:43.089393+00:00",
+      "calibration_status": "NOT_EVALUATED",
+      "day_count": 2,
+      "evaluated_dates": [
+        "2026-10-15",
+        "2026-10-16"
+      ],
+      "evaluated_race_ids": [
+        "20261015-15-04",
+        "20261015-15-07",
+        "20261016-14-02"
+      ],
+      "excluded": [],
+      "holdout_status": "NOT_ESTABLISHED",
+      "input_count": 3,
+      "model_adoption_status": "NOT_EVALUATED",
+      "models": [
+        {
+          "mean_brier_delta_from_baseline": 0.0,
+          "mean_log_loss": 4.481490657963753,
+          "mean_log_loss_delta_from_baseline": 0.0,
+          "mean_multiclass_brier": 0.9864874367662857,
+          "mean_winner_probability": 0.011745462974130262,
+          "model_id": "official-program-rating-pl",
+          "model_version": "1",
+          "phase": "B_ONLY_BASELINE",
+          "race_count": 3,
+          "ticket_count_per_race": 120
+        },
+        {
+          "mean_brier_delta_from_baseline": -0.001999249021408652,
+          "mean_log_loss": 4.389895810714631,
+          "mean_log_loss_delta_from_baseline": -0.09159484724912244,
+          "mean_multiclass_brier": 0.9844881877448769,
+          "mean_winner_probability": 0.012879355088221132,
+          "model_id": "name-bound-display",
+          "model_version": "2",
+          "phase": "DISPLAY_V2",
+          "race_count": 3,
+          "ticket_count_per_race": 120
+        },
+        {
+          "mean_brier_delta_from_baseline": -0.005525721783573319,
+          "mean_log_loss": 4.255678903815588,
+          "mean_log_loss_delta_from_baseline": -0.22581175414816515,
+          "mean_multiclass_brier": 0.9809617149827123,
+          "mean_winner_probability": 0.014853670392383866,
+          "model_id": "name-bound-original",
+          "model_version": "2",
+          "phase": "ORIGINAL_V2",
+          "race_count": 3,
+          "ticket_count_per_race": 120
+        }
+      ],
+      "observations": [
+        {
+          "archive_kind": "READ_ONLY_EVALUATION",
+          "date_jst": "2026-10-15",
+          "evaluation_sha256": "e653f485a8d1910a05dbc58ba0db91d7a347148f8ba0fd7d1fcd24cdc0a84a46",
+          "exclusion_reason": null,
+          "forecast_request_id": "38699263834-1",
+          "forecast_sha256": "53d56c8445f1089b313e76c81c326a91b9bc2bf946d97dba6a67ba8eee6d3825",
+          "manifest_sha256": "4575fdd9d8c8d4cdf4355c59079eedab4bf9021fda0d7b85fd3782c1d1ce1c0f",
+          "model_rows": [
+            {
+              "forecast_cloud_saved_at": "2026-10-15T03:37:42.772686+00:00",
+              "forecast_generated_at": "2026-10-15T03:37:41.096106+00:00",
+              "log_loss": 4.807484189586476,
+              "model_id": "official-program-rating-pl",
+              "model_version": "1",
+              "multiclass_brier": 0.992292005849442,
+              "phase": "B_ONLY_BASELINE",
+              "race_count": 1,
+              "ticket_count": 120,
+              "winner_probability": 0.008168383974724941
+            },
+            {
+              "forecast_cloud_saved_at": "2026-10-15T07:31:29.954248+00:00",
+              "forecast_generated_at": "2026-10-15T07:31:28.789415+00:00",
+              "log_loss": 4.711657624130029,
+              "model_id": "name-bound-display",
+              "model_version": "2",
+              "multiclass_brier": 0.9905605908629309,
+              "phase": "DISPLAY_V2",
+              "race_count": 1,
+              "ticket_count": 120,
+              "winner_probability": 0.008989863410291173
+            },
+            {
+              "forecast_cloud_saved_at": "2026-10-15T07:31:29.954248+00:00",
+              "forecast_generated_at": "2026-10-15T07:31:28.789415+00:00",
+              "log_loss": 4.637163526472054,
+              "model_id": "name-bound-original",
+              "model_version": "2",
+              "multiclass_brier": 0.9891705634232364,
+              "phase": "ORIGINAL_V2",
+              "race_count": 1,
+              "ticket_count": 120,
+              "winner_probability": 0.009685130318857897
+            }
+          ],
+          "original_evaluation_as_of": "2026-10-15T09:44:50.093237+00:00",
+          "program_sha256": "84983f053ef03945006e212ba43d3ea44155f477d8f748b10ef26d5178c324b0",
+          "race_id": "20261015-15-04",
+          "result_request_id": null,
+          "result_sha256": "65cf65d7a532220a8688fbb3e3051f5cd9bd96d32944be055fb9d9d9897ac2fe",
+          "status": "EVALUATED"
+        },
+        {
+          "archive_kind": "RESULT_PUBLICATION",
+          "date_jst": "2026-10-15",
+          "evaluation_sha256": "3ff42a19f39eecdde14dcf191921ab2045d2b0d9bf6aeb6f169b92c82927050a",
+          "exclusion_reason": null,
+          "forecast_request_id": "38708771146-1",
+          "forecast_sha256": "ad1bbf97ae747ccf42488e5d1a85e430002fd94d0f706a344bf82ada9ec5f6bd",
+          "manifest_sha256": "94de6970dee13d9ceac1c165010201f7527c9a168b1de10fbd81a6f2650eb667",
+          "model_rows": [
+            {
+              "forecast_cloud_saved_at": "2026-10-15T03:43:06.587121+00:00",
+              "forecast_generated_at": "2026-10-15T03:43:04.898884+00:00",
+              "log_loss": 4.139447814436214,
+              "model_id": "official-program-rating-pl",
+              "model_version": "1",
+              "multiclass_brier": 0.9794557900275646,
+              "phase": "B_ONLY_BASELINE",
+              "race_count": 1,
+              "ticket_count": 120,
+              "winner_probability": 0.015931646301203212
+            },
+            {
+              "forecast_cloud_saved_at": "2026-10-15T08:52:49.479151+00:00",
+              "forecast_generated_at": "2026-10-15T08:52:48.321347+00:00",
+              "log_loss": 4.041310846317648,
+              "model_id": "name-bound-display",
+              "model_version": "2",
+              "multiclass_brier": 0.9770665599817572,
+              "phase": "DISPLAY_V2",
+              "race_count": 1,
+              "ticket_count": 120,
+              "winner_probability": 0.017574419946130793
+            },
+            {
+              "forecast_cloud_saved_at": "2026-10-15T08:52:49.479151+00:00",
+              "forecast_generated_at": "2026-10-15T08:52:48.321347+00:00",
+              "log_loss": 3.8865363000214233,
+              "model_id": "name-bound-original",
+              "model_version": "2",
+              "multiclass_brier": 0.9717730225453218,
+              "phase": "ORIGINAL_V2",
+              "race_count": 1,
+              "ticket_count": 120,
+              "winner_probability": 0.020516285367926268
+            }
+          ],
+          "original_evaluation_as_of": "2026-10-15T11:19:58.584791+00:00",
+          "program_sha256": "9c70fea0087ebbabcc1ebef1fb99aeda091660beb1d43ff64115edc266602b2c",
+          "race_id": "20261015-15-07",
+          "result_request_id": "38726468766-1",
+          "result_sha256": "c861d42201798ee5e498f1e8f7ecd01d318826ad83d7c58201ed94b04574dc92",
+          "status": "EVALUATED"
+        },
+        {
+          "archive_kind": "RESULT_PUBLICATION",
+          "date_jst": "2026-10-16",
+          "evaluation_sha256": "a40e7f748447ec059753d1a2209e822f860d121916cfdaad4dba142ccbf58352",
+          "exclusion_reason": null,
+          "forecast_request_id": "38825983437-1",
+          "forecast_sha256": "ac66ceb2880019d3868aacf9ff65049c6113f0ce9ad94854f1e9457a88bdf117",
+          "manifest_sha256": "8a908bf4c2979d3b507858f1b88a4b15db04362afe860a234485bf159af53c08",
+          "model_rows": [
+            {
+              "forecast_cloud_saved_at": "2026-10-15T15:52:55.533703+00:00",
+              "forecast_generated_at": "2026-10-15T15:52:53.913483+00:00",
+              "log_loss": 4.497539969868569,
+              "model_id": "official-program-rating-pl",
+              "model_version": "1",
+              "multiclass_brier": 0.9877145144218503,
+              "phase": "B_ONLY_BASELINE",
+              "race_count": 1,
+              "ticket_count": 120,
+              "winner_probability": 0.011136358646462638
+            },
+            {
+              "forecast_cloud_saved_at": "2026-10-15T23:51:12.294920+00:00",
+              "forecast_generated_at": "2026-10-15T23:51:10.786807+00:00",
+              "log_loss": 4.416718961696215,
+              "model_id": "name-bound-display",
+              "model_version": "2",
+              "multiclass_brier": 0.9858374123899428,
+              "phase": "DISPLAY_V2",
+              "race_count": 1,
+              "ticket_count": 120,
+              "winner_probability": 0.012073781908241429
+            },
+            {
+              "forecast_cloud_saved_at": "2026-10-15T23:51:12.294920+00:00",
+              "forecast_generated_at": "2026-10-15T23:51:10.786807+00:00",
+              "log_loss": 4.243336884953287,
+              "model_id": "name-bound-original",
+              "model_version": "2",
+              "multiclass_brier": 0.9819415589795787,
+              "phase": "ORIGINAL_V2",
+              "race_count": 1,
+              "ticket_count": 120,
+              "winner_probability": 0.01435959549036743
+            }
+          ],
+          "original_evaluation_as_of": "2026-10-16T01:59:35.293363+00:00",
+          "program_sha256": "cff0cbada6fecd5cae83a8264d1b1b8353061edd3dffb474917b7ec6a10babfe",
+          "race_id": "20261016-14-02",
+          "result_request_id": "38838005903-1",
+          "result_sha256": "dffd9754fedb0eb1af42eeb5df8a5a1896b30673b5081a9b33fb9981ce8cf803",
+          "status": "EVALUATED"
+        }
+      ],
+      "operation": "OFFLINE_NAME_BOUND_ARCHIVE_COHORT",
+      "physical_exhibition_timing_verified": false,
+      "purchase_decision": "skip",
+      "purchase_recommendations": [],
+      "race_count": 3,
+      "requested_race_ids": [
+        "20261015-15-04",
+        "20261015-15-07",
+        "20261016-14-02"
+      ],
+      "research_only": true,
+      "schema_version": 1,
+      "scope": "RETROSPECTIVE_ARCHIVE_REPLAY_DIFFERENT_FEATURE_PHASES",
+      "signature_sha256": "f9a9deb74051ad258831a9c0dac870ef80fb8ee6d88df5bdb2a56b459e801725",
+      "snapshot_id": "ce380fb6a064adf4cd7e8d4d2ad33dcc9750d14ca4c0e920753f30d7d4d80655",
+      "status": "EXPLORATORY_AGGREGATE",
+      "validation_status": "UNVALIDATED"
+    },
+    "independent_audit": {
+      "aggregate": [
+        {
+          "mean_brier_delta_from_baseline": "0E-38",
+          "mean_log_loss": "4.48149065796375290539822132396602747758597559848883891",
+          "mean_log_loss_delta_from_baseline": "0E-54",
+          "mean_multiclass_brier": "0.98648743676628568589519764828471668855",
+          "mean_winner_probability": "0.01174546297413026366666666666666666666666666666666666667",
+          "model_id": "official-program-rating-pl",
+          "per_race_log_loss_deltas": [
+            "0E-54",
+            "0E-54",
+            "0E-54"
+          ],
+          "per_race_multiclass_brier_deltas": [
+            "0E-38",
+            "0E-38",
+            "0E-38"
+          ],
+          "phase": "B_ONLY_BASELINE"
+        },
+        {
+          "mean_brier_delta_from_baseline": "-0.00199924902140878405607576088460258754",
+          "mean_log_loss": "4.389895810714630705458873649677381761580714615845695903",
+          "mean_log_loss_delta_from_baseline": "-0.09159484724912219993934767428864571600526098264314300733",
+          "mean_multiclass_brier": "0.98448818774487690183912188740011410101",
+          "mean_winner_probability": "0.01287935508822113166666666666666666666666666666666666667",
+          "model_id": "name-bound-display",
+          "per_race_log_loss_deltas": [
+            "-0.095826565456446593015202835216136581387015075322776081",
+            "-0.098136968118565892825616585205544372683004028196319622",
+            "-0.080821008172354113977223602444256193945763844410333319"
+          ],
+          "per_race_multiclass_brier_deltas": [
+            "-0.00173141498651107360812499808311490056",
+            "-0.00238923004580751010492348986154902041",
+            "-0.00187710203190776845517879470914384165"
+          ],
+          "phase": "DISPLAY_V2"
+        },
+        {
+          "mean_brier_delta_from_baseline": "-0.005525721783573414341917775764920148253333333333333333333",
+          "mean_log_loss": "4.255678903815587970589110399406680639552370039416271097",
+          "mean_log_loss_delta_from_baseline": "-0.2258117541481649348091109245593468380336055590725678117",
+          "mean_multiclass_brier": "0.9809617149827122715532798725197965402966666666666666667",
+          "mean_winner_probability": "0.014853670392383865",
+          "model_id": "name-bound-original",
+          "per_race_log_loss_deltas": [
+            "-0.170320663114422124654670675304205205533745818815254073",
+            "-0.252911514414790464834627296095194395235271391939738583",
+            "-0.254203084915282214938034802278640913331799466462710779"
+          ],
+          "per_race_multiclass_brier_deltas": [
+            "-0.00312144242620577728175695645906697958",
+            "-0.00768276748224276683907798346494401339",
+            "-0.00577295544227169890491838737074945179"
+          ],
+          "phase": "ORIGINAL_V2"
+        }
+      ],
+      "aggregate_as_of": "2026-10-16T02:10:43.089393+00:00",
+      "aggregate_metrics_checked": 15,
+      "all_originals_unchanged": true,
+      "all_restored_bytes_equal": true,
+      "all_zip_bytes_equal": true,
+      "audit_at": "2026-10-16T02:16:37.318964+00:00",
+      "audit_script": {
+        "bytes": 34652,
+        "sha256": "a952c8a2838020ad4c04d3038a87b50c01b5e5bf25029b357375f40cfffd5a0b"
+      },
+      "calibration_status": "NOT_EVALUATED",
+      "cloud_posts": 0,
+      "day_count": 2,
+      "decimal_precision": 55,
+      "evaluated_race_ids": [
+        "20261015-15-04",
+        "20261015-15-07",
+        "20261016-14-02"
+      ],
+      "execution_sha256": "0cff1da7c86259374b03fb57a06e90f4e34b62cf529eb598a448114ecd8bcde1",
+      "file_inventory": {
+        "index.json": {
+          "bytes": 2538,
+          "sha256": "df4c704e9bdcb2fd41cf8097621a0c0bf21dd47cf4b03a8b14e382139308ea91"
+        },
+        "input-001/evaluation.json": {
+          "bytes": 2813,
+          "sha256": "e653f485a8d1910a05dbc58ba0db91d7a347148f8ba0fd7d1fcd24cdc0a84a46"
+        },
+        "input-001/forecast.json": {
+          "bytes": 113892,
+          "sha256": "53d56c8445f1089b313e76c81c326a91b9bc2bf946d97dba6a67ba8eee6d3825"
+        },
+        "input-001/manifest.json": {
+          "bytes": 798,
+          "sha256": "4575fdd9d8c8d4cdf4355c59079eedab4bf9021fda0d7b85fd3782c1d1ce1c0f"
+        },
+        "input-001/program.json": {
+          "bytes": 2171,
+          "sha256": "84983f053ef03945006e212ba43d3ea44155f477d8f748b10ef26d5178c324b0"
+        },
+        "input-001/result.json": {
+          "bytes": 4958,
+          "sha256": "65cf65d7a532220a8688fbb3e3051f5cd9bd96d32944be055fb9d9d9897ac2fe"
+        },
+        "input-002/evaluation.json": {
+          "bytes": 2815,
+          "sha256": "3ff42a19f39eecdde14dcf191921ab2045d2b0d9bf6aeb6f169b92c82927050a"
+        },
+        "input-002/forecast.json": {
+          "bytes": 114084,
+          "sha256": "ad1bbf97ae747ccf42488e5d1a85e430002fd94d0f706a344bf82ada9ec5f6bd"
+        },
+        "input-002/manifest.json": {
+          "bytes": 977,
+          "sha256": "94de6970dee13d9ceac1c165010201f7527c9a168b1de10fbd81a6f2650eb667"
+        },
+        "input-002/program.json": {
+          "bytes": 2164,
+          "sha256": "9c70fea0087ebbabcc1ebef1fb99aeda091660beb1d43ff64115edc266602b2c"
+        },
+        "input-002/request.json": {
+          "bytes": 5617,
+          "sha256": "dd9c19c4dd17388ebd4638ff4a8aad2cbd25539761dd4caefbff7766016ee9b0"
+        },
+        "input-002/result.json": {
+          "bytes": 5991,
+          "sha256": "c861d42201798ee5e498f1e8f7ecd01d318826ad83d7c58201ed94b04574dc92"
+        },
+        "input-003/evaluation.json": {
+          "bytes": 2813,
+          "sha256": "a40e7f748447ec059753d1a2209e822f860d121916cfdaad4dba142ccbf58352"
+        },
+        "input-003/forecast.json": {
+          "bytes": 114137,
+          "sha256": "ac66ceb2880019d3868aacf9ff65049c6113f0ce9ad94854f1e9457a88bdf117"
+        },
+        "input-003/manifest.json": {
+          "bytes": 1041,
+          "sha256": "8a908bf4c2979d3b507858f1b88a4b15db04362afe860a234485bf159af53c08"
+        },
+        "input-003/program.json": {
+          "bytes": 2165,
+          "sha256": "cff0cbada6fecd5cae83a8264d1b1b8353061edd3dffb474917b7ec6a10babfe"
+        },
+        "input-003/request.json": {
+          "bytes": 5680,
+          "sha256": "f67ebcd73352b077a4381dc8edc8b5d13882f03c1b057e7857b6cc47e9cbdf25"
+        },
+        "input-003/result.json": {
+          "bytes": 6054,
+          "sha256": "dffd9754fedb0eb1af42eeb5df8a5a1896b30673b5081a9b33fb9981ce8cf803"
+        },
+        "report.json": {
+          "bytes": 7173,
+          "sha256": "77c93e07046721de8cead6ef21515f7d190601db63b92abfaee82c43f95e20d6"
+        }
+      },
+      "formal_completion": false,
+      "holdout_status": "NOT_ESTABLISHED",
+      "index_bytes": 2538,
+      "index_sha256": "df4c704e9bdcb2fd41cf8097621a0c0bf21dd47cf4b03a8b14e382139308ea91",
+      "max_absolute_errors": {
+        "aggregate_delta_mean": "2.4006065232571135428399473901735685699267E-16",
+        "aggregate_mean": "2.94541126350322618238419285384154304097E-16",
+        "per_race_log_loss": "3.34244074551164002861987109265730026555E-16",
+        "per_race_multiclass_brier": "1.4783668514946847708390E-16",
+        "per_race_winner_probability": "0"
+      },
+      "method": "STDLIB_ONLY_DECIMAL55_FROM_STORED_120_TICKETS_NO_PRODUCTION_EVALUATOR",
+      "model_adoption_status": "NOT_EVALUATED",
+      "network_requests": 0,
+      "official_source_requests": 0,
+      "open_findings": 0,
+      "original_bytes": 388170,
+      "original_evaluation_clocks_preserved": true,
+      "original_files": 17,
+      "output_bytes": 397881,
+      "output_files": 19,
+      "per_race": [
+        {
+          "date_jst": "2026-10-15",
+          "models": [
+            {
+              "log_loss": "4.807484189586475927259277386380139443374124341052802636",
+              "model_id": "official-program-rating-pl",
+              "multiclass_brier": "0.99229200584944203124780245678880785658",
+              "phase": "B_ONLY_BASELINE",
+              "winner_probability": "0.008168383974724941"
+            },
+            {
+              "log_loss": "4.711657624130029334244074551164002861987109265730026555",
+              "model_id": "name-bound-display",
+              "multiclass_brier": "0.99056059086293095763967745870569295602",
+              "phase": "DISPLAY_V2",
+              "winner_probability": "0.008989863410291173"
+            },
+            {
+              "log_loss": "4.637163526472053802604606711075934237840378522237548563",
+              "model_id": "name-bound-original",
+              "multiclass_brier": "0.98917056342323625396604550032974087700",
+              "phase": "ORIGINAL_V2",
+              "winner_probability": "0.009685130318857897"
+            }
+          ],
+          "original_evaluation_as_of": "2026-10-15T09:44:50.093237+00:00",
+          "race_id": "20261015-15-04",
+          "top3": [
+            2,
+            3,
+            1
+          ]
+        },
+        {
+          "date_jst": "2026-10-15",
+          "models": [
+            {
+              "log_loss": "4.139447814436213773388253377594508359512118260401444304",
+              "model_id": "official-program-rating-pl",
+              "multiclass_brier": "0.97945579002756460581929684282467545132",
+              "phase": "B_ONLY_BASELINE",
+              "winner_probability": "0.015931646301203212"
+            },
+            {
+              "log_loss": "4.041310846317647880562636792388963986829114232205124682",
+              "model_id": "name-bound-display",
+              "multiclass_brier": "0.97706655998175709571437335296312643091",
+              "phase": "DISPLAY_V2",
+              "winner_probability": "0.017574419946130793"
+            },
+            {
+              "log_loss": "3.886536300021423308553626081499313964276846868461705721",
+              "model_id": "name-bound-original",
+              "multiclass_brier": "0.97177302254532183898021885935973143793",
+              "phase": "ORIGINAL_V2",
+              "winner_probability": "0.020516285367926268"
+            }
+          ],
+          "original_evaluation_as_of": "2026-10-15T11:19:58.584791+00:00",
+          "race_id": "20261015-15-07",
+          "top3": [
+            2,
+            1,
+            4
+          ]
+        },
+        {
+          "date_jst": "2026-10-16",
+          "models": [
+            {
+              "log_loss": "4.497539969868569015547133207923434629871684194012269789",
+              "model_id": "official-program-rating-pl",
+              "multiclass_brier": "0.98771451442185042061849364524066675775",
+              "phase": "B_ONLY_BASELINE",
+              "winner_probability": "0.011136358646462638"
+            },
+            {
+              "log_loss": "4.416718961696214901569909605479178435925920349601936470",
+              "model_id": "name-bound-display",
+              "multiclass_brier": "0.98583741238994265216331485053152291610",
+              "phase": "DISPLAY_V2",
+              "winner_probability": "0.012073781908241429"
+            },
+            {
+              "log_loss": "4.243336884953286800609098405644793716539884727549559010",
+              "model_id": "name-bound-original",
+              "multiclass_brier": "0.98194155897957872171357525786991730596",
+              "phase": "ORIGINAL_V2",
+              "winner_probability": "0.01435959549036743"
+            }
+          ],
+          "original_evaluation_as_of": "2026-10-16T01:59:35.293363+00:00",
+          "race_id": "20261016-14-02",
+          "top3": [
+            3,
+            1,
+            6
+          ]
+        }
+      ],
+      "per_race_models": 9,
+      "per_race_scores_checked": 27,
+      "physical_exhibition_pairs": 0,
+      "physical_exhibition_timing_verified": false,
+      "purchase_decision": "skip",
+      "purchase_recommendations": [],
+      "race_count": 3,
+      "raw_source_hashes_recomputed": false,
+      "report_bytes": 7173,
+      "report_sha256": "77c93e07046721de8cead6ef21515f7d190601db63b92abfaee82c43f95e20d6",
+      "report_snapshot_id": "ce380fb6a064adf4cd7e8d4d2ad33dcc9750d14ca4c0e920753f30d7d4d80655",
+      "restored_at": "2026-10-16T02:10:48.168498+00:00",
+      "returned_at": "2026-10-16T02:10:45.648261+00:00",
+      "started_at": "2026-10-16T02:10:43.021993+00:00",
+      "status": "PASS",
+      "ticket_probabilities_checked": 1080,
+      "validation_status": "UNVALIDATED",
+      "zip_bytes": 87662,
+      "zip_sha256": "60fd9c766ab4bfc0991899c8072c0ac61237f95aabdf456eba3af8cd195fbb06"
+    },
+    "new_ui_or_api_connected": false,
+    "old_two_race_aggregate_unchanged": true
+  },
+  "review_reports": {
+    "result-v2-workflow-bound-review.md": {
+      "bytes": 5328,
+      "sha256": "584dcf5749117c60dfa10b9063bfe104a3dbb688780680cb689a3123e866b538"
+    },
+    "result-v2-dispatch-bound-review.md": {
+      "bytes": 3195,
+      "sha256": "fbe0cd89ff12ce2108da33ac6ba2e9d880e33da9f41633590b294e888e3ba201"
+    },
+    "naruto2-result-v2-artifact-audit.md": {
+      "bytes": 5271,
+      "sha256": "e6a7d392cb79301c5e5380673ce5d8b6598f9676d940b961a78d3c2898eadf18"
+    },
+    "archived-cohort-three-helper-review.md": {
+      "bytes": 7308,
+      "sha256": "3a59ed9915922558e6342e345c265d6d0ac10e769f8fa51b4811e4ca6068ae7a"
+    },
+    "archived-cohort-three-independent-audit.md": {
+      "bytes": 6115,
+      "sha256": "f68972ec43d53b9430d886199def822624df4c44cb767be942a755672416565c"
+    }
+  },
+  "final_evidence_head_ci_preview_pending_at_recorded_at": true,
+  "day_last_real_acquisition": "2026-10-16T06:37:05.445882+09:00",
+  "baseline_count": 274,
+  "physical_exhibition_pairs": 0,
+  "validation_status": "UNVALIDATED",
+  "purchase_decision": "skip",
+  "purchase_recommendations": [],
+  "calibration_status": "NOT_EVALUATED",
+  "holdout_status": "NOT_ESTABLISHED",
+  "model_adoption_status": "NOT_EVALUATED",
+  "video_boat_identity_world_calibration_measurement_unverified": true,
+  "formal_completion": false
+}

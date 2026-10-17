@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "result": "REAL_PUBLIC_EXHIBITION_METADATA_RESOLVED",
+  "descriptor": {
+    "schema_version": 1,
+    "race_id": "20261015-14-06",
+    "closed_at": "2026-10-15T01:52:00.000000+00:00",
+    "program_identity_sha256": "c1b4d993791c0c4ef2eb3c062a81467206aab5cee318bee4c8cc964f82eceba4",
+    "stadium": "14naruto",
+    "project_id": "cp-boatrace-prod",
+    "recording_ref": "mix-14naruto-exhibition-20261015-06",
+    "status": "AVAILABLE",
+    "sources": [
+      {
+        "component": "recording_index",
+        "source_url": "https://front.player.boatrace-cdn.jp/setting/vod/20261015/14naruto/exhibition/setting.json",
+        "source_sha256": "c9cedcf30a98dbbc0492d3c84a025aadc2c8e8a7995686f682c5bfb89e970cc7",
+        "captured_at": "2026-10-15T01:43:57.234292+00:00",
+        "available_at": "2026-10-15T01:43:57.234292+00:00"
+      },
+      {
+        "component": "playback_metadata",
+        "source_url": "https://playback.api.streaks.jp/v1/projects/cp-boatrace-prod/medias/ref:mix-14naruto-exhibition-20261015-06",
+        "source_sha256": "796147bcf66fe4ec279a39cc6747c872e4d7fabcebdbd02d5aef5bf68b9211d9",
+        "captured_at": "2026-10-15T01:43:57.488316+00:00",
+        "available_at": "2026-10-15T01:43:57.488316+00:00"
+      }
+    ],
+    "recording_index_last_update": "2026-10-15T01:33:30.000000+00:00",
+    "media": {
+      "id": "de52bef6aca04779bafa72ec5e97bbb1",
+      "source_id": "9b727ec424a34d5f8947cca550a91b10",
+      "type": "clip",
+      "duration_metadata_raw": 348,
+      "duration_metadata_unit": "SOURCE_RAW_UNIT_NOT_CONFIRMED",
+      "duration_player_observed_seconds": null,
+      "duration_comparison": "DISTINCT_SOURCE_OBSERVATIONS",
+      "offline_enabled": true,
+      "stream_type": "application/x-mpegURL",
+      "source_url_without_query": "https://manifest.streaks.jp/v6/cp-boatrace-prod/de52bef6aca04779bafa72ec5e97bbb1/9b727ec424a34d5f8947cca550a91b10/hls/v3/manifest.m3u8"
+    },
+    "model_validation_status": "UNVALIDATED",
+    "boat_features": "NONE",
+    "capture_eligible_pre_race": true,
+    "snapshot_id": "3e3b68af7d5733a0625e03a83e5bd3ff88821bc58c79f13aab17e95471af8756"
+  },
+  "no_raw_source_persistence": true,
+  "media_segments_fetched": 0,
+  "boat_analysis_verified": false,
+  "used_in_forecast": false,
+  "manifest_inspection": {
+    "status": "PUBLIC_MASTER_MANIFEST_READ",
+    "bytes": 1959,
+    "sha256": "7fb0014bd6a98183151f2445d605ca71988efd5f1f1e968fbb6d09eddfc473ea",
+    "captured_at": "2026-10-15T01:43:57.728856+00:00",
+    "master_playlist": true,
+    "encryption_key_tag_present": false,
+    "raw_manifest_persisted": false,
+    "segments_fetched": 0
+  }
+}

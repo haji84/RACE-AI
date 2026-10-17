@@ -1,0 +1,30 @@
+{
+  "status": "LIVE_BROWSER_VALID_REPORT_REJECTED_BY_STRICT_CLIENT_CLOCK_CHECK",
+  "application_commit": "447a75df2ed37822fb15c42273dbe7eaf31934d5",
+  "deployment_url": "https://race-ai-preview-pppftpv13-qq1130034-1738.vercel.app",
+  "race_id": "20261015-15-04",
+  "forecast_request_id": "38699263834-1",
+  "browser_observed_at": "2026-10-15T09:02:39.263Z",
+  "api_report_as_of": "2026-10-15T09:02:40.525968+00:00",
+  "browser_minus_Date_parse_report_ms": -1261,
+  "api_status": "EVALUATED",
+  "same_saved_forecast_and_result": true,
+  "delayed_node_replay_matches": true,
+  "decorated_app_program_node_replay_matches": true,
+  "raw_source_reacquired": false,
+  "forecast_or_result_write": false,
+  "correction": "At most60000ms positive remote-report clock skew only; timestamps/internal ordering/sameJST/server validation/monotonic180s unchanged",
+  "fixed_live_verified": true,
+  "fixed_commit": "558240bb52140d49097f81dd05f05e9d659d9656",
+  "fixed_deployment_id": "dpl_D1pPw1XNkmNkwZajy2i57v7MSobh",
+  "fixed_url": "https://race-ai-preview-bgajnjvyu-qq1130034-1738.vercel.app",
+  "desktop_width": 1440,
+  "mobile_width": 390,
+  "actual_three_rows": true,
+  "actual_top3": [
+    2,
+    3,
+    1
+  ],
+  "page_horizontal_overflow": false
+}

@@ -1,0 +1,769 @@
+{
+  "kind": "synthetic_offline_chronological_training",
+  "observed_at": "2026-10-14T18:45:43.299992+00:00",
+  "synthetic_only": true,
+  "live_accuracy_evidence": false,
+  "actual_pre_race_performance": false,
+  "source": "Twelve synthetic six-boat records; four train, four validation, four final-test races.",
+  "artifact_reproduces_after_input_reordering": true,
+  "artifact_unchanged_after_final_label_perturbation": true,
+  "original_final_fitted_log_loss": 0.024760061276322503,
+  "perturbed_final_fitted_log_loss": 57.63987164408085,
+  "limits": "Demonstrates software learning/holdout separation only, not racing accuracy, real source rights, actual pre-race observation or adoption.",
+  "run": {
+    "artifact": {
+      "format_version": 1,
+      "implementation_version": "linear-pl-research-v1",
+      "model_id": "linear-plackett-luce-research",
+      "feature_names": [
+        "historical_win_rate"
+      ],
+      "feature_schema": {
+        "historical_win_rate": {
+          "minimum": 0,
+          "maximum": 1,
+          "meaning": "past-only first-place fraction"
+        }
+      },
+      "scaler": {
+        "mean": [
+          0.35000000000000003
+        ],
+        "scale": [
+          0.1707825127659933
+        ],
+        "standardized_clip": 8.0
+      },
+      "weights": [
+        4.099855637251851
+      ],
+      "score_clip": 20.0,
+      "selected_model": "linear_plackett_luce",
+      "selection_reason": "validation_log_loss_improved_over_uniform",
+      "temperature": 0.5,
+      "fitted_candidate_temperature": 0.5,
+      "calibration": {
+        "method": "validation_only_temperature_grid",
+        "grid": [
+          0.5,
+          1.0,
+          2.0
+        ],
+        "validation_log_loss": 0.024760061276323242,
+        "uniform_validation_log_loss": 4.787491742782046
+      },
+      "optimizer": {
+        "method": "deterministic_full_batch_gradient_descent_with_backtracking",
+        "epochs": 100,
+        "learning_rate": 0.1,
+        "l2": 0.02,
+        "iterations": 100,
+        "initial_objective": 4.787491742782046,
+        "final_objective": 0.45312538039820704,
+        "objective": "mean_top3_negative_log_likelihood_plus_half_l2_squared_weights"
+      },
+      "training_label_cutoff": "2026-10-01T08:00:00.000000+00:00",
+      "calibration_label_cutoff": "2026-10-01T16:00:00.000000+00:00",
+      "training_dataset_sha256": "485e0930e29dab1d59f457a77d405ddbc75658c020756472c3413e319a66b1ce",
+      "validation_dataset_sha256": "aa8a039000eae8f59449771ba794144b8031ebe6f0b73966cad33c4133a6c7f6",
+      "training_race_ids": [
+        "synthetic-00",
+        "synthetic-01",
+        "synthetic-02",
+        "synthetic-03"
+      ],
+      "validation_race_ids": [
+        "synthetic-04",
+        "synthetic-05",
+        "synthetic-06",
+        "synthetic-07"
+      ],
+      "source_kinds": [
+        "synthetic"
+      ],
+      "uses_odds": false,
+      "validation_status": "UNVALIDATED",
+      "research_only": true,
+      "eligible_for_live_recommendations": false,
+      "artifact_sha256": "70ed5b127dc02234bbd0442bf2d8099075882e8f94a9b3b253e945fd5fd12b77"
+    },
+    "manifest": {
+      "artifact_sha256": "70ed5b127dc02234bbd0442bf2d8099075882e8f94a9b3b253e945fd5fd12b77",
+      "created_at": "2026-10-14T18:45:43.115938+00:00",
+      "kind": "actual_offline_training_execution",
+      "retrospective_evaluation": true,
+      "manifest_sha256": "c28dc965405c8e36ca73abffc7bcabf1ee8267fdfa35503ecfaef8b0a3be5dc6"
+    },
+    "report": {
+      "configuration": {
+        "feature_names": [
+          "historical_win_rate"
+        ],
+        "train_end_at": "2026-10-01T08:00:00.000000+00:00",
+        "validation_end_at": "2026-10-01T16:00:00.000000+00:00",
+        "evaluation_as_of": "2026-10-02T01:00:00.000000+00:00",
+        "epochs": 100,
+        "learning_rate": 0.1,
+        "l2": 0.02,
+        "temperature_grid": [
+          0.5,
+          1.0,
+          2.0
+        ],
+        "calibration_bins": 10
+      },
+      "dataset_sha256": "db0dc17b7f6efb644f4f73f58c2f38a28da53125502c8b3e800186f6dbc49312",
+      "splits": {
+        "train": [
+          "synthetic-00",
+          "synthetic-01",
+          "synthetic-02",
+          "synthetic-03"
+        ],
+        "validation": [
+          "synthetic-04",
+          "synthetic-05",
+          "synthetic-06",
+          "synthetic-07"
+        ],
+        "final_test": [
+          "synthetic-08",
+          "synthetic-09",
+          "synthetic-10",
+          "synthetic-11"
+        ]
+      },
+      "excluded": [],
+      "metrics": {
+        "train": {
+          "uniform": {
+            "model_id": "uniform",
+            "model_version": "offline-research",
+            "race_count": 4,
+            "ticket_count": 480,
+            "race_ids": [
+              "synthetic-00",
+              "synthetic-01",
+              "synthetic-02",
+              "synthetic-03"
+            ],
+            "multiclass_brier": 0.9916666666666667,
+            "log_loss": 4.787491742782046,
+            "calibration": [
+              {
+                "lower": 0.0,
+                "upper": 0.1,
+                "sample_count": 480,
+                "positive_count": 4,
+                "mean_probability": 0.008333333333333309,
+                "observed_frequency": 0.008333333333333333
+              },
+              {
+                "lower": 0.1,
+                "upper": 0.2,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.2,
+                "upper": 0.3,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.3,
+                "upper": 0.4,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.4,
+                "upper": 0.5,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.5,
+                "upper": 0.6,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.6,
+                "upper": 0.7,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.7,
+                "upper": 0.8,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.8,
+                "upper": 0.9,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.9,
+                "upper": 1.0,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              }
+            ],
+            "validation_status": "UNVALIDATED",
+            "selection_reasons": [
+              "retrospective_same_cohort_comparison"
+            ]
+          },
+          "fitted": {
+            "model_id": "fitted",
+            "model_version": "offline-research",
+            "race_count": 4,
+            "ticket_count": 480,
+            "race_ids": [
+              "synthetic-00",
+              "synthetic-01",
+              "synthetic-02",
+              "synthetic-03"
+            ],
+            "multiclass_brier": 0.0007931211205707846,
+            "log_loss": 0.024760061276322503,
+            "calibration": [
+              {
+                "lower": 0.0,
+                "upper": 0.1,
+                "sample_count": 476,
+                "positive_count": 0,
+                "mean_probability": 0.00020551298554080202,
+                "observed_frequency": 0.0
+              },
+              {
+                "lower": 0.1,
+                "upper": 0.2,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.2,
+                "upper": 0.3,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.3,
+                "upper": 0.4,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.4,
+                "upper": 0.5,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.5,
+                "upper": 0.6,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.6,
+                "upper": 0.7,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.7,
+                "upper": 0.8,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.8,
+                "upper": 0.9,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.9,
+                "upper": 1.0,
+                "sample_count": 4,
+                "positive_count": 4,
+                "mean_probability": 0.9755439547206444,
+                "observed_frequency": 1.0
+              }
+            ],
+            "validation_status": "UNVALIDATED",
+            "selection_reasons": [
+              "retrospective_same_cohort_comparison"
+            ]
+          }
+        },
+        "validation": {
+          "uniform": {
+            "model_id": "uniform",
+            "model_version": "offline-research",
+            "race_count": 4,
+            "ticket_count": 480,
+            "race_ids": [
+              "synthetic-04",
+              "synthetic-05",
+              "synthetic-06",
+              "synthetic-07"
+            ],
+            "multiclass_brier": 0.9916666666666667,
+            "log_loss": 4.787491742782046,
+            "calibration": [
+              {
+                "lower": 0.0,
+                "upper": 0.1,
+                "sample_count": 480,
+                "positive_count": 4,
+                "mean_probability": 0.008333333333333309,
+                "observed_frequency": 0.008333333333333333
+              },
+              {
+                "lower": 0.1,
+                "upper": 0.2,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.2,
+                "upper": 0.3,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.3,
+                "upper": 0.4,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.4,
+                "upper": 0.5,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.5,
+                "upper": 0.6,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.6,
+                "upper": 0.7,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.7,
+                "upper": 0.8,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.8,
+                "upper": 0.9,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.9,
+                "upper": 1.0,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              }
+            ],
+            "validation_status": "UNVALIDATED",
+            "selection_reasons": [
+              "retrospective_same_cohort_comparison"
+            ]
+          },
+          "fitted": {
+            "model_id": "fitted",
+            "model_version": "offline-research",
+            "race_count": 4,
+            "ticket_count": 480,
+            "race_ids": [
+              "synthetic-04",
+              "synthetic-05",
+              "synthetic-06",
+              "synthetic-07"
+            ],
+            "multiclass_brier": 0.0007931211205707846,
+            "log_loss": 0.024760061276322503,
+            "calibration": [
+              {
+                "lower": 0.0,
+                "upper": 0.1,
+                "sample_count": 476,
+                "positive_count": 0,
+                "mean_probability": 0.00020551298554080202,
+                "observed_frequency": 0.0
+              },
+              {
+                "lower": 0.1,
+                "upper": 0.2,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.2,
+                "upper": 0.3,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.3,
+                "upper": 0.4,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.4,
+                "upper": 0.5,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.5,
+                "upper": 0.6,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.6,
+                "upper": 0.7,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.7,
+                "upper": 0.8,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.8,
+                "upper": 0.9,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.9,
+                "upper": 1.0,
+                "sample_count": 4,
+                "positive_count": 4,
+                "mean_probability": 0.9755439547206444,
+                "observed_frequency": 1.0
+              }
+            ],
+            "validation_status": "UNVALIDATED",
+            "selection_reasons": [
+              "retrospective_same_cohort_comparison"
+            ]
+          }
+        },
+        "final_test": {
+          "uniform": {
+            "model_id": "uniform",
+            "model_version": "offline-research",
+            "race_count": 4,
+            "ticket_count": 480,
+            "race_ids": [
+              "synthetic-08",
+              "synthetic-09",
+              "synthetic-10",
+              "synthetic-11"
+            ],
+            "multiclass_brier": 0.9916666666666667,
+            "log_loss": 4.787491742782046,
+            "calibration": [
+              {
+                "lower": 0.0,
+                "upper": 0.1,
+                "sample_count": 480,
+                "positive_count": 4,
+                "mean_probability": 0.008333333333333309,
+                "observed_frequency": 0.008333333333333333
+              },
+              {
+                "lower": 0.1,
+                "upper": 0.2,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.2,
+                "upper": 0.3,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.3,
+                "upper": 0.4,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.4,
+                "upper": 0.5,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.5,
+                "upper": 0.6,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.6,
+                "upper": 0.7,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.7,
+                "upper": 0.8,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.8,
+                "upper": 0.9,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.9,
+                "upper": 1.0,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              }
+            ],
+            "validation_status": "UNVALIDATED",
+            "selection_reasons": [
+              "retrospective_same_cohort_comparison"
+            ]
+          },
+          "fitted": {
+            "model_id": "fitted",
+            "model_version": "offline-research",
+            "race_count": 4,
+            "ticket_count": 480,
+            "race_ids": [
+              "synthetic-08",
+              "synthetic-09",
+              "synthetic-10",
+              "synthetic-11"
+            ],
+            "multiclass_brier": 0.0007931211205707846,
+            "log_loss": 0.024760061276322503,
+            "calibration": [
+              {
+                "lower": 0.0,
+                "upper": 0.1,
+                "sample_count": 476,
+                "positive_count": 0,
+                "mean_probability": 0.00020551298554080202,
+                "observed_frequency": 0.0
+              },
+              {
+                "lower": 0.1,
+                "upper": 0.2,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.2,
+                "upper": 0.3,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.3,
+                "upper": 0.4,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.4,
+                "upper": 0.5,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.5,
+                "upper": 0.6,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.6,
+                "upper": 0.7,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.7,
+                "upper": 0.8,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.8,
+                "upper": 0.9,
+                "sample_count": 0,
+                "positive_count": 0,
+                "mean_probability": null,
+                "observed_frequency": null
+              },
+              {
+                "lower": 0.9,
+                "upper": 1.0,
+                "sample_count": 4,
+                "positive_count": 4,
+                "mean_probability": 0.9755439547206444,
+                "observed_frequency": 1.0
+              }
+            ],
+            "validation_status": "UNVALIDATED",
+            "selection_reasons": [
+              "retrospective_same_cohort_comparison"
+            ]
+          }
+        }
+      },
+      "selected_research_model": "linear_plackett_luce",
+      "selection_reason": "validation_log_loss_improved_over_uniform",
+      "retrospective_research": true,
+      "actual_pre_race_performance": false,
+      "validation_status": "UNVALIDATED",
+      "allocation_gate": {
+        "bets": [],
+        "total_stake_yen": 0,
+        "budget_yen": 0,
+        "remaining_budget_yen": 0,
+        "allocation_percent": [],
+        "expected_payout_yen": "0",
+        "expected_profit_yen": "0",
+        "expected_roi_percent": null,
+        "status": "skip",
+        "reason": "model_unvalidated_or_data_incomplete"
+      },
+      "limitations": [
+        "Synthetic or source-attested offline labels do not establish live held-out accuracy.",
+        "Final-test inspection must not be reused to tune or promote this artifact.",
+        "Calibration is fitted on validation only; sample sizes and uncertainty remain material."
+      ]
+    }
+  }
+}
