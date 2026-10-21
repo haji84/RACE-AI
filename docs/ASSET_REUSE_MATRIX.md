@@ -32,4 +32,3 @@ KEIRIN-AI: main `c922c56079d087ee34e6ec4533bf0c135b9427e7` README only; PR1 `574
 
 main README → extracted pure ranking kernel → sport/snapshot adapter + synthetic journal → credential-free synthetic hosted workflow.
 No stack-wide merge/rebase/force-push. Future real collector → authenticated external immutable writer → independent persisted-time witness must be separately admitted.
-

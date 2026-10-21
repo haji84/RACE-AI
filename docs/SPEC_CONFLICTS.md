@@ -16,4 +16,3 @@ Authority: user instruction + Issue68 comment6315990805 + PR61 fef6860 amendment
 |SQLite simulation vs production immutable truth|This unit deliberately accepts synthetic-only. Chain/triggers/transactions/backup/clock checks are tested, but local state or Actions artifacts are not the production database. Trusted external timestamps, multi-run cloud restore and continuously observed operation remain unverified.|
 
 98% Hit@8_all is an unvalidated challenge goal. Synthetic 3/5 only tests arithmetic and excludes no real failures; it is not real accuracy, calibrated probability, improvement or a 98% feasibility claim.
-

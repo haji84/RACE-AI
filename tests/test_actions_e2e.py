@@ -400,6 +400,11 @@ j.close()
         self.assertEqual(self.store.events("result")[0]["payload"]["winning_combinations"],[[1,2,3]])
         self.store.verify()
 
+    def test_review_undiscovered_no_forecast_rejected_before_append(self):
+        with self.assertRaises(ContractError):
+            self.store.no_forecast(fixture("boat",6),"SOURCE_BLOCKED")
+        self.assertEqual(self.store.events(),[])
+        self.store.verify()
+
 if __name__ == "__main__":
     unittest.main()
-

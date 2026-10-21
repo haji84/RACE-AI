@@ -22,4 +22,3 @@ Root and known web-root `vercel.json` disable Git deployments. [Official configu
 Before merge: confirm exact head/base and required CI; authorized independent reviewer/GORIQ gate; branch protection; inspect no Production auto-deploy and the exact Git config readback. A successful synthetic job or technical agent review alone never authorizes main merge. Then admit one real permitted collector/writer route with current rights, purpose, budget, real sales cutoff and external receipt; do not reuse old day/nonce/witness.
 
 See [reuse audit](ASSET_REUSE_MATRIX.md), [conflict decisions](SPEC_CONFLICTS.md), [source gates](SOURCE_PERMISSION_MATRIX.md), and [completion evidence](ACTIONS_EXECUTION_STATE.json).
-

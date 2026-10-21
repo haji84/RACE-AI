@@ -15,4 +15,3 @@ Required admission record for each real provider: exact provider/URLs, collectio
 Source identity and freshness must accompany normalized facts: sport/organizer/venue/meeting/JST date/race number/revision, participant IDs, status/offering, actual sales cutoff distinct from start, published/observed/fetched/registered/as-of, source hash/transform/permission ID, unavailable reasons. Each sport's real coverage remains UNKNOWN, not 0 or no-event. Discovery failure cannot delete a race or prove no meeting.
 
 Current blockers: canonical permitted adapters for each sport, external private append-only writer/current authorization and independent persistence-time receipt, approved budget enforcement and cross-run restore; actual future pre-cutoff/official-result E2E for each sport. Prior PR64 held33 are not a workaround. No current real-data E2E is claimed.
-

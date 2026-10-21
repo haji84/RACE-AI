@@ -31,4 +31,3 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Run four sport synthetic vertical E2E
         run: python -m race_ai.synthetic_e2e
-

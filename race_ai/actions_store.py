@@ -178,8 +178,11 @@ class SyntheticJournal:
         s=validate_snapshot(snapshot,require_features=False)
         if reason not in ("MISSING_FEATURES","MISSED_DEADLINE","SOURCE_BLOCKED"):
             raise ContractError("explicit no-forecast reason required")
+        def check(now):
+            if not any(canonical(event["payload"])==canonical(s) for event in self.events("race")):
+                raise ContractError("no-forecast must bind an exact discovered snapshot")
         return self._append("no_forecast",f'no_forecast:{race_key(s)}:{s["revision"]}',
-                            {"race_key":race_key(s),"race_revision":s["revision"],"reason":reason})
+                            {"race_key":race_key(s),"race_revision":s["revision"],"reason":reason},check)
 
     def result(self,snapshot,*,revision,status,winning_combinations):
         s=validate_snapshot(snapshot,require_features=False)
@@ -231,4 +234,3 @@ class SyntheticJournal:
         out=sqlite3.connect(str(target))
         try: self.db.backup(out)
         finally: out.close()
-

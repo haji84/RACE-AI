@@ -121,4 +121,3 @@ def forecast(raw):
            "scope":"SYNTHETIC_ONLY","purchase_decision":"NO_BET"}
     value["prediction_hash"]=digest(value)
     return value
-
