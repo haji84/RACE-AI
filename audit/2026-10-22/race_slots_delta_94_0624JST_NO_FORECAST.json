@@ -1,0 +1,1846 @@
+{
+  "schema": "RACE_AI_2026_10_22_DISCOVERY_DELTA_V1",
+  "event_date_jst": "2026-10-22",
+  "observation_label_jst": "2026-10-22 early morning, approximately 06:24",
+  "classification": "PARTIAL_INDEX_AUDIT_UNVERIFIED_PER_RACE_INPUT_NO_FORECAST",
+  "owner_issue": "https://github.com/haji84/RACE-AI/issues/67",
+  "already_persisted_github": "https://github.com/haji84/RACE-AI/blob/audit/2026-10-21-precutoff-shadows/audit/2026-10-22/race_slots_partial_earlyJST.json",
+  "github_write_status_this_run": "BLOCKED_BY_TOOL_SAFETY_CHECK",
+  "github_written_this_run": false,
+  "this_file_is_not_precutoff_forecast": true,
+  "evidence_urls": [
+    "https://www.winticket.jp/keirin/racecard/20261022",
+    "https://keirinhex.jp/races/",
+    "https://www.winticket.jp/autorace/results",
+    "https://www.iizuka-auto.jp/",
+    "https://www.isesaki-auto.jp/race/racelist/",
+    "https://www.keirin-saitama.jp/omiya/",
+    "https://sr.netkeiba.com/keirin/maintenance_20261021.html",
+    "https://keirin.kdreams.jp/kaisai/2026/10/22/"
+  ],
+  "basis": "Human-directed public schedule index review; only own summary of venue/race numbers stored. Not permission for automated fetching, training, retention or redistribution of upstream inputs.",
+  "counts": {
+    "previous_github_partial_slots": 228,
+    "prior_keirin_kumamoto_slots": 12,
+    "keirin_venue_count": 9,
+    "keirin_slots_total": 86,
+    "keirin_4_venue_site_slots": 42,
+    "keirin_missing_in_4_venue_site": 44,
+    "auto_venue_count": 2,
+    "auto_slots_total": 20,
+    "new_slots_not_in_228_base": 94,
+    "provisional_combined_slots_if_base_and_delta_joined": 322,
+    "full_race_coverage_verified": false,
+    "forecasts_frozen_new": 0,
+    "actual_hit8": null
+  },
+  "keirin_counts": {
+    "川崎": 11,
+    "小田原": 12,
+    "いわき平": 7,
+    "前橋": 7,
+    "松阪": 7,
+    "四日市": 12,
+    "大宮": 11,
+    "大垣": 7,
+    "熊本": 12
+  },
+  "autorace_counts": {
+    "飯塚": 8,
+    "伊勢崎": 12
+  },
+  "coverage_caveats": [
+    "228-slot old base contains 168 boat schedule slots, 48 provisional local-horse slots, 12 Kumamoto slots. The new 94 slots exclude Kumamoto to avoid duplicate identifiers.",
+    "Total 322 denotes index-identified race slots, not final officially reconciled and non-cancelled races.",
+    "All cutoff times and entrant features for the 94 new slots are unknown; no ticket recommendations generated.",
+    "Some sources unavailable due site maintenance; another index omitted 5 keirin venues/44 races."
+  ],
+  "records": [
+    {
+      "race_id": "keirin:2026-10-22:川崎:1",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 1,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:川崎:2",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 2,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:川崎:3",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 3,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:川崎:4",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 4,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:川崎:5",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 5,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:川崎:6",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 6,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:川崎:7",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 7,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:川崎:8",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 8,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:川崎:9",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 9,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:川崎:10",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 10,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:川崎:11",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 11,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:小田原:1",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 1,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:小田原:2",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 2,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:小田原:3",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 3,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:小田原:4",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 4,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:小田原:5",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 5,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:小田原:6",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 6,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:小田原:7",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 7,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:小田原:8",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 8,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:小田原:9",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 9,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:小田原:10",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 10,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:小田原:11",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 11,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:小田原:12",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 12,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:いわき平:1",
+      "sport": "keirin",
+      "venue": "いわき平",
+      "race_no": 1,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:いわき平:2",
+      "sport": "keirin",
+      "venue": "いわき平",
+      "race_no": 2,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:いわき平:3",
+      "sport": "keirin",
+      "venue": "いわき平",
+      "race_no": 3,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:いわき平:4",
+      "sport": "keirin",
+      "venue": "いわき平",
+      "race_no": 4,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:いわき平:5",
+      "sport": "keirin",
+      "venue": "いわき平",
+      "race_no": 5,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:いわき平:6",
+      "sport": "keirin",
+      "venue": "いわき平",
+      "race_no": 6,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:いわき平:7",
+      "sport": "keirin",
+      "venue": "いわき平",
+      "race_no": 7,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:前橋:1",
+      "sport": "keirin",
+      "venue": "前橋",
+      "race_no": 1,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:前橋:2",
+      "sport": "keirin",
+      "venue": "前橋",
+      "race_no": 2,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:前橋:3",
+      "sport": "keirin",
+      "venue": "前橋",
+      "race_no": 3,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:前橋:4",
+      "sport": "keirin",
+      "venue": "前橋",
+      "race_no": 4,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:前橋:5",
+      "sport": "keirin",
+      "venue": "前橋",
+      "race_no": 5,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:前橋:6",
+      "sport": "keirin",
+      "venue": "前橋",
+      "race_no": 6,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:前橋:7",
+      "sport": "keirin",
+      "venue": "前橋",
+      "race_no": 7,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:松阪:1",
+      "sport": "keirin",
+      "venue": "松阪",
+      "race_no": 1,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:松阪:2",
+      "sport": "keirin",
+      "venue": "松阪",
+      "race_no": 2,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:松阪:3",
+      "sport": "keirin",
+      "venue": "松阪",
+      "race_no": 3,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:松阪:4",
+      "sport": "keirin",
+      "venue": "松阪",
+      "race_no": 4,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:松阪:5",
+      "sport": "keirin",
+      "venue": "松阪",
+      "race_no": 5,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:松阪:6",
+      "sport": "keirin",
+      "venue": "松阪",
+      "race_no": 6,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:松阪:7",
+      "sport": "keirin",
+      "venue": "松阪",
+      "race_no": 7,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:四日市:1",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 1,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:四日市:2",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 2,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:四日市:3",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 3,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:四日市:4",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 4,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:四日市:5",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 5,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:四日市:6",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 6,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:四日市:7",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 7,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:四日市:8",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 8,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:四日市:9",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 9,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:四日市:10",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 10,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:四日市:11",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 11,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:四日市:12",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 12,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大宮:1",
+      "sport": "keirin",
+      "venue": "大宮",
+      "race_no": 1,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大宮:2",
+      "sport": "keirin",
+      "venue": "大宮",
+      "race_no": 2,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大宮:3",
+      "sport": "keirin",
+      "venue": "大宮",
+      "race_no": 3,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大宮:4",
+      "sport": "keirin",
+      "venue": "大宮",
+      "race_no": 4,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大宮:5",
+      "sport": "keirin",
+      "venue": "大宮",
+      "race_no": 5,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大宮:6",
+      "sport": "keirin",
+      "venue": "大宮",
+      "race_no": 6,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大宮:7",
+      "sport": "keirin",
+      "venue": "大宮",
+      "race_no": 7,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大宮:8",
+      "sport": "keirin",
+      "venue": "大宮",
+      "race_no": 8,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大宮:9",
+      "sport": "keirin",
+      "venue": "大宮",
+      "race_no": 9,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大宮:10",
+      "sport": "keirin",
+      "venue": "大宮",
+      "race_no": 10,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大宮:11",
+      "sport": "keirin",
+      "venue": "大宮",
+      "race_no": 11,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大垣:1",
+      "sport": "keirin",
+      "venue": "大垣",
+      "race_no": 1,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大垣:2",
+      "sport": "keirin",
+      "venue": "大垣",
+      "race_no": 2,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大垣:3",
+      "sport": "keirin",
+      "venue": "大垣",
+      "race_no": 3,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大垣:4",
+      "sport": "keirin",
+      "venue": "大垣",
+      "race_no": 4,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大垣:5",
+      "sport": "keirin",
+      "venue": "大垣",
+      "race_no": 5,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大垣:6",
+      "sport": "keirin",
+      "venue": "大垣",
+      "race_no": 6,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "keirin:2026-10-22:大垣:7",
+      "sport": "keirin",
+      "venue": "大垣",
+      "race_no": 7,
+      "source_index_url": "https://www.winticket.jp/keirin/racecard/20261022",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:飯塚:1",
+      "sport": "autorace",
+      "venue": "飯塚",
+      "race_no": 1,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:飯塚:2",
+      "sport": "autorace",
+      "venue": "飯塚",
+      "race_no": 2,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:飯塚:3",
+      "sport": "autorace",
+      "venue": "飯塚",
+      "race_no": 3,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:飯塚:4",
+      "sport": "autorace",
+      "venue": "飯塚",
+      "race_no": 4,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:飯塚:5",
+      "sport": "autorace",
+      "venue": "飯塚",
+      "race_no": 5,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:飯塚:6",
+      "sport": "autorace",
+      "venue": "飯塚",
+      "race_no": 6,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:飯塚:7",
+      "sport": "autorace",
+      "venue": "飯塚",
+      "race_no": 7,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:飯塚:8",
+      "sport": "autorace",
+      "venue": "飯塚",
+      "race_no": 8,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:伊勢崎:1",
+      "sport": "autorace",
+      "venue": "伊勢崎",
+      "race_no": 1,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:伊勢崎:2",
+      "sport": "autorace",
+      "venue": "伊勢崎",
+      "race_no": 2,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:伊勢崎:3",
+      "sport": "autorace",
+      "venue": "伊勢崎",
+      "race_no": 3,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:伊勢崎:4",
+      "sport": "autorace",
+      "venue": "伊勢崎",
+      "race_no": 4,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:伊勢崎:5",
+      "sport": "autorace",
+      "venue": "伊勢崎",
+      "race_no": 5,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:伊勢崎:6",
+      "sport": "autorace",
+      "venue": "伊勢崎",
+      "race_no": 6,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:伊勢崎:7",
+      "sport": "autorace",
+      "venue": "伊勢崎",
+      "race_no": 7,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:伊勢崎:8",
+      "sport": "autorace",
+      "venue": "伊勢崎",
+      "race_no": 8,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:伊勢崎:9",
+      "sport": "autorace",
+      "venue": "伊勢崎",
+      "race_no": 9,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:伊勢崎:10",
+      "sport": "autorace",
+      "venue": "伊勢崎",
+      "race_no": 10,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:伊勢崎:11",
+      "sport": "autorace",
+      "venue": "伊勢崎",
+      "race_no": 11,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    },
+    {
+      "race_id": "autorace:2026-10-22:伊勢崎:12",
+      "sport": "autorace",
+      "venue": "伊勢崎",
+      "race_no": 12,
+      "source_index_url": "https://www.winticket.jp/autorace/results",
+      "race_state": "SCHEDULE_INDEX_OBSERVED_NOT_RACE_DAY_CONFIRMED",
+      "forecast_state": "NO_FORECAST",
+      "reason_codes": [
+        "AUTOMATED_SOURCE_USE_RIGHTS_NOT_VERIFIED",
+        "PRE_CUTOFF_IDENTITY_FEATURES_NOT_VERIFIED",
+        "SALES_CUTOFF_TIME_NOT_VERIFIED",
+        "PRODUCTION_MODEL_NOT_DEPLOYED"
+      ],
+      "odds_consumed": false,
+      "top8": null,
+      "forecast_hash": null,
+      "official_result": null
+    }
+  ]
+}
