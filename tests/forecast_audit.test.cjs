@@ -70,3 +70,79 @@ test("audit-only 322 slots should show unknown hit-rate, not zero",()=>{
  const a=M.summary(M.parse(pack(rows,"AUDIT_ONLY")).records);
  assert.equal(a.overall.ledger,4);assert.equal(a.overall.evaluable,0);assert.equal(a.overall.hit8,null);
 });
+
+
+test("JST day and Monday-Sunday week use event day, not verification timestamp",()=>{
+ const thu=row("boat:2026-10-22:01:1","boat",{event_date_jst:"2026-10-22"});
+ const mon=row("boat:2026-10-19:01:1","boat",{event_date_jst:"2026-10-19"});
+ const sun=row("boat:2026-10-25:01:1","boat",{event_date_jst:"2026-10-25"});
+ const prev=row("boat:2026-10-18:01:1","boat",{event_date_jst:"2026-10-18"});
+ assert.equal(M.monday("2026-10-22"),"2026-10-19");
+ assert.equal(M.inPeriod(thu,"today","2026-10-22"),true);
+ assert.equal(M.inPeriod(mon,"today","2026-10-22"),false);
+ assert.deepEqual([mon,thu,sun,prev].filter(x=>M.inPeriod(x,"week","2026-10-22")).map(x=>x.race_id),[mon,thu,sun].map(x=>x.race_id));
+ assert.equal(M.filtered([mon,thu,sun,prev],{sport:"boat",period:"today",day:"2026-10-22"}).length,1);
+});
+test("sport and outcome tabs preserve the complete denominator",()=>{
+ const a=row("a","boat");
+ const b=row("b","boat",{result:{status:"final",winning_combinations:[[3,2,1]]}});
+ const c=row("c","keirin",{prediction:null});
+ const d=row("d","autorace",{result:{status:"pending",winning_combinations:[]}});
+ const all=[a,b,c,d];
+ assert.equal(M.filtered(all,{sport:"boat",state:"HIT"}).length,1);
+ assert.equal(M.filtered(all,{sport:"boat",state:"MISS"}).length,1);
+ assert.equal(M.filtered(all,{state:"NO_FORECAST"}).length,1);
+ assert.equal(M.filtered(all,{state:"PENDING"}).length,1);
+ assert.equal(M.summary(all).overall.evaluable,3);
+ assert.equal(M.summary(all).overall.hits,1);
+});
+test("payout sort uses confirmed official 100 yen value and puts unknown last",()=>{
+ const low=row("low","boat",{result:{status:"final",winning_combinations:[[1,2,3]],payout_yen_per_100:500}});
+ const high=row("high","boat",{result:{status:"final",winning_combinations:[[1,2,3]],payout_yen_per_100:10000}});
+ const unknown=row("unknown","boat",{result:{status:"pending",winning_combinations:[]}});
+ assert.deepEqual(M.sortRaces([low,unknown,high],"payout").map(x=>x.race_id),["high","low","unknown"]);
+});
+test("model group calculation remains reference-only for different race cohorts",()=>{
+ const x=row("boat:2030-01-01:1","boat",{prediction:{...row("x").prediction,model_id:"first",model_version:"A"}});
+ const y=row("boat:2030-01-01:2","boat",{prediction:{...row("x").prediction,model_id:"second",model_version:"B"},
+  result:{status:"final",winning_combinations:[[3,2,1]]}});
+ const z=M.modelComparison([x,y]);
+ assert.equal(z.length,2);
+ assert.ok(z.every(g=>g.comparison.includes("未証明")));
+ assert.ok(M.sortRaces([y,x],"modelRate",[x,y]).every(r=>r.prediction));
+ assert.equal(M.sortRaces([y,x],"modelRate",[x,y])[0].race_id,x.race_id);
+});
+test("revision history must be sequential and latest result consistent",()=>{
+ const base=row("revision-race"),first={status:"final",winning_combinations:[[3,2,1]],confirmed_at:"2030-01-01T11:00:00+09:00",revision_no:1};
+ const latest={status:"final",winning_combinations:[[1,2,3]],confirmed_at:"2030-01-01T11:20:00+09:00",revision_no:2};
+ assert.doesNotThrow(()=>M.parse(pack([{...base,result:latest,result_revisions:[first,latest]}])));
+ assert.throws(()=>M.parse(pack([{...base,result:latest,result_revisions:[latest,first]}])),/結果改訂/);
+ assert.throws(()=>M.parse(pack([{...base,result:first,result_revisions:[first,latest]}])),/一致/);
+ assert.equal(M.score({...base,result:latest}),true);
+});
+test("market-bearing prediction and fabricated paid receipt cannot enter audit",()=>{
+ const r=row("risk");
+ assert.throws(()=>M.parse(pack([{...r,prediction:{...r.prediction,market_implied_win_probability:0.5}}])),/市場/);
+ assert.throws(()=>M.parse(pack([{...r,actual_purchase:{confirmed:false,stake_yen:100,payout_yen:0,refund_yen:0}}])),/実購入/);
+ assert.throws(()=>M.parse(pack([{...r,result:{...r.result,payout_yen_per_100:-1}}])),/公式払戻/);
+});
+test("confirmed actual purchase is distinct from prediction and never inferred",()=>{
+ const a=row("purchased","boat",{actual_purchase:{confirmed:true,stake_yen:800,payout_yen:2300,refund_yen:100}});
+ const b=row("not-purchased");
+ const all=M.summary([a,b]).overall;
+ assert.equal(all.actualPurchases,1);
+ assert.equal(all.actualStake,800);
+ assert.equal(all.actualNet,1600);
+ assert.equal(all.hits,2);
+});
+test("files keep synthetic metrics entirely separate from real reports",()=>{
+ assert.throws(()=>M.merge([pack([row("s")],"SYNTHETIC_ONLY"),pack([row("r")],"REAL_REPORTED")]),/混在/);
+});
+test("render screen contains tactile four sport tabs, history and owner controls",()=>{
+ const fs=require("node:fs"),path=require("node:path");
+ const html=fs.readFileSync(path.join(__dirname,"../web/forecast-audit.html"),"utf8");
+ for(const key of ["data-sport=\"boat\"","data-sport=\"keirin\"","data-sport=\"autorace\"","data-sport=\"horse\"",
+   "data-state=\"HIT\"","data-state=\"MISS\"","data-period=\"today\"","data-period=\"week\"",
+   "data-period=\"all\"","value=\"modelRate\"","id=\"model-breakdown\"","id=\"race-list\""])
+   assert.ok(html.includes(key),key);
+});
