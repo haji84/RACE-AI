@@ -63,3 +63,9 @@ docs/BOAT_FIRST_RELEASE_PLAN.md currently describes a manual local JSON first sc
 本書のボート向け53章詳細要件を残したまま、ユーザーの更新方針（ボート・競輪・オート・競馬の全レース、オッズ非依存の締切前8点予想、結果照合/PDCA、ZBook停止でもGitHub Actions中心で継続）を `docs/RACE_AI_ACTIONS_CLOUD_DELTA_20261021.md` に具体化した。
 
 **予測特徴量としてのオッズ/人気/確定払戻の利用を禁止**し、予想凍結後の採算評価用途と分離する。旧文書にあるodds/no-oddsモデルは本追加方針と矛盾する範囲で予想へ使用しない。既存の利用権限、保存、Preview保護、実機検証、費用・公開承認ゲートは維持する。今回の追補は現在のmainやProductionへ自動反映されない。
+
+## 2026-10-21 予想精度最上位GOAL v1.1の正式追補提案
+
+ユーザーの別会話で追加された**4競技・全発売評価可能レース・オッズ非依存3連単最大8点・実測Hit@8_all 98%以上への挑戦**は `docs/RACE_AI_98PCT_GOAL_AMENDMENT_20261021.md` で定義される。この目標は未達・未検証であり、保証ではない。既存53章の未衝突要件と安全/権利/費用/公開制約は維持。16/24/32点UIはAI公式Top8とは別集計とする。未予想・見送り・締切超過を主母数から隠さず、学習/特徴選択/モデル選定も含め市場由来情報を予測から遮断する。
+
+GitHub Actions中心のZBook非依存運用は `docs/RACE_AI_ACTIONS_CLOUD_DELTA_20261021.md`、既存PR整合から実装までのCodex工程は `docs/CODEX_INTEGRATED_PRIORITY_20261021.md` に定める。矛盾のある旧機能は `SPEC_CONFLICTS.md` に記録し、安全な個別改修で解決する。**本追補はPR #61上の提案であり、main/Productionに実装済みではない**。
