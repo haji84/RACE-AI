@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "repository": "haji84/AI-",
+  "commit": "accf8294ff936b73b93e21667d92bc1b52aa8428",
+  "files": [
+    {"path":"src/orchestrator/ai09-pr-review-automation.mjs","bytes":18866,"sha256":"a77ce0a4c3aa3cd00793c5e5f0074f3f78a56d882baf08d4b39dfdf5643a92e8","gitBlob":"86c355cff806891f2bf3e18030b1c1a576af4ed4"},
+    {"path":"src/orchestrator/ai09-local-reviewer.mjs","bytes":5976,"sha256":"d0cef721489a66e02b8086e985e67ff49374ded96df9d6a06f2fea9859f75544","gitBlob":"e3c0f3c0964606750ee99b4c567842db9f029fa8"},
+    {"path":"scripts/goriq-ai09-finding-anchors.mjs","bytes":2611,"sha256":"229c6d9c5178645cc5b84e21f6a72d846e440121221b48f914c29a3a65c9f410","gitBlob":"47542f5e3892b80c9ff6bf8211f21404818a7628"},
+    {"path":"scripts/goriq-ai09-compare-coverage.mjs","bytes":1150,"sha256":"cf86e510018dfdee861403470f6794df7407be9a3aee4b4af4af8caeceeb65a7","gitBlob":"5e09bf0011e310fac348fc90100ea968b1105a8a"}
+  ]
+}
