@@ -57,3 +57,9 @@ Statuses: not-started/research/design/implementation/testing/review/live-verific
 ## Existing-spec differences
 
 docs/BOAT_FIRST_RELEASE_PLAN.md currently describes a manual local JSON first scope and bans persistent storage. The user's new normal flow replaces that scope with automatic API data and later isolated authenticated persistence; arbitrary client storage or unverified data is not authorized by this change. Old research-only branches remain unmerged. This documentation proposal changes no runtime permissions, deployment protection, source grants or Production settings.
+
+## 2026-10-21 追加差分（未統合PR #61での提案）
+
+本書のボート向け53章詳細要件を残したまま、ユーザーの更新方針（ボート・競輪・オート・競馬の全レース、オッズ非依存の締切前8点予想、結果照合/PDCA、ZBook停止でもGitHub Actions中心で継続）を `docs/RACE_AI_ACTIONS_CLOUD_DELTA_20261021.md` に具体化した。
+
+**予測特徴量としてのオッズ/人気/確定払戻の利用を禁止**し、予想凍結後の採算評価用途と分離する。旧文書にあるodds/no-oddsモデルは本追加方針と矛盾する範囲で予想へ使用しない。既存の利用権限、保存、Preview保護、実機検証、費用・公開承認ゲートは維持する。今回の追補は現在のmainやProductionへ自動反映されない。
