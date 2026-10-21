@@ -1,0 +1,81 @@
+{
+  "schema": "RACE_AI_REAL_ONE_RACE_ADMISSION_AUDIT_V1",
+  "reference_time_jst": "2026-10-22T07:39:18+09:00",
+  "classification": "REAL_RACE_DISCOVERED__MODEL_AND_SOURCE_NOT_ADMITTED__NO_FORECAST",
+  "owner_issue": "https://github.com/haji84/RACE-AI/issues/67",
+  "execution_issue": "https://github.com/haji84/RACE-AI/issues/68",
+  "goal": "one actual race: approved pre-cutoff data > rank all valid trifectas odds-free > max 8 freeze with external receipt > official final revision > exact hit@8 audit",
+  "candidate": {
+    "sport": "boat",
+    "organizer": "BOATRACE",
+    "venue": "児島",
+    "venue_code": "16",
+    "event_date_jst": "2026-10-22",
+    "race_no": 1,
+    "official_index_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=16",
+    "announced_sales_cutoff_jst": "2026-10-22T10:58:00+09:00",
+    "cutoff_note": "Official page lists 10:58 scheduled cutoff; could change and is not trusted persistence-time proof.",
+    "verified_input_scope": "public meeting/index/time facts only; no official participant dataset ingested into model or published"
+  },
+  "rights": {
+    "site_policy": "https://www.boatrace.jp/owsp/sp/extra/policy.html",
+    "public_index_viewed": true,
+    "automated_collection": "NOT_ADMITTED",
+    "persistent_source_copy": "NOT_ADMITTED",
+    "model_training": "NOT_ADMITTED",
+    "derived_forecast_publication": "UNASSESSED",
+    "rights_note": "The site policy does not grant blanket automation, storage, training or redistribution authority. Factual personal review is not a license for software operations."
+  },
+  "steps": [
+    {
+      "step": "RaceDiscovery",
+      "status": "PUBLIC_INDEX_OBSERVED",
+      "note": "Candidate identified from official day index; on-day later changes must be rechecked"
+    },
+    {
+      "step": "ProviderRightsGate",
+      "status": "BLOCKED",
+      "note": "No purpose-specific verified permission or narrow legal-use review for actual automated collection/storage/training"
+    },
+    {
+      "step": "PreRaceFeatures",
+      "status": "NOT_ADMITTED",
+      "note": "No validated legal source+as-of participant-level snapshot"
+    },
+    {
+      "step": "OddsFreeAllTrifectas",
+      "status": "NOT_RUN_REAL_DATA",
+      "note": "PR #69 only accepts SYNTHETIC_ONLY and rejects real snapshots"
+    },
+    {
+      "step": "Max8PreCutoffFreeze",
+      "status": "NOT_RUN",
+      "note": "Real append-only external timestamp-backed writer not integrated; do not retrofit after deadline"
+    },
+    {
+      "step": "OfficialResultRevision",
+      "status": "NOT_RUN",
+      "note": "This is a before-race audit and may not contain future result"
+    },
+    {
+      "step": "ExactHit8",
+      "status": "UNVERIFIED",
+      "note": "No frozen real forecast, no final official result paired"
+    }
+  ],
+  "no_forecast_reason_codes": [
+    "SOURCE_USE_RIGHTS_NOT_ADMITTED",
+    "PARTICIPANT_FEATURES_NOT_ATTESTED",
+    "REAL_MODEL_ADAPTER_NOT_IMPLEMENTED",
+    "EXTERNAL_IMMUTABLE_FREEZE_NOT_VERIFIED"
+  ],
+  "odds_used": false,
+  "ordered_top8": null,
+  "prediction_hash": null,
+  "official_result": null,
+  "model_reference": "https://github.com/haji84/RACE-AI/pull/69",
+  "model_scope": "SYNTHETIC_ONLY",
+  "important": "This observation is not a prediction freeze and not evidence of an official real-race model run. Never amend it later to imply a pre-cutoff prediction; append distinct results evidence instead.",
+  "costs_incurred": 0,
+  "automatic_betting": false
+}
