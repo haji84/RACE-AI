@@ -1,0 +1,19 @@
+# Specification conflicts and decisions — 2026-10-21
+
+Authority: user instruction + Issue68 comment6315990805 + PR61 fef6860 amendments. Unconflicted 53-chapter requirements remain.
+
+| Conflict | Decision |
+|---|---|
+|Boat-first/six participants vs four sports|Keep old boat engine; adapt top-three conditional calculation to N. Explicit field size; 6=120/7=210/9=504; no N! horse enumeration.|
+|16/24/32 UI vs official Top8|Old UI untouched. Synthetic STANDARD_8 has exactly 8; no betting. 0 forecast represented with explicit reason.|
+|Legacy market feature/trainer vs odds-free all prediction stages|Legacy offline trainer is reachable and audited, not adopted. New exact sport feature allowlist + fixed untrained model excludes market/popularity/payout/third-party/current result; sidecar outside all prediction/hash paths.|
+|Old saved-before-start vs authoritative sales cutoff|New contract stores both; requires synthetic persisted clock < sales cutoff and rejects revised/stale cutoff. Real external attestation unverified.|
+|Predicted-only results vs Hit@8_all|All offered/evaluable races retained, including actual missing feature. Void/nonoffered/pending are separate. Historical result corrections bind exact discovered revision.|
+|Local machine vs hosted short batches|Hosted CI uses standard runners, no ZBook/environment/Secrets. No operational cron until external durable state, rights and deadline scheduling proven.|
+|Vercel automatic builds vs cost control|Root and known web-root git.deploymentEnabled=false before push, documented by official Vercel configuration. No deploy command, credential, provider artifact upload or cloud integration. Existing deployments/stores not deleted or stopped by this setting. Main merge still requires gate/readback.|
+|Cloudflare prior local work vs latest Actions priority|Preserve all local migration assets; do not deploy/migrate/pay. Current slice is Actions validation only; owner cloud migration/publication gate persists.|
+|Technical independent agent vs owner/GORIQ review|Independent read-only technical review is evidence, not GitHub APPROVED, GORIQ AI-09 acceptance or authority to merge.|
+|SQLite simulation vs production immutable truth|This unit deliberately accepts synthetic-only. Chain/triggers/transactions/backup/clock checks are tested, but local state or Actions artifacts are not the production database. Trusted external timestamps, multi-run cloud restore and continuously observed operation remain unverified.|
+
+98% Hit@8_all is an unvalidated challenge goal. Synthetic 3/5 only tests arithmetic and excludes no real failures; it is not real accuracy, calibrated probability, improvement or a 98% feasibility claim.
+

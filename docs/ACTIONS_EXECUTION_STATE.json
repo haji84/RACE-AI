@@ -1,0 +1,59 @@
+{
+  "recorded_date_jst": "2026-10-21",
+  "scope": "FOUR_SPORT_SYNTHETIC_ONLY",
+  "base_main_sha": "8bb7d69f9c8fb302055bc9e2609903d1e8f73e4b",
+  "spec_pr61_sha": "fef68607b4773c59d6d46aa04b9e9762a42683d4",
+  "reused_pr64_sha": "27f3df12ddca3971833d4dbf03f6fbcc88df6b07",
+  "status": {
+    "IMPLEMENTED": true,
+    "CI_VERIFIED": "See exact-head Actions run linked in implementation PR; not asserted by this pre-push file",
+    "INDEPENDENT_REVIEWED": "Technical read-only agent review in progress; not GitHub APPROVED or GORIQ acceptance",
+    "MERGED_MAIN": false,
+    "REAL_E2E_VERIFIED": false,
+    "CONTINUOUSLY_OBSERVED": false
+  },
+  "synthetic": {
+    "ledger": 8,
+    "evaluable": 5,
+    "freezes": 4,
+    "missing_forecasts": 1,
+    "void": 1,
+    "not_offered": 1,
+    "unresolved": 1,
+    "result_revisions": 9,
+    "hits": 3,
+    "hit8_all": 0.6,
+    "validation": "UNVALIDATED",
+    "official_prediction": false
+  },
+  "real": {
+    "all_sport_race_count": null,
+    "evaluable_count": null,
+    "pre_cutoff_freezes": null,
+    "official_result_count": null,
+    "hit8_all": null,
+    "forward_comparison": null,
+    "accuracy98": "UNVALIDATED",
+    "reason": "New pipeline not admitted to real sources/storage; old research is not new E2E"
+  },
+  "safety": {
+    "external_source_requests": 0,
+    "prediction_posts": 0,
+    "held33_redispatch": 0,
+    "new_cloud_resources": 0,
+    "external_builds_requested": 0,
+    "provider_credentials_or_secrets_accessed": 0,
+    "production_changes": 0,
+    "cloudflare_local_work_preserved": true,
+    "pr64_pr65_heads_unchanged": true,
+    "actions_schedule_installed": false,
+    "artifacts_uploaded": 0
+  },
+  "blockers": [
+    "Verified purpose-specific source rights for real adapters",
+    "Authoritative real sales cutoff and externally witnessed immutable persisted_at",
+    "Authenticated approved cloud storage access and multi-run restore",
+    "Authorized independent/GORIQ review and main protection/deployment gate",
+    "Each sport's future real E2E, forward PDCA/accuracy and actual iPhone"
+  ]
+}
