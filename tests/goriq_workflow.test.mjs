@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
-const source=await readFile(new URL('../.github/workflows/race-goriq-connect.yml',import.meta.url),'utf8');
+const source=(await readFile(new URL('../.github/workflows/race-goriq-connect.yml',import.meta.url),'utf8')).replace(/\r\n/g,'\n');
 test('connection is a bounded owner-only public standard-runner event, without writes or automatic repeats',()=>{
   assert.match(source,/types: \[opened, reopened\]/);
   assert.doesNotMatch(source,/\b(?:push|schedule|workflow_run|pull_request_target):|secrets\.|upload-artifact|actions\/cache|id-token:|:\s*write\b/);
