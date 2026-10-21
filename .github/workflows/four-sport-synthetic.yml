@@ -31,7 +31,7 @@ jobs:
       - name: Test odds isolation, deadlines and recovery (synthetic only)
         run: python -m unittest discover -s tests -v
       - name: Verify pinned GORIQ connection and complete review coverage (no model)
-        run: node --test tests/goriq_plan.test.mjs tests/goriq_reuse.test.mjs
+        run: node --test tests/goriq_plan.test.mjs tests/goriq_reuse.test.mjs tests/goriq_workflow.test.mjs
       - name: Run four sport synthetic vertical E2E
         run: python -m race_ai.synthetic_e2e
   unit:
