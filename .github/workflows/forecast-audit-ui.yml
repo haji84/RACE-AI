@@ -27,6 +27,8 @@ jobs:
         run: git rev-parse HEAD
       - name: Node contract and denominator tests
         run: node --test tests/forecast_audit.test.cjs
+      - name: Python synthetic journal to viewer projection tests
+        run: python -m unittest discover -s tests -v
       - name: Validate public audit seed
         run: |
           python - <<'PY'
