@@ -86,7 +86,7 @@
     if(r.actual_purchase?.confirmed===true){
       const a=r.actual_purchase,net=a.payout_yen+a.refund_yen-a.stake_yen;
       card.append(el("div","purchase-line",
-        "実購入 "+yen(a.stake_yen)+" ・ 払戻 "+yen(a.payout_yen)+" ・ 返還 "+yen(a.refund_yen)+" ・ 差引 "+(net>=0?"+":"")+yen(net)));
+        "実購入の申告 "+yen(a.stake_yen)+" ・ 払戻 "+yen(a.payout_yen)+" ・ 返還 "+yen(a.refund_yen)+" ・ 差引 "+(net>=0?"+":"")+yen(net)));
     }else card.append(el("div","purchase-line muted","実購入：記録なし（予想＝購入ではありません）"));
     const reason=noteText(r);
     if(reason)card.append(el("p","reason",reason));
@@ -116,7 +116,9 @@
         const terms=rev.status==="final"?rev.winning_combinations.map(M.ticketKey).join(" / "):rev.status;
         history.append(el("p","revision",
           "第"+rev.revision_no+"版："+terms+" ・ "+timestamp(rev.confirmed_at)+
-          (rev.payout_yen_per_100!=null?" ・ 公式払戻 "+yen(rev.payout_yen_per_100):"")));
+          (rev.payout_yen_per_100!=null?" ・ 公式払戻 "+yen(rev.payout_yen_per_100):"")+
+          (M.eligibleFreeze(r)&&r.offering_status==="TRIFECTA_OFFERED"&&rev.status==="final"?
+            (M.score({...r,result:rev})?" ・ この版では的中":" ・ この版では不的中"):"")));
       }
     }else history.append(el("p","muted small","改訂履歴は未取得（改訂なしとの断定ではありません）"));
     detail.append(history);card.append(detail);
@@ -133,7 +135,7 @@
     $("hit-rate").textContent=a.hit8===null?"未検証":(a.hit8*100).toFixed(2)+"%";
     $("hit-count").textContent=a.hit8===null?"公式結果の母数なし":a.hits+"的中 / "+a.evaluable+"評価可能";
     $("actual-money").textContent=a.actualPurchases?
-      "確認済み実購入 "+a.actualPurchases+"件 ・ 支出 "+yen(a.actualStake)+" ・ 払戻 "+yen(a.actualPayout)+" ・ 差引 "+(a.actualNet>=0?"+":"")+yen(a.actualNet):
+      "実購入の申告 "+a.actualPurchases+"件 ・ 支出 "+yen(a.actualStake)+" ・ 払戻 "+yen(a.actualPayout)+" ・ 差引 "+(a.actualNet>=0?"+":"")+yen(a.actualNet):
       "実購入・払戻：記録なし（仮想購入は実収支に含めない）";
     const kind=data?.dataset_status||"NOT_LOADED";
     $("data-kind").textContent=({AUDIT_ONLY:"暫定監査台帳",REAL_REPORTED:"実データ申告",SYNTHETIC_ONLY:"合成テスト専用",NOT_LOADED:"未取得"})[kind];
