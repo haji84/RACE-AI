@@ -58,7 +58,7 @@
            !digestPattern.test(p.input_sha256||"")||!digestPattern.test(p.prediction_sha256||"")||
            typeof p.model_version!=="string"||!p.model_version||p.model_version.length>100||
            p.odds_independent!==true)fail("予想時刻・証拠・オッズ分離が不正です: "+r.race_id);
-        if(Object.keys(p).some(k=>/odds|popularity|market|確定配当|人気/i.test(k)))fail("予想へ市場由来の値を混ぜないでください。");
+        if(Object.keys(p).some(k=>k!=="odds_independent"&&/odds|popularity|market|確定配当|人気/i.test(k)))fail("予想へ市場由来の値を混ぜないでください。");
       }
       const checkResult=(v)=>{
         if(!v||!["final","void","pending","unsupported"].includes(v.status)||
