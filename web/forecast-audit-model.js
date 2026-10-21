@@ -137,6 +137,13 @@
     overall.actualNet=overall.actualPurchases?overall.actualPayout+overall.actualRefund-overall.actualStake:null;
     return {overall,bySport};
   }
+  function wilson95(hits,n){
+    if(!Number.isInteger(n)||n<1||!Number.isInteger(hits)||hits<0||hits>n)return null;
+    const z=1.959963984540054,a=z*z,p=hits/n,denom=1+a/n;
+    const center=(p+a/(2*n))/denom;
+    const radius=z*Math.sqrt(p*(1-p)/n+a/(4*n*n))/denom;
+    return [Math.max(0,center-radius),Math.min(1,center+radius)];
+  }
   function models(records){
     const groups=new Map();
     for(const r of records){
@@ -149,7 +156,7 @@
     return [...groups.values()].map(g=>{
       const s=summary(g.records).overall;
       return {...g,ledger:s.ledger,evaluable:s.evaluable,hits:s.hits,frozen:s.frozenReported,
-        hit8:s.hit8,cohort_ids:g.records.map(r=>r.race_id).sort(),comparison:"参考・対象母数相違の可能性"};
+        hit8:s.hit8,ci95:wilson95(s.hits,s.evaluable),cohort_ids:g.records.map(r=>r.race_id).sort(),comparison:"参考・対象母数相違の可能性"};
     });
   }
   function modelComparison(records){
@@ -195,5 +202,5 @@
       records,sources:parsed.flatMap(x=>x.provenance_urls)};
   }
   return Object.freeze({parse,merge,summary,score,status,outcome,eligibleFreeze,ticketKey,displaySport,
-    jstToday,raceDay,monday,inPeriod,filtered,sortRaces,models,modelComparison});
+    jstToday,raceDay,monday,inPeriod,filtered,sortRaces,models,modelComparison,wilson95});
 });
