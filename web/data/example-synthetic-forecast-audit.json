@@ -1,0 +1,254 @@
+{
+  "schema": "RACE_AI_FORECAST_AUDIT_V1",
+  "dataset_status": "SYNTHETIC_ONLY",
+  "event_date_jst": "2030-01-01",
+  "note": "FICTITIOUS TEST RECORDS; fake timestamps, simulated external-receipt flag and result; never report as real prediction or achieved hit-rate.",
+  "records": [
+    {
+      "race_id": "synthetic:2030-01-01:boat:1",
+      "sport": "boat",
+      "venue": "合成テスト会場",
+      "race_no": 1,
+      "cutoff_at": "2030-01-01T10:00:00+09:00",
+      "offering_status": "TRIFECTA_OFFERED",
+      "race_status": "scheduled",
+      "evidence_url": null,
+      "source_provenance": "SYNTHETIC_ONLY",
+      "no_forecast_reason": null,
+      "prediction": {
+        "ordered_top8": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            1,
+            3
+          ],
+          [
+            1,
+            3,
+            2
+          ],
+          [
+            3,
+            1,
+            2
+          ],
+          [
+            2,
+            3,
+            1
+          ],
+          [
+            3,
+            2,
+            1
+          ],
+          [
+            4,
+            1,
+            2
+          ],
+          [
+            4,
+            2,
+            1
+          ]
+        ],
+        "generated_at": "2030-01-01T09:00:00+09:00",
+        "persisted_at": "2030-01-01T09:05:00+09:00",
+        "cutoff_at": "2030-01-01T10:00:00+09:00",
+        "input_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "prediction_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "model_version": "synthetic-view-example",
+        "external_receipt_verified": true,
+        "odds_independent": true,
+        "rationale": "合成テスト用の並べ替え例。実在レースの根拠ではない。"
+      },
+      "result": {
+        "status": "final",
+        "winning_combinations": [
+          [
+            1,
+            2,
+            3
+          ]
+        ],
+        "confirmed_at": "2030-01-01T11:00:00+09:00"
+      }
+    },
+    {
+      "race_id": "synthetic:2030-01-01:keirin:1",
+      "sport": "keirin",
+      "venue": "合成テスト会場",
+      "race_no": 1,
+      "cutoff_at": "2030-01-01T10:00:00+09:00",
+      "offering_status": "TRIFECTA_OFFERED",
+      "race_status": "scheduled",
+      "evidence_url": null,
+      "source_provenance": "SYNTHETIC_ONLY",
+      "no_forecast_reason": null,
+      "prediction": {
+        "ordered_top8": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            1,
+            3
+          ],
+          [
+            1,
+            3,
+            2
+          ],
+          [
+            3,
+            1,
+            2
+          ],
+          [
+            2,
+            3,
+            1
+          ],
+          [
+            3,
+            2,
+            1
+          ],
+          [
+            4,
+            1,
+            2
+          ],
+          [
+            4,
+            2,
+            1
+          ]
+        ],
+        "generated_at": "2030-01-01T09:00:00+09:00",
+        "persisted_at": "2030-01-01T09:05:00+09:00",
+        "cutoff_at": "2030-01-01T10:00:00+09:00",
+        "input_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "prediction_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "model_version": "synthetic-view-example",
+        "external_receipt_verified": true,
+        "odds_independent": true,
+        "rationale": "合成テスト用の並べ替え例。実在レースの根拠ではない。"
+      },
+      "result": {
+        "status": "final",
+        "winning_combinations": [
+          [
+            5,
+            3,
+            4
+          ]
+        ],
+        "confirmed_at": "2030-01-01T11:00:00+09:00"
+      }
+    },
+    {
+      "race_id": "synthetic:2030-01-01:autorace:1",
+      "sport": "autorace",
+      "venue": "合成テスト会場",
+      "race_no": 1,
+      "cutoff_at": "2030-01-01T10:00:00+09:00",
+      "offering_status": "TRIFECTA_OFFERED",
+      "race_status": "scheduled",
+      "evidence_url": null,
+      "source_provenance": "SYNTHETIC_ONLY",
+      "no_forecast_reason": "SYNTHETIC_EXAMPLE_MISSING_INPUT",
+      "prediction": null,
+      "result": {
+        "status": "final",
+        "winning_combinations": [
+          [
+            1,
+            2,
+            3
+          ]
+        ],
+        "confirmed_at": "2030-01-01T11:00:00+09:00"
+      }
+    },
+    {
+      "race_id": "synthetic:2030-01-01:horse:1",
+      "sport": "horse",
+      "venue": "合成テスト会場",
+      "race_no": 1,
+      "cutoff_at": "2030-01-01T10:00:00+09:00",
+      "offering_status": "TRIFECTA_OFFERED",
+      "race_status": "scheduled",
+      "evidence_url": null,
+      "source_provenance": "SYNTHETIC_ONLY",
+      "no_forecast_reason": null,
+      "prediction": {
+        "ordered_top8": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            1,
+            3
+          ],
+          [
+            1,
+            3,
+            2
+          ],
+          [
+            3,
+            1,
+            2
+          ],
+          [
+            2,
+            3,
+            1
+          ],
+          [
+            3,
+            2,
+            1
+          ],
+          [
+            4,
+            1,
+            2
+          ],
+          [
+            4,
+            2,
+            1
+          ]
+        ],
+        "generated_at": "2030-01-01T09:00:00+09:00",
+        "persisted_at": "2030-01-01T09:05:00+09:00",
+        "cutoff_at": "2030-01-01T10:00:00+09:00",
+        "input_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "prediction_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "model_version": "synthetic-view-example",
+        "external_receipt_verified": true,
+        "odds_independent": true,
+        "rationale": "合成テスト用の並べ替え例。実在レースの根拠ではない。"
+      },
+      "result": {
+        "status": "pending",
+        "winning_combinations": [],
+        "confirmed_at": null
+      }
+    }
+  ]
+}
