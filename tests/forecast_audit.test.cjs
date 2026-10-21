@@ -146,3 +146,13 @@ test("render screen contains tactile four sport tabs, history and owner controls
    "data-period=\"all\"","value=\"modelRate\"","id=\"model-breakdown\"","id=\"race-list\""])
    assert.ok(html.includes(key),key);
 });
+
+test("Wilson interval makes tiny samples visibly uncertain",()=>{
+ const one=M.wilson95(1,1);
+ assert.ok(one[0] > 0.2 && one[0] < 0.22);
+ assert.ok(one[1] <= 1);
+ assert.equal(M.wilson95(0,0),null);
+ assert.equal(M.wilson95(5,3),null);
+ const g=M.modelComparison([row("tiny")])[0];
+ assert.ok(g.ci95[0] < 0.5 && g.ci95[1] <= 1);
+});
