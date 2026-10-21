@@ -115,5 +115,11 @@
   }
   for(const id of ["sport-filter","status-filter","search"])$(id).addEventListener(id==="search"?"input":"change",render);
   $("import-files").addEventListener("change",e=>{if(e.target.files?.length)loadFiles([...e.target.files]);});
+  $("load-synthetic").addEventListener("click",async()=>{
+    try { const res=await fetch("./data/example-synthetic-forecast-audit.json",{cache:"no-store"});
+      if(!res.ok)throw new Error("合成サンプルは未配信です。");
+      data=model.merge([await res.json()]);$("import-error").hidden=true;render();
+    }catch(e){$("import-error").textContent="読込失敗："+e.message;$("import-error").hidden=false;}
+  });
   initial();
 })();
