@@ -1,6 +1,18 @@
 # GORIQ AI-09 reuse
 
-Owner request: reuse the existing GORIQ reviewer for RACE-AI. Local implementation only; no new review engine, paid model API, model download/start, active workflow, repository setting, comment/approval, merge or cloud deployment was performed.
+Owner request: reuse the existing GORIQ reviewer for RACE-AI, then explicitly connect it. The first local milestone and its HOLD evidence remain historical below. The V2 connection is being validated on PR69 without paid model APIs, new credentials, GitHub approvals or main integration.
+
+## V2 connection — 2026-10-21
+
+The new preflight admits PR69 head `070907dd335f1e0d64d31b49c2bb799e54010be3`, base `8bb7d69f9c8fb302055bc9e2609903d1e8f73e4b`, CI39604861677. It retains all17files:28text slices plus one verified empty-file metadata slice, in two sequential batches (24+5). PlanSHA256: `328497a7472bc0229c64581a4c4d815791e9d0855e17384c09e9bcc6a8b23f5a`. This is admission evidence, not a model judgment.
+
+Empty additions require exact-head GitHub Contents readback with matching path, file type, size0, empty base64 content, and the known empty Git blob. Only this exact added-empty case receives an explicit metadata slice; no textual hunk is invented. Missing nonempty/binary/removed/renamed patches still HOLD. A finding about metadata without an added-code anchor remains inconclusive under the unchanged grounding policy.
+
+`race-goriq-plan.mjs` is an explicit RACE V2 planning extension: at most TWO sequential batches and48total slices, with unchanged120KiB whole representation/30file/4KiB slice limits and unchanged upstream24-slice limit per batch. Every original line and file remains covered. The unchanged GORIQ consolidator validates every slice, then every batch; missing/duplicate/wrong-scope/blocked results cannot become clean. Final receipts bind the entire plan and retain advisory-only authority. Real review requires an explicit plan hash and rechecks PR/CI after all inference.
+
+No unlimited retries: each model request has a150second cap and the whole inference session has a50minute monotonic deadline. The one-shot hosted connection will use only public `haji84/RACE-AI` and standard `ubuntu-24.04`, owner-triggered PR opening/reopening, a separately reviewed source commit, and a70minute job cap. No schedule, push-triggered model run, artifact/cache upload, repository write, credential expansion, provider fallback or merge. [GitHub documents public standard runners as free](https://docs.github.com/en/billing/concepts/product-billing/github-actions); this does not assert that unrelated existing Vercel/storage charges stopped.
+
+The original manual template stays inactive. Actual execution evidence is recorded separately in the connection PR and ignored local evidence. Main/PR64/PR69/held33 remain untouched.
 
 ## Existing implementation reused unchanged
 
@@ -36,13 +48,13 @@ node scripts/race-goriq-review.mjs --review path/to/exact-request.json
 
 The command does not install or start Ollama and has no remote/paid fallback. Keep `GITHUB_TOKEN` absent for public unauthenticated reads or use only the approved repository-scoped read-only runner token; never pass a token into the model. Invalid/secret-like output is not published. Non-clean review exits 2. Output always retains `AI_ASSERTED`, `githubApprovalSatisfied:false`, `independentGitHubAccountVerified:false`, `physicalEvidenceVerified:false`, `mergeAuthorized:false`.
 
-## Actual PR69 readiness result — 2026-10-21
+## Historical first PR69 readiness result — 2026-10-21
 
 The first live preflight made four read-only GitHub GETs and held with `unverifiable_patch_statistics`. One diagnostic compare GET identified `tests/__init__.py`: GitHub reports an added empty file, blob `e69de29bb2d1d6434b8b29ae775ad8c2e48c5391`, zero additions/deletions, and no textual patch. GORIQ's current contract requires a verifiable hunk for every changed file. The 17-file diff has 73,217 returned patch bytes.
 
 A separate **offline diagnostic only** represented the empty file with a no-op hunk in a RAM copy. This exposed a second HOLD, `review_chunk_budget_exhausted`. Neither transformation nor an increased budget is part of the adapter. No file is silently dropped, fabricated hunk admitted or partial review called clean. The original comparison and diagnostic are retained under ignored `artifacts/` for review.
 
-Therefore this patch verifies reuse and safety integration; it does **not** assert PR69 is admitted, queued, reviewed by a real AI-09 model, approved or merged. Making this whole PR eligible needs a separately reviewed upstream policy for empty-file metadata and review batching, or smaller review scopes with separately verified complete coverage. Do not repeat the same held preflight without a concrete change.
+That first patch did **not** admit or review PR69. The V2 extension above resolves both HOLD conditions through verified metadata and complete batched review. Original comparison/HOLD proofs remain preserved. The admitted preflight does not by itself establish actual model review, formal approval, main integration, real-data E2E or98%accuracy.
 
 ## Hosted candidate remains inactive
 

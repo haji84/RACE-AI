@@ -4,6 +4,8 @@ import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { join } from 'node:path';
+import { performance } from 'node:perf_hooks';
+import {buildReviewPlan, consolidateBatches, isEmptyAddition, safeReviewPath, verifyEmptyContent} from './race-goriq-plan.mjs';
 
 const UPSTREAM = 'accf8294ff936b73b93e21667d92bc1b52aa8428';
 const LOCK_DIGEST = '651b0e7a4ee1b1e5f6bd584b789e81569c6fda7a6e9e687191af9edd651916c6';
@@ -40,6 +42,7 @@ function scopeOf(value) {
   if(x?.repository !== REPO || !Number.isSafeInteger(x.prNumber) || x.prNumber<1 ||
     !SHA.test(x.headSha??'') || !SHA.test(x.baseSha??'') || x.headSha===x.baseSha ||
     !Number.isSafeInteger(x.ciRunId) || x.ciRunId<1) fail('RACE_INVALID_SCOPE');
+  if(x.reviewPlanSha256!==undefined && !/^[a-f0-9]{64}$/.test(x.reviewPlanSha256))fail('RACE_INVALID_PLAN_PIN');
   return {repository:REPO,prNumber:x.prNumber,headSha:x.headSha,baseSha:x.baseSha,ciRunId:x.ciRunId};
 }
 function ownRepo(x) {return x?.full_name===REPO && x.id===REPO_ID;}
@@ -79,6 +82,7 @@ async function readEvidence(scope,api) {
   return {pr,fingerprint:evidence(scope,pr,run,checks)};
 }
 async function prepare(request,{api,core}) {
+  const expectedPlan=structuredClone(request)?.reviewPlanSha256;
   const scope=scopeOf(request);
   if(typeof api!=='function') fail('RACE_API_REQUIRED');
   const first=await readEvidence(scope,api);
@@ -88,33 +92,49 @@ async function prepare(request,{api,core}) {
     !Number.isSafeInteger(compare.total_commits) || compare.total_commits<1 || compare.total_commits>250 ||
     compare.commits.length!==compare.total_commits || compare.files?.length!==first.pr.changed_files)
     fail('RACE_COMPARE_INCOMPLETE_OR_CHANGED');
-  core.assertCompleteComparison(compare);
-  const prepared=core.compareToReviewChunks(compare,scope.baseSha,scope.headSha);
+  const verifiedEmpty=new Set();
+  for(const file of compare.files)if(file?.patch===undefined) {
+    if(!isEmptyAddition(file))fail('RACE_EMPTY_FILE_UNVERIFIED');
+    const content=await api('/contents/'+file.filename+'?ref='+scope.headSha);
+    verifyEmptyContent(content,file);verifiedEmpty.add(file.filename);
+  }
+  const prepared=buildReviewPlan(compare,scope,core,verifiedEmpty);
+  if(expectedPlan!==undefined && expectedPlan!==prepared.planSha256)fail('RACE_REVIEW_PLAN_CHANGED');
   return {scope,first,prepared};
 }
 export async function preflightRace(request,{api,core}) {
   const {scope,prepared}=await prepare(request,{api,core});
-  return {contract:'RACE_GORIQ_READONLY_V1',...scope,upstreamSha:UPSTREAM,
+  return {contract:'RACE_GORIQ_BATCHED_V2',...scope,upstreamSha:UPSTREAM,
     changedFiles:prepared.paths.length,patchSha256:prepared.patchSha256,
+    reviewPlanSha256:prepared.planSha256,batchCount:prepared.batches.length,emptyFiles:prepared.emptyFiles,
     chunkCount:prepared.chunks.length,modelInvoked:false,githubApprovalSatisfied:false,mergeAuthorized:false};
 }
-export async function reviewRace(request,{api,core,infer}) {
+export async function reviewRace(request,{api,core,infer,onProgress=()=>{}}) {
   if(typeof infer!=='function') fail('RACE_LOOPBACK_MODEL_REQUIRED');
   const {scope,first,prepared}=await prepare(request,{api,core});
-  const reviewScope={headSha:scope.headSha,baseSha:scope.baseSha,paths:prepared.paths,patchSha256:prepared.patchSha256};
-  const reports=[];
-  for(const chunk of prepared.chunks) {
-    const report=await core.reviewLocalPatch({...reviewScope,paths:chunk.paths,patch:chunk.patch,makerRole:'Builder',infer});
-    reports.push(report); if(report.status==='BLOCKED')break;
+  const reports=[];let reviewedChunks=0;
+  outer:for(const batch of prepared.batches) {
+    const rows=[];reports.push(rows);
+    for(const chunk of batch.chunks) {
+      const started=performance.now();
+      const report=await core.reviewLocalPatch({headSha:scope.headSha,baseSha:scope.baseSha,
+        paths:chunk.paths,patch:chunk.patch,makerRole:'Builder',infer});
+      rows.push(report);reviewedChunks++;
+      onProgress({chunk:reviewedChunks,of:prepared.chunks.length,
+        status:['NO_ACTIONABLE_FINDINGS','CHANGES_REQUESTED','INCONCLUSIVE','BLOCKED'].includes(report.status)?report.status:'BLOCKED',
+        durationMs:Math.round(performance.now()-started)});
+      if(report.status==='BLOCKED')break outer;
+    }
   }
-  const result=core.holdUngroundedAdvisory(core.consolidateChunkReviews(reports,reviewScope,prepared.chunks),prepared.patch);
+  const result=consolidateBatches(prepared,reports,{headSha:scope.headSha,baseSha:scope.baseSha},core);
   const last=await readEvidence(scope,api);
   if(first.fingerprint!==last.fingerprint) fail('RACE_EVIDENCE_CHANGED_DURING_REVIEW');
   const expected={...scope,trustedSha:UPSTREAM};
   const receipt=core.reviewReceipt({...expected,ciConclusion:'success',result});
   if(!core.validateReviewReceipt(receipt,expected))fail('RACE_UNPUBLISHABLE_RECEIPT');
-  return {...receipt,contract:'RACE_GORIQ_READONLY_V1',chunkCount:prepared.chunks.length,
-    reviewedChunks:reports.length,adapterPolicy:'four-sport-synthetic-v1'};
+  return {...receipt,contract:'RACE_GORIQ_BATCHED_V2',chunkCount:prepared.chunks.length,
+    reviewedChunks,batchCount:prepared.batches.length,reviewPlanSha256:prepared.planSha256,
+    emptyFiles:prepared.emptyFiles,adapterPolicy:'four-sport-synthetic-v2'};
 }
 
 async function boundedJson(response,max=BODY_LIMIT) {
@@ -129,7 +149,9 @@ async function boundedJson(response,max=BODY_LIMIT) {
 }
 export function makeGithubGet(fetcher=fetch,token='') {
   return async path=>{
-    if(typeof path!=='string' || !/^(?:\/pulls\/[1-9][0-9]*|\/actions\/runs\/[1-9][0-9]*|\/commits\/[a-f0-9]{40}\/check-runs\?per_page=100|\/compare\/[a-f0-9]{40}\.\.\.[a-f0-9]{40})$/.test(path))
+    const content=typeof path==='string'?/^\/contents\/(.+)\?ref=([a-f0-9]{40})$/.exec(path):null;
+    if(typeof path!=='string' || !(content && safeReviewPath(content[1])) &&
+      !/^(?:\/pulls\/[1-9][0-9]*|\/actions\/runs\/[1-9][0-9]*|\/commits\/[a-f0-9]{40}\/check-runs\?per_page=100|\/compare\/[a-f0-9]{40}\.\.\.[a-f0-9]{40})$/.test(path))
       fail('RACE_API_PATH_INVALID');
     const headers={Accept:'application/vnd.github+json','User-Agent':'RACE-GORIQ-readonly'};
     if(token)headers.Authorization='Bearer '+token;
@@ -138,11 +160,13 @@ export function makeGithubGet(fetcher=fetch,token='') {
     return boundedJson(response);
   };
 }
-export function loopbackInfer(fetcher=fetch) {
+export function loopbackInfer(fetcher=fetch,deadline=performance.now()+50*60*1000) {
   return async prompt=>{
     if(typeof prompt!=='string' || Buffer.byteLength(prompt)>10000)fail('RACE_MODEL_INPUT_INVALID');
+    const remaining=Math.floor(deadline-performance.now());
+    if(remaining<=0)fail('RACE_MODEL_TOTAL_BUDGET');
     const response=await fetcher('http://127.0.0.1:11434/api/chat',{method:'POST',redirect:'error',
-      headers:{'Content-Type':'application/json'},signal:AbortSignal.timeout(150000),body:JSON.stringify({
+      headers:{'Content-Type':'application/json'},signal:AbortSignal.timeout(Math.min(150000,remaining)),body:JSON.stringify({
         model:'qwen2.5-coder:3b',stream:false,format:'json',options:{temperature:0,num_ctx:8192,num_predict:768},
         messages:[{role:'user',content:prompt}]})});
     const payload=await boundedJson(response,65536);
@@ -155,9 +179,10 @@ async function main() {
   if(!['--preflight','--review'].includes(mode) || !path || rest.length)fail('RACE_USAGE_INVALID');
   const bytes=await readFile(path);if(bytes.length>4096)fail('RACE_SCOPE_FILE_LIMIT');
   const request=JSON.parse(bytes), core=await loadPinnedCore();
+  if(mode==='--review' && !/^[a-f0-9]{64}$/.test(request.reviewPlanSha256??''))fail('RACE_REVIEW_PLAN_PIN_REQUIRED');
   const api=makeGithubGet(fetch,process.env.GITHUB_TOKEN??'');
   const result=mode==='--preflight'?await preflightRace(request,{api,core}):
-    await reviewRace(request,{api,core,infer:loopbackInfer()});
+    await reviewRace(request,{api,core,infer:loopbackInfer(),onProgress:row=>process.stderr.write('AI09_PROGRESS='+JSON.stringify(row)+'\n')});
   process.stdout.write(JSON.stringify(result,null,2)+'\n');
   if(mode==='--review' && result.reviewerResult.status!=='NO_ACTIONABLE_FINDINGS')process.exitCode=2;
 }

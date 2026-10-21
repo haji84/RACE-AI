@@ -30,7 +30,7 @@ function apiFor(data, mutateSecond) {
   const api=async path=>{
     calls.push(path); counts[path]=(counts[path]||0)+1;
     const key=path.startsWith('/pulls/')?'pr':path.startsWith('/actions/runs/')?'run':
-      path.startsWith('/commits/')?'checks':path.startsWith('/compare/')?'compare':null;
+      path.startsWith('/commits/')?'checks':path.startsWith('/compare/')?'compare':path.startsWith('/contents/')?'contents':null;
     assert.ok(key,'unexpected API request');
     const value=structuredClone(data[key]);
     if(counts[path]===2)mutateSecond?.(key,value);
@@ -149,19 +149,31 @@ test('loopback inference reuses model and never accepts remote fallback or redir
   });
   assert.equal(typeof await infer('safe fixture'), 'string'); assert.equal(count,1);
 });
-test('added empty files remain HOLD until upstream supports authoritative metadata',async()=>{
+test('unproven added empty files remain HOLD before model',async()=>{
   const f=fixture(); Object.assign(f.compare.files[0],{patch:undefined,sha:'e69de29bb2d1d6434b8b29ae775ad8c2e48c5391',
     additions:0,deletions:0,changes:0,status:'added'});
   let models=0; const {api}=apiFor(f);
-  await assert.rejects(reviewRace(request,{api,core,infer:async()=>{models++;return clean();}}),/unverifiable_patch_statistics/);
+  await assert.rejects(reviewRace(request,{api,core,infer:async()=>{models++;return clean();}}));
   assert.equal(models,0);
 });
-test('upstream 24-chunk ceiling stays enforced before inference',async()=>{
+test('25 chunks require two complete upstream-limited batches',async()=>{
   const f=fixture(); f.pr.changed_files=25;
   f.compare.files=Array.from({length:25},(_,i)=>({...f.compare.files[0],filename:'src/file'+i+'.mjs'}));
   let models=0; const {api}=apiFor(f);
-  await assert.rejects(reviewRace(request,{api,core,infer:async()=>{models++;return clean();}}),/review_chunk_budget_exhausted/);
-  assert.equal(models,0);
+  const receipt=await reviewRace(request,{api,core,infer:async()=>{models++;return clean();}});
+  assert.equal(models,25);assert.equal(receipt.batchCount,2);
+  assert.equal(receipt.reviewedChunks,25);assert.equal(receipt.reviewerResult.status,'NO_ACTIONABLE_FINDINGS');
+});
+test('empty metadata requires contents from the exact reviewed head, before model',async()=>{
+  const f=fixture();f.pr.changed_files=2;
+  f.compare.files.push({filename:'tests/__init__.py',status:'added',sha:'e69de29bb2d1d6434b8b29ae775ad8c2e48c5391',
+    additions:0,deletions:0,changes:0});
+  f.contents={path:'tests/__init__.py',type:'file',size:0,sha:f.compare.files[1].sha,encoding:'base64',content:''};
+  const {api,calls}=apiFor(f);let models=0;
+  const receipt=await reviewRace(request,{api,core,infer:async prompt=>{
+    if(++models===2)assert.match(prompt,/AI09_VERIFIED_EMPTY_FILE_ADDITION/);return clean();}});
+  assert.ok(calls.includes('/contents/tests/__init__.py?ref='+head));
+  assert.equal(models,2);assert.equal(receipt.reviewerResult.status,'NO_ACTIONABLE_FINDINGS');
 });
 test('multiple chunks with a later model failure never produce a clean receipt',async()=>{
   const f=fixture(); const lines=Array.from({length:120},(_,i)=>'export const value'+i+' = "'+'x'.repeat(36)+'";');
@@ -187,6 +199,16 @@ test('invalid request fails before any API call',async()=>{
   for(const input of [{...request,repository:'haji84/AI-'},{...request,headSha:base},{...request,ciRunId:0}]) {
     let calls=0; await assert.rejects(preflightRace(input,{core,api:async()=>{calls++;}}),/SCOPE/);assert.equal(calls,0);
   }
+});
+test('changed plan pin rejects before inference',async()=>{
+  const {api}=apiFor(fixture());let models=0;
+  await assert.rejects(reviewRace({...request,reviewPlanSha256:'0'.repeat(64)},
+    {api,core,infer:async()=>{models++;return clean();}}),/PLAN_CHANGED/);
+  assert.equal(models,0);
+});
+test('global model budget forbids further inference calls',async()=>{
+  let calls=0;const infer=loopbackInfer(async()=>{calls++;return Response.json({});},0);
+  await assert.rejects(infer('fixture'),/TOTAL_BUDGET/);assert.equal(calls,0);
 });
 test('candidate is inactive, manual, read only, and preflights before any model download',async()=>{
   const source=await readFile(new URL('../docs/workflow-templates/race-goriq-readonly.yml.template',import.meta.url),'utf8');
