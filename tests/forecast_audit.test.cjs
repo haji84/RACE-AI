@@ -48,7 +48,7 @@ test("post-cutoff and missing external receipt are never counted as frozen",()=>
  assert.equal(M.score(noReceipt),false);
 });
 test("winning combination must equal one of the ordered tickets",()=>{
- assert.equal(M.score(row("not-hit",{toString(){return "boat"}})),true);
+ assert.equal(M.score(row("synthetic-hit","boat")),true);
  assert.equal(M.score(row("a","boat",{result:{status:"final",winning_combinations:[[3,2,1]]}})),false);
 });
 test("duplicate race IDs and conflicting files cannot silently overwrite",()=>{
