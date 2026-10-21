@@ -1,0 +1,285 @@
+{
+  "date_jst": "2026-10-21",
+  "run_context": "manual_read_only_discovery",
+  "venue_total": 26,
+  "confirmed_active_venue_count": 25,
+  "postponed_venue_count": 1,
+  "per_race_ledger_complete": false,
+  "confirmed_race_count": null,
+  "actual_pre_cutoff_frozen_predictions": 0,
+  "verified_predicted_results": 0,
+  "accuracy": null,
+  "source_auto_ingest_permissions": "NOT_VERIFIED",
+  "github_write_attempt_note": "Race-specific shadow forecast creation was blocked; no immutable forecast is claimed.",
+  "no_auto_bets": true,
+  "no_new_charges": true,
+  "sources": [
+    "BOAT RACE official 2026-10-21 schedule and copyright policy",
+    "Rakuten K Dreams 2026-10-21 schedule",
+    "Isezaki Auto official schedule",
+    "Nagoya Keiba official other-track schedule",
+    "JRA 2026-10-21 no ordinary Wednesday JRA meeting"
+  ],
+  "venues": [
+    {
+      "sport": "boat",
+      "venue": "桐生",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "BOAT RACE official 2026-10-21 race index"
+    },
+    {
+      "sport": "boat",
+      "venue": "浜名湖",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "BOAT RACE official 2026-10-21 race index"
+    },
+    {
+      "sport": "boat",
+      "venue": "津",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "BOAT RACE official 2026-10-21 race index"
+    },
+    {
+      "sport": "boat",
+      "venue": "びわこ",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "BOAT RACE official 2026-10-21 race index"
+    },
+    {
+      "sport": "boat",
+      "venue": "住之江",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "BOAT RACE official 2026-10-21 race index"
+    },
+    {
+      "sport": "boat",
+      "venue": "尼崎",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "BOAT RACE official 2026-10-21 race index"
+    },
+    {
+      "sport": "boat",
+      "venue": "鳴門",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "BOAT RACE official 2026-10-21 race index"
+    },
+    {
+      "sport": "boat",
+      "venue": "児島",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "BOAT RACE official 2026-10-21 race index"
+    },
+    {
+      "sport": "boat",
+      "venue": "宮島",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "BOAT RACE official 2026-10-21 race index"
+    },
+    {
+      "sport": "boat",
+      "venue": "徳山",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "BOAT RACE official 2026-10-21 race index"
+    },
+    {
+      "sport": "boat",
+      "venue": "若松",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "BOAT RACE official 2026-10-21 race index"
+    },
+    {
+      "sport": "boat",
+      "venue": "唐津",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "BOAT RACE official 2026-10-21 race index"
+    },
+    {
+      "sport": "boat",
+      "venue": "江戸川",
+      "status": "POSTPONED",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "POSTPONED_OFFICIAL",
+      "schedule_evidence": "BOAT RACE official 2026-10-21 race index"
+    },
+    {
+      "sport": "keirin",
+      "venue": "小田原",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "2026-10-21 Rakuten K Dreams daily schedule"
+    },
+    {
+      "sport": "keirin",
+      "venue": "四日市",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "2026-10-21 Rakuten K Dreams daily schedule"
+    },
+    {
+      "sport": "keirin",
+      "venue": "青森",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "2026-10-21 Rakuten K Dreams daily schedule"
+    },
+    {
+      "sport": "keirin",
+      "venue": "取手",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "2026-10-21 Rakuten K Dreams daily schedule"
+    },
+    {
+      "sport": "keirin",
+      "venue": "川崎",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "2026-10-21 Rakuten K Dreams daily schedule"
+    },
+    {
+      "sport": "keirin",
+      "venue": "いわき平",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "2026-10-21 Rakuten K Dreams daily schedule"
+    },
+    {
+      "sport": "keirin",
+      "venue": "前橋",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "2026-10-21 Rakuten K Dreams daily schedule"
+    },
+    {
+      "sport": "keirin",
+      "venue": "松阪",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "2026-10-21 Rakuten K Dreams daily schedule"
+    },
+    {
+      "sport": "autorace",
+      "venue": "伊勢崎",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "Isezaki Auto official 2026-10-21 GII schedule"
+    },
+    {
+      "sport": "horse_local",
+      "venue": "笠松",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "Nagoya Keiba official 2026-10-21 other-track sales schedule"
+    },
+    {
+      "sport": "horse_local",
+      "venue": "浦和",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "Nagoya Keiba official 2026-10-21 other-track sales schedule"
+    },
+    {
+      "sport": "horse_local",
+      "venue": "園田",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "Nagoya Keiba official 2026-10-21 other-track sales schedule"
+    },
+    {
+      "sport": "horse_local",
+      "venue": "門別",
+      "status": "CONFIRMED_SCHEDULE",
+      "granularity": "venue_only",
+      "per_race_discovery": "NOT_COMPLETED",
+      "forecast": "NOT_FROZEN",
+      "reason": "DAY_LEDGER_ONLY; REQUIRES_RACE_DETAILS_AND_PRE_CUTOFF_PERSISTENCE",
+      "schedule_evidence": "Nagoya Keiba official 2026-10-21 other-track sales schedule"
+    }
+  ]
+}
