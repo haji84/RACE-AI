@@ -160,7 +160,7 @@
       for(const g of groups.sort((a,b)=>(b.hit8??-1)-(a.hit8??-1)||a.key.localeCompare(b.key))){
         const tr=el("tr");
         for(const v of [g.model_id+" / "+M.displaySport[g.sport]+" ("+g.model_version+")",
-          g.ledger,g.evaluable,g.hits,g.hit8===null?"未検証":(100*g.hit8).toFixed(2)+"%",g.comparison])
+          g.ledger,g.evaluable,g.hits,g.hit8===null?"未検証":(100*g.hit8).toFixed(2)+"%"+(g.ci95?" (95%区間 "+(100*g.ci95[0]).toFixed(1)+"–"+(100*g.ci95[1]).toFixed(1)+"%)":""),g.comparison])
           tr.append(el("td","",v));
         models.append(tr);
       }
