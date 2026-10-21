@@ -36,3 +36,11 @@ Reviewer policy (owner): Do NOT request, invoke, rely on, or count CodeRabbit as
 - 修正が入ればhead SHAを再照合し、AI-09が再審査。認証トークンはモデルに渡さず、PRコメント投稿は別の最小権限の検証済み投稿処理に分離する。AI-09の出力はAI_ASSERTEDの技術的助言でありGitHub APPROVEDではない。
 - GORIQのAI-09自動投稿PR #1799は未統合、ZBook実機からコメントまでの自動E2Eも未実証。RACE AIのPR #65へ接続済みと扱わない。実機・権限・独立性・CI・GitHub側承認の証拠が揃うまでは統合Gateを保留する。
 - 正式審査要件とHuman GateをAIの自己承認で置換しない。独立GitHubアカウント等のルールを省略・弱体化しない。
+
+## 2026-10-21 4競技・クラウド実行の仕様追補
+
+- 詳細差分の正本候補: `docs/RACE_AI_ACTIONS_CLOUD_DELTA_20261021.md`。Issue #67/#68を上位要件とする。**本変更はPR #61のDraft仕様でありmain/Productionの実装ではない**。
+- ZBookを通常の収集・予想・結果照合・PDCAの必須依存にしない。既存GitHub Actions / Preview / private Blobを可能な限り再利用し、Cloudflareは未承認の比較候補とする。
+- 4競技共通の日次台帳を構築し、オッズを参照する前に全有効3連単から最大8点を締切前に固定。オッズは**凍結後**の独立した購入価値判断のみ。旧仕様のodds/no-odds予測は今回の方針と衝突する限り使用しない。
+- 定期ジョブの実行遅延/欠落、ZBook停止、外部取得失敗、時点リーク、再実行、永続復元の実E2Eを完了条件とする。Actionsの実行定義だけで無人運用完成と呼ばない。
+- 機能要件の変更は独立レビュー/保護/権利/費用/一般公開のHuman Gateを緩めない。コード/モデル/クラウド移行は別の実行・受入工程で行う。
