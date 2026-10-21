@@ -44,3 +44,10 @@ Reviewer policy (owner): Do NOT request, invoke, rely on, or count CodeRabbit as
 - 4競技共通の日次台帳を構築し、オッズを参照する前に全有効3連単から最大8点を締切前に固定。オッズは**凍結後**の独立した購入価値判断のみ。旧仕様のodds/no-odds予測は今回の方針と衝突する限り使用しない。
 - 定期ジョブの実行遅延/欠落、ZBook停止、外部取得失敗、時点リーク、再実行、永続復元の実E2Eを完了条件とする。Actionsの実行定義だけで無人運用完成と呼ばない。
 - 機能要件の変更は独立レビュー/保護/権利/費用/一般公開のHuman Gateを緩めない。コード/モデル/クラウド移行は別の実行・受入工程で行う。
+
+## 2026-10-21 最上位GOAL v1.1とCodex統合指示の参照
+
+- 本PRの `docs/RACE_AI_98PCT_GOAL_AMENDMENT_20261021.md` は4競技・全発売評価可能レースでのオッズ非依存3連単最大8点・実測Hit@8_all 98%以上を**未達の研究目標**として規定する。保証・達成済み主張は禁止。
+- ZBook非依存のActions運用詳細は `docs/RACE_AI_ACTIONS_CLOUD_DELTA_20261021.md`。**Codexへの統合実行指示**は `docs/CODEX_INTEGRATED_PRIORITY_20261021.md` に集約した。Issue #67/#68と矛盾があれば `SPEC_CONFLICTS.md` に記録し採否理由を残す。
+- オッズ/人気/市場情報は学習・特徴量選択・モデル比較・推論・上位8点決定から隔離し、凍結後の経済評価に限定する。旧16/24/32点UIは別モードに隔離、公式AI精度の成績に混ぜない。未予想・見送り・締切超過を全発売評価可能レースの分母に残す。
+- 既存53章詳細・PRの依存/正確なhead・SourcePermission・保護・独立レビュー・費用/公開Human Gateは維持。PR #61の提案内容であってmain/Productionへ採用済みとは扱わない。
