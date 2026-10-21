@@ -24,7 +24,7 @@
   <div class="upload-actions"><button id="load-synthetic" class="demo-button" type="button">合成サンプルで画面を試す</button><label class="upload" for="import-files">JSONを読み込む<input id="import-files" type="file" accept=".json,application/json" multiple></label></div>
  </div>
  <div class="toolbar-fields">
-  <label>競技<select id="sport-filter"><option value="all">4競技すべて</option><option value="boat">ボートレース</option><option value="keirin">競輪</option><option value="autorace">オートレース</option><option value="horse">競馬</option></select></label>
+  <label>競技<select id="sport-filter"><option value="all">4競技すべて</option><option value="boat">ボートレース</option><option value="keirin">競輪</option><option value="autorace">オートレース</option><option value="horse">競馬</option></select></label><label>開催日<select id="day-filter"><option value="all">全日付</option></select></label>
   <label>状態<select id="status-filter"><option value="all">すべて</option><option value="FROZEN_REPORTED">締切前保存（申告）</option><option value="PREDICTION_UNVERIFIED">保存証拠不足</option><option value="NO_FORECAST">未予想</option><option value="final">結果確定</option></select></label>
   <label class="search-label">会場・レース検索<input id="search" type="search" placeholder="例：鳴門 1R"></label>
  </div>
@@ -36,6 +36,7 @@
  <article class="stat"><span>確定・評価可能</span><strong id="settled-count">未取得</strong><small>3連単発売レースのみ</small></article>
  <article class="stat focus"><span>全対象 Hit@8</span><strong id="hit-rate">未検証</strong><small id="hit-count">結果が揃うまで未集計</small></article>
 </section>
+<section class="panel sport-panel"><h2>競技別の予想と結果</h2><div class="table-wrap"><table><thead><tr><th>競技</th><th>台帳</th><th>締切前保存（申告）</th><th>結果評価可能</th><th>的中</th><th>Hit@8</th></tr></thead><tbody id="sport-breakdown"></tbody></table></div></section>
 <section class="sectionhead"><div><h2>レース別の照合</h2><p id="shown-count">読み込み中</p></div><div id="data-kind" class="kind">未取得</div></section>
 <div id="race-list" class="race-list" aria-live="polite"></div>
 <section class="panel notes">
