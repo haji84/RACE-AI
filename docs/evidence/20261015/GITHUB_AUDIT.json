@@ -1,0 +1,345 @@
+{
+  "observed_at": "2026-10-14T18:00:57.036Z",
+  "repository": "haji84/RACE-AI",
+  "main_commit": "8bb7d69f9c8fb302055bc9e2609903d1e8f73e4b",
+  "main_tree": "293e81c2f88b6a0544dfea474b27a4b541b56414",
+  "initial_open_pr_count": 50,
+  "latest_open_pr_count": 54,
+  "pr_46_59": [
+    {
+      "number": 59,
+      "state": "open",
+      "draft": true,
+      "base": "feat/boat-actions-private-blob-e2e",
+      "head": "feat/boat-oidc-probe-auth",
+      "head_sha": "610b90cd9667de60d75729e3137e4e1919d4cb1a",
+      "ci_runs": [
+        {
+          "id": 38611720204,
+          "name": "RACE AI unit tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 38611720171,
+          "name": "RACE AI public source smoke (metadata only)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 58,
+      "state": "open",
+      "draft": true,
+      "base": "feat/boat-preview-private-blob-probe",
+      "head": "feat/boat-actions-private-blob-e2e",
+      "head_sha": "9a4cb98210c69d0190a65f544aa7c6987b55170d",
+      "ci_runs": [
+        {
+          "id": 38541485381,
+          "name": "RACE AI unit tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 38541485456,
+          "name": "RACE AI public source smoke (metadata only)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 57,
+      "state": "open",
+      "draft": true,
+      "base": "feat/boat-blob-async-stream-verification",
+      "head": "feat/boat-preview-private-blob-probe",
+      "head_sha": "cca045bbc5db45cc1f799e6ce89fb0ddabdc44c9",
+      "ci_runs": [
+        {
+          "id": 38539380888,
+          "name": "RACE AI public source smoke (metadata only)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 38539380823,
+          "name": "RACE AI unit tests",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 56,
+      "state": "open",
+      "draft": true,
+      "base": "fix/boat-blob-sdk-stream-readback",
+      "head": "feat/boat-blob-async-stream-verification",
+      "head_sha": "028489b16b173682a71249d471b78de31b9082e3",
+      "ci_runs": [
+        {
+          "id": 38539097246,
+          "name": "RACE AI public source smoke (metadata only)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 38539097137,
+          "name": "RACE AI unit tests",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 55,
+      "state": "open",
+      "draft": true,
+      "base": "feat/boat-private-blob-sdk-e2e",
+      "head": "fix/boat-blob-sdk-stream-readback",
+      "head_sha": "58b3a6912040d37011c911529f324d15fd3e897d",
+      "ci_runs": [
+        {
+          "id": 38538850099,
+          "name": "RACE AI public source smoke (metadata only)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 38538850118,
+          "name": "RACE AI unit tests",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 54,
+      "state": "open",
+      "draft": true,
+      "base": "fix/boat-blob-stable-path-contract",
+      "head": "feat/boat-private-blob-sdk-e2e",
+      "head_sha": "8746fce00d25ed2ac3796370669742b5721e34e9",
+      "ci_runs": [
+        {
+          "id": 38538641716,
+          "name": "RACE AI unit tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 38538641455,
+          "name": "RACE AI public source smoke (metadata only)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 53,
+      "state": "open",
+      "draft": true,
+      "base": "feat/boat-blob-worker-cli-upload",
+      "head": "fix/boat-blob-stable-path-contract",
+      "head_sha": "22cfdeebf0cdefa84feb79bb9374ddf416ec1ad0",
+      "ci_runs": [
+        {
+          "id": 38538152063,
+          "name": "RACE AI public source smoke (metadata only)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 38538152139,
+          "name": "RACE AI unit tests",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 52,
+      "state": "open",
+      "draft": true,
+      "base": "feat/boat-worker-publish-contract",
+      "head": "feat/boat-blob-worker-cli-upload",
+      "head_sha": "e45ac41b1171dc41984920468f4c40c07b338147",
+      "ci_runs": [
+        {
+          "id": 38537909379,
+          "name": "RACE AI unit tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 38537909111,
+          "name": "RACE AI public source smoke (metadata only)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 51,
+      "state": "open",
+      "draft": true,
+      "base": "feat/boat-github-archive-export",
+      "head": "feat/boat-worker-publish-contract",
+      "head_sha": "34e03d4c0afafe7ed54c15d8e5582d0ab44c15cd",
+      "ci_runs": [
+        {
+          "id": 38534996506,
+          "name": "RACE AI public source smoke (metadata only)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 38534996530,
+          "name": "RACE AI unit tests",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 50,
+      "state": "open",
+      "draft": true,
+      "base": "feat/boat-blob-feed-reader",
+      "head": "feat/boat-github-archive-export",
+      "head_sha": "14a8035caaffe25c963f9fd5221236a3702374e4",
+      "ci_runs": [
+        {
+          "id": 38534913524,
+          "name": "RACE AI public source smoke (metadata only)",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 38534913576,
+          "name": "RACE AI unit tests",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 49,
+      "state": "open",
+      "draft": true,
+      "base": "feat/boat-durable-day-feed-store",
+      "head": "feat/boat-blob-feed-reader",
+      "head_sha": "b27309a7ec1fae2611ecf0c6afc6feac950694f0",
+      "ci_runs": [
+        {
+          "id": 38534929864,
+          "name": "RACE AI unit tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 38534929850,
+          "name": "RACE AI public source smoke (metadata only)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 48,
+      "state": "open",
+      "draft": true,
+      "base": "feat/boat-all-24-venue-source-governance",
+      "head": "feat/boat-durable-day-feed-store",
+      "head_sha": "e449c99dfee4203bc4c2901fde77b4d8c4c895fd",
+      "ci_runs": [
+        {
+          "id": 38532997458,
+          "name": "RACE AI unit tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 38532997352,
+          "name": "RACE AI public source smoke (metadata only)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 47,
+      "state": "open",
+      "draft": true,
+      "base": "feat/boat-home-redesign-api-contract",
+      "head": "feat/boat-all-24-venue-source-governance",
+      "head_sha": "f223369abb053773d342316c288a6911bd3eca5e",
+      "ci_runs": [
+        {
+          "id": 38532756337,
+          "name": "RACE AI unit tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 38532756535,
+          "name": "RACE AI public source smoke (metadata only)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    },
+    {
+      "number": 46,
+      "state": "open",
+      "draft": true,
+      "base": "feat/boat-mobile-venue-race-navigation",
+      "head": "feat/boat-home-redesign-api-contract",
+      "head_sha": "09799811abb25aecc92fa6f51e0013451ed46534",
+      "ci_runs": [
+        {
+          "id": 38531009936,
+          "name": "RACE AI unit tests",
+          "status": "completed",
+          "conclusion": "success"
+        },
+        {
+          "id": 38531009892,
+          "name": "RACE AI public source smoke (metadata only)",
+          "status": "completed",
+          "conclusion": "success"
+        }
+      ]
+    }
+  ],
+  "new_prs": [
+    {
+      "number": 60,
+      "head": "efd12cac792cc7100387a1f4952db128d422e125",
+      "purpose": "Tokuyama guarded partial index worker"
+    },
+    {
+      "number": 61,
+      "head": "52cb1262baf259a7cba73df127512e3b37c68e16",
+      "purpose": "Requirements and resumable checkpoint"
+    },
+    {
+      "number": 62,
+      "head": "a6bc73d97d56e0f6626450e1883000763feb0643",
+      "purpose": "Responsive UI and synthetic browser evidence"
+    },
+    {
+      "number": 63,
+      "head": "eee30c0af9ec0c2532eaab82943d7dc251d2d77f",
+      "purpose": "Strict private JST SDK reader",
+      "ci_run": 38612150125,
+      "ci": "success"
+    }
+  ],
+  "real_blob_e2e_verified": true,
+  "real_today_feed_verified": false,
+  "actual_iphone_safari_verified": false
+}
