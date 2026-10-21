@@ -32,7 +32,7 @@
     if(!day)return period==="all";
     if(period==="all")return true;
     if(period==="today")return day===anchor;
-    if(period==="week")return day>=monday(anchor)&&day<=anchor;
+    if(period==="week"){const start=monday(anchor);const end=new Date(start+"T00:00:00Z");end.setUTCDate(end.getUTCDate()+7);return day>=start&&day<end.toISOString().slice(0,10);}
     return period===day;
   }
   function parse(raw) {
@@ -167,8 +167,8 @@
       (state==="all"||outcome(r)===state)&&
       (!needle||(r.venue+" "+r.race_no+"R "+r.race_id+" "+(r.prediction?.model_version||"")).toLowerCase().includes(needle)));
   }
-  function sortRaces(rows,order="latest"){
-    const modelsByVersion=new Map(modelComparison(rows).map(g=>[g.key,g]));
+  function sortRaces(rows,order="latest",referenceRows=rows){
+    const modelsByVersion=new Map(modelComparison(referenceRows).map(g=>[g.key,g]));
     const modelRank=r=>{
       if(!r.prediction)return -1;
       const key=r.sport+"|"+(r.prediction.model_id||r.prediction.model_version)+"|"+r.prediction.model_version;
