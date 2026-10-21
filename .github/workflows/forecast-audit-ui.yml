@@ -25,6 +25,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify repository revision
         run: git rev-parse HEAD
+      - name: Check viewer script syntax
+        run: |
+          node --check web/forecast-audit-model.js
+          node --check web/forecast-audit.js
       - name: Node contract and denominator tests
         run: node --test tests/forecast_audit.test.cjs
       - name: Python synthetic journal to viewer projection tests
