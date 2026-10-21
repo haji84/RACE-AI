@@ -1,0 +1,5536 @@
+{
+  "schema_version": "coverage_only_v1",
+  "date_jst": "2026-10-21",
+  "initial_observed_at_jst": "2026-10-21T21:18:03+09:00",
+  "record_type": "AUDIT_DISCOVERY_ONLY",
+  "status_note": "Venue and race-number inventory is a provisional coverage scaffold reconstructed from observed public schedules. It is NOT an authorized input data acquisition, per-race source-attested cutoff catalog, validated official result, or pre-cutoff forecast. All cutoff times and feature inputs remain UNVERIFIED. No odds or race results are imported.",
+  "target_issue": "https://github.com/haji84/RACE-AI/issues/67",
+  "source_schedule_references": {
+    "boat": "https://boatrace.jp/owpc/pc/race/index?hd=20261021",
+    "keirin": "https://my.keirin.kdreams.jp/kaisai/",
+    "auto": "https://www.isesaki-auto.jp/race/racelist/",
+    "horse": "https://keiba.rakuten.co.jp/race_status/list/RACEID/202610210000000000"
+  },
+  "special_notice": "BOAT RACE official listing reports 江戸川 中止順延. The twelve 江戸川 race-number rows are cancelled/postponed placeholders, not completed starts.",
+  "assumptions": [
+    "Active boat venues list 12 scheduled races per venue; race-level exceptions have not been rechecked.",
+    "Auto 伊勢崎 lists a 12R first-day program.",
+    "Keirin card ranges observed as 12,12,7,11,11,7,7,7 for the venues in order.",
+    "Each of four listed NAR venues has 1R-12R. No JRA races were listed on this Wednesday.",
+    "Provider access and storage/training/republication rights remain unchecked; only minimal identifiers are recorded, no content or predictive inputs."
+  ],
+  "counts": {
+    "active_venues": 25,
+    "active_race_rows": 278,
+    "postponed_venue_rows": 12,
+    "total_inventory_rows": 290,
+    "predictions_frozen": 0,
+    "predictions_scored": 0,
+    "by_sport": {
+      "boat": 144,
+      "keirin": 74,
+      "auto": 12,
+      "horse": 48
+    }
+  },
+  "rows": [
+    {
+      "race_id": "boat:2026-10-21:桐生:1",
+      "sport": "boat",
+      "venue": "桐生",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:桐生:2",
+      "sport": "boat",
+      "venue": "桐生",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:桐生:3",
+      "sport": "boat",
+      "venue": "桐生",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:桐生:4",
+      "sport": "boat",
+      "venue": "桐生",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:桐生:5",
+      "sport": "boat",
+      "venue": "桐生",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:桐生:6",
+      "sport": "boat",
+      "venue": "桐生",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:桐生:7",
+      "sport": "boat",
+      "venue": "桐生",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:桐生:8",
+      "sport": "boat",
+      "venue": "桐生",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:桐生:9",
+      "sport": "boat",
+      "venue": "桐生",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:桐生:10",
+      "sport": "boat",
+      "venue": "桐生",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:桐生:11",
+      "sport": "boat",
+      "venue": "桐生",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:桐生:12",
+      "sport": "boat",
+      "venue": "桐生",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:浜名湖:1",
+      "sport": "boat",
+      "venue": "浜名湖",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:浜名湖:2",
+      "sport": "boat",
+      "venue": "浜名湖",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:浜名湖:3",
+      "sport": "boat",
+      "venue": "浜名湖",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:浜名湖:4",
+      "sport": "boat",
+      "venue": "浜名湖",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:浜名湖:5",
+      "sport": "boat",
+      "venue": "浜名湖",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:浜名湖:6",
+      "sport": "boat",
+      "venue": "浜名湖",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:浜名湖:7",
+      "sport": "boat",
+      "venue": "浜名湖",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:浜名湖:8",
+      "sport": "boat",
+      "venue": "浜名湖",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:浜名湖:9",
+      "sport": "boat",
+      "venue": "浜名湖",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:浜名湖:10",
+      "sport": "boat",
+      "venue": "浜名湖",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:浜名湖:11",
+      "sport": "boat",
+      "venue": "浜名湖",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:浜名湖:12",
+      "sport": "boat",
+      "venue": "浜名湖",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:津:1",
+      "sport": "boat",
+      "venue": "津",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:津:2",
+      "sport": "boat",
+      "venue": "津",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:津:3",
+      "sport": "boat",
+      "venue": "津",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:津:4",
+      "sport": "boat",
+      "venue": "津",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:津:5",
+      "sport": "boat",
+      "venue": "津",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:津:6",
+      "sport": "boat",
+      "venue": "津",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:津:7",
+      "sport": "boat",
+      "venue": "津",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:津:8",
+      "sport": "boat",
+      "venue": "津",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:津:9",
+      "sport": "boat",
+      "venue": "津",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:津:10",
+      "sport": "boat",
+      "venue": "津",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:津:11",
+      "sport": "boat",
+      "venue": "津",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:津:12",
+      "sport": "boat",
+      "venue": "津",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:びわこ:1",
+      "sport": "boat",
+      "venue": "びわこ",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:びわこ:2",
+      "sport": "boat",
+      "venue": "びわこ",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:びわこ:3",
+      "sport": "boat",
+      "venue": "びわこ",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:びわこ:4",
+      "sport": "boat",
+      "venue": "びわこ",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:びわこ:5",
+      "sport": "boat",
+      "venue": "びわこ",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:びわこ:6",
+      "sport": "boat",
+      "venue": "びわこ",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:びわこ:7",
+      "sport": "boat",
+      "venue": "びわこ",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:びわこ:8",
+      "sport": "boat",
+      "venue": "びわこ",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:びわこ:9",
+      "sport": "boat",
+      "venue": "びわこ",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:びわこ:10",
+      "sport": "boat",
+      "venue": "びわこ",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:びわこ:11",
+      "sport": "boat",
+      "venue": "びわこ",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:びわこ:12",
+      "sport": "boat",
+      "venue": "びわこ",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:住之江:1",
+      "sport": "boat",
+      "venue": "住之江",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:住之江:2",
+      "sport": "boat",
+      "venue": "住之江",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:住之江:3",
+      "sport": "boat",
+      "venue": "住之江",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:住之江:4",
+      "sport": "boat",
+      "venue": "住之江",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:住之江:5",
+      "sport": "boat",
+      "venue": "住之江",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:住之江:6",
+      "sport": "boat",
+      "venue": "住之江",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:住之江:7",
+      "sport": "boat",
+      "venue": "住之江",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:住之江:8",
+      "sport": "boat",
+      "venue": "住之江",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:住之江:9",
+      "sport": "boat",
+      "venue": "住之江",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:住之江:10",
+      "sport": "boat",
+      "venue": "住之江",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:住之江:11",
+      "sport": "boat",
+      "venue": "住之江",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:住之江:12",
+      "sport": "boat",
+      "venue": "住之江",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:尼崎:1",
+      "sport": "boat",
+      "venue": "尼崎",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:尼崎:2",
+      "sport": "boat",
+      "venue": "尼崎",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:尼崎:3",
+      "sport": "boat",
+      "venue": "尼崎",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:尼崎:4",
+      "sport": "boat",
+      "venue": "尼崎",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:尼崎:5",
+      "sport": "boat",
+      "venue": "尼崎",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:尼崎:6",
+      "sport": "boat",
+      "venue": "尼崎",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:尼崎:7",
+      "sport": "boat",
+      "venue": "尼崎",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:尼崎:8",
+      "sport": "boat",
+      "venue": "尼崎",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:尼崎:9",
+      "sport": "boat",
+      "venue": "尼崎",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:尼崎:10",
+      "sport": "boat",
+      "venue": "尼崎",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:尼崎:11",
+      "sport": "boat",
+      "venue": "尼崎",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:尼崎:12",
+      "sport": "boat",
+      "venue": "尼崎",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:鳴門:1",
+      "sport": "boat",
+      "venue": "鳴門",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:鳴門:2",
+      "sport": "boat",
+      "venue": "鳴門",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:鳴門:3",
+      "sport": "boat",
+      "venue": "鳴門",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:鳴門:4",
+      "sport": "boat",
+      "venue": "鳴門",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:鳴門:5",
+      "sport": "boat",
+      "venue": "鳴門",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:鳴門:6",
+      "sport": "boat",
+      "venue": "鳴門",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:鳴門:7",
+      "sport": "boat",
+      "venue": "鳴門",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:鳴門:8",
+      "sport": "boat",
+      "venue": "鳴門",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:鳴門:9",
+      "sport": "boat",
+      "venue": "鳴門",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:鳴門:10",
+      "sport": "boat",
+      "venue": "鳴門",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:鳴門:11",
+      "sport": "boat",
+      "venue": "鳴門",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:鳴門:12",
+      "sport": "boat",
+      "venue": "鳴門",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:児島:1",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:児島:2",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:児島:3",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:児島:4",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:児島:5",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:児島:6",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:児島:7",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:児島:8",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:児島:9",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:児島:10",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:児島:11",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:児島:12",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:宮島:1",
+      "sport": "boat",
+      "venue": "宮島",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:宮島:2",
+      "sport": "boat",
+      "venue": "宮島",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:宮島:3",
+      "sport": "boat",
+      "venue": "宮島",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:宮島:4",
+      "sport": "boat",
+      "venue": "宮島",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:宮島:5",
+      "sport": "boat",
+      "venue": "宮島",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:宮島:6",
+      "sport": "boat",
+      "venue": "宮島",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:宮島:7",
+      "sport": "boat",
+      "venue": "宮島",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:宮島:8",
+      "sport": "boat",
+      "venue": "宮島",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:宮島:9",
+      "sport": "boat",
+      "venue": "宮島",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:宮島:10",
+      "sport": "boat",
+      "venue": "宮島",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:宮島:11",
+      "sport": "boat",
+      "venue": "宮島",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:宮島:12",
+      "sport": "boat",
+      "venue": "宮島",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:徳山:1",
+      "sport": "boat",
+      "venue": "徳山",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:徳山:2",
+      "sport": "boat",
+      "venue": "徳山",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:徳山:3",
+      "sport": "boat",
+      "venue": "徳山",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:徳山:4",
+      "sport": "boat",
+      "venue": "徳山",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:徳山:5",
+      "sport": "boat",
+      "venue": "徳山",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:徳山:6",
+      "sport": "boat",
+      "venue": "徳山",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:徳山:7",
+      "sport": "boat",
+      "venue": "徳山",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:徳山:8",
+      "sport": "boat",
+      "venue": "徳山",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:徳山:9",
+      "sport": "boat",
+      "venue": "徳山",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:徳山:10",
+      "sport": "boat",
+      "venue": "徳山",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:徳山:11",
+      "sport": "boat",
+      "venue": "徳山",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:徳山:12",
+      "sport": "boat",
+      "venue": "徳山",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:若松:1",
+      "sport": "boat",
+      "venue": "若松",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:若松:2",
+      "sport": "boat",
+      "venue": "若松",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:若松:3",
+      "sport": "boat",
+      "venue": "若松",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:若松:4",
+      "sport": "boat",
+      "venue": "若松",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:若松:5",
+      "sport": "boat",
+      "venue": "若松",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:若松:6",
+      "sport": "boat",
+      "venue": "若松",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:若松:7",
+      "sport": "boat",
+      "venue": "若松",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:若松:8",
+      "sport": "boat",
+      "venue": "若松",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:若松:9",
+      "sport": "boat",
+      "venue": "若松",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:若松:10",
+      "sport": "boat",
+      "venue": "若松",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:若松:11",
+      "sport": "boat",
+      "venue": "若松",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:若松:12",
+      "sport": "boat",
+      "venue": "若松",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:唐津:1",
+      "sport": "boat",
+      "venue": "唐津",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:唐津:2",
+      "sport": "boat",
+      "venue": "唐津",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:唐津:3",
+      "sport": "boat",
+      "venue": "唐津",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:唐津:4",
+      "sport": "boat",
+      "venue": "唐津",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:唐津:5",
+      "sport": "boat",
+      "venue": "唐津",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:唐津:6",
+      "sport": "boat",
+      "venue": "唐津",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:唐津:7",
+      "sport": "boat",
+      "venue": "唐津",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:唐津:8",
+      "sport": "boat",
+      "venue": "唐津",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:唐津:9",
+      "sport": "boat",
+      "venue": "唐津",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:唐津:10",
+      "sport": "boat",
+      "venue": "唐津",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:唐津:11",
+      "sport": "boat",
+      "venue": "唐津",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:唐津:12",
+      "sport": "boat",
+      "venue": "唐津",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:小田原:1",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:小田原:2",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:小田原:3",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:小田原:4",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:小田原:5",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:小田原:6",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:小田原:7",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:小田原:8",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:小田原:9",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:小田原:10",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:小田原:11",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:小田原:12",
+      "sport": "keirin",
+      "venue": "小田原",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:四日市:1",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:四日市:2",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:四日市:3",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:四日市:4",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:四日市:5",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:四日市:6",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:四日市:7",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:四日市:8",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:四日市:9",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:四日市:10",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:四日市:11",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:四日市:12",
+      "sport": "keirin",
+      "venue": "四日市",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:青森:1",
+      "sport": "keirin",
+      "venue": "青森",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:青森:2",
+      "sport": "keirin",
+      "venue": "青森",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:青森:3",
+      "sport": "keirin",
+      "venue": "青森",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:青森:4",
+      "sport": "keirin",
+      "venue": "青森",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:青森:5",
+      "sport": "keirin",
+      "venue": "青森",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:青森:6",
+      "sport": "keirin",
+      "venue": "青森",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:青森:7",
+      "sport": "keirin",
+      "venue": "青森",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:取手:1",
+      "sport": "keirin",
+      "venue": "取手",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:取手:2",
+      "sport": "keirin",
+      "venue": "取手",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:取手:3",
+      "sport": "keirin",
+      "venue": "取手",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:取手:4",
+      "sport": "keirin",
+      "venue": "取手",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:取手:5",
+      "sport": "keirin",
+      "venue": "取手",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:取手:6",
+      "sport": "keirin",
+      "venue": "取手",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:取手:7",
+      "sport": "keirin",
+      "venue": "取手",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:取手:8",
+      "sport": "keirin",
+      "venue": "取手",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:取手:9",
+      "sport": "keirin",
+      "venue": "取手",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:取手:10",
+      "sport": "keirin",
+      "venue": "取手",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:取手:11",
+      "sport": "keirin",
+      "venue": "取手",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:川崎:1",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:川崎:2",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:川崎:3",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:川崎:4",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:川崎:5",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:川崎:6",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:川崎:7",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:川崎:8",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:川崎:9",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:川崎:10",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:川崎:11",
+      "sport": "keirin",
+      "venue": "川崎",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:いわき平:1",
+      "sport": "keirin",
+      "venue": "いわき平",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:いわき平:2",
+      "sport": "keirin",
+      "venue": "いわき平",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:いわき平:3",
+      "sport": "keirin",
+      "venue": "いわき平",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:いわき平:4",
+      "sport": "keirin",
+      "venue": "いわき平",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:いわき平:5",
+      "sport": "keirin",
+      "venue": "いわき平",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:いわき平:6",
+      "sport": "keirin",
+      "venue": "いわき平",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:いわき平:7",
+      "sport": "keirin",
+      "venue": "いわき平",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:前橋:1",
+      "sport": "keirin",
+      "venue": "前橋",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:前橋:2",
+      "sport": "keirin",
+      "venue": "前橋",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:前橋:3",
+      "sport": "keirin",
+      "venue": "前橋",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:前橋:4",
+      "sport": "keirin",
+      "venue": "前橋",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:前橋:5",
+      "sport": "keirin",
+      "venue": "前橋",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:前橋:6",
+      "sport": "keirin",
+      "venue": "前橋",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:前橋:7",
+      "sport": "keirin",
+      "venue": "前橋",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:松阪:1",
+      "sport": "keirin",
+      "venue": "松阪",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:松阪:2",
+      "sport": "keirin",
+      "venue": "松阪",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:松阪:3",
+      "sport": "keirin",
+      "venue": "松阪",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:松阪:4",
+      "sport": "keirin",
+      "venue": "松阪",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:松阪:5",
+      "sport": "keirin",
+      "venue": "松阪",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:松阪:6",
+      "sport": "keirin",
+      "venue": "松阪",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "keirin:2026-10-21:松阪:7",
+      "sport": "keirin",
+      "venue": "松阪",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "auto:2026-10-21:伊勢崎:1",
+      "sport": "auto",
+      "venue": "伊勢崎",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "auto:2026-10-21:伊勢崎:2",
+      "sport": "auto",
+      "venue": "伊勢崎",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "auto:2026-10-21:伊勢崎:3",
+      "sport": "auto",
+      "venue": "伊勢崎",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "auto:2026-10-21:伊勢崎:4",
+      "sport": "auto",
+      "venue": "伊勢崎",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "auto:2026-10-21:伊勢崎:5",
+      "sport": "auto",
+      "venue": "伊勢崎",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "auto:2026-10-21:伊勢崎:6",
+      "sport": "auto",
+      "venue": "伊勢崎",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "auto:2026-10-21:伊勢崎:7",
+      "sport": "auto",
+      "venue": "伊勢崎",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "auto:2026-10-21:伊勢崎:8",
+      "sport": "auto",
+      "venue": "伊勢崎",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "auto:2026-10-21:伊勢崎:9",
+      "sport": "auto",
+      "venue": "伊勢崎",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "auto:2026-10-21:伊勢崎:10",
+      "sport": "auto",
+      "venue": "伊勢崎",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "auto:2026-10-21:伊勢崎:11",
+      "sport": "auto",
+      "venue": "伊勢崎",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "auto:2026-10-21:伊勢崎:12",
+      "sport": "auto",
+      "venue": "伊勢崎",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:門別:1",
+      "sport": "horse",
+      "venue": "門別",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:門別:2",
+      "sport": "horse",
+      "venue": "門別",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:門別:3",
+      "sport": "horse",
+      "venue": "門別",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:門別:4",
+      "sport": "horse",
+      "venue": "門別",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:門別:5",
+      "sport": "horse",
+      "venue": "門別",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:門別:6",
+      "sport": "horse",
+      "venue": "門別",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:門別:7",
+      "sport": "horse",
+      "venue": "門別",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:門別:8",
+      "sport": "horse",
+      "venue": "門別",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:門別:9",
+      "sport": "horse",
+      "venue": "門別",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:門別:10",
+      "sport": "horse",
+      "venue": "門別",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:門別:11",
+      "sport": "horse",
+      "venue": "門別",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:門別:12",
+      "sport": "horse",
+      "venue": "門別",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:浦和:1",
+      "sport": "horse",
+      "venue": "浦和",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:浦和:2",
+      "sport": "horse",
+      "venue": "浦和",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:浦和:3",
+      "sport": "horse",
+      "venue": "浦和",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:浦和:4",
+      "sport": "horse",
+      "venue": "浦和",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:浦和:5",
+      "sport": "horse",
+      "venue": "浦和",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:浦和:6",
+      "sport": "horse",
+      "venue": "浦和",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:浦和:7",
+      "sport": "horse",
+      "venue": "浦和",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:浦和:8",
+      "sport": "horse",
+      "venue": "浦和",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:浦和:9",
+      "sport": "horse",
+      "venue": "浦和",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:浦和:10",
+      "sport": "horse",
+      "venue": "浦和",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:浦和:11",
+      "sport": "horse",
+      "venue": "浦和",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:浦和:12",
+      "sport": "horse",
+      "venue": "浦和",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:笠松:1",
+      "sport": "horse",
+      "venue": "笠松",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:笠松:2",
+      "sport": "horse",
+      "venue": "笠松",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:笠松:3",
+      "sport": "horse",
+      "venue": "笠松",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:笠松:4",
+      "sport": "horse",
+      "venue": "笠松",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:笠松:5",
+      "sport": "horse",
+      "venue": "笠松",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:笠松:6",
+      "sport": "horse",
+      "venue": "笠松",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:笠松:7",
+      "sport": "horse",
+      "venue": "笠松",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:笠松:8",
+      "sport": "horse",
+      "venue": "笠松",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:笠松:9",
+      "sport": "horse",
+      "venue": "笠松",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:笠松:10",
+      "sport": "horse",
+      "venue": "笠松",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:笠松:11",
+      "sport": "horse",
+      "venue": "笠松",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:笠松:12",
+      "sport": "horse",
+      "venue": "笠松",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:園田:1",
+      "sport": "horse",
+      "venue": "園田",
+      "race_no": 1,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:園田:2",
+      "sport": "horse",
+      "venue": "園田",
+      "race_no": 2,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:園田:3",
+      "sport": "horse",
+      "venue": "園田",
+      "race_no": 3,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:園田:4",
+      "sport": "horse",
+      "venue": "園田",
+      "race_no": 4,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:園田:5",
+      "sport": "horse",
+      "venue": "園田",
+      "race_no": 5,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:園田:6",
+      "sport": "horse",
+      "venue": "園田",
+      "race_no": 6,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:園田:7",
+      "sport": "horse",
+      "venue": "園田",
+      "race_no": 7,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:園田:8",
+      "sport": "horse",
+      "venue": "園田",
+      "race_no": 8,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:園田:9",
+      "sport": "horse",
+      "venue": "園田",
+      "race_no": 9,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:園田:10",
+      "sport": "horse",
+      "venue": "園田",
+      "race_no": 10,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:園田:11",
+      "sport": "horse",
+      "venue": "園田",
+      "race_no": 11,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "horse:2026-10-21:園田:12",
+      "sport": "horse",
+      "venue": "園田",
+      "race_no": 12,
+      "status": "NOT_PREDICTED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "NOT_RECONCILED",
+      "reason_codes": [
+        "NO_VERIFIED_PROVIDER_PERMISSION",
+        "NO_DEPLOYED_FROZEN_PREDICTION_EVIDENCE"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:江戸川:1",
+      "sport": "boat",
+      "venue": "江戸川",
+      "race_no": 1,
+      "status": "CANCELLED_POSTPONED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "CANCELLED_POSTPONED",
+      "reason_codes": [
+        "VENUE_DAY_POSTPONED_OFFICIAL"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:江戸川:2",
+      "sport": "boat",
+      "venue": "江戸川",
+      "race_no": 2,
+      "status": "CANCELLED_POSTPONED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "CANCELLED_POSTPONED",
+      "reason_codes": [
+        "VENUE_DAY_POSTPONED_OFFICIAL"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:江戸川:3",
+      "sport": "boat",
+      "venue": "江戸川",
+      "race_no": 3,
+      "status": "CANCELLED_POSTPONED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "CANCELLED_POSTPONED",
+      "reason_codes": [
+        "VENUE_DAY_POSTPONED_OFFICIAL"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:江戸川:4",
+      "sport": "boat",
+      "venue": "江戸川",
+      "race_no": 4,
+      "status": "CANCELLED_POSTPONED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "CANCELLED_POSTPONED",
+      "reason_codes": [
+        "VENUE_DAY_POSTPONED_OFFICIAL"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:江戸川:5",
+      "sport": "boat",
+      "venue": "江戸川",
+      "race_no": 5,
+      "status": "CANCELLED_POSTPONED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "CANCELLED_POSTPONED",
+      "reason_codes": [
+        "VENUE_DAY_POSTPONED_OFFICIAL"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:江戸川:6",
+      "sport": "boat",
+      "venue": "江戸川",
+      "race_no": 6,
+      "status": "CANCELLED_POSTPONED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "CANCELLED_POSTPONED",
+      "reason_codes": [
+        "VENUE_DAY_POSTPONED_OFFICIAL"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:江戸川:7",
+      "sport": "boat",
+      "venue": "江戸川",
+      "race_no": 7,
+      "status": "CANCELLED_POSTPONED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "CANCELLED_POSTPONED",
+      "reason_codes": [
+        "VENUE_DAY_POSTPONED_OFFICIAL"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:江戸川:8",
+      "sport": "boat",
+      "venue": "江戸川",
+      "race_no": 8,
+      "status": "CANCELLED_POSTPONED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "CANCELLED_POSTPONED",
+      "reason_codes": [
+        "VENUE_DAY_POSTPONED_OFFICIAL"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:江戸川:9",
+      "sport": "boat",
+      "venue": "江戸川",
+      "race_no": 9,
+      "status": "CANCELLED_POSTPONED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "CANCELLED_POSTPONED",
+      "reason_codes": [
+        "VENUE_DAY_POSTPONED_OFFICIAL"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:江戸川:10",
+      "sport": "boat",
+      "venue": "江戸川",
+      "race_no": 10,
+      "status": "CANCELLED_POSTPONED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "CANCELLED_POSTPONED",
+      "reason_codes": [
+        "VENUE_DAY_POSTPONED_OFFICIAL"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:江戸川:11",
+      "sport": "boat",
+      "venue": "江戸川",
+      "race_no": 11,
+      "status": "CANCELLED_POSTPONED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "CANCELLED_POSTPONED",
+      "reason_codes": [
+        "VENUE_DAY_POSTPONED_OFFICIAL"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-21:江戸川:12",
+      "sport": "boat",
+      "venue": "江戸川",
+      "race_no": 12,
+      "status": "CANCELLED_POSTPONED",
+      "scheduled_start_at": null,
+      "sales_cutoff_at": null,
+      "cutoff_provenance": "UNVERIFIED",
+      "source_usage_permission": "UNVERIFIED",
+      "input_snapshot_hash": null,
+      "prediction_hash": null,
+      "frozen_at": null,
+      "official_result_status": "CANCELLED_POSTPONED",
+      "reason_codes": [
+        "VENUE_DAY_POSTPONED_OFFICIAL"
+      ]
+    }
+  ]
+}
