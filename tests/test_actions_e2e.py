@@ -239,6 +239,9 @@ class FourSportTests(unittest.TestCase):
         for forbidden in ["secrets.","id-token:","pull_request_target","schedule:","upload-artifact","wrangler","vercel deploy"]:
             self.assertNotIn(forbidden,workflow)
         self.assertIn("persist-credentials: false",workflow)
+        self.assertIn("  unit:",workflow)
+        self.assertIn("needs: synthetic",workflow)
+        self.assertIn("github.event.pull_request.head.sha",workflow)
 
     def test_e2e_entirely_offline(self):
         with patch("socket.create_connection",side_effect=AssertionError("network forbidden")):

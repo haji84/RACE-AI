@@ -1,59 +1,187 @@
 {
-  "recorded_date_jst": "2026-10-21",
-  "scope": "FOUR_SPORT_SYNTHETIC_ONLY",
-  "base_main_sha": "8bb7d69f9c8fb302055bc9e2609903d1e8f73e4b",
-  "spec_pr61_sha": "fef68607b4773c59d6d46aa04b9e9762a42683d4",
-  "reused_pr64_sha": "27f3df12ddca3971833d4dbf03f6fbcc88df6b07",
+  "recorded_at": "2026-10-21T13:03:47.678Z",
+  "repository": "haji84/RACE-AI",
+  "pr": 69,
+  "head_sha": "31fe5114bf9c21f0bd2c70e1ba26bfc812893af0",
+  "base_sha": "8bb7d69f9c8fb302055bc9e2609903d1e8f73e4b",
+  "run": {
+    "id": 39603835629,
+    "url": "https://github.com/haji84/RACE-AI/actions/runs/39603835629",
+    "event": "push",
+    "status": "completed",
+    "conclusion": "success",
+    "github_hosted": true,
+    "jobs": [
+      {
+        "job_id": 119234838749,
+        "python": "3.12.3",
+        "tests": 36,
+        "seconds": 1.905,
+        "report": {
+          "accuracy_goal_status": "98_PERCENT_UNVALIDATED",
+          "by_sport": {
+            "autorace": {
+              "evaluable": 1,
+              "freezes": 1,
+              "hits": 1,
+              "ledger": 2
+            },
+            "boat": {
+              "evaluable": 2,
+              "freezes": 1,
+              "hits": 0,
+              "ledger": 2
+            },
+            "horse": {
+              "evaluable": 1,
+              "freezes": 1,
+              "hits": 1,
+              "ledger": 2
+            },
+            "keirin": {
+              "evaluable": 1,
+              "freezes": 1,
+              "hits": 1,
+              "ledger": 2
+            }
+          },
+          "evaluable_races": 5,
+          "external_source_requests": 0,
+          "external_time_attested": false,
+          "hit8_all": 0.6,
+          "hits": 3,
+          "journal_hash": "81ed6da96e4e19ad2c6feeadbda8ffeefdc52cde0acd4d77f0f800bf90e9ba35",
+          "ledger_races": 8,
+          "no_forecast": 1,
+          "not_offered": 1,
+          "pre_cutoff_freezes": 4,
+          "prediction_hashes": [
+            "37cdbb85337022f53160d30a408babd384319234901e28e4bc3b1b2f464d81c8",
+            "ec86b69ca99d6b3bb83239f609b02571f57fec9d71baafe3bfab1579352fa871",
+            "f0f1a20348e0e7334efae7c4024427f0f41aebf4704dc6de4be6f9c02982b3d4",
+            "70137b02e320ec70394a32e50a029b5903e2307c25afb6ab564741af2c07e565"
+          ],
+          "production_durable_store_verified": false,
+          "real_races": null,
+          "result_revisions": 9,
+          "scope": "SYNTHETIC_ONLY",
+          "unresolved": 1,
+          "void": 1
+        }
+      },
+      {
+        "job_id": 119234838887,
+        "python": "3.12.10",
+        "tests": 36,
+        "seconds": 10.827,
+        "report": {
+          "accuracy_goal_status": "98_PERCENT_UNVALIDATED",
+          "by_sport": {
+            "autorace": {
+              "evaluable": 1,
+              "freezes": 1,
+              "hits": 1,
+              "ledger": 2
+            },
+            "boat": {
+              "evaluable": 2,
+              "freezes": 1,
+              "hits": 0,
+              "ledger": 2
+            },
+            "horse": {
+              "evaluable": 1,
+              "freezes": 1,
+              "hits": 1,
+              "ledger": 2
+            },
+            "keirin": {
+              "evaluable": 1,
+              "freezes": 1,
+              "hits": 1,
+              "ledger": 2
+            }
+          },
+          "evaluable_races": 5,
+          "external_source_requests": 0,
+          "external_time_attested": false,
+          "hit8_all": 0.6,
+          "hits": 3,
+          "journal_hash": "81ed6da96e4e19ad2c6feeadbda8ffeefdc52cde0acd4d77f0f800bf90e9ba35",
+          "ledger_races": 8,
+          "no_forecast": 1,
+          "not_offered": 1,
+          "pre_cutoff_freezes": 4,
+          "prediction_hashes": [
+            "37cdbb85337022f53160d30a408babd384319234901e28e4bc3b1b2f464d81c8",
+            "ec86b69ca99d6b3bb83239f609b02571f57fec9d71baafe3bfab1579352fa871",
+            "f0f1a20348e0e7334efae7c4024427f0f41aebf4704dc6de4be6f9c02982b3d4",
+            "70137b02e320ec70394a32e50a029b5903e2307c25afb6ab564741af2c07e565"
+          ],
+          "production_durable_store_verified": false,
+          "real_races": null,
+          "result_revisions": 9,
+          "scope": "SYNTHETIC_ONLY",
+          "unresolved": 1,
+          "void": 1
+        }
+      }
+    ]
+  },
+  "review": {
+    "agent": "/root/actions_synthetic_review",
+    "exact_head": true,
+    "critical_or_important_findings": 0,
+    "tests": 36,
+    "classification": "INDEPENDENT_TECHNICAL_REVIEW_NOT_GITHUB_APPROVED_OR_GORIQ_ACCEPTANCE",
+    "remaining_formal_gate": "GORIQ AI-09 / authorized independent acceptance as required by PR61 AGENTS; no GitHub review approvals currently"
+  },
   "status": {
     "IMPLEMENTED": true,
-    "CI_VERIFIED": "See exact-head Actions run linked in implementation PR; not asserted by this pre-push file",
-    "INDEPENDENT_REVIEWED": "Technical read-only agent review in progress; not GitHub APPROVED or GORIQ acceptance",
+    "CI_VERIFIED": true,
+    "INDEPENDENT_TECHNICAL_REVIEWED": true,
+    "FORMAL_REVIEW_ACCEPTED": false,
     "MERGED_MAIN": false,
     "REAL_E2E_VERIFIED": false,
-    "CONTINUOUSLY_OBSERVED": false
-  },
-  "synthetic": {
-    "ledger": 8,
-    "evaluable": 5,
-    "freezes": 4,
-    "missing_forecasts": 1,
-    "void": 1,
-    "not_offered": 1,
-    "unresolved": 1,
-    "result_revisions": 9,
-    "hits": 3,
-    "hit8_all": 0.6,
-    "validation": "UNVALIDATED",
-    "official_prediction": false
-  },
-  "real": {
-    "all_sport_race_count": null,
-    "evaluable_count": null,
-    "pre_cutoff_freezes": null,
-    "official_result_count": null,
-    "hit8_all": null,
-    "forward_comparison": null,
-    "accuracy98": "UNVALIDATED",
-    "reason": "New pipeline not admitted to real sources/storage; old research is not new E2E"
+    "CONTINUOUSLY_OBSERVED": false,
+    "INDEPENDENT_REVIEWED": "Technical only; runtime31fe511 reviewed, workflow update needs exact-head CI/review in PR69"
   },
   "safety": {
-    "external_source_requests": 0,
-    "prediction_posts": 0,
-    "held33_redispatch": 0,
-    "new_cloud_resources": 0,
-    "external_builds_requested": 0,
-    "provider_credentials_or_secrets_accessed": 0,
-    "production_changes": 0,
-    "cloudflare_local_work_preserved": true,
-    "pr64_pr65_heads_unchanged": true,
-    "actions_schedule_installed": false,
-    "artifacts_uploaded": 0
+    "source_http": 0,
+    "business_posts": 0,
+    "held_nonce_redispatch": 0,
+    "cloudflare_deploy": 0,
+    "vercel_deploy_commands": 0,
+    "artifact_upload": 0,
+    "oidc_permissions": false,
+    "secrets_used": false,
+    "git_deploy_configuration_root": false,
+    "git_deploy_configuration_web": false,
+    "provider_billing_stop_verified": false,
+    "github_deployments_for_head": 0,
+    "provider_deployment_inventory_verified": false,
+    "branch_main_protected": true,
+    "protection_details": "unauthenticated read401; do not infer missing protection",
+    "main_reviews_approved": 0,
+    "business_provider_secrets_accessed": 0,
+    "github_existing_credential_used_for_push_and_protection_read": true
   },
-  "blockers": [
-    "Verified purpose-specific source rights for real adapters",
-    "Authoritative real sales cutoff and externally witnessed immutable persisted_at",
-    "Authenticated approved cloud storage access and multi-run restore",
-    "Authorized independent/GORIQ review and main protection/deployment gate",
-    "Each sport's future real E2E, forward PDCA/accuracy and actual iPhone"
-  ]
+  "unresolved": [
+    "Purpose-specific rights mapping for real new adapters",
+    "Authoritative current sales cutoff / externally corroborated immutable persistence",
+    "Real cross-run cloud storage/recovery",
+    "Formal independent approval and protection/deployment gates before main integration",
+    "Future real per-sport E2E, continuous scheduled observation, forward model PDCA, actual iPhone"
+  ],
+  "protection": {
+    "ruleset_id": 25039178,
+    "required_check": "unit",
+    "strict": true,
+    "pull_request_required": true,
+    "thread_resolution_required": true,
+    "deletion_and_force_push_blocked": true,
+    "github_approvals_currently": 0,
+    "formal_independent_gate_separate": true
+  },
+  "next_head_note": "First verified runtime proof is retained here. Required-unit/PR exact-head update final SHA/run is recorded in PR69 body to avoid a self-referential commit."
 }
