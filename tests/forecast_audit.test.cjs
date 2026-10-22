@@ -156,3 +156,51 @@ test("Wilson interval makes tiny samples visibly uncertain",()=>{
  const g=M.modelComparison([row("tiny")])[0];
  assert.ok(g.ci95[0] < 0.5 && g.ci95[1] <= 1);
 });
+
+
+test("two parallel models compare against one race without duplicating it",()=>{
+ const r=row("model-compare-one","boat");
+ const a={...r.prediction,model_id:"boat-comprehensive-v1",model_version:"A",ordered_top8:[[1,2,3],[1,3,2]]};
+ const b={...r.prediction,model_id:"boat-scenario-mixture-v1",model_version:"B",ordered_top8:[[3,2,1],[2,3,1]]};
+ const record={...r,comparison_predictions:[a,b]};
+ assert.doesNotThrow(()=>M.parse(pack([record])));
+ const groups=M.modelComparison([record]);
+ assert.equal(groups.length,3); // fixed main model + two independent shadow models
+ assert.equal(new Set(groups.map(g=>g.key)).size,3);
+ assert.equal(groups.reduce((s,g)=>s+g.ledger,0),3);
+ const comp=groups.find(g=>g.model_id==="boat-comprehensive-v1");
+ const scenario=groups.find(g=>g.model_id==="boat-scenario-mixture-v1");
+ assert.equal(comp.hits,1);
+ assert.equal(scenario.hits,0);
+ assert.equal(M.summary([record]).overall.ledger,1);
+ assert.equal(M.summary([record]).overall.hits,1);
+});
+test("parallel-model denominator includes missed or absent forecasts",()=>{
+ const first=row("first","boat");
+ const second=row("second","boat");
+ first.comparison_predictions=[{...first.prediction,model_id:"scenario",model_version:"1"}];
+ const g=M.modelComparison([first,second]).find(g=>g.model_id==="scenario");
+ assert.equal(g.ledger,2);
+ assert.equal(g.issued,1);
+ assert.equal(g.evaluable,2);
+ assert.equal(g.hits,1);
+ assert.equal(g.hit8,0.5);
+ assert.ok(g.comparison.includes("未証明"));
+});
+test("missing independent receipt or late parallel forecast cannot hit",()=>{
+ const r=row("third","boat");
+ const a={...r.prediction,model_id:"alt",model_version:"1",external_receipt_verified:false};
+ const b={...r.prediction,model_id:"alt-two",model_version:"1",persisted_at:"2030-01-01T10:01:00+09:00"};
+ const record={...r,comparison_predictions:[a,b]};
+ assert.equal(M.scorePrediction(record,a),false);
+ assert.equal(M.scorePrediction(record,b),false);
+ assert.equal(M.modelComparison([record]).filter(g=>g.model_id.startsWith("alt")).reduce((n,g)=>n+g.hits,0),0);
+});
+test("duplicate comparison identity, market fields and ninth pick are rejected",()=>{
+ const r=row("fourth","boat");
+ const a={...r.prediction,model_id:"alt",model_version:"1"};
+ assert.throws(()=>M.parse(pack([{...r,comparison_predictions:[a,a]}])),/重複/);
+ assert.throws(()=>M.parse(pack([{...r,comparison_predictions:[{...a,market_odds:12}]}])),/市場/);
+ const long=Array.from({length:9},(_,i)=>[i+1,i+2,i+3]);
+ assert.throws(()=>M.parse(pack([{...r,comparison_predictions:[{...a,ordered_top8:long}]}])),/比較モデルの買い目/);
+});
