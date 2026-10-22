@@ -34,22 +34,22 @@ def _historical_past(history, current_day, cutoff):
     positions=[]
     starts=[]
     for x in history:
-        if not isinstance(x, dict) or set(x)!={"race_day","finish_position","start_seconds"}:
+        if not isinstance(x, dict) or set(x)!={"race_id","race_day","finish_position","start_seconds"}:
             raise FeatureModelError("historical fields invalid")
         day=x["race_day"]
-        if not isinstance(day,str) or not day < current_day or day > "2000-01-01":
+        if not isinstance(day,str) or not "2000-01-01" <= day < current_day or not x["race_id"]:
             raise FeatureModelError("future/current-day historical result leakage")
         finish=x["finish_position"]
         if type(finish) is not int or not 1 <= finish <= 6:
             raise FeatureModelError("uncertain historical finish; no imputation allowed")
         start=_finite(x["start_seconds"],0,1,"historical start seconds")
-        stamps.append(day)
+        stamps.append(x["race_id"])
         positions.append(finish)
         starts.append(start)
     if len(stamps)!=len(set(stamps)):
         # Multiple races on the same day need stronger unique IDs than date alone.
         raise FeatureModelError("duplicate historical day; explicit stable race identity required")
-    if stamps!=sorted(stamps,reverse=True):
+    if history != sorted(history,key=lambda row:(row["race_day"],str(row["race_id"])),reverse=True):
         raise FeatureModelError("history must be newest-first")
     weights=[1/(i+1) for i in range(len(history))]
     relative=math.fsum(w*(7-f)/6 for w,f in zip(weights,positions))/sum(weights)
@@ -115,8 +115,8 @@ def from_approved_features(racelist,auxiliary,*,admit_source=None):
                 "start_consistency_rating":consistency
             },
             "source_ref":"feature-lineage-sha256:"+digest(refs),
-            "published_at":max(v["published_at"] for v in sources),
-            "captured_at":max(v["captured_at"] for v in sources)
+            "published_at":max((v["published_at"] for v in sources),key=lambda value:_instant(value,"published")),
+            "captured_at":max((v["captured_at"] for v in sources),key=lambda value:_instant(value,"captured"))
         })
     weather=auxiliary["weather"]
     _safe_source(weather,cutoff=as_of,admit_source=admit_source)
