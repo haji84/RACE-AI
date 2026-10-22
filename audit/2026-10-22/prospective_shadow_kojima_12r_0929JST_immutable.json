@@ -1,0 +1,1551 @@
+{
+  "schema": "RACE_AI_PROSPECTIVE_RESEARCH_FREEZE_V1",
+  "date_jst": "2026-10-22",
+  "venue": "児島",
+  "location": "児島16",
+  "produced_before_cutoff_claim": "GitHub receive/commit UTC time must be checked after write",
+  "reference_time_jst": "2026-10-22T09:29:27+09:00",
+  "commit_sha": null,
+  "precutoff_proof_note": "This raw JSON has no built-in timestamp certificate; GitHub commit reception time and unchanged blob SHA must be verified independently, and official cutoff may change.",
+  "restrictions": "Research shadow only; not calibrated, not rights-approved bulk ingest, not product rollout; model is intentionally weak class/lane baseline",
+  "source_authority": "BOATRACE official day index, manually read, no market information",
+  "target_relevance": "Real published entrant class and scheduled cutoff for all 12 races at one venue; not four-sport complete.",
+  "races": [
+    {
+      "race_id": "boat:2026-10-22:16:1",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 1,
+      "event_date_jst": "2026-10-22",
+      "cutoff_scheduled_at": "2026-10-22T10:58:00+09:00",
+      "forecast_kind": "PROSPECTIVE_MANUAL_BASELINE_SHADOW",
+      "official_prediction": true,
+      "betting_decision": "NO_BET",
+      "input_description": "Public factual race-index lane/class only. Not full pre-race form. No raw web content duplicated.",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=16",
+      "source_review": "Human-style individual public factual viewing; site policy checked; no automated source crawling or training grant inferred.",
+      "as_of_observation_jst": "2026-10-22T09:29:27+09:00",
+      "entrant_classes": [
+        "A1",
+        "B1",
+        "B1",
+        "B1",
+        "B1",
+        "B1"
+      ],
+      "entrant_ids_are_lane_only": true,
+      "model": {
+        "id": "human-reviewed-class-lane-pl",
+        "version": "0.1-untrained",
+        "trained_until": null,
+        "validated_accuracy": false,
+        "class_weight": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "lane_bias": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "selection": "Plackett-Luce top three without odds",
+        "tie_break": "ordered numeric tuple ascending"
+      },
+      "candidate_count": 120,
+      "all_valid_candidates_ranked": true,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.026709096336947482
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.02551871878432587
+        },
+        {
+          "rank": 3,
+          "combination": [
+            1,
+            2,
+            4
+          ],
+          "uncalibrated_score": 0.023504004776513782
+        },
+        {
+          "rank": 4,
+          "combination": [
+            1,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.021730117623569346
+        },
+        {
+          "rank": 5,
+          "combination": [
+            1,
+            2,
+            5
+          ],
+          "uncalibrated_score": 0.02136727706955799
+        },
+        {
+          "rank": 6,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.02029714440175314
+        },
+        {
+          "rank": 7,
+          "combination": [
+            1,
+            2,
+            6
+          ],
+          "uncalibrated_score": 0.020031822252710614
+        },
+        {
+          "rank": 8,
+          "combination": [
+            1,
+            3,
+            4
+          ],
+          "uncalibrated_score": 0.019359028043281695
+        }
+      ],
+      "candidate_reconstruction": "Generate all distinct ordered 3-combinations from lanes 1..6 with fixed grade and lane multipliers; sort descending PL score then tuple.",
+      "data_quality": "LOW_CLASS_ONLY",
+      "reported_hit_probability": null,
+      "outcome_at_forecast_time": null,
+      "result_status": "NOT_YET_CONFIRMED",
+      "safety": "No odds, no competitor forecasts, no auto bets; source website content not mirrored."
+    },
+    {
+      "race_id": "boat:2026-10-22:16:2",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 2,
+      "event_date_jst": "2026-10-22",
+      "cutoff_scheduled_at": "2026-10-22T11:25:00+09:00",
+      "forecast_kind": "PROSPECTIVE_MANUAL_BASELINE_SHADOW",
+      "official_prediction": true,
+      "betting_decision": "NO_BET",
+      "input_description": "Public factual race-index lane/class only. Not full pre-race form. No raw web content duplicated.",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=16",
+      "source_review": "Human-style individual public factual viewing; site policy checked; no automated source crawling or training grant inferred.",
+      "as_of_observation_jst": "2026-10-22T09:29:27+09:00",
+      "entrant_classes": [
+        "B1",
+        "B1",
+        "B1",
+        "B1",
+        "B1",
+        "B1"
+      ],
+      "entrant_ids_are_lane_only": true,
+      "model": {
+        "id": "human-reviewed-class-lane-pl",
+        "version": "0.1-untrained",
+        "trained_until": null,
+        "validated_accuracy": false,
+        "class_weight": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "lane_bias": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "selection": "Plackett-Luce top three without odds",
+        "tie_break": "ordered numeric tuple ascending"
+      },
+      "candidate_count": 120,
+      "all_valid_candidates_ranked": true,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.017688143269501643
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.016899813764454215
+        },
+        {
+          "rank": 3,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.01663700360799437
+        },
+        {
+          "rank": 4,
+          "combination": [
+            1,
+            2,
+            4
+          ],
+          "uncalibrated_score": 0.015565566077161445
+        },
+        {
+          "rank": 5,
+          "combination": [
+            3,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.015390901821199374
+        },
+        {
+          "rank": 6,
+          "combination": [
+            2,
+            3,
+            1
+          ],
+          "uncalibrated_score": 0.01470745422046925
+        },
+        {
+          "rank": 7,
+          "combination": [
+            2,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.014640563175035046
+        },
+        {
+          "rank": 8,
+          "combination": [
+            1,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.01439080637322473
+        }
+      ],
+      "candidate_reconstruction": "Generate all distinct ordered 3-combinations from lanes 1..6 with fixed grade and lane multipliers; sort descending PL score then tuple.",
+      "data_quality": "LOW_CLASS_ONLY",
+      "reported_hit_probability": null,
+      "outcome_at_forecast_time": null,
+      "result_status": "NOT_YET_CONFIRMED",
+      "safety": "No odds, no competitor forecasts, no auto bets; source website content not mirrored."
+    },
+    {
+      "race_id": "boat:2026-10-22:16:3",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 3,
+      "event_date_jst": "2026-10-22",
+      "cutoff_scheduled_at": "2026-10-22T11:52:00+09:00",
+      "forecast_kind": "PROSPECTIVE_MANUAL_BASELINE_SHADOW",
+      "official_prediction": true,
+      "betting_decision": "NO_BET",
+      "input_description": "Public factual race-index lane/class only. Not full pre-race form. No raw web content duplicated.",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=16",
+      "source_review": "Human-style individual public factual viewing; site policy checked; no automated source crawling or training grant inferred.",
+      "as_of_observation_jst": "2026-10-22T09:29:27+09:00",
+      "entrant_classes": [
+        "B1",
+        "B1",
+        "B1",
+        "B1",
+        "B1",
+        "A2"
+      ],
+      "entrant_ids_are_lane_only": true,
+      "model": {
+        "id": "human-reviewed-class-lane-pl",
+        "version": "0.1-untrained",
+        "trained_until": null,
+        "validated_accuracy": false,
+        "class_weight": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "lane_bias": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "selection": "Plackett-Luce top three without odds",
+        "tie_break": "ordered numeric tuple ascending"
+      },
+      "candidate_count": 120,
+      "all_valid_candidates_ranked": true,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            2,
+            6
+          ],
+          "uncalibrated_score": 0.015080721540781553
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.014894539793364494
+        },
+        {
+          "rank": 3,
+          "combination": [
+            1,
+            6,
+            2
+          ],
+          "uncalibrated_score": 0.014501449033681222
+        },
+        {
+          "rank": 4,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.014275947615054742
+        },
+        {
+          "rank": 5,
+          "combination": [
+            2,
+            1,
+            6
+          ],
+          "uncalibrated_score": 0.014230277350829846
+        },
+        {
+          "rank": 6,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.014054594914399844
+        },
+        {
+          "rank": 7,
+          "combination": [
+            6,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.013302132596585659
+        },
+        {
+          "rank": 8,
+          "combination": [
+            1,
+            2,
+            4
+          ],
+          "uncalibrated_score": 0.013107195018160754
+        }
+      ],
+      "candidate_reconstruction": "Generate all distinct ordered 3-combinations from lanes 1..6 with fixed grade and lane multipliers; sort descending PL score then tuple.",
+      "data_quality": "LOW_CLASS_ONLY",
+      "reported_hit_probability": null,
+      "outcome_at_forecast_time": null,
+      "result_status": "NOT_YET_CONFIRMED",
+      "safety": "No odds, no competitor forecasts, no auto bets; source website content not mirrored."
+    },
+    {
+      "race_id": "boat:2026-10-22:16:4",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 4,
+      "event_date_jst": "2026-10-22",
+      "cutoff_scheduled_at": "2026-10-22T12:23:00+09:00",
+      "forecast_kind": "PROSPECTIVE_MANUAL_BASELINE_SHADOW",
+      "official_prediction": true,
+      "betting_decision": "NO_BET",
+      "input_description": "Public factual race-index lane/class only. Not full pre-race form. No raw web content duplicated.",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=16",
+      "source_review": "Human-style individual public factual viewing; site policy checked; no automated source crawling or training grant inferred.",
+      "as_of_observation_jst": "2026-10-22T09:29:27+09:00",
+      "entrant_classes": [
+        "B1",
+        "B1",
+        "B1",
+        "A2",
+        "A2",
+        "A1"
+      ],
+      "entrant_ids_are_lane_only": true,
+      "model": {
+        "id": "human-reviewed-class-lane-pl",
+        "version": "0.1-untrained",
+        "trained_until": null,
+        "validated_accuracy": false,
+        "class_weight": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "lane_bias": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "selection": "Plackett-Luce top three without odds",
+        "tie_break": "ordered numeric tuple ascending"
+      },
+      "candidate_count": 120,
+      "all_valid_candidates_ranked": true,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            6,
+            4
+          ],
+          "uncalibrated_score": 0.01257520048732805
+        },
+        {
+          "rank": 2,
+          "combination": [
+            6,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.01236126376586959
+        },
+        {
+          "rank": 3,
+          "combination": [
+            1,
+            6,
+            2
+          ],
+          "uncalibrated_score": 0.012278815290657018
+        },
+        {
+          "rank": 4,
+          "combination": [
+            1,
+            4,
+            6
+          ],
+          "uncalibrated_score": 0.012131369881892942
+        },
+        {
+          "rank": 5,
+          "combination": [
+            6,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.012069920848828894
+        },
+        {
+          "rank": 6,
+          "combination": [
+            1,
+            2,
+            6
+          ],
+          "uncalibrated_score": 0.0117736236697768
+        },
+        {
+          "rank": 7,
+          "combination": [
+            6,
+            4,
+            1
+          ],
+          "uncalibrated_score": 0.011670719819887114
+        },
+        {
+          "rank": 8,
+          "combination": [
+            4,
+            1,
+            6
+          ],
+          "uncalibrated_score": 0.011605141585691627
+        }
+      ],
+      "candidate_reconstruction": "Generate all distinct ordered 3-combinations from lanes 1..6 with fixed grade and lane multipliers; sort descending PL score then tuple.",
+      "data_quality": "LOW_CLASS_ONLY",
+      "reported_hit_probability": null,
+      "outcome_at_forecast_time": null,
+      "result_status": "NOT_YET_CONFIRMED",
+      "safety": "No odds, no competitor forecasts, no auto bets; source website content not mirrored."
+    },
+    {
+      "race_id": "boat:2026-10-22:16:5",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 5,
+      "event_date_jst": "2026-10-22",
+      "cutoff_scheduled_at": "2026-10-22T12:53:00+09:00",
+      "forecast_kind": "PROSPECTIVE_MANUAL_BASELINE_SHADOW",
+      "official_prediction": true,
+      "betting_decision": "NO_BET",
+      "input_description": "Public factual race-index lane/class only. Not full pre-race form. No raw web content duplicated.",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=16",
+      "source_review": "Human-style individual public factual viewing; site policy checked; no automated source crawling or training grant inferred.",
+      "as_of_observation_jst": "2026-10-22T09:29:27+09:00",
+      "entrant_classes": [
+        "A2",
+        "A2",
+        "B1",
+        "A2",
+        "B1",
+        "B2"
+      ],
+      "entrant_ids_are_lane_only": true,
+      "model": {
+        "id": "human-reviewed-class-lane-pl",
+        "version": "0.1-untrained",
+        "trained_until": null,
+        "validated_accuracy": false,
+        "class_weight": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "lane_bias": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "selection": "Plackett-Luce top three without odds",
+        "tie_break": "ordered numeric tuple ascending"
+      },
+      "candidate_count": 120,
+      "all_valid_candidates_ranked": true,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            2,
+            4
+          ],
+          "uncalibrated_score": 0.02900660590334206
+        },
+        {
+          "rank": 2,
+          "combination": [
+            2,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.02693072870543357
+        },
+        {
+          "rank": 3,
+          "combination": [
+            1,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.026188693533395185
+        },
+        {
+          "rank": 4,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.024416334935473107
+        },
+        {
+          "rank": 5,
+          "combination": [
+            4,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.022742989562471436
+        },
+        {
+          "rank": 6,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.022668963556762258
+        },
+        {
+          "rank": 7,
+          "combination": [
+            2,
+            4,
+            1
+          ],
+          "uncalibrated_score": 0.022091687085157765
+        },
+        {
+          "rank": 8,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.02102833651098726
+        }
+      ],
+      "candidate_reconstruction": "Generate all distinct ordered 3-combinations from lanes 1..6 with fixed grade and lane multipliers; sort descending PL score then tuple.",
+      "data_quality": "LOW_CLASS_ONLY",
+      "reported_hit_probability": null,
+      "outcome_at_forecast_time": null,
+      "result_status": "NOT_YET_CONFIRMED",
+      "safety": "No odds, no competitor forecasts, no auto bets; source website content not mirrored."
+    },
+    {
+      "race_id": "boat:2026-10-22:16:6",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 6,
+      "event_date_jst": "2026-10-22",
+      "cutoff_scheduled_at": "2026-10-22T13:21:00+09:00",
+      "forecast_kind": "PROSPECTIVE_MANUAL_BASELINE_SHADOW",
+      "official_prediction": true,
+      "betting_decision": "NO_BET",
+      "input_description": "Public factual race-index lane/class only. Not full pre-race form. No raw web content duplicated.",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=16",
+      "source_review": "Human-style individual public factual viewing; site policy checked; no automated source crawling or training grant inferred.",
+      "as_of_observation_jst": "2026-10-22T09:29:27+09:00",
+      "entrant_classes": [
+        "B1",
+        "B1",
+        "A1",
+        "A1",
+        "B1",
+        "B2"
+      ],
+      "entrant_ids_are_lane_only": true,
+      "model": {
+        "id": "human-reviewed-class-lane-pl",
+        "version": "0.1-untrained",
+        "trained_until": null,
+        "validated_accuracy": false,
+        "class_weight": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "lane_bias": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "selection": "Plackett-Luce top three without odds",
+        "tie_break": "ordered numeric tuple ascending"
+      },
+      "candidate_count": 120,
+      "all_valid_candidates_ranked": true,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            3,
+            4,
+            1
+          ],
+          "uncalibrated_score": 0.026009907438445137
+        },
+        {
+          "rank": 2,
+          "combination": [
+            3,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.025153351135483316
+        },
+        {
+          "rank": 3,
+          "combination": [
+            4,
+            3,
+            1
+          ],
+          "uncalibrated_score": 0.02503028407197536
+        },
+        {
+          "rank": 4,
+          "combination": [
+            1,
+            3,
+            4
+          ],
+          "uncalibrated_score": 0.023653321676049145
+        },
+        {
+          "rank": 5,
+          "combination": [
+            4,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.0229858034593286
+        },
+        {
+          "rank": 6,
+          "combination": [
+            1,
+            4,
+            3
+          ],
+          "uncalibrated_score": 0.022460995542554024
+        },
+        {
+          "rank": 7,
+          "combination": [
+            3,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.020807925950756107
+        },
+        {
+          "rank": 8,
+          "combination": [
+            4,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.020024227257580286
+        }
+      ],
+      "candidate_reconstruction": "Generate all distinct ordered 3-combinations from lanes 1..6 with fixed grade and lane multipliers; sort descending PL score then tuple.",
+      "data_quality": "LOW_CLASS_ONLY",
+      "reported_hit_probability": null,
+      "outcome_at_forecast_time": null,
+      "result_status": "NOT_YET_CONFIRMED",
+      "safety": "No odds, no competitor forecasts, no auto bets; source website content not mirrored."
+    },
+    {
+      "race_id": "boat:2026-10-22:16:7",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 7,
+      "event_date_jst": "2026-10-22",
+      "cutoff_scheduled_at": "2026-10-22T13:49:00+09:00",
+      "forecast_kind": "PROSPECTIVE_MANUAL_BASELINE_SHADOW",
+      "official_prediction": true,
+      "betting_decision": "NO_BET",
+      "input_description": "Public factual race-index lane/class only. Not full pre-race form. No raw web content duplicated.",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=16",
+      "source_review": "Human-style individual public factual viewing; site policy checked; no automated source crawling or training grant inferred.",
+      "as_of_observation_jst": "2026-10-22T09:29:27+09:00",
+      "entrant_classes": [
+        "A2",
+        "B1",
+        "B1",
+        "B1",
+        "B1",
+        "B1"
+      ],
+      "entrant_ids_are_lane_only": true,
+      "model": {
+        "id": "human-reviewed-class-lane-pl",
+        "version": "0.1-untrained",
+        "trained_until": null,
+        "validated_accuracy": false,
+        "class_weight": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "lane_bias": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "selection": "Plackett-Luce top three without odds",
+        "tie_break": "ordered numeric tuple ascending"
+      },
+      "candidate_count": 120,
+      "all_valid_candidates_ranked": true,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.022028120690265968
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.021046366007691438
+        },
+        {
+          "rank": 3,
+          "combination": [
+            1,
+            2,
+            4
+          ],
+          "uncalibrated_score": 0.01938474620743405
+        },
+        {
+          "rank": 4,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.018767345516161632
+        },
+        {
+          "rank": 5,
+          "combination": [
+            1,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.017921746493665437
+        },
+        {
+          "rank": 6,
+          "combination": [
+            1,
+            2,
+            5
+          ],
+          "uncalibrated_score": 0.017622496552212777
+        },
+        {
+          "rank": 7,
+          "combination": [
+            3,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.017413757543993456
+        },
+        {
+          "rank": 8,
+          "combination": [
+            1,
+            2,
+            6
+          ],
+          "uncalibrated_score": 0.016521090517699476
+        }
+      ],
+      "candidate_reconstruction": "Generate all distinct ordered 3-combinations from lanes 1..6 with fixed grade and lane multipliers; sort descending PL score then tuple.",
+      "data_quality": "LOW_CLASS_ONLY",
+      "reported_hit_probability": null,
+      "outcome_at_forecast_time": null,
+      "result_status": "NOT_YET_CONFIRMED",
+      "safety": "No odds, no competitor forecasts, no auto bets; source website content not mirrored."
+    },
+    {
+      "race_id": "boat:2026-10-22:16:8",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 8,
+      "event_date_jst": "2026-10-22",
+      "cutoff_scheduled_at": "2026-10-22T14:22:00+09:00",
+      "forecast_kind": "PROSPECTIVE_MANUAL_BASELINE_SHADOW",
+      "official_prediction": true,
+      "betting_decision": "NO_BET",
+      "input_description": "Public factual race-index lane/class only. Not full pre-race form. No raw web content duplicated.",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=16",
+      "source_review": "Human-style individual public factual viewing; site policy checked; no automated source crawling or training grant inferred.",
+      "as_of_observation_jst": "2026-10-22T09:29:27+09:00",
+      "entrant_classes": [
+        "B1",
+        "B1",
+        "B1",
+        "A2",
+        "B1",
+        "B1"
+      ],
+      "entrant_ids_are_lane_only": true,
+      "model": {
+        "id": "human-reviewed-class-lane-pl",
+        "version": "0.1-untrained",
+        "trained_until": null,
+        "validated_accuracy": false,
+        "class_weight": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "lane_bias": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "selection": "Plackett-Luce top three without odds",
+        "tie_break": "ordered numeric tuple ascending"
+      },
+      "candidate_count": 120,
+      "all_valid_candidates_ranked": true,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.01732258988911893
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            2,
+            4
+          ],
+          "uncalibrated_score": 0.01719283266148508
+        },
+        {
+          "rank": 3,
+          "combination": [
+            4,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.01644303203040785
+        },
+        {
+          "rank": 4,
+          "combination": [
+            2,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.016231783804154572
+        },
+        {
+          "rank": 5,
+          "combination": [
+            4,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.015250912208203281
+        },
+        {
+          "rank": 6,
+          "combination": [
+            2,
+            4,
+            1
+          ],
+          "uncalibrated_score": 0.015168601964982447
+        },
+        {
+          "rank": 7,
+          "combination": [
+            1,
+            4,
+            3
+          ],
+          "uncalibrated_score": 0.014933267145792184
+        },
+        {
+          "rank": 8,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.01447208136488643
+        }
+      ],
+      "candidate_reconstruction": "Generate all distinct ordered 3-combinations from lanes 1..6 with fixed grade and lane multipliers; sort descending PL score then tuple.",
+      "data_quality": "LOW_CLASS_ONLY",
+      "reported_hit_probability": null,
+      "outcome_at_forecast_time": null,
+      "result_status": "NOT_YET_CONFIRMED",
+      "safety": "No odds, no competitor forecasts, no auto bets; source website content not mirrored."
+    },
+    {
+      "race_id": "boat:2026-10-22:16:9",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 9,
+      "event_date_jst": "2026-10-22",
+      "cutoff_scheduled_at": "2026-10-22T14:54:00+09:00",
+      "forecast_kind": "PROSPECTIVE_MANUAL_BASELINE_SHADOW",
+      "official_prediction": true,
+      "betting_decision": "NO_BET",
+      "input_description": "Public factual race-index lane/class only. Not full pre-race form. No raw web content duplicated.",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=16",
+      "source_review": "Human-style individual public factual viewing; site policy checked; no automated source crawling or training grant inferred.",
+      "as_of_observation_jst": "2026-10-22T09:29:27+09:00",
+      "entrant_classes": [
+        "A2",
+        "B1",
+        "B1",
+        "A1",
+        "B1",
+        "B1"
+      ],
+      "entrant_ids_are_lane_only": true,
+      "model": {
+        "id": "human-reviewed-class-lane-pl",
+        "version": "0.1-untrained",
+        "trained_until": null,
+        "validated_accuracy": false,
+        "class_weight": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "lane_bias": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "selection": "Plackett-Luce top three without odds",
+        "tie_break": "ordered numeric tuple ascending"
+      },
+      "candidate_count": 120,
+      "all_valid_candidates_ranked": true,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.02525394552507348
+        },
+        {
+          "rank": 2,
+          "combination": [
+            4,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.0235896581578719
+        },
+        {
+          "rank": 3,
+          "combination": [
+            1,
+            2,
+            4
+          ],
+          "uncalibrated_score": 0.022663797266091582
+        },
+        {
+          "rank": 4,
+          "combination": [
+            1,
+            4,
+            3
+          ],
+          "uncalibrated_score": 0.021770642694028862
+        },
+        {
+          "rank": 5,
+          "combination": [
+            4,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.020335912205061982
+        },
+        {
+          "rank": 6,
+          "combination": [
+            2,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.01969664987715486
+        },
+        {
+          "rank": 7,
+          "combination": [
+            4,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.019416002610250633
+        },
+        {
+          "rank": 8,
+          "combination": [
+            1,
+            3,
+            4
+          ],
+          "uncalibrated_score": 0.01880975416740733
+        }
+      ],
+      "candidate_reconstruction": "Generate all distinct ordered 3-combinations from lanes 1..6 with fixed grade and lane multipliers; sort descending PL score then tuple.",
+      "data_quality": "LOW_CLASS_ONLY",
+      "reported_hit_probability": null,
+      "outcome_at_forecast_time": null,
+      "result_status": "NOT_YET_CONFIRMED",
+      "safety": "No odds, no competitor forecasts, no auto bets; source website content not mirrored."
+    },
+    {
+      "race_id": "boat:2026-10-22:16:10",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 10,
+      "event_date_jst": "2026-10-22",
+      "cutoff_scheduled_at": "2026-10-22T15:29:00+09:00",
+      "forecast_kind": "PROSPECTIVE_MANUAL_BASELINE_SHADOW",
+      "official_prediction": true,
+      "betting_decision": "NO_BET",
+      "input_description": "Public factual race-index lane/class only. Not full pre-race form. No raw web content duplicated.",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=16",
+      "source_review": "Human-style individual public factual viewing; site policy checked; no automated source crawling or training grant inferred.",
+      "as_of_observation_jst": "2026-10-22T09:29:27+09:00",
+      "entrant_classes": [
+        "A2",
+        "A1",
+        "B1",
+        "A1",
+        "A2",
+        "B1"
+      ],
+      "entrant_ids_are_lane_only": true,
+      "model": {
+        "id": "human-reviewed-class-lane-pl",
+        "version": "0.1-untrained",
+        "trained_until": null,
+        "validated_accuracy": false,
+        "class_weight": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "lane_bias": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "selection": "Plackett-Luce top three without odds",
+        "tie_break": "ordered numeric tuple ascending"
+      },
+      "candidate_count": 120,
+      "all_valid_candidates_ranked": true,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            2,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.027212518123407584
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            2,
+            4
+          ],
+          "uncalibrated_score": 0.02666634254433887
+        },
+        {
+          "rank": 3,
+          "combination": [
+            2,
+            4,
+            1
+          ],
+          "uncalibrated_score": 0.02508951540401485
+        },
+        {
+          "rank": 4,
+          "combination": [
+            1,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.023933557541828344
+        },
+        {
+          "rank": 5,
+          "combination": [
+            4,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.023250359595182974
+        },
+        {
+          "rank": 6,
+          "combination": [
+            4,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.022633407190308763
+        },
+        {
+          "rank": 7,
+          "combination": [
+            2,
+            1,
+            5
+          ],
+          "uncalibrated_score": 0.01855398962959608
+        },
+        {
+          "rank": 8,
+          "combination": [
+            1,
+            2,
+            5
+          ],
+          "uncalibrated_score": 0.018181597189321958
+        }
+      ],
+      "candidate_reconstruction": "Generate all distinct ordered 3-combinations from lanes 1..6 with fixed grade and lane multipliers; sort descending PL score then tuple.",
+      "data_quality": "LOW_CLASS_ONLY",
+      "reported_hit_probability": null,
+      "outcome_at_forecast_time": null,
+      "result_status": "NOT_YET_CONFIRMED",
+      "safety": "No odds, no competitor forecasts, no auto bets; source website content not mirrored."
+    },
+    {
+      "race_id": "boat:2026-10-22:16:11",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 11,
+      "event_date_jst": "2026-10-22",
+      "cutoff_scheduled_at": "2026-10-22T16:04:00+09:00",
+      "forecast_kind": "PROSPECTIVE_MANUAL_BASELINE_SHADOW",
+      "official_prediction": true,
+      "betting_decision": "NO_BET",
+      "input_description": "Public factual race-index lane/class only. Not full pre-race form. No raw web content duplicated.",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=16",
+      "source_review": "Human-style individual public factual viewing; site policy checked; no automated source crawling or training grant inferred.",
+      "as_of_observation_jst": "2026-10-22T09:29:27+09:00",
+      "entrant_classes": [
+        "A2",
+        "A2",
+        "A1",
+        "B1",
+        "A2",
+        "B1"
+      ],
+      "entrant_ids_are_lane_only": true,
+      "model": {
+        "id": "human-reviewed-class-lane-pl",
+        "version": "0.1-untrained",
+        "trained_until": null,
+        "validated_accuracy": false,
+        "class_weight": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "lane_bias": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "selection": "Plackett-Luce top three without odds",
+        "tie_break": "ordered numeric tuple ascending"
+      },
+      "candidate_count": 120,
+      "all_valid_candidates_ranked": true,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.02643661058162842
+        },
+        {
+          "rank": 2,
+          "combination": [
+            3,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.02576864456468666
+        },
+        {
+          "rank": 3,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.025064954954998473
+        },
+        {
+          "rank": 4,
+          "combination": [
+            3,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.02360722531517946
+        },
+        {
+          "rank": 5,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.023547687098039543
+        },
+        {
+          "rank": 6,
+          "combination": [
+            2,
+            3,
+            1
+          ],
+          "uncalibrated_score": 0.02275309455000714
+        },
+        {
+          "rank": 7,
+          "combination": [
+            1,
+            3,
+            5
+          ],
+          "uncalibrated_score": 0.018232145228709255
+        },
+        {
+          "rank": 8,
+          "combination": [
+            3,
+            1,
+            5
+          ],
+          "uncalibrated_score": 0.01777147901012873
+        }
+      ],
+      "candidate_reconstruction": "Generate all distinct ordered 3-combinations from lanes 1..6 with fixed grade and lane multipliers; sort descending PL score then tuple.",
+      "data_quality": "LOW_CLASS_ONLY",
+      "reported_hit_probability": null,
+      "outcome_at_forecast_time": null,
+      "result_status": "NOT_YET_CONFIRMED",
+      "safety": "No odds, no competitor forecasts, no auto bets; source website content not mirrored."
+    },
+    {
+      "race_id": "boat:2026-10-22:16:12",
+      "sport": "boat",
+      "venue": "児島",
+      "race_no": 12,
+      "event_date_jst": "2026-10-22",
+      "cutoff_scheduled_at": "2026-10-22T16:44:00+09:00",
+      "forecast_kind": "PROSPECTIVE_MANUAL_BASELINE_SHADOW",
+      "official_prediction": true,
+      "betting_decision": "NO_BET",
+      "input_description": "Public factual race-index lane/class only. Not full pre-race form. No raw web content duplicated.",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=16",
+      "source_review": "Human-style individual public factual viewing; site policy checked; no automated source crawling or training grant inferred.",
+      "as_of_observation_jst": "2026-10-22T09:29:27+09:00",
+      "entrant_classes": [
+        "A1",
+        "A2",
+        "A1",
+        "A2",
+        "A2",
+        "A2"
+      ],
+      "entrant_ids_are_lane_only": true,
+      "model": {
+        "id": "human-reviewed-class-lane-pl",
+        "version": "0.1-untrained",
+        "trained_until": null,
+        "validated_accuracy": false,
+        "class_weight": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "lane_bias": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "selection": "Plackett-Luce top three without odds",
+        "tie_break": "ordered numeric tuple ascending"
+      },
+      "candidate_count": 120,
+      "all_valid_candidates_ranked": true,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.024673839679110042
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.0235374006504885
+        },
+        {
+          "rank": 3,
+          "combination": [
+            3,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.021993519134608053
+        },
+        {
+          "rank": 4,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.020342153751182868
+        },
+        {
+          "rank": 5,
+          "combination": [
+            1,
+            3,
+            4
+          ],
+          "uncalibrated_score": 0.01871808527380762
+        },
+        {
+          "rank": 6,
+          "combination": [
+            3,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.01809550810387538
+        },
+        {
+          "rank": 7,
+          "combination": [
+            2,
+            3,
+            1
+          ],
+          "uncalibrated_score": 0.017544913357590113
+        },
+        {
+          "rank": 8,
+          "combination": [
+            1,
+            3,
+            5
+          ],
+          "uncalibrated_score": 0.017016441158006927
+        }
+      ],
+      "candidate_reconstruction": "Generate all distinct ordered 3-combinations from lanes 1..6 with fixed grade and lane multipliers; sort descending PL score then tuple.",
+      "data_quality": "LOW_CLASS_ONLY",
+      "reported_hit_probability": null,
+      "outcome_at_forecast_time": null,
+      "result_status": "NOT_YET_CONFIRMED",
+      "safety": "No odds, no competitor forecasts, no auto bets; source website content not mirrored."
+    }
+  ]
+}
