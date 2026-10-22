@@ -58,6 +58,20 @@ def _historical_past(history, current_day, cutoff):
     return 100*relative,100*max(0,1-min(1,deviation/.12))
 
 
+def _reject_market_fields(node):
+    """Market/settlement info may not even accompany prediction snapshots."""
+    if isinstance(node,dict):
+        for k,v in node.items():
+            if any(text in str(k).lower() for text in
+                   ("odds", "popularity", "payout", "market", "actual_finish",
+                    "winning_trifecta", "race_result")):
+                raise FeatureModelError("market or result field in pre-race input")
+            _reject_market_fields(v)
+    elif isinstance(node,list):
+        for v in node:
+            _reject_market_fields(v)
+
+
 def from_approved_features(racelist,auxiliary,*,admit_source=None):
     """Build a full six-boat input snapshot from permitted, as-of facts.
 
@@ -65,6 +79,8 @@ def from_approved_features(racelist,auxiliary,*,admit_source=None):
     independent operator-supplied historical/motor/exhibition/conditions
     data carrying provenance. Does not fetch any of them.
     """
+    _reject_market_fields(racelist)
+    _reject_market_fields(auxiliary)
     if (not isinstance(racelist,dict) or
         not isinstance(auxiliary,dict) or
         set(auxiliary)!={"as_of","history_by_racer","motor_by_number",
