@@ -60,6 +60,30 @@
            p.odds_independent!==true)fail("予想時刻・証拠・オッズ分離が不正です: "+r.race_id);
         if(Object.keys(p).some(k=>k!=="odds_independent"&&/odds|popularity|market|確定配当|人気/i.test(k)))fail("予想へ市場由来の値を混ぜないでください。");
       }
+      if(r.comparison_predictions!=null){
+        if(!Array.isArray(r.comparison_predictions)||r.comparison_predictions.length>8)
+          fail("比較モデル予想の件数が不正です。");
+        const modelIds=new Set();
+        for(const p of r.comparison_predictions){
+          if(!p||typeof p.model_id!=="string"||!p.model_id||
+             typeof p.model_version!=="string"||!p.model_version)
+            fail("比較モデルの識別子が不正です。");
+          const identity=p.model_id+"|"+p.model_version;
+          if(modelIds.has(identity))fail("同じ比較モデルの重複があります。");
+          modelIds.add(identity);
+          if(r.prediction&&(r.prediction.model_id||r.prediction.model_version)+"|"+r.prediction.model_version===identity)
+            fail("本番予想と比較モデルが重複しています。");
+          if(!Array.isArray(p.ordered_top8)||!p.ordered_top8.length||p.ordered_top8.length>8||
+             p.ordered_top8.some(x=>!ticket(x))||new Set(p.ordered_top8.map(ticketKey)).size!==p.ordered_top8.length)
+            fail("比較モデルの買い目が不正です。");
+          if(!isTimestamp(p.generated_at)||!isTimestamp(p.persisted_at)||!isTimestamp(p.cutoff_at)||
+             !digestPattern.test(p.input_sha256||"")||!digestPattern.test(p.prediction_sha256||"")||
+             p.odds_independent!==true)
+            fail("比較モデルの証拠が不正です。");
+          if(Object.keys(p).some(k=>k!=="odds_independent"&&/odds|popularity|market|確定配当|人気/i.test(k)))
+            fail("比較モデルに市場データが混入しています。");
+        }
+      }
       const checkResult=(v)=>{
         if(!v||!["final","void","pending","unsupported"].includes(v.status)||
            !Array.isArray(v.winning_combinations)||v.winning_combinations.some(x=>!ticket(x))||
@@ -93,14 +117,14 @@
     });
     return {dataset_status:raw.dataset_status,event_date_jst:raw.event_date_jst||"不明",provenance_urls:Array.isArray(raw.provenance_urls)?raw.provenance_urls:[],records};
   }
-  function eligibleFreeze(r){
-    const p=r.prediction;
+  function eligiblePrediction(r,p){
     return !!(p&&r.cutoff_at&&p.odds_independent===true&&
       Date.parse(p.generated_at)<=Date.parse(p.persisted_at)&&
       Date.parse(p.persisted_at)<Date.parse(p.cutoff_at)&&
       Date.parse(p.cutoff_at)===Date.parse(r.cutoff_at)&&
       p.external_receipt_verified===true);
   }
+  function eligibleFreeze(r){return eligiblePrediction(r,r.prediction);}
   function status(r){
     if(r.prediction)return eligibleFreeze(r)?"FROZEN_REPORTED":"PREDICTION_UNVERIFIED";
     return "NO_FORECAST";
@@ -144,27 +168,50 @@
     const radius=z*Math.sqrt(p*(1-p)/n+a/(4*n*n))/denom;
     return [Math.max(0,center-radius),Math.min(1,center+radius)];
   }
+  function candidatePredictions(r){
+    return [r.prediction,...(r.comparison_predictions||[])].filter(Boolean);
+  }
+  function scorePrediction(r,p){
+    if(r.offering_status!=="TRIFECTA_OFFERED"||r.result?.status!=="final")return null;
+    return !!(eligiblePrediction(r,p)&&r.result.winning_combinations.some(w=>
+      p?.ordered_top8?.some(t=>ticketKey(t)===ticketKey(w))));
+  }
   function models(records){
-    const groups=new Map();
-    for(const r of records){
-      if(!r.prediction)continue;
-      const p=r.prediction;
+    const specs=new Map();
+    for(const r of records)for(const p of candidatePredictions(r)){
       const key=r.sport+"|"+(p.model_id||p.model_version)+"|"+p.model_version;
-      if(!groups.has(key))groups.set(key,{key,sport:r.sport,model_id:p.model_id||p.model_version,model_version:p.model_version,records:[]});
-      groups.get(key).records.push(r);
+      if(!specs.has(key))specs.set(key,{key,sport:r.sport,
+        model_id:p.model_id||p.model_version,model_version:p.model_version});
     }
-    return [...groups.values()].map(g=>{
-      const s=summary(g.records).overall;
-      return {...g,ledger:s.ledger,evaluable:s.evaluable,hits:s.hits,frozen:s.frozenReported,
-        hit8:s.hit8,ci95:wilson95(s.hits,s.evaluable),cohort_ids:g.records.map(r=>r.race_id).sort(),comparison:"参考・対象母数相違の可能性"};
+    return [...specs.values()].map(g=>{
+      // All evaluable offered races in this sport are included in the
+      // denominator, EVEN when this model never issued a prediction.
+      const cohort=records.filter(r=>r.sport===g.sport);
+      let hits=0,frozen=0,evaluable=0,issued=0;
+      let comparisonTimes=new Map();
+      for(const r of cohort){
+        const p=candidatePredictions(r).find(p=>
+          (p.model_id||p.model_version)===g.model_id&&p.model_version===g.model_version);
+        if(p){issued++;comparisonTimes.set(r.race_id,p.generated_at);}
+        if(eligiblePrediction(r,p))frozen++;
+        const hit=scorePrediction(r,p);
+        if(hit!==null){evaluable++;if(hit)hits++;}
+      }
+      return {...g,ledger:cohort.length,issued,evaluable,hits,frozen,
+        hit8:evaluable?hits/evaluable:null,ci95:wilson95(hits,evaluable),
+        cohort_ids:cohort.map(r=>r.race_id).sort(),comparisonTimes,
+        comparison:"参考値（同一未来レース・時点条件の並走未証明）"};
     });
   }
   function modelComparison(records){
     const groups=models(records);
     for(const g of groups){
       const peers=groups.filter(m=>m!==g&&m.sport===g.sport);
-      g.comparison=peers.length&&peers.some(p=>p.cohort_ids.join("|")===g.cohort_ids.join("|"))?
-        "同一レース集合（入力時点は別途照合）":"参考値（同一未来レースの並走未証明）";
+      const exact=peers.some(p=>g.cohort_ids.join("|")===p.cohort_ids.join("|")&&
+        g.issued===g.ledger&&p.issued===p.ledger&&g.frozen===g.ledger&&p.frozen===p.ledger&&
+        [...g.comparisonTimes].every(([race,time])=>p.comparisonTimes.get(race)===time));
+      g.comparison=exact?"同一レース・生成時刻の並走（入力内容は別途照合）":
+        "参考値（同一未来レース・時点条件の並走未証明）";
     }
     return groups;
   }
@@ -202,5 +249,5 @@
       records,sources:parsed.flatMap(x=>x.provenance_urls)};
   }
   return Object.freeze({parse,merge,summary,score,status,outcome,eligibleFreeze,ticketKey,displaySport,
-    jstToday,raceDay,monday,inPeriod,filtered,sortRaces,models,modelComparison,wilson95});
+    jstToday,raceDay,monday,inPeriod,filtered,sortRaces,models,modelComparison,wilson95,eligiblePrediction,scorePrediction});
 });
