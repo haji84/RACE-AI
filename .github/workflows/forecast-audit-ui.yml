@@ -7,6 +7,8 @@ on:
       - 'web/forecast-audit*'
       - 'web/data/2026-10-22-forecast-audit.json'
       - 'tests/forecast_audit.test.cjs'
+      - 'tests/test_verified_event_projection.py'
+      - 'race_ai/verified_event_projection.py'
       - '.github/workflows/forecast-audit-ui.yml'
 permissions:
   contents: read
