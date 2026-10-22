@@ -129,6 +129,7 @@ def _scores(snapshot):
     breeze=weather["wind_speed_mps"]/12.0
     swell=weather["wave_height_cm"]/50.0
     headwind=weather["wind_relative_to_course"]
+    rain=weather["wet_surface_factor"]
     result=[]
     for row in sorted(snapshot["entrants"],key=lambda r:r["lane"]):
         f=row["features"]
@@ -154,12 +155,12 @@ def _scores(snapshot):
                 +0.9*start+0.7*exhibition+0.5*st-0.2*lane_prior)
         rough=(0.9*ability+0.45*recent+0.95*course+0.45*motor
                +0.3*start+0.25*exhibition+0.55*lane_prior
-               -0.15*breeze*(7-lane)/6-0.10*swell*lane/6)
+               -0.15*breeze*(7-lane)/6-0.10*swell*lane/6-0.08*rain*(7-lane)/6)
         result.append({"lane":lane,"comprehensive":comprehensive,
                        "calm_front":calm_front,"attack":attack,"rough":rough})
     # Weather changes scenario likelihood, never enters features from results.
     # Larger wind / waves increases the rough-weather mixture.
-    rough_share=min(0.60,0.15+0.12*breeze+0.10*swell+0.06*abs(headwind))
+    rough_share=min(0.60,0.15+0.12*breeze+0.10*swell+0.06*abs(headwind)+0.05*rain)
     attack_share=max(0.12,0.32-0.05*swell+0.04*(1-abs(headwind)))
     calm_share=1-rough_share-attack_share
     if calm_share < 0:
