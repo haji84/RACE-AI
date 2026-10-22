@@ -38,20 +38,67 @@ def _read_json(path: str) -> dict:
         raise CoverageError("invalid UTF-8 JSON input") from exc
 
 
-def audit(reference: dict, ledger: dict) -> dict:
+
+def _compare_manual_references(primary: dict, secondary: dict) -> dict:
+    """Compare two independently supplied lists, without conferring authority.
+
+    Both references have already passed compare_daily's strict schema/date
+    validation. Missing information is an uncertainty, not proof of no race.
+    """
+    left = {(v["sport"], v["venue"]): v["race_numbers"] for v in primary["venues"]}
+    right = {(v["sport"], v["venue"]): v["race_numbers"] for v in secondary["venues"]}
+    left_keys, right_keys = set(left), set(right)
+    only_left, only_right, unknown, differing_races = [], [], [], []
+    for key in sorted(left_keys - right_keys):
+        only_left.append(list(key))
+    for key in sorted(right_keys - left_keys):
+        only_right.append(list(key))
+    for key in sorted(left_keys & right_keys):
+        a, b = left[key], right[key]
+        if a is None or b is None:
+            unknown.append(list(key))
+            continue
+        a, b = set(a), set(b)
+        for n in sorted(a - b):
+            differing_races.append([key[0], key[1], n, "PRIMARY_ONLY"])
+        for n in sorted(b - a):
+            differing_races.append([key[0], key[1], n, "SECONDARY_ONLY"])
+    differing_races.sort()
+    return {
+        "scope": "MANUAL_TWO_SOURCE_COMPARISON_ONLY",
+        "only_primary_venues": only_left,
+        "only_secondary_venues": only_right,
+        "differing_races": differing_races,
+        "unknown_either_race_count": unknown,
+        "sources_disagree": bool(only_left or only_right or differing_races),
+        "sources_complete_and_authorized": False,
+    }
+
+
+def audit(reference: dict, ledger: dict, secondary_reference: dict | None = None) -> dict:
     comparison = compare_daily(reference, ledger)
+    secondary_comparison = None
+    cross_reference = None
+    if secondary_reference is not None:
+        # Re-use the strict reference validation, including the same JST date.
+        secondary_comparison = compare_daily(secondary_reference, ledger)
+        cross_reference = _compare_manual_references(reference, secondary_reference)
     covered_sports = {v["sport"] for v in reference["venues"]}
     absent_sports = sorted(SPORTS - covered_sports)
     # A sport with no listed venue is NOT evidence of a no-meeting day.
-    gaps = any(comparison[name] for name in (
-        "missing_venues", "missing_races", "unlisted_venues", "unlisted_races"))
+    gap_fields = ("missing_venues", "missing_races", "unlisted_venues", "unlisted_races")
+    gaps = any(comparison[name] for name in gap_fields)
+    if secondary_comparison is not None:
+        gaps = gaps or any(secondary_comparison[name] for name in gap_fields)
     uncertainties = bool(
         absent_sports or comparison["unknown_expected_race_counts"]
         or comparison["unverified_cutoffs"]
         or comparison["missing_no_forecast_reasons"]
         or comparison["unauthenticated_prediction_claims"]
+        or (cross_reference is not None and bool(cross_reference["unknown_either_race_count"]))
     )
-    status = ("REFERENCE_DISCREPANCY" if gaps else
+    status = ("SOURCE_DISAGREEMENT" if cross_reference is not None and cross_reference["sources_disagree"] else
+              "REFERENCE_DISCREPANCY" if gaps else
               "UNRESOLVED_COVERAGE_OR_PROOF" if uncertainties else
               "MANUAL_REFERENCE_MATCH_ONLY")
     return {
@@ -70,6 +117,9 @@ def audit(reference: dict, ledger: dict) -> dict:
             "unobserved_sports": absent_sports,
         },
         "reconciliation": comparison,
+        "secondary_reconciliation": secondary_comparison,
+        "cross_reference": cross_reference,
+        "reference_count": 2 if cross_reference is not None else 1,
     }
 
 
@@ -78,10 +128,12 @@ def main(argv=None) -> int:
         description="Compare two supplied JSON files; never fetch a provider or admit a prediction")
     parser.add_argument("--reference", required=True, help="manually reviewed reference JSON")
     parser.add_argument("--ledger", required=True, help="AUDIT_ONLY JSON ledger")
+    parser.add_argument("--secondary-reference", help="independently reviewed second manual reference")
     parser.add_argument("--output", help="optional new report file; cannot overwrite")
     args = parser.parse_args(argv)
     try:
-        report = audit(_read_json(args.reference), _read_json(args.ledger))
+        report = audit(_read_json(args.reference), _read_json(args.ledger),
+                       _read_json(args.secondary_reference) if args.secondary_reference else None)
         rendered = json.dumps(report, ensure_ascii=False, sort_keys=True,
                               separators=(",", ":"), allow_nan=False) + "\n"
         if args.output:
