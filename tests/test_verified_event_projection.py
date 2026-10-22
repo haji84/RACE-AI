@@ -131,6 +131,14 @@ class ProjectionTests(unittest.TestCase):
         self.assertEqual(len(result["records"][0]["result_revisions"]),2)
         self.assertEqual(result["records"][0]["result"]["winning_combinations"],[[3,2,1]])
 
+    def test_blocked_or_tokenized_source_url_not_exported(self):
+        bundle = example()
+        bundle['races'][0]['source']['url'] = 'https://example.org/fictional?token=SECRET'
+        blocked = project(bundle)['records'][0]
+        self.assertIsNone(blocked['evidence_url'])
+        admitted = project(bundle, allow_source=admitted)['records'][0]
+        self.assertIsNone(admitted['evidence_url'])
+
     def test_invalid_event_cannot_start_network_fallback(self):
         b=example()
         b["races"][0]["source"]["url"]="file:///etc/passwd"
