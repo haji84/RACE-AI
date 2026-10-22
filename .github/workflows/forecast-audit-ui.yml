@@ -37,6 +37,35 @@ jobs:
         run: node --test tests/forecast_audit.test.cjs
       - name: Python synthetic journal to viewer projection tests
         run: python -m unittest discover -s tests -v
+      - name: Read frozen real-race research record by immutable commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: 0643ed09343d10a3181af855ad4065cb07074208
+          path: independent-forecast-evidence
+          persist-credentials: false
+      - name: Verify historical pre-cutoff research snapshot without refreshing forecast
+        run: |
+          python - <<'PY'
+          import json, pathlib, itertools, math
+          p=pathlib.Path('independent-forecast-evidence/audit/2026-10-22/prospective_shadow_kojima_12r_0929JST_immutable.json')
+          d=json.loads(p.read_text())
+          rows=d['races']
+          assert len(rows)==12 and len({r['race_id'] for r in rows})==12
+          for race in rows:
+              assert race['outcome_at_forecast_time'] is None and race['candidate_count']==120
+              assert len(race['ordered_top8'])==8 and race['all_valid_candidates_ranked']
+              w=race['model']['class_weight']; lanes=race['model']['lane_bias']; grades=race['entrant_classes']
+              strengths=[w[g]*b for g,b in zip(grades,lanes)]; total=sum(strengths)
+              u=[]
+              for a,b,c in itertools.permutations(range(1,7),3):
+                  sa,sb,sc=strengths[a-1],strengths[b-1],strengths[c-1]
+                  u.append(([a,b,c],sa/total*sb/(total-sa)*sc/(total-sa-sb)))
+              assert len(u)==120 and math.isclose(sum(t[1] for t in u),1,abs_tol=1e-9)
+              u.sort(key=lambda item:(-item[1],item[0]))
+              assert [t[0] for t in u[:8]]==[r['combination'] for r in race['ordered_top8']]
+              assert race['model']['validated_accuracy'] is False and race['betting_decision']=='NO_BET'
+          print('IMMUTABLE_RESEARCH_PROOF_12_OK: git-pinned pre-result ranking replays; NOT a trusted external freeze receipt')
+          PY
       - name: Validate public audit seed
         run: |
           python - <<'PY'
