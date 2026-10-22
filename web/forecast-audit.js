@@ -83,6 +83,29 @@
     }else result.append(el("p","empty-label",
       r.result?.status==="void"?"不成立（読込データ）":r.result?.status==="pending"?"確定待ち":r.result?.status==="unsupported"?"照合不可":"公式結果 未取得"));
     split.append(forecast,result);card.append(split);
+
+    if(Array.isArray(r.comparison_predictions)&&r.comparison_predictions.length){
+      const panel=el("section","side comparison-panel");
+      panel.append(el("h4","","別モデルの予想（正式予想と区別）"));
+      for(const p of r.comparison_predictions){
+        const row=el("div","comparison-row"),name=el("strong","",p.model_id+" / "+p.model_version);
+        const verified=M.eligiblePrediction(r,p),hit=M.scorePrediction(r,p);
+        const stateLabel=hit===null?"結果待ち":!verified?"締切前証拠不足":hit?"的中（読込値）":"不的中（読込値）";
+        row.append(name,el("div","subnote",stateLabel));
+        const tickets=el("div","ticket-list");
+        const wins=r.result?.status==="final"?r.result.winning_combinations.map(M.ticketKey):[];
+        for(let i=0;i<p.ordered_top8.length;i++){
+          const t=p.ordered_top8[i],chip=el("span","ticket-wrap");
+          chip.append(el("small","rank",String(i+1)));
+          chip.append(chips(t,verified&&wins.includes(M.ticketKey(t))));
+          tickets.append(chip);
+        }
+        row.append(tickets);
+        panel.append(row);
+      }
+      card.append(panel);
+    }
+
     if(r.actual_purchase?.confirmed===true){
       const a=r.actual_purchase,net=a.payout_yen+a.refund_yen-a.stake_yen;
       card.append(el("div","purchase-line",
