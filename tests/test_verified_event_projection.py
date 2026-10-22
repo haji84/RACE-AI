@@ -139,6 +139,45 @@ class ProjectionTests(unittest.TestCase):
         allowed_row = project(bundle, allow_source=admitted)['records'][0]
         self.assertIsNone(allowed_row['evidence_url'])
 
+    def test_multiple_shadow_models_keep_primary_frozen_and_separate(self):
+        from copy import deepcopy
+        b=example()
+        primary=b["races"][0]["forecast"]
+        a=deepcopy(primary)
+        a["model_id"]="boat-comprehensive-v1"
+        a["model_version"]="1"
+        a["prediction_sha256"]=digest({k:v for k,v in a.items() if k not in {"receipt","prediction_sha256"}})
+        c=deepcopy(a)
+        c["model_id"]="boat-scenario-mixture-v1"
+        c["model_version"]="1"
+        c["ordered_top8"]=list(reversed(c["ordered_top8"]))
+        # The Top8 order must still match its complete candidate probabilities.
+        # Restore order and change the model identity instead.
+        c["ordered_top8"]=a["ordered_top8"]
+        c["prediction_sha256"]=digest({k:v for k,v in c.items() if k not in {"receipt","prediction_sha256"}})
+        b["races"][0]["comparison_forecasts"]=[a,c]
+        projected=project(b,allow_source=admitted,verify_freeze=lambda *_:True,
+                          verify_result=lambda *_:True)
+        r=projected["records"][0]
+        self.assertEqual(len(r["comparison_predictions"]),2)
+        self.assertTrue(all(x["external_receipt_verified"] for x in r["comparison_predictions"]))
+        self.assertEqual(r["prediction"]["model_id"],"fictional-model")
+        self.assertEqual(r["result"]["winning_combinations"],[[1,2,3]])
+
+    def test_unverified_parallel_receipt_does_not_count_as_verified(self):
+        b=example()
+        a=dict(b["races"][0]["forecast"],model_id="parallel")
+        a["prediction_sha256"]=digest({k:v for k,v in a.items() if k not in {"receipt","prediction_sha256"}})
+        b["races"][0]["comparison_forecasts"]=[a]
+        result=project(b,allow_source=admitted,verify_result=lambda *_:True)
+        self.assertEqual(result["records"][0]["comparison_predictions"][0]["external_receipt_verified"],False)
+
+    def test_parallel_model_cannot_duplicate_preselected_primary(self):
+        b=example()
+        b["races"][0]["comparison_forecasts"]=[b["races"][0]["forecast"]]
+        with self.assertRaisesRegex(AdmissionError,"duplicates production"):
+            project(b,allow_source=admitted,verify_freeze=lambda *_:True)
+
     def test_invalid_event_cannot_start_network_fallback(self):
         b=example()
         b["races"][0]["source"]["url"]="file:///etc/passwd"
