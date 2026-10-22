@@ -9,6 +9,8 @@ on:
       - 'tests/forecast_audit.test.cjs'
       - 'tests/test_verified_event_projection.py'
       - 'race_ai/verified_event_projection.py'
+      - 'race_ai/cutoff_job_queue.py'
+      - 'tests/test_cutoff_job_queue.py'
       - '.github/workflows/forecast-audit-ui.yml'
 permissions:
   contents: read
