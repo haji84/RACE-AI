@@ -111,7 +111,7 @@ def project(bundle, *, allow_source=None, verify_freeze=None, verify_result=None
 
     allow_source(source, purpose) -> bool: independently admitted rights for
        the specific source and display/analysis purpose, not a payload flag.
-    verify_freeze(receipt, content_hash, deadline) -> bool: external trusted
+    verify_freeze(receipt, content_hash, persisted_at, cutoff_at) -> bool: trusted
        service signed receipt, tested beyond any mutable local clock.
     verify_result(result, source) -> bool: independently checked official
        source and revision. All callbacks default DENY.
@@ -193,7 +193,8 @@ def project(bundle, *, allow_source=None, verify_freeze=None, verify_result=None
                         and forecast_hash == digest(recompute)):
                     raise AdmissionError("forecast payload digest mismatch")
                 valid_receipt = bool(verify_freeze is not None and
-                                     verify_freeze(forecast.get("receipt"), forecast_hash, deadline))
+                                     verify_freeze(forecast.get("receipt"), forecast_hash,
+                                                   forecast["persisted_at"], entry["cutoff_at"]))
                 row["prediction"] = {
                     "ordered_top8": selected, "generated_at": forecast["generated_at"],
                     "persisted_at": forecast["persisted_at"],
