@@ -1,0 +1,2214 @@
+{
+  "schema": "RACE_AI_CLASS_LANE_RESEARCH_FORECAST_V1",
+  "event_date_jst": "2026-10-22",
+  "venue_count": 2,
+  "count": 19,
+  "as_of_view_jst": "2026-10-22T10:33:51+09:00",
+  "note": "Model uses only factual published boat number and A1/A2/B1/B2 grade, no odds/popularity/other forecast; research-only, untrained, not calibrated and missing current form, weather, engine and exhibition. Source allows factual viewing only as assessed here; automated bulk reuse/licensing not proven. Commit timing determines whether truly pre-cutoff.",
+  "races": [
+    {
+      "race_id": "boat:2026-10-22:24:1",
+      "venue": "大村",
+      "venue_code": "24",
+      "race_no": 1,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T15:27:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=24",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "B1",
+        "B1",
+        "B1",
+        "B1",
+        "B1",
+        "B2"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.020675879408910604
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.019692776673271465
+        },
+        {
+          "rank": 3,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.0193878009924586
+        },
+        {
+          "rank": 4,
+          "combination": [
+            1,
+            2,
+            4
+          ],
+          "uncalibrated_score": 0.018194773879841333
+        },
+        {
+          "rank": 5,
+          "combination": [
+            3,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.01785233025520871
+        },
+        {
+          "rank": 6,
+          "combination": [
+            2,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.01706126487336357
+        },
+        {
+          "rank": 7,
+          "combination": [
+            2,
+            3,
+            1
+          ],
+          "uncalibrated_score": 0.017000794030322793
+        },
+        {
+          "rank": 8,
+          "combination": [
+            1,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.0167329269110162
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:24:2",
+      "venue": "大村",
+      "venue_code": "24",
+      "race_no": 2,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T15:53:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=24",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "B2",
+        "B1",
+        "B1",
+        "A1",
+        "B2",
+        "B1"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            4,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.02060667749502444
+        },
+        {
+          "rank": 2,
+          "combination": [
+            4,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.02030214531529502
+        },
+        {
+          "rank": 3,
+          "combination": [
+            4,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.01974559154782601
+        },
+        {
+          "rank": 4,
+          "combination": [
+            4,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.01937005256050385
+        },
+        {
+          "rank": 5,
+          "combination": [
+            2,
+            4,
+            1
+          ],
+          "uncalibrated_score": 0.018826838167688858
+        },
+        {
+          "rank": 6,
+          "combination": [
+            2,
+            4,
+            3
+          ],
+          "uncalibrated_score": 0.01854860903220577
+        },
+        {
+          "rank": 7,
+          "combination": [
+            1,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.01752255205619304
+        },
+        {
+          "rank": 8,
+          "combination": [
+            3,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.017138426856156984
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:24:3",
+      "venue": "大村",
+      "venue_code": "24",
+      "race_no": 3,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T16:18:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=24",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "A2",
+        "B1",
+        "A1",
+        "B1",
+        "B2",
+        "B1"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.03333215253790573
+        },
+        {
+          "rank": 2,
+          "combination": [
+            3,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.03234302130385575
+        },
+        {
+          "rank": 3,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.027985641855133886
+        },
+        {
+          "rank": 4,
+          "combination": [
+            3,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.026123959341269865
+        },
+        {
+          "rank": 5,
+          "combination": [
+            1,
+            3,
+            4
+          ],
+          "uncalibrated_score": 0.02528646054599745
+        },
+        {
+          "rank": 6,
+          "combination": [
+            3,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.024536085127062984
+        },
+        {
+          "rank": 7,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.024233048432776707
+        },
+        {
+          "rank": 8,
+          "combination": [
+            2,
+            3,
+            1
+          ],
+          "uncalibrated_score": 0.023312806087228223
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:24:4",
+      "venue": "大村",
+      "venue_code": "24",
+      "race_no": 4,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T16:52:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=24",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "B1",
+        "B1",
+        "B1",
+        "A1",
+        "A2",
+        "B1"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            4,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.017475309270093366
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.01705519957468746
+        },
+        {
+          "rank": 3,
+          "combination": [
+            4,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.016291234576559
+        },
+        {
+          "rank": 4,
+          "combination": [
+            4,
+            1,
+            5
+          ],
+          "uncalibrated_score": 0.016270115527328308
+        },
+        {
+          "rank": 5,
+          "combination": [
+            1,
+            4,
+            5
+          ],
+          "uncalibrated_score": 0.01587897891436419
+        },
+        {
+          "rank": 6,
+          "combination": [
+            1,
+            2,
+            4
+          ],
+          "uncalibrated_score": 0.015416911260308783
+        },
+        {
+          "rank": 7,
+          "combination": [
+            2,
+            4,
+            1
+          ],
+          "uncalibrated_score": 0.015113287192442185
+        },
+        {
+          "rank": 8,
+          "combination": [
+            4,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.015064921784563246
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:24:5",
+      "venue": "大村",
+      "venue_code": "24",
+      "race_no": 5,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T17:15:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=24",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "B1",
+        "A1",
+        "A2",
+        "B1",
+        "B1",
+        "B1"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.028251816137523984
+        },
+        {
+          "rank": 2,
+          "combination": [
+            2,
+            3,
+            1
+          ],
+          "uncalibrated_score": 0.027523676546350684
+        },
+        {
+          "rank": 3,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.025180129243226046
+        },
+        {
+          "rank": 4,
+          "combination": [
+            3,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.024120111986832112
+        },
+        {
+          "rank": 5,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.02106704040269908
+        },
+        {
+          "rank": 6,
+          "combination": [
+            3,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.020714040395951438
+        },
+        {
+          "rank": 7,
+          "combination": [
+            2,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.01841599866742304
+        },
+        {
+          "rank": 8,
+          "combination": [
+            2,
+            1,
+            5
+          ],
+          "uncalibrated_score": 0.01674181697038458
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:24:6",
+      "venue": "大村",
+      "venue_code": "24",
+      "race_no": 6,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T17:50:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=24",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "B1",
+        "A1",
+        "A1",
+        "B1",
+        "B2",
+        "B1"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            2,
+            3,
+            1
+          ],
+          "uncalibrated_score": 0.03655873062050784
+        },
+        {
+          "rank": 2,
+          "combination": [
+            3,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.034720582153554926
+        },
+        {
+          "rank": 3,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.033351824425726456
+        },
+        {
+          "rank": 4,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.029850925448494887
+        },
+        {
+          "rank": 5,
+          "combination": [
+            3,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.029542524319527808
+        },
+        {
+          "rank": 6,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.0278413259793115
+        },
+        {
+          "rank": 7,
+          "combination": [
+            2,
+            3,
+            4
+          ],
+          "uncalibrated_score": 0.02218736754899786
+        },
+        {
+          "rank": 8,
+          "combination": [
+            3,
+            2,
+            4
+          ],
+          "uncalibrated_score": 0.02107180158284713
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:24:7",
+      "venue": "大村",
+      "venue_code": "24",
+      "race_no": 7,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T18:17:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=24",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "A1",
+        "B1",
+        "B1",
+        "A2",
+        "B1",
+        "B2"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.030325366885556388
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            2,
+            4
+          ],
+          "uncalibrated_score": 0.03008366171254313
+        },
+        {
+          "rank": 3,
+          "combination": [
+            1,
+            4,
+            3
+          ],
+          "uncalibrated_score": 0.026142557659962404
+        },
+        {
+          "rank": 4,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.025322947569480746
+        },
+        {
+          "rank": 5,
+          "combination": [
+            1,
+            3,
+            4
+          ],
+          "uncalibrated_score": 0.024804468675461197
+        },
+        {
+          "rank": 6,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.024219851568632142
+        },
+        {
+          "rank": 7,
+          "combination": [
+            4,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.023250277187236268
+        },
+        {
+          "rank": 8,
+          "combination": [
+            2,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.022959489005832775
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:24:8",
+      "venue": "大村",
+      "venue_code": "24",
+      "race_no": 8,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T18:45:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=24",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "B1",
+        "A2",
+        "A2",
+        "B1",
+        "B1",
+        "A2"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.019559647116118635
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.01915509704649757
+        },
+        {
+          "rank": 3,
+          "combination": [
+            2,
+            3,
+            1
+          ],
+          "uncalibrated_score": 0.01908747699865047
+        },
+        {
+          "rank": 4,
+          "combination": [
+            3,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.018365239102231364
+        },
+        {
+          "rank": 5,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.018183510581300088
+        },
+        {
+          "rank": 6,
+          "combination": [
+            3,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.01786497663050216
+        },
+        {
+          "rank": 7,
+          "combination": [
+            2,
+            1,
+            6
+          ],
+          "uncalibrated_score": 0.014669735337088978
+        },
+        {
+          "rank": 8,
+          "combination": [
+            1,
+            2,
+            6
+          ],
+          "uncalibrated_score": 0.01436632278487318
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:24:9",
+      "venue": "大村",
+      "venue_code": "24",
+      "race_no": 9,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T19:17:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=24",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "B1",
+        "A2",
+        "B1",
+        "B1",
+        "A1",
+        "B1"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            2,
+            1,
+            5
+          ],
+          "uncalibrated_score": 0.020539393583608144
+        },
+        {
+          "rank": 2,
+          "combination": [
+            2,
+            5,
+            1
+          ],
+          "uncalibrated_score": 0.020489051932667923
+        },
+        {
+          "rank": 3,
+          "combination": [
+            1,
+            2,
+            5
+          ],
+          "uncalibrated_score": 0.020116652338807123
+        },
+        {
+          "rank": 4,
+          "combination": [
+            5,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.02003180422747555
+        },
+        {
+          "rank": 5,
+          "combination": [
+            1,
+            5,
+            2
+          ],
+          "uncalibrated_score": 0.019512577459233793
+        },
+        {
+          "rank": 6,
+          "combination": [
+            5,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.01947801745664925
+        },
+        {
+          "rank": 7,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.01426346776639454
+        },
+        {
+          "rank": 8,
+          "combination": [
+            2,
+            5,
+            3
+          ],
+          "uncalibrated_score": 0.014130380643219259
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:24:10",
+      "venue": "大村",
+      "venue_code": "24",
+      "race_no": 10,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T19:47:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=24",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "B1",
+        "B1",
+        "B1",
+        "B1",
+        "B1",
+        "B2"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.020675879408910604
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.019692776673271465
+        },
+        {
+          "rank": 3,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.0193878009924586
+        },
+        {
+          "rank": 4,
+          "combination": [
+            1,
+            2,
+            4
+          ],
+          "uncalibrated_score": 0.018194773879841333
+        },
+        {
+          "rank": 5,
+          "combination": [
+            3,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.01785233025520871
+        },
+        {
+          "rank": 6,
+          "combination": [
+            2,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.01706126487336357
+        },
+        {
+          "rank": 7,
+          "combination": [
+            2,
+            3,
+            1
+          ],
+          "uncalibrated_score": 0.017000794030322793
+        },
+        {
+          "rank": 8,
+          "combination": [
+            1,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.0167329269110162
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:24:11",
+      "venue": "大村",
+      "venue_code": "24",
+      "race_no": 11,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T20:15:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=24",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "A1",
+        "B1",
+        "A2",
+        "B2",
+        "A2",
+        "A2"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.025862197274973985
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.02465145008210838
+        },
+        {
+          "rank": 3,
+          "combination": [
+            1,
+            3,
+            5
+          ],
+          "uncalibrated_score": 0.024078597462906814
+        },
+        {
+          "rank": 4,
+          "combination": [
+            1,
+            3,
+            6
+          ],
+          "uncalibrated_score": 0.022573685121475142
+        },
+        {
+          "rank": 5,
+          "combination": [
+            1,
+            5,
+            3
+          ],
+          "uncalibrated_score": 0.022507684978918696
+        },
+        {
+          "rank": 6,
+          "combination": [
+            3,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.02083227235925781
+        },
+        {
+          "rank": 7,
+          "combination": [
+            1,
+            6,
+            3
+          ],
+          "uncalibrated_score": 0.020762315951599285
+        },
+        {
+          "rank": 8,
+          "combination": [
+            1,
+            2,
+            5
+          ],
+          "uncalibrated_score": 0.019721160065686704
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:24:12",
+      "venue": "大村",
+      "venue_code": "24",
+      "race_no": 12,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T20:45:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=24",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "A1",
+        "A1",
+        "A1",
+        "A1",
+        "A1",
+        "A1"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.017688143269501636
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.01689981376445421
+        },
+        {
+          "rank": 3,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.016637003607994374
+        },
+        {
+          "rank": 4,
+          "combination": [
+            1,
+            2,
+            4
+          ],
+          "uncalibrated_score": 0.015565566077161442
+        },
+        {
+          "rank": 5,
+          "combination": [
+            3,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.015390901821199374
+        },
+        {
+          "rank": 6,
+          "combination": [
+            2,
+            3,
+            1
+          ],
+          "uncalibrated_score": 0.014707454220469254
+        },
+        {
+          "rank": 7,
+          "combination": [
+            2,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.01464056317503505
+        },
+        {
+          "rank": 8,
+          "combination": [
+            1,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.014390806373224731
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:14:6",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 6,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T10:52:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=14",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "B1",
+        "A1",
+        "B1",
+        "A2",
+        "B1",
+        "B2"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            2,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.02925780880526123
+        },
+        {
+          "rank": 2,
+          "combination": [
+            2,
+            4,
+            1
+          ],
+          "uncalibrated_score": 0.027227200617982172
+        },
+        {
+          "rank": 3,
+          "combination": [
+            1,
+            2,
+            4
+          ],
+          "uncalibrated_score": 0.02592510357088225
+        },
+        {
+          "rank": 4,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.024627785189613824
+        },
+        {
+          "rank": 5,
+          "combination": [
+            4,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.023047688327996856
+        },
+        {
+          "rank": 6,
+          "combination": [
+            2,
+            3,
+            1
+          ],
+          "uncalibrated_score": 0.02183129179185298
+        },
+        {
+          "rank": 7,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.021822477753267885
+        },
+        {
+          "rank": 8,
+          "combination": [
+            1,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.020637862869818564
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:14:7",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 7,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T11:24:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=14",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "B1",
+        "B1",
+        "B1",
+        "A2",
+        "A1",
+        "B1"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            5,
+            4
+          ],
+          "uncalibrated_score": 0.01564116628682389
+        },
+        {
+          "rank": 2,
+          "combination": [
+            5,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.0156129738457878
+        },
+        {
+          "rank": 3,
+          "combination": [
+            1,
+            5,
+            2
+          ],
+          "uncalibrated_score": 0.015272519269962719
+        },
+        {
+          "rank": 4,
+          "combination": [
+            5,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.015244991297233874
+        },
+        {
+          "rank": 5,
+          "combination": [
+            1,
+            4,
+            5
+          ],
+          "uncalibrated_score": 0.014735057343311335
+        },
+        {
+          "rank": 6,
+          "combination": [
+            5,
+            4,
+            1
+          ],
+          "uncalibrated_score": 0.014674763032118902
+        },
+        {
+          "rank": 7,
+          "combination": [
+            1,
+            2,
+            5
+          ],
+          "uncalibrated_score": 0.014295747822820287
+        },
+        {
+          "rank": 8,
+          "combination": [
+            5,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.014237459967197906
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:14:8",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 8,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T11:56:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=14",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "B1",
+        "B1",
+        "B2",
+        "A2",
+        "A1",
+        "B1"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            5,
+            4
+          ],
+          "uncalibrated_score": 0.018643618867856614
+        },
+        {
+          "rank": 2,
+          "combination": [
+            5,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.018608093679465115
+        },
+        {
+          "rank": 3,
+          "combination": [
+            1,
+            5,
+            2
+          ],
+          "uncalibrated_score": 0.018204206975348206
+        },
+        {
+          "rank": 4,
+          "combination": [
+            5,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.018169519080959203
+        },
+        {
+          "rank": 5,
+          "combination": [
+            1,
+            4,
+            5
+          ],
+          "uncalibrated_score": 0.017483571471634422
+        },
+        {
+          "rank": 6,
+          "combination": [
+            5,
+            4,
+            1
+          ],
+          "uncalibrated_score": 0.01740727581147993
+        },
+        {
+          "rank": 7,
+          "combination": [
+            1,
+            2,
+            5
+          ],
+          "uncalibrated_score": 0.016954285947124195
+        },
+        {
+          "rank": 8,
+          "combination": [
+            5,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.016880585486664153
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:14:9",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 9,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T12:25:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=14",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "A2",
+        "B1",
+        "A2",
+        "A1",
+        "B2",
+        "B1"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            4,
+            3
+          ],
+          "uncalibrated_score": 0.02754518520612603
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            3,
+            4
+          ],
+          "uncalibrated_score": 0.025955255916971242
+        },
+        {
+          "rank": 3,
+          "combination": [
+            4,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.025764462285401135
+        },
+        {
+          "rank": 4,
+          "combination": [
+            1,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.023668455436374955
+        },
+        {
+          "rank": 5,
+          "combination": [
+            3,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.023332313561559112
+        },
+        {
+          "rank": 6,
+          "combination": [
+            4,
+            3,
+            1
+          ],
+          "uncalibrated_score": 0.022229304557929378
+        },
+        {
+          "rank": 7,
+          "combination": [
+            4,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.0221383527785669
+        },
+        {
+          "rank": 8,
+          "combination": [
+            3,
+            4,
+            1
+          ],
+          "uncalibrated_score": 0.021364020141967394
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:14:10",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 10,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T12:57:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=14",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "B1",
+        "A1",
+        "A2",
+        "B1",
+        "B2",
+        "A2"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            2,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.02787862423700133
+        },
+        {
+          "rank": 2,
+          "combination": [
+            2,
+            3,
+            1
+          ],
+          "uncalibrated_score": 0.027164245653093545
+        },
+        {
+          "rank": 3,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.024859090706196327
+        },
+        {
+          "rank": 4,
+          "combination": [
+            3,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.023817744811430404
+        },
+        {
+          "rank": 5,
+          "combination": [
+            2,
+            1,
+            6
+          ],
+          "uncalibrated_score": 0.020908968177750998
+        },
+        {
+          "rank": 6,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.02081856456564509
+        },
+        {
+          "rank": 7,
+          "combination": [
+            3,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.020471038239534667
+        },
+        {
+          "rank": 8,
+          "combination": [
+            2,
+            3,
+            6
+          ],
+          "uncalibrated_score": 0.01896813705086705
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:14:11",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 11,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T13:33:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=14",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "A2",
+        "A2",
+        "A1",
+        "A1",
+        "B1",
+        "B1"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            3,
+            4
+          ],
+          "uncalibrated_score": 0.02160111813520283
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            3,
+            2
+          ],
+          "uncalibrated_score": 0.021355650883666432
+        },
+        {
+          "rank": 3,
+          "combination": [
+            3,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.021090089054272385
+        },
+        {
+          "rank": 4,
+          "combination": [
+            3,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.020850428951382928
+        },
+        {
+          "rank": 5,
+          "combination": [
+            1,
+            4,
+            3
+          ],
+          "uncalibrated_score": 0.020652004726495785
+        },
+        {
+          "rank": 6,
+          "combination": [
+            1,
+            2,
+            3
+          ],
+          "uncalibrated_score": 0.02034283728277913
+        },
+        {
+          "rank": 7,
+          "combination": [
+            3,
+            4,
+            1
+          ],
+          "uncalibrated_score": 0.019537482715104016
+        },
+        {
+          "rank": 8,
+          "combination": [
+            4,
+            1,
+            3
+          ],
+          "uncalibrated_score": 0.0195297927871132
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    },
+    {
+      "race_id": "boat:2026-10-22:14:12",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 12,
+      "sales_cutoff_scheduled_at_jst": "2026-10-22T14:15:00+09:00",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceindex?hd=20261022&jcd=14",
+      "source_viewing_method": "Individual public official page indexed through third-party web search; factual lanes and class only.",
+      "entrant_grades": [
+        "A1",
+        "A2",
+        "B1",
+        "A1",
+        "A2",
+        "B1"
+      ],
+      "model": {
+        "id": "boat-lane-class-pl",
+        "version": "0.1-untrained",
+        "lane_multipliers": [
+          1.45,
+          1.16,
+          1,
+          0.88,
+          0.8,
+          0.75
+        ],
+        "class_multipliers": {
+          "A1": 1.8,
+          "A2": 1.35,
+          "B1": 1,
+          "B2": 0.7
+        },
+        "odds_used": false,
+        "calibrated": false
+      },
+      "candidate_count": 120,
+      "full_candidates_sha256_verified": false,
+      "ordered_top8": [
+        {
+          "rank": 1,
+          "combination": [
+            1,
+            4,
+            2
+          ],
+          "uncalibrated_score": 0.028670509495720517
+        },
+        {
+          "rank": 2,
+          "combination": [
+            1,
+            2,
+            4
+          ],
+          "uncalibrated_score": 0.028553593054641467
+        },
+        {
+          "rank": 3,
+          "combination": [
+            4,
+            1,
+            2
+          ],
+          "uncalibrated_score": 0.02447183082849111
+        },
+        {
+          "rank": 4,
+          "combination": [
+            2,
+            1,
+            4
+          ],
+          "uncalibrated_score": 0.024309579508365032
+        },
+        {
+          "rank": 5,
+          "combination": [
+            4,
+            2,
+            1
+          ],
+          "uncalibrated_score": 0.019775398588611565
+        },
+        {
+          "rank": 6,
+          "combination": [
+            1,
+            4,
+            5
+          ],
+          "uncalibrated_score": 0.019772765169462428
+        },
+        {
+          "rank": 7,
+          "combination": [
+            2,
+            4,
+            1
+          ],
+          "uncalibrated_score": 0.019724721314324126
+        },
+        {
+          "rank": 8,
+          "combination": [
+            1,
+            2,
+            5
+          ],
+          "uncalibrated_score": 0.019468358900891908
+        }
+      ],
+      "scope": "PROSPECTIVE_RESEARCH_SHADOW_NOT_OFFICIAL_PRODUCTION",
+      "result": null,
+      "estimated_actual_hit_probability": null
+    }
+  ]
+}
