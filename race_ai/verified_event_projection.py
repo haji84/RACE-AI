@@ -212,6 +212,56 @@ def project(bundle, *, allow_source=None, verify_freeze=None, verify_result=None
         else:
             row["no_forecast_reason"] = "NO_PRIOR_FORECAST"
 
+        # Parallel models are kept separate from the primary predeclared
+        # production forecast. They can be viewed side by side but must not
+        # retroactively replace the primary model for all-race Hit@8.
+        comparisons = entry.get("comparison_forecasts", [])
+        if not isinstance(comparisons, list) or len(comparisons) > 8:
+            raise AdmissionError("comparison forecast count invalid")
+        if comparisons:
+            row["comparison_predictions"] = []
+            model_keys = set()
+            for alt in comparisons:
+                selected_alt = validate_universe(alt, entrants)
+                model_id = alt.get("model_id")
+                version = alt.get("model_version")
+                if (not isinstance(model_id, str) or not 1 <= len(model_id) <= 128
+                    or not isinstance(version, str) or not 1 <= len(version) <= 128
+                    or (model_id, version) in model_keys):
+                    raise AdmissionError("duplicate or missing comparison model identity")
+                model_keys.add((model_id, version))
+                if forecast is not None and model_id == forecast.get("model_id") and version == forecast.get("model_version"):
+                    raise AdmissionError("comparison model duplicates production model")
+                observed = utc(alt.get("generated_at"))
+                persisted = utc(alt.get("persisted_at"))
+                if alt.get("cutoff_at") != entry["cutoff_at"]:
+                    raise AdmissionError("comparison forecast cutoff mismatch")
+                digest_input = {k: v for k, v in alt.items()
+                                if k != "prediction_sha256" and k != "receipt"}
+                if not (isinstance(alt.get("input_sha256"), str)
+                        and HEX64.fullmatch(alt["input_sha256"])
+                        and alt.get("prediction_sha256") == digest(digest_input)):
+                    raise AdmissionError("comparison forecast hash mismatch")
+                before = observed <= persisted < deadline
+                verified = bool(before and verify_freeze is not None and
+                                verify_freeze(alt.get("receipt"), alt["prediction_sha256"],
+                                              alt["persisted_at"], entry["cutoff_at"]))
+                row["comparison_predictions"].append({
+                    "ordered_top8": selected_alt,
+                    "generated_at": alt["generated_at"],
+                    "persisted_at": alt["persisted_at"],
+                    "cutoff_at": alt["cutoff_at"],
+                    "input_sha256": alt["input_sha256"],
+                    "prediction_sha256": alt["prediction_sha256"],
+                    "model_id": model_id,
+                    "model_version": version,
+                    "rationale": str(alt.get("rationale", "reason unavailable"))[:500],
+                    "odds_independent": True,
+                    "external_receipt_verified": verified,
+                    "comparison_only": True,
+                    "receipt_status": "VERIFIED" if verified else "UNVERIFIED_OR_LATE",
+                })
+
         results = entry.get("result_revisions", [])
         if not isinstance(results, list) or len(results) > 100:
             raise AdmissionError("official result revisions invalid")
