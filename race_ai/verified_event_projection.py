@@ -168,7 +168,8 @@ def project(bundle, *, allow_source=None, verify_freeze=None, verify_result=None
                                else "NOT_OFFERED" if allowed else "UNKNOWN",
             "race_status": "source_admitted" if allowed else "source_blocked",
             "prediction": None, "result": None, "no_forecast_reason": None,
-            "evidence_url": source["url"], "source_provenance": "SOURCE_ADMITTED" if allowed else "RIGHTS_NOT_ADMITTED"
+            "evidence_url": source["url"] if allowed and "?" not in source["url"] and "@" not in source["url"].split("/")[2] else None,
+            "source_provenance": "SOURCE_ADMITTED" if allowed else "RIGHTS_NOT_ADMITTED"
         }
         if not allowed:
             row["no_forecast_reason"] = "SOURCE_RIGHTS_NOT_VERIFIED"
