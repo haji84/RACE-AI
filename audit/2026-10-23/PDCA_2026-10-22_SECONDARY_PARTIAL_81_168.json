@@ -1,0 +1,2566 @@
+{
+  "schema": "RACE_AI_PDAC_REVIEW_V1",
+  "event_date_jst": "2026-10-22",
+  "review_date_jst": "2026-10-23",
+  "scope": "BOAT_14_VENUES_PARTIAL_SECONDARY_OBSERVED_RESULTS",
+  "provisional_total_race_slots": 168,
+  "official_complete_results_verified": false,
+  "source_observation": {
+    "source": "https://kyotei-karte.com/races/2026-10-22/",
+    "source_label": "public secondary cached snapshot, reported 81 of 168 settled",
+    "observation_caveat": "Source cached during the event. It is incomplete and not independently matched to BOATRACE official each-race result. Never promote to final measured accuracy without complete official verification.",
+    "official_calendar_reference": "https://www.boatrace.jp/?lang=ja"
+  },
+  "frozen_originals": [
+    {
+      "path": "audit/2026-10-22/prospective_shadow_kojima_12r_0929JST_immutable.json",
+      "blob_sha": "a8c5b29f9d1114f306982fc2251d6a07d2cbb8fd"
+    },
+    {
+      "path": "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json",
+      "blob_sha": "0e52cbd642c0f8020e37133b5019298bb1bf94aa"
+    },
+    {
+      "path": "audit/2026-10-22/prospective_class_lane_omura_naruto_1033JST.json",
+      "blob_sha": "80f623d9d2329c5388acac2dcf454bbd3ce1a7eb"
+    }
+  ],
+  "day_forecasts": {
+    "grade_and_lane_kojima": 12,
+    "lane_only_other_venues": 142,
+    "no_forecast": 14,
+    "grade_sidecar_19_not_additive": true
+  },
+  "provisional_observed_subset": {
+    "results_observed": 81,
+    "precutoff_shadow_present": 67,
+    "no_forecast": 14,
+    "hits": 15,
+    "misses": 52,
+    "hit8_all_subset": 0.18518518518518517,
+    "hit8_predicted_only_subset": 0.22388059701492538,
+    "unobserved_result_rows": 87
+  },
+  "source_coverage": {
+    "venues_with_observed": 11,
+    "venues_missing_any_observed": [
+      "住之江",
+      "若松",
+      "大村"
+    ],
+    "not_full_venue_count": 14
+  },
+  "by_venue": {
+    "びわこ": {
+      "results_observed": 8,
+      "precutoff_shadow_present": 7,
+      "no_forecast": 1,
+      "hits": 0,
+      "misses": 7
+    },
+    "尼崎": {
+      "results_observed": 7,
+      "precutoff_shadow_present": 6,
+      "no_forecast": 1,
+      "hits": 2,
+      "misses": 4
+    },
+    "鳴門": {
+      "results_observed": 11,
+      "precutoff_shadow_present": 6,
+      "no_forecast": 5,
+      "hits": 1,
+      "misses": 5
+    },
+    "児島": {
+      "results_observed": 6,
+      "precutoff_shadow_present": 6,
+      "no_forecast": 0,
+      "hits": 2,
+      "misses": 4
+    },
+    "宮島": {
+      "results_observed": 8,
+      "precutoff_shadow_present": 7,
+      "no_forecast": 1,
+      "hits": 2,
+      "misses": 5
+    },
+    "徳山": {
+      "results_observed": 10,
+      "precutoff_shadow_present": 5,
+      "no_forecast": 5,
+      "hits": 1,
+      "misses": 4
+    },
+    "唐津": {
+      "results_observed": 7,
+      "precutoff_shadow_present": 7,
+      "no_forecast": 0,
+      "hits": 1,
+      "misses": 6
+    },
+    "江戸川": {
+      "results_observed": 5,
+      "precutoff_shadow_present": 5,
+      "no_forecast": 0,
+      "hits": 1,
+      "misses": 4
+    },
+    "平和島": {
+      "results_observed": 6,
+      "precutoff_shadow_present": 6,
+      "no_forecast": 0,
+      "hits": 2,
+      "misses": 4
+    },
+    "多摩川": {
+      "results_observed": 7,
+      "precutoff_shadow_present": 6,
+      "no_forecast": 1,
+      "hits": 1,
+      "misses": 5
+    },
+    "浜名湖": {
+      "results_observed": 6,
+      "precutoff_shadow_present": 6,
+      "no_forecast": 0,
+      "hits": 2,
+      "misses": 4
+    }
+  },
+  "miss_classification": {
+    "NO_FORECAST": 14,
+    "HIT": 15,
+    "WRONG_FIRST": 15,
+    "WRONG_SECOND": 15,
+    "WRONG_THIRD": 22
+  },
+  "alternate_grade_comparison_observed": {
+    "n": 6,
+    "baseline_hits": 1,
+    "grade_hits": 1,
+    "comment": "Only six of nineteen grade-sidecar races exist in this incomplete source. Cannot infer superior model quality."
+  },
+  "simulation_only": {
+    "not_actual_betting": true,
+    "assumed_stake_100_yen_each_of_8_picks": true,
+    "only_on_67_observed_predicted_races": true,
+    "gross_stake_yen": 53600,
+    "gross_payout_yen": 19040,
+    "net_yen": -34560,
+    "return_ratio": 0.35522388059701493,
+    "excluded_refunds_and_cancellations": true,
+    "not_validated_against_official_payout_rules": true
+  },
+  "conditional_bound_if_168_all_3t_evaluable": {
+    "maximum_due_to_14_no_forecast": 0.9166666666666666,
+    "max_if_remaining_87_all_hit": 0.6071428571428571,
+    "caveat": "Conditional upper bound only; actual official race validity and 87 outcomes not established."
+  },
+  "pdca": [
+    {
+      "stage": "PLAN",
+      "finding": "4 sports all races and Hit@8>=0.98 target; fixed 8-pick research prior."
+    },
+    {
+      "stage": "DO",
+      "finding": "168 provisional boat slots: 154 shadow ranked, 14 not forecast, 19 alternate grade-sidecar; immutable GitHub stored."
+    },
+    {
+      "stage": "CHECK",
+      "finding": "81 secondary observed; 15 hits, 52 forecast misses, 14 no forecasts; no full official settlement."
+    },
+    {
+      "stage": "ACT",
+      "priority": 1,
+      "action": "Eliminate missed morning deadlines: previous-night all-venue discovery, safe lead time, source freshness and no_forecast alerts."
+    },
+    {
+      "stage": "ACT",
+      "priority": 2,
+      "action": "Replace invariant position-only Top8 with permission-attested pre-cutoff entrant ability, recent form, motor, exhibition and weather; no odds and no post-race leakage."
+    },
+    {
+      "stage": "ACT",
+      "priority": 3,
+      "action": "Admit independently verified official result revisions; complete all 168 results, preserve cancelled/refund cases, then freeze a final PDCA ledger."
+    },
+    {
+      "stage": "ACT",
+      "priority": 4,
+      "action": "Run primary and shadow models on the same future races with two independent frozen receipts; compare whole-universe Hit@8, coverage and calibration before promotion."
+    },
+    {
+      "stage": "ACT",
+      "priority": 5,
+      "action": "Publish read-only viewer with explicit secondary-vs-official badges, original forecast commit, model version, latest result revision and per-race hit/miss."
+    }
+  ],
+  "records": [
+    {
+      "race_id": "boat:2026-10-22:03:1",
+      "venue": "江戸川",
+      "venue_code": "03",
+      "race_no": 1,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-3-2",
+      "official_100_yen_payout_yen": 1010,
+      "hit_rank": 2,
+      "evaluation": "HIT",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:03:3",
+      "venue": "江戸川",
+      "venue_code": "03",
+      "race_no": 3,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-4-5",
+      "official_100_yen_payout_yen": 5010,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:03:4",
+      "venue": "江戸川",
+      "venue_code": "03",
+      "race_no": 4,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 4,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "4-1-5",
+      "official_100_yen_payout_yen": 3920,
+      "hit_rank": null,
+      "evaluation": "WRONG_FIRST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:03:5",
+      "venue": "江戸川",
+      "venue_code": "03",
+      "race_no": 5,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 3,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "3-6-1",
+      "official_100_yen_payout_yen": 1750,
+      "hit_rank": null,
+      "evaluation": "WRONG_SECOND",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:03:6",
+      "venue": "江戸川",
+      "venue_code": "03",
+      "race_no": 6,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "2-4-1",
+      "official_100_yen_payout_yen": 3470,
+      "hit_rank": null,
+      "evaluation": "WRONG_SECOND",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:04:1",
+      "venue": "平和島",
+      "venue_code": "04",
+      "race_no": 1,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 3,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "3-5-1",
+      "official_100_yen_payout_yen": 5500,
+      "hit_rank": null,
+      "evaluation": "WRONG_SECOND",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:04:2",
+      "venue": "平和島",
+      "venue_code": "04",
+      "race_no": 2,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-2-6",
+      "official_100_yen_payout_yen": 17040,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:04:3",
+      "venue": "平和島",
+      "venue_code": "04",
+      "race_no": 3,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "2-1-5",
+      "official_100_yen_payout_yen": 2070,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:04:4",
+      "venue": "平和島",
+      "venue_code": "04",
+      "race_no": 4,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "2-1-3",
+      "official_100_yen_payout_yen": 1160,
+      "hit_rank": 3,
+      "evaluation": "HIT",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:04:5",
+      "venue": "平和島",
+      "venue_code": "04",
+      "race_no": 5,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-2-4",
+      "official_100_yen_payout_yen": 1590,
+      "hit_rank": 4,
+      "evaluation": "HIT",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:04:6",
+      "venue": "平和島",
+      "venue_code": "04",
+      "race_no": 6,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 6,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "6-4-3",
+      "official_100_yen_payout_yen": 14200,
+      "hit_rank": null,
+      "evaluation": "WRONG_FIRST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:05:1",
+      "venue": "多摩川",
+      "venue_code": "05",
+      "race_no": 1,
+      "precutoff_shadow_present": false,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [],
+      "reviewed_winning_combo": "1-2-5",
+      "official_100_yen_payout_yen": 360,
+      "hit_rank": null,
+      "evaluation": "NO_FORECAST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:05:2",
+      "venue": "多摩川",
+      "venue_code": "05",
+      "race_no": 2,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "2-3-1",
+      "official_100_yen_payout_yen": 1670,
+      "hit_rank": 6,
+      "evaluation": "HIT",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:05:3",
+      "venue": "多摩川",
+      "venue_code": "05",
+      "race_no": 3,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-4-5",
+      "official_100_yen_payout_yen": 2350,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:05:4",
+      "venue": "多摩川",
+      "venue_code": "05",
+      "race_no": 4,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-3-5",
+      "official_100_yen_payout_yen": 930,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:05:5",
+      "venue": "多摩川",
+      "venue_code": "05",
+      "race_no": 5,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 6,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "6-4-2",
+      "official_100_yen_payout_yen": 15170,
+      "hit_rank": null,
+      "evaluation": "WRONG_FIRST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:05:6",
+      "venue": "多摩川",
+      "venue_code": "05",
+      "race_no": 6,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "2-3-6",
+      "official_100_yen_payout_yen": 1130,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:05:7",
+      "venue": "多摩川",
+      "venue_code": "05",
+      "race_no": 7,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "2-6-4",
+      "official_100_yen_payout_yen": 1530,
+      "hit_rank": null,
+      "evaluation": "WRONG_SECOND",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:06:1",
+      "venue": "浜名湖",
+      "venue_code": "06",
+      "race_no": 1,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-4-2",
+      "official_100_yen_payout_yen": 2000,
+      "hit_rank": 8,
+      "evaluation": "HIT",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:06:2",
+      "venue": "浜名湖",
+      "venue_code": "06",
+      "race_no": 2,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 5,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "5-3-2",
+      "official_100_yen_payout_yen": 19700,
+      "hit_rank": null,
+      "evaluation": "WRONG_FIRST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:06:3",
+      "venue": "浜名湖",
+      "venue_code": "06",
+      "race_no": 3,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 3,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "3-2-1",
+      "official_100_yen_payout_yen": 17050,
+      "hit_rank": null,
+      "evaluation": "WRONG_SECOND",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:06:4",
+      "venue": "浜名湖",
+      "venue_code": "06",
+      "race_no": 4,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "2-3-5",
+      "official_100_yen_payout_yen": 6750,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:06:5",
+      "venue": "浜名湖",
+      "venue_code": "06",
+      "race_no": 5,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-2-3",
+      "official_100_yen_payout_yen": 530,
+      "hit_rank": 1,
+      "evaluation": "HIT",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:06:6",
+      "venue": "浜名湖",
+      "venue_code": "06",
+      "race_no": 6,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 3,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "3-6-4",
+      "official_100_yen_payout_yen": 29320,
+      "hit_rank": null,
+      "evaluation": "WRONG_SECOND",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:11:1",
+      "venue": "びわこ",
+      "venue_code": "11",
+      "race_no": 1,
+      "precutoff_shadow_present": false,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [],
+      "reviewed_winning_combo": "2-1-3",
+      "official_100_yen_payout_yen": 1390,
+      "hit_rank": null,
+      "evaluation": "NO_FORECAST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:11:2",
+      "venue": "びわこ",
+      "venue_code": "11",
+      "race_no": 2,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "2-1-5",
+      "official_100_yen_payout_yen": 1010,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:11:3",
+      "venue": "びわこ",
+      "venue_code": "11",
+      "race_no": 3,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 5,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "5-2-6",
+      "official_100_yen_payout_yen": 6200,
+      "hit_rank": null,
+      "evaluation": "WRONG_FIRST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:11:4",
+      "venue": "びわこ",
+      "venue_code": "11",
+      "race_no": 4,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 3,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "3-6-4",
+      "official_100_yen_payout_yen": 1560,
+      "hit_rank": null,
+      "evaluation": "WRONG_SECOND",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:11:5",
+      "venue": "びわこ",
+      "venue_code": "11",
+      "race_no": 5,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 4,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "4-3-5",
+      "official_100_yen_payout_yen": 16450,
+      "hit_rank": null,
+      "evaluation": "WRONG_FIRST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:11:6",
+      "venue": "びわこ",
+      "venue_code": "11",
+      "race_no": 6,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 5,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "5-1-2",
+      "official_100_yen_payout_yen": 22790,
+      "hit_rank": null,
+      "evaluation": "WRONG_FIRST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:11:7",
+      "venue": "びわこ",
+      "venue_code": "11",
+      "race_no": 7,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-3-5",
+      "official_100_yen_payout_yen": 1050,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:11:8",
+      "venue": "びわこ",
+      "venue_code": "11",
+      "race_no": 8,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 5,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "5-2-6",
+      "official_100_yen_payout_yen": 2920,
+      "hit_rank": null,
+      "evaluation": "WRONG_FIRST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:13:1",
+      "venue": "尼崎",
+      "venue_code": "13",
+      "race_no": 1,
+      "precutoff_shadow_present": false,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 3,
+      "predicted_top8": [],
+      "reviewed_winning_combo": "3-6-1",
+      "official_100_yen_payout_yen": 2580,
+      "hit_rank": null,
+      "evaluation": "NO_FORECAST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:13:2",
+      "venue": "尼崎",
+      "venue_code": "13",
+      "race_no": 2,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-5-3",
+      "official_100_yen_payout_yen": 3540,
+      "hit_rank": null,
+      "evaluation": "WRONG_SECOND",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:13:3",
+      "venue": "尼崎",
+      "venue_code": "13",
+      "race_no": 3,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-2-6",
+      "official_100_yen_payout_yen": 1930,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:13:4",
+      "venue": "尼崎",
+      "venue_code": "13",
+      "race_no": 4,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-4-6",
+      "official_100_yen_payout_yen": 5790,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:13:5",
+      "venue": "尼崎",
+      "venue_code": "13",
+      "race_no": 5,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-3-6",
+      "official_100_yen_payout_yen": 2330,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:13:6",
+      "venue": "尼崎",
+      "venue_code": "13",
+      "race_no": 6,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-4-2",
+      "official_100_yen_payout_yen": 610,
+      "hit_rank": 8,
+      "evaluation": "HIT",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:13:7",
+      "venue": "尼崎",
+      "venue_code": "13",
+      "race_no": 7,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-2-3",
+      "official_100_yen_payout_yen": 800,
+      "hit_rank": 1,
+      "evaluation": "HIT",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:14:1",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 1,
+      "precutoff_shadow_present": false,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [],
+      "reviewed_winning_combo": "1-4-5",
+      "official_100_yen_payout_yen": 1810,
+      "hit_rank": null,
+      "evaluation": "NO_FORECAST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:14:2",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 2,
+      "precutoff_shadow_present": false,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 3,
+      "predicted_top8": [],
+      "reviewed_winning_combo": "3-6-1",
+      "official_100_yen_payout_yen": 3470,
+      "hit_rank": null,
+      "evaluation": "NO_FORECAST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:14:3",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 3,
+      "precutoff_shadow_present": false,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 3,
+      "predicted_top8": [],
+      "reviewed_winning_combo": "3-1-4",
+      "official_100_yen_payout_yen": 1200,
+      "hit_rank": null,
+      "evaluation": "NO_FORECAST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:14:4",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 4,
+      "precutoff_shadow_present": false,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [],
+      "reviewed_winning_combo": "1-2-5",
+      "official_100_yen_payout_yen": 340,
+      "hit_rank": null,
+      "evaluation": "NO_FORECAST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:14:5",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 5,
+      "precutoff_shadow_present": false,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 6,
+      "predicted_top8": [],
+      "reviewed_winning_combo": "6-3-5",
+      "official_100_yen_payout_yen": 7010,
+      "hit_rank": null,
+      "evaluation": "NO_FORECAST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:14:6",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 6,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "2-1-4",
+      "official_100_yen_payout_yen": 750,
+      "hit_rank": 7,
+      "evaluation": "HIT",
+      "alternate_grade_model_present": true,
+      "alternate_grade_top8": [
+        "2-1-4",
+        "2-4-1",
+        "1-2-4",
+        "2-1-3",
+        "4-2-1",
+        "2-3-1",
+        "1-2-3",
+        "1-4-2"
+      ],
+      "alternate_hit_rank": 1,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:14:7",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 7,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 5,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "5-3-4",
+      "official_100_yen_payout_yen": 960,
+      "hit_rank": null,
+      "evaluation": "WRONG_FIRST",
+      "alternate_grade_model_present": true,
+      "alternate_grade_top8": [
+        "1-5-4",
+        "5-1-4",
+        "1-5-2",
+        "5-1-2",
+        "1-4-5",
+        "5-4-1",
+        "1-2-5",
+        "5-2-1"
+      ],
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:14:8",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 8,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 4,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "4-6-1",
+      "official_100_yen_payout_yen": 9590,
+      "hit_rank": null,
+      "evaluation": "WRONG_FIRST",
+      "alternate_grade_model_present": true,
+      "alternate_grade_top8": [
+        "1-5-4",
+        "5-1-4",
+        "1-5-2",
+        "5-1-2",
+        "1-4-5",
+        "5-4-1",
+        "1-2-5",
+        "5-2-1"
+      ],
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:14:9",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 9,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 4,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "4-3-6",
+      "official_100_yen_payout_yen": 8510,
+      "hit_rank": null,
+      "evaluation": "WRONG_FIRST",
+      "alternate_grade_model_present": true,
+      "alternate_grade_top8": [
+        "1-4-3",
+        "1-3-4",
+        "4-1-3",
+        "1-4-2",
+        "3-1-4",
+        "4-3-1",
+        "4-1-2",
+        "3-4-1"
+      ],
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:14:10",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 10,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-6-2",
+      "official_100_yen_payout_yen": 4080,
+      "hit_rank": null,
+      "evaluation": "WRONG_SECOND",
+      "alternate_grade_model_present": true,
+      "alternate_grade_top8": [
+        "2-1-3",
+        "2-3-1",
+        "1-2-3",
+        "3-2-1",
+        "2-1-6",
+        "1-3-2",
+        "3-1-2",
+        "2-3-6"
+      ],
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:14:11",
+      "venue": "鳴門",
+      "venue_code": "14",
+      "race_no": 11,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 6,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "6-1-4",
+      "official_100_yen_payout_yen": 3170,
+      "hit_rank": null,
+      "evaluation": "WRONG_FIRST",
+      "alternate_grade_model_present": true,
+      "alternate_grade_top8": [
+        "1-3-4",
+        "1-3-2",
+        "3-1-4",
+        "3-1-2",
+        "1-4-3",
+        "1-2-3",
+        "3-4-1",
+        "4-1-3"
+      ],
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:16:1",
+      "venue": "児島",
+      "venue_code": "16",
+      "race_no": 1,
+      "precutoff_shadow_present": true,
+      "model_kind": "CLASS_AND_LANE_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "1-2-4",
+        "1-4-2",
+        "1-2-5",
+        "2-1-3",
+        "1-2-6",
+        "1-3-4"
+      ],
+      "reviewed_winning_combo": "1-5-2",
+      "official_100_yen_payout_yen": 3290,
+      "hit_rank": null,
+      "evaluation": "WRONG_SECOND",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_shadow_kojima_12r_0929JST_immutable.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:16:2",
+      "venue": "児島",
+      "venue_code": "16",
+      "race_no": 2,
+      "precutoff_shadow_present": true,
+      "model_kind": "CLASS_AND_LANE_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "2-1-5",
+      "official_100_yen_payout_yen": 4920,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_shadow_kojima_12r_0929JST_immutable.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:16:3",
+      "venue": "児島",
+      "venue_code": "16",
+      "race_no": 3,
+      "precutoff_shadow_present": true,
+      "model_kind": "CLASS_AND_LANE_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [
+        "1-2-6",
+        "1-2-3",
+        "1-6-2",
+        "1-3-2",
+        "2-1-6",
+        "2-1-3",
+        "6-1-2",
+        "1-2-4"
+      ],
+      "reviewed_winning_combo": "2-1-5",
+      "official_100_yen_payout_yen": 3140,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_shadow_kojima_12r_0929JST_immutable.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:16:4",
+      "venue": "児島",
+      "venue_code": "16",
+      "race_no": 4,
+      "precutoff_shadow_present": true,
+      "model_kind": "CLASS_AND_LANE_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [
+        "1-6-4",
+        "6-1-4",
+        "1-6-2",
+        "1-4-6",
+        "6-1-2",
+        "1-2-6",
+        "6-4-1",
+        "4-1-6"
+      ],
+      "reviewed_winning_combo": "2-1-6",
+      "official_100_yen_payout_yen": 2700,
+      "hit_rank": null,
+      "evaluation": "WRONG_FIRST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_shadow_kojima_12r_0929JST_immutable.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:16:5",
+      "venue": "児島",
+      "venue_code": "16",
+      "race_no": 5,
+      "precutoff_shadow_present": true,
+      "model_kind": "CLASS_AND_LANE_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-4",
+        "2-1-4",
+        "1-4-2",
+        "1-2-3",
+        "4-1-2",
+        "2-1-3",
+        "2-4-1",
+        "1-3-2"
+      ],
+      "reviewed_winning_combo": "1-2-3",
+      "official_100_yen_payout_yen": 660,
+      "hit_rank": 4,
+      "evaluation": "HIT",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_shadow_kojima_12r_0929JST_immutable.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:16:6",
+      "venue": "児島",
+      "venue_code": "16",
+      "race_no": 6,
+      "precutoff_shadow_present": true,
+      "model_kind": "CLASS_AND_LANE_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 3,
+      "predicted_top8": [
+        "3-4-1",
+        "3-1-4",
+        "4-3-1",
+        "1-3-4",
+        "4-1-3",
+        "1-4-3",
+        "3-4-2",
+        "4-3-2"
+      ],
+      "reviewed_winning_combo": "3-4-2",
+      "official_100_yen_payout_yen": 3600,
+      "hit_rank": 7,
+      "evaluation": "HIT",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_shadow_kojima_12r_0929JST_immutable.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:17:1",
+      "venue": "宮島",
+      "venue_code": "17",
+      "race_no": 1,
+      "precutoff_shadow_present": false,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 4,
+      "predicted_top8": [],
+      "reviewed_winning_combo": "4-2-1",
+      "official_100_yen_payout_yen": 6380,
+      "hit_rank": null,
+      "evaluation": "NO_FORECAST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:17:2",
+      "venue": "宮島",
+      "venue_code": "17",
+      "race_no": 2,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-2-6",
+      "official_100_yen_payout_yen": 1320,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:17:3",
+      "venue": "宮島",
+      "venue_code": "17",
+      "race_no": 3,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-3-2",
+      "official_100_yen_payout_yen": 1010,
+      "hit_rank": 2,
+      "evaluation": "HIT",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:17:4",
+      "venue": "宮島",
+      "venue_code": "17",
+      "race_no": 4,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "2-5-4",
+      "official_100_yen_payout_yen": 1920,
+      "hit_rank": null,
+      "evaluation": "WRONG_SECOND",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:17:5",
+      "venue": "宮島",
+      "venue_code": "17",
+      "race_no": 5,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-3-5",
+      "official_100_yen_payout_yen": 1420,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:17:6",
+      "venue": "宮島",
+      "venue_code": "17",
+      "race_no": 6,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-3-4",
+      "official_100_yen_payout_yen": 1340,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:17:7",
+      "venue": "宮島",
+      "venue_code": "17",
+      "race_no": 7,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-2-4",
+      "official_100_yen_payout_yen": 1550,
+      "hit_rank": 4,
+      "evaluation": "HIT",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:17:8",
+      "venue": "宮島",
+      "venue_code": "17",
+      "race_no": 8,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 3,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "3-4-2",
+      "official_100_yen_payout_yen": 3030,
+      "hit_rank": null,
+      "evaluation": "WRONG_SECOND",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:18:1",
+      "venue": "徳山",
+      "venue_code": "18",
+      "race_no": 1,
+      "precutoff_shadow_present": false,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 3,
+      "predicted_top8": [],
+      "reviewed_winning_combo": "3-4-1",
+      "official_100_yen_payout_yen": 10100,
+      "hit_rank": null,
+      "evaluation": "NO_FORECAST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:18:2",
+      "venue": "徳山",
+      "venue_code": "18",
+      "race_no": 2,
+      "precutoff_shadow_present": false,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [],
+      "reviewed_winning_combo": "2-1-4",
+      "official_100_yen_payout_yen": 4240,
+      "hit_rank": null,
+      "evaluation": "NO_FORECAST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:18:3",
+      "venue": "徳山",
+      "venue_code": "18",
+      "race_no": 3,
+      "precutoff_shadow_present": false,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [],
+      "reviewed_winning_combo": "1-3-6",
+      "official_100_yen_payout_yen": 1140,
+      "hit_rank": null,
+      "evaluation": "NO_FORECAST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:18:4",
+      "venue": "徳山",
+      "venue_code": "18",
+      "race_no": 4,
+      "precutoff_shadow_present": false,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [],
+      "reviewed_winning_combo": "1-4-2",
+      "official_100_yen_payout_yen": 770,
+      "hit_rank": null,
+      "evaluation": "NO_FORECAST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:18:5",
+      "venue": "徳山",
+      "venue_code": "18",
+      "race_no": 5,
+      "precutoff_shadow_present": false,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [],
+      "reviewed_winning_combo": "1-3-2",
+      "official_100_yen_payout_yen": 930,
+      "hit_rank": null,
+      "evaluation": "NO_FORECAST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:18:6",
+      "venue": "徳山",
+      "venue_code": "18",
+      "race_no": 6,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-3-6",
+      "official_100_yen_payout_yen": 1110,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:18:7",
+      "venue": "徳山",
+      "venue_code": "18",
+      "race_no": 7,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-3-5",
+      "official_100_yen_payout_yen": 1500,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:18:8",
+      "venue": "徳山",
+      "venue_code": "18",
+      "race_no": 8,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-2-4",
+      "official_100_yen_payout_yen": 1090,
+      "hit_rank": 4,
+      "evaluation": "HIT",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:18:9",
+      "venue": "徳山",
+      "venue_code": "18",
+      "race_no": 9,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-6-4",
+      "official_100_yen_payout_yen": 1040,
+      "hit_rank": null,
+      "evaluation": "WRONG_SECOND",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:18:10",
+      "venue": "徳山",
+      "venue_code": "18",
+      "race_no": 10,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "2-1-5",
+      "official_100_yen_payout_yen": 3050,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:23:1",
+      "venue": "唐津",
+      "venue_code": "23",
+      "race_no": 1,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 4,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "4-2-1",
+      "official_100_yen_payout_yen": 11490,
+      "hit_rank": null,
+      "evaluation": "WRONG_FIRST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:23:2",
+      "venue": "唐津",
+      "venue_code": "23",
+      "race_no": 2,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 2,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "2-3-4",
+      "official_100_yen_payout_yen": 7120,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:23:3",
+      "venue": "唐津",
+      "venue_code": "23",
+      "race_no": 3,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 3,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "3-2-1",
+      "official_100_yen_payout_yen": 5330,
+      "hit_rank": null,
+      "evaluation": "WRONG_SECOND",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:23:4",
+      "venue": "唐津",
+      "venue_code": "23",
+      "race_no": 4,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 3,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "3-2-1",
+      "official_100_yen_payout_yen": 13270,
+      "hit_rank": null,
+      "evaluation": "WRONG_SECOND",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:23:5",
+      "venue": "唐津",
+      "venue_code": "23",
+      "race_no": 5,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-2-5",
+      "official_100_yen_payout_yen": 1650,
+      "hit_rank": null,
+      "evaluation": "WRONG_THIRD",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:23:6",
+      "venue": "唐津",
+      "venue_code": "23",
+      "race_no": 6,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 1,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "1-2-3",
+      "official_100_yen_payout_yen": 1010,
+      "hit_rank": 1,
+      "evaluation": "HIT",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    },
+    {
+      "race_id": "boat:2026-10-22:23:7",
+      "venue": "唐津",
+      "venue_code": "23",
+      "race_no": 7,
+      "precutoff_shadow_present": true,
+      "model_kind": "LANE_ONLY_PL",
+      "winning_order": [],
+      "settlement_observed": "SECONDARY_SNAPSHOT_ONLY_NOT_OFFICIAL_FINAL",
+      "winner_1st_lane": 5,
+      "predicted_top8": [
+        "1-2-3",
+        "1-3-2",
+        "2-1-3",
+        "1-2-4",
+        "3-1-2",
+        "2-3-1",
+        "2-1-4",
+        "1-4-2"
+      ],
+      "reviewed_winning_combo": "5-4-2",
+      "official_100_yen_payout_yen": 41360,
+      "hit_rank": null,
+      "evaluation": "WRONG_FIRST",
+      "alternate_grade_model_present": false,
+      "alternate_hit_rank": null,
+      "original_predictions": [
+        "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json"
+      ]
+    }
+  ]
+}
