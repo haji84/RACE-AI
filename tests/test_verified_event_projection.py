@@ -136,8 +136,8 @@ class ProjectionTests(unittest.TestCase):
         bundle['races'][0]['source']['url'] = 'https://example.org/fictional?token=SECRET'
         blocked = project(bundle)['records'][0]
         self.assertIsNone(blocked['evidence_url'])
-        admitted = project(bundle, allow_source=admitted)['records'][0]
-        self.assertIsNone(admitted['evidence_url'])
+        allowed_row = project(bundle, allow_source=admitted)['records'][0]
+        self.assertIsNone(allowed_row['evidence_url'])
 
     def test_invalid_event_cannot_start_network_fallback(self):
         b=example()
