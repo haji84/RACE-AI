@@ -40,6 +40,27 @@ response or applicable legal exception is assessed and documented.
   Ask that office for the actual B/K distribution rights administrator and
   a written response. No call or submission was performed here.
 
+## Japanese copyright exception: do not invent an absolute ban
+
+Japan's [Copyright Act Article 30-4](https://laws.e-gov.go.jp/law/345AC0000000048)
+and [Agency for Cultural Affairs AI/copyright guidance](https://www.bunka.go.jp/seisaku/chosakuken/aiandcopyright.html)
+recognize some non-consumptive information-analysis and AI-training acts
+without individually obtained permission, within their conditions and subject
+to the exception when use would unduly harm the rightsholder's interests.
+The [Agency's 2024 explanation](https://www.bunka.go.jp/seisaku/chosakuken/hokaisei/h30_hokaisei/)
+also describes information analysis among the relevant categories.
+
+**Consequently do not state that every personal offline statistical analysis
+categorically requires a written license.** A real policy reviewer may admit
+a precisely scoped legally applicable exception rather than an explicit
+rightsholder grant, but must document the factual legal basis and its
+limitations. This does not grant automated access against technical controls,
+override website or service contracts, authorize excessive/disruptive traffic,
+or automatically authorize public republication or commercial derivatives.
+The current project has no such external legal assessment recorded, so its
+machine-collection/storage/analysis gate remains **unverified**, not prohibited
+for all possible legal circumstances.
+
 ## Purpose-by-purpose evidence and admission gate
 
 | Purpose | Verified right | Required concrete record before live operation |
