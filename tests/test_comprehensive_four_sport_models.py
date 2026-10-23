@@ -134,7 +134,7 @@ class FourSportModels(unittest.TestCase):
             predict(s)
         s=sample("boat")
         s["race"]["as_of"]=CUTOFF
-        with self.assertRaisesRegex(ModelInputError,"before official sales cutoff"):
+        with self.assertRaisesRegex(ModelInputError,"precede official sales cutoff"):
             predict(s)
 
     def test_reject_odds_popularity_payout_and_result_intrusion(self):
