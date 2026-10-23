@@ -32,7 +32,7 @@
 
 | 競技 | 実在する一次情報の入口 | 自動取得/保管/学習権限 | 接続状態 |
 |---|---|---|---|
-| ボート | 公式番組表・競走成績・期別成績ダウンロード https://www.boatrace.jp/owpc/pc/extra/data/download.html | 使用形態ごとに未確認 | 未接続 |
+| ボート | 旧番組表/競走成績等のPC配布は公式告知により2025-03-05終了：https://www.boatrace.jp/owpc/pc/site/news/2025/03/41685/ 。期別データとは区別し、現行代替経路は未特定 | 使用形態ごとに未確認 | 未接続 |
 | 競輪 | KEIRIN.JP公式サイト、仕様/許諾はPR #72権利表参照 | 未確認 | 未接続 |
 | オート | AutoRace.JP公式レース結果案内 https://autorace.jp/support/faq1006/2024/05/26/035329/ | 未確認 | 未接続 |
 | 競馬・中央 | JRA https://www.jra.go.jp/use/index.html | Web閲覧と自動利用の同一許諾は確認できず | 未接続 |
