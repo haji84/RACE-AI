@@ -23,6 +23,11 @@ function payloadGuard(v){
   if(!v||v.schema!=="RACE_AI_FULL_TRIFECTA_ODDS_V1"||
     v.source_status!=="PROVIDER_REPORTED_UNVERIFIED"||
     !KEY_RE.test(v.race_id||"")||!["boat","keirin","autorace","horse"].includes(v.sport)||
+    !Number.isInteger(v.race_no)||v.race_no<1||v.race_no>99||
+    typeof v.venue!=="string"||!v.venue||v.venue.length>120||
+    !/^\\d{4}-\\d\\d-\\d\\d$/.test(v.event_date_jst||"")||
+    typeof v.source_url!=="string"||!/^https:\\/\\/[^\\s/]+/.test(v.source_url)||
+    !["OPEN_REPORTED","CLOSED_REPORTED","UNKNOWN"].includes(v.sales_status)||
     !validTime(v.cutoff_at)||!validTime(v.ingested_at)||
     (v.source_published_at!==null&&
       (!validTime(v.source_published_at)||Date.parse(v.source_published_at)>Date.parse(v.ingested_at)))||
@@ -30,6 +35,16 @@ function payloadGuard(v){
     !Array.isArray(v.odds)||v.odds.length!==v.participants.length*(v.participants.length-1)*(v.participants.length-2)||
     "prediction" in v||"result" in v||"market_model_features" in v)
     throw new Error("PROVIDER_FEED_SCHEMA_NOT_ADMITTED");
+  const cutoffDay=new Intl.DateTimeFormat("en-CA",{timeZone:"Asia/Tokyo",year:"numeric",
+    month:"2-digit",day:"2-digit"}).formatToParts(new Date(v.cutoff_at));
+  const part=name=>cutoffDay.find(x=>x.type===name)?.value;
+  if(v.event_date_jst!==part("year")+"-"+part("month")+"-"+part("day"))
+    throw new Error("CUTOFF_DAY_MISMATCH");
+  let source;
+  try{source=new URL(v.source_url);}
+  catch{throw new Error("PROVIDER_URL_INVALID");}
+  if(source.protocol!=="https:"||!source.hostname||source.username||source.password)
+    throw new Error("PROVIDER_URL_INVALID");
   if(v.sport==="boat"&&v.participants.length!==6)throw new Error("BOAT_PARTICIPANTS_INVALID");
   const numbers=new Set(v.participants);
   if(numbers.size!==v.participants.length||[...numbers].some(n=>!Number.isInteger(n)||n<1||n>99))
