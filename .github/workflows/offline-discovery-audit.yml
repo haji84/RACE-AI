@@ -27,6 +27,7 @@ on:
       - 'tests/test_race_bound_freeze_receipt.py'
       - 'docs/P0_RACE_BOUND_FREEZE_RECEIPT_20261023.md'
       - 'scripts/verify_pr71_crossbranch_synthetic.py'
+      - 'docs/P0_REAL_GITHUB_SERVER_WITNESS_SYNTHETIC_20261023.md'
       - 'tests/test_pr71_delivery_binding.py'
       - 'docs/P0_PR71_DELIVERY_BINDING_20261023.md'
       - 'tests/test_boat_official_web_adapter.py'
