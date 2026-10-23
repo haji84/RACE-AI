@@ -77,6 +77,18 @@ test("sort odds and filter first boat; unknown odds always sort last",()=>{
  assert.equal(searched.length,4);
  assert.equal(O.select(f,{query:"<script>"}).length,0);
 });
+test("unknown official odds update time stays stale instead of inventing publish timestamp",()=>{
+ const x=fixture("boat",6);x.source_published_at=null;
+ const parsed=O.parse(x);
+ assert.equal(parsed.source_published_at,null);
+ const st=O.freshness(parsed,Date.parse("2030-01-15T09:02:40+09:00"));
+ assert.equal(st.stale,true);
+ assert.match(st.label,/更新時刻未確認/);
+});
+test("missing provider timestamp cannot be replaced by invalid text",()=>{
+ const x=fixture("boat",6);x.source_published_at="unknown";
+ assert.throws(()=>O.parse(x),/オッズ提供・受信時刻/);
+});
 test("provider-published timestamp can be stale even when site ingested it now",()=>{
  const t=fixture("boat",6);
  t.ingested_at="2030-01-15T09:04:59+09:00";
