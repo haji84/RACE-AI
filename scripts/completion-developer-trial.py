@@ -213,6 +213,7 @@ def self_test():
  calls=[]
  def stub(path,payload=None,timeout=150):
   if path=="/api/tags":return {"models":[{"name":backend.MODEL,"digest":backend.DIGEST}]}
+  assert payload["format"]=={"type":"object","properties":{"expression":{"type":"string","maxLength":512}},"required":["expression"],"additionalProperties":False},"SCHEMA_CONSTRAINED_GENERATION_REQUIRED"
   task="acceptance" if "REJECTION condition" in payload["prompt"] else "reference"
   calls.append(task)
   return {"model":backend.MODEL,"done":True,"done_reason":"stop","eval_count":1,"response":json.dumps({"expression":valid[task]})}
