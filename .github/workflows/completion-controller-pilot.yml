@@ -614,18 +614,28 @@ jobs:
 
   # Disabled preparation; only a reviewed one-shot transition may enable this job.
   save-technical-result:
-    if: ${{ false }}
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.event_name == 'pull_request' &&
+      github.event.action == 'synchronize' &&
+      github.actor == 'haji84' &&
+      github.event.pull_request.number == 65 &&
+      github.event.pull_request.head.repo.full_name == 'haji84/RACE-AI' &&
+      github.event.pull_request.base.repo.full_name == 'haji84/RACE-AI' &&
+      github.event.pull_request.head.ref == 'feat/completion-controller-pilot-20261016' &&
+      github.run_number == 44 &&
+      github.run_attempt == 1
     needs: [pilot, compass-adapter]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
-      contents: read
+      contents: write
     env:
       SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
       EVENT_ACTION: ${{ github.event.action }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
-      PREPARED_PARENT: DISABLED
-      EXPECTED_SAVE_RUN: '0'
+      PREPARED_PARENT: c1d2855eb4b5fe447d05de635433f5c2029eff2a
+      EXPECTED_SAVE_RUN: '44'
     steps:
       - name: Save fixed public technical result and verify repeat is a no-op
         env:
