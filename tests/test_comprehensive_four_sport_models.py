@@ -186,6 +186,23 @@ class FourSportModels(unittest.TestCase):
         with self.assertRaisesRegex(ModelInputError,"race revision"):
             predict(s)
 
+
+    def test_each_observed_optional_feature_changes_model_input_and_score(self):
+        # A representative feature from each sport must affect the scoring,
+        # rather than merely being listed in documentation.
+        keys={"boat":"tide_response","keirin":"equipment_fit",
+              "autorace":"vehicle_setup","horse":"pedigree_surface_fit"}
+        for sport,key in keys.items():
+            with self.subTest(sport=sport,key=key):
+                raw=sample(sport)
+                raw["participants"][0]["features"][key]=obs(.05)
+                one=predict(raw)[MODEL_IDS[0]]
+                raw["participants"][0]["features"][key]["value"]=.99
+                two=predict(raw)[MODEL_IDS[0]]
+                self.assertNotEqual(one["candidates"][0]["score"],
+                                    two["candidates"][0]["score"])
+                self.assertNotIn(key,one["missing_optional_by_participant"][1])
+
     def test_repeatability_and_uncertainty_disclosure(self):
         s=sample("horse")
         a=predict(s)
