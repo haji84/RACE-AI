@@ -545,7 +545,13 @@ jobs:
 
   # Disabled preparation; a separately reviewed one-shot activation is required.
   bounded-controller-repair:
-    if: ${{ false }}
+    if: >-
+      github.repository == 'haji84/RACE-AI' && github.actor == 'haji84' &&
+      github.event_name == 'pull_request' && github.event.action == 'synchronize' &&
+      github.event.pull_request.number == 65 && github.run_number == 40 && github.run_attempt == 1 &&
+      github.event.pull_request.head.repo.full_name == 'haji84/RACE-AI' &&
+      github.event.pull_request.head.ref == 'feat/completion-controller-pilot-20261016'
+    needs: [pilot, compass-adapter]
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
