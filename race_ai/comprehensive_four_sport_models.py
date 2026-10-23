@@ -26,13 +26,13 @@ STYLES=("front","stalker","closer","allround","unknown")
 COMMON_REQUIRED=("ability","recent_form","start_reliability","finishing_power",
                  "course_compatibility","stamina","tactical_adaptability","consistency")
 SPORT_REQUIRED={
- "boat":("motor_form","exhibition_performance","start_timing","lane_course_fit"),
+ "boat":("motor_form","start_timing","lane_course_fit"),
  "keirin":("line_coordination","sprint_acceleration","attack_success","bank_fit"),
- "autorace":("handicap_adjustment","trial_performance","machine_reliability","wet_track_fit"),
+ "autorace":("handicap_adjustment","machine_reliability","wet_track_fit"),
  "horse":("speed_figure","closing_sectional","jockey_fit","distance_surface_fit"),
 }
 SPORT_OPTIONAL={
- "boat":("grade_strength","national_win_rate","venue_win_rate","first_place_rate",
+ "boat":("exhibition_performance","grade_strength","national_win_rate","venue_win_rate","first_place_rate",
          "recent_3race_form","recent_10race_form","motor_place_rate","boat_equipment_form",
          "motor_exchange_effect","turning_performance","exhibition_start","practice_lane",
          "course_entry_prediction","local_course_history","wind_response","wave_response",
@@ -43,7 +43,7 @@ SPORT_OPTIONAL={
            "hsb_form","back_count_form","home_count_form","start_count_form","recent_points",
            "recent_win_form","teammate_synergy","opponent_tactical_fit","bank_angle_fit",
            "crosswind_resilience","equipment_fit","schedule_recovery","position_versatility"),
- "autorace":("handicap_advantage","start_reaction","trial_time_quality","trial_rank_quality",
+ "autorace":("trial_performance","handicap_advantage","start_reaction","trial_time_quality","trial_rank_quality",
              "dry_track_fit","rain_performance","race_lane_fit","corner_acceleration",
              "straight_speed","engine_form","tire_condition","vehicle_setup",
              "recent_form_3race","recent_form_10race","race_class_strength",
