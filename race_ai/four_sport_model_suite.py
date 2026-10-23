@@ -12,12 +12,13 @@ from .comprehensive_four_sport_models import (
 from .four_sport_matchup_models import (
     predict as matchup_predict, MODEL_IDS as MATCHUP_MODEL_IDS
 )
+from .four_sport_learning import forecast as learned_forecast, LEARNED_ID
 
 SCHEMA = "RACE_AI_FOUR_SPORT_RESEARCH_SUITE_V1"
 ALL_MODELS = FACTOR_MODEL_IDS + MATCHUP_MODEL_IDS
 
 
-def run_suite(snapshot, *, allow_source=None):
+def run_suite(snapshot, *, allow_source=None, learned_model=None):
     """Run all model families; source checker defaults to deny for real input."""
     validated = validate(snapshot, allow_source=allow_source)
     n = len(validated["participants"])
@@ -28,10 +29,12 @@ def run_suite(snapshot, *, allow_source=None):
     }
     if tuple(models) != ALL_MODELS:
         raise ValueError("research model roster changed without versioning")
+    if learned_model is not None:
+        models[LEARNED_ID] = learned_forecast(snapshot, learned_model, allow_source=allow_source)
     input_hash = validated["snapshot_sha256"]
     for name, prediction in models.items():
         if (prediction["model_id"] != name or
-            prediction["snapshot_sha256"] != input_hash or
+            prediction.get("snapshot_sha256",prediction.get("input_sha256")) != input_hash or
             prediction["race_id"] != snapshot["race"]["race_id"] or
             prediction["as_of"] != snapshot["race"]["as_of"] or
             prediction["cutoff_at"] != snapshot["race"]["sales_cutoff_at"] or
@@ -50,10 +53,10 @@ def run_suite(snapshot, *, allow_source=None):
         "as_of":snapshot["race"]["as_of"],
         "sales_cutoff_at":snapshot["race"]["sales_cutoff_at"],
         "input_sha256":input_hash,
-        "ranked_model_ids":list(ALL_MODELS),
+        "ranked_model_ids":list(models),
         "models":models,
         "model_count":len(models),
-        "research_status":"UNTRAINED_UNCALIBRATED_NOT_PERSISTED",
+        "research_status":"RESEARCH_UNCALIBRATED_NOT_PERSISTED",
         "official_prediction":False,
         "external_timestamp_receipts":None,
         "official_result":None,
@@ -72,13 +75,13 @@ def verify_suite(record):
             {k:v for k,v in record.items() if k!="suite_sha256"}):
         return False
     models = record.get("models")
-    if not isinstance(models,dict) or tuple(models) != ALL_MODELS:
+    if not isinstance(models,dict) or tuple(models) not in (ALL_MODELS,ALL_MODELS+(LEARNED_ID,)):
         return False
     if record.get("official_prediction") is not False or record.get("external_timestamp_receipts") is not None:
         return False
     for name, p in models.items():
         if (not isinstance(p,dict) or p.get("model_id") != name or
-            p.get("snapshot_sha256") != record.get("input_sha256") or
+            p.get("snapshot_sha256",p.get("input_sha256")) != record.get("input_sha256") or
             p.get("prediction_sha256") != digest(
                 {k:v for k,v in p.items() if k!="prediction_sha256"}) or
             p.get("official_prediction") is not False or
