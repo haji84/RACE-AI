@@ -84,6 +84,24 @@ async function accessAuthorized(ctx,env){
 
 async function fetchHandler(request,env){
   const u=new URL(request.url);
+  if(request.method==="GET"&&u.pathname==="/health"&&!u.search){
+    if(env.ODDS_PREVIEW_READ_ENABLED!=="true"||!env.ODDS_DB)
+      return deny("PREVIEW_ODDS_READ_NOT_APPROVED");
+    const row=await env.ODDS_DB.prepare(
+      "SELECT COUNT(*) AS records FROM odds_latest"
+    ).first();
+    const count=row?.records;
+    if(!Number.isSafeInteger(count)||count<0)return deny("ODDS_DB_HEALTH_UNVERIFIED");
+    return reply({
+      schema:"RACE_AI_PRIVATE_ODDS_PREVIEW_HEALTH_V1",
+      status:count===0?"EMPTY_WAITING_FOR_APPROVED_ODDS":"PRIVATE_ODDS_DATA_PRESENT",
+      stored_races:count,
+      owner_access_required:true,
+      publisher_automatic_fetch_enabled:false,
+      minute_by_minute_real_odds_verified:false,
+      last_checked_at:new Date().toISOString()
+    });
+  }
   if(request.method==="GET"){
     const match=u.pathname.match(URL_RE);
     if(!match||u.search)return deny("UNKNOWN_ROUTE",404);
