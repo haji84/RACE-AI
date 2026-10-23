@@ -237,6 +237,15 @@ def link_b_stage_to_features(stage, normalized_feed_bytes, policy, *, at):
         _fail("B stage hash changed")
     if stage.get("status") != "AWAITING_VERIFIED_PRE_RACE_FEATURES":
         _fail("B stage is not prospective")
+    if not isinstance(policy, PermissionPolicy):
+        _fail("B stage cannot bypass independent source permission")
+    for purpose in ("analysis", "private_storage", "private_derived"):
+        if not policy.authorize(stage.get("source_url"), stage.get("source_rights_ref"), purpose):
+            _fail("SOURCE_PERMISSION_NOT_ADMITTED:B_SOURCE:" + purpose)
+    if (stage.get("official_prediction") is not False or
+        stage.get("official_bytes_independently_authenticated") is not False or
+        stage.get("external_freeze_receipt") is not None):
+        _fail("untrusted B stage cannot claim official forecast or receipt")
     # deliver() provides exact JSON/schema validation and 4-model run.
     from .permissioned_source_delivery import read_json_bytes
     feed = read_json_bytes(normalized_feed_bytes)
