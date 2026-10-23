@@ -9,6 +9,7 @@ on:
       - 'tests/full_odds.test.cjs'
       - 'workers/odds_feed_worker.mjs'
       - 'workers/odds_preview_assets.mjs'
+      - 'docs/P0_CLOUDFLARE_PROTECTED_ODDS_PREVIEW_20261024.md'
       - 'workers/odds_schema.sql'
       - 'tests/odds_feed_worker.test.mjs'
       - 'race_ai/purchase_window_policy.py'
