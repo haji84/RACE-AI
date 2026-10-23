@@ -119,7 +119,7 @@ class BindingTests(unittest.TestCase):
             self.assertFalse(result["external_freeze_verified"])
             # Deliberately leave private PR71 hashes untouched.
             self.assertEqual(d["race_id"],model_id)
-            with self.assertRaisesRegex(BindingError,"identity mismatch"):
+            with self.assertRaisesRegex(BindingError,"race missing"):
                 bind_audit_to_delivery(a,d,race_id=source_id.replace(":2",":3"))
 
     def test_delivery_integrity_and_false_approval_rejected(self):
