@@ -7,8 +7,8 @@ import hashlib,json,os,sys
 from urllib.request import Request,HTTPSHandler,HTTPRedirectHandler,build_opener
 from urllib.error import HTTPError,URLError
 
-TARGET="https://www1.mbrace.or.jp/od2/B/202610/b261025.lzh"
-REF="refs/heads/p0-b-smoke-20261024"
+TARGET="https://www1.mbrace.or.jp/od2/B/202610/b261023.lzh"
+REF="refs/heads/p0-b-smoke-past-20261024"
 MAX=4_000_000
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self,*args,**kwargs):
@@ -17,7 +17,7 @@ class NoRedirect(HTTPRedirectHandler):
 def one_shot(*,context=None,opener=None):
     e=os.environ if context is None else context
     if e.get("GITHUB_EVENT_NAME")!="push" or e.get("GITHUB_REF")!=REF or (
-        e.get("RACE_AI_B_ONE_SHOT")!="20261025-B") or len(e.get("GITHUB_SHA",""))!=40:
+        e.get("RACE_AI_B_ONE_SHOT")!="20261023-B") or len(e.get("GITHUB_SHA",""))!=40:
         raise RuntimeError("special one-shot branch & gate required")
     client=opener or build_opener(NoRedirect(),HTTPSHandler())
     req=Request(TARGET,headers={"Accept":"application/octet-stream",
