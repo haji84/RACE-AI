@@ -22,6 +22,7 @@ class FakeD1{
  prepare(sql){
    return {bind:(...params)=>({
      first:async()=>{
+       if(sql.startsWith("SELECT COUNT(*)"))return {records:this.rows.size};
        if(!sql.startsWith("SELECT"))throw Error("bad SQL mock SELECT");
        const row=this.rows.get(params[0]);
        return row&&{payload_json:row.payload_json,sha256:row.sha256};
@@ -77,6 +78,21 @@ test("unprotected Worker, wrong identity and caller-supplied headers cannot read
  assert.equal(e.ODDS_DB.rows.size,0);
  const fakeEnv=env();fakeEnv.ODDS_REQUIRE_ACCESS="false";
  assert.equal((await worker.fetch(read(),fakeEnv,ACCESS)).status,403);
+});
+test("private health proves D1 binding but reports zero real races when empty",async()=>{
+ const e=env();
+ const response=await worker.fetch(
+   new Request("https://preview.invalid/health"),e,ACCESS);
+ assert.equal(response.status,200);
+ const payload=await response.json();
+ assert.equal(payload.schema,"RACE_AI_PRIVATE_ODDS_PREVIEW_HEALTH_V1");
+ assert.equal(payload.stored_races,0);
+ assert.equal(payload.status,"EMPTY_WAITING_FOR_APPROVED_ODDS");
+ assert.equal(payload.minute_by_minute_real_odds_verified,false);
+ assert.equal(payload.owner_access_required,true);
+ const unauth=await worker.fetch(
+   new Request("https://preview.invalid/health"),e);
+ assert.equal(unauth.status,403);
 });
 test("private source approval ref and secret must both match",async()=>{
  const e=env();
