@@ -74,9 +74,10 @@ def _https(url):
         raise SourceDeliveryError("source URL must be a fixed HTTPS endpoint")
     try:
         ipaddress.ip_address(p.hostname)
-        raise SourceDeliveryError("literal IP endpoints prohibited")
     except ValueError:
         pass
+    else:
+        raise SourceDeliveryError("literal IP endpoints prohibited")
     if (p.hostname.lower() in {"localhost", "localhost.localdomain"}
         or p.hostname.lower().endswith((".local", ".internal"))):
         raise SourceDeliveryError("internal endpoint prohibited")
