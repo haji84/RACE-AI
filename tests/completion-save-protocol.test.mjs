@@ -35,7 +35,7 @@ function fixture(overrides={}){
    if(p==='git/commits/'+H)return {parents:[{sha:P}],tree:{sha:T}};
    if(p==='git/commits/'+S)return {parents:[{sha:H}],message:'docs: save bounded technical verification [save-v1]'};
    if(p.startsWith('contents/'))return {type:'file',path:m.PATH,encoding:'base64',size:Buffer.byteLength(content),content:Buffer.from(content).toString('base64'),sha:B};
-   if(p.startsWith('compare/'))return {files:[{filename:m.PATH,status:'modified'}]};
+   if(p.startsWith('compare/'))return {status:'ahead',behind_by:0,files:[{filename:m.PATH,status:'modified'}]};
    if(p.startsWith('actions/runs/')){
     const regression=p.includes('39948549566'),id=regression?39948549566:39948549502,head='cf66a272a963ed418e94bdf409cea39ce21a5aba';
     if(p.includes('/jobs')){const chosen=Object.entries(names).filter(([n])=>n.startsWith('unit')===regression);return {total_count:2,jobs:chosen.map(([name,ss])=>({name,head_sha:head,status:'completed',conclusion:'success',steps:ss.map(name=>({name,status:'completed',conclusion:'success'}))}))};}
@@ -72,4 +72,22 @@ test('PR metadata lag cannot turn an already verified save into a duplicate writ
  const f=fixture();await m.saveOnce(f.c,f.api);
  const get=f.api.get;f.api.get=async p=>{const r=await get(p);if(p==='pulls/65')r.head.sha=H;return r;};
  assert.equal((await m.saveOnce(f.c,f.api)).status,'NOOP');assert.equal(f.writes.length,4);
+});
+
+test('known saved receipt reconciliation cannot write when content is absent',async()=>{
+ const f=fixture();await assert.rejects(m.saveOnce(f.c,f.api,S),/READONLY_RECONCILIATION/);assert.equal(f.writes.length,0);
+});
+test('saved receipt remains a no-op after unrelated branch advance',async()=>{
+ const f=fixture();await m.saveOnce(f.c,f.api);
+ const get=f.api.get,U='f'.repeat(40);
+ f.api.get=async p=>p.startsWith('git/ref/')?{object:{sha:U}}:get(p);
+ const r=await m.saveOnce(f.c,f.api,S);assert.equal(r.status,'NOOP');assert.equal(r.head,U);assert.equal(r.savedHead,S);assert.equal(f.writes.length,4);
+});
+test('changed saved content and non-descendant branch fail closed without writes',async()=>{
+ for(const mode of ['content','ancestry']){
+  const f=fixture();await m.saveOnce(f.c,f.api);const get=f.api.get;
+  f.api.get=async p=>{const r=await get(p);if(mode==='content'&&p==='contents/'+m.PATH+'?ref='+S)return {...r,sha:'f'.repeat(40)};
+   if(mode==='ancestry'&&p==='compare/'+S+'...'+S)return {...r,status:'diverged',behind_by:1};return r;};
+  await assert.rejects(m.saveOnce(f.c,f.api,S),/SAVED_CONTENT_CHANGED|SAVED_ANCESTRY_INVALID/);assert.equal(f.writes.length,4);
+ }
 });

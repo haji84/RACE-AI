@@ -61,6 +61,25 @@ jobs:
           node-version: '22'
       - name: Test fixed technical save protocol without writes
         run: node --test tests/completion-save-protocol.test.mjs
+      - name: Reconcile actual saved technical note read-only without duplicate write
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 65
+        env:
+          EXPECTED_SAVE_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {saveOnce,REPO,BRANCH} from './scripts/completion-save-protocol.mjs';
+          let writes=0;
+          const api={
+            get:async p=>{const r=await fetch('https://api.github.com/repos/'+REPO+'/'+p,{headers:{Accept:'application/vnd.github+json'},redirect:'error',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('READ_API_'+r.status);return r.json();},
+            post:async()=>{writes++;throw Error('READ_ONLY');},
+            patch:async()=>{writes++;throw Error('READ_ONLY');}
+          };
+          const e=process.env,c={repository:REPO,branch:BRANCH,actor:e.GITHUB_ACTOR,event:e.GITHUB_EVENT_NAME,action:'synchronize',pr:'65',attempt:e.GITHUB_RUN_ATTEMPT,run:e.GITHUB_RUN_ID,runNumber:e.GITHUB_RUN_NUMBER,expectedRunNumber:e.GITHUB_RUN_NUMBER,head:'13f26510f9657242d2106a9f9612fe23987d14be',prepared:'c1d2855eb4b5fe447d05de635433f5c2029eff2a'};
+          const saved='3acc545a98b2fadfa3a47f61500c0ab536549e82';
+          const first=await saveOnce(c,api,saved),again=await saveOnce(c,api,saved);
+          if(writes!==0||first.status!=='NOOP'||again.status!=='NOOP'||first.head!==e.EXPECTED_SAVE_HEAD||again.head!==first.head)throw Error('NOOP_RECONCILIATION_FAILED');
+          console.log(JSON.stringify({status:'PASS',saved_commit:saved,current_head:first.head,repeat:'NOOP',writes,canonical_writeback:false}));
+          NODE
       - name: Record exact checkout
         run: git rev-parse HEAD
       - name: Verify isolated controller repair grammar and independent baseline regressions
@@ -666,13 +685,13 @@ jobs:
             }
            }
           }
-          async function saveOnce(c,api){
+          async function saveOnce(c,api,knownSavedHead=null){
            validateContext(c);
            const refPath='git/ref/heads/'+BRANCH;
            const ref=await api.get(refPath),live=ref.object?.sha;
            check(sha(live),'REF_INVALID');
            const pr=await api.get('pulls/65');
-           check(pr.state==='open'&&pr.head?.repo?.full_name===REPO&&pr.base?.repo?.full_name===REPO&&pr.head.ref===BRANCH&&pr.head.sha===live,'PR_CHANGED');
+           check(pr.state==='open'&&pr.head?.repo?.full_name===REPO&&pr.base?.repo?.full_name===REPO&&pr.head.ref===BRANCH,'PR_CHANGED');
            const original=await api.get('git/commits/'+c.head);
            check(original.parents?.length===1&&original.parents[0].sha===c.prepared,'PREPARED_PARENT_MISMATCH');
            const file=await api.get('contents/'+PATH+'?ref='+live);
@@ -680,13 +699,19 @@ jobs:
            const old=Buffer.from(file.content,'base64').toString('utf8');
            const next=appendResult(old);
            if(next===old){
-            const saved=await api.get('git/commits/'+live);
+            const savedHead=knownSavedHead??live;check(sha(savedHead),'SAVED_HEAD_INVALID');
+            const saved=await api.get('git/commits/'+savedHead);
             check(saved.parents?.length===1&&saved.parents[0].sha===c.head&&saved.message==='docs: save bounded technical verification [save-v1]','NOOP_PROVENANCE_INVALID');
-            const diff=await api.get('compare/'+c.head+'...'+live);
+            const diff=await api.get('compare/'+c.head+'...'+savedHead);
             check(diff.files?.length===1&&diff.files[0].filename===PATH&&diff.files[0].status==='modified','NOOP_DIFF_INVALID');
-            return {status:'NOOP',head:live,path:PATH};
+            const savedFile=await api.get('contents/'+PATH+'?ref='+savedHead);
+            check(savedFile.sha===file.sha&&savedFile.encoding==='base64'&&Buffer.from(savedFile.content,'base64').toString('utf8')===old,'SAVED_CONTENT_CHANGED');
+            const ancestry=await api.get('compare/'+savedHead+'...'+live);
+            check(['ahead','identical'].includes(ancestry.status)&&ancestry.behind_by===0,'SAVED_ANCESTRY_INVALID');
+            return {status:'NOOP',head:live,savedHead,path:PATH};
            }
-           check(live===c.head,'BRANCH_CHANGED');
+           check(knownSavedHead===null,'READONLY_RECONCILIATION_CANNOT_WRITE');
+           check(live===c.head&&pr.head.sha===live,'BRANCH_CHANGED');
            // Only already-public, pinned historical receipts; no model output or arbitrary payload.
            await verifyEvidence(api);
            const blob=await api.post('git/blobs',{content:next,encoding:'utf-8'});
