@@ -56,6 +56,15 @@ test("time ordering, cutoff day and source status cannot be forged as independen
  t.event_date_jst="2030-01-16";
  assert.throws(()=>O.parse(t),/開催日と締切/);
 });
+test("provider URL must be a valid HTTPS URL before it can appear as a source link",()=>{
+ const broken=fixture("boat",6);
+ broken.source_url="https://[]";
+ assert.throws(()=>O.parse(broken),/出典URL/);
+ broken.source_url="javascript:alert(1)";
+ assert.throws(()=>O.parse(broken),/出典URL/);
+ broken.source_url="https://user:password@example.org/a";
+ assert.throws(()=>O.parse(broken),/出典URL/);
+});
 test("sort odds and filter first boat; unknown odds always sort last",()=>{
  const f=O.parse(fixture("boat",6));
  const first=O.select(f,{first:"2",order:"low"});
