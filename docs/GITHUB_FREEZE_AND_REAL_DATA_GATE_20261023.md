@@ -32,7 +32,7 @@
 
 | 競技 | 実在する一次情報の入口 | 自動取得/保管/学習権限 | 接続状態 |
 |---|---|---|---|
-| ボート | 旧番組表/競走成績等のPC配布は公式告知により2025-03-05終了：https://www.boatrace.jp/owpc/pc/site/news/2025/03/41685/ 。期別データとは区別し、現行代替経路は未特定 | 使用形態ごとに未確認 | 未接続 |
+| ボート | [公式ダウンロードページ](https://boatrace.jp/owpc/pc/extra/data/download.html)の[B番組表](https://www1.mbrace.or.jp/od2/B/dindex.html)と[K競走成績](https://www1.mbrace.or.jp/od2/K/dindex.html)のリンクは2026-10-23に存在を再確認。[2025-03-05終了告知](https://www.boatrace.jp/owsp/sp/site/news/2025/03/41685/)の対象は「閲覧」等であり、B/Kダウンロード終了を断定できない。個別LZHの実通信・中身は未検証 | 自動取得/保管/AI解析/学習/派生公開は用途別に未確認 | 接続停止（権利未確認） |
 | 競輪 | KEIRIN.JP公式サイト、仕様/許諾はPR #72権利表参照 | 未確認 | 未接続 |
 | オート | AutoRace.JP公式レース結果案内 https://autorace.jp/support/faq1006/2024/05/26/035329/ | 未確認 | 未接続 |
 | 競馬・中央 | JRA https://www.jra.go.jp/use/index.html | Web閲覧と自動利用の同一許諾は確認できず | 未接続 |
