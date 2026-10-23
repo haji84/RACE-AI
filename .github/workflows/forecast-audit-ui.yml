@@ -7,6 +7,9 @@ on:
       - 'web/forecast-audit*'
       - 'web/full-odds*'
       - 'tests/full_odds.test.cjs'
+      - 'workers/odds_feed_worker.mjs'
+      - 'workers/odds_schema.sql'
+      - 'tests/odds_feed_worker.test.mjs'
       - 'race_ai/purchase_window_policy.py'
       - 'tests/test_purchase_window_policy.py'
       - 'docs/PURCHASE_BUFFER_AND_FULL_ODDS_V1_20261023.md'
@@ -81,8 +84,9 @@ jobs:
           node --check web/forecast-audit.js
           node --check web/full-odds-model.js
           node --check web/full-odds.js
+          node --check workers/odds_feed_worker.mjs
       - name: Node contract and denominator tests
-        run: node --test tests/forecast_audit.test.cjs tests/full_odds.test.cjs
+        run: node --test tests/forecast_audit.test.cjs tests/full_odds.test.cjs tests/odds_feed_worker.test.mjs
       - name: Python synthetic journal to viewer projection tests
         run: python -m unittest discover -s tests -v
       - name: Read frozen real-race research record by immutable commit
