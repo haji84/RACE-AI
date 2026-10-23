@@ -103,6 +103,7 @@ class BoatBOfflineArchiveIntakeTests(unittest.TestCase):
     def test_no_fabricated_late_pre_cutoff_prediction(self):
         result=run(self.path,now="2030-01-15T10:30:00+09:00")
         self.assertEqual(result["program_stage"]["status"],"MISSED_DEADLINE")
+        self.assertEqual(result["status"],"MISSED_DEADLINE_NOT_FROZEN")
         self.assertFalse(result["eligible_hit_at_8"])
 
     def test_truncated_and_excessive_raw_file_blocked(self):
