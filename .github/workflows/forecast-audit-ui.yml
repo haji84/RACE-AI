@@ -11,6 +11,8 @@ on:
       - 'race_ai/verified_event_projection.py'
       - 'race_ai/permissioned_source_delivery.py'
       - 'race_ai/boat_b_program_bridge.py'
+      - 'race_ai/boat_b_handoff_cli.py'
+      - 'tests/test_boat_b_handoff_cli.py'
       - 'tests/test_boat_b_program_bridge.py'
       - 'tests/test_permissioned_source_delivery.py'
       - 'tests/test_context_source_delivery.py'
