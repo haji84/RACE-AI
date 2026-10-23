@@ -2,9 +2,9 @@ name: P0 one-shot real official B parser evidence
 on:
   push:
     branches:
-      - 'p0-b-parse-smoke-20261024'
+      - 'p0-b-parse-diagnostic-20261024'
     paths:
-      - 'docs/evidence/p0-b-parse-smoke-trigger-20261024.txt'
+      - 'docs/evidence/p0-b-parse-diagnostic-trigger-20261024.txt'
 permissions:
   contents: read
 jobs:
