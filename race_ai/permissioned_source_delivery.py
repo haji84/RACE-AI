@@ -322,7 +322,7 @@ def deliver(raw, policy, *, at, persist=True):
         or record["schema"] != FEED_SCHEMA):
         raise SourceDeliveryError("unsupported normalized source feed")
     snapshot = record["snapshot"]
-    _reject_market(snapshot)
+    _reject_market(record)
     if not isinstance(snapshot, dict) or not isinstance(snapshot.get("race"), dict):
         raise SourceDeliveryError("race input missing")
     now = _utc(at)
