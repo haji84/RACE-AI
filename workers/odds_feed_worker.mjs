@@ -12,7 +12,7 @@ function reply(value,status=200){
   return new Response(typeof value==="string"?value:JSON.stringify(value),{
     status,headers:{"Content-Type":"application/json; charset=utf-8",
       "Cache-Control":"no-store, max-age=0","X-Content-Type-Options":"nosniff",
-      "Access-Control-Allow-Origin":"null"}
+      "X-Frame-Options":"DENY","Referrer-Policy":"no-referrer"}
   });
 }
 function deny(reason,status=503){return reply({status:"DISABLED",reason},status);}
@@ -70,6 +70,18 @@ async function sha(text){
   return [...new Uint8Array(await crypto.subtle.digest("SHA-256",bytes))]
     .map(x=>x.toString(16).padStart(2,"0")).join("");
 }
+async function accessAuthorized(ctx,env){
+  // Never accept self-asserted headers. Cloudflare must have verified
+  // Access and populated ctx.access before this Worker is called.
+  if(env.ODDS_REQUIRE_ACCESS!=="true"||!ctx?.access||
+     typeof ctx.access.getIdentity!=="function"||
+     typeof env.ODDS_ALLOWED_EMAIL!=="string"||!env.ODDS_ALLOWED_EMAIL)
+    return false;
+  const identity=await ctx.access.getIdentity();
+  return typeof identity?.email==="string"&&
+    identity.email.toLowerCase()===env.ODDS_ALLOWED_EMAIL.toLowerCase();
+}
+
 async function fetchHandler(request,env){
   const u=new URL(request.url);
   if(request.method==="GET"){
@@ -131,8 +143,11 @@ async function fetchHandler(request,env){
 
 export {payloadGuard,fetchHandler};
 export default {
-  async fetch(request,env){
-    try{return await fetchHandler(request,env);}
-    catch{return deny("ODDS_PREVIEW_STORAGE_UNAVAILABLE");}
+  async fetch(request,env,ctx){
+    try{
+      if(!(await accessAuthorized(ctx,env)))
+        return deny("OWNER_ONLY_ACCESS_REQUIRED",403);
+      return await fetchHandler(request,env);
+    }catch{return deny("ACCESS_OR_ODDS_PREVIEW_UNAVAILABLE",503);}
   }
 };
