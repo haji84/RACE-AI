@@ -10,7 +10,7 @@ be inferred from the HTTP receipt or fetch time.
 """
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from html.parser import HTMLParser
 import re
@@ -59,6 +59,8 @@ class _OddsTable(HTMLParser):
         self.cell=None
 
     def handle_starttag(self,tag,attrs):
+        if self.cell is not None and tag in ("script","iframe","svg","style"):
+            raise SourceDeliveryError("unsafe nested odds markup")
         cls=dict(attrs).get("class","").split()
         if tag=="div":
             self.div_depth+=1
@@ -139,12 +141,11 @@ def normalize_html(raw, *, source_url, race_id, venue_name,
         upstream=moment(source_published_at) if source_published_at is not None else None
     except (ValueError,TypeError) as exc:
         raise SourceDeliveryError("timestamp invalid") from exc
-    if cutoff.date()!=received.astimezone(cutoff.tzinfo).date() and received>cutoff:
-        # Historical ingestion is allowed only on the same event day for this
-        # narrowly scoped real-time adapter. Offline history uses another path.
-        raise SourceDeliveryError("historical odds require separate data contract")
-    if cutoff.astimezone(__import__("datetime").timezone(__import__("datetime").timedelta(hours=9))).date().isoformat()!=day:
+    jst=timezone(timedelta(hours=9))
+    if cutoff.astimezone(jst).date().isoformat()!=day:
         raise SourceDeliveryError("cutoff/JST event day mismatch")
+    if received.astimezone(jst).date().isoformat()!=day:
+        raise SourceDeliveryError("historical odds require separate data contract")
     if upstream is not None and upstream>received:
         raise SourceDeliveryError("upstream odds timestamp after local receipt")
     if type(raw) is not bytes or not 100<=len(raw)<=MAX_HTML:
