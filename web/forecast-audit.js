@@ -60,6 +60,10 @@
     append(left,el("span","venue",M.displaySport[r.sport]+" ・ "+(M.raceDay(r)||"開催日未確認")),
       el("h3","",r.venue+" "+r.race_no+"R"),statusBadge(r));
     append(right,el("span","","投票締切（記録値）"),el("b","",timestamp(r.cutoff_at)));
+    const officialCutoffMs=Number.isFinite(Date.parse(r.cutoff_at||""))?Date.parse(r.cutoff_at):null;
+    right.append(el("small","review-goal",officialCutoffMs===null?
+      "購入検討の公開目標：締切未確認":
+      "正式予想公開目標（T-10分）："+timestamp(new Date(officialCutoffMs-600000).toISOString())));
     append(header,left,right);card.append(header);
     const oddsLink=el("a","full-odds-link","全3連単オッズを見る（AI予想8点以外も） →");
     oddsLink.href="./full-odds.html?race_id="+encodeURIComponent(r.race_id);
