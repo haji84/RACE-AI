@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - scripts/completion-controller.mjs
+      - scripts/completion-dispatch-protocol.mjs
+      - tests/completion-dispatch-protocol.test.mjs
       - scripts/race-compass-adapter.mjs
       - tests/race-compass-adapter.test.mjs
       - docs/state/race-compass-state.json
@@ -37,6 +39,8 @@ jobs:
         run: git rev-parse HEAD
       - name: Test bounded offline mock continuation and restart
         run: node --test tests/completion-mock-trial.test.mjs
+      - name: Test bounded one-hop dispatch protocol without network or writes
+        run: node --test tests/completion-dispatch-protocol.test.mjs
       - name: Test deterministic controller and recovery
         run: node --test tests/completion-controller.test.mjs tests/completion-controller.e2e.test.mjs tests/ai09-review-handoff.test.mjs
       - name: Read-only GitHub plan
