@@ -1,0 +1,4 @@
+ONE_REQUEST_ONLY
+TARGET https://www.boatrace.jp/owpc/pc/race/racelist?hd=20261025&jcd=11&rno=1
+SCOPE technical source connectivity and parser schema verification only
+NO source model training, raw HTML archive, public data copies, persistence of results or recurring collection
