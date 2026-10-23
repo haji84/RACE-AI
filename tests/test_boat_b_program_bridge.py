@@ -201,6 +201,20 @@ class BProgramBridgeTests(unittest.TestCase):
         with self.assertRaisesRegex(SourceDeliveryError,"does not match JST program day"):
             stage_official_b_handoff(handoff,approved_policy(),now=AT,race_id=RACE)
 
+    def test_staged_source_must_still_be_permitted_when_linked(self):
+        stage=stage_official_b_handoff(b_handoff(),approved_policy(),now=AT,race_id=RACE)
+        # A later model run must not inherit a grant which is now absent.
+        revoked=PermissionPolicy(policy_doc(),KEY,at=AT)
+        with self.assertRaisesRegex(SourceDeliveryError,"SOURCE_PERMISSION_NOT_ADMITTED:B_SOURCE"):
+            link_b_stage_to_features(stage,raw_feed(),revoked,at=AT)
+
+    def test_cannot_self_claim_verified_receipt_by_rehashing_stage(self):
+        stage=stage_official_b_handoff(b_handoff(),approved_policy(),now=AT,race_id=RACE)
+        stage["external_freeze_receipt"]={"pretend":True}
+        stage["stage_sha256"]=digest({k:v for k,v in stage.items() if k!="stage_sha256"})
+        with self.assertRaisesRegex(SourceDeliveryError,"cannot claim official forecast"):
+            link_b_stage_to_features(stage,raw_feed(),approved_policy(),at=AT)
+
     def test_tampered_staging_hash_is_rejected(self):
         p=approved_policy()
         s=stage_official_b_handoff(b_handoff(),p,now=AT,race_id=RACE)
