@@ -67,7 +67,7 @@ class NarBundleTests(unittest.TestCase):
         with self.assertRaisesRegex(IntakeError,"filename"):
             audit_daily_zip(zipped(),filename="unknown.zip",captured_at=CAP,
                             rights_ref="UNVERIFIED")
-        with self.assertRaisesRegex(IntakeError,"date mismatch"):
+        with self.assertRaisesRegex(IntakeError,"mismatched day"):
             audit_daily_zip(zipped(),filename="20300116_1894687200_race.zip",
                             captured_at=CAP,rights_ref="UNVERIFIED")
 
