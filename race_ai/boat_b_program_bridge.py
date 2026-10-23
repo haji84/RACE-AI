@@ -8,8 +8,7 @@ No forecast is official or time-attested by this module.
 """
 from __future__ import annotations
 
-from datetime import date
-import hashlib
+from datetime import date, timezone, timedelta
 import re
 
 from .comprehensive_four_sport_models import (
@@ -55,9 +54,7 @@ def _source_window(stamp, day, now):
         _fail("official B observation timestamp invalid")
     if observed > moment(now):
         _fail("source observation is in the future")
-    if observed.date() != date.fromisoformat(day) and observed.astimezone(
-        __import__("datetime").timezone(__import__("datetime").timedelta(hours=9))
-    ).date() != date.fromisoformat(day):
+    if observed.astimezone(timezone(timedelta(hours=9))).date() != date.fromisoformat(day):
         _fail("source observation does not match JST program day")
     return observed
 
@@ -178,9 +175,7 @@ def stage_official_b_handoff(handoff, policy, *, now, race_id):
             ts = moment(cutoff)
         except (TypeError, ValueError):
             _fail("invalid official B cutoff")
-        if ts.astimezone(
-            __import__("datetime").timezone(__import__("datetime").timedelta(hours=9))
-        ).date() != day:
+        if ts.astimezone(timezone(timedelta(hours=9))).date() != day:
             _fail("official B cutoff not on JST race date")
     else:
         ts = None
