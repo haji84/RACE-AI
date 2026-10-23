@@ -8,10 +8,12 @@ import os
 from pathlib import Path
 import sys
 
+HERE=Path(__file__).resolve().parent.parent
+# python scripts/file.py sets sys.path[0] to scripts, not the repo root.
+sys.path.insert(0,str(HERE))
 import race_ai
 import tests
 
-HERE=Path(__file__).resolve().parent.parent
 PR71=HERE/"pr71-contract-reference"
 if not (PR71/"race_ai/permissioned_source_delivery.py").is_file():
     raise RuntimeError("PR71 independent pinned checkout missing")
