@@ -64,3 +64,17 @@ test("live owner blocks a second executor", { skip: !existsSync(script) }, () =>
   assert.equal(existsSync(join(dir,"effects.jsonl")),false);
  } finally { rmSync(dir,{recursive:true,force:true}); }
 });
+
+for (const mode of ["missing","tampered"]) {
+ test("completed "+mode+" receipt cannot be trusted on restart", () => {
+  const dir=mkdtempSync(join(tmpdir(),"race-mock-completed-"));
+  try {
+   assert.equal(spawnSync(process.execPath,[script,"--state-dir",dir]).status,0);
+   const receipt=join(dir,"result-fixture-a.json");
+   if(mode==="missing") unlinkSync(receipt); else writeFileSync(receipt,'{"synthetic":true}');
+   const resumed=spawnSync(process.execPath,[script,"--state-dir",dir],{encoding:"utf8"});
+   assert.equal(resumed.status,1); assert.match(resumed.stderr,/COMPLETED_EVIDENCE_MISMATCH/);
+   assert.equal(readFileSync(join(dir,"effects.jsonl"),"utf8").trim().split("\n").length,2);
+  } finally { rmSync(dir,{recursive:true,force:true}); }
+ });
+}

@@ -65,6 +65,11 @@ function main() {
     const stateFile=join(dir,"state.json");
     let state=existsSync(stateFile)?read(stateFile):{kind:"OFFLINE_MOCK_CONTINUATION_V1",runner_sha256:identity,real_ai_development:false,completed:[],active:null};
     validate(state);
+    // Completed checkpoints are claims, not evidence: verify their receipts again.
+    for (const completed of state.completed) {
+      const receipt=join(dir,"result-"+completed+".json");
+      if(!existsSync(receipt) || !verify(read(receipt),completed)) throw Error("COMPLETED_EVIDENCE_MISMATCH");
+    }
     for(let cycle=0;cycle<ids.length+1;cycle++) {
       let task=state.active?.task_id;
       let newlyStarted=false;
