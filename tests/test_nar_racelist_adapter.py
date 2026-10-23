@@ -16,6 +16,13 @@ class NarAdapterTests(unittest.TestCase):
         self.assertEqual(len(x["races"]),2)
         self.assertTrue(all(r["sales_cutoff_at"] is None for r in x["races"]))
 
+    def test_official_positioned_headerless_csv(self):
+        # The public layout defines field positions without promising headers.
+        no_header="架空競馬場,20300101,1,1140,重賞\n架空競馬場,20300101,2,1210,普通\n"
+        out=parse_racelist(no_header.encode("cp932"),CAP,"UNVERIFIED")
+        self.assertEqual([row["race_no"] for row in out["races"]],[1,2])
+        self.assertTrue(all(row["sales_cutoff_at"] is None for row in out["races"]))
+
     def test_reject_wrong_header_market_input(self):
         with self.assertRaisesRegex(IntakeError,"header"):
             parse_racelist("競馬場,競走年月日,人気,オッズ\n架空,20300101,1,2\n".encode("utf-8"),CAP,"UNVERIFIED")
