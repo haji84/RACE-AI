@@ -57,6 +57,8 @@ jobs:
           node-version: '22'
       - name: Record exact checkout
         run: git rev-parse HEAD
+      - name: Reproduce standalone completion predicate empty-acceptance defect
+        run: node tests/completion-developer-cases.mjs "$GITHUB_WORKSPACE/scripts/completion-controller.mjs" acceptance
       - name: Test bounded offline mock continuation and restart
         run: node --test tests/completion-mock-trial.test.mjs
       - name: Test bounded one-hop dispatch protocol without network or writes
