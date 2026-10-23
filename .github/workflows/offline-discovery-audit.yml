@@ -11,6 +11,7 @@ on:
       - 'race_ai/nar_daily_bundle_audit.py'
       - 'race_ai/boat_official_web_adapter.py'
       - 'race_ai/pr71_delivery_binding.py'
+      - 'scripts/verify_pr71_crossbranch_synthetic.py'
       - 'tests/test_pr71_delivery_binding.py'
       - 'docs/P0_PR71_DELIVERY_BINDING_20261023.md'
       - 'tests/test_boat_official_web_adapter.py'
@@ -43,3 +44,12 @@ jobs:
           python --version
       - name: Offline regression suite
         run: python -m unittest discover -s tests -v
+
+      - name: Checkout pinned PR71 research models for fictional contract joining
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: 5d4be4326b4fba321507a08f09e1eb7b661d027e
+          path: pr71-contract-reference
+          persist-credentials: false
+      - name: Cross-branch PR71 model-delivery to PR72 source binding (synthetic)
+        run: python scripts/verify_pr71_crossbranch_synthetic.py
