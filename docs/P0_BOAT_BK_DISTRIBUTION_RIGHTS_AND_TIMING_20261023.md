@@ -118,6 +118,33 @@ for all possible legal circumstances.
 Do not silently turn these into `ALLOW` or schedule repeated downloads.
 The signed internal reviewer record authenticates the record, not the rightsholder's grant.
 
+## Earlier real B collection: reusable metadata, not retained raw archive
+
+A review of the preexisting PR #64 (head `27f3df12ddca3971833d4dbf03f6fbcc88df6b07`)
+found a **historical real-source technical audit** from 2026-10-15:
+
+- [Official day collection evidence](https://github.com/haji84/RACE-AI/blob/27f3df12ddca3971833d4dbf03f6fbcc88df6b07/docs/evidence/2026-10-15-official-day-collection.json):
+  13 active venues, 156 races, 936 entrants, official B archive
+  `https://www1.mbrace.or.jp/od2/B/202610/b261015.lzh`.
+- Source-archive SHA256:
+  `d1943dbff930d78a76c1342858b20ff5fefcbaf51b3dae52b24ecc5e2747d5ef`.
+  Extracted program SHA256:
+  `17044ffb0bb9a74852a59e31123e630efabc58186d8dad63d6bd38ef241f6998`.
+- The actual source file was **not retained** in that artifact:
+  `source_originals_retained=false`.
+- The old approval indicator is `user-confirmation-2026-10-15-official-facts`
+  and is NOT proof of a current broad grant for autonomous bulk retrieval,
+  durable original retention, algorithmic training or public redistribution.
+- [Crosscheck evidence](https://github.com/haji84/RACE-AI/blob/27f3df12ddca3971833d4dbf03f6fbcc88df6b07/docs/evidence/2026-10-15-B-racelist-crosscheck.json)
+  independently compared six racers/motors in one source-race.
+  It is not proof of a future 2026-10-23 pre-cutoff forecast.
+
+Reuse these **hash-only technical records** in the PR64→PR71 acceptance
+checklist, without reposting protected source bytes or pretending to recreate
+the 2026-10-15 archive. This confirms that the historical B archive format
+was successfully read, while prospective source availability and rights
+remain unconfirmed.
+
 ## Real E2E gates still pending
 
 (1) approve one real source/purpose, (2) acquire one prospective official
