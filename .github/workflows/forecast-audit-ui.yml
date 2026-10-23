@@ -13,6 +13,8 @@ on:
       - 'race_ai/boat_multi_feature_models.py'
       - 'race_ai/boat_feature_adapter.py'
       - 'race_ai/comprehensive_four_sport_models.py'
+      - 'race_ai/four_sport_matchup_models.py'
+      - 'tests/test_four_sport_matchup_models.py'
       - 'race_ai/four_sport_learning.py'
       - 'tests/test_four_sport_learning.py'
       - 'tests/test_comprehensive_four_sport_models.py'
