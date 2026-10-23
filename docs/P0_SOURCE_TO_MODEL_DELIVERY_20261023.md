@@ -84,6 +84,32 @@ python -m race_ai.permissioned_source_delivery \
 
 Never commit `reviewed-policy.json`, signing secrets, external raw source bytes or new private delivery outputs to this public repo. The test file `tests/test_permissioned_source_delivery.py` contains **fictional 2030 source/permission fixtures**, not a real approval.
 
+## Advanced context captured without making false accuracy claims
+
+An optional `supplemental` array can accompany `snapshot`. It preserves **reviewed, pre-cutoff** feature observations for the new design ideas without changing the existing model coefficients. Each observation has exactly `feature_key`, `subject_number` (null for race-wide context), `value`, `published_at`, `captured_at`, `source_ref`, `source_rights_ref`, `sample_n`, and `transform_id`.
+
+The allowlist `SUPPLEMENTAL_KEYS` supports: common time-band/illumination/meeting-day/opponent-strength/track-bias/weather-trend features; boat historical 1M→2M and 2M→finish transitions; autorace same-handicap internal starting position and traffic; keirin daypart performance, line changes and race-format differences; horse pace, corner transitions, gate, race category and course bias.
+
+All entries must have grants for analysis + private storage + private derived use, be observed no later than the forecast snapshot's as-of time, and refer to a known participating number or the whole race. An actual **in-progress position from the current race** is not an acceptable forecast input. This information is **preserved only**, not currently used by `run_suite`; `supplemental_features_used_by_models=false` makes this explicit. Future model versions may add individual features only after legitimate historical data and prospective verification.
+
+Example illustration only:
+
+```json
+{
+  "feature_key": "historical_1m_to_2m_transition",
+  "subject_number": 1,
+  "value": 0.61,
+  "published_at": "2030-01-15T08:00:00+09:00",
+  "captured_at": "2030-01-15T08:01:00+09:00",
+  "source_ref": "https://example.org/fictional/races/2030-01-15.json",
+  "source_rights_ref": "fictional-permission-1",
+  "sample_n": 18,
+  "transform_id": "synthetic-historical-precutoff-only"
+}
+```
+
+Actual historical video-annotated transition rates must have their own legally admissible data provenance and historical label timing. None were obtained here.
+
 ## Acceptance state and blockers
 
 | Deliverable | Status |
