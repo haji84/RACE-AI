@@ -55,4 +55,58 @@ for sport in ("boat","keirin","autorace","horse"):
     assert binding["external_freeze_verified"] is False
     assert binding["eligible_for_scoring"] is False
     print("PINNED_PR71_PR72_SYNTHETIC_JOIN_OK",sport,len(binding["models"]))
+
+# Use the actual pinned PR71 time verifier, rather than a fake "true"
+# callback, with offline fictional GitHub HTTPS responses only.
+import base64
+import json
+from race_ai.github_freeze_receipt import verify_github_freeze, ReceiptVerificationError, BASE, ANCHOR_SCHEMA
+from race_ai.race_bound_freeze_receipt import verify_bound_receipt, BoundReceiptError
+
+expected="boat:2030-01-15:fictional-venue:1"
+sample_receipt={"run_id":31337,"path":"audit/freezes/2030-01-15/fictional-1.json"}
+sample_hash="a"*64
+sample_cutoff="2030-01-15T10:00:00+09:00"
+sample_persisted="2030-01-15T09:40:00+09:00"
+server_run={"id":31337,"event":"push","head_sha":"b"*40,
+            "repository":{"full_name":"haji84/RACE-AI"},
+            "created_at":"2030-01-15T00:45:00Z"}
+anchor={"schema":ANCHOR_SCHEMA,"race_id":expected,
+        "prediction_sha256":sample_hash,"cutoff_at":sample_cutoff}
+
+def fictional_github(url):
+    if url==f"{BASE}/actions/runs/31337":
+        return server_run
+    if url==f"{BASE}/contents/{sample_receipt['path']}?ref="+("b"*40):
+        return {"type":"file","encoding":"base64",
+                "content":base64.b64encode(json.dumps(anchor).encode("utf-8")).decode("ascii")}
+    raise AssertionError("unexpected fictional GitHub URL")
+
+assert verify_bound_receipt(sample_receipt,sample_hash,sample_persisted,sample_cutoff,
+                            expected_race_id=expected,
+                            trusted_legacy_verifier=verify_github_freeze,
+                            github_fetch=fictional_github)
+anchor["race_id"]="boat:2030-01-15:fictional-venue:2"
+try:
+    verify_bound_receipt(sample_receipt,sample_hash,sample_persisted,sample_cutoff,
+                         expected_race_id=expected,
+                         trusted_legacy_verifier=verify_github_freeze,
+                         github_fetch=fictional_github)
+except BoundReceiptError as exc:
+    assert "RACE_ID_MISMATCH" in str(exc)
+else:
+    raise AssertionError("wrong race_id must not validate")
+anchor["race_id"]=expected
+server_run["created_at"]="2030-01-15T01:01:00Z" # after simulated cutoff
+try:
+    verify_bound_receipt(sample_receipt,sample_hash,sample_persisted,sample_cutoff,
+                         expected_race_id=expected,
+                         trusted_legacy_verifier=verify_github_freeze,
+                         github_fetch=fictional_github)
+except ReceiptVerificationError:
+    pass
+else:
+    raise AssertionError("late real PR71 GitHub issuance must be rejected")
+print("PINNED_PR71_RACE_BOUND_FREEZE_GUARD_OK (SYNTHETIC_API_RESPONSES_ONLY)")
+
 print("NO_REAL_FORECAST_OR_OFFICIAL_FREEZE_CLAIM")
