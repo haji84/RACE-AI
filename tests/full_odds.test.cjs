@@ -77,6 +77,14 @@ test("sort odds and filter first boat; unknown odds always sort last",()=>{
  assert.equal(searched.length,4);
  assert.equal(O.select(f,{query:"<script>"}).length,0);
 });
+test("provider-published timestamp can be stale even when site ingested it now",()=>{
+ const t=fixture("boat",6);
+ t.ingested_at="2030-01-15T09:04:59+09:00";
+ const f=O.parse(t);
+ const state=O.freshness(f,Date.parse("2030-01-15T09:05:00+09:00"));
+ assert.equal(state.stale,true);
+ assert.match(state.label,/提供元の更新遅延/);
+});
 test("read-only quote updates cannot alter frozen AI picks",()=>{
  const fixed=Object.freeze([[1,2,3],[1,3,2]]);
  const before=JSON.stringify(fixed);
