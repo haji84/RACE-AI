@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync, unlinkSync } from "node:fs";
+import { tmpdir, hostname } from "node:os";
 import { join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 const script = resolve("scripts/completion-mock-trial.mjs");
@@ -33,4 +33,34 @@ test("hard exit resumes from saved result and automatically reaches the next tas
     assert.deepEqual(state.completed,["fixture-a","fixture-b"]);
     assert.equal(readFileSync(join(dir,"effects.jsonl"),"utf8").trim().split("\n").length,2);
   } finally { rmSync(dir,{recursive:true,force:true}); }
+});
+
+test("uncertain executor outcome is not redispatched", { skip: !existsSync(script) }, () => {
+ const dir=mkdtempSync(join(tmpdir(),"race-mock-unknown-"));
+ try {
+  assert.equal(spawnSync(process.execPath,[script,"--state-dir",dir,"--crash-after-result","fixture-a"]).status,43);
+  unlinkSync(join(dir,"result-fixture-a.json"));
+  const resumed=spawnSync(process.execPath,[script,"--state-dir",dir],{encoding:"utf8"});
+  assert.equal(resumed.status,1); assert.match(resumed.stderr,/UNKNOWN_OUTCOME_DO_NOT_REDISPATCH/);
+  assert.equal(readFileSync(join(dir,"effects.jsonl"),"utf8").trim().split("\n").length,1);
+ } finally { rmSync(dir,{recursive:true,force:true}); }
+});
+test("tampered result is not completion evidence", { skip: !existsSync(script) }, () => {
+ const dir=mkdtempSync(join(tmpdir(),"race-mock-tamper-"));
+ try {
+  assert.equal(spawnSync(process.execPath,[script,"--state-dir",dir,"--crash-after-result","fixture-a"]).status,43);
+  writeFileSync(join(dir,"result-fixture-a.json"),'{"synthetic":true}');
+  const resumed=spawnSync(process.execPath,[script,"--state-dir",dir],{encoding:"utf8"});
+  assert.equal(resumed.status,1); assert.match(resumed.stderr,/RESULT_EVIDENCE_MISMATCH/);
+  assert.deepEqual(JSON.parse(readFileSync(join(dir,"state.json"),"utf8")).completed,[]);
+ } finally { rmSync(dir,{recursive:true,force:true}); }
+});
+test("live owner blocks a second executor", { skip: !existsSync(script) }, () => {
+ const dir=mkdtempSync(join(tmpdir(),"race-mock-owner-"));
+ try {
+  writeFileSync(join(dir,"owner.lock"),JSON.stringify({pid:process.pid,host:hostname()}));
+  const other=spawnSync(process.execPath,[script,"--state-dir",dir],{encoding:"utf8"});
+  assert.equal(other.status,1); assert.match(other.stderr,/ALREADY_RUNNING/);
+  assert.equal(existsSync(join(dir,"effects.jsonl")),false);
+ } finally { rmSync(dir,{recursive:true,force:true}); }
 });
