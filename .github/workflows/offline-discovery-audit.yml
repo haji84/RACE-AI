@@ -34,6 +34,8 @@ on:
       - 'tests/test_race_bound_freeze_receipt.py'
       - 'docs/P0_RACE_BOUND_FREEZE_RECEIPT_20261023.md'
       - 'scripts/verify_pr71_crossbranch_synthetic.py'
+      - 'scripts/verify_actual_boat_readiness.py'
+      - 'docs/P0_REAL_BOAT_INPUT_READINESS_20261024.md'
       - 'docs/P0_REAL_GITHUB_SERVER_WITNESS_SYNTHETIC_20261023.md'
       - 'tests/test_pr71_delivery_binding.py'
       - 'docs/P0_PR71_DELIVERY_BINDING_20261023.md'
@@ -76,3 +78,5 @@ jobs:
           persist-credentials: false
       - name: Cross-branch PR71 model-delivery to PR72 source binding (synthetic)
         run: python scripts/verify_pr71_crossbranch_synthetic.py
+      - name: Audit real observed Oct-24 biwako racer facts against pinned model requirements
+        run: python scripts/verify_actual_boat_readiness.py
