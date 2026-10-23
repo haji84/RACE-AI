@@ -12,6 +12,8 @@ on:
       - 'race_ai/permissioned_source_delivery.py'
       - 'race_ai/boat_b_program_bridge.py'
       - 'race_ai/nar_official_csv_adapter.py'
+      - 'race_ai/nar_model_handoff.py'
+      - 'tests/test_nar_model_handoff.py'
       - 'tests/test_nar_official_payback_adapter.py'
       - 'race_ai/nar_official_payback_adapter.py'
       - 'tests/test_nar_csv_cli.py'
