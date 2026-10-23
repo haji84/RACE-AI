@@ -1,0 +1,21 @@
+{
+  "schema": "RACE_AI_OFFICIAL_BOAT_FACT_OBSERVATION_V1",
+  "event_date_jst": "2026-10-24",
+  "venue_jcd": "11",
+  "race_no": 1,
+  "scheduled_sales_cutoff_at": "2026-10-24T10:24:00+09:00",
+  "observed_at_claimed": "2026-10-24T08:07:31+09:00",
+  "official_racelist_url": "https://www.boatrace.jp/owpc/pc/race/racelist?hd=20261024&jcd=11&rno=1",
+  "official_venue_url": "https://boatrace-biwako.jp/sp/",
+  "entrant_registration_numbers": [
+    5301,
+    5204,
+    3761,
+    3596,
+    3994,
+    4728
+  ],
+  "event_kind": "予選",
+  "race_distance_m": 1800,
+  "source_access_basis": "PUBLIC_WEB_VIEW_ONLY_NOT_REVIEWED_FOR_AUTOMATED_FETCH"
+}
