@@ -29,8 +29,13 @@ export async function dispatchOnce(c,api){
  const body={ref:BRANCH,inputs:{chain_id:chain,source_run_id:c.runId,source_head:c.head,artifact_id:c.artifactId,artifact_digest:c.artifactDigest,remaining_hops:'0'}};
  // Exactly one attempt. Timeout/unknown response is NOT safe to repeat.
  let response;try{response=await api.post('actions/workflows/completion-controller-pilot.yml/dispatches',body);}catch{throw Error('DISPATCH_UNCONFIRMED_STOP_NO_RETRY');}
- check(response.status===204,'DISPATCH_REJECTED_OR_UNCONFIRMED_'+response.status);
- return {status:'DISPATCH_ACCEPTED',chainId:chain,sourceRun:c.runId,sourceHead:c.head,maxChildren:1,remainingHops:0,childSuccess:false};
+ let childRunId=null;
+ if(response.status===200){
+  const b=response.body;
+  check(Number.isSafeInteger(b?.workflow_run_id)&&b.workflow_run_id>0&&b.run_url==='https://api.github.com/repos/'+REPOSITORY+'/actions/runs/'+b.workflow_run_id&&b.html_url==='https://github.com/'+REPOSITORY+'/actions/runs/'+b.workflow_run_id,'DISPATCH_RECEIPT_UNCONFIRMED_STOP_NO_RETRY');
+  childRunId=b.workflow_run_id;
+ }else check(response.status===204,'DISPATCH_REJECTED_OR_UNCONFIRMED_'+response.status);
+ return {status:'DISPATCH_ACCEPTED',childRunId,chainId:chain,sourceRun:c.runId,sourceHead:c.head,maxChildren:1,remainingHops:0,childSuccess:false};
 }
 export function validateReceiver(c,source,artifact){
  check(c.repository===REPOSITORY&&c.event==='workflow_dispatch'&&c.branch===BRANCH&&c.attempt==='1'&&id(c.runId)&&id(c.sourceRunId)&&c.runId!==c.sourceRunId&&sha(c.sourceHead)&&c.head===c.sourceHead&&c.chainId==='race-one-hop-'+c.sourceRunId&&c.remainingHops==='0'&&id(c.artifactId)&&hash(c.artifactDigest),'RECEIVER_SCOPE_INVALID');
