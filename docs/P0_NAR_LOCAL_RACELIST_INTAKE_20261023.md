@@ -1,6 +1,6 @@
 # NAR local CSV/ZIP race-list intake (P0)
 
-Official document: https://www.keiba.go.jp/pdf/manual/data_pdf_manual.pdf . The documented racelist fields start with `競馬場`, `競走年月日`, `レース番号`, `発走時刻`. Only these identity/scheduled-start fields are read. Input file names follow `YYYYMMDD_racelist.csv` or `YYYYMM_racelist.csv` and may be inside one local ZIP. The importer requires a matching header and does **not** infer sales cutoff from scheduled start; no forecast can be proven with this file alone. It refuses unexpected ZIP layout, mixed dates, bad times, duplication, and unbounded data.
+Official document: https://www.keiba.go.jp/pdf/manual/data_pdf_manual.pdf . The documented racelist fields start with `競馬場`, `競走年月日`, `レース番号`, `発走時刻`. Only these identity/scheduled-start fields are read. Input file names follow `YYYYMMDD_racelist.csv` or `YYYYMM_racelist.csv` and may be inside one local ZIP. The importer accepts an optional exact header or a valid positional data row, since the public layout documents column order but does not promise CSV headers and does **not** infer sales cutoff from scheduled start; no forecast can be proven with this file alone. It refuses unexpected ZIP layout, mixed dates, bad times, duplication, and unbounded data.
 
 Run with an already-acquired local file where handling is permitted:
 ```
