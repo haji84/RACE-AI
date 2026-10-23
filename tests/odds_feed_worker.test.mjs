@@ -56,8 +56,13 @@ function read(race="20300115-01-01"){
 
 test("preview Worker defaults closed, even for read-only fetch",async()=>{
  const result=await worker.fetch(read(),{},ACCESS);
- assert.equal(result.status,503);
- assert.equal((await result.json()).reason,"PREVIEW_ODDS_READ_NOT_APPROVED");
+ assert.equal(result.status,403);
+ assert.equal((await result.json()).reason,"OWNER_ONLY_ACCESS_REQUIRED");
+ const ownerButNotEnabled=await worker.fetch(read(),{
+   ODDS_REQUIRE_ACCESS:"true",ODDS_ALLOWED_EMAIL:"synthetic-owner@example.invalid"
+ },ACCESS);
+ assert.equal(ownerButNotEnabled.status,503);
+ assert.equal((await ownerButNotEnabled.json()).reason,"PREVIEW_ODDS_READ_NOT_APPROVED");
 });
 
 test("unprotected Worker, wrong identity and caller-supplied headers cannot read or write",async()=>{
