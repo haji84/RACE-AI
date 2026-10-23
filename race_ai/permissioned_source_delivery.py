@@ -27,7 +27,7 @@ POLICY_SCHEMA = "RACE_AI_REVIEWED_SOURCE_POLICY_V1"
 FEED_SCHEMA = "RACE_AI_NORMALIZED_FEATURE_FEED_V1"
 DELIVERY_SCHEMA = "RACE_AI_PRIVATE_DELIVERY_V1"
 MAX_SOURCE_BYTES = 4 * 1024 * 1024
-ALLOWED_PURPOSES = frozenset({"collection", "analysis", "private_storage", "private_derived"})
+ALLOWED_PURPOSES = frozenset({"collection", "analysis", "private_storage", "private_derived", "odds_display"})
 SUPPLEMENTAL_KEYS = {
     "common": {
         "scheduled_start_at", "daypart", "sunset_offset_minutes",
