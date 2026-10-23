@@ -57,6 +57,18 @@ def unpack_nar_race_zip(data: bytes, *, event_date_jst: str):
     return extracted[stem + "_racelist.csv"], extracted[stem + "_horselist.csv"]
 
 
+def _read_bounded_local(path):
+    """Bound files BEFORE materializing them in process memory."""
+    try:
+        with Path(path).open("rb") as stream:
+            raw = stream.read(MAX_BYTES + 1)
+    except OSError as exc:
+        raise NarFormatError("local input unavailable") from exc
+    if len(raw) > MAX_BYTES:
+        raise NarFormatError("local input exceeds allowed byte budget")
+    return raw
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Offline, rights-gated NAR CSV preflight only")
     inputs = parser.add_mutually_exclusive_group(required=True)
@@ -79,15 +91,15 @@ def main(argv=None):
         if (args.archive and args.horselist) or (args.racelist and not args.horselist):
             raise NarFormatError("CSV input pair or ZIP input required, not mixed")
         now = datetime.now(timezone.utc).isoformat()
-        doc = read_json_bytes(Path(args.policy).read_bytes())
+        doc = read_json_bytes(_read_bounded_local(args.policy))
         reviewer_key = os.environ.get(args.key_env, "").encode("utf-8")
         policy = PermissionPolicy(doc, reviewer_key, at=now)
         if args.archive:
             racelist, horselist = unpack_nar_race_zip(
-                Path(args.archive).read_bytes(),event_date_jst=args.event_date)
+                _read_bounded_local(args.archive),event_date_jst=args.event_date)
         else:
-            racelist = Path(args.racelist).read_bytes()
-            horselist = Path(args.horselist).read_bytes()
+            racelist = _read_bounded_local(args.racelist)
+            horselist = _read_bounded_local(args.horselist)
         stage = stage_nar_csv(
             racelist, horselist, policy, at=now,
             observed_at=args.observed_at, source_ref=args.source_ref,
