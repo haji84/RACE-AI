@@ -89,8 +89,14 @@ class NarAdapterTests(unittest.TestCase):
             r=[["競馬場","競走年月日","レース番号"]+[""]*(RACELIST_COLUMNS-3),race_row()]
             stage(rr=r,header=False)
         with self.assertRaisesRegex(NarFormatError,"header differs"):
-            stage(rr=[race_row()],hr=[horse_row(i) for i in range(1,4)],header=True,
-                  encoding="ascii")
+            bad_header=["会場","競走年月日","レース番号"]+[""]*(RACELIST_COLUMNS-3)
+            stage_nar_csv(csv_bytes([bad_header,race_row()]),
+                          csv_bytes([["競馬場","競走年月日","レース番号"]+
+                                     [""]*(HORSELIST_COLUMNS-3)]+[horse_row(i) for i in range(1,4)]),
+                          gate(),at=AT,observed_at=OBS,source_ref=SRC,
+                          rights_ref="fictional-permission-1",
+                          event_date_jst=DAY,venue=VENUE,race_no=7,
+                          encoding="utf-8-sig",has_header=True)
 
     def test_never_ingest_current_race_results_popularity_or_sectionals(self):
         h=[horse_row(i) for i in range(1,4)]
