@@ -8,7 +8,7 @@ from race_ai.nar_model_handoff import (
     link_nar_stage_to_features, IDENTITY_SCHEMA, CUTOFF_SCHEMA
 )
 from race_ai.nar_official_csv_adapter import NarFormatError
-from tests.test_nar_official_csv_adapter import stage
+from tests.test_nar_official_csv_adapter import stage, race_row, horse_row
 from tests.test_permissioned_source_delivery import SRC, AT, gate, snapshot, FEED_SCHEMA
 
 CUTOFF = "2030-01-15T09:45:00+09:00"
@@ -23,9 +23,9 @@ def source():
 
 
 def build():
-    st = stage()
+    st = stage(rr=[race_row(n=8)], hr=[horse_row(i) for i in range(1,9)])
     model = snapshot("horse")
-    model["participants"] = model["participants"][:3]
+    model["participants"] = model["participants"][:8]
     model["race"].update({"race_id":st["race_id"],"venue":st["venue"],
                           "surface":"dirt","race_kind":"fictional sample",
                           "sales_cutoff_at":CUTOFF,"distance_m":1800})
@@ -64,9 +64,8 @@ class NarModelHandoffTests(unittest.TestCase):
         self.assertEqual(result["cutoff_witness_sha256"],digest(cutoff))
         self.assertEqual(result["research_suite"]["model_count"],4)
         for model in result["research_suite"]["models"].values():
-            self.assertEqual(model["candidate_count"],3*2*1)
-            # model suite currently enforces eight combinations, so this
-            # small 3-horse fictional field must not silently become official.
+            self.assertEqual(model["candidate_count"],8*7*6)
+            self.assertEqual(len(model["ordered_top8"]),8)
             self.assertFalse(model["official_prediction"])
         self.assertIsNone(result["external_freeze_receipt"])
         self.assertFalse(result["official_prediction"])
