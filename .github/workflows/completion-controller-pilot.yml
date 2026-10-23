@@ -3,6 +3,8 @@ run-name: ${{ github.event_name == 'workflow_dispatch' && format('race-one-hop-{
 on:
   pull_request:
     paths:
+      - scripts/completion-developer-trial.py
+      - tests/completion-developer-cases.mjs
       - scripts/completion-controller.mjs
       - scripts/completion-dispatch-protocol.mjs
       - tests/completion-dispatch-protocol.test.mjs
@@ -57,8 +59,8 @@ jobs:
           node-version: '22'
       - name: Record exact checkout
         run: git rev-parse HEAD
-      - name: Reproduce standalone completion predicate empty-acceptance defect
-        run: node tests/completion-developer-cases.mjs "$GITHUB_WORKSPACE/scripts/completion-controller.mjs" acceptance
+      - name: Verify isolated controller repair grammar and independent baseline regressions
+        run: python3 scripts/completion-developer-trial.py --self-test
       - name: Test bounded offline mock continuation and restart
         run: node --test tests/completion-mock-trial.test.mjs
       - name: Test bounded one-hop dispatch protocol without network or writes
@@ -540,3 +542,60 @@ jobs:
           if(JSON.stringify(state.completed)!==JSON.stringify(['fixture-a','fixture-b'])||state.active!==null||effects.length!==2||effects[0].task_id!=='fixture-a'||effects[1].task_id!=='fixture-b')throw Error('RESUME_IDEMPOTENCE_FAILED');
           console.log(JSON.stringify({status:'PASS',source_run:process.env.SOURCE_RUN,destination_run:process.env.GITHUB_RUN_ID,chain_id:process.env.CHAIN_ID,automatic_one_hop:true,max_children:1,may_dispatch:false,completed:state.completed,real_ai_development:false,canonical_writeback:false}));
           NODE
+
+  # Disabled preparation; a separately reviewed one-shot activation is required.
+  bounded-controller-repair:
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Validate constrained code verifier before model download
+        run: |
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          test "$RUNNER_OS" = Linux
+          test "$RUNNER_ARCH" = X64
+          git rev-parse HEAD
+          python3 scripts/completion-developer-trial.py --self-test
+      - name: Reuse existing SHA256-pinned local Ollama runtime
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --max-time 300 \
+            https://github.com/ollama/ollama/releases/download/v0.34.0/ollama-linux-amd64.tar.zst \
+            -o "$RUNNER_TEMP/ollama.tar.zst"
+          echo "cf95886728959aa09910bb34de5cca1cc5a8f68003b5597197d3f2c2d57c0804  $RUNNER_TEMP/ollama.tar.zst" | sha256sum -c -
+          mkdir "$RUNNER_TEMP/ollama-runtime"
+          tar --zstd -xf "$RUNNER_TEMP/ollama.tar.zst" -C "$RUNNER_TEMP/ollama-runtime"
+          echo "$RUNNER_TEMP/ollama-runtime/bin" >> "$GITHUB_PATH"
+      - name: Start bounded loopback model
+        env:
+          OLLAMA_HOST: 127.0.0.1:11434
+          OLLAMA_NUM_PARALLEL: '1'
+          OLLAMA_MAX_LOADED_MODELS: '1'
+          OLLAMA_KEEP_ALIVE: 5m
+        run: |
+          set -euo pipefail
+          env -i PATH="$PATH" HOME="$HOME" OLLAMA_HOST=127.0.0.1:11434 OLLAMA_NUM_PARALLEL=1 OLLAMA_MAX_LOADED_MODELS=1 OLLAMA_KEEP_ALIVE=5m ollama serve >"$RUNNER_TEMP/ollama.log" 2>&1 &
+          echo "RACE_OLLAMA_PID=$!" >> "$GITHUB_ENV"
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then ready=1; break; fi
+            sleep 2
+          done
+          test "$ready" = 1
+          timeout 480s ollama pull qwen2.5-coder:3b
+      - name: Propose and independently test two repairs to actual controller code in an isolated copy
+        timeout-minutes: 12
+        run: |
+          env -i PATH="$PATH" HOME="$RUNNER_TEMP" \
+            python3 scripts/completion-developer-trial.py --output "$RUNNER_TEMP/controller-repair"
+      - name: Stop loopback model
+        if: always()
+        run: |
+          if [[ "${RACE_OLLAMA_PID:-}" =~ ^[0-9]+$ ]]; then kill "$RACE_OLLAMA_PID" 2>/dev/null || true; fi
+
