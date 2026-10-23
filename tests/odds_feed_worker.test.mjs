@@ -1,0 +1,111 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import worker,{payloadGuard} from "../workers/odds_feed_worker.mjs";
+
+function fixture(){
+ const people=[1,2,3,4,5,6],odds=[];
+ for(const a of people)for(const b of people)for(const c of people)
+   if(a!==b&&a!==c&&b!==c)
+     odds.push({ticket:[a,b,c],status:"QUOTED",decimal_odds:1.2+odds.length/10});
+ return {schema:"RACE_AI_FULL_TRIFECTA_ODDS_V1",
+   source_status:"PROVIDER_REPORTED_UNVERIFIED",
+   race_id:"20300115-01-01",sport:"boat",venue:"fictional",
+   race_no:1,event_date_jst:"2030-01-15",
+   cutoff_at:"2030-01-15T10:00:00+09:00",
+   source_published_at:null,ingested_at:"2030-01-15T09:00:00+09:00",
+   source_url:"https://www.boatrace.jp/owpc/pc/race/odds3t?hd=20300115&jcd=01&rno=1",
+   sales_status:"UNKNOWN",participants:people,odds};
+}
+
+class FakeD1{
+ constructor(){this.rows=new Map();}
+ prepare(sql){
+   return {bind:(...params)=>({
+     first:async()=>{
+       if(!sql.startsWith("SELECT"))throw Error("bad SQL mock SELECT");
+       const row=this.rows.get(params[0]);
+       return row&&{payload_json:row.payload_json,sha256:row.sha256};
+     },
+     run:async()=>{
+       if(!sql.startsWith("INSERT"))throw Error("bad SQL mock INSERT");
+       this.rows.set(params[0],{payload_json:params[1],received_at:params[2],
+                               sha256:params[3]});
+       return {meta:{changes:1}};
+     }
+   })};
+ }
+}
+function env(db=new FakeD1()){
+ return {ODDS_DB:db,ODDS_PREVIEW_READ_ENABLED:"true",
+         ODDS_PREVIEW_INGEST_ENABLED:"true",
+         ODDS_PREVIEW_TOKEN:"synthetic-fake-preview-token-32-characters",
+         ODDS_APPROVED_RIGHTS_REF:"fictional-review-only"};
+}
+function post(feed,ref="fictional-review-only",token="synthetic-fake-preview-token-32-characters"){
+ return new Request("https://preview.invalid/internal/odds",{
+   method:"POST",headers:{"Content-Type":"application/json",
+     "Authorization":"Bearer "+token},
+   body:JSON.stringify({feed,source_rights_review_ref:ref})
+ });
+}
+function read(race="20300115-01-01"){
+ return new Request("https://preview.invalid/data/odds/"+race+".json");
+}
+
+test("preview Worker defaults closed, even for read-only fetch",async()=>{
+ const result=await worker.fetch(read(),{});
+ assert.equal(result.status,503);
+ assert.equal((await result.json()).reason,"PREVIEW_ODDS_READ_NOT_APPROVED");
+});
+
+test("private source approval ref and secret must both match",async()=>{
+ const e=env();
+ const noRights=await worker.fetch(post(fixture(),"wrong"),e);
+ assert.equal(noRights.status,403);
+ const noToken=await worker.fetch(post(fixture(),"fictional-review-only","bad"),e);
+ assert.equal(noToken.status,401);
+ assert.equal(e.ODDS_DB.rows.size,0);
+});
+
+test("all 120 quotes stored and read back, no AI forecasts mutated",async()=>{
+ const database=new FakeD1(),e=env(database),feed=fixture();
+ const stored=await worker.fetch(post(feed),e);
+ assert.equal(stored.status,201);
+ const report=await stored.json();
+ assert.equal(report.race_id,feed.race_id);
+ assert.match(report.sha256,/^[a-f0-9]{64}$/);
+ const res=await worker.fetch(read(),e);
+ assert.equal(res.status,200);
+ const view=await res.json();
+ assert.equal(view.odds.length,120);
+ assert.equal(view.source_published_at,null);
+ assert.notEqual(view.ingested_at,feed.ingested_at);
+ assert.equal(view.odds[4].ticket.join("-"),feed.odds[4].ticket.join("-"));
+ assert.equal(Object.prototype.hasOwnProperty.call(view,"prediction"),false);
+ assert.equal(Object.prototype.hasOwnProperty.call(view,"result"),false);
+});
+
+test("invalid quote corpus blocked before D1 write",async()=>{
+ const e=env();
+ const x=fixture();x.odds.pop();
+ const res=await worker.fetch(post(x),e);
+ assert.equal(res.status,422);
+ assert.equal(e.ODDS_DB.rows.size,0);
+ const y=fixture();y.odds[1].ticket=y.odds[0].ticket;
+ assert.equal((await worker.fetch(post(y),e)).status,422);
+});
+
+test("price and provider time validity cannot be bypassed",async()=>{
+ const x=fixture();x.odds[3].decimal_odds=0;
+ assert.throws(()=>payloadGuard(x),/ODDS_QUOTE_INVALID/);
+ const y=fixture();y.source_published_at="2030-01-15T09:20:00+09:00";
+ y.ingested_at="2030-01-15T09:15:00+09:00";
+ assert.throws(()=>payloadGuard(y),/PROVIDER_FEED_SCHEMA/);
+});
+
+test("worker will not accept guessed forecast or result data in odds envelope",()=>{
+ const x=fixture();x.prediction={ordered_top8:[[1,2,3]]};
+ assert.throws(()=>payloadGuard(x),/PROVIDER_FEED_SCHEMA/);
+ const y=fixture();y.result={winning_combinations:[[1,2,3]]};
+ assert.throws(()=>payloadGuard(y),/PROVIDER_FEED_SCHEMA/);
+});
