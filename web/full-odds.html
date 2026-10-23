@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none';script-src 'self';style-src 'self';connect-src 'self';img-src 'none';font-src 'none';object-src 'none';base-uri 'none';form-action 'none'">
+<title>RACE-AI｜全3連単オッズ</title>
+<link rel="stylesheet" href="./full-odds.css">
+<script defer src="./full-odds-model.js"></script>
+<script defer src="./full-odds.js"></script>
+</head>
+<body>
+<header class="masthead"><div class="mast-inner"><a href="./forecast-audit.html">← 予想・結果に戻る</a><strong>RACE-AI｜全3連単オッズ</strong><small>閲覧専用・自動投票なし</small></div></header>
+<main>
+<section class="intro">
+<div><p class="eyebrow">ALL TRIFECTA ODDS</p><h1>AI予想8点以外も、すべて見る</h1><p>全有効3連単を表示。AI予想とオッズは別管理で、オッズによって保存済み予想を変更しません。</p></div>
+</section>
+<div id="feed-status" class="notice" role="status">配信済みオッズを確認しています。利用条件未確認の公式サイトへは接続しません。</div>
+<section class="panel">
+<div class="summary"><div><small>レース</small><h2 id="race-name">レース未選択</h2></div><div class="right"><small>投票締切（提供側申告）</small><strong id="race-cutoff">未取得</strong></div></div>
+<div class="source-details">
+<p id="source-time">オッズ提供時刻：未取得</p>
+<p id="receive-time">RACE-AI受信時刻：未取得</p>
+<p id="source-kind">データ出典：未取得</p>
+<p id="quote-count">有効組合せ・オッズ取得数：未取得</p>
+</div>
+<div id="source-link"></div>
+</section>
+<section class="panel controls" aria-label="全オッズの条件">
+<div class="filters">
+<label>1着の番号<select id="first-number"><option value="all">全番号</option></select></label>
+<label>表示順<select id="order"><option value="ticket">組番順</option><option value="low">オッズ低い順</option><option value="high">オッズ高い順</option></select></label>
+<label>組番検索<input id="ticket-search" type="search" placeholder="例：1-2-3 または 1-2"></label>
+</div>
+<div class="actions">
+<button id="refresh" type="button">配信済みオッズを再確認</button>
+<label class="import" for="odds-file">手元のJSONを確認<input id="odds-file" type="file" accept=".json,application/json"></label>
+</div>
+<p class="sub">画面表示中は60秒ごとに同一サイトのJSONを再確認。公式サイトへの直接アクセスや、オッズ提供元の1分更新を保証するものではありません。</p>
+<p id="file-error" class="error" role="alert" hidden></p>
+</section>
+<section class="panel">
+<div class="table-header"><h2>全3連単オッズ</h2><span id="visible-count">未取得</span></div>
+<div class="table-container"><table>
+<thead><tr><th>組番</th><th>オッズ（倍）</th><th>100円当たり参考払戻</th><th>損益分岐の参考確率</th></tr></thead>
+<tbody id="odds-rows"><tr><td colspan="4">データ未取得</td></tr></tbody>
+</table></div>
+<button id="show-more" type="button" hidden>さらに表示</button>
+</section>
+<footer><p>表示しているオッズは提供元のスナップショットです。購入時のオッズや確定払戻と一致する保証はありません。取得に失敗した値を0倍や仮の数字で補いません。</p><p>予想モデルへはオッズを渡しません。実購入・自動投票・決済機能はありません。</p></footer>
+</main>
+</body>
+</html>
