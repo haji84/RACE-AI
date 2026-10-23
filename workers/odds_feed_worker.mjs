@@ -1,3 +1,4 @@
+import { PREVIEW_ASSETS } from "./odds_preview_assets.mjs";
 /** Cloudflare preview-only, same-origin odds delivery. No provider scraping.
  *
  * The ingestion endpoint accepts only a separately vetted, fully normalized
@@ -84,6 +85,18 @@ async function accessAuthorized(ctx,env){
 
 async function fetchHandler(request,env){
   const u=new URL(request.url);
+  if(request.method==="GET"&&Object.hasOwn(PREVIEW_ASSETS,u.pathname)){
+    if(u.pathname!=="/full-odds.html"&&u.search)
+      return deny("UNEXPECTED_ASSET_QUERY",404);
+    const mime=u.pathname.endsWith(".html")?"text/html; charset=utf-8":
+      u.pathname.endsWith(".css")?"text/css; charset=utf-8":
+      "application/javascript; charset=utf-8";
+    return new Response(PREVIEW_ASSETS[u.pathname],{
+      status:200,
+      headers:{"Content-Type":mime,"Cache-Control":"no-store, max-age=0",
+        "X-Content-Type-Options":"nosniff","X-Frame-Options":"DENY"}
+    });
+  }
   if(request.method==="GET"&&u.pathname==="/health"&&!u.search){
     if(env.ODDS_PREVIEW_READ_ENABLED!=="true"||!env.ODDS_DB)
       return deny("PREVIEW_ODDS_READ_NOT_APPROVED");
