@@ -270,17 +270,18 @@ def _utility(participant,*,sport,scenario,conditions,n):
     draw=1.0-(participant["draw"]-1)/max(1,n-1)
     # All venue conditions can influence scoring through interactions with
     # observed athlete adaptation and style. Weights remain untrained.
-    sport_stress={
-        "boat":env["wave_cm"]/250+.4*env["water_current_strength"]+
-               .3*env["crosswind_factor"]+.2*env["tide_activity"],
-        "keirin":.5*env["wind_exposure"]+.3*env["bank_steepness"]+
-                 .4*env["track_roughness"]+.25*env["line_complexity"],
-        "autorace":.4*(env["track_temp_c"]+10)/95+
-                   .5*env["wet_track_factor"]+.3*(1-env["grip_factor"])+
-                   .3*env["starting_grid_bias"],
-        "horse":.5*env["going_wetness"]+.25*env["course_cushion"]+
-                .25*env["rail_position"]+.45*env["pace_pressure"],
-    }[sport]
+    if sport=="boat":
+        sport_stress=(env["wave_cm"]/250+.4*env["water_current_strength"]
+                      +.3*env["crosswind_factor"]+.2*env["tide_activity"])
+    elif sport=="keirin":
+        sport_stress=(.5*env["wind_exposure"]+.3*env["bank_steepness"]
+                      +.4*env["track_roughness"]+.25*env["line_complexity"])
+    elif sport=="autorace":
+        sport_stress=(.4*(env["track_temp_c"]+10)/95+.5*env["wet_track_factor"]
+                      +.3*(1-env["grip_factor"])+.3*env["starting_grid_bias"])
+    else:
+        sport_stress=(.5*env["going_wetness"]+.25*env["course_cushion"]
+                      +.25*env["rail_position"]+.45*env["pace_pressure"])
     score+=.12*sport_stress*f["course_compatibility"]
     score+=.10*sport_stress*f["tactical_adaptability"]
     wet=max(env["surface_wetness"],
