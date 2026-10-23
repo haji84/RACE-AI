@@ -3,6 +3,10 @@ on:
   pull_request:
     paths:
       - scripts/completion-controller.mjs
+      - scripts/race-compass-adapter.mjs
+      - tests/race-compass-adapter.test.mjs
+      - docs/state/race-compass-state.json
+      - vendor/compass/**
       - scripts/completion-ai-trial.py
       - scripts/completion-mock-trial.mjs
       - tests/completion-mock-trial.test.mjs
@@ -245,3 +249,39 @@ jobs:
           if(JSON.stringify(state.completed)!==JSON.stringify(['fixture-a','fixture-b'])||state.active!==null||effects.length!==2||effects[0].task_id!=='fixture-a'||effects[1].task_id!=='fixture-b')throw Error('RESUME_OR_IDEMPOTENCE_FAILED');
           console.log(JSON.stringify({status:'PASS',source_run:process.env.SOURCE_RUN,destination_run:process.env.GITHUB_RUN_ID,completed:state.completed,effects:effects.length,real_ai_development:false,autonomous_run_trigger:false,controlled_checkpoint_transfer:true}));
           NODE
+
+  compass-adapter:
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.number == 65 &&
+      github.event.pull_request.head.repo.full_name == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify original Compass pins, isolation and evidence rejection
+        run: |
+          git rev-parse HEAD
+          node --test tests/race-compass-adapter.test.mjs
+      - name: Import canonical state, end process, reopen and export actual Compass SQLite
+        run: |
+          node scripts/race-compass-adapter.mjs import docs/state/race-compass-state.json "$RUNNER_TEMP/race-compass.sqlite"
+          node scripts/race-compass-adapter.mjs export "$RUNNER_TEMP/race-compass.sqlite" "$RUNNER_TEMP/roundtrip.json"
+          cmp docs/state/race-compass-state.json "$RUNNER_TEMP/roundtrip.json"
+      - name: Independently retrieve historical run evidence without trusting snapshot claims
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node scripts/race-compass-adapter.mjs assess docs/state/race-compass-state.json "$EXPECTED_HEAD" "$RUNNER_TEMP/compass-assessment.json"
+      - name: Confirm canonical file was not changed and no automatic writeback occurred
+        if: always()
+        run: git diff --exit-code -- docs/state/race-compass-state.json

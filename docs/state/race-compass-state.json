@@ -1,0 +1,101 @@
+{
+  "kind": "race-compass-canonical",
+  "version": 1,
+  "repository": "haji84/RACE-AI",
+  "goalId": "haji84/RACE-AI:pr65-development-context",
+  "revision": 1,
+  "previousDigest": null,
+  "observedHead": "68d59fe6c755a89d23efaefa2a2864a8dc5ba36a",
+  "updatedAt": "2026-10-23T09:16:15Z",
+  "state": {
+    "goalId": "haji84/RACE-AI:pr65-development-context",
+    "objective": "Preserve the bounded PR65 development checkpoint and evidence; the full product goal remains separately defined by issue 67.",
+    "definitionOfDone": [
+      {
+        "id": "mock-continuation",
+        "description": "Historical bounded mock continuation and fail-closed receipt tests",
+        "required": true
+      },
+      {
+        "id": "real-model-probe",
+        "description": "Historical constrained real-model two-function generation probe; not a general developer",
+        "required": true
+      },
+      {
+        "id": "cross-run-probe",
+        "description": "Historical controlled synthetic checkpoint transfer between distinct Actions runs",
+        "required": true
+      },
+      {
+        "id": "race-product",
+        "description": "Product acceptance is a blocking reminder, not an exhaustive replacement for issue 67 requirements.",
+        "required": true
+      }
+    ],
+    "currentState": "PR65 contains successful bounded probes; product development and durable autonomous writeback are not completed.",
+    "status": "BLOCKED",
+    "riskClass": "R1",
+    "constraints": [
+      "Technical development state only; no full transcripts, secrets, personal data or live race data.",
+      "Single canonical repository snapshot; Compass SQLite is a derived working copy.",
+      "No autonomous merge, deployment or writeback authority is created by this adapter."
+    ],
+    "decisions": [
+      {
+        "id": "reuse-compass",
+        "summary": "Reuse pinned existing CompassStore and completion-path rather than create another state framework.",
+        "rationale": "Preserve the existing WorkState contract and evidence-based advisory path.",
+        "at": "2026-10-23T09:16:15Z"
+      },
+      {
+        "id": "one-shot-probes",
+        "summary": "Retire live probe jobs after recorded success; keep normal deterministic CI.",
+        "rationale": "Avoid repeated model downloads and expired-artifact failures.",
+        "at": "2026-10-23T09:16:15Z"
+      }
+    ],
+    "artifacts": [
+      {
+        "id": "goal",
+        "uri": "https://github.com/haji84/RACE-AI/issues/67",
+        "kind": "goal"
+      },
+      {
+        "id": "pr65",
+        "uri": "https://github.com/haji84/RACE-AI/pull/65",
+        "kind": "pull_request"
+      },
+      {
+        "id": "probe-evidence",
+        "uri": "https://github.com/haji84/RACE-AI/actions/runs/39929456215",
+        "kind": "historical_actions_run"
+      }
+    ],
+    "verificationResults": [],
+    "childWorkItems": [],
+    "blockers": [
+      "Real RACE feature executor/backlog integration is not implemented by the tiny model probe.",
+      "Automatic canonical-state writeback and autonomous next-run launch are not connected.",
+      "Full product acceptance and main integration remain unverified."
+    ],
+    "nextAction": "Verify the RACE-specific Compass adapter roundtrip and trusted evidence handling; preserve blockers, then plan actual backlog integration.",
+    "updatedAt": "2026-10-23T09:16:15Z"
+  },
+  "evidenceReferences": [
+    {
+      "criterionId": "mock-continuation",
+      "runId": 39929792420,
+      "head": "68d59fe6c755a89d23efaefa2a2864a8dc5ba36a"
+    },
+    {
+      "criterionId": "real-model-probe",
+      "runId": 39929456215,
+      "head": "86f1be3c96e3a7e7dc529eb6c55748a827eb7779"
+    },
+    {
+      "criterionId": "cross-run-probe",
+      "runId": 39929456215,
+      "head": "86f1be3c96e3a7e7dc529eb6c55748a827eb7779"
+    }
+  ]
+}
