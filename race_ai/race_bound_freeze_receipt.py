@@ -67,6 +67,8 @@ def verify_bound_receipt(receipt, content_hash, persisted_at, cutoff_at,
             anchor=json.loads(raw.decode("utf-8"),object_pairs_hook=_unique,
                               parse_constant=lambda v: (_ for _ in ()).throw(
                                   BoundReceiptError("non-finite anchor number")))
+        except BoundReceiptError:
+            raise
         except (UnicodeDecodeError,binascii.Error,ValueError) as exc:
             raise BoundReceiptError("invalid pinned GitHub anchor") from exc
         if not isinstance(anchor,dict) or anchor.get("race_id")!=expected_race_id:
