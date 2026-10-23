@@ -61,6 +61,10 @@
       el("h3","",r.venue+" "+r.race_no+"R"),statusBadge(r));
     append(right,el("span","","投票締切（記録値）"),el("b","",timestamp(r.cutoff_at)));
     append(header,left,right);card.append(header);
+    const oddsLink=el("a","full-odds-link","全3連単オッズを見る（AI予想8点以外も） →");
+    oddsLink.href="./full-odds.html?race_id="+encodeURIComponent(r.race_id);
+    oddsLink.title="同じサイト内の全組合せオッズ画面。実データが未配信なら未取得と表示します。";
+    card.append(oddsLink);
     const split=el("div","race-main"),forecast=el("section","side forecast"),result=el("section","side result");
     forecast.append(el("h4","","AI予想 ・ 最大8点"));
     if(!r.prediction)forecast.append(el("p","empty-label","未予想（NO_FORECAST）"));
