@@ -194,7 +194,7 @@ class BProgramBridgeTests(unittest.TestCase):
     def test_incomplete_program_day_and_wrong_day_are_rejected(self):
         handoff=b_handoff()
         handoff["extract"]["races"]=13
-        with self.assertRaisesRegex(SourceDeliveryError,"race counts differ"):
+        with self.assertRaisesRegex(SourceDeliveryError,"race coverage invalid"):
             stage_official_b_handoff(handoff,approved_policy(),now=AT,race_id=RACE)
         handoff=b_handoff()
         handoff["extract"]["date_jst"]="2030-01-16"
