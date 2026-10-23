@@ -71,3 +71,5 @@
 /* Full-market odds are a separate information view; never an AI ranking input. */
 .full-odds-link{display:inline-flex;align-items:center;min-height:44px;max-width:100%;padding:9px 13px;margin:9px 0;border:1px solid #8ed0da;border-radius:8px;background:#edf9fc;color:#075f7c;font-size:13px;font-weight:800;text-decoration:none}
 .full-odds-link:focus-visible{outline:3px solid #008da8;outline-offset:3px}
+
+.cutoff .review-goal{display:block;max-width:180px;margin-top:5px;font-size:10px;line-height:1.4;white-space:normal;color:#55738b}
