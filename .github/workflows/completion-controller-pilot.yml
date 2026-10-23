@@ -545,13 +545,7 @@ jobs:
 
   # Disabled preparation; a separately reviewed one-shot activation is required.
   bounded-controller-repair:
-    if: >-
-      github.repository == 'haji84/RACE-AI' && github.actor == 'haji84' &&
-      github.event_name == 'pull_request' && github.event.action == 'synchronize' &&
-      github.event.pull_request.number == 65 && github.run_number == 34 && github.run_attempt == 1 &&
-      github.event.pull_request.head.repo.full_name == 'haji84/RACE-AI' &&
-      github.event.pull_request.head.ref == 'feat/completion-controller-pilot-20261016'
-    needs: [pilot, compass-adapter]
+    if: ${{ false }}
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
@@ -600,6 +594,14 @@ jobs:
         run: |
           env -i PATH="$PATH" HOME="$RUNNER_TEMP" \
             python3 scripts/completion-developer-trial.py --output "$RUNNER_TEMP/controller-repair"
+      - name: Report bounded trial receipt even when independent verification fails
+        if: always()
+        run: |
+          if test -f "$RUNNER_TEMP/controller-repair/receipt.json"; then
+            cat "$RUNNER_TEMP/controller-repair/receipt.json"
+          else
+            echo 'No model repair receipt was produced; no success is established.'
+          fi
       - name: Stop loopback model
         if: always()
         run: |
