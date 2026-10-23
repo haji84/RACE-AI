@@ -2,9 +2,9 @@ name: P0 one-shot official B connectivity test
 on:
   push:
     branches:
-      - 'p0-b-smoke-20261024'
+      - 'p0-b-smoke-past-20261024'
     paths:
-      - 'docs/evidence/p0-b-smoke-trigger-20261024.txt'
+      - 'docs/evidence/p0-b-smoke-past-trigger-20261024.txt'
 permissions:
   contents: read
 jobs:
@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 2
     env:
-      RACE_AI_B_ONE_SHOT: 20261025-B
+      RACE_AI_B_ONE_SHOT: 20261023-B
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
