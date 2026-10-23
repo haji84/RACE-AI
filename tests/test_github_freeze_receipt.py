@@ -57,6 +57,17 @@ class GitHubReceiptTest(unittest.TestCase):
         with self.assertRaises(ReceiptVerificationError):
             self.verify()
 
+    def test_same_repository_pr_run_accepted(self):
+        self.run["event"] = "pull_request"
+        self.run["head_repository"] = {"full_name": "haji84/RACE-AI"}
+        self.assertTrue(self.verify())
+
+    def test_fork_pr_run_denied(self):
+        self.run["event"] = "pull_request"
+        self.run["head_repository"] = {"full_name": "other/fork"}
+        with self.assertRaises(ReceiptVerificationError):
+            self.verify()
+
     def test_changed_cutoff(self):
         self.anchor["cutoff_at"] = "2026-10-23T12:10:00+09:00"
         with self.assertRaises(ReceiptVerificationError):
