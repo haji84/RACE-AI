@@ -99,7 +99,7 @@ class FourSportModels(unittest.TestCase):
 
     def test_missing_mandatory_prevents_inventing_data(self):
         raw=sample("auto") if False else sample("autorace")
-        del raw["participants"][0]["features"]["trial_performance"]
+        del raw["participants"][0]["features"]["machine_reliability"]
         with self.assertRaisesRegex(ModelInputError,"required features missing"):
             predict(raw)
 
@@ -202,6 +202,22 @@ class FourSportModels(unittest.TestCase):
                 self.assertNotEqual(one["candidates"][0]["score"],
                                     two["candidates"][0]["score"])
                 self.assertNotIn(key,one["missing_optional_by_participant"][1])
+
+    def test_early_and_late_feature_snapshots_do_not_edit_prior_prediction(self):
+        for sport,feature in (("boat","exhibition_performance"),
+                              ("autorace","trial_performance")):
+            with self.subTest(sport=sport):
+                early=sample(sport)
+                p0=predict(early)[MODEL_IDS[0]]
+                self.assertIn(feature,p0["missing_optional_by_participant"][1])
+                late=copy.deepcopy(early)
+                late["participants"][0]["features"][feature]=obs(.96)
+                p1=predict(late)[MODEL_IDS[0]]
+                self.assertNotEqual(p0["prediction_sha256"],p1["prediction_sha256"])
+                self.assertIn(feature,p0["missing_optional_by_participant"][1])
+                self.assertNotIn(feature,p1["missing_optional_by_participant"][1])
+                self.assertIsNone(p0["external_pre_cutoff_receipt"])
+                self.assertFalse(p0["official_prediction"])
 
     def test_repeatability_and_uncertainty_disclosure(self):
         s=sample("horse")
