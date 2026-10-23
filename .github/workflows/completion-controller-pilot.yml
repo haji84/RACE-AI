@@ -3,6 +3,8 @@ run-name: ${{ github.event_name == 'workflow_dispatch' && format('race-one-hop-{
 on:
   pull_request:
     paths:
+      - scripts/completion-save-protocol.mjs
+      - tests/completion-save-protocol.test.mjs
       - scripts/completion-developer-trial.py
       - tests/completion-developer-cases.mjs
       - scripts/completion-controller.mjs
@@ -57,6 +59,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Test fixed technical save protocol without writes
+        run: node --test tests/completion-save-protocol.test.mjs
       - name: Record exact checkout
         run: git rev-parse HEAD
       - name: Verify isolated controller repair grammar and independent baseline regressions
