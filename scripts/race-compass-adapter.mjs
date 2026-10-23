@@ -140,10 +140,13 @@ export async function assessProductPosition(position,{client=getPublic,now=new D
   try{
    const match=pr=>pr.number===p.number&&pr.head?.sha===p.head&&pr.head?.ref===p.branch&&pr.head?.repo?.full_name===REPO&&pr.base?.repo?.full_name===REPO&&pr.base?.ref===p.base&&pr.base?.sha===p.baseHead&&pr.state==='open'&&pr.draft===true&&pr.merged===false;
    if(!match(await client('pulls/'+p.number)))throw Error('PRODUCT_PR_CHANGED');
+   const verifyLatest=async()=>{
    const listing=await client('actions/runs?head_sha='+p.head+'&per_page=100');
    if(!Array.isArray(listing.workflow_runs)||listing.total_count!==listing.workflow_runs.length||listing.total_count>100)throw Error('PRODUCT_RUN_LIST_INCOMPLETE');
    const latest=listing.workflow_runs.filter(r=>r.path===p.workflow&&r.head_sha===p.head).sort((a,b)=>b.id-a.id)[0];
    if(!latest||latest.id!==p.runId||latest.status!=='completed'||latest.conclusion!=='success'||latest.run_attempt!==1)throw Error('PRODUCT_LATEST_RUN_CHANGED');
+   };
+   await verifyLatest();
    const run=await client('actions/runs/'+p.runId),jobs=await client('actions/runs/'+p.runId+'/jobs?per_page=100');
    if(run.id!==p.runId||run.head_sha!==p.head||run.head_branch!==p.branch||run.repository?.full_name!==REPO||run.path!==p.workflow||run.event!==p.event||run.run_attempt!==1||run.status!=='completed'||run.conclusion!=='success')throw Error('PRODUCT_RUN_INVALID');
    if(!validTime(run.updated_at)||Date.parse(run.updated_at)>Date.parse(now))throw Error('PRODUCT_RUN_TIME_INVALID');
@@ -157,6 +160,7 @@ export async function assessProductPosition(position,{client=getPublic,now=new D
     requiredJobs.push({jobId:job.id,name:job.name,steps:c.steps});
    }
    if(!match(await client('pulls/'+p.number)))throw Error('PRODUCT_PR_CHANGED');
+   await verifyLatest(); // reject a newer failed/pending run even when head is unchanged
    const facts={repository:REPO,pr:p.number,head:p.head,baseHead:p.baseHead,runId:p.runId,workflow:p.workflow,requiredJobs,recordedAt:run.updated_at};
    observations.push({issuer:ISSUER,kind:'synthetic-contract-metadata',facts,digest:digest(facts),observedAt:now,artifactContentVerified:false});
    if(sourcesCurrent)contractVerifiedPRs.push(p.number);
