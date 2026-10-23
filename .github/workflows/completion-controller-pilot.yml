@@ -170,3 +170,73 @@ jobs:
           path: ${{ runner.temp }}/portable-checkpoint/
           if-no-files-found: error
           retention-days: 1
+
+  checkpoint-consumer:
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.number == 65 &&
+      github.event.pull_request.head.repo.full_name == 'haji84/RACE-AI' &&
+      github.event.pull_request.head.ref == 'feat/completion-controller-pilot-20261016'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    env:
+      SOURCE_RUN: '39929030821'
+      SOURCE_HEAD: e46ac3fa5c682c8ba39c3d343ea4badd39f0fc4e
+      SOURCE_ARTIFACT: '12490811314'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Validate exact source run and immutable artifact metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          const base='https://api.github.com/repos/haji84/RACE-AI/';
+          async function get(p){const r=await fetch(base+p,{headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json'},redirect:'error',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('SOURCE_API_'+r.status);return r.json();}
+          const run=await get('actions/runs/'+process.env.SOURCE_RUN);
+          if(String(run.id)===process.env.GITHUB_RUN_ID || run.head_sha!==process.env.SOURCE_HEAD || run.head_branch!=='feat/completion-controller-pilot-20261016' || run.event!=='pull_request' || run.path!=='.github/workflows/completion-controller-pilot.yml' || run.status!=='completed' || run.conclusion!=='success' || run.run_attempt!==1 || run.repository.full_name!=='haji84/RACE-AI')throw Error('SOURCE_RUN_INVALID');
+          const artifact=await get('actions/artifacts/'+process.env.SOURCE_ARTIFACT);
+          if(artifact.name!=='completion-synthetic-checkpoint' || artifact.expired || artifact.size_in_bytes>16384 || artifact.workflow_run.id!==Number(process.env.SOURCE_RUN) || artifact.workflow_run.head_sha!==process.env.SOURCE_HEAD || artifact.digest!=='sha256:1a39b67c9a3f124311655dba71eb04403f79bbe05afe66916fc9185034f131f9')throw Error('SOURCE_ARTIFACT_INVALID');
+          console.log(JSON.stringify({source_run:run.id,source_head:run.head_sha,artifact_id:artifact.id,artifact_digest:artifact.digest}));
+          NODE
+      - name: Retrieve prior run synthetic checkpoint with read-only token
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ env.SOURCE_ARTIFACT }}
+          path: ${{ runner.temp }}/recovered-checkpoint
+          merge-multiple: true
+          github-token: ${{ github.token }}
+          repository: haji84/RACE-AI
+          run-id: ${{ env.SOURCE_RUN }}
+      - name: Verify all transferred files before resuming trusted current runner
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync,readdirSync,lstatSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const root=process.env.RUNNER_TEMP+'/recovered-checkpoint/';
+          const names=['effects.jsonl','manifest.json','result-fixture-a.json','state.json'];
+          if(JSON.stringify(readdirSync(root).sort())!==JSON.stringify(names))throw Error('UNEXPECTED_CHECKPOINT_FILES');
+          for(const file of names){const s=lstatSync(root+file);if(!s.isFile()||s.isSymbolicLink()||s.size>16384)throw Error('UNSAFE_CHECKPOINT_FILE');}
+          const hash=p=>createHash('sha256').update(readFileSync(p)).digest('hex');
+          const m=JSON.parse(readFileSync(root+'manifest.json','utf8'));
+          if(m.kind!=='SYNTHETIC_CHECKPOINT_TRANSFER_V1'||m.source_head!==process.env.SOURCE_HEAD||m.source_run!==process.env.SOURCE_RUN||m.source_attempt!=='1'||m.runner_sha256!==hash('scripts/completion-mock-trial.mjs'))throw Error('CHECKPOINT_IDENTITY_MISMATCH');
+          if(JSON.stringify(Object.keys(m.files).sort())!==JSON.stringify(names.filter(x=>x!=='manifest.json')))throw Error('CHECKPOINT_MANIFEST_INVALID');
+          for(const [file,expected] of Object.entries(m.files)){if(hash(root+file)!==expected)throw Error('CHECKPOINT_HASH_MISMATCH');}
+          const s=JSON.parse(readFileSync(root+'state.json','utf8'));
+          if(s.completed.length!==0||s.active?.task_id!=='fixture-a')throw Error('WRONG_INTERRUPTION_CHECKPOINT');
+          NODE
+          node scripts/completion-mock-trial.mjs --state-dir "$RUNNER_TEMP/recovered-checkpoint"
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const root=process.env.RUNNER_TEMP+'/recovered-checkpoint/';
+          const state=JSON.parse(readFileSync(root+'state.json','utf8'));
+          const effects=readFileSync(root+'effects.jsonl','utf8').trim().split('\n').map(JSON.parse);
+          if(JSON.stringify(state.completed)!==JSON.stringify(['fixture-a','fixture-b'])||state.active!==null||effects.length!==2||effects[0].task_id!=='fixture-a'||effects[1].task_id!=='fixture-b')throw Error('RESUME_OR_IDEMPOTENCE_FAILED');
+          console.log(JSON.stringify({status:'PASS',source_run:process.env.SOURCE_RUN,destination_run:process.env.GITHUB_RUN_ID,completed:state.completed,effects:effects.length,real_ai_development:false,autonomous_run_trigger:false,controlled_checkpoint_transfer:true}));
+          NODE

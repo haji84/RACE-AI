@@ -95,7 +95,7 @@ def run(path):
  except Exception:
   receipt["status"]="BLOCKED";save(path,receipt);raise
 def self_test():
- import tempfile
+ import tempfile, contextlib, io
  assert verify("def add(a,b):\n return a+b",TASKS[0])==4
  assert verify("def sum_to(n):\n return n*(n+1)//2",TASKS[1])==32
  bad=["import os\ndef add(a,b):\n return a+b","def add(a,b):\n return abs(a)","def add(a,b):\n return a.real","def add(a,b):\n return c","def add(a,b):\n return 10001","def add(a,b):\n return a-b","def add(a,b):\n return True","def add(a,b):\n return "+"+".join(["a"]*140),"def add(a,b):\n return "+"("*22+"a"+"+1)"*22]
@@ -118,7 +118,8 @@ def self_test():
    return {"done":True,"model":MODEL,"done_reason":"stop","eval_count":10,"response":code}
   api=stub
   try:
-   p=Path(directory)/"receipt.json";run(p)
+   p=Path(directory)/"receipt.json"
+   with contextlib.redirect_stdout(io.StringIO()): run(p)
    assert len(calls)==2 and json.loads(p.read_text())["completed"]==["add","sum_to"]
    calls.clear()
    def failing(path,payload=None,timeout=150):
