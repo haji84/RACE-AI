@@ -121,7 +121,8 @@ def stage_supplied_b_archive(archive_path, *, day, source_url, observed_at,
         "official_prediction": False,
         "external_freeze_receipt": None,
         "eligible_hit_at_8": False,
-        "status": "PRIVATE_B_ARCHIVE_PREFLIGHT_NOT_FROZEN",
+        "status": ("MISSED_DEADLINE_NOT_FROZEN" if stage["status"] == "MISSED_DEADLINE"
+                   else "PRIVATE_B_ARCHIVE_PREFLIGHT_NOT_FROZEN"),
     }
     receipt["receipt_sha256"] = digest(receipt)
     return receipt
