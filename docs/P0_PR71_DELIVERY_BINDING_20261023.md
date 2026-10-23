@@ -5,7 +5,7 @@ The implementation `race_ai/pr71_delivery_binding.py` joins a private model-deli
 This is an **offline compatibility bridge** between independently maintained Draft PRs. It does not copy model code into PR #72, issue official predictions, contact providers, train/update models, post a GitHub freeze, authenticate cutoff times, display unverified predictions on a website, or assert lawful collection.
 
 Controls:
-- Match `race_id`, `sport` (with horse_jra and horse_local mapped to PR71 model sport 'horse'), exact venue/event date, race number embedded in canonical identifier, and timetable versus model sales cutoff.
+- Match the original discovery `race_id`, `sport` (horse_jra/horse_local to PR71 model sport 'horse'), venue/date/race number and cutoff. For horses, explicitly map a source ID `horse_local:DATE:VENUE:R` or `horse_jra:DATE:VENUE:R` to PR71 `horse:DATE:VENUE:R` WITHOUT changing the signed model snapshot/hash. Preserve both IDs in audit output.
 - Fail closed on duplicate discovery IDs, illegal outcome ticket combinations, 8-point violations, incomplete permutations and probability normalization, modified SHA256 of the delivery, snapshot, suite or model.
 - **Review provenance remains separate**: a HMAC-signed record or a claimed `cutoff_verified` flag does not establish real rights, source authenticity, actual cutoff, independent evidence of GitHub storage time, or settlement.
 - Accept research-only PR71 deliveries with `external_receipt=null`, `can_count_in_hit_at_8=false`, `official_prediction=false`. Keep these false in result. A source screen's announced cutoff is not an authenticated official deadline.

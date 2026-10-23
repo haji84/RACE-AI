@@ -92,6 +92,36 @@ class BindingTests(unittest.TestCase):
         self.assertIsNone(result["announced_cutoff_at"])
         self.assertFalse(result["official_sales_cutoff_verified"])
 
+    def test_central_and_local_horse_alias_preserve_original_model_id(self):
+        for division in ("horse_local","horse_jra"):
+            a,d=fixture()
+            model_id=f"horse:2030-01-15:boatrace-jcd-16:2"
+            source_id=f"{division}:2030-01-15:boatrace-jcd-16:2"
+            a["records"][0]["race_id"]=source_id
+            a["records"][0]["sport"]=division
+            d["sport"]="horse"
+            d["race_id"]=model_id
+            d["snapshot"]["race"]["race_id"]=model_id
+            d["snapshot"]["race"]["sport"]="horse"
+            model=d["research_suite"]["models"]["fictional-model"]
+            model["race_id"]=model_id
+            model["sport"]="horse"
+            d["research_suite"]["race_id"]=model_id
+            d["research_suite"]["sport"]="horse"
+            new_digest=_digest(d["snapshot"])
+            model["snapshot_sha256"]=new_digest
+            d["research_suite"]["input_sha256"]=new_digest
+            rehash(d)
+            result=bind_audit_to_delivery(a,d,race_id=source_id)
+            self.assertEqual(result["race_id"],source_id)
+            self.assertEqual(result["model_race_id"],model_id)
+            self.assertFalse(result["eligible_for_scoring"])
+            self.assertFalse(result["external_freeze_verified"])
+            # Deliberately leave private PR71 hashes untouched.
+            self.assertEqual(d["race_id"],model_id)
+            with self.assertRaisesRegex(BindingError,"identity mismatch"):
+                bind_audit_to_delivery(a,d,race_id=source_id.replace(":2",":3"))
+
     def test_delivery_integrity_and_false_approval_rejected(self):
         a,d=fixture()
         d["research_suite"]["models"]["fictional-model"]["ordered_top8"][0]=[6,5,4]

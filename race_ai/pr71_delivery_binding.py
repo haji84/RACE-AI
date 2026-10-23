@@ -160,11 +160,6 @@ def bind_audit_to_delivery(audit, delivery, *, race_id):
     if not isinstance(snap,dict) or not isinstance(snap.get("race"),dict):
         raise BindingError("private feature snapshot missing")
     race=snap["race"]
-    if (race.get("race_id")!=race_id or delivery.get("race_id")!=race_id
-        or race.get("event_date_jst")!=audit.get("event_date_jst")
-        or race.get("venue")!=row.get("venue")
-        or delivery.get("sport")!=race.get("sport")):
-        raise BindingError("race identity mismatch")
     sport=row.get("sport")
     expected={"horse_jra":"horse","horse_local":"horse"}.get(sport,sport)
     if expected!=race.get("sport"):
@@ -172,6 +167,16 @@ def bind_audit_to_delivery(audit, delivery, *, race_id):
     expected_id=f"{sport}:{audit['event_date_jst']}:{row['venue']}:{row['race_no']}"
     if expected_id!=race_id:
         raise BindingError("noncanonical source race ID")
+    # Canonical discovery IDs retain horse_jra/horse_local; PR71 model IDs
+    # collapse both to horse. The translation is explicit and reversible;
+    # model bytes and original prediction hashes are NEVER rewritten.
+    model_race_id=(f"horse:{audit['event_date_jst']}:{row['venue']}:{row['race_no']}"
+                   if sport in ("horse_jra","horse_local") else race_id)
+    if (race.get("race_id")!=model_race_id or delivery.get("race_id")!=model_race_id
+        or race.get("event_date_jst")!=audit.get("event_date_jst")
+        or race.get("venue")!=row.get("venue")
+        or delivery.get("sport")!=race.get("sport")):
+        raise BindingError("race identity mismatch")
     # The PR71 model schema lacks a separate race_no. The canonical race ID
     # therefore owns that dimension; NEVER try to infer it from runner numbers.
     announced=row.get("sales_cutoff_at")
@@ -192,7 +197,8 @@ def bind_audit_to_delivery(audit, delivery, *, race_id):
         raise BindingError("snapshot SHA mismatch")
     suite=delivery.get("research_suite")
     outputs=_checked_suite(suite,snap,fd)
-    return {"schema":SCHEMA,"race_id":race_id,"sport":sport,
+    return {"schema":SCHEMA,"race_id":race_id,"model_race_id":model_race_id,
+            "sport":sport,
             "event_date_jst":audit["event_date_jst"],"venue":row["venue"],
             "race_no":row["race_no"],
             "announced_cutoff_at":announced,

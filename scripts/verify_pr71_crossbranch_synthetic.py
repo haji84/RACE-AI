@@ -44,28 +44,11 @@ for sport in ("boat","keirin","autorace","horse"):
          "races":[{"sport":ledger_sport,"venue":venue,"race_no":1,
                    "sales_cutoff_at":race["sales_cutoff_at"],
                    "offering_status":"UNKNOWN"}]}
-    # Horse family names differ between PR71 ("horse") and PR72 ("horse_local"),
-    # so IDs must be translated explicitly, never inferred from horse number.
-    if model_sport=="horse":
-        from copy import deepcopy
-        import race_ai.pr71_delivery_binding as binding
-        audit=transform(obj,"a"*64)
-        alias=audit["records"][0]["race_id"]
-        if not alias.startswith("horse_local:"):
-            raise AssertionError("horse alias mismatch")
-        # No silent rewrite of a signed delivery object is permitted. Instead
-        # explicitly signal the still-open cross-sport ID namespace blocker.
-        try:
-            bind_audit_to_delivery(audit,data,race_id=alias)
-        except binding.BindingError as exc:
-            if "identity mismatch" not in str(exc):
-                raise
-            print("HORSE_ID_NAMESPACE_GATE_EXPECTED: PR71 horse vs PR72 horse_local")
-        else:
-            raise AssertionError("horse namespace mismatch was wrongly admitted")
-        continue
     audit=transform(obj,"a"*64)
-    binding=bind_audit_to_delivery(audit,data,race_id=race["race_id"])
+    source_id=audit["records"][0]["race_id"]
+    binding=bind_audit_to_delivery(audit,data,race_id=source_id)
+    assert binding["model_race_id"]==race["race_id"]
+    assert data["race_id"]==race["race_id"]  # Original model hash not edited.
     assert len(binding["models"])==data["research_suite"]["model_count"]
     assert binding["source_access_reviewed_by_this_bridge"] is False
     assert binding["official_sales_cutoff_verified"] is False
