@@ -20,7 +20,7 @@ function fixture(){
 class FakeD1{
  constructor(){this.rows=new Map();}
  prepare(sql){
-   return {bind:(...params)=>({
+   return {first:async()=>{if(sql.startsWith('SELECT COUNT(*)'))return {records:this.rows.size};throw Error('unexpected direct first');},bind:(...params)=>({
      first:async()=>{
        if(sql.startsWith("SELECT COUNT(*)"))return {records:this.rows.size};
        if(!sql.startsWith("SELECT"))throw Error("bad SQL mock SELECT");
