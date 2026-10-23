@@ -11,6 +11,7 @@ on:
       - 'race_ai/verified_event_projection.py'
       - 'race_ai/github_freeze_receipt.py'
       - 'tests/test_github_freeze_receipt.py'
+      - 'audit/freezes/**'
       - 'race_ai/cutoff_job_queue.py'
       - 'race_ai/boat_multi_feature_models.py'
       - 'race_ai/boat_feature_adapter.py'
