@@ -36,27 +36,27 @@ SPORT_OPTIONAL={
          "recent_3race_form","recent_10race_form","motor_place_rate","boat_equipment_form",
          "motor_exchange_effect","turning_performance","exhibition_start","practice_lane",
          "course_entry_prediction","local_course_history","wind_response","wave_response",
-         "tide_response","draw_lane_bias","start_false_start_risk","rest_recency",
+         "tide_response","draw_lane_bias","start_legality_control","rest_recency",
          "equipment_changes","pressure_handling"),
  "keirin":("line_role","line_depth","home_straight_fit","cornering_power",
            "sprint_peak","last_lap_kick","escape_style","makuri_style","sashi_style",
-           "hsb_form","back_count","home_count","start_count","recent_points",
+           "hsb_form","back_count_form","home_count_form","start_count_form","recent_points",
            "recent_win_form","teammate_synergy","opponent_tactical_fit","bank_angle_fit",
-           "crosswind_resilience","equipment_fit","schedule_fatigue","position_versatility"),
- "autorace":("handicap_seconds","start_reaction","trial_time","trial_order",
+           "crosswind_resilience","equipment_fit","schedule_recovery","position_versatility"),
+ "autorace":("handicap_advantage","start_reaction","trial_time_quality","trial_rank_quality",
              "dry_track_fit","rain_performance","race_lane_fit","corner_acceleration",
              "straight_speed","engine_form","tire_condition","vehicle_setup",
              "recent_form_3race","recent_form_10race","race_class_strength",
              "driver_risk_consistency","temperature_fit","handicap_traffic_handling",
              "opponent_matchup","track_temperature_response"),
- "horse":("recent_race_speed","recent_3race_form","recent_5race_form","closing_3f",
+ "horse":("recent_race_speed","recent_3race_form","recent_5race_form","closing_3f_quality",
           "early_pace","middle_pace","pace_style_fit","predicted_pace_fit",
-          "barrier_stall_bias","draw_distance_interaction","surface_history",
-          "track_history","going_history","distance_history","horse_weight_change",
+          "barrier_stall_fit","draw_distance_interaction","surface_history",
+          "track_history","going_history","distance_history","bodyweight_change_fit",
           "carried_weight_fit","rest_days_fitness","workout_form","paddock_observation",
           "jockey_recent_form","trainer_recent_form","jockey_horse_pair",
           "class_change_fit","age_profile","sex_allowance_fit","pedigree_surface_fit",
-          "layoff_risk","running_style","traffic_resilience","field_size_fit",
+          "layoff_readiness","running_style","traffic_resilience","field_size_fit",
           "rail_position_fit","track_direction_fit"),
 }
 ENV_COMMON=("wind_mps","rain_mm_h","humidity_pct","air_temp_c","surface_wetness")
@@ -260,8 +260,29 @@ def _utility(participant,*,sport,scenario,conditions,n):
                "carried_weight_fit":.14,"pedigree_surface_fit":.13},
     }
     weight.update(per_sport[sport])
-    score=math.fsum(weight.get(k,0)*v for k,v in f.items())
+    # Optional named indicators are not cosmetic. All admitted optional
+    # features contribute small untrained positive desirability weights,
+    # unless a more specific provisional coefficient is listed above.
+    # Each normalized value MUST mean larger=more suitable; raw time/weight/
+    # handicap/risk values need explicit train-only transformations upstream.
+    score=math.fsum((weight.get(k,.04) if k in SPORT_OPTIONAL[sport]
+                     else weight[k])*v for k,v in f.items())
     draw=1.0-(participant["draw"]-1)/max(1,n-1)
+    # All venue conditions can influence scoring through interactions with
+    # observed athlete adaptation and style. Weights remain untrained.
+    sport_stress={
+        "boat":env["wave_cm"]/250+.4*env["water_current_strength"]+
+               .3*env["crosswind_factor"]+.2*env["tide_activity"],
+        "keirin":.5*env["wind_exposure"]+.3*env["bank_steepness"]+
+                 .4*env["track_roughness"]+.25*env["line_complexity"],
+        "autorace":.4*(env["track_temp_c"]+10)/95+
+                   .5*env["wet_track_factor"]+.3*(1-env["grip_factor"])+
+                   .3*env["starting_grid_bias"],
+        "horse":.5*env["going_wetness"]+.25*env["course_cushion"]+
+                .25*env["rail_position"]+.45*env["pace_pressure"],
+    }[sport]
+    score+=.12*sport_stress*f["course_compatibility"]
+    score+=.10*sport_stress*f["tactical_adaptability"]
     wet=max(env["surface_wetness"],
             env.get("wet_track_factor",0),env.get("going_wetness",0))
     rough=min(1,(env["wind_mps"]/24+env["rain_mm_h"]/40+wet)/3)
@@ -269,7 +290,7 @@ def _utility(participant,*,sport,scenario,conditions,n):
         score+=.8*f["start_reliability"]+.4*draw+.30*f.get("early_pace",0)
         if participant["style"]=="front":score+=.22
     elif scenario=="CLOSING":
-        score+=.9*f["finishing_power"]+.38*f["stamina"]+.35*f.get("closing_3f",0)
+        score+=.9*f["finishing_power"]+.38*f["stamina"]+.35*f.get("closing_3f_quality",0)
         if participant["style"]=="closer":score+=.25
     elif scenario=="DISRUPTION":
         score+=.9*f["tactical_adaptability"]+.6*f["consistency"]-.25*f["start_reliability"]
@@ -339,6 +360,8 @@ def predict(raw,*,allow_source=None):
            "odds_independent":True,"trained":False,"calibrated":False,
            "confidence_level":"UNVERIFIED",
            "missing_optional_by_participant":data["missing_optional"],
+           "available_feature_count_by_participant":{r["number"]:len(r["features"]) for r in rows},
+           "optional_input_semantics":"normalized 0..1; larger is favorable; transform evidence required",
            "scenario_weights":weights if model==MODEL_IDS[1] else None,
            "candidate_count":expected,"candidates":ranked,
            "ordered_top8":[c["combination"] for c in ranked[:8]],
