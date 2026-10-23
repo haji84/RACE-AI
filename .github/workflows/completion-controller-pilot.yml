@@ -60,6 +60,8 @@ jobs:
         run: |
           node -e 'const p=require("/tmp/completion-plan.json");if(p.product_completion_claim_allowed || !p.read_only || p.autonomous_merge_enabled)process.exit(1)'
 
+  # One-shot jobs were verified at the pinned trial head; later updates skip them.
+  # This prevents repeated model downloads and expiry-induced CI failures.
   constrained-ai-trial:
     if: >-
       github.repository == 'haji84/RACE-AI' &&
@@ -67,6 +69,7 @@ jobs:
       github.event.repository.private == false &&
       github.actor == 'haji84' &&
       github.event.pull_request.number == 65 &&
+      github.event.pull_request.head.sha == '86f1be3c96e3a7e7dc529eb6c55748a827eb7779' &&
       github.event.pull_request.head.repo.full_name == 'haji84/RACE-AI' &&
       github.event.pull_request.head.ref == 'feat/completion-controller-pilot-20261016'
     runs-on: ubuntu-24.04
@@ -127,6 +130,7 @@ jobs:
       github.repository == 'haji84/RACE-AI' &&
       github.event_name == 'pull_request' &&
       github.event.pull_request.number == 65 &&
+      github.event.pull_request.head.sha == '86f1be3c96e3a7e7dc529eb6c55748a827eb7779' &&
       github.event.pull_request.head.repo.full_name == 'haji84/RACE-AI' &&
       github.event.pull_request.head.ref == 'feat/completion-controller-pilot-20261016'
     runs-on: ubuntu-24.04
@@ -176,6 +180,7 @@ jobs:
       github.repository == 'haji84/RACE-AI' &&
       github.event_name == 'pull_request' &&
       github.event.pull_request.number == 65 &&
+      github.event.pull_request.head.sha == '86f1be3c96e3a7e7dc529eb6c55748a827eb7779' &&
       github.event.pull_request.head.repo.full_name == 'haji84/RACE-AI' &&
       github.event.pull_request.head.ref == 'feat/completion-controller-pilot-20261016'
     runs-on: ubuntu-24.04
