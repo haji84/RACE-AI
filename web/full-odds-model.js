@@ -77,11 +77,14 @@
   }
   function freshness(feed,now=Date.now()){
     if(!feed)return {label:"未取得",stale:true};
-    const age=(now-time(feed.ingested_at))/1000;
-    if(!Number.isFinite(age)||age<0)return {label:"時刻検証不可",stale:true};
+    const receivedAge=(now-time(feed.ingested_at))/1000;
+    const sourceAge=(now-time(feed.source_published_at))/1000;
+    if(!Number.isFinite(receivedAge)||!Number.isFinite(sourceAge)||
+       receivedAge<0||sourceAge<0)return {label:"時刻検証不可",stale:true};
     if(now>=time(feed.cutoff_at))return {label:"締切後の参考値（最終確定オッズとは限りません）",stale:true};
-    if(age>120)return {label:"更新遅延："+Math.ceil(age/60)+"分前の受信値",stale:true};
-    return {label:"前回受信："+Math.max(0,Math.floor(age))+"秒前（最新保証なし）",stale:false};
+    if(sourceAge>120)return {label:"提供元の更新遅延：約"+Math.ceil(sourceAge/60)+"分前のオッズ",stale:true};
+    if(receivedAge>120)return {label:"RACE-AI配信遅延：約"+Math.ceil(receivedAge/60)+"分前の受信値",stale:true};
+    return {label:"受信："+Math.floor(receivedAge)+"秒前 / 提供元："+Math.floor(sourceAge)+"秒前（最新保証なし）",stale:false};
   }
   function select(feed,{first="all",query="",order="ticket"}={}){
     if(!feed)return [];
