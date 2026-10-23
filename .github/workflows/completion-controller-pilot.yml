@@ -313,7 +313,7 @@ jobs:
         run: git diff --exit-code -- docs/state/race-compass-state.json
 
   dispatch-checkpoint:
-    if: ${{ github.repository == 'haji84/RACE-AI' && github.event_name == 'pull_request' && github.event.action == 'synchronize' && github.actor == 'haji84' && github.event.pull_request.number == 65 && github.event.pull_request.head.repo.full_name == 'haji84/RACE-AI' && github.event.pull_request.base.repo.full_name == 'haji84/RACE-AI' && github.event.pull_request.head.ref == 'feat/completion-controller-pilot-20261016' && github.run_number == 28 && github.run_attempt == 1 }}
+    if: ${{ false }}
     needs: [pilot, compass-adapter]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -356,13 +356,13 @@ jobs:
           if-no-files-found: error
 
   dispatch-next-trial:
-    if: ${{ github.repository == 'haji84/RACE-AI' && github.event_name == 'pull_request' && github.event.action == 'synchronize' && github.actor == 'haji84' && github.event.pull_request.number == 65 && github.event.pull_request.head.repo.full_name == 'haji84/RACE-AI' && github.event.pull_request.base.repo.full_name == 'haji84/RACE-AI' && github.event.pull_request.head.ref == 'feat/completion-controller-pilot-20261016' && github.run_number == 28 && github.run_attempt == 1 }}
+    if: ${{ false }}
     needs: [pilot, compass-adapter, dispatch-checkpoint]
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: read
-      actions: write
+      actions: read
     env:
       EXPECTED_RUN_NUMBER: '28'
       PREPARED_PARENT: 'e090e2404d3c1ed025953eadd1a037b015fe8aec'
@@ -450,7 +450,7 @@ jobs:
           NODE
 
   dispatch-receiver:
-    if: ${{ github.event_name == 'workflow_dispatch' && github.repository == 'haji84/RACE-AI' && github.ref == 'refs/heads/feat/completion-controller-pilot-20261016' }}
+    if: ${{ false }}
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions:
