@@ -38,14 +38,17 @@ def main(argv=None, *, now=None):
     args=parser.parse_args(argv)
     try:
         instant=now if now is not None else datetime.now(timezone.utc)
+        if not isinstance(instant, datetime) or instant.tzinfo is None or instant.utcoffset() is None:
+            raise SourceDeliveryError("timezone-aware operator clock required")
+        timestamp=instant.isoformat()
         secret=os.environ.get(args.key_env,"").encode("utf-8")
-        policy=PermissionPolicy(_read(args.policy),secret,at=instant)
+        policy=PermissionPolicy(_read(args.policy),secret,at=timestamp)
         handoff=_read(args.b_handoff)
-        stage=stage_official_b_handoff(handoff,policy,now=instant,race_id=args.race_id)
+        stage=stage_official_b_handoff(handoff,policy,now=timestamp,race_id=args.race_id)
         record=stage
         if args.feature_feed:
             record=link_b_stage_to_features(
-                stage, Path(args.feature_feed).read_bytes(), policy, at=instant
+                stage, Path(args.feature_feed).read_bytes(), policy, at=timestamp
             )
         _private_write(args.output,record)
         print(json.dumps({
