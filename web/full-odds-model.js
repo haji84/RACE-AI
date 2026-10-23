@@ -44,8 +44,12 @@
     if(raw.event_date_jst!==cutoffDay)bad("開催日と締切の不一致");
     if(!["OPEN_REPORTED","CLOSED_REPORTED","UNKNOWN"].includes(raw.sales_status))
       bad("発売状態が不正");
-    if(typeof raw.source_url!=="string"||!/^https:\/\/[^\s/]+/.test(raw.source_url)||
-       raw.source_url.length>700)bad("出典URLが不正");
+    if(typeof raw.source_url!=="string"||raw.source_url.length>700)bad("出典URLが不正");
+    try {
+      const source=new URL(raw.source_url);
+      if(source.protocol!=="https:"||!source.hostname||source.username||source.password)
+        bad("出典URLが不正");
+    }catch{bad("出典URLが不正");}
     if(!Array.isArray(raw.odds)||raw.odds.length!==raw.participants.length*(raw.participants.length-1)*(raw.participants.length-2))
       bad("全3連単の組合せが揃っていない");
     const full=new Set(allTickets(raw.participants).map(key)),seen=new Set();
