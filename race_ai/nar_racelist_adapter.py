@@ -52,11 +52,17 @@ def parse_racelist(data,captured_at,rights_ref):
         except UnicodeDecodeError as exc:
             raise IntakeError("unknown CSV encoding") from exc
     reader=csv.reader(io.StringIO(text,newline=""),strict=True)
-    header=next(reader,None)
-    if header is None or tuple(header[:4])!=HEADER:
-        raise IntakeError("NAR racelist header mismatch; cannot infer columns")
+    first=next(reader,None)
+    if first is None:
+        raise IntakeError("empty racelist")
+    # NAR documentation specifies column POSITIONS, not that CSVs contain a
+    # header row. Support either a verified header or documented positional
+    # data. Reject other text; do not infer arbitrary column mappings.
+    has_header=tuple(cell.strip() for cell in first[:4]) == HEADER
+    if not has_header and (len(first)<4 or not re.fullmatch(r"\d{8}",first[1].strip())):
+        raise IntakeError("NAR racelist header/positional schema mismatch")
     day=None;entries=[]
-    for row in reader:
+    for row in (reader if has_header else __import__("itertools").chain([first],reader)):
         if not row or not any(v.strip() for v in row):continue
         if len(row)<4:raise IntakeError("missing racelist columns")
         venue,raw_date,n,scheduled=[v.strip() for v in row[:4]]
