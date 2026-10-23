@@ -67,3 +67,9 @@ test('unexpected file delta and branch movement stop before ref update',async()=
 test('non-fast-forward update failure is not retried',async()=>{
  const f=fixture({patch:true});await assert.rejects(m.saveOnce(f.c,f.api),/CONCURRENT_ADVANCE/);assert.equal(f.writes.filter(([p])=>p.startsWith('git/refs/')).length,1);
 });
+
+test('PR metadata lag cannot turn an already verified save into a duplicate write',async()=>{
+ const f=fixture();await m.saveOnce(f.c,f.api);
+ const get=f.api.get;f.api.get=async p=>{const r=await get(p);if(p==='pulls/65')r.head.sha=H;return r;};
+ assert.equal((await m.saveOnce(f.c,f.api)).status,'NOOP');assert.equal(f.writes.length,4);
+});
