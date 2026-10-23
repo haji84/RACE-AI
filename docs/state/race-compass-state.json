@@ -3,10 +3,10 @@
   "version": 1,
   "repository": "haji84/RACE-AI",
   "goalId": "haji84/RACE-AI:pr65-development-context",
-  "revision": 1,
-  "previousDigest": null,
-  "observedHead": "68d59fe6c755a89d23efaefa2a2864a8dc5ba36a",
-  "updatedAt": "2026-10-23T09:16:15Z",
+  "revision": 2,
+  "previousDigest": "0d107fdcaf38e68f07e2eed07beafb3b2d8e3e36b13f3cf79cbc81181f52b282",
+  "observedHead": "4de53c4e1bb24210a53da628edb1935f0d5beb37",
+  "updatedAt": "2026-10-23T09:38:37Z",
   "state": {
     "goalId": "haji84/RACE-AI:pr65-development-context",
     "objective": "Preserve the bounded PR65 development checkpoint and evidence; the full product goal remains separately defined by issue 67.",
@@ -32,7 +32,7 @@
         "required": true
       }
     ],
-    "currentState": "PR65 contains successful bounded probes; product development and durable autonomous writeback are not completed.",
+    "currentState": "Existing Compass adapter verified at 4de53c4e1bb24210a53da628edb1935f0d5beb37: eight tests, real SQLite import/new-process reopen/export equality, and three historical probe observations. This checkpoint is not a complete mapping of issue 67 product requirements. Full regression run39932267547 passed on Ubuntu and Windows (Python1141, Node203 and Node8 each; merge-ref test). Latest observed PR71 head67976afcd2599e0d50bc62b6d45bd7756f2e5435 and PR72 headb4776de5d24c7cc9b2531c1c12122fbd41fb00da have passing contract CI, remain draft on PR69's branch, not integrated into main and not real-race outcome evidence.",
     "status": "BLOCKED",
     "riskClass": "R1",
     "constraints": [
@@ -52,6 +52,24 @@
         "summary": "Retire live probe jobs after recorded success; keep normal deterministic CI.",
         "rationale": "Avoid repeated model downloads and expired-artifact failures.",
         "at": "2026-10-23T09:16:15Z"
+      },
+      {
+        "id": "compass-runtime-verified",
+        "summary": "Existing CompassStore and completion-path executed successfully with a RACE-only canonical checkpoint.",
+        "rationale": "Run39932267504 verified eight tests, cross-process SQLite restoration and three historical API observations without promoting them to current-product completion.",
+        "at": "2026-10-23T09:30:27Z"
+      },
+      {
+        "id": "product-goal-is-separate",
+        "summary": "Issue67 remains the authoritative full-product goal; this four-item checkpoint is not its complete requirement map.",
+        "rationale": "Observed issue67 M0 rights, M1 ledger/time/freeze, M2 Top8/results, M3 continued execution/recovery/UI, M4 forward300-plus comparison. The final future all-target Hit@8_all target including missing forecasts remains unverified.",
+        "at": "2026-10-23T09:38:37Z"
+      },
+      {
+        "id": "reuse-active-product-work",
+        "summary": "Reuse PR71 model/view/input handoff and PR72 discovery ledger/independent audit under parent PR69.",
+        "rationale": "Observed contract CI39932043998 and39931252639 passed at distinct current heads; synthetic/contract success does not establish real product acceptance.",
+        "at": "2026-10-23T09:38:37Z"
       }
     ],
     "artifacts": [
@@ -69,6 +87,51 @@
         "id": "probe-evidence",
         "uri": "https://github.com/haji84/RACE-AI/actions/runs/39929456215",
         "kind": "historical_actions_run"
+      },
+      {
+        "id": "compass-adapter-verification",
+        "uri": "https://github.com/haji84/RACE-AI/actions/runs/39932267504",
+        "kind": "historical_actions_run"
+      },
+      {
+        "id": "compass-initial-fixture-failure",
+        "uri": "https://github.com/haji84/RACE-AI/actions/runs/39931821352",
+        "kind": "historical_actions_run"
+      },
+      {
+        "id": "compass-regression",
+        "uri": "https://github.com/haji84/RACE-AI/actions/runs/39932267547",
+        "kind": "historical_actions_run"
+      },
+      {
+        "id": "priority",
+        "uri": "https://github.com/haji84/RACE-AI/issues/68",
+        "kind": "goal"
+      },
+      {
+        "id": "foundation-pr69",
+        "uri": "https://github.com/haji84/RACE-AI/pull/69",
+        "kind": "pull_request"
+      },
+      {
+        "id": "active-pr71",
+        "uri": "https://github.com/haji84/RACE-AI/pull/71",
+        "kind": "pull_request"
+      },
+      {
+        "id": "active-pr72",
+        "uri": "https://github.com/haji84/RACE-AI/pull/72",
+        "kind": "pull_request"
+      },
+      {
+        "id": "pr71-observed-ci",
+        "uri": "https://github.com/haji84/RACE-AI/actions/runs/39932043998",
+        "kind": "historical_actions_run"
+      },
+      {
+        "id": "pr72-observed-ci",
+        "uri": "https://github.com/haji84/RACE-AI/actions/runs/39931252639",
+        "kind": "historical_actions_run"
       }
     ],
     "verificationResults": [],
@@ -78,8 +141,8 @@
       "Automatic canonical-state writeback and autonomous next-run launch are not connected.",
       "Full product acceptance and main integration remain unverified."
     ],
-    "nextAction": "Verify the RACE-specific Compass adapter roundtrip and trusted evidence handling; preserve blockers, then plan actual backlog integration.",
-    "updatedAt": "2026-10-23T09:16:15Z"
+    "nextAction": "Map the full issue67 M0-M4 and top-level acceptance criteria to current PR69/71/72 head-specific evidence, reusing existing owners. Enumerate missing rights, official deadlines/stable IDs/pre-race features, externally timestamped immutable freeze/readback and official result-revision evidence. Return dependency-ordered gaps to existing work instead of creating duplicate adapters/models/PRs. Automatic state writeback and next-run launch remain separate unconnected capabilities.",
+    "updatedAt": "2026-10-23T09:38:37Z"
   },
   "evidenceReferences": [
     {

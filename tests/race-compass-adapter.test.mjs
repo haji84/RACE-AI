@@ -5,7 +5,8 @@ import {join} from 'node:path';
 import {tmpdir} from 'node:os';
 import {DatabaseSync} from 'node:sqlite';
 import {GOAL,PROBES,digest,validateSnapshot,loadCore,verifyObservation,assess,importCanonical,exportCanonical} from '../scripts/race-compass-adapter.mjs';
-const snapshot=()=>JSON.parse(readFileSync('docs/state/race-compass-state.json','utf8'));
+const snapshot=()=>{const s=JSON.parse(readFileSync('docs/state/race-compass-state.json','utf8'));s.revision=1;s.previousDigest=null;return s;};
+const canonical=()=>JSON.parse(readFileSync('docs/state/race-compass-state.json','utf8'));
 const now='2026-10-23T10:00:00Z',head='a'.repeat(40);
 function fixture(p){
  const run={id:p.run,head_sha:p.head,repository:{full_name:'haji84/RACE-AI'},head_branch:'feat/completion-controller-pilot-20261016',path:'.github/workflows/completion-controller-pilot.yml',event:'pull_request',run_attempt:1,status:'completed',conclusion:'success',updated_at:'2026-10-23T09:09:35Z'};
@@ -112,4 +113,10 @@ test('revision2 canonical restores into a fresh database only with explicit trus
   assert.deepEqual(await exportCanonical(path),latest);
   await assert.rejects(()=>importCanonical(path,s,{expectedDigest:digest(s),expectedRevision:1,bootstrap:true}),/STALE_CANONICAL_UPDATE/);
  }finally{rmSync(dir,{recursive:true,force:true});}
+});
+
+test('committed latest canonical revision can bootstrap and roundtrip with its actual hash',async()=>{
+ const dir=mkdtempSync(join(tmpdir(),'race-compass-canonical-')),path=join(dir,'race-compass.sqlite'),s=canonical();
+ try{validateSnapshot(s);await importCanonical(path,s,{expectedDigest:digest(s),expectedRevision:s.revision,bootstrap:true});assert.deepEqual(await exportCanonical(path),s);}
+ finally{rmSync(dir,{recursive:true,force:true});}
 });
