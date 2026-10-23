@@ -39,8 +39,10 @@ function env(db=new FakeD1()){
  return {ODDS_DB:db,ODDS_PREVIEW_READ_ENABLED:"true",
          ODDS_PREVIEW_INGEST_ENABLED:"true",
          ODDS_PREVIEW_TOKEN:"synthetic-fake-preview-token-32-characters",
-         ODDS_APPROVED_RIGHTS_REF:"fictional-review-only"};
+         ODDS_APPROVED_RIGHTS_REF:"fictional-review-only",
+         ODDS_REQUIRE_ACCESS:"true",ODDS_ALLOWED_EMAIL:"synthetic-owner@example.invalid"};
 }
+const ACCESS={access:{getIdentity:async()=>({email:"synthetic-owner@example.invalid"})}};
 function post(feed,ref="fictional-review-only",token="synthetic-fake-preview-token-32-characters"){
  return new Request("https://preview.invalid/internal/odds",{
    method:"POST",headers:{"Content-Type":"application/json",
@@ -53,28 +55,41 @@ function read(race="20300115-01-01"){
 }
 
 test("preview Worker defaults closed, even for read-only fetch",async()=>{
- const result=await worker.fetch(read(),{});
+ const result=await worker.fetch(read(),{},ACCESS);
  assert.equal(result.status,503);
  assert.equal((await result.json()).reason,"PREVIEW_ODDS_READ_NOT_APPROVED");
 });
 
+test("unprotected Worker, wrong identity and caller-supplied headers cannot read or write",async()=>{
+ const e=env();
+ const unauth=await worker.fetch(read(),e);
+ assert.equal(unauth.status,403);
+ assert.equal((await unauth.json()).reason,"OWNER_ONLY_ACCESS_REQUIRED");
+ const fakeHeaders=new Request(read(),{headers:{"Cf-Access-Jwt-Assertion":"forged"}});
+ assert.equal((await worker.fetch(fakeHeaders,e)).status,403);
+ const wrong={access:{getIdentity:async()=>({email:"attacker@example.invalid"})}};
+ assert.equal((await worker.fetch(post(fixture()),e,wrong)).status,403);
+ assert.equal(e.ODDS_DB.rows.size,0);
+ const fakeEnv=env();fakeEnv.ODDS_REQUIRE_ACCESS="false";
+ assert.equal((await worker.fetch(read(),fakeEnv,ACCESS)).status,403);
+});
 test("private source approval ref and secret must both match",async()=>{
  const e=env();
- const noRights=await worker.fetch(post(fixture(),"wrong"),e);
+ const noRights=await worker.fetch(post(fixture(),"wrong"),e,ACCESS);
  assert.equal(noRights.status,403);
- const noToken=await worker.fetch(post(fixture(),"fictional-review-only","bad"),e);
+ const noToken=await worker.fetch(post(fixture(),"fictional-review-only","bad"),e,ACCESS);
  assert.equal(noToken.status,401);
  assert.equal(e.ODDS_DB.rows.size,0);
 });
 
 test("all 120 quotes stored and read back, no AI forecasts mutated",async()=>{
  const database=new FakeD1(),e=env(database),feed=fixture();
- const stored=await worker.fetch(post(feed),e);
+ const stored=await worker.fetch(post(feed),e,ACCESS);
  assert.equal(stored.status,201);
  const report=await stored.json();
  assert.equal(report.race_id,feed.race_id);
  assert.match(report.sha256,/^[a-f0-9]{64}$/);
- const res=await worker.fetch(read(),e);
+ const res=await worker.fetch(read(),e,ACCESS);
  assert.equal(res.status,200);
  const view=await res.json();
  assert.equal(view.odds.length,120);
@@ -88,11 +103,11 @@ test("all 120 quotes stored and read back, no AI forecasts mutated",async()=>{
 test("invalid quote corpus blocked before D1 write",async()=>{
  const e=env();
  const x=fixture();x.odds.pop();
- const res=await worker.fetch(post(x),e);
+ const res=await worker.fetch(post(x),e,ACCESS);
  assert.equal(res.status,422);
  assert.equal(e.ODDS_DB.rows.size,0);
  const y=fixture();y.odds[1].ticket=y.odds[0].ticket;
- assert.equal((await worker.fetch(post(y),e)).status,422);
+ assert.equal((await worker.fetch(post(y),e,ACCESS)).status,422);
 });
 
 test("price and provider time validity cannot be bypassed",async()=>{
