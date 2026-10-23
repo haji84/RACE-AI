@@ -54,7 +54,7 @@ def verify_github_freeze(receipt, content_hash, persisted_at, cutoff_at, *, _fet
     """Callback for verified_event_projection.project(...verify_freeze=...).
 
     Verify two independent GitHub HTTPS API responses:
-    a server-assigned push workflow-run created_at BEFORE official cutoff,
+    a server-assigned push or same-repo PR workflow-run created_at BEFORE cutoff,
     and the committed prediction hash anchor pinned to that run's exact SHA.
 
     Local persisted_at is checked for consistency, but its clock is NOT used
@@ -79,9 +79,12 @@ def verify_github_freeze(receipt, content_hash, persisted_at, cutoff_at, *, _fet
         raise ReceiptVerificationError("GitHub run unavailable")
     commit_sha = run.get("head_sha")
     server_time = _date(run.get("created_at"))
-    if (run.get("id") != run_id or run.get("event") != "push"
+    if (run.get("id") != run_id or run.get("event") not in {"push", "pull_request"}
         or not isinstance(run.get("repository"), dict)
         or run["repository"].get("full_name") != REPO
+        or (run.get("event") == "pull_request" and
+            (not isinstance(run.get("head_repository"), dict) or
+             run["head_repository"].get("full_name") != REPO))
         or not isinstance(commit_sha, str) or not HEX40.fullmatch(commit_sha)
         or not server_time < deadline):
         raise ReceiptVerificationError("GitHub run not independently before cutoff")
