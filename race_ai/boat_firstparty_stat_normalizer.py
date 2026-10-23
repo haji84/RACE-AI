@@ -20,6 +20,7 @@ SCHEMA="RACE_AI_BOAT_FIRSTPARTY_STATS_V1"
 OUTPUT="RACE_AI_BOAT_PARTIAL_FEATURE_CANDIDATES_V1"
 SOURCE="https://boatrace-biwako.jp/sp/"
 TOP={"schema","race_id","source_url","observed_at_claimed",
+     "source_view_event_date_jst","source_view_race_no",
      "source_published_at","source_terms_basis","entrants"}
 RUNNER={"lane","registration_no","national_score","local_score",
         "motor_number","motor_two_rate_percent"}
@@ -56,6 +57,14 @@ def candidate_features(observation, *, expected_registration_numbers):
             r"boat:\d{4}-\d\d-\d\d:boatrace-jcd-11:(?:[1-9]|1[0-2])",
             observation["race_id"]):
         raise NormalizeError("race identity must match official venue")
+    # The venue homepage changes current races without a dated URL.
+    # Demand a separately transcribed *page's own* event-day and race index.
+    # These are still caller CLAIMS, never authenticated web capture.
+    ident=observation["race_id"].split(":")
+    if (observation["source_view_event_date_jst"]!=ident[1]
+        or type(observation["source_view_race_no"]) is not int
+        or observation["source_view_race_no"]!=int(ident[3])):
+        raise NormalizeError("stale/mismatched official venue page day or race")
     url=observation["source_url"]
     if url!=SOURCE:
         raise NormalizeError("first-party venue URL must exactly match")

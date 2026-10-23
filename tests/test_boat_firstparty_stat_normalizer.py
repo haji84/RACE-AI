@@ -9,6 +9,7 @@ from race_ai.boat_firstparty_stat_normalizer import (
 def fake():
     return {"schema":SCHEMA,"race_id":"boat:2030-01-15:boatrace-jcd-11:1",
             "source_url":SOURCE,"observed_at_claimed":"2030-01-15T08:14:52+09:00",
+            "source_view_event_date_jst":"2030-01-15","source_view_race_no":1,
             "source_published_at":None,"source_terms_basis":MUST_BE_PRE_REVIEW,
             "entrants":[{"lane":i,"registration_no":4000+i,"national_score":5.0+i/10,
                          "local_score":4.0+i/10,"motor_number":i,
@@ -52,6 +53,14 @@ class NormalizationTests(unittest.TestCase):
             sample=fake();sample["entrants"][0][key]=value
             with self.subTest(key=key,value=str(value)),self.assertRaisesRegex(NormalizeError,"numeric"):
                 candidate_features(sample,expected_registration_numbers=ROSTER)
+    def test_stale_rotating_venue_homepage_must_not_be_used_for_other_day(self):
+        for name,value in (("source_view_event_date_jst","2030-01-14"),
+                           ("source_view_race_no",6)):
+            case=fake()
+            case[name]=value
+            with self.subTest(name=name),self.assertRaisesRegex(NormalizeError,"stale/mismatched"):
+                candidate_features(case,expected_registration_numbers=ROSTER)
+
     def test_spoofed_web_hosts_and_fake_rights_rejected(self):
         for key,value in (("source_url","https://boatrace-biwako.jp.attacker.invalid/sp/"),
                           ("source_terms_basis","APPROVED"),
