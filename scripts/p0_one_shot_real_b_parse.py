@@ -17,7 +17,7 @@ PR64=HERE/"pr64-parser-reference/race_ai"
 if PR64.is_dir():
     race_ai.__path__.append(str(PR64))
 TARGET="https://www1.mbrace.or.jp/od2/B/202610/b261022.lzh"
-BRANCH="refs/heads/p0-b-parse-smoke-20261024"
+BRANCH="refs/heads/p0-b-parse-diagnostic-20261024"
 MAX=4_000_000
 
 class NoRedirect(HTTPRedirectHandler):
