@@ -12,6 +12,7 @@ on:
       - 'race_ai/permissioned_source_delivery.py'
       - 'race_ai/boat_b_program_bridge.py'
       - 'race_ai/boat_b_offline_archive_intake.py'
+      - 'docs/P0_BOAT_BK_DISTRIBUTION_RIGHTS_AND_TIMING_20261023.md'
       - 'tests/test_boat_b_offline_archive_intake.py'
       - 'race_ai/nar_official_csv_adapter.py'
       - 'race_ai/nar_model_handoff.py'
