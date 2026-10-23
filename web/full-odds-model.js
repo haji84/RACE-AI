@@ -36,9 +36,12 @@
        raw.participants.some(x=>!Number.isInteger(x)||x<1||x>99)||
        raw.participants.length<SPORTS[raw.sport][0]||raw.participants.length>SPORTS[raw.sport][1])
       bad("出走者数・番号が不正");
-    if(raw.event_date_jst!==new Intl.DateTimeFormat("en-CA",{
+    const parts=new Intl.DateTimeFormat("en-CA",{
       timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit"
-    }).format(new Date(cutoff)))bad("開催日と締切の不一致");
+    }).formatToParts(new Date(cutoff));
+    const part=key=>parts.find(x=>x.type===key)?.value;
+    const cutoffDay=part("year")+"-"+part("month")+"-"+part("day");
+    if(raw.event_date_jst!==cutoffDay)bad("開催日と締切の不一致");
     if(!["OPEN_REPORTED","CLOSED_REPORTED","UNKNOWN"].includes(raw.sales_status))
       bad("発売状態が不正");
     if(typeof raw.source_url!=="string"||!/^https:\/\/[^\s/]+/.test(raw.source_url)||
