@@ -109,4 +109,107 @@ else:
     raise AssertionError("late real PR71 GitHub issuance must be rejected")
 print("PINNED_PR71_RACE_BOUND_FREEZE_GUARD_OK (SYNTHETIC_API_RESPONSES_ONLY)")
 
+
+# END-TO-END REPLAY OF ACTUAL PR71 MODEL CODE, BUT ALL SOURCES, HTTP
+# RESPONSES, SOURCE RIGHTS AND RACE OUTCOMES HERE ARE FICTIONAL.
+from race_ai.append_only_freeze_writer import prepare_anchor, submit_anchor
+from race_ai.proof_aware_settlement import audit_settlement
+
+for sport in ("boat", "keirin", "autorace", "horse"):
+    supplied=deliver(raw_feed(sport),gate(),at=AT,persist=False)
+    race=supplied["snapshot"]["race"]
+    source_sport="horse_local" if sport=="horse" else sport
+    day=race["event_date_jst"]
+    venue=race["venue"]
+    cutoff=race["sales_cutoff_at"]
+    source_id=f"{source_sport}:{day}:{venue}:1"
+    second_id=f"{source_sport}:{day}:{venue}:2"
+    obj={"schema":"RACE_AI_OPERATOR_EXPORT_V1","event_date_jst":day,
+         "source_ref":"https://example.org/fictional",
+         "source_rights_ref":"FICTIONAL_NOT_A_GRANT",
+         "captured_at":AT,
+         "races":[{"sport":source_sport,"venue":venue,"race_no":n,
+                   "sales_cutoff_at":cutoff,"offering_status":"UNKNOWN"}
+                  for n in (1,2)]}
+    audit=transform(obj,"c"*64)
+    bound=bind_audit_to_delivery(audit,supplied,race_id=source_id)
+    model=bound["models"][0]
+    generated=race["as_of"]
+    stored="2030-01-15T09:35:00+09:00"
+    prepared=prepare_anchor(bound,model["model_id"],generated,stored)
+    expected_raw=(json.dumps(prepared["anchor"],sort_keys=True,
+                 ensure_ascii=False,separators=(",",":"))+"\n").encode("utf-8")
+    def fake_contents_api(url, method, body):
+        if method=="PUT":
+            posted=json.loads(body)
+            assert "sha" not in posted  # create-only; no prior overwrite
+            assert base64.b64decode(posted["content"])==expected_raw
+            return {"commit":{"sha":"b"*40}}
+        assert method=="GET" and url.endswith("?ref="+"b"*40)
+        return {"type":"file","encoding":"base64",
+                "content":base64.b64encode(expected_raw).decode("ascii")}
+    committed=submit_anchor(prepared,branch="audit/freeze-fictional",token="x"*40,
+                            independent_release_check=lambda _:True,
+                            request=fake_contents_api)
+    assert committed["eligible_for_hit_at_8"] is False
+    assert committed["run_id"] is None
+
+    witnessed={"id":31337,"event":"push","head_sha":"b"*40,
+               "repository":{"full_name":"haji84/RACE-AI"},
+               "created_at":"2030-01-15T00:40:00Z"}
+    receipt={"run_id":31337,"path":prepared["path"]}
+    def fake_github_https(url):
+        if url==f"{BASE}/actions/runs/31337":return witnessed
+        if url==f"{BASE}/contents/{prepared['path']}?ref="+("b"*40):
+            return {"type":"file","encoding":"base64",
+                    "content":base64.b64encode(expected_raw).decode("ascii")}
+        raise AssertionError("unexpected external endpoint")
+    def verified_anchor(forecast,source_race_id):
+        return (source_race_id==source_id
+                and forecast["model_race_id"]==bound["model_race_id"]
+                and forecast["prediction_sha256"]==model["prediction_sha256"]
+                and verify_bound_receipt(
+                    forecast["receipt"],forecast["prediction_sha256"],
+                    forecast["persisted_at"],forecast["cutoff_at"],
+                    expected_race_id=bound["model_race_id"],
+                    trusted_legacy_verifier=verify_github_freeze,
+                    github_fetch=fake_github_https))
+    # First source race forecast is present; the second is intentionally
+    # absent and MUST still count in the eligible denominator.
+    f={"race_id":source_id,"model_race_id":bound["model_race_id"],
+       "model_id":model["model_id"],"ordered_top8":model["ordered_top8"],
+       "prediction_sha256":model["prediction_sha256"],
+       "generated_at":generated,"persisted_at":stored,"cutoff_at":cutoff,
+       "receipt":receipt}
+    results=[
+        {"race_id":identifier,"status":"FINAL","trifecta_offered":True,
+         "payouts":[{"combination":model["ordered_top8"][0] if index==0 else
+                     [2,3,1],"yen_per_100":1000}],
+         "refund_status":"NONE","revision_no":1,
+         "confirmed_at":"2030-01-15T11:00:00+09:00",
+         "source_ref":"https://example.org/fictional-result"}
+         for index,identifier in enumerate((source_id,second_id))]
+    callbacks={"verify_result":lambda row:row["source_ref"]=="https://example.org/fictional-result",
+               "verify_cutoff":lambda row:row["sales_cutoff_at"]==cutoff,
+               "verify_freeze":verified_anchor,
+               "verify_coverage":lambda entries:len(entries["records"])==2}
+    reconciled=audit_settlement(audit,results,[f],**callbacks)
+    assert reconciled["eligible_verified_subset"]==2
+    assert reconciled["freeze_verified_subset"]==1
+    assert reconciled["hit8_verified_subset"]==1
+    assert reconciled["formal_hit_at_8_all"]==0.5
+    assert reconciled["formal_capture_rate"]==0.5
+
+    # A new, unverified revision suppresses any stale old payout score.
+    from copy import deepcopy
+    corrected=deepcopy(results[0])
+    corrected["revision_no"]=2
+    corrected["confirmed_at"]="2030-01-15T11:15:00+09:00"
+    bad_callbacks=dict(callbacks)
+    bad_callbacks["verify_result"]=lambda row:row["revision_no"]==1
+    stale=audit_settlement(audit,results+[corrected],[f],**bad_callbacks)
+    assert stale["formal_hit_at_8_all"] is None
+    print("SYNTHETIC_ONE_RACE_PR71_TO_SETTLEMENT_OK",sport,
+          "1_FROZEN_OF_2_ELIGIBLE; NOT_REAL_DATA")
+
 print("NO_REAL_FORECAST_OR_OFFICIAL_FREEZE_CLAIM")
