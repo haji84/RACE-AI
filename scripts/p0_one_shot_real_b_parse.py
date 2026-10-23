@@ -65,8 +65,21 @@ def probe(*,env=None,opener=None,extract=None,parser=None):
             from race_ai.core import parse_b
             from race_ai.official_b_snapshot_adapter import program_details
             def parser(content):
-                entries=parse_b(content,"2026-10-22")
-                details,deadlines=program_details(content,date(2026,10,22))
+                from race_ai.core import SourceError
+                try:
+                    entries=parse_b(content,"2026-10-22")
+                except SourceError as exc:
+                    metrics["parser_stage"]="official_parse_b"
+                    metrics["parser_diagnostic"]=str(exc)[:140]
+                    raise
+                metrics["parsed_minimal_entrant_count"]=len(entries)
+                try:
+                    details,deadlines=program_details(content,date(2026,10,22))
+                except SourceError as exc:
+                    metrics["parser_stage"]="official_program_details"
+                    metrics["parser_diagnostic"]=str(exc)[:140]
+                    raise
+                metrics["parser_stage"]="fully_parsed"
                 return entries,details,deadlines
         entrants,details,deadlines=parser(expanded)
         if not all(isinstance(x,dict) for x in entrants):
