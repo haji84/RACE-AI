@@ -282,6 +282,8 @@ jobs:
           EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
         run: |
           node scripts/race-compass-adapter.mjs assess docs/state/race-compass-state.json "$EXPECTED_HEAD" "$RUNNER_TEMP/compass-assessment.json"
+      - name: Read current full product position without promoting synthetic CI to acceptance
+        run: node scripts/race-compass-adapter.mjs product docs/state/race-compass-state.json "$RUNNER_TEMP/product-position.json"
       - name: Confirm canonical file was not changed and no automatic writeback occurred
         if: always()
         run: git diff --exit-code -- docs/state/race-compass-state.json

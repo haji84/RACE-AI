@@ -126,3 +126,48 @@ test('whole product position validation is implemented separately from historica
  assert.equal(typeof adapter.validateProductPosition,'function');
  assert.equal(typeof adapter.assessProductPosition,'function');
 });
+
+const product=()=>structuredClone(canonical().productPosition);
+const productClient=async path=>{
+ if(path.startsWith('issues/')){const s=product().sourceIssues.find(x=>path==='issues/'+x.number);return {number:s.number,html_url:'https://github.com/haji84/RACE-AI/issues/'+s.number,updated_at:s.updatedAt,body:'fixture-'+s.number};}
+ if(path.startsWith('pulls/')){const p=product().pullRequests.find(x=>path==='pulls/'+x.number);return {number:p.number,head:{sha:p.head,ref:p.branch,repo:{full_name:'haji84/RACE-AI'}},base:{ref:p.base,sha:p.baseHead,repo:{full_name:'haji84/RACE-AI'}},state:p.state,draft:p.draft,merged:false};}
+ if(path.startsWith('actions/runs?')){const p=product().pullRequests.find(x=>path.includes(x.head));return {total_count:1,workflow_runs:[{id:p.runId,head_sha:p.head,path:p.workflow,status:'completed',conclusion:'success',run_attempt:1}]};}
+ const p=product().pullRequests.find(x=>path.startsWith('actions/runs/'+x.runId));
+ if(path.includes('/jobs'))return {total_count:p.checks.length,jobs:p.checks.map((check,i)=>({id:p.runId+i,run_id:p.runId,head_sha:p.head,name:check.job,status:'completed',conclusion:'success',steps:check.steps.map(name=>({name,status:'completed',conclusion:'success'}))}))};
+ return {id:p.runId,head_sha:p.head,head_branch:p.branch,repository:{full_name:'haji84/RACE-AI'},path:p.workflow,event:p.event,run_attempt:1,status:'completed',conclusion:'success',updated_at:'2026-10-23T09:00:00Z'};
+};
+const productFixture=()=>{const p=product();for(const s of p.sourceIssues)s.bodyDigest=digest('fixture-'+s.number);return p;};
+test('product map covers source milestones and full goal without self certifying acceptance',()=>{
+ const p=productFixture();adapter.validateProductPosition(p);
+ assert.deepEqual(p.milestones.map(x=>x.id),['M0','M1','M2','M3','M4']);
+ for(const mutate of [p=>p.goalId='haji84/AI-:other',p=>p.milestones.pop(),p=>p.finalRequirements.pop(),p=>p.acceptanceStatus='PASS',p=>p.measuredHitAt8All=.98,p=>p.milestones[0].acceptanceStatus='PASS',p=>p.automaticWriteback=true,p=>p.pullRequests[0].checks[0].steps=['Checkout'],p=>p.milestones[0].gaps=['user: raw transcript'],p=>p.nextActions[0].dependsOn=['future-evaluation']]){
+  const bad=structuredClone(p);mutate(bad);assert.throws(()=>adapter.validateProductPosition(bad));
+ }
+});
+test('exact current PR contract observations never become product acceptance or mutate canonical',async()=>{
+ const p=productFixture(),before=JSON.stringify(p),a=await adapter.assessProductPosition(p,{client:productClient,now});
+ assert.equal(a.errors.length,0);assert.deepEqual(a.contractVerifiedPRs,[69,71,72]);assert.equal(a.acceptanceStatus,'BLOCKED');assert.equal(a.currentProductVerified,false);assert.equal(a.automaticWriteback,false);assert.equal(a.executionAuthority,false);
+ assert.equal(a.milestones.every(x=>x.acceptanceStatus==='BLOCKED'),true);assert.equal(JSON.stringify(p),before);
+});
+test('source edits, current head/base drift, skipped steps and unavailable evidence block fresh contract claims',async()=>{
+ for(const mutate of [
+  (path,v)=>{if(path==='issues/67')v.body+='changed';},
+  (path,v)=>{if(path==='issues/68')v.updated_at='2026-10-23T09:59:00Z';},
+  (path,v)=>{if(path==='pulls/71')v.head.sha='d'.repeat(40);},
+  (path,v)=>{if(path==='pulls/72')v.base.sha='d'.repeat(40);},
+  (path,v)=>{if(path.includes('/jobs'))v.jobs[0].steps[0].conclusion='skipped';},
+  (path,v)=>{if(path.includes('/jobs'))v.total_count=101;},
+  (path,v)=>{if(path.startsWith('actions/runs?'))v.workflow_runs[0].conclusion='failure';},
+  (path,v)=>{if(path.startsWith('actions/')&&!path.includes('/jobs'))v.updated_at='2026-10-24T10:00:00Z';}
+ ]){
+  const p=productFixture();const a=await adapter.assessProductPosition(p,{now,client:async path=>{const v=await productClient(path);mutate(path,v);return v;}});
+  assert.equal(a.acceptanceStatus,'BLOCKED');assert.ok(a.errors.length>0);assert.equal(a.currentProductVerified,false);
+ }
+ const a=await adapter.assessProductPosition(productFixture(),{now,client:async()=>{throw Error('API_UNAVAILABLE');}});
+ assert.equal(a.contractVerifiedPRs.length,0);assert.ok(a.errors.length);
+});
+test('product PR head changing during observation invalidates its contract receipt',async()=>{
+ let reads=0;
+ const a=await adapter.assessProductPosition(productFixture(),{now,client:async path=>{const v=await productClient(path);if(path==='pulls/69'&&++reads===2)v.head.sha='f'.repeat(40);return v;}});
+ assert.equal(a.contractVerifiedPRs.includes(69),false);assert.ok(a.errors.some(x=>x.includes('69')));
+});

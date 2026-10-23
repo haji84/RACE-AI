@@ -14,3 +14,5 @@ Optional productPosition in the existing canonical snapshot: fixed issue67 ident
 A successful adapter means context mapping/restoration, not full RACE acceptance. All five milestones remain BLOCKED until real acceptance evidence. Hit@8_all target98% includes all evaluable unpredicted races, remains unmeasured. M4 300 samples is not finalcompletion.
 ## Progress
 Plan created from issue67 updated2026-10-23T09:31:12Z and issue68 updated2026-10-23T00:45:50Z. Prior canonical/head a5092aa. Step1 pending expected RED.
+
+Step1 RED confirmed: c19b31521ac088fb972195fb5e9ff89ef473391a, run39935443263/job120353721015; existing9 PASS, missing product mapping export assertion FAIL. Implementing schema/collector/data/tests together. Ruling: preserve productPosition inside existing envelope rather than create extra Compass goal records, avoiding duplicate canonical state; per-goal assessment is a derived read-only report. Exact UI filenames verified in PR71 tree. Source digest computed over JSON.stringify(issue.body), same as adapter digest. No permissions changed.

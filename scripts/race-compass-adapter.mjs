@@ -16,7 +16,7 @@ const clone=x=>structuredClone(x);
 function exactKeys(obj,keys){if(!obj||typeof obj!=='object'||Array.isArray(obj)||Object.keys(obj).some(k=>!keys.includes(k)))throw Error('SCHEMA_KEYS_REJECTED');}
 function safeText(s){if(typeof s!=='string'||s.length>2000||/[\x00-\x08]|sk-[A-Za-z0-9]{12}|github_pat_|ghp_|-----BEGIN|(?:user|assistant|system)\s*:/i.test(s)||/[^\s]+@[^\s]+\./.test(s))throw Error('UNSAFE_TEXT');}
 export function validateSnapshot(s){
- exactKeys(s,['kind','version','repository','goalId','revision','previousDigest','observedHead','updatedAt','state','evidenceReferences']);
+ exactKeys(s,['kind','version','repository','goalId','revision','previousDigest','observedHead','updatedAt','state','evidenceReferences','productPosition']);
  if(s.kind!=='race-compass-canonical'||s.version!==1||s.repository!==REPO||s.goalId!==GOAL||!Number.isSafeInteger(s.revision)||s.revision<1||!(/^[a-f0-9]{40}$/.test(s.observedHead))||!(s.previousDigest===null||/^[a-f0-9]{64}$/.test(s.previousDigest)))throw Error('SNAPSHOT_IDENTITY_INVALID');
  if((s.revision===1)!==(s.previousDigest===null))throw Error('REVISION_CHAIN_INVALID');
  const w=s.state;
@@ -31,6 +31,7 @@ export function validateSnapshot(s){
  if(s.evidenceReferences.length!==PROBES.length)throw Error('EVIDENCE_REFERENCE_CHANGED');
  [w.objective,w.currentState,w.nextAction,...w.constraints,...w.blockers].forEach(safeText);
  for(const t of [s.updatedAt,w.updatedAt])if(!Number.isFinite(Date.parse(t)))throw Error('INVALID_DATE');
+ if(s.productPosition!==undefined)validateProductPosition(s.productPosition);
  if(JSON.stringify(s).length>32000)throw Error('SNAPSHOT_TOO_LARGE');
  return s;
 }
@@ -46,7 +47,7 @@ export async function loadCore(){
  return { ...(await import('../vendor/compass/src/compass/store.ts')),...(await import('../vendor/compass/src/orchestrator/completion-path.ts')) };
 }
 export async function getPublic(path){
- if(!/^pulls\/65$|^actions\/runs\/\d+(\/jobs\?per_page=100)?$/.test(path))throw Error('API_PATH_NOT_ALLOWED');
+ if(!/^pulls\/(65|69|71|72)$|^issues\/(67|68)$|^actions\/runs\?head_sha=[a-f0-9]{40}&per_page=100$|^actions\/runs\/\d+(\/jobs\?per_page=100)?$/.test(path))throw Error('API_PATH_NOT_ALLOWED');
  const response=await fetch('https://api.github.com/repos/'+REPO+'/'+path,{headers:{Accept:'application/vnd.github+json'},redirect:'error',signal:AbortSignal.timeout(15000)});
  if(!response.ok)throw Error('EVIDENCE_UNAVAILABLE_'+response.status);
  const text=await response.text();if(text.length>500000)throw Error('API_RESPONSE_TOO_LARGE');
@@ -85,6 +86,89 @@ export async function assess(snapshot,{expectedHead,client=getPublic,now=new Dat
  if(finalPr.head?.sha!==expectedHead)throw Error('EXECUTION_HEAD_CHANGED');
  return {kind:'race-compass-assessment',sourceSnapshotDigest:digest(snapshot),executionHead:expectedHead,assessedAt:now,status:'BLOCKED',historicalVerifiedCriteria:cycle.verifiedCriteria,currentProductVerified:false,artifactContentVerified:false,errors,observations,cycle,automaticWriteback:false};
 }
+
+const PRODUCT_GOAL='haji84/RACE-AI:issue-67';
+const PRODUCT_CHECKS=[{"number":69,"workflow":".github/workflows/four-sport-synthetic.yml","event":"pull_request","checks":[{"job":"Synthetic E2E (ubuntu-24.04)","steps":["Test odds isolation, deadlines and recovery (synthetic only)","Run four sport synthetic vertical E2E"]},{"job":"Synthetic E2E (windows-2022)","steps":["Test odds isolation, deadlines and recovery (synthetic only)","Run four sport synthetic vertical E2E"]}]},{"number":71,"workflow":".github/workflows/forecast-audit-ui.yml","event":"pull_request","checks":[{"job":"Viewer audit contract","steps":["Node contract and denominator tests","Python synthetic journal to viewer projection tests"]}]},{"number":72,"workflow":".github/workflows/offline-discovery-audit.yml","event":"pull_request","checks":[{"job":"offline_audit_tests","steps":["Offline regression suite","Cross-branch PR71 model-delivery to PR72 source binding (synthetic)"]}]}];
+const FINAL_IDS=['all-races','future-98','pdca','honest-state','safety','ui','research-models'];
+const MILESTONES=['M0','M1','M2','M3','M4'];
+function same(a,b){return JSON.stringify(a)===JSON.stringify(b);}
+function boundedList(x,max=32){if(!Array.isArray(x)||x.length>max)throw Error('PRODUCT_LIST_INVALID');}
+function validTime(t){return typeof t==='string'&&Number.isFinite(Date.parse(t));}
+function owners(x){boundedList(x,3);if(!x.length||new Set(x).size!==x.length||x.some(n=>![69,71,72].includes(n)))throw Error('PRODUCT_OWNER_INVALID');}
+export function validateProductPosition(p){
+ exactKeys(p,['goalId','sourceIssues','observedAt','mappingIdAuthority','acceptanceStatus','currentProductVerified','measuredHitAt8All','finalRequirements','milestones','pullRequests','nextActions','automaticWriteback']);
+ if(p.goalId!==PRODUCT_GOAL||p.acceptanceStatus!=='BLOCKED'||p.currentProductVerified!==false||p.measuredHitAt8All!==null||p.automaticWriteback!==false||!validTime(p.observedAt))throw Error('PRODUCT_SELF_CERTIFICATION_REJECTED');
+ safeText(p.mappingIdAuthority);
+ for(const key of ['sourceIssues','finalRequirements','milestones','pullRequests','nextActions'])boundedList(p[key]);
+ if(!same(p.sourceIssues.map(x=>x.number),[67,68])||!same(p.finalRequirements.map(x=>x.id),FINAL_IDS)||!same(p.milestones.map(x=>x.id),MILESTONES)||!same(p.pullRequests.map(x=>x.number),[69,71,72]))throw Error('PRODUCT_COVERAGE_CHANGED');
+ for(const s of p.sourceIssues){exactKeys(s,['number','updatedAt','bodyDigest']);if(!validTime(s.updatedAt)||!/^[a-f0-9]{64}$/.test(s.bodyDigest))throw Error('SOURCE_PIN_INVALID');}
+ for(const r of p.finalRequirements){exactKeys(r,['id','summary','status']);safeText(r.summary);if(r.status!=='UNVERIFIED')throw Error('PRODUCT_SELF_CERTIFICATION_REJECTED');}
+ for(const m of p.milestones){
+  exactKeys(m,['id','summary','acceptanceStatus','owners','files','gaps','dependsOn']);safeText(m.summary);owners(m.owners);
+  if(m.acceptanceStatus!=='BLOCKED')throw Error('PRODUCT_SELF_CERTIFICATION_REJECTED');
+  boundedList(m.files);boundedList(m.gaps);boundedList(m.dependsOn,5);
+  if(!m.files.length||!m.gaps.length||m.dependsOn.some(id=>!MILESTONES.includes(id)||MILESTONES.indexOf(id)>=MILESTONES.indexOf(m.id)))throw Error('PRODUCT_DEPENDENCY_INVALID');
+  m.gaps.forEach(safeText);
+  for(const path of m.files)if(typeof path!=='string'||path.includes('..')||!/^([a-zA-Z0-9_.-]+\/)*[a-zA-Z0-9_.-]+$/.test(path))throw Error('PRODUCT_PATH_INVALID');
+ }
+ for(const pr of p.pullRequests){
+  exactKeys(pr,['number','head','branch','base','baseHead','draft','state','runId','workflow','event','checks']);
+  const expected=PRODUCT_CHECKS.find(x=>x.number===pr.number);
+  if(!/^[a-f0-9]{40}$/.test(pr.head)||!/^[a-f0-9]{40}$/.test(pr.baseHead)||pr.draft!==true||pr.state!=='open'||!Number.isSafeInteger(pr.runId)||pr.runId<1||pr.workflow!==expected.workflow||pr.event!==expected.event||!same(pr.checks,expected.checks))throw Error('PRODUCT_CONTRACT_PIN_INVALID');
+  [pr.branch,pr.base].forEach(safeText);
+ }
+ const seen=[];
+ for(const a of p.nextActions){
+  exactKeys(a,['id','owners','dependsOn','action']);[a.id,a.action].forEach(safeText);owners(a.owners);boundedList(a.dependsOn);
+  if(seen.includes(a.id)||a.dependsOn.some(id=>!seen.includes(id)))throw Error('PRODUCT_ACTION_DAG_INVALID');seen.push(a.id);
+ }
+ if(!p.nextActions.length)throw Error('PRODUCT_NEXT_ACTION_MISSING');
+ return p;
+}
+export async function assessProductPosition(position,{client=getPublic,now=new Date().toISOString()}={}){
+ validateProductPosition(position);
+ if(!validTime(now)||Date.parse(position.observedAt)>Date.parse(now))throw Error('PRODUCT_OBSERVATION_TIME_INVALID');
+ const errors=[],observations=[],contractVerifiedPRs=[];
+ let sourcesCurrent=true;
+ for(const s of position.sourceIssues){
+  try{
+   const live=await client('issues/'+s.number);
+   if(live.number!==s.number||live.html_url!=='https://github.com/'+REPO+'/issues/'+s.number||live.updated_at!==s.updatedAt||digest(live.body)!==s.bodyDigest)throw Error('SOURCE_CHANGED_REMAP_REQUIRED');
+  }catch(e){sourcesCurrent=false;errors.push('issue'+s.number+':'+e.message);}
+ }
+ for(const p of position.pullRequests){
+  try{
+   const match=pr=>pr.number===p.number&&pr.head?.sha===p.head&&pr.head?.ref===p.branch&&pr.head?.repo?.full_name===REPO&&pr.base?.repo?.full_name===REPO&&pr.base?.ref===p.base&&pr.base?.sha===p.baseHead&&pr.state==='open'&&pr.draft===true&&pr.merged===false;
+   if(!match(await client('pulls/'+p.number)))throw Error('PRODUCT_PR_CHANGED');
+   const listing=await client('actions/runs?head_sha='+p.head+'&per_page=100');
+   if(!Array.isArray(listing.workflow_runs)||listing.total_count!==listing.workflow_runs.length||listing.total_count>100)throw Error('PRODUCT_RUN_LIST_INCOMPLETE');
+   const latest=listing.workflow_runs.filter(r=>r.path===p.workflow&&r.head_sha===p.head).sort((a,b)=>b.id-a.id)[0];
+   if(!latest||latest.id!==p.runId||latest.status!=='completed'||latest.conclusion!=='success'||latest.run_attempt!==1)throw Error('PRODUCT_LATEST_RUN_CHANGED');
+   const run=await client('actions/runs/'+p.runId),jobs=await client('actions/runs/'+p.runId+'/jobs?per_page=100');
+   if(run.id!==p.runId||run.head_sha!==p.head||run.head_branch!==p.branch||run.repository?.full_name!==REPO||run.path!==p.workflow||run.event!==p.event||run.run_attempt!==1||run.status!=='completed'||run.conclusion!=='success')throw Error('PRODUCT_RUN_INVALID');
+   if(!validTime(run.updated_at)||Date.parse(run.updated_at)>Date.parse(now))throw Error('PRODUCT_RUN_TIME_INVALID');
+   if(!Array.isArray(jobs.jobs)||jobs.total_count!==jobs.jobs.length||jobs.total_count>100)throw Error('PRODUCT_JOBS_INCOMPLETE');
+   const requiredJobs=[];
+   for(const c of p.checks){
+    const matches=jobs.jobs.filter(j=>j.name===c.job);if(matches.length!==1)throw Error('PRODUCT_JOB_MISSING');
+    const job=matches[0];
+    if(job.run_id!==p.runId||job.head_sha!==p.head||job.status!=='completed'||job.conclusion!=='success')throw Error('PRODUCT_JOB_NOT_SUCCESS');
+    for(const name of c.steps){const steps=job.steps?.filter(s=>s.name===name);if(steps?.length!==1||steps[0].status!=='completed'||steps[0].conclusion!=='success')throw Error('PRODUCT_STEP_NOT_EXECUTED');}
+    requiredJobs.push({jobId:job.id,name:job.name,steps:c.steps});
+   }
+   if(!match(await client('pulls/'+p.number)))throw Error('PRODUCT_PR_CHANGED');
+   const facts={repository:REPO,pr:p.number,head:p.head,baseHead:p.baseHead,runId:p.runId,workflow:p.workflow,requiredJobs,recordedAt:run.updated_at};
+   observations.push({issuer:ISSUER,kind:'synthetic-contract-metadata',facts,digest:digest(facts),observedAt:now,artifactContentVerified:false});
+   if(sourcesCurrent)contractVerifiedPRs.push(p.number);
+  }catch(e){errors.push('PR'+p.number+':'+e.message);}
+ }
+ // Recheck source revisions after collecting PR receipts, too.
+ for(const s of position.sourceIssues){try{const live=await client('issues/'+s.number);if(live.updated_at!==s.updatedAt||digest(live.body)!==s.bodyDigest)throw Error('SOURCE_CHANGED_REMAP_REQUIRED');}catch(e){sourcesCurrent=false;errors.push('issue'+s.number+':'+e.message);}}
+ if(!sourcesCurrent)contractVerifiedPRs.length=0;
+ // No accepted product evidence is generated from contract tests.
+ return {goalId:PRODUCT_GOAL,sourceSnapshotDigest:digest(position),assessedAt:now,sourcesCurrent,contractVerifiedPRs,observations,errors,acceptanceStatus:'BLOCKED',currentProductVerified:false,measuredHitAt8All:null,executionAuthority:false,automaticWriteback:false,milestones:position.milestones.map(m=>({id:m.id,acceptanceStatus:'BLOCKED',implementationStatus:m.owners.every(n=>contractVerifiedPRs.includes(n))?'CONTRACT_VERIFIED':'UNVERIFIED',gaps:clone(m.gaps)})),nextActions:clone(position.nextActions)};
+}
+
 export async function importCanonical(dbPath,snapshot,{expectedDigest,expectedRevision,previousDigest=null,bootstrap=false}){
  validateSnapshot(snapshot);
  if(basename(dbPath)!=='race-compass.sqlite'||dbPath===':memory:')throw Error('DEDICATED_RACE_DB_REQUIRED');
@@ -100,6 +184,7 @@ export async function importCanonical(dbPath,snapshot,{expectedDigest,expectedRe
    if(old){
     if(old.raceCanonical?.digest===expectedDigest)return active;
     if(previousDigest!==old.raceCanonical?.digest||snapshot.previousDigest!==previousDigest||snapshot.revision!==old.raceCanonical.snapshot.revision+1)throw Error('STALE_CANONICAL_UPDATE');
+    if(old.raceCanonical.snapshot.productPosition&&!snapshot.productPosition)throw Error('PRODUCT_POSITION_LOSS');
     for(const d of old.state.decisions)if(!snapshot.state.decisions.some(x=>JSON.stringify(x)===JSON.stringify(d)))throw Error('DECISION_HISTORY_LOSS');
    } else if(previousDigest!==null || (snapshot.revision!==1 && !bootstrap))throw Error('EXPLICIT_TRUSTED_BOOTSTRAP_REQUIRED');
    const envelope={kind:'gai-work-state',version:1,goalId:GOAL,state:clone(snapshot.state),events:[...(old?.events??[]),{id:'snapshot-'+expectedDigest,at:snapshot.updatedAt,type:'canonical-import',summary:'Imported sanitized RACE canonical revision '+snapshot.revision}],completionAdvisory:[],raceCanonical:{digest:expectedDigest,snapshot:clone(snapshot)}};
@@ -127,6 +212,8 @@ async function cli(){
   const s=JSON.parse(readFileSync(path,'utf8')),a=await assess(s,{expectedHead:dbOrHead});writeFileSync(out,JSON.stringify(a,null,2)+'\n');
   console.log(JSON.stringify({status:a.status,historicalEvidenceStatus:a.errors.length?'BLOCKED':'VERIFIED_HISTORICAL_ONLY',historicalVerifiedCriteria:a.historicalVerifiedCriteria,errors:a.errors,currentProductVerified:false,automaticWriteback:false}));
   // Historical observation/network failures are an advisory BLOCKED result, not a reason to break unrelated future CI. Schema/head mismatches still throw.
+ }else if(mode==='product'){
+ const s=JSON.parse(readFileSync(path,'utf8'));validateSnapshot(s);const a=await assessProductPosition(s.productPosition);writeFileSync(dbOrHead,JSON.stringify(a,null,2)+'\n');console.log(JSON.stringify(a));
  }else throw Error('usage: import SNAPSHOT DB | export DB OUTPUT | assess SNAPSHOT EXPECTED_HEAD OUTPUT');
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url))cli().catch(e=>{console.error(e.message);process.exitCode=1;});

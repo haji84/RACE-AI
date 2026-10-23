@@ -3,10 +3,10 @@
   "version": 1,
   "repository": "haji84/RACE-AI",
   "goalId": "haji84/RACE-AI:pr65-development-context",
-  "revision": 2,
-  "previousDigest": "0d107fdcaf38e68f07e2eed07beafb3b2d8e3e36b13f3cf79cbc81181f52b282",
-  "observedHead": "4de53c4e1bb24210a53da628edb1935f0d5beb37",
-  "updatedAt": "2026-10-23T09:38:37Z",
+  "revision": 3,
+  "previousDigest": "f9de8125f74113b3dbac344b74f492e5c18909d1f79986bc530b891f61f14680",
+  "observedHead": "a5092aa44bc88ffdee59de6fe430c5249b2a5710",
+  "updatedAt": "2026-10-23T10:00:00Z",
   "state": {
     "goalId": "haji84/RACE-AI:pr65-development-context",
     "objective": "Preserve the bounded PR65 development checkpoint and evidence; the full product goal remains separately defined by issue 67.",
@@ -32,7 +32,7 @@
         "required": true
       }
     ],
-    "currentState": "Existing Compass adapter verified at 4de53c4e1bb24210a53da628edb1935f0d5beb37: eight tests, real SQLite import/new-process reopen/export equality, and three historical probe observations. This checkpoint is not a complete mapping of issue 67 product requirements. Full regression run39932267547 passed on Ubuntu and Windows (Python1141, Node203 and Node8 each; merge-ref test). Latest observed PR71 head67976afcd2599e0d50bc62b6d45bd7756f2e5435 and PR72 headb4776de5d24c7cc9b2531c1c12122fbd41fb00da have passing contract CI, remain draft on PR69's branch, not integrated into main and not real-race outcome evidence.",
+    "currentState": "Bounded Compass checkpoint runtime verified at a5092aa with nine adapter tests and cross-process SQLite roundtrip. Product position now maps issue67/68 to existing PR69/71/72 and their exact-head synthetic contract receipts. All product milestone acceptance remains BLOCKED; real all-target outcomes and main/runtime integration are unverified.",
     "status": "BLOCKED",
     "riskClass": "R1",
     "constraints": [
@@ -70,6 +70,12 @@
         "summary": "Reuse PR71 model/view/input handoff and PR72 discovery ledger/independent audit under parent PR69.",
         "rationale": "Observed contract CI39932043998 and39931252639 passed at distinct current heads; synthetic/contract success does not establish real product acceptance.",
         "at": "2026-10-23T09:38:37Z"
+      },
+      {
+        "id": "full-product-position-mapping",
+        "summary": "Maintain issue67 full acceptance and M0-M4 alongside the bounded checkpoint in the same canonical snapshot.",
+        "rationale": "Existing PR69/71/72 contract tests and source pins support a development position map, never product acceptance. Preserve historical probes and avoid duplicate implementation.",
+        "at": "2026-10-23T10:00:00Z"
       }
     ],
     "artifacts": [
@@ -141,8 +147,8 @@
       "Automatic canonical-state writeback and autonomous next-run launch are not connected.",
       "Full product acceptance and main integration remain unverified."
     ],
-    "nextAction": "Map the full issue67 M0-M4 and top-level acceptance criteria to current PR69/71/72 head-specific evidence, reusing existing owners. Enumerate missing rights, official deadlines/stable IDs/pre-race features, externally timestamped immutable freeze/readback and official result-revision evidence. Return dependency-ordered gaps to existing work instead of creating duplicate adapters/models/PRs. Automatic state writeback and next-run launch remain separate unconnected capabilities.",
-    "updatedAt": "2026-10-23T09:38:37Z"
+    "nextAction": "Use productPosition dependency-ordered actions: source-specific rights and real input evidence, existing freeze/readback and official result revision verification, then reviewed integration/runtime acceptance and prospective comparison. Preserve current PR owners; no new engine or duplicate adapter. Automatic canonical writeback and next-run dispatch remain unconnected.",
+    "updatedAt": "2026-10-23T10:00:00Z"
   },
   "evidenceReferences": [
     {
@@ -160,5 +166,306 @@
       "runId": 39929456215,
       "head": "86f1be3c96e3a7e7dc529eb6c55748a827eb7779"
     }
-  ]
+  ],
+  "productPosition": {
+    "goalId": "haji84/RACE-AI:issue-67",
+    "sourceIssues": [
+      {
+        "number": 67,
+        "updatedAt": "2026-10-23T09:31:12Z",
+        "bodyDigest": "fa94f10ff70e0918e4af4bf029b56663d300d14f6de20660d68cba15617b5af5"
+      },
+      {
+        "number": 68,
+        "updatedAt": "2026-10-23T00:45:50Z",
+        "bodyDigest": "4170de72a246b33a3ee8f6487285eda72a334467701249f7aebc0184bffeeb4e"
+      }
+    ],
+    "observedAt": "2026-10-23T09:57:00Z",
+    "mappingIdAuthority": "adapter-local mapping IDs; M0-M4 are source milestone labels",
+    "acceptanceStatus": "BLOCKED",
+    "currentProductVerified": false,
+    "measuredHitAt8All": null,
+    "finalRequirements": [
+      {
+        "id": "all-races",
+        "summary": "All four sports and all meetings/races, official cutoff ordering, permitted pre-race evidence and immutable external-timestamped Top8 freeze.",
+        "status": "UNVERIFIED"
+      },
+      {
+        "id": "future-98",
+        "summary": "Unseen future Hit@8_all >=98%; all officially evaluable races remain in denominator including no forecast, skips and late runs; sport counts and confidence intervals.",
+        "status": "UNVERIFIED"
+      },
+      {
+        "id": "pdca",
+        "summary": "Same future races compare current/candidate models with leak-free chronology, official result revisions, adoption and rollback evidence.",
+        "status": "UNVERIFIED"
+      },
+      {
+        "id": "honest-state",
+        "summary": "Show final goal unmet until all acceptance criteria hold; synthetic CI, one real E2E, 300 races or merged PR alone never complete the goal.",
+        "status": "UNVERIFIED"
+      },
+      {
+        "id": "safety",
+        "summary": "Use purpose-specific permitted sources only; no fabricated missing inputs or odds-derived training/ranking features; purchase and simulations separate.",
+        "status": "UNVERIFIED"
+      },
+      {
+        "id": "ui",
+        "summary": "Four-sport tabs, hit/miss/no-forecast filters, time/payout/model sorting, model comparisons, rationale/source links and official revision history.",
+        "status": "UNVERIFIED"
+      },
+      {
+        "id": "research-models",
+        "summary": "Source/time/rights-aware feature registry, interaction/scenario/temporal models with chronological train/validation/unseen future split and independently frozen model outputs.",
+        "status": "UNVERIFIED"
+      }
+    ],
+    "milestones": [
+      {
+        "id": "M0",
+        "summary": "Source rights, costs and permitted acquisition coverage",
+        "acceptanceStatus": "BLOCKED",
+        "owners": [
+          69,
+          71,
+          72
+        ],
+        "files": [
+          "docs/SOURCE_PERMISSION_MATRIX.md",
+          "docs/P0_PROVIDER_RIGHTS_AND_FREEZE_GATE_20261022.md",
+          "race_ai/operator_export_intake.py",
+          "race_ai/permissioned_source_delivery.py"
+        ],
+        "gaps": [
+          "Actual sport/use/frequency/storage/training/publication rights evidence remains missing; contracts do not create permission."
+        ],
+        "dependsOn": []
+      },
+      {
+        "id": "M1",
+        "summary": "All-race ledger, stable identity, pre-cutoff evidence and durable freeze",
+        "acceptanceStatus": "BLOCKED",
+        "owners": [
+          69,
+          71,
+          72
+        ],
+        "files": [
+          "race_ai/discovery_reconcile.py",
+          "race_ai/actions_contract.py",
+          "race_ai/actions_store.py",
+          "race_ai/discovery_audit_cli.py",
+          "race_ai/nar_daily_bundle_audit.py",
+          "race_ai/pr71_delivery_binding.py",
+          "race_ai/race_bound_freeze_receipt.py",
+          "race_ai/cutoff_job_queue.py",
+          "race_ai/github_freeze_receipt.py",
+          "race_ai/nar_model_handoff.py"
+        ],
+        "gaps": [
+          "All four sports' real discovery coverage and official deadlines unverified.",
+          "Permitted real inputs and stable IDs, real writer to pre-cutoff external anchor to same-SHA readback unverified."
+        ],
+        "dependsOn": [
+          "M0"
+        ]
+      },
+      {
+        "id": "M2",
+        "summary": "Odds-independent all-valid-trifecta Top8 and official result revisions",
+        "acceptanceStatus": "BLOCKED",
+        "owners": [
+          69,
+          71,
+          72
+        ],
+        "files": [
+          "race_ai/actions_contract.py",
+          "race_ai/synthetic_e2e.py",
+          "race_ai/four_sport_model_suite.py",
+          "race_ai/comprehensive_four_sport_models.py",
+          "race_ai/four_sport_matchup_models.py",
+          "race_ai/nar_official_payback_adapter.py",
+          "race_ai/nar_payback_adapter.py"
+        ],
+        "gaps": [
+          "Real permitted Top8 freeze and official results/revisions/payout reconciliation unverified.",
+          "No-forecast races must remain in all-evaluable denominator; real outcome rate unmeasured."
+        ],
+        "dependsOn": [
+          "M1"
+        ]
+      },
+      {
+        "id": "M3",
+        "summary": "Continued operation, recovery, result UI and daily PDCA",
+        "acceptanceStatus": "BLOCKED",
+        "owners": [
+          69,
+          71
+        ],
+        "files": [
+          ".github/workflows/four-sport-synthetic.yml",
+          "race_ai/actions_store.py",
+          "race_ai/audit_projection.py",
+          "race_ai/verified_event_projection.py",
+          "web/forecast-audit.html",
+          "web/forecast-audit.js",
+          "web/forecast-audit-model.js",
+          "web/forecast-audit.css"
+        ],
+        "gaps": [
+          "Periodic real runs, real failure recovery, automatic result refresh, daily PDCA and integrated runtime unverified.",
+          "PR65 continuation and model probes remain bounded trials, not a general product executor."
+        ],
+        "dependsOn": [
+          "M1",
+          "M2"
+        ]
+      },
+      {
+        "id": "M4",
+        "summary": "Forward 300-plus races, sport breakdown and A/B adoption/rollback",
+        "acceptanceStatus": "BLOCKED",
+        "owners": [
+          71
+        ],
+        "files": [
+          "race_ai/four_sport_learning.py",
+          "race_ai/four_sport_model_suite.py",
+          "docs/BOAT_MULTI_MODEL_PROSPECTIVE_PDCA_20261022.md",
+          "docs/FOUR_SPORT_COMPREHENSIVE_MODELS_V1_20261023.md"
+        ],
+        "gaps": [
+          "Permitted real training and prospective unseen race comparison missing; research code is not accepted runtime.",
+          "300 samples alone never establishes the final all-target 98-percent goal."
+        ],
+        "dependsOn": [
+          "M2",
+          "M3"
+        ]
+      }
+    ],
+    "pullRequests": [
+      {
+        "number": 69,
+        "head": "bca59ebc5c7174e79d2dba027a97890f5d0d3d1f",
+        "branch": "codex/actions-four-sport-e2e",
+        "base": "main",
+        "baseHead": "8bb7d69f9c8fb302055bc9e2609903d1e8f73e4b",
+        "draft": true,
+        "state": "open",
+        "runId": 39696481097,
+        "workflow": ".github/workflows/four-sport-synthetic.yml",
+        "event": "pull_request",
+        "checks": [
+          {
+            "job": "Synthetic E2E (ubuntu-24.04)",
+            "steps": [
+              "Test odds isolation, deadlines and recovery (synthetic only)",
+              "Run four sport synthetic vertical E2E"
+            ]
+          },
+          {
+            "job": "Synthetic E2E (windows-2022)",
+            "steps": [
+              "Test odds isolation, deadlines and recovery (synthetic only)",
+              "Run four sport synthetic vertical E2E"
+            ]
+          }
+        ]
+      },
+      {
+        "number": 71,
+        "head": "67976afcd2599e0d50bc62b6d45bd7756f2e5435",
+        "branch": "feat/four-sport-forecast-audit-view-20261022",
+        "base": "codex/actions-four-sport-e2e",
+        "baseHead": "070907dd335f1e0d64d31b49c2bb799e54010be3",
+        "draft": true,
+        "state": "open",
+        "runId": 39932043998,
+        "workflow": ".github/workflows/forecast-audit-ui.yml",
+        "event": "pull_request",
+        "checks": [
+          {
+            "job": "Viewer audit contract",
+            "steps": [
+              "Node contract and denominator tests",
+              "Python synthetic journal to viewer projection tests"
+            ]
+          }
+        ]
+      },
+      {
+        "number": 72,
+        "head": "b4776de5d24c7cc9b2531c1c12122fbd41fb00da",
+        "branch": "feat/p0-offline-discovery-gate-20261022",
+        "base": "codex/actions-four-sport-e2e",
+        "baseHead": "bca59ebc5c7174e79d2dba027a97890f5d0d3d1f",
+        "draft": true,
+        "state": "open",
+        "runId": 39931252639,
+        "workflow": ".github/workflows/offline-discovery-audit.yml",
+        "event": "pull_request",
+        "checks": [
+          {
+            "job": "offline_audit_tests",
+            "steps": [
+              "Offline regression suite",
+              "Cross-branch PR71 model-delivery to PR72 source binding (synthetic)"
+            ]
+          }
+        ]
+      }
+    ],
+    "nextActions": [
+      {
+        "id": "rights-and-inputs",
+        "owners": [
+          69,
+          71,
+          72
+        ],
+        "dependsOn": [],
+        "action": "Reuse existing source matrices and input handoff; enumerate and resolve source-specific rights, official deadlines/stable IDs and required pre-race features; continue permitted independent work."
+      },
+      {
+        "id": "freeze-and-results",
+        "owners": [
+          71,
+          72
+        ],
+        "dependsOn": [
+          "rights-and-inputs"
+        ],
+        "action": "Reuse current writer/readback contracts to obtain actual pre-cutoff immutable external freeze and official revised-result evidence; do not duplicate adapters."
+      },
+      {
+        "id": "integration-runtime",
+        "owners": [
+          69,
+          71,
+          72
+        ],
+        "dependsOn": [
+          "freeze-and-results"
+        ],
+        "action": "Reconcile stacked bases and exact-head CI/review, then separately authorized integration/runtime acceptance; no implicit merge or deployment authority."
+      },
+      {
+        "id": "future-evaluation",
+        "owners": [
+          71
+        ],
+        "dependsOn": [
+          "integration-runtime"
+        ],
+        "action": "Run predeclared all-target future comparison and report missing forecasts, per-sport counts and confidence intervals; keep 98-percent goal unverified until measured."
+      }
+    ],
+    "automaticWriteback": false
+  }
 }
