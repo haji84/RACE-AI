@@ -198,7 +198,7 @@ class BProgramBridgeTests(unittest.TestCase):
             stage_official_b_handoff(handoff,approved_policy(),now=AT,race_id=RACE)
         handoff=b_handoff()
         handoff["extract"]["date_jst"]="2030-01-16"
-        with self.assertRaisesRegex(SourceDeliveryError,"identity/preview"):
+        with self.assertRaisesRegex(SourceDeliveryError,"does not match JST program day"):
             stage_official_b_handoff(handoff,approved_policy(),now=AT,race_id=RACE)
 
     def test_tampered_staging_hash_is_rejected(self):
