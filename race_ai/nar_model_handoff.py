@@ -114,6 +114,8 @@ def link_nar_stage_to_features(stage, normalized_feed_bytes, identity_witness,
     if _time(stage["observed_at_claimed"], "NAR observation") > _time(race["as_of"], "model as_of"):
         _error("model snapshot predates NAR source observation")
 
+    _reject_market(identity_witness)
+    _reject_market(cutoff_witness)
     if (not isinstance(identity_witness, dict) or
         set(identity_witness) != {"schema", "race_id", "horses", "source_ref",
                                  "source_rights_ref", "published_at", "captured_at"} or
@@ -127,8 +129,6 @@ def link_nar_stage_to_features(stage, normalized_feed_bytes, identity_witness,
         cutoff_witness["schema"] != CUTOFF_SCHEMA or
         cutoff_witness["race_id"] != stage["race_id"]):
         _error("NAR cutoff witness missing or wrong race")
-    _reject_market(identity_witness)
-    _reject_market(cutoff_witness)
     _provenance(identity_witness, policy=policy, at=at,
                 snapshot_as_of=race["as_of"])
     _provenance(cutoff_witness, policy=policy, at=at,
