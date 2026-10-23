@@ -120,3 +120,9 @@ test('committed latest canonical revision can bootstrap and roundtrip with its a
  try{validateSnapshot(s);await importCanonical(path,s,{expectedDigest:digest(s),expectedRevision:s.revision,bootstrap:true});assert.deepEqual(await exportCanonical(path),s);}
  finally{rmSync(dir,{recursive:true,force:true});}
 });
+
+import * as adapter from '../scripts/race-compass-adapter.mjs';
+test('whole product position validation is implemented separately from historical probes',()=>{
+ assert.equal(typeof adapter.validateProductPosition,'function');
+ assert.equal(typeof adapter.assessProductPosition,'function');
+});
