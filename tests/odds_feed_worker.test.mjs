@@ -94,6 +94,26 @@ test("private health proves D1 binding but reports zero real races when empty",a
    new Request("https://preview.invalid/health"),e);
  assert.equal(unauth.status,403);
 });
+test("existing full-market iPhone viewer and CSS are served only to Access owner",async()=>{
+ const e=env();
+ const url="https://preview.invalid/full-odds.html?race_id=20300115-01-01";
+ const anon=await worker.fetch(new Request(url),e);
+ assert.equal(anon.status,403);
+ const html=await worker.fetch(new Request(url),e,ACCESS);
+ assert.equal(html.status,200);
+ assert.match(html.headers.get("content-type"),/text\/html/);
+ const markup=await html.text();
+ assert.match(markup,/全3連単オッズ/);
+ assert.match(markup,/full-odds-model\.js/);
+ assert.match(markup,/full-odds\.js/);
+ const model=await worker.fetch(new Request("https://preview.invalid/full-odds-model.js"),e,ACCESS);
+ assert.equal(model.status,200);
+ assert.match(await model.text(),/RACE_AI_FULL_TRIFECTA_ODDS_V1/);
+ const css=await worker.fetch(new Request("https://preview.invalid/full-odds.css"),e,ACCESS);
+ assert.equal(css.status,200);
+ assert.match(css.headers.get("content-type"),/text\/css/);
+ assert.equal((await worker.fetch(new Request("https://preview.invalid/full-odds.js?bad=1"),e,ACCESS)).status,404);
+});
 test("private source approval ref and secret must both match",async()=>{
  const e=env();
  const noRights=await worker.fetch(post(fixture(),"wrong"),e,ACCESS);
