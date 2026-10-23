@@ -97,6 +97,8 @@ def forecast(snapshot,model,*,allow_source=None):
         raise ModelInputError("model version/sport/features conflict")
     if model.get("trained_scope")!=snapshot["scope"]:
         raise ModelInputError("training source scope differs")
+    if model.get("model_sha256") != digest({k:v for k,v in model.items() if k!="model_sha256"}):
+        raise ModelInputError("learned model integrity mismatch")
     if moment(race["as_of"])<=moment(model["trained_until"]):
         raise ModelInputError("prediction must follow training cutoff")
     weights=model.get("weights")
