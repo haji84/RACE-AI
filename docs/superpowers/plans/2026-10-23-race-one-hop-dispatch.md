@@ -13,3 +13,5 @@ Pure injected-API protocol dispatchOnce validates source event/head/branch/actor
 4. Observe exact source/child run provenance, synthetic resume and terminal success or exact blocker. Do not retry uncertain dispatch.
 ## Completion
 Automatic single-hop triggering is separate from generic autonomous AI development and durable canonical writeback. Main/default workflow absence may still be an API feasibility blocker, to be tested rather than assumed.
+
+Step1 RED observed at470efeab6cec1c2f37754c8341e8844d9436998e, run39937967552: missing protocol interface assertion failed, existing mock8 passed. Preparation adds tested injected-API protocol plus disabled producer/dispatcher; dispatcher remains actions:read until separately reviewed activation diff. Receiver only actions:read/contents:read, validates complete source/chain/artifact and actual archive digest before bounded extraction and existing mock resume. No checkout in privileged sender. Next: independent review of preparation and final activation-only diff.

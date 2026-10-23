@@ -1,4 +1,5 @@
 name: completion-controller-pilot
+run-name: ${{ github.event_name == 'workflow_dispatch' && format('race-one-hop-{0}', inputs.source_run_id) || github.event.pull_request.title }}
 on:
   pull_request:
     paths:
@@ -19,6 +20,25 @@ on:
       - config/completion-pilot.json
       - .github/workflows/completion-controller-pilot.yml
   workflow_dispatch:
+    inputs:
+      chain_id:
+        required: true
+        type: string
+      source_run_id:
+        required: true
+        type: string
+      source_head:
+        required: true
+        type: string
+      artifact_id:
+        required: true
+        type: string
+      artifact_digest:
+        required: true
+        type: string
+      remaining_hops:
+        required: true
+        type: string
 permissions:
   contents: read
   pull-requests: read
@@ -291,3 +311,225 @@ jobs:
       - name: Confirm canonical file was not changed and no automatic writeback occurred
         if: always()
         run: git diff --exit-code -- docs/state/race-compass-state.json
+
+  dispatch-checkpoint:
+    if: ${{ false }}
+    needs: [pilot, compass-adapter]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+      artifact-digest: ${{ steps.upload.outputs.artifact-digest }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Produce only an interrupted synthetic checkpoint
+        env:
+          SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          set +e
+          node scripts/completion-mock-trial.mjs --state-dir "$RUNNER_TEMP/one-hop" --crash-after-result fixture-a
+          result=$?
+          set -e
+          test "$result" = 43
+          mkdir "$RUNNER_TEMP/one-hop-portable"
+          cp "$RUNNER_TEMP/one-hop/"{state.json,result-fixture-a.json,effects.jsonl} "$RUNNER_TEMP/one-hop-portable/"
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const hash=p=>createHash('sha256').update(readFileSync(p)).digest('hex');
+          const root=process.env.RUNNER_TEMP+'/one-hop-portable/';
+          const names=['state.json','result-fixture-a.json','effects.jsonl'];
+          writeFileSync(root+'manifest.json',JSON.stringify({kind:'ONE_HOP_SYNTHETIC_CHECKPOINT_V1',source_run:process.env.GITHUB_RUN_ID,source_head:process.env.SOURCE_HEAD,source_attempt:'1',chain_id:'race-one-hop-'+process.env.GITHUB_RUN_ID,runner_sha256:hash('scripts/completion-mock-trial.mjs'),files:Object.fromEntries(names.map(n=>[n,hash(root+n)]))}));
+          NODE
+      - id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: one-hop-checkpoint-${{ github.run_id }}
+          path: ${{ runner.temp }}/one-hop-portable/
+          retention-days: 1
+          if-no-files-found: error
+
+  dispatch-next-trial:
+    if: ${{ false }}
+    needs: [pilot, compass-adapter, dispatch-checkpoint]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    env:
+      EXPECTED_RUN_NUMBER: '0'
+      PREPARED_PARENT: '0000000000000000000000000000000000000000'
+      SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
+      HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+      BASE_REPOSITORY: ${{ github.event.pull_request.base.repo.full_name }}
+      EVENT_ACTION: ${{ github.event.action }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      ARTIFACT_ID: ${{ needs.dispatch-checkpoint.outputs.artifact-id }}
+      ARTIFACT_DIGEST: ${{ needs.dispatch-checkpoint.outputs.artifact-digest }}
+    steps:
+      - name: Validate trusted source then make at most one same-workflow dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          // BEGIN TESTED DISPATCH PROTOCOL
+          // Pure bounded protocol. API is injected; importing this file never sends a request.
+          const REPOSITORY='haji84/RACE-AI';
+          const BRANCH='feat/completion-controller-pilot-20261016';
+          const WORKFLOW='.github/workflows/completion-controller-pilot.yml';
+          const sha=x=>typeof x==='string'&&/^[a-f0-9]{40}$/.test(x);
+          const id=x=>typeof x==='string'&&/^[1-9][0-9]{0,14}$/.test(x);
+          const hash=x=>typeof x==='string'&&/^[a-f0-9]{64}$/.test(x);
+          const check=(ok,error)=>{if(!ok)throw Error(error);};
+          function validateArtifact(a,c){
+           check(a.id===Number(c.artifactId)&&a.name==='one-hop-checkpoint-'+c.runId&&!a.expired&&a.size_in_bytes>0&&a.size_in_bytes<=16384&&a.workflow_run?.id===Number(c.runId)&&a.workflow_run?.head_sha===c.head&&a.digest==='sha256:'+c.artifactDigest,'ARTIFACT_BINDING_INVALID');
+          }
+          function validateSource(run,c,finished){
+           check(run.id===Number(c.runId)&&run.repository?.full_name===REPOSITORY&&run.head_sha===c.head&&run.head_branch===BRANCH&&run.path===WORKFLOW&&run.event==='pull_request'&&run.run_attempt===1&&run.actor?.login==='haji84','SOURCE_RUN_INVALID');
+           if(finished)check(run.status==='completed'&&run.conclusion==='success','SOURCE_NOT_SUCCESS');
+          }
+          async function dispatchOnce(c,api){
+           check(c.repository===REPOSITORY&&c.branch===BRANCH&&c.event==='pull_request'&&c.action==='synchronize'&&c.actor==='haji84'&&c.prNumber==='65'&&c.headRepository===REPOSITORY&&c.baseRepository===REPOSITORY&&c.attempt==='1'&&id(c.runId)&&id(c.runNumber)&&c.runNumber===c.expectedRunNumber&&sha(c.head)&&sha(c.preparedParent)&&id(c.artifactId)&&hash(c.artifactDigest),'DISPATCH_SCOPE_INVALID');
+           const run=await api.get('actions/runs/'+c.runId);validateSource(run,c,false);
+           check(String(run.run_number)===c.expectedRunNumber&&run.status==='in_progress','SOURCE_ATTEMPT_INVALID');
+           const commit=await api.get('commits/'+c.head);
+           check(commit.sha===c.head&&commit.parents?.length===1&&commit.parents[0].sha===c.preparedParent,'PREPARED_PARENT_CHANGED');
+           validateArtifact(await api.get('actions/artifacts/'+c.artifactId),c);
+           const chain='race-one-hop-'+c.runId;
+           const prior=await api.get('actions/workflows/completion-controller-pilot.yml/runs?event=workflow_dispatch&per_page=100');
+           check(Array.isArray(prior.workflow_runs)&&prior.total_count===prior.workflow_runs.length&&prior.total_count<=100,'DISPATCH_HISTORY_INCOMPLETE');
+           check(!prior.workflow_runs.some(r=>r.display_title===chain),'CHAIN_ALREADY_DISPATCHED');
+           const ref=await api.get('git/ref/heads/'+BRANCH);
+           check(ref.object?.sha===c.head,'BRANCH_HEAD_CHANGED');
+           const body={ref:BRANCH,inputs:{chain_id:chain,source_run_id:c.runId,source_head:c.head,artifact_id:c.artifactId,artifact_digest:c.artifactDigest,remaining_hops:'0'}};
+           // Exactly one attempt. Timeout/unknown response is NOT safe to repeat.
+           let response;try{response=await api.post('actions/workflows/completion-controller-pilot.yml/dispatches',body);}catch{throw Error('DISPATCH_UNCONFIRMED_STOP_NO_RETRY');}
+           check(response.status===204,'DISPATCH_REJECTED_OR_UNCONFIRMED_'+response.status);
+           return {status:'DISPATCH_ACCEPTED',chainId:chain,sourceRun:c.runId,sourceHead:c.head,maxChildren:1,remainingHops:0,childSuccess:false};
+          }
+          function validateReceiver(c,source,artifact){
+           check(c.repository===REPOSITORY&&c.event==='workflow_dispatch'&&c.branch===BRANCH&&c.attempt==='1'&&id(c.runId)&&id(c.sourceRunId)&&c.runId!==c.sourceRunId&&sha(c.sourceHead)&&c.head===c.sourceHead&&c.chainId==='race-one-hop-'+c.sourceRunId&&c.remainingHops==='0'&&id(c.artifactId)&&hash(c.artifactDigest),'RECEIVER_SCOPE_INVALID');
+           const original={runId:c.sourceRunId,head:c.sourceHead,artifactId:c.artifactId,artifactDigest:c.artifactDigest};
+           validateSource(source,original,true);validateArtifact(artifact,original);
+           return {chainId:c.chainId,sourceRun:c.sourceRunId,destinationRun:c.runId,sourceHead:c.sourceHead,remainingHops:0,mayDispatch:false};
+          }
+          // END TESTED DISPATCH PROTOCOL
+          const base='https://api.github.com/repos/haji84/RACE-AI/';
+          const request=async(method,path,body)=>{
+            const r=await fetch(base+path,{method,headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json','Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,redirect:'error',signal:AbortSignal.timeout(15000)});
+            if(method==='POST')return {status:r.status};
+            if(!r.ok)throw Error('GITHUB_READ_'+r.status);
+            return r.json();
+          };
+          const api={get:p=>request('GET',p),post:(p,b)=>request('POST',p,b)};
+          // Wait for current-head full regression; never dispatch on pending/failed tests.
+          let regression=false;
+          for(let i=0;i<36;i++){
+            const listing=await api.get('actions/runs?head_sha='+process.env.SOURCE_HEAD+'&per_page=100');
+            if(listing.total_count!==listing.workflow_runs?.length||listing.total_count>100)throw Error('REGRESSION_LIST_INCOMPLETE');
+            const latest=listing.workflow_runs.filter(r=>r.path==='.github/workflows/tests.yml'&&r.event==='pull_request').sort((a,b)=>b.id-a.id)[0];
+            if(latest?.status==='completed'){if(latest.conclusion!=='success')throw Error('REGRESSION_FAILED');regression=true;break;}
+            await new Promise(r=>setTimeout(r,20000));
+          }
+          if(!regression)throw Error('REGRESSION_NOT_FINISHED_NO_DISPATCH');
+          const e=process.env;
+          const result=await dispatchOnce({repository:e.GITHUB_REPOSITORY,branch:BRANCH,event:e.GITHUB_EVENT_NAME,action:e.EVENT_ACTION,actor:e.GITHUB_ACTOR,prNumber:e.PR_NUMBER,headRepository:e.HEAD_REPOSITORY,baseRepository:e.BASE_REPOSITORY,attempt:e.GITHUB_RUN_ATTEMPT,runId:e.GITHUB_RUN_ID,runNumber:e.GITHUB_RUN_NUMBER,expectedRunNumber:e.EXPECTED_RUN_NUMBER,head:e.SOURCE_HEAD,preparedParent:e.PREPARED_PARENT,artifactId:e.ARTIFACT_ID,artifactDigest:e.ARTIFACT_DIGEST},api);
+          console.log(JSON.stringify(result));
+          NODE
+
+  dispatch-receiver:
+    if: ${{ github.event_name == 'workflow_dispatch' && github.repository == 'haji84/RACE-AI' && github.ref == 'refs/heads/feat/completion-controller-pilot-20261016' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    env:
+      CHAIN_ID: ${{ inputs.chain_id }}
+      SOURCE_RUN: ${{ inputs.source_run_id }}
+      SOURCE_HEAD: ${{ inputs.source_head }}
+      SOURCE_ARTIFACT: ${{ inputs.artifact_id }}
+      SOURCE_DIGEST: ${{ inputs.artifact_digest }}
+      REMAINING_HOPS: ${{ inputs.remaining_hops }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify parent success, exact chain and immutable synthetic artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {writeFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          import {validateReceiver,BRANCH} from './scripts/completion-dispatch-protocol.mjs';
+          const base='https://api.github.com/repos/haji84/RACE-AI/';
+          async function get(path){const r=await fetch(base+path,{headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json'},redirect:'error',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('SOURCE_API_'+r.status);return r.json();}
+          const e=process.env;
+          if(!/^[1-9][0-9]{0,14}$/.test(e.SOURCE_RUN)||!/^[1-9][0-9]{0,14}$/.test(e.SOURCE_ARTIFACT))throw Error('INPUT_ID_INVALID');
+          let source;
+          for(let i=0;i<24;i++){source=await get('actions/runs/'+e.SOURCE_RUN);if(source.status==='completed')break;await new Promise(r=>setTimeout(r,5000));}
+          const artifact=await get('actions/artifacts/'+e.SOURCE_ARTIFACT);
+          const receipt=validateReceiver({repository:e.GITHUB_REPOSITORY,event:e.GITHUB_EVENT_NAME,branch:e.GITHUB_REF_NAME,attempt:e.GITHUB_RUN_ATTEMPT,runId:e.GITHUB_RUN_ID,sourceRunId:e.SOURCE_RUN,sourceHead:e.SOURCE_HEAD,head:e.GITHUB_SHA,chainId:e.CHAIN_ID,remainingHops:e.REMAINING_HOPS,artifactId:e.SOURCE_ARTIFACT,artifactDigest:e.SOURCE_DIGEST},source,artifact);
+          const jobs=await get('actions/runs/'+e.SOURCE_RUN+'/jobs?per_page=100');
+          const dispatch=jobs.jobs?.filter(j=>j.name==='dispatch-next-trial');
+          if(jobs.total_count!==jobs.jobs?.length||dispatch?.length!==1||dispatch[0].conclusion!=='success'||dispatch[0].head_sha!==e.SOURCE_HEAD)throw Error('TRUSTED_DISPATCH_NOT_SUCCESS');
+          const runs=await get('actions/workflows/completion-controller-pilot.yml/runs?event=workflow_dispatch&per_page=100');
+          const children=runs.workflow_runs?.filter(r=>r.display_title===e.CHAIN_ID);
+          if(runs.total_count!==runs.workflow_runs?.length||children?.length!==1||String(children[0].id)!==e.GITHUB_RUN_ID)throw Error('CHAIN_DUPLICATE_OR_UNCONFIRMED');
+          const ref=await get('git/ref/heads/'+BRANCH);if(ref.object?.sha!==e.SOURCE_HEAD)throw Error('BRANCH_CHANGED');
+          const response=await fetch(base+'actions/artifacts/'+e.SOURCE_ARTIFACT+'/zip',{headers:{Authorization:'Bearer '+e.GH_TOKEN},redirect:'manual',signal:AbortSignal.timeout(15000)});
+          if(response.status!==302)throw Error('ARTIFACT_REDIRECT_REQUIRED');
+          const location=new URL(response.headers.get('location'));
+          if(location.protocol!=='https:'||location.username||location.password||!/(^|\.)(blob\.core\.windows\.net|githubusercontent\.com)$/.test(location.hostname))throw Error('ARTIFACT_HOST_REJECTED');
+          const download=await fetch(location,{redirect:'error',signal:AbortSignal.timeout(30000)});
+          if(!download.ok)throw Error('ARTIFACT_DOWNLOAD_FAILED');
+          const bytes=Buffer.from(await download.arrayBuffer());
+          if(bytes.length>16384||createHash('sha256').update(bytes).digest('hex')!==e.SOURCE_DIGEST)throw Error('ARCHIVE_DIGEST_MISMATCH');
+          writeFileSync(e.RUNNER_TEMP+'/one-hop.zip',bytes);
+          console.log(JSON.stringify(receipt));
+          NODE
+      - name: Extract only bounded expected checkpoint files
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, zipfile
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])/"one-hop-resumed"
+          names={"state.json","result-fixture-a.json","effects.jsonl","manifest.json"}
+          with zipfile.ZipFile(pathlib.Path(os.environ["RUNNER_TEMP"])/"one-hop.zip") as z:
+              infos=z.infolist()
+              if len(infos)!=4 or {i.filename for i in infos}!=names: raise RuntimeError("ARCHIVE_PATHS_INVALID")
+              if any(i.file_size>16384 or i.is_dir() or ((i.external_attr>>16)&0o170000)==0o120000 for i in infos): raise RuntimeError("ARCHIVE_ENTRY_INVALID")
+              root.mkdir()
+              for i in infos: (root/i.filename).write_bytes(z.read(i))
+          PY
+      - name: Verify synthetic manifest then resume existing bounded executor without a token
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync,readdirSync,lstatSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const root=process.env.RUNNER_TEMP+'/one-hop-resumed/';
+          const names=['effects.jsonl','manifest.json','result-fixture-a.json','state.json'];
+          if(JSON.stringify(readdirSync(root).sort())!==JSON.stringify(names))throw Error('CHECKPOINT_FILES_INVALID');
+          for(const n of names){const s=lstatSync(root+n);if(!s.isFile()||s.isSymbolicLink()||s.size>16384)throw Error('CHECKPOINT_FILE_INVALID');}
+          const hash=p=>createHash('sha256').update(readFileSync(p)).digest('hex');
+          const m=JSON.parse(readFileSync(root+'manifest.json','utf8'));
+          if(m.kind!=='ONE_HOP_SYNTHETIC_CHECKPOINT_V1'||m.source_run!==process.env.SOURCE_RUN||m.source_head!==process.env.SOURCE_HEAD||m.source_attempt!=='1'||m.chain_id!==process.env.CHAIN_ID||m.runner_sha256!==hash('scripts/completion-mock-trial.mjs'))throw Error('MANIFEST_IDENTITY_INVALID');
+          if(JSON.stringify(Object.keys(m.files).sort())!==JSON.stringify(names.filter(n=>n!=='manifest.json')))throw Error('MANIFEST_FILES_INVALID');
+          for(const [n,h] of Object.entries(m.files))if(hash(root+n)!==h)throw Error('FILE_DIGEST_INVALID');
+          const s=JSON.parse(readFileSync(root+'state.json','utf8'));if(s.completed.length!==0||s.active?.task_id!=='fixture-a')throw Error('CHECKPOINT_STAGE_INVALID');
+          NODE
+          node scripts/completion-mock-trial.mjs --state-dir "$RUNNER_TEMP/one-hop-resumed"
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const root=process.env.RUNNER_TEMP+'/one-hop-resumed/',state=JSON.parse(readFileSync(root+'state.json','utf8')),effects=readFileSync(root+'effects.jsonl','utf8').trim().split('\n').map(JSON.parse);
+          if(JSON.stringify(state.completed)!==JSON.stringify(['fixture-a','fixture-b'])||state.active!==null||effects.length!==2||effects[0].task_id!=='fixture-a'||effects[1].task_id!=='fixture-b')throw Error('RESUME_IDEMPOTENCE_FAILED');
+          console.log(JSON.stringify({status:'PASS',source_run:process.env.SOURCE_RUN,destination_run:process.env.GITHUB_RUN_ID,chain_id:process.env.CHAIN_ID,automatic_one_hop:true,max_children:1,may_dispatch:false,completed:state.completed,real_ai_development:false,canonical_writeback:false}));
+          NODE
