@@ -171,3 +171,16 @@ test('product PR head changing during observation invalidates its contract recei
  const a=await adapter.assessProductPosition(productFixture(),{now,client:async path=>{const v=await productClient(path);if(path==='pulls/69'&&++reads===2)v.head.sha='f'.repeat(40);return v;}});
  assert.equal(a.contractVerifiedPRs.includes(69),false);assert.ok(a.errors.some(x=>x.includes('69')));
 });
+
+test('new failed workflow appearing during collection invalidates prior same-head contract success',async()=>{
+ const p=productFixture();let reads=0;
+ const a=await adapter.assessProductPosition(p,{now,client:async path=>{
+  const v=await productClient(path);
+  if(path.startsWith('actions/runs?head_sha='+p.pullRequests[0].head)&&++reads===2){
+   v.workflow_runs.unshift({...v.workflow_runs[0],id:v.workflow_runs[0].id+1,conclusion:'failure'});v.total_count++;
+  }
+  return v;
+ }});
+ assert.equal(a.contractVerifiedPRs.includes(69),false);
+ assert.ok(a.errors.some(x=>x.includes('69')&&x.includes('LATEST')));
+});
