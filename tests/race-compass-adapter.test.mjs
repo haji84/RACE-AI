@@ -35,12 +35,12 @@ test('canonical schema rejects other project, self PASS, raw chat and credential
   const s=snapshot();mutate(s);assert.throws(()=>validateSnapshot(s));
  }
 });
-test('observation verification rejects stale/future, wrong repo/head, failure, skipped steps and reruns',()=>{
+test('observation verification rejects future, wrong repo/head, failure, skipped steps and reruns',()=>{
  const p=PROBES[0];
  for(const mutate of [
   f=>f.run.head_sha='b'.repeat(40),f=>f.run.repository.full_name='haji84/AI-',
   f=>f.run.run_attempt=2,f=>f.run.conclusion='failure',f=>f.run.status='in_progress',
-  f=>f.run.updated_at='2026-10-21T09:00:00Z',f=>f.run.updated_at='2026-10-24T09:00:00Z',
+  f=>f.run.updated_at='2026-10-24T09:00:00Z',
   f=>f.jobs.jobs[0].conclusion='skipped',f=>f.jobs.jobs[0].steps[0].conclusion='skipped',
   f=>f.jobs.jobs=[]
  ]){
@@ -66,6 +66,8 @@ test('real SQLite close/reopen preserves canonical and unrelated state/history',
  try{
   const {CompassStore}=await loadCore();const db=new CompassStore(path);
   db.updateState({active:[{kind:'unrelated',id:'keep-me'},{kind:'jarvis-owner-requirements',id:'reserved'}],decisions:[{id:'untouched'}],completed:['old']});
+  db.updateActive(active=>[...active,{kind:'jarvis-owner-requirements',id:'reserved'}]);
+  assert.equal(db.getState().active.some(x=>x.kind==='jarvis-owner-requirements'),true);
   for(let i=0;i<105;i++)db.writeBack({status:'BLOCKED',summary:'existing-'+i,verification:{status:'FAIL',summary:'existing verification '+i}});
   db.close();
   const raw=new DatabaseSync(path);const history=JSON.stringify(raw.prepare('SELECT * FROM history ORDER BY id').all()),verification=JSON.stringify(raw.prepare('SELECT * FROM verification ORDER BY id').all());raw.close();
@@ -90,5 +92,24 @@ test('stale snapshot digest/revision and foreign database never replace records'
   const {CompassStore}=await loadCore();const db=new CompassStore(path);
   db.updateActive(active=>[...active,{kind:'gai-work-state',goalId:'other-project'}]);db.close();
   await assert.rejects(()=>importCanonical(path,s,{expectedDigest:digest(s),expectedRevision:1}),/FOREIGN_WORKSTATE/);
+ }finally{rmSync(dir,{recursive:true,force:true});}
+});
+
+test('old historical completion is freshly reobserved without changing original time or product state',async()=>{
+ const s=snapshot(),before=JSON.stringify(s),future='2026-10-25T10:00:00Z';
+ const a=await assess(s,{expectedHead:head,client,now:future});
+ assert.deepEqual(a.historicalVerifiedCriteria,PROBES.map(p=>p.id));
+ assert.equal(a.errors.length,0);assert.equal(a.currentProductVerified,false);
+ assert.equal(a.observations[0].recordedAt,'2026-10-23T09:09:35Z');
+ assert.equal(a.observations[0].observedAt,future);assert.equal(JSON.stringify(s),before);
+});
+test('revision2 canonical restores into a fresh database only with explicit trusted bootstrap',async()=>{
+ const dir=mkdtempSync(join(tmpdir(),'race-compass-bootstrap-')),path=join(dir,'race-compass.sqlite'),s=snapshot();
+ const latest=structuredClone(s);latest.revision=2;latest.previousDigest=digest(s);latest.state.currentState='A later durable checkpoint.';
+ try{
+  await assert.rejects(()=>importCanonical(path,latest,{expectedDigest:digest(latest),expectedRevision:2}),/EXPLICIT_TRUSTED_BOOTSTRAP_REQUIRED/);
+  await importCanonical(path,latest,{expectedDigest:digest(latest),expectedRevision:2,bootstrap:true});
+  assert.deepEqual(await exportCanonical(path),latest);
+  await assert.rejects(()=>importCanonical(path,s,{expectedDigest:digest(s),expectedRevision:1,bootstrap:true}),/STALE_CANONICAL_UPDATE/);
  }finally{rmSync(dir,{recursive:true,force:true});}
 });
