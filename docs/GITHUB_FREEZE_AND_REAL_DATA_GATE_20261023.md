@@ -4,7 +4,7 @@
 
 ## 1. このブランチで実装したこと
 
-`race_ai/github_freeze_receipt.py` は `verified_event_projection.project(..., verify_freeze=...)` に渡せる検証関数 `verify_github_freeze` を提供する。独立した時刻はローカルの `generated_at`、`persisted_at`、Gitコミット日時ではなく、GitHub APIが返す**pushトリガーのActions run.created_at**とする。
+`race_ai/github_freeze_receipt.py` は `verified_event_projection.project(..., verify_freeze=...)` に渡せる検証関数 `verify_github_freeze` を提供する。独立した時刻はローカルの `generated_at`、`persisted_at`、Gitコミット日時ではなく、GitHub APIが返す**pushまたは同一リポジトリPRトリガーのActions run.created_at**とする。
 
 検証時、GitHub HTTPS APIから run IDに対応する run を取得し、`event=push`、同一リポジトリ、`created_at < 公式締切` を要求する。runの `head_sha` に固定して `audit/freezes/YYYY-MM-DD/<race>.json` を読み戻し、JSONに含まれる `prediction_sha256` と `cutoff_at` が検証対象に一致するときのみTrue。ブランチ最新内容や自由入力の `receipt_verified=true` は証明に使用しない。
 
@@ -19,10 +19,10 @@
 }
 ```
 
-後から取得した `run_id` と、このアンカーの保存先`path` をレシート参照として付与。予想本文のハッシュ算出後、**公式締切より十分前**に独立GitHubへアンカーを保存し、そのコミットを対象とするpush-runがGitHubサーバーに締切前に作成されたことを確認する必要がある。後付けの`receipt`情報で元の予想本文や買い目を書き換えてはいけない。
+後から取得した `run_id` と、このアンカーの保存先`path` をレシート参照として付与。予想本文のハッシュ算出後、**公式締切より十分前**にGitHub上へアンカーを保存し、そのコミットを対象とするpush/PR runがGitHubサーバーに締切前に作成されたことを確認する必要がある。後付けの`receipt`情報で元の予想本文や買い目を書き換えてはいけない。
 
 **未完の注意点**
-- 現行CIはPR起点の契約テストで、アンカー専用pushワークフロー、実予想保存writer、run-id連携、実レースの受領レシートは **未接続**。このモジュールだけで「凍結済み」と判定しない。
+- 既存PRの契約テストに `audit/freezes/**` を監視対象として追加した。ただし、実予想保存writer、予想のハッシュからrun-idへのレシート連携、実レースの受領レシートは **未接続**。このモジュールだけで「凍結済み」と判定しない。
 - GitHubサーバーが記録する時刻と内容指紋の照合であり、第三者のRFC3161署名や絶対的改ざん不可保管の証明ではない。外部時刻サービスの信頼評価は別途必要。
 - 共通projectionのcallbackはレースIDを引数に受け取らないため、レースID/入力スナップショットとアンカーの**完全な独立照合**の拡張・受入テストが別途必要。
 - 全レースで1件ずつActionsを発火すると実行数・遅延・費用の問題がある。候補は締切帯ごとのバッチ保存＋同じcommit SHAのrunタイムスタンプ共有。時刻遅延とGitHub Actions実行枠は測定してから採用する。
