@@ -95,10 +95,7 @@ class ChronologicalLearningTests(unittest.TestCase):
 
     def test_future_or_past_time_cannot_backfill_model_forecast(self):
         m=fit_rows(dataset())
-        old=sample("boat")
-        old["race"]["as_of"]="2030-01-07T09:10:00+09:00"
-        old["race"]["event_date_jst"]="2030-01-07"
-        old["race"]["sales_cutoff_at"]="2030-01-07T10:00:00+09:00"
+        old=json.loads(json.dumps(sample("boat")).replace("2030-01-15","2030-01-07"))
         with self.assertRaisesRegex(ModelInputError,"prediction must follow training"):
             forecast(old,m)
 
