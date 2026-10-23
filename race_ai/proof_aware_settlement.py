@@ -39,14 +39,14 @@ def audit_settlement(ledger,results,forecasts,*,verify_result=None,verify_cutoff
         raise SettlementError("duplicated/malformed race identity")
     if not isinstance(results,list) or not isinstance(forecasts,list):
         raise SettlementError("separate outcome/proof arrays required")
-    outcome_by_id={}; forecast_by_id={}
+    outcomes_by_id={}; forecast_by_id={}
     for res in results:
         if not isinstance(res,dict) or set(res)!={"race_id","status","trifecta_offered",
               "payouts","refund_status","revision_no","confirmed_at","source_ref"}:
             raise SettlementError("strict result schema required")
         ident=res["race_id"]
-        if ident in outcome_by_id or ident not in ids:
-            raise SettlementError("duplicate/unlisted result identity")
+        if ident not in ids:
+            raise SettlementError("unlisted result identity")
         if res["status"] not in ("FINAL","VOID","PENDING","NOT_OFFERED") or type(res["trifecta_offered"]) is not bool:
             raise SettlementError("result status invalid")
         if type(res["revision_no"]) is not int or res["revision_no"]<1:
@@ -70,7 +70,15 @@ def audit_settlement(ledger,results,forecasts,*,verify_result=None,verify_cutoff
             raise SettlementError("final 3ren-tan requires payout combinations")
         if res["status"]!="FINAL" and combos:
             raise SettlementError("nonfinal result cannot carry trusted 3ren-tan payout")
-        outcome_by_id[ident]=res
+        revisions=outcomes_by_id.setdefault(ident,[])
+        if revisions:
+            old=revisions[-1]
+            if (res["revision_no"]!=old["revision_no"]+1
+                or _stamp(res["confirmed_at"])<=_stamp(old["confirmed_at"])):
+                raise SettlementError("non-monotone official result revision")
+        elif res["revision_no"]!=1:
+            raise SettlementError("result revision must start at one")
+        revisions.append(res)
     for f in forecasts:
         if not isinstance(f,dict) or set(f)!={"race_id","model_race_id","model_id",
                  "ordered_top8","prediction_sha256","generated_at","persisted_at",
@@ -97,10 +105,12 @@ def audit_settlement(ledger,results,forecasts,*,verify_result=None,verify_cutoff
     all_proven=True;all_refunds_known=True;rows_out=[]
     for row in rows:
         ident=row["race_id"]
-        result=outcome_by_id.get(ident)
+        versions=outcomes_by_id.get(ident,[])
+        result=versions[-1] if versions else None
         f=forecast_by_id.get(ident)
-        source_ok=bool(result is not None and callable(verify_result)
-                       and verify_result(result) is True)
+        # A newer unverified revision invalidates the older payout view.
+        source_ok=bool(versions and callable(verify_result)
+                       and all(verify_result(rev) is True for rev in versions))
         eligible=bool(source_ok and result["status"]=="FINAL" and result["trifecta_offered"])
         if not source_ok:
             all_proven=False
@@ -121,7 +131,8 @@ def audit_settlement(ledger,results,forecasts,*,verify_result=None,verify_cutoff
                 if tuple(f["ordered_top8"][0]) in winners:hit1+=1
                 if hits:hit8+=1
                 paper_return+=sum(winners[x] for x in hits)
-        rows_out.append({"race_id":ident,"official_result_verified":source_ok,
+        rows_out.append({"race_id":ident,"result_revisions_seen":len(versions),
+                         "official_result_verified":source_ok,
                          "eligible_confirmed":eligible,"pre_cutoff_freeze_verified":frozen,
                          "hit_at_1":bool(eligible and frozen and tuple(f["ordered_top8"][0]) in
                                          {tuple(x["combination"]) for x in result["payouts"]}) if f else False,

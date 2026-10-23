@@ -69,4 +69,31 @@ class SettlementTests(unittest.TestCase):
     a,b,c=fixture();c[0]["ordered_top8"].append(c[0]["ordered_top8"][0])
     with self.assertRaisesRegex(SettlementError,"duplicate"):
         audit_settlement(a,b,c)
+
+ def test_later_verified_result_revision_replaces_previous(self):
+    a,b,c=fixture()
+    revised=copy.deepcopy(b[0])
+    revised["revision_no"]=2
+    revised["confirmed_at"]=f"{DAY}T12:00:00+09:00"
+    revised["payouts"]=[{"combination":[3,2,1],"yen_per_100":9999}]
+    r=audit_settlement(a,b+[revised],c,**calls())
+    self.assertEqual(r["rows"][0]["result_revisions_seen"],2)
+    self.assertEqual(r["formal_hit_at_8_all"],0)
+ def test_unverified_revision_blocks_stale_payout(self):
+    a,b,c=fixture()
+    revised=copy.deepcopy(b[0])
+    revised["revision_no"]=2
+    revised["confirmed_at"]=f"{DAY}T12:00:00+09:00"
+    args=calls()
+    args["verify_result"]=lambda item:item["revision_no"]==1
+    r=audit_settlement(a,b+[revised],c,**args)
+    self.assertIsNone(r["formal_hit_at_8_all"])
+ def test_retrograde_revision_rejected(self):
+    a,b,c=fixture()
+    revised=copy.deepcopy(b[0])
+    revised["revision_no"]=1
+    revised["confirmed_at"]=f"{DAY}T12:00:00+09:00"
+    with self.assertRaisesRegex(SettlementError,"non-monotone"):
+        audit_settlement(a,b+[revised],c)
+
 if __name__=="__main__":unittest.main()
