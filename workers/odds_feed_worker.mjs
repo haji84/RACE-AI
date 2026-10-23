@@ -25,8 +25,8 @@ function payloadGuard(v){
     !KEY_RE.test(v.race_id||"")||!["boat","keirin","autorace","horse"].includes(v.sport)||
     !Number.isInteger(v.race_no)||v.race_no<1||v.race_no>99||
     typeof v.venue!=="string"||!v.venue||v.venue.length>120||
-    !/^\\d{4}-\\d\\d-\\d\\d$/.test(v.event_date_jst||"")||
-    typeof v.source_url!=="string"||!/^https:\\/\\/[^\\s/]+/.test(v.source_url)||
+    !/^\d{4}-\d\d-\d\d$/.test(v.event_date_jst||"")||
+    typeof v.source_url!=="string"||!v.source_url.startsWith("https://")||
     !["OPEN_REPORTED","CLOSED_REPORTED","UNKNOWN"].includes(v.sales_status)||
     !validTime(v.cutoff_at)||!validTime(v.ingested_at)||
     (v.source_published_at!==null&&
