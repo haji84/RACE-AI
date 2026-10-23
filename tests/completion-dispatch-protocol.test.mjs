@@ -51,3 +51,13 @@ test('privileged workflow embeds exactly the tested protocol, with no repository
  const job=workflow.split('  dispatch-next-trial:')[1].split('  dispatch-receiver:')[0];
  assert.equal(job.includes('actions/checkout'),false);assert.equal(job.includes('contents: write'),false);
 });
+
+test('current API200 receipt is validated and returned without claiming child completion',async()=>{
+ const f=fake();f.api.post=async(p,b)=>{f.writes.push({path:p,body:b});return {status:200,body:{workflow_run_id:789,run_url:'https://api.github.com/repos/haji84/RACE-AI/actions/runs/789',html_url:'https://github.com/haji84/RACE-AI/actions/runs/789'}};};
+ const r=await protocol.dispatchOnce(c(),f.api);assert.equal(r.childRunId,789);assert.equal(r.childSuccess,false);assert.equal(f.writes.length,1);
+});
+test('malformed200 and unknown status never retry',async()=>{
+ for(const response of [{status:200,body:{}},{status:200,body:{workflow_run_id:789,run_url:'https://evil.invalid',html_url:'https://evil.invalid'}},{status:500}]){
+ const f=fake();let n=0;f.api.post=async()=>{n++;return response;};await assert.rejects(()=>protocol.dispatchOnce(c(),f.api));assert.equal(n,1);
+ }
+});
