@@ -28,6 +28,38 @@ FEED_SCHEMA = "RACE_AI_NORMALIZED_FEATURE_FEED_V1"
 DELIVERY_SCHEMA = "RACE_AI_PRIVATE_DELIVERY_V1"
 MAX_SOURCE_BYTES = 4 * 1024 * 1024
 ALLOWED_PURPOSES = frozenset({"collection", "analysis", "private_storage", "private_derived"})
+SUPPLEMENTAL_KEYS = {
+    "common": {
+        "scheduled_start_at", "daypart", "sunset_offset_minutes",
+        "illumination_mode", "meeting_day", "daily_race_number",
+        "opponent_strength_adjusted", "head_to_head_form",
+        "same_day_course_bias", "rest_recovery", "weather_trend",
+        "time_band_win_rate", "time_band_top3_rate",
+    },
+    "boat": {
+        "historical_1m_to_2m_transition", "historical_2m_to_finish_transition",
+        "turn2_overtake_rate", "wake_resilience", "motor_exit_acceleration",
+        "same_day_second_race_change",
+    },
+    "keirin": {
+        "race_format", "line_role", "girls_keirin_rules",
+        "time_band_line_success", "line_break_rate", "final_back_to_finish",
+        "bank_time_band_fit",
+    },
+    "autorace": {
+        "same_handicap_grid_order", "same_handicap_start_advantage",
+        "start_to_first_corner", "traffic_overtake_rate",
+        "handicap_time_band_fit", "track_temp_change",
+    },
+    "horse": {
+        "race_code", "jra_local_banei_category",
+        "early_pace_pressure", "corner_position_change",
+        "jockey_swap_fit", "current_track_bias", "gate_break_quality",
+        "last_sectional_adjusted",
+    },
+}
+
+
 FORBIDDEN_MARKET = ("odds", "popularity", "payout", "dividend", "winning_combo",
                     "winning_ticket", "race_result", "actual_finish", "market", "配当", "人気")
 SOURCE_KEY = re.compile(r"[A-Za-z0-9._:/?&=%+-]{10,512}\Z")
@@ -162,7 +194,7 @@ class PermissionPolicy:
         self.calls[url] = count + 1
         return min(g["max_bytes"] for g in matches)
 
-    def check_snapshot(self, snapshot, *, needs_storage):
+    def check_snapshot(self, snapshot, *, needs_storage, supplemental=()):
         if not isinstance(snapshot, dict) or snapshot.get("scope") != RESEARCH:
             raise SourceDeliveryError("production delivery requires explicitly scoped research input")
         entries = []
@@ -171,6 +203,7 @@ class PermissionPolicy:
                 raise SourceDeliveryError("participant schema invalid")
             entries.extend(p.get("features", {}).values())
         entries.extend(snapshot.get("environment", {}).values())
+        entries.extend(supplemental)
         if not entries:
             raise SourceDeliveryError("empty features prohibited")
         purposes = {"analysis"}
@@ -228,6 +261,55 @@ def _reject_market(node):
             _reject_market(item)
 
 
+
+def _verify_supplemental(rows, snapshot, policy, *, at):
+    """Retain as-of-legal contextual facts without secretly changing model weights.
+
+    Historical race trajectories are distinct from current-race in-play facts;
+    the latter cannot arrive before prediction and are not accepted here.
+    """
+    if not isinstance(rows, list) or len(rows) > 256:
+        raise SourceDeliveryError("bounded optional feature list required")
+    sport = snapshot["race"]["sport"]
+    known = SUPPLEMENTAL_KEYS["common"] | SUPPLEMENTAL_KEYS[sport]
+    participants = {x["number"] for x in snapshot["participants"]}
+    as_of = _utc(snapshot["race"]["as_of"])
+    seen = set()
+    for v in rows:
+        if not isinstance(v, dict) or set(v) != {
+            "feature_key", "subject_number", "value", "published_at",
+            "captured_at", "source_ref", "source_rights_ref",
+            "sample_n", "transform_id",
+        }:
+            raise SourceDeliveryError("supplemental feature schema invalid")
+        key = v["feature_key"]
+        if key not in known:
+            raise SourceDeliveryError("unsupported or post-race supplemental feature")
+        who = v["subject_number"]
+        if who is not None and (type(who) is not int or who not in participants):
+            raise SourceDeliveryError("supplemental feature subject mismatch")
+        value = v["value"]
+        if type(value) in (float, int):
+            import math
+            if not math.isfinite(value):
+                raise SourceDeliveryError("non-finite supplemental value")
+        elif not isinstance(value, (str, bool)) or (isinstance(value, str) and len(value) > 128):
+            raise SourceDeliveryError("supplemental value type invalid")
+        if (type(v["sample_n"]) is not int or not 1 <= v["sample_n"] <= 10000000
+            or not isinstance(v["transform_id"], str) or not v["transform_id"]):
+            raise SourceDeliveryError("supplemental observation provenance incomplete")
+        if not _utc(v["published_at"]) <= _utc(v["captured_at"]) <= as_of:
+            raise SourceDeliveryError("supplemental information published after as_of")
+        dedup = (key, who)
+        if dedup in seen:
+            raise SourceDeliveryError("duplicate supplemental observation")
+        seen.add(dedup)
+        for purpose in ("analysis", "private_storage", "private_derived"):
+            if not policy.authorize(v["source_ref"], v["source_rights_ref"], purpose):
+                raise SourceDeliveryError("SOURCE_PERMISSION_NOT_ADMITTED:supplemental")
+    return rows
+
+
 def deliver(raw, policy, *, at, persist=True):
     """Transported normalized JSON -> four-sport suite, no official freeze.
 
@@ -235,7 +317,9 @@ def deliver(raw, policy, *, at, persist=True):
     PDFs, race odds, and arbitrary CSV are not transformed by guesswork.
     """
     record = read_json_bytes(raw)
-    if not isinstance(record, dict) or set(record) != {"schema", "snapshot"} or record["schema"] != FEED_SCHEMA:
+    if (not isinstance(record, dict) or set(record) not in (
+        {"schema", "snapshot"}, {"schema", "snapshot", "supplemental"})
+        or record["schema"] != FEED_SCHEMA):
         raise SourceDeliveryError("unsupported normalized source feed")
     snapshot = record["snapshot"]
     _reject_market(snapshot)
@@ -246,7 +330,8 @@ def deliver(raw, policy, *, at, persist=True):
     cutoff = _utc(snapshot["race"]["sales_cutoff_at"])
     if as_of > now or now >= cutoff:
         raise SourceDeliveryError("MISSED_DEADLINE_OR_FUTURE_INPUT")
-    policy.check_snapshot(snapshot, needs_storage=persist)
+    extra = _verify_supplemental(record.get("supplemental", []), snapshot, policy, at=now)
+    policy.check_snapshot(snapshot, needs_storage=persist, supplemental=extra)
     suite = run_suite(snapshot, allow_source=policy.authorize)
     if not verify_suite(suite):
         raise SourceDeliveryError("model suite output hash mismatch")
@@ -259,6 +344,8 @@ def deliver(raw, policy, *, at, persist=True):
         "policy_record_sha256": policy.document_sha256,
         "feature_snapshot_sha256": digest(snapshot),
         "snapshot": snapshot,
+        "supplemental_evidence": extra,
+        "supplemental_features_used_by_models": False,
         "research_suite": suite,
         "status": "PRIVATE_RESEARCH_ONLY_NOT_EXTERNAL_FROZEN",
         "source_terms_independently_verified_by_code": False,
@@ -272,7 +359,8 @@ def deliver(raw, policy, *, at, persist=True):
 
 
 def _private_write(path, document):
-    dest = Path(path).absolute()
+    requested = Path(path).expanduser().absolute()
+    dest = requested.parent.resolve(strict=True) / requested.name
     if any((p / ".git").exists() for p in (dest.parent, *dest.parent.parents)):
         raise SourceDeliveryError("do not write private source data into a Git repository")
     if not dest.parent.is_dir():
