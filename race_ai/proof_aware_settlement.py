@@ -132,7 +132,7 @@ def audit_settlement(ledger,results,forecasts,*,verify_result=None,verify_cutoff
     can_score=bool(full_coverage and all_proven and known_eligible>0)
     # No ROI claim with refund/void ambiguity. A 100yen-per-ticket paper
     # strategy is distinct from proven actual purchases.
-    stakes=100*sum(len(forecast_by_id[r["race_id"]]["ordered_top8"]) for r in rows
+    stakes=100*sum(len(forecast_by_id[r["race_id"]]["ordered_top8"]) for r in rows_out
                    if r["pre_cutoff_freeze_verified"])
     return {"schema":"RACE_AI_PROOF_AWARE_DAILY_RECONCILIATION_V1",
             "evidence_status":"CALLBACK_ATTESTED_UNLESS_INDEPENDENTLY_AUDITED",
