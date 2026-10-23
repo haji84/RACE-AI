@@ -30,7 +30,8 @@
       bad("会場またはレース番号が不正");
     if(!/^\d{4}-\d\d-\d\d$/.test(raw.event_date_jst))bad("日付が不正");
     const cutoff=time(raw.cutoff_at),published=time(raw.source_published_at),received=time(raw.ingested_at);
-    if(cutoff===null||published===null||received===null||published>received)
+    if(cutoff===null||received===null||
+       (raw.source_published_at!==null && (published===null||published>received)))
       bad("オッズ提供・受信時刻が未検証");
     if(!Array.isArray(raw.participants)||new Set(raw.participants).size!==raw.participants.length||
        raw.participants.some(x=>!Number.isInteger(x)||x<1||x>99)||
@@ -78,10 +79,13 @@
   function freshness(feed,now=Date.now()){
     if(!feed)return {label:"未取得",stale:true};
     const receivedAge=(now-time(feed.ingested_at))/1000;
-    const sourceAge=(now-time(feed.source_published_at))/1000;
-    if(!Number.isFinite(receivedAge)||!Number.isFinite(sourceAge)||
-       receivedAge<0||sourceAge<0)return {label:"時刻検証不可",stale:true};
+    const sourceAge=feed.source_published_at===null?null:
+      (now-time(feed.source_published_at))/1000;
+    if(!Number.isFinite(receivedAge)||receivedAge<0||
+       (sourceAge!==null&&(!Number.isFinite(sourceAge)||sourceAge<0)))
+      return {label:"時刻検証不可",stale:true};
     if(now>=time(feed.cutoff_at))return {label:"締切後の参考値（最終確定オッズとは限りません）",stale:true};
+    if(sourceAge===null)return {label:"提供元のオッズ更新時刻未確認（受信："+Math.floor(receivedAge)+"秒前）",stale:true};
     if(sourceAge>120)return {label:"提供元の更新遅延：約"+Math.ceil(sourceAge/60)+"分前のオッズ",stale:true};
     if(receivedAge>120)return {label:"RACE-AI配信遅延：約"+Math.ceil(receivedAge/60)+"分前の受信値",stale:true};
     return {label:"受信："+Math.floor(receivedAge)+"秒前 / 提供元："+Math.floor(sourceAge)+"秒前（最新保証なし）",stale:false};
