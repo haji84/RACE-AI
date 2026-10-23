@@ -14,6 +14,7 @@ def validate(path,payload):
     if not PAT.fullmatch(path) or len(payload)>10000:
         raise WitnessError("bad path/size")
     try:obj=json.loads(payload,object_pairs_hook=unique)
+    except WitnessError:raise
     except ValueError as e:raise WitnessError("invalid anchor") from e
     if not isinstance(obj,dict) or set(obj)!={"schema","race_id","prediction_sha256","cutoff_at"}:
         raise WitnessError("unexpected anchor fields")
