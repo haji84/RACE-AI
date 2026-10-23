@@ -18,3 +18,8 @@ The [initial model trial](https://github.com/haji84/RACE-AI/actions/runs/3994656
 The [corrected trial](https://github.com/haji84/RACE-AI/actions/runs/39948206093) passed on head `4b01c1aae504c4e1861e1d6150893a1475142ebb`: the pinned local model proposed two small repairs to the existing completion controller in an isolated copy. It first guarded empty/malformed acceptance, then rejected whitespace-only evidence references. Each proposal passed independent acceptance cases and 14 existing controller/handoff tests before the next task advanced. Both passed on their first proposal in this corrected trial.
 
 The final isolated candidate SHA256 was `0747c3811f8b1ad393d0e7a48b54b9674c0ed367a4fe7cfc591fb772f2887e1a`. No generated repair was applied to the repository source. The live-model trial is now disabled. This is bounded controller-code repair evidence, not racing-algorithm validation, a general autonomous developer, durable automatic writeback, or product completion.
+
+<!-- bounded-save-v1 -->
+## Automatically recorded technical verification
+
+Historical cleanup checks passed on head `cf66a272a963ed418e94bdf409cea39ce21a5aba`: [bounded checks](https://github.com/haji84/RACE-AI/actions/runs/39948549502) and [Windows/Ubuntu regression](https://github.com/haji84/RACE-AI/actions/runs/39948549566). The regression used a PR merge-ref. This fixed technical note is not current product acceptance, generated-code adoption, deployment, or canonical-state writeback.
