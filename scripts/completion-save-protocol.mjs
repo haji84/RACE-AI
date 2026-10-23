@@ -50,6 +50,10 @@ export async function saveOnce(c,api,knownSavedHead=null){
   check(saved.parents?.length===1&&saved.parents[0].sha===c.head&&saved.message==='docs: save bounded technical verification [save-v1]','NOOP_PROVENANCE_INVALID');
   const diff=await api.get('compare/'+c.head+'...'+savedHead);
   check(diff.files?.length===1&&diff.files[0].filename===PATH&&diff.files[0].status==='modified','NOOP_DIFF_INVALID');
+  const originFile=await api.get('contents/'+PATH+'?ref='+c.head);
+  check(originFile.encoding==='base64'&&originFile.type==='file'&&originFile.path===PATH,'ORIGIN_FILE_INVALID');
+  const originText=Buffer.from(originFile.content,'base64').toString('utf8');
+  check(!originText.includes(MARKER)&&appendResult(originText)===old,'SAVED_APPEND_MISMATCH');
   const savedFile=await api.get('contents/'+PATH+'?ref='+savedHead);
   check(savedFile.sha===file.sha&&savedFile.encoding==='base64'&&Buffer.from(savedFile.content,'base64').toString('utf8')===old,'SAVED_CONTENT_CHANGED');
   const ancestry=await api.get('compare/'+savedHead+'...'+live);

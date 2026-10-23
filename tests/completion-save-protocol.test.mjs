@@ -34,6 +34,7 @@ function fixture(overrides={}){
    if(p==='pulls/65')return {state:'open',head:{repo:{full_name:m.REPO},ref:m.BRANCH,sha:live},base:{repo:{full_name:m.REPO}}};
    if(p==='git/commits/'+H)return {parents:[{sha:P}],tree:{sha:T}};
    if(p==='git/commits/'+S)return {parents:[{sha:H}],message:'docs: save bounded technical verification [save-v1]'};
+   if(p==='contents/'+m.PATH+'?ref='+H)return {type:'file',path:m.PATH,encoding:'base64',size:6,content:Buffer.from('prior\n').toString('base64'),sha:B};
    if(p.startsWith('contents/'))return {type:'file',path:m.PATH,encoding:'base64',size:Buffer.byteLength(content),content:Buffer.from(content).toString('base64'),sha:B};
    if(p.startsWith('compare/'))return {status:'ahead',behind_by:0,files:[{filename:m.PATH,status:'modified'}]};
    if(p.startsWith('actions/runs/')){
@@ -85,8 +86,8 @@ test('saved receipt remains a no-op after unrelated branch advance',async()=>{
 });
 test('changed saved content and non-descendant branch fail closed without writes',async()=>{
  for(const mode of ['content','ancestry']){
-  const f=fixture();await m.saveOnce(f.c,f.api);const get=f.api.get;
-  f.api.get=async p=>{const r=await get(p);if(mode==='content'&&p==='contents/'+m.PATH+'?ref='+S)return {...r,sha:'f'.repeat(40)};
+  const f=fixture();await m.saveOnce(f.c,f.api);const get=f.api.get;let seen=0;
+  f.api.get=async p=>{const r=await get(p);if(mode==='content'&&p==='contents/'+m.PATH+'?ref='+S&&++seen===2)return {...r,sha:'f'.repeat(40)};
    if(mode==='ancestry'&&p==='compare/'+S+'...'+S)return {...r,status:'diverged',behind_by:1};return r;};
   await assert.rejects(m.saveOnce(f.c,f.api,S),/SAVED_CONTENT_CHANGED|SAVED_ANCESTRY_INVALID/);assert.equal(f.writes.length,4);
  }
