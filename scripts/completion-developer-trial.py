@@ -126,7 +126,7 @@ def save(path,value):
  temp=path.with_suffix(".tmp")
  temp.write_text(json.dumps(value,indent=2)+"\n");os.replace(temp,path)
 
-def run(output):
+def run(output,diagnostic=False):
  if output.exists():raise ValueError("OUTPUT_ALREADY_EXISTS")
  output.mkdir(parents=True)
  model=backend.identity()
@@ -143,10 +143,10 @@ def run(output):
  "reference":"A verified evidence reference must contain non-whitespace text. Write an ACCEPTANCE condition: false for empty or whitespace-only string, true for 'run/123' and ' run/123 '. The preceding existing typeof string guard is preserved."
  }
  try:
-  for task in ["acceptance","reference"]:
+  for task in (["acceptance"] if diagnostic else ["acceptance","reference"]):
    if task=="reference" and receipt["completed"]!=["acceptance"]:raise ValueError("DEPENDENCY_NOT_VERIFIED")
    feedback=""
-   for attempt in [1,2]:
+   for attempt in ([1] if diagnostic else [1,2]):
     backend.identity()
     prompt=("Repair one existing JavaScript completion predicate. Return ONLY a JSON object with exactly one key expression, containing a JavaScript boolean expression. No markdown or prose.\n"+
       "Task: "+requirements[task]+"\nAllowed atoms: "+json.dumps(TERMS[task])+
@@ -158,14 +158,16 @@ def run(output):
     if response.get("done") is not True or response.get("model")!=backend.MODEL or response.get("done_reason")!="stop" or type(response.get("eval_count")) is not int or response["eval_count"]<=0:raise ValueError("INFERENCE_RECEIPT_INVALID")
     raw=response.get("response")
     if not isinstance(raw,str):raise ValueError("MODEL_RESPONSE_INVALID")
-    record={"task":task,"attempt":attempt,"prompt_sha256":digest(prompt.encode()),"response_sha256":digest(raw.encode()),"eval_count":response["eval_count"],"elapsed_seconds":round(time.monotonic()-started,3)}
+    record={"task":task,"attempt":attempt,"model_response":raw,"prompt_sha256":digest(prompt.encode()),"response_sha256":digest(raw.encode()),"eval_count":response["eval_count"],"elapsed_seconds":round(time.monotonic()-started,3)}
     try:
      expression=model_expression(raw,task)
      proposed={**expressions,task:expression}
      candidate.write_text(patch(source,proposed))
      for accepted in [*receipt["completed"],task]:
       checked=cases(candidate,accepted,candidate.parents[1])
-      if checked.returncode:raise ValueError("INDEPENDENT_ACCEPTANCE_FAILED")
+      if checked.returncode:
+       record["verification_output"]=(checked.stdout+checked.stderr)[-6000:]
+       raise ValueError("INDEPENDENT_ACCEPTANCE_FAILED")
      regression=node(["--test",*REGRESSION],candidate.parents[1])
      if regression.returncode!=0 or "# tests 14" not in regression.stdout or "# fail 0" not in regression.stdout:raise ValueError("EXISTING_REGRESSION_FAILED")
      record.update(accepted=True,expression=expression,candidate_sha256=digest(candidate.read_bytes()),existing_tests_passed=14,acceptance_stages=[*receipt["completed"],task])
@@ -173,6 +175,9 @@ def run(output):
      record.update(accepted=False,error=str(e))
      candidate.write_text(patch(source,expressions))
     receipt["attempts"].append(record);save(output/"receipt.json",receipt)
+    if diagnostic:
+     receipt["status"]="DIAGNOSTIC_ONLY";receipt["task_continuation"]=False
+     save(output/"receipt.json",receipt);print(json.dumps(receipt));return
     if record["accepted"]:
      expressions[task]=expression;receipt["completed"].append(task);save(output/"receipt.json",receipt);break
     feedback="The previous proposal failed syntax or independent acceptance. Obey the permitted atoms/operators and stated requirement."
@@ -182,7 +187,7 @@ def run(output):
   save(output/"receipt.json",receipt)
   print(json.dumps(receipt))
  except Exception:
-  receipt["status"]="BLOCKED";save(output/"receipt.json",receipt);raise
+  receipt["status"]="BLOCKED";save(output/"receipt.json",receipt);print(json.dumps(receipt));raise
 
 def self_test():
  valid={"acceptance":"!Array.isArray(requirement.acceptance) || requirement.acceptance.length === 0","reference":"e.reference.trim().length > 0"}
@@ -228,10 +233,16 @@ def self_test():
    except ValueError as e:assert str(e)=="TASK_FAILED_AFTER_TWO_ATTEMPTS"
    else:raise AssertionError("failed task advanced")
   assert calls==["acceptance","acceptance"]
+  calls.clear()
+  with tempfile.TemporaryDirectory() as d, contextlib.redirect_stdout(io.StringIO()):
+   out=Path(d)/"diagnostic";run(out,diagnostic=True)
+   record=json.loads((out/"receipt.json").read_text())
+   assert calls==["acceptance"] and record["status"]=="DIAGNOSTIC_ONLY" and record["completed"]==[]
+   assert record["attempts"][0]["accepted"] is False and record["task_continuation"] is False
  finally:backend.api=original_api
  print("SELF_TEST_PASS: strict grammar, baseline defects, dependency and rejection; NOT model evidence")
 
 if __name__=="__main__":
  if sys.argv[1:]==["--self-test"]:self_test()
- elif len(sys.argv)==3 and sys.argv[1]=="--output":run(Path(sys.argv[2]).resolve())
- else:raise SystemExit("usage: --self-test | --output PATH")
+ elif len(sys.argv)==3 and sys.argv[1] in ("--output","--diagnose"):run(Path(sys.argv[2]).resolve(),diagnostic=sys.argv[1]=="--diagnose")
+ else:raise SystemExit("usage: --self-test | --output PATH | --diagnose PATH")

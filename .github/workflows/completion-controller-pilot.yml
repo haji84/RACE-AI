@@ -593,7 +593,7 @@ jobs:
         timeout-minutes: 12
         run: |
           env -i PATH="$PATH" HOME="$RUNNER_TEMP" \
-            python3 scripts/completion-developer-trial.py --output "$RUNNER_TEMP/controller-repair"
+            python3 scripts/completion-developer-trial.py --diagnose "$RUNNER_TEMP/controller-repair"
       - name: Report bounded trial receipt even when independent verification fails
         if: always()
         run: |
