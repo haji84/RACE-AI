@@ -40,9 +40,9 @@ class NarPaybackTests(unittest.TestCase):
         self.assertEqual(item["records"][0]["refund_status"],"UNKNOWN")
 
     def test_reject_changed_schema_and_untrusted_values(self):
-        with self.assertRaisesRegex(IntakeError,"column count"):
+        with self.assertRaisesRegex(IntakeError,"layout"):
             parse_payback("架空場,20300101,1,2,3\n".encode("cp932"),CAP,"UNVERIFIED")
-        with self.assertRaisesRegex(IntakeError,"incomplete"):
+        with self.assertRaisesRegex(IntakeError,"yen payout"):
             parse_payback(make_line(combo=(1,2,3),pay="").encode("cp932"),CAP,"UNVERIFIED")
         with self.assertRaisesRegex(IntakeError,"duplicate trifecta"):
             parse_payback((make_line()+make_line()).encode("cp932"),CAP,"UNVERIFIED")
