@@ -52,6 +52,27 @@ class ModelSuiteTest(unittest.TestCase):
         self.assertNotEqual(x["models"][ALL_MODELS[-1]]["scenario_weights"],
                             y["models"][ALL_MODELS[-1]]["scenario_weights"])
 
+
+    def test_train_only_learned_model_is_optional_fifth_model(self):
+        from test_four_sport_learning import fit_rows, dataset, future
+        from race_ai.four_sport_learning import LEARNED_ID
+        model=fit_rows(dataset("boat"),sport="boat")
+        batch=run_suite(future("boat"),learned_model=model)
+        self.assertTrue(verify_suite(batch))
+        self.assertEqual(batch["model_count"],5)
+        self.assertEqual(batch["ranked_model_ids"][-1],LEARNED_ID)
+        self.assertTrue(batch["models"][LEARNED_ID]["trained"])
+        self.assertFalse(batch["models"][LEARNED_ID]["calibrated"])
+        self.assertIsNone(batch["external_timestamp_receipts"])
+        assert batch["models"][LEARNED_ID]["official_prediction"] is False
+
+    def test_wrong_sport_learned_model_rejected_instead_of_retrained(self):
+        from test_four_sport_learning import fit_rows, dataset, future
+        from race_ai.comprehensive_four_sport_models import ModelInputError
+        model=fit_rows(dataset("boat"),sport="boat")
+        with self.assertRaisesRegex(ModelInputError,"version/sport"):
+            run_suite(future("horse"),learned_model=model)
+
     def test_no_results_odds_money_or_official_picks_produced(self):
         x=run_suite(sample("boat"))
         self.assertEqual(x["purchase_decision"],"NO_BET")
