@@ -17,7 +17,53 @@ test('scope rejects other repo branch actor event attempt run and malformed pare
 test('privileged inline protocol exactly matches tested module; no checkout or model in save job',()=>{
  const wf=readFileSync('.github/workflows/completion-controller-pilot.yml','utf8');
  const module=readFileSync('scripts/completion-save-protocol.mjs','utf8').replace(/^export /gm,'').trim();
- assert.equal(wf.split('# BEGIN TESTED SAVE PROTOCOL\n')[1].split('# END TESTED SAVE PROTOCOL')[0].split('\n').map(l=>l.slice(10)).join('\n').trim(),module);
+ assert.equal(wf.split('// BEGIN TESTED SAVE PROTOCOL\n')[1].split('// END TESTED SAVE PROTOCOL')[0].split('\n').map(l=>l.slice(10)).join('\n').trim(),module);
  const job=wf.split('\n  save-technical-result:\n')[1];
  assert.ok(job);assert.doesNotMatch(job,/uses:|checkout|ollama|actions: write/);
+});
+
+const H='a'.repeat(40),P='b'.repeat(40),S='c'.repeat(40),B='d'.repeat(40),T='e'.repeat(40);
+function fixture(overrides={}){
+ let live=H,content='prior\n',writes=[];
+ const c={repository:m.REPO,branch:m.BRANCH,actor:'haji84',event:'pull_request',action:'synchronize',pr:'65',attempt:'1',run:'123',runNumber:'44',expectedRunNumber:'44',head:H,prepared:P};
+ const names={'pilot':['Verify isolated controller repair grammar and independent baseline regressions','Test deterministic controller and recovery'],'compass-adapter':['Verify original Compass pins, isolation and evidence rejection','Import canonical state, end process, reopen and export actual Compass SQLite'],'unit (windows-latest)':['Test full runtime, real signed JWTs and cross-language money parity','Validate browser code and state transitions'],'unit (ubuntu-latest)':['Test full runtime, real signed JWTs and cross-language money parity','Validate browser code and state transitions']};
+ const api={
+  async get(p){
+   if(overrides.get){const r=overrides.get(p);if(r!==undefined)return r;}
+   if(p.startsWith('git/ref/'))return {object:{sha:live}};
+   if(p==='pulls/65')return {state:'open',head:{repo:{full_name:m.REPO},ref:m.BRANCH,sha:live},base:{repo:{full_name:m.REPO}}};
+   if(p==='git/commits/'+H)return {parents:[{sha:P}],tree:{sha:T}};
+   if(p==='git/commits/'+S)return {parents:[{sha:H}],message:'docs: save bounded technical verification [save-v1]'};
+   if(p.startsWith('contents/'))return {type:'file',path:m.PATH,encoding:'base64',size:Buffer.byteLength(content),content:Buffer.from(content).toString('base64'),sha:B};
+   if(p.startsWith('compare/'))return {files:[{filename:m.PATH,status:'modified'}]};
+   if(p.startsWith('actions/runs/')){
+    const regression=p.includes('39948549566'),id=regression?39948549566:39948549502,head='cf66a272a963ed418e94bdf409cea39ce21a5aba';
+    if(p.includes('/jobs')){const chosen=Object.entries(names).filter(([n])=>n.startsWith('unit')===regression);return {total_count:2,jobs:chosen.map(([name,ss])=>({name,head_sha:head,status:'completed',conclusion:'success',steps:ss.map(name=>({name,status:'completed',conclusion:'success'}))}))};}
+    return {id,head_sha:head,head_branch:m.BRANCH,repository:{full_name:m.REPO},event:'pull_request',path:regression?'.github/workflows/tests.yml':'.github/workflows/completion-controller-pilot.yml',run_attempt:1,status:'completed',conclusion:'success'};
+   }throw Error('UNEXPECTED_GET_'+p);
+  },
+  async post(p,b){writes.push([p,b]);if(p==='git/blobs'){content=b.content;return {sha:B};}if(p==='git/trees')return {sha:T};if(p==='git/commits')return {sha:S,parents:[{sha:H}]};throw Error('UNEXPECTED_POST');},
+  async patch(p,b){writes.push([p,b]);if(overrides.patch)throw Error('CONCURRENT_ADVANCE_422');assert.equal(p,'git/refs/heads/'+m.BRANCH);assert.deepEqual(b,{sha:S,force:false});live=S;return {};}
+ };return {c,api,writes};
+}
+test('single fixed-file update preserves prior bytes then repeats with zero additional writes',async()=>{
+ const f=fixture();const a=await m.saveOnce(f.c,f.api);assert.equal(a.status,'SAVED');assert.equal(a.head,S);
+ assert.equal(f.writes.length,4);assert.deepEqual(f.writes[1][1].tree,[{path:m.PATH,mode:'100644',type:'blob',sha:B}]);assert.deepEqual(f.writes[2][1].parents,[H]);
+ assert.equal(f.writes[0][1].content,'prior\n'+m.ADDITION);
+ assert.equal((await m.saveOnce(f.c,f.api)).status,'NOOP');assert.equal(f.writes.length,4);
+});
+test('failed or skipped evidence causes zero writes',async()=>{
+ const f=fixture({get:p=>p==='actions/runs/39948549502'?{conclusion:'failure'}:undefined});
+ await assert.rejects(m.saveOnce(f.c,f.api),/EVIDENCE_RUN_INVALID/);assert.equal(f.writes.length,0);
+ const g=fixture({get:p=>p.includes('/jobs')?{total_count:0,jobs:[]}:undefined});
+ await assert.rejects(m.saveOnce(g.c,g.api),/EVIDENCE_JOB_INVALID/);assert.equal(g.writes.length,0);
+});
+test('unexpected file delta and branch movement stop before ref update',async()=>{
+ const f=fixture({get:p=>p.startsWith('compare/')?{files:[{filename:'src/evil',status:'modified'}]}:undefined});
+ await assert.rejects(m.saveOnce(f.c,f.api),/DIFF_ALLOWLIST_FAILED/);assert.equal(f.writes.filter(([p])=>p.startsWith('git/refs/')).length,0);
+ const g=fixture({get:p=>p.startsWith('git/ref/')?{object:{sha:S}}:undefined});
+ await assert.rejects(m.saveOnce(g.c,g.api),/PR_CHANGED|BRANCH_CHANGED/);assert.equal(g.writes.length,0);
+});
+test('non-fast-forward update failure is not retried',async()=>{
+ const f=fixture({patch:true});await assert.rejects(m.saveOnce(f.c,f.api),/CONCURRENT_ADVANCE/);assert.equal(f.writes.filter(([p])=>p.startsWith('git/refs/')).length,1);
 });
