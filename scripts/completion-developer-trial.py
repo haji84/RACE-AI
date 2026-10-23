@@ -88,7 +88,7 @@ def patch(source,expressions):
  if source!=expected:raise ValueError("SOURCE_BYTES_CHANGED")
  if "acceptance" in expressions:
   expression=parse_expression(expressions["acceptance"],"acceptance")
-  source=source.replace(ANCHOR1,ANCHOR1+"  if ("+expression+") return false;\n",1)
+  source=source.replace(ANCHOR1,ANCHOR1+"  if (!("+expression+")) return false;\n",1)
  if "reference" in expressions:
   if "acceptance" not in expressions:raise ValueError("DEPENDENCY_NOT_VERIFIED")
   expression=parse_expression(expressions["reference"],"reference")
@@ -134,15 +134,14 @@ def run(output,diagnostic=False):
           "general_autonomous_developer":False,"generated_patch_pushed":False,"canonical_writeback":False,
           "deployment":False,"completed":[],"attempts":[],"status":"RUNNING"}
  save(output/"receipt.json",receipt)
- source=original();expressions={}
- receipt["baseline"]=baseline(output/"baseline")
- candidate=setup_copy(output/"candidate")
- save(output/"receipt.json",receipt)
+ expressions={}
  requirements={
- "acceptance":"A completion requirement must have a nonempty Array of acceptance criteria. Write a REJECTION condition, evaluated before acceptance.every: true for [], null, missing, object, string; false for a nonempty array.",
+ "acceptance":"Write an ACCEPTANCE condition that is true only for a nonempty Array of acceptance criteria. It must be false for [], null, missing, object, string; true for a nonempty array. The host inserts it as if (!(EXPRESSION)) return false before acceptance.every. Use short-circuit evaluation so length is never accessed on a non-array.",
  "reference":"A verified evidence reference must contain non-whitespace text. Write an ACCEPTANCE condition: false for empty or whitespace-only string, true for 'run/123' and ' run/123 '. The preceding existing typeof string guard is preserved."
  }
  try:
+  source=original();receipt["baseline"]=baseline(output/"baseline")
+  candidate=setup_copy(output/"candidate");save(output/"receipt.json",receipt)
   for task in (["acceptance"] if diagnostic else ["acceptance","reference"]):
    if task=="reference" and receipt["completed"]!=["acceptance"]:raise ValueError("DEPENDENCY_NOT_VERIFIED")
    feedback=""
@@ -154,7 +153,7 @@ def run(output,diagnostic=False):
       "Existing function:\n"+source[source.index(ANCHOR1):source.index("\nexport function recordFailure")]+
       "\n"+feedback)
     started=time.monotonic()
-    response=backend.api("/api/generate",{"model":backend.MODEL,"prompt":prompt,"stream":False,"keep_alive":"5m","format":"json","options":{"temperature":0,"seed":17,"num_predict":256,"num_ctx":4096}})
+    response=backend.api("/api/generate",{"model":backend.MODEL,"prompt":prompt,"stream":False,"keep_alive":"5m","format":{"type":"object","properties":{"expression":{"type":"string","maxLength":512}},"required":["expression"],"additionalProperties":False},"options":{"temperature":0,"seed":17,"num_predict":256,"num_ctx":4096}})
     if response.get("done") is not True or response.get("model")!=backend.MODEL or response.get("done_reason")!="stop" or type(response.get("eval_count")) is not int or response["eval_count"]<=0:raise ValueError("INFERENCE_RECEIPT_INVALID")
     raw=response.get("response")
     if not isinstance(raw,str):raise ValueError("MODEL_RESPONSE_INVALID")
@@ -180,7 +179,7 @@ def run(output,diagnostic=False):
      save(output/"receipt.json",receipt);print(json.dumps(receipt));return
     if record["accepted"]:
      expressions[task]=expression;receipt["completed"].append(task);save(output/"receipt.json",receipt);break
-    feedback="The previous proposal failed syntax or independent acceptance. Obey the permitted atoms/operators and stated requirement."
+    feedback="The previous proposal was rejected with "+record["error"]+". Obey the response schema, permitted atoms/operators, and stated true/false cases."
    else:raise ValueError("TASK_FAILED_AFTER_TWO_ATTEMPTS")
   if SOURCE.read_text()!=source:raise ValueError("REPOSITORY_SOURCE_MODIFIED")
   receipt["status"]="PASS";receipt["next_task_transition_verified"]=True
@@ -190,7 +189,7 @@ def run(output,diagnostic=False):
   receipt["status"]="BLOCKED";save(output/"receipt.json",receipt);print(json.dumps(receipt));raise
 
 def self_test():
- valid={"acceptance":"!Array.isArray(requirement.acceptance) || requirement.acceptance.length === 0","reference":"e.reference.trim().length > 0"}
+ valid={"acceptance":"Array.isArray(requirement.acceptance) && requirement.acceptance.length > 0","reference":"e.reference.trim().length > 0"}
  for task,expression in valid.items():
   rendered=model_expression(json.dumps({"expression":expression}),task)
   assert parse_expression(rendered,task)==rendered
@@ -207,6 +206,10 @@ def self_test():
   candidate=setup_copy(base/"positive");candidate.write_text(patch(original(),valid))
   for task in valid:assert cases(candidate,task,candidate.parents[1]).returncode==0
   assert node(["--test",*REGRESSION],candidate.parents[1]).returncode==0
+  # Observed diagnostic semantics must not pass merely by repairing its JSON key.
+  bad={"acceptance":"Array.isArray(requirement.acceptance) && requirement.acceptance.length === 0"}
+  candidate.write_text(patch(original(),bad))
+  assert cases(candidate,"acceptance",candidate.parents[1]).returncode!=0
  # Transport is replaced only in this self-test; these are not inference receipts.
  import contextlib, io
  original_api=backend.api
@@ -214,7 +217,7 @@ def self_test():
  def stub(path,payload=None,timeout=150):
   if path=="/api/tags":return {"models":[{"name":backend.MODEL,"digest":backend.DIGEST}]}
   assert payload["format"]=={"type":"object","properties":{"expression":{"type":"string","maxLength":512}},"required":["expression"],"additionalProperties":False},"SCHEMA_CONSTRAINED_GENERATION_REQUIRED"
-  task="acceptance" if "REJECTION condition" in payload["prompt"] else "reference"
+  task="acceptance" if "nonempty Array" in payload["prompt"] else "reference"
   calls.append(task)
   return {"model":backend.MODEL,"done":True,"done_reason":"stop","eval_count":1,"response":json.dumps({"expression":valid[task]})}
  try:

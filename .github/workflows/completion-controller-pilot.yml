@@ -589,11 +589,11 @@ jobs:
           done
           test "$ready" = 1
           timeout 480s ollama pull qwen2.5-coder:3b
-      - name: Diagnose one model candidate without retry or task continuation
+      - name: Propose and independently verify two bounded controller repairs
         timeout-minutes: 12
         run: |
           env -i PATH="$PATH" HOME="$RUNNER_TEMP" \
-            python3 scripts/completion-developer-trial.py --diagnose "$RUNNER_TEMP/controller-repair"
+            python3 scripts/completion-developer-trial.py --output "$RUNNER_TEMP/controller-repair"
       - name: Report bounded trial receipt even when independent verification fails
         if: always()
         run: |
