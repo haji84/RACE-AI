@@ -3,6 +3,8 @@ on:
   pull_request:
     paths:
       - scripts/completion-controller.mjs
+      - scripts/completion-mock-trial.mjs
+      - tests/completion-mock-trial.test.mjs
       - tests/completion-controller.test.mjs
       - tests/completion-controller.e2e.test.mjs
       - tests/ai09-review-handoff.test.mjs
@@ -19,10 +21,17 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Record exact checkout
+        run: git rev-parse HEAD
+      - name: Test bounded offline mock continuation and restart
+        run: node --test tests/completion-mock-trial.test.mjs
       - name: Test deterministic controller and recovery
         run: node --test tests/completion-controller.test.mjs tests/completion-controller.e2e.test.mjs tests/ai09-review-handoff.test.mjs
       - name: Read-only GitHub plan
