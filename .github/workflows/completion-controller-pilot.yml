@@ -545,7 +545,13 @@ jobs:
 
   # Disabled preparation; a separately reviewed one-shot activation is required.
   bounded-controller-repair:
-    if: ${{ false }}
+    if: >-
+      github.repository == 'haji84/RACE-AI' && github.actor == 'haji84' &&
+      github.event_name == 'pull_request' && github.event.action == 'synchronize' &&
+      github.event.pull_request.number == 65 && github.run_number == 37 && github.run_attempt == 1 &&
+      github.event.pull_request.head.repo.full_name == 'haji84/RACE-AI' &&
+      github.event.pull_request.head.ref == 'feat/completion-controller-pilot-20261016'
+    needs: [pilot, compass-adapter]
     runs-on: ubuntu-24.04
     timeout-minutes: 20
     permissions:
@@ -589,7 +595,7 @@ jobs:
           done
           test "$ready" = 1
           timeout 480s ollama pull qwen2.5-coder:3b
-      - name: Propose and independently test two repairs to actual controller code in an isolated copy
+      - name: Diagnose one model candidate without retry or task continuation
         timeout-minutes: 12
         run: |
           env -i PATH="$PATH" HOME="$RUNNER_TEMP" \

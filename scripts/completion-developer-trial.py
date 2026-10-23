@@ -228,7 +228,7 @@ def self_test():
    calls.append("acceptance")
    return {"model":backend.MODEL,"done":True,"done_reason":"stop","eval_count":1,"response":'{"expression":"0"}'}
   backend.api=failing
-  with tempfile.TemporaryDirectory() as d:
+  with tempfile.TemporaryDirectory() as d, contextlib.redirect_stdout(io.StringIO()):
    try:run(Path(d)/"failed")
    except ValueError as e:assert str(e)=="TASK_FAILED_AFTER_TWO_ATTEMPTS"
    else:raise AssertionError("failed task advanced")
