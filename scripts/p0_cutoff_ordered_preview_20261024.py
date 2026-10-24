@@ -1,6 +1,7 @@
 """One-shot all-candidate cutoff-order trial, public official 2026-10-24 B + 2 beforeinfo.
 
-Only 2-10 minute upcoming sources may be attempted. Never call original
+Upcoming sources are checked in cutoff order with NO arbitrary ten-minute cap.
+Official beforeinfo AVAILABLE triggers eligibility; never call original
 PR71 predictor without independent publication, rights and source histories.
 The earlier eligible race is preferred only among equally observed candidates.
 At most 3 official GETs; no background polling, result or odds access.
@@ -21,7 +22,7 @@ DAY="2026-10-24"
 SOURCE="https://www1.mbrace.or.jp/od2/B/202610/b261024.lzh"
 BRANCH="refs/heads/p0-cutoff-ordered-preview-20261024"
 TOKEN="OCT24-13H-CUTOFF-SORTED"
-from race_ai.boat_deadline_first_selector import all_closing_candidates
+from race_ai.boat_deadline_first_selector import all_closing_candidates, pick_first_published_preview
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self,*args,**kwargs):raise ValueError("redirect refused")
 
@@ -35,6 +36,10 @@ def audit(*,env=None,clock=None,opener=None,extractor=None,parser_b=None,parser_
     report={"schema":"RACE_AI_CUTOFF_ORDERED_RACE_SELECTION_V1",
             "observed_on_runner_clock":now.isoformat(),
             "selected_race":None,
+            "published_preview_count":0,
+            "numeric_ready_race":None,
+            "selection_trigger":"FIRST_PARTY_BEFOREINFO_OBSERVED_AVAILABLE_NOT_MINUTES",
+            "no_arbitrary_upper_cutoff_minutes":True,
             "provider_GET_budget":3,
             "provider_GET_attempts":0,
             "official_result_used":False,"odds_used":False,
@@ -85,11 +90,11 @@ def audit(*,env=None,clock=None,opener=None,extractor=None,parser_b=None,parser_
         report["B_official_races_in_daily_source"]=len(deadlines)
         report["B_official_venues_in_daily_source"]=len({rid[9:11] for rid in deadlines})
         ordered=all_closing_candidates(deadlines,now=(clock() if clock else datetime.now(timezone.utc)),
-                    day_jst="20261024",min_minutes=2,max_minutes=10)
+                    day_jst="20261024",min_minutes=0,max_minutes=None)
         report["candidates_sorted"]=[{"race_id":r["race_id"],
                         "cutoff":r["scheduled_cutoff"]} for r in ordered]
         if not ordered:
-            report["status"]="NO_CANDIDATE_WITHIN_2_TO_10_MINUTES"
+            report["status"]="NO_UNEXPIRED_RACES_LEFT_IN_DAILY_B"
             report["finished_runner_clock_unattested"]=(clock() if clock else datetime.now(timezone.utc)).isoformat()
             return report
         for item in ordered[:2]:
@@ -99,8 +104,8 @@ def audit(*,env=None,clock=None,opener=None,extractor=None,parser_b=None,parser_
             cutoff=item["scheduled_cutoff"]
             title=f"venue-{venue}-{num}R"
             t=clock() if clock else datetime.now(timezone.utc)
-            if not timedelta(minutes=2)<=datetime.fromisoformat(cutoff)-t<=timedelta(minutes=10):
-                report["checked"].append({"race_id":race,"status":"CUTOFF_WINDOW_NO_LONGER_SAFE"})
+            if datetime.fromisoformat(cutoff)<=t:
+                report["checked"].append({"race_id":race,"status":"OFFICIAL_SCHEDULE_CUTOFF_ALREADY_PASSED"})
                 continue
             if deadlines.get(race)!=cutoff:
                 report["checked"].append({"race_id":race,"status":"OFFICIAL_B_DEADLINE_CONFLICT"})
@@ -120,6 +125,10 @@ def audit(*,env=None,clock=None,opener=None,extractor=None,parser_b=None,parser_
                     "captured_at_runner_unattested":captured,
                     "source_html_sha256":hashlib.sha256(html).hexdigest(),
                     "source_parser_status":status,
+                    "preview_status":status,
+                    "preview_identity_matched":info.get("body_identity_verified") is True,
+                    "collected_before_scheduled_cutoff":datetime.fromisoformat(captured)<datetime.fromisoformat(cutoff),
+                    "scheduled_cutoff":cutoff,
                     "schedule_proven_issued_as_scheduled_not_final":True}
             if status=="AVAILABLE":
                 bylane={r["lane"]:r["racer_id"] for r in entries if r["race_id"]==race}
@@ -141,13 +150,17 @@ def audit(*,env=None,clock=None,opener=None,extractor=None,parser_b=None,parser_
                 result["all_public_preview_numeric_available"]=False
                 result["source_missing_reason"]=info.get("missing_reason")
             report["checked"].append(result)
+        report["published_preview_count"]=sum(r.get("preview_status")=="AVAILABLE" and r.get("preview_identity_matched") is True for r in report["checked"])
+        first_published=pick_first_published_preview(report["checked"])
         selectable=[r for r in report["checked"] if r.get("all_public_preview_numeric_available")]
-        if selectable:
-            # earliest of equally complete preview observations, never odds.
-            report["selected_race"]=selectable[0]["race_id"]
-            report["status"]="PREVIEW_READY_EARLIEST_RACE_SELECTED_BUT_FULL_MODEL_UNADMITTED"
+        if first_published:
+            # Publication observation triggers admission review even when a
+            # nonnumeric exhibition ST prevents the strict FULL model.
+            report["selected_race"]=first_published["race_id"]
+            report["numeric_ready_race"]=selectable[0]["race_id"] if selectable else None
+            report["status"]="OFFICIAL_PREVIEW_OBSERVED_RUN_INPUT_GATES_NOT_FORECAST"
         else:
-            report["status"]="NO_NEAR_TERM_RACE_WITH_ALL_PREVIEW_NUMERICS"
+            report["status"]="NO_OBSERVED_OFFICIAL_PREVIEW_AVAILABLE"
     except (HTTPError,URLError,OSError,TimeoutError,ValueError,TypeError,KeyError,ImportError,UnicodeError) as exc:
         report["status"]="NO_FORECAST_SOURCE_OR_PREVIEW_UNVERIFIED"
         report["error_type"]=type(exc).__name__
@@ -160,7 +173,7 @@ def main():
     except RuntimeError:print("NOT_ADMITTED");return 2
     print(json.dumps(r,ensure_ascii=False,sort_keys=True))
     return 0 if r["status"] in (
-        "PREVIEW_READY_EARLIEST_RACE_SELECTED_BUT_FULL_MODEL_UNADMITTED",
-        "NO_CANDIDATE_WITHIN_2_TO_10_MINUTES",
-        "NO_NEAR_TERM_RACE_WITH_ALL_PREVIEW_NUMERICS") else 2
+        "OFFICIAL_PREVIEW_OBSERVED_RUN_INPUT_GATES_NOT_FORECAST",
+        "NO_UNEXPIRED_RACES_LEFT_IN_DAILY_B",
+        "NO_OBSERVED_OFFICIAL_PREVIEW_AVAILABLE") else 2
 if __name__=="__main__":raise SystemExit(main())
