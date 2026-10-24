@@ -13,6 +13,7 @@ from pathlib import Path
 import hashlib,json,os,sys,re
 from urllib.request import Request,build_opener,HTTPSHandler,HTTPRedirectHandler
 from urllib.error import HTTPError,URLError
+import re,unicodedata
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
@@ -31,6 +32,53 @@ MAX_GETS=7
 
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self,*_a,**_k):raise ValueError("upstream redirect forbidden")
+
+
+def parse_prior_K_preserving_complete_races(raw, day, strict_parser):
+    """Retain only fully verified six-boat K races; reject incomplete ones.
+
+    Uses original PR64 parse_k() on each original header+race segment. This
+    is a quarantine fallback for historical feature availability only, NOT
+    official full-day settlement and never labels a canceled race complete.
+    """
+    from race_ai.core import _blocks, _ensure_day, SourceError
+    if not isinstance(raw,bytes) or len(raw)>MAX_ARCHIVE:
+        raise ValueError("bounded K text bytes required")
+    normalized=unicodedata.normalize("NFKC",raw.decode("cp932"))
+    if "STARTK" not in normalized[:200]:
+        raise ValueError("K file start marker missing")
+    output=[]
+    rejected=0
+    for venue, body in _blocks(normalized,"K"):
+        if not 1<=venue<=24:
+            raise ValueError("historical K venue invalid")
+        _ensure_day(body,day)
+        matches=list(re.finditer(r"(?m)^\s*(\d{1,2})R\s+.*?H\s*\d{3,4}m.*$",body,re.I))
+        if not matches: raise ValueError("K venue has no recognizable race headers")
+        races=set()
+        for i,match in enumerate(matches):
+            n=int(match.group(1))
+            if not 1<=n<=12 or n in races:
+                raise ValueError("duplicate or invalid original K race header")
+            races.add(n)
+            part=body[match.start():(matches[i+1].start() if i+1<len(matches) else len(body))]
+            # Strict PR64 parse_k must still prove six unique lanes and
+            # one race; any inconsistent race contributes zero feature rows.
+            mini=(f"STARTK\n{venue:02d}KBGN\n"+part+
+                  f"\n{venue:02d}KEND\n").encode("cp932")
+            try:
+                rows=strict_parser(mini,day)
+                if len(rows)!=6 or {r["race_id"] for r in rows}!={f"{day.replace('-','')}-{venue:02d}-{n:02d}"}:
+                    raise SourceError("per-race identity mismatch")
+            except (SourceError,ValueError,UnicodeError):
+                rejected+=1
+                continue
+            output.extend(rows)
+    if not output:
+        raise ValueError("no verified per-race historical K results")
+    if len({(r["race_id"],r["lane"]) for r in output})!=len(output):
+        raise ValueError("duplicate salvaged K result rows")
+    return output,rejected
 
 def audit(*,env=None,opener=None,extract=None,parse_k_fn=None,parse_b_fn=None,
           parse_details_fn=None,history_model=None,clock=None):
@@ -99,9 +147,19 @@ def audit(*,env=None,opener=None,extract=None,parse_k_fn=None,parse_b_fn=None,
         kreceipts=[]
         for day in K_DAYS:
             clear,meta=one(day,"K")
-            rows=parse_k_fn(clear,day)
-            if not isinstance(rows,list) or len(rows)==0:raise ValueError("empty actual K")
-            kreceipts.append({**meta,"parsed_rows":len(rows)})
+            report["current_source_day_at_read"] = day
+            try:
+                rows=parse_k_fn(clear,day)
+                rejected=0
+                mode="PR64_WHOLE_K_PARSE"
+            except ValueError:
+                # Fail closed at the per-race level. Never invent results
+                # or silently accept incomplete participant rosters.
+                rows,rejected=parse_prior_K_preserving_complete_races(clear,day,parse_k_fn)
+                mode="PR64_STRICT_PER_RACE_PARTIAL_HISTORY_ONLY"
+            if not isinstance(rows,list) or not rows:raise ValueError("empty actual K")
+            kreceipts.append({**meta,"parsed_rows":len(rows),
+                "incomplete_K_races_excluded":rejected,"parser_mode":mode})
             for r in rows:
                 rid=r.get("race_id")
                 if (not isinstance(rid,str) or not rid.startswith(day.replace("-","")+"-")
@@ -113,6 +171,8 @@ def audit(*,env=None,opener=None,extract=None,parse_k_fn=None,parse_b_fn=None,
         report["K_day_counts"]=[{"day":x["event_day_jst"],"parsed_rows":x["parsed_rows"],
              "compressed_bytes":x["compressed_bytes"],
              "archive_sha256":x["archive_sha256"],
+             "incomplete_K_races_excluded":x["incomplete_K_races_excluded"],
+             "parser_mode":x["parser_mode"],
              "http_last_modified_unverified":x["HTTP_last_modified_unverified"]}
              for x in kreceipts]
         clear,meta=one(B_DAY,"B")
@@ -174,6 +234,9 @@ def audit(*,env=None,opener=None,extract=None,parse_k_fn=None,parse_b_fn=None,
             KeyError,RuntimeError) as exc:
         report["status"]="REAL_K_B_JOIN_UNVERIFIED"
         report["error_type"]=type(exc).__name__
+        # Historical archive has been discarded; only a safe day code and
+        # exception TYPE are exposed, never athlete lines or source text.
+        report["failed_source_date_jst"]=report.get("current_source_day_at_read")
         if isinstance(exc,HTTPError):report["http_status"]=exc.code
     report["runner_finished_at_claimed"]=(clock() if clock else datetime.now(timezone.utc)).isoformat()
     return report
