@@ -21,6 +21,7 @@ on:
       - 'race_ai/boat_preview_weather_evidence.py'
       - 'tests/test_boat_k_manifest_preview_weather.py'
       - 'docs/P0_NEXT_STAGE_HISTORY_PREVIEW_GEOMETRY_20261024.md'
+      - 'docs/evidence/P0_OHMURA8_REAL_K15_HISTORY_20261024.json'
       - 'scripts/p0_one_shot_real_k_readiness_20261024.py'
       - 'scripts/p0_real_b_k_pr71_history_join_20261024.py'
       - 'scripts/p0_mikuni9_same_race_full_join_20261024.py'
