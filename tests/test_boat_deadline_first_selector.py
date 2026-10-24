@@ -25,7 +25,7 @@ class DeadlineFirstSelectorTests(unittest.TestCase):
     with self.assertRaisesRegex(CloseWindowError,"date mismatch"):
       all_closing_candidates({"20261024-05-07":"2026-10-25T13:23:00+09:00"},
                              now=datetime.fromisoformat(JST),day_jst="20261024")
-    with self.assertRaisesRegex(CloseWindowError,"offset"):
+    with self.assertRaisesRegex(CloseWindowError,"timezone"):
       all_closing_candidates({"20261024-05-07":"2026-10-24T13:23:00"},
                              now=datetime.fromisoformat(JST),day_jst="20261024")
   def test_preflight_earliest_complete_not_earliest_incomplete(self):
