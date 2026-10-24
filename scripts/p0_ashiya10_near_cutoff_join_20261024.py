@@ -8,7 +8,7 @@ Raw provider data and athlete statistics never written to GitHub/logs.
 """
 from __future__ import annotations
 from collections import defaultdict
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
 from urllib.request import Request, build_opener, HTTPRedirectHandler, HTTPSHandler
 from urllib.error import HTTPError, URLError
@@ -63,6 +63,15 @@ def audit(*, env=None, opener=None, extractor=None, parser_k=None,
         return {"schema": "RACE_AI_ONE_RACE_REAL_K_B_PREVIEW_JOIN_AUDIT_V1",
                 "race_id": RACE, "status": "NO_FORECAST_CUTOFF_PASSED",
                 "upstream_get_attempts": 0, "official_prediction": False}
+    remaining=datetime.fromisoformat(CUTOFF)-now
+    if remaining > timedelta(minutes=10):
+        return {"schema":"RACE_AI_ONE_RACE_REAL_K_B_PREVIEW_JOIN_AUDIT_V1",
+                "race_id":RACE,"status":"NO_FORECAST_CUTOFF_TOO_FAR",
+                "upstream_get_attempts":0,"official_prediction":False}
+    if remaining < timedelta(minutes=2):
+        return {"schema":"RACE_AI_ONE_RACE_REAL_K_B_PREVIEW_JOIN_AUDIT_V1",
+                "race_id":RACE,"status":"NO_FORECAST_INSUFFICIENT_SAFE_CUTOFF_MARGIN",
+                "upstream_get_attempts":0,"official_prediction":False}
 
     from race_ai.official_lzh_extract import extract_daily_lzh
     from race_ai.core import parse_b, parse_k
