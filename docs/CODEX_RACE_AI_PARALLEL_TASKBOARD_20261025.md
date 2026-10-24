@@ -60,3 +60,22 @@ Each bounded task update in Issue #68 must include exactly these columns: Task I
 Do not create a NEW PR for every CI failure or agent correction. Prefer updating the existing correct Draft PR after exclusive serialized branch HEAD check. If writer lock/atomic lease is not implementable, disable parallel PR writer operations and integrate patches sequentially. Identical failed method three times means replan, not endlessly repeat.
 
 No task becomes COMPLETED by plan files, successful Github Actions with synthetic fixtures, or undocumented model assertions. Only concrete specified acceptance evidence counts.
+
+---
+
+# Active parallel taskboard — 2026-10-25
+
+Integrator D is the only GitHub writer. Existing PR72 and PR71 remain authoritative. Separate managed worktrees protect the dirty original checkout and PR70 work. No force push/rebase, new PR, source acquisition, cloud write, public deploy, Human Gate change or model coefficient rewrite.
+
+|Role|Agent|Base and AllowedPaths|State / acceptance|
+|---|---|---|---|
+|A publication|race25_source_audit|PR72 96afca65; publication module, tests and narrow contract doc|Explicit V2 implemented;31 focused tests PASS, separate captures and legacy recovery hold. Final review/CI recorded in Issue68.|
+|B private odds|race25_odds_audit|PR71 a3d4d01; full-odds source, embedded asset, tests|Repaired in PR71 head8f19d0af; CI40122497586 Node66/Python229 PASS. Separate technical review no important findings. Deployed/device still unverified; usage403 UNKNOWN.|
+|C models/PDCA|race25_model_audit|PR72 96afca65; new model_suite_settlement module/tests/script|Payload-bound adapter implemented; version/source-pin declaration gap independently reproduced and repaired. Actual pinned4sport x4family IN_MEMORY synthetic integration PASS. Persisted horse JSON still held.|
+|D integration/QA|root|Docs/taskboard, offline workflow, pinned integration verification|Initial/B update on #68; original294/13missing-reference skips preserved. Reference-complete explicitvenv Python338/0skip PASS; independent final review and exact-head CI next.|
+
+Initial live refs: main8bb7d69; PR61fef6860, PR64761247b, PR65989ffff, PR69bca59eb, PR71a3d4d01, PR7296afca65. Their full SHAs and CI runs are in the current #68 restart comment. PR71 merge-base with PR72 is070907dd335f1e0d64d31b49c2bb799e54010be3; do not assume both contain current PR69.
+
+Before each branch mutation D acquires an exclusive local per-PR lock, checks expected remote SHA and protected workflow settings, then uses only ordinary fast-forward push. A/B/C return patches/tests; they cannot push. A changed remote head causes review/replan, not overwrite. Independent code reviewer cannot author the reviewed slice. Formal GitHub approval remains a separate gate.
+
+Next external gates: permitted real participant/publication/feature data and cutoff, independent immutable future freeze/results, actual owner iPhone acceptance and deployed-code match, account-wide usage evidence, authorized independent GitHub review/main integration. No claim of completion or post-session background operation.

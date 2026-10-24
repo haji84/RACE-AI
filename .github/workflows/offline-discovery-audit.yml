@@ -5,6 +5,14 @@ on:
       - codex/actions-four-sport-e2e
     paths:
       - 'AGENTS.md'
+      - 'docs/ASSET_REUSE_MATRIX.md'
+      - 'docs/SPEC_CONFLICTS.md'
+      - 'docs/SRC_RIGHTS_STATUS.md'
+      - 'docs/REQUIRED_EXIT_GATES.md'
+      - 'docs/superpowers/plans/2026-10-25-three-lane-integrity.md'
+      - 'race_ai/model_suite_settlement.py'
+      - 'tests/test_model_suite_settlement.py'
+      - 'scripts/verify_model_suite_settlement_synthetic.py'
       - 'docs/CODEX_RACE_AI_THREE_STREAM_MASTER_HANDOFF_20261025.md'
       - 'docs/CODEX_RACE_AI_PARALLEL_RUNBOOK_20261025.md'
       - 'docs/CODEX_RACE_AI_START_PROMPT_20261025.md'
@@ -169,9 +177,6 @@ jobs:
         run: |
           git rev-parse HEAD
           python --version
-      - name: Offline regression suite
-        run: python -m unittest discover -s tests -v
-
       - name: Checkout pinned PR71 research models for fictional contract joining
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -204,5 +209,18 @@ jobs:
           persist-credentials: false
       - name: Prove existing PR64 K -> PR71 multi-model wiring on synthetic records
         run: python -m unittest discover -s tests -p test_boat_existing_asset_integration.py -v
+      - name: Prepare identical pinned PR64 parser reference for full regression
+        run: |
+          python -c "import shutil; shutil.copytree('pr64-existing-reference/race_ai', 'pr64-parser-reference/race_ai')"
+      - name: Checkout pinned PR71 snapshot validator and model suite for settlement integration
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: a3d4d011fab8773e2eab07ca83580ab345dfb708
+          path: pr71-settlement-reference
+          persist-credentials: false
+      - name: Reference-complete offline regression suite
+        run: python -m unittest discover -s tests -v
+      - name: Payload-bound existing PR71 multi-model settlement (synthetic only)
+        run: python scripts/verify_model_suite_settlement_synthetic.py
       - name: Test one same-race K/B/preview/weather source joining and NO_FORECAST gating
         run: python -m unittest discover -s tests -p test_p0_mikuni9_same_race_full_join_20261024.py -v

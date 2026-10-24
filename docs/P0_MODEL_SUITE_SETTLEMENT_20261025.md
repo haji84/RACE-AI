@@ -1,0 +1,27 @@
+# Payload-bound multi-model settlement — 2026-10-25
+
+This PR72 adapter joins unchanged PR71 research model payloads to the existing proof-aware settlement boundary. It does not fetch sources, grant rights, run models, create freezes, verify actual producer execution, publish data or choose a winning model after results.
+
+`audit_model_settlements(ledger, results, deliveries, freezes, *, expected_model_ids, expected_model_versions=None, expected_model_source_sha40=None, validate_snapshot=None, allow_source=None, admit_model_roster=None, verify_result=None, verify_cutoff=None, verify_model_freeze=None, verify_coverage=None)`.
+
+- `deliveries` contains source race ID and the original private PR71 delivery. Existing binding checks model/input hashes, race identity, complete distinct candidate universe and deterministic Top8.
+- `freezes` carries source race ID, model ID, original prediction SHA, actual separate generation/persistence times, cutoff and bounded GitHub receipt. Replacement tickets are forbidden; picks are derived only from the checked original payload. Source as_of and ingestion cannot be copied into a fabricated generation time.
+- The same complete discovery ledger and official revision set are evaluated once per predeclared model. Shared result/cutoff/coverage decisions are cached so model order cannot change denominators. Missing model/race forecasts stay eligible misses.
+- The independently audited snapshot validator must be pinned PR71 `comprehensive_four_sport_models.validate`; each analysis-purpose decision requires exact True. A binding/hash match is not a rights grant.
+- Versions must map the complete expected ID roster; source code pin must be lowercase40hex. Payload versions must match. `admit_model_roster` receives immutable `(model_id, expected_version, expected_source_sha40)` tuples declared prospectively. Missing declarations deny formal scores and freeze acceptance. A valid new receipt cannot admit an undeclared version.
+- `verify_model_freeze(receipt, sha, persisted_at, cutoff_at, *, expected_race_id)` must use the independently audited race-bound receipt path. Horse JRA/local source identity remains separate from the original horse model ID; collisions and copied cross-model receipts are rejected.
+- Callback truth remains `CALLBACK_ATTESTED_UNLESS_INDEPENDENTLY_AUDITED`. Matching supplied IDs/versions/pins does not authenticate actual producer execution; the record explicitly retains `producer_execution_authenticated_by_library=False`. Learned artifacts require additional prospective availability proof and are excluded.
+
+All original inputs, hashes, coefficients, tickets and model payloads remain unchanged. A later official result revision updates only the new evaluation record. Missing or unverified evidence does not become an external freeze, official prediction, real score or website-publication grant.
+
+## Regressions and real scope
+
+The original counterexample kept an externally accepted hash but replaced separately supplied picks, changing the old one-model score. The bridge rejects that before witness verification and supports separate full-denominator reports for multiple models. The independent reviewer also reproduced an undeclared-version replacement accepted by ID-only admission; explicit version/source declarations and new negative tests repair that gap. Original RED/PASS snapshots remain in private local evidence.
+
+`scripts/verify_model_suite_settlement_synthetic.py` loads exact PR71 a3d4d011fab8773e2eab07ca83580ab345dfb708 research/validator code and authored fixtures, runs four existing families in four sports, then uses fictional source/result/GitHub authorities through the real receipt adapter. Network is blocked. This proves in-memory algorithm/contract compatibility, not real data rights, actual external writes, future freezes or device acceptance.
+
+## Inherited serialized-horse limitation
+
+Existing PR71 diagnostics use integer runner keys. JSON persistence converts them to strings; for runner10+ numeric and lexicographic canonical sort orders differ, so a reloaded horse delivery may fail its original hash. The integration test reproduces that failure and holds it. This bridge uses defensive deep copies to preserve original key/hash semantics and never rehashes old forecasts to make them pass.
+
+A future versioned upstream canonicalization contract is a separate P0. Until reviewed and implemented, serialized-horse compatibility and real all-sport external-freeze E2E remain unproven. No claim of all-race prediction, main integration, iPhone PASS or98% accuracy follows from these synthetic checks.
