@@ -51,6 +51,10 @@ class Tables(HTMLParser):
             if self.cell is None:
                 self.cell=[];self.cell_depth=1
             else:self.cell_depth+=1
+        elif self.cell is not None and tag in ("span","div","p","small","strong","label","b"):
+            # Preserve word boundaries between nested data spans:
+            # <span>1</span><span>3.31</span><span>H0</span>.
+            self.cell.append(" ")
     def handle_data(self,data):
         if not self.ignored:
             if self.cell is not None:self.cell.append(data)
@@ -151,6 +155,29 @@ def parse_official_trial(raw,*,source_url,race_day,venue,race_no,captured_at,
             if accepted:
                 qualifying+=1
                 collected.append((len(accepted),measured,missing))
+    if qualifying==0:
+        # Official LIVE templates may display the trial grid in TWO
+        # parallel subcells under headings such as "試走T|試走T".
+        # Never scan the surrounding recent-results/history table.
+        for table in parser.tables:
+            for i,heading in enumerate(table):
+                if len(heading)!=2 or not all("試走" in _s(v) for v in heading):
+                    continue
+                seen={}
+                for row in table[i+1:]:
+                    if len(row)!=2:continue
+                    for content in row:
+                        v=_s(content)
+                        # Car slot and time must be in one ACTUAL trial grid
+                        # cell, not separated across generic page legends.
+                        m=re.search(r"(?<!\\d)([1-8])\\s+([34]\\.[0-9]{2})(?![0-9])",v)
+                        if m:
+                            carnum=int(m[1])
+                            if carnum in seen:raise TrialContractError("duplicate trial car")
+                            seen[carnum]=float(m[2])
+                if seen:
+                    qualifying+=1
+                    collected.append((len(seen),len(seen),0))
     if qualifying!=1:
         # The generic replay title or '試走T' explanatory legend alone
         # is not an actual same-race trial confirmation.
