@@ -45,3 +45,19 @@
 ## 5. 未達と安全
 
 現時点の統合テストは**架空K/B/展示/風波入力**。元データ自動取得・実レースモデル実行、別AIによる批判レビュー、本番への権限/費用・外部公開、main統合は行っていない。98%は未達・根拠のない保証はしない。Draft PR #61/#64/#71/#72は未統合のまま。
+
+## 2026-10-24 追記：モデル本体の再利用テストまで実証
+
+- **PR64 Bの元データ形状→PR71出走者入力**：`pr64_B_to_PR71_racelist(entries,details,deadlines,...)`を追加。6艇のID、B数値、モーター番号、予定締切を厳密結合し、`first_observed_at`を実測キャプチャ時刻とし`source_original_published_at=null`、`original_publication_verification=false`で渡す。**元刊行時刻をキャプチャ時刻で偽装せず、未検証のままならPR71推論を実行しない**。証拠がないBファイルでも候補レコード数と欠落を可視化できる。
+- **PR64 Kの既存DBリーダー**：`from_pr64_imported_K`は新しい歴史パーサーではなく、PR64 `core._asof_rows`（訂正履歴の最新版と時点フィルタを処理）をそのまま呼び、`provenance`表のK種別、原文SHA、公開/取得時刻との一貫性を確認する。
+- **PR71既存の総合/複数展開の2モデル**：`run_pr71_existing_multi_models`がPR71の`boat_feature_adapter.from_approved_features` → `boat_multi_feature_models.run_models` をそのまま呼ぶ。候補全120通りと最大8点を別々のモデルで計算し、研究のみ、正式凍結とはしない。
+- **既存モデルの予想根拠**：`explain_existing_PR71_boat_score`はPR71の実`_scores`から6艇それぞれの総合・先行・攻撃・荒れ展開の内部得点とシナリオ混合係数を読み出す。新しい重みを捏造しない。因果説明や実測確率への校正を証明するものではない。
+- **PR71条件付き着順を含む4モデル**：`run_PR71_existing_all_four_model_families`が`four_sport_model_suite.run_suite`を直接呼ぶ。元の75観測スロットを満たせない場合は**モデルの既存strict validatorで失敗する**。既存モデルを勝手に3指標化しない。これらはPR71のコード版へpinした合成データの試験であり、未来レースの実運用成績ではない。
+
+### Exact-head CI
+- [GitHub Actions #40055920498](https://github.com/haji84/RACE-AI/actions/runs/40055920498)：head `e54963a61bde8b5837001df11f0db2beadc99dc1`、**completed/success**。
+- Python通常回帰 **188 tests PASS（実checkout未配置の相互参照テストはskip）**。後続の明示的にPR64 `761247bee0209e37b1af6b8885e92cad3e9260a5`とPR71 `39d888329d18a5ed517de7c6b25ae3ca52257255`をcheckoutした接続試験で、**12 tests PASS、必要なPR64 SQLite K読戻し・PR71総合/シナリオ2モデル・四競技共通の条件付き着順4モデルの実コード呼出しを確認**。全て架空レースの模擬データ。
+- PR61/64/71/72の本体モデル・旧予想SHA・重み・main、費用/権限/一般公開を変えていない。
+
+### 未達の正しい読み方
+**既存の高度な数式を直接呼べることは合成テストで確かめた。しかし実B＋実K履歴＋当日展示＋当日風波＋許諾を揃えて高度モデルを未来レースで確定できたわけではない**。現行の長期ST/展示/気象の真の欠測はそのまま保持し、必要情報が揃わない対象レースは未予想として分母に残す。
