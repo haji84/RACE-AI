@@ -16,7 +16,7 @@ class FreeTierCapacityTests(unittest.TestCase):
         result=estimate_free_capacity(races_per_day=1,refresh_window_minutes=60,
                                       active_users_per_day=1,minutes_open_per_user=60)
         self.assertEqual(result["projected"]["upstream_requests"],60)
-        self.assertEqual(result["projected"]["d1_rows_written"],120)
+        self.assertEqual(result["projected"]["d1_rows_written"],180)
         self.assertEqual(result["projected"]["viewer_api_requests"],60)
         self.assertFalse(result["free_cost_guaranteed"])
         self.assertEqual(result["account_budget_check"],"HOLD")
@@ -33,9 +33,9 @@ class FreeTierCapacityTests(unittest.TestCase):
         self.assertEqual(result["projected"]["upstream_requests"],18000)
         self.assertEqual(result["projected"]["viewer_api_requests"],18000)
         self.assertEqual(result["projected"]["worker_requests"],36000)
-        self.assertEqual(result["projected"]["d1_rows_written"],36000)
+        self.assertEqual(result["projected"]["d1_rows_written"],54000)
         self.assertEqual(result["soft_headroom_after_other_apps"]["worker_requests"],16000)
-        self.assertEqual(result["soft_headroom_after_other_apps"]["d1_rows_written"],23000)
+        self.assertEqual(result["soft_headroom_after_other_apps"]["d1_rows_written"],5000)
         self.assertEqual(result["account_budget_check"],"PASS_ESTIMATE_ONLY")
         self.assertFalse(result["free_cost_guaranteed"])
         self.assertFalse(result["forecast_model_cpu_assumed_on_cloudflare"])
@@ -58,7 +58,7 @@ class FreeTierCapacityTests(unittest.TestCase):
             usage=OtherAppUsage(0,0,0),
             source_rights_verified=True,provider_requests_allowed_per_day=60000)
         self.assertEqual(result["projected"]["upstream_requests"],54000)
-        self.assertEqual(result["projected"]["d1_rows_written"],108000)
+        self.assertEqual(result["projected"]["d1_rows_written"],162000)
         self.assertIn("CLOUDFLARE_SOFT_CAP_EXCEEDED:d1_rows_written",
                       result["warnings"])
 
