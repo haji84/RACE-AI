@@ -70,14 +70,17 @@ def analyze_content(sport, raw):
     text=page.text()
     if sport=="autorace":
         date_seen=any(x in text for x in ("2026/10/24","2026-10-24","2026年10月24日"))
-        explicit_cancel=("該当レースの開催は中止となりました" in text
+        # WARNING: AUTORACE.JP embeds a default cancelled-race panel as
+        # template text in pages that ALSO show genuine trial times.
+        # An unscoped phrase is never proof of a specific race cancellation.
+        cancel_template=("該当レースの開催は中止となりました" in text
                          or "開催は中止となりました" in text)
         generic_legend="試走タイム" in text or "試走T" in text
-        state=("EXPLICIT_CANCELLATION_NO_TRIAL"
-               if explicit_cancel else
-               "AUTO_PROGRAM_SEEN_BUT_NO_RACE_SPECIFIC_TRIAL_PROOF")
-        return {"status":state,"event_day_marker_present":date_seen,
-                "cancel_marker_present":explicit_cancel,
+        return {"status":"AUTO_GENERIC_PAGE_RACE_STATUS_UNVERIFIED",
+                "event_day_marker_present":date_seen,
+                "cancel_marker_present":cancel_template,
+                "cancel_template_not_evidence_for_current_race":True,
+                "race_scoped_cancel_verified":False,
                 "generic_trial_help_present":generic_legend,
                 "current_race_trial_numeric_verified":False,
                 "presentation_available":False,
