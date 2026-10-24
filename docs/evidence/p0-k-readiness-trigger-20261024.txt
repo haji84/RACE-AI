@@ -1,0 +1,1 @@
+One-shot official previous-day K archive 2026-10-23 real data layout and ST/finish aggregate audit. Exactly one bounded GET and no archive persistence, racer rows or fake source publication. Real past outcomes are NEVER used for their own forecasts. Use only for eligibility research.
