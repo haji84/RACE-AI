@@ -18,6 +18,8 @@ on:
       - 'race_ai/boat_deadline_first_selector.py'
       - 'scripts/p0_cutoff_ordered_preview_20261024.py'
       - 'tests/test_boat_deadline_first_selector.py'
+      - 'tests/test_p0_beforeinfo_publication_trigger.py'
+      - 'docs/P0_BEFOREINFO_PUBLICATION_TRIGGER_V1_20261024.md'
       - 'docs/evidence/P0_20261024_1323_1325_CUTOFF_ORDERED_PREVIEW.json'
       - 'scripts/p0_ohmura8_disjoint_older_k_20261024.py'
       - 'docs/evidence/P0_OHMURA8_DISTINCT_K_OCT01_08_20261024.json'
