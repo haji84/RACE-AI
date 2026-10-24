@@ -126,3 +126,18 @@ test("T-60 and HTTPS exact-host gate do not call provider",async()=>{
    "DENIED_SOURCE_URL");
  assert.equal(calls,0);
 });
+
+test("response that completes after official cutoff cannot publish stale late quote",async()=>{
+ const db=new FakeD1(),env={...base,ODDS_DB:db};
+ const result=await runAuthorizedMinute(env,{
+   at:new Date("2030-01-15T01:29:59Z"),
+   completedClock:()=>new Date("2030-01-15T01:30:01Z"),
+   fetcher:async()=>new Response(JSON.stringify(feed()),{
+     status:200,headers:{"Content-Type":"application/json"}}),
+   validate:payloadGuard,hash
+ });
+ assert.equal(result.status,"CLOSED_DURING_PROVIDER_FETCH");
+ assert.equal(db.latest,null);
+ assert.equal(db.quota,1);
+ assert.equal(db.attempts[0].status,"CLOSED_DURING_PROVIDER_FETCH");
+});

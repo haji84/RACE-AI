@@ -102,6 +102,12 @@ async function runAuthorizedMinute(env,{at=new Date(),completedClock=()=>new Dat
   catch{return finish("PROVIDER_INVALID_RESPONSE",{http_status:response.status,
     blocked_until:env.ODDS_PILOT_CUTOFF_AT});}
   const arrival=completedClock().toISOString();
+  // An upstream request can start before cutoff yet finish afterwards.
+  // Do not write a late quote as if it were still available to buy.
+  if(Date.parse(arrival)>=cutoff)
+    return finish("CLOSED_DURING_PROVIDER_FETCH",{
+      http_status:response.status,blocked_until:env.ODDS_PILOT_CUTOFF_AT
+    });
   const feed={...raw,ingested_at:arrival};
   try{
     validate(feed);
