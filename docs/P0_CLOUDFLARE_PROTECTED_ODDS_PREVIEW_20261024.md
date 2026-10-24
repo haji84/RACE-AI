@@ -1,5 +1,13 @@
 # P0 (2026-10-24): RACE-AI Cloudflare owner-only odds preview acceptance
 
+**Status update after first real pilot (2026-10-24 10:43 JST):**
+
+- The original 0-row status below is **historical (before the actual source pilot)** and has now been superseded: the owner-only D1 contains **one real official 芦屋7R 2026-10-24 120/120 odds snapshot**. Hash readback succeeded.
+- Three bounded, manual first-party Browser Rendering snapshots at JST **10:40:01 / 10:41:57 / 10:43:21** with published source update time consistently **10:36**. The provider values did **not** change, so a 60-second upstream value refresh is **not yet proven**. All three requests are accounted in D1 quota ledger. The latest odds row is deliberately not rewritten when unchanged.
+- All three observations and D1 SHA are documented in [actual one-race evidence](./evidence/2026-10-24-boatrace-ashiya-7r-real-odds-pilot.md). Cloudflare Access remains owner-only; auto source polling/Cron and Worker ingest remain disabled. Owner iPhone Safari acceptance still pending.
+
+---
+
 Goal: one authorized real BOATRACE 3連単 page (120 exact ordered quotes),
 private D1 storage, and 60-second refresh visible on an iPhone. This
 document **separates a deployed protected infrastructure from the missing
