@@ -67,10 +67,12 @@ def audit(*, env=None,opener=None,extractor=None,parser=None,clock=None):
         "status":"UNVERIFIED"
     }
     try:
-        from race_ai.official_lzh_extract import extract_daily_lzh
-        from race_ai.core import parse_k
-        extractor=extractor or extract_daily_lzh
-        parser=parser or parse_k
+        if extractor is None:
+            from race_ai.official_lzh_extract import extract_daily_lzh
+            extractor = extract_daily_lzh
+        if parser is None:
+            from race_ai.core import parse_k
+            parser = parse_k
         client=opener or build_opener(NoRedirect(),HTTPSHandler())
         entries=defaultdict(list)
         receipts=[]
