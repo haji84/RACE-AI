@@ -23,6 +23,7 @@ on:
       - 'race_ai/four_sport_publication_transition.py'
       - 'tests/test_four_sport_publication_transition.py'
       - 'docs/P0_NONBOAT_OFFICIAL_SOURCE_REAL_CHECK_20261024.md'
+      - 'docs/evidence/P0_NONBOAT_FIRSTPARTY_3SPORT_REAL_AUDIT_20261024.json'
       - 'scripts/p0_nonboat_official_format_probe_20261024.py'
       - 'scripts/p0_jra_kyoto12_charset_audit_20261024.py'
       - 'tests/test_p0_jra_kyoto12_charset_audit.py'
