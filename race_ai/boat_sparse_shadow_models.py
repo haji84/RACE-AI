@@ -189,7 +189,7 @@ def _stable_hash(data):
     return hashlib.sha256(raw).hexdigest()
 
 
-def _forecast(model_id, snapshot, prepared, *, weights, used_optional):
+def _forecast(model_id, snapshot, prepared, *, weights, used_optional, used_environment=()):
     strength = {}
     for lane, row in prepared["participants"].items():
         values = row["values"]
@@ -217,6 +217,7 @@ def _forecast(model_id, snapshot, prepared, *, weights, used_optional):
         "odds_independent": True,
         "confidence_level": "UNVERIFIED",
         "used_optional_keys": sorted(used_optional),
+        "used_environment_keys": sorted(used_environment),
         "excluded_incomplete_optional_keys": sorted(set(EXTRA) - set(used_optional)),
         "missing_optional_reasons_by_lane": {
             str(lane): dict(sorted(row["missing"].items()))
@@ -258,8 +259,18 @@ def predict_shadow_pair(snapshot, *, allow_source=None):
     if eligible_extra:
         weights = dict(BASE_WEIGHTS)
         weights.update({key: EXTRA_WEIGHTS[key] for key in eligible_extra})
+        observed_environment = prepared["environment"]
+        used_environment = []
+        # Meteorological context only modifies a genuinely observed, per-boat
+        # resilience signal. It never substitutes a missing resilience score.
+        if "wind_response" in eligible_extra and "wind_mps" in observed_environment:
+            weights["wind_response"] += .35 * min(1, observed_environment["wind_mps"] / 20)
+            used_environment.append("wind_mps")
+        if "wave_response" in eligible_extra and "wave_cm" in observed_environment:
+            weights["wave_response"] += .35 * min(1, observed_environment["wave_cm"] / 60)
+            used_environment.append("wave_cm")
         enriched = _forecast(ENRICHED_ID, snapshot, prepared, weights=weights,
-                             used_optional=eligible_extra)
+                             used_optional=eligible_extra, used_environment=used_environment)
         enriched["excluded_partially_observed_keys"] = sorted(excluded_partial)
         enriched["prediction_sha256"] = _stable_hash(
             {k: v for k, v in enriched.items() if k != "prediction_sha256"}
