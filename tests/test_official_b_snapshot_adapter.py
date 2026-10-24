@@ -50,3 +50,38 @@ class OfficialBSnapshotTests(unittest.TestCase):
             with self.assertRaises(SourceError):
                 normalize_b_snapshot(changed, day=date(2026,10,15), source_url='https://example.org/B',
                     observed_at='2026-10-15T03:00:00+09:00', require_details=True)
+
+    def test_adjacent_rate_columns_with_100_percent_not_misparsed(self):
+        rows = []
+        for race in range(1, 13):
+            rows.append(f'{race}Ｒ 予選 Ｈ１８００ｍ 電話投票締切予定０８：４３')
+            for lane in range(1, 7):
+                stats = '6.3246.725.55100.00' if lane == 1 else '6.32 46.72 5.55 30.00'
+                rows.append(
+                    f'{lane} {4000+lane}選手名字42三重55A2 {stats} '
+                    f'{10+lane} 50.00{130+lane} 23.68'
+                )
+        program = ('STARTB\n18BBGN\n２０２６年１０月１５日\n' +
+                   '\n'.join(rows) + '\n18BEND\n').encode('cp932')
+        result = normalize_b_snapshot(
+            program, day=date(2026, 10, 15),
+            source_url='https://example.org/B',
+            observed_at='2026-10-15T03:00:00+09:00',
+            require_details=True
+        )
+        self.assertEqual(result['races'], 12)
+        first = result['venues'][0]['races'][0]['boats'][0]
+        self.assertEqual(first['national_win_rate'], 6.32)
+        self.assertEqual(first['national_top2_rate'], 46.72)
+        self.assertEqual(first['local_win_rate'], 5.55)
+        self.assertEqual(first['local_top2_rate'], 100.0)
+        self.assertEqual(first['motor_no'], 11)
+        # Concatenation does not justify accepting an impossible >100% rate.
+        bad = program.replace(b'5.55100.00', b'5.55101.00', 1)
+        with self.assertRaises(SourceError):
+            normalize_b_snapshot(
+                bad, day=date(2026, 10, 15),
+                source_url='https://example.org/B',
+                observed_at='2026-10-15T03:00:00+09:00',
+                require_details=True
+            )
