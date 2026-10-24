@@ -33,9 +33,8 @@ function auditThreeCycles(raw){
    const received=stamp(entry?.server_received_at),published=stamp(entry?.source_published_at);
    if(entry?.race_id!==race||begin===null||end===null||
        received===null||published===null||
-       !(begin<=published || published<=received) || // checked by ordering below
        begin>end||received>end||published>received||
-       (cutoff!==null&&(begin>=cutoff||received>=cutoff))||
+       (cutoff!==null&&(begin>=cutoff||received>=cutoff||end>=cutoff))||
        !HASH.test(entry?.snapshot_sha256||"")||
        entry?.quoted_count!==120||entry?.ticket_count!==120||
        !["D1_SAVED_SHA_VERIFIED","SOURCE_UNCHANGED"].includes(entry?.status))

@@ -61,3 +61,9 @@ test("browser timestamp must correspond to D1 stored delivery not an old stale r
  const wrong=fiction();wrong.safari_receipts[1].ingested_at="2030-01-15T00:00:00Z";
  assert.ok(auditThreeCycles(wrong).blockers.includes("THREE_SAFARI_D1_LINKED_RECEIPTS_NOT_PROVEN"));
 });
+
+test("D1 readback finishing after cutoff is invalid",()=>{
+ const doc=fiction();
+ doc.cutoff_at=new Date(Date.parse(doc.source_attempts[2].server_received_at)+50).toISOString();
+ assert.ok(auditThreeCycles(doc).blockers.includes("INVALID_SOURCE_RECEIPT"));
+});
