@@ -78,6 +78,11 @@ def probe(*,env=None,opener=None,extract=None,parser=None):
                 except SourceError as exc:
                     metrics["parser_stage"]="official_program_details"
                     metrics["parser_diagnostic"]=str(exc)[:140]
+                    if str(exc) == "B program detail layout malformed":
+                        # Only safe aggregate syntax counts; no source text
+                        # or per-athlete/per-race fields in public CI logs.
+                        from race_ai.b_layout_shape_diagnostic import summarize_b_layout
+                        metrics["redacted_layout_diagnostic"] = summarize_b_layout(content)
                     raise
                 metrics["parser_stage"]="fully_parsed"
                 return entries,details,deadlines
