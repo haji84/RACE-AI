@@ -123,6 +123,7 @@ test("existing full-market iPhone viewer and CSS are served only to Access owner
  assert.match(markup,/全3連単オッズ/);
  assert.match(markup,/full-odds-model\.js/);
  assert.match(markup,/full-odds\.js/);
+ assert.match(markup,/id="browser-read-time"/);
  const model=await worker.fetch(new Request("https://preview.invalid/full-odds-model.js"),e,ACCESS);
  assert.equal(model.status,200);
  assert.match(await model.text(),/RACE_AI_FULL_TRIFECTA_ODDS_V1/);
