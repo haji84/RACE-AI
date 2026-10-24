@@ -175,6 +175,17 @@ def parse_official_trial(raw,*,source_url,race_day,venue,race_no,captured_at,
                             carnum=int(m[1])
                             if carnum in seen:raise TrialContractError("duplicate trial car")
                             seen[carnum]=float(m[2])
+                    # Some official trial tables are two-column CAR|TRIAL
+                    # rows, not two embedded car/time groups per cell.
+                    a,b=(_s(x) for x in row)
+                    if CAR.fullmatch(a) and NUM.fullmatch(b):
+                        n=int(a)
+                        if n in seen:raise TrialContractError("duplicate trial car")
+                        seen[n]=float(b)
+                    elif CAR.fullmatch(b) and NUM.fullmatch(a):
+                        n=int(b)
+                        if n in seen:raise TrialContractError("duplicate trial car")
+                        seen[n]=float(a)
                 if seen:
                     qualifying+=1
                     collected.append((len(seen),len(seen),0))
