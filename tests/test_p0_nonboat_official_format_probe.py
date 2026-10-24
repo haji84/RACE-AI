@@ -41,9 +41,21 @@ class OtherSportRealFormatContract(unittest.TestCase):
     def test_autorace_cancellation_even_if_help_mentions_trial(self):
         r=analyze_content("autorace",
             "2026/10/24 該当レースの開催は中止となりました。 試走T:試走タイム".encode("utf-8"))
-        self.assertEqual(r["status"],"EXPLICIT_CANCELLATION_NO_TRIAL")
+        self.assertEqual(r["status"],"AUTO_GENERIC_PAGE_RACE_STATUS_UNVERIFIED")
         self.assertFalse(r["presentation_available"])
+        self.assertTrue(r["cancel_marker_present"])
+        self.assertTrue(r["cancel_template_not_evidence_for_current_race"])
+        self.assertFalse(r["race_scoped_cancel_verified"])
         self.assertTrue(r["generic_trial_help_present"])
+    def test_actual_meet_can_contain_same_cancellation_template(self):
+        # The official meeting took place; template text exists globally.
+        raw="2026/10/24 伊勢崎 ＧⅡオートレースメモリアル 12R 試走T 3.31 該当レースの開催は中止となりました。".encode()
+        # Generic content analysis cannot certify either trial or cancellation.
+        report=analyze_content("autorace",raw)
+        self.assertEqual(report["status"],"AUTO_GENERIC_PAGE_RACE_STATUS_UNVERIFIED")
+        self.assertFalse(report["race_scoped_cancel_verified"])
+        self.assertFalse(report["current_race_trial_numeric_verified"])
+
     def test_autorace_generic_help_is_not_actual_trial(self):
         r=analyze_content("autorace",
             "2026/10/24 試走T:試走タイム".encode())
