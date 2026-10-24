@@ -12,16 +12,16 @@ Sources/policies: https://www.boatrace.jp/owpc/pc/extra/data/download.html and h
 ## 2026-10-24 UPDATE: real source strict detail parsing is now accepted
 
 The earlier failure reported above remains the historical outcome for PR64 at
-\`27f3df12ddca3971833d4dbf03f6fbcc88df6b07\`, not the current outcome.
+`27f3df12ddca3971833d4dbf03f6fbcc88df6b07`, not the current outcome.
 
 - A **single bounded** official B GET on a fresh GitHub-hosted audit run
   [#40049911334](https://github.com/haji84/RACE-AI/actions/runs/40049911334)
   for the same 2026-10-22 file returned HTTP 200. Compressed SHA256:
-  \`ec1f65cc04b2e4b04c01c5b952b7b88deb48391c6498f60e12de473e573e8200\`.
+  `ec1f65cc04b2e4b04c01c5b952b7b88deb48391c6498f60e12de473e573e8200`.
   Archive byte size **32,775**, extracted text **153,666** bytes.
 - The run was pinned to the corrected PR64 parser commit
-  [\`761247bee0209e37b1af6b8885e92cad3e9260a5\`](https://github.com/haji84/RACE-AI/commit/761247bee0209e37b1af6b8885e92cad3e9260a5).
-  It reports \`REAL_OFFICIAL_B_FORMAT_ACCEPTED_AUDIT_ONLY\`: **14 venues,
+  [`761247bee0209e37b1af6b8885e92cad3e9260a5`](https://github.com/haji84/RACE-AI/commit/761247bee0209e37b1af6b8885e92cad3e9260a5).
+  It reports `REAL_OFFICIAL_B_FORMAT_ACCEPTED_AUDIT_ONLY`: **14 venues,
   168 unique races, 1,008 entrant records, 1,008 strict numeric detail rows,
   and 168 extracted *scheduled* sales cutoff strings**. Individual source
   rows and LZH bytes are not stored in the public repository.
