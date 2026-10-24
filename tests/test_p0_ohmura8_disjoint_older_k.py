@@ -36,7 +36,7 @@ class DistinctKTests(unittest.TestCase):
         client=Open()
         result=audit(env=ENV,opener=client,clock=lambda:NOW,
             extractor=lambda *_:b"synthetic K",parser=K)
-        self.assertEqual(result["status"],"OLDER_DISTINCT_K_ROWS_OBSERVED_NOT_MODEL_ADMITTED")
+        self.assertEqual(result["status"],"OLDER_DISTINCT_K_ROWS_OBSERVED_NOT_MODEL_ADMITTED", msg=repr(result))
         self.assertEqual(result["GET_attempts"],8)
         self.assertEqual(len(client.urls),8)
         self.assertEqual(len(set(client.urls)),8)
@@ -52,6 +52,7 @@ class DistinctKTests(unittest.TestCase):
             return [r for r in K(raw,day) if r["racer_id"]!=RACERS[5]]
         result=audit(env=ENV,opener=client,clock=lambda:NOW,
             extractor=lambda *_:b"synthetic K",parser=sparse)
+        self.assertIn("combined_at_least_five_can_be_deduced_without_RACER_CROSS_RUN_STATE",result,repr(result))
         self.assertFalse(result["combined_at_least_five_can_be_deduced_without_RACER_CROSS_RUN_STATE"])
         self.assertEqual(result["minimal_new_K_count_across_six"],0)
     def test_bad_branch_refuses_get(self):
@@ -74,6 +75,7 @@ class DistinctKTests(unittest.TestCase):
             return rows
         result=audit(env=ENV,opener=client,
             extractor=lambda *_:b"synthetic",parser=bad,clock=lambda:NOW)
+        self.assertIn("selected_6_racers_additional_K_counts_by_lane",result,repr(result))
         self.assertEqual(result["selected_6_racers_additional_K_counts_by_lane"][0],0)
         self.assertFalse(result["eligible_for_formal_hit8"])
 
