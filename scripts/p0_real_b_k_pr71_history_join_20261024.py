@@ -49,12 +49,17 @@ def parse_prior_K_preserving_complete_races(raw, day, strict_parser):
         raise ValueError("K file start marker missing")
     output=[]
     rejected=0
+    empty_venue_blocks=0
     for venue, body in _blocks(normalized,"K"):
         if not 1<=venue<=24:
             raise ValueError("historical K venue invalid")
         _ensure_day(body,day)
         matches=list(re.finditer(r"(?m)^\s*(\d{1,2})R\s+.*?H\s*\d{3,4}m.*$",body,re.I))
-        if not matches: raise ValueError("K venue has no recognizable race headers")
+        if not matches:
+            # A canceled/blank K venue has NO result rows. Credit zero races
+            # and keep inspecting the other venues; never synthesize finish.
+            empty_venue_blocks+=1
+            continue
         races=set()
         for i,match in enumerate(matches):
             n=int(match.group(1))
@@ -78,7 +83,7 @@ def parse_prior_K_preserving_complete_races(raw, day, strict_parser):
         raise ValueError("no verified per-race historical K results")
     if len({(r["race_id"],r["lane"]) for r in output})!=len(output):
         raise ValueError("duplicate salvaged K result rows")
-    return output,rejected
+    return output,rejected,empty_venue_blocks
 
 def audit(*,env=None,opener=None,extract=None,parse_k_fn=None,parse_b_fn=None,
           parse_details_fn=None,history_model=None,clock=None):
@@ -151,20 +156,24 @@ def audit(*,env=None,opener=None,extract=None,parse_k_fn=None,parse_b_fn=None,
             try:
                 rows=parse_k_fn(clear,day)
                 rejected=0
+                empty_venues=0
                 mode="PR64_WHOLE_K_PARSE"
             except ValueError:
                 # Try the unchanged PR64 per-race parser. If even this fails,
                 # quarantine the whole day instead of inventing ST/finish.
                 try:
-                    rows,rejected=parse_prior_K_preserving_complete_races(clear,day,parse_k_fn)
+                    rows,rejected,empty_venues=parse_prior_K_preserving_complete_races(clear,day,parse_k_fn)
                     mode="PR64_STRICT_PER_RACE_PARTIAL_HISTORY_ONLY"
                 except (ValueError,ImportError,UnicodeError):
                     rows=[]
                     rejected=None
+                    empty_venues=None
                     mode="QUARANTINED_SOURCE_DAY_NO_HISTORY_CREDIT"
             if not isinstance(rows,list):raise ValueError("K parser output invalid")
             kreceipts.append({**meta,"parsed_rows":len(rows),
-                "incomplete_K_races_excluded":rejected,"parser_mode":mode})
+                "incomplete_K_races_excluded":rejected,
+                "K_venue_blocks_without_race_headers":empty_venues,
+                "parser_mode":mode})
             if not rows:
                 # Explicitly recorded K gap. The downstream 5-race gate
                 # counts only genuine, structurally accepted previous results.
@@ -183,6 +192,7 @@ def audit(*,env=None,opener=None,extract=None,parse_k_fn=None,parse_b_fn=None,
              "compressed_bytes":x["compressed_bytes"],
              "archive_sha256":x["archive_sha256"],
              "incomplete_K_races_excluded":x["incomplete_K_races_excluded"],
+             "K_venue_blocks_without_race_headers":x["K_venue_blocks_without_race_headers"],
              "parser_mode":x["parser_mode"],
              "http_last_modified_unverified":x["HTTP_last_modified_unverified"]}
              for x in kreceipts]
