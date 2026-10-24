@@ -99,8 +99,17 @@ def parse_official_trial(raw,*,source_url,race_day,venue,race_no,captured_at,
     number_found=bool(re.search(rf"(?<!\d){race_no}\s*R\b|(?<!\d){race_no}\s*レース",body))
     collected=[]
     qualifying=0
+    trial_labeled_table_rows=0
+    trial_header_shape_counts={}
     for table in parser.tables:
         for i,row in enumerate(table):
+            if any("試走" in _s(v) for v in row):
+                trial_labeled_table_rows+=1
+                shape="|".join("TRIAL" if "試走" in _s(v) else
+                               "CAR" if _s(v) in ("車","車番") else
+                               "HANDICAP" if _s(v)=="ハンデ" else
+                               "OTHER" for v in row[:16])
+                trial_header_shape_counts[shape]=trial_header_shape_counts.get(shape,0)+1
             headers=[_s(v).lower() for v in row]
             trial_ids=[j for j,v in enumerate(headers) if v in ("試走t","試走タイム")]
             lane_ids=[j for j,v in enumerate(headers) if v in ("車","車番")]
@@ -146,6 +155,9 @@ def parse_official_trial(raw,*,source_url,race_day,venue,race_no,captured_at,
         "race_number_in_body":number_found,
         "race_identity_structurally_sufficient":bool(date_found and number_found and qualifying==1),
         "official_trial_header_tables":qualifying,
+        "official_html_tables_seen":len(parser.tables),
+        "trial_label_table_rows_seen":trial_labeled_table_rows,
+        "trial_label_header_shapes_anonymized":trial_header_shape_counts,
         "car_slots_observed":actual,
         "numeric_trial_car_count":observed,
         "status":status if date_found and number_found else "RACE_BODY_IDENTITY_UNVERIFIED",
