@@ -138,3 +138,24 @@ test("client receipt, official-time and quote changes remain distinct",()=>{
  quote.odds[0].status="QUOTED";quote.odds[0].decimal_odds=15.2;
  assert.deepEqual(O.readDifference(a,O.parse(quote)),{kind:"QUOTE_CHANGED",changedQuotes:1});
 });
+
+test("Safari acceptance requires three ~60s automatic browser reads, not manual reads",()=>{
+ const initial={ok:true,trigger:"initial",browser_at:"2030-01-15T00:00:00Z",gap_seconds:null};
+ const auto=n=>({ok:true,trigger:"timer",browser_at:new Date(Date.parse(initial.browser_at)+n*60000).toISOString(),gap_seconds:60});
+ assert.deepEqual(O.safariAcceptance([initial,auto(1),auto(2)]),{confirmedIntervals:2,passed:false});
+ assert.deepEqual(O.safariAcceptance([initial,auto(1),auto(2),auto(3)]),{confirmedIntervals:3,passed:true});
+ assert.equal(O.safariAcceptance([initial,{...auto(1),trigger:"manual"},auto(2)]).passed,false);
+ assert.equal(O.safariAcceptance([initial,{...auto(1),gap_seconds:350},auto(2)]).passed,false);
+ assert.equal(O.safariAcceptance([initial,auto(1),{ok:false,trigger:"timer"},auto(3)]).passed,false);
+});
+test("Safari receipt UI includes visible progress, fallback selection and no odds export",()=>{
+ const fs=require("node:fs"),p=require("node:path");
+ const html=fs.readFileSync(p.resolve(__dirname,"../web/full-odds.html"),"utf8");
+ const js=fs.readFileSync(p.resolve(__dirname,"../web/full-odds.js"),"utf8");
+ for(const id of ["refresh-progress","refresh-next","select-evidence","evidence-text","copy-status"])
+   assert.ok(html.includes('id="'+id+'"'),"missing "+id);
+ assert.ok(js.includes("document.execCommand"));
+ assert.ok(js.includes('refresh("timer")'));
+ assert.ok(js.includes("RACE_AI_SAFARI_READ_RECEIPTS_V2"));
+ assert.ok(!js.includes("odds:state.feed?.odds"));
+});

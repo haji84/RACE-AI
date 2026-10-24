@@ -101,6 +101,22 @@
       previous.ingested_at!==current.ingested_at?"D1_RECEIPT_CHANGED":"UNCHANGED";
     return {kind,changedQuotes};
   }
+  function safariAcceptance(events){
+    let consecutiveTimedReads=0,previous=null;
+    for(const event of events){
+      if(!event?.ok||event.manual_file_mode){consecutiveTimedReads=0;previous=null;continue;}
+      const delta=event.gap_seconds;
+      if(event.trigger==="timer"){
+        consecutiveTimedReads=(previous&&typeof delta==="number"&&
+          delta>=55&&delta<=90)?consecutiveTimedReads+1:0;
+      }else if(event.trigger!=="initial"){
+        consecutiveTimedReads=0;
+      }
+      previous=event;
+    }
+    return {confirmedIntervals:consecutiveTimedReads,
+      passed:consecutiveTimedReads>=3};
+  }
   function select(feed,{first="all",query="",order="ticket"}={}){
     if(!feed)return [];
     const q=String(query).trim().replace(/\s+/g,"");
@@ -116,5 +132,5 @@
     else out.sort((a,b)=>a.ticket[0]-b.ticket[0]||a.ticket[1]-b.ticket[1]||a.ticket[2]-b.ticket[2]);
     return out;
   }
-  return Object.freeze({parse,select,allTickets,freshness,key,initialRowLimit,readDifference});
+  return Object.freeze({parse,select,allTickets,freshness,key,initialRowLimit,readDifference,safariAcceptance});
 });
