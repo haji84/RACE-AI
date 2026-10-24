@@ -144,13 +144,13 @@
       const completed=Date.now();
       const gap=state.lastSuccessfulAt?(completed-state.lastSuccessfulAt)/1000:null;
       state.lastSuccessfulAt=completed;
-      traceRead({ok:true,trigger,manual_file_mode:false,browser_at:new Date(completed).toISOString(),
+      traceRead({race_id:state.feed.race_id,ok:true,trigger,manual_file_mode:false,browser_at:new Date(completed).toISOString(),
         gap_seconds:gap===null?null:Number(gap.toFixed(1)),
         change_kind:difference.kind,changed_quotes:difference.changedQuotes,
         ingested_at:state.feed.ingested_at,source_published_at:state.feed.source_published_at});
     }catch(err){
       state.failures++;state.lastRefreshFailed=true;
-      traceRead({ok:false,trigger,manual_file_mode:false,browser_at:new Date().toISOString(),gap_seconds:null});
+      traceRead({race_id:validRaceId?raceId:null,ok:false,trigger,manual_file_mode:false,browser_at:new Date().toISOString(),gap_seconds:null});
       $("file-error").textContent="更新できません："+err.message;
       $("file-error").hidden=false;
       if(state.feed){
@@ -182,7 +182,7 @@
       received_rows:state.feed?.odds.length??null,
       safari_auto_acceptance:Model.safariAcceptance(state.events),
       events:state.events.map(e=>({
-        browser_at:e.browser_at,trigger:e.trigger,ok:e.ok,
+        race_id:e.race_id??null,browser_at:e.browser_at,trigger:e.trigger,ok:e.ok,
         gap_seconds:e.gap_seconds??null,
         change_kind:e.change_kind??null,changed_quotes:e.changed_quotes??null,
         ingested_at:e.ingested_at??null,source_published_at:e.source_published_at??null

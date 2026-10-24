@@ -159,3 +159,166 @@ test("Safari receipt UI includes visible progress, fallback selection and no odd
  assert.ok(js.includes("RACE_AI_SAFARI_READ_RECEIPTS_V2"));
  assert.ok(!js.includes("odds:state.feed?.odds"));
 });
+
+// Exercise the shipped UI at its DOM/network boundaries; no provider or
+// Cloudflare calls are made. Removing event race identity must break linkage
+// to the independent audit contract, even when the screen reports 3/3 reads.
+const RECEIPT_RACE="20300115-01-03";
+const RECEIPT_START=Date.parse("2030-01-15T00:40:00Z");
+async function receiptBrowser({initialStatus=200,holdInitialRead=false}={}){
+ const fs=require("node:fs"),path=require("node:path"),vm=require("node:vm");
+ let clock=RECEIPT_START,copied,upcoming,generated=0,firstRequest=true,releaseInitial;
+ const initialRead=holdInitialRead?new Promise(resolve=>{releaseInitial=resolve;}):null;
+ const elements=new Map(),timers=[];
+ const element=id=>{
+   if(!elements.has(id))elements.set(id,{
+     value:"all",hidden:false,textContent:"",listeners:{},
+     classList:{toggle(){},add(){}},replaceChildren(){},append(){},
+     focus(){},select(){},setSelectionRange(){},
+     addEventListener(name,handler){this.listeners[name]=handler;}
+   });
+   return elements.get(id);
+ };
+ class BrowserDate extends Date{
+   constructor(...args){super(...(args.length?args:[clock]));}
+   static now(){return clock;}
+ }
+ function currentFeed(){
+   const feed=fixture("boat",6);
+   return {...feed,race_id:RECEIPT_RACE,
+     cutoff_at:"2030-01-15T01:30:00Z",
+     source_published_at:new Date(clock-10000).toISOString(),
+     ingested_at:new Date(clock-1000).toISOString(),
+     odds:feed.odds.map((quote,index)=>({...quote,status:"QUOTED",decimal_odds:10+index/10}))};
+ }
+ upcoming={status:initialStatus,feed:currentFeed()};
+ const context={RaceFullOdds:O,URL,URLSearchParams,Intl,Date:BrowserDate,
+   location:{search:"?race_id="+RECEIPT_RACE,origin:"https://preview.invalid"},
+   document:{hidden:false,getElementById:element,
+     createElement:()=>element("generated-"+generated++),addEventListener(){}},
+   window:{addEventListener(){}},
+   navigator:{clipboard:{writeText:async text=>{copied=text;}}},
+   setInterval(handler,delay){timers.push({handler,delay});},
+   fetch:async(url,options)=>{
+     assert.equal(url,"./data/odds/"+RECEIPT_RACE+".json");
+     assert.equal(options.credentials,"same-origin");
+     const response=upcoming,wait=firstRequest?initialRead:null;firstRequest=false;
+     return {ok:response.status===200,status:response.status,redirected:false,
+       headers:{get:()=>"application/json"},json:async()=>{if(wait)await wait;return response.feed;}};
+   }
+ };
+ vm.createContext(context);
+ vm.runInContext(fs.readFileSync(path.resolve(__dirname,"../web/full-odds.js"),"utf8"),context);
+ const settle=()=>new Promise(resolve=>setImmediate(resolve));
+ await settle();
+ return {
+   changePageUrl(race){context.location.search="?race_id="+race;},
+   async releaseInitialRead(){releaseInitial();await settle();},
+   async minute({status=200,race=RECEIPT_RACE}={}){
+     clock+=60000;upcoming={status,feed:{...currentFeed(),race_id:race}};
+     timers.find(x=>x.delay===60000).handler();await settle();
+   },
+   async diagnostic(){
+     await element("copy-evidence").listeners.click();
+     return JSON.parse(copied);
+   }
+ };
+}
+function syntheticCycleAudit(receipts){
+ const hash="b".repeat(64);
+ return {schema:"RACE_AI_ODDS_THREE_CYCLE_AUDIT_V1",race_id:RECEIPT_RACE,
+   cutoff_at:"2030-01-15T01:30:00Z",official_cutoff_verified:true,
+   rights_confirmed:true,rights_evidence_ref:"synthetic-contract-only",
+   shared_free_quota_verified:true,safari_receipts:receipts,
+   source_attempts:[1,2,3].map(minute=>{
+     const clock=RECEIPT_START+minute*60000;
+     return {race_id:RECEIPT_RACE,attempt_at:new Date(clock-2000).toISOString(),
+       finished_at:new Date(clock-500).toISOString(),
+       server_received_at:new Date(clock-1000).toISOString(),
+       source_published_at:new Date(clock-10000).toISOString(),
+       snapshot_sha256:hash,d1_readback_sha256:hash,
+       quoted_count:120,ticket_count:120,status:"D1_SAVED_SHA_VERIFIED"};
+   })};
+}
+test("copied UI receipts link three automatic reads to the same-race audit without rewriting",async()=>{
+ const {auditThreeCycles}=await import("../race_ai/odds_three_cycle_audit.mjs");
+ const browser=await receiptBrowser();
+ for(let i=0;i<3;i++)await browser.minute();
+ const diagnostic=await browser.diagnostic();
+ assert.deepEqual(diagnostic.safari_auto_acceptance,{confirmedIntervals:3,passed:true});
+ const verdict=auditThreeCycles(syntheticCycleAudit(diagnostic.events));
+ assert.equal(verdict.status,"METADATA_CONTRACT_PASS_NEEDS_INDEPENDENT_ATTESTATION");
+ assert.deepEqual(verdict.observed,{source_cycles:3,saved_cycles:3,browser_linked_cycles:3});
+ assert.ok(diagnostic.events.every(event=>event.race_id===RECEIPT_RACE));
+ // Exact allowlists prevent prices, source payloads or credentials escaping
+ // through this metadata-only copy action.
+ assert.deepEqual(Object.keys(diagnostic).sort(),[
+   "schema","caveat","race_id","manual_file_mode","read_successes",
+   "read_failures","received_rows","safari_auto_acceptance","events"
+ ].sort());
+ for(const event of diagnostic.events)assert.deepEqual(Object.keys(event).sort(),[
+   "race_id","browser_at","trigger","ok","gap_seconds","change_kind",
+   "changed_quotes","ingested_at","source_published_at"
+ ].sort());
+});
+test("mixed-race, wrong-race or missing-race copied receipts cannot satisfy same-race D1 linkage",async()=>{
+ const {auditThreeCycles}=await import("../race_ai/odds_three_cycle_audit.mjs");
+ const browser=await receiptBrowser();
+ for(let i=0;i<3;i++)await browser.minute();
+ const receipts=(await browser.diagnostic()).events.filter(event=>event.trigger==="timer");
+ for(const wrongIndexes of [[1],[0,1,2]]){
+   const mixed=receipts.map((event,index)=>wrongIndexes.includes(index)?
+     {...event,race_id:"20300115-02-03"}:event);
+   const verdict=auditThreeCycles(syntheticCycleAudit(mixed));
+   assert.equal(verdict.status,"HOLD");
+   assert.equal(verdict.observed.browser_linked_cycles,3-wrongIndexes.length);
+   assert.ok(verdict.blockers.includes("THREE_SAFARI_D1_LINKED_RECEIPTS_NOT_PROVEN"));
+ }
+ const missing=receipts.map(event=>({...event}));delete missing[1].race_id;
+ const unknown=auditThreeCycles(syntheticCycleAudit(missing));
+ assert.equal(unknown.status,"HOLD");
+ assert.equal(unknown.observed.browser_linked_cycles,2);
+ assert.ok(unknown.blockers.includes("THREE_SAFARI_D1_LINKED_RECEIPTS_NOT_PROVEN"));
+});
+test("an in-flight response keeps its original request race after the page URL changes",async()=>{
+ const browser=await receiptBrowser({holdInitialRead:true});
+ browser.changePageUrl("20300115-02-03");
+ await browser.releaseInitialRead();
+ const diagnostic=await browser.diagnostic();
+ assert.equal(diagnostic.read_successes,1);
+ assert.equal(diagnostic.events[0].ok,true);
+ assert.equal(diagnostic.events[0].race_id,RECEIPT_RACE);
+});
+test("failed UI reads retain the requested race and never inherit stale feed receipt times",async()=>{
+ const browser=await receiptBrowser();
+ await browser.minute({race:"20300115-02-03"});
+ const diagnostic=await browser.diagnostic();
+ assert.equal(diagnostic.read_successes,1);
+ assert.equal(diagnostic.read_failures,1);
+ assert.equal(diagnostic.events[0].race_id,RECEIPT_RACE);
+ const failed=diagnostic.events.at(-1);
+ assert.equal(failed.ok,false);
+ assert.equal(failed.race_id,RECEIPT_RACE);
+ assert.equal(failed.ingested_at,null);
+ assert.equal(failed.source_published_at,null);
+ assert.equal(failed.changed_quotes,null);
+ await browser.minute({race:null});
+ const missingSource=(await browser.diagnostic()).events.at(-1);
+ assert.equal(missingSource.ok,false);
+ assert.equal(missingSource.race_id,RECEIPT_RACE);
+ assert.equal(missingSource.ingested_at,null);
+ assert.equal(missingSource.source_published_at,null);
+ const denied=await receiptBrowser({initialStatus:403});
+ const firstFailure=(await denied.diagnostic()).events[0];
+ assert.equal(firstFailure.ok,false);
+ assert.equal(firstFailure.race_id,RECEIPT_RACE);
+ assert.equal(firstFailure.ingested_at,null);
+});
+test("owner-only embedded UI exactly matches the standalone browser assets",async()=>{
+ const {PREVIEW_ASSETS}=await import("../workers/odds_preview_assets.mjs");
+ const fs=require("node:fs"),path=require("node:path");
+ for(const name of ["full-odds.html","full-odds.js","full-odds-model.js","full-odds.css"]){
+   const source=fs.readFileSync(path.resolve(__dirname,"../web/"+name),"utf8").replace(/\r\n/g,"\n");
+   assert.equal(PREVIEW_ASSETS["/"+name],source,"embedded asset drift: "+name);
+ }
+});
