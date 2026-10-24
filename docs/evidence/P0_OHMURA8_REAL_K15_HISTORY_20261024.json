@@ -1,0 +1,161 @@
+{
+  "schema": "RACE_AI_K_15DAY_FULL_MODEL_P0_EVIDENCE_V1",
+  "recorded_source_audit_run_id": 40059560001,
+  "source_run_url": "https://github.com/haji84/RACE-AI/actions/runs/40059560001",
+  "source_run_head_sha": "c8e408004a28410dec888caacdc8d6a7f4c89f61",
+  "source_run_github_created_at": "2026-10-24T03:44:53Z",
+  "source_run_github_updated_at": "2026-10-24T03:45:13Z",
+  "event_date_jst": "2026-10-24",
+  "target_race_id": "20261024-24-08",
+  "K_day_count": 15,
+  "K_archive_fingerprints": [
+    {
+      "day": "2026-10-09",
+      "sha256": "b413a616f8ebc441751eee73116792cb06d5b9a3c1b31c303b12e8ca75ba9568",
+      "parsed_rows": 864,
+      "parser_mode": "PR64_WHOLE_K_PARSE",
+      "excluded_incomplete_races": 0,
+      "empty_venue_blocks": 0
+    },
+    {
+      "day": "2026-10-10",
+      "sha256": "b9e0befbc3cf72646ce70e08f0775fb88c3203b26f8ac148effd2a83c350f880",
+      "parsed_rows": 936,
+      "parser_mode": "PR64_WHOLE_K_PARSE",
+      "excluded_incomplete_races": 0,
+      "empty_venue_blocks": 0
+    },
+    {
+      "day": "2026-10-11",
+      "sha256": "791b26bdf1ba4120518f7537806b49d7b626e496a952ac9bbf7c1528f5b8fb37",
+      "parsed_rows": 936,
+      "parser_mode": "PR64_WHOLE_K_PARSE",
+      "excluded_incomplete_races": 0,
+      "empty_venue_blocks": 0
+    },
+    {
+      "day": "2026-10-12",
+      "sha256": "784e6f11c25e7df0f152a3cfa883e2ceb0708b984f7323d32e59c0e24a440ffd",
+      "parsed_rows": 1008,
+      "parser_mode": "PR64_WHOLE_K_PARSE",
+      "excluded_incomplete_races": 0,
+      "empty_venue_blocks": 0
+    },
+    {
+      "day": "2026-10-13",
+      "sha256": "2c7bff7cb732a0d5caf4a0aa0926e75c8cdafdae641ce3c0751150a9c90e7b57",
+      "parsed_rows": 792,
+      "parser_mode": "PR64_WHOLE_K_PARSE",
+      "excluded_incomplete_races": 0,
+      "empty_venue_blocks": 0
+    },
+    {
+      "day": "2026-10-14",
+      "sha256": "f4999cad0f67e7552eb602564a33ee867bb8bd0a2c210b3c93b716c8635b8e57",
+      "parsed_rows": 936,
+      "parser_mode": "PR64_WHOLE_K_PARSE",
+      "excluded_incomplete_races": 0,
+      "empty_venue_blocks": 0
+    },
+    {
+      "day": "2026-10-15",
+      "sha256": "794cd679432e80134734ce69645db88e9ab424091cba596c23bea1b600fa4f4a",
+      "parsed_rows": 936,
+      "parser_mode": "PR64_WHOLE_K_PARSE",
+      "excluded_incomplete_races": 0,
+      "empty_venue_blocks": 0
+    },
+    {
+      "day": "2026-10-16",
+      "sha256": "0291c929bcfa3f1758389aa713657a8efeb3b65c00de4740a5691e263ec3225b",
+      "parsed_rows": 936,
+      "parser_mode": "PR64_WHOLE_K_PARSE",
+      "excluded_incomplete_races": 0,
+      "empty_venue_blocks": 0
+    },
+    {
+      "day": "2026-10-17",
+      "sha256": "67edae21f5172bf417158375bd0717fd65481c3de447028f7db750bb40e7f922",
+      "parsed_rows": 1008,
+      "parser_mode": "PR64_WHOLE_K_PARSE",
+      "excluded_incomplete_races": 0,
+      "empty_venue_blocks": 0
+    },
+    {
+      "day": "2026-10-18",
+      "sha256": "d31acc8ee0f9953f6ea7e3c49926cfd8cb339076ae770dfc212ca340c4e7559a",
+      "parsed_rows": 936,
+      "parser_mode": "PR64_WHOLE_K_PARSE",
+      "excluded_incomplete_races": 0,
+      "empty_venue_blocks": 0
+    },
+    {
+      "day": "2026-10-19",
+      "sha256": "e105e1b8623ce9b7c028fb8afabb4bb851e888eaa287f84210ccc708146de4bf",
+      "parsed_rows": 792,
+      "parser_mode": "PR64_WHOLE_K_PARSE",
+      "excluded_incomplete_races": 0,
+      "empty_venue_blocks": 0
+    },
+    {
+      "day": "2026-10-20",
+      "sha256": "09410993bfe747d393b52b55f4fe7b8a5ecbb35b5a3e496a29d13fb4f76224e1",
+      "parsed_rows": 864,
+      "parser_mode": "PR64_WHOLE_K_PARSE",
+      "excluded_incomplete_races": 0,
+      "empty_venue_blocks": 0
+    },
+    {
+      "day": "2026-10-21",
+      "sha256": "5831b9bcfe863d4b587665491c675054fb69b90cecf2d75572fb75420b1d5426",
+      "parsed_rows": 858,
+      "parser_mode": "PR64_STRICT_PER_RACE_PARTIAL_HISTORY_ONLY",
+      "excluded_incomplete_races": 1,
+      "empty_venue_blocks": 1
+    },
+    {
+      "day": "2026-10-22",
+      "sha256": "c6a8ee47ac5331838a540c953cf14009a5811fa9fe81b07b9cbea5326ae00469",
+      "parsed_rows": 1008,
+      "parser_mode": "PR64_WHOLE_K_PARSE",
+      "excluded_incomplete_races": 0,
+      "empty_venue_blocks": 0
+    },
+    {
+      "day": "2026-10-23",
+      "sha256": "188ac9e6550eb37bd23a0413eddfcdd52e77fc7694a21b1a32542939afe50530",
+      "parsed_rows": 1008,
+      "parser_mode": "PR64_WHOLE_K_PARSE",
+      "excluded_incomplete_races": 0,
+      "empty_venue_blocks": 0
+    }
+  ],
+  "K_total_structurally_accepted_rows": 13818,
+  "B_archive_sha256": "1760b6e3fc024a517994fdd072d13c9676f5f42d009c1339681eb2d537bd11ae",
+  "K_unique_racer_count": 1422,
+  "target_6_racers_present": true,
+  "target_valid_K_counts_sorted": [
+    3,
+    6,
+    7,
+    10,
+    12,
+    12
+  ],
+  "target_lanes_meeting_existing_PR71_min_5": 5,
+  "real_numbers_passed_to_existing_PR71_history_formula": 10,
+  "existing_PR71_weights_modified": false,
+  "source_original_published_at_independently_verified": false,
+  "source_model_rights_independently_admitted": false,
+  "within_run_GET_count": 16,
+  "no_duplicate_days_within_run": true,
+  "across_run_raw_source_cache_verified": false,
+  "provider_raw_archive_retained": false,
+  "provider_raw_rows_published": false,
+  "beforeinfo_weather_exhibition_for_same_race_collected": false,
+  "full_model_executed": false,
+  "top8_forecast": null,
+  "external_pre_cutoff_forecast_receipt": null,
+  "formal_hit_at_8_eligible": false,
+  "status": "P0_15DAY_REAL_HISTORY_CANDIDATES_ONLY_FULL_FORECAST_BLOCKED"
+}
