@@ -112,6 +112,8 @@ def inspect_presentation_observation(record, *, now):
         or len(missing)!=len(set(missing))
         or set(features)&set(missing)):
         raise PresentationEvidenceError("ambiguous, duplicate or invented feature names")
+    if any(any(term in name.lower() for term in MARKET_TERMS) for name in features+missing):
+        raise PresentationEvidenceError("market or result feature cannot trigger prediction")
     verified=(record["race_identity_matched"] is True
               and record["participant_ids_matched"] is True)
     before_cutoff=captured<cutoff and now_t<cutoff
