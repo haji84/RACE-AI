@@ -60,7 +60,10 @@ def probe(*,env=None,clock=None,opener=None):
                 venue="isesaki",race_no=11,captured_at=captured,
                 scheduled_cutoff_at=CUTOFF)
         result.update(report)
-        result["status"]="OFFICIAL_TRIAL_SOURCE_PARSED_NO_MODEL_ADMISSION"
+        result["status"]=("RACE_BOUND_NUMERIC_TRIAL_OBSERVED_RESEARCH_ONLY"
+                          if report["race_identity_structurally_sufficient"] and
+                          report["numeric_trial_car_count"]>0
+                          else "NO_RACE_BOUND_NUMERIC_TRIAL_OBSERVED")
         result["source_parser_status"]=report["status"]
     except (HTTPError,URLError,TimeoutError,OSError,ValueError,TypeError,
             UnicodeError,ImportError) as exc:
@@ -75,7 +78,7 @@ def main():
     except RuntimeError:
         print("NO_ONE_SHOT_AUTHORITY");return 2
     print(json.dumps(record,sort_keys=True,ensure_ascii=False))
-    return 0 if record["status"]=="OFFICIAL_TRIAL_SOURCE_PARSED_NO_MODEL_ADMISSION" else 2
+    return 0 if record["status"] in ("RACE_BOUND_NUMERIC_TRIAL_OBSERVED_RESEARCH_ONLY", "NO_RACE_BOUND_NUMERIC_TRIAL_OBSERVED") else 2
 
 if __name__=="__main__":
     sys.exit(main())
