@@ -48,6 +48,68 @@ def _source_sha(record):
     return sha
 
 
+
+def pr64_B_to_PR71_racelist(entries, details, deadlines, *, race_id,
+                           source_url, archive_sha256, captured_at):
+    """Convert already parsed PR64 real B fields to PR71's racelist shape.
+
+    Records are source-derived candidates. The original B publish time is
+    UNKNOWN: first_observed_at is a capture only, never a rights/publication
+    certificate. This racelist cannot pass run_pr71_existing_multi_models()
+    without an independent original-publication attestation.
+    """
+    if (not isinstance(race_id,str) or
+        re.fullmatch(r"\d{8}-(0[1-9]|1\d|2[0-4])-(0[1-9]|1[0-2])",race_id) is None):
+        raise ReuseGateError("noncanonical B race identity")
+    if (not isinstance(source_url,str) or not source_url.startswith("https://")
+        or not isinstance(archive_sha256,str) or
+        re.fullmatch(r"[0-9a-f]{64}",archive_sha256) is None):
+        raise ReuseGateError("archive source URL or SHA absent")
+    _stamp(captured_at)
+    if not isinstance(entries,list) or not isinstance(details,dict) or not isinstance(deadlines,dict):
+        raise ReuseGateError("PR64 parsed B collections required")
+    cutoff=deadlines.get(race_id)
+    if cutoff is None or _stamp(captured_at) >= _stamp(cutoff):
+        raise ReuseGateError("target B deadline missing or already elapsed")
+    race_rows=[r for r in entries if isinstance(r,dict) and r.get("race_id")==race_id]
+    if len(race_rows)!=6:
+        raise ReuseGateError("six registered B entrants required")
+    boats=[]
+    for row in sorted(race_rows,key=lambda x:x["lane"]):
+        lane=row.get("lane");pid=row.get("racer_id")
+        if (type(lane) is not int or not 1<=lane<=6 or
+            not isinstance(pid,str) or re.fullmatch(r"\d{4}",pid) is None):
+            raise ReuseGateError("B racer identity invalid")
+        d=details.get((race_id,lane))
+        if not isinstance(d,dict) or d.get("racer_registration_id")!=pid:
+            raise ReuseGateError("B detail identity mismatch")
+        motor=d.get("motor_no")
+        if type(motor) is not int or not 1<=motor<=999:
+            raise ReuseGateError("B motor allocation missing")
+        vals={key:d.get(key) for key in
+              ("national_win_rate","local_win_rate","motor_top2_rate")}
+        for key,value in vals.items():
+            maximum=100 if key=="motor_top2_rate" else 10
+            if (type(value) not in (int,float) or not math.isfinite(value)
+                or not 0<=value<=maximum):
+                raise ReuseGateError("B model-input candidate invalid: "+key)
+        boats.append({"lane":lane,"racer_registration_id":pid,
+                      "motor_no":motor,**vals})
+    if {r["lane"] for r in boats}!=set(range(1,7)) or len({r["racer_registration_id"] for r in boats})!=6:
+        raise ReuseGateError("B duplicate lane or racer")
+    day=race_id[:4]+"-"+race_id[4:6]+"-"+race_id[6:8]
+    return {
+        "race_id":race_id, "venue":race_id[9:11],"date_jst":day,
+        "closed_at":cutoff,"source_url":source_url,
+        "first_observed_at":captured_at,
+        "source_archive_sha256":archive_sha256,
+        "source_original_published_at":None,
+        "original_publication_verification":False,
+        "source_rights_verified":False,
+        "source_use_status":"CANDIDATE_NOT_ADMITTED",
+        "boats":boats}
+
+
 def pr64_history_candidates(rows, *, racer_id, day, as_of):
     """Convert already imported K rows, never make a fake recent-five series.
 
@@ -244,7 +306,7 @@ def run_pr71_existing_multi_models(racelist, auxiliary, *,
     is the *actual* provider publication time. It currently uses that as
     'published_at', which is not generally justified for real sources.
     """
-    if original_published_verified is not True:
+    if original_published_verified is not True or racelist.get("original_publication_verification") is not True:
         raise ReuseGateError("PR71 racelist original publication timestamp not verified")
     if not callable(source_admission):
         raise ReuseGateError("independent source-purpose rights verifier required")
