@@ -1,0 +1,5 @@
+One future race evidence attempt on 2026-10-24.
+Selected official race: BOAT RACE biwako 11R, advertised cutoff 15:09 JST.
+Read official B archive one time only, in memory. Before cutoff, verify roster & rate values.
+If source publication time, sample_n, or purpose-specific rights missing, return NO_FORECAST.
+No source dataset, racecard copy, odds, payment or live model outputs are published.
