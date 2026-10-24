@@ -1,5 +1,7 @@
 # Codex parallel development runbook | RACE-AI 2026-10-25
 
+**2026-10-25 SHA/CI/actual stream status**: [GitHub verified status](CODEX_RACE_AI_GITHUB_VERIFIED_STATUS_20261025.md)（GitHub現HEAD確認とWriter排他前に必読）。
+
 **Required reading**: [3系統Master Handoff](CODEX_RACE_AI_THREE_STREAM_MASTER_HANDOFF_20261025.md), [Codex起動指示](CODEX_RACE_AI_START_PROMPT_20261025.md), Issue [#67](https://github.com/haji84/RACE-AI/issues/67), [#68](https://github.com/haji84/RACE-AI/issues/68).
 **Instruction does NOT bypass the owner Human Gate, PR review, source licensing, costs or privacy.** CodeRabbit is excluded.
 
