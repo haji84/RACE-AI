@@ -1,0 +1,1 @@
+Re-run bounded six K days + one B day after independent aggregate K21 diagnosis (one venue has 0 race headers). Skip only the empty venue; original strict PR64 parser checks every 6-boat result. No made-up results, no source original retained, no formal forecast.
