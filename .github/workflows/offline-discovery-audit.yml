@@ -4,6 +4,11 @@ on:
     branches:
       - codex/actions-four-sport-e2e
     paths:
+      - 'AGENTS.md'
+      - 'docs/CODEX_RACE_AI_THREE_STREAM_MASTER_HANDOFF_20261025.md'
+      - 'docs/CODEX_RACE_AI_PARALLEL_RUNBOOK_20261025.md'
+      - 'docs/CODEX_RACE_AI_START_PROMPT_20261025.md'
+      - 'docs/CODEX_RACE_AI_PARALLEL_TASKBOARD_20261025.md'
       - 'race_ai/discovery_audit_cli.py'
       - 'race_ai/operator_export_intake.py'
       - 'race_ai/nar_racelist_adapter.py'
