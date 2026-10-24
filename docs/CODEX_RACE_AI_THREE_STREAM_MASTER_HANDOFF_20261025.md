@@ -1,5 +1,7 @@
 # RACE-AI | Codex 3系統統合引継ぎ 2026-10-25（正本候補 v1）
 
+**2026-10-25 最新GitHubヘッド・CI・並列作業所有権の再照合**： [CODEX_RACE_AI_GITHUB_VERIFIED_STATUS_20261025.md](CODEX_RACE_AI_GITHUB_VERIFIED_STATUS_20261025.md) を必ず併読。過去のSHAを最新として固定しない。
+
 **Codexはこのファイルを最初に読むこと。** 続けて同階層の CODEX_RACE_AI_PARALLEL_RUNBOOK_20261025.md と CODEX_RACE_AI_START_PROMPT_20261025.md を読む。この文書のGitHub保存だけではCodex実行・main統合・完成を意味しない。
 
 **Repository** https://github.com/haji84/RACE-AI
