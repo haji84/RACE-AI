@@ -27,6 +27,24 @@ class TestRaceScopedAutorace(unittest.TestCase):
         self.assertTrue(result["generic_cancel_notice_ignored"])
         self.assertFalse(result["official_race_cancellation_verified"])
         self.assertFalse(result["official_prediction"])
+    def test_parallel_trial_grids_with_nested_spans_are_race_scoped(self):
+        entries=[]
+        for j in range(1,5):
+            a,b=j,j+4
+            entries.append(
+                f"<tr><td><span>{a}</span><span>3.{20+a:02d}</span><span>H0</span></td>"
+                f"<td><span>{b}</span><span>3.{20+b:02d}</span><span>H10</span></td></tr>")
+        raw=("<html><body>2026/10/24 伊勢崎 11R 3100m"
+              "該当レースの開催は中止となりました。"
+              "<table><tr><th>11R試走タイム</th><th>11R試走タイム</th></tr>"
+              +"".join(entries)+"</table></body></html>").encode("utf-8")
+        result=check(raw)
+        self.assertTrue(result["race_identity_structurally_sufficient"])
+        self.assertEqual(result["official_trial_header_tables"],1)
+        self.assertEqual(result["numeric_trial_car_count"],8)
+        self.assertEqual(result["status"],"TRIAL_NUMERIC_ALL_REGISTERED")
+        self.assertFalse(result["official_race_cancellation_verified"])
+
     def test_partial_trials_are_missing_not_zero(self):
         result=check(html(numeric=5))
         self.assertEqual(result["numeric_trial_car_count"],5)
