@@ -36,7 +36,7 @@ class TestRaceScopedAutorace(unittest.TestCase):
         with self.assertRaisesRegex(TrialContractError,"identity mismatch"):
             check(html(),url="https://autorace.jp/race_info/Program/isesaki/2026-10-24_10")
     def test_generic_cancel_only_without_table_is_not_cancellation(self):
-        r=check(b"<html>2026/10/24 11R 該当レースの開催は中止となりました 試走T</html>")
+        r=check("<html>2026/10/24 11R 該当レースの開催は中止となりました 試走T</html>".encode("utf-8"))
         self.assertEqual(r["status"],"TRIAL_RACE_BOUND_TABLE_NOT_FOUND")
         self.assertFalse(r["official_race_cancellation_verified"])
     def test_conflicting_car_slot_fails(self):
