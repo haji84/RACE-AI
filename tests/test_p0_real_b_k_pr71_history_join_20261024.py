@@ -68,6 +68,31 @@ class RealJoinOneShotTests(unittest.TestCase):
                 parse_b_fn=pb,parse_details_fn=detail,history_model=model,clock=lambda:NOW)
         self.assertEqual(r["target_race_lanes_with_at_least_5_valid_prior_K"],5)
         self.assertEqual(r["target_race_prior_K_nonnumeric_or_unsettled_rows"],6)
+    def test_existing_PR64_partial_historical_K_race_never_invents_missing_boat(self):
+        from pathlib import Path
+        import race_ai
+        from scripts.p0_real_b_k_pr71_history_join_20261024 import ROOT, parse_prior_K_preserving_complete_races
+        pr64=ROOT/"pr64-parser-reference"/"race_ai"
+        if not pr64.is_dir():
+            self.skipTest("pinned PR64 checkout not yet available")
+        if str(pr64) not in race_ai.__path__:
+            race_ai.__path__.append(str(pr64))
+        from race_ai.core import parse_k
+        good=[]
+        for i in range(1,7):
+            good.append(f"{i:02d} {i} {4000+i} Name 52 45 6.82 {i} 0.15 1.50.3")
+        bad=good[:5]
+        raw=("STARTK\n18KBGN\n2026/10/21\n"
+             "1R 予選 H1800m\n"+"\n".join(good)+"\n"
+             "2R 予選 H1800m\n"+"\n".join(bad)+"\n18KEND\n").encode("cp932")
+        with self.assertRaises(Exception):
+            parse_k(raw,"2026-10-21")
+        rows, excluded=parse_prior_K_preserving_complete_races(raw,"2026-10-21",parse_k)
+        self.assertEqual(len(rows),6)
+        self.assertEqual(excluded,1)
+        self.assertEqual({row["race_id"] for row in rows},{"20261021-18-01"})
+        self.assertEqual({row["lane"] for row in rows},set(range(1,7)))
+
     def test_K_same_day_not_ingested_in_prior_collection(self):
         trans=FakeTransport()
         r=audit(env=ENV,opener=trans,extract=extraction,parse_k_fn=pk,
