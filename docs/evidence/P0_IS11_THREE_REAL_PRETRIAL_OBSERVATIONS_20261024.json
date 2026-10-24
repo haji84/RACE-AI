@@ -1,0 +1,102 @@
+{
+  "schema": "RACE_AI_IS11_SOURCE_OBSERVATION_WINDOW_BEFORE_TRIAL_V1",
+  "target": "2026-10-24 Isesaki 11R",
+  "official_url": "https://autorace.jp/race_info/Program/isesaki/2026-10-24_11",
+  "scheduled_cutoff_jst_unverified": "2026-10-24T19:48:00+09:00",
+  "snapshots": [
+    {
+      "run_id": 40085781046,
+      "head_sha": "50a953814ea3bffa16b2d14ae383f5928cfba02c",
+      "server_created_at": "2026-10-24T10:24:25Z",
+      "server_updated_at": "2026-10-24T10:24:34Z",
+      "github_url": "https://github.com/haji84/RACE-AI/actions/runs/40085781046",
+      "source_sha256": "fd0645188185cb83a4fcdb3ae7b5afe74db962af8211ee3996a7919ca8a70cd4",
+      "runner_capture_claim": "2026-10-24T10:24:32.231546+00:00",
+      "source_parser_status": "TRIAL_RACE_BOUND_TABLE_NOT_FOUND",
+      "race_id": "autorace:20261024:isesaki:11",
+      "race_number_in_body": true,
+      "date_in_body": true,
+      "numeric_car_trial_count": 0,
+      "car_slot_count": 0,
+      "trial_header_rows": null,
+      "anonymized_table_signatures": null,
+      "upstream_original_publication_verified": false,
+      "trial_not_found_may_be_pending_or_parser_gap": true,
+      "no_prediction": true
+    },
+    {
+      "run_id": 40085951999,
+      "head_sha": "701942099ef3f9b52e582d791a7e4927f7cbdb56",
+      "server_created_at": "2026-10-24T10:27:00Z",
+      "server_updated_at": "2026-10-24T10:27:09Z",
+      "github_url": "https://github.com/haji84/RACE-AI/actions/runs/40085951999",
+      "source_sha256": "34bf78a236164346b079081100116b2c34d87f948d70c9157e12b1f84e801e28",
+      "runner_capture_claim": "2026-10-24T10:27:06.461641+00:00",
+      "source_parser_status": "TRIAL_RACE_BOUND_TABLE_NOT_FOUND",
+      "race_id": "autorace:20261024:isesaki:11",
+      "race_number_in_body": true,
+      "date_in_body": true,
+      "numeric_car_trial_count": 0,
+      "car_slot_count": 0,
+      "trial_header_rows": 1,
+      "anonymized_table_signatures": null,
+      "upstream_original_publication_verified": false,
+      "trial_not_found_may_be_pending_or_parser_gap": true,
+      "no_prediction": true
+    },
+    {
+      "run_id": 40086076924,
+      "head_sha": "af406e871c99394dd895b74f777b34db4400b72c",
+      "server_created_at": "2026-10-24T10:28:54Z",
+      "server_updated_at": "2026-10-24T10:29:01Z",
+      "github_url": "https://github.com/haji84/RACE-AI/actions/runs/40086076924",
+      "source_sha256": "9ab2045324e451e3a5f8cad22c2d0759790ed3aa6070c308268f717b8ac62c29",
+      "runner_capture_claim": "2026-10-24T10:28:58.764011+00:00",
+      "source_parser_status": "TRIAL_RACE_BOUND_TABLE_NOT_FOUND",
+      "race_id": "autorace:20261024:isesaki:11",
+      "race_number_in_body": true,
+      "date_in_body": true,
+      "numeric_car_trial_count": 0,
+      "car_slot_count": 0,
+      "trial_header_rows": 1,
+      "anonymized_table_signatures": [
+        {
+          "column_width_histogram": {
+            "4": 1
+          },
+          "numbered_car_cells_total": 0,
+          "numeric_trial_cells_total": 0,
+          "rows": 1,
+          "trial_heading_cells_total": 0
+        },
+        {
+          "column_width_histogram": {
+            "4": 1
+          },
+          "numbered_car_cells_total": 0,
+          "numeric_trial_cells_total": 0,
+          "rows": 1,
+          "trial_heading_cells_total": 0
+        },
+        {
+          "column_width_histogram": {
+            "2": 15
+          },
+          "numbered_car_cells_total": 0,
+          "numeric_trial_cells_total": 0,
+          "rows": 15,
+          "trial_heading_cells_total": 2
+        }
+      ],
+      "upstream_original_publication_verified": false,
+      "trial_not_found_may_be_pending_or_parser_gap": true,
+      "no_prediction": true
+    }
+  ],
+  "proof_of_pending_to_available": false,
+  "source_analysis_rights_independently_admitted": false,
+  "operator_approved_continuous_monitoring": false,
+  "previous_generic_cancellation_claim": "RETRACTED_FALSE_POSITIVE",
+  "third_party_content_republished": false,
+  "official_prediction": false
+}

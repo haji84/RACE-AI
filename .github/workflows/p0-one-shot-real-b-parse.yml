@@ -1,0 +1,32 @@
+name: P0 one-shot real official B parser evidence
+on:
+  push:
+    branches:
+      - 'p0-b-parse-smoke-20261024'
+    paths:
+      - 'docs/evidence/p0-b-parse-smoke-trigger-20261024.txt'
+permissions:
+  contents: read
+jobs:
+  parse_once:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    env:
+      RACE_AI_B_PARSE_ALLOWED: 20261022-B-PARSER
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-parser-reference
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: 5d4be4326b4fba321507a08f09e1eb7b661d027e
+          path: pr71-contract-reference
+      - name: Single public B archive in-memory parse, audit mapped source fields only
+        run: python -m scripts.p0_one_shot_real_b_parse

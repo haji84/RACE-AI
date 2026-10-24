@@ -1,0 +1,22 @@
+name: P0 one-shot official autorace JRA keirin source format
+on:
+  push:
+    branches:
+      - 'p0-nonboat-3source-format-20261024'
+    paths:
+      - 'docs/evidence/p0-nonboat-3source-trigger-20261024.txt'
+permissions:
+  contents: read
+jobs:
+  real_nonboat_format:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    env:
+      RACE_AI_NONBOAT_ONE_SHOT: ONE_OFFICIAL_THREE_SPORT_GET_20261024
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Execute bounded known official page format probes (no model)
+        run: python -m scripts.p0_nonboat_official_format_probe_20261024
