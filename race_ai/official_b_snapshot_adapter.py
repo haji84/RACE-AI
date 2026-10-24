@@ -20,7 +20,7 @@ def program_details(raw, day):
     text = unicodedata.normalize('NFKC', _decode(raw))
     output, closing = {}, {}
     row_pattern = re.compile(r'^\s*([1-6])\s+(\d{4})(.+?)(\d{2})(\D{2})(\d{2})([AB][12])\s+'
-        r'(\d+\.\d{2})\s+(\d+\.\d{2})\s+(\d+\.\d{2})\s+(\d+\.\d{2})\s+'
+        r'(\d+\.\d{2})\s*(\d+\.\d{2})\s*(\d+\.\d{2})\s*(\d+\.\d{2})\s+'
         r'(\d+)\s+(\d+\.\d{2})\s*(\d+)\s+(\d+\.\d{2})(?:\s|$)')
     for venue, block in _blocks(text, 'B'):
         dates = re.findall(r'(20\d{2})\s*(?:年|/)\s*(\d{1,2})\s*(?:月|/)\s*(\d{1,2})\s*日?', block[:1400])
