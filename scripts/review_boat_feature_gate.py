@@ -118,7 +118,7 @@ def main():
     here = Path(__file__).resolve().parents[1]
     sys.path.insert(0, str(here))
     import race_ai
-    model_ref = here / "pr71-contract-reference" / "race_ai"
+    model_ref = here / "pr71-feature-review-reference" / "race_ai"
     if not (model_ref / "comprehensive_four_sport_models.py").is_file():
         raise ReviewContractError("pinned PR71 model checkout missing")
     race_ai.__path__.append(str(model_ref))
