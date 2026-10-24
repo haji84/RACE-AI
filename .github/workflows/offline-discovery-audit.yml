@@ -16,6 +16,11 @@ on:
       - 'race_ai/boat_existing_asset_integration.py'
       - 'scripts/p0_one_shot_real_k_readiness_20261024.py'
       - 'scripts/p0_real_b_k_pr71_history_join_20261024.py'
+      - 'scripts/p0_mikuni9_same_race_full_join_20261024.py'
+      - 'tests/test_p0_mikuni9_same_race_full_join_20261024.py'
+      - '.github/workflows/p0-mikuni9-same-race-full-join.yml'
+      - 'docs/P0_MIKUNI9_REAL_FULL_JOIN_AND_RIGHTS_20261024.md'
+      - 'docs/evidence/P0_MIKUNI9_REAL_FULL_JOIN_20261024.json'
       - 'scripts/p0_real_mikuni_8r_preview_weather_20261024.py'
       - 'tests/test_p0_real_mikuni_8r_preview_weather_20261024.py'
       - 'scripts/p0_one_shot_k21_shape_diagnostic.py'
@@ -148,3 +153,5 @@ jobs:
           persist-credentials: false
       - name: Prove existing PR64 K -> PR71 multi-model wiring on synthetic records
         run: python -m unittest discover -s tests -p test_boat_existing_asset_integration.py -v
+      - name: Test one same-race K/B/preview/weather source joining and NO_FORECAST gating
+        run: python -m unittest discover -s tests -p test_p0_mikuni9_same_race_full_join_20261024.py -v
