@@ -8,3 +8,11 @@ CREATE TABLE IF NOT EXISTS odds_latest (
  sha256 TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_odds_latest_received ON odds_latest(received_at);
+
+-- Separate hard stop for the first race pilot. Budget is counted by UTC day,
+-- not reset on every cron invocation.  This limits RACE-AI ingestion attempts,
+-- not shared-account traffic from other Cloudflare applications.
+CREATE TABLE IF NOT EXISTS odds_ingest_quota (
+ utc_day TEXT PRIMARY KEY,
+ attempts_used INTEGER NOT NULL CHECK (attempts_used >= 0)
+);
