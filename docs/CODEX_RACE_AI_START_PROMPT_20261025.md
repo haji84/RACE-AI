@@ -14,6 +14,7 @@
 3. このファイル https://github.com/haji84/RACE-AI/blob/feat/p0-offline-discovery-gate-20261022/docs/CODEX_RACE_AI_START_PROMPT_20261025.md
 4. 目標 https://github.com/haji84/RACE-AI/issues/67 と作業管理 https://github.com/haji84/RACE-AI/issues/68
 5. PR #61、#64、#65、#69、#71、#72 の **現在の** head/base/差分、CI、既存資産。既存Cloudflare private D1/Access/Workerはread-onlyから再確認。過去の保存SHAは動く可能性があるので再確認。
+6. 最新GitHub照合と排他担当表 https://github.com/haji84/RACE-AI/blob/feat/p0-offline-discovery-gate-20261022/docs/CODEX_RACE_AI_GITHUB_VERIFIED_STATUS_20261025.md （初回時点の記録であり現在HEADは毎回再取得）
 
 **変えてはならない製品Goal**：4競技（ボート/競輪/オート/競馬JRA・地方）の全開催・全レースを、公式販売締切の早い順に管理する。オッズを予測/学習/Top8選定に一切使わず、能力・近走・ライン・ハンデ・展示・試走・当日馬体重・気象・馬場など合法で本当に締切前に存在したデータで全有効3連単組番から各モデル最大8点を予想し、外部時刻付きで締切前不変保存。公式結果/払戻/訂正照合からモデル別PDCAを反復。未予想を母数から消さない。主KPI Hit@8_all 実測98%以上は未達の極めて高い研究挑戦目標であり、保証や改ざんをしない。自動投票/決済しない。
 
