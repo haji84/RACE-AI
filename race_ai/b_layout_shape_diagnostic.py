@@ -50,6 +50,9 @@ def summarize_b_layout(raw: bytes) -> dict:
         'mismatches_with_fewer_than_6_decimal_tokens': 0,
         'mismatches_with_dash_placeholders': 0,
     }
+    # Each suffix contains numeric/statistical fields only after validated
+    # identity/grade prefix. Mask all digits; unknown text becomes "OTHER".
+    numeric_suffix_shapes = {}
     for mark in _BLOCK.finditer(data):
         close = _END.search(data, mark.end())
         if close is None:
@@ -72,6 +75,16 @@ def summarize_b_layout(raw: bytes) -> dict:
                 else:
                     counts['strict_detail_regex_mismatches_after_header'] += 1
                     counts['mismatches_with_strict_demographics_prefix'] += int(bool(_PREFIX.match(line)))
+                    prefix = _PREFIX.match(line)
+                    if prefix:
+                        shapes = []
+                        for token in line[prefix.end():].strip().split():
+                            if re.fullmatch(r'[0-9.-]+', token):
+                                shapes.append(re.sub(r'\d', '#', token))
+                            else:
+                                shapes.append('OTHER')
+                        key = ' '.join(shapes[:12]) if len(shapes) <= 12 else 'TOO_MANY_TOKENS'
+                        numeric_suffix_shapes[key] = numeric_suffix_shapes.get(key, 0) + 1
                     counts['mismatches_accepting_3_char_branch'] += int(bool(_BRANCH3.match(line)))
                     counts['mismatches_accepting_4_char_branch'] += int(bool(_BRANCH4.match(line)))
                     counts['mismatches_accepting_variable_decimal_fields'] += int(bool(_WIDER_DECIMAL.match(line)))
@@ -93,6 +106,7 @@ def summarize_b_layout(raw: bytes) -> dict:
         'schema': 'RACE_AI_OFFICIAL_B_REDACTED_SHAPE_DIAGNOSTIC_V1',
         'scope': 'SYNTAX_DIAGNOSTIC_ONLY_NOT_REAL_PARSE_PASS',
         'counts': counts,
+        'masked_numeric_suffix_shapes': numeric_suffix_shapes,
         'classification': classification,
         'raw_text_retained': False,
         'individual_rows_or_races_exposed': False,
