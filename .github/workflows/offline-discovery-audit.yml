@@ -13,6 +13,9 @@ on:
       - 'race_ai/official_boat_fact_observation.py'
       - 'race_ai/boat_firstparty_stat_normalizer.py'
       - 'race_ai/boat_b_feature_bridge.py'
+      - 'scripts/review_boat_feature_gate.py'
+      - 'tests/test_boat_feature_requirement_review.py'
+      - 'docs/P0_BOAT_75_FEATURE_GATE_INDEPENDENT_REVIEW_20261024.md'
       - 'tests/test_boat_b_feature_bridge.py'
       - 'docs/P0_OFFICIAL_B_FEATURE_BRIDGE_20261024.md'
       - 'race_ai/official_bk_archive_transport.py'
@@ -102,3 +105,11 @@ jobs:
         run: python scripts/verify_pr71_crossbranch_synthetic.py
       - name: Audit real observed Oct-24 biwako racer facts against pinned model requirements
         run: python scripts/verify_actual_boat_readiness.py
+      - name: Checkout separately pinned PR71 head for independent feature contract review
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: 83dcd8a1af7a4e8611732c60d2b461c970164403
+          path: pr71-feature-review-reference
+          persist-credentials: false
+      - name: Audit full 20 distinct keys and 75 required boat input slots
+        run: python -m scripts.review_boat_feature_gate
