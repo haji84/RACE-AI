@@ -18,22 +18,37 @@ function fixture(){
 }
 
 class FakeD1{
- constructor(){this.rows=new Map();}
+ constructor(){this.rows=new Map();this.daily=new Map();}
  prepare(sql){
-   return {first:async()=>{if(sql.startsWith('SELECT COUNT(*)'))return {records:this.rows.size};throw Error('unexpected direct first');},bind:(...params)=>({
+   return {
      first:async()=>{
        if(sql.startsWith("SELECT COUNT(*)"))return {records:this.rows.size};
-       if(!sql.startsWith("SELECT"))throw Error("bad SQL mock SELECT");
-       const row=this.rows.get(params[0]);
-       return row&&{payload_json:row.payload_json,sha256:row.sha256};
+       throw Error("unexpected direct first");
      },
-     run:async()=>{
-       if(!sql.startsWith("INSERT"))throw Error("bad SQL mock INSERT");
-       this.rows.set(params[0],{payload_json:params[1],received_at:params[2],
-                               sha256:params[3]});
-       return {meta:{changes:1}};
-     }
-   })};
+     bind:(...params)=>({
+       first:async()=>{
+         if(sql.startsWith("SELECT COUNT(*)"))return {records:this.rows.size};
+         if(sql.startsWith("INSERT INTO odds_ingest_quota")){
+           const [day,cap]=params;
+           const current=this.daily.get(day)||0;
+           if(current>=cap)return null;
+           this.daily.set(day,current+1);
+           return {attempts_used:current+1};
+         }
+         if(!sql.startsWith("SELECT"))throw Error("bad SQL mock SELECT");
+         const row=this.rows.get(params[0]);
+         return row&&{payload_json:row.payload_json,sha256:row.sha256,
+                      received_at:row.received_at};
+       },
+       run:async()=>{
+         if(!sql.startsWith("INSERT INTO odds_latest"))
+           throw Error("bad SQL mock INSERT");
+         this.rows.set(params[0],{payload_json:params[1],
+                                 received_at:params[2],sha256:params[3]});
+         return {meta:{changes:1}};
+       }
+     })
+   };
  }
 }
 function env(db=new FakeD1()){
@@ -41,7 +56,9 @@ function env(db=new FakeD1()){
          ODDS_PREVIEW_INGEST_ENABLED:"true",
          ODDS_PREVIEW_TOKEN:"synthetic-fake-preview-token-32-characters",
          ODDS_APPROVED_RIGHTS_REF:"fictional-review-only",
-         ODDS_REQUIRE_ACCESS:"true",ODDS_ALLOWED_EMAIL:"synthetic-owner@example.invalid"};
+         ODDS_REQUIRE_ACCESS:"true",ODDS_ALLOWED_EMAIL:"synthetic-owner@example.invalid",
+         ODDS_PILOT_MAX_UPDATES_PER_DAY:"120",
+         ODDS_PILOT_RACE_ID:"20300115-01-01"};
 }
 const ACCESS={access:{getIdentity:async()=>({email:"synthetic-owner@example.invalid"})}};
 function post(feed,ref="fictional-review-only",token="synthetic-fake-preview-token-32-characters"){
@@ -149,6 +166,40 @@ test("invalid quote corpus blocked before D1 write",async()=>{
  assert.equal(e.ODDS_DB.rows.size,0);
  const y=fixture();y.odds[1].ticket=y.odds[0].ticket;
  assert.equal((await worker.fetch(post(y),e,ACCESS)).status,422);
+});
+
+test("ingest requires a single pilot race and an explicit daily cap",async()=>{
+ const e=env();
+ delete e.ODDS_PILOT_MAX_UPDATES_PER_DAY;
+ assert.equal((await worker.fetch(post(fixture()),e,ACCESS)).status,503);
+ assert.equal(e.ODDS_DB.rows.size,0);
+ e.ODDS_PILOT_MAX_UPDATES_PER_DAY="121";
+ assert.equal((await worker.fetch(post(fixture()),e,ACCESS)).status,503);
+ e.ODDS_PILOT_MAX_UPDATES_PER_DAY="2";
+ e.ODDS_PILOT_RACE_ID="20300115-01-02";
+ assert.equal((await worker.fetch(post(fixture()),e,ACCESS)).status,403);
+ assert.equal(e.ODDS_DB.rows.size,0);
+});
+
+test("60-second write cooldown and durable daily limit stop repeated ingestion",async()=>{
+ const db=new FakeD1(),e=env(db),f=fixture();
+ e.ODDS_PILOT_MAX_UPDATES_PER_DAY="2";
+ const first=await worker.fetch(post(f),e,ACCESS);
+ assert.equal(first.status,201);
+ const sameMinute=await worker.fetch(post(f),e,ACCESS);
+ assert.equal(sameMinute.status,429);
+ assert.match((await sameMinute.json()).reason,/COOLDOWN/);
+ assert.equal(db.daily.get(new Date().toISOString().slice(0,10)),1);
+ // Clock aging simulates time passage; production D1 retains the real timestamp.
+ const row=db.rows.get(f.race_id);
+ row.received_at="2025-01-01T00:00:00Z";
+ const second=await worker.fetch(post(f),e,ACCESS);
+ assert.equal(second.status,201);
+ db.rows.get(f.race_id).received_at="2025-01-01T00:00:00Z";
+ const over=await worker.fetch(post(f),e,ACCESS);
+ assert.equal(over.status,429);
+ assert.match((await over.json()).reason,/BUDGET_EXHAUSTED/);
+ assert.equal(db.daily.get(new Date().toISOString().slice(0,10)),2);
 });
 
 test("price and provider time validity cannot be bypassed",async()=>{
