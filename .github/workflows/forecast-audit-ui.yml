@@ -11,6 +11,7 @@ on:
       - 'workers/odds_preview_assets.mjs'
       - 'docs/P0_CLOUDFLARE_PROTECTED_ODDS_PREVIEW_20261024.md'
       - 'docs/evidence/2026-10-24-boatrace-ashiya-7r-real-odds-pilot.md'
+      - 'docs/evidence/2026-10-24-miyajima-3r-under-10min-odds-pilot.md'
       - 'workers/odds_schema.sql'
       - 'tests/odds_feed_worker.test.mjs'
       - 'race_ai/purchase_window_policy.py'
