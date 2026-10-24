@@ -210,6 +210,10 @@ def audit(*, env=None, opener=None, extractor=None, parser_k=None,
             raise ValueError("source cutoff reached before preview capture")
         html = fetch(BEFOREINFO, 1_000_000, accept="text/html")
         captured_at = (clock() if clock else datetime.now(timezone.utc)).isoformat()
+        # A request started before cutoff but finished after cutoff cannot
+        # become a valid pre-cutoff input snapshot.
+        if datetime.fromisoformat(captured_at) >= datetime.fromisoformat(CUTOFF):
+            raise ValueError("beforeinfo capture finished at/after sales cutoff")
         if parser_preview is None:
             info = parse_update(html, kind="beforeinfo", day=date.fromisoformat(DAY),
                                 venue="10", race_no=9, source_url=BEFOREINFO,
