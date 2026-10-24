@@ -32,3 +32,14 @@ CREATE TABLE IF NOT EXISTS odds_pilot_measurements (
  quoted_count INTEGER NOT NULL CHECK(quoted_count BETWEEN 0 AND 120),
  method TEXT NOT NULL CHECK(method = 'ONE_SHOT_CLOUDFLARE_BROWSER_RUN')
 );
+
+-- Per-race low-volume test cap for manually probed official odds.
+-- In the 2026-10-24 芦屋6R experiment the first count was recorded after
+-- the original successful source call; the second source call used an
+-- atomic UPDATE...RETURNING. No scheduled crawler was enabled.
+CREATE TABLE IF NOT EXISTS odds_pilot_race_quota (
+ utc_day TEXT NOT NULL,
+ race_id TEXT NOT NULL,
+ attempts_used INTEGER NOT NULL CHECK (attempts_used BETWEEN 0 AND 3),
+ PRIMARY KEY (utc_day, race_id)
+);
