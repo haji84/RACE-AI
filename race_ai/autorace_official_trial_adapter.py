@@ -170,7 +170,7 @@ def parse_official_trial(raw,*,source_url,race_day,venue,race_no,captured_at,
                         v=_s(content)
                         # Car slot and time must be in one ACTUAL trial grid
                         # cell, not separated across generic page legends.
-                        m=re.search(r"(?<!\\d)([1-8])\\s+([34]\\.[0-9]{2})(?![0-9])",v)
+                        m=re.search(r"(?<!\d)([1-8])\s+([34]\.[0-9]{2})(?![0-9])",v)
                         if m:
                             carnum=int(m[1])
                             if carnum in seen:raise TrialContractError("duplicate trial car")
