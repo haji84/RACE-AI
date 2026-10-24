@@ -1,0 +1,32 @@
+name: P0 Ashiya10 near-cutoff B K exhibition weather evidence
+on:
+  push:
+    branches:
+      - 'p0-ashiya10-near-cutoff-20261024'
+    paths:
+      - 'docs/evidence/p0-ashiya10-near-cutoff-trigger-20261024.txt'
+permissions:
+  contents: read
+jobs:
+  actual_same_race_input_audit:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      RACE_AI_FULL_ONE_RACE_ALLOWED: 20261024-ASHIYA10-SAME-RACE-ONCE
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-parser-reference
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: 39d888329d18a5ed517de7c6b25ae3ca52257255
+          path: pr71-existing-reference
+          persist-credentials: false
+      - name: Join 6 historic official K and same-race B/exhibition/weather in memory
+        run: python -m scripts.p0_ashiya10_near_cutoff_join_20261024
