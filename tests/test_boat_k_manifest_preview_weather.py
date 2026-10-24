@@ -101,7 +101,7 @@ class KManifestTests(unittest.TestCase):
         self.assertEqual(rows["4001"][0]["st_status"],"F")
         invalid=copy.deepcopy(r)
         invalid["st"]=0
-        with self.assertRaisesRegex(HistoricalSourceError,"nonnumeric"):
+        with self.assertRaisesRegex(HistoricalSourceError,"numeric zero"):
             prior_rows_by_racer([invalid],man,as_of=ASOF,event_date_jst=DAY,
                                 racer_ids=[f"400{i}" for i in range(1,7)])
 
