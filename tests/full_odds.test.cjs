@@ -1,0 +1,161 @@
+"use strict";
+const test=require("node:test");
+const assert=require("node:assert/strict");
+const O=require("../web/full-odds-model.js");
+const SOURCE="https://example.org/fictional-approved-source";
+function fixture(sport,n){
+ const numbers=Array.from({length:n},(_,i)=>i+1);
+ const odds=O.allTickets(numbers).map((ticket,i)=>({
+   ticket,decimal_odds:i%7===0?null:1+((i*7)%91)/10,
+   status:i%7===0?"UNAVAILABLE":"QUOTED"
+ }));
+ return {schema:"RACE_AI_FULL_TRIFECTA_ODDS_V1",
+   source_status:"SYNTHETIC_ONLY",sport,venue:"架空テスト競技場",race_no:3,
+   race_id:sport+":2030-01-15:fictional:3",event_date_jst:"2030-01-15",
+   cutoff_at:"2030-01-15T10:00:00+09:00",
+   source_published_at:"2030-01-15T09:02:00+09:00",
+   ingested_at:"2030-01-15T09:02:01+09:00",
+   source_url:SOURCE,participants:numbers,sales_status:"OPEN_REPORTED",odds};
+}
+test("every valid trifecta, not only eight picks, for all four sports",()=>{
+ for(const [sport,n] of [["boat",6],["keirin",7],["autorace",8],["horse",18]]){
+   const f=O.parse(fixture(sport,n));
+   assert.equal(f.odds.length,n*(n-1)*(n-2));
+   assert.equal(O.select(f).length,f.odds.length);
+   assert.equal(f.odds[0].decimal_odds,null);
+ }
+});
+test("complete combinations are required even if quote unavailable",()=>{
+ const missing=fixture("boat",6);
+ missing.odds.pop();
+ assert.throws(()=>O.parse(missing),/揃っていない/);
+ const duplicate=fixture("boat",6);
+ duplicate.odds[2].ticket=duplicate.odds[1].ticket;
+ assert.throws(()=>O.parse(duplicate),/重複/);
+ const unknown=fixture("boat",6);
+ unknown.odds[2].ticket=[1,1,2];
+ assert.throws(()=>O.parse(unknown),/不正な組合せ/);
+});
+test("missing quote must be explicitly null and cannot masquerade as price zero",()=>{
+ const a=fixture("boat",6);
+ a.odds[0].status="QUOTED";
+ assert.throws(()=>O.parse(a),/オッズ値/);
+ a.odds[0].decimal_odds=0;
+ assert.throws(()=>O.parse(a),/オッズ値/);
+ a.odds[0].status="UNAVAILABLE";a.odds[0].decimal_odds=12.3;
+ assert.throws(()=>O.parse(a),/オッズ値/);
+});
+test("time ordering, cutoff day and source status cannot be forged as independently verified",()=>{
+ const t=fixture("boat",6);
+ t.source_published_at="2030-01-15T10:02:00+09:00";
+ assert.throws(()=>O.parse(t),/受信時刻/);
+ t.source_published_at="2030-01-15T09:02:00+09:00";
+ t.source_status="INDEPENDENTLY_VERIFIED";
+ assert.throws(()=>O.parse(t),/出典区分/);
+ t.source_status="SYNTHETIC_ONLY";
+ t.event_date_jst="2030-01-16";
+ assert.throws(()=>O.parse(t),/開催日と締切/);
+});
+test("provider URL must be a valid HTTPS URL before it can appear as a source link",()=>{
+ const broken=fixture("boat",6);
+ broken.source_url="https://[]";
+ assert.throws(()=>O.parse(broken),/出典URL/);
+ broken.source_url="javascript:alert(1)";
+ assert.throws(()=>O.parse(broken),/出典URL/);
+ broken.source_url="https://user:password@example.org/a";
+ assert.throws(()=>O.parse(broken),/出典URL/);
+});
+test("sort odds and filter first boat; unknown odds always sort last",()=>{
+ const f=O.parse(fixture("boat",6));
+ const first=O.select(f,{first:"2",order:"low"});
+ assert.equal(first.length,5*4);
+ assert.ok(first.every(x=>x.ticket[0]===2));
+ assert.ok(first[first.length-1].status==="UNAVAILABLE");
+ const most=O.select(f,{order:"high"});
+ assert.ok(most[0].decimal_odds>=most[1].decimal_odds);
+ const searched=O.select(f,{query:"1-2"});
+ assert.equal(searched.length,4);
+ assert.equal(O.select(f,{query:"<script>"}).length,0);
+});
+test("unknown official odds update time stays stale instead of inventing publish timestamp",()=>{
+ const x=fixture("boat",6);x.source_published_at=null;
+ const parsed=O.parse(x);
+ assert.equal(parsed.source_published_at,null);
+ const st=O.freshness(parsed,Date.parse("2030-01-15T09:02:40+09:00"));
+ assert.equal(st.stale,true);
+ assert.match(st.label,/更新時刻未確認/);
+});
+test("missing provider timestamp cannot be replaced by invalid text",()=>{
+ const x=fixture("boat",6);x.source_published_at="unknown";
+ assert.throws(()=>O.parse(x),/オッズ提供・受信時刻/);
+});
+test("provider-published timestamp can be stale even when site ingested it now",()=>{
+ const t=fixture("boat",6);
+ t.ingested_at="2030-01-15T09:04:59+09:00";
+ const f=O.parse(t);
+ const state=O.freshness(f,Date.parse("2030-01-15T09:05:00+09:00"));
+ assert.equal(state.stale,true);
+ assert.match(state.label,/提供元の更新遅延/);
+});
+test("read-only quote updates cannot alter frozen AI picks",()=>{
+ const fixed=Object.freeze([[1,2,3],[1,3,2]]);
+ const before=JSON.stringify(fixed);
+ const newFeed=fixture("boat",6);
+ const updated=fixture("boat",6);
+ updated.odds[0].decimal_odds=99.8;
+ updated.odds[0].status="QUOTED";
+ assert.notDeepEqual(O.parse(newFeed).odds[0],O.parse(updated).odds[0]);
+ assert.equal(JSON.stringify(fixed),before);
+});
+test("60-second update target still shows real age and never guarantees fresh data",()=>{
+ const f=O.parse(fixture("boat",6));
+ assert.equal(O.freshness(f,Date.parse("2030-01-15T09:02:25+09:00")).stale,false);
+ assert.equal(O.freshness(f,Date.parse("2030-01-15T09:05:25+09:00")).stale,true);
+ const closed=O.freshness(f,Date.parse("2030-01-15T10:00:01+09:00"));
+ assert.equal(closed.stale,true);
+ assert.match(closed.label,/締切後/);
+});
+
+test("mobile boat first display exposes all 120 tuples; larger sports stay paginated",()=>{
+ assert.equal(O.initialRowLimit(O.parse(fixture("boat",6))),120);
+ assert.equal(O.initialRowLimit(O.parse(fixture("horse",18))),80);
+ const html=require("node:fs").readFileSync(require("node:path").resolve(__dirname,"../web/full-odds.html"),"utf8");
+ assert.match(html,/id="refresh-evidence"/);
+ assert.match(html,/id="refresh-history"/);
+ assert.match(html,/id="copy-evidence"/);
+});
+test("client receipt, official-time and quote changes remain distinct",()=>{
+ const a=O.parse(fixture("boat",6));
+ assert.equal(O.readDifference(null,a).kind,"FIRST_READ");
+ assert.deepEqual(O.readDifference(a,a),{kind:"UNCHANGED",changedQuotes:0});
+ const receipt=fixture("boat",6);receipt.ingested_at="2030-01-15T09:02:25+09:00";
+ assert.equal(O.readDifference(a,O.parse(receipt)).kind,"D1_RECEIPT_CHANGED");
+ const published=fixture("boat",6);
+ published.source_published_at="2030-01-15T09:02:30+09:00";
+ published.ingested_at="2030-01-15T09:02:35+09:00";
+ assert.equal(O.readDifference(a,O.parse(published)).kind,"SOURCE_TIME_CHANGED");
+ const quote=fixture("boat",6);
+ quote.odds[0].status="QUOTED";quote.odds[0].decimal_odds=15.2;
+ assert.deepEqual(O.readDifference(a,O.parse(quote)),{kind:"QUOTE_CHANGED",changedQuotes:1});
+});
+
+test("Safari acceptance requires three ~60s automatic browser reads, not manual reads",()=>{
+ const initial={ok:true,trigger:"initial",browser_at:"2030-01-15T00:00:00Z",gap_seconds:null};
+ const auto=n=>({ok:true,trigger:"timer",browser_at:new Date(Date.parse(initial.browser_at)+n*60000).toISOString(),gap_seconds:60});
+ assert.deepEqual(O.safariAcceptance([initial,auto(1),auto(2)]),{confirmedIntervals:2,passed:false});
+ assert.deepEqual(O.safariAcceptance([initial,auto(1),auto(2),auto(3)]),{confirmedIntervals:3,passed:true});
+ assert.equal(O.safariAcceptance([initial,{...auto(1),trigger:"manual"},auto(2)]).passed,false);
+ assert.equal(O.safariAcceptance([initial,{...auto(1),gap_seconds:350},auto(2)]).passed,false);
+ assert.equal(O.safariAcceptance([initial,auto(1),{ok:false,trigger:"timer"},auto(3)]).passed,false);
+});
+test("Safari receipt UI includes visible progress, fallback selection and no odds export",()=>{
+ const fs=require("node:fs"),p=require("node:path");
+ const html=fs.readFileSync(p.resolve(__dirname,"../web/full-odds.html"),"utf8");
+ const js=fs.readFileSync(p.resolve(__dirname,"../web/full-odds.js"),"utf8");
+ for(const id of ["refresh-progress","refresh-next","select-evidence","evidence-text","copy-status"])
+   assert.ok(html.includes('id="'+id+'"'),"missing "+id);
+ assert.ok(js.includes("document.execCommand"));
+ assert.ok(js.includes('refresh("timer")'));
+ assert.ok(js.includes("RACE_AI_SAFARI_READ_RECEIPTS_V2"));
+ assert.ok(!js.includes("odds:state.feed?.odds"));
+});
