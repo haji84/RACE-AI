@@ -101,6 +101,23 @@ def parse_official_trial(raw,*,source_url,race_day,venue,race_no,captured_at,
     qualifying=0
     trial_labeled_table_rows=0
     trial_header_shape_counts={}
+    # Aggregate DOM diagnostics only, no source row/athlete values.
+    # Existing provider may use paired headings (試走T | 試走T) with
+    # four rows of 1-4 / 5-8 in parallel columns.
+    table_signatures=[]
+    for table in parser.tables:
+        widths={}
+        for row in table:widths[str(len(row))]=widths.get(str(len(row)),0)+1
+        table_signatures.append({
+            "rows":len(table),
+            "column_width_histogram":widths,
+            "numeric_trial_cells_total":sum(
+                bool(NUM.fullmatch(_s(cell))) for row in table for cell in row),
+            "numbered_car_cells_total":sum(
+                bool(CAR.fullmatch(_s(cell))) for row in table for cell in row),
+            "trial_heading_cells_total":sum(
+                "試走" in _s(cell) for row in table for cell in row),
+        })
     for table in parser.tables:
         for i,row in enumerate(table):
             if any("試走" in _s(v) for v in row):
@@ -158,6 +175,7 @@ def parse_official_trial(raw,*,source_url,race_day,venue,race_no,captured_at,
         "official_html_tables_seen":len(parser.tables),
         "trial_label_table_rows_seen":trial_labeled_table_rows,
         "trial_label_header_shapes_anonymized":trial_header_shape_counts,
+        "anonymized_table_signatures":table_signatures,
         "car_slots_observed":actual,
         "numeric_trial_car_count":observed,
         "status":status if date_found and number_found else "RACE_BODY_IDENTITY_UNVERIFIED",
