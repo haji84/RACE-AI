@@ -2,7 +2,7 @@
 (() => {
   const Model=globalThis.RaceFullOdds;
   const $=id=>document.getElementById(id);
-  const state={feed:null,manual:false,first:"all",order:"ticket",query:"",visible:80};
+  const state={feed:null,manual:false,first:"all",order:"ticket",query:"",visible:80,lastBrowserRead:null,successCount:0};
   const raceId=new URLSearchParams(location.search).get("race_id");
   const validRaceId=typeof raceId==="string"&&/^[A-Za-z0-9:_-]{5,160}$/.test(raceId);
   const fmt=t=>{
@@ -36,6 +36,8 @@
     $("race-cutoff").textContent=fmt(f.cutoff_at);
     $("source-time").textContent="オッズ提供時刻（申告）："+fmt(f.source_published_at);
     $("receive-time").textContent="配信側受信時刻（申告）："+fmt(f.ingested_at);
+    $("browser-read-time").textContent=(state.manual?"手元ファイルの読込：":"この画面がJSONの受信を確認：")+
+      fmt(state.lastBrowserRead)+(state.manual?"":"（成功 "+state.successCount+" 回、公式の更新回数とは別）");
     $("source-kind").textContent=f.source_status==="SYNTHETIC_ONLY"?
       "データ：合成テスト用（実オッズではありません）":
       "データ：提供元の申告値（独立真正性は未検証）";
@@ -79,6 +81,8 @@
     const feed=Model.parse(obj);
     if(validRaceId&&feed.race_id!==raceId)throw new Error("選択中のレースIDとオッズデータが一致しません。");
     state.feed=feed;state.manual=manual;state.visible=80;
+    state.lastBrowserRead=new Date().toISOString();
+    if(!manual)state.successCount+=1;
     $("file-error").hidden=true;
     options(feed);render();
   }
