@@ -145,3 +145,44 @@
 ---
 
 引き継ぎ書は最新の動作を自動保証するものではない。**次チャットは実リポジトリ/D1の最新head・実データを再確認したうえで着手すること。**
+
+## 10. 2026-10-24 12:05 JST 最終読取監査（次チャット起動基点）
+
+**この節は、11:57時点の記録に対して別チャットから読み取り専用で再照合した追補。** Cloudflareから原本オッズを再取得せず、既存D1レコードを読むだけの確認を実施した。上記の事実やGoalは維持する。
+
+### GitHubの照合
+
+- PR #71の**この節追記前のHEAD**：`c0fcee319d92c3c5ff48de336002d08b7dbe602b`、ベース `codex/actions-four-sport-e2e`、`draft=true`、`merged=false`。本節をGitHubに書き込むことでHEADは更新されるため、次チャットでは必ず再取得。
+- このHEADの[Actions #40056524126](https://github.com/haji84/RACE-AI/actions/runs/40056524126) は `completed/success`。**最新HEADの成否を別コミットのCIで代替しない。** 今後この文書を更新した場合は、その更新後HEADのCIを再確認する。
+- Draft PR #64（B/LZH原本資産）、Draft PR #69（四競技基盤）、Draft PR #72（データ権利監査）も現時点でいずれも `open/draft/unmerged`。mainへの統合はしない。
+
+### Cloudflareの再照合（2026-10-24T03:05:06Z = 12:05:06 JST）
+
+**オーナー専用D1** `race-ai-odds-private-preview` に対してRead-only `SELECT` とAccess/Worker設定のGETを実施。次の値は再取得APIの返却実値。
+
+| 設定・レコード | 確認値 |
+|---|---|
+| `odds_latest` | **4レース**、`20261024-04-03`・`20261024-17-03`・`20261024-21-06`・`20261024-21-07` |
+| `odds_pilot_measurements` | 平和島3R **2**、宮島3R **2**、芦屋6R **1**、芦屋7R **3**、合計 **8件** |
+| `odds_ingest_quota` | `2026-10-24 UTC` **6件使用**（他レース固有quotaは別テーブル） |
+| D1テーブル | `odds_latest`、`odds_pilot_measurements`、`odds_ingest_quota`、`odds_pilot_race_quota`、`odds_pilot_capture_failures`、`odds_short_window_trial` |
+| Worker `ODDS_REQUIRE_ACCESS` | `true` |
+| Worker `ODDS_PREVIEW_READ_ENABLED` | `true` |
+| Worker `ODDS_PREVIEW_INGEST_ENABLED` | **`false`**（実証に使った手動D1書込と区別） |
+| Worker試験レース | `ODDS_PILOT_RACE_ID=20261024-21-07`、`ODDS_PILOT_MAX_UPDATES_PER_DAY=3` |
+| Cloudflare Access | `RACE-AI Odds Preview - Owner only`、専用Worker向け・オーナー1件のみAllow |
+| Worker Cron | **`schedules: []`（0件）**。毎分自動取得は未有効化 |
+| Worker subdomain | `enabled=true`、バージョンPreview `previews_enabled=false` |
+
+**重要**：上の8件は監査テーブルに保存された件数。芦屋6R等で保存しなかった最初の観測を含まない。登録されている最新4Rは当日すでに締切済み。過去レースのオッズは参考値と表示し、未来の値や発売中オッズと混同しない。GET確認であるため、発表時刻の新しい公式値が得られたと報告しない。
+
+**再開前の実務警告**：Cloudflare OAuthのBilling/Usage系APIは403であり、同一Cloudflareアカウントの他アプリを含む使用量は未知。公式データの全国規模の60秒継続取得権利・提供元負荷・Browser Run無料枠も独立の課題。既存の取得回数カウンタ、403/429、422/timeout記録を無視して同日追加取得を行わない。
+
+### 次チャットの作業者へ：この順序を守る
+
+1. **このファイル・Issue #67・PR #71最新HEADを読んでから、Cloudflare D1/Access/CronをRead-only再照合する。** 実価格原本、トークン、所有者メールなどの秘匿値は出力しない。
+2. **iPhone Safari実機受入が次の最小ゲート**。オーナーが過去レース（例：平和島3R）保護URLを開いてAccessにログインし、120通り/出典時刻/締切後参考表示を確認。時間差60秒でページが同一origin JSONを再確認するかをログと画面で検証。**元ソースオッズが更新されたことと、表示ページが更新したことは別KPI**。
+3. 続いて、許諾・通信レート・無料枠の証拠を揃えた**未来の1レース**のみで、厳密な60秒自動取得→D1保存ハッシュ→Safari到達の本当のE2Eを受入。過去10月24日の検証を繰り返して「進捗」としない。
+4. 本番全国展開、課金/一般公開、DB破壊的変更、正式モデル選択の差し替え、PR main統合は独立レビュー・事前明示承認なしに実行しない。すべての未達はGOALから消さず、`NO_FORECAST` / `STALE` / `SOURCE_UNAVAILABLE`などで理由を残す。
+
+**このファイルを読んだだけで次チャットが自動実行されるわけではない。次チャットの最初の指示は第9章に記載。**
