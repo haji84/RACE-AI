@@ -1,0 +1,1 @@
+P0 bounded one-shot historical K coverage test: official 2026-10-09..23 (15 unique days) K records plus 2026-10-24 B, target Ohmura 8R scheduled 18:45 JST. Exactly 16 bounded GET max, no retries, store only aggregate source hashes/counts, never raw K/B rows or individual racer information. No forecasting or implied permissions/learning/republication rights.
