@@ -1,0 +1,27 @@
+name: P0 one-shot genuine prior-day BOAT K structure audit
+on:
+  push:
+    branches:
+      - 'p0-k-readiness-20261024'
+    paths:
+      - 'docs/evidence/p0-k-readiness-trigger-20261024.txt'
+permissions:
+  contents: read
+jobs:
+  historical_k_one_get:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    env:
+      RACE_AI_K_ONE_SHOT: 20261023-K-ONE-PARSE
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-parser-reference
+      - name: Parse one prior-day K LZH and emit aggregate-only ST history evidence
+        run: python -m scripts.p0_one_shot_real_k_readiness_20261024
