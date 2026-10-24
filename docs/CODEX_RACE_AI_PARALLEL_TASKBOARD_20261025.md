@@ -2,6 +2,7 @@
 
 Parent https://github.com/haji84/RACE-AI/issues/67
 Execution https://github.com/haji84/RACE-AI/issues/68
+Current GitHub verified PR/CI snapshot: [CODEX_RACE_AI_GITHUB_VERIFIED_STATUS_20261025.md](CODEX_RACE_AI_GITHUB_VERIFIED_STATUS_20261025.md). Historic hashes below are not writer leases or current HEAD.
 Detailed read https://github.com/haji84/RACE-AI/blob/feat/p0-offline-discovery-gate-20261022/docs/CODEX_RACE_AI_THREE_STREAM_MASTER_HANDOFF_20261025.md
 
 **This is an initial work queue, NOT a grant to merge, deploy, scrape or bill. Codex must re-fetch all HEADs and replace stale check IDs when it begins.**
