@@ -27,7 +27,7 @@ async function boundedJson(res){
   try{return JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(bytes));}
   catch{fail("UPSTREAM_JSON_INVALID");}
 }
-async function runAuthorizedMinute(env,{at=new Date(),fetcher=fetch,validate,hash}={}){
+async function runAuthorizedMinute(env,{at=new Date(),completedClock=()=>new Date(),fetcher=fetch,validate,hash}={}){
   // Configuration is inactive until the user has authorized each outside
   // provider rights, rate, storage, display, account-budget and deployment gate.
   if(env?.ODDS_AUTO_SOURCE_ENABLED!=="true")
@@ -76,7 +76,7 @@ async function runAuthorizedMinute(env,{at=new Date(),fetcher=fetch,validate,has
       "UPDATE odds_auto_source_attempts SET status=?,finished_at=?, "+
       "source_published_at=?,server_received_at=?,snapshot_sha256=?, "+
       "quoted_count=?,changed_count=?,http_status=?,blocked_until=? WHERE id=?"
-    ).bind(status,new Date().toISOString(),extras.source_published_at??null,
+    ).bind(status,completedClock().toISOString(),extras.source_published_at??null,
       extras.server_received_at??null,extras.sha256??null,extras.quoted_count??null,
       extras.changed_count??null,extras.http_status??null,
       extras.blocked_until??null,claim.id).run();
@@ -101,7 +101,7 @@ async function runAuthorizedMinute(env,{at=new Date(),fetcher=fetch,validate,has
   try{raw=await boundedJson(response);}
   catch{return finish("PROVIDER_INVALID_RESPONSE",{http_status:response.status,
     blocked_until:env.ODDS_PILOT_CUTOFF_AT});}
-  const arrival=new Date().toISOString();
+  const arrival=completedClock().toISOString();
   const feed={...raw,ingested_at:arrival};
   try{
     validate(feed);

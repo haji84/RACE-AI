@@ -65,7 +65,7 @@ const base={
  ODDS_PILOT_CUTOFF_AT:"2030-01-15T10:30:00+09:00"
 };
 function options(db,now,data=feed()){
- return {at:new Date(now),validate:payloadGuard,hash,
+ return {at:new Date(now),completedClock:()=>new Date(Date.parse(now)+100),validate:payloadGuard,hash,
   fetcher:async()=>new Response(JSON.stringify(data),
    {status:200,headers:{"Content-Type":"application/json"}})};
 }
@@ -107,7 +107,7 @@ test("identical prices/published time preserve latest D1 entry but retain receip
 test("403/429 stops same race and no backoff circumvention",async()=>{
  const db=new FakeD1(),env={...base,ODDS_DB:db};let calls=0;
  const rejected=await runAuthorizedMinute(env,{
-   at:new Date("2030-01-15T00:50:00Z"),validate:payloadGuard,hash,
+   at:new Date("2030-01-15T00:50:00Z"),completedClock:()=>new Date("2030-01-15T00:50:00.100Z"),validate:payloadGuard,hash,
    fetcher:async()=>{calls++;return new Response("rate limit",{status:429});}});
  assert.equal(rejected.status,"PROVIDER_DENIED_OR_RATE_LIMITED");
  const stopped=await runAuthorizedMinute(env,{
