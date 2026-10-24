@@ -115,3 +115,26 @@ test("60-second update target still shows real age and never guarantees fresh da
  assert.equal(closed.stale,true);
  assert.match(closed.label,/締切後/);
 });
+
+test("mobile boat first display exposes all 120 tuples; larger sports stay paginated",()=>{
+ assert.equal(O.initialRowLimit(O.parse(fixture("boat",6))),120);
+ assert.equal(O.initialRowLimit(O.parse(fixture("horse",18))),80);
+ const html=require("node:fs").readFileSync(require("node:path").resolve(__dirname,"../web/full-odds.html"),"utf8");
+ assert.match(html,/id="refresh-evidence"/);
+ assert.match(html,/id="refresh-history"/);
+ assert.match(html,/id="copy-evidence"/);
+});
+test("client receipt, official-time and quote changes remain distinct",()=>{
+ const a=O.parse(fixture("boat",6));
+ assert.equal(O.readDifference(null,a).kind,"FIRST_READ");
+ assert.deepEqual(O.readDifference(a,a),{kind:"UNCHANGED",changedQuotes:0});
+ const receipt=fixture("boat",6);receipt.ingested_at="2030-01-15T09:02:25+09:00";
+ assert.equal(O.readDifference(a,O.parse(receipt)).kind,"D1_RECEIPT_CHANGED");
+ const published=fixture("boat",6);
+ published.source_published_at="2030-01-15T09:02:30+09:00";
+ published.ingested_at="2030-01-15T09:02:35+09:00";
+ assert.equal(O.readDifference(a,O.parse(published)).kind,"SOURCE_TIME_CHANGED");
+ const quote=fixture("boat",6);
+ quote.odds[0].status="QUOTED";quote.odds[0].decimal_odds=15.2;
+ assert.deepEqual(O.readDifference(a,O.parse(quote)),{kind:"QUOTE_CHANGED",changedQuotes:1});
+});

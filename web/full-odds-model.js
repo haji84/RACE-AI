@@ -90,6 +90,17 @@
     if(receivedAge>120)return {label:"RACE-AI配信遅延：約"+Math.ceil(receivedAge/60)+"分前の受信値",stale:true};
     return {label:"受信："+Math.floor(receivedAge)+"秒前 / 提供元："+Math.floor(sourceAge)+"秒前（最新保証なし）",stale:false};
   }
+  function initialRowLimit(feed){return feed?.sport==="boat"?120:80;}
+  function readDifference(previous,current){
+    if(!previous||previous.race_id!==current.race_id)return {kind:"FIRST_READ",changedQuotes:0};
+    const old=new Map(previous.odds.map(x=>[key(x.ticket),x.status+":"+x.decimal_odds]));
+    let changedQuotes=0;
+    for(const x of current.odds)if(old.get(key(x.ticket))!==x.status+":"+x.decimal_odds)changedQuotes++;
+    const kind=changedQuotes?"QUOTE_CHANGED":
+      previous.source_published_at!==current.source_published_at?"SOURCE_TIME_CHANGED":
+      previous.ingested_at!==current.ingested_at?"D1_RECEIPT_CHANGED":"UNCHANGED";
+    return {kind,changedQuotes};
+  }
   function select(feed,{first="all",query="",order="ticket"}={}){
     if(!feed)return [];
     const q=String(query).trim().replace(/\s+/g,"");
@@ -105,5 +116,5 @@
     else out.sort((a,b)=>a.ticket[0]-b.ticket[0]||a.ticket[1]-b.ticket[1]||a.ticket[2]-b.ticket[2]);
     return out;
   }
-  return Object.freeze({parse,select,allTickets,freshness,key});
+  return Object.freeze({parse,select,allTickets,freshness,key,initialRowLimit,readDifference});
 });
