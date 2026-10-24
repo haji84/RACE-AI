@@ -1,0 +1,78 @@
+{
+  "catalog_scope": "pilot_only",
+  "requirements": [
+    {
+      "id": "race-data",
+      "priority": "P0",
+      "depends_on": [],
+      "acceptance": [
+        "unit",
+        "integration",
+        "runtime"
+      ],
+      "integrated_sha": null,
+      "evidence": {}
+    },
+    {
+      "id": "race-ui",
+      "priority": "P0",
+      "depends_on": [
+        "race-data"
+      ],
+      "acceptance": [
+        "unit",
+        "integration",
+        "runtime"
+      ],
+      "integrated_sha": null,
+      "evidence": {}
+    },
+    {
+      "id": "race-predict",
+      "priority": "P0",
+      "depends_on": [
+        "race-data"
+      ],
+      "acceptance": [
+        "unit",
+        "integration",
+        "runtime",
+        "heldout"
+      ],
+      "integrated_sha": null,
+      "evidence": {}
+    },
+    {
+      "id": "race-results",
+      "priority": "P1",
+      "depends_on": [
+        "race-data",
+        "race-predict"
+      ],
+      "acceptance": [
+        "unit",
+        "integration",
+        "runtime"
+      ],
+      "integrated_sha": null,
+      "evidence": {}
+    },
+    {
+      "id": "race-release",
+      "priority": "P1",
+      "depends_on": [
+        "race-ui",
+        "race-results"
+      ],
+      "acceptance": [
+        "unit",
+        "integration",
+        "runtime",
+        "security",
+        "human_gate"
+      ],
+      "integrated_sha": null,
+      "evidence": {}
+    }
+  ]
+}

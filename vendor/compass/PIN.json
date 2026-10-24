@@ -1,0 +1,30 @@
+{
+  "repository": "haji84/AI-",
+  "commit": "a500c70dd3585aeb83596f7d85cf7ee2975dbe2a",
+  "files": [
+    {
+      "path": "src/compass/store.ts",
+      "sha": "48ba5e1304ab9a9473d2abfc74d1e9ea4ef74ff0"
+    },
+    {
+      "path": "src/orchestrator/completion-path.ts",
+      "sha": "c2a6a9a513371ad428d831fe5c3fb2d35e4efb4f"
+    },
+    {
+      "path": "src/orchestrator/goal-evaluator.ts",
+      "sha": "4d0d128eb3d8593e2a1a8f44314ce861b742087e"
+    },
+    {
+      "path": "src/orchestrator/recovery-policy.ts",
+      "sha": "68994a65e9f1e1c6deb0dab776ed579a1fc6439d"
+    },
+    {
+      "path": "src/orchestrator/risk-policy.ts",
+      "sha": "84cd04090fafb4161c5deffedee7c8115860207a"
+    },
+    {
+      "path": "src/orchestrator/work-state.ts",
+      "sha": "575b14d60a389f542ae5e0f6231d88b06a94e311"
+    }
+  ]
+}

@@ -1,0 +1,756 @@
+name: completion-controller-pilot
+run-name: ${{ github.event_name == 'workflow_dispatch' && format('race-one-hop-{0}', inputs.source_run_id) || github.event.pull_request.title }}
+on:
+  pull_request:
+    paths:
+      - scripts/completion-save-protocol.mjs
+      - tests/completion-save-protocol.test.mjs
+      - scripts/completion-developer-trial.py
+      - tests/completion-developer-cases.mjs
+      - scripts/completion-controller.mjs
+      - scripts/completion-dispatch-protocol.mjs
+      - tests/completion-dispatch-protocol.test.mjs
+      - scripts/race-compass-adapter.mjs
+      - tests/race-compass-adapter.test.mjs
+      - docs/state/race-compass-state.json
+      - vendor/compass/**
+      - scripts/completion-ai-trial.py
+      - scripts/completion-mock-trial.mjs
+      - tests/completion-mock-trial.test.mjs
+      - tests/completion-controller.test.mjs
+      - tests/completion-controller.e2e.test.mjs
+      - tests/ai09-review-handoff.test.mjs
+      - scripts/ai09-review-handoff.mjs
+      - config/completion-pilot.json
+      - .github/workflows/completion-controller-pilot.yml
+  workflow_dispatch:
+    inputs:
+      chain_id:
+        required: true
+        type: string
+      source_run_id:
+        required: true
+        type: string
+      source_head:
+        required: true
+        type: string
+      artifact_id:
+        required: true
+        type: string
+      artifact_digest:
+        required: true
+        type: string
+      remaining_hops:
+        required: true
+        type: string
+permissions:
+  contents: read
+  pull-requests: read
+  checks: read
+jobs:
+  pilot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Test fixed technical save protocol without writes
+        run: node --test tests/completion-save-protocol.test.mjs
+      - name: Reconcile actual saved technical note read-only without duplicate write
+        if: github.event_name == 'pull_request' && github.event.pull_request.number == 65
+        env:
+          EXPECTED_SAVE_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {saveOnce,REPO,BRANCH} from './scripts/completion-save-protocol.mjs';
+          let writes=0;
+          const api={
+            get:async p=>{const r=await fetch('https://api.github.com/repos/'+REPO+'/'+p,{headers:{Accept:'application/vnd.github+json'},redirect:'error',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('READ_API_'+r.status);return r.json();},
+            post:async()=>{writes++;throw Error('READ_ONLY');},
+            patch:async()=>{writes++;throw Error('READ_ONLY');}
+          };
+          const e=process.env,c={repository:REPO,branch:BRANCH,actor:e.GITHUB_ACTOR,event:e.GITHUB_EVENT_NAME,action:'synchronize',pr:'65',attempt:e.GITHUB_RUN_ATTEMPT,run:e.GITHUB_RUN_ID,runNumber:e.GITHUB_RUN_NUMBER,expectedRunNumber:e.GITHUB_RUN_NUMBER,head:'13f26510f9657242d2106a9f9612fe23987d14be',prepared:'c1d2855eb4b5fe447d05de635433f5c2029eff2a'};
+          const saved='3acc545a98b2fadfa3a47f61500c0ab536549e82';
+          const first=await saveOnce(c,api,saved),again=await saveOnce(c,api,saved);
+          if(writes!==0||first.status!=='NOOP'||again.status!=='NOOP'||first.head!==e.EXPECTED_SAVE_HEAD||again.head!==first.head)throw Error('NOOP_RECONCILIATION_FAILED');
+          console.log(JSON.stringify({status:'PASS',saved_commit:saved,current_head:first.head,repeat:'NOOP',writes,canonical_writeback:false}));
+          NODE
+      - name: Record exact checkout
+        run: git rev-parse HEAD
+      - name: Verify isolated controller repair grammar and independent baseline regressions
+        run: python3 scripts/completion-developer-trial.py --self-test
+      - name: Test bounded offline mock continuation and restart
+        run: node --test tests/completion-mock-trial.test.mjs
+      - name: Test bounded one-hop dispatch protocol without network or writes
+        run: node --test tests/completion-dispatch-protocol.test.mjs
+      - name: Test deterministic controller and recovery
+        run: node --test tests/completion-controller.test.mjs tests/completion-controller.e2e.test.mjs tests/ai09-review-handoff.test.mjs
+      - name: Read-only GitHub plan
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/completion-controller.mjs --github --catalog config/completion-pilot.json > /tmp/completion-plan.json
+      - name: Read-only AI09 handoff for this PR
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node scripts/ai09-review-handoff.mjs --pr "$PR_NUMBER" > /tmp/ai09-handoff.json
+          node -e 'const p=require("/tmp/ai09-handoff.json"); if(p.headSha!==process.env.PR_HEAD||p.mergeAuthorized||p.githubApprovalSatisfied||p.gitHubWritePerformed) process.exit(1)'
+      - name: Publish read-only AI09 request artifact
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: race-ai09-review-request
+          path: /tmp/ai09-handoff.json
+          if-no-files-found: error
+          retention-days: 3
+      - name: Assert pilot never claims product completion or merge authority
+        run: |
+          node -e 'const p=require("/tmp/completion-plan.json");if(p.product_completion_claim_allowed || !p.read_only || p.autonomous_merge_enabled)process.exit(1)'
+
+  # One-shot jobs were verified at the pinned trial head; later updates skip them.
+  # This prevents repeated model downloads and expiry-induced CI failures.
+  constrained-ai-trial:
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.event_name == 'pull_request' &&
+      github.event.repository.private == false &&
+      github.actor == 'haji84' &&
+      github.event.pull_request.number == 65 &&
+      github.event.pull_request.head.sha == '86f1be3c96e3a7e7dc529eb6c55748a827eb7779' &&
+      github.event.pull_request.head.repo.full_name == 'haji84/RACE-AI' &&
+      github.event.pull_request.head.ref == 'feat/completion-controller-pilot-20261016'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Validate constrained code verifier before model download
+        run: |
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          test "$RUNNER_OS" = Linux
+          test "$RUNNER_ARCH" = X64
+          git rev-parse HEAD
+          python3 scripts/completion-ai-trial.py --self-test
+      - name: Reuse existing SHA256-pinned local Ollama runtime
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --max-time 300 \
+            https://github.com/ollama/ollama/releases/download/v0.34.0/ollama-linux-amd64.tar.zst \
+            -o "$RUNNER_TEMP/ollama.tar.zst"
+          echo "cf95886728959aa09910bb34de5cca1cc5a8f68003b5597197d3f2c2d57c0804  $RUNNER_TEMP/ollama.tar.zst" | sha256sum -c -
+          mkdir "$RUNNER_TEMP/ollama-runtime"
+          tar --zstd -xf "$RUNNER_TEMP/ollama.tar.zst" -C "$RUNNER_TEMP/ollama-runtime"
+          echo "$RUNNER_TEMP/ollama-runtime/bin" >> "$GITHUB_PATH"
+      - name: Start bounded loopback model
+        env:
+          OLLAMA_HOST: 127.0.0.1:11434
+          OLLAMA_NUM_PARALLEL: '1'
+          OLLAMA_MAX_LOADED_MODELS: '1'
+          OLLAMA_KEEP_ALIVE: 5m
+        run: |
+          set -euo pipefail
+          env -i PATH="$PATH" HOME="$HOME" OLLAMA_HOST=127.0.0.1:11434 OLLAMA_NUM_PARALLEL=1 OLLAMA_MAX_LOADED_MODELS=1 OLLAMA_KEEP_ALIVE=5m ollama serve >"$RUNNER_TEMP/ollama.log" 2>&1 &
+          echo "RACE_OLLAMA_PID=$!" >> "$GITHUB_ENV"
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then ready=1; break; fi
+            sleep 2
+          done
+          test "$ready" = 1
+          timeout 480s ollama pull qwen2.5-coder:3b
+      - name: Generate and independently verify two constrained functions
+        timeout-minutes: 12
+        run: |
+          env -i PATH="$PATH" HOME="$RUNNER_TEMP" \
+            python3 scripts/completion-ai-trial.py --output "$RUNNER_TEMP/constrained-ai-receipt.json"
+      - name: Stop loopback model
+        if: always()
+        run: |
+          if [[ "${RACE_OLLAMA_PID:-}" =~ ^[0-9]+$ ]]; then kill "$RACE_OLLAMA_PID" 2>/dev/null || true; fi
+
+  checkpoint-producer:
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.number == 65 &&
+      github.event.pull_request.head.sha == '86f1be3c96e3a7e7dc529eb6c55748a827eb7779' &&
+      github.event.pull_request.head.repo.full_name == 'haji84/RACE-AI' &&
+      github.event.pull_request.head.ref == 'feat/completion-controller-pilot-20261016'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Save interrupted synthetic executor checkpoint for a distinct later run
+        env:
+          SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          set +e
+          node scripts/completion-mock-trial.mjs --state-dir "$RUNNER_TEMP/checkpoint" --crash-after-result fixture-a
+          result=$?
+          set -e
+          test "$result" = 43
+          mkdir "$RUNNER_TEMP/portable-checkpoint"
+          cp "$RUNNER_TEMP/checkpoint/state.json" "$RUNNER_TEMP/checkpoint/result-fixture-a.json" "$RUNNER_TEMP/checkpoint/effects.jsonl" "$RUNNER_TEMP/portable-checkpoint/"
+          # Do not transfer a PID lock across hosts: the isolated subprocess exited above.
+          node --input-type=module <<'NODE'
+          import {writeFileSync,readFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const sha256=p=>createHash('sha256').update(readFileSync(p)).digest('hex');
+          const root=process.env.RUNNER_TEMP+'/portable-checkpoint/';
+          writeFileSync(root+'manifest.json',JSON.stringify({
+            kind:'SYNTHETIC_CHECKPOINT_TRANSFER_V1',source_head:process.env.SOURCE_HEAD,
+            source_run:process.env.GITHUB_RUN_ID,source_attempt:process.env.GITHUB_RUN_ATTEMPT,
+            runner_sha256:sha256('scripts/completion-mock-trial.mjs'),
+            files:Object.fromEntries(['state.json','result-fixture-a.json','effects.jsonl'].map(f=>[f,sha256(root+f)]))
+          }));
+          NODE
+      - name: Publish only small synthetic checkpoint, never code or secrets
+        uses: actions/upload-artifact@v4
+        with:
+          name: completion-synthetic-checkpoint
+          path: ${{ runner.temp }}/portable-checkpoint/
+          if-no-files-found: error
+          retention-days: 1
+
+  checkpoint-consumer:
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.number == 65 &&
+      github.event.pull_request.head.sha == '86f1be3c96e3a7e7dc529eb6c55748a827eb7779' &&
+      github.event.pull_request.head.repo.full_name == 'haji84/RACE-AI' &&
+      github.event.pull_request.head.ref == 'feat/completion-controller-pilot-20261016'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    env:
+      SOURCE_RUN: '39929030821'
+      SOURCE_HEAD: e46ac3fa5c682c8ba39c3d343ea4badd39f0fc4e
+      SOURCE_ARTIFACT: '12490811314'
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Validate exact source run and immutable artifact metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          const base='https://api.github.com/repos/haji84/RACE-AI/';
+          async function get(p){const r=await fetch(base+p,{headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json'},redirect:'error',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('SOURCE_API_'+r.status);return r.json();}
+          const run=await get('actions/runs/'+process.env.SOURCE_RUN);
+          if(String(run.id)===process.env.GITHUB_RUN_ID || run.head_sha!==process.env.SOURCE_HEAD || run.head_branch!=='feat/completion-controller-pilot-20261016' || run.event!=='pull_request' || run.path!=='.github/workflows/completion-controller-pilot.yml' || run.status!=='completed' || run.conclusion!=='success' || run.run_attempt!==1 || run.repository.full_name!=='haji84/RACE-AI')throw Error('SOURCE_RUN_INVALID');
+          const artifact=await get('actions/artifacts/'+process.env.SOURCE_ARTIFACT);
+          if(artifact.name!=='completion-synthetic-checkpoint' || artifact.expired || artifact.size_in_bytes>16384 || artifact.workflow_run.id!==Number(process.env.SOURCE_RUN) || artifact.workflow_run.head_sha!==process.env.SOURCE_HEAD || artifact.digest!=='sha256:1a39b67c9a3f124311655dba71eb04403f79bbe05afe66916fc9185034f131f9')throw Error('SOURCE_ARTIFACT_INVALID');
+          console.log(JSON.stringify({source_run:run.id,source_head:run.head_sha,artifact_id:artifact.id,artifact_digest:artifact.digest}));
+          NODE
+      - name: Retrieve prior run synthetic checkpoint with read-only token
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ env.SOURCE_ARTIFACT }}
+          path: ${{ runner.temp }}/recovered-checkpoint
+          merge-multiple: true
+          github-token: ${{ github.token }}
+          repository: haji84/RACE-AI
+          run-id: ${{ env.SOURCE_RUN }}
+      - name: Verify all transferred files before resuming trusted current runner
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync,readdirSync,lstatSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const root=process.env.RUNNER_TEMP+'/recovered-checkpoint/';
+          const names=['effects.jsonl','manifest.json','result-fixture-a.json','state.json'];
+          if(JSON.stringify(readdirSync(root).sort())!==JSON.stringify(names))throw Error('UNEXPECTED_CHECKPOINT_FILES');
+          for(const file of names){const s=lstatSync(root+file);if(!s.isFile()||s.isSymbolicLink()||s.size>16384)throw Error('UNSAFE_CHECKPOINT_FILE');}
+          const hash=p=>createHash('sha256').update(readFileSync(p)).digest('hex');
+          const m=JSON.parse(readFileSync(root+'manifest.json','utf8'));
+          if(m.kind!=='SYNTHETIC_CHECKPOINT_TRANSFER_V1'||m.source_head!==process.env.SOURCE_HEAD||m.source_run!==process.env.SOURCE_RUN||m.source_attempt!=='1'||m.runner_sha256!==hash('scripts/completion-mock-trial.mjs'))throw Error('CHECKPOINT_IDENTITY_MISMATCH');
+          if(JSON.stringify(Object.keys(m.files).sort())!==JSON.stringify(names.filter(x=>x!=='manifest.json')))throw Error('CHECKPOINT_MANIFEST_INVALID');
+          for(const [file,expected] of Object.entries(m.files)){if(hash(root+file)!==expected)throw Error('CHECKPOINT_HASH_MISMATCH');}
+          const s=JSON.parse(readFileSync(root+'state.json','utf8'));
+          if(s.completed.length!==0||s.active?.task_id!=='fixture-a')throw Error('WRONG_INTERRUPTION_CHECKPOINT');
+          NODE
+          node scripts/completion-mock-trial.mjs --state-dir "$RUNNER_TEMP/recovered-checkpoint"
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const root=process.env.RUNNER_TEMP+'/recovered-checkpoint/';
+          const state=JSON.parse(readFileSync(root+'state.json','utf8'));
+          const effects=readFileSync(root+'effects.jsonl','utf8').trim().split('\n').map(JSON.parse);
+          if(JSON.stringify(state.completed)!==JSON.stringify(['fixture-a','fixture-b'])||state.active!==null||effects.length!==2||effects[0].task_id!=='fixture-a'||effects[1].task_id!=='fixture-b')throw Error('RESUME_OR_IDEMPOTENCE_FAILED');
+          console.log(JSON.stringify({status:'PASS',source_run:process.env.SOURCE_RUN,destination_run:process.env.GITHUB_RUN_ID,completed:state.completed,effects:effects.length,real_ai_development:false,autonomous_run_trigger:false,controlled_checkpoint_transfer:true}));
+          NODE
+
+  compass-adapter:
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.number == 65 &&
+      github.event.pull_request.head.repo.full_name == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify original Compass pins, isolation and evidence rejection
+        run: |
+          git rev-parse HEAD
+          node --test tests/race-compass-adapter.test.mjs
+      - name: Import canonical state, end process, reopen and export actual Compass SQLite
+        run: |
+          node scripts/race-compass-adapter.mjs import docs/state/race-compass-state.json "$RUNNER_TEMP/race-compass.sqlite"
+          node scripts/race-compass-adapter.mjs export "$RUNNER_TEMP/race-compass.sqlite" "$RUNNER_TEMP/roundtrip.json"
+          cmp docs/state/race-compass-state.json "$RUNNER_TEMP/roundtrip.json"
+      - name: Independently retrieve historical run evidence without trusting snapshot claims
+        env:
+          EXPECTED_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          node scripts/race-compass-adapter.mjs assess docs/state/race-compass-state.json "$EXPECTED_HEAD" "$RUNNER_TEMP/compass-assessment.json"
+      - name: Read current full product position without promoting synthetic CI to acceptance
+        run: node scripts/race-compass-adapter.mjs product docs/state/race-compass-state.json "$RUNNER_TEMP/product-position.json"
+      - name: Confirm canonical file was not changed and no automatic writeback occurred
+        if: always()
+        run: git diff --exit-code -- docs/state/race-compass-state.json
+
+  dispatch-checkpoint:
+    if: ${{ false }}
+    needs: [pilot, compass-adapter]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      artifact-id: ${{ steps.upload.outputs.artifact-id }}
+      artifact-digest: ${{ steps.upload.outputs.artifact-digest }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Produce only an interrupted synthetic checkpoint
+        env:
+          SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          set -euo pipefail
+          set +e
+          node scripts/completion-mock-trial.mjs --state-dir "$RUNNER_TEMP/one-hop" --crash-after-result fixture-a
+          result=$?
+          set -e
+          test "$result" = 43
+          mkdir "$RUNNER_TEMP/one-hop-portable"
+          cp "$RUNNER_TEMP/one-hop/"{state.json,result-fixture-a.json,effects.jsonl} "$RUNNER_TEMP/one-hop-portable/"
+          node --input-type=module <<'NODE'
+          import {readFileSync,writeFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const hash=p=>createHash('sha256').update(readFileSync(p)).digest('hex');
+          const root=process.env.RUNNER_TEMP+'/one-hop-portable/';
+          const names=['state.json','result-fixture-a.json','effects.jsonl'];
+          writeFileSync(root+'manifest.json',JSON.stringify({kind:'ONE_HOP_SYNTHETIC_CHECKPOINT_V1',source_run:process.env.GITHUB_RUN_ID,source_head:process.env.SOURCE_HEAD,source_attempt:'1',chain_id:'race-one-hop-'+process.env.GITHUB_RUN_ID,runner_sha256:hash('scripts/completion-mock-trial.mjs'),files:Object.fromEntries(names.map(n=>[n,hash(root+n)]))}));
+          NODE
+      - id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: one-hop-checkpoint-${{ github.run_id }}
+          path: ${{ runner.temp }}/one-hop-portable/
+          retention-days: 1
+          if-no-files-found: error
+
+  dispatch-next-trial:
+    if: ${{ false }}
+    needs: [pilot, compass-adapter, dispatch-checkpoint]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      actions: read
+    env:
+      EXPECTED_RUN_NUMBER: '28'
+      PREPARED_PARENT: 'e090e2404d3c1ed025953eadd1a037b015fe8aec'
+      SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
+      HEAD_REPOSITORY: ${{ github.event.pull_request.head.repo.full_name }}
+      BASE_REPOSITORY: ${{ github.event.pull_request.base.repo.full_name }}
+      EVENT_ACTION: ${{ github.event.action }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      ARTIFACT_ID: ${{ needs.dispatch-checkpoint.outputs.artifact-id }}
+      ARTIFACT_DIGEST: ${{ needs.dispatch-checkpoint.outputs.artifact-digest }}
+    steps:
+      - name: Validate trusted source then make at most one same-workflow dispatch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          // BEGIN TESTED DISPATCH PROTOCOL
+          // Pure bounded protocol. API is injected; importing this file never sends a request.
+          const REPOSITORY='haji84/RACE-AI';
+          const BRANCH='feat/completion-controller-pilot-20261016';
+          const WORKFLOW='.github/workflows/completion-controller-pilot.yml';
+          const sha=x=>typeof x==='string'&&/^[a-f0-9]{40}$/.test(x);
+          const id=x=>typeof x==='string'&&/^[1-9][0-9]{0,14}$/.test(x);
+          const hash=x=>typeof x==='string'&&/^[a-f0-9]{64}$/.test(x);
+          const check=(ok,error)=>{if(!ok)throw Error(error);};
+          function validateArtifact(a,c){
+           check(a.id===Number(c.artifactId)&&a.name==='one-hop-checkpoint-'+c.runId&&!a.expired&&a.size_in_bytes>0&&a.size_in_bytes<=16384&&a.workflow_run?.id===Number(c.runId)&&a.workflow_run?.head_sha===c.head&&a.digest==='sha256:'+c.artifactDigest,'ARTIFACT_BINDING_INVALID');
+          }
+          function validateSource(run,c,finished){
+           check(run.id===Number(c.runId)&&run.repository?.full_name===REPOSITORY&&run.head_sha===c.head&&run.head_branch===BRANCH&&run.path===WORKFLOW&&run.event==='pull_request'&&run.run_attempt===1&&run.actor?.login==='haji84','SOURCE_RUN_INVALID');
+           if(finished)check(run.status==='completed'&&run.conclusion==='success','SOURCE_NOT_SUCCESS');
+          }
+          async function dispatchOnce(c,api){
+           check(c.repository===REPOSITORY&&c.branch===BRANCH&&c.event==='pull_request'&&c.action==='synchronize'&&c.actor==='haji84'&&c.prNumber==='65'&&c.headRepository===REPOSITORY&&c.baseRepository===REPOSITORY&&c.attempt==='1'&&id(c.runId)&&id(c.runNumber)&&c.runNumber===c.expectedRunNumber&&sha(c.head)&&sha(c.preparedParent)&&id(c.artifactId)&&hash(c.artifactDigest),'DISPATCH_SCOPE_INVALID');
+           const run=await api.get('actions/runs/'+c.runId);validateSource(run,c,false);
+           check(String(run.run_number)===c.expectedRunNumber&&run.status==='in_progress','SOURCE_ATTEMPT_INVALID');
+           const commit=await api.get('commits/'+c.head);
+           check(commit.sha===c.head&&commit.parents?.length===1&&commit.parents[0].sha===c.preparedParent,'PREPARED_PARENT_CHANGED');
+           validateArtifact(await api.get('actions/artifacts/'+c.artifactId),c);
+           const chain='race-one-hop-'+c.runId;
+           const prior=await api.get('actions/workflows/completion-controller-pilot.yml/runs?event=workflow_dispatch&per_page=100');
+           check(Array.isArray(prior.workflow_runs)&&prior.total_count===prior.workflow_runs.length&&prior.total_count<=100,'DISPATCH_HISTORY_INCOMPLETE');
+           check(!prior.workflow_runs.some(r=>r.display_title===chain),'CHAIN_ALREADY_DISPATCHED');
+           const ref=await api.get('git/ref/heads/'+BRANCH);
+           check(ref.object?.sha===c.head,'BRANCH_HEAD_CHANGED');
+           const body={ref:BRANCH,inputs:{chain_id:chain,source_run_id:c.runId,source_head:c.head,artifact_id:c.artifactId,artifact_digest:c.artifactDigest,remaining_hops:'0'}};
+           // Exactly one attempt. Timeout/unknown response is NOT safe to repeat.
+           let response;try{response=await api.post('actions/workflows/completion-controller-pilot.yml/dispatches',body);}catch{throw Error('DISPATCH_UNCONFIRMED_STOP_NO_RETRY');}
+           let childRunId=null;
+           if(response.status===200){
+            const b=response.body;
+            check(Number.isSafeInteger(b?.workflow_run_id)&&b.workflow_run_id>0&&b.run_url==='https://api.github.com/repos/'+REPOSITORY+'/actions/runs/'+b.workflow_run_id&&b.html_url==='https://github.com/'+REPOSITORY+'/actions/runs/'+b.workflow_run_id,'DISPATCH_RECEIPT_UNCONFIRMED_STOP_NO_RETRY');
+            childRunId=b.workflow_run_id;
+           }else check(response.status===204,'DISPATCH_REJECTED_OR_UNCONFIRMED_'+response.status);
+           return {status:'DISPATCH_ACCEPTED',childRunId,chainId:chain,sourceRun:c.runId,sourceHead:c.head,maxChildren:1,remainingHops:0,childSuccess:false};
+          }
+          function validateReceiver(c,source,artifact){
+           check(c.repository===REPOSITORY&&c.event==='workflow_dispatch'&&c.branch===BRANCH&&c.attempt==='1'&&id(c.runId)&&id(c.sourceRunId)&&c.runId!==c.sourceRunId&&sha(c.sourceHead)&&c.head===c.sourceHead&&c.chainId==='race-one-hop-'+c.sourceRunId&&c.remainingHops==='0'&&id(c.artifactId)&&hash(c.artifactDigest),'RECEIVER_SCOPE_INVALID');
+           const original={runId:c.sourceRunId,head:c.sourceHead,artifactId:c.artifactId,artifactDigest:c.artifactDigest};
+           validateSource(source,original,true);validateArtifact(artifact,original);
+           return {chainId:c.chainId,sourceRun:c.sourceRunId,destinationRun:c.runId,sourceHead:c.sourceHead,remainingHops:0,mayDispatch:false};
+          }
+          // END TESTED DISPATCH PROTOCOL
+          const base='https://api.github.com/repos/haji84/RACE-AI/';
+          const request=async(method,path,body)=>{
+            const r=await fetch(base+path,{method,headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2026-03-10'},body:body?JSON.stringify(body):undefined,redirect:'error',signal:AbortSignal.timeout(15000)});
+            if(method==='POST')return {status:r.status,body:r.status===200?await r.json():undefined};
+            if(!r.ok)throw Error('GITHUB_READ_'+r.status);
+            return r.json();
+          };
+          const api={get:p=>request('GET',p),post:(p,b)=>request('POST',p,b)};
+          // Wait for current-head full regression; never dispatch on pending/failed tests.
+          let regression=false;
+          for(let i=0;i<36;i++){
+            const listing=await api.get('actions/runs?head_sha='+process.env.SOURCE_HEAD+'&per_page=100');
+            if(listing.total_count!==listing.workflow_runs?.length||listing.total_count>100)throw Error('REGRESSION_LIST_INCOMPLETE');
+            const latest=listing.workflow_runs.filter(r=>r.path==='.github/workflows/tests.yml'&&r.event==='pull_request').sort((a,b)=>b.id-a.id)[0];
+            if(latest?.status==='completed'){if(latest.conclusion!=='success')throw Error('REGRESSION_FAILED');regression=true;break;}
+            await new Promise(r=>setTimeout(r,20000));
+          }
+          if(!regression)throw Error('REGRESSION_NOT_FINISHED_NO_DISPATCH');
+          const e=process.env;
+          const result=await dispatchOnce({repository:e.GITHUB_REPOSITORY,branch:BRANCH,event:e.GITHUB_EVENT_NAME,action:e.EVENT_ACTION,actor:e.GITHUB_ACTOR,prNumber:e.PR_NUMBER,headRepository:e.HEAD_REPOSITORY,baseRepository:e.BASE_REPOSITORY,attempt:e.GITHUB_RUN_ATTEMPT,runId:e.GITHUB_RUN_ID,runNumber:e.GITHUB_RUN_NUMBER,expectedRunNumber:e.EXPECTED_RUN_NUMBER,head:e.SOURCE_HEAD,preparedParent:e.PREPARED_PARENT,artifactId:e.ARTIFACT_ID,artifactDigest:e.ARTIFACT_DIGEST},api);
+          console.log(JSON.stringify(result));
+          NODE
+
+  dispatch-receiver:
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read
+    env:
+      CHAIN_ID: ${{ inputs.chain_id }}
+      SOURCE_RUN: ${{ inputs.source_run_id }}
+      SOURCE_HEAD: ${{ inputs.source_head }}
+      SOURCE_ARTIFACT: ${{ inputs.artifact_id }}
+      SOURCE_DIGEST: ${{ inputs.artifact_digest }}
+      REMAINING_HOPS: ${{ inputs.remaining_hops }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Verify parent success, exact chain and immutable synthetic artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {writeFileSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          import {validateReceiver,BRANCH} from './scripts/completion-dispatch-protocol.mjs';
+          const base='https://api.github.com/repos/haji84/RACE-AI/';
+          async function get(path){const r=await fetch(base+path,{headers:{Authorization:'Bearer '+process.env.GH_TOKEN,Accept:'application/vnd.github+json'},redirect:'error',signal:AbortSignal.timeout(15000)});if(!r.ok)throw Error('SOURCE_API_'+r.status);return r.json();}
+          const e=process.env;
+          if(!/^[1-9][0-9]{0,14}$/.test(e.SOURCE_RUN)||!/^[1-9][0-9]{0,14}$/.test(e.SOURCE_ARTIFACT))throw Error('INPUT_ID_INVALID');
+          let source;
+          for(let i=0;i<24;i++){source=await get('actions/runs/'+e.SOURCE_RUN);if(source.status==='completed')break;await new Promise(r=>setTimeout(r,5000));}
+          const artifact=await get('actions/artifacts/'+e.SOURCE_ARTIFACT);
+          const receipt=validateReceiver({repository:e.GITHUB_REPOSITORY,event:e.GITHUB_EVENT_NAME,branch:e.GITHUB_REF_NAME,attempt:e.GITHUB_RUN_ATTEMPT,runId:e.GITHUB_RUN_ID,sourceRunId:e.SOURCE_RUN,sourceHead:e.SOURCE_HEAD,head:e.GITHUB_SHA,chainId:e.CHAIN_ID,remainingHops:e.REMAINING_HOPS,artifactId:e.SOURCE_ARTIFACT,artifactDigest:e.SOURCE_DIGEST},source,artifact);
+          const jobs=await get('actions/runs/'+e.SOURCE_RUN+'/jobs?per_page=100');
+          const dispatch=jobs.jobs?.filter(j=>j.name==='dispatch-next-trial');
+          if(jobs.total_count!==jobs.jobs?.length||dispatch?.length!==1||dispatch[0].conclusion!=='success'||dispatch[0].head_sha!==e.SOURCE_HEAD)throw Error('TRUSTED_DISPATCH_NOT_SUCCESS');
+          const runs=await get('actions/workflows/completion-controller-pilot.yml/runs?event=workflow_dispatch&per_page=100');
+          const children=runs.workflow_runs?.filter(r=>r.display_title===e.CHAIN_ID);
+          if(runs.total_count!==runs.workflow_runs?.length||children?.length!==1||String(children[0].id)!==e.GITHUB_RUN_ID)throw Error('CHAIN_DUPLICATE_OR_UNCONFIRMED');
+          const ref=await get('git/ref/heads/'+BRANCH);if(ref.object?.sha!==e.SOURCE_HEAD)throw Error('BRANCH_CHANGED');
+          const response=await fetch(base+'actions/artifacts/'+e.SOURCE_ARTIFACT+'/zip',{headers:{Authorization:'Bearer '+e.GH_TOKEN},redirect:'manual',signal:AbortSignal.timeout(15000)});
+          if(response.status!==302)throw Error('ARTIFACT_REDIRECT_REQUIRED');
+          const location=new URL(response.headers.get('location'));
+          if(location.protocol!=='https:'||location.username||location.password||!/(^|\.)(blob\.core\.windows\.net|githubusercontent\.com)$/.test(location.hostname))throw Error('ARTIFACT_HOST_REJECTED');
+          const download=await fetch(location,{redirect:'error',signal:AbortSignal.timeout(30000)});
+          if(!download.ok)throw Error('ARTIFACT_DOWNLOAD_FAILED');
+          const bytes=Buffer.from(await download.arrayBuffer());
+          if(bytes.length>16384||createHash('sha256').update(bytes).digest('hex')!==e.SOURCE_DIGEST)throw Error('ARCHIVE_DIGEST_MISMATCH');
+          writeFileSync(e.RUNNER_TEMP+'/one-hop.zip',bytes);
+          console.log(JSON.stringify(receipt));
+          NODE
+      - name: Extract only bounded expected checkpoint files
+        run: |
+          python3 - <<'PY'
+          import os, pathlib, zipfile
+          root=pathlib.Path(os.environ["RUNNER_TEMP"])/"one-hop-resumed"
+          names={"state.json","result-fixture-a.json","effects.jsonl","manifest.json"}
+          with zipfile.ZipFile(pathlib.Path(os.environ["RUNNER_TEMP"])/"one-hop.zip") as z:
+              infos=z.infolist()
+              if len(infos)!=4 or {i.filename for i in infos}!=names: raise RuntimeError("ARCHIVE_PATHS_INVALID")
+              if any(i.file_size>16384 or i.is_dir() or ((i.external_attr>>16)&0o170000)==0o120000 for i in infos): raise RuntimeError("ARCHIVE_ENTRY_INVALID")
+              root.mkdir()
+              for i in infos: (root/i.filename).write_bytes(z.read(i))
+          PY
+      - name: Verify synthetic manifest then resume existing bounded executor without a token
+        run: |
+          node --input-type=module <<'NODE'
+          import {readFileSync,readdirSync,lstatSync} from 'node:fs';
+          import {createHash} from 'node:crypto';
+          const root=process.env.RUNNER_TEMP+'/one-hop-resumed/';
+          const names=['effects.jsonl','manifest.json','result-fixture-a.json','state.json'];
+          if(JSON.stringify(readdirSync(root).sort())!==JSON.stringify(names))throw Error('CHECKPOINT_FILES_INVALID');
+          for(const n of names){const s=lstatSync(root+n);if(!s.isFile()||s.isSymbolicLink()||s.size>16384)throw Error('CHECKPOINT_FILE_INVALID');}
+          const hash=p=>createHash('sha256').update(readFileSync(p)).digest('hex');
+          const m=JSON.parse(readFileSync(root+'manifest.json','utf8'));
+          if(m.kind!=='ONE_HOP_SYNTHETIC_CHECKPOINT_V1'||m.source_run!==process.env.SOURCE_RUN||m.source_head!==process.env.SOURCE_HEAD||m.source_attempt!=='1'||m.chain_id!==process.env.CHAIN_ID||m.runner_sha256!==hash('scripts/completion-mock-trial.mjs'))throw Error('MANIFEST_IDENTITY_INVALID');
+          if(JSON.stringify(Object.keys(m.files).sort())!==JSON.stringify(names.filter(n=>n!=='manifest.json')))throw Error('MANIFEST_FILES_INVALID');
+          for(const [n,h] of Object.entries(m.files))if(hash(root+n)!==h)throw Error('FILE_DIGEST_INVALID');
+          const s=JSON.parse(readFileSync(root+'state.json','utf8'));if(s.completed.length!==0||s.active?.task_id!=='fixture-a')throw Error('CHECKPOINT_STAGE_INVALID');
+          NODE
+          node scripts/completion-mock-trial.mjs --state-dir "$RUNNER_TEMP/one-hop-resumed"
+          node --input-type=module <<'NODE'
+          import {readFileSync} from 'node:fs';
+          const root=process.env.RUNNER_TEMP+'/one-hop-resumed/',state=JSON.parse(readFileSync(root+'state.json','utf8')),effects=readFileSync(root+'effects.jsonl','utf8').trim().split('\n').map(JSON.parse);
+          if(JSON.stringify(state.completed)!==JSON.stringify(['fixture-a','fixture-b'])||state.active!==null||effects.length!==2||effects[0].task_id!=='fixture-a'||effects[1].task_id!=='fixture-b')throw Error('RESUME_IDEMPOTENCE_FAILED');
+          console.log(JSON.stringify({status:'PASS',source_run:process.env.SOURCE_RUN,destination_run:process.env.GITHUB_RUN_ID,chain_id:process.env.CHAIN_ID,automatic_one_hop:true,max_children:1,may_dispatch:false,completed:state.completed,real_ai_development:false,canonical_writeback:false}));
+          NODE
+
+  # Disabled preparation; a separately reviewed one-shot activation is required.
+  bounded-controller-repair:
+    if: ${{ false }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - name: Validate constrained code verifier before model download
+        run: |
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          test "$RUNNER_OS" = Linux
+          test "$RUNNER_ARCH" = X64
+          git rev-parse HEAD
+          python3 scripts/completion-developer-trial.py --self-test
+      - name: Reuse existing SHA256-pinned local Ollama runtime
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --max-time 300 \
+            https://github.com/ollama/ollama/releases/download/v0.34.0/ollama-linux-amd64.tar.zst \
+            -o "$RUNNER_TEMP/ollama.tar.zst"
+          echo "cf95886728959aa09910bb34de5cca1cc5a8f68003b5597197d3f2c2d57c0804  $RUNNER_TEMP/ollama.tar.zst" | sha256sum -c -
+          mkdir "$RUNNER_TEMP/ollama-runtime"
+          tar --zstd -xf "$RUNNER_TEMP/ollama.tar.zst" -C "$RUNNER_TEMP/ollama-runtime"
+          echo "$RUNNER_TEMP/ollama-runtime/bin" >> "$GITHUB_PATH"
+      - name: Start bounded loopback model
+        env:
+          OLLAMA_HOST: 127.0.0.1:11434
+          OLLAMA_NUM_PARALLEL: '1'
+          OLLAMA_MAX_LOADED_MODELS: '1'
+          OLLAMA_KEEP_ALIVE: 5m
+        run: |
+          set -euo pipefail
+          env -i PATH="$PATH" HOME="$HOME" OLLAMA_HOST=127.0.0.1:11434 OLLAMA_NUM_PARALLEL=1 OLLAMA_MAX_LOADED_MODELS=1 OLLAMA_KEEP_ALIVE=5m ollama serve >"$RUNNER_TEMP/ollama.log" 2>&1 &
+          echo "RACE_OLLAMA_PID=$!" >> "$GITHUB_ENV"
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then ready=1; break; fi
+            sleep 2
+          done
+          test "$ready" = 1
+          timeout 480s ollama pull qwen2.5-coder:3b
+      - name: Propose and independently verify two bounded controller repairs
+        timeout-minutes: 12
+        run: |
+          env -i PATH="$PATH" HOME="$RUNNER_TEMP" \
+            python3 scripts/completion-developer-trial.py --output "$RUNNER_TEMP/controller-repair"
+      - name: Report bounded trial receipt even when independent verification fails
+        if: always()
+        run: |
+          if test -f "$RUNNER_TEMP/controller-repair/receipt.json"; then
+            cat "$RUNNER_TEMP/controller-repair/receipt.json"
+          else
+            echo 'No model repair receipt was produced; no success is established.'
+          fi
+      - name: Stop loopback model
+        if: always()
+        run: |
+          if [[ "${RACE_OLLAMA_PID:-}" =~ ^[0-9]+$ ]]; then kill "$RACE_OLLAMA_PID" 2>/dev/null || true; fi
+
+
+  # Disabled preparation; only a reviewed one-shot transition may enable this job.
+  save-technical-result:
+    if: ${{ false }}
+    needs: [pilot, compass-adapter]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
+      EVENT_ACTION: ${{ github.event.action }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PREPARED_PARENT: DISABLED
+      EXPECTED_SAVE_RUN: '0'
+    steps:
+      - name: Save fixed public technical result and verify repeat is a no-op
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          // BEGIN TESTED SAVE PROTOCOL
+          const REPO='haji84/RACE-AI';
+          const BRANCH='feat/completion-controller-pilot-20261016';
+          const PATH='docs/CONTINUATION_TEST_RESULT_20261023.md';
+          const MARKER='<!-- bounded-save-v1 -->';
+          const ADDITION='\n'+MARKER+'\n## Automatically recorded technical verification\n\nHistorical cleanup checks passed on head `cf66a272a963ed418e94bdf409cea39ce21a5aba`: [bounded checks](https://github.com/haji84/RACE-AI/actions/runs/39948549502) and [Windows/Ubuntu regression](https://github.com/haji84/RACE-AI/actions/runs/39948549566). The regression used a PR merge-ref. This fixed technical note is not current product acceptance, generated-code adoption, deployment, or canonical-state writeback.\n';
+          const check=(v,m)=>{if(!v)throw Error(m);};
+          const sha=v=>typeof v==='string'&&/^[a-f0-9]{40}$/.test(v);
+          function appendResult(old){
+           check(typeof old==='string'&&Buffer.byteLength(old)<=16384,'DOCUMENT_INVALID');
+           if(old.includes(MARKER)){check(old.endsWith(ADDITION)&&old.split(MARKER).length===2,'MARKER_CONFLICT');return old;}
+           return old+ADDITION;
+          }
+          function validateContext(c){
+           check(c.repository===REPO&&c.branch===BRANCH&&c.actor==='haji84'&&c.event==='pull_request'&&c.action==='synchronize'&&c.pr==='65'&&c.attempt==='1'&&/^[1-9][0-9]{0,14}$/.test(c.run)&&/^[1-9][0-9]{0,6}$/.test(c.expectedRunNumber)&&c.runNumber===c.expectedRunNumber&&sha(c.head)&&sha(c.prepared),'SAVE_SCOPE_INVALID');
+          }
+          async function verifyEvidence(api){
+           const head='cf66a272a963ed418e94bdf409cea39ce21a5aba';
+           const specs=[
+            [39948549502,'.github/workflows/completion-controller-pilot.yml',{'pilot':['Verify isolated controller repair grammar and independent baseline regressions','Test deterministic controller and recovery'],'compass-adapter':['Verify original Compass pins, isolation and evidence rejection','Import canonical state, end process, reopen and export actual Compass SQLite']}],
+            [39948549566,'.github/workflows/tests.yml',{'unit (windows-latest)':['Test full runtime, real signed JWTs and cross-language money parity','Validate browser code and state transitions'],'unit (ubuntu-latest)':['Test full runtime, real signed JWTs and cross-language money parity','Validate browser code and state transitions']}]
+           ];
+           for(const [id,path,expected] of specs){
+            const r=await api.get('actions/runs/'+id);
+            check(r.id===id&&r.head_sha===head&&r.head_branch===BRANCH&&r.repository?.full_name===REPO&&r.event==='pull_request'&&r.path===path&&r.run_attempt===1&&r.status==='completed'&&r.conclusion==='success','EVIDENCE_RUN_INVALID');
+            const list=await api.get('actions/runs/'+id+'/jobs?per_page=100');
+            check(list.total_count===list.jobs?.length&&list.total_count<=100,'EVIDENCE_JOBS_INCOMPLETE');
+            for(const [name,steps] of Object.entries(expected)){
+             const matches=list.jobs.filter(j=>j.name===name);
+             check(matches.length===1&&matches[0].head_sha===head&&matches[0].status==='completed'&&matches[0].conclusion==='success','EVIDENCE_JOB_INVALID');
+             for(const name of steps){const found=matches[0].steps?.filter(s=>s.name===name);check(found?.length===1&&found[0].status==='completed'&&found[0].conclusion==='success','EVIDENCE_STEP_INVALID');}
+            }
+           }
+          }
+          async function saveOnce(c,api,knownSavedHead=null){
+           validateContext(c);
+           const refPath='git/ref/heads/'+BRANCH;
+           const ref=await api.get(refPath),live=ref.object?.sha;
+           check(sha(live),'REF_INVALID');
+           const pr=await api.get('pulls/65');
+           check(pr.state==='open'&&pr.head?.repo?.full_name===REPO&&pr.base?.repo?.full_name===REPO&&pr.head.ref===BRANCH,'PR_CHANGED');
+           const original=await api.get('git/commits/'+c.head);
+           check(original.parents?.length===1&&original.parents[0].sha===c.prepared,'PREPARED_PARENT_MISMATCH');
+           const file=await api.get('contents/'+PATH+'?ref='+live);
+           check(file.type==='file'&&file.path===PATH&&file.encoding==='base64'&&file.size<=16384,'DOCUMENT_METADATA_INVALID');
+           const old=Buffer.from(file.content,'base64').toString('utf8');
+           const next=appendResult(old);
+           if(next===old){
+            const savedHead=knownSavedHead??live;check(sha(savedHead),'SAVED_HEAD_INVALID');
+            const saved=await api.get('git/commits/'+savedHead);
+            check(saved.parents?.length===1&&saved.parents[0].sha===c.head&&saved.message==='docs: save bounded technical verification [save-v1]','NOOP_PROVENANCE_INVALID');
+            const diff=await api.get('compare/'+c.head+'...'+savedHead);
+            check(diff.files?.length===1&&diff.files[0].filename===PATH&&diff.files[0].status==='modified','NOOP_DIFF_INVALID');
+            const originFile=await api.get('contents/'+PATH+'?ref='+c.head);
+            check(originFile.encoding==='base64'&&originFile.type==='file'&&originFile.path===PATH,'ORIGIN_FILE_INVALID');
+            const originText=Buffer.from(originFile.content,'base64').toString('utf8');
+            check(!originText.includes(MARKER)&&appendResult(originText)===old,'SAVED_APPEND_MISMATCH');
+            const savedFile=await api.get('contents/'+PATH+'?ref='+savedHead);
+            check(savedFile.sha===file.sha&&savedFile.encoding==='base64'&&Buffer.from(savedFile.content,'base64').toString('utf8')===old,'SAVED_CONTENT_CHANGED');
+            const ancestry=await api.get('compare/'+savedHead+'...'+live);
+            check(['ahead','identical'].includes(ancestry.status)&&ancestry.behind_by===0,'SAVED_ANCESTRY_INVALID');
+            return {status:'NOOP',head:live,savedHead,path:PATH};
+           }
+           check(knownSavedHead===null,'READONLY_RECONCILIATION_CANNOT_WRITE');
+           check(live===c.head&&pr.head.sha===live,'BRANCH_CHANGED');
+           // Only already-public, pinned historical receipts; no model output or arbitrary payload.
+           await verifyEvidence(api);
+           const blob=await api.post('git/blobs',{content:next,encoding:'utf-8'});
+           check(sha(blob.sha),'BLOB_INVALID');
+           const tree=await api.post('git/trees',{base_tree:original.tree.sha,tree:[{path:PATH,mode:'100644',type:'blob',sha:blob.sha}]});
+           check(sha(tree.sha),'TREE_INVALID');
+           const commit=await api.post('git/commits',{message:'docs: save bounded technical verification [save-v1]',tree:tree.sha,parents:[c.head]});
+           check(sha(commit.sha)&&commit.parents?.length===1&&commit.parents[0].sha===c.head,'COMMIT_INVALID');
+           const diff=await api.get('compare/'+c.head+'...'+commit.sha);
+           check(diff.files?.length===1&&diff.files[0].filename===PATH&&diff.files[0].status==='modified','DIFF_ALLOWLIST_FAILED');
+           check((await api.get(refPath)).object?.sha===c.head,'BRANCH_CHANGED_BEFORE_UPDATE');
+           // Non-force, single-parent update rejects divergent concurrent advances; never retries.
+           await api.patch('git/refs/heads/'+BRANCH,{sha:commit.sha,force:false});
+           check((await api.get(refPath)).object?.sha===commit.sha,'REF_READBACK_UNCONFIRMED');
+           const readback=await api.get('contents/'+PATH+'?ref='+commit.sha);
+           check(readback.sha===blob.sha&&readback.encoding==='base64'&&Buffer.from(readback.content,'base64').toString('utf8')===next,'CONTENT_READBACK_UNCONFIRMED');
+           return {status:'SAVED',head:commit.sha,parent:c.head,path:PATH,source_runs:[39948549502,39948549566]};
+          }
+          // END TESTED SAVE PROTOCOL
+          const base='https://api.github.com/repos/haji84/RACE-AI/';
+          async function request(method,path,body){
+            const allowed=method==='POST'?['git/blobs','git/trees','git/commits']:method==='PATCH'?['git/refs/heads/'+BRANCH]:null;
+            if(allowed&&!allowed.includes(path))throw Error('WRITE_ENDPOINT_REJECTED');
+            const headers={Accept:'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2026-03-10'};
+            if(!path.startsWith('actions/'))headers.Authorization='Bearer '+process.env.GH_TOKEN;
+            let r;
+            try{r=await fetch(base+path,{method,headers,body:body?JSON.stringify(body):undefined,redirect:'error',signal:AbortSignal.timeout(20000)});}
+            catch{throw Error('API_UNCONFIRMED_STOP_NO_RETRY');}
+            if(!r.ok)throw Error('API_'+method+'_'+r.status+'_STOP_NO_RETRY');
+            return r.json();
+          }
+          const api={get:p=>request('GET',p),post:(p,b)=>request('POST',p,b),patch:(p,b)=>request('PATCH',p,b)};
+          const e=process.env,c={repository:e.GITHUB_REPOSITORY,branch:BRANCH,actor:e.GITHUB_ACTOR,event:e.GITHUB_EVENT_NAME,action:e.EVENT_ACTION,pr:e.PR_NUMBER,attempt:e.GITHUB_RUN_ATTEMPT,run:e.GITHUB_RUN_ID,runNumber:e.GITHUB_RUN_NUMBER,expectedRunNumber:e.EXPECTED_SAVE_RUN,head:e.SOURCE_HEAD,prepared:e.PREPARED_PARENT};
+          const first=await saveOnce(c,api);console.log(JSON.stringify(first));
+          if(first.status!=='SAVED')throw Error('INITIAL_WRITE_NOT_ESTABLISHED');
+          const again=await saveOnce(c,api);console.log(JSON.stringify(again));
+          if(again.status!=='NOOP'||again.head!==first.head)throw Error('REPEAT_NOT_IDEMPOTENT');
+          NODE
