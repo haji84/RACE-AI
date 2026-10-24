@@ -153,13 +153,22 @@ def audit(*,env=None,opener=None,extract=None,parse_k_fn=None,parse_b_fn=None,
                 rejected=0
                 mode="PR64_WHOLE_K_PARSE"
             except ValueError:
-                # Fail closed at the per-race level. Never invent results
-                # or silently accept incomplete participant rosters.
-                rows,rejected=parse_prior_K_preserving_complete_races(clear,day,parse_k_fn)
-                mode="PR64_STRICT_PER_RACE_PARTIAL_HISTORY_ONLY"
-            if not isinstance(rows,list) or not rows:raise ValueError("empty actual K")
+                # Try the unchanged PR64 per-race parser. If even this fails,
+                # quarantine the whole day instead of inventing ST/finish.
+                try:
+                    rows,rejected=parse_prior_K_preserving_complete_races(clear,day,parse_k_fn)
+                    mode="PR64_STRICT_PER_RACE_PARTIAL_HISTORY_ONLY"
+                except (ValueError,ImportError,UnicodeError):
+                    rows=[]
+                    rejected=None
+                    mode="QUARANTINED_SOURCE_DAY_NO_HISTORY_CREDIT"
+            if not isinstance(rows,list):raise ValueError("K parser output invalid")
             kreceipts.append({**meta,"parsed_rows":len(rows),
                 "incomplete_K_races_excluded":rejected,"parser_mode":mode})
+            if not rows:
+                # Explicitly recorded K gap. The downstream 5-race gate
+                # counts only genuine, structurally accepted previous results.
+                continue
             for r in rows:
                 rid=r.get("race_id")
                 if (not isinstance(rid,str) or not rid.startswith(day.replace("-","")+"-")
@@ -168,6 +177,8 @@ def audit(*,env=None,opener=None,extract=None,parse_k_fn=None,parse_b_fn=None,
                 past[r["racer_id"]].append(r)
         report["K_source_aggregate_sha256"]=hashlib.sha256(json.dumps(
             [x["archive_sha256"] for x in kreceipts],separators=(",",":")).encode()).hexdigest()
+        report["quarantined_K_days"]=[x["event_day_jst"] for x in kreceipts
+            if x["parser_mode"]=="QUARANTINED_SOURCE_DAY_NO_HISTORY_CREDIT"]
         report["K_day_counts"]=[{"day":x["event_day_jst"],"parsed_rows":x["parsed_rows"],
              "compressed_bytes":x["compressed_bytes"],
              "archive_sha256":x["archive_sha256"],
@@ -227,6 +238,7 @@ def audit(*,env=None,opener=None,extract=None,parse_k_fn=None,parse_b_fn=None,
             "actual_exhibition_observation_joined":False,
             "actual_weather_observation_joined":False,
             "source_terms_or_published_time_promotion":False,
+            "history_coverage_complete":not bool(report["quarantined_K_days"]),
             "formal_model_predicted_top8_count":0,
             "status":"REAL_HISTORICAL_K_B_PR71_FORM_CANDIDATES_NOT_ADMITTED",
         })
