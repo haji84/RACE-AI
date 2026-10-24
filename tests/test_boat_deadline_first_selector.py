@@ -15,11 +15,11 @@ class DeadlineFirstSelectorTests(unittest.TestCase):
   def test_all_future_deadlines_even_over_ten_minutes_are_included(self):
     got=all_closing_candidates(SOURCE,now=datetime.fromisoformat(JST),day_jst="20261024")
     self.assertEqual([x["race_id"] for x in got],
-                     ["20261024-05-07","20261024-09-07","20261024-11-08","20261024-07-08"])
+                     ["20261024-13-06","20261024-05-07","20261024-09-07","20261024-11-08","20261024-07-08"])
     self.assertTrue(all(x["minutes_remaining_at_selection"]>0 for x in got))
     self.assertGreater(got[-1]["minutes_remaining_at_selection"],10)
   def test_extra_venue_before_earliest_candidate_wins(self):
-    m=dict(SOURCE,**{"20261024-03-08":"2026-10-24T13:22:00+09:00"})
+    m=dict(SOURCE,**{"20261024-03-08":"2026-10-24T13:20:30+09:00"})
     result=all_closing_candidates(m,now=datetime.fromisoformat(JST),day_jst="20261024")
     self.assertEqual(result[0]["race_id"],"20261024-03-08")
   def test_cross_midnight_timezone_and_source_date_rejected(self):
