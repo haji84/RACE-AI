@@ -121,7 +121,12 @@ class SparseBoatShadowTests(unittest.TestCase):
         snapshot["participants"][0]["features"]["recent_form"] = proof(.99)
         del snapshot["participants"][0]["missing"]["recent_form"]
         bundle = predict_shadow_pair(snapshot)
-        self.assertEqual(bundle["lite"], predict_shadow_pair(sample())["lite"])
+        # Different input snapshots must keep different hashes, even when the
+        # LITE ranking deliberately ignores a partly known optional feature.
+        control = predict_shadow_pair(sample())["lite"]
+        self.assertEqual(bundle["lite"]["ordered_top8"], control["ordered_top8"])
+        self.assertEqual(bundle["lite"]["candidates"], control["candidates"])
+        self.assertNotEqual(bundle["lite"]["input_sha256"], control["input_sha256"])
         self.assertEqual(bundle["enriched"]["status"], "NO_FORECAST_NO_COMPLETE_ENRICHMENT")
         self.assertEqual(bundle["enriched"]["excluded_partially_observed_keys"], ["recent_form"])
 
