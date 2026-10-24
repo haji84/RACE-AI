@@ -21,11 +21,7 @@ DAY="2026-10-24"
 SOURCE="https://www1.mbrace.or.jp/od2/B/202610/b261024.lzh"
 BRANCH="refs/heads/p0-cutoff-ordered-preview-20261024"
 TOKEN="OCT24-13H-CUTOFF-SORTED"
-CANDIDATES=(
-  ("20261024-13-06","尼崎6R", "13","6","2026-10-24T13:21:00+09:00"),
-  ("20261024-05-07","多摩川7R", "05","7","2026-10-24T13:23:00+09:00"),
-  ("20261024-09-07","津7R","09","7","2026-10-24T13:25:00+09:00")
-)
+from race_ai.boat_deadline_first_selector import all_closing_candidates
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(self,*args,**kwargs):raise ValueError("redirect refused")
 
@@ -36,17 +32,10 @@ def audit(*,env=None,clock=None,opener=None,extractor=None,parser_b=None,parser_
         raise RuntimeError("one-shot cutoff audit not authorized")
     now=clock() if clock else datetime.now(timezone.utc)
     if now.utcoffset() is None:raise RuntimeError("timezone aware runner clock required")
-    within=[c for c in CANDIDATES
-            if timedelta(minutes=2)<=datetime.fromisoformat(c[4])-now<=timedelta(minutes=10)]
-    if not within:
-        return {"schema":"RACE_AI_CUTOFF_ORDERED_RACE_SELECTION_V1",
-                "status":"NO_CANDIDATE_WITHIN_2_TO_10_MINUTES",
-                "provider_GET_attempts":0,"selected_race":None,"formal_model_executed":False}
-    ordered=sorted(within,key=lambda x:(x[4],x[0]))
     report={"schema":"RACE_AI_CUTOFF_ORDERED_RACE_SELECTION_V1",
             "observed_on_runner_clock":now.isoformat(),
             "selected_race":None,
-            "provider_GET_budget":1+min(2,len(ordered)),
+            "provider_GET_budget":3,
             "provider_GET_attempts":0,
             "official_result_used":False,"odds_used":False,
             "source_published_at_independently_verified":False,
@@ -59,7 +48,7 @@ def audit(*,env=None,clock=None,opener=None,extractor=None,parser_b=None,parser_
             "full_PR71_model_top8":None,
             "official_prediction":False,
             "raw_source_bytes_persisted":False,"full_racer_source_rows_published":False,
-            "candidates_sorted":[{"race_id":x[0],"title":x[1],"cutoff":x[4]} for x in ordered],
+            "candidates_sorted":[],
             "checked":[],"status":"NO_MODEL_INPUT_PROOF"}
     if extractor is None:
         from race_ai.official_lzh_extract import extract_daily_lzh
@@ -93,7 +82,22 @@ def audit(*,env=None,clock=None,opener=None,extractor=None,parser_b=None,parser_
         details,deadlines=parser_details(text,date.fromisoformat(DAY))
         report["B_source_sha256"]=hashlib.sha256(raw).hexdigest()
         if len(entries)!=len(details):raise ValueError("B entrant detail mismatch")
-        for race,title,venue,num,cutoff in ordered[:2]:
+        report["B_official_races_in_daily_source"]=len(deadlines)
+        report["B_official_venues_in_daily_source"]=len({rid[9:11] for rid in deadlines})
+        ordered=all_closing_candidates(deadlines,now=(clock() if clock else datetime.now(timezone.utc)),
+                    day_jst="20261024",min_minutes=2,max_minutes=10)
+        report["candidates_sorted"]=[{"race_id":r["race_id"],
+                        "cutoff":r["scheduled_cutoff"]} for r in ordered]
+        if not ordered:
+            report["status"]="NO_CANDIDATE_WITHIN_2_TO_10_MINUTES"
+            report["finished_runner_clock_unattested"]=(clock() if clock else datetime.now(timezone.utc)).isoformat()
+            return report
+        for item in ordered[:2]:
+            race=item["race_id"]
+            venue=item["venue_code"]
+            num=item["race_no"]
+            cutoff=item["scheduled_cutoff"]
+            title=f"venue-{venue}-{num}R"
             t=clock() if clock else datetime.now(timezone.utc)
             if not timedelta(minutes=2)<=datetime.fromisoformat(cutoff)-t<=timedelta(minutes=10):
                 report["checked"].append({"race_id":race,"status":"CUTOFF_WINDOW_NO_LONGER_SAFE"})
