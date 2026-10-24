@@ -128,6 +128,20 @@ class FullSameRaceJoinTests(unittest.TestCase):
         self.assertEqual(state["upstream_get_attempts"],0)
         self.assertEqual(client.urls,[])
 
+    def test_preview_completion_after_cutoff_is_not_pre_cutoff_evidence(self):
+        client=Client()
+        sequence=iter((
+            NOW,
+            datetime.fromisoformat("2026-10-24T12:41:58+09:00"),
+            datetime.fromisoformat("2026-10-24T12:42:01+09:00"),
+            datetime.fromisoformat("2026-10-24T12:42:02+09:00"),
+        ))
+        state=run(client,clock=lambda:next(sequence))
+        self.assertEqual(state["status"],"NO_FORECAST_SOURCE_OR_JOIN_UNVERIFIED")
+        self.assertFalse(state["model_run"])
+        self.assertEqual(len(client.urls),8)
+        self.assertIsNone(state["ordered_top8"])
+
     def test_missing_historical_st_causes_explicit_form_gap(self):
         client=Client()
         def k(_body,day):
