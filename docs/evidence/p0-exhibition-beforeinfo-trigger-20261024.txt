@@ -1,0 +1,1 @@
+2026-10-24 Mikuni 8R one bounded HTTPS official beforeinfo technical format audit. Original PR64 parser, no source HTML persistence, no rights claim, no predictions. Log aggregate six-entry preview and observed weather only, with capture time and missingness.
