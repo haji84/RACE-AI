@@ -260,3 +260,48 @@ def run_pr71_existing_multi_models(racelist, auxiliary, *,
     return {"schema":SCHEMA, "scope":"RESEARCH_NOT_FORMAL_FREEZE",
             "model_ids":list(models), "snapshot":snapshot, "models":models,
             "formal_hit_at_8_eligible":False}
+
+
+def explain_existing_PR71_boat_score(snapshot):
+    """Read existing PR71 pre-race score components, never infer a new model.
+
+    Same _scores implementation used by run_models; explanation is a
+    disclosure of model intermediates, not a cause proven by race results.
+    """
+    from race_ai.boat_multi_feature_models import validate_snapshot, _scores
+    checked = validate_snapshot(snapshot)
+    lanes, scenario_shares = _scores(checked)
+    if len(lanes) != 6 or {x["lane"] for x in lanes} != set(range(1,7)):
+        raise ReuseGateError("existing model rationale missing lane")
+    return {"schema":SCHEMA, "scope":"RESEARCH_RATIONALE_ONLY",
+            "race_id":checked["race_id"],
+            "explanation_source":"PR71_EXISTING_BOAT_MULTI_FEATURE_SCORES",
+            "score_components_by_lane":[
+                {k:x[k] for k in
+                 ("lane","comprehensive","calm_front","attack","rough")}
+                for x in lanes],
+            "scenario_mixture_weights":scenario_shares,
+            "observed_feature_names":sorted(next(iter(checked["entrants"]))["features"]),
+            "observed_weather_names":sorted(checked["conditions"]),
+            "rationale_is_postrace_causation":False,
+            "weights_learned":False,
+            "calibration_verified":False}
+
+
+def run_PR71_existing_all_four_model_families(snapshot, *, source_admission=None):
+    """Reuse PR71 four-sport FULL; 75 boat observations are still mandatory.
+
+    Strict validate() fails closed for missing required data; there is no
+    synthetic value filling, no second formula, and no formal freeze claim.
+    """
+    from race_ai.four_sport_model_suite import run_suite
+    suite=run_suite(snapshot, allow_source=source_admission)
+    expected={"multisport-factor-interaction-v1",
+              "multisport-scenario-ensemble-v1",
+              "multisport-conditional-duel-v1",
+              "multisport-race-trajectory-v1"}
+    if set(suite["models"]) != expected or suite.get("official_prediction") is not False:
+        raise ReuseGateError("PR71 suite roster or safety contract changed")
+    if suite.get("external_timestamp_receipts") is not None:
+        raise ReuseGateError("untrusted external receipt present")
+    return suite
