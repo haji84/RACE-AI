@@ -31,3 +31,16 @@ For the current pinned PR71 boat inventory: 11 required runner fields × 6 plus 
 - A publicly viewable download is not proof that its automated persistence, commercial reuse, modeling or re-publication uses are granted; independently check terms for the precise intended workflow.
 
 **Next steps:** independently document per-field publication/revision/capture evidence and statistical `sample_n`, supply the 57 missing slots from reliable pre-cutoff sources where truly available, validate PR71 research input contract and chronological availability, freeze real future race predictions with independent server receipt, then check final official results/refunds/revisions. Do not manufacture missing data or use post-event results or odds as model inputs.
+
+## Actual historical B one-shot result: 2026-10-24 JST
+
+[GitHub-hosted Actions #40050673931](https://github.com/haji84/RACE-AI/actions/runs/40050673931) completed successfully for exact audit branch head `a95ee65427aab82b94bc1f60acd2733b2b7916f8`. With one GET of the **2026-10-22** official B LZH, strict PR64 parsing and PR71 inventory readback:
+
+- HTTP 200, compressed **32,775 bytes**. Archive SHA256 `ec1f65cc04b2e4b04c01c5b952b7b88deb48391c6498f60e12de473e573e8200`.
+- 14 venues / 168 race IDs / **1,008** strict B entrant/stat detail records / 168 printed **scheduled** cutoff fields.
+- Real normalized **candidate** feature counts: **3,024** (= 168 × 6 × 3).
+- PR71 required slots: **12,600** (= 168 × (6 × 11 + 9)). Slots for which B alone provides **no even preliminary candidate**: **9,576** (= 168 × 57).
+- **Admitted PR71 observations: 0**, formal predictions: **0**, official accuracy eligible races: **0**. The archive was accessed after its 168 races' scheduled cutoffs, and the independent source original publication times, exact statistic `sample_n`, purpose-specific usage permissions, actual cutoff authority, and external time receipt were not established.
+- Raw compressed/expanded data, racer registration and statistic rows, and internal candidate values were **not retained or republished** by the workflow. The evidence is an aggregate counters-and-hash record.
+
+This is a **real-source-to-input-name candidate bridge test**, not a pre-cutoff model E2E. Do not reuse its after-event values as if they were source captures of an upcoming race.
