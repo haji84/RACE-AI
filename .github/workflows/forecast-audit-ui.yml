@@ -8,6 +8,9 @@ on:
       - 'web/full-odds*'
       - 'tests/full_odds.test.cjs'
       - 'workers/odds_feed_worker.mjs'
+      - 'workers/odds_auto_source_cron.mjs'
+      - 'workers/odds_auto_source_schema.sql'
+      - 'tests/odds_auto_source_cron.test.mjs'
       - 'workers/odds_preview_assets.mjs'
       - 'docs/P0_CLOUDFLARE_PROTECTED_ODDS_PREVIEW_20261024.md'
       - 'docs/evidence/2026-10-24-boatrace-ashiya-7r-real-odds-pilot.md'
@@ -93,8 +96,9 @@ jobs:
           node --check web/full-odds-model.js
           node --check web/full-odds.js
           node --check workers/odds_feed_worker.mjs
+          node --check workers/odds_auto_source_cron.mjs
       - name: Node contract and denominator tests
-        run: node --test tests/forecast_audit.test.cjs tests/full_odds.test.cjs tests/odds_feed_worker.test.mjs
+        run: node --test tests/forecast_audit.test.cjs tests/full_odds.test.cjs tests/odds_feed_worker.test.mjs tests/odds_auto_source_cron.test.mjs
       - name: Python synthetic journal to viewer projection tests
         run: python -m unittest discover -s tests -v
       - name: Read frozen real-race research record by immutable commit

@@ -1,4 +1,5 @@
 import { PREVIEW_ASSETS } from "./odds_preview_assets.mjs";
+import { runAuthorizedMinute } from "./odds_auto_source_cron.mjs";
 /** Cloudflare preview-only, same-origin odds delivery. No provider scraping.
  *
  * The ingestion endpoint accepts only a separately vetted, fully normalized
@@ -205,6 +206,16 @@ async function fetchHandler(request,env){
 
 export {payloadGuard,fetchHandler};
 export default {
+  async scheduled(controller,env,ctx){
+    // A Cron trigger is intentionally NOT installed. Runtime flags default
+    // to OFF, even when someone deploys this code.
+    try{
+      const result=await runAuthorizedMinute(env,{validate:payloadGuard,hash:sha});
+      console.log("RACE_AI_ODDS_SOURCE_TRIAL",result.status);
+    }catch{
+      console.error("RACE_AI_ODDS_SOURCE_TRIAL", "UNEXPECTED_FAILURE_NOT_ACCEPTED");
+    }
+  },
   async fetch(request,env,ctx){
     try{
       if(!(await accessAuthorized(ctx,env)))
