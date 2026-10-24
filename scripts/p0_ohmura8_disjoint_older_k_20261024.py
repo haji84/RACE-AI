@@ -28,7 +28,7 @@ RACE_CARD="https://www.boatrace.jp/owpc/pc/race/racelist?hd=20261024&jcd=24&rno=
 # Verified against official racecard in this run's design review, NOT scraped
 # or claimed to be independently time certified by this script.
 RACERS=("4263","4110","4919","4530","3907","5431")
-REF="refs/heads/p0-ohmura8-older-k-20261024"
+REF="refs/heads/p0-ohmura8-disjoint-older-k-20261024"
 TOKEN="OCT01_TO_OCT08_UNSAMPLED_K_ONCE"
 MAX=4_000_000
 class NoRedirect(HTTPRedirectHandler):
