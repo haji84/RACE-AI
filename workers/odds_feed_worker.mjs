@@ -152,6 +152,37 @@ async function fetchHandler(request,env){
     if(payload.source_published_at&&
        Date.parse(payload.source_published_at)>Date.parse(received))
       return deny("SOURCE_PUBLISHED_IN_FUTURE",422);
+    // A toggled ingest flag alone cannot start a nationwide firehose.
+    // The first authorized trial is pinned to one race and <=120 attempts
+    // on a UTC day, recorded in D1 before a potentially expensive write.
+    const pilotLimit=Number(env.ODDS_PILOT_MAX_UPDATES_PER_DAY);
+    if(!Number.isSafeInteger(pilotLimit)||pilotLimit<1||pilotLimit>120||
+       typeof env.ODDS_PILOT_RACE_ID!=="string"||
+       !KEY_RE.test(env.ODDS_PILOT_RACE_ID))
+      return deny("PILOT_BUDGET_AND_RACE_NOT_APPROVED");
+    if(payload.race_id!==env.ODDS_PILOT_RACE_ID)
+      return deny("ONLY_THE_APPROVED_PILOT_RACE_CAN_BE_UPDATED",403);
+    const existing=await env.ODDS_DB.prepare(
+      "SELECT received_at FROM odds_latest WHERE race_id = ? LIMIT 1"
+    ).bind(payload.race_id).first();
+    if(existing){
+      const latest=Date.parse(existing.received_at);
+      if(!Number.isFinite(latest))
+        return deny("PREVIOUS_UPDATE_TIMESTAMP_INVALID");
+      if(Date.parse(received)-latest<60_000)
+        return deny("ONE_RACE_60_SECOND_WRITE_COOLDOWN",429);
+    }
+    // SQLite UPDATE...RETURNING is atomic: concurrent retries are counted.
+    // Failed downstream writes still use a quota token by design.
+    const utcDay=received.slice(0,10);
+    const counted=await env.ODDS_DB.prepare(
+      "INSERT INTO odds_ingest_quota(utc_day,attempts_used) VALUES (?,1) "+
+      "ON CONFLICT(utc_day) DO UPDATE SET attempts_used=attempts_used+1 "+
+      "WHERE attempts_used < ? RETURNING attempts_used"
+    ).bind(utcDay,pilotLimit).first();
+    if(!counted||!Number.isSafeInteger(counted.attempts_used)||
+       counted.attempts_used>pilotLimit)
+      return deny("PILOT_DAILY_INGEST_BUDGET_EXHAUSTED",429);
     const normalized={...payload,ingested_at:received};
     const bytes=JSON.stringify(normalized),fingerprint=await sha(bytes);
     const update=await env.ODDS_DB.prepare(
