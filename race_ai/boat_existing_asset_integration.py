@@ -138,6 +138,39 @@ def pr64_history_candidates(rows, *, racer_id, day, as_of):
     return out
 
 
+
+def from_pr64_imported_K(db, *, racer_id, day, as_of):
+    """Reuse PR64's existing revision-aware DB reader, not a second K parser.
+
+    Imported provenance remains UNVERIFIED even when K rows parse correctly.
+    This function does not grant rights or fabricate provider publication.
+    """
+    try:
+        from race_ai.core import _asof_rows, SourceError
+    except ImportError as exc:
+        raise ReuseGateError("pinned PR64 core checkout required") from exc
+    rows = [dict(row) for row in _asof_rows(db, as_of, racer_id)]
+    if len(rows) > 10000:
+        raise ReuseGateError("too many imported K records")
+    for row in rows:
+        digest = _source_sha(row)
+        metadata = db.execute(
+            "SELECT kind, published_at, captured_at, verified_official "
+            "FROM provenance WHERE sha=?", (digest,)
+        ).fetchone()
+        if (metadata is None or metadata["kind"] != "K"
+            or metadata["published_at"] != row["published_at"]
+            or metadata["captured_at"] != row["captured_at"]):
+            raise ReuseGateError("K row and source provenance mismatch")
+        # verified_official in PR64 is a structural storage field, not a
+        # signed independent provider/rights certificate.
+    report = pr64_history_candidates(rows, racer_id=racer_id, day=day, as_of=as_of)
+    report["source_provenance_metadata_checked"] = True
+    report["independent_official_publisher_attestation"] = False
+    report["source_analysis_rights_granted_by_bridge"] = False
+    return report
+
+
 def build_readiness(racelist, histories_by_registration, *,
                     motor_by_number=None, exhibition_by_lane=None,
                     weather=None, as_of=None):
