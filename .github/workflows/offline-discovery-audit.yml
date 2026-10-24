@@ -13,6 +13,9 @@ on:
       - 'race_ai/official_boat_fact_observation.py'
       - 'race_ai/boat_firstparty_stat_normalizer.py'
       - 'race_ai/boat_b_feature_bridge.py'
+      - 'race_ai/boat_existing_asset_integration.py'
+      - 'tests/test_boat_existing_asset_integration.py'
+      - 'docs/P0_EXISTING_BOAT_METHOD_INTEGRATION_20261024.md'
       - 'race_ai/boat_sparse_shadow_models.py'
       - 'scripts/p0_single_future_boat_gate_20261024.py'
       - 'tests/test_p0_single_future_boat_gate_20261024.py'
@@ -119,3 +122,17 @@ jobs:
           persist-credentials: false
       - name: Audit full 20 distinct keys and 75 required boat input slots
         run: python -m scripts.review_boat_feature_gate
+      - name: Checkout pinned PR64 full K-history package (read-only)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-existing-reference
+          persist-credentials: false
+      - name: Checkout pinned PR71 existing boat models and adapter (read-only)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: 39d888329d18a5ed517de7c6b25ae3ca52257255
+          path: pr71-existing-reference
+          persist-credentials: false
+      - name: Prove existing PR64 K -> PR71 multi-model wiring on synthetic records
+        run: python -m unittest discover -s tests -p test_boat_existing_asset_integration.py -v
