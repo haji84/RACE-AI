@@ -93,6 +93,20 @@ class RealJoinOneShotTests(unittest.TestCase):
         self.assertEqual({row["race_id"] for row in rows},{"20261021-18-01"})
         self.assertEqual({row["lane"] for row in rows},set(range(1,7)))
 
+    def test_unreadable_K_day_is_quarantined_and_not_backfilled(self):
+        def broken(raw,day):
+            if day=="2026-10-21":
+                raise ValueError("malformed historical day")
+            return pk(raw,day)
+        r=audit(env=ENV,opener=FakeTransport(),extract=extraction,
+                parse_k_fn=broken,parse_b_fn=pb,parse_details_fn=detail,
+                history_model=lambda history,day,cutoff:(50.,70.),clock=lambda:NOW)
+        self.assertEqual(r["provider_get_attempts"],7)
+        self.assertEqual(r["quarantined_K_days"],["2026-10-21"])
+        self.assertFalse(r["history_coverage_complete"])
+        self.assertEqual(r["target_race_lanes_with_at_least_5_valid_prior_K"],6)
+        self.assertEqual(sum(day["parsed_rows"] for day in r["K_day_counts"]),30)
+        self.assertFalse(r["forecast_executed"])
     def test_K_same_day_not_ingested_in_prior_collection(self):
         trans=FakeTransport()
         r=audit(env=ENV,opener=trans,extract=extraction,parse_k_fn=pk,
