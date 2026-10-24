@@ -93,6 +93,29 @@ class SparseBoatShadowTests(unittest.TestCase):
         self.assertNotEqual(enriched["prediction_sha256"],
                             predict_shadow_pair(sample())["lite"]["prediction_sha256"])
 
+    def test_weather_only_changes_enriched_with_per_boat_response_evidence(self):
+        s = sample()
+        for p in s["participants"]:
+            lane = p["number"]
+            p["features"]["wind_response"] = proof(.12 * lane)
+            del p["missing"]["wind_response"]
+        no_weather = predict_shadow_pair(s)
+        self.assertEqual(no_weather["enriched"]["used_environment_keys"], [])
+        s["environment"]["features"]["wind_mps"] = proof(
+            30, kind="instantaneous", sample_n=None
+        )
+        del s["environment"]["missing"]["wind_mps"]
+        with_weather = predict_shadow_pair(s)
+        self.assertEqual(with_weather["enriched"]["used_environment_keys"], ["wind_mps"])
+        self.assertNotEqual(
+            [r["score"] for r in no_weather["enriched"]["candidates"]],
+            [r["score"] for r in with_weather["enriched"]["candidates"]]
+        )
+        self.assertEqual(
+            no_weather["lite"]["ordered_top8"], with_weather["lite"]["ordered_top8"]
+        )
+        self.assertFalse(with_weather["enriched"]["calibrated"])
+
     def test_partially_available_enrichment_is_never_zero_imputed(self):
         snapshot = sample()
         snapshot["participants"][0]["features"]["recent_form"] = proof(.99)
