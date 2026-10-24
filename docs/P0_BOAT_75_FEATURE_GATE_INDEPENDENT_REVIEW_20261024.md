@@ -70,3 +70,9 @@
 4. 最初の未来1Rで証拠付きTop8作成。そこから全4競技全対象/再現性/前向きA/Bを拡大。元のFULLモデルを削除しない。
 
 **今回の監査はB-LITE新モデルを実装した成果ではない。モデル設計の変更は未承認・未実施。**
+
+## 実行結果・固定監査証拠
+
+[GitHub Actions #40052506999](https://github.com/haji84/RACE-AI/actions/runs/40052506999)（head `18addf3846d92acde5621585774af65ea6ed463d`）は **completed/success**、Python **160 synthetic/contract tests PASS**。CIは既存PR71の監査対象SHA `83dcd8a1af7a4e8611732c60d2b461c970164403` を別checkoutし、`python -m scripts.review_boat_feature_gate` を実行。モデルの `feature_inventory("boat")` とPR72現行B変換マッピングを動的照合し、**20種、75スロット、B候補3種/18スロット、候補がない17種/57スロット**を再確認した。上記の分類は検証済みモデルの重要度ではなくレビュー仮説。
+
+レビューコードと反証可能な合成テストはそれぞれ `scripts/review_boat_feature_gate.py`、`tests/test_boat_feature_requirement_review.py`。PR71モデル本体の必須/任意定義・係数・既存予想は変更なし。別AI/外部査読者による追認、未来データのA/B測定、事前凍結、公式結果照合は未完。
