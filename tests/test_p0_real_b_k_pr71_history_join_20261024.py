@@ -87,9 +87,10 @@ class RealJoinOneShotTests(unittest.TestCase):
              "2R 予選 H1800m\n"+"\n".join(bad)+"\n18KEND\n").encode("cp932")
         with self.assertRaises(Exception):
             parse_k(raw,"2026-10-21")
-        rows, excluded=parse_prior_K_preserving_complete_races(raw,"2026-10-21",parse_k)
+        rows, excluded, empty=parse_prior_K_preserving_complete_races(raw,"2026-10-21",parse_k)
         self.assertEqual(len(rows),6)
         self.assertEqual(excluded,1)
+        self.assertEqual(empty,0)
         self.assertEqual({row["race_id"] for row in rows},{"20261021-18-01"})
         self.assertEqual({row["lane"] for row in rows},set(range(1,7)))
 
@@ -107,6 +108,26 @@ class RealJoinOneShotTests(unittest.TestCase):
         self.assertEqual(r["target_race_lanes_with_at_least_5_valid_prior_K"],6)
         self.assertEqual(sum(day["parsed_rows"] for day in r["K_day_counts"]),30)
         self.assertFalse(r["forecast_executed"])
+    def test_empty_canceled_K_venue_is_not_an_incomplete_result(self):
+        from scripts.p0_real_b_k_pr71_history_join_20261024 import ROOT, parse_prior_K_preserving_complete_races
+        pr64=ROOT/"pr64-parser-reference"/"race_ai"
+        if not pr64.is_dir():
+            self.skipTest("pinned PR64 checkout unavailable")
+        import race_ai
+        if str(pr64) not in race_ai.__path__:
+            race_ai.__path__.append(str(pr64))
+        from race_ai.core import parse_k
+        valid="\n".join(f"{i:02d} {i} {4000+i} Name 52 45 6.82 {i} 0.15 1.50.3"
+                        for i in range(1,7))
+        body=("STARTK\n18KBGN\n2026/10/21\n1R 予選 H1800m\n"+
+              valid+"\n18KEND\n19KBGN\n2026/10/21\n19KEND\n")
+        rows,skipped,empty=parse_prior_K_preserving_complete_races(
+            body.encode("cp932"),"2026-10-21",parse_k)
+        self.assertEqual(len(rows),6)
+        self.assertEqual(skipped,0)
+        self.assertEqual(empty,1)
+        self.assertNotIn("20261021-19-01",{r["race_id"] for r in rows})
+
     def test_K_same_day_not_ingested_in_prior_collection(self):
         trans=FakeTransport()
         r=audit(env=ENV,opener=trans,extract=extraction,parse_k_fn=pk,
