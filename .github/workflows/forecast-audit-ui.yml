@@ -11,6 +11,7 @@ on:
       - 'workers/odds_auto_source_cron.mjs'
       - 'workers/odds_auto_source_schema.sql'
       - 'tests/odds_auto_source_cron.test.mjs'
+      - 'tests/test_odds_auto_source_schema.py'
       - 'workers/odds_preview_assets.mjs'
       - 'docs/P0_CLOUDFLARE_PROTECTED_ODDS_PREVIEW_20261024.md'
       - 'docs/evidence/2026-10-24-boatrace-ashiya-7r-real-odds-pilot.md'
