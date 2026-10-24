@@ -28,7 +28,7 @@ def _when(value):
 
 
 def plan_one_minute(races, *, now, policy=None, prior_daily_calls=None,
-                    minute_limit=0, daily_limit=0, window_minutes=40):
+                    minute_limit=0, daily_limit=0, window_minutes=60):
     """Output a deterministic list of due requests, without performing any.
 
     Missing or untrusted counters fail closed. Limits are proposed technical
