@@ -1,0 +1,27 @@
+name: P0 pre-cutoff one-race unadmitted research preview
+on:
+  push:
+    branches:
+      - 'p0-b-live-shadow-20261024'
+    paths:
+      - 'docs/evidence/p0-b-unadmitted-shadow-trigger-20261024.txt'
+permissions:
+  contents: read
+jobs:
+  research_preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    env:
+      RACE_AI_RESEARCH_ONE_SHOT: ONE-BOAT-B-RESEARCH-20261024
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-parser-reference
+          persist-credentials: false
+      - name: Compute only a distinct nonformal research Top8 from bounded B facts
+        run: python -m scripts.p0_biwako_11r_unadmitted_research_shadow_20261024
