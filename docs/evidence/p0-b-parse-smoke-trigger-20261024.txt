@@ -1,0 +1,3 @@
+Single historical real official B day audit for PR71 feature-contract projection.
+Official archive date: 2026-10-22; one bounded download; parsed transiently; only aggregate audit output.
+No forecast generated; no provider fields, source bytes or actual racer data published.
