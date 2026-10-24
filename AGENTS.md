@@ -7,8 +7,9 @@ This file is a **proposal on Draft PR #72**, not an assertion that it is on main
 1. docs/CODEX_RACE_AI_THREE_STREAM_MASTER_HANDOFF_20261025.md
 2. docs/CODEX_RACE_AI_PARALLEL_RUNBOOK_20261025.md
 3. docs/CODEX_RACE_AI_START_PROMPT_20261025.md
-4. GitHub Issue #67 (adopted ultimate GOAL), Issue #68 (live implementation orchestration)
-5. Current actual main, PR #61/#64/#65/#69/#71/#72 head/base/changed files/check runs. A handoff snapshot is not live state.
+4. docs/CODEX_RACE_AI_GITHUB_VERIFIED_STATUS_20261025.md (verified initial PR heads, actual odds/D1 proof tiers, branch writer exclusions)
+5. GitHub Issue #67 (adopted ultimate GOAL), Issue #68 (live implementation orchestration)
+6. Current actual main, PR #61/#64/#65/#69/#71/#72 head/base/changed files/check runs. A handoff snapshot is not live state.
 
 ## Product and authority
 
