@@ -1,0 +1,122 @@
+{
+  "status": "COMPLETE_OWN_NAME_PROOF_NUMERIC_AND_VIDEO_NOT_OBSERVED",
+  "run_id": 38851355587,
+  "race_id": "20261016-24-01",
+  "request_id": "38851355587-1",
+  "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+  "files": 5,
+  "bytes": 38673,
+  "zip_bytes": 8109,
+  "zip_sha256": "c9d4d25a736901da45f378e5717bbebff2aff7a5534bcc67b48ed2f1eb00a604",
+  "manifest_sha256": "99f4423d591b56f0a874a94737a6acdf1675781b1653a144b52a8fac7c004195",
+  "proof_snapshot_id": "0cb68e41979ac81c6ca0e976c57b7b9e23620d77adec059783aaba5d60e375b8",
+  "source_body_sha256": "24db1d97fad50c6c8b510734bd04762125d1eb7af914f02f732ad6445bb29168",
+  "source_captured_at": "2026-10-16T04:35:18.062048+00:00",
+  "generated_at": "2026-10-16T04:35:18.084436+00:00",
+  "runner_saved_at": "2026-10-16T04:35:18.085678+00:00",
+  "cloud_saved_at": "2026-10-16T04:35:22.057820+00:00",
+  "receipt_confirmed_at": "2026-10-16T04:35:23.083812+00:00",
+  "seconds_before_close": 6036.916188,
+  "baseline_snapshot_id": "c0a0ce505a24c46fb48c2a1fde819f1f88ff938eb9cb829bac919257cf906b2f",
+  "baseline_sha256": "37d32e700e8e8cdb7f11423d78a960f45f90d46ee7f9c67b248ee0fcf2e1fd65",
+  "envelope_bytes": 3392,
+  "envelope_sha256": "a79253c4be36805b42d02d3b87eaa88c9a63807cf273f03681bd8e8310ba008b",
+  "name_relations": {
+    "EXACT_CANONICAL_NAME": 6
+  },
+  "official_source_requests": 1,
+  "original_baseline_unchanged": true,
+  "raw_source_retained": false,
+  "raw_source_hash_recomputed_after_disposal": false,
+  "alias_prediction_integration_complete": false,
+  "validation_status": "UNVALIDATED",
+  "schema_version": 1,
+  "recorded_at": "2026-10-16T04:46:26.794431+00:00",
+  "operation": "OWN_RACE_NAME_PROOF_PREPARATION",
+  "job_id": 116813041934,
+  "artifact_id": 12024931929,
+  "artifact_retention_days": 14,
+  "workflow_commit": "5a38336727c452ef0ba796f56b68434fe7b59837",
+  "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
+  "worker_source_commit": "a4889c443d168c45df253c28086ebed7ba566e18",
+  "publisher_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+  "reader_commit": "2595f37a04d51606e2fd4576876dc663bdd462aa",
+  "reader_deployment_id": "dpl_DpTC1X7w34QqfZ8m7w4Ypy6uQ5zZ",
+  "original_baseline_request_id": "38774773544-1",
+  "original_baseline_cloud_saved_at": "2026-10-15T17:11:16.967601+00:00",
+  "closed_at_jst": "2026-10-16T15:16:00+09:00",
+  "real_clocks_jst": {
+    "source_captured_at": "2026-10-16T13:35:18.062048+09:00",
+    "generated_at": "2026-10-16T13:35:18.084436+09:00",
+    "runner_saved_at": "2026-10-16T13:35:18.085678+09:00",
+    "cloud_saved_at": "2026-10-16T13:35:22.057820+09:00",
+    "receipt_confirmed_at": "2026-10-16T13:35:23.083812+09:00"
+  },
+  "file_digests": {
+    "baseline.json": {
+      "bytes": 29757,
+      "sha256": "37d32e700e8e8cdb7f11423d78a960f45f90d46ee7f9c67b248ee0fcf2e1fd65"
+    },
+    "manifest.json": {
+      "bytes": 789,
+      "sha256": "99f4423d591b56f0a874a94737a6acdf1675781b1653a144b52a8fac7c004195"
+    },
+    "name-proof.json": {
+      "bytes": 2254,
+      "sha256": "334cdf68df6552a91e7378d9eb8e16e8c59b7ea7dc6db2baf1a61ff51b2fb8d8"
+    },
+    "receipt.json": {
+      "bytes": 3392,
+      "sha256": "a79253c4be36805b42d02d3b87eaa88c9a63807cf273f03681bd8e8310ba008b"
+    },
+    "request.json": {
+      "bytes": 2481,
+      "sha256": "81223d6df28d7066be60b565edd9c4ce23c7a4f6e77e3f9c9a5dfbe944a0eb72"
+    }
+  },
+  "api_latest_fixed_publisher_full_equal": true,
+  "baseline_full_unchanged_after_collection": true,
+  "caller_api_gets": 4,
+  "caller_posts": 1,
+  "caller_official_source_requests": 1,
+  "shared_blob_scratch_probe_separate": true,
+  "root_preview_preflight_api_gets": 5,
+  "root_preview_post_api_gets": 4,
+  "root_posts": 0,
+  "root_official_source_requests": 0,
+  "exact_fresh_absence_witness": {
+    "captured_at": "2026-10-16T04:34:43Z",
+    "race_id": "20261016-24-01",
+    "status": 404,
+    "body": {
+      "error": "NAME_BINDING_NOT_SAVED"
+    },
+    "application_commit": "2595f37a04d51606e2fd4576876dc663bdd462aa",
+    "deployment_id": "dpl_DpTC1X7w34QqfZ8m7w4Ypy6uQ5zZ",
+    "request_url": "https://race-ai-preview-drof95uox-qq1130034-1738.vercel.app/api/name-binding?race_id=20261016-24-01"
+  },
+  "helper_review": {
+    "bytes": 4044,
+    "sha256": "64dc944aa5802462d088058b16c9e6d6b918e9440645d81ec837fc85279c2974"
+  },
+  "helper_guard_checks": 45,
+  "independent_audit_open_findings": 0,
+  "audit_report": "name-binding-omura1-artifact-audit.md",
+  "audit_report_digest": {
+    "bytes": 6063,
+    "sha256": "33865e6538af6d2c3e1974884a55142c08753f0168b51e03e56620018df9fc1a"
+  },
+  "current_day16_baselines_preserved": 156,
+  "previous_day15_baselines_preserved": 118,
+  "all274_apis_reread": false,
+  "physical_exhibition_pairs_added": 0,
+  "physical_exhibition_timing_verified": false,
+  "numeric_v2_saved": false,
+  "video_measured": false,
+  "product_auth_workflow_changed_by_name_collection": false,
+  "new_secret_or_trust_expansion": false,
+  "purchase_decision": "skip",
+  "purchase_recommendations": [],
+  "formal_completion": false,
+  "next_step": "Use this own immutable name proof with new published eligible numeric/original observations before15:16JST; never refetch racelist or backdate a forecast. Physical-clock evidence remains missing."
+}

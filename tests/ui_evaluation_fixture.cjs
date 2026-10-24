@@ -1,0 +1,12 @@
+/* Synthetic test evidence only. No real outcome or model performance is represented. */
+const receipts=require('./ui_prediction_fixture.json');
+const DAY='2026-10-15',NOW=Date.parse(DAY+'T10:00:00+09:00');
+const clone=value=>structuredClone(value);
+const receipt=(index=0)=>clone(receipts[index]);
+const race=(index=0)=>{const s=receipts[index].snapshot;return {race_id:s.race_id,closed_at:s.closed_at,boats:clone(s.program_boats)};};
+function evaluation(index=0){
+ const saved=receipt(index),s=saved.snapshot,top3=[1,2,3],number=Number(s.race_id.slice(-2));
+ return {schema_version:1,race_id:s.race_id,date_jst:DAY,as_of:DAY+'T09:00:00+09:00',closed_at:s.closed_at,status:'EVALUATED',research_only:true,validation_status:'UNVALIDATED',purchase_decision:'skip',purchase_recommendations:[],comparison_scope:'same_race_and_information_cutoff',common_race_ids:[s.race_id],models:s.models.map(m=>{const p=m.triples.find(r=>r.combination.join()===top3.join()).probability;return {model_id:m.model_id,model_version:m.model_version,race_count:1,ticket_count:120,multiclass_brier:m.triples.reduce((sum,r)=>sum+(r.probability-Number(r.combination.join()===top3.join()))**2,0),log_loss:-Math.log(p),winner_probability:p};}),prediction_proof:{snapshot_id:s.snapshot_id,request_id:saved.request_id,as_of:s.as_of,generated_at:s.generated_at,cloud_saved_at:saved.cloud_saved_at,program_sha256:s.program_sha256},result_proof:{snapshot_id:'e'.repeat(64),source_url:'https://www.boatrace.jp/owpc/pc/race/raceresult?rno='+number+'&jcd=18&hd=20261015',source_sha256:'f'.repeat(64),captured_at:DAY+'T08:00:00+09:00',cloud_saved_at:DAY+'T08:02:00+09:00',status:'settled',finish_confirmed:true,financial_confirmed:false,top3},exclusion_reason:null};
+}
+function excluded(status='RESULT_PENDING',index=0){const v=evaluation(index);v.status=status;v.models=[];v.common_race_ids=[];v.exclusion_reason=({PREDICTION_NOT_SAVED:'PREDICTION_DURABLE_PRE_RACE_PROOF_MISSING',RESULT_NOT_OBTAINED:'OFFICIAL_RESULT_NOT_OBTAINED',RESULT_PENDING:'OFFICIAL_RESULT_PENDING',RESULT_UNSUPPORTED:'OFFICIAL_RESULT_STATUS_UNSUPPORTED'})[status];if(status==='PREDICTION_NOT_SAVED')v.prediction_proof=null;if(status==='RESULT_NOT_OBTAINED')v.result_proof=null;if(status==='RESULT_PENDING')Object.assign(v.result_proof,{status:'PENDING',finish_confirmed:false,top3:null});if(status==='RESULT_UNSUPPORTED')Object.assign(v.result_proof,{status:'cancelled',finish_confirmed:false,top3:null});return v;}
+module.exports={DAY,NOW,receipt,race,evaluation,excluded};

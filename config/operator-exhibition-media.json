@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "review_type": "owner_attestation",
+  "evidence_reference": "user-confirmation-2026-10-15-exhibition-private-analysis",
+  "evidence_document": "docs/EXHIBITION_MEDIA_OWNER_CONFIRMATION.md",
+  "reviewed_by": "project-owner",
+  "reviewed_at": "2026-10-15T10:05:52.000+09:00",
+  "owner_statement": "ファイルパスはないが利用していいと調べたら出てきた。",
+  "video_internal_analysis": true,
+  "temporary_video_processing": true,
+  "video_store": false,
+  "video_publish": false,
+  "photo_publish": false,
+  "derived_features_protected_preview": true,
+  "derived_features_public_publish": false,
+  "original_numeric_ingest": true,
+  "original_numeric_store": true,
+  "original_numeric_protected_preview": true,
+  "independent_legal_audit_provided": false,
+  "source_scopes": [
+    {
+      "component": "original_numeric",
+      "origin": "https://race.boatcast.jp",
+      "path_template": "/txt/{venue}/bc_oriten_{day}_{venue}_{race}.txt"
+    },
+    {
+      "component": "standard_numeric",
+      "origin": "https://race.boatcast.jp",
+      "path_template": "/hp_txt/{venue}/bc_j_tkz_{day}_{venue}_{race}.txt"
+    },
+    {
+      "component": "official_exhibition_page",
+      "origin": "https://race.boatcast.jp",
+      "path": "/replay",
+      "query_keys": [
+        "jo",
+        "md"
+      ],
+      "verified_example": "https://race.boatcast.jp/replay?jo=14&md=T"
+    },
+    {
+      "component": "official_player",
+      "origin": "https://front.player.boatrace-cdn.jp",
+      "path": "/player/vod",
+      "race_type": "exhibition",
+      "service": "boatcast"
+    },
+    {
+      "component": "official_player_recording_index",
+      "origin": "https://front.player.boatrace-cdn.jp",
+      "path_prefix": "/setting/vod/",
+      "observed_example": "/setting/vod/20261015/14naruto/exhibition/setting.json"
+    },
+    {
+      "component": "player_linked_hls",
+      "origins": [
+        "https://manifest.streaks.jp",
+        "https://variants.streaks.jp",
+        "https://live-cp-boatrace-prod.streaks.jp"
+      ],
+      "project": "cp-boatrace-prod",
+      "resolution": "ONLY_PUBLIC_OFFICIAL_PLAYER_RETURNED_EXHIBITION_RESOURCE",
+      "credentials": "EPHEMERAL_NORMAL_PLAYER_ACCESS_ONLY_NO_PERSISTENCE"
+    },
+    {
+      "component": "standard_hls_identity_aes",
+      "origin": "https://key.streaks.jp",
+      "path_scope": "/{exact_media_id}/{exact_source_id}/{player_returned_opaque_identifier}",
+      "method": "AES-128",
+      "keyformat": "identity",
+      "source": "ordinary public exhibition player child playlist",
+      "retention": "RAM_ONLY_NO_URI_OR_KEY_RECORDING",
+      "drm_or_license_exchange": false
+    }
+  ],
+  "normal_player_cdn_transport_registration": {
+    "schema_version": "normal-player-cdn/v1",
+    "registration_sha256": "5eaa11f6677ecb748cef05f6c9bbc13bb1525d67372628cf4041f2ec6220c1b5",
+    "observation_sha256": "8e7621c0e345175e905628e3aef7941e7bc3cf245b2dcd25c132fdc59c6952fd",
+    "evidence_reference": "docs/evidence/2026-10-17/normal-player-cdn-stage.json",
+    "permission_basis": "OWNER_20261017_SEPARATE_STRICT_NORMAL_PLAYER_CONTRACT",
+    "observed_target": "20261017-14-09",
+    "scope_day_jst": "2026-10-17",
+    "scope_venue": "14",
+    "max_observation_age_seconds": 21600,
+    "segment_origin": "https://j-live-cp-boatrace-prod.streaks.jp",
+    "segment_path": "/{exact_media_id}/{exact_source_id}/manifest_{exact_variant}_{exact_sequence}.ts",
+    "segment_query": "EMPTY_OR_LITERAL_m_DECIMAL10_UNIFORM",
+    "key_origin": "https://d28jce9iiridbn.cloudfront.net",
+    "key_path": "/{registered_private_HEX32_namespace}/{UUID36}",
+    "key_query": "EMPTY",
+    "namespace_hash_preimage": "RAW_HEX32_ASCII_CASE_SENSITIVE",
+    "encryption": "AES-128_IDENTITY_ONLY_RAM_ONLY",
+    "namespace_owner_authenticated": false,
+    "parent_child_binding": "REQUIRED_FROM_EACH_FRESH_EXACT_REF_RESOLVER",
+    "physical_clock_verified": false,
+    "prediction_eligible": false
+  },
+  "source_scope_status": "VERIFIED_ALL_VENUE_PLAYER_MAPPING; NARUTO_VOD_TRANSIENT_DECODE_VERIFIED; BOAT_ANALYSIS_UNVERIFIED",
+  "venue_codes": [
+    "01",
+    "02",
+    "03",
+    "04",
+    "05",
+    "06",
+    "07",
+    "08",
+    "09",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "16",
+    "17",
+    "18",
+    "19",
+    "20",
+    "21",
+    "22",
+    "23",
+    "24"
+  ],
+  "stream_access_url_store": false,
+  "observed_video_example": {
+    "race_id": "20261015-14-05",
+    "duration_seconds": 348,
+    "player_playback_verified": true,
+    "boat_analysis_verified": false
+  },
+  "implemented_resolver_venues": ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"],
+  "all_venue_player_mapping_verified": true,
+  "all_venue_recording_availability_verified": false,
+  "raw_video_segment_acquisition_verified": true,
+  "boat_analysis_verified": false,
+  "latest_resolver_evidence": "docs/evidence/2026-10-15/exhibition-video-decode-live.json"
+}

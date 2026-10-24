@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-10-15T01:41:09.970125+00:00",
+  "application_commit": "22dcb7a684ae97e73297778aa9a6403126fb898a",
+  "deployment_id": "dpl_BZ36muJXVMwrB7yUwc8wbTtgHHxY",
+  "deployment_url": "https://race-ai-preview-bki3g4gtr-qq1130034-1738.vercel.app",
+  "workflow_commit": "46b9962ff233a2bc4f96894ed6939c18546f384b",
+  "workflow_content_sha": "3ce453e9b665533214f606fc3a52b64e068de23c",
+  "run_id": 38666581412,
+  "job_id": 116199807989,
+  "race_id": "20261015-02-01",
+  "date_jst": "2026-10-15",
+  "closed_at": "2026-10-15T01:47:00.000000+00:00",
+  "baseline_link": {
+    "cloud_saved_at": "2026-10-15T00:42:58.963162+00:00",
+    "model_id": "official-program-rating-pl",
+    "receipt_sha256": "a721904de82b1e6ce05ade32a7640c6d1695a2f75220666adbd5b6e693653785",
+    "request_id": "38661487317-1",
+    "snapshot_id": "d614477e8a08a9d0c4d0775aeca26b51368502aa4cdbeee229b117a2c2a82083"
+  },
+  "beforeinfo_link": {
+    "captured_at": "2026-10-15T01:36:59.252676+00:00",
+    "cloud_saved_at": "2026-10-15T01:37:01.923705+00:00",
+    "receipt_sha256": "4bff38cf1f2a3f4e6a8cef01b1bdcb754e6095a954157bef441bb6067710acfe",
+    "runner_saved_at": "2026-10-15T01:36:59.269184+00:00",
+    "snapshot_id": "191423c45f6b1fa18efa6db06acfc112608a8a29b79ee54a41c1820b600178c5",
+    "source_sha256": "37392e4fd4ddea3eed7d3ca42fc15b2a6ce9aec156c27f841e8f65b0e126ef49",
+    "source_url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=1&jcd=02&hd=20261015"
+  },
+  "post_generated_at": "2026-10-15T01:37:17.197512+00:00",
+  "post_cloud_saved_at": "2026-10-15T01:37:20.338106+00:00",
+  "seconds_saved_before_close": 579.661894,
+  "post_snapshot_id": "7056a6cf28d05c14e8f81a987283736481a0735c25bf1d245e9438459094d7d6",
+  "model_id": "official-beforeinfo-display-pl",
+  "model_version": "1",
+  "parameters": {
+    "display_coefficient_per_second": 1.0,
+    "log_strength_max": 20.0,
+    "log_strength_min": -20.0,
+    "rating_floor": 0.01
+  },
+  "six_display_times": [
+    6.75,
+    6.75,
+    6.8,
+    6.82,
+    6.76,
+    6.74
+  ],
+  "first_place_comparison": [
+    {
+      "lane": 1,
+      "baseline_probability": 0.19780666125101543,
+      "delta_probability": 0.004288325474957083,
+      "post_probability": 0.2020949867259725
+    },
+    {
+      "lane": 2,
+      "baseline_probability": 0.1413484971567831,
+      "delta_probability": 0.0030643475673204634,
+      "post_probability": 0.14441284472410357
+    },
+    {
+      "lane": 3,
+      "baseline_probability": 0.18074735987002438,
+      "delta_probability": -0.005087769370162559,
+      "post_probability": 0.17565959049986182
+    },
+    {
+      "lane": 4,
+      "baseline_probability": 0.18399675060926077,
+      "delta_probability": -0.00872005893422187,
+      "post_probability": 0.1752766916750389
+    },
+    {
+      "lane": 5,
+      "baseline_probability": 0.1470349309504468,
+      "delta_probability": 0.001692886502266483,
+      "post_probability": 0.1487278174527133
+    },
+    {
+      "lane": 6,
+      "baseline_probability": 0.14906580016246954,
+      "delta_probability": 0.004762268759840371,
+      "post_probability": 0.1538280689223099
+    }
+  ],
+  "triple_count": 120,
+  "rank_marginals": 6,
+  "feature_status": {
+    "display_time": {
+      "reason": null,
+      "status": "AVAILABLE",
+      "used": true
+    },
+    "exhibition_video": {
+      "reason": "NO_VALIDATED_BOAT_FEATURES",
+      "status": "MISSING",
+      "used": false
+    },
+    "original_exhibition": {
+      "reason": "ORIGINAL_SOURCE_NOT_INGESTED",
+      "status": "MISSING",
+      "used": false
+    },
+    "preview_st": {
+      "reason": "NOT_USED_BY_DISPLAY_ONLY_MODEL",
+      "status": "OBSERVED_UNUSED",
+      "used": false
+    },
+    "weather": {
+      "reason": "SOURCE_TIME_HAS_NO_DATE",
+      "status": "SOURCE_TIME_UNVERIFIED_UNUSED",
+      "used": false
+    }
+  },
+  "backups": {
+    "baseline.json": {
+      "bytes": 29756,
+      "sha256": "a721904de82b1e6ce05ade32a7640c6d1695a2f75220666adbd5b6e693653785"
+    },
+    "post-request.json": {
+      "bytes": 124,
+      "sha256": "69273d1397e0d49808f1cc2c25bba7c90cf90ef73c563c7e4e06de4b21f89106"
+    },
+    "post.json": {
+      "bytes": 36189,
+      "sha256": "f3f8dfba829ab894596bf667d5b3afaae4e9e0242304e9920c759cc54e64635d"
+    },
+    "source.json": {
+      "bytes": 12494,
+      "sha256": "6e5ebe84cf4366a0d7b0d528a31f41fd11b22dbef13ac103826b698b0f550343"
+    }
+  },
+  "post_artifact": {
+    "id": 11940799482,
+    "zip_bytes": 16107,
+    "zip_sha256": "da43fbedbd13727c91f18f25ed0e26e5457a443c672e3a9834dafb640520a21f",
+    "files": 5,
+    "normalized_bytes": 79468,
+    "retention_days": 14
+  },
+  "race_artifact": {
+    "id": 11941890159,
+    "zip_bytes": 4567,
+    "zip_sha256": "c2ee03ea1208e8ae46bac2866ff337f897b9087bf70ffe649c5e9a96508c8c8a",
+    "files": 2,
+    "normalized_bytes": 24512,
+    "retention_days": 14
+  },
+  "independent_api_full_bytes_match": true,
+  "independent_actual_clock_math_replay": true,
+  "baseline_equals_original_0942_cohort_receipt": true,
+  "new_baseline_created": false,
+  "known_total_baseline_races": 14,
+  "known_post_exhibition_races": 1,
+  "official_source_requests": 2,
+  "validation_status": "UNVALIDATED",
+  "purchase_decision": "skip",
+  "purchase_recommendations": [],
+  "ci": {
+    "run_id": 38666435109,
+    "python_tests_per_os": 602,
+    "python_skipped_per_os": 1,
+    "javascript_tests": 51,
+    "windows": "success",
+    "ubuntu": "success"
+  },
+  "limits": [
+    "not a trained/calibrated forecast or evidence of accuracy improvement",
+    "original timings and video-derived boat performance unused in this model",
+    "all-race acquisition/paired forecast coverage remains incomplete",
+    "same-date-only reader; historical and aggregate post/baseline evaluation remain open"
+  ],
+  "browser_checks": {
+    "desktop_width": 1440,
+    "mobile_width": 390,
+    "actual_saved_post_state": "ready",
+    "horizontal_document_overflow": false,
+    "baseline_times_and_six_probabilities_visible": true,
+    "comparison_120_triples_present": true,
+    "ledger_records": 0,
+    "screenshots": [
+      "post-exhibition-desktop-live.jpg",
+      "post-exhibition-mobile-live.jpg"
+    ]
+  },
+  "actual_purchase_ledger_writes": 0,
+  "post_forecast_writes": 1,
+  "baseline_forecast_writes": 0
+}

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f2f7fc">
+  <meta name="robots" content="noindex,nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'none'; connect-src 'self'; form-action 'none'; object-src 'none'; base-uri 'none'">
+  <title>RACE AI | ボートレース予想・分析・資金管理</title>
+  <meta name="description" content="当日のボートレースを出典と更新時刻から確認。出走表、買い目の記録、予算管理をひとつの画面で。">
+  <link rel="stylesheet" href="./style.css">
+  <script src="./ui-core.js" defer></script>
+  <script src="./money.js" defer></script>
+  <script src="./settlement.js" defer></script>
+  <script src="./exhibition.js" defer></script>
+  <script src="./original-exhibition.js" defer></script>
+  <script src="./name-bound-exhibition.js" defer></script>
+  <script src="./name-bound-evaluation.js" defer></script>
+  <script src="./archived-cohort.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <svg class="icon-definitions" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 11 9-8 9 8M5 10v11h5v-7h4v7h5V10"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4m10-4v4M3 10h18m-13 4h1m6 0h1m-8 4h1m6 0h1"/></symbol>
+    <symbol id="i-ticket" viewBox="0 0 24 24"><path d="m3 14 11-11h7v7L10 21l-7-7Z"/><circle cx="17" cy="7" r="1"/><path d="m8 12 4 4"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 21h19M6 17v-6m6 6V6m6 11V2"/></symbol>
+    <symbol id="i-research" viewBox="0 0 24 24"><path d="M9 3h6m-5 0v7L4 20h16l-6-10V3M8 15h8"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="m10 3-1 3-3 1-3 3 2 3-1 4 4 1 2 3 3-2 4 1 1-4 3-2-2-3 1-4-4-1-2-3-4 2Z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="7"/><path d="m16 16 5 5"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 8a8 8 0 1 0 0 8M20 3v6h-6"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M5 16h14l-2-3V9a5 5 0 0 0-10 0v4l-2 3Zm5 4h4"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="14" rx="3"/><path d="m4 7 12-4 1 4m4 6h-6v4h6"/></symbol>
+    <symbol id="i-stack" viewBox="0 0 24 24"><path d="m3 7 9-4 9 4-9 4-9-4Zm0 5 9 4 9-4M3 17l9 4 9-4"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24"><circle cx="11" cy="13" r="8"/><circle cx="11" cy="13" r="4"/><path d="m11 13 9-10m-1 1 2 3-4 1"/></symbol>
+    <symbol id="i-boat" viewBox="0 0 24 24"><path d="m3 13 18-3-4 8H7l-4-5Zm7-2V6h5l2 5M2 21c2 0 2-2 4-2s2 2 4 2 2-2 4-2 2 2 4 2 2-2 4-2"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10v1"/></symbol>
+  </defs></svg>
+  <a class="skip-link" href="#main">本文へ移動</a>
+  <aside class="sidebar" aria-label="メインメニュー">
+    <a class="brand sidebar-brand" href="#/home"><span class="brand-mark" aria-hidden="true"><i></i><i></i></span><span>RACE <b>AI</b><small>データで、勝負を見つめる。</small></span></a>
+    <nav class="desktop-nav app-nav" aria-label="ボートレース内のページ">
+      <button type="button" data-page="home"><svg><use href="#i-home"/></svg><span>ホーム</span></button>
+      <button type="button" data-page="races"><svg><use href="#i-calendar"/></svg><span>全レース</span></button>
+      <button type="button" data-page="picks"><svg><use href="#i-ticket"/></svg><span>買い目</span><span class="nav-count" id="nav-pick-count">0</span></button>
+      <button type="button" data-page="results"><svg><use href="#i-chart"/></svg><span>成績分析</span></button>
+      <button type="button" data-page="research"><svg><use href="#i-research"/></svg><span>研究</span></button>
+      <button type="button" data-page="settings"><svg><use href="#i-settings"/></svg><span>設定</span></button>
+    </nav>
+    <div class="rail-water" aria-hidden="true"><span></span><span></span><span></span></div>
+    <div class="sidebar-foot"><p>データを確かめる。<br>自分の判断を、磨く。</p><small>RACE INTELLIGENCE<br>BOAT RACE · PREVIEW</small><span class="preview-label">先行開発版</span></div>
+  </aside>
+  <div class="application">
+    <header class="topbar">
+      <a class="brand mobile-brand" href="#/home"><span class="brand-mark" aria-hidden="true"><i></i><i></i></span><span>RACE <b>AI</b><small>予想・分析・資金管理</small></span></a>
+      <label class="search-field"><svg aria-hidden="true"><use href="#i-search"/></svg><span class="sr-only">会場・レース・選手を検索</span><input id="global-search" type="search" maxlength="100" placeholder="会場・レース・選手名で検索"><kbd>検索</kbd></label>
+      <label class="date-field"><svg aria-hidden="true"><use href="#i-calendar"/></svg><span class="sr-only">開催日</span><input type="date" id="race-date"></label>
+      <nav class="sports" aria-label="競技を選択">
+        <button type="button" class="sport active" data-sport="boat" aria-pressed="true"><svg><use href="#i-boat"/></svg><span>ボートレース</span></button>
+        <button type="button" class="sport" data-sport="cycle" aria-pressed="false"><span class="sport-glyph" aria-hidden="true">♧</span><span>競輪</span></button>
+        <button type="button" class="sport" data-sport="auto" aria-pressed="false"><span class="sport-glyph" aria-hidden="true">♧</span><span>オートレース</span></button>
+        <button type="button" class="sport" data-sport="horse" aria-pressed="false"><span class="sport-glyph" aria-hidden="true">♞</span><span>競馬</span></button>
+      </nav>
+      <div class="topbar-actions"><button type="button" class="icon-button" id="notifications" aria-label="データの通知を確認"><svg><use href="#i-bell"/></svg><span class="notification-dot"></span></button><button type="button" class="profile-button" data-goto="settings" aria-label="設定を開く">自分</button></div>
+    </header>
+    <main id="main" class="workspace" tabindex="-1">
+      <div class="page-heading"><div><p id="page-kicker" class="eyebrow">おかえりなさい</p><h1 id="page-title">今日も、データを味方に。</h1><p id="page-description" class="muted">レースを知る。根拠を確かめる。あなたの判断を、ここから。</p></div><button type="button" class="refresh-button secondary" id="refresh-feed"><svg><use href="#i-refresh"/></svg><span>更新</span></button></div>
+      <div class="status-banner" id="feed-banner" role="status" aria-live="polite"><span class="status-indicator"></span><div><strong id="feed-status-title">本日のデータを確認中</strong><p id="feed-status-description">許可を確認した当日データを自動で読み込みます。</p></div><span id="feed-updated" class="status-updated">確認中</span></div>
+      <section id="coming" class="panel coming" hidden><span class="coming-icon">↗</span><p class="eyebrow">Coming soon...</p><h2 id="coming-title">この競技は準備中です</h2><p class="muted">現在はボートレース先行版を提供しています。</p><button type="button" class="primary" id="return-boat">ボートレースへ戻る</button></section>
+      <div id="boat-view">
+        <section class="budget-metrics" aria-label="本日の資金管理">
+          <article class="metric-card"><span class="metric-icon blue"><svg><use href="#i-wallet"/></svg></span><div><span>本日の予算</span><strong id="metric-budget">未設定</strong><small><button type="button" class="text-button" data-goto="settings">予算を設定する</button></small></div></article>
+          <article class="metric-card"><span class="metric-icon pink"><svg><use href="#i-stack"/></svg></span><div><span>使用額</span><strong id="metric-spent">0<em>円</em></strong><small id="metric-purchases">記録 0レース</small></div></article>
+          <article class="metric-card"><span class="metric-icon teal"><svg><use href="#i-wallet"/></svg></span><div><span>残予算</span><strong id="metric-remaining">未設定</strong><small>当日の購入記録から集計</small></div></article>
+          <article class="metric-card"><span class="metric-icon cyan"><svg><use href="#i-chart"/></svg></span><div><span>回収率</span><strong id="metric-roi">―</strong><small>確定結果を待っています</small></div></article>
+          <article class="metric-card"><span class="metric-icon rose"><svg><use href="#i-target"/></svg></span><div><span>的中数 / 確定数</span><strong id="metric-hits">― / 0</strong><small>未確定を集計から除外</small></div></article>
+        </section>
+        <div class="content-columns">
+          <div class="main-column">
+            <section id="dashboard-home" data-view="home">
+              <div class="preferences-bar"><span>予想モード</span><div class="segmented" role="group" aria-label="予想モード"><button type="button" data-mode="hit">的中重視</button><button type="button" data-mode="balanced" class="active">バランス重視</button><button type="button" data-mode="return">回収重視</button></div><label class="toggle-label">万舟狙い<input type="checkbox" id="longshot-home"><span class="toggle-track" aria-hidden="true"></span></label></div>
+              <section class="panel featured-section"><div class="section-head"><h2><span class="section-star">✦</span>今日の注目レース</h2><button type="button" class="text-button" data-goto="races">全レースを見る <span aria-hidden="true">→</span></button></div><p class="section-note">AIのおすすめは精度検証後に公開します。</p>
+                <div class="race-hero"><div class="hero-copy"><span class="hero-badge"><svg><use href="#i-boat"/></svg>ボートレース</span><h3 id="featured-race">今日の一戦を、<br>データから。</h3><p id="featured-detail">当日の出走表が届き次第、レースを表示します。</p><div class="hero-chips"><span id="hero-date">日本時間・当日</span><span>予測精度未検証</span></div></div><div class="boat-art" aria-hidden="true"><div class="racing-boat"><span class="driver"></span><span class="boat-hull"></span><i></i></div><div class="wake wake-one"></div><div class="wake wake-two"></div><span class="water-line line-one"></span><span class="water-line line-two"></span><span class="art-caption">READ THE RACE.</span></div></div>
+                <div id="home-racers" class="racers-strip" aria-label="注目レースの出走選手"></div>
+                <div class="feature-bottom"><div><span class="mini-icon">◎</span><div><strong>AIの推奨買い目</strong><small>確率・オッズ・精度の検証待ち</small></div></div><span class="state-pill warning">購入見送り</span><button type="button" class="outline-button" id="featured-open">出走表を確認 <span aria-hidden="true">→</span></button></div>
+              </section>
+              <div class="home-secondary-grid"><section class="panel compact-panel"><div class="section-head"><h2><svg><use href="#i-calendar"/></svg>本日の開催情報</h2><span class="state-pill" id="home-venues">未取得</span></div><div class="home-data-summary"><strong id="home-races">―</strong><span>収録レース</span><strong id="home-complete">―</strong><span>6艇の出走表</span></div><p class="muted">全国24場の開催・取得状況を確認できます。</p><button type="button" class="text-button" data-goto="races">開催場から探す →</button></section><section class="panel compact-panel"><div class="section-head"><h2><svg><use href="#i-research"/></svg>判断の根拠を確かめる</h2></div><p class="muted">選手・機力・展示の情報が、いつ取得されたかを確認。足りないデータも、そのまま表示します。</p><div class="research-tags"><span>選手・登録番号</span><span>モーター照合</span><span>展示情報</span></div><button type="button" class="text-button" data-goto="research">データと研究の状況を見る →</button></section></div>
+            </section>
+            <section id="data-pages" data-view="races" hidden>
+              <section class="panel venue-browser" aria-label="会場とレースを選ぶ"><div class="section-head"><h2>開催場からレースを選ぶ</h2><span id="venue-browser-state" class="state-pill">取得待ち</span></div><div class="venue-legend"><span><i class="legend-ready"></i>取得済み</span><span><i></i>未取得</span><span><i class="legend-no-event"></i>開催なしを確認</span></div><div id="venue-buttons" class="venue-buttons" role="group" aria-label="全国24開催場"></div><div class="race-filter-row"><label>表示順<select id="race-sort" aria-label="表示順"><option value="venue">会場・レース番号順</option><option value="time">締切時刻順</option></select></label><label>レース番号<select id="race-number-filter" aria-label="レース番号"><option value="">すべて</option></select></label><label>開催場<select id="venue-select" aria-label="開催場"><option value="">すべての開催場</option></select></label><button type="button" class="text-button" id="clear-filters">条件をクリア</button></div><div class="unavailable-filters"><span>AI評価・万舟候補・グレード：検証済みデータ未取得</span></div></section>
+              <div class="list-heading"><h2 id="race-list-title">レース一覧</h2><span id="race-count" class="muted">未取得</span></div><div id="race-cards" class="race-cards" aria-live="polite"></div>
+            </section>
+            <section id="page-detail" data-view="detail" hidden>
+              <div class="breadcrumb"><button type="button" class="text-button" data-goto="races">全レース</button><span>›</span><span id="detail-breadcrumb">レース詳細</span></div>
+              <section class="panel detail-summary"><div class="section-head"><div><span class="sport-badge">ボートレース</span><h2 id="detail-title">レースを選択してください</h2><p class="muted" id="race-meta">取得済みのレースから出走表を確認できます。</p></div><div class="cutoff-box"><span>締切時刻</span><strong id="detail-cutoff">未取得</strong><span id="detail-cutoff-status">時刻未確認</span></div></div><div class="detail-controls"><label>レース<select id="race-select" aria-label="レース" disabled><option>データ未取得</option></select></label><button type="button" class="primary" id="detail-to-picks">買い目を記録する →</button></div><div class="weather-chips" id="weather-chips"></div></section>
+              <nav class="detail-tabs" aria-label="レース詳細の項目"><button type="button" data-tab="overview" class="active">レース展望</button><button type="button" data-tab="entries">出走表</button><button type="button" data-tab="preview">直前情報</button><button type="button" data-tab="analysis">データ分析</button><button type="button" data-tab="history">過去レース</button><button type="button" data-tab="prediction">AI予想</button><button type="button" data-tab="bets">買い目</button><button type="button" data-tab="video">映像・展示解析</button></nav>
+              <section class="panel" id="detail-tab-content" aria-live="polite"></section>
+              <section class="panel race-panel"><div class="section-head"><h2><svg><use href="#i-boat"/></svg>出走メンバー</h2><span class="muted">登録番号で照合</span></div><div id="detail-racers" class="racers-strip detail-racers"></div><div class="table-scroll"><table><caption class="sr-only">出走選手と取得済みの展示情報</caption><thead><tr><th>艇</th><th>選手・登録番号</th><th>モーター</th><th>平均ST</th><th>展示タイム</th><th>展示進入</th></tr></thead><tbody id="racers-body"><tr><td colspan="6" class="empty">レース未選択</td></tr></tbody></table></div><p class="photo-note">写真の利用許可を確認するまで、艇番のシルエットを表示します。</p></section>
+            </section>
+            <section id="page-picks" data-view="picks" hidden>
+              <section class="panel"><div class="section-head"><h2><svg><use href="#i-settings"/></svg>予算・配分設定</h2><button type="button" class="text-button" data-goto="settings">設定を変更 →</button></div><div class="allocation-settings"><div><span>1レース予算</span><strong id="pick-race-budget">未設定</strong></div><div><span>1日予算</span><strong id="pick-day-budget">未設定</strong></div><div><span>予想モード</span><strong id="pick-mode">バランス重視</strong></div><div><span>最大買い目数</span><strong id="pick-max">8点</strong></div></div></section>
+              <section class="panel"><div class="section-head"><h2><span class="section-star">✦</span>AIの推奨買い目</h2><span class="state-pill warning">購入見送り</span></div><div class="notice"><strong>予想・買い目はまだ公開対象外</strong><p>発走前オッズと確率校正、実レースでの精度検証がそろうまで、推奨金額・期待値は表示しません。</p></div></section>
+              <section class="panel"><div class="section-head"><h2><svg><use href="#i-ticket"/></svg>自分の買い目を記録</h2><span class="state-pill">端末内に保存</span></div><p class="muted">購入は行いません。締切前の選択レースについて、手動で記録できます。</p><div class="selected-race-box"><strong id="pick-race-title">レース未選択</strong><button type="button" class="text-button" data-goto="races">レースを選ぶ →</button></div><p id="purchase-availability" class="muted"></p><form id="bet-form" novalidate><div class="bet-form-grid"><fieldset class="combination-fields"><legend>3連単の着順</legend><label>1着<select id="bet-first" aria-label="1着の艇番"></select></label><span>−</span><label>2着<select id="bet-second" aria-label="2着の艇番"></select></label><span>−</span><label>3着<select id="bet-third" aria-label="3着の艇番"></select></label></fieldset><label class="amount-field">記録する金額<input type="number" id="bet-amount" inputmode="numeric" min="100" step="100" value="100"><span>円</span></label><button type="submit" class="primary" id="add-bet">買い目を追加 ＋</button></div></form><p id="bet-message" class="message" role="status"></p><div id="draft-bets" class="draft-bets"></div><div class="draft-summary"><div><span>合計購入額</span><strong id="draft-total">0円</strong></div><div><span>レース予算の残り</span><strong id="draft-remaining">未設定</strong></div><div><span>オッズ・期待払戻額</span><strong>未取得</strong></div></div><button type="button" class="primary wide-button" id="save-purchase" disabled>この内容を購入記録に保存</button><p class="photo-note">自動投票・自動決済はありません。予想時点のオッズ未取得のため、払戻予測は計算しません。</p></section>
+              <section class="panel"><div class="section-head"><h2>本日の購入記録</h2><button type="button" class="text-button" id="export-ledger">記録をJSONで保存 ↓</button></div><div id="purchase-history"></div></section>
+            </section>
+            <section id="page-results" data-view="results" hidden>
+              <section class="panel"><div class="section-head"><h2><svg><use href="#i-chart"/></svg>成績分析 · 全記録</h2><button type="button" class="outline-button" id="refresh-settlement">公式結果を再確認</button></div>
+                <p class="muted">この端末の全期間の手動記録です。画面上部の資金管理は本日分を表示します。過去日の公式照合は未対応です。</p>
+                <p id="settlement-status" class="notice" data-state="idle" role="status">公式証拠の照合待ちです。</p>
+                <div class="performance-grid"><article><span>有効購入額</span><strong id="result-effective">0円</strong><small>返還を除いた確定分</small></article><article><span>確定払戻</span><strong id="result-payout">0円</strong><small>公式証拠で照合した分</small></article><article><span>収支</span><strong id="result-net">0円</strong><small>払戻 − 有効購入額</small></article><article><span>実回収率</span><strong id="result-roi">―</strong><small>払戻 ÷ 有効購入額</small></article></div>
+                <div class="settlement-totals"><span>全購入額 <strong id="result-total-stake">0円</strong></span><span>照合保留 <strong id="result-pending">0円</strong></span><span>返還 <strong id="result-refund">0円</strong></span></div>
+                <p class="muted">的中 / 有効確定記録：<span id="result-hit-count">0 / 0件</span></p><p class="photo-note">未確定記録を不的中にしません。照合履歴は証拠の控えです。再読み込み後は公式APIを再確認するまで成績を保留します。</p>
+              </section><section class="panel"><div class="section-head"><h2>購入・照合履歴</h2><span id="result-record-count" class="state-pill">0件</span></div><div id="results-history"></div></section>
+            </section>
+            <section id="page-research" data-view="research" hidden><section class="panel"><div class="section-head"><h2><svg><use href="#i-research"/></svg>データの充足状況</h2><span class="state-pill">取得済み情報から確認</span></div><p class="muted">表示できる情報と、予測に不足している情報を確認できます。</p><div id="data-quality" class="quality-grid"></div></section><section class="panel"><div class="section-head"><h2>予測モデルの検証</h2><span class="state-pill warning">予測精度未検証</span></div><div class="table-scroll"><table><thead><tr><th>比較項目</th><th>検証状況</th><th>対象数</th></tr></thead><tbody><tr><td>オッズなし / オッズありモデル</td><td>発走前の比較証拠待ち</td><td>未集計</td></tr><tr><td>映像なし / 映像ありモデル</td><td>許可された映像と特徴量待ち</td><td>未集計</td></tr><tr><td>未使用期間の評価・確率校正・採用判断</td><td>独立した検証期間の証拠待ち</td><td>未検証</td></tr></tbody></table></div><p class="photo-note">研究用の計算結果と、検証済みの推奨買い目は区別して扱います。</p></section><section class="panel archived-cohort" aria-labelledby="archived-cohort-heading">
+  <div class="section-head"><h2 id="archived-cohort-heading">保存済み予想の履歴集計</h2><span class="state-pill warning">研究用・未検証</span></div>
+  <p class="muted">監査済みの三版予想と別取得の確定結果を、固定した集計時点で確認できます。現在の日付・選択レースとは独立した過去の記録です。</p>
+  <button type="button" class="secondary" id="archived-cohort-load">保存済み集計を確認</button>
+  <p id="archived-cohort-status" class="notice" role="status" aria-live="polite" data-state="idle">履歴集計はまだ読み込んでいません。</p>
+  <div id="archived-cohort-content"></div>
+</section><section class="panel"><h2>情報の時点を守る</h2><div class="timeline"><div><b>1</b><span><strong>発走前の情報を保存</strong><small>出走表・展示・オッズと、取得時刻を記録。</small></span></div><div><b>2</b><span><strong>予想をバージョンごとに保持</strong><small>発走後の情報で、過去の予想を上書きしません。</small></span></div><div><b>3</b><span><strong>確定結果で検証</strong><small>返還や訂正を区別し、同じ評価条件で比較。</small></span></div></div></section></section>
+            <section id="page-settings" data-view="settings" hidden><form id="settings-form" class="panel" novalidate><div class="section-head"><h2><svg><use href="#i-settings"/></svg>予算と表示の設定</h2><span class="state-pill">この端末に保存</span></div><p class="muted">金額は100円単位。設定は予想の検証完了後にも引き継がれます。</p><div class="settings-grid"><label>1日の予算（円）<input id="setting-day-budget" type="number" inputmode="numeric" min="0" step="100" placeholder="例：10000"><small>未設定のままでは購入記録を保存できません。</small></label><label>1レースの予算（円）<input id="setting-race-budget" type="number" inputmode="numeric" min="0" step="100" placeholder="例：2000"></label><label>1日の損失上限（円）<input id="setting-loss-limit" type="number" inputmode="numeric" min="0" step="100" placeholder="例：5000"><small>未確定の購入額も安全側で上限に含めます。</small></label><label>最大買い目数<select id="setting-max-bets" aria-label="最大買い目数"><option value="8">8点（標準）</option><option value="16">16点</option><option value="24">24点</option><option value="32">32点</option></select></label><label>予想モード<select id="setting-mode" aria-label="予想モード"><option value="hit">的中重視</option><option value="balanced">バランス重視</option><option value="return">回収重視</option></select></label><label class="checkbox-setting"><input type="checkbox" id="setting-longshot">万舟狙いを含める<span class="muted">検証済みの推奨がある場合に適用</span></label><label class="checkbox-setting"><input type="checkbox" id="setting-auto-refresh" checked>自動更新する<span class="muted">表示中に3分ごと・当日データのみ</span></label></div><button type="submit" class="primary">設定を保存</button><p id="settings-message" class="message" role="status"></p></form><section class="panel"><h2>保存される情報</h2><p class="muted">予算設定と手動の購入記録を、このブラウザ内に保存します。サーバーへの送信、アカウント間の同期はありません。ブラウザのデータ削除で消えるため、必要な購入記録はJSONで保存してください。</p><button type="button" class="secondary" id="export-ledger-settings">購入記録をJSONで保存</button></section></section>
+          </div>
+          <aside class="right-column" aria-label="データと資金の概要"><section class="panel candidate-panel"><div class="section-head"><h2><span class="section-star">✦</span>購入候補</h2><span class="state-pill">検証待ち</span></div><p class="muted">条件を満たしたAIの買い目をここに表示します。</p><div class="candidate-empty"><span>◎</span><strong>いまは購入見送り</strong><small>発走前オッズ・予測確率・<br>検証成績がそろっていません。</small></div><button type="button" class="primary wide-button" data-goto="picks">自分の買い目を確認 →</button></section><section class="panel budget-panel"><h2>本日の資金管理</h2><div class="budget-ring"><svg class="budget-meter" viewBox="0 0 120 120" aria-hidden="true"><circle class="meter-background" cx="60" cy="60" r="50"/><circle id="budget-meter" cx="60" cy="60" r="50" pathLength="100" stroke-dasharray="0 100"/></svg><div><span>残予算</span><strong id="sidebar-budget">未設定</strong></div></div><div class="budget-legend"><span><i></i>購入記録</span><strong id="sidebar-spent">0円</strong></div><div class="budget-legend"><span><i></i>未使用</span><strong id="sidebar-remaining">未設定</strong></div><button type="button" class="text-button" data-goto="settings">予算を編集 →</button></section><section class="panel provenance-panel"><div class="section-head"><h2><svg><use href="#i-info"/></svg>データ情報</h2></div><dl><div><dt>配信状態</dt><dd id="source-state">データ未取得</dd></div><div><dt>対象日</dt><dd id="source-date">未取得</dd></div><div><dt>初回確認時刻</dt><dd id="source-time">未取得</dd></div><div><dt>取得元</dt><dd id="source-origin">未取得</dd></div></dl><span class="state-pill warning">出走表との照合待ち</span></section><section class="responsible-note"><svg><use href="#i-wallet"/></svg><strong>予算の範囲で、冷静に。</strong><p>購入を見送る判断も大切に。<br>RACE AIは自動投票を行いません。</p></section></aside>
+        </div>
+      </div>
+      <details class="debug-toggle"><summary>開発・検証用のデータ読み込み</summary><p class="muted">通常は当日データを自動取得します。手動データは未独立検証として表示します。</p><button type="button" class="secondary" id="open-debug-import">検証用の読み込み画面を表示</button><section id="debug-import" class="panel import-panel" hidden><label class="file-action" for="race-file">検証用JSONを選ぶ<input id="race-file" type="file" accept=".json,application/json"></label><p id="file-message" class="message" role="status"></p></section></details>
+      <footer><span class="footer-brand">RACE AI</span><span>ボートレース先行版 · データの不足は「未取得」と表示 · 自動投票なし</span><span>PREVIEW</span></footer>
+    </main>
+  </div>
+  <nav class="mobile-nav app-nav" aria-label="スマートフォンのページ切替"><button type="button" data-page="home"><svg><use href="#i-home"/></svg><span>ホーム</span></button><button type="button" data-page="races"><svg><use href="#i-boat"/></svg><span>レース</span></button><button type="button" data-page="picks"><svg><use href="#i-ticket"/></svg><span>買い目</span></button><button type="button" data-page="results"><svg><use href="#i-chart"/></svg><span>成績</span></button><button type="button" data-page="research"><svg><use href="#i-research"/></svg><span>研究</span></button></nav>
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>

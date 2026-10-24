@@ -1,0 +1,122 @@
+{
+  "schema_version": "boat-region-vision-stage/v1",
+  "recorded_at": "2026-10-16T10:54:06.137718+00:00",
+  "base_head": "7b2e9106bfd35b4128059a984edb403ec09b649b",
+  "implementation": {
+    "generic_coco_boat_class_only": true,
+    "module": "race_ai/local_boat_regions.py",
+    "module_sha256": "6b383dd442ea7ceb2f997248f4f408d054f80d6cc0736264a899d51db607aab1",
+    "model_sha256": "4b82da9944b88577175ee23a459dce2e26e6e4be573def65b1055dc2d9720186",
+    "model_bytes": 3800954,
+    "model_source": "https://github.com/opencv/opencv_zoo/tree/ea593dd89b88d4b3978273a16f0d8cfe93d2e3ea/models/object_detection_nanodet",
+    "license": "Apache-2.0",
+    "runtime_network_calls": 0,
+    "max_rois": 12,
+    "roi_snapshot_before_ocr": true,
+    "legacy_decoder_defaults_and_web_workflows_unchanged": true,
+    "world_or_body_or_digit_association_verified": false
+  },
+  "new_product_v5_actual_race": {
+    "race_id": "20261016-24-09",
+    "started_at": "2026-10-16T10:06:08.078549+00:00",
+    "completed_at": "2026-10-16T10:08:05.883944+00:00",
+    "post_close_research": true,
+    "segments": 57,
+    "frames": 10260,
+    "samples": 114,
+    "declared_seconds": 342,
+    "encoded_bytes": 24983327,
+    "metadata_gets": 2,
+    "media_related_gets": 60,
+    "separate_shape_probe_gets": 4,
+    "number_candidate_observations": 5,
+    "overlay_marks_excluded": 135,
+    "continued_number_tracks": 0,
+    "background_affine_accepted_attempted": [
+      13,
+      46
+    ],
+    "automatic_verified_hull_ids": 0,
+    "originals_retained": false,
+    "source_selection": "OFFICIAL_EXHIBITION_VOD_NOT_LIVE_CHAPTER",
+    "raw_duration": 338,
+    "duration_difference_or_unit_resolved": false
+  },
+  "checks": {
+    "local_python": 1077,
+    "seconds": 312.884,
+    "failures": 0,
+    "skips": 0,
+    "focused": 14,
+    "independent_offline_probes": 28,
+    "product_review_open_findings": 0,
+    "exact_new_head_ci_preview_pending_at_record": true,
+    "new_actual_roi_completed_but_identity_or_accuracy_unverified": true,
+    "actual_source_caller_review_open_findings": 0
+  },
+  "gates": {
+    "automated_verified_hull_ids": 0,
+    "prediction_input_eligible": false,
+    "all_race_video_forecasts_complete": false,
+    "physical_exhibition_pairs": 0,
+    "world_calibration": "UNVERIFIED",
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": []
+  },
+  "old_omura8_deadline_correction": {
+    "closed_at_jst": "2026-10-16T18:25:00+09:00",
+    "grounding": "Both immutable previous Omura8 descriptors closed_at09:25UTC; no source reacquisition or old proof rewrite",
+    "cloudfront_key_or_m_query_supported": false
+  },
+  "next": "Separately reviewed one new actual generic-ROI examination, independent hull/number labels, camera/world/time and prospective forecast validation; retain all274 frozen forecasts and old completed sources.",
+  "new_actual_roi_examination": {
+    "race_id": "20261016-24-10",
+    "status": "COMPLETED_POSTCLOSE_RESEARCH",
+    "started_at": "2026-10-16T10:50:27.772791+00:00",
+    "finished_at": "2026-10-16T10:51:10.009065+00:00",
+    "post_close_only": true,
+    "seconds": 42.236274,
+    "requests": {
+      "index": 1,
+      "key": 1,
+      "master": 1,
+      "metadata": 1,
+      "playlist": 1,
+      "segment": 61
+    },
+    "metadata_gets": 2,
+    "media_related_gets": 64,
+    "segments": 61,
+    "frames": 10980,
+    "samples": 122,
+    "declared_seconds": 366.0,
+    "encoded_bytes": 26738339,
+    "region_candidates": 2,
+    "region_samples": [
+      18,
+      20
+    ],
+    "number_candidates": 0,
+    "number_tracks": 0,
+    "manual_six_visible_introduction_samples_detected": 0,
+    "manual_six_visible_introduction_samples_total": 6,
+    "recall_claim_scope": "six purposively selected introduction frames only; not population recall",
+    "manual_intro_registration_pairs": 6,
+    "precision_of_two_predicted_boxes": "UNMEASURED",
+    "all_relative_pts_consistent": 61,
+    "background_affine_accepted_attempted": [
+      16,
+      50
+    ],
+    "raw_metadata_duration": 365,
+    "raw_duration_unit_or_difference_resolved": false,
+    "automated_verified_hull_ids": 0,
+    "world_calibration": "UNVERIFIED",
+    "prediction_input_eligible": false,
+    "posts": 0,
+    "cloud_writes": 0,
+    "original_frames_disposed": true,
+    "scope": "New official exhibition VOD, not LIVE chapter decode. Generic COCO model fails six observed clear vessel introductions; not adopted for forecasts. Retained derivatives only."
+  }
+}

@@ -1,0 +1,296 @@
+{
+  "kind": "local_real_http_negative_path_review",
+  "observed_at": "2026-10-14T18:20:33.653741+00:00",
+  "case_count": 28,
+  "all_passed": true,
+  "source": "Actual endpoint HTTP handlers and real RS256 JWT verification; only JWKS key source is a generated local test key.",
+  "live_github_or_vercel_proof": false,
+  "blob_token_absent": true,
+  "storage_writes": 0,
+  "limits": [
+    "Loopback HTTP proof does not establish deployment protection or hosted routing.",
+    "No token bytes, private keys, production credentials, or source originals are recorded."
+  ],
+  "cases": [
+    {
+      "endpoint": "publish-day",
+      "case": "GET rejected",
+      "status": 405,
+      "expected_status": 405,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"POST_REQUIRED\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "publish-day",
+      "case": "missing bearer",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"NOT_FOUND\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "publish-day",
+      "case": "malformed bearer",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"NOT_FOUND\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "publish-day",
+      "case": "bad_signature",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"NOT_FOUND\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "publish-day",
+      "case": "expired",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"NOT_FOUND\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "publish-day",
+      "case": "wrong_branch",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"NOT_FOUND\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "publish-day",
+      "case": "wrong_repo",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"NOT_FOUND\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "publish-day",
+      "case": "wrong_audience",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"NOT_FOUND\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "publish-day",
+      "case": "wrong_subject",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"NOT_FOUND\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "publish-day",
+      "case": "deployment SHA mismatch",
+      "status": 409,
+      "expected_status": 409,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"DEPLOYMENT_NOT_CURRENT\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "publish-day",
+      "case": "wrong content type",
+      "status": 400,
+      "expected_status": 400,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"BODY_INVALID\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "publish-day",
+      "case": "oversized declared body",
+      "status": 400,
+      "expected_status": 400,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"BODY_INVALID\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "publish-day",
+      "case": "invalid JSON",
+      "status": 422,
+      "expected_status": 422,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"SNAPSHOT_REJECTED\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "publish-day",
+      "case": "duplicate JSON keys",
+      "status": 422,
+      "expected_status": 422,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"SNAPSHOT_REJECTED\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "publish-day",
+      "case": "nonfinite JSON constant",
+      "status": 422,
+      "expected_status": 422,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"SNAPSHOT_REJECTED\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "publish-day",
+      "case": "store absent fails closed",
+      "status": 503,
+      "expected_status": 503,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"STORE_NOT_CONFIGURED\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "publish-day",
+      "case": "production write hidden",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": "no-store",
+      "content_type": "application/json",
+      "body": "{\"error\": \"NOT_FOUND\"}",
+      "passed": true
+    },
+    {
+      "endpoint": "blob-probe",
+      "case": "GET rejected",
+      "status": 405,
+      "expected_status": 405,
+      "cache_control": "no-store",
+      "content_type": null,
+      "body": "",
+      "passed": true
+    },
+    {
+      "endpoint": "blob-probe",
+      "case": "missing bearer",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": null,
+      "content_type": null,
+      "body": "",
+      "passed": true
+    },
+    {
+      "endpoint": "blob-probe",
+      "case": "malformed bearer",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": null,
+      "content_type": null,
+      "body": "",
+      "passed": true
+    },
+    {
+      "endpoint": "blob-probe",
+      "case": "bad_signature",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": null,
+      "content_type": null,
+      "body": "",
+      "passed": true
+    },
+    {
+      "endpoint": "blob-probe",
+      "case": "expired",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": null,
+      "content_type": null,
+      "body": "",
+      "passed": true
+    },
+    {
+      "endpoint": "blob-probe",
+      "case": "wrong_branch",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": null,
+      "content_type": null,
+      "body": "",
+      "passed": true
+    },
+    {
+      "endpoint": "blob-probe",
+      "case": "wrong_repo",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": null,
+      "content_type": null,
+      "body": "",
+      "passed": true
+    },
+    {
+      "endpoint": "blob-probe",
+      "case": "wrong_audience",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": null,
+      "content_type": null,
+      "body": "",
+      "passed": true
+    },
+    {
+      "endpoint": "blob-probe",
+      "case": "wrong_subject",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": null,
+      "content_type": null,
+      "body": "",
+      "passed": true
+    },
+    {
+      "endpoint": "blob-probe",
+      "case": "deployment SHA mismatch",
+      "status": 409,
+      "expected_status": 409,
+      "cache_control": "no-store",
+      "content_type": null,
+      "body": "",
+      "passed": true
+    },
+    {
+      "endpoint": "blob-probe",
+      "case": "production write hidden",
+      "status": 404,
+      "expected_status": 404,
+      "cache_control": null,
+      "content_type": null,
+      "body": "",
+      "passed": true
+    }
+  ]
+}

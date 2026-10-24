@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "status": "B_SOURCE_NAME_ABBREVIATION_CONFIRMED",
+  "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261015.lzh",
+  "captured_at": "2026-10-15T01:37:10.991061+00:00",
+  "source_sha256": "ff1f4895a7895f2d6b03fba5ddcea0805331758dd0f91174d021ab892c9c62d2",
+  "archive_bytes": 30718,
+  "extracted_text_sha256": "ed054d3c1a3e8420928a5c4a9486968a24a0bf3cca60569dad70012f80cae675",
+  "approved_archive_hashes": [
+    "d1943dbff930d78a76c1342858b20ff5fefcbaf51b3dae52b24ecc5e2747d5ef"
+  ],
+  "archive_matches_approved_hash": false,
+  "target_4544": [
+    {
+      "lane": 1,
+      "registration_id": "4544",
+      "source_name_field": "松田大志",
+      "source_name_canonical": "松田大志",
+      "source_field_contains_ro_suffix": false,
+      "parsed_names": [
+        "松田大志"
+      ],
+      "age_years": 38,
+      "branch": "福岡",
+      "grade": "A1"
+    },
+    {
+      "lane": 4,
+      "registration_id": "4544",
+      "source_name_field": "松田大志",
+      "source_name_canonical": "松田大志",
+      "source_field_contains_ro_suffix": false,
+      "parsed_names": [
+        "松田大志"
+      ],
+      "age_years": 38,
+      "branch": "福岡",
+      "grade": "A1"
+    }
+  ],
+  "other_name_examples": [
+    {
+      "registration_id": "3584",
+      "source_name_field": "佐々木英",
+      "parsed_name": "佐々木英",
+      "canonical_characters": 4,
+      "race_id": "20261015-15-03"
+    },
+    {
+      "registration_id": "3327",
+      "source_name_field": "野長瀬正",
+      "parsed_name": "野長瀬正",
+      "canonical_characters": 4,
+      "race_id": "20261015-12-06"
+    }
+  ],
+  "name_length_counts": {
+    "2": 1,
+    "3": 158,
+    "4": 777
+  },
+  "parsed_row_count": 936,
+  "official_GETs": 1,
+  "source_originals_persisted": false,
+  "cloud_writes": 0,
+  "approved_extracted_text_sha256": "17044ffb0bb9a74852a59e31123e630efabc58186d8dad63d6bd38ef241f6998",
+  "extracted_text_matches_approved": false
+}

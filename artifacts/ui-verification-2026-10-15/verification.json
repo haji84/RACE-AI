@@ -1,0 +1,69 @@
+{
+  "verified_at": "2026-10-14T18:29:38.062Z",
+  "application": "RACE AI protected Preview UI",
+  "browser": "Microsoft Edge, Playwright headless",
+  "fixture": "SYNTHETIC_ONLY_NOT_REAL_RACES; local HTTP server; no remote API or copyrighted photos",
+  "reference_images_inspected": 8,
+  "routes": [
+    "home",
+    "races",
+    "detail",
+    "picks",
+    "results",
+    "research",
+    "settings"
+  ],
+  "detail_tabs": 8,
+  "selectable_venues": 24,
+  "synthetic_races": 12,
+  "viewport_widths": [
+    1440,
+    1024,
+    768,
+    700,
+    640,
+    390,
+    375,
+    320
+  ],
+  "page_overflow": false,
+  "checks": [
+    "same-origin automatic feed",
+    "missing/error/stale/current/no-event states",
+    "search and race selection",
+    "manual local settings and purchase records",
+    "100-yen increments",
+    "budget rejection",
+    "duplicate rejection including saved records",
+    "elapsed/unknown cutoff rejection",
+    "literal XSS text rendering",
+    "reload persistence",
+    "cumulative race budget remainder",
+    "Web Locks serialize same-origin purchase/settings writes; latest state re-read inside lock",
+    "two concurrent accepted purchases retain both records",
+    "two simultaneous100-yen purchases with100-yen daily budget accept exactly one",
+    "storage events update both tabs",
+    "unsupported cross-tab locking disables purchase saves"
+  ],
+  "python_suite": {
+    "command": ".venv/Scripts/python.exe -X utf8 -m unittest discover -s tests",
+    "tests": 302,
+    "failures": 0,
+    "errors": 0,
+    "skips": 1,
+    "verified_at": "2026-10-14T18:22:30.915Z"
+  },
+  "javascript_contract_tests": 8,
+  "limitations": [
+    "Headless Edge is not a physical iPhone Safari observation",
+    "No real race feed or model accuracy is proved by synthetic browser tests",
+    "AI grades, recommendations, licensed racer photos, odds and settled performance remain explicitly unavailable without verified data",
+    "Purchase recording requires Web Locks; unsupported browsers keep read-only browsing and settings"
+  ],
+  "screenshots": [
+    "desktop-home-synthetic.png",
+    "mobile-home-synthetic.png",
+    "mobile-home-unobtained.png"
+  ],
+  "multi_tab_review": "Independent release_review agent reran both browser scripts and reported PASS"
+}

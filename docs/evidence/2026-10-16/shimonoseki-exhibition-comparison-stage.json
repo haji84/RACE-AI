@@ -1,0 +1,485 @@
+{
+  "schema_version": "shimonoseki-exhibition-comparison-stage/v1",
+  "recorded_at": "2026-10-16T14:03:41.884952+00:00",
+  "base_head": "e5f569ce4bfa598601e16a3ffdaccdd9f728a09a",
+  "own_name_proofs": {
+    "20261016-19-10": {
+      "status": "NAME_BINDING_BACKUP_AND_PIN_REPLAY_VERIFIED",
+      "run_id": 38901836118,
+      "race_id": "20261016-19-10",
+      "request_id": "38901836118-1",
+      "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+      "files": 5,
+      "bytes": 38708,
+      "zip_bytes": 8233,
+      "zip_sha256": "7379b13d5692da50bd80466f671398173ac6654ab489818268b762695ecc7c7a",
+      "manifest_sha256": "d9f66dbeccdaad6be0afc8b520448246cdb7df082e3789dc18caceae8c576d3d",
+      "proof_snapshot_id": "b3accb2f6f6307f77fed11db0dd01e33ed4b010f8839fe434a77262abd7bce5d",
+      "source_body_sha256": "f47b8bf7c91c3b7bb9a9185825d738b4a9bfbaef27ab84a54c338cc925a6136d",
+      "source_captured_at": "2026-10-16T12:38:00.493363+00:00",
+      "generated_at": "2026-10-16T12:38:00.507297+00:00",
+      "runner_saved_at": "2026-10-16T12:38:00.508172+00:00",
+      "cloud_saved_at": "2026-10-16T12:38:04.639096+00:00",
+      "receipt_confirmed_at": "2026-10-16T12:38:06.045842+00:00",
+      "seconds_before_close": 773.954158,
+      "baseline_snapshot_id": "6db3a572f4b66dbf2671aafb4fe7038221753b9c1c6a929afba0492c42497aca",
+      "baseline_sha256": "bfb45618f5f1ea28a546c4041af35e2eb37fe280125e3b93685451f6685c068b",
+      "envelope_bytes": 3406,
+      "envelope_sha256": "d5483c0587cca282bb3306fb03dd8f8c35cd20bdb7d4c894ac3a13bd6fa59210",
+      "name_relations": {
+        "EXACT_CANONICAL_NAME": 5,
+        "VERIFIED_B_ABBREVIATION": 1
+      },
+      "official_source_requests": 1,
+      "original_baseline_unchanged": true,
+      "raw_source_retained": false,
+      "raw_source_hash_recomputed_after_disposal": false,
+      "alias_prediction_integration_complete": false,
+      "validation_status": "UNVALIDATED"
+    },
+    "20261016-19-12": {
+      "status": "NAME_BINDING_BACKUP_AND_PIN_REPLAY_VERIFIED",
+      "run_id": 38907737025,
+      "race_id": "20261016-19-12",
+      "request_id": "38907737025-1",
+      "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+      "files": 5,
+      "bytes": 38677,
+      "zip_bytes": 8182,
+      "zip_sha256": "932d324f2bdb44687f6752ca514f48dcd351785872affc68e5a1f502c46789a2",
+      "manifest_sha256": "b3f844647a8965bafb02353adb2e71055b19031962845a14b71d48798e71eaff",
+      "proof_snapshot_id": "88ac59dda9d65064259065ded7be3e39005a57788a8321c578b1142a996f3064",
+      "source_body_sha256": "8b1f162d840b2930b8fa41364b659e23934883b5661e8a8aee5a354909f9e984",
+      "source_captured_at": "2026-10-16T13:25:58.834854+00:00",
+      "generated_at": "2026-10-16T13:25:58.852777+00:00",
+      "runner_saved_at": "2026-10-16T13:25:58.853950+00:00",
+      "cloud_saved_at": "2026-10-16T13:26:03.103955+00:00",
+      "receipt_confirmed_at": "2026-10-16T13:26:04.192194+00:00",
+      "seconds_before_close": 1135.807806,
+      "baseline_snapshot_id": "7136ad363e4a44cbf0a2faf547f1406e38832a23186f46e796f34d660c021fab",
+      "baseline_sha256": "4a4705309ab7eab279a0b26a41816175241b5b5b79cf3e01eb6d87c39a7c82ff",
+      "envelope_bytes": 3400,
+      "envelope_sha256": "37f9e0bbd82092447a6c128036e2e87bf5cf9329c8faf963ee6d8ea0f4a330a2",
+      "name_relations": {
+        "EXACT_CANONICAL_NAME": 5,
+        "VERIFIED_B_ABBREVIATION": 1
+      },
+      "official_source_requests": 1,
+      "original_baseline_unchanged": true,
+      "raw_source_retained": false,
+      "raw_source_hash_recomputed_after_disposal": false,
+      "alias_prediction_integration_complete": false,
+      "validation_status": "UNVALIDATED"
+    }
+  },
+  "new_numeric_comparisons": {
+    "20261016-19-10": {
+      "status": "NAME_BOUND_FULL_RESTORE_AND_INDEPENDENT_720_REPLAY_VERIFIED",
+      "run_id": 38902754405,
+      "race_id": "20261016-19-10",
+      "request_id": "38902754405-1",
+      "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+      "files": 6,
+      "bytes": 160691,
+      "zip_bytes": 32502,
+      "zip_sha256": "fa7a2366b24590ad9c3bd3a39bf46506de47cb9d351c6c380edf043d95d8e0c0",
+      "envelope_bytes": 114078,
+      "envelope_sha256": "fb4a5b39d5e02aa3b5fd6b68f05443a3b99e60d6bc7c156ec091242430410f4c",
+      "input_snapshot_id": "97ee04a146e3b83e31838568d13fe2d53fa58134de5308a8b3f5350a525af43b",
+      "prediction_snapshot_id": "6f7c227e1c366da19d5ee3bd9fc243ba03e6ff67c332270c86d8770482f4bd8f",
+      "baseline_request_id": "38777785588-1",
+      "baseline_sha256": "bfb45618f5f1ea28a546c4041af35e2eb37fe280125e3b93685451f6685c068b",
+      "name_binding_request_id": "38901836118-1",
+      "source_captures": [
+        "2026-10-16T12:45:38.839443+00:00",
+        "2026-10-16T12:45:39.478927+00:00",
+        "2026-10-16T12:45:40.003596+00:00"
+      ],
+      "input_generated_at": "2026-10-16T12:45:40.008182+00:00",
+      "runner_saved_at": "2026-10-16T12:45:40.100235+00:00",
+      "parents_resolved_at": "2026-10-16T12:45:43.621207+00:00",
+      "input_cloud_saved_at": "2026-10-16T12:45:45.102563+00:00",
+      "prediction_generated_at": "2026-10-16T12:45:45.102593+00:00",
+      "cloud_saved_at": "2026-10-16T12:45:46.585201+00:00",
+      "receipt_confirmed_at": "2026-10-16T12:45:47.776153+00:00",
+      "seconds_before_close": 312.223847,
+      "max_probability_error": 1.734723475976807e-18,
+      "official_source_requests": 3,
+      "physical_exhibition_timing_verified": false,
+      "raw_sources_retained": false,
+      "raw_hash_recomputed_after_disposal": false,
+      "validation_status": "UNVALIDATED",
+      "purchase_decision": "skip"
+    },
+    "20261016-19-12": {
+      "status": "NAME_BOUND_FULL_RESTORE_AND_INDEPENDENT_720_REPLAY_VERIFIED",
+      "run_id": 38908811972,
+      "race_id": "20261016-19-12",
+      "request_id": "38908811972-1",
+      "application_commit": "325ddce19ae999d626782a9929e6511c17d60ba1",
+      "files": 6,
+      "bytes": 160536,
+      "zip_bytes": 32211,
+      "zip_sha256": "96bd661aa0ac450e1006ca368e0539f71ca7343a52d8bf03cb85ae40538e1258",
+      "envelope_bytes": 113946,
+      "envelope_sha256": "5d8508da5ae2fa73bd1acf68e45968d61151e3e04a0111f7956367df824156eb",
+      "input_snapshot_id": "3608695722ede7b882634fded99026576e5fb22973560af8ae8356e94531f701",
+      "prediction_snapshot_id": "80a4ef347fef228ec80d07ccfe113361d45a5ef5c2c6df336e9760f2b2dfe008",
+      "baseline_request_id": "38777785588-1",
+      "baseline_sha256": "4a4705309ab7eab279a0b26a41816175241b5b5b79cf3e01eb6d87c39a7c82ff",
+      "name_binding_request_id": "38907737025-1",
+      "source_captures": [
+        "2026-10-16T13:34:14.826011+00:00",
+        "2026-10-16T13:34:15.425170+00:00",
+        "2026-10-16T13:34:16.165122+00:00"
+      ],
+      "input_generated_at": "2026-10-16T13:34:16.172110+00:00",
+      "runner_saved_at": "2026-10-16T13:34:16.261522+00:00",
+      "parents_resolved_at": "2026-10-16T13:34:19.551214+00:00",
+      "input_cloud_saved_at": "2026-10-16T13:34:21.013745+00:00",
+      "prediction_generated_at": "2026-10-16T13:34:21.013777+00:00",
+      "cloud_saved_at": "2026-10-16T13:34:22.878315+00:00",
+      "receipt_confirmed_at": "2026-10-16T13:34:24.121527+00:00",
+      "seconds_before_close": 635.878473,
+      "max_probability_error": 8.326672684688674e-17,
+      "official_source_requests": 3,
+      "physical_exhibition_timing_verified": false,
+      "raw_sources_retained": false,
+      "raw_hash_recomputed_after_disposal": false,
+      "validation_status": "UNVALIDATED",
+      "purchase_decision": "skip"
+    }
+  },
+  "new_result_label": {
+    "race_id": "20261016-19-10",
+    "request_id": "38907121743-1",
+    "run_id": 38907121743,
+    "job_id": 116993385920,
+    "artifact_id": 12048049331,
+    "restore": {
+      "recorded_at": "2026-10-16T13:24:35.552040+00:00",
+      "run_id": 38907121743,
+      "job_id": 116993385920,
+      "artifact_id": 12048049331,
+      "workflow_commit": "5a38336727c452ef0ba796f56b68434fe7b59837",
+      "workflow_blob": "44e997bae629f29f4a48eded0d694fefe8bfdabd",
+      "status": "COMPLETED_FULL_BACKUP_RESTORED",
+      "files": 6,
+      "bytes": 130907,
+      "zip_bytes": 28213,
+      "zip_sha256": "da56c941d25fbe8df2dabcf3eefda093d06d68cc81a689e58473e02dbfe1ccd1",
+      "file_digests": {
+        "evaluation.json": {
+          "bytes": 1815,
+          "sha256": "6fe2f717420c80c1f7d2d0a842c472f8932df4886ec6e5f5cebee4e52e36681a"
+        },
+        "forecast.json": {
+          "bytes": 114078,
+          "sha256": "fb4a5b39d5e02aa3b5fd6b68f05443a3b99e60d6bc7c156ec091242430410f4c"
+        },
+        "manifest.json": {
+          "bytes": 1041,
+          "sha256": "eb47879e885ee66ccd2fd1a7d09730d2481f3ca73caf003d33da9cc380955567"
+        },
+        "program.json": {
+          "bytes": 2177,
+          "sha256": "c3b0561ce237589f15603c5d4c42e690aa1599734aa68287e81f2660f277f1b1"
+        },
+        "request.json": {
+          "bytes": 5711,
+          "sha256": "794c3a54036e2c4b6cad977c91f4eadd27f741883d4f4f9d211a4aa2073470bb"
+        },
+        "result.json": {
+          "bytes": 6085,
+          "sha256": "7158c2e144fe370144890c169465869e8f62a2316a2d3b38d802251f27bb6e8a"
+        }
+      },
+      "manifest": {
+        "backups": {
+          "evaluation.json": {
+            "bytes": 1815,
+            "sha256": "6fe2f717420c80c1f7d2d0a842c472f8932df4886ec6e5f5cebee4e52e36681a"
+          },
+          "forecast.json": {
+            "bytes": 114078,
+            "sha256": "fb4a5b39d5e02aa3b5fd6b68f05443a3b99e60d6bc7c156ec091242430410f4c"
+          },
+          "program.json": {
+            "bytes": 2177,
+            "sha256": "c3b0561ce237589f15603c5d4c42e690aa1599734aa68287e81f2660f277f1b1"
+          },
+          "request.json": {
+            "bytes": 5711,
+            "sha256": "794c3a54036e2c4b6cad977c91f4eadd27f741883d4f4f9d211a4aa2073470bb"
+          },
+          "result.json": {
+            "bytes": 6085,
+            "sha256": "7158c2e144fe370144890c169465869e8f62a2316a2d3b38d802251f27bb6e8a"
+          }
+        },
+        "commit_sha": "ad6d7d256e3477cf942a59d1afc1c9a5c29f652f",
+        "failure_reason": null,
+        "forecast_request_id": "38902754405-1",
+        "max_seconds": 240,
+        "official_source_requests": 1,
+        "operation": "NAME_BOUND_RESULT_PUBLICATION",
+        "posts_attempted": 1,
+        "purchase_decision": "skip",
+        "purchase_recommendations": [],
+        "race_id": "20261016-19-10",
+        "reads_used": 5,
+        "request_id": "38907121743-1",
+        "result_disposition_contract": "official-result-dispositions/v2",
+        "schema_version": 1,
+        "status": "COMPLETED",
+        "validation_status": "UNVALIDATED"
+      },
+      "full_forecast_bytes_unchanged": true,
+      "raw_source_retained": false,
+      "previous_unrelated_failed_runs_reclassified": false,
+      "independent_audit_pending": true,
+      "physical_exhibition_pairs": 0,
+      "validation_status": "UNVALIDATED",
+      "purchase_decision": "skip",
+      "purchase_recommendations": []
+    },
+    "top3": [
+      4,
+      2,
+      3
+    ],
+    "finish_confirmed": true,
+    "financial_confirmed": false,
+    "refund_boats": [
+      1
+    ],
+    "evaluation_status": "RESULT_UNSUPPORTED",
+    "exclusion_reason": "OFFICIAL_REFUND_OUTCOME_UNSUPPORTED",
+    "score_rows": 0,
+    "eligible_evaluated_races_added": 0,
+    "source_captured_at": "2026-10-16T13:21:16.524016+00:00",
+    "cloud_saved_at": "2026-10-16T13:21:23.198351+00:00",
+    "receipt_confirmed_at": "2026-10-16T13:21:24.222323+00:00"
+  },
+  "new_private_video": {
+    "race_id": "20261016-19-10",
+    "status": "COMPLETED_POSTCLOSE_RESEARCH",
+    "started_at": "2026-10-16T13:08:12.552621+00:00",
+    "finished_at": "2026-10-16T13:09:43.355354+00:00",
+    "metadata_gets": 2,
+    "media_related_gets": 61,
+    "requests": {
+      "index": 1,
+      "key": 1,
+      "master": 1,
+      "metadata": 1,
+      "playlist": 1,
+      "segment": 58
+    },
+    "segments": 58,
+    "frames": 10440,
+    "samples": 116,
+    "encoded_bytes": 25462214,
+    "declared_seconds": 348.0,
+    "raw_metadata_duration": 340,
+    "duration_unit_or_difference_resolved": false,
+    "yolox_candidates": 27,
+    "nanodet_candidates": 3,
+    "ocr_candidates": 1,
+    "number_tracks": 0,
+    "independently_viewed_same_jpeg_sheets": 6,
+    "fixed_frames_independently_viewed": 33,
+    "fixed_frame_yolox_single_hull_boxes": 4,
+    "fixed_frame_yolox_non_hull_boxes": 1,
+    "fixed_frame_nanodet_single_hull_boxes": 1,
+    "manual_consensus_hull_digit_frames": 2,
+    "sole_ocr_is_intro_overlay": true,
+    "root_written_labels_blind_frozen": false,
+    "second_observer_received_no_root_labels_before_lock": true,
+    "population_precision_recall_or_iou_verified": false,
+    "loopback_ipc_gets": 6,
+    "browser_media_gets": "NOT_INSTRUMENTED",
+    "normal_ram_cleanup_at": "2026-10-16T13:12:24.114718+00:00",
+    "seconds_child_start_to_cleanup": 251.562097,
+    "ram_limit_seconds": 300,
+    "parent_exit_code": 0,
+    "owned_jpeg_buffers_empty": true,
+    "source_frame_files": 0,
+    "live_chapter_actual_decode": false,
+    "video_prediction_input_eligible": false
+  },
+  "platform_replay_fix": {
+    "original_windows_strict_replay": "FAILED_CANONICAL_MISMATCH",
+    "diagnostic": {
+      "file": "artifacts/local/shimonoseki12-windows-replay-diagnostic.json",
+      "bytes": 107271,
+      "sha256": "3049578c551fb9dea10b2d13bbe4dc310393ff08491afd553bf558774f691c29"
+    },
+    "sole_strength_mismatch_lane": 3,
+    "source_hex": "0x1.b0d87cf7b277dp+2",
+    "windows_hex": "0x1.b0d87cf7b277cp+2",
+    "os_causation_proven": false,
+    "contract": "same-lane finite positive strict float, local or either immediately adjacent IEEE754 value; all models/deltas/metadata/hash reconstructed exactly",
+    "source_snapshot_and_receipt_unchanged": true,
+    "builder_compatibility": {
+      "recorded_at": "2026-10-16T13:54:01.877993+00:00",
+      "base": "e5f569ce4bfa598601e16a3ffdaccdd9f728a09a",
+      "default_generation_unchanged": [
+        {
+          "context": "synthetic",
+          "bytes": 70942,
+          "sha256": "5ddf946c94a3c5d9df3a13e53ccfc5cbe8264edd6b7c50494e0bfbd4e6fc98c6",
+          "all_content_equal": true
+        },
+        {
+          "context": "38902754405",
+          "bytes": 74078,
+          "sha256": "3757b5022c75aed90e2ce6055e73dbf89aee4fe9d40eccf8e897a965fcbcbb40",
+          "all_content_equal": true
+        },
+        {
+          "context": "38908811972",
+          "bytes": 73990,
+          "sha256": "4e939d6c9b3da6ed0d7bfe7c4eb080326cc7b5325cbc53d8f483759d240b8b38",
+          "all_content_equal": true
+        }
+      ],
+      "network_calls": 0,
+      "source_reacquisitions": 0
+    },
+    "new_regressions": 8,
+    "original_extraction_not_repeated": true,
+    "readonly_resume_initial_wrong_expected_commit_rejected": true,
+    "actual_source_commit": "325ddce19ae999d626782a9929e6511c17d60ba1"
+  },
+  "checks": {
+    "independent_report_integrities": [
+      {
+        "file": "artifacts/local/shimonoseki10-name-caller-review.md",
+        "bytes": 5767,
+        "sha256": "76dcc63599b1d2cd3a45c79734bddaebbddf22fd16104a4d6c427a03726cc2fa"
+      },
+      {
+        "file": "artifacts/local/shimonoseki10-name-artifact-audit.md",
+        "bytes": 3389,
+        "sha256": "b1c8a5a8be093d491b5af58ce6c5e3aef2ef467ec24df29167e9d4a35ea44c7b"
+      },
+      {
+        "file": "artifacts/local/shimonoseki10-numeric-caller-review.md",
+        "bytes": 5982,
+        "sha256": "10881798ec944ed9fb01922e9e6fc27858d3f1d5bb78372e942d4fd875a081ae"
+      },
+      {
+        "file": "artifacts/local/shimonoseki10-numeric-artifact-audit.md",
+        "bytes": 3960,
+        "sha256": "ebc2d911a08b781d9ab57de0986d87401060f3adea95c8c961d2f4c92863c252"
+      },
+      {
+        "file": "artifacts/local/shimonoseki10-video-caller-review.md",
+        "bytes": 5129,
+        "sha256": "ffc42e84ad385332ccad4a64f1455cec5a47dd55b2d01309bd396581e01b61c3"
+      },
+      {
+        "file": "artifacts/local/shimonoseki10-ram-supervisor-review.md",
+        "bytes": 3019,
+        "sha256": "bec82d5c28891b62f629f3710cf475b5f28a53a70a268babd12fce4f690de16b"
+      },
+      {
+        "file": "artifacts/local/shimonoseki10-independent-image-audit.md",
+        "bytes": 4377,
+        "sha256": "d0626c8e6d62102272b62d7ee1540017ef63dd6b179510f5b59e031889c79014"
+      },
+      {
+        "file": "artifacts/local/shimonoseki10-video-artifact-audit.md",
+        "bytes": 4692,
+        "sha256": "ff50e5cdb2b701517dc3aa65c6e786fdb517824b3a515493a5bc6efa54a3fed4"
+      },
+      {
+        "file": "artifacts/local/shimonoseki10-result-caller-review.md",
+        "bytes": 6274,
+        "sha256": "4434e33c50ba57d7007d40e8a7041ed087b8a698d9017899951d7d468f2c9e8c"
+      },
+      {
+        "file": "artifacts/local/shimonoseki10-result-v2-artifact-audit.md",
+        "bytes": 3913,
+        "sha256": "95e79b382c2cdcd1fac12d5d0ae7eb90a37b5e4cb710d4cd90fbde46feb73f1d"
+      },
+      {
+        "file": "artifacts/local/shimonoseki12-name-caller-review.md",
+        "bytes": 4456,
+        "sha256": "255411d11bd0da1bfc7bf8a5f08ded51fd870a956578091d84290182d5a5d53a"
+      },
+      {
+        "file": "artifacts/local/shimonoseki12-name-artifact-audit.md",
+        "bytes": 2525,
+        "sha256": "d664f6c1d20df3af32c1a6cfc51305f6d91a600bbf240d729d26ab30fceadabe"
+      },
+      {
+        "file": "artifacts/local/shimonoseki12-numeric-caller-review.md",
+        "bytes": 4817,
+        "sha256": "227d858297ada3866d9924a5789833cf7ea9431399465c3fc87ee5eee98e64ee"
+      },
+      {
+        "file": "artifacts/local/shimonoseki12-numeric-artifact-audit.md",
+        "bytes": 7448,
+        "sha256": "083fef81bbb951613b6e91d6bacf046cd650592be9e912abd211975e77ce0d4b"
+      },
+      {
+        "file": "artifacts/local/shimonoseki-platform-replay-review.md",
+        "bytes": 5625,
+        "sha256": "ccc12afb423215b03b9545693ccc34bfa687404d012f153cb20c3ca78238afa3"
+      }
+    ],
+    "open_findings": 0,
+    "new_helper_synthetic_groups": {
+      "name10": 62,
+      "numeric10": 71,
+      "video10": 27,
+      "ram_supervisor": 33,
+      "result10": 73,
+      "name12": 20,
+      "numeric12": 27
+    },
+    "prior_reference_ci": {
+      "head": "e5f569ce4bfa598601e16a3ffdaccdd9f728a09a",
+      "python_each_platform": 1090,
+      "javascript_each_platform": 203
+    },
+    "new_local_tests": {
+      "python": 1098,
+      "javascript": 203,
+      "failures": 0,
+      "skips": 0
+    },
+    "new_exact_head_ci_preview_api_backup": "PENDING_AFTER_COMMIT_AT_THIS_RECORDED_AT"
+  },
+  "preserved": {
+    "all_frozen_baselines": 274,
+    "day16_baselines": 156,
+    "day15_baselines": 118,
+    "eligible_individual_result_evaluations": 4,
+    "separately_saved_result_labels": 5,
+    "fixed_archived_cohort_races": 3,
+    "fixed_archived_cohort_days": 2,
+    "fixed_archived_cohort_bytes": 7173,
+    "archived_cohort_original_as_of_unchanged": true,
+    "daily_real_capture_jst": "2026-10-16T19:08:36.977875+09:00",
+    "next_same_day_six_hour_jst": "2026-10-17T01:08:36.977875+09:00",
+    "new_jst_day_exact_missing_is_separate": true,
+    "scripts_workflow_config_and_video_trees_unchanged": true,
+    "oidc_and_all_deployments_protection_unchanged": true,
+    "previous_success_failure_records_unchanged": true
+  },
+  "gates": {
+    "numeric_example_races": 6,
+    "automated_verified_hull_ids": 0,
+    "physical_exhibition_pairs": 0,
+    "world_and_physical_clock_calibration": "UNVERIFIED",
+    "all_race_video_forecasts_complete": false,
+    "held_out_calibration_and_adoption": "UNVALIDATED",
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "purchase_recommendations": []
+  },
+  "next": "Keep completed10/12 names/numeric,10 result/video immutable. After12 cutoff and120s, only its exact result404 and fresh five-state/lease/current-day/own-forecast checks may authorize one new separate result label. No retrospective predictions. Validate domain-specific hull/digit labels and world/time/measurement quality on new held-out inputs before video adoption; continue prospective physical pairs/all-race capture. New JST-day exact missing allows one validated day update after00:00, not forced waiting until01:08."
+}

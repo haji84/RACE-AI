@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "recorded_at": "2026-10-16T00:41:18.553745+00:00",
+  "base_commit": "74a75608791c8eb071ed43c6e06e6aa9ca303414",
+  "problem": "An unchanged day refresh or visibility refresh cleared the explicitly loaded immutable v2 comparison.",
+  "change": "Remove only the unconditional clearNameBound at day-request start; existing report identity, error, date and serial guards decide when to clear.",
+  "red_tests": 2,
+  "focused_green_tests": 8,
+  "javascript_suite_tests": 195,
+  "failures": 0,
+  "skips": 0,
+  "changed_product_files": [
+    {
+      "file": "app.js",
+      "bytes": 102488,
+      "sha256": "fb0f3ed4eb64615a18dcfb3e65355c26bdf13c0d0c1fa7e62fb61ec6162be96a"
+    }
+  ],
+  "new_tests": {
+    "file": "ui_day_refresh_comparison.test.js",
+    "bytes": 7388,
+    "sha256": "6dada8e1b32d138e5a1c9e8dd073a346ded223e4d4134d35d3dc41567c9ca3a3"
+  },
+  "ci_change": "Only add the new eight-case browser regression file to both existing unit-test jobs.",
+  "phase_diagnostic": {
+    "cloud_posts": 0,
+    "completed_at": "2026-10-16T00:33:45.278055+00:00",
+    "contract_event_count": 4,
+    "contract_events": [
+      {
+        "stage": "VALIDATE_NORMALIZED_RECORD",
+        "state": "ENTERED"
+      },
+      {
+        "stage": "VALIDATE_NORMALIZED_RECORD",
+        "state": "RETURNED"
+      },
+      {
+        "stage": "PARSE_OFFICIAL_RESULT",
+        "state": "ENTERED"
+      },
+      {
+        "stage": "PARSE_OFFICIAL_RESULT",
+        "state": "REJECTED"
+      }
+    ],
+    "earlier_failed_run": "38828308110",
+    "earlier_failure_cause_proven": false,
+    "first_contract_rejection": {
+      "error_code": "RESULT_FINISH_DISPOSITION_UNSUPPORTED",
+      "stage": "PARSE_OFFICIAL_RESULT"
+    },
+    "forecast_request_id": "38825983437-1",
+    "last_contract_stage": "PARSE_OFFICIAL_RESULT",
+    "last_contract_stage_state": "REJECTED",
+    "official_source_requests": 1,
+    "race_id": "20261016-14-02",
+    "raw_source_retained": false,
+    "response_summary": {
+      "body_bytes": 59168,
+      "html_mime": true,
+      "status": 200
+    },
+    "result_labels_saved": 0,
+    "scope": "POSTCLOSE_SOURCE_DIAGNOSTIC_NOT_PUBLICATION_OR_PREDICTION_INPUT",
+    "source_snapshot_discarded": true,
+    "started_at": "2026-10-16T00:33:35.668571+00:00",
+    "status": "SOURCE_INVALID",
+    "transport_elapsed_seconds": 9.453,
+    "worker_official_source_requests": 1
+  },
+  "phase_helper": {
+    "file": "diagnose-naruto2-result-phase.py",
+    "bytes": 8353,
+    "sha256": "e28e0c2d49746c40d3f73b9fed8d1baa82a8f3f25548eb265562b8376148d9e5"
+  },
+  "phase_preflight": {
+    "race_id": "20261016-14-02",
+    "forecast_request_id": "38825983437-1",
+    "label_url": "https://race-ai-preview-4pcsfxkfo-qq1130034-1738.vercel.app/api/name-bound-result?race_id=20261016-14-02&forecast_request_id=38825983437-1",
+    "reader_commit": "2ca60a885a5d61dabcf267175c7a6d3bf05faad5",
+    "checked_at": "2026-10-16T00:33:26.594070+00:00",
+    "workflow_commit": "e071480037d918714ea87288e9bc9598480f256d",
+    "workflow_content_sha": "74f4d7423fd50bafb5fefcb368f3c36f0243f3c9",
+    "idle_counts": {
+      "in_progress": 0,
+      "queued": 0,
+      "waiting": 0,
+      "pending": 0,
+      "requested": 0
+    },
+    "label_status": 404,
+    "label_error": "NAME_BOUND_RESULT_NOT_SAVED"
+  },
+  "diagnostic_observation_is_not_proof_of_original_failed_run_cause": true,
+  "no_unsupported_finish_guessed_or_parser_relaxed": true,
+  "no_job_redispatch_or_cloud_post": true,
+  "prior_verified_head": {
+    "head": "74a75608791c8eb071ed43c6e06e6aa9ca303414",
+    "ci_run_id": 38829567597,
+    "push_ci_run_id": 38829561701,
+    "windows_job_id": 116744957631,
+    "linux_job_id": 116744957277,
+    "python_tests_each": 981,
+    "javascript_tests_each": 187,
+    "windows_python_seconds": 369.62,
+    "linux_python_seconds": 336.653,
+    "failures": 0,
+    "skips": 0,
+    "preview_url": "https://race-ai-preview-il22p3nvv-qq1130034-1738.vercel.app",
+    "deployment_id": "dpl_EToTW8jub3Z5UCsYQNFcpmFfR2LU",
+    "full_canonical_api_bodies_equal": [
+      "day",
+      "own_name_fixed",
+      "own_name_latest",
+      "own_forecast_fixed",
+      "own_forecast_latest",
+      "own_baseline"
+    ],
+    "result_label_response": "404 NAME_BOUND_RESULT_NOT_SAVED",
+    "all274_api_or_completed_old_job_repeated": false
+  },
+  "independent_reviews": [
+    {
+      "file": "day-refresh-comparison-review.md",
+      "bytes": 5938,
+      "sha256": "d756dafcac05dc1de95e4ca58128ce0062476b0bd7baf811fc7012c77e8633e6",
+      "text": "# Day refresh comparison preservation: independent regression review\n\nVerdict: **PASS**. Open actionable findings: **0**.\n\nReviewed the complete current diff against the preceding UI head: one removed unconditional `clearNameBound()` call in `loadAuthorizedDayFeed`, the new regression file, and the single explicit CI test-list addition. No API, storage, authentication, source collection, forecast validation, or numeric model behavior is changed.\n\n## Production behavior\n\nRemoving the refresh-start clear preserves an already loaded immutable v2 comparison and its evaluation while the current-day feed is loading. An unchanged successful day response no longer discards those objects just because an automatic/visibility refresh occurred. `showReport()` still compares the actual selected race's prior and new program identity and research identity: missing/changed race, cutoff, lane registration/name, or research rating changes clear the relevant prediction state, including the v2 comparison and evaluation.\n\n`clearReport()` still reaches `clearRaceUpdates()` and the actual `clearNameBound()` path. Thus 404/503, rejected feed data, malformed JSON, other HTTP errors, transport failure/abort, and historical-date selection clear the comparison rather than display it under an invalid report. No fallback packet or substituted prior day is introduced. A superseded day request returns on the existing serial check before it can clear or install data.\n\nRace selection still immediately clears name-bound state when the selected identity changes. The actual name-bound and evaluation async-validity closures retain selected-race, program-identity, current-day, date, serial, and envelope/nonce guards. Clearing state aborts those requests and increments their serials. A pending feed response selects against the current route and compares the current selected identity; it cannot reinstate an old comparison object after a race change because it never assigns a name-bound envelope.\n\nCurrent-day rollover remains protected by actual `checkDay()` clearing the report before starting the new day request, the historical-date branch, and `UI.validateReport(raw,{automatic:true,today:today()})` rejecting a response whose date differs from the actual current day. These guards were inspected in the real source, not inferred from the permissive test double. Retaining data during a same-day pending refresh does not bypass them.\n\n## Regression-test quality and execution\n\nIndependently ran the initial `node --test tests/ui_day_refresh_comparison.test.js`: **5 tests passed, 0 failures, 0 skips**, duration 86.7325 ms. After the concurrency additions, independently reran the same focused command: **8 tests passed, 0 failures, 0 skips**, duration 91.4984 ms. The final tests execute the actual source bodies for `clearReport`, `showReport`, `loadAuthorizedDayFeed`, `clearNameBound`, `selectRace`, `checkDay`, and the identity helpers in a VM; rendering/network/adjacent data loaders remain doubles. They check object identity preservation and clearing behavior, rather than merely asserting the changed source text.\n\nThe five groups meaningfully cover unchanged response preservation for both comparison and evaluation; five changed program/research cases; unavailable/rejected/non-JSON/transport failures; historical-date selection while a response is pending; and a stale failed response after a newer successful refresh. The reported two initial RED failures align with the two retention cases that the old unconditional clear would break. CI's explicit existing JavaScript list now includes this new file, so these checks will run in both existing CI environments.\n\nThe root separately reports all **195** JavaScript tests passing without skips after the final additions (the earlier suite had 192). That broad run is distinguished from this reviewer's independently observed focused eight-test result. Protected Preview PC/mobile interaction, explicit Update preservation, and actual race-change clearing remain root-owned verification gates; this report does not claim those browser checks have completed.\n\nThe two originally suggested concurrency cases are now covered. The final harness has a mutable day clock and two-race feed, executes actual `selectRace` with a route update, and verifies that a pending feed response retains the new selection without restoring the old comparison/evaluation. It executes actual `checkDay()` at rollover, observes the previous request's abort and a new day request, then resolves the old day response and confirms it cannot restore report/comparison state. A third added group fires the actual refresh timeout callback, observes its AbortSignal, supplies an AbortError rejection, and verifies comparison/evaluation clearing. The non-JSON branch supplies actual invalid HTML through `text()`. The validator remains a transport-test double; actual automatic date rejection was separately inspected in `web/ui-core.js`. No suggested concurrency coverage item remains open, and no additional product behavior was changed.\n\n## Exact reviewed sources\n\n| File | Raw bytes | Raw SHA256 | CRLF→LF SHA256 |\n| --- | ---: | --- | --- |\n| web/app.js | 102,488 | `fb0f3ed4eb64615a18dcfb3e65355c26bdf13c0d0c1fa7e62fb61ec6162be96a` | `9a50a7d99f53cb966985d4c7f19ecc060a0f44d2e1078636a3e60bf582bb74cd` |\n| tests/ui_day_refresh_comparison.test.js | 7,388 | `6dada8e1b32d138e5a1c9e8dd073a346ded223e4d4134d35d3dc41567c9ca3a3` | `6dada8e1b32d138e5a1c9e8dd073a346ded223e4d4134d35d3dc41567c9ca3a3` |\n| .github/workflows/tests.yml | 1,787 | `a8bd26fae961e92dc5c0738f2f9507c60fe19220e306f8d073877f11c73a9b6f` | `51e5508e8ee8ae2c5e2b7dda698f1796190a2bb7aaf6d103021787de93aa33ad` |\n\nNo source/network/API/credential call, browser, dispatch, helper top-level execution, product edit, Git mutation, or subagent was used. Only the offline focused JavaScript test was run and this UTF-8 LF review report was written.\n"
+    },
+    {
+      "file": "naruto2-result-phase-caller-review.md",
+      "bytes": 6035,
+      "sha256": "0c5a7c13a37804486a3312372625ddc99f4e95e46748f3538af35c521133a11b",
+      "text": "# Naruto2 result-phase diagnostic caller review\n\nVerdict: PASS after correction. Open findings: 0. One P2 resolved before execution.\n\nReviewed at 2026-10-16T00:32:02.453867+00:00. Helper: artifacts/local/diagnose-naruto2-result-phase.py, 8,353 bytes, SHA-256 e28e0c2d49746c40d3f73b9fed8d1baa82a8f3f25548eb265562b8376148d9e5.\n\n## Resolved attribution defect\n\nThe initial wrapper recorded its stage only on entry, then changed only state on return/rejection. Actual isolated instrument AST reproduced a misleading result: an outer memory-save stage called an inner validator that returned successfully, then the outer stage raised, but the journal attributed REJECTED to the inner validator. Nested calls are structurally possible in the result-builder validation path. This P2 mattered because exact rejection-stage localization is the purpose of the new diagnostic.\n\nThe corrected wrapper emits each own stage and ENTERED/RETURNED/REJECTED event, retains the first 20 events, counts all events and sets a truncation flag if the cap is exceeded. It also sets first_contract_rejection once, preserving the first instrumented rejection's stage and fixed safe code as outer wrappers propagate the exception. Thus an inner successful return followed by outer rejection is distinguishable from an inner rejection propagating outward. The first rejection is an observed instrumented event, not automatically a claim of the only cause of the final worker status; event order and eventual worker status still matter.\n\n## Scope, guards and privacy\n\nCompared with the final reviewed source diagnostic. All top-level own-parent, cutoff, witness and private-scope assertions are AST-identical. persist and transport functions are AST-identical. New paths are naruto2-result-phase-idle-witness.json and the separate exclusive naruto2-result-phase-diagnostic.json. Old diagnostic journals remain untouched. This review does not treat the earlier HTTP200/SOURCE_INVALID result as proof of which contract stage failed.\n\nThe helper still binds exact Naruto2 forecast 38825983437-1 and canonical SHA ac66ceb2880019d3868aacf9ff65049c6113f0ce9ad94854f1e9457a88bdf117, own proof 38825321604-1, actual aware cutoff instant, current JST day and at least 120 seconds after close. Fresh exact own-label 404, fixed 2ca/4pcs reader, e071 workflow, blob74f4 and all five typed-zero idle states remain required. Immediately before the one transport call it repeats the actual current-day/post-close checks, witness age at most 90 seconds and initial start age at most 30 seconds. Parent must obtain this fresh witness and decide whether to execute; this local review makes no remote-state claim.\n\nThe existing official result transport remains one attempt, exact endpoint, 10-second timeout and 1,000,000-byte bound, with counter persisted before fetch. The unchanged numeric/exception summaries reject malformed values and retain no arbitrary message or URL. The collector is invoked once. There is no retry loop, forecast/result POST, source-scope change, auth bypass or product-file edit.\n\nFive existing callable references are temporarily wrapped in this standalone process: source parse_update, memory save_observation, memory latest_observation, facts validate_record and build_name_bound_result. Arguments and return values are passed through unchanged; exceptions are re-raised. Only fixed stage/state values and eleven explicitly mapped static error codes or OTHER_CONTRACT_REJECTION are persisted. Error text is used transiently for exact dictionary lookup but is never written. Input bodies, parsed snapshots, URLs, headers, credentials and dynamic exception messages do not enter the journal. Returned result snapshots remain discarded. The journal retains its less-than-10,000-byte canonical bound and exact readback.\n\nThe collector try/finally restores the five original callables in reverse installation order before final completion persistence, on both a normal return and an exception. This is process-local instrumentation, not persisted monkeypatching or a product change. The module/field references were checked against the existing source. No staged reference is replaced with an alternative implementation and no validation result is overridden.\n\n## Isolated verification\n\n67 checks passed on the corrected helper: 49 inherited actual-AST guard/transport/projection/optimization/exclusive-mode checks and 18 new instrumentation checks. The 49 cover wrong parent witness identity/pins, malformed 404/idle counts, stale/future/naive timestamps, stale-at-transport, changed endpoint/bounds, rollback, cross-day/early calls, duplicate attempts, response sanitation, exception-type sanitation, finite monotonic summaries and worker-count projection.\n\nThe 18 phase checks cover nested success, successful inner then rejecting outer, rejecting inner with outer propagation, every one of the eleven fixed error mappings, unknown secret-bearing error text, event truncation from 50 events to 20 rows with the full count retained, and complete five-wrapper restoration after both normal and exceptional collector outcomes. Synthetic secret text in arguments, return objects and exception messages never appeared in the report; the identical exception object was propagated. Restoration cases executed the actual installation and collector try/finally AST with fake module owners and a fake collector only.\n\nNo helper top-level execution, product module import, real wrapper installation, network/source/API/credential call, dispatch, restore, media processing, result publication, Git operation or product/evidence edit occurred. Only this UTF-8 LF report was written. The new diagnostic remains POSTCLOSE_SOURCE_DIAGNOSTIC_NOT_PUBLICATION_OR_PREDICTION_INPUT, zero cloud posts/labels saved, and earlier_failure_cause_proven=false. A future observation may localize its own rejection; it cannot retroactively establish the old failed job's cause or a published result label. Evaluation N/day, forecast content, accuracy and adoption remain unchanged.\n"
+    }
+  ],
+  "latest_head_ci_and_live_refresh_preservation": "PENDING_POST_COMMIT_VERIFICATION",
+  "physical_exhibition_before_after_pairs": 0,
+  "result_label_saved": false,
+  "validation_status": "UNVALIDATED",
+  "purchase_decision": "skip",
+  "purchase_recommendations": [],
+  "next_steps": [
+    "Observe the exact unsupported finish token with a bounded normalized-fact diagnostic before proposing a new strict source profile.",
+    "Retain all existing labels, forecasts, B names, v1s and media evidence; no blind failed-job rerun.",
+    "Latest-head Windows/Linux CI, protected PC/mobile refresh preservation, race-change clearing and complete API body comparisons."
+  ]
+}

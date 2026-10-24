@@ -1,0 +1,42 @@
+name: RACE AI daily motor audit
+on:
+  schedule:
+    - cron: '0 14 * * *'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  daily-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Optional one-day public feed (unofficial, operator rights gate)
+        if: ${{ vars.RACE_AI_PUBLIC_FEED_ALLOWED == 'true' }}
+        shell: bash
+        run: |
+          DAY="$(TZ=Asia/Tokyo date +%F)"
+          python -m race_ai.public_day_feed --date "$DAY" --fetch \
+            --ack-provider-terms --output public-day-report.json
+      - name: Explain disabled unofficial feed
+        if: ${{ vars.RACE_AI_PUBLIC_FEED_ALLOWED != 'true' }}
+        shell: bash
+        run: echo "Unofficial live feed disabled until operator checks data use rights."
+      - name: Generate only source-backed motor report
+        shell: bash
+        run: |
+          python -m race_ai.daily --input-dir data/live --output daily-report.json --html-output daily-report.html
+      - name: Preserve diagnostic report even when missing sources
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: race-ai-daily-motor-audit
+          path: |
+            daily-report.json
+            daily-report.html
+            public-day-report.json
+          if-no-files-found: warn
+          retention-days: 14

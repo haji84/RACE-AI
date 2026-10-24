@@ -1,0 +1,28 @@
+{
+  "race_id": "20261015-14-01",
+  "closed_at": "2026-10-15T08:35:00+09:00",
+  "program_digest": "10500e7a5b908aeae2adb5915a4a3a2fdfcf34f49a1d6c6b53b48d3c0f389b80",
+  "requests": 2,
+  "records": [
+    {
+      "kind": "beforeinfo",
+      "status": "SOURCE_UNAVAILABLE",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=1&jcd=14&hd=20261015"
+    },
+    {
+      "kind": "odds3t",
+      "status": "PENDING",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/odds3t?rno=1&jcd=14&hd=20261015",
+      "http_status": 200,
+      "bytes": 46055,
+      "source_sha256": "cd0a72860352ed3ba70a0e3fab82a8f30acfe2f0cd6bf6e51a2c1f2c4ecfb726",
+      "contract": "VERIFIED",
+      "snapshot_id": "6fece1281bb9f9de7572165fe15181a8af749c160e1eeddc5df5bc86b0115534",
+      "captured_at": "2026-10-14T21:54:12.875969+00:00",
+      "saved_at": "2026-10-14T21:54:12.889169+00:00",
+      "storage_eligible_pre_race": true,
+      "missing_reason": "OFFICIAL_ODDS_ALL_ZERO_PLACEHOLDER",
+      "data_is_null": true
+    }
+  ]
+}

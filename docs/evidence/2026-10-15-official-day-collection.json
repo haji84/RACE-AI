@@ -1,0 +1,47 @@
+{
+  "date_jst": "2026-10-15",
+  "verification": "ACTUAL_OFFICIAL_TWO_SOURCE_COLLECTION_AND_LOCAL_API_VALIDATION",
+  "owner_review": "user-confirmation-2026-10-15-official-facts",
+  "payload_sha256": "5438656a8a2844ba2ab18c520759c38f90912ac5fb3af2c24cdc67c1d0d0c4a7",
+  "races": 156,
+  "boats": 936,
+  "complete_six_boat_races": 156,
+  "active_venues": [
+    "02",
+    "04",
+    "06",
+    "10",
+    "11",
+    "12",
+    "13",
+    "14",
+    "15",
+    "20",
+    "21",
+    "22",
+    "24"
+  ],
+  "ready_venues": 13,
+  "no_event_venues": 11,
+  "sources": [
+    {
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/index?hd=20261015",
+      "source_sha256": "7ee7d1d5981f67040995407ae43055c3b5ea9e49458ca0f643d46ba199de8232",
+      "first_observed_at": "2026-10-14T18:17:19.816293+00:00"
+    },
+    {
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261015.lzh",
+      "source_sha256": "d1943dbff930d78a76c1342858b20ff5fefcbaf51b3dae52b24ecc5e2747d5ef",
+      "first_observed_at": "2026-10-14T18:17:29.157972+00:00",
+      "extracted_text_sha256": "17044ffb0bb9a74852a59e31123e630efabc58186d8dad63d6bd38ef241f6998",
+      "source_hash_scope": "downloaded_archive"
+    }
+  ],
+  "source_originals_retained": false,
+  "cloud_publication_evidence": "separate root-owned live E2E",
+  "limitations": [
+    "same-meeting B/K reconciliation not performed",
+    "motor allocation cycle unverified",
+    "no current exhibition or odds collected"
+  ]
+}

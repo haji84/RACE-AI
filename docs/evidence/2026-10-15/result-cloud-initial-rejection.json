@@ -1,0 +1,32 @@
+{
+  "status": "LIVE_RESULT_ATTEMPT_SAFE_STOPPED",
+  "race_id": "20261015-14-01",
+  "closed_at": "2026-10-15T08:35:00+09:00",
+  "application_commit": "df99984eede564aff259f7ecb962801d77231041",
+  "workflow_commit": "6a5c1aaffe168b8688eedd5e0a6c046e3389707a",
+  "workflow_content_sha": "be033d5e02c4423c8bed044c000a044882397e16",
+  "run_id": 38655290610,
+  "job_id": 116163480871,
+  "url": "https://github.com/haji84/RACE-AI/actions/runs/38655290610",
+  "attempt_started_at": "2026-10-14T23:38:39.494773+00:00",
+  "safe_stop_logged_at": "2026-10-14T23:38:42.001339+00:00",
+  "error": "RACE_ALL_SOURCES_UNAVAILABLE",
+  "request_backup_created": false,
+  "publication_not_attempted": true,
+  "previous_prediction_and_observation_preserved": true,
+  "initial_source_original_or_hash_retained": false,
+  "diagnostic_later": {
+    "separate_source_capture": true,
+    "captured_at": "2026-10-14T23:42:30.451575+00:00",
+    "http_status": 200,
+    "bytes": 46023,
+    "sha256": "bd77978e6a02ff981675ce1656797099c93d926b03fd289bfb4e3f1410908f70",
+    "date_venue_race_and_close_verified": true,
+    "source_url": "https://www.boatrace.jp/owpc/pc/race/raceresult?rno=1&jcd=14&hd=20261015",
+    "parser_error": "expected one finish table matching 着/枠/ボートレーサー/レースタイム",
+    "source_original_only_in_ephemeral_memory": true,
+    "source_original_retained_on_disk": false,
+    "no_second_diagnostic_get": true,
+    "note": "Later diagnostic bytes/hash cannot be attributed to the earlier failed attempt."
+  }
+}

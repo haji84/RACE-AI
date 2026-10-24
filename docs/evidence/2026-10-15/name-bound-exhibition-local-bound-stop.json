@@ -1,0 +1,44 @@
+{
+  "schema_version": 1,
+  "status": "LOCAL_TRANSPORT_REJECTED_NO_PUBLICATION",
+  "race_id": "20261015-15-03",
+  "run_id": 38695885356,
+  "job_id": 116292238823,
+  "artifact_id": 11953004897,
+  "artifact_retention_days": 14,
+  "application_commit": "5485cc86b901fcaf5b0f9a26732b6d53c41a1724",
+  "workflow_commit": "88056c0e4f875917e1012b5ae63ac56eee87e1c9",
+  "transport_attempts": 1,
+  "actual_official_gets": 0,
+  "posts_attempted": 0,
+  "normalized_backup_files": 3,
+  "normalized_backup_bytes": 33806,
+  "zip_bytes": 5975,
+  "zip_sha256": "da37e9ba49676a0e2dafc587a70eb69ba912b1c8d477b9804bc0168b37f20b85",
+  "full_backup_restored": true,
+  "baseline_and_name_proof_hashes": {
+    "baseline.json": {
+      "bytes": 29755,
+      "sha256": "ecbd47b6d6c0fe5fb4f8812e2c7316dfe4a15825ed3ed65a1a582ad803d4c1ea"
+    },
+    "name-binding.json": {
+      "bytes": 3405,
+      "sha256": "19960fb8d38ee0357af481d7a80ad46bad337bd254365fa10da26d614c32b73b"
+    }
+  },
+  "root_cause": "New worker passed1048576 to the existing official HTML fetcher requiring1000000; endpoint/bounds guard rejects before build_opener",
+  "offline_root_cause_reproduction": "HTTP opener patched with a sentinel; SourceError update bounds or endpoint changed occurs before opener",
+  "diagnostic_transport_attempts": 1,
+  "diagnostic_actual_official_gets": 0,
+  "diagnostic_did_not_publish": true,
+  "corrective_commit": "28ee0ced23b3fe2ec28cda9c1de9a7ad5387839d",
+  "regression": "Actual default HTML fetcher with only HTTP opener mocked fails before correction, then completes three sources; oversized HTML1000001 rejected, existing TSV1048576 retained",
+  "local_python_tests": 816,
+  "focused_source_tests": 15,
+  "independent_corrective_review": "4c15b196..28ee0ced PASS; no Critical/Important",
+  "original_sources_retained": false,
+  "old_predictions_mutated": false,
+  "validation_status": "UNVALIDATED",
+  "purchase_decision": "skip",
+  "purchase_recommendations": []
+}

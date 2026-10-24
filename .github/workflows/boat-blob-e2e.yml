@@ -1,0 +1,750 @@
+name: RACE AI Preview Blob E2E
+on:
+  workflow_dispatch:
+    inputs:
+      collection:
+        description: Research uses saved day facts; day collection only when missing or at least six hours old
+        type: choice
+        options: [research, exhibition, original, cohort, evaluation, result, race, day, name-binding, name-bound-exhibition, name-bound-evaluation, name-bound-result]
+        default: research
+        required: true
+      name_bound_race_id:
+        description: Exact current-day race for name-bound forecast, saved evaluation, or postclose result label
+        type: string
+        required: false
+        default: ''
+      name_bound_binding_request_id:
+        description: Exact finalized immutable name proof request id
+        type: string
+        required: false
+        default: ''
+      name_bound_forecast_request_id:
+        description: Exact saved immutable name-bound forecast request id for evaluation or postclose result label
+        type: string
+        required: false
+        default: ''
+      result_disposition_contract:
+        description: Explicit result disposition contract; default preserves legacy collection
+        type: choice
+        options: [legacy, official-result-dispositions/v2]
+        default: legacy
+        required: false
+      name_binding_race_id:
+        description: Exact current-day future race with an existing frozen baseline
+        type: string
+        required: false
+        default: ''
+      cohort_selection:
+        description: Scope of saved B-only baselines; each batch preserves existing receipts and writes at most24
+        type: choice
+        options: [next-per-venue, all-upcoming]
+        default: next-per-venue
+        required: false
+      exhibition_race_id:
+        description: Exact current-day upcoming race for paired saved forecasts
+        type: string
+        required: false
+        default: '20261015-14-08'
+      result_race_id:
+        description: Current-day closed race to reconcile with its previously saved forecast
+        type: string
+        required: false
+        default: '20261015-14-01'
+  push:
+    branches: [feat/boat-oidc-probe-auth]
+    paths:
+      - .github/workflows/boat-blob-e2e.yml
+      - scripts/run_private_blob_probe.py
+      - web/api/blob-probe.py
+      - web/api/github_oidc.py
+permissions:
+  contents: read
+  id-token: write
+concurrency:
+  group: race-ai-preview-official-day-publisher
+  cancel-in-progress: false
+jobs:
+  private-blob-roundtrip:
+    if: github.repository == 'haji84/RACE-AI' && github.ref == 'refs/heads/feat/boat-oidc-probe-auth'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: blob-e2e-preview
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 325ddce19ae999d626782a9929e6511c17d60ba1
+          persist-credentials: false
+      - name: Diagnose runner identity (non-secret)
+        run: |
+          echo "E2E_RUN_STARTED"
+          echo "repository=$GITHUB_REPOSITORY"
+          echo "ref=$GITHUB_REF"
+          echo "event=$GITHUB_EVENT_NAME"
+          if [ -z "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then echo "OIDC_REQUEST_URL_MISSING"; exit 1; fi
+          if [ -z "${ACTIONS_ID_TOKEN_REQUEST_TOKEN:-}" ]; then echo "OIDC_REQUEST_TOKEN_MISSING"; exit 1; fi
+      - name: Verify private Blob with GitHub OIDC
+        env:
+          RACE_AI_PROBE_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/blob-probe
+          RACE_AI_PROBE_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
+        run: python3 scripts/run_private_blob_probe.py
+
+# OIDC Preview E2E trigger; no shared secret is used.
+
+
+      - name: Checkout reviewed current-day collector
+        uses: actions/checkout@v4
+        with:
+          ref: a4889c443d168c45df253c28086ebed7ba566e18
+          path: day-source
+          persist-credentials: false
+      - name: Checkout reviewed opt-in result disposition v2
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'name-bound-result' && inputs.result_disposition_contract == 'official-result-dispositions/v2'
+        uses: actions/checkout@v4
+        with:
+          ref: ad6d7d256e3477cf942a59d1afc1c9a5c29f652f
+          path: result-v2-source
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install pinned collector runtime
+        run: python -m pip install -r day-source/requirements-worker.txt
+      - name: Automatically collect approved current JST official facts
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
+        working-directory: day-source
+        run: |
+          DAY=$(TZ=Asia/Tokyo date +%F)
+          python -m race_ai.national_day_pipeline --date "$DAY" --review config/operator-official-facts.json --output "$RUNNER_TEMP/race-ai-day.json" --execute
+      - name: Publish private current-day version and verify today API SHA
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
+        env:
+          RACE_AI_DAY_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-day
+          RACE_AI_DAY_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
+        run: python day-source/scripts/publish_day_feed.py --feed "$RUNNER_TEMP/race-ai-day.json"
+      - name: Back up only the approved normalized day facts
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: official-day-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-day.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore the normalized backup into a separate directory
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: official-day-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-restored
+      - name: Verify exact restored backup bytes
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'day'
+        run: |
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          folder = Path(os.environ['RUNNER_TEMP'])
+          original = (folder / 'race-ai-day.json').read_bytes()
+          restored = (folder / 'race-ai-restored' / 'race-ai-day.json').read_bytes()
+          if not original or len(original) > 6000000 or original != restored:
+              raise SystemExit('BACKUP_RESTORE_MISMATCH')
+          print(json.dumps({'result':'GITHUB_BACKUP_RESTORE_VERIFIED','bytes':len(restored),'file_sha256':hashlib.sha256(restored).hexdigest()}))
+          PY
+
+      - name: Collect one race, publish immutable observations and verify race API
+        id: race
+        if: inputs.collection == 'exhibition' || inputs.collection == 'original' || inputs.collection == 'race' || inputs.collection == 'result'
+        env:
+          RACE_AI_RACE_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-race
+          RACE_AI_RACE_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
+          RACE_AI_RESULT_MODE: ${{ inputs.collection == 'exhibition' && 'exhibition' || inputs.collection == 'original' && 'exhibition' || inputs.collection == 'race' && 'auto' || 'result' }}
+          RACE_AI_RESULT_RACE_ID: ${{ inputs.result_race_id || '20261015-14-01' }}
+          RACE_AI_EXHIBITION_RACE_ID: ${{ inputs.exhibition_race_id || '20261015-14-08' }}
+        run: |
+          result=0
+          if [ "$RACE_AI_RESULT_MODE" = result ]; then
+            python day-source/scripts/publish_race_updates.py --mode result --race-id "$RACE_AI_RESULT_RACE_ID" --review day-source/config/operator-official-facts.json --output "$RUNNER_TEMP/race-ai-race.json" --execute || result=$?
+          elif [ "$RACE_AI_RESULT_MODE" = exhibition ]; then
+            python day-source/scripts/publish_race_updates.py --mode exhibition --race-id "$RACE_AI_EXHIBITION_RACE_ID" --review day-source/config/operator-official-facts.json --output "$RUNNER_TEMP/race-ai-race.json" --execute || result=$?
+          else
+            python day-source/scripts/publish_race_updates.py --review day-source/config/operator-official-facts.json --output "$RUNNER_TEMP/race-ai-race.json" --execute || result=$?
+          fi
+          if [ -f "$RUNNER_TEMP/race-ai-race.request.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
+          exit "$result"
+      - name: Back up only normalized approved race facts and receipts
+        if: always() && steps.race.outputs.backup_exists == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: official-race-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/race-ai-race.request.json
+            ${{ runner.temp }}/race-ai-race.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore approved race backup into a separate directory
+        if: success() && steps.race.outputs.backup_exists == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: official-race-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-race-restored
+      - name: Verify exact restored race observation and receipt bytes
+        if: success() && steps.race.outputs.backup_exists == 'true'
+        run: |
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          folder = Path(os.environ['RUNNER_TEMP'])
+          for name in ('race-ai-race.request.json', 'race-ai-race.json'):
+              original = (folder / name).read_bytes()
+              restored = (folder / 'race-ai-race-restored' / name).read_bytes()
+              if not original or len(original) > 256000 or original != restored:
+                  raise SystemExit('RACE_BACKUP_RESTORE_MISMATCH')
+              print(json.dumps({'result':'RACE_BACKUP_RESTORE_VERIFIED','file':name,'bytes':len(restored),'file_sha256':hashlib.sha256(restored).hexdigest()}))
+          PY
+
+      - name: Generate durable pre-cutoff research prediction and verify API
+        id: research
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'research'
+        env:
+          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-prediction
+          RACE_AI_RESEARCH_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
+        run: |
+          result=0
+          python day-source/scripts/publish_research_prediction.py --output "$RUNNER_TEMP/race-ai-research.json" --execute || result=$?
+          if [ -f "$RUNNER_TEMP/race-ai-research.request.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
+          exit "$result"
+      - name: Back up normalized research request and durable receipt
+        if: always() && steps.research.outputs.backup_exists == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: research-prediction-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/race-ai-research.request.json
+            ${{ runner.temp }}/race-ai-research.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore research backup into a separate directory
+        if: success() && steps.research.outputs.backup_exists == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: research-prediction-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-research-restored
+      - name: Verify exact restored research bytes
+        if: success() && steps.research.outputs.backup_exists == 'true'
+        run: |
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          folder = Path(os.environ['RUNNER_TEMP'])
+          for name in ('race-ai-research.request.json', 'race-ai-research.json'):
+              original = (folder / name).read_bytes()
+              restored = (folder / 'race-ai-research-restored' / name).read_bytes()
+              if not original or len(original) > 256000 or original != restored:
+                  raise SystemExit('RESEARCH_BACKUP_RESTORE_MISMATCH')
+              print(json.dumps({'result':'RESEARCH_BACKUP_RESTORE_VERIFIED','file':name,'bytes':len(restored),'file_sha256':hashlib.sha256(restored).hexdigest()}))
+          PY
+
+      - name: Independently replay protected research evaluation from durable receipts
+        id: evaluation
+        if: success() && (inputs.collection == 'evaluation' || (steps.race.outputs.backup_exists == 'true' && inputs.collection == 'result'))
+        env:
+          RACE_AI_EVALUATION_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/evaluation
+          RACE_AI_EVALUATION_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
+          RACE_AI_EVALUATION_RACE_ID: ${{ inputs.result_race_id || '20261015-14-01' }}
+        run: |
+          python day-source/scripts/verify_research_evaluation.py --race-id "$RACE_AI_EVALUATION_RACE_ID" --output "$RUNNER_TEMP/race-ai-evaluation.json" --execute
+          if [ -f "$RUNNER_TEMP/race-ai-evaluation.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
+      - name: Back up only the verified normalized evaluation report
+        if: success() && steps.evaluation.outputs.backup_exists == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: research-evaluation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-evaluation.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore evaluation report into a separate directory
+        if: success() && steps.evaluation.outputs.backup_exists == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: research-evaluation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-evaluation-restored
+      - name: Verify exact restored evaluation report bytes
+        if: success() && steps.evaluation.outputs.backup_exists == 'true'
+        run: |
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          folder = Path(os.environ['RUNNER_TEMP'])
+          original = (folder / 'race-ai-evaluation.json').read_bytes()
+          restored = (folder / 'race-ai-evaluation-restored' / 'race-ai-evaluation.json').read_bytes()
+          if not original or len(original) > 256000 or original != restored:
+              raise SystemExit('EVALUATION_BACKUP_RESTORE_MISMATCH')
+          print(json.dumps({'result':'RESEARCH_EVALUATION_BACKUP_RESTORE_VERIFIED','bytes':len(restored),'file_sha256':hashlib.sha256(restored).hexdigest()}))
+          PY
+
+
+      - name: Save bounded upcoming national research cohort without replacing forecasts
+        id: cohort
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'cohort'
+        env:
+          RACE_AI_RESEARCH_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-prediction
+          RACE_AI_RESEARCH_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
+          RACE_AI_COHORT_SELECTION: ${{ inputs.cohort_selection || 'next-per-venue' }}
+          RACE_AI_COHORT_MAX_SECONDS: ${{ inputs.cohort_selection == 'all-upcoming' && '480' || '240' }}
+        run: |
+          result=0
+          python day-source/scripts/publish_research_cohort.py --output-dir "$RUNNER_TEMP/race-ai-cohort" --selection "$RACE_AI_COHORT_SELECTION" --max-races 24 --max-seconds "$RACE_AI_COHORT_MAX_SECONDS" --max-reads 313 --execute || result=$?
+          if [ -f "$RUNNER_TEMP/race-ai-cohort/manifest.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
+          exit "$result"
+      - name: Back up only normalized cohort requests receipts and manifest
+        if: always() && steps.cohort.outputs.backup_exists == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: research-cohort-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-cohort/*.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore cohort backup into a separate directory
+        if: always() && steps.cohort.outputs.backup_exists == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: research-cohort-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-cohort-restored
+      - name: Verify every normalized cohort backup byte and receipt digest
+        if: always() && steps.cohort.outputs.backup_exists == 'true'
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, re
+          from pathlib import Path
+          root = Path(os.environ['RUNNER_TEMP'])
+          original = root / 'race-ai-cohort'
+          restored = root / 'race-ai-cohort-restored'
+          names = sorted(p.name for p in original.iterdir())
+          if names != sorted(p.name for p in restored.iterdir()) or not 1 <= len(names) <= 49:
+              raise SystemExit('COHORT_BACKUP_FILE_COVERAGE_MISMATCH')
+          for name in names:
+              if name != 'manifest.json' and not re.fullmatch(r'[0-9]{8}-(0[1-9]|1[0-9]|2[0-4])-(0[1-9]|1[0-2])\.(request|receipt)\.json', name):
+                  raise SystemExit('COHORT_BACKUP_UNEXPECTED_FILE')
+              before, after = (original / name).read_bytes(), (restored / name).read_bytes()
+              if not 0 < len(after) <= 256000 or before != after:
+                  raise SystemExit('COHORT_BACKUP_RESTORE_MISMATCH')
+              print(json.dumps({'result':'COHORT_BACKUP_RESTORE_VERIFIED','file':name,'bytes':len(after),'file_sha256':hashlib.sha256(after).hexdigest()}))
+          manifest = json.loads((restored / 'manifest.json').read_bytes())
+          if manifest['validation_status'] != 'UNVALIDATED' or manifest['purchase_decision'] != 'skip' or manifest['purchase_recommendations'] != [] or manifest['official_source_requests'] != 0:
+              raise SystemExit('COHORT_RESEARCH_STATE_CONFLICT')
+          if manifest['schema_version'] != 2 or manifest['status'] not in {'COMPLETED','BATCH_LIMIT_REACHED','TIME_LIMIT_REACHED','READ_LIMIT_REACHED','STOPPED'}:
+              raise SystemExit('COHORT_MANIFEST_STATE_INVALID')
+          selected, attempted = manifest['selected_race_ids'], manifest['attempted_race_ids']
+          groups = [[row['race_id'] for row in manifest[kind]] for kind in ('saved','preserved','skipped')]
+          finished = [identifier for group in groups for identifier in group]
+          if (len(selected)!=len(set(selected)) or len(attempted)!=len(set(attempted)) or len(finished)!=len(set(finished))
+              or not set(finished)<=set(attempted)<=set(selected)
+              or manifest['not_attempted_race_ids']!=[identifier for identifier in selected if identifier not in attempted]
+              or manifest['pending_race_ids']!=[identifier for identifier in selected if identifier not in finished]
+              or manifest['status']=='COMPLETED' and manifest['pending_race_ids']):
+              raise SystemExit('COHORT_MANIFEST_COVERAGE_CONFLICT')
+          slots=manifest['request_backups']
+          if not (0<=manifest['posts_attempted']<=manifest['write_slots_used']==len(slots)<=manifest['max_races']<=24
+                  and 0<=manifest['reads_used']<=manifest['max_reads']<=313
+                  and manifest['selection'] in {'next-per-venue','all-upcoming'}
+                  and 0<manifest['max_seconds']<=(480 if manifest['selection']=='all-upcoming' else 240)):
+              raise SystemExit('COHORT_MANIFEST_BUDGET_CONFLICT')
+          if {row['race_id']+'.request.json' for row in slots}!={name for name in names if name.endswith('.request.json')}:
+              raise SystemExit('COHORT_REQUEST_BACKUP_COVERAGE_CONFLICT')
+          if {row['race_id']+'.receipt.json' for row in manifest['saved']}!={name for name in names if name.endswith('.receipt.json')}:
+              raise SystemExit('COHORT_RECEIPT_BACKUP_COVERAGE_CONFLICT')
+          for row in slots:
+              raw=(restored/(row['race_id']+'.request.json')).read_bytes()
+              meta=row['request_backup']
+              if len(raw)!=meta['bytes'] or hashlib.sha256(raw).hexdigest()!=meta['sha256']:
+                  raise SystemExit('COHORT_REQUEST_BACKUP_DIGEST_CONFLICT')
+          for saved in manifest['saved']:
+              for kind in ('request','receipt'):
+                  raw = (restored / (saved['race_id']+'.'+kind+'.json')).read_bytes()
+                  metadata = saved[kind+'_backup']
+                  if len(raw) != metadata['bytes'] or hashlib.sha256(raw).hexdigest() != metadata['sha256']:
+                      raise SystemExit('COHORT_MANIFEST_DIGEST_CONFLICT')
+          print(json.dumps({'result':'COHORT_MANIFEST_RESTORE_VERIFIED','status':manifest['status'],'saved':len(manifest['saved']),'preserved':len(manifest['preserved']),'skipped':len(manifest['skipped'])}))
+          PY
+
+      - name: Save immutable post-exhibition comparison and replay pinned inputs
+        id: exhibition
+        if: success() && inputs.collection == 'exhibition' && steps.race.outputs.backup_exists == 'true'
+        env:
+          RACE_AI_EXHIBITION_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-exhibition-prediction
+          RACE_AI_EXHIBITION_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
+        run: |
+          result=0
+          python day-source/scripts/publish_exhibition_prediction.py --race-input "$RUNNER_TEMP/race-ai-race.json" --output-dir "$RUNNER_TEMP/race-ai-exhibition" --execute || result=$?
+          if [ -d "$RUNNER_TEMP/race-ai-exhibition" ] && [ -n "$(find "$RUNNER_TEMP/race-ai-exhibition" -maxdepth 1 -name '*.json' -print -quit)" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
+          exit "$result"
+      - name: Back up only normalized exhibition comparison inputs and receipts
+        if: always() && steps.exhibition.outputs.backup_exists == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: post-exhibition-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-exhibition/*.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore exhibition comparison backup into a separate directory
+        if: always() && steps.exhibition.outputs.backup_exists == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: post-exhibition-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-exhibition-restored
+      - name: Verify every normalized exhibition backup byte and success manifest
+        if: always() && steps.exhibition.outputs.backup_exists == 'true'
+        run: |
+          python - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          folder = Path(os.environ['RUNNER_TEMP'])
+          original, restored = folder/'race-ai-exhibition', folder/'race-ai-exhibition-restored'
+          allowed = {'source.json','baseline-request.json','baseline.json','post-request.json','post.json','manifest.json'}
+          names = {p.name for p in original.iterdir()}
+          if not names or not names <= allowed or names != {p.name for p in restored.iterdir()}:
+              raise SystemExit('EXHIBITION_BACKUP_FILE_COVERAGE_MISMATCH')
+          for name in sorted(names):
+              before, after = (original/name).read_bytes(), (restored/name).read_bytes()
+              if not 0 < len(after) <= 256000 or before != after:
+                  raise SystemExit('EXHIBITION_BACKUP_RESTORE_MISMATCH')
+              print(json.dumps({'result':'EXHIBITION_BACKUP_RESTORE_VERIFIED','file':name,'bytes':len(after),'file_sha256':hashlib.sha256(after).hexdigest()}))
+          if 'manifest.json' in names:
+              manifest = json.loads((restored/'manifest.json').read_bytes())
+              if manifest['result'] != 'POST_EXHIBITION_API_VERIFIED' or manifest['validation_status'] != 'UNVALIDATED' or manifest['purchase_decision'] != 'skip' or manifest['purchase_recommendations'] != [] or manifest['official_source_requests'] != 0:
+                  raise SystemExit('EXHIBITION_RESEARCH_STATE_CONFLICT')
+              for name, metadata in manifest['backups'].items():
+                  if name not in names or name == 'manifest.json':
+                      raise SystemExit('EXHIBITION_MANIFEST_FILE_CONFLICT')
+                  raw = (restored/name).read_bytes()
+                  if len(raw) != metadata['bytes'] or hashlib.sha256(raw).hexdigest() != metadata['sha256']:
+                      raise SystemExit('EXHIBITION_MANIFEST_DIGEST_CONFLICT')
+              if set(manifest['backups']) != names-{'manifest.json'}:
+                  raise SystemExit('EXHIBITION_MANIFEST_FILE_COVERAGE_CONFLICT')
+              print(json.dumps({'result':'EXHIBITION_MANIFEST_RESTORE_VERIFIED','race_id':manifest['race_id'],'snapshot_id':manifest['snapshot_id']}))
+          PY
+
+      - name: Collect and freeze separate original-enhanced exhibition forecast
+        id: original
+        if: success() && inputs.collection == 'original' && steps.race.outputs.backup_exists == 'true'
+        working-directory: day-source
+        env:
+          RACE_AI_ORIGINAL_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-original-exhibition
+          RACE_AI_ORIGINAL_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
+          RACE_AI_EXHIBITION_RACE_ID: ${{ inputs.exhibition_race_id || '20261015-14-08' }}
+        run: |
+          result=0
+          python - <<'PY' || result=$?
+          import os, sys, urllib.request
+          from pathlib import Path
+          sys.path.insert(0, str(Path('scripts').resolve()))
+          from publish_race_updates import workflow_session
+          from publish_day_feed import get_json
+          from web.race_contract import canonical
+          opener, headers = workflow_session(os.environ['RACE_AI_ORIGINAL_COMMIT_SHA'])
+          base = os.environ['RACE_AI_ORIGINAL_PUBLISH_URL'].rsplit('/',1)[0]
+          feed = get_json(opener, urllib.request.Request(base+'/today',headers=headers),limit=6000000)
+          path = Path(os.environ['RUNNER_TEMP'])/'race-ai-original-day.json'
+          raw = canonical(feed)
+          with path.open('xb') as handle: handle.write(raw)
+          if path.read_bytes() != raw: raise SystemExit('ORIGINAL_DAY_LOCAL_READBACK_MISMATCH')
+          PY
+          if [ "$result" -eq 0 ]; then
+            python scripts/collect_original_exhibition.py --day-input "$RUNNER_TEMP/race-ai-original-day.json" --race-id "$RACE_AI_EXHIBITION_RACE_ID" --review config/operator-exhibition-media.json --output-dir "$RUNNER_TEMP/race-ai-original/collector" --execute || result=$?
+          fi
+          if [ "$result" -eq 0 ]; then
+            python scripts/publish_original_exhibition_prediction.py --original-input "$RUNNER_TEMP/race-ai-original/collector/input.json" --race-input "$RUNNER_TEMP/race-ai-race.json" --output-dir "$RUNNER_TEMP/race-ai-original/published" --execute || result=$?
+          fi
+          if [ -d "$RUNNER_TEMP/race-ai-original" ] && [ -n "$(find "$RUNNER_TEMP/race-ai-original" -name '*.json' -print -quit)" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
+          exit "$result"
+      - name: Back up only normalized original timing and forecast evidence
+        if: always() && steps.original.outputs.backup_exists == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: original-exhibition-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-original/**/*.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore original timing and forecast into a separate directory
+        if: always() && steps.original.outputs.backup_exists == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: original-exhibition-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-original-restored
+      - name: Verify all original timing and forecast restored bytes
+        if: always() && steps.original.outputs.backup_exists == 'true'
+        run: |
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])
+          original,restored=root/'race-ai-original',root/'race-ai-original-restored'
+          names={p.relative_to(original).as_posix() for p in original.rglob('*.json')}
+          allowed={'collector/observation.json','collector/input.json','collector/manifest.json',
+                   'published/race.json','published/original-request.json','published/original.json',
+                   'published/baseline-request.json','published/baseline.json','published/post-request.json','published/post.json','published/manifest.json'}
+          if not names or not names<=allowed or names!={p.relative_to(restored).as_posix() for p in restored.rglob('*') if p.is_file()}:
+              raise SystemExit('ORIGINAL_BACKUP_FILE_COVERAGE_MISMATCH')
+          for name in sorted(names):
+              before,after=(original/name).read_bytes(),(restored/name).read_bytes()
+              if not 0<len(after)<=256000 or before!=after: raise SystemExit('ORIGINAL_BACKUP_RESTORE_MISMATCH')
+              print(json.dumps({'result':'ORIGINAL_BACKUP_RESTORE_VERIFIED','file':name,'bytes':len(after),'sha256':hashlib.sha256(after).hexdigest()}))
+          for directory in ('collector','published'):
+              manifest_path=directory+'/manifest.json'
+              if manifest_path not in names: continue
+              manifest=json.loads((restored/manifest_path).read_bytes())
+              backups=manifest['backups']
+              expected={name.split('/',1)[1] for name in names if name.startswith(directory+'/') and name!=manifest_path}
+              if set(backups)!=expected: raise SystemExit('ORIGINAL_MANIFEST_FILE_COVERAGE_CONFLICT')
+              for name,meta in backups.items():
+                  if directory+'/'+name not in names: raise SystemExit('ORIGINAL_MANIFEST_PATH_INVALID')
+                  raw=(restored/directory/name).read_bytes()
+                  if len(raw)!=meta['bytes'] or hashlib.sha256(raw).hexdigest()!=meta['sha256']: raise SystemExit('ORIGINAL_MANIFEST_DIGEST_CONFLICT')
+              if directory=='published' and (manifest['result'] not in {'ORIGINAL_EXHIBITION_PARTIAL_VERIFIED','ORIGINAL_EXHIBITION_PREDICTION_VERIFIED'} or manifest['validation_status']!='UNVALIDATED' or manifest['purchase_decision']!='skip' or manifest['purchase_recommendations']!=[] or manifest['official_source_requests']!=0):
+                  raise SystemExit('ORIGINAL_RESEARCH_STATE_CONFLICT')
+          print(json.dumps({'result':'ORIGINAL_ALL_CONTENT_RESTORE_VERIFIED','files':len(names)}))
+          PY
+
+      - name: Collect one independent official name binding
+        id: name_binding
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'name-binding'
+        env:
+          RACE_AI_NAME_BINDING_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-name-binding
+          RACE_AI_NAME_BINDING_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
+          RACE_AI_NAME_BINDING_RACE_ID: ${{ inputs.name_binding_race_id }}
+        run: |
+          result=0
+          python day-source/scripts/publish_name_binding.py --review day-source/config/operator-official-facts.json --race-id "$RACE_AI_NAME_BINDING_RACE_ID" --output-dir "$RUNNER_TEMP/race-ai-name-binding" --execute || result=$?
+          if [ -f "$RUNNER_TEMP/race-ai-name-binding/manifest.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
+          exit "$result"
+      - name: Back up normalized name binding evidence
+        if: always() && steps.name_binding.outputs.backup_exists == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: name-binding-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-name-binding/*.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore normalized name binding evidence
+        if: always() && steps.name_binding.outputs.backup_exists == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: name-binding-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-name-binding-restored
+      - name: Verify all normalized name binding backup bytes
+        if: always() && steps.name_binding.outputs.backup_exists == 'true'
+        run: |
+          python - <<'PY'
+          import hashlib,json,os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])
+          original,restored=root/'race-ai-name-binding',root/'race-ai-name-binding-restored'
+          allowed={'baseline.json','name-proof.json','request.json','receipt.json','manifest.json'}
+          names={p.name for p in original.iterdir()}
+          if not names<=allowed or 'manifest.json' not in names or names!={p.name for p in restored.iterdir()}:
+              raise SystemExit('NAME_BINDING_BACKUP_COVERAGE_INVALID')
+          for name in sorted(names):
+              before,after=(original/name).read_bytes(),(restored/name).read_bytes()
+              if not 0<len(after)<=64000 or before!=after:raise SystemExit('NAME_BINDING_BACKUP_BYTES_INVALID')
+          manifest=json.loads((restored/'manifest.json').read_bytes())
+          if manifest['status'] not in {'COMPLETED','STOPPED','TIME_LIMIT_REACHED'} or manifest['validation_status']!='UNVALIDATED' or manifest['purchase_decision']!='skip' or manifest['purchase_recommendations']!=[]:
+              raise SystemExit('NAME_BINDING_MANIFEST_INVALID')
+          if not 0<=manifest['official_source_requests']<=1 or not 0<=manifest['posts_attempted']<=1 or not 0<=manifest['reads_used']<=4 or manifest['max_seconds']!=180:
+              raise SystemExit('NAME_BINDING_BUDGET_INVALID')
+          if set(manifest['backups'])!=names-{'manifest.json'}:raise SystemExit('NAME_BINDING_BACKUP_COVERAGE_INVALID')
+          for name,meta in manifest['backups'].items():
+              raw=(restored/name).read_bytes()
+              if len(raw)!=meta['bytes'] or hashlib.sha256(raw).hexdigest()!=meta['sha256']:raise SystemExit('NAME_BINDING_BACKUP_DIGEST_INVALID')
+          if manifest['status']=='COMPLETED' and names!=allowed:raise SystemExit('NAME_BINDING_INCOMPLETE')
+          print(json.dumps({'result':'NAME_BINDING_BACKUP_RESTORE_VERIFIED','status':manifest['status'],'files':len(names)}))
+          PY
+
+      - name: Publish bounded name-bound exhibition forecasts
+        id: name_bound
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'name-bound-exhibition'
+        env:
+          RACE_AI_NAME_BOUND_PUBLISH_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-name-bound-exhibition
+          RACE_AI_NAME_BOUND_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
+          RACE_AI_NAME_BOUND_RACE_ID: ${{ inputs.name_bound_race_id }}
+          RACE_AI_NAME_BOUND_BINDING_REQUEST_ID: ${{ inputs.name_bound_binding_request_id }}
+        run: |
+          result=0
+          python day-source/scripts/publish_name_bound_exhibition.py --facts-review day-source/config/operator-official-facts.json --media-review day-source/config/operator-exhibition-media.json --race-id "$RACE_AI_NAME_BOUND_RACE_ID" --name-binding-request-id "$RACE_AI_NAME_BOUND_BINDING_REQUEST_ID" --output-dir "$RUNNER_TEMP/race-ai-name-bound" --execute || result=$?
+          if [ -f "$RUNNER_TEMP/race-ai-name-bound/manifest.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
+          exit "$result"
+      - name: Back up normalized name-bound evidence
+        if: always() && steps.name_bound.outputs.backup_exists == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: name-bound-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/race-ai-name-bound/baseline.json
+            ${{ runner.temp }}/race-ai-name-bound/name-binding.json
+            ${{ runner.temp }}/race-ai-name-bound/inputs.json
+            ${{ runner.temp }}/race-ai-name-bound/request.json
+            ${{ runner.temp }}/race-ai-name-bound/receipt.json
+            ${{ runner.temp }}/race-ai-name-bound/manifest.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore normalized name-bound evidence
+        if: always() && steps.name_bound.outputs.backup_exists == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: name-bound-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-name-bound-restored
+      - name: Verify full normalized name-bound backup restore
+        if: always() && steps.name_bound.outputs.backup_exists == 'true'
+        run: |
+          python - <<'PY'
+          import json,os,sys
+          from pathlib import Path
+          sys.path.insert(0,str(Path('day-source').resolve()))
+          from scripts.publish_name_bound_exhibition import ALLOWED,MAX_BYTES,verify_backups
+          root=Path(os.environ['RUNNER_TEMP'])
+          original,restored=root/'race-ai-name-bound',root/'race-ai-name-bound-restored'
+          names={p.name for p in original.iterdir()}
+          if not names<=ALLOWED or 'manifest.json' not in names or names!={p.name for p in restored.iterdir()}:
+              raise SystemExit('NAME_BOUND_BACKUP_COVERAGE_INVALID')
+          for name in names:
+              before,after=(original/name).read_bytes(),(restored/name).read_bytes()
+              if not 0<len(after)<=MAX_BYTES or before!=after:raise SystemExit('NAME_BOUND_BACKUP_BYTES_INVALID')
+          manifest=json.loads((restored/'manifest.json').read_bytes())
+          verify_backups(restored,manifest)
+          print(json.dumps({'result':'NAME_BOUND_BACKUP_RESTORE_VERIFIED','status':manifest['status'],'files':len(names)}))
+          PY
+
+      - name: Verify frozen name-bound evaluation against saved official result
+        id: name_bound_evaluation
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'name-bound-evaluation'
+        env:
+          RACE_AI_NAME_BOUND_EVALUATION_URL: https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/name-bound-evaluation
+          RACE_AI_NAME_BOUND_EVALUATION_COMMIT_SHA: 325ddce19ae999d626782a9929e6511c17d60ba1
+          RACE_AI_NAME_BOUND_RACE_ID: ${{ inputs.name_bound_race_id }}
+          RACE_AI_NAME_BOUND_FORECAST_REQUEST_ID: ${{ inputs.name_bound_forecast_request_id }}
+        run: |
+          result=0
+          python day-source/scripts/verify_name_bound_evaluation.py --race-id "$RACE_AI_NAME_BOUND_RACE_ID" --forecast-request-id "$RACE_AI_NAME_BOUND_FORECAST_REQUEST_ID" --output-dir "$RUNNER_TEMP/race-ai-name-bound-evaluation" --execute || result=$?
+          if [ -f "$RUNNER_TEMP/race-ai-name-bound-evaluation/manifest.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
+          exit "$result"
+      - name: Back up normalized name-bound evaluation evidence
+        if: always() && steps.name_bound_evaluation.outputs.backup_exists == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: name-bound-evaluation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/race-ai-name-bound-evaluation/program.json
+            ${{ runner.temp }}/race-ai-name-bound-evaluation/forecast.json
+            ${{ runner.temp }}/race-ai-name-bound-evaluation/result.json
+            ${{ runner.temp }}/race-ai-name-bound-evaluation/evaluation.json
+            ${{ runner.temp }}/race-ai-name-bound-evaluation/manifest.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore normalized name-bound evaluation evidence
+        if: always() && steps.name_bound_evaluation.outputs.backup_exists == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: name-bound-evaluation-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-name-bound-evaluation-restored
+      - name: Verify every name-bound evaluation backup byte and manifest
+        if: always() && steps.name_bound_evaluation.outputs.backup_exists == 'true'
+        run: |
+          python - <<'PY'
+          import json,os,sys
+          from pathlib import Path
+          sys.path.insert(0,str(Path('day-source').resolve()))
+          from scripts.verify_name_bound_evaluation import ALLOWED,MAX_BYTES,verify_backups
+          root=Path(os.environ['RUNNER_TEMP'])
+          original,restored=root/'race-ai-name-bound-evaluation',root/'race-ai-name-bound-evaluation-restored'
+          names={p.name for p in original.iterdir()}
+          if not names<=ALLOWED or 'manifest.json' not in names or names!={p.name for p in restored.iterdir()}:
+              raise SystemExit('NAME_BOUND_EVALUATION_BACKUP_COVERAGE_INVALID')
+          for name in names:
+              before,after=(original/name).read_bytes(),(restored/name).read_bytes()
+              if not 0<len(after)<=MAX_BYTES or before!=after:
+                  raise SystemExit('NAME_BOUND_EVALUATION_BACKUP_BYTES_INVALID')
+          manifest=json.loads((restored/'manifest.json').read_bytes())
+          verify_backups(restored,manifest)
+          print(json.dumps({'result':'NAME_BOUND_EVALUATION_BACKUP_RESTORE_VERIFIED','status':manifest['status'],'files':len(names)}))
+          PY
+
+      - name: Publish bounded name-bound official result
+        id: name_bound_result
+        if: github.event_name == 'workflow_dispatch' && inputs.collection == 'name-bound-result'
+        env:
+          RACE_AI_NAME_BOUND_RESULT_PUBLISH_URL: ${{ inputs.result_disposition_contract == 'official-result-dispositions/v2' && 'https://race-ai-preview-hhpqwut7w-qq1130034-1738.vercel.app/api/publish-name-bound-result' || 'https://race-ai-preview-psh5xouma-qq1130034-1738.vercel.app/api/publish-name-bound-result' }}
+          RACE_AI_NAME_BOUND_RESULT_COMMIT_SHA: ${{ inputs.result_disposition_contract == 'official-result-dispositions/v2' && 'ad6d7d256e3477cf942a59d1afc1c9a5c29f652f' || '325ddce19ae999d626782a9929e6511c17d60ba1' }}
+          RACE_AI_RESULT_DISPOSITION_CONTRACT: ${{ inputs.result_disposition_contract }}
+          RACE_AI_NAME_BOUND_RACE_ID: ${{ inputs.name_bound_race_id }}
+          RACE_AI_NAME_BOUND_FORECAST_REQUEST_ID: ${{ inputs.name_bound_forecast_request_id }}
+        run: |
+          result=0
+          if [ "$RACE_AI_RESULT_DISPOSITION_CONTRACT" = "official-result-dispositions/v2" ]; then
+            python result-v2-source/scripts/publish_name_bound_result.py --race-id "$RACE_AI_NAME_BOUND_RACE_ID" --forecast-request-id "$RACE_AI_NAME_BOUND_FORECAST_REQUEST_ID" --output-dir "$RUNNER_TEMP/race-ai-name-bound-result" --result-disposition-contract "$RACE_AI_RESULT_DISPOSITION_CONTRACT" --execute || result=$?
+          elif [ "$RACE_AI_RESULT_DISPOSITION_CONTRACT" = "legacy" ]; then
+            python day-source/scripts/publish_name_bound_result.py --race-id "$RACE_AI_NAME_BOUND_RACE_ID" --forecast-request-id "$RACE_AI_NAME_BOUND_FORECAST_REQUEST_ID" --output-dir "$RUNNER_TEMP/race-ai-name-bound-result" --execute || result=$?
+          else
+            exit 2
+          fi
+          if [ -f "$RUNNER_TEMP/race-ai-name-bound-result/manifest.json" ]; then echo "backup_exists=true" >> "$GITHUB_OUTPUT"; fi
+          exit "$result"
+      - name: Back up normalized name-bound result evidence
+        if: always() && steps.name_bound_result.outputs.backup_exists == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: name-bound-result-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/race-ai-name-bound-result/program.json
+            ${{ runner.temp }}/race-ai-name-bound-result/forecast.json
+            ${{ runner.temp }}/race-ai-name-bound-result/request.json
+            ${{ runner.temp }}/race-ai-name-bound-result/result.json
+            ${{ runner.temp }}/race-ai-name-bound-result/evaluation.json
+            ${{ runner.temp }}/race-ai-name-bound-result/manifest.json
+          if-no-files-found: error
+          retention-days: 14
+          include-hidden-files: false
+      - name: Restore normalized name-bound result evidence
+        if: always() && steps.name_bound_result.outputs.backup_exists == 'true'
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: name-bound-result-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/race-ai-name-bound-result-restored
+      - name: Verify every name-bound result byte and full replay
+        if: always() && steps.name_bound_result.outputs.backup_exists == 'true'
+        env:
+          RACE_AI_RESULT_DISPOSITION_CONTRACT: ${{ inputs.result_disposition_contract }}
+        run: |
+          python - <<'PY'
+          import json,os,sys
+          from pathlib import Path
+          selected=os.environ['RACE_AI_RESULT_DISPOSITION_CONTRACT']
+          if selected not in ('legacy','official-result-dispositions/v2'):
+              raise SystemExit('RESULT_DISPOSITION_CONTRACT_INVALID')
+          collector='result-v2-source' if selected=='official-result-dispositions/v2' else 'day-source'
+          sys.path.insert(0,str(Path(collector).resolve()))
+          from scripts.publish_name_bound_result import ALLOWED,MAX_BYTES,verify_backups
+          root=Path(os.environ['RUNNER_TEMP'])
+          original,restored=root/'race-ai-name-bound-result',root/'race-ai-name-bound-result-restored'
+          names={p.name for p in original.iterdir()}
+          if not names<=ALLOWED or 'manifest.json' not in names or names!={p.name for p in restored.iterdir()}:
+              raise SystemExit('NAME_BOUND_RESULT_BACKUP_COVERAGE_INVALID')
+          for name in names:
+              if (original/name).is_symlink() or (restored/name).is_symlink():
+                  raise SystemExit('NAME_BOUND_RESULT_BACKUP_LINK_INVALID')
+              before,after=(original/name).read_bytes(),(restored/name).read_bytes()
+              if not 0<len(after)<=MAX_BYTES or before!=after:
+                  raise SystemExit('NAME_BOUND_RESULT_BACKUP_BYTES_INVALID')
+          manifest=json.loads((restored/'manifest.json').read_bytes())
+          expected_contract=selected if selected=='official-result-dispositions/v2' else None
+          if manifest.get('result_disposition_contract')!=expected_contract:
+              raise SystemExit('RESULT_DISPOSITION_CONTRACT_MISMATCH')
+          verify_backups(restored,manifest)
+          print(json.dumps({'result':'NAME_BOUND_RESULT_BACKUP_RESTORE_VERIFIED','status':manifest['status'],'files':len(names)}))
+          PY

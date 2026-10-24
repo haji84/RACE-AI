@@ -1,0 +1,53 @@
+{
+  "application_base": "5aa2b0a4fb72e3eb011485c9591160037d37bf64",
+  "application_head": "325ddce19ae999d626782a9929e6511c17d60ba1",
+  "task_reviews": [
+    {
+      "task": 1,
+      "spec": "PASS",
+      "quality": "PASS",
+      "actionable_findings": 0
+    },
+    {
+      "task": 2,
+      "spec": "PASS",
+      "quality": "PASS",
+      "actionable_findings": 0
+    },
+    {
+      "task": 3,
+      "spec": "PASS",
+      "quality": "PASS",
+      "actionable_findings": 0
+    }
+  ],
+  "final_review": "PASS",
+  "operational_helper_review": "PASS",
+  "literal_pin_review": "PASS",
+  "actionable_findings": 0,
+  "static_reviews_not_runtime_claim": true,
+  "python_tests": 919,
+  "javascript_tests": 187,
+  "failures": 0,
+  "skips": 0,
+  "workflow_heredocs_compiled": 12,
+  "ruling_count": 5,
+  "rulings": [
+    "use separate forecast-scoped result namespace and full own-parent links instead of modifying legacy race storage/name matching — preserves immutable B/source identity and old clients — cost if wrong is additional storage/API plumbing and temporarily reduced label coverage, not fabricated results.",
+    "preserve existing evaluation schema1/UI proof projection after server-side full new-label validation; retain new label nonce/finalization in its own complete API/backups — keeps verified old4 behavior and avoids unrelated UI protocol changes — cost if wrong is that a viewer needs the dedicated label API/backup to inspect its request nonce rather than the score report alone.",
+    "canonical UTC microsecond formatting applies to newly authored packet/envelope clocks, while parser-owned record strings and hash remain unchanged and are checked as strict parsed instants — resolves explicit immutable-record requirement against existing parser offset/zero-fraction formatting — cost if wrong is accepting equivalent parser timestamp spellings; no rounding, time substitution, day or ordering relaxation.",
+    "an unseen request nonce requires packet/receipt/finalization all absent; even identical content-addressed packet reuse under another nonce rejects, while complete identical same-nonce retry replays — keeps partial/orphan evidence from becoming adopted and prevents duplicate publication — cost if wrong is conservative rejection of a legitimate duplicate/recovery attempt, requiring explicit review rather than silent reuse.",
+    "completed identical POST retry also requires a valid same-forecast latest index (possibly a newer nonce); missing/malformed index rejects, with no automatic repair, while a complete marker-backed pinned GET remains readable — treats indexed publication completion separately from immutable finalized recovery evidence — cost if wrong is rejecting an otherwise recoverable retry and requiring explicit recovery rather than silently adopting a partial index state."
+  ],
+  "scope": "Per-task and broad independent static reviews; live evidence independently audited separately. No repeated full branch review.",
+  "recoverable_sdd_archive": {
+    "status": "OWNED_SDD_WORKSPACE_ARCHIVE_FULL_BYTES_VERIFIED",
+    "files": 17,
+    "uncompressed_bytes": 409768,
+    "zip_bytes": 115350,
+    "sha256": "ba5555e7c680cd9f73a07d49830239e8e430604b5560320e389373cf69e4781c",
+    "workspace": "C:\\Users\\qq113\\OneDrive\\ドキュメント\\ChatGPT\\raceai\\.superpowers\\sdd\\2026-10-15-name-bound-result",
+    "archive": "C:\\Users\\qq113\\OneDrive\\ドキュメント\\ChatGPT\\raceai\\artifacts\\local\\name-bound-result-sdd-325ddce.zip",
+    "rulings": 5
+  }
+}

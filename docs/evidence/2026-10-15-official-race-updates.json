@@ -1,0 +1,81 @@
+{
+  "verification": "ACTUAL_HISTORICAL_OFFICIAL_HTML_PARSE_AND_APPEND_ONLY_SQLITE",
+  "race_id": "20261014-18-01",
+  "source_originals_committed": false,
+  "records": [
+    {
+      "kind": "beforeinfo",
+      "status": "AVAILABLE",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=1&jcd=18&hd=20261014",
+      "source_sha256": "37752bb91a4bb2862b45f8feca637a11b3a10adae1adece1dec86f26ffb1ae38",
+      "captured_at": "2026-10-14T18:24:16.158181+00:00",
+      "available_at": "2026-10-14T18:24:16.158181+00:00",
+      "saved_at": "2026-10-14T18:44:48.384278+00:00",
+      "snapshot_id": "b62ea8718cca694ca87c884b9a493b80e485c8b0840393c6885a8486de29f78a",
+      "eligible_pre_race": false,
+      "storage_eligible_pre_race": false,
+      "counts": {
+        "boats": 6,
+        "odds": 0,
+        "results": 0
+      },
+      "verified_market_types": [],
+      "settlement_ready": null,
+      "pre_race_query_result": null
+    },
+    {
+      "kind": "odds3t",
+      "status": "AVAILABLE",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/odds3t?rno=1&jcd=18&hd=20261014",
+      "source_sha256": "552a259b5f55af721dccc5a98925125e43fc00b6ba6f77050332d521584915b1",
+      "captured_at": "2026-10-14T18:24:18.109171+00:00",
+      "available_at": "2026-10-14T18:24:18.109171+00:00",
+      "saved_at": "2026-10-14T18:44:48.405602+00:00",
+      "snapshot_id": "354a5afce1a6db4d8428e2d2ba7063beb453c2988145dd530e6bf4e71dabae5a",
+      "eligible_pre_race": false,
+      "storage_eligible_pre_race": false,
+      "counts": {
+        "boats": 0,
+        "odds": 120,
+        "results": 0
+      },
+      "verified_market_types": [],
+      "settlement_ready": null,
+      "pre_race_query_result": null
+    },
+    {
+      "kind": "raceresult",
+      "status": "AVAILABLE",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceresult?rno=1&jcd=18&hd=20261014",
+      "source_sha256": "a260797a658d062322b8f5b70934b8084b41743105ace8d778e4a018f33a5a79",
+      "captured_at": "2026-10-14T18:24:16.141972+00:00",
+      "available_at": "2026-10-14T18:24:16.141972+00:00",
+      "saved_at": "2026-10-14T18:44:48.418851+00:00",
+      "snapshot_id": "81f168db53bd485c2f98be53d3ec7b02d4ebf4b2320e6012cb597ab661df12f6",
+      "eligible_pre_race": false,
+      "storage_eligible_pre_race": false,
+      "counts": {
+        "boats": 0,
+        "odds": 0,
+        "results": 6
+      },
+      "verified_market_types": [
+        "exacta",
+        "place",
+        "quinella",
+        "quinella_place",
+        "trifecta",
+        "trio",
+        "win"
+      ],
+      "settlement_ready": true,
+      "pre_race_query_result": null
+    }
+  ],
+  "limitations": [
+    "Historical captures occurred the next day and are not pre-race evidence",
+    "Actual course remains unknown",
+    "Returned-boat financial mapping remains gated",
+    "Dead-heat monetary coverage remains unverified"
+  ]
+}

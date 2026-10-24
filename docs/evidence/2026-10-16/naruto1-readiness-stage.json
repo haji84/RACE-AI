@@ -1,0 +1,397 @@
+{
+  "schema_version": 1,
+  "kind": "OWN_RACE_EXHIBITION_READINESS_AND_SCOPED_CALLERS",
+  "race_id": "20261016-14-01",
+  "recorded_at": "2026-10-15T23:27:17.165354+00:00",
+  "function_head": "0175bef122e2f1bf15b15ef60baff19686f368f6",
+  "baseline_request_id": "38764082826-1",
+  "name_binding_request_id": "38798278470-1",
+  "closed_at": "2026-10-15T23:35:00.000000+00:00",
+  "early_probe": {
+    "record": {
+      "beforeinfo": {
+        "available_at": "2026-10-15T22:34:05.264265+00:00",
+        "body_identity_verified": true,
+        "captured_at": "2026-10-15T22:34:05.264265+00:00",
+        "closed_at": "2026-10-16T08:35:00+09:00",
+        "data": null,
+        "eligible_pre_race": true,
+        "information_phase": "pre_race_observation",
+        "kind": "beforeinfo",
+        "missing_reason": "OFFICIAL_PREVIEW_EMPTY_EXHIBITION_GRID",
+        "observed_racers": [
+          {
+            "lane": 1,
+            "name": "川原   涼",
+            "racer_registration_id": "5137"
+          },
+          {
+            "lane": 2,
+            "name": "永松  良教",
+            "racer_registration_id": "5237"
+          },
+          {
+            "lane": 3,
+            "name": "草川  壮良",
+            "racer_registration_id": "5353"
+          },
+          {
+            "lane": 4,
+            "name": "藤本  元輝",
+            "racer_registration_id": "5179"
+          },
+          {
+            "lane": 5,
+            "name": "仲本   舜",
+            "racer_registration_id": "5258"
+          },
+          {
+            "lane": 6,
+            "name": "港   理樹",
+            "racer_registration_id": "5427"
+          }
+        ],
+        "race_id": "20261016-14-01",
+        "rights_review": "user-confirmation-2026-10-15-official-facts",
+        "schema_version": 1,
+        "source_sha256": "ac78efe8a2b1628f1c41dc107684c0e99103da13aac9cc45cc3815f08cfa210c",
+        "source_url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=1&jcd=14&hd=20261016",
+        "status": "PENDING",
+        "upstream_published_at": null
+      },
+      "cloud_posts": 0,
+      "complete_display_times": false,
+      "completed_at": "2026-10-15T22:34:05.578496+00:00",
+      "media_gets": 0,
+      "new_predictions": 0,
+      "official_beforeinfo_attempts": 1,
+      "physical_exhibition_phase_verified": false,
+      "race_id": "20261016-14-01",
+      "raw_media_or_source_originals_retained": false,
+      "started_at": "2026-10-15T22:33:55.840030+00:00",
+      "status": "READINESS_PROBE_COMPLETED",
+      "video_metadata_attempts": 1,
+      "video_metadata_error": "VIDEO_SOURCE_AUTH_UNAVAILABLE"
+    },
+    "path": "artifacts/local/phase-readiness-naruto1-early.json",
+    "bytes": 1530,
+    "sha256": "d2c51e1fd56b2101e74028e9b0c4ae1797e49d7edd70d2ec083009ba35fdba32"
+  },
+  "later_probes": [
+    {
+      "record": {
+        "cloud_posts": 0,
+        "completed_at": "2026-10-15T23:03:19.845455+00:00",
+        "observation": {
+          "available_at": "2026-10-15T23:03:19.834341+00:00",
+          "body_identity_verified": true,
+          "captured_at": "2026-10-15T23:03:19.834341+00:00",
+          "closed_at": "2026-10-16T08:35:00+09:00",
+          "data": null,
+          "eligible_pre_race": true,
+          "information_phase": "pre_race_observation",
+          "kind": "beforeinfo",
+          "missing_reason": "OFFICIAL_PREVIEW_EMPTY_EXHIBITION_GRID",
+          "observed_racers": [
+            {
+              "lane": 1,
+              "name": "川原   涼",
+              "racer_registration_id": "5137"
+            },
+            {
+              "lane": 2,
+              "name": "永松  良教",
+              "racer_registration_id": "5237"
+            },
+            {
+              "lane": 3,
+              "name": "草川  壮良",
+              "racer_registration_id": "5353"
+            },
+            {
+              "lane": 4,
+              "name": "藤本  元輝",
+              "racer_registration_id": "5179"
+            },
+            {
+              "lane": 5,
+              "name": "仲本   舜",
+              "racer_registration_id": "5258"
+            },
+            {
+              "lane": 6,
+              "name": "港   理樹",
+              "racer_registration_id": "5427"
+            }
+          ],
+          "race_id": "20261016-14-01",
+          "rights_review": "user-confirmation-2026-10-15-official-facts",
+          "schema_version": 1,
+          "source_sha256": "eb9da01b28aa221b05cbc666f6131afa85cb8cd1df379be1503e66f3d6c89906",
+          "source_url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=1&jcd=14&hd=20261016",
+          "status": "PENDING",
+          "upstream_published_at": null
+        },
+        "official_source_attempts": 1,
+        "physical_exhibition_phase_verified": false,
+        "race_id": "20261016-14-01",
+        "source_original_retained": false,
+        "started_at": "2026-10-15T23:03:11.389873+00:00",
+        "status": "SOURCE_PROBE_COMPLETED"
+      },
+      "path": "artifacts/local/naruto1-beforeinfo-probe-20261015T230311389873Z.json",
+      "bytes": 1361,
+      "sha256": "8b4bece6641c80566598361b8df22d3c384163cbb3e9c727494e38ea2213d94e"
+    },
+    {
+      "record": {
+        "cloud_posts": 0,
+        "completed_at": "2026-10-15T23:09:43.939904+00:00",
+        "observation": {
+          "available_at": "2026-10-15T23:09:43.930892+00:00",
+          "body_identity_verified": true,
+          "captured_at": "2026-10-15T23:09:43.930892+00:00",
+          "closed_at": "2026-10-16T08:35:00+09:00",
+          "data": null,
+          "eligible_pre_race": true,
+          "information_phase": "pre_race_observation",
+          "kind": "beforeinfo",
+          "missing_reason": "OFFICIAL_PREVIEW_EMPTY_EXHIBITION_GRID",
+          "observed_racers": [
+            {
+              "lane": 1,
+              "name": "川原   涼",
+              "racer_registration_id": "5137"
+            },
+            {
+              "lane": 2,
+              "name": "永松  良教",
+              "racer_registration_id": "5237"
+            },
+            {
+              "lane": 3,
+              "name": "草川  壮良",
+              "racer_registration_id": "5353"
+            },
+            {
+              "lane": 4,
+              "name": "藤本  元輝",
+              "racer_registration_id": "5179"
+            },
+            {
+              "lane": 5,
+              "name": "仲本   舜",
+              "racer_registration_id": "5258"
+            },
+            {
+              "lane": 6,
+              "name": "港   理樹",
+              "racer_registration_id": "5427"
+            }
+          ],
+          "race_id": "20261016-14-01",
+          "rights_review": "user-confirmation-2026-10-15-official-facts",
+          "schema_version": 1,
+          "source_sha256": "696e32843f2e8c51338d085164186b49ad589d93cc11a2802e568ea17a8b9e22",
+          "source_url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=1&jcd=14&hd=20261016",
+          "status": "PENDING",
+          "upstream_published_at": null
+        },
+        "official_source_attempts": 1,
+        "physical_exhibition_phase_verified": false,
+        "race_id": "20261016-14-01",
+        "source_original_retained": false,
+        "started_at": "2026-10-15T23:09:35.497387+00:00",
+        "status": "SOURCE_PROBE_COMPLETED"
+      },
+      "path": "artifacts/local/naruto1-beforeinfo-probe-20261015T230935497387Z.json",
+      "bytes": 1361,
+      "sha256": "71eda9490afd6a7564b07f4a50f7f1affc36489c4802a90d001945597fa8001d"
+    },
+    {
+      "record": {
+        "cloud_posts": 0,
+        "completed_at": "2026-10-15T23:12:28.184799+00:00",
+        "observation": {
+          "kind": "beforeinfo",
+          "race_id": "20261016-14-01",
+          "source_url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=1&jcd=14&hd=20261016",
+          "status": "SOURCE_UNAVAILABLE"
+        },
+        "official_source_attempts": 1,
+        "physical_exhibition_phase_verified": false,
+        "race_id": "20261016-14-01",
+        "source_original_retained": false,
+        "started_at": "2026-10-15T23:12:17.946886+00:00",
+        "status": "SOURCE_PROBE_COMPLETED"
+      },
+      "path": "artifacts/local/naruto1-beforeinfo-probe-20261015T231217946886Z.json",
+      "bytes": 462,
+      "sha256": "d7c8c8110d19596b5d23f4c38aa37afb9790628fe54854d80faaba5867699f29"
+    },
+    {
+      "record": {
+        "cloud_posts": 0,
+        "completed_at": "2026-10-15T23:16:28.171366+00:00",
+        "observation": {
+          "kind": "beforeinfo",
+          "race_id": "20261016-14-01",
+          "source_url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=1&jcd=14&hd=20261016",
+          "status": "SOURCE_UNAVAILABLE"
+        },
+        "official_source_attempts": 1,
+        "physical_exhibition_phase_verified": false,
+        "race_id": "20261016-14-01",
+        "source_original_retained": false,
+        "started_at": "2026-10-15T23:16:17.924538+00:00",
+        "status": "SOURCE_PROBE_COMPLETED"
+      },
+      "path": "artifacts/local/naruto1-beforeinfo-probe-20261015T231617924538Z.json",
+      "bytes": 462,
+      "sha256": "7e383ddcf9ad28ff34f7b111e848ef6d19557275f10cd9f4b99f25781e61d3fa"
+    },
+    {
+      "record": {
+        "cloud_posts": 0,
+        "completed_at": "2026-10-15T23:19:41.224160+00:00",
+        "observation": {
+          "kind": "beforeinfo",
+          "race_id": "20261016-14-01",
+          "source_url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=1&jcd=14&hd=20261016",
+          "status": "SOURCE_UNAVAILABLE"
+        },
+        "official_source_attempts": 1,
+        "physical_exhibition_phase_verified": false,
+        "race_id": "20261016-14-01",
+        "source_original_retained": false,
+        "started_at": "2026-10-15T23:19:30.992010+00:00",
+        "status": "SOURCE_PROBE_COMPLETED",
+        "transport_elapsed_seconds": 10.219,
+        "transport_error_type": "TimeoutError"
+      },
+      "path": "artifacts/local/naruto1-beforeinfo-probe-20261015T231930992010Z.json",
+      "bytes": 535,
+      "sha256": "95e31e83a6b8731a9aa221471f1663e5053c32cbc99ffca5fdf097f63c6d8444"
+    },
+    {
+      "record": {
+        "cloud_posts": 0,
+        "completed_at": "2026-10-15T23:22:28.849797+00:00",
+        "observation": {
+          "kind": "beforeinfo",
+          "race_id": "20261016-14-01",
+          "source_url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=1&jcd=14&hd=20261016",
+          "status": "SOURCE_UNAVAILABLE"
+        },
+        "official_source_attempts": 1,
+        "physical_exhibition_phase_verified": false,
+        "race_id": "20261016-14-01",
+        "source_original_retained": false,
+        "started_at": "2026-10-15T23:22:18.597556+00:00",
+        "status": "SOURCE_PROBE_COMPLETED",
+        "transport_elapsed_seconds": 10.234,
+        "transport_error_type": "TimeoutError"
+      },
+      "path": "artifacts/local/naruto1-beforeinfo-probe-20261015T232218597556Z.json",
+      "bytes": 535,
+      "sha256": "17729e1a256e3818182da15e4f6a4e8f8942ca1ce590f6e435819c22dbf45899"
+    }
+  ],
+  "official_beforeinfo_attempts_total": 7,
+  "recording_index_attempts_total": 1,
+  "media_gets": 0,
+  "new_forecast_posts": 0,
+  "new_forecasts": 0,
+  "numeric_remote_absence_verified": false,
+  "workflow_dispatched": false,
+  "physical_exhibition_pairs": 0,
+  "independent_clock_verified": false,
+  "physical_exhibition_time_verified": false,
+  "validation_status": "UNVALIDATED",
+  "purchase_decision": "skip",
+  "purchase_recommendations": [],
+  "source_originals_media_frames_tokens_keys_retained": false,
+  "reviewed_helpers": [
+    {
+      "path": "artifacts/local/dispatch-name-bound16-reviewed.py",
+      "bytes": 9055,
+      "sha256": "7bca0af6b4f26460bdf8cf0b66fd73affdb39aebaa6dcc99f71dd9a502ae1599"
+    },
+    {
+      "path": "artifacts/local/probe-naruto1-beforeinfo-ready.py",
+      "bytes": 4796,
+      "sha256": "ddcc103da3b87e6b3e0583e3a91be4c347571e5a6cae7dca24a23afb47bdaad4"
+    },
+    {
+      "path": "artifacts/local/probe-naruto1-beforeinfo-diagnostic.py",
+      "bytes": 5618,
+      "sha256": "3f61854e80cf051f4b84c07119ecc4a1bb332e6a22b78a0f750b06aaba74d4cb"
+    },
+    {
+      "path": "artifacts/local/download-name-bound16-artifact.py",
+      "bytes": 4520,
+      "sha256": "c7a5e3c5d7c90e181ee1410172e9ae598a2f71cdba6822a9f352b0b6bdbeedb3"
+    },
+    {
+      "path": "artifacts/local/verify-name-bound16-live.py",
+      "bytes": 9102,
+      "sha256": "527275764b527de654f1ae165c489614d710242512de90922e8f87be1d9b1a4e"
+    },
+    {
+      "path": "artifacts/local/run-naruto1-program-clock-v3.py",
+      "bytes": 5779,
+      "sha256": "7f999492d0a22e462a1189327dd5c5121b18b74c3f1b3ff3cef77720577a8a54"
+    }
+  ],
+  "independent_reviews": [
+    {
+      "path": "artifacts/local/name-bound16-dispatch-review.md",
+      "bytes": 6655,
+      "sha256": "91cb5932b831a310f0ada0fe59e4fde76b8464f6e1730ac3150142a9b202312a",
+      "text": "# Name-bound Naruto 1R operational caller review\n\nVerdict: **PASS for the corrected scoped caller; zero open actionable findings.**\n\nReviewed at 2026-10-15T22:52:54.910911+00:00. File: artifacts/local/dispatch-name-bound16-reviewed.py, 9,055 bytes, SHA-256 7bca0af6b4f26460bdf8cf0b66fd73affdb39aebaa6dcc99f71dd9a502ae1599. This is a static and AST-isolated operational review, not execution approval based on currently published source data.\n\n## Findings and resolution\n\n1. Resolved P1, line 73: the original expression root/'artifacts/local/name-bound-dispatch-'+identifier+'.json' attempted WindowsPath + str and deterministically raised TypeError before ledger creation. Reproduced using only that actual AST assignment and a synthetic root Path, with no file IO. Root changed it to root/('artifacts/local/name-bound-dispatch-'+identifier+'.json'). Independently re-evaluated the corrected assignment and verified the exact intended ledger path.\n\n2. Resolved P2, lines 52-54: wrapper counts previously accepted official_source_attempts=True or 1.0 and cloud_posts=False or 0.0 through Python numeric equality. Four isolated probes reproduced acceptance of malformed counter types. Root added exact int checks before comparing to 1 and 0. Reran the corrected actual publication function with the same fixtures; all four now reject. No remaining finding at these lines.\n\n## Boundaries reviewed\n\n- Lines 20-42 pin the exact race 20261016-14-01, binding 38798278470-1, workflow lease e071480037d918714ea87288e9bc9598480f256d, refreshed day canonical hash c9bcf98abe5f0ac68428a7a3c1c633864121556ab95c7059636a8a353bc24d57, full baseline hash 0d12977efba6f93a5aa6ffb70b98e86b9836423dc62ff09a93925eb99a02c84c, and complete finalized binding hash a7bafb20240b3e4d14c360edc8522f07464c0d53a4bb912bfd37d8eec965bf5d. Product contract validation and name-bound projection remain in place. Cross-parent mutation fails the complete pinned hashes.\n\n- Lines 43-61 require the actual current JST target, strictly more than 180 seconds before cutoff, and a source witness captured no more than 90 seconds ago and not in the future. It must record exactly one official attempt, zero cloud posts, SQLITE_MEMORY_NOT_DURABLE, and physical_exhibition_phase_verified=false. The existing record validator is invoked with require_same_day=True. The caller additionally requires beforeinfo / AVAILABLE, the rights marker, eligible recorded storage timing, exactly six boats, and all six display_time values. A PENDING source does not authorize this caller.\n\n- Lines 62-71 require a separate fresh, aware, nonfuture witness with exact integer HTTP 404, exact NAME_BOUND_EXHIBITION_NOT_SAVED body, own race, f0cb388c8c241c0c050555d2251c6ae8589af529 reader commit, dpl_898RLhUu5Q182v2WejUY6hwpvoG5 deployment, and the exact reviewed 7wn Preview endpoint. Other missing/error labels, 503, alternate deployments, and stale/naive/future timestamps fail.\n\n- Lines 72-81 validate witnesses before exclusively creating the ledger with mode x, then access only the existing noninteractive GCM credential in process memory. Any existing unknown, accepted, or completed ledger blocks this path before credential retrieval. The reviewer did not access credentials or instantiate a real ledger.\n\n- Lines 82-101 disable redirect handling; GETs require exact 200 and unchanged response URL and cap the response body. Workflow identity, all five active statuses (in_progress, queued, waiting, pending, requested), complete empty inventories, the remote lease, and workflow blob 74f4d7423fd50bafb5fefcb368f3c36f0243f3c9 gate the sole dispatch. check_idle rejects Boolean/float total_count, incomplete listings, and any active run.\n\n- Lines 102-110 repeat source freshness, exact absence, and actual cutoff checks immediately before the only POST constructor. The request targets the exact GitHub workflow dispatch URL and sends only the reviewed branch plus collection=name-bound-exhibition, own race, and own binding. Acceptance requires exact 204 and unchanged URL. Unknown outcomes leave an existing ledger, so rerunning the helper cannot silently create another dispatch. Credentials are cleared from the explicit local containers in finally.\n\n## Isolated verification performed\n\nCompiled and exercised only selected AST function definitions or individual gate/assignment nodes from the actual helper. No module-level statements were executed. The fixture root and files were in-memory doubles; datetime was controlled. publication/absence probes used a pass-through validate_record stub intentionally to isolate caller wrapper behavior, and therefore do not claim dynamic coverage of the product record validator. Its use and same-day enforcement were statically reviewed.\n\nAll 37 final wrapper probes matched expectation: normal empty idle/valid publication/valid absence; malformed inventory, nonempty or truncated inventory, Boolean/float counters, wrong own race, source count/scope/posts/physical flag, PENDING or wrong-kind records, wrong rights, missing display time, five boats, future/stale source capture, wrong absence status/body/commit/deployment/URL, naive/future/stale absence capture, exact 180-second rejection, 181-second acceptance, and cross-JST-day rejection.\n\nNine additional actual AST argument/parent-pin cases passed: exact parents and arguments; changed baseline nonce or snapshot, changed binding nonce or parent, wrong race, wrong binding ID, and wrong lease. These used already retained matching name16 parent objects as read-only fixtures, because the future naruto1 numeric preflight parent file was not yet present. They did not create or refresh witness files. The corrected path assignment was separately verified.\n\n## Scope limits\n\nThe early PENDING beforeinfo/video-index authorization-error context remains insufficient for dispatch. This review establishes caller behavior only. Actual execution must wait for the owner-supplied fresh successful source and exact absence witnesses plus all live gates; no workflow was dispatched by this review. SQLite-memory capture does not prove durable/cloud storage or physical pre-exhibition timing. No numeric/video forecast, model adoption, accuracy, or project-completion claim is made.\n\nNo network, API, official source, GCM, Git, helper top-level execution, workflow execution, product edit, restore, repository test suite, or subagent was used. The only write was this UTF-8 LF review report. The video-clock-v3 code/CI and trusted workflow contents were outside this review; root owns those checks. Root reported updating its generator as well, but this verdict binds only the exact actual helper bytes above.\n"
+    },
+    {
+      "path": "artifacts/local/name-bound16-source-probe-review.md",
+      "bytes": 6970,
+      "sha256": "678374d6ccc9bf1e252e38991ade1dca259053e7ec8ec995bb352870c1275295",
+      "text": "# Naruto 1R source readiness probe: independent operational review\n\nVerdict: **PASS for the corrected scoped helper; zero open actionable findings.**\n\nReviewed at 2026-10-15T23:00:12.812777+00:00. Actual helper artifacts/local/probe-naruto1-beforeinfo-ready.py: 4,796 bytes, SHA-256 ddcc103da3b87e6b3e0583e3a91be4c347571e5a6cae7dca24a23afb47bdaad4. This verdict covers local caller behavior. It is not evidence that the source is published, an observation was acquired, or any future dispatch is ready.\n\n## Resolved findings\n\n1. Resolved P2: the original readiness branch accepted a contract-valid record with storage_eligible_pre_race=false. If execution crossed cutoff after its initial check, it could create an unusable ready file that the downstream dispatcher would reject and that would prevent another probe. The isolated original branch reproduced this. Corrected lines 51-60 require both eligibility flags to be exactly True, check the actual current JST day and more than 180 seconds of cutoff margin after record validation and immediately before the write, and require captured_at to be aware, nonfuture, and no older than 90 seconds at both points.\n\n2. Resolved P2: the original output.write(raw) was inside an assert. An optimized interpreter removed that call and left an empty exclusively created ready file; this was reproduced with compile(optimize=1) on only the selected branch and an in-memory file double. Corrected lines 61-64 perform the write independently, check the returned byte count explicitly, and verify full readback. All operational assert statements were replaced with explicit require checks, so clock/counter/readback guards remain active under optimization.\n\n## Static scope and execution boundaries\n\n- Lines 10-25 fix the own race to 20261016-14-01, verify current JST date and cutoff margin, read the retained refreshed day and the saved original name-proof/baseline pair, validate the finalized binding, and project the six names against the parent program. Existing binding validation is retained; this review does not re-audit the historical proof or cohort.\n\n- Lines 26-34 read only the existing operator facts configuration. An existing or symlinked ready path stops before collection. The probe journal is exclusively created at a timestamped local path and starts with OUTCOME_NOT_YET_KNOWN, zero attempts/posts, physical_exhibition_phase_verified=false, and source_original_retained=false. persist writes, flushes, and checks the complete canonical journal bytes.\n\n- Lines 35-40 allow one wrapped fetch invocation. A fresh margin check occurs before the attempt counter changes. The counter must be zero, then becomes one and is persisted before the fetch call. A second wrapped fetch is rejected. collect_race_update is called once for the actual current date, venue 14, race 1, beforeinfo, the existing facts review, and the projected entries. It receives no supplied capture clock.\n\n- Read-only dependency inspection confirmed that collect_race_update applies rights review before transport, constructs the exact own-race endpoint, performs at most one transport call, and uses an actual post-response capture time. fetch_update retains its endpoint/timeout/size bounds and disabled redirects. Rights-blocked or rejected acquisition returns no usable AVAILABLE witness. No media, application API, GitHub, or credential operation is present in this helper.\n\n- Lines 41-45 journal the returned observation and actual completion time. Only AVAILABLE with exactly six boats and every display_time present enters the readiness branch. PENDING, unavailable, incomplete, and malformed input cannot complete a valid ready witness. The retained source observation is parsed data, not original HTML.\n\n- Lines 46-65 require exactly one attempted fetch, use sqlite3.connect(':memory:'), perform the existing store save followed by latest-observation readback at a real checked_at, and invoke full validate_record(..., require_same_day=True). Read-only store inspection confirmed save time originates inside the store and readback is bounded by as_of. The new explicit eligibility, freshness, and margin guards run before the exclusive witness write.\n\n- The generated witness matches the reviewed dispatcher wrapper: own race, integer official_source_attempts=1, storage_scope=SQLITE_MEMORY_NOT_DURABLE, integer cloud_posts=0, physical_exhibition_phase_verified=false, and the validated read-back record. It makes no durable/cloud or physical pre-exhibition claim. The downstream dispatcher must still independently validate its own fresh gates.\n\n## Minimal isolated verification\n\nA minimal in-memory AST fixture was useful because it reproduced both concrete branch defects without a source request or full helper invocation. Compiled only actual selected require/margin/persist/transport functions and the readiness if-branch. Files, SQLite/store calls, product validation, and fetch were explicit in-memory doubles; no product module was imported or executed and no top-level caller statements ran. Product validation was a pass-through stub to isolate caller checks; this does not claim dynamic testing of the product contracts or actual SQLite persistence.\n\nAll 19 corrected branch cases passed: ordinary AVAILABLE; PENDING; five boats; one missing display time; false stored eligibility; false capture eligibility; integer 1 instead of Boolean eligibility; optimized valid nonempty write; optimized false eligibility; stale, future, and naive captures; exact 90-second acceptance; margin expiry after validation; margin expiry immediately before write; freshness expiry immediately before write; cross-JST-day rejection; short-write rejection; and readback-mismatch rejection.\n\nThree actual isolated transport/journal cases passed: the first call persisted attempt=1 and the second call was rejected without a second fetch; insufficient margin rejected before any attempt or fetch and retained zero; a synthetic fetch error left one persisted attempt. No actual transport occurred. Together these are 22 focused cases, not a repository test suite.\n\nWrite or readback failure is surfaced and never reported as a successfully created witness. Such a filesystem failure may leave an exclusive partial file; its existence intentionally prevents automatic repetition and does not satisfy the downstream validated-record gate. The review does not promise transactional durability across machine crashes.\n\n## Limits\n\nNo real source helper invocation, source/API/media request, workflow dispatch, GCM access, Git operation, product mutation, actual SQLite write, restoration, or prior artifact re-audit occurred. Only this UTF-8 LF report was written. Root updated the helper; this reviewer did not edit it. Future explicit invocation remains conditional on the existing owner authorization and live gates. No new numeric/video forecast, accuracy/precision, physical pair, model adoption, or project-completion claim is established.\n"
+    },
+    {
+      "path": "artifacts/local/name-bound16-restore-helper-review.md",
+      "bytes": 7415,
+      "sha256": "de940eb3b13aaeca71997d2f45da39def0a3a0462d9c035efc1000f54441dc02",
+      "text": "# Prepared Naruto 1R numeric artifact helpers: scoped review\n\nVerdict: **PASS within the stated prospective workflow; zero actionable findings in these changes.**\n\nReviewed at 2026-10-15T23:10:34.304524+00:00. This is a static read-only review of the two prepared helpers, not execution or verification of a new artifact. No successful numeric job or numeric artifact is established by this report.\n\n## Exact comparison and reviewed bytes\n\n| Helper | Bytes | SHA-256 |\n|---|---:|---|\n| download-name-bound16-artifact.py | 4520 | c7a5e3c5d7c90e181ee1410172e9ae598a2f71cdba6822a9f352b0b6bdbeedb3 |\n| verify-name-bound16-live.py | 9102 | 527275764b527de654f1ae165c489614d710242512de90922e8f87be1d9b1a4e |\n\nThe downloader differs from download-name16-artifact.py only in two prefix literals: line 20 local ZIP filename and line 55 expected remote artifact name change from name-binding- to name-bound-. Its 94 CRLF line endings were also normalized to LF. After line-ending normalization the complete source text equals exactly those two substitutions; there are no other content changes. Original downloader: 4,618 bytes, SHA-256 ab40ff838088d10bc2ba35109289b126edab9ae25212e2458621030a30ae9211.\n\nThe verifier differs from verify-name-bound-live.py only at line 50: the retained day input changes from name-binding-preflight-day.json to naruto1-numeric-preflight-day.json. Both use LF. Complete source comparison confirms this sole substitution. Original verifier: 9,099 bytes, SHA-256 40a31fc07409a88ab21e9144a41da0fa67a51547b745b158c554bc811ae09fac. Both prepared sources parse successfully as Python AST; neither was executed.\n\n## Download boundary\n\n- Explicit artifact/run/attempt arguments are bounded positive decimal strings; workflow SHA is 40 lowercase hexadecimal characters. The output path derives only from the bounded run ID and refuses an existing file or symlink; final creation is exclusive.\n\n- The helper uses only the existing noninteractive GCM credential in memory. GitHub metadata GETs require exact 200, unchanged URL, and at most 2,000,000 bytes. Metadata must match artifact ID, name-bound-{run}-{attempt}, run ID, supplied workflow SHA, expected branch, not-expired state, and positive bounded declared artifact size.\n\n- Automatic redirects are disabled. The ZIP endpoint must return 302, and the signed storage location must be HTTPS under .blob.core.windows.net, without credentials, disallowed port, fragment, or control/non-ASCII characters. The storage request deliberately has no GitHub Authorization header, requires exact 200 and unchanged URL, and is read with a 2,000,000-byte maximum. ZIP signature, exclusive local write, and complete local readback are checked. Output contains only IDs, byte count, and measured SHA-256, not the credential or signed URL.\n\nImportant scope boundary: the downloader does not itself compare the downloaded ZIP SHA-256 to metadata.digest, and it bounds rather than equates actual downloaded bytes to metadata.size_in_bytes. Its output status says DOWNLOADED, not independently verified. The root-owned later check must compare the exact downloaded bytes/hash against the exact successful run artifact metadata/digest before treating the archive as trusted evidence. This is the stated workflow separation, not a new verification claim by this review.\n\n## Restore and numeric verification boundary\n\n- The verifier rejects optimized Python before its assertions can be stripped. It validates explicit run/application/race/binding argument shapes and creates a fresh exclusive restore directory. It accepts exactly six unique fixed member names: baseline.json, name-binding.json, inputs.json, request.json, receipt.json, and manifest.json. Each member must be a non-directory with positive expanded size at most 256,000 bytes. Exact member names prevent path traversal; each is written as a new regular file with complete readback. zipfile.read checks member CRCs while reading. No archive path is passed to extract or extractall.\n\n- Restoration occurs before all semantic checks. A malformed archive or later mismatch can leave an exclusive partial/failed restore directory; this fails closed and must not be relabeled successful or silently overwritten. Success is reported only after the full checks and exclusive summary creation.\n\n- All six restored JSON objects must equal their complete canonical bytes, excluding duplicate-key/noncanonical encodings through the equality check. Manifest inventory and every non-manifest byte count/hash are checked. Manifest application commit, own race, binding request, success status, exact four reads / one POST / three official-source requests, 240-second configured bound, and UNVALIDATED/skip/empty recommendations must match.\n\n- The retained day program is selected for the exact manifest race. Existing validate_name_bound_envelope is invoked with actual current time. Request, inputs, envelope, baseline, proof, nonce run-1, input hash, program identity, and parent links are cross-checked. The expected baseline and binding values still require the root-owned invocation/evidence checks described below.\n\n- The verifier independently enumerates all 720 full orders per emitted model, reconstructs strengths from the baseline and four supplied metrics, checks 120 triple probabilities and positional/top-three marginals, and checks deltas against the frozen baseline. The existing full-envelope validator supplies shape/hash/contract validation before these arithmetic loops. This is a static review of that future verification path; no model replay was run here.\n\n- Input generation, runner save, parent resolution, input cloud save, model generation, cloud save, confirmation, and cutoff must be ordered, with confirmation strictly before cutoff. Existing contract checks remain in place. research_only=true, physical_exhibition_timing_verified=false, UNVALIDATED, skip, and empty recommendations remain required. No accuracy or physical-phase conclusion is introduced.\n\n## Conditions for the one prospective job\n\nRoot must invoke these helpers only after an actual successful new numeric job and exact artifact metadata are available. Use that exact run/attempt/artifact, workflow e071480037d918714ea87288e9bc9598480f256d, expected application 325ddce19ae999d626782a9929e6511c17d60ba1, race 20261016-14-01, and binding 38798278470-1. The helpers validate supplied identities; they do not independently authorize arbitrary syntactically valid arguments or hardcode all these pins. The retained naruto1-numeric-preflight-day.json must be the actual reviewed day witness.\n\nThe later root check must bind the ZIP to GitHub digest metadata, compare the complete restored envelope to actual reader/publisher API witnesses, and verify the preserved baseline/proof against the known frozen parents. Neither helper alone proves those external/API observations. No current source readiness, workflow dispatch, completed job, new artifact, or new forecast is claimed by this scoped review.\n\nOnly literal path/prefix adaptations were made, so no new fixture suite was needed. Verification here consisted of exact whole-source comparisons, AST parsing, and static control/data-flow review. No top-level helper, network, GCM, source, API, Git, restoration, artifact write, product module execution, or subagent was used. Only this UTF-8 LF report was written; existing evidence and product files were untouched.\n"
+    },
+    {
+      "path": "artifacts/local/naruto1-v3-caller-review.md",
+      "bytes": 8208,
+      "sha256": "ccd23fb967552ff8ac2a41c9ff242f7a6a16f3bed87286aaded79a54724ea9c8",
+      "text": "# Naruto 1R prospective program-clock v3 caller review\n\nVerdict: **PASS for the corrected scoped caller; zero open actionable findings.**\n\nReviewed at 2026-10-15T23:15:55.780246+00:00. Actual helper artifacts/local/run-naruto1-program-clock-v3.py: 5,779 bytes; SHA-256 7f999492d0a22e462a1189327dd5c5121b18b74c3f1b3ff3cef77720577a8a54. This is a static and AST-isolated caller review. It establishes no actual numeric job, source availability, media acquisition, or v3 execution.\n\n## Resolved findings\n\n1. Resolved P2: the original caller persisted the complete resolver descriptor. The product descriptor contains source.source_url and media.source_url_without_query, so that violated this caller's no-URL-persistence scope even though the signed lease remained in memory. Corrected lines 61-64 retain an explicit descriptor-summary allowlist and, per source, only component, hash, capture, and availability times. An isolated actual-AST check supplied extra URL, token, key, raw/frame, and media fields; none appeared in persisted summary output.\n\n2. Resolved P2: the original prerequisite gate checked completed-summary status and IDs and separately validated a packet, but did not bind that packet to the exact completed restore/720-replay summary. Corrected lines 29-34 bind the complete canonical packet bytes and SHA-256 to the completed summary, require exact integer run ID and byte count, and bind the canonical baseline hash both to the summary and fixed Naruto 1R parent hash 0d12977efba6f93a5aa6ffb70b98e86b9836423dc62ff09a93925eb99a02c84c. Mismatch probes now reject before journal creation or resolver/fetch access.\n\n## Parent, clock, and contract boundaries\n\nLines 13-36 require an explicit positive run ID, exact own race 20261016-14-01, actual current JST date, and strictly more than 180 seconds before the retained cutoff. The completed numeric summary must identify that run-1 nonce, binding 38798278470-1, baseline 38764082826-1, and application commit 325ddce19ae999d626782a9929e6511c17d60ba1, with status NAME_BOUND_FULL_RESTORE_AND_INDEPENDENT_720_REPLAY_VERIFIED. The existing validate_name_bound_envelope call precedes the full replay binding.\n\nReceipt field paths were checked against web/name_bound_prediction.py: packet.receipt.request_id and packet.receipt.name_binding_request_id are valid receipt fields; packet.baseline.request_id is the embedded parent nonce. The product validator requires the receipt's baseline/proof references to equal the embedded baseline and name_binding receipt, validates the prediction and full parent/inputs structure, and binds finalization to the receipt hash with confirmation no later than actual validation time and strictly before cutoff. No incorrect receipt field path remains.\n\nLines 37-40 require the existing owner media-evidence reference, video_internal_analysis=true, temporary_video_processing=true, and video_store=false/video_publish=false. The retained configuration contains these fields and values. The journal is exclusively created only after all preceding prerequisite gates; an existing journal prevents a second caller execution from reaching the resolver. This local summary/packet chain must come from the actual owner-run successful numeric job; the review does not manufacture that success or independently re-audit a future packet.\n\n## Transport, RAM, and output scope\n\n- The only source resolver is resolve_exhibition_source through the normal bounded public-player path. Metadata wrapper attempts are limited to two. Media wrapper attempts are separately limited to 202. Each wrapper checks actual current JST date and cutoff margin, increments and persists its count before the bounded fetch, and rejects another call at the limit. A thrown transport error retains the attempted count. No credential, alternate resolver, auth bypass, API publication, or workflow dispatch path appears.\n\n- Read-only dependency inspection confirmed the resolver uses at most recording-index plus playback-metadata calls, rejects unsupported DRM/source shapes, and keeps the signed stream URL in an ephemeral lease. bounded_fetch disables redirects and maps 401/403 to a safe source-auth-unavailable error. The helper introduces no fallback or retry mechanism for authorization failures.\n\n- analyze_exhibition is called with camera_motion=True and program_clock=True. Its existing bounds remain: at most 100 decoded segments, 1 MiB per playlist, 4 MiB per segment, 64 MiB total encoded bytes, at most 20,000 decoded frames and 400 samples, bounded pixels, and default 90-second processing limit. The 202 resource-call ceiling covers two playlists plus at most 100 segments and 100 distinct standard AES keys. These are separate from the two metadata attempts.\n\n- Current product outputs contain derived counts, hashes, quality/motion values, unverified candidate tracks, and the source-declared program-clock assessment. The clock assessment accepts segment sequence/duration/discontinuity inputs without URLs or keys. The corrected descriptor summary excludes all source/media URLs, and the helper never journals the lease, input response bodies, media, AES keys, or decoded frame arrays. The analysis path uses memory buffers and clears its transient key/segment/track buffers in its own finally path.\n\n- The helper requires analysis_version=transient-hls-color-candidates/v3, prediction_eligible=false, and boat_identity=UNVERIFIED before marking derived analysis completed. It never promotes a source-declared clock to independent or physical timing proof. Report-level independent_clock_verified, physical_exhibition_time_verified, and prediction_eligible remain false; cloud_posts and new_predictions remain zero.\n\n- The journal canonical byte size is capped at 512,000 bytes with explicit full readback. Error reporting admits only bounded uppercase/digit/underscore source codes; arbitrary exception details become a generic local failure code. Signed URLs or exception bodies are not printed. Finally clears explicit packet/lease references and records actual completion time; this is a local derived journal, not proof of model adoption.\n\n## Isolated checks\n\nUsed only selected actual AST require gates/functions and the descriptor-summary assignments. The full caller top level and product validation/media/resolver functions were not executed. The parent fixture used the already retained fixed baseline but an explicitly synthetic caller-only packet; it does not represent a new numeric receipt. Fetches and the journal handle were in-memory doubles.\n\nAll 18 parent/scope cases passed: matching caller-only fixture; wrong completed-summary status, own race, nonce, proof, baseline nonce, application; wrong envelope hash/size, float byte count, float run, wrong run, wrong baseline hash; changed packet; changed baseline; video publishing/storage enabled; and non-Boolean private-analysis authorization. Failures occurred within prerequisite gates before any journal or fetch function was present in that isolated environment.\n\nOne descriptor allowlist case passed with injected URL/token/key/raw extras excluded. Six actual wrapper/journal cases passed: metadata stops after two fake fetches, media stops after 202, late metadata/media each stop before counting/fetching, and metadata/media synthetic failures each retain one persisted attempt. Total: 25 isolated cases. No repository test suite, actual network, decoding, or filesystem journal was run.\n\n## Limits\n\nCaller correctness is conditional on the actual completed numeric job and its verified retained artifacts, which must exist before invocation. No current source/recording availability, successful future job, fresh physical pair, numeric forecast, video forecast, accuracy, calibration, or model adoption follows from this review. The normal public resolver may still return PENDING or an authorization error; those remain stop outcomes.\n\nRoot fixed the two caller gaps; the reviewer changed no helper/product code. No source, API, media, credentials, Git, workflow, restore, actual SQLite, top-level caller, or subagent operation occurred. Only this UTF-8 LF report was written. Existing evidence and all previous completed audits were left untouched.\n"
+    },
+    {
+      "path": "artifacts/local/naruto1-diagnostic-probe-review.md",
+      "bytes": 5063,
+      "sha256": "cee2f3c52d9ba316f650904ac7fb99e4615022b1786ad4d6137be639d1b1e30d",
+      "text": "# Naruto 1R diagnostic source probe: scoped review\n\nVerdict: **PASS; zero actionable findings in this diagnostic increment.**\n\nReviewed at 2026-10-15T23:19:12.459255+00:00. Actual helper artifacts/local/probe-naruto1-beforeinfo-diagnostic.py: 5,618 bytes, SHA-256 3f61854e80cf051f4b84c07119ecc4a1bb332e6a22b78a0f750b06aaba74d4cb. This report authorizes no broader scope and establishes no new source result. The helper was not invoked.\n\n## Exact scope comparison\n\nCompared the complete helper with the previously reviewed probe-naruto1-beforeinfo-ready.py, whose SHA-256 remains ddcc103da3b87e6b3e0583e3a91be4c347571e5a6cae7dca24a23afb47bdaad4. The only changes are importing time and urllib.error and wrapping the existing one fetch_update call in the transport function with bounded diagnostics. A structural AST comparison, replacing only that transport function and removing only the two added imports, exactly equals the reviewed original AST. No readiness, input, phase, identity, endpoint, timeout, retry, journal-path, or witness-creation logic changed.\n\nLines 35-50 retain the fresh current-day/cutoff check, zero-attempt guard, and persisted increment to one before the same fetch_update(*args, **kwargs) invocation. A monotonic timestamp starts immediately before the call. Success records only an integer HTTP status in 100-599, otherwise null, and returns the original response. Failure records only an allowlisted exception class label (or OTHER_TRANSPORT_ERROR); HTTPError additionally records a valid integer code or null. A bare raise propagates the original exception. The finally block records elapsed monotonic seconds rounded to six decimals and persists the journal.\n\nThe diagnostic fields contain no exception string, traceback, response body, headers, URL, credential, or source content. Unknown exception names are replaced rather than persisted. This is a class/status/timing observation, not a diagnosis of why the earlier source requests were unavailable. No timeout increase, fallback, automatic retry, auth bypass, or additional request was introduced.\n\n## Isolated checks\n\nCompiled only the actual selected require, persist, and transport AST functions. Used an in-memory journal, controlled monotonic clock, and a fake fetch. No full caller top-level, product-module import, source/API request, or filesystem probe journal was executed.\n\nAll 12 cases passed: ordinary success 200; malformed Boolean response status; HTTPError 403; out-of-range HTTPError status; TimeoutError; URLError; OSError; ConnectionResetError; RemoteDisconnected; IncompleteRead; SSLError; and an unallowlisted ValueError. Every case preserved the original response or exact original exception object, unchanged supplied timeout/size arguments, one fetch call, and one persisted attempt. Each subsequent attempted wrapper call was rejected before another fake fetch and left the original journal unchanged.\n\nInjected secret-like URL, error message, response-header, response-body, and partial-read-body values did not appear in any retained journal. The expected synthetic monotonic interval was 10.125 seconds in each fixture; it is not a measurement of an actual source request. HTTP status is retained only when type is exactly int and value is within 100-599.\n\n## Preserved gates and limitations\n\nThe unchanged helper still requires own race 20261016-14-01 and its validated saved baseline/name proof; current JST day and more than 180 seconds of cutoff margin; one bounded beforeinfo collection; existing owner facts configuration; exclusive timestamped attempt journal; and no pre-existing/symlinked ready witness. AVAILABLE with all six display values is required before memory-store processing.\n\nThe original explicit SQLite-memory save/readback and validate_record gate remain. Both eligibility flags must be exactly True; aware capture freshness must be 0-90 seconds; cutoff margin and freshness are checked after validation and again before the exclusive ready write. Explicit write-count and byte-readback checks remain, including under optimized Python. PENDING/unavailable results do not become ready witnesses.\n\nWhen journal persistence itself succeeds, the bare rethrow leaves existing worker transport classification intact. A local journal-write/readback failure still stops the operation and is not a successful source readiness result; this review does not promise crash-transactional logging or reinterpret such a local failure as a proven upstream cause.\n\nThe supplied history of PENDING then SOURCE_UNAVAILABLE remains historical context only; no new request was made and no root cause was guessed. Root may use this once at the next explicitly authorized publication check, subject to the unchanged live guards. No numeric/video forecast, physical timing pair, workflow dispatch, accuracy, or adoption evidence follows from this review.\n\nOnly this UTF-8 LF report was written. No product/helper edit, credential access, Git, network, source, API, media, restore, real SQLite, existing-evidence change, or subagent operation occurred.\n"
+    }
+  ],
+  "latest_transport_error_type": "TimeoutError",
+  "latest_transport_elapsed_seconds": 10.234,
+  "existing_274_forecasts_preserved": true,
+  "day_acquisition_not_repeated": true,
+  "prior_video_decodes_not_repeated": true,
+  "formal_completion": false,
+  "writer_and_review": [
+    {
+      "path": "artifacts/local/record-naruto1-readiness-stage.py",
+      "bytes": 8754,
+      "sha256": "3189ed6dcf6821000eb13fbcb714b387429423469c848583a40697ee7d1b7485"
+    },
+    {
+      "path": "artifacts/local/naruto1-readiness-stage-writer-review.md",
+      "bytes": 7011,
+      "sha256": "c19de69ff34bbda02b7d18b541aa768a81c098fe2a0dc0e11c880bd236465499",
+      "text": "# Independent writer/evidence review: unresolved Naruto1 readiness stage\n\n## Verdict\n\nStaged evidence writer: **PASS after the focused preflight/snapshot fix**.\n\nResolved findings: **1 P2**. Open actionable findings: **0**. Initial finding history is retained below; final disposition appears at the end.\n\n## Initial P2, now resolved: complete mutable-document preflight and snapshot guards before any writes\n\nLocation: `artifacts/local/record-naruto1-readiness-stage.py:41–76`.\n\nThe writer creates its exclusive public evidence file and overwrites OPERATIONS_STATE before loading/checking the completion-document insertion marker. If that marker has changed or disappeared, it fails only after evidence/state advancement. Neither mutable document has a compare-before-write raw snapshot guard, so concurrent state/readiness/doc updates can also be overwritten by a stale prepared value. These are foreseeable integration failures in a staged final writer, even though the currently inspected marker is valid.\n\nRead and validate both mutable docs, the marker, and all required evidence/reviews before the first write; prepare their new contents in memory. Recheck exact original doc/state bytes and unresolved/dependent-stage conditions immediately before committing writes, and retain compare-before-write protection for each mutable target. Preserve exclusive immutable evidence creation and fail without overwriting changed foreign/current state. Do not interpret a partial-write failure as permission to retry source/dispatch operations.\n\n## Other assessed facts and preservation\n\n- Current local journal contains six later probes plus the07:34 early attempt:08:03/08:09 PENDING with an empty exhibition grid;08:12/08:16/08:19/08:22 SOURCE_UNAVAILABLE. Latest diagnostic is TimeoutError10.234 seconds at08:22:28.849797 JST; the prior diagnostic was10.219 seconds. The writer dynamically records the latest error/time and totals seven beforeinfo attempts, one index attempt, zero media/forecast POST/new forecast/dispatch. It does not classify source transport failure as remote numeric absence.\n- The dependent-stage guards match the actual reviewed source-ready/dispatch/v3-result paths. Exclusive output and existing immutable journal/catalog files preserve prior evidence. State removes the old misleading generic captured_at, retains the initial successful capture, records the last successful empty-grid observation separately from latest unavailable attempt time, and changes only readiness plus updated_at. The issue above concerns write ordering/concurrent preservation, not the intended state scope.\n- The retained0175 proof supports exact CI38820692037 Windows116716286551/Linux116716286863 with981 Python/187 JavaScript and no failures/skips, successful push38820684388, READY jvzjrbnuf at the same SHA, and four full canonical API comparisons. It explicitly excludes all274 API rechecks, new UI measurements, and real v3 decode. The proposed prose does not turn those local/helper reviews into new numeric/media execution claims.\n- All referenced helper reviews report corrected/final PASS with no open findings. The prepared restore helper genuinely enumerates720 six-boat orders when eventually executed; its review and the proposed prose label that work prospective. The v3 caller remains dependent on its own restored full numeric packet before media execution. No completed old source, clip, baseline, or proof is replayed as a new acquisition by this writer.\n- Catalogs read whole actual input/helper/review bytes and SHA256; reviews alone are embedded, while helper source is hash-cataloged. Output JSON uses explicit UTF-8 bytes/LF and exclusive write/readback. Probe records retain parsed public identity/hash/status and diagnostic exception type/elapsed only, without raw source bodies, headers, transport messages, signed resources, tokens, keys, or frames. Physical pairs/independent timing remain zero/false; UNVALIDATED/skip/empty recommendations and formal incompletion remain explicit.\n\n## Scope and remaining gates\n\nRead the writer without importing or executing its top level; inspected actual probe summaries, matching dependent-stage paths, retained final-head proof, and referenced review headers/restore enumeration. No writer/probe/helper test or network action was run. Root states no further polling is planned absent concrete availability change, and this stage must not be recorded if a numeric-ready/dispatch/video stage exists.\n\nNo product edits, commits/Git mutations, external/source/API/credential access, dispatch, source polling, writer execution, root-doc/state changes, subagents, or other operational mutations were performed. Only this independent review report was written. This review does not authorize new polling or numeric/media execution; the writer remains staged pending root's unresolved-stage check.\n\n## Focused fix disposition: PASS\n\nThe corrected writer reads/snapshots both mutable documents, validates the unique completion marker and own readiness target, and prepares all three UTF-8 LF outputs before the first write (`artifacts/local/record-naruto1-readiness-stage.py:45–81`). Exact state/doc bytes and unresolved-stage guards are rechecked before evidence creation and again before state write; the completion bytes are checked again before its write, and every output has readback (`:82–95`). This resolves the preflight ordering and stale-document overwrite finding. An unrelated concurrent update stops rather than being incorporated through a stale snapshot.\n\nThe unresolved guard also binds the exact current probe filename inventory and every catalogued probe SHA256, and rejects each dependent stage if present or a dangling symlink (`:21–28`). The fixed prose now states per-attempt one-GET/ten-second limits rather than ambiguously saying the total request count did not increase. No new product/source/auth scope is introduced.\n\nAs requested, executed only the actual AST-extracted sha/unresolved/unchanged functions and marker precondition in a controlled in-memory filesystem. **Two positive and twelve negative cases passed:** valid unchanged/no-dependent state and unique marker accepted; missing/duplicate marker, concurrent state/doc changes, each numeric-ready/dispatch/video file or dangling symlink, new probe inventory, and changed probe bytes rejected. Helper top level, real filesystem writes, credentials, source/network, and dispatch were not executed. The initial records/provenance/privacy assessments remain applicable.\n\nNo new actionable findings identified. Static/isolated PASS does not mean the writer has run, a source became ready, or any numeric/media workflow is authorized. Root still must satisfy the actual unresolved snapshot immediately before execution. Existing exclusive evidence and stop-on-change behavior may retain owned partial evidence after a later I/O failure; this is not permission for an automatic source or dispatch retry. Only this review file was updated by the reviewer.\n"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "status": "VERIFIED_REAL_COMMUNICATION",
+  "observed_at": "2026-10-15T03:03:14+09:00",
+  "repository": "haji84/RACE-AI",
+  "branch": "feat/boat-oidc-probe-auth",
+  "commit_sha": "610b90cd9667de60d75729e3137e4e1919d4cb1a",
+  "deployment_id": "dpl_FHypH6piGUVeCeFrBYqyQYg6NK2N",
+  "deployment_url": "https://race-ai-preview-pbo42t6h3-qq1130034-1738.vercel.app",
+  "run_id": 38611712685,
+  "job_id": 116016956898,
+  "run_url": "https://github.com/haji84/RACE-AI/actions/runs/38611712685",
+  "result": "BLOB_PROBE_VERIFIED",
+  "bytes": 61,
+  "sha256": "23a9b6603b16b27a2bda95b0fbf677c31065c6113da22fd40238575ab733fd72",
+  "cleanup": "deleted",
+  "protection": "SSO remains enabled for all deployments",
+  "edge_trust": "GitHub Actions haji84/RACE-AI exact branch and workflow name; custom audience; preview only",
+  "function_trust": "RS256 signature, issuer, audience, numeric owner/repository IDs, immutable subject, ref, workflow_ref, environment and exact deployment SHA",
+  "root_causes": [
+    "Missing external GitHub Trusted Sources rule in Vercel Deployment Protection",
+    "Guided Workflow field matches the GitHub workflow name, not the file path",
+    "Verifier expected legacy mutable subject instead of the new immutable owner/repository ID format"
+  ],
+  "not_proven": [
+    "Real race-data collection/publication authorization",
+    "Live day snapshot API delivery",
+    "Multiwriter Blob version/conditional publication",
+    "Physical iPhone Safari acceptance",
+    "Prediction accuracy"
+  ],
+  "sources": [
+    "https://github.blog/changelog/2026-04-23-immutable-subject-claims-for-github-actions-oidc-tokens/",
+    "https://vercel.com/docs/deployment-protection/methods-to-bypass-deployment-protection/trusted-sources"
+  ]
+}

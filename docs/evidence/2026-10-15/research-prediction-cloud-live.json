@@ -1,0 +1,122 @@
+{
+  "status": "LIVE_RESEARCH_SAVE_VERIFIED_NOT_MODEL_VALIDATION",
+  "date_jst": "2026-10-15",
+  "application_commit": "e948e123cf41a8ec1c5796629a74e30a562bb572",
+  "deployment_url": "https://race-ai-preview-h0upx8ni5-qq1130034-1738.vercel.app",
+  "deployment_id": "dpl_3jVfAUkyT5VBjBvCBdUP7UWoGWh1",
+  "workflow": {
+    "branch": "feat/boat-oidc-probe-auth",
+    "name": "RACE AI Preview Blob E2E",
+    "commit": "0e1a49fc84ac47e1e2f805e8266380b6af517e9a",
+    "content_sha": "f9d7949ab0fcf7079b1851c6150d2754c7614daa",
+    "run_id": 38649960735,
+    "job_id": 116146016553,
+    "url": "https://github.com/haji84/RACE-AI/actions/runs/38649960735",
+    "result": "success",
+    "day_steps": "skipped",
+    "race_collection_steps": "skipped",
+    "official_source_requests": 0
+  },
+  "prediction": {
+    "as_of": "2026-10-14T22:47:30.427482+00:00",
+    "backup_file_sha256": "42c3fb88cae0c6c00c8482026c97fc0eb40f2a328903edbe203851f4b46fe1f8",
+    "closed_at": "2026-10-14T23:35:00.000000+00:00",
+    "cloud_eligible_pre_race": true,
+    "cloud_saved_at": "2026-10-14T22:47:32.345733+00:00",
+    "commit_sha": "e948e123cf41a8ec1c5796629a74e30a562bb572",
+    "generated_at": "2026-10-14T22:47:30.427482+00:00",
+    "models": [
+      {
+        "model_id": "official-program-uniform-pl",
+        "probability_mass": 1,
+        "triples": 120
+      },
+      {
+        "model_id": "official-program-rating-pl",
+        "probability_mass": 1,
+        "triples": 120
+      }
+    ],
+    "official_source_requests": 0,
+    "purchase_decision": "skip",
+    "race_id": "20261015-14-01",
+    "request_id": "38649960735-1",
+    "result": "RESEARCH_PREDICTION_API_VERIFIED",
+    "sha256": "42c3fb88cae0c6c00c8482026c97fc0eb40f2a328903edbe203851f4b46fe1f8",
+    "snapshot_id": "39903bd8761ab77a3365c1eb12cbcd25c88d9e1e560af627aec00640529ba01e",
+    "source_captured_at": "2026-10-14T19:12:07.367587+00:00",
+    "source_sha256": "d1943dbff930d78a76c1342858b20ff5fefcbaf51b3dae52b24ecc5e2747d5ef",
+    "validation_status": "UNVALIDATED"
+  },
+  "independent_protected_api_read": {
+    "http_status": 200,
+    "canonical_sha256": "42c3fb88cae0c6c00c8482026c97fc0eb40f2a328903edbe203851f4b46fe1f8",
+    "bytes": 29768,
+    "full_hash_verified": true,
+    "note": "Preserve raw JSON numeric types when canonicalizing; JS parse/stringify would convert Python float1.0 to integer1."
+  },
+  "backups": {
+    "artifact_id": 11933394189,
+    "zip_bytes": 4474,
+    "zip_sha256": "97b8337c8e7f14126935318b36a0e89fd7aad679f4d3dec2b494b749fc40f7ad",
+    "expires_at": "2026-10-28T22:47:36Z",
+    "retention_days": 14,
+    "runner_exact_bytes_verified": true,
+    "independent_download_exact_bytes_sha_and_api_equality_verified": true,
+    "files": [
+      {
+        "result": "RESEARCH_BACKUP_RESTORE_VERIFIED",
+        "file": "race-ai-research.request.json",
+        "bytes": 124,
+        "file_sha256": "c5cd45a4eddf997a53f81d7b42cc6001e1a6fd6c9066c4ca1b21c9ae10940368"
+      },
+      {
+        "result": "RESEARCH_BACKUP_RESTORE_VERIFIED",
+        "file": "race-ai-research.json",
+        "bytes": 29768,
+        "file_sha256": "42c3fb88cae0c6c00c8482026c97fc0eb40f2a328903edbe203851f4b46fe1f8"
+      }
+    ]
+  },
+  "ci": {
+    "commit": "e948e123cf41a8ec1c5796629a74e30a562bb572",
+    "run_id": 38649731803,
+    "ubuntu_job_id": 116145273105,
+    "windows_job_id": 116145274640,
+    "ubuntu": "success",
+    "windows": "success",
+    "python_cases_executed_per_os": 456,
+    "failures_per_os": 0,
+    "skips_per_os": 1,
+    "javascript_passes": 23
+  },
+  "independent_review": {
+    "remaining_P1_P2": 0,
+    "fixed": [
+      "caller ISO offset normalization (+09:99) rejected by shared strict parser",
+      "future official cutoff no longer treated as future evidence in UI"
+    ],
+    "browser": "synthetic Edge before and after cutoff, stale response and four widths; live protected Preview desktop/mobile, equal model switch and120 slots"
+  },
+  "screenshots": [
+    "desktop-cloud-prediction.png",
+    "mobile-cloud-prediction.png",
+    "mobile-cloud-prediction-probabilities.png"
+  ],
+  "interpretation": {
+    "actual_races_with_saved_prediction": 1,
+    "result_cohorts_evaluated": 0,
+    "models": "two fixed untrained comparisons; no learned or calibrated artifact",
+    "validation_status": "UNVALIDATED",
+    "purchase_decision": "skip",
+    "no_purchase_recommendations": true,
+    "source_input": "same-day official B program aggregate points; no current result/exhibition/odds inputs",
+    "cloud_saved_at_definition": "time measured after immutable forecast bytes PUT and exact private readback; separate immutable receipt then latest manifest",
+    "not_yet_measured": [
+      "later official result and shared-cohort evaluation",
+      "national automatic prediction coverage",
+      "long-term history and recurring cloud scheduler",
+      "physical iPhone and permitted video"
+    ]
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "status": "PROTECTED_READ_ONLY_API_FULL_REPLAY_VERIFIED_UI_VERIFIER_PENDING",
+  "application_commit": "07c78da7e7572714a4ef15ac463362b366d818eb",
+  "deployment_id": "dpl_WEuBQsnbBDZTTh5A25M44E3qRfDq",
+  "deployment_url": "https://race-ai-preview-lk0nkma38-qq1130034-1738.vercel.app",
+  "report": {
+    "as_of": "2026-10-15T08:37:51.734623+00:00",
+    "closed_at": "2026-10-15T07:43:00.000000+00:00",
+    "common_race_ids": [
+      "20261015-15-04"
+    ],
+    "comparison_scope": "SAME_RACE_DIFFERENT_FEATURE_PHASES_NOT_EQUAL_INFORMATION_CUTOFF",
+    "date_jst": "2026-10-15",
+    "exclusion_reason": null,
+    "forecast_proof": {
+      "baseline_receipt_sha256": "160bb793332642e80a9617453fc82c19ad3e8279f6ec239a2c78a7f99c0361ce",
+      "baseline_request_id": "38677058935-1",
+      "baseline_snapshot_id": "1569007f47fce47b6a43b3a86647bf1e722fa71973344e61c75218180a3b472b",
+      "cloud_saved_at": "2026-10-15T07:31:29.954248+00:00",
+      "envelope_sha256": "53d56c8445f1089b313e76c81c326a91b9bc2bf946d97dba6a67ba8eee6d3825",
+      "generated_at": "2026-10-15T07:31:28.789415+00:00",
+      "input_snapshot_id": "c0172b08343a583743cc1a91347dd2a8ac4fc3777ad78a8dad4896592ea346e8",
+      "name_binding_request_id": "38696849355-1",
+      "receipt_confirmed_at": "2026-10-15T07:31:30.835577+00:00",
+      "request_id": "38699263834-1",
+      "snapshot_id": "e4ba3eebae23b1e25d6d3abb7eba0e9abf7d6fb2e5353c534002ae3adfc5904d"
+    },
+    "models": [
+      {
+        "forecast_cloud_saved_at": "2026-10-15T03:37:42.772686+00:00",
+        "forecast_generated_at": "2026-10-15T03:37:41.096106+00:00",
+        "log_loss": 4.807484189586476,
+        "model_id": "official-program-rating-pl",
+        "model_version": "1",
+        "multiclass_brier": 0.992292005849442,
+        "phase": "B_ONLY_BASELINE",
+        "race_count": 1,
+        "ticket_count": 120,
+        "winner_probability": 0.008168383974724941
+      },
+      {
+        "forecast_cloud_saved_at": "2026-10-15T07:31:29.954248+00:00",
+        "forecast_generated_at": "2026-10-15T07:31:28.789415+00:00",
+        "log_loss": 4.711657624130029,
+        "model_id": "name-bound-display",
+        "model_version": "2",
+        "multiclass_brier": 0.9905605908629309,
+        "phase": "DISPLAY_V2",
+        "race_count": 1,
+        "ticket_count": 120,
+        "winner_probability": 0.008989863410291173
+      },
+      {
+        "forecast_cloud_saved_at": "2026-10-15T07:31:29.954248+00:00",
+        "forecast_generated_at": "2026-10-15T07:31:28.789415+00:00",
+        "log_loss": 4.637163526472054,
+        "model_id": "name-bound-original",
+        "model_version": "2",
+        "multiclass_brier": 0.9891705634232364,
+        "phase": "ORIGINAL_V2",
+        "race_count": 1,
+        "ticket_count": 120,
+        "winner_probability": 0.009685130318857897
+      }
+    ],
+    "physical_exhibition_timing_verified": false,
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "race_id": "20261015-15-04",
+    "research_only": true,
+    "result_proof": {
+      "captured_at": "2026-10-15T08:26:09.506977+00:00",
+      "cloud_saved_at": "2026-10-15T08:26:12.377761+00:00",
+      "financial_confirmed": true,
+      "finish_confirmed": true,
+      "program_identity_sha256": "05006d559925a1815bb9a8852b43c4d8618efd60f222f811cd3c9d3012a692df",
+      "refund_boats": [],
+      "snapshot_id": "d6d6af206d8c60532afeef1d5c0ecb70682d4ba752155e6feba5c77224482c03",
+      "source_sha256": "fd8cca44fcccd6f8d3adf8055ed7085a84e2037cf1b03a3f2492b8de00b9831e",
+      "source_url": "https://www.boatrace.jp/owpc/pc/race/raceresult?rno=4&jcd=15&hd=20261015",
+      "status": "settled",
+      "top3": [
+        2,
+        3,
+        1
+      ]
+    },
+    "schema_version": 1,
+    "status": "EVALUATED",
+    "validation_status": "UNVALIDATED"
+  },
+  "report_bytes": 2813,
+  "report_sha256": "ddefb13dcffef066ad87467cf7740bff7c8f729d67b1e6f0dad5f6f0a388448d",
+  "forecast_whole_bytes_unchanged": 113892,
+  "result_whole_bytes_unchanged": 4958,
+  "full_report_replay_at_own_as_of": true,
+  "independent_three_120_term_score_replay": true,
+  "ui_live_verified": false,
+  "bounded_workflow_verifier_live_verified": false,
+  "official_source_requests": 0,
+  "posts_attempted": 0,
+  "validation_status": "UNVALIDATED",
+  "purchase_decision": "skip",
+  "purchase_recommendations": [],
+  "ci": {
+    "head": "07c78da7e7572714a4ef15ac463362b366d818eb",
+    "run_id": 38706857313,
+    "windows_job_id": 116328287654,
+    "linux_job_id": 116328287997,
+    "python_per_os": 828,
+    "python_failures": 0,
+    "python_skips": 0,
+    "js_cases": 110,
+    "js_failures": 0,
+    "js_skips": 0,
+    "windows_python_seconds": 74.212,
+    "linux_python_seconds": 47.391
+  }
+}

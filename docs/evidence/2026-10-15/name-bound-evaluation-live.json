@@ -1,0 +1,256 @@
+{
+  "status": "DEDICATED_READ_ONLY_FIVE_FILE_RESTORE_AND_FULL_REPLAY_VERIFIED",
+  "run_id": 38715147499,
+  "job_id": 116355917147,
+  "artifact_id": 11963110547,
+  "application_commit": "6b0a85d379d9247937973dcc34ce55da22f982f8",
+  "workflow_commit": "0cf0bb45d830c599aa1b201f74c285eea1120831",
+  "workflow_content_sha": "e6381faa68d2b1a40dd09b3901b664d4af9bcfa3",
+  "race_id": "20261015-15-04",
+  "forecast_request_id": "38699263834-1",
+  "files": 5,
+  "bytes": 124632,
+  "zip_bytes": 25652,
+  "zip_sha256": "ee861558b517f6f632b184222ce003cc1f508d5beda57266d2ad39398ad388d0",
+  "report_bytes": 2813,
+  "report_sha256": "e653f485a8d1910a05dbc58ba0db91d7a347148f8ba0fd7d1fcd24cdc0a84a46",
+  "report_as_of": "2026-10-15T09:44:50.093237+00:00",
+  "result_top3": [
+    2,
+    3,
+    1
+  ],
+  "models": [
+    {
+      "forecast_cloud_saved_at": "2026-10-15T03:37:42.772686+00:00",
+      "forecast_generated_at": "2026-10-15T03:37:41.096106+00:00",
+      "log_loss": 4.807484189586476,
+      "model_id": "official-program-rating-pl",
+      "model_version": "1",
+      "multiclass_brier": 0.992292005849442,
+      "phase": "B_ONLY_BASELINE",
+      "race_count": 1,
+      "ticket_count": 120,
+      "winner_probability": 0.008168383974724941
+    },
+    {
+      "forecast_cloud_saved_at": "2026-10-15T07:31:29.954248+00:00",
+      "forecast_generated_at": "2026-10-15T07:31:28.789415+00:00",
+      "log_loss": 4.711657624130029,
+      "model_id": "name-bound-display",
+      "model_version": "2",
+      "multiclass_brier": 0.9905605908629309,
+      "phase": "DISPLAY_V2",
+      "race_count": 1,
+      "ticket_count": 120,
+      "winner_probability": 0.008989863410291173
+    },
+    {
+      "forecast_cloud_saved_at": "2026-10-15T07:31:29.954248+00:00",
+      "forecast_generated_at": "2026-10-15T07:31:28.789415+00:00",
+      "log_loss": 4.637163526472054,
+      "model_id": "name-bound-original",
+      "model_version": "2",
+      "multiclass_brier": 0.9891705634232364,
+      "phase": "ORIGINAL_V2",
+      "race_count": 1,
+      "ticket_count": 120,
+      "winner_probability": 0.009685130318857897
+    }
+  ],
+  "manifest": {
+    "backups": {
+      "evaluation.json": {
+        "bytes": 2813,
+        "sha256": "e653f485a8d1910a05dbc58ba0db91d7a347148f8ba0fd7d1fcd24cdc0a84a46"
+      },
+      "forecast.json": {
+        "bytes": 113892,
+        "sha256": "53d56c8445f1089b313e76c81c326a91b9bc2bf946d97dba6a67ba8eee6d3825"
+      },
+      "program.json": {
+        "bytes": 2171,
+        "sha256": "84983f053ef03945006e212ba43d3ea44155f477d8f748b10ef26d5178c324b0"
+      },
+      "result.json": {
+        "bytes": 4958,
+        "sha256": "65cf65d7a532220a8688fbb3e3051f5cd9bd96d32944be055fb9d9d9897ac2fe"
+      }
+    },
+    "commit_sha": "6b0a85d379d9247937973dcc34ce55da22f982f8",
+    "failure_reason": null,
+    "forecast_request_id": "38699263834-1",
+    "max_seconds": 180,
+    "official_source_requests": 0,
+    "posts_attempted": 0,
+    "purchase_decision": "skip",
+    "purchase_recommendations": [],
+    "race_id": "20261015-15-04",
+    "reads_used": 4,
+    "schema_version": 1,
+    "status": "COMPLETED",
+    "validation_status": "UNVALIDATED"
+  },
+  "source_request_count_scope": "read-only evaluation caller; existing shared Blob scratch probe remains separate",
+  "raw_sources_reacquired": false,
+  "forecast_and_result_full_bytes_unchanged": true,
+  "independent_120_term_three_score_replay": true,
+  "validation_status": "UNVALIDATED",
+  "purchase_decision": "skip",
+  "purchase_recommendations": [],
+  "independent_offline_artifact_audit": {
+    "discrepancies": 0,
+    "critical": 0,
+    "important": 0,
+    "report": "docs/evidence/2026-10-15/name-bound-evaluation-artifact-audit.md",
+    "remote_run_status_independently_queried_by_auditor": false
+  },
+  "code_review": {
+    "base": "a2aeec8d4b54c859d3b87e75fa53ea92cdbf0aa8",
+    "head": "6b0a85d379d9247937973dcc34ce55da22f982f8",
+    "critical": 0,
+    "important": 0,
+    "minor": 0,
+    "scope": "bounded name-bound evaluation increment; global formal completion not claimed"
+  },
+  "ci": {
+    "commit": "6b0a85d379d9247937973dcc34ce55da22f982f8",
+    "run_id": 38713333457,
+    "ubuntu_job_id": 116349898365,
+    "windows_job_id": 116349898630,
+    "python_tests_per_os": 849,
+    "javascript_tests_per_os": 187,
+    "failures": 0,
+    "skips": 0,
+    "ubuntu_python_seconds": 45.544,
+    "windows_python_seconds": 67.672
+  },
+  "deployment": {
+    "commit": "6b0a85d379d9247937973dcc34ce55da22f982f8",
+    "url": "https://race-ai-preview-21zc1cq8z-qq1130034-1738.vercel.app",
+    "id": "dpl_cqy1jykqvRouz1W6Nr1G27QFzzYV",
+    "state": "READY",
+    "protection": "All Deployments",
+    "source_publisher_commit_remains": "28ee0ced23b3fe2ec28cda9c1de9a7ad5387839d"
+  },
+  "ui": {
+    "actual_interaction_commit": "558240bb52140d49097f81dd05f05e9d659d9656",
+    "actual_interaction_preview": "https://race-ai-preview-bgajnjvyu-qq1130034-1738.vercel.app",
+    "entire_web_tree_identical_to_functional_head": true,
+    "viewport_widths": [
+      1440,
+      390
+    ],
+    "three_score_rows": true,
+    "metrics_match_independent_replay": true,
+    "current_forecast_request_id": "38699263834-1",
+    "top3": [
+      2,
+      3,
+      1
+    ],
+    "page_horizontal_overflow": false,
+    "mobile_keyboard_scroll_left": 621.5999755859375,
+    "mobile_scroll_max": 622,
+    "mobile_last_column_visible": true,
+    "actual_race_switch_4_to_7_clears_old_scores": true,
+    "marugame7_actual_dom": {
+      "input_rows": 6,
+      "probability_rows": 240,
+      "own_forecast_request_id": "38708771146-1",
+      "abbreviation_to_full_name_visible": true
+    },
+    "node_vm_stale_response_guards_executed": true,
+    "authored_browser_harness_executed": false,
+    "clock_interop_evidence": "docs/evidence/2026-10-15/name-bound-evaluation-clock-interop.json"
+  },
+  "screenshots": [
+    {
+      "local_path": "artifacts/local/name-bound-evaluation-desktop-live.jpg",
+      "bytes": 102633,
+      "sha256": "3173319e10d4e3570cda972b18586ae8896b317f583af5ecc1d0d7b603d73d3d",
+      "width": 1381,
+      "height": 990
+    },
+    {
+      "local_path": "artifacts/local/name-bound-evaluation-mobile-live.jpg",
+      "bytes": 39505,
+      "sha256": "f4ce5fa1139a81eb0e24b5457e1e8c2644439b0ff4b9015cce069818bf3356b9",
+      "width": 375,
+      "height": 811
+    },
+    {
+      "local_path": "artifacts/local/name-bound-evaluation-mobile-right-live.jpg",
+      "bytes": 40551,
+      "sha256": "fe30d8a49b5fb434559a71d234f59cc4bfe7b0b598d58bd7ebff161e440f0c66",
+      "width": 375,
+      "height": 811
+    }
+  ],
+  "preserved_full_api_bodies": [
+    {
+      "name": "day",
+      "bytes": 349743,
+      "sha256": "e3adb164bf9e65adc23e3f4aacc011401d0498e5f0efd0904b8823be53a65fd2"
+    },
+    {
+      "name": "toda-v1",
+      "bytes": 36189,
+      "sha256": "f3f8dfba829ab894596bf667d5b3afaae4e9e0242304e9920c759cc54e64635d"
+    },
+    {
+      "name": "naruto-prediction-v1",
+      "bytes": 41130,
+      "sha256": "51e5f640b87da2e3a96bf56d80aa873f13e35ec7c6e261274225ca11d62ed026"
+    },
+    {
+      "name": "proof3",
+      "bytes": 3405,
+      "sha256": "19960fb8d38ee0357af481d7a80ad46bad337bd254365fa10da26d614c32b73b"
+    },
+    {
+      "name": "proof4",
+      "bytes": 3392,
+      "sha256": "563bea870b31950417cbc0c9d03dfbb6f930c9bd876f1f28ea199634173dacbb"
+    },
+    {
+      "name": "proof7",
+      "bytes": 3399,
+      "sha256": "19081807fcf198d96ebd9b355ebb543ae4d46bf6db2f56804cf5e8630f19c2a0"
+    },
+    {
+      "name": "forecast7",
+      "bytes": 114084,
+      "sha256": "ad1bbf97ae747ccf42488e5d1a85e430002fd94d0f706a344bf82ada9ec5f6bd"
+    }
+  ],
+  "all_118_api_bodies_reacquired_this_increment": false,
+  "rulings_in_ledger_order": [
+    {
+      "decision": "Expose sorted normalized refund_boats while retaining strict server refund validation.",
+      "reason": "Distinguish incomplete financial confirmation from returned boats without implying settlement.",
+      "cost_if_wrong": "A valid research comparison may be rejected; no purchase or financial action occurs."
+    },
+    {
+      "decision": "Reuse the strict existing result storage contract and defer dedicated alias-aware result ingestion.",
+      "reason": "The selected 4R label has six canonical matches; never weaken source identity to manufacture a label.",
+      "cost_if_wrong": "Alias-bearing results remain unavailable or rejected until their separate contract is implemented."
+    },
+    {
+      "decision": "Keep a new result writer outside this bounded read-only increment; collect the new 4R label through the existing approved closed-race job.",
+      "reason": "Preserve result/forecast separation and complete the read-only comparison first.",
+      "cost_if_wrong": "Result collection can stop or lack coverage; alias-aware all-race label collection remains unfinished."
+    },
+    {
+      "decision": "Permit only remote report as_of up to 60 seconds ahead of the real browser/caller clock.",
+      "reason": "Actual protected browser/API clocks differed by about 1.26 seconds; align with the existing UI clock allowance.",
+      "cost_if_wrong": "A server-valid read-only report can be displayed up to 60 seconds ahead of the local wall clock. Stored timestamps, same-JST/internal ordering, server validation and the monotonic budget remain unchanged."
+    }
+  ],
+  "remaining": [
+    "Alias-aware result label ingestion, including own 7R identity proof; 7R results not fetched in this increment.",
+    "Independently timed physical pre/after-exhibition pairs and multi-day held-out accuracy/calibration/adoption.",
+    "All-race continuous coverage and verified video boat identity, world calibration, measurement and forecast contribution.",
+    "Remaining formal handbook conditions: history, motor-change periods, user-cloud, long-term restore, autonomous cloud schedule, hardware iPhone and final release decision."
+  ]
+}
