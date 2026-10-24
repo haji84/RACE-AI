@@ -30,6 +30,7 @@ def probe(*,env=None,opener=None,extract=None,parser=None):
         or e.get("RACE_AI_B_PARSE_ALLOWED")!="20261022-B-PARSER"
         or len(e.get("GITHUB_SHA",""))!=40):
         raise RuntimeError("one-shot read-only GitHub test admission required")
+    real_parser=(parser is None)
     metrics={"schema":"RACE_AI_REAL_B_ONE_SHOT_PARSER_SMOKE_V1",
              "source_url":TARGET,"date_jst":"2026-10-22",
              "planned_provider_get_count":1,"auto_schedule_enabled":False,
@@ -104,6 +105,27 @@ def probe(*,env=None,opener=None,extract=None,parser=None):
         metrics["detailed_stat_rows"]=len(details)
         metrics["cutoff_time_fields"]=len(deadlines)
         metrics["observed_at_runner_clock_unattested"]=datetime.now(timezone.utc).isoformat()
+        if real_parser:
+            # PR71's pinned model feature requirements are read, never changed.
+            # The source observations stay transient and cannot be forwarded
+            # to a forecast without actual published_at, sample_n, rights,
+            # all required environmental values and an external time receipt.
+            reference = HERE/"pr71-contract-reference/race_ai"
+            if not (reference/"comprehensive_four_sport_models.py").is_file():
+                raise RuntimeError("pinned PR71 model inventory missing")
+            race_ai.__path__.append(str(reference))
+            from race_ai.comprehensive_four_sport_models import feature_inventory
+            from race_ai.boat_b_feature_bridge import candidate_bridge
+            inventory=feature_inventory("boat")
+            projection=candidate_bridge(
+                entrants,details,deadlines,
+                event_date_jst="2026-10-22",archive_url=TARGET,
+                archive_sha256=metrics["raw_archive_sha256"],
+                observed_at_claimed=metrics["observed_at_runner_clock_unattested"],
+                required_runner_keys=tuple(inventory["common_required"])+tuple(inventory["sport_required"]),
+                required_environment_keys=inventory["environment_required"])
+            # Never print or publish private_candidate_projection.
+            metrics["source_feature_to_model_contract_audit"]=projection["public_audit"]
         metrics["status"]="REAL_OFFICIAL_B_FORMAT_ACCEPTED_AUDIT_ONLY"
     except (HTTPError,URLError,TimeoutError,OSError,RuntimeError,ValueError,
             ImportError,TypeError) as exc:
