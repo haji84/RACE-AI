@@ -172,6 +172,67 @@ class ExistingAssetIntegrationTests(unittest.TestCase):
         self.assertNotEqual(a["prediction_sha256"],b["prediction_sha256"])
         self.assertFalse(result["formal_hit_at_8_eligible"])
 
+
+    def test_read_actual_existing_score_components_not_recalculated_new_weights(self):
+        if not PR71.is_dir():
+            self.skipTest("PR71 pinned checkout unavailable")
+        from race_ai.boat_existing_asset_integration import explain_existing_PR71_boat_score
+        racelist,aux=full_fixture()
+        outcome=run_pr71_existing_multi_models(racelist,aux,
+                    original_published_verified=True,
+                    source_admission=lambda *_: True)
+        rationale=explain_existing_PR71_boat_score(outcome["snapshot"])
+        self.assertEqual(len(rationale["score_components_by_lane"]),6)
+        self.assertEqual({x["lane"] for x in rationale["score_components_by_lane"]},
+                         set(range(1,7)))
+        self.assertAlmostEqual(sum(rationale["scenario_mixture_weights"].values()),1)
+        self.assertIn("start_consistency_rating",rationale["observed_feature_names"])
+        self.assertIn("wave_height_cm",rationale["observed_weather_names"])
+        self.assertFalse(rationale["weights_learned"])
+        self.assertFalse(rationale["rationale_is_postrace_causation"])
+
+    def test_reuse_four_existing_PR71_models_no_new_75_slot_filler(self):
+        if not PR71.is_dir():
+            self.skipTest("PR71 pinned checkout unavailable")
+        from race_ai.boat_existing_asset_integration import run_PR71_existing_all_four_model_families
+        from race_ai.comprehensive_four_sport_models import feature_inventory, SCHEMA
+        inv=feature_inventory("boat")
+        runner=inv["common_required"]+inv["sport_required"]
+        weather=inv["environment_required"]
+        def obs(value):
+            return {"value":value,"published_at":"2030-04-01T09:00:00+09:00",
+                    "captured_at":"2030-04-01T10:00:00+09:00",
+                    "source_ref":"synthetic://fixture","source_rights_ref":"synthetic-test",
+                    "sample_n":5,"transform_id":"synthetic-only-v1"}
+        participants=[{
+            "number":i,"identity":str(4000+i),"draw":i,"style":"unknown",
+            "group_id":None,
+            "features":{key:obs(round(.35+.06*i+.01*n,4))
+                        for n,key in enumerate(runner)}
+        } for i in range(1,7)]
+        env_values={"wind_mps":3.5,"rain_mm_h":0.1,"humidity_pct":70,
+                    "air_temp_c":22,"surface_wetness":.1,"wave_cm":9}
+        environment={key:obs(env_values.get(key,.25)) for key in weather}
+        snapshot={"schema":SCHEMA,"scope":"SYNTHETIC_ONLY",
+                  "race":{"race_id":"boat:2030-04-01:fictional-venue:1",
+                          "sport":"boat","venue":"fictional-venue",
+                          "event_date_jst":DAY,
+                          "sales_cutoff_at":"2030-04-01T10:59:00+09:00",
+                          "as_of":ASOF,"distance_m":1800,"surface":"water",
+                          "race_kind":"synthetic-test","race_revision":1},
+                  "participants":participants,"environment":environment}
+        suite=run_PR71_existing_all_four_model_families(snapshot)
+        self.assertEqual(len(suite["models"]),4)
+        for model in suite["models"].values():
+            self.assertEqual(len(model["ordered_top8"]),8)
+            self.assertEqual(len(model["candidates"]),120)
+            self.assertFalse(model["official_prediction"])
+        self.assertIsNone(suite["external_timestamp_receipts"])
+        broken=copy.deepcopy(snapshot)
+        del broken["participants"][0]["features"]["start_reliability"]
+        with self.assertRaisesRegex(ValueError,"required features missing"):
+            run_PR71_existing_all_four_model_families(broken)
+
     def test_out_of_time_but_complete_exhibition_still_rejected(self):
         if not PR71.is_dir():
             self.skipTest("PR71 pinned checkout unavailable")
