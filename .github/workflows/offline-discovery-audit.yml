@@ -16,6 +16,7 @@ on:
       - 'race_ai/boat_existing_asset_integration.py'
       - 'race_ai/boat_k_history_dedup_contract.py'
       - 'scripts/p0_ohmura8_disjoint_older_k_20261024.py'
+      - 'docs/evidence/P0_OHMURA8_DISTINCT_K_OCT01_08_20261024.json'
       - 'tests/test_p0_ohmura8_disjoint_older_k.py'
       - '.github/workflows/p0-ohmura8-disjoint-older-k.yml'
       - 'docs/P0_OHMURA8_OLDER_K_GAP_20261024.md'
