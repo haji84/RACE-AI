@@ -7,9 +7,10 @@ Counters for OTHER apps must come from authenticated account observability;
 otherwise feasibility is unverified, not a green light to deploy.
 
 This budgets all 3T quotes as ONE JSON row per race per update, NOT
-one Cloudflare write for each possible trifecta combination.  An indexed
-odds_latest row is conservatively counted as TWO row writes. In reality
-other indexes, quotas, SQL, CPU and storage still require monitoring.
+one Cloudflare write for each possible trifecta combination. Assume TWO
+D1 rows written for an indexed odds_latest update, plus ONE row for the
+persistent daily ingest-budget ledger. Actual metrics are authoritative;
+database schema, indexes, CPU and storage still require monitoring.
 """
 from __future__ import annotations
 
@@ -71,7 +72,7 @@ def estimate_free_capacity(
     # One worker call for each authorized ingest, plus each live user read.
     # Scheduling overhead/extra APIs are NOT counted here: reserve margin.
     request_projection = upstream_attempts + user_polls
-    write_projection = upstream_attempts * 2
+    write_projection = upstream_attempts * 3
     read_projection = user_polls + upstream_attempts * 2
     latest_bytes = races * payload
 
