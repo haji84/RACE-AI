@@ -212,15 +212,15 @@ jobs:
       - name: Prepare identical pinned PR64 parser reference for full regression
         run: |
           python -c "import shutil; shutil.copytree('pr64-existing-reference/race_ai', 'pr64-parser-reference/race_ai')"
-      - name: Checkout pinned PR71 snapshot validator and model suite for settlement integration
+      - name: Checkout pinned PR71 validator, models and opt-in private transport
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: a3d4d011fab8773e2eab07ca83580ab345dfb708
-          path: pr71-settlement-reference
+          ref: ebe93f13062cf0461b81b924a5dc0482ada37b56
+          path: pr71-private-transport-reference
           persist-credentials: false
       - name: Reference-complete offline regression suite
         run: python -m unittest discover -s tests -v
-      - name: Payload-bound existing PR71 multi-model settlement (synthetic only)
+      - name: Payload-bound PR71 settlement and opt-in local transport (synthetic only)
         run: python scripts/verify_model_suite_settlement_synthetic.py
       - name: Test one same-race K/B/preview/weather source joining and NO_FORECAST gating
         run: python -m unittest discover -s tests -p test_p0_mikuni9_same_race_full_join_20261024.py -v

@@ -7,4 +7,5 @@ artifacts/
 /pr71-feature-review-reference/
 /pr71-existing-reference/
 /pr71-settlement-reference/
+/pr71-private-transport-reference/
 *.sqlite*

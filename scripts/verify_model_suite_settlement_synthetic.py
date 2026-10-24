@@ -10,18 +10,20 @@ import json
 from pathlib import Path
 import subprocess
 import sys
+import tempfile
 from unittest.mock import patch
 
 
 HERE = Path(__file__).resolve().parent.parent
-REFERENCE = HERE / "pr71-settlement-reference"
-PINNED_PR71 = "a3d4d011fab8773e2eab07ca83580ab345dfb708"
+REFERENCE = HERE / "pr71-private-transport-reference"
+PINNED_PR71 = "ebe93f13062cf0461b81b924a5dc0482ada37b56"
 PINNED_FILES = (
     "race_ai/comprehensive_four_sport_models.py",
     "race_ai/four_sport_matchup_models.py", "race_ai/four_sport_model_suite.py",
     "race_ai/four_sport_learning.py", "race_ai/permissioned_source_delivery.py",
     "race_ai/github_freeze_receipt.py", "tests/test_comprehensive_four_sport_models.py",
     "tests/test_permissioned_source_delivery.py",
+    "race_ai/private_delivery_codec.py",
 )
 
 
@@ -63,6 +65,7 @@ from test_permissioned_source_delivery import AT, gate, raw_feed
 from race_ai.comprehensive_four_sport_models import digest, validate
 from race_ai.four_sport_model_suite import ALL_MODELS
 from race_ai.permissioned_source_delivery import deliver
+from race_ai.private_delivery_codec import serialize_private_delivery, deserialize_private_delivery
 from race_ai.github_freeze_receipt import BASE, verify_github_freeze
 from race_ai.append_only_freeze_writer import prepare_anchor
 from race_ai.model_suite_settlement import audit_model_settlements
@@ -176,14 +179,31 @@ def verify_sport(sport, run_offset):
         assert comparison["formal_hit_at_8_all"] == expected_hit
     assert delivery == before
     assert all(x["formal_hit_at_8_all"] is None for x in evaluate(callbacks={})["models"].values())
-    if sport == "horse":
-        # Existing PR71 diagnostics have integer runner keys. Persisting JSON
-        # converts these to strings, changing numeric versus lexicographic
-        # canonical ordering at runner 10+. Preserve original hashes and fail
-        # closed; a versioned upstream canonicalization fix is a separate P0.
-        reloaded = json.loads(json.dumps(delivery, sort_keys=True, ensure_ascii=False))
-        expect_rejected(lambda: evaluate(supplied=[{"race_id": source_ids[0], "delivery": reloaded}]))
-        print("SYNTHETIC_EXISTING_HORSE_JSON_ROUNDTRIP_REJECTED; VERSIONED_CANONICALIZATION_P0")
+    # Preserve the legacy rejection: sorted ordinary JSON changes model order
+    # in every sport, and integer diagnostic key semantics for horse. Never
+    # infer lost types/order from an old file or mint replacement original hashes.
+    reloaded = json.loads(json.dumps(delivery, sort_keys=True, ensure_ascii=False))
+    expect_rejected(lambda: evaluate(supplied=[{"race_id": source_ids[0], "delivery": reloaded}]))
+    print("SYNTHETIC_LEGACY_SORTED_JSON_REJECTED", sport)
+
+    # Explicit opt-in local transport has its own checksum. Fictional temporary
+    # disk persistence is not an external server-time or source-rights witness.
+    wire = serialize_private_delivery(delivery)
+    with tempfile.TemporaryDirectory(prefix="race-ai-synthetic-transport-") as directory:
+        path = Path(directory) / "fictional-private-delivery.json"
+        with path.open("xb") as stream:
+            stream.write(wire)
+        decoded = deserialize_private_delivery(path.read_bytes(),
+                      expected_delivery_sha256=before["delivery_sha256"])
+    assert decoded is not delivery and decoded["research_suite"] is not delivery["research_suite"]
+    assert digest(decoded) == digest(before)
+    assert list(decoded["research_suite"]["models"]) == list(before["research_suite"]["models"])
+    assert evaluate(supplied=[{"race_id": source_ids[0], "delivery": decoded}]) == result
+    assert delivery == before
+    expect_rejected(lambda: deserialize_private_delivery(wire,
+                          expected_delivery_sha256="0" * 64))
+    print("SYNTHETIC_LOCAL_TRANSPORT_TO_UNCHANGED_SETTLEMENT_PASS", sport,
+          "WIRE_BYTES", len(wire), "ORIGINAL_HASHES_AND_FULL_DENOMINATORS_UNCHANGED")
 
     # Tampering cannot borrow an unchanged, otherwise accepted original hash.
     changed = deepcopy(deliveries)
@@ -249,4 +269,4 @@ def verify_sport(sport, run_offset):
 with patch("socket.create_connection", side_effect=AssertionError("network forbidden in synthetic verification")):
     for index, sport in enumerate(("boat", "keirin", "autorace", "horse")):
         verify_sport(sport, 4000 + index * 10)
-print("SYNTHETIC_ONLY_IN_MEMORY: NO_PERSISTED_JSON_COMPATIBILITY_OR_REAL_FREEZE_CLAIM", PINNED_PR71)
+print("SYNTHETIC_IN_MEMORY_AND_OPT_IN_LOCAL_TRANSPORT_ONLY: NO_REAL_FREEZE_PRODUCER_RIGHTS_OR_ACCURACY_CLAIM", PINNED_PR71)

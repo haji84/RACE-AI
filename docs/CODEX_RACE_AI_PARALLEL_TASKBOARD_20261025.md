@@ -79,3 +79,11 @@ Initial live refs: main8bb7d69; PR61fef6860, PR64761247b, PR65989ffff, PR69bca59
 Before each branch mutation D acquires an exclusive local per-PR lock, checks expected remote SHA and protected workflow settings, then uses only ordinary fast-forward push. A/B/C return patches/tests; they cannot push. A changed remote head causes review/replan, not overwrite. Independent code reviewer cannot author the reviewed slice. Formal GitHub approval remains a separate gate.
 
 Next external gates: permitted real participant/publication/feature data and cutoff, independent immutable future freeze/results, actual owner iPhone acceptance and deployed-code match, account-wide usage evidence, authorized independent GitHub review/main integration. No claim of completion or post-session background operation.
+
+## Follow-up local transport unit
+
+The first unit closed at PR71 8f19d0af / PR72 97c5c101 with CI40122497586 and40123289747 success, independent technical review and254-file byte/restore audit. Those records and the original limitation remain historical evidence.
+
+C authored a separate opt-in typed private-delivery codec, independently designed and reviewed. An oversized-string pre-allocation finding was reproduced and repaired before commit. PR71 source pin ebe93f13062cf0461b81b924a5dc0482ada37b56 retains old producer/writer/CLI/model/hash/receipt code unchanged. D joins its temporary-file roundtrip to the unchanged PR72 binding/settlement, retaining all4 legacy sorted-JSON rejections and identical original model hashes/full denominators. The18-horse fixture fits4MiB; self-consistent checksums are not producer or time authentication. Exact-head CI and current pushed refs are recorded separately in Issue68 after verification; this document grants no external acceptance.
+
+Owner action already requested: inspect Cloudflare's current plan/account-wide usage and remaining free capacity. Existing usage reader403 remains UNKNOWN; do not repeat or expand permissions. No corrected UI deployment until the concrete scoped gate, followed by actual owner iPhone Safari120-values/60sec x3 acceptance. Other real-source/freeze/results/main/forward98% gates remain open.
