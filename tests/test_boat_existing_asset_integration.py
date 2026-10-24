@@ -20,6 +20,7 @@ for directory in (PR64,PR71):
 from race_ai.boat_existing_asset_integration import (
     SCHEMA, ReuseGateError, pr64_history_candidates, from_pr64_imported_K,
     build_readiness, run_pr71_existing_multi_models,
+    pr64_B_to_PR71_racelist,
 )
 
 DAY="2030-04-01"
@@ -47,6 +48,7 @@ def full_fixture():
         "closed_at":"2030-04-01T10:59:00+09:00",
         "source_url":"https://example.org/fictional-B",
         "first_observed_at":"2030-04-01T09:00:00+09:00",
+        "original_publication_verification":True,
         "boats":[{"lane":i,"racer_registration_id":str(4000+i),
                   "motor_no":20+i,"national_win_rate":float(3+i),
                   "local_win_rate":float(2+i/2)} for i in range(1,7)]
@@ -102,6 +104,51 @@ class ExistingAssetIntegrationTests(unittest.TestCase):
         x[0]["sha"]="not-a-hash"
         with self.assertRaisesRegex(ReuseGateError,"digest"):
             pr64_history_candidates(x,racer_id="4001",day=DAY,as_of=ASOF)
+
+    def test_real_PR64_parsed_B_shape_binds_six_lanes_without_pubtime_fiction(self):
+        rid="20300401-18-01"
+        entries=[{"race_id":rid,"lane":i,"racer_id":str(4000+i)} for i in range(1,7)]
+        details={
+            (rid,i):{"racer_registration_id":str(4000+i),"motor_no":30+i,
+                     "national_win_rate":4.+.25*i,
+                     "local_win_rate":3.+.25*i,
+                     "motor_top2_rate":25.+i}
+            for i in range(1,7)}
+        closings={rid:"2030-04-01T10:59:00+09:00"}
+        result=pr64_B_to_PR71_racelist(
+            entries,details,closings,race_id=rid,
+            source_url="https://example.org/synthetic-B",
+            archive_sha256="a"*64,captured_at="2030-04-01T09:01:00+09:00")
+        self.assertEqual(len(result["boats"]),6)
+        self.assertEqual(result["boats"][0]["racer_registration_id"],"4001")
+        self.assertEqual(result["boats"][0]["motor_top2_rate"],26.)
+        self.assertIsNone(result["source_original_published_at"])
+        self.assertFalse(result["original_publication_verification"])
+        racelist,aux=full_fixture()
+        for field in ("first_observed_at","closed_at"):
+            self.assertIn(field,result)
+        with self.assertRaisesRegex(ReuseGateError,"publication"):
+            run_pr71_existing_multi_models(
+                result,aux,original_published_verified=True,
+                source_admission=lambda *_:True)
+
+    def test_b_join_rejects_postcutoff_and_wrong_motor(self):
+        rid="20300401-18-01"
+        rows=[{"race_id":rid,"lane":i,"racer_id":str(4000+i)} for i in range(1,7)]
+        details={(rid,i):{"racer_registration_id":str(4000+i),"motor_no":20+i,
+                "national_win_rate":5.0,"local_win_rate":4.0,
+                "motor_top2_rate":40.0} for i in range(1,7)}
+        kwargs=dict(race_id=rid,source_url="https://example.org/example",
+                    archive_sha256="b"*64,
+                    captured_at="2030-04-01T10:01:00+09:00")
+        cutoff={rid:"2030-04-01T10:59:00+09:00"}
+        with self.assertRaisesRegex(ReuseGateError,"elapsed"):
+            pr64_B_to_PR71_racelist(rows,details,cutoff,
+                **dict(kwargs,captured_at="2030-04-01T11:01:00+09:00"))
+        modified=copy.deepcopy(details)
+        modified[(rid,1)]["motor_no"]=None
+        with self.assertRaisesRegex(ReuseGateError,"motor"):
+            pr64_B_to_PR71_racelist(rows,modified,cutoff,**kwargs)
 
     def test_ready_report_advertises_source_gates_not_model_success(self):
         racelist,aux=full_fixture()
