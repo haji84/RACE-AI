@@ -1,0 +1,1 @@
+One-shot K Oct01..08 disjoint from previously examined Oct09..23. Exact branch admission repaired; prior run stopped before HTTP. At most eight GET attempts; aggregate-only results, no ongoing collection, no predictions or source-rights claims.
