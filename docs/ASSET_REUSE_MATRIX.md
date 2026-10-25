@@ -45,5 +45,7 @@ KEIRIN-AI: main `c922c56079d087ee34e6ec4533bf0c135b9427e7` README only; PR1 `574
 
 ## Minimal dependency route
 
+2026-10-25 follow-on: PR72 `8e23bc496a33d3c859abc27d9a6b316423544b93` repaired the existing PR64 raw-preview/legacy readiness join (CI40156008773 Python353 PASS). The next opt-in `offline_model_run` reuses the pinned PR71 `ebe93f13062cf0461b81b924a5dc0482ada37b56` delivery, typed codec, unchanged PR72 binding/anchor preparation/settlement and existing SQLite transaction patterns. Its separate synthetic namespace never widens `SyntheticJournal` or introduces another prediction formula. Local prepared plans are not external freeze receipts; actual runner head/CI/review are recorded separately on Issue68 after verification.
+
 main README → extracted pure ranking kernel → sport/snapshot adapter + synthetic journal → credential-free synthetic hosted workflow.
 No stack-wide merge/rebase/force-push. Future real collector → authenticated external immutable writer → independent persisted-time witness must be separately admitted.

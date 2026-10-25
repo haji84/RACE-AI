@@ -13,6 +13,10 @@ on:
       - 'race_ai/model_suite_settlement.py'
       - 'tests/test_model_suite_settlement.py'
       - 'scripts/verify_model_suite_settlement_synthetic.py'
+      - 'race_ai/offline_model_run.py'
+      - 'tests/test_offline_model_run.py'
+      - 'scripts/verify_offline_model_run_synthetic.py'
+      - 'docs/P0_OFFLINE_ADVANCED_MODEL_RUN_20261025.md'
       - 'docs/CODEX_RACE_AI_THREE_STREAM_MASTER_HANDOFF_20261025.md'
       - 'docs/CODEX_RACE_AI_PARALLEL_RUNBOOK_20261025.md'
       - 'docs/CODEX_RACE_AI_START_PROMPT_20261025.md'
@@ -222,5 +226,7 @@ jobs:
         run: python -m unittest discover -s tests -v
       - name: Payload-bound PR71 settlement and opt-in local transport (synthetic only)
         run: python scripts/verify_model_suite_settlement_synthetic.py
+      - name: Restart existing four-sport advanced models from an offline journal (fictional only)
+        run: python scripts/verify_offline_model_run_synthetic.py
       - name: Test one same-race K/B/preview/weather source joining and NO_FORECAST gating
         run: python -m unittest discover -s tests -p test_p0_mikuni9_same_race_full_join_20261024.py -v

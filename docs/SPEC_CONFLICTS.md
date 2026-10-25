@@ -11,6 +11,7 @@
 |External hash receipt versus separately supplied picks|Receipt authenticity alone does not bind independently supplied tickets. Derive picks from checked original model payload and keep every missing eligible race in each predeclared model denominator.|
 |Safari interval display versus actual audit-ready receipt|Preserve each event's actual race identity; UI success alone and VM tests are not owner-device acceptance.|
 |Historical D1 real odds versus future automatic ingestion|Existing four historical real races are preserved. Fresh metadata protection/read=true/ingest=false/cron0 does not prove source cadence rights, deployed SHA equality or account free allowance. Billing403 stays UNKNOWN.|
+|Cost/account verification versus continued development|Owner explicitly deferred cost checking and instructed development to continue first. UNKNOWN account usage does not block local/offline implementation and its bounded existing CI. It does not authorize a new paid service, shared cloud consumption, deployment or security change.|
 |Technical review versus formal main acceptance|No CodeRabbit or self-approval. Exact-head CI and separate-context technical review cannot replace independent GitHub APPROVED/Human Gates.|
 
 These are narrow repairs of adopted contracts, not new rights, platform replacement, paid usage or deployment authorization. Earlier rows remain historical.
