@@ -52,16 +52,16 @@ def _sha(raw):
 
 
 def _hash(kind, value, contract="LEGACY_V1"):
-    if contract not in ("LEGACY_V1", "RETAINED_V2"):
+    if contract not in ("LEGACY_V1", "RETAINED_V2", "PRIVATE_ACTION_V3"):
         _fail()
-    suffix = "_V2\0" if contract == "RETAINED_V2" else "_V1\0"
+    suffix = {"LEGACY_V1": "_V1\0", "RETAINED_V2": "_V2\0", "PRIVATE_ACTION_V3": "_V3\0"}[contract]
     return _sha(("RACE_AI_PERMISSIONED_SUBMISSION_" + kind + suffix).encode() + _raw(value))
 
 
 def _contract(manifest):
-    if manifest.get("schema") not in (SCHEMA, RETAINED_SCHEMA):
+    if manifest.get("schema") not in (SCHEMA, RETAINED_SCHEMA, RETAINED_SCHEMA[:-1] + "3"):
         _fail()
-    return "RETAINED_V2" if manifest["schema"] == RETAINED_SCHEMA else "LEGACY_V1"
+    return {SCHEMA: "LEGACY_V1", RETAINED_SCHEMA: "RETAINED_V2", RETAINED_SCHEMA[:-1] + "3": "PRIVATE_ACTION_V3"}[manifest["schema"]]
 
 
 def _bound(kind, value, manifest):
@@ -69,7 +69,7 @@ def _bound(kind, value, manifest):
 
 
 def _gates(manifest):
-    return GATES + (("retention",) if _contract(manifest) == "RETAINED_V2" else ())
+    return GATES + {"LEGACY_V1": (), "RETAINED_V2": ("retention",), "PRIVATE_ACTION_V3": ("retention", "private_action") }[_contract(manifest)]
 
 
 def _copy(value, limit=case.MAX_REQUEST):
@@ -137,8 +137,8 @@ def _stage(path, manifest, private, store, stage):
 
 
 def _entry(attempt_path, case_path, expected, branch, pin, private, store, *,
-           contract="LEGACY_V1", reservation_sha=None, candidate_only=False):
-    if contract not in ("LEGACY_V1", "RETAINED_V2") or (contract == "LEGACY_V1" and reservation_sha is not None):
+           contract="LEGACY_V1", reservation_sha=None, candidate_only=False, private_action_sha=None):
+    if contract not in ("LEGACY_V1", "RETAINED_V2", "PRIVATE_ACTION_V3") or (contract == "LEGACY_V1" and reservation_sha is not None):
         _fail()
     if (not case._hex(expected) or not case._hex(pin, 40) or type(branch) is not str
             or not re.fullmatch(r"audit/freeze-[A-Za-z0-9._/-]{1,80}", branch)
@@ -170,9 +170,9 @@ def _entry(attempt_path, case_path, expected, branch, pin, private, store, *,
         manifest = _copy(manifest, LIMIT)
         if candidate_only:
             return path, manifest, loaded
-        if contract == "RETAINED_V2":
+        if contract != "LEGACY_V1":
             from . import retained_case_submission as retained
-            return retained._entry(path, manifest, loaded, reservation_sha, private, store)
+            return retained._entry(path, manifest, loaded, reservation_sha, private, store, contract, private_action_sha)
         if not _stage(path, manifest, private, store, "PRE_OPEN"):
             return None
         return path, manifest, loaded
@@ -181,12 +181,12 @@ def _entry(attempt_path, case_path, expected, branch, pin, private, store, *,
 
 
 def _identity(db, contract="LEGACY_V1"):
-    if contract not in ("LEGACY_V1", "RETAINED_V2"):
+    if contract not in ("LEGACY_V1", "RETAINED_V2", "PRIVATE_ACTION_V3"):
         _fail()
     statements = SQL
-    if contract == "RETAINED_V2":
-        from .retained_case_submission import EXTRA_SQL
-        statements = SQL + EXTRA_SQL
+    if contract != "LEGACY_V1":
+        from .retained_case_submission import _sql
+        statements = SQL + _sql(contract)
     template = sqlite3.connect(":memory:")
     try:
         for statement in statements:
@@ -198,7 +198,7 @@ def _identity(db, contract="LEGACY_V1"):
     ids = (db.execute("PRAGMA application_id").fetchone()[0], db.execute("PRAGMA user_version").fetchone()[0])
     if not objects and ids == (0, 0):
         return False
-    if objects != expected or ids != (APPLICATION_ID, 2 if contract == "RETAINED_V2" else 1):
+    if objects != expected or ids != (APPLICATION_ID, {"LEGACY_V1": 1, "RETAINED_V2": 2, "PRIVATE_ACTION_V3": 3}[contract]):
         _fail("FOREIGN_SUBMISSION_STORE")
     return True
 
@@ -239,10 +239,10 @@ def _read(db, manifest, loaded=None):
     try:
         contract = _contract(manifest)
         if not _identity(db, contract):
-            if contract == "RETAINED_V2":
+            if contract != "LEGACY_V1":
                 _fail()
             return state
-        if contract == "RETAINED_V2":
+        if contract != "LEGACY_V1":
             from . import retained_case_submission as retained
             prerequisite = retained._prerequisite(db, manifest, loaded)
             state["latest"] = prerequisite["admitted_at"]
@@ -253,7 +253,7 @@ def _read(db, manifest, loaded=None):
                     or any(row[0] != "text" or not 0 < row[1] <= LIMIT or row[2:4] != ("text", 64)
                            or len(row) == 6 and (row[4] != "text" or not 0 < row[5] <= 16) for row in sizes)):
                 _fail()
-        if contract == "RETAINED_V2" and not db.execute("SELECT 1 FROM submission_manifest").fetchone():
+        if contract != "LEGACY_V1" and not db.execute("SELECT 1 FROM submission_manifest").fetchone():
             if db.execute("SELECT 1 FROM submission_intents").fetchone() or db.execute("SELECT 1 FROM submission_evidence").fetchone():
                 _fail()
             state["manifest_present"] = False
@@ -306,7 +306,7 @@ def _read(db, manifest, loaded=None):
                     _fail()
                 if kind == "WITNESS":
                     _witness(payload, manifest["models"][position - 1], commit_sha, manifest, evidence["recorded_at"])
-        if contract == "RETAINED_V2":
+        if contract != "LEGACY_V1":
             state["manifest_present"] = True
             if any(_time(value[0]["recorded_at"]) < _time(prerequisite["admitted_at"]) for value in state["intents"].values()):
                 _fail()
@@ -340,12 +340,12 @@ def _summary(manifest=None, state=None, reasons=(), reads=0, recovery=False):
         **dict.fromkeys(("official_prediction", "eligible_for_hit_at_8", "source_rights_verified",
             "producer_execution_authenticated", "full_private_payload_retention_verified",
             "global_exactly_once_verified", "cloned_store_protection_verified"), False)}
-    if manifest is not None and _contract(manifest) == "RETAINED_V2":
+    if manifest is not None and _contract(manifest) != "LEGACY_V1":
         from .private_wire_retention import _flags
-        result.update(schema="RACE_AI_PERMISSIONED_SUBMISSION_RESULT_V2", **_flags())
+        result.update(schema="RACE_AI_PERMISSIONED_SUBMISSION_RESULT_V" + ("3" if _contract(manifest) == "PRIVATE_ACTION_V3" else "2"), **_flags())
         result.update({key: manifest[key] for key in ("reservation_sha256", "retention_request_sha256", "retention_admission_sha256")})
-        from .retained_case_submission import ROW_FIELDS
-        result.update({key: manifest[key] for key in ROW_FIELDS})
+        from .retained_case_submission import _fields
+        result.update({key: manifest[key] for key in _fields(_contract(manifest))})
     return result
 
 
@@ -367,7 +367,7 @@ def _inspect(path, manifest, private, store, loaded=None):
 
 
 def _claim(manifest, position, phase, at):
-    schema = "RACE_AI_PERMISSIONED_SUBMISSION_CLAIM_V2" if _contract(manifest) == "RETAINED_V2" else CLAIM
+    schema = "RACE_AI_PERMISSIONED_SUBMISSION_CLAIM_V3" if _contract(manifest) == "PRIVATE_ACTION_V3" else "RACE_AI_PERMISSIONED_SUBMISSION_CLAIM_V2" if _contract(manifest) == "RETAINED_V2" else CLAIM
     return {"schema": schema, "manifest": manifest, "manifest_sha256": _bound("MANIFEST", manifest, manifest),
         "model_id": case.MODELS[position - 1], "position": position, "phase": phase, "checked_at": at,
         "plan": manifest["models"][position - 1]["plan"], "required_source_purposes": list(case.PURPOSES)}
@@ -381,7 +381,7 @@ def _admit(manifest, loaded, position, phase, at, callbacks, transport, retentio
     ordinary = all((_call(callbacks[0], claim, loaded["delivery"]["snapshot"]),
         _call(callbacks[1], claim, row), _call(callbacks[2], claim, declarations),
         _call(callbacks[3], claim), _call(callbacks[4], claim, transport)))
-    if _contract(manifest) == "RETAINED_V2":
+    if _contract(manifest) != "LEGACY_V1":
         from .retained_case_submission import _action
         return ordinary and _call(retention_action, claim, _action(manifest))
     return ordinary
@@ -415,10 +415,10 @@ def _evidence(db, path, manifest, position, kind, payload, clock, private, store
 def dispatch_prepared_case(attempt_path, case_path, *, expected_request_sha256, expected_branch,
         submission_source_sha40, clock, private_path_verifier=None, admit_store=None, verify_source=None,
         verify_cutoff=None, admit_model_roster=None, independent_release_check=None, admit_transport=None, transport=None,
-        _submission_contract="LEGACY_V1", _expected_reservation_sha256=None, _admit_retention_action=None):
+        _submission_contract="LEGACY_V1", _expected_reservation_sha256=None, _admit_retention_action=None, _expected_private_action_sha256=None):
     clock = _tracked_clock(clock)
     entry = _entry(attempt_path, case_path, expected_request_sha256, expected_branch, submission_source_sha40,
-                   private_path_verifier, admit_store, contract=_submission_contract, reservation_sha=_expected_reservation_sha256)
+                   private_path_verifier, admit_store, contract=_submission_contract, reservation_sha=_expected_reservation_sha256, private_action_sha=_expected_private_action_sha256)
     if entry is None:
         return _summary(reasons=["PRIVATE_STORE_NOT_ADMITTED"])
     path, manifest, loaded = entry
@@ -441,7 +441,7 @@ def dispatch_prepared_case(attempt_path, case_path, *, expected_request_sha256, 
         _now(clock, at, manifest["sales_cutoff_at"])
     except SubmissionError:
         return _summary(manifest, state, ["ACTION_OR_DEADLINE_NOT_ADMITTED"])
-    db = sqlite3.connect(path.as_uri() + "?mode=rw", uri=True, timeout=30, isolation_level=None) if _submission_contract == "RETAINED_V2" else sqlite3.connect(str(path), timeout=30, isolation_level=None)
+    db = sqlite3.connect(path.as_uri() + "?mode=rw", uri=True, timeout=30, isolation_level=None) if _submission_contract != "LEGACY_V1" else sqlite3.connect(str(path), timeout=30, isolation_level=None)
     reads = 0  # Wrapper GET invocations, not authenticated server/retry counts.
     try:
         if not _stage(path, manifest, private_path_verifier, admit_store, "POST_OPEN"):
@@ -468,7 +468,7 @@ def dispatch_prepared_case(attempt_path, case_path, *, expected_request_sha256, 
                     db.execute(statement)
                 db.execute(f"PRAGMA application_id={APPLICATION_ID}")
                 db.execute("PRAGMA user_version=1")
-            if not owned or _submission_contract == "RETAINED_V2" and not state["manifest_present"]:
+            if not owned or _submission_contract != "LEGACY_V1" and not state["manifest_present"]:
                 db.execute("INSERT INTO submission_manifest VALUES(1,?,?)", (_raw(manifest).decode(), _bound("MANIFEST", manifest, manifest)))
             intent = {"manifest_sha256": _bound("MANIFEST", manifest, manifest), "model_id": case.MODELS[position - 1],
                       "position": position, "recorded_at": at, "gates": dict.fromkeys(_gates(manifest), True)}
@@ -534,10 +534,10 @@ def dispatch_prepared_case(attempt_path, case_path, *, expected_request_sha256, 
 
 def recover_submission_attempts(attempt_path, case_path, *, expected_request_sha256, expected_branch,
         submission_source_sha40, clock, private_path_verifier=None, admit_store=None, admit_reader=None,
-        github_fetch=None, trusted_legacy_verifier=None, submission_contract="LEGACY_V1", expected_reservation_sha256=None):
+        github_fetch=None, trusted_legacy_verifier=None, submission_contract="LEGACY_V1", expected_reservation_sha256=None, expected_private_action_sha256=None):
     clock = _tracked_clock(clock)
     entry = _entry(attempt_path, case_path, expected_request_sha256, expected_branch, submission_source_sha40,
-                   private_path_verifier, admit_store, contract=submission_contract, reservation_sha=expected_reservation_sha256)
+                   private_path_verifier, admit_store, contract=submission_contract, reservation_sha=expected_reservation_sha256, private_action_sha=expected_private_action_sha256)
     if entry is None:
         return _summary(reasons=["PRIVATE_STORE_NOT_ADMITTED"], recovery=True)
     path, manifest, loaded = entry

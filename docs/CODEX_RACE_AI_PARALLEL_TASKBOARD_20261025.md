@@ -241,3 +241,38 @@ writes retain the permanent barrier; GET-only recovery cannot ACK or resend.
 No paid/cloud/security/main/schedule operation, new source retrieval, inherited
 held33 retry, retrospective prediction or real performance claim is authorized
 by this code slice. Device/cost acceptance remains later as Owner requested.
+
+## Next dependency: consume a private action in the same attempt owner
+
+Race33 closed at8c813eedab0cc534a0f1388dfde147761a88d155,
+CI40205914841/job121206685147:551PASS/131.390s/0skip. Its source and
+delivery audits and Issue68 comment6399483760 are separate completed evidence.
+Race34 PR71 closed at9aeb2b425de9d05a44cb31f72a242a5111ada80a,
+CI40210790393/job121221363066:Node88/Python251PASS/9.655s/0skip.
+That unit implements the local native vault; it does not itself enforce
+cross-call unknown-write retry prevention or authenticate a cloud receipt.
+
+Race35 Goal/Done: P0_PRIVATE_RETENTION_ACTION_V3_20261026.md. The explicit
+prospective PRIVATE_ACTION_V3 adds one immutable P row to the SAME C/E/public
+attempt owner. Only the invocation whose P COMMIT returned normally may call
+the explicitly admitted local create seam once. Existing or uncertain P is
+consumed, including zero destination writes; lost-return bootstrap and exact
+read recovery cannot resend, initialize storage, ACK or release publicly.
+Final deterministic owner identity and UTC checks follow arbitrary gates.
+Original V1/V2 profiles, model pins, saved wires and ACK replay stay unchanged.
+
+C owns the two existing submission modules and the new private-action module/
+focused tests. Root owns the TEST-ONLY fixed Node bridge, native integration,
+four-sport fictional CLI, fixed reference manifest, workflow and serialized
+PR72 writes. D is a nonauthor reviewer; A audits bounded bridge/capture and
+evidence bytes. The exact design review precedes implementation. Meaningful
+failures and their repairs remain separate; implementation acceptance, final
+full tests, exact-head automatic CI and delivery audit are separate gates.
+
+This dependency proves local byte/control-flow behavior only. Actual lawful
+complete prospective model input/provenance, independently protected whole
+payload retention/receipt and shared sole assignment for that SAME case are
+still absent. Missing genuine E means public intents/HTTP0. No extra local
+simulation may be labelled a real forecast, real receipt,98% acceptance or
+formal completion. Device/account/cost acceptance stays deferred by Owner;
+cloud/security/schedule/main and held33 stop constraints remain unchanged.

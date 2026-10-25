@@ -30,6 +30,14 @@ on:
       - 'race_ai/permissioned_case_submission.py'
       - 'race_ai/private_wire_retention.py'
       - 'race_ai/retained_case_submission.py'
+      - 'race_ai/private_retention_action.py'
+      - 'tests/test_private_retention_action.py'
+      - 'tests/test_private_retention_action_integration.py'
+      - 'scripts/verify_private_retention_action_synthetic.py'
+      - 'scripts/private_retention_action_local_vault.mjs'
+      - 'config/private-wire-vault-reference-manifest.json'
+      - 'docs/P0_PRIVATE_RETENTION_ACTION_V3_20261026.md'
+      - 'docs/superpowers/plans/2026-10-26-private-retention-action.md'
       - 'tests/test_retained_case_submission.py'
       - 'tests/test_retained_case_submission_integration.py'
       - 'scripts/verify_retained_case_synthetic.py'
@@ -261,6 +269,21 @@ jobs:
           ref: db075c203704d2b30df5742ce8458a43932696a4
           path: pr71-max8-reference
           persist-credentials: false
+      - name: Checkout fixed local private vault without changing model references
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: 9aeb2b425de9d05a44cb31f72a242a5111ada80a
+          path: pr71-private-vault-reference
+          persist-credentials: false
+      - name: Install fixed native SQLite test runtime
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24.19.0'
+          package-manager-cache: false
+      - name: Declare exact Node executable and verify three fixed vault source blobs
+        run: |
+          node -e "if(process.version!=='v24.19.0')throw Error('FIXED_TEST_NODE_REQUIRED');require('node:fs').appendFileSync(process.env.GITHUB_ENV,'RACE_AI_TEST_NODE_EXE='+process.execPath+'\\n')"
+          python -c "from scripts.verify_private_retention_action_synthetic import verify_reference; verify_reference()"
       - name: Reference-complete offline regression suite
         run: python -m unittest discover -s tests -v
       - name: Payload-bound PR71 settlement and opt-in local transport (synthetic only)
@@ -277,5 +300,7 @@ jobs:
         run: python scripts/verify_fixed_model_cases_synthetic.py
       - name: Require durable private retention before original public intents (fictional only)
         run: python scripts/verify_retained_case_synthetic.py
+      - name: Consume same-owner private intent and recover actual local vault without retry (fictional only)
+        run: python scripts/verify_private_retention_action_synthetic.py
       - name: Test one same-race K/B/preview/weather source joining and NO_FORECAST gating
         run: python -m unittest discover -s tests -p test_p0_mikuni9_same_race_full_join_20261024.py -v

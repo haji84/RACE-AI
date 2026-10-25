@@ -9,4 +9,5 @@ artifacts/
 /pr71-settlement-reference/
 /pr71-private-transport-reference/
 /pr71-max8-reference/
+/pr71-private-vault-reference/
 *.sqlite*
