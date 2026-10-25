@@ -21,6 +21,12 @@ on:
       - 'docs/evidence/2026-10-24-miyajima-3r-under-10min-odds-pilot.md'
       - 'docs/evidence/2026-10-24-heiwajima-3r-final-ten-minute-odds-changes.md'
       - 'workers/odds_schema.sql'
+      - 'workers/private_wire_vault.mjs'
+      - 'workers/private_wire_vault_schema.mjs'
+      - 'tests/support/local_private_wire_d1.mjs'
+      - 'tests/private_wire_vault.test.mjs'
+      - 'docs/P0_LOCAL_PRIVATE_WIRE_VAULT_20261026.md'
+      - 'docs/superpowers/plans/2026-10-26-local-private-wire-vault.md'
       - 'tests/odds_feed_worker.test.mjs'
       - 'race_ai/purchase_window_policy.py'
       - 'tests/test_purchase_window_policy.py'
@@ -96,6 +102,11 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify repository revision
         run: git rev-parse HEAD
+      - name: Use Node24 for local SQLite batch tests
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24.19.0'
+          package-manager-cache: false
       - name: Check viewer script syntax
         run: |
           node --check web/forecast-audit-model.js
@@ -105,8 +116,11 @@ jobs:
           node --check workers/odds_feed_worker.mjs
           node --check workers/odds_auto_source_cron.mjs
           node --check race_ai/odds_three_cycle_audit.mjs
+          node --check workers/private_wire_vault.mjs
+          node --check workers/private_wire_vault_schema.mjs
+          node --check tests/support/local_private_wire_d1.mjs
       - name: Node contract and denominator tests
-        run: node --test tests/forecast_audit.test.cjs tests/full_odds.test.cjs tests/odds_feed_worker.test.mjs tests/odds_auto_source_cron.test.mjs tests/odds_three_cycle_audit.test.mjs
+        run: node --test --test-reporter=tap tests/forecast_audit.test.cjs tests/full_odds.test.cjs tests/odds_feed_worker.test.mjs tests/odds_auto_source_cron.test.mjs tests/odds_three_cycle_audit.test.mjs tests/private_wire_vault.test.mjs
       - name: Python synthetic journal to viewer projection tests
         run: python -m unittest discover -s tests -v
       - name: Read frozen real-race research record by immutable commit
