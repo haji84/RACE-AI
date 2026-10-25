@@ -167,3 +167,32 @@ All frozen models/codec, existing case/submission APIs and held33 are retained.
 No writer, transport, duplicate registry, resource or security change is added.
 Actual private backend/coordinator and lawful full-input/future E2E remain open;
 device/cost acceptance stays deferred rather than blocking local implementation.
+
+## Repair: UTC ordering in historical submission recovery
+
+Whole-wire handoff closed at2e85ab2f351679f3d9fe153817c85636069b01a9:
+CI40192399033/job121165986539,488PASS/90.895s/0skip; local488/97.723s.
+Separate23tests+15probes and839-check independent146-payload restore audit
+are recorded in Issue68 comment6397625874. Actual future forecasts remain0.
+
+Goal: repair the inherited submission clock's comparison across a DST fold.
+The prior helper stored raw aware wall times; with the same ZoneInfo object,
+UTC rollback could pass historical recovery's entry-to-reopen highwater and
+genuine UTC advance could fail. This is a local clock-order contract defect,
+not evidence of duplicate PUT, an authentic external witness or an old503 cause.
+
+Done requires normalizing valid samples to UTC before comparison/storage,
+both fold directions through the public historical recovery API, rollback
+before any reader/evidence mutation, and preserved sanitized invalid clocks,
+intent barrier/noACK/remaining-model state. Existing UTC behavior and all
+case/schema/transport/model contracts stay fixed. C owns only the existing
+submission module/test; root owns this taskboard and serialized PR72 writes;
+D is a nonauthor reviewer; A audits new evidence/restore. Independent design
+criticism is preserved before implementation in race30-clock-design-criticism.
+
+Run the focused regressions, one final reference-complete local suite, exact
+new-head hosted CI and bounded independent review/restore audit. No new engine,
+source collection, cloud/security commitment or operational schedule is added.
+Lawful complete prospective real input, protected external original retention
+and shared coordinator, actual results, formal review/main and98% remain open.
+Owner's device/cost deferral does not postpone this code repair.

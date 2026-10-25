@@ -85,8 +85,10 @@ def _tracked_clock(clock):
     def sample():
         nonlocal previous
         value = clock()
-        if (not isinstance(value, datetime) or value.utcoffset() is None
-                or previous is not None and value < previous):
+        if not isinstance(value, datetime) or value.utcoffset() is None:
+            _fail("SUBMISSION_CLOCK_REVERSED")
+        value = value.astimezone(timezone.utc)
+        if previous is not None and value < previous:
             _fail("SUBMISSION_CLOCK_REVERSED")
         previous = value
         return value

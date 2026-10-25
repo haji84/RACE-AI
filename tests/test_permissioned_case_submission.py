@@ -1,7 +1,7 @@
 """Fictional admissions/HTTP; one actual pinned private BOAT checkpoint."""
 from contextlib import closing
 from copy import deepcopy
-from datetime import datetime
+from datetime import datetime, timezone
 import base64
 import hashlib
 import importlib
@@ -18,6 +18,7 @@ import traceback
 import tracemalloc
 import unittest
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
@@ -364,6 +365,76 @@ class PermissionedCaseSubmissionTests(unittest.TestCase):
             self.dispatch()
         with self.assertRaises(ValueError):
             self.recover()
+
+    def known_commit_recovery(self):
+        self.transport.fail = "GET"
+        commit = self.dispatch()["models"][0]["commit_sha"]
+        prepared = self.seal["plans"][0]
+        run = {"id": 42, "head_sha": commit, "event": "push", "head_branch": BRANCH,
+               "repository": {"full_name": "haji84/RACE-AI"}, "created_at": "2030-01-15T09:16:00+09:00"}
+        responses = {BASE + "/actions/runs?head_sha=" + commit + "&event=push&per_page=100":
+                     {"total_count": 1, "workflow_runs": [run]}, BASE + "/actions/runs/42": run,
+                     BASE + "/contents/" + prepared["path"] + "?ref=" + commit:
+                     {"type": "file", "encoding": "base64", "content":
+                      base64.b64encode((canonical(prepared["anchor"]) + "\n").encode()).decode()}}
+        reads = []
+        def fetch(url):
+            reads.append(url)
+            return deepcopy(responses[url])
+        from race_ai.github_freeze_receipt import verify_github_freeze
+        return {"admit_reader": lambda *a: True, "github_fetch": fetch,
+                "trusted_legacy_verifier": verify_github_freeze}, reads
+
+    def test_historical_recovery_rejects_dst_fold_utc_rollback_before_any_get(self):
+        options, reads = self.known_commit_recovery()
+        before = self.path.read_bytes()
+        zone = ZoneInfo("America/New_York")
+        first = datetime(2030, 11, 3, 1, 30, tzinfo=zone, fold=1)  # 06:30 UTC
+        second = datetime(2030, 11, 3, 1, 45, tzinfo=zone, fold=0)  # 05:45 UTC
+        values = iter((first, second))
+        with self.assertRaises(self.module.SubmissionError):
+            self.recover(clock=lambda: next(values, second), **options)
+        self.assertEqual(reads, [])
+        self.assertEqual(self.path.read_bytes(), before)
+        self.assertEqual(len(schema_rows(self.path, "submission_intents")), 1)
+        self.assertEqual([row[1] for row in schema_rows(self.path, "submission_evidence")], ["PUT_COMMIT"])
+
+    def test_historical_recovery_accepts_dst_fallback_utc_advance_and_equal_instants(self):
+        options, reads = self.known_commit_recovery()
+        zone = ZoneInfo("America/New_York")
+        first = datetime(2030, 11, 3, 1, 45, tzinfo=zone, fold=0)  # 05:45 UTC
+        second = datetime(2030, 11, 3, 1, 30, tzinfo=zone, fold=1)  # 06:30 UTC
+        same_instant_utc = second.astimezone(timezone.utc)
+        values = iter((first, second, same_instant_utc))
+        try:
+            result = self.recover(clock=lambda: next(values, same_instant_utc), **options)
+        except ValueError as error:
+            self.fail("UTC-forward historical recovery was rejected: " + str(error))
+        self.assertEqual(len(reads), 3)
+        self.assertTrue(result["dispatch_barrier"])
+        self.assertFalse(result["models"][0]["normal_acknowledged"])
+        self.assertEqual(result["models"][0]["witness"]["observed_at"], same_instant_utc.isoformat())
+        self.assertEqual([row["status"] for row in result["models"]][1:], ["NOT_ATTEMPTED"] * 3)
+        self.assertEqual(len(self.transport.calls), 2)  # Only the original PUT and failed GET.
+        self.assertFalse(result["eligible_for_hit_at_8"])
+
+    def test_historical_recovery_invalid_naive_or_failing_clock_stays_private_and_read_only(self):
+        options, reads = self.known_commit_recovery()
+        before = self.path.read_bytes()
+        def failing():
+            raise RuntimeError("FICTIONAL_PRIVATE_CLOCK_DETAIL")
+        for clock in (lambda: None, lambda: True, lambda: "not-a-datetime",
+                      lambda: datetime(2030, 11, 3, 6, 30), failing):
+            with self.subTest(clock=clock):
+                try:
+                    self.recover(clock=clock, **options)
+                except self.module.SubmissionError as error:
+                    self.assertEqual(str(error), "INVALID_OR_CLOSED_SUBMISSION_CLOCK")
+                    self.assertNotIn("FICTIONAL_PRIVATE_CLOCK_DETAIL", "".join(traceback.format_exception(error)))
+                else:
+                    self.fail("invalid submission clock was accepted")
+                self.assertEqual(reads, [])
+                self.assertEqual(self.path.read_bytes(), before)
 
     def test_exact_store_admission_is_required_and_local_clones_are_not_authenticated(self):
         original_path = self.path
