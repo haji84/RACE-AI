@@ -1,6 +1,34 @@
 # Purpose rights and operational limits — 2026-10-25
 
-This is a status ledger, not a grant. #67/#68 and the adopted three-lane instructions govern. A public page, an operator Boolean, HTTP200, original hash or historical parse does not authorize recurring collection, training or redistribution.
+This is a status ledger, not a grant. #67/#68 and the adopted three-lane instructions govern. A public page, an operator Boolean, HTTP200, original hash or historical parse does not authorize additional recurring collection, training or redistribution beyond an existing actual owner review.
+
+## Preserved owner authority and current implementation priority
+
+The owner now defers device acceptance and cost/account checks until near
+completion. They do not block the permitted real-input code path. No new paid,
+cloud/security, raw-publication, source-purpose or main authority is implied.
+
+PR64 at761247bee0209e37b1af6b8885e92cad3e9260a5 contains actual prior owner
+reviews, not fictional approval flags: DATA_PERMISSION_CONFIRMATION.md and
+operator-official-facts.json record user-confirmation-2026-10-15-official-facts
+for bounded program/result/schedule/racelist/beforeinfo facts across24 venues.
+EXHIBITION_MEDIA_OWNER_CONFIRMATION.md and operator-exhibition-media.json
+record user-confirmation-2026-10-15-exhibition-private-analysis for the scoped
+private transient analysis, original numeric storage and protected derived
+preview. Raw video retention/publication and public derived features stay
+denied. Preserve these scopes; do not require their owner approval again.
+These records are owner attestations, not an independent legal audit or a
+new universal provider/training/continuous-crawling authorization. The dated
+2026-10-17 CDN registration is not a current acquisition authorization.
+
+The concrete real FULL model gap is complete truthful per-feature input,
+normalization/sample support/publication and final-cutoff evidence, plus the
+corresponding purpose-bound PR71 policy envelope. A private local search found
+no complete FULL75 real snapshot in1515 stored JSON records. The apparent
+six-numeric-ST case was explicitly synthetic; verified retained real cases
+have2–5. K aggregate counts are not retained participant histories. No zero,
+mean, fabricated transform or observed-time-as-publication substitution follows.
+New private case preparation/read-only witness code cannot confer these facts.
 
 |Source/purpose|Observed evidence|Current admission / missing proof|
 |---|---|---|

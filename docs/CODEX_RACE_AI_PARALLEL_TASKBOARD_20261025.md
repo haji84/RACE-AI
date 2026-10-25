@@ -107,3 +107,30 @@ Next, C implemented a separate opt-in advanced-model journal after D's design cr
 Independent review found typed-equality retry/replay gaps, foreign-database initialization and date/cutoff inconsistency. C preserved REDs and repaired these, including atomic schema/application identity before any target schema change. Author29 focused tests passed81.636s; parent complete regression382/0skip passed100.552s. Separate reviewer10 repaired tests plus9 adversarial cases passed, and the sole timed final CLI passed80.396s with original wire identity,4deliveries/4missing jobs,16local plans/0external verified freezes and9result revisions. These local timings do not predict hosted-runner performance. Exact-head CI and new-unit restore proof follow on Issue68 after push.
 
 Source rights and complete legal FULL inputs, actual future external freeze and official correction history, owner Safari remaining acceptance, formal review/main integration and prospective98% remain unmet. Cost verification is deferred, rather than a blocker for these offline units. Existing GitHub PR/CI validation continues; no new paid service, Cloudflare/Vercel deployment or resource mutation, provider acquisition, operational schedule activation or main merge is included.
+
+## Owner priority: real-input execution before device/account acceptance
+
+Owner now explicitly defers both iPhone real-device acceptance and cost checks.
+Their position is final acceptance; they do not block other code or lawful
+real-input work. Refreshed PR61/64/65/69/71/72 and Issue67/68 still match the
+last recorded heads; PR72 begins this slice at45821b151af2536aea6545b16f89ffcd9cbddce0.
+The completed386-test CI is retained, not rerun as unchanged work.
+
+A audited existing actual source records and their genuine prior owner scopes.
+Those facts remain allowed within their scopes; the found real bundles do not
+contain a complete FULL75 normalized input or a prospective external freeze.
+C implements only a separate private prepare_case/load_case checkpoint using
+the original pinned models/codec, persist=True purpose checks and independent
+input/cutoff/roster/private-path gates. Root implements the bounded read-only
+known-commit GitHub witness resolver and their integration. D is a nonauthor
+design/code reviewer; A independently inspects actual intake and backup.
+Root is the sole GitHub writer. No synthetic journal, original model, default
+writer or old nonce is changed. No source re-acquisition is part of this slice.
+
+These APIs can prepare real admitted input and adopt an independently reported
+pre-cutoff fingerprint without giving the resolver any write capability.
+Prepared plans are not publication attempts. Before any later mutating
+orchestration, durable attempt consumption and uncertain-write recovery remain
+mandatory. Private local payload retention is not private cloud retention.
+Full-field actual input, source/cutoff/publication authenticity and genuine
+future external storage/results still determine actual E2E acceptance.
