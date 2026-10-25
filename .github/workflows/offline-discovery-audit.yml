@@ -29,6 +29,12 @@ on:
       - 'docs/superpowers/plans/2026-10-25-fixed-model-case-profiles.md'
       - 'race_ai/permissioned_case_submission.py'
       - 'race_ai/private_wire_retention.py'
+      - 'race_ai/retained_case_submission.py'
+      - 'tests/test_retained_case_submission.py'
+      - 'tests/test_retained_case_submission_integration.py'
+      - 'scripts/verify_retained_case_synthetic.py'
+      - 'docs/P0_DURABLE_RETENTION_PREREQUISITE_20261025.md'
+      - 'docs/superpowers/plans/2026-10-25-durable-retention-prerequisite.md'
       - 'race_ai/github_witness_resolution.py'
       - 'tests/test_permissioned_model_case.py'
       - 'tests/test_permissioned_case_submission.py'
@@ -269,5 +275,7 @@ jobs:
         run: python scripts/verify_private_wire_retention_synthetic.py
       - name: Explicit maximum-eight cases with isolated pinned models (fictional only)
         run: python scripts/verify_fixed_model_cases_synthetic.py
+      - name: Require durable private retention before original public intents (fictional only)
+        run: python scripts/verify_retained_case_synthetic.py
       - name: Test one same-race K/B/preview/weather source joining and NO_FORECAST gating
         run: python -m unittest discover -s tests -p test_p0_mikuni9_same_race_full_join_20261024.py -v

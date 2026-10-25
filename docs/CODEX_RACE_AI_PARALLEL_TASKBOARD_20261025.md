@@ -216,3 +216,28 @@ An explicit full-window callback is required for V2; mutable grant dates do not
 authenticate it. No API default grants source/private/cloud/release permission.
 Actual full input/provenance, external protected whole-payload storage/shared
 coordination, official results and formal main/98% acceptance remain open.
+
+## Next dependency: durable private retention before public intents
+
+Race32 closed at b71bb7138bd416e2cb1a222ccdb2980d62f987d7,
+CI40199982391/job121188913992:525PASS/95.839s/0skip. Separate nonauthor
+review,233-payload source audit1219+11 checks, late16-payload audit85 checks
+and Issue68 comment6398812499 are complete. The original review wording P3
+and separate correction remain preserved. Cross-runtime wire SHA differences
+are not numeric/byte equality or an inferred floating-point cause.
+
+Race33 Goal/Done: P0_DURABLE_RETENTION_PREREQUISITE_20261025.md. C owns the
+sole attempt owner's explicit version2 and retained APIs/focused tests; root
+owns public integration/fictional CLI/workflow/docs and serialized PR72 writes;
+D is the nonauthor reviewer, A audits bytes. Before core changes, an original
+V2/db075 case with a legacyV1 attempt/4ACK fixture was captured exactly once.
+The earlier V1 fixture also remains unchanged; cached replay must never renew
+model inference, source authority, clock or transport.
+
+This is local callback-qualified coordinator enforcement, not a chosen/deployed
+private backend or authenticated cloud receipt. Original typed wire precedes
+private E, E commits before public intent, intent commits before PUT. Unknown
+writes retain the permanent barrier; GET-only recovery cannot ACK or resend.
+No paid/cloud/security/main/schedule operation, new source retrieval, inherited
+held33 retry, retrospective prediction or real performance claim is authorized
+by this code slice. Device/cost acceptance remains later as Owner requested.

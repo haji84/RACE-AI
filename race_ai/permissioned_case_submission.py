@@ -17,6 +17,7 @@ from .append_only_freeze_writer import submit_anchor
 from .github_witness_resolution import resolve_anchor_witness
 
 SCHEMA = "RACE_AI_PERMISSIONED_SUBMISSION_MANIFEST_V1"
+RETAINED_SCHEMA = "RACE_AI_PERMISSIONED_SUBMISSION_MANIFEST_V2"
 RESULT = "RACE_AI_PERMISSIONED_SUBMISSION_RESULT_V1"
 CLAIM = "RACE_AI_PERMISSIONED_SUBMISSION_CLAIM_V1"
 REPO = "haji84/RACE-AI"
@@ -50,8 +51,25 @@ def _sha(raw):
     return hashlib.sha256(raw).hexdigest()
 
 
-def _hash(kind, value):
-    return _sha(("RACE_AI_PERMISSIONED_SUBMISSION_" + kind + "_V1\0").encode() + _raw(value))
+def _hash(kind, value, contract="LEGACY_V1"):
+    if contract not in ("LEGACY_V1", "RETAINED_V2"):
+        _fail()
+    suffix = "_V2\0" if contract == "RETAINED_V2" else "_V1\0"
+    return _sha(("RACE_AI_PERMISSIONED_SUBMISSION_" + kind + suffix).encode() + _raw(value))
+
+
+def _contract(manifest):
+    if manifest.get("schema") not in (SCHEMA, RETAINED_SCHEMA):
+        _fail()
+    return "RETAINED_V2" if manifest["schema"] == RETAINED_SCHEMA else "LEGACY_V1"
+
+
+def _bound(kind, value, manifest):
+    return _hash(kind, value, _contract(manifest))
+
+
+def _gates(manifest):
+    return GATES + (("retention",) if _contract(manifest) == "RETAINED_V2" else ())
 
 
 def _copy(value, limit=case.MAX_REQUEST):
@@ -113,12 +131,15 @@ def _now(clock, previous=None, cutoff=None):
 def _stage(path, manifest, private, store, stage):
     try:
         return (case._private(path, private, stage)
-                and _call(store, path, manifest, stage=stage) and case._path(path) == path)
+                and _call(store, path, manifest.get("reservation", manifest), stage=stage) and case._path(path) == path)
     except Exception:
         _fail("PRIVATE_STORE_REJECTED")
 
 
-def _entry(attempt_path, case_path, expected, branch, pin, private, store):
+def _entry(attempt_path, case_path, expected, branch, pin, private, store, *,
+           contract="LEGACY_V1", reservation_sha=None, candidate_only=False):
+    if contract not in ("LEGACY_V1", "RETAINED_V2") or (contract == "LEGACY_V1" and reservation_sha is not None):
+        _fail()
     if (not case._hex(expected) or not case._hex(pin, 40) or type(branch) is not str
             or not re.fullmatch(r"audit/freeze-[A-Za-z0-9._/-]{1,80}", branch)
             or ".." in branch or "//" in branch or branch.endswith("/")):
@@ -147,6 +168,11 @@ def _entry(attempt_path, case_path, expected, branch, pin, private, store):
                 "prediction_sha256": model["prediction_sha256"], "plan": plan,
                 "anchor_sha256": _sha(_raw(plan["anchor"]) + b"\n")})
         manifest = _copy(manifest, LIMIT)
+        if candidate_only:
+            return path, manifest, loaded
+        if contract == "RETAINED_V2":
+            from . import retained_case_submission as retained
+            return retained._entry(path, manifest, loaded, reservation_sha, private, store)
         if not _stage(path, manifest, private, store, "PRE_OPEN"):
             return None
         return path, manifest, loaded
@@ -154,10 +180,16 @@ def _entry(attempt_path, case_path, expected, branch, pin, private, store):
         _fail("ORIGINAL_CASE_OR_STORE_REJECTED")
 
 
-def _identity(db):
+def _identity(db, contract="LEGACY_V1"):
+    if contract not in ("LEGACY_V1", "RETAINED_V2"):
+        _fail()
+    statements = SQL
+    if contract == "RETAINED_V2":
+        from .retained_case_submission import EXTRA_SQL
+        statements = SQL + EXTRA_SQL
     template = sqlite3.connect(":memory:")
     try:
-        for statement in SQL:
+        for statement in statements:
             template.execute(statement)
         expected = case._objects(template)
     finally:
@@ -166,7 +198,7 @@ def _identity(db):
     ids = (db.execute("PRAGMA application_id").fetchone()[0], db.execute("PRAGMA user_version").fetchone()[0])
     if not objects and ids == (0, 0):
         return False
-    if objects != expected or ids != (APPLICATION_ID, 1):
+    if objects != expected or ids != (APPLICATION_ID, 2 if contract == "RETAINED_V2" else 1):
         _fail("FOREIGN_SUBMISSION_STORE")
     return True
 
@@ -200,22 +232,34 @@ def _witness(value, model, commit, manifest, recorded):
         _fail()
 
 
-def _read(db, manifest):
+def _read(db, manifest, loaded=None):
     if not db.in_transaction:
         _fail()
     state = {"intents": {}, "evidence": {}, "latest": manifest["case_persisted_at"]}
     try:
-        if not _identity(db):
+        contract = _contract(manifest)
+        if not _identity(db, contract):
+            if contract == "RETAINED_V2":
+                _fail()
             return state
+        if contract == "RETAINED_V2":
+            from . import retained_case_submission as retained
+            prerequisite = retained._prerequisite(db, manifest, loaded)
+            state["latest"] = prerequisite["admitted_at"]
         for table, maximum in (("submission_manifest", 1), ("submission_intents", 4), ("submission_evidence", 12)):
             extra = ",typeof(kind),length(CAST(kind AS BLOB))" if table == "submission_evidence" else ""
             sizes = db.execute("SELECT typeof(json),length(CAST(json AS BLOB)),typeof(sha256),length(CAST(sha256 AS BLOB))" + extra + " FROM " + table).fetchmany(maximum + 1)
-            if (len(sizes) > maximum or table == "submission_manifest" and len(sizes) != 1
+            if (len(sizes) > maximum or table == "submission_manifest" and len(sizes) != 1 and contract == "LEGACY_V1"
                     or any(row[0] != "text" or not 0 < row[1] <= LIMIT or row[2:4] != ("text", 64)
                            or len(row) == 6 and (row[4] != "text" or not 0 < row[5] <= 16) for row in sizes)):
                 _fail()
+        if contract == "RETAINED_V2" and not db.execute("SELECT 1 FROM submission_manifest").fetchone():
+            if db.execute("SELECT 1 FROM submission_intents").fetchone() or db.execute("SELECT 1 FROM submission_evidence").fetchone():
+                _fail()
+            state["manifest_present"] = False
+            return state
         row = db.execute("SELECT id,json,sha256 FROM submission_manifest").fetchone()
-        if row != (1, _raw(manifest).decode(), _hash("MANIFEST", manifest)):
+        if row != (1, _raw(manifest).decode(), _bound("MANIFEST", manifest, manifest)):
             _fail()
         for position, text, digest in db.execute("SELECT position,json,sha256 FROM submission_intents ORDER BY position"):
             obj = json.loads(text)
@@ -223,9 +267,9 @@ def _read(db, manifest):
                     or type(obj) is not dict or set(obj) != {"manifest_sha256", "model_id", "position", "recorded_at", "gates"}
                     or type(obj["position"]) is not int or obj["position"] != position
                     or obj["model_id"] != case.MODELS[position - 1]
-                    or obj["manifest_sha256"] != _hash("MANIFEST", manifest)
-                    or obj["gates"] != dict.fromkeys(GATES, True) or any(v is not True for v in obj["gates"].values())
-                    or text != _raw(obj).decode() or digest != _hash("INTENT", obj)
+                    or obj["manifest_sha256"] != _bound("MANIFEST", manifest, manifest)
+                    or obj["gates"] != dict.fromkeys(_gates(manifest), True) or any(v is not True for v in obj["gates"].values())
+                    or text != _raw(obj).decode() or digest != _bound("INTENT", obj, manifest)
                     or not _time(manifest["case_persisted_at"]) <= _time(obj["recorded_at"]) < _time(manifest["sales_cutoff_at"])):
                 _fail()
             state["intents"][position] = (obj, digest)
@@ -233,9 +277,9 @@ def _read(db, manifest):
             obj = json.loads(text)
             if (position not in state["intents"] or kind not in KINDS or type(obj) is not dict
                     or set(obj) != {"manifest_sha256", "intent_sha256", "recorded_at", "payload"}
-                    or obj["manifest_sha256"] != _hash("MANIFEST", manifest)
+                    or obj["manifest_sha256"] != _bound("MANIFEST", manifest, manifest)
                     or obj["intent_sha256"] != state["intents"][position][1]
-                    or text != _raw(obj).decode() or digest != _hash("EVIDENCE", [position, kind, obj])
+                    or text != _raw(obj).decode() or digest != _bound("EVIDENCE", [position, kind, obj], manifest)
                     or _time(obj["recorded_at"]) < _time(state["intents"][position][0]["recorded_at"])):
                 _fail()
             state["evidence"][(position, kind)] = obj
@@ -262,7 +306,11 @@ def _read(db, manifest):
                     _fail()
                 if kind == "WITNESS":
                     _witness(payload, manifest["models"][position - 1], commit_sha, manifest, evidence["recorded_at"])
-        times = [manifest["case_persisted_at"]] + [v[0]["recorded_at"] for v in state["intents"].values()] + [v["recorded_at"] for v in state["evidence"].values()]
+        if contract == "RETAINED_V2":
+            state["manifest_present"] = True
+            if any(_time(value[0]["recorded_at"]) < _time(prerequisite["admitted_at"]) for value in state["intents"].values()):
+                _fail()
+        times = [state["latest"]] + [v[0]["recorded_at"] for v in state["intents"].values()] + [v["recorded_at"] for v in state["evidence"].values()]
         state["latest"] = max(times, key=_time)
         return state
     except Exception:
@@ -286,15 +334,22 @@ def _summary(manifest=None, state=None, reasons=(), reads=0, recovery=False):
     barrier = any(p in state["intents"] and (p, "NORMAL_ACK") not in state["evidence"] for p in range(1, 5))
     status = ("STOPPED_RECOVERY_ONLY" if barrier else "READ_ONLY_RECOVERY" if recovery else
               "NORMAL_READBACKS_COMPLETE_RECEIPTS_PENDING" if all(x["normal_acknowledged"] for x in models) else "DENIED")
-    return {"schema": RESULT, "status": status, "reasons": sorted(set(reasons)),
-        "manifest_sha256": _hash("MANIFEST", manifest) if manifest else None, "models": models,
+    result = {"schema": RESULT, "status": status, "reasons": sorted(set(reasons)),
+        "manifest_sha256": _bound("MANIFEST", manifest, manifest) if manifest else None, "models": models,
         "dispatch_barrier": barrier, "github_reads": reads, "scope": "LOCAL_STORE_CALLBACK_ATTESTED",
         **dict.fromkeys(("official_prediction", "eligible_for_hit_at_8", "source_rights_verified",
             "producer_execution_authenticated", "full_private_payload_retention_verified",
             "global_exactly_once_verified", "cloned_store_protection_verified"), False)}
+    if manifest is not None and _contract(manifest) == "RETAINED_V2":
+        from .private_wire_retention import _flags
+        result.update(schema="RACE_AI_PERMISSIONED_SUBMISSION_RESULT_V2", **_flags())
+        result.update({key: manifest[key] for key in ("reservation_sha256", "retention_request_sha256", "retention_admission_sha256")})
+        from .retained_case_submission import ROW_FIELDS
+        result.update({key: manifest[key] for key in ROW_FIELDS})
+    return result
 
 
-def _inspect(path, manifest, private, store):
+def _inspect(path, manifest, private, store, loaded=None):
     if not path.exists():
         return {"intents": {}, "evidence": {}, "latest": manifest["case_persisted_at"]}
     db = sqlite3.connect(path.as_uri() + "?mode=ro", uri=True, timeout=30, isolation_level=None)
@@ -302,7 +357,7 @@ def _inspect(path, manifest, private, store):
         if not _stage(path, manifest, private, store, "POST_OPEN"):
             _fail()
         db.execute("BEGIN")
-        result = _read(db, manifest)
+        result = _read(db, manifest, loaded)
         db.execute("COMMIT")
         return result
     except Exception:
@@ -312,19 +367,24 @@ def _inspect(path, manifest, private, store):
 
 
 def _claim(manifest, position, phase, at):
-    return {"schema": CLAIM, "manifest": manifest, "manifest_sha256": _hash("MANIFEST", manifest),
+    schema = "RACE_AI_PERMISSIONED_SUBMISSION_CLAIM_V2" if _contract(manifest) == "RETAINED_V2" else CLAIM
+    return {"schema": schema, "manifest": manifest, "manifest_sha256": _bound("MANIFEST", manifest, manifest),
         "model_id": case.MODELS[position - 1], "position": position, "phase": phase, "checked_at": at,
         "plan": manifest["models"][position - 1]["plan"], "required_source_purposes": list(case.PURPOSES)}
 
 
-def _admit(manifest, loaded, position, phase, at, callbacks, transport):
+def _admit(manifest, loaded, position, phase, at, callbacks, transport, retention_action=None):
     claim = _claim(manifest, position, phase, at)
     row = next(r for r in loaded["request"]["ledger"]["records"] if r["race_id"] == loaded["request"]["race_id"])
     declarations = tuple((model['model_id'], model['model_version'], manifest['model_source_sha40'])
                          for model in manifest['models'])
-    return all((_call(callbacks[0], claim, loaded["delivery"]["snapshot"]),
+    ordinary = all((_call(callbacks[0], claim, loaded["delivery"]["snapshot"]),
         _call(callbacks[1], claim, row), _call(callbacks[2], claim, declarations),
         _call(callbacks[3], claim), _call(callbacks[4], claim, transport)))
+    if _contract(manifest) == "RETAINED_V2":
+        from .retained_case_submission import _action
+        return ordinary and _call(retention_action, claim, _action(manifest))
+    return ordinary
 
 
 def _commit(db):
@@ -334,18 +394,18 @@ def _commit(db):
         _fail("LOCAL_COMMIT_UNCERTAIN_DO_NOT_WRITE")
 
 
-def _evidence(db, path, manifest, position, kind, payload, clock, private, store):
+def _evidence(db, path, manifest, position, kind, payload, clock, private, store, loaded=None):
     db.execute("BEGIN IMMEDIATE")
-    state = _read(db, manifest)
+    state = _read(db, manifest, loaded)
     if position not in state["intents"] or (position, kind) in state["evidence"]:
         _fail()
     if not _stage(path, manifest, private, store, "POST_OPEN"):
         _fail()
     at = _now(clock, state["latest"])
-    obj = {"manifest_sha256": _hash("MANIFEST", manifest), "intent_sha256": state["intents"][position][1],
+    obj = {"manifest_sha256": _bound("MANIFEST", manifest, manifest), "intent_sha256": state["intents"][position][1],
            "recorded_at": at, "payload": _copy(payload)}
-    db.execute("INSERT INTO submission_evidence VALUES(?,?,?,?)", (position, kind, _raw(obj).decode(), _hash("EVIDENCE", [position, kind, obj])))
-    _read(db, manifest)
+    db.execute("INSERT INTO submission_evidence VALUES(?,?,?,?)", (position, kind, _raw(obj).decode(), _bound("EVIDENCE", [position, kind, obj], manifest)))
+    _read(db, manifest, loaded)
     if not _stage(path, manifest, private, store, "PRE_COMMIT"):
         _fail()
     _now(clock, at)
@@ -354,15 +414,17 @@ def _evidence(db, path, manifest, position, kind, payload, clock, private, store
 
 def dispatch_prepared_case(attempt_path, case_path, *, expected_request_sha256, expected_branch,
         submission_source_sha40, clock, private_path_verifier=None, admit_store=None, verify_source=None,
-        verify_cutoff=None, admit_model_roster=None, independent_release_check=None, admit_transport=None, transport=None):
+        verify_cutoff=None, admit_model_roster=None, independent_release_check=None, admit_transport=None, transport=None,
+        _submission_contract="LEGACY_V1", _expected_reservation_sha256=None, _admit_retention_action=None):
     clock = _tracked_clock(clock)
     entry = _entry(attempt_path, case_path, expected_request_sha256, expected_branch, submission_source_sha40,
-                   private_path_verifier, admit_store)
+                   private_path_verifier, admit_store, contract=_submission_contract, reservation_sha=_expected_reservation_sha256)
     if entry is None:
         return _summary(reasons=["PRIVATE_STORE_NOT_ADMITTED"])
     path, manifest, loaded = entry
-    state = _inspect(path, manifest, private_path_verifier, admit_store)
-    _now(clock, state["latest"])
+    state = _inspect(path, manifest, private_path_verifier, admit_store, loaded)
+    if _submission_contract == "LEGACY_V1":
+        _now(clock, state["latest"])
     result = _summary(manifest, state)
     if result["dispatch_barrier"] or all(m["normal_acknowledged"] for m in result["models"]):
         return result
@@ -372,14 +434,14 @@ def dispatch_prepared_case(attempt_path, case_path, *, expected_request_sha256, 
     position = len(state["intents"]) + 1
     try:
         at = _now(clock, state["latest"], manifest["sales_cutoff_at"])
-        if not _admit(manifest, loaded, position, "PRE_INTENT", at, callbacks, transport):
+        if not _admit(manifest, loaded, position, "PRE_INTENT", at, callbacks, transport, _admit_retention_action):
             return _summary(manifest, state, ["ACTION_NOT_ADMITTED"])
         if not _stage(path, manifest, private_path_verifier, admit_store, "PRE_OPEN"):
             return _summary(manifest, state, ["PRIVATE_STORE_NOT_ADMITTED"])
         _now(clock, at, manifest["sales_cutoff_at"])
     except SubmissionError:
         return _summary(manifest, state, ["ACTION_OR_DEADLINE_NOT_ADMITTED"])
-    db = sqlite3.connect(str(path), timeout=30, isolation_level=None)
+    db = sqlite3.connect(path.as_uri() + "?mode=rw", uri=True, timeout=30, isolation_level=None) if _submission_contract == "RETAINED_V2" else sqlite3.connect(str(path), timeout=30, isolation_level=None)
     reads = 0  # Wrapper GET invocations, not authenticated server/retry counts.
     try:
         if not _stage(path, manifest, private_path_verifier, admit_store, "POST_OPEN"):
@@ -387,8 +449,8 @@ def dispatch_prepared_case(attempt_path, case_path, *, expected_request_sha256, 
         db.execute("PRAGMA synchronous=FULL")
         for position in range(position, 5):
             db.execute("BEGIN IMMEDIATE")
-            owned = _identity(db)
-            state = _read(db, manifest)
+            owned = _identity(db, _submission_contract)
+            state = _read(db, manifest, loaded)
             if _summary(manifest, state)["dispatch_barrier"]:
                 db.execute("ROLLBACK")
                 return _summary(manifest, state, reads=reads)
@@ -396,7 +458,7 @@ def dispatch_prepared_case(attempt_path, case_path, *, expected_request_sha256, 
                 db.execute("ROLLBACK")
                 continue
             at = _now(clock, state["latest"], manifest["sales_cutoff_at"])
-            if not _admit(manifest, loaded, position, "PRE_INTENT", at, callbacks, transport):
+            if not _admit(manifest, loaded, position, "PRE_INTENT", at, callbacks, transport, _admit_retention_action):
                 _fail("ACTION_NOT_ADMITTED")
             if not _stage(path, manifest, private_path_verifier, admit_store, "POST_OPEN"):
                 _fail()
@@ -406,10 +468,11 @@ def dispatch_prepared_case(attempt_path, case_path, *, expected_request_sha256, 
                     db.execute(statement)
                 db.execute(f"PRAGMA application_id={APPLICATION_ID}")
                 db.execute("PRAGMA user_version=1")
-                db.execute("INSERT INTO submission_manifest VALUES(1,?,?)", (_raw(manifest).decode(), _hash("MANIFEST", manifest)))
-            intent = {"manifest_sha256": _hash("MANIFEST", manifest), "model_id": case.MODELS[position - 1],
-                      "position": position, "recorded_at": at, "gates": dict.fromkeys(GATES, True)}
-            db.execute("INSERT INTO submission_intents VALUES(?,?,?)", (position, _raw(intent).decode(), _hash("INTENT", intent)))
+            if not owned or _submission_contract == "RETAINED_V2" and not state["manifest_present"]:
+                db.execute("INSERT INTO submission_manifest VALUES(1,?,?)", (_raw(manifest).decode(), _bound("MANIFEST", manifest, manifest)))
+            intent = {"manifest_sha256": _bound("MANIFEST", manifest, manifest), "model_id": case.MODELS[position - 1],
+                      "position": position, "recorded_at": at, "gates": dict.fromkeys(_gates(manifest), True)}
+            db.execute("INSERT INTO submission_intents VALUES(?,?,?)", (position, _raw(intent).decode(), _bound("INTENT", intent, manifest)))
             if not _stage(path, manifest, private_path_verifier, admit_store, "PRE_COMMIT"):
                 _fail()
             edge = _now(clock, at, manifest["sales_cutoff_at"])
@@ -426,7 +489,7 @@ def dispatch_prepared_case(attempt_path, case_path, *, expected_request_sha256, 
                     if stage == 0 and (given_url, method, data) == (url, "PUT", body):
                         stage = 1  # Consume even when the transport/last gate later fails.
                         edge = _now(clock, edge, manifest["sales_cutoff_at"])
-                        if not _admit(manifest, loaded, position, "PRE_PUT", edge, callbacks, transport):
+                        if not _admit(manifest, loaded, position, "PRE_PUT", edge, callbacks, transport, _admit_retention_action):
                             _fail()
                         if not _stage(path, manifest, private_path_verifier, admit_store, "PRE_COMMIT"):
                             _fail()
@@ -435,7 +498,7 @@ def dispatch_prepared_case(attempt_path, case_path, *, expected_request_sha256, 
                         commit = response.get("commit", {}).get("sha") if type(response) is dict and type(response.get("commit")) is dict else None
                         if not case._hex(commit, 40):
                             _fail()
-                        _evidence(db, path, manifest, position, "PUT_COMMIT", {"commit_sha": commit}, clock, private_path_verifier, admit_store)
+                        _evidence(db, path, manifest, position, "PUT_COMMIT", {"commit_sha": commit}, clock, private_path_verifier, admit_store, loaded)
                         captured = commit
                         return {"commit": {"sha": commit}}
                     if stage == 1 and captured is not None and (given_url, method, data) == (url + "?ref=" + captured, "GET", None):
@@ -459,27 +522,28 @@ def dispatch_prepared_case(attempt_path, case_path, *, expected_request_sha256, 
             if broken or stage != 2 or captured is None or not case._same(original_plan, model["plan"]) or not case._same(returned, expected):
                 _fail()
             _evidence(db, path, manifest, position, "NORMAL_ACK", {"commit_sha": captured,
-                      "writer_return_sha256": _sha(_raw(expected))}, clock, private_path_verifier, admit_store)
-        return _summary(manifest, _inspect(path, manifest, private_path_verifier, admit_store), reads=reads)
+                      "writer_return_sha256": _sha(_raw(expected))}, clock, private_path_verifier, admit_store, loaded)
+        return _summary(manifest, _inspect(path, manifest, private_path_verifier, admit_store, loaded), reads=reads)
     except Exception:
         if db.in_transaction:
             db.execute("ROLLBACK")
-        return _summary(manifest, _inspect(path, manifest, private_path_verifier, admit_store), ["SUBMISSION_STOPPED_DO_NOT_RETRY"], reads)
+        return _summary(manifest, _inspect(path, manifest, private_path_verifier, admit_store, loaded), ["SUBMISSION_STOPPED_DO_NOT_RETRY"], reads)
     finally:
         db.close()
 
 
 def recover_submission_attempts(attempt_path, case_path, *, expected_request_sha256, expected_branch,
         submission_source_sha40, clock, private_path_verifier=None, admit_store=None, admit_reader=None,
-        github_fetch=None, trusted_legacy_verifier=None):
+        github_fetch=None, trusted_legacy_verifier=None, submission_contract="LEGACY_V1", expected_reservation_sha256=None):
     clock = _tracked_clock(clock)
     entry = _entry(attempt_path, case_path, expected_request_sha256, expected_branch, submission_source_sha40,
-                   private_path_verifier, admit_store)
+                   private_path_verifier, admit_store, contract=submission_contract, reservation_sha=expected_reservation_sha256)
     if entry is None:
         return _summary(reasons=["PRIVATE_STORE_NOT_ADMITTED"], recovery=True)
     path, manifest, loaded = entry
-    state = _inspect(path, manifest, private_path_verifier, admit_store)
-    _now(clock, state["latest"])
+    state = _inspect(path, manifest, private_path_verifier, admit_store, loaded)
+    if submission_contract == "LEGACY_V1":
+        _now(clock, state["latest"])
     known = [p for p in state["intents"] if (p, "PUT_COMMIT") in state["evidence"] and (p, "WITNESS") not in state["evidence"]]
     if not known:
         return _summary(manifest, state, recovery=True)
@@ -495,7 +559,7 @@ def recover_submission_attempts(attempt_path, case_path, *, expected_request_sha
             if not _stage(path, manifest, private_path_verifier, admit_store, "POST_OPEN"):
                 _fail()
             db.execute("BEGIN")
-            state = _read(db, manifest)
+            state = _read(db, manifest, loaded)
             _now(clock, state["latest"])
             db.execute("COMMIT")
             db.execute("PRAGMA synchronous=FULL")
@@ -512,12 +576,12 @@ def recover_submission_attempts(attempt_path, case_path, *, expected_request_sha
             try:
                 witness = resolve_anchor_witness(_copy(model["plan"]), commit, manifest["case_persisted_at"],
                     expected_branch=expected_branch, github_fetch=fetch, trusted_legacy_verifier=trusted_legacy_verifier, clock=clock)
-                _evidence(db, path, manifest, position, "WITNESS", witness, clock, private_path_verifier, admit_store)
+                _evidence(db, path, manifest, position, "WITNESS", witness, clock, private_path_verifier, admit_store, loaded)
             except Exception:
                 if db.in_transaction:
                     db.execute("ROLLBACK")
-                return _summary(manifest, _inspect(path, manifest, private_path_verifier, admit_store), ["WITNESS_UNRESOLVED_DO_NOT_WRITE"], reads, True)
-        return _summary(manifest, _inspect(path, manifest, private_path_verifier, admit_store), reads=reads, recovery=True)
+                return _summary(manifest, _inspect(path, manifest, private_path_verifier, admit_store, loaded), ["WITNESS_UNRESOLVED_DO_NOT_WRITE"], reads, True)
+        return _summary(manifest, _inspect(path, manifest, private_path_verifier, admit_store, loaded), reads=reads, recovery=True)
     finally:
         if db is not None:
             db.close()

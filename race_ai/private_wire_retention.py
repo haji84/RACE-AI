@@ -307,6 +307,23 @@ def _evidence_metadata(value, schema, fields):
     return value
 
 
+def _evidence_links(expected, descriptor, receipt):
+    """Pure original metadata links; no clock, authority callback or promotion."""
+    for metadata in (descriptor, receipt):
+        if metadata is not None and (metadata["request_sha256"] != _hash(REQUEST, expected)
+                or metadata["destination_ref"] != expected["destination"]["destination_ref"]
+                or metadata["wire_sha256"] != expected["wire_sha256"] or metadata["wire_byte_count"] != expected["wire_byte_count"]):
+            _fail()
+    if receipt:
+        if (not _time(expected["case_persisted_at"]) <= _time(receipt["committed_at"]) < _time(expected["sales_cutoff_at"])
+                or _time(receipt["retained_until"]) < _time(expected["retention_policy"]["retain_until"])
+                or any(receipt[name] != expected["retention_policy"][name] for name in ("protection_policy_sha256", "immutability_policy_sha256"))):
+            _fail()
+    if descriptor and receipt and (any(descriptor[name] != receipt[name] for name in ("object_ref", "object_version"))
+            or _time(descriptor["observed_at"]) < _time(receipt["committed_at"])):
+        _fail()
+
+
 def verify_retention_evidence(case_path, request, *, expected_case_request_sha256,
         expected_retention_request_sha256, readback_bytes, readback_descriptor, receipt_claims,
         receipt_proof, clock, private_path_verifier=None, admit_protected_readback=None,
@@ -345,19 +362,7 @@ def verify_retention_evidence(case_path, request, *, expected_case_request_sha25
     if expected is None or _raw(request) != _raw(expected) or _hash(REQUEST, expected) != expected_retention_request_sha256:
         _fail()
     result.update(wire_sha256=expected["wire_sha256"], wire_byte_count=expected["wire_byte_count"])
-    for metadata in (descriptor, receipt):
-        if metadata is not None and (metadata["request_sha256"] != expected_retention_request_sha256
-                or metadata["destination_ref"] != expected["destination"]["destination_ref"]
-                or metadata["wire_sha256"] != expected["wire_sha256"] or metadata["wire_byte_count"] != expected["wire_byte_count"]):
-            _fail()
-    if receipt:
-        if (not _time(expected["case_persisted_at"]) <= _time(receipt["committed_at"]) < _time(expected["sales_cutoff_at"])
-                or _time(receipt["retained_until"]) < _time(expected["retention_policy"]["retain_until"])
-                or any(receipt[name] != expected["retention_policy"][name] for name in ("protection_policy_sha256", "immutability_policy_sha256"))):
-            _fail()
-    if descriptor and receipt and (any(descriptor[name] != receipt[name] for name in ("object_ref", "object_version"))
-            or _time(descriptor["observed_at"]) < _time(receipt["committed_at"])):
-        _fail()
+    _evidence_links(expected, descriptor, receipt)
     def observed():
         now = timer.now()
         if (_time(now) < _time(expected["case_persisted_at"])
