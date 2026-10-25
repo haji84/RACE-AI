@@ -15,6 +15,7 @@ on:
       - 'scripts/verify_model_suite_settlement_synthetic.py'
       - 'race_ai/offline_model_run.py'
       - 'tests/test_offline_model_run.py'
+      - 'tests/test_offline_model_reference.py'
       - 'scripts/verify_offline_model_run_synthetic.py'
       - 'docs/P0_OFFLINE_ADVANCED_MODEL_RUN_20261025.md'
       - 'docs/CODEX_RACE_AI_THREE_STREAM_MASTER_HANDOFF_20261025.md'

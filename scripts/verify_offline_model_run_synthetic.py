@@ -20,19 +20,28 @@ PIN="ebe93f13062cf0461b81b924a5dc0482ada37b56"
 REFERENCE=ROOT/"pr71-private-transport-reference"
 
 
-def main():
-    if not __debug__:
-        raise RuntimeError("Verification requires enabled assertions")
+def check_reference(root=ROOT,reference=REFERENCE,pin=PIN):
     # Reuse only exact pinned authored fixtures/models; no checkout/download.
+    git_root=reference if (reference/".git").exists() else root
+    if git_root==reference:
+        actual=subprocess.check_output(["git","-C",str(reference),"rev-parse","HEAD"]).decode().strip()
+        if actual!=pin:
+            raise RuntimeError("Pinned reference checkout HEAD changed")
     for rel in ("race_ai/comprehensive_four_sport_models.py",
                 "race_ai/four_sport_model_suite.py","race_ai/four_sport_matchup_models.py",
                 "race_ai/four_sport_learning.py","race_ai/permissioned_source_delivery.py",
                 "race_ai/private_delivery_codec.py",
                 "tests/test_permissioned_source_delivery.py",
                 "tests/test_comprehensive_four_sport_models.py"):
-        original=subprocess.check_output(["git","-C",str(ROOT),"show",PIN+":"+rel])
-        if (REFERENCE/rel).read_bytes().replace(b"\r\n",b"\n")!=original.replace(b"\r\n",b"\n"):
+        original=subprocess.check_output(["git","-C",str(git_root),"show",pin+":"+rel])
+        if (reference/rel).read_bytes().replace(b"\r\n",b"\n")!=original.replace(b"\r\n",b"\n"):
             raise RuntimeError("Pinned fictional fixture/model changed")
+
+
+def main():
+    if not __debug__:
+        raise RuntimeError("Verification requires enabled assertions")
+    check_reference()
     sys.path.insert(0,str(ROOT))
     import race_ai
     import tests
