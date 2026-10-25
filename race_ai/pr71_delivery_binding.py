@@ -50,7 +50,12 @@ def _ticket(x, participants):
             all(type(v) is int and v in participants for v in x)
             and len(set(x))==3)
 
-def _checked_suite(suite, snapshot, feature_digest):
+def _checked_suite(suite, snapshot, feature_digest, *, model_contract='EXACT8_LEGACY'):
+    from .model_case_contracts import cardinality, MAX8
+    try:
+        cardinality(model_contract)
+    except ValueError:
+        raise BindingError('fixed cardinality contract rejected') from None
     if not isinstance(suite,dict) or suite.get("schema")!=SUITE_SCHEMA:
         raise BindingError("expected PR71 research suite schema")
     if suite.get("scope")!="OPERATOR_SUPPLIED_RESEARCH" or suite.get("official_prediction") is not False:
@@ -73,6 +78,7 @@ def _checked_suite(suite, snapshot, feature_digest):
         raise BindingError("model count mismatch")
     entrants={p["number"] for p in snapshot["participants"]}
     candidate_count=len(entrants)*(len(entrants)-1)*(len(entrants)-2)
+    selected_count=min(8,candidate_count) if model_contract==MAX8 else 8
     outputs=[]
     for model_id,model in models.items():
         if not isinstance(model_id,str) or not model_id or not isinstance(model,dict):
@@ -91,9 +97,9 @@ def _checked_suite(suite, snapshot, feature_digest):
                                                     if k!="prediction_sha256"})):
             raise BindingError("model evidence/prediction mismatch")
         top8=model.get("ordered_top8")
-        if not isinstance(top8,list) or len(top8)!=8 or any(not _ticket(x,entrants) for x in top8):
+        if not isinstance(top8,list) or len(top8)!=selected_count or any(not _ticket(x,entrants) for x in top8):
             raise BindingError("invalid top eight")
-        if len({tuple(x) for x in top8})!=8:
+        if len({tuple(x) for x in top8})!=selected_count:
             raise BindingError("duplicate top-eight tickets")
         candidates=model.get("candidates")
         if not isinstance(candidates,list) or len(candidates)!=candidate_count:
@@ -121,7 +127,7 @@ def _checked_suite(suite, snapshot, feature_digest):
                         "external_freeze_verified":False})
     return outputs
 
-def bind_audit_to_delivery(audit, delivery, *, race_id):
+def bind_audit_to_delivery(audit, delivery, *, race_id, model_contract='EXACT8_LEGACY'):
     """Find same race in saved Web/ZIP audit and PR71 private delivery.
 
     Never copies the underlying official HTML/CSV, model features or private
@@ -196,7 +202,7 @@ def bind_audit_to_delivery(audit, delivery, *, race_id):
     if fd!=delivery.get("feature_snapshot_sha256"):
         raise BindingError("snapshot SHA mismatch")
     suite=delivery.get("research_suite")
-    outputs=_checked_suite(suite,snap,fd)
+    outputs=_checked_suite(suite,snap,fd,model_contract=model_contract)
     return {"schema":SCHEMA,"race_id":race_id,"model_race_id":model_race_id,
             "sport":sport,
             "event_date_jst":audit["event_date_jst"],"venue":row["venue"],

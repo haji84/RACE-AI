@@ -17,6 +17,7 @@ import stat
 from .append_only_freeze_writer import prepare_anchor
 from .model_suite_settlement import audit_model_settlements
 from .pr71_delivery_binding import bind_audit_to_delivery, _stamp as _binding_stamp
+from .model_case_contracts import select as _select_contract
 
 SCHEMA = "RACE_AI_PERMISSIONED_MODEL_CASE_REQUEST_V1"
 RESULT_SCHEMA = "RACE_AI_PERMISSIONED_MODEL_CASE_RESULT_V1"
@@ -75,6 +76,17 @@ def _same(left, right):
     return _canonical(left) == _canonical(right)
 
 
+def _profile(request):
+    try:
+        return _select_contract(request['schema'], request['model_source_sha40'])
+    except (ValueError, KeyError, TypeError):
+        _fail()
+
+
+def _request_hash(request):
+    return _hash(request, _profile(request).schema.encode('ascii') + b'\0')
+
+
 def _hex(value, size=64):
     return type(value) is str and re.fullmatch(r"[0-9a-f]{" + str(size) + "}", value) is not None
 
@@ -128,9 +140,9 @@ def _request(value):
     if type(value) is not dict or set(value) != FIELDS:
         _fail()
     value = _bounded_copy(value)
-    if (value["schema"] != SCHEMA or type(value["case_id"]) is not str
+    _profile(value)
+    if (type(value["case_id"]) is not str
             or re.fullmatch(r"[A-Za-z0-9_.:-]{1,128}", value["case_id"]) is None
-            or value["model_source_sha40"] != MODEL_PIN
             or not _same(value["expected_model_ids"], list(MODELS))
             or not _same(value["expected_model_versions"], VERSIONS)
             or not _hex(value["source_payload_sha256"])):
@@ -253,9 +265,9 @@ def _identity(db):
     identity = (db.execute("PRAGMA application_id").fetchone()[0], db.execute("PRAGMA user_version").fetchone()[0])
     if not objects and identity == (0, 0):
         return False
-    if objects != expected or identity != (APPLICATION_ID, 1):
+    if objects != expected or identity[0] != APPLICATION_ID or identity[1] not in (1, 2):
         _fail()
-    return True
+    return identity[1]
 
 
 def _now(clock, previous=None):
@@ -293,10 +305,47 @@ def _policy_effective(policy, snapshot, supplemental, at):
     return True
 
 
+def _analysis_window(request, sources, admitted_start):
+    return {'schema':'RACE_AI_MODEL_CASE_ANALYSIS_WINDOW_V1',
+        'request_sha256':_request_hash(request),
+        **{name:request[name] for name in ('source_payload_sha256','feature_snapshot_sha256','policy_record_sha256','input_evidence_ref')},
+        'source_verdicts_sha256':_hash(sources), 'purposes':list(PURPOSES),
+        'admitted_start':admitted_start, 'through_at':request['sales_cutoff_at']}
+
+
+def _input_window_admitted(callback, request, snapshot, policy_sha, window):
+    claimed, snap, claim = map(_bounded_copy,(request,snapshot,window))
+    try:
+        answer=callback(claimed,snap,policy_sha,analysis_window=claim)
+        return (answer is True and _same(_bounded_copy(claimed),request)
+            and _same(_bounded_copy(snap),snapshot) and _same(_bounded_copy(claim),window))
+    except Exception:
+        return False
+
+
+def _v2_cutoff_admitted(callback, row):
+    claim=_bounded_copy(row)
+    try:
+        return callback(claim) is True and _same(_bounded_copy(claim),row)
+    except Exception:
+        return False
+
+
+def _v2_roster_admitted(callback, declaration):
+    try:
+        return callback(declaration) is True
+    except Exception:
+        return False
+
+
 def _checked(request, metadata, wire):
     source, codec, models = _dependencies()
+    profile = _profile(request)
+    fields = {"request", "delivery_sha256", "wire_sha256", "started_at", "generated_at", "persisted_at", "plans", "source_verdicts"}
+    if profile.version == 2:
+        fields |= {'analysis_window','analysis_window_admitted_by_callback'}
     if (type(wire) is not bytes or not 0 < len(wire) <= MAX_SOURCE
-            or set(metadata) != {"request", "delivery_sha256", "wire_sha256", "started_at", "generated_at", "persisted_at", "plans", "source_verdicts"}
+            or set(metadata) != fields
             or not _same(request, metadata["request"]) or _sha(wire) != metadata["wire_sha256"]):
         _fail()
     delivery = codec.deserialize_private_delivery(wire, expected_delivery_sha256=metadata["delivery_sha256"])
@@ -315,9 +364,15 @@ def _checked(request, metadata, wire):
     extra = source._verify_supplemental(delivery["supplemental_evidence"], snapshot, RecordedPolicy(), at=metadata["started_at"])
     if not _same(verdicts, _source_decisions(snapshot, extra, saved)):
         _fail()
+    if profile.version == 2:
+        window = _bounded_copy(metadata['analysis_window'])
+        if (metadata['analysis_window_admitted_by_callback'] is not True
+                or not _same(window,_analysis_window(request,verdicts,window['admitted_start']))
+                or not _stamp(request['as_of']) <= _stamp(window['admitted_start']) <= _stamp(metadata['started_at'])):
+            _fail()
     audit = audit_model_settlements(request["ledger"], [], [{"race_id": request["race_id"], "delivery": delivery}], [],
-        expected_model_ids=MODELS, expected_model_versions=VERSIONS, expected_model_source_sha40=MODEL_PIN,
-        validate_snapshot=models.validate, allow_source=saved)
+        expected_model_ids=MODELS, expected_model_versions=VERSIONS, expected_model_source_sha40=profile.pin,
+        validate_snapshot=models.validate, allow_source=saved, model_contract=profile.cardinality)
     if not audit["all_supplied_snapshots_admitted_by_callback"]:
         _fail()
     race = snapshot["race"]
@@ -328,7 +383,7 @@ def _checked(request, metadata, wire):
             or not _stamp(race["as_of"]) <= started <= generated <= persisted < _stamp(request["sales_cutoff_at"])
             or _stamp(delivery["ingested_at"]) != started):
         _fail()
-    binding = bind_audit_to_delivery(request["ledger"], delivery, race_id=request["race_id"])
+    binding = bind_audit_to_delivery(request["ledger"], delivery, race_id=request["race_id"], model_contract=profile.cardinality)
     if not _same(metadata["plans"], [prepare_anchor(binding, name, metadata["generated_at"], metadata["persisted_at"]) for name in MODELS]):
         _fail()
     return delivery
@@ -358,10 +413,13 @@ def _read(db, expected_request_sha256):
         metadata = json.loads(text)
         if (type(metadata) is not dict or _canonical(metadata) != text
                 or not _hex(request_sha) or not _hex(digest) or request_sha != expected_request_sha256
-                or digest != _hash([request_sha, metadata, _sha(wire)], DOMAIN)):
+                ):
             _fail()
         request = _request(metadata["request"])
-        if request_sha != _hash(request, SCHEMA.encode() + b"\0"):
+        profile = _profile(request)
+        if (db.execute('PRAGMA user_version').fetchone()[0] != profile.version
+                or digest != _hash([request_sha, metadata, _sha(wire)],profile.checkpoint_domain)
+                or request_sha != _request_hash(request)):
             _fail()
         delivery = _checked(request, metadata, wire)
     except (ValueError, TypeError, KeyError, RecursionError, sqlite3.Error):
@@ -370,7 +428,7 @@ def _read(db, expected_request_sha256):
 
 
 def _summary(loaded):
-    return {"schema": RESULT_SCHEMA, "status": "PREPARED_NOT_EXTERNAL_FROZEN",
+    return {"schema": _profile(loaded['request']).result_schema, "status": "PREPARED_NOT_EXTERNAL_FROZEN",
         "case_id": loaded["request"]["case_id"], "request_sha256": loaded["request_sha256"],
         **{name: loaded[name] for name in ("delivery_sha256", "wire_sha256", "started_at", "generated_at", "persisted_at", "plans")},
         "models": [{"model_id": name, "model_version": model["model_version"], "prediction_sha256": model["prediction_sha256"]}
@@ -380,15 +438,15 @@ def _summary(loaded):
 
 
 def _denied(request, reasons):
-    return {"schema": RESULT_SCHEMA, "status": "NO_FORECAST",
-        "request_sha256": _hash(request, SCHEMA.encode() + b"\0"),
+    return {"schema": _profile(request).result_schema, "status": "NO_FORECAST",
+        "request_sha256": _request_hash(request),
         "source_payload_sha256": request["source_payload_sha256"], "reasons": sorted(set(reasons)),
         "official_prediction": False, "external_freeze_verified": False}
 
 
 def _insert_case(db, request_sha, metadata, wire):
     db.execute("INSERT INTO permissioned_case VALUES(1,?,?,?,?)",
-        (request_sha, _canonical(metadata), wire, _hash([request_sha, metadata, _sha(wire)], DOMAIN)))
+        (request_sha, _canonical(metadata), wire, _hash([request_sha, metadata, _sha(wire)], _profile(metadata['request']).checkpoint_domain)))
 
 
 def load_case(path, *, expected_request_sha256, private_path_verifier=None):
@@ -414,9 +472,10 @@ def load_case(path, *, expected_request_sha256, private_path_verifier=None):
 def prepare_case(path, request, raw_feed, policy, *, clock, private_path_verifier=None,
                  verify_input=None, verify_cutoff=None, admit_model_roster=None):
     request = _request(request)
+    profile = _profile(request)
     if type(raw_feed) is not bytes or not 0 < len(raw_feed) <= MAX_SOURCE or _sha(raw_feed) != request["source_payload_sha256"]:
         _fail()
-    request_sha = _hash(request, SCHEMA.encode() + b"\0")
+    request_sha = _request_hash(request)
     nullable = ("policy_record_sha256", "feature_snapshot_sha256", "as_of", "sales_cutoff_at", "executor_source_sha40",
                 "input_evidence_ref", "cutoff_evidence_ref", "model_declaration_evidence_ref")
     missing = ["MISSING_" + name.upper() for name in nullable if request[name] is None]
@@ -480,20 +539,36 @@ def prepare_case(path, request, raw_feed, policy, *, clock, private_path_verifie
             or race["venue"] != row["venue"] or race["event_date_jst"] != request["ledger"]["event_date_jst"]):
         _fail()
     count = len(snapshot["participants"])
-    if count * (count - 1) * (count - 2) < 8:
+    if profile.version == 1 and count * (count - 1) * (count - 2) < 8:
         # Pinned producers/binding require eight unique picks. N=3 support needs
         # a separately reviewed upstream contract; never infer or pad two picks.
         return _denied(request, ["PINNED_MODEL_CARDINALITY_UNSUPPORTED"])
-    declaration = tuple((name, VERSIONS[name], MODEL_PIN) for name in MODELS)
+    declaration = tuple((name, VERSIONS[name], profile.pin) for name in MODELS)
     denials = []
-    if verify_input(_bounded_copy(request), _bounded_copy(snapshot), policy.document_sha256) is not True:
+    window = _analysis_window(request,sources,started) if profile.version == 2 else None
+    input_ok = (_input_window_admitted(verify_input,request,snapshot,policy.document_sha256,window)
+                if profile.version == 2 else verify_input(_bounded_copy(request), _bounded_copy(snapshot), policy.document_sha256) is True)
+    if not input_ok:
         denials.append("INPUT_NOT_ADMITTED")
-    if verify_cutoff(_bounded_copy(row)) is not True:
+    cutoff_ok = (_v2_cutoff_admitted(verify_cutoff,row) if profile.version == 2
+                 else verify_cutoff(_bounded_copy(row)) is True)
+    if not cutoff_ok:
         denials.append("CUTOFF_NOT_ADMITTED")
-    if admit_model_roster(declaration) is not True:
+    roster_ok = (_v2_roster_admitted(admit_model_roster,declaration) if profile.version == 2
+                 else admit_model_roster(declaration) is True)
+    if not roster_ok:
         denials.append("MODEL_DECLARATION_NOT_ADMITTED")
     if denials:
         return _denied(request, denials)
+    if profile.version == 2:
+        from . import isolated_model_case_runtime as runtime
+        try:
+            runtime.preflight()
+        except runtime.IsolatedModelError:
+            return _denied(request,['PINNED_RUNTIME_NOT_AVAILABLE'])
+        started = _now(clock,started)
+        if _stamp(started) >= _stamp(request['sales_cutoff_at']):
+            return _denied(request,['MISSED_DEADLINE'])
     if not _private(path, private_path_verifier, "PRE_OPEN"):
         return _denied(request, ["PRIVATE_PATH_NOT_ADMITTED"])
     db = sqlite3.connect(str(path), timeout=30, isolation_level=None)
@@ -504,6 +579,8 @@ def prepare_case(path, request, raw_feed, policy, *, clock, private_path_verifie
         db.execute("BEGIN IMMEDIATE")
         owned = _identity(db)
         if owned:
+            if owned != profile.version:
+                _fail()
             prior = _read(db, request_sha)
             if prior is not None:
                 db.execute("COMMIT")
@@ -512,7 +589,7 @@ def prepare_case(path, request, raw_feed, policy, *, clock, private_path_verifie
             for statement in SQL:
                 db.execute(statement)
             db.execute(f"PRAGMA application_id={APPLICATION_ID}")
-            db.execute("PRAGMA user_version=1")
+            db.execute(f"PRAGMA user_version={profile.version}")
         started = _now(clock, started)
         if _stamp(started) >= _stamp(request["sales_cutoff_at"]):
             db.execute("ROLLBACK")
@@ -520,14 +597,33 @@ def prepare_case(path, request, raw_feed, policy, *, clock, private_path_verifie
         if not _policy_effective(policy, snapshot, extra, started):
             db.execute("ROLLBACK")
             return _denied(request, ["SOURCE_POLICY_NOT_EFFECTIVE"])
-        delivery = source.deliver(raw_feed, policy, at=started, persist=True)
+        if profile.version == 2:
+            def admit_private_input():
+                edge = _now(clock, started)
+                if (not _stamp(window['admitted_start']) <= _stamp(edge) < _stamp(request['sales_cutoff_at'])
+                        or policy.document_sha256 != request['policy_record_sha256']
+                        or not _policy_effective(policy,snapshot,extra,edge)
+                        or not _same(sources,_source_decisions(snapshot,extra,policy.authorize))):
+                    _fail()
+                return edge
+            try:
+                wire, delivery_sha, started = runtime.produce(request,request_sha,raw_feed,sources,
+                    started_at=started,admit_private_input=admit_private_input)
+                delivery = codec.deserialize_private_delivery(wire,expected_delivery_sha256=delivery_sha)
+            except Exception:
+                _fail()
+        else:
+            delivery = source.deliver(raw_feed, policy, at=started, persist=True)
         generated = _now(clock, started)
-        wire = codec.serialize_private_delivery(delivery)
-        binding = bind_audit_to_delivery(request["ledger"], delivery, race_id=request["race_id"])
+        if profile.version == 1:
+            wire = codec.serialize_private_delivery(delivery)
+        binding = bind_audit_to_delivery(request["ledger"], delivery, race_id=request["race_id"],model_contract=profile.cardinality)
         persisted = _now(clock, generated)
         metadata = {"request": request, "delivery_sha256": delivery["delivery_sha256"], "wire_sha256": _sha(wire),
             "started_at": started, "generated_at": generated, "persisted_at": persisted, "source_verdicts": sources,
             "plans": [prepare_anchor(binding, name, generated, persisted) for name in MODELS]}
+        if profile.version == 2:
+            metadata.update(analysis_window=window,analysis_window_admitted_by_callback=True)
         _checked(request, metadata, wire)
         if not _private(path, private_path_verifier, "POST_OPEN"):
             db.execute("ROLLBACK")

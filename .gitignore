@@ -8,4 +8,5 @@ artifacts/
 /pr71-existing-reference/
 /pr71-settlement-reference/
 /pr71-private-transport-reference/
+/pr71-max8-reference/
 *.sqlite*

@@ -320,7 +320,8 @@ def _claim(manifest, position, phase, at):
 def _admit(manifest, loaded, position, phase, at, callbacks, transport):
     claim = _claim(manifest, position, phase, at)
     row = next(r for r in loaded["request"]["ledger"]["records"] if r["race_id"] == loaded["request"]["race_id"])
-    declarations = tuple((name, case.VERSIONS[name], case.MODEL_PIN) for name in case.MODELS)
+    declarations = tuple((model['model_id'], model['model_version'], manifest['model_source_sha40'])
+                         for model in manifest['models'])
     return all((_call(callbacks[0], claim, loaded["delivery"]["snapshot"]),
         _call(callbacks[1], claim, row), _call(callbacks[2], claim, declarations),
         _call(callbacks[3], claim), _call(callbacks[4], claim, transport)))

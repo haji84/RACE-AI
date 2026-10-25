@@ -13,6 +13,7 @@ import re
 
 from .pr71_delivery_binding import bind_audit_to_delivery, _digest, _stamp
 from .proof_aware_settlement import audit_settlement
+from .model_case_contracts import cardinality, MAX8, NEW_PIN
 
 
 SCHEMA = "RACE_AI_MODEL_SUITE_SETTLEMENT_V1"
@@ -76,7 +77,7 @@ def audit_model_settlements(ledger, results, deliveries, freezes, *, expected_mo
                             validate_snapshot=None, allow_source=None,
                             admit_model_roster=None, verify_result=None,
                             verify_cutoff=None, verify_model_freeze=None,
-                            verify_coverage=None):
+                            verify_coverage=None, model_contract='EXACT8_LEGACY'):
     """Evaluate each predeclared model against the same complete source ledger.
 
     deliveries: [{race_id: SOURCE_ID, delivery: original_PR71_private_delivery}]
@@ -105,6 +106,12 @@ def audit_model_settlements(ledger, results, deliveries, freezes, *, expected_mo
     A missing model output/receipt is a missing forecast, never a smaller
     denominator. All inputs and original prediction hashes remain unchanged.
     """
+    try:
+        cardinality(model_contract)
+    except ValueError:
+        raise ModelSettlementError('fixed cardinality contract rejected') from None
+    if model_contract == MAX8 and expected_model_source_sha40 != NEW_PIN:
+        raise ModelSettlementError('explicit maximum-eight source declaration required')
     if (not isinstance(expected_model_ids, (list, tuple))
             or not 1 <= len(expected_model_ids) <= 8
             or any(not _identity(x) for x in expected_model_ids)
@@ -149,7 +156,7 @@ def audit_model_settlements(ledger, results, deliveries, freezes, *, expected_mo
         if not isinstance(race_id, str) or race_id not in rows or race_id in bound:
             raise ModelSettlementError("duplicate or unlisted source delivery race")
         delivery = item["delivery"]
-        binding = bind_audit_to_delivery(ledger, delivery, race_id=race_id)
+        binding = bind_audit_to_delivery(ledger, delivery, race_id=race_id, model_contract=model_contract)
         model_race_id = binding["model_race_id"]
         if model_race_id in model_race_sources:
             raise ModelSettlementError("source races collide on one original model race identity")

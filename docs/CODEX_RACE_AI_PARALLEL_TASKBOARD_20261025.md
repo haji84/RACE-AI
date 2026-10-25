@@ -196,3 +196,23 @@ source collection, cloud/security commitment or operational schedule is added.
 Lawful complete prospective real input, protected external original retention
 and shared coordinator, actual results, formal review/main and98% remain open.
 Owner's device/cost deferral does not postpone this code repair.
+
+## Next dependency: fixed maximum-eight case profiles
+
+Race30 closed at f155686cd7a425eab31e91e16657e2cd396114a9,
+CI40193619395/job121169660000:491PASS/86.594s/0skip. Race31 PR71 closed
+at db075c203704d2b30df5742ce8458a43932696a4, UbuntuCI40195398220:
+Python251/14.606s and Node66 PASS. Windows251 retains two inherited POSIX0600
+assertion failures; neither WindowsfullPASS nor actual ACL proof is claimed.
+
+Race32 Goal/Done: P0_FIXED_MODEL_CASE_PROFILES_20261025.md. Root owns fixed
+profile/case/binding/settlement/submission integration and sole PR72 writes;
+C owns only isolated runtime/worker/tests, D independently critiques, A checks
+exact public reference/legacy/packet bytes. No new real input is invented.
+V1/ebe remains unchanged; V2/db075 explicit new preparation uses verified bytes
+in a bounded secret-free child, then original typed wire and immutable case.
+Existing committed cases replay without inference/renewal or pin replacement.
+An explicit full-window callback is required for V2; mutable grant dates do not
+authenticate it. No API default grants source/private/cloud/release permission.
+Actual full input/provenance, external protected whole-payload storage/shared
+coordination, official results and formal main/98% acceptance remain open.
