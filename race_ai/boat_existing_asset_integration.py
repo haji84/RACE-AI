@@ -7,7 +7,7 @@ Never synthesize missing history, exhibition, motor stats or weather.
 """
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, timezone
 import hashlib
 import json
 import math
@@ -233,59 +233,211 @@ def from_pr64_imported_K(db, *, racer_id, day, as_of):
     return report
 
 
+def _usable(value, low, high):
+    # Check the range before isfinite: huge exact ints must not overflow float.
+    return (type(value) in (int, float) and low <= value <= high
+            and math.isfinite(value))
+
+
+def _provenance_gaps(record, label, decision):
+    """Document claims only. Missing is a gap; explicit future data is invalid."""
+    record = record if isinstance(record, dict) else {}
+    gaps = []
+    if not isinstance(record.get("source_ref"), str) or not record["source_ref"].strip():
+        gaps.append(label + "_SOURCE_REFERENCE_MISSING")
+    times = {}
+    for key, missing in (("published_at", "ORIGINAL_PUBLISHED_AT_UNKNOWN"),
+                         ("captured_at", "CAPTURED_AT_UNKNOWN")):
+        if record.get(key) is None:
+            gaps.append(label + "_" + missing)
+        else:
+            times[key] = _stamp(record[key])
+            if times[key] > decision:
+                raise ReuseGateError(label + " source is after decision")
+    if len(times) == 2 and times["published_at"] > times["captured_at"]:
+        raise ReuseGateError(label + " publication after capture")
+    return gaps
+
+
+def _history_candidate(record, registration, target_day):
+    if (not isinstance(record, dict) or record.get("racer_id") != registration
+        or record.get("status") != "CANDIDATE_PENDING_INDEPENDENT_SOURCE_AND_RIGHTS"
+        or type(record.get("sample_n")) is not int
+        or not MIN_HISTORY <= record["sample_n"] <= MAX_HISTORY):
+        return False
+    rows = record.get("last_races")
+    if not isinstance(rows, list) or len(rows) != record["sample_n"]:
+        return False
+    seen = set()
+    for row in rows:
+        if (not isinstance(row, dict) or set(row) != {
+                "race_id", "race_day", "finish_position", "start_seconds"}):
+            return False
+        rid, day = row.get("race_id"), row.get("race_day")
+        if (not isinstance(rid, str) or re.fullmatch(r"[0-9]{8}-[0-9]{2}-[0-9]{2}", rid) is None
+            or rid in seen or day != rid[:4]+"-"+rid[4:6]+"-"+rid[6:8]
+            or type(row.get("finish_position")) is not int
+            or not 1 <= row["finish_position"] <= 6
+            or not _usable(row.get("start_seconds"), 0, 1)):
+            return False
+        try:
+            if not date(2000, 1, 1) <= date.fromisoformat(day) < target_day:
+                return False
+        except ValueError:
+            return False
+        seen.add(rid)
+    return rows == sorted(rows, key=lambda row:(row["race_day"],row["race_id"]), reverse=True)
+
+
+def _join_preview(snapshot, racelist, identities, as_of):
+    from race_ai.boat_preview_weather_evidence import (
+        PreviewGateError, normalize_existing_PR64_beforeinfo,
+    )
+    if (not isinstance(snapshot, dict) or snapshot.get("race_id") != racelist["race_id"]
+        or _stamp(snapshot.get("closed_at")) != _stamp(racelist["closed_at"])):
+        raise ReuseGateError("preview race or deadline differs from B")
+    if snapshot.get("status") not in ("PENDING", "AVAILABLE"):
+        # PR64 PARTIAL is real, but the unchanged normalizer does not accept it.
+        raise ReuseGateError("unsupported preview status for existing normalizer")
+    captured, decision = _stamp(snapshot.get("captured_at")), _stamp(as_of)
+    publication = snapshot.get("upstream_published_at")
+    if publication is not None and _stamp(publication) > captured:
+        raise ReuseGateError("preview publication after capture")
+    if snapshot.get("available_at") is not None:
+        available = _stamp(snapshot["available_at"])
+        if not captured <= available <= decision:
+            raise ReuseGateError("preview availability conflicts with capture/decision")
+    # A race-bound PENDING grid has identities but no numeric payload. An
+    # unidentified/no-page-data response cannot stand in for that observation.
+    rows = (snapshot.get("observed_racers") if snapshot["status"] == "PENDING" else
+            snapshot.get("data", {}).get("boats") if isinstance(snapshot.get("data"),dict) else None)
+    if (not isinstance(rows,list) or len(rows)!=6 or
+        any(not isinstance(row,dict) or type(row.get("lane")) is not int for row in rows) or
+        {row["lane"]:row.get("racer_registration_id") for row in rows} != identities):
+        raise ReuseGateError("preview lane/registration differs from B")
+    try:
+        report = normalize_existing_PR64_beforeinfo(snapshot, as_of=as_of)
+    except (PreviewGateError, KeyError, TypeError) as exc:
+        raise ReuseGateError("invalid preview evidence") from exc
+    # The report intentionally drops the timestamp envelope. Carry only the
+    # actual capture and optional explicit publication claim; never replace
+    # unknown publication with capture or authenticate the claim here.
+    evidence = {"captured_at":snapshot.get("captured_at"),
+                "source_ref":snapshot.get("source_url"), "published_at":publication}
+    exhibition = {lane:{**row["features"], **evidence}
+                  for lane,row in report["observed_exhibition_by_lane"].items()}
+    return report, exhibition, {**report["observed_weather"], **evidence}
+
+
 def build_readiness(racelist, histories_by_registration, *,
                     motor_by_number=None, exhibition_by_lane=None,
-                    weather=None, as_of=None):
-    """Feature-level audit only; no forecast and no fake defaults."""
+                    weather=None, as_of=None, preview_snapshot=None):
+    """Legacy numeric candidates and evidence gaps; never admission or FULL input.
+
+    Optional raw PR64 beforeinfo joins through the existing normalizer. A
+    detached normalized report cannot establish its capture/cutoff envelope.
+    """
     if (not isinstance(racelist,dict) or
         not isinstance(racelist.get("boats"),list) or len(racelist["boats"])!=6):
         raise ReuseGateError("six-entrant PR64 B snapshot required")
-    if as_of is None or not _exact_datetime(as_of,racelist.get("closed_at")):
-        raise ReuseGateError("as_of after or missing scheduled cutoff")
-    if _stamp(as_of)>=_stamp(racelist["closed_at"]):
+    decision = _stamp(as_of)
+    if decision >= _stamp(racelist.get("closed_at")):
         raise ReuseGateError("forecast must precede scheduled cutoff")
+    rid = racelist.get("race_id")
+    try:
+        target_day = date.fromisoformat(racelist.get("date_jst"))
+    except (TypeError, ValueError) as exc:
+        raise ReuseGateError("invalid B event date") from exc
+    if (not isinstance(rid,str) or re.fullmatch(r"[0-9]{8}-(0[1-9]|1[0-9]|2[0-4])-(0[1-9]|1[0-2])",rid) is None
+        or rid[:8] != target_day.strftime("%Y%m%d")
+        or _stamp(racelist["closed_at"]).astimezone(timezone(timedelta(hours=9))).date() != target_day):
+        raise ReuseGateError("B race and event date mismatch")
     if not isinstance(histories_by_registration, dict):
         raise ReuseGateError("per-racer K history collection required")
-    motors=motor_by_number if isinstance(motor_by_number,dict) else {}
-    exhibitions=exhibition_by_lane if isinstance(exhibition_by_lane,dict) else {}
-    environment=weather if isinstance(weather,dict) else {}
-    readiness=[]
-    reg_seen=set()
-    for boat in sorted(racelist["boats"],key=lambda r:r["lane"]):
+    for collection in (motor_by_number, exhibition_by_lane, weather):
+        if collection is not None and not isinstance(collection,dict):
+            raise ReuseGateError("auxiliary candidate collections must be mappings")
+    identities = {}
+    for boat in racelist["boats"]:
+        if not isinstance(boat,dict):
+            raise ReuseGateError("invalid B entrant")
         lane=boat.get("lane")
-        pid=str(boat.get("racer_registration_id"))
-        motor=boat.get("motor_no")
+        pid=boat.get("racer_registration_id")
         if (type(lane) is not int or not 1<=lane<=6 or
-            re.fullmatch(r"\d{4}",pid) is None or pid in reg_seen):
+            not isinstance(pid,str) or re.fullmatch(r"[0-9]{4}",pid) is None or
+            lane in identities or pid in identities.values() or
+            type(boat.get("motor_no")) is not int or not 1<=boat["motor_no"]<=999):
             raise ReuseGateError("invalid B identity or lane")
-        reg_seen.add(pid)
+        identities[lane]=pid
+    if set(identities)!=set(range(1,7)):
+        raise ReuseGateError("missing B lane")
+    primary_gaps = _provenance_gaps({"source_ref":racelist.get("source_url"),
+        "published_at":racelist.get("source_original_published_at"),
+        "captured_at":racelist.get("first_observed_at")}, "B", decision)
+    motors=motor_by_number or {}
+    exhibitions=exhibition_by_lane or {}
+    environment=weather or {}
+    preview = None
+    if preview_snapshot is not None:
+        if exhibition_by_lane is not None or weather is not None:
+            raise ReuseGateError("preview and flat exhibition/weather evidence conflict")
+        preview,exhibitions,environment = _join_preview(preview_snapshot,racelist,identities,as_of)
+    readiness=[]
+    for boat in sorted(racelist["boats"],key=lambda r:r["lane"]):
+        lane=boat["lane"];pid=identities[lane];motor=boat["motor_no"]
         h=histories_by_registration.get(pid)
         m=motors.get(str(motor))
         e=exhibitions.get(str(lane))
+        e = e if isinstance(e,dict) else {}
+        m = m if isinstance(m,dict) else {}
         unresolved=[]
-        if (not isinstance(h,dict) or h.get("sample_n",0)<MIN_HISTORY or
-            h.get("status")!="CANDIDATE_PENDING_INDEPENDENT_SOURCE_AND_RIGHTS"):
+        history_ok = _history_candidate(h,pid,target_day)
+        display_ok = _usable(e.get("exhibition_time_seconds"),1,20)
+        st_ok = _usable(e.get("exhibition_start_seconds"),0,1)
+        if not history_ok:
             unresolved.append("K_RECENT_FORM_AND_START_HISTORY_NOT_READY")
-        if not isinstance(m,dict) or "motor_two_place_rate_percent" not in m:
+        if not _usable(m.get("motor_two_place_rate_percent"),0,100):
             unresolved.append("MOTOR_STAT_WITH_PROVENANCE_NOT_READY")
-        if not isinstance(e,dict) or any(k not in e for k in REQUIRED_EXHIBITION):
+        if not display_ok or not st_ok:
             unresolved.append("EXHIBITION_TIME_AND_ST_NOT_READY")
+        provenance = {label:_provenance_gaps(record,label,decision)
+                      for label,record in (("HISTORY",h),("MOTOR",m),("EXHIBITION",e))}
+        declared_n = h.get("sample_n") if isinstance(h,dict) else None
         readiness.append({
             "lane":lane, "registration_no":pid,
-            "historical_sample_n":h.get("sample_n",0) if isinstance(h,dict) else 0,
-            "unresolved":unresolved,
+            "historical_sample_n":declared_n if type(declared_n) is int and 0<=declared_n<=MAX_HISTORY else None,
+            "history_numeric_candidate":history_ok,
+            "exhibition_display_candidate":display_ok,
+            "exhibition_ST_candidate":st_ok,
+            "exhibition_temporally_documented":display_ok and st_ok and not provenance["EXHIBITION"],
+            "unresolved":unresolved, "provenance_gaps":[gap for gaps in provenance.values() for gap in gaps],
         })
-    if set(b["lane"] for b in racelist["boats"])!=set(range(1,7)):
-        raise ReuseGateError("missing B lane")
-    missing_weather=[key for key in REQUIRED_WEATHER if key not in environment]
+    # Same units/ranges as the unchanged pinned PR71 legacy model. Normalizer
+    # source observations (display .01..20) can be outside these legacy ranges.
+    weather_ranges=((0,35),(0,200),(-1,1),(0,1))
+    missing_weather=[key for key,bounds in zip(REQUIRED_WEATHER,weather_ranges)
+                     if not _usable(environment.get(key),*bounds)]
+    weather_gaps=_provenance_gaps(environment,"WEATHER",decision)
     # These are structural readiness counts, not independent rights grants.
     return {
         "schema":SCHEMA, "race_id":racelist.get("race_id"),
+        "readiness_contract_version":2,
+        "evaluated_model_contract":"PR71_LEGACY_BOAT_MULTI_FEATURE_V1",
+        "full_pr71_input_readiness_evaluated":False,
         "legacy_multi_model_ids":["boat-comprehensive-v1","boat-scenario-mixture-v1"],
         "model_code_reused_not_reimplemented":True,
-        "history_ready_lane_count":sum(x["historical_sample_n"]>=MIN_HISTORY for x in readiness),
+        "history_ready_lane_count":sum(x["history_numeric_candidate"] for x in readiness),
         "motor_candidate_lane_count":sum("MOTOR_STAT_WITH_PROVENANCE_NOT_READY" not in x["unresolved"] for x in readiness),
         "exhibition_candidate_lane_count":sum("EXHIBITION_TIME_AND_ST_NOT_READY" not in x["unresolved"] for x in readiness),
+        "exhibition_display_candidate_lane_count":sum(x["exhibition_display_candidate"] for x in readiness),
+        "exhibition_ST_candidate_lane_count":sum(x["exhibition_ST_candidate"] for x in readiness),
+        "temporally_documented_exhibition_lane_count":sum(x["exhibition_temporally_documented"] for x in readiness),
+        "source_observed_display_count":preview["observed_display_count"] if preview else None,
+        "source_observed_ST_numeric_count":preview["observed_ST_numeric_count"] if preview else None,
+        "preview_missing_by_lane":{key:dict(value) for key,value in preview["missing_by_lane"].items()} if preview else {},
+        "independently_admitted_candidate_count":0,
+        "primary_provenance_gaps":primary_gaps,
+        "weather_provenance_gaps":weather_gaps,
         "missing_weather_keys":missing_weather,
         "lane_gaps":readiness,
         "official_source_publication_independently_verified":False,

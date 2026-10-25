@@ -4,6 +4,7 @@ All source figures, origins and right-grant callbacks in this fixture are
 synthetic. They prove adapter wiring, never evidence of real-source approval.
 """
 import copy
+import json
 import math
 import unittest
 from pathlib import Path
@@ -72,7 +73,191 @@ def full_fixture():
     return racelist,aux
 
 
+def preview_fixture():
+    """Existing parse_update shape; entirely fictional, one nonnumeric F."""
+    return {
+        "race_id":"20300401-18-01", "kind":"beforeinfo", "status":"AVAILABLE",
+        "body_identity_verified":True, "closed_at":"2030-04-01T10:59:00+09:00",
+        "captured_at":"2030-04-01T10:35:00+09:00",
+        "data":{"boats":[
+            {"lane":i, "racer_registration_id":str(4000+i), "display_time":6.8,
+             "preview_st_status":"OK" if i<6 else "F",
+             "preview_st":.15 if i<6 else None} for i in range(1,7)],
+            "weather":{"wind_speed_mps":7.0, "wave_height_cm":12.0,
+                       "wind_direction_source_code":4}}}
+
+
 class ExistingAssetIntegrationTests(unittest.TestCase):
+    def readiness(self, racelist, aux, **extra):
+        return build_readiness(racelist,aux["history_by_racer"],
+            motor_by_number=aux["motor_by_number"],
+            exhibition_by_lane=aux["exhibition_by_lane"],
+            weather=aux["weather"],as_of=ASOF,**extra)
+
+    def test_rejected_history_and_null_fields_do_not_inflate_candidate_counts(self):
+        racelist,aux=full_fixture()
+        for record in aux["history_by_racer"].values():
+            record["status"]="REJECTED"
+        for record in aux["motor_by_number"].values():
+            record["motor_two_place_rate_percent"]=None
+        for record in aux["exhibition_by_lane"].values():
+            record.update(exhibition_time_seconds=None,exhibition_start_seconds=None)
+        aux["weather"]={key:None for key in
+            ("wind_speed_mps","wave_height_cm","wind_relative_to_course","wet_surface_factor")}
+        report=self.readiness(racelist,aux)
+        self.assertEqual(report["history_ready_lane_count"],0)
+        self.assertEqual(report["motor_candidate_lane_count"],0)
+        self.assertEqual(report["exhibition_candidate_lane_count"],0)
+        self.assertEqual(len(report["missing_weather_keys"]),4)
+
+    def test_unusable_numbers_never_count_as_candidates(self):
+        for value in (None,True,"6.8",float("nan"),float("inf"),-1,101):
+            with self.subTest(value=repr(value)):
+                racelist,aux=full_fixture()
+                aux["motor_by_number"]["21"]["motor_two_place_rate_percent"]=value
+                aux["exhibition_by_lane"]["1"]["exhibition_time_seconds"]=value
+                report=self.readiness(racelist,aux)
+                self.assertEqual(report["motor_candidate_lane_count"],5)
+                self.assertEqual(report["exhibition_candidate_lane_count"],5)
+
+    def test_history_count_must_match_valid_prior_records_and_registration(self):
+        for mutate in (
+            lambda h:h.update(sample_n=True),
+            lambda h:h.update(sample_n=6),
+            lambda h:h.update(racer_id="4999"),
+            lambda h:h["last_races"].append(copy.deepcopy(h["last_races"][0])),
+            lambda h:h["last_races"][0].update(start_seconds=None),
+            lambda h:h["last_races"][0].update(race_day=DAY),
+        ):
+            with self.subTest(mutate=mutate):
+                racelist,aux=full_fixture()
+                mutate(aux["history_by_racer"]["4001"])
+                self.assertEqual(self.readiness(racelist,aux)["history_ready_lane_count"],5)
+
+    def test_canonical_preview_joins_by_identity_without_filling_F_or_weather(self):
+        racelist,aux=full_fixture()
+        preview=preview_fixture()
+        before=copy.deepcopy((racelist,aux,preview))
+        report=build_readiness(racelist,aux["history_by_racer"],
+            motor_by_number=aux["motor_by_number"],preview_snapshot=preview,as_of=ASOF)
+        self.assertEqual(report["exhibition_display_candidate_lane_count"],6)
+        self.assertEqual(report["exhibition_ST_candidate_lane_count"],5)
+        self.assertEqual(report["exhibition_candidate_lane_count"],5)
+        self.assertEqual(report["preview_missing_by_lane"]["6"]["exhibition_start_seconds"],
+                         "NON_NUMERIC_F_L")
+        self.assertEqual(report["missing_weather_keys"],
+                         ["wind_relative_to_course","wet_surface_factor"])
+        self.assertEqual(report["evaluated_model_contract"],"PR71_LEGACY_BOAT_MULTI_FEATURE_V1")
+        self.assertFalse(report["full_pr71_input_readiness_evaluated"])
+        self.assertEqual(report["independently_admitted_candidate_count"],0)
+        self.assertFalse(report["official_prediction"])
+        self.assertEqual((racelist,aux,preview),before)
+
+    def test_preview_cannot_join_other_race_entrant_deadline_or_future_capture(self):
+        for mutate in (
+            lambda p:p.update(race_id="20300401-18-02"),
+            lambda p:p.update(closed_at="2030-04-01T11:01:00+09:00"),
+            lambda p:p["data"]["boats"][0].update(racer_registration_id="4999"),
+            lambda p:p.update(captured_at="2030-04-01T10:43:00+09:00"),
+        ):
+            with self.subTest(mutate=mutate):
+                racelist,aux=full_fixture();preview=preview_fixture();mutate(preview)
+                with self.assertRaises(ReuseGateError):
+                    build_readiness(racelist,aux["history_by_racer"],
+                                    preview_snapshot=preview,as_of=ASOF)
+        racelist,aux=full_fixture()
+        with self.assertRaises(ReuseGateError):
+            self.readiness(racelist,aux,preview_snapshot=preview_fixture())
+
+    def test_numeric_presence_does_not_create_missing_provenance(self):
+        racelist,aux=full_fixture()
+        aux["exhibition_by_lane"]["1"]={"exhibition_time_seconds":6.8,
+                                           "exhibition_start_seconds":.15}
+        before=copy.deepcopy((racelist,aux))
+        report=self.readiness(racelist,aux)
+        self.assertEqual(report["exhibition_candidate_lane_count"],6)
+        self.assertEqual(report["temporally_documented_exhibition_lane_count"],5)
+        self.assertIn("EXHIBITION_ORIGINAL_PUBLISHED_AT_UNKNOWN",
+                      report["lane_gaps"][0]["provenance_gaps"])
+        self.assertEqual(report["independently_admitted_candidate_count"],0)
+        self.assertEqual((racelist,aux),before)
+
+    def test_explicit_future_or_reversed_provenance_is_rejected(self):
+        for group,key in (("history_by_racer","4001"),("motor_by_number","21"),
+                          ("exhibition_by_lane","1")):
+            for field,value in (("captured_at","2030-04-01T10:43:00+09:00"),
+                                ("published_at","2030-04-01T10:43:00+09:00")):
+                with self.subTest(group=group,field=field):
+                    racelist,aux=full_fixture();aux[group][key][field]=value
+                    with self.assertRaises(ReuseGateError):self.readiness(racelist,aux)
+
+    def test_pending_preview_requires_the_actual_observed_identity_grid(self):
+        racelist,aux=full_fixture();pending=preview_fixture()
+        pending.update(status="PENDING",data=None,
+            observed_racers=[{"lane":i,"racer_registration_id":str(4000+i)} for i in range(1,7)])
+        report=build_readiness(racelist,{},preview_snapshot=pending,as_of=ASOF)
+        self.assertEqual(report["source_observed_display_count"],0)
+        self.assertEqual(report["exhibition_candidate_lane_count"],0)
+        self.assertEqual(report["preview_missing_by_lane"]["6"]["exhibition_start_seconds"],"NOT_PUBLISHED")
+        pending["observed_racers"][0]["racer_registration_id"]="4999"
+        with self.assertRaises(ReuseGateError):
+            build_readiness(racelist,{},preview_snapshot=pending,as_of=ASOF)
+
+    def test_observed_display_below_legacy_model_range_is_not_a_legacy_candidate(self):
+        racelist,aux=full_fixture();preview=preview_fixture()
+        preview["data"]["boats"][0]["display_time"]=.5
+        report=build_readiness(racelist,{},preview_snapshot=preview,as_of=ASOF)
+        self.assertEqual(report["source_observed_display_count"],6)
+        self.assertEqual(report["exhibition_display_candidate_lane_count"],5)
+        self.assertEqual(report["exhibition_candidate_lane_count"],4)
+
+    def test_raw_preview_partial_and_ambiguous_empty_flat_inputs_are_rejected(self):
+        racelist,aux=full_fixture();preview=preview_fixture()
+        for extra in ({"exhibition_by_lane":{}},{"weather":{}}):
+            with self.subTest(extra=extra),self.assertRaises(ReuseGateError):
+                build_readiness(racelist,{},preview_snapshot=preview,as_of=ASOF,**extra)
+        preview["status"]="PARTIAL"
+        with self.assertRaisesRegex(ReuseGateError,"unsupported preview status"):
+            build_readiness(racelist,{},preview_snapshot=preview,as_of=ASOF)
+
+    def test_time_zone_equivalent_cutoff_joins_but_bad_B_identities_do_not(self):
+        racelist,aux=full_fixture();preview=preview_fixture()
+        preview["closed_at"]="2030-04-01T01:59:00Z"
+        self.assertEqual(build_readiness(racelist,{},preview_snapshot=preview,as_of=ASOF)
+                         ["source_observed_display_count"],6)
+        for mutation in (lambda b:b.update(lane=True),lambda b:b.update(motor_no=None),
+                         lambda b:b.update(racer_registration_id=4001)):
+            broken=copy.deepcopy(racelist);mutation(broken["boats"][0])
+            with self.assertRaises(ReuseGateError):build_readiness(broken,{},as_of=ASOF)
+
+    def test_invalid_declared_sample_count_is_json_safe_and_not_aliased(self):
+        for value in (float("nan"),[],True,-1,100000):
+            racelist,aux=full_fixture()
+            aux["history_by_racer"]["4001"]["sample_n"]=value
+            report=self.readiness(racelist,aux)
+            self.assertIsNone(report["lane_gaps"][0]["historical_sample_n"])
+            json.dumps(report,allow_nan=False)
+            self.assertEqual(report["history_ready_lane_count"],5)
+
+    def test_history_rows_use_the_exact_existing_legacy_field_contract(self):
+        racelist,aux=full_fixture()
+        aux["history_by_racer"]["4001"]["last_races"][0]["unsupported_field"]=1
+        self.assertEqual(self.readiness(racelist,aux)["history_ready_lane_count"],5)
+
+    def test_canonical_preview_explicit_publication_and_availability_cannot_be_future(self):
+        racelist,aux=full_fixture()
+        for field in ("upstream_published_at","available_at"):
+            for value in ("2030-04-01T10:43:00+09:00","invalid"):
+                with self.subTest(field=field,value=value):
+                    preview=preview_fixture();preview[field]=value
+                    with self.assertRaises(ReuseGateError):
+                        build_readiness(racelist,{},preview_snapshot=preview,as_of=ASOF)
+
+    def test_B_cutoff_must_be_on_the_JST_event_day(self):
+        racelist,aux=full_fixture()
+        racelist["closed_at"]="2030-04-02T10:59:00+09:00"
+        with self.assertRaises(ReuseGateError):self.readiness(racelist,aux)
+
     def test_prior_K_candidates_keep_real_race_id_source_time_and_sample(self):
         report=pr64_history_candidates(sample_rows(),racer_id="4001",day=DAY,as_of=ASOF)
         self.assertEqual(report["sample_n"],5)
