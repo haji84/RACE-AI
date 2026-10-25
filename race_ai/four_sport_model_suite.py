@@ -39,7 +39,7 @@ def run_suite(snapshot, *, allow_source=None, learned_model=None):
             prediction["as_of"] != snapshot["race"]["as_of"] or
             prediction["cutoff_at"] != snapshot["race"]["sales_cutoff_at"] or
             prediction["candidate_count"] != expected or
-            len(prediction["ordered_top8"]) != 8 or
+            len(prediction["ordered_top8"]) != min(8, expected) or
             prediction["odds_independent"] is not True or
             prediction["official_prediction"] is not False or
             prediction["external_pre_cutoff_receipt"] is not None):
