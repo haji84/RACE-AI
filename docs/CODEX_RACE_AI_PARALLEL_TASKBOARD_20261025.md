@@ -134,3 +134,19 @@ orchestration, durable attempt consumption and uncertain-write recovery remain
 mandatory. Private local payload retention is not private cloud retention.
 Full-field actual input, source/cutoff/publication authenticity and genuine
 future external storage/results still determine actual E2E acceptance.
+
+## Follow-on: consumed submission intent before external writes
+
+Prior unit closed at72b8c94d8a4b590e426d4909ce33621a86493090:
+CI40185829951/job121146287870,441PASS/0skip, separate D/A reviews and
+169-payload byte-restored packet independently audited804 checks. Actual
+retained156-ledger input returned NO_FORECAST, not a future prediction.
+
+Next bounded spec is P0_PERMISSIONED_CASE_SUBMISSION_20261025.md. C owns only
+the new permissioned_case_submission module/test; D is its nonauthor design
+and code reviewer. Root owns integration/CI/docs and is sole PR72 Git writer;
+A audits evidence/backup. Every previously reviewed case/witness/model byte,
+old synthetic journal, original dirty checkout and held33 remain unchanged.
+No actual submission/source/deploy occurs in this implementation slice.
+Local intent recovery cannot prove cloned-store safety, global exactly-once,
+multi-runner persistence or protected whole-payload cloud retention.
