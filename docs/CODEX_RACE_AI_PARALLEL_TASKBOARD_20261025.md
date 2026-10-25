@@ -276,3 +276,41 @@ still absent. Missing genuine E means public intents/HTTP0. No extra local
 simulation may be labelled a real forecast, real receipt,98% acceptance or
 formal completion. Device/account/cost acceptance stays deferred by Owner;
 cloud/security/schedule/main and held33 stop constraints remain unchanged.
+
+## Next dependency: measured K course/ST history without invented features
+
+Race35 closed at e7cf1a41da94fd295508bc080fd4240ecff18a67. Local590PASS/
+187.798s and automatic CI40215415264/job121235381052:590PASS/107.124s,
+zero failures/skips, are separate from source774-check and late104-check
+independent byte audits. Issue68 comment6400933989 records the unit. Native
+local retention is not authenticated cloud storage or a real forecast.
+Cross-runtime boat/keirin wire hashes differ; equality/numerical equivalence
+and a cause were not established. Saved original fixture profiles/owners and
+their limits remain recorded separately.
+
+Owner did not know a data location. A/C traced the existing official B/K/
+beforeinfo route instead of requiring Owner expertise or repeat approval.
+Some mandatory FULL latent measurements have no defined source transform;
+finding another folder cannot supply them. Do not invent these values.
+
+Race36 Goal/Done: P0_BOAT_OBSERVED_COURSE_HISTORY_20261026.md. C owns only
+the new measured history module and focused tests, root owns this narrow
+integration/spec/plan/CI filters and serialized PR72 writes, D is the nonauthor
+design/code reviewer. A prepares a separately reviewed private one-shot caller.
+Reuse actual pinned PR64 statistics; preserve lane/course, F/L/MISSING/ABSENT,
+samples, whole revisions, unknown publication and explicit withheld order.
+No new authority gate, journal, model or collector workflow is introduced.
+
+Known aggregate source evidence covers K01..23 and B24. NEW K24 is a distinct
+candidate for one bounded factual RAM parse after exact caller review and
+one-attempt admission. K25 is not eligible under the strict prior-UTC-day
+guard until09:00JST26; no clock or weaker-transport bypass. A measurement cohort
+from an older race is not a future race roster, and unknown publication cannot
+enter qualified as-of statistics. Later actual source outcome/CI/review stays
+separate from this implementation-stage plan.
+
+Full prospective model input/retention/receipt, all-sport production loop,
+future results/PDCA/98% and formal main acceptance remain incomplete. A new
+model scoring/required-feature contract needs a separate concrete Owner/design
+decision. Device/account/cost acceptance remains deferred. Original root,
+prior forecasts, held33 STOP and public/cloud/security restrictions are kept.
