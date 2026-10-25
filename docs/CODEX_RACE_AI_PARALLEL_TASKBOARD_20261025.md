@@ -150,3 +150,20 @@ old synthetic journal, original dirty checkout and held33 remain unchanged.
 No actual submission/source/deploy occurs in this implementation slice.
 Local intent recovery cannot prove cloned-store safety, global exactly-once,
 multi-runner persistence or protected whole-payload cloud retention.
+
+## Follow-on: whole-case private retention handoff
+
+The public-intent unit closed at770a620d8e73de0bb7d9d09e8bb52e8282ddaa93,
+CI40189412598/job121157016710:465PASS/71.606s/0skip. Local465/90.801s,
+separate24tests+11probes and739-check independent151-payload restore audit are
+recorded in Issue68 comment6397235263. No actual source/forecast/cloud operation.
+
+Next spec P0_PRIVATE_WIRE_RETENTION_20261025.md adds two local whole-wire
+request/supplied-evidence APIs. C owns only new module/tests; D is a nonauthor
+reviewer; root owns CLI/workflow/docs and sole PR72 writes; A audits integration
+and bytes. The separately admitted PRE_PUBLIC_BASE_ONLY binding is prospective
+and acyclic, not current Race28 dispatch enforcement or model1's storage intent.
+All frozen models/codec, existing case/submission APIs and held33 are retained.
+No writer, transport, duplicate registry, resource or security change is added.
+Actual private backend/coordinator and lawful full-input/future E2E remain open;
+device/cost acceptance stays deferred rather than blocking local implementation.

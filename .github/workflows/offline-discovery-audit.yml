@@ -19,16 +19,21 @@ on:
       - 'scripts/verify_offline_model_run_synthetic.py'
       - 'race_ai/permissioned_model_case.py'
       - 'race_ai/permissioned_case_submission.py'
+      - 'race_ai/private_wire_retention.py'
       - 'race_ai/github_witness_resolution.py'
       - 'tests/test_permissioned_model_case.py'
       - 'tests/test_permissioned_case_submission.py'
+      - 'tests/test_private_wire_retention.py'
       - 'tests/test_github_witness_resolution.py'
       - 'scripts/verify_permissioned_case_synthetic.py'
       - 'scripts/verify_permissioned_submission_synthetic.py'
+      - 'scripts/verify_private_wire_retention_synthetic.py'
       - 'docs/P0_PERMISSIONED_CASE_EXECUTION_20261025.md'
       - 'docs/P0_PERMISSIONED_CASE_SUBMISSION_20261025.md'
+      - 'docs/P0_PRIVATE_WIRE_RETENTION_20261025.md'
       - 'docs/superpowers/plans/2026-10-25-permissioned-case-execution.md'
       - 'docs/superpowers/plans/2026-10-25-permissioned-submission-intent.md'
+      - 'docs/superpowers/plans/2026-10-25-private-wire-retention.md'
       - 'docs/P0_OFFLINE_ADVANCED_MODEL_RUN_20261025.md'
       - 'docs/CODEX_RACE_AI_THREE_STREAM_MASTER_HANDOFF_20261025.md'
       - 'docs/CODEX_RACE_AI_PARALLEL_RUNBOOK_20261025.md'
@@ -245,5 +250,7 @@ jobs:
         run: python scripts/verify_permissioned_case_synthetic.py
       - name: Consume original case submission intents and recover without writes (fictional only)
         run: python scripts/verify_permissioned_submission_synthetic.py
+      - name: Bind original whole wire to private retention evidence without external I/O (fictional only)
+        run: python scripts/verify_private_wire_retention_synthetic.py
       - name: Test one same-race K/B/preview/weather source joining and NO_FORECAST gating
         run: python -m unittest discover -s tests -p test_p0_mikuni9_same_race_full_join_20261024.py -v
