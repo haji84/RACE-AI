@@ -4,6 +4,12 @@ on:
     branches:
       - codex/actions-four-sport-e2e
     paths:
+      - 'race_ai/boat_observed_program_bridge.py'
+      - 'race_ai/observed_pair_comparison.py'
+      - 'tests/test_boat_observed_program_bridge.py'
+      - 'tests/test_observed_pair_comparison.py'
+      - 'scripts/verify_observed_pairs_synthetic.py'
+      - 'docs/P0_OBSERVED_PAIR_COMPARISON_20261027.md'
       - 'AGENTS.md'
       - 'docs/ASSET_REUSE_MATRIX.md'
       - 'docs/SPEC_CONFLICTS.md'
@@ -279,6 +285,14 @@ jobs:
           ref: 9aeb2b425de9d05a44cb31f72a242a5111ada80a
           path: pr71-private-vault-reference
           persist-credentials: false
+      - name: Checkout separate observed-input candidate without replacing old models
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: 98e525478d598f6e56bcb6b5fc7006dbf893d2fe
+          path: pr71-observed-pair-reference
+          persist-credentials: false
+      - name: Verify paired missing-aware model on fictional B inputs and results
+        run: python scripts/verify_observed_pairs_synthetic.py
       - name: Install fixed native SQLite test runtime
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
         with:

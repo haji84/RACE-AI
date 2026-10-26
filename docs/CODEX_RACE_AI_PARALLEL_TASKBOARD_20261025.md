@@ -314,3 +314,37 @@ future results/PDCA/98% and formal main acceptance remain incomplete. A new
 model scoring/required-feature contract needs a separate concrete Owner/design
 decision. Device/account/cost acceptance remains deferred. Original root,
 prior forecasts, held33 STOP and public/cloud/security restrictions are kept.
+
+## Race37 / 2026-10-27: Owner-approved missing-aware pair
+
+Owner explicitly authorized autonomous development of the coverage-first separate
+experiment after discussing missing data and same-race comparison. This supersedes
+Race36's pending model-design decision for this candidate only. FULL75 and original
+four models remain unchanged. Root alone integrates PR71 and PR72 serially.
+
+PR71 adds two untrained observed-pair models with raw units, explicit missing
+states, fixed weights, complete 120-trifecta scores/Top8 and utility completion
+bounds. No discriminatory utility is separately labelled; output coverage is not
+informative coverage. Independent review found output-spec aliasing and conflicting
+same-window history claims; both have separate RED/GREEN evidence and are repaired.
+
+PR72 adds a strict parsed-B projection and a replayed same-race/same-stage
+comparison. Missing output stays in the claimed-evaluable denominator, both models
+use the same actual supplied result revision, and P0/P1 is a separate information
+comparison. Reordered model dictionaries and non-BOAT result lanes were independently
+reproduced and fixed. The actual pinned model is exercised through bridge and
+comparison on four fictional complete/partial/all-missing/no-output scenarios.
+
+One fresh B27 archive is the bounded real-input candidate, using the existing
+owner-attested facts scope, exact source/code pins and an exclusive attempt marker.
+Raw archive/text and full per-racer model input/output stay RAM-only; hashes and
+counts survive. A completed computation will be REAL_INPUT_RESEARCH_INFERENCE,
+not an externally frozen prediction, retained private wire or future scored pair.
+Actual source outcome, exact-head automatic CI and final independent reviews are
+reported separately in Issue68; no planned run here is represented as a success.
+
+Formal prospective E2E still requires current roster/final cutoff, genuine
+availability/producer binding, protected immutable retention and external witness.
+Research flags remain false, formal Hit@8_all null, 98% unproven. Device/account
+cost acceptance stays deferred; no new paid/cloud/scheduled resources or self-
+approved main merge. Held33, original dirty worktree and old source evidence stay intact.
