@@ -4,6 +4,10 @@ on:
     branches:
       - codex/actions-four-sport-e2e
     paths:
+      - 'race_ai/boat_observed_pairwise_models.py'
+      - 'tests/test_boat_observed_pairwise_models.py'
+      - 'docs/P0_BOAT_OBSERVED_PAIRWISE_20261027.md'
+      - 'docs/superpowers/plans/2026-10-27-missing-aware-boat.md'
       - 'web/forecast-audit*'
       - 'web/full-odds*'
       - 'tests/full_odds.test.cjs'
