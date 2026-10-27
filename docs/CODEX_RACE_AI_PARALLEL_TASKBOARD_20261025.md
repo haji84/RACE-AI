@@ -348,3 +348,48 @@ availability/producer binding, protected immutable retention and external witnes
 Research flags remain false, formal Hit@8_all null, 98% unproven. Device/account
 cost acceptance stays deferred; no new paid/cloud/scheduled resources or self-
 approved main merge. Held33, original dirty worktree and old source evidence stay intact.
+
+## Race39–40 / 2026-10-27: Same-cohort evaluation and retained real evidence
+
+Owner requested historical data preparation, fair evaluation of every model on
+the same races/information conditions, and verification on today's races. The
+source-only inventory retains19 model IDs, including numerical aliases and models
+without usable inputs/artifacts; an inventory slot does not establish execution.
+
+Race39's generic plan/seal/journal/CLI is committed on PR72 at
+`b78a889bab7d098532e531dd44aba3ec2636af8e`. CI40443977101 passed the679-test
+Linux regression and48 focused tests on both Windows/Linux. The separate train-only
+API on PR71 at `6f75fa9f98beb5a6d8f190694e96695d5ffb31be` passed CI40442057767.
+Training does not inspect the final evaluation labels. These are code checks,
+not evidence of19 real models or a98% hit rate.
+
+The corrected private B27 retention contains168 races×19 IDs,524 forecasts from
+four engines on131 races and2668 missing slots. Original capture/generation/readback
+claims are preserved. A hash-only GitHub witness predates130 planned cutoffs and
+is late for one; provider publication/final-cutoff/withdrawal authentication remains
+unproven. Two newly retained K25/K26 archives contain310 complete prior races and
+1860 rows, plus one quarantined incomplete race. Current-day participants have
+at most four retained prior observations; these archives do not fill FULL75.
+
+Two independently admitted result batches observed nine new races: three normal
+results (all four running engines missed each), one pending, three unavailable or
+invalid with causes unproven, and two cutoff differences requiring review. The
+other159 races are unobserved by those batches. Source attempts total12GET
+(B1+K2+result3+result6), with no retries or prediction regeneration. The private
+Race39 packet has285 payload files; full source/member/restored hashes, CRC and
+manifests were independently audited. Old failures and the held33 remain unchanged.
+
+Race40 Goal/Done is `RETAINED_PREDICTION_AUDIT_20261027.md`. C owns the new
+retained adapter, arithmetic, CLI and fictional tests; D reviews independently;
+A audits exact real files and report arithmetic; root alone integrates docs,
+workflow, real journal execution, CI and private backup. The retained path is
+development-only, with a current import time separate from the original clocks,
+and reserves shared race exposure before a lazy, hash-pinned result reader.
+It must not manufacture a backdated generic plan or classify known outcomes as
+untouched final data. The five-command real connection completed with a current
+04:31:25UTC import, followed by3-label observe,6-label append and prior/latest
+recovery. An independent stdlib audit checked all3192 rows of both reports and
+all524 unchanged forecasts. Exact-head CI/backup acceptance is recorded separately
+after execution. Other-sport real coverage, missing15 engines, sufficient historical
+windows, genuine prospective all-race evidence, formal review/main acceptance and
+98% remain incomplete. Device and account-cost confirmation remain deferred.

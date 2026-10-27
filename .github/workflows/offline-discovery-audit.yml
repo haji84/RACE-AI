@@ -7,8 +7,14 @@ on:
       - 'race_ai/evaluation_experiment.py'
       - 'race_ai/evaluation_journal.py'
       - 'race_ai/evaluation_cli.py'
+      - 'race_ai/evaluation_metrics.py'
+      - 'race_ai/retained_prediction_audit.py'
+      - 'race_ai/retained_evaluation_cli.py'
       - 'tests/test_evaluation*.py'
+      - 'tests/test_retained_prediction_audit.py'
+      - 'tests/test_retained_evaluation_cli.py'
       - 'docs/FAIR_MODEL_EVALUATION_20261027.md'
+      - 'docs/RETAINED_PREDICTION_AUDIT_20261027.md'
       - 'race_ai/boat_observed_program_bridge.py'
       - 'race_ai/observed_pair_comparison.py'
       - 'tests/test_boat_observed_program_bridge.py'
@@ -239,6 +245,10 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Verify frozen cohorts, label isolation, and local recovery
         run: python -m unittest discover -s tests -p "test_evaluation*.py" -v
+      - name: Verify retained archive isolation and result revisions
+        run: python -m unittest discover -s tests -p test_retained_prediction_audit.py -v
+      - name: Verify explicit retained audit CLI and failed-read recovery
+        run: python -m unittest discover -s tests -p test_retained_evaluation_cli.py -v
   offline_audit_tests:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
