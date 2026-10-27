@@ -1,0 +1,190 @@
+name: Forecast audit viewer contract
+on:
+  pull_request:
+    branches:
+      - codex/actions-four-sport-e2e
+    paths:
+      - 'tests/test_four_sport_train_only.py'
+      - 'docs/TRAIN_ONLY_EVALUATION_20261027.md'
+      - 'race_ai/boat_observed_pairwise_models.py'
+      - 'tests/test_boat_observed_pairwise_models.py'
+      - 'docs/P0_BOAT_OBSERVED_PAIRWISE_20261027.md'
+      - 'docs/superpowers/plans/2026-10-27-missing-aware-boat.md'
+      - 'web/forecast-audit*'
+      - 'web/full-odds*'
+      - 'tests/full_odds.test.cjs'
+      - 'workers/odds_feed_worker.mjs'
+      - 'workers/odds_auto_source_cron.mjs'
+      - 'workers/odds_auto_source_schema.sql'
+      - 'tests/odds_auto_source_cron.test.mjs'
+      - 'race_ai/odds_three_cycle_audit.mjs'
+      - 'tests/odds_three_cycle_audit.test.mjs'
+      - 'docs/P0_FUTURE_ONE_RACE_60S_GATE_20261024.md'
+      - 'tests/test_odds_auto_source_schema.py'
+      - 'workers/odds_preview_assets.mjs'
+      - 'docs/P0_CLOUDFLARE_PROTECTED_ODDS_PREVIEW_20261024.md'
+      - 'docs/evidence/2026-10-24-boatrace-ashiya-7r-real-odds-pilot.md'
+      - 'docs/evidence/2026-10-24-miyajima-3r-under-10min-odds-pilot.md'
+      - 'docs/evidence/2026-10-24-heiwajima-3r-final-ten-minute-odds-changes.md'
+      - 'workers/odds_schema.sql'
+      - 'workers/private_wire_vault.mjs'
+      - 'workers/private_wire_vault_schema.mjs'
+      - 'tests/support/local_private_wire_d1.mjs'
+      - 'tests/private_wire_vault.test.mjs'
+      - 'docs/P0_LOCAL_PRIVATE_WIRE_VAULT_20261026.md'
+      - 'docs/superpowers/plans/2026-10-26-local-private-wire-vault.md'
+      - 'tests/odds_feed_worker.test.mjs'
+      - 'race_ai/purchase_window_policy.py'
+      - 'tests/test_purchase_window_policy.py'
+      - 'docs/PURCHASE_BUFFER_AND_FULL_ODDS_V1_20261023.md'
+      - 'web/data/2026-10-22-forecast-audit.json'
+      - 'tests/forecast_audit.test.cjs'
+      - 'tests/test_verified_event_projection.py'
+      - 'race_ai/verified_event_projection.py'
+      - 'race_ai/permissioned_source_delivery.py'
+      - 'race_ai/boat_official_3t_odds_adapter.py'
+      - 'race_ai/boat_3t_odds_handoff_cli.py'
+      - 'race_ai/odds_refresh_plan.py'
+      - 'race_ai/free_tier_budget.py'
+      - 'tests/test_free_tier_budget.py'
+      - 'docs/P0_CLOUDFLARE_FREE_TIER_BUDGET_20261024.md'
+      - 'tests/test_odds_refresh_plan.py'
+      - 'tests/test_boat_3t_odds_handoff_cli.py'
+      - 'docs/ODDS_REAL_SOURCE_E2E_GATE_20261023.md'
+      - 'tests/test_boat_official_3t_odds_adapter.py'
+      - 'race_ai/boat_b_program_bridge.py'
+      - 'race_ai/boat_b_offline_archive_intake.py'
+      - 'docs/P0_BOAT_BK_DISTRIBUTION_RIGHTS_AND_TIMING_20261023.md'
+      - 'tests/test_boat_b_offline_archive_intake.py'
+      - 'race_ai/nar_official_csv_adapter.py'
+      - 'race_ai/nar_model_handoff.py'
+      - 'tests/test_nar_model_handoff.py'
+      - 'tests/test_nar_official_payback_adapter.py'
+      - 'race_ai/nar_official_payback_adapter.py'
+      - 'tests/test_nar_csv_cli.py'
+      - 'race_ai/nar_csv_cli.py'
+      - 'tests/test_nar_official_csv_adapter.py'
+      - 'race_ai/boat_b_handoff_cli.py'
+      - 'tests/test_boat_b_handoff_cli.py'
+      - 'tests/test_boat_b_program_bridge.py'
+      - 'tests/test_permissioned_source_delivery.py'
+      - 'tests/test_context_source_delivery.py'
+      - 'docs/P0_SOURCE_TO_MODEL_DELIVERY_20261023.md'
+      - 'race_ai/github_freeze_receipt.py'
+      - 'tests/test_github_freeze_receipt.py'
+      - 'audit/freezes/**'
+      - 'race_ai/cutoff_job_queue.py'
+      - 'race_ai/boat_multi_feature_models.py'
+      - 'race_ai/boat_feature_adapter.py'
+      - 'race_ai/comprehensive_four_sport_models.py'
+      - 'race_ai/four_sport_matchup_models.py'
+      - 'race_ai/four_sport_model_suite.py'
+      - 'race_ai/private_delivery_codec.py'
+      - 'tests/test_private_delivery_codec.py'
+      - 'docs/P0_PRIVATE_DELIVERY_TRANSPORT_V1_20261025.md'
+      - 'tests/test_four_sport_model_suite.py'
+      - 'tests/test_four_sport_matchup_models.py'
+      - 'race_ai/four_sport_learning.py'
+      - 'tests/test_four_sport_learning.py'
+      - 'tests/test_comprehensive_four_sport_models.py'
+      - 'tests/test_boat_feature_adapter.py'
+      - 'tests/test_boat_multi_feature_models.py'
+      - 'tests/test_cutoff_job_queue.py'
+      - '.github/workflows/forecast-audit-ui.yml'
+permissions:
+  contents: read
+concurrency:
+  group: forecast-audit-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  train_only_tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Verify training isolation and creation-time constraints
+        run: python -m unittest discover -s tests -p "test_four_sport*learning.py" -v
+      - name: Verify separate training artifact and validation API
+        run: python -m unittest discover -s tests -p test_four_sport_train_only.py -v
+  viewer_contract:
+    name: Viewer audit contract
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify repository revision
+        run: git rev-parse HEAD
+      - name: Use Node24 for local SQLite batch tests
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '24.19.0'
+          package-manager-cache: false
+      - name: Check viewer script syntax
+        run: |
+          node --check web/forecast-audit-model.js
+          node --check web/forecast-audit.js
+          node --check web/full-odds-model.js
+          node --check web/full-odds.js
+          node --check workers/odds_feed_worker.mjs
+          node --check workers/odds_auto_source_cron.mjs
+          node --check race_ai/odds_three_cycle_audit.mjs
+          node --check workers/private_wire_vault.mjs
+          node --check workers/private_wire_vault_schema.mjs
+          node --check tests/support/local_private_wire_d1.mjs
+      - name: Node contract and denominator tests
+        run: node --test --test-reporter=tap tests/forecast_audit.test.cjs tests/full_odds.test.cjs tests/odds_feed_worker.test.mjs tests/odds_auto_source_cron.test.mjs tests/odds_three_cycle_audit.test.mjs tests/private_wire_vault.test.mjs
+      - name: Python synthetic journal to viewer projection tests
+        run: python -m unittest discover -s tests -v
+      - name: Read frozen real-race research record by immutable commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: 0643ed09343d10a3181af855ad4065cb07074208
+          path: independent-forecast-evidence
+          persist-credentials: false
+      - name: Verify historical pre-cutoff research snapshot without refreshing forecast
+        run: |
+          python - <<'PY'
+          import json, pathlib, itertools, math
+          p=pathlib.Path('independent-forecast-evidence/audit/2026-10-22/prospective_shadow_kojima_12r_0929JST_immutable.json')
+          d=json.loads(p.read_text())
+          rows=d['races']
+          assert len(rows)==12 and len({r['race_id'] for r in rows})==12
+          for race in rows:
+              assert race['outcome_at_forecast_time'] is None and race['candidate_count']==120
+              assert len(race['ordered_top8'])==8 and race['all_valid_candidates_ranked']
+              w=race['model']['class_weight']; lanes=race['model']['lane_bias']; grades=race['entrant_classes']
+              strengths=[w[g]*b for g,b in zip(grades,lanes)]; total=sum(strengths)
+              u=[]
+              for a,b,c in itertools.permutations(range(1,7),3):
+                  sa,sb,sc=strengths[a-1],strengths[b-1],strengths[c-1]
+                  u.append(([a,b,c],sa/total*sb/(total-sa)*sc/(total-sa-sb)))
+              assert len(u)==120 and math.isclose(sum(t[1] for t in u),1,abs_tol=1e-9)
+              u.sort(key=lambda item:(-item[1],item[0]))
+              assert [t[0] for t in u[:8]]==[r['combination'] for r in race['ordered_top8']]
+              assert race['model']['validated_accuracy'] is False and race['betting_decision']=='NO_BET'
+          print('IMMUTABLE_RESEARCH_PROOF_12_OK: git-pinned pre-result ranking replays; NOT a trusted external freeze receipt')
+          PY
+      - name: Validate public audit seed
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          obj=json.loads(Path("web/data/2026-10-22-forecast-audit.json").read_text())
+          races=obj["records"]
+          assert obj["dataset_status"]=="AUDIT_ONLY"
+          assert len(races)==322
+          assert len({x["race_id"] for x in races})==322
+          assert all(x["prediction"] is None and x["result"] is None for x in races)
+          assert all(x["offering_status"]=="UNKNOWN" for x in races)
+          print("AUDIT_ONLY 322 distinct race slots; no predictions or outcomes fabricated")
+          PY
