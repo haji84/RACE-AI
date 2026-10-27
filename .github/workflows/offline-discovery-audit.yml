@@ -4,6 +4,11 @@ on:
     branches:
       - codex/actions-four-sport-e2e
     paths:
+      - 'race_ai/evaluation_experiment.py'
+      - 'race_ai/evaluation_journal.py'
+      - 'race_ai/evaluation_cli.py'
+      - 'tests/test_evaluation*.py'
+      - 'docs/FAIR_MODEL_EVALUATION_20261027.md'
       - 'race_ai/boat_observed_program_bridge.py'
       - 'race_ai/observed_pair_comparison.py'
       - 'tests/test_boat_observed_program_bridge.py'
@@ -220,6 +225,20 @@ on:
 permissions:
   contents: read
 jobs:
+  fair_evaluation_tests:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-24.04, windows-2022]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Verify frozen cohorts, label isolation, and local recovery
+        run: python -m unittest discover -s tests -p "test_evaluation*.py" -v
   offline_audit_tests:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
