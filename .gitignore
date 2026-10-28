@@ -1,4 +1,13 @@
 __pycache__/
 *.py[cod]
 artifacts/
+/pr64-existing-reference/
+/pr64-parser-reference/
+/pr71-contract-reference/
+/pr71-feature-review-reference/
+/pr71-existing-reference/
+/pr71-settlement-reference/
+/pr71-private-transport-reference/
+/pr71-max8-reference/
+/pr71-private-vault-reference/
 *.sqlite*

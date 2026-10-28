@@ -1,0 +1,369 @@
+{
+  "schema": "RACE_AI_MANUAL_OFFICIAL_PAGE_CROSSCHECK_AGGREGATE_V1",
+  "record_created_date_jst": "2026-10-24",
+  "target_date_jst": "2026-10-22",
+  "owner_issue": "https://github.com/haji84/RACE-AI/issues/67",
+  "scope": "BOAT_14_VENUES_ONLY_RESEARCH_SHADOW_AGGREGATE_NOT_FOUR_SPORT_UNIVERSE",
+  "gate": "RESEARCH_ONLY_NOT_ELIGIBLE_FOR_FORMAL_HIT8_ALL",
+  "summary": "Small-scale manual review of 14 BOATRACE official result listing pages (12 races each), with 7 individual refund pages, compared to previously committed research-only shadow Top8 without changing the originals. No raw official pages, entrant lists, or vendor result tables are republished. Results revisions and independent external freeze witnesses still require verification.",
+  "freeze_inputs_unchanged": [
+    {
+      "ref": "0643ed09343d10a3181af855ad4065cb07074208",
+      "path": "audit/2026-10-22/prospective_shadow_kojima_12r_0929JST_immutable.json",
+      "blob_sha": "a8c5b29f9d1114f306982fc2251d6a07d2cbb8fd",
+      "model": "class_and_lane_untrained_research_shadow",
+      "rows": 12
+    },
+    {
+      "ref": "b4c2f51290cbee65e03b02cfb57115bd20f14109",
+      "path": "audit/2026-10-22/prospective_other_13_venues_lane_only_1032JST.json",
+      "blob_sha": "0e52cbd642c0f8020e37133b5019298bb1bf94aa",
+      "model": "lane_only_untrained_research_shadow",
+      "rows": 156,
+      "shadow": 142,
+      "no_forecast": 14
+    }
+  ],
+  "optional_overlap_excluded_from_primary": {
+    "path": "audit/2026-10-22/prospective_class_lane_omura_naruto_1033JST.json",
+    "blob_sha": "80f623d9d2329c5388acac2dcf454bbd3ce1a7eb",
+    "rows": 19,
+    "reason": "Alternate research sidecar overlaps the 168 races and must not be double-counted."
+  },
+  "observed_official_page_totals": {
+    "official_displayed_races": 168,
+    "research_shadow_rows": 154,
+    "missing_forecasts": 14,
+    "first_pick_matches": 12,
+    "top_eight_matches": 42,
+    "official_refund_flag_races": 7,
+    "hypothetical_eight_ticket_return_yen": 73560,
+    "official_sources_restricted_to_list_and_refund_pages": true,
+    "no_auto_fetch_deployed": true
+  },
+  "research_only_conditional_accuracy": {
+    "denominator_official_displayed_races": 168,
+    "shadow_predictions": 154,
+    "missing_as_nonhits": 14,
+    "shadow_first_pick_hits": 12,
+    "shadow_first_pick_hit_rate_all": 0.07142857142857142,
+    "shadow_first_pick_hit_rate_predicted_only": 0.07792207792207792,
+    "shadow_top8_hits": 42,
+    "shadow_top8_hit_rate_all": 0.25,
+    "shadow_top8_hit_rate_predicted_only": 0.2727272727272727,
+    "shadow_captured_share_observed_races": 0.9166666666666666,
+    "uncertainty": "These are manual retrospective comparisons of untrained research shadows, NOT the official RACE-AI final measured accuracy, and independent external time proofs/official result revision tracking remain missing."
+  },
+  "hypothetical_payout_using_official_published_100yen_returns": {
+    "actual_betting_performed": false,
+    "equal_stake_each_pick_yen": 100,
+    "rows_assumed_bet": 154,
+    "picks_per_row": 8,
+    "gross_assumed_stake_yen": 123200,
+    "winning_pick_payout_yen": 70660,
+    "returned_ticket_refunds_yen": 2900,
+    "returned_ticket_count": 29,
+    "hypothetical_gross_return_yen": 73560,
+    "hypothetical_net_yen": -49640,
+    "hypothetical_return_ratio": 0.5970779220779221,
+    "caveat": "Retrospective paper exercise only. 返還 boat numbers from each official race page; no actual tickets or realized returns, and no protected/pinned official result revision snapshot.",
+    "official_actual_betting_roi": null,
+    "official_formal_return_ratio": null
+  },
+  "refund_details": [
+    {
+      "race_id": "boat:2026-10-22:05:1",
+      "refunded_boats": [
+        3
+      ],
+      "has_shadow": false,
+      "refunded_shadow_picks": 0,
+      "official_per_race_source": "https://www.boatrace.jp/owpc/pc/race/raceresult?hd=20261022&jcd=05&rno=1"
+    },
+    {
+      "race_id": "boat:2026-10-22:05:11",
+      "refunded_boats": [
+        6
+      ],
+      "has_shadow": true,
+      "refunded_shadow_picks": 0,
+      "official_per_race_source": "https://www.boatrace.jp/owpc/pc/race/raceresult?hd=20261022&jcd=05&rno=11"
+    },
+    {
+      "race_id": "boat:2026-10-22:11:4",
+      "refunded_boats": [
+        2
+      ],
+      "has_shadow": true,
+      "refunded_shadow_picks": 8,
+      "official_per_race_source": "https://www.boatrace.jp/owpc/pc/race/raceresult?hd=20261022&jcd=11&rno=4"
+    },
+    {
+      "race_id": "boat:2026-10-22:14:4",
+      "refunded_boats": [
+        4
+      ],
+      "has_shadow": false,
+      "refunded_shadow_picks": 0,
+      "official_per_race_source": "https://www.boatrace.jp/owpc/pc/race/raceresult?hd=20261022&jcd=14&rno=4"
+    },
+    {
+      "race_id": "boat:2026-10-22:14:7",
+      "refunded_boats": [
+        1,
+        2
+      ],
+      "has_shadow": true,
+      "refunded_shadow_picks": 8,
+      "official_per_race_source": "https://www.boatrace.jp/owpc/pc/race/raceresult?hd=20261022&jcd=14&rno=7"
+    },
+    {
+      "race_id": "boat:2026-10-22:14:11",
+      "refunded_boats": [
+        3
+      ],
+      "has_shadow": true,
+      "refunded_shadow_picks": 5,
+      "official_per_race_source": "https://www.boatrace.jp/owpc/pc/race/raceresult?hd=20261022&jcd=14&rno=11"
+    },
+    {
+      "race_id": "boat:2026-10-22:20:7",
+      "refunded_boats": [
+        3,
+        4
+      ],
+      "has_shadow": true,
+      "refunded_shadow_picks": 8,
+      "official_per_race_source": "https://www.boatrace.jp/owpc/pc/race/raceresult?hd=20261022&jcd=20&rno=7"
+    }
+  ],
+  "no_forecast_race_ids": [
+    "boat:2026-10-22:05:1",
+    "boat:2026-10-22:11:1",
+    "boat:2026-10-22:13:1",
+    "boat:2026-10-22:14:1",
+    "boat:2026-10-22:14:2",
+    "boat:2026-10-22:14:3",
+    "boat:2026-10-22:14:4",
+    "boat:2026-10-22:14:5",
+    "boat:2026-10-22:17:1",
+    "boat:2026-10-22:18:1",
+    "boat:2026-10-22:18:2",
+    "boat:2026-10-22:18:3",
+    "boat:2026-10-22:18:4",
+    "boat:2026-10-22:18:5"
+  ],
+  "by_venue": [
+    {
+      "code": "03",
+      "name": "江戸川",
+      "official_displayed_races": 12,
+      "research_shadow_rows": 12,
+      "missing_forecasts": 0,
+      "first_pick_matches": 1,
+      "top_eight_matches": 3,
+      "official_refund_flag_races": 0,
+      "hypothetical_eight_ticket_return_yen": 2750,
+      "official_result_page": "https://www.boatrace.jp/owpc/pc/race/resultlist?hd=20261022&jcd=03"
+    },
+    {
+      "code": "04",
+      "name": "平和島",
+      "official_displayed_races": 12,
+      "research_shadow_rows": 12,
+      "missing_forecasts": 0,
+      "first_pick_matches": 0,
+      "top_eight_matches": 4,
+      "official_refund_flag_races": 0,
+      "hypothetical_eight_ticket_return_yen": 13750,
+      "official_result_page": "https://www.boatrace.jp/owpc/pc/race/resultlist?hd=20261022&jcd=04"
+    },
+    {
+      "code": "05",
+      "name": "多摩川",
+      "official_displayed_races": 12,
+      "research_shadow_rows": 11,
+      "missing_forecasts": 1,
+      "first_pick_matches": 0,
+      "top_eight_matches": 1,
+      "official_refund_flag_races": 2,
+      "hypothetical_eight_ticket_return_yen": 1670,
+      "official_result_page": "https://www.boatrace.jp/owpc/pc/race/resultlist?hd=20261022&jcd=05"
+    },
+    {
+      "code": "06",
+      "name": "浜名湖",
+      "official_displayed_races": 12,
+      "research_shadow_rows": 12,
+      "missing_forecasts": 0,
+      "first_pick_matches": 1,
+      "top_eight_matches": 4,
+      "official_refund_flag_races": 0,
+      "hypothetical_eight_ticket_return_yen": 9200,
+      "official_result_page": "https://www.boatrace.jp/owpc/pc/race/resultlist?hd=20261022&jcd=06"
+    },
+    {
+      "code": "11",
+      "name": "びわこ",
+      "official_displayed_races": 12,
+      "research_shadow_rows": 11,
+      "missing_forecasts": 1,
+      "first_pick_matches": 0,
+      "top_eight_matches": 1,
+      "official_refund_flag_races": 1,
+      "hypothetical_eight_ticket_return_yen": 1990,
+      "official_result_page": "https://www.boatrace.jp/owpc/pc/race/resultlist?hd=20261022&jcd=11"
+    },
+    {
+      "code": "12",
+      "name": "住之江",
+      "official_displayed_races": 12,
+      "research_shadow_rows": 12,
+      "missing_forecasts": 0,
+      "first_pick_matches": 3,
+      "top_eight_matches": 5,
+      "official_refund_flag_races": 0,
+      "hypothetical_eight_ticket_return_yen": 6340,
+      "official_result_page": "https://www.boatrace.jp/owpc/pc/race/resultlist?hd=20261022&jcd=12"
+    },
+    {
+      "code": "13",
+      "name": "尼崎",
+      "official_displayed_races": 12,
+      "research_shadow_rows": 11,
+      "missing_forecasts": 1,
+      "first_pick_matches": 2,
+      "top_eight_matches": 3,
+      "official_refund_flag_races": 0,
+      "hypothetical_eight_ticket_return_yen": 2470,
+      "official_result_page": "https://www.boatrace.jp/owpc/pc/race/resultlist?hd=20261022&jcd=13"
+    },
+    {
+      "code": "14",
+      "name": "鳴門",
+      "official_displayed_races": 12,
+      "research_shadow_rows": 7,
+      "missing_forecasts": 5,
+      "first_pick_matches": 0,
+      "top_eight_matches": 1,
+      "official_refund_flag_races": 3,
+      "hypothetical_eight_ticket_return_yen": 2050,
+      "official_result_page": "https://www.boatrace.jp/owpc/pc/race/resultlist?hd=20261022&jcd=14"
+    },
+    {
+      "code": "16",
+      "name": "児島",
+      "official_displayed_races": 12,
+      "research_shadow_rows": 12,
+      "missing_forecasts": 0,
+      "first_pick_matches": 0,
+      "top_eight_matches": 3,
+      "official_refund_flag_races": 0,
+      "hypothetical_eight_ticket_return_yen": 4960,
+      "official_result_page": "https://www.boatrace.jp/owpc/pc/race/resultlist?hd=20261022&jcd=16"
+    },
+    {
+      "code": "17",
+      "name": "宮島",
+      "official_displayed_races": 12,
+      "research_shadow_rows": 11,
+      "missing_forecasts": 1,
+      "first_pick_matches": 1,
+      "top_eight_matches": 4,
+      "official_refund_flag_races": 0,
+      "hypothetical_eight_ticket_return_yen": 7140,
+      "official_result_page": "https://www.boatrace.jp/owpc/pc/race/resultlist?hd=20261022&jcd=17"
+    },
+    {
+      "code": "18",
+      "name": "徳山",
+      "official_displayed_races": 12,
+      "research_shadow_rows": 7,
+      "missing_forecasts": 5,
+      "first_pick_matches": 0,
+      "top_eight_matches": 1,
+      "official_refund_flag_races": 0,
+      "hypothetical_eight_ticket_return_yen": 1090,
+      "official_result_page": "https://www.boatrace.jp/owpc/pc/race/resultlist?hd=20261022&jcd=18"
+    },
+    {
+      "code": "20",
+      "name": "若松",
+      "official_displayed_races": 12,
+      "research_shadow_rows": 12,
+      "missing_forecasts": 0,
+      "first_pick_matches": 1,
+      "top_eight_matches": 4,
+      "official_refund_flag_races": 1,
+      "hypothetical_eight_ticket_return_yen": 9410,
+      "official_result_page": "https://www.boatrace.jp/owpc/pc/race/resultlist?hd=20261022&jcd=20"
+    },
+    {
+      "code": "23",
+      "name": "唐津",
+      "official_displayed_races": 12,
+      "research_shadow_rows": 12,
+      "missing_forecasts": 0,
+      "first_pick_matches": 1,
+      "top_eight_matches": 3,
+      "official_refund_flag_races": 0,
+      "hypothetical_eight_ticket_return_yen": 2510,
+      "official_result_page": "https://www.boatrace.jp/owpc/pc/race/resultlist?hd=20261022&jcd=23"
+    },
+    {
+      "code": "24",
+      "name": "大村",
+      "official_displayed_races": 12,
+      "research_shadow_rows": 12,
+      "missing_forecasts": 0,
+      "first_pick_matches": 2,
+      "top_eight_matches": 5,
+      "official_refund_flag_races": 0,
+      "hypothetical_eight_ticket_return_yen": 8230,
+      "official_result_page": "https://www.boatrace.jp/owpc/pc/race/resultlist?hd=20261022&jcd=24"
+    }
+  ],
+  "formal_issue67_kpi": {
+    "hit_at_one": null,
+    "hit_at_eight_all": null,
+    "official_actual_betting_roi": null,
+    "all_four_sport_race_capture": null,
+    "brier_score": null,
+    "log_loss": null,
+    "probability_calibration": null,
+    "reason": [
+      "The 154 Top8 rows are research-only untrained shadows, not production predictions.",
+      "Externally independently verified pre-cutoff GitHub run.created_at+SHA per actual race is absent.",
+      "Official cutoff verification and official result revision/finality archive are absent.",
+      "Full four-sport (boat, keirin, autorace, JRA/NAR horse) daily enumerated universe unavailable; this 168 is only boat 14 venues on 2026-10-22.",
+      "No reliably calibrated frozen probabilities; score values are uncalibrated position/class rankings.",
+      "Actual bet tickets absent; no actual realized ROI."
+    ]
+  },
+  "observed_facts": [
+    "Existing frozen shadow raw ledger covers 154 of the 168 boat-day rows, with 14 missing.",
+    "The displayed official trifecta and payout are available on 14 official venue result pages; 7 races have specific official refund boat flags.",
+    "Model inputs are position-only on 142 rows and class plus position on 12 Kojima rows.",
+    "Results are checked after the fact; original forecasts, hashes and model versions are unchanged."
+  ],
+  "possible_causes_not_proven": [
+    "Position-prior ranking that excludes actual racer ability/form/motor/weather may explain misses. Only future prospective A/B can assess impact.",
+    "Morning no-forecast clusters (Naruto 1R-5R, Tokuyama 1R-5R) suggest discovery or scheduling lateness, not proven root cause."
+  ],
+  "next_prospective_actions": [
+    "Use legitimate/licensed official B/K and other competition sources with immutable provider timing/rights/cutoff guards; fix existing B detailed parser without modifying frozen records.",
+    "On future unobserved races, independently freeze primary and shadow predictions (GitHub server time, readback SHA, race-id, official cutoff) before comparing outcomes.",
+    "Implement append-only official result revisions and refunded combinations; prohibit subsequent edit of old predictions.",
+    "Complete four-sport comprehensive race inventory, including missed/unpredicted/cancelled/refunded race reasons; calculate formal KPIs only after all gates pass."
+  ],
+  "rights_and_integrity": {
+    "source_policy": "https://www.boatrace.jp/owpc/pc/extra/policy.html",
+    "retrieval": "Individual public page viewing; no recurring unattended bulk crawler enabled.",
+    "publication": "Only compact aggregate statistics, original URLs and seven refund event facts stored. No official pages cloned.",
+    "snapshot_limitation": "Official pages may be revised; no independent immutable official version/timestamp retained.",
+    "betting_or_spend": false,
+    "model_change": false,
+    "original_prediction_change": false,
+    "production_or_main_change": false
+  }
+}

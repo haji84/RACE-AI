@@ -1,0 +1,328 @@
+{
+  "base_pin": "ebe93f13062cf0461b81b924a5dc0482ada37b56",
+  "byte_representation": "EXACT_GIT_BLOB_LF",
+  "changed_reference_files": [
+    "race_ai/four_sport_model_suite.py",
+    "tests/test_four_sport_model_suite.py"
+  ],
+  "files": [
+    {
+      "bytes": 76,
+      "path": "race_ai/__init__.py",
+      "sha256": "6d3f14841225bcbaa0618873aaed26ece2fe4bf8583803147b8acc1bb478b773"
+    },
+    {
+      "bytes": 6563,
+      "path": "race_ai/actions_contract.py",
+      "sha256": "a086488af4765d44af3a824c3e6a2223ec9386ab43969bdaf0562ec5302fd79f"
+    },
+    {
+      "bytes": 13252,
+      "path": "race_ai/actions_store.py",
+      "sha256": "248809e10a9342d02bdaddb36b90a0b7c4517632afcf7f1b2aee8c1ac69910b7"
+    },
+    {
+      "bytes": 4227,
+      "path": "race_ai/audit_projection.py",
+      "sha256": "330b9576997b6374669f83872ab9dd12c6956a35cb2fda567f601e6c8cfa9afc"
+    },
+    {
+      "bytes": 2924,
+      "path": "race_ai/boat_3t_odds_handoff_cli.py",
+      "sha256": "72d238dc0caa046e6e2b525fcee98386d9063f5da6ec7c543f19057db309823e"
+    },
+    {
+      "bytes": 2950,
+      "path": "race_ai/boat_b_handoff_cli.py",
+      "sha256": "770ee40b56c2e038b88ad6f2e3c1c85600eebf15530837f353ed295ab4f37f1e"
+    },
+    {
+      "bytes": 5861,
+      "path": "race_ai/boat_b_offline_archive_intake.py",
+      "sha256": "e980c5044de8eb9438fd91d15614db940fe1bce4560610aa837dcb991e4e560e"
+    },
+    {
+      "bytes": 13550,
+      "path": "race_ai/boat_b_program_bridge.py",
+      "sha256": "5d0486f49be089f55ace4e9d3fcd3f66a93022ebee4d915d7b0fe4152ab5e4b7"
+    },
+    {
+      "bytes": 7807,
+      "path": "race_ai/boat_feature_adapter.py",
+      "sha256": "a3795dc77a83cc910f708790975dbc6ed86fcdd57565f173ec7a896545856f23"
+    },
+    {
+      "bytes": 10632,
+      "path": "race_ai/boat_multi_feature_models.py",
+      "sha256": "fad45bfad635fb46240d62b4c11f8e513d0eb2b9e99ae45b5a7b6fc5a810ea90"
+    },
+    {
+      "bytes": 7931,
+      "path": "race_ai/boat_official_3t_odds_adapter.py",
+      "sha256": "c6dc148771526e58bd3b2ccd6159193da3a7ecd8669a7029065782912efec3db"
+    },
+    {
+      "bytes": 20514,
+      "path": "race_ai/comprehensive_four_sport_models.py",
+      "sha256": "8e62e9f73555a20d237ff7554d924f53e38156bb21aa85d7056bd3bfbc594ff3"
+    },
+    {
+      "bytes": 2636,
+      "path": "race_ai/cutoff_job_queue.py",
+      "sha256": "b0df6cb0a8ea8eaead9105d8cec6ac55ad2e7b5c6ba50bd46f15d5a545413902"
+    },
+    {
+      "bytes": 11472,
+      "path": "race_ai/four_sport_learning.py",
+      "sha256": "9de437562f6c1fb5aca5d3359c0932f5d06a3b4d94a9f7cf5d42d6b2dfcf302f"
+    },
+    {
+      "bytes": 10328,
+      "path": "race_ai/four_sport_matchup_models.py",
+      "sha256": "cadf816c3b027eca1bb40d2202e70b0f36b496d183671eb469b71d0fc7d9102e"
+    },
+    {
+      "bytes": 4125,
+      "path": "race_ai/four_sport_model_suite.py",
+      "sha256": "f763f57c84d85eed5cc6f4312ec59462396d8192cb4b4e6e88e41e8e81a99e79"
+    },
+    {
+      "bytes": 6370,
+      "path": "race_ai/free_tier_budget.py",
+      "sha256": "375460afa885cabea4724b7db867aeb8a9a1f34625e07aecbe5d5516a1213265"
+    },
+    {
+      "bytes": 4995,
+      "path": "race_ai/github_freeze_receipt.py",
+      "sha256": "82fa5535c7fcfde9e4cb17172127b53832ead746c25ba7a1434114b5a90533f7"
+    },
+    {
+      "bytes": 2754,
+      "path": "race_ai/legacy_boat_rank.py",
+      "sha256": "4624905d02d36ca0fbaa2faf8f700ae7d871f99271ae19893bc2619ac18c5353"
+    },
+    {
+      "bytes": 6115,
+      "path": "race_ai/nar_csv_cli.py",
+      "sha256": "57e504a685c9faf6a66d2b375a0e7e23f988197ce3439d95947f5a062268ce68"
+    },
+    {
+      "bytes": 10171,
+      "path": "race_ai/nar_model_handoff.py",
+      "sha256": "d03eb6f3197efb521f5fcdb295261caec262c1fa5c7737c0bd9f1c8593ed0f69"
+    },
+    {
+      "bytes": 10561,
+      "path": "race_ai/nar_official_csv_adapter.py",
+      "sha256": "f21698145e80d78a76eb405a28fb253ec6892f08acf0117a8d66e8560d4e6d97"
+    },
+    {
+      "bytes": 5422,
+      "path": "race_ai/nar_official_payback_adapter.py",
+      "sha256": "c237b50a08856a3741b3e1c0f65a66261dbf33312a548a37bfd738455deb2a65"
+    },
+    {
+      "bytes": 5139,
+      "path": "race_ai/odds_refresh_plan.py",
+      "sha256": "fd41d79ad70b6456f511722652c64d3bbc615dcb6075c5373802977eb5f0d5a5"
+    },
+    {
+      "bytes": 4323,
+      "path": "race_ai/odds_three_cycle_audit.mjs",
+      "sha256": "e01b8a01461201cbe80b60c5a79b5211c71350ffb784ef8e23ea2e08f8b889d3"
+    },
+    {
+      "bytes": 19398,
+      "path": "race_ai/permissioned_source_delivery.py",
+      "sha256": "aeb581b08efba7c457fc49c0fb04b764c276084f7fca9208f7bc5549273a00a0"
+    },
+    {
+      "bytes": 12986,
+      "path": "race_ai/private_delivery_codec.py",
+      "sha256": "7cdb68b2140de7940658173d7a1ed28e8cb466bdb5ec032bdac8a3a8383cef6c"
+    },
+    {
+      "bytes": 3288,
+      "path": "race_ai/purchase_window_policy.py",
+      "sha256": "a4074179d6de7d00ee9bcd20df640f9d96fb2800b1c3727393aad64ba933e46c"
+    },
+    {
+      "bytes": 6576,
+      "path": "race_ai/synthetic_e2e.py",
+      "sha256": "0233a1516dd8db16326c6c7610690100d6624144a71de329818613d818862ae1"
+    },
+    {
+      "bytes": 15652,
+      "path": "race_ai/verified_event_projection.py",
+      "sha256": "c06a81c8f13b85c72628b8c4db847dd0106a1e30eca5df69ba8c7f2183339555"
+    },
+    {
+      "bytes": 0,
+      "path": "tests/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "bytes": 12045,
+      "path": "tests/forecast_audit.test.cjs",
+      "sha256": "7580c065290c83250312464fdb0a52a5a99da6fcb8bf95de76d8f8582dab4a31"
+    },
+    {
+      "bytes": 16499,
+      "path": "tests/full_odds.test.cjs",
+      "sha256": "dfc53934486be9603f848b576809897a9bc4c62ddf1b688c01a1d3c69319d335"
+    },
+    {
+      "bytes": 7446,
+      "path": "tests/odds_auto_source_cron.test.mjs",
+      "sha256": "de491207c3f86a460f4a36e041fce673b6f4a811c4dd097982cfbf41cce1ef7c"
+    },
+    {
+      "bytes": 9952,
+      "path": "tests/odds_feed_worker.test.mjs",
+      "sha256": "8ee8d3cdfc7f7c18a4f4afd0af75397a61103d568f470d24f415a141b2be21e1"
+    },
+    {
+      "bytes": 3889,
+      "path": "tests/odds_three_cycle_audit.test.mjs",
+      "sha256": "10e44d10662adaac59a0083a8d7b931edd54de9436010ff6ed0f709ddc7c46f0"
+    },
+    {
+      "bytes": 19605,
+      "path": "tests/test_actions_e2e.py",
+      "sha256": "c3481f1d2deaff9070e54bc5aa2c220c23bc9e9167dad4f260253f2c82a3ab94"
+    },
+    {
+      "bytes": 2478,
+      "path": "tests/test_audit_projection.py",
+      "sha256": "3afd41f7e41a7f4c20097fa3b1e3bebfff812c40b60fc0c44fe64763550b4fb0"
+    },
+    {
+      "bytes": 3809,
+      "path": "tests/test_boat_3t_odds_handoff_cli.py",
+      "sha256": "a4405d0659753d4041950f395aafa49f3be4e7f839a0371f0865437f81cf7da5"
+    },
+    {
+      "bytes": 3611,
+      "path": "tests/test_boat_b_handoff_cli.py",
+      "sha256": "5bb4abd2b3ea2cb99d57d6f50309efa97ab06bf3c37166c3a464cfb2430bbce1"
+    },
+    {
+      "bytes": 5965,
+      "path": "tests/test_boat_b_offline_archive_intake.py",
+      "sha256": "f3b8ce2f097cd60a8923713d9a3eedae176c91557e5b642445de045ad4682b6e"
+    },
+    {
+      "bytes": 10823,
+      "path": "tests/test_boat_b_program_bridge.py",
+      "sha256": "0c13b568ba09c23dc4284d56094554a19cf499fe2d3c42cf975b17f6c508eca4"
+    },
+    {
+      "bytes": 4415,
+      "path": "tests/test_boat_feature_adapter.py",
+      "sha256": "6d4efd8b94c3a8a24d6e9a71168ac08a673af68f65b67059b8fc0df572e1efab"
+    },
+    {
+      "bytes": 7751,
+      "path": "tests/test_boat_multi_feature_models.py",
+      "sha256": "8ea69c67f811c7a378d647057517825de9d90daf60bad35ddce03a7a7a372291"
+    },
+    {
+      "bytes": 5576,
+      "path": "tests/test_boat_official_3t_odds_adapter.py",
+      "sha256": "a260cf7a17edc3a96bd0a4c0b737e65f80a94a2d50d5c7879632cbd5599685cd"
+    },
+    {
+      "bytes": 11467,
+      "path": "tests/test_comprehensive_four_sport_models.py",
+      "sha256": "cd919eb3442dd45a6c50093e4b2ba34c435857f190b51ed17469dfab7bd84a88"
+    },
+    {
+      "bytes": 4118,
+      "path": "tests/test_context_source_delivery.py",
+      "sha256": "c1a2e1b9b4f5908839b693a3fb065f69799d53600d7945a2754beb829a235ae3"
+    },
+    {
+      "bytes": 2137,
+      "path": "tests/test_cutoff_job_queue.py",
+      "sha256": "a8c8759966ee02cceeaeb18d2c1068244e2922eb693e169c14500e334c856ee7"
+    },
+    {
+      "bytes": 7281,
+      "path": "tests/test_four_sport_learning.py",
+      "sha256": "da76606dbf4d2be0cc7bfc1bcb5df509d599108d638e4c03a6720a27674c1df6"
+    },
+    {
+      "bytes": 5799,
+      "path": "tests/test_four_sport_matchup_models.py",
+      "sha256": "eb262ce501c00cf4d4c031d534dc1101a7bd54cbf6bf664d06b203451092264b"
+    },
+    {
+      "bytes": 12006,
+      "path": "tests/test_four_sport_model_suite.py",
+      "sha256": "596944e774bc9253ccee2a125258f4f35e9c315bdfd985a4eed4ce0d7d36dd9b"
+    },
+    {
+      "bytes": 5103,
+      "path": "tests/test_free_tier_budget.py",
+      "sha256": "1030220a30b43a83a4cdb41faf9d352ca6a9d1ff07fe4a55e46b66a055d666f9"
+    },
+    {
+      "bytes": 3721,
+      "path": "tests/test_github_freeze_receipt.py",
+      "sha256": "8095a637ef43fc04deeecdeffdadd5b45ff67a416988fb2cd71340428857a5b5"
+    },
+    {
+      "bytes": 3248,
+      "path": "tests/test_nar_csv_cli.py",
+      "sha256": "4839d391169d9b28e83576011bee7f8ef0f05a7838a8781173280613e537e364"
+    },
+    {
+      "bytes": 6875,
+      "path": "tests/test_nar_model_handoff.py",
+      "sha256": "93d194f8ee5a6ae1a0a0f61e4d1def8fbe40882adb56396fe5173412da8f7d16"
+    },
+    {
+      "bytes": 7156,
+      "path": "tests/test_nar_official_csv_adapter.py",
+      "sha256": "8c59ef82b47603ad4b82b69c68153a835843a1e359c5fc74e3f8eb01070f741f"
+    },
+    {
+      "bytes": 3917,
+      "path": "tests/test_nar_official_payback_adapter.py",
+      "sha256": "f8098d8b1e215d382884b549aef21f34a3f86666532ffbc89b216feda6866dc2"
+    },
+    {
+      "bytes": 2874,
+      "path": "tests/test_odds_auto_source_schema.py",
+      "sha256": "8bcf4a204e7fc773787231a6de2ef6ca2de500db1da6d546184933e7f5e41e91"
+    },
+    {
+      "bytes": 5538,
+      "path": "tests/test_odds_refresh_plan.py",
+      "sha256": "b6b839710311423a8a9019b4742a93a4dcf7e83c8e231e4deb2e998e594252d3"
+    },
+    {
+      "bytes": 10365,
+      "path": "tests/test_permissioned_source_delivery.py",
+      "sha256": "3c525005bee609ccfd9fdee1aa8eac21844bd8a71bcd251df793960bf1c64b06"
+    },
+    {
+      "bytes": 17948,
+      "path": "tests/test_private_delivery_codec.py",
+      "sha256": "a1d19660c5df006f233e6027b256c03f0c73d3de11027dcd91cb334a1f0b7c41"
+    },
+    {
+      "bytes": 2890,
+      "path": "tests/test_purchase_window_policy.py",
+      "sha256": "fd0235808b511725af8101698bc476175763ea5925d50d15b4937d2cd03c7dd8"
+    },
+    {
+      "bytes": 9120,
+      "path": "tests/test_verified_event_projection.py",
+      "sha256": "251474ccce6419a922406975a664679743fda59a1ce94d576bf081030a11aba0"
+    }
+  ],
+  "pin": "db075c203704d2b30df5742ce8458a43932696a4",
+  "schema": "RACE_AI_MAX8_REFERENCE_MANIFEST_V1",
+  "unchanged_reference_files": 61
+}

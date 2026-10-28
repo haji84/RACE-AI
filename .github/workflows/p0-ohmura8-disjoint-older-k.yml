@@ -1,0 +1,27 @@
+name: P0 Ohmura8 eight disjoint older K days audit
+on:
+  push:
+    branches:
+      - 'p0-ohmura8-disjoint-older-k-20261024'
+    paths:
+      - 'docs/evidence/p0-ohmura8-disjoint-k-trigger-20261024.txt'
+permissions:
+  contents: read
+jobs:
+  one_older_k_block:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    env:
+      RACE_AI_K8_OLDER_ONE_SHOT: OCT01_TO_OCT08_UNSAMPLED_K_ONCE
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-parser-reference
+      - name: Audit just new Oct01 to Oct08 K day files and six Ohmura8 registrations
+        run: python -m scripts.p0_ohmura8_disjoint_older_k_20261024

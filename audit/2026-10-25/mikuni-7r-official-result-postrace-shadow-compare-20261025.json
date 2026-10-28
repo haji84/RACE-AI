@@ -1,0 +1,120 @@
+{
+  "schema": "RACE_AI_POSTRACE_MANUAL_OFFICIAL_RESULT_RESEARCH_ONLY_V1",
+  "record_date_jst": "2026-10-25",
+  "owner_issue": "https://github.com/haji84/RACE-AI/issues/67",
+  "source_race_id": "boat:2026-10-24:boatrace-jcd-10:7",
+  "sport": "boat",
+  "event_date_jst": "2026-10-24",
+  "venue": "三国",
+  "race_no": 7,
+  "official_source": {
+    "per_race_url": "https://www.boatrace.jp/owpc/pc/race/raceresult?hd=20261024&jcd=10&rno=7",
+    "same_day_result_list_url": "https://www.boatrace.jp/owpc/pc/race/resultlist?hd=20261024&jcd=10",
+    "observed_ordered_trifecta": [
+      1,
+      2,
+      3
+    ],
+    "published_payout_per_100yen_jpy": 1260,
+    "refund_field_on_per_race_page": "---",
+    "refunds_indicated": false,
+    "race_result_on_page": "six finishers; race classified as completed",
+    "official_first_published_at": null,
+    "official_revision_history_verified": false,
+    "source_page_permanent_byte_snapshot": false,
+    "note": "Manually crosschecked two public first-party official pages; not certified as immutable final revision history."
+  },
+  "prior_unchanged_prediction": {
+    "path": "audit/2026-10-24/mikuni-7r-unadmitted-b-lite-shadow-top8.json",
+    "pinned_git_commit": "92099b681c38a43aee98435fb1c37fd714dec960",
+    "pinned_git_blob_sha": "abbe0c38a4f911b00d86b09ab7fc52bdb1e018ac",
+    "prediction_sha256_claim": "5c36e3ddf5a8032edea2eb8e488183bb6f86a642fae6953c7c04d0daf45a274f",
+    "git_commit_author_time_utc": "2026-10-24T02:31:15Z",
+    "scheduled_official_cutoff_page_time_jst": "2026-10-24T11:38:00+09:00",
+    "original_model_id": "boat-b-lite-v1-untrained",
+    "formal_prediction": false,
+    "external_independent_crypto_timestamp_receipt": false,
+    "source_purpose_rights_verified": false,
+    "source_original_published_at": null,
+    "uncalibrated": true,
+    "top8_ordered_as_in_original": [
+      [
+        6,
+        2,
+        4
+      ],
+      [
+        6,
+        4,
+        2
+      ],
+      [
+        2,
+        6,
+        4
+      ],
+      [
+        4,
+        6,
+        2
+      ],
+      [
+        2,
+        4,
+        6
+      ],
+      [
+        4,
+        2,
+        6
+      ],
+      [
+        6,
+        2,
+        1
+      ],
+      [
+        2,
+        6,
+        1
+      ]
+    ]
+  },
+  "postrace_research_shadow_evaluation": {
+    "research_only": true,
+    "top1_matches": false,
+    "top8_matches": false,
+    "observed_fact": "Prior shadow has no ordered (1,2,3) and placed boat 6 first in most picks.",
+    "causal_explanation": "UNKNOWN_NOT_ESTABLISHED",
+    "no_post_result_reranking": true,
+    "hypothetical_payout_if_eight_100yen_picks_jpy": 0,
+    "actual_betting_evidence": "NONE"
+  },
+  "formal_issue67_contribution": {
+    "evaluated_race_with_three_exacta_offered": true,
+    "valid_formal_pre_cutoff_freeze_count": 0,
+    "if_in_predeclared_full_day_universe_race_is_a_formal_miss": true,
+    "full_day_four_sport_denominator": null,
+    "full_day_hit_at_one": null,
+    "full_day_hit_at_eight": null,
+    "actual_realized_roi": null,
+    "brier": null,
+    "log_loss": null
+  },
+  "limitations": [
+    "Research-only, untrained B-LITE snapshot is not a formally admitted forecast.",
+    "GitHub commit time predates scheduled cutoff but is not the required independent cryptographic freeze witness.",
+    "Current official page may be revised; provider final-revision history unavailable.",
+    "Two selected races do not establish whole-day or four-sport universe.",
+    "Source rights for automated collection and long-term storage/training have not been admitted."
+  ],
+  "safety": {
+    "source_html_cloned": false,
+    "prior_prediction_modified": false,
+    "model_coefficients_modified": false,
+    "odds_used_as_prediction_input": false,
+    "automatic_betting": false,
+    "paid_subscription": false,
+    "main_merged": false
+  }
+}

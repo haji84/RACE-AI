@@ -1,0 +1,129 @@
+{
+  "B_archive_sha256": "1760b6e3fc024a517994fdd072d13c9676f5f42d009c1339681eb2d537bd11ae",
+  "B_identity_count": 6,
+  "B_national_local_motor_candidates": 18,
+  "K_F_L_or_invalid_rows_excluded_for_selected_racers": 0,
+  "PR71_existing_FULL_blockers": [
+    "MISSING_FIVE_PRIOR_K_SOME_LANES",
+    "MISSING_EXHIBITION_START_ST",
+    "UNCERTIFIED_ORIGINAL_PUBLICATION_AT",
+    "SOURCE_PURPOSE_RIGHTS_NOT_VERIFIED",
+    "RELATIVE_WIND_ANGLE_NOT_PROVEN",
+    "WET_SURFACE_FACTOR_NOT_PROVEN",
+    "ACTUAL_FINAL_SALES_CUTOFF_UNVERIFIED"
+  ],
+  "PR71_original_form_and_ST_candidate_count": 0,
+  "beforeinfo_before_cutoff_by_runner_clock": true,
+  "beforeinfo_captured_at_runner_claimed": "2026-10-24T03:25:54.075103+00:00",
+  "beforeinfo_parser_status": "AVAILABLE",
+  "beforeinfo_source_sha256": "b28743902272881e05ab8dcbd0e333ed70a386da966cccc56cb0b2bc184c7f40",
+  "beforeinfo_source_url": "https://www.boatrace.jp/owpc/pc/race/beforeinfo?hd=20261024&jcd=10&rno=9",
+  "display_time_count": 6,
+  "event_date_jst": "2026-10-24",
+  "formal_hit_at_8_eligible": false,
+  "historical_K_sources": [
+    {
+      "day_jst": "2026-10-18",
+      "empty_venue_blocks": 0,
+      "incomplete_races_excluded": 0,
+      "source_sha256": "d31acc8ee0f9953f6ea7e3c49926cfd8cb339076ae770dfc212ca340c4e7559a",
+      "valid_entrant_rows": 936
+    },
+    {
+      "day_jst": "2026-10-19",
+      "empty_venue_blocks": 0,
+      "incomplete_races_excluded": 0,
+      "source_sha256": "e105e1b8623ce9b7c028fb8afabb4bb851e888eaa287f84210ccc708146de4bf",
+      "valid_entrant_rows": 792
+    },
+    {
+      "day_jst": "2026-10-20",
+      "empty_venue_blocks": 0,
+      "incomplete_races_excluded": 0,
+      "source_sha256": "09410993bfe747d393b52b55f4fe7b8a5ecbb35b5a3e496a29d13fb4f76224e1",
+      "valid_entrant_rows": 864
+    },
+    {
+      "day_jst": "2026-10-21",
+      "empty_venue_blocks": 1,
+      "incomplete_races_excluded": 1,
+      "source_sha256": "5831b9bcfe863d4b587665491c675054fb69b90cecf2d75572fb75420b1d5426",
+      "valid_entrant_rows": 858
+    },
+    {
+      "day_jst": "2026-10-22",
+      "empty_venue_blocks": 0,
+      "incomplete_races_excluded": 0,
+      "source_sha256": "c6a8ee47ac5331838a540c953cf14009a5811fa9fe81b07b9cbea5326ae00469",
+      "valid_entrant_rows": 1008
+    },
+    {
+      "day_jst": "2026-10-23",
+      "empty_venue_blocks": 0,
+      "incomplete_races_excluded": 0,
+      "source_sha256": "188ac9e6550eb37bd23a0413eddfcdd52e77fc7694a21b1a32542939afe50530",
+      "valid_entrant_rows": 1008
+    }
+  ],
+  "historical_K_total_valid_entrant_rows": 5466,
+  "independent_server_receipt_for_prediction": false,
+  "individual_racer_values_logged": false,
+  "input_as_of_capture_claimed": "2026-10-24T03:25:54.075103+00:00",
+  "joined_same_race_id": "20261024-10-09",
+  "joined_source_families": [
+    "B",
+    "PRIOR_K",
+    "EXHIBITION",
+    "WEATHER"
+  ],
+  "model_run": false,
+  "numeric_preview_ST_count": 5,
+  "official_prediction": false,
+  "official_racecard_url": "https://www.boatrace.jp/owpc/pc/race/racelist?hd=20261024&jcd=10&rno=9",
+  "ordered_top8": null,
+  "original_PR71_weights_changed": false,
+  "original_html_republished": false,
+  "original_upstream_publication_verified": false,
+  "prediction_sha256": null,
+  "preview_ST_non_numeric_count": 1,
+  "preview_six_registration_ids_match_B": true,
+  "race_id": "20261024-10-09",
+  "raw_archive_retained": false,
+  "runner_finished_at_claimed": "2026-10-24T03:25:54.088356+00:00",
+  "runner_started_at_claimed": "2026-10-24T03:25:51.690724+00:00",
+  "scheduled_cutoff_at_unattested": "2026-10-24T12:42:00+09:00",
+  "schema": "RACE_AI_ONE_RACE_REAL_K_B_PREVIEW_JOIN_AUDIT_V1",
+  "six_lanes_with_at_least_5_K": 0,
+  "source_use_rights_independently_verified": false,
+  "status": "REAL_SAME_RACE_DATA_JOINED_MODEL_BLOCKED_BY_EVIDENCE",
+  "upstream_get_attempts": 8,
+  "upstream_get_budget": 8,
+  "valid_K_history_counts_by_lane": [
+    0,
+    0,
+    3,
+    2,
+    0,
+    0
+  ],
+  "water_surface_wet_factor_verified": false,
+  "weather_direction_angle_relative_to_course_verified": false,
+  "weather_provider_observed_at_verified": false,
+  "weather_wave_cm_available": true,
+  "weather_wind_mps_available": true,
+  "source_proof_reference": {
+    "github_actions_run_id": 40058256541,
+    "github_actions_created_at": "2026-10-24T03:25:43Z",
+    "github_actions_updated_at": "2026-10-24T03:25:58Z",
+    "github_actions_head_sha": "1b4914bb70bc7cec8cc544a392606d7d569e75e0",
+    "github_actions_url": "https://github.com/haji84/RACE-AI/actions/runs/40058256541",
+    "commit_publication_not_prediction_freeze": true,
+    "receipt_kind": "GITHUB_RUN_EXECUTION_EVIDENCE_NOT_SOURCE_PUBLICATION_TIME"
+  },
+  "rights_review_reference_urls": [
+    "https://www.boatrace.jp/owpc/pc/extra/policy.html",
+    "https://www.boatrace.jp/owpc/pc/extra/about.html",
+    "https://www.boatrace.jp/owpc/pc/extra/data/download.html"
+  ],
+  "rights_summary": "Downloaded files are publicly presented for access; independent authorization for persistent acquisition, training, redistribution, or production use has NOT been established; source specifics and legal exceptions require separate review."
+}

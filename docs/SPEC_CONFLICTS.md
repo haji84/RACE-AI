@@ -1,5 +1,21 @@
 # Specification conflicts and decisions — 2026-10-21
 
+## Current adopted constraints — 2026-10-25
+
+|Conflict|Ruling|
+|---|---|
+|Official presentation publication versus old T-10 restriction|Begin input checks on genuine observed publication; no arbitrary ten-minute trigger window. Availability alone never grants rights or full model readiness.|
+|Odds T-60 default versus owner-considered T-15/T-10|Unresolved final owner choice. Preserve T-60 and keep acquisition disabled until purpose/cadence/shared quota evidence. Separate from publication trigger and T-10 forecast-display target.|
+|Timestamp-dependent replay keys versus restart idempotency|Use an explicit versioned stable publication identity; do not silently reinterpret V1 persisted hashes. Equal-time or unchanged bytes do not prove a newly published source.|
+|Ordinary JSON persistence versus original typed model hashes and roster order|Keep legacy outputs/versions/hashes unchanged. Explicit opt-in typed ordered-pair transport preserves original values; plain V1 repair and implicit migration remain forbidden. Local synthetic persistence does not attest producer execution, source rights or external reception time.|
+|External hash receipt versus separately supplied picks|Receipt authenticity alone does not bind independently supplied tickets. Derive picks from checked original model payload and keep every missing eligible race in each predeclared model denominator.|
+|Safari interval display versus actual audit-ready receipt|Preserve each event's actual race identity; UI success alone and VM tests are not owner-device acceptance.|
+|Historical D1 real odds versus future automatic ingestion|Existing four historical real races are preserved. Fresh metadata protection/read=true/ingest=false/cron0 does not prove source cadence rights, deployed SHA equality or account free allowance. Billing403 stays UNKNOWN.|
+|Cost/account verification versus continued development|Owner explicitly deferred cost checking and instructed development to continue first. UNKNOWN account usage does not block local/offline implementation and its bounded existing CI. It does not authorize a new paid service, shared cloud consumption, deployment or security change.|
+|Technical review versus formal main acceptance|No CodeRabbit or self-approval. Exact-head CI and separate-context technical review cannot replace independent GitHub APPROVED/Human Gates.|
+
+These are narrow repairs of adopted contracts, not new rights, platform replacement, paid usage or deployment authorization. Earlier rows remain historical.
+
 Authority: user instruction + Issue68 comment6315990805 + PR61 fef6860 amendments. Unconflicted 53-chapter requirements remain.
 
 | Conflict | Decision |

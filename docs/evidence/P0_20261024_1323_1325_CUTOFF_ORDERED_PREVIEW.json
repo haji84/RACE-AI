@@ -1,0 +1,78 @@
+{
+  "B_source_sha256": "c559ab388c00e902be27ee3764edda9db0a51ae0ca40de3fb986d30b5c184084",
+  "candidates_sorted": [
+    {
+      "cutoff": "2026-10-24T13:23:00+09:00",
+      "race_id": "20261024-05-07",
+      "title": "多摩川7R"
+    },
+    {
+      "cutoff": "2026-10-24T13:25:00+09:00",
+      "race_id": "20261024-09-07",
+      "title": "津7R"
+    }
+  ],
+  "checked": [
+    {
+      "all_public_preview_numeric_available": true,
+      "captured_at_runner_unattested": "2026-10-24T04:19:57.906124+00:00",
+      "cutoff_at": "2026-10-24T13:23:00+09:00",
+      "display_time_numeric_count": 6,
+      "exhibition_ST_numeric_count": 6,
+      "race_id": "20261024-05-07",
+      "registered_six_match_official_B": true,
+      "schedule_proven_issued_as_scheduled_not_final": true,
+      "source_html_sha256": "9fdf3a819654012f4a72335e4f5674e1d710656d38eec361bd7b024a6064aee6",
+      "source_parser_status": "AVAILABLE",
+      "title": "多摩川7R",
+      "wave_cm_available": true,
+      "wind_mps_available": true
+    },
+    {
+      "all_public_preview_numeric_available": true,
+      "captured_at_runner_unattested": "2026-10-24T04:19:58.206413+00:00",
+      "cutoff_at": "2026-10-24T13:25:00+09:00",
+      "display_time_numeric_count": 6,
+      "exhibition_ST_numeric_count": 6,
+      "race_id": "20261024-09-07",
+      "registered_six_match_official_B": true,
+      "schedule_proven_issued_as_scheduled_not_final": true,
+      "source_html_sha256": "7a801c3c9ca150a3fc20452a17231bc7c6efcb4d8b32437c0f15cdf759418e02",
+      "source_parser_status": "AVAILABLE",
+      "title": "津7R",
+      "wave_cm_available": true,
+      "wind_mps_available": true
+    }
+  ],
+  "finished_runner_clock_unattested": "2026-10-24T04:19:58.217875+00:00",
+  "formal_model_executed": false,
+  "full_PR71_model_top8": null,
+  "full_racer_source_rows_published": false,
+  "historical_K_previous_race_requirement_verified": false,
+  "model_source_rights_independently_verified": false,
+  "observed_on_runner_clock": "2026-10-24T04:19:56.841578+00:00",
+  "odds_used": false,
+  "official_prediction": false,
+  "official_result_used": false,
+  "original_PR71_weights_changed": false,
+  "provider_GET_attempts": 3,
+  "provider_GET_budget": 3,
+  "raw_source_bytes_persisted": false,
+  "schema": "RACE_AI_CUTOFF_ORDERED_RACE_SELECTION_V1",
+  "selected_race": "20261024-05-07",
+  "source_published_at_independently_verified": false,
+  "status": "PREVIEW_READY_EARLIEST_RACE_SELECTED_BUT_FULL_MODEL_UNADMITTED",
+  "wet_surface_factor_proven": false,
+  "wind_true_bearing_verified": false,
+  "git_execution": {
+    "run_id": 40061908590,
+    "head_sha": "99ba6cfd9821c36f6db8c28d51c27388273933c4",
+    "github_run_created_at": "2026-10-24T04:19:51Z",
+    "github_run_updated_at": "2026-10-24T04:20:00Z",
+    "conclusion": "success",
+    "html_url": "https://github.com/haji84/RACE-AI/actions/runs/40061908590"
+  },
+  "not_an_independent_source_publication_attestation": true,
+  "official_cutoff_status": "scheduled_not_final_verified",
+  "formal_hit_at_8_eligible": false
+}
