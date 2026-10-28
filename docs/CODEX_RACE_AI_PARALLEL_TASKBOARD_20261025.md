@@ -393,3 +393,43 @@ all524 unchanged forecasts. Exact-head CI/backup acceptance is recorded separate
 after execution. Other-sport real coverage, missing15 engines, sufficient historical
 windows, genuine prospective all-race evidence, formal review/main acceptance and
 98% remain incomplete. Device and account-cost confirmation remain deferred.
+
+## Race41 / 2026-10-28: Measured single-day history in existing research inputs
+
+Fresh starting heads were PR72 `5608ab9c60c6ad48d3aa1978894f3215f4a9c1e9`,
+PR71 `6f75fa9f98beb5a6d8f190694e96695d5ffb31be`, and main
+`8bb7d69f9c8fb302055bc9e2609903d1e8f73e4b`. Existing completed checks were
+read, not rerun. Root owns the small adapter/test/spec/plan and existing CI
+integration on PR72; A prepares private source evidence and D reviews independently.
+
+`P0_CAPTURED_HISTORY_BRIDGE_20261028.md` defines the separate pure single-K-day
+adapter. It reuses B identity/rate validation and K structural validation, retains
+unknown publication as a capture claim, and supplies real finish/ST means and
+separate denominators to unchanged pairwise models. Source/row membership and
+registration are bound; omitted complete races change the window identity without
+claiming whole-day completeness. Course/exhibition values remain unavailable.
+The old publication-qualified history gate, model IDs/weights and seals are unchanged.
+
+Independent design criticism resolved membership and retrospective-clock ambiguity.
+Independent code review found Unicode identity and signed-zero duplicate defects;
+root reproduced five failing subcases and repaired both. Final16 focused tests and
+the reference-complete728-test local regression passed with no skips. The first
+integration run lacked three local pinned reference files; preparation from existing
+Git objects resolved that environment issue without downloads or product changes.
+Exact new-head Windows/Linux CI is recorded separately after push, not presumed here.
+
+Retained B27/K26 data connected in a separate development replay at actual
+2026-10-28T08:48:52Z, with declared information-as-of2026-10-27T03:00:00Z.
+All168 races and3192 registry slots remain visible:127 races produced two existing
+pairwise-model outputs each;41 were already closed at the declared information
+context. Other17 model IDs are explicitly not executed in this replay; they are
+not old forecasts transplanted into a new comparison. It read no target results
+and made zero source requests. No hit-rate, historical generation or genuine
+pre-cutoff claim follows. An initial registry guard rejected the separate synthetic
+control before reservation/inference; that original failure remains preserved.
+
+A separately reviewed current-day caller may use fresh B28 plus retained K26 and
+actual clocks once admitted. Preparation is not source success or a saved forecast.
+All19 true model IDs, missing inputs/artifacts for15 engines, all-sport real coverage,
+prospective scientific validation, formal review/main acceptance and98% remain unmet.
+Device/account-cost checks stay deferred; held33 and original dirty work remain intact.

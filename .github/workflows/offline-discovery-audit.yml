@@ -4,6 +4,10 @@ on:
     branches:
       - codex/actions-four-sport-e2e
     paths:
+      - 'race_ai/boat_captured_history_bridge.py'
+      - 'tests/test_boat_captured_history_bridge.py'
+      - 'docs/P0_CAPTURED_HISTORY_BRIDGE_20261028.md'
+      - 'docs/superpowers/plans/2026-10-28-captured-history-bridge.md'
       - 'race_ai/evaluation_experiment.py'
       - 'race_ai/evaluation_journal.py'
       - 'race_ai/evaluation_cli.py'
@@ -249,6 +253,14 @@ jobs:
         run: python -m unittest discover -s tests -p test_retained_prediction_audit.py -v
       - name: Verify explicit retained audit CLI and failed-read recovery
         run: python -m unittest discover -s tests -p test_retained_evaluation_cli.py -v
+      - name: Checkout existing observed models for captured-history contract testing
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 98e525478d598f6e56bcb6b5fc7006dbf893d2fe
+          path: pr71-observed-pair-reference
+          persist-credentials: false
+      - name: Verify measured history and unchanged pairwise models
+        run: python -m unittest discover -s tests -p test_boat_captured_history_bridge.py -v
   offline_audit_tests:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
