@@ -1,6 +1,8 @@
 """Private retained-prediction audit CLI; no source fetching or model imports.
 
-Origin and label-request descriptors are explicitly outcome-free metadata.
+Origin and label-request descriptors contain identity/path/hash metadata only.
+The explicit captured-history profile reserves declared target and prior-history
+identities before its lazy origin reader. Default Race39 imports are unchanged.
 Expected descriptor/policy/report digests use compact sorted UTF-8 JSON with
 no trailing newline. File pins hash the exact original bytes. Only the lazy
 reserved reader opens label paths. Import and read times use current UTC;
@@ -40,6 +42,8 @@ def parser():
         sub = commands.add_parser(operation)
         sub.add_argument('--root',required=True,type=Path,help='same trusted private registry used by EvaluationJournal')
         sub.add_argument('--audit',required=True)
+        sub.add_argument('--profile',choices=('race39','captured-history-v1'),default='race39',
+                         help='explicit origin contract; default retains the original Race39 behavior')
         if operation == 'import':
             sub.add_argument('--origin',required=True,type=Path,help='outcome-free six-file descriptor')
             sub.add_argument('--expected-origin-request-sha',required=True,type=sha_argument)
@@ -109,16 +113,25 @@ def _summary(report):
 
 
 def execute(args):
-    journal = RetainedAuditJournal(args.root,args.audit)
+    captured = args.profile == 'captured-history-v1'
+    if captured:
+        from .retained_captured_journal import CapturedHistoryAuditJournal, read_origin
+        journal = CapturedHistoryAuditJournal(args.root,args.audit)
+    else:
+        journal = RetainedAuditJournal(args.root,args.audit)
     if args.command == 'import':
         request = _descriptor(args.origin,args.expected_origin_request_sha)
         policy = _descriptor(args.policy,args.expected_policy_sha)
         require(type(policy) is dict and moment(policy.get('declared_at')) <= datetime.now(timezone.utc), 'POLICY_CLOCK')
-        files,pins = _origin(request)
-        imported = journal.import_bundle(files,expected_sha256=pins,policy=policy,expected_policy_sha256=args.expected_policy_sha)
+        if captured:
+            imported = journal.import_captured(lambda:read_origin(request),request=request,
+                expected_request_sha256=args.expected_origin_request_sha,policy=policy,expected_policy_sha256=args.expected_policy_sha)
+        else:
+            files,pins = _origin(request)
+            imported = journal.import_bundle(files,expected_sha256=pins,policy=policy,expected_policy_sha256=args.expected_policy_sha)
         result = {'import_sha256':imported['import_sha256'],'policy_sha256':imported['policy_sha256'],
             'imported_at':imported['imported_at'],'cohort_races':len(imported['origin']['races']),
-            'models':len(imported['origin']['models']),'model_slots':3192,
+            'models':len(imported['origin']['models']),'model_slots':len(imported['origin']['races'])*len(imported['origin']['models']),
             'potentially_exposed_physical_races':imported['potentially_exposed_physical_races'],
             'potentially_exposed_registry_keys':imported['potentially_exposed_registry_keys'],
             'mode':imported['mode'],'cohort_role':'DEVELOPMENT_AUDIT','final_test_eligible':False}

@@ -4,6 +4,10 @@ on:
     branches:
       - codex/actions-four-sport-e2e
     paths:
+      - 'race_ai/retained_captured_*.py'
+      - 'tests/test_retained_captured_*.py'
+      - 'docs/P0_RETAINED_CAPTURED_AUDIT_20261028.md'
+      - 'docs/superpowers/plans/2026-10-28-retained-captured-audit.md'
       - 'race_ai/boat_captured_history_bridge.py'
       - 'tests/test_boat_captured_history_bridge.py'
       - 'docs/P0_CAPTURED_HISTORY_BRIDGE_20261028.md'
@@ -261,6 +265,8 @@ jobs:
           persist-credentials: false
       - name: Verify measured history and unchanged pairwise models
         run: python -m unittest discover -s tests -p test_boat_captured_history_bridge.py -v
+      - name: Explicit captured-history retained audit
+        run: python -m unittest discover -s tests -p "test_retained_captured_*.py" -v
   offline_audit_tests:
     runs-on: ubuntu-24.04
     timeout-minutes: 5

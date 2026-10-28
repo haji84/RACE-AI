@@ -506,6 +506,12 @@ def _validate_revisions(delta, previous, *, allow_empty=False):
 
 
 class RetainedAuditJournal:
+    _adapt_labels = staticmethod(adapt_labels)
+    _report = staticmethod(retained_report)
+
+    def _import_floor(self, imported):
+        return imported['imported_at']
+
     def __init__(self, root, audit_id, *, clock=None):
         require(type(audit_id) is str and re.fullmatch('[A-Za-z0-9_-]{1,100}',audit_id), 'AUDIT_ID')
         self.root = Path(root); self.audit_id = audit_id
@@ -594,7 +600,7 @@ class RetainedAuditJournal:
         paths = sorted(directory.iterdir())
         require(paths and (through_batch is None or through_batch < len(paths)), 'REPORT_NOT_AVAILABLE')
         if through_batch is not None: paths = paths[:through_batch+1]
-        observations = []; report = None; previous_at = imported['imported_at']; count = -1
+        observations = []; report = None; previous_at = self._import_floor(imported); count = -1
         for count,path in enumerate(paths):
             require(path.name == f'{count:06d}', 'BATCH_SEQUENCE'); _directory(path)
             intent = _read(path/'intent.json'); done = _read(path/'completed.json')
@@ -603,12 +609,12 @@ class RetainedAuditJournal:
                 'previous_report_sha256':None if report is None else digest(report),'reserved_at':intent['reserved_at'],
                 'label_request':request,'label_request_sha256':digest(request)}, 'BATCH_PARENT_CHANGED')
             require(moment(previous_at) <= moment(intent['reserved_at']) <= moment(done['read_completed_at']), 'BATCH_CLOCK_REVERSED')
-            evidence = _read(path/'evidence.json'); delta = adapt_labels(evidence,imported,done['read_completed_at'])
+            evidence = _read(path/'evidence.json'); delta = self._adapt_labels(evidence,imported,done['read_completed_at'])
             _request_matches(request,delta)
             _validate_revisions(delta,observations,allow_empty=count==0)
             require(_read(path/'observations.json') == delta, 'OBSERVATION_CHANGED')
             observations += delta
-            current = retained_report(imported,observations,batch_number=count)
+            current = self._report(imported,observations,batch_number=count)
             require(current == _read(path/'report.json') and done == {'import_sha256':expected_import_sha256,
                 'evidence_sha256':digest(evidence),'observations_sha256':digest(observations),'report_sha256':digest(current),
                 'read_completed_at':done['read_completed_at']}, 'BATCH_COMPLETION_CHANGED')
@@ -620,7 +626,7 @@ class RetainedAuditJournal:
         with self._lock():
             if batch_number == 0:
                 imported = self._verified(expected_import_sha256); previous = []; prior = None
-                previous_at = imported['imported_at']
+                previous_at = self._import_floor(imported)
             else:
                 imported,previous,prior,previous_at,count = self._state(expected_import_sha256)
                 require(batch_number == count+1 and valid_sha(expected_report_sha256) and digest(prior) == expected_report_sha256, 'EXPECTED_REPORT_CHANGED')
@@ -637,10 +643,10 @@ class RetainedAuditJournal:
             # exposure markers, expected parent check and durable batch intent.
             evidence = _label_evidence(reader()); read_at = self._now()
             require(moment(read_at) >= moment(now), 'CLOCK_REVERSED')
-            delta = adapt_labels(evidence,imported,read_at)
+            delta = self._adapt_labels(evidence,imported,read_at)
             _request_matches(request,delta)
             _validate_revisions(delta,previous,allow_empty=batch_number==0)
-            combined = previous+delta; report = retained_report(imported,combined,batch_number=batch_number)
+            combined = previous+delta; report = self._report(imported,combined,batch_number=batch_number)
             _create(path/'evidence.json',evidence); _create(path/'observations.json',delta); _create(path/'report.json',report)
             _create(path/'completed.json',{'import_sha256':expected_import_sha256,'evidence_sha256':digest(evidence),
                 'observations_sha256':digest(combined),'report_sha256':digest(report),'read_completed_at':read_at})

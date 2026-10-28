@@ -1,5 +1,13 @@
 # RACE-AI Codex parallel taskboard / verified work queue 2026-10-25
 
+## 2026-10-28 retained captured-history continuation
+
+Race41 base `2c949527d4355ccdd8e05f9f8f736cf913918244` has automatic Windows/Linux CI success (run40660234755), independent real-data audits and a private158-file packet fully restored/verified. Today's saved cohort is132 races/2508 model slots;17 races have68 predictions from4 existing models. Two normal results and one unresolved source observation have been retained without rerunning predictions. The remaining130 results are unknown. Uniform Top8 hit1/2 and the other three models0/2 in this tiny observed subset; no accuracy/improvement/formal acceptance claim follows. Sixteen of17 hash witnesses were before planned cutoff; one was late.
+
+Race42 explicitly connects those immutable retained inputs and labels to the development journal: [scope](P0_RETAINED_CAPTURED_AUDIT_20261028.md), [plan](superpowers/plans/2026-10-28-retained-captured-audit.md). A separate opt-in profile preserves the old Race39 bytes, all19 slots, the complete prior-history exposure set, unknown results, and descriptive timely/late/no-anchor groups. No new source acquisition or inference is needed. Exact-head CI, final implementation review and actual journal readback remain pending until their separate evidence is recorded.
+
+Full19-model execution, other-sport real E2E, formal independent GitHub approval/main integration, device/cost acceptance and98% prospective evidence remain unmet. Original dirty worktree and stopped33 are preserved.
+
 Parent https://github.com/haji84/RACE-AI/issues/67
 Execution https://github.com/haji84/RACE-AI/issues/68
 Current GitHub verified PR/CI snapshot: [CODEX_RACE_AI_GITHUB_VERIFIED_STATUS_20261025.md](CODEX_RACE_AI_GITHUB_VERIFIED_STATUS_20261025.md). Historic hashes below are not writer leases or current HEAD.
