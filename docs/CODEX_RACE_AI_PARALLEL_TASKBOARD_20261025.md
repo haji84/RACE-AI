@@ -1,5 +1,33 @@
 # RACE-AI Codex parallel taskboard / verified work queue 2026-10-25
 
+## 2026-10-28 display-input continuation after retained result verification
+
+Race42 is completed on `9cb965df1917f373d348104c9d54dc5bd23c5310`: automatic
+CI40670188248 succeeded (Linux full767, Windows/Linux focused136 each), followed
+by actual retained import/readback and independent13,163-check arithmetic audit.
+Race43 added three bounded result observations once, with one normal result and
+two unavailable/invalid observations whose specific causes remain unproven.
+The same journal's batch1 append/readback retains132 races/2508 model slots,
+68 original forecasts and six labels: three known,129 unknown. Independent
+actual append10,250 checks, new packet15,716 checks and closeout82 checks passed.
+Details: [Issue68](https://github.com/haji84/RACE-AI/issues/68#issuecomment-6467645446)
+and [PR72](https://github.com/haji84/RACE-AI/pull/72#issuecomment-6467646926).
+No predictions were regenerated or failed sources retried. These are research
+results, not formal prospective accuracy or full19-model execution.
+
+Race44 now implements the smallest local input dependency: a pure conversion
+from genuine supplied beforeinfo and its matching B participant list to the
+existing P1 display research case. [Spec](P1_BEFOREINFO_RESEARCH_CASE_20261028.md),
+[plan](superpowers/plans/2026-10-28-beforeinfo-research-case.md),
+[scope/ownership](https://github.com/haji84/RACE-AI/issues/68#issuecomment-6467885940).
+A owns the new module/tests; root owns docs/CI and all branch writes; D reviews
+design and C reviews implementation and actual retained conversion. Existing
+models, gates and journals remain unchanged. Implementation/CI/actual conversion
+are pending until separate completion evidence is recorded. Current132 inputs
+cannot be backfilled, and the old eight-ID/six-race comparison is reused intact.
+Both name-bound aliases remain blocked without original timings in the unchanged
+replay runner. Device/cost acceptance remains deferred per owner instruction.
+
 ## 2026-10-28 retained captured-history continuation
 
 Race41 base `2c949527d4355ccdd8e05f9f8f736cf913918244` has automatic Windows/Linux CI success (run40660234755), independent real-data audits and a private158-file packet fully restored/verified. Today's saved cohort is132 races/2508 model slots;17 races have68 predictions from4 existing models. Two normal results and one unresolved source observation have been retained without rerunning predictions. The remaining130 results are unknown. Uniform Top8 hit1/2 and the other three models0/2 in this tiny observed subset; no accuracy/improvement/formal acceptance claim follows. Sixteen of17 hash witnesses were before planned cutoff; one was late.
