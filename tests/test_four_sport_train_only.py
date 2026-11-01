@@ -30,7 +30,7 @@ class TrainOnlyTests(unittest.TestCase):
 
     def test_train_artifact_has_no_validation_or_test_content(self):
         model = self.fit()
-        self.assertEqual(model["model_version"], "0.2-train-only")
+        self.assertEqual(model["model_version"], "0.3-train-only-horse-history")
         self.assertEqual(model["trained_examples"], 7)
         self.assertEqual(model["trained_until"], TRAIN_END)
         self.assertEqual(model["trained_data_until"], "2030-01-07T02:05:00+00:00")
