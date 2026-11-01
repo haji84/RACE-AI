@@ -18,6 +18,15 @@ import re
 JST=timezone(timedelta(hours=9))
 MODEL_IDS=("multisport-factor-interaction-v1","multisport-scenario-ensemble-v1")
 SCHEMA="RACE_AI_FOUR_SPORT_EVIDENCED_SNAPSHOT_V1"
+# These are smoothed, pre-cutoff relative historical win signals, NOT 8/8=100%.
+# Missing/unverified signals are neutral and never fabricated.
+HISTORICAL_HORSE_FEATURES=(
+ "previous_g1_route_win_signal",
+ "jockey_continuity_win_signal",
+ "route_jockey_joint_win_signal",
+ "race_specific_history_win_signal",
+)
+HISTORY_TRANSFORM="horse-history-beta11-shrink20-v1"
 KINDS=("boat","keirin","autorace","horse")
 STYLES=("front","stalker","closer","allround","unknown")
 # Raw categories must be normalized by explicit, documented pre-cutoff transforms
@@ -57,7 +66,7 @@ SPORT_OPTIONAL={
           "jockey_recent_form","trainer_recent_form","jockey_horse_pair",
           "class_change_fit","age_profile","sex_allowance_fit","pedigree_surface_fit",
           "layoff_readiness","running_style","traffic_resilience","field_size_fit",
-          "rail_position_fit","track_direction_fit"),
+          "rail_position_fit","track_direction_fit")+HISTORICAL_HORSE_FEATURES,
 }
 ENV_COMMON=("wind_mps","rain_mm_h","humidity_pct","air_temp_c","surface_wetness")
 ENV_SPORT={
@@ -129,6 +138,8 @@ def _observation(item,*,name,asof,permission,scope,is_env=False):
                 "source_rights_ref","sample_n","transform_id"},name)
     bounds=ENV_RANGES.get(name,(0,1)) if is_env else (0,1)
     value=_number(item["value"],*bounds,name)
+    if name in HISTORICAL_HORSE_FEATURES and item["transform_id"]!=HISTORY_TRANSFORM:
+        raise ModelInputError(name+" requires historical count transform")
     pub=moment(item["published_at"]);capture=moment(item["captured_at"])
     if not pub<=capture<=asof:
         raise ModelInputError(name+" published/captured after as_of")
@@ -266,7 +277,11 @@ def _utility(participant,*,sport,scenario,conditions,n):
     # Each normalized value MUST mean larger=more suitable; raw time/weight/
     # handicap/risk values need explicit train-only transformations upstream.
     score=math.fsum((weight.get(k,.04) if k in SPORT_OPTIONAL[sport]
-                     else weight[k])*v for k,v in f.items())
+                     else weight[k])*v for k,v in f.items()
+                    if k not in HISTORICAL_HORSE_FEATURES)
+    # Center the untrained prior: a missing signal or value 0.5 must add zero.
+    if sport=="horse":
+        score+=math.fsum(.18*(f[k]-.5) for k in HISTORICAL_HORSE_FEATURES if k in f)
     draw=1.0-(participant["draw"]-1)/max(1,n-1)
     # All venue conditions can influence scoring through interactions with
     # observed athlete adaptation and style. Weights remain untrained.
