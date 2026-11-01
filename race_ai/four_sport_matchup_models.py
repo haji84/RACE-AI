@@ -18,7 +18,7 @@ import itertools
 import math
 
 from .comprehensive_four_sport_models import (
-    ModelInputError, validate, digest, _utility
+    ModelInputError, validate, digest, _utility, HISTORICAL_HORSE_FEATURES
 )
 
 MODEL_IDS = (
@@ -111,6 +111,9 @@ def _slot_score(row, *, stage, scenario, stress, n, sport):
         base += (.18 if stage == 1 else .08)*f.get("early_pace",f["start_reliability"])
         base += (.26 if stage == 3 else .12)*f["closing_sectional"]
         base += stress*.15*f["distance_surface_fit"]
+        # Experimental research win-pattern prior, stronger for first place.
+        if stage == 1:
+            base += .10*sum(f[k]-.5 for k in HISTORICAL_HORSE_FEATURES if k in f)
     return base
 
 
