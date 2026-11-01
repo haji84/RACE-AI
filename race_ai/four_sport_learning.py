@@ -16,12 +16,12 @@ import math
 from .comprehensive_four_sport_models import (
     ModelInputError, MODEL_IDS, COMMON_REQUIRED, SPORT_REQUIRED, SPORT_OPTIONAL,
     ENV_COMMON, ENV_SPORT, SYNTHETIC, RESEARCH,
-    digest, moment, validate, _number
+    digest, moment, validate, _number, HISTORICAL_HORSE_FEATURES
 )
 
 LEARNED_ID="multisport-chronological-ranker-v1"
-VECTOR_VERSION="sparse-observed-feature-and-observation-mask-v1"
-TRAIN_ONLY_VERSION="0.2-train-only"
+VECTOR_VERSION="sparse-observed-feature-and-observation-mask-v2-horse-history"
+TRAIN_ONLY_VERSION="0.3-train-only-horse-history"
 
 
 def vector_schema(sport):
@@ -35,7 +35,9 @@ def vector_schema(sport):
 def _vector(p,race,env,sport):
     f=p["features"]
     vals=[f[x]["value"] for x in COMMON_REQUIRED+SPORT_REQUIRED[sport]]
-    vals.extend(f[x]["value"] if x in f else 0.0 for x in SPORT_OPTIONAL[sport])
+    # Missing historical contrast is neutral, not evidence against the horse.
+    vals.extend(f[x]["value"] if x in f else (0.5 if x in HISTORICAL_HORSE_FEATURES else 0.0)
+                for x in SPORT_OPTIONAL[sport])
     vals.extend(1.0 if x in f else 0.0 for x in SPORT_OPTIONAL[sport])
     n=len(race["participants"])
     vals.extend([
