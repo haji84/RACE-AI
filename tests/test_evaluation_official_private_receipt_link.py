@@ -29,12 +29,13 @@ def fixture():
                   published_at='2031-01-05T08:00:00+09:00',
                   observed_at='2031-01-05T08:30:00+09:00',
                   official_cutoff_at=CUTOFF)
+    anchor_name = sha256((rid + '\0m1\0' + sha256(WIRE).hexdigest()).encode()).hexdigest()
     forecast = dict(race_id=rid, model_id='m1', model_version='v1',stage='P0',
                     original_wire_sha256=sha256(WIRE).hexdigest(),
                     original_generated_at='2031-01-05T10:00:00+09:00',
                     private_persisted_at='2031-01-05T10:01:00+09:00',
                     private_ref='synthetic://owner-only/one', cutoff_at=CUTOFF,
-                    github_receipt={'run_id':123,'path':'audit/freezes/2031-01-05/fake'},
+                    github_receipt={'run_id':123,'path':f'audit/freezes/{DAY}/{anchor_name}.json'},
                     provenance='PROSPECTIVE_PROTECTED_OWNER_ORIGINAL')
     return bridge, [source], [forecast]
 
@@ -118,6 +119,23 @@ class LinkTests(unittest.TestCase):
         result,v=self.run_link(bridge=b,sources=s,forecasts=p)
         self.assertEqual(self.boat(result)['private_checks'][0]['status'],'OFFICIAL_CUTOFF_OR_SOURCE_TIME_MISMATCH')
         v.assert_not_called()
+
+    def test_foreign_model_bound_anchor_path_is_rejected_before_private_io(self):
+        b,s,p=fixture();p[0]['github_receipt']['path']='audit/freezes/2031-01-05/foreign.json'
+        reader=Mock(side_effect=AssertionError('do not access private bytes'))
+        result,v=self.run_link(bridge=b,sources=s,forecasts=p,protected_reader=reader)
+        self.assertEqual(self.boat(result)['private_checks'][0]['status'],
+                         'MODEL_BOUND_EXTERNAL_ANCHOR_PATH_MISMATCH')
+        reader.assert_not_called();v.assert_not_called()
+
+    def test_external_verifier_false_is_not_a_success(self):
+        b,s,p=fixture()
+        with patch('race_ai.race_bound_freeze_receipt.verify_bound_receipt',return_value=False):
+            result=link_protected_receipts(b,s,p,source_attestor=attestor,
+                protected_reader=lambda _:WIRE, forecast_validator=validator,
+                trusted_legacy_verifier=lambda *a,**k:True,github_fetch=lambda u:{})
+        self.assertEqual(self.boat(result)['private_checks'][0]['status'],
+                         'GITHUB_RACE_BOUND_RECEIPT_NOT_VERIFIED')
 
     def test_late_or_reordered_forecast_rejected(self):
         b,s,p=fixture();p[0]['private_persisted_at']=CUTOFF
