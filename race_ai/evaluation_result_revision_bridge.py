@@ -269,6 +269,11 @@ def research_score_existing_seal(bridge, batches, seal):
     labels = []
     for archive_id, rid in ref_by_archive.items():
         for revision, _, item, _ in observations.get(rid, ()):
+            # Existing score_seal requires a source hash even for unresolved labels.
+            # Do not fabricate one for a failed source attempt. The outer result
+            # link still retains SOURCE_UNAVAILABLE and its revision chain.
+            if item['source_sha256'] is None:
+                continue
             _need(item['source_id'] in checked['plan']['result_source_ids'], 'UNDECLARED_RESULT_SOURCE')
             status = ('FINAL' if item['status'] == 'FINAL_NORMAL' and item['refund_status'] == 'NONE'
                       else 'CANCELLED' if item['status'] == 'CANCELLED'
@@ -279,7 +284,7 @@ def research_score_existing_seal(bridge, batches, seal):
             labels.append({
                 'race_id': archive_id, 'revision': revision, 'status': status,
                 'winning_triples': item['winning_triples'] if status == 'FINAL' else [],
-                'source_id': item['source_id'], 'source_sha256': item['source_sha256'] or ('0'*64),
+                'source_id': item['source_id'], 'source_sha256': item['source_sha256'],
                 'observed_at': item['observed_at'],
             })
     scoring = score_seal(checked, labels)
