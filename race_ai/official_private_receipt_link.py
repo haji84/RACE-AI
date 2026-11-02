@@ -155,6 +155,15 @@ def link_protected_receipts(bridge, sources, forecasts, *, source_attestor=None,
             if item['cutoff_at'] != src['official_cutoff_at'] or _time(src['observed_at']) > _time(item['original_generated_at']):
                 entry['status'] = 'OFFICIAL_CUTOFF_OR_SOURCE_TIME_MISMATCH'
                 continue
+            receipt = item['github_receipt']
+            anchor_name = sha256((rid + '\0' + item['model_id'] + '\0' +
+                                  item['original_wire_sha256']).encode('utf-8')).hexdigest()
+            anchor_path = f"audit/freezes/{bridge['event_date_jst']}/{anchor_name}.json"
+            if (type(receipt) is not dict or set(receipt) != {'path', 'run_id'} or
+                    type(receipt['run_id']) is not int or receipt['run_id'] < 1 or
+                    receipt['path'] != anchor_path):
+                entry['status'] = 'MODEL_BOUND_EXTERNAL_ANCHOR_PATH_MISMATCH'
+                continue
             if not callable(protected_reader) or not callable(forecast_validator):
                 entry['status'] = 'PRIVATE_READER_OR_VALIDATOR_UNAVAILABLE'
                 continue
@@ -183,11 +192,13 @@ def link_protected_receipts(bridge, sources, forecasts, *, source_attestor=None,
                 # This existing adapter binds SHA, cutoff and the exact race ID
                 # to a pinned external GitHub run/anchor. No self-signed proof.
                 from .race_bound_freeze_receipt import verify_bound_receipt
-                verify_bound_receipt(item['github_receipt'], item['original_wire_sha256'],
-                                     item['private_persisted_at'], item['cutoff_at'],
-                                     expected_race_id=rid,
-                                     trusted_legacy_verifier=trusted_legacy_verifier,
-                                     github_fetch=github_fetch)
+                verified = verify_bound_receipt(item['github_receipt'], item['original_wire_sha256'],
+                                                 item['private_persisted_at'], item['cutoff_at'],
+                                                 expected_race_id=rid,
+                                                 trusted_legacy_verifier=trusted_legacy_verifier,
+                                                 github_fetch=github_fetch)
+                if verified is not True:
+                    raise ReceiptLinkError('EXTERNAL_VERIFIER_DID_NOT_RETURN_TRUE')
             except Exception:
                 entry['status'] = 'GITHUB_RACE_BOUND_RECEIPT_NOT_VERIFIED'
                 continue
