@@ -23,7 +23,7 @@ bytes + unchanged hash -> pinned original forecast validator (<=8 unique picks)
 
 This module **does not** implement another hash witness, model, stored prediction
 journal or scorer. It delegates the external server-run/anchor and race ID
-checks to the existing PR72 adapter and pinned PR71 legacy verifier. The
+checks to the existing PR72 adapter and pinned PR71 legacy verifier. The GitHub anchor path must also equal the original writer's SHA-256 filename of `race_id + NUL + model_id + NUL + wire_sha`, preventing another model's path from substituting for this one. The
 `source_attestor`, `protected_reader`, `forecast_validator`, GitHub API
 reader and pinned GitHub legacy verifier must be provided by a **trusted owner
 runtime**. Caller-provided fake callbacks and booleans are not trusted
@@ -91,7 +91,7 @@ production authority and cannot demonstrate a real licensed source.
 
 `python -m unittest discover -s tests -p test_evaluation_official_private_receipt_link.py -v`
 
-The 12 synthetic tests check five categories, no-source/no-forecast preservation,
+The 14 synthetic tests check five categories, no-source/no-forecast preservation,
 purpose-scoped denial before private reads, original byte and model identity
 hash mismatch, cutoff ordering, duplicate rejections, external witness failure
 and permanent separation from formal KPI. A passing test is **not** a real
