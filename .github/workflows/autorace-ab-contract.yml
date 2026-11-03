@@ -5,6 +5,9 @@ on:
     paths:
       - 'race_ai/autorace_ab_pdca.py'
       - 'tests/test_autorace_ab_pdca.py'
+      - 'race_ai/autorace_private_store.py'
+      - 'race_ai/autorace_source_contract.py'
+      - 'tests/test_autorace_private_source_e2e.py'
       - 'docs/AUTORACE_AB_AUTOMATION_STAGE_20261103.md'
       - '.github/workflows/autorace-ab-contract.yml'
   workflow_dispatch:
@@ -28,4 +31,4 @@ jobs:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify research model and A/B stage safety (synthetic only)
-        run: python -m unittest tests.test_autorace_ab_pdca -v
+        run: python -m unittest tests.test_autorace_ab_pdca tests.test_autorace_private_source_e2e -v
