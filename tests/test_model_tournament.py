@@ -47,28 +47,28 @@ class ModelTournamentTests(unittest.TestCase):
                 self.assertFalse(r["research_only"] is False)
                 self.assertFalse(r["external_prediction_receipt_verified"])
                 self.assertIsNone(r["official_hit_rate"])
-                self.assertEqual(set(r["scorecards"]["A"]),set(ALL_MODELS))
+                self.assertEqual(set(r["scorecards"][sport+"::A"]),set(ALL_MODELS))
                 for mid in ALL_MODELS:
-                    plans=r["scorecards"]["A"][mid]
+                    plans=r["scorecards"][sport+"::A"][mid]
                     self.assertEqual(len(plans),4)
                     self.assertEqual(plans["fixed_8"]["records"],1)
                     self.assertEqual(plans["fixed_12"]["stake_yen"],1200)
                     self.assertEqual(plans["confidence_shortlist_1_to_8"]["scorable"],1)
-                self.assertEqual(r["cohort_comparisons"]["A"]["paired_scored_races"],1)
-                self.assertEqual(r["cohort_comparisons"]["A"]["selection_state"],
+                self.assertEqual(r["cohort_comparisons"][sport+"::A"]["paired_scored_races"],1)
+                self.assertEqual(r["cohort_comparisons"][sport+"::A"]["selection_state"],
                                  "INSUFFICIENT_PAIRED_EVIDENCE")
 
     def test_unverified_and_special_outcomes_are_not_losses(self):
         x=case()
         x["result"]=None
         report=evaluate([x],schedule([x]))
-        v=report["scorecards"]["A"][ALL_MODELS[0]]["fixed_8"]
+        v=report["scorecards"]["boat::A"][ALL_MODELS[0]]["fixed_8"]
         self.assertEqual(v["scorable"],0)
         self.assertEqual(v["pending"],1)
         self.assertIsNone(v["hit_rate"])
         x["result"]=case(status="SPECIAL")["result"]
         report=evaluate([x],schedule([x]))
-        self.assertEqual(report["scorecards"]["A"][ALL_MODELS[0]]
+        self.assertEqual(report["scorecards"]["boat::A"][ALL_MODELS[0]]
                          ["fixed_8"]["scorable"],0)
 
     def test_full_refund_separate_from_accuracy(self):
@@ -76,25 +76,25 @@ class ModelTournamentTests(unittest.TestCase):
         x["result"]["status"]="CANCELLED"
         x["result"]["winning_combinations"]=[]
         report=evaluate([x],schedule([x]))
-        v=report["scorecards"]["A"][ALL_MODELS[0]]["fixed_8"]
+        v=report["scorecards"]["boat::A"][ALL_MODELS[0]]["fixed_8"]
         self.assertEqual((v["gross_yen"] if "gross_yen" in v else
                           v["stake_yen"],v["received_yen"]),(800,800))
         self.assertEqual(v["full_refunds"],1)
         self.assertEqual(v["scorable"],0)
         self.assertEqual(v["roi"],1)
-        self.assertEqual(report["cohort_comparisons"]["A"]["paired_scored_races"],0)
+        self.assertEqual(report["cohort_comparisons"]["boat::A"]["paired_scored_races"],0)
 
     def test_manshu_denominator_is_actual_high_payout_race_not_all_races(self):
         x=case(payout=12000)
         r=evaluate([x],schedule([x]))
-        v=r["scorecards"]["A"][ALL_MODELS[0]]["fixed_8"]
+        v=r["scorecards"]["boat::A"][ALL_MODELS[0]]["fixed_8"]
         self.assertEqual(v["manshu_races"],1)
         self.assertEqual(v["manshu_hits"],1)
         self.assertEqual(v["manshu_capture_rate"],1)
         x["result"]["winning_combinations"]=[{
             "combination":[6,5,4],"payout_per_100_yen":15000}]
         r=evaluate([x],schedule([x]))
-        self.assertEqual(r["scorecards"]["A"][ALL_MODELS[0]]
+        self.assertEqual(r["scorecards"]["boat::A"][ALL_MODELS[0]]
                          ["fixed_8"]["manshu_races"],1)
 
     def test_missing_forecast_in_schedule_is_not_silently_dropped(self):
@@ -102,17 +102,17 @@ class ModelTournamentTests(unittest.TestCase):
         expected=schedule([x])+[{"cohort":"A","race_id":"boat:2030-01-15:fictional-venue:2"}]
         r=evaluate([x],expected,minimum_paired=1,minimum_days=1)
         self.assertEqual(len(r["missing_forecast_keys"]),1)
-        self.assertEqual(r["cohort_comparisons"]["A"]["selection_state"],
+        self.assertEqual(r["cohort_comparisons"]["boat::A"]["selection_state"],
                          "INSUFFICIENT_PAIRED_EVIDENCE")
-        self.assertFalse(r["cohort_comparisons"]["A"]["coverage_in_expected_schedule"])
+        self.assertFalse(r["cohort_comparisons"]["boat::A"]["coverage_in_expected_schedule"])
 
     def test_different_asof_cohorts_remain_separate(self):
         x=case()
         y=copy.deepcopy(x);y["cohort"]="B"
         r=evaluate([x,y],schedule([x,y]))
         self.assertEqual(r["records"],2)
-        self.assertEqual(set(r["scorecards"]),{"A","B"})
-        self.assertEqual(set(r["cohort_comparisons"]),{"A","B"})
+        self.assertEqual(set(r["scorecards"]),{"boat::A","boat::B"})
+        self.assertEqual(set(r["cohort_comparisons"]),{"boat::A","boat::B"})
 
     def test_forged_or_mutated_forecast_cannot_be_compared(self):
         x=case()
@@ -133,6 +133,27 @@ class ModelTournamentTests(unittest.TestCase):
         x["result"]["observed_at"]="2030-01-15T09:30:00+09:00"
         with self.assertRaises(ValueError):
             evaluate([x],schedule([x]))
+
+
+    def test_different_sports_never_share_a_scoreboard(self):
+        boat = case("boat")
+        cycle = case("keirin")
+        report = evaluate([boat, cycle], schedule([boat, cycle]))
+        self.assertEqual(set(report["scorecards"]), {"boat::A", "keirin::A"})
+        self.assertEqual(set(report["cohort_comparisons"]), {"boat::A", "keirin::A"})
+        self.assertEqual(report["cohort_comparisons"]["boat::A"]["paired_scored_races"], 1)
+        self.assertEqual(report["cohort_comparisons"]["keirin::A"]["paired_scored_races"], 1)
+
+    def test_an_unsettled_race_blocks_even_provisional_winner(self):
+        boat=case("boat")
+        keirin=case("keirin")
+        pending=copy.deepcopy(keirin)
+        pending["result"]=None
+        report=evaluate([boat,pending],schedule([boat,pending]),minimum_paired=1,minimum_days=1)
+        self.assertTrue(report["cohort_comparisons"]["boat::A"]["coverage_in_expected_schedule"])
+        self.assertFalse(report["cohort_comparisons"]["keirin::A"]["coverage_in_expected_schedule"])
+        self.assertEqual(report["cohort_comparisons"]["keirin::A"]["selection_state"],
+                         "INSUFFICIENT_PAIRED_EVIDENCE")
 
     def test_cli_exports_csv_and_json_without_overwrite(self):
         x=case()
