@@ -89,8 +89,10 @@ def profile_before(records: list[dict], *, as_of: str, racer_id: str) -> dict:
         if selected is None:
             continue
         included.append(rid)
-        selected_races.append((cutoff, place, selected["course"]))
         f, c, place = selected["frame"], selected["course"], selected["finish"]
+        # Derive recent form from THIS racer, not the final iterated
+        # participant's finish in the prior six-row validation loop.
+        selected_races.append((cutoff, place, c))
         frame_course_counts[str(f)][str(c)] += 1
         if place == 1:
             win_method_by_course[str(c)][race["winner_method"]] += 1
