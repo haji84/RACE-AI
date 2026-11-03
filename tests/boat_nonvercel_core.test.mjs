@@ -29,7 +29,7 @@ class FakeD1{
    const k=a[0]+':'+a[1];if(!x.results.has(k))x.results.set(k,{report_json:a[2],report_sha256:a[3],
     db_saved_at:'2030-11-03T01:35:01.500Z'});return{success:true};
   }
- }};}};}
+ };}};}
 }
 test('120 valid outcomes and 8 unique uncalibrated tickets',()=>{
  const out=predict(facts());assert.equal(out.all120.length,120);assert.equal(out.top8.length,8);
