@@ -38,3 +38,6 @@ only_artifacts=13216650196
 
 2026-11-03 19:16 JST independent one-shot first result check for already frozen Kiryu 9R (race_id 20261103-01-09), original artifact 13220026930 created 18:44:46 JST before 18:55 official cutoff. Recheck resultlist AND racerresult; official not published stays pending. Validate 6 finishers, trifecta payout, refunds/abnormality before A/B/C-lite grading. No rerank, duplicate, original change or unverified hit. Only this batch; <=2 source GET.
 only_artifacts=13220026930
+
+2026-11-03 20:30 JST single independent official-result check of already frozen Kiryu10R 20261103-01-10, original run 41617511245 / artifact 13220834629 (19:14:12 JST receipt vs 19:23 cutoff). Validate original ZIP/JSON and first receipt, official six finishers, refunds/abnormal and trifecta, A/B and separate C-lite. No changes to past predictions; <=2 official GET. Previous Kiryu9R is not new.
+only_artifacts=13220834629
