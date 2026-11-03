@@ -39,6 +39,9 @@ from scripts.boat_ab_future_pilot import motor_top2
 import race_ai
 race_ai.__path__.insert(0,str(ROOT/"race_ai"))
 from race_ai.boat_deadline_queue import select_due_races
+from race_ai.boat_live_feature_shadow import build_live_feature_shadow
+from race_ai.boat_manshu_watch import freeze_priced_tail
+from race_ai.official_race_updates import endpoint as update_endpoint
 
 MODULE=importlib.util.spec_from_file_location("national_boat_pair",ROOT/"race_ai"/"boat_ab_shadow.py")
 model=importlib.util.module_from_spec(MODULE)
@@ -59,7 +62,8 @@ def observed_timestamp():
     return datetime.now(timezone.utc).isoformat(timespec="microseconds")
 
 
-def stop(reason, *, source=None, schedule=None, queue=None, tries=None, forecasts=None):
+def stop(reason, *, source=None, schedule=None, queue=None, tries=None,
+         forecasts=None, extended=None, priced=None):
     OUTPUT.mkdir(parents=True,exist_ok=True)
     result={
         "schema":"RACE_AI_NATIONWIDE_PRE_CUTOFF_AB_V1",
@@ -74,13 +78,15 @@ def stop(reason, *, source=None, schedule=None, queue=None, tries=None, forecast
         "candidate_attempts":tries or [],
         "paired_forecasts":forecasts or [],
         "paired_forecast_count":len(forecasts or []),
+        "additional_official_feature_shadows":extended or [],
+        "official_priced_longshot_watches":priced or [],
         "research_only":True,
         "scores_calibrated":False,
         "history_tactical_features_admitted":False,
         "longshot_odds_verified":False,
         "external_artifact_preclose_verified":False,
         "live_continuous_collection_enabled":False,
-        "v e r c e l".replace(" ",""):False,
+        "vercel_used":False,
     }
     (OUTPUT/"national.json").write_text(
         json.dumps(result,ensure_ascii=False,sort_keys=True,separators=(",",":"),allow_nan=False),
@@ -124,14 +130,14 @@ def make_pair(day,race):
     now=datetime.now(timezone.utc)
     cutoff=datetime.fromisoformat(race["cutoff_at"])
     if cutoff-now<=MIN_TO_CUTOFF:
-        return {"race_id":race_id,"state":"TOO_LATE_BEFORE_SOURCE"},None
+        return {"race_id":race_id,"state":"TOO_LATE_BEFORE_SOURCE"},None,None,None
     url=racelist_endpoint(day,venue,n)
     raw,at,program_sha=get(url)
     program=parse_official_racelist(raw,day=day,venue=venue,race_no=n,
                      source_url=url,captured_at=at.isoformat())
     if (program["race_id"]!=race_id or program["closed_at"]!=race["cutoff_at"]
             or any(r["entry_status"]!="listed" for r in program["boats"])):
-        return {"race_id":race_id,"state":"OFFICIAL_PROGRAM_OR_WITHDRAWAL_CONFLICT"},None
+        return {"race_id":race_id,"state":"OFFICIAL_PROGRAM_OR_WITHDRAWAL_CONFLICT"},None,None,None
     motor=motor_top2(raw,program["boats"])
     official_preview_url=preview_endpoint(day,venue,n,"beforeinfo")
     preview,preview_at,preview_sha=get(official_preview_url)
@@ -140,10 +146,10 @@ def make_pair(day,race):
                         entries=program["boats"])
     if result["status"]!="AVAILABLE" or result.get("data") is None:
         return {"race_id":race_id,"state":"EXHIBITION_NOT_FULLY_PUBLISHED",
-                "source_sha256":preview_sha},None
+                "source_sha256":preview_sha},None,None,None
     six=sorted(result["data"]["boats"],key=lambda r:r["lane"])
     if len(six)!=6 or any(r["display_time"] is None for r in six):
-        return {"race_id":race_id,"state":"EXHIBITION_TIME_INCOMPLETE"},None
+        return {"race_id":race_id,"state":"EXHIBITION_TIME_INCOMPLETE"},None,None,None
     entrants={r["lane"]:r for r in program["boats"]}
     boats=[]
     for measured in six:
@@ -167,10 +173,49 @@ def make_pair(day,race):
     }
     computed=model.build_pair(data,generated)
     if datetime.now(timezone.utc)+MIN_TO_CUTOFF>=cutoff:
-        return {"race_id":race_id,"state":"TOO_LATE_AFTER_MODEL"},None
+        return {"race_id":race_id,"state":"TOO_LATE_AFTER_MODEL"},None,None,None
+    # C-lite uses the *same official observations*, including local rate and
+    # the already published historical average ST. It remains separate from
+    # frozen A/B and is never misrepresented as a tactical history model.
+    extra={
+        "race_id":race_id,
+        "observed_at":preview_at.isoformat(timespec="microseconds"),
+        "source_sha256":hashlib.sha256((program_sha+preview_sha).encode()).hexdigest(),
+        "participants":[{
+            "lane":r["lane"],"racer_id":r["racer_registration_id"],
+            "local_win_rate":r["local_win_rate"],
+            "average_st":r["average_st"],
+            "exhibition_st":next(x for x in six if x["lane"]==r["lane"])["preview_st"],
+            "exhibition_st_status":next(x for x in six if x["lane"]==r["lane"])["preview_st_status"],
+        } for r in program["boats"]],
+    }
+    extended=None
+    try:
+        extended=build_live_feature_shadow(data,extra,observed_timestamp())
+    except ValueError:
+        extended={"race_id":race_id,"state":"C_LITE_SOURCE_NOT_ADMITTED"}
+    # A man-shu is >=10,000 yen for a 100-yen ticket. Do NOT infer it
+    # from a low model score. Require 120 published official odds before the
+    # relevant cutoff and label the priced research variant separately.
+    priced={"race_id":race_id,"state":"OFFICIAL_PRE_CLOSE_PRICES_NOT_VERIFIED"}
+    if datetime.now(timezone.utc)+MIN_TO_CUTOFF<cutoff and requests_used<REQUEST_CAP:
+        try:
+            price_url=update_endpoint(day,venue,n,"odds3t")
+            odds_raw,odds_at,odds_sha=get(price_url)
+            odds=parse_update(odds_raw,kind="odds3t",day=day,venue=venue,race_no=n,
+                              source_url=price_url,captured_at=odds_at.isoformat(),
+                              entries=program["boats"])
+            old_pair={"schema":"RACE_AI_BOAT_LIVE_AB_RESEARCH_V1",
+                      "status":"REAL_TWO_MODEL_PAIR_GENERATED_UNVERIFIED_ARTIFACT",
+                      "race_id":race_id,"cutoff_at":race["cutoff_at"],
+                      "result_used":False,"paired_forecast":computed}
+            priced=freeze_priced_tail(old_pair,odds,observed_timestamp())
+        except (SourceError,ValueError,KeyError,TypeError) as ex:
+            priced={"race_id":race_id,"state":"OFFICIAL_PRE_CLOSE_PRICES_NOT_VERIFIED",
+                    "failure_class":type(ex).__name__}
     return {"race_id":race_id,"state":"AB_GENERATED_NOT_YET_EXTERNAL_FROZEN",
             "program_sha256":program_sha,"exhibition_sha256":preview_sha,
-            "generated_at":generated},computed
+            "generated_at":generated},computed,extended,priced
 
 
 def run():
@@ -236,13 +281,15 @@ def run():
                     source={"url":url,"source_sha256":index_sha,"captured_at":index_at.isoformat()},
                     tries=venue_errors)
     attempts=list(after_close_rows)
-    forecasts=[]
+    forecasts=[];extra_forecasts=[];priced_watches=[]
     for race in queue["eligible"][:MAX_ATTEMPTS]:
         try:
-            status,pair=make_pair(day,race)
+            status,pair,extended,priced=make_pair(day,race)
             attempts.append(status)
             if pair is not None:
                 forecasts.append(pair)
+                if extended is not None:extra_forecasts.append(extended)
+                if priced is not None:priced_watches.append(priced)
                 if len(forecasts)>=MAX_FORECASTS:
                     break
         except (SourceError,ValueError,UnicodeError,OSError,error.URLError,TimeoutError,TypeError) as ex:
@@ -259,7 +306,8 @@ def run():
     return stop("NEEDS_INDEPENDENT_GITHUB_ARTIFACT_TIME_CHECK" if forecasts else
                 "NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES",
                 source=source,schedule=listing,
-                queue=compact,tries=venue_errors+attempts,forecasts=forecasts)
+                queue=compact,tries=venue_errors+attempts,forecasts=forecasts,
+                extended=extra_forecasts,priced=priced_watches)
 
 
 if __name__=="__main__":
