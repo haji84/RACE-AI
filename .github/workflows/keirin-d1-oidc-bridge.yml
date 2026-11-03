@@ -1,0 +1,59 @@
+name: KEIRIN OIDC private D1 race cohort sync
+
+on:
+  push:
+    branches:
+      - main
+      - feat/keirin-d1-oidc-private-bridge-20261103
+    paths:
+      - '.github/workflows/keirin-d1-oidc-bridge.yml'
+      - 'workers/keirin_d1_oidc_worker.mjs'
+      - 'scripts/keirin_d1_bridge_once.py'
+      - 'tests/test_keirin_d1_worker.mjs'
+      - 'tests/test_keirin_d1_bridge_once.py'
+      - 'scripts/keirin_d1_auth_smoke.py'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '24 5,7 * * *'
+      timezone: 'Asia/Tokyo'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keirin-private-d1-sync-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  unit:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: OIDC Worker rejects all anonymous and invalid tokens
+        run: node --test tests/test_keirin_d1_worker.mjs
+      - name: OIDC Python client rejects untrusted origin and mismatched save
+        run: python -m unittest discover -s tests -p test_keirin_d1_bridge_once.py -v
+      - name: Real-day ID discovery still respects missing-data rules
+        run: python -m unittest discover -s tests -p test_keirin_discovery.py -v
+      - name: Public Worker health and authenticated-only private data boundary
+        run: python -m scripts.keirin_d1_auth_smoke
+
+  sync_private:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: One dated source page -> 76/available races -> OIDC-only private D1
+        run: python -m scripts.keirin_d1_bridge_once
