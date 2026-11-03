@@ -43,9 +43,13 @@ def restore_from_git(*, repo, continue_synthetic=False):
              "UNTRUSTED_RESTORE_RUNTIME")
     git=lambda *args, cwd=repo: command(["git",*args],cwd=cwd)
     remote=git("remote","get-url","origin")
-    need(remote.startswith("https://github.com/"+REPO) or
-         remote.startswith("git@github.com:"+REPO),
-         "GIT_REMOTE_REPOSITORY_MISMATCH")
+    need(remote in (
+        "https://github.com/"+REPO,
+        "https://github.com/"+REPO+".git",
+        "https://github.com/"+REPO+"/",
+        "git@github.com:"+REPO+".git",
+        "git@github.com:"+REPO,
+    ),"GIT_REMOTE_REPOSITORY_MISMATCH")
     git("fetch","--no-tags","origin",
         "refs/heads/"+STATE_BRANCH+":refs/remotes/origin/"+STATE_BRANCH)
     with tempfile.TemporaryDirectory(prefix="keirin-state-readonly-") as tmp:
