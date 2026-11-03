@@ -1,3 +1,4 @@
+# Explicit one-time post-parser verification (no recurring schedule).
 name: KEIRIN alternate published-result one-shot research
 on:
   push:
