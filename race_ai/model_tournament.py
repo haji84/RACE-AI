@@ -50,7 +50,10 @@ def _key(race_id, cohort):
     _need(type(cohort) is str and 1 <= len(cohort) <= 48 and
           all(v.isascii() and (v.isalnum() or v in "_-") for v in cohort),
           "cohort must be stable ASCII label")
-    return cohort, race_id
+    sport = race_id.split(":", 1)[0]
+    _need(sport in {"boat", "keirin", "autorace", "horse"},
+          "unsupported sport in race identity")
+    return sport + "::" + cohort, race_id
 
 
 def _score_record(record):
@@ -58,7 +61,9 @@ def _score_record(record):
           "expected original suite, separate result and cohort")
     suite, result = record["suite"], record["result"]
     _need(verify_suite(suite), "original suite hash or ticket trial mismatch")
-    cohort, rid = _key(suite["race_id"], record["cohort"])
+    group, rid = _key(suite["race_id"], record["cohort"])
+    _need(group.split("::")[0] == suite["sport"],
+          "race identity and model sport mismatch")
     _need(type(suite.get("models")) is dict and
           type(suite.get("ticket_trials")) is dict and
           tuple(suite["models"]) == tuple(suite["ticket_trials"]),
@@ -85,7 +90,7 @@ def _score_record(record):
             status = actual["status"] if actual else (
                 "RESULT_NOT_OBSERVED" if result is None else verdict["state"])
             out.append({
-                "cohort": cohort, "race_id": rid, "sport": suite["sport"],
+                "cohort": record["cohort"], "race_id": rid, "sport": suite["sport"],
                 "day_jst": day, "model_id": model_id,
                 "plan_id": plan_name, "ticket_count": plan["ticket_count"],
                 "status": status,
@@ -106,7 +111,7 @@ def _score_record(record):
                 "trials_sha256": trials["trials_sha256"],
                 "as_of": suite["as_of"], "cutoff_at": suite["sales_cutoff_at"],
             })
-    return (cohort, rid), tuple(suite["models"]), out
+    return (group, rid), tuple(suite["models"]), out
 
 
 def _metrics(rows):
@@ -186,7 +191,8 @@ def evaluate(records, schedule=None, *, minimum_paired=100, minimum_days=5):
     model_rows = defaultdict(list)
     for batch in indexed.values():
         for row in batch:
-            model_rows[(row["cohort"],row["model_id"],row["plan_id"])].append(row)
+            model_rows[(row["sport"]+"::"+row["cohort"],
+                        row["model_id"],row["plan_id"])].append(row)
     scorecards = {}
     for (cohort, model, plan), values in sorted(model_rows.items()):
         scorecards.setdefault(cohort, {}).setdefault(model, {})[plan] = _metrics(values)
@@ -248,7 +254,8 @@ def evaluate(records, schedule=None, *, minimum_paired=100, minimum_days=5):
         "records":len(indexed), "scheduled":len(expected),
         "schedule_verified_complete":False,
         "schedule_supplied":completeness_known,
-        "missing_forecast_keys":[{"cohort":a,"race_id":b}
+        "missing_forecast_keys":[{"sport":a.split("::",1)[0],
+                                  "cohort":a.split("::",1)[1],"race_id":b}
                                  for a,b in sorted(expected-set(indexed))],
         "cohort_comparisons":common, "scorecards":scorecards,
         "research_only":True, "external_result_authentication":False,
