@@ -66,16 +66,17 @@ def status(**kw):
     return value
 
 def cross_check_js(program_bytes, preview_bytes, day, venue, race_no, known_boats, preview_boats):
-    """Use real source bytes in RAM to compare PR64 and Cloudflare JS parsers."""
-    program=program_bytes.decode("utf-8")
-    preview=preview_bytes.decode("utf-8")
-    source={"program":program,"preview":preview,"day":day.strftime("%Y%m%d"),
-            "venue":venue,"race":race_no}
+    """Real Python-to-JS source parity in RAM; safe finite error codes only."""
+    source={"program":program_bytes.decode("utf-8"),"preview":preview_bytes.decode("utf-8"),
+            "day":day.strftime("%Y%m%d"),"venue":venue,"race":race_no}
     js=(
      "import{parseRacelist,parseExhibition}from './workers/boat_official_html.mjs';"
      "let s='';for await(const chunk of process.stdin)s+=chunk;"
-     "const p=JSON.parse(s);const r=parseRacelist(p.program,p.day,p.venue,p.race);"
-     "const d=parseExhibition(p.preview,p.day,p.venue,p.race,r);"
+     "const p=JSON.parse(s);let r,d;"
+     "try{r=parseRacelist(p.program,p.day,p.venue,p.race)}"
+     "catch(e){console.log(JSON.stringify({phase:'RACELIST',error:String(e.message||'').slice(0,95)}));process.exit(0)};"
+     "try{d=parseExhibition(p.preview,p.day,p.venue,p.race,r)}"
+     "catch(e){console.log(JSON.stringify({phase:'EXHIBITION',error:String(e.message||'').slice(0,95)}));process.exit(0)};"
      "console.log(JSON.stringify({roster:r,display:d}));"
     )
     try:
@@ -83,16 +84,21 @@ def cross_check_js(program_bytes, preview_bytes, day, venue, race_no, known_boat
             input=json.dumps(source,ensure_ascii=False),capture_output=True,
             text=True,encoding="utf-8",timeout=8,check=False)
     except (OSError,TimeoutError,UnicodeError,subprocess.TimeoutExpired):
-        return False
+        return False,"JS_RUNTIME"
     if result.returncode!=0:
-        return False
-    try: node=json.loads(result.stdout)
-    except (ValueError,TypeError):return False
+        return False,"JS_EXECUTION_FAILED"
+    try:node=json.loads(result.stdout)
+    except (ValueError,TypeError):return False,"JS_OUTPUT"
+    if "error" in node:
+        phase=node.get("phase","UNKNOWN")
+        code=node["error"] if re.fullmatch("[A-Z0-9_]{5,80}",node["error"]) else "INVALID"
+        return False,phase+"_"+code
     expected={r["lane"]:(r["racer_registration_id"],r["national_win_rate"]) for r in known_boats}
     measured={r["lane"]:r["display_time"] for r in preview_boats}
     node_roster={r["lane"]:(r["registration_no"],r["national_win_rate"]) for r in node["roster"]}
     node_display={r["lane"]:r["exhibition_time_seconds"] for r in node["display"]}
-    return expected==node_roster and measured==node_display
+    return (True,"OK") if expected==node_roster and measured==node_display else (False,"VALUE_MISMATCH")
+
 
 def run():
     now=datetime.now(timezone.utc)
@@ -131,9 +137,9 @@ def run():
         six=sorted(observation["data"]["boats"],key=lambda row:row["lane"])
         if len(six)!=6 or any(row["display_time"] is None for row in six):
             return status(race_id=race_id,cutoff_at=closing.isoformat(),reason="EXHIBITION_TIMES_INCOMPLETE")
-        crosslanguage_ok=cross_check_js(race_raw,preview_raw,day,VENUE,n,details["boats"],six)
+        crosslanguage_ok,crosslanguage_reason=cross_check_js(race_raw,preview_raw,day,VENUE,n,details["boats"],six)
         if not crosslanguage_ok:
-            return status(race_id=race_id,cutoff_at=closing.isoformat(),reason="CLOUDFLARE_JS_PARSER_UNVERIFIED",source_gets=calls)
+            return status(race_id=race_id,cutoff_at=closing.isoformat(),reason="CLOUDFLARE_JS_"+crosslanguage_reason)
         if pt>=closing-timedelta(seconds=180):return status(race_id=race_id,reason="TOO_LATE_AFTER_FETCH")
         program={x["lane"]:x for x in details["boats"]}
         avg=math.fsum(x["display_time"] for x in six)/6
