@@ -84,8 +84,11 @@ class LocalAuthorizedAutoraceE2E(unittest.TestCase):
         self.assertEqual(stat.S_IMODE(self.store_path.stat().st_mode),0o600)
         self.assertEqual(self.store.readback(self.row["race_id"],PHASES[0],self.model)["state"],
                          "ABSENT")
-        with self.assertRaises(ValueError):
-            LocalPrivateJournal(Path(self.temp.name)/"world-readable.sqlite")
+        shared = Path(self.temp.name)/"public"
+        shared.mkdir(mode=0o755)
+        shared.chmod(0o755)
+        with self.assertRaisesRegex(ValueError, "DIRECTORY_NOT_PRIVATE"):
+            LocalPrivateJournal(shared/"world-readable.sqlite")
 
     def test_offline_a_b_stored_and_read_after_restart_and_result_pdca(self):
         first=self.do_tick()
