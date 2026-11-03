@@ -5,7 +5,7 @@ import {assertFacts,predict,freeze,settle} from '../workers/boat_nonvercel_core.
 const now=Date.parse('2030-11-03T10:15:00+09:00'),cutoff='2030-11-03T10:30:00+09:00';
 const race='20301103-18-05',source='https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=5&jcd=18&hd=20301103';
 const facts=()=>({schema:'RACE_AI_BOAT_OBSERVATION_V1',phase:'post_exhibition',race_id:race,cutoff_at:cutoff,
- captured_at:'2030-11-03T10:14:50+09:00',source_url:source,source_sha256:'a'.repeat(64),
+ captured_at:'2030-11-03T10:14:50+09:00',source_url:source,source_sha256:'a'.repeat(64),program_sha256:'c'.repeat(64),
  rights_verified:true,license_purpose:'private_analysis',racers:[1,2,3,4,5,6].map(lane=>({
  lane,registration_no:String(4200+lane),national_win_rate:5+lane*.2,exhibition_time_seconds:6.8+lane*.01}))});
 const result=()=>({phase:'official_result',race_id:race,source_url:source.replace('/beforeinfo?','/raceresult?'),
