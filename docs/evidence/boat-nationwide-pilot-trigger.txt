@@ -9,3 +9,5 @@ Fourth bounded nationwide run 2026-11-03 JST after fixing racer recent-10 select
 2026-11-03 13:24 JST: another bounded 13-venue 156-slot sorted upcoming new-races-only A/B and C-lite with source-verified man-shu watch; do not reuse previous frozen race forecasts.
 
 2026-11-03 after cross-chat handoff: one bounded real national queue E2E regression, now using the nine-entry canonical freeze index to reject duplicate A/B races while preserving immutable original artifacts. No Vercel or auto wagers.
+
+2026-11-03 14:30 JST owner-authorized one-shot nationwide future only, 45 official GET max, actual six-boat published beforeinfo only, 3 A/B max, skip canonical 14 race IDs, no duplicate forecast, no market features, no Vercel, no purchases, no continuous-operation claim.
