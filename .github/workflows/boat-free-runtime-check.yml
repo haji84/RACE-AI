@@ -27,7 +27,7 @@ jobs:
       - name: Validate Free runtime safety and canonical A/B numerical parity
         run: |
           node --check workers/boat_free_runtime.mjs
-          node --test tests/boat_free_model.test.mjs tests/boat_free_runtime.test.mjs
+          node --test tests/boat_free_model.test.mjs tests/boat_free_runtime.test.mjs tests/boat_free_failures.test.mjs
           python tests/boat_free_numeric_parity.py
       - name: Package tested source only, no secrets and no live predictions
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
