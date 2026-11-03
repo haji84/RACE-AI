@@ -1,3 +1,5 @@
 2026-11-03 JST controlled same-future-race A/B; source rights approved by owner. No Vercel, no wager, no result access in forecast job. Candidate weights preregistered in boat_ab_shadow.py. Official source fetch max 3 per run. Freeze via GitHub artifact only; verify server created_at separately. Trigger v1.
 Pilot v2: 2026-11-03 JST repair source motor subtable main racer row selection; same fixed models and no result features.\n
 Prospective extra-cohort collection attempt #3, 2026-11-03 JST. Fixed A/B coefficients; official data and forecast must be saved before that race's verified cutoff. No Vercel or result data in forecast job.
+
+2026-11-03 JST prospective retry: Miyajima 3R after prior 11:00 exhibition-pending observation. Preserve earlier 2R A/B unchanged and require future cutoff and a new independent artifact creation time.
