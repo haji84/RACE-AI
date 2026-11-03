@@ -9,6 +9,9 @@ on:
       - 'race_ai/autorace_source_contract.py'
       - 'race_ai/autorace_personal_baseline.py'
       - 'tests/test_autorace_personal_baseline.py'
+      - 'race_ai/autorace_personal_cli.py'
+      - 'tests/test_autorace_personal_cli.py'
+      - 'docs/AUTORACE_PERSONAL_OBSERVED_USAGE_20261103.md'
       - 'tests/test_autorace_private_source_e2e.py'
       - 'docs/AUTORACE_AB_AUTOMATION_STAGE_20261103.md'
       - '.github/workflows/autorace-ab-contract.yml'
@@ -33,4 +36,4 @@ jobs:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify research model and A/B stage safety (synthetic only)
-        run: python -m unittest tests.test_autorace_ab_pdca tests.test_autorace_private_source_e2e tests.test_autorace_personal_baseline -v
+        run: python -m unittest tests.test_autorace_ab_pdca tests.test_autorace_private_source_e2e tests.test_autorace_personal_baseline tests.test_autorace_personal_cli -v
