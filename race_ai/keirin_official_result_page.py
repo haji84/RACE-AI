@@ -142,6 +142,9 @@ def probe_one_result(kcd, ymd, rno, *, acknowledgement,
                 raise OfficialResultTransportError("UNEXPECTED_PROVIDER_MIME")
             body = response.read(MAX_BODY + 1)
     except (HTTPError, URLError, TimeoutError, OSError) as exc:
+        if isinstance(exc, HTTPError):
+            raise OfficialResultTransportError(
+                "OFFICIAL_PAGE_HTTP_" + str(exc.code)) from None
         raise OfficialResultTransportError(
             "OFFICIAL_PAGE_UNAVAILABLE_" + type(exc).__name__) from None
     if not 0 < len(body) <= MAX_BODY:
