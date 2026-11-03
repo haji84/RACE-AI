@@ -1,0 +1,29 @@
+name: KEIRIN private forecast store readiness
+on:
+  push:
+    branches: [feat/keirin-fullcycle-worker-20261103]
+    paths: ['.github/workflows/keirin-private-readiness.yml']
+permissions:
+  contents: read
+jobs:
+  private_state_check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    env:
+      KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+      STORAGE: ${{ secrets.RACE_AI_PRIVATE_STORAGE_TOKEN }}
+    steps:
+      - name: Check only existence of required private-state credentials
+        shell: bash
+        run: |
+          if [ -n "$KEY" ]; then
+            echo 'RACE_AI_STATE_KEY_PRESENT=true'
+          else
+            echo 'RACE_AI_STATE_KEY_PRESENT=false'
+          fi
+          if [ -n "$STORAGE" ]; then
+            echo 'RACE_AI_PRIVATE_STORAGE_TOKEN_PRESENT=true'
+          else
+            echo 'RACE_AI_PRIVATE_STORAGE_TOKEN_PRESENT=false'
+          fi
+          echo 'LIVE_PRIVATE_FORECAST_WRITES_ENABLED=false'
