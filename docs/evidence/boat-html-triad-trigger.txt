@@ -3,3 +3,5 @@
 2026-11-03 JST one final 3-GET real HTML parser verification after fix for non-top-three dispositions; max 3, compare program/exhibition/result from same race, no forecast.
 
 2026-11-03 JST final one-shot 3-GET verification following observed post-disposition six-person roster comparison bug fix. Any further mismatch becomes a documented blocker, no repeated calls here.
+
+Full-day preflight: one post-thead-fix check of the same non-standard finish, using the existing bounded job only. Classify an explicit reason for stopping on refunds as safe handling, never as a normal settlement or proof of full-day operation. No further retries in this preflight.
