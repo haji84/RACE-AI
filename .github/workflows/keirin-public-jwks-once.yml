@@ -1,0 +1,30 @@
+name: KEIRIN one-shot public GitHub OIDC JWK identification
+on:
+  push:
+    branches: [diag/keirin-oidc-public-jwks-20261103]
+    paths: ['.github/workflows/keirin-public-jwks-once.yml']
+permissions:
+  contents: read
+jobs:
+  public_metadata_once:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Fetch only public OIDC RSA verification keys (no bearer token)
+        run: |
+          python - <<'PY'
+          import urllib.request,json,hashlib,datetime
+          url="https://token.actions.githubusercontent.com/.well-known/jwks"
+          req=urllib.request.Request(url,headers={"User-Agent":"RACE-AI-public-oidc-key-shape/1"})
+          with urllib.request.urlopen(req,timeout=9) as r:
+              assert r.status==200 and r.geturl()==url
+              body=r.read(100000)
+          info=json.loads(body)
+          keys=[]
+          for key in info["keys"]:
+              if key.get("kty")=="RSA" and key.get("alg")=="RS256":
+                  keys.append({k:key[k] for k in ("kid","kty","alg","use","n","e") if k in key})
+          print(json.dumps({"source_sha256":hashlib.sha256(body).hexdigest(),
+              "retrieved_at":datetime.datetime.now(datetime.timezone.utc).isoformat(),
+              "public_keys":keys},sort_keys=True,separators=(",",":")))
+          PY
