@@ -71,9 +71,9 @@ export async function handleJob(env,job){
  }
  if(job.kind==='REPLAY')return replayOne(db,job.race_id);
  need(/^\d{8}-(0[1-9]|1\d|2[0-4])-(0[1-9]|1[0-2])$/.test(job.race_id),'RACE_ID_INVALID');if(!await leaseRace(db,job.race_id))return {state:'LEASE_HELD'};
- const race=await read(db,'SELECT * FROM live_races WHERE race_id=?',job.race_id),now=Date.now();
+ const race=await read(db,'SELECT * FROM live_races WHERE race_id=?',job.race_id),now=Date.now(),closed=now>race.cutoff_ms+180000;
  try{
-  const frozen=await read(db,'SELECT sha256 FROM live_freezes WHERE race_id=?',race.race_id),closed=now>race.cutoff_ms+180000;
+  const frozen=await read(db,'SELECT sha256 FROM live_freezes WHERE race_id=?',race.race_id);
   if(now+120000>=race.cutoff_ms&&!closed){await event(db,race.race_id,'FORECAST',frozen?'FROZEN_WAITING_RESULT':'DEADLINE_REACHED_WITHOUT_FREEZE');await finishStage(db,race.race_id,'RESULT',Math.max(1000,race.cutoff_ms+180000-now));return {state:'WAITING_RESULT'};}
   if(!race.program_json){
    const p=await getPage(db,url('racelist',race.day,race.venue,race.race_no));const current=parseSchedule(p.html,race.day,race.venue)[race.race_no-1];need(current.cutoff_at===race.cutoff_at,'OFFICIAL_CUTOFF_CHANGED');
