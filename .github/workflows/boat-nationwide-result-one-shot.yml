@@ -1,0 +1,51 @@
+name: BOAT national three-race results against frozen A/B (no Vercel)
+on:
+  push:
+    branches:
+      - feat/four-sport-forecast-audit-view-20261022
+    paths:
+      - docs/evidence/boat-national-results-trigger.txt
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: boat-nationwide-3r-independent-result
+  cancel-in-progress: false
+jobs:
+  independent_result:
+    name: Compare national frozen research with official results and 10000-yen misses
+    if: github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: haji84/RACE-AI
+      RACE_AI_NATIONAL_RESULT_OWNER_REVIEWED: 'true'
+    steps:
+      - name: Checkout exact current audit implementation
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Checkout fixed official HTML source verification
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Read GitHub Actions original forecasts and server time
+        run: |
+          gh run download 41575766782 --repo haji84/RACE-AI --name boat-national-cutoff-41575766782 --dir national_source
+          echo "RACE_AI_NATIONAL_GITHUB_CREATED_AT=$(gh api repos/haji84/RACE-AI/actions/artifacts/13202833722 --jq .created_at)" >> "$GITHUB_ENV"
+      - name: Check immutable paired model rank and result guard
+        run: python -m unittest tests.test_boat_ab_shadow tests.test_boat_ab_result_audit tests.test_boat_ab_cohort -v
+      - name: Official postclose national result 3-race verification
+        run: python scripts/boat_nationwide_result_audit.py
+      - name: Save append-only per-race result evidence, no source HTML
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-national-3r-result-${{ github.run_id }}
+          path: boat_national_result_output/result.json
+          if-no-files-found: warn
+          retention-days: 7
