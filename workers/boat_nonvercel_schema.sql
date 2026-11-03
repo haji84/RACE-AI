@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS boat_source_budget (
  day_jst TEXT NOT NULL,
  venue TEXT NOT NULL,
  attempts INTEGER NOT NULL CHECK(attempts BETWEEN 0 AND 120),
+ blocked_until TEXT,
  PRIMARY KEY(day_jst,venue)
 );
 CREATE TRIGGER IF NOT EXISTS boat_race_schedule_no_update BEFORE UPDATE ON boat_race_schedule
