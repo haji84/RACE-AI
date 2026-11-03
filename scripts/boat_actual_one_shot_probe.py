@@ -62,7 +62,7 @@ def status(**kw):
            "status":"NO_FORECAST", "research_only":True,"scores_calibrated":False,
            "github_artifact_created_before_cutoff_verified":False,"real_pre_cutoff_cloud_saved":False,**kw}
     (OUTPUT/"pilot.json").write_text(json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(",",":")),encoding="utf-8")
-    print(json.dumps({"status":value["status"],"race_id":value.get("race_id"),"source_gets":calls,"forecast_made":value.get("forecast_made",False)},ensure_ascii=False))
+    print(json.dumps({"status":value["status"],"race_id":value.get("race_id"),"reason":value.get("reason"),"failure_class":value.get("failure_class"),"source_gets":calls,"forecast_made":value.get("forecast_made",False)},ensure_ascii=False))
     return value
 
 def run():
