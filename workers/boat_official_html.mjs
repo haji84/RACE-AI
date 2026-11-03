@@ -1,6 +1,6 @@
 /** Strict public HTML -> normalized private research facts. Source bytes are not retained. */
 const HOST='https://www.boatrace.jp';
-const view=raw=>raw.replace(/<script\b[\s\S]*?<\/script>/gi,'').replace(/<style\b[\s\S]*?<\/style>/gi,'').replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/gi,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/\s+/g,' ').trim();
+const view=raw=>raw.replace(/<script\b[\s\S]*?<\/script>/gi,'').replace(/<style\b[\s\S]*?<\/style>/gi,'').replace(/<[^>]*>/g,' ').replace(/&nbsp;|&#160;/gi,' ').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/\s+/g,' ').trim().normalize('NFKC');
 const cells=raw=>Array.from(raw.matchAll(/<t[dh]\b[^>]*>([\s\S]*?)<\/t[dh]>/gi),x=>({html:x[1],text:view(x[1])}));
 function tables(html){
  const result=[];
