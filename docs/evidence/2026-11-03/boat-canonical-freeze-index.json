@@ -236,6 +236,16 @@
       "zip_sha256": "f28658165f425f8f68b0091f463ca70eb14b1af6e51952d07710ee6197dc63c9",
       "json_sha256": "de4ade8a167bad6fe32e86a03b0fb3eb16c8af53a0bc9dade502289d61e1b53b",
       "bundle_sha256": "ea04b8a3d9accb1306553d7ed7024e1555a494ddf8282ee8d9b3539233c172fa"
+    },
+    {
+      "race_id": "20261103-01-10",
+      "cutoff_at": "2026-11-03T19:23:00+09:00",
+      "run_id": 41617511245,
+      "artifact_id": 13220834629,
+      "server_created_at": "2026-11-03T10:14:12Z",
+      "zip_sha256": "5c24d00e07eca02ef804b441ef0ecb6f69c32b3f65395f6b55057f8cd0d65a27",
+      "json_sha256": "768a5375db3de3269e35d064a5818ae2e982a1628706bbb25f842b78b2e98296",
+      "bundle_sha256": "29d444d4f6e426e9911b94cdca897b0d568bca3fb084aa4276eaec0513491b27"
     }
   ]
 }
