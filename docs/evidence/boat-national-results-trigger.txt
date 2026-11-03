@@ -14,3 +14,6 @@ only_artifacts=13204251708,13204793279
 
 2026-11-03 15:44 JST: one-shot independent original-readback official-result audit for 14:32 JST 2-race batch only (平和島9R, 福岡9R), compare official finish status/abnormal/return, no post-result prediction changes or repeat counts; cohort totals only after official verification.
 only_artifacts=13206788773
+
+2026-11-03 JST classification correction revision: previous 2-race result audit labeled a completed 3T as ordinary despite non-finisher statuses (Fukuoka9R 転/妨). Re-audit unchanged frozen original, preserve all old evidence as append-only, separate abnormal-finish from ordinary A/B denominators; no new forecast.
+only_artifacts=13206788773
