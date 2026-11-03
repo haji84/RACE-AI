@@ -141,7 +141,7 @@ async function runTick(env,{now=new Date(),fetcher=fetch}={}){
   previous_day_discovered_rows:prior.results?.length??0,
   predictor_calibrated:false,continuous_live_verified:false};
 }
-export {runTick};
+export {runTick,claimResultPoll,resultChecked,rememberGate};
 export default {
  async fetch(){return new Response('Not Found',{status:404,headers:{'Cache-Control':'no-store'}});},
  async scheduled(event,env,ctx){ctx.waitUntil(runTick(env).then(x=>console.log(JSON.stringify(x))).catch(e=>console.error('BOAT_TICK_SAFE_STOP',String(e.message).slice(0,100))));}
