@@ -15,6 +15,18 @@ The owner explicitly instructed on 2026-11-03: 「Cloudflare使わない！」.
 
 - Vercel is also not an approved RACE-AI deployment target.
 - Do not silently substitute another external service, enable new charges, expose prediction originals, change security permissions, or place bets.
-- Reuse validated model, result-comparison, and local SQLite code where appropriate. Alternative hosting/storage selection requires a separate decision; do not invent an approved replacement.
+- Reuse validated model, result-comparison, and local SQLite code where appropriate. Do not invent an approved replacement platform beyond the owner's explicit choice below.
 - Preserve all pre-cutoff prediction originals and result revision history. Do not call an incomplete real-data automation pipeline complete.
-- Prefer existing work/PRs. Main protection and required CI must remain intact. This narrowly scoped shutdown patch does not authorize merging unrelated draft work.
+- Prefer existing work/PRs. Main protection and required CI must remain intact. Do not merge unrelated draft work.
+
+## Owner selected GitHub-only continuation
+
+The owner explicitly instructed after the Cloudflare shutdown: 「GitHubで出来るならそれで進めて」.
+
+- Run on GitHub Actions and keep state within GitHub. Do not reintroduce Cloudflare, Vercel, or another hosting/storage provider.
+- Keep RACE-AI public. Never upload plaintext private forecast SQLite files, keys, raw prediction originals or result-source documents to public branches, logs, artifacts or caches.
+- The current implementation choice is authenticated AES-256-GCM encrypted SQLite snapshots. Production requires the owner's separately configured `RACE_AI_STATE_KEY` GitHub Actions secret, 32 random bytes encoded as base64. Do not invent a key from repo identifiers, GITHUB_TOKEN, a commit, OIDC or a public test value.
+- Synthetic GitHub handoff tests may use the explicitly public fixture-only key with invented riders. They are not proof of private real-data operation, live accuracy, scheduled all-race coverage, or indefinite retention.
+- A runner filesystem is temporary. Restore verified previous state before executing the existing model, and preserve the original prediction and revision history. Missing/expired state is a stop condition, not permission to reset the DB.
+- GitHub artifacts expire. The three-day synthetic proof is not a permanent production backup. Indefinite encrypted retention and real-data feeder integration remain separate acceptance gates.
+- No new private repository, unrelated project vault, changed repository visibility, paid runner or storage plan is authorized by the test implementation.

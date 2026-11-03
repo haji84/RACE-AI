@@ -1,0 +1,77 @@
+name: KEIRIN GitHub-only encrypted handoff
+on:
+  push:
+    branches: [main, feat/github-only-checkpoints-20261103]
+    paths:
+      - '.github/workflows/keirin-github-state-*.yml'
+      - 'scripts/keirin_github_checkpoint*'
+      - 'scripts/keirin_github_sqlite_snapshot.py'
+      - 'tests/test_keirin_github_*'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: keirin-github-only-proof-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  produce:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      cipher_sha256: ${{ steps.produce.outputs.cipher_sha256 }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Authenticated encryption and consistent SQLite backup tests
+        run: |
+          node --test tests/test_keirin_github_checkpoint.mjs
+          python -m unittest discover -s tests -p test_keirin_github_sqlite_snapshot.py -v
+      - name: Existing PR71 model with fictional riders, encrypted SQLite only
+        id: produce
+        run: python -m scripts.keirin_github_checkpoint_fixture produce --work "$RUNNER_TEMP/producer" --artifact "$RUNNER_TEMP/sealed"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: keirin-synthetic-encrypted-checkpoint
+          path: |
+            ${{ runner.temp }}/sealed/state.enc
+            ${{ runner.temp }}/sealed/scope.json
+            ${{ runner.temp }}/sealed/fixture-proof.json
+          retention-days: 3
+          if-no-files-found: error
+  restore_on_other_runner:
+    needs: produce
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: keirin-synthetic-encrypted-checkpoint
+          path: ${{ runner.temp }}/incoming
+      - name: Restore exact DB, audit result, compute next forecast, reject replay
+        env:
+          RACE_AI_EXPECTED_CIPHER_SHA256: ${{ needs.produce.outputs.cipher_sha256 }}
+        run: python -m scripts.keirin_github_checkpoint_fixture consume --work "$RUNNER_TEMP/consumer" --artifact "$RUNNER_TEMP/incoming"
+  production_key_readiness:
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - name: Inspect only key readiness, never print or export the secret
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: |
+          node --input-type=module - <<'JS'
+          import {readKey} from './scripts/keirin_github_checkpoint.mjs';
+          let ready=false;
+          try {readKey(process.env.RACE_AI_STATE_KEY,'production');ready=true;} catch {}
+          console.log(JSON.stringify({production_key_ready:ready,real_forecasts_started:false}));
+          JS

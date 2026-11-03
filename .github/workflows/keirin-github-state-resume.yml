@@ -1,0 +1,30 @@
+name: KEIRIN GitHub-only next-run restore
+on:
+  workflow_run:
+    workflows: [KEIRIN GitHub-only encrypted handoff]
+    types: [completed]
+    branches: [main]
+permissions:
+  contents: read
+  actions: read
+jobs:
+  verify_next_execution:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.repository.id == 1416489937 && (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: keirin-synthetic-encrypted-checkpoint
+          path: ${{ runner.temp }}/incoming
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: New Actions run restores prior encrypted state and continues the existing model
+        env:
+          EXPECTED_PRODUCER_RUN_ID: ${{ github.event.workflow_run.id }}
+          EXPECTED_PRODUCER_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: python -m scripts.keirin_github_checkpoint_fixture consume --work "$RUNNER_TEMP/restarted" --artifact "$RUNNER_TEMP/incoming"
