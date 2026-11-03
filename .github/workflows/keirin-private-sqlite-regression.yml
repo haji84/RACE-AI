@@ -1,3 +1,4 @@
+# SQLite regression checks include all-race private backlog import and correction history.
 name: KEIRIN real SQLite private journal regression
 on:
   push:
