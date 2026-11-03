@@ -62,3 +62,16 @@ test('wrong race, missing exhibition, rights and late time are refused',async()=
  const altered=result();altered.source_url=source;
  await assert.rejects(()=>settle(new FakeD1(),facts(),altered,{now:()=>now+20*60000}));
 });
+
+test('actual payout is only admitted after result and never improves historical predictor',async()=>{
+ const db=new FakeD1();const f=facts();const baseline=predict(f);
+ await freeze(db,f,{now:()=>now});
+ const res=result();res.payout_per_100_yen=1280;
+ const score=await settle(db,f,res,{now:()=>now+20*60000});
+ assert.equal(score.official_trifecta_payout_per_100_yen,1280);
+ assert.equal(score.hypothetical_stake_yen,800);
+ assert.equal(score.hypothetical_return_yen,score.hit8?1280:0);
+ assert.deepEqual(predict(f).top8,baseline.top8);
+ const invalid=result();invalid.payout_per_100_yen=-1;
+ await assert.rejects(()=>settle(db,f,invalid,{now:()=>now+20*60000}),/RESULT_UNADMITTED/);
+});
