@@ -1,0 +1,71 @@
+name: KEIRIN GitHub encrypted Git-history archive
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_run:
+    workflows: [KEIRIN GitHub-only encrypted handoff]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: keirin-encrypted-history-archive
+  cancel-in-progress: false
+
+jobs:
+  archive_tests:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Actual local Git remote, 2 encrypted generations, rollback refusal
+        run: python -m unittest discover -s tests -p 'test_keirin_github_git_archive.py' -v
+      - name: Crypto and SQLite baseline must remain green
+        run: |
+          node --test tests/test_keirin_github_checkpoint.mjs
+          python -m unittest discover -s tests -p 'test_keirin_github_sqlite_snapshot.py' -v
+
+  archive_fixture_from_main:
+    if: >-
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.repository.id == 1416489937 &&
+      github.event.workflow_run.head_branch == 'main' &&
+      (github.event.workflow_run.event == 'push' ||
+       github.event.workflow_run.event == 'workflow_dispatch')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Checkout only trusted main producer SHA
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          fetch-depth: 1
+          persist-credentials: true
+      - name: Download only exact successful main producer artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.1.8
+        with:
+          name: keirin-synthetic-encrypted-checkpoint
+          path: ${{ runner.temp }}/encrypted-input
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Authenticate ciphertext, then create-only Git archive
+        env:
+          EXPECTED_PRODUCER_RUN_ID: ${{ github.event.workflow_run.id }}
+          EXPECTED_PRODUCER_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          python -m scripts.keirin_github_git_archive \
+            --artifact "$RUNNER_TEMP/encrypted-input" \
+            --repo "$GITHUB_WORKSPACE" \
+            --expected-run-id "$EXPECTED_PRODUCER_RUN_ID" \
+            --expected-commit "$EXPECTED_PRODUCER_SHA"

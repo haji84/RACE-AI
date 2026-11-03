@@ -1,0 +1,30 @@
+name: KEIRIN restore encrypted Git history on new runner
+
+on:
+  workflow_run:
+    workflows: [KEIRIN GitHub encrypted Git-history archive]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  prove_git_history_restores:
+    if: >-
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.repository.id == 1416489937 &&
+      github.event.workflow_run.head_branch == 'main' &&
+      github.event.workflow_run.event == 'workflow_run'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+          persist-credentials: false
+      - name: No Actions artifact download, only the retained encrypted Git branch
+        run: |
+          python -m scripts.keirin_github_git_archive_restore \
+            --repo "$GITHUB_WORKSPACE" \
+            --continue-synthetic
