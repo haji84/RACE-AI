@@ -37,6 +37,7 @@ from web.race_contract import validate_cloud_bundle
 import race_ai
 race_ai.__path__.insert(0, str(ROOT71 / "race_ai"))
 from race_ai.pr64_exhibition_pipeline import tick_one, score_after_finish, daily_rollup
+from race_ai.pr64_pdca_cycle import audit_cycle
 
 
 def check():
@@ -113,6 +114,46 @@ def check():
     assert roll["hits_at_8"] == post["hit_at_8"]
     assert roll["frozen_forecasts"] == 1
 
+    # Next-race update queue and stable per-result append-only journal.
+    now_after = NOW.replace(hour=10, minute=10)
+    revisions = {}
+    sent = []
+    def append_verified(x):
+        assert (x["race_id"], x["revision"]) not in revisions
+        revisions[(x["race_id"], x["revision"])] = x
+        sent.append(x)
+        return True
+    def latest_audit(rid):
+        rows = [value for (r, _), value in revisions.items() if r == rid]
+        return max(rows, key=lambda v:v["revision"]) if rows else None
+    def read_audit(rid, n):
+        return revisions.get((rid, n))
+    callbacks=dict(
+        clock=lambda:now_after,
+        load_forecast=lambda row:read_exhibition_prediction(row,client=client,now=now_after),
+        load_result=lambda row:official_bundle,
+        validate_forecast=verify,
+        validate_result=lambda bundle,row,now:validate_cloud_bundle(bundle,row,now),
+        latest_audit=latest_audit,
+        append_audit=append_verified,
+        read_audit=read_audit)
+    first_pdca=audit_cycle([event],**callbacks)
+    assert first_pdca["results"][0]["audit_state"]=="DURABLY_APPENDED"
+    assert len(sent)==1 and first_pdca["kpis"]["officially_scored_races"]==1
+    second_pdca=audit_cycle([event],**callbacks)
+    assert second_pdca["results"][0]["audit_state"]=="ALREADY_SAVED"
+    assert len(sent)==1
+    assert second_pdca["kpis"]["hit_at_8_all"]==first_pdca["kpis"]["hit_at_8_all"]
+    assert second_pdca["model_auto_promoted"] is False
+    # Last new missing-forecast case is scored in the denominator but never
+    # retroactively manufactured as a prediction.
+    missing_pdca=audit_cycle([event],**{**callbacks,
+        "load_forecast":lambda row:None,
+        "latest_audit":lambda rid:None,
+        "append_audit":lambda rec:True,
+        "read_audit":lambda rid,n:None})
+    assert missing_pdca["results"][0]["state"]=="AUDIT_POST_UNCERTAIN_NO_RETRY"
+
     # An unreturned POST must not be retried automatically.
     another, _, other_race = fixture()
     other_client = Blob()
@@ -147,7 +188,7 @@ def check():
             "reused_without_second_post":True, "six_boat_model_120":True,
             "postclose_result_verified":True, "actual_live_races":0,
             "actual_live_predictions":0, "actual_live_result_scores":0,
-            "autonomous_live_dispatch":False}
+            "autonomous_live_dispatch":False,"pdca_idempotent":True}
 
 if __name__ == "__main__":
     print(json.dumps(check(), sort_keys=True))
