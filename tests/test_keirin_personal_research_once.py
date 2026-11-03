@@ -92,5 +92,52 @@ class PersonalModeTests(unittest.TestCase):
         self.assertFalse(result["third_party_result_authenticated"])
         self.assertFalse(result["research_comparison"]["third_party_forecast_freeze_verified"])
 
+    def test_personal_one_get_then_compare_without_licence_token(self):
+        from unittest.mock import patch
+        from race_ai.keirin_personal_research_once import one_private_fetch_and_compare
+        src,ref=fixture()
+        with patch("race_ai.keirin_mobile_one_shot.probe_one",
+                   return_value=src) as mocked:
+            output=one_private_fetch_and_compare(
+                original_reference=ref,
+                race_id=RID, cutoff_at=CUTOFF,
+                ymd="20261103", venue_code=36, race_no=1,
+                personal_scope="USER_PRIVATE_NONCOMMERCIAL_RESEARCH",
+                one_get_acknowledgement="USER_EXPLICIT_ONE_RESULT_GET")
+            self.assertFalse(output["research_comparison"]["research_hit8"])
+            self.assertEqual(mocked.call_count, 1)
+            self.assertEqual(mocked.call_args.kwargs["route"], "legacy")
+
+    def test_one_get_must_be_explicit(self):
+        from unittest.mock import patch
+        from race_ai.keirin_personal_research_once import one_private_fetch_and_compare
+        src,ref=fixture()
+        with patch("race_ai.keirin_mobile_one_shot.probe_one") as mocked:
+            with self.assertRaisesRegex(PersonalResearchError,
+                                        "ONE_GET_EXPLICIT_ACTION_REQUIRED"):
+                one_private_fetch_and_compare(
+                    original_reference=ref,
+                    race_id=RID, cutoff_at=CUTOFF,
+                    ymd="20261103",venue_code=36,race_no=1,
+                    personal_scope="USER_PRIVATE_NONCOMMERCIAL_RESEARCH",
+                    one_get_acknowledgement="UNSCHEDULED_AUTO_GET")
+            mocked.assert_not_called()
+
+    def test_mismatched_race_never_fetches(self):
+        from unittest.mock import patch
+        from race_ai.keirin_personal_research_once import one_private_fetch_and_compare
+        _,ref=fixture()
+        with patch("race_ai.keirin_mobile_one_shot.probe_one") as mocked:
+            with self.assertRaisesRegex(PersonalResearchError,
+                                        "REQUESTED_RACE_ID_MISMATCH"):
+                one_private_fetch_and_compare(
+                    original_reference=ref,
+                    race_id=RID,cutoff_at=CUTOFF,
+                    ymd="20261103",venue_code=36,race_no=2,
+                    personal_scope="USER_PRIVATE_NONCOMMERCIAL_RESEARCH",
+                    one_get_acknowledgement="USER_EXPLICIT_ONE_RESULT_GET")
+            mocked.assert_not_called()
+
+
 if __name__=="__main__":
     unittest.main()
