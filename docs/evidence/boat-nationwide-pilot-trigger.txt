@@ -1,0 +1,1 @@
+2026-11-03 JST: owner-authorized source research, no Vercel, no wagering, 45 official HTML GET maximum, latest official nationwide day source + one source per active venue, up to five earliest due race attempts and three A/B pairs. Never use results as forecast input, require external GitHub artifact timestamp before cutoff.
