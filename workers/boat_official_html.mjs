@@ -80,7 +80,7 @@ function parseExhibition(html,day,venue,race,roster){
 }
 function parseResult(html,day,venue,race,expectedRoster=null){
  pageIdentity(html,day,venue,race,'raceresult');
- const ts=tables(html),finish=only(ts,['着','枠','ボートレーサー','レースタイム']);
+ const ts=tables(html),finish=only(ts.filter(t=>t.header.includes('着')&&t.header.includes('枠')&&t.header.includes('ボートレーサー')&&t.header.includes('レースタイム')),['着','枠','ボートレーサー','レースタイム']);
  if(finish.rows.length!==6)throw Error('OFFICIAL_RESULT_SIX_FINISHES_MISSING');
  const positions=new Map(),lanes=new Set(),racers=new Set(),observedRoster=[];
  for(const row of finish.rows){
@@ -102,7 +102,7 @@ function parseResult(html,day,venue,race,expectedRoster=null){
   if(expectedRoster.length!==6||expectedRoster.some(r=>!observedRoster.some(x=>x.lane===r.lane&&x.registration_no===r.registration_no)))
    throw Error('OFFICIAL_RESULT_ROSTER_MISMATCH');
  }
- const top3=[1,2,3].map(n=>positions.get(n).lane),payout=only(ts,['勝式','組番','払戻金']);
+ const top3=[1,2,3].map(n=>positions.get(n).lane),payout=only(ts.filter(t=>['勝式','組番','払戻金'].every(k=>t.header.includes(k))),['勝式','組番','払戻金']);
  const rows=payout.rows.filter(row=>row.some(cell=>cell.text.replace(/\s+/g,'')==='3連単'));
  if(rows.length!==1)throw Error('OFFICIAL_RESULT_TRIFECTA_MISSING');
  const text=rows[0].map(x=>x.text).join(' ');
@@ -111,7 +111,7 @@ function parseResult(html,day,venue,race,expectedRoster=null){
  if(combos.length!==1)throw Error('OFFICIAL_RESULT_PAYOUT_IDENTITY_MISSING');
  const paid=combos[0].slice(1,4).map(Number);
  if(paid.join('-')!==top3.join('-'))throw Error('OFFICIAL_RESULT_PAYOUT_CONFLICT');
- const returns=only(ts,['返還']);
+ const returns=only(ts.filter(t=>t.header.includes('返還')),['返還']);
  const refundText=returns.rows.map(r=>r.map(c=>c.text).join(' ')).join(' ').trim();
  if(refundText&&!/^(?:なし|--|―|－|-)$/.test(refundText))throw Error('OFFICIAL_RESULT_REFUND_UNVERIFIED');
  return top3;
@@ -120,7 +120,7 @@ function parseResult(html,day,venue,race,expectedRoster=null){
  * never zero, and never an input to the forecast model. */
 function parseResultDetails(html,day,venue,race,roster=null){
  const top3=parseResult(html,day,venue,race,roster);
- const payout=only(tables(html),['勝式','組番','払戻金']);
+ const payout=only(tables(html).filter(t=>['勝式','組番','払戻金'].every(k=>t.header.includes(k))),['勝式','組番','払戻金']);
  const index=payout.heads.findIndex(c=>c.text.replace(/\s+/g,'')==='払戻金');
  const rows=payout.rows.filter(row=>row.some(c=>c.text.replace(/\s+/g,'')==='3連単'));
  const raw=index>=0?rows[0]?.[index]?.text?.trim():'';
