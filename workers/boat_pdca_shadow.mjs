@@ -121,7 +121,11 @@ async function settleChallenger(db,race,result,{now=()=>Date.now()}={}){
   .bind(race.race_id,result.source_sha256,body,digest).run();
  const saved=await db.prepare('SELECT report_json,report_sha256,db_saved_at FROM boat_exhibition_shadow_outcomes WHERE race_id=? AND result_sha256=?')
   .bind(race.race_id,result.source_sha256).first();
- if(!saved||saved.report_json!==body||saved.report_sha256!==digest)throw Error('PDCA_SHADOW_SCORE_READBACK_MISMATCH');
- return {status:'PDCA_SHADOW_SCORED',...report,report_sha256:digest};
+ if(!saved||await sha(saved.report_json)!==saved.report_sha256)throw Error('PDCA_SHADOW_SCORE_READBACK_MISMATCH');
+ let prior;try{prior=JSON.parse(saved.report_json)}catch{throw Error('PDCA_SHADOW_INVALID_SAVED_JSON');}
+ const stable=x=>JSON.stringify({...x,captured_at:null});
+ if(stable(prior)!==stable(report))throw Error('PDCA_SHADOW_REPLAY_CONFLICT');
+ return {status:saved.report_json===body?'PDCA_SHADOW_SCORED':'PDCA_SHADOW_ALREADY_SCORED',
+  ...prior,report_sha256:saved.report_sha256,db_saved_at:saved.db_saved_at};
 }
 export {MODEL,MIN_HISTORY,buildChallenger,freezeChallenger,settleChallenger};
