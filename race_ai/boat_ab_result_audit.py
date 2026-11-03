@@ -4,7 +4,7 @@ Never rescore an invented/mutable forecast and never upgrade a model based on
 one result. This is a pure contract. Source capture and real freeze receipt
 must be externally verified by the cloud caller.
 """
-from datetime import datetime
+from datetime import datetime, timedelta
 import itertools
 import math
 import re
@@ -27,7 +27,17 @@ def score_pair(original, winner, observed_at, server_saved_at):
     if original.get("race_id")!=bundle.get("race_id") or original.get("cutoff_at")!=bundle.get("cutoff_at"):
         raise ValueError("frozen race identity and cutoff mismatch")
     cutoff=_time(bundle["cutoff_at"])
-    if not (_time(bundle["source_captured_at"])<=_time(bundle["generated_at"])<=_time(server_saved_at)<cutoff<=_time(observed_at)):
+    captured=_time(bundle["source_captured_at"])
+    generated=_time(bundle["generated_at"])
+    saved=_time(server_saved_at)
+    # GitHub REST artifact.created_at has second precision. The archive may
+    # legitimately be generated at e.g. 02:09:50.181Z and server-created at
+    # 02:09:50Z. Accept only this same-second truncation, never an earlier
+    # whole second or an artifact at/after the official closing time.
+    generation_precedes_receipt=(generated<=saved or
+        (saved.microsecond==0 and saved<=generated<saved+timedelta(seconds=1)))
+    if not (captured<=generated<cutoff and generation_precedes_receipt
+            and saved<cutoff<=_time(observed_at)):
         raise ValueError("independent freeze/result chronology invalid")
     if type(winner) is not str or winner not in TICKETS:
         raise ValueError("unverified result triple")
