@@ -23,8 +23,8 @@ from race_ai.official_racelist_adapter import endpoint
 from race_ai.official_race_updates import endpoint as update_endpoint
 
 JST=timezone(timedelta(hours=9))
-VENUE="18"
-RACE_WINDOW=(210,780) # seconds before verified program cutoff
+VENUE="17"
+RACE_WINDOW=(210,1050) # seconds before verified program cutoff
 GET_LIMIT=3
 OUTPUT=ROOT/"pilot_output"
 calls=0
