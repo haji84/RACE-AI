@@ -1,3 +1,5 @@
 2026-11-03 JST: owner-authorized source research, no Vercel, no wagering, 45 official HTML GET maximum, latest official nationwide day source + one source per active venue, up to five earliest due race attempts and three A/B pairs. Never use results as forecast input, require external GitHub artifact timestamp before cutoff.
 
 Second bounded national run 2026-11-03 JST: ignore ended races for PRE-cutoff queue while retaining all 13x12 slots in the audit registry. Same A/B weights.
+
+Third bounded live national cutoff-order run 2026-11-03 13:17 JST; frozen previous national 13:03 A/B not reused; three distinct upcoming races only, plus separate official local/ST C-lite and priced 100x watch if fully published.
