@@ -2,7 +2,7 @@
  * Uses only earlier, already-settled private D1 outcome reports. This is a
  * research shadow, NOT a calibrated probability or automatic model promotion.
  */
-import {assertFacts,assertResult,predict} from './boat_nonvercel_core.mjs';
+import {assertFacts,assertResult,predict,refundAccounting} from './boat_nonvercel_core.mjs';
 
 const MODEL='boat-pdca-lane-shadow-v1';
 const MIN_HISTORY=24, MAX_HISTORY=240, HEX=/^[a-f0-9]{64}$/;
@@ -36,7 +36,10 @@ async function historyBefore(rows, facts){
    throw Error('PDCA_AMBIGUOUS_REVISION');
   }
  }
- return [...byRace.values()].sort((a,b)=>a.report.race_id.localeCompare(b.report.race_id));
+ // Filter AFTER selecting each latest revision. Otherwise an amended refund
+ // could incorrectly resurrect an earlier ordinary result as training data.
+ return [...byRace.values()].filter(x=>x.report.eligible_normal_accuracy!==false
+   && !(x.report.refund_boats?.length)).sort((a,b)=>a.report.race_id.localeCompare(b.report.race_id));
 }
 async function buildChallenger(facts,rows){
  const history=await historyBefore(rows,facts);
@@ -115,6 +118,7 @@ async function settleChallenger(db,race,result,{now=()=>Date.now()}={}){
   hit1:Number(!!forecast&&forecast.ordered_top8[0].join('-')===win),
   hit8:Number(!!forecast&&forecast.ordered_top8.some(x=>x.join('-')===win)),
   calibrated:false,auto_promoted:false};
+ if(result.refund_boats.length)Object.assign(report,refundAccounting(forecast?.ordered_top8??[],result));
  const body=JSON.stringify(report),digest=await sha(body);
  await db.prepare("INSERT INTO boat_exhibition_shadow_outcomes(race_id,result_sha256,report_json,report_sha256,db_saved_at) "+
   "VALUES(?,?,?,?,strftime('%Y-%m-%dT%H:%M:%fZ','now')) ON CONFLICT(race_id,result_sha256) DO NOTHING")
