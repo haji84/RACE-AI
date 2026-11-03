@@ -62,6 +62,23 @@ class TestBridge(unittest.TestCase):
             "https://pipelines.actions.githubusercontent.com/"))
         self.assertIn("audience=race-ai-keirin-private-state-v1",request[0])
 
+    def test_regional_github_actions_oidc_hostname_is_allowed(self):
+        request=[]
+        def fake(req,timeout):
+            request.append(req.full_url)
+            return Response(json.dumps({"value":"xxx.yyy.zzz"}).encode(),req.full_url)
+        env={
+            "GITHUB_REPOSITORY":"haji84/RACE-AI",
+            "GITHUB_REF":"refs/heads/main",
+            "GITHUB_EVENT_NAME":"schedule",
+            "ACTIONS_ID_TOKEN_REQUEST_URL":
+                "https://pipelinesghubeus19.actions.githubusercontent.com/_apis/oidc/token?x=1",
+            "ACTIONS_ID_TOKEN_REQUEST_TOKEN":"a"*22,
+        }
+        self.assertEqual(get_github_oidc_token(env=env,open_url=fake),
+                         "xxx.yyy.zzz")
+        self.assertEqual(len(request),1)
+
     def test_external_oidc_url_rejected_before_request(self):
         env={
             "GITHUB_REPOSITORY":"haji84/RACE-AI",
