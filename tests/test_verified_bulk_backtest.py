@@ -4,7 +4,7 @@ import sys
 import tempfile
 import unittest
 sys.path.insert(0,str(Path(__file__).resolve().parents[1]))
-from race_ai.verified_bulk_backtest import BadRecord, choose_results, settle, summarize, safe_triple, run
+from race_ai.verified_bulk_backtest import BadRecord, choose_results, settle, summarize, safe_triple, run, diagnose_cohort, diagnosis_stage
 
 
 def forecast(picks, race='ボート:2026-11-03:徳山:1'):
@@ -71,6 +71,49 @@ class MassAuditTests(unittest.TestCase):
             self.assertEqual(rep['coverage']['races_without_forecast'],0)
             self.assertTrue((out/'all_forecasts.csv').is_file())
             with self.assertRaises(BadRecord):run(ff,rr,out,schedule)
+
+
+
+class HistoricalPDCADiagnosticsTest(unittest.TestCase):
+    def _f(self, picks):
+        return {**forecast(picks), 'cohort': 'morning'}
+
+    def test_failed_winner_pair_and_third(self):
+        picks=['1-2-3','1-3-2']
+        self.assertEqual(diagnosis_stage(picks, '5-2-3'), 'FIRST_NOT_COVERED')
+        self.assertEqual(diagnosis_stage(picks, '1-4-3'), 'SECOND_PAIR_NOT_COVERED')
+        self.assertEqual(diagnosis_stage(picks, '1-2-5'), 'THIRD_NOT_COVERED')
+
+    def test_missed_high_payout_is_not_zero_payout(self):
+        report=diagnose_cohort([self._f(['1-2-3','1-3-2'])], [result({'5-2-3':84690})])
+        total=report['total']
+        self.assertEqual(total['payout_bands']['10000_PLUS'], {'races':1, 'hits':0})
+        self.assertEqual(total['failure_stage_counts']['FIRST_NOT_COVERED'], 1)
+        self.assertEqual((total['gross_yen'],total['received_yen']),(200,0))
+
+    def test_full_refund_not_scored_as_failure(self):
+        report=diagnose_cohort([self._f(['1-2-3','1-3-2'])], [result({'2-4-1':2000},[1])])
+        self.assertEqual(report['total']['scorable'],0)
+        self.assertEqual(report['total']['full_refunds'],1)
+        self.assertEqual(report['total']['received_yen'],200)
+
+    def test_unknown_result_stays_out_of_denominator(self):
+        report=diagnose_cohort([self._f(['1-2-3'])], [])
+        self.assertEqual(report['total']['scorable'],0)
+        self.assertEqual(report['total']['source_grade_counts']['unverified'],1)
+
+    def test_duplicate_cohort_rejected(self):
+        first=self._f(['1-2-3'])
+        with self.assertRaises(BadRecord):
+            diagnose_cohort([first,{**first,'forecast_id':'different'}], [])
+
+    def test_updated_cohort_does_not_replace_morning(self):
+        first=self._f(['1-2-3'])
+        later={**first,'cohort':'updated'}
+        report=diagnose_cohort([first,later],[result({'1-2-3':500})])
+        self.assertEqual(report['total']['forecasts'],1)
+        self.assertFalse(report['total']['future_accuracy_gain_proved'])
+
 
 
 if __name__ == '__main__':unittest.main()
