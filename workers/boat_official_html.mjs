@@ -82,7 +82,7 @@ function parseResult(html,day,venue,race,expectedRoster=null){
  pageIdentity(html,day,venue,race,'raceresult');
  const ts=tables(html),finish=only(ts,['着','枠','ボートレーサー','レースタイム']);
  if(finish.rows.length!==6)throw Error('OFFICIAL_RESULT_SIX_FINISHES_MISSING');
- const positions=new Map(),lanes=new Set(),racers=new Set();
+ const positions=new Map(),lanes=new Set(),racers=new Set(),observedRoster=[];
  for(const row of finish.rows){
   if(row.length!==4)throw Error('OFFICIAL_RESULT_FINISH_COLUMNS_INVALID');
   const pos=row[0].text,lane=row[1].text,id=/^\s*([0-9]{4})\b/.exec(row[2].text);
@@ -94,12 +94,12 @@ function parseResult(html,day,venue,race,expectedRoster=null){
      ||(numeric&&positions.has(Number(pos)))||lanes.has(Number(lane))||racers.has(id[1]))
     throw Error('OFFICIAL_RESULT_NONSTANDARD_FINISH');
   if(numeric)positions.set(Number(pos),{lane:Number(lane),registration_no:id[1]});
-  lanes.add(Number(lane));racers.add(id[1]);
+  lanes.add(Number(lane));racers.add(id[1]);observedRoster.push({lane:Number(lane),registration_no:id[1]});
  }
  if(![1,2,3].every(n=>positions.has(n))||lanes.size!==6||racers.size!==6)
   throw Error('OFFICIAL_RESULT_TOP3_OR_ROSTER_INCOMPLETE');
  if(expectedRoster){
-  if(expectedRoster.length!==6||expectedRoster.some(r=>![...positions.values()].some(x=>x.lane===r.lane&&x.registration_no===r.registration_no)))
+  if(expectedRoster.length!==6||expectedRoster.some(r=>!observedRoster.some(x=>x.lane===r.lane&&x.registration_no===r.registration_no)))
    throw Error('OFFICIAL_RESULT_ROSTER_MISMATCH');
  }
  const top3=[1,2,3].map(n=>positions.get(n).lane),payout=only(ts,['勝式','組番','払戻金']);
