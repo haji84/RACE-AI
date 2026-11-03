@@ -13,6 +13,9 @@ import json
 from pathlib import Path
 import sys
 
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0,str(ROOT))
 from race_ai.boat_ab_cohort import analyze
 
 MAX_BYTES = 4_000_000
