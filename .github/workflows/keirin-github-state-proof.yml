@@ -6,6 +6,10 @@ on:
       - '.github/workflows/keirin-github-state-*.yml'
       - 'scripts/keirin_github_checkpoint*'
       - 'scripts/keirin_github_sqlite_snapshot.py'
+      - 'scripts/keirin_github_git_archive.py'
+      - 'scripts/keirin_github_git_archive_restore.py'
+      - '.github/workflows/keirin-github-git-archive.yml'
+      - '.github/workflows/keirin-github-git-restore.yml'
       - 'tests/test_keirin_github_*'
   pull_request:
     branches: [main]
