@@ -1,8 +1,7 @@
 name: BOAT nationwide cutoff-ordered A/B research (no Vercel)
 on:
   push:
-    branches:
-      - feat/four-sport-forecast-audit-view-20261022
+    branches: [feat/four-sport-forecast-audit-view-20261022]
     paths:
       - docs/evidence/boat-nationwide-pilot-trigger.txt
       - .github/workflows/boat-nationwide-ab-one-shot.yml
@@ -13,99 +12,31 @@ concurrency:
   cancel-in-progress: false
 jobs:
   official_national:
-    name: Official all-day existing P0 models and cutoff-ordered P1 A/B
+    name: Existing all-day P0 and exhibition P1 models
     if: github.repository == 'haji84/RACE-AI'
     runs-on: ubuntu-24.04
     timeout-minutes: 8
     env:
       RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED: 'true'
     steps:
-      - name: Checkout exact research branch commit
+      - name: Exact PR71 code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          persist-credentials: false
-          ref: ${{ github.sha }}
-      - name: Checkout pinned official parser, no PR64 modification
+        with: {persist-credentials: false, ref: '${{ github.sha }}'}
+      - name: Pinned official parser
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          persist-credentials: false
-          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
-          path: pr64-reference
-      - name: Reuse pinned existing integration adapters without modifying PR72
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - name: Reuse pinned integration adapters, no modification of PR72
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with:
-          persist-credentials: false
-          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
-          path: pr72-reference
-      - name: Preserve code-only reproducibility bundle, no credentials or source data
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - name: Check existing models and new orchestration, no source HTTP
         run: |
-          mkdir -p audit_source
-          git archive --format=tar.gz HEAD race_ai scripts tests workers .github docs research > audit_source/pr71-source.tar.gz
-          git -C pr64-reference archive --format=tar.gz HEAD race_ai scripts tests > audit_source/pr64-source.tar.gz
-          git -C pr72-reference archive --format=tar.gz HEAD race_ai scripts tests .github config > audit_source/pr72-source.tar.gz
-          sha256sum audit_source/*.tar.gz > audit_source/SHA256SUMS
-      - name: Save exact code snapshot for offline verification
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: race-code-snapshot-${{ github.run_id }}
-          path: audit_source/
-          retention-days: 7
-      - name: Check existing missing-aware model and official program bridge
-        run: |
-          python -m unittest tests.test_boat_observed_pairwise_models -v
+          python -m unittest tests.test_existing_day_program tests.test_boat_observed_pairwise_models tests.test_boat_deadline_queue tests.test_boat_ab_shadow tests.test_boat_racer_tendencies -v
           (cd pr72-reference && python -m unittest discover -s tests -p test_boat_observed_program_bridge.py -v)
-      - name: Actual current-day all-race program-only forecasts using existing two models
-        run: |
-          python - <<'PY'
-          from datetime import datetime,timezone,timedelta
-          from pathlib import Path
-          from urllib import request
-          import json,sys,hashlib
-          root=Path.cwd()
-          import race_ai
-          race_ai.__path__.extend([str(root/'pr64-reference/race_ai'),str(root/'pr72-reference/race_ai')])
-          from race_ai.official_archive_probe import official_url,StrictRedirect,MAX_ARCHIVE_BYTES,inspect_lzh
-          from race_ai.official_lzh_extract import extract_daily_lzh
-          from race_ai.official_b_snapshot_adapter import normalize_b_snapshot
-          from race_ai.boat_observed_program_bridge import build_program_snapshot
-          from race_ai.boat_observed_pairwise_models import predict_pair
-          out=root/'boat_all_day_output';out.mkdir(exist_ok=True)
-          now=datetime.now(timezone.utc);day=now.astimezone(timezone(timedelta(hours=9))).date()
-          status={'schema':'RACE_AI_EXISTING_P0_DAY_V1','day_jst':str(day),'predictions':[],'schedule':[],'skipped':[], 'external_receipt_verified':False,'actual_purchases':False,'new_models_created':False,'raw_source_published':False}
-          try:
-              url=official_url(day,'B')
-              req=request.Request(url,headers={'User-Agent':'RACE-AI-owner-personal-day-program/1.0','Accept':'application/octet-stream'})
-              with request.build_opener(StrictRedirect).open(req,timeout=25) as res:
-                  if res.status!=200 or res.geturl()!=url:raise ValueError('B_SOURCE_IDENTITY')
-                  raw=res.read(MAX_ARCHIVE_BYTES+1)
-              capture=datetime.now(timezone.utc).isoformat();meta=inspect_lzh(raw)
-              body=extract_daily_lzh(raw,f'B{day:%y%m%d}.TXT')
-              program=normalize_b_snapshot(body,day=day,source_url=url,observed_at=capture,require_details=True,archive_sha256=meta['sha256'])
-              reference='OWNER_PERSONAL_OFFICIAL_B_ANALYSIS_20261104'
-              source={'source_id':f'official-B-{day:%Y%m%d}','source_url':url,'source_sha256':meta['sha256'],'source_rights_ref':reference,'published_at':None,'captured_at':capture,'evidence_basis':'CAPTURED_BY_CLAIM'}
-              def allowed(source_url,scope,purpose):
-                  return source_url==url and scope==reference and purpose=='analysis'
-              status.update(source_url=url,source_sha256=meta['sha256'],extracted_text_sha256=program['extracted_text_sha256'],captured_at=capture,source_requests=1,permission_scope='owner-requested personal analysis of official downloadable program; not commercial redistribution or a provider license',code_sha=__import__('os').environ.get('GITHUB_SHA'))
-              races=sorted((r for v in program['venues'] for r in v['races']),key=lambda r:(r['closed_at'],r['race_id']))
-              for r in races:
-                  status['schedule'].append({'race_id':r['race_id'],'cutoff_at':r['closed_at']})
-                  clock=datetime.now(timezone.utc)
-                  if clock+timedelta(minutes=3)>=datetime.fromisoformat(r['closed_at']):
-                      status['skipped'].append({'race_id':r['race_id'],'reason':'CUTOFF_BUFFER'});continue
-                  snapshot=build_program_snapshot(r,source,event_date_jst=str(day),as_of=clock.isoformat(),race_revision=1)
-                  suite=predict_pair(snapshot,allow_source=allowed)
-                  status['predictions'].append(suite)
-              status['state']='GENERATED_PENDING_EXTERNAL_RECEIPT'
-              status['race_count']=len(status['predictions']);status['model_forecast_count']=sum(len(s['models']) for s in status['predictions'])
-          except Exception as exc:
-              status['state']='SOURCE_OR_MODEL_BLOCKED';status['failure_class']=type(exc).__name__;status['reason']=str(exc)[:200]
-          status['completed_at']=datetime.now(timezone.utc).isoformat()
-          data=json.dumps(status,ensure_ascii=False,sort_keys=True,separators=(',',':'),allow_nan=False).encode()
-          (out/'forecasts.json').write_bytes(data)
-          print(json.dumps({k:v for k,v in status.items() if k not in ('predictions','schedule','skipped')},ensure_ascii=False))
-          print('FORECAST_FILE_SHA256',hashlib.sha256(data).hexdigest())
-          PY
-      - name: Save morning originals before any outcome collection
+      - name: Current-day morning forecasts, never wait for exhibition
+        id: morning
+        continue-on-error: true
+        run: python scripts/existing_day_program.py
+      - name: Preserve morning originals before any outcome collection
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -113,12 +44,9 @@ jobs:
           path: boat_all_day_output/forecasts.json
           if-no-files-found: warn
           retention-days: 7
-      - name: Check queue, A/B models and historic profiles
-        run: |
-          python -m unittest tests.test_boat_deadline_queue tests.test_boat_ab_shadow tests.test_boat_racer_tendencies -v
-      - name: Discover today's active official venues, order all cutoffs, freeze eligible A/B
+      - name: Current-day exhibition A/B and C-lite
         run: python scripts/boat_nationwide_ab_pilot.py
-      - name: Preserve derived forecast and all official cutoff ids, never source HTML
+      - name: Preserve exhibition originals separately
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -126,3 +54,17 @@ jobs:
           path: boat_nationwide_output/national.json
           if-no-files-found: warn
           retention-days: 7
+      - name: Report component completion rather than treating CI green as predictions
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          lines=['## Existing-model actual execution','No wagering; no claim of complete four-sport coverage.']
+          for path in ('boat_all_day_output/forecasts.json','boat_nationwide_output/national.json'):
+              p=Path(path)
+              if not p.exists():lines.append(path+': OUTPUT_MISSING');continue
+              x=json.loads(p.read_text())
+              lines.append(path+': '+str(x.get('state'))+', forecast races='+str(x.get('race_count',x.get('paired_forecast_count',0)))+', reason='+str(x.get('reason')))
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write('\n\n'.join(lines)+'\n')
+          PY
