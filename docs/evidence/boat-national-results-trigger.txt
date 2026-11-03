@@ -29,3 +29,6 @@ only_artifacts=13210132613
 
 2026-11-03 JST owner accuracy-improvement cycle: audit only the as-yet-unscored 16:16:40 JST original batch (Omura3R/Fukuoka12R). Verify original ZIP/JSON, earliest receipt and final official settlement; do not regenerate forecasts. C-lite frozen in the same original is a separately evaluated research challenger, never replace A/B. At most four official GET for two races. Keep exceptional and missing outcomes explicit.
 only_artifacts=13211344716
+
+2026-11-03 17:37 JST additive C-lite scoring revision: prove the new frozen-shadow comparison on the last two complete original batches, five identical pre-cutoff races. This is NOT five new official results and NOT five new forecasts. Earlier A/B result records are already known; preserve them and deduplicate cumulative reporting. Reconfirm official source identity (ten GET total) while adding previously unreported C-lite scores and factual miss flags. No coefficient fitting, result-fed reranking, model promotion, public raw predictions, or any new freeze. Correct original first-batch server time is 06:38:44Z = 15:38:44 JST.
+only_artifacts=13210132613,13211344716
