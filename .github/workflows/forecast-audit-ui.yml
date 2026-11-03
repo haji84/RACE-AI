@@ -91,6 +91,8 @@ on:
       - 'tests/boat_nonvercel_core.test.mjs'
       - 'workers/boat_official_html.mjs'
       - 'workers/boat_nonvercel_cron.mjs'
+      - 'workers/boat_pdca_shadow.mjs'
+      - 'tests/boat_pdca_shadow.test.mjs'
       - 'tests/boat_official_html.test.mjs'
       - 'docs/BOAT_EXHIBITION_AUTORUN_STAGE.md'
       - 'race_ai/boat_feature_adapter.py'
@@ -189,7 +191,8 @@ jobs:
           node --test tests/boat_nonvercel_core.test.mjs
           node --check workers/boat_official_html.mjs
           node --check workers/boat_nonvercel_cron.mjs
-          node --test tests/boat_official_html.test.mjs
+          node --check workers/boat_pdca_shadow.mjs
+          node --test tests/boat_official_html.test.mjs tests/boat_pdca_shadow.test.mjs
       - name: Node contract and denominator tests
         run: node --test --test-reporter=tap tests/forecast_audit.test.cjs tests/full_odds.test.cjs tests/odds_feed_worker.test.mjs tests/odds_auto_source_cron.test.mjs tests/odds_three_cycle_audit.test.mjs tests/private_wire_vault.test.mjs
       - name: Python synthetic journal to viewer projection tests
