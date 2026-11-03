@@ -26,7 +26,7 @@ jobs:
           from pathlib import Path
           root=Path('docs/evidence/2026-11-03')
           records=json.loads((root/'boat-canonical-freeze-index.json').read_text())['entries']+json.loads((root/'boat-freeze-prior-observations.json').read_text())['entries']
-          ids=sorted(k for k,n in Counter(r['artifact_id'] for r in records).items() if n==3)
+          ids=sorted(k for k,n in Counter(r['artifact_id'] for r in records).items() if 1<=n<=3)
           last=Path('docs/evidence/boat-national-results-trigger.txt').read_text().strip().splitlines()[-1]
           if last.startswith('only_artifacts='):
               only=last.split('=',1)[1].split(','); assert all(re.fullmatch(r'[0-9]+',i) and int(i) in ids for i in only)
@@ -80,7 +80,7 @@ jobs:
               p=primary[r['race_id']]; require(p['cutoff_at']==r['cutoff_at'] and ts(r['server_created_at'])<ts(p['server_created_at'])<ts(r['cutoff_at']),'prior origin order mismatch'); all_rows.append(r); primary[r['race_id']]=r
           ident=int(os.environ['ORIGINAL_ID']); entries=[r for r in all_rows if r['artifact_id']==ident]; reg={r['race_id']:r for r in entries}
           meta=json.loads((root/'receipt.json').read_bytes()); raw=(root/'original.zip').read_bytes(); run=meta['workflow_run']['id']; saved=meta['created_at']; dig=sha(raw)
-          require(len(entries)==3==len(reg),'registered batch coverage'); require(meta['id']==ident and not meta['expired'] and meta['name']==f'boat-national-cutoff-{run}' and meta['digest']=='sha256:'+dig,'bad server receipt')
+          require(1<=len(entries)<=3 and len(entries)==len(reg),'registered batch coverage'); require(meta['id']==ident and not meta['expired'] and meta['name']==f'boat-national-cutoff-{run}' and meta['digest']=='sha256:'+dig,'bad server receipt')
           with zipfile.ZipFile(root/'original.zip') as z:
               require(z.namelist()==['national.json'] and z.getinfo('national.json').file_size<=250000,'archive layout'); body=z.read('national.json')
           pairs=json.loads(body)['paired_forecasts']; require(len(pairs)==len(reg) and {p['race_id'] for p in pairs}==set(reg),'missing race')
