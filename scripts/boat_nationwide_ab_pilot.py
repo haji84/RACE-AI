@@ -212,14 +212,31 @@ def run():
         return stop("NO_VERIFIED_CUTOFF_ROWS",schedule=listing,
                     source={"url":url,"source_sha256":index_sha,"captured_at":index_at.isoformat()},
                     tries=venue_errors)
+    # The verified day registry contains already-closed morning races. A
+    # schedule captured this afternoon is NOT pre-close evidence for a race
+    # that finished in the morning. Retain these in the registry/audit count,
+    # but never submit them to the pre-close queue or pretend a forecast.
+    selection_clock=datetime.now(timezone.utc)
+    prospective_rows=[]
+    after_close_rows=[]
+    for record in rows:
+        cutoff=datetime.fromisoformat(record["cutoff_at"])
+        captured=datetime.fromisoformat(record["schedule_captured_at"])
+        if cutoff<=selection_clock or captured>=cutoff:
+            after_close_rows.append({
+                "race_id":record["race_id"],
+                "reason":"ALREADY_CLOSED_BEFORE_SCHEDULE_CAPTURE"})
+        else:
+            prospective_rows.append(record)
     try:
-        queue=select_due_races(rows,datetime.now(timezone.utc).isoformat(),
+        queue=select_due_races(prospective_rows,selection_clock.isoformat(),
                               max_items=24)
     except ValueError as ex:
         return stop("NATIONWIDE_ORDER_VALIDATION_REJECTED",schedule=listing,
                     source={"url":url,"source_sha256":index_sha,"captured_at":index_at.isoformat()},
                     tries=venue_errors)
-    attempts=[];forecasts=[]
+    attempts=list(after_close_rows)
+    forecasts=[]
     for race in queue["eligible"][:MAX_ATTEMPTS]:
         try:
             status,pair=make_pair(day,race)
