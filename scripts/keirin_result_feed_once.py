@@ -37,7 +37,15 @@ def main(argv=None):
     try:
         bridge=_load_json(args.bridge)
         admission=_load_json(args.admission)
-        prior=[_load_json(path) for path in args.previous_batch]
+        prior=[]
+        for path in args.previous_batch:
+            record=_load_json(path)
+            # A previous private CLI export wraps the append-only batch.
+            # Accept it directly so a recovered run needs no manual extraction.
+            if (type(record) is dict and record.get('schema') ==
+                    'RACE_AI_KEIRIN_RESULT_OFFLINE_RESEARCH_EXPORT_V1'):
+                record=record.get('batch')
+            prior.append(record)
         raw=Path(args.feed).read_bytes()
         batch=build_research_batch(bridge,raw,admission=admission,
                   reviewed_at=datetime.now(timezone.utc).isoformat(),previous_batches=prior)
