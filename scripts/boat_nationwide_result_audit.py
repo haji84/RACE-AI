@@ -30,6 +30,7 @@ from race_ai.core import SourceError
 import race_ai
 race_ai.__path__.insert(0,str(ROOT/"race_ai"))
 from race_ai.boat_ab_result_audit import score_pair
+from race_ai.boat_result_date_policy import is_past_or_current_result_day
 
 OUT=ROOT/"boat_national_result_output"
 RUN_ID=41575766782
@@ -110,8 +111,11 @@ def run():
             results.append({"race_id":rid,"state":"NOT_PRE_CLOSE_FROZEN"});continue
         if datetime.now(timezone.utc)<=closing+timedelta(seconds=90):
             results.append({"race_id":rid,"state":"OFFICIAL_RESULT_WAIT_AFTER_CUTOFF"});continue
-        if datetime.now(timezone.utc).astimezone(JST).date().strftime("%Y%m%d")!=rid[:8]:
-            results.append({"race_id":rid,"state":"DAY_MISMATCH"});continue
+        # Historical result rechecks are valid after JST midnight. The
+        # independent pre-close original and exact official identity checks
+        # below still apply; future event dates remain forbidden.
+        if not is_past_or_current_result_day(rid[:8],datetime.now(timezone.utc)):
+            results.append({"race_id":rid,"state":"FUTURE_RACE_DATE"});continue
         day=date(int(rid[:4]),int(rid[4:6]),int(rid[6:8]))
         venue=rid[9:11]
         number=int(rid[-2:])
