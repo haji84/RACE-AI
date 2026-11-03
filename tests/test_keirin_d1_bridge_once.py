@@ -42,6 +42,39 @@ class TestBridge(unittest.TestCase):
                 "GITHUB_REF":"refs/pull/123/merge",
                 "GITHUB_EVENT_NAME":"pull_request",
             },open_url=lambda *_a,**_k:self.fail("should not network"))
+    def test_actions_oidc_request_from_exact_github_service_host(self):
+        request=[]
+        def fake(req,timeout):
+            request.append(req.full_url)
+            return Response(json.dumps({"value":"xxx.yyy.zzz"}).encode(),req.full_url)
+        env={
+            "GITHUB_REPOSITORY":"haji84/RACE-AI",
+            "GITHUB_REF":"refs/heads/main",
+            "GITHUB_EVENT_NAME":"push",
+            "ACTIONS_ID_TOKEN_REQUEST_URL":
+                "https://pipelines.actions.githubusercontent.com/_apis/oidc/token?x=1",
+            "ACTIONS_ID_TOKEN_REQUEST_TOKEN":"a"*22,
+        }
+        self.assertEqual(get_github_oidc_token(env=env,open_url=fake),
+                         "xxx.yyy.zzz")
+        self.assertEqual(len(request),1)
+        self.assertTrue(request[0].startswith(
+            "https://pipelines.actions.githubusercontent.com/"))
+        self.assertIn("audience=race-ai-keirin-private-state-v1",request[0])
+
+    def test_external_oidc_url_rejected_before_request(self):
+        env={
+            "GITHUB_REPOSITORY":"haji84/RACE-AI",
+            "GITHUB_REF":"refs/heads/main",
+            "GITHUB_EVENT_NAME":"push",
+            "ACTIONS_ID_TOKEN_REQUEST_URL":
+                "https://pipelines.actions.githubusercontent.com.evil.example/_apis/oidc",
+            "ACTIONS_ID_TOKEN_REQUEST_TOKEN":"a"*22,
+        }
+        with self.assertRaisesRegex(BridgeError,"GITHUB_OIDC_ISSUER_UNEXPECTED"):
+            get_github_oidc_token(env=env,open_url=lambda *_a,**_k:
+                self.fail("invalid OIDC host must not be contacted"))
+
     def test_submit_real_roster_shape_through_mock_private_ack(self):
         recorded=[]
         def client(req,timeout):
