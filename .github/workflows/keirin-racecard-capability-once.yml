@@ -1,8 +1,10 @@
-name: KEIRIN one-card and one-result technical check
+name: KEIRIN one-card and result-tab source checks
 on:
   push:
     branches: [feat/keirin-fullcycle-worker-20261103]
-    paths: ['.github/workflows/keirin-racecard-capability-once.yml']
+    paths:
+      - '.github/workflows/keirin-racecard-capability-once.yml'
+      - 'scripts/keirin_racecard_capabilities_once.py'
 permissions:
   contents: read
 jobs:
