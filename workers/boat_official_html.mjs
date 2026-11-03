@@ -22,8 +22,10 @@ function pageIdentity(html,day,venue,race,kind){
  for(const h of hrefs){
   let u;try{u=new URL(h,HOST);}catch{continue;}
   if(u.pathname==='/owpc/pc/race/'+kind){
-   if(u.origin!==HOST||u.searchParams.get('hd')!==day||u.searchParams.get('jcd')!==venue||u.searchParams.size!==3)
-    throw Error('OFFICIAL_HTML_LINK_IDENTITY_CONFLICT');
+   // Other-date navigation links may coexist on the official page. Only
+  // admit exact same-date, same-venue race links to the selected 12R index.
+  if(u.origin!==HOST||u.searchParams.get('hd')!==day||u.searchParams.get('jcd')!==venue)continue;
+  if(u.searchParams.size!==3)throw Error('OFFICIAL_HTML_LINK_IDENTITY_CONFLICT');
    const n=Number(u.searchParams.get('rno'));
    if(!Number.isInteger(n)||n<1||n>12)throw Error('OFFICIAL_HTML_LINK_RACE_INVALID');
    links.push(n);
