@@ -17,6 +17,7 @@ import re
 SOURCES = (
     ("netkeirin_index","https://keirin.netkeiba.com/race/"),
     ("navi_index","https://www.keirin-mobile.jp/"),
+    ("kdreams_index","https://keirin.kdreams.jp/kaisai/2026/11/03/"),
 )
 LIMIT = 650_000
 
@@ -96,11 +97,14 @@ def inspect(name,url):
     venue_refs=set()
     for link in links:
         p=urlsplit(link)
-        if p.hostname not in ("keirin.netkeiba.com","www.keirin-mobile.jp"):
+        if p.hostname not in ("keirin.netkeiba.com","www.keirin-mobile.jp","keirin.kdreams.jp"):
             continue
         match=re.search(r"race_id=(\d{12})",p.query)
         if match:
             race_ids.add(match.group(1))
+        other=re.search(r"/racedetail/(\d{12})",p.path)
+        if other:
+            race_ids.add(other.group(1))
         if "/races/" in p.path or "jcode=" in p.query or "/race/" in p.path:
             venue_refs.add((p.hostname,p.path[:90]))
     out["found_distinct_race_ids"]=len(race_ids)
