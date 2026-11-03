@@ -242,6 +242,12 @@ def analyze(rows, *, minimum_paired=PAIRED_MIN, minimum_days=DAYS_MIN):
     a=list(x[0] for x in compared)
     b=list(x[1] for x in compared)
     missing=n-matched
+    # A man-shu result is an actual official >=10,000-yen 100-yen trifecta
+    # payout, not an inferred "rare outcome" or an unverified live odd.
+    # Results without a verified payout cannot be called man-shu or non-man-shu.
+    manshu=[r for r in all_eligible if type(r["payout_per_100_yen"]) is int
+            and r["payout_per_100_yen"]>=10000]
+    payout_unknown=sum(r["payout_per_100_yen"] is None for r in all_eligible)
     out={
         "schema":"RACE_AI_BOAT_AB_PROSPECTIVE_COHORT_V1",
         "total_discovered":len(rows),
@@ -254,6 +260,9 @@ def analyze(rows, *, minimum_paired=PAIRED_MIN, minimum_days=DAYS_MIN):
         "paired_venue_day_blocks":len({row["race_id"][:11] for row in covered}),
         "coverage_all_eligible":matched/n if n else None,
         "models":[],
+        "man_shu_actual_events":len(manshu),
+        "official_payout_missing_count":payout_unknown,
+        "man_shu_definition":"TRIFECTA_PAYOUT_100_YEN_AT_LEAST_10000_YEN",
         "paired_comparison":None,
         "model_auto_promoted":False,
         "statement":"INCONCLUSIVE_NOT_ENOUGH_PROSPECTIVE_EVIDENCE",
@@ -266,6 +275,10 @@ def analyze(rows, *, minimum_paired=PAIRED_MIN, minimum_days=DAYS_MIN):
         mx=[a,b][k]
         hit1=sum(x["hit_at_1"] for x in mx)
         hit8=sum(x["hit_at_8"] for x in mx)
+        # Each eligible man-shu event is in the *same* all-race
+        # denominator; a missed or unverified preclosing prediction is 0.
+        per_race_hit={r["race_id"]:model["hit_at_8"] for r,model in zip(covered,mx)}
+        man_shu_hits=sum(per_race_hit.get(r["race_id"],0) for r in manshu)
         valid_payout=all(row["payout_per_100_yen"] is not None for row in covered)
         gross=sum(row["payout_per_100_yen"] * m["hit_at_8"]
                   for row,m in zip(covered,mx)) if valid_payout else None
@@ -298,6 +311,10 @@ def analyze(rows, *, minimum_paired=PAIRED_MIN, minimum_days=DAYS_MIN):
                  "low_sample_flag":sum(min(9,int(10*m["model_top8_mass_uncalibrated"]))==i for m in mx)<30}
                 for i in range(10)
             ],
+            "actual_man_shu_events":len(manshu),
+            "actual_man_shu_hit_at8":man_shu_hits,
+            "actual_man_shu_recall_all":man_shu_hits/len(manshu) if manshu else None,
+            "actual_man_shu_missed_or_unforecasted":len(manshu)-man_shu_hits,
             "hypothetical_8x100_yen_spend":800*matched,
             "hypothetical_return_yen":gross,
             "hypothetical_roi_on_covered":gross/(800*matched) if gross is not None and matched else None,
