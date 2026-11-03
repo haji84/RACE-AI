@@ -28,3 +28,15 @@ test('wrong source venue, missing exhibition, refunded and finish conflict rejec
  assert.throws(()=>parseResult(result.replace('1-2-3','1-3-2'),day,venue,race,roster));
  assert.throws(()=>parseResult(result.replace("<td></td>","<td>1</td>"),day,venue,race));
 });
+
+
+test('PR64 style six tbody racer groups each with four display rows',()=>{
+ const multi=(head,rows)=>'<table><thead><tr>'+head.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead>'+
+ rows.map(r=>'<tbody><tr>'+r.map(x=>'<td>'+x+'</td>').join('')+'</tr>'+
+ '<tr><td>extra display detail</td></tr><tr><td>stats</td></tr><tr><td>blank</td></tr></tbody>').join('')+'</table>';
+ const html=links('racelist')+multi(['枠','x','ボートレーサー','x','全国','当地','モーター','ボート'],registry);
+ const preview=links('beforeinfo')+multi(['枠','x','ボートレーサー','x','展示','チルト'],exposure);
+ const a=parseRacelist(html,day,venue,race);
+ assert.equal(a.length,6);
+ assert.equal(parseExhibition(preview,day,venue,race,a).length,6);
+});
