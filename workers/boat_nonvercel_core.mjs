@@ -6,7 +6,7 @@
 const SCHEMA='RACE_AI_BOAT_OBSERVATION_V1',MODEL='pr64-official-beforeinfo-display-pl-v1-nonvercel';
 const HEX=/^[a-f0-9]{64}$/,ID=/^(\d{8})-(0[1-9]|1\d|2[0-4])-(0[1-9]|1[0-2])$/;
 const HOST='https://www.boatrace.jp',ENC=new TextEncoder();
-const clock=s=>{let n=Date.parse(s);if(!Number.isFinite(n)||!/T\d\d:\d\d:\d\d/.test(s))throw Error('INVALID_CLOCK');return n;};
+const clock=s=>{if(typeof s!=='string'||!/^\d{4}-\d{2}-\d{2}T\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(s))throw Error('INVALID_CLOCK');let n=Date.parse(s);if(!Number.isFinite(n))throw Error('INVALID_CLOCK');return n;};
 const day=n=>new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(n));
 async function digest(raw){return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',ENC.encode(raw))),b=>b.toString(16).padStart(2,'0')).join('');}
 const triples=[];for(let a=1;a<=6;a++)for(let b=1;b<=6;b++)for(let c=1;c<=6;c++)if(a!==b&&a!==c&&b!==c)triples.push([a,b,c]);
