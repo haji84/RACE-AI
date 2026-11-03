@@ -1,0 +1,21 @@
+{
+  "schema": "RACE_AI_GITHUB_FREEZE_ANCHOR_V1",
+  "race_id": "autorace:2026-11-03:kawaguchi:5",
+  "phase": "A_PRE_TRIAL",
+  "record_type": "ASSISTANT_ONE_SHOT_UNCALIBRATED_RESEARCH",
+  "source_capture_kind": "ASSISTANT_ONE_TIME_MANUAL_PAGE_OBSERVATION",
+  "source_url": "https://autorace.tokyo-sports.co.jp/list/race/20261103025",
+  "source_first_publication_verified": false,
+  "input_sha256": "daaf2c4d448632587cb388150d90c1fa5757cd4d4394c4aec844f64ac76c6a55",
+  "prediction_sha256": "aaa5ba408b4262933b84eb1fe3f734c39e12ce45a948bee7e54394005a0e6a9e",
+  "generated_at": "2026-11-03T19:36:40.965516+09:00",
+  "cutoff_at": "2026-11-03T20:28:00+09:00",
+  "metadata_only": true,
+  "original_model_id": "autorace-personal-observed-baseline-v1",
+  "trial_times_used": false,
+  "formal_hit_at_8_eligible": false,
+  "caveats": [
+    "2026-10-24 driver4 displayed 0th finish; excluded; only four valid observed finishes used.",
+    "Research snapshot. Prior all-day CSV variants remain unchanged. No purchase."
+  ]
+}
