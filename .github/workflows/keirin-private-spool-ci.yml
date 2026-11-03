@@ -1,0 +1,27 @@
+name: KEIRIN owner-private auto spool E2E
+
+on:
+  push:
+    branches: [feat/keirin-private-spool-runner-20261103]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  private_two_race_cycle:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Actual PR71 forecast -> durable SQLite -> settlement -> subsequent actual PR71
+        run: python -m unittest discover -s tests -p test_keirin_private_spool.py -v
+      - name: Guard SQLite immutable original and revisions
+        run: python -m unittest discover -s tests -p test_keirin_owner_sqlite.py -v
+      - name: Guard source-to-model integrity
+        run: python -m unittest discover -s tests -p test_keirin_pr71_model_adapter.py -v
+      - name: Operator-private service CLI and no unauthenticated provider access
+        run: python -m unittest discover -s tests -p test_keirin_private_agent.py -v
