@@ -72,17 +72,35 @@ function parseExhibition(html,day,venue,race,roster){
  if(byLane.size!==6||roster.length!==6)throw Error('OFFICIAL_EXHIBITION_DUPLICATE');
  return roster.map(r=>{const x=byLane.get(r.lane);if(!x||x.registration_no!==r.registration_no)throw Error('OFFICIAL_EXHIBITION_ROSTER_CHANGED');return {...r,exhibition_time_seconds:x.exhibition_time_seconds};});
 }
-function parseResult(html,day,venue,race){
+function parseResult(html,day,venue,race,expectedRoster=null){
  pageIdentity(html,day,venue,race,'raceresult');
- const t=only(tables(html),['3連単','払戻']);
- const rows=t.rows.filter(r=>r.some(x=>x.text==='3連単'));
- if(rows.length!==1)throw Error('OFFICIAL_RESULT_NOT_FINAL');
- const combined=rows[0].map(x=>x.text).join(' ');
- if(/返還|特払|不成立|中止|同着|欠場/.test(combined))throw Error('OFFICIAL_RESULT_UNSUPPORTED');
- const matches=[...combined.matchAll(/([1-6])\s*[-－―]\s*([1-6])\s*[-－―]\s*([1-6])/g)];
- if(matches.length!==1)throw Error('OFFICIAL_TOP3_UNVERIFIED');
- const out=matches[0].slice(1,4).map(Number);
- if(new Set(out).size!==3)throw Error('OFFICIAL_RESULT_DEAD_HEAT');
- return out;
+ const ts=tables(html),finish=only(ts,['着','枠','ボートレーサー','レースタイム']);
+ if(finish.rows.length!==6)throw Error('OFFICIAL_RESULT_SIX_FINISHES_MISSING');
+ const positions=new Map(),lanes=new Set(),racers=new Set();
+ for(const row of finish.rows){
+  if(row.length!==4)throw Error('OFFICIAL_RESULT_FINISH_COLUMNS_INVALID');
+  const pos=row[0].text,lane=row[1].text,id=/^\s*([0-9]{4})\b/.exec(row[2].text);
+  if(!/^[1-6]$/.test(pos)||!/^[1-6]$/.test(lane)||!id||positions.has(Number(pos))||lanes.has(Number(lane))||racers.has(id[1]))
+   throw Error('OFFICIAL_RESULT_NONSTANDARD_FINISH');
+  positions.set(Number(pos),{lane:Number(lane),registration_no:id[1]});lanes.add(Number(lane));racers.add(id[1]);
+ }
+ if(positions.size!==6||lanes.size!==6)throw Error('OFFICIAL_RESULT_FINISH_INCOMPLETE');
+ if(expectedRoster){
+  if(expectedRoster.length!==6||expectedRoster.some(r=>![...positions.values()].some(x=>x.lane===r.lane&&x.registration_no===r.registration_no)))
+   throw Error('OFFICIAL_RESULT_ROSTER_MISMATCH');
+ }
+ const top3=[1,2,3].map(n=>positions.get(n).lane),payout=only(ts,['勝式','組番','払戻金']);
+ const rows=payout.rows.filter(row=>row.some(cell=>cell.text.replace(/\s+/g,'')==='3連単'));
+ if(rows.length!==1)throw Error('OFFICIAL_RESULT_TRIFECTA_MISSING');
+ const text=rows[0].map(x=>x.text).join(' ');
+ if(/特払い|不成立|同着|中止/.test(text))throw Error('OFFICIAL_RESULT_SPECIAL_OUTCOME');
+ const combos=[...text.matchAll(/([1-6])\s*[-－―]\s*([1-6])\s*[-－―]\s*([1-6])/g)];
+ if(combos.length!==1)throw Error('OFFICIAL_RESULT_PAYOUT_IDENTITY_MISSING');
+ const paid=combos[0].slice(1,4).map(Number);
+ if(paid.join('-')!==top3.join('-'))throw Error('OFFICIAL_RESULT_PAYOUT_CONFLICT');
+ const returns=only(ts,['返還']);
+ const refundText=returns.rows.map(r=>r.map(c=>c.text).join(' ')).join(' ').trim();
+ if(refundText&&!/^(?:なし|--|―|－|-)$/.test(refundText))throw Error('OFFICIAL_RESULT_REFUND_UNVERIFIED');
+ return top3;
 }
 export {parseSchedule,parseRacelist,parseExhibition,parseResult};
