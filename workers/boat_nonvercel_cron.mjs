@@ -5,14 +5,21 @@ const HOST='https://www.boatrace.jp',DAY_LIMIT=120,BYTES=900000;
 function jstDay(d){const t=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d).map(p=>[p.type,p.value]));return t.year+t.month+t.day;}
 function url(kind,day,venue,race){return HOST+'/owpc/pc/race/'+kind+'?rno='+race+'&jcd='+venue+'&hd='+day;}
 async function quota(db,day,venue,limit){
- const row=await db.prepare('INSERT INTO boat_source_budget(day_jst,venue,attempts) VALUES(?,?,1) ON CONFLICT(day_jst,venue) DO UPDATE SET attempts=attempts+1 WHERE attempts < ? RETURNING attempts').bind(day,venue,limit).first();
+ const row=await db.prepare("INSERT INTO boat_source_budget(day_jst,venue,attempts) VALUES(?,?,1) " +
+  "ON CONFLICT(day_jst,venue) DO UPDATE SET attempts=attempts+1 WHERE attempts < ? " +
+  "AND (blocked_until IS NULL OR julianday(blocked_until)<=julianday('now')) RETURNING attempts")
+  .bind(day,venue,limit).first();
  return !!row?.attempts;
 }
 async function fetchBounded(db,day,venue,kind,race,{fetcher=fetch,limit=DAY_LIMIT}={}){
  if(!await quota(db,day,venue,limit))throw Error('OFFICIAL_DAILY_REQUEST_BUDGET_EXHAUSTED');
  const target=url(kind,day,venue,race);
  const response=await fetcher(target,{method:'GET',redirect:'manual',headers:{Accept:'text/html','Cache-Control':'no-store'}});
- if(response.status===429||response.status===403)throw Error('OFFICIAL_PROVIDER_BLOCKED_STOP');
+ if(response.status===429||response.status===403){
+  await db.prepare('UPDATE boat_source_budget SET blocked_until=? WHERE day_jst=? AND venue=?')
+   .bind(day.slice(0,4)+'-'+day.slice(4,6)+'-'+day.slice(6,8)+'T23:59:59+09:00',day,venue).run();
+  throw Error('OFFICIAL_PROVIDER_BLOCKED_STOP');
+ }
  if(response.status!==200||response.url!==target||!response.headers.get('Content-Type')?.toLowerCase().startsWith('text/html'))throw Error('OFFICIAL_UNEXPECTED_HTTP');
  if(!response.body?.getReader)throw Error('OFFICIAL_BODY_STREAM_REQUIRED');
  const reader=response.body.getReader();let total=0,parts=[];
