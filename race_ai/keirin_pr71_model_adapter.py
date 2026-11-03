@@ -61,8 +61,8 @@ def run_pr71_for_next_race(private_snapshot, *, run_suite, verify_suite,
     _require(type(model_id) is str and model_id in (
                 'multisport-factor-interaction-v1',
                 'multisport-scenario-ensemble-v1',
-                'multisport-matchup-interaction-v1',
-                'multisport-matchup-scenario-v1'),
+                'multisport-conditional-duel-v1',
+                'multisport-race-trajectory-v1'),
              'UNRECOGNIZED_PR71_MODEL_ID')
     at = utc(issued_at)
     _require(utc(private_snapshot['as_of']) <= at <
