@@ -2,7 +2,9 @@ name: KEIRIN daily-source single capability probe
 on:
   push:
     branches: [feat/keirin-fullcycle-worker-20261103]
-    paths: ['.github/workflows/keirin-source-capabilities-once.yml']
+    paths:
+      - '.github/workflows/keirin-source-capabilities-once.yml'
+      - 'scripts/keirin_source_capabilities_once.py'
 permissions:
   contents: read
 jobs:
