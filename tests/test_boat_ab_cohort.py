@@ -126,6 +126,27 @@ class MultiRaceABTest(unittest.TestCase):
         self.assertIsNotNone(_block_bootstrap([1,-1]*50,
                           [f"cluster{i//10}" for i in range(100)]))
 
+    def test_high_payout_events_are_measured_not_inferred_from_losing_8(self):
+        first=fake_case(0)
+        second=fake_case(1,forecast=False)
+        third=fake_case(2)
+        first["payout_per_100_yen"]=12500
+        second["payout_per_100_yen"]=80000
+        third["payout_per_100_yen"]=700
+        result=analyze([first,second,third])
+        self.assertEqual(result["man_shu_actual_events"],2)
+        self.assertEqual(result["official_payout_missing_count"],0)
+        for m in result["models"]:
+            self.assertEqual(m["actual_man_shu_events"],2)
+            self.assertEqual(m["actual_man_shu_hit_at8"],
+                             first["paired_audit"]["models"][result["models"].index(m)]["hit_at_8"])
+            self.assertEqual(m["actual_man_shu_missed_or_unforecasted"],
+                             2-m["actual_man_shu_hit_at8"])
+        self.assertEqual(result["unforecast_or_unverified"],1)
+        third["payout_per_100_yen"]=None
+        updated=analyze([first,second,third])
+        self.assertEqual(updated["official_payout_missing_count"],1)
+
     def test_wilson_limits_and_empty(self):
         self.assertIsNone(wilson(0,0))
         self.assertEqual(wilson(1,1)[1],1)
