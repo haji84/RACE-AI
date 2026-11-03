@@ -206,7 +206,9 @@ def preview_personal_result(forecast, result, *, observed_at):
           all(type(n) is int and n in forecast["entrants"] for n in triple)
           and len(set(triple)) == 3, "WINNING_ORDER_INVALID")
     base, extra = forecast["ordered_top8"], forecast["supplemental_four"]
-    _need(len(base) == 8 and len(extra) <= 4 and
+    n = len(forecast["entrants"])
+    expected = min(8, n*(n-1)*(n-2))
+    _need(len(base) == expected and len(extra) == min(4, n*(n-1)*(n-2)-expected) and
           len({tuple(v) for v in base+extra}) == len(base+extra),
           "PICK_COUNT_OR_DUPLICATION")
     return {
