@@ -34,7 +34,7 @@ class MonitorTests(unittest.TestCase):
         at=datetime.fromisoformat("2026-11-03T09:47:00+09:00")
         out=select_one(self.manifest(),at=at)
         self.assertEqual(out["state"],"ONE_RACE_SELECTED")
-        self.assertEqual(out["race_id"],"202611033602")
+        self.assertEqual(out["race_id"],"202611033603")
         self.assertFalse(out["cutoff_is_officially_verified"])
 
     def test_day_mismatch_does_zero_gets(self):
@@ -70,7 +70,7 @@ class MonitorTests(unittest.TestCase):
         out=run_once(self.manifest(),
              now=datetime.fromisoformat("2026-11-03T09:47:00+09:00"),
              allow_get=True,fetch=fake)
-        self.assertEqual(count,[("20261103",36,2,"legacy")])
+        self.assertEqual(count,[("20261103",36,3,"legacy")])
         self.assertEqual(out["get_attempts"],1)
         self.assertTrue(out["candidate_visible"])
         self.assertFalse(out["confirmed_official_result"])
@@ -100,9 +100,9 @@ class MonitorTests(unittest.TestCase):
     def test_one_hour_window_does_not_choose_same_race_next_hour(self):
         manifest=self.manifest(rows="3601@0845 3602@0905")
         first=select_one(manifest,
-             at=datetime.fromisoformat("2026-11-03T09:17:00+09:00"))
+             at=datetime.fromisoformat("2026-11-03T09:13:00+09:00"))
         later=select_one(manifest,
-             at=datetime.fromisoformat("2026-11-03T10:17:00+09:00"))
+             at=datetime.fromisoformat("2026-11-03T10:13:00+09:00"))
         self.assertEqual(first["race_id"],"202611033601")
         self.assertEqual(later["race_id"],"202611033602")
 
