@@ -62,6 +62,13 @@ def page_url(ymd: str, venue_code: int, race_no: int) -> str:
             f"{venue_code:02d}/{race_no:02d}/")
 
 
+def legacy_page_url(ymd: str, venue_code: int, race_no: int) -> str:
+    # Validate every URL component using the same canonical strict path builder.
+    page_url(ymd,venue_code,race_no)
+    return (f"https://www.keirin-mobile.jp/top/result.php?date={ymd}&"
+            f"jcode={venue_code:02d}&race={race_no:02d}")
+
+
 def _decode(raw: bytes, content_type: str) -> str:
     header = raw[:8192].decode("ascii", "ignore")
     tags = re.search(r"<meta[^>]+charset\s*=\s*['\"]?([\w-]+)",
@@ -114,10 +121,13 @@ def extract_trifecta_candidate(visible_text: str):
 
 
 def probe_one(ymd, venue_code, race_no, *, acknowledgement, opener=None,
-              observed_at=None):
+              observed_at=None, route='new'):
     if acknowledgement != ACK:
         raise MobileProbeError("EXPLICIT_ONE_SHOT_SCOPE_REQUIRED")
-    url = page_url(ymd, venue_code, race_no)
+    if route not in ('new', 'legacy'):
+        raise MobileProbeError('UNKNOWN_SOURCE_ROUTE')
+    url = (page_url(ymd, venue_code, race_no) if route == 'new' else
+           legacy_page_url(ymd, venue_code, race_no))
     client = opener or build_opener(_NoRedirect(), HTTPSHandler())
     request = Request(url, method="GET",
                       headers={"Accept":"text/html",
