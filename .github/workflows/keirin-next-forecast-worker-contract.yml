@@ -20,3 +20,5 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_keirin_result_reactor.py' -v
       - name: Candidate result / original top8 regression, synthetic only
         run: python -m unittest discover -s tests -p 'test_keirin_candidate_audit.py' -v
+      - name: Verify one full synthetic result-to-model-to-private-save E2E
+        run: python -m unittest discover -s tests -p 'test_keirin_one_synthetic_e2e.py' -v
