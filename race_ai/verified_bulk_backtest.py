@@ -293,6 +293,105 @@ def summarize(rows, schedule=None):
                 caveat='User-supplied evidence and hypothetic 100JPY per pick; this program does not verify URLs/receipts independently.')
 
 
+
+def diagnosis_stage(picks, outcome):
+    """Post-race classification only; never a causal athlete label."""
+    for ticket in picks:
+        safe_triple(ticket)
+    if not isinstance(outcome, str):
+        return 'UNVERIFIED_OUTCOME'
+    safe_triple(outcome)
+    if outcome in picks:
+        return 'HIT'
+    first, second, _ = outcome.split('-')
+    if not any(p.split('-')[0] == first for p in picks):
+        return 'FIRST_NOT_COVERED'
+    if not any(p.split('-')[:2] == [first, second] for p in picks):
+        return 'SECOND_PAIR_NOT_COVERED'
+    return 'THIRD_NOT_COVERED'
+
+
+def diagnose_cohort(forecasts, results, *, cohort='morning'):
+    """Offline same-day PDCA: true payout even on misses; no forecast rewrite.
+
+    No official source authentication, learning, feature engineering, or
+    independently attested prospective prediction is claimed by this routine.
+    """
+    result_index = choose_results(results)
+    chosen = {}
+    for f in forecasts:
+        validate_forecast(f)
+        if f.get('cohort') != cohort:
+            continue
+        rid = f['race_id']
+        if rid in chosen:
+            raise BadRecord(f'duplicate race in cohort {cohort}: {rid}')
+        chosen[rid] = f
+    by_sport = defaultdict(list)
+    scorable = {'HIT', 'MISS', 'HIT_PLUS_REFUND', 'MISS_PLUS_REFUND'}
+    for rid, f in sorted(chosen.items()):
+        r = result_index.get(rid)
+        score = settle(f, r)
+        status = score['status']
+        category = 'UNRESOLVED'
+        band = 'UNKNOWN'
+        if status == 'FULL_REFUND':
+            category = 'FULL_REFUND'
+        elif status in scorable:
+            payouts = r['payouts']
+            if len(payouts) != 1:
+                category = 'MULTIPLE_WINNERS_NEED_SEPARATE_REVIEW'
+            else:
+                actual, payout = next(iter(payouts.items()))
+                category = diagnosis_stage(f['picks'], actual)
+                band = ('10000_PLUS' if payout >= 10000 else
+                        '5000_TO_9999' if payout >= 5000 else
+                        '1000_TO_4999' if payout >= 1000 else 'UNDER_1000')
+        else:
+            category = status
+        by_sport[race_parts(rid)[0]].append({
+            'status': status, 'category': category, 'band': band,
+            'hit': bool(score['hit_rank']),
+            'ticket_count': len(f['picks']),
+            'first_1_tickets': sum(p.startswith('1-') for p in f['picks']),
+            'source_grade': r.get('source_grade', 'unverified') if r else 'unverified',
+            'stake': score['gross_yen'] if status in scorable | {'FULL_REFUND'} else 0,
+            'received': score['received_yen'] if status in scorable | {'FULL_REFUND'} else 0,
+        })
+    def summary(rows):
+        valid = [x for x in rows if x['status'] in scorable]
+        gross = sum(x['stake'] for x in rows)
+        returned = sum(x['received'] for x in rows)
+        tickets = sum(x['ticket_count'] for x in rows)
+        names = ('UNDER_1000','1000_TO_4999','5000_TO_9999','10000_PLUS')
+        return {
+            'forecasts': len(rows), 'scorable': len(valid),
+            'hits': sum(x['hit'] for x in valid),
+            'hit_rate': sum(x['hit'] for x in valid)/len(valid) if valid else None,
+            'gross_yen': gross, 'received_yen': returned,
+            'net_yen': returned-gross, 'roi': returned/gross if gross else None,
+            'full_refunds': sum(x['status']=='FULL_REFUND' for x in rows),
+            'failure_stage_counts': dict(Counter(x['category'] for x in valid)),
+            'payout_bands': {k: {
+                'races':sum(x['band']==k for x in valid),
+                'hits':sum(x['band']==k and x['hit'] for x in valid),
+            } for k in names},
+            'first_1_ticket_share': (
+                sum(x['first_1_tickets'] for x in rows)/tickets if tickets else None),
+            'source_grade_counts': dict(Counter(x['source_grade'] for x in rows)),
+            'all_official_results_independently_verified': False,
+            'future_accuracy_gain_proved': False,
+        }
+    all_rows = [r for rows in by_sport.values() for r in rows]
+    return {
+        'scope': 'OWNER_SUPPLIED_RETROSPECTIVE_PDCA_ONLY',
+        'cohort': cohort,
+        'total': summary(all_rows),
+        'sports': {k: summary(v) for k,v in sorted(by_sport.items())},
+    }
+
+
+
 def run(forecast_file, result_file, output_dir, schedule_file=None):
     forecast_file = Path(forecast_file)
     result_file = Path(result_file)
