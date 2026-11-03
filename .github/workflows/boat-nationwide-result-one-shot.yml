@@ -72,6 +72,7 @@ jobs:
           from scripts import boat_nationwide_result_audit as audit
           from race_ai.boat_freeze_index import load_original_race_ids
           from race_ai.boat_shadow_result_audit import compare_frozen_current_shadows
+          from race_ai.boat_abc_cohort import summarize_abc_results
           def require(ok,msg):
               if not ok: raise ValueError(msg)
           def sha(b): return hashlib.sha256(b).hexdigest()
@@ -98,6 +99,7 @@ jobs:
           # Earliest-receipt exclusion happens first, and missing/special outcomes
           # remain missing/special rather than silently becoming zero-hit rows.
           result['frozen_current_feature_comparison']=compare_frozen_current_shadows(json.loads(body),result,saved)
+          result['frozen_abc_selected_cohort_scorecard']=summarize_abc_results([result])
           (audit.OUT/'result.json').write_text(json.dumps(result,ensure_ascii=False,sort_keys=True,separators=(',',':')))
           for r in rows: print('FINAL_AUDIT',r['race_id'],r['state'],r.get('official_top3'),r.get('payout_per_100_yen'))
           print('FROZEN_ABC_COMPARISONS',result['frozen_current_feature_comparison']['scored_comparison_count'])
