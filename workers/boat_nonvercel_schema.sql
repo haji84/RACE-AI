@@ -77,3 +77,22 @@ CREATE TRIGGER IF NOT EXISTS boat_exhibition_shadow_outcomes_no_update BEFORE UP
  ON boat_exhibition_shadow_outcomes BEGIN SELECT RAISE(ABORT,'SHADOW_SCORE_IMMUTABLE'); END;
 CREATE TRIGGER IF NOT EXISTS boat_exhibition_shadow_outcomes_no_delete BEFORE DELETE
  ON boat_exhibition_shadow_outcomes BEGIN SELECT RAISE(ABORT,'SHADOW_SCORE_NOT_DELETABLE'); END;
+
+-- Mutable retry coordination only. Neither forecasts nor scored outcomes mutate.
+CREATE TABLE IF NOT EXISTS boat_result_poll_state (
+ race_id TEXT PRIMARY KEY,
+ next_check_at TEXT NOT NULL,
+ checks INTEGER NOT NULL CHECK(checks BETWEEN 1 AND 10000),
+ last_verified_source_sha256 TEXT CHECK(last_verified_source_sha256 IS NULL OR length(last_verified_source_sha256)=64)
+);
+CREATE TABLE IF NOT EXISTS boat_race_gate_reasons (
+ race_id TEXT NOT NULL,
+ stage TEXT NOT NULL CHECK(stage IN ('FORECAST','RESULT')),
+ reason TEXT NOT NULL,
+ first_seen_at TEXT NOT NULL,
+ PRIMARY KEY(race_id,stage,reason)
+);
+CREATE TRIGGER IF NOT EXISTS boat_race_gate_reasons_no_update BEFORE UPDATE
+ ON boat_race_gate_reasons BEGIN SELECT RAISE(ABORT,'GATE_REASON_IMMUTABLE'); END;
+CREATE TRIGGER IF NOT EXISTS boat_race_gate_reasons_no_delete BEFORE DELETE
+ ON boat_race_gate_reasons BEGIN SELECT RAISE(ABORT,'GATE_REASON_NOT_DELETABLE'); END;
