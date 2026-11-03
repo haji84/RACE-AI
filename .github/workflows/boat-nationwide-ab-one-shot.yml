@@ -7,12 +7,13 @@ on:
       - .github/workflows/boat-nationwide-ab-one-shot.yml
 permissions:
   contents: read
+  actions: read
 concurrency:
   group: boat-nationwide-cutoff-20261103
   cancel-in-progress: false
 jobs:
   official_national:
-    name: Existing P0 race-isolated parser and exhibition P1 models
+    name: Existing frozen P0, exhibition P1, separate official results and PDCA
     if: github.repository == 'haji84/RACE-AI'
     runs-on: ubuntu-24.04
     timeout-minutes: 8
@@ -25,46 +26,43 @@ jobs:
       - name: Pinned official parser
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
-      - name: Reuse pinned integration adapters, no modification of PR72
+      - name: Pinned existing integration adapters
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
-      - name: Check existing models and new orchestration, no source HTTP
+      - name: Test originals, pending results, tampering and unchanged models
         run: |
-          python -m unittest tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_deadline_queue tests.test_boat_ab_shadow tests.test_boat_racer_tendencies -v
-          (cd pr72-reference && python -m unittest discover -s tests -p test_boat_observed_program_bridge.py -v)
-      - name: Current-day morning forecasts, never wait for exhibition
-        id: morning
-        continue-on-error: true
-        run: python scripts/existing_day_program.py
-      - name: Preserve morning originals before any outcome collection
-        if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
-        with:
-          name: boat-p0-existing-${{ github.run_id }}
-          path: boat_all_day_output/forecasts.json
-          if-no-files-found: warn
-          retention-days: 7
+          python -m unittest tests.test_frozen_day_cycle tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_ab_shadow -v
+      - name: Reuse first morning original, never silently regenerate it
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python scripts/github_existing_cycle.py restore
       - name: Current-day exhibition A/B and C-lite
         run: python scripts/boat_nationwide_ab_pilot.py
-      - name: Preserve exhibition originals separately
-        if: always()
+      - name: Freeze exhibition before reading outcomes
+        id: p1freeze
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: boat-national-cutoff-${{ github.run_id }}
           path: boat_nationwide_output/national.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Independently read server receipts and later official outcomes
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python scripts/github_existing_cycle.py audit --p1-artifact '${{ steps.p1freeze.outputs.artifact-id }}'
+      - name: Save queryable status, tickets, source receipts and diagnostic candidates
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: race-existing-cycle-${{ github.run_id }}
+          path: existing_cycle_output/
           if-no-files-found: warn
           retention-days: 7
-      - name: Report component completion rather than treating CI green as predictions
+      - name: Prepare exact source verification bundle, no data or credentials
         if: always()
-        run: |
-          python - <<'PY'
-          import json,os
-          from pathlib import Path
-          lines=['## Existing-model actual execution','No wagering; no claim of complete four-sport coverage.']
-          for path in ('boat_all_day_output/forecasts.json','boat_nationwide_output/national.json'):
-              p=Path(path)
-              if not p.exists():lines.append(path+': OUTPUT_MISSING');continue
-              x=json.loads(p.read_text())
-              lines.append(path+': '+str(x.get('state'))+', forecast races='+str(x.get('race_count',x.get('paired_forecast_count',0)))+', reason='+str(x.get('reason')))
-          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write('\n\n'.join(lines)+'\n')
-          PY
+        run: tar -czf source-bundle.tar.gz --exclude='.git' --exclude='__pycache__' race_ai scripts tests .github pr64-reference/race_ai pr72-reference/race_ai
+      - name: Retain reproducible source for independent local testing
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: existing-cycle-source-${{ github.run_id }}
+          path: source-bundle.tar.gz
+          retention-days: 1
