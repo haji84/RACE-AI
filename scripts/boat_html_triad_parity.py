@@ -62,8 +62,8 @@ def run():
        "User-Agent":"RACE-AI-private-one-shot-html-validation/1.0"})
    with urllib.request.build_opener(NoRedirects()).open(req,timeout=12) as r:
     value=r.read(MAX_BYTES+1)
-    if r.status!=200 or r.geturl()!=url or not 0<len(value)<=MAX_BYTES or not
-     (r.headers.get("Content-Type") or "").lower().startswith("text/html"):
+    if (r.status!=200 or r.geturl()!=url or not 0<len(value)<=MAX_BYTES
+        or not (r.headers.get("Content-Type") or "").lower().startswith("text/html")):
      raise ValueError("SOURCE_RESPONSE_SHAPE")
    raw[kind]=value;hashes[kind]=hashlib.sha256(value).hexdigest()
    records[kind]=datetime.now(timezone.utc).isoformat()
