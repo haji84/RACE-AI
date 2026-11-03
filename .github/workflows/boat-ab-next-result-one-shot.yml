@@ -1,0 +1,47 @@
+name: BOAT next registered official A-B result (no Vercel)
+on:
+  push:
+    branches:
+      - feat/four-sport-forecast-audit-view-20261022
+    paths:
+      - docs/evidence/boat-ab-next-result-trigger.txt
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: boat-ab-next-registered-result
+  cancel-in-progress: false
+jobs:
+  next_result:
+    name: Independent official postclose result versus pinned earlier pair
+    if: github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: haji84/RACE-AI
+    steps:
+      - name: Checkout exact PR source
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Checkout original official source parser at pinned SHA
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Validate frozen A/B scores offline
+        run: python -m unittest tests.test_boat_ab_shadow tests.test_boat_ab_result_audit -v
+      - name: Confirm one previously forecast future race official result
+        run: |
+          python scripts/boat_ab_registered_result.py --manifest docs/evidence/2026-11-03/boat-ab-prospective-artifact-registry.json
+      - name: Store result separately, not changing the original pair
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-ab-next-result-${{ github.run_id }}
+          path: boat_ab_registered_result_output/result.json
+          if-no-files-found: warn
+          retention-days: 7
