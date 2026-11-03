@@ -25,6 +25,9 @@ def main():
                 return 3
         except HTTPError as e:
             if e.code!=401:
+                print(json.dumps({"source_endpoint_http_status":e.code,
+                    "expected":"401_UNAUTHORIZED",
+                    "raw_response_not_logged":True}))
                 return 4
         print('{"service_healthy":true,"unauthenticated_private_status_denied":true}')
         return 0
