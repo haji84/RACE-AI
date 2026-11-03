@@ -1,3 +1,5 @@
 2026-11-03 Miyajima3R official result, cutoff 11:19 JST, unchanged previous A/B source run 41564362916 artifact 13198428110. Source/result may still be pending; never infer winner or modify original. No Vercel.
 
 2026-11-03 11:29 JST: bounded official 3R result retry; prior 11:25 preview was PENDING. No predictions generated after cutoff, immutable pair hash from 11:09:50 remains unchanged. No Vercel.
+
+2026-11-03 12:12 JST: GitHub Actions readonly reconfirm of registered 20261103-17-03 (3R) with immutable source pair run 41564362916/artifact 13198428110. Official individual result 3-2-1; 100JPY trifecta payout 8340; cutoff 11:19 JST, no listed refund. If mismatch, preserve PENDING/ERROR; do not create forecasts. After this, 4R has refund boat 5 and must be separately classified (no ordinary 6-boat scoring). No Vercel/nonce POST.
