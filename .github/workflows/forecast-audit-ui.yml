@@ -5,6 +5,8 @@ on:
       - codex/actions-four-sport-e2e
     paths:
       - 'tests/test_four_sport_train_only.py'
+      - 'race_ai/verified_bulk_backtest.py'
+      - 'tests/test_verified_bulk_backtest.py'
       - 'docs/TRAIN_ONLY_EVALUATION_20261027.md'
       - 'race_ai/boat_observed_pairwise_models.py'
       - 'tests/test_boat_observed_pairwise_models.py'
