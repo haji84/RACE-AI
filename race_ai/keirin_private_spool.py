@@ -219,20 +219,21 @@ class KeirinPrivateSpool:
                 reports.append(("daily","IMPORTED" if x["total"] else "EMPTY"))
             except (InboxError,ValueError,TypeError,KeyError):
                 reports.append(("daily","REJECTED_DAILY_INDEX"))
-        for path in _files(inbox,"pre"):
-            try:
-                status=self._run_forecast(_safe_json(path))
-            except (InboxError,ValueError,TypeError,KeyError):
-                status="FORECAST_FAILED_CLOSED"
-            reports.append(("pre",status))
-        # Results are consumed only AFTER the pre-race pass; they never enter
-        # model features. Corrected results append new immutable revisions.
+        # Finalized prior-race results are audited BEFORE new forecasts.
+        # The actual PR71 prediction still receives only strictly timestamped
+        # pre-race source fields, never the result file as a model feature.
         for path in _files(inbox,"results"):
             try:
                 status=self._run_result(_safe_json(path))
             except (InboxError,ValueError,TypeError,KeyError):
                 status="RESULT_FAILED_CLOSED"
             reports.append(("result",status))
+        for path in _files(inbox,"pre"):
+            try:
+                status=self._run_forecast(_safe_json(path))
+            except (InboxError,ValueError,TypeError,KeyError):
+                status="FORECAST_FAILED_CLOSED"
+            reports.append(("pre",status))
         counts=dict(sorted(Counter(s for _,s in reports).items()))
         return {"schema":"RACE_AI_KEIRIN_OWNER_PRIVATE_TICK_V1",
                 "processed_files":len(reports),
