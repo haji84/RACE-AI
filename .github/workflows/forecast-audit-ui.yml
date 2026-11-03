@@ -75,6 +75,8 @@ on:
       - 'audit/freezes/**'
       - 'race_ai/cutoff_job_queue.py'
       - 'race_ai/boat_multi_feature_models.py'
+      - 'race_ai/exhibition_autorun.py'
+      - 'tests/test_exhibition_autorun.py'
       - 'race_ai/boat_feature_adapter.py'
       - 'race_ai/comprehensive_four_sport_models.py'
       - 'race_ai/four_sport_matchup_models.py'
