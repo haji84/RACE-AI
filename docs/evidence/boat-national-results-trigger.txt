@@ -20,3 +20,6 @@ only_artifacts=13206788773
 
 2026-11-03 JST exceptional outcome reclassification review: re-audit earliest Heiwajima7R receipt in frozen 13204251708 alongside its two original batchmates. Previous selected-13 cohort included 5号艇 落 despite no 3T refund. Correct audit revision labels nonfinisher separately without re-scoring or changing old frozen models; preserve original receipts.
 only_artifacts=13204251708
+
+2026-11-03 15:49 JST independent new three-race national freeze original result check after all cutoffs+90sec: 平和島11R / 桐生2R / 丸亀2R. Exact 15:38:44Z GitHub original/JSON/ZIP SHA must match. Official result unpublished remains pending; abnormal finish separate; no post-outcome rerank, no duplicate scoring.
+only_artifacts=13210132613
