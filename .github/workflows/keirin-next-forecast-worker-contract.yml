@@ -1,0 +1,24 @@
+name: KEIRIN next-forecast owner worker contract tests
+on:
+  push:
+    branches: [feat/p0-offline-discovery-gate-20261022]
+    paths: ['.github/workflows/keirin-next-forecast-worker-contract.yml']
+permissions:
+  contents: read
+jobs:
+  synthetic_only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Model-worker permission gate and create-once store, synthetic only
+        run: python -m unittest discover -s tests -p 'test_keirin_next_forecast_worker.py' -v
+      - name: Result-trigger queue regression, synthetic only
+        run: python -m unittest discover -s tests -p 'test_keirin_result_reactor.py' -v
+      - name: Candidate result / original top8 regression, synthetic only
+        run: python -m unittest discover -s tests -p 'test_keirin_candidate_audit.py' -v
+      - name: Verify one full synthetic result-to-model-to-private-save E2E
+        run: python -m unittest discover -s tests -p 'test_keirin_one_synthetic_e2e.py' -v

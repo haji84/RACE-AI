@@ -1,0 +1,11 @@
+# PR71 GitHub freeze receipt race-id binding (2026-10-23)
+
+The existing \`race_ai/github_freeze_receipt.py\` in PR #71 validates GitHub workflow run timestamp, run repository/head SHA, committed anchor, cutoff and prediction SHA-256; however, it only checked that the anchor contains *any* nonempty \`race_id\`. An incorrect race ID could therefore pass the legacy verifier if other fields were identical.
+
+**Fix without touching concurrently developed PR #71**: \`race_ai/race_bound_freeze_receipt.py\` wraps the REAL, pinned PR71 verifier with a guarded GitHub JSON reader. The same commit-SHA-pinned anchor read by the original verifier is decoded, duplicate-key checked and its \`race_id\` compared by strict byte equality with the **independently validated model race ID**. Wrong race, missing anchor, duplicate fields, mismatched prediction SHA/cutoff, absent trusted function or missing readback fail closed. The original PR71 verifier still checks server-side run issuance time, pinned hash path and event type; the wrapper is additional identity validation, not a second competing verifier.
+
+\`scripts/verify_pr71_crossbranch_synthetic.py\` uses the **pinned PR71 commit** in read-only Actions. The validation run must prove (a) valid fictional anchor from the intended race accepted, (b) same hash/cutoff from the wrong race rejected, (c) GitHub timestamp issued at/after cutoff rejected, and (d) neither call writes an actual freeze or makes a provider fetch.
+
+The caller must derive \`expected_race_id\` from validated PR72 \`bind_audit_to_delivery(...)[model_race_id]\`, not from the receipt itself. The wrapper expects an independently trusted \`github_fetch\`, default-denies missing callbacks and does not enable provider crawling.
+
+**Critical remaining limitations**: A valid synthetic contract is not a genuinely stored forecast. No authentic GitHub Actions run for a future race, independent receipt writer, source-access authorization, official cutoff, or verified result settlement has been implemented here. GitHub-created_at is external server time, but not an RFC3161-qualified timestamp or proof of the author's acquisition time. Implement a production receipt writer and stable readback only after legitimate source access and release checks. The full model under the published SHA stays byte-for-byte unmodified; no main merge or site release.

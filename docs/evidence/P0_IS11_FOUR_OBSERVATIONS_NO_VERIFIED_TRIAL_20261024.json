@@ -1,0 +1,128 @@
+{
+  "schema": "RACE_AI_IS11_OFFICIAL_SAME_RACE_CAPTURE_SERIES_20261024_V1",
+  "official_url": "https://autorace.jp/race_info/Program/isesaki/2026-10-24_11",
+  "source_snapshots": [
+    {
+      "run_id": 40085781046,
+      "official_source_sha256": "fd0645188185cb83a4fcdb3ae7b5afe74db962af8211ee3996a7919ca8a70cd4",
+      "head_sha": "50a953814ea3bffa16b2d14ae383f5928cfba02c",
+      "github_run_created_at": "2026-10-24T10:24:25Z",
+      "github_run_updated_at": "2026-10-24T10:24:34Z",
+      "runner_captured_at_claimed": "2026-10-24T10:24:32.231546+00:00",
+      "html_observed": true,
+      "race_day_in_body": true,
+      "race_number_in_body": true,
+      "captured_trial_car_count": 0,
+      "race_bound_trial_table_verified": false,
+      "parser_status": "TRIAL_RACE_BOUND_TABLE_NOT_FOUND",
+      "source_table_anonymous_shapes": null
+    },
+    {
+      "run_id": 40085951999,
+      "official_source_sha256": "34bf78a236164346b079081100116b2c34d87f948d70c9157e12b1f84e801e28",
+      "head_sha": "701942099ef3f9b52e582d791a7e4927f7cbdb56",
+      "github_run_created_at": "2026-10-24T10:27:00Z",
+      "github_run_updated_at": "2026-10-24T10:27:09Z",
+      "runner_captured_at_claimed": "2026-10-24T10:27:06.461641+00:00",
+      "html_observed": true,
+      "race_day_in_body": true,
+      "race_number_in_body": true,
+      "captured_trial_car_count": 0,
+      "race_bound_trial_table_verified": false,
+      "parser_status": "TRIAL_RACE_BOUND_TABLE_NOT_FOUND",
+      "source_table_anonymous_shapes": null
+    },
+    {
+      "run_id": 40086076924,
+      "official_source_sha256": "9ab2045324e451e3a5f8cad22c2d0759790ed3aa6070c308268f717b8ac62c29",
+      "head_sha": "af406e871c99394dd895b74f777b34db4400b72c",
+      "github_run_created_at": "2026-10-24T10:28:54Z",
+      "github_run_updated_at": "2026-10-24T10:29:01Z",
+      "runner_captured_at_claimed": "2026-10-24T10:28:58.764011+00:00",
+      "html_observed": true,
+      "race_day_in_body": true,
+      "race_number_in_body": true,
+      "captured_trial_car_count": 0,
+      "race_bound_trial_table_verified": false,
+      "parser_status": "TRIAL_RACE_BOUND_TABLE_NOT_FOUND",
+      "source_table_anonymous_shapes": [
+        {
+          "column_width_histogram": {
+            "4": 1
+          },
+          "numbered_car_cells_total": 0,
+          "numeric_trial_cells_total": 0,
+          "rows": 1,
+          "trial_heading_cells_total": 0
+        },
+        {
+          "column_width_histogram": {
+            "4": 1
+          },
+          "numbered_car_cells_total": 0,
+          "numeric_trial_cells_total": 0,
+          "rows": 1,
+          "trial_heading_cells_total": 0
+        },
+        {
+          "column_width_histogram": {
+            "2": 15
+          },
+          "numbered_car_cells_total": 0,
+          "numeric_trial_cells_total": 0,
+          "rows": 15,
+          "trial_heading_cells_total": 2
+        }
+      ]
+    },
+    {
+      "run_id": 40086785363,
+      "official_source_sha256": "fb1a8fefe66f40e5cfac5a150b0aa73d6d98b7f29174b223a3fc440568714547",
+      "head_sha": "feb9bd829e79e3a6a6cbf5346ca8ce738a418d4e",
+      "github_run_created_at": "2026-10-24T10:39:36Z",
+      "github_run_updated_at": "2026-10-24T10:39:45Z",
+      "runner_captured_at_claimed": "2026-10-24T10:39:42.373137+00:00",
+      "html_observed": true,
+      "race_day_in_body": true,
+      "race_number_in_body": true,
+      "captured_trial_car_count": 0,
+      "race_bound_trial_table_verified": false,
+      "parser_status": "TRIAL_RACE_BOUND_TABLE_NOT_FOUND",
+      "source_table_anonymous_shapes": [
+        {
+          "column_width_histogram": {
+            "4": 1
+          },
+          "numbered_car_cells_total": 0,
+          "numeric_trial_cells_total": 0,
+          "rows": 1,
+          "trial_heading_cells_total": 0
+        },
+        {
+          "column_width_histogram": {
+            "4": 1
+          },
+          "numbered_car_cells_total": 0,
+          "numeric_trial_cells_total": 0,
+          "rows": 1,
+          "trial_heading_cells_total": 0
+        },
+        {
+          "column_width_histogram": {
+            "2": 15
+          },
+          "numbered_car_cells_total": 0,
+          "numeric_trial_cells_total": 0,
+          "rows": 15,
+          "trial_heading_cells_total": 2
+        }
+      ]
+    }
+  ],
+  "observed_numeric_trial_publication_transition": false,
+  "reason": "No observation parsed a race-bound actual car-number/trial-time table; source hashes changing alone cannot attest trial first publication.",
+  "previous_false_cancellation_claim_retracted": true,
+  "formal_model_prediction_generated": false,
+  "original_PR71_weights_changed": false,
+  "source_rights_for_recurrent_automatic_collection_admitted": false
+}

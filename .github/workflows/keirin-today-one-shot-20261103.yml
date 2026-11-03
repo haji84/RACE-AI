@@ -1,0 +1,23 @@
+name: KEIRIN 2026-11-03 Odawara1R single personal research probe
+on:
+  push:
+    branches: [feat/p0-offline-discovery-gate-20261022]
+    paths: ['.github/workflows/keirin-today-one-shot-20261103.yml']
+permissions:
+  contents: read
+jobs:
+  one_result:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Verify candidate parser on only synthesized input
+        run: python -m unittest discover -s tests -p test_keirin_mobile_one_shot.py -v
+      - name: One GET for the user's previously predicted race, no raw HTML saved
+        run: |
+          python -m scripts.keirin_mobile_probe_once \
+            --ymd 20261103 --venue 36 --race 1 \
+            --ack-single-personal-research-get

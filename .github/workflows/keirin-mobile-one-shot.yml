@@ -1,0 +1,25 @@
+# Explicit one-time post-parser verification (no recurring schedule).
+name: KEIRIN alternate published-result one-shot research
+on:
+  push:
+    branches: [feat/p0-offline-discovery-gate-20261022]
+    paths:
+      - '.github/workflows/keirin-mobile-one-shot.yml'
+permissions:
+  contents: read
+jobs:
+  one_page_only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Verify offline transport contract
+        run: python -m unittest discover -s tests -p 'test_keirin_mobile_one_shot.py' -v
+      - name: Probe a single historical result page only
+        run: |
+          python -m scripts.keirin_mobile_probe_once \
+            --ymd 20261022 --venue 36 --race 02 \
+            --ack-single-personal-research-get

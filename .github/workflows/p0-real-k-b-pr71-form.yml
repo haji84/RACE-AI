@@ -1,0 +1,32 @@
+name: P0 real historical K+B to existing PR71 form audit
+on:
+  push:
+    branches:
+      - 'p0-real-k-b-pr71-form-20261024'
+    paths:
+      - 'docs/evidence/p0-real-k-b-pr71-form-trigger-20261024.txt'
+permissions:
+  contents: read
+jobs:
+  real_historical_join:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    env:
+      RACE_AI_BK_JOIN_ONE_SHOT: ONE_HISTORICAL_SIX_K_B_PR71
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-parser-reference
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: 39d888329d18a5ed517de7c6b25ae3ca52257255
+          path: pr71-existing-reference
+      - name: One bounded real six-day K plus one-day B audit and old PR71 rating
+        run: python -m scripts.p0_real_b_k_pr71_history_join_20261024

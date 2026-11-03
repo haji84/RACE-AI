@@ -1,0 +1,22 @@
+{
+  "schema": "RACE_AI_OFFICIAL_BOAT_DAY_SCHEDULE_OBSERVATION_V1",
+  "event_date_jst": "2026-10-24",
+  "venue_jcd": "11",
+  "source_url": "https://www.boatrace.jp/owpc/pc/race/racelist?hd=20261024&jcd=11&rno=1",
+  "observed_at_claimed": "2026-10-24T08:07:31+09:00",
+  "scheduled_close_jst": [
+    "10:24",
+    "10:50",
+    "11:17",
+    "11:46",
+    "12:13",
+    "12:40",
+    "13:05",
+    "13:31",
+    "14:05",
+    "14:35",
+    "15:09",
+    "15:50"
+  ],
+  "source_access_basis": "PUBLIC_WEB_VIEW_ONLY_NOT_REVIEWED_FOR_AUTOMATED_FETCH"
+}

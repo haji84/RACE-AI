@@ -1,5 +1,20 @@
 # Asset reuse audit — 2026-10-21 JST
 
+## Current read-only refresh — 2026-10-25
+
+Main remains `8bb7d69f9c8fb302055bc9e2609903d1e8f73e4b`; Draft assets below are not integrated. Earlier rows are historical evidence.
+
+|PR|Current head|API base SHA|Current exact-head CI|
+|---|---|---|---|
+|61|fef68607b4773c59d6d46aa04b9e9762a42683d4|8bb7d69f9c8fb302055bc9e2609903d1e8f73e4b|No runs returned|
+|64|761247bee0209e37b1af6b8885e92cad3e9260a5|8bb7d69f9c8fb302055bc9e2609903d1e8f73e4b|40049863446 success|
+|65|989ffff1d6d2a3476dab41655038eda43f94fff7|2ca60a885a5d61dabcf267175c7a6d3bf05faad5|39951519264 /39951519516 success|
+|69|bca59ebc5c7174e79d2dba027a97890f5d0d3d1f|8bb7d69f9c8fb302055bc9e2609903d1e8f73e4b|39696481097 success|
+|71|a3d4d011fab8773e2eab07ca83580ab345dfb708|070907dd335f1e0d64d31b49c2bb799e54010be3|40059352693 success|
+|72|96afca652d6edaac493bb9845ad361122e58fb33|bca59ebc5c7174e79d2dba027a97890f5d0d3d1f|40117996609 success|
+
+PR64 full514 changed paths were enumerated locally. Reuse its K/B/parser/history source assets read-only. PR72 publication/binding/receipt/settlement and PR71 original model/validator/odds audit/UI assets provide the current bridge; coefficients and original prediction bytes stay unchanged. PR65 remains a pilot. PR71/72 share merge-base070907dd, not current PR69; no automatic stack integration is inferred. Source-rights and product exit tiers are in `SRC_RIGHTS_STATUS.md` and `REQUIRED_EXIT_GATES.md`; current AllowedPaths/writer ownership are in the parallel taskboard.
+
 Integrated base: main `8bb7d69f9c8fb302055bc9e2609903d1e8f73e4b` (README only).
 New unit starts directly from this base, not the stacked PR64 tree. Original PR64 checkout and uncommitted Cloudflare work remain intact.
 
@@ -29,6 +44,8 @@ KEIRIN-AI: main `c922c56079d087ee34e6ec4533bf0c135b9427e7` README only; PR1 `574
 - PR64 workflows and all old provider/media/decode assets remain unmodified. No full 1141-test legacy rerun without code change.
 
 ## Minimal dependency route
+
+2026-10-25 follow-on: PR72 `8e23bc496a33d3c859abc27d9a6b316423544b93` repaired the existing PR64 raw-preview/legacy readiness join (CI40156008773 Python353 PASS). The next opt-in `offline_model_run` reuses the pinned PR71 `ebe93f13062cf0461b81b924a5dc0482ada37b56` delivery, typed codec, unchanged PR72 binding/anchor preparation/settlement and existing SQLite transaction patterns. Its separate synthetic namespace never widens `SyntheticJournal` or introduces another prediction formula. Local prepared plans are not external freeze receipts; actual runner head/CI/review are recorded separately on Issue68 after verification.
 
 main README → extracted pure ranking kernel → sport/snapshot adapter + synthetic journal → credential-free synthetic hosted workflow.
 No stack-wide merge/rebase/force-push. Future real collector → authenticated external immutable writer → independent persisted-time witness must be separately admitted.

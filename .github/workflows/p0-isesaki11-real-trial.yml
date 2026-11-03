@@ -1,0 +1,22 @@
+name: P0 official Isesaki11 race-bound trial source check
+on:
+  push:
+    branches:
+      - 'p0-isesaki11-trial-20261024'
+    paths:
+      - 'docs/evidence/p0-isesaki11-trial-trigger-20261024.txt'
+permissions:
+  contents: read
+jobs:
+  one_real_autorace_trial:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    env:
+      RACE_AI_ISESAKI11_ONCE: ISESAKI_11R_TRIAL_ONESHOT_V1
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: One official race-scoped trial page; no prediction or raw source publication
+        run: python -m scripts.p0_isesaki11_real_trial_probe_20261024

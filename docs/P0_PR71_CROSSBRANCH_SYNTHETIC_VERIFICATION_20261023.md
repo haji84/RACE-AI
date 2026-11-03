@@ -1,0 +1,5 @@
+## Cross-PR model code checkout in GitHub Actions (2026-10-23)
+
+`scripts/verify_pr71_crossbranch_synthetic.py` executes **actual pinned PR71 code** (from commit `5d4be4326b4fba321507a08f09e1eb7b661d027e`) against the PR72 source/identity bridge. The pinned SHA prevents silently incorporating models concurrently edited in another chat. It uses PR71's fictional fixture and a generated offline AUDIT_ONLY ledger only, with no provider HTTP, data rights, live races, external freeze or deployment. **A passed contract check proves software interoperability under the pinned SHA, not genuine source acquisition or official validation.**
+
+Known namespace mismatch: PR71 research models use `horse`, while PR72's actual central/local races use `horse_jra`/`horse_local`. PR72 now uses an explicit, reversible **source-to-model ID mapping** bound to the exact date, venue, and race number; it does not modify PR71 model hashes. Source race division is preserved and still needs independent external provenance and cutoff proof before being admitted for any KPI. No horse forecast is counted as a verified hit.

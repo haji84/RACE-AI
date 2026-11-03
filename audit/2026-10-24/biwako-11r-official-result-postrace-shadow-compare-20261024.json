@@ -1,0 +1,172 @@
+{
+  "schema": "RACE_AI_BOAT_OFFICIAL_RESULT_POSTRACE_SHADOW_AUDIT_V1",
+  "audit_created_at_github_client_clock_unattested": "2026-10-24T10:10:07.692Z",
+  "race_key": "boat:2026-10-24:boatrace-jcd-11:11",
+  "official_event_date_jst": "2026-10-24",
+  "venue": "びわこ",
+  "race_number": 11,
+  "event": "ＰａｙＰａｙ銀行賞 4日目 予選特選",
+  "scheduled_cutoff_at_jst": "2026-10-24T15:09:00+09:00",
+  "scheduled_cutoff_last_revision_independently_verified": false,
+  "official_result": {
+    "race_result_url": "https://www.boatrace.jp/owpc/pc/race/raceresult?hd=20261024&jcd=11&rno=11",
+    "official_same_day_result_list_url": "https://www.boatrace.jp/owpc/pc/race/resultlist?hd=20261024&jcd=11",
+    "result_crosschecked_between_two_first_party_official_pages": true,
+    "trifecta_ordered": [
+      1,
+      5,
+      6
+    ],
+    "trifecta_100yen_payout_jpy": 3830,
+    "trifecta_popularity_rank": 13,
+    "official_finish_order": [
+      1,
+      5,
+      6,
+      3,
+      2,
+      4
+    ],
+    "finishing_racers": [
+      {
+        "place": 1,
+        "boat": 1,
+        "registered": 4512,
+        "name": "高野 哲史"
+      },
+      {
+        "place": 2,
+        "boat": 5,
+        "registered": 4746,
+        "name": "大豆生田 蒼"
+      },
+      {
+        "place": 3,
+        "boat": 6,
+        "registered": 3874,
+        "name": "山本 寛久"
+      }
+    ],
+    "winning_method": "抜き",
+    "race_completion_status": "SIX_FINISHERS_REPORTED_NOT_CANCELLED",
+    "official_refund_field": "---",
+    "refund_flag_in_official_result": false,
+    "official_remarks_field": "---",
+    "race_cancellation_indicated": false,
+    "official_first_publication_at": null,
+    "official_result_finalization_published_at": null,
+    "official_revision_history_status": "NOT_PROVIDED_IN_CHECKED_PAGES_UNVERIFIED",
+    "official_revision_history_events": null,
+    "absence_of_all_later_corrections_proven": false
+  },
+  "immutable_precutoff_reference": {
+    "prediction_file_at_pinned_commit": "audit/2026-10-24/biwako-11r-unadmitted-b-lite-shadow-top8.json",
+    "commit_url": "https://github.com/haji84/RACE-AI/commit/d27f97f32693c9a4c100bf92d9add2bc9b95581d",
+    "commit_sha": "d27f97f32693c9a4c100bf92d9add2bc9b95581d",
+    "pinned_original_blob_git_sha": "e111718a40c215ff9af6017a8c55904131f2949e",
+    "prediction_sha256": "408be2ad9c1bb3488ad7fbcb3863744907857b906b04f7fba7089033d4e3e2e5",
+    "github_commit_timestamp_jst": "2026-10-24T11:18:41+09:00",
+    "github_action_id": 40053587508,
+    "github_action_url": "https://github.com/haji84/RACE-AI/actions/runs/40053587508",
+    "original_forecast_status": "RESEARCH_UNADMITTED_PREVIEW_NOT_FORMAL_FORECAST",
+    "model_id": "boat-b-lite-v1-untrained",
+    "trained": false,
+    "calibrated": false,
+    "formal_hit_at_8_eligible": false,
+    "official_prediction": false,
+    "original_top8_order_unchanged": true,
+    "original_top8": [
+      [
+        1,
+        6,
+        2
+      ],
+      [
+        6,
+        1,
+        2
+      ],
+      [
+        1,
+        2,
+        6
+      ],
+      [
+        6,
+        2,
+        1
+      ],
+      [
+        2,
+        1,
+        6
+      ],
+      [
+        2,
+        6,
+        1
+      ],
+      [
+        1,
+        6,
+        5
+      ],
+      [
+        6,
+        1,
+        5
+      ]
+    ],
+    "github_timestamp_external_cryptographic_receipt_verified": false
+  },
+  "official_model_input_gate": {
+    "action_id": 40053382708,
+    "action_url": "https://github.com/haji84/RACE-AI/actions/runs/40053382708",
+    "gate_status": "NO_FORECAST_B_LITE_INPUT_EVIDENCE_INSUFFICIENT",
+    "formal_prediction_count": 0,
+    "formal_top8": null
+  },
+  "research_shadow_postrace_comparison": {
+    "reference_only": true,
+    "official_outcome_trifecta": [
+      1,
+      5,
+      6
+    ],
+    "top8_match": false,
+    "matched_prediction_index_1based": null,
+    "classification": "RESEARCH_ONLY_REFERENCE_MISS",
+    "diagnostic_confirmed": "original_top8_never_placed_boat_5_second_and_did_not_include_1-5-6",
+    "failure_mechanism_causation_status": "UNKNOWN_NOT_PROVEN_BY_ONE_RACE",
+    "official_formal_accuracy_credit": 0,
+    "real_ticket_purchase_verification": "NO_PURCHASE_EVIDENCE",
+    "real_purchase_profit_loss_jpy": null,
+    "real_purchase_return_rate": null
+  },
+  "formal_kpi_accounting": {
+    "denominator_rule": "official 3連単 offered and final result evaluable: missing formal pre-cutoff forecast counts as denominator one and hit zero",
+    "officially_evaluable_under_race_condition": true,
+    "if_within_prepinned_scope_denominator_contribution": 1,
+    "formal_hit_numerator_contribution": 0,
+    "formal_forecast_count": 0,
+    "status": "OFFICIALLY_EVALUABLE_NO_FORECAST_FORMAL_MISS",
+    "reference_shadow_excluded_from_formal_hit_at_8": true,
+    "reference_shadow_excluded_from_real_purchase_return": true,
+    "total_all_four_sports_denominator_not_inferred": true
+  },
+  "audit_constraints": {
+    "source_html_republished": false,
+    "prior_prediction_edited": false,
+    "prediction_after_result_generated": false,
+    "odds_used_to_rerank": false,
+    "real_money_bet": false,
+    "paid_action": false,
+    "main_merged": false,
+    "deployed": false
+  },
+  "evidence_quality": {
+    "first_party_two_official_pages_consistent": true,
+    "missing": "Official first result publication time, officially documented correction history, final cutoff revisions and proof of independent cryptographic timestamp are not visible in checked pages.",
+    "evidence_scope": "one race; does not establish broader day-, model-, or four-sport hit statistics"
+  }
+}

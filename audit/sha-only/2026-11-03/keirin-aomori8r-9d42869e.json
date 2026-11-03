@@ -1,0 +1,18 @@
+{
+  "schema": "RACE_AI_PRE_CUTOFF_SHA_ONLY_ANCHOR_V1",
+  "sport": "keirin",
+  "race_id": "202611031208",
+  "event_date_jst": "2026-11-03",
+  "race_no": 8,
+  "venue_code": 12,
+  "reference_model": "20261103-am-reference-v1",
+  "private_wire_sha256": "9d42869efb32dacab49d7996e7f6d3177eb9603d06dd22afa17448ccba07da82",
+  "private_wire_bytes": 828,
+  "picked_count": 8,
+  "claimed_private_cutoff_at": "2026-11-03T13:57:00+09:00",
+  "cutoff_source": "https://keirin.netkeiba.com/race/result/?race_id=202611031208",
+  "source_is_not_official_cutoff_receipt": true,
+  "personal_private_original_not_uploaded": true,
+  "model_is_uncalibrated": true,
+  "retrospective_replacement_forbidden": true
+}

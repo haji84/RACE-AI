@@ -1,0 +1,32 @@
+name: P0 15-day historical K to original PR71 Ohmura8 audit
+on:
+  push:
+    branches:
+      - 'p0-ohmura8-extended-k-20261024'
+    paths:
+      - 'docs/evidence/p0-ohmura8-extended-k-trigger-20261024.txt'
+permissions:
+  contents: read
+jobs:
+  extended_history_once:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    env:
+      RACE_AI_BK_JOIN_ONE_SHOT: ONE_HISTORICAL_FIFTEEN_K_B_PR71_OHMURA8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-parser-reference
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: 39d888329d18a5ed517de7c6b25ae3ca52257255
+          path: pr71-existing-reference
+      - name: Single bounded 15 historic K plus today's B aggregate coverage test
+        run: python -m scripts.p0_ohmura8_extended_pr71_historical_k_audit

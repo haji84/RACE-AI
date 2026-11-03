@@ -1,0 +1,79 @@
+{
+  "B_official_races_in_daily_source": 168,
+  "B_official_venues_in_daily_source": 14,
+  "B_source_sha256": "c559ab388c00e902be27ee3764edda9db0a51ae0ca40de3fb986d30b5c184084",
+  "candidates_sorted": [
+    {
+      "cutoff": "2026-10-24T13:28:00+09:00",
+      "race_id": "20261024-22-06"
+    },
+    {
+      "cutoff": "2026-10-24T13:31:00+09:00",
+      "race_id": "20261024-11-08"
+    }
+  ],
+  "checked": [
+    {
+      "all_public_preview_numeric_available": false,
+      "captured_at_runner_unattested": "2026-10-24T04:24:27.538796+00:00",
+      "cutoff_at": "2026-10-24T13:28:00+09:00",
+      "display_time_numeric_count": 6,
+      "exhibition_ST_numeric_count": 5,
+      "race_id": "20261024-22-06",
+      "registered_six_match_official_B": true,
+      "schedule_proven_issued_as_scheduled_not_final": true,
+      "source_html_sha256": "97017de47732c6cc1b491e196be33c896a828907fd3aa08b0ebaea280cc2639f",
+      "source_parser_status": "AVAILABLE",
+      "title": "venue-22-6R",
+      "wave_cm_available": true,
+      "wind_mps_available": true
+    },
+    {
+      "all_public_preview_numeric_available": false,
+      "captured_at_runner_unattested": "2026-10-24T04:24:27.897529+00:00",
+      "cutoff_at": "2026-10-24T13:31:00+09:00",
+      "display_time_numeric_count": 6,
+      "exhibition_ST_numeric_count": 4,
+      "race_id": "20261024-11-08",
+      "registered_six_match_official_B": true,
+      "schedule_proven_issued_as_scheduled_not_final": true,
+      "source_html_sha256": "4879a36f1da45695693b49db742f6456ee380ebc1557a46ab115fcf502030054",
+      "source_parser_status": "AVAILABLE",
+      "title": "venue-11-8R",
+      "wave_cm_available": true,
+      "wind_mps_available": true
+    }
+  ],
+  "finished_runner_clock_unattested": "2026-10-24T04:24:27.908987+00:00",
+  "formal_model_executed": false,
+  "full_PR71_model_top8": null,
+  "full_racer_source_rows_published": false,
+  "historical_K_previous_race_requirement_verified": false,
+  "model_source_rights_independently_verified": false,
+  "observed_on_runner_clock": "2026-10-24T04:24:26.373112+00:00",
+  "odds_used": false,
+  "official_prediction": false,
+  "official_result_used": false,
+  "original_PR71_weights_changed": false,
+  "provider_GET_attempts": 3,
+  "provider_GET_budget": 3,
+  "raw_source_bytes_persisted": false,
+  "schema": "RACE_AI_CUTOFF_ORDERED_RACE_SELECTION_V1",
+  "selected_race": null,
+  "source_published_at_independently_verified": false,
+  "status": "NO_NEAR_TERM_RACE_WITH_ALL_PREVIEW_NUMERICS",
+  "wet_surface_factor_proven": false,
+  "wind_true_bearing_verified": false,
+  "GitHub_execution": {
+    "run_id": 40062201783,
+    "head_sha": "e56ec5a01af0d91b206c10bb493718b9bc6b4ee8",
+    "github_created_at": "2026-10-24T04:24:19Z",
+    "github_updated_at": "2026-10-24T04:24:31Z",
+    "status": "success",
+    "url": "https://github.com/haji84/RACE-AI/actions/runs/40062201783"
+  },
+  "scope": "FULL_OFFICIAL_B_SCHEDULE_EARLIEST_TWO_PREVIEW_ONLY",
+  "all_168_exhibition_verified": false,
+  "all_168_K_histories_verified": false,
+  "formal_hit_at_8_eligible": false
+}

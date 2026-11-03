@@ -1,0 +1,22 @@
+name: P0 JRA Kyoto12 charset-aware one official racecard
+on:
+  push:
+    branches:
+      - 'p0-jra-charset-onerace-20261024'
+    paths:
+      - 'docs/evidence/p0-jra-one-charset-trigger-20261024.txt'
+permissions:
+  contents: read
+jobs:
+  one_jra_html:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    env:
+      RACE_AI_JRA_CHARSET_ONE_SHOT: JRA_KYOTO12_ONE_TEXT_ENCODING_CHECK
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Inspect only JRA official Kyoto12 textual racecard and charset
+        run: python -m scripts.p0_jra_kyoto12_charset_audit_20261024

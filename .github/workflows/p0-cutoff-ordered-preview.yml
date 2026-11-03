@@ -1,0 +1,27 @@
+name: P0 same-day deadline-sorted real preview selection
+on:
+  push:
+    branches:
+      - 'p0-cutoff-ordered-preview-20261024'
+    paths:
+      - 'docs/evidence/p0-cutoff-ordered-preview-trigger-20261024.txt'
+permissions:
+  contents: read
+jobs:
+  one_cutoff_ordered_preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    env:
+      RACE_AI_CUTOFF_ORDERED_ONCE: OCT24-13H-CUTOFF-SORTED
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-parser-reference
+      - name: Decide earliest pre-cutoff source-ready official race, no model promotion
+        run: python -m scripts.p0_cutoff_ordered_preview_20261024

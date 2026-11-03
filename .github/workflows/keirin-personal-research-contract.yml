@@ -1,0 +1,21 @@
+# Verify opt-in single-result GET boundary without network; routine study remains offline.
+name: KEIRIN personal noncommercial research contract
+on:
+  push:
+    branches: [feat/p0-offline-discovery-gate-20261022]
+    paths: ['.github/workflows/keirin-personal-research-contract.yml']
+permissions:
+  contents: read
+jobs:
+  one_private_mode_test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Personal private research, no HTTP
+        run: python -m unittest discover -s tests -p 'test_keirin_personal_research_once.py' -v
+      - name: Existing one-race research comparison regression, no HTTP
+        run: python -m unittest discover -s tests -p 'test_keirin_candidate_audit.py' -v

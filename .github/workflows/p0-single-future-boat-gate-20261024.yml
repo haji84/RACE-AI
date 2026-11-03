@@ -1,0 +1,27 @@
+name: P0 bounded same-day boat B-LITE source evidence gate
+on:
+  push:
+    branches:
+      - 'p0-b-live-gate-20261024'
+    paths:
+      - 'docs/evidence/p0-b-live-gate-trigger-20261024.txt'
+permissions:
+  contents: read
+jobs:
+  one_future_race_source_gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    env:
+      RACE_AI_B_LIVE_ONE_SHOT: 20261024-BIWAKO11R-ONE
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-parser-reference
+      - name: Validate one real daily B file in memory for future biwako 11R
+        run: python -m scripts.p0_single_future_boat_gate_20261024

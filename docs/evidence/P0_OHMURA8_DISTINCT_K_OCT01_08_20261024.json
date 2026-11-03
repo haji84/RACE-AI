@@ -1,0 +1,148 @@
+{
+  "GET_attempts": 8,
+  "accepted_K_entrant_rows_total": 7416,
+  "auto_polling": false,
+  "combined_at_least_five_can_be_deduced_without_RACER_CROSS_RUN_STATE": false,
+  "cross_run_racer_specific_join_performed": false,
+  "eligible_for_formal_hit8": false,
+  "existing_PR71_FULL_forecast_executed": false,
+  "existing_PR71_coefficients_modified": false,
+  "individual_source_values_persisted": false,
+  "intended_get_limit": 8,
+  "minimal_new_K_count_across_six": 0,
+  "model_use_rights_verified": false,
+  "official_prediction": false,
+  "official_source_publication_verified": false,
+  "preview_ST_joined": false,
+  "preview_display_joined": false,
+  "previous_fifteen_K_window_minimum_proven": 3,
+  "race_card_url": "https://www.boatrace.jp/owpc/pc/race/racelist?hd=20261024&jcd=24&rno=8",
+  "race_id": "20261024-24-08",
+  "republication_of_athlete_records": false,
+  "retained_raw_archive": false,
+  "runtime_finished_at_unattested": "2026-10-24T03:55:25.432955+00:00",
+  "schema": "RACE_AI_OHMURA8_DISTINCT_OLDER_K_BLOCK_V1",
+  "selected_6_racers_additional_K_counts_by_lane": [
+    4,
+    3,
+    6,
+    0,
+    2,
+    0
+  ],
+  "selected_6_racers_additional_K_counts_sorted": [
+    0,
+    0,
+    2,
+    3,
+    4,
+    6
+  ],
+  "source_dates": [
+    "2026-10-01",
+    "2026-10-02",
+    "2026-10-03",
+    "2026-10-04",
+    "2026-10-05",
+    "2026-10-06",
+    "2026-10-07",
+    "2026-10-08"
+  ],
+  "source_dates_prior_15day_overlap_count": 0,
+  "source_racecard_identity_attested_at_runtime": false,
+  "source_summaries": [
+    {
+      "accepted_rows": 1008,
+      "day": "2026-10-01",
+      "empty_venue_blocks": 0,
+      "excluded_races": 0,
+      "sha256": "424325880e2a20d3dae85e4c248cd7998563907af64832de191515ccc5544793",
+      "status": "STRICT_WHOLE_DAY"
+    },
+    {
+      "accepted_rows": 1008,
+      "day": "2026-10-02",
+      "empty_venue_blocks": 0,
+      "excluded_races": 0,
+      "sha256": "5349a4c09b6dcff5efc8a252cbc3a8439f417d53411b530447297f63bef497fb",
+      "status": "STRICT_WHOLE_DAY"
+    },
+    {
+      "accepted_rows": 936,
+      "day": "2026-10-03",
+      "empty_venue_blocks": 0,
+      "excluded_races": 0,
+      "sha256": "05fc67206b7a35668f660b81f57c4e3046118c8de89a0588ed455af9bf8adf1d",
+      "status": "STRICT_WHOLE_DAY"
+    },
+    {
+      "accepted_rows": 936,
+      "day": "2026-10-04",
+      "empty_venue_blocks": 0,
+      "excluded_races": 0,
+      "sha256": "b6c018e607eff212fb1079fe564d7d53dccbe6cc928322ce80f1802b21d89b47",
+      "status": "STRICT_WHOLE_DAY"
+    },
+    {
+      "accepted_rows": 864,
+      "day": "2026-10-05",
+      "empty_venue_blocks": 0,
+      "excluded_races": 0,
+      "sha256": "a39785185cae7fa8133e8a67872fc653a3ccecc26636134d2fad934bc8ca8913",
+      "status": "STRICT_WHOLE_DAY"
+    },
+    {
+      "accepted_rows": 936,
+      "day": "2026-10-06",
+      "empty_venue_blocks": 0,
+      "excluded_races": 0,
+      "sha256": "14b76620c09dea1c0adabc0f6ef4b3c9fb7398f66782ec489ec84af56a2c16cd",
+      "status": "STRICT_WHOLE_DAY"
+    },
+    {
+      "accepted_rows": 864,
+      "day": "2026-10-07",
+      "empty_venue_blocks": 0,
+      "excluded_races": 0,
+      "sha256": "98287345a34cc325b4ea5e40747da4f1c327f3e8694e3559f387a1a467961919",
+      "status": "STRICT_WHOLE_DAY"
+    },
+    {
+      "accepted_rows": 864,
+      "day": "2026-10-08",
+      "empty_venue_blocks": 0,
+      "excluded_races": 0,
+      "sha256": "e66d85de2dd5083a944f68bedef3a46cab1b7aa1df9214112d19d4764931d8fb",
+      "status": "STRICT_WHOLE_DAY"
+    }
+  ],
+  "status": "OLDER_DISTINCT_K_ROWS_OBSERVED_NOT_MODEL_ADMITTED",
+  "wind_wave_joined": false,
+  "evidence": {
+    "github_actions_run_id": 40060264730,
+    "head_sha": "2955eb482832b16fe69095b2ae4ac2da3de4fbdc",
+    "github_created_at": "2026-10-24T03:55:17Z",
+    "github_updated_at": "2026-10-24T03:55:28Z",
+    "html_url": "https://github.com/haji84/RACE-AI/actions/runs/40060264730",
+    "server_run_success": true
+  },
+  "previous_known_interval": {
+    "from": "2026-10-09",
+    "through": "2026-10-23",
+    "event": "2026-10-24",
+    "source": "https://github.com/haji84/RACE-AI/actions/runs/40059560001",
+    "known_aggregate_history_counts_sorted": [
+      3,
+      6,
+      7,
+      10,
+      12,
+      12
+    ]
+  },
+  "combined_by_racer_actual_verified": false,
+  "formal_model_eligibility": false,
+  "model_prediction_sha": null,
+  "private_cache_present": false,
+  "disjoint_window_only": true
+}

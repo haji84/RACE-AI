@@ -1,0 +1,75 @@
+{
+  "calibrated": false,
+  "candidate_count": 120,
+  "created_at_runner_clock_unattested": "2026-10-24T02:31:01.876204+00:00",
+  "external_pre_cutoff_receipt": null,
+  "formal_hit_at_8_eligible": false,
+  "full_ranking_digest": "4cb1013e6103f490db9682bcc12148d412ee9abc77366c8df4536ec36c495371",
+  "future_result": null,
+  "model_id": "boat-b-lite-v1-untrained",
+  "model_version": "0.1.0-UNTRAINED",
+  "not_same_as_verified_B_LITE_model_input": true,
+  "odds_used": false,
+  "official_prediction": false,
+  "official_result_used": false,
+  "ordered_top8": [
+    [
+      6,
+      2,
+      4
+    ],
+    [
+      6,
+      4,
+      2
+    ],
+    [
+      2,
+      6,
+      4
+    ],
+    [
+      4,
+      6,
+      2
+    ],
+    [
+      2,
+      4,
+      6
+    ],
+    [
+      4,
+      2,
+      6
+    ],
+    [
+      6,
+      2,
+      1
+    ],
+    [
+      2,
+      6,
+      1
+    ]
+  ],
+  "prediction_sha256": "5c36e3ddf5a8032edea2eb8e488183bb6f86a642fae6953c7c04d0daf45a274f",
+  "race_id": "boat:2026-10-24:boatrace-jcd-10:7",
+  "scheduled_cutoff_at": "2026-10-24T11:38:00+09:00",
+  "schema": "RACE_AI_ONE_SHOT_UNADMITTED_B_LITE_RESEARCH_PREVIEW_V1",
+  "source_archive_sha256": "1760b6e3fc024a517994fdd072d13c9676f5f42d009c1339681eb2d537bd11ae",
+  "source_numeric_fields": [
+    "national_win_rate",
+    "local_win_rate",
+    "motor_top2_rate"
+  ],
+  "source_published_at": null,
+  "source_rights_verified": false,
+  "source_rows_retained": false,
+  "source_sample_n": null,
+  "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261024.lzh",
+  "source_use": "ONE_SHOT_RESEARCH_PROVISIONAL",
+  "status": "RESEARCH_UNADMITTED_PREVIEW_NOT_FORMAL_FORECAST",
+  "trained": false
+}

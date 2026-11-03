@@ -1,0 +1,21 @@
+name: Audit only external forecast fingerprint witness
+on:
+  push:
+    branches:
+      - 'audit/freeze-*'
+    paths:
+      - 'audit/freezes/**'
+permissions:
+  contents: read
+jobs:
+  witness:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+          ref: ${{ github.sha }}
+      - name: Check newly added fingerprint structure
+        run: python scripts/check_anchor_witness.py

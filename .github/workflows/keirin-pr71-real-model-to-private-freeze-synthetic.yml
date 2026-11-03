@@ -1,0 +1,40 @@
+name: KEIRIN PR71 actual model to PR72 private research freeze
+on:
+  push:
+    branches:
+      - feat/p0-offline-discovery-gate-20261022
+    paths:
+      - '.github/workflows/keirin-pr71-real-model-to-private-freeze-synthetic.yml'
+permissions:
+  contents: read
+jobs:
+  pinned_pr71_on_fictional_inputs:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Check out exact PR71 research model commit, not mutable branch
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: 1ee8579a9cb758ddcf0fa4a6ceb6912fc317ac76
+          path: pinned-pr71-research
+      - name: Stage only pinned PR71 model modules inside temporary checkout
+        run: |
+          cp pinned-pr71-research/race_ai/comprehensive_four_sport_models.py race_ai/
+          cp pinned-pr71-research/race_ai/four_sport_matchup_models.py race_ai/
+          cp pinned-pr71-research/race_ai/four_sport_learning.py race_ai/
+          cp pinned-pr71-research/race_ai/four_sport_model_suite.py race_ai/
+      - name: Verify actual PR71 computation and PR72 owner-save boundary on fictional race
+        run: python -m unittest discover -s tests -p 'test_keirin_pr71_model_adapter.py' -v
+      - name: Guard existing result-event outbox
+        run: python -m unittest discover -s tests -p 'test_keirin_result_reactor.py' -v
+      - name: Guard existing next-forecast worker
+        run: python -m unittest discover -s tests -p 'test_keirin_next_forecast_worker.py' -v
+      - name: One complete fictional result-to-actual-PR71-model-to-private-store chain
+        run: python -m unittest discover -s tests -p 'test_keirin_owner_one_cycle.py' -v
+      - name: Actual PR71 model, SQLite durable readback after process reopen
+        run: python -m unittest discover -s tests -p 'test_keirin_owner_sqlite_pr71_e2e.py' -v
