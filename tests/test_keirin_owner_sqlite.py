@@ -160,5 +160,80 @@ class RealSQLitePrivateStoreTests(unittest.TestCase):
                 PrivateKeirinStore(link,clock=self.clock)
 
 
+    def test_all_76_discovered_races_survive_restart(self):
+        venue_counts={12:12,36:7,38:7,45:12,53:7,63:12,83:12,84:7}
+        rows=[]
+        for venue,count in venue_counts.items():
+            for number in range(1,count+1):
+                rows.append({"race_id":f"20261103{venue:02d}{number:02d}",
+                    "event_date_jst":"2026-11-03",
+                    "venue_code":venue,"race_no":number,
+                    "official_cutoff_at":None})
+        self.assertEqual(len(rows),76)
+        doc={"schema":"RACE_AI_KEIRIN_ALL_DISCOVERED_RACES_LEDGER_V1",
+             "event_date_jst":"2026-11-03",
+             "discovered_count":len(rows),
+             "national_coverage_verified":False,
+             "records":rows}
+        first=self.store.register_discovered_cohort(doc)
+        self.assertEqual(first["total"],76)
+        self.assertEqual(first["new"],76)
+        self.assertEqual(first["forecast_generated"],0)
+        self.assertEqual(self.store.register_discovered_cohort(doc)["new"],0)
+        with PrivateKeirinStore(self.path,clock=self.clock) as reopened:
+            status=reopened.inspect_cohort("2026-11-03")
+            self.assertEqual(status["known_race_count"],76)
+            self.assertEqual(status["forecast_count"],0)
+            self.assertEqual(len(status["records"]),76)
+            self.assertTrue(all(r["result_status"]=="UNOBSERVED"
+                                for r in status["records"]))
+            self.assertFalse(status["official_coverage_verified"])
+
+    def test_discovered_race_duplicates_are_rejected_without_partial_write(self):
+        key={"race_id":"202611033601","venue_code":36,
+             "race_no":1,"official_cutoff_at":None}
+        doc={"schema":"RACE_AI_KEIRIN_ALL_DISCOVERED_RACES_LEDGER_V1",
+             "event_date_jst":"2026-11-03",
+             "discovered_count":2,
+             "national_coverage_verified":False,
+             "records":[key,key]}
+        with self.assertRaisesRegex(OwnerStoreError,"UNVERIFIED_COHORT_IDENTITY"):
+            self.store.register_discovered_cohort(doc)
+        self.assertEqual(self.store.inspect_cohort("2026-11-03")["known_race_count"],0)
+
+    def test_result_payout_inconsistent_is_never_a_hit(self):
+        result={"race_id":RID,
+                "observed_at":"2026-11-03T10:51:00+09:00",
+                "source_sha256":"a"*64,
+                "status":"FINAL_NORMAL","refund_status":"NONE",
+                "winning_triples":[[1,2,3]],
+                "payouts_100yen":[{"triple":[2,1,3],"yen":1000}]}
+        with self.assertRaisesRegex(OwnerStoreError,"INCONSISTENT_SETTLED_RESULT"):
+            self.store.add_result_observation(result)
+        self.assertIsNone(self.store.research_audit(RID)["research_hit8"])
+
+    def test_outcome_time_regression_is_rejected(self):
+        doc={"race_id":RID,"observed_at":"2026-11-03T10:50:30+09:00",
+             "source_sha256":"a"*64,"status":"FINAL_NORMAL",
+             "refund_status":"NONE","winning_triples":[[1,2,3]],
+             "payouts_100yen":[{"triple":[1,2,3],"yen":1000}]}
+        self.store.add_result_observation(doc)
+        changed=deepcopy(doc)
+        changed["observed_at"]="2026-11-03T10:49:30+09:00"
+        changed["source_sha256"]="b"*64
+        with self.assertRaisesRegex(OwnerStoreError,"RESULT_REVISION_TIME_REGRESSION"):
+            self.store.add_result_observation(changed)
+        self.assertEqual(self.store.db.execute(
+            "SELECT count(*) FROM result_revisions").fetchone()[0],1)
+
+    def test_pending_result_with_winner_is_refused(self):
+        doc={"race_id":RID,"observed_at":"2026-11-03T10:50:30+09:00",
+             "source_sha256":"a"*64,"status":"PENDING",
+             "refund_status":"UNKNOWN","winning_triples":[[1,2,3]],
+             "payouts_100yen":[]}
+        with self.assertRaisesRegex(OwnerStoreError,"NON_FINAL_RESULT_CANNOT_HAVE_WINNERS"):
+            self.store.add_result_observation(doc)
+
+
 if __name__ == "__main__":
     unittest.main()
