@@ -88,15 +88,19 @@ async function runTick(env,{now=new Date(),fetcher=fetch}={}){
    if(fresh.cutoff_at!==r.cutoff_at)throw Error('RESULT_CUTOFF_REVISION');
    const verifiedRoster=parseRacelist(original.html,resultDay,venue,r.race_no);
    const raw=await fetchBounded(db,resultDay,venue,'raceresult',r.race_no,{fetcher,limit:max,budgetDay:day});
-   const {top3,payout_per_100_yen}=parseResultDetails(raw.html,resultDay,venue,r.race_no,verifiedRoster);
+   const details=parseResultDetails(raw.html,resultDay,venue,r.race_no,verifiedRoster);
+   const {top3,payout_per_100_yen}=details;
    const fact={phase:'official_result',race_id:r.race_id,source_url:raw.source_url,source_sha256:raw.sha256,
-     captured_at:raw.captured_at,result_state:'confirmed',refund_boats:[],dead_heat:false,top3,payout_per_100_yen};
+     captured_at:raw.captured_at,result_state:'confirmed',refund_boats:details.refund_boats??[],dead_heat:false,top3,payout_per_100_yen};
    const scored=await settle(db,{race_id:r.race_id,cutoff_at:r.cutoff_at},fact);
    let challenger;
    try{challenger=await settleChallenger(db,{race_id:r.race_id,cutoff_at:r.cutoff_at},fact);}
    catch(e){challenger={status:'SHADOW_SCORE_REQUIRES_REVIEW',reason:String(e.message).slice(0,85)};}
    await resultChecked(db,r.race_id,raw.sha256);
    outcomes.push({race_id:r.race_id,status:scored.status,hit8:scored.hit8,
+     result_class:scored.result_class??'SETTLED_NORMAL',
+     eligible_normal_accuracy:scored.eligible_normal_accuracy??true,
+     refund_boats:scored.refund_boats??[],hypothetical_refund_yen:scored.hypothetical_refund_yen??0,
      official_payout_per_100_yen:scored.official_trifecta_payout_per_100_yen,
      hypothetical_stake_yen:scored.hypothetical_stake_yen,
      hypothetical_return_yen:scored.hypothetical_return_yen,
