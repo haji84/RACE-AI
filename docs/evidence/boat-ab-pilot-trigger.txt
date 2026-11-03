@@ -1,1 +1,2 @@
 2026-11-03 JST controlled same-future-race A/B; source rights approved by owner. No Vercel, no wager, no result access in forecast job. Candidate weights preregistered in boat_ab_shadow.py. Official source fetch max 3 per run. Freeze via GitHub artifact only; verify server created_at separately. Trigger v1.
+Pilot v2: 2026-11-03 JST repair source motor subtable main racer row selection; same fixed models and no result features.\n
