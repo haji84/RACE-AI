@@ -7,6 +7,7 @@ import tempfile
 import unittest
 
 from race_ai.boat_freeze_index import load_original_race_ids
+from race_ai.boat_deadline_queue import select_due_races
 
 ROOT=Path(__file__).resolve().parents[1]
 REAL=ROOT/"docs/evidence/2026-11-03/boat-canonical-freeze-index.json"
@@ -36,6 +37,23 @@ class CrossChatFreezeIndexTest(unittest.TestCase):
         self.assertIn("20261103-09-07",ids)
         self.assertIn("20261103-06-07",ids)
         self.assertIn("20261103-02-07",ids)
+
+    def test_national_queue_deduplicates_other_chat_before_close(self):
+        as_of="2026-11-03T13:21:00+09:00"
+        originals=load_original_race_ids(REAL,as_of=as_of)
+        def entry(venue,close):
+            return {"race_id":f"20261103-{venue}-07",
+                    "cutoff_at":f"2026-11-03T{close}:00+09:00",
+                    "schedule_captured_at":"2026-11-03T13:20:00+09:00",
+                    "source_sha256":"a"*64}
+        rows=[entry("09","13:23"),entry("06","13:27"),
+              entry("10","13:30")]
+        selected=select_due_races(rows,as_of,already_frozen=originals)
+        self.assertEqual([x["race_id"] for x in selected["eligible"]],
+                         ["20261103-10-07"])
+        self.assertEqual([x["reason"] for x in selected["rejected"]],
+                         ["ALREADY_FROZEN","ALREADY_FROZEN"])
+        self.assertFalse(selected["freeze_proven"])
 
     def test_no_duplicate_and_no_aftercutoff_backfill(self):
         for mutation in (
