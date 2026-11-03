@@ -41,3 +41,6 @@ only_artifacts=13220026930
 
 2026-11-03 20:30 JST single independent official-result check of already frozen Kiryu10R 20261103-01-10, original run 41617511245 / artifact 13220834629 (19:14:12 JST receipt vs 19:23 cutoff). Validate original ZIP/JSON and first receipt, official six finishers, refunds/abnormal and trifecta, A/B and separate C-lite. No changes to past predictions; <=2 official GET. Previous Kiryu9R is not new.
 only_artifacts=13220834629
+
+2026-11-03 21:53 JST one-shot final-day result audit for already frozen 20:31:23 JST paired original artifact 13227136203 only: Marugame12R (20261103-15-12, cutoff 20:38) and Omura12R (20261103-24-12, cutoff 20:45). Before any score, reread external GitHub receipt and exact ZIP/JSON hashes, then independent official six-finisher outcome, 3T payout, refund/special statuses. A/B and separately frozen C-lite, no rerank, no double counting, no new predictions, no model update. Any not final or source error stays pending. <=4 official GET total.
+only_artifacts=13227136203
