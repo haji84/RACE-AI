@@ -81,6 +81,38 @@ def _decode(raw: bytes, content_type: str) -> str:
     raise MobileProbeError("UNVERIFIED_CHARSET")
 
 
+_TRIFECTA = re.compile(
+    r"3\s*連\s*単[\s|:：]*([1-9])\s*[-→>]\s*([1-9])\s*[-→>]\s*([1-9])"
+    r"\s*(?:\([0-9]{1,5}\)\s*)?([0-9][0-9,]{0,11})\s*円"
+)
+
+
+def extract_trifecta_candidate(visible_text: str):
+    """Extract a *candidate* payout, not proof of an official final result.
+
+    Refuse duplicate/concurrent different winners and any malformed ticket.
+    Do not infer 0-yen, a missing result, or a confirmed official result.
+    """
+    if type(visible_text) is not str:
+        raise MobileProbeError("VISIBLE_TEXT_REQUIRED")
+    text = normalize("NFKC", visible_text)
+    matches = []
+    for m in _TRIFECTA.finditer(text):
+        ticket = tuple(int(m.group(i)) for i in (1, 2, 3))
+        if len(set(ticket)) != 3:
+            continue
+        amount = int(m.group(4).replace(",", ""))
+        if not (100 <= amount <= 1_000_000_000):
+            continue
+        matches.append((ticket, amount))
+    if not matches or len(set(matches)) != 1:
+        return {"state":"NO_UNAMBIGUOUS_TRIFECTA", "triple":None,
+                "payout_100yen":None}
+    ticket, amount = matches[0]
+    return {"state":"ONE_UNVERIFIED_PROVIDER_CANDIDATE",
+            "triple":list(ticket), "payout_100yen":amount}
+
+
 def probe_one(ymd, venue_code, race_no, *, acknowledgement, opener=None,
               observed_at=None):
     if acknowledgement != ACK:
@@ -117,6 +149,7 @@ def probe_one(ymd, venue_code, race_no, *, acknowledgement, opener=None,
     stamp = observed_at or datetime.now(timezone.utc)
     if not isinstance(stamp, datetime) or stamp.utcoffset() is None:
         raise MobileProbeError("UNTRUSTED_OBSERVATION_CLOCK")
+    candidate = extract_trifecta_candidate(txt)
     return {
         "schema": "RACE_AI_KEIRIN_MOBILE_SINGLE_PAGE_RESEARCH_PROBE_V1",
         "source_kind": "THIRD_PARTY_NOT_KEIRIN_JP",
@@ -129,6 +162,9 @@ def probe_one(ymd, venue_code, race_no, *, acknowledgement, opener=None,
             rf"(?<!\d)0?{race_no}\s*(?:R|レース)\b",txt,re.I)),
         "trifecta_label_present": "3連単" in txt,
         "payout_label_present": "払戻" in txt or "払い戻し" in txt,
+        "candidate_result": candidate if any(m in txt for m in date_markers) else {
+            "state":"PAGE_DATE_NOT_BOUND", "triple":None,
+            "payout_100yen":None},
         "race_results_parsed": False,
         "result_officially_authenticated": False,
         "machine_collection_rights_verified": False,
