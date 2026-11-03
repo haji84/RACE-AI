@@ -24,12 +24,19 @@ def main():
                 # Any 200 leaks private data to an anonymous caller.
                 return 3
         except HTTPError as e:
-            if e.code!=401:
+            if e.code not in (401,403):
                 print(json.dumps({"source_endpoint_http_status":e.code,
-                    "expected":"401_UNAUTHORIZED",
+                    "expected":"401_OR_403_DENIAL",
                     "raw_response_not_logged":True}))
                 return 4
-        print('{"service_healthy":true,"unauthenticated_private_status_denied":true}')
+            # 403 may come from Cloudflare edge rather than our JWT verifier.
+            # It is denial, NOT proof that OIDC is working.
+            state=("WORKER_UNAUTHORIZED" if e.code==401 else
+                   "EDGE_DENIED_AUTH_UNVERIFIED")
+            print(json.dumps({"service_healthy":True,
+                "anonymous_private_data_denied":True,
+                "access_check_state":state}))
+            return 0
         return 0
     except (OSError,ValueError,URLError):
         print('{"service_healthy":false,"private_storage_not_claimed":true}')
