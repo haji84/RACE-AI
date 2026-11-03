@@ -46,8 +46,12 @@ async function runTick(env,{now=new Date(),fetcher=fetch}={}){
   const exists=await db.prepare('SELECT 1 AS ok FROM boat_exhibition_outcomes WHERE race_id=? LIMIT 1').bind(r.race_id).first();
   if(exists)continue;
   try{
+   const original=await fetchBounded(db,day,venue,'racelist',r.race_no,{fetcher,limit:max});
+   const fresh=parseSchedule(original.html,day,venue)[r.race_no-1];
+   if(fresh.cutoff_at!==r.cutoff_at)throw Error('RESULT_CUTOFF_REVISION');
+   const verifiedRoster=parseRacelist(original.html,day,venue,r.race_no);
    const raw=await fetchBounded(db,day,venue,'raceresult',r.race_no,{fetcher,limit:max});
-   const top3=parseResult(raw.html,day,venue,r.race_no);
+   const top3=parseResult(raw.html,day,venue,r.race_no,verifiedRoster);
    const fact={phase:'official_result',race_id:r.race_id,source_url:raw.source_url,source_sha256:raw.sha256,
      captured_at:raw.captured_at,result_state:'confirmed',refund_boats:[],dead_heat:false,top3};
    const scored=await settle(db,{race_id:r.race_id,cutoff_at:r.cutoff_at},fact);
@@ -68,7 +72,7 @@ async function runTick(env,{now=new Date(),fetcher=fetch}={}){
    const before=await fetchBounded(db,day,venue,'beforeinfo',r.race_no,{fetcher,limit:max});
    const racers=parseExhibition(before.html,day,venue,r.race_no,roster);
    const facts={schema:SCHEMA,phase:'post_exhibition',race_id:r.race_id,cutoff_at:r.cutoff_at,
-    captured_at:before.captured_at,source_url:before.source_url,source_sha256:before.sha256,
+    captured_at:before.captured_at,source_url:before.source_url,source_sha256:before.sha256,program_sha256:list.sha256,
     rights_verified:true,license_purpose:'private_analysis',racers};
    const frozen=await freeze(db,facts);
    forecasts.push({race_id:r.race_id,status:frozen.status,stored_at:frozen.stored_at??null});
