@@ -81,6 +81,8 @@ on:
       - 'race_ai/pr64_pdca_cycle.py'
       - 'race_ai/boat_ab_shadow.py'
       - 'race_ai/boat_ab_result_audit.py'
+      - 'race_ai/boat_ab_cohort.py'
+      - 'tests/test_boat_ab_cohort.py'
       - 'tests/test_boat_ab_shadow.py'
       - 'tests/test_boat_ab_result_audit.py'
       - 'scripts/boat_ab_future_pilot.py'
