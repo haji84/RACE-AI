@@ -51,3 +51,17 @@ Source policy: https://keirin.jp/pc/dfw/portal/guest/policy/index.html
 - **Real E2E still blocked**: There is no verified provider-authorized result feed for automated retention/learning, no fully witnessed real PR71 pre-race feature snapshot (8 common + 4 KEIRIN required per rider, mandatory weather/bank evidence and timestamps), no actual owner-private atomic store/independent external receipt, and no verified one-future-race creation before cutoff.
 - The real one-shot 2026-11-03 Odawara 1R candidate \`6-1-5\` and reported \`11,480円\` were observed on a third-party web page, not admitted as an authenticated official result or backdated to a real freeze. They cannot be used to label the next model's past before its source publication/capture time.
 - **Production guard**: auto-polling, unattended learning, auto-promotion, paid provider onboarding, third-party raw-data redistribution, main merge, and wagering all remain disabled. Formal Hit@8 = null, and synthetic CI is not a live production pass.
+
+
+## F. 2026-11-03 11:06 JST: isolated hourly personal result canary merged into main
+
+- GitHub main was only README.md. PR #72 is a 321+ file Draft against an intermediate base, so broad merging would have been unsafe.
+- Main required PR and check \`unit\`; a direct main create was rejected with 409. No bypass/force push was attempted.
+- To integrate the smallest working unit, the protection-compliant, 8-file PR [#73](https://github.com/haji84/RACE-AI/pull/73) was merged to main with squash SHA \`e40549e03228db8acec9b0b98a3d31e515f33a37\` after the [pull-request CI #41563974233](https://github.com/haji84/RACE-AI/actions/runs/41563974233) \`unit\` check succeeded (10 scheduler + 14 transport tests).
+- New main [hourly workflow](https://github.com/haji84/RACE-AI/blob/main/.github/workflows/keirin-personal-hourly-canary.yml) has \`schedule\` at minute 17, Asia/Tokyo, and a strict 1-page GET cap per run. No redirect/retry/HTML copy/secret odds or forecasts in public logs; source errors fail closed. Only the verified historical research watchlist of 76 race identities for **2026-11-03** is configured; its cutoff times are *third-party indicators*, not official sales cutoff attestations.
+- On dates lacking an operator-verified daily manifest, it returns \`NO_CURRENT_DAY_MANIFEST\` with zero requests. Recurring full-day race discovery for 2026-11-04 onward is **not implemented**.
+- The scheduler emits a non-authoritative source-candidate status only; it does NOT invoke PR #71, create protected pre-cutoff forecasts, certify official results or score formal Hit@8.
+- \`main\` integration was verified by GitHub tree readback. **The first actual \`schedule\` execution on main is pending independent observation**. Pull-request CI success alone is not the same as scheduled-run success.
+- Site-specific access terms, technical blocking and website changes still govern third-party page requests. No high-volume crawling, bypass, fee-based dataset ingestion or commercial use is enabled.
+
+Next actual deployment step: observe scheduled main run and its one-page limit, then establish private result event storage + verified pre-race feature snapshots and externally timed forecast readback for an actual *future* race, with model output separated from already finished race results.
