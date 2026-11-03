@@ -86,11 +86,18 @@ function parseResult(html,day,venue,race,expectedRoster=null){
  for(const row of finish.rows){
   if(row.length!==4)throw Error('OFFICIAL_RESULT_FINISH_COLUMNS_INVALID');
   const pos=row[0].text,lane=row[1].text,id=/^\s*([0-9]{4})\b/.exec(row[2].text);
-  if(!/^[1-6]$/.test(pos)||!/^[1-6]$/.test(lane)||!id||positions.has(Number(pos))||lanes.has(Number(lane))||racers.has(id[1]))
-   throw Error('OFFICIAL_RESULT_NONSTANDARD_FINISH');
-  positions.set(Number(pos),{lane:Number(lane),registration_no:id[1]});lanes.add(Number(lane));racers.add(id[1]);
+  const numeric=/^[1-6]$/.test(pos);
+  const disposition=/^(?:欠|転|落|沈|失|妨|不|F|L|エ)$/.test(pos);
+  // A verified top-three can coexist with a lower-place retirement.
+  // Never manufacture 4th-6th place, and never score refunded outcomes.
+  if(!(numeric||disposition)||!/^[1-6]$/.test(lane)||!id
+     ||(numeric&&positions.has(Number(pos)))||lanes.has(Number(lane))||racers.has(id[1]))
+    throw Error('OFFICIAL_RESULT_NONSTANDARD_FINISH');
+  if(numeric)positions.set(Number(pos),{lane:Number(lane),registration_no:id[1]});
+  lanes.add(Number(lane));racers.add(id[1]);
  }
- if(positions.size!==6||lanes.size!==6)throw Error('OFFICIAL_RESULT_FINISH_INCOMPLETE');
+ if(![1,2,3].every(n=>positions.has(n))||lanes.size!==6||racers.size!==6)
+  throw Error('OFFICIAL_RESULT_TOP3_OR_ROSTER_INCOMPLETE');
  if(expectedRoster){
   if(expectedRoster.length!==6||expectedRoster.some(r=>![...positions.values()].some(x=>x.lane===r.lane&&x.registration_no===r.registration_no)))
    throw Error('OFFICIAL_RESULT_ROSTER_MISMATCH');
