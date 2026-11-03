@@ -169,6 +169,30 @@ def _paired_bootstrap(values, samples=2000):
     return [means[int(samples * .025)], means[int(samples * .975)-1]]
 
 
+def _block_bootstrap(values, block_labels, samples=2000):
+    """Paired resampling of venue-day clusters; more cautious than iid races."""
+    if len(values) != len(block_labels):
+        raise ValueError("paired values and venue-day blocks differ")
+    grouped = {}
+    for value, label in zip(values, block_labels):
+        grouped.setdefault(label, []).append(value)
+    keys = sorted(grouped)
+    if len(keys) < 10:
+        return None  # Do not claim stable CI from just a few racing sessions.
+    rnd = random.Random(20261103)
+    means = []
+    for _ in range(samples):
+        counts = 0
+        total = 0.
+        for _ in range(len(keys)):
+            block = grouped[keys[rnd.randrange(len(keys))]]
+            total += math.fsum(block)
+            counts += len(block)
+        means.append(total / counts)
+    means.sort()
+    return [means[int(samples * .025)], means[int(samples * .975)-1]]
+
+
 def _sign_test(b_only, a_only):
     """Exact two-sided equal-win conditional test for discordant race pairs."""
     n = b_only+a_only
@@ -227,6 +251,7 @@ def analyze(rows, *, minimum_paired=PAIRED_MIN, minimum_days=DAYS_MIN):
         "unforecast_or_unverified":missing,
         "distinct_days":len({row["race_id"][:8] for row in all_eligible}),
         "paired_days":len({row["race_id"][:8] for row in covered}),
+        "paired_venue_day_blocks":len({row["race_id"][:11] for row in covered}),
         "coverage_all_eligible":matched/n if n else None,
         "models":[],
         "paired_comparison":None,
@@ -235,6 +260,7 @@ def analyze(rows, *, minimum_paired=PAIRED_MIN, minimum_days=DAYS_MIN):
         "scope_note":"Only supplied discovered race ledger; external complete schedule proof needed before all-race claims",
         "scores_calibrated":False,
         "money_staked":False,
+        "confidence_scope_note":"Venue-day block bootstrap is exploratory and may still understate same-day dependence; no independence guarantee",
     }
     for k, name in enumerate(MODEL_IDS):
         mx=[a,b][k]
@@ -286,6 +312,7 @@ def analyze(rows, *, minimum_paired=PAIRED_MIN, minimum_days=DAYS_MIN):
         diffs_log=[y["log_loss"]-x["log_loss"] for x,y in zip(a,b)]
         diff_mass=[y["model_top8_mass_uncalibrated"]-x["model_top8_mass_uncalibrated"]
                    for x,y in zip(a,b)]
+        venue_day_blocks=[r["race_id"][:11] for r in covered]
         comp={
             "paired_n":matched,
             "a_only_hits_at8":a_only,"b_only_hits_at8":b_only,
@@ -293,19 +320,24 @@ def analyze(rows, *, minimum_paired=PAIRED_MIN, minimum_days=DAYS_MIN):
             "both_miss_at8":sum(not x["hit_at_8"] and not y["hit_at_8"] for x,y in zip(a,b)),
             "b_minus_a_hit_at8_paired":math.fsum(diffs_hit8)/matched,
             "b_minus_a_hit_at8_bootstrap95":_paired_bootstrap(diffs_hit8),
+            "b_minus_a_hit_at8_venue_day_bootstrap95":_block_bootstrap(diffs_hit8,venue_day_blocks),
             "b_minus_a_multiclass_brier":math.fsum(diffs_brier)/matched,
             "b_minus_a_brier_bootstrap95":_paired_bootstrap(diffs_brier),
+            "b_minus_a_brier_venue_day_bootstrap95":_block_bootstrap(diffs_brier,venue_day_blocks),
             "b_minus_a_log_loss":math.fsum(diffs_log)/matched,
             "b_minus_a_logloss_bootstrap95":_paired_bootstrap(diffs_log),
+            "b_minus_a_logloss_venue_day_bootstrap95":_block_bootstrap(diffs_log,venue_day_blocks),
             "b_minus_a_top8_model_mass":math.fsum(diff_mass)/matched,
             "hit_at8_discordant_exact_p":_sign_test(b_only,a_only),
         }
         out["paired_comparison"]=comp
         # Decision rule is predeclared, NOT tuned to earlier result data.
-        if matched>=minimum_paired and out["paired_days"]>=minimum_days:
-            if (comp["b_minus_a_hit_at8_bootstrap95"][0]>0 and
-                    comp["b_minus_a_brier_bootstrap95"][1]<0 and
-                    comp["b_minus_a_logloss_bootstrap95"][1]<0 and
+        if (matched>=minimum_paired and out["paired_days"]>=minimum_days
+                and out["paired_venue_day_blocks"]>=10):
+            # Cluster-robust exploratory decision. No automatic promotion.
+            if (comp["b_minus_a_hit_at8_venue_day_bootstrap95"][0]>0 and
+                    comp["b_minus_a_brier_venue_day_bootstrap95"][1]<0 and
+                    comp["b_minus_a_logloss_venue_day_bootstrap95"][1]<0 and
                     b_only>a_only):
                 out["statement"]="PROSPECTIVE_EVIDENCE_FAVORS_B_NOT_AUTO_PROMOTED"
             else:
