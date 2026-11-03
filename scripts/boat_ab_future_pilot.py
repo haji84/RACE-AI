@@ -44,7 +44,8 @@ def motor_top2(raw,entries):
     bylane={x["lane"]:x for x in entries}
     found={}
     for body in bodies:
-        tr=one(body.find("tr"),"racer row")
+        tr=next(body.find("tr"),None)
+        if tr is None:raise SourceError("MOTOR_NO_RACER_ROW")
         cols=[c for c in tr.children if isinstance(c,Node) and c.tag=="td"]
         if len(cols)<8 or not re.fullmatch("[1-6]",cols[0].text().strip()):
             raise SourceError("MOTOR_ROSTER_LAYOUT")
