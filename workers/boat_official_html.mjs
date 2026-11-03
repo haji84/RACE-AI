@@ -109,4 +109,16 @@ function parseResult(html,day,venue,race,expectedRoster=null){
  if(refundText&&!/^(?:なし|--|―|－|-)$/.test(refundText))throw Error('OFFICIAL_RESULT_REFUND_UNVERIFIED');
  return top3;
 }
-export {parseSchedule,parseRacelist,parseExhibition,parseResult};
+/** Strict 100-yen trifecta payout when published. Unreadable price is null,
+ * never zero, and never an input to the forecast model. */
+function parseResultDetails(html,day,venue,race,roster=null){
+ const top3=parseResult(html,day,venue,race,roster);
+ const payout=only(tables(html),['勝式','組番','払戻金']);
+ const index=payout.heads.findIndex(c=>c.text.replace(/\s+/g,'')==='払戻金');
+ const rows=payout.rows.filter(row=>row.some(c=>c.text.replace(/\s+/g,'')==='3連単'));
+ const raw=index>=0?rows[0]?.[index]?.text?.trim():'';
+ const match=/^[￥¥]?\s*([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)\s*円?$/.exec(raw||'');
+ const yen=match?Number(match[1].replace(/,/g,'')):null;
+ return {top3,payout_per_100_yen:Number.isSafeInteger(yen)&&yen>=100?yen:null};
+}
+export {parseSchedule,parseRacelist,parseExhibition,parseResult,parseResultDetails};
