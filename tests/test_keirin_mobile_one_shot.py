@@ -28,6 +28,23 @@ class FormatTests(unittest.TestCase):
     def test_canonical_path(self):
         self.assertEqual(page_url("20261022",36,2),
           "https://www.keirin-mobile.jp/New/races/20261022/36/02/")
+    def test_legacy_source_path_and_research_only(self):
+        from race_ai.keirin_mobile_one_shot import legacy_page_url
+        self.assertEqual(legacy_page_url("20261103",36,1),
+            "https://www.keirin-mobile.jp/top/result.php?date=20261103&jcode=36&race=01")
+        client=_Client(GOOD)
+        report=probe_one("20261022",36,2,acknowledgement=ACK,
+                         opener=client,route="legacy")
+        self.assertIn("/top/result.php?",report["source_url"])
+        self.assertFalse(report["result_officially_authenticated"])
+
+    def test_unknown_route_rejected_without_network(self):
+        client=_Client(GOOD)
+        with self.assertRaisesRegex(MobileProbeError,"UNKNOWN_SOURCE_ROUTE"):
+            probe_one("20261022",36,2,acknowledgement=ACK,
+                      opener=client,route="unsafe")
+        self.assertEqual(client.calls,0)
+
     def test_invalid_path_input_never_networks(self):
         for args in [("20260230",36,2),("20261022",0,2),
                      ("20261022",36,13),("20261022",True,2)]:
