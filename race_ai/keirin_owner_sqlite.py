@@ -138,6 +138,105 @@ class PrivateKeirinStore:
     def __exit__(self, *_):
         self.close()
 
+    def register_discovered_cohort(self, day_ledger):
+        """Persist EVERY race identity from the daily one-GET discovery output.
+
+        A discovered race is NOT an attested official cutoff or an actual
+        prediction. Idempotent readback is safe across separate executions.
+        """
+        if (type(day_ledger) is not dict or
+                day_ledger.get("schema") !=
+                    "RACE_AI_KEIRIN_ALL_DISCOVERED_RACES_LEDGER_V1" or
+                day_ledger.get("national_coverage_verified") is not False or
+                type(day_ledger.get("records")) is not list or
+                type(day_ledger.get("event_date_jst")) is not str):
+            raise OwnerStoreError("INVALID_UNVERIFIED_COHORT")
+        event_day = day_ledger["event_date_jst"]
+        _ensure(len(day_ledger["records"]) == day_ledger.get("discovered_count")
+                and 0 < len(day_ledger["records"]) <= 200,
+                "COHORT_ROWS_MISMATCH")
+        rows = []
+        seen = set()
+        for row in day_ledger["records"]:
+            if type(row) is not dict:
+                raise OwnerStoreError("BAD_COHORT_ROW")
+            key = row.get("race_id")
+            venue = row.get("venue_code")
+            number = row.get("race_no")
+            _ensure(type(key) is str and type(venue) is int and
+                    1 <= venue <= 99 and type(number) is int and
+                    1 <= number <= 12 and
+                    key == event_day.replace("-", "") +
+                        f"{venue:02d}{number:02d}" and
+                    key not in seen and
+                    row.get("official_cutoff_at") is None,
+                    "UNVERIFIED_COHORT_IDENTITY")
+            seen.add(key)
+            rows.append((
+                f"keirin:{event_day}:venue{venue:02d}:{number}",
+                None, "DISCOVERED_UNVERIFIED_CUTOFF"
+            ))
+        at = _checked_clock(self.clock).isoformat()
+        new = 0
+        self.db.execute("BEGIN IMMEDIATE")
+        try:
+            for rid, cutoff, status in rows:
+                existed = self.db.execute(
+                    "SELECT cutoff_at,status FROM race_index WHERE race_id=?",
+                    (rid,)
+                ).fetchone()
+                if existed is None:
+                    self.db.execute(
+                        "INSERT INTO race_index VALUES (?,?,?,?)",
+                        (rid, cutoff, status, at)
+                    )
+                    new += 1
+                elif existed["status"] != status or existed["cutoff_at"] is not None:
+                    raise OwnerStoreError("DISCOVERY_COLLISION_OR_PROMOTION")
+            self.db.execute("COMMIT")
+        except Exception:
+            self.db.execute("ROLLBACK")
+            raise
+        return {"schema": "RACE_AI_KEIRIN_PRIVATE_COHORT_IMPORT_V1",
+                "source_day": event_day, "total":len(rows),
+                "new":new, "already_present":len(rows)-new,
+                "forecast_generated":0,"complete_official_coverage":False}
+
+    def inspect_cohort(self, event_day):
+        """No silent exclusions: include all race IDs and missing states."""
+        rows=self.db.execute(
+            "SELECT race_id, cutoff_at, status FROM race_index "
+            "WHERE race_id LIKE ? ORDER BY race_id",
+            (f"keirin:{event_day}:%",)
+        ).fetchall()
+        output=[]
+        for row in rows:
+            rid=row["race_id"]
+            forecast=self.db.execute(
+                "SELECT forecast_sha256 FROM forecasts WHERE race_id=?",
+                (rid,)
+            ).fetchone()
+            result=self.db.execute(
+                "SELECT revision,payload FROM result_revisions WHERE race_id=? "
+                "ORDER BY revision DESC LIMIT 1",(rid,)
+            ).fetchone()
+            item={"race_id":rid,"stage":row["status"],
+                  "cutoff_at":row["cutoff_at"],
+                  "forecast_status": "SAVED_PRIVATE_RESEARCH_UNATTESTED" if forecast
+                                    else "MISSING_UNVERIFIED_INPUTS",
+                  "result_status":json.loads(result["payload"]).get("status")
+                                  if result else "UNOBSERVED",
+                  "latest_result_revision":result["revision"] if result else None}
+            output.append(item)
+        return {"schema":"RACE_AI_KEIRIN_PRIVATE_COHORT_STATUS_V1",
+                "event_date_jst":event_day,
+                "known_race_count":len(rows),
+                "forecast_count":sum(
+                    r["forecast_status"]=="SAVED_PRIVATE_RESEARCH_UNATTESTED"
+                    for r in output),
+                "official_coverage_verified":False,
+                "records":output}
+
     def _insert_once(self, table, keyfield, key, race, document):
         body = canonical(document)
         _ensure(0 < len(body) <= 2_000_000, "PRIVATE_RECORD_SIZE_INVALID")
