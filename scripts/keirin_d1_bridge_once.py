@@ -44,9 +44,11 @@ def get_github_oidc_token(*, env=None, open_url=urlopen):
     # endpoints; require the exact GitHub Actions domain boundary.
     if (from_url.scheme!="https" or
         not hostname.endswith(".actions.githubusercontent.com") or
-        not hostname.split(".")[0].startswith(("pipelines","vstoken","token")) or
         from_url.username or from_url.password or from_url.port):
-        raise BridgeError("GITHUB_OIDC_ISSUER_UNEXPECTED")
+        safe_prefix=hostname.split(".")[0]
+        if not re.fullmatch(r"[a-zA-Z0-9-]{1,80}",safe_prefix):
+            safe_prefix="UNRECOGNIZED"
+        raise BridgeError("GITHUB_OIDC_ISSUER_UNEXPECTED_"+safe_prefix)
     separator="&" if "?" in endpoint else "?"
     url=endpoint+separator+"audience="+quote(AUD,safe="")
     req=Request(url,method="GET",headers={
