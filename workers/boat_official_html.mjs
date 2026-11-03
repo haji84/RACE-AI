@@ -24,9 +24,9 @@ function pageIdentity(html,day,venue,race,kind){
   let u;try{u=new URL(h,HOST);}catch{continue;}
   if(u.pathname==='/owpc/pc/race/'+kind){
    // Other-date navigation links may coexist on the official page. Only
-  // admit exact same-date, same-venue race links to the selected 12R index.
-  if(u.origin!==HOST||u.searchParams.get('hd')!==day||u.searchParams.get('jcd')!==venue)continue;
-  if(u.searchParams.size!==3)throw Error('OFFICIAL_HTML_LINK_IDENTITY_CONFLICT');
+   // admit exact same-date, same-venue race links to the selected 12R index.
+   if(u.origin!==HOST||u.searchParams.get('hd')!==day||u.searchParams.get('jcd')!==venue)continue;
+   if(u.searchParams.size!==3)throw Error('OFFICIAL_HTML_LINK_IDENTITY_CONFLICT');
    const n=Number(u.searchParams.get('rno'));
    if(!Number.isInteger(n)||n<1||n>12)throw Error('OFFICIAL_HTML_LINK_RACE_INVALID');
    links.push(n);
@@ -78,30 +78,26 @@ function parseExhibition(html,day,venue,race,roster){
  if(byLane.size!==6||roster.length!==6)throw Error('OFFICIAL_EXHIBITION_DUPLICATE');
  return roster.map(r=>{const x=byLane.get(r.lane);if(!x||x.registration_no!==r.registration_no)throw Error('OFFICIAL_EXHIBITION_ROSTER_CHANGED');return {...r,exhibition_time_seconds:x.exhibition_time_seconds};});
 }
-function parseResult(html,day,venue,race,expectedRoster=null){
+function parsedSettlement(html,day,venue,race,expectedRoster=null){
  pageIdentity(html,day,venue,race,'raceresult');
  const ts=tables(html),finish=only(ts.filter(t=>t.header.includes('着')&&t.header.includes('枠')&&t.header.includes('ボートレーサー')&&t.header.includes('レースタイム')),['着','枠','ボートレーサー','レースタイム']);
  if(finish.rows.length!==6)throw Error('OFFICIAL_RESULT_SIX_FINISHES_MISSING');
- const positions=new Map(),lanes=new Set(),racers=new Set(),observedRoster=[];
+ const positions=new Map(),lanes=new Set(),racers=new Set(),observedRoster=[],refundDispositions=[];
  for(const row of finish.rows){
   if(row.length!==4)throw Error('OFFICIAL_RESULT_FINISH_COLUMNS_INVALID');
   const pos=row[0].text,lane=row[1].text,id=/^\s*([0-9]{4})\b/.exec(row[2].text);
-  const numeric=/^[1-6]$/.test(pos);
-  const disposition=/^(?:欠|転|落|沈|失|妨|不|F|L|エ)$/.test(pos);
-  // A verified top-three can coexist with a lower-place retirement.
-  // Never manufacture 4th-6th place, and never score refunded outcomes.
+  const numeric=/^[1-6]$/.test(pos),disposition=/^(?:欠|転|落|沈|失|妨|不|F|L|エ)$/.test(pos);
   if(!(numeric||disposition)||!/^[1-6]$/.test(lane)||!id
      ||(numeric&&positions.has(Number(pos)))||lanes.has(Number(lane))||racers.has(id[1]))
     throw Error('OFFICIAL_RESULT_NONSTANDARD_FINISH');
   if(numeric)positions.set(Number(pos),{lane:Number(lane),registration_no:id[1]});
+  if(/^(?:F|L|欠)$/.test(pos))refundDispositions.push(Number(lane));
   lanes.add(Number(lane));racers.add(id[1]);observedRoster.push({lane:Number(lane),registration_no:id[1]});
  }
  if(![1,2,3].every(n=>positions.has(n))||lanes.size!==6||racers.size!==6)
   throw Error('OFFICIAL_RESULT_TOP3_OR_ROSTER_INCOMPLETE');
- if(expectedRoster){
-  if(expectedRoster.length!==6||expectedRoster.some(r=>!observedRoster.some(x=>x.lane===r.lane&&x.registration_no===r.registration_no)))
-   throw Error('OFFICIAL_RESULT_ROSTER_MISMATCH');
- }
+ if(expectedRoster&&(expectedRoster.length!==6||expectedRoster.some(r=>!observedRoster.some(x=>x.lane===r.lane&&x.registration_no===r.registration_no))))
+  throw Error('OFFICIAL_RESULT_ROSTER_MISMATCH');
  const top3=[1,2,3].map(n=>positions.get(n).lane),payout=only(ts.filter(t=>['勝式','組番','払戻金'].every(k=>t.header.includes(k))),['勝式','組番','払戻金']);
  const rows=payout.rows.filter(row=>row.some(cell=>cell.text.replace(/\s+/g,'')==='3連単'));
  if(rows.length!==1)throw Error('OFFICIAL_RESULT_TRIFECTA_MISSING');
@@ -109,23 +105,37 @@ function parseResult(html,day,venue,race,expectedRoster=null){
  if(/特払い|不成立|同着|中止/.test(text))throw Error('OFFICIAL_RESULT_SPECIAL_OUTCOME');
  const combos=[...text.matchAll(/([1-6])\s*[-－―]\s*([1-6])\s*[-－―]\s*([1-6])/g)];
  if(combos.length!==1)throw Error('OFFICIAL_RESULT_PAYOUT_IDENTITY_MISSING');
- const paid=combos[0].slice(1,4).map(Number);
- if(paid.join('-')!==top3.join('-'))throw Error('OFFICIAL_RESULT_PAYOUT_CONFLICT');
+ if(combos[0].slice(1,4).map(Number).join('-')!==top3.join('-'))throw Error('OFFICIAL_RESULT_PAYOUT_CONFLICT');
  const returns=only(ts.filter(t=>t.header.includes('返還')),['返還']);
- const refundText=returns.rows.map(r=>r.map(c=>c.text).join(' ')).join(' ').trim();
- if(refundText&&!/^(?:なし|--|―|－|-)$/.test(refundText))throw Error('OFFICIAL_RESULT_REFUND_UNVERIFIED');
- return top3;
-}
-/** Strict 100-yen trifecta payout when published. Unreadable price is null,
- * never zero, and never an input to the forecast model. */
-function parseResultDetails(html,day,venue,race,roster=null){
- const top3=parseResult(html,day,venue,race,roster);
- const payout=only(tables(html).filter(t=>['勝式','組番','払戻金'].every(k=>t.header.includes(k))),['勝式','組番','払戻金']);
+ const textRefund=returns.rows.map(r=>r.map(c=>c.text).join(' ')).join(' ').trim();
+ let refund=[];
+ if(textRefund&&!/^(?:なし|--|―|－|-)$/.test(textRefund)){
+  if(!/^[1-6](?:[\s,、]+[1-6])*$/.test(textRefund))throw Error('OFFICIAL_RESULT_REFUND_UNVERIFIED');
+  refund=textRefund.split(/[\s,、]+/).map(Number);
+  if(new Set(refund).size!==refund.length||refund.some(n=>top3.includes(n)))throw Error('OFFICIAL_RESULT_REFUND_CONFLICT');
+ }
+ // Explicit refund panel and F/L/absence identity must agree; retirement alone
+ // is not a refund. Unknown/special outcomes still stop rather than invent cash.
+ refund.sort((a,b)=>a-b);refundDispositions.sort((a,b)=>a-b);
+ if(JSON.stringify(refund)!==JSON.stringify(refundDispositions))throw Error('OFFICIAL_RESULT_REFUND_CONFLICT');
  const index=payout.heads.findIndex(c=>c.text.replace(/\s+/g,'')==='払戻金');
- const rows=payout.rows.filter(row=>row.some(c=>c.text.replace(/\s+/g,'')==='3連単'));
  const raw=index>=0?rows[0]?.[index]?.text?.trim():'';
  const match=/^[￥¥]?\s*([0-9]{1,3}(?:,[0-9]{3})*|[0-9]+)\s*円?$/.exec(raw||'');
  const yen=match?Number(match[1].replace(/,/g,'')):null;
- return {top3,payout_per_100_yen:Number.isSafeInteger(yen)&&yen>=100?yen:null};
+ return {top3,payout_per_100_yen:Number.isSafeInteger(yen)&&yen>=100?yen:null,refund_boats:refund};
+}
+// The legacy top3-only API must never silently turn a refund into a normal hit.
+function parseResult(html,day,venue,race,roster=null){
+ const parsed=parsedSettlement(html,day,venue,race,roster);
+ if(parsed.refund_boats.length)throw Error('OFFICIAL_RESULT_REFUND_UNVERIFIED');
+ return parsed.top3;
+}
+function parseResultDetails(html,day,venue,race,roster=null){
+ const parsed=parsedSettlement(html,day,venue,race,roster);
+ if(parsed.refund_boats.length){
+  if(parsed.payout_per_100_yen===null)throw Error('OFFICIAL_RESULT_REFUND_PAYOUT_UNVERIFIED');
+  return {...parsed,result_class:'SETTLED_WITH_REFUND'};
+ }
+ return {top3:parsed.top3,payout_per_100_yen:parsed.payout_per_100_yen};
 }
 export {parseSchedule,parseRacelist,parseExhibition,parseResult,parseResultDetails};
