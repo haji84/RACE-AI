@@ -7,6 +7,13 @@
 - ボートについては0:26 JST既存の独立検査済み日別原本が12場144枠を提示。7:33 JSTの新規公式取得ワークフロー [run 41731754584](https://github.com/haji84/RACE-AI/actions/runs/41731754584) は公式12場、13GET、paired_forecast_count=0、reason=NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES、artifact 13277830644（ZIP sha256:47106611209899f2ad03400139ff77714a9cd533a284987bab73f8de92c78923）。**144枠を144予想と呼ばない**。
 - ソース参考（2026-11-04の表示のみ）: https://www.boatrace.jp/ ; https://keirin.netkeiba.com/race/race_calendar/ ; https://www.winticket.jp/autorace/racecard ; https://www.keiba.go.jp/KeibaWeb/TodayRaceInfo/RaceList?k_babaCode=27&k_raceDate=2026%2F11%2F04 。正式採点前には個別レースについて主催者元データ、改訂、権利・取扱条件を照合する。
 
+## 当日の開催枠数（掲載レース数と正式予想成績は別）
+- ボート: 12場×各12R = **144予定枠**（既存0:26 JST独立保存日別原本でも144、7:33 JST再取得で12開催場を確認）。
+- 競輪: 静岡7R、豊橋12R、奈良7R、武雄7R、青森12R、取手7R、大宮12R、別府11R = **75予定枠**。https://www.winticket.jp/keirin/racecard/20261104
+- オート: 川口8R、山陽12R = **20予定枠**。https://www.winticket.jp/autorace/racecard
+- 地方競馬: 園田12R、盛岡12R、金沢11R、門別12R、船橋12R = **59予定枠**。https://www.keiba.go.jp/KeibaWeb/TodayRaceInfo/RaceList?k_babaCode=27&k_raceDate=2026%2F11%2F04
+- 合計 **298予定枠**。これらは当日の一覧に掲示された枠の数であって、3連単発売有無・取消・全モデル事前予想・結果照合の成功数ではない。正式台帳では各race ID・締切・販売状態を再確認する。
+
 ## モデル適用判定（前回分類は「14種類＋別系統2種類」）
 1. ボート: 既存A/B/C-liteの同一レース締切前凍結を最優先。C戦術、総合要因、展開混合、観測相性、ST重視相性は必要な履歴・事前特徴・証拠・許可が実在する時だけ実行。結果由来のPDCA補正研究は別前向き評価として扱い、現行A/B重みを変更しない。
 2. 4競技共通: `race_ai/four_sport_model_suite.py`の既存4 model_id（`multisport-factor-interaction-v1`, `multisport-scenario-ensemble-v1`, `multisport-conditional-duel-v1`, `multisport-race-trajectory-v1`）を、同一as-of・同一厳格スナップショットで実行。既存時系列学習型は外部の有効学習済みモデルが提供される場合のみ5番目として実行。必要な個別数値の欠測を架空の値で補間しない。実源許可ゲートを迂回しない。
