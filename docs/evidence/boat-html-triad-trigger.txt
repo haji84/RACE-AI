@@ -5,3 +5,5 @@
 2026-11-03 JST final one-shot 3-GET verification following observed post-disposition six-person roster comparison bug fix. Any further mismatch becomes a documented blocker, no repeated calls here.
 
 Full-day preflight: one post-thead-fix check of the same non-standard finish, using the existing bounded job only. Classify an explicit reason for stopping on refunds as safe handling, never as a normal settlement or proof of full-day operation. No further retries in this preflight.
+
+2026-11-03 refund implementation validation: after the new failing regression was reproduced and all CI tests passed, compare the same six racers, top3, payout and explicit refund boats. One bounded 3-GET post-fix check; no predictions, no scheduler additions, no deployment. Refund is a terminal separately accounted result, not an ordinary miss.
