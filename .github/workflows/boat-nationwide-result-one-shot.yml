@@ -1,10 +1,8 @@
 name: BOAT national three-race results against frozen A/B (no Vercel)
 on:
   push:
-    branches:
-      - feat/four-sport-forecast-audit-view-20261022
-    paths:
-      - docs/evidence/boat-national-results-trigger.txt
+    branches: [feat/four-sport-forecast-audit-view-20261022]
+    paths: [docs/evidence/boat-national-results-trigger.txt]
 permissions:
   contents: read
   actions: read
@@ -13,39 +11,79 @@ concurrency:
   cancel-in-progress: false
 jobs:
   independent_result:
-    name: Compare national frozen research with official results and 10000-yen misses
     if: github.repository == 'haji84/RACE-AI'
     runs-on: ubuntu-24.04
     timeout-minutes: 6
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        artifact: [13202833722, 13203739532, 13204793279]
+    name: Verify registered national batch ${{ matrix.artifact }}
     env:
-      GH_TOKEN: ${{ github.token }}
-      GH_REPO: haji84/RACE-AI
       RACE_AI_NATIONAL_RESULT_OWNER_REVIEWED: 'true'
+      ORIGINAL_ID: ${{ matrix.artifact }}
     steps:
-      - name: Checkout exact current audit implementation
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
           ref: ${{ github.sha }}
-      - name: Checkout fixed official HTML source verification
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
           ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
           path: pr64-reference
-      - name: Read GitHub Actions original forecasts and server time
+      - name: Read original receipt and archive with read-only scope
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          gh run download 41575766782 --repo haji84/RACE-AI --name boat-national-cutoff-41575766782 --dir national_source
-          echo "RACE_AI_NATIONAL_GITHUB_CREATED_AT=$(gh api repos/haji84/RACE-AI/actions/artifacts/13202833722 --jq .created_at)" >> "$GITHUB_ENV"
+          set -euo pipefail
+          mkdir national_source
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ORIGINAL_ID" > national_source/receipt.json
+          gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ORIGINAL_ID/zip" > national_source/original.zip
       - name: Check immutable paired model rank and result guard
         run: python -m unittest tests.test_boat_ab_shadow tests.test_boat_ab_result_audit tests.test_boat_ab_cohort -v
-      - name: Official postclose national result 3-race verification
-        run: python scripts/boat_nationwide_result_audit.py
-      - name: Save append-only per-race result evidence, no source HTML
-        if: always()
+      - name: Match registered bytes and each cutoff, then reuse existing official result audit
+        run: |
+          python - <<'PY'
+          import hashlib, json, os, zipfile
+          from datetime import datetime
+          from pathlib import Path
+          from scripts import boat_nationwide_result_audit as audit
+          def require(condition, message):
+              if not condition: raise ValueError(message)
+          def sha(raw): return hashlib.sha256(raw).hexdigest()
+          def instant(text): return datetime.fromisoformat(text.replace('Z','+00:00'))
+          root = Path('national_source')
+          ident = int(os.environ['ORIGINAL_ID'])
+          ix = json.loads(Path('docs/evidence/2026-11-03/boat-canonical-freeze-index.json').read_text())
+          entries = [r for r in ix['entries'] if r['artifact_id']==ident]
+          meta=json.loads((root/'receipt.json').read_bytes()); raw=(root/'original.zip').read_bytes()
+          require(len(entries)==3 and len({r['race_id'] for r in entries})==3,'expected an indexed three-race batch')
+          run=meta['workflow_run']['id']; saved=meta['created_at']; digest=sha(raw)
+          require(meta['id']==ident and not meta['expired'] and meta['name']==f'boat-national-cutoff-{run}' and meta['digest']=='sha256:'+digest, 'original archive receipt mismatch')
+          with zipfile.ZipFile(root/'original.zip') as z:
+              require(z.namelist()==['national.json'] and z.getinfo('national.json').file_size<=250000,'unexpected archive payload')
+              body=z.read('national.json')
+          reg={r['race_id']:r for r in entries}; pairs=json.loads(body)['paired_forecasts']
+          require(len(pairs)==len(reg) and {p['race_id'] for p in pairs}==set(reg),'registered race mismatch')
+          for pair in pairs:
+              r=reg[pair['race_id']]
+              require(r['run_id']==run and r['server_created_at']==saved and r['zip_sha256']==digest and r['json_sha256']==sha(body),'index/receipt mismatch')
+              require(r['bundle_sha256']==pair['bundle_sha256'] and instant(saved)<instant(r['cutoff_at'])==instant(pair['cutoff_at']),'pair or preclose evidence mismatch')
+          (root/'national.json').write_bytes(body)
+          # Bind this verified input to the unchanged scorer; no forecast is generated by this job.
+          audit.RUN_ID=run; audit.ARTIFACT_ID=ident; audit.FORECAST_SHA=sha(body)
+          os.environ['RACE_AI_NATIONAL_GITHUB_CREATED_AT']=saved
+          result=audit.run(); rows=result['official_results']
+          require(len(rows)==len(reg) and {r['race_id'] for r in rows}==set(reg), 'incomplete race status coverage')
+          for r in rows:
+              print('AUDIT',r['race_id'],r['state'],r.get('official_top3'),r.get('payout_per_100_yen'),[(m['hit_at_1'],m['hit_at_8'],m['winning_combination_rank']) for m in r.get('paired_comparison',{}).get('models',[])])
+          PY
+      - name: Store only the separate result revision
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: boat-national-3r-result-${{ github.run_id }}
+          name: boat-national-3r-result-${{ github.run_id }}${{ matrix.artifact == 13202833722 && '' || format('-{0}', matrix.artifact) }}
           path: boat_national_result_output/result.json
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 7
