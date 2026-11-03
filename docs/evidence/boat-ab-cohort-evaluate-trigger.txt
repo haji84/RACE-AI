@@ -1,0 +1,1 @@
+2026-11-03 JST prospective paired experiment: verify GitHub artifact timestamps/hashes, compare the confirmed 2R official result, retain pending 3R, report all missing/coverage in SELECTED_RACES scope. This is read-only and does not train models. Vercel forbidden.
