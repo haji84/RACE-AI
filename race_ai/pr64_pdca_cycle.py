@@ -90,6 +90,14 @@ def audit_cycle(races, *, clock, load_forecast, load_result, validate_forecast,
                 states.append({**report,"audit_state":"ALREADY_SAVED",
                                "revision":prior["revision"]})
                 continue
+            # Official result corrections may change the winner and metrics,
+            # but NEVER swap the original frozen forecast/evidence.
+            if prior is not None and any(
+                prior["report"].get(key) != report.get(key) for key in
+                ("cutoff_at","frozen","forecast_receipt_sha256",
+                 "forecast_snapshot_id","forecast_model_id")):
+                states.append({"race_id":rid,"state":"FORECAST_VERSION_CONFLICT_NO_OVERWRITE"})
+                continue
             # A changed official result needs a NEW revision, never a patch.
             # Predicted tickets stay byte-for-byte the same.
             revision=1 if prior is None else prior["revision"]+1
