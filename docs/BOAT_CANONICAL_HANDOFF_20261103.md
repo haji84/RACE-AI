@@ -21,7 +21,7 @@
 | 全国横断（第2実証） | run 41577403445 / artifact 13203739532、GitHub保存13:19:22。津7R `20261103-09-07`、浜名湖7R `20261103-06-07`、戸田7R `20261103-02-07`のA/B各8点、別のC-lite研究版と公式オッズ観測版も試行。全場一巡は未達 |
 | 全国結果照合 | run 41577360541 の3レース結果検査時点は未確定・厳格検証停止。run成功は「予想的中」や「全件PDCA成功」を意味しない |
 
-**A/B原本の一意な一覧**：[`docs/evidence/2026-11-03/boat-canonical-freeze-index.json`](evidence/2026-11-03/boat-canonical-freeze-index.json)。宮島3件＋全国2回各3件＝**9レースの異なるA/B原本**。GitHubサーバーのartifact発行時刻・原本ZIP/JSON SHA・レースID・締切を記録。これは索引であって、原本そのものではない。保存原本は結果発表後に再生成しない。
+**A/B原本の一意な一覧**：[`docs/evidence/2026-11-03/boat-canonical-freeze-index.json`](evidence/2026-11-03/boat-canonical-freeze-index.json)。宮島3件＋全国3回各3件＝**12レースの異なるA/B原本**。GitHubサーバーのartifact発行時刻・原本ZIP/JSON SHA・レースID・締切を記録。これは索引であって、原本そのものではない。保存原本は結果発表後に再生成しない。
 
 - `docs/evidence/2026-11-03/boat-ab-prospective-artifact-registry.json` は**宮島2～4Rの詳細索引**として残す。全国9レースを含む正式な重複防止には上記の共通索引を使う。索引編集と元原本の編集は別。
 - 朝版 `boat_20261103.pdf`（全156R）・徳山手動研究版・宮島1R単独版は、それぞれ**別モデルと異なる保存証明レベル**。当日の13開催場×12Rという発見数を正式な156レース予想保存件数と取り違えない。PDFの締切前外部不変保存を証明できないレースは正式Hit@8に混ぜない。
@@ -41,7 +41,7 @@
 | 万舟観測 | `race_ai/boat_manshu_watch.py` | 発走前に取得した公式3連単120オッズで倍率100倍以上を別枠の監視対象とする。実確定万舟とは別。8点本体とは別版の6本命＋2穴案。購入しない |
 | 全国結果の独立照合 | `scripts/boat_nationwide_result_audit.py` | 締切前原本・結果6艇・返還・払戻の別run照合。勝ち目を結果から生成しない |
 | 複数レースPDCA | `race_ai/boat_ab_cohort.py`、`scripts/boat_ab_cohort_from_actions.py` | 欠測分母込みHit@1/8、Brier/Log loss、校正、仮想回収率、会場日相関を踏まえた不確実性 |
-| 重複防止 | `race_ai/boat_freeze_index.py` ＋ `docs/evidence/2026-11-03/boat-canonical-freeze-index.json` | **既存9レースの再予想を止める照合索引**。新レースは初回原本のみ。永続的な原子的claimを代替しない |
+| 重複防止 | `race_ai/boat_freeze_index.py` ＋ `docs/evidence/2026-11-03/boat-canonical-freeze-index.json` | **既存12レースの再予想を止める照合索引**。新レースは初回原本のみ。永続的な原子的claimを代替しない |
 | Cloudflare非Vercel候補 | `workers/boat_nonvercel_cron.mjs`、`workers/boat_nonvercel_core.mjs`、D1 schema | **Cron停止、専用D1未配備**。これを「実稼働中」と呼ばない |
 | 古い単発実証 | `scripts/boat_ab_future_pilot.py`、`scripts/boat_ab_registered_result.py`、宮島1R証拠 | 検証再現用。全国処理用に別の同等機能を作り直さない。参照されるPython HTML検証ヘルパーを不用意に削除しない |
 
@@ -64,3 +64,11 @@
 - PR #71の既存ファイル・ワークフローを再利用し、同名/同機能の新PR・新自動タスク・新予想原本を増やさない。重要な承認が必要なmain、課金、公開、権限変更、未確認nonce再POSTは触らない。
 
 **成功判定**：`Issue #68`の公式全対象台帳、締切前の保存証明、公式結果、精度と万舟取りこぼし、将来モデル適用の**実データでの連続E2E**が揃って初めて本運用完成とする。「A/Bモデルのコードがある」「CIが通った」「3レースの予定表がある」だけでは完成にしない。
+
+
+## 2026-11-03 13:35 JST追補：引継ぎ後の全国実検証
+
+- 重複防止を導入して全国の実行を**同じ既存PR #71**で1回実行。GitHub Actions [run 41579002662](https://github.com/haji84/RACE-AI/actions/runs/41579002662) はsuccess、公式13開催場・156レース台帳を取得。元artifact [13204793279](https://github.com/haji84/RACE-AI/actions/runs/41579002662/artifacts/13204793279)、GitHubサーバー発行 `2026-11-03T04:35:43Z`（JST 13:35:43）、ZIP SHA256 `6d1dbf09a7b56b86ccdfacc8f53f90b8d16e7f7f04df22539d32e88e5ad3f271`、`national.json` SHA256 `bd1bbe14fd2c2a17b53de378d53c7e0ffbb876bf82713bd8112f8b6fe3d960b8`（実ダウンロード再計算一致）。
+- 新しい3件の未来A/B：**平和島7R** `20261103-04-07` 締切13:40（GitHub保存257秒前）、**芦屋11R** `20261103-21-11` 締切13:42（377秒前）、**福岡7R** `20261103-22-07` 締切13:46（617秒前）。既存の宮島3件＋先行全国6件とrace_id重複なし。
+- これらの3件を共通 `boat-canonical-freeze-index.json` に**追加**。元の9件やそのA/B予想原本を変更していない。証拠が増えたので一覧件数は9から12になった。
+- この実行は**全国締切順から新規3件を選び、締切前にGitHub artifact保存した実証**。12/156を保存済みとは限らず、特に原本A/Bの12件は11月3日の全部の公式発売対象を網羅していない。実際の公式結果→独立A/B採点→次予想更新の全国一巡完成は未達。GitHub Actions artifactの保持期限が7日という課題も同じ。
