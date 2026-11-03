@@ -199,8 +199,10 @@ class KeirinPrivateSpool:
         if not isinstance(result,dict):
             return "REJECTED_RESULT_SHAPE"
         try:
-            self.store.add_result_observation(result)
+            insertion=self.store.add_result_observation(result)
             scored=self.store.research_audit(result["race_id"])
+            if insertion.get("state")=="ALREADY_PRESENT":
+                return "RESULT_ALREADY_SEEN_NO_RECOUNT"
         except (ValueError,TypeError,KeyError):
             return "RESULT_REJECTED_OR_NOT_ADMITTED"
         if scored.get("research_hit8") is True:
