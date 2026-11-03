@@ -38,7 +38,13 @@
         "json_sha256": "5d58f23261513f44c31808f1d2d4ebbec65437f1012d9a94f295acaf1c3e11be",
         "bundle_sha256": "6c73217a740d10b6e288390c9edec992be3087909acb02c24c59d4d19dbfaf7c"
       },
-      "official_result": null
+      "official_result": {
+        "run_id": 41570947566,
+        "artifact_id": 13200484868,
+        "name": "boat-ab-next-result-41570947566",
+        "zip_sha256": "ac8972733b3b1b5ef8f9ae508b543bc3fc567cf672d7afa5ad02bf711e862646",
+        "json_sha256": "ca2ca308ddba77e9af757cebbe0fc7b6daae8af675a85c97571ceeed54902002"
+      }
     },
     {
       "race_id": "20261103-17-04",
