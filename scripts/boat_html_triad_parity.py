@@ -1,7 +1,7 @@
-"""RAM-only PR64 Python / Worker JS same-source parity for program, exhibition, result.
+"""Same-source official program/exhibition/refund-result parity, three GETs.
 
-Three individually bounded official GETs, no raw HTML files, no predictions,
-no outcome retrofits, no wagers. A single observed parity is not a source license.
+RAM-only raw HTML. No forecast creation, retrospective model edits, wagers,
+public deployment or scheduler. A single sample does not prove full-day operation.
 """
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -34,7 +34,8 @@ if(r){
  }catch(e){result.exhibition={ok:false,code:code(e)};}
  try{
   const data=parseResultDetails(p.result,p.day,p.venue,p.race,r);
-  result.result={ok:true,top3:data.top3,payout:data.payout_per_100_yen};
+  result.result={ok:true,top3:data.top3,payout:data.payout_per_100_yen,
+   refund_boats:data.refund_boats??[],result_class:data.result_class??'SETTLED_NORMAL'};
  }catch(e){result.result={ok:false,code:code(e)};}
 }
 console.log(JSON.stringify(result));
@@ -47,8 +48,10 @@ def status(code,**extra):
          "one_shot_not_continuous_license":True,**extra}
  OUT.write_text(json.dumps(record,sort_keys=True,ensure_ascii=False,indent=2),encoding='utf8')
  print(json.dumps({"status":code,"race_id":record['race_id'],"parity":record.get('parity'),
-                   "js":record.get('js'),"python":record.get('python')},ensure_ascii=False))
+                   "js":record.get('js'),"python":record.get('python'),
+                   "verified_result":record.get('verified_result')},ensure_ascii=False))
  return record
+
 def run():
  if os.getenv("BOAT_HTML_TRIAD_REVIEWED")!="true":return status("OWNER_GATE_OFF",source_gets=0)
  if datetime.now(JST).date()!=DAY:return status("WRONG_DAY_NO_GET",source_gets=0)
@@ -87,7 +90,14 @@ def run():
       combo=data.get("top3") if data else None
       payouts=[x for x in data.get("payouts",[]) if x.get("bet_type")=="trifecta" and x.get("combination")==combo] if data else []
       paid=payouts[0].get("payout_per_100_yen") if len(payouts)==1 else None
-      py[page]={"ok":upd.get("status")=="AVAILABLE" and bool(data and data.get("finish_confirmed")),"top3":combo,"payout":paid}
+      refund=data.get("refund_boats") if data else None
+      if (not isinstance(refund,list) or any(type(n) is not int or not 1<=n<=6 for n in refund)
+          or len(set(refund))!=len(refund)):
+       raise ValueError("PY_REFUND_IDENTITY_UNVERIFIED")
+      refund=sorted(refund)
+      py[page]={"ok":upd.get("status")=="AVAILABLE" and bool(data and data.get("finish_confirmed")),
+       "top3":combo,"payout":paid,"refund_boats":refund,
+       "result_class":"SETTLED_WITH_REFUND" if refund else "SETTLED_NORMAL"}
     except Exception as exc:
      py[page]={"ok":False,"error_class":type(exc).__name__}
   except Exception as exc:
@@ -109,12 +119,15 @@ def run():
        and py["exhibition"]["six"]==js["exhibition"].get("six")),
    "result":bool(py.get("result",{}).get("ok") and js.get("result",{}).get("ok")
        and py["result"]["top3"]==js["result"].get("top3")
-       and (py["result"]["payout"] is None or py["result"]["payout"]==js["result"].get("payout")))}
-  # Redact original identities and retain only verified equality flags.
+       and type(py["result"]["payout"]) is int and py["result"]["payout"]==js["result"].get("payout")
+       and py["result"]["refund_boats"]==js["result"].get("refund_boats")
+       and py["result"]["result_class"]==js["result"].get("result_class"))}
   py_out={k:{"ok":v.get("ok"),"error_class":v.get("error_class"),"six_count":len(v.get("six") or []) if "six" in v else None} for k,v in py.items()}
   js_out={k:{"ok":v.get("ok"),"code":v.get("code"),"six_count":len(v.get("six") or []) if "six" in v else None} for k,v in js.items()}
+  final={key:py['result'][key] for key in ('top3','payout','refund_boats','result_class')} if parity['result'] else None
   return status("ALL_THREE_MATCH" if all(parity.values()) else "PHASES_NOT_ALL_VERIFIED",
-    source_gets=len(raw),source_sha256=hashes,captured_at=records,parity=parity,python=py_out,js=js_out)
+    source_gets=len(raw),source_sha256=hashes,captured_at=records,parity=parity,python=py_out,js=js_out,
+    verified_result=final)
  except Exception as exc:
   return status("SOURCE_OR_EXECUTION_FAILED",source_gets=len(raw)+1,failure_class=type(exc).__name__)
  finally:
