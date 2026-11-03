@@ -62,8 +62,26 @@ def status(**kw):
            "status":"NO_FORECAST", "research_only":True,"scores_calibrated":False,
            "github_artifact_created_before_cutoff_verified":False,"real_pre_cutoff_cloud_saved":False,**kw}
     (OUTPUT/"pilot.json").write_text(json.dumps(value,ensure_ascii=False,sort_keys=True,separators=(",",":")),encoding="utf-8")
-    print(json.dumps({"status":value["status"],"race_id":value.get("race_id"),"reason":value.get("reason"),"failure_class":value.get("failure_class"),"source_gets":calls,"forecast_made":value.get("forecast_made",False)},ensure_ascii=False))
+    print(json.dumps({"status":value["status"],"race_id":value.get("race_id"),"reason":value.get("reason"),"failure_class":value.get("failure_class"),"postclose_js_racelist_diagnostic":value.get("postclose_js_racelist_diagnostic"),"source_gets":calls,"forecast_made":value.get("forecast_made",False)},ensure_ascii=False))
     return value
+
+def diagnostic_js_racelist_only(raw,day,venue):
+    """1-GET postclose parser diagnostic only; NO result or forecast creation."""
+    js=("import{parseRacelist}from './workers/boat_official_html.mjs';"
+        "let s='';for await(const chunk of process.stdin)s+=chunk;"
+        "const p=JSON.parse(s);try{parseRacelist(p.html,p.day,p.venue,1);"
+        "console.log(JSON.stringify({status:'PARITY_PARSE_OK'}));}"
+        "catch(e){console.log(JSON.stringify({status:String(e.message||'').slice(0,120)}));}")
+    try:
+        done=subprocess.run(["node","--input-type=module","--eval",js],
+          input=json.dumps({"html":raw.decode("utf-8"),"day":day.strftime("%Y%m%d"),"venue":venue},ensure_ascii=False),
+          capture_output=True,text=True,encoding="utf-8",timeout=8)
+        if done.returncode!=0:return "JS_EXEC_FAILED"
+        result=json.loads(done.stdout)
+        code=result.get("status","INVALID")
+        return code if isinstance(code,str) and re.fullmatch("[A-Z0-9_]{2,110}",code) else "JS_DIAG_INVALID"
+    except (OSError,ValueError,UnicodeError,subprocess.TimeoutExpired):
+        return "JS_DIAG_ERROR"
 
 def cross_check_js(program_bytes, preview_bytes, day, venue, race_no, known_boats, preview_boats):
     """Real Python-to-JS source parity in RAM; safe finite error codes only."""
@@ -116,7 +134,9 @@ def run():
         return status(reason="SCHEDULE_OR_SOURCE_INVALID",failure_class=type(error).__name__)
     now=datetime.now(timezone.utc)
     options=[(t,n) for n,t in times.items() if RACE_WINDOW[0]<(t-now).total_seconds()<RACE_WINDOW[1]]
-    if not options:return status(reason="NO_SUITABLE_UPCOMING_RACE")
+    if not options:
+        diagnostic=diagnostic_js_racelist_only(raw,day,VENUE)
+        return status(reason="NO_SUITABLE_UPCOMING_RACE",postclose_js_racelist_diagnostic=diagnostic)
     closing,n=min(options)
     race_id=f"{day:%Y%m%d}-{VENUE}-{n:02d}"
     if closing<=datetime.now(timezone.utc)+timedelta(seconds=180):
