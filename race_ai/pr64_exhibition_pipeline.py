@@ -213,14 +213,36 @@ def score_after_finish(race, forecast, race_bundle, *, now, validate_result):
     if _moment(row["captured_at"]) < cutoff or _moment(result["cloud_saved_at"]) < cutoff:
         raise ValueError("post-close result evidence cannot predate close")
     # Missing forecast counts as 0 after result, not missing denominator.
-    is_frozen = isinstance(forecast, dict) and forecast.get("frozen") is True and forecast.get("race_id") == rid
+    if forecast is not None and not isinstance(forecast, dict):
+        raise ValueError("forecast must be a checked PR64 projection or missing")
+    if forecast is not None and forecast.get("frozen") is True and forecast.get("race_id") != rid:
+        raise ValueError("forecast belongs to another race")
+    is_frozen = isinstance(forecast, dict) and forecast.get("frozen") is True
     ordered = forecast["ordered_top8"] if is_frozen else []
     ranked = forecast["all_triples"] if is_frozen else []
     if is_frozen:
-        if (len(ordered) != 8 or len(ranked) != 120 or
-                [x["combination"] for x in ranked[:8]] != ordered
-                or [tuple(x["combination"]) for x in ranked] !=
-                    sorted(TICKETS, key=lambda t: (-next(x["score"] for x in ranked if tuple(x["combination"]) == t), t))):
+        if (forecast.get("state") != "PR64_CLOUD_FROZEN_VERIFIED"
+                or forecast.get("source_ref") != f"PR64:{PR64_HEAD}"
+                or forecast.get("model_id") != "official-beforeinfo-display-pl"
+                or forecast.get("phase") != "post_exhibition"
+                or not isinstance(forecast.get("receipt_sha256"), str)
+                or SHA256.fullmatch(forecast["receipt_sha256"]) is None):
+            raise ValueError("unverified PR64 saved forecast")
+        if len(ordered) != 8 or len(ranked) != 120:
+            raise ValueError("frozen ranking evidence malformed")
+        map_scores = {}
+        for item in ranked:
+            if not isinstance(item, dict) or set(item) != {"combination", "score"}:
+                raise ValueError("invalid saved ranking row")
+            ticket = tuple(item["combination"]) if isinstance(item["combination"], list) else ()
+            p = item["score"]
+            if ticket not in TICKETS or ticket in map_scores or type(p) not in (float, int) or not math.isfinite(p) or not 0 < p < 1:
+                raise ValueError("invalid or duplicate saved ranking")
+            map_scores[ticket] = p
+        if (set(map_scores) != TICKETS
+                or not math.isclose(math.fsum(map_scores.values()), 1.0, abs_tol=1e-10)
+                or [x["combination"] for x in ranked[:8]] != ordered
+                or [tuple(x["combination"]) for x in ranked] != sorted(TICKETS, key=lambda t:(-map_scores[t], t))):
             raise ValueError("frozen ranking evidence malformed")
         if (_moment(forecast["cloud_saved_at"]) >= cutoff
                 or forecast.get("scores_calibrated") is not False):
