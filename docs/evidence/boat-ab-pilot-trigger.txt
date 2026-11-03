@@ -3,3 +3,5 @@ Pilot v2: 2026-11-03 JST repair source motor subtable main racer row selection; 
 Prospective extra-cohort collection attempt #3, 2026-11-03 JST. Fixed A/B coefficients; official data and forecast must be saved before that race's verified cutoff. No Vercel or result data in forecast job.
 
 2026-11-03 JST prospective retry: Miyajima 3R after prior 11:00 exhibition-pending observation. Preserve earlier 2R A/B unchanged and require future cutoff and a new independent artifact creation time.
+
+2026-11-03 11:10 JST prospective single additional 3R attempt after official exhibition-pending 11:04. Same predeclared A/B source and coefficients, independent GitHub created_at required before 11:19. No 2R outcome features, no Vercel or wagers.
