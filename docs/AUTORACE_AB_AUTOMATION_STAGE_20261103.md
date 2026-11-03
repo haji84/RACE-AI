@@ -39,3 +39,30 @@ python -m unittest tests.test_autorace_ab_pdca -v
 5. **未来の実レースE2E**：1レースでA/Bそれぞれ締切前の独立レシート、公式結果、その後の訂正まで確認 → 同日全場→欠測率計測→前向きの比較評価。正式なHit@8 98%は未実証目標。
 
 **運転判定**：`real_provider_polling_enabled=false`、`live_result_polling_enabled=false`。現時点ではプロバイダー接続・cron・本番配備・main統合・公開・自動購入をしていない。完成したのはA/B+PDCAの制御ロジックおよび合成検証工程であり、完全無人本番稼働ではない。
+
+
+## 2026-11-03 追記：公式データの利用権限と非公開保存の現況
+
+### 公式一次資料と窓口
+
+- 公式利用規約 https://autorace.jp/policy/ ：一般財団法人オートレース振興協会の公式サイト。掲載記事・写真・映像等の無許可転載/複製等および私的範囲を超える商業利用や迷惑な大量アクセスを制限している。
+- 出走表と試走タイムの表示 https://autorace.jp/race_info/Live/ 、過去結果検索 https://autorace.jp/race_info/SearchRace を確認した。**公開表示されることは自動取得・保管・学習・派生表示の契約上の権利を付与しない**。
+- 個別に許可された正式フィード/API、契約料金、許容頻度、認証方法、保持期間は調査では確認できず、全用途のプログラム取得はRIGHTS_UNVERIFIEDで停止する。
+- 公式問い合わせ https://autorace.jp/inquiry/ で、出走表・予定締切・全車試走・確定/訂正結果の継続的な機械可読提供と、個人利用/AI研究/保存/有償配信の許諾区分、Webhook/頻度/料金を照会する。
+
+### 追加した安全なローカル接続と合成E2E
+
+- race_ai/autorace_source_contract.py：既に提供された正規化ファイル/プッシュデータだけを入力とし、自動HTTP取得はしない。実ソースのSHA、スナップショットSHA、出走者ID、予想時点、締切、公開段階、有効期限と、独立した利用権利審査・観測審査を検証。審査が不明または不一致なら停止。単なる自己申告の許諾フラグは正式証拠にならない。
+- race_ai/autorace_private_store.py：POSIXディレクトリ0700、DB0600の非公開SQLite。公開Gitリポジトリの外に置く前提。(race_id,phase,model_id)排他予約、送信不確実時の再送禁止、原本読戻し、結果訂正のappend-only revisionを保存する。Windows ACL検証は未実装のためWindowsストアはfail closed。
+- 独立サーバーの予想SHA・レースID・締切・受領時刻を認証する正式receipt verifier、クラウドでの冗長保存、障害復旧、データ供給者への本番接続は未実装。ローカルSQLiteは独立の締切前凍結証明ではなく、データベース管理者による改変を防ぐものでもない。
+- tests/test_autorace_private_source_e2e.pyは**2030年の架空データと模擬外部レシート**でA/B別生成→保存→再起動→結果照合→訂正履歴、欠測・未許諾・重複・期限切れを検証。模擬verifierを実レシートと称しない。
+- .github/workflows/autorace-ab-contract.ymlを拡張。2026-11-03現在、head 30adb8f6d4055352253743c7ed8e143032be87a9 でオート専用 https://github.com/haji84/RACE-AI/actions/runs/41555295453 completed/success、全体CI https://github.com/haji84/RACE-AI/actions/runs/41555295472 completed/success。
+
+### 次の本番接続ゲート
+
+1. 権限を有する提供元から、用途別（自動受信、非公開保存、予測AI解析/学習、派生出力、公開）の明示許諾と提供仕様を受け、独立確認する。
+2. レースごとの開催・全車ID・確定締切・試走の掲載状態・確定結果の訂正をソース付きで取り込む。PR #72の同一レース試走表パーサーは既存コードを正式統合して再利用する。
+3. 実レース1件のA→試走後Bをそれぞれ締切前に**独立サーバー時刻付き不変保存→読戻し**を行い、結果の正式受領後にのみPDCA計上。
+4. 許諾されたpush通知/短間隔実行と永続キュー、private遠隔保存/復旧/障害通知を承認費用内で確認して全会場に拡大。Actions scheduleだけでは試走直後の必達保証はない。
+
+判定：現時点では公式サイトに対する自動通信、実データのA/B凍結、24時間の本番実行、main統合、公開、課金、自動投票を実施していない。実レースE2Eは **0件実証**。権利が未確認のソースでは実データを取り込まない。
