@@ -92,4 +92,4 @@ async function settle(db,race,res,{now=()=>Date.now()}={}){
  if(!saved||saved.report_json!==raw||saved.report_sha256!==sha)throw Error('RESULT_READBACK_MISMATCH');
  return {status:'RESULT_PDCA_DB_VERIFIED',...report,report_sha256:sha,db_saved_at:saved.db_saved_at};
 }
-export {assertFacts,predict,freeze,settle,MODEL,SCHEMA};
+export {assertFacts,assertResult,predict,freeze,settle,MODEL,SCHEMA};
