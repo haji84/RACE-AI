@@ -41,7 +41,8 @@ def _snapshot_is_exhibition(snapshot):
     if not isinstance(snapshot, dict) or not isinstance(snapshot.get("entrants"), list):
         return False
     entrants = snapshot["entrants"]
-    if len(entrants) != 6 or {x.get("lane") for x in entrants if isinstance(x, dict)} != set(range(1, 7)):
+    if (len(entrants) != 6 or any(not isinstance(x, dict) or type(x.get("lane")) is not int for x in entrants)
+            or {x["lane"] for x in entrants} != set(range(1, 7))):
         return False
     for item in entrants:
         features = item.get("features")
@@ -111,17 +112,25 @@ def tick(records, *, clock, readback, acquire, claim, submit, verify,
             source = acquire(row)
         except (ValueError, KeyError, TypeError, OSError):
             rows.append(_record(race_id, "SOURCE_FETCH_FAILED")); continue
-        if not isinstance(source, dict) or source.get("status") not in
-                ("AVAILABLE", "PENDING", "UNAVAILABLE", "RIGHTS_BLOCKED"):
+        if (not isinstance(source, dict) or source.get("status") not in
+                ("AVAILABLE", "PENDING", "UNAVAILABLE", "RIGHTS_BLOCKED")):
             rows.append(_record(race_id, "SOURCE_INVALID")); continue
         if source["status"] != "AVAILABLE":
             rows.append(_record(race_id, "EXHIBITION_" + source["status"])); continue
         snapshot = source.get("snapshot")
+        if (source.get("source_rights_verified") is not True or
+                source.get("exhibition_identity_verified") is not True):
+            rows.append(_record(race_id, "SOURCE_EVIDENCE_NOT_VERIFIED")); continue
         if not _snapshot_is_exhibition(snapshot):
             rows.append(_record(race_id, "EXHIBITION_INCOMPLETE")); continue
-        if (snapshot.get("race_id") != race_id or
-                _moment(snapshot.get("sales_cutoff_at")) != cutoff or
-                _moment(snapshot.get("as_of")) > _moment(clock())):
+        try:
+            coherent = (snapshot.get("race_id") == race_id and
+                _moment(snapshot.get("sales_cutoff_at")) == cutoff and
+                _moment(snapshot.get("as_of")) <= _moment(clock()) and
+                snapshot.get("scope") == "OPERATOR_SUPPLIED_RESEARCH")
+        except (ValueError, TypeError, AttributeError, OverflowError):
+            coherent = False
+        if not coherent:
             rows.append(_record(race_id, "SOURCE_RACE_OR_CLOCK_MISMATCH")); continue
         try:
             forecast = run_models(snapshot)[MODEL_IDS[0]]
