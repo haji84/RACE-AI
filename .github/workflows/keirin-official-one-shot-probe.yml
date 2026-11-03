@@ -1,4 +1,5 @@
 name: KEIRIN official single-page transport check
+# One additional diagnostic GET after the first HTTPError; no continuous polling.
 on:
   push:
     branches:
