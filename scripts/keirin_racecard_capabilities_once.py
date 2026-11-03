@@ -17,6 +17,7 @@ import re
 PAGES={
  "pre_race_7r":"https://keirin.kdreams.jp/odawara/racedetail/3620261101030007/",
  "result_1r":"https://keirin.kdreams.jp/odawara/raceresult/3620261101030001/",
+ "result_1r_detail":"https://keirin.kdreams.jp/odawara/racedetail/3620261101030001/?pageType=showResult",
 }
 FIELDS=("出走表","競走得点","勝率","２連対率","2連対率","３連対率","3連対率",
         "ライン","車番","選手名","着順","3連単","締切","発走","払戻","配当",
@@ -76,6 +77,6 @@ def one(label,url):
 
 if __name__=="__main__":
  report={"schema":"RACE_AI_KEIRIN_PAGE_SHAPE_RESEARCH_V1",
-         "requests_max":2,"rights_to_automate_not_inferred":True,
+         "requests_max":3,"rights_to_automate_not_inferred":True,
          "pages":[one(key,url) for key,url in PAGES.items()]}
  print(json.dumps(report,ensure_ascii=False,sort_keys=True))
