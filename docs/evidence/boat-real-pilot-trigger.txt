@@ -4,3 +4,4 @@ Third bounded run: Miyajima one-shot 2026-11-03 JST, 3 requests maximum, source 
 Fourth bounded run: cross-check live Miyajima 1R normalized source against independent Cloudflare JS parser in memory, no raw upload.
 Fifth bounded diagnostic: identify precise JS parser stage mismatch; 3 GET max, 2026-11-03 JST.
 Sixth bounded run: verify repaired navigation parser parity against original frozen Miyajima 1R source.
+Seventh and last bounded source diagnostic: verify actual row count before race; stop if still incompatible.
