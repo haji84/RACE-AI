@@ -7,6 +7,7 @@ function tables(html){
  for(const m of html.matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/gi)){
   const raw=m[1],head=/<thead\b[^>]*>([\s\S]*?)<\/thead>/i.exec(raw);
   result.push({header:head?view(head[1]):'',fullText:view(raw),heads:head?cells(head[1]):[],
+   bodies:Array.from(raw.matchAll(/<tbody\b[^>]*>([\s\S]*?)<\/tbody>/gi),x=>Array.from(x[1].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi),r=>cells(r[1]))),
    rows:Array.from(raw.matchAll(/<tbody\b[^>]*>([\s\S]*?)<\/tbody>/gi)).flatMap(x=>Array.from(x[1].matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/gi),r=>cells(r[1])))});
  }
  return result;
@@ -46,8 +47,9 @@ function parseSchedule(html,day,venue){
 function parseRacelist(html,day,venue,race){
  pageIdentity(html,day,venue,race,'racelist');
  const t=only(tables(html),['枠','ボートレーサー','全国','当地','モーター','ボート']);
- if(t.rows.length!==6)throw Error('OFFICIAL_RACELIST_ROWS_'+t.rows.length);
- const racers=t.rows.map(row=>{
+ const mainRows=t.bodies.length===6?t.bodies.map(group=>group[0]):t.rows;
+ if(mainRows.length!==6||mainRows.some(row=>!row))throw Error('OFFICIAL_RACELIST_BODY_GROUPS_UNVERIFIED');
+ const racers=mainRows.map(row=>{
   if(row.length<8||!/^[1-6]$/.test(row[0].text))throw Error('OFFICIAL_RACELIST_LANE_INVALID');
   const reg=/\b([0-9]{4})\s*\//.exec(row[2].text);
   if(!reg||!row[2].html.includes('toban='+reg[1]))throw Error('OFFICIAL_RACELIST_REGISTRATION_MISMATCH');
@@ -61,8 +63,9 @@ function parseRacelist(html,day,venue,race){
 function parseExhibition(html,day,venue,race,roster){
  pageIdentity(html,day,venue,race,'beforeinfo');
  const t=only(tables(html),['ボートレーサー','展示','チルト']);
- if(t.rows.length!==6)throw Error('OFFICIAL_EXHIBITION_SIX_MISSING');
- const rows=t.rows.map(row=>{
+ const mainRows=t.bodies.length===6?t.bodies.map(group=>group[0]):t.rows;
+ if(mainRows.length!==6||mainRows.some(row=>!row))throw Error('OFFICIAL_EXHIBITION_SIX_MISSING');
+ const rows=mainRows.map(row=>{
   if(row.length<6||!/^[1-6]$/.test(row[0].text))throw Error('OFFICIAL_EXHIBITION_LANE_INVALID');
   const reg=/toban=([0-9]{4})/.exec(row[2].html);
   if(!reg)throw Error('OFFICIAL_EXHIBITION_REGISTRATION_MISSING');
