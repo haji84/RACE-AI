@@ -95,7 +95,13 @@ async function settle(db,race,res,{now=()=>Date.now()}={}){
   .bind(race.race_id,res.source_sha256,raw,sha).run();
  const saved=await db.prepare('SELECT report_json,report_sha256,db_saved_at FROM boat_exhibition_outcomes WHERE race_id=? AND result_sha256=?')
   .bind(race.race_id,res.source_sha256).first();
- if(!saved||saved.report_json!==raw||saved.report_sha256!==sha)throw Error('RESULT_READBACK_MISMATCH');
- return {status:'RESULT_PDCA_DB_VERIFIED',...report,report_sha256:sha,db_saved_at:saved.db_saved_at};
+ if(!saved||await digest(saved.report_json)!==saved.report_sha256)throw Error('RESULT_READBACK_MISMATCH');
+ let prior;try{prior=JSON.parse(saved.report_json)}catch{throw Error('RESULT_READBACK_INVALID_JSON');}
+ // The same official HTML may be observed again with a later acquisition
+ // timestamp. Preserve the ORIGINAL audit report, not an updated copy.
+ const stable=x=>JSON.stringify({...x,captured_at:null});
+ if(stable(prior)!==stable(report))throw Error('RESULT_REPLAY_CONFLICT');
+ return {status:saved.report_json===raw?'RESULT_PDCA_DB_VERIFIED':'RESULT_PDCA_ALREADY_SCORED',
+  ...prior,report_sha256:saved.report_sha256,db_saved_at:saved.db_saved_at};
 }
 export {assertFacts,assertResult,predict,freeze,settle,MODEL,SCHEMA};
