@@ -409,6 +409,13 @@ def run(forecast_file, result_file, output_dir, schedule_file=None):
     rows = [settle(f,results.get(f['race_id'])) for f in forecasts]
     schedule = list(load_jsonl(schedule_file)) if schedule_file else None
     report = summarize(rows, schedule)
+    morning = [f for f in forecasts if f.get('cohort') == 'morning']
+    if morning:
+        if len({f['race_id'] for f in morning}) != len(morning):
+            report['morning_pdca'] = {'status': 'DUPLICATE_RACE_MODELS_REQUIRE_SEPARATE_COHORT',
+                                      'valid_model_comparison': False}
+        else:
+            report['morning_pdca'] = diagnose_cohort(morning, results.values(), cohort='morning')
     report['input_sha256']={'forecasts':sha256(forecast_file.read_bytes()).hexdigest(),
                             'results':sha256(result_file.read_bytes()).hexdigest(),
                             'schedule':sha256(Path(schedule_file).read_bytes()).hexdigest() if schedule_file else None}
