@@ -1,1 +1,3 @@
 2026-11-03 Miyajima 2R official result independent A/B score. Frozen 10:46:59 JST run 41561946057 artifact 13197470628. Official close 10:55 JST. No Vercel or model refit. Source rights owner-reviewed. First actual evaluation. 
+
+2026-11-03 JST retry official 2R postclose verification at 11:09; earlier status OFFICIAL_RESULT_PENDING_OR_UNSUPPORTED. The immutable preclose A/B run and artifact are unchanged. No model refit or forecast regeneration.
