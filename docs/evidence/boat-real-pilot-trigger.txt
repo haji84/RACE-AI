@@ -1,2 +1,3 @@
 2026-11-03 JST: owner-approved one-shot live HTML research probe, 3 GET max, Tokuyama only, no wagers, no Vercel, no public raw data.
 One diagnostic retry 2026-11-03 10:02 JST; still strictly 3 GET per execution and safe-stop.
+Third bounded run: Miyajima one-shot 2026-11-03 JST, 3 requests maximum, source proof only.
