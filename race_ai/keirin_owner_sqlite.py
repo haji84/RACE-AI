@@ -328,8 +328,49 @@ class PrivateKeirinStore:
                 SHA.fullmatch(source_sha)):
             raise OwnerStoreError("RESULT_IDENTITY_SOURCE_REQUIRED")
         at = _checked_clock(self.clock)
-        _ensure(utc(observation["observed_at"]) <= at,
-                "FUTURE_OBSERVATION_REFUSED")
+        observed = utc(observation["observed_at"])
+        _ensure(observed <= at, "FUTURE_OBSERVATION_REFUSED")
+        status = observation.get("status")
+        refund = observation.get("refund_status")
+        _ensure(status in ("FINAL_NORMAL", "PENDING", "CANCELLED",
+                            "NOT_OFFERED", "SOURCE_UNAVAILABLE",
+                            "CUTOFF_MISMATCH", "UNSUPPORTED_SPECIAL") and
+                refund in ("NONE", "PARTIAL", "FULL", "UNKNOWN"),
+                "INVALID_RESULT_STATE")
+        wins = observation.get("winning_triples")
+        payouts = observation.get("payouts_100yen")
+        _ensure(type(wins) is list and type(payouts) is list and
+                len(wins) <= 20 and len(payouts) <= 20,
+                "INVALID_RESULT_SHAPE")
+        def ticket(value):
+            _ensure(type(value) is list and len(value) == 3 and
+                    all(type(n) is int and 1 <= n <= 9 for n in value) and
+                    len(set(value)) == 3, "INVALID_WINNING_TICKET")
+            return tuple(value)
+        winner_set = {ticket(x) for x in wins}
+        payout_set = set()
+        for item in payouts:
+            _ensure(type(item) is dict and
+                    set(item) == {"triple", "yen"} and
+                    type(item["yen"]) is int and
+                    0 < item["yen"] <= 10**9, "INVALID_RESULT_PAYOUT")
+            payout_set.add(ticket(item["triple"]))
+        _ensure(len(winner_set) == len(wins) and
+                len(payout_set) == len(payouts),
+                "DUPLICATE_RESULT_TICKETS")
+        if status == "FINAL_NORMAL":
+            _ensure(bool(winner_set) and winner_set == payout_set and
+                    refund != "FULL", "INCONSISTENT_SETTLED_RESULT")
+        else:
+            _ensure(not wins and not payouts,
+                    "NON_FINAL_RESULT_CANNOT_HAVE_WINNERS")
+        forecast_row = self.db.execute(
+            "SELECT payload FROM forecasts WHERE race_id=?", (rid,)
+        ).fetchone()
+        if forecast_row:
+            original = json.loads(forecast_row["payload"])
+            _ensure(utc(original["official_cutoff_at"]) <= observed,
+                    "RESULT_BEFORE_CUTOFF")
         body = canonical(observation)
         digest = sha256(body).hexdigest()
         self.db.execute("BEGIN IMMEDIATE")
@@ -342,6 +383,13 @@ class PrivateKeirinStore:
                 self.db.execute("COMMIT")
                 return {"race_id": rid, "revision": prior["revision"],
                         "state": "ALREADY_PRESENT"}
+            if prior is not None:
+                previous = self.db.execute(
+                    "SELECT observed_at FROM result_revisions WHERE race_id=? "
+                    "ORDER BY revision DESC LIMIT 1", (rid,)
+                ).fetchone()
+                _ensure(utc(previous["observed_at"]) <= observed,
+                        "RESULT_REVISION_TIME_REGRESSION")
             rev = 1 if prior is None else prior["revision"] + 1
             self.db.execute(
                 "INSERT INTO result_revisions VALUES (?,?,?,?,?,?,?)",
