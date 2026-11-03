@@ -14,6 +14,7 @@ from race_ai.comprehensive_four_sport_models import digest
 from tests.test_comprehensive_four_sport_models import sample, obs
 
 
+@unittest.skipIf(os.name != "posix", "Private journal requires verified POSIX owner-only permissions")
 class LocalAuthorizedAutoraceE2E(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
