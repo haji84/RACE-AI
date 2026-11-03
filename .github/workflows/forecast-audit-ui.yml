@@ -80,6 +80,9 @@ on:
       - 'race_ai/pr64_exhibition_pipeline.py'
       - 'race_ai/pr64_pdca_cycle.py'
       - 'tests/pr64_bridge_harness.py'
+      - 'workers/boat_nonvercel_core.mjs'
+      - 'workers/boat_nonvercel_schema.sql'
+      - 'tests/boat_nonvercel_core.test.mjs'
       - 'docs/BOAT_EXHIBITION_AUTORUN_STAGE.md'
       - 'race_ai/boat_feature_adapter.py'
       - 'race_ai/comprehensive_four_sport_models.py'
@@ -171,6 +174,10 @@ jobs:
           node --check workers/private_wire_vault.mjs
           node --check workers/private_wire_vault_schema.mjs
           node --check tests/support/local_private_wire_d1.mjs
+      - name: Validate Vercel-free BOAT lifecycle logic
+        run: |
+          node --check workers/boat_nonvercel_core.mjs
+          node --test tests/boat_nonvercel_core.test.mjs
       - name: Node contract and denominator tests
         run: node --test --test-reporter=tap tests/forecast_audit.test.cjs tests/full_odds.test.cjs tests/odds_feed_worker.test.mjs tests/odds_auto_source_cron.test.mjs tests/odds_three_cycle_audit.test.mjs tests/private_wire_vault.test.mjs
       - name: Python synthetic journal to viewer projection tests
