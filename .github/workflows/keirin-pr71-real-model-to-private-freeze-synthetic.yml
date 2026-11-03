@@ -34,3 +34,5 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_keirin_result_reactor.py' -v
       - name: Guard existing next-forecast worker
         run: python -m unittest discover -s tests -p 'test_keirin_next_forecast_worker.py' -v
+      - name: One complete fictional result-to-actual-PR71-model-to-private-store chain
+        run: python -m unittest discover -s tests -p 'test_keirin_owner_one_cycle.py' -v
