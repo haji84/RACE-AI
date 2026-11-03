@@ -1,7 +1,7 @@
 
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {parseRacelist,parseExhibition,parseResult,parseSchedule} from '../workers/boat_official_html.mjs';
+import {parseRacelist,parseExhibition,parseResult,parseResultDetails,parseSchedule} from '../workers/boat_official_html.mjs';
 const day='20301103',venue='18',race=5;
 const links=kind=>Array.from({length:12},(_,i)=>'<a href="/owpc/pc/race/'+kind+'?rno='+(i+1)+'&jcd='+venue+'&hd='+day+'">'+(i+1)+'R</a>').join('');
 const table=(header,rows)=>'<table><thead><tr>'+header.map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+
@@ -39,4 +39,11 @@ test('PR64 style six tbody racer groups each with four display rows',()=>{
  const a=parseRacelist(html,day,venue,race);
  assert.equal(a.length,6);
  assert.equal(parseExhibition(preview,day,venue,race,a).length,6);
+});
+
+test('trifecta payout is audit-only and missing price remains unknown',()=>{
+ const roster=parseRacelist(racelist,day,venue,race);
+ assert.deepEqual(parseResultDetails(result,day,venue,race,roster),{top3:[1,2,3],payout_per_100_yen:930});
+ assert.equal(parseResultDetails(result.replace('￥930','￥1,280'),day,venue,race,roster).payout_per_100_yen,1280);
+ assert.equal(parseResultDetails(result.replace('￥930','未掲載'),day,venue,race,roster).payout_per_100_yen,null);
 });
