@@ -1,0 +1,33 @@
+name: BOAT parser and PDCA isolated contract validation
+on:
+  push:
+    branches: [feat/four-sport-forecast-audit-view-20261022]
+    paths: [docs/evidence/boat-parser-contract-trigger.txt]
+permissions:
+  contents: read
+concurrency:
+  group: boat-parser-contract-isolated-20261103
+  cancel-in-progress: false
+jobs:
+  isolated_contract:
+    if: github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.19.0'
+          package-manager-cache: false
+      - name: Check parser source, no upstream GET
+        run: |
+          node --check workers/boat_official_html.mjs
+          node --check workers/boat_nonvercel_cron.mjs
+          node --check workers/boat_nonvercel_core.mjs
+          node --check workers/boat_pdca_shadow.mjs
+      - name: Run pure unit and in-memory SQLite E2E
+        run: |
+          node --test tests/boat_official_html.test.mjs tests/boat_nonvercel_core.test.mjs tests/boat_pdca_shadow.test.mjs tests/boat_continuous_control.test.mjs
