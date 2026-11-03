@@ -3,149 +3,7 @@ on:
   pull_request:
     branches:
       - codex/actions-four-sport-e2e
-    paths:
-      - 'tests/test_four_sport_train_only.py'
-      - 'race_ai/verified_bulk_backtest.py'
-      - 'race_ai/model_tournament.py'
-      - 'tests/test_model_tournament.py'
-      - 'docs/MODEL_TOURNAMENT_20261104.md'
-      - 'race_ai/historical_pairwise.py'
-      - 'tests/test_historical_pairwise.py'
-      - 'tests/test_verified_bulk_backtest.py'
-      - 'docs/TRAIN_ONLY_EVALUATION_20261027.md'
-      - 'race_ai/boat_observed_pairwise_models.py'
-      - 'tests/test_boat_observed_pairwise_models.py'
-      - 'docs/P0_BOAT_OBSERVED_PAIRWISE_20261027.md'
-      - 'docs/superpowers/plans/2026-10-27-missing-aware-boat.md'
-      - 'web/forecast-audit*'
-      - 'web/full-odds*'
-      - 'tests/full_odds.test.cjs'
-      - 'workers/odds_feed_worker.mjs'
-      - 'workers/odds_auto_source_cron.mjs'
-      - 'workers/odds_auto_source_schema.sql'
-      - 'tests/odds_auto_source_cron.test.mjs'
-      - 'race_ai/odds_three_cycle_audit.mjs'
-      - 'tests/odds_three_cycle_audit.test.mjs'
-      - 'docs/P0_FUTURE_ONE_RACE_60S_GATE_20261024.md'
-      - 'tests/test_odds_auto_source_schema.py'
-      - 'workers/odds_preview_assets.mjs'
-      - 'docs/P0_CLOUDFLARE_PROTECTED_ODDS_PREVIEW_20261024.md'
-      - 'docs/evidence/2026-10-24-boatrace-ashiya-7r-real-odds-pilot.md'
-      - 'docs/evidence/2026-10-24-miyajima-3r-under-10min-odds-pilot.md'
-      - 'docs/evidence/2026-10-24-heiwajima-3r-final-ten-minute-odds-changes.md'
-      - 'workers/odds_schema.sql'
-      - 'workers/private_wire_vault.mjs'
-      - 'workers/private_wire_vault_schema.mjs'
-      - 'tests/support/local_private_wire_d1.mjs'
-      - 'tests/private_wire_vault.test.mjs'
-      - 'docs/P0_LOCAL_PRIVATE_WIRE_VAULT_20261026.md'
-      - 'docs/superpowers/plans/2026-10-26-local-private-wire-vault.md'
-      - 'tests/odds_feed_worker.test.mjs'
-      - 'race_ai/purchase_window_policy.py'
-      - 'tests/test_purchase_window_policy.py'
-      - 'docs/PURCHASE_BUFFER_AND_FULL_ODDS_V1_20261023.md'
-      - 'web/data/2026-10-22-forecast-audit.json'
-      - 'tests/forecast_audit.test.cjs'
-      - 'tests/test_verified_event_projection.py'
-      - 'race_ai/verified_event_projection.py'
-      - 'race_ai/permissioned_source_delivery.py'
-      - 'race_ai/boat_official_3t_odds_adapter.py'
-      - 'race_ai/boat_3t_odds_handoff_cli.py'
-      - 'race_ai/odds_refresh_plan.py'
-      - 'race_ai/free_tier_budget.py'
-      - 'tests/test_free_tier_budget.py'
-      - 'docs/P0_CLOUDFLARE_FREE_TIER_BUDGET_20261024.md'
-      - 'tests/test_odds_refresh_plan.py'
-      - 'tests/test_boat_3t_odds_handoff_cli.py'
-      - 'docs/ODDS_REAL_SOURCE_E2E_GATE_20261023.md'
-      - 'tests/test_boat_official_3t_odds_adapter.py'
-      - 'race_ai/boat_b_program_bridge.py'
-      - 'race_ai/boat_b_offline_archive_intake.py'
-      - 'docs/P0_BOAT_BK_DISTRIBUTION_RIGHTS_AND_TIMING_20261023.md'
-      - 'tests/test_boat_b_offline_archive_intake.py'
-      - 'race_ai/nar_official_csv_adapter.py'
-      - 'race_ai/nar_model_handoff.py'
-      - 'tests/test_nar_model_handoff.py'
-      - 'tests/test_nar_official_payback_adapter.py'
-      - 'race_ai/nar_official_payback_adapter.py'
-      - 'tests/test_nar_csv_cli.py'
-      - 'race_ai/nar_csv_cli.py'
-      - 'tests/test_nar_official_csv_adapter.py'
-      - 'race_ai/boat_b_handoff_cli.py'
-      - 'tests/test_boat_b_handoff_cli.py'
-      - 'tests/test_boat_b_program_bridge.py'
-      - 'tests/test_permissioned_source_delivery.py'
-      - 'tests/test_context_source_delivery.py'
-      - 'docs/P0_SOURCE_TO_MODEL_DELIVERY_20261023.md'
-      - 'race_ai/github_freeze_receipt.py'
-      - 'tests/test_github_freeze_receipt.py'
-      - 'audit/freezes/**'
-      - 'race_ai/cutoff_job_queue.py'
-      - 'race_ai/boat_multi_feature_models.py'
-      - 'race_ai/boat_abc_cohort.py'
-      - 'tests/test_boat_abc_cohort.py'
-      - '.github/workflows/boat-nationwide-result-one-shot.yml'
-      - 'race_ai/exhibition_autorun.py'
-      - 'tests/test_exhibition_autorun.py'
-      - 'race_ai/pr64_exhibition_pipeline.py'
-      - 'race_ai/pr64_pdca_cycle.py'
-      - 'race_ai/boat_ab_shadow.py'
-      - 'race_ai/boat_deadline_queue.py'
-      - 'race_ai/boat_freeze_index.py'
-      - 'tests/test_boat_freeze_index.py'
-      - 'tests/test_boat_historical_result_roster.py'
-      - 'tests/boat_historical_route_harness.py'
-      - 'race_ai/boat_historical_result_roster.py'
-      - 'scripts/boat_nationwide_result_audit.py'
-      - 'docs/evidence/2026-11-03/boat-canonical-freeze-index.json'
-      - 'docs/BOAT_CANONICAL_HANDOFF_20261103.md'
-      - 'tests/test_boat_deadline_queue.py'
-      - 'race_ai/boat_racer_tendencies.py'
-      - 'tests/test_boat_racer_tendencies.py'
-      - 'race_ai/boat_tactical_scenarios.py'
-      - 'tests/test_boat_tactical_scenarios.py'
-      - 'race_ai/boat_manshu_watch.py'
-      - 'tests/test_boat_manshu_watch.py'
-      - 'scripts/boat_nationwide_ab_pilot.py'
-      - '.github/workflows/boat-nationwide-ab-one-shot.yml'
-      - 'race_ai/boat_ab_result_audit.py'
-      - 'race_ai/boat_ab_cohort.py'
-      - 'tests/test_boat_ab_cohort.py'
-      - 'scripts/boat_ab_cohort_report.py'
-      - 'tests/test_boat_ab_cohort_cli.py'
-      - 'tests/test_boat_ab_shadow.py'
-      - 'tests/test_boat_ab_result_audit.py'
-      - 'scripts/boat_ab_future_pilot.py'
-      - 'scripts/boat_ab_compare_result.py'
-      - 'tests/pr64_bridge_harness.py'
-      - 'workers/boat_nonvercel_core.mjs'
-      - 'workers/boat_nonvercel_schema.sql'
-      - 'tests/boat_nonvercel_core.test.mjs'
-      - 'workers/boat_official_html.mjs'
-      - 'workers/boat_nonvercel_cron.mjs'
-      - 'workers/boat_pdca_shadow.mjs'
-      - 'tests/boat_pdca_shadow.test.mjs'
-      - 'tests/boat_continuous_control.test.mjs'
-      - 'tests/boat_official_html.test.mjs'
-      - 'docs/BOAT_EXHIBITION_AUTORUN_STAGE.md'
-      - 'race_ai/boat_feature_adapter.py'
-      - 'race_ai/comprehensive_four_sport_models.py'
-      - 'race_ai/four_sport_matchup_models.py'
-      - 'race_ai/four_sport_model_suite.py'
-      - 'race_ai/ticket_selection_engine.py'
-      - 'tests/test_ticket_selection_engine.py'
-      - 'race_ai/private_delivery_codec.py'
-      - 'tests/test_private_delivery_codec.py'
-      - 'docs/P0_PRIVATE_DELIVERY_TRANSPORT_V1_20261025.md'
-      - 'tests/test_four_sport_model_suite.py'
-      - 'tests/test_four_sport_matchup_models.py'
-      - 'race_ai/four_sport_learning.py'
-      - 'tests/test_four_sport_learning.py'
-      - 'tests/test_comprehensive_four_sport_models.py'
-      - 'tests/test_boat_feature_adapter.py'
-      - 'tests/test_boat_multi_feature_models.py'
-      - 'tests/test_cutoff_job_queue.py'
-      - '.github/workflows/forecast-audit-ui.yml'
+    paths: ['race_ai/**', 'scripts/**', 'tests/**', 'workers/**', 'web/**', 'docs/**', 'audit/**', '.github/workflows/**']
 permissions:
   contents: read
 concurrency:
@@ -176,12 +34,12 @@ jobs:
       contents: read
     steps:
       - name: Checkout PR71 exact tested HEAD
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
       - name: Checkout immutable PR64 implementation as integration reference
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
           ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
@@ -198,14 +56,26 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 3
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Checkout pinned PR64 parser for complete Python discovery
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Checkout pinned PR72 source adapters for complete Python discovery
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
       - name: Verify repository revision
         run: git rev-parse HEAD
       - name: Use Node24 for local SQLite batch tests
-        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '24.19.0'
           package-manager-cache: false
@@ -234,7 +104,7 @@ jobs:
       - name: Python synthetic journal to viewer projection tests
         run: python -m unittest discover -s tests -v
       - name: Read frozen real-race research record by immutable commit
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           ref: 0643ed09343d10a3181af855ad4065cb07074208
           path: independent-forecast-evidence
