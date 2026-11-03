@@ -7,7 +7,7 @@ result qualifies as an externally timestamped freeze.
 """
 from datetime import date,datetime,timedelta,timezone
 from pathlib import Path
-import hashlib,itertools,json,math,os,re,sys,urllib.request
+import hashlib,itertools,json,math,os,re,sys,urllib.request,subprocess
 
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
@@ -65,6 +65,35 @@ def status(**kw):
     print(json.dumps({"status":value["status"],"race_id":value.get("race_id"),"reason":value.get("reason"),"failure_class":value.get("failure_class"),"source_gets":calls,"forecast_made":value.get("forecast_made",False)},ensure_ascii=False))
     return value
 
+def cross_check_js(program_bytes, preview_bytes, day, venue, race_no, known_boats, preview_boats):
+    """Use real source bytes in RAM to compare PR64 and Cloudflare JS parsers."""
+    program=program_bytes.decode("utf-8")
+    preview=preview_bytes.decode("utf-8")
+    source={"program":program,"preview":preview,"day":day.strftime("%Y%m%d"),
+            "venue":venue,"race":race_no}
+    js=(
+     "import{parseRacelist,parseExhibition}from './workers/boat_official_html.mjs';"
+     "let s='';for await(const chunk of process.stdin)s+=chunk;"
+     "const p=JSON.parse(s);const r=parseRacelist(p.program,p.day,p.venue,p.race);"
+     "const d=parseExhibition(p.preview,p.day,p.venue,p.race,r);"
+     "console.log(JSON.stringify({roster:r,display:d}));"
+    )
+    try:
+        result=subprocess.run(["node","--input-type=module","--eval",js],
+            input=json.dumps(source,ensure_ascii=False),capture_output=True,
+            text=True,encoding="utf-8",timeout=8,check=False)
+    except (OSError,TimeoutError,UnicodeError,subprocess.TimeoutExpired):
+        return False
+    if result.returncode!=0:
+        return False
+    try: node=json.loads(result.stdout)
+    except (ValueError,TypeError):return False
+    expected={r["lane"]:(r["racer_registration_id"],r["national_win_rate"]) for r in known_boats}
+    measured={r["lane"]:r["display_time"] for r in preview_boats}
+    node_roster={r["lane"]:(r["registration_no"],r["national_win_rate"]) for r in node["roster"]}
+    node_display={r["lane"]:r["exhibition_time_seconds"] for r in node["display"]}
+    return expected==node_roster and measured==node_display
+
 def run():
     now=datetime.now(timezone.utc)
     day=now.astimezone(JST).date()
@@ -102,6 +131,9 @@ def run():
         six=sorted(observation["data"]["boats"],key=lambda row:row["lane"])
         if len(six)!=6 or any(row["display_time"] is None for row in six):
             return status(race_id=race_id,cutoff_at=closing.isoformat(),reason="EXHIBITION_TIMES_INCOMPLETE")
+        crosslanguage_ok=cross_check_js(race_raw,preview_raw,day,VENUE,n,details["boats"],six)
+        if not crosslanguage_ok:
+            return status(race_id=race_id,cutoff_at=closing.isoformat(),reason="CLOUDFLARE_JS_PARSER_UNVERIFIED",source_gets=calls)
         if pt>=closing-timedelta(seconds=180):return status(race_id=race_id,reason="TOO_LATE_AFTER_FETCH")
         program={x["lane"]:x for x in details["boats"]}
         avg=math.fsum(x["display_time"] for x in six)/6
@@ -130,6 +162,7 @@ def run():
             generated_at=generated.isoformat(),model_id="PR64-style-rating-display-PL-uncalibrated-readonly",
             ordered_top8=[{"ticket":t,"score":p} for t,p in candidates[:8]],
             scores_sum_top8=math.fsum(p for _,p in candidates[:8]),forecast_made=True,
+            js_python_source_parser_crosscheck=True,
             note="Actual remote GitHub artifact created_at must be checked against cutoff; read-only one-shot, not private store.")
     except (SourceError,ValueError,OSError,TimeoutError,UnicodeError,KeyError,TypeError) as error:
         return status(reason="ACTUAL_RACE_SOURCE_OR_PREDICTION_REJECTED",race_id=race_id,
