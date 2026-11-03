@@ -1,1 +1,3 @@
 2026-11-03 JST owner-instructed parser verification of actual single Miyajima4R. Maximum three official HTML GETs: racelist/beforeinfo/raceresult, RAM only, source SHA but no raw HTML stored. No predictions, no cost, no Cron, no production. One-shot.
+
+2026-11-03 JST one final 3-GET real HTML parser verification after fix for non-top-three dispositions; max 3, compare program/exhibition/result from same race, no forecast.
