@@ -143,6 +143,28 @@ def run():
                     if p.get("bet_type")=="trifecta" and p.get("combination")==triple]
             if len(payout)!=1 or type(payout[0]) is not int:
                 results.append({"race_id":rid,"state":"TRIFECTA_OFFICIAL_PAYOUT_UNVERIFIED"});continue
+            # Settled trifecta does NOT imply an ordinary six-finisher race.
+            # A capsize/disqualification can coexist with a confirmed 3T payout,
+            # and must remain a separately flagged outcome, not silently enter
+            # normal no-incident Hit@8, Brier or ROI denominators.
+            finishes=data.get("results")
+            if not isinstance(finishes,list) or len(finishes)!=6 or {x.get("lane") for x in finishes}!=set(range(1,7)):
+                raise SourceError("OFFICIAL_FINISH_DISPOSITIONS_INCOMPLETE")
+            unusual=[{"lane":x["lane"],"finish_status":x.get("finish_status")}
+                     for x in finishes if x.get("finish_status")!="FINISHED"]
+            if unusual:
+                results.append({
+                    "race_id":rid,"state":"OFFICIAL_RESULT_ABNORMAL_FINISH_SEPARATE",
+                    "official_top3":"-".join(map(str,triple)),
+                    "payout_per_100_yen":payout[0],
+                    "actual_man_shu":payout[0]>=10000,
+                    "abnormal_finish_dispositions":unusual,
+                    "official_source_sha256":source_sha,
+                    "result_captured_at":observed.isoformat(),
+                    "program_source_sha256":program_sha,
+                    "excluded_from_normal_hit8_and_roi":True,
+                })
+                continue
             pair_original={
                "schema":"RACE_AI_BOAT_LIVE_AB_RESEARCH_V1",
                "status":"REAL_TWO_MODEL_PAIR_GENERATED_UNVERIFIED_ARTIFACT",
