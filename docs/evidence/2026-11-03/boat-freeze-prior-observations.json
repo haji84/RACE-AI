@@ -1,0 +1,7 @@
+{
+  "scope": "EARLIER_EXTERNALLY_VERIFIED_RECEIPTS_ONLY",
+  "policy": "Keep the canonical ID index append-only. For score attribution use the earliest verified preclose receipt per race, regardless of outcome. A later verified observation is not a second forecast for Hit@8.",
+  "entries": [
+    {"race_id":"20261103-04-07","cutoff_at":"2026-11-03T13:40:00+09:00","run_id":41577960865,"artifact_id":13204251708,"server_created_at":"2026-11-03T04:24:58Z","zip_sha256":"9a875585e3e3d93f4683f3f422667e7df7526ab2c2aa700f78ef6e97f6198c5e","json_sha256":"1df6a56e4b9ce62aa87da1e817d224e225e99d02c9ff9298b251d356101d0f65","bundle_sha256":"469a4f5e6470206096429b3204a3d93e27852f0bcab53dc677705c96bb3ec714"}
+  ]
+}
