@@ -1,0 +1,14 @@
+{
+  "schema": "RACE_AI_GITHUB_FREEZE_ANCHOR_V1",
+  "race_id": "autorace:2026-11-03:hamamatsu:8",
+  "forecast_version": "A_v2_existing_row_snapshot",
+  "snapshot_content_sha256": "fcc27294b94ed141ea0c8177dd22e04801339f3ffbc87eaaff2dbf019b8816b3",
+  "source_csv_sha256": "997f7ed93054431796af942e334b16d541c10c0842a0b96802e6f8e69ee973c1",
+  "source_row_reported_generation_at": "2026-11-03T09:21:33+09:00",
+  "source_row_reported_generation_time_third_party_verified": false,
+  "freeze_record_created_before_deadline_required": true,
+  "conservative_cutoff_at": "2026-11-03T13:39:00+09:00",
+  "actual_official_racecard_cutoff_at": "2026-11-03T13:40:00+09:00",
+  "picks_private": true,
+  "summary": "Previously existing A_v2 row, newly frozen intact before cutoff; proof of original 09:21 creation time is not asserted. A does not contain trial results."
+}
