@@ -126,9 +126,12 @@ def _verify_source(snapshot, intent, at, cutoff, cert):
 
 
 def _validate_model(prediction, intent, starters, snapshot_sha, cutoff, now):
-    _require(type(prediction) is dict and set(prediction) == {
+    base_fields = {
         'race_id','model_id','model_version','generated_at',
-        'trained_until','snapshot_sha256','top8'}, 'INVALID_MODEL_OUTPUT')
+        'trained_until','snapshot_sha256','top8'}
+    _require(type(prediction) is dict and
+             set(prediction) in (base_fields, base_fields | {'trained'}),
+             'INVALID_MODEL_OUTPUT')
     _require(prediction['race_id'] == intent['race_id'] and
              prediction['snapshot_sha256'] == snapshot_sha and
              type(prediction['model_id']) is str and
@@ -137,9 +140,16 @@ def _validate_model(prediction, intent, starters, snapshot_sha, cutoff, now):
              1 <= len(prediction['model_version']) <= 128,
              'MODEL_BINDING_MISMATCH')
     generated = utc(prediction['generated_at'])
-    _require(utc(intent['pre_race_snapshot_at']) <= generated <= now < cutoff and
-             utc(prediction['trained_until']) < generated,
+    _require(utc(intent['pre_race_snapshot_at']) <= generated <= now < cutoff,
              'MODEL_TIME_AFTER_CUTOFF')
+    if prediction['trained_until'] is None:
+        _require(prediction.get('trained') is False and
+                 prediction['model_version'].endswith('-UNTRAINED'),
+                 'UNTRAINED_MODEL_MUST_NOT_INVENT_TRAINING_TIME')
+    else:
+        _require(prediction.get('trained', True) is True and
+                 utc(prediction['trained_until']) < generated,
+                 'MODEL_TRAINING_BOUNDARY_INVALID')
     top8 = prediction['top8']
     _require(type(top8) is list and len(top8) == 8,
              'EXACTLY_EIGHT_PICKS_REQUIRED')
@@ -213,6 +223,7 @@ def consume_next_intent(intent, *, clock, read_queued_intent, read_snapshot,
         'race_id':rid, 'model_id':forecast['model_id'],
         'model_version':forecast['model_version'],
         'trained_until':forecast['trained_until'],
+        'trained':forecast.get('trained'),
         'generated_at':forecast['generated_at'],
         'official_cutoff_at':intent['official_cutoff_at'],
         'snapshot_sha256':source_sha,
