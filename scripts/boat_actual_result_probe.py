@@ -33,7 +33,8 @@ def finish(code,**data):
         frozen_cutoff_at=CUTOFF.isoformat(),
         frozen_picks=list(FROZEN_TICKETS),actual_official_result_observed=False,
         actual_purchase=False,prediction_recomputed_after_result=False,
-        source_gets=calls,result_verified_at=datetime.now(timezone.utc).isoformat(),**data)
+        source_gets=calls,result_verified_at=datetime.now(timezone.utc).isoformat())
+    result.update(data)
     (RESULT_OUTPUT/"result.json").write_text(json.dumps(result,sort_keys=True,ensure_ascii=False,separators=(",",":")),encoding="utf-8")
     print(json.dumps({k:result.get(k) for k in ("status","race_id","source_gets","official_top3","hit_at_1","hit_at_8")},ensure_ascii=False))
 def fetch(url):
