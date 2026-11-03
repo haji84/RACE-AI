@@ -3,3 +3,5 @@
 Second bounded national run 2026-11-03 JST: ignore ended races for PRE-cutoff queue while retaining all 13x12 slots in the audit registry. Same A/B weights.
 
 Third bounded live national cutoff-order run 2026-11-03 13:17 JST; frozen previous national 13:03 A/B not reused; three distinct upcoming races only, plus separate official local/ST C-lite and priced 100x watch if fully published.
+
+Fourth bounded nationwide run 2026-11-03 JST after fixing racer recent-10 selection bug and official synthetic check. Next earlier cutoff first, A/B unchanged, C-lite + official priced 100x if available.
