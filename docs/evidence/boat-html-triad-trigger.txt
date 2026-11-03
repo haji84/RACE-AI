@@ -7,3 +7,5 @@
 Full-day preflight: one post-thead-fix check of the same non-standard finish, using the existing bounded job only. Classify an explicit reason for stopping on refunds as safe handling, never as a normal settlement or proof of full-day operation. No further retries in this preflight.
 
 2026-11-03 refund implementation validation: after the new failing regression was reproduced and all CI tests passed, compare the same six racers, top3, payout and explicit refund boats. One bounded 3-GET post-fix check; no predictions, no scheduler additions, no deployment. Refund is a terminal separately accounted result, not an ordinary miss.
+
+2026-11-03 currency repair verification: the previous source-parity probe stopped at REFUND_PAYOUT_UNVERIFIED. Encoded-yen offline regression first failed at 41597005126 and passed after the fix at 41597240130. One post-fix 3-GET parity check of explicit refund identity and actual payout; no new predictions or recurring tasks.
