@@ -50,6 +50,21 @@ class BoatRacerTendenciesTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             profile_before(changed,as_of=AS_OF,racer_id="4001")
 
+    def test_frame_course_and_actual_winner_methods_are_distinct(self):
+        p=profile_before(self.records,as_of=AS_OF,racer_id="4001")
+        self.assertEqual(p["by_frame_actual_course_counts"]["1"]["1"],1)
+        self.assertEqual(p["by_frame_actual_course_counts"]["1"]["2"],1)
+        self.assertEqual(p["by_frame_actual_course_counts"]["1"]["3"],0)
+        self.assertEqual(p["wins_by_actual_course_and_kimarite"]["1"]["nige"],0)
+        self.assertEqual(p["recent_form"]["last_10"]["starts"],2)
+        self.assertEqual(p["recent_form"]["last_10"]["top3"],2)
+        self.assertEqual(p["recent_form"]["last_10"]["top3_rate"],1.0)
+
+    def test_winning_method_credit_only_goes_to_actual_winner(self):
+        p=profile_before(self.records,as_of=AS_OF,racer_id="4004")
+        self.assertEqual(p["wins_by_actual_course_and_kimarite"]["4"]["makuri"],1)
+        self.assertEqual(p["actual_entry_course_history"]["4"]["wins"],1)
+
     def test_empty_racer_history(self):
         p=profile_before(self.records,as_of=AS_OF,racer_id="4999")
         self.assertEqual(p["sample_races"],0)
