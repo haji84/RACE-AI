@@ -48,3 +48,7 @@ only_artifacts=13227136203
 
 2026-11-04 01:xx JST D+1 strictly bounded historical official result recheck, with original 2026-11-03 batch 13204251708 only (first Heiwajima7R receipt plus Miyajima8R and Tokuyama11R). Exact GitHub pre-cutoff original ZIP/JSON SHA and earliest receipt remain mandatory; check original six finishers, 3T, refund, special state, no retargeted pre-close predictions, no extra scored unique result counts. Date gate now permits historical result identity after JST rollover without changing official cutoff. <=6 official GET, stop on source restrictions/4xx. No main/public/deployment/charge/wager.
 only_artifacts=13204251708
+
+
+2026-11-04 03:33 JST bounded D+1 verification after cross-day roster correction: recheck ONLY existing original artifact 13204251708 (Miyajima8R, Tokuyama11R, earliest Heiwajima7R). Original ZIP/JSON/receipt SHA and first receipt must match. Previous run 41675366137 yielded three SourceError safe stops, not scored; this is one post-fix verification attempt, not three new race results. Require individual official racerresult 6 entrants, refund/abnormal/payout before scoring; 4xx or source ambiguity safe stop, no retry. Do not modify original, index, frozen models, PR64 or unresolved nonce; no cumulative re-add.
+only_artifacts=13204251708
