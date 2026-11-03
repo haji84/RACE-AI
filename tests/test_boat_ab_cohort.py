@@ -5,7 +5,7 @@ import unittest
 
 from race_ai.boat_ab_shadow import build_pair
 from race_ai.boat_ab_result_audit import score_pair
-from race_ai.boat_ab_cohort import analyze, wilson
+from race_ai.boat_ab_cohort import analyze, wilson, _block_bootstrap
 
 
 def fake_case(i=0, *, forecast=True):
@@ -78,6 +78,8 @@ class MultiRaceABTest(unittest.TestCase):
         self.assertEqual(x["total_discovered"],100)
         self.assertEqual(x["paired_forecast_count"],100)
         self.assertEqual(x["paired_days"],5)
+        self.assertEqual(x["paired_venue_day_blocks"],100)
+        self.assertIsNotNone(x["paired_comparison"]["b_minus_a_hit_at8_venue_day_bootstrap95"])
         self.assertFalse(x["model_auto_promoted"])
         self.assertIsNotNone(x["paired_comparison"]["b_minus_a_hit_at8_bootstrap95"])
         self.assertIsNotNone(x["paired_comparison"]["b_minus_a_brier_bootstrap95"])
@@ -116,6 +118,13 @@ class MultiRaceABTest(unittest.TestCase):
             case=deepcopy(a);change(case)
             with self.subTest(name=name),self.assertRaises(ValueError):
                 analyze([case])
+
+    def test_few_venue_day_clusters_cannot_claim_robust_ci(self):
+        self.assertIsNone(_block_bootstrap([1]*100,["20301103-17"]*100))
+        self.assertIsNone(_block_bootstrap([1]*90,
+                           [f"cluster{i//10}" for i in range(90)]))
+        self.assertIsNotNone(_block_bootstrap([1,-1]*50,
+                          [f"cluster{i//10}" for i in range(100)]))
 
     def test_wilson_limits_and_empty(self):
         self.assertIsNone(wilson(0,0))
