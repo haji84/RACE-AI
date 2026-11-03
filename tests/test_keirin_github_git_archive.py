@@ -130,6 +130,29 @@ class EncryptedGitHistoryTests(unittest.TestCase):
         self.assertEqual(len(shell("git","--git-dir",str(self.remote),
                 "log","--format=%h",archive.STATE_BRANCH).splitlines()),3)
 
+    def test_new_git_clone_restores_cipher_without_actions_artifact(self):
+        from scripts.keirin_github_git_archive_restore import restore_from_git
+        a,digest=self.bundle()
+        self.archive(a)
+        fresh=Path(self.folder.name)/"fresh-independent-checkout"
+        shell("git","clone",str(self.remote),str(fresh))
+        original=archive.command
+        def local_git(args,**kwargs):
+            if args[:4]==["git","remote","get-url","origin"]:
+                return "https://github.com/haji84/RACE-AI"
+            return original(args,**kwargs)
+        with patch.object(archive,"command",side_effect=local_git):
+            with patch("scripts.keirin_github_git_archive_restore.command",
+                       side_effect=local_git):
+                with patch.dict(os.environ,{"GITHUB_ACTIONS":""}):
+                    restored=restore_from_git(repo=fresh,
+                                              continue_synthetic=False)
+        self.assertEqual(restored["status"],
+                         "CIPHERTEXT_VERIFIED_FROM_GIT_BRANCH")
+        self.assertEqual(restored["cipher_sha256"],digest)
+        self.assertFalse(restored["artifact_retention_dependency"])
+        self.assertFalse(restored["plaintext_published"])
+
     def test_invalid_producer_or_cipher_mismatch_rejected(self):
         a,_=self.bundle()
         with self.assertRaisesRegex(archive.ArchiveError,"PRODUCER_IDENTITY_MISMATCH"):
