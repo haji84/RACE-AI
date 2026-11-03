@@ -31,6 +31,7 @@ import race_ai
 race_ai.__path__.insert(0,str(ROOT/"race_ai"))
 from race_ai.boat_ab_result_audit import score_pair
 from race_ai.boat_result_date_policy import is_past_or_current_result_day
+from race_ai.boat_historical_result_roster import validate_historical_result_roster
 
 OUT=ROOT/"boat_national_result_output"
 RUN_ID=41575766782
@@ -98,11 +99,24 @@ def run():
             or frozen.get("state")!="FORECASTS_GENERATED_NEED_ARTIFACT_CLOCK_VERIFICATION"
             or not isinstance(pairs,list) or not (1<=len(pairs)<=3)):
         return output([],"FREEZE_SET_INVALID")
+    # The original ZIP was separately authenticated before this script runs.
+    # A historical result can use only the sealed pre-close six-racer shadow
+    # already present in that same ZIP, never a reconstructed/new forecast.
+    shadows=frozen.get("additional_official_feature_shadows",[])
+    if not isinstance(shadows,list) or any(not isinstance(x,dict) or not isinstance(x.get("race_id"),str) for x in shadows):
+        return output([],"FROZEN_SHADOW_INDEX_INVALID")
+    shadow_by_id={x["race_id"]:x for x in shadows}
+    if len(shadow_by_id)!=len(shadows):
+        return output([],"DUPLICATE_FROZEN_SHADOW_INDEX")
     saved_at=os.environ.get("RACE_AI_NATIONAL_GITHUB_CREATED_AT")
     try: saved=datetime.fromisoformat(saved_at.replace("Z","+00:00"))
     except (AttributeError,ValueError):return output([],"ARTIFACT_SERVER_CLOCK_UNVERIFIED")
     results=[]
+    blocked_source=False
     for pair in pairs:
+        if blocked_source:
+            results.append({"race_id":pair["race_id"],"state":"SOURCE_4XX_STOP_NO_REQUEST"})
+            continue
         rid=pair["race_id"]
         closing=datetime.fromisoformat(pair["cutoff_at"])
         if not isinstance(rid,str) or not re.fullmatch(r"\d{8}-(0[1-9]|1\d|2[0-4])-(0[1-9]|1[0-2])",rid):
@@ -119,19 +133,59 @@ def run():
         day=date(int(rid[:4]),int(rid[4:6]),int(rid[6:8]))
         venue=rid[9:11]
         number=int(rid[-2:])
+        phase="START"
         try:
-            url=endpoint(day,venue,number)
-            raw_program,obs_program,program_sha=get(url)
-            program=parse_official_racelist(raw_program,day=day,venue=venue,
-                race_no=number,source_url=url,captured_at=obs_program.isoformat())
-            if program["closed_at"]!=pair["cutoff_at"] or program["race_id"]!=rid:
-                raise SourceError("OFFICIAL_PROGRAM_CHANGED")
-            result_url=update_endpoint(day,venue,number,"raceresult")
-            source,observed,source_sha=get(result_url)
-            result=parse_update(source,kind="raceresult",day=day,venue=venue,
-                 race_no=number,source_url=result_url,captured_at=observed.isoformat(),
-                 entries=program["boats"])
-            data=result.get("data")
+            historical=day<datetime.now(timezone.utc).astimezone(JST).date()
+            roster_proof=None
+            if historical:
+                if rid not in shadow_by_id:
+                    results.append({"race_id":rid,"state":"HISTORIC_PRE_CLOSE_ROSTER_MISSING"})
+                    continue
+                # PR64 racelist parser forbids D+1 captures, intentionally.
+                # Do not lie about the fetch time or change pinned PR64.
+                # The original sealed C-lite supplies the preclose six IDs.
+                program_sha=pair["program_source_sha256"]
+                result_url=update_endpoint(day,venue,number,"raceresult")
+                phase="HISTORIC_RESULT_GET"
+                source,observed,source_sha=get(result_url)
+                phase="HISTORIC_RESULT_PARSE"
+                result=parse_update(source,kind="raceresult",day=day,venue=venue,
+                     race_no=number,source_url=result_url,captured_at=observed.isoformat(),
+                     entries=None)
+                if result.get("body_identity_verified") is not True or result.get("closed_at")!=pair["cutoff_at"]:
+                    raise SourceError("HISTORIC_RESULT_CONTEXT_NOT_VERIFIED")
+                data=result.get("data")
+                if (result.get("status")=="AVAILABLE" and isinstance(data,dict)
+                        and data.get("finish_confirmed") is True):
+                    phase="HISTORIC_ROSTER_CROSSCHECK"
+                    roster_proof=validate_historical_result_roster(
+                        pair,shadow_by_id[rid],result,saved_at)
+            else:
+                phase="CURRENT_RACELIST_GET"
+                url=endpoint(day,venue,number)
+                raw_program,obs_program,program_sha=get(url)
+                phase="CURRENT_RACELIST_PARSE"
+                program=parse_official_racelist(raw_program,day=day,venue=venue,
+                    race_no=number,source_url=url,captured_at=obs_program.isoformat())
+                if program["closed_at"]!=pair["cutoff_at"] or program["race_id"]!=rid:
+                    raise SourceError("OFFICIAL_PROGRAM_CHANGED")
+                result_url=update_endpoint(day,venue,number,"raceresult")
+                phase="CURRENT_RESULT_GET"
+                source,observed,source_sha=get(result_url)
+                phase="CURRENT_RESULT_PARSE"
+                result=parse_update(source,kind="raceresult",day=day,venue=venue,
+                     race_no=number,source_url=result_url,captured_at=observed.isoformat(),
+                     entries=program["boats"])
+                data=result.get("data")
+            if (isinstance(data,dict) and data.get("status") in ("cancelled","no_contest","postponed")
+                    and data.get("confirmed") is True):
+                results.append({"race_id":rid,"state":"OFFICIAL_RESULT_CANCELLED_OR_NO_CONTEST",
+                    "official_outcome_status":data["status"],
+                    "official_source_sha256":source_sha,
+                    "result_captured_at":observed.isoformat(),
+                    "excluded_from_normal_hit8_and_roi":True})
+                continue
+            phase="RESULT_SETTLEMENT_CHECK"
             if result.get("status")!="AVAILABLE" or not isinstance(data,dict) or data.get("finish_confirmed") is not True:
                 results.append({"race_id":rid,"state":"OFFICIAL_RESULT_NOT_FINAL",
                       "result_source_sha256":source_sha});continue
@@ -166,6 +220,7 @@ def run():
                     "official_source_sha256":source_sha,
                     "result_captured_at":observed.isoformat(),
                     "program_source_sha256":program_sha,
+                    "historical_roster_identity":roster_proof,
                     "excluded_from_normal_hit8_and_roi":True,
                 })
                 continue
@@ -184,13 +239,20 @@ def run():
                 "official_source_sha256":source_sha,
                 "result_captured_at":observed.isoformat(),
                 "program_source_sha256":program_sha,
+                "historical_roster_identity":roster_proof,
                 "paired_comparison":scores,
                 "both_missed_man_shu":payout[0]>=10000 and all(
                       m["hit_at_8"]==0 for m in scores["models"]),
             })
+        except error.HTTPError as ex:
+            blocked_source=400<=ex.code<500
+            results.append({"race_id":rid,"state":"OFFICIAL_RESULT_SAFE_STOP",
+                            "failure_class":"HTTPError","failure_phase":phase,
+                            "http_status":ex.code})
         except (SourceError,ValueError,TypeError,OSError,error.URLError,TimeoutError,UnicodeError,KeyError) as ex:
             results.append({"race_id":rid,"state":"OFFICIAL_RESULT_SAFE_STOP",
-                            "failure_class":type(ex).__name__})
+                            "failure_class":type(ex).__name__,
+                            "failure_phase":phase})
     status="SOME_RESULTS_VERIFIED" if any(r["state"]=="INDEPENDENT_AB_RESULT_VERIFIED" for r in results) else "OFFICIAL_RESULTS_PENDING_OR_UNVERIFIED"
     return output(results,status)
 
