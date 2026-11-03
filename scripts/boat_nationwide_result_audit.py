@@ -1,4 +1,4 @@
-"""Independent official 3-race results versus nationwide PRE-CUTOFF A/B artifact.
+"""Independent official up-to-three-race results versus nationwide PRE-CUTOFF A/B artifact.
 
 Read original GitHub Actions artifact (never rerank or change forecast);
 require server-created-at before each official cutoff and original sha readback.
@@ -95,7 +95,7 @@ def run():
     pairs=frozen.get("paired_forecasts")
     if (frozen.get("schema")!="RACE_AI_NATIONWIDE_PRE_CUTOFF_AB_V1"
             or frozen.get("state")!="FORECASTS_GENERATED_NEED_ARTIFACT_CLOCK_VERIFICATION"
-            or not isinstance(pairs,list) or len(pairs)!=3):
+            or not isinstance(pairs,list) or not (1<=len(pairs)<=3)):
         return output([],"FREEZE_SET_INVALID")
     saved_at=os.environ.get("RACE_AI_NATIONAL_GITHUB_CREATED_AT")
     try: saved=datetime.fromisoformat(saved_at.replace("Z","+00:00"))
