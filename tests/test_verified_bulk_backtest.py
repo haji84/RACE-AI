@@ -116,5 +116,22 @@ class HistoricalPDCADiagnosticsTest(unittest.TestCase):
 
 
 
+
+class BulkPDCAIntegrationTest(unittest.TestCase):
+    def test_bulk_run_embeds_nonpromoting_morning_pdca(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root=Path(tmp)
+            ff=root/'forecasts.jsonl'
+            rr=root/'results.jsonl'
+            f={**forecast(['1-2-3','1-3-2']), 'cohort':'morning'}
+            ff.write_text(json.dumps(f)+'\\n',encoding='utf8')
+            rr.write_text(json.dumps(result({'5-2-3':84690}))+'\\n',encoding='utf8')
+            rep=run(ff,rr,root/'out')
+            self.assertEqual(rep['morning_pdca']['total']['payout_bands']['10000_PLUS']['hits'],0)
+            self.assertEqual(rep['morning_pdca']['total']['failure_stage_counts']['FIRST_NOT_COVERED'],1)
+            self.assertFalse(rep['morning_pdca']['total']['future_accuracy_gain_proved'])
+
+
+
 if __name__ == '__main__':unittest.main()
 
