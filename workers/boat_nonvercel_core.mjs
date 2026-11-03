@@ -69,12 +69,36 @@ async function freeze(db,f,{now=()=>Date.now()}={}){
 function assertResult(race,res,now){
  if(!race||!ID.test(race.race_id)||!res||res.phase!=='official_result'||res.race_id!==race.race_id
   ||!HEX.test(res.source_sha256||'')||res.result_state!=='confirmed'||res.dead_heat!==false
-  ||!Array.isArray(res.refund_boats)||res.refund_boats.length||!Array.isArray(res.top3)||res.top3.length!==3
-  ||new Set(res.top3).size!==3||res.top3.some(n=>!Number.isInteger(n)||n<1||n>6)
+  ||!Array.isArray(res.refund_boats)||new Set(res.refund_boats).size!==res.refund_boats.length
+  ||res.refund_boats.some(n=>!Number.isInteger(n)||n<1||n>6)
+  ||!Array.isArray(res.top3)||res.top3.length!==3||new Set(res.top3).size!==3
+  ||res.top3.some(n=>!Number.isInteger(n)||n<1||n>6||res.refund_boats.includes(n))
   ||clock(res.captured_at)>now||clock(res.captured_at)<clock(race.cutoff_at)
-  ||(res.payout_per_100_yen!=null&&(!Number.isSafeInteger(res.payout_per_100_yen)||res.payout_per_100_yen<100)))
-  throw Error('RESULT_UNADMITTED');
+  ||(res.payout_per_100_yen!=null&&(!Number.isSafeInteger(res.payout_per_100_yen)||res.payout_per_100_yen<100))
+  ||(res.refund_boats.length>0&&res.payout_per_100_yen==null))throw Error('RESULT_UNADMITTED');
  sourceUrl(res.source_url,'raceresult',race.race_id);
+}
+/** Pure accounting for source-verified partial refund. Never generates or reorders picks. */
+function refundAccounting(picks,result){
+ if(!Array.isArray(picks)||picks.length>8||new Set(picks.map(t=>JSON.stringify(t))).size!==picks.length
+   ||picks.some(t=>!Array.isArray(t)||t.length!==3||new Set(t).size!==3||t.some(n=>!Number.isInteger(n)||n<1||n>6)))
+  throw Error('REFUND_ORIGINAL_TICKETS_INVALID');
+ if(!Array.isArray(result.refund_boats)||!result.refund_boats.length||new Set(result.refund_boats).size!==result.refund_boats.length
+   ||result.refund_boats.some(n=>!Number.isInteger(n)||n<1||n>6)
+   ||!Array.isArray(result.top3)||result.top3.length!==3||new Set(result.top3).size!==3
+   ||result.top3.some(n=>!Number.isInteger(n)||n<1||n>6||result.refund_boats.includes(n))
+   ||!Number.isSafeInteger(result.payout_per_100_yen)||result.payout_per_100_yen<100)throw Error('REFUND_FACTS_INVALID');
+ const refund=[...result.refund_boats].sort((a,b)=>a-b);
+ const refunded=picks.filter(t=>t.some(n=>refund.includes(n)));
+ const winner=result.top3.join('-'),hit=picks.some(t=>t.join('-')===winner);
+ const stake=picks.length*100,returned=refunded.length*100,winnings=hit?result.payout_per_100_yen:0;
+ return {result_class:'SETTLED_WITH_REFUND',eligible_normal_accuracy:false,
+  refund_boats:refund,hit1:null,hit8:null,
+  valid_ticket_hit1:Number(picks.length>0&&picks[0].join('-')===winner),valid_ticket_hit8:Number(hit),
+  refunded_ticket_count:refunded.length,valid_ticket_count:picks.length-refunded.length,
+  hypothetical_stake_yen:stake,hypothetical_refund_yen:returned,
+  hypothetical_net_stake_yen:stake-returned,hypothetical_winnings_yen:winnings,
+  hypothetical_return_yen:returned+winnings};
 }
 async function settle(db,race,res,{now=()=>Date.now()}={}){
  assertResult(race,res,now());
@@ -89,6 +113,7 @@ async function settle(db,race,res,{now=()=>Date.now()}={}){
   hypothetical_return_yen:res.payout_per_100_yen==null?null:
    (p&&p.top8.some(t=>t.join('-')===res.top3.join('-'))?res.payout_per_100_yen:0),
   model_calibrated:false,retroactive_edit:false};
+ if(res.refund_boats.length)Object.assign(report,refundAccounting(p?.top8??[],res));
  const raw=JSON.stringify(report),sha=await digest(raw);
  await db.prepare("INSERT INTO boat_exhibition_outcomes(race_id,result_sha256,report_json,report_sha256,db_saved_at) "+
   "VALUES(?,?,?,?,strftime('%Y-%m-%dT%H:%M:%fZ','now')) ON CONFLICT(race_id,result_sha256) DO NOTHING")
@@ -97,11 +122,10 @@ async function settle(db,race,res,{now=()=>Date.now()}={}){
   .bind(race.race_id,res.source_sha256).first();
  if(!saved||await digest(saved.report_json)!==saved.report_sha256)throw Error('RESULT_READBACK_MISMATCH');
  let prior;try{prior=JSON.parse(saved.report_json)}catch{throw Error('RESULT_READBACK_INVALID_JSON');}
- // The same official HTML may be observed again with a later acquisition
- // timestamp. Preserve the ORIGINAL audit report, not an updated copy.
+ // Later capture time must not change the already persisted source revision.
  const stable=x=>JSON.stringify({...x,captured_at:null});
  if(stable(prior)!==stable(report))throw Error('RESULT_REPLAY_CONFLICT');
  return {status:saved.report_json===raw?'RESULT_PDCA_DB_VERIFIED':'RESULT_PDCA_ALREADY_SCORED',
   ...prior,report_sha256:saved.report_sha256,db_saved_at:saved.db_saved_at};
 }
-export {assertFacts,assertResult,predict,freeze,settle,MODEL,SCHEMA};
+export {assertFacts,assertResult,predict,freeze,settle,refundAccounting,MODEL,SCHEMA};
