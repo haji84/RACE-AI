@@ -77,6 +77,8 @@ on:
       - 'race_ai/boat_multi_feature_models.py'
       - 'race_ai/exhibition_autorun.py'
       - 'tests/test_exhibition_autorun.py'
+      - 'race_ai/pr64_exhibition_pipeline.py'
+      - 'tests/pr64_bridge_harness.py'
       - 'docs/BOAT_EXHIBITION_AUTORUN_STAGE.md'
       - 'race_ai/boat_feature_adapter.py'
       - 'race_ai/comprehensive_four_sport_models.py'
@@ -116,6 +118,30 @@ jobs:
         run: python -m unittest discover -s tests -p "test_four_sport*learning.py" -v
       - name: Verify separate training artifact and validation API
         run: python -m unittest discover -s tests -p test_four_sport_train_only.py -v
+  pr64_cross_branch_bridge:
+    name: Pinned PR64 store and PDCA synthetic E2E
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout PR71 exact tested HEAD
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Checkout immutable PR64 implementation as integration reference
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Verify PR64 actual store and own pinned result projection
+        env:
+          PR64_REFERENCE_ROOT: pr64-reference
+        run: |
+          python tests/pr64_bridge_harness.py
+          python -m unittest tests.test_exhibition_autorun -v
   viewer_contract:
     name: Viewer audit contract
     runs-on: ubuntu-24.04
