@@ -183,7 +183,7 @@ jobs:
           PR64_REFERENCE_ROOT: pr64-reference
         run: |
           python tests/pr64_bridge_harness.py
-          python tests/boat_historical_route_harness.py
+          PYTHONPATH=. python tests/boat_historical_route_harness.py
           python -m unittest tests.test_exhibition_autorun -v
   viewer_contract:
     name: Viewer audit contract
