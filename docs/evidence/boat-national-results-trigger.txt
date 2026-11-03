@@ -35,3 +35,6 @@ only_artifacts=13210132613,13211344716
 
 2026-11-03 18:43 JST one-shot: audit previously frozen 17:38:23 JST Omura 6R (20261103-24-06), original artifact 13216650196. Verify exact original ZIP/JSON and external preclose receipt, individual settled official result/6-finishers/refund; A/B/C-lite separate. Append-only, no refreeze, no market-input, no duplicate score; max 2 official GET.
 only_artifacts=13216650196
+
+2026-11-03 19:16 JST independent one-shot first result check for already frozen Kiryu 9R (race_id 20261103-01-09), original artifact 13220026930 created 18:44:46 JST before 18:55 official cutoff. Recheck resultlist AND racerresult; official not published stays pending. Validate 6 finishers, trifecta payout, refunds/abnormality before A/B/C-lite grading. No rerank, duplicate, original change or unverified hit. Only this batch; <=2 source GET.
+only_artifacts=13220026930
