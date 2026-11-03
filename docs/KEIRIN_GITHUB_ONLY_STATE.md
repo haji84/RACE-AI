@@ -35,3 +35,18 @@ No full live rider-feature/result feeder is enabled by this change. Real predict
 Cloudflare shutdown is preserved; no Cloudflare/Vercel code is executed. No purchase, deployment, account permission or paid plan is changed.
 
 References checked: https://docs.github.com/en/actions/reference/runners/github-hosted-runners ; https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows ; https://docs.github.com/en/rest/actions/artifacts ; https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets
+
+
+## 2026-11-04: Git history for encrypted checkpoint retention
+
+GitHub Actions artifacts in public repositories have a maximum retention of 90 days; the existing 3-day synthetic proof was therefore not permanent archival. Git documentation: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/enabling-features-for-your-repository/managing-github-actions-settings-for-a-repository
+
+Only the SAME GitHub repository is used. A dedicated branch state/keirin-encrypted-history retains AES-256-GCM ciphertext and non-sensitive scope metadata in fast-forward-only Git commits. The main/latest pointer contains its generation, prior ciphertext hash, exact producer commit and run ID. The code rejects tampered ciphertext, unknown producer, missing predecessor, branch rewind and overwriting an existing generation.
+
+Archive producer workflow keirin-github-git-archive.yml uses a job-only contents:write token, after verifying the successful trusted main producer and its exact encrypted artifact. The follow-up workflow keirin-github-git-restore.yml uses a different GitHub Actions runner to fetch the encrypted Git history, decrypt it locally and continue the existing fictional PR71 model without relying on the original 3-day artifact.
+
+IMPORTANT: RACE-AI is public. Ciphertexts, file sizes and commit times are publicly observable. This is NOT as private as a private GitHub repository. The owner has not authorized creating a new private repository. The long-term safety of public ciphertext, the production encryption key and a separate backup require explicit review before enabling real forecast writes.
+
+The first experiment archives SYNTHETIC data only with its clearly public fixture key. Production archiving remains disabled, with no plaintext Git commits and no new external cloud provider. Git history is not an independent certified timestamp or an everlasting-backup guarantee; deletion, repository loss, force pushes and repository-growth limits remain possible.
+
+Live racer-data ingestion, independently confirmed race results, before-cutoff forecasting, prospective A/B PDCA and complete unattended all-race operations remain NOT DONE.
