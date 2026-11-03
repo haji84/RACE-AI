@@ -26,9 +26,9 @@ class CrossChatFreezeIndexTest(unittest.TestCase):
             p.write_text(json.dumps(document,ensure_ascii=False),encoding="utf-8")
             return load_original_race_ids(p,as_of=CHECK_AT)
 
-    def test_single_nine_originals_with_national_batch_links(self):
+    def test_single_twelve_originals_with_national_batch_links(self):
         ids=load_original_race_ids(REAL,as_of=CHECK_AT)
-        self.assertEqual(len(ids),9)
+        self.assertEqual(len(ids),12)
         self.assertIn("20261103-17-02",ids)
         self.assertIn("20261103-17-03",ids)
         self.assertIn("20261103-17-04",ids)
@@ -37,17 +37,20 @@ class CrossChatFreezeIndexTest(unittest.TestCase):
         self.assertIn("20261103-09-07",ids)
         self.assertIn("20261103-06-07",ids)
         self.assertIn("20261103-02-07",ids)
+        self.assertIn("20261103-04-07",ids)
+        self.assertIn("20261103-21-11",ids)
+        self.assertIn("20261103-22-07",ids)
 
     def test_national_queue_deduplicates_other_chat_before_close(self):
-        as_of="2026-11-03T13:21:00+09:00"
+        as_of="2026-11-03T13:37:00+09:00"
         originals=load_original_race_ids(REAL,as_of=as_of)
         def entry(venue,close):
             return {"race_id":f"20261103-{venue}-07",
                     "cutoff_at":f"2026-11-03T{close}:00+09:00",
-                    "schedule_captured_at":"2026-11-03T13:20:00+09:00",
+                    "schedule_captured_at":"2026-11-03T13:36:00+09:00",
                     "source_sha256":"a"*64}
-        rows=[entry("09","13:23"),entry("06","13:27"),
-              entry("10","13:30")]
+        rows=[entry("04","13:40"),entry("22","13:46"),
+              entry("10","13:50")]
         selected=select_due_races(rows,as_of,already_frozen=originals)
         self.assertEqual([x["race_id"] for x in selected["eligible"]],
                          ["20261103-10-07"])
