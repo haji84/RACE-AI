@@ -13,6 +13,7 @@ from unittest.mock import patch
 
 from race_ai.comprehensive_four_sport_models import canonical, digest
 from race_ai.four_sport_model_suite import ALL_MODELS, verify_suite
+from race_ai.ticket_selection_engine import build_ticket_trials
 from race_ai.permissioned_source_delivery import deliver, _private_write
 from tests.test_permissioned_source_delivery import AT, gate, raw_feed
 
@@ -39,6 +40,10 @@ def rehash(delivery, *, snapshot_links=False):
     for model in suite["models"].values():
         model["prediction_sha256"] = digest({k: v for k, v in model.items()
                                               if k != "prediction_sha256"})
+    # Recompute dependent ticket trials for self-consistent synthetic codec probes.
+    # Production must never repair a real prediction after result publication.
+    suite["ticket_trials"] = {name: build_ticket_trials(model)
+                             for name, model in suite["models"].items()}
     suite["suite_sha256"] = digest({k: v for k, v in suite.items() if k != "suite_sha256"})
     delivery["delivery_sha256"] = digest({k: v for k, v in delivery.items()
                                           if k != "delivery_sha256"})
