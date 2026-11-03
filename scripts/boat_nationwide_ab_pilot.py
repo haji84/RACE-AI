@@ -39,6 +39,7 @@ from scripts.boat_ab_future_pilot import motor_top2
 import race_ai
 race_ai.__path__.insert(0,str(ROOT/"race_ai"))
 from race_ai.boat_deadline_queue import select_due_races
+from race_ai.boat_freeze_index import load_original_race_ids
 from race_ai.boat_live_feature_shadow import build_live_feature_shadow
 from race_ai.boat_manshu_watch import freeze_priced_tail
 from race_ai.official_race_updates import endpoint as update_endpoint
@@ -48,6 +49,7 @@ model=importlib.util.module_from_spec(MODULE)
 MODULE.loader.exec_module(model)
 
 OUTPUT=ROOT/"boat_nationwide_output"
+FROZEN_INDEX=ROOT/"docs/evidence/2026-11-03/boat-canonical-freeze-index.json"
 REQUEST_CAP=45
 VENUE_CAP=24
 MAX_FORECASTS=3
@@ -274,13 +276,22 @@ def run():
         else:
             prospective_rows.append(record)
     try:
+        # Same race may have been frozen by the Miyajima or nationwide
+        # previous pilot. Use one canonical reviewed index of original IDs
+        # to skip it rather than issuing a second post-exhibition forecast.
+        # This is bookkeeping only: each new artifact still needs external
+        # saved_at and SHA readback, and a live CAS store is not deployed.
+        previously_frozen=load_original_race_ids(
+            FROZEN_INDEX,as_of=selection_clock.isoformat())
         queue=select_due_races(prospective_rows,selection_clock.isoformat(),
-                              max_items=24)
-    except ValueError as ex:
+                              already_frozen=previously_frozen,max_items=24)
+    except (OSError, ValueError, UnicodeError) as ex:
         return stop("NATIONWIDE_ORDER_VALIDATION_REJECTED",schedule=listing,
                     source={"url":url,"source_sha256":index_sha,"captured_at":index_at.isoformat()},
                     tries=venue_errors)
     attempts=list(after_close_rows)
+    attempts.extend({"race_id":r["race_id"],"state":"ALREADY_FROZEN_IN_CANONICAL_INDEX"}
+                    for r in queue["rejected"] if r["reason"]=="ALREADY_FROZEN")
     forecasts=[];extra_forecasts=[];priced_watches=[]
     for race in queue["eligible"][:MAX_ATTEMPTS]:
         try:
