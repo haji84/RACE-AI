@@ -135,3 +135,18 @@ test('missing candidate is kept in denominator, and late result cannot be seen b
  assert.equal(scored.candidate_frozen,false);assert.equal(scored.hit1,0);assert.equal(scored.hit8,0);
  await assert.rejects(()=>settleChallenger(db,{race_id:race,cutoff_at:cutoff},official(),{now:()=>time}),/RESULT_UNADMITTED/);
 });
+
+test('result re-fetch with identical source SHA preserves original shadow audit timestamp',async()=>{
+ const db=new FakeD1(priorHistory()),f=facts();
+ await freeze(db,f,{now:()=>time});
+ await freezeChallenger(db,f,{now:()=>time});
+ const a=official(),first=await settleChallenger(db,{race_id:race,cutoff_at:cutoff},a,{now:()=>time+20*60000});
+ const newer={...a,captured_at:'2030-11-03T16:35:00+09:00'};
+ const again=await settleChallenger(db,{race_id:race,cutoff_at:cutoff},newer,{now:()=>Date.parse(newer.captured_at)+1000});
+ assert.equal(again.status,'PDCA_SHADOW_ALREADY_SCORED');
+ assert.equal(again.report_sha256,first.report_sha256);
+ assert.equal(again.captured_at,first.captured_at);
+ assert.equal(db.shadowScores.size,1);
+ const contradict={...newer,top3:[2,1,3]};
+ await assert.rejects(()=>settleChallenger(db,{race_id:race,cutoff_at:cutoff},contradict,{now:()=>Date.parse(newer.captured_at)+1000}),/PDCA_SHADOW_REPLAY_CONFLICT/);
+});
