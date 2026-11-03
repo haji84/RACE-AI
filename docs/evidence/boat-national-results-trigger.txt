@@ -17,3 +17,6 @@ only_artifacts=13206788773
 
 2026-11-03 JST classification correction revision: previous 2-race result audit labeled a completed 3T as ordinary despite non-finisher statuses (Fukuoka9R 転/妨). Re-audit unchanged frozen original, preserve all old evidence as append-only, separate abnormal-finish from ordinary A/B denominators; no new forecast.
 only_artifacts=13206788773
+
+2026-11-03 JST exceptional outcome reclassification review: re-audit earliest Heiwajima7R receipt in frozen 13204251708 alongside its two original batchmates. Previous selected-13 cohort included 5号艇 落 despite no 3T refund. Correct audit revision labels nonfinisher separately without re-scoring or changing old frozen models; preserve original receipts.
+only_artifacts=13204251708
