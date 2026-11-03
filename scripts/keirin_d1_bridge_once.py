@@ -39,12 +39,13 @@ def get_github_oidc_token(*, env=None, open_url=urlopen):
             len(request_token)<10 or len(endpoint)>5000):
         raise BridgeError("GITHUB_OIDC_NOT_AVAILABLE")
     from_url=urlsplit(endpoint)
+    hostname=from_url.hostname or ""
+    # GitHub-hosted runners use region-specific pipelines*.actions.github*
+    # endpoints; require the exact GitHub Actions domain boundary.
     if (from_url.scheme!="https" or
-        from_url.hostname not in (
-            "pipelines.actions.githubusercontent.com",
-            "vstoken.actions.githubusercontent.com",
-            "token.actions.githubusercontent.com"
-        ) or from_url.username or from_url.password or from_url.port):
+        not hostname.endswith(".actions.githubusercontent.com") or
+        not hostname.split(".")[0].startswith(("pipelines","vstoken","token")) or
+        from_url.username or from_url.password or from_url.port):
         raise BridgeError("GITHUB_OIDC_ISSUER_UNEXPECTED")
     separator="&" if "?" in endpoint else "?"
     url=endpoint+separator+"audience="+quote(AUD,safe="")
@@ -57,7 +58,9 @@ def get_github_oidc_token(*, env=None, open_url=urlopen):
             if r.status!=200:
                 raise BridgeError("GITHUB_OIDC_HTTP_NOT_OK")
             raw=r.read(16000)
-    except (HTTPError,URLError,TimeoutError,OSError):
+    except HTTPError as e:
+        raise BridgeError("GITHUB_OIDC_HTTP_"+str(e.code)) from None
+    except (URLError,TimeoutError,OSError):
         raise BridgeError("GITHUB_OIDC_UNAVAILABLE") from None
     try:
         token=json.loads(raw.decode("utf-8"))["value"]
@@ -104,7 +107,9 @@ def submit_day(*, event_day=None, collector=get_single_day,
             if r.status!=200 or r.geturl()!=WORKER+"/v1/cohort":
                 raise BridgeError("CLOUDFLARE_PRIVATE_INGEST_NOT_OK")
             incoming=r.read(16000)
-    except (HTTPError,URLError,TimeoutError,OSError):
+    except HTTPError as e:
+        raise BridgeError("CLOUDFLARE_PRIVATE_HTTP_"+str(e.code)) from None
+    except (URLError,TimeoutError,OSError):
         raise BridgeError("CLOUDFLARE_PRIVATE_INGEST_UNAVAILABLE") from None
     try:
         ack=json.loads(incoming.decode("utf-8"))
@@ -139,8 +144,11 @@ def main():
         report=submit_day(event_day=args.day)
         print(json.dumps(report,sort_keys=True,ensure_ascii=False))
         return 0
-    except (DiscoveryError,BridgeError,ValueError,KeyError,TypeError):
-        print('{"state":"PRIVATE_D1_INGEST_NOT_VERIFIED","provider_raw_records_exposed":false}')
+    except (DiscoveryError,BridgeError,ValueError,KeyError,TypeError) as e:
+        # All BridgeError codes are static literals; never output OIDC JWT.
+        reason = str(e) if isinstance(e,BridgeError) else type(e).__name__
+        print(json.dumps({"state":"PRIVATE_D1_INGEST_NOT_VERIFIED",
+            "reason_code":reason,"provider_raw_records_exposed":False}))
         return 2
 
 
