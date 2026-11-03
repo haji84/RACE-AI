@@ -28,6 +28,10 @@ class LocalPrivateJournal:
     """Local atomic single-writer reservations and revisioned audit append."""
 
     def __init__(self, db_path):
+        # POSIX owner-only permissions are mandatory. Windows ACL validation
+        # is not implemented; refuse storage rather than claim privacy.
+        if os.name != "posix":
+            raise ValueError("PLATFORM_PRIVATE_ACL_UNVERIFIED")
         self.path = Path(db_path).absolute()
         directory = self.path.parent
         if directory.is_symlink() or self.path.is_symlink():
