@@ -110,7 +110,20 @@ def submit_day(*, event_day=None, collector=get_single_day,
                 raise BridgeError("CLOUDFLARE_PRIVATE_INGEST_NOT_OK")
             incoming=r.read(16000)
     except HTTPError as e:
-        raise BridgeError("CLOUDFLARE_PRIVATE_HTTP_"+str(e.code)) from None
+        # The Worker exposes a small set of fixed, non-sensitive error codes.
+        # Never print the JWT, response headers, raw body or race data.
+        detail="UNKNOWN"
+        try:
+            problem=json.loads(e.read(500).decode("utf-8"))
+            candidate=problem.get("error","")
+            if candidate in ("AUTH_SOURCE_UNAVAILABLE",
+                             "PRIVATE_STORAGE_UNAVAILABLE",
+                             "UNAUTHORIZED","DATABASE_UNBOUND",
+                             "INVALID_COHORT_INPUT"):
+                detail=candidate
+        except (ValueError,UnicodeError,AttributeError):
+            pass
+        raise BridgeError("CLOUDFLARE_PRIVATE_HTTP_"+str(e.code)+"_"+detail) from None
     except (URLError,TimeoutError,OSError):
         raise BridgeError("CLOUDFLARE_PRIVATE_INGEST_UNAVAILABLE") from None
     try:
