@@ -25,6 +25,9 @@ sys.path.insert(0,str(PIN))
 from race_ai.official_racelist_adapter import parse_official_racelist,endpoint,JST
 from race_ai.official_race_updates import parse_update,endpoint as result_endpoint
 from race_ai.core import SourceError
+# Load the new PR71 audit model while preserving the fixed PR64 source parser.
+import race_ai
+race_ai.__path__.insert(0,str(ROOT/"race_ai"))
 from scripts.boat_actual_one_shot_probe import fetch
 import scripts.boat_actual_one_shot_probe as fetcher
 from scripts.boat_ab_cohort_from_actions import _original
