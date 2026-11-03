@@ -50,7 +50,8 @@ function parseRacelist(html,day,venue,race){
  const mainRows=t.bodies.length===6?t.bodies.map(group=>group[0]):t.rows;
  if(mainRows.length!==6||mainRows.some(row=>!row))throw Error('OFFICIAL_RACELIST_BODY_GROUPS_UNVERIFIED');
  const racers=mainRows.map(row=>{
-  if(row.length<8||!/^[1-6]$/.test(row[0].text))throw Error('OFFICIAL_RACELIST_LANE_INVALID');
+  if(row.length<8)throw Error('OFFICIAL_RACELIST_COLUMNS_'+row.length);
+  if(!/^[1-6]$/.test(row[0].text))throw Error('OFFICIAL_RACELIST_LANE_CHARS_'+row[0].text.length+'_'+Array.from(row[0].text.slice(0,5),c=>c.codePointAt(0)).join('_'));
   const reg=/\b([0-9]{4})\s*\//.exec(row[2].text);
   if(!reg||!row[2].html.includes('toban='+reg[1]))throw Error('OFFICIAL_RACELIST_REGISTRATION_MISMATCH');
   const rate=/^(\d+\.\d{2})/.exec(row[4].text);
