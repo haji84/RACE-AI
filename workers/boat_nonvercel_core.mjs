@@ -19,11 +19,11 @@ function sourceUrl(url,kind,rid){
 function assertFacts(f,now){
  if(!f||f.schema!==SCHEMA||f.phase!=='post_exhibition'||!ID.test(f.race_id)
   ||!HEX.test(f.source_sha256||'')||f.rights_verified!==true
-  ||f.license_purpose!=='private_analysis'||!Array.isArray(f.racers)||f.racers.length!==6)throw Error('FACTS_UNADMITTED');
+  ||f.license_purpose!=='private_analysis'||!HEX.test(f.program_sha256||'')||!Array.isArray(f.racers)||f.racers.length!==6)throw Error('FACTS_UNADMITTED');
  sourceUrl(f.source_url,'beforeinfo',f.race_id);
  let cutoff=clock(f.cutoff_at),capture=clock(f.captured_at),m=ID.exec(f.race_id);
  if(day(cutoff)!==m[1].slice(0,4)+'-'+m[1].slice(4,6)+'-'+m[1].slice(6,8)
-    ||capture>now||capture>=cutoff||cutoff-now<=120000)throw Error('NOT_BEFORE_SAFE_CUTOFF');
+    ||day(capture)!==day(cutoff)||capture>now||capture>=cutoff||cutoff-now<=120000)throw Error('NOT_BEFORE_SAFE_CUTOFF');
  let lanes=new Set(),racers=new Set();
  for(const r of f.racers){
   if(!r||!Number.isInteger(r.lane)||r.lane<1||r.lane>6||lanes.has(r.lane)||!/^\d{4}$/.test(r.registration_no)
@@ -47,7 +47,7 @@ function predict(f){
  }).sort((a,b)=>b.score-a.score||a.ticket.join('').localeCompare(b.ticket.join('')));
  if(all120.length!==120||Math.abs(all120.reduce((a,b)=>a+b.score,0)-1)>1e-9)throw Error('MODEL_MASS');
  return {phase:'post_exhibition',race_id:f.race_id,cutoff_at:f.cutoff_at,as_of:f.captured_at,
-  model_id:MODEL,calibrated:false,odds_used:false,source_sha256:f.source_sha256,
+  model_id:MODEL,calibrated:false,odds_used:false,source_sha256:f.source_sha256,program_sha256:f.program_sha256,
   top8:all120.slice(0,8).map(x=>x.ticket),all120,
   base_rating_missing:r.filter(x=>x.national_win_rate===null).map(x=>x.lane),
   rationale:'PR64 untrained PL: official national win-rate baseline and six measured exhibition times; uncalibrated.'};
