@@ -11,6 +11,7 @@ on:
       - 'scripts/keirin_d1_bridge_once.py'
       - 'tests/test_keirin_d1_worker.mjs'
       - 'tests/test_keirin_d1_bridge_once.py'
+      - 'scripts/keirin_d1_auth_smoke.py'
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -40,6 +41,8 @@ jobs:
         run: python -m unittest discover -s tests -p test_keirin_d1_bridge_once.py -v
       - name: Real-day ID discovery still respects missing-data rules
         run: python -m unittest discover -s tests -p test_keirin_discovery.py -v
+      - name: Public Worker health and authenticated-only private data boundary
+        run: python -m scripts.keirin_d1_auth_smoke
 
   sync_private:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
