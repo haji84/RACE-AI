@@ -57,6 +57,8 @@ def score_pair(original, winner, observed_at, server_saved_at):
         output.append({"model_id":m["model_id"],"hit_at_1":int(picks[0]["ticket"]==winner),
                        "hit_at_8":int(any(x["ticket"]==winner for x in picks)),
                        "winning_combination_rank":next(i+1 for i,x in enumerate(rows) if x["ticket"]==winner),
+                       "model_top1_mass_uncalibrated":picks[0]["score"],
+                       "model_top8_mass_uncalibrated":math.fsum(x["score"] for x in picks),
                        "winner_model_score_uncalibrated":winning_score,
                        "multiclass_brier":brier,"log_loss":-math.log(winning_score),
                        "top8":[x["ticket"] for x in picks],
