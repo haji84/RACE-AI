@@ -47,3 +47,13 @@ test('trifecta payout is audit-only and missing price remains unknown',()=>{
  assert.equal(parseResultDetails(result.replace('￥930','￥1,280'),day,venue,race,roster).payout_per_100_yen,1280);
  assert.equal(parseResultDetails(result.replace('￥930','未掲載'),day,venue,race,roster).payout_per_100_yen,null);
 });
+
+test('real official HTML may print fullwidth racer lane numbers',()=>{
+ const wide=x=>x.replace(/<td>([1-6])<\/td>/g,(_,n)=>'<td>'+String.fromCharCode(0xFF10+Number(n))+'</td>');
+ const reg=parseRacelist(wide(racelist),day,venue,race);
+ assert.equal(reg.length,6);
+ assert.deepEqual(reg.map(x=>x.lane),[1,2,3,4,5,6]);
+ const measured=parseExhibition(wide(before),day,venue,race,reg);
+ assert.equal(measured.length,6);
+ assert.deepEqual(parseResult(wide(result),day,venue,race,reg),[1,2,3]);
+});
