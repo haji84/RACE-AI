@@ -8,7 +8,7 @@ No automatic official result fetching, polling, GitHub writing or wagering.
 """
 from __future__ import annotations
 
-from datetime import timedelta
+from datetime import timedelta, timezone
 from hashlib import sha256
 import json
 import re
@@ -71,10 +71,7 @@ def _validate_intent(intent):
     rid = intent['race_id']
     race_day = _valid_id(rid)
     cutoff = utc(intent['official_cutoff_at'])
-    _require(cutoff.date().isoformat() == race_day.isoformat() or
-             cutoff.astimezone(__import__('datetime').timezone(
-                 __import__('datetime').timedelta(hours=9)
-             )).date() == race_day,
+    _require(cutoff.astimezone(timezone(timedelta(hours=9))).date() == race_day,
              'CUTOFF_DAY_MISMATCH')
     _require(_oksha(intent['pre_race_snapshot_sha256']) and
              _oksha(intent['trigger_source_event_sha256']) and
