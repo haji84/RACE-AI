@@ -26,3 +26,6 @@ only_artifacts=13210132613
 
 2026-11-03 16:19 JST independent recheck of three 15:38-frozen races after official payout results became visible (平和島11R 5-1-4, 桐生2R 1-2-6, 丸亀2R 1-2-3); preserve normal vs abnormal, six-boats and current official cutoff identity; previous 15:49 result artifact was pending/safe stop and is not scored or deleted. Max six official GET; no rerank, no overlap.
 only_artifacts=13210132613
+
+2026-11-03 JST owner accuracy-improvement cycle: audit only the as-yet-unscored 16:16:40 JST original batch (Omura3R/Fukuoka12R). Verify original ZIP/JSON, earliest receipt and final official settlement; do not regenerate forecasts. C-lite frozen in the same original is a separately evaluated research challenger, never replace A/B. At most four official GET for two races. Keep exceptional and missing outcomes explicit.
+only_artifacts=13211344716
