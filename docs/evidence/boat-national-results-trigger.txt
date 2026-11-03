@@ -3,3 +3,5 @@
 2026-11-03 13:24 JST: independent post-close official recheck of earlier source-confirmed Miyajima7R, Heiwajima6R and Fukuoka6R, fixed original GH artifact unchanged. No new predictions or Vercel.
 
 2026-11-03 13:22 JST scheduled recheck: read-only official individual result after 13:18 pending; same GitHub original 41575766782, no frozen forecast update, no score on pending; bounded <=6 official GET. 
+
+Canonical handoff follow-through, 2026-11-03: verify original archives for all three registered national batches and check officially settled results; preserve refund, pending and unverified states. No model changes or retrospective forecasts.
