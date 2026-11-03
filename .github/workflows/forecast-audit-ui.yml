@@ -78,6 +78,7 @@ on:
       - 'race_ai/exhibition_autorun.py'
       - 'tests/test_exhibition_autorun.py'
       - 'race_ai/pr64_exhibition_pipeline.py'
+      - 'race_ai/pr64_pdca_cycle.py'
       - 'tests/pr64_bridge_harness.py'
       - 'docs/BOAT_EXHIBITION_AUTORUN_STAGE.md'
       - 'race_ai/boat_feature_adapter.py'
