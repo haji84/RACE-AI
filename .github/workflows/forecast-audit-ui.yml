@@ -6,6 +6,9 @@ on:
     paths:
       - 'tests/test_four_sport_train_only.py'
       - 'race_ai/verified_bulk_backtest.py'
+      - 'race_ai/model_tournament.py'
+      - 'tests/test_model_tournament.py'
+      - 'docs/MODEL_TOURNAMENT_20261104.md'
       - 'race_ai/historical_pairwise.py'
       - 'tests/test_historical_pairwise.py'
       - 'tests/test_verified_bulk_backtest.py'
