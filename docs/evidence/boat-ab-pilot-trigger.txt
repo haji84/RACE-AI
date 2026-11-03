@@ -5,3 +5,5 @@ Prospective extra-cohort collection attempt #3, 2026-11-03 JST. Fixed A/B coeffi
 2026-11-03 JST prospective retry: Miyajima 3R after prior 11:00 exhibition-pending observation. Preserve earlier 2R A/B unchanged and require future cutoff and a new independent artifact creation time.
 
 2026-11-03 11:10 JST prospective single additional 3R attempt after official exhibition-pending 11:04. Same predeclared A/B source and coefficients, independent GitHub created_at required before 11:19. No 2R outcome features, no Vercel or wagers.
+
+2026-11-03 11:38 JST: exactly one controlled Miyajima 4R prospective A/B one-shot push. Official racelist 20261103-17-04 cutoff 11:47 JST confirmed; script must independently verify all six entrants and same official exhibition, then save both preregistered uncalibrated full120 and max8 before official cutoff. If exhibition missing or any preclose artifact proof absent, record NO_PAIR; never use odds/outcome, revise fixed B weights, publish, wager, or create PR.
