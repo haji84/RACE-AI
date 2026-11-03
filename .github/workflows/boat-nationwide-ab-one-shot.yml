@@ -1,0 +1,45 @@
+name: BOAT nationwide cutoff-ordered A/B research (no Vercel)
+on:
+  push:
+    branches:
+      - feat/four-sport-forecast-audit-view-20261022
+    paths:
+      - docs/evidence/boat-nationwide-pilot-trigger.txt
+permissions:
+  contents: read
+concurrency:
+  group: boat-nationwide-cutoff-20261103
+  cancel-in-progress: false
+jobs:
+  official_national:
+    name: Official 24-venue day discovery and cutoff-ordered model A/B
+    if: github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    env:
+      RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED: 'true'
+    steps:
+      - name: Checkout exact research branch commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Checkout pinned official parser, no PR64 modification
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Check queue, A/B models and historic profiles
+        run: |
+          python -m unittest tests.test_boat_deadline_queue tests.test_boat_ab_shadow tests.test_boat_racer_tendencies -v
+      - name: Discover today's active official venues, order all cutoffs, freeze eligible A/B
+        run: python scripts/boat_nationwide_ab_pilot.py
+      - name: Preserve derived forecast and all official cutoff ids, never source HTML
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-national-cutoff-${{ github.run_id }}
+          path: boat_nationwide_output/national.json
+          if-no-files-found: warn
+          retention-days: 7
