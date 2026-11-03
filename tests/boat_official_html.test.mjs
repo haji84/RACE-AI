@@ -57,3 +57,11 @@ test('real official HTML may print fullwidth racer lane numbers',()=>{
  assert.equal(measured.length,6);
  assert.deepEqual(parseResult(wide(result),day,venue,race,reg),[1,2,3]);
 });
+
+test('non-top-three finish disposition is not a fabricated ordinal place',()=>{
+ const roster=parseRacelist(racelist,day,venue,race);
+ const retired=result.replace('<td>6</td>','<td>失</td>');
+ assert.deepEqual(parseResult(retired,day,venue,race,roster),[1,2,3]);
+ const firstDisqualified=result.replace('<td>1</td>','<td>失</td>');
+ assert.throws(()=>parseResult(firstDisqualified,day,venue,race,roster),/TOP3_OR_ROSTER_INCOMPLETE/);
+});
