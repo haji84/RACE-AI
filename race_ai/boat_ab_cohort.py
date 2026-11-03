@@ -128,6 +128,18 @@ def _verified_pair(row, cutoff):
         mass = model.get("model_top8_mass_uncalibrated")
         _need(type(mass) in (float, int) and math.isfinite(mass) and 0 < mass < 1,
               "model top8 probability mass required for calibration audit")
+        points = model.get("top8_model_scores_uncalibrated")
+        _need(isinstance(points, list) and len(points) == 8
+              and [x.get("ticket") for x in points if isinstance(x,dict)] == model["top8"],
+              "exact frozen top8 score identities required")
+        _need(all(type(x.get("score")) in (float,int) and
+                   math.isfinite(x["score"]) and 0 < x["score"] < 1 for x in points),
+              "frozen forecast scores must be finite")
+        _need(math.isclose(math.fsum(x["score"] for x in points), mass, abs_tol=1e-10),
+              "forecast mass differs from frozen top8")
+        _need(math.isclose(points[0]["score"],
+                           model["model_top1_mass_uncalibrated"], abs_tol=1e-10),
+              "frozen top1 score differs from claimed model score")
     return models
 
 
@@ -244,6 +256,22 @@ def analyze(rows, *, minimum_paired=PAIRED_MIN, minimum_days=DAYS_MIN):
             "avg_log_loss":math.fsum(m["log_loss"] for m in mx)/matched if matched else None,
             "mean_top8_model_mass":math.fsum(m["model_top8_mass_uncalibrated"] for m in mx)/matched if matched else None,
             "empirical_top8_matched_rate":hit8/matched if matched else None,
+            "calibration_bins": [
+                {"bin_lo": i/10, "bin_hi": (i+1)/10,
+                 "count": len([m for m in mx if min(9,int(10*m["model_top8_mass_uncalibrated"]))==i]),
+                 "mean_predicted_mass": (
+                    math.fsum(m["model_top8_mass_uncalibrated"] for m in mx
+                        if min(9,int(10*m["model_top8_mass_uncalibrated"]))==i) /
+                    len([m for m in mx if min(9,int(10*m["model_top8_mass_uncalibrated"]))==i]))
+                    if any(min(9,int(10*m["model_top8_mass_uncalibrated"]))==i for m in mx) else None,
+                 "empirical_hit_rate": (
+                    math.fsum(m["hit_at_8"] for m in mx
+                        if min(9,int(10*m["model_top8_mass_uncalibrated"]))==i) /
+                    len([m for m in mx if min(9,int(10*m["model_top8_mass_uncalibrated"]))==i]))
+                    if any(min(9,int(10*m["model_top8_mass_uncalibrated"]))==i for m in mx) else None,
+                 "low_sample_flag":sum(min(9,int(10*m["model_top8_mass_uncalibrated"]))==i for m in mx)<30}
+                for i in range(10)
+            ],
             "hypothetical_8x100_yen_spend":800*matched,
             "hypothetical_return_yen":gross,
             "hypothetical_roi_on_covered":gross/(800*matched) if gross is not None and matched else None,
