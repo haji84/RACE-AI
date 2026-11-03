@@ -45,7 +45,7 @@
 
 ```bash
 python -m unittest discover -s tests -p 'test_evaluation_keirin_result_delivery.py' -v
-python scripts/keirin_result_feed_once.py \
+python -m scripts.keirin_result_feed_once \
   --bridge /owner-private/bridge.json \
   --feed /owner-private/keirin-result-delivery.json \
   --admission /owner-private/reviewed-receipt.json \
