@@ -75,3 +75,12 @@ test('actual payout is only admitted after result and never improves historical 
  const invalid=result();invalid.payout_per_100_yen=-1;
  await assert.rejects(()=>settle(db,f,invalid,{now:()=>now+20*60000}),/RESULT_UNADMITTED/);
 });
+
+test('timestamps must contain explicit timezone and do not silently use runner locale',async()=>{
+ const local=facts();local.cutoff_at='2030-11-03T10:30:00';
+ assert.throws(()=>assertFacts(local,now),/INVALID_CLOCK/);
+ const other=facts();other.captured_at='2030-11-03T10:14:50';
+ assert.throws(()=>assertFacts(other,now),/INVALID_CLOCK/);
+ const bad=result();bad.captured_at='2030-11-03T10:35:00';
+ await assert.rejects(()=>settle(new FakeD1(),facts(),bad,{now:()=>now+20*60000}),/INVALID_CLOCK/);
+});
