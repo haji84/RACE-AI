@@ -11,6 +11,9 @@ import json
 import os
 import tempfile
 
+import race_ai
+race_ai.__path__.insert(0,str(Path(__file__).resolve().parents[1]/'pr64-reference'/'race_ai'))
+
 from race_ai.boat_ab_shadow import build_pair
 from race_ai.boat_live_feature_shadow import build_live_feature_shadow
 from scripts import boat_nationwide_result_audit as audit
