@@ -1,1 +1,171 @@
-{"schema":"RACE_AI_BOAT_OWNER_PROSPECTIVE_INDEX_V1","scope":"SELECTED_RACES_NOT_ALL_NATIONAL","model_ids":["boat-display-rating-PL-reference-v1-UNVALIDATED","boat-course-motor-shadow-v0.1-UNTRAINED"],"source_note":"GitHub Actions original artifact/server created_at/digest independently checked. Index is mutable bookkeeping, NOT an original forecast or independent durable receipt.","entries":[{"race_id":"20261103-17-02","cutoff_at":"2026-11-03T10:55:00+09:00","run_id":41561946057,"artifact_id":13197470628,"server_created_at":"2026-11-03T01:46:59Z","zip_sha256":"247361469bdce08823e596a12ac2cebd8c9765d309cc85d6510d65d44912f2d9","json_sha256":"2666d0de2a0cbda26835a5e738f70b72f242f0862c6e2a6ce0af704ba4e2caff","bundle_sha256":"9f919e2005d7d504cd3b10dee31dbee32f092fe5ff27529d4df70b37a636a7fd"},{"race_id":"20261103-17-03","cutoff_at":"2026-11-03T11:19:00+09:00","run_id":41564362916,"artifact_id":13198428110,"server_created_at":"2026-11-03T02:09:50Z","zip_sha256":"3b943dd4ee9a2d8309b8abb7cdd888f3b8107e4cf0b6658eac8c183f6120f317","json_sha256":"5d58f23261513f44c31808f1d2d4ebbec65437f1012d9a94f295acaf1c3e11be","bundle_sha256":"6c73217a740d10b6e288390c9edec992be3087909acb02c24c59d4d19dbfaf7c"},{"race_id":"20261103-17-04","cutoff_at":"2026-11-03T11:47:00+09:00","run_id":41567387450,"artifact_id":13199222868,"server_created_at":"2026-11-03T02:38:47Z","zip_sha256":"61f67a3b58ccffa6f2b106c2443cf346ea29e20484e50f4f301b7b8bbdb43a6b","json_sha256":"66e42619da9327d1233d6333849b091a1704f23677f72da4886c088cd729b1d3","bundle_sha256":"6dfa153cd25ba0b8cee4c1cf16277ef89e61cada92a608305aeca3cb46fadd27"},{"race_id":"20261103-17-07","cutoff_at":"2026-11-03T13:11:00+09:00","run_id":41575766782,"artifact_id":13202833722,"server_created_at":"2026-11-03T04:03:20Z","zip_sha256":"025687e33072673f84b76ab75e03a389201015c553ade832dafeaa27a3184978","json_sha256":"bcea16257ddf2a713c138458757a6d79067b6d2f2e0cf806a32fc527270a2d6d","bundle_sha256":"e792406ab9a2e274f680b5efe3a3da74a4ca44f58ea6a32331af1bff2750f814"},{"race_id":"20261103-04-06","cutoff_at":"2026-11-03T13:12:00+09:00","run_id":41575766782,"artifact_id":13202833722,"server_created_at":"2026-11-03T04:03:20Z","zip_sha256":"025687e33072673f84b76ab75e03a389201015c553ade832dafeaa27a3184978","json_sha256":"bcea16257ddf2a713c138458757a6d79067b6d2f2e0cf806a32fc527270a2d6d","bundle_sha256":"21d45beb619465ac8f16609de27ec4ced6ba676c1485f155a9e5be38958b63c9"},{"race_id":"20261103-22-06","cutoff_at":"2026-11-03T13:16:00+09:00","run_id":41575766782,"artifact_id":13202833722,"server_created_at":"2026-11-03T04:03:20Z","zip_sha256":"025687e33072673f84b76ab75e03a389201015c553ade832dafeaa27a3184978","json_sha256":"bcea16257ddf2a713c138458757a6d79067b6d2f2e0cf806a32fc527270a2d6d","bundle_sha256":"8e8e6864bfd3c916f489d7dfe64261ed5db843225062977c943f4e8ea6960d79"},{"race_id":"20261103-09-07","cutoff_at":"2026-11-03T13:23:00+09:00","run_id":41577403445,"artifact_id":13203739532,"server_created_at":"2026-11-03T04:19:22Z","zip_sha256":"ac5c25bb8b6aee6716826ef5206fcfcc331238dfe87efa6600aa82992c6eb2d5","json_sha256":"bac298933ede37aa9e3d76f83313bf96af980a2cc21093dfcd1c30015d9b82fb","bundle_sha256":"d92822d2922c855bd36bf05717cfbd6e5c7d206a24239057a32862ead9259f36"},{"race_id":"20261103-06-07","cutoff_at":"2026-11-03T13:27:00+09:00","run_id":41577403445,"artifact_id":13203739532,"server_created_at":"2026-11-03T04:19:22Z","zip_sha256":"ac5c25bb8b6aee6716826ef5206fcfcc331238dfe87efa6600aa82992c6eb2d5","json_sha256":"bac298933ede37aa9e3d76f83313bf96af980a2cc21093dfcd1c30015d9b82fb","bundle_sha256":"8c3aaa17afbe75a8d347150a3f0ec29c77f418535434775b96190185cbb47694"},{"race_id":"20261103-02-07","cutoff_at":"2026-11-03T13:28:00+09:00","run_id":41577403445,"artifact_id":13203739532,"server_created_at":"2026-11-03T04:19:22Z","zip_sha256":"ac5c25bb8b6aee6716826ef5206fcfcc331238dfe87efa6600aa82992c6eb2d5","json_sha256":"bac298933ede37aa9e3d76f83313bf96af980a2cc21093dfcd1c30015d9b82fb","bundle_sha256":"a5ab45e54b86ad9805a531643285e7ec0b61aba60ecca59a7bb0d15265c97d3b"},{"race_id":"20261103-04-07","cutoff_at":"2026-11-03T13:40:00+09:00","run_id":41579002662,"artifact_id":13204793279,"server_created_at":"2026-11-03T04:35:43Z","zip_sha256":"6d1dbf09a7b56b86ccdfacc8f53f90b8d16e7f7f04df22539d32e88e5ad3f271","json_sha256":"bd1bbe14fd2c2a17b53de378d53c7e0ffbb876bf82713bd8112f8b6fe3d960b8","bundle_sha256":"b07c381ffa1906c6fd192fdd8112107d102925107a878a96072db4ef5e456166"},{"race_id":"20261103-21-11","cutoff_at":"2026-11-03T13:42:00+09:00","run_id":41579002662,"artifact_id":13204793279,"server_created_at":"2026-11-03T04:35:43Z","zip_sha256":"6d1dbf09a7b56b86ccdfacc8f53f90b8d16e7f7f04df22539d32e88e5ad3f271","json_sha256":"bd1bbe14fd2c2a17b53de378d53c7e0ffbb876bf82713bd8112f8b6fe3d960b8","bundle_sha256":"0612df2fd7854ea45bbd4acdca8bd7f5b60d7fee05c290747bb90177645c2955"},{"race_id":"20261103-22-07","cutoff_at":"2026-11-03T13:46:00+09:00","run_id":41579002662,"artifact_id":13204793279,"server_created_at":"2026-11-03T04:35:43Z","zip_sha256":"6d1dbf09a7b56b86ccdfacc8f53f90b8d16e7f7f04df22539d32e88e5ad3f271","json_sha256":"bd1bbe14fd2c2a17b53de378d53c7e0ffbb876bf82713bd8112f8b6fe3d960b8","bundle_sha256":"f00d6c781875f9e38a7c557cdef84c1fac5bdf244e77dcde296a45dfd612c85a"},{"race_id":"20261103-17-08","cutoff_at":"2026-11-03T13:35:00+09:00","run_id":41577960865,"artifact_id":13204251708,"server_created_at":"2026-11-03T04:24:58Z","zip_sha256":"9a875585e3e3d93f4683f3f422667e7df7526ab2c2aa700f78ef6e97f6198c5e","json_sha256":"1df6a56e4b9ce62aa87da1e817d224e225e99d02c9ff9298b251d356101d0f65","bundle_sha256":"520327353689bf194c297a828e6c16aee43299ccec148f69cd65cfdcb2e83cda"},{"race_id":"20261103-18-11","cutoff_at":"2026-11-03T13:36:00+09:00","run_id":41577960865,"artifact_id":13204251708,"server_created_at":"2026-11-03T04:24:58Z","zip_sha256":"9a875585e3e3d93f4683f3f422667e7df7526ab2c2aa700f78ef6e97f6198c5e","json_sha256":"1df6a56e4b9ce62aa87da1e817d224e225e99d02c9ff9298b251d356101d0f65","bundle_sha256":"a81ec0e086bbc2c356a89f545506fbab94e9c7ff2976201f42ed3267926796c4"}]}
+{
+  "schema": "RACE_AI_BOAT_OWNER_PROSPECTIVE_INDEX_V1",
+  "scope": "SELECTED_RACES_NOT_ALL_NATIONAL",
+  "model_ids": [
+    "boat-display-rating-PL-reference-v1-UNVALIDATED",
+    "boat-course-motor-shadow-v0.1-UNTRAINED"
+  ],
+  "source_note": "GitHub Actions original artifact/server created_at/digest independently checked. Index is mutable bookkeeping, NOT an original forecast or independent durable receipt.",
+  "entries": [
+    {
+      "race_id": "20261103-17-02",
+      "cutoff_at": "2026-11-03T10:55:00+09:00",
+      "run_id": 41561946057,
+      "artifact_id": 13197470628,
+      "server_created_at": "2026-11-03T01:46:59Z",
+      "zip_sha256": "247361469bdce08823e596a12ac2cebd8c9765d309cc85d6510d65d44912f2d9",
+      "json_sha256": "2666d0de2a0cbda26835a5e738f70b72f242f0862c6e2a6ce0af704ba4e2caff",
+      "bundle_sha256": "9f919e2005d7d504cd3b10dee31dbee32f092fe5ff27529d4df70b37a636a7fd"
+    },
+    {
+      "race_id": "20261103-17-03",
+      "cutoff_at": "2026-11-03T11:19:00+09:00",
+      "run_id": 41564362916,
+      "artifact_id": 13198428110,
+      "server_created_at": "2026-11-03T02:09:50Z",
+      "zip_sha256": "3b943dd4ee9a2d8309b8abb7cdd888f3b8107e4cf0b6658eac8c183f6120f317",
+      "json_sha256": "5d58f23261513f44c31808f1d2d4ebbec65437f1012d9a94f295acaf1c3e11be",
+      "bundle_sha256": "6c73217a740d10b6e288390c9edec992be3087909acb02c24c59d4d19dbfaf7c"
+    },
+    {
+      "race_id": "20261103-17-04",
+      "cutoff_at": "2026-11-03T11:47:00+09:00",
+      "run_id": 41567387450,
+      "artifact_id": 13199222868,
+      "server_created_at": "2026-11-03T02:38:47Z",
+      "zip_sha256": "61f67a3b58ccffa6f2b106c2443cf346ea29e20484e50f4f301b7b8bbdb43a6b",
+      "json_sha256": "66e42619da9327d1233d6333849b091a1704f23677f72da4886c088cd729b1d3",
+      "bundle_sha256": "6dfa153cd25ba0b8cee4c1cf16277ef89e61cada92a608305aeca3cb46fadd27"
+    },
+    {
+      "race_id": "20261103-17-07",
+      "cutoff_at": "2026-11-03T13:11:00+09:00",
+      "run_id": 41575766782,
+      "artifact_id": 13202833722,
+      "server_created_at": "2026-11-03T04:03:20Z",
+      "zip_sha256": "025687e33072673f84b76ab75e03a389201015c553ade832dafeaa27a3184978",
+      "json_sha256": "bcea16257ddf2a713c138458757a6d79067b6d2f2e0cf806a32fc527270a2d6d",
+      "bundle_sha256": "e792406ab9a2e274f680b5efe3a3da74a4ca44f58ea6a32331af1bff2750f814"
+    },
+    {
+      "race_id": "20261103-04-06",
+      "cutoff_at": "2026-11-03T13:12:00+09:00",
+      "run_id": 41575766782,
+      "artifact_id": 13202833722,
+      "server_created_at": "2026-11-03T04:03:20Z",
+      "zip_sha256": "025687e33072673f84b76ab75e03a389201015c553ade832dafeaa27a3184978",
+      "json_sha256": "bcea16257ddf2a713c138458757a6d79067b6d2f2e0cf806a32fc527270a2d6d",
+      "bundle_sha256": "21d45beb619465ac8f16609de27ec4ced6ba676c1485f155a9e5be38958b63c9"
+    },
+    {
+      "race_id": "20261103-22-06",
+      "cutoff_at": "2026-11-03T13:16:00+09:00",
+      "run_id": 41575766782,
+      "artifact_id": 13202833722,
+      "server_created_at": "2026-11-03T04:03:20Z",
+      "zip_sha256": "025687e33072673f84b76ab75e03a389201015c553ade832dafeaa27a3184978",
+      "json_sha256": "bcea16257ddf2a713c138458757a6d79067b6d2f2e0cf806a32fc527270a2d6d",
+      "bundle_sha256": "8e8e6864bfd3c916f489d7dfe64261ed5db843225062977c943f4e8ea6960d79"
+    },
+    {
+      "race_id": "20261103-09-07",
+      "cutoff_at": "2026-11-03T13:23:00+09:00",
+      "run_id": 41577403445,
+      "artifact_id": 13203739532,
+      "server_created_at": "2026-11-03T04:19:22Z",
+      "zip_sha256": "ac5c25bb8b6aee6716826ef5206fcfcc331238dfe87efa6600aa82992c6eb2d5",
+      "json_sha256": "bac298933ede37aa9e3d76f83313bf96af980a2cc21093dfcd1c30015d9b82fb",
+      "bundle_sha256": "d92822d2922c855bd36bf05717cfbd6e5c7d206a24239057a32862ead9259f36"
+    },
+    {
+      "race_id": "20261103-06-07",
+      "cutoff_at": "2026-11-03T13:27:00+09:00",
+      "run_id": 41577403445,
+      "artifact_id": 13203739532,
+      "server_created_at": "2026-11-03T04:19:22Z",
+      "zip_sha256": "ac5c25bb8b6aee6716826ef5206fcfcc331238dfe87efa6600aa82992c6eb2d5",
+      "json_sha256": "bac298933ede37aa9e3d76f83313bf96af980a2cc21093dfcd1c30015d9b82fb",
+      "bundle_sha256": "8c3aaa17afbe75a8d347150a3f0ec29c77f418535434775b96190185cbb47694"
+    },
+    {
+      "race_id": "20261103-02-07",
+      "cutoff_at": "2026-11-03T13:28:00+09:00",
+      "run_id": 41577403445,
+      "artifact_id": 13203739532,
+      "server_created_at": "2026-11-03T04:19:22Z",
+      "zip_sha256": "ac5c25bb8b6aee6716826ef5206fcfcc331238dfe87efa6600aa82992c6eb2d5",
+      "json_sha256": "bac298933ede37aa9e3d76f83313bf96af980a2cc21093dfcd1c30015d9b82fb",
+      "bundle_sha256": "a5ab45e54b86ad9805a531643285e7ec0b61aba60ecca59a7bb0d15265c97d3b"
+    },
+    {
+      "race_id": "20261103-04-07",
+      "cutoff_at": "2026-11-03T13:40:00+09:00",
+      "run_id": 41579002662,
+      "artifact_id": 13204793279,
+      "server_created_at": "2026-11-03T04:35:43Z",
+      "zip_sha256": "6d1dbf09a7b56b86ccdfacc8f53f90b8d16e7f7f04df22539d32e88e5ad3f271",
+      "json_sha256": "bd1bbe14fd2c2a17b53de378d53c7e0ffbb876bf82713bd8112f8b6fe3d960b8",
+      "bundle_sha256": "b07c381ffa1906c6fd192fdd8112107d102925107a878a96072db4ef5e456166"
+    },
+    {
+      "race_id": "20261103-21-11",
+      "cutoff_at": "2026-11-03T13:42:00+09:00",
+      "run_id": 41579002662,
+      "artifact_id": 13204793279,
+      "server_created_at": "2026-11-03T04:35:43Z",
+      "zip_sha256": "6d1dbf09a7b56b86ccdfacc8f53f90b8d16e7f7f04df22539d32e88e5ad3f271",
+      "json_sha256": "bd1bbe14fd2c2a17b53de378d53c7e0ffbb876bf82713bd8112f8b6fe3d960b8",
+      "bundle_sha256": "0612df2fd7854ea45bbd4acdca8bd7f5b60d7fee05c290747bb90177645c2955"
+    },
+    {
+      "race_id": "20261103-22-07",
+      "cutoff_at": "2026-11-03T13:46:00+09:00",
+      "run_id": 41579002662,
+      "artifact_id": 13204793279,
+      "server_created_at": "2026-11-03T04:35:43Z",
+      "zip_sha256": "6d1dbf09a7b56b86ccdfacc8f53f90b8d16e7f7f04df22539d32e88e5ad3f271",
+      "json_sha256": "bd1bbe14fd2c2a17b53de378d53c7e0ffbb876bf82713bd8112f8b6fe3d960b8",
+      "bundle_sha256": "f00d6c781875f9e38a7c557cdef84c1fac5bdf244e77dcde296a45dfd612c85a"
+    },
+    {
+      "race_id": "20261103-17-08",
+      "cutoff_at": "2026-11-03T13:35:00+09:00",
+      "run_id": 41577960865,
+      "artifact_id": 13204251708,
+      "server_created_at": "2026-11-03T04:24:58Z",
+      "zip_sha256": "9a875585e3e3d93f4683f3f422667e7df7526ab2c2aa700f78ef6e97f6198c5e",
+      "json_sha256": "1df6a56e4b9ce62aa87da1e817d224e225e99d02c9ff9298b251d356101d0f65",
+      "bundle_sha256": "520327353689bf194c297a828e6c16aee43299ccec148f69cd65cfdcb2e83cda"
+    },
+    {
+      "race_id": "20261103-18-11",
+      "cutoff_at": "2026-11-03T13:36:00+09:00",
+      "run_id": 41577960865,
+      "artifact_id": 13204251708,
+      "server_created_at": "2026-11-03T04:24:58Z",
+      "zip_sha256": "9a875585e3e3d93f4683f3f422667e7df7526ab2c2aa700f78ef6e97f6198c5e",
+      "json_sha256": "1df6a56e4b9ce62aa87da1e817d224e225e99d02c9ff9298b251d356101d0f65",
+      "bundle_sha256": "a81ec0e086bbc2c356a89f545506fbab94e9c7ff2976201f42ed3267926796c4"
+    },
+    {
+      "race_id": "20261103-04-09",
+      "cutoff_at": "2026-11-03T14:41:00+09:00",
+      "run_id": 41584448026,
+      "artifact_id": 13206788773,
+      "server_created_at": "2026-11-03T05:32:13Z",
+      "zip_sha256": "8d568a7898a544a946003bf137ab53bfcd9e5339554dc5b35943b8d5bff36893",
+      "json_sha256": "f3c4c6b826b00cdde5f997079256a3ec8542c7f20e3fad0d9848cd424a0c9c54",
+      "bundle_sha256": "6aea7a693ad19326010c9f111fbe083346f5a435dce21f13ee4bb314a368e023"
+    },
+    {
+      "race_id": "20261103-22-09",
+      "cutoff_at": "2026-11-03T14:46:00+09:00",
+      "run_id": 41584448026,
+      "artifact_id": 13206788773,
+      "server_created_at": "2026-11-03T05:32:13Z",
+      "zip_sha256": "8d568a7898a544a946003bf137ab53bfcd9e5339554dc5b35943b8d5bff36893",
+      "json_sha256": "f3c4c6b826b00cdde5f997079256a3ec8542c7f20e3fad0d9848cd424a0c9c54",
+      "bundle_sha256": "9afe79694f3cc3143859f7eded1b8b7d9cc37d3a2959c9f3bef9ecb855ac6a64"
+    }
+  ]
+}
