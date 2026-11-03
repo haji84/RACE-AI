@@ -11,3 +11,6 @@ only_artifacts=13204251708,13204793279
 
 2026-11-03 14:31 JST only previously pending/uncertain official results on verified original batches; preserve earliest independent receipt and append-only evidence, no duplicate scores; 6 official GET per batch.
 only_artifacts=13204251708,13204793279
+
+2026-11-03 15:44 JST: one-shot independent original-readback official-result audit for 14:32 JST 2-race batch only (平和島9R, 福岡9R), compare official finish status/abnormal/return, no post-result prediction changes or repeat counts; cohort totals only after official verification.
+only_artifacts=13206788773
