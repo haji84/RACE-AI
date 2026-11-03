@@ -196,6 +196,26 @@
       "zip_sha256": "b8edc1e7980cf85ba467e48757be21bf84888dc721c2036a3d1691f0789cd383",
       "json_sha256": "4dab5d42de1ce8af860b9700722f935d5e15f12bbd2393735133e6f83a50cc1e",
       "bundle_sha256": "e97ac24b020b133b6e3c0696007340d45228c24dfdf318301438a95abe96793b"
+    },
+    {
+      "race_id": "20261103-24-03",
+      "cutoff_at": "2026-11-03T16:24:00+09:00",
+      "run_id": 41595216355,
+      "artifact_id": 13211344716,
+      "server_created_at": "2026-11-03T07:16:40Z",
+      "zip_sha256": "03be805b2da3cf96e142d98e41bf25a23d5437925838a64a068e8a13bc09b99f",
+      "json_sha256": "c3d7f85be4e548061db22c691692694c08735994c84f092e4f86a7b21c2a5452",
+      "bundle_sha256": "49ec0a2f844da2ccf864b88dcb37cc3c693eecd95e196edaf8e13ecb73a353d0"
+    },
+    {
+      "race_id": "20261103-22-12",
+      "cutoff_at": "2026-11-03T16:30:00+09:00",
+      "run_id": 41595216355,
+      "artifact_id": 13211344716,
+      "server_created_at": "2026-11-03T07:16:40Z",
+      "zip_sha256": "03be805b2da3cf96e142d98e41bf25a23d5437925838a64a068e8a13bc09b99f",
+      "json_sha256": "c3d7f85be4e548061db22c691692694c08735994c84f092e4f86a7b21c2a5452",
+      "bundle_sha256": "13fc5f4a861bc96a1de85aa3c566e4cf0f3ccecb18d258d3b029c0bd5994f3c5"
     }
   ]
 }
