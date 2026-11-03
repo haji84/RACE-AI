@@ -141,9 +141,10 @@ def _verify_admission(admission, feed, raw_digest, now):
              admission['source_sha256'] == raw_digest and
              _source_url(admission['source_url']) == feed['source_url'], 'ADMISSION_SOURCE_MISMATCH')
     _require(type(admission['verified_purposes']) is list and
+             all(type(p) is str for p in admission['verified_purposes']) and
+             len(set(admission['verified_purposes'])) == len(admission['verified_purposes']) and
              {'result_collection', 'private_retention', 'result_analysis'} <= set(
-                 admission['verified_purposes']) and
-             all(type(p) is str for p in admission['verified_purposes']),
+                 admission['verified_purposes']),
              'RESULT_PURPOSES_NOT_ADMITTED')
     _require(utc(admission['checked_at']) <= utc(feed['captured_at']) <= now <
              utc(admission['expires_at']), 'ADMISSION_TIME_INVALID')
