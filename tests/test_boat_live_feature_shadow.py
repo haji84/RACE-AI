@@ -64,7 +64,7 @@ class LiveFeatureShadowTests(unittest.TestCase):
             lambda s,e:e.update(observed_at="2030-11-03T13:15:00+09:00"),
             lambda s,e:e["participants"][0].update(racer_id="4999"),
             lambda s,e:e["participants"][0].update(exhibition_st=None),
-            lambda s,e:e["participants"][0].update(exhibition_st_status="OK"),
+            lambda s,e:e["participants"][0].update(exhibition_st_status="PENDING"),
             lambda s,e:e["participants"][0].update(average_st=1.5),
             lambda s,e:s.update(result_top3=[1,2,3]),
             lambda s,e:e.update(odds={"1-2-3":500}),
