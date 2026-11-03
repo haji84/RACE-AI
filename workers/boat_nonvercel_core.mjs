@@ -71,7 +71,9 @@ function assertResult(race,res,now){
   ||!HEX.test(res.source_sha256||'')||res.result_state!=='confirmed'||res.dead_heat!==false
   ||!Array.isArray(res.refund_boats)||res.refund_boats.length||!Array.isArray(res.top3)||res.top3.length!==3
   ||new Set(res.top3).size!==3||res.top3.some(n=>!Number.isInteger(n)||n<1||n>6)
-  ||clock(res.captured_at)>now||clock(res.captured_at)<clock(race.cutoff_at))throw Error('RESULT_UNADMITTED');
+  ||clock(res.captured_at)>now||clock(res.captured_at)<clock(race.cutoff_at)
+  ||(res.payout_per_100_yen!=null&&(!Number.isSafeInteger(res.payout_per_100_yen)||res.payout_per_100_yen<100)))
+  throw Error('RESULT_UNADMITTED');
  sourceUrl(res.source_url,'raceresult',race.race_id);
 }
 async function settle(db,race,res,{now=()=>Date.now()}={}){
@@ -82,6 +84,10 @@ async function settle(db,race,res,{now=()=>Date.now()}={}){
   captured_at:res.captured_at,freeze_sha256:old?.payload_sha256??null,
   hit1:Number(!!p&&p.top8[0].join('-')===res.top3.join('-')),
   hit8:Number(!!p&&p.top8.some(t=>t.join('-')===res.top3.join('-'))),
+  official_trifecta_payout_per_100_yen:res.payout_per_100_yen??null,
+  hypothetical_stake_yen:p?800:0,
+  hypothetical_return_yen:res.payout_per_100_yen==null?null:
+   (p&&p.top8.some(t=>t.join('-')===res.top3.join('-'))?res.payout_per_100_yen:0),
   model_calibrated:false,retroactive_edit:false};
  const raw=JSON.stringify(report),sha=await digest(raw);
  await db.prepare("INSERT INTO boat_exhibition_outcomes(race_id,result_sha256,report_json,report_sha256,db_saved_at) "+
