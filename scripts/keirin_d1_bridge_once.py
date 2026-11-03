@@ -8,7 +8,7 @@ from __future__ import annotations
 from datetime import datetime, timezone, timedelta
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 import json
 import os
 import re
@@ -38,7 +38,13 @@ def get_github_oidc_token(*, env=None, open_url=urlopen):
     if (not endpoint.startswith("https://") or
             len(request_token)<10 or len(endpoint)>5000):
         raise BridgeError("GITHUB_OIDC_NOT_AVAILABLE")
-    if "token.actions.githubusercontent.com" not in endpoint:
+    from_url=urlsplit(endpoint)
+    if (from_url.scheme!="https" or
+        from_url.hostname not in (
+            "pipelines.actions.githubusercontent.com",
+            "vstoken.actions.githubusercontent.com",
+            "token.actions.githubusercontent.com"
+        ) or from_url.username or from_url.password or from_url.port):
         raise BridgeError("GITHUB_OIDC_ISSUER_UNEXPECTED")
     separator="&" if "?" in endpoint else "?"
     url=endpoint+separator+"audience="+quote(AUD,safe="")
