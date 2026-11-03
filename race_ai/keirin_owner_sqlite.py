@@ -492,7 +492,7 @@ class PrivateKeirinStore:
             rev = 1 if prior is None else prior["revision"] + 1
             self.db.execute(
                 "INSERT INTO result_revisions VALUES (?,?,?,?,?,?,?)",
-                (rid, rev, source_sha, digest, body, at.isoformat(),
+                (rid, rev, source_sha, digest, body, observed.isoformat(),
                  1 if independently_authenticated else 0)
             )
             self.db.execute("COMMIT")
