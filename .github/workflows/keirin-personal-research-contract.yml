@@ -1,3 +1,4 @@
+# Verify opt-in single-result GET boundary without network; routine study remains offline.
 name: KEIRIN personal noncommercial research contract
 on:
   push:
