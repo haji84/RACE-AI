@@ -99,6 +99,18 @@ class OfficialPageTests(unittest.TestCase):
             probe_one_result(81, "20260321", 11, acknowledgement=ACK,
                              opener=Opener(GOOD, status=403))
 
+    def test_real_http_status_surfaced_without_leaking_body(self):
+        from urllib.error import HTTPError
+
+        class RefusingOpener:
+            def open(self, request, timeout):
+                raise HTTPError(request.full_url, 403, "refused", None, None)
+
+        with self.assertRaisesRegex(OfficialResultTransportError,
+                                    "OFFICIAL_PAGE_HTTP_403"):
+            probe_one_result(81, "20260321", 11, acknowledgement=ACK,
+                             opener=RefusingOpener())
+
     def test_non_html_rejected(self):
         with self.assertRaisesRegex(OfficialResultTransportError,
                                     "UNEXPECTED_PROVIDER_MIME"):
