@@ -88,6 +88,7 @@ on:
       - 'race_ai/boat_freeze_index.py'
       - 'tests/test_boat_freeze_index.py'
       - 'tests/test_boat_historical_result_roster.py'
+      - 'tests/boat_historical_route_harness.py'
       - 'race_ai/boat_historical_result_roster.py'
       - 'scripts/boat_nationwide_result_audit.py'
       - 'docs/evidence/2026-11-03/boat-canonical-freeze-index.json'
@@ -182,6 +183,7 @@ jobs:
           PR64_REFERENCE_ROOT: pr64-reference
         run: |
           python tests/pr64_bridge_harness.py
+          python tests/boat_historical_route_harness.py
           python -m unittest tests.test_exhibition_autorun -v
   viewer_contract:
     name: Viewer audit contract
