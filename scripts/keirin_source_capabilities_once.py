@@ -107,6 +107,19 @@ def inspect(name,url):
             race_ids.add(other.group(1))
         if "/races/" in p.path or "jcode=" in p.query or "/race/" in p.path:
             venue_refs.add((p.hostname,p.path[:90]))
+    from collections import Counter
+    page_kinds=Counter()
+    all_ids=set()
+    for link in links:
+        p=urlsplit(link)
+        if p.hostname=="keirin.kdreams.jp":
+            for name in ("racedetail","raceresult","racecard","raceinfo","kaisai"):
+                if "/"+name+"/" in p.path:
+                    page_kinds[name]+=1
+            for hit in re.findall(r"(?<![0-9])20[0-9]{10}(?![0-9])",p.path):
+                all_ids.add(hit)
+    out["kdreams_link_kind_counts"]=dict(sorted(page_kinds.items()))
+    out["all_12digit_ids_from_href"]=len(all_ids)
     out["found_distinct_race_ids"]=len(race_ids)
     out["found_distinct_venue_links"]=len(venue_refs)
     from datetime import datetime, timezone, timedelta
