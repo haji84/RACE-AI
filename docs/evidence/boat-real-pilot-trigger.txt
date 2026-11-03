@@ -5,3 +5,4 @@ Fourth bounded run: cross-check live Miyajima 1R normalized source against indep
 Fifth bounded diagnostic: identify precise JS parser stage mismatch; 3 GET max, 2026-11-03 JST.
 Sixth bounded run: verify repaired navigation parser parity against original frozen Miyajima 1R source.
 Seventh and last bounded source diagnostic: verify actual row count before race; stop if still incompatible.
+Final post-fix one-shot source parity test of Miyajima1R at T minus five minutes; no raw media artifact.
