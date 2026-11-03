@@ -1,0 +1,70 @@
+name: KEIRIN hourly personal research canary
+
+on:
+  push:
+    branches:
+      - feat/keirin-personal-hourly-main-20261103
+    paths:
+      - '.github/workflows/keirin-personal-hourly-canary.yml'
+      - 'race_ai/keirin_mobile_one_shot.py'
+      - 'race_ai/keirin_personal_monitor.py'
+      - 'tests/test_keirin_mobile_one_shot.py'
+      - 'tests/test_keirin_personal_monitor.py'
+      - 'config/keirin_personal_20261103_manifest.json'
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      live:
+        description: "GET only one eligible result page (false = dry-run)"
+        required: false
+        type: boolean
+        default: false
+  schedule:
+    - cron: '17 * * * *'
+      timezone: 'Asia/Tokyo'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keirin-personal-hourly-canary
+  cancel-in-progress: false
+
+jobs:
+  unit:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Verify bounded 1-result scheduling and no data leakage
+        run: python -m unittest discover -s tests -p test_keirin_personal_monitor.py -v
+      - name: Verify redirect, source identity, one-GET and parser boundaries
+        run: python -m unittest discover -s tests -p test_keirin_mobile_one_shot.py -v
+      - name: Dry-run selection, zero provider calls
+        run: python -m race_ai.keirin_personal_monitor --manifest config/keirin_personal_20261103_manifest.json
+
+  personal_hourly:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: At most one personally requested post-race page check
+        shell: bash
+        env:
+          LIVE: ${{ github.event_name == 'schedule' || inputs.live == true }}
+        run: |
+          if [ "$LIVE" = "true" ]; then
+            python -m race_ai.keirin_personal_monitor \
+              --manifest config/keirin_personal_20261103_manifest.json \
+              --allow-one-get
+          else
+            python -m race_ai.keirin_personal_monitor \
+              --manifest config/keirin_personal_20261103_manifest.json
+          fi
