@@ -84,3 +84,18 @@ test('timestamps must contain explicit timezone and do not silently use runner l
  const bad=result();bad.captured_at='2030-11-03T10:35:00';
  await assert.rejects(()=>settle(new FakeD1(),facts(),bad,{now:()=>now+20*60000}),/INVALID_CLOCK/);
 });
+
+test('reacquiring identical official HTML after six hours is idempotent despite new capture time',async()=>{
+ const db=new FakeD1(),f=facts();
+ await freeze(db,f,{now:()=>now});
+ const a=result();a.payout_per_100_yen=930;
+ const first=await settle(db,f,a,{now:()=>now+20*60000});
+ const next={...a,captured_at:'2030-11-03T16:35:00+09:00'};
+ const second=await settle(db,f,next,{now:()=>Date.parse(next.captured_at)+1000});
+ assert.equal(second.status,'RESULT_PDCA_ALREADY_SCORED');
+ assert.equal(second.report_sha256,first.report_sha256);
+ assert.equal(second.captured_at,first.captured_at);
+ assert.equal(db.results.size,1);
+ const conflict={...next,payout_per_100_yen:2000};
+ await assert.rejects(()=>settle(db,f,conflict,{now:()=>Date.parse(next.captured_at)+1000}),/RESULT_REPLAY_CONFLICT/);
+});
