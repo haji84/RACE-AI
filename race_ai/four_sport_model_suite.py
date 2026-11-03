@@ -13,6 +13,7 @@ from .four_sport_matchup_models import (
     predict as matchup_predict, MODEL_IDS as MATCHUP_MODEL_IDS
 )
 from .four_sport_learning import forecast as learned_forecast, LEARNED_ID
+from .ticket_selection_engine import build_ticket_trials, verify_ticket_trials
 
 SCHEMA = "RACE_AI_FOUR_SPORT_RESEARCH_SUITE_V1"
 ALL_MODELS = FACTOR_MODEL_IDS + MATCHUP_MODEL_IDS
@@ -56,6 +57,8 @@ def run_suite(snapshot, *, allow_source=None, learned_model=None):
         "ranked_model_ids":list(models),
         "models":models,
         "model_count":len(models),
+        "ticket_trials": {name: build_ticket_trials(prediction)
+                          for name, prediction in models.items()},
         "research_status":"RESEARCH_UNCALIBRATED_NOT_PERSISTED",
         "official_prediction":False,
         "external_timestamp_receipts":None,
@@ -79,7 +82,12 @@ def verify_suite(record):
         return False
     if record.get("official_prediction") is not False or record.get("external_timestamp_receipts") is not None:
         return False
+    trials = record.get("ticket_trials")
+    if not isinstance(trials, dict) or tuple(trials) != tuple(models):
+        return False
     for name, p in models.items():
+        if not verify_ticket_trials(p, trials[name]):
+            return False
         if (not isinstance(p,dict) or p.get("model_id") != name or
             p.get("snapshot_sha256",p.get("input_sha256")) != record.get("input_sha256") or
             p.get("prediction_sha256") != digest(
