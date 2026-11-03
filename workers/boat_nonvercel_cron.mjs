@@ -1,7 +1,7 @@
 /** Cloudflare cron-only private BOAT pilot. No public HTTP endpoint, Vercel, or wagers. */
 import {freeze,settle,SCHEMA} from './boat_nonvercel_core.mjs';
 import {freezeChallenger,settleChallenger} from './boat_pdca_shadow.mjs';
-import {parseSchedule,parseRacelist,parseExhibition,parseResult} from './boat_official_html.mjs';
+import {parseSchedule,parseRacelist,parseExhibition,parseResultDetails} from './boat_official_html.mjs';
 const HOST='https://www.boatrace.jp',DAY_LIMIT=120,BYTES=900000;
 function jstDay(d){const t=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d).map(p=>[p.type,p.value]));return t.year+t.month+t.day;}
 function url(kind,day,venue,race){return HOST+'/owpc/pc/race/'+kind+'?rno='+race+'&jcd='+venue+'&hd='+day;}
@@ -88,15 +88,18 @@ async function runTick(env,{now=new Date(),fetcher=fetch}={}){
    if(fresh.cutoff_at!==r.cutoff_at)throw Error('RESULT_CUTOFF_REVISION');
    const verifiedRoster=parseRacelist(original.html,resultDay,venue,r.race_no);
    const raw=await fetchBounded(db,resultDay,venue,'raceresult',r.race_no,{fetcher,limit:max,budgetDay:day});
-   const top3=parseResult(raw.html,resultDay,venue,r.race_no,verifiedRoster);
+   const {top3,payout_per_100_yen}=parseResultDetails(raw.html,resultDay,venue,r.race_no,verifiedRoster);
    const fact={phase:'official_result',race_id:r.race_id,source_url:raw.source_url,source_sha256:raw.sha256,
-     captured_at:raw.captured_at,result_state:'confirmed',refund_boats:[],dead_heat:false,top3};
+     captured_at:raw.captured_at,result_state:'confirmed',refund_boats:[],dead_heat:false,top3,payout_per_100_yen};
    const scored=await settle(db,{race_id:r.race_id,cutoff_at:r.cutoff_at},fact);
    let challenger;
    try{challenger=await settleChallenger(db,{race_id:r.race_id,cutoff_at:r.cutoff_at},fact);}
    catch(e){challenger={status:'SHADOW_SCORE_REQUIRES_REVIEW',reason:String(e.message).slice(0,85)};}
    await resultChecked(db,r.race_id,raw.sha256);
    outcomes.push({race_id:r.race_id,status:scored.status,hit8:scored.hit8,
+     official_payout_per_100_yen:scored.official_trifecta_payout_per_100_yen,
+     hypothetical_stake_yen:scored.hypothetical_stake_yen,
+     hypothetical_return_yen:scored.hypothetical_return_yen,
      freeze_sha256:scored.freeze_sha256,shadow_status:challenger.status,
      shadow_hit8:challenger.hit8??null,shadow_reason:challenger.reason??null});
   }catch(e){
