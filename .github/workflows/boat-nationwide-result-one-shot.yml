@@ -62,7 +62,7 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ORIGINAL_ID" > national_source/receipt.json
           gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$ORIGINAL_ID/zip" > national_source/original.zip
       - name: Check frozen-model scorer and input ledger
-        run: python -m unittest tests.test_boat_freeze_index tests.test_boat_ab_result_audit -v
+        run: python -m unittest tests.test_boat_freeze_index tests.test_boat_ab_result_audit tests.test_boat_shadow_result_audit -v
       - name: Validate archive and attribute scores to the first preclose receipt only
         run: |
           python - <<'PY'
@@ -71,6 +71,7 @@ jobs:
           from pathlib import Path
           from scripts import boat_nationwide_result_audit as audit
           from race_ai.boat_freeze_index import load_original_race_ids
+          from race_ai.boat_shadow_result_audit import compare_frozen_current_shadows
           def require(ok,msg):
               if not ok: raise ValueError(msg)
           def sha(b): return hashlib.sha256(b).hexdigest()
@@ -92,8 +93,14 @@ jobs:
               rid=r['race_id']; first=primary[rid];
               if first['artifact_id']!=ident: rows[i]={'race_id':rid,'state':'EXCLUDE_REPEAT_USE_EARLIER_RECEIPT','earliest_artifact_id':first['artifact_id']}
           result['status']='SOME_RESULTS_VERIFIED' if any(r['state']=='INDEPENDENT_AB_RESULT_VERIFIED' for r in rows) else 'OFFICIAL_RESULTS_PENDING_OR_UNVERIFIED'
-          result['first_receipt_per_race_only']=True; (audit.OUT/'result.json').write_text(json.dumps(result,ensure_ascii=False,sort_keys=True,separators=(',',':')))
+          result['first_receipt_per_race_only']=True
+          # Compare an already frozen challenger, never train or rerank it here.
+          # Earliest-receipt exclusion happens first, and missing/special outcomes
+          # remain missing/special rather than silently becoming zero-hit rows.
+          result['frozen_current_feature_comparison']=compare_frozen_current_shadows(json.loads(body),result,saved)
+          (audit.OUT/'result.json').write_text(json.dumps(result,ensure_ascii=False,sort_keys=True,separators=(',',':')))
           for r in rows: print('FINAL_AUDIT',r['race_id'],r['state'],r.get('official_top3'),r.get('payout_per_100_yen'))
+          print('FROZEN_ABC_COMPARISONS',result['frozen_current_feature_comparison']['scored_comparison_count'])
           PY
       - name: Save result separately from original forecast
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
