@@ -1,5 +1,6 @@
 /** Cloudflare cron-only private BOAT pilot. No public HTTP endpoint, Vercel, or wagers. */
 import {freeze,settle,SCHEMA} from './boat_nonvercel_core.mjs';
+import {freezeChallenger,settleChallenger} from './boat_pdca_shadow.mjs';
 import {parseSchedule,parseRacelist,parseExhibition,parseResult} from './boat_official_html.mjs';
 const HOST='https://www.boatrace.jp',DAY_LIMIT=120,BYTES=900000;
 function jstDay(d){const t=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(d).map(p=>[p.type,p.value]));return t.year+t.month+t.day;}
@@ -62,7 +63,12 @@ async function runTick(env,{now=new Date(),fetcher=fetch}={}){
    const fact={phase:'official_result',race_id:r.race_id,source_url:raw.source_url,source_sha256:raw.sha256,
      captured_at:raw.captured_at,result_state:'confirmed',refund_boats:[],dead_heat:false,top3};
    const scored=await settle(db,{race_id:r.race_id,cutoff_at:r.cutoff_at},fact);
-   outcomes.push({race_id:r.race_id,status:scored.status,hit8:scored.hit8,freeze_sha256:scored.freeze_sha256});
+   let challenger;
+   try{challenger=await settleChallenger(db,{race_id:r.race_id,cutoff_at:r.cutoff_at},fact);}
+   catch(e){challenger={status:'SHADOW_SCORE_REQUIRES_REVIEW',reason:String(e.message).slice(0,85)};}
+   outcomes.push({race_id:r.race_id,status:scored.status,hit8:scored.hit8,
+     freeze_sha256:scored.freeze_sha256,shadow_status:challenger.status,
+     shadow_hit8:challenger.hit8??null,shadow_reason:challenger.reason??null});
   }catch(e){outcomes.push({race_id:r.race_id,status:'RESULT_PENDING_OR_REJECTED',reason:String(e.message).slice(0,100)});}
   break;
  }
@@ -82,7 +88,14 @@ async function runTick(env,{now=new Date(),fetcher=fetch}={}){
     captured_at:before.captured_at,source_url:before.source_url,source_sha256:before.sha256,program_sha256:list.sha256,
     rights_verified:true,license_purpose:'private_analysis',racers};
    const frozen=await freeze(db,facts);
-   forecasts.push({race_id:r.race_id,status:frozen.status,stored_at:frozen.stored_at??null});
+   let shadow={status:'PDCA_PRIMARY_NOT_FROZEN'};
+   if(frozen.status==='FROZEN_DB_READBACK_VERIFIED'){
+    try{shadow=await freezeChallenger(db,facts);}
+    catch(e){shadow={status:'PDCA_SHADOW_REQUIRES_REVIEW',reason:String(e.message).slice(0,85)};}
+   }
+   forecasts.push({race_id:r.race_id,status:frozen.status,stored_at:frozen.stored_at??null,
+    shadow_status:shadow.status,shadow_training_count:shadow.training_count??null,
+    shadow_reason:shadow.reason??null});
   }catch(e){forecasts.push({race_id:r.race_id,status:'EXHIBITION_PENDING_OR_REJECTED',reason:String(e.message).slice(0,100)});}
   break;
  }
