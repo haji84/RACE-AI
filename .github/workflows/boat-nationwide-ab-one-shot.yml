@@ -12,7 +12,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   official_national:
-    name: Existing all-day P0 and exhibition P1 models
+    name: Existing P0 race-isolated parser and exhibition P1 models
     if: github.repository == 'haji84/RACE-AI'
     runs-on: ubuntu-24.04
     timeout-minutes: 8
@@ -30,7 +30,7 @@ jobs:
         with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
       - name: Check existing models and new orchestration, no source HTTP
         run: |
-          python -m unittest tests.test_existing_day_program tests.test_boat_observed_pairwise_models tests.test_boat_deadline_queue tests.test_boat_ab_shadow tests.test_boat_racer_tendencies -v
+          python -m unittest tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_deadline_queue tests.test_boat_ab_shadow tests.test_boat_racer_tendencies -v
           (cd pr72-reference && python -m unittest discover -s tests -p test_boat_observed_program_bridge.py -v)
       - name: Current-day morning forecasts, never wait for exhibition
         id: morning

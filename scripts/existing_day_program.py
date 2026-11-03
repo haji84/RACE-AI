@@ -84,10 +84,13 @@ def collect(*, clock=lambda: datetime.now(timezone.utc)):
         capture = clock().isoformat(); meta = inspect_lzh(raw)
         status.update(source_sha256=meta['sha256'], captured_at=capture, source_requests=1)
         body = extract_daily_lzh(raw, f'B{day:%y%m%d}.TXT')
-        program = normalize_b_snapshot(body, day=day, source_url=url, observed_at=capture,
-                    require_details=True, archive_sha256=meta['sha256'])
+        from race_ai.program_race_isolation import normalize_races
+        program = normalize_races(body, day=day, source_url=url, observed_at=capture,
+                                  archive_sha256=meta['sha256'])
         status = forecast_program(program, clock=clock)
-        status.update(extracted_text_sha256=program['extracted_text_sha256'], source_requests=1)
+        status.update(extracted_text_sha256=program['extracted_text_sha256'], source_requests=1,
+                      schedule=program['all_schedule'], blocked_races=program['blocked_races'])
+        status['skipped'].extend(program['blocked_races'])
     except Exception as exc:
         status.update(failure_class=type(exc).__name__, reason=str(exc)[:200])
         if body is not None:
