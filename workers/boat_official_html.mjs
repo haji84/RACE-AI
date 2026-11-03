@@ -46,7 +46,7 @@ function parseSchedule(html,day,venue){
 function parseRacelist(html,day,venue,race){
  pageIdentity(html,day,venue,race,'racelist');
  const t=only(tables(html),['枠','ボートレーサー','全国','当地','モーター','ボート']);
- if(t.rows.length!==6)throw Error('OFFICIAL_RACELIST_SIX_MISSING');
+ if(t.rows.length!==6)throw Error('OFFICIAL_RACELIST_ROWS_'+t.rows.length);
  const racers=t.rows.map(row=>{
   if(row.length<8||!/^[1-6]$/.test(row[0].text))throw Error('OFFICIAL_RACELIST_LANE_INVALID');
   const reg=/\b([0-9]{4})\s*\//.exec(row[2].text);
