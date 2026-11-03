@@ -40,6 +40,13 @@ def profile_before(records: list[dict], *, as_of: str, racer_id: str) -> dict:
     seen = set()
     courses = {str(i): {"starts": 0, "wins": 0, "top2": 0, "top3": 0,
                         "win_rate": None} for i in range(1, 7)}
+    # Frame-versus-actual-course samples are needed to model future
+    # pre-race entry changes. A lane number is NEVER proof of actual entry.
+    frame_course_counts = {str(f): {str(course): 0 for course in range(1,7)}
+                           for f in range(1,7)}
+    win_method_by_course = {str(course): {method: 0 for method in sorted(METHODS)}
+                            for course in range(1,7)}
+    selected_races = []
     stats = {"entered_inward": 0, "entered_from_outer_to_1_3": 0,
              "displaced_outward": 0, "displaced_top3": 0,
              "crossed_by_outer_frame": 0, "crossed_by_outer_frame_top3": 0,
@@ -82,7 +89,11 @@ def profile_before(records: list[dict], *, as_of: str, racer_id: str) -> dict:
         if selected is None:
             continue
         included.append(rid)
+        selected_races.append((cutoff, place, selected["course"]))
         f, c, place = selected["frame"], selected["course"], selected["finish"]
+        frame_course_counts[str(f)][str(c)] += 1
+        if place == 1:
+            win_method_by_course[str(c)][race["winner_method"]] += 1
         bucket = courses[str(c)]
         bucket["starts"] += 1
         bucket["wins"] += (place == 1)
@@ -103,10 +114,25 @@ def profile_before(records: list[dict], *, as_of: str, racer_id: str) -> dict:
     for bucket in courses.values():
         if bucket["starts"]:
             bucket["win_rate"] = bucket["wins"] / bucket["starts"]
+    # New racers are never penalized for lacking lifetime volume. Latest
+    # source-confirmed finish samples are provided as observed recent form,
+    # not a subjective age or talent label.
+    selected_races.sort(key=lambda x:x[0], reverse=True)
+    def last_n(n):
+        sample = selected_races[:n]
+        return {"starts":len(sample),
+                "wins":sum(place==1 for _,place,_ in sample),
+                "top3":sum(place<=3 for _,place,_ in sample),
+                "top3_rate":sum(place<=3 for _,place,_ in sample)/len(sample)
+                             if sample else None}
+    recent = {"last_10":last_n(10),"last_30":last_n(30)}
     return {"schema": "RACE_AI_BOAT_RACER_HISTORIC_TENDENCIES_V1",
             "racer_id": racer_id, "as_of": clock.isoformat(),
             "sample_races": len(included), "race_ids": included,
             "actual_entry_course_history": courses, "tendencies": stats,
+            "by_frame_actual_course_counts":frame_course_counts,
+            "wins_by_actual_course_and_kimarite":win_method_by_course,
+            "recent_form":recent,
             "derived_from_verified_results_only": True,
             "source_authenticity_independently_verified": False,
             "model_score_or_personality_label": None,
