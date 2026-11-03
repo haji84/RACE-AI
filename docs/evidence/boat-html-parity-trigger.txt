@@ -1,1 +1,3 @@
 2026-11-03 JST one-shot, private-analysis-only HTML parser parity audit. One bounded GET at most. Compare PR64 Python and PR71 JS on same in-memory page. No raw HTML persistence, prediction, paid resources, cron, production, or betting. User requested verification.
+
+2026-11-03 JST retry once after confirmed fullwidth U+FF11 -> NFKC parser fix. Still max ONE official GET, no forecasts or raw retention.
