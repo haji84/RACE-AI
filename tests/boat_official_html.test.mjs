@@ -65,3 +65,10 @@ test('non-top-three finish disposition is not a fabricated ordinal place',()=>{
  const firstDisqualified=result.replace('<td>1</td>','<td>失</td>');
  assert.throws(()=>parseResult(firstDisqualified,day,venue,race,roster),/TOP3_OR_ROSTER_INCOMPLETE/);
 });
+
+test('unrelated official table body text cannot impersonate payout or refund thead',()=>{
+ const roster=parseRacelist(racelist,day,venue,race);
+ const incidental=table(['備考'],[['返還 勝式 組番 払戻金']]);
+ assert.deepEqual(parseResult(result+incidental,day,venue,race,roster),[1,2,3]);
+ assert.equal(parseResultDetails(result+incidental,day,venue,race,roster).payout_per_100_yen,930);
+});
