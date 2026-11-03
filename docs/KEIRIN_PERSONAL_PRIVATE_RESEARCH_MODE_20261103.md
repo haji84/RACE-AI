@@ -33,6 +33,23 @@ python -m scripts.keirin_personal_research_once \
 
 The result is explicitly marked `RESEARCH_ONLY_PROVIDER_CANDIDATE`. It does not claim official result authentication or externally witnessed immutable forecast storage, and therefore `formal_hit_at_8_all` stays `null`.
 
+## Optional one-click research fetch, explicit and single-race
+
+The same local tool also supports `--fetch-one` to issue **one** user-requested GET from the already implemented, bounded single-page result adapter. This is **not** a scheduler. Confirm the chosen provider's applicable site terms and the page is accessible without bypassing restrictions.
+
+```bash
+python -m scripts.keirin_personal_research_once \
+  --reference /private/keirin_20261103_forecasts.json \
+  --fetch-one --route legacy \
+  --ymd 20261103 --venue 36 --race-no 1 \
+  --race-id 202611033601 \
+  --cutoff-at '2026-11-03T08:45:00+09:00' \
+  --output /private/odawara1r_one_fetch_study.json \
+  --personal-only
+```
+
+The adapter performs preflight date/race/reference checks *before* contacting the site, accepts at most one page (500KB/8s), rejects redirect and unavailable data, and writes only a private research comparison. It does not record a confirmed official result or permit bulk calls simply because this command succeeds.
+
 ## What personal mode does NOT solve
 
 - Real-time permitted recurring data collection, including per-provider usage limits and technical protections
