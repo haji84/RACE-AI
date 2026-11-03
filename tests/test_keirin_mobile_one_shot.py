@@ -50,6 +50,26 @@ class FormatTests(unittest.TestCase):
         self.assertFalse(report["race_results_parsed"])
         self.assertFalse(report["forecast_generated"])
         self.assertFalse(report["raw_page_stored"])
+    def test_candidate_triplet_and_payout(self):
+        from race_ai.keirin_mobile_one_shot import extract_trifecta_candidate
+        got=extract_trifecta_candidate("払戻 3連単 1-6-7 (5) 2,670円")
+        self.assertEqual(got["triple"],[1,6,7])
+        self.assertEqual(got["payout_100yen"],2670)
+        self.assertEqual(got["state"],"ONE_UNVERIFIED_PROVIDER_CANDIDATE")
+        self.assertFalse(probe_one("20261022",36,2,acknowledgement=ACK,
+                                   opener=_Client(GOOD))["result_officially_authenticated"])
+
+    def test_conflicting_payout_refused(self):
+        from race_ai.keirin_mobile_one_shot import extract_trifecta_candidate
+        got=extract_trifecta_candidate("3連単 1-6-7 2670円 3連単 2-5-1 9010円")
+        self.assertIsNone(got["triple"])
+
+    def test_no_payout_does_not_infer_loss(self):
+        from race_ai.keirin_mobile_one_shot import extract_trifecta_candidate
+        got=extract_trifecta_candidate("払戻待ち 3連単")
+        self.assertEqual(got["state"],"NO_UNAMBIGUOUS_TRIFECTA")
+        self.assertIsNone(got["payout_100yen"])
+
     def test_no_result_is_not_final(self):
         p=probe_one("20261022",36,2,acknowledgement=ACK,
           opener=_Client(b"<p>not published yet</p>"))
