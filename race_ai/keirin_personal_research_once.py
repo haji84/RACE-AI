@@ -70,6 +70,49 @@ def compare_personal_once(*, result_probe, original_reference,
     }
 
 
+def one_private_fetch_and_compare(*, original_reference, race_id, cutoff_at,
+                                  ymd, venue_code, race_no, personal_scope,
+                                  one_get_acknowledgement, route="legacy",
+                                  opener=None):
+    """One expressly requested personal GET, never a recurring collector.
+
+    The website's own access terms still apply. This function neither
+    invents a rightsholder grant nor disables access limitations.
+    """
+    from .keirin_mobile_one_shot import (
+        ACK, probe_one, page_url, MobileProbeError
+    )
+    if personal_scope != "USER_PRIVATE_NONCOMMERCIAL_RESEARCH":
+        raise PersonalResearchError("PERSONAL_NONCOMMERCIAL_SCOPE_REQUIRED")
+    if one_get_acknowledgement != "USER_EXPLICIT_ONE_RESULT_GET":
+        raise PersonalResearchError("ONE_GET_EXPLICIT_ACTION_REQUIRED")
+    # Identity and original-before-deadline checks happen BEFORE source I/O.
+    page_url(ymd, venue_code, race_no)
+    expected_id = f"{ymd}{venue_code:02d}{race_no:02d}"
+    if race_id != expected_id:
+        raise PersonalResearchError("REQUESTED_RACE_ID_MISMATCH")
+    if (type(original_reference) is not dict or
+            type(original_reference.get("races")) is not list or
+            len([x for x in original_reference["races"]
+                 if type(x) is dict and x.get("id") == expected_id]) != 1):
+        raise PersonalResearchError("REFERENCE_RACE_NOT_FOUND")
+    from .keirin_result_delivery import utc
+    try:
+        if not utc(original_reference["stamp_jst"]) < utc(cutoff_at):
+            raise PersonalResearchError("REFERENCE_NOT_PRE_CUTOFF")
+    except (KeyError, TypeError, ValueError):
+        raise PersonalResearchError("REFERENCE_TIME_INVALID") from None
+    # The earlier single-page transport enforces one GET, 8 sec/500KB limit,
+    # HTTPS exact host, no redirect, and no HTML retention.
+    try:
+        probe = probe_one(ymd, venue_code, race_no,
+                          acknowledgement=ACK, route=route, opener=opener)
+    except MobileProbeError:
+        raise PersonalResearchError("ONE_PAGE_PROVIDER_UNAVAILABLE") from None
+    return compare_personal_once(
+        result_probe=probe, original_reference=original_reference,
+        race_id=expected_id, cutoff_at=cutoff_at, personal_scope=personal_scope)
+
 def save_private_once(document, output_path):
     """Create one 0600 file, never replace uncertain or old output."""
     target = Path(output_path)
