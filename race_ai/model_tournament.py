@@ -154,12 +154,19 @@ def evaluate(records, schedule=None, *, minimum_paired=100, minimum_days=5):
     _need(type(records) is list and len(records) <= 10000, "bounded records")
     indexed = {}
     rosters = {}
+    versions = {}
     for item in records:
         key, names, scored = _score_record(item)
         _need(key not in indexed, "duplicate race and phase, original immutable")
         indexed[key] = scored
         prior = rosters.setdefault(key[0], names)
         _need(prior == names, "different model rosters in the same cohort")
+        signatures = tuple((name, model["model_version"],
+                            model.get("model_sha256"))
+                           for name, model in item["suite"]["models"].items())
+        pinned = versions.setdefault(key[0], signatures)
+        _need(pinned == signatures,
+              "mixed model versions or weights in the same cohort")
     if schedule is None:
         expected = set(indexed)
         completeness_known = False
@@ -201,7 +208,10 @@ def evaluate(records, schedule=None, *, minimum_paired=100, minimum_days=5):
         for mid in roster:
             shared = [paired[rid][mid] for rid in matched_races]
             per_model[mid] = _metrics(shared)
-        cutoff_ok = (completeness_known and
+        unresolved = sorted(rid for rid, batch in rows_for_cohort.items()
+                            if any(row["status"] not in SETTLED for row in batch
+                                   if row["plan_id"] == "fixed_8"))
+        cutoff_ok = (completeness_known and not unresolved and
                      not any(k[0] == cohort for k in expected-indexed.keys()))
         eligible = n >= minimum_paired and days >= minimum_days and cutoff_ok
         leaders = []
@@ -224,6 +234,7 @@ def evaluate(records, schedule=None, *, minimum_paired=100, minimum_days=5):
             "paired_days": days, "minimum_paired": minimum_paired,
             "minimum_days": minimum_days,
             "coverage_in_expected_schedule": cutoff_ok,
+            "unresolved_result_race_ids": unresolved,
             "metrics_same_races_fixed_8": per_model,
             "provisional_research_leader": leaders[0] if len(leaders)==1 else None,
             "selection_state": ("RESEARCH_PARETO_LEADER_NOT_APPROVED"
