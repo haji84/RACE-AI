@@ -1,0 +1,63 @@
+name: KEIRIN bounded personal hourly results canary
+
+on:
+  push:
+    branches: [feat/p0-offline-discovery-gate-20261022]
+    paths: ['.github/workflows/keirin-personal-hourly-canary.yml']
+  workflow_dispatch:
+    inputs:
+      live:
+        description: "One GET on currently selected race (false = dry run)"
+        required: false
+        type: boolean
+        default: false
+  schedule:
+    - cron: '17 * * * *'
+      timezone: 'Asia/Tokyo'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keirin-personal-hourly-canary
+  cancel-in-progress: false
+
+jobs:
+  offline_guard_tests:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Verify one request limit and missing date behavior without HTTP
+        run: python -m unittest discover -s tests -p 'test_keirin_personal_monitor.py' -v
+      - name: Verify no-redirect and ambiguity boundary without HTTP
+        run: python -m unittest discover -s tests -p 'test_keirin_mobile_one_shot.py' -v
+      - name: Verify selection without GET
+        run: python -m race_ai.keirin_personal_monitor --manifest config/keirin_personal_20261103_manifest.json
+
+  hourly_one_page_check:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: One personally requested research check, no retries or raw logs
+        env:
+          LIVE: ${{ github.event_name == 'schedule' || inputs.live == true }}
+        shell: bash
+        run: |
+          if [ "$LIVE" = "true" ]; then
+            python -m race_ai.keirin_personal_monitor \
+              --manifest config/keirin_personal_20261103_manifest.json \
+              --allow-one-get
+          else
+            python -m race_ai.keirin_personal_monitor \
+              --manifest config/keirin_personal_20261103_manifest.json
+          fi
