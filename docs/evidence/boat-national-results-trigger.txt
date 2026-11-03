@@ -8,3 +8,6 @@ Canonical handoff follow-through, 2026-11-03: verify original archives for all t
 
 Reconciliation: earliest receipt takes precedence for Heiwajima 7R. Only the recovered 13:24 and unresolved 13:35 batches need further evaluation. Do not count any race twice.
 only_artifacts=13204251708,13204793279
+
+2026-11-03 14:31 JST only previously pending/uncertain official results on verified original batches; preserve earliest independent receipt and append-only evidence, no duplicate scores; 6 official GET per batch.
+only_artifacts=13204251708,13204793279
