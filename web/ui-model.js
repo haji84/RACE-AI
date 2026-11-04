@@ -51,6 +51,36 @@
       });
       return values.join(" / ") || "未取得";
     },
+    modelCoverage(records, catalog, {sport} = {}) {
+      // Presence counts only: genuine predictions/results keep their own gates.
+      const selected = records.filter(row => row.sport === sport);
+      const targetRaces = new Set(selected.map(row => row.race_id)).size;
+      const allPredictions = row => [row.prediction, ...(row.comparison_predictions || [])].filter(Boolean);
+      const known = new Set(catalog.map(spec => spec.model_id));
+      const additional = [...new Set(selected.flatMap(allPredictions).map(p => p.model_id).filter(id => id && !known.has(id)))].sort();
+      const models = catalog.map(spec => {
+        const applicable = spec.applicable_sports.includes(sport), targets = applicable ? targetRaces : 0;
+        const saved = new Set(), incompatible = new Set(), phaseRaces = {P0: new Set(), P1: new Set(), UNKNOWN: new Set()}, variants = new Map();
+        for (const row of selected) for (const p of allPredictions(row)) {
+          // Exact identity only. A version or alias is never inferred as a model ID.
+          if (p.model_id !== spec.model_id) continue;
+          if (!applicable) { incompatible.add(row.race_id); continue; }
+          const stage = ["P0", "P1"].includes(p.stage) ? p.stage : "UNKNOWN";
+          saved.add(row.race_id); phaseRaces[stage].add(row.race_id);
+          const key = JSON.stringify([row.scope || "unknown", stage, p.model_version ?? null]);
+          if (!variants.has(key)) variants.set(key, {scope: row.scope || "unknown", stage, model_version: p.model_version ?? null, raceIds: new Set()});
+          variants.get(key).raceIds.add(row.race_id);
+        }
+        const stages = Object.fromEntries(Object.entries(phaseRaces).map(([stage, ids]) => [stage, {target_races: stage === "UNKNOWN" ? null : targets, saved_races: ids.size, missing_races: stage === "UNKNOWN" ? null : targets - ids.size}]));
+        const versions = [...variants.values()].map(v => ({scope: v.scope, stage: v.stage, model_version: v.model_version, saved_races: v.raceIds.size}));
+        return {...spec, applicable, target_races: targets, saved_races: saved.size, missing_races: targets - saved.size,
+          stages, versions, inapplicable_saved_races: incompatible.size,
+          state: !applicable ? "NOT_APPLICABLE" : !saved.size ? "INPUT_MISSING" : saved.size < targets ? "PARTIAL_SAVED" : "SAVED_FOR_IMPORTED_RACES"};
+      });
+      return {models, target_races: targetRaces, applicable_models: models.filter(m => m.applicable).length,
+        not_applicable_models: models.filter(m => !m.applicable).length, additional_model_ids: additional,
+        counts_only: true, scope: "IMPORTED_RACE_LEDGER_ONLY", all_models_operational: false};
+    },
     filterRaces(records, {sport = "all", day = "", allDates = false, period = "day", query = "", venue = "", forecastOnly = false, candidatesOnly = false, candidateRaceIds = [], sort = "venue"} = {}) {
       const needle = query.trim().toLocaleLowerCase("ja-JP");
       let weekStart = "", weekEnd = "";

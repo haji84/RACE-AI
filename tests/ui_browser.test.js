@@ -42,6 +42,9 @@ async function main() {
     await page.locator('#source-state').waitFor();
     assert.match(await page.locator('#source-state').innerText(), /未取得|未読込|未接続/);
     assert.equal(await page.locator('#page-home .race-card').count(),0);
+    await page.locator('[data-page="research"]').filter({visible:true}).first().click();
+    assert.equal(await page.locator('#all-model-coverage tbody tr[data-model-id]').count(),16,'empty data must not hide any registered model family');
+    await page.locator('[data-page="home"]').filter({visible:true}).first().click();
     mark(`${width}: honest empty startup`);
     await page.locator('#race-file').setInputFiles({name:'synthetic.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(fixture))});
     await page.waitForFunction(()=>document.querySelector('#source-state').textContent.includes('合成'));
@@ -71,6 +74,7 @@ async function main() {
         await page.locator('#page-races [data-open-race]').first().click();
       } else await nav(name);
       await page.locator(`#page-${name}`).waitFor({state:'visible'});
+      if(name==='research') assert.equal(await page.locator('#all-model-coverage tbody tr[data-model-id]').count(),16,'all-model research coverage includes unavailable and inapplicable families');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,`${width} ${name} overflow`);
       await page.screenshot({path:path.join(output,`${width}-${name}.png`),fullPage:true});
     }

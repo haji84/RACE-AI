@@ -1,3 +1,27 @@
+# 2026-11-04 20:09 JST — 全レース×既存全モデルを必須として実行層・全件不足検出を追加
+
+オーナーの追補「全レースを全モデルで予想すること」を必須条件にした。実入力のない未予想を一覧化しただけで達成扱いにしない。開始HEAD ef9e6013d89b110ee54c8ebafb137e950c2a26a7。既存Draft PR71の同じブランチのみ、新PR・新モデル系統・新workflow/task/scheduleなし。
+
+| 項目 | 今回の結果 |
+| --- | --- |
+| 既存16系統の実行経路 | オフラインで既存関数へ全16系統を接続、実関数を合成入力で実行して試験。先頭1モデルだけを捨てず各出力を保持 |
+| 全レース×モデル×段階/版の不足 | 実IDのscheduleから全slotを展開。対象外・入力不足・学習物不足・期限超過・選外・生成済み未受領・元原本再利用を分離 |
+| 元原本の保持 | race/stage/model/version/native本文SHA/親入力を検査。保存済みを再発行しない。別モデル未保存をレース単位で省かない |
+| 画面 | 取込0件でも16系統すべてを表示。競技別適用15/5/6/5、段階/版と未予想分母を保持。4幅28キャプチャ・25操作グループ成功 |
+| テスト | Python618件、Node165件すべて成功、スキップ0。独立技術レビューの重大指摘を修正して再検証 |
+| 私有原本の接続 | 過去Library保存記録と20オート原本の索引を特定。現環境に元バイトなし。既存PR72 SHA固定リーダーを再利用、12テスト成功。実読戻し0件 |
+| 4競技実運転・全レース全モデル事前保存 | **未達**。新実行層の原本/入力/許諾/私有保存/外部freeze/resultへのライブ接続が必要。元Actions巡回は5ボート基準＋学習版のまま |
+| 実機Safari・精度改善 | 未受入/未実証。Chromiumを実機Safariと呼ばず、既存係数・本番モデルを自動変更しない |
+| exact-HEAD CI | この文書の時点ではローカル検証完了・push前。push後の既存CIを最終報告で確認する |
+
+[実行層と呼出契約](ALL_EXISTING_MODEL_DISPATCH.md) / [私有保存先調査](evidence/2026-11-04/all-existing-models/PRIVATE_SOURCE_DISCOVERY.md) / [検証件数](evidence/2026-11-04/all-existing-models/validation-summary.json) / [合成dispatch証拠](evidence/2026-11-04/all-existing-models/dispatch-synthetic-proof.json)。モデルエンジンの数式や既存選別条件は変更していない。PDCAは既存純粋関数だけをNodeで呼び、Cloudflare/D1には接続しない。Seller既存の07:00以前・最大5件条件を分割/再実行で迂回せず、選外も未予想として残す。
+
+本人Libraryにあったと記録されている競輪元JSONはkeirin_20261103_forecasts.json（58,754bytes、元whole-file SHAは調査記録参照）。現在のLibrary内容をこの接続から読む手段はなく、現在の存在確認とは区別する。GitHub暗号化履歴の実メタデータはsynthetic/gen1であり、実原本には使用していない。原本/秘密鍵/買い目/私有フルパスのpublic転記なし。実原本を本人がこの環境へ接続できれば元SHA照合で読めるが、whole-file一致を個別の締切前外部receiptに格上げしない。
+
+取得240/240停止済みrunの再起動0、追加provider GET0、原本上書き0、receipt新造0、main統合0、一般公開0、実投票0、本番モデル切替0。既存実runの560基準行/417通常採点という別writerの記録を保存し、今回の全16/全4競技の実行件数や精度改善と混同しない。GitHub API通信許可は引き続き未適用、Issue14/68追記と最終private artifactの再取得は未完了。
+
+---
+
 # 2026-11-04 19:31 JST — PR71反映とGitHub CI成功を確認
 
 検証対象HEAD `d419d8bb5d7d30fd71ce2bda449a085c8124f0c6` を既存Draft PR71へ通常pushし、PRページのheadShaとremoteを照合。Forecast audit viewer contract [run41814145631](https://github.com/haji84/RACE-AI/actions/runs/41814145631) と AUTORACE offline contract [run41814145656](https://github.com/haji84/RACE-AI/actions/runs/41814145656) はともにcompleted/success。両runページの対象commit表示d419d8bを照合した。viewer既存job内で新しい操作試験を実行し、合成証拠artifact（17.8MB、GitHub登録digest a55e5d3a8d3abd6370de2171c0c4b3b34739b357b243e8018a12f1d2aed90ee9）を確認。これはartifactの独立ZIP再ハッシュではない。artifact名のb8ab9a...はPRのGitHub merge SHAであり、明示checkoutしたhead d419d8bと取り違えない。

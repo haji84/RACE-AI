@@ -46,4 +46,53 @@ assert.equal(M.outcome({...resultRow, result: {status: "void"}}), "VOID");
 assert.equal(M.refundSummary({refunds: [], refund_boats: [6], refund_yen: 100}), "返還対象番号 6 / 返還額 100円", "empty refund arrays cannot hide targets or amounts");
 assert.equal(M.refundSummary({refund_combinations: [[1, 2, 3]], refund_yen: 0}), "返還対象券 [[1,2,3]] / 返還額 0円");
 assert.equal(M.refundSummary({}), "未取得");
-console.log("UI model behavior passed: variable entrants, allocation limits, manual ledger and real filters");
+
+const catalogPath = path.join(__dirname, "../web/existing-model-catalog.js");
+assert.ok(fs.existsSync(catalogPath), "all sixteen existing families must be available without a provider request");
+const catalog = require(catalogPath);
+assert.equal(catalog.models.length, 16);
+assert.equal(new Set(catalog.models.map(m => m.model_id)).size, 16);
+for (const [sport, expected] of [["boat", 15], ["keirin", 5], ["autorace", 6], ["horse", 5]]) {
+  const emptyCoverage = M.modelCoverage([], catalog.models, {sport});
+  assert.equal(emptyCoverage.models.length, 16, "unconnected families never disappear");
+  assert.equal(emptyCoverage.applicable_models, expected);
+  assert.equal(emptyCoverage.not_applicable_models, 16 - expected);
+  assert.equal(emptyCoverage.target_races, 0);
+  assert.equal(emptyCoverage.counts_only, true);
+  assert.ok(emptyCoverage.models.filter(m => m.applicable).every(m => m.state === "INPUT_MISSING"));
+  assert.ok(emptyCoverage.models.filter(m => !m.applicable).every(m => m.state === "NOT_APPLICABLE" && m.target_races === 0 && m.missing_races === 0));
+}
+const sharedId = "multisport-factor-interaction-v1";
+const coverageInput = [
+  {race_id: "boat:one", sport: "boat", scope: "research", prediction: {model_id: sharedId, model_version: "v1", stage: "P0"}, comparison_predictions: [
+    {model_id: sharedId, model_version: "v2", stage: "P0"},
+    {model_id: sharedId, model_version: "v2", stage: "P1"},
+    {model_id: "outside-the-catalog", model_version: "v1", stage: "P0"}
+  ]},
+  {race_id: "boat:missing", sport: "boat", scope: "research", prediction: null},
+  {race_id: "boat:unknown-stage", sport: "boat", scope: "synthetic", prediction: {model_id: sharedId, model_version: "v1", stage: "UNKNOWN"}},
+  {race_id: "horse:ignored", sport: "horse", scope: "research", prediction: {model_id: sharedId, model_version: "v1", stage: "P0"}}
+];
+const beforeCoverage = JSON.stringify(coverageInput);
+const coverage = M.modelCoverage(coverageInput, catalog.models, {sport: "boat"});
+const sharedCoverage = coverage.models.find(m => m.model_id === sharedId);
+assert.equal(coverage.target_races, 3, "selected-sport missing forecasts remain in denominator");
+assert.equal(sharedCoverage.saved_races, 2, "versions and stages do not double count a race");
+assert.equal(sharedCoverage.missing_races, 1);
+assert.equal(sharedCoverage.stages.P0.target_races, 3);
+assert.equal(sharedCoverage.stages.P0.saved_races, 1);
+assert.equal(sharedCoverage.stages.P0.missing_races, 2);
+assert.equal(sharedCoverage.stages.P1.target_races, 3);
+assert.equal(sharedCoverage.stages.P1.saved_races, 1);
+assert.equal(sharedCoverage.stages.UNKNOWN.saved_races, 1);
+assert.equal(sharedCoverage.versions.length, 4, "saved scope/stage/version variants stay separate");
+assert.deepEqual(coverage.additional_model_ids, ["outside-the-catalog"]);
+assert.ok(coverage.models.filter(m => m.applicable && m.model_id !== sharedId).every(m => m.saved_races === 0 && m.missing_races === 3));
+assert.equal(JSON.stringify(coverageInput), beforeCoverage, "coverage must never rewrite saved original predictions");
+assert.equal(Object.hasOwn(sharedCoverage, "hit8"), false, "saved-count coverage never fabricates performance");
+const specialistId = catalog.models.find(m => m.applicable_sports.length === 1 && m.applicable_sports[0] === "boat").model_id;
+const incompatible = M.modelCoverage([{race_id: "horse:bad-family", sport: "horse", scope: "research", prediction: {model_id: specialistId, model_version: "v1", stage: "P0"}}], catalog.models, {sport: "horse"}).models.find(m => m.model_id === specialistId);
+assert.equal(incompatible.state, "NOT_APPLICABLE");
+assert.equal(incompatible.saved_races, 0, "a specialist import cannot turn another sport operational");
+assert.equal(incompatible.inapplicable_saved_races, 1, "the incompatible supplied original stays visible as a mismatch");
+console.log("UI model behavior passed: allocation, manual ledger, real filters and all sixteen existing model families");

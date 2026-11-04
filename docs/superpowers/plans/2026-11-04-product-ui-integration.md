@@ -54,3 +54,16 @@
 - First ordinary push was rejected when concurrent writer e587f5a arrived. Fetched and merged that documentation-only update without reset/force; retained its final-cycle audit and explicitly distinguished its provenance. Application/test trees are unchanged by this merge.
 
 - d419d8b pushed after preserving concurrent e587f5a. Existing viewer41814145631 and AUTORACE41814145656 completed/success for this head; evidence documents updated separately. Issue API writes remain blocked.
+
+## Owner follow-up: every race / every existing applicable model
+
+- Keep all16 existing families; enumerate actual supplied race identities × applicable models/stages/versions, not count-only completeness.
+- Add native-input offline dispatcher reusing original algorithm calls, retaining every returned model and preserving saved originals before filling missing siblings. No live fetch, workflow change, storage-provider change, or model promotion.
+- Reuse unchanged PR72 OwnerPrivateFileReader and original tests in PR71 to support pinned read-only bytes; investigate real source locations, never mistake synthetic encrypted checkpoint for real private history.
+- Local source search found no known original filename in mounted Library/shared/Downloads roots. GitHub private-reader documentation identifies the previous owner Library bundle and original SHA; encrypted Git history latestmode=synthetic. Remote API permission remains unapplied.
+- Physical iPhone Safari is not attached. Chromium operation proof remains separate from physical-device acceptance.
+- Tests and independent review precede ordinary push to existingPR71, preserving concurrent writer changes. Report realexecution separately from software fixtures.
+
+### Follow-up local implementation complete / live gates open
+
+All16nativealgorithmswired+exercised, strict fullslotmatrix, unchangedPR72readerreused, UIall16visible. Python618/Node165/4widths25browsergroups green, independentmaterialfindingsfixed. Liveprivateinput0, liveall-race16notdone, physicalSafariunattached, sourcecapnotchanged, no modelpromotion. Exact-headCI willbecheckedafterordinarypush.

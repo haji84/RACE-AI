@@ -2,7 +2,7 @@
 /* PR #62 page shell and manual ticket flow, connected to saved audit objects only. */
 (() => {
   const $ = id => document.getElementById(id);
-  const U = globalThis.RaceUI, M = globalThis.RaceProductData, A = globalThis.RaceAuditModel;
+  const U = globalThis.RaceUI, M = globalThis.RaceProductData, A = globalThis.RaceAuditModel, C = globalThis.RaceExistingModelCatalog;
   const sports = {boat: "ボートレース", keirin: "競輪", autorace: "オートレース", horse: "競馬"};
   const icons = {boat: "◒", keirin: "♧", autorace: "♧", horse: "♞"};
   const pageNames = {
@@ -197,6 +197,8 @@
   function renderRaces() {
     const all = scoped(), filtered = U.filterRaces(races(), {sport: state.sport, day: state.day, allDates: state.allDates, period: state.period, query: state.query, venue: state.venue, sort: state.sort, forecastOnly: state.forecastOnly, candidatesOnly: state.candidatesOnly, candidateRaceIds: state.candidates.map(t => t.raceId)}).filter(r => state.statusFilter === "all" || U.outcome(r, {predictionEligible: M.eligiblePrediction(r, r.prediction), resultEligible: M.eligibleResult(r)}) === state.statusFilter);
     $("race-count").textContent = "表示 " + filtered.length + "件 / 対象 " + all.length + "件（未予想 " + all.filter(r => !predictions(r).length).length + "件を含む）";
+    const coverage = U.modelCoverage(all, C.models, {sport: state.sport});
+    $("all-race-model-scope").textContent = sports[state.sport] + " · 適用 " + coverage.applicable_models + " / 登録 " + C.models.length + "モデル · 対象台帳 " + coverage.target_races + "レース（保存予想なし " + all.filter(r => !predictions(r).length).length + "レースを含む） · P0 / P1 各 " + coverage.applicable_models * coverage.target_races + "対象枠";
     const content = filtered.slice(0, state.visible).map(r => raceCard(r));
     if (!filtered.length) content.push(empty(all.length ? "条件に一致するレースがありません" : sports[state.sport] + "のレースは未取得です", all.length ? "検索・開催場・候補の条件を変更してください。" : "未取得は開催なしを意味しません。保存原本や対象日を確認してください。"));
     if (filtered.length > state.visible) content.push(button("さらに60件表示", "outline full", () => { state.visible += 60; renderRaces(); }));
@@ -347,10 +349,37 @@
     const rows = scoped(), allPredictions = rows.flatMap(predictions), groups = M.modelGroups(rows);
     $("research-metrics").replaceChildren(metric("対象レース", rows.length + "件", "選択した競技・期間"), metric("保存予想", allPredictions.length + "件", "基準・比較モデルを含む"), metric("モデル・時点の版", groups.length + "組", "再予想・再採点なし"), metric("原本の独立監査", "未完了", "取込値の表示"));
     $("model-comparison").replaceChildren(groups.length ? table(["モデル / 版", "区分", "時点", "予想 / 台帳", "評価可能", "Hit@8_all", "比較条件"], groups.map(g => [g.model_id + " / " + g.model_version, scopeName(g.scope), stageName(g), g.issued + " / " + g.ledger, g.evaluable, g.hit8 === null ? "未検証" : (g.hit8 * 100).toFixed(2) + "%", g.comparison])) : empty("モデル原本は未取得です", "保存済み予想とモデル版を読み込むと表示します。"));
+    renderModelCoverage(rows);
     const content = $("research-content"); content.replaceChildren();
     if (!dataset) { content.append(empty("データは未取得です", "保存JSONを端末内で読み込んでください。", true)); return; }
     content.append(facts([["データ区分", dataset.dataset_status], ["読込全件", races().length + "件"], ["選択競技・期間", rows.length + "件"], ["出典", sourceText(dataset.sources || dataset.provenance_urls || [])], ["取得範囲", "全開催・全レースの捕捉は未検証"], ["再計算", "表示操作による予想・結果の書換はありません"]]));
     content.append(table(["レース", "区分", "モデル・時点", "取得時刻 JST", "元SHA", "未取得・理由"], rows.slice(0, 200).map(r => [raceName(r), scopeName(r.scope), modelName(prediction(r)) + " / " + stageName(prediction(r)), stamp(r.observed_at || r.as_of), r.source_sha || r.source_sha256, (r.missing_reasons || []).join(" / ") || r.no_forecast_reason || "追加情報なし"])));
+  }
+  function renderModelCoverage(rows) {
+    const coverage = U.modelCoverage(rows, C.models, {sport: state.sport});
+    $("all-model-coverage-summary").textContent = "登録 " + coverage.models.length + "モデル · " + sports[state.sport] + "に適用 " + coverage.applicable_models + " / 対象外 " + coverage.not_applicable_models + " · 対象台帳 " + coverage.target_races + "レース（保存予想なし " + rows.filter(r => !predictions(r).length).length + "レースを含む）";
+    const values = coverage.models.map(spec => {
+      const name = append(node("div", "catalog-model-name"), node("strong", "", spec.model_id), node("small", "muted", "適用競技：" + spec.applicable_sports.map(sport => sports[sport]).join(" / ")));
+      const stageCounts = node("div", "catalog-lines");
+      if (spec.applicable) {
+        for (const stage of ["P0", "P1"]) stageCounts.append(node("p", "", stage + " " + spec.stages[stage].saved_races + " / " + spec.stages[stage].target_races + "（未予想 " + spec.stages[stage].missing_races + "）"));
+        stageCounts.append(node("p", "muted small", "時点不明の保存 " + spec.stages.UNKNOWN.saved_races + "件"));
+      } else stageCounts.append(node("p", "muted", "対象外 · 分母に含めません"));
+      const versions = node("div", "catalog-lines");
+      if (spec.versions.length) spec.versions.forEach(v => versions.append(node("p", "", scopeName(v.scope) + " · " + stageName(v) + " · " + text(v.model_version) + " · " + v.saved_races + "レース")));
+      else versions.append(node("p", "muted", "保存版 未取得"));
+      const status = node("div", "catalog-status");
+      status.append(node("strong", "", !spec.applicable ? "対象外" : !spec.saved_races ? "未予想／入力未接続" : spec.missing_races || spec.stages.P0.missing_races || spec.stages.P1.missing_races ? "保存原本あり／一部未予想" : "取込対象の保存原本あり"));
+      if (spec.applicable) status.append(node("p", "muted small", spec.saved_races ? "原本の存在数です。稼働・入力接続の完了は未実証です。" : coverage.target_races ? "保存原本なし。必要入力の接続・実行状態は未確認です。" : "レース台帳・保存原本とも未取得です。"));
+      if (spec.inapplicable_saved_races) status.append(node("p", "catalog-mismatch", "対象外競技の保存原本 " + spec.inapplicable_saved_races + "レース。適用実績に含めません。"));
+      status.append(node("p", "muted small", "必要入力：" + spec.required_input_ja));
+      return [name, node("span", "tag " + (spec.applicable ? "scope-research" : ""), spec.applicable ? "適用対象" : "対象外"), spec.applicable ? spec.saved_races + " / " + spec.target_races + "レース（未予想 " + spec.missing_races + "）" : "対象外 · 0レース", stageCounts, versions, status];
+    });
+    const coverageTable = table(["既存モデル", "適用", "保存済み / 対象台帳", "予想時点ごとの存在数", "保存版・区分", "接続状態・必要入力"], values);
+    coverageTable.classList.add("catalog-coverage-table");
+    coverageTable.querySelectorAll("tbody tr").forEach((tr, index) => { const spec = coverage.models[index]; tr.dataset.modelId = spec.model_id; tr.dataset.applicable = String(spec.applicable); tr.dataset.state = spec.state; });
+    $("all-model-coverage").replaceChildren(coverageTable);
+    $("additional-models-note").textContent = coverage.additional_model_ids.length ? "カタログ外の保存モデルID：" + coverage.additional_model_ids.join(" / ") + "。下の保存原本比較で個別に確認できます。" : "モデルIDのない原本を既存モデルへ推測で割り当てません。モデル版・区分・時点は下の保存原本比較で確認できます。";
   }
   function renderMeta() {
     document.querySelectorAll("[data-sport]").forEach(b => { const active = b.dataset.sport === state.sport; b.classList.toggle("active", active); b.setAttribute("aria-pressed", String(active)); });
