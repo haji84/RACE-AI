@@ -13,6 +13,13 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import sys
+
+# GitHub Actions invokes this file directly, not via `python -m`.
+# Import the checked-out repository packages without modifying dependencies.
+ROOT_SCRIPT = Path(__file__).resolve().parents[1]
+if str(ROOT_SCRIPT) not in sys.path:
+    sys.path.insert(0, str(ROOT_SCRIPT))
 
 from race_ai.cycle_recovery import day_runs, p0_original_or_empty
 from race_ai.frozen_day_cycle import archive_json, need, read_p0, ts
