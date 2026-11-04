@@ -1,3 +1,15 @@
+# 2026-11-04 22:58 JST｜新run第1巡回の予想・結果ZIP保存照合、通常採点+9（すべてMISS）
+
+既存Draft PR #71 / workflow `405276784` / run `41842464812`。確認時のPR HEAD `459e9198d8714619acda49c6c412682fcf6479c3`、既存job `126617327153` は `in_progress`。新runの第1巡回では予想artifact `13328164756` (GitHub保存22:57:51 JST)、結果/PDCA artifact `13328349570` (22:58:10 JST) を確認。両ZIPを無改変取得して実バイトSHA256を計算し、API digestに一致（予想 `148df6fdaef0d118359407a8c6fa8a930c55f49c2e29d73bc4561b672f031369`、結果 `53a437948d38ef96afe800902f6a42a6ef403a55f8af52265c5593e41df00351`）。内部status.jsonは `round_no=1` / `updated_at=2026-11-04T13:58:08.974194+00:00`。continuity相当の `completed_round=0` なので**第1巡回全stepが完走したとは扱わず、保存済み成果だけ計上**。この時間以降の未完了巡回は加算しない。
+
+22:15旧run最終原本→22:58新run第1巡回の差分：基準5モデル予想**570→570（+0）**、通常結果採点**480→489（+9）**、HIT139→139（+0）/MISS341→350（+9）。新たな通常採点は同日 `20261104-19-11` のP0 2系統＋P1 5系統=7件、および `20261104-19-12` のP0 2系統=2件。公式結果観測履歴に元source SHA、観測時刻、6艇ID照合を保持し、両レースの3連単結果1-2-4（100円1550円）/1-5-3（同1890円）をそれぞれ保存した。9予想すべてMISSで、同じレースのP0/P1とモデル別予想を異なるレース数に水増ししない。通常外はRESULT_PENDING4、異常35、返還確認18、RESULT_REJECTED24、合計570。result observation history 426→442、forecasts.csv 570行、model_coverage計570、external_research_summary 2件を確認。
+
+係数学習入力は**120→122異なるレース（train90→92/validation30維持）**、学習版LEARNED_SHADOWは70予想のまま。同条件の研究比較は**64→66モデル別行、32→33レース**。観測相性は元/学習版11/33対11/33的中、ST重視相性は10/33対10/33。両系統とも今回までの仮払戻額は元/学習版同額で、**前向き精度改善は未証明**。元5基準モデルを変更せず、研究版の自動本番採用なし。
+
+`coverage_audit` は対象144、締切済み144、未来0、展示後P1の5モデル揃い**47→48**、不足**433→438モデル別行**（締切済み分母が2レース増加したため増減を単純な取得可能取りこぼしとは呼ばない）。当時の展示公表有無は未確認。結果改訂は別revisionを保全、非通常結果をMISSに変換しない。新runはin_progressのため、既存後続トリガーを追加せず、並走writer・同run rerun・上限回避・新PR/新task/新workflow/頻度変更・Cloudflare/Vercel/課金/main統合/公開/実投票は行っていない。全16系統・全4競技ライブ全レース、期限なしowner-only保管、学習版の統計的優位性は未達。
+
+---
+
 # 2026-11-04 22:55 JST｜旧run第21巡回の実ZIP監査・結果照合継続の新runは起動中
 
 既存PR #71 / workflow405276784 の旧run `41827144792` は **22:15:45 JST completed/success**。全artifact一覧から最新予想 `boat-national-cutoff-41827144792-cycle-21` (ID13328005191)、結果/PDCA `race-existing-cycle-41827144792-cycle-21` (ID13327145474)、継続 `race-cycle-continuity-41827144792` (ID13327140572)を選択。3件の元ZIPを独立ダウンロードし、実バイトSHA256=GitHub API digest一致（予想 `a3d74cb858738f61591802b33847cfc450528c958008334c30dcf565a08f5e1f`、結果 `589b6268e026a73e29ada5a9a8be3a36754d4fb0b24e417ebe4ddfca0b704782`、継続 `b20ee679fd16418f5f22819e8614136b282acd9cbc6598a34c85f3a0140ebff6`）。内部status.json `round_no=21` / `updated_at=2026-11-04T13:15:24.760110Z` と forecasts.csv 570行、model_coverage 570行、公式結果観測履歴426件、研究manifest2件を検査。continuityの `completed_round=20` のため第21巡回の全step完了と同義にはせず、workflow全体のsuccessと区別。
