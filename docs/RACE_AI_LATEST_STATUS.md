@@ -1,3 +1,15 @@
+# 2026-11-05 03:32 JST｜当日P0ゲートの独立再点検（前日値から実績増加なし）
+
+既存Draft PR #71・workflow 405276784に限定。点検時PR HEAD `2d898448ec11358f4cc729cba649e2e4621123da`。GitHub Actions全workflowの新しい100 runと前日以降の作成時刻を照合し、11/05 00:00 JST以降に作成された8 runは既存のviewer/オートの**合成・オフラインCIのみ**で、対象workflowの当日runも当日初回P0 artifactも0。対象workflowの最新完了run `41842464812` は前日実行の `completed/success`、その第21巡回の予想/結果/継続artifact以降に新しい実レース原本が増えた証拠はない。GitHub Actions APIの `in_progress/queued/pending/waiting` は全workflow合計各0。
+
+11/05の `docs/evidence/2026-11-05/p0-first-receipt.json` は引き続き404。本人専用Driveの既存フォルダを直接列挙し10件を確認したが、11/05用の初回P0に該当する新規保存物は0（既存10件を削除/改変せず）。この点検範囲では当日の独立初回原本を発見できなかった。ただし、他の未連携保管先まで不存在と証明したものではなく、索引欠落だけから再生成していない。
+
+前日最終原本から、予想artifact `13336307604`（ZIP SHA256 `119ee2a394acbaf1f15f1c92ca61b3ad96c80d53800cbf2c2468acf808f3762a`）、結果/PDCA `13335717741`（`e6653f0fc545eead623eb0822c728d56d9a8ce1d364368a165822995d655a636`）、継続 `13335757993`（`64b8e3791d0ef8b94188733b290bc1f31a94e7bc0f695dedff638db3eb015242`）の3ZIPを**今回独立再ダウンロード**、実バイトSHA256=GitHub API digestかつZIP破損なしを確認。内部 `status.json` は2026-11-04 23:58:10 JST・第21巡回、基準570予想/通常採点489（HIT139/MISS350）、学習版70、同条件比較66行、公式結果履歴505。これらは**11/04の保存済み値**であり11/05の予想・採点ではない。学習版の前向き優越性なし。
+
+現行 `scripts/github_existing_cycle.py` の初回索引必須ゲートは未変更で、当日P0初回原本の独立保全と索引が成立するまでは起動しても `FIRST_RECEIPT_REGISTRY_MISSING_NO_BLIND_REGENERATION` で停止する。実公式入力/初回原本/外部読戻し/索引登録の完全な一巡は**未完了**。安全な初回P0手順が成立するまで、後続トリガー・rerun・キャンセル・別workflowは追加しない。取得上限・日付停止・本番切替禁止を維持。予想/通常採点/研究比較の**増分0**につき外部通知不要。全16系統・全4競技全レース、期限なし自動保管、学習版優位性は未達。新タスク/PR/モデル系統/課金/main統合/投票なし。
+
+---
+
 # 2026-11-05 02:15 JST｜当日初回P0受領証拠未確認、予想起動を保留（前日原本再監査）
 
 既存Draft PR #71、branch `feat/four-sport-forecast-audit-view-20261022`。監査開始HEAD `3c72b2dadc040bf43bf4a9efc1478907d7523827`、状態文書の変更前blob `dae902829321a49383d228e2e4841aa57ae4740c`。2026-11-05 02:11～02:15 JSTにGitHubの実状態と独立保存ZIPを再取得して確認した。
