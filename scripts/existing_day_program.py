@@ -93,6 +93,10 @@ def collect(*, clock=lambda: datetime.now(timezone.utc), already_frozen=frozense
         status['skipped'].extend(program['blocked_races'])
     except Exception as exc:
         status.update(failure_class=type(exc).__name__, reason=str(exc)[:200])
+        # Keep an actual HTTP status for the single-session 4xx/429 stop latch.
+        from urllib.error import HTTPError
+        if isinstance(exc, HTTPError):
+            status['http_status'] = exc.code
         if body is not None:
             from race_ai.b_layout_shape_diagnostic import summarize_b_layout
             status['layout_diagnostic'] = summarize_b_layout(body)
