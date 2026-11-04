@@ -35,7 +35,11 @@ def restore(day):
     import zipfile,io
     doc,rows,meta,raw=original(day);folder=ROOT/'boat_all_day_output';folder.mkdir(exist_ok=True)
     with zipfile.ZipFile(io.BytesIO(raw)) as z:body=z.read('forecasts.json')
-    with (folder/'forecasts.json').open('xb') as f:f.write(body)
+    target=folder/'forecasts.json'
+    if target.exists():
+        need(target.read_bytes()==body,'FIRST_P0_RESTORE_LOCAL_BYTES_CONFLICT')
+    else:
+        with target.open('xb') as f:f.write(body)
     (folder/'first-receipt.json').write_text(json.dumps(meta,ensure_ascii=False))
     state=recover(gh,day,current_run=int(os.environ['GITHUB_RUN_ID']),out=ROOT/'cycle_recovery_output')
     print(json.dumps(dict(state='ORIGINAL_REUSED_NO_REGENERATION',races=doc['race_count'],forecasts=len(rows),artifact_id=meta['id'])))
@@ -76,7 +80,15 @@ def supplement(day):
     recovered=load_state(ROOT/'cycle_recovery_output/continuity.json',day)
     from scripts.existing_day_program import collect
     frozen=frozenset(x['race_id'] for x in rows+recovered['rows'] if x['stage']=='P0')
+    from race_ai.repeated_cycle import SourceGuard
+    guard=SourceGuard(ROOT/'cycle_recovery_output/repeat-session.json')
+    guard.charge('forecast')  # Count the source GET before it happens.
     result=collect(already_frozen=frozen)
+    status=result.get('http_status')
+    if isinstance(status,int) and 400 <= status < 500:
+        guard.http_failure(status)
+    need('failure_class' not in result,
+         'P0_SUPPLEMENT_SOURCE_OR_MODEL_BLOCKED: '+str(result.get('failure_class')))
     folder=ROOT/'p0_supplement_output';folder.mkdir(exist_ok=True)
     with (folder/'forecasts.json').open('x') as f:json.dump(result,f,ensure_ascii=False,sort_keys=True,separators=(',',':'))
     print(json.dumps(dict(state='MISSING_FUTURE_P0_ONLY',race_count=result['race_count'],original_races_not_regenerated=len(frozen))))
@@ -87,7 +99,7 @@ def audit(day,p1_id,p0_supplement=None,round_no=None):
     rows+=recovered['rows'];sources+=recovered['receipts']
     out=ROOT/'existing_cycle_output';out.mkdir(exist_ok=True)
     (out/'first-p0-original.zip').write_bytes(p0_zip)
-    if p0_supplement:
+    if p0_supplement and p0_supplement != p0_meta['id']:
         meta=json.loads(gh(f'actions/artifacts/{p0_supplement}'));raw=gh(f'actions/artifacts/{p0_supplement}/zip')
         supplement_doc,additional=read_p0(raw,meta,expected_day=day);rows+=attach_snapshots(supplement_doc,additional);sources.append(meta)
         (out/'supplement-p0-original.zip').write_bytes(raw)
