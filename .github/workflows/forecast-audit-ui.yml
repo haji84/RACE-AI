@@ -120,10 +120,12 @@ jobs:
           NODE_PATH: ${{ runner.temp }}/race-ai-ui-tools/node_modules
           UI_JOURNAL_EXPORT: ${{ runner.temp }}/product-ui-journal.json
           UI_PRIVATE_CYCLE_EXPORT: ${{ runner.temp }}/private-cycle-view.json
+          UI_DISPATCH_VIEWS: ${{ runner.temp }}/private-dispatch-views.json
         run: |
           python -m race_ai.synthetic_e2e --db "$RUNNER_TEMP/product-ui-synthetic.sqlite"
           python -m race_ai.audit_projection --db "$RUNNER_TEMP/product-ui-synthetic.sqlite" --out "$UI_JOURNAL_EXPORT"
           python -m tests.private_cycle_ui_fixture --out "$UI_PRIVATE_CYCLE_EXPORT"
+          python -m tests.private_dispatch_ui_fixture --out "$UI_DISPATCH_VIEWS"
           node tests/ui_browser.test.js
       - name: Retain synthetic-only UI interaction evidence
         if: always()

@@ -324,3 +324,60 @@ test("partial-cycle admission remains bounded and strict about tickets, timestam
   const raw=privateCycle();raw.schema="RACE_AI_FORECAST_AUDIT_V1";
   assert.throws(()=>M.parse(raw),/予想時刻|証拠|不正/,"legacy strict schema must still reject partial metadata");
 });
+test("private dispatch retains native AUTORACE phases without renaming them to P0/P1", () => {
+  const raw=privateCycle(),r=raw.records[0];r.sport="autorace";r.prediction.stage="A_PRE_TRIAL";
+  r.comparison_predictions=[{...structuredClone(r.prediction),stage:"B_POST_TRIAL",prediction_sha256:"d".repeat(64),model_sha256:"d".repeat(64)}];
+  const parsed=M.parse(raw),summary=M.summary(parsed.records);
+  assert.equal(M.selectPrediction(parsed.records[0],{stage:"B_POST_TRIAL"}).stage,"B_POST_TRIAL");
+  assert.equal(summary.byStage.A_PRE_TRIAL.ledger,1);assert.equal(summary.byStage.B_POST_TRIAL.ledger,1);
+  assert.equal(summary.byStage.P0.ledger,0);assert.equal(summary.overall.hit8,null);
+  raw.records[0].sport="boat";assert.throws(()=>M.parse(raw),/時点|競技/);
+});
+test("private dispatcher output hash stays distinct from an unavailable native prediction hash", () => {
+  const raw=privateCycle(),p=raw.records[0].prediction;
+  Object.assign(p,{native_dispatch_prediction:true,prediction_sha256:null,model_sha256:null,output_sha256:SHA,hash_basis:"NATIVE_OUTPUT_CONTENT"});
+  const parsed=M.parse(raw),saved=parsed.records[0].prediction;
+  assert.equal(saved.prediction_sha256,null);assert.equal(saved.output_sha256,SHA);
+  assert.ok(saved.missing_reasons.includes("NATIVE_PREDICTION_SHA_NOT_SAVED"));
+  assert.equal(M.selectPrediction(parsed.records[0],{outputSha:SHA}).output_sha256,SHA);
+  assert.equal(M.selectPrediction(parsed.records[0],{outputSha:"f".repeat(64)}),null);
+  assert.equal(M.summary(parsed.records).overall.hit8,null);
+  for(const change of [{output_sha256:null},{hash_basis:null},{native_dispatch_prediction:false}]) {
+    const bad=structuredClone(raw);Object.assign(bad.records[0].prediction,change);assert.throws(()=>M.parse(bad));
+  }
+});
+test("native dispatch model artifact SHA may differ from saved prediction SHA without repairing either", () => {
+  const raw=privateCycle(),p=raw.records[0].prediction;
+  Object.assign(p,{native_dispatch_prediction:true,output_sha256:INPUT,model_sha256:RESULT});
+  const parsed=M.parse(raw).records[0].prediction;
+  assert.equal(parsed.prediction_sha256,SHA);assert.equal(parsed.model_sha256,RESULT);
+  const bad=structuredClone(raw);delete bad.records[0].prediction.native_dispatch_prediction;
+  assert.throws(()=>M.parse(bad),/SHA/);
+});
+test("dispatch views retain unknown venue and race number without inventing schedule metadata", () => {
+  const raw=privateCycle(),r=raw.records[0];Object.assign(r,{native_dispatch_view:true,venue:null,race_no:null});
+  const parsed=M.parse(raw);assert.equal(parsed.records[0].venue,null);assert.equal(parsed.records[0].race_no,null);
+  const legacy=structuredClone(raw);delete legacy.records[0].native_dispatch_view;assert.throws(()=>M.parse(legacy));
+});
+test("private dispatch slot status is bounded and cannot change its model/stage identity", () => {
+  const raw=privateCycle(),r=raw.records[0];r.native_dispatch_view=true;
+  r.dispatch_slots=[{stage:"P1",model_id:"boat-observed-pairwise-factor-v1",model_version:null,status:"INPUT_MISSING",reason:"NO_NATIVE_INPUT_SUPPLIED",applicable:true,projection_status:"NOT_PROJECTED",projection_reason:null,output_sha256:null,prediction_sha256:null}];
+  assert.equal(M.parse(raw).records[0].dispatch_slots[0].status,"INPUT_MISSING");
+  for(const change of [{stage:"B_POST_TRIAL"},{status:"VERIFIED_LIVE_SUCCESS"},{model_id:""},{output_sha256:"fake"}]) {
+    const bad=structuredClone(raw);Object.assign(bad.records[0].dispatch_slots[0],change);assert.throws(()=>M.parse(bad));
+  }
+  const contradictory=structuredClone(raw);contradictory.records[0].scheduled_stages=["P0"];
+  assert.throws(()=>M.parse(contradictory),/台帳|時点/);
+});
+test("declared private phases retain missing forecasts and do not add unscheduled comparison races", () => {
+  const raw=privateCycle(),r=raw.records[0];r.sport="autorace";r.scheduled_stages=["A_PRE_TRIAL","B_POST_TRIAL"];r.prediction.stage="A_PRE_TRIAL";
+  const next=structuredClone(r);next.race_id="autorace:another-actual-race";next.scheduled_stages=["B_POST_TRIAL"];next.prediction.stage="B_POST_TRIAL";next.result=null;next.result_observations=[];raw.records.push(next);
+  const parsed=M.parse(raw),summary=M.summary(parsed.records),groups=M.modelGroups(parsed.records);
+  assert.equal(summary.byStage.B_POST_TRIAL.ledger,2,"declared missing original retains the stage denominator");
+  assert.equal(summary.byStage.A_PRE_TRIAL.ledger,1);
+  assert.equal(groups.find(g=>g.stage==="A_PRE_TRIAL").ledger,1,"unscheduledA race cannot inflate cohort");
+  assert.equal(groups.find(g=>g.stage==="B_POST_TRIAL").ledger,2);
+  for(const stages of [["P2"],["A_PRE_TRIAL","A_PRE_TRIAL"],[]]) {
+    const bad=privateCycle();bad.records[0].scheduled_stages=stages;assert.throws(()=>M.parse(bad));
+  }
+});

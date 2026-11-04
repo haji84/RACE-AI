@@ -8,6 +8,8 @@
   const sports = ["boat", "keirin", "autorace", "horse"];
   const scopes = ["official", "research", "synthetic"];
   const stages = ["P0", "P1", "UNKNOWN"];
+  const nativeAutoraceStages = ["A_PRE_TRIAL", "B_POST_TRIAL"];
+  const summaryStages = [...stages.slice(0,2), ...nativeAutoraceStages, "UNKNOWN"];
   const privateCycleSchema = "RACE_AI_PRIVATE_CYCLE_VIEW_V1";
   const sha = value => typeof value === "string" && /^[a-f0-9]{64}$/i.test(value);
   const stamp = value => typeof value === "string" && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(value) && validDay(value.slice(0,10)) && Number.isFinite(Date.parse(value));
@@ -120,7 +122,7 @@
   function candidates(row) { return [row.prediction, ...(row.comparison_predictions || [])].filter(Boolean); }
   function identity(p) { return canonical([p.stage || "UNKNOWN", p.model_id || null, p.model_version]); }
   function selectPrediction(row, options = {}) {
-    const fields = {stage:"stage",modelId:"model_id",version:"model_version",variant:"variant",predictionSha:"prediction_sha256"};
+    const fields = {stage:"stage",modelId:"model_id",version:"model_version",variant:"variant",predictionSha:"prediction_sha256",outputSha:"output_sha256"};
     const supplied = Object.keys(fields).filter(key => Object.hasOwn(options,key));
     if (!supplied.length) return row.prediction || null;
     return candidates(row).find(p => supplied.every(key => p[fields[key]] === options[key])) || null;
@@ -147,8 +149,10 @@
     optionalSha(value.source_state_sha256,"循環状態");
     const seen = new Set();
     for (const row of value.records) {
+      const dispatchRow = row?.native_dispatch_view === true;
       if (!row || typeof row !== "object" || Array.isArray(row) || !text(row.race_id) || row.race_id.length > 250 ||
-          !sports.includes(row.sport) || !text(row.venue) || row.venue.length > 100 || !Number.isInteger(row.race_no) || row.race_no < 1 || row.race_no > 99 ||
+          !sports.includes(row.sport) || !(dispatchRow && row.venue == null || text(row.venue) && row.venue.length <= 100) ||
+          !(dispatchRow && row.race_no == null || Number.isInteger(row.race_no) && row.race_no >= 1 && row.race_no <= 99) ||
           !validDay(row.event_date_jst) || !["TRIFECTA_OFFERED","NOT_OFFERED","UNKNOWN"].includes(row.offering_status)) fail("私有循環レースの識別情報が不正です。");
       if (seen.has(row.race_id)) fail("同じレースIDの重複があります。");seen.add(row.race_id);
       validateStamps(row,["cutoff_at","observed_at","as_of","updated_at"]);
@@ -166,6 +170,24 @@
       const reasons = missingReasons(row.missing_reasons);
       row.scope = value.dataset_status === "SYNTHETIC_ONLY" ? "synthetic" : "research";
       row.private_cycle_view = true;row.source_schema = privateCycleSchema;row.evidence_imported_only = true;
+      if (row.scheduled_stages != null && (!Array.isArray(row.scheduled_stages) || !row.scheduled_stages.length || row.scheduled_stages.length > 4 ||
+          new Set(row.scheduled_stages).size !== row.scheduled_stages.length || row.scheduled_stages.some(stage=>!stages.slice(0,2).includes(stage) && !(row.sport === "autorace" && nativeAutoraceStages.includes(stage))))) fail("対象台帳の予想時点が不正です。");
+      if (row.dispatch_slots != null) {
+        if (!dispatchRow || !Array.isArray(row.dispatch_slots) || row.dispatch_slots.length > 4096) fail("モデル別状態の形式が不正です。");
+        const statuses=["NOT_APPLICABLE","INPUT_MISSING","TRAINED_ARTIFACT_MISSING","DEADLINE_PASSED","RULE_FILTERED","UNCONNECTED_NATIVE_RUNTIME","SOURCE_NOT_AUTHORIZED","INPUT_REJECTED","GENERATED_UNATTESTED","ORIGINAL_REUSED"];
+        const slots = new Set();
+        for (const slot of row.dispatch_slots) {
+          if (!slot || typeof slot !== "object" || Array.isArray(slot) || !text(slot.model_id) || slot.model_id.length > 128 ||
+              !(stages.slice(0,2).includes(slot.stage) || row.sport === "autorace" && nativeAutoraceStages.includes(slot.stage)) ||
+              !statuses.includes(slot.status) || typeof slot.applicable !== "boolean") fail("モデル別状態の識別情報が不正です。");
+          optionalLabel(slot.model_version,"モデル版",100);optionalLabel(slot.reason,"状態理由",2000);
+          if (row.scheduled_stages && !row.scheduled_stages.includes(slot.stage)) fail("モデル別状態の時点が対象台帳にありません。");
+          optionalLabel(slot.projection_status,"表示状態",100);optionalLabel(slot.projection_reason,"表示理由",2000);
+          optionalSha(slot.output_sha256,"保存出力本文");optionalSha(slot.prediction_sha256,"モデル別原本");
+          const key=canonical([slot.stage,slot.model_id,slot.model_version ?? null]);
+          if (slots.has(key)) fail("同じモデル別状態が重複しています。");slots.add(key);
+        }
+      }
       if (row.prediction != null && (!row.prediction || typeof row.prediction !== "object" || Array.isArray(row.prediction))) fail("保存予想の形式が不正です。");
       if (row.comparison_predictions != null && (!Array.isArray(row.comparison_predictions) || row.comparison_predictions.length > 64)) fail("比較モデル予想の件数が不正です。");
       if (row.comparison_predictions?.some(p => !p || typeof p !== "object" || Array.isArray(p))) fail("比較保存予想の形式が不正です。");
@@ -174,23 +196,27 @@
       for (const p of candidates(row)) {
         if (!p || typeof p !== "object" || Array.isArray(p) || !Array.isArray(p.ordered_top8) || !p.ordered_top8.length || p.ordered_top8.length > 8 ||
             p.ordered_top8.some(t => !ticket(t)) || new Set(p.ordered_top8.map(t => t.join("-"))).size !== p.ordered_top8.length) fail("私有循環の保存Top8が不正です。");
-        if (!stages.includes(p.stage)) fail("予想時点はP0/P1/UNKNOWNが必要です。");
+        if (!stages.includes(p.stage) && !(row.sport === "autorace" && nativeAutoraceStages.includes(p.stage))) fail("競技に対応する保存時点が必要です。");
+        if (row.scheduled_stages && !row.scheduled_stages.includes(p.stage)) fail("保存予想の時点が対象台帳にありません。");
         optionalLabel(p.model_id,"モデルID",128);optionalLabel(p.model_version,"モデル版",100);optionalLabel(p.variant,"保存モデル区分",250);
         validateStamps(p,["generated_at","as_of","persisted_at","server_saved_at","cutoff_at","observed_at"]);
         if (p.cutoff_at && row.cutoff_at && Date.parse(p.cutoff_at) !== Date.parse(row.cutoff_at)) fail("保存予想とレースの締切が一致しません。");
         if (p.persisted_at && p.server_saved_at && Date.parse(p.persisted_at) !== Date.parse(p.server_saved_at)) fail("保存予想の保存時刻が一致しません。");
-        if (!sha(p.prediction_sha256)) fail("保存予想のSHAが不正です。");
-        for (const field of ["input_sha256","source_sha256","model_sha256","original_json_sha256","training_sha256"]) optionalSha(p[field],field);
-        if (p.model_sha256 != null && p.model_sha256 !== p.prediction_sha256) fail("保存モデルのSHAが一致しません。");
+        const nativeDispatch = p.native_dispatch_prediction === true;
+        if (nativeDispatch && !sha(p.output_sha256)) fail("保存出力本文のSHAが必要です。");
+        if (p.prediction_sha256 == null ? !(nativeDispatch && p.hash_basis === "NATIVE_OUTPUT_CONTENT") : !sha(p.prediction_sha256)) fail("保存予想のSHAが不正です。");
+        for (const field of ["input_sha256","source_sha256","model_sha256","original_json_sha256","training_sha256","output_sha256"]) optionalSha(p[field],field);
+        if (!nativeDispatch && p.model_sha256 != null && p.model_sha256 !== p.prediction_sha256) fail("保存モデルのSHAが一致しません。");
         if (p.artifact_id != null && (!Number.isSafeInteger(p.artifact_id) || p.artifact_id < 1)) fail("原本artifact IDが不正です。");
         if (p.odds_independent != null && typeof p.odds_independent !== "boolean") fail("オッズ分離の保存値が不正です。");
         marketIsolation(p);candidateOrder(p);
-        const key = canonical([p.stage,p.model_id ?? null,p.model_version ?? null,p.variant ?? null,p.prediction_sha256]);
+        const key = canonical([p.stage,p.model_id ?? null,p.model_version ?? null,p.variant ?? null,p.prediction_sha256,p.output_sha256 ?? null]);
         if (identities.has(key)) fail("同じ保存予想原本の重複があります。");identities.add(key);
         p.external_receipt_verified = false;p.private_cycle_view = true;
         const absent = missingReasons(p.missing_reasons);
         for (const [field,reason] of [["model_id","MODEL_ID_NOT_SAVED"],["model_version","MODEL_VERSION_NOT_SAVED"],["generated_at","GENERATED_AT_NOT_SAVED"],["input_sha256","INPUT_SHA_NOT_SAVED"],["source_sha256","SOURCE_SHA_NOT_SAVED"],["odds_independent","ODDS_INDEPENDENCE_NOT_SAVED"]]) if (p[field] == null) absent.push(reason);
         absent.push("INDEPENDENT_RECEIPT_NOT_VERIFIED");p.missing_reasons = [...new Set(absent)];
+        if (p.prediction_sha256 == null) p.missing_reasons.push("NATIVE_PREDICTION_SHA_NOT_SAVED");
       }
       if (row.result != null) partialResult(row.result);
       if (row.result_revisions != null && (!Array.isArray(row.result_revisions) || row.result_revisions.length)) fail("私有循環の取得観測を公式改訂番号へ変換できません。");
@@ -333,7 +359,7 @@
   function summary(records) {
     const overall = newStats(), bySport = Object.fromEntries(sports.map(s => [s, newStats()]));
     const byScope = Object.fromEntries(scopes.map(s => [s, newStats()]));
-    const byStage = Object.fromEntries(stages.map(s => [s, newStats()]));
+    const byStage = Object.fromEntries(summaryStages.map(s => [s, newStats()]));
     const identitySets = new Map([overall, ...Object.values(bySport), ...Object.values(byScope), ...Object.values(byStage)].map(s => [s, new Set()]));
     for (const row of records) {
       const stage = row.prediction?.stage || "UNKNOWN";
@@ -341,12 +367,14 @@
         accumulate(target, row);
         if (row.scope === "official" && row.prediction) identitySets.get(target).add(identity(row.prediction));
       }
-      for (const phase of stages) {
+      for (const phase of summaryStages) {
+        if (nativeAutoraceStages.includes(phase) && (row.sport !== "autorace" || !row.private_cycle_view)) continue;
         const variants = candidates(row).filter(p => p.stage === phase);
         // Each named stage keeps the full official schedule denominator,
         // including races with no saved forecast at that stage. UNKNOWN remains
         // the explicit unknown/missing-primary view rather than another cohort.
-        if (phase === "UNKNOWN" ? stage !== "UNKNOWN" : row.scope !== "official" && !variants.length) continue;
+        const declared=(row.scheduled_stages||[]).includes(phase) || (row.dispatch_slots||[]).some(slot=>slot.stage===phase);
+        if (phase === "UNKNOWN" ? stage !== "UNKNOWN" : row.scope !== "official" && !variants.length && !declared) continue;
         accumulate(byStage[phase], row, variants[0] || null);
         if (row.scope === "official") for (const p of variants) identitySets.get(byStage[phase]).add(identity(p));
       }
@@ -364,7 +392,11 @@
         comparison:"保存原本の参考比較（同一未来レース・入力・時刻の並走は別途検証）"});
     }
     for (const group of groups.values()) {
-      const cohort = records.filter(r => r.scope === group.scope && r.sport === group.sport);
+      const cohort = records.filter(r => {
+        if (r.scope !== group.scope || r.sport !== group.sport) return false;
+        const declared=[...(r.scheduled_stages||[]),...(r.dispatch_slots||[]).map(slot=>slot.stage)];
+        return !r.private_cycle_view || !declared.length || declared.includes(group.stage) || candidates(r).some(p=>p.stage===group.stage);
+      });
       for (const row of cohort) {
         const p = candidates(row).find(p => p.stage === group.stage && (p.model_id || null) === group.model_id && p.model_version === group.model_version &&
           (!group.private_cycle_view || (p.variant ?? null) === group.variant)) || null;

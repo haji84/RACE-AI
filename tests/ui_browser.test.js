@@ -195,12 +195,62 @@ async function main() {
       }
       mark(`${width}: sealed original ZIP -> private restore -> view -> browser, exact Top8/SHA, P1/learned selection and separate capture history`);
     }
+    if (process.env.UI_DISPATCH_VIEWS && [390,1440].includes(width)) {
+      const bundle=JSON.parse(fs.readFileSync(process.env.UI_DISPATCH_VIEWS,'utf8'));
+      assert.equal(bundle.scope,'SYNTHETIC_ONLY');
+      const families=new Set(),nativeHashes=new Set();
+      for (const [number,view] of bundle.views.entries()) {
+        assert.equal(view.dataset_status,'SYNTHETIC_ONLY');
+        const saved=view.records.find(r=>r.prediction)||view.records[0];
+        const variants=[saved.prediction,...saved.comparison_predictions].filter(Boolean);
+        await page.locator('#clear-data').click();
+        await page.clock.setFixedTime(new Date(saved.event_date_jst+'T00:30:00Z'));
+        await page.locator('#race-file').setInputFiles({name:`native-synthetic-${number}.json`,mimeType:'application/json',buffer:Buffer.from(JSON.stringify(view))});
+        await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('端末内で読み込みました'));
+        await page.locator(`[data-sport="${saved.sport}"]`).first().click();await nav('races');
+        await page.locator('#selected-date').fill(saved.event_date_jst);await page.locator('#selected-date').dispatchEvent('change');
+        if(saved.prediction?.native_top8_available===false) {
+          const card=page.locator('#page-races .race-card').filter({has:page.locator(`[data-open-race="${saved.race_id}"]`)});
+          assert.match(await card.innerText(),/保存5点プラン/);
+          assert.ok(!(await card.innerText()).includes('保存Top8'));
+        }
+        await page.locator(`#page-races [data-open-race="${saved.race_id}"]`).click();
+        await page.locator('[data-detail-tab="analysis"]').click();
+        assert.equal(await page.locator('#dispatch-slot-status tbody tr').count(),saved.dispatch_slots.length,'all native model states retained');
+        for(const [index,p] of variants.entries()) {
+          families.add(p.model_id);if(p.prediction_sha256)nativeHashes.add(p.prediction_sha256);
+          await page.locator('#prediction-select').selectOption(String(index));
+          const shown=await page.locator('#race-detail .forecast-panel').first().locator('.saved-ticket .combo').evaluateAll(nodes=>nodes.map(n=>[...n.querySelectorAll('.lane')].map(x=>Number(x.textContent))));
+          assert.deepEqual(shown,p.ordered_top8,'all sixteen native families keep saved candidate order');
+          assert.ok((await page.locator('#race-detail').innerText()).includes(p.output_sha256),'output hash displayed separately');
+          if(p.prediction_sha256==null) assert.equal(await page.locator('#race-detail').evaluate(n=>[...n.querySelectorAll('dt')].find(x=>x.textContent==='予想SHA').nextElementSibling.textContent),'未取得');
+          if(p.native_top8_available===false) assert.match(await page.locator('#race-detail').innerText(),/保存された5点プラン/);
+          if(['A_PRE_TRIAL','B_POST_TRIAL'].includes(p.stage)) assert.match(await page.locator('#prediction-select option:checked').innerText(),/試走前|試走後/);
+        }
+        if(saved.venue==null||saved.race_no==null) {
+          assert.match(await page.locator('#race-detail').innerText(),/開催場 未取得|レース番号 未取得/);
+          assert.ok(!(await page.locator('#race-detail').innerText()).includes('nullR'));
+        }
+        assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'native model/slot content cannot overflow');
+        const variant=variants.at(-1);
+        if(saved.sport==='horse') await capture(`${width}-dispatch-horse.png`);
+        if(variant?.stage==='A_PRE_TRIAL') await capture(`${width}-dispatch-autorace-A.png`);
+        if(variant?.stage==='B_POST_TRIAL') await capture(`${width}-dispatch-autorace-B.png`);
+        if(variant?.native_top8_available===false) await capture(`${width}-dispatch-seller.png`);
+        if(!variants.length) await capture(`${width}-dispatch-missing-metadata.png`);
+        if(number===bundle.views.length-2) await capture(`${width}-dispatch-private-readback.png`);
+      }
+      assert.equal(families.size,16,'every existing family actually imported and selectable');
+      const storage=await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}));
+      assert.ok([...nativeHashes].every(sha=>!storage.includes(sha)),'no native forecasts persisted in browser storage');
+      mark(`${width}: sixteen native families and four-sport private SQLite restart -> browser, exact hashes/order, native trial phases, five-ticket plan and missing-input states`);
+    }
     await context.tracing.stop({path:path.join(output,`${width}-interaction.zip`)});
     await context.close();
   }
   assert.deepEqual(errors,[],'no page errors');
   assert.ok(requests.every(url=>url.startsWith(base)),'no external source requests');
-  fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({scope:'SYNTHETIC_ONLY',checks,errors,source_requests:0,widths:[320,390,1440,1920]},null,2));
+  fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({scope:'SYNTHETIC_ONLY',checks,errors,source_requests:0,widths:[320,390,1440,1920],dispatch_fixture_widths:process.env.UI_DISPATCH_VIEWS?[390,1440]:[]},null,2));
   await browser.close();browser=null;await new Promise(resolve=>server.close(resolve));server=null;
 }
 main().catch(async error=>{console.error(error);if(browser)await browser.close();if(server)server.close();process.exitCode=1;});

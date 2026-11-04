@@ -216,7 +216,7 @@ def project(bundle, *, allow_source=None, verify_freeze=None, verify_result=None
         # production forecast. They can be viewed side by side but must not
         # retroactively replace the primary model for all-race Hit@8.
         comparisons = entry.get("comparison_forecasts", [])
-        if not isinstance(comparisons, list) or len(comparisons) > 8:
+        if not isinstance(comparisons, list) or len(comparisons) > 64:
             raise AdmissionError("comparison forecast count invalid")
         if comparisons:
             row["comparison_predictions"] = []

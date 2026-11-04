@@ -172,6 +172,24 @@ class ProjectionTests(unittest.TestCase):
         result=project(b,allow_source=admitted,verify_result=lambda *_:True)
         self.assertEqual(result["records"][0]["comparison_predictions"][0]["external_receipt_verified"],False)
 
+    def test_fifteen_saved_models_fit_without_discarding_parallel_originals(self):
+        from copy import deepcopy
+        from race_ai.existing_model_coverage import catalog
+        b=example();parallel=[]
+        for spec in [s for s in catalog() if 'boat' in s['applicable_sports']][:14]:
+            item=deepcopy(b['races'][0]['forecast']);item['model_id']=spec['model_id']
+            item['prediction_sha256']=digest({k:v for k,v in item.items() if k not in {'receipt','prediction_sha256'}})
+            parallel.append(item)
+        b['races'][0]['comparison_forecasts']=parallel
+        result=project(b,allow_source=admitted,verify_freeze=lambda *_:True)
+        self.assertEqual(len(result['records'][0]['comparison_predictions']),14)
+        self.assertEqual([p['prediction_sha256'] for p in result['records'][0]['comparison_predictions']],
+                         [p['prediction_sha256'] for p in parallel])
+
+    def test_parallel_forecast_count_remains_bounded(self):
+        b=example();b['races'][0]['comparison_forecasts']=[b['races'][0]['forecast']]*65
+        with self.assertRaises(AdmissionError):project(b,allow_source=admitted)
+
     def test_parallel_model_cannot_duplicate_preselected_primary(self):
         b=example()
         b["races"][0]["comparison_forecasts"]=[b["races"][0]["forecast"]]

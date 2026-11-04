@@ -67,3 +67,18 @@
 ### Follow-up local implementation complete / live gates open
 
 All16nativealgorithmswired+exercised, strict fullslotmatrix, unchangedPR72readerreused, UIall16visible. Python618/Node165/4widths25browsergroups green, independentmaterialfindingsfixed. Liveprivateinput0, liveall-race16notdone, physicalSafariunattached, sourcecapnotchanged, no modelpromotion. Exact-headCI willbecheckedafterordinarypush.
+
+## Authorized continuation: real originals, four-sport operation, Safari, prospective comparison
+
+Owner explicitly requested continuing these four requirements to completion. Existing product spec/branch/workflow/model families remain authoritative; no new task or approval pause for implementation.
+
+- [x] Investigate native source→dispatch→private persistence: the existing AUTORACE journal key omits sport/version and cannot simply accept P0/P1. Add an additive `PrivateDispatchJournal` operation API that keeps legacy tables intact, atomically loads immutable originals and persists every slot under sport/race/stage/model/version. Reuse lossless codec primitives so integer-key horse metadata retains native hashes.
+- [x] Require existing source authorization for analysis/private storage/private derived use. Bind real imported originals to native input commitments without inference. Reject unsupported legacy commitments explicitly. Fix scope relabel bypass found by independent review.
+- [x] Project exact native outputs into private display, including all16 families, native AUTORACE phases, missing race metadata and seller's saved5-ticket plan. Do not call that plan Top8 or invent missing native SHA. Keep output-content SHA, model/training SHA and native prediction SHA separate.
+- [x] Add pure BOAT saved-original comparison with pinned versions/training references, full declared schedule, exact result captures and missing-original denominators. No replay, fitting, fetching, official-proof promotion or auto-adoption. Repair malformed finish-order acceptance found by review.
+- [x] Verify actual native outputs and private SQLite reopen→view→browser on synthetic inputs, all16 families, native phases, missing phases, plan labels and null metadata. Python724/Node175 after preserving the concurrent JRA gate, browser31groups/48PNGs; source-provider GET0. Independent material findings fixed/reviewed.
+- [ ] Acquire actual originals in this environment and compare SHA/Top8/P1/result history in browser. Current runtime still denies api.github.com; known Library originals remain unmounted. Draft network/start instructions saved; user could not find settings, so guide using visible menu evidence. Do not bypass policy.
+- [ ] Attach and accept on physical Safari. Chromium and synthetic coverage remain separate.
+- [ ] Complete four-sport/all-race/all-applicable-model real inputs, independent pre-cutoff retention/results and forward improvement evidence. Local APIs/tests do not satisfy this live requirement.
+
+Code, local validation and external blockers are recorded separately in `RACE_AI_LATEST_STATUS.md`; recheck concurrent remote writers before ordinary push.

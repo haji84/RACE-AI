@@ -56,28 +56,39 @@
       const selected = records.filter(row => row.sport === sport);
       const targetRaces = new Set(selected.map(row => row.race_id)).size;
       const allPredictions = row => [row.prediction, ...(row.comparison_predictions || [])].filter(Boolean);
+      const phaseNames=["P0","P1","A_PRE_TRIAL","B_POST_TRIAL","UNKNOWN"];
+      const hasLegacy=selected.some(row=>allPredictions(row).some(p=>["P0","P1"].includes(p.stage)));
+      const hasNative=selected.some(row=>allPredictions(row).some(p=>["A_PRE_TRIAL","B_POST_TRIAL"].includes(p.stage)));
+      const declared=row=>[...(row.scheduled_stages||[]),...(row.dispatch_slots||[]).map(s=>s.stage)];
+      const declaredSet=new Set(selected.flatMap(declared));
+      const savedSet=new Set(selected.flatMap(row=>allPredictions(row).map(p=>p.stage)));
+      const displayStages=declaredSet.size ? phaseNames.filter(p=>p!=="UNKNOWN"&&(declaredSet.has(p)||savedSet.has(p))) : sport === "autorace" ? [...(hasLegacy?["P0","P1"]:[]),...(!hasLegacy || hasNative?["A_PRE_TRIAL","B_POST_TRIAL"]:[])] : ["P0","P1"];
+      const phaseTargets=Object.fromEntries(phaseNames.map(phase=>[phase,new Set(selected.filter(row=>{
+        const stated=declared(row);return stated.length ? stated.includes(phase)||allPredictions(row).some(p=>p.stage===phase) : displayStages.includes(phase);
+      }).map(row=>row.race_id)).size]));
       const known = new Set(catalog.map(spec => spec.model_id));
       const additional = [...new Set(selected.flatMap(allPredictions).map(p => p.model_id).filter(id => id && !known.has(id)))].sort();
       const models = catalog.map(spec => {
         const applicable = spec.applicable_sports.includes(sport), targets = applicable ? targetRaces : 0;
-        const saved = new Set(), incompatible = new Set(), phaseRaces = {P0: new Set(), P1: new Set(), UNKNOWN: new Set()}, variants = new Map();
+        const saved = new Set(), incompatible = new Set(), phaseRaces = Object.fromEntries(phaseNames.map(p=>[p,new Set()])), variants = new Map();
         for (const row of selected) for (const p of allPredictions(row)) {
           // Exact identity only. A version or alias is never inferred as a model ID.
           if (p.model_id !== spec.model_id) continue;
           if (!applicable) { incompatible.add(row.race_id); continue; }
-          const stage = ["P0", "P1"].includes(p.stage) ? p.stage : "UNKNOWN";
+          const stage = phaseNames.includes(p.stage) ? p.stage : "UNKNOWN";
           saved.add(row.race_id); phaseRaces[stage].add(row.race_id);
           const key = JSON.stringify([row.scope || "unknown", stage, p.model_version ?? null]);
           if (!variants.has(key)) variants.set(key, {scope: row.scope || "unknown", stage, model_version: p.model_version ?? null, raceIds: new Set()});
           variants.get(key).raceIds.add(row.race_id);
         }
-        const stages = Object.fromEntries(Object.entries(phaseRaces).map(([stage, ids]) => [stage, {target_races: stage === "UNKNOWN" ? null : targets, saved_races: ids.size, missing_races: stage === "UNKNOWN" ? null : targets - ids.size}]));
+        const stages = Object.fromEntries(Object.entries(phaseRaces).map(([stage, ids]) => [stage, {target_races: stage === "UNKNOWN" ? null : applicable ? phaseTargets[stage] : 0, saved_races: ids.size, missing_races: stage === "UNKNOWN" ? null : (applicable ? phaseTargets[stage] : 0) - ids.size}]));
         const versions = [...variants.values()].map(v => ({scope: v.scope, stage: v.stage, model_version: v.model_version, saved_races: v.raceIds.size}));
         return {...spec, applicable, target_races: targets, saved_races: saved.size, missing_races: targets - saved.size,
           stages, versions, inapplicable_saved_races: incompatible.size,
           state: !applicable ? "NOT_APPLICABLE" : !saved.size ? "INPUT_MISSING" : saved.size < targets ? "PARTIAL_SAVED" : "SAVED_FOR_IMPORTED_RACES"};
       });
       return {models, target_races: targetRaces, applicable_models: models.filter(m => m.applicable).length,
+        display_stages: displayStages,
         not_applicable_models: models.filter(m => !m.applicable).length, additional_model_ids: additional,
         counts_only: true, scope: "IMPORTED_RACE_LEDGER_ONLY", all_models_operational: false};
     },
@@ -91,7 +102,7 @@
         (!needle || [r.venue, r.race_no + "R", r.race_id, r.prediction?.model_id, r.prediction?.model_version,
           ...(r.participants || []).flatMap(p => [p.name, p.registration_id, p.racer_registration_id])].filter(Boolean).join(" ").toLocaleLowerCase("ja-JP").includes(needle)));
       const cutoff = r => Number.isFinite(Date.parse(r.cutoff_at)) ? Date.parse(r.cutoff_at) : Infinity;
-      return rows.sort((a, b) => (sort === "time" ? cutoff(a) - cutoff(b) : a.venue.localeCompare(b.venue, "ja") || a.race_no - b.race_no) || a.race_id.localeCompare(b.race_id));
+      return rows.sort((a, b) => (sort === "time" ? cutoff(a) - cutoff(b) : (a.venue || "").localeCompare(b.venue || "", "ja") || (a.race_no ?? 0) - (b.race_no ?? 0)) || a.race_id.localeCompare(b.race_id));
     }
   };
   if (typeof module === "object" && module.exports) module.exports = model;

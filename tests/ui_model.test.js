@@ -95,4 +95,24 @@ const incompatible = M.modelCoverage([{race_id: "horse:bad-family", sport: "hors
 assert.equal(incompatible.state, "NOT_APPLICABLE");
 assert.equal(incompatible.saved_races, 0, "a specialist import cannot turn another sport operational");
 assert.equal(incompatible.inapplicable_saved_races, 1, "the incompatible supplied original stays visible as a mismatch");
+const autoCoverage=M.modelCoverage([
+  {race_id:"auto:saved",sport:"autorace",scope:"research",prediction:{model_id:sharedId,model_version:"v1",stage:"A_PRE_TRIAL"},comparison_predictions:[{model_id:sharedId,model_version:"v1",stage:"B_POST_TRIAL"}]},
+  {race_id:"auto:missing",sport:"autorace",scope:"research",prediction:null}
+],catalog.models,{sport:"autorace"});
+const autoShared=autoCoverage.models.find(m=>m.model_id===sharedId);
+assert.deepEqual(autoCoverage.display_stages,["A_PRE_TRIAL","B_POST_TRIAL"]);
+assert.equal(autoShared.stages.A_PRE_TRIAL.saved_races,1);
+assert.equal(autoShared.stages.B_POST_TRIAL.saved_races,1);
+assert.equal(autoShared.stages.A_PRE_TRIAL.missing_races,1);
+assert.equal(autoShared.stages.UNKNOWN.saved_races,0,"native trial phases cannot disappear into unknown");
+const declaredAuto=M.modelCoverage([{race_id:"auto:declared",sport:"autorace",scope:"research",scheduled_stages:["P0","A_PRE_TRIAL","B_POST_TRIAL"],
+  prediction:{model_id:sharedId,model_version:"v1",stage:"P0"},dispatch_slots:[{stage:"A_PRE_TRIAL",model_id:sharedId,status:"INPUT_MISSING"},{stage:"B_POST_TRIAL",model_id:sharedId,status:"INPUT_MISSING"}]}],catalog.models,{sport:"autorace"});
+assert.deepEqual(declaredAuto.display_stages,["P0","A_PRE_TRIAL","B_POST_TRIAL"],"declared missing phases stay visible without adding unscheduledP1");
+const declaredShared=declaredAuto.models.find(m=>m.model_id===sharedId);
+assert.equal(declaredShared.stages.B_POST_TRIAL.target_races,1);assert.equal(declaredShared.stages.B_POST_TRIAL.missing_races,1);
+assert.equal(declaredShared.stages.P1.target_races,0);
+assert.deepEqual(coverage.display_stages,["P0","P1"]);
+const unknownMetadata=[{race_id:"actual:opaque-race",sport:"boat",event_date_jst:"2030-01-01",venue:null,race_no:null,prediction:null}];
+assert.equal(M.filterRaces(unknownMetadata,{sport:"boat",day:"2030-01-01",query:"opaque",sort:"venue"}).length,1);
+assert.equal(M.filterRaces([...unknownMetadata,{...unknownMetadata[0],race_id:"other:opaque-race",venue:"known"}],{sport:"boat",day:"2030-01-01",sort:"venue"}).length,2);
 console.log("UI model behavior passed: allocation, manual ledger, real filters and all sixteen existing model families");
