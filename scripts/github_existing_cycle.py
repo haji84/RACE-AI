@@ -232,6 +232,9 @@ def repeat_complete(day,round_no,p1_id,result_id):
     from race_ai.repeated_cycle import artifact_name,complete
     from race_ai.cycle_recovery import result_archive
     run_id=int(os.environ['GITHUB_RUN_ID'])
+    # GitHub upload completion can precede metadata visibility. Wait before the
+    # single strict remote readback; never retry or ignore an HTTP 4xx/429.
+    time.sleep(5)
     meta=json.loads(gh(f'actions/artifacts/{result_id}'))
     need(meta['workflow_run']['id']==run_id and
          meta['name']==artifact_name('race-existing-cycle',run_id,round_no),'round result receipt identity')
