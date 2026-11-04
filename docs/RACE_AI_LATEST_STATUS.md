@@ -1,3 +1,15 @@
+# 2026-11-05 06:47 JST｜初回P0ブートストラップの下準備と原本再ハッシュ（本番予想未再開）
+
+既存Draft PR #71、branch `feat/four-sport-forecast-audit-view-20261022` の最新HEAD `c2e15d5c4881c9e5c999c3fbbddf8f6d6f3c97ce` を確認。既存workflow `405276784` のファイル・同一concurrency・トリガーと取得上限は**変更していない**。最新のActions run一覧では11/05 JSTの対象workflow新規実行を検出しなかった。既存run `41842464812` はcompleted/success、最終保存可能巡回は11/04の第21巡回（`status.json`は`round_no=21`、`completed_round=20`であり全巡回完走と同義ではない）。
+
+今回は既存最終artifact 3件を再ダウンロードしてZIP CRCと実バイトSHA256を再計算：予想`13336307604`=`119ee2a394acbaf1f15f1c92ca61b3ad96c80d53800cbf2c2468acf808f3762a`、結果/PDCA`13335717741`=`e6653f0fc545eead623eb0822c728d56d9a8ce1d364368a165822995d655a636`、継続`13335757993`=`64b8e3791d0ef8b94188733b290bc1f31a94e7bc0f695dedff638db3eb015242`。元API登録値に一致、ZIPのCRC異常なし。内部結果は**11/04時点**で基準570件（P0=288/P1=282）、通常採点489件（HIT139/MISS350、未通常81）、学習版70件、同条件比較66モデル別行/33レース、学習対象122レース（train92/validation30）、公式結果履歴505件。学習版の前向き優位性は未証明。
+
+今回のコード差分は、同日の先行workflow runを列挙し初回P0の既存原本を優先して選ぶための`scripts/first_p0_bootstrap.py`追加、ユニットテスト`tests/test_first_p0_bootstrap.py`追加、および同runで新たに取得した初回BのGETを240回予算に計上する分岐を`scripts/github_existing_cycle.py`に追加したこと。ブートストラップは**既存workflowにまだ接続していない**ため、初回P0独立保存・索引登録・当日の予想再開を達成したとは扱わない。新規コードのテストはworkflow統合試験ではなく、既存の他CIでの検査のみ。B原本の11/05実バイト検証も未完了。
+
+11/05 `docs/evidence/2026-11-05/p0-first-receipt.json` は未登録、本人専用Driveのフォルダを再列挙した範囲で当日初回P0該当なし（既存10件、shared=false、owner同一）。未接続の別保存先の不存在までは証明していない。初回原本の作成と外部時刻付与・読戻し・索引登録を安全に接続できるまで、既存トリガー追加・失敗run rerun・本番自動採用を行わない。同時writer1・4xx/429/真正性不一致・日付境界停止は引き続き必須。全16モデル/全4競技/全レースP1/無期限非公開保全は未達。新タスク・新PR・新workflow・新モデル系統・Cloudflare/Vercel・課金・main統合・公開・実投票なし。
+
+---
+
 # 2026-11-05 05:14 JST｜P0初回ゲートの起動経路が欠落（新しい予想・採点なし）
 
 既存Draft PR #71（監査時HEAD `793da023383155d9306b83c1d4be73655bf2befa`、branch `feat/four-sport-forecast-audit-view-20261022`）と同一workflow `405276784`のみ確認。GitHub Actionsの最新100 run（11/05 JST以降の記録を含む）で当日対象workflow新規runは0。Actions APIのin_progress/queued/pending/waiting各0件。直近対象runは前日 `41842464812`（completed/success）。その全45 artifactから最大保存巡回が第21巡回であることを再確認：予想 `13336307604`、結果/PDCA `13335717741`、継続 `13335757993`。API登録ZIP SHA256はそれぞれ `119ee2a394acbaf1f15f1c92ca61b3ad96c80d53800cbf2c2468acf808f3762a` / `e6653f0fc545eead623eb0822c728d56d9a8ce1d364368a165822995d655a636` / `64b8e3791d0ef8b94188733b290bc1f31a94e7bc0f695dedff638db3eb015242`。3ZIPの別再取得は開始したが、この巡回の実バイト独立再ハッシュはローカル検証環境エラーで完了せず、前回03:32までの独立照合結果と区別する。
