@@ -1,3 +1,19 @@
+# 2026-11-05 01:11 JST｜前日3原本ZIPを所有者限定Driveへ保全・独立再取得照合
+
+既存run `41842464812` の2026-11-04最終監査に追加した保全証拠。非公開Google Drive `RACE-AI_予想原本保管` のフォルダ・rootのownerが同一、フォルダとアップロード後の各ファイルが `shared=false`、ファイル単独のpermissionはownerのみ、正しい親フォルダであることをAPIで確認した。既存7ファイルには上書きせず、次の元GitHub artifact ZIPを**無改変のまま3件新規保存**。各ファイルをDriveから独立ダウンロードし、実バイトSHA256=元GitHub API digestが3件とも一致した。
+
+| 保存対象 | 元artifact ID | 無改変ZIP SHA256 | Drive読戻し |
+| --- | ---: | --- | --- |
+| 当日復元・原本索引continuity | 13335757993 | `64b8e3791d0ef8b94188733b290bc1f31a94e7bc0f695dedff638db3eb015242` | 一致 |
+| 第21巡回の結果/PDCA | 13335717741 | `e6653f0fc545eead623eb0822c728d56d9a8ce1d364368a165822995d655a636` | 一致 |
+| 第21巡回の展示後予想 | 13336307604 | `119ee2a394acbaf1f15f1c92ca61b3ad96c80d53800cbf2c2468acf808f3762a` | 一致 |
+
+最初のDrive upload APIではfile_uri形式エラー、続くFiles経由のcontainer_pathではcontainer_session_expiredだったが、別にダウンロード済みの厳密なsource_file_refをFiles経由で指定することで3件とも成功。下記01:08時点の「当日Drive保存0件」はその時点の事実であり、**本追記時点では3件保存済み**。公開GitHubに私有DriveのID・URL・認証情報は載せない。3件の保存は今回対象の原本保全進捗であり、全日全巡回・全4競技の永久自動保存が完成したという主張ではない。
+
+予想・通常採点・学習版の成績に変更なし（基準570、通常489、LEARNED_SHADOW70、同条件比較66モデル別行）。後続runのqueued/pending/waitingを完全に列挙できていないため追加triggerなし。新PR/task/workflow/モデル/頻度/課金/main統合/実投票/自動本番切替なし。
+
+---
+
 # 2026-11-05 01:08 JST｜前日runの正常終了と継続原本を独立確認（採点・予想増分なし）
 
 既存Draft PR #71 / workflow405276784 / run `41842464812`。2026-11-05 01:08 JSTに既存runのjob `126617327153` が `completed/success` であることをGitHub接続で確認。第21巡回の予想artifact `13336307604`（2026-11-04 23:58:02 JST、ZIP SHA256 `119ee2a394acbaf1f15f1c92ca61b3ad96c80d53800cbf2c2468acf808f3762a`）、結果/PDCA artifact `13335717741`（23:58:11 JST、SHA256 `e6653f0fc545eead623eb0822c728d56d9a8ce1d364368a165822995d655a636`）、最終継続artifact `13335757993`（2026-11-05 00:00:20 JST、SHA256 `64b8e3791d0ef8b94188733b290bc1f31a94e7bc0f695dedff638db3eb015242`）を無改変取得し、実バイトSHA256とGitHub API digestが3件一致。結果ZIPに埋込まれた予想ZIPも同一バイト。continuity.jsonの `complete=true`、rows=570、公式結果観測=505、LEARNED_SHADOW=70、同日走査run=23を確認。
