@@ -1,0 +1,11 @@
+{
+  "race_ai/current_boat_inputs.py": "64a032e7b598f81c693fc0482e30b0eb03a10d038193b315302edb167ba323fa",
+  "race_ai/local_forecast_service.py": "31b86da7bff18c1e17ac71c184bf4e9fb81d82177eb0a315e256cb0bbee0901a",
+  "race_ai/local_forecast_server.py": "9b00f6b410fd8b9622a654caf48826e2bd6be5e45ee5efdfd602f1fad2b0d6c5",
+  "race_ai/private_dispatch_operation.py": "15980b5456fb1c44791adf0b697cea4af3152085559cd4eccbd8166a04d3fc5f",
+  "scripts/start_local_forecast.py": "6e5fe7a2477cfdabd6ec98bbb6cfc025613299a322cfd7944f86bca3e02e3d84",
+  "web/index.html": "d545f48aaa2c74a8e817d5a1301fc94b58c2703529506f1b10eca288f172a688",
+  "web/app.js": "836c17152efe73fd6f29b9b9063b855fff20dd58800e29b263bd23d7bb7bc7b5",
+  "web/style.css": "0395fd661a0e061d4486ded7688026bbc2db36d7f11cc6e809e395519069182d",
+  "web/product-data.js": "cffe2a307ef04b5c6f8416e4d5e43d59f87698da54eb13566aa756364c878ad4"
+}

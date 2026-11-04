@@ -82,3 +82,17 @@ Owner explicitly requested continuing these four requirements to completion. Exi
 - [ ] Complete four-sport/all-race/all-applicable-model real inputs, independent pre-cutoff retention/results and forward improvement evidence. Local APIs/tests do not satisfy this live requirement.
 
 Code, local validation and external blockers are recorded separately in `RACE_AI_LATEST_STATUS.md`; recheck concurrent remote writers before ordinary push.
+
+## Authorized continuation: generate new forecasts from the app
+
+The owner explicitly requested new generation after confirming that the earlier application only displayed saved originals. Continue in PR71 without another design/permission pause, publication, new model family, workflow or scheduled task.
+
+Architecture: retain the existing web shell and native dispatch/journal. A loopback-only Python server injects an API capability into its served HTML. The browser sends only sport/stage on an explicit click. A trusted current-day provider captures exact official bytes privately, creates unchanged native inputs, and admits only the current personal-analysis/private-storage/private-derived scope. Static imports continue to work without an API probe.
+
+- [x] Capture and strictly parse current official BOAT B input, keeping missing fields missing and exact source SHA/capture clock. Deduplicate source reads across restarts; persistent request bounds and 4xx/identity stops. P1 reuses existing strict official page parsers, at most3 new races per manual call; pending sources remain pending.
+- [x] Wire current inputs through all registered slots to the unchanged native algorithms, immutable journal and existing product projection. Add a real save-clock check with210second buffer; late/reversed/unknown save times remain rejected even on retry, without regenerating originals.
+- [x] Add loopback Host/Origin/nonce boundaries, a fixed static asset list, bounded POST and exact sport/stage fields. No browser-provided time, source URL, grants or private path. Private files are never static assets.
+- [x] Add explicit P0/P1 generation controls, counts for generated/reused/missing model slots, returned-day/original validation, failure retention and honest unavailable sport states. Avoid calling synthetic API fixtures live proof.
+- [x] Actual Nov5 app click generated144races/288P0 originals; retries0new/288reused. Full1440 plus390 representatives checked294variants/2352tickets; sourceGET1; all829Python/179Node/35syntheticbrowsergroups passed. Independent review matched all288native SHA/Top8 againstHTTP/retry/package JSON without inference.
+- [x] Delivered a verified private launch package with pinned PR64/72 code, exactsourcebytes/seedDB/currentJSON. Isolated imports+seed/check+0GET/0inference/288reuse passed. Linux/POSIX or WindowsWSL2 is required; cloud127.0.0.1 is not the user's PC URL and staticHTML is not an inference server.
+- [ ] Record remaining actual inputs for other sports/models, P1 source/cap coverage limits, independent retention/results, physical Safari and precision improvement. Do not claim whole-product completion from the first2 BOAT models.

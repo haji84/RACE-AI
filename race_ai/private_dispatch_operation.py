@@ -283,7 +283,8 @@ here; no synthetic commitment is added to repair them.
         raise PrivateDispatchError("UNVERIFIED_ORIGINAL_STORAGE_EVIDENCE") from None
 
 
-def run_saved_inputs(journal, schedule, inputs, *, at, allow_source=None, originals=()):
+def run_saved_inputs(journal, schedule, inputs, *, at, allow_source=None, originals=(),
+                     commit_clock=None, cutoff_buffer_seconds=0):
     """Dispatch and commit one explicit saved-input batch, without source I/O.
 
 All originals are read under BEGIN IMMEDIATE before any model executes. The
@@ -297,6 +298,8 @@ both private uses must be independently admitted before real native inference.
     Already-admitted journal originals remain readable without model execution.
 """
     _need(isinstance(journal, PrivateDispatchJournal))
+    _need(commit_clock is None or callable(commit_clock))
+    _need(type(cutoff_buffer_seconds) is int and 0 <= cutoff_buffer_seconds <= 3600)
     clock = native._time(at)
     rows, payloads, imported = deepcopy(schedule), deepcopy(inputs), deepcopy(list(originals))
     _need(type(rows) is list and type(payloads) is dict and len(rows) <= 20000)
@@ -333,6 +336,11 @@ both private uses must be independently admitted before real native inference.
             eligible = [slot for slot in known.values() if (slot["race_id"], slot["stage"]) in selected]
             report = native.dispatch(rows, payloads, now=clock, allow_source=admitted, originals=eligible)
             report["schedule"] = deepcopy(rows)
+            save_checked = native._time(commit_clock()) if commit_clock is not None else None
+            if save_checked is not None:
+                _need(save_checked >= clock)
+                _need(all((native._time(slot["cutoff_at"]) - save_checked).total_seconds() > cutoff_buffer_seconds
+                          for slot in report["slots"] if slot["status"] == "GENERATED_UNATTESTED"))
             for slot in report["slots"]:
                 if slot["status"] != "GENERATED_UNATTESTED":
                     continue
@@ -345,6 +353,8 @@ both private uses must be independently admitted before real native inference.
                 source_requests=0, local_commit_only=True, independent_freeze_verified=False,
                 official_results_authenticated=False, all_models_operational=False,
                 production_operation=False, originals_overwritten=False, automatic_model_promoted=False)
+            if save_checked is not None:
+                output["local_save_checked_at"] = save_checked.isoformat()
             metadata = deepcopy(output)
             slots = metadata["dispatch"].pop("slots")
             retained = metadata["dispatch"].pop("retained_originals")

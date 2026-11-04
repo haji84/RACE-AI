@@ -1,0 +1,13 @@
+test_browser_cannot_supply_clock_model_scope_grants_or_paths (tests.test_local_forecast_server.LocalForecastServerTests.test_browser_cannot_supply_clock_model_scope_grants_or_paths) ... ok
+test_cross_origin_forged_host_and_missing_nonce_do_not_generate (tests.test_local_forecast_server.LocalForecastServerTests.test_cross_origin_forged_host_and_missing_nonce_do_not_generate) ... ok
+test_explicit_post_calls_service_and_served_index_advertises_capability (tests.test_local_forecast_server.LocalForecastServerTests.test_explicit_post_calls_service_and_served_index_advertises_capability) ... ok
+test_extreme_content_length_is_rejected_before_body_read (tests.test_local_forecast_server.LocalForecastServerTests.test_extreme_content_length_is_rejected_before_body_read) ... ok
+test_internal_source_and_storage_failures_return_fixed_actionable_errors (tests.test_local_forecast_server.LocalForecastServerTests.test_internal_source_and_storage_failures_return_fixed_actionable_errors) ... ok
+test_private_files_path_traversal_and_symlink_assets_are_not_served (tests.test_local_forecast_server.LocalForecastServerTests.test_private_files_path_traversal_and_symlink_assets_are_not_served) ... ok
+test_public_binding_is_not_an_argument (tests.test_local_forecast_server.LocalForecastServerTests.test_public_binding_is_not_an_argument) ... ok
+test_size_content_type_and_method_guards_have_no_generation_side_effect (tests.test_local_forecast_server.LocalForecastServerTests.test_size_content_type_and_method_guards_have_no_generation_side_effect) ... ok
+
+----------------------------------------------------------------------
+Ran 8 tests in 3.596s
+
+OK

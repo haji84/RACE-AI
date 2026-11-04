@@ -74,3 +74,6 @@ body{overflow-wrap:break-word}button{min-height:34px}input,select{min-height:36p
 .raw-observation{white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%;font:inherit;font-size:11px;line-height:1.7;color:var(--muted)}
 
 .detail-title>h2{min-width:0;max-width:100%;overflow-wrap:anywhere}.detail-hero h3,.detail-hero p{overflow-wrap:anywhere}
+
+.generation-panel{display:flex;flex-wrap:wrap;align-items:center;gap:10px 20px;margin-bottom:16px;padding:15px 20px}.generation-panel>div:first-child{flex:1 1 250px;min-width:0}.generation-panel h2{font-size:18px;margin-bottom:4px}.generation-panel .eyebrow{font-size:9px;margin-bottom:3px}.generation-actions{display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap}.generation-actions label{font-size:11px;color:var(--muted)}.generation-actions select{display:block;margin-top:4px;max-width:100%}.generation-panel .message{flex:1 1 100%;font-size:11px;margin:0}.generation-panel[aria-busy="true"]{border-color:var(--teal)}
+@media(max-width:640px){.generation-panel{padding:12px;gap:8px}.generation-panel>div:first-child{flex-basis:100%}.generation-actions{width:100%;gap:8px}.generation-actions label{flex:1;min-width:0}.generation-actions select{width:100%}.generation-actions .primary{flex:1;min-width:0;font-size:11px;padding:11px 8px}}

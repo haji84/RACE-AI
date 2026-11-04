@@ -19,19 +19,38 @@ fixture.records.forEach((r, i) => {
 let browser, server;
 const errors = [], requests = [], checks = [];
 const mark = name => { checks.push(name); console.log('PASS', name); };
+const generationCalls = [];
+let failGeneration = false;
+let generationOverride = null;
 async function main() {
   fs.mkdirSync(output, {recursive:true});
   server = http.createServer((req,res) => {
-    const name = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+    const parsedUrl = new URL(req.url, 'http://localhost');
+    const name = decodeURIComponent(parsedUrl.pathname);
+    if (name === '/api/forecast/status') {
+      res.writeHead(200, {'Content-Type':'application/json'});
+      return res.end(JSON.stringify({day_jst:'2030-01-01',nonce:'synthetic-ui-nonce',capabilities:{boat:{P0:true,P1:true},keirin:{P0:false,P1:false},autorace:{P0:false,P1:false},horse:{P0:false,P1:false}}}));
+    }
+    if (name === '/api/forecast/generate' && req.method === 'POST') {
+      let body='';req.on('data',chunk=>body+=chunk);req.on('end',()=>{
+        generationCalls.push({body:JSON.parse(body),nonce:req.headers['x-race-ai-nonce']});
+        res.writeHead(failGeneration?422:200, {'Content-Type':'application/json'});
+        if(failGeneration)return res.end(JSON.stringify({error:{code:'GENERATION_INPUT_UNAVAILABLE',message:'対象レース・予想時点・必要な実入力を確認してください。'}}));
+        if(generationOverride)return res.end(JSON.stringify(generationOverride));
+        return res.end(JSON.stringify({day_jst:'2030-01-01',view:fixture,summary:{generated:generationCalls.length%2?1:0,reused:generationCalls.length%2?0:1,missing:14}}));
+      });return;
+    }
     const file = path.resolve(root, '.' + (name === '/' ? '/index.html' : name));
     if (!file.startsWith(root + path.sep) || !fs.existsSync(file)) {res.writeHead(404);return res.end();}
     const type = {'.html':'text/html','.css':'text/css','.js':'text/javascript','.json':'application/json'}[path.extname(file)] || 'application/octet-stream';
-    res.writeHead(200, {'Content-Type':type});fs.createReadStream(file).pipe(res);
+    res.writeHead(200, {'Content-Type':type});
+    if(name==='/' && parsedUrl.searchParams.has('generation'))return res.end(fs.readFileSync(file,'utf8').replace('</head>','<meta name="race-ai-generation-api" content="/api/forecast"></head>'));
+    fs.createReadStream(file).pipe(res);
   });
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const base = `http://127.0.0.1:${server.address().port}/`;
   browser = await chromium.launch({headless:true, ...(process.env.CHROMIUM_PATH ? {executablePath:process.env.CHROMIUM_PATH} : {}), args:['--no-sandbox']});
-  for (const width of [320,390,1440,1920]) {
+  for (const width of process.env.UI_GENERATION_ONLY?[]:[320,390,1440,1920]) {
     const context = await browser.newContext({viewport:{width,height:width<600?844:1080}, deviceScaleFactor:1});
     await context.tracing.start({screenshots:true,snapshots:true});
     const page = await context.newPage();
@@ -45,6 +64,8 @@ async function main() {
     await page.clock.install({time:new Date('2030-01-01T00:30:00Z')});
     await page.goto(base);
     await page.locator('#source-state').waitFor();
+    assert.equal(await page.locator('#forecast-generate').isDisabled(),true,'static viewer cannot pretend to generate');
+    assert.match(await page.locator('#generation-message').innerText(),/ローカル予想サーバー/);
     assert.match(await page.locator('#source-state').innerText(), /未取得|未読込|未接続/);
     assert.equal(await page.locator('#page-home .race-card').count(),0);
     await page.locator('[data-page="research"]').filter({visible:true}).first().click();
@@ -269,9 +290,52 @@ async function main() {
     await context.tracing.stop({path:path.join(output,`${width}-interaction.zip`)});
     await context.close();
   }
+  assert.ok(requests.every(url=>!new URL(url).pathname.startsWith('/api/forecast')),'static viewer makes no generation API probe');
+  for(const width of [390,1440]) {
+    generationCalls.length=0;failGeneration=false;generationOverride=null;
+    const context=await browser.newContext({viewport:{width,height:width<600?844:1080}});
+    const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('request',req=>requests.push(req.url()));
+    await page.clock.install({time:new Date('2030-01-01T00:30:00Z')});
+    await page.goto(base+'?generation=1');
+    await page.waitForFunction(()=>document.querySelector('#forecast-generate')?.disabled===false);
+    assert.equal(generationCalls.length,0,'startup capability check must not generate a forecast');
+    await page.locator('#forecast-stage').selectOption('P1');
+    await page.locator('#forecast-generate').click();
+    await page.waitForFunction(()=>document.querySelector('#generation-message').textContent.includes('新規 1'));
+    assert.deepEqual(generationCalls[0],{body:{sport:'boat',stage:'P1'},nonce:'synthetic-ui-nonce'},'browser supplies no source grants, clock, model list or private path');
+    assert.match(await page.locator('#source-state').innerText(),/合成/);
+    await page.locator('[data-page="races"]').filter({visible:true}).first().click();
+    await page.locator('#page-races [data-open-race]').first().click();
+    assert.ok((await page.locator('#race-detail').innerText()).includes(fixture.records[0].prediction.prediction_sha256),'returned exact original hash appears in the app');
+    await page.locator('#forecast-generate').click();
+    await page.waitForFunction(()=>document.querySelector('#generation-message').textContent.includes('再利用 1'));
+    await page.locator('[data-page="races"]').filter({visible:true}).first().click();
+    await page.locator('#page-races [data-open-race]').first().click();
+    assert.ok((await page.locator('#race-detail').innerText()).includes(fixture.records[0].prediction.prediction_sha256),'reuse shows the same original hash');
+    const before=await page.locator('#race-detail').innerText();
+    failGeneration=true;await page.locator('#forecast-generate').click();
+    await page.waitForFunction(()=>document.querySelector('#generation-message').textContent.includes('前の表示データ'));
+    assert.match(await page.locator('#generation-message').innerText(),/対象レース・予想時点・必要な実入力を確認してください。/,'actual server error code provides an actionable input message');
+    assert.equal(await page.locator('#race-detail').innerText(),before,'generation failure retains the loaded original');
+    failGeneration=false;
+    for(const [day,viewDay] of [['2030-99-99','2030-01-01'],['2030-01-01','2030-01-02']]) {
+      generationOverride={day_jst:day,view:{schema:'RACE_AI_PRIVATE_CYCLE_VIEW_V1',dataset_status:'SYNTHETIC_ONLY',event_date_jst:viewDay,records:[]},summary:{generated:0,reused:0,missing:0}};
+      await page.locator('#forecast-generate').click();
+      await page.waitForFunction(()=>document.querySelector('#generation-message').textContent.includes('応答を確認'));
+      assert.equal(await page.locator('#race-detail').innerText(),before,'invalid response date must not clear the loaded original');
+      assert.equal(await page.locator('#selected-date').inputValue(),'2030-01-01');
+    }
+    await page.locator('[data-sport="horse"]').first().click();
+    assert.equal(await page.locator('#forecast-generate').isDisabled(),true);
+    assert.match(await page.locator('#generation-message').innerText(),/実入力|入力/);
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'generation controls must wrap on mobile');
+    await page.screenshot({path:path.join(output,`${width}-generation-controls.png`),fullPage:true});
+    mark(`${width}: explicit generation request, exact returned original, reuse message, invalid response retention and missing native inputs`);
+    await context.close();
+  }
   assert.deepEqual(errors,[],'no page errors');
   assert.ok(requests.every(url=>url.startsWith(base)),'no external source requests');
-  fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({scope:'SYNTHETIC_ONLY',checks,errors,source_requests:0,widths:[320,390,1440,1920],dispatch_fixture_widths:process.env.UI_DISPATCH_VIEWS?[390,1440]:[]},null,2));
+  fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({scope:'SYNTHETIC_ONLY',checks,errors,source_requests:0,widths:[320,390,1440,1920],dispatch_fixture_widths:process.env.UI_DISPATCH_VIEWS?[390,1440]:[],generation_fixture_widths:[390,1440],generation_native_execution_proven:false},null,2));
   await browser.close();browser=null;await new Promise(resolve=>server.close(resolve));server=null;
 }
 main().catch(async error=>{console.error(error);if(browser)await browser.close();if(server)server.close();process.exitCode=1;});

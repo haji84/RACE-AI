@@ -1,0 +1,14 @@
+test_check_uses_status_without_generation_provider_reads_or_server_start (tests.test_local_forecast_launcher.LocalForecastLauncherTests.test_check_uses_status_without_generation_provider_reads_or_server_start) ... ok
+test_exact_seed_copy_has_private_modes_and_keeps_original_bytes (tests.test_local_forecast_launcher.LocalForecastLauncherTests.test_exact_seed_copy_has_private_modes_and_keeps_original_bytes) ... ok
+test_existing_incomplete_root_is_preserved_and_refused (tests.test_local_forecast_launcher.LocalForecastLauncherTests.test_existing_incomplete_root_is_preserved_and_refused) ... ok
+test_existing_original_store_is_never_reseeded (tests.test_local_forecast_launcher.LocalForecastLauncherTests.test_existing_original_store_is_never_reseeded) ... ok
+test_manifest_cannot_escape_seed_or_copy_links (tests.test_local_forecast_launcher.LocalForecastLauncherTests.test_manifest_cannot_escape_seed_or_copy_links) ... ok
+test_missing_pinned_references_fail_before_private_target_creation (tests.test_local_forecast_launcher.LocalForecastLauncherTests.test_missing_pinned_references_fail_before_private_target_creation) ... ok
+test_no_seed_initializes_only_a_new_private_directory_outside_git (tests.test_local_forecast_launcher.LocalForecastLauncherTests.test_no_seed_initializes_only_a_new_private_directory_outside_git) ... ok
+test_seed_publication_cannot_replace_a_concurrently_created_empty_directory (tests.test_local_forecast_launcher.LocalForecastLauncherTests.test_seed_publication_cannot_replace_a_concurrently_created_empty_directory) ... ok
+test_tampered_or_missing_source_never_leaves_partial_target (tests.test_local_forecast_launcher.LocalForecastLauncherTests.test_tampered_or_missing_source_never_leaves_partial_target) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.184s
+
+OK

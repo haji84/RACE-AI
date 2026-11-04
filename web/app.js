@@ -1,5 +1,5 @@
 "use strict";
-/* PR #62 page shell and manual ticket flow, connected to saved audit objects only. */
+/* PR #62 page shell, saved originals and explicit local generation. */
 (() => {
   const $ = id => document.getElementById(id);
   const U = globalThis.RaceUI, M = globalThis.RaceProductData, A = globalThis.RaceAuditModel, C = globalThis.RaceExistingModelCatalog;
@@ -28,6 +28,7 @@
     candidates: [], purchases: [], confirmed: new Set(), visible: 60
   };
   let dataset = null, importVersion = 0;
+  const generation = {api: null, ready: false, busy: false, nonce: null, capabilities: {}, day: null, message: ""};
   const text = v => v === null || v === undefined || v === "" ? "未取得" :
     typeof v === "string" ? v.slice(0, 4000) : typeof v === "number" && Number.isFinite(v) ? String(v) :
       typeof v === "boolean" ? (v ? "あり" : "なし") : "未取得";
@@ -424,11 +425,68 @@
     $("source-date").textContent = "対象日：" + (dates.length ? dates[0] + (dates.length > 1 ? "〜" + dates.at(-1) : "") : "未取得");
     $("source-time").textContent = "取得時刻：" + (dataset ? "各レースの保存原本を参照" : "未取得");
     $("clear-data").disabled = !dataset;
+    renderGeneration();
   }
   function renderAll() { renderMeta(); renderHome(); renderRaces(); renderTickets(); renderResults(); renderResearch(); if (state.page === "detail") renderDetail(); }
   function adoptDataset(parsed) {
     dataset = parsed; state.selectedId = ""; state.predictionKeys = {}; state.candidates = []; state.confirmed.clear(); state.venue = ""; state.visible = 60; $("purchase-ack").checked = false;
     refreshSelects(); renderAll();
+  }
+  function renderGeneration() {
+    const stage = $("forecast-stage").value;
+    const available = generation.ready && generation.capabilities[state.sport]?.[stage] === true;
+    $("forecast-stage").disabled = !generation.ready || generation.busy;
+    $("forecast-generate").disabled = !available || generation.busy;
+    $("forecast-generate").textContent = generation.busy ? "生成・保存しています…" : "新しい予想を生成";
+    $("forecast-generation").setAttribute("aria-busy", String(generation.busy));
+    $("generation-message").textContent = generation.busy ? "実入力を確認し、締切前の予想を生成・保存しています。" :
+      generation.ready && !available ? sports[state.sport] + "の" + (stage === "P1" ? "展示後" : "朝版") + "実入力はまだ接続されていません。保存原本の読み込みは使えます。" :
+      generation.message || (generation.ready ? generation.day + " JST のレースが対象です。生成した予想に表示を切り替え、編集中の購入候補はクリアします。" : "ローカル予想サーバーで起動すると生成できます。保存JSONの読み込みはそのまま使えます。");
+  }
+  function generationError(code) {
+    return ({LOCAL_REQUEST_REQUIRED:"この端末の予想画面から操作してください。", INVALID_REQUEST:"競技と予想時点を選び直してください。",
+      REQUEST_TOO_LARGE:"リクエストが上限を超えています。", JSON_REQUIRED:"JSON形式で操作してください。", NOT_FOUND:"この画面または取得経路はありません。", METHOD_NOT_ALLOWED:"予想生成ボタンから操作してください。",
+      SOURCE_PERMISSION_REQUIRED:"取得元の解析・私有保存の利用条件を確認してください。", SOURCE_TIMEOUT:"入力の取得が時間内に完了しませんでした。取得状態を確認してください。",
+      GENERATION_INPUT_UNAVAILABLE:"対象レース・予想時点・必要な実入力を確認してください。", PRIVATE_STORAGE_UNAVAILABLE:"私有保存先または入力の取得経路を確認してください。",
+      GENERATION_UNAVAILABLE:"予想生成を完了できませんでした。入力と保存の状態を確認してください。"})[code] || "予想の生成・保存を完了できませんでした。接続と入力状況を確認してください。";
+  }
+  function generationDay(value) {
+    if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+    const epoch = Date.parse(value + "T00:00:00Z");
+    return Number.isFinite(epoch) && new Date(epoch).toISOString().slice(0,10) === value;
+  }
+  async function connectGeneration() {
+    const endpoint = document.querySelector('meta[name="race-ai-generation-api"]')?.content;
+    if (endpoint !== "/api/forecast" || location.protocol !== "http:" || !["127.0.0.1", "localhost", "[::1]"].includes(location.hostname)) return;
+    generation.api = endpoint;generation.message = "予想機能に接続しています…";renderGeneration();
+    try {
+      const response = await fetch(endpoint + "/status", {credentials:"same-origin", cache:"no-store"});
+      if (!response.ok) throw new Error("status");
+      const status = await response.json();
+      if (typeof status.nonce !== "string" || !status.nonce || status.nonce.length > 256 || !status.capabilities || typeof status.capabilities !== "object" || !generationDay(status.day_jst)) throw new Error("status");
+      generation.nonce = status.nonce;generation.capabilities = status.capabilities;generation.day = status.day_jst;generation.ready = true;generation.message = "";
+    } catch { generation.message = "予想サーバーに接続できません。起動状態を確認して画面を再読み込みしてください。"; }
+    renderGeneration();
+  }
+  async function generateForecasts() {
+    const sport = state.sport, stage = $("forecast-stage").value;
+    if (generation.busy || !generation.ready || generation.capabilities[sport]?.[stage] !== true) return;
+    generation.busy = true;generation.message = "";renderGeneration();
+    const version = ++importVersion;
+    try {
+      const response = await fetch(generation.api + "/generate", {method:"POST", credentials:"same-origin", cache:"no-store",
+        headers:{"Content-Type":"application/json", "X-Race-AI-Nonce":generation.nonce}, body:JSON.stringify({sport,stage})});
+      const result = await response.json();
+      if (!response.ok || result.error) { generation.message = generationError(result.error?.code) + " 前の表示データは保持しています。";return; }
+      const parsed = M.parse(result.view), summary = result.summary;
+      if (!generationDay(result.day_jst) || parsed.event_date_jst != null && parsed.event_date_jst !== result.day_jst || parsed.records.some(row=>row.event_date_jst !== result.day_jst) || !summary || ["generated","reused","missing"].some(key=>!Number.isSafeInteger(summary[key]) || summary[key]<0)) throw new Error("invalid generation response");
+      if (version !== importVersion) { generation.message = "予想処理は完了しました。後から読み込んだデータの表示を保持しています。";return; }
+      state.day = result.day_jst;state.sport = sport;state.followsToday = false;state.allDates = false;state.period = "day";
+      generation.day = result.day_jst;adoptDataset(parsed);showPage("races", true);
+      generation.message = "モデル別：新規 " + summary.generated + "件 · 再利用 " + summary.reused + "件 · 未予想 " + summary.missing + "件。" +
+        (summary.generated + summary.reused ? "保存済み予想を表示しています。" : "入力・締切の状態を表示しています。予想はまだ生成されていません。");
+    } catch { generation.message = "予想の応答を確認できませんでした。前の表示データは保持しています。"; }
+    finally { generation.busy = false;renderGeneration(); }
   }
   async function importFiles(files) {
     const version = ++importVersion;
@@ -511,6 +569,8 @@
   });
   $("settings-form").addEventListener("submit", e => { e.preventDefault(); const value = Number($("daily-budget").value); if (!validBudget(value) || value < U.summarize(dailyPurchases()).spent) { $("settings-message").textContent = "予算は本日の購入済み金額以上、100〜10,000,000円の100円単位で入力してください。"; return; } state.budget = value; state.sport = $("settings-sport").value; persistPreferences(); refreshSelects(); renderAll(); $("settings-message").textContent = "予算と初期競技の設定を保存しました。予想や購入明細は保存していません。"; });
   $("race-file").addEventListener("change", e => importFiles([...e.target.files]));
+  $("forecast-generate").addEventListener("click", generateForecasts);
+  $("forecast-stage").addEventListener("change", () => { generation.message = "";renderGeneration(); });
   $("load-synthetic").addEventListener("click", loadSynthetic);
   $("clear-data").addEventListener("click", () => { ++importVersion; dataset = null; state.selectedId = ""; state.predictionKeys = {}; state.candidates = []; state.confirmed.clear(); $("purchase-ack").checked = false; refreshSelects(); renderAll(); $("file-message").textContent = "読み込んだ予想と候補をメモリから消去しました。手動購入記録は再読込まで保持します。"; });
   // A local clock change updates the display day, without fetching race sources.
@@ -518,4 +578,5 @@
   setInterval(checkDay, 30000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) checkDay(); });
   refreshSelects(); renderAll(); showPage(location.hash.slice(1) || "home");
+  connectGeneration();
 })();
