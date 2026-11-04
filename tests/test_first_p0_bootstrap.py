@@ -1,0 +1,61 @@
+"""Create-only first-P0 bootstrap contract tests; no external GET or repository writes."""
+import copy
+import json
+import unittest
+from unittest.mock import patch
+
+from tests.test_frozen_day_cycle import sample
+from scripts import first_p0_bootstrap as boot
+
+
+class FirstP0BootstrapTests(unittest.TestCase):
+    def test_original_index_is_derived_from_independent_receipt(self):
+        doc, raw, meta = sample()
+        value = boot.receipt_index(raw, meta, '2030-04-01')
+        self.assertEqual(value['artifact_id'], meta['id'])
+        self.assertEqual(value['run_id'], meta['workflow_run']['id'])
+        self.assertEqual(value['race_count'], 1)
+        self.assertEqual(value['model_forecast_count'], 2)
+        self.assertFalse(value['permanent_private_storage_proven'])
+        self.assertTrue(value['no_regeneration'])
+
+    def test_archive_or_metadata_tampering_never_becomes_first_index(self):
+        _, raw, meta = sample()
+        with self.assertRaises(ValueError):
+            boot.receipt_index(raw + b'altered', meta, '2030-04-01')
+        changed = copy.deepcopy(meta)
+        changed['created_at'] = '2030-04-01T02:00:00Z'
+        with self.assertRaises(ValueError):
+            boot.receipt_index(raw, changed, '2030-04-01')
+        with self.assertRaises(ValueError):
+            boot.receipt_index(raw, meta, '2030-04-02')
+
+    def test_discover_prior_original_and_never_generate_new_one(self):
+        _, raw, meta = sample()
+        run = {'id': 2}
+        listing = {'total_count': 1, 'artifacts': [
+            {'id': meta['id'], 'name': 'boat-p0-existing-2'}]}
+        def fake_get(endpoint):
+            if endpoint.startswith('actions/runs/2/artifacts'):
+                return json.dumps(listing).encode()
+            if endpoint == 'actions/artifacts/1':
+                return json.dumps(meta).encode()
+            if endpoint == 'actions/artifacts/1/zip':
+                return raw
+            raise AssertionError(endpoint)
+        with patch.object(boot, 'day_runs', return_value=[run]), \
+             patch.object(boot, 'gh', side_effect=fake_get):
+            found = boot.previous_first_receipt('2030-04-01', 3)
+        self.assertEqual(found[1]['id'], meta['id'])
+        self.assertEqual(found[0], raw)
+
+    def test_incomplete_artifact_listing_blocks_blind_regeneration(self):
+        incomplete = {'total_count': 2, 'artifacts': []}
+        with patch.object(boot, 'day_runs', return_value=[{'id': 2}]), \
+             patch.object(boot, 'gh', return_value=json.dumps(incomplete).encode()):
+            with self.assertRaisesRegex(ValueError, 'ARTIFACT_PAGINATION_INCOMPLETE'):
+                boot.previous_first_receipt('2030-04-01', 3)
+
+
+if __name__ == '__main__':
+    unittest.main()
