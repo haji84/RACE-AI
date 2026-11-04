@@ -26,6 +26,54 @@
 
 ---
 
+# 2026-11-05 06:47 JST｜初回P0ブートストラップの下準備と原本再ハッシュ（本番予想未再開）
+
+既存Draft PR #71、branch `feat/four-sport-forecast-audit-view-20261022` の最新HEAD `c2e15d5c4881c9e5c999c3fbbddf8f6d6f3c97ce` を確認。既存workflow `405276784` のファイル・同一concurrency・トリガーと取得上限は**変更していない**。最新のActions run一覧では11/05 JSTの対象workflow新規実行を検出しなかった。既存run `41842464812` はcompleted/success、最終保存可能巡回は11/04の第21巡回（`status.json`は`round_no=21`、`completed_round=20`であり全巡回完走と同義ではない）。
+
+今回は既存最終artifact 3件を再ダウンロードしてZIP CRCと実バイトSHA256を再計算：予想`13336307604`=`119ee2a394acbaf1f15f1c92ca61b3ad96c80d53800cbf2c2468acf808f3762a`、結果/PDCA`13335717741`=`e6653f0fc545eead623eb0822c728d56d9a8ce1d364368a165822995d655a636`、継続`13335757993`=`64b8e3791d0ef8b94188733b290bc1f31a94e7bc0f695dedff638db3eb015242`。元API登録値に一致、ZIPのCRC異常なし。内部結果は**11/04時点**で基準570件（P0=288/P1=282）、通常採点489件（HIT139/MISS350、未通常81）、学習版70件、同条件比較66モデル別行/33レース、学習対象122レース（train92/validation30）、公式結果履歴505件。学習版の前向き優位性は未証明。
+
+今回のコード差分は、同日の先行workflow runを列挙し初回P0の既存原本を優先して選ぶための`scripts/first_p0_bootstrap.py`追加、ユニットテスト`tests/test_first_p0_bootstrap.py`追加、および同runで新たに取得した初回BのGETを240回予算に計上する分岐を`scripts/github_existing_cycle.py`に追加したこと。ブートストラップは**既存workflowにまだ接続していない**ため、初回P0独立保存・索引登録・当日の予想再開を達成したとは扱わない。新規コードのテストはworkflow統合試験ではなく、既存の他CIでの検査のみ。B原本の11/05実バイト検証も未完了。
+
+11/05 `docs/evidence/2026-11-05/p0-first-receipt.json` は未登録、本人専用Driveのフォルダを再列挙した範囲で当日初回P0該当なし（既存10件、shared=false、owner同一）。未接続の別保存先の不存在までは証明していない。初回原本の作成と外部時刻付与・読戻し・索引登録を安全に接続できるまで、既存トリガー追加・失敗run rerun・本番自動採用を行わない。同時writer1・4xx/429/真正性不一致・日付境界停止は引き続き必須。全16モデル/全4競技/全レースP1/無期限非公開保全は未達。新タスク・新PR・新workflow・新モデル系統・Cloudflare/Vercel・課金・main統合・公開・実投票なし。
+
+---
+
+# 2026-11-05 05:14 JST｜P0初回ゲートの起動経路が欠落（新しい予想・採点なし）
+
+既存Draft PR #71（監査時HEAD `793da023383155d9306b83c1d4be73655bf2befa`、branch `feat/four-sport-forecast-audit-view-20261022`）と同一workflow `405276784`のみ確認。GitHub Actionsの最新100 run（11/05 JST以降の記録を含む）で当日対象workflow新規runは0。Actions APIのin_progress/queued/pending/waiting各0件。直近対象runは前日 `41842464812`（completed/success）。その全45 artifactから最大保存巡回が第21巡回であることを再確認：予想 `13336307604`、結果/PDCA `13335717741`、継続 `13335757993`。API登録ZIP SHA256はそれぞれ `119ee2a394acbaf1f15f1c92ca61b3ad96c80d53800cbf2c2468acf808f3762a` / `e6653f0fc545eead623eb0822c728d56d9a8ce1d364368a165822995d655a636` / `64b8e3791d0ef8b94188733b290bc1f31a94e7bc0f695dedff638db3eb015242`。3ZIPの別再取得は開始したが、この巡回の実バイト独立再ハッシュはローカル検証環境エラーで完了せず、前回03:32までの独立照合結果と区別する。
+
+11/05用 `docs/evidence/2026-11-05/p0-first-receipt.json` は404。本人専用Drive保存フォルダのAPIを再列挙して、ownerのみの権限・`shared=false`、既存10件、当日初回P0該当0件を確認。**独立索引がないことと全保管先で初回原本が存在しないことは同義ではない**。GitHubの同日対象workflow runは0だが、未接続先まで原本不存在の断定はしていない。
+
+**新たに特定した構造的なブロック**：現行 `.github/workflows/boat-nationwide-ab-one-shot.yml` の実行経路は、最初に `python scripts/github_existing_cycle.py restore` を呼ぶ一方、当日の初回P0を生成→アップロード→API読戻し→初回索引登録するステップを持たない。`original(day)` は索引欠落時に `FIRST_RECEIPT_REGISTRY_MISSING_NO_BLIND_REGENERATION` を必ず送出する。従って**当日の初回原本を安全に確定する別途の既存P0ブートストラップ手順が成立するまでは、同じトリガーの追加pushだけでは予想を再開できない**。原因を公式B未公開/4xxと決めつけない。公式B当日実バイトの取得・解析・サーバー受領確認は今回未実施。
+
+安全な残工程は、同日全runと外部保管の重複監査→公式B実入力の真正性検証→本当に初回原本不在の場合に限る既存モデルP0生成→締切前の別サーバー初回保存→ZIP/JSON SHA・時刻の独立読戻し→正本索引登録→同一既存workflowの復元→P1/公式結果/PDCA/係数学習研究比較。P0の自動初回作成経路は**未実装**、今回の新規実行0。基準予想570・通常採点489（HIT139/MISS350）・学習版70・同条件比較66は11/04の保存済み値で、11/05の新規実績や最新の独立再ハッシュではない。学習版の前向き優位性は未証明。停止条件・同時writer制限・権限範囲を緩めず、trigger更新、rerun、cancel、workflow/モデル/タスク追加、課金、main統合、公開、本番自動切替、実投票は実施せず。
+
+---
+
+# 2026-11-05 03:32 JST｜当日P0ゲートの独立再点検（前日値から実績増加なし）
+
+既存Draft PR #71・workflow 405276784に限定。点検時PR HEAD `2d898448ec11358f4cc729cba649e2e4621123da`。GitHub Actions全workflowの新しい100 runと前日以降の作成時刻を照合し、11/05 00:00 JST以降に作成された8 runは既存のviewer/オートの**合成・オフラインCIのみ**で、対象workflowの当日runも当日初回P0 artifactも0。対象workflowの最新完了run `41842464812` は前日実行の `completed/success`、その第21巡回の予想/結果/継続artifact以降に新しい実レース原本が増えた証拠はない。GitHub Actions APIの `in_progress/queued/pending/waiting` は全workflow合計各0。
+
+11/05の `docs/evidence/2026-11-05/p0-first-receipt.json` は引き続き404。本人専用Driveの既存フォルダを直接列挙し10件を確認したが、11/05用の初回P0に該当する新規保存物は0（既存10件を削除/改変せず）。この点検範囲では当日の独立初回原本を発見できなかった。ただし、他の未連携保管先まで不存在と証明したものではなく、索引欠落だけから再生成していない。
+
+前日最終原本から、予想artifact `13336307604`（ZIP SHA256 `119ee2a394acbaf1f15f1c92ca61b3ad96c80d53800cbf2c2468acf808f3762a`）、結果/PDCA `13335717741`（`e6653f0fc545eead623eb0822c728d56d9a8ce1d364368a165822995d655a636`）、継続 `13335757993`（`64b8e3791d0ef8b94188733b290bc1f31a94e7bc0f695dedff638db3eb015242`）の3ZIPを**今回独立再ダウンロード**、実バイトSHA256=GitHub API digestかつZIP破損なしを確認。内部 `status.json` は2026-11-04 23:58:10 JST・第21巡回、基準570予想/通常採点489（HIT139/MISS350）、学習版70、同条件比較66行、公式結果履歴505。これらは**11/04の保存済み値**であり11/05の予想・採点ではない。学習版の前向き優越性なし。
+
+現行 `scripts/github_existing_cycle.py` の初回索引必須ゲートは未変更で、当日P0初回原本の独立保全と索引が成立するまでは起動しても `FIRST_RECEIPT_REGISTRY_MISSING_NO_BLIND_REGENERATION` で停止する。実公式入力/初回原本/外部読戻し/索引登録の完全な一巡は**未完了**。安全な初回P0手順が成立するまで、後続トリガー・rerun・キャンセル・別workflowは追加しない。取得上限・日付停止・本番切替禁止を維持。予想/通常採点/研究比較の**増分0**につき外部通知不要。全16系統・全4競技全レース、期限なし自動保管、学習版優位性は未達。新タスク/PR/モデル系統/課金/main統合/投票なし。
+
+---
+
+# 2026-11-05 02:15 JST｜当日初回P0受領証拠未確認、予想起動を保留（前日原本再監査）
+
+既存Draft PR #71、branch `feat/four-sport-forecast-audit-view-20261022`。監査開始HEAD `3c72b2dadc040bf43bf4a9efc1478907d7523827`、状態文書の変更前blob `dae902829321a49383d228e2e4841aa57ae4740c`。2026-11-05 02:11～02:15 JSTにGitHubの実状態と独立保存ZIPを再取得して確認した。
+
+- 既存workflow `405276784` の最新対象run `41842464812` は2026-11-05 00:00 JST頃に `completed/success`。第21巡回の予想ZIP `13336307604`、結果/PDCA ZIP `13335717741`、継続ZIP `13335757993` は実バイトSHA256とGitHub登録digestがそれぞれ `119ee2a394acbaf1f15f1c92ca61b3ad96c80d53800cbf2c2468acf808f3762a` / `e6653f0fc545eead623eb0822c728d56d9a8ce1d364368a165822995d655a636` / `64b8e3791d0ef8b94188733b290bc1f31a94e7bc0f695dedff638db3eb015242` で一致、ZIP破損なし。結果内 `status.json` は `round_no=21`、更新時点2026-11-04 23:58:10 JST。前日基準570予想・通常採点489（HIT139/MISS350）、研究学習版70・同条件比較66行、公式結果履歴505。第21巡回の `completed_round=20` を第21巡回全工程の独立完走と取り違えない。
+- 11月5日0時以降に作成されたActions runを確認した範囲では、この対象workflowの新runは0。GitHub Actionsの `status=in_progress/queued/pending/waiting` の各API結果も全workflow合計0であり、同一writerの後続待機なし。11月5日用 `docs/evidence/2026-11-05/p0-first-receipt.json` は存在を確認できない（GitHub contents API 404）。ただし、**索引不在だけで初回原本が存在しないと断定しない**。同日runや外部一次受領の照合が揃う前に既存P0原本を再生成しない。
+- 現行 `scripts/github_existing_cycle.py` の `original(day)` は当日初回索引を必須としており、欠落時は `FIRST_RECEIPT_REGISTRY_MISSING_NO_BLIND_REGENERATION` で停止する。したがって11月5日の初回原本作成・独立保存・読戻し・索引照合が終わる前に既存トリガーだけpushしても、予想成功ではなく初期復元の失敗になる。**今回はトリガーを更新しない**。当日の展示後予想・当日の通常採点を実行したとは主張しない。
+- 次の安全な完了条件は、11月5日分の同日全run・初回原本の独立索引を照合し、真に不在かつ実入力が入手できる場合に限り既存P0手順で作成→外部不変保存→元ZIP/SHA/サーバー時刻の読戻し→初回索引登録。その後、既存同一workflow・同一concurrency・writer単独でP1→別イベント公式結果→PDCA→研究係数学習と未来比較へ進む。日付境界、240 GET/セッション、45 GET/巡回、3レース/巡回、締切210秒、4xx/429/真正性停止条件は維持。
+- 前日570/489/70/66から**増分なし**。5基準モデルの予想・係数は不変で、研究係数学習の前向き優位性未証明。新task/PR/workflow/モデル系統/頻度/追加課金/main統合/公開/実投票/本番自動切替なし。
+
+---
+
 # 2026-11-05 01:11 JST｜前日3原本ZIPを所有者限定Driveへ保全・独立再取得照合
 
 既存run `41842464812` の2026-11-04最終監査に追加した保全証拠。非公開Google Drive `RACE-AI_予想原本保管` のフォルダ・rootのownerが同一、フォルダとアップロード後の各ファイルが `shared=false`、ファイル単独のpermissionはownerのみ、正しい親フォルダであることをAPIで確認した。既存7ファイルには上書きせず、次の元GitHub artifact ZIPを**無改変のまま3件新規保存**。各ファイルをDriveから独立ダウンロードし、実バイトSHA256=元GitHub API digestが3件とも一致した。

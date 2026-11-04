@@ -209,10 +209,19 @@ def audit(day,p1_id,p0_supplement=None,round_no=None):
     print(json.dumps({k:report[k] for k in ('day_jst','forecast_count','distinct_races','scored_forecasts','source_request_count','auto_promoted')},ensure_ascii=False))
 
 def repeat_start(day):
-    from race_ai.repeated_cycle import start
+    from race_ai.repeated_cycle import start, write_state
     need(int(os.environ.get('GITHUB_RUN_ATTEMPT','1'))==1,'RETRY_REQUIRES_NEW_TRIGGER_TO_PRESERVE_RECEIPTS')
-    start(ROOT/'cycle_recovery_output/repeat-session.json',day=day,
-          run_id=int(os.environ['GITHUB_RUN_ID']),now=datetime.now(timezone.utc))
+    path=ROOT/'cycle_recovery_output/repeat-session.json'
+    state=start(path,day=day,run_id=int(os.environ['GITHUB_RUN_ID']),now=datetime.now(timezone.utc))
+    # First-day B GET belongs to this SAME bounded source session.
+    if os.environ.get('RACE_AI_FIRST_P0_CAPTURED')=='true':
+        first=json.loads((ROOT/'boat_all_day_output/forecasts.json').read_text())
+        need(first['day_jst']==day and first['source_requests']==1 and
+             first['race_count']>0 and state['requests_used']==0,
+             'FIRST_P0_GET_BUDGET_ACCOUNTING_REJECTED')
+        state['requests_used']=1
+        state['requests_by_kind']={'forecast':1}
+        write_state(path,state)
 
 def repeat_prepare(day,round_no):
     from race_ai.repeated_cycle import prepare
