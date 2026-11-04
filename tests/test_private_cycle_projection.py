@@ -212,11 +212,221 @@ class PrivateCycleProjectionTests(unittest.TestCase):
         with self.assertRaises(ValueError):M.project_state(state,dataset_status="REAL_REPORTED")
 
     def test_invalid_official_capture_identity_or_cutoff_never_becomes_a_displayed_final_result(self):
-        for edit in (lambda o:o.update(closed_at="2030-04-01T10:58:00+09:00"),
-                     lambda o:o.update(captured_at="2030-04-01T01:00:00Z"),
-                     lambda o:o["data"]["results"][0].update(racer_registration_id="9999")):
+        for reason,edit in (("RESULT_CUTOFF_MISMATCH",lambda o:o.update(closed_at="2030-04-01T10:58:00+09:00")),
+                            ("RESULT_CUTOFF_MISMATCH",lambda o:o.update(closed_at="2030-04-02T10:58:00+09:00")),
+                            ("RESULT_CAPTURE_BEFORE_CUTOFF",lambda o:o.update(captured_at="2030-04-01T01:00:00Z")),
+                            ("RESULT_ROSTER_MISMATCH",lambda o:o["data"]["results"][0].update(racer_registration_id="9999")),
+                            ("RESULT_IDENTITY_UNVERIFIED",lambda o:o.update(body_identity_verified=False)),
+                            ("RESULT_RACE_IDENTITY_MISMATCH",lambda o:o["data"]["results"][0].update(race_id="20300401-02-01"))):
+            state,_=saved_state();o=observation(state["rows"][0]);edit(o);state["observations"]=[o];seal(state)
+            before=deepcopy(state)
+            with self.subTest(reason=reason):
+                row=M.project_state(state,dataset_status="REAL_REPORTED")["records"][0]
+                self.assertEqual(row["result_observations"],[o])
+                self.assertEqual(row["cutoff_at"],state["rows"][0]["cutoff_at"])
+                self.assertEqual(row["result"]["status"],"unsupported")
+                self.assertEqual(row["result"]["winning_combinations"],[])
+                self.assertFalse(row["result"]["official"])
+                self.assertIsNone(row["result"]["confirmed_at"])
+                self.assertEqual(row["result_observation_rejections"],[dict(captured_at=o["captured_at"],source_sha256=o["source_sha256"],reason=reason)])
+                self.assertIn("RESULT_OBSERVATION_REJECTED",row["missing_reasons"])
+                self.assertEqual(state,before)
+
+    def test_one_bad_result_does_not_block_another_race_or_change_saved_forecasts(self):
+        state,_=saved_state();first=state["rows"][0]
+        other=deepcopy(first);other["race_id"]="20300401-02-02";state["rows"].append(other)
+        bad=observation(first);bad["closed_at"]="2030-04-01T10:46:00+09:00"
+        good=observation(other);state["observations"]=[bad,good];seal(state);before=deepcopy(state)
+        rows={r["race_id"]:r for r in M.project_state(state,dataset_status="REAL_REPORTED")["records"]}
+        self.assertEqual(rows[first["race_id"]]["result"]["status"],"unsupported")
+        self.assertEqual(rows[other["race_id"]]["result"]["status"],"final")
+        self.assertEqual(rows[other["race_id"]]["result_observation_rejections"],[])
+        self.assertEqual(rows[first["race_id"]]["prediction"]["ordered_candidates"],first["ranked"])
+        self.assertEqual(rows[first["race_id"]]["prediction"]["prediction_sha256"],first["model_sha256"])
+        self.assertEqual(state,before)
+
+    def test_latest_rejected_capture_does_not_fall_back_to_an_older_final(self):
+        for newest_bad in (True,False):
+            for reversed_input in (True,False):
+                state,_=saved_state();old=observation(state["rows"][0]);new=deepcopy(old)
+                new.update(captured_at="2030-04-01T02:11:00Z",source_sha256="c"*64)
+                bad=new if newest_bad else old;bad["body_identity_verified"]=False
+                state["observations"]=[new,old] if reversed_input else [old,new];seal(state)
+                with self.subTest(newest_bad=newest_bad,reversed_input=reversed_input):
+                    row=M.project_state(state,dataset_status="REAL_REPORTED")["records"][0]
+                    self.assertEqual(row["result"]["observed_at"],new["captured_at"])
+                    self.assertEqual(row["result"]["source_sha256"],new["source_sha256"])
+                    self.assertEqual(row["result"]["status"],"unsupported" if newest_bad else "final")
+                    self.assertEqual(row["result_observations"],state["observations"])
+                    self.assertEqual(len(row["result_observation_rejections"]),1)
+
+    def test_contradictory_finish_order_is_quarantined_without_discarding_raw_results(self):
+        for edit in (lambda rows:rows[0].update(finish=rows[1]["finish"]),
+                     lambda rows:rows[0].update(finish=None),
+                     lambda rows:rows[0].update(finish=True)):
+            state,_=saved_state();o=observation(state["rows"][0]);edit(o["data"]["results"])
+            state["observations"]=[o];seal(state)
+            with self.subTest(edit=edit):
+                row=M.project_state(state,dataset_status="REAL_REPORTED")["records"][0]
+                self.assertEqual(row["result"]["status"],"unsupported")
+                self.assertEqual(row["result"]["winning_combinations"],[])
+                self.assertEqual(row["result_observations"],[o])
+                self.assertEqual(row["result_observation_rejections"][0]["reason"],"RESULT_FINISH_ORDER_MISMATCH")
+        state,_=saved_state();o=observation(state["rows"][0]);rows=sorted(o["data"]["results"],key=lambda r:r["finish"])
+        rows[0]["finish"],rows[1]["finish"]=2,1
+        state["observations"]=[o];seal(state)
+        row=M.project_state(state,dataset_status="REAL_REPORTED")["records"][0]
+        self.assertEqual(row["result"]["status"],"unsupported")
+        self.assertEqual(row["result_observation_rejections"][0]["reason"],"RESULT_FINISH_ORDER_MISMATCH")
+
+    def test_payout_and_top3_conflicts_are_quarantined_without_exposing_payload_in_reasons(self):
+        for reason,edit in (("RESULT_PAYOUT_INVALID",lambda d:d["payouts"][0].update(payout_per_100_yen=-1)),
+                            ("RESULT_WINNER_MISMATCH",lambda d:d.update(top3=list(reversed(d["top3"]))))):
+            state,_=saved_state();o=observation(state["rows"][0]);edit(o["data"])
+            state["observations"]=[o];seal(state)
+            with self.subTest(reason=reason):
+                row=M.project_state(state,dataset_status="REAL_REPORTED")["records"][0]
+                self.assertEqual(row["result"]["status"],"unsupported")
+                self.assertEqual(row["result"]["winning_combinations"],[])
+                self.assertEqual(row["result_observation_rejections"],[dict(captured_at=o["captured_at"],source_sha256=o["source_sha256"],reason=reason)])
+
+    def test_observation_only_roster_identity_must_still_be_consistent(self):
+        for registration in ("invalid","4002"):
+            state,_=saved_state();o=observation(state["rows"][0]);state["rows"]=[]
+            if registration == "4002":registration=o["data"]["results"][1]["racer_registration_id"]
+            o["data"]["results"][0]["racer_registration_id"]=registration
+            state["observations"]=[o];seal(state)
+            with self.subTest(registration=registration):
+                row=M.project_state(state,dataset_status="REAL_REPORTED")["records"][0]
+                self.assertEqual(row["result"]["status"],"unsupported")
+                self.assertEqual(row["result_observation_rejections"][0]["reason"],"RESULT_ROSTER_IDENTITY_MISMATCH")
+
+    def test_coherent_dead_heat_and_abnormal_nonwinning_finish_remain_observations(self):
+        state,_=saved_state();o=observation(state["rows"][0]);ordered=sorted(o["data"]["results"],key=lambda r:r["finish"])
+        ordered[-1].update(finish=None,finish_status="F")
+        state["observations"]=[o];seal(state)
+        row=M.project_state(state,dataset_status="REAL_REPORTED")["records"][0]
+        self.assertEqual(row["result"]["status"],"final")
+        self.assertEqual(row["result_observation_rejections"],[])
+        ordered[1]["finish"]=1;o["data"]["dead_heat"]=True
+        second=deepcopy(o["data"]["payouts"][0]);second["combination"]=list(second["combination"])
+        second["combination"][0],second["combination"][1]=second["combination"][1],second["combination"][0]
+        o["data"]["payouts"].append(second);seal(state)
+        row=M.project_state(state,dataset_status="REAL_REPORTED")["records"][0]
+        self.assertEqual(row["result"]["status"],"final")
+        self.assertEqual(len(row["result"]["winning_combinations"]),2)
+        self.assertEqual(row["result_observation_rejections"],[])
+        self.assertFalse(row["result"]["official"])
+        self.assertIsNone(row["result"]["confirmed_at"])
+
+    def test_saved_forecast_cutoff_variants_remain_exact_and_make_results_unsupported(self):
+        state,_=saved_state();first,second=state["rows"]
+        second.update(stage="P1",cutoff_at="2030-04-01T11:00:00+09:00")
+        o=observation(first);state["observations"]=[o];seal(state);before=deepcopy(state)
+        row=M.project_state(state,dataset_status="REAL_REPORTED")["records"][0]
+        self.assertIsNone(row["cutoff_at"])
+        self.assertEqual(row["saved_cutoff_variants"],[first["cutoff_at"],second["cutoff_at"]])
+        self.assertIn("SAVED_FORECAST_CUTOFF_CONFLICT",row["missing_reasons"])
+        predictions=[row["prediction"]]+row["comparison_predictions"]
+        self.assertEqual([p["cutoff_at"] for p in predictions],[first["cutoff_at"],second["cutoff_at"]])
+        self.assertEqual([p["prediction_sha256"] for p in predictions],[first["model_sha256"],second["model_sha256"]])
+        self.assertEqual(row["result"]["status"],"unsupported")
+        self.assertEqual(row["result"]["winning_combinations"],[])
+        self.assertEqual(row["result_observation_rejections"][0]["reason"],"RESULT_AMBIGUOUS_FORECAST_CUTOFF")
+        self.assertEqual(row["result_observations"],[o])
+        self.assertEqual(state,before)
+
+    def test_equivalent_saved_cutoff_spellings_do_not_invent_a_clock_conflict(self):
+        state,_=saved_state();state["rows"][1]["cutoff_at"]="2030-04-01T01:59:00Z";seal(state)
+        row=M.project_state(state,dataset_status="REAL_REPORTED")["records"][0]
+        self.assertEqual(row["saved_cutoff_variants"],["2030-04-01T10:59:00+09:00","2030-04-01T01:59:00Z"])
+        self.assertEqual(row["cutoff_at"],"2030-04-01T10:59:00+09:00")
+        self.assertNotIn("SAVED_FORECAST_CUTOFF_CONFLICT",row["missing_reasons"])
+
+    def test_schedule_cutoffs_match_any_saved_variant_and_never_replace_forecasts(self):
+        for schedule_cutoff,conflict in (("2030-04-01T11:00:00+09:00",False),("2030-04-01T11:01:00+09:00",True)):
+            state,_=saved_state();first,second=state["rows"]
+            second.update(stage="P1",cutoff_at="2030-04-01T11:00:00+09:00")
+            state["schedule"]=[dict(race_id=first["race_id"],cutoff_at=schedule_cutoff)];seal(state)
+            with self.subTest(conflict=conflict):
+                row=M.project_state(state,dataset_status="REAL_REPORTED")["records"][0]
+                self.assertIsNone(row["cutoff_at"])
+                self.assertEqual(row["saved_cutoff_variants"],[first["cutoff_at"],second["cutoff_at"]])
+                self.assertEqual(row["saved_schedule_cutoff_variants"],[schedule_cutoff])
+                self.assertEqual("SAVED_SCHEDULE_CUTOFF_CONFLICT" in row["missing_reasons"],conflict)
+
+    def test_conflicting_schedule_only_clocks_do_not_choose_a_result_cutoff(self):
+        state,_=saved_state();o=observation(state["rows"][0]);state["rows"]=[]
+        cutoffs=[o["closed_at"],"2030-04-01T11:00:00+09:00"]
+        state["schedule"]=[dict(race_id=o["race_id"],cutoff_at=c) for c in cutoffs]
+        state["observations"]=[o];seal(state)
+        row=M.project_state(state,dataset_status="REAL_REPORTED")["records"][0]
+        self.assertIsNone(row["cutoff_at"])
+        self.assertEqual(row["saved_cutoff_variants"],[])
+        self.assertEqual(row["saved_schedule_cutoff_variants"],cutoffs)
+        self.assertIn("SAVED_SCHEDULE_CUTOFF_CONFLICT",row["missing_reasons"])
+        self.assertEqual(row["result"]["status"],"unsupported")
+        self.assertEqual(row["result_observation_rejections"][0]["reason"],"RESULT_AMBIGUOUS_SCHEDULE_CUTOFF")
+
+    def test_observation_only_cutoff_conflicts_are_quarantined_in_both_input_orders(self):
+        for reverse in (False,True):
+            state,_=saved_state();old=observation(state["rows"][0]);new=deepcopy(old)
+            new.update(closed_at="2030-04-01T11:00:00+09:00",captured_at="2030-04-01T02:11:00Z",source_sha256="c"*64)
+            state["rows"]=[];state["observations"]=[new,old] if reverse else [old,new];seal(state);before=deepcopy(state)
+            with self.subTest(reverse=reverse):
+                row=M.project_state(state,dataset_status="REAL_REPORTED")["records"][0]
+                self.assertIsNone(row["cutoff_at"])
+                self.assertEqual(set(row["saved_observation_cutoff_variants"]),{old["closed_at"],new["closed_at"]})
+                self.assertEqual(len(row["saved_observation_cutoff_variants"]),2)
+                self.assertEqual(row["result"]["status"],"unsupported")
+                self.assertEqual(row["result"]["observed_at"],new["captured_at"])
+                self.assertEqual(row["result"]["winning_combinations"],[])
+                self.assertFalse(row["result"]["official"])
+                self.assertIsNone(row["result"]["confirmed_at"])
+                self.assertEqual([r["reason"] for r in row["result_observation_rejections"]],["RESULT_AMBIGUOUS_OBSERVATION_CUTOFF"]*2)
+                self.assertEqual(row["result_observations"],state["observations"])
+                self.assertEqual(state,before)
+
+    def test_observation_cutoff_variants_do_not_override_forecasts_schedules_or_equivalent_instants(self):
+        for context in ("forecast","schedule","equivalent_observations"):
+            state,_=saved_state();old=observation(state["rows"][0]);new=deepcopy(old)
+            new.update(closed_at="2030-04-01T11:00:00+09:00",captured_at="2030-04-01T02:11:00Z",source_sha256="c"*64)
+            if context != "forecast":state["rows"]=[]
+            if context == "schedule":state["schedule"]=[dict(race_id=old["race_id"],cutoff_at=old["closed_at"])]
+            if context == "equivalent_observations":new["closed_at"]="2030-04-01T01:59:00Z"
+            state["observations"]=[new,old];seal(state)
+            with self.subTest(context=context):
+                row=M.project_state(state,dataset_status="REAL_REPORTED")["records"][0]
+                self.assertNotIn("saved_observation_cutoff_variants",row)
+                self.assertIsNotNone(row["cutoff_at"])
+                self.assertEqual(row["result"]["status"],"final" if context == "equivalent_observations" else "unsupported")
+                if context != "equivalent_observations":
+                    self.assertEqual(row["cutoff_at"],old["closed_at"])
+                    self.assertEqual(row["result_observation_rejections"][0]["reason"],"RESULT_CUTOFF_MISMATCH")
+
+    def test_ambiguous_observation_only_captures_still_enforce_integrity(self):
+        for edit in (lambda o:o.update(source_sha256="invalid"),
+                     lambda o:o.update(captured_at="2030-04-01T02:10:00Z"),
+                     lambda o:o.update(race_id="not-a-race"),
+                     lambda o:o.update(closed_at="not-a-clock")):
+            state,_=saved_state();old=observation(state["rows"][0]);new=deepcopy(old)
+            new.update(closed_at="2030-04-01T11:00:00+09:00",captured_at="2030-04-01T02:11:00Z");edit(new)
+            state["rows"]=[];state["observations"]=[old,new];seal(state)
+            with self.subTest(edit=edit),self.assertRaises(ValueError):M.project_state(state,dataset_status="REAL_REPORTED")
+
+    def test_result_capture_integrity_still_fails_closed(self):
+        for edit in (lambda o:o.update(race_id="not-a-race"),
+                     lambda o:o.update(race_id="20300402-01-01"),
+                     lambda o:o.update(source_sha256="invalid"),
+                     lambda o:o.update(captured_at="not-a-clock"),
+                     lambda o:o.update(closed_at="not-a-clock"),
+                     lambda o:o.update(data=[])):
             state,_=saved_state();o=observation(state["rows"][0]);edit(o);state["observations"]=[o];seal(state)
             with self.subTest(edit=edit),self.assertRaises(ValueError):M.project_state(state,dataset_status="REAL_REPORTED")
+        state,_=saved_state();old=observation(state["rows"][0]);new=deepcopy(old)
+        new.update(captured_at="2030-04-01T11:10:00+09:00",body_identity_verified=False)
+        state["observations"]=[old,new];seal(state)
+        with self.assertRaisesRegex(ValueError,"duplicate result capture"):M.project_state(state,dataset_status="REAL_REPORTED")
 
     def test_raw_original_enrichment_rejects_tampered_or_cross_artifact_documents(self):
         state,doc=saved_state();changed=deepcopy(doc)

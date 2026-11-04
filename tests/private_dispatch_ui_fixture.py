@@ -12,6 +12,8 @@ from race_ai.dispatch_product_projection import project_dispatch
 from race_ai.private_dispatch_operation import PrivateDispatchJournal, run_saved_inputs
 from tests.test_dispatch_product_projection import all_native_reports
 from tests.test_private_dispatch_operation import fixture, AT
+from race_ai.saved_card_projection import project_saved_cards
+from tests.test_saved_card_projection import captured_cards
 
 
 def build_fixture(output_file):
@@ -41,6 +43,7 @@ def build_fixture(output_file):
     models={p['model_id'] for view in views for row in view['records'] for p in [row['prediction'],*row['comparison_predictions']] if p}
     assert len(models)==16
     document={'schema':'RACE_AI_SYNTHETIC_DISPATCH_UI_FIXTURES_V1','scope':'SYNTHETIC_ONLY','views':views,
+              'source_observation_view':project_saved_cards(captured_cards(),artifact_id=123,original_json_sha256='b'*64,dataset_status='SYNTHETIC_ONLY'),
               'local_readback_proof':{'retained_originals':len(originals),'operations':2,'native_hashes_preserved':True,
                                      'source_requests':0,'real_readbacks':0,'physical_safari_acceptance':False}}
     fd=os.open(out,os.O_WRONLY|os.O_CREAT|os.O_EXCL|os.O_NOFOLLOW,0o600)

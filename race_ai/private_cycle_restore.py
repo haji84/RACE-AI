@@ -18,7 +18,7 @@ import zipfile
 import zlib
 
 from .actions_contract import digest
-from .cycle_recovery import result_archive
+from .cycle_recovery import result_archive, p0_original_or_empty
 from .existing_model_coverage import catalog
 from .first_receipt_continuity import first_receipt_rows, latest_result_observations
 from .frozen_day_cycle import read_p0, read_p1, ts
@@ -177,7 +177,7 @@ def _restore(manifest,root):
                 parsed[member]=_json(body)
                 documents.append(dict(artifact_id=ident,member_name=member,member_sha256=body_sha,document=parsed[member]))
         doc=parsed[primary]
-        if kind=='p0':doc,items=read_p0(raw,meta,expected_day=day)
+        if kind=='p0':doc,items=p0_original_or_empty(raw,meta,day)
         elif kind=='p1':
             doc,items=read_p1(raw,meta)
             for field in ('paired_forecasts','additional_official_feature_shadows',

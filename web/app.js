@@ -89,10 +89,12 @@
   }
   function evidenceFields(r, p) {
     return [["データ区分", scopeName(r.scope)], ["開催日 JST", r.event_date_jst], ["モデル", p?.model_id], ["モデル版", p?.model_version], ["予想時点", stageName(p)],
-      ["生成時刻 JST", stamp(p?.generated_at)], ["保存時刻 JST", stamp(p?.persisted_at)], ["締切 JST", stamp(r.cutoff_at)],
+      ["生成時刻 JST", stamp(p?.generated_at)], ["保存時刻 JST", stamp(p?.persisted_at)], ["予想原本の締切 JST", stamp(p?.cutoff_at || r.cutoff_at)],
+      ...(r.saved_cutoff_variants?.length>1 ? [["保存原本の締切一覧 JST",r.saved_cutoff_variants.map(stamp).join(" / ")]]:[]),
       ["取得 / as-of JST", stamp(p?.as_of || r.as_of || r.observed_at)], ["情報源", sourceText(r.source_provenance)],
       ["元SHA", r.source_sha || r.source_sha256], ["入力SHA", p?.input_sha256], ["予想SHA", p?.prediction_sha256],
       ["出力本文SHA", p?.output_sha256], ["モデル / 学習物SHA", p?.model_sha256],
+      ...(p?.variant==="LEARNED_SHADOW" || p?.training_sha256 ? [["学習元artifact ID",p?.training_artifact_id],["学習物SHA",p?.training_sha256],["学習元ZIP digest",p?.training_receipt_digest],["基準モデル原本SHA",p?.baseline_model_sha256]]:[]),
       ["原本JSON SHA", p?.original_json_sha256], ["原本artifact ID", p?.artifact_id], ["保存モデル区分", p?.variant], ["保存済みサーバー時刻の申告 JST", stamp(p?.server_saved_at)],
       ["レシート時刻 JST", stamp(p?.external_receipt?.server_received_at || p?.receipt_timestamp || p?.evidence_receipt?.timestamp)], ["独立検証", "取込値のみ・原本と外部時刻の独立照合は別途必要"]];
   }
@@ -142,6 +144,7 @@
     meta.append(node("span", "", r.event_date_jst || "日付 未取得"), node("strong", "", "締切 " + time(r.cutoff_at)));
     head.append(title, meta); card.append(head);
     const tags = node("div", "race-tags"); tags.append(node("span", "tag scope-" + r.scope, scopeName(r.scope)), node("span", "tag", forecastStatus(r, p)), node("span", "tag", stageName(p))); card.append(tags);
+    if (r.missing_reasons?.includes("SAVED_FORECAST_CUTOFF_CONFLICT")) tags.append(node("span","tag","原本間で締切の記録差あり"));
     card.append(participantGrid(r));
     const foot = node("div", "race-card-footer"), saved = node("div", "card-prediction");
     saved.append(node("strong", "small", p ? p.native_top8_available === false ? "保存" + p.ordered_top8.length + "点プラン" : "保存Top8 · " + p.ordered_top8.length + "点" : "未予想"), node("p", "muted model-caption", modelName(p)), ticketPreview(p, featured ? 4 : 2));
@@ -246,7 +249,8 @@
     const p = prediction(r), layout = node("div", "two-column detail-layout"), main = node("div"), rail = node("aside", "right-rail");
     const panel = node("section", "panel detail-panel"), title = node("div", "detail-title");
     title.append(node("span", "sport-tag", sports[r.sport]), node("h2", "", raceName(r)), node("span", "tag scope-" + r.scope, scopeName(r.scope)));
-    panel.append(title, node("p", "detail-cutoff", "締切 " + time(r.cutoff_at) + " · 発走 " + time(r.start_at)), node("p", "muted small", text(r.event_date_jst) + " JST · 取得 " + stamp(r.observed_at || r.as_of) + " · 状態 " + text(r.race_status)), predictionPicker(r));
+    panel.append(title, node("p", "detail-cutoff", (r.cutoff_at==null && r.saved_cutoff_variants?.length ? "選択原本の締切 " : "締切 ") + time(p?.cutoff_at || r.cutoff_at) + " · 発走 " + time(r.start_at)), node("p", "muted small", text(r.event_date_jst) + " JST · 取得 " + stamp(r.observed_at || r.as_of) + " · 状態 " + text(r.race_status)), predictionPicker(r));
+    if (r.missing_reasons?.includes("SAVED_FORECAST_CUTOFF_CONFLICT") || r.missing_reasons?.includes("SAVED_SCHEDULE_CUTOFF_CONFLICT")) panel.append(append(node("div","notice"),node("strong","","締切の保存記録に差があります"),node("p","","各予想の元時刻を保持しています。現在の単一の締切へ補正せず、照合できない結果は別に記録します。")));
     const hero = node("div", "detail-hero");
     hero.append(node("p", "eyebrow", "SAVED FORECAST / EVIDENCE"), node("h3", "", p ? "保存された予想を、根拠とともに。" : "出走情報から、レースを知る。"), node("p", "", p?.rationale ? text(p.rationale).slice(0, 180) : r.no_forecast_reason || "取得時点・モデル版と、未取得の項目を確認できます。"), node("span", "hero-wave", "≋"));
     panel.append(hero);
@@ -273,6 +277,7 @@
       content.append(forecastPanel(r, p), facts(evidenceFields(r, p)), node("h2", "", "同一レースの別モデル・時点"));
       const rows = predictions(r).map(other => [stageName(other), modelName(other), stamp(other.persisted_at), other.ordered_top8.length + "点", forecastStatus(r, other)]);
       content.append(rows.length ? table(["時点", "モデル / 版", "保存 JST", "保存点数", "証拠状態"], rows) : empty("比較予想は未取得です", "別モデル・朝版・展示後版が保存されるとここで比較できます。"));
+      if(r.source_observation_view) content.append(node("h2","","保存済みの出走ページ観測"),node("p","notice","出走ページの取得記録です。モデル入力・締切・予想・結果は未接続です。"),facts([["取得元URL",r.source_observation.source_url],["観測取得 JST",stamp(r.source_observation.observed_at)],["元ページSHA",r.source_observation.source_sha256],["原本JSON SHA",r.source_observation.original_json_sha256],["原本artifact ID",r.source_observation.artifact_id]]));
       if (r.dispatch_slots?.length) {
         const labels={NOT_APPLICABLE:"対象外",INPUT_MISSING:"入力未取得",TRAINED_ARTIFACT_MISSING:"学習物未取得",DEADLINE_PASSED:"締切超過・補完なし",RULE_FILTERED:"既存条件の対象外",UNCONNECTED_NATIVE_RUNTIME:"実行経路未接続",SOURCE_NOT_AUTHORIZED:"入力の利用条件未確認",INPUT_REJECTED:"入力不一致",GENERATED_UNATTESTED:"生成済み・外部保存未検証",ORIGINAL_REUSED:"元原本を再利用"};
         const slots=node("section");slots.id="dispatch-slot-status";slots.append(node("h2","","モデル別の入力・生成状態"),node("p","muted","取込データの状態です。生成済みの表示だけでは、締切前の外部保存や全レースの稼働を確認できません。"),table(["時点","モデル / 版","状態","理由"],r.dispatch_slots.map(slot=>[stageName(slot),modelName(slot),labels[slot.status],slot.projection_reason || slot.reason])));content.append(slots);
@@ -283,9 +288,14 @@
       if (r.private_cycle_view) {
         const observations = node("section"); observations.id = "result-observations";
         observations.append(node("h2", "", "取得観測履歴（公式改訂番号なし）"), node("p", "muted", "取得した原本の履歴です。観測順を公式な改訂番号や確定時刻として扱いません。"));
+        if (r.result_observation_rejections?.length) observations.append(node("p","notice","照合不可の観測 " + r.result_observation_rejections.length + "件。取得原文は履歴に保持しています。"));
         if (r.result_observations?.length) r.result_observations.forEach(observation => {
           const details = node("details", "panel");details.append(node("summary", "", "観測取得 " + stamp(observation.captured_at) + " JST · " + text(observation.status)));
-          details.append(facts([["レースID",observation.race_id],["観測取得 JST",stamp(observation.captured_at)],["観測SHA",observation.source_sha256],["保存観測の原文",sourceText(observation)]]));observations.append(details);
+          const rejected=(r.result_observation_rejections||[]).find(value=>Date.parse(value.captured_at)===Date.parse(observation.captured_at) && (value.source_sha256??null)===(observation.source_sha256??null));
+          if(rejected) details.append(node("p","notice","照合不可：" + ({RESULT_CUTOFF_MISMATCH:"予想原本と結果観測で締切が異なります",RESULT_AMBIGUOUS_FORECAST_CUTOFF:"予想原本間で締切が異なります",RESULT_AMBIGUOUS_SCHEDULE_CUTOFF:"台帳間で締切が異なります",RESULT_ROSTER_MISMATCH:"出走者の記録が一致しません",RESULT_FINISH_ORDER_MISMATCH:"着順の記録が一致しません",RESULT_IDENTITY_UNVERIFIED:"結果本文のレースを確認できません"}[rejected.reason]||rejected.reason)));
+          details.append(facts([["レースID",observation.race_id],["観測取得 JST",stamp(observation.captured_at)],["観測SHA",observation.source_sha256]]));
+          const raw=node("pre","raw-observation");raw.dataset.observationRaw="";raw.textContent=JSON.stringify(observation);
+          details.append(node("h3","","保存観測の原文"),raw);observations.append(details);
         }); else observations.append(node("p", "muted", "結果の取得観測原本は未取得です。"));
         content.append(observations);
       }

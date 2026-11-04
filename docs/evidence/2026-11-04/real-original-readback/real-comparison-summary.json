@@ -1,0 +1,49 @@
+{
+  "accuracy_improvement_proven": false,
+  "actual_purchases": false,
+  "all_cohort_reports_retain_full_144_races": true,
+  "auto_promoted": false,
+  "cohort_count": 56,
+  "evaluated_at": "2026-11-04T15:00:20Z",
+  "evaluated_cohorts": 56,
+  "independent_receipts_verified": false,
+  "official_hit_at_8_all": null,
+  "official_recovery_rate": null,
+  "official_results_authenticated": false,
+  "original_cohort_pins_unchanged": true,
+  "original_outcome_blind_choices_unchanged": true,
+  "phase_family_races_are_not_independent": true,
+  "pin_sha256": "913a94a4c1997f65ec5925aa038ac7589c698d44afaa101c78629717357e9506",
+  "research_only": true,
+  "schedule_completeness_proven": false,
+  "schedule_races": 144,
+  "schedule_sha256": "cee0dfa86e53a8295c6d80e31a4c8546e44ff1e62dd65671fc7430dd599c4104",
+  "selection_sha256": "e1af2fbefa79e24e3f56612f9441b141d8ef011f9c2b94177d27b29d09b2b47f",
+  "source_changed_count": 0,
+  "source_files": 869,
+  "source_files_unchanged": true,
+  "source_manifest_sha256": "efe57f457bc5b487488538bff3a4ee30db7071ff54961e6465d8e3c5f199d378",
+  "source_state_sha256": "cfa7862ece0e6f34e6b80025142090ebcdb9cef75f639c7e7462b7d6324662d3",
+  "source_zip_files_unchanged": 256,
+  "status": "SAVED_ONLY_REAL_COMPARISON_COMPLETED",
+  "training_sha_count": 28,
+  "private_full_report_sha256": "12bca2e1d6aaa8b3b752660fab7b750f853e75f9c55a4695b7655bcde5c0b587",
+  "normal_pair_diagnostics": [
+    {
+      "family": "observed-pairwise-factor",
+      "normal_races": 33,
+      "baseline_hits": 11,
+      "learned_hits": 11
+    },
+    {
+      "family": "observed-pairwise-start",
+      "normal_races": 33,
+      "baseline_hits": 10,
+      "learned_hits": 10
+    }
+  ],
+  "unique_learned_race_union": 35,
+  "families_overlap_same_races": true,
+  "independent_validation_sha256": "1f882b6fd67b670786d585da238c910976a3deaee71ac5505cbaeea24e46c9bc",
+  "terminal_accounting_reproduced": false
+}

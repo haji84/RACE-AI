@@ -1,3 +1,31 @@
+# 2026-11-05 JST — 実原本接続・最終画面照合を完了（4競技全運転・実機Safari・精度改善は未達）
+
+環境設定の公開/適用後にGitHub APIから実バイトを取得できた。以前の「実読戻し0件/許可未適用」は当時の記録として下に保全する。今回の最終読戻しは**11月4日分**で、既存run41842464812第21巡回の結果23:58:11 JST保存、継続原本は翌5日00:00:20 JST保存。以後の当日予想や全競技完走を意味しない。
+
+| オーナーの完成条件 | 今回確認できたこと | 未完成・外部接続が必要な条件 |
+| --- | --- | --- |
+| 実JSON接続 | **BOAT144レース・基準570予想・学習版70予想・結果観測505履歴を画面へ接続**。SHA・Top8・全文履歴を照合。基準P0=288/P1=282、学習版P1=70。展示後P1計352件を選択可能 | Libraryの競輪76/オート20+PDCA等の元予想は未接続。GitHubで見つかった他3競技154件はページ観測であり予想0件 |
+| 全レース×適用全モデルの実運転 | 既存16系統の実行/私有保存/不足表示を維持。今回の640件は保存済みBOAT5基準モデルと学習版で、元原本を再生成せず使用 | **4競技全モデルの継続実運転は未達**。適格なnative特徴・学習物・利用条件・締切前保存・結果接続が不足。全144レースで5モデルP1が揃ったのは48、未保存438モデル別件。締切後の遡及生成はしない |
+| スマホ・PC/Safari | 4幅の合成33操作グループ/54PNG。実データは390/1440の各幅で全640予想・全505観測を検証、実画面28PNG/2traceは私有保管 | **実機Safariは未接続・未受入**。ChromiumをSafari実機受入と呼ばない。保護された配布/実機操作の接続が必要 |
+| 精度改善の前向き比較 | 原本選択・56コホート・28学習物SHA・144台帳を維持し、最終505観測で再検証。正常同条件33レースずつで元/学習版は11/11と10/10。独立検査で869ファイル/256ZIP不変 | **改善実証は未達**。両系統は同じレースを共有。正式率null、独立認証/改善認定/本番採用false。別途の35レース券別会計と混ぜない |
+| 回帰・失敗修正・原本保全 | **Python780件・Node179件、失敗/skip0**。空P0、原本締切差、観測順依存、原文4000文字切断、学習4参照欠落、長URLはみ出しを再現/修正/独立再レビュー | 新コードは今回の「追加公開しない」という指示に従い**ローカル保存、未push**。公開済みHEADのCI成功を未pushコードのCI成功とは扱わない |
+
+最終ビューの元原本は**256ZIP**（BOAT251/継続2/他競技3）。別途、既存artifact13332009079の公式原文2ページを含む1ZIPもSHA一致で保全し、取得原本は計**257ZIP**。後者はstrict parserが`start evidence incomplete`で拒否するため、505観測や公式成績へ混ぜない。照合不可33観測・5レースの締切差を補正せず保持。最新の照合不可結果を古い結果へ黙って戻さない。
+
+並行writerの[全144レース券別会計](BOAT_20261104_FINAL_RECONCILIATION.md)の追記をfast-forwardで保全した。同文書のXLSX/監査ZIP/audit_summary本体は、この環境の接続済みファイル、GitHub metadata396件、既存234ZIPのメンバー名から見つからず、今回その会計全件を独立再現したとは報告しない。別の35レース会計診断と今回の正常33対比較は対象判定が異なる。両方とも統計的な改善認定ではない。
+
+本人用の**アプリ+2分割実JSON（約1.18MB ZIP）**と**257原本の保全セット（約132.5MB ZIP）**を非Git領域に作成し、CRCと全格納ファイルSHAを再検証した。アプリ同梱の実ファイル298件読込と4競技件数、合成ボタンも127.0.0.1のローカル起動で確認。私有予想・原文・実画面をGit/public assetsへ配置しない。一時クラウドと7日artifactは恒久保存ではなく、本人端末への保存または認可済み恒久保管の接続が残る。
+
+[実装・失敗修正・受入証拠](evidence/2026-11-04/real-original-readback/EVIDENCE.md) / [読戻し要約](evidence/2026-11-04/real-original-readback/real-readback-summary.json) / [私有画面の安全な要約](evidence/2026-11-04/real-original-readback/real-browser-summary.json) / [比較要約](evidence/2026-11-04/real-original-readback/real-comparison-summary.json) / [取得ページの表示契約](SAVED_CARD_READBACK.md)。元8参考画面との対応表は既存UI証拠に保持。
+
+公開済みPRはDraft/Open、baseは`codex/actions-four-sport-e2e`。最終取得したHEAD `3c72b2d`までfast-forwardし、並行writerの7fe5777/e4c4cf5/ab3c2d0に加え9374db6（競馬履歴変換）/9b2f21c/3c72b2d（巡回・Drive保全記録）を保全した。競馬変換は[既存4モデルへの入力経路](HORSE_HISTORY_CONVERSION_20261105.md)で、実予想生成・校正は未完了。別writerはDriveへ3原本保存/独立SHA一致を記録しているが、この環境にはDrive connectorがなく、こちらでのDrive再取得や全原本の恒久保存成功は主張しない。
+
+公開済みab3c2d0のviewer41853165866/既存synthetic41853165906はsuccess（CodeRabbitはskipped）。後続9b2f21c時点のAPI観測ではin_progress0、queued4で、4件とも既存のviewer/AUTORACE CI。追加の予想巡回を起動せず、既存CIを取消/再実行しない。[観測記録](evidence/2026-11-04/real-original-readback/remote-ci-observed.json)。未pushコードのCI成功を意味しない。
+
+この工程からの新PR/Issue/開発タスク/workflow/schedule/モデル系統/Cloudflare/Vercel/追加課金/環境再公開/GitHub push/一般公開/実投票/main統合/本番モデル切替は0。mainは`0e45c029e18d5f3f1e7a04aecedab3c4af261748`。4条件すべてを満たす製品全体の完成宣言は行わない。
+
+---
+
 # 2026-11-05 01:11 JST｜前日3原本ZIPを所有者限定Driveへ保全・独立再取得照合
 
 既存run `41842464812` の2026-11-04最終監査に追加した保全証拠。非公開Google Drive `RACE-AI_予想原本保管` のフォルダ・rootのownerが同一、フォルダとアップロード後の各ファイルが `shared=false`、ファイル単独のpermissionはownerのみ、正しい親フォルダであることをAPIで確認した。既存7ファイルには上書きせず、次の元GitHub artifact ZIPを**無改変のまま3件新規保存**。各ファイルをDriveから独立ダウンロードし、実バイトSHA256=元GitHub API digestが3件とも一致した。

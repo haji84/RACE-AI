@@ -149,7 +149,7 @@
     optionalSha(value.source_state_sha256,"循環状態");
     const seen = new Set();
     for (const row of value.records) {
-      const dispatchRow = row?.native_dispatch_view === true;
+      const dispatchRow = row?.native_dispatch_view === true || row?.source_observation_view === true;
       if (!row || typeof row !== "object" || Array.isArray(row) || !text(row.race_id) || row.race_id.length > 250 ||
           !sports.includes(row.sport) || !(dispatchRow && row.venue == null || text(row.venue) && row.venue.length <= 100) ||
           !(dispatchRow && row.race_no == null || Number.isInteger(row.race_no) && row.race_no >= 1 && row.race_no <= 99) ||
@@ -157,6 +157,18 @@
       if (seen.has(row.race_id)) fail("同じレースIDの重複があります。");seen.add(row.race_id);
       validateStamps(row,["cutoff_at","observed_at","as_of","updated_at"]);
       if (row.cutoff_at && new Date(Date.parse(row.cutoff_at) + 9 * 60 * 60 * 1000).toISOString().slice(0,10) !== row.event_date_jst) fail("JST開催日と締切時刻が一致しません。");
+      let savedCutoffs=null,scheduleCutoffs=null,observationCutoffs=null;
+      for (const field of ["saved_cutoff_variants","saved_schedule_cutoff_variants","saved_observation_cutoff_variants"]) if (row[field] != null) {
+        const observationVariants=field==="saved_observation_cutoff_variants";
+        if (!Array.isArray(row[field]) || row[field].length > 64 || row[field].some(value=>!stamp(value) || !observationVariants && new Date(Date.parse(value)+9*60*60*1000).toISOString().slice(0,10)!==row.event_date_jst)) fail("保存された締切一覧が不正です。");
+        const instants=new Set(row[field].map(Date.parse));if(new Set(row[field]).size!==row[field].length) fail("保存された締切が重複しています。");
+        if(field==="saved_cutoff_variants")savedCutoffs=instants.size?instants:null;
+        else if(observationVariants)observationCutoffs=instants.size?instants:null;
+        else scheduleCutoffs=instants;
+      }
+      if (savedCutoffs && (savedCutoffs.size>1 ? row.cutoff_at!==null : row.cutoff_at==null || !savedCutoffs.has(Date.parse(row.cutoff_at)))) fail("原本間の締切不一致を単一時刻に変更できません。");
+      if (!savedCutoffs && scheduleCutoffs?.size>1 && row.cutoff_at!==null) fail("台帳間の締切不一致を単一時刻に変更できません。");
+      if (observationCutoffs && (observationCutoffs.size<2 || row.cutoff_at!==null)) fail("取得観測間の締切不一致を単一時刻に変更できません。");
       optionalSha(row.source_sha256,"情報源");optionalSha(row.source_sha,"情報源");
       if (row.source_sha != null && row.source_sha256 != null && row.source_sha !== row.source_sha256) fail("元データSHAが一致しません。");
       if (row.participants != null) {
@@ -170,6 +182,17 @@
       const reasons = missingReasons(row.missing_reasons);
       row.scope = value.dataset_status === "SYNTHETIC_ONLY" ? "synthetic" : "research";
       row.private_cycle_view = true;row.source_schema = privateCycleSchema;row.evidence_imported_only = true;
+      if (row.source_observation_view === true) {
+        const observation=row.source_observation;
+        if (row.prediction!=null || row.comparison_predictions?.length || row.result!=null || row.result_observations?.length || row.cutoff_at!=null ||
+            savedCutoffs?.size || scheduleCutoffs?.size || observationCutoffs?.size || row.offering_status!=="UNKNOWN" ||
+            !observation || typeof observation!=="object" || observation.kind!=="CAPTURED_PUBLIC_PAGE_FACTS" || !stamp(observation.observed_at) ||
+            !sha(observation.source_sha256) || !sha(observation.original_json_sha256) || !Number.isSafeInteger(observation.artifact_id) || observation.artifact_id<1 ||
+            observation.source_uri!==row.race_id || observation.source_url!==observation.source_uri || observation.final_url!==observation.source_uri) fail("取得ページ観測と予想・結果を混在させられません。");
+        let url;try{url=new URL(observation.source_url);}catch{fail("取得ページURLが不正です。");}
+        if(url.protocol!=="https:" || url.username || url.password || url.hash || observation.source_url.length>512)fail("取得ページURLが不正です。");
+        observation.independent_source_verified=false;observation.pre_cutoff_receipt_verified=false;
+      }
       if (row.scheduled_stages != null && (!Array.isArray(row.scheduled_stages) || !row.scheduled_stages.length || row.scheduled_stages.length > 4 ||
           new Set(row.scheduled_stages).size !== row.scheduled_stages.length || row.scheduled_stages.some(stage=>!stages.slice(0,2).includes(stage) && !(row.sport === "autorace" && nativeAutoraceStages.includes(stage))))) fail("対象台帳の予想時点が不正です。");
       if (row.dispatch_slots != null) {
@@ -201,6 +224,7 @@
         optionalLabel(p.model_id,"モデルID",128);optionalLabel(p.model_version,"モデル版",100);optionalLabel(p.variant,"保存モデル区分",250);
         validateStamps(p,["generated_at","as_of","persisted_at","server_saved_at","cutoff_at","observed_at"]);
         if (p.cutoff_at && row.cutoff_at && Date.parse(p.cutoff_at) !== Date.parse(row.cutoff_at)) fail("保存予想とレースの締切が一致しません。");
+        if (savedCutoffs && !savedCutoffs.has(Date.parse(p.cutoff_at))) fail("保存予想の締切が原本の一覧にありません。");
         if (p.persisted_at && p.server_saved_at && Date.parse(p.persisted_at) !== Date.parse(p.server_saved_at)) fail("保存予想の保存時刻が一致しません。");
         const nativeDispatch = p.native_dispatch_prediction === true;
         if (nativeDispatch && !sha(p.output_sha256)) fail("保存出力本文のSHAが必要です。");
@@ -230,6 +254,21 @@
         if (previous && canonical(previous) !== canonical(observation)) fail("同じ取得時刻の観測内容が矛盾しています。");
         captures.set(observation.captured_at,observation);
       }
+      if (row.result_observation_rejections != null) {
+        if (!Array.isArray(row.result_observation_rejections) || row.result_observation_rejections.length>10000) fail("結果観測の照合不可記録が不正です。");
+        const seenRejections=new Set();
+        for (const rejected of row.result_observation_rejections) {
+          if (!rejected || typeof rejected!=="object" || !stamp(rejected.captured_at) || typeof rejected.reason!=="string" || !/^[A-Z][A-Z0-9_]{0,199}$/.test(rejected.reason)) fail("結果観測の照合不可理由が不正です。");
+          optionalSha(rejected.source_sha256,"照合不可観測");
+          const key=canonical([Date.parse(rejected.captured_at),rejected.source_sha256??null]);
+          if(seenRejections.has(key) || !(row.result_observations||[]).some(o=>Date.parse(o.captured_at)===Date.parse(rejected.captured_at) && (o.source_sha256??null)===(rejected.source_sha256??null))) fail("照合不可記録が元の結果観測と一致しません。");
+          seenRejections.add(key);
+          if(row.result?.status==="final" && Date.parse(row.result.observed_at)===Date.parse(rejected.captured_at)) fail("照合不可の結果観測を確定結果にできません。");
+        }
+      }
+      if (savedCutoffs?.size>1 && row.result?.status==="final") fail("原本間の締切が未確定の結果は照合できません。");
+      if (!savedCutoffs && scheduleCutoffs?.size>1 && row.result?.status==="final") fail("台帳間の締切が未確定の結果は照合できません。");
+      if (observationCutoffs && row.result?.status==="final") fail("取得観測間の締切が未確定の結果は照合できません。");
       reasons.push("PRIVATE_CYCLE_RESEARCH_VIEW_ONLY","INDEPENDENT_RECEIPT_NOT_VERIFIED");
       if (!candidates(row).length) reasons.push("NO_SAVED_PREDICTION");
       row.missing_reasons = [...new Set(reasons)];

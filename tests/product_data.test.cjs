@@ -381,3 +381,66 @@ test("declared private phases retain missing forecasts and do not add unschedule
     const bad=privateCycle();bad.records[0].scheduled_stages=stages;assert.throws(()=>M.parse(bad));
   }
 });
+test("saved conflicting cutoff variants preserve each original and reject a fabricated single clock", () => {
+  const raw=privateCycle(),r=raw.records[0],first=r.prediction.cutoff_at,second="2030-01-01T10:01:00+09:00";
+  r.cutoff_at=null;r.saved_cutoff_variants=[first,second];r.result.status="unsupported";r.result.winning_combinations=[];
+  r.comparison_predictions=[{...structuredClone(r.prediction),stage:"P1",cutoff_at:second,prediction_sha256:"d".repeat(64),model_sha256:"d".repeat(64)}];
+  const parsed=M.parse(raw).records[0];assert.equal(parsed.cutoff_at,null);assert.equal(parsed.prediction.cutoff_at,first);assert.equal(parsed.comparison_predictions[0].cutoff_at,second);
+  for(const mutate of [x=>x.saved_cutoff_variants=[first],x=>x.saved_cutoff_variants=[first,first],x=>x.saved_cutoff_variants=[first,"bad"],x=>x.cutoff_at=first,x=>x.result={...x.result,status:"final",winning_combinations:[[1,2,3]]}]) {
+    const bad=structuredClone(raw);mutate(bad.records[0]);assert.throws(()=>M.parse(bad));
+  }
+});
+test("quarantined result observations retain original capture identity and cannot appear final", () => {
+  const raw=privateCycle(),r=raw.records[0],o=r.result_observations[0];
+  Object.assign(r.result,{status:"unsupported",winning_combinations:[]});
+  r.result_observation_rejections=[{captured_at:o.captured_at,source_sha256:o.source_sha256,reason:"RESULT_CUTOFF_MISMATCH"}];
+  const parsed=M.parse(raw);assert.deepEqual(parsed.records[0].result_observations,r.result_observations);
+  assert.equal(parsed.records[0].result_observation_rejections[0].reason,"RESULT_CUTOFF_MISMATCH");
+  for(const mutate of [x=>x.result_observation_rejections[0].captured_at="2030-01-01T11:30:00+09:00",x=>x.result_observation_rejections[0].reason="",x=>Object.assign(x.result,{status:"final",winning_combinations:[[1,2,3]]})]) {
+    const bad=structuredClone(raw);mutate(bad.records[0]);assert.throws(()=>M.parse(bad));
+  }
+});
+test("observation cutoff variants retain quarantined wrong-day clocks and reject an invented canonical result", () => {
+  const raw=privateCycle(),r=raw.records[0],first=r.cutoff_at,second="2030-01-02T10:00:00+09:00";
+  Object.assign(r,{prediction:null,cutoff_at:null,saved_observation_cutoff_variants:[first,second]});
+  Object.assign(r.result,{status:"unsupported",winning_combinations:[]});
+  r.result_observations[0].closed_at=first;
+  r.result_observations.push({...structuredClone(r.result_observations[0]),closed_at:second,captured_at:"2030-01-02T10:20:00+09:00"});
+  r.result.observed_at=r.result_observations[1].captured_at;
+  const before=JSON.stringify(raw),parsed=M.parse(raw).records[0];
+  assert.equal(JSON.stringify(raw),before);assert.equal(parsed.cutoff_at,null);assert.equal(parsed.result.status,"unsupported");
+  assert.deepEqual(parsed.saved_observation_cutoff_variants,[first,second]);
+  assert.deepEqual(parsed.result_observations,r.result_observations);
+  const mutations=[
+    x=>x.saved_observation_cutoff_variants=first,
+    x=>x.saved_observation_cutoff_variants=[first],
+    x=>x.saved_observation_cutoff_variants=[first,first],
+    x=>x.saved_observation_cutoff_variants=[first,"2030-01-01T01:00:00Z"],
+    x=>x.saved_observation_cutoff_variants=[first,"bad"],
+    x=>x.saved_observation_cutoff_variants=Array.from({length:65},(_,i)=>new Date(Date.UTC(2030,0,1,0,i)).toISOString()),
+    x=>x.cutoff_at=first,
+    x=>Object.assign(x.result,{status:"final",winning_combinations:[[1,2,3]]})
+  ];
+  for(const mutate of mutations){const bad=structuredClone(raw);mutate(bad.records[0]);assert.throws(()=>M.parse(bad));}
+  for(const field of ["saved_cutoff_variants","saved_schedule_cutoff_variants"]){
+    const bad=structuredClone(raw);delete bad.records[0].saved_observation_cutoff_variants;bad.records[0][field]=[first,second];
+    assert.throws(()=>M.parse(bad),"forecast and schedule variants must still match the race day");
+  }
+  const empty=privateCycle();empty.records[0].saved_observation_cutoff_variants=[];
+  assert.equal(M.parse(empty).records[0].result.status,"final","an empty variant list carries no ambiguity");
+});
+test("saved source observations admit missing race metadata while remaining separate from forecasts", () => {
+  const raw=privateCycle(),r=raw.records[0];Object.assign(r,{source_observation_view:true,venue:null,race_no:null,cutoff_at:null,prediction:null,result:null,result_observations:[]});
+  r.source_observation={source_url:"https://www.winticket.jp/keirin/fictional/racedetail/2030010101/1/1",source_uri:"https://www.winticket.jp/keirin/fictional/racedetail/2030010101/1/1",final_url:"https://www.winticket.jp/keirin/fictional/racedetail/2030010101/1/1",observed_at:"2030-01-01T08:00:00+09:00",source_sha256:SHA,original_json_sha256:INPUT,artifact_id:17,kind:"CAPTURED_PUBLIC_PAGE_FACTS",independent_source_verified:false,pre_cutoff_receipt_verified:false};
+  r.race_id=r.source_observation.source_uri;
+  const parsed=M.parse(raw).records[0];assert.equal(parsed.prediction,null);assert.equal(parsed.result,null);assert.equal(parsed.cutoff_at,null);assert.equal(parsed.scope,"research");
+  for(const mutate of [x=>x.prediction=privateCycle().records[0].prediction,x=>x.source_observation.source_url="javascript:alert(1)",x=>x.source_observation.source_sha256="fake"]) {
+    const bad=structuredClone(raw);mutate(bad.records[0]);assert.throws(()=>M.parse(bad));
+  }
+  for(const field of ["saved_cutoff_variants","saved_schedule_cutoff_variants","saved_observation_cutoff_variants"]){
+    const bad=structuredClone(raw);bad.records[0][field]=[cutoff,"2030-01-01T10:01:00+09:00"];
+    assert.throws(()=>M.parse(bad),"captured public pages cannot supply race cutoff metadata: "+field);
+    raw.records[0][field]=[];
+  }
+  assert.equal(M.parse(raw).records[0].source_observation.kind,"CAPTURED_PUBLIC_PAGE_FACTS","empty producer arrays remain neutral");
+});

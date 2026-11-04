@@ -3,10 +3,12 @@ import copy
 from hashlib import sha256
 import importlib
 import json
+import io
 import os
 from pathlib import Path
 import tempfile
 import unittest
+import zipfile
 from tests.test_frozen_day_cycle import sample
 
 try:
@@ -102,6 +104,16 @@ class PrivateCycleCaptureTests(unittest.TestCase):
         self.metadata['size_in_bytes']=33*1024*1024
         with self.assertRaises(ValueError): self.run_capture()
         self.assertEqual(self.calls,['actions/artifacts/1'])
+
+    def test_saved_empty_historical_p0_attempt_is_preserved_without_creating_forecasts(self):
+        doc={'schema':'RACE_AI_EXISTING_P0_DAY_V1','day_jst':'2030-04-01',
+             'predictions':[],'race_count':None,'model_forecast_count':None,'actual_purchases':False}
+        buf=io.BytesIO()
+        with zipfile.ZipFile(buf,'w') as z:z.writestr('forecasts.json',json.dumps(doc))
+        self.archive=buf.getvalue();self.metadata['digest']='sha256:'+sha256(self.archive).hexdigest()
+        manifest=self.run_capture()
+        self.assertEqual(len(manifest['artifacts']),1)
+        self.assertEqual((self.root/'private'/manifest['artifacts'][0]['zip_file']).read_bytes(),self.archive)
 
     def test_parent_swapped_during_download_cannot_redirect_originals_into_git(self):
         original=self.root/'holder';original.mkdir(mode=0o700)

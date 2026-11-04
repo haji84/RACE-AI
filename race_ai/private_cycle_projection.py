@@ -26,6 +26,15 @@ class PrivateCycleProjectionError(ValueError):
     """A rejected private record is described without echoing its contents."""
 
 
+class _ResultObservationRejection(ValueError):
+    """A fixed reason code for one structurally readable result observation."""
+
+
+def _result_need(condition, reason):
+    if not condition:
+        raise _ResultObservationRejection(reason)
+
+
 def _need(condition, reason):
     if not condition:
         raise PrivateCycleProjectionError("private saved cycle rejected: " + reason)
@@ -311,13 +320,17 @@ def _prediction(row, entries):
 
 
 def _observation(observation, row):
-    _need(type(observation) is dict and observation.get("race_id") == row["race_id"], "result race identity")
-    _need(_clock(observation.get("closed_at")) == _clock(row["cutoff_at"]) and
-          _clock(observation.get("captured_at")) >= _clock(row["cutoff_at"]), "result chronology")
-    _sha(observation.get("source_sha256"), optional=True)
+    _result_need(observation["race_id"] == row["race_id"], "RESULT_RACE_IDENTITY_MISMATCH")
+    if "saved_observation_cutoff_variants" in row:
+        _result_need(False, "RESULT_AMBIGUOUS_OBSERVATION_CUTOFF")
+    _result_need(row["cutoff_at"] is not None,
+                 "RESULT_AMBIGUOUS_FORECAST_CUTOFF" if row["saved_cutoff_variants"] else "RESULT_AMBIGUOUS_SCHEDULE_CUTOFF")
+    _result_need(_clock(observation["closed_at"]) == _clock(row["cutoff_at"]), "RESULT_CUTOFF_MISMATCH")
+    _result_need(_clock(observation["captured_at"]) >= _clock(row["cutoff_at"]), "RESULT_CAPTURE_BEFORE_CUTOFF")
     result = dict(status="pending", winning_combinations=[], confirmed_at=None, observed_at=observation["captured_at"],
                   official=False, source_sha256=observation.get("source_sha256"))
     data = observation.get("data")
+    _result_need(observation.get("body_identity_verified") is True, "RESULT_IDENTITY_UNVERIFIED")
     if data is None: return result
     _need(type(data) is dict, "result payload")
     for field in ("refund_boats","refunds","refund_combinations","dead_heat"):
@@ -325,25 +338,45 @@ def _observation(observation, row):
     refunds = data.get("refund_boats", [])
     _need(type(refunds) is list and all(type(n) is int and 1 <= n <= 6 for n in refunds) and len(set(refunds)) == len(refunds), "refund boats")
     records = data.get("results", [])
+    _need(type(records) is list and all(type(r) is dict and type(r.get("lane")) is int for r in records), "result roster format")
     if records:
-        _need(type(records) is list and len(records) == 6 and all(type(r) is dict and type(r.get("lane")) is int for r in records), "result roster format")
         roster = {str(r["lane"]):r.get("racer_registration_id") for r in records}
-        _need(set(roster) == set(map(str,range(1,7))) and len(roster) == len(records), "result roster lanes")
+        _result_need(len(records) == 6 and set(roster) == set(map(str,range(1,7))) and len(roster) == len(records), "RESULT_ROSTER_LANES_MISMATCH")
+        _result_need(all(type(pid) is str and re.fullmatch(r"\d{4}",pid) for pid in roster.values()) and
+                     len(set(roster.values())) == 6, "RESULT_ROSTER_IDENTITY_MISMATCH")
+        _result_need(all("race_id" not in r or r["race_id"] == row["race_id"] for r in records), "RESULT_RACE_IDENTITY_MISMATCH")
+        _result_need(all("verified_official" not in r or r["verified_official"] is True for r in records), "RESULT_IDENTITY_UNVERIFIED")
         if row.get("participants"):
-            _need(roster == {str(p["number"]):p["registration_no"] for p in row["participants"]}, "result roster mismatch")
-    if observation.get("body_identity_verified") is not True or observation.get("status") != "AVAILABLE": return result
+            _result_need(roster == {str(p["number"]):p["registration_no"] for p in row["participants"]}, "RESULT_ROSTER_MISMATCH")
+    if observation.get("status") != "AVAILABLE": return result
     if data.get("confirmed") is True and data.get("status") in ("cancelled","no_contest"):
         result["status"] = "void"
         return result
+    _need(type(data.get("payouts", [])) is list, "result payouts")
     payouts = [p for p in data.get("payouts", []) if type(p) is dict and p.get("bet_type") == "trifecta"]
     if data.get("status") == "settled" and data.get("confirmed") is True and data.get("finish_confirmed") is True and payouts:
-        _need(records, "confirmed result roster missing")
+        _result_need(records, "RESULT_ROSTER_MISSING")
         winners = []
         for payout in payouts:
             combo, amount = payout.get("combination"), payout.get("payout_per_100_yen")
-            _need(_ticket(combo) and type(amount) is int and amount >= 0, "result payout format")
+            _result_need(_ticket(combo) and type(amount) is int and amount >= 0, "RESULT_PAYOUT_INVALID")
             winners.append(deepcopy(combo))
-        _need(len({tuple(t) for t in winners}) == len(winners) and data.get("top3") in winners, "result winner conflict")
+        _result_need(len({tuple(t) for t in winners}) == len(winners) and data.get("top3") in winners, "RESULT_WINNER_MISMATCH")
+        _result_need(all(type(r.get("finish")) is int and 1 <= r["finish"] <= 6 or
+                         r.get("finish") is None and r.get("finish_status") != "FINISHED" for r in records),
+                     "RESULT_FINISH_ORDER_MISMATCH")
+        finishes = {r["lane"]:r.get("finish") for r in records}
+        places = [p for p in finishes.values() if p is not None]
+        tied = data.get("dead_heat") is True
+        _result_need(tied or len(set(places)) == len(places), "RESULT_FINISH_ORDER_MISMATCH")
+        for winner in winners:
+            order = [finishes[n] for n in winner]
+            _result_need(all(r.get("finish_status") == "FINISHED" for r in records if r["lane"] in winner) and
+                         all(type(p) is int for p in order), "RESULT_FINISH_ORDER_MISMATCH")
+            _result_need(order == [1,2,3] if not tied else
+                         order == sorted(order) and order[0] == 1 and order[-1] <= 3 and
+                         all(n in winner for n,p in finishes.items() if p is not None and p < order[-1]),
+                         "RESULT_FINISH_ORDER_MISMATCH")
         result.update(status="final", winning_combinations=winners)
         if len(payouts) == 1: result["payout_yen_per_100"] = payouts[0]["payout_per_100_yen"]
         else: result["payouts"] = deepcopy(payouts)
@@ -368,15 +401,17 @@ def project_state(state, *, dataset_status, original_documents=None):
     shadows = shadows + added_shadows
     scope = "synthetic" if dataset_status == "SYNTHETIC_ONLY" else "research"
     records = {}
-    def race(rid, cutoff):
-        venue, number = _race(rid, day); _cutoff(cutoff, day)
+    def race(rid, cutoff, *, unknown_observation_cutoff=False):
+        venue, number = _race(rid, day)
+        if not unknown_observation_cutoff:
+            _cutoff(cutoff, day)
         if rid in records:
-            _need(_clock(records[rid]["cutoff_at"]) == _clock(cutoff), "one race cutoff conflict")
             return records[rid]
         row = dict(race_id=rid, sport="boat", venue="場コード"+venue, race_no=number, event_date_jst=day,
-                   cutoff_at=cutoff, offering_status="UNKNOWN", scope=scope, source_provenance="OWNER_LOCAL_RECOVERED_CYCLE",
+                   cutoff_at=cutoff, saved_cutoff_variants=[], saved_schedule_cutoff_variants=[],
+                   offering_status="UNKNOWN", scope=scope, source_provenance="OWNER_LOCAL_RECOVERED_CYCLE",
                    source_sha256=None, participants=[], prediction=None, comparison_predictions=[], result=None,
-                   result_observations=[], result_revisions=[], missing_reasons=[])
+                   result_observations=[], result_observation_rejections=[], result_revisions=[], missing_reasons=[])
         records[rid] = row
         return row
     seen = set()
@@ -387,6 +422,12 @@ def project_state(state, *, dataset_status, original_documents=None):
         _need(identity not in seen, "duplicate saved forecast identity")
         seen.add(identity)
         prediction, roster = _prediction(source, entries)
+        if prediction["cutoff_at"] not in row["saved_cutoff_variants"]:
+            row["saved_cutoff_variants"].append(prediction["cutoff_at"])
+        if len({_clock(c) for c in row["saved_cutoff_variants"]}) > 1:
+            row["cutoff_at"] = None
+            if "SAVED_FORECAST_CUTOFF_CONFLICT" not in row["missing_reasons"]:
+                row["missing_reasons"].append("SAVED_FORECAST_CUTOFF_CONFLICT")
         participants = [dict(number=int(n), registration_no=pid) for n,pid in sorted(roster.items(), key=lambda item:int(item[0]))]
         _need(not row["participants"] or row["participants"] == participants, "one race roster conflict")
         row["participants"] = participants
@@ -399,20 +440,56 @@ def project_state(state, *, dataset_status, original_documents=None):
     _need(type(registry) is list and len(schedule)+len(registry) <= 10000, "schedule count")
     for item in schedule + registry:
         _need(type(item) is dict, "schedule row")
-        race(item.get("race_id"), item.get("cutoff_at"))
-    captures = set()
+        row = race(item.get("race_id"), item.get("cutoff_at"))
+        cutoff = item["cutoff_at"]
+        if cutoff not in row["saved_schedule_cutoff_variants"]:
+            row["saved_schedule_cutoff_variants"].append(cutoff)
+        known = row["saved_cutoff_variants"]
+        if known:
+            conflict = not any(_clock(c) == _clock(cutoff) for c in known)
+        else:
+            conflict = len({_clock(c) for c in row["saved_schedule_cutoff_variants"]}) > 1
+            if conflict:
+                row["cutoff_at"] = None
+        if conflict and "SAVED_SCHEDULE_CUTOFF_CONFLICT" not in row["missing_reasons"]:
+            row["missing_reasons"].append("SAVED_SCHEDULE_CUTOFF_CONFLICT")
+    captures, observation_cutoffs = set(), {}
     for observation in observations:
         _need(type(observation) is dict, "result observation object")
-        row = race(observation.get("race_id"), observation.get("closed_at"))
-        key = (row["race_id"], _clock(observation.get("captured_at")))
+        rid = observation.get("race_id"); _race(rid, day)
+        _clock(observation.get("closed_at"))
+        captured = _clock(observation.get("captured_at"))
+        _sha(observation.get("source_sha256"), optional=True)
+        _need(observation.get("data") is None or type(observation["data"]) is dict, "result payload")
+        key = (rid, captured)
         _need(key not in captures, "duplicate result capture")
         captures.add(key)
-        result = _observation(observation, row)
+        if rid not in records:
+            variants = observation_cutoffs.setdefault(rid, [])
+            if observation["closed_at"] not in variants:
+                variants.append(observation["closed_at"])
+    for rid, variants in observation_cutoffs.items():
+        ambiguous = len({_clock(c) for c in variants}) > 1
+        row = race(rid, None if ambiguous else variants[0], unknown_observation_cutoff=ambiguous)
+        if ambiguous:
+            row["saved_observation_cutoff_variants"] = variants
+            row["missing_reasons"].append("SAVED_OBSERVATION_CUTOFF_CONFLICT")
+    for observation in observations:
+        # An observation cannot replace a forecast, schedule, or agreed observation clock.
+        row = records[observation["race_id"]]
         row["result_observations"].append(deepcopy(observation))
+        try:
+            result = _observation(observation, row)
+        except _ResultObservationRejection as exc:
+            row["result_observation_rejections"].append(dict(captured_at=observation["captured_at"],
+                source_sha256=observation.get("source_sha256"), reason=str(exc)))
+            result = dict(status="unsupported", winning_combinations=[], confirmed_at=None,
+                          observed_at=observation["captured_at"], official=False, source_sha256=observation.get("source_sha256"))
         if row["result"] is None or _clock(result["observed_at"]) > _clock(row["result"]["observed_at"]): row["result"] = result
     for row in records.values():
         if row["prediction"] is None: row["missing_reasons"].append("NO_SAVED_PREDICTION")
         if row["result"] is None: row["missing_reasons"].append("NO_SAVED_RESULT_OBSERVATION")
+        if row["result_observation_rejections"]: row["missing_reasons"].append("RESULT_OBSERVATION_REJECTED")
         row["missing_reasons"].append("PRIVATE_IMPORT_NOT_INDEPENDENTLY_VERIFIED")
     _need(len(records) <= 10000, "race count")
     return dict(schema=SCHEMA, dataset_status=dataset_status, event_date_jst=day,

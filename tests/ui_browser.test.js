@@ -174,6 +174,8 @@ async function main() {
       assert.equal(await page.locator('#result-observations details').count(),saved.result_observations.length);
       for (const details of await page.locator('#result-observations details').all()) await details.locator('summary').click();
       for (const observation of saved.result_observations) assert.ok((await page.locator('#result-observations').innerText()).includes(observation.source_sha256));
+      const rawBodies=await page.locator('#result-observations [data-observation-raw]').allTextContents();
+      assert.deepEqual(rawBodies,saved.result_observations.map(o=>JSON.stringify(o)),'full raw captures cannot be truncated');
       assert.match(await page.locator('#race-detail').innerText(),/結果確認 未取得/,'capture time must not become official confirmation time');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'raw observation history has no horizontal overflow');
       await capture(`${width}-saved-cycle-history.png`);
@@ -192,6 +194,8 @@ async function main() {
         assert.match(await page.locator('#prediction-select option:checked').innerText(),/LEARNED_SHADOW/);
         const displayed=await page.locator('#race-detail .forecast-panel').first().locator('.saved-ticket .combo').evaluateAll(nodes=>nodes.map(n=>[...n.querySelectorAll('.lane')].map(x=>Number(x.textContent))));
         assert.deepEqual(displayed,p.ordered_top8,'saved learned Top8 is never recomputed');
+        const facts=await page.locator('#race-detail').innerText();
+        for(const field of ['training_sha256','training_receipt_digest','baseline_model_sha256']) if(p[field]!=null)assert.ok(facts.includes(p[field]),`saved learned ${field} visible`);
       }
       mark(`${width}: sealed original ZIP -> private restore -> view -> browser, exact Top8/SHA, P1/learned selection and separate capture history`);
     }
@@ -244,6 +248,23 @@ async function main() {
       const storage=await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}));
       assert.ok([...nativeHashes].every(sha=>!storage.includes(sha)),'no native forecasts persisted in browser storage');
       mark(`${width}: sixteen native families and four-sport private SQLite restart -> browser, exact hashes/order, native trial phases, five-ticket plan and missing-input states`);
+      const sourceView=bundle.source_observation_view;
+      assert.equal(sourceView.dataset_status,'SYNTHETIC_ONLY');
+      await page.locator('#clear-data').click();
+      await page.clock.setFixedTime(new Date(sourceView.event_date_jst+'T00:30:00Z'));
+      await page.locator('#race-file').setInputFiles({name:'source-observations-synthetic.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(sourceView))});
+      await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('端末内で読み込みました'));
+      await page.locator('#selected-date').fill(sourceView.event_date_jst);await page.locator('#selected-date').dispatchEvent('change');
+      for(const sport of ['keirin','autorace','horse']) {
+        await page.locator(`[data-sport="${sport}"]`).first().click();await nav('races');
+        await page.locator('#page-races [data-open-race]').first().click();
+        await page.locator('[data-detail-tab="analysis"]').click();
+        assert.equal(await page.locator('#prediction-select').isDisabled(),true,'observed pages cannot become forecasts');
+        assert.match(await page.locator('#race-detail').innerText(),/モデル入力・締切・予想・結果は未接続/);
+        assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'observed source identifiers cannot overflow the detail title');
+        await capture(`${width}-source-observation-${sport}.png`);
+      }
+      mark(`${width}: three nonboat source-observation pages remain unpredicted, exact source facts and no long-title overflow`);
     }
     await context.tracing.stop({path:path.join(output,`${width}-interaction.zip`)});
     await context.close();

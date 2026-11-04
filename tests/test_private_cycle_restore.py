@@ -99,6 +99,19 @@ class PrivateRestoreTests(unittest.TestCase):
         self.assertEqual(self.manifest, manifest_before)
         self.assertEqual({p.name:p.read_bytes() for p in self.root.iterdir()}, before)
 
+    def test_empty_historical_attempt_remains_an_empty_original_not_a_forecast(self):
+        _,_,meta=sample()
+        doc=dict(schema='RACE_AI_EXISTING_P0_DAY_V1',day_jst='2030-04-01',predictions=[],
+                 race_count=None,model_forecast_count=None,actual_purchases=False)
+        buf=io.BytesIO()
+        with zipfile.ZipFile(buf,'w') as z:z.writestr('forecasts.json',json.dumps(doc))
+        raw=buf.getvalue();meta['digest']='sha256:'+hashlib.sha256(raw).hexdigest()
+        self.add('p0',raw,meta,'forecasts.json')
+        state=restore.restore_manifest(self.manifest,self.root)
+        self.assertEqual(state['rows'],[])
+        self.assertEqual(state['original_documents'][0]['document'],doc)
+        self.assertFalse(state['complete'])
+
     def test_raw_result_revisions_are_retained_and_forecast_receipt_is_unchanged(self):
         _, raw, meta = self.p0()
         _, rows = read_p0(raw, meta, expected_day='2030-04-01')

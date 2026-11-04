@@ -21,7 +21,7 @@ import zipfile
 from contextlib import contextmanager
 
 from .frozen_day_cycle import read_p0, read_p1
-from .cycle_recovery import result_archive
+from .cycle_recovery import result_archive, p0_original_or_empty
 from .repeated_cycle import matches
 
 REPO='haji84/RACE-AI'
@@ -178,7 +178,7 @@ def capture_artifacts(day, artifact_ids, output_dir, *, github_get=None, expecte
         raw=_read(get,f'actions/artifacts/{ident}/zip',MAX_ZIP)
         digest=sha256(raw).hexdigest()
         need(meta.get('digest')=='sha256:'+digest and pins.get(ident,digest)==digest,'ARTIFACT_DIGEST_REJECTED')
-        if kind=='p0': _,rows=read_p0(raw,meta,expected_day=day);member='forecasts.json'
+        if kind=='p0': _,rows=p0_original_or_empty(raw,meta,day);member='forecasts.json'
         elif kind=='p1':
             _,rows=read_p1(raw,meta);member='national.json'
             need(all(re.fullmatch(day.replace('-','')+r'-(0[1-9]|1\d|2[0-4])-(0[1-9]|1[0-2])',r['race_id']) for r in rows),

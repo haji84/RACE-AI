@@ -54,6 +54,7 @@ def _artifacts():
     learned_meta["id"] = 124
 
     earlier = observation(p0_rows[0])
+    earlier["saved_context"] = "synthetic raw observation context " + "x" * 5000
     later = deepcopy(earlier)
     later["captured_at"] = "2030-04-01T02:20:00Z"
     later["data"]["refund_boats"] = [6]

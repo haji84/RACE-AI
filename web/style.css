@@ -70,3 +70,7 @@ body{overflow-wrap:break-word}button{min-height:34px}input,select{min-height:36p
   #home-metrics .metric:nth-child(4){grid-column:1/2}#home-metrics .metric:nth-child(5){grid-column:2/4;flex-direction:row;gap:10px;align-items:center}#home-metrics .metric:nth-child(5) .metric-label{font-size:10px}#home-metrics .metric:nth-child(5) strong{font-size:23px}
   .section-note{margin-bottom:10px}.section-heading{margin-bottom:9px}.section-heading h2{font-size:17px}.view-controls>.check{display:flex;font-size:9px;padding:0}.view-controls>.muted{flex-basis:100%;text-align:right}.topbar .mobile-brand{flex:1 1 0;min-width:0}.topbar>.icon-button{flex:0 0 38px;padding:4px}
 }
+
+.raw-observation{white-space:pre-wrap;overflow-wrap:anywhere;max-width:100%;font:inherit;font-size:11px;line-height:1.7;color:var(--muted)}
+
+.detail-title>h2{min-width:0;max-width:100%;overflow-wrap:anywhere}.detail-hero h3,.detail-hero p{overflow-wrap:anywhere}

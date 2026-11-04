@@ -66,4 +66,4 @@ report = evaluate_saved_comparison(
 
 `tests.private_dispatch_ui_fixture`は全16系統の既存関数を使った合成出力と、4競技のSQLite保存→再起動→原本再利用→画面投影を作る。実入力や実購入ではない。[今回の試験・画面証拠](evidence/2026-11-04/continued-operation/EVIDENCE.md)を参照。
 
-この環境の実原本読戻しは0件。api.github.com許可の実行環境への適用、Library原本の接続、4競技の本来の実入力・外部freeze/result・恒久私有保管、実機Safari、将来レースでの改善実証は未完了として[最新状況](RACE_AI_LATEST_STATUS.md)へ記録する。
+環境設定適用後、GitHubの実原本を取得し、BOAT144レースの基準570予想・学習版70予想・505結果観測を読戻した。原本間の締切差や照合不可の観測を保持し、正式成績へは昇格しない。他3競技の154件は取得ページの観測であり、native入力や予想ではない。Library原本、4競技の本来の実入力・外部freeze/result・恒久私有保管、実機Safari、将来レースでの改善実証は未完了。[最新状況](RACE_AI_LATEST_STATUS.md)と[実読戻し証拠](evidence/2026-11-04/real-original-readback/EVIDENCE.md)を参照。
