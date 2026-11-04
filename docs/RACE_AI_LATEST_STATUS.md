@@ -1,3 +1,17 @@
+# 2026-11-04 21:19 JST｜新run第2巡回まで独立ZIP照合、予想+5・通常採点+56
+
+既存Draft PR #71 / branch `feat/four-sport-forecast-audit-view-20261022`。GitHub最新PR HEAD確認時 `936144a2754c512f9338a03c34c2b14bb84652f7`、既存workflow 405276784のrun `41827144792` は in_progress。21:18:31 JSTまでに第2巡回の両ZIPが保存され、GitHub Actions job steps 01・02はsuccess、03は未完了。新runへは前runの原本を復元し、既存初回P0を再生成しない（既存P0保存stepはsuccess）。別workflow・別PR・新タスク/頻度・モデル系統追加なし。後続runのqueued/pending/waiting完全一覧をこの接続から取得できないため、新たなtrigger pushは禁止して見送った。
+
+18:48:29 JSTの旧run `41801993716` 第21巡回の原本（560基準予想、417通常採点、LEARNED_SHADOW66、paired54）から、今回21:18:29 JSTの**新run第2巡回**は**565基準予想（+5、P0=288/P1=277）、473通常採点（+56）、HIT139/MISS334、LEARNED_SHADOW68（+2）、通常paired62モデル別行（+8、異なる31レース）**。新規5件は同一の `20261104-19-09` 展示後P1で、締切21:25 JSTに対し21:15:16 JST保存。5既存モデルすべての本来の買い目を保持し、当時はRESULT_PENDING。採点増分+56件は過去予想の結果確定が進んだものとして新規レースの的中に混ぜない。未確認の着順/返還/結果拒否は不的中に変換しない。通常外は結果待ち15、異常35、返還レビュー18、結果拒否24。
+
+学習版は異なる119レースを対象とした学習90/未使用検証29、状態FITTED_SHADOW_ONLY。前向き同条件比較は2系統×31レースの62行。観測相性11/31対11/31、ST重視相性10/31対10/31で元モデル・学習版の的中は同数。双方とも同モデル内の仮払戻額は同額。改善版の前向き優位性は未実証。学習候補と元5モデル・旧予想は変更せず、自動本番採用なし。
+
+保存確認: 新run第2巡回 予想artifact `13321225804` ZIP SHA256 `f3953a8be0bd7ccb0b804abc0d926e3489577b7774f2fe683869656ce64ac323`、結果/PDCA artifact `13320466282` ZIP SHA256 `04baba91da5a0aa0e1935b7b3f6dd7c45836d2beea1122444249d25097ac2f73`。両方を実ダウンロードしSHA256計算でGitHub登録digestと一致。結果ZIPでstatus.json `round_no=2` / `updated_at=2026-11-04T12:18:29.327606+00:00`、forecasts.csv 565行、model_coverage total565、公式結果観測履歴、改善候補、学習版、外部研究manifest2件を検査。新run第2巡回のCI workflow全体はまだ実行中であり、未完了第3巡回の成果を加算しない。現時点の対象台帳144レース、締切済み140、未来4、P1五モデル揃い46、missing model別428（当時の展示取得可能性まで確認できず単純な取得可能取りこぼし数とはしない）。
+
+未達: 全16系統/全4競技のライブ全レース予想、全日網羅、期限なしowner-only保存、係数学習版の前向き統計的優位性。7日artifactを恒久DBと呼ばない。Cloudflare/Vercel・追加課金・main統合・一般公開・実投票・本番モデル自動切替なし。旧結果訂正や結果拒否は原本を保持する。
+
+---
+
 # 2026-11-04 21:12 JST — 既存boundedセッションを1件継続起動（新成果は未確認）
 
 対象: 既存Draft PR #71 / workflow405276784 / branch `feat/four-sport-forecast-audit-view-20261022`。先行run `41801993716` は18:48:49 JSTにcompleted/success、第21巡回まで保存・読戻し完了後、公式GET計240/240で停止。旧runの再実行や上限引上げなし。予想ZIP `13311063371`、結果ZIP `13312385205`、continuity ZIP `13311801417`を各GitHubから無改変ダウンロードし、SHA256実バイトがAPI digestに一致（それぞれ `3ca3b063cbf9f409a21aaacc4870e3b493059f10c161aafb6b990f703565da90`, `3dcd04a42bd3cc1483313973f7a34dc58339f487e01522c30ea50283d869e35f`, `ea54e4d3ae0441423c52cc188a27002cde415f757ac02fcdeb18fc6ac61e3811`）。内部status.json `round_no=21`, `updated_at=2026-11-04T09:48:29.434953+00:00`, `560`基準予想、通常採点`417`、別系統LEARNED_SHADOW`66`予想・同条件比較`54`モデル別行を確認。学習入力101種類のレース（学習76/検証25）・`FITTED_SHADOW_ONLY`、精度改善の認定なし。本番採用なし。これは18:48時点の保存値であり、21時台の新予想/新採点と混同しない。
