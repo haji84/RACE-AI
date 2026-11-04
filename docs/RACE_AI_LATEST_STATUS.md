@@ -1,3 +1,17 @@
+# 2026-11-05 07:57:14 JST｜当日P0初回原本の復旧完走・独立ZIP照合、展示後P1/結果は継続中
+
+既存Draft PR #71、branch `feat/four-sport-forecast-audit-view-20261022`、workflow `405276784` のみを使用。11/05早朝の初回原本なし停止に対し、同日全runの既存原本確認→公式B入力から当日P0新規生成→GitHub別artifact保存→元ZIPとサーバー保存時刻のAPI読戻し→create-onlyの`docs/evidence/2026-11-05/p0-first-receipt.json`登録→既存workflow内の原本復元→有界repeat-startまで実証。HEADの初回索引登録コミットは`bfa7ba8b0ed46b2ae830294b376c74f24f1ebaef`（状態文書追記前）。初回索引は存在を確認した上で再発行・上書きしない。
+
+新run `41929106428` はこの記録時点で **in_progress**。先行run `41928865017` はPython直接CLIの`ModuleNotFoundError: No module named 'race_ai'`で初回確認前にcompleted/failure。先行runの全artifactはソース検査用1件のみで、当日初回P0/展示後予想/結果原本なしと確認。CLI import修正・直接起動テストを既存ブランチへ追加し、先行runをrerunせず、同じconcurrencyを維持して新トリガー1回のみ（`63bc3ec3808b4c126e5fbf2de92d8e1525800a0a`）。新runの既存テスト、初回P0 preflight/capture/save/finalize/restore/repeat-startはActions stepでsuccess。新workflow/新PR/新モデル系統・スケジュール変更なし。
+
+**11/05初回P0正本**：run `41929106428`、artifact `13371295414`、GitHubサーバー保存`2026-11-04T22:53:32Z`=07:53:32 JST、元ZIP SHA256 `3a8bde638b93b61cbe21843bff5f3dbaf120c486b45f39efc3ea3a78f89034ab`、元JSON SHA256 `791ddfdc72117f41954837c230040ef09a29c5f4fd423dd22e320ce0d32642bb`。公式B初回観測07:53:28 JST。144種類のレース×既存P0専用2系統＝**288モデル別予想**、144日程、skipped0。独立ダウンロードした818183バイトのZIP SHA256はAPI digestと一致しCRC正常。元ZIPは別保存の結果ZIP内にも同一バイトで残っている。元P0のsource GETは1回として同一セッションへ計上。初回原本・古いP0/P1の上書きなし。P0の2系統を展示後5モデル完成と混同しない。
+
+**11/05第1巡回の保存済み原本のみ**：予想artifact `13371320638`（ZIP SHA256 `b31217f915752fa8185cf154ed20c562e96321bcac9e8ba046507799b0a2cdcf`）、結果/PDCA artifact `13369919747`（ZIP SHA256 `a64bc8d1886d265d537f203c79c1e8f18cb5691e49e641aa230d4d14047cbd82`）。結果ZIPは独立再ダウンロードしCRCと実バイトSHA256一致。内部status.json `round_no=1` / `updated_at=2026-11-04T22:53:55.116620+00:00`、基準予想288（P0のみ）、通常結果採点0/的中0、LEARNED_SHADOW保存0/同条件比較0。P1観測は`OBSERVED_ATTEMPT_NO_FORECAST`・`NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES`、P1=0件。これは未公表展示を取得できたと主張するものではない。係数学習は当日独立照合済み通常確定結果が0レースのため`INSUFFICIENT_VERIFIED_RACES`、向上未証明。第1巡回結果ZIP保存時のsession requests_used=14/240（初回Bを含む）、結果観測0で、同ZIP内のcompleted_round=0はround完走前のスナップショット。Actionsの第1巡回stepは後にsuccessになり第2巡回へ進行。進行中runの未保存の第2巡回以降は合算しない。
+
+11/04の570基準予想/489通常採点/学習版70/同条件比較66は**前日別runの記録**で、11/05の288件や0採点へ合算しない。全16系統・全4競技の実データ入力、当日全展示後5モデル、期限なし本人専用Drive保存、係数学習版の同条件未来優位性は未完成。現状Driveへの当日元ZIP新規保管は独立保存完了を確認できておらず、7日GitHub artifactを永久保管と呼ばない。既存停止条件、240 GET/session・45 GET/巡回・最大3レース・締切210秒・180秒/24巡/65分、同一concurrency・単一writerを維持。main/公開/実投票/課金/本番モデル切替なし。
+
+---
+
 # 2026-11-05 06:47 JST｜初回P0ブートストラップの下準備と原本再ハッシュ（本番予想未再開）
 
 既存Draft PR #71、branch `feat/four-sport-forecast-audit-view-20261022` の最新HEAD `c2e15d5c4881c9e5c999c3fbbddf8f6d6f3c97ce` を確認。既存workflow `405276784` のファイル・同一concurrency・トリガーと取得上限は**変更していない**。最新のActions run一覧では11/05 JSTの対象workflow新規実行を検出しなかった。既存run `41842464812` はcompleted/success、最終保存可能巡回は11/04の第21巡回（`status.json`は`round_no=21`、`completed_round=20`であり全巡回完走と同義ではない）。
