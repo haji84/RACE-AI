@@ -50,3 +50,5 @@
 - Initial PR71 HEAD: `c15e683d520ba248526800c8a35c161735a2d565`. Main HEAD: `0e45c029e18d5f3f1e7a04aecedab3c4af261748`. Clean checkout switched to the existing PR71 branch.
 - GitHub API requests return Forbidden under the current network policy. Public GitHub web pages and native Git fetch work; API-only writes/Actions artifact access are not yet verified.
 - Existing private real forecast payloads are not mounted. Local import plus explicit synthetic fixtures is the authorized first acceptance route; it is not live real-race validation.
+
+- First ordinary push was rejected when concurrent writer e587f5a arrived. Fetched and merged that documentation-only update without reset/force; retained its final-cycle audit and explicitly distinguished its provenance. Application/test trees are unchanged by this merge.
