@@ -31,3 +31,5 @@ Playwright Chromiumで320/390/1440/1920の**29操作グループ・36PNG**を保
 ## 残る外部条件
 
 この環境で実原本読戻しは0件。実行中環境のapi.github.comは許可未適用、Library接続なし。別writerによる既存BOAT実runの監査更新は保全しており、今回の合成試験結果とは混同しない。全16/全4競技のライブ全レース継続運転、期限なし本人専用保管、実機Safari、前向き精度改善は未達。公開・投票・main統合・本番採用なし。
+
+コードcommit `4243f2997c9cd9bc289d837600ee51c0abd6d967` はGitHubのPR headShaと一致し、既存viewer [41830307303](https://github.com/haji84/RACE-AI/actions/runs/41830307303) / AUTORACE [41830307315](https://github.com/haji84/RACE-AI/actions/runs/41830307315) がcompleted/success。[対象HEADの確認記録](ci-verification.json)。後続の証拠文書commit自身のCIと取り違えない。

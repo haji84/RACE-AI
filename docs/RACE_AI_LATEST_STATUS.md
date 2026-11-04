@@ -1,4 +1,4 @@
-# 2026-11-04 21:31 JST — 保存原本JSONから画面までの接続を実装・検証（実読戻し0件）
+# 2026-11-04 21:36 JST — 保存原本JSONから画面までの接続を実装・CI成功（実読戻し0件）
 
 既存Draft PR71の同じブランチで、選択した保存原本artifactの取得 → SHA固定ローカル復元 → 画面用投影 → 操作画面読込を追加した。P0/展示後P1/保存済み学習版のTop8・全順位・native SHAを保持し、存在しないモデル版/生成時刻/入力SHAは未取得のまま。結果の取得観測時刻を公式確定時刻や改訂番号へ置き換えない。専用viewは研究/合成表示で、正式Hit@8/回収率へ加算しない。
 
@@ -10,11 +10,11 @@
 | 私有実JSONの接続 | **この環境では0件**。GitHub原本の保存先/IDとLibraryの旧保存記録は特定。api.github.com許可は環境下書きのみで、実行中環境に未適用。Library実バイト未接続 |
 | 全レース×既存全モデル、4競技継続実運転 | **未達**。既存16系統オフライン実行層と不足検出は維持。別writerが21:19に記録したBOAT既存runの565基準予想/P1=277はその監査記録の値であり、この環境での今回再集計や全16/全4競技実績ではない |
 | 実機Safari・恒久私有保管・精度改善 | **未受入/未達/未実証**。Chromiumを実機Safariと呼ばず、合成結果や学習版の表示を精度改善へ換算しない |
-| 既存PR71への反映と新HEAD CI | この記録時点ではローカル検証済み・push前。push後のHEAD/CIは最終報告で確認する |
+| 既存PR71への反映と新HEAD CI | コードcommit `4243f2997c9cd9bc289d837600ee51c0abd6d967` を通常pushしPR headShaと一致。viewer run41830307303 / AUTORACE run41830307315はともにcompleted/success。後続の証拠文書commit自身のCIとは区別する |
 
 [取得/復元/読込手順](PRIVATE_CYCLE_VIEW.md) / [実装・失敗修正・36画面・テスト証拠](evidence/2026-11-04/private-cycle-view/EVIDENCE.md)。今回の追加は既存viewer CI job内の試験のみ。新PR/Issue/モデル系統/workflow/schedule/課金なし。
 
-最新remoteを確認し、別writerの9781164/936144a/71054f5をfast-forwardで取り込んで保全。既存実run41827144792へこちらから追加trigger/cancel/rerunは行っていない。下記21:19は別writerによる監査更新として維持する。mainは0e45c029e18d5f3f1e7a04aecedab3c4af261748。一般公開、実投票、本番モデル切替なし。外部前提が満たされるまで製品全体の完成とは報告しない。
+[コードHEADのGitHub CI確認](evidence/2026-11-04/private-cycle-view/ci-verification.json)。この追記は成功確認後の証拠文書更新であり、コード変更なし。最新remoteを確認し、別writerの9781164/936144a/71054f5をfast-forwardで取り込んで保全。既存実run41827144792へこちらから追加trigger/cancel/rerunは行っていない。下記21:19は別writerによる監査更新として維持する。mainは0e45c029e18d5f3f1e7a04aecedab3c4af261748。一般公開、実投票、本番モデル切替なし。外部前提が満たされるまで製品全体の完成とは報告しない。
 
 ---
 
