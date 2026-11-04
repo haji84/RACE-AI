@@ -1,3 +1,15 @@
+# 2026-11-04 22:55 JST｜旧run第21巡回の実ZIP監査・結果照合継続の新runは起動中
+
+既存PR #71 / workflow405276784 の旧run `41827144792` は **22:15:45 JST completed/success**。全artifact一覧から最新予想 `boat-national-cutoff-41827144792-cycle-21` (ID13328005191)、結果/PDCA `race-existing-cycle-41827144792-cycle-21` (ID13327145474)、継続 `race-cycle-continuity-41827144792` (ID13327140572)を選択。3件の元ZIPを独立ダウンロードし、実バイトSHA256=GitHub API digest一致（予想 `a3d74cb858738f61591802b33847cfc450528c958008334c30dcf565a08f5e1f`、結果 `589b6268e026a73e29ada5a9a8be3a36754d4fb0b24e417ebe4ddfca0b704782`、継続 `b20ee679fd16418f5f22819e8614136b282acd9cbc6598a34c85f3a0140ebff6`）。内部status.json `round_no=21` / `updated_at=2026-11-04T13:15:24.760110Z` と forecasts.csv 570行、model_coverage 570行、公式結果観測履歴426件、研究manifest2件を検査。continuityの `completed_round=20` のため第21巡回の全step完了と同義にはせず、workflow全体のsuccessと区別。
+
+21:48保存値から**基準5モデル予想565→570（+5、P0=288維持/P1=277→282）**。新規5件は同一 `20261104-19-11`、締切22:20 JSTに対し22:03:23 JST保存。通常採点は**480件のまま（HIT139/MISS341）**、結果待ち13、異常35、返還レビュー18、RESULT_REJECTED24。別系統LEARNED_SHADOWは68→70（+2）、正式採点とは分離した同条件比較64モデル別行/32レースは増減なし。学習入力120種類のレース（学習90/未使用検証30）、予測精度優位性は未証明。学習5基準モデルの買い目・旧原本・本番係数は変更なし。最終保存時点の対象144レース、締切済み142、未来2、5基準モデルP1が揃った47レース、P1不足433モデル別件。残り2レースの締切22:20/22:45はこの監査時点では経過済みだが、当時展示の取得可能性や締切前の追加予想成功を推定しない。
+
+旧runのセッションは公式GET240/240、source失敗7件が `SESSION_SOURCE_BUDGET_EXHAUSTED`。4xx/429や真正性不一致の証拠としては扱わない。新run起動前にPR HEAD/trigger SHA/同workflow全runの状態を再取得し、active/queued/pending/waitingなしと原本のSHA一致を確認。未照合通常結果13モデル別行のため既存triggerを**1回だけ**更新、commit `bb654bb44e605fecb74b44f4875ffdf9c9e1d4b5` → 同一workflowの新run `41842464812` が22:55 JST **in_progress**。新runの予想・採点artifactはこの記録では未確認、旧run成績へ合算しない。同一concurrency/既存上限/停止規則・新タスクなし。後続起動は追加しない。
+
+未完成：全16系統×全4競技の直前凍結予想、P1全レース網羅、期限なし本人専用保存、学習版の前向き統計的優越。研究原本2件を正式成績へ昇格しない。Cloudflare/Vercel、課金、新PR/別workflow/main統合/本番自動採用/実投票なし。GitHub artifact保持7日は永久保存ではない。
+
+---
+
 # 2026-11-04 21:48:16 JST | run41827144792 round12 保存ZIPの独立照合（21:51 JST確認）
 
 既存Draft PR #71、workflow405276784、run `41827144792` は確認時点で既存job `126564664035` がin_progress。PR HEAD `60fdb7140de2d4249749166798e0f531a7090684`、当該実行のコードSHA `9781164aa6eaa0ab9526df8f210d2517510b1079` を混同しない。実際のJSTで本チェックポイントを調べ、予想artifact `13323550835`・結果/PDCA artifact `13322934681` をGitHubから無改変ダウンロード。各実ZIPのSHA256は登録digest `049721dc98c33a5def8bd01fba602c35f7ca21af813aceba09a3481cbeeebc42` / `0c773a6a457b6ca45e764f45a78b61897f410fdec7e7195bf9bfaa8209ae990f` と一致。結果ZIP内の `current-p1-original.zip` は取得した予想ZIPと同一バイト。status.jsonの `round_no=12`、`updated_at=2026-11-04T12:48:16.793379+00:00`、forecasts.csv 565行、model_coverage 565件、公式結果観測履歴384件、外部研究manifest2件を読んだ。**ZIP保存・独立SHA照合は確認、同ZIP内continuityの `completed_round=11` のため第12巡回全stepの完走までは未確定。**
