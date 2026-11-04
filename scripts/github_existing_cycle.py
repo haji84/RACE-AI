@@ -118,6 +118,21 @@ def audit(day,p1_id,p0_supplement=None):
         schedule_counts.update(keirin=75,autorace=20,horse=59)
         report['nonboat_discovery_receipt']={'artifact_id':13283229052,'zip_sha256':'86ffb2b44fdbb2119a0401533cd9f182eca0d918ab555c48870d01ef422e0e9d','state':'154_CAPTURED_CARDS_NOT_154_FORECASTS'}
     report['model_coverage']=coverage(rows,schedule_counts)
+    # Private originals are not copied into public GitHub. This whitelist-only
+    # projection keeps their research grade separate from frozen/scored counts.
+    from race_ai.external_research_registry import attach_to_report
+    manifest_path=ROOT/'docs/evidence'/day/'autorace-research-import.json'
+    if manifest_path.is_file():
+        try:
+            attach_to_report(report,json.loads(manifest_path.read_text()),day=day)
+        except (ValueError,KeyError,TypeError) as exc:
+            report['external_research']={'state':'IMPORT_REJECTED','reason':str(exc)[:160],
+                'research_forecast_count':None,'included_in_formal_scoreboard':False}
+    else:
+        report['external_research']={'state':'NO_AUDITED_IMPORT_MANIFEST','research_forecast_count':None,
+                                     'included_in_formal_scoreboard':False}
+    (out/'external_research_summary.json').write_text(json.dumps(report['external_research'],ensure_ascii=False,indent=2))
+
     report['next_action']='VALIDATE_IMPROVEMENT_ON_NEW_RACES_ONLY'
     report['report_sha256']=hashlib.sha256(json.dumps(report,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
     (out/'status.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
@@ -135,6 +150,10 @@ def audit(day,p1_id,p0_supplement=None):
     (out/'model_coverage.json').write_text(json.dumps(report['model_coverage'],ensure_ascii=False,indent=2))
     (out/'improvement_candidates.json').write_text(json.dumps(report['improvement_candidates'],ensure_ascii=False,indent=2))
     lines+=['',f'Repeated later predictions excluded: {len(excluded)}; recovered previous runs: {len(recovered["scanned_runs"])}.', 'Unmet: all four sports/all models, perpetual private storage, continuous per-deadline coverage.']
+    research=report['external_research']
+    lines+=['', '## Separately audited external research (not formal scores)',
+            'Imported research forecast count: '+str(research.get('research_forecast_count')),
+            'No private picks or source pages copied. Receipt-unverified research is excluded from the scoreboard.']
     text='\n'.join(lines)+'\n';(out/'STATUS.md').write_text(text)
     if os.environ.get('GITHUB_STEP_SUMMARY'):
         with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write(text)

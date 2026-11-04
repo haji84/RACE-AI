@@ -41,6 +41,7 @@ race_ai.__path__.insert(0,str(ROOT/"race_ai"))
 from race_ai.boat_deadline_queue import select_due_races
 from race_ai.boat_freeze_index import load_original_race_ids
 from race_ai.boat_live_feature_shadow import build_live_feature_shadow
+from race_ai.observed_p1_connection import build_bundle as build_observed_p1
 from race_ai.boat_manshu_watch import freeze_priced_tail
 from race_ai.official_race_updates import endpoint as update_endpoint
 
@@ -65,7 +66,7 @@ def observed_timestamp():
 
 
 def stop(reason, *, source=None, schedule=None, queue=None, tries=None,
-         forecasts=None, extended=None, priced=None):
+         forecasts=None, extended=None, priced=None, observed=None):
     OUTPUT.mkdir(parents=True,exist_ok=True)
     result={
         "schema":"RACE_AI_NATIONWIDE_PRE_CUTOFF_AB_V1",
@@ -81,6 +82,7 @@ def stop(reason, *, source=None, schedule=None, queue=None, tries=None,
         "paired_forecasts":forecasts or [],
         "paired_forecast_count":len(forecasts or []),
         "additional_official_feature_shadows":extended or [],
+        "observed_pairwise_p1_bundles":observed or [],
         "official_priced_longshot_watches":priced or [],
         "research_only":True,
         "scores_calibrated":False,
@@ -132,14 +134,14 @@ def make_pair(day,race):
     now=datetime.now(timezone.utc)
     cutoff=datetime.fromisoformat(race["cutoff_at"])
     if cutoff-now<=MIN_TO_CUTOFF:
-        return {"race_id":race_id,"state":"TOO_LATE_BEFORE_SOURCE"},None,None,None
+        return {"race_id":race_id,"state":"TOO_LATE_BEFORE_SOURCE"},None,None,None,None
     url=racelist_endpoint(day,venue,n)
     raw,at,program_sha=get(url)
     program=parse_official_racelist(raw,day=day,venue=venue,race_no=n,
                      source_url=url,captured_at=at.isoformat())
     if (program["race_id"]!=race_id or program["closed_at"]!=race["cutoff_at"]
             or any(r["entry_status"]!="listed" for r in program["boats"])):
-        return {"race_id":race_id,"state":"OFFICIAL_PROGRAM_OR_WITHDRAWAL_CONFLICT"},None,None,None
+        return {"race_id":race_id,"state":"OFFICIAL_PROGRAM_OR_WITHDRAWAL_CONFLICT"},None,None,None,None
     motor=motor_top2(raw,program["boats"])
     official_preview_url=preview_endpoint(day,venue,n,"beforeinfo")
     preview,preview_at,preview_sha=get(official_preview_url)
@@ -148,10 +150,10 @@ def make_pair(day,race):
                         entries=program["boats"])
     if result["status"]!="AVAILABLE" or result.get("data") is None:
         return {"race_id":race_id,"state":"EXHIBITION_NOT_FULLY_PUBLISHED",
-                "source_sha256":preview_sha},None,None,None
+                "source_sha256":preview_sha},None,None,None,None
     six=sorted(result["data"]["boats"],key=lambda r:r["lane"])
     if len(six)!=6 or any(r["display_time"] is None for r in six):
-        return {"race_id":race_id,"state":"EXHIBITION_TIME_INCOMPLETE"},None,None,None
+        return {"race_id":race_id,"state":"EXHIBITION_TIME_INCOMPLETE"},None,None,None,None
     entrants={r["lane"]:r for r in program["boats"]}
     boats=[]
     for measured in six:
@@ -175,7 +177,7 @@ def make_pair(day,race):
     }
     computed=model.build_pair(data,generated)
     if datetime.now(timezone.utc)+MIN_TO_CUTOFF>=cutoff:
-        return {"race_id":race_id,"state":"TOO_LATE_AFTER_MODEL"},None,None,None
+        return {"race_id":race_id,"state":"TOO_LATE_AFTER_MODEL"},None,None,None,None
     # C-lite uses the *same official observations*, including local rate and
     # the already published historical average ST. It remains separate from
     # frozen A/B and is never misrepresented as a tactical history model.
@@ -196,6 +198,16 @@ def make_pair(day,race):
         extended=build_live_feature_shadow(data,extra,observed_timestamp())
     except ValueError:
         extended={"race_id":race_id,"state":"C_LITE_SOURCE_NOT_ADMITTED"}
+    # Reuse the existing pairwise models on these same fresh observations.
+    # A failure isolated to this adapter does not discard the ready A/B pair.
+    observed=None
+    try:
+        observed=build_observed_p1(data,extra,generated,
+            program_url=url,preview_url=official_preview_url,
+            program_captured_at=at.isoformat(),preview_captured_at=preview_at.isoformat(),
+            owner_reviewed=os.environ.get("RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED")=="true")
+    except ValueError as ex:
+        observed={"race_id":race_id,"state":"OBSERVED_P1_INPUT_REJECTED","reason":str(ex)[:160]}
     # A man-shu is >=10,000 yen for a 100-yen ticket. Do NOT infer it
     # from a low model score. Require 120 published official odds before the
     # relevant cutoff and label the priced research variant separately.
@@ -217,7 +229,7 @@ def make_pair(day,race):
                     "failure_class":type(ex).__name__}
     return {"race_id":race_id,"state":"AB_GENERATED_NOT_YET_EXTERNAL_FROZEN",
             "program_sha256":program_sha,"exhibition_sha256":preview_sha,
-            "generated_at":generated},computed,extended,priced
+            "generated_at":generated},computed,extended,priced,observed
 
 
 def run():
@@ -292,15 +304,18 @@ def run():
     attempts=list(after_close_rows)
     attempts.extend({"race_id":r["race_id"],"state":"ALREADY_FROZEN_IN_CANONICAL_INDEX"}
                     for r in queue["rejected"] if r["reason"]=="ALREADY_FROZEN")
-    forecasts=[];extra_forecasts=[];priced_watches=[]
+    forecasts=[];extra_forecasts=[];priced_watches=[];observed_forecasts=[]
     for race in queue["eligible"][:MAX_ATTEMPTS]:
         try:
-            status,pair,extended,priced=make_pair(day,race)
+            status,pair,extended,priced,observed=make_pair(day,race)
+            if observed is not None and 'suite' not in observed:
+                status['observed_pairwise_failure']=observed
             attempts.append(status)
             if pair is not None:
                 forecasts.append(pair)
                 if extended is not None:extra_forecasts.append(extended)
                 if priced is not None:priced_watches.append(priced)
+                if observed is not None and "suite" in observed:observed_forecasts.append(observed)
                 if len(forecasts)>=MAX_FORECASTS:
                     break
         except (SourceError,ValueError,UnicodeError,OSError,error.URLError,TimeoutError,TypeError) as ex:
@@ -318,7 +333,7 @@ def run():
                 "NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES",
                 source=source,schedule=listing,
                 queue=compact,tries=venue_errors+attempts,forecasts=forecasts,
-                extended=extra_forecasts,priced=priced_watches)
+                extended=extra_forecasts,priced=priced_watches,observed=observed_forecasts)
 
 
 if __name__=="__main__":

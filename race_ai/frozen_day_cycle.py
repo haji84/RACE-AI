@@ -92,6 +92,16 @@ def read_p1(raw,receipt):
             rows.append(dict(race_id=rid,sport='boat',stage='P1',model_id=model['model_id'],as_of=asof,
                 cutoff_at=pair['cutoff_at'],server_saved_at=receipt['created_at'],artifact_id=receipt['id'],
                 original_json_sha256=body_sha,model_sha256=model[key],roster=roster,top8=top,ranked=ranked,calibrated=False))
+    from .observed_p1_connection import verified_rows
+    pairs_by_id={p['race_id']:p for p in doc.get('paired_forecasts',[])}
+    for bundle in doc.get('observed_pairwise_p1_bundles',[]):
+        parent=pairs_by_id.get(bundle['race_id'])
+        if parent is not None:
+            need(bundle['base_source_sha256']==parent['source_sha256'] and
+                 bundle['snapshot']['as_of']==parent['generated_at'], 'P1 observed and AB source/time mismatch')
+        rows.extend(verified_rows(bundle,receipt,body_sha))
+    keys=[(x['race_id'],x['stage'],x['model_id']) for x in rows]
+    need(len(keys)==len(set(keys)), 'duplicate P1 race/phase/model in one original')
     return doc,rows
 
 def settle(row,observation):
