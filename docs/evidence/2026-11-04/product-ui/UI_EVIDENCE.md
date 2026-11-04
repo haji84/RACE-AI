@@ -47,3 +47,7 @@ Playwright操作trace4本は `artifacts/ui-browser/*-interaction.zip` に保持�
 - 4競技全対象の実供給・P0/P1無欠落・期限なし本人専用保管・継続実運転・前向き精度改善・98%以上は未実証。新モデルや本番切替なし。
 - iPhone Safari実機で本人が操作する受入、保護された配布先は未実施。公開や配備を無断で開始しない。
 - GitHub APIが現行ポリシーでForbidden。Issue14/68へのコメントとAPIによる最新artifact集計は未送信/未取得。`api.github.com` 追加の環境設定下書きのみ保存。適用されるまで成功としない。
+
+## GitHub CI追記
+
+PR71 head `d419d8bb5d7d30fd71ce2bda449a085c8124f0c6`: [viewer41814145631](https://github.com/haji84/RACE-AI/actions/runs/41814145631) / [AUTORACE41814145656](https://github.com/haji84/RACE-AI/actions/runs/41814145656) はcompleted/successをWebで照合。viewerに合成証拠artifact登録あり。後続の証拠文書追記commitとこの検証対象を区別する。

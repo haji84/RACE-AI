@@ -34,7 +34,7 @@
 - [x] Browser: `tests/ui_browser.test.js` exercises 320/390/1440/1920, all seven pages, four sports, long text/empty data, local import, candidates, midnight/state, keyboard, and source-network absence; retain synthetic-only screenshots and trace.
 - [x] Regressions: run existing Node and Python suites with exact pinned PR64/72 reference directories; add product checks within the existing viewer CI job only.
 - [x] Review: independent code review, fix reproduced failures, inspect screenshots against all eight originals, record residual gates.
-- [ ] Save: append evidence/results/limitations to `docs/RACE_AI_LATEST_STATUS.md`; recheck upstream HEAD, commit and ordinary push to existing PR71 only; check exact-SHA CI where access allows.
+- [x] Save: append evidence/results/limitations to `docs/RACE_AI_LATEST_STATUS.md`; recheck upstream HEAD, commit and ordinary push to existing PR71 only; check exact-SHA CI where access allows.
 
 ## Review focus
 
@@ -52,3 +52,5 @@
 - Existing private real forecast payloads are not mounted. Local import plus explicit synthetic fixtures is the authorized first acceptance route; it is not live real-race validation.
 
 - First ordinary push was rejected when concurrent writer e587f5a arrived. Fetched and merged that documentation-only update without reset/force; retained its final-cycle audit and explicitly distinguished its provenance. Application/test trees are unchanged by this merge.
+
+- d419d8b pushed after preserving concurrent e587f5a. Existing viewer41814145631 and AUTORACE41814145656 completed/success for this head; evidence documents updated separately. Issue API writes remain blocked.

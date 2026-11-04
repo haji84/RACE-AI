@@ -1,3 +1,13 @@
+# 2026-11-04 19:31 JST — PR71反映とGitHub CI成功を確認
+
+検証対象HEAD `d419d8bb5d7d30fd71ce2bda449a085c8124f0c6` を既存Draft PR71へ通常pushし、PRページのheadShaとremoteを照合。Forecast audit viewer contract [run41814145631](https://github.com/haji84/RACE-AI/actions/runs/41814145631) と AUTORACE offline contract [run41814145656](https://github.com/haji84/RACE-AI/actions/runs/41814145656) はともにcompleted/success。両runページの対象commit表示d419d8bを照合した。viewer既存job内で新しい操作試験を実行し、合成証拠artifact（17.8MB、GitHub登録digest a55e5d3a8d3abd6370de2171c0c4b3b34739b357b243e8018a12f1d2aed90ee9）を確認。これはartifactの独立ZIP再ハッシュではない。artifact名のb8ab9a...はPRのGitHub merge SHAであり、明示checkoutしたhead d419d8bと取り違えない。
+
+競合writer e587f5aの巡回監査を保持したmerge後も、web/race_ai/tests/.githubはローカル全件成功時6dbb896と完全一致。以下の19:22の「未push」は当時の状態で、現在は反映済み。今回の追記は証拠文書のみの後続commitになるため、このrunを後続文書commit自身のCIと偽らない。新HEADの確認は最終報告に記す。
+
+実原本接続0件、実機Safari、全4競技の実運転・恒久私有保管・前向き精度改善は依然未達。Issue14/68コメントはAPI接続制限で未送信。mainは0e45c029e18d5f3f1e7a04aecedab3c4af261748のまま。一般公開・投票・本番モデル切替なし。
+
+---
+
 # 2026-11-04 19:22 JST — 既存PR71へ操作UIを統合（ローカル検証済み／製品最終GOAL未達）
 
 正式指示書全文・Issue14/67/68・PR62/71を読み、添付8枚を実際に目視比較した。開始HEAD c15e683d520ba248526800c8a35c161735a2d565、main 0e45c029e18d5f3f1e7a04aecedab3c4af261748。既存PR71の同じブランチで作業し、新PR・Issue・workflow・巡回タスク・モデル系統は作っていない。
