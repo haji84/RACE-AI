@@ -50,6 +50,22 @@ class FrozenCycleTest(unittest.TestCase):
   _,z,r=sample();_,rows=cycle.read_p0(z,r,expected_day='2030-04-01');o=observation(rows[0]);o['data']['refund_boats']=[6]
   out=cycle.evaluate(rows,[o]);self.assertEqual(out['scored_forecasts'],0)
   self.assertEqual(out['per_forecast'][0]['state'],'REFUND_REVIEW_REQUIRED')
+ def test_result_rejection_preserves_frozen_receipt_and_bets(self):
+  _,z,r=sample();_,rows=cycle.read_p0(z,r,expected_day='2030-04-01')
+  before=copy.deepcopy(rows)
+  obs=observation(rows[0]);obs['closed_at']='2030-04-01T10:46:00+09:00'
+  out=cycle.evaluate(rows,[obs])
+  self.assertEqual(out['scored_forecasts'],0)
+  for original,rejected in zip(before,out['per_forecast']):
+   self.assertEqual(rejected['state'],'RESULT_REJECTED')
+   self.assertEqual(rejected['reason'],'result/cutoff chronology mismatch')
+   for field in ('race_id','stage','model_id','as_of','cutoff_at','server_saved_at',
+                 'artifact_id','original_json_sha256','model_sha256','top8'):
+    self.assertEqual(rejected[field],original[field])
+   self.assertNotIn('ranked',rejected)
+   self.assertNotIn('roster',rejected)
+  self.assertEqual(before,rows)
+
  def test_conflicting_or_duplicate_forecasts_rejected(self):
   _,z,r=sample();_,rows=cycle.read_p0(z,r,expected_day='2030-04-01')
   with self.assertRaises(ValueError):cycle.evaluate(rows+rows,[])
