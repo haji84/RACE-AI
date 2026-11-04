@@ -1,7 +1,11 @@
 # RACE-AI 現在地・実行結果の確認先
 
-最新の独立ZIP読戻し済み集計: **2026-11-04 13:12:38 JST、第6巡回**（run 41770177154は13:14 JST時点でin_progress、第7巡回進行中）。必ず最新完了巡回のartifactを再確認し、この数字を後続巡回の最新値と扱わない。
+最新の独立ZIP読戻し済み集計: **2026-11-04 13:15:37 JST、第7巡回**（run 41770177154は13:16 JST時点でin_progress、第8巡回進行中）。必ず最新完了巡回のartifactを再確認し、この数字を後続巡回の最新値と扱わない。
 
+
+## 13:15 JST 第7巡回追加の読戻し（第6巡回から予想・採点の差分なし）
+
+第7巡回の実ZIP `boat-national-cutoff-41770177154-cycle-07`（artifact 13294948682、ZIP SHA256 `d5d441377c1dcdc402129ae3da204e36c705e5dd5a2ab3c532f58cb6479ad11e`）、結果 `race-existing-cycle-41770177154-cycle-07`（artifact 13295731020、ZIP SHA256 `e4d9c9c397b0f5dbcfec75f30f7c231a00a188e85b9d4cf341d8be78d0d0abd1`）はAPI digestと実ZIPハッシュが一致。元 `national.json` SHA256 `7a339a7e16a007c83bbcc36782175b07cda2e1e62438f09a866168e20dfb6f04`、予想件数0（展示の完全入力なし）、通常採点増分0。第7巡回集計は375モデル別予想/通常採点122/対象144Rで第6巡回と不変。結果取得で `SOURCE_OR_PARSE_UNAVAILABLE` 2件あり、通常採点へ無理に加えない。第7巡回job stepはsuccessで、第8巡回は進行中。既存runを別起動しない。
 
 ## 13:12 JST 第6巡回の追加監査（前回13:00の第2巡回との差分）
 
