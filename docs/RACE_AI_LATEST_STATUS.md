@@ -1,3 +1,15 @@
+# 2026-11-05 02:15 JST｜当日初回P0受領証拠未確認、予想起動を保留（前日原本再監査）
+
+既存Draft PR #71、branch `feat/four-sport-forecast-audit-view-20261022`。監査開始HEAD `3c72b2dadc040bf43bf4a9efc1478907d7523827`、状態文書の変更前blob `dae902829321a49383d228e2e4841aa57ae4740c`。2026-11-05 02:11～02:15 JSTにGitHubの実状態と独立保存ZIPを再取得して確認した。
+
+- 既存workflow `405276784` の最新対象run `41842464812` は2026-11-05 00:00 JST頃に `completed/success`。第21巡回の予想ZIP `13336307604`、結果/PDCA ZIP `13335717741`、継続ZIP `13335757993` は実バイトSHA256とGitHub登録digestがそれぞれ `119ee2a394acbaf1f15f1c92ca61b3ad96c80d53800cbf2c2468acf808f3762a` / `e6653f0fc545eead623eb0822c728d56d9a8ce1d364368a165822995d655a636` / `64b8e3791d0ef8b94188733b290bc1f31a94e7bc0f695dedff638db3eb015242` で一致、ZIP破損なし。結果内 `status.json` は `round_no=21`、更新時点2026-11-04 23:58:10 JST。前日基準570予想・通常採点489（HIT139/MISS350）、研究学習版70・同条件比較66行、公式結果履歴505。第21巡回の `completed_round=20` を第21巡回全工程の独立完走と取り違えない。
+- 11月5日0時以降に作成されたActions runを確認した範囲では、この対象workflowの新runは0。GitHub Actionsの `status=in_progress/queued/pending/waiting` の各API結果も全workflow合計0であり、同一writerの後続待機なし。11月5日用 `docs/evidence/2026-11-05/p0-first-receipt.json` は存在を確認できない（GitHub contents API 404）。ただし、**索引不在だけで初回原本が存在しないと断定しない**。同日runや外部一次受領の照合が揃う前に既存P0原本を再生成しない。
+- 現行 `scripts/github_existing_cycle.py` の `original(day)` は当日初回索引を必須としており、欠落時は `FIRST_RECEIPT_REGISTRY_MISSING_NO_BLIND_REGENERATION` で停止する。したがって11月5日の初回原本作成・独立保存・読戻し・索引照合が終わる前に既存トリガーだけpushしても、予想成功ではなく初期復元の失敗になる。**今回はトリガーを更新しない**。当日の展示後予想・当日の通常採点を実行したとは主張しない。
+- 次の安全な完了条件は、11月5日分の同日全run・初回原本の独立索引を照合し、真に不在かつ実入力が入手できる場合に限り既存P0手順で作成→外部不変保存→元ZIP/SHA/サーバー時刻の読戻し→初回索引登録。その後、既存同一workflow・同一concurrency・writer単独でP1→別イベント公式結果→PDCA→研究係数学習と未来比較へ進む。日付境界、240 GET/セッション、45 GET/巡回、3レース/巡回、締切210秒、4xx/429/真正性停止条件は維持。
+- 前日570/489/70/66から**増分なし**。5基準モデルの予想・係数は不変で、研究係数学習の前向き優位性未証明。新task/PR/workflow/モデル系統/頻度/追加課金/main統合/公開/実投票/本番自動切替なし。
+
+---
+
 # 2026-11-05 01:11 JST｜前日3原本ZIPを所有者限定Driveへ保全・独立再取得照合
 
 既存run `41842464812` の2026-11-04最終監査に追加した保全証拠。非公開Google Drive `RACE-AI_予想原本保管` のフォルダ・rootのownerが同一、フォルダとアップロード後の各ファイルが `shared=false`、ファイル単独のpermissionはownerのみ、正しい親フォルダであることをAPIで確認した。既存7ファイルには上書きせず、次の元GitHub artifact ZIPを**無改変のまま3件新規保存**。各ファイルをDriveから独立ダウンロードし、実バイトSHA256=元GitHub API digestが3件とも一致した。
