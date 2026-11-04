@@ -7,7 +7,7 @@ on:
       - docs/evidence/boat-nationwide-pilot-trigger.txt
       - .github/workflows/boat-nationwide-ab-one-shot.yml
 permissions:
-  contents: read
+  contents: write  # Create-only first P0 receipt index on this Draft PR branch.
   actions: read
 concurrency:
   group: boat-nationwide-cutoff-20261103
@@ -32,14 +32,41 @@ jobs:
         with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
       - name: Test originals, pending results, tampering and unchanged models
         run: |
-          python -m unittest tests.test_first_receipt_continuity tests.test_cycle_recovery tests.test_existing_model_coverage tests.test_frozen_day_cycle tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_ab_shadow tests.test_requested_public_cards tests.test_observed_p1_connection tests.test_external_research_registry tests.test_repeated_cycle tests.test_observed_weight_learning -v
-      - name: Reuse first morning original, never silently regenerate it
+          python -m unittest tests.test_first_receipt_continuity tests.test_cycle_recovery tests.test_existing_model_coverage tests.test_frozen_day_cycle tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_ab_shadow tests.test_requested_public_cards tests.test_observed_p1_connection tests.test_external_research_registry tests.test_repeated_cycle tests.test_observed_weight_learning tests.test_first_p0_bootstrap -v
+      - name: Check all earlier same-day receipts before first P0
+        id: first_p0
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python scripts/first_p0_bootstrap.py preflight
+      - name: Obtain first P0 from verified official B only if truly absent
+        if: steps.first_p0.outputs.capture == 'true'
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python scripts/first_p0_bootstrap.py capture
+      - name: Save first P0 separately before reading results
+        if: steps.first_p0.outputs.capture == 'true'
+        id: first_upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-p0-existing-${{ github.run_id }}
+          path: boat_all_day_output/forecasts.json
+          if-no-files-found: error
+          retention-days: 7
+      - name: Read back original ZIP and create-only first receipt index
+        if: steps.first_p0.outputs.capture == 'true'
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python scripts/first_p0_bootstrap.py finalize --artifact-id '${{ steps.first_upload.outputs.artifact-id }}'
+      - name: Reuse authenticated first original, never silently regenerate it
         env: {GH_TOKEN: '${{ github.token }}'}
         run: python scripts/github_existing_cycle.py restore
-      - name: Create only absent future P0 forecasts after parser repair
+      - name: Initialize bounded source session and account for initial B GET
+        env:
+          RACE_AI_FIRST_P0_CAPTURED: ${{ steps.first_p0.outputs.capture }}
+        run: python scripts/github_existing_cycle.py repeat-start
+      - name: Fill missing-only future P0 after restoring an earlier first original
+        if: steps.first_p0.outputs.capture != 'true'
         env: {GH_TOKEN: '${{ github.token }}'}
         run: python scripts/github_existing_cycle.py supplement
-      - name: Freeze missing-only P0 supplement before any outcome input
+      - name: Freeze independently metered P0 supplement
+        if: steps.first_p0.outputs.capture != 'true'
         id: p0supplement
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -47,152 +74,150 @@ jobs:
           path: p0_supplement_output/forecasts.json
           if-no-files-found: error
           retention-days: 7
-      - name: Initialize bounded repeat session after first-receipt recovery
-        run: python scripts/github_existing_cycle.py repeat-start
       - name: Deadline-ordered five-model round 01
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '1'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 02
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '2'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 03
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '3'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 04
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '4'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 05
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '5'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 06
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '6'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 07
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '7'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 08
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '8'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 09
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '9'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 10
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '10'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 11
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '11'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 12
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '12'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 13
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '13'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 14
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '14'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 15
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '15'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 16
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '16'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 17
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '17'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 18
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '18'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 19
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '19'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 20
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '20'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 21
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '21'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 22
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '22'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 23
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '23'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Deadline-ordered five-model round 24
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '24'
-          p0-supplement: ${{ steps.p0supplement.outputs.artifact-id }}
+          p0-supplement: ${{ steps.first_upload.outputs.artifact-id || steps.p0supplement.outputs.artifact-id }}
       - name: Preserve verified continuity journal without public source pages
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
