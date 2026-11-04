@@ -20,3 +20,11 @@
 readerのexit2は研究バンドルの元バイト読戻し成功、exit3は拒否。研究バンドルをレース別に後から切り分け、当時の個別SHA/締切前外部receiptを新造しない。whole-file一致だけで正式凍結やsource利用許諾が証明されたことにはならない。
 
 **今回の実原本読戻し0件。** 実機Safariに接続するiPhone/MacやWebKit実行系もこの環境にはなく、実施済みのChromium操作をSafari実機受入と呼んでいない。新しい外部サービス、課金、公開、権限解除で埋め合わせていない。
+
+## 展示後原本JSONの追跡（追加調査）
+
+- 展示後BOAT原本は、既存run41801993716などの巡回別forecast artifact内の `national.json`。各回の増分であり、最終round21の予想0件を当日全予想0件に読み替えない。全体の対応は `continuity.json` の原artifact/SHA参照から復元する。
+- 例：18:36チェックポイントの予想artifact13311386530（既存記録のZIP SHA256 `9838c0ee57a2eb9024d2e1e664d1f60b909ca3bfc5b503137b0343dc8202e183`）。今回のGitHub APIメタデータ読取は通常gh経路で実行したが `Get https://api.github.com/repos/haji84/RACE-AI/actions/artifacts/13311386530: Forbidden`。実ZIP/JSONバイトは今回まだ取得できていない。
+- 保存済み下書きにapi.github.comは追加済みだが、実行中環境のcustom allowed hostsは空のまま。下書き保存と現環境適用を混同しない。トークンを取り出したりproxy設定を回避していない。
+- /mnt、/media、/data、/var/tmp、共有/Downloads/Documents候補を追加探索。存在する追加rootのJSON/アーカイブは0、既知原本の一致も0。以前と今回のオート原本/PDCA計22件について、記録された絶対パスも直接照合して不在。既存のprivateフルパスは再転載しない。
+- 別writerの92f3572/b9f7d70の新しいPDCA監査SHA記録をfast-forwardで保全。これもprivate_library_pathとSHAのメタデータであり原本本文ではない。
