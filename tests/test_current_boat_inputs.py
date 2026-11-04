@@ -7,6 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from hashlib import sha256
 import importlib
+import inspect
 import json
 import os
 from pathlib import Path
@@ -280,3 +281,153 @@ class CurrentBoatInputsTests(unittest.TestCase):
         with self.assertRaises(provider.CurrentBoatInputError):source.collect()
         self.assertEqual(len(self.calls),1)
         self.extract.assert_not_called()
+
+    def automatic_collect(self, source, **kwargs):
+        self.assertIn('due_only',inspect.signature(source.collect).parameters,
+                      'automatic deadline-window input selection is missing')
+        return source.collect(stage='P1',due_only=True,**kwargs)
+
+    def test_automatic_p1_before_window_keeps_whole_schedule_without_source_gets(self):
+        self.collect();source=self.p1_parsers()
+        result=self.automatic_collect(source)
+        self.assertEqual(len(result['schedule']),12)
+        self.assertEqual(result['inputs'],{})
+        self.assertEqual(len(self.calls),1,'only the earlier cached B capture is allowed')
+        self.assertEqual(result['source_report']['source_requests'],0)
+        self.assertEqual({x['reason'] for x in result['blocked_races']},{'NOT_IN_CAPTURE_WINDOW'})
+
+    def test_automatic_p1_selects_due_three_and_advances_other_due_races(self):
+        self.collect();self.now=datetime.fromisoformat('2030-04-01T10:10:00+09:00')
+        source=self.p1_parsers();first=self.automatic_collect(source);second=self.automatic_collect(source)
+        self.assertEqual(len(first['schedule']),12)
+        self.assertEqual(len(first['inputs']),3)
+        self.assertEqual(len(second['inputs']),6)
+        self.assertEqual(len(self.calls),13)
+        self.assertEqual(first['source_report']['due_only'],True)
+
+    def test_automatic_p1_ready_cache_outside_window_uses_no_new_gets(self):
+        self.collect();source=self.p1_parsers();self.now=datetime.fromisoformat('2030-04-01T09:00:00+09:00')
+        ready=source.collect(stage='P1');calls=len(self.calls)
+        automatic=self.automatic_collect(source)
+        self.assertEqual(set(automatic['inputs']),set(ready['inputs']))
+        self.assertEqual(len(automatic['schedule']),12)
+        self.assertEqual(len(self.calls),calls)
+        self.assertEqual(automatic['source_report']['source_requests'],0)
+
+    def test_automatic_p1_rechecks_buffer_before_preview_and_each_later_race(self):
+        self.collect();source=self.p1_parsers();self.now=datetime.fromisoformat('2030-04-01T10:10:00+09:00')
+        original=source.opener
+        def advances(req,*,timeout):
+            response=original(req,timeout=timeout)
+            if '/racelist?' in req.full_url:self.now=datetime.fromisoformat('2030-04-01T10:27:00+09:00')
+            return response
+        source.opener=advances
+        result=self.automatic_collect(source)
+        self.assertEqual(result['inputs'],{})
+        self.assertEqual(len(self.calls),2,'B and first racelist only; remaining210s buffer was consumed')
+        self.assertFalse(any('/beforeinfo?' in url for url in self.calls))
+        self.assertEqual(len(result['schedule']),12)
+
+    def test_automatic_p1_boundary_and_future_source_capture_do_not_fetch(self):
+        self.collect();source=self.p1_parsers();self.now=datetime.fromisoformat('2030-04-01T10:26:30+09:00')
+        result=self.automatic_collect(source)
+        self.assertEqual(result['inputs'],{})
+        self.assertEqual(len(self.calls),1)
+        self.now=datetime.fromisoformat('2030-04-01T07:59:00+09:00')
+        with self.assertRaises(provider.CurrentBoatInputError):self.automatic_collect(source)
+        self.assertEqual(len(self.calls),1)
+        state=json.loads(next(self.root.rglob('state.json')).read_text())
+        self.assertTrue(state['halted_reason'])
+
+    def test_status_has_no_get_no_state_creation_and_preserves_budget_and_halt(self):
+        source=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=self.opener)
+        self.assertIsNotNone(getattr(source,'status',None),'read-only source budget status is missing')
+        self.assertEqual(list(self.root.iterdir()),[])
+        self.assertEqual(source.status(),{'day_jst':'2030-04-01','requests_used':0,'halted_reason':None})
+        self.assertEqual(list(self.root.iterdir()),[])
+        self.assertEqual(self.calls,[])
+        source.collect()
+        p=next(self.root.rglob('state.json'));state=json.loads(p.read_text());state['request_count']=239
+        state['halted_reason']='SOURCE_HTTP_4XX_STOP';p.write_text(json.dumps(state))
+        before={str(p.relative_to(self.root)):p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
+        again=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=self.opener).status()
+        self.assertEqual(again,{'day_jst':'2030-04-01','requests_used':239,'halted_reason':'SOURCE_HTTP_4XX_STOP'})
+        self.assertEqual(len(self.calls),1)
+        self.assertEqual(before,{str(p.relative_to(self.root)):p.read_bytes() for p in self.root.rglob('*') if p.is_file()})
+
+    def test_missing_prior_budget_is_rejected_instead_of_resetting_requests(self):
+        self.collect();p=next(self.root.rglob('state.json'));p.unlink()
+        source=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=self.opener)
+        self.assertIsNotNone(getattr(source,'status',None),'read-only source budget status is missing')
+        with self.assertRaises(provider.CurrentBoatInputError):source.status()
+        with self.assertRaises(provider.CurrentBoatInputError):source.collect()
+        self.assertEqual(len(self.calls),1)
+
+    def test_status_does_not_report_zero_when_existing_source_lock_is_missing(self):
+        self.collect();(self.root/'source.lock').unlink()
+        source=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=self.opener)
+        with self.assertRaises(provider.CurrentBoatInputError):source.status()
+        self.assertEqual(len(self.calls),1)
+        self.assertFalse((self.root/'source.lock').exists(),'read-only status cannot recreate a missing protocol lock')
+
+    def collect_until(self,source,stop,**kwargs):
+        self.assertIn('automatic_stop_at',inspect.signature(source.collect).parameters,
+                      'trusted automatic session end is missing')
+        return source.collect(automatic_stop_at=stop,**kwargs)
+
+    def test_automatic_deadline_crossed_during_B_get_keeps_original_without_next_get(self):
+        source=self.p1_parsers();original=source.opener
+        def crosses(req,*,timeout):
+            response=original(req,timeout=timeout)
+            self.now=datetime.fromisoformat('2030-04-01T08:02:00+09:00')
+            return response
+        source.opener=crosses
+        with self.assertRaisesRegex(provider.CurrentBoatInputError,'AUTOMATIC_SESSION_END'):
+            self.collect_until(source,'2030-04-01T08:01:00+09:00',stage='P1')
+        self.assertEqual(len(self.calls),1)
+        self.assertEqual(next(self.root.rglob('*.lzh')).read_bytes(),ARCHIVE)
+        state=json.loads(next(self.root.rglob('state.json')).read_text())
+        self.assertEqual(state['request_count'],1)
+        self.assertIsNone(state['halted_reason'],'session end must not poison the whole-day source identity')
+        result=source.collect(stage='P0')
+        self.assertEqual(len(result['inputs']),12)
+        self.assertEqual(len(self.calls),1,'manual collection may reuse the valid original without another GET')
+
+    def test_automatic_deadline_crossed_during_card_get_never_charges_preview(self):
+        self.collect();source=self.p1_parsers();original=source.opener
+        def crosses(req,*,timeout):
+            response=original(req,timeout=timeout)
+            if '/racelist?' in req.full_url:self.now=datetime.fromisoformat('2030-04-01T08:02:00+09:00')
+            return response
+        source.opener=crosses
+        with self.assertRaisesRegex(provider.CurrentBoatInputError,'AUTOMATIC_SESSION_END'):
+            self.collect_until(source,'2030-04-01T08:01:00+09:00',stage='P1')
+        self.assertEqual(len(self.calls),2,'cached B plus only the first P1 source GET')
+        self.assertFalse(any('/beforeinfo?' in url for url in self.calls))
+        self.assertEqual(len(list(self.root.rglob('*.html'))),1,'inflight original remains preserved')
+        self.assertEqual(source.status(),{'day_jst':'2030-04-01','requests_used':2,'halted_reason':None})
+
+    def test_automatic_deadline_is_aware_day_bound_and_does_not_mutate_budget(self):
+        self.collect();source=self.p1_parsers();p=next(self.root.rglob('state.json'));before=p.read_bytes()
+        for stop in ('2030-04-01T07:59:00+09:00','2030-04-01T08:01:00','2030-04-02T08:01:00+09:00'):
+            with self.subTest(stop=stop),self.assertRaises(provider.CurrentBoatInputError):
+                self.collect_until(source,stop,stage='P1')
+        self.assertEqual(len(self.calls),1)
+        self.assertEqual(p.read_bytes(),before)
+
+    def test_automatic_midnight_inflight_original_is_preserved_without_identity_latch(self):
+        self.now=datetime.fromisoformat('2030-04-01T23:59:59+09:00')
+        source=self.p1_parsers();original=source.opener
+        def midnight(req,*,timeout):
+            response=original(req,timeout=timeout)
+            self.now=datetime.fromisoformat('2030-04-02T00:00:10+09:00')
+            return response
+        source.opener=midnight
+        with self.assertRaisesRegex(provider.CurrentBoatInputError,'AUTOMATIC_SESSION_END'):
+            self.collect_until(source,'2030-04-02T00:00:00+09:00',stage='P0')
+        self.assertEqual(len(self.calls),1)
+        self.assertEqual(next(self.root.rglob('*.lzh')).read_bytes(),ARCHIVE)
+        state=json.loads((self.root/'2030-04-01/state.json').read_text())
+        self.assertEqual(state['request_count'],1)
+        self.assertIsNone(state['halted_reason'])
+        self.assertEqual(state['captures'][0]['captured_at'],'2030-04-02T00:00:10+09:00')

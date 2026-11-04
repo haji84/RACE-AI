@@ -134,6 +134,7 @@ ancestor symlinks and permissive modes fail closed, including after opening.
 
     def __init__(self, db_path):
         try:
+            self._decoded_originals = {}
             _need(os.name == "posix" and Path("/proc/self/fd").is_dir())
             self.path = Path(db_path).expanduser()
             _need(self.path.is_absolute() and ".." not in self.path.parts and
@@ -202,7 +203,15 @@ ancestor symlinks and permissive modes fail closed, including after opening.
         _need(len(records) <= 100000)
         originals = []
         for row in records:
-            value = _unwire(row[-1])
+            cache_key = row[:5]
+            cached = self._decoded_originals.get(cache_key)
+            if cached is not None and cached[0] == row[-1]:
+                value = deepcopy(cached[1])
+            else:
+                value = _unwire(row[-1])
+                if len(self._decoded_originals) >= 512:
+                    self._decoded_originals.pop(next(iter(self._decoded_originals)))
+                self._decoded_originals[cache_key] = row[-1], deepcopy(value)
             _need(_key(value) == row[:5])
             _native_scope(value)
             originals.append(value)

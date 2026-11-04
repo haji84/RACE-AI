@@ -22,7 +22,8 @@ class Provider:
     capabilities = {sport: {"P0": True, "P1": True}
                     for sport in ("boat", "keirin", "autorace", "horse")}
 
-    def collect(self, stage="P0", *, sport="boat"):
+    def collect(self, stage="P0", *, sport="boat", due_only=False, automatic_stop_at=None):
+        self.due_only = due_only
         rows, inputs = fixture(sport, real=True)
         self.rows, self.inputs = deepcopy(rows), deepcopy(inputs)
         snap = inputs[rows[0]["race_id"]]["P0"]["shared"]["snapshot"]
@@ -38,6 +39,9 @@ class Provider:
         return dict(schedule=rows, inputs=inputs,
             source_references=[dict(source_ref=r, source_rights_ref=p) for r,p in refs],
             source_report={"source_requests": 0}, blocked_races=[])
+
+    def status(self):
+        return {"day_jst": "2030-01-15", "requests_used": 0, "halted_reason": None}
 
 
 class LocalForecastServiceTests(unittest.TestCase):
@@ -121,6 +125,69 @@ class LocalForecastServiceTests(unittest.TestCase):
         self.service.clock = lambda: before
         with patch.object(native, "run_suite", side_effect=AssertionError("original regenerated")):
             with self.assertRaises(ValueError): self.service.generate("boat", "P0")
+
+    def test_latest_restores_checked_originals_without_fetching_or_generating(self):
+        self.assertTrue(callable(getattr(self.service, "latest", None)), "readonly latest is missing")
+        first = self.service.generate("boat", "P0")
+        # Derived display JSON is not the native original or a trusted index.
+        (self.root / "operation-1-view.json").write_text('{"tampered":true}')
+        reloaded = service_module.LocalForecastService(self.root, provider=self.provider, clock=lambda: self.now)
+        with patch.object(self.provider, "collect", side_effect=AssertionError("GET fetched inputs")), \
+             patch.object(native, "run_suite", side_effect=AssertionError("GET inferred")):
+            latest = reloaded.latest("boat", "P0")
+            with patch.object(reloaded.journal, "read_operation", side_effect=AssertionError("unchanged GET rebuilt native output")):
+                same = reloaded.latest("boat", "P0")
+        self.assertTrue(latest["available"])
+        self.assertEqual(latest["revision"], same["revision"])
+        self.assertEqual(latest["view"]["records"], first["view"]["records"])
+        with reloaded.journal.connect() as db:
+            self.assertEqual(db.execute("SELECT COUNT(*) FROM dispatch_operations").fetchone()[0], 1)
+
+    def test_automatic_generation_requests_due_window_without_browser_control(self):
+        self.assertTrue(callable(getattr(self.service, "generate_auto", None)), "automatic seam is missing")
+        out = self.service.generate_auto("boat", "P0")
+        self.assertTrue(self.provider.due_only)
+        self.assertEqual(out["summary"]["generated"], 4)
+        self.assertEqual(self.service.automatic_source_status()["requests_used"], 0)
+
+    def test_pending_p1_does_not_replace_p0_latest_and_late_receipts_fail_closed(self):
+        self.assertTrue(callable(getattr(self.service, "latest", None)), "readonly latest is missing")
+        self.service.generate("boat", "P0")
+        first = self.service.latest("boat", "P0")
+        collect = self.provider.collect
+        def pending(*args, **kwargs):
+            d = collect(*args, **kwargs)
+            for r in d["schedule"]: r["stage"] = "P1"
+            d["inputs"] = {}
+            return d
+        self.provider.collect = pending
+        self.service.generate("boat", "P1")
+        self.assertFalse(self.service.latest("boat", "P1")["available"])
+        self.assertEqual(self.service.latest("boat", "P0")["revision"], first["revision"])
+        receipt = self.root / "operation-1-receipt.json"
+        import json
+        d = json.loads(receipt.read_text()); d["local_commit_completed_at"] = "2030-01-15T12:00:00+09:00"
+        receipt.write_text(json.dumps(d))
+        restarted = service_module.LocalForecastService(self.root, provider=self.provider, clock=lambda: self.now)
+        self.assertFalse(restarted.latest("boat", "P0")["available"])
+
+    def test_automatic_session_end_blocks_collection_and_rolls_back_late_inference(self):
+        from types import SimpleNamespace
+        from datetime import timedelta
+        before = self.now
+        state = {"enabled": True, "state": "RUNNING", "stop_at": before.isoformat()}
+        self.service.automation = SimpleNamespace(status=lambda: dict(state))
+        with patch.object(self.provider, "collect", side_effect=AssertionError("source after session end")):
+            with self.assertRaises(ValueError): self.service.generate_auto("boat", "P0")
+        state["stop_at"] = (before + timedelta(seconds=1)).isoformat()
+        original = native.run_suite
+        def crossed(*args, **kwargs):
+            answer = original(*args, **kwargs)
+            self.now = before + timedelta(seconds=2)
+            return answer
+        with patch.object(native, "run_suite", side_effect=crossed):
+            with self.assertRaises(ValueError): self.service.generate_auto("boat", "P0")
+        self.assertEqual(self.service.journal.originals(), [])
 
 
 class ActualSaveBoundaryTests(unittest.TestCase):

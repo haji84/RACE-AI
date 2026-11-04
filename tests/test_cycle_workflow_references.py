@@ -47,16 +47,29 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn("--p1-artifact '${{ steps.freeze.outputs.artifact-id }}'", complete)
         self.assertIn("--result-artifact '${{ steps.result.outputs.artifact-id }}'", complete)
 
-    def test_existing_cycle_is_read_only_and_keeps_first_original(self):
+    def test_existing_cycle_keeps_first_original_and_meters_bootstrap_before_supplement(self):
         text = WORKFLOW.read_text()
-        self.assertIn('contents: read', text)
+        # The existing first-receipt bootstrap now creates its metadata index;
+        # recurring rounds still have no repository-write command. Source
+        # accounting starts before the missing-only supplement, not after it.
+        self.assertIn('contents: write', text)
         self.assertIn('actions: read', text)
-        self.assertNotIn('contents: write', text)
+        self.assertIn('persist-credentials: false', text)
         self.assertNotIn('run: python scripts/existing_day_program.py', text)
         self.assertIn('cancel-in-progress: false', text)
+        finalize = next(step for step in re.split(r'^      - name: ', text, flags=re.MULTILINE)
+                        if 'run: python scripts/first_p0_bootstrap.py finalize' in step)
+        self.assertIn("if: steps.first_p0.outputs.capture == 'true'", finalize)
+        self.assertIn('steps.first_upload.outputs.artifact-id', finalize)
+        self.assertLess(text.index('id: first_upload'), text.index('first_p0_bootstrap.py finalize'))
+        self.assertLess(text.index('first_p0_bootstrap.py finalize'), text.index('github_existing_cycle.py restore'))
+        self.assertLess(text.index('github_existing_cycle.py restore'), text.index('github_existing_cycle.py repeat-start'))
+        self.assertIn('RACE_AI_FIRST_P0_CAPTURED: ${{ steps.first_p0.outputs.capture }}', text)
+        self.assertLess(text.index('github_existing_cycle.py repeat-start'), text.index('github_existing_cycle.py supplement'))
         self.assertLess(text.index('github_existing_cycle.py restore'), text.index('github_existing_cycle.py supplement'))
-        self.assertLess(text.index('id: p0supplement'), text.index('github_existing_cycle.py repeat-start'))
-        self.assertLess(text.index('github_existing_cycle.py repeat-start'), text.index('uses: ./.github/actions/existing-model-round'))
+        self.assertLess(text.index('id: p0supplement'), text.index('uses: ./.github/actions/existing-model-round'))
+        for command in ('git push', 'gh api --method PUT', 'first_p0_bootstrap.py finalize'):
+            self.assertNotIn(command, ROUND.read_text())
         self.assert_round_contract(ROUND.read_text())
 
     def test_result_before_forecast_freeze_is_rejected(self):

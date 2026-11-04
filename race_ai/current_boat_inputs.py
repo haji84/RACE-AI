@@ -29,6 +29,7 @@ from .official_lzh_extract import extract_daily_lzh
 from .program_race_isolation import normalize_races
 from .boat_observed_program_bridge import build_program_snapshot
 from .private_cycle_capture import _parent_handle
+from .boat_deadline_queue import select_due_races
 
 JST = timezone(timedelta(hours=9))
 REQUEST_LIMIT = 240
@@ -138,17 +139,34 @@ class CurrentBoatInputs:
             raise CurrentBoatInputError("PRIVATE_SOURCE_ROOT_REQUIRED") from None
 
     @contextmanager
-    def _locked_day(self, day):
+    def _locked_day(self, day, *, create=True):
         with _parent_handle(self.root) as root:
             _need(_identity(os.fstat(root)) == self.root_identity, "PRIVATE_SOURCE_ROOT_CHANGED")
-            lock = os.open("source.lock", os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW, 0o600, dir_fd=root)
+            try:
+                lock = os.open("source.lock", os.O_RDWR | os.O_NOFOLLOW | (os.O_CREAT if create else 0),
+                               0o600, dir_fd=root)
+            except FileNotFoundError:
+                if create: raise
+                # An existing day's protocol cannot silently become a fresh
+                # zero-budget day merely because its lock was removed.
+                try: os.stat(day, dir_fd=root, follow_symlinks=False)
+                except FileNotFoundError: pass
+                else: _need(False, "PRIVATE_SOURCE_LOCK_MISSING")
+                yield None
+                return
             try:
                 _private_file(os.fstat(lock)); fcntl.flock(lock, fcntl.LOCK_EX)
                 _need(_identity(os.stat("source.lock", dir_fd=root, follow_symlinks=False)) == _identity(os.fstat(lock)),
                       "PRIVATE_SOURCE_LOCK_CHANGED")
-                try: os.mkdir(day, 0o700, dir_fd=root)
-                except FileExistsError: pass
-                folder = os.open(day, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=root)
+                if create:
+                    try: os.mkdir(day, 0o700, dir_fd=root)
+                    except FileExistsError: pass
+                try:
+                    folder = os.open(day, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=root)
+                except FileNotFoundError:
+                    if create: raise
+                    yield None
+                    return
                 try:
                     info = os.fstat(folder)
                     _need(info.st_uid == os.getuid() and stat.S_IMODE(info.st_mode) == 0o700,
@@ -167,6 +185,7 @@ class CurrentBoatInputs:
         try:
             state = _json(_read(folder, "state.json", 1024 * 1024))
         except FileNotFoundError:
+            _need(not os.listdir(folder), "PRIVATE_SOURCE_STATE_MISSING")
             state = dict(schema=STATE_SCHEMA, day=day, request_count=0, halted_reason=None,
                          captures=[], p0_capture=None, p1_ready={}, p1_attempted_at={})
         _need(type(state) is dict and state.get("schema") == STATE_SCHEMA and state.get("day") == day
@@ -197,7 +216,11 @@ class CurrentBoatInputs:
         _need(_moment(meta["captured_at"]) <= _moment(self.clock()), "SOURCE_CAPTURE_IN_FUTURE")
         return raw
 
-    def _fetch(self, folder, state, url, kind, calls):
+    def _fetch(self, folder, state, url, kind, calls, *, automatic_stop_at=None):
+        # The server owns this boundary. Check before charging or opening each
+        # source; a request already in flight may finish and retain its bytes.
+        _need(automatic_stop_at is None or _moment(self.clock()) < automatic_stop_at,
+              "AUTOMATIC_SESSION_END")
         _need(not state["halted_reason"], "SOURCE_SESSION_HALTED")
         _need(state["request_count"] < REQUEST_LIMIT and calls[0] < CALL_REQUEST_LIMIT,
               "SOURCE_GET_BUDGET_EXHAUSTED")
@@ -215,7 +238,6 @@ class CurrentBoatInputs:
                 _need(not content_type.startswith("text/html") if kind == "B" else content_type.startswith("text/html"),
                       "OFFICIAL_SOURCE_CONTENT_TYPE_REJECTED")
             stamp = _moment(self.clock()).isoformat()
-            _need(_moment(stamp).astimezone(JST).date().isoformat() == state["day"], "SOURCE_DAY_BOUNDARY_PASSED")
             name = f"source-{state['request_count']:06d}"
             suffix = ".lzh" if kind == "B" else ".html"
             _write(folder, name + suffix, raw)
@@ -224,6 +246,11 @@ class CurrentBoatInputs:
             metadata = _wire(meta); _write(folder, name + ".json", metadata)
             meta.update(metadata_file=name+".json", metadata_sha256=hashlib.sha256(metadata).hexdigest())
             state["captures"].append(meta); self._save(folder, state)
+            # Retain an already-started response even if its completion crosses
+            # a policy boundary. It cannot authorize another GET or inference.
+            _need(automatic_stop_at is None or _moment(self.clock()) < automatic_stop_at,
+                  "AUTOMATIC_SESSION_END")
+            _need(_moment(stamp).astimezone(JST).date().isoformat() == state["day"], "SOURCE_DAY_BOUNDARY_PASSED")
             return raw, meta
         except error.HTTPError as exc:
             if 400 <= exc.code < 500:
@@ -234,10 +261,34 @@ class CurrentBoatInputs:
         except (OSError, TimeoutError):
             raise CurrentBoatInputError("SOURCE_TRANSPORT_UNAVAILABLE") from None
 
-    def collect(self, stage="P0", *, sport="boat"):
+    def status(self):
+        """Read current-day counters without collection, inference, or writes.
+
+        Missing or corrupt state beside retained source files is an error,
+        never permission to reset the budget. A day never started reports zero
+        without creating a day directory or a new state/lock file.
+        """
+        day = _moment(self.clock()).astimezone(JST).date().isoformat()
+        try:
+            with self._locked_day(day, create=False) as folder:
+                state = self._state(folder, day) if folder is not None else None
+                return dict(day_jst=day, requests_used=state["request_count"] if state else 0,
+                            halted_reason=state["halted_reason"] if state else None)
+        except (OSError, ValueError) as exc:
+            if isinstance(exc, CurrentBoatInputError): raise
+            raise CurrentBoatInputError("PRIVATE_CURRENT_SOURCE_STATUS_REJECTED") from None
+
+    def collect(self, stage="P0", *, sport="boat", due_only=False, automatic_stop_at=None):
         _need(sport == "boat", "CURRENT_SPORT_INPUT_UNCONNECTED")
         _need(stage in ("P0", "P1"), "SUPPORTED_FORECAST_STAGE_REQUIRED")
+        _need(type(due_only) is bool, "BOOLEAN_DUE_SELECTION_REQUIRED")
         now = _moment(self.clock()); day = now.astimezone(JST).date()
+        stop = _moment(automatic_stop_at) if automatic_stop_at is not None else None
+        if stop is not None:
+            start_of_day = datetime.combine(day, datetime.min.time(), tzinfo=JST)
+            _need(start_of_day <= stop <= start_of_day + timedelta(days=1),
+                  "AUTOMATIC_SESSION_DAY_REJECTED")
+            _need(now < stop, "AUTOMATIC_SESSION_END")
         calls = [0]
         try:
             with self._locked_day(day.isoformat()) as folder:
@@ -255,7 +306,8 @@ class CurrentBoatInputs:
                     if cached:
                         meta = state["p0_capture"]; raw = self._cached(folder, meta)
                     else:
-                        raw, meta = self._fetch(folder, state, official_url(day, "B"), "B", calls)
+                        raw, meta = self._fetch(folder, state, official_url(day, "B"), "B", calls,
+                                                automatic_stop_at=stop)
                     _need(meta["url"] == official_url(day, "B"), "OFFICIAL_B_SOURCE_IDENTITY_REJECTED")
                     inspect_lzh(raw)
                     text = extract_daily_lzh(raw, f"B{day:%y%m%d}.TXT")
@@ -263,16 +315,19 @@ class CurrentBoatInputs:
                         observed_at=meta["captured_at"], archive_sha256=meta["source_sha256"])
                     if not cached or recovered:
                         state["p0_capture"] = meta; self._save(folder, state)
-                    result = self._build(program, meta, stage, folder, state, calls)
+                    _need(stop is None or _moment(self.clock()) < stop, "AUTOMATIC_SESSION_END")
+                    result = self._build(program, meta, stage, folder, state, calls,
+                                         due_only=due_only, automatic_stop_at=stop)
                     result["source_report"] = dict(state="INPUTS_READY" if result["inputs"] else "NO_QUALIFIED_INPUT",
                         day_jst=day.isoformat(), stage=stage, scheduled_races=len(result["schedule"]),
                         ready_races=len(result["inputs"]), source_requests=calls[0], request_count=state["request_count"],
                         request_limit=REQUEST_LIMIT, cache_used=cached, independent_source_verified=False,
-                        raw_sources_saved=True, inference_performed=False)
+                        raw_sources_saved=True, inference_performed=False, due_only=due_only)
                     return result
                 except (ValueError, KeyError, TypeError, OverflowError, UnicodeError) as exc:
                     transient = isinstance(exc, CurrentBoatInputError) and str(exc) in (
-                        "SOURCE_TRANSPORT_UNAVAILABLE", "SOURCE_HTTP_TEMPORARILY_UNAVAILABLE")
+                        "SOURCE_TRANSPORT_UNAVAILABLE", "SOURCE_HTTP_TEMPORARILY_UNAVAILABLE",
+                        "AUTOMATIC_SESSION_END")
                     if not state["halted_reason"] and not transient:
                         state["halted_reason"] = "SOURCE_IDENTITY_OR_PARSE_STOP"; self._save(folder, state)
                     if isinstance(exc, CurrentBoatInputError): raise
@@ -281,7 +336,7 @@ class CurrentBoatInputs:
             if isinstance(exc, CurrentBoatInputError): raise
             raise CurrentBoatInputError("PRIVATE_CURRENT_SOURCE_REJECTED") from None
 
-    def _build(self, program, meta, stage, folder, state, calls):
+    def _build(self, program, meta, stage, folder, state, calls, *, due_only=False, automatic_stop_at=None):
         rights = "OWNER_PERSONAL_FORECAST_GENERATION_CURRENT_" + program["date_jst"].replace("-", "")
         source = dict(source_id="official-B-"+program["date_jst"].replace("-", ""), source_url=meta["url"],
             source_sha256=meta["source_sha256"], source_rights_ref=rights, published_at=None,
@@ -319,8 +374,22 @@ class CurrentBoatInputs:
                 if last and _moment(self.clock()) - _moment(last) < timedelta(seconds=180):
                     blocked.append(dict(race_id=rid, reason="P1_SOURCE_REFRESH_COOLDOWN"))
                 else: pending.append(row)
+            if due_only:
+                # Existing selection authenticates schedule identity/clock
+                # claims and uses its unchanged 22-minute capture window.
+                # Ready originals and cooling-down observations do not consume
+                # that selector's capacity or starve later due races.
+                evidence = [dict(race_id=row["race_id"], cutoff_at=row["cutoff_at"],
+                    schedule_captured_at=meta["captured_at"], source_sha256=meta["source_sha256"])
+                    for row in pending]
+                queue = select_due_races(evidence, _moment(self.clock()).isoformat(), max_items=24)
+                selected = {row["race_id"] for row in queue["eligible"]}
+                blocked.extend(dict(race_id=row["race_id"], reason=row["reason"])
+                    for row in queue["deferred"] + queue["rejected"])
+                pending = [row for row in pending if row["race_id"] in selected]
             for row in ready + pending[:P1_RACE_LIMIT]:
-                groups, extra_refs, reason = self._p1(row, program, folder, state, calls, rights)
+                groups, extra_refs, reason = self._p1(row, program, folder, state, calls, rights,
+                                                    automatic_stop_at=automatic_stop_at)
                 references.update(extra_refs)
                 if groups: inputs[row["race_id"]] = {stage:groups}
                 else: blocked.append(dict(race_id=row["race_id"], reason=reason))
@@ -328,7 +397,7 @@ class CurrentBoatInputs:
         return dict(schedule=schedule, inputs=inputs, blocked_races=blocked,
                     source_references=[dict(source_ref=url, source_rights_ref=ref) for url,ref in sorted(references)])
 
-    def _p1(self, row, program, folder, state, calls, rights):
+    def _p1(self, row, program, folder, state, calls, rights, *, automatic_stop_at=None):
         from .official_racelist_adapter import endpoint, parse_official_racelist
         from .official_race_updates import endpoint as preview_endpoint, parse_update
         from scripts.boat_ab_future_pilot import motor_top2
@@ -336,6 +405,8 @@ class CurrentBoatInputs:
         from .observed_p1_connection import locator
         rid = row["race_id"]; day = _moment(row["cutoff_at"]).astimezone(JST).date()
         venue, number = rid[9:11], int(rid[-2:]); now = _moment(self.clock())
+        if now + BUFFER >= _moment(row["cutoff_at"]):
+            return None, set(), "CUTOFF_BUFFER"
         purl = endpoint(day, venue, number); eurl = preview_endpoint(day, venue, number, "beforeinfo")
         ready = state["p1_ready"].get(rid)
         if ready:
@@ -345,7 +416,8 @@ class CurrentBoatInputs:
             if last and now - _moment(last) < timedelta(seconds=180):
                 return None, set(), "P1_SOURCE_REFRESH_COOLDOWN"
             state["p1_attempted_at"][rid] = now.isoformat(); self._save(folder, state)
-            praw, pm = self._fetch(folder, state, purl, "racelist", calls)
+            praw, pm = self._fetch(folder, state, purl, "racelist", calls,
+                                   automatic_stop_at=automatic_stop_at)
         _need(pm["url"] == purl, "OFFICIAL_P1_SOURCE_IDENTITY_REJECTED")
         card = parse_official_racelist(praw, day=day, venue=venue, race_no=number,
             source_url=purl, captured_at=pm["captured_at"])
@@ -353,8 +425,11 @@ class CurrentBoatInputs:
             return None, set(), "P1_PROGRAM_SCHEDULE_CONFLICT"
         if any(b["entry_status"] != "listed" for b in card["boats"]):
             return None, set(), "P1_ENTRY_WITHDRAWN"
+        if _moment(self.clock()) + BUFFER >= _moment(row["cutoff_at"]):
+            return None, set(), "CUTOFF_BUFFER"
         if ready: eraw = self._cached(folder, em)
-        else: eraw, em = self._fetch(folder, state, eurl, "beforeinfo", calls)
+        else: eraw, em = self._fetch(folder, state, eurl, "beforeinfo", calls,
+                                    automatic_stop_at=automatic_stop_at)
         _need(em["url"] == eurl, "OFFICIAL_P1_SOURCE_IDENTITY_REJECTED")
         preview = parse_update(eraw, kind="beforeinfo", day=day, venue=venue, race_no=number,
             source_url=eurl, captured_at=em["captured_at"], entries=card["boats"])

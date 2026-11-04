@@ -22,6 +22,8 @@ const mark = name => { checks.push(name); console.log('PASS', name); };
 const generationCalls = [];
 let failGeneration = false;
 let generationOverride = null;
+let automaticFixture = false, automaticRevision = 1, automaticOverride = null, automaticState = 'RUNNING';
+const automaticLatestCalls = [];
 async function main() {
   fs.mkdirSync(output, {recursive:true});
   server = http.createServer((req,res) => {
@@ -29,7 +31,18 @@ async function main() {
     const name = decodeURIComponent(parsedUrl.pathname);
     if (name === '/api/forecast/status') {
       res.writeHead(200, {'Content-Type':'application/json'});
-      return res.end(JSON.stringify({day_jst:'2030-01-01',nonce:'synthetic-ui-nonce',capabilities:{boat:{P0:true,P1:true},keirin:{P0:false,P1:false},autorace:{P0:false,P1:false},horse:{P0:false,P1:false}}}));
+      return res.end(JSON.stringify({day_jst:'2030-01-01',nonce:'synthetic-ui-nonce',capabilities:{boat:{P0:true,P1:true},keirin:{P0:false,P1:false},autorace:{P0:false,P1:false},horse:{P0:false,P1:false}},
+        ...(automaticFixture?{auto:{enabled:true,state:automaticState,interval_seconds:180,round_no:2,next_run_at:'2030-01-01T09:33:00+09:00',halted_reason:automaticState==='STOPPED'?'SOURCE_REQUEST_LIMIT':null},latest_revisions:{boat:{P0:'r'+automaticRevision,P1:null}}}:{})}));
+    }
+    if(name === '/api/forecast/latest') {
+      automaticLatestCalls.push({method:req.method,sport:parsedUrl.searchParams.get('sport'),stage:parsedUrl.searchParams.get('stage')});
+      res.writeHead(200, {'Content-Type':'application/json'});
+      if(automaticOverride)return res.end(JSON.stringify(automaticOverride));
+      if(parsedUrl.searchParams.get('stage')==='P1')return res.end(JSON.stringify({available:false,day_jst:'2030-01-01',revision:null}));
+      const view=structuredClone(fixture);view.records=view.records.filter(r=>r.sport===parsedUrl.searchParams.get('sport'));
+      for(const row of view.records)row.comparison_predictions=(row.comparison_predictions||[]).filter(p=>p.stage===parsedUrl.searchParams.get('stage'));
+      if(view.records.length)view.records[0].observed_at=automaticRevision>=2?'2030-01-01T09:02:00+09:00':'2030-01-01T09:01:00+09:00';
+      return res.end(JSON.stringify({available:true,revision:'r'+automaticRevision,day_jst:'2030-01-01',view,summary:{generated:1,reused:0,missing:14}}));
     }
     if (name === '/api/forecast/generate' && req.method === 'POST') {
       let body='';req.on('data',chunk=>body+=chunk);req.on('end',()=>{
@@ -44,13 +57,14 @@ async function main() {
     if (!file.startsWith(root + path.sep) || !fs.existsSync(file)) {res.writeHead(404);return res.end();}
     const type = {'.html':'text/html','.css':'text/css','.js':'text/javascript','.json':'application/json'}[path.extname(file)] || 'application/octet-stream';
     res.writeHead(200, {'Content-Type':type});
-    if(name==='/' && parsedUrl.searchParams.has('generation'))return res.end(fs.readFileSync(file,'utf8').replace('</head>','<meta name="race-ai-generation-api" content="/api/forecast"></head>'));
+    if(name==='/')automaticFixture=parsedUrl.searchParams.has('automatic');
+    if(name==='/' && (parsedUrl.searchParams.has('generation') || automaticFixture))return res.end(fs.readFileSync(file,'utf8').replace('</head>','<meta name="race-ai-generation-api" content="/api/forecast"></head>'));
     fs.createReadStream(file).pipe(res);
   });
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   const base = `http://127.0.0.1:${server.address().port}/`;
   browser = await chromium.launch({headless:true, ...(process.env.CHROMIUM_PATH ? {executablePath:process.env.CHROMIUM_PATH} : {}), args:['--no-sandbox']});
-  for (const width of process.env.UI_GENERATION_ONLY?[]:[320,390,1440,1920]) {
+  for (const width of process.env.UI_GENERATION_ONLY || process.env.UI_AUTO_ONLY?[]:[320,390,1440,1920]) {
     const context = await browser.newContext({viewport:{width,height:width<600?844:1080}, deviceScaleFactor:1});
     await context.tracing.start({screenshots:true,snapshots:true});
     const page = await context.newPage();
@@ -291,7 +305,7 @@ async function main() {
     await context.close();
   }
   assert.ok(requests.every(url=>!new URL(url).pathname.startsWith('/api/forecast')),'static viewer makes no generation API probe');
-  for(const width of [390,1440]) {
+  for(const width of process.env.UI_AUTO_ONLY?[]:[390,1440]) {
     generationCalls.length=0;failGeneration=false;generationOverride=null;
     const context=await browser.newContext({viewport:{width,height:width<600?844:1080}});
     const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('request',req=>requests.push(req.url()));
@@ -333,9 +347,102 @@ async function main() {
     mark(`${width}: explicit generation request, exact returned original, reuse message, invalid response retention and missing native inputs`);
     await context.close();
   }
+  for(const width of [390,1440]) {
+    generationCalls.length=0;automaticLatestCalls.length=0;automaticRevision=1;automaticOverride=null;automaticState='RUNNING';
+    const context=await browser.newContext({viewport:{width,height:width<600?844:1080}});
+    const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('request',req=>requests.push(req.url()));
+    await page.clock.install({time:new Date('2030-01-01T00:30:00Z')});
+    await page.goto(base+'?automatic=1');
+    await page.waitForFunction(()=>document.querySelector('#source-state').textContent.includes('合成'));
+    assert.equal(generationCalls.length,0,'automatic display never posts generation from the browser');
+    assert.equal(automaticLatestCalls.length,1,'initial saved view loads without a button');
+    assert.equal(await page.locator('#forecast-generate').isDisabled(),true);
+    assert.match(await page.locator('#generation-message').innerText(),/自動/);
+    const wrongDay={schema:'RACE_AI_PRIVATE_CYCLE_VIEW_V1',dataset_status:'SYNTHETIC_ONLY',event_date_jst:'2030-01-02',records:[]};
+    const wrongSport={...structuredClone(fixture),records:structuredClone(fixture.records.filter(r=>r.sport==='horse'))};
+    const wrongStage={...structuredClone(fixture),records:structuredClone(fixture.records.filter(r=>r.sport==='boat'))};
+    for(const [day,view] of [['2030-01-02',wrongDay],['2030-01-01',wrongSport],['2030-01-01',wrongStage]]) {
+      automaticRevision++;automaticOverride={available:true,revision:'r'+automaticRevision,day_jst:day,view,summary:{generated:0,reused:1,missing:14}};
+      await page.clock.fastForward(180001);await page.waitForTimeout(100);
+      assert.equal(await page.locator('#selected-date').inputValue(),'2030-01-01','latest must match the current server day');
+      assert.equal(await page.locator('#page-home .race-card').count(),1,'wrong day/sport/stage cannot replace current automatic originals');
+    }
+    automaticOverride=null;automaticRevision=1;
+    const nav=async name=>page.locator(`[data-page="${name}"]`).filter({visible:true}).first().click();
+    await nav('races');await page.locator('#page-races [data-open-race]').first().click();
+    await page.locator('[data-detail-tab="analysis"]').click();
+    const nativeSha=fixture.records[0].prediction.prediction_sha256;
+    assert.ok((await page.locator('#race-detail').innerText()).includes(nativeSha));
+    await nav('picks');await page.locator('#copy-top8').click();
+    await page.locator('#ticket-list .ticket-amount').first().fill('200');await page.locator('#ticket-list .ticket-amount').first().dispatchEvent('change');
+    await page.locator('#confirm-candidates').click();
+    const beforeAmounts=await page.locator('#ticket-list .ticket-amount').evaluateAll(ns=>ns.map(n=>n.value));
+    await nav('races');await page.locator('#page-races [data-open-race]').first().click();
+    await page.locator('[data-detail-tab="analysis"]').click();
+    const beforeUnchanged=automaticLatestCalls.length;
+    await page.clock.fastForward(180001);await page.waitForTimeout(50);
+    assert.equal(automaticLatestCalls.length,beforeUnchanged,'unchanged revision avoids a second saved payload fetch');
+    automaticRevision=2;await page.clock.fastForward(180001);
+    await page.waitForFunction(()=>document.querySelector('#forecast-generation').dataset.viewRevision==='r2');
+    assert.deepEqual(await page.locator('#ticket-list .ticket-amount').evaluateAll(ns=>ns.map(n=>n.value)),beforeAmounts,'automatic refresh preserves edited amounts');
+    assert.match(await page.locator('#confirmation-state').innerText(),/候補確定済み/,'automatic refresh preserves confirmation');
+    assert.ok((await page.locator('#race-detail').innerText()).includes(nativeSha),'selected original survives refresh');
+    assert.equal(await page.locator('[data-detail-tab="analysis"]').getAttribute('aria-selected'),'true');
+    assert.match(await page.locator('#race-detail').innerText(),/09:02/,'new saved observation is displayed');
+    const replacement=structuredClone(fixture.records[0]);
+    Object.assign(replacement,{race_id:'automatic-replacement-race',comparison_predictions:[],result:null,result_revisions:[],result_observations:[]});
+    Object.assign(replacement.prediction,{native_dispatch_prediction:true,output_sha256:'b'.repeat(64)});
+    automaticRevision=3;automaticOverride={available:true,revision:'r3',day_jst:'2030-01-01',view:{schema:'RACE_AI_PRIVATE_CYCLE_VIEW_V1',dataset_status:'SYNTHETIC_ONLY',event_date_jst:'2030-01-01',records:[replacement]},summary:{generated:1,reused:0,missing:14}};
+    await page.clock.fastForward(180001);
+    await page.waitForFunction(()=>document.querySelector('#generation-message').textContent.includes('編集中の購入候補'));
+    assert.equal(await page.locator('#forecast-follow-latest').isVisible(),true,'draft-blocked update has a visible display-only recovery action');
+    assert.equal(await page.locator('#forecast-generation').getAttribute('data-view-revision'),'r2');
+    await nav('picks');await page.locator('#clear-tickets').click();
+    await page.clock.fastForward(180001);
+    await page.waitForFunction(()=>document.querySelector('#forecast-generation').dataset.viewRevision==='r3');
+    assert.equal(await page.locator('#ticket-list .ticket-amount').count(),0,'clearing drafts applies the same pending revision without another generation');
+    automaticRevision=4;automaticOverride=null;await page.clock.fastForward(180001);
+    await page.waitForFunction(()=>document.querySelector('#forecast-generation').dataset.viewRevision==='r4');
+    await nav('races');await page.locator('#page-races [data-open-race]').first().click();await nav('picks');await page.locator('#copy-top8').click();
+    await page.locator('#ticket-list .ticket-amount').first().fill('300');
+    automaticRevision=5;await page.clock.fastForward(180001);
+    await page.waitForFunction(()=>document.querySelector('#generation-message').textContent.includes('入力中'));
+    assert.equal(await page.locator('#ticket-list .ticket-amount').first().inputValue(),'300','unblurred edits cannot be lost to automatic DOM refresh');
+    await page.locator('#page-picks h2').first().click();
+    await page.waitForFunction(()=>document.querySelector('#forecast-generation').dataset.viewRevision==='r5');
+    assert.equal(await page.locator('#ticket-list .ticket-amount').first().inputValue(),'300');
+    await nav('races');await page.locator('#page-races [data-open-race]').first().click();await page.locator('[data-detail-tab="analysis"]').click();
+    await page.clock.setSystemTime(new Date('2030-01-02T00:31:00Z'));
+    await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));
+    assert.equal(await page.locator('#selected-date').inputValue(),'2030-01-01','day change must retain the candidate editing context');
+    await page.clock.setSystemTime(new Date('2030-01-01T00:45:00Z'));
+    const goodDetail=await page.locator('#race-detail').innerText();
+    automaticRevision=6;automaticOverride={available:true,revision:'r6',day_jst:'2030-99-99',view:fixture,summary:{generated:0,reused:1,missing:14}};
+    await page.clock.fastForward(180001);await page.waitForTimeout(100);
+    assert.equal(await page.locator('#race-detail').innerText(),goodDetail,'invalid automatic response keeps the displayed original');
+    automaticOverride=null;automaticState='STOPPED';await page.clock.fastForward(180001);
+    await page.waitForFunction(()=>document.querySelector('#generation-message').textContent.includes('停止'));
+    assert.match(await page.locator('#generation-message').innerText(),/取得上限/,'finite stop reason explains the actual limit');
+    assert.equal(generationCalls.length,0,'polling and source stop never cause a generation POST');
+    await page.evaluate(()=>{window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true}));window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}));});
+    automaticRevision=7;await page.clock.fastForward(180001);await page.waitForTimeout(100);
+    assert.equal(await page.locator('#forecast-generation').getAttribute('data-view-revision'),'r7','restored pages resume automatic saved-view polling');
+    await page.locator('#forecast-stage').selectOption('P1');await page.waitForTimeout(100);
+    assert.equal(await page.locator('#race-detail').innerText(),goodDetail,'pending P1 preserves the P0 display');
+    const imported=structuredClone(fixture);imported.records[0].observed_at='2030-01-01T09:04:00+09:00';
+    await page.locator('#race-file').setInputFiles({name:'manual-synthetic.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(imported))});
+    await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('4件'));
+    await nav('races');await page.locator('#page-races [data-open-race]').first().click();const importedDetail=await page.locator('#race-detail').innerText();
+    automaticRevision=8;await page.locator('#forecast-stage').selectOption('P0');await page.clock.fastForward(180001);await page.waitForTimeout(100);
+    assert.equal(await page.locator('#race-detail').innerText(),importedDetail,'manual import ownership is not overwritten by automatic refresh');
+    assert.equal(generationCalls.length,0);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    await page.screenshot({path:path.join(output,`${width}-automatic-forecast.png`),fullPage:true});
+    mark(`${width}: automatic saved view without clicks or POST, revision refresh, draft/original retention, stop and manual import ownership`);
+    await context.close();
+  }
   assert.deepEqual(errors,[],'no page errors');
   assert.ok(requests.every(url=>url.startsWith(base)),'no external source requests');
-  fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({scope:'SYNTHETIC_ONLY',checks,errors,source_requests:0,widths:[320,390,1440,1920],dispatch_fixture_widths:process.env.UI_DISPATCH_VIEWS?[390,1440]:[],generation_fixture_widths:[390,1440],generation_native_execution_proven:false},null,2));
+  fs.writeFileSync(path.join(output,'report.json'),JSON.stringify({scope:'SYNTHETIC_ONLY',checks,errors,source_requests:0,widths:process.env.UI_GENERATION_ONLY||process.env.UI_AUTO_ONLY?[]:[320,390,1440,1920],dispatch_fixture_widths:process.env.UI_DISPATCH_VIEWS && !process.env.UI_AUTO_ONLY && !process.env.UI_GENERATION_ONLY?[390,1440]:[],generation_fixture_widths:process.env.UI_AUTO_ONLY?[]:[390,1440],automatic_fixture_widths:[390,1440],generation_native_execution_proven:false},null,2));
   await browser.close();browser=null;await new Promise(resolve=>server.close(resolve));server=null;
 }
 main().catch(async error=>{console.error(error);if(browser)await browser.close();if(server)server.close();process.exitCode=1;});

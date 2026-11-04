@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 import tempfile
 import threading
+import types
 import unittest
 from unittest.mock import patch
 
@@ -15,6 +16,7 @@ from race_ai.local_forecast_server import make_server
 class RecordingService:
     def __init__(self):
         self.calls = []
+        self.latest_calls = []
         self.failure = None
 
     def status(self):
@@ -27,11 +29,36 @@ class RecordingService:
         return {"view": {"schema": "RACE_AI_PRIVATE_CYCLE_VIEW_V1", "records": []},
                 "summary": {"generated": 0, "reused": 0, "missing": 16}}
 
+    def latest(self, sport, stage):
+        self.latest_calls.append((sport, stage))
+        return {"available": True, "revision": "saved-revision", "day_jst": "2030-01-01",
+                "view": {"schema": "RACE_AI_PRIVATE_CYCLE_VIEW_V1", "records": []},
+                "summary": {"generated": 0, "reused": 1, "missing": 15}}
+
+
+class RecordingAutomation:
+    def __init__(self):
+        self.starts = 0
+        self.stops = 0
+        self.started = threading.Event()
+        self.state = "WAITING"
+
+    def start(self):
+        self.starts += 1
+        self.started.set()
+
+    def stop(self):
+        self.stops += 1
+
+    def status(self):
+        return {"enabled": True, "state": "STOPPED" if self.stops else self.state,
+                "interval_seconds": 180, "round_no": 1}
+
 
 @contextmanager
-def serving(service=None, web_root=None):
+def serving(service=None, web_root=None, automatic=None):
     service = service or RecordingService()
-    server = make_server(service, port=0, web_root=web_root)
+    server = make_server(service, port=0, web_root=web_root, automatic=automatic)
     thread = threading.Thread(target=server.serve_forever, daemon=True)
     thread.start()
     try:
@@ -57,6 +84,108 @@ def admitted_headers(server, nonce):
 
 
 class LocalForecastServerTests(unittest.TestCase):
+    def test_latest_is_a_read_only_cached_display_endpoint(self):
+        with serving() as (server, service):
+            status, headers, body = request(server, "GET", "/api/forecast/latest?sport=boat&stage=P0")
+            self.assertEqual(status, 200)
+            self.assertEqual(json.loads(body)["revision"], "saved-revision")
+            self.assertEqual(service.latest_calls, [("boat", "P0")])
+            self.assertEqual(service.calls, [])
+            self.assertEqual(headers["Cache-Control"], "no-store")
+            self.assertNotIn("Access-Control-Allow-Origin", headers)
+
+    def test_latest_rejects_extra_duplicate_missing_or_forged_display_query(self):
+        with serving() as (server, service):
+            for query in ("sport=boat", "sport=boat&stage=P0&at=old", "sport=boat&sport=horse",
+                          "sport=boat&stage=P0&stage=P1", "sport=boat&stage=old", "sport=unknown&stage=P0",
+                          "sport=boat&stage=", "file=private.sqlite&stage=P0", "sport=boat&stage=P0#fragment"):
+                status, _, body = request(server, "GET", "/api/forecast/latest?" + query)
+                self.assertEqual(status, 400, query)
+                self.assertNotIn(b"private.sqlite", body)
+            self.assertEqual(request(server, "GET", "/api/forecast/latest?sport=boat&stage=P0",
+                headers={"Host": "attacker.invalid"})[0], 403)
+            self.assertEqual(service.latest_calls, [])
+            self.assertEqual(service.calls, [])
+
+    def test_automatic_lifecycle_starts_only_when_serving_and_blocks_manual_bypass(self):
+        automation = RecordingAutomation()
+        service = RecordingService()
+        server = make_server(service, port=0, automatic=automation)
+        self.assertIs(service.automation, automation)
+        self.assertEqual(automation.starts, 0)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            self.assertTrue(automation.started.wait(5))
+            status = json.loads(request(server, "GET", "/api/forecast/status")[2])
+            self.assertTrue(status["auto"]["enabled"])
+            self.assertEqual(status["auto"]["state"], "WAITING")
+            headers = admitted_headers(server, status["nonce"])
+            code, _, body = request(server, "POST", "/api/forecast/generate",
+                '{"sport":"boat","stage":"P0"}', headers)
+            self.assertEqual(code, 409)
+            self.assertEqual(json.loads(body)["error"]["code"], "AUTOMATIC_MANAGED")
+            self.assertEqual(service.calls, [])
+            self.assertEqual(request(server, "GET", "/api/forecast/latest?sport=boat&stage=P0")[0], 200)
+            self.assertEqual(automation.starts, 1)
+            # A stopped automatic session cannot be bypassed by manual POST.
+            automation.state = "STOPPED"
+            self.assertEqual(request(server, "POST", "/api/forecast/generate",
+                '{"sport":"boat","stage":"P0"}', headers)[0], 409)
+        finally:
+            server.shutdown(); server.server_close(); server.server_close()
+            thread.join(5)
+        self.assertEqual(automation.starts, 1)
+        self.assertEqual(automation.stops, 1)
+
+    def test_close_during_controller_start_cannot_leave_a_live_worker(self):
+        entered = threading.Event(); release = threading.Event(); stopped = threading.Event()
+        class StartingAutomation(RecordingAutomation):
+            active = False
+            def start(self):
+                entered.set()
+                release.wait(5)
+                self.active = True
+            def stop(self):
+                self.active = False
+                stopped.set()
+        automation = StartingAutomation()
+        server = make_server(RecordingService(), port=0, automatic=automation)
+        with patch("http.server.ThreadingHTTPServer.serve_forever", return_value=None):
+            serving_thread = threading.Thread(target=server.serve_forever)
+            serving_thread.start()
+            self.assertTrue(entered.wait(5))
+            closing_thread = threading.Thread(target=server.server_close)
+            closing_thread.start()
+            # Closing must serialize against a not-yet-completed start. On
+            # the old path stop ran first and start subsequently leaked work.
+            stopped.wait(0.2)
+            release.set()
+            serving_thread.join(5); closing_thread.join(5)
+        self.assertFalse(serving_thread.is_alive())
+        self.assertFalse(closing_thread.is_alive())
+        self.assertFalse(automation.active)
+
+    def test_default_controller_constructs_after_binding_and_never_starts_on_close(self):
+        service = RecordingService(); service.automatic_supported = True
+        automation = RecordingAutomation()
+        module = types.ModuleType("race_ai.local_forecast_automation")
+        module.ForecastAutomation = lambda actual: automation
+        with patch.dict("sys.modules", {"race_ai.local_forecast_automation": module}):
+            server = make_server(service, port=0)
+            self.assertIs(service.automation, automation)
+            self.assertEqual(automation.starts, 0)
+            server.server_close(); server.server_close()
+        self.assertEqual(automation.starts, 0)
+        self.assertEqual(automation.stops, 1)
+        # An occupied socket must fail before constructing a controller.
+        with serving() as (occupied, _):
+            with patch.dict("sys.modules", {"race_ai.local_forecast_automation": module}), \
+                    patch.object(module, "ForecastAutomation") as factory:
+                with self.assertRaises(OSError):
+                    make_server(service, port=occupied.server_port)
+                factory.assert_not_called()
+
     @unittest.skipUnless(os.name == "posix", "No-follow static file serving requires POSIX")
     def test_explicit_post_calls_service_and_served_index_advertises_capability(self):
         original = Path("web/index.html").read_bytes()
@@ -146,7 +275,7 @@ class LocalForecastServerTests(unittest.TestCase):
             (web/"app.js").symlink_to(secret)
             with serving(web_root=web) as (server, _):
                 for target in ("/../private.sqlite", "/%2e%2e/private.sqlite", "/private.sqlite",
-                               "/api/forecast/status?file=private.sqlite", "/app.js", "/.git/config"):
+                               "/api/forecast/status?file=private.sqlite", "/app.js", "/.git/config", "//[", "invalid://["):
                     status, _, body = request(server,"GET",target)
                     self.assertEqual(status,404,target)
                     self.assertNotIn(b"PRIVATE_TEST_VALUE",body)

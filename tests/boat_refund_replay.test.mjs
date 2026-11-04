@@ -97,6 +97,9 @@ test('bad refund identities cannot be turned into a normal miss',async()=>{
 });
 test('scheduled control records refunded race then reaches final race without manual reset',async()=>{
  const db=new DB(),today=key(new Date()),prior=key(new Date(Date.now()-86400000));let calls=0;
+ // This fixture tests previous-day result progression, independent of the
+ // wall clock entering today's 08:00 exhibition capture window.
+ const tickClock=new Date(iso(today)+'T12:00:00+09:00');
  const env={BOAT_AUTO_ENABLED:'true',BOAT_RIGHTS_REVIEWED:'true',BOAT_RIGHTS_REFERENCE:'SYNTHETIC_OFFLINE_TEST',BOAT_DB:db,BOAT_PILOT_VENUE:'17',BOAT_MAX_REQUESTS_PER_DAY:'120'};
  try{
   for(const d of [prior,today])for(let n=1;n<=12;n++){
@@ -108,11 +111,11 @@ test('scheduled control records refunded race then reaches final race without ma
   const fetcher=async url=>{calls++;const u=new URL(url),d=u.searchParams.get('hd'),n=Number(u.searchParams.get('rno'));
    const html=u.pathname.endsWith('racelist')?programHtml(d):resultHtml(d,n===1?'5':'');
    const r=new Response(html,{headers:{'Content-Type':'text/html'}});Object.defineProperty(r,'url',{value:url});return r;};
-  const first=await runTick(env,{fetcher});
+  const first=await runTick(env,{fetcher,now:tickClock});
   assert.equal(first.result_status[0].race_id,prior+'-17-01');
   assert.equal(first.result_status[0].status,'RESULT_PDCA_DB_VERIFIED');
   assert.equal(first.result_status[0].result_class,'SETTLED_WITH_REFUND');
-  const second=await runTick(env,{fetcher});
+  const second=await runTick(env,{fetcher,now:tickClock});
   assert.equal(second.result_status[0].race_id,prior+'-17-12');
   assert.equal(second.result_status[0].status,'RESULT_PDCA_DB_VERIFIED');
   assert.equal(db.raw.prepare('SELECT COUNT(*) AS n FROM boat_exhibition_outcomes').get().n,2);

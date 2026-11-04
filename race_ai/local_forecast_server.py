@@ -1,4 +1,4 @@
-"""Manual loopback UI for existing forecasts; no public bind or background prediction.
+"""Loopback UI and lifecycle owner of the existing bounded forecast automation.
 
 Only the server-owned service chooses inputs, source uses, clocks and storage.
 The browser requests a sport/stage; exact native forecasts remain in the private
@@ -14,6 +14,8 @@ from pathlib import Path
 import secrets
 import stat
 import sys
+import threading
+from urllib.parse import parse_qsl, urlsplit
 
 ASSETS = {
     "/": ("index.html", "text/html; charset=utf-8"),
@@ -46,6 +48,7 @@ ERRORS = {
     "GENERATION_INPUT_UNAVAILABLE": (422, "対象レース・予想時点・必要な実入力を確認してください。"),
     "PRIVATE_STORAGE_UNAVAILABLE": (503, "私有保存先または入力の取得経路を確認してください。"),
     "GENERATION_UNAVAILABLE": (503, "予想生成を完了できませんでした。入力と保存の状態を確認してください。"),
+    "AUTOMATIC_MANAGED": (409, "自動巡回が予想を管理しています。保存された予想と稼働状態を確認してください。"),
 }
 
 
@@ -77,13 +80,73 @@ class ForecastHTTPServer(ThreadingHTTPServer):
     daemon_threads = True
     block_on_close = False
 
-    def __init__(self, service, *, port, web_root):
+    def __init__(self, service, *, port, web_root, automatic=None):
         self.service = service
         self.nonce = secrets.token_urlsafe(32)
         self.web_root = web_root
+        self.automation = None
+        self._lifecycle_lock = threading.Lock()
+        self._automation_started = False
+        self._automation_stopped = False
+        self._serving = False
+        self._closed = False
         super().__init__(("127.0.0.1", port), ForecastHandler)
         self.origin = "http://127.0.0.1:" + str(self.server_port)
         self.expected_host = "127.0.0.1:" + str(self.server_port)
+        try:
+            if automatic is None and getattr(service, "automatic_supported", False) is True:
+                from .local_forecast_automation import ForecastAutomation
+                automatic = ForecastAutomation(service)
+            if automatic is not None and automatic is not False:
+                if not all(callable(getattr(automatic, key, None)) for key in ("start", "stop", "status")):
+                    raise ValueError("automatic lifecycle required")
+                self.automation = automatic
+                service.automation = automatic
+        except BaseException:
+            super().server_close()
+            raise
+
+    def _stop_automatic(self):
+        with self._lifecycle_lock:
+            stop = self.automation is not None and not self._automation_stopped
+            self._automation_stopped = True
+        if stop:
+            self.automation.stop()
+
+    def serve_forever(self, poll_interval=0.5):
+        try:
+            with self._lifecycle_lock:
+                if self._closed:
+                    raise RuntimeError("local server already closed")
+                self._serving = True
+                start = self.automation is not None and not self._automation_started
+                self._automation_started = True
+                # Serialize start with close/stop. Otherwise close could stop
+                # an unstarted controller just before start spawns its worker.
+                if start:
+                    self.automation.start()
+            return super().serve_forever(poll_interval=poll_interval)
+        finally:
+            with self._lifecycle_lock:
+                self._serving = False
+            self._stop_automatic()
+
+    def shutdown(self):
+        try:
+            with self._lifecycle_lock:
+                serving = self._serving
+            if serving:
+                super().shutdown()
+        finally:
+            self._stop_automatic()
+
+    def server_close(self):
+        with self._lifecycle_lock:
+            self._closed = True
+        try:
+            self._stop_automatic()
+        finally:
+            super().server_close()
 
 
 class ForecastHandler(BaseHTTPRequestHandler):
@@ -169,7 +232,30 @@ class ForecastHandler(BaseHTTPRequestHandler):
                 value = self.server.service.status()
                 if type(value) is not dict:
                     raise ValueError("invalid service status")
+                if self.server.automation is not None:
+                    value = {**value, "auto": self.server.automation.status()}
                 self._json(200, {**value, "nonce": self.server.nonce})
+            except Exception as error:
+                self._service_failure(error)
+            return
+        if self.path.partition("?")[0] == "/api/forecast/latest":
+            try:
+                target = urlsplit(self.path)
+                pairs = parse_qsl(target.query, keep_blank_values=True,
+                                  strict_parsing=True, max_num_fields=2)
+                query = dict(pairs)
+                if (target.scheme or target.netloc or target.fragment or len(pairs) != 2 or
+                        len(query) != 2 or set(query) != {"sport", "stage"} or
+                        query["sport"] not in SPORTS or query["stage"] not in STAGES):
+                    raise ValueError("display selection required")
+            except (ValueError, TypeError):
+                self._error("INVALID_REQUEST")
+                return
+            try:
+                latest = self.server.service.latest(query["sport"], query["stage"])
+                if type(latest) is not dict:
+                    raise ValueError("invalid saved view")
+                self._json(200, latest)
             except Exception as error:
                 self._service_failure(error)
             return
@@ -236,6 +322,11 @@ class ForecastHandler(BaseHTTPRequestHandler):
             self._error("INVALID_REQUEST")
             return
         try:
+            # A stopped bounded session remains automatic-owned. A browser
+            # POST cannot bypass its stop condition or reset its frequency.
+            if self.server.automation is not None:
+                self._error("AUTOMATIC_MANAGED")
+                return
             result = self.server.service.generate(value["sport"], value["stage"])
             if type(result) is not dict:
                 raise ValueError("invalid service response")
@@ -250,14 +341,18 @@ class ForecastHandler(BaseHTTPRequestHandler):
     do_OPTIONS = do_PUT = do_DELETE = do_PATCH = do_HEAD = _unsupported
 
 
-def make_server(service, *, port=0, web_root=None):
-    """Construct the manual IPv4-loopback server, with an injectable service."""
+def make_server(service, *, port=0, web_root=None, automatic=None):
+    """Bind loopback first; automation begins only when serving starts.
+
+    ``automatic=False`` is the explicit legacy/testing escape hatch. It is
+    deliberately not exposed as a browser request or CLI scheduling flag.
+    """
     if type(port) is not int or not 0 <= port <= 65535:
         raise ValueError("invalid local port")
     if not callable(getattr(service, "status", None)) or not callable(getattr(service, "generate", None)):
         raise ValueError("forecast service required")
     root = Path(web_root).absolute() if web_root is not None else Path(__file__).resolve().parents[1] / "web"
-    return ForecastHTTPServer(service, port=port, web_root=root)
+    return ForecastHTTPServer(service, port=port, web_root=root, automatic=automatic)
 
 
 def main(argv=None):

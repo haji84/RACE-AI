@@ -1,0 +1,23 @@
+{
+  "checked_at_utc": "2026-11-04T23:21:39.584824+00:00",
+  "local_count": 288,
+  "remote_count": 288,
+  "native_model_key_overlap": 288,
+  "native_key_equal_top8": 288,
+  "native_key_equal_prediction_sha": 0,
+  "native_key_different_as_of": 288,
+  "local_as_of_range": [
+    "2026-11-04T22:05:27.736760+00:00",
+    "2026-11-04T22:05:27.753762+00:00"
+  ],
+  "remote_as_of_range": [
+    "2026-11-04T22:53:28.975043+00:00",
+    "2026-11-04T22:53:30.716932+00:00"
+  ],
+  "remote_source_sha256": "123c27dc5965ef09c60156a35c3d73d9ba40ab7b871578cd20c83ea4520d92c4",
+  "local_db_sha256_before": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+  "local_db_sha256_after": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+  "read_only_connection": true,
+  "mutations": 0,
+  "canonical_import_policy": "Preserve both provenance records separately. Never overwrite or collapse local originals with later GitHub first receipt."
+}

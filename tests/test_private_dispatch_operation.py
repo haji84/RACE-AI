@@ -85,6 +85,19 @@ class PrivateDispatchOperationTests(unittest.TestCase):
         self.assertEqual(reopened.originals(), before)
         self.assertEqual(reopened.read_operation(first["operation_id"]), first)
 
+    def test_unchanged_wire_decode_is_cached_without_aliasing_or_accepting_changed_bytes(self):
+        rows, inputs = fixture()
+        operation.run_saved_inputs(self.journal, rows, inputs, at=AT)
+        first = self.journal.originals()
+        with patch.object(operation, "_unwire", side_effect=AssertionError("identical original decoded again")):
+            second = self.journal.originals()
+        second[0]["prediction"]["ordered_top8"][0] = [6, 6, 6]
+        self.assertEqual(self.journal.originals(), first, "caller cannot mutate the cached original")
+        with self.journal.connect() as db:
+            db.execute("DROP TRIGGER dispatch_originals_no_update")
+            db.execute("UPDATE dispatch_originals SET wire=? WHERE model_id=?", (b'{"tampered":true}', first[0]["model_id"]))
+        with self.assertRaises(ValueError): self.journal.originals()
+
     def test_real_sources_need_analysis_and_both_private_uses_before_inference(self):
         rows, inputs = fixture(real=True)
         for granted in ((), ("analysis",), ("analysis", "private_storage")):
