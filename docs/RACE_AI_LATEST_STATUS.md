@@ -1,3 +1,13 @@
+# 2026/11/05 08:02:07 JST｜11/05初回P0原本と第3巡回の3ZIPを所有者限定Driveに独立保全・SHA再照合
+
+既存run `41929106428` の**GitHub上で初回保存済みのP0 ZIP**（artifact `13371295414`、SHA256 `3a8bde638b93b61cbe21843bff5f3dbaf120c486b45f39efc3ea3a78f89034ab`）、第3巡回の展示後予想試行ZIP（artifact `13371915442`、SHA256 `4ca3328dbc82e309d50d396d0059b22853b402f524c0571ce6ecd12ad2d28628`）、第3巡回の結果・PDCA ZIP（artifact `13369699300`、SHA256 `06edb78d1879da4e01488c584d8c384c330f7c82373d175288243ab1a1dc03c3`）を、**所有者本人一致・shared=false**をDrive APIで実確認した既存の非公開保管フォルダに3件とも無改変・新規保存した。各新規ファイルも権限owner 1人・shared=falseを個別検証。元ファイルとDrive再ダウンロード版をbyte-for-byte比較し、3件ともSHA256一致、ZIP CRC正常。公開GitHub文書に私有Drive ID/URL/認証情報を掲載していない。これは**3 ZIPのみの個別保全**であり、全巡回の無期限自動保全完成ではない。
+
+第3巡回結果ZIPを独立再取得して内部status.json `round_no=3` / `updated_at=2026-11-04T22:59:52.533339+00:00`、forecasts.csv 288モデル別行、model_coverage 288件、official-result-observations.json は0件、研究manifestは未登録、`automatic_learning.state=INSUFFICIENT_VERIFIED_RACES`、`learned_shadow_comparison.saved_shadow_forecasts=0`、`coverage_audit.future_races=144` / `ended_races=0` / `complete_five_model_p1=0` を照合。**当日基準P0=288、通常結果採点=0、展示後P1五モデル=0、学習版=0、同条件比較=0**。第3巡回P1原本は`OBSERVED_ATTEMPT_NO_FORECAST / NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES`で、展示未公表の時点に予想成功と偽らない。第3巡回保存時点のsession GETは14/240、halted_reasonなし、`completed_round=2`はアップロード時点の値で、GitHub Actionsでは第3巡回step成功後に第4巡回へ進行。第4巡回の未完成成果を合算しない。
+
+11/04の基準570/通常採点489/研究版70/研究比較66は前日別runであり、11/05の新しい結果ではない。既存workflow405276784、concurrency single writer、cancel-in-progress=false、180秒/24巡/65分、240 GET/session・45/巡回・最大3レース・締切210秒以上、4xx/429/日付/真正性停止条件を維持。新タスク・新PR・新モデル系統・別workflow・課金・main統合・実投票・本番自動採用はしていない。
+
+---
+
 # 2026-11-05 07:57:14 JST｜当日P0初回原本の復旧完走・独立ZIP照合、展示後P1/結果は継続中
 
 既存Draft PR #71、branch `feat/four-sport-forecast-audit-view-20261022`、workflow `405276784` のみを使用。11/05早朝の初回原本なし停止に対し、同日全runの既存原本確認→公式B入力から当日P0新規生成→GitHub別artifact保存→元ZIPとサーバー保存時刻のAPI読戻し→create-onlyの`docs/evidence/2026-11-05/p0-first-receipt.json`登録→既存workflow内の原本復元→有界repeat-startまで実証。HEADの初回索引登録コミットは`bfa7ba8b0ed46b2ae830294b376c74f24f1ebaef`（状態文書追記前）。初回索引は存在を確認した上で再発行・上書きしない。
