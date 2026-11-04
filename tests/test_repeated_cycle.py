@@ -29,8 +29,8 @@ class RepeatedControllerTests(unittest.TestCase):
         self.assertTrue(r.prepare(self.path,2,now=now+timedelta(seconds=180))['active'])
     def test_bounded_duration_day_rollover_and_handoff(self):
         now=stamp(); state=r.start(self.path,day='2030-04-01',run_id=99,now=now)
-        self.assertEqual(state['stop_at'],'2030-04-01T04:20:50+00:00')
-        late=stamp('2030-04-01T04:20:51+00:00')
+        self.assertEqual(stamp(state['stop_at'])-now,timedelta(minutes=65))
+        late=stamp(state['stop_at'])+timedelta(seconds=1)
         self.assertFalse(r.prepare(self.path,1,now=late)['active'])
         with self.assertRaises(ValueError):r.start(self.path,day='2030-04-02',run_id=99,now=now)
     def test_caps_4xx_latch_and_hash_tamper(self):
@@ -49,7 +49,7 @@ class RepeatedControllerTests(unittest.TestCase):
     def test_round_names_bounded_no_foreign_run_or_overwrite(self):
         self.assertEqual(r.artifact_name('boat-national-cutoff',99,1),'boat-national-cutoff-99')
         self.assertEqual(r.artifact_name('boat-national-cutoff',99,2),'boat-national-cutoff-99-cycle-02')
-        for bad in (0,21,True):
+        for bad in (0,25,True):
             with self.assertRaises(ValueError):r.artifact_name('boat-national-cutoff',99,bad)
         self.assertTrue(r.matches('boat-national-cutoff-99-cycle-02','boat-national-cutoff-99'))
         for bad in ('boat-national-cutoff-98-cycle-02','boat-national-cutoff-99-cycle-01','boat-national-cutoff-99-cycle-99','boat-national-cutoff-99-extra'):

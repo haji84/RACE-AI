@@ -66,6 +66,8 @@ def p0_original_or_empty(raw,meta,day):
 def recover(get,day,*,current_run,out):
     """Read every same-day P1 original and every saved result journal, no writes upstream."""
     rows=[];observations=[];receipts=[];scanned=[];index_entries=[]
+    learning_shadows=[];learning_context=None;training_proofs={}
+    from .observed_weight_learning import read_shadow_rows,context_from_result_archive,merge_shadow_rows,training_proof,validate_shadow_training,attach_snapshots
     out.mkdir(parents=True,exist_ok=True)
     for run in day_runs(get,day,current_run=current_run):
         data=json.loads(get(f'actions/runs/{run["id"]}/artifacts?per_page=100'))
@@ -83,21 +85,30 @@ def recover(get,day,*,current_run,out):
             if prefix in ('boat-national-cutoff-','boat-p0-existing-'):
                 doc,items=(read_p1(raw,meta) if prefix=='boat-national-cutoff-' else p0_original_or_empty(raw,meta,day))
                 need(all(x['race_id'].startswith(day.replace('-','')+'-') for x in items),'foreign forecast day')
+                items=attach_snapshots(doc,items)
                 rows+=items
                 if prefix=='boat-national-cutoff-':
                     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
                         body_sha=hashlib.sha256(archive.read('national.json')).hexdigest()
+                    learning_shadows+=read_shadow_rows(doc,meta,items)
                     for pair in doc.get('paired_forecasts',[]):
                         index_entries.append(dict(race_id=pair['race_id'],cutoff_at=pair['cutoff_at'],run_id=run['id'],artifact_id=ident,server_created_at=meta['created_at'],zip_sha256=hashlib.sha256(raw).hexdigest(),json_sha256=body_sha,bundle_sha256=pair['bundle_sha256']))
                 # Preserve original bytes, not reconstructed predictions.
                 (out/f'original-{ident}.zip').write_bytes(raw)
                 receipts.append(meta)
-            else:observations+=result_archive(raw,meta,day)
+            else:
+                observations+=result_archive(raw,meta,day)
+                candidate=context_from_result_archive(raw,meta)
+                if candidate is not None:training_proofs[str(meta['id'])]=training_proof(candidate)
+                if candidate is not None and (learning_context is None or ts(meta['created_at'])>ts(learning_context['receipt']['created_at'])):
+                    learning_context=candidate
+    validate_shadow_training(learning_shadows,training_proofs)
     unique,excluded=first_receipt_rows(rows)
     _,journal=latest_result_observations(observations)
     state=dict(schema='RACE_AI_RECOVERED_FIRST_RECEIPTS_V1',day_jst=day,rows=unique,
                excluded_repeats=excluded,receipts=receipts,observations=journal,
-               scanned_runs=scanned,index_entries=index_entries,complete=True)
+               scanned_runs=scanned,index_entries=index_entries,complete=True,
+               learning_shadows=merge_shadow_rows(learning_shadows),learning_context=learning_context,training_proofs=training_proofs)
     state['state_sha256']=hashlib.sha256(json.dumps(state,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
     (out/'continuity.json').write_text(json.dumps(state,ensure_ascii=False))
     return state

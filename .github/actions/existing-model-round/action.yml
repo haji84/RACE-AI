@@ -3,7 +3,7 @@ description: Sequential round with independent pre-cutoff receipt and verified r
 inputs:
   round:
     required: true
-    description: Monotonic round number (1 through 20)
+    description: Monotonic round number (1 through 24)
   p0-supplement:
     required: true
     description: Existing immutable P0 supplement artifact ID

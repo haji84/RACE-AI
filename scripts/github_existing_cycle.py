@@ -14,6 +14,7 @@ race_ai.__path__.append(str(ROOT/'pr64-reference'/'race_ai'))
 from race_ai.frozen_day_cycle import read_p0,read_p1,evaluate,need,ts
 from race_ai.first_receipt_continuity import first_receipt_rows,latest_result_observations
 from race_ai.cycle_recovery import recover,load_state,due_rows
+from race_ai.observed_weight_learning import attach_snapshots
 JST=timezone(timedelta(hours=9));REPO='haji84/RACE-AI'
 
 def gh(path):
@@ -28,7 +29,7 @@ def original(day):
     need(receipt['created_at']==known['server_created_at'] and receipt['digest']=='sha256:'+known['zip_sha256'],'original receipt changed')
     doc,rows=read_p0(raw,receipt,expected_day=day)
     need(rows[0]['original_json_sha256']==known['json_sha256'],'original body changed')
-    return doc,rows,receipt,raw
+    return doc,attach_snapshots(doc,rows),receipt,raw
 
 def restore(day):
     import zipfile,io
@@ -54,7 +55,20 @@ def forecast(day):
     from race_ai.repeated_cycle import SourceGuard
     session=ROOT/'cycle_recovery_output/repeat-session.json'
     if session.exists():pilot.SOURCE_GUARD=SourceGuard(session)
-    pilot.run(schedule_snapshot=state.get('schedule_cache'))
+    result=pilot.run(schedule_snapshot=state.get('schedule_cache'))
+    from race_ai.observed_weight_learning import make_shadows
+    result['learned_pairwise_shadows']=[];result['learning_failures']=[]
+    context=state.get('learning_context')
+    for bundle in result.get('observed_pairwise_p1_bundles',[]):
+        if context is None or 'suite' not in bundle:continue
+        try:
+            need(ts(bundle['snapshot']['sales_cutoff_at'])-datetime.now(timezone.utc)>timedelta(seconds=210),
+                 'learned inference too near cutoff')
+            result['learned_pairwise_shadows']+=make_shadows(bundle['snapshot'],bundle['suite'],context)
+        except (ValueError,KeyError,TypeError) as exc:
+            result['learning_failures'].append({'race_id':bundle['race_id'],'reason':str(exc)[:180]})
+    (pilot.OUTPUT/'national.json').write_text(json.dumps(result,ensure_ascii=False,sort_keys=True,separators=(',',':')))
+
 
 def supplement(day):
     """Fill only previously absent future P0 rows; never edit first morning bytes."""
@@ -75,11 +89,11 @@ def audit(day,p1_id,p0_supplement=None,round_no=None):
     (out/'first-p0-original.zip').write_bytes(p0_zip)
     if p0_supplement:
         meta=json.loads(gh(f'actions/artifacts/{p0_supplement}'));raw=gh(f'actions/artifacts/{p0_supplement}/zip')
-        _,additional=read_p0(raw,meta,expected_day=day);rows+=additional;sources.append(meta)
+        supplement_doc,additional=read_p0(raw,meta,expected_day=day);rows+=attach_snapshots(supplement_doc,additional);sources.append(meta)
         (out/'supplement-p0-original.zip').write_bytes(raw)
     if p1_id:
         meta=json.loads(gh(f'actions/artifacts/{p1_id}'));raw=gh(f'actions/artifacts/{p1_id}/zip')
-        p1_doc,p1rows=read_p1(raw,meta);rows+=p1rows;sources.append(meta);p1_meta=meta
+        p1_doc,p1rows=read_p1(raw,meta);rows+=attach_snapshots(p1_doc,p1rows);sources.append(meta);p1_meta=meta
         (out/'current-p1-original.zip').write_bytes(raw)
     rows,excluded=first_receipt_rows(rows)
     excluded=recovered['excluded_repeats']+excluded
@@ -112,7 +126,7 @@ def audit(day,p1_id,p0_supplement=None,round_no=None):
                 if guard is not None:guard.http_failure(exc.code)
             failures.append(dict(race_id=rid,state='SOURCE_OR_PARSE_UNAVAILABLE',reason=type(exc).__name__+': '+str(exc)[:120]))
     latest_observations,observations=latest_result_observations(observations)
-    report=evaluate(rows,latest_observations)
+    report=evaluate([{k:v for k,v in r.items() if k not in ('learning_snapshot','learning_snapshot_sha256')} for r in rows],latest_observations)
     report.update(day_jst=day,updated_at=datetime.now(timezone.utc).isoformat(),run_id=os.environ.get('GITHUB_RUN_ID'),
         code_sha=os.environ.get('GITHUB_SHA'),first_forecast_artifacts=sources,source_request_count=requests_used,
         schedule=doc['schedule'],scheduled_boat_races=len(doc['schedule']),
@@ -142,7 +156,29 @@ def audit(day,p1_id,p0_supplement=None,round_no=None):
                                      'included_in_formal_scoreboard':False}
     (out/'external_research_summary.json').write_text(json.dumps(report['external_research'],ensure_ascii=False,indent=2))
 
-    report['next_action']='VALIDATE_IMPROVEMENT_ON_NEW_RACES_ONLY'
+    from race_ai.observed_weight_learning import (fit_from_verified,read_shadow_rows,
+        merge_shadow_rows,score_shadows,coverage_audit,validate_shadow_training)
+    shadow_rows=list(recovered.get('learning_shadows',[]))
+    if p1_doc is not None: shadow_rows+=read_shadow_rows(p1_doc,p1_meta,rows)
+    shadow_rows=merge_shadow_rows(shadow_rows)
+    validate_shadow_training(shadow_rows,recovered.get('training_proofs',{}))
+    recovered['learning_shadows']=shadow_rows
+    report['learned_shadow_comparison']=score_shadows(shadow_rows,rows,latest_observations)
+    report['coverage_audit']=coverage_audit(rows,doc['schedule'],now=datetime.now(timezone.utc))
+    training_path=out/'trained_observed_models.json'
+    try:
+        training=fit_from_verified(rows,latest_observations,now=datetime.now(timezone.utc))
+        prior=(recovered.get('learning_context') or {}).get('training')
+        if prior is not None and {k:v for k,v in prior.items() if k not in ('created_at','training_sha256')}=={k:v for k,v in training.items() if k not in ('created_at','training_sha256')}:
+            training=prior  # Do not invent a new candidate version for unchanged evidence.
+        training_path.write_text(json.dumps(training,ensure_ascii=False,sort_keys=True))
+        report['automatic_learning']={k:v for k,v in training.items() if k not in ('source_lineage','excluded_races')}
+    except (ValueError,KeyError,TypeError) as exc:
+        if training_path.exists():training_path.unlink()
+        report['automatic_learning']={'state':'LEARNING_INPUT_REJECTED','reason':str(exc)[:200],
+                                      'auto_promoted':False,'accuracy_improvement_proven':False}
+    report['next_action']='FREEZE_TRAINED_CANDIDATES_THEN_COMPARE_FUTURE_RACES'
+    report['updated_at']=datetime.now(timezone.utc).isoformat()
     report['round_no']=round_no
     if session_path.exists():report['bounded_repeat_session']=load_session(session_path)
     report['report_sha256']=hashlib.sha256(json.dumps(report,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
@@ -205,6 +241,14 @@ def repeat_complete(day,round_no,p1_id,result_id):
         report=json.loads(archive.read('status.json'))
     local=json.loads((ROOT/'existing_cycle_output/status.json').read_text())
     need(report==local and report['round_no']==round_no and str(report['run_id'])==str(run_id),'round result readback mismatch')
+    from race_ai.observed_weight_learning import context_from_result_archive,training_proof
+    from race_ai.repeated_cycle import write_state
+    context=context_from_result_archive(raw,meta)
+    if context is not None:
+        continuity=load_state(ROOT/'cycle_recovery_output/continuity.json',day)
+        continuity['learning_context']=context
+        continuity.setdefault('training_proofs',{})[str(meta['id'])]=training_proof(context)
+        write_state(ROOT/'cycle_recovery_output/continuity.json',continuity,key='state_sha256')
     state=complete(ROOT/'cycle_recovery_output/repeat-session.json',round_no,
                    now=datetime.now(timezone.utc),forecast_artifact=p1_id,result_artifact=result_id)
     print(json.dumps(dict(state='ROUND_SAVED_AND_READBACK_VERIFIED',round=round_no,

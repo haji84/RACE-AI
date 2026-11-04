@@ -12,10 +12,10 @@ import os
 from pathlib import Path
 import re
 
-MAX_ROUNDS = 20
+MAX_ROUNDS = 24
 POLL_SECONDS = 180
 SOURCE_LIMIT = 240
-MAX_SECONDS = 55 * 60
+MAX_SECONDS = 65 * 60
 CACHE_SECONDS = 600
 JST = timezone(timedelta(hours=9))
 
@@ -73,12 +73,11 @@ def start(path, *, day, run_id, now):
         old = load(path)
         _need(old['run_id'] == run_id and old['day_jst'] == day, 'foreign existing session')
         return old
-    # The existing task fires at HH:22:20. Yield 90 seconds beforehand rather
-    # than silently overlap it. Task lateness is not eliminated by this guard.
-    next_trigger = now.replace(minute=22, second=20, microsecond=0)
-    if next_trigger <= now + timedelta(seconds=150):
-        next_trigger += timedelta(hours=1)
-    stop_at = min(now + timedelta(seconds=MAX_SECONDS), next_trigger-timedelta(seconds=90))
+    # A successor may be queued in the SAME concurrency group. Do not stop
+    # early merely because the existing hourly task is about to run.
+    midnight = (now.astimezone(JST).replace(hour=0,minute=0,second=0,microsecond=0)
+                + timedelta(days=1))
+    stop_at = min(now + timedelta(seconds=MAX_SECONDS), midnight)
     state = dict(schema='RACE_AI_BOUNDED_REPEAT_V1', day_jst=day, run_id=run_id,
                  started_at=now.isoformat(), stop_at=stop_at.isoformat(),
                  completed_round=0, prepared_round=None, last_started_at=None,
