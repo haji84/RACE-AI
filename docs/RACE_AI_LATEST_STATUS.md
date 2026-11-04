@@ -8,9 +8,9 @@
 | 全レース×適用全モデル | 既存SQLiteへ版/競技/段階別の追加保存表。全16native出力を保存・読戻し・画面へ渡す経路を追加。元SHA/順位/整数キーを保持、再起動/同時実行でも元原本を再生成しない | **4競技のライブ全対象運転は未達**。本来の実入力/学習物/利用条件/締切前外部保存/結果照合/恒久私有保管が未接続 |
 | スマホ・PC/Safari | Chromiumの4幅で31操作グループ/48PNG。全16系統、試走前/後、5点プラン、未予想/未取得を操作確認 | **実機Safariは未接続・未受入**。ChromiumをSafari実機試験と呼ばない |
 | 精度改善の前向き比較 | BOAT保存済み元/学習版の同条件比較APIを追加。全宣言台帳と未予想を保持、結果観測・学習物を結び、再学習/再予想しない | **改善実証は未達**。公式率はnull、独立検証/改善認定/自動本番採用はfalse。別writerの22:58監査も元/学習版11/33、10/33で同数 |
-| 回帰と独立レビュー | **Python724件、Node175件、失敗/skip0**。認可scope迂回、異常着順、段階分母と5点の誤表示等を再現・修正・再レビュー | この文書の時点では今回コードはpush前。反映HEAD/既存CIは後で照合する |
+| 回帰と独立レビュー | **Python724件、Node175件、失敗/skip0**。認可scope迂回、異常着順、段階分母と5点の誤表示等を再現・修正・再レビュー | コード `eefc57a9e73e3270d4d50d48e1a08729868d88e5` を既存PR71へ通常pushしheadSha一致。viewer41844165883/AUTORACE41844165868はcompleted/success。後続の証拠文書commit自身のCIとは区別する |
 
-[接続APIと限界](PRIVATE_OPERATION_AND_COMPARISON.md) / [テスト・失敗修正・48画面](evidence/2026-11-04/continued-operation/EVIDENCE.md)。派生画面のnative予想SHA欠測は未取得のまま、出力本文SHA/モデル学習物SHAとは区別する。オート試走段階をP0/P1へ改名せず、宣言された未予想段階を分母から消さない。Sellerは保存5点プランとして表示する。
+[コードHEADのCI照合](evidence/2026-11-04/continued-operation/ci-verification.json) / [接続APIと限界](PRIVATE_OPERATION_AND_COMPARISON.md) / [テスト・失敗修正・48画面](evidence/2026-11-04/continued-operation/EVIDENCE.md)。派生画面のnative予想SHA欠測は未取得のまま、出力本文SHA/モデル学習物SHAとは区別する。オート試走段階をP0/P1へ改名せず、宣言された未予想段階を分母から消さない。Sellerは保存5点プランとして表示する。
 
 同時writerの21cce5b→7bbafee/bb654bb/459e919/00232b7をfast-forwardで保全。JRA入力ゲート6試験も含め全Pythonを再実行済み。別writerの最新監査は既存run41842464812第1巡回570基準予想/通常489採点という記録で、今回この環境でZIPを再集計した値ではない。こちらから巡回起動/取消/再実行/provider GETは0。
 

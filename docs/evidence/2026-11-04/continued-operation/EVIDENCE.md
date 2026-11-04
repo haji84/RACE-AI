@@ -35,3 +35,5 @@
 実行環境のapi.github.comは許可未適用。環境下書きに通信先と更新済み起動/試験手順を保存したが、ツールの応答は`requires_publish=true`であり、適用/Publish機能は提供されていない。ユーザーの設定画面で見えた「クラウドコンピューター」から環境設定を探す案内をした。通信ポリシーを迂回せず、拒否されたまま原本取得成功とは報告しない。
 
 4競技の実入力・全対象の締切前外部保存・独立結果照合・恒久私有保管・実機Safari・前向き改善実証は未達。別writerの実BOAT監査と今回の合成試験を混同しない。今回の新規provider取得・巡回trigger/cancel/rerun・workflow追加・モデル系統追加・公開・実投票・main統合・本番採用は0。
+
+コードHEAD `eefc57a9e73e3270d4d50d48e1a08729868d88e5` をPR headShaと照合し、既存viewer [41844165883](https://github.com/haji84/RACE-AI/actions/runs/41844165883)、AUTORACE [41844165868](https://github.com/haji84/RACE-AI/actions/runs/41844165868) のcompleted/successを確認した。[照合記録](ci-verification.json)。後続文書commit自身のCI結果とは区別する。
