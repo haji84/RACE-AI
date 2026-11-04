@@ -23,6 +23,16 @@
 
 # RACE-AI 現在地・実行結果の確認先
 
+## 2026-11-04 19:18 JST｜最終第21巡回まで実行ログ・artifact登録を照合
+
+対象：既存Draft PR #71 / workflow 405276784 / run `41801993716`。2026-11-04 19:18 JSTにPR HEAD `c15e683d520ba248526800c8a35c161735a2d565`、同workflowの直近実行、GitHub Actions jobログと全artifact一覧を再確認。対象run自体の実行HEADは `8dc4e482e02c332fa54fc38129946cc90871f355`。当該runは18:48:49 JSTに `completed/success`。最後に実際に保存・読戻しまで完了したのは**第21巡回**（18:48:38 JST）。第22〜24巡回は `SESSION_SOURCE_BUDGET_EXHAUSTED` で実予想・照合なし。セッション取得240/240。正常終了を全24巡の実施と読み替えない。
+
+**最新のrunログ確定値：** 基準5モデル予想 **560モデル別行**（前回18:38文書の555から+5、異なる対象レースは144）、通常結果採点 **417モデル別行**（410から+7）。第18巡回で1レース×5モデルを追加、第19〜21巡回で新規予想なし。第21巡回の予想操作は `OBSERVED_ATTEMPT_NO_FORECAST / NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES` で、空の試行を予想成功に算入していない。通常採点増加は新規予想の的中とは別事象。最新学習版の予想数・前向き比較成績は、この監査では最終ZIP内部を独立展開できず**未再計算**。以前の64研究予想・52比較行を最新値として再宣言しない。自動本番採用なし。
+
+最終の予想artifact `13311063371`（ZIP SHA256/GitHub digest `3ca3b063cbf9f409a21aaacc4870e3b493059f10c161aafb6b990f703565da90`）と結果・PDCA artifact `13312385205`（同 `3dcd04a42bd3cc1483313973f7a34dc58339f487e01522c30ea50283d869e35f`）をAPI一覧と実行ログのアップロードdigestで照合。run内の `repeat-complete` は `ROUND_SAVED_AND_READBACK_VERIFIED`（第21巡回・560予想・417通常採点・240取得）を記録。コネクタからZIP取得はしたが今回の実行環境でローカルZIP展開/実バイト再ハッシュがエラーとなり、**今回の別環境独立再ハッシュ成功とは言わない**。run内読戻しとGitHub API登録digest照合を確認した範囲に限定する。
+
+同workflowの最新30 run一覧に当該runより新しい実行・in_progress/queuedは見当たらなかったが、**終了理由が公式GET上限到達**のため、取得上限を回避する即時再トリガーは行っていない。既存周期・concurrency・データ取得上限・原本停止規則を維持。新PR、新モデル、新workflow、追加課金、公開、main統合、実投票、モデル自動採用なし。期限なしowner-only原本保全・全16系統/全4競技実接続・学習版未来優位性は引き続き未達。
+
 ## 2026-11-04 18:38 JST｜反復run第17巡回の予想・結果ZIPを独立照合（実行は継続中）
 
 対象：既存Draft PR #71 / `feat/four-sport-forecast-audit-view-20261022`。確認時HEAD `399d712d1405ecf70bb0f002eb40382b7a8d0cdd`。既存workflow 405276784 / run `41801993716` のジョブは確認時 `in_progress`。第17巡回の予想artifact `13311386530` (ZIP SHA256 `9838c0ee57a2eb9024d2e1e664d1f60b909ca3bfc5b503137b0343dc8202e183`) と公式結果・PDCA artifact `13311232967` (ZIP SHA256 `08d36821ab53e824aa6600739e3f5914f111a8a648a80afcdaa60737d450e80c`) を個別ダウンロードし、実ZIPバイトをSHA256計算してGitHub API digestと一致。結果ZIP内部の `status.json` / `forecasts.csv` は双方555行、`round_no=17`、集計時刻18:36:35 JST。保存済み第17巡回の証拠であり、次の未完了巡回は加算しない。状態ZIP内のsession `completed_round=16` は第17巡回の読戻し前に記録された値で、別途第17巡回の両artifactがGitHubに保存済みなのを確認した。
