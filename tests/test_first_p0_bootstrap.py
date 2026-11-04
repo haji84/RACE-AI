@@ -49,6 +49,34 @@ class FirstP0BootstrapTests(unittest.TestCase):
         self.assertEqual(found[1]['id'], meta['id'])
         self.assertEqual(found[0], raw)
 
+    def test_restore_preserves_just_captured_first_p0_bytes(self):
+        # A new first receipt is captured before restore in the same job.
+        # Restore must not overwrite it, and a byte conflict must stop.
+        import io
+        import os
+        import tempfile
+        import zipfile
+        from pathlib import Path
+        from scripts import github_existing_cycle as cycle
+
+        doc, raw, meta = sample()
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            body = archive.read('forecasts.json')
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = root / 'boat_all_day_output' / 'forecasts.json'
+            target.parent.mkdir()
+            target.write_bytes(body)
+            with patch.object(cycle, 'ROOT', root), \
+                 patch.object(cycle, 'original', return_value=(doc, [], meta, raw)), \
+                 patch.object(cycle, 'recover', return_value={}), \
+                 patch.dict(os.environ, {'GITHUB_RUN_ID': '3'}):
+                cycle.restore('2030-04-01')
+                self.assertEqual(target.read_bytes(), body)
+                target.write_bytes(b'altered')
+                with self.assertRaisesRegex(ValueError, 'FIRST_P0_RESTORE_LOCAL_BYTES_CONFLICT'):
+                    cycle.restore('2030-04-01')
+
     def test_incomplete_artifact_listing_blocks_blind_regeneration(self):
         incomplete = {'total_count': 2, 'artifacts': []}
         with patch.object(boot, 'day_runs', return_value=[{'id': 2}]), \
