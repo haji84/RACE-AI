@@ -52,3 +52,5 @@ only_artifacts=13204251708
 
 2026-11-04 03:33 JST bounded D+1 verification after cross-day roster correction: recheck ONLY existing original artifact 13204251708 (Miyajima8R, Tokuyama11R, earliest Heiwajima7R). Original ZIP/JSON/receipt SHA and first receipt must match. Previous run 41675366137 yielded three SourceError safe stops, not scored; this is one post-fix verification attempt, not three new race results. Require individual official racerresult 6 entrants, refund/abnormal/payout before scoring; 4xx or source ambiguity safe stop, no retry. Do not modify original, index, frozen models, PR64 or unresolved nonce; no cumulative re-add.
 only_artifacts=13204251708
+2026-11-04 09:22 JST individual independent result replay of previously frozen 三国1R original 13280958753, 3号艇転 special result; preserve original and do not count as normal; no rePOST
+only_artifacts=13280958753
