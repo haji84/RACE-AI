@@ -2,6 +2,7 @@
 
 ## 2026-11-04 15:46 JST | 終了した2 runの原本回収・読戻し障害の診断
 
+- 15:48 JSTに最新状態を再照合したところ、既存triggerを一度だけ更新したcommit `813ed493a431351e3d86cee684481ff6d988c8e7`から既存workflowの新run41787887120がin_progress。初回ソース・依存checkoutと既存テストは成功済みだが、予想/結果artifactはこの時点では未アップロード。従って新runの予想・採点増加は未認定。別の起動は追加しない。\n
 - 既存workflow405276784の run41775510938 は12巡目、後続 run41776478221 は5巡目の最終 `repeat-complete` で失敗（どちらも completed/failure）。失敗箇所は結果artifactアップロード直後の `gh api actions/artifacts/<id>`。GitHub APIの終了コードをstdout/stderrから確定できないため、4xx/429ではなかったと断定しない。以後の自動再起動はしない。
 - ただしrun41776478221の5巡目には予想artifact13298279165（ZIP SHA256 `41c7a7f14e9fc7932462b5426222c025e8290149f8d2b4984d0d6730210d9d6d`）と結果artifact13298368808（ZIP SHA256 `64e44639b0bfdab9ee9cad4981f53c567252a9855547a5c54801f6b3212fa503`）が存在し、API上のdigestと実ZIPの再取得・SHA照合は成功。結果原本内のforecast ZIPが予想artifactに実バイト一致。結果履歴134件、P1当該巡回予想10モデル別件を旧コードの原本契約で独立読み取れた。run41775510938の12巡目の結果artifact13298018605もAPI digestと実バイト一致。
 - 最新の保存済みstatus（2026-11-04 14:38:07 JST、run41776478221 round_no=5）は、ボート対象144R、基準予想455件（P0=288/P1=167）、通常採点215件（HIT71/MISS144）、結果待ち182、異常22、返還16、結果拒否20。学習版シャドー24予想、同条件で結果照合済み6モデル別ペア（学習版・基準版双方HIT4/MISS2）。学習元artifact 13296253570、13296976644、13297198656の実ZIP SHAと内部training SHA参照も一致。ただし学習版の優位性は未証明。
