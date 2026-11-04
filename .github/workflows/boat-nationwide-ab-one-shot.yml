@@ -56,6 +56,80 @@ jobs:
           path: existing_cycle_output/
           if-no-files-found: warn
           retention-days: 7
+      - name: Bounded November 4 public racecard evidence for requested missing forecasts
+        if: always()
+        run: |
+          python - <<'PY'
+          from datetime import datetime,timezone,timedelta
+          from html.parser import HTMLParser
+          from urllib.request import Request,urlopen
+          from urllib.parse import urljoin,urlparse
+          from pathlib import Path
+          import hashlib,json,re,time
+          JST=timezone(timedelta(hours=9))
+          if datetime.now(JST).date().isoformat()!='2026-11-04': raise SystemExit('DATE_SCOPE_ENDED')
+          class Visible(HTMLParser):
+              def __init__(self): super().__init__(convert_charrefs=True);self.skip=0;self.text=[];self.links=[];self.js=[];self.active=False
+              def handle_starttag(self,t,a):
+                  a=dict(a)
+                  if t=='a' and a.get('href'):self.links.append(a['href'])
+                  if t in ('style','script','noscript'):
+                      self.skip+=1
+                      if t=='script' and (a.get('id')=='__NEXT_DATA__' or a.get('type')=='application/json'):self.active=True
+              def handle_endtag(self,t):
+                  if t in ('style','script','noscript'):self.skip=max(0,self.skip-1);self.active=False
+              def handle_data(self,d):
+                  if self.active:self.js.append(d)
+                  if not self.skip and d.strip():self.text.append(d.strip())
+          urls=[
+            'https://www.boatrace.jp/owpc/pc/race/racelist?hd=20261104&jcd=17&rno=8',
+            'https://www.boatrace.jp/owpc/pc/race/racelist?hd=20261104&jcd=17&rno=12',
+            'https://www.winticket.jp/keirin/racecard/20261104',
+            'https://www.winticket.jp/autorace/racecard/20261104',
+            'https://www.keiba.go.jp/KeibaWeb/TodayRaceInfo/RaceList?k_babaCode=27&k_raceDate=2026%2F11%2F04',
+            'https://www.keiba.go.jp/KeibaWeb/TodayRaceInfo/RaceList?k_babaCode=10&k_raceDate=2026%2F11%2F04',
+            'https://www.keiba.go.jp/KeibaWeb/TodayRaceInfo/RaceList?k_babaCode=22&k_raceDate=2026%2F11%2F04',
+            'https://www.keiba.go.jp/KeibaWeb/TodayRaceInfo/RaceList?k_babaCode=36&k_raceDate=2026%2F11%2F04',
+            'https://www.keiba.go.jp/KeibaWeb/TodayRaceInfo/RaceList?k_babaCode=19&k_raceDate=2026%2F11%2F04']
+          seen=set();out=[]
+          while urls and len(seen)<16:
+              u=urls.pop(0)
+              if u in seen:continue
+              seen.add(u)
+              try:
+                  req=Request(u,headers={'User-Agent':'RACE-AI-owner-private-one-shot/1.0','Accept':'text/html'})
+                  with urlopen(req,timeout=15) as r:
+                      raw=r.read(2500001);ct=r.headers.get('Content-Type','');final=r.geturl();status=r.status
+                  if len(raw)>2500000:raise ValueError('SIZE_LIMIT')
+                  enc=re.search(r'charset=([\w-]+)',ct,re.I)
+                  choices=[enc[1] if enc else 'utf-8','utf-8','cp932','euc-jp']
+                  text=None
+                  for encoding in choices:
+                      try:text=raw.decode(encoding);break
+                      except (UnicodeDecodeError,LookupError):pass
+                  if text is None:raise ValueError('ENCODING_UNVERIFIED')
+                  p=Visible();p.feed(text)
+                  links=sorted(set(urljoin(final,a) for a in p.links))
+                  row={'url':u,'final_url':final,'observed_at':datetime.now(timezone.utc).isoformat(),'status':status,'sha256':hashlib.sha256(raw).hexdigest(),'visible_text':'\n'.join(p.text),'links':[a for a in links if any(t in a for t in ('racecard','DebaTable','RaceList','program','pdf'))],'json_scripts':p.js}
+                  out.append(row)
+                  if 'winticket.jp' in u and len([a for a in seen if 'winticket.jp' in a])<6:
+                      candidates=[a for a in links if re.search(r'/(keirin|autorace)/[^/]+/racecard/20\d{6}',a)]
+                      urls.extend(candidates[:2])
+                  print('FACTS',status,len(raw),len(p.text),len(p.js),u)
+              except Exception as e:
+                  out.append({'url':u,'state':'SOURCE_UNAVAILABLE','error_class':type(e).__name__,'error':str(e)[:180]});print('UNAVAILABLE',type(e).__name__,u)
+              time.sleep(.5)
+          dest=Path('public_card_evidence');dest.mkdir(exist_ok=True)
+          (dest/'cards.json').write_text(json.dumps({'research_only':True,'prediction_count':0,'requests':len(seen),'sources':out},ensure_ascii=False),encoding='utf-8')
+          PY
+      - name: Preserve bounded source observations separately from predictions
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: public-card-observations-${{ github.run_id }}
+          path: public_card_evidence/cards.json
+          if-no-files-found: warn
+          retention-days: 7
       - name: Prepare exact source verification bundle, no data or credentials
         if: always()
         run: tar -czf source-bundle.tar.gz --exclude='.git' --exclude='__pycache__' race_ai scripts tests .github pr64-reference/race_ai pr72-reference/race_ai
