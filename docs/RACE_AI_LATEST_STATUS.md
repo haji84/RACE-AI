@@ -1,3 +1,17 @@
+# 2026-11-05 01:08 JST｜前日runの正常終了と継続原本を独立確認（採点・予想増分なし）
+
+既存Draft PR #71 / workflow405276784 / run `41842464812`。2026-11-05 01:08 JSTに既存runのjob `126617327153` が `completed/success` であることをGitHub接続で確認。第21巡回の予想artifact `13336307604`（2026-11-04 23:58:02 JST、ZIP SHA256 `119ee2a394acbaf1f15f1c92ca61b3ad96c80d53800cbf2c2468acf808f3762a`）、結果/PDCA artifact `13335717741`（23:58:11 JST、SHA256 `e6653f0fc545eead623eb0822c728d56d9a8ce1d364368a165822995d655a636`）、最終継続artifact `13335757993`（2026-11-05 00:00:20 JST、SHA256 `64b8e3791d0ef8b94188733b290bc1f31a94e7bc0f695dedff638db3eb015242`）を無改変取得し、実バイトSHA256とGitHub API digestが3件一致。結果ZIPに埋込まれた予想ZIPも同一バイト。continuity.jsonの `complete=true`、rows=570、公式結果観測=505、LEARNED_SHADOW=70、同日走査run=23を確認。
+
+**前回23:58保存値から正式予想・採点・学習比較の増分なし。** status.jsonはround_no=21、updated_at=2026-11-04T23:58:10 JST、基準予想570（P0=288/P1=282）、通常採点489（HIT139/MISS350）、結果未通常81、LEARNED_SHADOW70、通常同条件比較66モデル別行／33レース。係数学習122レース（train92/validation30）、元/学習版の同条件優越なし。モデル5系統の本番係数と元予想変更なし。coverageは144レース締切済、P1五モデル完全保存48レース、不足438モデル別行。これは当時の展示公開有無まで実証した取りこぼし数ではない。
+
+公式GETは保存時199/240。状態上 `prepared_round=21`、`completed_round=20`、`halted_reason=null` であり、job全体のsuccessと第21巡回の継続レシート完成を同義としない。round22～24のActions stepはsuccess表示でも新規保存artifactは確認されず、新予想や採点の成功には換算しない。日付境界 `stop_at=2026-11-05 00:00 JST` を保ち、翌日への強制継続・GET上限の回避なし。
+
+非公開Google Drive保存先はフォルダ `shared=false`、rootと同じownerであることをメタデータから確認したが、GitHubダウンロード参照をDrive upload APIに渡す処理はconnectorの入力形式不整合で失敗。**2026-11-04当日原本のDrive新規保存・読戻しSHAは0件で、恒久保全完成ではない。** 公開GitHubへ個人保存先のURL/ID/認証情報を記載していない。同workflowのactive/queued/pending/waitingを全runにわたり列挙するAPIが本接続にないので、後続不在を断定せず新規trigger更新・rerun・cancelはなし。既存workflow/task/schedule/モデル系統/PR/課金/main統合/公開/実投票/本番自動採用も変更なし。
+
+未達は全16系統・全4競技の実ライブ全対象予想、全対象展示後保存、期限なし所有者限定保存、学習版の前向き統計的優位性。
+
+---
+
 # 2026-11-04 23:58 JST｜既存run第21巡回の保存原本監査（正式採点増加なし）
 
 対象は既存Draft PR #71 / branch `feat/four-sport-forecast-audit-view-20261022` / workflow `405276784`、run `41842464812`。監査開始時のPR HEAD `e4c4cf5e100dfdb42121d13cb312320bf710a7d7`。第21巡回の予想artifact `13336307604`（23:58:02 JST、元ZIP SHA256 `119ee2a394acbaf1f15f1c92ca61b3ad96c80d53800cbf2c2468acf808f3762a`）と結果/PDCA artifact `13335717741`（23:58:11 JST、元ZIP SHA256 `e6653f0fc545eead623eb0822c728d56d9a8ce1d364368a165822995d655a636`）を無改変ダウンロードし、それぞれGitHub API digestとの一致を確認。結果ZIPに埋め込まれた予想ZIPとも実バイトSHA256が一致。内部status.json `round_no=21`、`updated_at=2026-11-04T14:58:10.175004+00:00`。`completed_round=20`のため、第21巡回の全step完走やworkflow終了とは区別する。確認時にjobは`in_progress`。
