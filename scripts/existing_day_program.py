@@ -68,7 +68,7 @@ def forecast_program(program, *, clock=lambda: datetime.now(timezone.utc), alrea
                   model_forecast_count=sum(len(s['models']) for s in result['predictions']))
     return result
 
-def collect(*, clock=lambda: datetime.now(timezone.utc)):
+def collect(*, clock=lambda: datetime.now(timezone.utc), already_frozen=frozenset()):
     day = clock().astimezone(JST).date(); url = official_url(day, 'B')
     status = dict(schema='RACE_AI_EXISTING_P0_DAY_V1', day_jst=str(day), predictions=[],
         schedule=[], skipped=[], external_receipt_verified=False, actual_purchases=False,
@@ -87,7 +87,7 @@ def collect(*, clock=lambda: datetime.now(timezone.utc)):
         from race_ai.program_race_isolation import normalize_races
         program = normalize_races(body, day=day, source_url=url, observed_at=capture,
                                   archive_sha256=meta['sha256'])
-        status = forecast_program(program, clock=clock)
+        status = forecast_program(program, clock=clock, already_frozen=already_frozen)
         status.update(extracted_text_sha256=program['extracted_text_sha256'], source_requests=1,
                       schedule=program['all_schedule'], blocked_races=program['blocked_races'])
         status['skipped'].extend(program['blocked_races'])

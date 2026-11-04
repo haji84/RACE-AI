@@ -7,7 +7,7 @@ def fixture(bad_race=None):
  for n in range(1,13):
   text+=f'{n}Ｒ 予選 Ｈ１８００ｍ 電話投票締切予定１０：３０\n'
   for lane in range(1,7):
-   field='11100.00' if n==bad_race and lane==1 else f'{10+lane} 50.00'
+   field='11X00.00' if n==bad_race and lane==1 else f'{10+lane} 50.00'
    text+=f'{lane} {4000+lane}選手名字42三重55A2 6.32 46.72 5.55 30.00 {field} {130+lane} 23.68\n'
  return (text+'18BEND\n').encode('cp932')
 
@@ -24,6 +24,15 @@ class RaceIsolationTest(unittest.TestCase):
   self.assertEqual(x['blocked_races'][0]['race_id'],'20300401-18-03')
   self.assertEqual(x['blocked_races'][0]['reason'],'B program detail layout malformed')
   self.assertNotIn('20300401-18-03',[r['race_id'] for v in x['venues'] for r in v['races']])
+ def test_fused_100_percent_motor_rate_preserves_true_values(self):
+  raw=fixture().replace(b'11 50.00',b'11100.00',1)
+  x=self.parse(raw);self.assertEqual(x['races'],12)
+  boat=x['venues'][0]['races'][0]['boats'][0]
+  self.assertEqual(boat['motor_no'],11)
+  self.assertEqual(boat['motor_top2_rate'],100.0)
+  self.assertEqual(boat['boat_no'],131)
+  self.assertEqual(boat['national_win_rate'],6.32)
+  self.assertEqual(x['extracted_text_sha256'],__import__('hashlib').sha256(raw).hexdigest())
  def test_wrong_date_and_duplicate_identity_fail_closed(self):
   with self.assertRaises(ValueError):self.parse(fixture().replace('２０３０年４月１日'.encode('cp932'),'２０３０年４月２日'.encode('cp932')))
   with self.assertRaises(ValueError):self.parse(fixture().replace(b'2 4002',b'2 4001',1))

@@ -1,6 +1,6 @@
 """Historical handoff checkpoint is a subset of the append-only day registry."""
 from copy import deepcopy
-from datetime import datetime,timezone
+from datetime import datetime,timezone,timedelta
 import json
 from pathlib import Path
 import tempfile
@@ -15,15 +15,16 @@ CHECK_AT='2026-11-04T09:00:00+09:00'
 class CrossChatFreezeIndexTest(unittest.TestCase):
     def setUp(self):
         self.data=json.loads(REAL.read_text(encoding='utf-8'))
+        self.check_at=(max(datetime.fromisoformat(x['server_created_at'].replace('Z','+00:00')) for x in self.data['entries'])+timedelta(seconds=1)).isoformat()
 
-    def check(self,change,clock=CHECK_AT):
+    def check(self,change,clock=None):
         document=deepcopy(self.data); change(document)
         with tempfile.TemporaryDirectory() as temp:
             p=Path(temp)/'registry.json'; p.write_text(json.dumps(document,ensure_ascii=False),encoding='utf-8')
-            return load_original_race_ids(p,as_of=clock)
+            return load_original_race_ids(p,as_of=clock or self.check_at)
 
     def test_verified_checkpoint_remains_present_as_registry_grows(self):
-        ids=load_original_race_ids(REAL,as_of=CHECK_AT)
+        ids=load_original_race_ids(REAL,as_of=self.check_at)
         expected={'17-02','17-03','17-04','17-07','04-06','22-06','09-07','06-07','02-07','04-07','21-11','22-07','17-08','18-11'}
         self.assertTrue({'20261103-'+x for x in expected}<=ids)
         self.assertEqual(len(ids),len(self.data['entries']))
@@ -49,12 +50,12 @@ class CrossChatFreezeIndexTest(unittest.TestCase):
             with self.subTest(mutation=mutation),self.assertRaises(ValueError): self.check(mutation)
 
     def test_next_day_uses_same_original_index_only_as_dedup(self):
-        self.assertEqual(load_original_race_ids(REAL,as_of=CHECK_AT),load_original_race_ids(REAL,as_of='2026-11-04T10:00:00+09:00'))
+        self.assertEqual(load_original_race_ids(REAL,as_of=self.check_at),load_original_race_ids(REAL,as_of=(datetime.fromisoformat(self.check_at)+timedelta(days=1)).isoformat()))
         with self.assertRaises(ValueError):load_original_race_ids(REAL,as_of='2026-11-03T10:00:00+09:00')
 
     def test_duplicate_json_keys_fail_closed(self):
         with tempfile.TemporaryDirectory() as temp:
             p=Path(temp)/'registry.json';p.write_text('{"schema":"A","schema":"B"}')
-            with self.assertRaises(ValueError):load_original_race_ids(p,as_of=CHECK_AT)
+            with self.assertRaises(ValueError):load_original_race_ids(p,as_of=self.check_at)
 
 if __name__=='__main__':unittest.main()

@@ -16,6 +16,15 @@ from .official_b_snapshot_adapter import program_details
 
 HEADER=re.compile(r'^\s*(\d{1,2})R\s+.*?H\s*\d{3,4}m[^\r\n]*',re.M|re.I)
 
+# The printed two/three-digit motor ID touches the valid 100.00 percentage.
+# Insert only the missing token separator; no value, source byte or hash changes.
+FUSED_MOTOR_100=re.compile(r'^(\s*[1-6]\s+\d{4}.+?\d{2}\D{2}\d{2}[AB][12]\s+'
+ r'\d+\.\d{2}\s*\d+\.\d{2}\s*\d+\.\d{2}\s*\d+\.\d{2}\s+)'
+ r'(\d{1,3})(100\.00)(?=\s+\d+\s+\d+\.\d{2}(?:\s|$))',re.M)
+
+def separate_fused_100(part):
+    return FUSED_MOTOR_100.sub(lambda m:m[1]+m[2]+' '+m[3],part)
+
 def normalize_races(raw,*,day,source_url,observed_at,archive_sha256):
     minimal=parse_b(raw,day.isoformat())
     rosters=defaultdict(dict)
@@ -43,7 +52,7 @@ def normalize_races(raw,*,day,source_url,observed_at,archive_sha256):
             if set(closing)!={rid}:raise SourceError('B cutoff identity mismatch')
             schedule.append({'race_id':rid,'cutoff_at':closing[rid]})
             try:
-                details,cutoffs=program_details((wrapper+part+footer).encode('cp932'),day)
+                details,cutoffs=program_details((wrapper+separate_fused_100(part)+footer).encode('cp932'),day)
                 if set(details)!={(rid,i) for i in range(1,7)}:raise SourceError('B six-boat detail mismatch')
                 boats=[]
                 for lane in range(1,7):
@@ -62,4 +71,4 @@ def normalize_races(raw,*,day,source_url,observed_at,archive_sha256):
         extracted_text_sha256=hashlib.sha256(raw).hexdigest(),first_observed_at=observed_at,
         venues=venues,races=sum(len(v['races']) for v in venues),blocked_races=blocked,
         all_schedule=sorted(schedule,key=lambda x:(x['cutoff_at'],x['race_id'])),
-        normalization='STRICT_UNCHANGED_PARSER_PER_ORIGINAL_RACE_SLICE_V1')
+        normalization='STRICT_SLICE_WITH_EXPLICIT_FUSED_100_SEPARATOR_V2')

@@ -12,6 +12,8 @@ sys.path.insert(0,str(ROOT))
 import race_ai
 race_ai.__path__.append(str(ROOT/'pr64-reference'/'race_ai'))
 from race_ai.frozen_day_cycle import read_p0,read_p1,evaluate,need,ts
+from race_ai.first_receipt_continuity import first_receipt_rows,latest_result_observations
+from race_ai.cycle_recovery import recover,load_state,due_rows
 JST=timezone(timedelta(hours=9));REPO='haji84/RACE-AI'
 
 def gh(path):
@@ -34,21 +36,55 @@ def restore(day):
     with zipfile.ZipFile(io.BytesIO(raw)) as z:body=z.read('forecasts.json')
     with (folder/'forecasts.json').open('xb') as f:f.write(body)
     (folder/'first-receipt.json').write_text(json.dumps(meta,ensure_ascii=False))
+    state=recover(gh,day,current_run=int(os.environ['GITHUB_RUN_ID']),out=ROOT/'cycle_recovery_output')
     print(json.dumps(dict(state='ORIGINAL_REUSED_NO_REGENERATION',races=doc['race_count'],forecasts=len(rows),artifact_id=meta['id'])))
 
-def audit(day,p1_id):
+def forecast(day):
+    from scripts import boat_nationwide_ab_pilot as pilot
+    state=load_state(ROOT/'cycle_recovery_output/continuity.json',day)
+    index=json.loads(pilot.FROZEN_INDEX.read_text())
+    first={}
+    for row in sorted(index['entries']+state['index_entries'],key=lambda x:(ts(x['server_created_at']),x['artifact_id'])):
+        first.setdefault(row['race_id'],row)
+    index['entries']=list(first.values())
+    target=ROOT/'cycle_recovery_output/freeze-index.json'
+    target.write_text(json.dumps(index,ensure_ascii=False))
+    # Point the unchanged predictor at the verified union, not yesterday alone.
+    pilot.FROZEN_INDEX=target
+    pilot.run()
+
+def supplement(day):
+    """Fill only previously absent future P0 rows; never edit first morning bytes."""
+    _,rows,_,_=original(day)
+    recovered=load_state(ROOT/'cycle_recovery_output/continuity.json',day)
+    from scripts.existing_day_program import collect
+    frozen=frozenset(x['race_id'] for x in rows+recovered['rows'] if x['stage']=='P0')
+    result=collect(already_frozen=frozen)
+    folder=ROOT/'p0_supplement_output';folder.mkdir(exist_ok=True)
+    with (folder/'forecasts.json').open('x') as f:json.dump(result,f,ensure_ascii=False,sort_keys=True,separators=(',',':'))
+    print(json.dumps(dict(state='MISSING_FUTURE_P0_ONLY',race_count=result['race_count'],original_races_not_regenerated=len(frozen))))
+
+def audit(day,p1_id,p0_supplement=None):
     doc,rows,p0_meta,p0_zip=original(day);sources=[p0_meta];p1_doc=None
+    recovered=load_state(ROOT/'cycle_recovery_output/continuity.json',day)
+    rows+=recovered['rows'];sources+=recovered['receipts']
     out=ROOT/'existing_cycle_output';out.mkdir(exist_ok=True)
     (out/'first-p0-original.zip').write_bytes(p0_zip)
+    if p0_supplement:
+        meta=json.loads(gh(f'actions/artifacts/{p0_supplement}'));raw=gh(f'actions/artifacts/{p0_supplement}/zip')
+        _,additional=read_p0(raw,meta,expected_day=day);rows+=additional;sources.append(meta)
+        (out/'supplement-p0-original.zip').write_bytes(raw)
     if p1_id:
         meta=json.loads(gh(f'actions/artifacts/{p1_id}'));raw=gh(f'actions/artifacts/{p1_id}/zip')
         p1_doc,p1rows=read_p1(raw,meta);rows+=p1rows;sources.append(meta)
         (out/'current-p1-original.zip').write_bytes(raw)
+    rows,excluded=first_receipt_rows(rows)
+    excluded=recovered['excluded_repeats']+excluded
     from race_ai.official_race_updates import endpoint,parse_update,MAX_BYTES
     from race_ai.tokuyama_day_worker import NoRedirects
-    by_race={x['race_id']:x for x in rows};observations=[];failures=[];requests_used=0
+    by_race={x['race_id']:x for x in rows};observations=list(recovered['observations']);failures=[];requests_used=0
     now=datetime.now(timezone.utc)
-    due=sorted((x for x in by_race.values() if ts(x['cutoff_at'])+timedelta(seconds=90)<now),key=lambda x:(x['cutoff_at'],x['race_id']))
+    due=due_rows(rows,observations,now)
     blocked=False
     for row in due[:24]:
         if blocked:failures.append(dict(race_id=row['race_id'],state='SOURCE_RATE_LIMIT_STOP'));continue
@@ -66,13 +102,23 @@ def audit(day,p1_id):
         except Exception as exc:
             if isinstance(exc,error.HTTPError) and 400<=exc.code<500:blocked=True
             failures.append(dict(race_id=rid,state='SOURCE_OR_PARSE_UNAVAILABLE',reason=type(exc).__name__+': '+str(exc)[:120]))
-    report=evaluate(rows,observations)
+    latest_observations,observations=latest_result_observations(observations)
+    report=evaluate(rows,latest_observations)
     report.update(day_jst=day,updated_at=datetime.now(timezone.utc).isoformat(),run_id=os.environ.get('GITHUB_RUN_ID'),
         code_sha=os.environ.get('GITHUB_SHA'),first_forecast_artifacts=sources,source_request_count=requests_used,
-        schedule=doc['schedule'],scheduled_boat_races=len(doc['schedule']),no_p0_forecast=doc['skipped'],
-        result_source_failures=failures,raw_sources_published=False,continuous_operation_proven=False,
+        schedule=doc['schedule'],scheduled_boat_races=len(doc['schedule']),
+        original_p0_skips=doc['skipped'],no_p0_forecast=[x for x in doc['skipped'] if x['race_id'] not in {r['race_id'] for r in rows if r['stage']=='P0'}],
+        result_source_failures=failures,excluded_repeat_forecasts=excluded,
+        restored_run_ids=recovered['scanned_runs'],result_observation_versions=len(observations),raw_sources_published=False,continuous_operation_proven=False,
         all_models_operational=False,other_sports_status='LIVE_INPUT_INTEGRATION_NOT_YET_VERIFIED',
         archive_retention_days=7,permanent_private_retention_proven=False)
+    from race_ai.existing_model_coverage import coverage
+    schedule_counts={'boat':len(doc['schedule'])}
+    if day=='2026-11-04':
+        schedule_counts.update(keirin=75,autorace=20,horse=59)
+        report['nonboat_discovery_receipt']={'artifact_id':13283229052,'zip_sha256':'86ffb2b44fdbb2119a0401533cd9f182eca0d918ab555c48870d01ef422e0e9d','state':'154_CAPTURED_CARDS_NOT_154_FORECASTS'}
+    report['model_coverage']=coverage(rows,schedule_counts)
+    report['next_action']='VALIDATE_IMPROVEMENT_ON_NEW_RACES_ONLY'
     report['report_sha256']=hashlib.sha256(json.dumps(report,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
     (out/'status.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
     (out/'official-result-observations.json').write_text(json.dumps(observations,ensure_ascii=False,indent=2))
@@ -86,15 +132,19 @@ def audit(day,p1_id):
         '| Phase | Model | Forecasts | Scored | Hit | ROI |','|---|---|---:|---:|---:|---:|']
     for x in report['scoreboard']:
         lines.append(f'|{x["stage"]}|{x["model_id"]}|{x["forecast_count"]}|{x["scored"]}|{x["hits"]}|{x["roi"] if x["roi"] is not None else "pending"}|')
-    lines+=['','Unmet: all four sports/all models, perpetual private storage, continuous per-deadline coverage.']
+    (out/'model_coverage.json').write_text(json.dumps(report['model_coverage'],ensure_ascii=False,indent=2))
+    (out/'improvement_candidates.json').write_text(json.dumps(report['improvement_candidates'],ensure_ascii=False,indent=2))
+    lines+=['',f'Repeated later predictions excluded: {len(excluded)}; recovered previous runs: {len(recovered["scanned_runs"])}.', 'Unmet: all four sports/all models, perpetual private storage, continuous per-deadline coverage.']
     text='\n'.join(lines)+'\n';(out/'STATUS.md').write_text(text)
     if os.environ.get('GITHUB_STEP_SUMMARY'):
         with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write(text)
     print(json.dumps({k:report[k] for k in ('day_jst','forecast_count','distinct_races','scored_forecasts','source_request_count','auto_promoted')},ensure_ascii=False))
 
 def main():
-    p=argparse.ArgumentParser();p.add_argument('command',choices=['restore','audit']);p.add_argument('--p1-artifact',type=int);a=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('command',choices=['restore','forecast','audit','supplement']);p.add_argument('--p1-artifact',type=int);p.add_argument('--p0-supplement',type=int);a=p.parse_args()
     day=datetime.now(timezone.utc).astimezone(JST).date().isoformat()
     if a.command=='restore':restore(day)
-    else:audit(day,a.p1_artifact)
+    elif a.command=='forecast':forecast(day)
+    elif a.command=='supplement':supplement(day)
+    else:audit(day,a.p1_artifact,a.p0_supplement)
 if __name__=='__main__':main()

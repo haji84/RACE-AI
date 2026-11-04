@@ -31,12 +31,23 @@ jobs:
         with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
       - name: Test originals, pending results, tampering and unchanged models
         run: |
-          python -m unittest tests.test_frozen_day_cycle tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_ab_shadow tests.test_requested_public_cards -v
+          python -m unittest tests.test_first_receipt_continuity tests.test_cycle_recovery tests.test_existing_model_coverage tests.test_frozen_day_cycle tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_ab_shadow tests.test_requested_public_cards -v
       - name: Reuse first morning original, never silently regenerate it
         env: {GH_TOKEN: '${{ github.token }}'}
         run: python scripts/github_existing_cycle.py restore
+      - name: Create only absent future P0 forecasts after parser repair
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python scripts/github_existing_cycle.py supplement
+      - name: Freeze missing-only P0 supplement before any outcome input
+        id: p0supplement
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-p0-existing-${{ github.run_id }}
+          path: p0_supplement_output/forecasts.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Current-day exhibition A/B and C-lite
-        run: python scripts/boat_nationwide_ab_pilot.py
+        run: python scripts/github_existing_cycle.py forecast
       - name: Freeze exhibition before reading outcomes
         id: p1freeze
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -47,7 +58,7 @@ jobs:
           retention-days: 7
       - name: Independently read server receipts and later official outcomes
         env: {GH_TOKEN: '${{ github.token }}'}
-        run: python scripts/github_existing_cycle.py audit --p1-artifact '${{ steps.p1freeze.outputs.artifact-id }}'
+        run: python scripts/github_existing_cycle.py audit --p1-artifact '${{ steps.p1freeze.outputs.artifact-id }}' --p0-supplement '${{ steps.p0supplement.outputs.artifact-id }}'
       - name: Save queryable status, tickets, source receipts and diagnostic candidates
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -56,29 +67,12 @@ jobs:
           path: existing_cycle_output/
           if-no-files-found: warn
           retention-days: 7
-      - name: Bounded exact linked November 4 racecards requested by owner
-        if: always()
-        env: {GH_TOKEN: '${{ github.token }}'}
-        run: |
-          set -euo pipefail
-          mkdir -p requested_card_input
-          gh api repos/haji84/RACE-AI/actions/artifacts/13282259852/zip > requested_card_input/index.zip
-          python - <<'PY'
-          from pathlib import Path
-          import hashlib,zipfile
-          p=Path('requested_card_input/index.zip')
-          assert hashlib.sha256(p.read_bytes()).hexdigest()=='4986ebc11b87ccdbc02063e61793d9cc224de4c1f27b8605e7dfad49be0b79a5'
-          with zipfile.ZipFile(p) as z:
-              assert z.namelist()==['cards.json']
-              Path('requested_card_input/cards.json').write_bytes(z.read('cards.json'))
-          PY
-          python scripts/requested_20261104_public_cards.py --index requested_card_input/cards.json --out requested_card_output/cards.json
-      - name: Preserve requested linked source facts separately from forecasts
+      - name: Preserve verified continuity journal without public source pages
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: requested-all-card-facts-${{ github.run_id }}
-          path: requested_card_output/cards.json
+          name: race-cycle-continuity-${{ github.run_id }}
+          path: cycle_recovery_output/
           if-no-files-found: warn
           retention-days: 7
       - name: Prepare exact source verification bundle, no data or credentials
