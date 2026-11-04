@@ -1,3 +1,18 @@
+# 2026-11-05 08:43 JST｜当日第17巡回までの保存済みartifactをGitHub API照合（成績増分未検証）
+
+対象は既存Draft PR #71 / branch `feat/four-sport-forecast-audit-view-20261022` / workflow `405276784` / run `41929106428` のみ。点検時HEAD `ab57ae2f297066cf0eed77cdaf8ad5219943f3c2`、状態文書更新前blob `d9a6cfbcddedfe2ca08aaaeb8e1a2a9f49d6654c`。runは `in_progress`、job `126921153640` の第17巡回stepは `completed/success`、第18巡回は `in_progress`。同workflowのqueued APIは 0 件、全workflowのqueuedは 0 件。既存concurrencyは`boat-nationwide-cutoff-20261103`、`cancel-in-progress: false`、24巡の既存workflowをそのまま使用。新workflow/頻度/モデルは追加していない。
+
+GitHub Actions artifact API（run全一覧 `35` 件）では、第17巡回の保存済みZIPが次の2件まで増加。**これはGitHub APIが報告するdigestで、独立実バイトSHA256再計算とは区別**する。
+
+- `boat-national-cutoff-41929106428-cycle-17` artifact `13374346050`、GitHub保存 `2026-11-04T23:42:00Z`（JST 08:42:00）、API `sha256:2386dbdcb29bd5e42e1b56ad5d0d972c104c238e9f5dc14bdc0784b878b0ba38`
+- `race-existing-cycle-41929106428-cycle-17` artifact `13374211446`、GitHub保存 `2026-11-04T23:42:06Z`（JST 08:42:06）、API `sha256:72f58fe5218f1ec25e615ee1806883471d755e28d829dcfc37802f06e5d4d430`
+
+前回08:02文書の第3巡回保存から保存済み第17巡回まで進行した事実は確認。しかし第17巡回ZIP内の `status.json` / `automatic_learning` / `learned_shadow_comparison` / `coverage_audit` / `forecasts.csv` / 公式結果履歴 / `model_coverage` / `external_research_summary` の独立読戻しは未完了。第16巡回の予想/結果ZIP 2件をGitHubコネクタでダウンロードしFilesで保全する所までは成立したが、ローカル実バイト再ハッシュ・CRC・内部CSV/JSON解析が実行環境の`redis.exceptions.ResponseError`で失敗した。従って**新しいP1件数・通常採点・的中・係数学習・同条件比較の増分は不明**であり、08:02時点の保存済みP0=288、P1=0、通常採点=0、学習版=0を現在値と断定しない。未確認を不的中に換算しない。参照する初回P0受領索引は存在し、上書きしていない。
+
+現runの停止理由とGET消費の最新内部値を独立検証できていないため、後続の追加トリガー更新・再実行・キャンセルは行わない。4xx/429/真正性不一致や日付境界の停止条件、同時writer1、240 GET/session・45/巡回・最大3レース・締切210秒の制限を緩めない。次の確認では最新の全artifactから最大`-cycle-NN`を選び、実ZIP内statusと公式結果履歴を独立再ハッシュしてから初めて予想/採点/学習改善を更新する。全16系統・全4競技ライブ、全P1、期限なし非公開保全、学習版の前向き優位性は依然として実証未完。新task/PR/workflow/頻度/課金/main統合/公開/実投票/本番自動切替なし。
+
+---
+
 # 2026/11/05 08:02:07 JST｜11/05初回P0原本と第3巡回の3ZIPを所有者限定Driveに独立保全・SHA再照合
 
 既存run `41929106428` の**GitHub上で初回保存済みのP0 ZIP**（artifact `13371295414`、SHA256 `3a8bde638b93b61cbe21843bff5f3dbaf120c486b45f39efc3ea3a78f89034ab`）、第3巡回の展示後予想試行ZIP（artifact `13371915442`、SHA256 `4ca3328dbc82e309d50d396d0059b22853b402f524c0571ce6ecd12ad2d28628`）、第3巡回の結果・PDCA ZIP（artifact `13369699300`、SHA256 `06edb78d1879da4e01488c584d8c384c330f7c82373d175288243ab1a1dc03c3`）を、**所有者本人一致・shared=false**をDrive APIで実確認した既存の非公開保管フォルダに3件とも無改変・新規保存した。各新規ファイルも権限owner 1人・shared=falseを個別検証。元ファイルとDrive再ダウンロード版をbyte-for-byte比較し、3件ともSHA256一致、ZIP CRC正常。公開GitHub文書に私有Drive ID/URL/認証情報を掲載していない。これは**3 ZIPのみの個別保全**であり、全巡回の無期限自動保全完成ではない。
