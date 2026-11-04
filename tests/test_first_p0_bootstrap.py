@@ -9,6 +9,18 @@ from scripts import first_p0_bootstrap as boot
 
 
 class FirstP0BootstrapTests(unittest.TestCase):
+    def test_direct_cli_import_works_in_actions(self):
+        # Unit-test imports run under -m, whereas Actions runs scripts directly.
+        import subprocess
+        import sys
+        from pathlib import Path
+        repository = Path(__file__).resolve().parents[1]
+        result = subprocess.run(
+            [sys.executable, 'scripts/first_p0_bootstrap.py', '--help'],
+            cwd=repository, capture_output=True, text=True, timeout=20)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn('preflight', result.stdout)
+
     def test_original_index_is_derived_from_independent_receipt(self):
         doc, raw, meta = sample()
         value = boot.receipt_index(raw, meta, '2030-04-01')
