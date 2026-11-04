@@ -1,3 +1,15 @@
+# 2026-11-05 05:14 JST｜P0初回ゲートの起動経路が欠落（新しい予想・採点なし）
+
+既存Draft PR #71（監査時HEAD `793da023383155d9306b83c1d4be73655bf2befa`、branch `feat/four-sport-forecast-audit-view-20261022`）と同一workflow `405276784`のみ確認。GitHub Actionsの最新100 run（11/05 JST以降の記録を含む）で当日対象workflow新規runは0。Actions APIのin_progress/queued/pending/waiting各0件。直近対象runは前日 `41842464812`（completed/success）。その全45 artifactから最大保存巡回が第21巡回であることを再確認：予想 `13336307604`、結果/PDCA `13335717741`、継続 `13335757993`。API登録ZIP SHA256はそれぞれ `119ee2a394acbaf1f15f1c92ca61b3ad96c80d53800cbf2c2468acf808f3762a` / `e6653f0fc545eead623eb0822c728d56d9a8ce1d364368a165822995d655a636` / `64b8e3791d0ef8b94188733b290bc1f31a94e7bc0f695dedff638db3eb015242`。3ZIPの別再取得は開始したが、この巡回の実バイト独立再ハッシュはローカル検証環境エラーで完了せず、前回03:32までの独立照合結果と区別する。
+
+11/05用 `docs/evidence/2026-11-05/p0-first-receipt.json` は404。本人専用Drive保存フォルダのAPIを再列挙して、ownerのみの権限・`shared=false`、既存10件、当日初回P0該当0件を確認。**独立索引がないことと全保管先で初回原本が存在しないことは同義ではない**。GitHubの同日対象workflow runは0だが、未接続先まで原本不存在の断定はしていない。
+
+**新たに特定した構造的なブロック**：現行 `.github/workflows/boat-nationwide-ab-one-shot.yml` の実行経路は、最初に `python scripts/github_existing_cycle.py restore` を呼ぶ一方、当日の初回P0を生成→アップロード→API読戻し→初回索引登録するステップを持たない。`original(day)` は索引欠落時に `FIRST_RECEIPT_REGISTRY_MISSING_NO_BLIND_REGENERATION` を必ず送出する。従って**当日の初回原本を安全に確定する別途の既存P0ブートストラップ手順が成立するまでは、同じトリガーの追加pushだけでは予想を再開できない**。原因を公式B未公開/4xxと決めつけない。公式B当日実バイトの取得・解析・サーバー受領確認は今回未実施。
+
+安全な残工程は、同日全runと外部保管の重複監査→公式B実入力の真正性検証→本当に初回原本不在の場合に限る既存モデルP0生成→締切前の別サーバー初回保存→ZIP/JSON SHA・時刻の独立読戻し→正本索引登録→同一既存workflowの復元→P1/公式結果/PDCA/係数学習研究比較。P0の自動初回作成経路は**未実装**、今回の新規実行0。基準予想570・通常採点489（HIT139/MISS350）・学習版70・同条件比較66は11/04の保存済み値で、11/05の新規実績や最新の独立再ハッシュではない。学習版の前向き優位性は未証明。停止条件・同時writer制限・権限範囲を緩めず、trigger更新、rerun、cancel、workflow/モデル/タスク追加、課金、main統合、公開、本番自動切替、実投票は実施せず。
+
+---
+
 # 2026-11-05 03:32 JST｜当日P0ゲートの独立再点検（前日値から実績増加なし）
 
 既存Draft PR #71・workflow 405276784に限定。点検時PR HEAD `2d898448ec11358f4cc729cba649e2e4621123da`。GitHub Actions全workflowの新しい100 runと前日以降の作成時刻を照合し、11/05 00:00 JST以降に作成された8 runは既存のviewer/オートの**合成・オフラインCIのみ**で、対象workflowの当日runも当日初回P0 artifactも0。対象workflowの最新完了run `41842464812` は前日実行の `completed/success`、その第21巡回の予想/結果/継続artifact以降に新しい実レース原本が増えた証拠はない。GitHub Actions APIの `in_progress/queued/pending/waiting` は全workflow合計各0。
