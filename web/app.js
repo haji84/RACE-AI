@@ -56,7 +56,7 @@
     const list = predictions(r), saved = state.predictionKeys[r?.race_id];
     return saved === undefined ? list[0] || null : list[saved] || null;
   };
-  const modelName = p => p ? text(p.model_id || p.model_version) + (p.model_id ? " / " + text(p.model_version) : "") : "未予想";
+  const modelName = p => p ? text(p.model_id || p.model_version) + (p.model_id ? " / " + text(p.model_version) : "") + (p.variant ? " · " + text(p.variant) : "") : "未予想";
   const stageName = p => ({P0: "P0 朝版", P1: "P1 展示・試走後"})[p?.stage] || "時点未取得";
   const ticketsFor = id => state.candidates.filter(t => t.raceId === id);
   const dailyPurchases = () => state.purchases.filter(p => p.day === A.jstToday());
@@ -90,8 +90,9 @@
   function evidenceFields(r, p) {
     return [["データ区分", scopeName(r.scope)], ["開催日 JST", r.event_date_jst], ["モデル", p?.model_id], ["モデル版", p?.model_version], ["予想時点", stageName(p)],
       ["生成時刻 JST", stamp(p?.generated_at)], ["保存時刻 JST", stamp(p?.persisted_at)], ["締切 JST", stamp(r.cutoff_at)],
-      ["取得 / as-of JST", stamp(r.as_of || r.observed_at)], ["情報源", sourceText(r.source_provenance)],
+      ["取得 / as-of JST", stamp(p?.as_of || r.as_of || r.observed_at)], ["情報源", sourceText(r.source_provenance)],
       ["元SHA", r.source_sha || r.source_sha256], ["入力SHA", p?.input_sha256], ["予想SHA", p?.prediction_sha256],
+      ["原本JSON SHA", p?.original_json_sha256], ["原本artifact ID", p?.artifact_id], ["保存モデル区分", p?.variant], ["保存済みサーバー時刻の申告 JST", stamp(p?.server_saved_at)],
       ["レシート時刻 JST", stamp(p?.external_receipt?.server_received_at || p?.receipt_timestamp || p?.evidence_receipt?.timestamp)], ["独立検証", "取込値のみ・原本と外部時刻の独立照合は別途必要"]];
   }
   function forecastStatus(r, p = prediction(r)) {
@@ -104,10 +105,11 @@
     const number = participantNumber(p), card = node("article", "racer-card"), avatar = node("div", "racer-avatar");
     if (Number.isInteger(number)) avatar.append(badge(number));
     avatar.append(node("span", "avatar-silhouette", "◉"));
-    card.append(avatar, node("strong", "racer-name", p.placeholder ? "出走者 未取得" : text(p.name)), node("small", "muted", p.placeholder ? "表示用の枠" : text(p.registration_id || p.racer_registration_id)));
+    const registration = p.registration_no || p.registration_id || p.racer_registration_id;
+    card.append(avatar, node("strong", "racer-name", p.placeholder ? "出走者 未取得" : p.name ? text(p.name) : registration ? "登録 " + text(registration) : "名前 未取得"), node("small", "muted", p.placeholder ? "表示用の枠" : text(registration)));
     if (expanded && !p.placeholder) {
       const fields = node("dl", "racer-fields");
-      for (const [label, value] of [["登録番号", p.registration_id || p.racer_registration_id], ["モーター", p.motor_no], ["平均ST", p.average_st], ["展示タイム", p.display_time]]) {
+      for (const [label, value] of [["登録番号", registration], ["モーター", p.motor_no], ["平均ST", p.average_st], ["展示タイム", p.display_time]]) {
         if (value !== undefined && value !== null) fields.append(node("dt", "", label), node("dd", "", text(value)));
       }
       card.append(fields);
@@ -227,11 +229,12 @@
   function resultView(r) {
     const result = r.result, box = node("div", "result-block");
     if (!result) return append(box, node("p", "muted", "公式結果は未取得です。"));
-    const label = {final: "確定結果（読込値）", pending: "結果待ち", void: "中止・不成立", unsupported: "照合不可"}[result.status] || "結果未確認";
+    const label = (r.private_cycle_view ? {final:"取得結果（公式確定時刻は未取得）",pending:"取得結果待ち",void:"中止・不成立（観測値）",unsupported:"照合不可"} : {final: "確定結果（読込値）", pending: "結果待ち", void: "中止・不成立", unsupported: "照合不可"})[result.status] || "結果未確認";
     box.append(node("strong", "", (r.scope === "synthetic" ? "合成テスト · " : "") + label));
     result.winning_combinations.forEach(t => box.append(combo(t)));
     if (result.payout_yen_per_100 !== null && result.payout_yen_per_100 !== undefined) box.append(node("p", "muted", "100円当たり払戻 " + yen(result.payout_yen_per_100) + (r.scope === "synthetic" ? "（架空）" : "（読込値）")));
     box.append(node("p", "muted small", "結果確認 " + stamp(result.confirmed_at) + " JST"));
+    if (result.observed_at) box.append(node("p", "muted small", "観測取得 " + stamp(result.observed_at) + " JST（公式確定時刻とは別）"));
     if (U.refundSummary(result) !== "未取得") box.append(node("p", "muted", U.refundSummary(result)));
     return box;
   }
@@ -254,7 +257,7 @@
     if (state.detailTab === "outlook") content.append(forecastPanel(r, p), append(node("div", "section-heading member-heading"), node("h2", "", "出走メンバー"), node("span", "tag", knownParticipants(r).length ? knownParticipants(r).length + "名の読込値" : "出走表 未取得")), participantGrid(r, true));
     if (state.detailTab === "participants") {
       content.append(participantGrid(r, true));
-      if (knownParticipants(r).length) content.append(table(["番号", "名前", "登録", "モーター", "平均ST", "展示"], knownParticipants(r).map(person => [participantNumber(person), person.name, person.registration_id || person.racer_registration_id, person.motor_no, person.average_st, person.display_time])));
+      if (knownParticipants(r).length) content.append(table(["番号", "名前", "登録", "モーター", "平均ST", "展示"], knownParticipants(r).map(person => [participantNumber(person), person.name, person.registration_no || person.registration_id || person.racer_registration_id, person.motor_no, person.average_st, person.display_time])));
     }
     if (state.detailTab === "preview") {
       const people = knownParticipants(r);
@@ -270,13 +273,22 @@
       content.append(rows.length ? table(["時点", "モデル / 版", "保存 JST", "Top8", "証拠状態"], rows) : empty("比較予想は未取得です", "別モデル・朝版・展示後版が保存されるとここで比較できます。"));
     }
     if (state.detailTab === "history") {
-      content.append(node("h2", "", "今回の公式結果と改訂履歴"), resultView(r));
+      content.append(node("h2", "", r.private_cycle_view ? "保存された結果の観測" : "今回の公式結果と改訂履歴"), resultView(r));
+      if (r.private_cycle_view) {
+        const observations = node("section"); observations.id = "result-observations";
+        observations.append(node("h2", "", "取得観測履歴（公式改訂番号なし）"), node("p", "muted", "取得した原本の履歴です。観測順を公式な改訂番号や確定時刻として扱いません。"));
+        if (r.result_observations?.length) r.result_observations.forEach(observation => {
+          const details = node("details", "panel");details.append(node("summary", "", "観測取得 " + stamp(observation.captured_at) + " JST · " + text(observation.status)));
+          details.append(facts([["レースID",observation.race_id],["観測取得 JST",stamp(observation.captured_at)],["観測SHA",observation.source_sha256],["保存観測の原文",sourceText(observation)]]));observations.append(details);
+        }); else observations.append(node("p", "muted", "結果の取得観測原本は未取得です。"));
+        content.append(observations);
+      }
       const revisions = r.result_revisions || [];
       content.append(revisions.length ? table(["改訂", "状態", "組合せ", "確認 JST", "100円払戻", "返還情報"], revisions.map(rev => [rev.revision_no, rev.status, rev.winning_combinations.map(t => t.join("−")).join(" / "), stamp(rev.confirmed_at), rev.payout_yen_per_100 == null ? "未取得" : yen(rev.payout_yen_per_100), U.refundSummary(rev)])) : node("p", "muted", "結果改訂履歴は未取得です。改訂がなかったことの証明ではありません。"));
       const past = r.past_races;
       content.append(node("h2", "", "過去レース"), Array.isArray(past) && past.length ? facts(past.map((value, i) => [String(i + 1), sourceText(value)])) : node("p", "muted", "過去レースの個別原本は未取得です。"));
     }
-    panel.append(content); const missing = [...(r.missing_reasons || []), ...(r.no_forecast_reason ? [r.no_forecast_reason] : [])];
+    panel.append(content); const missing = [...new Set([...(r.missing_reasons || []), ...(p?.missing_reasons || []), ...(r.no_forecast_reason ? [r.no_forecast_reason] : [])])];
     if (missing.length) panel.append(append(node("div", "notice subtle"), node("strong", "", "未取得・検証中の理由"), node("p", "", missing.join(" / "))));
     main.append(panel);
     rail.append(append(node("section", "panel"), forecastPanel(r, p)), append(node("section", "panel"), node("h2", "", "結果の状態"), resultView(r)), append(node("section", "panel"), node("h2", "", "取得・保存の証拠"), facts(evidenceFields(r, p).filter(([label]) => ["モデル版", "生成時刻 JST", "保存時刻 JST", "元SHA", "予想SHA"].includes(label))), node("p", "muted small", "独立時刻・公式出典は別途照合が必要です。")));
@@ -327,6 +339,8 @@
     $("result-sports").replaceChildren(table(["競技", "台帳", "評価可能", "的中", "Hit@8_all"], Object.entries(sum.bySport).map(([sport, stats]) => [sports[sport], stats.ledger, stats.evaluable, stats.hits ?? "未検証", stats.hit8 === null ? "未検証" : (stats.hit8 * 100).toFixed(2) + "%"])));
     $("result-stages").replaceChildren(table(["時点", "台帳", "評価可能", "的中", "Hit@8_all"], Object.entries(sum.byStage).map(([stage, stats]) => [stageName({stage}), stats.ledger, stats.evaluable, stats.hits ?? "未検証", stats.hit8 === null ? "未検証" : (stats.hit8 * 100).toFixed(2) + "%"])));
     const settled = rows.filter(r => r.result);
+    const resultHeading = $("official-results").parentElement.querySelector("h2");
+    resultHeading.textContent = rows.some(r => r.private_cycle_view) ? "レース別の結果観測（独立未検証）" : "レース別の公式結果";
     $("official-results").replaceChildren(...(settled.length ? settled.slice(0, 100).map(r => append(node("article", "official-result-row"), button(raceName(r), "text-button", () => openRace(r.race_id)), node("span", "tag scope-" + r.scope, scopeName(r.scope)), resultView(r))) : [empty("公式結果は未取得です", "予想と別時点の結果原本が読み込まれると表示されます。全レースの取得完了を意味しません。") ]));
     const imported = rows.filter(r => r.scope !== "synthetic" && r.actual_purchase?.confirmed === true);
     const importedTotal = imported.reduce((sum, r) => ({stake: sum.stake + r.actual_purchase.stake_yen, payout: sum.payout + r.actual_purchase.payout_yen, refund: sum.refund + r.actual_purchase.refund_yen}), {stake: 0, payout: 0, refund: 0});
@@ -348,7 +362,7 @@
   function renderResearch() {
     const rows = scoped(), allPredictions = rows.flatMap(predictions), groups = M.modelGroups(rows);
     $("research-metrics").replaceChildren(metric("対象レース", rows.length + "件", "選択した競技・期間"), metric("保存予想", allPredictions.length + "件", "基準・比較モデルを含む"), metric("モデル・時点の版", groups.length + "組", "再予想・再採点なし"), metric("原本の独立監査", "未完了", "取込値の表示"));
-    $("model-comparison").replaceChildren(groups.length ? table(["モデル / 版", "区分", "時点", "予想 / 台帳", "評価可能", "Hit@8_all", "比較条件"], groups.map(g => [g.model_id + " / " + g.model_version, scopeName(g.scope), stageName(g), g.issued + " / " + g.ledger, g.evaluable, g.hit8 === null ? "未検証" : (g.hit8 * 100).toFixed(2) + "%", g.comparison])) : empty("モデル原本は未取得です", "保存済み予想とモデル版を読み込むと表示します。"));
+    $("model-comparison").replaceChildren(groups.length ? table(["モデル / 版", "区分", "時点", "予想 / 台帳", "評価可能", "Hit@8_all", "比較条件"], groups.map(g => [modelName(g), scopeName(g.scope), stageName(g), g.issued + " / " + g.ledger, g.evaluable, g.hit8 === null ? "未検証" : (g.hit8 * 100).toFixed(2) + "%", g.comparison])) : empty("モデル原本は未取得です", "保存済み予想とモデル版を読み込むと表示します。"));
     renderModelCoverage(rows);
     const content = $("research-content"); content.replaceChildren();
     if (!dataset) { content.append(empty("データは未取得です", "保存JSONを端末内で読み込んでください。", true)); return; }

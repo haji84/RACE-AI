@@ -37,6 +37,11 @@ async function main() {
     const page = await context.newPage();
     page.on('pageerror', e=>errors.push(e.message));
     page.on('request', req=>requests.push(req.url()));
+    const capture = async name => {
+      await page.evaluate(()=>window.scrollTo({top:0,left:0,behavior:'instant'}));
+      assert.equal(await page.locator('.topbar').evaluate(n=>n.getBoundingClientRect().top),0,'capture starts at page top');
+      await page.screenshot({path:path.join(output,name),fullPage:true});
+    };
     await page.clock.install({time:new Date('2030-01-01T00:30:00Z')});
     await page.goto(base);
     await page.locator('#source-state').waitFor();
@@ -76,7 +81,7 @@ async function main() {
       await page.locator(`#page-${name}`).waitFor({state:'visible'});
       if(name==='research') assert.equal(await page.locator('#all-model-coverage tbody tr[data-model-id]').count(),16,'all-model research coverage includes unavailable and inapplicable families');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,`${width} ${name} overflow`);
-      await page.screenshot({path:path.join(output,`${width}-${name}.png`),fullPage:true});
+      await capture(`${width}-${name}.png`);
     }
     mark(`${width}: seven-page navigation and no horizontal overflow`);
     await nav('results');
@@ -136,6 +141,59 @@ async function main() {
       assert.ok((await page.locator('#race-detail').innerText()).includes('改訂'));
       assert.equal(generated.records.find(r=>r.race_id===saved.race_id).result_revisions.length,2);
       mark('existing four-sport engine -> saved SQLite -> read-only projection -> browser, unchanged SHA and separate revisions');
+    }
+    if (process.env.UI_PRIVATE_CYCLE_EXPORT) {
+      const savedView=JSON.parse(fs.readFileSync(process.env.UI_PRIVATE_CYCLE_EXPORT,'utf8'));
+      assert.equal(savedView.dataset_status,'SYNTHETIC_ONLY','browser evidence must contain synthetic data only');
+      const saved=savedView.records.find(r=>r.sport==='boat' && r.prediction);
+      const variants=[saved.prediction,...saved.comparison_predictions];
+      assert.ok(variants.some(p=>p.stage==='P0') && variants.some(p=>p.stage==='P1'));
+      const learnedRace=savedView.records.find(r=>[r.prediction,...r.comparison_predictions].some(p=>p?.variant==='LEARNED_SHADOW'));
+      assert.ok(learnedRace,'genuine saved native learned fixture is present');
+      await page.clock.setFixedTime(new Date(saved.event_date_jst+'T00:30:00Z'));
+      await page.locator('#race-file').setInputFiles({name:'saved-cycle-synthetic.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(savedView))});
+      await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('端末内で読み込みました'));
+      await nav('races');
+      await page.locator('#selected-date').fill(saved.event_date_jst);
+      await page.locator('#selected-date').dispatchEvent('change');
+      await page.locator('#page-races [data-open-race]').first().click();
+      assert.equal(await page.locator('#prediction-select option').count(),variants.length,'every saved baseline/P0/P1/learned variant selectable');
+      await page.locator('[data-detail-tab="analysis"]').click();
+      for (const [index,p] of variants.entries()) {
+        await page.locator('#prediction-select').selectOption(String(index));
+        const displayed=await page.locator('#race-detail .forecast-panel').first().locator('.saved-ticket .combo').evaluateAll(nodes=>nodes.map(n=>[...n.querySelectorAll('.lane')].map(x=>Number(x.textContent))));
+        assert.deepEqual(displayed,p.ordered_top8,'saved original Top8 order unchanged');
+        const detail=await page.locator('#race-detail').innerText();
+        assert.ok(detail.includes(p.prediction_sha256) && detail.includes(p.original_json_sha256),'native SHA and member SHA preserved');
+        if(p.model_version==null) assert.match(await page.locator('#prediction-select option:checked').innerText(),/未取得/);
+      }
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'saved-cycle detail has no horizontal overflow');
+      await capture(`${width}-saved-cycle-detail.png`);
+      await page.locator('[data-detail-tab="history"]').click();
+      assert.match(await page.locator('#result-observations').innerText(),/取得観測履歴（公式改訂番号なし）/);
+      assert.equal(await page.locator('#result-observations details').count(),saved.result_observations.length);
+      for (const details of await page.locator('#result-observations details').all()) await details.locator('summary').click();
+      for (const observation of saved.result_observations) assert.ok((await page.locator('#result-observations').innerText()).includes(observation.source_sha256));
+      assert.match(await page.locator('#race-detail').innerText(),/結果確認 未取得/,'capture time must not become official confirmation time');
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'raw observation history has no horizontal overflow');
+      await capture(`${width}-saved-cycle-history.png`);
+      await nav('results');
+      assert.match(await page.locator('#result-metrics').innerText(),/未検証/);
+      assert.ok(!(await page.locator('#result-metrics').innerText()).includes('100%'));
+      const privateStorage=await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}));
+      assert.ok(variants.every(p=>!privateStorage.includes(p.prediction_sha256)),'saved originals stay out of browser persistence');
+      await nav('races');
+      await page.locator(`#page-races [data-open-race="${learnedRace.race_id}"]`).click();
+      const learnedVariants=[learnedRace.prediction,...learnedRace.comparison_predictions];
+      await page.locator('[data-detail-tab="analysis"]').click();
+      for (const [index,p] of learnedVariants.entries()) if(p.variant==='LEARNED_SHADOW') {
+        await page.locator('#prediction-select').selectOption(String(index));
+        assert.ok((await page.locator('#race-detail').innerText()).includes(p.prediction_sha256),'saved learned original hash selectable');
+        assert.match(await page.locator('#prediction-select option:checked').innerText(),/LEARNED_SHADOW/);
+        const displayed=await page.locator('#race-detail .forecast-panel').first().locator('.saved-ticket .combo').evaluateAll(nodes=>nodes.map(n=>[...n.querySelectorAll('.lane')].map(x=>Number(x.textContent))));
+        assert.deepEqual(displayed,p.ordered_top8,'saved learned Top8 is never recomputed');
+      }
+      mark(`${width}: sealed original ZIP -> private restore -> view -> browser, exact Top8/SHA, P1/learned selection and separate capture history`);
     }
     await context.tracing.stop({path:path.join(output,`${width}-interaction.zip`)});
     await context.close();

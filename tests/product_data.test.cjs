@@ -249,3 +249,78 @@ test("repeated local parsing is deterministic and has no network, clock or stora
   const source=fs.readFileSync(target,"utf8");
   assert.doesNotMatch(source,/\bfetch\s*\(|XMLHttpRequest|localStorage|sessionStorage|Date\.now\s*\(/);
 });
+
+function privateCycle(extra = {}) {
+  const p = {stage:"P0", model_id:"boat-observed-pairwise-factor-v1", model_version:null,
+    variant:"BASELINE", ordered_top8:[[1,2,3],[1,3,2]], ordered_candidates:[[1,2,3],[1,3,2],[2,1,3]],
+    generated_at:null, as_of:"2030-01-01T09:00:00+09:00", persisted_at:"2030-01-01T09:01:00+09:00",
+    server_saved_at:"2030-01-01T09:01:00+09:00", cutoff_at:cutoff, input_sha256:null, source_sha256:null,
+    prediction_sha256:SHA, model_sha256:SHA, original_json_sha256:INPUT, artifact_id:17,
+    odds_independent:null, external_receipt_verified:false, missing_reasons:["MODEL_VERSION_NOT_SAVED"]};
+  const observation = {race_id:"20300101-01-01", captured_at:"2030-01-01T10:20:00+09:00", source_sha256:RESULT,
+    status:"AVAILABLE", data:{status:"settled", top3:[1,2,3], payouts:[{bet_type:"trifecta", combination:[1,2,3], payout_per_100_yen:1500}]}};
+  return {schema:"RACE_AI_PRIVATE_CYCLE_VIEW_V1", dataset_status:"REAL_REPORTED", event_date_jst:"2030-01-01", source_state_sha256:RESULT,
+    records:[{race_id:"20300101-01-01", sport:"boat", venue:"場コード01", race_no:1, event_date_jst:"2030-01-01", cutoff_at:cutoff,
+      offering_status:"UNKNOWN", scope:"research", source_provenance:"OWNER_LOCAL_RECOVERED_CYCLE", source_sha256:null,
+      participants:[{number:1, registration_no:"4430"}], prediction:p, comparison_predictions:[],
+      result:{status:"final", winning_combinations:[[1,2,3]], payout_yen_per_100:1500, official:false,
+        confirmed_at:null, observed_at:observation.captured_at, source_sha256:RESULT},
+      result_observations:[observation], result_revisions:[], missing_reasons:["INDEPENDENT_RECEIPT_NOT_VERIFIED"]}], ...extra};
+}
+test("private cycle projection admits exact saved partial metadata without fake time/hash/version", () => {
+  const raw=privateCycle(), before=JSON.stringify(raw), parsed=M.parse(raw), r=parsed.records[0], p=r.prediction;
+  assert.equal(JSON.stringify(raw),before);
+  assert.equal(parsed.schema,"RACE_AI_PRIVATE_CYCLE_VIEW_V1");
+  assert.equal(r.race_id,"20300101-01-01");assert.equal(r.venue,"場コード01");
+  for(const field of ["generated_at","model_version","input_sha256","source_sha256","odds_independent"]) assert.equal(p[field],null,field);
+  for(const field of ["as_of","persisted_at","prediction_sha256","original_json_sha256","artifact_id","model_sha256"]) assert.deepEqual(p[field],raw.records[0].prediction[field],field);
+  assert.deepEqual(p.ordered_candidates,raw.records[0].prediction.ordered_candidates);
+  assert.deepEqual(r.result_observations,raw.records[0].result_observations);
+  assert.deepEqual(r.result_revisions,[]);
+  assert.equal(r.result.confirmed_at,null);assert.equal(r.result.observed_at,raw.records[0].result.observed_at);
+  assert.ok(Object.isFrozen(r.result_observations[0].data));
+  assert.equal(M.summary(parsed.records).overall.hit8,null);assert.equal(M.eligiblePrediction(r,p),false);assert.equal(M.eligibleResult(r),false);
+});
+test("private cycle import cannot promote itself to official metrics with asserted evidence", () => {
+  const raw=privateCycle();Object.assign(raw.records[0],{scope:"official", source_sha256:INPUT, offering_status:"TRIFECTA_OFFERED"});
+  Object.assign(raw.records[0].prediction,prediction(),{variant:"BASELINE"});
+  raw.records[0].prediction.ordered_candidates=raw.records[0].prediction.ordered_top8;
+  Object.assign(raw.records[0].result,result());
+  for(const status of ["REAL_REPORTED","SYNTHETIC_ONLY"]) {
+    const parsed=M.parse({...raw,dataset_status:status}), r=parsed.records[0];
+    assert.equal(r.scope,status==="SYNTHETIC_ONLY"?"synthetic":"research");
+    assert.equal(r.prediction.external_receipt_verified,false);assert.equal(r.result.official,false);
+    assert.equal(M.summary(parsed.records).overall.hit8,null);assert.equal(M.summary(parsed.records).overall.evaluable,0);
+  }
+});
+test("private baseline and learned originals with unknown versions stay separately selectable", () => {
+  const raw=privateCycle(), p=raw.records[0].prediction;
+  raw.records[0].comparison_predictions=[{...structuredClone(p),variant:"LEARNED_SHADOW",prediction_sha256:"d".repeat(64),model_sha256:"d".repeat(64)}];
+  const parsed=M.parse(raw), r=parsed.records[0], groups=M.modelGroups(parsed.records);
+  assert.equal(groups.length,2);assert.ok(groups.every(g=>g.model_version===null && g.hit8===null));
+  assert.deepEqual(groups.map(g=>g.variant).sort(),["BASELINE","LEARNED_SHADOW"]);
+  assert.equal(M.selectPrediction(r,{version:null,variant:"LEARNED_SHADOW"}).prediction_sha256,"d".repeat(64));
+  assert.equal(M.selectPrediction(r,{predictionSha:SHA}).variant,"BASELINE");
+  raw.records[0].comparison_predictions.push(structuredClone(p));
+  assert.throws(()=>M.parse(raw),/重複/);
+});
+test("partial-cycle admission remains bounded and strict about tickets, timestamps, identity and raw observations", () => {
+  const mutations=[
+    raw=>{raw.records[0].prediction.ordered_top8=[[1,1,2]];},
+    raw=>{raw.records[0].prediction.ordered_candidates.reverse();},
+    raw=>{raw.records[0].prediction.as_of="2030-02-30T09:00:00+09:00";},
+    raw=>{raw.records[0].prediction.prediction_sha256="fake";},
+    raw=>{raw.records[0].prediction.model_sha256="d".repeat(64);},
+    raw=>{raw.records[0].prediction=false;},
+    raw=>{raw.records[0].comparison_predictions=[null];},
+    raw=>{raw.records[0].actual_purchase={confirmed:true,stake_yen:-1,payout_yen:0,refund_yen:0};},
+    raw=>{raw.records[0].result_observations[0].race_id="20300101-02-01";},
+    raw=>{raw.records[0].result_observations[0].captured_at="not-a-time";},
+    raw=>{raw.records[0].result.winning_combinations=[[1,1,2]];},
+    raw=>{raw.records[0].result_revisions=[{revision_no:1}];},
+    raw=>{raw.records.push(structuredClone(raw.records[0]));}
+  ];
+  for(const mutate of mutations){const raw=privateCycle();mutate(raw);assert.throws(()=>M.parse(raw));}
+  const raw=privateCycle();raw.schema="RACE_AI_FORECAST_AUDIT_V1";
+  assert.throws(()=>M.parse(raw),/予想時刻|証拠|不正/,"legacy strict schema must still reject partial metadata");
+});

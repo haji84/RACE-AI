@@ -1,0 +1,29 @@
+PASS 320: honest empty startup
+PASS 320: local import, four sports and search
+PASS 320: seven-page navigation and no horizontal overflow
+PASS 320: detail tabs and saved model/stage switching
+PASS 320: editable candidates, confirm and delete
+PASS 320: midnight history, rejected import and keyboard
+PASS 320: sealed original ZIP -> private restore -> view -> browser, exact Top8/SHA, P1/learned selection and separate capture history
+PASS 390: honest empty startup
+PASS 390: local import, four sports and search
+PASS 390: seven-page navigation and no horizontal overflow
+PASS 390: detail tabs and saved model/stage switching
+PASS 390: editable candidates, confirm and delete
+PASS 390: midnight history, rejected import and keyboard
+PASS existing four-sport engine -> saved SQLite -> read-only projection -> browser, unchanged SHA and separate revisions
+PASS 390: sealed original ZIP -> private restore -> view -> browser, exact Top8/SHA, P1/learned selection and separate capture history
+PASS 1440: honest empty startup
+PASS 1440: local import, four sports and search
+PASS 1440: seven-page navigation and no horizontal overflow
+PASS 1440: detail tabs and saved model/stage switching
+PASS 1440: editable candidates, confirm and delete
+PASS 1440: midnight history, rejected import and keyboard
+PASS 1440: sealed original ZIP -> private restore -> view -> browser, exact Top8/SHA, P1/learned selection and separate capture history
+PASS 1920: honest empty startup
+PASS 1920: local import, four sports and search
+PASS 1920: seven-page navigation and no horizontal overflow
+PASS 1920: detail tabs and saved model/stage switching
+PASS 1920: editable candidates, confirm and delete
+PASS 1920: midnight history, rejected import and keyboard
+PASS 1920: sealed original ZIP -> private restore -> view -> browser, exact Top8/SHA, P1/learned selection and separate capture history

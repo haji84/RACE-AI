@@ -12,7 +12,7 @@ python3 -m http.server 8000 --bind 127.0.0.1 --directory web
 
 ## 読込と操作
 
-- 「保存原本を読み込む」のJSON選択で、認可済みの `RACE_AI_FORECAST_AUDIT_V1` 投影を読み込む。構造は `docs/FORECAST_AUDIT_VIEWER.md` を参照。元予想そのものの上書きや再計算は行わない。
+- 「保存原本を読み込む」のJSON選択で、認可済みの `RACE_AI_FORECAST_AUDIT_V1` 投影、または保存済みBOAT巡回の `RACE_AI_PRIVATE_CYCLE_VIEW_V1` を読み込む。後者の取得・復元手順は [PRIVATE_CYCLE_VIEW.md](PRIVATE_CYCLE_VIEW.md) を参照。元予想そのものの上書きや再計算は行わない。
 - 競技、JST対象日、期間、検索、会場、状態、候補を切り替え、カードから詳細へ進む。モデル・学習版・P0/P1を選ぶ操作は、既に保存された予想の閲覧であり新規予想ではない。
 - 入力にない選手名・気象・発走時刻・予想根拠・版は未取得のまま表示。参考画像の人物や数字は収録しない。
 - 候補の追加・金額編集・均等配分・削除・候補確定が可能。最大8点を標準に、16/24/32は手動候補に限定。候補確定だけでは使用額・実購入成績に計上しない。
@@ -34,6 +34,8 @@ node tests/ui_browser.test.js
 ```
 
 ブラウザ試験はPlaywright 1.62.1とインストール済みChromiumが必要。環境のChromiumを利用する場合は `CHROMIUM_PATH=/usr/bin/chromium` を指定する。証拠は既定で `artifacts/ui-browser` に出力する（合成のみ）。このクラウドの実行制限ではローカルHTTP/ブラウザ用のサポートされた実行権限が必要。
+
+`python -m tests.private_cycle_ui_fixture --out /非Gitの一時領域/private-cycle-view.json` は、既存テスト用原本を実際のcapture→restore→projectionへ通す合成fixtureを生成する。`UI_PRIVATE_CYCLE_EXPORT` にそのファイルを指定すると、P0/P1・保存済み学習版・Top8/SHA・結果の取得観測履歴を4画面幅で追加検証する。実原本をこのブラウザ証拠試験に渡さない。
 
 Python回帰試験のPR64/72参照は既存CIの固定SHAを使う。このクラウドの `/tmp/.git` マーカーで私有出力ガードが作動する場合は、非Gitの一時領域 `TMPDIR=/var/tmp` とサポートされた実行権限を使用する。ガードや署名/TLS検証を無効にしない。
 
