@@ -1,3 +1,4 @@
+# Retain authenticated empty legacy attempts separately from forecasts.
 name: BOAT nationwide cutoff-ordered A/B research (no Vercel)
 on:
   push:

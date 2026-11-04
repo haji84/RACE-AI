@@ -36,3 +36,23 @@ class RecoveryTests(unittest.TestCase):
  def test_unresolved_previous_run_stops_before_any_prediction(self):
   def fake(path):return json.dumps({'workflow_runs':[{'id':8,'created_at':'2030-04-01T00:00:00Z','head_branch':r.BRANCH,'status':'in_progress','event':'push'}]}).encode()
   with self.assertRaisesRegex(ValueError,'UNRESOLVED'):r.day_runs(fake,'2030-04-01',current_run=9)
+
+
+class EmptyAttemptTests(unittest.TestCase):
+ def archive(self,doc):
+  b=io.BytesIO()
+  with zipfile.ZipFile(b,'w') as z:z.writestr('forecasts.json',json.dumps(doc))
+  raw=b.getvalue();m={'id':10,'expired':False,'created_at':'2030-04-01T01:00:00Z','name':'boat-p0-existing-9','digest':'sha256:'+hashlib.sha256(raw).hexdigest(),'workflow_run':{'id':9,'head_repository_id':1416489937}}
+  return raw,m
+ def test_legacy_empty_attempt_is_not_a_forecast(self):
+  doc=dict(schema='RACE_AI_EXISTING_P0_DAY_V1',day_jst='2030-04-01',predictions=[],actual_purchases=False,state='SOURCE_OR_MODEL_BLOCKED',reason='source parse failed')
+  raw,meta=self.archive(doc)
+  parsed,rows=r.p0_original_or_empty(raw,meta,'2030-04-01')
+  self.assertEqual(parsed,doc);self.assertEqual(rows,[])
+  with self.assertRaises(ValueError):r.p0_original_or_empty(raw+b'x',meta,'2030-04-01')
+ def test_nonzero_declaration_or_any_predictions_cannot_be_silently_dropped(self):
+  doc=dict(schema='RACE_AI_EXISTING_P0_DAY_V1',day_jst='2030-04-01',predictions=[],actual_purchases=False,state='SOURCE_OR_MODEL_BLOCKED',race_count=2)
+  raw,m=self.archive(doc)
+  with self.assertRaises(ValueError):r.p0_original_or_empty(raw,m,'2030-04-01')
+  doc['race_count']=None;doc['predictions']=[{}];raw,m=self.archive(doc)
+  with self.assertRaises(ValueError):r.p0_original_or_empty(raw,m,'2030-04-01')

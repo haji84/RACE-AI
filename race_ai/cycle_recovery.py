@@ -6,7 +6,7 @@ new forecasts; it is never silently treated as an empty database.
 """
 from datetime import datetime,timedelta,timezone
 import hashlib,io,json,zipfile
-from .frozen_day_cycle import need,ts,read_p1,read_p0
+from .frozen_day_cycle import need,ts,read_p1,read_p0,archive_json
 from .first_receipt_continuity import first_receipt_rows,latest_result_observations
 BRANCH='feat/four-sport-forecast-audit-view-20261022'
 WORKFLOW=405276784
@@ -50,6 +50,18 @@ def result_archive(raw,meta,day):
         ts(row['captured_at'])
     return items
 
+def p0_original_or_empty(raw,meta,day):
+    """Authenticate older failed attempts, without manufacturing forecasts."""
+    run=meta['workflow_run']['id']
+    doc,_=archive_json(raw,meta,'forecasts.json',f'boat-p0-existing-{run}')
+    need(doc.get('schema')=='RACE_AI_EXISTING_P0_DAY_V1' and doc.get('day_jst')==day,
+         'foreign P0 attempt schema/day')
+    if (doc.get('predictions')==[] and doc.get('race_count') in (None,0)
+            and doc.get('model_forecast_count') in (None,0)
+            and doc.get('actual_purchases') is False):
+        return doc,[]
+    return read_p0(raw,meta,expected_day=day)
+
 def recover(get,day,*,current_run,out):
     """Read every same-day P1 original and every saved result journal, no writes upstream."""
     rows=[];observations=[];receipts=[];scanned=[];index_entries=[]
@@ -68,7 +80,7 @@ def recover(get,day,*,current_run,out):
             need(meta['workflow_run']['id']==run['id'],'artifact/run identity mismatch')
             raw=get(f'actions/artifacts/{ident}/zip')
             if prefix in ('boat-national-cutoff-','boat-p0-existing-'):
-                doc,items=(read_p1(raw,meta) if prefix=='boat-national-cutoff-' else read_p0(raw,meta,expected_day=day))
+                doc,items=(read_p1(raw,meta) if prefix=='boat-national-cutoff-' else p0_original_or_empty(raw,meta,day))
                 need(all(x['race_id'].startswith(day.replace('-','')+'-') for x in items),'foreign forecast day')
                 rows+=items
                 if prefix=='boat-national-cutoff-':
