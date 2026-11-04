@@ -141,7 +141,10 @@ def evaluate(rows,observations):
     for row in rows:
         try:verdicts.append(settle(row,by_id.get(row['race_id'])))
         except (ValueError,KeyError,TypeError) as e:
-            verdicts.append(dict(race_id=row['race_id'],stage=row['stage'],model_id=row['model_id'],state='RESULT_REJECTED',reason=str(e)[:160]))
+            # An invalid result must not erase an independently frozen forecast's receipt or tickets.
+            # Keep original provenance for review, but never score this observation.
+            base={k:v for k,v in row.items() if k not in ('ranked','roster')}
+            verdicts.append(dict(base,state='RESULT_REJECTED',reason=str(e)[:160]))
     groups=defaultdict(list)
     for row in verdicts:groups[(row['stage'],row['model_id'])].append(row)
     scoreboard=[];proposals=[]
