@@ -8,6 +8,7 @@ from datetime import datetime,timedelta,timezone
 import hashlib,io,json,zipfile
 from .frozen_day_cycle import need,ts,read_p1,read_p0,archive_json
 from .first_receipt_continuity import first_receipt_rows,latest_result_observations
+from .repeated_cycle import matches as artifact_matches
 BRANCH='feat/four-sport-forecast-audit-view-20261022'
 WORKFLOW=405276784
 JST=timezone(timedelta(hours=9))
@@ -36,7 +37,7 @@ def day_runs(get,day,*,current_run):
 def result_archive(raw,meta,day):
     need(isinstance(raw,bytes) and len(raw)<=32*1024*1024,'bounded result archive')
     run=meta['workflow_run']['id']
-    need(meta.get('expired') is False and meta.get('name')==f'race-existing-cycle-{run}' and
+    need(meta.get('expired') is False and artifact_matches(meta.get('name'),f'race-existing-cycle-{run}') and
          meta['workflow_run'].get('head_repository_id')==1416489937,'foreign/expired cycle archive')
     need(meta.get('digest')=='sha256:'+hashlib.sha256(raw).hexdigest(),'cycle archive hash mismatch')
     with zipfile.ZipFile(io.BytesIO(raw)) as z:
@@ -72,9 +73,9 @@ def recover(get,day,*,current_run,out):
         need(data.get('total_count',len(artifacts))==len(artifacts),'ARTIFACT_PAGE_INCOMPLETE')
         scanned.append(run['id'])
         for listed in artifacts:
-            prefix=('boat-p0-existing-' if listed['name']==f'boat-p0-existing-{run["id"]}' else
-                    'boat-national-cutoff-' if listed['name']==f'boat-national-cutoff-{run["id"]}' else
-                    'race-existing-cycle-' if listed['name']==f'race-existing-cycle-{run["id"]}' else None)
+            prefix=('boat-p0-existing-' if artifact_matches(listed['name'],f'boat-p0-existing-{run["id"]}') else
+                    'boat-national-cutoff-' if artifact_matches(listed['name'],f'boat-national-cutoff-{run["id"]}') else
+                    'race-existing-cycle-' if artifact_matches(listed['name'],f'race-existing-cycle-{run["id"]}') else None)
             if prefix is None:continue
             ident=listed['id'];meta=json.loads(get(f'actions/artifacts/{ident}'))
             need(meta['workflow_run']['id']==run['id'],'artifact/run identity mismatch')

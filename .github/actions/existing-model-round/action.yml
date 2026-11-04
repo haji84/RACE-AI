@@ -1,0 +1,46 @@
+name: Existing five-model forecast and result round
+description: Sequential round with independent pre-cutoff receipt and verified result checkpoint
+inputs:
+  round:
+    required: true
+    description: Monotonic round number (1 through 20)
+  p0-supplement:
+    required: true
+    description: Existing immutable P0 supplement artifact ID
+runs:
+  using: composite
+  steps:
+    - name: Wait for bounded next deadline scan
+      id: ready
+      shell: bash
+      run: python scripts/github_existing_cycle.py repeat-prepare --round '${{ inputs.round }}'
+    - name: Forecast future unpublished originals with existing five models
+      if: steps.ready.outputs.active == 'true'
+      shell: bash
+      run: python scripts/github_existing_cycle.py forecast
+    - name: Freeze this round before reading any outcomes
+      if: steps.ready.outputs.active == 'true'
+      id: freeze
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: ${{ steps.ready.outputs.forecast_name }}
+        path: boat_nationwide_output/national.json
+        if-no-files-found: error
+        retention-days: 7
+    - name: Read back original and independently check later official results
+      if: steps.ready.outputs.active == 'true'
+      shell: bash
+      run: python scripts/github_existing_cycle.py audit --round '${{ inputs.round }}' --p1-artifact '${{ steps.freeze.outputs.artifact-id }}' --p0-supplement '${{ inputs.p0-supplement }}'
+    - name: Save status and PDCA as a separate immutable result event
+      if: steps.ready.outputs.active == 'true'
+      id: result
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: ${{ steps.ready.outputs.result_name }}
+        path: existing_cycle_output/
+        if-no-files-found: error
+        retention-days: 7
+    - name: Verify result archive before admitting the next round
+      if: steps.ready.outputs.active == 'true'
+      shell: bash
+      run: python scripts/github_existing_cycle.py repeat-complete --round '${{ inputs.round }}' --p1-artifact '${{ steps.freeze.outputs.artifact-id }}' --result-artifact '${{ steps.result.outputs.artifact-id }}'

@@ -7,6 +7,7 @@ from collections import Counter, defaultdict
 from datetime import datetime, timedelta
 import hashlib, io, itertools, json, math, re, zipfile
 from .actions_contract import digest
+from .repeated_cycle import matches as artifact_matches
 
 UNIVERSE=set(itertools.permutations(range(1,7),3))
 def need(ok,reason):
@@ -22,7 +23,7 @@ def official_id(value):
     return m[1].replace('-','')+'-'+m[2]+'-'+m[3].zfill(2)
 def archive_json(raw,receipt,member,expected_name):
     need(isinstance(raw,bytes) and len(raw)<=32*1024*1024,'bounded archive required')
-    need(receipt.get('expired') is False and receipt.get('name')==expected_name,'foreign or expired archive')
+    need(receipt.get('expired') is False and artifact_matches(receipt.get('name'),expected_name),'foreign or expired archive')
     need(receipt.get('workflow_run',{}).get('head_repository_id')==1416489937,'foreign repository')
     need(receipt.get('digest')=='sha256:'+hashlib.sha256(raw).hexdigest(),'archive digest mismatch')
     with zipfile.ZipFile(io.BytesIO(raw)) as z:

@@ -59,6 +59,7 @@ WAIT_SECONDS=0.15
 MIN_TO_CUTOFF=timedelta(seconds=210)
 requests_used=0
 MAX_HTML=MAX_BYTES
+SOURCE_GUARD=None
 
 
 def observed_timestamp():
@@ -105,16 +106,21 @@ def get(url):
     global requests_used
     if requests_used>=REQUEST_CAP:
         raise SourceError("NATIONWIDE_GET_BUDGET_EXHAUSTED")
+    if SOURCE_GUARD is not None:SOURCE_GUARD.charge("forecast")
     requests_used+=1
     req=request.Request(url,headers={"Accept":"text/html",
         "User-Agent":"RACE-AI-owner-reviewed-nationwide-pilot/1.0",
         "Cache-Control":"no-store"})
-    with request.build_opener(NoRedirects()).open(req,timeout=12) as response:
-        body=response.read(MAX_HTML+1)
-        if (response.status!=200 or response.geturl()!=url or len(body)==0
-                or len(body)>MAX_HTML or
-                not (response.headers.get("content-type") or "").lower().startswith("text/html")):
-            raise SourceError("OFFICIAL_RESPONSE_IDENTITY_OR_SIZE_INVALID")
+    try:
+        with request.build_opener(NoRedirects()).open(req,timeout=12) as response:
+            body=response.read(MAX_HTML+1)
+            if (response.status!=200 or response.geturl()!=url or len(body)==0
+                    or len(body)>MAX_HTML or
+                    not (response.headers.get("content-type") or "").lower().startswith("text/html")):
+                raise SourceError("OFFICIAL_RESPONSE_IDENTITY_OR_SIZE_INVALID")
+    except error.HTTPError as exc:
+        if SOURCE_GUARD is not None:SOURCE_GUARD.http_failure(exc.code)
+        raise
     time.sleep(WAIT_SECONDS)
     captured=datetime.now(timezone.utc)
     return body,captured,hashlib.sha256(body).hexdigest()
@@ -232,41 +238,51 @@ def make_pair(day,race):
             "generated_at":generated},computed,extended,priced,observed
 
 
-def run():
+def run(*, schedule_snapshot=None):
     global requests_used
     requests_used=0
     if os.environ.get("RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED")!="true":
         return stop("OWNER_SOURCE_SCOPE_REQUIRED")
     now=datetime.now(timezone.utc)
     day=now.astimezone(JST).date()
-    try:
-        listing,index_at,index_sha,url=official_schedule(day)
-    except (SourceError,ValueError,UnicodeError,OSError,error.URLError,TimeoutError,TypeError) as ex:
-        return stop("VERIFIED_DAY_SOURCE_UNAVAILABLE",
-                    source={"failure_class":type(ex).__name__})
-    active=listing["active_venues"]
-    rows=[];venue_errors=[]
-    # One verified 12R closing schedule per active venue. Source is original,
-    # not inferred from a cached website snippet or the race's number.
-    for venue in active:
-        if requests_used>=REQUEST_CAP:
-            venue_errors.append({"venue":venue,"state":"GET_CAP"})
-            break
+    from race_ai.repeated_cycle import usable_schedule
+    if usable_schedule(schedule_snapshot,day=day.isoformat(),now=now):
+        import copy
+        cached=copy.deepcopy(schedule_snapshot)
+        source=cached['official_day_source']
+        listing={'active_venues':cached['verified_active_venues']}
+        index_at=datetime.fromisoformat(source['captured_at'])
+        index_sha=source['source_sha256'];url=source['url']
+        active=listing['active_venues'];rows=cached['official_race_registry'];venue_errors=[]
+    else:
         try:
-            source_url=racelist_endpoint(day,venue,1)
-            body,at,sha=get(source_url)
-            identity=parse_official_racelist(body,day=day,venue=venue,race_no=1,
-                 source_url=source_url,captured_at=at.isoformat())
-            if identity["status"]!="OFFICIAL_BODY_IDENTITY_VERIFIED":
-                raise SourceError("RACELIST_IDENTITY_UNVERIFIED")
-            for no,closed in schedule_times(body,day,venue).items():
-                rows.append({"race_id":f"{day:%Y%m%d}-{venue}-{no:02d}",
-                             "cutoff_at":closed.isoformat(),
-                             "schedule_captured_at":at.isoformat(),
-                             "source_sha256":sha})
+            listing,index_at,index_sha,url=official_schedule(day)
         except (SourceError,ValueError,UnicodeError,OSError,error.URLError,TimeoutError,TypeError) as ex:
-            venue_errors.append({"venue":venue,"state":"VENUE_SCHEDULE_REJECTED",
-                                 "failure_class":type(ex).__name__})
+            return stop("VERIFIED_DAY_SOURCE_UNAVAILABLE",
+                        source={"failure_class":type(ex).__name__})
+        active=listing["active_venues"]
+        rows=[];venue_errors=[]
+        # One verified 12R closing schedule per active venue. Source is original,
+        # not inferred from a cached website snippet or the race's number.
+        for venue in active:
+            if requests_used>=REQUEST_CAP:
+                venue_errors.append({"venue":venue,"state":"GET_CAP"})
+                break
+            try:
+                source_url=racelist_endpoint(day,venue,1)
+                body,at,sha=get(source_url)
+                identity=parse_official_racelist(body,day=day,venue=venue,race_no=1,
+                     source_url=source_url,captured_at=at.isoformat())
+                if identity["status"]!="OFFICIAL_BODY_IDENTITY_VERIFIED":
+                    raise SourceError("RACELIST_IDENTITY_UNVERIFIED")
+                for no,closed in schedule_times(body,day,venue).items():
+                    rows.append({"race_id":f"{day:%Y%m%d}-{venue}-{no:02d}",
+                                 "cutoff_at":closed.isoformat(),
+                                 "schedule_captured_at":at.isoformat(),
+                                 "source_sha256":sha})
+            except (SourceError,ValueError,UnicodeError,OSError,error.URLError,TimeoutError,TypeError) as ex:
+                venue_errors.append({"venue":venue,"state":"VENUE_SCHEDULE_REJECTED",
+                                     "failure_class":type(ex).__name__})
     if not rows:
         return stop("NO_VERIFIED_CUTOFF_ROWS",schedule=listing,
                     source={"url":url,"source_sha256":index_sha,"captured_at":index_at.isoformat()},

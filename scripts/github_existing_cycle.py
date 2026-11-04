@@ -51,7 +51,10 @@ def forecast(day):
     target.write_text(json.dumps(index,ensure_ascii=False))
     # Point the unchanged predictor at the verified union, not yesterday alone.
     pilot.FROZEN_INDEX=target
-    pilot.run()
+    from race_ai.repeated_cycle import SourceGuard
+    session=ROOT/'cycle_recovery_output/repeat-session.json'
+    if session.exists():pilot.SOURCE_GUARD=SourceGuard(session)
+    pilot.run(schedule_snapshot=state.get('schedule_cache'))
 
 def supplement(day):
     """Fill only previously absent future P0 rows; never edit first morning bytes."""
@@ -64,8 +67,8 @@ def supplement(day):
     with (folder/'forecasts.json').open('x') as f:json.dump(result,f,ensure_ascii=False,sort_keys=True,separators=(',',':'))
     print(json.dumps(dict(state='MISSING_FUTURE_P0_ONLY',race_count=result['race_count'],original_races_not_regenerated=len(frozen))))
 
-def audit(day,p1_id,p0_supplement=None):
-    doc,rows,p0_meta,p0_zip=original(day);sources=[p0_meta];p1_doc=None
+def audit(day,p1_id,p0_supplement=None,round_no=None):
+    doc,rows,p0_meta,p0_zip=original(day);sources=[p0_meta];p1_doc=None;p1_meta=None
     recovered=load_state(ROOT/'cycle_recovery_output/continuity.json',day)
     rows+=recovered['rows'];sources+=recovered['receipts']
     out=ROOT/'existing_cycle_output';out.mkdir(exist_ok=True)
@@ -76,7 +79,7 @@ def audit(day,p1_id,p0_supplement=None):
         (out/'supplement-p0-original.zip').write_bytes(raw)
     if p1_id:
         meta=json.loads(gh(f'actions/artifacts/{p1_id}'));raw=gh(f'actions/artifacts/{p1_id}/zip')
-        p1_doc,p1rows=read_p1(raw,meta);rows+=p1rows;sources.append(meta)
+        p1_doc,p1rows=read_p1(raw,meta);rows+=p1rows;sources.append(meta);p1_meta=meta
         (out/'current-p1-original.zip').write_bytes(raw)
     rows,excluded=first_receipt_rows(rows)
     excluded=recovered['excluded_repeats']+excluded
@@ -85,12 +88,16 @@ def audit(day,p1_id,p0_supplement=None):
     by_race={x['race_id']:x for x in rows};observations=list(recovered['observations']);failures=[];requests_used=0
     now=datetime.now(timezone.utc)
     due=due_rows(rows,observations,now)
+    from race_ai.repeated_cycle import SourceGuard,load as load_session,checkpoint
+    session_path=ROOT/'cycle_recovery_output/repeat-session.json'
+    guard=SourceGuard(session_path) if session_path.exists() else None
     blocked=False
     for row in due[:24]:
         if blocked:failures.append(dict(race_id=row['race_id'],state='SOURCE_RATE_LIMIT_STOP'));continue
         rid=row['race_id'];d=date.fromisoformat(day);venue=rid[9:11];n=int(rid[-2:]);url=endpoint(d,venue,n,'raceresult')
         try:
             req=request.Request(url,headers={'User-Agent':'RACE-AI-owner-existing-result-audit/1.0','Accept':'text/html'})
+            if guard is not None:guard.charge('result')
             requests_used+=1
             with request.build_opener(NoRedirects()).open(req,timeout=12) as response:
                 raw=response.read(MAX_BYTES+1)
@@ -100,7 +107,9 @@ def audit(day,p1_id,p0_supplement=None):
             observation.update(source_url=url,source_sha256=hashlib.sha256(raw).hexdigest())
             observations.append(observation);time.sleep(.35)
         except Exception as exc:
-            if isinstance(exc,error.HTTPError) and 400<=exc.code<500:blocked=True
+            if isinstance(exc,error.HTTPError) and 400<=exc.code<500:
+                blocked=True
+                if guard is not None:guard.http_failure(exc.code)
             failures.append(dict(race_id=rid,state='SOURCE_OR_PARSE_UNAVAILABLE',reason=type(exc).__name__+': '+str(exc)[:120]))
     latest_observations,observations=latest_result_observations(observations)
     report=evaluate(rows,latest_observations)
@@ -134,6 +143,8 @@ def audit(day,p1_id,p0_supplement=None):
     (out/'external_research_summary.json').write_text(json.dumps(report['external_research'],ensure_ascii=False,indent=2))
 
     report['next_action']='VALIDATE_IMPROVEMENT_ON_NEW_RACES_ONLY'
+    report['round_no']=round_no
+    if session_path.exists():report['bounded_repeat_session']=load_session(session_path)
     report['report_sha256']=hashlib.sha256(json.dumps(report,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
     (out/'status.json').write_text(json.dumps(report,ensure_ascii=False,indent=2))
     (out/'official-result-observations.json').write_text(json.dumps(observations,ensure_ascii=False,indent=2))
@@ -157,13 +168,60 @@ def audit(day,p1_id,p0_supplement=None):
     text='\n'.join(lines)+'\n';(out/'STATUS.md').write_text(text)
     if os.environ.get('GITHUB_STEP_SUMMARY'):
         with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as f:f.write(text)
+    if round_no is not None:
+        checkpoint(ROOT/'cycle_recovery_output/continuity.json',recovered,rows,observations,sources,p1_doc=p1_doc,p1_receipt=p1_meta)
     print(json.dumps({k:report[k] for k in ('day_jst','forecast_count','distinct_races','scored_forecasts','source_request_count','auto_promoted')},ensure_ascii=False))
 
+def repeat_start(day):
+    from race_ai.repeated_cycle import start
+    need(int(os.environ.get('GITHUB_RUN_ATTEMPT','1'))==1,'RETRY_REQUIRES_NEW_TRIGGER_TO_PRESERVE_RECEIPTS')
+    start(ROOT/'cycle_recovery_output/repeat-session.json',day=day,
+          run_id=int(os.environ['GITHUB_RUN_ID']),now=datetime.now(timezone.utc))
+
+def repeat_prepare(day,round_no):
+    from race_ai.repeated_cycle import prepare
+    path=ROOT/'cycle_recovery_output/repeat-session.json'
+    decision=prepare(path,round_no,now=datetime.now(timezone.utc))
+    while decision['wait_seconds']:
+        time.sleep(min(decision['wait_seconds'],30))
+        decision=prepare(path,round_no,now=datetime.now(timezone.utc))
+    with open(os.environ['GITHUB_OUTPUT'],'a') as f:
+        for k,v in decision.items():
+            if k=='active':v='true' if v else 'false'
+            print(f'{k}={v}',file=f)
+    print(json.dumps(dict(round=round_no,**decision)))
+
+def repeat_complete(day,round_no,p1_id,result_id):
+    import io,zipfile
+    from race_ai.repeated_cycle import artifact_name,complete
+    from race_ai.cycle_recovery import result_archive
+    run_id=int(os.environ['GITHUB_RUN_ID'])
+    meta=json.loads(gh(f'actions/artifacts/{result_id}'))
+    need(meta['workflow_run']['id']==run_id and
+         meta['name']==artifact_name('race-existing-cycle',run_id,round_no),'round result receipt identity')
+    raw=gh(f'actions/artifacts/{result_id}/zip')
+    result_archive(raw,meta,day)
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        report=json.loads(archive.read('status.json'))
+    local=json.loads((ROOT/'existing_cycle_output/status.json').read_text())
+    need(report==local and report['round_no']==round_no and str(report['run_id'])==str(run_id),'round result readback mismatch')
+    state=complete(ROOT/'cycle_recovery_output/repeat-session.json',round_no,
+                   now=datetime.now(timezone.utc),forecast_artifact=p1_id,result_artifact=result_id)
+    print(json.dumps(dict(state='ROUND_SAVED_AND_READBACK_VERIFIED',round=round_no,
+                         forecast_count=report['forecast_count'],scored_forecasts=report['scored_forecasts'],
+                         p1_artifact=p1_id,result_artifact=result_id,session_requests=state['requests_used'])))
+
 def main():
-    p=argparse.ArgumentParser();p.add_argument('command',choices=['restore','forecast','audit','supplement']);p.add_argument('--p1-artifact',type=int);p.add_argument('--p0-supplement',type=int);a=p.parse_args()
+    p=argparse.ArgumentParser()
+    p.add_argument('command',choices=['restore','forecast','audit','supplement','repeat-start','repeat-prepare','repeat-complete'])
+    p.add_argument('--p1-artifact',type=int);p.add_argument('--p0-supplement',type=int)
+    p.add_argument('--result-artifact',type=int);p.add_argument('--round',type=int);a=p.parse_args()
     day=datetime.now(timezone.utc).astimezone(JST).date().isoformat()
     if a.command=='restore':restore(day)
     elif a.command=='forecast':forecast(day)
     elif a.command=='supplement':supplement(day)
-    else:audit(day,a.p1_artifact,a.p0_supplement)
+    elif a.command=='repeat-start':repeat_start(day)
+    elif a.command=='repeat-prepare':repeat_prepare(day,a.round)
+    elif a.command=='repeat-complete':repeat_complete(day,a.round,a.p1_artifact,a.result_artifact)
+    else:audit(day,a.p1_artifact,a.p0_supplement,a.round)
 if __name__=='__main__':main()
