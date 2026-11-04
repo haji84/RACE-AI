@@ -27,15 +27,22 @@ def export_synthetic_journal(store: SyntheticJournal) -> dict:
     for event in store.events("freeze"):
         p = event["payload"]
         snap = p["snapshot"]
+        original = p["prediction"]
         key = (race_key(snap), snap["revision"])
         predictions[key] = {
-            "ordered_top8": p["prediction"]["ordered_top8"],
-            "generated_at": p["prediction"]["generated_at"],
+            "ordered_top8": original["ordered_top8"],
+            "candidates": original.get("candidates"),
+            "full_candidate_sha256": original.get("full_candidate_hash"),
+            "generated_at": original["generated_at"],
+            "as_of": original.get("as_of"),
             "persisted_at": event["recorded_at"],
             "cutoff_at": snap["sales_cutoff_at"],
             "input_sha256": snap["snapshot_hash"],
-            "prediction_sha256": p["prediction"]["prediction_hash"],
-            "model_version": str(p["prediction"]["model"]["version"]),
+            "prediction_sha256": original["prediction_hash"],
+            "model_id": original["model"].get("id"),
+            "model_version": str(original["model"]["version"]),
+            "stage": original.get("stage", snap.get("stage")),
+            "source_sha256": original.get("source_sha256", snap.get("source_sha256")),
             "odds_independent": True,
             "external_receipt_verified": False,
             "rationale": "SYNTHETIC_ONLY: internal test journal; no external clock or real source",
@@ -45,13 +52,18 @@ def export_synthetic_journal(store: SyntheticJournal) -> dict:
     for event in store.events("result"):
         p = event["payload"]
         key = (p["race_key"], p["race_revision"])
-        if key not in results or p["revision"] > results[key]["revision"]:
-            results[key] = {
-                "revision": p["revision"],
-                "status": p["status"],
-                "winning_combinations": p["winning_combinations"],
-                "confirmed_at": event["recorded_at"],
-            }
+        revision = {
+            "revision_no": p["revision"],
+            "status": p["status"],
+            "winning_combinations": p["winning_combinations"],
+            "confirmed_at": event["recorded_at"],
+            "source_provenance": p.get("source"),
+            "source_sha256": p.get("source_sha256"),
+        }
+        for field in ("payout_yen_per_100", "refunds", "refund_combinations", "refund_boats"):
+            if field in p:
+                revision[field] = p[field]
+        results.setdefault(key, []).append(revision)
 
     missing = {}
     for event in store.events("no_forecast"):
@@ -67,14 +79,17 @@ def export_synthetic_journal(store: SyntheticJournal) -> dict:
             "sport": r["sport"],
             "venue": r["venue"],
             "race_no": r["race_no"],
+            "event_date_jst": r["event_date_jst"],
             "cutoff_at": snap["sales_cutoff_at"],
             "offering_status": "TRIFECTA_OFFERED" if snap["trifecta_offered"] else "NOT_OFFERED",
             "race_status": snap["status"],
             "prediction": predictions.get(version),
-            "result": {k: v for k, v in results[version].items() if k != "revision"} if version in results else None,
+            "result": {k: v for k, v in results[version][-1].items() if k != "revision_no"} if version in results else None,
+            "result_revisions": results.get(version, []),
             "no_forecast_reason": missing.get(version, "NO_SYNTHETIC_FREEZE") if version not in predictions else None,
             "evidence_url": None,
             "source_provenance": "SYNTHETIC_ONLY",
+            "source_sha256": snap.get("source_sha256"),
         })
 
     return {

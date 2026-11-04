@@ -54,7 +54,7 @@ jobs:
   viewer_contract:
     name: Viewer audit contract
     runs-on: ubuntu-24.04
-    timeout-minutes: 3
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -103,6 +103,32 @@ jobs:
         run: node --test --test-reporter=tap tests/forecast_audit.test.cjs tests/full_odds.test.cjs tests/odds_feed_worker.test.mjs tests/odds_auto_source_cron.test.mjs tests/odds_three_cycle_audit.test.mjs tests/private_wire_vault.test.mjs
       - name: Python synthetic journal to viewer projection tests
         run: python -m unittest discover -s tests -v
+      - name: Integrated product UI contracts
+        run: |
+          node --check web/app.js
+          node --check web/ui-model.js
+          node --check web/product-data.js
+          node --test --test-reporter=tap tests/ui_model.test.js tests/product_data.test.cjs
+      - name: Install isolated pinned browser test tooling
+        run: |
+          npm install --prefix "$RUNNER_TEMP/race-ai-ui-tools" --no-package-lock --ignore-scripts playwright@1.62.1
+          "$RUNNER_TEMP/race-ai-ui-tools/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Exercise seven product pages at four viewport widths
+        env:
+          NODE_PATH: ${{ runner.temp }}/race-ai-ui-tools/node_modules
+          UI_JOURNAL_EXPORT: ${{ runner.temp }}/product-ui-journal.json
+        run: |
+          python -m race_ai.synthetic_e2e --db "$RUNNER_TEMP/product-ui-synthetic.sqlite"
+          python -m race_ai.audit_projection --db "$RUNNER_TEMP/product-ui-synthetic.sqlite" --out "$UI_JOURNAL_EXPORT"
+          node tests/ui_browser.test.js
+      - name: Retain synthetic-only UI interaction evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: synthetic-product-ui-${{ github.sha }}
+          path: artifacts/ui-browser/
+          if-no-files-found: warn
+          retention-days: 7
       - name: Read frozen real-race research record by immutable commit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
