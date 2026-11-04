@@ -1,1 +1,3 @@
 2026-11-03 Miyajima1R result read-only check. Original frozen GitHub artifact=13193749273; original forecast unchanged. Vercel disabled. At least 90s after closing; 2 GET maximum. This trigger contains NO outcomes.
+2026-11-04 owner request: reconcile every saved BOAT forecast. Capture only the two missing official result originals; no prediction, scoring, training or change to the live writer. Existing one-shot workflow only; two GET maximum; stop on HTTP/source errors. Results remain in the authenticated run artifact, never in git.
+mode=capture-missing-results-20261104
