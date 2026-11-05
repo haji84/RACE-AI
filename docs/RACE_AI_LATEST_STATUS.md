@@ -1,3 +1,18 @@
+# 2026-11-05 19:03 JST｜非公開Google Driveへ第21巡原本3件を新規保全、独立読戻しSHA一致
+
+**今回の新規成果：** 以前のGitHub ZIP→Google Drive connector直結uploadは型不一致だったが、既存GitHub artifactを実バイト取得し、ChatGPT LibraryのGoogle Driveマウントを通じて**同一ZIPを再圧縮・内容変更なしで3件新規保存**できた。既存のファイルを上書きしていない。これまで報告していた「Drive追加0件」から**今回+3件**に改善した。
+
+**保存先の安全確認：** 対象の非公開原本フォルダが、指定されたDriveフォルダと同じfolder IDであることを二つの接続経路で検証。接続中ユーザー＝唯一のowner権限、`shared=false`、別ユーザーへの共有権限なしを保存前に照合。公開リポジトリへ私有Drive ID・私有URL・アカウント情報は転記しない。
+
+**GitHub API digest→ダウンロード実バイト→Drive保存→Driveから再取得した実バイトの独立一致（3/3）**：
+- 第21巡P1予想原本（GitHub artifact `13395371515`）：54,811 bytes、SHA256 `17e44570cfb6dc8b9e50511c8a5018d4caffbb47033b743f67536b519a4c90de`、再読戻し一致、ZIP CRC異常なし。
+- 第21巡結果・PDCA原本（artifact `13395351632`）：1,047,023 bytes、SHA256 `acaf98ae69cf9c1bdbdeccee306e3da0d0d04a31a3737fa229b253f15860a0b8`、再読戻し一致、ZIP CRC異常なし。
+- 当run継続原本（artifact `13395880555`）：16,688,587 bytes、SHA256 `12cc88117f6bf486ec6fab14d6c3dd78634632b634eb20d9653755b24195cbca`、再読戻し一致、ZIP CRC異常なし。
+
+**厳格な限界：** これは**3件の原本ZIPの非公開保存実証**で、過去全runの原本や全学習元・結果改訂履歴の永久保全完了ではない。Drive側の誤消去・所有権変更・保存容量・長期ポリシーまで保証していない。今日の既存workflow405276784に新runはなく、最新予想run `41979370711` は引き続きcompleted/cancelled、今回の新予想・採点は0件。最近30件のActions一覧で同workflowの実行中/待機中を確認せず。キャンセル原因と本指示の240GET/24巡/65分に対する現行`source_limit=null/max_rounds=null/timeout-minutes=360`の食い違いは未解決なので、**追加push・再起動・設定変更はしていない**。基準モデル・買い目・学習済み候補・過去P0/P1原本は無変更。2026-11-05第21巡の基準698件、通常採点546件、学習版132件、前向き110モデル別行は前回の保存値で、新規増分として加算しない。
+
+---
+
 # 2026-11-05 18:52 JST｜取消後の既存第21巡3原本を再独立照合、5モデルの損益要因を解析（新予想0）
 
 既存Draft PR71 / workflow405276784の最新run **41979370711はcompleted/cancelled**。GitHub Actionsの直近一覧では同workflowにin_progress/queued/pending/waitingを確認できず。runの取消主体・意図は未解明のため、追加trigger、同run rerun、キャンセル解除はしない。最新第21巡の保存時刻は**16:02:18 JST**。以下は保存済み値の再検証と新しい内訳解析であり、18時台の新規レース予想・結果反映ではない。
