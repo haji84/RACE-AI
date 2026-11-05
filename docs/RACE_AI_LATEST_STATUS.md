@@ -1,3 +1,19 @@
+# 2026-11-05 15:44 JST｜実第11巡回の独立ZIP再照合と前向き比較の更新（実行中runの途中保存）
+
+対象は既存Draft PR #71 / 既存workflow405276784 / run `41979370711`。監査時PR HEADは `4f7d813a92e5403fe385b7cfdff626616f0f30e3`、実行run HEADは `5ef86817daea89544d03f462f58110e1222a9518`。Actions全run一覧で同workflowのin_progressはこの1件のみ、queued/pending/waitingは確認範囲で0件。先行のrun41967896991はcompleted/success、失敗run41979177157は再実行しない。追加push・新run予約・実行中キャンセルなし。
+
+11巡目にGitHubへ保存された予想ZIP `boat-national-cutoff-41979370711-cycle-11`（artifact 13393853194、15:42:11 JST、ZIP SHA256 `c64212aaaf61a9cf0c744d5d9200426ce138fbbad4bb5279aa883a134facd4dd`）と結果・PDCA ZIP `race-existing-cycle-41979370711-cycle-11`（artifact 13394860218、15:42:19 JST、ZIP SHA256 `2a41795fd97b967e1b8445c0061273778382f2c6d9e9ee0b8c995eb7dddb4d03`）をコネクタから**実バイトダウンロード**し、各GitHub API digestとSHA256完全一致、ZIP CRC正常を確認。結果ZIP内 `current-p1-original.zip` の実バイトも別取得P1 ZIPと完全一致。これは保存済み第11巡のartifactであって、run全体はin_progress、`session.completed_round=10/prepared_round=11`。第11巡の継続receipt完了は未認定。
+
+**第1巡（15:21:51 JST）保存原本からの実差分：** 基準5モデル643→668件（+25、P0=288不変、P1=355→380、**新規5レース×5モデル**）。`forecasts.csv`は668行、`model_coverage.total_saved_forecasts=668`と一致。通常結果採点489→504件（+15、HIT182→186、MISS307→318）。未確認はMISSにせず、今回の別保存ZIPに結果待ち135、異常18、返還7、RESULT_REJECTED4を維持。公式結果観測205→227版。基準予想・P1はそれぞれ異なる競走数/モデル別件数と区別する。11巡目の`status.json.round_no=11/updated_at=2026-11-05T06:42:17.706091+00:00`、予想原本の初回保存時刻・締切を保持した。
+
+研究学習版は110→120モデル別予想（+10）、通常結果での同条件ペア96→98行（異なる49レース、+1レース）。98行で元31的中・仮払戻73,250円、研究候補33的中・78,590円。差は候補+2的中・+5,340円で第1巡との差は拡大していない。研究用の学習可能93レース、train70/validation23、`FITTED_SHADOW_ONLY`、本番自動切替なし。学習元artifact全件独立再取得と統計的優位性の証明は今回行っていない。過去8点・基準5モデル係数は不変扱いであり、係数学習成功を精度改善の証明としない。
+
+`coverage_audit`: 対象144レース、締切済105、未来39、展示後5モデル完備73、締切済未保存32レース×5系統＝160モデル別行を残す。展示の当時の取得可能性は未検証。16系統・4競技の実入力と前向き全対象、長期の本人限定外部保全は未完了。Driveへの新規保全・独立読戻しは今回行っていない。7日GitHub artifactを恒久私有DBとしない。
+
+**取得・継続契約の指示不一致を保全：** 本定期指示は公式GET240/1巡45、24巡/65分での制限維持を指定。一方、現に稼働中の別途オーナー承認のコード/当該結果ZIPでは `source_limit=null/max_rounds=null/stop_at=null`、本run `requests_used=197`、前run含む`lifetime_requests=479`、`halted_reason/source_wait=null`。本監査は矛盾を無断上書き・回避せず、実行中writerに追加の後続を積まない。API 4xx/429・真正性/日付保護の詳細な実挙動は今回の独立再現対象外。main・課金・公開・実投票・新workflow/PR/モデル/タスク/スケジュール変更なし。
+
+---
+
 # 2026-11-05 15:24 JST｜連続予想版を既存PR71へ適用・実20予想を自動保存、1レースは締切13分22秒前
 
 オーナーの「その上限や停止もなし」「常に新しいレース」「できれば締切15〜10分前」に基づき、既存Draft PR #71へ連続版a1b980aと起動修正**5ef86817daea89544d03f462f58110e1222a9518**をpushした。[同じ既存workflow405276784のrun41979370711](https://github.com/haji84/RACE-AI/actions/runs/41979370711)は稼働中。**第1巡がcompleted/success、第2巡へ進行**をActions APIで確認。writerはこのrun1件、追加queued/pending/waitingなし。新PR・Issue・外部開発タスク・workflow・モデル系統・サービス契約は作成していない。
