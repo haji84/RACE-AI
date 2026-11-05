@@ -63,5 +63,8 @@
   "environment_published": false,
   "browser_groups": 37,
   "browser_PNGs": 58,
-  "browser_errors": 0
+  "browser_errors": 0,
+  "merged_public_head": "897a31c21b703f2474683fb13143f814686f92dd",
+  "after_merge_workflow_contract_tests": 16,
+  "after_merge_workflow_contract_failures": 0
 }

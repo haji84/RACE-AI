@@ -24,3 +24,11 @@
 公開PR HEAD897a31c、既存run41964059991は旧コードfea5b2a4で起動済み。今回のローカル変更は未pushであり、既存実行の240回上限をその場で解除したとは扱わない。実行中処理の中断/再起動、追加run、環境再公開、main統合、実投票、本番モデル切替はしていない。ローカル自動処理も重複防止のSTOPPEDを保全する。
 
 上限撤廃は全4競技/全適用モデル/全レースの完成や精度改善の認定ではない。入力不足、締切、巡回時間、アプリへのGitHub最新原本の自動同期等は別の未完成条件。
+
+## 配布・並行作業の保全
+
+新しい本人用ZIPは12,765,026バイト/319ファイル、SHA256 `a5adc98ca72f02c4501900593c13fb9a8313f82e72d1895eb3f351306c7a29cb`。276現行ソースと20seedを保持し、旧配布物/原本を上書きしない。CRC/全member SHA一致、cache/symlink0、isolated `--check` 保存288件/追加GET0/推論0。[配布物照合](package-delivery-summary.json)。
+
+公開HEAD897a31cの監査記録/トリガーとworkflow契約修正をローカルへ取り込み、契約の両方のassertを保持して関連16件が成功。公開HEADの古い上限を新policyの実証に使わず、今回の未pushコードと区別する。
+
+独立した配布物審査でもCRC/全格納SHA/276現行ソース/20seedが一致。旧検証済みZIPと新ZIPの私有原本38memberを直接比較して全バイト一致、4上限定数None/配布metadata null、cache/symlink0を確認。[独立配布物審査](independent-package-review.json)。

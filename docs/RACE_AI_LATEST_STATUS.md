@@ -1,3 +1,19 @@
+# 2026-11-05 — 自動予想経路の取得回数上限を撤廃（実行中GitHub版への反映は未実施）
+
+オーナーの「取得上限なしにして」に対応し、ローカル実装と本人用アプリから**累積240回・1収集45回という固定GET回数停止を撤廃**した。上限metadataはPython None/JSON null、画面は「取得回数上限なし」と実際の取得数を表示する。取得数を巨大値へ置換したり、カウンター/原本/旧停止記録を削除して解除したりしていない。
+
+**全Python888件・Node179件・合成ブラウザ37操作グループ/58PNGが成功、独立レビュー118件成功**。240回超からの継続/再起動、258回の反復guard計数、1収集50回・pilot60回の模擬GET、365→366回の自動画面更新を確認。旧metadata240と既存原本を読め、回数減少/bool/負数等と旧停止の自動解除は拒否する。既存DB SHAとsource回数3/STOPPEDは不変。実公式取得・追加実予想・モデル係数変更は0。
+
+3分間隔・24巡/65分・JST日付境界・3新規レース単位・締切210秒前・単一writer・HTTP4xx/429停止・出典検証・サイズ/timeout条件は維持。別の過去one-shot診断の6GET等は今回の自動予想経路の変更範囲外。回数上限撤廃を全競技/全モデル/全レース実運転や24時間常駐完成とは扱わない。
+
+公開HEAD `897a31c21b703f2474683fb13143f814686f92dd` の並行監査/トリガー記録をローカルmerge `539d04b`で保全。workflow契約の競合は双方のbootstrap順序/guardを統合し、関連16件が成功。**今回の変更は未push・未公開**。既存run41964059991は旧HEAD fea5b2a4で起動しており、実行中の240回制限を途中解除したものではない。既存処理の中断・再起動・追加run・環境再公開は行っていない。実運転への適用は既存PR向けコードの反映が残る。
+
+本人用の新しい配布物 `RACE_AI_20261105_no_get_limit_app.zip` を別名で作成。12,765,026バイト/319ファイル、SHA256 `a5adc98ca72f02c4501900593c13fb9a8313f82e72d1895eb3f351306c7a29cb`。CRC/全格納SHA、276現行ソース・20seed、cache/symlink0を検証。isolated `--check` は保存288件、追加GET/推論0。旧配布物と全原本は無改変。予想JSONは以前の08:23保存分GITHUB293件と別来歴LOCAL288件の固定snapshotであり、最新の463件等へ自動同期しない。
+
+[変更・試験・適用範囲](evidence/2026-11-05/no-get-count-limit/EVIDENCE.md) / [最終検証](evidence/2026-11-05/no-get-count-limit/verification-summary.json) / [配布物SHA](evidence/2026-11-05/no-get-count-limit/package-delivery-summary.json)。全144レースの展示後保存、他3競技/全適用モデル、GitHub最新原本のアプリ自動同期、恒久私有保管、実機Safari、精度改善実証は未完成。新PR/Issue/task/workflow/model/サービス/課金/main統合/一般公開/実投票/本番昇格はなし。
+
+---
+
 # 2026-11-05 12:50 JST｜既存run第17巡回の原本再監査と後続1件の安全起動
 
 対象：既存Draft PR #71 / branch `feat/four-sport-forecast-audit-view-20261022` / workflow `405276784` のみ。監査開始時のPR HEAD `e28910757fb5c159765abd8ea9f84523f8f59cfb`。前run `41949401478` は11:24:53 JSTに `completed/success`、実行HEAD `74572f2f304f9122cff987b05001b4455c29780c`。全37 artifactから無接尾辞を第1巡回、`-cycle-17` を第17巡回として最大完成巡回を選定。第18〜24巡回は240 GET上限による安全停止であり、実施済み扱いにしない。

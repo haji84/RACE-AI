@@ -116,8 +116,8 @@ The owner explicitly requested automatic generation after the manual app was del
 
 The owner explicitly requested no retrieval count limit. This supersedes the earlier240 cumulative/45 per-call count policy for the automatic forecast path. Represent unlimited withPythonNone/JSONnull, keep real counters (strictnonnegativeinteger, no reset), and remove count-only stops from the existing session guard, provider, localservice/controller andactiveP1pilot. This is a change inside the existing path; legacy one-shot diagnostic probes retain their separate scope. No huge sentinel or Infinity.
 
-- [ ] Write failing regression cases for continuation beyond240 cumulative and45 per-call GETs, preserved legacy counters/metadata, automatic service/controller restart, unchanged original forecasts and old stopped-state latches.
-- [ ] Remove count ceilings while preserving180s cadence,24round/65min/dayboundary,3fresh-race workload,210s cutoff, locks/identity/privacy and HTTP4xx/429 stop conditions. Keep expiry/timeouts/response-byte validation.
-- [ ] Expose explicit unlimited count metadata/status, retain legacy stopped-reason interpretation and test browser rendering without generationPOST.
-- [ ] Run focused and full Python/Node/browser checks; independent review current source and safe evidence. Keep live originals unchanged and do not reset/restart the active GitHub worker.
-- [ ] Record implementation vs active-run rollout separately in RACE_AI_LATEST_STATUS.md. Current publicrun41964059991 is pinned to olderheadfea5b2a4; local edits cannot retroactively alter it. No push, environment publication, new workflow/task/PR/model or paid service.
+- [x] Write failing regression cases for continuation beyond240 cumulative and45 per-call GETs, preserved legacy counters/metadata, automatic service/controller restart, unchanged original forecasts and old stopped-state latches.
+- [x] Remove count ceilings while preserving180s cadence,24round/65min/dayboundary,3fresh-race workload,210s cutoff, locks/identity/privacy and HTTP4xx/429 stop conditions. Keep expiry/timeouts/response-byte validation.
+- [x] Expose explicit unlimited count metadata/status, retain legacy stopped-reason interpretation and test browser rendering without generationPOST.
+- [x] Run focused and full Python/Node/browser checks; independent review current source and safe evidence. Keep live originals unchanged and do not reset/restart the active GitHub worker.
+- [x] Record implementation vs active-run rollout separately in RACE_AI_LATEST_STATUS.md. Current publicrun41964059991 is pinned to olderheadfea5b2a4; local edits cannot retroactively alter it. No push, environment publication, new workflow/task/PR/model or paid service.
