@@ -37,7 +37,7 @@ V1の624研究予想は、未確認履歴の欠落と物理保存レシート不
 
 暗号化は既存艇愛キャッシュと同じ`cryptography`のAES-256-GCM。既存Node codecの8MiB上限は変更せず、大きい履歴には別の有界圧縮envelopeを使用する。repository/mode/generation/前世代cipher SHAを認証し、復元では受入側が別途固定したcipher SHAと期待scopeを要求。鍵違い・改変・scope違い・サイズ超過・既存DB上書き・状態欠落を停止条件とし、空DBへresetしない。
 
-`production`は所有者設定`RACE_AI_STATE_KEY`なしに暗号文を作らず、公開fixture鍵で実データを扱わない。11/3のmain検査は`production_key_ready=false`、今回のローカルbindingも無し。GitHubの現在のsecret有無を直接読めたとはしない。
+`production`は所有者設定`RACE_AI_STATE_KEY`なしに暗号文を作らず、公開fixture鍵で実データを扱わない。11/3のmain検査は`production_key_ready=false`、今回のローカルbindingも無し。今回のGitHub実データjobも`HOLD_OWNER_STATE_KEY_MISSING`・源流GET0件で、実readbackはskip。secret値を読み出したり代替鍵を生成していない。
 
 既存`forecast-audit-ui.yml`に架空選手のみのproducer/consumerを追加。別runnerで期別/履歴/元bytesを復元し、結果→再実行→訂正版→次予想→次世代暗号化を検査する。2jobに実データsecretを渡さず、artifactは架空暗号文と件数証拠だけ。3日artifactを永久保全と呼ばない。既存の実全選手intake/readbackも鍵無しならHOLDを維持する。
 
@@ -54,6 +54,10 @@ python scripts/boat_pdca_state.py score --state /private/restored.sqlite --pair-
 
 ## 検証と運用境界
 
-独立レビューでUTC朝締切の重要指摘1件を再現しRED→GREEN修正。前回3指摘にも回帰テストを追加し、関連46件成功、Node202件成功。最終Python全体とGitHub exact HEAD結果は追記で記録する。任意映像依存がないPython44件のskipは区別する。
+独立レビューでUTC朝締切の重要指摘1件を再現しRED→GREEN修正。前回3指摘にも回帰テストを追加し、関連46件成功、Node202件成功。場別集計を保全した統合後のローカルPython全1,522件は失敗0件（任意映像依存の44件skip）。GitHubのproducer/consumerは別runnerで成功し、2ペア・2結果版・2採点と元bytes/選手プロフィール/次予想を確認。全体CIで発見した試験側の実行元ID設定漏れを、GitHub環境で再現して修正し、偽の実行元が引き続き拒否されることも検査した。
 
 稼働worker・アプリ・自動予想トリガー・係数・main保護を変更せず、既存Draft PR71へコードと件数/SHAのみ反映する。main統合・実投票・Cloudflare/Vercel・新たな有料サービスは実施しない。
+
+GitHub先行証拠: [42124634538](https://github.com/haji84/RACE-AI/actions/runs/42124634538) の引継ぎ2job成功。全体viewerは後続commitでcancel。後続42124877276の全体試験は上記の試験設定漏れ1件で失敗し、原記録を保持した。修正後CIはPR71の実行履歴を参照する。成功した部分検証を全体成功へ広げない。
+
+[公開SHA一覧の存在証拠](evidence/2026-11-06/history-pdca-github-manifest-witness.json) は、GitHub serverのrun作成07:48:52 JSTとexact commitを照合したもの。全締切より前に一覧が存在したことを確認したが、正式なforecast receipt adapter接続完了とは呼ばない。
