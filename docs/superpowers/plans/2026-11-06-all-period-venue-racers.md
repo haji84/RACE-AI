@@ -1,0 +1,19 @@
+# All available BOAT history by venue and racer
+
+Execute inline with tests first and independent final review. User selected 取得可能な全期間.
+
+Goal: every known racer x all24 venues, with source-defined coverage, sample counts and missing states. No fabricated local ratings or missing=zero claims.
+Source range: official published menu200501..202611 (263months observed), latest listed day2026-11-05. Teiai1997-05 start is separate; no guessed earlier official endpoints or API crawl. A month/day is acquired only when listed in official distribution indexes. No new schedule/service/Cloudflare/Vercel/model/training.
+
+Task1: streaming venue/racer/course aggregates and explicit complete/partial/unobserved states. Reuse official K and method parsers. Reject duplicate day revisions unless rebuild, preserve ties/F/L/K/S and denominator definitions. Generate full24-venue rows for every roster/discovered racer, even when no observations (values null, status pending).
+Task2: published-month/day manifest, resumable raw LZH month catalog, immutable source revisions, exact SHA, HTTP wait and bounded sequential fetch. Store full history as independent small monthly encrypted SQLite checkpoints with existing AES-GCM codec, rather than expand8MiB global limit. No owner key -> no unattended collection/persistence; existing pilot archives remain temporary private inputs.
+Task3: existing all-racer CLI/Actions receives venue validation and bounded one-month capture/readback. Publish only coverage/counts, never all individual records/raw source. Test synthetic boundaries and actual several official files; execute full regression, review and exact HEAD CI.
+
+Review focus: source coverage is independent of racer appearance; no-start proven only for fully parsed whole requested window; gaps/special/unparsed races cannot disappear; observed-30 != true recent30; old official archive formats; snapshot size/expiry/key absence; current model originals unchanged.
+
+Ledger: started from960bdeac629e4811c4bf6ac71a4b3d8dfa8ef215 after fast-forwarding concurrent video/audit changes; leave those intact. Existing owner RACE_AI_STATE_KEY remains missing as last Actions run; never substitute a test key. Initial local evidence6days max is a sample, not all-period completeness. Collection of thousands of dates requires resumed encrypted monthly state, not mass API requests.
+
+Progress: venue engine/catalog/CLI implemented; actual7 source days cover24venues/6906starts/2297IDs/55128gridcells, only3376observed pairs. Requested7979calendar days remains7972gaps. No full-period success claim.
+Independent review6 important issues fixed RED→GREEN: initial wait, orphanHOLD, pointer temp collision, early bootstrap persistence, published current day omission, noncanonical day duplicate. Minor unchanged-byte quarantine reparse API deferred/documented. Focused19 tests green; full regression running. Existing workflow now caps initial monthly batch to5 files and keeps ciphertext/status artifacts only.
+
+Final local verification: focused19new+7existing bulkCLI tests26PASS; whole discovery1470tests0failures44skips. YAML verified5existing jobs,no new schedule. Concurrent docs-only0d2f48d fast-forwarded before commit; allmodel/original paths unchanged. Actual owner-key encrypted full-period operation and exact HEAD CI pending.

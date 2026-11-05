@@ -51,10 +51,71 @@ jobs:
           python tests/pr64_bridge_harness.py
           PYTHONPATH=. python tests/boat_historical_route_harness.py
           python -m unittest tests.test_exhibition_autorun -v
+  boat_pdca_state_producer:
+    name: BOAT invented-data encrypted state producer
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      cipher_sha256: ${{ steps.produce.outputs.cipher_sha256 }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Create invented history and immutable pair, then encrypt SQLite
+        id: produce
+        run: python -m scripts.boat_pdca_handoff_fixture produce --work "$RUNNER_TEMP/boat-producer" --artifact "$RUNNER_TEMP/boat-sealed"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-pdca-synthetic-state-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/boat-sealed/state.enc
+            ${{ runner.temp }}/boat-sealed/proof.json
+            ${{ runner.temp }}/boat-sealed/handoff-proof.json
+          retention-days: 3
+          if-no-files-found: error
+  boat_pdca_state_consumer:
+    name: BOAT restore on another runner and score result revisions once
+    needs: boat_pdca_state_producer
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: boat-pdca-synthetic-state-${{ github.run_id }}
+          path: ${{ runner.temp }}/boat-incoming
+      - name: Restore exact originals, score revisions, reject replay, prepare next pair
+        env:
+          RACE_AI_EXPECTED_CIPHER_SHA256: ${{ needs.boat_pdca_state_producer.outputs.cipher_sha256 }}
+          EXPECTED_PRODUCER_RUN_ID: ${{ github.run_id }}
+          EXPECTED_PRODUCER_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python -m scripts.boat_pdca_handoff_fixture consume --work "$RUNNER_TEMP/boat-consumer" --artifact "$RUNNER_TEMP/boat-incoming"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-pdca-synthetic-restore-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/boat-consumer/consumer-proof.json
+          retention-days: 3
+          if-no-files-found: error
   viewer_contract:
     name: Viewer audit contract
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -200,6 +261,8 @@ jobs:
     outputs:
       encrypted: ${{ steps.capture.outputs.encrypted }}
       artifact_id: ${{ steps.upload.outputs.artifact-id }}
+      venue_encrypted: ${{ steps.venue_capture.outputs.encrypted }}
+      venue_artifact_id: ${{ steps.venue_upload.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: '${{ github.event.pull_request.head.sha }}'}
@@ -230,6 +293,31 @@ jobs:
               out.write('All-racer intake status: '+report['status']+'\n')
               out.write('No plaintext source or database artifact; HOLD is not ingestion success.\n')
           PY
+      - name: Checkpoint first published venue-history month (or explicit owner-key HOLD)
+        id: venue_capture
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: |
+          python -m scripts.boat_venue_history capture-month --month 200501 --max-files 5 --out-dir "$RUNNER_TEMP/venue-history-month"
+          python - <<'PY'
+          import json, os, pathlib
+          report=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'venue-history-month'/'summary.json').read_text())
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              out.write('encrypted='+str(report.get('encrypted_checkpoint_created') is True).lower()+'\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
+              out.write('Venue history status: '+report['status']+'\n')
+              out.write('One bounded month is not all-period completeness.\n')
+          PY
+      - name: Preserve only encrypted monthly history and count-only status
+        id: venue_upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-venue-history-200501-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/venue-history-month/history.checkpoint
+            ${{ runner.temp }}/venue-history-month/summary.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Prepare ciphertext-only cache when owner encryption succeeded
         if: steps.capture.outputs.encrypted == 'true' && steps.racer_cache.outputs.cache-hit != 'true'
         run: |
@@ -277,3 +365,15 @@ jobs:
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
         run: python -m scripts.boat_all_racers restore --folder "$RUNNER_TEMP/all-racer-readback"
+      - name: Read exact monthly-history ciphertext in this independent reader
+        if: needs.official_all_racer_intake.outputs.venue_encrypted == 'true'
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.official_all_racer_intake.outputs.venue_artifact_id }}
+          path: ${{ runner.temp }}/venue-history-readback
+          merge-multiple: true
+      - name: Authenticate monthly raw source hashes and parsed-day counts
+        if: needs.official_all_racer_intake.outputs.venue_encrypted == 'true'
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_venue_history restore-month --month 200501 --folder "$RUNNER_TEMP/venue-history-readback"

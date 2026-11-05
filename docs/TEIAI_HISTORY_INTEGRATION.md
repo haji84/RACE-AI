@@ -191,3 +191,7 @@ python -m scripts.boat_all_racers restore --folder /private/cipher-output
 ```
 
 未来レース1件の締切前保存/確定結果照合は、この一括投入とは別ゲートのまま。全選手の「期別成績」を、全選手の「直近10/30実走履歴」として渡さない。
+
+## 全会場・全期間の追加
+
+[全期間・全会場・全選手の履歴集計](BOAT_ALL_PERIOD_VENUE_HISTORY.md)に、公式公開月263か月の対象、実データ7日分・全24場の集計、月別暗号化checkpointと残る未取得範囲を記録した。全期間取得完了ではない。
