@@ -55,6 +55,16 @@ class LocalForecastServiceTests(unittest.TestCase):
         self.service = service_module.LocalForecastService(
             self.root, provider=self.provider, clock=lambda: self.now)
 
+    def test_source_status_accepts_counts_past_old_limit_without_resetting(self):
+        self.provider.status = lambda: {"day_jst": "2030-01-15", "requests_used": 365,
+                                        "halted_reason": None, "request_limit": None}
+        self.assertEqual(self.service.automatic_source_status()["requests_used"], 365)
+        for invalid in (-1, True, 1.5, "365", None):
+            self.provider.status = lambda value=invalid: {
+                "day_jst": "2030-01-15", "requests_used": value, "halted_reason": None}
+            with self.subTest(value=invalid), self.assertRaises(ValueError):
+                self.service.automatic_source_status()
+
     def test_all_four_sports_generate_real_native_outputs_and_reuse_after_restart(self):
         for sport in ("boat", "keirin", "autorace", "horse"):
             out = self.service.generate(sport, "P0")

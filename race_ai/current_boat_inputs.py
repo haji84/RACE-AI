@@ -32,8 +32,10 @@ from .private_cycle_capture import _parent_handle
 from .boat_deadline_queue import select_due_races
 
 JST = timezone(timedelta(hours=9))
-REQUEST_LIMIT = 240
-CALL_REQUEST_LIMIT = 45
+# The owner explicitly removed numeric cumulative and per-call GET quotas.
+# None is an actual unlimited policy value, never a large numeric sentinel.
+REQUEST_LIMIT = None
+CALL_REQUEST_LIMIT = None
 P1_RACE_LIMIT = 3
 BUFFER = timedelta(seconds=210)
 STATE_SCHEMA = "RACE_AI_CURRENT_BOAT_SOURCE_STATE_V1"
@@ -115,8 +117,10 @@ class CurrentBoatInputs:
 
     The private root is application-owned, outside Git and never selected by a
     browser request. A process lock and durable attempt counter survive restart.
-    The 240/day limit is shared by P0/P1; no retry or alternate endpoint occurs
-    after HTTP4xx, redirect, or source identity/parse failure.
+    Cumulative and per-call GET counts have no numeric quota. The existing
+    fresh-race batch, refresh interval, clock/session boundaries, and source
+    failure stops remain: no retry or alternate endpoint occurs after HTTP4xx,
+    redirect, or source identity/parse failure.
     """
     capabilities = {sport:{stage:sport == "boat" for stage in ("P0","P1")}
                     for sport in ("boat","keirin","autorace","horse")}
@@ -189,7 +193,7 @@ class CurrentBoatInputs:
             state = dict(schema=STATE_SCHEMA, day=day, request_count=0, halted_reason=None,
                          captures=[], p0_capture=None, p1_ready={}, p1_attempted_at={})
         _need(type(state) is dict and state.get("schema") == STATE_SCHEMA and state.get("day") == day
-              and type(state.get("request_count")) is int and 0 <= state["request_count"] <= REQUEST_LIMIT
+              and type(state.get("request_count")) is int and state["request_count"] >= 0
               and type(state.get("captures")) is list and len(state["captures"]) <= state["request_count"]
               and type(state.get("p1_ready")) is dict and type(state.get("p1_attempted_at")) is dict,
               "PRIVATE_SOURCE_STATE_REJECTED")
@@ -222,7 +226,8 @@ class CurrentBoatInputs:
         _need(automatic_stop_at is None or _moment(self.clock()) < automatic_stop_at,
               "AUTOMATIC_SESSION_END")
         _need(not state["halted_reason"], "SOURCE_SESSION_HALTED")
-        _need(state["request_count"] < REQUEST_LIMIT and calls[0] < CALL_REQUEST_LIMIT,
+        _need((REQUEST_LIMIT is None or state["request_count"] < REQUEST_LIMIT) and
+              (CALL_REQUEST_LIMIT is None or calls[0] < CALL_REQUEST_LIMIT),
               "SOURCE_GET_BUDGET_EXHAUSTED")
         state["request_count"] += 1; calls[0] += 1
         self._save(folder, state)  # Charge before the network, including failed requests.

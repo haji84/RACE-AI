@@ -14,7 +14,9 @@ import re
 
 MAX_ROUNDS = 24
 POLL_SECONDS = 180
-SOURCE_LIMIT = 240
+# The owner removed numeric GET ceilings. None means unlimited, while counts,
+# round/time/day boundaries and HTTP/source-identity stop latches remain real.
+SOURCE_LIMIT = None
 MAX_SECONDS = 65 * 60
 CACHE_SECONDS = 600
 JST = timezone(timedelta(hours=9))
@@ -36,6 +38,16 @@ def write_state(path, value, key='session_sha256'):
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     data = {k:v for k,v in value.items() if k != key}
+    if data.get('schema') == 'RACE_AI_BOUNDED_REPEAT_V1':
+        _need(type(data.get('requests_used')) is int and data['requests_used'] >= 0,
+              'session request count')
+        if target.exists():
+            previous = load(target)
+            _need(data['requests_used'] >= previous['requests_used'], 'session request count decreased')
+            _need(not previous['halted_reason'] or data.get('halted_reason'), 'session halt cannot be cleared')
+        # Normalize only the now-unlimited policy metadata during an actual
+        # authorized write. Never reset source counts or an old durable halt.
+        data['source_limit'] = SOURCE_LIMIT
     data[key] = _digest(data)
     temp = target.with_name(target.name + '.tmp')
     temp.write_text(json.dumps(data, ensure_ascii=False, sort_keys=True), encoding='utf-8')
@@ -47,8 +59,11 @@ def load(path):
     claimed = data.pop('session_sha256')
     _need(claimed == _digest(data), 'session hash mismatch')
     _need(data['schema'] == 'RACE_AI_BOUNDED_REPEAT_V1', 'session schema')
-    _need(type(data['requests_used']) is int and 0 <= data['requests_used'] <= SOURCE_LIMIT,
+    _need(type(data['requests_used']) is int and data['requests_used'] >= 0,
           'session request count')
+    _need(data.get('source_limit') is None or
+          type(data.get('source_limit')) is int and data['source_limit'] == 240,
+          'session source policy metadata')
     return data
 
 def artifact_name(prefix, run_id, round_no):
@@ -95,8 +110,6 @@ def prepare(path, round_no, *, now):
         reason = 'DAY_CHANGED'
     if now >= instant(state['stop_at']):
         reason = reason or 'BOUNDED_SESSION_END'
-    if state['requests_used'] >= SOURCE_LIMIT:
-        reason = reason or 'SESSION_SOURCE_BUDGET_EXHAUSTED'
     if reason:
         state['halted_reason'] = reason; write_state(path,state)
         return dict(active=False, wait_seconds=0, reason=reason)
@@ -128,7 +141,7 @@ def complete(path, round_no, *, now, forecast_artifact, result_artifact):
     return state
 
 class SourceGuard:
-    """One persistent source budget and 4xx stop latch for every round."""
+    """Count every request and retain the existing time/4xx stop latches."""
     def __init__(self,path,clock=lambda:datetime.now(timezone.utc)):
         self.path=Path(path);self.clock=clock
     def charge(self,kind):
@@ -137,7 +150,6 @@ class SourceGuard:
         if self.clock() >= instant(state['stop_at']):
             state['halted_reason']='BOUNDED_SESSION_END';write_state(self.path,state)
         _need(not state['halted_reason'], state['halted_reason'] or 'halted')
-        _need(state['requests_used'] < SOURCE_LIMIT,'SESSION_SOURCE_BUDGET_EXHAUSTED')
         state['requests_used']+=1
         state['requests_by_kind'][kind]=state['requests_by_kind'].get(kind,0)+1
         write_state(self.path,state)

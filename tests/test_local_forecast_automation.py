@@ -79,12 +79,40 @@ class AutomaticForecastTests(unittest.TestCase):
         self.assertEqual(restarted.tick()["round_no"], 2)
         self.assertEqual(self.service.calls.count(("boat", "P0")), 1)
 
-    def test_shared_source_budget_and_halt_latch_stop_before_more_work(self):
-        self.service.requests = 240
-        out = self.controller.tick()
-        self.assertEqual(out["state"], "STOPPED")
-        self.assertEqual(out["halted_reason"], "SOURCE_BUDGET_EXHAUSTED")
-        self.assertEqual(self.service.calls, [])
+    def test_source_count_beyond_old_limit_continues_and_survives_restart(self):
+        self.service.requests = 241
+        first = self.controller.tick()
+        self.assertEqual(first["state"], "WAITING")
+        self.assertEqual(first["requests_used"], 241)
+        self.assertIsNone(first["source_limit"])
+        self.assertEqual(self.service.calls, [("boat", "P0"), ("boat", "P1")])
+        self.controller.stop()
+        restarted = M.ForecastAutomation(self.service)
+        self.addCleanup(restarted.stop)
+        self.service.requests = 365
+        self.service.now += timedelta(seconds=180)
+        later = restarted.tick()
+        self.assertEqual(later["state"], "WAITING")
+        self.assertEqual(later["requests_used"], 365)
+        self.assertEqual(later["stop_at"], first["stop_at"])
+        self.assertEqual(later["round_no"], 2)
+        self.assertEqual(self.service.calls.count(("boat", "P0")), 1)
+        self.service.requests = 364
+        self.service.now += timedelta(seconds=180)
+        self.assertEqual(restarted.tick()["halted_reason"], "AUTOMATIC_SOURCE_STATUS_REJECTED")
+
+    def test_legacy_count_only_halt_is_preserved_without_resuming_or_reset(self):
+        self.controller.tick()
+        self.controller._halt("SOURCE_BUDGET_EXHAUSTED", self.service.now)
+        self.controller.stop()
+        restarted = M.ForecastAutomation(self.service)
+        self.addCleanup(restarted.stop)
+        self.service.requests = 241
+        result = restarted.tick()
+        self.assertEqual(result["state"], "STOPPED")
+        self.assertEqual(result["halted_reason"], "SOURCE_BUDGET_EXHAUSTED")
+        self.assertEqual(result["requests_used"], 1)
+        self.assertEqual(len(self.service.calls), 2)
 
     def test_http_latch_cannot_be_cleared_by_restart(self):
         self.service.halted = "SOURCE_HTTP_4XX_STOP"

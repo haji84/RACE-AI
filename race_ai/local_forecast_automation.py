@@ -65,7 +65,7 @@ class ForecastAutomation:
         self._snapshot = dict(enabled=True, state="NOT_STARTED", round_no=0,
             next_run_at=None, last_completed_at=None, halted_reason=None,
             interval_seconds=POLL_SECONDS, stop_at=None, p0_completed=False,
-            requests_used=0, max_rounds=MAX_ROUNDS, local_completion_only=True)
+            requests_used=0, source_limit=SOURCE_LIMIT, max_rounds=MAX_ROUNDS, local_completion_only=True)
 
     def status(self):
         """Only cached scalars: safe while the service's own lock is held."""
@@ -79,7 +79,7 @@ class ForecastAutomation:
             "p0_completed", "requests_used", "last_error_code", "last_summary")
         snapshot = {k: deepcopy(self._state.get(k)) for k in fields}
         snapshot.update(enabled=True, interval_seconds=POLL_SECONDS,
-                        max_rounds=MAX_ROUNDS, local_completion_only=True)
+                        source_limit=SOURCE_LIMIT, max_rounds=MAX_ROUNDS, local_completion_only=True)
         if self._stop_event.is_set() and snapshot["state"] in ("RUNNING", "WAITING"):
             snapshot["state"] = "STOPPING"
         with self._mutex: self._snapshot = snapshot
@@ -105,6 +105,7 @@ class ForecastAutomation:
         return "automatic-" + self._day + ".json"
 
     def _save(self, *, first=False):
+        self._state["source_limit"] = SOURCE_LIMIT
         unsigned = {k:v for k,v in self._state.items() if k != _HASH}
         document = dict(unsigned, **{_HASH: hashlib.sha256(_wire(unsigned)).hexdigest()})
         body = _wire(document) + b"\n"
@@ -148,7 +149,7 @@ class ForecastAutomation:
                 _moment(value["stop_at"]) == min(start+timedelta(seconds=MAX_SECONDS),midnight) and
                 type(value["round_no"]) is int and 0 <= value["round_no"] <= MAX_ROUNDS and
                 type(value["p0_completed"]) is bool and type(value["round_in_progress"]) is bool and
-                type(value["requests_used"]) is int and 0 <= value["requests_used"] <= SOURCE_LIMIT and
+                type(value["requests_used"]) is int and value["requests_used"] >= 0 and
                 value["interval_seconds"] == POLL_SECONDS and value["max_rounds"] == MAX_ROUNDS and
                 value["state"] in ("WAITING", "RUNNING", "PAUSED", "STOPPED")):
             raise ValueError("AUTOMATIC_STATE_REJECTED")
@@ -219,7 +220,7 @@ class ForecastAutomation:
             value = self.service.automatic_source_status()
             used = value["requests_used"]
             if (value["day_jst"] != self._day or type(used) is not int or
-                    not self._state["requests_used"] <= used <= SOURCE_LIMIT):
+                    used < self._state["requests_used"]):
                 raise ValueError("AUTOMATIC_SOURCE_STATUS_REJECTED")
         except Exception:
             self._halt("AUTOMATIC_SOURCE_STATUS_REJECTED", now); return False
@@ -228,8 +229,6 @@ class ForecastAutomation:
         if reason:
             self._halt(reason if type(reason) is str and _CODE.fullmatch(reason) else "SOURCE_HALTED",now)
             return False
-        if used >= SOURCE_LIMIT:
-            self._halt("SOURCE_BUDGET_EXHAUSTED",now); return False
         return True
 
     @staticmethod

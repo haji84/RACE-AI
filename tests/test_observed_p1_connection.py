@@ -110,14 +110,18 @@ class LivePilotWiringTests(unittest.TestCase):
         preview=dict(status='AVAILABLE',data=dict(boats=[
             dict(lane=r['lane'],racer_registration_id=r['racer_id'],display_time=r['exhibition_time_seconds'],
                  preview_st=e['participants'][r['lane']-1]['exhibition_st'],preview_st_status='OK') for r in b['boats']]))
-        captures=[(b'program',datetime.fromisoformat(PROGRAM_AT),'a'*64),(b'preview',datetime.fromisoformat(PREVIEW_AT),'b'*64)]
+        captures=[(b'program',datetime.fromisoformat(PROGRAM_AT),'a'*64),
+                  (b'preview',datetime.fromisoformat(PREVIEW_AT),'b'*64),
+                  pilot.SourceError('FICTIONAL_ODDS_NOT_AVAILABLE')]
         with patch.object(pilot,'get',side_effect=captures),patch.object(pilot,'parse_official_racelist',return_value=program), \
              patch.object(pilot,'parse_update',return_value=preview),patch.object(pilot,'motor_top2',return_value={r['lane']:r['motor_two_place_rate_percent'] for r in b['boats']}), \
-             patch.object(pilot,'observed_timestamp',return_value=AT),patch.object(pilot,'requests_used',pilot.REQUEST_CAP), \
+             patch.object(pilot,'observed_timestamp',return_value=AT),patch.object(pilot,'requests_used',45), \
              patch.dict('os.environ',{'RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED':'true'}):
             output=pilot.make_pair(date(2030,4,1),dict(race_id=b['race_id'],cutoff_at=b['cutoff_at']))
         self.assertEqual(len(output),5,'existing runner still returns only A/B/C-lite, no observed P1 bundle')
         self.assertEqual(tuple(output[4]['suite']['models']),MODEL_IDS)
+        self.assertEqual(output[3].get('failure_class'),'SourceError',
+                         'optional pre-close odds must not be skipped at the former GET count')
 
 class ProvenanceBindingTests(unittest.TestCase):
     def test_pair_and_observed_source_must_match_in_same_archive(self):

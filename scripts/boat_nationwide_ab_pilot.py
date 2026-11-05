@@ -5,7 +5,8 @@ source parser, one official racecard per active venue supplies all 12 cutoffs.
 The existing strict PR64 beforeinfo parser validates each race independently.
 Source HTML is never persisted. Research scores are untrained/uncalibrated;
 external GitHub artifact created_at must still be checked before the cutoff.
-One-shot only, not continuous scheduling or permission for unbounded scraping.
+This batch adds no scheduling. Request counts have no fixed numeric cap;
+the existing source HTTP/identity guards and workload boundaries remain.
 """
 from __future__ import annotations
 
@@ -51,7 +52,7 @@ MODULE.loader.exec_module(model)
 
 OUTPUT=ROOT/"boat_nationwide_output"
 FROZEN_INDEX=ROOT/"docs/evidence/2026-11-03/boat-canonical-freeze-index.json"
-REQUEST_CAP=45
+REQUEST_CAP=None
 VENUE_CAP=24
 MAX_FORECASTS=3
 MAX_ATTEMPTS=5
@@ -104,8 +105,6 @@ def stop(reason, *, source=None, schedule=None, queue=None, tries=None,
 
 def get(url):
     global requests_used
-    if requests_used>=REQUEST_CAP:
-        raise SourceError("NATIONWIDE_GET_BUDGET_EXHAUSTED")
     if SOURCE_GUARD is not None:SOURCE_GUARD.charge("forecast")
     requests_used+=1
     req=request.Request(url,headers={"Accept":"text/html",
@@ -218,7 +217,7 @@ def make_pair(day,race):
     # from a low model score. Require 120 published official odds before the
     # relevant cutoff and label the priced research variant separately.
     priced={"race_id":race_id,"state":"OFFICIAL_PRE_CLOSE_PRICES_NOT_VERIFIED"}
-    if datetime.now(timezone.utc)+MIN_TO_CUTOFF<cutoff and requests_used<REQUEST_CAP:
+    if datetime.now(timezone.utc)+MIN_TO_CUTOFF<cutoff:
         try:
             price_url=update_endpoint(day,venue,n,"odds3t")
             odds_raw,odds_at,odds_sha=get(price_url)
@@ -265,9 +264,6 @@ def run(*, schedule_snapshot=None):
         # One verified 12R closing schedule per active venue. Source is original,
         # not inferred from a cached website snippet or the race's number.
         for venue in active:
-            if requests_used>=REQUEST_CAP:
-                venue_errors.append({"venue":venue,"state":"GET_CAP"})
-                break
             try:
                 source_url=racelist_endpoint(day,venue,1)
                 body,at,sha=get(source_url)
@@ -337,8 +333,6 @@ def run(*, schedule_snapshot=None):
         except (SourceError,ValueError,UnicodeError,OSError,error.URLError,TimeoutError,TypeError) as ex:
             attempts.append({"race_id":race["race_id"],"state":"OFFICIAL_RACE_REJECTED",
                              "failure_class":type(ex).__name__})
-        if requests_used>=REQUEST_CAP:
-            break
     # If the externally saved batch is late, the independent GitHub artifact
     # verifier must disqualify that race, never present it as pre-cutoff.
     source={"url":url,"source_sha256":index_sha,"captured_at":index_at.isoformat(),

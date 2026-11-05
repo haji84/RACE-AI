@@ -23,6 +23,7 @@ const generationCalls = [];
 let failGeneration = false;
 let generationOverride = null;
 let automaticFixture = false, automaticRevision = 1, automaticOverride = null, automaticState = 'RUNNING';
+let automaticSourceStatus = {};
 const automaticLatestCalls = [];
 async function main() {
   fs.mkdirSync(output, {recursive:true});
@@ -32,7 +33,7 @@ async function main() {
     if (name === '/api/forecast/status') {
       res.writeHead(200, {'Content-Type':'application/json'});
       return res.end(JSON.stringify({day_jst:'2030-01-01',nonce:'synthetic-ui-nonce',capabilities:{boat:{P0:true,P1:true},keirin:{P0:false,P1:false},autorace:{P0:false,P1:false},horse:{P0:false,P1:false}},
-        ...(automaticFixture?{auto:{enabled:true,state:automaticState,interval_seconds:180,round_no:2,next_run_at:'2030-01-01T09:33:00+09:00',halted_reason:automaticState==='STOPPED'?'SOURCE_REQUEST_LIMIT':null},latest_revisions:{boat:{P0:'r'+automaticRevision,P1:null}}}:{})}));
+        ...(automaticFixture?{auto:{enabled:true,state:automaticState,interval_seconds:180,round_no:2,next_run_at:'2030-01-01T09:33:00+09:00',halted_reason:automaticState==='STOPPED'?'SOURCE_REQUEST_LIMIT':null,...automaticSourceStatus},latest_revisions:{boat:{P0:'r'+automaticRevision,P1:null}}}:{})}));
     }
     if(name === '/api/forecast/latest') {
       automaticLatestCalls.push({method:req.method,sport:parsedUrl.searchParams.get('sport'),stage:parsedUrl.searchParams.get('stage')});
@@ -348,7 +349,7 @@ async function main() {
     await context.close();
   }
   for(const width of [390,1440]) {
-    generationCalls.length=0;automaticLatestCalls.length=0;automaticRevision=1;automaticOverride=null;automaticState='RUNNING';
+    generationCalls.length=0;automaticLatestCalls.length=0;automaticRevision=1;automaticOverride=null;automaticState='RUNNING';automaticSourceStatus={};
     const context=await browser.newContext({viewport:{width,height:width<600?844:1080}});
     const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('request',req=>requests.push(req.url()));
     await page.clock.install({time:new Date('2030-01-01T00:30:00Z')});
@@ -358,6 +359,7 @@ async function main() {
     assert.equal(automaticLatestCalls.length,1,'initial saved view loads without a button');
     assert.equal(await page.locator('#forecast-generate').isDisabled(),true);
     assert.match(await page.locator('#generation-message').innerText(),/自動/);
+    assert.doesNotMatch(await page.locator('#generation-message').innerText(),/取得回数上限なし/,'missing legacy source_limit does not imply unlimited collection');
     const wrongDay={schema:'RACE_AI_PRIVATE_CYCLE_VIEW_V1',dataset_status:'SYNTHETIC_ONLY',event_date_jst:'2030-01-02',records:[]};
     const wrongSport={...structuredClone(fixture),records:structuredClone(fixture.records.filter(r=>r.sport==='horse'))};
     const wrongStage={...structuredClone(fixture),records:structuredClone(fixture.records.filter(r=>r.sport==='boat'))};
@@ -380,15 +382,29 @@ async function main() {
     await nav('races');await page.locator('#page-races [data-open-race]').first().click();
     await page.locator('[data-detail-tab="analysis"]').click();
     const beforeUnchanged=automaticLatestCalls.length;
+    automaticSourceStatus={source_limit:null,requests_used:365};
     await page.clock.fastForward(180001);await page.waitForTimeout(50);
     assert.equal(automaticLatestCalls.length,beforeUnchanged,'unchanged revision avoids a second saved payload fetch');
-    automaticRevision=2;await page.clock.fastForward(180001);
+    assert.match(await page.locator('#generation-message').innerText(),/取得回数上限なし/,'explicit null source limit is displayed without a cap');
+    assert.match(await page.locator('#generation-message').innerText(),/取得 365回/,'counts beyond the old 240 limit remain visible');
+    assert.match(await page.locator('#generation-message').innerText(),/実行中/,'a request count above the old limit cannot stop automatic display');
+    automaticRevision=2;automaticSourceStatus.requests_used=366;await page.clock.fastForward(180001);
     await page.waitForFunction(()=>document.querySelector('#forecast-generation').dataset.viewRevision==='r2');
+    assert.match(await page.locator('#generation-message').innerText(),/取得 366回/,'saved-view updates continue beyond the old request cap');
     assert.deepEqual(await page.locator('#ticket-list .ticket-amount').evaluateAll(ns=>ns.map(n=>n.value)),beforeAmounts,'automatic refresh preserves edited amounts');
     assert.match(await page.locator('#confirmation-state').innerText(),/候補確定済み/,'automatic refresh preserves confirmation');
     assert.ok((await page.locator('#race-detail').innerText()).includes(nativeSha),'selected original survives refresh');
     assert.equal(await page.locator('[data-detail-tab="analysis"]').getAttribute('aria-selected'),'true');
     assert.match(await page.locator('#race-detail').innerText(),/09:02/,'new saved observation is displayed');
+    for(const value of ['365',-1,1.5,Number.MAX_SAFE_INTEGER+1]) {
+      automaticSourceStatus.requests_used=value;await page.clock.fastForward(180001);await page.waitForTimeout(50);
+      assert.doesNotMatch(await page.locator('#generation-message').innerText(),/取得 [\d.-]+回/,'malformed request counters are not displayed as measured counts');
+      assert.match(await page.locator('#generation-message').innerText(),/取得回数上限なし/);
+    }
+    automaticSourceStatus={requests_used:0};await page.clock.fastForward(180001);await page.waitForTimeout(50);
+    assert.doesNotMatch(await page.locator('#generation-message').innerText(),/取得回数上限なし/,'a later legacy status cannot inherit the unlimited claim');
+    assert.match(await page.locator('#generation-message').innerText(),/取得 0回/,'zero is a valid measured request count');
+    automaticSourceStatus={source_limit:null,requests_used:366};
     const replacement=structuredClone(fixture.records[0]);
     Object.assign(replacement,{race_id:'automatic-replacement-race',comparison_predictions:[],result:null,result_revisions:[],result_observations:[]});
     Object.assign(replacement.prediction,{native_dispatch_prediction:true,output_sha256:'b'.repeat(64)});
@@ -422,7 +438,8 @@ async function main() {
     assert.equal(await page.locator('#race-detail').innerText(),goodDetail,'invalid automatic response keeps the displayed original');
     automaticOverride=null;automaticState='STOPPED';await page.clock.fastForward(180001);
     await page.waitForFunction(()=>document.querySelector('#generation-message').textContent.includes('停止'));
-    assert.match(await page.locator('#generation-message').innerText(),/取得上限/,'finite stop reason explains the actual limit');
+    assert.match(await page.locator('#generation-message').innerText(),/以前の取得回数上限/,'a saved legacy limit stop is explained as historical');
+    assert.match(await page.locator('#generation-message').innerText(),/自動予想は停止しました/,'a saved legacy stop is not silently resumed after cap removal');
     assert.equal(generationCalls.length,0,'polling and source stop never cause a generation POST');
     await page.evaluate(()=>{window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true}));window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}));});
     automaticRevision=7;await page.clock.fastForward(180001);await page.waitForTimeout(100);
@@ -437,7 +454,7 @@ async function main() {
     assert.equal(await page.locator('#race-detail').innerText(),importedDetail,'manual import ownership is not overwritten by automatic refresh');
     assert.equal(generationCalls.length,0);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     await page.screenshot({path:path.join(output,`${width}-automatic-forecast.png`),fullPage:true});
-    mark(`${width}: automatic saved view without clicks or POST, revision refresh, draft/original retention, stop and manual import ownership`);
+    mark(`${width}: automatic saved view without clicks or POST, unlimited count beyond365, revision refresh, draft/original retention, legacy stop and manual import ownership`);
     await context.close();
   }
   assert.deepEqual(errors,[],'no page errors');

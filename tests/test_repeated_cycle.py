@@ -33,14 +33,71 @@ class RepeatedControllerTests(unittest.TestCase):
         late=stamp(state['stop_at'])+timedelta(seconds=1)
         self.assertFalse(r.prepare(self.path,1,now=late)['active'])
         with self.assertRaises(ValueError):r.start(self.path,day='2030-04-02',run_id=99,now=now)
-    def test_caps_4xx_latch_and_hash_tamper(self):
+    def test_unlimited_source_count_preserves_hash_tamper_detection(self):
         now=stamp();r.start(self.path,day='2030-04-01',run_id=99,now=now)
-        guard=r.SourceGuard(self.path)
-        for _ in range(r.SOURCE_LIMIT):guard.charge('forecast')
-        with self.assertRaisesRegex(ValueError,'BUDGET'):guard.charge('result')
-        self.assertFalse(r.prepare(self.path,1,now=now)['active'])
+        guard=r.SourceGuard(self.path,clock=lambda:now)
+        for _ in range(257):guard.charge('forecast')
+        guard.charge('result')
+        current=r.load(self.path)
+        self.assertEqual(current['requests_used'],258)
+        self.assertEqual(current['requests_by_kind'],{'forecast':257,'result':1})
+        self.assertIsNone(current['source_limit'])
+        self.assertTrue(r.prepare(self.path,1,now=now)['active'])
         data=json.loads(self.path.read_text());data['requests_used']=0;self.path.write_text(json.dumps(data))
         with self.assertRaisesRegex(ValueError,'hash'):r.load(self.path)
+
+    def test_over_240_count_survives_round_completion_and_restart(self):
+        now=stamp();original=r.start(self.path,day='2030-04-01',run_id=99,now=now)
+        self.assertIsNone(original['source_limit'])
+        guard=r.SourceGuard(self.path,clock=lambda:now)
+        for _ in range(241):guard.charge('forecast')
+        self.assertTrue(r.prepare(self.path,1,now=now)['active'])
+        r.complete(self.path,1,now=now+timedelta(seconds=20),forecast_artifact=101,result_artifact=102)
+        restarted=r.start(self.path,day='2030-04-01',run_id=99,now=now+timedelta(seconds=30))
+        self.assertEqual(restarted['requests_used'],241)
+        self.assertEqual(restarted['started_at'],original['started_at'])
+        self.assertEqual(restarted['stop_at'],original['stop_at'])
+        self.assertEqual(restarted['completed_round'],1)
+        self.assertEqual(len(restarted['receipts']),1)
+        self.assertEqual(r.prepare(self.path,2,now=now+timedelta(seconds=30))['reason'],'POLL_INTERVAL')
+        self.assertTrue(r.prepare(self.path,2,now=now+timedelta(seconds=180))['active'])
+
+    def legacy_session(self, **changes):
+        data=json.loads(self.path.read_text());data.pop('session_sha256')
+        data['source_limit']=240;data.update(changes)
+        raw=json.dumps(data,sort_keys=True,separators=(',',':'),ensure_ascii=False,allow_nan=False).encode()
+        data['session_sha256']=hashlib.sha256(raw).hexdigest()
+        self.path.write_text(json.dumps(data))
+
+    def test_legacy_policy_metadata_and_counts_above_240_are_accepted(self):
+        now=stamp();original=r.start(self.path,day='2030-04-01',run_id=99,now=now)
+        self.legacy_session(requests_used=280,requests_by_kind={'forecast':280})
+        self.assertEqual(r.load(self.path)['requests_used'],280)
+        r.SourceGuard(self.path,clock=lambda:now).charge('result')
+        after=r.load(self.path)
+        self.assertEqual(after['requests_used'],281)
+        self.assertIsNone(after['source_limit'])
+        for field in ('started_at','stop_at','completed_round','prepared_round'):
+            self.assertEqual(after[field],original[field])
+
+    def test_old_budget_halt_is_not_cleared_by_unlimited_policy(self):
+        now=stamp();r.start(self.path,day='2030-04-01',run_id=99,now=now)
+        self.legacy_session(requests_used=240,requests_by_kind={'forecast':240},
+                            halted_reason='SESSION_SOURCE_BUDGET_EXHAUSTED')
+        stopped=r.start(self.path,day='2030-04-01',run_id=99,now=now)
+        self.assertEqual(stopped['halted_reason'],'SESSION_SOURCE_BUDGET_EXHAUSTED')
+        self.assertFalse(r.prepare(self.path,1,now=now)['active'])
+        with self.assertRaisesRegex(ValueError,'SESSION_SOURCE_BUDGET_EXHAUSTED'):
+            r.SourceGuard(self.path,clock=lambda:now).charge('forecast')
+        self.assertEqual(r.load(self.path)['requests_used'],240)
+
+    def test_session_counter_cannot_decrease_or_become_boolean(self):
+        now=stamp();r.start(self.path,day='2030-04-01',run_id=99,now=now)
+        r.SourceGuard(self.path,clock=lambda:now).charge('forecast')
+        for invalid in (0,True,-1):
+            value=r.load(self.path);value['requests_used']=invalid
+            with self.assertRaises(ValueError):r.write_state(self.path,value)
+        self.assertEqual(r.load(self.path)['requests_used'],1)
     def test_http_429_blocks_future_requests_without_retry(self):
         now=stamp();r.start(self.path,day='2030-04-01',run_id=99,now=now)
         guard=r.SourceGuard(self.path);guard.charge('forecast');guard.http_failure(429)

@@ -65,7 +65,7 @@ class LocalForecastService:
             raise ValueError("SOURCE_BUDGET_STATUS_UNAVAILABLE")
         value = status()
         if (type(value) is not dict or type(value.get("requests_used")) is not int or
-                not 0 <= value["requests_used"] <= 240 or value.get("day_jst") != self._now().astimezone(native.JST).date().isoformat()):
+                value["requests_used"] < 0 or value.get("day_jst") != self._now().astimezone(native.JST).date().isoformat()):
             raise ValueError("SOURCE_BUDGET_STATUS_UNAVAILABLE")
         return value
 

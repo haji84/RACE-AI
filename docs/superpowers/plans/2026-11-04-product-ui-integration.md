@@ -111,3 +111,13 @@ The owner explicitly requested automatic generation after the manual app was del
 - [ ] Full-day/all-race P1, all four sports/all applicable models, independent result collection/retention, physical Safari and measured prospective improvement remain open. No always-on service, new results collector or whole-product completion is claimed by this automatic-generation change.
 
 - [x] Final shutdown fix23controller tests, independent40test review, fullPython877/Node179 and37syntheticbrowsergroups passed. Existing GitHub run round11 independently saved P0288 plus P1five variants668seconds beforecutoff; canonical293 remain separate from earlier local288 originals. No provider/inference used for readback.
+
+## Authorized continuation: remove automatic-path GET count limits (2026-11-05)
+
+The owner explicitly requested no retrieval count limit. This supersedes the earlier240 cumulative/45 per-call count policy for the automatic forecast path. Represent unlimited withPythonNone/JSONnull, keep real counters (strictnonnegativeinteger, no reset), and remove count-only stops from the existing session guard, provider, localservice/controller andactiveP1pilot. This is a change inside the existing path; legacy one-shot diagnostic probes retain their separate scope. No huge sentinel or Infinity.
+
+- [ ] Write failing regression cases for continuation beyond240 cumulative and45 per-call GETs, preserved legacy counters/metadata, automatic service/controller restart, unchanged original forecasts and old stopped-state latches.
+- [ ] Remove count ceilings while preserving180s cadence,24round/65min/dayboundary,3fresh-race workload,210s cutoff, locks/identity/privacy and HTTP4xx/429 stop conditions. Keep expiry/timeouts/response-byte validation.
+- [ ] Expose explicit unlimited count metadata/status, retain legacy stopped-reason interpretation and test browser rendering without generationPOST.
+- [ ] Run focused and full Python/Node/browser checks; independent review current source and safe evidence. Keep live originals unchanged and do not reset/restart the active GitHub worker.
+- [ ] Record implementation vs active-run rollout separately in RACE_AI_LATEST_STATUS.md. Current publicrun41964059991 is pinned to olderheadfea5b2a4; local edits cannot retroactively alter it. No push, environment publication, new workflow/task/PR/model or paid service.

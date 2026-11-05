@@ -149,8 +149,8 @@ class CurrentBoatInputsTests(unittest.TestCase):
         state_path.write_text(json.dumps(state))
         result = self.collect()
         self.assertEqual(result["source_report"]["request_count"], 240)
-        self.assertEqual(len(self.calls), 1, "cached source remains readable at the cap")
-        self.assertEqual(result["source_report"]["request_limit"], 240)
+        self.assertEqual(len(self.calls), 1, "cache reads must retain the existing request count")
+        self.assertIsNone(result["source_report"]["request_limit"], "the owner requested no numeric GET ceiling")
 
     def test_cached_archive_tampering_and_hardlinks_are_rejected(self):
         self.collect(); raw = next(self.root.rglob("*.lzh")); raw.write_bytes(b"tampered")
@@ -242,12 +242,47 @@ class CurrentBoatInputsTests(unittest.TestCase):
         self.assertEqual(len(self.calls),13,'second request considers next3 instead of refetching cooled-down first3')
         self.assertIn('EXHIBITION_NOT_FULLY_PUBLISHED',{x['reason'] for x in first['blocked_races']})
 
-    def test_p1_durable_daily_cap_cannot_be_bypassed_by_another_stage(self):
+    def test_p1_continues_above_legacy_240_counter_without_resetting_it(self):
         source=self.p1_parsers();source.collect(stage='P0')
         p=next(self.root.rglob('state.json'));state=json.loads(p.read_text());state['request_count']=240;p.write_text(json.dumps(state))
-        with self.assertRaisesRegex(provider.CurrentBoatInputError,'BUDGET'):
-            source.collect(stage='P1')
+        try: result=source.collect(stage='P1')
+        except provider.CurrentBoatInputError as exc:self.fail('legacy request count still blocks valid inputs: '+str(exc))
+        self.assertEqual(result['source_report']['request_count'],246)
+        self.assertIsNone(result['source_report']['request_limit'])
+        self.assertEqual(len(result['inputs']),3,'removing a GET ceiling must retain the bounded fresh-race batch')
+        self.assertEqual(len(self.calls),7)
+        restarted=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=self.opener)
+        self.assertEqual(restarted.status(),{'day_jst':'2030-04-01','requests_used':246,'halted_reason':None})
+        restarted.collect(stage='P0')
+        self.assertEqual(restarted.status()['requests_used'],246)
+        self.assertEqual(len(self.calls),7)
+
+    def test_more_than_45_mock_source_requests_in_one_call_have_no_numeric_ceiling(self):
+        source=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=self.opener)
+        calls=[0]
+        try:
+            with source._locked_day('2030-04-01') as folder:
+                state=source._state(folder,'2030-04-01')
+                for _ in range(50):
+                    source._fetch(folder,state,'https://www1.mbrace.or.jp/od2/B/203004/b300401.lzh','B',calls)
+        except provider.CurrentBoatInputError as exc:self.fail('legacy per-call GET limit still blocks collection: '+str(exc))
+        self.assertEqual(calls,[50])
+        self.assertEqual(len(self.calls),50)
+        self.assertEqual(source.status(),{'day_jst':'2030-04-01','requests_used':50,'halted_reason':None})
+        self.assertEqual(len(list(self.root.rglob('*.lzh'))),50)
+        self.assertIsNone(provider.REQUEST_LIMIT)
+        self.assertIsNone(provider.CALL_REQUEST_LIMIT)
+
+    def test_existing_http_halt_above_240_is_read_and_never_cleared(self):
+        self.collect();p=next(self.root.rglob('state.json'));state=json.loads(p.read_text())
+        state.update(request_count=241,halted_reason='SOURCE_HTTP_4XX_STOP');p.write_text(json.dumps(state))
+        source=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=self.opener)
+        try: status=source.status()
+        except provider.CurrentBoatInputError as exc:self.fail('saved nonnegative counter was rejected: '+str(exc))
+        self.assertEqual(status,{'day_jst':'2030-04-01','requests_used':241,'halted_reason':'SOURCE_HTTP_4XX_STOP'})
+        with self.assertRaisesRegex(provider.CurrentBoatInputError,'SOURCE_SESSION_HALTED'):source.collect(stage='P1')
         self.assertEqual(len(self.calls),1)
+        self.assertEqual(source.status(),status)
 
     def test_p1_does_not_request_preview_after_rejected_program_identity(self):
         source=self.p1_parsers()
