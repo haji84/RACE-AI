@@ -103,6 +103,15 @@ jobs:
         run: node --test --test-reporter=tap tests/forecast_audit.test.cjs tests/full_odds.test.cjs tests/odds_feed_worker.test.mjs tests/odds_auto_source_cron.test.mjs tests/odds_three_cycle_audit.test.mjs tests/private_wire_vault.test.mjs
       - name: Python synthetic journal to viewer projection tests
         run: python -m unittest discover -s tests -v
+      - name: Verify isolated experimental video decoding and measurements
+        run: |
+          python -m venv "$RUNNER_TEMP/race-ai-video-tools"
+          "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m pip install -r requirements-video.txt
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y ffmpeg
+          fi
+          "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m unittest tests.test_boat_video_tracking tests.test_boat_video_measurements tests.test_boat_video_evaluation tests.test_boat_video_cli -v
       - name: Integrated product UI contracts
         run: |
           node --check web/app.js
@@ -127,6 +136,7 @@ jobs:
           python -m tests.private_cycle_ui_fixture --out "$UI_PRIVATE_CYCLE_EXPORT"
           python -m tests.private_dispatch_ui_fixture --out "$UI_DISPATCH_VIEWS"
           node tests/ui_browser.test.js
+          node --test tests/boat_video_ui.test.mjs
       - name: Retain synthetic-only UI interaction evidence
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

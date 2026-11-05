@@ -1,0 +1,132 @@
+{
+  "schema_version": "RACE_AI_BOAT_VIDEO_IMPLEMENTATION_EVIDENCE_V1",
+  "checked_at": "2026-11-05T16:30:09.192817+00:00",
+  "reviewed_base_head": "24cc6f097452134d5bfe287c3ae1cd9204e5f39f",
+  "scope": "EXPERIMENTAL_LOCAL_MEDIA_NOT_FIELD_ACCEPTANCE",
+  "source_sha256": {
+    "race_ai/boat_video_tracking.py": "5928038e6e04c39f97c49e1c022933f7edb1419285d5c0507bae6929730f2fd4",
+    "race_ai/boat_video_measurements.py": "0df528533b09570d770bec1aee12953db5daac127a9d4553bdd68b4e7258acb3",
+    "race_ai/boat_video_evaluation.py": "ec388d4ed07313a807280ee6d899475877ca7ad34cadbcb08cb33ff14e380ad9",
+    "scripts/boat_video_analyze.py": "b6b12ab868adc06c39a565d4bcf444712083a6a5c2163fdd8972b0e677959b94",
+    "requirements-video.txt": "99325d819b778b2594cfefe0cf2c69e311ff8160c009470ffa22a29c254ed53c",
+    "web/app.js": "162f454e8e6af61231ec0ab626f597d54f60b16fd301f06e83b0bd17cdbdc434",
+    "web/ui-model.js": "c74379e39e94809f03b3b4247a154e56ae7a13f46de5b122a0195d354326697c",
+    "tests/test_boat_video_tracking.py": "9676b1253beafce44bdac0bcf5369f679eea163091900a136e6a17bcddf9f19f",
+    "tests/test_boat_video_measurements.py": "0f7dc72828b7c85fa2cb3d6f1cecdec2bbf2c200d231f5218e05637a7f0fe069",
+    "tests/test_boat_video_evaluation.py": "066a4ffb683a2bb4562482d8abec54c890ef68f5cec153c277e817949b857a82",
+    "tests/test_boat_video_cli.py": "c09dbf948c0daab67b2f8a09c29b88be74f21fa01ebebf0df38028c333f951a8",
+    "tests/boat_video_ui.test.mjs": "4fa100c3975ee37b436f3e9322e717cc47a912f2f8bff4337f9c8cdd9059463c",
+    "tests/ui_browser.test.js": "3a03b47cab6ed7581622e3daa6d8c348ef5c12e87d99228be4e07f25371d0eef",
+    ".github/workflows/forecast-audit-ui.yml": "ac7ab6fbe67ef202d1a43af2fa563050455aaab6d7f3da3c27a0117b6d9428bc"
+  },
+  "verification": {
+    "python": {
+      "command": "isolated CV venv: python -m unittest discover -s tests -v",
+      "passed": 1241,
+      "skipped": 0,
+      "log_sha256": "18491ff48353b14c5f343cc04fe6415949ede5e69fd7fe75403ed4a65ed35ff4"
+    },
+    "node_contracts": {
+      "passed": 135,
+      "log_sha256": "3485eb0aa3d01ff42915de9482b249b8ca6855d6cbae00b7645763e043e3a35d"
+    },
+    "node_context_video_model": {
+      "passed": 22,
+      "log_sha256": "83e3b63952d5fb5fa02727b9fb034fe1374a4e1c715c5a4c300030901d03b284"
+    },
+    "existing_browser": {
+      "checks_passed": 30,
+      "widths": [
+        320,
+        390,
+        1440,
+        1920
+      ],
+      "errors": [],
+      "report_sha256": "1ec645a8a2c619b1804bcfe160cb20d4b31bccfead6441dc50b3d628e20708f2"
+    },
+    "actual_decoder_report_browser": {
+      "dataset_status": "SYNTHETIC_ONLY",
+      "real_video_count": 0,
+      "results": [
+        {
+          "width": 390,
+          "pass": true,
+          "four_phase_labels": true,
+          "horizontal_overflow": false,
+          "page_errors": 0,
+          "mutation_requests": 0
+        },
+        {
+          "width": 1440,
+          "pass": true,
+          "four_phase_labels": true,
+          "horizontal_overflow": false,
+          "page_errors": 0,
+          "mutation_requests": 0
+        }
+      ]
+    }
+  },
+  "synthetic_integration": {
+    "schema_version": "RACE_AI_VIDEO_INTEGRATION_EVIDENCE_V1",
+    "dataset_status": "SYNTHETIC_ONLY",
+    "real_video_count": 0,
+    "report_sha256": "39975927b9e22bd68d38a6bd6c42143e42ec54ac73e4daeda60a1522e01b9b2f",
+    "media_sha256": "35c7e38ac3479a250d6645ed5ef2dbabc4c0beef1743baa1fcf53d8615012aee",
+    "all_four_configured_phases_measured": true,
+    "source_identity_verified": false,
+    "start_line_and_phase_windows": "SUPPLIED_SYNTHETIC_GROUND_TRUTH",
+    "synthetic_report_refused_for_real_view_enrichment": true,
+    "original_view_sha256_unchanged": "2e27613e0eeb3055f7b52224f13b1423f34ea1ce33f0577bd67cac3f1d1b27c1",
+    "model_eligible": false,
+    "measured_straight_px_per_second": 56.57946210950607,
+    "known_synthetic_straight_px_per_second": 56,
+    "important_limit": "Measured speed trend uncertainty exceeds the trend signal; not a certified strength assessment."
+  },
+  "low_resolution_negative_case": {
+    "all_phases_measured": false,
+    "turn_measured": true,
+    "other_phases_missing": true,
+    "note": "Insufficient displacement versus supplied position error and missing motion observations remain missing, not zero or strength grades."
+  },
+  "independent_review": {
+    "cv_original_reproductions_resolved": 6,
+    "integration_timestamp_scope_findings_resolved": 2,
+    "field_validation_complete": false
+  },
+  "official_source": {
+    "ordinary_boatcast_parent": "https://race.boatcast.jp/replay?jo=12&ymd=20261105&race=12&md=T",
+    "target": "Suminoe 2026-11-05 12R exhibition",
+    "player_startup_fixed_by": "omit combined Playwright automation disable-features argument; individual feature causality not isolated",
+    "normal_embedded_sdk_http_status": 403,
+    "normal_player_message": "この動画の視聴は許可されていません。",
+    "target_media_saved": false,
+    "normal_flow_denial_sha256": "1db6c33287bbdba10df65fdd37145d9db81fd62724e83a0b1df4733938d14a4b",
+    "tsu_official_public_youtube": "net::ERR_TUNNEL_CONNECTION_FAILED; no HTTP response",
+    "tsu_evidence_sha256": "e8ff3105dd50b68a83a172aa1a36c59b399e1ca33f61abbd9a4b79ee4d8da09b",
+    "all_venues_unavailable_claimed": false,
+    "restrictions_bypassed": false
+  },
+  "forecast_continuity": {
+    "server_pid": 157669,
+    "server_restarted": false,
+    "run_id": 42055132384,
+    "workflow_id": 405276784,
+    "run_head": "f15448d0a00887cff9153a3398b18a3b0761a04e",
+    "state": "RUNNING",
+    "active_same_workflow_runs": 1,
+    "new_forecast_trigger": false,
+    "native_original_sha256_unchanged": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a"
+  },
+  "uncompleted": [
+    "normal source acquisition for actual exhibition media",
+    "unattended video acquisition connected to existing worker",
+    "independent identification of all six boats including white and black",
+    "actual start-line/phase and camera/clock validation",
+    "strength assessment and forward forecast improvement",
+    "real-device Safari acceptance"
+  ],
+  "publication_or_main_merge": false,
+  "production_model_change": false
+}
