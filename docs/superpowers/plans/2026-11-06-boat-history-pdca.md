@@ -10,6 +10,18 @@
 
 **Spec:** `docs/superpowers/specs/2026-11-06-boat-history-pdca-design.md`
 
+## Completion work authorized after overlap check
+
+Owner explicitly requested completion of steps 1–4 on 2026-11-06 JST. Keep the existing isolated worktree and PR71; preserve concurrent racer/video commits. Implement inline without another design confirmation.
+
+- [ ] Reproduce and fix malformed K membership loss. Preserve unresolved B-program opportunities separately from confirmed starts, retain V1 imports, add a parser revision, and replay cached archives without HTTP.
+- [ ] Reproduce and fix unequal cutoff revisions for learned rows. Only baseline-authenticated same-roster evidence may authorize a revision; validate both original and effective cutoff clocks.
+- [ ] Reproduce and fix late physical freeze admission. Record private create-once completion receipts bound to exact pair bytes; missing/late receipts cannot enter prospective metrics. Preserve old pairs.
+- [ ] Unify numeric history transformation with `observed_result_history._features`, already used by `teiai_feature_adapter`. Explicitly select one history source per comparison; do not chain two enrichers or count the same racer/race twice.
+- [ ] Add a complete private SQLite handoff for history, pair originals, physical receipts, result revisions and idempotent scoring; reuse the existing AES-GCM envelope. Production needs the owner-configured key. Missing state, wrong key, tamper and rollback must fail closed.
+- [ ] Verify the full flow with invented data in existing GitHub CI, then verify real-data encrypted handoff if the owner key is available. Report synthetic verification and real-data operation separately.
+- [ ] Run targeted and full checks, review the integration, preserve every original and publish code/counts/hash-only evidence to the existing PR. Never publish raw histories, forecast originals or plaintext state.
+
 ## Global Constraints
 
 - No BOATERS scrape, Cloudflare/Vercel, new service/workflow, fees, bets, baseline overwrite or automatic promotion.

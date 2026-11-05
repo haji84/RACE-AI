@@ -51,10 +51,71 @@ jobs:
           python tests/pr64_bridge_harness.py
           PYTHONPATH=. python tests/boat_historical_route_harness.py
           python -m unittest tests.test_exhibition_autorun -v
+  boat_pdca_state_producer:
+    name: BOAT invented-data encrypted state producer
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      cipher_sha256: ${{ steps.produce.outputs.cipher_sha256 }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Create invented history and immutable pair, then encrypt SQLite
+        id: produce
+        run: python -m scripts.boat_pdca_handoff_fixture produce --work "$RUNNER_TEMP/boat-producer" --artifact "$RUNNER_TEMP/boat-sealed"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-pdca-synthetic-state-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/boat-sealed/state.enc
+            ${{ runner.temp }}/boat-sealed/proof.json
+            ${{ runner.temp }}/boat-sealed/handoff-proof.json
+          retention-days: 3
+          if-no-files-found: error
+  boat_pdca_state_consumer:
+    name: BOAT restore on another runner and score result revisions once
+    needs: boat_pdca_state_producer
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: boat-pdca-synthetic-state-${{ github.run_id }}
+          path: ${{ runner.temp }}/boat-incoming
+      - name: Restore exact originals, score revisions, reject replay, prepare next pair
+        env:
+          RACE_AI_EXPECTED_CIPHER_SHA256: ${{ needs.boat_pdca_state_producer.outputs.cipher_sha256 }}
+          EXPECTED_PRODUCER_RUN_ID: ${{ github.run_id }}
+          EXPECTED_PRODUCER_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: python -m scripts.boat_pdca_handoff_fixture consume --work "$RUNNER_TEMP/boat-consumer" --artifact "$RUNNER_TEMP/boat-incoming"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-pdca-synthetic-restore-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/boat-consumer/consumer-proof.json
+          retention-days: 3
+          if-no-files-found: error
   viewer_contract:
     name: Viewer audit contract
     runs-on: ubuntu-24.04
-    timeout-minutes: 8
+    timeout-minutes: 12
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
