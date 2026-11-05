@@ -17,7 +17,8 @@
 - [x] Run both unchanged local engines on actual footage; preserve failures and measured baseline. Investigate runtime/recognition failures before any minimal fix. Do not tune heldout media or count controlled predictions as pinned-engine success.
 - [ ] Compare supported measurements against independent references only. Same-transform localization error does not certify camera compensation; configured windows cannot validate themselves. Keep calibration/clock/common-phase restrictions until real evidence supports any change.
 - [ ] Audit and complete any necessary research archive/comparison wiring only with authenticated pre-cutoff source data. An archival tutorial without verified race identity is not a prospective prediction. Future improvement requires saved baseline/experimental pairs and later official results; do not backdate or infer success.
-- [ ] Run appropriate regression suite, independent review and existing CI; record actual source counts, baseline/improvement counts, evidence provenance, uncompleted gates and live continuity in `docs/RACE_AI_LATEST_STATUS.md`.
+- [x] Run appropriate local regression suite and independent review; preserve actual source counts, baseline/improvement counts, evidence provenance, uncompleted gates and live continuity in `docs/RACE_AI_LATEST_STATUS.md`. Integrated CV suite:1559 PASS/0 skip; later concurrent change is a separate fixture test and docs only, fixture1 PASS.
+- [ ] Verify existing CI on the pushed integrated source and record its exact HEAD/run receipts.
 
 ## Review focus
 
@@ -34,3 +35,5 @@ Both fixed full Commons runs returned775 decoded/97 sampled frames, with zero va
 Ruling: retain the existing forecast models, all pre-cutoff/roster/camera/common-window constraints and unvalidated status. Archival media with unknown race number/roster cannot become a fabricated JOB_V1, training row, or forward result. A pure hull-candidate benchmark is separate from numbered-region accuracy. A bounded development-only MSER/component/deskew OCR spike may be investigated without inspecting heldout outputs; it is not deployed or certified. A single correctly read development digit is not six-boat recognition or predictive improvement.
 
 The brief environment-starting notice resolved with the original PIDs and original DB SHA intact; no restart or environment publication was performed. Code changes remain on existing PR71's branch, with no external task/service/workflow added.
+
+One frozen raw FP32 component transfer batch was executed by a separate worker before reading labels. Within-clip video unique raw agreement2/9 (baseline sampled frames1/7), separate still4/6; normalization views are duplicates, one video proposal is unmatched geometry. Accepted temporal identities remain0. One hull crossed the3s soft budget (3.831s) before three later views were skipped; no hard deadline claim. No production integration or post-holdout tuning. The separately published current LIVE screen explicitly showed outside broadcast hours08:16JST, unlike the stopped403 archive; neither current race media nor future authorization is established.

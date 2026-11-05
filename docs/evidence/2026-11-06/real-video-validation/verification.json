@@ -9,7 +9,8 @@
     "race_ai/boat_video_benchmark.py": "a53463b4e4de3b771c66e39ec9ab288af848fb4209bbe144c14fe8c188df56bc",
     "tests/test_boat_video_benchmark.py": "d6c19aa91f3bbe68d5b0c2827d92a8f836d2a4926ba493d448193b45c3fea5cc",
     "tests/test_boat_video_ocr_reliability.py": "36c6e38f6600230a2ebfdf61cd4bb023b1a49dc5cf5b51c245ec0a7dafe0d6f8",
-    ".github/workflows/forecast-audit-ui.yml": "d664650cf90e6b0a0198d7fb5b39d8037e290cb6c68395224dd2009ab8f437e4"
+    ".github/workflows/forecast-audit-ui.yml": "c670872b35cc87d1cd3f7e77586938ec0f5a9f2eb93b401036ab41682ada8ad3",
+    "tests/test_boat_video_cli.py": "806084c1c7756426efce642701fcfc18b3b5b11d1f9780db5d820bbd0ee45a11"
   },
   "private_evidence_sha256": {
     "commons_source_ledger": "211395ca427bbe08fe1ab678709c0b6f71682c14a355f03cec64e5716e089def",
@@ -24,7 +25,11 @@
     "actual_benchmark_summary": "f2e777eecdb346a5030a7620c79e3bad57ff2a47fba1e5cadfd2940b5ce3d110",
     "rejected_tesseract_spikes": "4a4b328bb84663391274618e3a377c82e9a0a27551a18bb79192b42c8f85ead1",
     "crnn_raw_development_only": "1a491756fbddff3d50fa60dbf132fac41b2b49966e8faba2a1f49404f841eefd",
-    "crnn_sequence_precision_compare": "f0f6da96a8e5fead18751339b3d27a2163bc686587d2281d7ea4fd93c77bb115"
+    "crnn_sequence_precision_compare": "f0f6da96a8e5fead18751339b3d27a2163bc686587d2281d7ea4fd93c77bb115",
+    "crnn_raw_heldout_results": "a596da129851d0aa306875d1d7fb32a9c2fbe0c01e2d0a07005fa5adc2a1dc83",
+    "crnn_raw_heldout_score": "89ae5948a3736115e6fa6d8132bf2fc61478bf0bc203eb442e32a354da247dc4",
+    "crnn_raw_heldout_manifest": "40c07378acdc9c63f1bbb97d2ece1d02cf3e8e5afc471a5613f40547786c1d75",
+    "current_live_outside_broadcast": "9470b362e7fced444b36d9c3a57ce51dbcce12066f2466f212dc45cd46117f40"
   },
   "sources": [
     {
@@ -238,7 +243,7 @@
     "forecast_model_families_added": 0,
     "crnn": {
       "development_inputs": 54,
-      "heldout_execution": false,
+      "heldout_execution": true,
       "trained": false,
       "int8_sha256": "94117b4c2652337b3f1aef81b2ec15a74e97973b1c58f743e86380b95b95ffa2",
       "fp32_sha256": "a84b1f6e11a65c2d733cb0cc1f014aae3f99051e3f11447dc282faa678eee544",
@@ -251,7 +256,47 @@
       "calibrated_identification_probability": false,
       "accepted_identities": 0,
       "math_bruteforce_cases": 110,
-      "production_integrated": false
+      "production_integrated": false,
+      "heldout_raw_component_only": {
+        "batches": 1,
+        "post_holdout_tuning": false,
+        "raw_frozen_before_reference_open": true,
+        "protocol_sha256": "ce8ba844e365e7ed44783ddb568a61e1bb9a369038a96d078ebeda16e5ff63e4",
+        "helper_sha256": "32b1ac392998fd84744e49a25a641e6b785374413c1bf807c200df397c22234d",
+        "engine": "UNCHANGED_OFFICIAL_FP32_CRNN_ON_AUTOMATIC_REGION_ACTUAL_PIXELS",
+        "video_scope": "FIVE_WITHIN_CLIP_HELDOUT_FRAMES_NOT_TEMPORAL_TRACKING",
+        "video_raw_proposals": {
+          "correct": 4,
+          "wrong_matched": 0,
+          "unmatched_geometry": 1
+        },
+        "video_unique_correct_references": 2,
+        "video_readable_references": 9,
+        "baseline_sampled_video_unique_correct_references": 1,
+        "baseline_sampled_video_readable_references": 7,
+        "correct_video_region_on_baseline_unsampled_frame": 660,
+        "still_scope": "ONE_SEPARATE_WHOLE_MEDIA_PHOTO_NOT_VIDEO",
+        "still_raw_proposals": {
+          "correct": 7,
+          "wrong_matched": 0,
+          "unmatched_geometry": 0
+        },
+        "still_unique_correct_references": 4,
+        "still_readable_references": 6,
+        "normalization_views_correlated": true,
+        "human_verified": false,
+        "whole_hull_proposals": 0,
+        "inference_errors": 0,
+        "region_views_skipped_after_soft_deadline": 3,
+        "maximum_hull_seconds": 3.831464839997352,
+        "hard_three_second_guarantee": false,
+        "accepted_identities": 0,
+        "sequence_likelihoods_uncalibrated": true,
+        "diagnostic_090_used_for_raw_admission": false,
+        "raw_proposals_at_least_diagnostic_090": 0,
+        "production_integrated": false,
+        "forecast_or_strength_improvement_claimed": false
+      }
     }
   },
   "verification": {
@@ -265,18 +310,56 @@
     "focused_ocr_tests": 12,
     "independent_review_p1_p2_remaining": 0,
     "isolated_ci_new_ocr_module_added": true,
-    "combined_head_and_ci": "TO_BE_VERIFIED_AFTER_CONCURRENT_INTEGRATION"
+    "combined_head_and_ci": {
+      "local_regression": "PASSED",
+      "github_checks": "PENDING_PUSH_AND_EXACT_HEAD_CHECK"
+    },
+    "first_integrated_full_python": {
+      "tested_head": "fd2c5f1492bd40e5cfd3d278deb5b14814fe667e",
+      "run": 1559,
+      "failures": 1,
+      "seconds": 182.663,
+      "log_sha256": "e33afa2acf88c03c41d6dbeb025afbe84e073d4948f76823fa48cc01e3447638",
+      "cause": "TEST_FALSE_POSITIVE_REGISTRATION_SUBSTRING_IN_VALID_SHA256_NO_PRODUCT_DISCLOSURE"
+    },
+    "integrated_full_python": {
+      "tested_head_before_test_only_commit": "fd2c5f1492bd40e5cfd3d278deb5b14814fe667e",
+      "test_only_worktree_change": "tests/test_boat_video_cli.py",
+      "test_only_sha256": "806084c1c7756426efce642701fcfc18b3b5b11d1f9780db5d820bbd0ee45a11",
+      "passed": 1559,
+      "skipped": 0,
+      "seconds": 282.782,
+      "log_sha256": "38e6f2aed6a05728b1ca8e3cee059d5f117b2a2b0f6edb4be22cb0bce08b1c1c"
+    },
+    "cli_privacy_regression": {
+      "passed": 15,
+      "structural_summary_keys_and_saved_digest_asserted": true,
+      "simulated_disclosure_mutations_rejected": 5,
+      "log_sha256": "6db0fd53b912c3fc6ea357f93dcc1e66b50c539c60afe748c224837f87023dc1"
+    },
+    "latest_concurrent_merge": {
+      "head": "891a7fc5b3c8dc02fad9ba279cbeb44a713abb32",
+      "remote_parent": "c1165b9d880755d8366ec93f76ad4186194f05ba",
+      "changes_after_full_suite": "DOCS_AND_ONE_OTHER_TEST_FIXTURE_ONLY_NO_PRODUCT_SOURCE_CHANGE",
+      "fixture_tests_passed": 1,
+      "fixture_log_sha256": "505835088b8e53fd62a29de491c51251f1e80a59d6998db8298fa2ec5524ea3c"
+    }
   },
   "forecast_continuity": {
     "server_pid": 157669,
     "intake_pid": 271439,
     "processes_restarted": false,
     "workflow_id": 405276784,
-    "observed_active_run_id": 42114125652,
+    "observed_active_run_id": 42124871318,
     "native_original_db_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
     "video_forecasts_generated": 0,
     "video_training_races": 0,
-    "video_future_paired_results": 0
+    "video_future_paired_results": 0,
+    "previous_observed_run_id": 42114125652,
+    "active_run_pinned_sha": "cf74fcc56ce1855e8f118ce39a6eed71b1e95e0a",
+    "local_auto_state": "RUNNING",
+    "local_auto_continuous": true,
+    "intake_pid_loaded_previous_source_not_hot_restarted": true
   },
   "uncompleted": [
     "adequate all-six identity coverage on representative actual exhibition footage",
@@ -290,5 +373,22 @@
   "new_external_task_or_service": false,
   "new_workflow": false,
   "main_merge_or_publication": false,
-  "production_model_switch": false
+  "production_model_switch": false,
+  "integration_checked_at": "2026-11-05T23:27:23.282082+00:00",
+  "base_source_sha256": {
+    "race_ai/boat_video_identity.py": "8bba24cef1bd0011d59b21533c46da5d040383e6b9dc180d3c06ea92b1743fdb",
+    "race_ai/boat_video_tracking.py": "2d329a70a3349d45cb753662f2223f77789610bb3d84681d4aabbd7a5ef6ce2a",
+    "race_ai/boat_video_benchmark.py": "a53463b4e4de3b771c66e39ec9ab288af848fb4209bbe144c14fe8c188df56bc",
+    "tests/test_boat_video_benchmark.py": "d6c19aa91f3bbe68d5b0c2827d92a8f836d2a4926ba493d448193b45c3fea5cc",
+    "tests/test_boat_video_ocr_reliability.py": "36c6e38f6600230a2ebfdf61cd4bb023b1a49dc5cf5b51c245ec0a7dafe0d6f8",
+    ".github/workflows/forecast-audit-ui.yml": "d664650cf90e6b0a0198d7fb5b39d8037e290cb6c68395224dd2009ab8f437e4"
+  },
+  "current_source_availability": {
+    "archive": "FUKUOKA_2026_11_05_R1_EXHIBITION_403_P01002_STOPPED_NO_RETRY",
+    "distinct_live": "OUTSIDE_BROADCAST_HOURS_AT_2026_11_06_08_16_JST_NOT_AUTHORIZATION_DENIAL",
+    "live_media_saved": 0,
+    "future_live_permission_verified": false,
+    "adjacent_ui_race_1_cutoff_jst": "10:43",
+    "adjacent_ui_metadata_proves_live_video_identity": false
+  }
 }
