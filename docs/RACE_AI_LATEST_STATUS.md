@@ -24,6 +24,22 @@
 
 ---
 
+# 2026-11-06 03:29 JST｜継続worker完走→新workerの第10巡を独立監査（当日予想追加なし）
+
+**対象:** 既存Draft PR #71 / workflow `405276784` / ブランチ `feat/four-sport-forecast-audit-view-20261022`。確認時HEADは `3123f54ebea1b90eff453c322fd3009cd5a52097`。
+
+**前runの確定完走:** [run 42066504421](https://github.com/haji84/RACE-AI/actions/runs/42066504421) は 2026-11-06 02:49:19 JST に `completed/success`。最終第24巡結果ZIP artifact `13439721825` は GitHub API digest/実ZIP SHA256 `afae2c1a4fedbe0b6b5fa3eb15a3f531ef9f121bef4a127173dac7ba3f8181fd` と一致、ZIP CRC正常。最終continuity ZIP `13439716866` も SHA256 `e209a3fe95364d70e90847511893aa87ff22e6e6bb363b246f9532b10834ecd0` と実バイト一致、CRC正常。`repeat-session.json` は `completed_round=24/prepared_round=null`、第24巡の別保存読戻しレシート日時2026-11-06 **02:49:10 JST**、当run公式GET実数206。直近の第13巡だけで完走扱いしたのではない。
+
+**現在runの途中保存:** [run 42079188438](https://github.com/haji84/RACE-AI/actions/runs/42079188438) は 2026-11-06 02:54:41 JST起動、03:29 JST時点 `in_progress`。対象workflowの直近100 runから同時 `in_progress` はこの1件、`queued/pending/waiting` は0。第10巡 `status.json.round_no=10/updated_at=2026-11-06 03:24:31 JST` の結果ZIP artifact `13442406865` と対応P1 ZIP artifact `13442093519` をGitHubから別々に取得、実バイトSHA256はそれぞれ `7ffd8ad8a5a4ad6f66f828f0cab38fb81574b7180921ac43d0a1abe2a38e2f9c` / `768d9d201e309c38a4d291397ead7097dd0ef0094e50cf19ff4ed00921e46d84` でAPI digest一致・ZIP CRC正常。結果ZIP内 `current-p1-original.zip` と別取得P1 ZIPはバイト一致。 `first-p0-original.zip` と初回P0 artifact `13428142302` もバイト一致。初回索引 `docs/evidence/2026-11-06/p0-first-receipt.json` の元ZIP SHA/JSON SHAとも一致。過去原本の再生成なし。
+
+**独立読戻し境界:** 第10巡結果ZIPは保存成功、内部sessionの `completed_round=9/prepared_round=10` と第1〜9巡の `verified_at` レシートまで確認。**第10巡の読戻し完了とrun全体成功はまだ認定しない**。当runの取得実数94、`halted_reason=null/source_wait=null`、公式結果原本 `official-result-observations.json=[]`。
+
+**予想・結果・PDCA:** 当日13会場・156R。P0初回312モデル別予想（観測相性・ST重視相性の各156件）、P1=0、通常結果採点=0、LEARNED_SHADOW=0、未来同条件比較=0。 `forecasts.csv` と `model_coverage` はP0の312件で一致。 `national.json` は `NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES`、予想条件の新規成立なし。次候補確認時刻は**08:20 JST**。 `automatic_learning.state=INSUFFICIENT_VERIFIED_RACES`、本日分の新規学習係数・精度改善を認定しない。未来156レースを未予想P1の不的中には数えず、開催前の回収率も作らない。16系統/4競技の全数運転、永久私有保全、学習版の前向き優位性は未証明。
+
+**制約衝突は継続:** 取得実績206/94は各runとも240未満だが、実コード `source_limit=null/max_rounds=null/stop_at=null` とworkflow `timeout-minutes:360` は今回定期指示の240GET・24巡/65分と不一致。別のオーナー直接指示にある上限撤廃を、この監査で無断巻き戻していない。 `concurrency.group=boat-nationwide-cutoff-20261103/cancel-in-progress=false` は確認。停止条件回避の追加push、同run rerun、実行中runキャンセル、モデル本番切替、実投票なし。後続runも未予約。次の要点は朝の正式展示新規観測で初めてP1を凍結できるかの判定、および取得上限の実契約統一。
+
+---
+
 # 2026-11-06 02:16 JST｜11/06 第24巡完了workerから次worker第13巡への原本引継ぎ監査（新P1・採点は0）
 
 既存Draft PR #71の監査。前run [42055132384](https://github.com/haji84/RACE-AI/actions/runs/42055132384) は 2026-11-06 01:37:54 JSTに completed/success、最終第24巡の結果artifact `13434787464` はAPI digest `892d448bcb0a95a06bc4dc122c3d6dec341ca55fef659a0a1895adf0144c7375` と実ZIP SHA256・CRC一致。最終continuity artifact `13434836595` もAPI digest `645c44e9acea9bc98a2d4cbaf856f49833ee3b33aeda1eabd5623983749edf0e` と実ZIP SHA256・CRC一致、内部 `repeat-session.json.completed_round=24/prepared_round=null`。当run公式GET実数221、ただし source_limit=null/max_rounds=null/stop_at=null を確認し、安全上限がコードで強制されたとは認定しない。
