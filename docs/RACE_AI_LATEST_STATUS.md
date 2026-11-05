@@ -1,3 +1,17 @@
+# 2026-11-05 12:50 JST｜既存run第17巡回の原本再監査と後続1件の安全起動
+
+対象：既存Draft PR #71 / branch `feat/four-sport-forecast-audit-view-20261022` / workflow `405276784` のみ。監査開始時のPR HEAD `e28910757fb5c159765abd8ea9f84523f8f59cfb`。前run `41949401478` は11:24:53 JSTに `completed/success`、実行HEAD `74572f2f304f9122cff987b05001b4455c29780c`。全37 artifactから無接尾辞を第1巡回、`-cycle-17` を第17巡回として最大完成巡回を選定。第18〜24巡回は240 GET上限による安全停止であり、実施済み扱いにしない。
+
+前runの第17巡回・別保存の **P1元予想** `13382273973` / **公式結果・PDCA** `13382722611` / 最終**継続原本** `13383015886` の3 ZIPを今回新たに独立ダウンロードして実バイトSHA256を再計算。GitHub API登録digest `9cbc7ac048bad16465cde4a52e5553e3b76848a98a8bea84242f05d7047c9f57` / `759a7c3bea91eafa4c9c75171be43d28c340c67cd84a1c3c187df28baaac5893` / `92e43ef2db8a127ae52d9ba19a1b6e0e094680bb3d0b38267bbb4ed4d9f4c10e` に完全一致し3 ZIPともCRC異常なし。内部`status.json.round_no=17` / `updated_at=2026-11-05T02:24:33Z`、`forecasts.csv`443行と`model_coverage.json`の基準443件が一致、公式結果観測履歴も保存。結果ZIP内の旧原本を改変していない。continuity ZIPの元ZIPや学習元全件について、今回の独立ZIP再取得による第三者完全監査完了までは主張しない。
+
+**再確認した前run最終保存値（新規増加なし）**：基準5モデル443モデル別予想（P0=288、展示後P1=155、P1対象31レース）。通常結果採点140モデル別行（HIT68/MISS72）、RESULT_PENDING294、異常着順レビュー9、合計443。LEARNED_SHADOW30モデル別予想、前向き同条件比較10モデル別行/異なる5レース、基準版・学習版とも4的中/仮払戻12,780円で改善証明なし。学習状態`FITTED_SHADOW_ONLY`、独立検証済み通常20レース（train15/validation5）、元5モデル係数・買い目不変。全日144レース、前run集計時締切済み28、P1完備27、不足`20261105-10-02`の5モデル別行を維持。展示当時の提供可否は未立証。実ZIP内の`bounded_repeat_session.requests_used=240/source_limit=240`、GitHub Actions jobログの第17巡回読戻し完了および第18〜24巡回 `SESSION_SOURCE_BUDGET_EXHAUSTED` を別途確認。4xx/429や真正性不一致を上限停止と混同しない。
+
+12:49 JST、既存日程原本の時刻比較では未来締切88レースが残り、直近Actions一覧に対象workflowのin_progress/queued/pending/waitingはなく、前runは正常完了。既存trigger `docs/evidence/boat-nationwide-pilot-trigger.txt` を、元blob SHA確認後**1回だけ追記CAS更新**。更新コミット `fea5b2a404dd5eb5a602d741263a95000c1e3b6f` により**後続run `41964059991` が12:50:17 JSTにin_progress**。同workflow・同一concurrency `boat-nationwide-cutoff-20261103`・cancel-in-progress=falseを維持、後続をもう1件積まない。後続はまだ予想/結果artifact0件のため、P1増分・通常採点・学習比較増分を**未確認**とする。前runの240 GETを上書き/超過させたり失敗runをrerunしたりしていない。新セッションも240 GET上限と4xx/429/日付/原本不整合停止を必須とする。
+
+本人専用Driveのrootと対象フォルダは今回も所有者本人一致、shared=false、ownerのみのpermissionを実確認。既存14ファイルを保全したまま、最新3ZIPの追加アップロードを試行したが `BLOCKED_FILE_REFERENCE` により拒否。**今回の新規Drive保存0件、Drive独立読戻し0件**。公開GitHubへの私有DriveのURL/ID・秘密情報・生原本転載なし。7日artifactを期限なしDBと呼ばない。全16系統×4競技実予想、展示後全対象、永久本人専用保全、係数学習版の統計的な前向き優位性は依然未完成。新タスク/頻度/PR/workflow/モデル系統/Cloudflare/Vercel/追加課金/main統合/一般公開/実投票/無検証本番切替なし。
+
+---
+
 # 2026-11-05 11:27 JST｜既存run第17巡回まで独立照合・P1+90/通常採点+98・上限停止
 
 
