@@ -26,7 +26,7 @@ def join_k(raw,day,venue,closing,captured_at,digest,blocks,parse_k):
     txt=unicodedata.normalize('NFKC',raw.decode('cp932')); records=[]; excluded={}
     target=[b for code,b in blocks(txt,'K') if code==int(venue)]
     if len(target)!=1:raise ValueError('K_VENUE_MISSING_OR_AMBIGUOUS')
-    body=target[0]; headers=list(HEADER.finditer(body)); pre=body[:headers[0].start()] if headers else ''
+    body=target[0]; headers=list(HEADER.finditer(body)); pre=body[:headers[0].start()] if headers else body
     dates=re.findall(r'(20\d\d)\s*(?:/|年)\s*(\d{1,2})\s*(?:/|月)\s*(\d{1,2})',pre)
     if not dates or {(int(y),int(m),int(d)) for y,m,d in dates}!={(day.year,day.month,day.day)}:raise ValueError('K_INTERNAL_DATE_UNVERIFIED')
     seen=set()
