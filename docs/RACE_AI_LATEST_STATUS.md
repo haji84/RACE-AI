@@ -1,3 +1,15 @@
+# 2026-11-06 00:21 JST｜次worker引継ぎのサイズ不具合を修正、原本を保全して適用
+
+オーナーの「次のWorkerへ引き継いで」に基づき調査した。前worker42047977632は2026-11-06 00:00:28 JSTにsuccessで終了したが、最終continuity artifact13427340610が **36,517,292 bytes** と旧32MiB読取境界を超え、既存supervisorが `SUPERVISOR_STATE_OR_CHECKPOINT_UNAVAILABLE` で待機していた。原因は過去のsource-control ZIPを次のZIPへ重複して含める構成だった。
+
+**原本照合：** GitHub digest `50cb65bf1a99356b9fe3a5175fe0e4cecf789fae704d58895131afd0fc733777`、全137memberのCRC、session/state seal、既存125原本ZIPを照合。4巡完了・当run196GET・累計812GET/47巡、prepared_round/source_wait/停止理由null。698基準予想と392結果観測を保全し、原本の削除・再生成・カウンターの初期化はしていない。
+
+**修正：** 既存の大きいcontinuityだけ128MiBまで受理し、digest/CRC/repository/run/sealと512MiB展開上限を維持。予想・結果ZIPの32MiB境界は変更していない。今後の引継ぎは同じworkflow・同じartifact名で、exact-byteのsession/continuity JSONを別ディレクトリへまとめ、過去ZIPを再梱包しない。元フォルダーの原本ZIPは保持する。実原本によるローカル確認では状態JSONのSHAを変えず **2,912,589 bytes** のcompact ZIPとなり、稼働中supervisorの旧32MiB読取契約で検証できた。これはローカル再梱包の試験であり、新しいGitHubレシートの実証とは区別する。
+
+**検証：** Python全1,171件合格、最終の梱包関連47件・既存大サイズ互換99件合格、独立レビュー指摘残なし。[証拠](evidence/2026-11-06/worker-handoff-repair/)を保存。アプリ/監視PID157669を止めず、既存PR71の同じworkflowの後続へ適用する。新workerの実起動・新しいcompact最終artifactは適用後に別途確認する。新PR/workflow/外部タスク/モデル/課金/main統合/一般公開/実投票/本番切替なし。
+
+---
+
 # 2026-11-06 00:21 JST｜11月5日の全ボートPDCAを原本から再計算（新しい事前予想は0件）
 
 対象は11/5全日。直近完了run [42047977632](https://github.com/haji84/RACE-AI/actions/runs/42047977632)、結果artifact `13425289339`、GitHub登録ZIP SHA256 `df47ed7d1c4c1c96a17015c72c4cb6fda052212b3098890f7fa589da66bb105f`を実ZIPバイトSHA・CRCで照合。継続artifact `13427340610`（SHA256 `50cb65bf1a99356b9fe3a5175fe0e4cecf789fae704d58895131afd0fc733777`）はcompleted_round=4、4巡分の受領記録を保持。実行はcompleted/success、ただし11/6の新P0・当日予想完走は未検証。過去P0/P1や係数は変更なし。

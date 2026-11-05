@@ -12,6 +12,9 @@ from .repeated_cycle import matches as artifact_matches
 BRANCH='feat/four-sport-forecast-audit-view-20261022'
 WORKFLOW=405276784
 JST=timezone(timedelta(hours=9))
+# Legacy continuity checkpoints can contain nested parent archives. Keep their
+# authenticated intake bounded while preserving compatibility with that history.
+CONTINUITY_ARCHIVE_MAX_BYTES=128*1024*1024
 
 def artifact_pages(get, run_id):
     """Read a complete, duplicate-free artifact listing, including page 2+."""
@@ -37,7 +40,7 @@ def artifact_pages(get, run_id):
         page+=1
 
 def _verified_zip(raw, meta, expected_name):
-    need(isinstance(raw,bytes) and 0<len(raw)<=32*1024*1024,'bounded cycle archive')
+    need(isinstance(raw,bytes) and 0<len(raw)<=CONTINUITY_ARCHIVE_MAX_BYTES,'bounded cycle archive')
     need(meta.get('expired') is False and meta.get('name')==expected_name and
          meta.get('workflow_run',{}).get('head_repository_id')==1416489937,
          'foreign/expired continuity archive')

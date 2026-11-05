@@ -52,3 +52,14 @@ Files/interfaces: `boat_observation_context.parse_beforeinfo/parse_pitreport(raw
 - [x] RED/GREEN integration tests: preserve ready forecasts on optional-context failure; same source wait guard, private append-only originals, read-only sidecar and unchanged saved forecasts.
 - [x] Parse real private captures, retain source SHA/time evidence, show facts and gaps in mobile/desktop browser; run full checks and independent review.
 - [x] Record implemented, measured and still unavailable items in latest status; apply reviewed source changes to existing PR only.
+
+## Successor checkpoint repair (2026-11-06 JST)
+
+Owner asks to hand over to the next worker while preserving automatic operation. Actual predecessor42047977632 completed successfully at JST midnight. Its authenticated final checkpoint is36,517,292 bytes: recursively embedded source-control ZIPs exceeded the old32MiB continuity intake bound. Digest/CRC/session/continuity checks and all125original ZIPs match; prepared_round/source_wait/halt are null,4completed rounds,196requests,812lifetime requests/47rounds. No active writer exists, and appPID157669 remains untouched.
+
+Implementation choice: accept existing legacy continuity checkpoints up to128MiB while retaining all identity/digest/CRC/session checks and the512MiB expanded bound. Ordinary forecast/result32MiB limits stay unchanged. Build future final handoffs as exact selected JSON bytes (session/bootstrap and continuity, retaining their original state seals) in a separate output directory, excluding nested downloaded ZIP copies. Original source folders/archives are never deleted or rewritten. Existing workflow/artifact name/concurrency remain unchanged; only final packaging step/path changes. Fresh active/checkpoint checks precede the single push that starts the successor. The running supervisor need not restart: the new compact checkpoint remains readable through its old intake contract.
+
+- [x] RED/GREEN legacy-large authenticated checkpoint, wrong digest/repository/CRC/session and unchanged ordinary-artifact limits.
+- [x] RED/GREEN compact exact-byte publication, absent/invalid control, symlink/overwrite rejection, source preservation and existing-workflow wiring.
+- [x] Replay actual predecessor and compact handoff; run full Python tests and independent review, preserve tested source hashes/evidence.
+- [ ] Apply to existing PR71 after fresh single-writer checks, verify next actual worker and preserved source counters/waits, record status without restarting app or creating another workflow/model/service.
