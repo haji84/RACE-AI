@@ -149,3 +149,45 @@ python -m scripts.teiai_history_probe --history /private/4444.csv --racer /priva
 ## 独立レビュー修正
 
 同着の通常着順扱い、異常/未照合の直近機会から古い正常走への補充、勝者決まり手欠測の見落とし、別キーでの新URL取得、quota/期限台帳の未認証、commit前の保存完了時刻、の6点を再現テストでRED→GREEN修正。追加で同時リクエスト予約の停止と期限改変停止を検証。未供給の選手については既存snapshotの検証済み特徴量を保持する部分補完であり、全選手履歴の一括置換ではない。
+
+## 2026-11-06 JST: 全選手の一括投入
+
+ユーザーの「全選手のデータを入れて」を受け、艇愛APIの登録番号総当たりではなく、公式公開の全選手期別ファイルを使う経路を追加した。艇愛APIの前回3GET/JST日を増やしていない。
+
+- 公式公開入口: https://www.boatrace.jp/owpc/pc/extra/data/download.html
+- 仕様: https://www.boatrace.jp/owpc/pc/extra/data/layout.html （確認HTML SHA `c8ab62784eaed687ac439afe5dd9a7ffe480fdd32633117eccb7e46f41a4869a`）
+- 対象: `fan2604.lzh`、2026年後期、算出期間2025-11-01〜2026-04-30。最新の公開配布ファイルとして確認した範囲であり、当日の全現役登録名簿、全引退選手、全生涯レース履歴の完全性を意味しない。
+- 元archive183,497bytes、固定416byte/CP932の**全1,643選手・全9,858コース行**。UTF-8文字幅や可変CSVとして扱わない。登録番号重複・誤った期間・不足列・不正数値・コース母数矛盾を拒否する。
+- 全1,643人を `RacerDatabase` のprivateメモリSQLiteへ実投入し、全件登録番号lookupとSQLite serialize/restoreの件数一致を実行した。全国出走0の43人、コース母数0の579行は勝率/STを架空の0で埋めずNoneと欠測理由にする。
+- 既取得の公式K261101も**全1,008出走・621選手**を投入。期別ファイル外の2登録番号も保持し、確認済みIDの和集合は1,645人。基本情報のない2人を他人の記録で補わない。
+- 期別の級別・年齢は当該資料記録値。現在値や過去の予想時点値へ読み替えない。全国/当地3連率、当地勝率等の未提供項目は未提供のまま。コース別数値着順からの1/2/3着内率と公式複勝率は定義を別に保持する。
+- [実投入件数・hashの公開可能な証拠](evidence/2026-11-06/all-boat-racers-counts.json)。原文・個人別の全データ・SQLite plaintextはcommitしない。これはprivateメモリ上の投入・復元成功であり、所有者キーによる永続保存の証拠と混同しない。
+
+追加実装:
+
+- `race_ai/boat_racer_term.py`: 公式レイアウトの厳格な全行解析。LZH展開は固定PR64の `_extract_portable` を再利用、lhafile0.3.1を固定。
+- `race_ai/boat_racer_database.py`: 全選手の索引、原archive/hash、版別名簿、コース成績、公式日別履歴。原本をUPDATE/DELETEしない。取得/メモリ投入完了/復元観測後だけlookup可能。JST日付で判定し、訂正版から外れた人を旧版から黙って復活させない。A→B→Aの内容巻戻りは自動選択せず訂正確認待ち。
+- `scripts/boat_all_racers.py`: 全件投入/readback、count-only報告、所有者キーの非表示preflight、原本SHA固定の1GET、暗号化、復号・全件lookup。
+- `scripts/keirin_github_checkpoint.mjs`: 既存main `0e45c02` の汎用SQLite AES-256-GCM処理を**無変更で再利用**（ファイルSHA `07cb14b8b996a119513754901a54bbf1825bc054da425294b0f5d9b8ff2e3e47`）。競輪の状態DBを読んだり変更したりしない。
+
+既存 `forecast-audit-ui.yml` に、owner-key確認→暗号化一括投入と別jobのartifact復元を追加した。PR71・同一repositoryのPRだけに限定。新workflow/cron/外部クラウド/有料サービス/モデル追加なし。
+
+- `RACE_AI_STATE_KEY` がない場合、**HOLD_OWNER_STATE_KEY_MISSING、provider GET=0** を件数のみのsummaryに記録し、復号jobをskipする。合成キーやGITHUB_TOKENから代替鍵を作らない。
+- キーが設定済みなら、公開済み公式1ファイルの既確認SHAだけを取得し、SQLiteを既存AES-GCMで暗号化する。rawとplaintext SQLiteはprivate runner temp内のみで、uploadは`racers.checkpoint`とcount-only`summary.json`の2ファイルだけ。
+- 取得済みの暗号化snapshotはGitHub Actions cacheで再利用し、復号/hash/全件lookupの検証に失敗したcacheから空DBへresetしない。7日経過は保管見直し待ち、暗黙の延長/再取得なし。ownerキー更新で既存snapshotを復号できない場合もGETへ切替えない。
+- 別jobは同一runの正確なartifact IDをdownloadし、AES認証・SQLite hash/integrity・公式archive SHA・取得時刻・全選手lookupを再検査。artifactは7日限りで永久バックアップではない。
+- この一括経路は当該期の再構築可能な研究資料専用で、予想原本や継続PDCAのDBを初期化しない。現行モデルへの学習/切替、当日能力値の置換はない。
+
+独立レビューで、全国母数0の扱い、名簿改訂時の集合、内容巻戻りを指摘され、各再現テストで修正した。JST境界と暗号化cacheの無通信再利用もテストした。固定checkpoint上限8MiBのため初回1期分に限定し、次期・大量訂正版を無制限に追加できると主張しない。上限到達時は停止し、圧縮/分割/版管理設計が別途必要。
+
+再現コマンド（raw出力なし）:
+
+```
+python -m unittest tests.test_boat_racer_term tests.test_boat_racer_database tests.test_boat_all_racers -v
+python -m scripts.boat_all_racers inspect --term-archive /private/fan2604.lzh \
+  --k-archive /private/k261101.lzh --k-day 2026-11-01
+python -m scripts.boat_all_racers capture --out-dir /private/cipher-output --reuse-dir /private/cipher-cache
+python -m scripts.boat_all_racers restore --folder /private/cipher-output
+```
+
+未来レース1件の締切前保存/確定結果照合は、この一括投入とは別ゲートのまま。全選手の「期別成績」を、全選手の「直近10/30実走履歴」として渡さない。

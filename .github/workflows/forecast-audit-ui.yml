@@ -192,3 +192,88 @@ jobs:
           assert all(x["offering_status"]=="UNKNOWN" for x in races)
           print("AUDIT_ONLY 322 distinct race slots; no predictions or outcomes fabricated")
           PY
+  official_all_racer_intake:
+    name: Official all-racer bulk intake (owner key or explicit HOLD)
+    if: github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    outputs:
+      encrypted: ${{ steps.capture.outputs.encrypted }}
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: '${{ github.event.pull_request.head.sha }}'}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with: {node-version: '24.19.0', package-manager-cache: false}
+      - name: Install pinned private intake dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Restore only encrypted all-racer cache
+        id: racer_cache
+        uses: actions/cache/restore@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: ${{ runner.temp }}/all-racer-encrypted-cache
+          key: boat-all-racers-v1-5c1e21cfe5a4dd53ea26eb07aca4905c4c20c3160b4a206ba96e92702eb4b46d
+      - name: Verify owner key before single approved official file GET
+        id: capture
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: |
+          python -m scripts.boat_all_racers capture --out-dir "$RUNNER_TEMP/all-racer-intake" --reuse-dir "$RUNNER_TEMP/all-racer-encrypted-cache"
+          python - <<'PY'
+          import json, os, pathlib
+          report=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'all-racer-intake'/'summary.json').read_text())
+          with open(os.environ['GITHUB_OUTPUT'],'a') as out:
+              out.write('encrypted='+str(report.get('encrypted_checkpoint_created') is True).lower()+'\n')
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
+              out.write('All-racer intake status: '+report['status']+'\n')
+              out.write('No plaintext source or database artifact; HOLD is not ingestion success.\n')
+          PY
+      - name: Prepare ciphertext-only cache when owner encryption succeeded
+        if: steps.capture.outputs.encrypted == 'true' && steps.racer_cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p "$RUNNER_TEMP/all-racer-encrypted-cache"
+          cp "$RUNNER_TEMP/all-racer-intake/racers.checkpoint" "$RUNNER_TEMP/all-racer-encrypted-cache/"
+          cp "$RUNNER_TEMP/all-racer-intake/summary.json" "$RUNNER_TEMP/all-racer-encrypted-cache/"
+      - name: Save only verified encrypted source snapshot for request reuse
+        if: steps.capture.outputs.encrypted == 'true' && steps.racer_cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@5a3ec84eff668545956fd18022155c47e93e2684
+        with:
+          path: ${{ runner.temp }}/all-racer-encrypted-cache
+          key: boat-all-racers-v1-5c1e21cfe5a4dd53ea26eb07aca4905c4c20c3160b4a206ba96e92702eb4b46d
+      - name: Retain encrypted checkpoint and count-only status
+        id: upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-all-racers-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/all-racer-intake/racers.checkpoint
+            ${{ runner.temp }}/all-racer-intake/summary.json
+          if-no-files-found: error
+          retention-days: 7
+  official_all_racer_readback:
+    name: Independently restore encrypted all-racer SQLite
+    needs: official_all_racer_intake
+    if: needs.official_all_racer_intake.outputs.encrypted == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: '${{ github.event.pull_request.head.sha }}'}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with: {node-version: '24.19.0', package-manager-cache: false}
+      - name: Install pinned reader dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Read exact intake artifact from this run in a separate job
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.official_all_racer_intake.outputs.artifact_id }}
+          path: ${{ runner.temp }}/all-racer-readback
+          merge-multiple: true
+      - name: Authenticate, decrypt, verify SQLite and lookup every racer
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_all_racers restore --folder "$RUNNER_TEMP/all-racer-readback"
