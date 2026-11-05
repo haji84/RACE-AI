@@ -1,3 +1,84 @@
+# 2026-11-05 12:50 JST｜既存run第17巡回の原本再監査と後続1件の安全起動
+
+対象：既存Draft PR #71 / branch `feat/four-sport-forecast-audit-view-20261022` / workflow `405276784` のみ。監査開始時のPR HEAD `e28910757fb5c159765abd8ea9f84523f8f59cfb`。前run `41949401478` は11:24:53 JSTに `completed/success`、実行HEAD `74572f2f304f9122cff987b05001b4455c29780c`。全37 artifactから無接尾辞を第1巡回、`-cycle-17` を第17巡回として最大完成巡回を選定。第18〜24巡回は240 GET上限による安全停止であり、実施済み扱いにしない。
+
+前runの第17巡回・別保存の **P1元予想** `13382273973` / **公式結果・PDCA** `13382722611` / 最終**継続原本** `13383015886` の3 ZIPを今回新たに独立ダウンロードして実バイトSHA256を再計算。GitHub API登録digest `9cbc7ac048bad16465cde4a52e5553e3b76848a98a8bea84242f05d7047c9f57` / `759a7c3bea91eafa4c9c75171be43d28c340c67cd84a1c3c187df28baaac5893` / `92e43ef2db8a127ae52d9ba19a1b6e0e094680bb3d0b38267bbb4ed4d9f4c10e` に完全一致し3 ZIPともCRC異常なし。内部`status.json.round_no=17` / `updated_at=2026-11-05T02:24:33Z`、`forecasts.csv`443行と`model_coverage.json`の基準443件が一致、公式結果観測履歴も保存。結果ZIP内の旧原本を改変していない。continuity ZIPの元ZIPや学習元全件について、今回の独立ZIP再取得による第三者完全監査完了までは主張しない。
+
+**再確認した前run最終保存値（新規増加なし）**：基準5モデル443モデル別予想（P0=288、展示後P1=155、P1対象31レース）。通常結果採点140モデル別行（HIT68/MISS72）、RESULT_PENDING294、異常着順レビュー9、合計443。LEARNED_SHADOW30モデル別予想、前向き同条件比較10モデル別行/異なる5レース、基準版・学習版とも4的中/仮払戻12,780円で改善証明なし。学習状態`FITTED_SHADOW_ONLY`、独立検証済み通常20レース（train15/validation5）、元5モデル係数・買い目不変。全日144レース、前run集計時締切済み28、P1完備27、不足`20261105-10-02`の5モデル別行を維持。展示当時の提供可否は未立証。実ZIP内の`bounded_repeat_session.requests_used=240/source_limit=240`、GitHub Actions jobログの第17巡回読戻し完了および第18〜24巡回 `SESSION_SOURCE_BUDGET_EXHAUSTED` を別途確認。4xx/429や真正性不一致を上限停止と混同しない。
+
+12:49 JST、既存日程原本の時刻比較では未来締切88レースが残り、直近Actions一覧に対象workflowのin_progress/queued/pending/waitingはなく、前runは正常完了。既存trigger `docs/evidence/boat-nationwide-pilot-trigger.txt` を、元blob SHA確認後**1回だけ追記CAS更新**。更新コミット `fea5b2a404dd5eb5a602d741263a95000c1e3b6f` により**後続run `41964059991` が12:50:17 JSTにin_progress**。同workflow・同一concurrency `boat-nationwide-cutoff-20261103`・cancel-in-progress=falseを維持、後続をもう1件積まない。後続はまだ予想/結果artifact0件のため、P1増分・通常採点・学習比較増分を**未確認**とする。前runの240 GETを上書き/超過させたり失敗runをrerunしたりしていない。新セッションも240 GET上限と4xx/429/日付/原本不整合停止を必須とする。
+
+本人専用Driveのrootと対象フォルダは今回も所有者本人一致、shared=false、ownerのみのpermissionを実確認。既存14ファイルを保全したまま、最新3ZIPの追加アップロードを試行したが `BLOCKED_FILE_REFERENCE` により拒否。**今回の新規Drive保存0件、Drive独立読戻し0件**。公開GitHubへの私有DriveのURL/ID・秘密情報・生原本転載なし。7日artifactを期限なしDBと呼ばない。全16系統×4競技実予想、展示後全対象、永久本人専用保全、係数学習版の統計的な前向き優位性は依然未完成。新タスク/頻度/PR/workflow/モデル系統/Cloudflare/Vercel/追加課金/main統合/一般公開/実投票/無検証本番切替なし。
+
+---
+
+# 2026-11-05 11:27 JST｜既存run第17巡回まで独立照合・P1+90/通常採点+98・上限停止
+
+
+対象：既存Draft PR #71 / workflow 405276784 / run `41949401478`（実行HEAD `74572f2f304f9122cff987b05001b4455c29780c`）。同runは11:24:53 JSTに `completed/success`、ログの `ROUND_SAVED_AND_READBACK_VERIFIED` は**第17巡回まで**。第18〜24巡回は `SESSION_SOURCE_BUDGET_EXHAUSTED` で実行せず。第17巡回結果ZIP内の `bounded_repeat_session.completed_round=16` は保存時点の途中状態で、最終continuityの `completed_round=17` とActions完了ログを別途照合済み。
+
+独立再取得した第17巡回P1元ZIP：artifact `13382273973` / API digest・実ZIP SHA256 `9cbc7ac048bad16465cde4a52e5553e3b76848a98a8bea84242f05d7047c9f57`。別イベント結果/PDCA ZIP：artifact `13382722611` / `759a7c3bea91eafa4c9c75171be43d28c340c67cd84a1c3c187df28baaac5893`。最終continuity：artifact `13383015886` / `92e43ef2db8a127ae52d9ba19a1b6e0e094680bb3d0b38267bbb4ed4d9f4c10e`。3ZIPとも実バイトSHA256一致・ZIP CRC正常。第17巡回の `status.json.round_no=17`、`updated_at=2026-11-05T02:24:33Z`。元P0埋込みZIP SHA256は `3a8bde638b93b61cbe21843bff5f3dbaf120c486b45f39efc3ea3a78f89034ab` で既存初回P0と一致。P0再生成なし。予想ZIPの実バイトSHAも結果ZIP内埋込みP1と一致。
+
+**11/05確定済み保存値**：基準予想443モデル別行＝初回P0 288＋展示後P1 **155（31レース×既存5モデル）**。前回10:35記録の353/P1=65から **P1+90行（18レース分）**。通常結果採点 **140行（HIT68/MISS72）**、前回42から **+98行**。未確認 `RESULT_PENDING` 294行、異常着順レビュー9行を外れにしない。保存 `forecasts.csv`・`model_coverage.json`・`status.json` の基準443行一致。7系統×20通常採点行は**20種類のレース**であって140レースではない。公式結果観測履歴59版（59種類のレースとは限らない）。保存済み8点と結果3連単・100円払戻の再計算は140通常行で内部記録と整合。公式サイトへの新規独立再照会まではしていない。
+
+**自動学習と未来比較**：独立確認済みの異なる通常結果20レースを時系列でtrain15・未使用validation5に分割、`automatic_learning.state=FITTED_SHADOW_ONLY`。既存観測相性2系統のみの研究係数版、基準5モデルの式・買い目は不変。LEARNED_SHADOW 30モデル別行（15レース）、同条件通常採点10モデル別行（異なる5レース）。**基準/学習版とも4的中、100円払戻合計とも12,780円**。学習版優位性なし。比較30行が参照する異なる学習元11 artifact ZIPを独立再取得し、各GitHub digest/ZIP CRC/`trained_observed_models.json.training_sha256`を照合。学習元サーバー保存時刻 < 予想元入力as_of < P1予想保存時刻 < 公式締切、同レースが学習/検証IDに含まれないこと、基準側8点同一性を30行で再検算し矛盾0。学習版の後付け採用、本番自動切替なし。少数例の同点は統計的な同等性証明ではない。
+
+`coverage_audit` は日程144レース、締切済み28、未来116、展示後5モデル完備27レース、締切済み `20261105-10-02` にP1不足5モデル行を保持。該当時点の展示公開可能性は未検証。外部研究は `NO_AUDITED_IMPORT_MANIFEST`、他3競技は `LIVE_INPUT_INTEGRATION_NOT_YET_VERIFIED`。
+
+**停止と保全**：最終continuityは `requests_used=240/source_limit=240`、`halted_reason=SESSION_SOURCE_BUDGET_EXHAUSTED`。上限を回避するトリガーpush・rerun・キャンセルなし。本人専用Driveのroot/フォルダの所有者一致・双方shared=false・ownerのみを実再確認し、既存14ファイルを保持。ただし最新第17巡回ZIPのDrive新規保全は `BLOCKED_FILE_REFERENCE` により未達（Drive保存成功とは数えない）。GitHub artifact7日保持を無期限保全と呼ばない。全16系統・全4競技・全P1・学習版の前向き優位性・期限なし非公開保存も未完成。新task/PR/workflow/頻度/モデル/課金/main統合/公開/実投票なし。
+
+---
+
+# 2026-11-05 10:35 JST｜最新完了run第22巡回の原本独立検証・P1+50/通常採点+35、既存後続1件起動
+
+対象：既存Draft PR #71、同一branch `feat/four-sport-forecast-audit-view-20261022`、既存workflow 405276784。前run `41940044369` は10:22:25 JST `completed/success`、実行HEAD `d481d0fe275dbd640d9b2d9858e6dff541206877`。全artifact一覧から最大保存巡回が **第22巡回** であることを確認（第23・24巡回は `BOUNDED_SESSION_END` により未処理）。GitHub jobログに `ROUND_SAVED_AND_READBACK_VERIFIED`・round22・予想353・通常採点42・179 GETを確認。
+
+今回は次の3 ZIPをGitHubコネクタから**実バイト独立取得**、SHA256をローカル再計算してGitHub API digestと完全一致、全ZIP CRC正常：
+- P1予想 `boat-national-cutoff-41940044369-cycle-22`、artifact `13380140156`、GitHub保存10:20:30 JST、SHA256 `891cbeec1cfeef511496fb6fb38a962666263242c8cb3efa32fa71908e601d17`。
+- 別イベントの公式結果・PDCA `race-existing-cycle-41940044369-cycle-22`、artifact `13380020336`、保存10:20:36 JST、SHA256 `9ee4962aff1a54bc8e9112ec8b88619559054e38f2ba6195b72a3cb7573e7e73`。
+- continuity `race-cycle-continuity-41940044369`、artifact `13379311948`、保存10:22:16 JST、SHA256 `0b2acd99c9941178911a46769f1a75bae5df5c7d2ea20086064aaa95578d6dae`。
+
+結果ZIP内 `status.json` は `round_no=22`、`updated_at=2026-11-05T01:20:35.126502+00:00`。実 `forecasts.csv` は **353モデル別予想＝初回P0 288＋展示後P1 65（13レース×5基準モデル）**、`model_coverage.json` も353件。前回09:17保存記録の303/P1 15から **P1 +50件**。通常確定結果による採点は **42件（HIT16、MISS26）**、前回7から **+35件**。別に結果待ち309行、異常着順レビュー2行を保持し、外れにしない。独立の公式結果履歴は18観測。元P0の埋込ZIPはSHA256 `3a8bde638b93b61cbe21843bff5f3dbaf120c486b45f39efc3ea3a78f89034ab` で初回受領索引と連続原本の同一バイトを照合し、再生成なし。埋込P1のSHA256も今回の独立予想ZIPと一致。
+
+`automatic_learning.state=INSUFFICIENT_VERIFIED_RACES`（異なる通常検証済み6レース、最小8、train0/validation0）で当日係数版は未確定、`LEARNED_SHADOW`保存0、`learned_shadow_comparison` 0。学習成功・過去holdout・前向き優位性を混同しない。結果取得パーサの未対応 `SOURCE_OR_PARSE_UNAVAILABLE` 2件は失敗理由として保持。公式 GET は179/240、`halted_reason=null`。第23/24巡回は時間制限により保存なし。日付・4xx/429・真正性・取得上限の停止規則を回避していない。
+
+`coverage_audit` は対象144レース、締切済み10、未来134、展示後5モデル完備9レース、既締切 `20261105-10-02` に5モデル別不足。該当時刻に展示が公開済みだったかは検証されておらず、取得可能だった取りこぼしと断定しない。別の学習/正式採点母数から不足を消していない。他競技は `LIVE_INPUT_INTEGRATION_NOT_YET_VERIFIED`、外部研究は `NO_AUDITED_IMPORT_MANIFEST`、全16系統×4競技・全P1・無期限private保存・学習版の前向き優位性は未完成。
+
+10:34 JSTに後続のin_progress/queued/pending/waiting各0、先行run成功、継続すべき未来レース・未確定結果ありを実API再取得で確認。既存trigger `docs/evidence/boat-nationwide-pilot-trigger.txt` のみ1回CAS更新し、commit `74572f2f304f9122cff987b05001b4455c29780c` により**新run `41949401478`** が10:34:11 JSTに `in_progress` 開始。これは新runの予想や結果成果を意味しない。起動後は重複後続push禁止。既存同一concurrency `boat-nationwide-cutoff-20261103`、cancel-in-progress=false、180秒/24巡/65分、1セッション240 GET・1巡45 GET・最大3レース・締切210秒、単一writerを維持。原本/過去予想・既存5モデル係数は不変。新タスク/別workflow/新PR/新モデル/Cloudflare/Vercel/追加課金/main統合/公開/実投票/無検証本番切替なし。
+
+非公開Driveのフォルダ/root所有者一致、双方shared=false、owner権限のみはこの巡回で実確認。既存14ファイルに今回runの第22巡回ZIP3件は未登録。しかし、GitHub artifact参照をDrive uploadへ直接渡す試行は `BLOCKED_FILE_REFERENCE` / `file_uri must be a connector file reference object` により拒否された。**今回の第22巡回ZIP3件のDrive新規保存・Drive読戻しSHA照合は0件**。元GitHub ZIPは無改変で、上記独立ローカル再ハッシュ済み。公開repoへの個人Drive識別情報の記載なし。Drive未達を保全成功と偽らない。\n\n今回のローカル独立ZIP照合は成功したが、これを全ソースの独立監査や全日無欠落、学習版の有意な優位性に拡張していない。旧記録と他チャットの進行は以下に保持。
+
+---
+
+# 2026-11-05 09:17 JST｜前run第22巡回まで保存、展示後P1+15・通常採点7、後続1件起動
+
+対象: 既存Draft PR #71 / branch `feat/four-sport-forecast-audit-view-20261022` / 既存workflow `405276784`。前run `41929106428` は2026-11-05 08:59:19 JSTにcompleted/success。GitHub Actions jobログで第22巡回の `ROUND_SAVED_AND_READBACK_VERIFIED` を確認。第23・24巡回は `BOUNDED_SESSION_END` により予想・結果保存をskipped。24巡全件予想したとは数えない。前run実行HEADは `63bc3ec3808b4c126e5fbf2de92d8e1525800a0a`。
+
+当日11/05の第22巡回で、run内の保存・読戻し成功ログ上、基準予想 **303モデル別行（P0=288、展示後P1=15、P1は3レース×既存5モデル）**、通常採点 **7モデル別行**、セッション公式GET **112/240**。当日08:02第3巡回で基準288/P1=0/通常採点0だったため、今回確認できた差分は**P1+15、通常採点+7**。P1は第11・14・19巡回で各5行増。初回P0は `docs/evidence/2026-11-05/p0-first-receipt.json` の初回正本を再利用し再生成なし。通常採点7のHIT/MISS、100円払戻、係数学習版数、LEARNED_SHADOW比較、coverage_audit詳細は最新ZIP内部を独立展開できないため**未確認**。結果未確認を不的中にしない。GitHub Actionのrun内読戻し成功と、この実行環境での完全独立ZIP内部監査は分ける。
+
+前run最新保存2 ZIP：展示後原本 `boat-national-cutoff-41929106428-cycle-22` artifact `13374696437`、サーバー保存2026-11-05 08:56:55 JST、GitHub API ZIP digest `sha256:5b4ec25c1e3e2beaff7bb2b3177a0211ab7b6680045a2f79e03592b2f0e98c85`。別イベント結果/PDCA `race-existing-cycle-41929106428-cycle-22` artifact `13374801406`、サーバー保存08:57:00 JST、digest `sha256:79963f23642fb4d3f576a72933b52424756033d5af3470dc92d69b476bfd0102`。continuity `13373829491`、digest `sha256:487e62dd4c0fda3f8f31e2ac7eeac29ef1041a17414367df31fd27f5c2a3e993`。3 ZIPはGitHubコネクタからダウンロードしFilesに保全したが、この環境のcontainer/Python実行が `redis.exceptions.ResponseError` となり実バイト再ハッシュ・ZIP CRC・status.json等の独立解析未了。API登録digestだけを独立再ハッシュ成功とは言わない。
+
+09:15 JSTの既存Actions状態再取得では全repoの in_progress/queued/pending/waiting 各0、前run成功・通常の有界終了・当日の未来P1未保存レースが残っていたため、既存トリガーファイルを**1回だけCAS更新**。起動コミット `d481d0fe275dbd640d9b2d9858e6dff541206877` により新run `41940044369` が09:16:01 JSTにin_progress。旧runのrerun/キャンセルなし。後続追加push禁止。同一concurrency・cancel-in-progress=false、180秒/最大24巡/65分、240 GET/セッション・45/巡回・最大3レース・締切210秒以上・4xx/429/日付/原本不一致停止を維持。新runの予想・結果・学習成果は未確認であり、起動のみを予想成功と数えない。
+
+最新の独立ZIP成績検証と原本の本人限定長期保存の継続は未完成。学習版の前向き統計的優位性・全16系統×全4競技・全P1・期限なし自動非公開保存は未証明。旧5モデルの係数・買い目と既存原本は不変。新task/PR/workflow/モデル系統/頻度/追加課金/Cloudflare/Vercel/main統合/公開/実投票/本番自動切替なし。他writerの既存記録は以下に保存。
+
+---
+
+# 2026-11-05 08:43 JST｜当日第17巡回までの保存済みartifactをGitHub API照合（成績増分未検証）
+
+対象は既存Draft PR #71 / branch `feat/four-sport-forecast-audit-view-20261022` / workflow `405276784` / run `41929106428` のみ。点検時HEAD `ab57ae2f297066cf0eed77cdaf8ad5219943f3c2`、状態文書更新前blob `d9a6cfbcddedfe2ca08aaaeb8e1a2a9f49d6654c`。runは `in_progress`、job `126921153640` の第17巡回stepは `completed/success`、第18巡回は `in_progress`。同workflowのqueued APIは 0 件、全workflowのqueuedは 0 件。既存concurrencyは`boat-nationwide-cutoff-20261103`、`cancel-in-progress: false`、24巡の既存workflowをそのまま使用。新workflow/頻度/モデルは追加していない。
+
+GitHub Actions artifact API（run全一覧 `35` 件）では、第17巡回の保存済みZIPが次の2件まで増加。**これはGitHub APIが報告するdigestで、独立実バイトSHA256再計算とは区別**する。
+
+- `boat-national-cutoff-41929106428-cycle-17` artifact `13374346050`、GitHub保存 `2026-11-04T23:42:00Z`（JST 08:42:00）、API `sha256:2386dbdcb29bd5e42e1b56ad5d0d972c104c238e9f5dc14bdc0784b878b0ba38`
+- `race-existing-cycle-41929106428-cycle-17` artifact `13374211446`、GitHub保存 `2026-11-04T23:42:06Z`（JST 08:42:06）、API `sha256:72f58fe5218f1ec25e615ee1806883471d755e28d829dcfc37802f06e5d4d430`
+
+前回08:02文書の第3巡回保存から保存済み第17巡回まで進行した事実は確認。しかし第17巡回ZIP内の `status.json` / `automatic_learning` / `learned_shadow_comparison` / `coverage_audit` / `forecasts.csv` / 公式結果履歴 / `model_coverage` / `external_research_summary` の独立読戻しは未完了。第16巡回の予想/結果ZIP 2件をGitHubコネクタでダウンロードしFilesで保全する所までは成立したが、ローカル実バイト再ハッシュ・CRC・内部CSV/JSON解析が実行環境の`redis.exceptions.ResponseError`で失敗した。従って**新しいP1件数・通常採点・的中・係数学習・同条件比較の増分は不明**であり、08:02時点の保存済みP0=288、P1=0、通常採点=0、学習版=0を現在値と断定しない。未確認を不的中に換算しない。参照する初回P0受領索引は存在し、上書きしていない。
+
+現runの停止理由とGET消費の最新内部値を独立検証できていないため、後続の追加トリガー更新・再実行・キャンセルは行わない。4xx/429/真正性不一致や日付境界の停止条件、同時writer1、240 GET/session・45/巡回・最大3レース・締切210秒の制限を緩めない。次の確認では最新の全artifactから最大`-cycle-NN`を選び、実ZIP内statusと公式結果履歴を独立再ハッシュしてから初めて予想/採点/学習改善を更新する。全16系統・全4競技ライブ、全P1、期限なし非公開保全、学習版の前向き優位性は依然として実証未完。新task/PR/workflow/頻度/課金/main統合/公開/実投票/本番自動切替なし。
+
+---
+
 # 2026-11-05 12:56 JST — 自動予想463件・展示後35レース、既存巡回は継続中
 
 状況照会に対し、公開PR HEAD `897a31c21b703f2474683fb13143f814686f92dd` と既存workflow405276784を読み取り確認した。新しい起動・取得provider実行・予想再計算・push・環境公開は行っていない。ローカル実装はb54a80cのまま未pushであり、以下は既存GitHub運転の累積保存値。

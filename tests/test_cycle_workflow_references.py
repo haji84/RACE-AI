@@ -47,14 +47,22 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn("--p1-artifact '${{ steps.freeze.outputs.artifact-id }}'", complete)
         self.assertIn("--result-artifact '${{ steps.result.outputs.artifact-id }}'", complete)
 
-    def test_existing_cycle_keeps_first_original_and_meters_bootstrap_before_supplement(self):
+    def test_existing_cycle_create_only_first_p0_then_reuses_original(self):
         text = WORKFLOW.read_text()
         # The existing first-receipt bootstrap now creates its metadata index;
         # recurring rounds still have no repository-write command. Source
         # accounting starts before the missing-only supplement, not after it.
-        self.assertIn('contents: write', text)
+        self.assertIn('contents: write  # Create-only first P0 receipt index', text)
         self.assertIn('actions: read', text)
         self.assertIn('persist-credentials: false', text)
+        for marker in ('id: first_p0', 'first_p0_bootstrap.py preflight',
+                       'first_p0_bootstrap.py capture', 'id: first_upload',
+                       'first_p0_bootstrap.py finalize --artifact-id'):
+            self.assertIn(marker, text)
+        self.assertIn("if: steps.first_p0.outputs.capture != 'true'", text)
+        self.assertLess(text.index('first_p0_bootstrap.py preflight'), text.index('first_p0_bootstrap.py capture'))
+        self.assertLess(text.index('first_p0_bootstrap.py capture'), text.index('id: first_upload'))
+        self.assertLess(text.index('github_existing_cycle.py supplement'), text.index('id: p0supplement'))
         self.assertNotIn('run: python scripts/existing_day_program.py', text)
         self.assertIn('cancel-in-progress: false', text)
         finalize = next(step for step in re.split(r'^      - name: ', text, flags=re.MULTILINE)
