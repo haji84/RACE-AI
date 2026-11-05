@@ -5,6 +5,7 @@ changes a deadline. This view never rewrites a forecast or its original hash.
 """
 from collections import defaultdict
 from copy import deepcopy
+from datetime import timezone,timedelta
 from .actions_contract import digest
 
 
@@ -28,7 +29,7 @@ def cutoff_views(rows, *, as_of=None):
             try:
                 check_clock(row['as_of'],row['cutoff_at'],row['server_saved_at'])
                 stamp=ts(row['cutoff_at'])
-                if stamp.strftime('%Y%m%d')!=rid[:8]:continue
+                if stamp.astimezone(timezone(timedelta(hours=9))).strftime('%Y%m%d')!=rid[:8]:continue
                 candidates.append(row)
             except (ValueError,TypeError,KeyError,AttributeError):continue
         if not candidates:continue

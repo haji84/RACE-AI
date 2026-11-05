@@ -20,6 +20,17 @@ def inputs(revised='2030-04-01T10:48:00+09:00'):
 
 
 class CutoffRevisionTests(unittest.TestCase):
+    def test_equivalent_utc_and_jst_cutoffs_use_the_same_jst_race_day(self):
+        from race_ai.boat_cutoff_revision import cutoff_views
+        from race_ai.frozen_day_cycle import ts
+        utc,obs=inputs('2030-03-31T23:48:00Z')
+        utc[-1].update(as_of='2030-03-31T23:40:00Z',server_saved_at='2030-03-31T23:41:00Z')
+        jst=deepcopy(utc);jst[-1]['cutoff_at']='2030-04-01T08:48:00+09:00'
+        _,a,_=cutoff_views(utc);_,b,_=cutoff_views(jst)
+        rid=utc[0]['race_id'];self.assertIn(rid,a);self.assertIn(rid,b)
+        self.assertEqual(ts(a[rid]['effective_cutoff_at']),ts(b[rid]['effective_cutoff_at']))
+        self.assertEqual(evaluate(utc,obs)['scored_forecasts'],evaluate(jst,obs)['scored_forecasts'])
+
     def test_baseline_revision_does_not_rescue_foreign_learned_roster(self):
         from race_ai.boat_observed_pairwise_models import MODEL_IDS
         rows,obs=inputs();learned=deepcopy(rows[0]);learned.update(stage='P1',model_id=MODEL_IDS[0])

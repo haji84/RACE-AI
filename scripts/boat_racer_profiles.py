@@ -2,6 +2,7 @@
 import argparse
 from datetime import datetime,timezone
 import hashlib
+import json
 from pathlib import Path
 import sys
 
@@ -13,12 +14,14 @@ from race_ai.boat_history_store import HistoryStore,wire
 from race_ai.boat_racer_term import term_info
 from race_ai.teiai_history import need
 from scripts.boat_history_collect import private_root,save
+from scripts.boat_history_compare import read_json
 
 
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--history-db',type=Path,required=True);p.add_argument('--racer-db',type=Path,required=True)
     p.add_argument('--racer-db-sha256',required=True);p.add_argument('--output',type=Path,required=True)
+    p.add_argument('--registrations',type=Path,help='Optional private JSON registration list; unknown racers remain explicit profiles')
     args=p.parse_args(argv)
     need(args.history_db.is_file() and not args.history_db.is_symlink(),'EXISTING_HISTORY_REQUIRED_NO_RESET')
     need(args.racer_db.is_file() and not args.racer_db.is_symlink() and args.racer_db.stat().st_size<=MAX_DB,'BOUNDED_RACER_DATABASE_REQUIRED')
@@ -27,6 +30,9 @@ def main(argv=None):
     try:
         rows=[r for day in history._selected(now) for r in day['facts']]
         ids={r['racer_id'] for r in rows}|{r[0] for r in racers.db.execute('SELECT DISTINCT racer_id FROM racers')}
+        requested=read_json(args.registrations) if args.registrations else []
+        need(isinstance(requested,list) and len(requested)<=10000 and all(type(r) is str for r in requested),'BOUNDED_REQUESTED_REGISTRATIONS_REQUIRED')
+        ids.update(requested)
         term_urls={term_info(r[0])['source_url'] for r in racers.db.execute('SELECT DISTINCT term FROM racers')}
         allow=lambda url,rights,purpose:url in term_urls and rights=='OFFICIAL_DOWNLOAD_PERSONAL_RESEARCH' and purpose=='analysis'
         counts=dict(profiles=0,with_official_term=0,with_recent_opportunities=0)
@@ -36,6 +42,7 @@ def main(argv=None):
             counts['profiles']+=1;counts['with_official_term']+=profile['official_term'] is not None
             counts['with_recent_opportunities']+=bool(profile['recent_history']['opportunities'])
         report=dict(schema='RACE_AI_PRIVATE_JOINED_RACER_PROFILE_COUNTS_V1',as_of=now,**counts,
+            requested_racers=len(set(requested)),requested_profiles_missing=len(set(requested)-ids),
             unresolved_opportunities=sum(r.get('participation')=='UNRESOLVED' for r in rows),
             all_career_history_complete=False,current_active_registry_complete=False,features_applied_to_predictions=False)
         save(root/'profile-counts.json',(wire(report)+'\n').encode());print(wire(report))
