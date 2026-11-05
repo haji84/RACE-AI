@@ -1,3 +1,22 @@
+# 2026-11-05 14:25 JST｜第15巡回の元ZIP独立照合・学習候補比較の累積更新（実行中runの完了ではない）
+
+既存Draft PR #71 / workflow 405276784 / run `41967896991` を読み取り監査。点検時のPR HEAD `b2b7e9e47c16a805c5710a7193df67507bf5b0d8`、同workflowはこのrunのみ`in_progress`で、追加の`queued/pending/waiting`なし。GitHub Actions上の「Deadline-ordered five-model round 15」はcompleted/success、round 16は実行中。**今回の確定範囲は第15巡回の保存済みartifactのみ**。第16巡回以降やrun全体の終了を完了扱いにしない。
+
+第15巡回の別保存原本2 ZIPを独立ダウンロード、実バイトSHA256をGitHub API digestに照合、ZIP CRC正常：
+- 展示後原本：`boat-national-cutoff-41967896991-cycle-15` / artifact `13391021693` / SHA256 `49cd0683973cd9d92e54d3766ed6a19a1058ab2572f9d361822d071f2a8fc9cb` / GitHub保存2026-11-05 14:24:37 JST。
+- 結果・PDCA原本：`race-existing-cycle-41967896991-cycle-15` / artifact `13390359154` / SHA256 `ca8cfa8308743a7eecd5648e4d323d5924d955aa141ede1ea07ff73238f22b99` / GitHub保存14:24:46 JST。
+- 結果ZIP内の`current-p1-original.zip`実バイトは別取得P1 ZIPと完全一致。初回P0埋込みZIPのSHA256 `3a8bde638b93b61cbe21843bff5f3dbaf120c486b45f39efc3ea3a78f89034ab`は既存初回原本と一致。P0再生成なし。今回の元サイト別経路GET・全学習元artifactの独立再取得は未実施。
+
+**保存値の実差分（13:48 JSTの第3巡回→14:24 JSTの第15巡回）：** `status.json.round_no=15`・`updated_at=2026-11-05T05:24:44.562589+00:00`。基準予想 **543→598件（+55）**、P0 288件不変、展示後P1 **255→310件（+55、計62レース×5系統）**。`forecasts.csv`598行と`model_coverage`598件が一致し、race_id/phase/model重複0。通常採点 **314→412件（+98）**、HIT **126→156（+30）**、MISS **188→256（+68）**。未採点・返還・異常レビューをMISSにしない。対象144レース、締切済84、未来60、締切済P1完備58レース、P1不足26レース＝130モデル別行を`coverage_audit`に保持。展示当時の提供可否は未確認。
+
+既存観測相性2系統の学習候補`LEARNED_SHADOW`は **70→92モデル別予想（+22）**、公式通常結果に基づく前向き同条件比較は **46→74モデル別行（+28、37レース×2モデル）**。基準 **23的中・仮払戻59,630円**、学習候補 **25的中・64,970円**（差+2的中・+5,340円、過去の差と変わらない）。研究用候補の学習状態は`FITTED_SHADOW_ONLY`、一意の確認済み通常結果76レース（train57/validation19）、少数・欠測の特徴係数は基準据置。学習候補の統計的優位性は未証明、基準5モデルと過去8点は不変、本番自動切替なし。別保存の公式結果観測履歴173版、未対応払戻表`SOURCE_OR_PARSE_UNAVAILABLE`1レースを保全。
+
+**既存の取得上限に指示衝突あり：** この定期指示は240 GET/セッション・45 GET/巡の固定停止を要求する一方、別チャットのオーナー承認を受けた既存HEAD・実行runは固定GET回数を撤廃済み。第15巡回ZIPは`requests_used=201`・`source_limit=null`・`halted_reason=null`、180秒/最大24巡/65分・3新規レース/巡・締切210秒・HTTP4xx/429・日付/真正性停止は変更していない。矛盾した上限policyをこの監査で無断で再変更せず、実行中runをキャンセルせず、**追加トリガーpush・rerunもしない**。固定上限維持の現指示に対し、現行runの上限は異なることを明記し、後続による停止条件の回避は行わない。
+
+本人専用Driveのroot/対象フォルダは今回APIでowner本人一致、shared=false、ownerのみpermissionを確認。既存14ファイルに第15巡回ZIPは未保全。最新結果ZIPの追加アップロードは`BLOCKED_FILE_REFERENCE`で拒否され、**新規保存0件・Drive読戻し0件**。GitHub artifact7日保持を永久保全と呼ばない。他競技の正式入力、全16系統/全対象P1、恒久的な非公開保全、研究学習版の優位性は未完成。新タスク・頻度変更・別workflow・新PR・モデル系統・追加課金・main統合・一般公開・実投票・本番切替なし。
+
+---
+
 # 2026-11-05 13:48 JST｜第3巡回の独立ZIP照合、既存run継続、追加起動なし
 
 既存Draft PR #71 / workflow405276784のみを監査。監査開始時のPR HEAD `2dfc56a4bbdbb1b02763327b7686931cf62da214`、先行run `41964059991` は13:38:33 JSTにsuccess、第16巡回を最終保存。後続run `41967896991` は旧runの完了後13:38:36 JSTから実処理を開始し、この監査では13:48:37 JST更新の**第3巡回まで**予想・別イベント結果の独立artifactが保存されたことを確認。後続run自体は監査時in_progressで、runの終了や第4巡以降を完了としない。
