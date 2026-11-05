@@ -29,7 +29,9 @@
     "crnn_raw_heldout_results": "a596da129851d0aa306875d1d7fb32a9c2fbe0c01e2d0a07005fa5adc2a1dc83",
     "crnn_raw_heldout_score": "89ae5948a3736115e6fa6d8132bf2fc61478bf0bc203eb442e32a354da247dc4",
     "crnn_raw_heldout_manifest": "40c07378acdc9c63f1bbb97d2ece1d02cf3e8e5afc471a5613f40547786c1d75",
-    "current_live_outside_broadcast": "9470b362e7fced444b36d9c3a57ce51dbcce12066f2466f212dc45cd46117f40"
+    "current_live_outside_broadcast": "9470b362e7fced444b36d9c3a57ce51dbcce12066f2466f212dc45cd46117f40",
+    "ci_a6615ee_receipt": "76541bd493449e11dbf7c6bb8bf9969edad041c1c9ebc60db809cdd340834b28",
+    "latest_local_continuity": "b066c3f9db7883c25d2814d3a43fc78fc028844099669863b223416d36a0ccab"
   },
   "sources": [
     {
@@ -311,8 +313,54 @@
     "independent_review_p1_p2_remaining": 0,
     "isolated_ci_new_ocr_module_added": true,
     "combined_head_and_ci": {
-      "local_regression": "PASSED",
-      "github_checks": "PENDING_PUSH_AND_EXACT_HEAD_CHECK"
+      "tested_head": "a6615ee8784f721e66c52837db031a4c0caa8a7d",
+      "github_checks": "SUCCESS",
+      "viewer_run_id": 42129603918,
+      "viewer_url": "https://github.com/haji84/RACE-AI/actions/runs/42129603918",
+      "autorace_run_id": 42129604000,
+      "autorace_url": "https://github.com/haji84/RACE-AI/actions/runs/42129604000",
+      "both_exact_heads_verified_by_root": true,
+      "general_python": {
+        "run": 1559,
+        "passed": 1503,
+        "optional_cv_skips": 56
+      },
+      "isolated_video": {
+        "passed": 116,
+        "skipped": 0,
+        "new_ocr_reliability_passed": 12
+      },
+      "node_contract_passed": 88,
+      "integrated_ui_passed": 48,
+      "lifecycle_passed": [
+        7,
+        18
+      ],
+      "browser_pass_markers": 39,
+      "video_ui_browser_tests_passed": 12,
+      "autorace_ubuntu": {
+        "passed": 31,
+        "skipped": 0
+      },
+      "autorace_windows": {
+        "passed": 21,
+        "posix_filesystem_skips": 10
+      },
+      "unrelated_private_intake_explicit_hold": true,
+      "private_intake_get_count": 0,
+      "private_restore_job_skipped": true,
+      "dedicated_build_step": false,
+      "actual_media_performance_proved_by_ci": false,
+      "private_receipt_sha256": "76541bd493449e11dbf7c6bb8bf9969edad041c1c9ebc60db809cdd340834b28",
+      "source_tree_oids": {
+        "race_ai": "d3130544efa5a585ebd0fd63358c04d8aeb32664",
+        "scripts": "9146155d0d33961fe3076fa2580bdf8475fb4a5e",
+        "tests": "b6947f0518842970259671680d4b8158d31cecbd",
+        "workers": "8c78155f7664852dda6e6bd09c185f3482ca2ca3",
+        "web": "2970affee2553c084f5600939f3471de94525382",
+        ".github/workflows": "fd4c2c01a36895267173c5e60a39075aaa848556"
+      },
+      "later_receipt_commit_scope": "DOCUMENTATION_ONLY_WITH_IDENTICAL_PRODUCT_TEST_WORKFLOW_TREES"
     },
     "first_integrated_full_python": {
       "tested_head": "fd2c5f1492bd40e5cfd3d278deb5b14814fe667e",
@@ -374,7 +422,7 @@
   "new_workflow": false,
   "main_merge_or_publication": false,
   "production_model_switch": false,
-  "integration_checked_at": "2026-11-05T23:27:23.282082+00:00",
+  "integration_checked_at": "2026-11-05T23:35:51.988059+00:00",
   "base_source_sha256": {
     "race_ai/boat_video_identity.py": "8bba24cef1bd0011d59b21533c46da5d040383e6b9dc180d3c06ea92b1743fdb",
     "race_ai/boat_video_tracking.py": "2d329a70a3349d45cb753662f2223f77789610bb3d84681d4aabbd7a5ef6ce2a",

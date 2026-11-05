@@ -18,7 +18,7 @@
 - [ ] Compare supported measurements against independent references only. Same-transform localization error does not certify camera compensation; configured windows cannot validate themselves. Keep calibration/clock/common-phase restrictions until real evidence supports any change.
 - [ ] Audit and complete any necessary research archive/comparison wiring only with authenticated pre-cutoff source data. An archival tutorial without verified race identity is not a prospective prediction. Future improvement requires saved baseline/experimental pairs and later official results; do not backdate or infer success.
 - [x] Run appropriate local regression suite and independent review; preserve actual source counts, baseline/improvement counts, evidence provenance, uncompleted gates and live continuity in `docs/RACE_AI_LATEST_STATUS.md`. Integrated CV suite:1559 PASS/0 skip; later concurrent change is a separate fixture test and docs only, fixture1 PASS.
-- [ ] Verify existing CI on the pushed integrated source and record its exact HEAD/run receipts.
+- [x] Verify existing CI on pushed implementation HEADa6615ee: Viewer42129603918 and AUTORACE42129604000 SUCCESS. General Python1559 run/56 optionalCV skips, isolatedCV116 PASS/0skip including12 OCR cases; browser39 PASS markers and12 videoUI tests. Save exact receipts and limitations. Later receipt-only documentation commit leaves product/test/workflow trees identical.
 
 ## Review focus
 
