@@ -128,5 +128,5 @@ The owner explicitly approved pushing the reviewed changes to existing Draft PR7
 
 - [x] Recheck public HEAD/single writer/queues and preserve all concurrent work and originals.
 - [x] Verify frozen source hashes, fresh Node179 and focused Python policy/contract tests, and independent privacy review.
-- [ ] Push one fast-forward change with exactly one trigger append, same existing workflow/concurrency/cancel false.
-- [ ] Observe the exact-head successor queue/start, verify null GET-limit metadata from saved artifacts, then record applied/pending/remaining conditions.
+- [x] Push one fast-forward change with exactly one trigger append, same existing workflow/concurrency/cancel false.
+- [x] Observe the exact-head successor queue/start, verify null GET-limit metadata from saved artifacts, then record applied/pending/remaining conditions.

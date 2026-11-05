@@ -1,0 +1,22 @@
+{
+  "schema": "RACE_AI_NO_GET_CAP_FIRST_ROUND_JOB_VERIFICATION_V1",
+  "observed_utc": "2026-11-05T04:46:19.258249+00:00",
+  "run_id": 41967896991,
+  "steps": [
+    {
+      "name": "Deadline-ordered five-model round 01",
+      "status": "completed",
+      "conclusion": "success",
+      "started_at": "2026-11-05T04:42:25Z",
+      "completed_at": "2026-11-05T04:42:49Z"
+    },
+    {
+      "name": "Deadline-ordered five-model round 03",
+      "status": "in_progress",
+      "conclusion": null,
+      "started_at": "2026-11-05T04:45:46Z",
+      "completed_at": null
+    }
+  ],
+  "failed_steps": 0
+}

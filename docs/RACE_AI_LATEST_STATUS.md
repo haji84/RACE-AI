@@ -1,3 +1,21 @@
+# 2026-11-05 13:42 JST保存分 — 取得回数上限撤廃版を実運転へ適用・保存原本で確認
+
+オーナーの「てきようして」により既存Draft PR #71へpushし、適用コミット **717725c26c3be7ffd1ee02c045b3311a169aef3c** を反映した。同じ既存workflow405276784・concurrency/cancel-in-progress=falseで後続を1件だけ待機させ、先行run41964059991の正常終了後に[新run41967896991](https://github.com/haji84/RACE-AI/actions/runs/41967896991)が13:38:36 JSTに開始。旧runは240GETの通常停止で第16巡まで完了し、HTTP4xx/429等の停止を迂回していないことを最終継続原本から独立確認した。
+
+**実運転第1巡の保存データで、`bounded_repeat_session.source_limit: null` とP1の `source_request_cap: null` を直接確認。固定GET回数上限の撤廃は、コード反映だけでなく実行・私有保存まで適用済み。** 第1巡回stepは13:42:49 JSTにsuccess。保存時点の実取得22回（予想18/結果4）、停止理由null。180秒間隔・最大24巡/65分・JST境界・3新規レース単位・210秒余裕・HTTP4xx/429停止と原本検証は維持する。今回のsession終了予定は14:47:21 JST、他の停止条件で早期終了する。
+
+第1巡の予想ZIP13388817224/結果ZIP13388433291を独立取得し、API digest/実SHA/CRC・結果sealを照合した。元P0埋込みZIP SHA `3a8bde638b93b61cbe21843bff5f3dbaf120c486b45f39efc3ea3a78f89034ab` と、**先行533基準予想すべてのSHA/Top8/生成・保存時刻が不変**。累積P0 288/P1 245、通常採点314、学習版66/比較46は復元済み原本を含む値であり、この初回巡回の新規基準予想/P1/通常採点/学習版増分は0。展示未公表を予想成功とせず、結果観測履歴のみ125→126（+1版）。本番昇格・実投票・精度改善認定はfalse。
+
+結果読取3件は未対応の払戻表形式によりSOURCE_OR_PARSE_UNAVAILABLEとして保持し、未確定/レビューを外れや成功へ変換しない。会場日程の棄却1件と未公開展示2件も理由付き保留。第1巡保存時点にHTTP4xx/429の停止はない。取込やsource検証の未完成を、取得回数上限撤廃の成功に便乗して隠さない。
+
+適用HEAD717725cのViewer CI41967903546・AUTORACE CI41967903393はcompleted/success、関連6job成功（CodeRabbit skipped）。push前にもPython122件/Node179件を再検証し、変更済み全Python888件・ブラウザ37操作グループのソースSHAと一致を確認。リモート主要10ファイルも実バイト一致。mainは0e45c029e18d5f3f1e7a04aecedab3c4af261748、初回P0索引blobも不変。環境再公開・アプリ一般公開・新PR/workflow/model/task/サービス/課金/main統合/実投票/本番切替はなし。
+
+ローカル閲覧APIも新設定`source_limit:null`を返すことを確認。保存288原本のDB SHAと取得3回は不変、中断後のSTOPPEDを保持してGitHubとの二重取得を起こしていない。GitHub最新原本のアプリ自動同期や全4競技/全適用モデル/全レース運転、恒久私有保管、実機Safari、精度改善実証は別の未完成条件。
+
+[実運転の上限値](evidence/2026-11-05/no-get-count-limit/applied-runtime-policy.json) / [初回原本の独立照合](evidence/2026-11-05/no-get-count-limit/applied-first-round-summary.json) / [先行処理の正常引継ぎ](evidence/2026-11-05/no-get-count-limit/applied-predecessor-handoff.json) / [取得・解析の保留事項](evidence/2026-11-05/no-get-count-limit/applied-source-limitations.json)。これより下の未push/待機の記載は、それぞれの時点の履歴として保全する。
+
+---
+
 # 2026-11-05 13:26 JST — オーナー承認により取得回数上限撤廃版を既存PRへ適用
 
 オーナーの「てきようして」により、既存PR #71へのpushと次の既存自動運転への適用が明示承認された。以前の「未push・反映待ち」は以下に履歴として保全。適用対象は検証済みa92a742のコード。全Python888件/Node179件/ブラウザ37操作グループに加え、push直前にも取得policy・保存原本・workflow契約を再検証し、私有情報を含まない差分を独立審査した。

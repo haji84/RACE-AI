@@ -21,7 +21,7 @@
 
 ## 実行中処理への反映
 
-公開PR HEAD897a31c、既存run41964059991は旧コードfea5b2a4で起動済み。今回のローカル変更は未pushであり、既存実行の240回上限をその場で解除したとは扱わない。実行中処理の中断/再起動、追加run、環境再公開、main統合、実投票、本番モデル切替はしていない。ローカル自動処理も重複防止のSTOPPEDを保全する。
+公開PR HEAD897a31c、既存run41964059991は旧コードfea5b2a4で起動済み。承認前のローカル変更は未pushであり、その時点の既存実行の240回上限をその場で解除したとは扱わない。承認後の適用結果は下記に追記した。実行中処理の中断/再起動、追加run、環境再公開、main統合、実投票、本番モデル切替はしていない。ローカル自動処理も重複防止のSTOPPEDを保全する。
 
 上限撤廃は全4競技/全適用モデル/全レースの完成や精度改善の認定ではない。入力不足、締切、巡回時間、アプリへのGitHub最新原本の自動同期等は別の未完成条件。
 
@@ -32,3 +32,13 @@
 公開HEAD897a31cの監査記録/トリガーとworkflow契約修正をローカルへ取り込み、契約の両方のassertを保持して関連16件が成功。公開HEADの古い上限を新policyの実証に使わず、今回の未pushコードと区別する。
 
 独立した配布物審査でもCRC/全格納SHA/276現行ソース/20seedが一致。旧検証済みZIPと新ZIPの私有原本38memberを直接比較して全バイト一致、4上限定数None/配布metadata null、cache/symlink0を確認。[独立配布物審査](independent-package-review.json)。
+
+## オーナー承認後の実運転適用
+
+717725cを既存PR71へfast-forward pushし、同一workflow/concurrencyで後続41967896991を1件のみ待機。先行41964059991の最終continuityをZIP/API SHA/CRC/session hashで認証し、旧240回上限による正常停止（第16巡完了）・HTTP等の停止なしを確認した。後続は先行のsuccess後13:38:36 JSTに開始し、第1巡step13:42:49 JST success。
+
+新しい保存結果にsource_limit明示null、P1原本にもsource_request_cap明示nullを直接確認。実取得22（forecast18/result4）、halted_reasonnull。先行533原本の全SHA/Top8/時刻、初回P0ZIP不変。初回の新規予想/通常採点/学習版は0、結果観測+1版。未公開展示・結果表非対応3件を未確定/レビューとして保持。未対応結果を成功/外れに変換しない。実フォワード比較の精度改善や全モデル完成は認定しない。
+
+[実policy](applied-runtime-policy.json) / [第1巡照合](applied-first-round-summary.json) / [第1巡step](applied-first-round-job.json) / [先行正常終了](applied-predecessor-handoff.json) / [source保留](applied-source-limitations.json) / [push・CI](applied-push-and-CI-summary.json) / [ローカルAPI](applied-local-api-summary.json)。10主要ファイルremote/local実バイト一致、main/初回P0索引不変、sourceHEAD717725cのviewer/autorace CI成功。
+
+既存復元は異なるsessionのHTTP停止を自動的に継承する仕組みではないため、今後の継続起動も前sessionの終了理由を独立確認してから行う。今回の1回の切替は、その確認を完了している。新しいworkflow/自動無期限継続は作成していない。
