@@ -12,6 +12,7 @@ import math
 import re
 
 from .actions_contract import digest, stamp
+from .boat_observed_pairwise_models import MODEL_IDS
 from .frozen_day_cycle import check_clock, official_id
 
 SCHEMA = "RACE_AI_PRIVATE_CYCLE_VIEW_V1"
@@ -20,6 +21,9 @@ MAX_BYTES = 32 * 1024 * 1024
 SHA = re.compile(r"[a-f0-9]{64}\Z")
 RID = re.compile(r"(\d{4})(\d\d)(\d\d)-(0[1-9]|1\d|2[0-4])-(0[1-9]|1[0-2])\Z")
 JST = timezone(timedelta(hours=9))
+VIDEO_SHADOW_SCHEMA = "RACE_AI_EXISTING_OBSERVED_VIDEO_SHADOW_V1"
+VIDEO_SHADOW_VARIANT = "LEARNED_VIDEO_EXPERIMENTAL"
+LEARNED_VARIANTS = frozenset(("LEARNED_SHADOW", VIDEO_SHADOW_VARIANT))
 
 
 class PrivateCycleProjectionError(ValueError):
@@ -204,9 +208,22 @@ def _native_entries(documents):
     return entries
 
 
+def _video_research(model):
+    """Check saved experimental identity and limits, without authenticating video."""
+    _need(model.get("variant") == VIDEO_SHADOW_VARIANT and model.get("model_id") in MODEL_IDS and
+          model.get("model_version") == "0.3.0-VIDEO-EXPERIMENTAL", "video research identity")
+    _need(all(model.get(field) is False for field in ("auto_promoted", "actual_purchases", "calibrated",
+          "production_eligible", "independent_human_heldout_verified")) and
+          model.get("raw_report_validation_status") == "UNVALIDATED" and
+          model.get("performance_claim") == "NOT_A_PROSPECTIVE_ACCURACY_RESULT", "video research flags")
+    _sha(model.get("video_context_sha256"))
+
+
 def _saved_learned_rows(entries, baseline_rows, existing_shadows, receipts):
     """Preserve raw saved learned outputs without replaying their producer."""
     known = {(r.get("race_id"),r.get("stage"),r.get("model_id"),r.get("model_sha256")) for r in existing_shadows}
+    known.update((r.get("race_id"),r.get("stage"),r.get("model_id"),r.get("model_sha256"))
+                 for r in baseline_rows if r.get("variant") == VIDEO_SHADOW_VARIANT)
     baseline = {(r.get("race_id"),r.get("stage"),r.get("model_id"),r.get("model_sha256")):r for r in baseline_rows}
     by_receipt = {}
     _need(type(receipts) is list, "receipt metadata list")
@@ -217,7 +234,9 @@ def _saved_learned_rows(entries, baseline_rows, existing_shadows, receipts):
     added, unresolved = [], []
     for key, candidates in entries.items():
         native = candidates[0]; model = native["model"]
-        if model.get("schema") != "RACE_AI_EXISTING_OBSERVED_LEARNED_SHADOW_V1": continue
+        if model.get("schema") not in ("RACE_AI_EXISTING_OBSERVED_LEARNED_SHADOW_V1", VIDEO_SHADOW_SCHEMA): continue
+        is_video = model["schema"] == VIDEO_SHADOW_SCHEMA
+        if is_video: _video_research(model)
         if key in known: continue
         base = baseline.get((*key[:3], model.get("baseline_model_sha256")))
         receipt = by_receipt.get(native["artifact_id"])
@@ -225,7 +244,7 @@ def _saved_learned_rows(entries, baseline_rows, existing_shadows, receipts):
             unresolved.append(dict(race_id=key[0],stage=key[1],model_id=key[2],prediction_sha256=key[3],
                                    reason="LEARNED_ORIGINAL_BASELINE_OR_RECEIPT_METADATA_MISSING"))
             continue
-        _need(model.get("variant") == "LEARNED_SHADOW" and model.get("auto_promoted") is False and
+        _need(model.get("variant") == (VIDEO_SHADOW_VARIANT if is_video else "LEARNED_SHADOW") and model.get("auto_promoted") is False and
               model.get("actual_purchases") is False, "learned research flags")
         _sha(model.get("input_sha256")); _sha(model.get("training_sha256")); _label(model.get("model_version"))
         _need(_clock(native["as_of"]) == _clock(base["as_of"]) and
@@ -236,7 +255,10 @@ def _saved_learned_rows(entries, baseline_rows, existing_shadows, receipts):
             if source_hash is not None:
                 _need(model["input_sha256"] == source_hash, "learned baseline snapshot mismatch")
         row = {k:deepcopy(v) for k,v in base.items() if k not in ("learning_snapshot","learning_snapshot_sha256")}
-        row.update(model_version=model["model_version"],variant="LEARNED_SHADOW",model_sha256=key[3],
+        if is_video:
+            for field in ("generated_at", "source_sha256", "odds_independent"):
+                row.pop(field, None)
+        row.update(model_version=model["model_version"],variant=model["variant"],model_sha256=key[3],
                    input_sha256=model["input_sha256"],top8=deepcopy(native["top8"]),ranked=deepcopy(native["ranked"]),
                    artifact_id=native["artifact_id"],original_json_sha256=native["member_sha256"],
                    server_saved_at=receipt.get("created_at"),training_sha256=model["training_sha256"],
@@ -287,6 +309,8 @@ def _prediction(row, entries):
     _need(not native or matches, "native original lineage mismatch")
     if matches:
         native = matches[0]; model = native["model"]
+        if model.get("schema") == VIDEO_SHADOW_SCHEMA:
+            _video_research(model)
         enrichment = dict(model_version=model.get("model_version"), generated_at=model.get("generated_at", native["parent"].get("generated_at")),
                           source_captured_at=model.get("source_captured_at", native["parent"].get("source_captured_at")),
                           input_sha256=model.get("input_sha256", model.get("snapshot_sha256", model.get("source_snapshot_sha256"))),
@@ -299,6 +323,25 @@ def _prediction(row, entries):
     for field in ("model_sha256","original_json_sha256","artifact_id","server_saved_at","variant","training_sha256",
                   "baseline_model_sha256","training_artifact_id","training_receipt_digest","calibrated"):
         if field in row: p[field] = deepcopy(row[field])
+    if matches and model.get("schema") == VIDEO_SHADOW_SCHEMA:
+        for field in ("variant", "training_sha256", "baseline_model_sha256", "video_context_sha256", "calibrated"):
+            value = model[field]
+            _need(field not in row or row[field] == value, "saved/native video metadata conflict")
+            p[field] = deepcopy(value)
+        receipt = model.get("training_receipt")
+        if type(receipt) is dict:
+            for field, key in (("training_artifact_id", "id"), ("training_receipt_digest", "digest")):
+                _need(field not in row or row[field] == receipt.get(key), "saved/native video metadata conflict")
+                p[field] = receipt.get(key)
+    if p.get("variant") == VIDEO_SHADOW_VARIANT:
+        # Saved JSON and local archive correlation cannot establish independent
+        # video receipts, field validity, calibration or production readiness.
+        p.update(calibrated=False, production_eligible=False, auto_promoted=False, actual_purchases=False,
+                 raw_report_validation_status="UNVALIDATED", independent_human_heldout_verified=False,
+                 video_context_receipt_verified=False, training_receipt_verified=False,
+                 performance_claim="NOT_A_PROSPECTIVE_ACCURACY_RESULT")
+        p["missing_reasons"].extend(("VIDEO_CONTEXT_RECEIPT_NOT_INDEPENDENTLY_VERIFIED",
+                                     "VIDEO_FIELD_VALIDATION_NOT_PROVEN"))
     for field, reason in (("model_version","MODEL_VERSION_NOT_SAVED"),("generated_at","GENERATED_AT_NOT_SAVED"),
                           ("input_sha256","INPUT_SHA_NOT_SAVED"),("source_sha256","SOURCE_SHA_NOT_SAVED"),
                           ("odds_independent","ODDS_INDEPENDENCE_ASSERTION_NOT_SAVED")):
@@ -317,7 +360,7 @@ def _prediction(row, entries):
             raise PrivateCycleProjectionError("private saved cycle rejected: native generation chronology") from exc
     _need(p["odds_independent"] is None or type(p["odds_independent"]) is bool, "odds assertion format")
     p["missing_reasons"].append("EXTERNAL_RECEIPT_NOT_INDEPENDENTLY_VERIFIED")
-    if p.get("variant") == "LEARNED_SHADOW":
+    if p.get("variant") in LEARNED_VARIANTS:
         p["missing_reasons"].append("TRAINING_RECEIPT_NOT_INDEPENDENTLY_VERIFIED")
     return p, roster
 

@@ -12,3 +12,5 @@
 ## 開発方式
 
 設計変更は原則として変更ブランチからDraft Pull Requestを作り、レビューと検証を経てmainへ統合する。設計と実装の完了判定を混同しない。
+
+既存PR #71での実装・受入状況は [最新状態](docs/RACE_AI_LATEST_STATUS.md) を参照。ローカル展示映像の実験計測の実行方法と未完成条件は [展示映像の実験計測](docs/BOAT_VIDEO_MEASUREMENTS.md) に記載している。

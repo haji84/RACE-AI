@@ -394,6 +394,8 @@
       else content.append(empty(observationContext ? "保存予想原本の気象・直前情報は未取得です" : "気象・直前情報は未取得です", "保存原本に存在する項目だけを表示します。"));
       content.append(node("p", "muted small", "展示・試走の原本値は取得時点の記録です。予想への反映状況はモデル版と時点を確認してください。"));
       if (observationContext) content.append(observationContext);
+      const videoMeasurements = globalThis.RaceBoatVideoView?.createPanel(r);
+      if (videoMeasurements) content.append(videoMeasurements);
     }
     if (state.detailTab === "analysis") {
       content.append(forecastPanel(r, p), facts(evidenceFields(r, p)), node("h2", "", "同一レースの別モデル・時点"));

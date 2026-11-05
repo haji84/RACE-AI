@@ -399,12 +399,16 @@ async function main() {
     assert.ok((await page.locator('#race-detail').innerText()).includes(nativeSha),'selected original survives refresh');
     assert.equal(await page.locator('[data-detail-tab="analysis"]').getAttribute('aria-selected'),'true');
     assert.match(await page.locator('#race-detail').innerText(),/09:02/,'new saved observation is displayed');
+    let counterRound=3;
     for(const value of ['365',-1,1.5,Number.MAX_SAFE_INTEGER+1]) {
-      automaticSourceStatus.requests_used=value;await page.clock.fastForward(180001);await page.waitForTimeout(50);
+      automaticSourceStatus={source_limit:null,requests_used:value,round_no:counterRound};
+      await page.clock.fastForward(180001);
+      await page.waitForFunction(round=>document.querySelector('#generation-message').textContent.includes(`巡回 ${round}回`),counterRound++);
       assert.doesNotMatch(await page.locator('#generation-message').innerText(),/取得 [\d.-]+回/,'malformed request counters are not displayed as measured counts');
       assert.match(await page.locator('#generation-message').innerText(),/取得回数上限なし/);
     }
-    automaticSourceStatus={requests_used:0};await page.clock.fastForward(180001);await page.waitForTimeout(50);
+    automaticSourceStatus={requests_used:0,round_no:counterRound};await page.clock.fastForward(180001);
+    await page.waitForFunction(round=>document.querySelector('#generation-message').textContent.includes(`巡回 ${round}回`),counterRound);
     assert.doesNotMatch(await page.locator('#generation-message').innerText(),/取得回数上限なし/,'a later legacy status cannot inherit the unlimited claim');
     assert.match(await page.locator('#generation-message').innerText(),/取得 0回/,'zero is a valid measured request count');
     automaticSourceStatus={source_limit:null,requests_used:366};

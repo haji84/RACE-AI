@@ -78,13 +78,17 @@ def _metrics(records, weights):
                 prospective=False)
 
 
-def fit_from_verified(rows, observations, *, now):
+def fit_from_verified(rows, observations, *, now, video_contexts=None, video_receipt_verifier=None):
     """Caller supplies already authenticated read_p0/read_p1 rows and results.
 
     Select one input per race (latest pre-cutoff observed snapshot, P1 before
     P0); never multiply one outcome by the number of models. Missing-feature
     coefficients remain unchanged until enough TRAIN rows actually observe them.
     """
+    if video_contexts is not None:
+        from .boat_video_learning import fit_with_video
+        return fit_with_video(rows, observations, video_contexts, now=now,
+                              receipt_verifier=video_receipt_verifier)
     from .frozen_day_cycle import settle, official_id, check_clock
     need(now.utcoffset() is not None, 'aware fit time required')
     by_result={o['race_id']:o for o in observations}
@@ -167,6 +171,9 @@ def fit_from_verified(rows, observations, *, now):
 
 
 def verify_training(training):
+    if training.get('schema') == 'RACE_AI_EXISTING_OBSERVED_VIDEO_WEIGHT_FIT_V1':
+        from .boat_video_learning import verify_video_training
+        return verify_video_training(training)
     check(training,'training_sha256')
     need(training['schema']==SCHEMA_TRAIN and training['feature_schema']==list(FEATURES)
          and training['auto_promoted'] is False and training['accuracy_improvement_proven'] is False,
@@ -182,9 +189,13 @@ def verify_training(training):
                  'invalid fitted parameters')
 
 
-def make_shadows(snapshot, baseline_suite, context):
+def make_shadows(snapshot, baseline_suite, context, *, video_context=None, video_receipt_verifier=None):
     """Use only an externally frozen training artifact, never today's result."""
     if context is None:return []
+    if context['training'].get('schema') == 'RACE_AI_EXISTING_OBSERVED_VIDEO_WEIGHT_FIT_V1':
+        from .boat_video_learning import make_video_shadows
+        return make_video_shadows(snapshot, baseline_suite, context, video_context,
+                                  receipt_verifier=video_receipt_verifier)
     training=context['training']; receipt=context['receipt'];verify_training(training)
     if training['state']!='FITTED_SHADOW_ONLY':return []
     _validate(snapshot);check(baseline_suite,'suite_sha256')
@@ -217,24 +228,38 @@ def timedelta_one_second():
     return timedelta(seconds=1)
 
 
-def read_shadow_rows(doc, receipt, baseline_rows):
-    """After the caller authenticates the P1 archive, verify embedded parameters."""
+def read_shadow_rows(doc, receipt, baseline_rows, *, video_receipt_verifier=None):
+    """Verify embedded parameters after the caller authenticates the P1 archive.
+
+    A saved video version additionally requires a caller-supplied independent
+    receipt reader. Embedded JSON proofs cannot authenticate video evidence.
+    """
     from .frozen_day_cycle import check_clock, rank_check
     by_key={(r['race_id'],r['stage'],r['model_id']):r for r in baseline_rows}
     bundles={b['race_id']:b for b in doc.get('observed_pairwise_p1_bundles',[]) if 'suite' in b}
     out=[];seen=set()
     for p in doc.get('learned_pairwise_shadows',[]):
-        check(p,'prediction_sha256');need(p['schema']==SCHEMA_SHADOW and not p['auto_promoted'],'candidate schema')
+        video=p.get('schema') == 'RACE_AI_EXISTING_OBSERVED_VIDEO_SHADOW_V1'
+        check(p,'prediction_sha256');need((p['schema']==SCHEMA_SHADOW or video) and not p['auto_promoted'],'candidate schema')
         key=(p['race_id'],p['stage'],p['model_id']);need(key not in seen and key in by_key,'duplicate/foreign candidate');seen.add(key)
         base=by_key[key];bundle=bundles[p['race_id']]
         context=dict(training=p['training'],receipt=p['training_receipt'])
-        recreated={q['model_id']:q for q in make_shadows(bundle['snapshot'],bundle['suite'],context)}
+        if video:
+            need(callable(video_receipt_verifier), 'saved video shadow requires independent receipt verifier')
+            need(base['roster']=={str(r['lane']):r['registration_no'] for r in bundle['snapshot']['participants']},
+                 'video shadow/baseline roster mismatch')
+            envelope=dict(video_context=p['video_context'],receipt=p['video_receipt'])
+            recreated={q['model_id']:q for q in make_shadows(bundle['snapshot'],bundle['suite'],context,
+                video_context=envelope,video_receipt_verifier=video_receipt_verifier)}
+            need(p['model_id'] in recreated, 'candidate replay differs')
+        else:
+            recreated={q['model_id']:q for q in make_shadows(bundle['snapshot'],bundle['suite'],context)}
         need(recreated[p['model_id']]==p and p['baseline_model_sha256']==base['model_sha256'], 'candidate replay differs')
         check_clock(p['as_of'],p['cutoff_at'],receipt['created_at'])
         ranked=[q['combination'] for q in p['candidates']];rank_check(ranked,p['ordered_top8'])
         row={k:deepcopy(v) for k,v in base.items() if k not in ('learning_snapshot','learning_snapshot_sha256')}
         row.update(top8=p['ordered_top8'],ranked=ranked,model_sha256=p['prediction_sha256'],
-            variant='LEARNED_SHADOW',training_sha256=p['training_sha256'],
+            variant=p['variant'] if video else 'LEARNED_SHADOW',training_sha256=p['training_sha256'],
             baseline_model_sha256=p['baseline_model_sha256'],
             training_artifact_id=p['training_receipt']['id'],training_receipt_digest=p['training_receipt']['digest'])
         out.append(row)
@@ -301,7 +326,10 @@ def context_from_result_archive(raw, receipt):
     verify_training(training);check(report,'report_sha256')
     need(report['automatic_learning']['training_sha256']==training['training_sha256'], 'training/report mismatch')
     need(ts(training['created_at'])<=ts(receipt['created_at'])+timedelta_one_second(), 'training saved before creation')
-    return dict(training=training,receipt=deepcopy(receipt)) if training['state']=='FITTED_SHADOW_ONLY' else None
+    fitted=training['state']=='FITTED_SHADOW_ONLY' or (
+        training['schema']=='RACE_AI_EXISTING_OBSERVED_VIDEO_WEIGHT_FIT_V1'
+        and training['state']=='FITTED_VIDEO_EXPERIMENTAL')
+    return dict(training=training,receipt=deepcopy(receipt)) if fitted else None
 
 
 def coverage_audit(rows, schedule, *, now, observations=None, learned_rows=None):
