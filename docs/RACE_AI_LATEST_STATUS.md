@@ -1,3 +1,24 @@
+# 2026-11-05 10:35 JST｜最新完了run第22巡回の原本独立検証・P1+50/通常採点+35、既存後続1件起動
+
+対象：既存Draft PR #71、同一branch `feat/four-sport-forecast-audit-view-20261022`、既存workflow 405276784。前run `41940044369` は10:22:25 JST `completed/success`、実行HEAD `d481d0fe275dbd640d9b2d9858e6dff541206877`。全artifact一覧から最大保存巡回が **第22巡回** であることを確認（第23・24巡回は `BOUNDED_SESSION_END` により未処理）。GitHub jobログに `ROUND_SAVED_AND_READBACK_VERIFIED`・round22・予想353・通常採点42・179 GETを確認。
+
+今回は次の3 ZIPをGitHubコネクタから**実バイト独立取得**、SHA256をローカル再計算してGitHub API digestと完全一致、全ZIP CRC正常：
+- P1予想 `boat-national-cutoff-41940044369-cycle-22`、artifact `13380140156`、GitHub保存10:20:30 JST、SHA256 `891cbeec1cfeef511496fb6fb38a962666263242c8cb3efa32fa71908e601d17`。
+- 別イベントの公式結果・PDCA `race-existing-cycle-41940044369-cycle-22`、artifact `13380020336`、保存10:20:36 JST、SHA256 `9ee4962aff1a54bc8e9112ec8b88619559054e38f2ba6195b72a3cb7573e7e73`。
+- continuity `race-cycle-continuity-41940044369`、artifact `13379311948`、保存10:22:16 JST、SHA256 `0b2acd99c9941178911a46769f1a75bae5df5c7d2ea20086064aaa95578d6dae`。
+
+結果ZIP内 `status.json` は `round_no=22`、`updated_at=2026-11-05T01:20:35.126502+00:00`。実 `forecasts.csv` は **353モデル別予想＝初回P0 288＋展示後P1 65（13レース×5基準モデル）**、`model_coverage.json` も353件。前回09:17保存記録の303/P1 15から **P1 +50件**。通常確定結果による採点は **42件（HIT16、MISS26）**、前回7から **+35件**。別に結果待ち309行、異常着順レビュー2行を保持し、外れにしない。独立の公式結果履歴は18観測。元P0の埋込ZIPはSHA256 `3a8bde638b93b61cbe21843bff5f3dbaf120c486b45f39efc3ea3a78f89034ab` で初回受領索引と連続原本の同一バイトを照合し、再生成なし。埋込P1のSHA256も今回の独立予想ZIPと一致。
+
+`automatic_learning.state=INSUFFICIENT_VERIFIED_RACES`（異なる通常検証済み6レース、最小8、train0/validation0）で当日係数版は未確定、`LEARNED_SHADOW`保存0、`learned_shadow_comparison` 0。学習成功・過去holdout・前向き優位性を混同しない。結果取得パーサの未対応 `SOURCE_OR_PARSE_UNAVAILABLE` 2件は失敗理由として保持。公式 GET は179/240、`halted_reason=null`。第23/24巡回は時間制限により保存なし。日付・4xx/429・真正性・取得上限の停止規則を回避していない。
+
+`coverage_audit` は対象144レース、締切済み10、未来134、展示後5モデル完備9レース、既締切 `20261105-10-02` に5モデル別不足。該当時刻に展示が公開済みだったかは検証されておらず、取得可能だった取りこぼしと断定しない。別の学習/正式採点母数から不足を消していない。他競技は `LIVE_INPUT_INTEGRATION_NOT_YET_VERIFIED`、外部研究は `NO_AUDITED_IMPORT_MANIFEST`、全16系統×4競技・全P1・無期限private保存・学習版の前向き優位性は未完成。
+
+10:34 JSTに後続のin_progress/queued/pending/waiting各0、先行run成功、継続すべき未来レース・未確定結果ありを実API再取得で確認。既存trigger `docs/evidence/boat-nationwide-pilot-trigger.txt` のみ1回CAS更新し、commit `74572f2f304f9122cff987b05001b4455c29780c` により**新run `41949401478`** が10:34:11 JSTに `in_progress` 開始。これは新runの予想や結果成果を意味しない。起動後は重複後続push禁止。既存同一concurrency `boat-nationwide-cutoff-20261103`、cancel-in-progress=false、180秒/24巡/65分、1セッション240 GET・1巡45 GET・最大3レース・締切210秒、単一writerを維持。原本/過去予想・既存5モデル係数は不変。新タスク/別workflow/新PR/新モデル/Cloudflare/Vercel/追加課金/main統合/公開/実投票/無検証本番切替なし。
+
+今回のローカル独立ZIP照合は成功したが、これを全ソースの独立監査や全日無欠落、学習版の有意な優位性に拡張していない。旧記録と他チャットの進行は以下に保持。
+
+---
+
 # 2026-11-05 09:17 JST｜前run第22巡回まで保存、展示後P1+15・通常採点7、後続1件起動
 
 対象: 既存Draft PR #71 / branch `feat/four-sport-forecast-audit-view-20261022` / 既存workflow `405276784`。前run `41929106428` は2026-11-05 08:59:19 JSTにcompleted/success。GitHub Actions jobログで第22巡回の `ROUND_SAVED_AND_READBACK_VERIFIED` を確認。第23・24巡回は `BOUNDED_SESSION_END` により予想・結果保存をskipped。24巡全件予想したとは数えない。前run実行HEADは `63bc3ec3808b4c126e5fbf2de92d8e1525800a0a`。
