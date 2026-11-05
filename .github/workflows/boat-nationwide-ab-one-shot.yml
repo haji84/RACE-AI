@@ -24,6 +24,15 @@ jobs:
       - name: Exact PR71 code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: '${{ github.sha }}'}
+      - name: Pinned official parser
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
+      - name: Pinned existing integration adapters
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
+      - name: Test originals, pending results, tampering and unchanged models
+        run: |
+          python -m unittest tests.test_first_receipt_continuity tests.test_cycle_recovery tests.test_existing_model_coverage tests.test_frozen_day_cycle tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_ab_shadow tests.test_requested_public_cards tests.test_observed_p1_connection tests.test_external_research_registry tests.test_repeated_cycle tests.test_observed_weight_learning tests.test_first_p0_bootstrap -v
       - name: Pin event day and physical worker handoff using actual clock
         run: |
           python - <<'PY_CLOCK'
@@ -35,15 +44,6 @@ jobs:
               output.write('RACE_AI_EVENT_DAY=' + now.astimezone(ZoneInfo('Asia/Tokyo')).date().isoformat() + '\n')
               output.write('RACE_AI_WORKER_HANDOFF_AT=' + (now + timedelta(minutes=330)).isoformat() + '\n')
           PY_CLOCK
-      - name: Pinned official parser
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
-      - name: Pinned existing integration adapters
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
-        with: {persist-credentials: false, ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe, path: pr72-reference}
-      - name: Test originals, pending results, tampering and unchanged models
-        run: |
-          python -m unittest tests.test_first_receipt_continuity tests.test_cycle_recovery tests.test_existing_model_coverage tests.test_frozen_day_cycle tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_ab_shadow tests.test_requested_public_cards tests.test_observed_p1_connection tests.test_external_research_registry tests.test_repeated_cycle tests.test_observed_weight_learning tests.test_first_p0_bootstrap -v
       - name: Check all earlier same-day receipts before first P0
         id: first_p0
         env: {GH_TOKEN: '${{ github.token }}'}

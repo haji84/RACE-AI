@@ -99,6 +99,8 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn('RACE_AI_EVENT_DAY=', text)
         self.assertIn('RACE_AI_WORKER_HANDOFF_AT=', text)
         self.assertIn('datetime.now(timezone.utc)', text)
+        self.assertLess(text.index('python -m unittest'), text.index('RACE_AI_EVENT_DAY='))
+        self.assertLess(text.index('RACE_AI_EVENT_DAY='), text.index('first_p0_bootstrap.py preflight'))
         self.assertIn('timedelta(minutes=330)', text)
         for name in ('Save first P0 separately', 'Read back original ZIP'):
             step = next(step for step in re.split(r'^      - name: ', text, flags=re.MULTILINE)
