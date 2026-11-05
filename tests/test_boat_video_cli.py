@@ -12,6 +12,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import Mock, patch
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "boat_video_analyze.py"
@@ -62,10 +63,10 @@ class BoatVideoCliTests(unittest.TestCase):
         return ["--video", str(self.media), "--job", str(self.manifest),
                 "--private-root", str(self.private)]
 
-    def invoke(self, arguments=None, *, extractor=None):
+    def invoke(self, arguments=None, *, extractor=None, use_real=False):
         stdout, stderr = io.StringIO(), io.StringIO()
         module = cli(self)
-        if extractor is None:
+        if extractor is None and not use_real:
             extractor = lambda path, *, options=None: deepcopy(self.tracking)
         with redirect_stdout(stdout), redirect_stderr(stderr):
             try:
@@ -210,6 +211,119 @@ class BoatVideoCliTests(unittest.TestCase):
         self.assertNotIn("secret", error)
         self.assertEqual(list(self.private.iterdir()), [])
 
+    def test_local_identity_flags_configure_extractor_without_persisting_asset_paths(self):
+        model = self.root / "owner-secret-hull.onnx"
+        executable = self.root / "owner-secret-tesseract"
+        data = self.root / "owner-secret-tessdata"
+        model.write_bytes(b"controlled factory fixture")
+        executable.write_bytes(b"controlled factory fixture")
+        data.mkdir()
+        original = self.root / "original-view.json"
+        original.write_text(json.dumps(self.view(), indent=3), encoding="utf-8")
+        destination = self.root / "enriched-view.json"
+        original_bytes, original_mtime = original.read_bytes(), original.stat().st_mtime_ns
+        self.job["options"] = {"sampling_fps": 5.0}
+        self.manifest.write_text(json.dumps(self.job), encoding="utf-8")
+        inputs = (self.media.read_bytes(), self.manifest.read_bytes())
+        tracking = deepcopy(self.tracking)
+        for track in tracking["tracks"]:
+            track["identity_status"] = "NUMBER_TEMPORAL_CANDIDATE"
+        tracking["quality"]["identity_provider"] = {
+            "engine": "CONTROLLED_TEST", "model_sha256": "c" * 64,
+            "identity_validated": False, "model_eligible": False}
+        arguments = self.arguments() + ["--hull-model", str(model), "--detector-kind", "nanodet",
+            "--tesseract", str(executable), "--tessdata", str(data),
+            "--view-in", str(original), "--view-out", str(destination)]
+        extract = Mock(return_value=tracking)
+        with patch("race_ai.boat_video_identity.make_local_identity_extractor", return_value=extract) as factory:
+            code, output, error = self.invoke(arguments, use_real=True)
+        self.assertEqual((code, error), (0, ""))
+        factory.assert_called_once_with(model_path=model, detector_kind="nanodet",
+            tesseract_path=executable, tessdata_path=data)
+        extract.assert_called_once_with(self.media, options={"sampling_fps": 5.0})
+        summary = json.loads(output)
+        report_bytes = Path(summary["report_path"]).read_bytes()
+        report = json.loads(report_bytes)
+        self.assertEqual(report["analysis_parameters"], {"options": {"sampling_fps": 5.0}})
+        self.assertEqual([lane["identity_status"] for lane in report["measurements"]["lanes"]],
+                         ["NUMBER_TEMPORAL_CANDIDATE"] * 6)
+        self.assertFalse(report["model_eligible"])
+        self.assertFalse(report["measurements"]["identity_validated"])
+        self.assertEqual(report["validation_status"], "UNVALIDATED")
+        for private_path in (model, executable, data):
+            self.assertNotIn(str(private_path), report_bytes.decode())
+            self.assertNotIn(str(private_path), output + error)
+        self.assertEqual(original.read_bytes(), original_bytes)
+        self.assertEqual(original.stat().st_mtime_ns, original_mtime)
+        self.assertEqual(inputs, (self.media.read_bytes(), self.manifest.read_bytes()))
+        enriched = json.loads(destination.read_bytes())
+        self.assertEqual(enriched["records"][0].pop("boat_video_evaluations"), [report])
+        self.assertEqual(enriched, self.view())
+
+    def test_local_identity_defaults_use_system_ocr_and_standard_english_data(self):
+        model = self.root / "model.onnx"
+        standard = Path("/usr/share/tesseract-ocr/5/tessdata")
+        is_file = Path.is_file
+        with patch("race_ai.boat_video_identity.make_local_identity_extractor",
+                   return_value=lambda path, *, options=None: deepcopy(self.tracking)) as factory, \
+                patch("shutil.which", return_value="/usr/bin/tesseract"), \
+                patch("pathlib.Path.is_file", autospec=True,
+                      side_effect=lambda path: path == standard / "eng.traineddata" or is_file(path)):
+            code, output, error = self.invoke(self.arguments() + ["--hull-model", str(model)], use_real=True)
+        self.assertEqual((code, error), (0, ""))
+        factory.assert_called_once()
+        supplied = factory.call_args.kwargs
+        self.assertEqual(supplied["model_path"], model)
+        self.assertEqual(supplied["detector_kind"], "yolox")
+        self.assertEqual(supplied["tesseract_path"], Path("/usr/bin/tesseract"))
+        self.assertEqual(supplied["tessdata_path"], standard)
+        self.assertNotIn("tesseract", output)
+
+    def test_no_identity_flags_preserve_default_extractor_boundary(self):
+        with patch("race_ai.boat_video_identity.make_local_identity_extractor") as factory, \
+                patch("race_ai.boat_video_tracking.extract_tracks", return_value=deepcopy(self.tracking)) as extract:
+            code, output, error = self.invoke(use_real=True)
+        self.assertEqual((code, error), (0, ""))
+        factory.assert_not_called()
+        extract.assert_called_once_with(self.media, options=None)
+        report = json.loads(Path(json.loads(output)["report_path"]).read_bytes())
+        self.assertEqual(report["tracking"], self.tracking)
+        self.assertEqual(report["analysis_parameters"], {})
+
+    def test_missing_system_ocr_fails_without_creating_report_or_leaking_assets(self):
+        with patch("shutil.which", return_value=None), \
+                patch("race_ai.boat_video_identity.make_local_identity_extractor") as factory:
+            code, output, error = self.invoke(self.arguments() + ["--hull-model", "/owner-secret/model.onnx"], use_real=True)
+        self.assertEqual(code, 2)
+        self.assertEqual(output, "")
+        self.assertEqual(error, "BOAT_VIDEO_ANALYSIS_REJECTED\n")
+        self.assertEqual(list(self.private.iterdir()), [])
+        factory.assert_not_called()
+
+    def test_identity_flags_require_model_and_refuse_ambiguous_extractor_injection(self):
+        for extra in (["--detector-kind", "yolox"], ["--tesseract", "/owner-secret/ocr"],
+                      ["--tessdata", "/owner-secret/data"], ["--hull-model", "/owner-secret/model"]):
+            with self.subTest(extra=extra):
+                code, output, error = self.invoke(self.arguments() + extra, use_real=extra[0] != "--hull-model")
+                self.assertEqual(code, 2)
+                self.assertEqual(output, "")
+                self.assertNotIn("owner-secret", error)
+                self.assertEqual(list(self.private.iterdir()), [])
+
+    def test_invalid_identity_assets_and_flags_fail_without_private_values_or_output(self):
+        corrupt = self.root / "owner-secret-hull.onnx"
+        corrupt.write_bytes(b"not a pinned model")
+        for extra in (["--hull-model", str(corrupt)],
+                      ["--hull-model", str(self.root / "owner-secret-missing.onnx")],
+                      ["--hull-model", "https://owner-secret.example/model"],
+                      ["--hull-model", str(corrupt), "--detector-kind", "owner-secret-kind"]):
+            with self.subTest(extra=extra):
+                code, output, error = self.invoke(self.arguments() + extra, use_real=True)
+                self.assertEqual(code, 2)
+                self.assertEqual(output, "")
+                self.assertNotIn("owner-secret", error)
+                self.assertEqual(list(self.private.iterdir()), [])
+
     def test_import_and_help_do_not_require_optional_video_libraries(self):
         cli(self)
         command = ("import runpy, sys; "
@@ -222,6 +336,7 @@ class BoatVideoCliTests(unittest.TestCase):
                                 capture_output=True, text=True, timeout=10)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("--private-root", result.stdout)
+        self.assertIn("--hull-model", result.stdout)
 
 
 if __name__ == "__main__":

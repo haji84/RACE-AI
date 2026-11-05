@@ -12,7 +12,7 @@ import re
 from .actions_contract import digest
 from .boat_observed_pairwise_models import MODEL_IDS
 from .private_cycle_projection import (
-    INPUT_SCHEMAS, _clone, _clock, _cutoff, _label, _native_entries,
+    INPUT_SCHEMAS, LEARNED_VARIANTS, VIDEO_SHADOW_VARIANT, _clone, _clock, _cutoff, _label, _native_entries,
     _need, _prediction, _race, _saved_learned_rows, _sha, _ticket,
 )
 from .repeated_cycle import matches
@@ -121,10 +121,17 @@ def _training(row, documents, receipts):
         _need(all(d["document"] == training for d in separate), "training originals conflict")
         _need(type(training) is dict and training.get("training_sha256") == native.get("training_sha256") ==
               digest({k:v for k,v in training.items() if k != "training_sha256"}), "training seal")
+        is_video = native.get("variant") == VIDEO_SHADOW_VARIANT
+        expected_schema = ("RACE_AI_EXISTING_OBSERVED_VIDEO_WEIGHT_FIT_V1" if is_video else
+                           "RACE_AI_EXISTING_OBSERVED_WEIGHT_FIT_V1")
+        expected_state = "FITTED_VIDEO_EXPERIMENTAL" if is_video else "FITTED_SHADOW_ONLY"
         _need(training == native.get("training") and
-              training.get("schema") == "RACE_AI_EXISTING_OBSERVED_WEIGHT_FIT_V1" and
-              training.get("state") == "FITTED_SHADOW_ONLY" and training.get("auto_promoted") is False and
+              training.get("schema") == expected_schema and
+              training.get("state") == expected_state and training.get("auto_promoted") is False and
               training.get("accuracy_improvement_proven") is False, "training original binding")
+        if is_video:
+            from .observed_weight_learning import verify_training
+            verify_training(training)
         created, saved, as_of = _clock(training["created_at"]), _clock(meta["created_at"]), _clock(native["as_of"])
         _need(created <= saved+timedelta(seconds=1) and saved < as_of and created < as_of and
               _clock(training["data_available_until"]) <= created, "training chronology")
@@ -315,7 +322,7 @@ def evaluate_saved_comparison(state, *, schedule, comparison, evaluated_at, data
                 r["prediction"]["stage"] == comparison["stage"] and
                 r["prediction"]["model_id"] == pin["model_id"] and
                 r["prediction"]["model_version"] == pin["model_version"] and
-                (r["prediction"].get("variant") == "LEARNED_SHADOW") == (role == "learned") and
+                (r["prediction"].get("variant") in LEARNED_VARIANTS) == (role == "learned") and
                 (role != "learned" or r["prediction"].get("training_sha256") == pin["training_sha256"]) and
                 _clock(r["prediction"]["persisted_at"]) <= evaluated]
             candidates.sort(key=lambda r:(_clock(r["prediction"]["persisted_at"]),r["prediction"]["artifact_id"]))
@@ -326,7 +333,14 @@ def evaluate_saved_comparison(state, *, schedule, comparison, evaluated_at, data
                 item.update(state="SAVED_ORIGINAL" if chosen["bound"] else "ORIGINAL_UNBOUND", prediction=deepcopy(chosen["prediction"]))
                 if role == "learned":
                     item["training_state"] = _training(chosen, documents, receipts)
-                    if item["training_state"] == "UNVERIFIED": item["state"] = "TRAINING_UNVERIFIED"
+                    if item["training_state"] == "UNVERIFIED":
+                        item["state"] = "TRAINING_UNVERIFIED"
+                        if chosen["prediction"].get("variant") == VIDEO_SHADOW_VARIANT:
+                            report["unresolved_learned_dependencies"].append(dict(race_id=slot["race_id"],
+                                stage=comparison["stage"], model_id=pin["model_id"],
+                                prediction_sha256=chosen["prediction"]["prediction_sha256"],
+                                training_sha256=pin["training_sha256"],
+                                reason="LEARNED_SEPARATE_TRAINING_OR_RECEIPT_UNVERIFIED"))
             race[role] = item
         base, learned = selected["baseline"], selected["learned"]
         if base is not None and learned is not None:

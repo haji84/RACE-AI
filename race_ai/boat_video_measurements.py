@@ -11,7 +11,7 @@ import re
 
 
 PHASES = ("turn", "exit", "runup", "straight")
-IDENTITIES = ("COLOR_CANDIDATE", "NUMBER_COLOR_AGREEMENT", "REVIEWED")
+IDENTITIES = ("COLOR_CANDIDATE", "NUMBER_COLOR_AGREEMENT", "NUMBER_TEMPORAL_CANDIDATE", "REVIEWED")
 
 
 def _require(condition, reason):

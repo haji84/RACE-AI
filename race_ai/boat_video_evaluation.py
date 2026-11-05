@@ -213,7 +213,7 @@ def _measurement(value, tracking):
         seen.add(lane["lane"])
         _need(lane.get("identity_validated") is False and
               lane.get("identity_status") == (identities[lane["lane"]] if identities[lane["lane"]] in
-                ("COLOR_CANDIDATE", "NUMBER_COLOR_AGREEMENT", "REVIEWED") else "UNRESOLVED"))
+                ("COLOR_CANDIDATE", "NUMBER_COLOR_AGREEMENT", "NUMBER_TEMPORAL_CANDIDATE", "REVIEWED") else "UNRESOLVED"))
         phases = lane.get("phases")
         _need(type(phases) is dict and set(phases) == set(PHASES))
         for phase in phases.values():

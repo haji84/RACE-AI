@@ -244,7 +244,7 @@
       if (!record(lane) || !tracks.has(lane.lane) || seen.has(lane.lane) || lane.identity_validated !== false || !record(lane.phases) ||
           Object.keys(lane.phases).length !== 4 || !Object.keys(phases).every(key => Object.hasOwn(lane.phases, key))) return false;
       seen.add(lane.lane);
-      const track = tracks.get(lane.lane), identity = ["COLOR_CANDIDATE", "NUMBER_COLOR_AGREEMENT", "REVIEWED"].includes(track.identity_status) ? track.identity_status : "UNRESOLVED";
+      const track = tracks.get(lane.lane), identity = ["COLOR_CANDIDATE", "NUMBER_COLOR_AGREEMENT", "NUMBER_TEMPORAL_CANDIDATE", "REVIEWED"].includes(track.identity_status) ? track.identity_status : "UNRESOLVED";
       if (lane.identity_status !== identity) return false;
       for (const [name, phase] of Object.entries(lane.phases)) {
         if (!record(phase) || !["MISSING", "MEASURED"].includes(phase.status) || phase.validation_status !== "UNVALIDATED" ||
@@ -288,7 +288,7 @@
     if (row?.sport !== "boat" || row.boat_video_evaluations == null || Array.isArray(row.boat_video_evaluations) && !row.boat_video_evaluations.length) return null;
     const make = (tag, content, cls) => { const element = document.createElement(tag); if (content !== undefined) element.textContent = String(content); if (cls) element.className = cls; return element; };
     const panel = make("section"); panel.id = "boat-video-evaluations";
-    panel.append(make("h2", "映像の実験計測", "member-heading"), make("p", "未検証・モデル入力には不使用。画像上の標本と動画時刻による候補計測です。実際の速さ・加速度や艇の強さを確定する値ではありません。", "notice"));
+    panel.append(make("h2", "映像の実験計測", "member-heading"), make("p", "未検証の実験計測。本番予想への採用は未実施。研究版への使用状況はモデル版・入力証拠を確認してください。画像上の標本と動画時刻による候補計測です。実際の速さ・加速度や艇の強さを確定する値ではありません。", "notice"));
     const reports = row.boat_video_evaluations;
     if (!Array.isArray(reports) || reports.length > 100 || reports.some(report => !validateReport(report, row))) {
       panel.append(make("p", "映像の実験計測を照合できません。形式・艇番と登録番号・取得時刻・締切の記録を確認してください。", "notice")); return panel;
@@ -303,7 +303,7 @@
       const details = make("details"), source = report.source, quality = report.tracking.quality;
       const sourceLabel = {OWNER_LOCAL:"所有者のローカル映像（申告）", OFFICIAL_BROWSER_CAPTURE:"公式ページに関連付けた保存映像（申告）", SYNTHETIC_TEST:"合成テスト映像"}[source.kind];
       details.append(make("summary", sourceLabel + " · " + (report.pre_cutoff_available ? "締切前に解析完了（時刻は申告値）" : "締切以後の取得・解析を含む") + " · 詳細"),
-        make("p", "形式照合のみ。報告SHAの本文照合、出典・取得日時・艇の識別の独立検証は未実施です。COLOR_CANDIDATE は色による艇番候補です。画像 px・動画の秒を使い、物理的な速度・瞬間加速度へ換算しません。", "muted small"),
+        make("p", "形式照合のみ。報告SHAの本文照合、出典・取得日時・艇の識別の独立検証は未実施です。COLOR_CANDIDATE は色による艇番候補です。NUMBER_TEMPORAL_CANDIDATE は数字の反復観測と時系列の追跡による艇番候補です。画像 px・動画の秒を使い、物理的な速度・瞬間加速度へ換算しません。", "muted small"),
         facts([["報告SHA（記録値）", report.report_sha256], ["映像SHA（記録値）", source.media_sha256],
           ["取得 JST（申告）", stamp(source.captured_at)], ["解析開始 JST", stamp(report.analysis_started_at)],
           ["解析完了 JST", stamp(report.analysis_completed_at)], ["照合した締切 JST", stamp(report.cutoff_at)],

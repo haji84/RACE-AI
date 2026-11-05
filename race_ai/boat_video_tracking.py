@@ -344,7 +344,69 @@ def _candidates(masks, motion, options, cv2, np):
     return found, ambiguous
 
 
-def extract_tracks(path, *, options=None):
+def _provider_detections(provider, frame, roi, np):
+    """Exclude every detected hull, including hulls whose number is unresolved."""
+    detections = provider.detect(frame)
+    if type(detections) is not list or len(detections) > 64:
+        raise ValueError("bounded hull detections required")
+    height, width = frame.shape[:2]
+    exclusion = np.zeros((height, width), np.uint8)
+    for detection in detections:
+        if type(detection) is not dict:
+            raise ValueError("invalid hull detection")
+        x, y, w, h = _provider_box(detection.get("box"), width, height)
+        exclusion[math.floor(y):math.ceil(y+h), math.floor(x):math.ceil(x+w)] = 255
+    return detections, np.minimum(exclusion, roi)
+
+
+def _provider_box(box, width, height):
+    if (type(box) not in (list, tuple) or len(box) != 4 or not all(_finite(v) for v in box)):
+        raise ValueError("invalid hull box")
+    x, y, w, h = map(float, box)
+    if not (0 <= x < x+w <= width and 0 <= y < y+h <= height and w >= 1 and h >= 1):
+        raise ValueError("hull box outside media")
+    return x, y, w, h
+
+
+def _provider_candidates(observation, roi, motion, cv2, np):
+    if type(observation) is not dict or type(observation.get("regions")) is not list or len(observation["regions"]) > 6:
+        raise ValueError("invalid numbered hull observation")
+    height, width = roi.shape
+    found = {n: [] for n in range(1, 7)}
+    for region in observation["regions"]:
+        if (type(region) is not dict or type(region.get("lane")) is not int or not 1 <= region["lane"] <= 6
+                or region.get("identity_status") != "NUMBER_TEMPORAL_CANDIDATE"
+                or type(region.get("track_id")) is not str
+                or re.fullmatch(r"T[0-9]{6,12}", region["track_id"]) is None
+                or type(region.get("number_evidence")) is not dict):
+            raise ValueError("invalid hull number evidence")
+        x, y, w, h = _provider_box(region.get("box"), width, height)
+        if w < 3 or h < 3:
+            continue
+        center = (x+w/2-.5, y+h/2-.5)
+        if roi[min(height-1, int(center[1])), min(width-1, int(center[0]))] == 0:
+            continue
+        mask = np.zeros_like(roi)
+        mask[math.floor(y):math.ceil(y+h), math.floor(x):math.ceil(x+w)] = 255
+        changed = 0. if motion is None else float(((mask > 0) & (motion > 0)).sum()/(mask > 0).sum())
+        found[region["lane"]].append({"point": center, "box": [x, y, w, h],
+            "motion_fraction": changed, "track_id": region["track_id"],
+            "number_evidence": json.loads(json.dumps(region["number_evidence"], allow_nan=False))})
+    ambiguous = {lane for lane, rows in found.items() if len(rows) > 1}
+    for lane, rows in found.items():
+        for other, others in found.items():
+            if other <= lane:
+                continue
+            for first in rows:
+                x, y, w, h = first["box"]
+                for second in others:
+                    a, b, c, d = second["box"]
+                    if min(x+w, a+c)+3 > max(x, a) and min(y+h, b+d)+3 > max(y, b):
+                        ambiguous.update((lane, other))
+    return found, ambiguous
+
+
+def extract_tracks(path, *, options=None, identity_provider=None):
     """Return JSON-safe color candidates; absent detections are explicit nulls.
 
     Options are bounded processing limits, HSV component areas in image pixels,
@@ -354,6 +416,9 @@ def extract_tracks(path, *, options=None):
     each lane's scene; no interpolation or zero filling is performed.
     """
     config = _options(options)
+    if identity_provider is not None and not all(callable(getattr(identity_provider, name, None))
+                                                  for name in ("detect", "identify", "metadata")):
+        raise ValueError("a local hull and number provider is required")
     with _local_media(path, config) as (source, local_path, digest, container):
         width, height, duration, stamps = _metadata(source, local_path, config)
         try:
@@ -364,12 +429,17 @@ def extract_tracks(path, *, options=None):
         roi = np.zeros((height, width), np.uint8)
         x0, y0, x1, y1 = config["water_roi"]
         roi[math.ceil(y0*height):math.floor(y1*height), math.ceil(x0*width):math.floor(x1*width)] = 255
-        tracks = [{"lane": lane, "identity_status": "COLOR_CANDIDATE", "samples": []} for lane in range(1, 7)]
+        tracks = [{"lane": lane, "identity_status": "COLOR_CANDIDATE" if identity_provider is None else
+                   "NUMBER_TEMPORAL_CANDIDATE", "samples": []} for lane in range(1, 7)]
         states = {lane: {"scene": 0, "previous_valid": False, "previous_point": None,
                          "last_visible_point": None, "last_visible_t": None} for lane in range(1, 7)}
         color_occlusions = set()
         camera_estimates, flags = [], {"COLOR_DOES_NOT_VERIFY_BOAT_IDENTITY", "ACHROMATIC_LANES_UNRESOLVED",
                                        "SYNTHETIC_TESTS_DO_NOT_ESTABLISH_FIELD_VALIDATION", "POSITION_ERROR_HEURISTIC_UNCERTIFIED"}
+        identity_observations, camera_scene = [], 0
+        if identity_provider is not None:
+            flags -= {"COLOR_DOES_NOT_VERIFY_BOAT_IDENTITY", "ACHROMATIC_LANES_UNRESOLVED"}
+            flags.add("OCR_TEMPORAL_CANDIDATES_DO_NOT_VERIFY_BOAT_IDENTITY")
         previous, previous_masks, previous_t = None, None, None
         previous_candidates = None
         previous_transform = np.eye(3)
@@ -388,6 +458,9 @@ def extract_tracks(path, *, options=None):
                     continue
                 next_sample = t + 1/config["sampling_fps"]
                 masks = _masks(frame, roi, cv2, np)
+                detections = None
+                if identity_provider is not None:
+                    detections, masks[0] = _provider_detections(identity_provider, frame, roi, np)
                 camera_homography, motion = None, None
                 camera = {"status": "REFERENCE_INITIALIZATION", "residual_rms_px": None}
                 if previous is not None and t-previous_t <= config["max_gap_seconds"]:
@@ -396,11 +469,23 @@ def extract_tracks(path, *, options=None):
                     camera["status"] = "DISPLAY_PTS_GAP"
                 camera.update(frame_index=frame_index, t=float(t))
                 camera_estimates.append(camera)
+                observation = None
+                frame_sha256 = None
+                if identity_provider is not None:
+                    if previous is not None and camera_homography is None:
+                        camera_scene += 1
+                    observation = identity_provider.identify(frame, detections, t=float(t),
+                        frame_index=frame_index, scene=camera_scene,
+                        previous_to_current=camera_homography)
+                    frame_sha256 = hashlib.sha256(frame.tobytes()).hexdigest()
+                    observation = {**observation, "decoded_frame_sha256": frame_sha256}
+                    identity_observations.append(json.loads(json.dumps(observation, allow_nan=False)))
                 if camera_homography is not None:
                     transform = transform @ np.linalg.inv(camera_homography)
                     transform /= transform[2, 2]
                     drift_error += camera["residual_rms_px"]
-                    candidates, ambiguous = _candidates(masks, motion, config, cv2, np)
+                    candidates, ambiguous = (_candidates(masks, motion, config, cv2, np) if identity_provider is None else
+                                             _provider_candidates(observation, roi, motion, cv2, np))
                     positions = {lane: _reference_point(transform, items[0]["point"], np)
                                  for lane, items in candidates.items() if len(items) == 1}
                     # A color replacing another nearby color is an occlusion, not
@@ -426,7 +511,8 @@ def extract_tracks(path, *, options=None):
                 else:
                     transform = np.eye(3)
                     drift_error = 0.0
-                    candidates, ambiguous = _candidates(masks, None, config, cv2, np)
+                    candidates, ambiguous = (_candidates(masks, None, config, cv2, np) if identity_provider is None else
+                                             _provider_candidates(observation, roi, None, cv2, np))
                     color_occlusions.clear()
                     for state in states.values():
                         state["last_visible_point"] = state["last_visible_t"] = None
@@ -437,12 +523,12 @@ def extract_tracks(path, *, options=None):
                     state = states[lane]
                     sample = {"frame_index": frame_index, "t": float(t), "x": None, "y": None,
                               "scene": state["scene"], "valid": False, "position_error": None}
-                    reason = ("ACHROMATIC_IDENTITY_AMBIGUOUS" if lane <= 2 else
+                    reason = ("ACHROMATIC_IDENTITY_AMBIGUOUS" if lane <= 2 and identity_provider is None else
                               camera["status"] if camera_homography is None else
                               "OVERLAPPING_COLOR_CANDIDATES" if lane in ambiguous else
                               "AMBIGUOUS_COLOR_CANDIDATES" if len(candidates.get(lane, [])) > 1 else
                               "NO_COLOR_MOTION_CANDIDATE")
-                    if lane > 2 and camera_homography is not None and lane not in ambiguous and len(candidates[lane]) == 1:
+                    if (lane > 2 or identity_provider is not None) and camera_homography is not None and lane not in ambiguous and len(candidates[lane]) == 1:
                         item = candidates[lane][0]
                         point = _reference_point(transform, item["point"], np)
                         prior = [] if previous_candidates is None else previous_candidates[lane]
@@ -452,23 +538,33 @@ def extract_tracks(path, *, options=None):
                         independent_motion = (prior_point is not None and item["motion_fraction"] >= .12
                                               and np.linalg.norm(point-prior_point) > motion_floor)
                         # A large jump within a continuous segment is an association failure.
-                        if not independent_motion:
+                        if (identity_provider is not None and state.get("identity_track_id") is not None
+                                and state["identity_track_id"] != item["track_id"]):
+                            reason = "IDENTITY_TRACK_DISCONTINUITY"
+                        elif not independent_motion:
                             reason = "INDEPENDENT_MOTION_NOT_OBSERVED"
                         elif state["previous_point"] is not None and state["previous_valid"] and np.linalg.norm(point-state["previous_point"]) > .15*math.hypot(width, height):
                             reason = "ASSOCIATION_JUMP"
                         else:
                             sample.update(valid=True, x=float(point[0]), y=float(point[1]),
                                           position_error=float(1.0+drift_error))
+                            if identity_provider is not None:
+                                sample.update(identity_track_id=item["track_id"], camera_scene=camera_scene,
+                                              identity_evidence=item["number_evidence"], frame_sha256=frame_sha256)
                     if not sample["valid"]:
                         sample["reason"] = reason
                         if state["previous_valid"] or (camera_homography is None and previous is not None):
                             state["scene"] += 1
                             sample["scene"] = state["scene"]
                         state["previous_point"] = None
+                        if identity_provider is not None:
+                            state["identity_track_id"] = None
                     else:
                         state["previous_point"] = np.array([sample["x"], sample["y"]])
                         state["last_visible_point"] = state["previous_point"]
                         state["last_visible_t"] = t
+                        if identity_provider is not None:
+                            state["identity_track_id"] = sample["identity_track_id"]
                     state["previous_valid"] = sample["valid"]
                     track["samples"].append(sample)
                 previous, previous_masks, previous_t = frame, masks, t
@@ -478,7 +574,7 @@ def extract_tracks(path, *, options=None):
             decoder.close()
         if decoded_count != len(stamps):
             raise ValueError("decoded frame count differs from display PTS")
-        return {"schema_version": "RACE_AI_BOAT_VIDEO_TRACKS_V1", "media_sha256": digest,
+        result = {"schema_version": "RACE_AI_BOAT_VIDEO_TRACKS_V1", "media_sha256": digest,
                 "width": width, "height": height, "duration_seconds": duration if duration is not None else stamps[-1]-stamps[0],
                 "timeline_source": "MEDIA_PTS", "media_pts_origin_seconds": stamps[0],
                 "coordinate_space": "REFERENCE_IMAGE_PX", "model_eligible": False,
@@ -488,3 +584,7 @@ def extract_tracks(path, *, options=None):
                             "water_roi": list(config["water_roi"]), "container": container,
                             "position_error_scope": "ACCUMULATED_CAMERA_RESIDUAL_PLUS_ONE_PIXEL_HEURISTIC_UNCERTIFIED",
                             "valid_sample_counts": {str(t["lane"]): sum(p["valid"] for p in t["samples"]) for t in tracks}}}
+        if identity_provider is not None:
+            result["quality"].update(identity_provider=identity_provider.metadata(),
+                                      identity_observations=identity_observations)
+        return result

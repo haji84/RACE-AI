@@ -55,6 +55,21 @@ test('accepts separate image measurements without mutating saved row or claiming
   assert.equal(JSON.stringify(row), original);
 });
 
+test('accepts six number and temporal candidates without promoting identity or eligibility', () => {
+  const {row, report}=fixture();
+  report.tracking.tracks.forEach(track => track.identity_status='NUMBER_TEMPORAL_CANDIDATE');
+  report.measurements.lanes.forEach(lane => lane.identity_status='NUMBER_TEMPORAL_CANDIDATE');
+  const original=JSON.stringify(row);
+  assert.equal(V.validateReport(report,row),true);
+  assert.equal(JSON.stringify(row),original);
+  for (const mutate of [r => r.measurements.lanes[0].identity_status='NUMBER_COLOR_AGREEMENT',
+    r => r.measurements.lanes[0].identity_validated=true,
+    r => r.tracking.identity_validated=true, r => r.model_eligible=true]) {
+    const value=structuredClone(report); mutate(value);
+    assert.equal(V.validateReport(value,row),false);
+  }
+});
+
 test('binds exact six lane registrations and saved cutoffs before allowing optional evidence', () => {
   assert.equal(typeof V.validateReport, 'function');
   for (const mutate of [r => r.participants.pop(), r => r.participants[0].registration_no='9999',
@@ -192,7 +207,8 @@ test('preview expands experimental evidence, preserves original observations and
       assert.ok(rendered.includes(label),`visible evidence: ${label}`);
     }
     assert.match(rendered,/画像/); assert.match(rendered,/PHASE_NOT_OBSERVED/);
-    assert.match(rendered,/モデル入力.*不使用/);
+    assert.match(rendered,/本番予想への採用は未実施/);
+    assert.match(rendered,/研究版への使用状況はモデル版・入力証拠を確認/);
     assert.equal(await panel.locator('video,img,iframe,a').count(),0);
     assert.match(await page.locator('#detail-tab-content > .table-scroll').first().innerText(),/6\.91/);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth>innerWidth),false);
@@ -209,6 +225,32 @@ test('malformed optional reports show a local notice while original preview stay
     assert.match(await page.locator('#boat-video-evaluations').innerText(),/照合できません/);
     assert.equal(await page.locator('#boat-video-evaluations img').count(),0);
     assert.match(await page.locator('#detail-tab-content').innerText(),/6\.91/);
+  });
+});
+
+test('all six digit and temporal candidates display measured and missing evidence while preserving saved predictions',async () => {
+  const data=importFixture(), report=data.records[0].boat_video_evaluations[0];
+  report.tracking.tracks.forEach(track => track.identity_status='NUMBER_TEMPORAL_CANDIDATE');
+  report.measurements.lanes.forEach(lane => lane.identity_status='NUMBER_TEMPORAL_CANDIDATE');
+  await withPreview(data,async page => {
+    const panel=page.locator('#boat-video-evaluations');
+    await panel.locator('summary').first().click();
+    const lanes=panel.locator('details details');
+    assert.equal(await lanes.count(),6);
+    for (let i=0;i<6;i++) {
+      await lanes.nth(i).locator('summary').click();
+      assert.match(await lanes.nth(i).innerText(),new RegExp(`${i+1}号艇.*NUMBER_TEMPORAL_CANDIDATE`));
+      assert.match(await lanes.nth(i).innerText(),/欠測:/);
+    }
+    assert.match(await lanes.first().innerText(),/px\/s/);
+    assert.match(await panel.innerText(),/数字.*時系列.*艇番候補/);
+    assert.match(await panel.innerText(),/本番予想への採用は未実施/);
+    assert.match(await panel.innerText(),/研究版への使用状況はモデル版・入力証拠を確認/);
+    assert.match(await page.locator('#detail-tab-content > .table-scroll').first().innerText(),/6\.91/);
+    await page.locator('[data-detail-tab="outlook"]').click();
+    const tickets=await page.locator('#detail-tab-content .saved-ticket .combo').evaluateAll(nodes =>
+      nodes.map(n => [...n.querySelectorAll('.lane')].map(lane => Number(lane.textContent))));
+    assert.deepEqual(tickets,data.records[0].prediction.ordered_top8);
   });
 });
 
