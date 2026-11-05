@@ -1,3 +1,15 @@
+# 2026-11-06 02:16 JST｜11/06 第24巡完了workerから次worker第13巡への原本引継ぎ監査（新P1・採点は0）
+
+既存Draft PR #71の監査。前run [42055132384](https://github.com/haji84/RACE-AI/actions/runs/42055132384) は 2026-11-06 01:37:54 JSTに completed/success、最終第24巡の結果artifact `13434787464` はAPI digest `892d448bcb0a95a06bc4dc122c3d6dec341ca55fef659a0a1895adf0144c7375` と実ZIP SHA256・CRC一致。最終continuity artifact `13434836595` もAPI digest `645c44e9acea9bc98a2d4cbaf856f49833ee3b33aeda1eabd5623983749edf0e` と実ZIP SHA256・CRC一致、内部 `repeat-session.json.completed_round=24/prepared_round=null`。当run公式GET実数221、ただし source_limit=null/max_rounds=null/stop_at=null を確認し、安全上限がコードで強制されたとは認定しない。
+
+既存workflow405276784の後続 [42066504421](https://github.com/haji84/RACE-AI/actions/runs/42066504421) は確認時 in_progress、実行HEAD `0b400636041f435754d8d6c0c2c48ef7faaf6ab4`。対象workflowの確認済み他runにqueued/pending/waitingや並行in_progressなし。第13巡の結果artifact `13435569104`（API digestおよび実SHA256 `7f2cfd6dbf6695f360a09b838365d3aa9539020bbd01bacdf8e56f1087237202`）、別取得P1 artifact `13435813562`（`b842088ce95f41f5a8a210eea0cbebcfa232c77a06539f4e79f05f0cad64d8da`）は双方ZIP CRC異常なし、結果ZIP内 `current-p1-original.zip` とP1実ZIPがバイト完全一致。結果ZIP内 `first-p0-original.zip` も先行初回P0 artifact `13428142302` の元実ZIPとバイト完全一致。新しい初回P0を生成・上書きしていない。
+
+第13巡 `status.json.round_no=13/updated_at=2026-11-06 02:16:05 JST`、継続 `completed_round=12/prepared_round=13` なので**第13巡は保存確認のみ、独立読戻し完了は第12巡まで**。11/06公式日程13場156レース、P0=312モデル別件（156R×2）、P1=0、公式通常結果採点=0、学習版予想=0、同条件成績比較=0、結果観測版=0。展示前であり的中率/回収率/損益は未算出。最新P1監査の次回候補確認は08:20 JST、候補の一部に `VENUE_PROGRAM_STATS_UNSUPPORTED_CONTEXT_ONLY` があり、出走表取得とP1の実生成は混同しない。
+
+**安全上限の未整合：** 現行第13巡の公式GET実数111、保存契約の `source_limit=null/max_rounds=null/stop_at=null` は今回指定された240 GET・24巡/65分の制限と不一致。過去のownerによる上限撤廃記録と現在の定期指示が競合するため、実行中runの取消・上限の無断切替・停止条件回避・新トリガー・rerunは一切実施していない。実差分は前run最終24巡の認証と次run第13巡までの引継ぎ・保全検証のみ。新モデル/PR/workflow/課金/main統合/公開/実投票/本番自動切替なし。今後の展示後実予想・独立保存・結果照合・学習版前向き優位性の成立は未確認。
+
+---
+
 # 2026-11-06 01:29 JST｜展示映像の実験計測・私有保存・画面接続を実装、実映像の自動評価は未完成
 
 既存Draft PR #71の同じブランチで実装した。途中の最新HEAD `24cc6f097452134d5bfe287c3ae1cd9204e5f39f` にあった別作業の監査追記をfast-forwardで取り込み、履歴を保全。新PR・外部タスク・workflow・モデル系統・有料サービスは追加していない。
