@@ -121,3 +121,12 @@ The owner explicitly requested no retrieval count limit. This supersedes the ear
 - [x] Expose explicit unlimited count metadata/status, retain legacy stopped-reason interpretation and test browser rendering without generationPOST.
 - [x] Run focused and full Python/Node/browser checks; independent review current source and safe evidence. Keep live originals unchanged and do not reset/restart the active GitHub worker.
 - [x] Record implementation vs active-run rollout separately in RACE_AI_LATEST_STATUS.md. Current publicrun41964059991 is pinned to olderheadfea5b2a4; local edits cannot retroactively alter it. No push, environment publication, new workflow/task/PR/model or paid service.
+
+## Owner-approved rollout of count-limit removal (2026-11-05)
+
+The owner explicitly approved pushing the reviewed changes to existing Draft PR71 and applying them to the next existing workflow run. This supersedes the prior pending-push gate for this reviewed code only; it does not authorize main merge, app/environment publication, bets, paid services, or production model promotion.
+
+- [x] Recheck public HEAD/single writer/queues and preserve all concurrent work and originals.
+- [x] Verify frozen source hashes, fresh Node179 and focused Python policy/contract tests, and independent privacy review.
+- [ ] Push one fast-forward change with exactly one trigger append, same existing workflow/concurrency/cancel false.
+- [ ] Observe the exact-head successor queue/start, verify null GET-limit metadata from saved artifacts, then record applied/pending/remaining conditions.
