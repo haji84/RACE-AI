@@ -1,0 +1,14 @@
+{
+  "schema": "RACE_AI_AUTORACE_RESEARCH_SHA_AUDIT_V1",
+  "race_id": "autorace:2026-11-05:sanyo:2",
+  "phase": "A_PRE_TRIAL_INPUT_NO_SAME_DAY_TRIAL_USED",
+  "model_id": "autorace-personal-observed-baseline-v1",
+  "generated_at_claim_jst": "2026-11-05T09:10:41+09:00",
+  "cutoff_at_claim_jst": "2026-11-05T11:11:00+09:00",
+  "input_sha256": "61d12ba6b09fef3516ff25fcdc83fbb8ceea9cb67b1f0c574adebee33a4be8ee",
+  "prediction_sha256": "ba69c735b474e3a9338953966c05f91e929e5a3b91485564f71b8913147f8aec",
+  "private_original_path": "/RACE-AI/AutoracePrivate/autorace_20261105_sanyo_2R_A_assistant_observed_RESEARCH.json",
+  "evidence_classification": "RESEARCH_ONLY_NO_FORMAL_INDEPENDENT_PRE_TRIAL_RECEIPT",
+  "trials_used": false,
+  "forecast_tickets_public": false
+}
