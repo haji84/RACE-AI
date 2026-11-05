@@ -15,6 +15,25 @@ V1の624研究原本は隔離して保全。V2は156R×2モデル×2版=624研�
 BOATERSの明示的な取得制限と運営許可未取得を確認し、既存の公式B/K経路で2026-08-07〜11-04の90日・180原本を私的に保存。通常13,090R、例外/未確認1,046R、選手1,609名の出走事実84,246件を取り込んだ。原本・DB・買い目は公開しない。締切改訂の評価ビューで11/5の通常採点を637→641モデル別行へ整合し、旧予想は不変。
 
 11/6全156R×既存2モデル×元版/直近履歴版の624研究予想を同時刻・8点で別保存した。直近着順489/936艇・ST932/936艇で利用。未来結果、正式外部receiptへの接続、モーター交換周期、全4競技・常時自動運用・期限なし私有保全は未達。本番モデルや稼働中workerを変更しない。公開は[SHAのみの事前監査](../audit/freezes/2026-11-06/official-history-research-pairs-sha-only.json)。[取得経路・使用方法・受入境界](BOAT_HISTORY_PDCA_20261106.md)。
+
+---
+
+# 2026-11-06 07:27 JST｜前run24巡完走・現run第16巡の実原本照合（新予想・結果・学習増分0）
+
+対象：既存Draft PR #71、branch `feat/four-sport-forecast-audit-view-20261022`、workflow `405276784`。監査直前PR HEAD `960bdeac629e4811c4bf6ac71a4b3d8dfa8ef215`。GitHub Actions対象run一覧（最新100件から当該workflow抽出）で実行中は [run 42114125652](https://github.com/haji84/RACE-AI/actions/runs/42114125652) 1件のみ、queued/pending/waiting=0。前run [42102544987](https://github.com/haji84/RACE-AI/actions/runs/42102544987) はcompleted/success。実行中runのキャンセル・既存runのrerun・後続pushは実施せず、同時writerはAPI上1件。
+
+**保存済み独立照合：** 最新実保存第16巡の結果・PDCA artifact `13458124691` の実ZIP SHA256 `9f4fa35faa20fab8042e8ae952ca43536af16da0ad14e54452d12e95320daec8`、対応P1試行ZIP artifact `13459151142` のSHA256 `64c4b62145d2f7b725837e1e1e50ffc55b930d1bd90568b521cfd8d74dc5a1ea` は、GitHub API digestと実バイトが一致しCRC異常なし。結果ZIP内 `current-p1-original.zip` は別取得P1 ZIPの実バイトSHA一致。内部 `first-p0-original.zip` も当日初回P0原本 artifact `13428142302` の**別取得実ZIP**とバイト一致。初回P0元ZIP SHA `6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc`、`forecasts.json` SHA `e9ef52b153f8648aedec59fb3233d2405528e862858b211b754801d409ce0860` は既存 `docs/evidence/2026-11-06/p0-first-receipt.json` と一致。初回原本の再生成・上書きはなし。結果内 `status.json.round_no=16/updated_at=2026-11-06 07:25:32 JST`、`bounded_repeat_session.completed_round=15/prepared_round=16`。**第16巡は別保存と独立ハッシュの成立まで、第15巡まで読戻しreceipt成立、現runの全24巡完走は未認定。**
+
+**前runの最終読戻し：** 最終継続artifact `13454938639` 実SHA256 `2e01672cd9e49f83c9005eedb87907e964cd27c08a3ff6ab3abc2084fb485940`、最終第24巡結果ZIP `13454639202` SHA256 `f341595ffce41fd9696534c58e8a3ea70f862998f79fa9b080f11516f8de7f57`、対応P1試行ZIP `13454988553` SHA256 `f3c19f72f6e907bfdd3710035abac1d1c5fc4507c409415beeec25f4ce225039`。3件の実ZIP SHAがAPI digestと一致、CRC正常。継続 `repeat-session.json` に `completed_round=24/prepared_round=null`、24件の `verified_at` receiptあり。前run24巡読戻しを認定。
+
+**本日の事前予想・成績：** 公式日程台帳13会場156R、P0既存2系統312モデル別件（`forecasts.csv`実312行、`model_coverage.total_saved_forecasts=312`一致）、展示後P1=0、公式確定結果観測=0、通常結果採点=0、学習版=0、未来ペア比較=0。 `coverage_audit` は未来156R・締切済0、 `automatic_learning.state=INSUFFICIENT_VERIFIED_RACES`、 `external_research_summary.state=NO_AUDITED_IMPORT_MANIFEST`。最終候補理由 `NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES`、次確認予定08:20 JST。的中率・回収率・収支の新値は計算不能。過去日の値の持越し・結果後予想・未確認結果を不的中扱いすることはしない。
+
+**未整合と非公開保全:** 現保存セッション公式GET実数156だが `source_limit=null/max_rounds=null/stop_at=null`、既存workflow timeout360分と定期指示240GET/24巡/65分は矛盾したまま。GitHub Actions `concurrency.group=boat-nationwide-cutoff-20261103/cancel-in-progress=false`。他の直接指示（上限撤廃）も既存記録に存在するため、稼働中runを止めたり、停止条件回避の新runを押したり、無検証でコード/設定を巻き戻さない。本人専用Driveの指定フォルダはowner権限1件・shared=falseと今回直接照合したが、既存runの継続原本ZIP1件追加はLibraryの `container_session_expired` で失敗。connector-to-connector経路も `BLOCKED_FILE_REFERENCE`。**今回のDrive新規保全0件。** 公開GitHubへの私有URL・個人ID・予想本文・生ソース等は転載しない。
+
+次の実用判定：08:20以降に公式展示が実際に揃った適格未来レースを締切順に選び、既存5系統P1を締切210秒以上前に独立保存、結果は後イベントで別原本・改訂履歴照合。検証済み通常結果のみから観測相性2系統の係数候補を作り、独立学習元照合後に未来同条件で比較する。新タスク・実行頻度・新workflow/PR/モデル/課金・外部サービス・main統合・公開・投票・本番自動切替なし。
+
+---
+
 # 2026-11-06 06:25 JST｜当日第20巡の実ZIP検証と前worker24巡の引継ぎ監査（新P1・採点増分なし）
 
 対象は既存Draft PR #71、同一workflow 405276784、GitHub上の確認HEAD `ea8b71dad0bf9dced24d3cf4ffce23eae015fb88`。確認時のrun [42102544987](https://github.com/haji84/RACE-AI/actions/runs/42102544987) は `in_progress` 1件、対象workflow直近100件にqueued/pending/waitingなし。前run [42090917336](https://github.com/haji84/RACE-AI/actions/runs/42090917336) は `completed/success`（05:19:12 JST）。前run最終継続artifact `13450426983` を実ZIPバイトで独立取得し、GitHub API digestとSHA256 `db7f17ed2b1814333210f4d88fd21c3d7f5d1eb5bbc4ff27bd2171e436fdbc11` が一致、ZIP CRC正常。内部 `repeat-session.json` は `completed_round=24/prepared_round=null`、第24巡の別保存読戻しreceiptを保持。前run24巡完走を認定。
