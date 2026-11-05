@@ -1,3 +1,13 @@
+# 2026-11-05 23:47 JST｜オーナー指示で開発中の継続運転を再開、既存workerを停止しない
+
+オーナーの直接指示「自動運転は開発中も止めないで」を受領し、先の取消についての意図確認待ちは解消した。既存Draft PR71の最新HEAD・別作業の監査追記を確認し、原本と文書を保全して取り込んだ。GitHubの前run41979370711の最終continuity artifact13395880555を認証し、prepared_round/source_wait/停止理由がnull、完了21巡、同run334取得・累計616取得/43巡を確認した。active/queued/pending/waitingなしを再確認し、既存triggerへ1件だけ追記した。
+
+**実再開：** [同じworkflow405276784のrun42047977632](https://github.com/haji84/RACE-AI/actions/runs/42047977632)はin_progress。起動commitは `0fbb642b744319320f317f9bf0b34beed25fce4d`。新規workflow・外部タスク・モデル系統・有料サービスは追加せず、同じconcurrency/単一writerを維持する。アプリPID157669と監視processは終了・reloadしていない。コード22ファイルの検証済みSHAは不変、既存supervisor回帰25件合格。再開は新予想保存や24時間無欠落の証明ではなく、対象の締切前実生成・保存は次の適格入力から別に検証する。
+
+**今後の開発方針：** 開発commit・テスト・source-only pushを理由に現行runや監視processを止めない。現workerは固定SHAのコードで完了し、検証後の差分を同じworkflowの次workerへ引き継ぐ。日付・物理workerの切替で原本、初回レシート、カウンター、取得元の待機を保全する。過去の監査文書に残る240/45取得・24巡/65分制限を、現在のオーナー指示に反して再適用しない。[運用方針](LOCAL_FORECAST_GENERATION.md)へ記録した。HTTP待機・真正性・締切・原本保存は継続し、未取得を成功や的中率98%へ変換しない。main統合・公開・実投票・本番モデル切替なし。
+
+---
+
 <!-- RESULT_SOURCE_RECHECK_20261105_2341 -->
 # 2026-11-05 23:41 JST｜旧SOURCE_OR_PARSE_UNAVAILABLE 3競走の公式Web結果を再確認（正式採点への反映なし）
 
