@@ -1,3 +1,15 @@
+# 2026-11-06 01:11 JST｜本日P0原本312件を照合、既存第15巡の保存結果を独立確認
+
+**11月6日分の差分（前日の698件に加算しない）:** 公式日程13場156レースを対象に、観測相性・ST重視相性の既存P0 2モデル×156R=**312モデル別事前予想**が初回原本として保存済み。初回GitHub artifact `13428142302` のAPI登録SHA256と実ZIPバイトSHA256が `6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc` で一致、ZIP CRC正常。内包 `forecasts.json` のSHA256 `e9ef52b153f8648aedec59fb3233d2405528e862858b211b754801d409ce0860` は既存 `docs/evidence/2026-11-06/p0-first-receipt.json` に記録された初回索引と一致。元のサーバー登録時刻は **2026-11-06 00:27:45 JST**。第15巡の結果原本内 `first-p0-original.zip` は初回原本ZIPと**実バイト完全一致**し、後付け再生成ではないことを照合。P0 312件は2026-11-05の採点済み637件とは別の日の事前保存件数。
+
+**既存run:** [42055132384](https://github.com/haji84/RACE-AI/actions/runs/42055132384) は確認時 `in_progress`。同workflow `405276784` の直近Actions一覧で `queued/pending/waiting` 後続runなし、他の同時writerなし。実行HEAD `f15448d0a00887cff9153a3398b18a3b0761a04e`。第15巡の結果artifact `13432322427` はGitHub API digest `74f7f5635aa55ce560ef5ace8e62db816b4dcde337a93c5fd8782829851a852a` と実ZIP SHA256一致、CRC正常。内包 `status.json.round_no=15`、`updated_at=2026-11-06 01:10:25 JST`、`bounded_repeat_session.completed_round=14/prepared_round=15`。**独立読戻し完了の証跡は第14巡まで**であり、最新第15巡の保存成功とrun全体の完走を混同しない。
+
+**結果・学習・網羅:** 11/06対象156Rは確認時点で全て未来。基準P0=312件、展示後P1=0、通常結果採点0、学習版予想0、同条件の未来結果比較0。よって的中率・回収率・収支は未算出。第14巡公式予想ZIPは `NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES`、`next_check_at=2026-11-06T08:20:00+09:00`。展示が未公表か取得不能かは各レースの実観測で要確認。P1がないことを外れ扱いしない。全16系統・他3競技の実接続・期限なし非公開保全・学習版の未来優位性は未実証。
+
+**停止条件の明示的な衝突:** 現runの保存セッションは第15巡時点`requests_used=142`（累積954）、`source_wait=null/halted_reason=null`で、GET実績自体は240未満。しかし適用コードは`source_limit=null`、`max_rounds=null`で、workflow `timeout-minutes: 360`は今回指示された240 GET・24巡/65分の契約と一致しない。過去のownerによる撤廃記録とも競合するため、この監査は稼働中runを取消・上限回避・rerunせず、別後続を予約しない。誤設定のまま安全上限が実効的に守られたとは認定しない。モデル係数、過去買い目、原本、スケジュール、他タスク、新PR/workflow/課金/本番切替は変更なし。
+
+---
+
 # 2026-11-06 00:31 JST｜次worker42055132384への引継ぎ完了・11月6日朝版312予想の保存/読戻しを確認
 
 オーナーの「次のWorkerへ引き継いで」に従い、前workerの正常終了・activeなし・最終原本/待機/カウンターを確認し、既存Draft PR71へ引継ぎ修正 `f15448d0a00887cff9153a3398b18a3b0761a04e` を適用した。[同じworkflow405276784の後続run42055132384](https://github.com/haji84/RACE-AI/actions/runs/42055132384)はin_progress。**第1巡がsuccess、第2巡へ進行**をActionsで確認した。別workflow・モデル系統・外部タスク・サービスは追加していない。
