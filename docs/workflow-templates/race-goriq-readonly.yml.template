@@ -1,0 +1,104 @@
+# INACTIVE TEMPLATE: keep outside .github/workflows until existing owner gates pass.
+name: RACE GORIQ read-only advisory
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        required: true
+        type: string
+      head_sha:
+        required: true
+        type: string
+      base_sha:
+        required: true
+        type: string
+      ci_run_id:
+        required: true
+        type: string
+permissions:
+  contents: read
+  pull-requests: read
+  actions: read
+concurrency:
+  group: race-goriq-readonly
+  cancel-in-progress: false
+jobs:
+  review:
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      github.event.repository.private == false &&
+      github.actor == github.repository_owner &&
+      vars.RACE_AI09_READONLY_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 70
+    steps:
+      - name: Validate explicitly approved source and request
+        id: source
+        env:
+          TRUSTED: ${{ vars.RACE_AI09_TRUSTED_REF }}
+          PR: ${{ inputs.pr_number }}
+          HEAD: ${{ inputs.head_sha }}
+          BASE: ${{ inputs.base_sha }}
+          CI: ${{ inputs.ci_run_id }}
+        run: |
+          node --input-type=module <<'NODE'
+          import {writeFileSync,appendFileSync} from 'node:fs';
+          const {TRUSTED,PR,HEAD,BASE,CI,GITHUB_OUTPUT,RUNNER_TEMP}=process.env;
+          const sha=/^[a-f0-9]{40}$/;
+          const number=s=>/^[1-9][0-9]*$/.test(s??'') && Number.isSafeInteger(Number(s));
+          if(!sha.test(TRUSTED??'') || !sha.test(HEAD??'') || !sha.test(BASE??'') ||
+            TRUSTED===HEAD || HEAD===BASE || !number(PR) || !number(CI))throw Error('HOLD_INVALID_SCOPE');
+          writeFileSync(RUNNER_TEMP+'/race-ai09-request.json',JSON.stringify({repository:'haji84/RACE-AI',
+            prNumber:Number(PR),headSha:HEAD,baseSha:BASE,ciRunId:Number(CI)}));
+          appendFileSync(GITHUB_OUTPUT,'trusted='+TRUSTED+'\n');
+          NODE
+      - name: Checkout separately reviewed adapter only
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ steps.source.outputs.trusted }}
+          persist-credentials: false
+      - name: Check runner, Node, pins and entire diff before downloading a model
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          TRUSTED: ${{ steps.source.outputs.trusted }}
+        run: |
+          set -euo pipefail
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          test "$RUNNER_OS" = Linux
+          test "$RUNNER_ARCH" = X64
+          test "$(git rev-parse HEAD)" = "$TRUSTED"
+          node -e 'if(Number(process.versions.node.split(".")[0])<22)throw Error("NODE_22_REQUIRED")'
+          node scripts/race-goriq-review.mjs --preflight "$RUNNER_TEMP/race-ai09-request.json"
+      - name: Reuse GORIQ SHA256-pinned Ollama binary
+        run: |
+          set -euo pipefail
+          curl --fail --location --silent --show-error --max-time 300 \
+            https://github.com/ollama/ollama/releases/download/v0.34.0/ollama-linux-amd64.tar.zst \
+            -o "$RUNNER_TEMP/ollama.tar.zst"
+          echo "cf95886728959aa09910bb34de5cca1cc5a8f68003b5597197d3f2c2d57c0804  $RUNNER_TEMP/ollama.tar.zst" | sha256sum -c -
+          sudo tar --zstd -xf "$RUNNER_TEMP/ollama.tar.zst" -C /usr
+      - name: Start bounded loopback model only
+        env:
+          OLLAMA_HOST: 127.0.0.1:11434
+          OLLAMA_NUM_PARALLEL: '1'
+          OLLAMA_MAX_LOADED_MODELS: '1'
+          OLLAMA_KEEP_ALIVE: 5m
+        run: |
+          set -euo pipefail
+          ollama serve >"$RUNNER_TEMP/ollama.log" 2>&1 &
+          echo "RACE_OLLAMA_PID=$!" >> "$GITHUB_ENV"
+          ready=0
+          for attempt in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:11434/api/tags >/dev/null 2>&1; then ready=1; break; fi
+            sleep 2
+          done
+          test "$ready" = 1
+          timeout 480s ollama pull qwen2.5-coder:3b
+      - name: Review fixed diff with GORIQ; output advisory only
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/race-goriq-review.mjs --review "$RUNNER_TEMP/race-ai09-request.json"
+      - name: Stop local model
+        if: always()
+        run: |
+          if [[ "${RACE_OLLAMA_PID:-}" =~ ^[0-9]+$ ]]; then kill "$RACE_OLLAMA_PID" 2>/dev/null || true; fi
