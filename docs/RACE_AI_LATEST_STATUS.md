@@ -1,3 +1,15 @@
+# 2026-11-06 00:31 JST｜次worker42055132384への引継ぎ完了・11月6日朝版312予想の保存/読戻しを確認
+
+オーナーの「次のWorkerへ引き継いで」に従い、前workerの正常終了・activeなし・最終原本/待機/カウンターを確認し、既存Draft PR71へ引継ぎ修正 `f15448d0a00887cff9153a3398b18a3b0761a04e` を適用した。[同じworkflow405276784の後続run42055132384](https://github.com/haji84/RACE-AI/actions/runs/42055132384)はin_progress。**第1巡がsuccess、第2巡へ進行**をActionsで確認した。別workflow・モデル系統・外部タスク・サービスは追加していない。
+
+**実保存・独立読戻し：** 11月6日00:27:45 JSTに156レース×既存観測相性2モデルの **朝版312予想** を保存。P0 artifact13428142302の実ZIP SHA/API digestは `6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc`。結果/状態artifact13428811891の実ZIP SHA/API digestは `c21c4daaf077ee0dcc05ae8ea67a2523ef23cfccecf0060989fe33c6d577df29`。双方を再取得し、既存readerで日付・モデル・締切前時刻・原本形式を確認した。朝版2モデルの実保存であり、4競技/全モデル完備や展示後/T−15〜T−10保存の実証へ広げない。
+
+前workerの累計 **812GET/47巡** をbaseとして継承し、第1巡結果snapshotは当run16GET・累計828GET、source_wait/halted_reason null、取得/巡回/時間上限null。結果ZIPはcommit前のprepared_round1/completed0を保存しており、それを最終状態とは呼ばない。第1巡の読戻し完了と次巡開始はActions側のsuccessで別確認した。既存アプリPID157669を維持し、auto enabled/continuous=true、state=RUNNING、active_run_id=42055132384、停止理由nullを確認した。[引継ぎ証拠](evidence/2026-11-06/worker-handoff-repair/successor-first-round-readback.json)。
+
+旧原本を削除・上書きせず、監視processを終了・再起動せず、新workerへ渡した。新しいcompact最終artifactは当workerの正常終了時に発行されるため、その実レシートと次々workerによる受理はまだ未検証。ローカル実原本での旧32MiB契約互換は直下の修復記録を参照。main統合・一般公開・実投票・本番モデル切替なし。
+
+---
+
 # 2026-11-06 00:21 JST｜次worker引継ぎのサイズ不具合を修正、原本を保全して適用
 
 オーナーの「次のWorkerへ引き継いで」に基づき調査した。前worker42047977632は2026-11-06 00:00:28 JSTにsuccessで終了したが、最終continuity artifact13427340610が **36,517,292 bytes** と旧32MiB読取境界を超え、既存supervisorが `SUPERVISOR_STATE_OR_CHECKPOINT_UNAVAILABLE` で待機していた。原因は過去のsource-control ZIPを次のZIPへ重複して含める構成だった。

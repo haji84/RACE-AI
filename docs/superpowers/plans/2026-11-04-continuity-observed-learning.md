@@ -62,4 +62,4 @@ Implementation choice: accept existing legacy continuity checkpoints up to128MiB
 - [x] RED/GREEN legacy-large authenticated checkpoint, wrong digest/repository/CRC/session and unchanged ordinary-artifact limits.
 - [x] RED/GREEN compact exact-byte publication, absent/invalid control, symlink/overwrite rejection, source preservation and existing-workflow wiring.
 - [x] Replay actual predecessor and compact handoff; run full Python tests and independent review, preserve tested source hashes/evidence.
-- [ ] Apply to existing PR71 after fresh single-writer checks, verify next actual worker and preserved source counters/waits, record status without restarting app or creating another workflow/model/service.
+- [x] Apply to existing PR71 after fresh single-writer checks, verify next actual worker and preserved source counters/waits, record status without restarting app or creating another workflow/model/service.
