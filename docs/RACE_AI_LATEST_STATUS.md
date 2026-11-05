@@ -1,3 +1,20 @@
+# 2026-11-05 11:27 JST｜既存run第17巡回まで独立照合・P1+90/通常採点+98・上限停止
+
+
+対象：既存Draft PR #71 / workflow 405276784 / run `41949401478`（実行HEAD `74572f2f304f9122cff987b05001b4455c29780c`）。同runは11:24:53 JSTに `completed/success`、ログの `ROUND_SAVED_AND_READBACK_VERIFIED` は**第17巡回まで**。第18〜24巡回は `SESSION_SOURCE_BUDGET_EXHAUSTED` で実行せず。第17巡回結果ZIP内の `bounded_repeat_session.completed_round=16` は保存時点の途中状態で、最終continuityの `completed_round=17` とActions完了ログを別途照合済み。
+
+独立再取得した第17巡回P1元ZIP：artifact `13382273973` / API digest・実ZIP SHA256 `9cbc7ac048bad16465cde4a52e5553e3b76848a98a8bea84242f05d7047c9f57`。別イベント結果/PDCA ZIP：artifact `13382722611` / `759a7c3bea91eafa4c9c75171be43d28c340c67cd84a1c3c187df28baaac5893`。最終continuity：artifact `13383015886` / `92e43ef2db8a127ae52d9ba19a1b6e0e094680bb3d0b38267bbb4ed4d9f4c10e`。3ZIPとも実バイトSHA256一致・ZIP CRC正常。第17巡回の `status.json.round_no=17`、`updated_at=2026-11-05T02:24:33Z`。元P0埋込みZIP SHA256は `3a8bde638b93b61cbe21843bff5f3dbaf120c486b45f39efc3ea3a78f89034ab` で既存初回P0と一致。P0再生成なし。予想ZIPの実バイトSHAも結果ZIP内埋込みP1と一致。
+
+**11/05確定済み保存値**：基準予想443モデル別行＝初回P0 288＋展示後P1 **155（31レース×既存5モデル）**。前回10:35記録の353/P1=65から **P1+90行（18レース分）**。通常結果採点 **140行（HIT68/MISS72）**、前回42から **+98行**。未確認 `RESULT_PENDING` 294行、異常着順レビュー9行を外れにしない。保存 `forecasts.csv`・`model_coverage.json`・`status.json` の基準443行一致。7系統×20通常採点行は**20種類のレース**であって140レースではない。公式結果観測履歴59版（59種類のレースとは限らない）。保存済み8点と結果3連単・100円払戻の再計算は140通常行で内部記録と整合。公式サイトへの新規独立再照会まではしていない。
+
+**自動学習と未来比較**：独立確認済みの異なる通常結果20レースを時系列でtrain15・未使用validation5に分割、`automatic_learning.state=FITTED_SHADOW_ONLY`。既存観測相性2系統のみの研究係数版、基準5モデルの式・買い目は不変。LEARNED_SHADOW 30モデル別行（15レース）、同条件通常採点10モデル別行（異なる5レース）。**基準/学習版とも4的中、100円払戻合計とも12,780円**。学習版優位性なし。比較30行が参照する異なる学習元11 artifact ZIPを独立再取得し、各GitHub digest/ZIP CRC/`trained_observed_models.json.training_sha256`を照合。学習元サーバー保存時刻 < 予想元入力as_of < P1予想保存時刻 < 公式締切、同レースが学習/検証IDに含まれないこと、基準側8点同一性を30行で再検算し矛盾0。学習版の後付け採用、本番自動切替なし。少数例の同点は統計的な同等性証明ではない。
+
+`coverage_audit` は日程144レース、締切済み28、未来116、展示後5モデル完備27レース、締切済み `20261105-10-02` にP1不足5モデル行を保持。該当時点の展示公開可能性は未検証。外部研究は `NO_AUDITED_IMPORT_MANIFEST`、他3競技は `LIVE_INPUT_INTEGRATION_NOT_YET_VERIFIED`。
+
+**停止と保全**：最終continuityは `requests_used=240/source_limit=240`、`halted_reason=SESSION_SOURCE_BUDGET_EXHAUSTED`。上限を回避するトリガーpush・rerun・キャンセルなし。本人専用Driveのroot/フォルダの所有者一致・双方shared=false・ownerのみを実再確認し、既存14ファイルを保持。ただし最新第17巡回ZIPのDrive新規保全は `BLOCKED_FILE_REFERENCE` により未達（Drive保存成功とは数えない）。GitHub artifact7日保持を無期限保全と呼ばない。全16系統・全4競技・全P1・学習版の前向き優位性・期限なし非公開保存も未完成。新task/PR/workflow/頻度/モデル/課金/main統合/公開/実投票なし。
+
+---
+
 # 2026-11-05 10:35 JST｜最新完了run第22巡回の原本独立検証・P1+50/通常採点+35、既存後続1件起動
 
 対象：既存Draft PR #71、同一branch `feat/four-sport-forecast-audit-view-20261022`、既存workflow 405276784。前run `41940044369` は10:22:25 JST `completed/success`、実行HEAD `d481d0fe275dbd640d9b2d9858e6dff541206877`。全artifact一覧から最大保存巡回が **第22巡回** であることを確認（第23・24巡回は `BOUNDED_SESSION_END` により未処理）。GitHub jobログに `ROUND_SAVED_AND_READBACK_VERIFIED`・round22・予想353・通常採点42・179 GETを確認。
