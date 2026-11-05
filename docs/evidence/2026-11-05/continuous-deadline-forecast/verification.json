@@ -46,7 +46,7 @@
     ".github/workflows/boat-free-runtime-check.yml": "d1ee7d5c60945a19e938be59749972105cd6a7600b2abc884ca7bef6093e317a",
     ".github/workflows/boat-html-parity-one-shot.yml": "ded61ac0673053e51e88184b46a197360921d7c6ad9a51c75b4cc2bf99209c2f",
     ".github/workflows/boat-html-triad-one-shot.yml": "bc2142dc0518eb7f239af54f127af130d848a94bdbc2af180e3aeba93e49bad7",
-    ".github/workflows/boat-nationwide-ab-one-shot.yml": "92074755bbf8ac71a65f974b2e299fee056d94d8f0c0cb2e49dea30ef85f1300",
+    ".github/workflows/boat-nationwide-ab-one-shot.yml": "9f4146e1dadec0f32c351567af5e730e094c26dd0b89886a2b84ebb9a582fc95",
     ".github/workflows/boat-nationwide-result-one-shot.yml": "426fe844c04183797f75b1c6b5a2af2ccbc3de23b179e86852a89f77301bd5c1",
     ".github/workflows/boat-parser-contract-one-shot.yml": "2e1f3569bcfbd5d5923b7cff61c466997418224c55de85049ef99ff7b7a7850d",
     ".github/workflows/boat-real-one-shot.yml": "709673a5d79a01e7b3f6df23197889ba08640fb576afe67d474ec9bc588d5b6d",
@@ -176,5 +176,10 @@
   "all_four_sports_live_verified": false,
   "whole_day_no_gaps_verified": false,
   "model_production_promoted": false,
-  "actual_wager": false
+  "actual_wager": false,
+  "followup_workflow_environment_validation": {
+    "tests": 160,
+    "failures": 0,
+    "scope": "production day pinned after synthetic tests, before first real input"
+  }
 }

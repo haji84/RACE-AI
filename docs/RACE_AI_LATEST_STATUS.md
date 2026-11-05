@@ -1,3 +1,27 @@
+# 2026-11-05 15:24 JST｜連続予想版を既存PR71へ適用・実20予想を自動保存、1レースは締切13分22秒前
+
+オーナーの「その上限や停止もなし」「常に新しいレース」「できれば締切15〜10分前」に基づき、既存Draft PR #71へ連続版a1b980aと起動修正**5ef86817daea89544d03f462f58110e1222a9518**をpushした。[同じ既存workflow405276784のrun41979370711](https://github.com/haji84/RACE-AI/actions/runs/41979370711)は稼働中。**第1巡がcompleted/success、第2巡へ進行**をActions APIで確認。writerはこのrun1件、追加queued/pending/waitingなし。新PR・Issue・外部開発タスク・workflow・モデル系統・サービス契約は作成していない。
+
+**実保存を確認したこと：** 15:21:38 JSTに4レース×既存基準5モデル＝**20予想**をボタン操作なしで新規保存した。従来の3レース打切りを超えている。15:35締切の1レースは**13分22秒前**に独立GitHub artifactへ保存し、実取得→生成→保存の時系列を確認。残り3レースは目標後の遅延fallback（締切前4分22秒/5分22秒/7分22秒）として区別し、T−15〜T−10達成へ水増ししない。15:21:38のP1 ZIP13393745796の実SHA/API digestは6e642d2996a20b79febb0b479439c6e7476da9d59b8b0a5a83681b4cea93747f。本人の実機表示受領時刻は未証明。
+
+別保存の結果ZIP13392858916（15:21:53 JST、SHA48558655011292f84a6a996a8f28d006d33200beaf47a4b78a6c7f338224d737）から、実runの **source_limit=null / max_rounds=null / stop_at=null**を直接確認。取得は実44回（予想26/結果18）、先行282回を保持してチェックポイント累計326回、source_wait/halted_reasonはnull。物理workerの11:47:13 UTC handoff時刻は継承境界であり論理運転の終了時刻ではない。結果ZIPはrepeat-complete前のprepared_round=1を含み、GitHubの第1巡success/次巡開始で独立ZIP読戻し完了を別に確認した。現run全体の完了・24時間無欠落・実際の次batch自動引継ぎ完了はまだ主張しない。
+
+**アプリ表示まで確認：** 同じクラウド内の既存loopbackサーバーをGitHubモードへ切替え、監視processを実起動。continuous=true/state=RUNNING、取得/巡回/時間上限nullで同runを監視し、静的なコード対応だけで終えていない。15:24時点の私有表示は**144レース・753予想（基準643/研究学習版110、P0 288/P1 465）・結果観測205版**。旧725件すべてのSHA/Top8/全順位/初回保存時刻/原本参照が不変で、新規28件＝基準20＋研究学習版8。未取得の対象総数は不明として表示し、全モデル網羅や精度改善を認定しない。
+
+390/1440幅の実ブラウザでP0/P1の保存件数・選択原本SHAをAPIと照合し、自動表示、生成ボタン非表示、POST0・画面エラー0を確認。実スクリーンショットは本人私有領域のみ。旧nativeの288件DB SHA c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a・元取得3回を保全し、native入力providerを起動せず二重生成していない。
+
+初回run41979177157は、本番日付の環境変数を合成未来日テストへ渡す配置ミスで事前試験1件が失敗した。公式GET/新規予想0のまま終了。原因を再現し、実日付pinをunit test後・原本preflight前へ移動、関連160件成功を確認して5ef8681で修正した。修正版のViewer CI41979378870、AUTORACE CI41979378874はいずれもsuccess。全Python1036/Node179/合成39操作群の検証を迂回して本処理へ進めていない。
+
+| 区分 | 現状 |
+| --- | --- |
+| 完了 | 論理上限撤廃、T15/T10優先・全適格候補巡回、待機/カウンター/原本の継承、監視process起動、初回20実予想と別結果保存、753件の実画面読戻し |
+| 継続検証 | 24巡/65分超の実運転、実際の次batch/翌日引継ぎ、全日P1無欠落、前向き精度改善の優位性、私有保管の継続性 |
+| 未完成・外部条件 | 他3競技の適格な当日入力、全16系統×全レース実運転、実機Safari。クラウド停止中の稼働は保証せず、取得元のRetry-After/認証/真正性の要確認は守る |
+
+main統合・環境再公開・アプリ一般公開・実投票・本番モデル切替・追加課金なし。[実20予想と保存余裕](evidence/2026-11-05/continuous-deadline-forecast/applied-first-p1.json) / [実run上限値・累計](evidence/2026-11-05/continuous-deadline-forecast/applied-runtime-policy.json) / [監視と単一writer](evidence/2026-11-05/continuous-deadline-forecast/applied-supervision.json) / [725件の原本不変](evidence/2026-11-05/continuous-deadline-forecast/applied-original-preservation.json) / [実画面照合](evidence/2026-11-05/continuous-deadline-forecast/applied-browser-readback.json)。以下は各時点の履歴として保全する。
+
+---
+
 # 2026-11-05 15:14 JST｜連続予想版の最終検証・実原本725件の画面接続（反映直前）
 
 固定GET・論理24巡/65分/日付停止の撤廃、T−15〜T−10優先、既存workerの自動引継ぎと私有表示を実装。凍結ソースでPython **1036件成功**、Node **179件成功**。合成ブラウザは320/390/1440/1920幅・**39操作群/60PNG**、エラー0、元サイトGET0、生成POSTなし。最終状態ラベル変更後も自動表示4群を再検証した。複数agentの独立レビューで見つかった空のP0追加ID・初回取得のhandoff境界・checkpoint欠落・403回復期限・学習版別名入力の再利用判定を修正し、回帰を確認した。
