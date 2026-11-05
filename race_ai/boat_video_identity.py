@@ -32,6 +32,7 @@ MODEL_SPECS = {
                 "sha256": "4b82da9944b88577175ee23a459dce2e26e6e4be573def65b1055dc2d9720186"},
 }
 STATUS = "NUMBER_TEMPORAL_CANDIDATE"
+MIN_NUMBER_CONFIDENCE = .90
 
 
 def _require(condition, message="invalid local boat identity input"):
@@ -229,6 +230,15 @@ class PinnedBoatDetector:
             raise ValueError("local detector inference failed") from None
 
 
+class LocalOCRInferenceError(ValueError):
+    """A safe, per-crop local OCR runtime failure; initialization stays fatal."""
+    def __init__(self, code):
+        _require(code in ("TIMEOUT", "PROCESS_FAILED", "OUTPUT_REJECTED"),
+                 "invalid local OCR inference failure code")
+        self.code = code
+        super().__init__(f"local OCR inference failed: {code}")
+
+
 class LocalTesseractNumberReader:
     """Bounded local crop OCR; exact digits and their geometry remain candidates."""
     def __init__(self, *, tesseract_path, tessdata_path, timeout_seconds=3):
@@ -271,7 +281,8 @@ class LocalTesseractNumberReader:
                            "-l", "eng", "--psm", str(mode), "-c", "tessedit_char_whitelist=123456",
                            "-c", "load_system_dawg=0", "-c", "load_freq_dawg=0", "tsv"]
                 remaining = deadline-time.monotonic()
-                _require(remaining > 0, "local OCR timeout")
+                if remaining <= 0:
+                    raise LocalOCRInferenceError("TIMEOUT")
                 completed = subprocess.run(command, input=encoded.tobytes(), capture_output=True,
                                            check=True, timeout=remaining)
                 _require(len(completed.stdout) <= 262144, "local OCR output is too large")
@@ -283,7 +294,7 @@ class LocalTesseractNumberReader:
                         continue
                     confidence = float(row["conf"])/100
                     x, y, w, h = (float(row[key]) for key in ("left", "top", "width", "height"))
-                    if not (0 <= confidence <= 1 and w >= 1 and h >= 1
+                    if not (MIN_NUMBER_CONFIDENCE <= confidence <= 1 and w >= 1 and h >= 1
                             and 0 <= x < x+w <= rw and 0 <= y < y+h <= rh):
                         continue
                     found.append({"text": row["text"], "score": confidence,
@@ -291,8 +302,14 @@ class LocalTesseractNumberReader:
                 if found:
                     return found[:32]
             return []
-        except (OSError, subprocess.SubprocessError, UnicodeError, KeyError, TypeError, ValueError):
-            raise ValueError("local OCR inference failed") from None
+        except LocalOCRInferenceError:
+            raise
+        except subprocess.TimeoutExpired:
+            raise LocalOCRInferenceError("TIMEOUT") from None
+        except (OSError, subprocess.SubprocessError):
+            raise LocalOCRInferenceError("PROCESS_FAILED") from None
+        except (UnicodeError, KeyError, TypeError, ValueError, csv.Error):
+            raise LocalOCRInferenceError("OUTPUT_REJECTED") from None
 
 
 def _homography(value):
@@ -325,6 +342,18 @@ def _predicted_box(track, matrix, duration):
     xs, ys = zip(*points)
     box = [min(xs), min(ys), max(xs)-min(xs), max(ys)-min(ys)]
     return box if min(box[2:]) > 0 else None
+
+
+def _association_cost(predicted, box):
+    """Use the same geometry bounds for assignment and OCR interruptions."""
+    if predicted is None:
+        return None
+    distance = math.dist(_center(predicted), _center(box))
+    gate = max(12., 1.5*math.hypot(predicted[2], predicted[3]))
+    ratio = box[2]*box[3]/(predicted[2]*predicted[3])
+    if distance <= gate and .5 <= ratio <= 2:
+        return distance/gate + .4*(1-_iou(predicted, box)) + .2*abs(math.log(ratio))
+    return None
 
 
 def _assignment(costs, forbidden=None):
@@ -385,7 +414,7 @@ class BoatIdentityProvider:
         for row in rows:
             if not (type(row) is dict and set(row) == {"text", "score", "box"}
                     and type(row["text"]) is str and row["text"] in ("1", "2", "3", "4", "5", "6")
-                    and _finite(row["score"]) and .90 <= row["score"] <= 1):
+                    and _finite(row["score"]) and MIN_NUMBER_CONFIDENCE <= row["score"] <= 1):
                 continue
             try:
                 px, py, pw, ph = _box(row["box"], c-a, d-b)
@@ -427,11 +456,17 @@ class BoatIdentityProvider:
                 if _iou(row["box"], raw[j]["box"]) >= .2:
                     blocked.update((i, j))
                     flags.add("OVERLAPPING_HULL_CANDIDATES")
-        observed = []
+        observed, failed_ocr = [], set()
         for index, row in enumerate(raw):
             if index in blocked:
                 continue
-            number, ambiguous = self._number(frame, row["box"], overlays)
+            try:
+                number, ambiguous = self._number(frame, row["box"], overlays)
+            except LocalOCRInferenceError as error:
+                flags.add(f"LOCAL_OCR_{error.code}")
+                blocked.add(index)
+                failed_ocr.add(index)
+                continue
             if ambiguous:
                 flags.add("AMBIGUOUS_NUMBER_MARKS")
                 blocked.add(index)
@@ -461,7 +496,12 @@ class BoatIdentityProvider:
                 if not any(row["number"] is not None and row["number"]["number"] == old["number"]
                            for row in observed):
                     continue
-            surviving.append({**old, "requires_current_number": conflicting_number})
+            # A failed hull may have moved within the normal association gate.
+            # Only a fresh matching mark can anchor a nearby healthy old track;
+            # an unread neighbor must not receive the interrupted identity.
+            failed_neighbor = any(_association_cost(predicted, raw[index]["box"]) is not None
+                                  for index in failed_ocr)
+            surviving.append({**old, "requires_current_number": conflicting_number or failed_neighbor})
         previous = surviving
         costs = []
         for old in previous:
@@ -473,11 +513,7 @@ class BoatIdentityProvider:
                 if (predicted is not None and not (old["requires_current_number"] and digit is None)
                         and not (digit is not None and old["number"] is not None
                                  and digit["number"] != old["number"])):
-                    distance = math.dist(_center(predicted), _center(row["box"]))
-                    gate = max(12., 1.5*math.hypot(predicted[2], predicted[3]))
-                    ratio = row["box"][2]*row["box"][3]/(predicted[2]*predicted[3])
-                    if distance <= gate and .5 <= ratio <= 2:
-                        cost = distance/gate + .4*(1-_iou(predicted, row["box"])) + .2*abs(math.log(ratio))
+                    cost = _association_cost(predicted, row["box"])
                 row_costs.append(cost)
             costs.append(row_costs)
         count, total, pairs = _assignment(costs)

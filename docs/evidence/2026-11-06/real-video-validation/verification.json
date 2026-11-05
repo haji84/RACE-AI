@@ -1,0 +1,294 @@
+{
+  "schema_version": "RACE_AI_REAL_VIDEO_VALIDATION_EVIDENCE_V1",
+  "checked_at": "2026-11-05T23:02:22.043536+00:00",
+  "scope": "ACTUAL_ARCHIVAL_MEDIA_TESTED_NOT_OPERATIONAL_ACCEPTANCE",
+  "tested_base_head": "960bdeac629e4811c4bf6ac71a4b3d8dfa8ef215",
+  "source_sha256": {
+    "race_ai/boat_video_identity.py": "8bba24cef1bd0011d59b21533c46da5d040383e6b9dc180d3c06ea92b1743fdb",
+    "race_ai/boat_video_tracking.py": "2d329a70a3349d45cb753662f2223f77789610bb3d84681d4aabbd7a5ef6ce2a",
+    "race_ai/boat_video_benchmark.py": "a53463b4e4de3b771c66e39ec9ab288af848fb4209bbe144c14fe8c188df56bc",
+    "tests/test_boat_video_benchmark.py": "d6c19aa91f3bbe68d5b0c2827d92a8f836d2a4926ba493d448193b45c3fea5cc",
+    "tests/test_boat_video_ocr_reliability.py": "36c6e38f6600230a2ebfdf61cd4bb023b1a49dc5cf5b51c245ec0a7dafe0d6f8",
+    ".github/workflows/forecast-audit-ui.yml": "d664650cf90e6b0a0198d7fb5b39d8037e290cb6c68395224dd2009ab8f437e4"
+  },
+  "private_evidence_sha256": {
+    "commons_source_ledger": "211395ca427bbe08fe1ab678709c0b6f71682c14a355f03cec64e5716e089def",
+    "commons_ai_reference": "43ef626a5d17789b4835689e14559196898c1d6cfa9990007ed3ab143c016f82",
+    "fukuoka_ai_reference": "4273a75b53d716edbb80ee0a27cc51579a7e84168f534002e3d53407aa8e1c8a",
+    "fukuoka_lossless_derivative_provenance": "2f1731a5e66afccfb308459f507fc793c9318172df47083013610ef8a12bd4c2",
+    "fukuoka_actual_race_denial": "dce91a154907a0fdb06c6e9593f5641547758a7dd604472940a54024b74c2288",
+    "initial_failed_attempt": "daf187c8bc03474a12a312602865e57e5a5c450fc8f3fbd0956a7fdb7e1f90c1",
+    "raw_sweep": "d224e53afa3c3327fc665252eff225951ba06ea96973a4d2bac142ee6a719032",
+    "commons_after_fix": "0e74e265344060f11f9e6476db4aa87fe4b78db272a381cd2a542cd996942200",
+    "fukuoka_after_fix": "2ea7e6431a022d92a214132384314a58c16d56423d4955109f4eb4f82c08402e",
+    "actual_benchmark_summary": "f2e777eecdb346a5030a7620c79e3bad57ff2a47fba1e5cadfd2940b5ce3d110",
+    "rejected_tesseract_spikes": "4a4b328bb84663391274618e3a377c82e9a0a27551a18bb79192b42c8f85ead1",
+    "crnn_raw_development_only": "1a491756fbddff3d50fa60dbf132fac41b2b49966e8faba2a1f49404f841eefd",
+    "crnn_sequence_precision_compare": "f0f6da96a8e5fead18751339b3d27a2163bc686587d2281d7ea4fd93c77bb115"
+  },
+  "sources": [
+    {
+      "kind": "PUBLIC_HISTORICAL_RACE",
+      "url": "https://commons.wikimedia.org/wiki/File:Kyotei_-_Sept_7_2021.webm",
+      "author": "Nesnad",
+      "license": "CC BY-SA 4.0",
+      "media_sha256": "1ac1f0c27f58d8d64ebb1cfc13c2c4e9133cf7bbcce04052f23c28bf2e37f194",
+      "seconds": 25.859,
+      "decoded_frames": 775,
+      "actual_race_identity_verified": false
+    },
+    {
+      "kind": "OFFICIAL_HISTORICAL_EXHIBITION_TUTORIAL",
+      "url": "https://www.boatrace-fukuoka.com/modules/fukuokainfo/?page=index_lib&bnr=1",
+      "copyright": "ALL RIGHTS RESERVED",
+      "training_or_redistribution_license_verified": false,
+      "media_sha256": "7821356af29809c5da4a40eb06586896a8723d9068aba8e0b8a9e005dc535b70",
+      "seconds": 145.903,
+      "analyzed_derivative_sha256": "1fbdd49899880fff20919cc5e5a1a817bc4fb45baea2dcc26c90645bc026b4b4",
+      "derivative_frames": 449,
+      "derivative_reference_pixels_and_relative_pts_equal": true,
+      "actual_race_identity_verified": false
+    }
+  ],
+  "real_media_sources": 2,
+  "current_race_video_sources_connected": 0,
+  "reference": {
+    "kind": "INDEPENDENT_AI_VISUAL_REFERENCE",
+    "human_verified": false,
+    "blind_before_outputs": true,
+    "commons_labeled_frames": 9,
+    "commons_visible_boxes": 30,
+    "commons_readable_numbers": 19,
+    "commons_sampled_reference_frames": 6,
+    "commons_unsampled_reference_frames": 3,
+    "commons_scored_known_instances_per_engine": 10,
+    "commons_split": "WITHIN_CLIP_ONLY",
+    "fukuoka_labeled_actual_boat_frames": 3,
+    "fukuoka_sampled_reference_frames": 1,
+    "fukuoka_sampled_visible_boxes": 6,
+    "fukuoka_readable_number_instances": 0,
+    "fukuoka_split": "DECLARED_WHOLE_MEDIA"
+  },
+  "metrics": [
+    {
+      "source": "commons",
+      "engine": "nanodet",
+      "tracking_file_sha256": "064594dbd05978517987181e3b0551781b1d0c5e98c196167611944dcae0216c",
+      "identity_status": "PARTIAL",
+      "correct_number_instances": 0,
+      "known_visible_number_instances": 10,
+      "number_precision": null,
+      "hull_partition_counts": {
+        "DEVELOPMENT": {
+          "evaluated_frames": 2,
+          "reference_visible_boats": 4,
+          "matched_regions": 0,
+          "false_positive_regions": 0,
+          "missed_reference_boats": 4,
+          "predictions_scored": 0,
+          "unmatched_predictions_excluded": 0,
+          "precision": null,
+          "coverage": 0.0
+        },
+        "HELDOUT": {
+          "evaluated_frames": 4,
+          "reference_visible_boats": 14,
+          "matched_regions": 0,
+          "false_positive_regions": 0,
+          "missed_reference_boats": 14,
+          "predictions_scored": 0,
+          "unmatched_predictions_excluded": 0,
+          "precision": null,
+          "coverage": 0.0
+        }
+      },
+      "measured_phase_cells": 0,
+      "missing_phase_reasons": {
+        "PHASE_NOT_OBSERVED": 18,
+        "START_REFERENCE_REQUIRED": 6
+      },
+      "heldout_scope": "WITHIN_CLIP_ONLY"
+    },
+    {
+      "source": "commons",
+      "engine": "yolox",
+      "tracking_file_sha256": "9dacdc12ab898f8192f1a62f01a4a2e28c448ed88ac924ee061e4db2ee05cd64",
+      "identity_status": "PARTIAL",
+      "correct_number_instances": 0,
+      "known_visible_number_instances": 10,
+      "number_precision": null,
+      "hull_partition_counts": {
+        "DEVELOPMENT": {
+          "evaluated_frames": 2,
+          "reference_visible_boats": 4,
+          "matched_regions": 1,
+          "false_positive_regions": 0,
+          "missed_reference_boats": 3,
+          "predictions_scored": 1,
+          "unmatched_predictions_excluded": 0,
+          "precision": 1.0,
+          "coverage": 0.25
+        },
+        "HELDOUT": {
+          "evaluated_frames": 4,
+          "reference_visible_boats": 14,
+          "matched_regions": 5,
+          "false_positive_regions": 1,
+          "missed_reference_boats": 9,
+          "predictions_scored": 6,
+          "unmatched_predictions_excluded": 0,
+          "precision": 0.8333333333333334,
+          "coverage": 0.35714285714285715
+        }
+      },
+      "measured_phase_cells": 0,
+      "missing_phase_reasons": {
+        "PHASE_NOT_OBSERVED": 18,
+        "START_REFERENCE_REQUIRED": 6
+      },
+      "heldout_scope": "WITHIN_CLIP_ONLY"
+    },
+    {
+      "source": "fukuoka",
+      "engine": "nanodet",
+      "tracking_file_sha256": "c4925a35e44002227091e6c3ac702cebcaece29c0ecfc1202deadbf710887f03",
+      "identity_status": "PARTIAL",
+      "correct_number_instances": 0,
+      "known_visible_number_instances": 0,
+      "number_precision": null,
+      "hull_partition_counts": {
+        "HELDOUT": {
+          "evaluated_frames": 1,
+          "reference_visible_boats": 6,
+          "matched_regions": 0,
+          "false_positive_regions": 0,
+          "missed_reference_boats": 6,
+          "predictions_scored": 0,
+          "unmatched_predictions_excluded": 0,
+          "precision": null,
+          "coverage": 0.0
+        }
+      },
+      "measured_phase_cells": 0,
+      "missing_phase_reasons": {
+        "PHASE_NOT_OBSERVED": 18,
+        "START_REFERENCE_REQUIRED": 6
+      },
+      "heldout_scope": "DECLARED_WHOLE_MEDIA"
+    },
+    {
+      "source": "fukuoka",
+      "engine": "yolox",
+      "tracking_file_sha256": "cf621714c0f33c1a37e70df03cfcc1700b5fdb79ef01bcc45f68fa3f77a688fc",
+      "identity_status": "PARTIAL",
+      "correct_number_instances": 0,
+      "known_visible_number_instances": 0,
+      "number_precision": null,
+      "hull_partition_counts": {
+        "HELDOUT": {
+          "evaluated_frames": 1,
+          "reference_visible_boats": 6,
+          "matched_regions": 0,
+          "false_positive_regions": 0,
+          "missed_reference_boats": 6,
+          "predictions_scored": 0,
+          "unmatched_predictions_excluded": 0,
+          "precision": null,
+          "coverage": 0.0
+        }
+      },
+      "measured_phase_cells": 0,
+      "missing_phase_reasons": {
+        "PHASE_NOT_OBSERVED": 18,
+        "START_REFERENCE_REQUIRED": 6
+      },
+      "heldout_scope": "DECLARED_WHOLE_MEDIA"
+    }
+  ],
+  "baseline": {
+    "full_tracking_initial_status": "TECHNICAL_FAILURE_NOT_SUCCESS",
+    "initial_suppressed_exception_cause_not_proven": true,
+    "separate_raw_sweep": {
+      "decoded_frames": 775,
+      "sampled_frames": 97,
+      "nanodet_raw_candidates": 32,
+      "yolox_raw_candidates": 104,
+      "max_simultaneous_nanodet": 4,
+      "max_simultaneous_yolox": 5,
+      "accepted_digit_observations": 0,
+      "yolox_explicit_ocr_timeouts": 4
+    }
+  },
+  "reliability": {
+    "after_fix_full_tracks_returned_runs": 4,
+    "confidence_threshold": 0.9,
+    "shared_ocr_deadline_seconds": 3,
+    "threshold_or_deadline_relaxed": false,
+    "typed_per_hull_missing": true,
+    "stale_moving_hull_transfer_fixed": true,
+    "generic_unexpected_and_initialization_errors_fatal": true,
+    "causal_runtime_improvement_claimed": false,
+    "nice_confounded_between_original_and_after_runs": true,
+    "valid_position_samples_all_four_runs": 0
+  },
+  "experiments": {
+    "tesseract_mask_v1": "REJECTED_WRONG_4_ON_ACTUAL_2",
+    "tesseract_actual_gray_v2_accepted": 0,
+    "new_ocr_weights_private_research_only": true,
+    "forecast_model_families_added": 0,
+    "crnn": {
+      "development_inputs": 54,
+      "heldout_execution": false,
+      "trained": false,
+      "int8_sha256": "94117b4c2652337b3f1aef81b2ec15a74e97973b1c58f743e86380b95b95ffa2",
+      "fp32_sha256": "a84b1f6e11a65c2d733cb0cc1f014aae3f99051e3f11447dc282faa678eee544",
+      "license": "Apache-2.0",
+      "correct_raw_digit_views_each": 5,
+      "distinct_raw_correct_regions_each": 4,
+      "ctc_sequence_max_int8": 0.75972561,
+      "ctc_sequence_max_fp32": 0.61883652,
+      "score_scope": "UNCALIBRATED_FULL_VOCABULARY_CTC_SINGLE_SYMBOL_SEQUENCE",
+      "calibrated_identification_probability": false,
+      "accepted_identities": 0,
+      "math_bruteforce_cases": 110,
+      "production_integrated": false
+    }
+  },
+  "verification": {
+    "base_full_python": {
+      "passed": 1488,
+      "skipped": 0,
+      "seconds": 200.789,
+      "log_sha256": "4497c93acafcdaeb91aaa051571160e580687d4e68e6859916414dd9a9196a9b"
+    },
+    "focused_benchmark_tests": 25,
+    "focused_ocr_tests": 12,
+    "independent_review_p1_p2_remaining": 0,
+    "isolated_ci_new_ocr_module_added": true,
+    "combined_head_and_ci": "TO_BE_VERIFIED_AFTER_CONCURRENT_INTEGRATION"
+  },
+  "forecast_continuity": {
+    "server_pid": 157669,
+    "intake_pid": 271439,
+    "processes_restarted": false,
+    "workflow_id": 405276784,
+    "observed_active_run_id": 42114125652,
+    "native_original_db_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+    "video_forecasts_generated": 0,
+    "video_training_races": 0,
+    "video_future_paired_results": 0
+  },
+  "uncompleted": [
+    "adequate all-six identity coverage on representative actual exhibition footage",
+    "independently calibrated camera/water plane/clock/phase and strength targets",
+    "authorized current race video capture before cutoff",
+    "operational authenticated video context/archive/comparison bridge",
+    "prospective predictive improvement",
+    "real device Safari"
+  ],
+  "original_forecasts_modified": false,
+  "new_external_task_or_service": false,
+  "new_workflow": false,
+  "main_merge_or_publication": false,
+  "production_model_switch": false
+}

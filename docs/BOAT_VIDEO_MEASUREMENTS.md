@@ -88,6 +88,28 @@ T−15〜T−10を優先し、1件ごとに新着と現在の締切を見直す�
 
 ローカルの接続結果は、独立保存された正式な前向き予想の証明ではない。新しい研究版の原本は既存の私有ビューでも基準5モデルと分けて閲覧し、未検証の入力・学習・保存依存を表示する。閲覧のための再予想・再学習は行わない。
 
+## 実映像の参照付き検証
+
+`race_ai.boat_video_benchmark` は追跡・計測・予想とは別の、読取専用の照合である。`benchmark_identity(tracking, reference)` は数字付き候補領域、`benchmark_hulls(tracking, reference)` は数字を読む前の生の艇候補領域だけを評価する。後者を艇番の識別精度と呼ばない。
+
+参照は `RACE_AI_BOAT_VIDEO_REFERENCE_V1` とし、元映像SHA、寸法、表示フレーム番号、相対PTS、復号したBGR24画素バイトのSHA、領域、可読な艇番または不明、網羅/部分注釈、分割条件を記録する。PNG/JPEGファイルのSHAは画素SHAと別である。読めない番号を色や期待艇数から補わない。画素/時刻が異なる参照は拒否する。抽出されなかったフレームと、観測したが候補が空だったフレームを分け、前者を自動的な不的中や成功へ変換しない。
+
+位置の一対一対応を番号より先に決め、誤番号、取りこぼし、誤検出、ID切替、分母を分離する。推論エラーを持つフレームも、可視の注釈があれば欠測として分母に残す。分母0の率はnull。全6艇を可読に注釈できたフレームがないとき、全6艇成功率は算出しない。AI目視、申告された人の注釈、合成データを別記し、JSONに人と書くだけで認証しない。同一映像内のフレーム分割は未知映像の検証ではない。
+
+正確なレース番号・締切・登録番号が不明な過去資料は、`extract_tracks` の出力を直接照合する。`analyze_video` を使うためにJOB_V1のレース情報を作らない。保存済み原本や本番モデルを変更しない。
+
+```python
+from race_ai.boat_video_benchmark import benchmark_identity, benchmark_hulls
+
+# tracking: 実行済みTRACKS_V1、reference: モデル出力を見る前に作った参照。
+identity_report = benchmark_identity(tracking, reference)
+hull_report = benchmark_hulls(tracking, reference)
+```
+
+2026-11-06の実試験では、Commonsの実レース動画と福岡公式の過去展示解説を私有保存して復号した。元の数字読取は現物を取りこぼし、修正後に処理が完走しても数字候補と有効位置は0だった。少数のAI目視参照への番号一致は両方式0/10で、不合格である。独立した校正/時計/強さの正解はなく、未来予想の改善も認定しない。数字抽出の試作には高信頼度の誤読もあり、その方式を採用していない。実測値・資料の権利・分母と範囲は `RACE_AI_LATEST_STATUS.md` に記録する。
+
+OCRの3秒期限や出力処理に既知の失敗が起きた場合は、当該艇を欠測にし、`LOCAL_OCR_TIMEOUT` / `LOCAL_OCR_PROCESS_FAILED` / `LOCAL_OCR_OUTPUT_REJECTED` を残す。失敗した艇の古いIDを隣艇へ転用しない。起動失敗や未想定の不正入力まで成功扱いするものではない。0.90の採用基準と期限は維持する。
+
 ## 計測の意味と未完成条件
 
 ターンは標本の方向変化・経路長・相当半径、出足と行き足は標本間速度の傾向、伸びは画像上の平均移動速度と横ずれを記録する。単位はpxと動画PTSの秒。実速度m/s、瞬間加速度、選手能力、艇間の優劣ではない。別カメラ・別遠近条件のpx/sを順位付けに用いない。
@@ -96,7 +118,7 @@ T−15〜T−10を優先し、1件ごとに新着と現在の締切を見直す�
 
 全報告は `UNVALIDATED` / `model_eligible=false`。ハッシュは改変検知用で、映像の権利・艇番・取得時刻の真正性を認証しない。画面の任意JSON取込も形式と関連付けの照合であり、報告本文のSHA再計算や独立認証ではない。
 
-2026-11-06 JSTの確認では、通常の公式導線で住之江・多摩川・徳山の対象展示の再生要求が403/「この動画の視聴は許可されていません。」となり、公式にリンクされた津YouTube経路はトンネル接続に失敗した。別認証・URL推測・別プロキシ等で拒否を回避していない。この結果を全場の映像が利用不可という意味には拡張しない。実映像の供給が成立した後、艇番・走行区間・カメラ動作を独立した正解と照合し、未使用の実映像で誤検出と欠測を測る必要がある。**公式映像の常時取得、実映像6艇の識別精度、実用上の強さの評価、映像を使った締切前実予想、精度改善の実証は未完成。実展示映像の検証は0件。** ソフトウェアの取込・候補追跡・モデル接続試験と混同しない。
+2026-11-06 JSTの初期確認では、通常の公式導線で住之江・多摩川・徳山の対象展示の再生要求が403/「この動画の視聴は許可されていません。」となり、公式にリンクされた津YouTube経路はトンネル接続に失敗した。その後の福岡の対象レース展示も403で停止した。別認証・URL推測・別プロキシ等で拒否を回避していない。別に取得できた福岡の過去解説動画やCommons資料とは分ける。この結果を全場の映像が利用不可という意味には拡張しない。**現行レースの公式映像の常時取得、実映像6艇の十分な識別精度、実用上の強さの評価、映像を使った締切前実予想、精度改善の実証は未完成。** 実映像での試験を行ったことと、試験に合格したことも区別する。
 
 ## 検証
 
@@ -106,6 +128,8 @@ T−15〜T−10を優先し、1件ごとに新着と現在の締切を見直す�
 python -m unittest tests.test_boat_video_measurements tests.test_boat_video_evaluation tests.test_boat_video_cli -v
 /absolute/private/video-tools/bin/python -m unittest tests.test_boat_video_tracking -v
 /absolute/private/video-tools/bin/python -m unittest tests.test_boat_video_identity tests.test_boat_video_identity_tracking tests.test_boat_video_intake tests.test_boat_video_connection -v
+/absolute/private/video-tools/bin/python -m unittest tests.test_boat_video_ocr_reliability -v
+python -m unittest tests.test_boat_video_benchmark -v
 python -m unittest tests.test_boat_video_model_context tests.test_boat_video_learning tests.test_video_existing_hooks tests.test_video_shadow_projection -v
 node --test tests/boat_video_ui.test.mjs
 ```
