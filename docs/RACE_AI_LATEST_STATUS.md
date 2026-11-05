@@ -1,3 +1,15 @@
+# 2026-11-06 08:58 JST｜第21巡SHA照合・三国1R結果待ち・11/6原本44 ZIP非公開読戻し
+
+既存run [42124871318](https://github.com/haji84/RACE-AI/actions/runs/42124871318) はin_progress 1件、同workflowのqueued/pending/waitingなし。第21巡の結果原本artifact `13464416656`、実ZIP SHA256 `b60f011a029bc0ebf2e721d004947ecab0cf0902e9eb793958ca3ae84f8c6081`、対応P1試行ZIP `13464476510` SHA256 `58c3a6a7d263478d2da07462c79bd55124f5ce94fbcfa3701d5811a6d74c677a`。GitHub登録digest・独立取得実バイトSHA一致、CRC異常なし。内部`round_no=21/updated_at=2026-11-06 08:55:17 JST`、`completed_round=20/prepared_round=21`。第21巡は保存と独立照合まで、読戻し完走は未認定。
+
+P0初回312行、P1締切前15行（唐津1R・三国1R・唐津2Rの既存5系統）、合計327モデル別行で変動なし。唐津1Rの通常結果は2-1-4／2,650円で保存済み7モデル別採点5的中・2不的中。第21巡で三国1Rの後イベント結果を1版追加取得したが、状態は`PENDING/OFFICIAL_RESULT_PAYOUT_ONLY`。未確認の通常確定結果へ昇格せず、スコアも不的中へ変更しない。全対象156R中締切済2R・未来154R。学習は`INSUFFICIENT_VERIFIED_RACES`のまま、LEARNED_SHADOW正式比較の新増分なし。
+
+非公開Driveに第21巡のP1元ZIPと結果元ZIPを追加保全、元の42件と合わせ**11/6原本計44件**。対象run第1～21巡のP1試行原本21件＋結果・PDCA原本21件＝42件、初回P0 1件、前run継続ZIP 1件。保存先owner一致/`shared=false`確認済み。44件すべてDriveから別取得し、GitHub原本実バイトSHAと44/44一致、CRC異常0、計21,059,662バイト。保全できたのは指定の44原本であって他run全件/全公式改訂/全学習素材の永久保全ではない。公開GitHubへDrive ID/URL・個人情報・買い目本文は転記しない。
+
+**安全差分：** 第21巡公式GETは229回。ユーザー指示の1セッション240回上限まで11回しか残らない一方、稼働コード`source_limit=null/max_rounds=null/stop_at=null`、workflow timeout360分は指示の240GET/24巡/65分と不整合。現runをキャンセル/介入せず、上限回避目的の後続push・同run rerunも禁止維持。現行コードの無制限継続を安全成立とはしない。新workflow、新PR、モデル変更、頻度変更、追加課金、main統合、公開、投票、本番自動切替なし。
+
+---
+
 # 2026-11-06 08:53 JST｜11/6初の実結果照合・P1第三レース・現run第1～20巡40原本ZIPを非公開保全
 
 **GitHub独立証拠：** 既存run [42124871318](https://github.com/haji84/RACE-AI/actions/runs/42124871318) はこの監査時点`in_progress`、同workflow 405276784のqueued/pending/waitingなし。実行元HEAD `cf74fcc56ce1855e8f118ce39a6eed71b1e95e0a`。最新実保存第20巡の結果/PDCA原本artifact `13464760617`、実ZIP SHA256 `4af82017337bcb29f274fa1cf3635b40d48f5467a2756d5a238ed1cb90a30d6b`、対応P1試行ZIP `13464835477` SHA256 `39ca5c2f1a7a5cb5d59023a00906c2e9983228a377c9984a14684d7c0ad783da`。GitHub API digestと独立取得したZIP実バイトSHA一致、CRC異常なし。内部`status.round_no=20/updated_at=2026-11-06 08:52:08 JST`、継続は`completed_round=19/prepared_round=20`なので第20巡の読戻し完走までは未認定。
