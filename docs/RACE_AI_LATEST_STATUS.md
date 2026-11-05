@@ -1,3 +1,19 @@
+# 2026-11-05 18:52 JST｜取消後の既存第21巡3原本を再独立照合、5モデルの損益要因を解析（新予想0）
+
+既存Draft PR71 / workflow405276784の最新run **41979370711はcompleted/cancelled**。GitHub Actionsの直近一覧では同workflowにin_progress/queued/pending/waitingを確認できず。runの取消主体・意図は未解明のため、追加trigger、同run rerun、キャンセル解除はしない。最新第21巡の保存時刻は**16:02:18 JST**。以下は保存済み値の再検証と新しい内訳解析であり、18時台の新規レース予想・結果反映ではない。
+
+**実バイト原本照合：** 予想ZIP artifact 13395371515 SHA256 `17e44570cfb6dc8b9e50511c8a5018d4caffbb47033b743f67536b519a4c90de`、結果・PDCA ZIP 13395351632 SHA256 `acaf98ae69cf9c1bdbdeccee306e3da0d0d04a31a3737fa229b253f15860a0b8`、継続ZIP 13395880555 SHA256 `12cc88117f6bf486ec6fab14d6c3dd78634632b634eb20d9653755b24195cbca`。3つとも本巡に改めてGitHubからダウンロードして実バイトSHA256・ZIP CRC一致を再確認。原本の書換・再生成なし。結果ZIP内の `status.json`、`forecasts.csv`、`model_coverage.json`、`coverage_audit`、`automatic_learning`、`learned_shadow_comparison` と公式結果履歴を読取。前回既報の基準698件、P1=410件、通常546採点（HIT195/MISS351）、学習版132件、比較110行に増分はない。
+
+**通常採点済み同一70レースのP1モデル別8点×100円仮想収支（厳格な全対象分母とは別）：** local-start-course 33的中/70・受取63,070円・損益+7,070円、course-motor 25/70・33,990円・損益-22,010円、display-rating 23/70・36,580円・損益-19,420円、observed-pairwise-factor 25/70・45,020円・損益-10,980円、observed-pairwise-start 24/70・46,050円・損益-9,950円。各モデルの投入は56,000円。最良のlocal-start-courseでも37件不的中で、内訳は3着候補不一致19件、1着候補外8件、1・2着組み合わせ不一致10件。次のPDCA検証対象は**既存8点内の3着組合せの選び方**であり、新モデル追加や後付けの8点書換はしない。なお全対象厳格判定は17:18記録の98レース分母/適格P1=68を使用すること。70件条件付き率を全対象的中率と呼ばない。
+
+**学習版対照：** 異なる55レース・2系統110行を保存済み結果から再集計。学習版35的中/仮受取85,050円、元版33的中/74,790円（学習版+2・+10,260円）。Top8の集合変更54行、学習版のみ的中3行、元版のみ的中1行。統計的優位性は未確定、正式採用なし、検証・学習の分割と過去結果の書換禁止を維持。公式結果のsource/parse未確定3レースは、未確認として除外したまま。
+
+**保全の実際：** 本人Drive保管フォルダは接続中アカウントがowner、`shared=false`と権限メタデータから確認。しかし、新ZIPのDrive追加は**0件**。GitHubコネクタのZIPファイル参照をDrive uploadへ渡す際、Driveツールの入力型はstringなのに処理側がconnector file reference objectを要求して拒否することを複数形式で再現。元ZIPを変換・再圧縮して代用せず、新規保存成功とは主張しない。7日artifactの恒久保全は未達。
+
+**再起動見送り理由：** 現行workflowは同concurrency・`cancel-in-progress: false`だが`timeout-minutes: 360`、既存保存セッションは`source_limit=null/max_rounds=null/stop_at=null`。本タスク指定の240 GET・24巡/65分と衝突。取消原因・安全上限の整合が未確定のため、追加pushを行っていない。既存5基準モデルの重み・式・買い目、新PR、新workflow/スケジュール、外部クラウド、課金、main、公開、実投票、本番自動採用は変更なし。
+
+---
+
 <!-- BOAT_SUPPLEMENTAL_CONTEXT_20261105 -->
 # 2026-11-05 18:39 JST｜公式コメント・展示観測・進入条件別成績の収集を既存PR71へ追加（映像評価・98%は未達）
 
