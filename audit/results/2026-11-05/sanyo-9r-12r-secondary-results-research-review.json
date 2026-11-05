@@ -1,0 +1,129 @@
+{
+  "schema": "RACE_AI_AUTORACE_SECONDARY_RESULT_RESEARCH_APPEND_V1",
+  "race_day_jst": "2026-11-05",
+  "venue": "sanyo",
+  "reviewed_at_jst_minute": "2026-11-05T16:40+09:00",
+  "source": {
+    "publisher": "チャリロト",
+    "url": "https://www.chariloto.com/auto/results/006/2026-11-05",
+    "official_independent_verified": false,
+    "weather_confirmation": "https://www.winticket.jp/autorace/sanyo/raceresult/2026110406/2/12"
+  },
+  "results": [
+    {
+      "race_no": 9,
+      "first_second_third": [
+        5,
+        4,
+        7
+      ],
+      "payout_per_100_yen": 810,
+      "top3_trial_seconds": [
+        3.68,
+        3.72,
+        3.72
+      ],
+      "top3_start": [
+        0.13,
+        0.11,
+        0.08
+      ],
+      "track": "wet"
+    },
+    {
+      "race_no": 10,
+      "first_second_third": [
+        8,
+        3,
+        5
+      ],
+      "payout_per_100_yen": 28060,
+      "top3_trial_seconds": [
+        3.63,
+        3.66,
+        3.65
+      ],
+      "top3_start": [
+        0.23,
+        0.21,
+        0.11
+      ],
+      "track": "wet"
+    },
+    {
+      "race_no": 11,
+      "first_second_third": [
+        6,
+        8,
+        5
+      ],
+      "payout_per_100_yen": 28510,
+      "top3_trial_seconds": [
+        3.7,
+        3.59,
+        3.64
+      ],
+      "top3_start": [
+        0.14,
+        0.14,
+        0.12
+      ],
+      "track": "wet"
+    },
+    {
+      "race_no": 12,
+      "first_second_third": [
+        8,
+        6,
+        4
+      ],
+      "payout_per_100_yen": 920,
+      "top3_trial_seconds": [
+        3.6,
+        3.63,
+        3.64
+      ],
+      "top3_start": [
+        0.19,
+        0.09,
+        0.1
+      ],
+      "track": "wet"
+    }
+  ],
+  "research_A_12R": {
+    "prediction_sha256": "8580a5328a39d803518ac18931df62e31279ea465eb2a27d2bdad0b497a73aed",
+    "original_unchanged": true,
+    "old_result": "not_yet_confirmed",
+    "new_result": [
+      8,
+      6,
+      4
+    ],
+    "hit_basic_8": false,
+    "hit_max_12": false,
+    "hypothetical_return_per_8_yen": 0,
+    "hypothetical_return_per_12_yen": 0,
+    "reason": "Frozen research A only considered combinations of car numbers 1,2,3,4; winner 8 and runner-up 6 were omitted. Winner 8 had trial 3.60, 40m handicap, and recorded wet-surface top3 rate 66.7%, but research A did not use wet record or today's trial.",
+    "causal_conclusion": "not_established",
+    "formal_kpi_eligible": false,
+    "independent_pretrial_and_precutoff_attestation": false
+  },
+  "research_A_aggregate_1R_to_5R_and_12R": {
+    "count": 6,
+    "hits_8": 0,
+    "hits_12": 0,
+    "hypothetical_stake_8_yen": 4800,
+    "hypothetical_stake_12_yen": 7200,
+    "returns_yen": 0,
+    "roi_8_pct": 0,
+    "roi_12_pct": 0,
+    "not_actual_bets": true,
+    "formal_kpi_eligible": false
+  },
+  "research_B_count": 0,
+  "no_original_forecasts_for_9R_10R_11R": true,
+  "do_not_create_retroactive_forecast": true,
+  "do_not_change_model_coefficients_from_six_sample_research": true,
+  "append_only_public_secondary_results_no_private_forecast_body": true
+}
