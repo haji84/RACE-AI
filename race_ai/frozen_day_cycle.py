@@ -135,17 +135,22 @@ def settle(row,observation):
         pdca=miss,manshu_opportunity=yen>=10000,manshu_hit=hit and yen>=10000)
 
 def evaluate(rows,observations):
+    from .boat_cutoff_revision import cutoff_views, retain_frozen_cutoff
     keys=[(x['race_id'],x['stage'],x['model_id']) for x in rows]
     need(len(keys)==len(set(keys)),'duplicate forecast key')
     ids=[x['race_id'] for x in observations];need(len(ids)==len(set(ids)),'duplicate result observation')
     by_id={x['race_id']:x for x in observations};verdicts=[]
-    for row in rows:
-        try:verdicts.append(settle(row,by_id.get(row['race_id'])))
+    evaluation_rows,revisions,blocked=cutoff_views(rows)
+    for row in evaluation_rows:
+        try:
+            need(row['race_id'] not in blocked,blocked.get(row['race_id']))
+            check_clock(row['as_of'],row['cutoff_at'],row['server_saved_at'])
+            verdicts.append(retain_frozen_cutoff(settle(row,by_id.get(row['race_id'])),row))
         except (ValueError,KeyError,TypeError) as e:
             # An invalid result must not erase an independently frozen forecast's receipt or tickets.
             # Keep original provenance for review, but never score this observation.
             base={k:v for k,v in row.items() if k not in ('ranked','roster')}
-            verdicts.append(dict(base,state='RESULT_REJECTED',reason=str(e)[:160]))
+            verdicts.append(retain_frozen_cutoff(dict(base,state='RESULT_REJECTED',reason=str(e)[:160]),row))
     groups=defaultdict(list)
     for row in verdicts:groups[(row['stage'],row['model_id'])].append(row)
     scoreboard=[];proposals=[]
@@ -165,4 +170,5 @@ def evaluate(rows,observations):
     return dict(schema='RACE_AI_EXISTING_MODEL_CYCLE_REPORT_V1',forecast_count=len(rows),
         distinct_races=len({x['race_id'] for x in rows}),scored_forecasts=n,pending_forecasts=len(rows)-n,
         per_forecast=verdicts,scoreboard=scoreboard,improvement_candidates=proposals,
+        cutoff_revisions=revisions,cutoff_revision_conflicts=blocked,
         actual_purchases=False,past_forecasts_changed=False,auto_promoted=False,formal_model_superiority=False)

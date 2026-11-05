@@ -11,6 +11,7 @@ from .boat_ab_cohort import RACE_ID, wilson
 from .boat_observed_pairwise_models import MODEL_IDS as OBSERVED
 from .frozen_day_cycle import check_clock, rank_check, settle, ts
 from .private_saved_comparison import _result
+from .boat_cutoff_revision import cutoff_views
 
 
 SPECIAL = frozenset({'CANCELLED', 'NO_CONTEST', 'NO_TRIFECTA',
@@ -89,6 +90,12 @@ def all_race_top8_target(rows, schedule, observations, *, now, expected_models,
     """
     if now.utcoffset() is None:
         raise ValueError('aware target audit time required')
+    rows,revisions,blocked=cutoff_views(rows,as_of=now)
+    schedule=deepcopy(schedule)
+    for race in schedule:
+        if race['race_id'] in revisions:
+            race['frozen_schedule_cutoff_at']=race['cutoff_at']
+            race['cutoff_at']=revisions[race['race_id']]['effective_cutoff_at']
     groups = {('P1', mid, 'BASELINE') for mid in expected_models}
     forecast_rows = defaultdict(list)
     for variant, originals in [('BASELINE', rows), ('LEARNED_SHADOW', learned_rows or [])]:
@@ -108,6 +115,7 @@ def all_race_top8_target(rows, schedule, observations, *, now, expected_models,
     for race in schedule:
         rid = race['race_id']; future = ts(race['cutoff_at']) > now
         state, selected, admitted = ('FUTURE', None, None) if future else _official_result(race, by_result[rid], now)
+        if rid in blocked:state,selected,admitted='RESULT_REJECTED',None,None
         eligible = state == 'FINAL_NORMAL'
         if eligible:
             eligible_ids.append(rid)
@@ -131,6 +139,8 @@ def all_race_top8_target(rows, schedule, observations, *, now, expected_models,
                             model_sha256=original['model_sha256'],
                             server_saved_at=original['server_saved_at'],
                             top8=deepcopy(original['top8']))
+                        if 'cutoff_revision_evidence' in original:
+                            item['cutoff_revision_evidence']=deepcopy(original['cutoff_revision_evidence'])
                         if original.get('training_sha256') is not None:
                             item['training_sha256'] = original['training_sha256']
                     except (ValueError, TypeError, KeyError, AttributeError) as exc:
@@ -166,7 +176,8 @@ def all_race_top8_target(rows, schedule, observations, *, now, expected_models,
         all_schedule_completion_status='COMPLETE' if not (pending or unknown or counts['FUTURE']) else 'INCOMPLETE',
         all_schedule_completion_scope='OUTCOMES_ONLY',
         result_state_counts=dict(sorted(counts.items())), scoreboard=board,
-        per_race=race_rows, per_forecast=forecasts, target_established=False,
+        per_race=race_rows, per_forecast=forecasts, cutoff_revisions=revisions,
+        cutoff_revision_conflicts=blocked,target_established=False,
         auto_promoted=False, statistical_scope='DESCRIPTIVE_MARGINAL_WILSON95_NOT_INDEPENDENCE_PROOF',
         limitations=['Unknown and pending outcomes are visible but cannot enter the normal-final denominator.',
             'Missing or incompatible originals contribute zero hits without being fabricated MISS forecasts.',
