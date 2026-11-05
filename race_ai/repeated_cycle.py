@@ -257,6 +257,19 @@ def checkpoint(path, previous, rows, observations, receipts, *, p1_doc, p1_recei
         _need(not p1_doc.get('paired_forecasts') or body_sha is not None,'P1 pair without verified rows')
         state['schedule_cache']={k:copy.deepcopy(p1_doc[k]) for k in
             ('official_day_source','official_race_registry','verified_active_venues','candidate_source_waits','next_check_at') if k in p1_doc}
+        if p1_doc.get('entry_observation_history') is not None:
+            from .boat_entry_source_collection import optional_cache_from_document
+            candidate,rejection=optional_cache_from_document(p1_doc,
+                day=state['day_jst'],as_of=p1_receipt['created_at'])
+            if rejection is None:
+                state['entry_observation_history']=candidate
+            else:
+                state['entry_observation_history_rejections']=state.get('entry_observation_history_rejections',0)+1
+                state['entry_observation_history_rejection_reason']=rejection
+                old,old_rejection=optional_cache_from_document(state,
+                    day=state['day_jst'],as_of=p1_receipt['created_at'])
+                if old_rejection is not None:state.pop('entry_observation_history',None)
+                elif old is not None:state['entry_observation_history']=old
         for pair in p1_doc.get('paired_forecasts',[]):
             state['index_entries'].append(dict(race_id=pair['race_id'],cutoff_at=pair['cutoff_at'],
                 run_id=p1_receipt['workflow_run']['id'],artifact_id=p1_receipt['id'],

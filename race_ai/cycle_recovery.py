@@ -255,6 +255,7 @@ def recover(get,day,*,current_run,out,clock=None):
     rows=[];observations=[];receipts=[];scanned=[];index_entries=[]
     learning_shadows=[];learning_context=None;training_proofs={}
     history_context=None;history_proofs={};history_documents=[]
+    entry_history_cache=None;entry_history_order=None;entry_history_rejections=0
     clock=clock or (lambda:datetime.now(timezone.utc))
     from .observed_result_history import context_from_result_archive as history_from_archive,history_proof
     source_control=previous_source_control(get,day,current_run=current_run)
@@ -295,6 +296,13 @@ def recover(get,day,*,current_run,out,clock=None):
                 items=attach_snapshots(doc,items)
                 rows+=items
                 if prefix=='boat-national-cutoff-':
+                    from .boat_entry_source_collection import optional_cache_from_document
+                    candidate_cache,rejection=optional_cache_from_document(doc,day=day,as_of=meta['created_at'])
+                    if rejection is not None:entry_history_rejections+=1
+                    if candidate_cache is not None:
+                        order=(ts(candidate_cache['checked_at']),ts(meta['created_at']),ident)
+                        if entry_history_order is None or order>entry_history_order:
+                            entry_history_cache=candidate_cache;entry_history_order=order
                     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
                         body_sha=hashlib.sha256(archive.read('national.json')).hexdigest()
                     learning_shadows+=read_shadow_rows(doc,meta,items)
@@ -327,7 +335,10 @@ def recover(get,day,*,current_run,out,clock=None):
                scanned_runs=scanned,index_entries=index_entries,complete=True,
                learning_shadows=merge_shadow_rows(learning_shadows),learning_context=learning_context,
                training_proofs=training_proofs,source_control=source_control,
-               history_context=history_context,history_proofs=history_proofs)
+               history_context=history_context,history_proofs=history_proofs,
+               entry_observation_history=entry_history_cache,
+               entry_observation_history_rejections=entry_history_rejections,
+               entry_observation_history_rejection_reason='ENTRY_HISTORY_CACHE_REJECTED' if entry_history_rejections else None)
     state['state_sha256']=hashlib.sha256(json.dumps(state,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
     (out/'continuity.json').write_text(json.dumps(state,ensure_ascii=False))
     return state

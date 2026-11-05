@@ -37,4 +37,18 @@ Review focus: future/cross-race history leakage; revised results counted twice; 
 - [x] Wire authenticated history through existing restore/forecast/complete/pilot path, with independently verified parent membership and preserved old originals; test recovery/old artifacts.
 - [x] Write RED all-race denominator/exact-eight regressions, extend existing audit and report honest target status/uncertainty; run GREEN and actual saved-data assessment.
 - [x] Run relevant full tests, independent review, source/input/output parity and private real-history dry run. Do not fabricate retrospective forecast performance or replay old original outputs as new forecasts.
-- [ ] Recheck public HEAD/writers/cancelled checkpoint, apply only reviewed changes to existing PR; record achieved/untested/blocked conditions in RACE_AI_LATEST_STATUS. No cancellation bypass or production promotion;98% remains unachieved until sufficient future results support it.
+- [x] Recheck public HEAD/writers/cancelled checkpoint, apply only reviewed changes to existing PR; record achieved/untested/blocked conditions in RACE_AI_LATEST_STATUS. No cancellation bypass or production promotion;98% remains unachieved until sufficient future results support it.
+
+## Owner-requested additional BOAT observations (2026-11-05)
+
+Continue the existing PR and collector. Parse official beforeinfo even while exhibition is pending; retain weight, adjustment, tilt, parts, weather, exhibition ST and source identity. Read official pit reports as attributed source comments, distinguishing an unoffered report from an unsupported layout or fetch failure. Retain private originals outside Git. A separate optional display context must never rewrite saved picks or claim the old model used newly collected facts.
+
+Use official historical B closing/roster and K actual entry/results, joined by exact day/venue/race/registration. Report inward entry, outward displacement and crossing by outer-frame boats as conditional sample counts and finish rates; these observations do not prove intent, resistance or causality. Keep unknown turn style, exit acceleration, run-up and straight extension explicit; a venue-level video link is not a reviewed race clip or a speed measurement. Reuse existing reviewed video evidence contracts when evidence becomes available.
+
+Files/interfaces: `boat_observation_context.parse_beforeinfo/parse_pitreport(raw, *, source_url, captured_at, expected_race_id, roster)`; `boat_entry_observations` verified daily B/K bridge and conditional profiles; private `boat_context_store` sidecar, existing pilot collection hook, and preview-tab display. No new inference family or dependency. Existing cancellation review latch remains in force; collection inspection does not restart the cancelled forecast workflow.
+
+- [x] RED/GREEN parser tests: empty exhibition, source/roster mismatch, actual comments/unoffered reports, capture eligibility, unknown visual metrics.
+- [x] RED/GREEN historical join tests: actual closing, dates/rosters/source hashes, as-of availability, crossing without course displacement, empty denominators.
+- [x] RED/GREEN integration tests: preserve ready forecasts on optional-context failure; same source wait guard, private append-only originals, read-only sidecar and unchanged saved forecasts.
+- [x] Parse real private captures, retain source SHA/time evidence, show facts and gaps in mobile/desktop browser; run full checks and independent review.
+- [x] Record implemented, measured and still unavailable items in latest status; apply reviewed source changes to existing PR only.

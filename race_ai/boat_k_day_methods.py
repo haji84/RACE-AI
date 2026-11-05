@@ -10,6 +10,11 @@ def method_of(text):
     for line in unicodedata.normalize('NFKC',text).splitlines():
         compact=''.join(line.split())
         if compact in METHOD: found.append(METHOD[compact]);continue
+        header=re.match(r'^\s*着\s+艇\s+登番\s+.*?\s+レースタイム\s+(.+?)\s*$',line)
+        if header:
+            token=''.join(header[1].split())
+            if token in METHOD:found.append(METHOD[token])
+            continue
         if re.match(r'^\s*0?1\s+[1-6]\s+[0-9]{4}\s+',line):
             m=re.search(r'\s(?:[0-9]+[.:][0-9]+[.:][0-9]+)\s+(.+?)\s*$',line)
             token=''.join(m[1].split()) if m else ''

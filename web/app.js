@@ -91,6 +91,121 @@
     if (Array.isArray(value)) return value.map(v => typeof v === "string" ? v : JSON.stringify(v)).join(" / ");
     return value && typeof value === "object" ? JSON.stringify(value) : text(value);
   }
+  function validBoatObservationContext(context, raceId) {
+    const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
+    const optionalText = value => value == null || typeof value === "string" && value.length <= 4000;
+    const timestamp = value => typeof value === "string" && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(value) && Number.isFinite(Date.parse(value));
+    const optionalStamp = value => value == null || timestamp(value);
+    const sha = value => typeof value === "string" && /^[a-f0-9]{64}$/i.test(value);
+    const optionalNumber = (value, minimum = -Infinity) => value == null || typeof value === "number" && Number.isFinite(value) && value >= minimum;
+    const optionalInteger = (value, minimum, maximum) => value == null || Number.isSafeInteger(value) && value >= minimum && value <= maximum;
+    const optionalBoolean = value => value == null || typeof value === "boolean";
+    const optionalEnum = (value, values) => value == null || values.includes(value);
+    const source = (value, hashField) => {
+      if (!record(value) || !sha(value[hashField]) || !timestamp(value.captured_at) || !optionalStamp(value.published_at) || !optionalText(value.published_time_raw)) return false;
+      try { const url = new URL(value.source_url); return url.protocol === "https:" && !url.username && !url.password; } catch { return false; }
+    };
+    if (!record(context) || context.race_id != null && context.race_id !== raceId || context.forecast_inputs_used != null && context.forecast_inputs_used !== false || !optionalStamp(context.cutoff_at)) return false;
+    for (const kind of ["beforeinfo", "pitreport"]) {
+      const page = context[kind];
+      if (page == null) continue;
+      if (!record(page) || page.schema !== "RACE_AI_BOAT_OBSERVATION_CONTEXT_V1" || page.kind !== kind || page.race_id !== raceId || !source(page.source, "sha256") || !Array.isArray(page.participants) || page.participants.length > 6 || !optionalStamp(page.source_cutoff_at) || !optionalBoolean(page.captured_before_cutoff) || page.forecast_ready != null && page.forecast_ready !== false || !optionalEnum(page.status, ["PARSED", "NOT_OFFERED", "UNSUPPORTED_STRUCTURE"]) || !optionalEnum(page.roster_binding_status, ["VERIFIED", "NOT_PUBLISHED"]) || !optionalText(page.reporter)) return false;
+      if (page.cutoff_eligibility != null && (!record(page.cutoff_eligibility) || !optionalBoolean(page.cutoff_eligibility.captured_before_cutoff))) return false;
+      const capturedBefore = page.cutoff_eligibility?.captured_before_cutoff ?? page.captured_before_cutoff;
+      if (capturedBefore === true && [page.source_cutoff_at, context.cutoff_at].some(cutoff => cutoff != null && Date.parse(page.source.captured_at) >= Date.parse(cutoff))) return false;
+      const lanes = new Set();
+      for (const person of page.participants) {
+        if (!record(person) || !Number.isInteger(person.lane) || person.lane < 1 || person.lane > 6 || lanes.has(person.lane) || person.registration_number != null && (typeof person.registration_number !== "string" || !/^\d{4}$/.test(person.registration_number)) || !optionalText(person.name)) return false;
+        lanes.add(person.lane);
+        if (kind === "beforeinfo") {
+          if (!["bodyweight_kg", "adjustmentweight_kg", "display_time", "exhibition_st"].every(field => optionalNumber(person[field], 0)) || !optionalNumber(person.tilt) || !optionalText(person.propeller_change_marker) || !optionalText(person.exhibition_st_raw) || !optionalEnum(person.exhibition_st_status, ["OK", "F", "L", "NOT_PUBLISHED"]) || !optionalInteger(person.exhibition_source_position_number, 1, 6) || !optionalInteger(person.exhibition_course, 1, 6) || person.parts_replacement != null && (!Array.isArray(person.parts_replacement) || person.parts_replacement.length > 40 || person.parts_replacement.some(value => typeof value !== "string" || value.length > 4000))) return false;
+        } else {
+          if (!optionalText(person.comment)) return false;
+          const attribution = person.comment_attribution;
+          if (attribution != null && (!record(attribution) || !optionalText(attribution.racer_name) || !optionalText(attribution.reporter))) return false;
+        }
+      }
+      const weather = page.weather;
+      if (weather != null && (!record(weather) || !["air_temperature_c", "water_temperature_c"].every(field => optionalNumber(weather[field])) || !["wind_speed_mps", "wave_height_cm"].every(field => optionalNumber(weather[field], 0)) || !["weather_label", "source_reported_local_time"].every(field => optionalText(weather[field])) || !optionalInteger(weather.wind_direction_source_code, 1, 17) || !optionalInteger(weather.reported_race_no, 1, 12) || !optionalStamp(weather.reported_at))) return false;
+    }
+    if (context.entry_history == null) return true;
+    const history = context.entry_history;
+    if (!record(history) || !Array.isArray(history.profiles) || history.profiles.length > 6) return false;
+    const bucket = (value, sample) => {
+      if (!record(value) || !["starts", "wins", "top2", "top3", "denominator"].every(field => Number.isSafeInteger(value[field]) && value[field] >= 0 && value[field] <= sample) || value.denominator !== value.starts || value.wins > value.top2 || value.top2 > value.top3 || value.top3 > value.starts) return false;
+      return [["win_rate", "wins"], ["top2_rate", "top2"], ["top3_rate", "top3"]].every(([rate, count]) => !Object.hasOwn(value, rate) || (value.starts === 0 ? value[rate] === null : typeof value[rate] === "number" && Number.isFinite(value[rate]) && value[rate] >= 0 && value[rate] <= 1 && Math.abs(value[rate] - value[count] / value.starts) < 1e-12));
+    };
+    const identities = new Set();
+    for (const profile of history.profiles) {
+      if (!record(profile) || typeof profile.racer_id !== "string" || !/^\d{4}$/.test(profile.racer_id) || identities.has(profile.racer_id) || !timestamp(profile.as_of) || !Number.isSafeInteger(profile.sample_races) || profile.sample_races < 0 || profile.sample_races > 25000 || !record(profile.conditional_buckets) || !["inward", "outer_to_inner3", "displaced", "crossed_by_outer_frame", "any_inward_mover_present"].every(key => bucket(profile.conditional_buckets[key], profile.sample_races)) || !Array.isArray(profile.source_proofs) || profile.source_proofs.length > 10000 || profile.sample_races > 0 && !profile.source_proofs.length) return false;
+      identities.add(profile.racer_id);
+      if (profile.actual_course_when_inward_mover_present != null && (!record(profile.actual_course_when_inward_mover_present) || !Array.from({length:6}, (_, index) => String(index + 1)).every(key => bucket(profile.actual_course_when_inward_mover_present[key], profile.sample_races)))) return false;
+      for (const proof of profile.source_proofs) {
+        if (!record(proof) || typeof proof.date_jst !== "string" || !/^\d{4}-\d\d-\d\d$/.test(proof.date_jst) || !Number.isFinite(Date.parse(proof.date_jst + "T00:00:00Z")) || !["B", "K"].every(kind => source(proof[kind], "source_sha256") && sha(proof[kind].extracted_text_sha256) && Date.parse(proof[kind].captured_at) < Date.parse(profile.as_of))) return false;
+      }
+    }
+    return true;
+  }
+  function boatObservationContext(r) {
+    const context = r.sport === "boat" ? r.boat_observation_context : null;
+    if (context == null) return null;
+    const box = node("section"); box.id = "boat-observation-context";
+    box.append(node("h2", "member-heading", "補足観測"), node("p", "notice", "保存予想への反映は未検証です。補足の取得時刻・出典を個別に表示します。"));
+    if (!validBoatObservationContext(context, r.race_id)) {
+      box.append(node("p", "notice", "補足観測を照合できません。形式・件数・出典の記録を確認してください。"));
+      return box;
+    }
+    const sourceFacts = page => {
+      const source = page.source || {};
+      const status = {PARSED:"取得した項目を表示", NOT_OFFERED:"公式ページで提供なし", UNSUPPORTED_STRUCTURE:"ページ構造を確認できず・照合不可"}[page.status] || "取得状態は未確認";
+      const capturedBefore = page.cutoff_eligibility?.captured_before_cutoff ?? page.captured_before_cutoff;
+      const cutoffRelation = capturedBefore === false ? "締切後に取得（保存予想への後付けなし）" : capturedBefore === true ? "締切前に取得（入力への反映は別確認）" : "未確認";
+      return facts([["取得状態", status], ["観測取得 JST", stamp(source.captured_at)], ["公式ページの締切 JST", stamp(page.source_cutoff_at)], ["締切と取得の関係", cutoffRelation], ["取得元URL", source.source_url], ["元ページSHA", source.sha256], ["公式公開日時 JST", stamp(source.published_at)], ["掲載時刻の原文", source.published_time_raw], ["鮮度の確認", "未確認（取得時刻と公式公開日時は別の記録）"]]);
+    };
+    const before = context.beforeinfo;
+    if (before) {
+      const section = node("section"); section.id = "boat-context-beforeinfo";
+      section.append(node("h3", "", "公式直前情報の観測"), sourceFacts(before));
+      if (Array.isArray(before.participants) && before.participants.length) {
+        section.append(table(["艇番", "登録", "体重 kg", "調整重量 kg", "チルト 度", "プロペラ表示", "部品交換の記載"], before.participants.map(person => [person.lane, person.registration_number, person.bodyweight_kg, person.adjustmentweight_kg, person.tilt, person.propeller_change_marker, Array.isArray(person.parts_replacement) && person.parts_replacement.length ? person.parts_replacement.join(" / ") : null])));
+        section.append(node("h3", "member-heading", "展示タイム・展示ST"), table(["艇番", "登録", "展示タイム 秒", "展示ST 原文", "ST状態", "展示の表示位置", "実進入コース"], before.participants.map(person => [person.lane, person.registration_number, person.display_time, person.exhibition_st_raw ?? person.exhibition_st, {OK:"正常ST", F:"F（フライング表示）", L:"L（出遅れ表示）", NOT_PUBLISHED:"未公表"}[person.exhibition_st_status] || "未取得", person.exhibition_source_position_number, person.exhibition_course])), node("p", "muted small", "展示の表示位置は、本番の実進入コースの確定値ではありません。空欄は変更なし・STゼロを意味しません。"));
+      } else section.append(node("p", "muted", "選手別の直前観測値は未取得です。"));
+      const weather = before.weather;
+      section.append(node("h3", "member-heading", "公式気象・水面の観測"), weather ? facts([["天候", weather.weather_label], ["気温 ℃", weather.air_temperature_c], ["水温 ℃", weather.water_temperature_c], ["風速 m/s", weather.wind_speed_mps], ["波高 cm", weather.wave_height_cm], ["風向の公式表示コード", weather.wind_direction_source_code], ["掲載対象レース", Number.isInteger(weather.reported_race_no) ? weather.reported_race_no + "R時点" : null], ["気象欄の時刻原文", weather.source_reported_local_time], ["気象の公開日時 JST", stamp(weather.reported_at)], ["気象の鮮度", "未確認（日付付きの公式公開日時は未取得）"]]) : node("p", "muted", "気象・水面の補足観測は未取得です。"));
+      box.append(section);
+    } else box.append(node("p", "muted", "公式直前情報の補足観測は未取得です。"));
+    const pit = context.pitreport;
+    if (pit) {
+      const section = node("section"); section.id = "boat-context-pitreport";
+      section.append(node("h3", "member-heading", "公式ピットレポートの選手コメント"), node("p", "muted small", "公式掲載の発言・取材記録です。選手の評価を走行性能の計測値へ置き換えません。"), sourceFacts(pit));
+      if (Array.isArray(pit.participants) && pit.participants.length) section.append(table(["艇番", "登録 / 選手", "公式掲載コメント", "発言者 / 取材者"], pit.participants.map(person => [person.lane, text(person.registration_number) + " / " + text(person.name), person.comment, "選手 " + text(person.comment_attribution?.racer_name) + " / 取材 " + text(person.comment_attribution?.reporter ?? pit.reporter)])));
+      else section.append(node("p", "muted", pit.status === "NOT_OFFERED" ? "この公式ページではピットレポートの提供がありません。" : "選手コメントは未取得です。"));
+      box.append(section);
+    } else box.append(node("p", "muted", "公式ピットレポートの補足観測は未取得です。"));
+    const history = context.entry_history;
+    const historySection = node("section"); historySection.id = "boat-context-entry-history";
+    historySection.append(node("h3", "member-heading", "過去の進入条件別成績（観測）"), node("p", "muted small", "過去の実進入と着順の条件別集計です。前付けの意図・抵抗・原因や今回の進入は確定できません。少数例の率は大きく変動します。"));
+    const profiles = Array.isArray(history?.profiles) ? history.profiles : [];
+    const rate = (count, denominator) => denominator > 0 ? (count / denominator * 100).toFixed(1) + "%" : null;
+    const bucketFields = bucket => [bucket.starts, bucket.wins, bucket.top2, bucket.top3, rate(bucket.top3, bucket.denominator)];
+    for (const profile of profiles) {
+      historySection.append(node("h3", "", "登録 " + text(profile.racer_id)), facts([["集計基準 JST", stamp(profile.as_of)], ["全観測レース数", profile.sample_races], ["率の意味", "条件に該当した過去の観測割合・将来の確率は未検証"]]), table(["過去の条件", "出走数", "1着数", "2着内数", "3着内数", "観測3着内率"], [["inward", "枠より内へ入った"], ["outer_to_inner3", "外枠から1〜3コースへ入った"], ["displaced", "枠より外へずれた"], ["crossed_by_outer_frame", "外枠艇が内側にいた"], ["any_inward_mover_present", "内へ入った艇がいたレース"]].map(([key, label]) => [label, ...bucketFields(profile.conditional_buckets?.[key])])));
+      if (profile.actual_course_when_inward_mover_present) {
+        const courses = node("details"); courses.append(node("summary", "", "内へ入った艇がいた時の実コース別成績"), table(["実コース", "出走数", "1着数", "2着内数", "3着内数", "観測3着内率"], Array.from({length:6}, (_, index) => [index + 1, ...bucketFields(profile.actual_course_when_inward_mover_present[String(index + 1)])]))); historySection.append(courses);
+      }
+      const sources = node("details"); sources.append(node("summary", "", "過去集計の出典・取得時刻・SHA"), node("p", "muted small", "読み込んだ出典記録です。公式出典との独立照合は未完了です。"));
+      const proofs = Array.isArray(profile.source_proofs) ? profile.source_proofs : [];
+      for (const proof of proofs) for (const kind of ["B", "K"]) {
+        const source = proof[kind];
+        if (source) sources.append(facts([["対象日 / 種別", text(proof.date_jst) + " / " + kind], ["観測取得 JST", stamp(source.captured_at)], ["取得元URL", source.source_url], ["配布原本SHA", source.source_sha256], ["展開テキストSHA", source.extracted_text_sha256]]));
+      }
+      if (!proofs.length) sources.append(node("p", "muted", "過去集計の出典原本は未取得です。"));
+      historySection.append(sources);
+    }
+    if (!profiles.length) historySection.append(node("p", "muted", "条件別の過去レース観測は未取得です。ゼロ件の成績としては扱いません。"));
+    box.append(historySection, node("h3", "member-heading", "展示映像・走行性能の確認"), facts(["ターン", "出足・立ち上がり", "行き足・助走", "直線の伸び"].map(label => [label, "未取得（検証済みの映像・手動観測なし）"])));
+    return box;
+  }
   function evidenceFields(r, p) {
     return [["データ区分", scopeName(r.scope)], ["開催日 JST", r.event_date_jst], ["モデル", p?.model_id], ["モデル版", p?.model_version], ["予想時点", stageName(p)],
       ["生成時刻 JST", stamp(p?.generated_at)], ["保存時刻 JST", stamp(p?.persisted_at)], ["予想原本の締切 JST", stamp(p?.cutoff_at || r.cutoff_at)],
@@ -271,12 +386,14 @@
       if (knownParticipants(r).length) content.append(table(["番号", "名前", "登録", "モーター", "平均ST", "展示"], knownParticipants(r).map(person => [participantNumber(person), person.name, person.registration_no || person.registration_id || person.racer_registration_id, person.motor_no, person.average_st, person.display_time])));
     }
     if (state.detailTab === "preview") {
-      const people = knownParticipants(r);
+      const people = knownParticipants(r), observationContext = boatObservationContext(r);
+      if (observationContext) content.append(node("h2", "", "保存予想原本の直前情報"));
       if (people.length) content.append(table(["番号", "展示タイム", "展示ST", "進入", "直前コメント"], people.map(person => [participantNumber(person), person.display_time, person.preview_st, person.preview_course, person.comment || person.last_comment])));
       const weather = r.weather || r.weather_preview;
       if (weather && Object.keys(weather).length) content.append(facts(Object.entries(weather).map(([key, value]) => [key, sourceText(value)])));
-      else content.append(empty("気象・直前情報は未取得です", "保存原本に存在する項目だけを表示します。"));
+      else content.append(empty(observationContext ? "保存予想原本の気象・直前情報は未取得です" : "気象・直前情報は未取得です", "保存原本に存在する項目だけを表示します。"));
       content.append(node("p", "muted small", "展示・試走の原本値は取得時点の記録です。予想への反映状況はモデル版と時点を確認してください。"));
+      if (observationContext) content.append(observationContext);
     }
     if (state.detailTab === "analysis") {
       content.append(forecastPanel(r, p), facts(evidenceFields(r, p)), node("h2", "", "同一レースの別モデル・時点"));

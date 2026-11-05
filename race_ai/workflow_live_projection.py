@@ -313,6 +313,35 @@ def read_projection(private_root, *, day=None):
     return {"status": parsed["status"], "view": parsed["view"]}
 
 
+def import_supplemental_contexts(captured, private_root, *, day):
+    """Keep optional observations apart from authenticated forecast originals.
+
+    A malformed supplement does not discard a ready saved forecast. This
+    reader only uses archives already retrieved by the existing supervisor.
+    """
+    from .boat_context_store import save_context
+    accepted = rejected = 0
+    for _, meta, raw in captured.values():
+        if _kind(meta) != 'p1':continue
+        try:
+            document, _ = archive_json(raw,meta,'national.json',
+                f"boat-national-cutoff-{meta['workflow_run']['id']}")
+            contexts = document.get('supplemental_boat_observations', [])
+            _need(type(contexts) is list and len(contexts) <= 288)
+        except (ValueError,KeyError,TypeError,zipfile.BadZipFile):
+            rejected += 1
+            continue
+        for context in contexts:
+            try:
+                _need(type(context) is dict and
+                      context.get('race_id','').startswith(day.replace('-','')+'-'))
+                save_context(private_root,context)
+                accepted += 1
+            except (ValueError,KeyError,TypeError,OSError):
+                rejected += 1
+    return dict(accepted=accepted,rejected=rejected)
+
+
 def refresh_projection(github_api, private_root, run_id, *, dataset_status="REAL_REPORTED"):
     """Capture newly saved originals once, validate, then atomically publish.
 
@@ -368,6 +397,7 @@ pointer. Failed capture/validation leaves the previous published view intact.
             result_meta, result_raw = latest[1:]
             report = _report(result_raw, result_meta, day)
         state = _merged(base, day, identifiers)
+        import_supplemental_contexts(captured,private_root,day=day)
         view = project_state(state, dataset_status=dataset_status)
         view["original_document_references"]=deepcopy(state["original_document_references"])
         forecasts = [p for row in view["records"] for p in

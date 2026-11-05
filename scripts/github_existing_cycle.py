@@ -83,6 +83,7 @@ def forecast(day):
     session=ROOT/'cycle_recovery_output/repeat-session.json'
     if session.exists():pilot.SOURCE_GUARD=SourceGuard(session)
     pilot.OBSERVED_HISTORY_CONTEXT=state.get('history_context')
+    pilot.ENTRY_OBSERVATION_HISTORY=state.get('entry_observation_history')
     result=pilot.run(schedule_snapshot=state.get('schedule_cache'))
     from race_ai.observed_weight_learning import make_shadows
     result['learned_pairwise_shadows']=[];result['learning_failures']=[]

@@ -27,6 +27,9 @@ if not (REF/"race_ai"/"official_day_schedule.py").is_file():
     raise SystemExit("PINNED_OFFICIAL_DAY_SOURCE_REQUIRED")
 sys.path.insert(0,str(ROOT))
 sys.path.insert(0,str(REF))
+import race_ai
+if str(REF/'race_ai') not in race_ai.__path__:
+    race_ai.__path__.append(str(REF/'race_ai'))
 from race_ai.core import SourceError
 from race_ai.official_day_schedule import (
     endpoint as day_endpoint, parse_day_schedule)
@@ -44,6 +47,8 @@ from race_ai.boat_freeze_index import load_original_race_ids
 from race_ai.boat_live_feature_shadow import build_live_feature_shadow
 from race_ai.observed_p1_connection import build_bundle as build_observed_p1
 OBSERVED_HISTORY_CONTEXT=None
+ENTRY_OBSERVATION_HISTORY=None
+supplemental_contexts={}
 from race_ai.boat_manshu_watch import freeze_priced_tail
 from race_ai.official_race_updates import endpoint as update_endpoint
 from race_ai.source_retry_policy import SourceWait, plan_http_wait, wait_active
@@ -174,6 +179,8 @@ def stop(reason, *, source=None, schedule=None, queue=None, tries=None,
         "paired_forecast_count":len(forecasts or []),
         "additional_official_feature_shadows":extended or [],
         "observed_pairwise_p1_bundles":observed or [],
+        "supplemental_boat_observations":list(supplemental_contexts.values()),
+        "entry_observation_history":ENTRY_OBSERVATION_HISTORY,
         "official_priced_longshot_watches":priced or [],
         "research_only":True,
         "scores_calibrated":False,
@@ -192,21 +199,35 @@ def stop(reason, *, source=None, schedule=None, queue=None, tries=None,
     return result
 
 
-def get(url,*,day=None,not_yet_published=False):
+def get(url,*,day=None,not_yet_published=False,media='html'):
     global requests_used
-    _clock(day)
+    now=_clock(day)
+    limit=MAX_HTML
+    accepted=('text/html',)
+    if media=='archive':
+        from race_ai.official_archive_probe import official_url, MAX_ARCHIVE_BYTES
+        prior=(day or now.astimezone(JST).date())-timedelta(days=1)
+        if url not in (official_url(prior,'B'),official_url(prior,'K')):
+            raise SourceError('ENTRY_ARCHIVE_SOURCE_IDENTITY_INVALID')
+        limit=MAX_ARCHIVE_BYTES
+        accepted=('application/octet-stream','application/x-lzh','application/x-lzh-compressed',
+                  'application/x-lha','application/lzh')
+    elif media!='html':raise ValueError('OFFICIAL_MEDIA_INVALID')
     if SOURCE_GUARD is not None:SOURCE_GUARD.charge("forecast")
     requests_used+=1
-    req=request.Request(url,headers={"Accept":"text/html",
+    req=request.Request(url,headers={"Accept":"text/html" if media=="html" else "application/octet-stream",
         "User-Agent":"RACE-AI-owner-reviewed-nationwide-pilot/1.0",
         "Cache-Control":"no-store"})
     try:
         with request.build_opener(NoRedirects()).open(req,timeout=12) as response:
-            body=response.read(MAX_HTML+1)
+            body=response.read(limit+1)
             if (response.status!=200 or response.geturl()!=url or len(body)==0
-                    or len(body)>MAX_HTML or
-                    not (response.headers.get("content-type") or "").lower().startswith("text/html")):
+                    or len(body)>limit or
+                    not ((response.headers.get("content-type") or "").split(";",1)[0].strip().lower() in accepted)):
                 raise SourceError("OFFICIAL_RESPONSE_IDENTITY_OR_SIZE_INVALID")
+            if media=='archive':
+                from race_ai.official_archive_probe import inspect_lzh
+                inspect_lzh(body)
     except error.HTTPError as exc:
         # An already-issued response can arrive after JST midnight. Preserve
         # its real server wait before the next transaction changes event day.
@@ -239,6 +260,86 @@ def official_schedule(day):
     return checked,captured,sha,url
 
 
+def capture_before_context(raw, *, url, captured_at, race, boats):
+    """Supplemental facts are not readiness, trained features or new picks."""
+    from race_ai.boat_observation_context import parse_beforeinfo, eligibility_for_cutoff
+    roster=[dict(lane=r['lane'],registration_number=r['racer_registration_id']) for r in boats]
+    try:
+        parsed=parse_beforeinfo(raw,source_url=url,captured_at=captured_at.isoformat(),
+                                expected_race_id=race['race_id'],roster=roster)
+        parsed.update(eligibility_for_cutoff(parsed,cutoff_at=race['cutoff_at']))
+    except (ValueError,TypeError,KeyError,UnicodeError):
+        return None
+    return dict(schema='RACE_AI_BOAT_SUPPLEMENTAL_CONTEXT_V1',race_id=race['race_id'],
+        cutoff_at=race['cutoff_at'],roster=roster,beforeinfo=parsed,pitreport=None,
+        entry_history=None,forecast_inputs_used=False)
+
+
+def collect_pitreport(context,day,*,paused=None):
+    """Use the same source guard, after ready inference, with a time margin."""
+    if context is None or paused is not None:return paused
+    cutoff=datetime.fromisoformat(context['cutoff_at'])
+    from race_ai.boat_observation_context import parse_pitreport, eligibility_for_cutoff
+    rid=context['race_id']
+    url=f'https://www.boatrace.jp/owpc/pc/race/pitreport?rno={int(rid[-2:])}&jcd={rid[9:11]}&hd={rid[:8]}'
+    try:
+        if _clock(day)+2*MIN_TO_CUTOFF>=cutoff:
+            context['pitreport_collection_status']='DEFERRED_TO_PRESERVE_FORECAST_TIME'
+            return None
+        raw,at,_=get(url,day=day)
+        parsed=parse_pitreport(raw,source_url=url,captured_at=at.isoformat(),
+                              expected_race_id=rid,roster=context['roster'])
+        parsed.update(eligibility_for_cutoff(parsed,cutoff_at=context['cutoff_at']))
+        context['pitreport']=parsed
+        context['pitreport_collection_status']=parsed['status']
+    except SourceWait as ex:
+        context['pitreport_collection_status']='SOURCE_WAIT'
+        return _wait_record(ex)
+    except (SourceError,ValueError,TypeError,KeyError,UnicodeError) as ex:
+        if str(ex)=='DAY_HANDOFF':raise
+        if str(ex)=='WORKER_HANDOFF':
+            context['pitreport_collection_status']='WORKER_HANDOFF'
+            return dict(state='WORKER_HANDOFF',reason='WORKER_HANDOFF',retry_at=None)
+        context['pitreport_collection_status']='SOURCE_OR_LAYOUT_REJECTED'
+    return None
+
+
+def collect_entry_history(context,day,*,paused=None):
+    """Collect descriptive prior-day history after higher-priority race work."""
+    global ENTRY_OBSERVATION_HISTORY
+    if context is None or paused is not None:return paused
+    from race_ai.boat_entry_source_collection import collect_previous_day_history, optional_cache_from_document
+    from race_ai.boat_entry_observations import conditional_profile_before
+    try:
+        if _clock(day)+2*MIN_TO_CUTOFF>=datetime.fromisoformat(context['cutoff_at']):
+            context['entry_history']=dict(profiles=[],collection_status='DEFERRED_TO_PRESERVE_FORECAST_TIME')
+            return None
+        candidate_cache=ENTRY_OBSERVATION_HISTORY
+        _,rejection=optional_cache_from_document({'entry_observation_history':candidate_cache},day=day,as_of=_clock(day))
+        if rejection is not None:ENTRY_OBSERVATION_HISTORY=None
+        ENTRY_OBSERVATION_HISTORY=collect_previous_day_history(day,now=lambda:_clock(day),
+            fetch=lambda url:get(url,day=day,media='archive',not_yet_published=True),
+            cache=candidate_cache)
+        cache=ENTRY_OBSERVATION_HISTORY
+        profiles=[]
+        if cache['status']=='READY':
+            as_of=_clock(day).isoformat()
+            profiles=[conditional_profile_before(cache['history'],as_of=as_of,
+                racer_id=row['registration_number']) for row in sorted(context['roster'],key=lambda r:r['lane'])]
+        context['entry_history']=dict(profiles=profiles,collection_status=cache['status'],
+            history_day=cache['history_day'],missing_sources=cache['missing_sources'],source_wait=cache['source_wait'],
+            rejected_cache_count=cache['rejected_cache_count'],cache_rejection_reason=cache['cache_rejection_reason'])
+    except SourceWait as ex:
+        context['entry_history']=dict(profiles=[],collection_status='SOURCE_WAIT',source_wait=_wait_record(ex))
+        return _wait_record(ex)
+    except (SourceError,ValueError,TypeError,KeyError,UnicodeError) as ex:
+        if str(ex) in _HANDOFF_REASONS:
+            context['entry_history']=dict(profiles=[],collection_status=str(ex))
+            return dict(state=str(ex),reason=str(ex),retry_at=None)
+        context['entry_history']=dict(profiles=[],collection_status='SOURCE_OR_LAYOUT_REJECTED')
+    return None
+
+
 def make_pair(day,race):
     race_id=race["race_id"];venue=race_id[9:11];n=int(race_id[-2:])
     now=_clock(day)
@@ -247,8 +348,29 @@ def make_pair(day,race):
         return {"race_id":race_id,"state":"TOO_LATE_BEFORE_SOURCE"},None,None,None,None
     url=racelist_endpoint(day,venue,n)
     raw,at,program_sha=get(url,day=day)
-    program=parse_official_racelist(raw,day=day,venue=venue,race_no=n,
-                     source_url=url,captured_at=at.isoformat())
+    try:
+        program=parse_official_racelist(raw,day=day,venue=venue,race_no=n,
+                         source_url=url,captured_at=at.isoformat())
+    except SourceError:
+        # Official SG navigation may exceed the pinned forecast adapter's
+        # supported statistics layout. Strict metadata can still bind weather,
+        # equipment and attributed comments without constructing model inputs.
+        from race_ai.boat_observation_context import parse_program_roster
+        metadata=parse_program_roster(raw,source_url=url,captured_at=at.isoformat(),expected_race_id=race_id)
+        if metadata['race_id']!=race_id or metadata['source_cutoff_at']!=race['cutoff_at']:
+            raise SourceError('PROGRAM_CONTEXT_IDENTITY_OR_CUTOFF_MISMATCH')
+        if _clock(day)+MIN_TO_CUTOFF>=cutoff:
+            return dict(race_id=race_id,state='TOO_LATE_BEFORE_SOURCE'),None,None,None,None
+        official_preview_url=preview_endpoint(day,venue,n,'beforeinfo')
+        preview,preview_at,preview_sha=get(official_preview_url,day=day,not_yet_published=True)
+        roster=[dict(lane=row['lane'],racer_registration_id=row['registration_number'])
+                for row in metadata['participants']]
+        context=capture_before_context(preview,url=official_preview_url,captured_at=preview_at,race=race,boats=roster)
+        if context is not None:supplemental_contexts[race_id]=context
+        paused=collect_pitreport(context,day)
+        paused=collect_entry_history(context,day,paused=paused)
+        return dict(race_id=race_id,state='PROGRAM_STATS_UNSUPPORTED_CONTEXT_ONLY',
+                    program_sha256=program_sha,exhibition_sha256=preview_sha,source_wait=paused),None,None,None,None
     if (program["race_id"]!=race_id or program["closed_at"]!=race["cutoff_at"]
             or any(r["entry_status"]!="listed" for r in program["boats"])):
         return {"race_id":race_id,"state":"OFFICIAL_PROGRAM_OR_WITHDRAWAL_CONFLICT"},None,None,None,None
@@ -256,17 +378,24 @@ def make_pair(day,race):
     official_preview_url=preview_endpoint(day,venue,n,"beforeinfo")
     _clock(day)
     preview,preview_at,preview_sha=get(official_preview_url,day=day,not_yet_published=True)
+    context=capture_before_context(preview,url=official_preview_url,captured_at=preview_at,
+                                   race=race,boats=program['boats'])
+    if context is not None:supplemental_contexts[race_id]=context
     result=parse_update(preview,kind="beforeinfo",day=day,venue=venue,race_no=n,
                         source_url=official_preview_url,captured_at=preview_at.isoformat(),
                         entries=program["boats"])
     if result["status"]!="AVAILABLE" or result.get("data") is None:
+        comment_wait=collect_pitreport(context,day)
+        comment_wait=collect_entry_history(context,day,paused=comment_wait)
         return {"race_id":race_id,"state":"EXHIBITION_NOT_FULLY_PUBLISHED",
                 "source_sha256":preview_sha,
-                "source_wait":_publication_wait(race,_clock(day))},None,None,None,None
+                "source_wait":comment_wait or _publication_wait(race,_clock(day))},None,None,None,None
     six=sorted(result["data"]["boats"],key=lambda r:r["lane"])
     if len(six)!=6 or any(r["display_time"] is None for r in six):
+        comment_wait=collect_pitreport(context,day)
+        comment_wait=collect_entry_history(context,day,paused=comment_wait)
         return {"race_id":race_id,"state":"EXHIBITION_TIME_INCOMPLETE",
-                "source_wait":_publication_wait(race,_clock(day))},None,None,None,None
+                "source_wait":comment_wait or _publication_wait(race,_clock(day))},None,None,None,None
     entrants={r["lane"]:r for r in program["boats"]}
     boats=[]
     for measured in six:
@@ -359,19 +488,25 @@ def make_pair(day,race):
                         "failure_class":type(ex).__name__}
     if _clock(day)+MIN_TO_CUTOFF>=cutoff:
         return {"race_id":race_id,"state":"TOO_LATE_AFTER_MODEL"},None,None,None,None
+    paused=collect_pitreport(context,day,paused=paused)
+    paused=collect_entry_history(context,day,paused=paused)
     return {"race_id":race_id,"state":"AB_GENERATED_NOT_YET_EXTERNAL_FROZEN",
             "program_sha256":program_sha,"exhibition_sha256":preview_sha,
             "generated_at":generated,"source_wait":paused},computed,extended,priced,observed
 
 
 def run(*, schedule_snapshot=None):
-    global requests_used
+    global requests_used, ENTRY_OBSERVATION_HISTORY
     requests_used=0
+    supplemental_contexts.clear()
     if os.environ.get("RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED")!="true":
         return stop("OWNER_SOURCE_SCOPE_REQUIRED")
     try:now=_clock()
     except ValueError as ex:return stop(str(ex))
     day=now.astimezone(JST).date()
+    if ENTRY_OBSERVATION_HISTORY is not None and (not isinstance(ENTRY_OBSERVATION_HISTORY,dict)
+            or ENTRY_OBSERVATION_HISTORY.get('event_day')!=day.isoformat()):
+        ENTRY_OBSERVATION_HISTORY=None
     paused=None
     from race_ai.repeated_cycle import usable_schedule
     if usable_schedule(schedule_snapshot,day=day.isoformat(),now=now):
@@ -400,11 +535,24 @@ def run(*, schedule_snapshot=None):
             try:
                 source_url=racelist_endpoint(day,venue,1)
                 body,at,sha=get(source_url,day=day)
-                identity=parse_official_racelist(body,day=day,venue=venue,race_no=1,
-                     source_url=source_url,captured_at=at.isoformat())
-                if identity["status"]!="OFFICIAL_BODY_IDENTITY_VERIFIED":
-                    raise SourceError("RACELIST_IDENTITY_UNVERIFIED")
-                for no,closed in schedule_times(body,day,venue).items():
+                metadata=None
+                try:
+                    identity=parse_official_racelist(body,day=day,venue=venue,race_no=1,
+                         source_url=source_url,captured_at=at.isoformat())
+                    if identity["status"]!="OFFICIAL_BODY_IDENTITY_VERIFIED":
+                        raise SourceError("RACELIST_IDENTITY_UNVERIFIED")
+                except SourceError:
+                    from race_ai.boat_observation_context import parse_program_roster
+                    metadata=parse_program_roster(body,source_url=source_url,captured_at=at.isoformat(),
+                        expected_race_id=f'{day:%Y%m%d}-{venue}-01')
+                times=schedule_times(body,day,venue)
+                if (metadata is not None and set(times)!=set(range(1,13)) or any(closed.utcoffset()!=timedelta(hours=9)
+                        or closed.date()!=day for closed in times.values())
+                        or metadata is not None and times[1].isoformat()!=metadata['source_cutoff_at']):
+                    raise SourceError('VENUE_SCHEDULE_CONTEXT_IDENTITY_INVALID')
+                if metadata is not None:
+                    venue_errors.append(dict(venue=venue,state='VENUE_PROGRAM_STATS_UNSUPPORTED_CONTEXT_ONLY'))
+                for no,closed in times.items():
                     rows.append({"race_id":f"{day:%Y%m%d}-{venue}-{no:02d}",
                                  "cutoff_at":closed.isoformat(),
                                  "schedule_captured_at":at.isoformat(),

@@ -188,7 +188,21 @@ class LocalForecastService:
             records.append(row)
         view["records"] = records
         count = sum((1 if r["prediction"] else 0)+len(r["comparison_predictions"]) for r in records)
-        return dict(available=count>0, revision=native.digest(dict(source=snapshot["status"]["revision"],sport=sport,stage=stage)) if count else None,
+        revision_inputs = dict(source=snapshot["status"]["revision"], sport=sport, stage=stage)
+        if count and sport == "boat":
+            from .boat_context_store import read_contexts, merge_contexts, attach_contexts
+            contexts = []
+            for root in dict.fromkeys((self.root, self.workflow_projection_root)):
+                try:
+                    contexts.append(read_contexts(root, day=day))
+                except (OSError, ValueError):
+                    # Optional observations never prevent saved originals from
+                    # loading, and a damaged sidecar never becomes model input.
+                    continue
+            context_revision = attach_contexts(view, merge_contexts(*contexts))
+            if context_revision is not None:
+                revision_inputs["boat_observation_context"] = context_revision
+        return dict(available=count>0, revision=native.digest(revision_inputs) if count else None,
             day_jst=day, view=view if count else None, source_kind="GITHUB_AUTHENTICATED_ORIGINALS",
             summary=dict(generated=0,reused=count,missing=None,coverage_known=False,races=len(records)))
 

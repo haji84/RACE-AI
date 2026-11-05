@@ -8,3 +8,10 @@ class KMethodEvidence(unittest.TestCase):
         self.assertIsNone(method_of(' 01  1 逃げ田'))
         self.assertIsNone(method_of('   逃げ\n   差し'))
         self.assertIsNone(method_of(' 02  2 4123 AB 1.53.4    逃げ'))
+
+    def test_official_result_table_header_method_is_explicit_evidence(self):
+        header = "  着 艇 登番  選 手 名  モーター ボート 展示 進入 スタートタイミンク レースタイム 逃げ   "
+        self.assertEqual(method_of(header), "nige")
+        self.assertEqual(method_of(header.replace("逃げ", "まくり差し")), "makurizashi")
+        self.assertIsNone(method_of(header + "\n" + header.replace("逃げ", "差し")))
+        self.assertIsNone(method_of("レースタイム 逃げ"))
