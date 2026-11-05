@@ -1,3 +1,19 @@
+<!-- RESULT_SOURCE_RECHECK_20261105_2341 -->
+# 2026-11-05 23:41 JST｜旧SOURCE_OR_PARSE_UNAVAILABLE 3競走の公式Web結果を再確認（正式採点への反映なし）
+
+**今回の実差分は参照結果の独立確認であり、公式採点・予想追加・モデル改善の実証ではない。** 最新完了run `41979370711` / 第21巡の結果ZIP（artifact `13395351632`、実SHA256=`acaf98ae69cf9c1bdbdeccee306e3da0d0d04a31a3737fa229b253f15860a0b8`）は本確認で実バイトSHA256とZIP CRCを再照合し正常。予想ZIP `13395371515`、継続ZIP `13395880555`も登録digestと実バイトSHA256、ZIP CRC一致。結果ZIP内の `current-p1-original.zip` は別取得の予想ZIPに完全一致。内部 `status.json.round_no=21` / `updated_at=2026-11-05T07:02:18.662992+00:00`。保存済み基準698、通常採点546（的中195・不的中351）、未採点152、学習版132、前向き比較110行は**変更なし**。別イベントの原本結果を書き換えていない。
+
+**今回直接読取したBOAT RACE公式の結果表示（11/05対象、公式公開日時はページ上から不明）：**
+- `20261105-22-10` 福岡10R：通常1〜6着表示、3連単 **4-6-1 / 100円27,050円**。表示URL：https://www.boatrace.jp/owpc/pc/race/raceresult?rno=10&jcd=22&hd=20261105 。凍結P0 2系統（元 `13371295414`、保存 `2026-11-04T22:53:32Z`、締切 `2026-11-05T15:12:00+09:00`）の8点には4-6-1が含まれず、**正式読戻し/結果原本の別イベント保存まで未実施の参考照合**として保持。P1予想は同レースで保存0。結果側は先行原本で `SourceError: explicit official payout required` だった。
+- `20261105-08-09` 常滑9R：**3-1-5 / 4,780円**、6号艇「エ」の異常着順表示。表示URL：https://www.boatrace.jp/owpc/pc/race/raceresult?rno=9&jcd=08&hd=20261105 。先行 `unsupported finish disposition` を単純な通常確定に変更しない。
+- `20261105-03-12` 江戸川12R：**4-5-6 / 16,340円**、1号艇「転」の異常着順表示。表示URL：https://www.boatrace.jp/owpc/pc/race/raceresult?rno=12&jcd=03&hd=20261105 。先行 `unsupported payout-only result table set` を通常確定へ無理に昇格しない。
+
+**採点保留の根拠：** 今回は公式Webページのテキスト独立確認だけで、公式HTMLの実レスポンス生バイトSHA・取得サーバー時刻を添えた結果原本の独立保存・新しい結果revision・runnerにおける整合性検証がない。したがって既存の `RESULT_PENDING` を自動で `MISS` にせず、`train/validation` への投入も行わない。とくに「エ」「転」は通常確定対象の例外として区別。学習済み候補の優位性は未証明。
+
+**実行・安全境界：** この時点で対象workflow `405276784` の最近200件内で最新run `41979370711` は `completed/cancelled`、実行中/queued/pending/waitingなし。第21巡の独立読戻しは正常、第22巡の待機処理が `The operation was canceled.`。取消者・意図は取得できない。ワークフローの `cancel-in-progress=false` 維持を確認したが、`timeout-minutes=360` と先行 `source_limit=null/max_rounds=null/requests_used=334` は今回指定の240 GET・24巡/65分に不一致。キャンセル原因と矛盾した安全上限の解決なしに既存runをrerun/追加triggerしない。現時点のPR確認HEAD `0983db08e0bade9ee9eefa87e263333035828dfe` は他チャットによる変更を含むため、その履歴を消さない。新PR/別workflow/新モデル/本番切替/main統合/外部課金/公開/実投票なし。
+
+---
+
 # 2026-11-05 21:47 JST｜取消runの全21巡・予想/結果42原本ZIPを非公開Driveへ保全、全件独立読戻し成功
 
 **今回新たに完了した実差分：** 既存run 41979370711 の第01～20巡の予想原本ZIP20件と公式結果・PDCA原本ZIP20件、計**40件**をGitHub artifactから無改変で再取得し、本人所有かつ共有なしの既存Driveフォルダへ**重複のない新規ファイルとして40件追加**。今夜追加のZIPは計**21,041,980 bytes**。先に保存済みの第21巡の予想・結果2件と最終継続ZIP1件を合わせ、このrunの**全21巡×2種=42件＋継続1件、計43 ZIP**が当該非公開フォルダで確認できた。ソースバンドルはこの42件に含めず、過去の別run全件・全学習元・全公式改訂履歴の長期保全完了とは呼ばない。
