@@ -1,3 +1,17 @@
+# 2026-11-05 09:17 JST｜前run第22巡回まで保存、展示後P1+15・通常採点7、後続1件起動
+
+対象: 既存Draft PR #71 / branch `feat/four-sport-forecast-audit-view-20261022` / 既存workflow `405276784`。前run `41929106428` は2026-11-05 08:59:19 JSTにcompleted/success。GitHub Actions jobログで第22巡回の `ROUND_SAVED_AND_READBACK_VERIFIED` を確認。第23・24巡回は `BOUNDED_SESSION_END` により予想・結果保存をskipped。24巡全件予想したとは数えない。前run実行HEADは `63bc3ec3808b4c126e5fbf2de92d8e1525800a0a`。
+
+当日11/05の第22巡回で、run内の保存・読戻し成功ログ上、基準予想 **303モデル別行（P0=288、展示後P1=15、P1は3レース×既存5モデル）**、通常採点 **7モデル別行**、セッション公式GET **112/240**。当日08:02第3巡回で基準288/P1=0/通常採点0だったため、今回確認できた差分は**P1+15、通常採点+7**。P1は第11・14・19巡回で各5行増。初回P0は `docs/evidence/2026-11-05/p0-first-receipt.json` の初回正本を再利用し再生成なし。通常採点7のHIT/MISS、100円払戻、係数学習版数、LEARNED_SHADOW比較、coverage_audit詳細は最新ZIP内部を独立展開できないため**未確認**。結果未確認を不的中にしない。GitHub Actionのrun内読戻し成功と、この実行環境での完全独立ZIP内部監査は分ける。
+
+前run最新保存2 ZIP：展示後原本 `boat-national-cutoff-41929106428-cycle-22` artifact `13374696437`、サーバー保存2026-11-05 08:56:55 JST、GitHub API ZIP digest `sha256:5b4ec25c1e3e2beaff7bb2b3177a0211ab7b6680045a2f79e03592b2f0e98c85`。別イベント結果/PDCA `race-existing-cycle-41929106428-cycle-22` artifact `13374801406`、サーバー保存08:57:00 JST、digest `sha256:79963f23642fb4d3f576a72933b52424756033d5af3470dc92d69b476bfd0102`。continuity `13373829491`、digest `sha256:487e62dd4c0fda3f8f31e2ac7eeac29ef1041a17414367df31fd27f5c2a3e993`。3 ZIPはGitHubコネクタからダウンロードしFilesに保全したが、この環境のcontainer/Python実行が `redis.exceptions.ResponseError` となり実バイト再ハッシュ・ZIP CRC・status.json等の独立解析未了。API登録digestだけを独立再ハッシュ成功とは言わない。
+
+09:15 JSTの既存Actions状態再取得では全repoの in_progress/queued/pending/waiting 各0、前run成功・通常の有界終了・当日の未来P1未保存レースが残っていたため、既存トリガーファイルを**1回だけCAS更新**。起動コミット `d481d0fe275dbd640d9b2d9858e6dff541206877` により新run `41940044369` が09:16:01 JSTにin_progress。旧runのrerun/キャンセルなし。後続追加push禁止。同一concurrency・cancel-in-progress=false、180秒/最大24巡/65分、240 GET/セッション・45/巡回・最大3レース・締切210秒以上・4xx/429/日付/原本不一致停止を維持。新runの予想・結果・学習成果は未確認であり、起動のみを予想成功と数えない。
+
+最新の独立ZIP成績検証と原本の本人限定長期保存の継続は未完成。学習版の前向き統計的優位性・全16系統×全4競技・全P1・期限なし自動非公開保存は未証明。旧5モデルの係数・買い目と既存原本は不変。新task/PR/workflow/モデル系統/頻度/追加課金/Cloudflare/Vercel/main統合/公開/実投票/本番自動切替なし。他writerの既存記録は以下に保存。
+
+---
+
 # 2026-11-05 08:43 JST｜当日第17巡回までの保存済みartifactをGitHub API照合（成績増分未検証）
 
 対象は既存Draft PR #71 / branch `feat/four-sport-forecast-audit-view-20261022` / workflow `405276784` / run `41929106428` のみ。点検時HEAD `ab57ae2f297066cf0eed77cdaf8ad5219943f3c2`、状態文書更新前blob `d9a6cfbcddedfe2ca08aaaeb8e1a2a9f49d6654c`。runは `in_progress`、job `126921153640` の第17巡回stepは `completed/success`、第18巡回は `in_progress`。同workflowのqueued APIは 0 件、全workflowのqueuedは 0 件。既存concurrencyは`boat-nationwide-cutoff-20261103`、`cancel-in-progress: false`、24巡の既存workflowをそのまま使用。新workflow/頻度/モデルは追加していない。
