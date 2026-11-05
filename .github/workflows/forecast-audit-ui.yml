@@ -3,7 +3,7 @@ on:
   pull_request:
     branches:
       - codex/actions-four-sport-e2e
-    paths: ['race_ai/**', 'scripts/**', 'tests/**', 'workers/**', 'web/**', 'docs/**', 'audit/**', '.github/workflows/**']
+    paths: ['requirements-history.txt', 'race_ai/**', 'scripts/**', 'tests/**', 'workers/**', 'web/**', 'docs/**', 'audit/**', '.github/workflows/**']
 permissions:
   contents: read
 concurrency:
@@ -101,6 +101,10 @@ jobs:
           node --test tests/boat_official_html.test.mjs tests/boat_pdca_shadow.test.mjs tests/boat_continuous_control.test.mjs
       - name: Node contract and denominator tests
         run: node --test --test-reporter=tap tests/forecast_audit.test.cjs tests/full_odds.test.cjs tests/odds_feed_worker.test.mjs tests/odds_auto_source_cron.test.mjs tests/odds_three_cycle_audit.test.mjs tests/private_wire_vault.test.mjs
+      - name: Install pinned private history cache crypto (synthetic keys only)
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Validate history formats, official reconciliation and unchanged model contracts offline
+        run: python -m unittest discover -s tests -p 'test_teiai*.py' -v
       - name: Python synthetic journal to viewer projection tests
         run: python -m unittest discover -s tests -v
       - name: Verify isolated experimental video decoding and measurements

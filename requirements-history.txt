@@ -1,0 +1,2 @@
+# Opt-in encrypted history cache only; no paid service or model dependency.
+cryptography==46.0.3

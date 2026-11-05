@@ -1,0 +1,56 @@
+{
+  "attribution": "データ提供：艇愛ボートレースDB https://boatrace-db.jp/ (BOAT RACE official downloads)",
+  "checked_at": "2026-11-05T17:06:22.549669+00:00",
+  "conflicting_duplicate_races": 0,
+  "distinct_compared_races": 2,
+  "duplicate_history_rows": 0,
+  "formal_backtest_eligible": false,
+  "future_race_verified": false,
+  "history": {
+    "abnormal_rows": 0,
+    "compared_rows": 2,
+    "duplicate_rows": 0,
+    "field_checks": 17,
+    "matched_rows": 2,
+    "mismatch_rate": 0.0,
+    "mismatched_rows": 0,
+    "missing_fields": 0,
+    "missing_rate": 0.0,
+    "missing_rows": 0,
+    "provider_rows": 2,
+    "special_result_rows": 0
+  },
+  "official_corrections_history": null,
+  "parsed_history_rows": 4470,
+  "payouts": {
+    "matched": 10,
+    "mismatched": 0,
+    "missing": 0,
+    "requested": 10
+  },
+  "production_enabled": false,
+  "publication_to_save_delay_seconds": null,
+  "race": {
+    "abnormal_rows": 0,
+    "compared_rows": 6,
+    "duplicate_rows": 0,
+    "field_checks": 49,
+    "matched_rows": 6,
+    "mismatch_rate": 0.0,
+    "mismatched_rows": 0,
+    "missing_fields": 0,
+    "missing_rate": 0.0,
+    "missing_rows": 0,
+    "provider_rows": 6,
+    "special_result_rows": 0
+  },
+  "schema": "RACE_AI_TEIAI_OFFLINE_PROBE_V1",
+  "sha256": {
+    "history": "70fe2b05cb4eeceeada6d82b2e14d770384c734bc3d8f7cd788dfe423ed33378",
+    "official_k": "ac8ce18d08f4856b0b01282b01ae2d43f18edd9eeb068a985b0471ee2ed2b618",
+    "race": "9ef65e7b287db6ca898d4e0d63397d082e79e7e6a5ca9f21c6e1aeed95de888c",
+    "racer": "db15ac7657517943d36e1591b13890e0fb1840215f19583408de1a81d34e3e31"
+  },
+  "unique_compared_entries": 7,
+  "upstream_authentication": "CALLER_RESPONSIBILITY_NOT_ESTABLISHED_BY_LOCAL_HASH"
+}
