@@ -9,7 +9,7 @@ import hashlib
 from urllib.parse import urlsplit, parse_qs
 from .actions_contract import digest
 from .boat_ab_shadow import _valid, _time
-from .boat_observed_pairwise_models import predict_pair, FEATURE_TRANSFORMS, MODEL_IDS
+from .boat_observed_pairwise_models import predict_pair, FEATURE_TRANSFORMS, MODEL_IDS, HISTORY_FIELDS
 
 RIGHTS = 'OWNER_PERSONAL_OFFICIAL_HTML_ANALYSIS_20261104'
 SCHEMA = 'RACE_AI_OBSERVED_P1_CONNECTION_V1'
@@ -27,7 +27,7 @@ def locator(url, kind, rid):
     return p.scheme + '://' + p.netloc + p.path
 
 def build_bundle(base, extra, generated_at, *, program_url, preview_url,
-                 program_captured_at, preview_captured_at, owner_reviewed=False):
+                 program_captured_at, preview_captured_at, owner_reviewed=False, history_context=None):
     """No fetching, imputation, coefficient changes or actual purchases."""
     need(owner_reviewed is True, 'owner source scope required')
     boats = _valid(base, generated_at)
@@ -48,6 +48,15 @@ def build_bundle(base, extra, generated_at, *, program_url, preview_url,
     need(len(extra['participants']) == 6, 'P1 six ST observations required')
     by_lane={x['lane']:x for x in extra['participants']}
     need(set(by_lane)==set(range(1,7)), 'P1 duplicate or missing lane')
+    history=None
+    if history_context is not None:
+        from .observed_result_history import prepare_history
+        history=prepare_history(history_context,race_id=rid,
+            participants=[dict(lane=r['lane'],registration_no=r['racer_id']) for r in boats],as_of=generated_at)
+        sources.append(history['source'])
+        source=history['source']
+        http.append(dict(source_id=source['source_id'],request_url=source['source_url'],
+            source_sha256=source['source_sha256'],captured_at=source['captured_at']))
     participants=[]
     for row in boats:
         item=by_lane[row['lane']]
@@ -64,6 +73,11 @@ def build_bundle(base, extra, generated_at, *, program_url, preview_url,
             if value is None: missing[name]='MISSING'; continue
             source=sources[1] if name.startswith('exhibition_') else sources[0]
             features[name]=dict(value=value,sample_n=None,source_id=source['source_id'],transform_id=FEATURE_TRANSFORMS[name])
+        if history is not None:
+            prior=next(r for r in history['participants'] if r['lane']==row['lane'])
+            features.update(prior['features'])
+            for name in prior['features']:missing.pop(name,None)
+            missing.update(prior['missing'])
         participants.append(dict(lane=row['lane'],registration_no=row['racer_id'],features=features,missing=missing))
     snapshot=dict(schema='RACE_AI_BOAT_OBSERVED_PAIRWISE_V1',scope='OPERATOR_SUPPLIED_RESEARCH',
         race_id=f'boat:{day_iso}:boatrace-jcd-{venue}:{int(number)}',event_date_jst=day_iso,
@@ -74,6 +88,7 @@ def build_bundle(base, extra, generated_at, *, program_url, preview_url,
     out=dict(schema=SCHEMA,race_id=rid,base_source_sha256=digest(base),snapshot=snapshot,suite=suite,
              http_provenance=http,source_locator_semantics='QUERY_FREE_LOCATOR_WITH_EXACT_REQUEST_BESIDE_IT',
              actual_purchases=False,new_model=False)
+    if history is not None:out['history_evidence']=history['evidence']
     out['bundle_sha256']=digest(out)
     return out
 
@@ -87,11 +102,29 @@ def verified_rows(bundle, receipt, body_sha):
     need(rid==bundle['race_id'] and snap['stage']=='P1' and suite['stage']=='P1', 'observed P1 identity/phase mismatch')
     need(suite['snapshot_sha256']==digest(snap) and suite['observations']==snap['participants'] and
          suite['source_evidence']==snap['sources'] and tuple(suite['models'])==MODEL_IDS, 'observed P1 snapshot/model binding mismatch')
-    need(len(bundle['http_provenance'])==len(snap['sources'])==2,'P1 exact provenance required')
+    has_history='history_evidence' in bundle
+    need(len(bundle['http_provenance'])==len(snap['sources'])==(3 if has_history else 2),'P1 exact provenance required')
     for kind,source,http in zip(('racelist','beforeinfo'),snap['sources'],bundle['http_provenance']):
         need(source['source_url']==locator(http['request_url'],kind,rid) and
              all(source[k]==http[k] for k in ('source_id','source_sha256','captured_at')) and
              _time(http['captured_at'])<=_time(snap['as_of']), 'P1 source provenance mismatch')
+    if has_history:
+        from .observed_result_history import verify_history_evidence
+        history=verify_history_evidence(bundle['history_evidence'],race_id=rid,participants=snap['participants'],as_of=snap['as_of'])
+        source=history['source']
+        need(snap['sources'][2]==source and bundle['http_provenance'][2]==dict(
+            source_id=source['source_id'],request_url=source['source_url'],
+            source_sha256=source['source_sha256'],captured_at=source['captured_at']), 'P1 history source provenance mismatch')
+        names=('recent_mean_finish','recent_mean_st','course_mean_finish','course_mean_st')
+        by_lane={r['lane']:r for r in history['participants']}
+        for row in snap['participants']:
+            prior=by_lane[row['lane']]
+            need({k:v for k,v in row['features'].items() if k in names}==prior['features'] and
+                 {k:v for k,v in row['missing'].items() if k in names}==prior['missing'],
+                 'P1 history feature membership mismatch')
+    else:
+        need(all(not HISTORY_FIELDS.intersection(row['features']) for row in snap['participants']),
+             'P1 numeric history requires explicit history evidence')
     check_clock(snap['as_of'],snap['sales_cutoff_at'],receipt['created_at'])
     roster={str(x['lane']):x['registration_no'] for x in snap['participants']}
     need(len(snap['participants'])==6 and set(roster)==set(map(str,range(1,7))) and len(set(roster.values()))==6,'P1 observed roster invalid')

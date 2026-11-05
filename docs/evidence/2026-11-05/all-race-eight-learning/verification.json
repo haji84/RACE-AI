@@ -1,0 +1,35 @@
+{
+  "python_tests": 1074,
+  "failures": 0,
+  "errors": 0,
+  "seconds": 170.535,
+  "source_sha256": {
+    "race_ai/all_race_top8_target.py": "4558729e61ff4f362a0cdab8af0c4bccefcf2de3b8f52f6800ca9d47f36a67fb",
+    "race_ai/cycle_recovery.py": "6d698663c6d99ade9692e4d99b6c3578dbfc65958d14da705b85bb8978645c15",
+    "race_ai/observed_p1_connection.py": "450d0106d2aa65c5384ed9dbdaccf265e5b35d808a858ec5189877390c1fbc58",
+    "race_ai/observed_result_history.py": "e6e741937174066ab51d2aba9b90d9d4dd408c865070a633837bfb8706949d62",
+    "race_ai/observed_weight_learning.py": "b8e4dd5e6845e0c8a1bae432d1a316486de84d60eeadc1ae2f45ba9c6b0120b4",
+    "scripts/boat_nationwide_ab_pilot.py": "ebc316643e6bda71f5c7ca0effd014e2bda4dc13869e7e3efc75706e889b47ea",
+    "scripts/github_existing_cycle.py": "64204f04543c8eb1f97db123e8aa7a000dd56d165f4553d38a0daa451768cc1f",
+    "tests/test_all_race_top8_target.py": "e994174aa3f3fb692e24696e4f2578d2f7b00bb38676874f5177cdab8ebb57de",
+    "tests/test_observed_history_pipeline.py": "3816bdc61e4927680336e56e0aa01d1c6e4dd1997b0c8323dacd85e14a361fbc",
+    "tests/test_observed_p1_connection.py": "859d8a244d776a575f7bf852a0f0d35e2f36b06b89f3cbce1b87172578206be3",
+    "tests/test_observed_result_history.py": "f3e34401e113d745e4a56bccec892286bc8090ef52468c2201340a5dbfdf2060",
+    "tests/test_observed_weight_learning.py": "01f62e195993320965270e54f812cf751862d502b459dd21dd5b30704ebf5e09"
+  },
+  "reviews": {
+    "all_race_metric": "PASS_AFTER_FUTURE_CAPTURE_AND_EXACT_INTEGER_TICKET_FIX",
+    "history_and_integration": "PASS_AFTER_FULLY_REHASHED_LEGACY_DOWNGRADE_FIX"
+  },
+  "legacy_original_replay": "UNCHANGED_DEFAULT_BUNDLE_LITERAL_DIGEST_AND_EXISTING_READER_TESTS_PASS",
+  "new_predictor_families": 0,
+  "official_gets_during_development": 0,
+  "real_forecasts_generated_during_development": 0,
+  "production_model_promoted": false,
+  "target_hit_rate": 0.98,
+  "exact_ticket_count": 8,
+  "target_established": false,
+  "safari_checked": false,
+  "live_history_predictions_verified": false,
+  "activation_state": "CANCELLED_WORKFLOW_OPERATOR_INTENT_UNCONFIRMED"
+}

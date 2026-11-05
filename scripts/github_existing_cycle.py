@@ -82,6 +82,7 @@ def forecast(day):
     from race_ai.repeated_cycle import SourceGuard
     session=ROOT/'cycle_recovery_output/repeat-session.json'
     if session.exists():pilot.SOURCE_GUARD=SourceGuard(session)
+    pilot.OBSERVED_HISTORY_CONTEXT=state.get('history_context')
     result=pilot.run(schedule_snapshot=state.get('schedule_cache'))
     from race_ai.observed_weight_learning import make_shadows
     result['learned_pairwise_shadows']=[];result['learning_failures']=[]
@@ -256,9 +257,13 @@ def audit(day,p1_id,p0_supplement=None,round_no=None):
     if p1_doc is not None: shadow_rows+=read_shadow_rows(p1_doc,p1_meta,rows)
     shadow_rows=merge_shadow_rows(shadow_rows)
     validate_shadow_training(shadow_rows,recovered.get('training_proofs',{}))
+    if p1_doc is not None:
+        from race_ai.cycle_recovery import validate_document_history
+        validate_document_history(p1_doc,recovered.get('history_proofs',{}))
     recovered['learning_shadows']=shadow_rows
     report['learned_shadow_comparison']=score_shadows(shadow_rows,rows,latest_observations)
-    report['coverage_audit']=coverage_audit(rows,doc['schedule'],now=datetime.now(timezone.utc))
+    report['coverage_audit']=coverage_audit(rows,doc['schedule'],now=datetime.now(timezone.utc),
+        observations=latest_observations,learned_rows=shadow_rows)
     training_path=out/'trained_observed_models.json'
     try:
         training=fit_from_verified(rows,latest_observations,now=datetime.now(timezone.utc))
@@ -395,11 +400,15 @@ def repeat_complete(day,round_no,p1_id,result_id):
     from race_ai.observed_weight_learning import context_from_result_archive,training_proof
     from race_ai.repeated_cycle import write_state
     context=context_from_result_archive(raw,meta)
+    from race_ai.observed_result_history import context_from_result_archive as history_from_archive,history_proof
+    prior_history=history_from_archive(raw,meta,verified_at=datetime.now(timezone.utc).isoformat())
+    continuity=load_state(ROOT/'cycle_recovery_output/continuity.json',day)
+    continuity['history_context']=prior_history
+    continuity.setdefault('history_proofs',{})[str(meta['id'])]=history_proof(prior_history)
     if context is not None:
-        continuity=load_state(ROOT/'cycle_recovery_output/continuity.json',day)
         continuity['learning_context']=context
         continuity.setdefault('training_proofs',{})[str(meta['id'])]=training_proof(context)
-        write_state(ROOT/'cycle_recovery_output/continuity.json',continuity,key='state_sha256')
+    write_state(ROOT/'cycle_recovery_output/continuity.json',continuity,key='state_sha256')
     state=complete(ROOT/'cycle_recovery_output/repeat-session.json',round_no,
                    now=datetime.now(timezone.utc),forecast_artifact=p1_id,result_artifact=result_id)
     print(json.dumps(dict(state='ROUND_SAVED_AND_READBACK_VERIFIED',round=round_no,

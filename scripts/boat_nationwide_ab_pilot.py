@@ -43,6 +43,7 @@ from race_ai.boat_deadline_queue import select_due_races
 from race_ai.boat_freeze_index import load_original_race_ids
 from race_ai.boat_live_feature_shadow import build_live_feature_shadow
 from race_ai.observed_p1_connection import build_bundle as build_observed_p1
+OBSERVED_HISTORY_CONTEXT=None
 from race_ai.boat_manshu_watch import freeze_priced_tail
 from race_ai.official_race_updates import endpoint as update_endpoint
 from race_ai.source_retry_policy import SourceWait, plan_http_wait, wait_active
@@ -320,10 +321,11 @@ def make_pair(day,race):
     try:
         if _clock(day)+MIN_TO_CUTOFF>=cutoff:
             return {"race_id":race_id,"state":"TOO_LATE_BEFORE_MODEL"},None,None,None,None
+        history_options={} if OBSERVED_HISTORY_CONTEXT is None else {"history_context":OBSERVED_HISTORY_CONTEXT}
         observed=build_observed_p1(data,extra,generated,
             program_url=url,preview_url=official_preview_url,
             program_captured_at=at.isoformat(),preview_captured_at=preview_at.isoformat(),
-            owner_reviewed=os.environ.get("RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED")=="true")
+            owner_reviewed=os.environ.get("RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED")=="true",**history_options)
     except ValueError as ex:
         if str(ex) in _HANDOFF_REASONS:raise
         observed={"race_id":race_id,"state":"OBSERVED_P1_INPUT_REJECTED","reason":str(ex)[:160]}

@@ -137,3 +137,22 @@ class ProvenanceBindingTests(unittest.TestCase):
         doc=dict(schema='RACE_AI_NATIONWIDE_PRE_CUTOFF_AB_V1',paired_forecasts=[pair],
                  additional_official_feature_shadows=[build_live_feature_shadow(b,e,AT)],observed_pairwise_p1_bundles=[bundle])
         with self.assertRaisesRegex(ValueError,'source'):read_p1(*archive(doc))
+
+
+class HistoryPilotWiringTests(unittest.TestCase):
+    def test_existing_pilot_optional_history_populates_real_bundle(self):
+        from unittest.mock import patch
+        from tests.test_observed_result_history import archived,observation
+        from race_ai.observed_result_history import context_from_result_archive
+        import race_ai
+        from pathlib import Path
+        race_ai.__path__.append(str(Path(__file__).resolve().parents[1]/"pr64-reference/race_ai"))
+        from scripts import boat_nationwide_ab_pilot as pilot
+        context=context_from_result_archive(*archived([observation()]),verified_at='2030-03-31T04:01:00Z')
+        produced=[]
+        def build(*args,**kwargs):
+            result=bridge.build_bundle(*args,**kwargs);produced.append(result);return result
+        with patch.object(pilot,'OBSERVED_HISTORY_CONTEXT',context,create=True),patch.object(pilot,'build_observed_p1',build):
+            LivePilotWiringTests('test_existing_make_pair_calls_existing_observed_models').test_existing_make_pair_calls_existing_observed_models()
+        self.assertTrue('history_evidence' in produced[0], 'pilot ignored explicit optional history')
+        self.assertEqual(produced[0]['snapshot']['participants'][0]['features']['recent_mean_finish']['value'],1)

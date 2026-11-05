@@ -1,0 +1,19 @@
+{
+  "state": "REAL_SAVED_HISTORY_INPUT_DRY_RUN",
+  "parent_artifact_id": 13395351632,
+  "parent_zip_sha256": "acaf98ae69cf9c1bdbdeccee306e3da0d0d04a31a3737fa229b253f15860a0b8",
+  "verified_at": "2026-11-05T08:08:23.040969+00:00",
+  "future_saved_schedule_races_checked": 23,
+  "prepared_participant_counts_by_feature": {
+    "recent_mean_finish": 23,
+    "recent_mean_st": 23
+  },
+  "min_history_samples": 1,
+  "max_history_samples": 1,
+  "actual_course_inferred": false,
+  "old_originals_modified": false,
+  "new_forecasts_generated": 0,
+  "official_gets": 0,
+  "accuracy_improvement_measured": false,
+  "scope": "Only captured verified earlier opportunities, not full racer career history"
+}

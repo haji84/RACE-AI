@@ -304,7 +304,7 @@ def context_from_result_archive(raw, receipt):
     return dict(training=training,receipt=deepcopy(receipt)) if training['state']=='FITTED_SHADOW_ONLY' else None
 
 
-def coverage_audit(rows, schedule, *, now):
+def coverage_audit(rows, schedule, *, now, observations=None, learned_rows=None):
     from .boat_ab_shadow import MODEL_IDS as AB
     from .boat_live_feature_shadow import MODEL_ID as C
     expected=set(AB)|{C}|set(MODEL_IDS)
@@ -318,10 +318,16 @@ def coverage_audit(rows, schedule, *, now):
         if absent:missing.append(dict(race_id=race['race_id'],cutoff_at=race['cutoff_at'],
             missing_model_ids=absent,reason='NO_PRE_CUTOFF_P1_RECEIPT',
             exhibition_availability_at_that_time_verified=False))
-    return dict(checked_at=now.isoformat(),scheduled_races=len(schedule),ended_races=len(ended),
+    out = dict(checked_at=now.isoformat(),scheduled_races=len(schedule),ended_races=len(ended),
         future_races=len(schedule)-len(ended),complete_five_model_p1=len(ended)-len(missing),
         missing_p1_model_predictions=sum(len(r['missing_model_ids']) for r in missing),missing=missing,
         zero_misses_proven=False,missing_races_not_removed_from_denominator=True)
+    if observations is not None:
+        from .all_race_top8_target import all_race_top8_target
+        out['all_race_top8_target'] = all_race_top8_target(
+            rows, schedule, observations, now=now, expected_models=expected,
+            learned_rows=learned_rows)
+    return out
 
 
 def validate_shadow_training(rows, proofs):

@@ -242,10 +242,21 @@ def _retain_original(path,raw):
     else:
         with path.open('xb') as stream:stream.write(raw)
 
-def recover(get,day,*,current_run,out):
+def validate_document_history(document,proofs):
+    """Match new history evidence to independently read parent archives."""
+    evidence=[bundle['history_evidence'] for bundle in document.get('observed_pairwise_p1_bundles',[])
+              if 'history_evidence' in bundle]
+    if not evidence:return
+    from .observed_result_history import validate_history_proofs
+    for item in evidence:validate_history_proofs(item,proofs)
+
+def recover(get,day,*,current_run,out,clock=None):
     """Read every same-day P1 original and every saved result journal, no writes upstream."""
     rows=[];observations=[];receipts=[];scanned=[];index_entries=[]
     learning_shadows=[];learning_context=None;training_proofs={}
+    history_context=None;history_proofs={};history_documents=[]
+    clock=clock or (lambda:datetime.now(timezone.utc))
+    from .observed_result_history import context_from_result_archive as history_from_archive,history_proof
     source_control=previous_source_control(get,day,current_run=current_run)
     from .observed_weight_learning import read_shadow_rows,context_from_result_archive,merge_shadow_rows,training_proof,validate_shadow_training,attach_snapshots
     out.mkdir(parents=True,exist_ok=True)
@@ -287,6 +298,7 @@ def recover(get,day,*,current_run,out):
                     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
                         body_sha=hashlib.sha256(archive.read('national.json')).hexdigest()
                     learning_shadows+=read_shadow_rows(doc,meta,items)
+                    history_documents.append(doc)
                     for pair in doc.get('paired_forecasts',[]):
                         index_entries.append(dict(race_id=pair['race_id'],cutoff_at=pair['cutoff_at'],run_id=run['id'],artifact_id=ident,server_created_at=meta['created_at'],zip_sha256=hashlib.sha256(raw).hexdigest(),json_sha256=body_sha,bundle_sha256=pair['bundle_sha256']))
                 # Preserve original bytes, not reconstructed predictions.
@@ -297,19 +309,25 @@ def recover(get,day,*,current_run,out):
                 # Authentication and schema/day checks precede filtering. The
                 # previous evening's legitimate archive is never relabeled.
                 day_observations=result_archive(raw,meta,payload_day)
+                prior_history=history_from_archive(raw,meta,verified_at=clock().isoformat())
+                history_proofs[str(meta['id'])]=history_proof(prior_history)
+                if history_context is None or ts(meta['created_at'])>ts(history_context['receipt']['created_at']):
+                    history_context=prior_history
                 if payload_day==day:observations+=day_observations
                 candidate=context_from_result_archive(raw,meta)
                 if candidate is not None:training_proofs[str(meta['id'])]=training_proof(candidate)
                 if payload_day==day and candidate is not None and (learning_context is None or ts(meta['created_at'])>ts(learning_context['receipt']['created_at'])):
                     learning_context=candidate
     validate_shadow_training(learning_shadows,training_proofs)
+    for document in history_documents:validate_document_history(document,history_proofs)
     unique,excluded=first_receipt_rows(rows)
     _,journal=latest_result_observations(observations)
     state=dict(schema='RACE_AI_RECOVERED_FIRST_RECEIPTS_V1',day_jst=day,rows=unique,
                excluded_repeats=excluded,receipts=receipts,observations=journal,
                scanned_runs=scanned,index_entries=index_entries,complete=True,
                learning_shadows=merge_shadow_rows(learning_shadows),learning_context=learning_context,
-               training_proofs=training_proofs,source_control=source_control)
+               training_proofs=training_proofs,source_control=source_control,
+               history_context=history_context,history_proofs=history_proofs)
     state['state_sha256']=hashlib.sha256(json.dumps(state,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
     (out/'continuity.json').write_text(json.dumps(state,ensure_ascii=False))
     return state

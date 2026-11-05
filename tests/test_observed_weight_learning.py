@@ -219,6 +219,7 @@ class LearnedShadowRoundtrip(unittest.TestCase):
           f'actions/artifacts/{meta["id"]}':json.dumps(meta).encode(),f'actions/artifacts/{meta["id"]}/zip':raw,
           'actions/artifacts/700':json.dumps(training_meta).encode(),'actions/artifacts/700/zip':result_raw}
         with tempfile.TemporaryDirectory() as tmp:
-            recovered=recover(lambda url:records[url],'2030-04-01',current_run=100,out=Path(tmp))
+            recovered=recover(lambda url:records[url],'2030-04-01',current_run=100,out=Path(tmp),
+                              clock=lambda:NOW+timedelta(minutes=20))
             self.assertEqual(len(recovered['rows']),5);self.assertEqual(len(recovered['learning_shadows']),2)
             self.assertEqual(recovered['learning_context']['training']['training_sha256'],context['training']['training_sha256'])
