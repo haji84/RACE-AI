@@ -11,7 +11,7 @@ from .boat_ab_cohort import RACE_ID, wilson
 from .boat_observed_pairwise_models import MODEL_IDS as OBSERVED
 from .frozen_day_cycle import check_clock, rank_check, settle, ts
 from .private_saved_comparison import _result
-from .boat_cutoff_revision import cutoff_views
+from .boat_cutoff_revision import cutoff_views,apply_cutoff_evidence
 
 
 SPECIAL = frozenset({'CANCELLED', 'NO_CONTEST', 'NO_TRIFECTA',
@@ -56,6 +56,7 @@ def _first_original(rows, race, now):
             if ts(row['cutoff_at']) != ts(race['cutoff_at']):
                 raise ValueError('forecast/schedule cutoff mismatch')
             check_clock(row['as_of'], row['cutoff_at'], row['server_saved_at'])
+            check_clock(row['as_of'], row.get('frozen_cutoff_at',row['cutoff_at']), row['server_saved_at'])
             if ts(row['server_saved_at']) > now:
                 raise ValueError('future forecast receipt')
             valid.append(row)
@@ -91,6 +92,7 @@ def all_race_top8_target(rows, schedule, observations, *, now, expected_models,
     if now.utcoffset() is None:
         raise ValueError('aware target audit time required')
     rows,revisions,blocked=cutoff_views(rows,as_of=now)
+    learned_rows=apply_cutoff_evidence(learned_rows,revisions) if learned_rows is not None else None
     schedule=deepcopy(schedule)
     for race in schedule:
         if race['race_id'] in revisions:

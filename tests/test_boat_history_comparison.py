@@ -60,12 +60,31 @@ class HistoryComparisonTests(unittest.TestCase):
         pair=self.pair();pair['history']['suite']['models'][next(iter(pair['history']['suite']['models']))]['ordered_top8'][0]=[1,2,3]
         with self.assertRaises(ValueError):self.c.verify_pair(pair)
 
+    def test_unreadable_race_cannot_disappear_from_model_window(self):
+        raw,proof=archives(start='BROKEN',captured='2026-11-05T19:00:00+09:00')
+        self.store.ingest_day(DAY,raw['B'],raw['K'],proof['B'],proof['K'])
+        pair=self.pair();p=pair['history']['snapshot']['participants'][0]
+        self.assertEqual(len(pair['history_evidence']['windows']['4001']),3)
+        for name in ('recent_mean_finish','recent_mean_st'):
+            self.assertNotIn(name,p['features'])
+            self.assertEqual(p['missing'][name],'UNRESOLVED_DISPOSITION')
+
     def test_private_frozen_pair_is_create_only_and_read_back_is_verified(self):
         pair=self.pair();p=Path(self.tmp.name)/'pair.json'
-        self.c.freeze_pair(pair,p)
+        self.c.freeze_pair(pair,p,clock=lambda: __import__('race_ai.boat_history_store',fromlist=['instant']).instant(NOW))
         self.assertEqual(self.c.load_pair(p),pair)
         other=self.c.prepare_pair(current(),self.store,'2026-11-06T01:31:00+09:00')
         with self.assertRaises(ValueError):self.c.freeze_pair(other,p)
+
+    def test_late_write_completion_is_preserved_but_cannot_be_admitted(self):
+        from race_ai.boat_history_store import instant
+        pair=self.pair();p=Path(self.tmp.name)/'late.json'
+        ticks=iter([instant(NOW),instant('2026-11-06T11:00:00+09:00')])
+        with self.assertRaisesRegex(ValueError,'LATE_FREEZE'):
+            self.c.freeze_pair(pair,p,clock=lambda:next(ticks))
+        self.assertTrue(p.is_file())
+        with self.assertRaisesRegex(ValueError,'LATE_FREEZE'):
+            self.c.read_freeze_receipt(p)
 
     def test_resealed_omitted_history_window_cannot_support_existing_features(self):
         from race_ai.actions_contract import digest

@@ -145,6 +145,7 @@ def evaluate(rows,observations):
         try:
             need(row['race_id'] not in blocked,blocked.get(row['race_id']))
             check_clock(row['as_of'],row['cutoff_at'],row['server_saved_at'])
+            check_clock(row['as_of'],row.get('frozen_cutoff_at',row['cutoff_at']),row['server_saved_at'])
             verdicts.append(retain_frozen_cutoff(settle(row,by_id.get(row['race_id'])),row))
         except (ValueError,KeyError,TypeError) as e:
             # An invalid result must not erase an independently frozen forecast's receipt or tickets.

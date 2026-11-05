@@ -5,6 +5,7 @@ changes a deadline. This view never rewrites a forecast or its original hash.
 """
 from collections import defaultdict
 from copy import deepcopy
+from .actions_contract import digest
 
 
 def cutoff_views(rows, *, as_of=None):
@@ -37,17 +38,23 @@ def cutoff_views(rows, *, as_of=None):
             blocked[rid]='CUTOFF_REVISION_CAPTURE_CONFLICT';continue
         witness=min(current,key=lambda r:(r['artifact_id'],r['model_id']))
         revisions[rid]=dict(effective_cutoff_at=witness['cutoff_at'],
+            roster_sha256=digest(witness['roster']),
             artifact_id=witness['artifact_id'],model_sha256=witness['model_sha256'],
             original_json_sha256=witness['original_json_sha256'],
             server_saved_at=witness['server_saved_at'],basis='VERIFIED_PRE_CUTOFF_P1_ORIGINAL')
+    return apply_cutoff_evidence(rows,revisions),revisions,blocked
+
+
+def apply_cutoff_evidence(rows,revisions):
+    from .frozen_day_cycle import ts
     output=deepcopy(rows)
     for row in output:
         evidence=revisions.get(row['race_id'])
-        if evidence is not None and ts(row['cutoff_at'])!=ts(evidence['effective_cutoff_at']):
+        if evidence is not None and digest(row.get('roster'))==evidence['roster_sha256'] and ts(row['cutoff_at'])!=ts(evidence['effective_cutoff_at']):
             row['frozen_cutoff_at']=row['cutoff_at']
             row['cutoff_at']=evidence['effective_cutoff_at']
             row['cutoff_revision_evidence']=deepcopy(evidence)
-    return output,revisions,blocked
+    return output
 
 
 def retain_frozen_cutoff(verdict, row):

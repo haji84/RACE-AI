@@ -55,6 +55,10 @@ class HistoricalStoreTests(unittest.TestCase):
         self.assertEqual(p['by_actual_course']['1']['starts'],2)
         self.assertEqual(p['by_actual_course']['1']['wins'],1)
         self.assertFalse(p['source_publication_time_verified'])
+        self.assertEqual(p['last_program']['name'],'TEST')
+        self.assertEqual(p['last_program']['age'],30)
+        self.assertEqual(p['last_program']['branch'],'東京')
+        self.assertEqual(p['last_program']['program_day'],DAY.isoformat())
 
     def test_reingesting_same_bytes_is_idempotent_and_unknown_racer_stays_unknown(self):
         self.ingest();repeated=self.ingest(captured='2026-11-05T19:00:00+09:00')
@@ -77,6 +81,22 @@ class HistoricalStoreTests(unittest.TestCase):
         self.assertAlmostEqual(early['recent_10']['mean_st'],.12)
         self.assertAlmostEqual(late['recent_10']['mean_st'],(.20+.12+.12)/3)
 
+    def test_parser_upgrade_retains_old_import_and_selects_new_interpretation(self):
+        import json
+        from race_ai.boat_history_store import day_payload,wire
+        raw,proof=archives(start='BROKEN')
+        legacy=day_payload(DAY,raw['B'],raw['K'],proof['B'],proof['K'])
+        legacy.pop('parser_revision');legacy['facts']=[r for r in legacy['facts'] if r['participation']!='UNRESOLVED']
+        with self.store.db:self.store.db.execute('INSERT INTO imports VALUES (?,?,?,?,?,?)',
+            ('legacy-import',DAY.isoformat(),legacy['available_at'],proof['B']['source_sha256'],proof['K']['source_sha256'],wire(legacy)))
+        self.store.ingest_day(DAY,raw['B'],raw['K'],proof['B'],proof['K'])
+        self.assertEqual(self.store.inventory()['day_revisions'],2)
+        self.assertEqual(len(self.store.history_rows(['4001'],ASOF)),3)
+
+    def test_conflicting_source_bodies_at_same_capture_are_not_resolved_by_parser_version(self):
+        self.ingest();self.ingest(start='0.20')
+        with self.assertRaisesRegex(ValueError,'CAPTURE_CONFLICT'):self.store.history_rows(['4001'],ASOF)
+
     def test_f_start_is_retained_and_is_not_silently_a_normal_finish(self):
         result=self.ingest(start='F.02')
         self.assertEqual(result['excluded_races'],1)
@@ -85,6 +105,17 @@ class HistoricalStoreTests(unittest.TestCase):
         self.assertEqual(p['normal_starts'],2)
         self.assertEqual(p['st_dispositions']['F'],1)
         self.assertIsNone(p['recent_10']['mean_finish'])
+
+    def test_unreadable_result_keeps_program_opportunity_without_inventing_start(self):
+        self.ingest(start='BROKEN')
+        rows=self.store.history_rows(['4001'],ASOF)
+        self.assertEqual(len(rows),3)
+        p=self.store.racer_profile('4001',ASOF)
+        self.assertEqual(p['opportunities'],3)
+        self.assertEqual(p['starts'],2)
+        self.assertEqual(p['unresolved_opportunities'],1)
+        self.assertIsNone(p['recent_10']['mean_finish'])
+        self.assertIsNone(p['recent_10']['mean_st'])
 
     def test_motor_performance_is_venue_scoped_and_epoch_is_not_invented(self):
         self.ingest()
@@ -144,7 +175,7 @@ class HistoricalStoreTests(unittest.TestCase):
         result=self.store.ingest_day(DAY,raw['B'],raw['K'],proof['B'],proof['K'])
         self.assertEqual(result['normal_races'],3)
         self.assertEqual(result['excluded_races'],3)
-        self.assertEqual(result['fact_rows'],18)
+        self.assertEqual(result['fact_rows'],36)
 
     def test_parent_symlink_cannot_hide_a_public_git_checkout(self):
         repo=Path(self.tmp.name)/'repository';repo.mkdir(mode=0o700)

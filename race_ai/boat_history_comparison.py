@@ -6,6 +6,7 @@ lane, motor epochs are not invented, and a local seal is not an external clock.
 from collections import Counter
 from copy import deepcopy
 from datetime import date,datetime,timezone
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -14,6 +15,7 @@ from .actions_contract import digest
 from .boat_history_store import instant,wire
 from .boat_observed_pairwise_models import predict_pair,FEATURE_TRANSFORMS
 from .frozen_day_cycle import sealed,official_id,settle,check_clock
+from .observed_result_history import _features
 
 RECENT=('recent_mean_finish','recent_mean_st')
 RIGHTS='OWNER_PERSONAL_OFFICIAL_HISTORY_ANALYSIS_20261106'
@@ -83,7 +85,6 @@ def prepare_pair(snapshot,history_store,now):
     coverage=Counter()
     for participant in candidate['participants']:
         reg=participant['registration_no'];window=windows[reg]
-        counts=Counter(r['st_status'] for r in window)
         for name in RECENT:
             participant['features'].pop(name,None)
             participant['missing'][name]='NO_PRIOR_SAMPLES'
@@ -91,22 +92,16 @@ def prepare_pair(snapshot,history_store,now):
         source_id=source_ids[(window[-1]['day'],'K')]
         # The primary source pointer is a provenance pivot. The window seal and
         # evidence retain EVERY contributing B/K source and each selected row.
-        window_id='captured-last10-'+digest(dict(racer_id=reg,rows=window))
-        finish_ok=all(r['normal_result'] and type(r['finish']) is int and 1<=r['finish']<=6 for r in window)
-        if finish_ok:
-            values=[r['finish'] for r in window]
-            participant['features']['recent_mean_finish']=dict(value=sum(values)/len(values),sample_n=len(values),source_id=source_id,
-                transform_id=FEATURE_TRANSFORMS['recent_mean_finish'],history=dict(window_id=window_id,total_n=len(window),ok_n=len(values),f_n=0,l_n=0,missing_n=0,unresolved_n=0))
-            participant['missing'].pop('recent_mean_finish',None);coverage['participants_with_recent_finish']+=1
-        else:participant['missing']['recent_mean_finish']='UNRESOLVED_DISPOSITION'
-        values=[r['st'] for r in window if r['st_status']=='OK' and r['st'] is not None]
-        unresolved=sum(v for k,v in counts.items() if k not in ('OK','F','L','MISSING'))
-        if values and not unresolved:
-            participant['features']['recent_mean_st']=dict(value=sum(values)/len(values),sample_n=len(values),source_id=source_id,
-                transform_id=FEATURE_TRANSFORMS['recent_mean_st'],history=dict(window_id=window_id,total_n=len(window),ok_n=len(values),f_n=counts['F'],l_n=counts['L'],missing_n=counts['MISSING'],unresolved_n=0))
-            participant['missing'].pop('recent_mean_st',None);coverage['participants_with_recent_st']+=1
+        opportunities=[(dict(finish=r['finish'],finish_status='FINISHED' if r['normal_result'] else 'MISSING',
+            actual_st=r['st'],actual_st_status='UNRESOLVED' if r.get('participation')=='UNRESOLVED' else r['st_status']),digest(r)) for r in window]
+        features,missing=_features(opportunities,source_id,reg)
+        for name in RECENT:
+            if name in features:
+                participant['features'][name]=features[name];participant['missing'].pop(name,None)
+                coverage['participants_with_'+('recent_finish' if name.endswith('finish') else 'recent_st')]+=1
+            else:participant['missing'][name]=missing[name]
     b=run(candidate)
-    pair=dict(schema='RACE_AI_RECENT_HISTORY_PROSPECTIVE_PAIR_V1',race_id=official_id(baseline['race_id']),
+    pair=dict(schema='RACE_AI_RECENT_HISTORY_PROSPECTIVE_PAIR_V2',race_id=official_id(baseline['race_id']),
         stage=baseline['stage'],generated_at=clock.isoformat(),cutoff_at=baseline['sales_cutoff_at'],
         protocol='SAME_ASOF_FIXED8_RECENT_HISTORY_ONLY_EXISTING_WEIGHTS',
         baseline=dict(snapshot=baseline,suite=a),history=dict(snapshot=candidate,suite=b),
@@ -120,7 +115,7 @@ def prepare_pair(snapshot,history_store,now):
 
 def verify_pair(pair):
     sealed(pair,'pair_sha256')
-    need(pair.get('schema')=='RACE_AI_RECENT_HISTORY_PROSPECTIVE_PAIR_V1','HISTORY_PAIR_SCHEMA_REQUIRED')
+    need(pair.get('schema')=='RACE_AI_RECENT_HISTORY_PROSPECTIVE_PAIR_V2','HISTORY_PAIR_SCHEMA_REQUIRED_LEGACY_NOT_ADMITTED')
     need(pair.get('actual_purchases') is False and pair.get('auto_promoted') is False,'HISTORY_PAIR_RESEARCH_ONLY')
     a=pair['baseline']['snapshot'];b=pair['history']['snapshot']
     need(a['as_of']==b['as_of']==pair['generated_at'] and a['sales_cutoff_at']==b['sales_cutoff_at']==pair['cutoff_at'],
@@ -139,11 +134,40 @@ def verify_pair(pair):
     return pair
 
 
-def freeze_pair(pair,path):
+def freeze_pair(pair,path,*,clock=None):
     from scripts.boat_history_collect import private_root,save
     verify_pair(pair);path=Path(path).absolute();private_root(path.parent)
-    save(path,(wire(pair)+'\n').encode())
+    clock=clock or (lambda:datetime.now(timezone.utc))
+    started=instant(clock());boundary=instant(pair['generated_at']);cutoff=instant(pair['cutoff_at'])
+    need(boundary<=started<cutoff,'LATE_FREEZE_OR_CLOCK_REGRESSION')
+    raw=(wire(pair)+'\n').encode();save(path,raw)
+    need(path.read_bytes()==raw,'HISTORY_PAIR_READBACK_MISMATCH')
+    completed=instant(clock())
+    receipt=dict(schema='RACE_AI_LOCAL_PAIR_FREEZE_RECEIPT_V1',pair_sha256=pair['pair_sha256'],
+        file_sha256=hashlib.sha256(raw).hexdigest(),information_as_of=pair['generated_at'],
+        cutoff_at=pair['cutoff_at'],write_started_at=started.isoformat(),write_completed_at=completed.isoformat(),
+        local_pre_cutoff_completion_verified=boundary<=started<=completed<cutoff,
+        independent_pre_cutoff_receipt_verified=False)
+    receipt['receipt_sha256']=digest(receipt)
+    save(path.with_suffix('.receipt.json'),(wire(receipt)+'\n').encode())
+    need(receipt['local_pre_cutoff_completion_verified'],'LATE_FREEZE_OR_CLOCK_REGRESSION')
     return path
+
+
+def read_freeze_receipt(path,pair=None):
+    path=Path(path);receipt_path=path.with_suffix('.receipt.json')
+    need(receipt_path.is_file() and not receipt_path.is_symlink() and receipt_path.stat().st_size<=4096,
+         'NO_VERIFIED_LOCAL_FREEZE_RECEIPT')
+    pair=pair or load_pair(path);receipt=json.loads(receipt_path.read_text())
+    sealed(receipt,'receipt_sha256')
+    need(receipt.get('schema')=='RACE_AI_LOCAL_PAIR_FREEZE_RECEIPT_V1' and
+        receipt['pair_sha256']==pair['pair_sha256'] and receipt['cutoff_at']==pair['cutoff_at'] and
+        receipt['information_as_of']==pair['generated_at'] and
+        receipt['file_sha256']==hashlib.sha256(path.read_bytes()).hexdigest(), 'LOCAL_FREEZE_RECEIPT_BINDING')
+    need(receipt.get('local_pre_cutoff_completion_verified') is True and
+        instant(pair['generated_at'])<=instant(receipt['write_started_at'])<=instant(receipt['write_completed_at'])<instant(pair['cutoff_at']),
+        'LATE_FREEZE_OR_CLOCK_REGRESSION')
+    return receipt
 
 
 def load_pair(path):
@@ -175,5 +199,6 @@ def score_pair(pair,observation,now):
             baseline_hit=a['state']=='HIT' if eligible else None,history_hit=b['state']=='HIT' if eligible else None,
             stake_yen_per_variant=800 if eligible else None,baseline_received_yen=a.get('received_yen'),history_received_yen=b.get('received_yen')))
     return dict(race_id=pair['race_id'],pair_sha256=pair['pair_sha256'],result_sha256=observation['source_sha256'],models=out,
+        prospective_metric_eligible=False,scoring_scope='DESCRIPTIVE_LOCAL_PAIR_REQUIRES_AUTHENTICATED_EXTERNAL_FREEZE',
         independent_pre_cutoff_receipt_verified=pair['independent_pre_cutoff_receipt_verified'],
         accuracy_improvement_proven=False,auto_promoted=False)

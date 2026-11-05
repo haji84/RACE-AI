@@ -20,6 +20,35 @@ def inputs(revised='2030-04-01T10:48:00+09:00'):
 
 
 class CutoffRevisionTests(unittest.TestCase):
+    def test_baseline_revision_does_not_rescue_foreign_learned_roster(self):
+        from race_ai.boat_observed_pairwise_models import MODEL_IDS
+        rows,obs=inputs();learned=deepcopy(rows[0]);learned.update(stage='P1',model_id=MODEL_IDS[0])
+        learned['roster']['1']='9999'
+        result=all_race_top8_target(rows,[dict(race_id=rows[0]['race_id'],cutoff_at=rows[0]['cutoff_at'])],obs,
+            now=datetime.fromisoformat('2030-04-01T03:00:00+00:00'),expected_models={r['model_id'] for r in rows},learned_rows=[learned])
+        selected=[r for r in result['per_forecast'] if r['variant']=='LEARNED_SHADOW' and r['model_id']==learned['model_id']]
+        self.assertFalse(selected[0]['issued'])
+
+    def test_learned_variant_uses_same_baseline_authenticated_revision(self):
+        from race_ai.boat_observed_pairwise_models import MODEL_IDS
+        rows,obs=inputs();learned=deepcopy(rows[0]);learned.update(stage='P1',model_id=MODEL_IDS[0])
+        before=deepcopy(learned)
+        result=all_race_top8_target(rows,[dict(race_id=rows[0]['race_id'],cutoff_at=rows[0]['cutoff_at'])],obs,
+            now=datetime.fromisoformat('2030-04-01T03:00:00+00:00'),expected_models={r['model_id'] for r in rows},learned_rows=[learned])
+        selected=[r for r in result['per_forecast'] if r['variant']=='LEARNED_SHADOW' and r['model_id']==learned['model_id']]
+        self.assertTrue(selected[0]['issued'])
+        self.assertIn('cutoff_revision_evidence',selected[0])
+        self.assertEqual(learned,before)
+
+    def test_later_revision_cannot_rescue_receipt_late_under_its_original_deadline(self):
+        rows,obs=inputs('2030-04-01T11:10:00+09:00');rows[0]['server_saved_at']='2030-04-01T02:05:00Z'
+        result=evaluate(rows,obs)
+        self.assertEqual(result['per_forecast'][0]['state'],'RESULT_REJECTED')
+        target=all_race_top8_target(rows,[dict(race_id=rows[0]['race_id'],cutoff_at=rows[0]['cutoff_at'])],obs,
+            now=datetime.fromisoformat('2030-04-01T03:00:00+00:00'),expected_models={r['model_id'] for r in rows})
+        selected=[r for r in target['per_forecast'] if r['stage']=='P0' and r['model_id']==rows[0]['model_id']]
+        self.assertFalse(selected[0]['issued'])
+
     def test_preclose_same_roster_revision_scores_both_phases_without_rewriting_original(self):
         rows, obs = inputs(); before = deepcopy(rows)
         result = evaluate(rows, obs)

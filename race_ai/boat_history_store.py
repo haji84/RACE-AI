@@ -18,6 +18,7 @@ from .boat_k_day_methods import HEADER
 from .core import _blocks, parse_k, SourceError
 
 JST=timezone(timedelta(hours=9))
+PARSER_REVISION=3
 
 
 def wire(value):
@@ -49,13 +50,13 @@ def allocations(raw):
             if not re.match(r'^\s*[1-6]\s+\d{4}',line):continue
             m=pattern.match(line)
             if m is None or race is None:raise ValueError('HISTORY_B_ALLOCATION_LAYOUT_UNSUPPORTED')
-            lane,reg,_,_,_,_,grade,national,national2,local,local2,motor,motor2,boat,boat2=m.groups()
+            lane,reg,name,age,branch,weight,grade,national,national2,local,local2,motor,motor2,boat,boat2=m.groups()
             rates=[float(x) for x in (national,national2,local,local2,motor2,boat2)]
             if any(not 0<=x<=100 for x in rates) or rates[0]>10 or rates[2]>10 or not 1<=int(motor)<=99 or not 1<=int(boat)<=999:
                 raise ValueError('HISTORY_B_ALLOCATION_OUT_OF_RANGE')
             key=(venue,race,int(lane))
             if key in result:raise ValueError('HISTORY_B_ALLOCATION_DUPLICATE')
-            result[key]=dict(racer_id=reg,grade=grade,motor_no=int(motor),boat_no=int(boat),
+            result[key]=dict(racer_id=reg,name=name.strip(),age=int(age),branch=branch,weight_kg=int(weight),grade=grade,motor_no=int(motor),boat_no=int(boat),
                 national_win_rate=float(national),local_win_rate=float(local),motor_top2_rate=float(motor2))
     return result
 
@@ -94,23 +95,41 @@ def day_payload(day,b_archive,k_archive,b_source,k_source):
                 facts.append(dict(row,venue=f'{venue:02d}',day=day.isoformat(),cutoff_at=history['race_proofs'][rid]['cutoff_at'],
                     normal_result=rid in normal,winner_method=normal.get(rid,{}).get('winner_method'),
                     motor_no=actual[1] if actual else None,program_motor_no=detail['motor_no'],
-                    grade=detail['grade'],available_at=available,source_sha256=k_source['source_sha256']))
+                    grade=detail['grade'],program=detail,available_at=available,source_sha256=k_source['source_sha256']))
     expected={(rid,int(frame)) for rid,p in history['race_proofs'].items() for frame in p['frame_racer_ids']}
     if {(r['race_id'],r['lane']) for r in facts}-expected:raise ValueError('HISTORY_UNEXPECTED_START')
-    return dict(day=day.isoformat(),facts=facts,history=history,available_at=available)
+    observed={(r['race_id'],r['lane']) for r in facts}
+    for row in facts:
+        row['participation']='CONFIRMED_ABSENCE' if row['st_status']=='ABSENT' else 'CONFIRMED_START'
+    # B establishes a scheduled opportunity, never proof of an actual start.
+    # Missing or unreadable K membership must not pull older good races into
+    # a recent window. Confirmed K absences remain separate above.
+    for rid,lane in sorted(expected-observed):
+        proof=history['race_proofs'][rid];venue=int(rid[9:11]);number=int(rid[-2:])
+        detail=details[(venue,number,lane)]
+        facts.append(dict(race_id=rid,lane=lane,racer_id=proof['frame_racer_ids'][str(lane)],
+            course=None,st=None,st_status='MISSING',finish=None,race_at=None,venue=f'{venue:02d}',
+            day=day.isoformat(),cutoff_at=proof['cutoff_at'],normal_result=False,winner_method=None,
+            motor_no=None,program_motor_no=detail['motor_no'],grade=detail['grade'],program=detail,
+            available_at=available,source_sha256=k_source['source_sha256'],participation='UNRESOLVED',
+            unresolved_reason=history['excluded_races'].get(rid,'K_RESULT_UNREADABLE')))
+    return dict(day=day.isoformat(),facts=facts,history=history,available_at=available,parser_revision=PARSER_REVISION)
 
 
 def aggregate(rows):
     normal=[r for r in rows if r['normal_result'] and r['finish'] in range(1,7)]
     st=[r['st'] for r in rows if r['st_status']=='OK' and r['st'] is not None]
     counts=Counter(r['st_status'] for r in rows)
-    return dict(starts=len(rows),normal_starts=len(normal),wins=sum(r['finish']==1 for r in normal),
+    unresolved=sum(r.get('participation')=='UNRESOLVED' for r in rows)
+    return dict(opportunities=len(rows),starts=len(rows)-unresolved-counts['ABSENT'],
+        unresolved_opportunities=unresolved,confirmed_absences=counts['ABSENT'],
+        normal_starts=len(normal),wins=sum(r['finish']==1 for r in normal),
         top2=sum(r['finish']<=2 for r in normal),top3=sum(r['finish']<=3 for r in normal),
         win_rate=sum(r['finish']==1 for r in normal)/len(normal) if normal else None,
         top2_rate=sum(r['finish']<=2 for r in normal)/len(normal) if normal else None,
         top3_rate=sum(r['finish']<=3 for r in normal)/len(normal) if normal else None,
         mean_finish=sum(r['finish'] for r in normal)/len(normal) if rows and len(normal)==len(rows) else None,
-        mean_st=math.fsum(st)/len(st) if st else None,st_stddev=statistics.pstdev(st) if st else None,
+        mean_st=math.fsum(st)/len(st) if st and not unresolved else None,st_stddev=statistics.pstdev(st) if st and not unresolved else None,
         st_samples=len(st),st_dispositions={k:counts[k] for k in ('OK','F','L','MISSING','ABSENT')})
 
 
@@ -139,7 +158,7 @@ class HistoryStore:
     def ingest_day(self,day,b_archive,k_archive,b_source,k_source):
         day=day if type(day) is date else date.fromisoformat(day)
         payload=day_payload(day,b_archive,k_archive,b_source,k_source)
-        ident=hashlib.sha256((day.isoformat()+b_source['source_sha256']+k_source['source_sha256']).encode()).hexdigest()
+        ident=hashlib.sha256((day.isoformat()+b_source['source_sha256']+k_source['source_sha256']+f':parser:{PARSER_REVISION}').encode()).hexdigest()
         reused=self.db.execute('SELECT 1 FROM imports WHERE id=?',(ident,)).fetchone() is not None
         if not reused:
             with self.db:self.db.execute('INSERT INTO imports VALUES (?,?,?,?,?,?)',(ident,day.isoformat(),payload['available_at'],b_source['source_sha256'],k_source['source_sha256'],wire(payload)))
@@ -156,8 +175,9 @@ class HistoryStore:
         result=[]
         for entries in by_day.values():
             latest=entries[-1]['available_at'];selected=[r for r in entries if r['available_at']==latest]
-            if len(selected)!=1:raise ValueError('HISTORY_REVISION_CAPTURE_CONFLICT')
-            result.append(json.loads(selected[0]['payload']))
+            if len({(r['b_sha'],r['k_sha']) for r in selected})!=1:raise ValueError('HISTORY_REVISION_CAPTURE_CONFLICT')
+            interpretations=[json.loads(r['payload']) for r in selected]
+            result.append(max(interpretations,key=lambda p:p.get('parser_revision',1)))
         self._cache=(cache_key,result)
         return result
 
@@ -175,7 +195,14 @@ class HistoryStore:
         days=self._selected(as_of)
         records=[r for d in days for r in d['history']['records'] if any(p['racer_id']==racer_id for p in r['entries'])]
         tendencies=profile_before(records,as_of=instant(as_of).isoformat(),racer_id=racer_id)
+        last=rows[-1] if rows else None
+        last_program=None
+        if last is not None and 'program' in last:
+            source=next(d['history']['source_proofs']['B'] for d in days if d['day']==last['day'])
+            last_program=dict(last['program'],program_day=last['day'],source_url=source['source_url'],
+                source_sha256=source['source_sha256'],captured_at=source['captured_at'])
         return dict(schema='RACE_AI_PRIVATE_RACER_HISTORY_V1',racer_id=racer_id,as_of=instant(as_of).isoformat(),
+            last_program=last_program,
             **aggregate(rows),recent_10=aggregate(rows[-10:]),recent_30=aggregate(rows[-30:]),
             by_actual_course={str(c):aggregate([r for r in rows if r['course']==c]) for c in range(1,7)},
             tendencies=tendencies,source_publication_time_verified=False,

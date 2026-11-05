@@ -12,6 +12,19 @@ from race_ai.boat_history_store import HistoryStore,instant
 
 
 class CompareCliTests(unittest.TestCase):
+    def test_batch_start_does_not_admit_a_pair_completed_after_cutoff(self):
+        from scripts import boat_history_compare as cli
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);store=HistoryStore(root/'history.sqlite');raw,proof=archives()
+            store.ingest_day(DAY,raw['B'],raw['K'],proof['B'],proof['K']);store.close()
+            source=root/'snapshot.json';source.write_text(json.dumps(current()));out=root/'pairs'
+            argv=['compare','prepare','--snapshot',str(source),'--history-db',str(root/'history.sqlite'),'--private-dir',str(out)]
+            ticks=[instant(NOW),instant(NOW),instant('2026-11-06T11:00:00+09:00')]
+            with patch('sys.argv',argv),patch.object(cli,'clock',side_effect=ticks),redirect_stdout(io.StringIO()):cli.main()
+            report=json.loads((out/'preparation-report.json').read_text())
+            self.assertEqual(report['prepared'],0)
+            self.assertEqual(report['rows'][0]['state'],'NO_FORECAST_LATE_FREEZE')
+
     def test_missing_history_database_is_not_silently_recreated(self):
         from scripts import boat_history_compare as cli
         with tempfile.TemporaryDirectory() as folder:

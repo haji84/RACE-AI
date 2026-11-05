@@ -9,7 +9,7 @@ ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 from race_ai.actions_contract import digest
 from race_ai.boat_history_store import HistoryStore,wire,instant
-from race_ai.boat_history_comparison import prepare_pair,freeze_pair,load_pair,score_pair
+from race_ai.boat_history_comparison import prepare_pair,freeze_pair,load_pair,score_pair,read_freeze_receipt
 from race_ai.frozen_day_cycle import official_id,read_p0,sealed
 from race_ai.observed_weight_learning import source_snapshot
 from scripts.boat_history_collect import private_root,save
@@ -57,16 +57,23 @@ def prepare(args):
         for snapshot,rid in zip(snapshots,ids):
             path=root/f'{rid}-{snapshot["stage"]}.json'
             if path.exists():
-                pair=load_pair(path)
+                try:pair=load_pair(path);receipt=read_freeze_receipt(path,pair)
+                except ValueError as exc:
+                    outcomes.append(dict(race_id=rid,state='NO_FORECAST_UNVERIFIED_OR_LEGACY_FREEZE',reason=str(exc)));continue
                 expected=dict(snapshot,as_of=pair['generated_at'])
                 if digest(expected)!=digest(pair['baseline']['snapshot']):raise ValueError('FIRST_PAIR_INPUT_CANNOT_BE_REPLACED')
                 reused+=1
             elif now>=instant(snapshot['sales_cutoff_at']):
                 outcomes.append(dict(race_id=rid,state='NO_FORECAST_CUTOFF_PASSED'));continue
             else:
-                pair=prepare_pair(snapshot,store,now);freeze_pair(pair,path)
+                pair=prepare_pair(snapshot,store,now)
+                try:freeze_pair(pair,path,clock=clock);receipt=read_freeze_receipt(path,pair)
+                except ValueError as exc:
+                    if 'LATE_FREEZE' not in str(exc):raise
+                    outcomes.append(dict(race_id=rid,state='NO_FORECAST_LATE_FREEZE',reason=str(exc)));continue
             outcomes.append(dict(race_id=rid,state='PREPARED_PRIVATE_RESEARCH',pair_sha256=pair['pair_sha256'],
-                coverage=pair['history_coverage'],generated_at=pair['generated_at'],cutoff_at=pair['cutoff_at']))
+                coverage=pair['history_coverage'],generated_at=pair['generated_at'],cutoff_at=pair['cutoff_at'],
+                write_completed_at=receipt['write_completed_at'],local_pre_cutoff_completion_verified=True))
     finally:store.close()
     result=dict(scheduled=len(ids),prepared=sum(r['state']=='PREPARED_PRIVATE_RESEARCH' for r in outcomes),
         reused=reused,rows=outcomes,accuracy_improvement_proven=False,independent_pre_cutoff_receipt_verified=False)
@@ -76,6 +83,10 @@ def prepare(args):
 
 def score(args):
     pair=load_pair(args.pair);supplied=read_json(args.observations)
+    try:read_freeze_receipt(args.pair,pair)
+    except ValueError as exc:
+        print(wire(dict(race_id=pair['race_id'],state='NOT_ADMITTED_PROSPECTIVE',reason=str(exc),prospective_metric_eligible=False)))
+        return
     observations=supplied if isinstance(supplied,list) else [supplied]
     now=clock()
     selected=[o for o in observations if o['race_id']==pair['race_id'] and instant(o['captured_at'])<=now]
