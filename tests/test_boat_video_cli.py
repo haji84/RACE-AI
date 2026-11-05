@@ -100,7 +100,11 @@ class BoatVideoCliTests(unittest.TestCase):
         self.assertEqual(report["validation_status"], "UNVALIDATED")
         self.assertEqual(stat.S_IMODE(report_path.stat().st_mode), 0o600)
         self.assertNotIn(self.media.name, output)
-        self.assertNotIn("4201", output)
+        # A valid hexadecimal digest can coincidentally contain registration
+        # digits. The exact summary field set above prevents roster disclosure;
+        # check the emitted digest against the saved report instead.
+        self.assertRegex(summary["report_sha256"], r"^[0-9a-f]{64}$")
+        self.assertEqual(summary["report_sha256"], report["report_sha256"])
         self.assertEqual(before, (self.media.read_bytes(), self.manifest.read_bytes()))
 
     def test_enriches_only_new_copy_and_preserves_original_json_bytes_and_mtime(self):
