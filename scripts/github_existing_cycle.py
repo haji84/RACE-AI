@@ -17,6 +17,29 @@ from race_ai.cycle_recovery import recover,load_state,due_rows
 from race_ai.observed_weight_learning import attach_snapshots
 JST=timezone(timedelta(hours=9));REPO='haji84/RACE-AI'
 
+def event_day(*,now=None):
+    """Pin one real transaction's event day, never a client supplied clock."""
+    now=now or datetime.now(timezone.utc)
+    need(now.utcoffset() is not None,'aware event clock')
+    today=now.astimezone(JST).date()
+    value=os.environ.get('RACE_AI_EVENT_DAY')
+    if value is None:return today.isoformat()
+    pinned=date.fromisoformat(value)
+    need(pinned.isoformat()==value and today-timedelta(days=1)<=pinned<=today,
+         'EVENT_DAY_PIN_REJECTED')
+    return value
+
+def source_identity_conflict(reason):
+    """Only definite provenance contradictions quarantine the shared source."""
+    return reason in {
+        'B_SOURCE_IDENTITY','foreign program source','B cutoff identity mismatch',
+        'B registration mismatch','B duplicate allocation','duplicate or foreign B race',
+        'OFFICIAL_RESULT_SOURCE_IDENTITY_MISMATCH','update URL race identity mismatch',
+        'update body day or venue mismatch','update selected race mismatch',
+        'explicit result program race identity conflict','result and program racer name conflict',
+        'external official archive redirect rejected','redirect rejected','unexpected archive entry name',
+    }
+
 def gh(path):
     result=subprocess.run(['gh','api',f'repos/{REPO}/'+path],check=True,capture_output=True,timeout=50)
     return result.stdout
@@ -74,24 +97,106 @@ def forecast(day):
     (pilot.OUTPUT/'national.json').write_text(json.dumps(result,ensure_ascii=False,sort_keys=True,separators=(',',':')))
 
 
-def supplement(day):
+def supplement(day,round_no=None):
     """Fill only previously absent future P0 rows; never edit first morning bytes."""
+    need(round_no is None or type(round_no) is int and round_no>=1,'invalid supplement round')
+    folder=ROOT/'p0_supplement_output'
+    if round_no is not None:folder=folder/f'cycle-{round_no}'
+    need(not (folder/'forecasts.json').exists(),'P0_SUPPLEMENT_ALREADY_EXISTS_NO_REGENERATION')
     _,rows,_,_=original(day)
     recovered=load_state(ROOT/'cycle_recovery_output/continuity.json',day)
     from scripts.existing_day_program import collect
-    frozen=frozenset(x['race_id'] for x in rows+recovered['rows'] if x['stage']=='P0')
-    from race_ai.repeated_cycle import SourceGuard
+    frozen={(x['race_id'],x['model_id']) for x in rows+recovered['rows'] if x['stage']=='P0'}
+    from race_ai.repeated_cycle import SourceGuard,load as load_session
+    from race_ai.source_retry_policy import SourceWait
     guard=SourceGuard(ROOT/'cycle_recovery_output/repeat-session.json')
-    guard.charge('forecast')  # Count the source GET before it happens.
-    result=collect(already_frozen=frozen)
+    def finish(ready,state,**details):
+        if os.environ.get('GITHUB_OUTPUT'):
+            with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+                output.write('supplement_ready='+('true' if ready else 'false')+'\n')
+                output.write('supplement_state='+state+'\n')
+        record=dict(state=state,supplement_ready=ready,**details)
+        print(json.dumps(record));return record
+    def actual_day_clock():
+        now=datetime.now(timezone.utc)
+        if now.astimezone(JST).date().isoformat()!=day:raise SourceWait('DAY_HANDOFF')
+        handoff=os.environ.get('RACE_AI_WORKER_HANDOFF_AT')
+        if handoff and now>=ts(handoff):raise SourceWait('WORKER_HANDOFF')
+        return now
+    try:
+        result=collect(already_frozen_models=frozen,clock=actual_day_clock,source_guard=guard)
+    except (SourceWait,ValueError) as exc:
+        if not isinstance(exc,SourceWait) and str(exc) not in ('DAY_HANDOFF','WORKER_HANDOFF'):raise
+        return finish(False,str(exc) if str(exc) in ('DAY_HANDOFF','WORKER_HANDOFF') else 'SOURCE_WAIT',
+                      source_wait=load_session(guard.path).get('source_wait'))
     status=result.get('http_status')
-    if isinstance(status,int) and 400 <= status < 500:
-        guard.http_failure(status)
-    need('failure_class' not in result,
-         'P0_SUPPLEMENT_SOURCE_OR_MODEL_BLOCKED: '+str(result.get('failure_class')))
-    folder=ROOT/'p0_supplement_output';folder.mkdir(exist_ok=True)
+    if isinstance(status,int) and status>=400:
+        guard.http_failure(status,result.get('source_response_headers',{}),
+                           not_yet_published=status==404)
+    elif 'failure_class' in result and (result.get('source_error_kind')=='TRANSPORT' or
+                                       result['failure_class'] in ('TimeoutError','URLError','OSError')):
+        guard.http_failure(None)
+    elif 'failure_class' in result and source_identity_conflict(result.get('reason')):
+        guard.verification_failure()
+    elif 'failure_class' not in result:
+        guard.http_success()
+    if 'failure_class' in result:
+        waiting=load_session(guard.path).get('source_wait')
+        return finish(False,result.get('source_control_reason','SOURCE_WAIT' if waiting else 'SOURCE_DATA_PENDING'),
+                      source_wait=waiting)
+    if not result['predictions']:
+        return finish(False,'NO_MISSING_FUTURE_P0',race_count=0)
+    folder.mkdir(parents=True,exist_ok=True)
     with (folder/'forecasts.json').open('x') as f:json.dump(result,f,ensure_ascii=False,sort_keys=True,separators=(',',':'))
-    print(json.dumps(dict(state='MISSING_FUTURE_P0_ONLY',race_count=result['race_count'],original_races_not_regenerated=len(frozen))))
+    return finish(True,'MISSING_FUTURE_P0_ONLY',race_count=result['race_count'],
+                  original_model_slots_not_regenerated=len(frozen))
+
+def observe_due_results(due,observations,day,guard=None):
+    """Keep unsupported formats pending while other qualified races proceed."""
+    from race_ai.official_race_updates import endpoint,parse_update,MAX_BYTES
+    from race_ai.tokuyama_day_worker import NoRedirects
+    observations=list(observations);failures=[];requests_used=0
+    from race_ai.source_retry_policy import SourceWait
+    blocked=False
+    for row in due:
+        if blocked:break
+        rid=row['race_id'];d=date.fromisoformat(day);venue=rid[9:11];n=int(rid[-2:]);url=endpoint(d,venue,n,'raceresult')
+        try:
+            req=request.Request(url,headers={'User-Agent':'RACE-AI-owner-existing-result-audit/1.0','Accept':'text/html'})
+            if guard is not None:guard.charge('result')
+            requests_used+=1
+            with request.build_opener(NoRedirects()).open(req,timeout=12) as response:
+                raw=response.read(MAX_BYTES+1)
+                need(response.status==200,'official response status rejected')
+                need(response.geturl()==url,'OFFICIAL_RESULT_SOURCE_IDENTITY_MISMATCH')
+                need(0<len(raw)<=MAX_BYTES,'official response body rejected')
+            at=datetime.now(timezone.utc).isoformat()
+            observation=parse_update(raw,kind='raceresult',day=d,venue=venue,race_no=n,source_url=url,captured_at=at,entries=None)
+            observation.update(source_url=url,source_sha256=hashlib.sha256(raw).hexdigest())
+            if guard is not None:guard.http_success()
+            observations.append(observation);time.sleep(.35)
+        except Exception as exc:
+            if isinstance(exc,SourceWait):
+                blocked=True
+                failures.append(dict(race_id=rid,state='SOURCE_WAIT',reason=exc.reason,
+                                     retry_at=exc.retry_at))
+                continue
+            if str(exc) in ('DAY_HANDOFF','WORKER_HANDOFF'):
+                blocked=True
+                failures.append(dict(race_id=rid,state=str(exc),reason=str(exc)))
+                continue
+            if isinstance(exc,error.HTTPError):
+                blocked=True
+                if guard is not None:
+                    guard.http_failure(exc.code,exc.headers,not_yet_published=exc.code==404)
+            elif isinstance(exc,(error.URLError,TimeoutError,OSError)):
+                blocked=True
+                if guard is not None:guard.http_failure(None)
+            elif source_identity_conflict(str(exc)):
+                blocked=True
+                if guard is not None:guard.verification_failure()
+            failures.append(dict(race_id=rid,state='SOURCE_OR_PARSE_UNAVAILABLE',reason=type(exc).__name__+': '+str(exc)[:120]))
+    return observations,failures,requests_used
 
 def audit(day,p1_id,p0_supplement=None,round_no=None):
     doc,rows,p0_meta,p0_zip=original(day);sources=[p0_meta];p1_doc=None;p1_meta=None
@@ -109,34 +214,11 @@ def audit(day,p1_id,p0_supplement=None,round_no=None):
         (out/'current-p1-original.zip').write_bytes(raw)
     rows,excluded=first_receipt_rows(rows)
     excluded=recovered['excluded_repeats']+excluded
-    from race_ai.official_race_updates import endpoint,parse_update,MAX_BYTES
-    from race_ai.tokuyama_day_worker import NoRedirects
-    by_race={x['race_id']:x for x in rows};observations=list(recovered['observations']);failures=[];requests_used=0
-    now=datetime.now(timezone.utc)
-    due=due_rows(rows,observations,now)
     from race_ai.repeated_cycle import SourceGuard,load as load_session,checkpoint
     session_path=ROOT/'cycle_recovery_output/repeat-session.json'
     guard=SourceGuard(session_path) if session_path.exists() else None
-    blocked=False
-    for row in due[:24]:
-        if blocked:failures.append(dict(race_id=row['race_id'],state='SOURCE_RATE_LIMIT_STOP'));continue
-        rid=row['race_id'];d=date.fromisoformat(day);venue=rid[9:11];n=int(rid[-2:]);url=endpoint(d,venue,n,'raceresult')
-        try:
-            req=request.Request(url,headers={'User-Agent':'RACE-AI-owner-existing-result-audit/1.0','Accept':'text/html'})
-            if guard is not None:guard.charge('result')
-            requests_used+=1
-            with request.build_opener(NoRedirects()).open(req,timeout=12) as response:
-                raw=response.read(MAX_BYTES+1)
-                need(response.status==200 and response.geturl()==url and 0<len(raw)<=MAX_BYTES,'official response rejected')
-            at=datetime.now(timezone.utc).isoformat()
-            observation=parse_update(raw,kind='raceresult',day=d,venue=venue,race_no=n,source_url=url,captured_at=at,entries=None)
-            observation.update(source_url=url,source_sha256=hashlib.sha256(raw).hexdigest())
-            observations.append(observation);time.sleep(.35)
-        except Exception as exc:
-            if isinstance(exc,error.HTTPError) and 400<=exc.code<500:
-                blocked=True
-                if guard is not None:guard.http_failure(exc.code)
-            failures.append(dict(race_id=rid,state='SOURCE_OR_PARSE_UNAVAILABLE',reason=type(exc).__name__+': '+str(exc)[:120]))
+    due=due_rows(rows,recovered['observations'],datetime.now(timezone.utc))
+    observations,failures,requests_used=observe_due_results(due,recovered['observations'],day,guard)
     latest_observations,observations=latest_result_observations(observations)
     report=evaluate([{k:v for k,v in r.items() if k not in ('learning_snapshot','learning_snapshot_sha256')} for r in rows],latest_observations)
     report.update(day_jst=day,updated_at=datetime.now(timezone.utc).isoformat(),run_id=os.environ.get('GITHUB_RUN_ID'),
@@ -224,24 +306,69 @@ def repeat_start(day):
     from race_ai.repeated_cycle import start, write_state
     need(int(os.environ.get('GITHUB_RUN_ATTEMPT','1'))==1,'RETRY_REQUIRES_NEW_TRIGGER_TO_PRESERVE_RECEIPTS')
     path=ROOT/'cycle_recovery_output/repeat-session.json'
-    state=start(path,day=day,run_id=int(os.environ['GITHUB_RUN_ID']),now=datetime.now(timezone.utc))
+    recovered_path=ROOT/'cycle_recovery_output/continuity.json'
+    recovered=load_state(recovered_path,day) if recovered_path.exists() else {}
+    control=recovered.get('source_control')
+    bootstrap_path=ROOT/'cycle_recovery_output/bootstrap-source-control.json'
+    bootstrap=None
+    if bootstrap_path.exists():
+        from scripts.first_p0_bootstrap import bootstrap_control
+        bootstrap=bootstrap_control(day,int(os.environ['GITHUB_RUN_ID']))
+        control=dict(control or {})
+        need(bootstrap['lifetime_requests_base']==control.get('lifetime_requests',0),
+             'SOURCE_CONTROL_CHANGED_DURING_BOOTSTRAP')
+        control['source_wait']=bootstrap.get('source_wait')
+        control['previous_halted_reason']=bootstrap.get('previous_halted_reason')
+    if datetime.now(timezone.utc).astimezone(JST).date().isoformat()!=day:
+        from scripts.first_p0_bootstrap import bootstrap_control,_save_control
+        bootstrap=bootstrap or bootstrap_control(day,int(os.environ['GITHUB_RUN_ID']),inherited=control)
+        bootstrap['control_reason']='DAY_HANDOFF';_save_control(bootstrap)
+        if os.environ.get('GITHUB_OUTPUT'):
+            with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+                output.write('session_ready=false\nhandoff_reason=DAY_HANDOFF\n')
+        return dict(state='DAY_HANDOFF',session_ready=False)
+    now=datetime.now(timezone.utc)
+    handoff=os.environ.get('RACE_AI_WORKER_HANDOFF_AT')
+    need(handoff is None or now<ts(handoff)<=now+timedelta(minutes=360),'WORKER_HANDOFF_DEADLINE_REJECTED')
+    state=start(path,day=day,run_id=int(os.environ['GITHUB_RUN_ID']),now=now,
+                source_control=control)
+    need(state.get('worker_handoff_at') in (None,handoff),'WORKER_HANDOFF_PIN_CHANGED')
+    state['worker_handoff_at']=handoff
+    state=write_state(path,state)
     # First-day B GET belongs to this SAME bounded source session.
     if os.environ.get('RACE_AI_FIRST_P0_CAPTURED')=='true':
         first=json.loads((ROOT/'boat_all_day_output/forecasts.json').read_text())
+        count=bootstrap['requests_used'] if bootstrap is not None else 1
         need(first['day_jst']==day and first['source_requests']==1 and
-             first['race_count']>0 and state['requests_used']==0,
+             first['race_count']>0 and type(count) is int and count>=1,
              'FIRST_P0_GET_BUDGET_ACCOUNTING_REJECTED')
-        state['requests_used']=1
-        state['requests_by_kind']={'forecast':1}
-        write_state(path,state)
+        if not state.get('bootstrap_requests_accounted'):
+            need(state['requests_used']==0,'FIRST_P0_GET_ACCOUNTING_CONFLICT')
+            state['requests_used']=count
+            state['requests_by_kind']={'forecast':count}
+            state['bootstrap_requests_accounted']=count
+            write_state(path,state)
+        else:need(state['bootstrap_requests_accounted']==count,'FIRST_P0_GET_ACCOUNTING_CONFLICT')
+    if os.environ.get('GITHUB_OUTPUT'):
+        with open(os.environ['GITHUB_OUTPUT'],'a') as output:output.write('session_ready=true\n')
+    return dict(state='SOURCE_SESSION_READY',session_ready=True)
 
 def repeat_prepare(day,round_no):
     from race_ai.repeated_cycle import prepare
     path=ROOT/'cycle_recovery_output/repeat-session.json'
-    decision=prepare(path,round_no,now=datetime.now(timezone.utc))
+    continuity_path=ROOT/'cycle_recovery_output/continuity.json'
+    continuity=load_state(continuity_path,day) if continuity_path.exists() else {}
+    next_action=(continuity.get('schedule_cache') or {}).get('next_check_at')
+    handoff=ts(os.environ['RACE_AI_WORKER_HANDOFF_AT']) if os.environ.get('RACE_AI_WORKER_HANDOFF_AT') else None
+    def decide():
+        now=datetime.now(timezone.utc)
+        if handoff is not None and now>=handoff:
+            return dict(active=False,wait_seconds=0,reason='WORKER_HANDOFF')
+        return prepare(path,round_no,now=now,next_action_at=next_action)
+    decision=decide()
     while decision['wait_seconds']:
         time.sleep(min(decision['wait_seconds'],30))
-        decision=prepare(path,round_no,now=datetime.now(timezone.utc))
+        decision=decide()
     with open(os.environ['GITHUB_OUTPUT'],'a') as f:
         for k,v in decision.items():
             if k=='active':v='true' if v else 'false'
@@ -284,10 +411,10 @@ def main():
     p.add_argument('command',choices=['restore','forecast','audit','supplement','repeat-start','repeat-prepare','repeat-complete'])
     p.add_argument('--p1-artifact',type=int);p.add_argument('--p0-supplement',type=int)
     p.add_argument('--result-artifact',type=int);p.add_argument('--round',type=int);a=p.parse_args()
-    day=datetime.now(timezone.utc).astimezone(JST).date().isoformat()
+    day=event_day()
     if a.command=='restore':restore(day)
     elif a.command=='forecast':forecast(day)
-    elif a.command=='supplement':supplement(day)
+    elif a.command=='supplement':supplement(day,a.round)
     elif a.command=='repeat-start':repeat_start(day)
     elif a.command=='repeat-prepare':repeat_prepare(day,a.round)
     elif a.command=='repeat-complete':repeat_complete(day,a.round,a.p1_artifact,a.result_artifact)

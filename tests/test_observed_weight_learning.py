@@ -121,7 +121,8 @@ class ContinuityAndCoverage(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             start=datetime(2030,4,1,3,57,tzinfo=timezone.utc)
             s=r.start(Path(temp)/'s.json',day='2030-04-01',run_id=99,now=start)
-            self.assertGreaterEqual(frozen.ts(s['stop_at'])-start,timedelta(minutes=60))
+            self.assertIsNone(s['stop_at'])
+            self.assertIsNone(s['max_rounds'])
             self.assertIsNone(r.SOURCE_LIMIT)
     def test_ended_races_with_missing_models_are_counted(self):
         self.assertIsNotNone(learning,'coverage implementation missing')

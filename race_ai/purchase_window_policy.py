@@ -23,8 +23,8 @@ def _instant(v, label):
         raise PurchaseWindowError(label + " requires explicit timestamp with timezone") from exc
 
 
-def policy(cutoff_at, *, initial_lead_minutes=30, final_buffer_minutes=10):
-    """Default proposal: early preview at T-30, ready-to-consider by T-10.
+def policy(cutoff_at, *, initial_lead_minutes=15, final_buffer_minutes=10):
+    """Default target: save during T-15 through T-10 for purchase review.
 
     These values are PRODUCT targets, not organizer deadlines or measured
     delivery performance; they can later be varied per sport/venue.
@@ -47,7 +47,7 @@ def policy(cutoff_at, *, initial_lead_minutes=30, final_buffer_minutes=10):
 
 
 def reported_delivery(cutoff_at, frozen_at, visible_at, *,
-                      initial_lead_minutes=30, final_buffer_minutes=10):
+                      initial_lead_minutes=15, final_buffer_minutes=10):
     """Classify timestamps but never self-certify a genuine public release."""
     plan=policy(cutoff_at, initial_lead_minutes=initial_lead_minutes,
                 final_buffer_minutes=final_buffer_minutes)

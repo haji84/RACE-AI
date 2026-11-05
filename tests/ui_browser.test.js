@@ -24,6 +24,8 @@ let failGeneration = false;
 let generationOverride = null;
 let automaticFixture = false, automaticRevision = 1, automaticOverride = null, automaticState = 'RUNNING';
 let automaticSourceStatus = {};
+let automaticDelivery = null;
+const automaticStatusCalls = [];
 const automaticLatestCalls = [];
 async function main() {
   fs.mkdirSync(output, {recursive:true});
@@ -31,9 +33,10 @@ async function main() {
     const parsedUrl = new URL(req.url, 'http://localhost');
     const name = decodeURIComponent(parsedUrl.pathname);
     if (name === '/api/forecast/status') {
+      automaticStatusCalls.push({method:req.method});
       res.writeHead(200, {'Content-Type':'application/json'});
       return res.end(JSON.stringify({day_jst:'2030-01-01',nonce:'synthetic-ui-nonce',capabilities:{boat:{P0:true,P1:true},keirin:{P0:false,P1:false},autorace:{P0:false,P1:false},horse:{P0:false,P1:false}},
-        ...(automaticFixture?{auto:{enabled:true,state:automaticState,interval_seconds:180,round_no:2,next_run_at:'2030-01-01T09:33:00+09:00',halted_reason:automaticState==='STOPPED'?'SOURCE_REQUEST_LIMIT':null,...automaticSourceStatus},latest_revisions:{boat:{P0:'r'+automaticRevision,P1:null}}}:{})}));
+        ...(automaticFixture?{auto:{enabled:true,state:automaticState,interval_seconds:180,round_no:2,next_run_at:'2030-01-01T09:33:00+09:00',halted_reason:automaticState==='STOPPED'?'SOURCE_REQUEST_LIMIT':null,...automaticSourceStatus},latest_revisions:{boat:{P0:'r'+automaticRevision,P1:null}},...(automaticDelivery===null?{}:{delivery:automaticDelivery})}:{})}));
     }
     if(name === '/api/forecast/latest') {
       automaticLatestCalls.push({method:req.method,sport:parsedUrl.searchParams.get('sport'),stage:parsedUrl.searchParams.get('stage')});
@@ -349,7 +352,7 @@ async function main() {
     await context.close();
   }
   for(const width of [390,1440]) {
-    generationCalls.length=0;automaticLatestCalls.length=0;automaticRevision=1;automaticOverride=null;automaticState='RUNNING';automaticSourceStatus={};
+    generationCalls.length=0;automaticLatestCalls.length=0;automaticRevision=1;automaticOverride=null;automaticState='RUNNING';automaticSourceStatus={};automaticDelivery=null;
     const context=await browser.newContext({viewport:{width,height:width<600?844:1080}});
     const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('request',req=>requests.push(req.url()));
     await page.clock.install({time:new Date('2030-01-01T00:30:00Z')});
@@ -405,6 +408,18 @@ async function main() {
     assert.doesNotMatch(await page.locator('#generation-message').innerText(),/取得回数上限なし/,'a later legacy status cannot inherit the unlimited claim');
     assert.match(await page.locator('#generation-message').innerText(),/取得 0回/,'zero is a valid measured request count');
     automaticSourceStatus={source_limit:null,requests_used:366};
+    const externalView=structuredClone(fixture);externalView.records=externalView.records.filter(r=>r.sport==='boat');
+    for(const row of externalView.records)row.comparison_predictions=(row.comparison_predictions||[]).filter(p=>p.stage==='P0');
+    externalView.records[0].observed_at='2030-01-01T09:02:00+09:00';
+    automaticRevision=19;automaticOverride={available:true,revision:'r19',day_jst:'2030-01-01',source_kind:'GITHUB_AUTHENTICATED_ORIGINALS',view:externalView,summary:{generated:0,reused:1,missing:null,races:1}};
+    await page.clock.fastForward(180001);await page.waitForTimeout(100);
+    assert.equal(await page.locator('#forecast-generation').getAttribute('data-view-revision'),'r2','null missing counts require an explicit unknown-coverage marker');
+    automaticRevision=20;automaticOverride={...automaticOverride,revision:'r20',summary:{generated:0,reused:1,missing:null,races:1,coverage_known:false}};
+    await page.clock.fastForward(180001);await page.waitForFunction(()=>document.querySelector('#forecast-generation').dataset.viewRevision==='r20');
+    assert.match(await page.locator('#generation-message').innerText(),/保存済み 1件.*全モデルの網羅性は未検証/,'saved-only external originals never claim zero missing model slots');
+    assert.doesNotMatch(await page.locator('#generation-message').innerText(),/未予想 0件/);
+    assert.deepEqual(await page.locator('#ticket-list .ticket-amount').evaluateAll(ns=>ns.map(n=>n.value)),beforeAmounts);
+    automaticRevision=2;automaticOverride=null;await page.clock.fastForward(180001);await page.waitForFunction(()=>document.querySelector('#forecast-generation').dataset.viewRevision==='r2');
     const replacement=structuredClone(fixture.records[0]);
     Object.assign(replacement,{race_id:'automatic-replacement-race',comparison_predictions:[],result:null,result_revisions:[],result_observations:[]});
     Object.assign(replacement.prediction,{native_dispatch_prediction:true,output_sha256:'b'.repeat(64)});
@@ -455,6 +470,77 @@ async function main() {
     assert.equal(generationCalls.length,0);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     await page.screenshot({path:path.join(output,`${width}-automatic-forecast.png`),fullPage:true});
     mark(`${width}: automatic saved view without clicks or POST, unlimited count beyond365, revision refresh, draft/original retention, legacy stop and manual import ownership`);
+    await context.close();
+  }
+  for(const width of [390,1440]) {
+    generationCalls.length=0;automaticLatestCalls.length=0;automaticStatusCalls.length=0;
+    automaticRevision=1;automaticOverride=null;automaticState='RUNNING';automaticSourceStatus={continuous:true,source_limit:null,requests_used:400};
+    const waiting={state:'SOURCE_WAIT',reason:'EXHIBITION_NOT_FULLY_PUBLISHED',assessed_at:'2030-01-01T09:46:00+09:00',next_cutoff_at:'2030-01-01T10:00:00+09:00',target_open_at:'2030-01-01T09:45:00+09:00',target_due_at:'2030-01-01T09:50:00+09:00',source_captured_at:null,generated_at:null,saved_at:null,visible_at:null,window_status:'UNKNOWN'};
+    automaticDelivery={boat:{P0:structuredClone(waiting)}};
+    const context=await browser.newContext({viewport:{width,height:width<600?844:1080}});
+    const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));page.on('request',req=>requests.push(req.url()));
+    await page.clock.install({time:new Date('2030-01-01T00:46:00Z')});
+    await page.clock.pauseAt(new Date('2030-01-01T00:46:01Z'));
+    await page.goto(base+'?automatic=1');
+    await page.waitForFunction(()=>document.querySelector('#source-state').textContent.includes('合成'));
+    assert.match(await page.locator('#generation-message').innerText(),/継続運転/);
+    assert.match(await page.locator('#delivery-state').innerText(),/入力待ち/);
+    assert.match(await page.locator('#delivery-next').innerText(),/次の締切.*10:00.*09:45.*09:50/);
+    assert.doesNotMatch(await page.locator('#delivery-record').innerText(),/目標内/,'a target alone is not saved-delivery evidence');
+    const nav=async name=>page.locator(`[data-page="${name}"]`).filter({visible:true}).first().click();
+    await nav('races');await page.locator('#page-races [data-open-race]').first().click();await nav('picks');await page.locator('#copy-top8').click();
+    await page.locator('#ticket-list .ticket-amount').first().fill('300');await page.locator('#ticket-list .ticket-amount').first().dispatchEvent('change');await page.locator('#confirm-candidates').click();
+    const amounts=await page.locator('#ticket-list .ticket-amount').evaluateAll(ns=>ns.map(n=>n.value));
+    await nav('races');await page.locator('#page-races [data-open-race]').first().click();await page.locator('[data-detail-tab="analysis"]').click();
+    const beforePoll=automaticStatusCalls.length;
+    await page.clock.fastForward(59999);await page.waitForTimeout(50);assert.equal(automaticStatusCalls.length,beforePoll,'near-window GET polling never runs before60 seconds');
+    automaticDelivery.boat.P0={...waiting,state:'LATE_INPUT',reason:'INPUT_CAPTURED_AFTER_TARGET',assessed_at:'2030-01-01T09:52:00+09:00',source_captured_at:'2030-01-01T09:51:00+09:00'};
+    automaticRevision=2;await page.clock.fastForward(2);
+    await page.waitForFunction(()=>document.querySelector('#forecast-generation').dataset.viewRevision==='r2');
+    assert.equal(automaticStatusCalls.length,beforePoll+1);
+    assert.match(await page.locator('#delivery-state').innerText(),/入力取得が目標時刻後/);
+    assert.doesNotMatch(await page.locator('#delivery-record').innerText(),/目標内/);
+    assert.deepEqual(await page.locator('#ticket-list .ticket-amount').evaluateAll(ns=>ns.map(n=>n.value)),amounts);
+    assert.match(await page.locator('#confirmation-state').innerText(),/候補確定済み/);
+    assert.ok((await page.locator('#race-detail').innerText()).includes(fixture.records[0].prediction.prediction_sha256));
+    assert.equal(await page.locator('[data-detail-tab="analysis"]').getAttribute('aria-selected'),'true');
+    automaticDelivery.boat.P0={...automaticDelivery.boat.P0,source_captured_at:null};
+    await page.clock.fastForward(60001);await page.waitForTimeout(100);
+    assert.match(await page.locator('#delivery-state').innerText(),/入力待ち.*目標/,'a passed target with no captured input cannot claim an observed late capture');
+    assert.doesNotMatch(await page.locator('#delivery-state').innerText(),/入力取得が目標時刻後/);
+    automaticDelivery.boat.P0={...waiting,state:'SAVED',window_status:'ON_TIME'};
+    await page.clock.fastForward(60001);await page.waitForTimeout(100);
+    assert.match(await page.locator('#generation-message').innerText(),/状態を確認できません/,'a claimed on-time delivery with no actual save must be rejected');
+    assert.doesNotMatch(await page.locator('#delivery-record').innerText(),/目標内/);
+    const saved={...waiting,state:'SAVED',reason:null,assessed_at:'2030-01-01T09:52:00+09:00',source_captured_at:'2030-01-01T09:46:00+09:00',generated_at:'2030-01-01T09:47:00+09:00',saved_at:'2030-01-01T09:50:00+09:00',window_status:'ON_TIME'};
+    automaticDelivery.boat.P0=saved;await page.clock.fastForward(60001);await page.waitForTimeout(100);
+    assert.match(await page.locator('#delivery-record').innerText(),/保存記録は目標内.*09:50/,'the inclusive T-10 boundary requires an actual ordered save record');
+    for(const bad of [{...saved,saved_at:'2030-01-01T09:51:00+09:00'},{...saved,visible_at:'2030-01-01T09:50:00+09:00'},{...saved,assessed_at:'2030-99-99T09:52:00+09:00'},{...saved,reason:{private:'not a finite reason'}}]) {
+      automaticDelivery.boat.P0=bad;await page.clock.fastForward(60001);await page.waitForTimeout(100);
+      assert.match(await page.locator('#generation-message').innerText(),/状態を確認できません/,'inconsistent or forged delivery metadata cannot replace checked state');
+      assert.match(await page.locator('#delivery-record').innerText(),/前回/,'stale delivery evidence is explicitly labeled');
+    }
+    automaticState='WAITING';automaticDelivery.boat.P0={...waiting,state:'SCHEDULE_WAIT',reason:'NEXT_DAY_PROGRAM_NOT_PUBLISHED',assessed_at:'2030-01-01T10:46:00+09:00',next_cutoff_at:null,target_open_at:null,target_due_at:null};
+    automaticDelivery.boat.P1={...waiting,assessed_at:'2030-01-01T10:46:00+09:00',next_cutoff_at:'2030-01-01T11:00:00+09:00',target_open_at:'2030-01-01T10:45:00+09:00',target_due_at:'2030-01-01T10:50:00+09:00'};
+    await page.clock.fastForward(60001);await page.waitForTimeout(100);
+    assert.match(await page.locator('#delivery-state').innerText(),/日程の公表待ち/);
+    assert.doesNotMatch(await page.locator('#delivery-next').innerText(),/10:00/,'no fake cutoff is retained when the next schedule is unavailable');
+    const idleCalls=automaticStatusCalls.length;await page.clock.fastForward(60001);await page.waitForTimeout(50);assert.equal(automaticStatusCalls.length,idleCalls,'idle status polling returns to180 seconds');
+    await page.clock.fastForward(120001);await page.waitForTimeout(100);assert.equal(automaticStatusCalls.length,idleCalls+1);
+    await page.locator('#forecast-stage').selectOption('P1');await page.waitForTimeout(100);
+    const switchedCalls=automaticStatusCalls.length;
+    await page.clock.fastForward(59999);await page.waitForTimeout(50);assert.equal(automaticStatusCalls.length,switchedCalls);
+    await page.clock.fastForward(2);await page.waitForTimeout(100);assert.equal(automaticStatusCalls.length,switchedCalls+1,'selecting a cached near-window stage switches the existing idle timer to60 seconds');
+    await page.locator('#forecast-stage').selectOption('P0');await page.waitForTimeout(100);
+    const imported=structuredClone(fixture);imported.records[0].observed_at='2030-01-01T09:04:00+09:00';
+    await page.locator('#race-file').setInputFiles({name:'manual-continuous-synthetic.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(imported))});await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('4件'));
+    await nav('races');await page.locator('#page-races [data-open-race]').first().click();const importedDetail=await page.locator('#race-detail').innerText();
+    automaticRevision=3;automaticState='RUNNING';automaticDelivery.boat.P0=saved;await page.clock.fastForward(180001);await page.waitForTimeout(100);
+    assert.equal(await page.locator('#race-detail').innerText(),importedDetail,'continuous saved-view polling preserves a manually imported original');
+    assert.equal(generationCalls.length,0);assert.ok(automaticStatusCalls.every(r=>r.method==='GET'));assert.ok(automaticLatestCalls.every(r=>r.method==='GET'));
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    await page.screenshot({path:path.join(output,`${width}-continuous-delivery.png`),fullPage:true});
+    mark(`${width}: continuous delivery, measured T15-T10 boundary, source wait/late input,60s active/180s idle GET polling, immutable drafts/imports and rejected claims`);
     await context.close();
   }
   assert.deepEqual(errors,[],'no page errors');

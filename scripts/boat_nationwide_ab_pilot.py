@@ -45,6 +45,7 @@ from race_ai.boat_live_feature_shadow import build_live_feature_shadow
 from race_ai.observed_p1_connection import build_bundle as build_observed_p1
 from race_ai.boat_manshu_watch import freeze_priced_tail
 from race_ai.official_race_updates import endpoint as update_endpoint
+from race_ai.source_retry_policy import SourceWait, plan_http_wait, wait_active
 
 MODULE=importlib.util.spec_from_file_location("national_boat_pair",ROOT/"race_ai"/"boat_ab_shadow.py")
 model=importlib.util.module_from_spec(MODULE)
@@ -54,13 +55,93 @@ OUTPUT=ROOT/"boat_nationwide_output"
 FROZEN_INDEX=ROOT/"docs/evidence/2026-11-03/boat-canonical-freeze-index.json"
 REQUEST_CAP=None
 VENUE_CAP=24
-MAX_FORECASTS=3
-MAX_ATTEMPTS=5
+MAX_FORECASTS=None
+MAX_ATTEMPTS=None
 WAIT_SECONDS=0.15
 MIN_TO_CUTOFF=timedelta(seconds=210)
 requests_used=0
 MAX_HTML=MAX_BYTES
 SOURCE_GUARD=None
+_HANDOFF_REASONS=frozenset(('DAY_HANDOFF','WORKER_HANDOFF'))
+
+
+def _clock(day=None):
+    now=datetime.now(timezone.utc)
+    pinned=os.environ.get('RACE_AI_EVENT_DAY')
+    expected=day.isoformat() if day is not None else pinned
+    if pinned is not None:
+        if not re.fullmatch(r'\d{4}-\d{2}-\d{2}',pinned):
+            raise ValueError('EVENT_DAY_INVALID')
+        try:parsed=datetime.fromisoformat(pinned+'T00:00:00+09:00').date()
+        except ValueError:raise ValueError('EVENT_DAY_INVALID') from None
+        if parsed.isoformat()!=pinned or (expected is not None and expected!=pinned):
+            raise ValueError('DAY_HANDOFF')
+        expected=pinned
+    if expected is not None and now.astimezone(JST).date().isoformat()!=expected:
+        raise ValueError('DAY_HANDOFF')
+    return now
+
+
+def _wait_record(wait):
+    if isinstance(wait,dict):return dict(wait)
+    return dict(state=wait.state,reason=wait.reason,retry_at=wait.retry_at)
+
+
+class _PublicationWait(SourceWait):
+    """A known race's unpublished exhibition; never an origin-wide pause."""
+    def __init__(self,plan):
+        self.plan=dict(plan)
+        super().__init__(plan['reason'],plan['retry_at'],state=plan['state'])
+
+
+def _publication_wait(race,now,plan=None):
+    result=dict(plan or plan_http_wait(200,{},now,not_yet_published=True))
+    result.update(race_id=race['race_id'],cutoff_at=race['cutoff_at'])
+    # The last normal publication check should reach T-10 once, without
+    # repeatedly scheduling an already-past target. Server waits are left
+    # untouched (global429 waits never reach this per-race helper).
+    target=datetime.fromisoformat(race['cutoff_at'])-timedelta(minutes=10)
+    retry=result.get('retry_at')
+    if retry and now<target and not result.get('server_retry_after'):
+        result['retry_at']=min(datetime.fromisoformat(retry),target).isoformat()
+    return result
+
+
+def _candidate_waits(snapshot,rows):
+    known={row['race_id']:row for row in rows}
+    values=(snapshot or {}).get('candidate_source_waits',[])
+    if not isinstance(values,list) or len(values)>24*12:
+        raise ValueError('CANDIDATE_SOURCE_WAIT_INVALID')
+    answer={}
+    for value in values:
+        if not isinstance(value,dict) or value.get('race_id') not in known:
+            continue
+        rid=value['race_id']
+        if (rid in answer or value.get('state')!='WAITING_PUBLICATION'
+                or value.get('reason')!='SOURCE_NOT_YET_PUBLISHED'
+                or value.get('cutoff_at')!=known[rid]['cutoff_at']
+                or value.get('retry_at') is None):
+            raise ValueError('CANDIDATE_SOURCE_WAIT_INVALID')
+        wait_active(value,_clock())
+        answer[rid]=dict(value)
+    return answer
+
+
+def _next_check(rows,waits,now,*,frozen=frozenset(),paused=None):
+    if paused is not None:return paused.get('retry_at')
+    moments=[]
+    for value in waits:
+        retry=value.get('retry_at')
+        if retry is not None:
+            stamp=datetime.fromisoformat(retry)
+            if stamp>now:moments.append(stamp)
+    for row in rows:
+        if row['race_id'] in frozen:continue
+        cutoff=datetime.fromisoformat(row['cutoff_at'])
+        for minutes in (15,10):
+            target=cutoff-timedelta(minutes=minutes)
+            if target>now:moments.append(target)
+    return min(moments).isoformat() if moments else None
 
 
 def observed_timestamp():
@@ -68,7 +149,8 @@ def observed_timestamp():
 
 
 def stop(reason, *, source=None, schedule=None, queue=None, tries=None,
-         forecasts=None, extended=None, priced=None, observed=None):
+         forecasts=None, extended=None, priced=None, observed=None,
+         source_wait=None,candidate_waits=None,next_check_at=None,targets=None):
     OUTPUT.mkdir(parents=True,exist_ok=True)
     result={
         "schema":"RACE_AI_NATIONWIDE_PRE_CUTOFF_AB_V1",
@@ -76,6 +158,12 @@ def stop(reason, *, source=None, schedule=None, queue=None, tries=None,
         "reason":reason, "observed_at":observed_timestamp(),
         "source_request_count":requests_used,
         "source_request_cap":REQUEST_CAP,
+        "event_day":os.environ.get('RACE_AI_EVENT_DAY'),
+        "source_wait":source_wait,
+        "candidate_source_waits":candidate_waits or [],
+        "next_retry_at":source_wait.get('retry_at') if source_wait else next_check_at,
+        "next_check_at":next_check_at,
+        "deadline_targets":targets or {},
         "official_day_source":source,
         "verified_active_venues":schedule["active_venues"] if schedule else [],
         "verified_venue_count":len(schedule["active_venues"]) if schedule else 0,
@@ -103,8 +191,9 @@ def stop(reason, *, source=None, schedule=None, queue=None, tries=None,
     return result
 
 
-def get(url):
+def get(url,*,day=None,not_yet_published=False):
     global requests_used
+    _clock(day)
     if SOURCE_GUARD is not None:SOURCE_GUARD.charge("forecast")
     requests_used+=1
     req=request.Request(url,headers={"Accept":"text/html",
@@ -118,16 +207,31 @@ def get(url):
                     not (response.headers.get("content-type") or "").lower().startswith("text/html")):
                 raise SourceError("OFFICIAL_RESPONSE_IDENTITY_OR_SIZE_INVALID")
     except error.HTTPError as exc:
-        if SOURCE_GUARD is not None:SOURCE_GUARD.http_failure(exc.code)
-        raise
+        # An already-issued response can arrive after JST midnight. Preserve
+        # its real server wait before the next transaction changes event day.
+        now=datetime.now(timezone.utc)
+        if exc.code==404 and not_yet_published:
+            plan=plan_http_wait(exc.code,exc.headers,now,not_yet_published=True)
+            plan['server_retry_after']=bool(exc.headers and
+                (exc.headers.get('Retry-After') or exc.headers.get('retry-after')))
+            raise _PublicationWait(plan) from None
+        plan=(SOURCE_GUARD.http_failure(exc.code,headers=exc.headers)
+              if SOURCE_GUARD is not None else plan_http_wait(exc.code,exc.headers,now))
+        raise SourceWait(plan['reason'],plan['retry_at'],state=plan['state']) from None
+    except (error.URLError,TimeoutError,OSError):
+        now=datetime.now(timezone.utc)
+        plan=(SOURCE_GUARD.http_failure(None,headers=None)
+              if SOURCE_GUARD is not None else plan_http_wait(None,{},now))
+        raise SourceWait(plan['reason'],plan['retry_at'],state=plan['state']) from None
     time.sleep(WAIT_SECONDS)
-    captured=datetime.now(timezone.utc)
+    captured=_clock(day)
+    if SOURCE_GUARD is not None:SOURCE_GUARD.http_success()
     return body,captured,hashlib.sha256(body).hexdigest()
 
 
 def official_schedule(day):
     url=day_endpoint(day)
-    data,captured,sha=get(url)
+    data,captured,sha=get(url,day=day)
     checked=parse_day_schedule(data,day=day,source_url=url,observed_at=captured.isoformat())
     if checked["status"]!="OFFICIAL_DAY_SCHEDULE_VERIFIED" or len(checked["active_venues"])>VENUE_CAP:
         raise SourceError("NATIONAL_INDEX_INCOMPLETE")
@@ -136,12 +240,12 @@ def official_schedule(day):
 
 def make_pair(day,race):
     race_id=race["race_id"];venue=race_id[9:11];n=int(race_id[-2:])
-    now=datetime.now(timezone.utc)
+    now=_clock(day)
     cutoff=datetime.fromisoformat(race["cutoff_at"])
     if cutoff-now<=MIN_TO_CUTOFF:
         return {"race_id":race_id,"state":"TOO_LATE_BEFORE_SOURCE"},None,None,None,None
     url=racelist_endpoint(day,venue,n)
-    raw,at,program_sha=get(url)
+    raw,at,program_sha=get(url,day=day)
     program=parse_official_racelist(raw,day=day,venue=venue,race_no=n,
                      source_url=url,captured_at=at.isoformat())
     if (program["race_id"]!=race_id or program["closed_at"]!=race["cutoff_at"]
@@ -149,16 +253,19 @@ def make_pair(day,race):
         return {"race_id":race_id,"state":"OFFICIAL_PROGRAM_OR_WITHDRAWAL_CONFLICT"},None,None,None,None
     motor=motor_top2(raw,program["boats"])
     official_preview_url=preview_endpoint(day,venue,n,"beforeinfo")
-    preview,preview_at,preview_sha=get(official_preview_url)
+    _clock(day)
+    preview,preview_at,preview_sha=get(official_preview_url,day=day,not_yet_published=True)
     result=parse_update(preview,kind="beforeinfo",day=day,venue=venue,race_no=n,
                         source_url=official_preview_url,captured_at=preview_at.isoformat(),
                         entries=program["boats"])
     if result["status"]!="AVAILABLE" or result.get("data") is None:
         return {"race_id":race_id,"state":"EXHIBITION_NOT_FULLY_PUBLISHED",
-                "source_sha256":preview_sha},None,None,None,None
+                "source_sha256":preview_sha,
+                "source_wait":_publication_wait(race,_clock(day))},None,None,None,None
     six=sorted(result["data"]["boats"],key=lambda r:r["lane"])
     if len(six)!=6 or any(r["display_time"] is None for r in six):
-        return {"race_id":race_id,"state":"EXHIBITION_TIME_INCOMPLETE"},None,None,None,None
+        return {"race_id":race_id,"state":"EXHIBITION_TIME_INCOMPLETE",
+                "source_wait":_publication_wait(race,_clock(day))},None,None,None,None
     entrants={r["lane"]:r for r in program["boats"]}
     boats=[]
     for measured in six:
@@ -180,8 +287,9 @@ def make_pair(day,race):
         "beforeinfo_source_sha256":preview_sha,
         "boats":boats,
     }
+    _clock(day)
     computed=model.build_pair(data,generated)
-    if datetime.now(timezone.utc)+MIN_TO_CUTOFF>=cutoff:
+    if _clock(day)+MIN_TO_CUTOFF>=cutoff:
         return {"race_id":race_id,"state":"TOO_LATE_AFTER_MODEL"},None,None,None,None
     # C-lite uses the *same official observations*, including local rate and
     # the already published historical average ST. It remains separate from
@@ -200,27 +308,34 @@ def make_pair(day,race):
     }
     extended=None
     try:
+        if _clock(day)+MIN_TO_CUTOFF>=cutoff:
+            return {"race_id":race_id,"state":"TOO_LATE_BEFORE_MODEL"},None,None,None,None
         extended=build_live_feature_shadow(data,extra,observed_timestamp())
-    except ValueError:
+    except ValueError as ex:
+        if str(ex) in _HANDOFF_REASONS:raise
         extended={"race_id":race_id,"state":"C_LITE_SOURCE_NOT_ADMITTED"}
     # Reuse the existing pairwise models on these same fresh observations.
     # A failure isolated to this adapter does not discard the ready A/B pair.
     observed=None
     try:
+        if _clock(day)+MIN_TO_CUTOFF>=cutoff:
+            return {"race_id":race_id,"state":"TOO_LATE_BEFORE_MODEL"},None,None,None,None
         observed=build_observed_p1(data,extra,generated,
             program_url=url,preview_url=official_preview_url,
             program_captured_at=at.isoformat(),preview_captured_at=preview_at.isoformat(),
             owner_reviewed=os.environ.get("RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED")=="true")
     except ValueError as ex:
+        if str(ex) in _HANDOFF_REASONS:raise
         observed={"race_id":race_id,"state":"OBSERVED_P1_INPUT_REJECTED","reason":str(ex)[:160]}
     # A man-shu is >=10,000 yen for a 100-yen ticket. Do NOT infer it
     # from a low model score. Require 120 published official odds before the
     # relevant cutoff and label the priced research variant separately.
     priced={"race_id":race_id,"state":"OFFICIAL_PRE_CLOSE_PRICES_NOT_VERIFIED"}
-    if datetime.now(timezone.utc)+MIN_TO_CUTOFF<cutoff:
+    paused=None
+    if _clock(day)+MIN_TO_CUTOFF<cutoff:
         try:
             price_url=update_endpoint(day,venue,n,"odds3t")
-            odds_raw,odds_at,odds_sha=get(price_url)
+            odds_raw,odds_at,odds_sha=get(price_url,day=day)
             odds=parse_update(odds_raw,kind="odds3t",day=day,venue=venue,race_no=n,
                               source_url=price_url,captured_at=odds_at.isoformat(),
                               entries=program["boats"])
@@ -229,12 +344,22 @@ def make_pair(day,race):
                       "race_id":race_id,"cutoff_at":race["cutoff_at"],
                       "result_used":False,"paired_forecast":computed}
             priced=freeze_priced_tail(old_pair,odds,observed_timestamp())
+        except SourceWait as ex:
+            paused=_wait_record(ex)
+            priced={"race_id":race_id,"state":"SOURCE_WAIT","source_wait":paused}
         except (SourceError,ValueError,KeyError,TypeError) as ex:
-            priced={"race_id":race_id,"state":"OFFICIAL_PRE_CLOSE_PRICES_NOT_VERIFIED",
-                    "failure_class":type(ex).__name__}
+            if str(ex)=='DAY_HANDOFF':raise
+            if str(ex)=='WORKER_HANDOFF':
+                paused=dict(state='WORKER_HANDOFF',reason='WORKER_HANDOFF',retry_at=None)
+                priced=dict(race_id=race_id,state='WORKER_HANDOFF')
+            else:
+                priced={"race_id":race_id,"state":"OFFICIAL_PRE_CLOSE_PRICES_NOT_VERIFIED",
+                        "failure_class":type(ex).__name__}
+    if _clock(day)+MIN_TO_CUTOFF>=cutoff:
+        return {"race_id":race_id,"state":"TOO_LATE_AFTER_MODEL"},None,None,None,None
     return {"race_id":race_id,"state":"AB_GENERATED_NOT_YET_EXTERNAL_FROZEN",
             "program_sha256":program_sha,"exhibition_sha256":preview_sha,
-            "generated_at":generated},computed,extended,priced,observed
+            "generated_at":generated,"source_wait":paused},computed,extended,priced,observed
 
 
 def run(*, schedule_snapshot=None):
@@ -242,8 +367,10 @@ def run(*, schedule_snapshot=None):
     requests_used=0
     if os.environ.get("RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED")!="true":
         return stop("OWNER_SOURCE_SCOPE_REQUIRED")
-    now=datetime.now(timezone.utc)
+    try:now=_clock()
+    except ValueError as ex:return stop(str(ex))
     day=now.astimezone(JST).date()
+    paused=None
     from race_ai.repeated_cycle import usable_schedule
     if usable_schedule(schedule_snapshot,day=day.isoformat(),now=now):
         import copy
@@ -256,7 +383,11 @@ def run(*, schedule_snapshot=None):
     else:
         try:
             listing,index_at,index_sha,url=official_schedule(day)
+        except SourceWait as ex:
+            paused=_wait_record(ex)
+            return stop(ex.reason,source_wait=paused,next_check_at=ex.retry_at)
         except (SourceError,ValueError,UnicodeError,OSError,error.URLError,TimeoutError,TypeError) as ex:
+            if str(ex) in _HANDOFF_REASONS:return stop(str(ex))
             return stop("VERIFIED_DAY_SOURCE_UNAVAILABLE",
                         source={"failure_class":type(ex).__name__})
         active=listing["active_venues"]
@@ -266,7 +397,7 @@ def run(*, schedule_snapshot=None):
         for venue in active:
             try:
                 source_url=racelist_endpoint(day,venue,1)
-                body,at,sha=get(source_url)
+                body,at,sha=get(source_url,day=day)
                 identity=parse_official_racelist(body,day=day,venue=venue,race_no=1,
                      source_url=source_url,captured_at=at.isoformat())
                 if identity["status"]!="OFFICIAL_BODY_IDENTITY_VERIFIED":
@@ -276,18 +407,25 @@ def run(*, schedule_snapshot=None):
                                  "cutoff_at":closed.isoformat(),
                                  "schedule_captured_at":at.isoformat(),
                                  "source_sha256":sha})
+            except SourceWait as ex:
+                paused=_wait_record(ex)
+                venue_errors.append({'venue':venue,'state':ex.state,'reason':ex.reason})
+                break
             except (SourceError,ValueError,UnicodeError,OSError,error.URLError,TimeoutError,TypeError) as ex:
+                if str(ex) in _HANDOFF_REASONS:return stop(str(ex),schedule=listing,tries=venue_errors)
                 venue_errors.append({"venue":venue,"state":"VENUE_SCHEDULE_REJECTED",
                                      "failure_class":type(ex).__name__})
     if not rows:
-        return stop("NO_VERIFIED_CUTOFF_ROWS",schedule=listing,
+        return stop(paused['reason'] if paused else "NO_VERIFIED_CUTOFF_ROWS",schedule=listing,
                     source={"url":url,"source_sha256":index_sha,"captured_at":index_at.isoformat()},
-                    tries=venue_errors)
+                    tries=venue_errors,source_wait=paused,
+                    next_check_at=paused.get('retry_at') if paused else None)
     # The verified day registry contains already-closed morning races. A
     # schedule captured this afternoon is NOT pre-close evidence for a race
     # that finished in the morning. Retain these in the registry/audit count,
     # but never submit them to the pre-close queue or pretend a forecast.
-    selection_clock=datetime.now(timezone.utc)
+    try:selection_clock=_clock(day)
+    except ValueError as ex:return stop(str(ex),schedule=listing,queue=rows,tries=venue_errors)
     prospective_rows=[]
     after_close_rows=[]
     for record in rows:
@@ -308,8 +446,10 @@ def run(*, schedule_snapshot=None):
         previously_frozen=load_original_race_ids(
             FROZEN_INDEX,as_of=selection_clock.isoformat())
         queue=select_due_races(prospective_rows,selection_clock.isoformat(),
-                              already_frozen=previously_frozen,max_items=24)
+                              already_frozen=previously_frozen,max_items=None)
+        race_waits=_candidate_waits(schedule_snapshot,rows)
     except (OSError, ValueError, UnicodeError) as ex:
+        if str(ex) in _HANDOFF_REASONS:return stop(str(ex),schedule=listing,queue=rows,tries=venue_errors)
         return stop("NATIONWIDE_ORDER_VALIDATION_REJECTED",schedule=listing,
                     source={"url":url,"source_sha256":index_sha,"captured_at":index_at.isoformat()},
                     tries=venue_errors)
@@ -317,20 +457,55 @@ def run(*, schedule_snapshot=None):
     attempts.extend({"race_id":r["race_id"],"state":"ALREADY_FROZEN_IN_CANONICAL_INDEX"}
                     for r in queue["rejected"] if r["reason"]=="ALREADY_FROZEN")
     forecasts=[];extra_forecasts=[];priced_watches=[];observed_forecasts=[]
-    for race in queue["eligible"][:MAX_ATTEMPTS]:
+    handoff=False;handoff_reason='DAY_HANDOFF'
+    for race in queue["eligible"]:
+        if paused is not None:break
+        rid=race['race_id']
         try:
+            at=_clock(day)
+            if rid in race_waits and wait_active(race_waits[rid],at):
+                attempts.append(dict(race_id=rid,state='WAITING_PUBLICATION',
+                                     source_wait=race_waits[rid],phase=race.get('phase')))
+                continue
             status,pair,extended,priced,observed=make_pair(day,race)
+            status.update(phase=race.get('phase'),cutoff_at=race['cutoff_at'],
+                          target_at=(datetime.fromisoformat(race['cutoff_at'])-timedelta(minutes=10)).isoformat())
             if observed is not None and 'suite' not in observed:
                 status['observed_pairwise_failure']=observed
+            wait=status.get('source_wait')
+            if pair is None and status.get('state') in ('EXHIBITION_NOT_FULLY_PUBLISHED','EXHIBITION_TIME_INCOMPLETE'):
+                wait=wait or _publication_wait(race,_clock(day))
+                status['source_wait']=wait
+            if wait is not None:
+                if wait.get('state')=='WAITING_PUBLICATION':race_waits[rid]=dict(wait)
+                else:paused=dict(wait)
             attempts.append(status)
             if pair is not None:
+                race_waits.pop(rid,None)
                 forecasts.append(pair)
                 if extended is not None:extra_forecasts.append(extended)
                 if priced is not None:priced_watches.append(priced)
                 if observed is not None and "suite" in observed:observed_forecasts.append(observed)
-                if len(forecasts)>=MAX_FORECASTS:
-                    break
+        except _PublicationWait as ex:
+            try:at=_clock(day)
+            except ValueError as control:
+                if str(control)!='DAY_HANDOFF':raise
+                attempts.append(dict(race_id=rid,state='DAY_HANDOFF'))
+                handoff=True
+                break
+            wait=_publication_wait(race,at,ex.plan)
+            race_waits[rid]=wait
+            attempts.append(dict(race_id=rid,state='WAITING_PUBLICATION',source_wait=wait,phase=race.get('phase')))
+        except SourceWait as ex:
+            paused=_wait_record(ex)
+            attempts.append(dict(race_id=rid,state=ex.state,reason=ex.reason,source_wait=paused))
+            break
         except (SourceError,ValueError,UnicodeError,OSError,error.URLError,TimeoutError,TypeError) as ex:
+            if str(ex) in _HANDOFF_REASONS:
+                handoff_reason=str(ex)
+                attempts.append(dict(race_id=rid,state=handoff_reason))
+                handoff=True
+                break
             attempts.append({"race_id":race["race_id"],"state":"OFFICIAL_RACE_REJECTED",
                              "failure_class":type(ex).__name__})
     # If the externally saved batch is late, the independent GitHub artifact
@@ -339,11 +514,28 @@ def run(*, schedule_snapshot=None):
             "active_venues":active}
     compact=[{key:item[key] for key in ("race_id","cutoff_at","schedule_captured_at","source_sha256")}
             for item in rows]
-    return stop("NEEDS_INDEPENDENT_GITHUB_ARTIFACT_TIME_CHECK" if forecasts else
-                "NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES",
+    try:_clock(day)
+    except ValueError as ex:
+        if str(ex)!='DAY_HANDOFF':raise
+        handoff=True
+    remaining_waits=[value for rid,value in sorted(race_waits.items())
+                     if datetime.fromisoformat(value['cutoff_at'])>datetime.now(timezone.utc)+MIN_TO_CUTOFF]
+    targets=dict(window_open_seconds=900,target_before_cutoff_seconds=600,
+        minimum_buffer_seconds=int(MIN_TO_CUTOFF.total_seconds()),due_races=len(queue['eligible']),
+        window_races=sum(r.get('phase')=='WINDOW' for r in queue['eligible']),
+        late_fallback_races=sum(r.get('phase')=='LATE_INPUT_FALLBACK' for r in queue['eligible']),
+        waiting_publication_races=len(remaining_waits),forecast_pairs=len(forecasts),
+        external_target_save_verified=False)
+    next_check=None if handoff else _next_check(rows,remaining_waits,datetime.now(timezone.utc),
+        frozen=previously_frozen|frozenset(p['race_id'] for p in forecasts),paused=paused)
+    reason=(handoff_reason if handoff else paused['reason'] if paused else
+            'NEEDS_INDEPENDENT_GITHUB_ARTIFACT_TIME_CHECK' if forecasts else
+            'NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES')
+    return stop(reason,
                 source=source,schedule=listing,
                 queue=compact,tries=venue_errors+attempts,forecasts=forecasts,
-                extended=extra_forecasts,priced=priced_watches,observed=observed_forecasts)
+                extended=extra_forecasts,priced=priced_watches,observed=observed_forecasts,
+                source_wait=paused,candidate_waits=remaining_waits,next_check_at=next_check,targets=targets)
 
 
 if __name__=="__main__":

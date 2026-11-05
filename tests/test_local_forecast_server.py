@@ -1,5 +1,7 @@
 """Loopback forecast HTTP boundary; no provider calls or real race fixtures."""
 from contextlib import contextmanager
+from copy import deepcopy
+from datetime import datetime
 import http.client
 import json
 import os
@@ -10,7 +12,7 @@ import types
 import unittest
 from unittest.mock import patch
 
-from race_ai.local_forecast_server import make_server
+from race_ai.local_forecast_server import make_server, main
 
 
 class RecordingService:
@@ -84,6 +86,74 @@ def admitted_headers(server, nonce):
 
 
 class LocalForecastServerTests(unittest.TestCase):
+    def test_github_cli_wires_existing_supervisor_and_private_cache_only(self):
+        fake = types.SimpleNamespace(origin="http://127.0.0.1:8765", serve_forever=lambda:None)
+        class Context:
+            def __enter__(self):return fake
+            def __exit__(self,*args):return False
+        with patch("race_ai.local_forecast_service.LocalForecastService") as service, \
+             patch("race_ai.github_continuous_supervisor.GitHubSupervisor") as supervisor, \
+             patch("race_ai.local_forecast_server.make_server", return_value=Context()) as server, \
+             patch("builtins.print"):
+            self.assertEqual(main(["--private-dir","/private/forecasts", "--automatic-mode","github",
+                                   "--supervisor-dir","/private/supervisor"]),0)
+        from race_ai.workflow_live_projection import refresh_projection
+        service.assert_called_once_with(Path("/private/forecasts"), workflow_projection_root=Path("/private/supervisor"))
+        supervisor.assert_called_once_with(Path("/private/supervisor"), projection_refresh=refresh_projection)
+        server.assert_called_once_with(service.return_value, port=8765, automatic=supervisor.return_value)
+
+    def test_native_cli_remains_default_and_supervisor_path_is_not_ignored(self):
+        fake = types.SimpleNamespace(origin="http://127.0.0.1:8765", serve_forever=lambda:None)
+        class Context:
+            def __enter__(self):return fake
+            def __exit__(self,*args):return False
+        with patch("race_ai.local_forecast_service.LocalForecastService") as service, \
+             patch("race_ai.github_continuous_supervisor.GitHubSupervisor") as supervisor, \
+             patch("race_ai.local_forecast_server.make_server", return_value=Context()) as server, \
+             patch("builtins.print"):
+            self.assertEqual(main(["--private-dir","/private/forecasts"]),0)
+        service.assert_called_once_with(Path("/private/forecasts"))
+        supervisor.assert_not_called()
+        server.assert_called_once_with(service.return_value, port=8765)
+        for extra in (["--automatic-mode","github"], ["--supervisor-dir","/private/supervisor"]):
+            with self.subTest(extra=extra), patch("sys.stderr"), self.assertRaises(SystemExit) as error:
+                main(["--private-dir","/private/forecasts", *extra])
+            self.assertEqual(error.exception.code,2)
+
+    def test_github_http_reads_saved_stage_and_rejects_local_generation(self):
+        from race_ai.local_forecast_service import LocalForecastService
+        from race_ai import existing_model_dispatch as native
+        now = datetime.fromisoformat("2030-01-15T11:52:00+09:00")
+        p0 = dict(stage="P0", model_id="p0-original", prediction_sha256="a"*64,
+            generated_at="2030-01-15T11:47:00+09:00", persisted_at="2030-01-15T11:49:00+09:00")
+        p1 = dict(stage="P1", model_id="p1-original", prediction_sha256="b"*64,
+            ordered_top8=["1-2-3"], generated_at="2030-01-15T11:48:00+09:00",
+            persisted_at="2030-01-15T11:49:00+09:00")
+        snapshot = dict(status=dict(day_jst="2030-01-15",revision="c"*64), view=dict(records=[dict(
+            race_id="20300115-01-01",sport="boat",cutoff_at="2030-01-15T12:00:00+09:00",
+            prediction=p0,comparison_predictions=[p1])]))
+        original = deepcopy(snapshot)
+        with tempfile.TemporaryDirectory() as directory, \
+             patch("race_ai.current_boat_inputs.CurrentBoatInputs", side_effect=AssertionError("native provider created")), \
+             patch("race_ai.workflow_live_projection.read_projection", return_value=snapshot), \
+             patch("race_ai.github_continuous_supervisor.GitHubCLI.raw", side_effect=AssertionError("GET called GitHub")), \
+             patch.object(native,"run_suite",side_effect=AssertionError("GET inferred")):
+            service = LocalForecastService(Path(directory),clock=lambda:now,
+                workflow_projection_root=Path(directory)/"supervisor")
+            with serving(service, automatic=RecordingAutomation()) as (server, _):
+                status,_,body = request(server,"GET","/api/forecast/status")
+                self.assertEqual(status,200)
+                nonce=json.loads(body)["nonce"]
+                status,_,body=request(server,"GET","/api/forecast/latest?sport=boat&stage=P1")
+                self.assertEqual(status,200)
+                selected=json.loads(body)["view"]["records"][0]
+                self.assertEqual(selected["prediction"],p1)
+                self.assertEqual(selected["comparison_predictions"],[])
+                self.assertEqual(request(server,"POST","/api/forecast/generate",
+                    '{"sport":"boat","stage":"P1"}',admitted_headers(server,nonce))[0],409)
+            self.assertEqual(service.journal.originals(),[])
+        self.assertEqual(snapshot,original)
+
     def test_latest_is_a_read_only_cached_display_endpoint(self):
         with serving() as (server, service):
             status, headers, body = request(server, "GET", "/api/forecast/latest?sport=boat&stage=P0")

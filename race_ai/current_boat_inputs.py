@@ -5,7 +5,7 @@ parsing; trusted application code separately admits personal analysis/private
 storage. Source hashes and a local capture clock are not external attestation.
 """
 from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 import fcntl
 import hashlib
 import json
@@ -14,6 +14,7 @@ from pathlib import Path
 import re
 import stat
 from urllib import error, request
+from urllib.parse import urlsplit
 import uuid
 
 import race_ai
@@ -30,6 +31,7 @@ from .program_race_isolation import normalize_races
 from .boat_observed_program_bridge import build_program_snapshot
 from .private_cycle_capture import _parent_handle
 from .boat_deadline_queue import select_due_races
+from .source_retry_policy import SourceWait, plan_http_wait, wait_active
 
 JST = timezone(timedelta(hours=9))
 # The owner explicitly removed numeric cumulative and per-call GET quotas.
@@ -37,6 +39,7 @@ JST = timezone(timedelta(hours=9))
 REQUEST_LIMIT = None
 CALL_REQUEST_LIMIT = None
 P1_RACE_LIMIT = 3
+DISCOVERY_SECONDS = 180
 BUFFER = timedelta(seconds=210)
 STATE_SCHEMA = "RACE_AI_CURRENT_BOAT_SOURCE_STATE_V1"
 _FILE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}\Z")
@@ -44,6 +47,9 @@ _FILE = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}\Z")
 
 class CurrentBoatInputError(ValueError):
     """A fixed safe reason; no source bodies, private paths or tickets."""
+
+class CurrentBoatSourceWait(CurrentBoatInputError, SourceWait):
+    """Compatible domain error carrying the shared nonterminal wait fields."""
 
 
 def _need(value, reason="CURRENT_BOAT_INPUT_REJECTED"):
@@ -101,6 +107,28 @@ def _json(raw):
 
 def _wire(value):
     return (json.dumps(value, ensure_ascii=False, allow_nan=False, sort_keys=True, separators=(",", ":")) + "\n").encode()
+
+def _replace_json(folder,name,value):
+    temporary='write-'+uuid.uuid4().hex+'.json'
+    _write(folder,temporary,_wire(value))
+    try:_private_file(os.stat(name,dir_fd=folder,follow_symlinks=False))
+    except FileNotFoundError:pass
+    os.replace(temporary,name,src_dir_fd=folder,dst_dir_fd=folder);os.fsync(folder)
+
+def _raise_wait(wait):
+    raise CurrentBoatSourceWait(wait['reason'],wait.get('retry_at'),state=wait['state'])
+
+def _guard(callback):
+    if callback is not None:
+        _need(callable(callback),'TRUSTED_AUTOMATIC_GUARD_REQUIRED')
+        try:_moment(callback())
+        except ValueError:raise CurrentBoatInputError('AUTOMATIC_SESSION_END') from None
+
+def _final_publication_allowed(state,rid,cutoff,now,preferred):
+    if not preferred or (_moment(cutoff)-now).total_seconds()>600 or rid in state['final_publication_attempts']:
+        return False
+    wait=state['publication_waits'].get(rid)
+    return not(wait and wait.get('server_retry_after') and wait_active(wait,now))
 
 
 class _NoRedirects(request.HTTPRedirectHandler):
@@ -187,7 +215,7 @@ class CurrentBoatInputs:
 
     def _state(self, folder, day):
         try:
-            state = _json(_read(folder, "state.json", 1024 * 1024))
+            state = _json(_read(folder, "state.json", 16 * 1024 * 1024))
         except FileNotFoundError:
             _need(not os.listdir(folder), "PRIVATE_SOURCE_STATE_MISSING")
             state = dict(schema=STATE_SCHEMA, day=day, request_count=0, halted_reason=None,
@@ -197,15 +225,50 @@ class CurrentBoatInputs:
               and type(state.get("captures")) is list and len(state["captures"]) <= state["request_count"]
               and type(state.get("p1_ready")) is dict and type(state.get("p1_attempted_at")) is dict,
               "PRIVATE_SOURCE_STATE_REJECTED")
+        state.setdefault('capture_history',[])
+        state.setdefault('first_B_capture',state.get('p0_capture'))
+        state.setdefault('discovery_capture',state.get('p0_capture'))
+        state.setdefault('race_registry',{})
+        state.setdefault('schedule_registry',{})
+        state.setdefault('discovery_revision',None)
+        state.setdefault('next_discovery_at',None)
+        state.setdefault('publication_waits',{})
+        state.setdefault('final_publication_attempts',[])
+        state.setdefault('next_deadline_at',None)
+        state.setdefault('discovery_conflicts',{})
         return state
 
     def _save(self, folder, state):
-        temporary = "state-" + uuid.uuid4().hex + ".json"
-        _write(folder, temporary, _wire(state))
-        try: os.stat("state.json", dir_fd=folder, follow_symlinks=False)
-        except FileNotFoundError: pass
-        else: _private_file(os.stat("state.json", dir_fd=folder, follow_symlinks=False))
-        os.replace(temporary, "state.json", src_dir_fd=folder, dst_dir_fd=folder); os.fsync(folder)
+        while len(state['captures'])>100:
+            page=state['captures'][:100];body=_wire(page);name='capture-history-'+uuid.uuid4().hex+'.json'
+            _write(folder,name,body)
+            state['capture_history'].append(dict(file=name,sha256=hashlib.sha256(body).hexdigest(),count=len(page)))
+            del state['captures'][:100]
+        _replace_json(folder,'state.json',state)
+
+    def _waits(self):
+        with _parent_handle(self.root) as root:
+            try:value=_json(_read(root,'source-waits.json',1024*1024))
+            except FileNotFoundError:return {}
+        _need(type(value) is dict and value.get('schema')=='RACE_AI_SOURCE_WAITS_V1'
+              and type(value.get('origins')) is dict,'PRIVATE_SOURCE_WAIT_REJECTED')
+        return value['origins']
+
+    def _set_wait(self,url,wait):
+        origin='https://'+urlsplit(url).netloc
+        waits=self._waits()
+        if wait is None:
+            if origin not in waits:return
+            del waits[origin]
+        else:waits[origin]=wait
+        with _parent_handle(self.root) as root:
+            _replace_json(root,'source-waits.json',dict(schema='RACE_AI_SOURCE_WAITS_V1',origins=waits))
+
+    def _active_wait(self,url=None):
+        waits=self._waits()
+        if url is not None:waits={key:value for key,value in waits.items() if key=='https://'+urlsplit(url).netloc}
+        active=[value for value in waits.values() if wait_active(value,self.clock())]
+        return min(active,key=lambda value:value.get('retry_at') or '') if active else None
 
     def _cached(self, folder, meta):
         _need(type(meta) is dict, "PRIVATE_SOURCE_METADATA_REJECTED")
@@ -220,9 +283,12 @@ class CurrentBoatInputs:
         _need(_moment(meta["captured_at"]) <= _moment(self.clock()), "SOURCE_CAPTURE_IN_FUTURE")
         return raw
 
-    def _fetch(self, folder, state, url, kind, calls, *, automatic_stop_at=None):
+    def _fetch(self, folder, state, url, kind, calls, *, automatic_stop_at=None,automatic_guard=None):
         # The server owns this boundary. Check before charging or opening each
         # source; a request already in flight may finish and retain its bytes.
+        _guard(automatic_guard)
+        wait=self._active_wait(url)
+        if wait:_raise_wait(wait)
         _need(automatic_stop_at is None or _moment(self.clock()) < automatic_stop_at,
               "AUTOMATIC_SESSION_END")
         _need(not state["halted_reason"], "SOURCE_SESSION_HALTED")
@@ -230,6 +296,7 @@ class CurrentBoatInputs:
               (CALL_REQUEST_LIMIT is None or calls[0] < CALL_REQUEST_LIMIT),
               "SOURCE_GET_BUDGET_EXHAUSTED")
         state["request_count"] += 1; calls[0] += 1
+        state['last_source_url']=url
         self._save(folder, state)  # Charge before the network, including failed requests.
         bound = MAX_ARCHIVE_BYTES if kind == "B" else 2_000_000
         try:
@@ -250,43 +317,67 @@ class CurrentBoatInputs:
                         source_sha256=hashlib.sha256(raw).hexdigest(), bytes=len(raw), content_type=content_type)
             metadata = _wire(meta); _write(folder, name + ".json", metadata)
             meta.update(metadata_file=name+".json", metadata_sha256=hashlib.sha256(metadata).hexdigest())
+            if kind=='B' and state.get('first_B_capture') is None:state['first_B_capture']=meta
             state["captures"].append(meta); self._save(folder, state)
+            self._set_wait(url,None)
             # Retain an already-started response even if its completion crosses
             # a policy boundary. It cannot authorize another GET or inference.
+            _guard(automatic_guard)
             _need(automatic_stop_at is None or _moment(self.clock()) < automatic_stop_at,
                   "AUTOMATIC_SESSION_END")
             _need(_moment(stamp).astimezone(JST).date().isoformat() == state["day"], "SOURCE_DAY_BOUNDARY_PASSED")
             return raw, meta
         except error.HTTPError as exc:
-            if 400 <= exc.code < 500:
-                state["halted_reason"] = "SOURCE_HTTP_4XX_STOP"; self._save(folder, state)
-            if 500 <= exc.code < 600:
-                raise CurrentBoatInputError("SOURCE_HTTP_TEMPORARILY_UNAVAILABLE") from None
-            raise CurrentBoatInputError("SOURCE_HTTP_UNAVAILABLE") from None
+            previous=self._waits().get('https://'+urlsplit(url).netloc,{})
+            wait=plan_http_wait(exc.code,exc.headers or {},self.clock(),attempt=previous.get('attempts',0)+1,
+                                not_yet_published=kind in ('B','beforeinfo'))
+            if wait['state']=='WAITING_PUBLICATION' and kind!='B':
+                headers=exc.headers or {}
+                wait['server_retry_after']=bool(headers.get('Retry-After') or headers.get('retry-after'))
+                rid=state.get('active_p1_race')
+                if rid:state['publication_waits'][rid]=wait;self._save(folder,state)
+            else:self._set_wait(url,wait)
+            _raise_wait(wait)
         except (OSError, TimeoutError):
-            raise CurrentBoatInputError("SOURCE_TRANSPORT_UNAVAILABLE") from None
+            previous=self._waits().get('https://'+urlsplit(url).netloc,{})
+            wait=plan_http_wait(None,{},self.clock(),attempt=previous.get('attempts',0)+1)
+            self._set_wait(url,wait);_raise_wait(wait)
 
-    def status(self):
+    def status(self,day_jst=None):
         """Read current-day counters without collection, inference, or writes.
 
         Missing or corrupt state beside retained source files is an error,
         never permission to reset the budget. A day never started reports zero
         without creating a day directory or a new state/lock file.
         """
-        day = _moment(self.clock()).astimezone(JST).date().isoformat()
+        today=_moment(self.clock()).astimezone(JST).date()
+        day=today.isoformat() if day_jst is None else day_jst
+        _need(type(day) is str and date.fromisoformat(day).isoformat()==day and date.fromisoformat(day)<=today,
+              'SOURCE_STATUS_DAY_REJECTED')
         try:
             with self._locked_day(day, create=False) as folder:
                 state = self._state(folder, day) if folder is not None else None
-                return dict(day_jst=day, requests_used=state["request_count"] if state else 0,
-                            halted_reason=state["halted_reason"] if state else None)
+                wait=self._active_wait()
+                if state and state['halted_reason']:
+                    wait=dict(state='SOURCE_REVIEW_WAIT',reason='LEGACY_SOURCE_REVIEW_REQUIRED',retry_at=None,http_status=None,attempts=0)
+                return dict(day_jst=day,requests_used=state['request_count'] if state else 0,
+                    halted_reason=state['halted_reason'] if state else None,source_wait=wait,
+                    waiting_state=wait['state'] if wait else None,waiting_reason=wait['reason'] if wait else None,
+                    retry_at=wait.get('retry_at') if wait else None,next_discovery_at=state.get('next_discovery_at') if state else None,
+                    discovery_revision=state.get('discovery_revision') if state else None,
+                    next_deadline_at=state.get('next_deadline_at') if state else None,
+                    target_window_seconds=[900,600])
         except (OSError, ValueError) as exc:
             if isinstance(exc, CurrentBoatInputError): raise
             raise CurrentBoatInputError("PRIVATE_CURRENT_SOURCE_STATUS_REJECTED") from None
 
-    def collect(self, stage="P0", *, sport="boat", due_only=False, automatic_stop_at=None):
+    def collect(self, stage="P0", *, sport="boat", due_only=False, automatic_stop_at=None,
+                refresh_discovery=False,preferred_window=False,automatic_guard=None):
         _need(sport == "boat", "CURRENT_SPORT_INPUT_UNCONNECTED")
         _need(stage in ("P0", "P1"), "SUPPORTED_FORECAST_STAGE_REQUIRED")
         _need(type(due_only) is bool, "BOOLEAN_DUE_SELECTION_REQUIRED")
+        _need(type(refresh_discovery) is bool and type(preferred_window) is bool,'BOOLEAN_DISCOVERY_POLICY_REQUIRED')
+        _guard(automatic_guard)
         now = _moment(self.clock()); day = now.astimezone(JST).date()
         stop = _moment(automatic_stop_at) if automatic_stop_at is not None else None
         if stop is not None:
@@ -298,7 +389,9 @@ class CurrentBoatInputs:
         try:
             with self._locked_day(day.isoformat()) as folder:
                 state = self._state(folder, day.isoformat())
-                _need(not state["halted_reason"], "SOURCE_SESSION_HALTED")
+                if state['halted_reason']:
+                    wait=dict(state='SOURCE_REVIEW_WAIT',reason='LEGACY_SOURCE_REVIEW_REQUIRED',retry_at=None,http_status=None,attempts=0)
+                    self._set_wait(official_url(day,'B'),wait);_raise_wait(wait)
                 try:
                     # A crash after the durable raw receipt but before parsing
                     # must not spend another GET or discard the first original.
@@ -306,13 +399,16 @@ class CurrentBoatInputs:
                     if recovered:
                         saved = [entry for entry in state["captures"] if entry.get("kind") == "B"
                                  and entry.get("url") == official_url(day, "B")]
-                        if saved: state["p0_capture"] = saved[0]
+                        if state.get('first_B_capture'):state['p0_capture']=state['first_B_capture']
+                        elif saved: state["p0_capture"] = saved[0]
                     cached = state["p0_capture"] is not None
-                    if cached:
-                        meta = state["p0_capture"]; raw = self._cached(folder, meta)
+                    refresh=refresh_discovery and (not state.get('next_discovery_at') or
+                        _moment(self.clock())>=_moment(state['next_discovery_at']))
+                    if cached and not refresh:
+                        meta = state.get('discovery_capture') or state['p0_capture']; raw = self._cached(folder, meta)
                     else:
                         raw, meta = self._fetch(folder, state, official_url(day, "B"), "B", calls,
-                                                automatic_stop_at=stop)
+                                                automatic_stop_at=stop,automatic_guard=automatic_guard)
                     _need(meta["url"] == official_url(day, "B"), "OFFICIAL_B_SOURCE_IDENTITY_REJECTED")
                     inspect_lzh(raw)
                     text = extract_daily_lzh(raw, f"B{day:%y%m%d}.TXT")
@@ -320,28 +416,72 @@ class CurrentBoatInputs:
                         observed_at=meta["captured_at"], archive_sha256=meta["source_sha256"])
                     if not cached or recovered:
                         state["p0_capture"] = meta; self._save(folder, state)
+                    program=self._register_program(program,meta,state,folder)
                     _need(stop is None or _moment(self.clock()) < stop, "AUTOMATIC_SESSION_END")
                     result = self._build(program, meta, stage, folder, state, calls,
-                                         due_only=due_only, automatic_stop_at=stop)
+                        due_only=due_only,automatic_stop_at=stop,automatic_guard=automatic_guard,preferred_window=preferred_window)
+                    self._save(folder,state)
                     result["source_report"] = dict(state="INPUTS_READY" if result["inputs"] else "NO_QUALIFIED_INPUT",
                         day_jst=day.isoformat(), stage=stage, scheduled_races=len(result["schedule"]),
                         ready_races=len(result["inputs"]), source_requests=calls[0], request_count=state["request_count"],
                         request_limit=REQUEST_LIMIT, cache_used=cached, independent_source_verified=False,
-                        raw_sources_saved=True, inference_performed=False, due_only=due_only)
+                        raw_sources_saved=True,inference_performed=False,due_only=due_only,
+                        discovery_revision=state['discovery_revision'],next_discovery_at=state['next_discovery_at'],
+                        preferred_window=preferred_window,more_due=False)
+                    result['source_report']['conflicted_races']=len(state['discovery_conflicts'])
                     return result
                 except (ValueError, KeyError, TypeError, OverflowError, UnicodeError) as exc:
+                    if isinstance(exc,SourceWait):raise
+                    if str(exc)=='SOURCE_DAY_BOUNDARY_PASSED':
+                        _raise_wait(dict(state='DAY_ROLLOVER_WAIT',reason='CURRENT_DAY_CHANGED',retry_at=_moment(self.clock()).isoformat()))
                     transient = isinstance(exc, CurrentBoatInputError) and str(exc) in (
                         "SOURCE_TRANSPORT_UNAVAILABLE", "SOURCE_HTTP_TEMPORARILY_UNAVAILABLE",
                         "AUTOMATIC_SESSION_END")
                     if not state["halted_reason"] and not transient:
                         state["halted_reason"] = "SOURCE_IDENTITY_OR_PARSE_STOP"; self._save(folder, state)
+                    if not transient:
+                        wait=dict(state='SOURCE_REVIEW_WAIT',reason=str(exc) if isinstance(exc,CurrentBoatInputError) else 'SOURCE_IDENTITY_OR_PARSE_STOP',retry_at=None,http_status=None,attempts=0)
+                        self._set_wait(state.get('last_source_url',official_url(day,'B')),wait);_raise_wait(wait)
                     if isinstance(exc, CurrentBoatInputError): raise
                     raise CurrentBoatInputError("OFFICIAL_SOURCE_PARSE_REJECTED") from None
         except (OSError, ValueError) as exc:
             if isinstance(exc, CurrentBoatInputError): raise
             raise CurrentBoatInputError("PRIVATE_CURRENT_SOURCE_REJECTED") from None
 
-    def _build(self, program, meta, stage, folder, state, calls, *, due_only=False, automatic_stop_at=None):
+    def _register_program(self,program,meta,state,folder):
+        checked=set()
+        for entry in state['race_registry'].values():
+            binding=hashlib.sha256(_wire(dict(row=entry['row'],source=entry['source']))).hexdigest()
+            _need(entry.get('row_source_sha256')==binding,'SAVED_PROGRAM_BINDING_CHANGED')
+            ident=entry['source']['metadata_sha256']
+            if ident not in checked:self._cached(folder,entry['source']);checked.add(ident)
+        state['discovery_capture']=meta
+        state['next_discovery_at']=(_moment(meta['captured_at'])+timedelta(seconds=DISCOVERY_SECONDS)).isoformat()
+        valid={row['race_id']:row for venue in program['venues'] for row in venue['races']}
+        for row in program['all_schedule']:
+            state['schedule_registry'].setdefault(row['race_id'],dict(row))
+        for rid,row in valid.items():
+            if rid not in state['race_registry']:
+                state['race_registry'][rid]=dict(row=row,source=meta,
+                    row_source_sha256=hashlib.sha256(_wire(dict(row=row,source=meta))).hexdigest())
+                state['schedule_registry'][rid]=dict(race_id=rid,cutoff_at=row['closed_at'])
+            else:
+                original=state['race_registry'][rid]['row']
+                roster=lambda item:{b['lane']:b['racer_registration_id'] for b in item['boats']}
+                if _moment(original['closed_at'])!=_moment(row['closed_at']) or roster(original)!=roster(row):
+                    state['discovery_conflicts'][rid]=dict(reason='SAVED_PROGRAM_REVISION_CONFLICT',observed_cutoff_at=row['closed_at'],source_sha256=meta['source_sha256'])
+                else:state['discovery_conflicts'].pop(rid,None)
+        registry=state['race_registry']
+        signature={rid:dict(cutoff=row['cutoff_at'],source=registry[rid]['source']['source_sha256'] if rid in registry else None)
+                   for rid,row in sorted(state['schedule_registry'].items())}
+        state['discovery_revision']=hashlib.sha256(_wire(dict(schedule=signature,conflicts=state['discovery_conflicts']))).hexdigest()
+        return dict(program,all_schedule=sorted(state['schedule_registry'].values(),key=lambda row:(row['cutoff_at'],row['race_id'])),
+            venues=[dict(venue='registry',races=[entry['row'] for entry in registry.values()])],
+            sources_by_race={rid:entry['source'] for rid,entry in registry.items()},
+            blocked_races=[row for row in program['blocked_races'] if row['race_id'] not in registry])
+
+    def _build(self, program, meta, stage, folder, state, calls, *, due_only=False, automatic_stop_at=None,
+               automatic_guard=None,preferred_window=False):
         rights = "OWNER_PERSONAL_FORECAST_GENERATION_CURRENT_" + program["date_jst"].replace("-", "")
         source = dict(source_id="official-B-"+program["date_jst"].replace("-", ""), source_url=meta["url"],
             source_sha256=meta["source_sha256"], source_rights_ref=rights, published_at=None,
@@ -358,57 +498,85 @@ class CurrentBoatInputs:
         inputs = {}; references = {(meta["url"], rights)}
         candidates = []
         for row in schedule:
+            _guard(automatic_guard)
             rid = row["race_id"]
             if rid not in valid: continue
+            if rid in state['discovery_conflicts']:
+                blocked.append(dict(race_id=rid,reason='SAVED_PROGRAM_REVISION_CONFLICT'));continue
             now = _moment(self.clock())
             _need(now.astimezone(JST).date().isoformat() == program["date_jst"], "SOURCE_DAY_BOUNDARY_PASSED")
             if now + BUFFER >= _moment(row["cutoff_at"]):
                 blocked.append(dict(race_id=rid, reason="CUTOFF_BUFFER")); continue
             if stage == "P0":
-                snap = build_program_snapshot(valid[rid], source, event_date_jst=program["date_jst"],
+                original=program.get('sources_by_race',{}).get(rid,meta)
+                per_source=dict(source,source_sha256=original['source_sha256'],captured_at=original['captured_at'])
+                snap = build_program_snapshot(valid[rid], per_source, event_date_jst=program["date_jst"],
                     as_of=now.isoformat(), race_revision=1)
                 inputs[rid] = {stage:{"boat_observed":{"snapshot":snap}}}
             else: candidates.append(row)
         if stage == "P1":
+            if preferred_window:
+                early=[row for row in candidates if (_moment(row['cutoff_at'])-_moment(self.clock())).total_seconds()>900]
+                blocked.extend(dict(race_id=row['race_id'],reason='NOT_IN_CAPTURE_WINDOW') for row in early)
+                candidates=[row for row in candidates if row not in early]
             ready = [row for row in candidates if row["race_id"] in state["p1_ready"]]
             pending = []
             for row in candidates:
                 rid = row["race_id"]
                 if rid in state["p1_ready"]: continue
+                final=_final_publication_allowed(state,rid,row['cutoff_at'],_moment(self.clock()),preferred_window)
+                publication=state['publication_waits'].get(rid)
+                if publication and wait_active(publication,self.clock()) and not final:
+                    blocked.append(dict(race_id=rid,reason='SOURCE_PUBLICATION_WAIT'));continue
                 last = state["p1_attempted_at"].get(rid)
-                if last and _moment(self.clock()) - _moment(last) < timedelta(seconds=180):
+                if last and _moment(self.clock()) - _moment(last) < timedelta(seconds=180) and not final:
                     blocked.append(dict(race_id=rid, reason="P1_SOURCE_REFRESH_COOLDOWN"))
                 else: pending.append(row)
-            if due_only:
+            if due_only or preferred_window:
                 # Existing selection authenticates schedule identity/clock
                 # claims and uses its unchanged 22-minute capture window.
                 # Ready originals and cooling-down observations do not consume
                 # that selector's capacity or starve later due races.
                 evidence = [dict(race_id=row["race_id"], cutoff_at=row["cutoff_at"],
-                    schedule_captured_at=meta["captured_at"], source_sha256=meta["source_sha256"])
+                    schedule_captured_at=program.get('sources_by_race',{}).get(row['race_id'],meta)["captured_at"],
+                    source_sha256=program.get('sources_by_race',{}).get(row['race_id'],meta)["source_sha256"])
                     for row in pending]
-                queue = select_due_races(evidence, _moment(self.clock()).isoformat(), max_items=24)
-                selected = {row["race_id"] for row in queue["eligible"]}
+                queue = select_due_races(evidence, _moment(self.clock()).isoformat(), max_items=None)
+                selected = {row['race_id']:row for row in pending}
                 blocked.extend(dict(race_id=row["race_id"], reason=row["reason"])
                     for row in queue["deferred"] + queue["rejected"])
-                pending = [row for row in pending if row["race_id"] in selected]
-            for row in ready + pending[:P1_RACE_LIMIT]:
+                pending = [selected[row['race_id']] for row in queue['eligible']]
+            limit=None if preferred_window else P1_RACE_LIMIT
+            for row in ready + pending[:limit]:
+                _guard(automatic_guard)
                 groups, extra_refs, reason = self._p1(row, program, folder, state, calls, rights,
-                                                    automatic_stop_at=automatic_stop_at)
+                    automatic_stop_at=automatic_stop_at,automatic_guard=automatic_guard,preferred_window=preferred_window)
                 references.update(extra_refs)
                 if groups: inputs[row["race_id"]] = {stage:groups}
                 else: blocked.append(dict(race_id=row["race_id"], reason=reason))
-            blocked.extend(dict(race_id=row["race_id"], reason="P1_BOUNDED_CALL_NOT_SELECTED") for row in pending[P1_RACE_LIMIT:])
+            if limit is not None:
+                blocked.extend(dict(race_id=row['race_id'],reason='P1_BOUNDED_CALL_NOT_SELECTED') for row in pending[limit:])
+        hints=[]
+        for row in schedule:
+            cutoff=_moment(row['cutoff_at']);now=_moment(self.clock())
+            if cutoff-now<=BUFFER:continue
+            for point in (cutoff-timedelta(seconds=900),cutoff-timedelta(seconds=600)):
+                if point>now:hints.append(point)
+        hints.extend(_moment(wait['retry_at']) for wait in state['publication_waits'].values()
+                     if wait.get('retry_at') and _moment(wait['retry_at'])>_moment(self.clock()))
+        state['next_deadline_at']=min(hints).isoformat() if hints else None
         return dict(schedule=schedule, inputs=inputs, blocked_races=blocked,
                     source_references=[dict(source_ref=url, source_rights_ref=ref) for url,ref in sorted(references)])
 
-    def _p1(self, row, program, folder, state, calls, rights, *, automatic_stop_at=None):
+    def _p1(self, row, program, folder, state, calls, rights, *, automatic_stop_at=None,
+            automatic_guard=None,preferred_window=False):
         from .official_racelist_adapter import endpoint, parse_official_racelist
         from .official_race_updates import endpoint as preview_endpoint, parse_update
         from scripts.boat_ab_future_pilot import motor_top2
         from .boat_observed_pairwise_models import FEATURE_TRANSFORMS
         from .observed_p1_connection import locator
         rid = row["race_id"]; day = _moment(row["cutoff_at"]).astimezone(JST).date()
+        _guard(automatic_guard)
         venue, number = rid[9:11], int(rid[-2:]); now = _moment(self.clock())
         if now + BUFFER >= _moment(row["cutoff_at"]):
             return None, set(), "CUTOFF_BUFFER"
@@ -418,11 +586,17 @@ class CurrentBoatInputs:
             pm, em = ready; praw = self._cached(folder, pm)
         else:
             last = state["p1_attempted_at"].get(rid)
-            if last and now - _moment(last) < timedelta(seconds=180):
+            final=_final_publication_allowed(state,rid,row['cutoff_at'],now,preferred_window)
+            if last and now - _moment(last) < timedelta(seconds=180) and not final:
                 return None, set(), "P1_SOURCE_REFRESH_COOLDOWN"
             state["p1_attempted_at"][rid] = now.isoformat(); self._save(folder, state)
-            praw, pm = self._fetch(folder, state, purl, "racelist", calls,
-                                   automatic_stop_at=automatic_stop_at)
+            state['active_p1_race']=rid
+            before=state['request_count']
+            try:praw, pm = self._fetch(folder,state,purl,'racelist',calls,
+                automatic_stop_at=automatic_stop_at,automatic_guard=automatic_guard)
+            finally:
+                if final and state['request_count']>before:
+                    state['final_publication_attempts'].append(rid);self._save(folder,state)
         _need(pm["url"] == purl, "OFFICIAL_P1_SOURCE_IDENTITY_REJECTED")
         card = parse_official_racelist(praw, day=day, venue=venue, race_no=number,
             source_url=purl, captured_at=pm["captured_at"])
@@ -433,12 +607,21 @@ class CurrentBoatInputs:
         if _moment(self.clock()) + BUFFER >= _moment(row["cutoff_at"]):
             return None, set(), "CUTOFF_BUFFER"
         if ready: eraw = self._cached(folder, em)
-        else: eraw, em = self._fetch(folder, state, eurl, "beforeinfo", calls,
-                                    automatic_stop_at=automatic_stop_at)
+        else:
+            try:eraw, em = self._fetch(folder,state,eurl,'beforeinfo',calls,
+                automatic_stop_at=automatic_stop_at,automatic_guard=automatic_guard)
+            except SourceWait as wait:
+                if wait.state=='WAITING_PUBLICATION':return None,set(),wait.reason
+                raise
         _need(em["url"] == eurl, "OFFICIAL_P1_SOURCE_IDENTITY_REJECTED")
         preview = parse_update(eraw, kind="beforeinfo", day=day, venue=venue, race_no=number,
             source_url=eurl, captured_at=em["captured_at"], entries=card["boats"])
         if preview["status"] != "AVAILABLE" or preview.get("data") is None:
+            wait=plan_http_wait(200,{},self.clock(),not_yet_published=True)
+            final_at=_moment(row['cutoff_at'])-timedelta(seconds=600)
+            if preferred_window and final_at>_moment(self.clock()):
+                wait['retry_at']=min(_moment(wait['retry_at']),final_at).isoformat()
+            state['publication_waits'][rid]=wait;self._save(folder,state)
             return None, set(), "EXHIBITION_NOT_FULLY_PUBLISHED"
         _need(preview.get("body_identity_verified") is True, "P1_BODY_IDENTITY_UNVERIFIED")
         boats = sorted(preview["data"]["boats"], key=lambda x:x["lane"])
@@ -476,6 +659,7 @@ class CurrentBoatInputs:
                 features[name] = dict(value=value, sample_n=None, source_id=source["source_id"], transform_id=FEATURE_TRANSFORMS[name])
             participants.append(dict(lane=b["lane"], registration_no=b["racer_id"], features=features, missing=missing))
         now = _moment(self.clock())
+        _guard(automatic_guard)
         if now + BUFFER >= _moment(row["cutoff_at"]): return None, set(), "CUTOFF_BUFFER"
         snapshot = dict(schema="RACE_AI_BOAT_OBSERVED_PAIRWISE_V1", scope="OPERATOR_SUPPLIED_RESEARCH",
             race_id=f"boat:{day.isoformat()}:boatrace-jcd-{venue}:{number}", event_date_jst=day.isoformat(),
@@ -488,4 +672,5 @@ class CurrentBoatInputs:
             boat_clite=dict(base_source=base, extra=extra, source_evidence=evidence),
             boat_observed=dict(snapshot=snapshot))
         state["p1_ready"][rid] = [pm,em]; self._save(folder, state)
+        state['publication_waits'].pop(rid,None)
         return groups, {(s["source_url"],rights) for s in sources} | {(purl,rights),(eurl,rights)}, None

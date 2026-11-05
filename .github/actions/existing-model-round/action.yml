@@ -3,17 +3,28 @@ description: Sequential round with independent pre-cutoff receipt and verified r
 inputs:
   round:
     required: true
-    description: Monotonic round number (1 through 24)
-  p0-supplement:
-    required: true
-    description: Existing immutable P0 supplement artifact ID
+    description: Monotonic round within a replaceable worker batch
 runs:
   using: composite
   steps:
-    - name: Wait for bounded next deadline scan
+    - name: Wait for next deadline scan or worker handoff
       id: ready
       shell: bash
       run: python scripts/github_existing_cycle.py repeat-prepare --round '${{ inputs.round }}'
+    - name: Discover and forecast missing future P0 with existing models
+      if: steps.ready.outputs.active == 'true'
+      id: discovery
+      shell: bash
+      run: python scripts/github_existing_cycle.py supplement --round '${{ inputs.round }}'
+    - name: Freeze new P0 separately before any result reads
+      if: steps.ready.outputs.active == 'true' && steps.discovery.outputs.supplement_ready == 'true'
+      id: discovery_freeze
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: ${{ steps.ready.outputs.p0_name }}
+        path: p0_supplement_output/cycle-${{ inputs.round }}/forecasts.json
+        if-no-files-found: error
+        retention-days: 7
     - name: Forecast future unpublished originals with existing five models
       if: steps.ready.outputs.active == 'true'
       shell: bash
@@ -30,7 +41,14 @@ runs:
     - name: Read back original and independently check later official results
       if: steps.ready.outputs.active == 'true'
       shell: bash
-      run: python scripts/github_existing_cycle.py audit --round '${{ inputs.round }}' --p1-artifact '${{ steps.freeze.outputs.artifact-id }}' --p0-supplement '${{ inputs.p0-supplement }}'
+      env:
+        P0_SUPPLEMENT_ARTIFACT: ${{ steps.discovery_freeze.outputs.artifact-id }}
+      run: |
+        supplement_args=()
+        if [[ -n "$P0_SUPPLEMENT_ARTIFACT" ]]; then
+          supplement_args+=(--p0-supplement "$P0_SUPPLEMENT_ARTIFACT")
+        fi
+        python scripts/github_existing_cycle.py audit --round '${{ inputs.round }}' --p1-artifact '${{ steps.freeze.outputs.artifact-id }}' "${supplement_args[@]}"
     - name: Save status and PDCA as a separate immutable result event
       if: steps.ready.outputs.active == 'true'
       id: result

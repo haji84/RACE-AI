@@ -5,7 +5,7 @@ The caller supplies authenticated GitHub API reads. Incomplete history stops
 new forecasts; it is never silently treated as an empty database.
 """
 from datetime import datetime,timedelta,timezone
-import hashlib,io,json,zipfile
+import copy,hashlib,io,json,re,zipfile
 from .frozen_day_cycle import need,ts,read_p1,read_p0,archive_json
 from .first_receipt_continuity import first_receipt_rows,latest_result_observations
 from .repeated_cycle import matches as artifact_matches
@@ -13,25 +13,153 @@ BRANCH='feat/four-sport-forecast-audit-view-20261022'
 WORKFLOW=405276784
 JST=timezone(timedelta(hours=9))
 
-def day_runs(get,day,*,current_run):
-    start=datetime.fromisoformat(day+'T00:00:00+09:00');end=start+timedelta(days=1)
-    selected=[];complete=False
-    for page in range(1,11):
+def artifact_pages(get, run_id):
+    """Read a complete, duplicate-free artifact listing, including page 2+."""
+    need(type(run_id) is int and run_id > 0, 'invalid artifact run')
+    found=[];seen=set();page=1;total=None
+    while True:
+        suffix='' if page == 1 else f'&page={page}'
+        response=json.loads(get(f'actions/runs/{run_id}/artifacts?per_page=100{suffix}'))
+        rows=response.get('artifacts')
+        need(type(rows) is list and len(rows)<=100,'ARTIFACT_PAGINATION_INCOMPLETE')
+        count=response.get('total_count',len(rows))
+        need(type(count) is int and count>=0 and (total is None or count==total),
+             'ARTIFACT_PAGINATION_CHANGED')
+        total=count
+        for row in rows:
+            ident=row.get('id') if isinstance(row,dict) else None
+            need(type(ident) is int and ident>0 and ident not in seen,
+                 'ARTIFACT_PAGINATION_DUPLICATE')
+            seen.add(ident);found.append(row)
+        need(len(found)<=total,'ARTIFACT_PAGINATION_CHANGED')
+        if len(found)==total:return found
+        need(len(rows)==100,'ARTIFACT_PAGINATION_INCOMPLETE')
+        page+=1
+
+def _verified_zip(raw, meta, expected_name):
+    need(isinstance(raw,bytes) and 0<len(raw)<=32*1024*1024,'bounded cycle archive')
+    need(meta.get('expired') is False and meta.get('name')==expected_name and
+         meta.get('workflow_run',{}).get('head_repository_id')==1416489937,
+         'foreign/expired continuity archive')
+    need(meta.get('digest')=='sha256:'+hashlib.sha256(raw).hexdigest(),
+         'continuity archive hash mismatch')
+    ts(meta['created_at'])
+    archive=zipfile.ZipFile(io.BytesIO(raw))
+    need(len(archive.namelist())==len(set(archive.namelist())),'duplicate continuity member')
+    need(sum(info.file_size for info in archive.infolist())<=512*1024*1024,
+         'oversized continuity members')
+    need(archive.testzip() is None,'continuity member CRC mismatch')
+    return archive
+
+def _wait(value):
+    if value is None:return None
+    need(type(value) is dict and set(value)=={'state','reason','retry_at','http_status','attempts'},
+         'source wait shape')
+    need(value['state'] in ('RATE_LIMIT_WAIT','TRANSIENT_SOURCE_WAIT','AUTHORIZATION_WAIT',
+                           'WAITING_PUBLICATION','SOURCE_REVIEW_WAIT'), 'source wait state')
+    need(isinstance(value['reason'],str) and re.fullmatch(r'[A-Z][A-Z0-9_]{0,127}',value['reason']),
+         'source wait reason')
+    need(type(value['attempts']) is int and value['attempts']>=1,'source wait attempts')
+    need(value['http_status'] is None or type(value['http_status']) is int and
+         100<=value['http_status']<=599,'source wait HTTP status')
+    if value['retry_at'] is not None:ts(value['retry_at'])
+    return copy.deepcopy(value)
+
+def authenticated_source_control(raw, meta, *, expected_run=None, now=None):
+    """Recover source waits/counters from an independently stored final checkpoint.
+
+    Merely trusting a successful run conclusion loses source failures. Both the
+    artifact bytes and its internal session hash are checked before inheritance.
+    """
+    run=meta.get('workflow_run',{}).get('id')
+    need(type(run) is int and run>0 and (expected_run is None or run==expected_run),
+         'continuity run identity mismatch')
+    with _verified_zip(raw,meta,f'race-cycle-continuity-{run}') as archive:
+        member=('repeat-session.json' if 'repeat-session.json' in archive.namelist() else
+                'bootstrap-source-control.json' if 'bootstrap-source-control.json' in archive.namelist() else None)
+        if member is None:return None
+        info=archive.getinfo(member)
+        need(info.file_size<=1024*1024,'oversized source session')
+        state=json.loads(archive.read(info))
+    claimed=state.pop('session_sha256' if member=='repeat-session.json' else 'source_control_sha256',None)
+    need(claimed==hashlib.sha256(json.dumps(state,sort_keys=True,separators=(',',':'),
+         ensure_ascii=False,allow_nan=False).encode()).hexdigest(),'source session hash mismatch')
+    need(state.get('schema') in ('RACE_AI_BOUNDED_REPEAT_V1','RACE_AI_CONTINUOUS_REPEAT_V2',
+                                'RACE_AI_BOOTSTRAP_SOURCE_CONTROL_V1') and
+         state.get('run_id')==run,'source session identity')
+    datetime.fromisoformat(state['day_jst']+'T00:00:00+09:00')
+    for key in ('requests_used','completed_round'):
+        need(type(state.get(key)) is int and state[key]>=0,'source session count')
+    prepared=state.get('prepared_round')
+    need(prepared is None or type(prepared) is int and prepared==state['completed_round']+1,
+         'source session prepared round')
+    lifetime_requests=state.get('lifetime_requests',state['requests_used'])
+    lifetime_rounds=state.get('lifetime_completed_rounds',state['completed_round'])
+    need(type(lifetime_requests) is int and lifetime_requests>=state['requests_used'] and
+         type(lifetime_rounds) is int and lifetime_rounds>=state['completed_round'],
+         'source lifetime count')
+    for key,total,used in (('lifetime_requests_base',lifetime_requests,state['requests_used']),
+                           ('lifetime_completed_rounds_base',lifetime_rounds,state['completed_round'])):
+        if key in state:
+            need(type(state[key]) is int and state[key]>=0 and total==state[key]+used,
+                 'source lifetime count')
+    wait=_wait(state.get('source_wait'));reason=(state.get('halted_reason') or
+        state.get('previous_halted_reason') or state.get('control_reason'))
+    need(reason is None or isinstance(reason,str) and
+         re.fullmatch(r'[A-Z][A-Z0-9_]{0,127}',reason),'source stop reason')
+    normal=reason in (None,'BOUNDED_SESSION_END','MAX_ROUNDS_REACHED',
+                      'SESSION_SOURCE_BUDGET_EXHAUSTED','SOURCE_BUDGET_EXHAUSTED',
+                      'DAY_CHANGED','DAY_HANDOFF','WORKER_HANDOFF')
+    if not normal:
+        from .source_retry_policy import plan_http_wait
+        matched=re.fullmatch(r'SOURCE_HTTP_(\d{3})_NO_RETRY',reason)
+        status=int(matched[1]) if matched else None
+        if status in (401,403):
+            wait=plan_http_wait(status,{},ts(meta['created_at']))
+        elif status==429:
+            if wait is None or wait['state']!='RATE_LIMIT_WAIT' or wait['http_status']!=429:
+                # A legacy denial has no recorded Retry-After. Its fallback
+                # must remain tied to the authenticated receipt, not slide on
+                # every recovery/supervisor poll.
+                wait=plan_http_wait(status,{},ts(meta['created_at']))
+        else:
+            wait=dict(state='SOURCE_REVIEW_WAIT',reason=reason,retry_at=None,
+                      http_status=status,attempts=1)
+    # A known temporary HTTP wait is not an unqualified legacy hard halt. Keep
+    # the original reason separately so this is an auditable policy migration.
+    hard_reason=None if normal or wait and wait['retry_at'] is not None else reason
+    return dict(source_wait=wait,previous_run_id=run,
+        previous_session_requests=state['requests_used'],
+        completed_round=state['completed_round'],prepared_round=prepared,
+        lifetime_requests=lifetime_requests,lifetime_completed_rounds=lifetime_rounds,
+        previous_halted_reason=hard_reason,previous_stop_reason=reason,
+        receipt={k:copy.deepcopy(meta[k]) for k in ('id','digest','created_at')})
+
+def _previous_runs(get,*,current_run,earliest=None):
+    """Newest first; source control is allowed to outlive a race-day window."""
+    seen=set();page=1
+    while True:
         response=json.loads(get(f'actions/workflows/{WORKFLOW}/runs?per_page=100&page={page}'))
         runs=response['workflow_runs'];need(isinstance(runs,list),'invalid run page')
-        for run in runs:
+        for run in sorted(runs,key=lambda r:(ts(r['created_at']),r['id']),reverse=True):
+            need(run['id'] not in seen,'duplicate run page');seen.add(run['id'])
             at=ts(run['created_at'])
-            if not start<=at<end or run['id']==current_run or run['head_branch']!=BRANCH:continue
-            if run['event']!='push':continue
+            if earliest is not None and at<earliest:continue
+            if run['id']==current_run or run['head_branch']!=BRANCH:continue
+            if run['event'] not in ('push','workflow_dispatch'):continue
             # Queued successors are not prior executions. An earlier in-flight
             # writer is unresolved and cannot safely be assumed to have no receipt.
             if run['id']>current_run:continue
             need(run['status']=='completed','UNRESOLVED_PREVIOUS_RUN')
-            selected.append(run)
-        if len(runs)<100 or any(ts(x['created_at'])<start for x in runs):
-            complete=True;break
-    need(complete,'RUN_HISTORY_PAGINATION_INCOMPLETE')
-    need(len({x['id'] for x in selected})==len(selected),'duplicate run page')
+            yield run
+        if len(runs)<100 or earliest is not None and any(ts(x['created_at'])<earliest for x in runs):return
+        page+=1
+
+def day_runs(get,day,*,current_run):
+    start=datetime.fromisoformat(day+'T00:00:00+09:00');end=start+timedelta(days=1)
+    lookback=start-timedelta(hours=6)
+    selected=[run for run in _previous_runs(get,current_run=current_run,earliest=lookback)
+              if ts(run['created_at'])<end]
     return sorted(selected,key=lambda x:(ts(x['created_at']),x['id']))
 
 def result_archive(raw,meta,day):
@@ -51,6 +179,51 @@ def result_archive(raw,meta,day):
         ts(row['captured_at'])
     return items
 
+def _result_day(raw,meta):
+    """Determine an authenticated payload day before filtering a lookback run."""
+    run=meta['workflow_run']['id']
+    need(isinstance(raw,bytes) and len(raw)<=32*1024*1024 and meta.get('expired') is False and
+         artifact_matches(meta.get('name'),f'race-existing-cycle-{run}') and
+         meta['workflow_run'].get('head_repository_id')==1416489937 and
+         meta.get('digest')=='sha256:'+hashlib.sha256(raw).hexdigest(),'cycle archive identity')
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        need(len(archive.namelist())==len(set(archive.namelist())),'duplicate cycle member')
+        if 'status.json' in archive.namelist():
+            need(archive.getinfo('status.json').file_size<=16*1024*1024,'oversized cycle report')
+            report=json.loads(archive.read('status.json'))
+            if report.get('day_jst') is not None:return _day(report['day_jst'])
+        need('official-result-observations.json' in archive.namelist(),'cycle observations missing')
+        need(archive.getinfo('official-result-observations.json').file_size<=16*1024*1024,
+             'oversized result journal')
+        rows=json.loads(archive.read('official-result-observations.json'))
+    need(type(rows) is list,'result observation list')
+    days={_race_day(row['race_id']) for row in rows}
+    need(len(days)<=1,'mixed result days')
+    return next(iter(days),ts(meta['created_at']).astimezone(JST).date().isoformat())
+
+def _day(value):
+    need(isinstance(value,str) and re.fullmatch(r'\d{4}-\d\d-\d\d',value),'event day format')
+    datetime.fromisoformat(value+'T00:00:00+09:00')
+    return value
+
+def _race_day(value):
+    need(isinstance(value,str) and re.fullmatch(r'\d{8}-\d\d-\d\d',value),'race day identity')
+    return _day(value[:4]+'-'+value[4:6]+'-'+value[6:8])
+
+def previous_source_control(get,day,*,current_run):
+    """Get the newest authenticated final source checkpoint, even across midnight."""
+    for run in _previous_runs(get,current_run=current_run):
+        candidates=[item for item in artifact_pages(get,run['id'])
+                    if item.get('name')==f'race-cycle-continuity-{run["id"]}']
+        need(len(candidates)<=1,'duplicate final continuity')
+        if not candidates:continue
+        listed=candidates[0];meta=json.loads(get(f'actions/artifacts/{listed["id"]}'))
+        need(meta.get('id')==listed['id'],'continuity artifact ID mismatch')
+        control=authenticated_source_control(get(f'actions/artifacts/{listed["id"]}/zip'),
+                                              meta,expected_run=run['id'])
+        if control is not None:return control
+    return None
+
 def p0_original_or_empty(raw,meta,day):
     """Authenticate older failed attempts, without manufacturing forecasts."""
     run=meta['workflow_run']['id']
@@ -63,27 +236,50 @@ def p0_original_or_empty(raw,meta,day):
         return doc,[]
     return read_p0(raw,meta,expected_day=day)
 
+def _retain_original(path,raw):
+    if path.exists():
+        need(path.read_bytes()==raw,'ORIGINAL_ARCHIVE_LOCAL_BYTES_CONFLICT')
+    else:
+        with path.open('xb') as stream:stream.write(raw)
+
 def recover(get,day,*,current_run,out):
     """Read every same-day P1 original and every saved result journal, no writes upstream."""
     rows=[];observations=[];receipts=[];scanned=[];index_entries=[]
     learning_shadows=[];learning_context=None;training_proofs={}
+    source_control=previous_source_control(get,day,current_run=current_run)
     from .observed_weight_learning import read_shadow_rows,context_from_result_archive,merge_shadow_rows,training_proof,validate_shadow_training,attach_snapshots
     out.mkdir(parents=True,exist_ok=True)
     for run in day_runs(get,day,current_run=current_run):
-        data=json.loads(get(f'actions/runs/{run["id"]}/artifacts?per_page=100'))
-        artifacts=data['artifacts']
-        need(data.get('total_count',len(artifacts))==len(artifacts),'ARTIFACT_PAGE_INCOMPLETE')
+        artifacts=artifact_pages(get,run['id'])
         scanned.append(run['id'])
         for listed in artifacts:
             prefix=('boat-p0-existing-' if artifact_matches(listed['name'],f'boat-p0-existing-{run["id"]}') else
                     'boat-national-cutoff-' if artifact_matches(listed['name'],f'boat-national-cutoff-{run["id"]}') else
-                    'race-existing-cycle-' if artifact_matches(listed['name'],f'race-existing-cycle-{run["id"]}') else None)
+                    'race-existing-cycle-' if artifact_matches(listed['name'],f'race-existing-cycle-{run["id"]}') else
+                    'race-cycle-continuity-' if listed['name']==f'race-cycle-continuity-{run["id"]}' else None)
             if prefix is None:continue
             ident=listed['id'];meta=json.loads(get(f'actions/artifacts/{ident}'))
-            need(meta['workflow_run']['id']==run['id'],'artifact/run identity mismatch')
+            need(meta.get('id')==ident and meta['workflow_run']['id']==run['id'],'artifact/run identity mismatch')
             raw=get(f'actions/artifacts/{ident}/zip')
+            if prefix=='race-cycle-continuity-':
+                control=authenticated_source_control(raw,meta,expected_run=run['id'])
+                if control is not None and (source_control is None or
+                        ts(meta['created_at'])>ts(source_control['receipt']['created_at'])):
+                    source_control=control
+                _retain_original(out/f'source-control-{ident}.zip',raw)
+                continue
             if prefix in ('boat-national-cutoff-','boat-p0-existing-'):
-                doc,items=(read_p1(raw,meta) if prefix=='boat-national-cutoff-' else p0_original_or_empty(raw,meta,day))
+                if prefix=='boat-p0-existing-':
+                    unfiltered,_=archive_json(raw,meta,'forecasts.json',f'boat-p0-existing-{run["id"]}')
+                    payload_day=_day(unfiltered.get('day_jst'))
+                    doc,items=p0_original_or_empty(raw,meta,payload_day)
+                else:
+                    doc,items=read_p1(raw,meta)
+                    days={_race_day(row['race_id']) for row in items}
+                    need(len(days)<=1,'mixed forecast days')
+                    payload_day=next(iter(days),_day(doc['day_jst']) if doc.get('day_jst') else
+                        ts(doc.get('observed_at',meta['created_at'])).astimezone(JST).date().isoformat())
+                if payload_day!=day:continue
                 need(all(x['race_id'].startswith(day.replace('-','')+'-') for x in items),'foreign forecast day')
                 items=attach_snapshots(doc,items)
                 rows+=items
@@ -94,13 +290,17 @@ def recover(get,day,*,current_run,out):
                     for pair in doc.get('paired_forecasts',[]):
                         index_entries.append(dict(race_id=pair['race_id'],cutoff_at=pair['cutoff_at'],run_id=run['id'],artifact_id=ident,server_created_at=meta['created_at'],zip_sha256=hashlib.sha256(raw).hexdigest(),json_sha256=body_sha,bundle_sha256=pair['bundle_sha256']))
                 # Preserve original bytes, not reconstructed predictions.
-                (out/f'original-{ident}.zip').write_bytes(raw)
+                _retain_original(out/f'original-{ident}.zip',raw)
                 receipts.append(meta)
             else:
-                observations+=result_archive(raw,meta,day)
+                payload_day=_result_day(raw,meta)
+                # Authentication and schema/day checks precede filtering. The
+                # previous evening's legitimate archive is never relabeled.
+                day_observations=result_archive(raw,meta,payload_day)
+                if payload_day==day:observations+=day_observations
                 candidate=context_from_result_archive(raw,meta)
                 if candidate is not None:training_proofs[str(meta['id'])]=training_proof(candidate)
-                if candidate is not None and (learning_context is None or ts(meta['created_at'])>ts(learning_context['receipt']['created_at'])):
+                if payload_day==day and candidate is not None and (learning_context is None or ts(meta['created_at'])>ts(learning_context['receipt']['created_at'])):
                     learning_context=candidate
     validate_shadow_training(learning_shadows,training_proofs)
     unique,excluded=first_receipt_rows(rows)
@@ -108,7 +308,8 @@ def recover(get,day,*,current_run,out):
     state=dict(schema='RACE_AI_RECOVERED_FIRST_RECEIPTS_V1',day_jst=day,rows=unique,
                excluded_repeats=excluded,receipts=receipts,observations=journal,
                scanned_runs=scanned,index_entries=index_entries,complete=True,
-               learning_shadows=merge_shadow_rows(learning_shadows),learning_context=learning_context,training_proofs=training_proofs)
+               learning_shadows=merge_shadow_rows(learning_shadows),learning_context=learning_context,
+               training_proofs=training_proofs,source_control=source_control)
     state['state_sha256']=hashlib.sha256(json.dumps(state,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
     (out/'continuity.json').write_text(json.dumps(state,ensure_ascii=False))
     return state
@@ -119,7 +320,7 @@ def load_state(path,day):
     need(data.get('schema')=='RACE_AI_RECOVERED_FIRST_RECEIPTS_V1' and data.get('complete') is True and data.get('day_jst')==day,'recovery missing or wrong day')
     return data
 
-def due_rows(rows,observations,now,*,limit=24):
+def due_rows(rows,observations,now,*,limit=None):
     """Poll pending first, at most every five minutes; revisit settled after six hours."""
     latest,_=latest_result_observations(observations)
     by_result={x['race_id']:x for x in latest};by_race={x['race_id']:x for x in rows};due=[]
@@ -132,4 +333,5 @@ def due_rows(rows,observations,now,*,limit=24):
             interval=timedelta(hours=6) if settled else timedelta(minutes=5)
             if ts(old['captured_at'])+interval>now:continue
         due.append((settled,ts(old['captured_at']) if old else ts(row['cutoff_at']),row['race_id'],row))
-    return [item[3] for item in sorted(due,key=lambda x:x[:3])[:limit]]
+    ordered=sorted(due,key=lambda x:x[:3])
+    return [item[3] for item in (ordered if limit is None else ordered[:limit])]

@@ -16,6 +16,7 @@ import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError
 from urllib.parse import parse_qs, urlsplit
+from race_ai.source_retry_policy import SourceWait
 
 from tests.test_program_race_isolation import fixture
 
@@ -50,6 +51,10 @@ class CurrentBoatInputsTests(unittest.TestCase):
         self.now = AT
         self.extract = patch.object(provider, "extract_daily_lzh", return_value=fixture()).start()
         self.addCleanup(patch.stopall)
+    def core_status(self,source):
+        value=source.status()
+        return {key:value[key] for key in ("day_jst","requests_used","halted_reason")}
+
     def opener(self, request, *, timeout):
         self.calls.append(request.full_url)
         return Response(request.full_url)
@@ -122,17 +127,22 @@ class CurrentBoatInputsTests(unittest.TestCase):
         with self.assertRaises(provider.CurrentBoatInputError): self.collect()
         self.assertEqual(len(self.calls), 1)
 
-    def test_http_429_is_charged_and_persistently_stops_requests(self):
+    def test_http_429_is_charged_and_waits_until_server_retry_time(self):
         def rejected(request, *, timeout):
             self.calls.append(request.full_url)
-            raise HTTPError(request.full_url, 429, "fictional rate limit", {}, None)
+            if len(self.calls)==1:raise HTTPError(request.full_url,429,'fictional rate limit',{'Retry-After':'3600'},None)
+            return Response(request.full_url)
         source = provider.CurrentBoatInputs(self.root, clock=lambda:AT, opener=rejected)
-        with self.assertRaises(provider.CurrentBoatInputError): source.collect()
-        with self.assertRaises(provider.CurrentBoatInputError): source.collect()
+        source.clock=lambda:self.now
+        with self.assertRaises(SourceWait): source.collect()
+        with self.assertRaises(SourceWait): source.collect()
         state = json.loads(next(self.root.rglob("state.json")).read_text())
         self.assertEqual(state["request_count"], 1)
-        self.assertTrue(state["halted_reason"])
+        self.assertIsNone(state["halted_reason"])
         self.assertEqual(len(self.calls), 1)
+        self.now=AT+__import__('datetime').timedelta(hours=1)
+        self.assertEqual(len(source.collect()['inputs']),12)
+        self.assertEqual(len(self.calls),2)
 
     def test_redirect_or_oversize_response_cannot_be_accepted_as_official_source(self):
         def foreign(request, *, timeout):
@@ -252,7 +262,7 @@ class CurrentBoatInputsTests(unittest.TestCase):
         self.assertEqual(len(result['inputs']),3,'removing a GET ceiling must retain the bounded fresh-race batch')
         self.assertEqual(len(self.calls),7)
         restarted=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=self.opener)
-        self.assertEqual(restarted.status(),{'day_jst':'2030-04-01','requests_used':246,'halted_reason':None})
+        self.assertEqual(self.core_status(restarted),{'day_jst':'2030-04-01','requests_used':246,'halted_reason':None})
         restarted.collect(stage='P0')
         self.assertEqual(restarted.status()['requests_used'],246)
         self.assertEqual(len(self.calls),7)
@@ -268,7 +278,7 @@ class CurrentBoatInputsTests(unittest.TestCase):
         except provider.CurrentBoatInputError as exc:self.fail('legacy per-call GET limit still blocks collection: '+str(exc))
         self.assertEqual(calls,[50])
         self.assertEqual(len(self.calls),50)
-        self.assertEqual(source.status(),{'day_jst':'2030-04-01','requests_used':50,'halted_reason':None})
+        self.assertEqual(self.core_status(source),{'day_jst':'2030-04-01','requests_used':50,'halted_reason':None})
         self.assertEqual(len(list(self.root.rglob('*.lzh'))),50)
         self.assertIsNone(provider.REQUEST_LIMIT)
         self.assertIsNone(provider.CALL_REQUEST_LIMIT)
@@ -279,8 +289,8 @@ class CurrentBoatInputsTests(unittest.TestCase):
         source=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=self.opener)
         try: status=source.status()
         except provider.CurrentBoatInputError as exc:self.fail('saved nonnegative counter was rejected: '+str(exc))
-        self.assertEqual(status,{'day_jst':'2030-04-01','requests_used':241,'halted_reason':'SOURCE_HTTP_4XX_STOP'})
-        with self.assertRaisesRegex(provider.CurrentBoatInputError,'SOURCE_SESSION_HALTED'):source.collect(stage='P1')
+        self.assertEqual({key:status[key] for key in ('day_jst','requests_used','halted_reason')},{'day_jst':'2030-04-01','requests_used':241,'halted_reason':'SOURCE_HTTP_4XX_STOP'})
+        with self.assertRaisesRegex(SourceWait,'LEGACY_SOURCE_REVIEW_REQUIRED'):source.collect(stage='P1')
         self.assertEqual(len(self.calls),1)
         self.assertEqual(source.status(),status)
 
@@ -298,11 +308,12 @@ class CurrentBoatInputsTests(unittest.TestCase):
             self.calls.append(req.full_url)
             if len(self.calls)==1:raise HTTPError(req.full_url,503,'fictional temporary error',{},None)
             return Response(req.full_url)
-        source=provider.CurrentBoatInputs(self.root,clock=lambda:AT,opener=temporary)
+        source=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=temporary)
         with self.assertRaises(provider.CurrentBoatInputError):source.collect()
         self.assertEqual(len(self.calls),1)
         state=json.loads(next(self.root.rglob('state.json')).read_text())
         self.assertIsNone(state['halted_reason'])
+        self.now=AT+__import__('datetime').timedelta(seconds=180)
         result=source.collect()
         self.assertEqual(result['source_report']['request_count'],2)
         self.assertEqual(len(self.calls),2)
@@ -332,7 +343,7 @@ class CurrentBoatInputsTests(unittest.TestCase):
         self.assertEqual({x['reason'] for x in result['blocked_races']},{'NOT_IN_CAPTURE_WINDOW'})
 
     def test_automatic_p1_selects_due_three_and_advances_other_due_races(self):
-        self.collect();self.now=datetime.fromisoformat('2030-04-01T10:10:00+09:00')
+        self.collect();self.now=datetime.fromisoformat('2030-04-01T10:15:00+09:00')
         source=self.p1_parsers();first=self.automatic_collect(source);second=self.automatic_collect(source)
         self.assertEqual(len(first['schedule']),12)
         self.assertEqual(len(first['inputs']),3)
@@ -350,7 +361,7 @@ class CurrentBoatInputsTests(unittest.TestCase):
         self.assertEqual(automatic['source_report']['source_requests'],0)
 
     def test_automatic_p1_rechecks_buffer_before_preview_and_each_later_race(self):
-        self.collect();source=self.p1_parsers();self.now=datetime.fromisoformat('2030-04-01T10:10:00+09:00')
+        self.collect();source=self.p1_parsers();self.now=datetime.fromisoformat('2030-04-01T10:15:00+09:00')
         original=source.opener
         def advances(req,*,timeout):
             response=original(req,timeout=timeout)
@@ -378,7 +389,7 @@ class CurrentBoatInputsTests(unittest.TestCase):
         source=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=self.opener)
         self.assertIsNotNone(getattr(source,'status',None),'read-only source budget status is missing')
         self.assertEqual(list(self.root.iterdir()),[])
-        self.assertEqual(source.status(),{'day_jst':'2030-04-01','requests_used':0,'halted_reason':None})
+        self.assertEqual(self.core_status(source),{'day_jst':'2030-04-01','requests_used':0,'halted_reason':None})
         self.assertEqual(list(self.root.iterdir()),[])
         self.assertEqual(self.calls,[])
         source.collect()
@@ -386,7 +397,7 @@ class CurrentBoatInputsTests(unittest.TestCase):
         state['halted_reason']='SOURCE_HTTP_4XX_STOP';p.write_text(json.dumps(state))
         before={str(p.relative_to(self.root)):p.read_bytes() for p in self.root.rglob('*') if p.is_file()}
         again=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=self.opener).status()
-        self.assertEqual(again,{'day_jst':'2030-04-01','requests_used':239,'halted_reason':'SOURCE_HTTP_4XX_STOP'})
+        self.assertEqual({key:again[key] for key in ('day_jst','requests_used','halted_reason')},{'day_jst':'2030-04-01','requests_used':239,'halted_reason':'SOURCE_HTTP_4XX_STOP'})
         self.assertEqual(len(self.calls),1)
         self.assertEqual(before,{str(p.relative_to(self.root)):p.read_bytes() for p in self.root.rglob('*') if p.is_file()})
 
@@ -440,7 +451,7 @@ class CurrentBoatInputsTests(unittest.TestCase):
         self.assertEqual(len(self.calls),2,'cached B plus only the first P1 source GET')
         self.assertFalse(any('/beforeinfo?' in url for url in self.calls))
         self.assertEqual(len(list(self.root.rglob('*.html'))),1,'inflight original remains preserved')
-        self.assertEqual(source.status(),{'day_jst':'2030-04-01','requests_used':2,'halted_reason':None})
+        self.assertEqual(self.core_status(source),{'day_jst':'2030-04-01','requests_used':2,'halted_reason':None})
 
     def test_automatic_deadline_is_aware_day_bound_and_does_not_mutate_budget(self):
         self.collect();source=self.p1_parsers();p=next(self.root.rglob('state.json'));before=p.read_bytes()
@@ -466,3 +477,140 @@ class CurrentBoatInputsTests(unittest.TestCase):
         self.assertEqual(state['request_count'],1)
         self.assertIsNone(state['halted_reason'])
         self.assertEqual(state['captures'][0]['captured_at'],'2030-04-02T00:00:10+09:00')
+
+    def continuous_collect(self,source,**kwargs):
+        self.assertIn('refresh_discovery',inspect.signature(source.collect).parameters,'continuous discovery is missing')
+        self.assertIn('preferred_window',inspect.signature(source.collect).parameters,'preferred publication window is missing')
+        return source.collect(refresh_discovery=True,preferred_window=True,**kwargs)
+
+    def test_discovery_refresh_adds_new_races_but_keeps_old_P0_source(self):
+        source=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=self.opener)
+        first=self.continuous_collect(source)
+        initial=first['inputs']['20300401-18-01']['P0']['boat_observed']['snapshot']
+        self.now=AT+__import__('datetime').timedelta(seconds=provider.DISCOVERY_SECONDS-1)
+        self.continuous_collect(source);self.assertEqual(len(self.calls),1)
+        self.extract.return_value=fixture()+fixture().replace(b'18BBGN',b'17BBGN').replace(b'18BEND',b'17BEND')
+        self.now=AT+__import__('datetime').timedelta(seconds=provider.DISCOVERY_SECONDS+1)
+        newer=self.continuous_collect(source)
+        self.assertEqual(len(self.calls),2)
+        self.assertEqual(len(newer['schedule']),24)
+        old=newer['inputs']['20300401-18-01']['P0']['boat_observed']['snapshot']
+        self.assertEqual(old['sources'],initial['sources'])
+        self.assertEqual(old['participants'],initial['participants'])
+        self.assertNotEqual(first['source_report']['discovery_revision'],newer['source_report']['discovery_revision'])
+
+    def test_preferred_window_defers_early_and_processes_every_due_race(self):
+        source=self.p1_parsers();early=self.continuous_collect(source,stage='P1')
+        self.assertEqual(early['inputs'],{});self.assertEqual(len(self.calls),1)
+        self.now=datetime.fromisoformat('2030-04-01T10:15:00+09:00')
+        due=self.continuous_collect(source,stage='P1')
+        self.assertEqual(len(due['schedule']),12)
+        self.assertEqual(len(due['inputs']),12,'all due races must advance without the old three-race cutoff')
+        self.assertEqual(due['source_report']['more_due'],False)
+
+    def test_preferred_pending_has_one_final_T10_retry_without_ignoring_host_wait(self):
+        self.collect();source=self.p1_parsers(pending=True)
+        self.now=datetime.fromisoformat('2030-04-01T10:19:00+09:00')
+        self.continuous_collect(source,stage='P1');before=len(self.calls)
+        self.now=datetime.fromisoformat('2030-04-01T10:20:00+09:00')
+        self.continuous_collect(source,stage='P1')
+        self.assertGreater(len(self.calls),before,'normal publication cooldown may allow one T10 final attempt')
+        second=len(self.calls);self.continuous_collect(source,stage='P1')
+        self.assertEqual(len(self.calls),second,'final attempt cannot repeat before the ordinary retry time')
+
+    def test_host_retry_after_survives_midnight_and_status_can_read_old_counter(self):
+        self.now=datetime.fromisoformat('2030-04-01T23:59:00+09:00')
+        def limited(req,*,timeout):
+            self.calls.append(req.full_url);raise HTTPError(req.full_url,429,'fictional',{'Retry-After':'3600'},None)
+        source=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=limited)
+        with self.assertRaises(SourceWait):source.collect()
+        self.now=datetime.fromisoformat('2030-04-02T00:01:00+09:00')
+        again=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=limited)
+        with self.assertRaises(SourceWait):again.collect()
+        self.assertEqual(len(self.calls),1)
+        self.assertEqual(again.status()['requests_used'],0)
+        self.assertEqual(again.status(day_jst='2030-04-01')['requests_used'],1)
+        self.assertEqual(again.status()['waiting_state'],'RATE_LIMIT_WAIT')
+
+    def test_missing_current_day_archive_is_publication_wait_not_permanent_denial(self):
+        def unpublished(req,*,timeout):
+            self.calls.append(req.full_url);raise HTTPError(req.full_url,404,'fictional unpublished',{},None)
+        source=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=unpublished)
+        with self.assertRaises(SourceWait) as wait:source.collect()
+        self.assertEqual(wait.exception.state,'WAITING_PUBLICATION')
+        self.assertIsNone(source.status()['halted_reason'])
+
+    def test_large_capture_metadata_is_compacted_without_deleting_originals(self):
+        self.collect();p=next(self.root.rglob('state.json'));state=json.loads(p.read_text())
+        state['captures']*=2500;state['request_count']=2500;p.write_text(json.dumps(state))
+        self.assertGreater(p.stat().st_size,1024*1024)
+        source=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=self.opener)
+        self.continuous_collect(source)
+        self.assertLess(p.stat().st_size,1024*1024)
+        self.assertEqual(next(self.root.rglob('*.lzh')).read_bytes(),ARCHIVE)
+        self.assertEqual(source.status()['requests_used'],2500)
+        self.assertEqual(len(self.calls),1)
+
+    def test_discovery_cutoff_change_is_quarantined_without_replacing_old_schedule(self):
+        source=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=self.opener)
+        first=self.continuous_collect(source)
+        self.extract.return_value=fixture().replace('１０：３０'.encode('cp932'),'１０：２５'.encode('cp932'))
+        self.now=AT+__import__('datetime').timedelta(seconds=601)
+        changed=self.continuous_collect(source)
+        self.assertEqual([r['cutoff_at'] for r in changed['schedule']],[r['cutoff_at'] for r in first['schedule']])
+        self.assertEqual(changed['inputs'],{},'a shortened official cutoff cannot silently use the old longer cutoff for new forecasts')
+        self.assertEqual(changed['source_report']['conflicted_races'],12)
+
+    def test_automatic_guard_stopping_after_card_keeps_bytes_and_aborts_following_get(self):
+        self.collect();source=self.p1_parsers();original=source.opener;stopped=[False]
+        def stops(req,*,timeout):
+            response=original(req,timeout=timeout)
+            if '/racelist?' in req.full_url:stopped[0]=True
+            return response
+        def guard():
+            if stopped[0]:raise ValueError('AUTOMATIC_SESSION_END')
+            return self.now
+        source.opener=stops
+        with self.assertRaisesRegex(provider.CurrentBoatInputError,'AUTOMATIC_SESSION_END'):
+            source.collect(stage='P1',automatic_guard=guard)
+        self.assertEqual(len(self.calls),2)
+        self.assertEqual(len(list(self.root.rglob('*.html'))),1)
+        self.assertIsNone(source.status()['halted_reason'])
+
+    def test_invalid_source_review_wait_survives_day_change_without_new_get(self):
+        self.extract.return_value=fixture().replace('２０３０年４月１日'.encode('cp932'),'２０３０年４月２日'.encode('cp932'))
+        with self.assertRaises(SourceWait):self.collect()
+        self.now=datetime.fromisoformat('2030-04-02T08:00:00+09:00')
+        source=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=self.opener)
+        with self.assertRaises(SourceWait):source.collect()
+        self.assertEqual(len(self.calls),1)
+        self.assertEqual(source.status()['waiting_state'],'SOURCE_REVIEW_WAIT')
+
+    def test_preferred_fetch_order_keeps_window_priority_ahead_of_late_fallback(self):
+        self.extract.return_value=fixture().replace('１０：３０'.encode('cp932'),'１０：２５'.encode('cp932'),1)
+        self.now=datetime.fromisoformat('2030-04-01T10:17:00+09:00')
+        source=self.p1_parsers();self.continuous_collect(source,stage='P1')
+        numbers=[parse_qs(urlsplit(url).query)['rno'][0] for url in self.calls if '/racelist?' in url]
+        self.assertEqual(numbers[0],'2','T13 window must precede the T8 late fallback despite earlier cutoff')
+        self.assertEqual(numbers[-1],'1')
+
+    def test_server_publication_retry_after_is_not_overridden_by_T10_final_attempt(self):
+        source=self.p1_parsers();original=source.opener
+        def publication(req,*,timeout):
+            if '/beforeinfo?' in req.full_url:
+                self.calls.append(req.full_url)
+                raise HTTPError(req.full_url,404,'fictional unpublished',{'Retry-After':'1200'},None)
+            return original(req,timeout=timeout)
+        source.opener=publication;self.now=datetime.fromisoformat('2030-04-01T10:19:00+09:00')
+        self.continuous_collect(source,stage='P1');calls=len(self.calls)
+        self.now=datetime.fromisoformat('2030-04-01T10:20:00+09:00')
+        self.continuous_collect(source,stage='P1')
+        self.assertEqual(len(self.calls),calls,'T10 may override app publication cadence, never a server Retry-After')
+
+    def test_first_seen_registry_feature_corruption_cannot_borrow_legitimate_source_sha(self):
+        source=provider.CurrentBoatInputs(self.root,clock=lambda:self.now,opener=self.opener)
+        self.continuous_collect(source);p=next(self.root.rglob('state.json'));state=json.loads(p.read_text())
+        state['race_registry']['20300401-18-01']['row']['boats'][0]['national_win_rate']=9.99
+        p.write_text(json.dumps(state))
+        with self.assertRaises(SourceWait):self.continuous_collect(source)
+        self.assertEqual(len(self.calls),1)

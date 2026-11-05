@@ -451,6 +451,18 @@ class ObservedPairwiseTest(unittest.TestCase):
         output["observations"][0]["features"][FIELDS[0]]["value"] = 99
         self.assertEqual(snapshot, original)
 
+    def test_optional_model_subset_keeps_default_and_selected_model_bytes(self):
+        snapshot=fixture('P1');baseline=self.predict(snapshot)
+        self.assertEqual(baseline,self.predict(snapshot,model_ids=model.MODEL_IDS))
+        selected=self.predict(snapshot,model_ids=(model.MODEL_IDS[1],))
+        self.assertEqual(set(selected['models']),{model.MODEL_IDS[1]})
+        self.assertEqual(selected['models'][model.MODEL_IDS[1]],baseline['models'][model.MODEL_IDS[1]])
+        self.assertEqual(selected['model_spec_sha256'],baseline['model_spec_sha256'])
+        self.assertEqual(selected['suite_sha256'],digest({k:v for k,v in selected.items() if k!='suite_sha256'}))
+        for ids in ((),('foreign-model',),(model.MODEL_IDS[0],model.MODEL_IDS[0])):
+            with self.subTest(ids=ids),self.assertRaises(model.ObservedPairwiseError):
+                self.predict(snapshot,model_ids=ids)
+
     def test_returned_model_spec_cannot_change_future_inference(self):
         original_ranges = deepcopy(model.FEATURE_RANGES)
         original_transforms = deepcopy(model.FEATURE_TRANSFORMS)

@@ -33,7 +33,8 @@ def instant(value):
     if stamp.utcoffset() is None: raise ValueError('aware clock required')
     return stamp
 
-def forecast_program(program, *, clock=lambda: datetime.now(timezone.utc), already_frozen=frozenset()):
+def forecast_program(program, *, clock=lambda: datetime.now(timezone.utc), already_frozen=frozenset(),
+                     already_frozen_models=frozenset()):
     day = date.fromisoformat(program['date_jst'])
     url = official_url(day, 'B')
     if program['source_url'] != url: raise ValueError('foreign program source')
@@ -57,50 +58,72 @@ def forecast_program(program, *, clock=lambda: datetime.now(timezone.utc), alrea
         now = clock()
         if instant(source['captured_at']) > now: raise ValueError('future source capture')
         result['schedule'].append(dict(race_id=row['race_id'], cutoff_at=row['closed_at']))
-        reason = ('ORIGINAL_EXISTS' if row['race_id'] in already_frozen else
+        missing = tuple(mid for mid in EXISTING_IDS if (row['race_id'],mid) not in already_frozen_models)
+        reason = ('ORIGINAL_EXISTS' if row['race_id'] in already_frozen or not missing else
                   'CUTOFF_BUFFER' if now + timedelta(minutes=3) >= instant(row['closed_at']) else None)
         if reason:
             result['skipped'].append(dict(race_id=row['race_id'], reason=reason)); continue
         snap = build_program_snapshot(row, source, event_date_jst=str(day),
                                       as_of=now.isoformat(), race_revision=1)
-        result['predictions'].append(predict_pair(snap, allow_source=allowed))
+        # Do not even infer an already retained original's model slot.
+        result['predictions'].append(predict_pair(snap, allow_source=allowed, model_ids=missing))
     result.update(state='GENERATED_PENDING_EXTERNAL_RECEIPT', race_count=len(result['predictions']),
                   model_forecast_count=sum(len(s['models']) for s in result['predictions']))
     return result
 
-def collect(*, clock=lambda: datetime.now(timezone.utc), already_frozen=frozenset()):
+def collect(*, clock=lambda: datetime.now(timezone.utc), already_frozen=frozenset(),
+            already_frozen_models=frozenset(), source_guard=None):
     day = clock().astimezone(JST).date(); url = official_url(day, 'B')
     status = dict(schema='RACE_AI_EXISTING_P0_DAY_V1', day_jst=str(day), predictions=[],
         schedule=[], skipped=[], external_receipt_verified=False, actual_purchases=False,
         new_models_created=False, raw_source_published=False, source_url=url,
         state='SOURCE_OR_MODEL_BLOCKED', race_count=0, model_forecast_count=0)
-    body = None
+    body = None;network_completed=False
     try:
         req = request.Request(url, headers={'User-Agent':'RACE-AI-owner-personal-day-program/1.0',
                                           'Accept':'application/octet-stream'})
+        if source_guard is not None:source_guard.charge('forecast')
+        status['source_requests'] = 1
         with request.build_opener(StrictRedirect).open(req, timeout=25) as res:
             if res.status != 200 or res.geturl() != url: raise ValueError('B_SOURCE_IDENTITY')
             raw = res.read(MAX_ARCHIVE_BYTES + 1)
+        network_completed=True
         capture = clock().isoformat(); meta = inspect_lzh(raw)
         status.update(source_sha256=meta['sha256'], captured_at=capture, source_requests=1)
         body = extract_daily_lzh(raw, f'B{day:%y%m%d}.TXT')
         from race_ai.program_race_isolation import normalize_races
         program = normalize_races(body, day=day, source_url=url, observed_at=capture,
                                   archive_sha256=meta['sha256'])
-        status = forecast_program(program, clock=clock, already_frozen=already_frozen)
+        status = forecast_program(program, clock=clock, already_frozen=already_frozen,
+                                  already_frozen_models=already_frozen_models)
         status.update(extracted_text_sha256=program['extracted_text_sha256'], source_requests=1,
                       schedule=program['all_schedule'], blocked_races=program['blocked_races'])
         status['skipped'].extend(program['blocked_races'])
     except Exception as exc:
+        from race_ai.source_retry_policy import SourceWait
+        if isinstance(exc,SourceWait) or str(exc) in ('DAY_HANDOFF','WORKER_HANDOFF'):raise
         status.update(failure_class=type(exc).__name__, reason=str(exc)[:200])
         # Keep an actual HTTP status for the single-session 4xx/429 stop latch.
-        from urllib.error import HTTPError
+        from urllib.error import HTTPError,URLError
         if isinstance(exc, HTTPError):
             status['http_status'] = exc.code
+            retry = exc.headers.get('Retry-After') if exc.headers is not None else None
+            if isinstance(retry,str):
+                status['source_response_headers'] = {'Retry-After':retry}
+        elif not network_completed and isinstance(exc,(URLError,TimeoutError,OSError)):
+            status['source_error_kind']='TRANSPORT'
+        else:status['source_error_kind']='VALIDATION'
         if body is not None:
             from race_ai.b_layout_shape_diagnostic import summarize_b_layout
             status['layout_diagnostic'] = summarize_b_layout(body)
-    status['completed_at'] = clock().isoformat()
+    try:
+        status['completed_at'] = clock().isoformat()
+    except ValueError as exc:
+        if getattr(exc,'reason',None) not in ('DAY_HANDOFF','WORKER_HANDOFF'):raise
+        # Keep a received HTTP denial/header even when the caller's trusted
+        # event-day clock closes during the request. No timestamp is invented.
+        status['completed_at']=None
+        status['source_control_reason']=exc.reason
     return status
 
 def main():

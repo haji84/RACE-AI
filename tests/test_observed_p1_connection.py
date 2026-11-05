@@ -103,6 +103,11 @@ class LivePilotWiringTests(unittest.TestCase):
         from pathlib import Path
         race_ai.__path__.append(str(Path(__file__).resolve().parents[1]/"pr64-reference/race_ai"))
         from scripts import boat_nationwide_ab_pilot as pilot
+        class FixedClock(datetime):
+            @classmethod
+            def now(cls,tz=None):
+                now=datetime.fromisoformat(AT)
+                return now.astimezone(tz) if tz is not None else now.replace(tzinfo=None)
         b,e,p=inputs()
         program=dict(race_id=b['race_id'],closed_at=b['cutoff_at'],boats=[
             dict(lane=r['lane'],racer_registration_id=r['racer_id'],national_win_rate=r['national_win_rate'],
@@ -114,6 +119,7 @@ class LivePilotWiringTests(unittest.TestCase):
                   (b'preview',datetime.fromisoformat(PREVIEW_AT),'b'*64),
                   pilot.SourceError('FICTIONAL_ODDS_NOT_AVAILABLE')]
         with patch.object(pilot,'get',side_effect=captures),patch.object(pilot,'parse_official_racelist',return_value=program), \
+             patch.object(pilot,'datetime',FixedClock), \
              patch.object(pilot,'parse_update',return_value=preview),patch.object(pilot,'motor_top2',return_value={r['lane']:r['motor_two_place_rate_percent'] for r in b['boats']}), \
              patch.object(pilot,'observed_timestamp',return_value=AT),patch.object(pilot,'requests_used',45), \
              patch.dict('os.environ',{'RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED':'true'}):

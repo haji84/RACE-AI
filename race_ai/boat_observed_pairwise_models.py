@@ -337,7 +337,7 @@ def _model_result(model_id, normalized, coverage, binding):
     return result
 
 
-def predict_pair(snapshot, *, allow_source=None):
+def predict_pair(snapshot, *, allow_source=None, model_ids=None):
     """Return a hashed, research-only suite for this exact supplied snapshot.
 
     The optional permission callback receives (URL, rights reference, 'analysis')
@@ -346,6 +346,10 @@ def predict_pair(snapshot, *, allow_source=None):
     callback. A callback closing over the caller's original can mutate that
     original, but cannot mutate the copy scored and hashed here.
     """
+    selected = MODEL_IDS if model_ids is None else tuple(model_ids)
+    if (not selected or len(set(selected)) != len(selected) or
+            not set(selected).issubset(MODEL_IDS)):
+        raise ObservedPairwiseError("existing model IDs required")
     try:
         frozen = json.loads(canonical(snapshot))
     except (ContractError, TypeError, ValueError, OverflowError) as exc:
@@ -367,7 +371,7 @@ def predict_pair(snapshot, *, allow_source=None):
                                            "stage", "as_of", "sales_cutoff_at", "race_source_id")}
     binding.update(snapshot_sha256=snapshot_sha, model_spec_sha256=digest(spec))
     normalized, contrasts, coverage = _contrasts(frozen)
-    results = {model_id: _model_result(model_id, normalized, coverage, binding) for model_id in MODEL_IDS}
+    results = {model_id: _model_result(model_id, normalized, coverage, binding) for model_id in selected}
     suite = {
         "schema": SUITE_SCHEMA, **binding, **_research_flags(),
         "model_spec": spec, "source_evidence": deepcopy(frozen["sources"]),

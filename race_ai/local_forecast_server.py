@@ -1,4 +1,4 @@
-"""Loopback UI and lifecycle owner of the existing bounded forecast automation.
+"""Loopback UI and lifecycle owner of the selected existing automation plane.
 
 Only the server-owned service chooses inputs, source uses, clocks and storage.
 The browser requests a sport/stage; exact native forecasts remain in the private
@@ -359,14 +359,28 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="RACE-AI: local forecast generation and private viewing")
     parser.add_argument("--private-dir", required=True, type=Path)
     parser.add_argument("--port", type=int, default=8765)
+    parser.add_argument("--automatic-mode", choices=("native", "github"), default="native")
+    parser.add_argument("--supervisor-dir", type=Path)
     args = parser.parse_args(argv)
+    if args.automatic_mode == "github" and args.supervisor_dir is None:
+        parser.error("--supervisor-dir is required for --automatic-mode github")
+    if args.automatic_mode == "native" and args.supervisor_dir is not None:
+        parser.error("--supervisor-dir requires --automatic-mode github")
     try:
         from .local_forecast_service import LocalForecastService
-        service = LocalForecastService(args.private_dir)
-        with make_server(service, port=args.port) as server:
-            print("RACE-AI local forecast: " + server.origin, flush=True)
+        if args.automatic_mode == "github":
+            from .github_continuous_supervisor import GitHubSupervisor
+            from .workflow_live_projection import refresh_projection
+            service = LocalForecastService(args.private_dir, workflow_projection_root=args.supervisor_dir)
+            automatic = GitHubSupervisor(args.supervisor_dir, projection_refresh=refresh_projection)
+            server = make_server(service, port=args.port, automatic=automatic)
+        else:
+            service = LocalForecastService(args.private_dir)
+            server = make_server(service, port=args.port)
+        with server as running:
+            print("RACE-AI local forecast: " + running.origin, flush=True)
             try:
-                server.serve_forever()
+                running.serve_forever()
             except KeyboardInterrupt:
                 pass
         return 0

@@ -29,7 +29,7 @@
   };
   let dataset = null, importVersion = 0;
   const generation = {api: null, ready: false, busy: false, nonce: null, capabilities: {}, day: null, message: "",
-    auto: null, autoMessage: "", connectionUncertain: false, ownsDisplay: false, suppressed: false,
+    auto: null, delivery: {}, autoMessage: "", connectionUncertain: false, ownsDisplay: false, suppressed: false,
     revisions: {}, seen: {}, timer: null, statusBusy: false, latestBusy: false, latestQueued: false,
     latestQueuedFollow: false, pausedForDrafts: false, pausedForEditing: false};
   const text = v => v === null || v === undefined || v === "" ? "未取得" :
@@ -177,7 +177,7 @@
     state.sport = sport; state.venue = ""; state.visible = 60;
     if (state.page === "detail") showPage("races");
     persistPreferences(); refreshSelects(); renderAll();
-    if (automaticMode()) loadAutomaticLatest(true);
+    if (automaticMode()) { loadAutomaticLatest(true);scheduleAutomaticPoll(); }
   }
   function openRace(id) {
     state.selectedId = id; state.detailTab = "outlook";
@@ -437,6 +437,18 @@
     dataset = parsed; state.selectedId = ""; state.predictionKeys = {}; state.candidates = []; state.confirmed.clear(); state.venue = ""; state.visible = 60; $("purchase-ack").checked = false;
     refreshSelects(); renderAll();
   }
+  function selectedDelivery() { return generation.delivery[state.sport]?.[$("forecast-stage").value] || null; }
+  function renderDelivery() {
+    const delivery = automaticMode() ? selectedDelivery() : null;
+    $("generation-delivery").hidden = delivery === null;
+    if (!delivery) return;
+    const labels = {RUNNING:"予想を準備しています",SOURCE_WAIT:"入力待ち（必要な情報は未取得・未完備です）",SCHEDULE_WAIT:delivery.reason === "NEXT_DAY_PROGRAM_NOT_PUBLISHED" ? "日程の公表待ち" : "日程の取得待ち",WAITING_TARGET:"保存目標の時刻を待っています",LATE_INPUT:Date.parse(delivery.source_captured_at) > Date.parse(delivery.target_due_at) ? "入力取得が目標時刻後です" : "入力待ち（保存目標の時刻を過ぎています）",SAVED:"保存済みの予想があります",STOPPED:"予想の準備は停止しています",UNAVAILABLE:"適格な実入力は未接続です",NOT_SAVED:"予想の保存待ちです",UNKNOWN:"保存時刻の状態は未確認です"};
+    const stale = generation.connectionUncertain;
+    $("delivery-state").textContent = (stale ? "前回の状態：" : "") + labels[delivery.state];
+    $("delivery-next").textContent = delivery.next_cutoff_at ? "次の締切 " + stamp(delivery.next_cutoff_at) + " JST · 保存目標 " + time(delivery.target_open_at) + "〜" + time(delivery.target_due_at) + " JST" : "次の締切：未取得";
+    const recorded = {ON_TIME:"保存記録は目標内です",EARLY:"保存記録は目標時刻より前です",LATE:Date.parse(delivery.saved_at) >= Date.parse(delivery.next_cutoff_at) ? "締切後の保存記録です" : "保存記録は目標時刻後です",UNKNOWN:"保存時刻の評価は未確認です"};
+    $("delivery-record").textContent = (stale ? "前回の保存記録：" : "") + recorded[delivery.window_status] + (delivery.saved_at ? " · 保存 " + stamp(delivery.saved_at) + " JST" : " · 保存完了の時刻は未確認です");
+  }
   function renderGeneration() {
     const stage = $("forecast-stage").value;
     const automatic = automaticMode();
@@ -451,19 +463,22 @@
     $("forecast-generate").textContent = generation.busy ? "生成・保存しています…" : "新しい予想を生成";
     $("forecast-generation").setAttribute("aria-busy", String(generation.busy || automatic && ["STARTING","RUNNING"].includes(generation.auto.state)));
     if (automatic) {
-      const labels = {NOT_STARTED:"自動予想の開始を待っています",STARTING:"自動予想を準備しています",RUNNING:"自動予想を実行中です",WAITING:"次の自動巡回を待っています",PAUSED:"自動予想は停止しています",ALREADY_RUNNING:"別の自動巡回が実行中です",STOPPING:"自動予想を停止しています",STOPPED:"自動予想は停止しました",HALTED:"自動予想は停止しました",FAILED:"自動予想を停止しました"};
-      const reasons = {SOURCE_REQUEST_LIMIT:"以前の取得回数上限で停止した状態を保持しています",SOURCE_BUDGET_EXHAUSTED:"以前の取得回数上限で停止した状態を保持しています",SESSION_LIMIT_REACHED:"今回の巡回上限に達しました",ROUND_LIMIT_REACHED:"今回の巡回上限に達しました",BOUNDED_SESSION_END:"65分の巡回上限に達しました",MAX_ROUNDS_REACHED:"24回の巡回上限に達しました",DAY_BOUNDARY:"対象日が変わりました",DATE_BOUNDARY:"対象日が変わりました",DAY_CHANGED:"対象日が変わりました",CLOCK_REVERSED:"時刻の逆行を検知して停止しました",STOP_REQUESTED:"停止が指示されました",NO_FUTURE_RACES:"締切前の対象レースがありません",SOURCE_HTTP_4XX_STOP:"取得元の拒否応答で停止しました",SOURCE_IDENTITY_OR_PARSE_STOP:"取得した出典の照合に失敗して停止しました",AUTOMATIC_SOURCE_STATUS_REJECTED:"出典の取得状態を確認できず停止しました",AUTOMATIC_GENERATION_REJECTED:"予想と保存の条件を確認できず停止しました",AUTOMATIC_STATE_UNAVAILABLE:"巡回の保存状態を確認できず停止しました",ANOTHER_AUTOMATIC_WRITER_ACTIVE:"別の自動巡回が実行中のため開始していません",INTERRUPTED_ROUND_REQUIRES_REVIEW:"中断した巡回の状態確認が必要です"};
+      const labels = {NOT_STARTED:"自動予想の開始を待っています",STARTING:"自動予想を準備しています",RUNNING:"自動予想を実行中です",WAITING:"次の自動巡回を待っています",HANDOFF_WAIT:"次の自動実行へ引き継いでいます",SOURCE_WAIT:"取得元の再開を待っています",REVIEW_WAIT:"取得条件・保存原本の確認を待っています",PAUSED:"自動予想は停止しています",ALREADY_RUNNING:"別の自動巡回が実行中です",STOPPING:"自動予想を停止しています",STOPPED:"自動予想は停止しました",HALTED:"自動予想は停止しました",FAILED:"自動予想を停止しました"};
+      const reasons = {SOURCE_REQUEST_LIMIT:"以前の取得回数上限で停止した状態を保持しています",SOURCE_BUDGET_EXHAUSTED:"以前の取得回数上限で停止した状態を保持しています",SESSION_LIMIT_REACHED:"以前の巡回上限による停止記録を保持しています",ROUND_LIMIT_REACHED:"以前の巡回上限による停止記録を保持しています",BOUNDED_SESSION_END:"以前の65分上限による停止記録を保持しています",MAX_ROUNDS_REACHED:"以前の24回上限による停止記録を保持しています",DAY_BOUNDARY:"以前の日付境界による停止記録を保持しています",DATE_BOUNDARY:"以前の日付境界による停止記録を保持しています",DAY_CHANGED:"以前の日付境界による停止記録を保持しています",CLOCK_REVERSED:"時刻の逆行を検知して停止しました",STOP_REQUESTED:"停止が指示されました",NO_FUTURE_RACES:"締切前の対象レースがありません",SOURCE_HTTP_4XX_STOP:"取得元の拒否応答で停止しました",SOURCE_IDENTITY_OR_PARSE_STOP:"取得した出典の照合に失敗して停止しました",AUTOMATIC_SOURCE_STATUS_REJECTED:"出典の取得状態を確認できず停止しました",AUTOMATIC_GENERATION_REJECTED:"予想と保存の条件を確認できず停止しました",AUTOMATIC_STATE_UNAVAILABLE:"巡回の保存状態を確認できず停止しました",ANOTHER_AUTOMATIC_WRITER_ACTIVE:"別の自動巡回が実行中のため開始していません",INTERRUPTED_ROUND_REQUIRES_REVIEW:"中断した巡回の状態確認が必要です"};
       const info = [generation.connectionUncertain ? "自動運転の状態を確認できません。前の表示を保持しています" : labels[generation.auto.state] || "自動運転の状態を確認しています"];
-      if (generation.auto.halted_reason) info.push(reasons[generation.auto.halted_reason] || "停止条件に達しました。取得元と保存の状態を確認してください");
-      if (!generation.connectionUncertain && generation.auto.next_run_at && ["STARTING","RUNNING","WAITING"].includes(generation.auto.state)) info.push("次回 " + stamp(generation.auto.next_run_at) + " JST");
+      if (!generation.connectionUncertain && generation.auto.continuous === true && ["STARTING","RUNNING","WAITING","HANDOFF_WAIT","SOURCE_WAIT"].includes(generation.auto.state)) info.unshift("継続運転");
+      if (generation.auto.halted_reason) info.push(reasons[generation.auto.halted_reason] || (generation.auto.state === "REVIEW_WAIT" ? "取得条件と保存済み原本の確認が必要です" : "停止条件に達しました。取得元と保存の状態を確認してください"));
+      if (!generation.connectionUncertain && generation.auto.next_run_at && ["STARTING","RUNNING","WAITING","HANDOFF_WAIT","SOURCE_WAIT"].includes(generation.auto.state)) info.push((selectedDelivery()?.state === "SOURCE_WAIT" ? "次の入力確認 " : "次回 ") + stamp(generation.auto.next_run_at) + " JST");
       if (Number.isSafeInteger(generation.auto.round_no) && generation.auto.round_no >= 0) info.push("巡回 " + generation.auto.round_no + "回");
       if (Object.prototype.hasOwnProperty.call(generation.auto,"source_limit") && generation.auto.source_limit === null) info.push("取得回数上限なし");
       if (Number.isSafeInteger(generation.auto.requests_used) && generation.auto.requests_used >= 0) info.push("取得 " + generation.auto.requests_used + "回");
       if (!available) info.push(sports[state.sport] + "の適格な実入力は未接続です");
       if (generation.autoMessage) info.push(generation.autoMessage);
       $("generation-message").textContent = info.join(" · ");
+      renderDelivery();
       return;
     }
+    renderDelivery();
     $("generation-message").textContent = generation.busy ? "実入力を確認し、締切前の予想を生成・保存しています。" :
       generation.ready && !available ? sports[state.sport] + "の" + (stage === "P1" ? "展示後" : "朝版") + "実入力はまだ接続されていません。保存原本の読み込みは使えます。" :
       generation.message || (generation.ready ? generation.day + " JST のレースが対象です。生成した予想に表示を切り替え、編集中の購入候補はクリアします。" : "ローカル予想サーバーで起動すると生成できます。保存JSONの読み込みはそのまま使えます。");
@@ -482,15 +497,46 @@
     return Number.isFinite(epoch) && new Date(epoch).toISOString().slice(0,10) === value;
   }
   function automaticMode() { return generation.auto?.enabled === true; }
+  function deliveryStatus(raw) {
+    if (raw == null) return {};
+    if (typeof raw !== "object" || Array.isArray(raw)) throw new Error("delivery status");
+    const states = ["RUNNING","SOURCE_WAIT","SCHEDULE_WAIT","WAITING_TARGET","LATE_INPUT","SAVED","STOPPED","UNAVAILABLE","NOT_SAVED","UNKNOWN"];
+    const timestamp = value => typeof value === "string" && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(value) && generationDay(value.slice(0,10)) && Number.isFinite(Date.parse(value));
+    const result = {};
+    for (const [sport,stages] of Object.entries(raw)) {
+      if (!Object.hasOwn(sports,sport) || !stages || typeof stages !== "object" || Array.isArray(stages)) throw new Error("delivery sport");
+      result[sport] = {};
+      for (const [stage,value] of Object.entries(stages)) {
+        if (!["P0","P1"].includes(stage) || !value || typeof value !== "object" || Array.isArray(value) || !states.includes(value.state) || !["ON_TIME","EARLY","LATE","UNKNOWN"].includes(value.window_status) || !(value.reason === null || typeof value.reason === "string" && /^[A-Z][A-Z0-9_]{0,95}$/.test(value.reason)) || !timestamp(value.assessed_at) || value.visible_at !== null) throw new Error("delivery fields");
+        const fields = ["next_cutoff_at","target_open_at","target_due_at","source_captured_at","generated_at","saved_at"];
+        if (fields.some(key=>value[key] !== null && !timestamp(value[key]))) throw new Error("delivery timestamp");
+        const at = Date.parse(value.assessed_at), cutoff = Date.parse(value.next_cutoff_at), open = Date.parse(value.target_open_at), due = Date.parse(value.target_due_at);
+        if (value.next_cutoff_at === null ? value.target_open_at !== null || value.target_due_at !== null : open !== cutoff-900000 || due !== cutoff-600000) throw new Error("delivery target");
+        if (["source_captured_at","generated_at","saved_at"].some(key=>value[key] !== null && Date.parse(value[key]) > at)) throw new Error("future delivery evidence");
+        if (value.window_status !== "UNKNOWN") {
+          if (["source_captured_at","generated_at","saved_at","next_cutoff_at"].some(key=>value[key] === null)) throw new Error("missing delivery evidence");
+          const source = Date.parse(value.source_captured_at), generated = Date.parse(value.generated_at), saved = Date.parse(value.saved_at);
+          if (!(source <= generated && generated <= saved && saved <= at) || value.state !== "SAVED" || value.window_status !== (saved < open ? "EARLY" : saved <= due ? "ON_TIME" : "LATE")) throw new Error("delivery evidence order");
+        }
+        result[sport][stage] = Object.fromEntries(["state","reason","assessed_at","visible_at","window_status",...fields].map(key=>[key,value[key]]));
+      }
+    }
+    return result;
+  }
   function applyGenerationStatus(status) {
     if (typeof status.nonce !== "string" || !status.nonce || status.nonce.length > 256 || !status.capabilities || typeof status.capabilities !== "object" || !generationDay(status.day_jst)) throw new Error("status");
     if (status.auto != null && (typeof status.auto !== "object" || typeof status.auto.enabled !== "boolean" || status.auto.enabled && typeof status.auto.state !== "string")) throw new Error("automatic status");
+    if (status.auto?.continuous != null && typeof status.auto.continuous !== "boolean") throw new Error("automatic policy");
+    const delivery = deliveryStatus(status.delivery);
     generation.nonce = status.nonce;generation.capabilities = status.capabilities;generation.day = status.day_jst;generation.ready = true;
-    generation.auto = status.auto || null;generation.revisions = status.latest_revisions || {};generation.connectionUncertain = false;
+    generation.auto = status.auto || null;generation.delivery = delivery;generation.revisions = status.latest_revisions || {};generation.connectionUncertain = false;
   }
   function scheduleAutomaticPoll() {
     if (generation.timer !== null) clearTimeout(generation.timer);
-    generation.timer = automaticMode() ? setTimeout(pollAutomaticStatus,180000) : null;
+    const delivery = selectedDelivery();
+    const near = delivery && Date.parse(delivery.assessed_at) >= Date.parse(delivery.target_open_at) && Date.parse(delivery.assessed_at) < Date.parse(delivery.next_cutoff_at);
+    const active = generation.auto?.continuous === true && (["STARTING","RUNNING"].includes(generation.auto.state) || near && ["RUNNING","SOURCE_WAIT","WAITING_TARGET","LATE_INPUT","NOT_SAVED"].includes(delivery.state));
+    generation.timer = automaticMode() ? setTimeout(pollAutomaticStatus,active ? 60000 : 180000) : null;
   }
   async function pollAutomaticStatus() {
     if (!automaticMode() || generation.statusBusy) return;
@@ -506,7 +552,10 @@
   function automaticView(result, sport, stage, expectedDay) {
     if (!result || result.available !== true || typeof result.revision !== "string" || !result.revision || result.revision.length > 256 || !generationDay(result.day_jst) || result.day_jst !== expectedDay) throw new Error("automatic response");
     const parsed = M.parse(result.view), summary = result.summary;
-    if (parsed.event_date_jst != null && parsed.event_date_jst !== result.day_jst || parsed.records.some(row=>row.event_date_jst !== result.day_jst || row.sport !== sport || row.stage != null && row.stage !== stage || row.scheduled_stages?.some(value=>value !== stage) || (row.dispatch_slots || []).some(slot=>slot.stage !== stage) || predictions(row).some(p=>p.stage !== stage)) || !summary || ["generated","reused","missing"].some(key=>!Number.isSafeInteger(summary[key]) || summary[key]<0)) throw new Error("automatic response");
+    const count = value => Number.isSafeInteger(value) && value >= 0;
+    const unknownCoverage = summary?.coverage_known === false;
+    const validCounts = summary && count(summary.generated) && count(summary.reused) && (unknownCoverage ? summary.missing === null && summary.generated === 0 && count(summary.races) && summary.races === parsed.records.length && summary.reused === parsed.records.reduce((sum,row)=>sum+predictions(row).length,0) : count(summary.missing));
+    if (parsed.event_date_jst != null && parsed.event_date_jst !== result.day_jst || parsed.records.some(row=>row.event_date_jst !== result.day_jst || row.sport !== sport || row.stage != null && row.stage !== stage || row.scheduled_stages?.some(value=>value !== stage) || (row.dispatch_slots || []).some(slot=>slot.stage !== stage) || predictions(row).some(p=>p.stage !== stage)) || !validCounts) throw new Error("automatic response");
     return parsed;
   }
   function activeCandidateEdit() { return document.activeElement?.matches("#ticket-list .ticket-amount, #race-budget") === true; }
@@ -537,7 +586,7 @@
     if (first || explicitFollow) { state.allDates = false;state.period = "day";state.followsToday = true; }
     refreshSelects();renderAll();
     $("forecast-generation").dataset.viewRevision = result.revision;
-    generation.autoMessage = "保存原本を自動更新しました。モデル別：新規 " + result.summary.generated + "件 · 再利用 " + result.summary.reused + "件 · 未予想 " + result.summary.missing + "件。";
+    generation.autoMessage = result.summary.coverage_known === false ? "保存原本を自動更新しました。保存済み " + result.summary.reused + "件・全モデルの網羅性は未検証です。" : "保存原本を自動更新しました。モデル別：新規 " + result.summary.generated + "件 · 再利用 " + result.summary.reused + "件 · 未予想 " + result.summary.missing + "件。";
     return true;
   }
   async function loadAutomaticLatest(force = false, explicitFollow = false) {
@@ -683,7 +732,7 @@
   $("settings-form").addEventListener("submit", e => { e.preventDefault(); const value = Number($("daily-budget").value); if (!validBudget(value) || value < U.summarize(dailyPurchases()).spent) { $("settings-message").textContent = "予算は本日の購入済み金額以上、100〜10,000,000円の100円単位で入力してください。"; return; } state.budget = value; state.sport = $("settings-sport").value; persistPreferences(); refreshSelects(); renderAll(); $("settings-message").textContent = "予算と初期競技の設定を保存しました。予想や購入明細は保存していません。"; });
   $("race-file").addEventListener("change", e => importFiles([...e.target.files]));
   $("forecast-generate").addEventListener("click", generateForecasts);
-  $("forecast-stage").addEventListener("change", () => { generation.message = "";renderGeneration();if (automaticMode()) loadAutomaticLatest(true); });
+  $("forecast-stage").addEventListener("change", () => { generation.message = "";renderGeneration();if (automaticMode()) { loadAutomaticLatest(true);scheduleAutomaticPoll(); } });
   $("forecast-follow-latest").addEventListener("click",()=>loadAutomaticLatest(true,true));
   $("load-synthetic").addEventListener("click", loadSynthetic);
   $("clear-data").addEventListener("click", () => { ++importVersion;generation.ownsDisplay = false;generation.suppressed = true; dataset = null; state.selectedId = ""; state.predictionKeys = {}; state.candidates = []; state.confirmed.clear(); $("purchase-ack").checked = false; refreshSelects(); renderAll(); $("file-message").textContent = "読み込んだ予想と候補をメモリから消去しました。手動購入記録は再読込まで保持します。"; });

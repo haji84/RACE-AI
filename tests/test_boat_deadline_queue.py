@@ -22,6 +22,40 @@ class DeadlineQueueTests(unittest.TestCase):
         self.assertFalse(out["freeze_proven"])
         self.assertFalse(out["forecast_generated"])
 
+    def test_target_window_is_inclusive_and_preferred_over_late_fallback(self):
+        rows = [race(1, 1, "11:25"), race(2, 1, "11:35"),
+                race(3, 1, "11:30"), race(4, 1, "11:36"),
+                race(5, 1, "11:29")]
+        out = select_due_races(rows, CLOCK)
+        self.assertEqual([r["race_id"] for r in out["eligible"]],
+                         ["20261103-03-01", "20261103-02-01",
+                          "20261103-01-01", "20261103-05-01"])
+        self.assertEqual([r["phase"] for r in out["eligible"]],
+                         ["WINDOW", "WINDOW", "LATE_INPUT_FALLBACK", "LATE_INPUT_FALLBACK"])
+        self.assertEqual([r["reason"] for r in out["eligible"]],
+                         ["WINDOW", "WINDOW", "LATE_INPUT_FALLBACK", "LATE_INPUT_FALLBACK"])
+        self.assertEqual(out["deferred"][0]["race_id"], "20261103-04-01")
+
+    def test_fallback_requires_more_than_210_seconds(self):
+        rows = [race(1, 1, "11:24"),
+                {**race(2, 1, "11:23"), "cutoff_at": "2026-11-03T11:23:30+09:00"},
+                {**race(3, 1, "11:23"), "cutoff_at": "2026-11-03T11:23:31+09:00"}]
+        out = select_due_races(rows, CLOCK)
+        self.assertEqual([r["race_id"] for r in out["eligible"]],
+                         ["20261103-03-01", "20261103-01-01"])
+        self.assertEqual(out["rejected"][0]["reason"], "TOO_LATE_OR_UNSAFE")
+
+    def test_default_selects_all_due_without_24_race_capacity(self):
+        rows = [race(venue, number, "11:31")
+                for venue in range(1, 25) for number in (1, 2)]
+        out = select_due_races(rows, CLOCK)
+        self.assertEqual(len(out["eligible"]), 48)
+        self.assertEqual(out["deferred"], [])
+        self.assertEqual(len(select_due_races(rows, CLOCK, max_items=30)["eligible"]), 30)
+        for capacity in (0, -1, True, 1.5, "2"):
+            with self.subTest(capacity=capacity), self.assertRaises(ValueError):
+                select_due_races(rows, CLOCK, max_items=capacity)
+
     def test_no_late_or_repeated_forecast_and_safe_boundary(self):
         rows = [race(17, 3, "11:19"), race(17, 4, "11:23"),
                 race(17, 5, "11:24"), race(17, 6, "11:25")]

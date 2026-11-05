@@ -264,7 +264,7 @@ def _prediction(row, entries):
     p = dict(model_id=row["model_id"], model_version=row.get("model_version"), stage=row["stage"],
              ordered_top8=deepcopy(row["top8"]), ordered_candidates=deepcopy(row["ranked"]),
              prediction_sha256=row["model_sha256"], input_sha256=row.get("input_sha256"), source_sha256=row.get("source_sha256"),
-             as_of=row["as_of"], generated_at=row.get("generated_at"), persisted_at=row["server_saved_at"],
+             as_of=row["as_of"], generated_at=row.get("generated_at"), source_captured_at=None, persisted_at=row["server_saved_at"],
              cutoff_at=row["cutoff_at"], odds_independent=row.get("odds_independent"), external_receipt_verified=False,
              source_provenance="OWNER_LOCAL_RECOVERED_CYCLE", missing_reasons=[])
     if row.get("learning_snapshot") is not None:
@@ -288,6 +288,7 @@ def _prediction(row, entries):
     if matches:
         native = matches[0]; model = native["model"]
         enrichment = dict(model_version=model.get("model_version"), generated_at=model.get("generated_at", native["parent"].get("generated_at")),
+                          source_captured_at=model.get("source_captured_at", native["parent"].get("source_captured_at")),
                           input_sha256=model.get("input_sha256", model.get("snapshot_sha256", model.get("source_snapshot_sha256"))),
                           source_sha256=model.get("source_sha256", native["source_sha256"]), odds_independent=model.get("odds_independent"))
         for field, value in enrichment.items():
@@ -304,6 +305,8 @@ def _prediction(row, entries):
         if p[field] is None: p["missing_reasons"].append(reason)
     for field in ("input_sha256","source_sha256"): _sha(p[field], optional=True)
     if p["model_version"] is not None: _label(p["model_version"])
+    if p["source_captured_at"] is not None:
+        _clock(p["source_captured_at"])
     if p["generated_at"] is not None:
         try:
             # The unchanged archive reader admits subsecond generation inside

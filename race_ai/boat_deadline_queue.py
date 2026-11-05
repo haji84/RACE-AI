@@ -9,8 +9,9 @@ from datetime import datetime, timedelta, timezone
 import re
 
 JST = timezone(timedelta(hours=9))
-MIN_SAFE_SECONDS = 180
-MAX_WINDOW_SECONDS = 22 * 60
+MIN_SAFE_SECONDS = 210
+MAX_WINDOW_SECONDS = 15 * 60
+TARGET_DUE_SECONDS = 10 * 60
 RACE_ID = re.compile(r"^(\d{8})-(0[1-9]|1\d|2[0-4])-(0[1-9]|1[0-2])$")
 
 
@@ -27,8 +28,8 @@ def _instant(value: str) -> datetime:
 
 def select_due_races(schedule_rows: list[dict], as_of: str,
                      *, already_frozen: frozenset[str] = frozenset(),
-                     max_items: int = 24) -> dict:
-    """Sort official entries by cutoff, then venue and race number.
+                     max_items: int | None = None) -> dict:
+    """Prefer T-15..T-10 entries, then explicitly labelled late input fallback.
 
     Input is verified schedule metadata, not a claimed real-time API. Strictly
     refuses duplicates, contradictory dates and post-as_of source captures.
@@ -37,8 +38,8 @@ def select_due_races(schedule_rows: list[dict], as_of: str,
     every source fetch, scoring, and artifact creation.
     """
     clock = _instant(as_of)
-    if type(max_items) is not int or not 1 <= max_items <= 24:
-        raise ValueError("max_items must be 1..24")
+    if max_items is not None and (type(max_items) is not int or max_items < 1):
+        raise ValueError("max_items must be a positive integer or None")
     if not isinstance(schedule_rows, list) or len(schedule_rows) > 24 * 12:
         raise ValueError("bounded nationwide schedule list required")
     if not isinstance(already_frozen, frozenset) or not all(
@@ -74,11 +75,13 @@ def select_due_races(schedule_rows: list[dict], as_of: str,
         elif remaining > MAX_WINDOW_SECONDS:
             deferred.append({**record, "reason": "NOT_IN_CAPTURE_WINDOW"})
         else:
-            eligible.append(record)
+            phase = "WINDOW" if remaining >= TARGET_DUE_SECONDS else "LATE_INPUT_FALLBACK"
+            eligible.append({**record, "phase": phase, "reason": phase})
     key = lambda item: (item["cutoff_at"], item["race_id"][9:11], item["race_id"][12:14])
-    eligible.sort(key=key)
-    selected = eligible[:max_items]
-    deferred += [{**r, "reason": "CAPACITY_DEFERRED"} for r in eligible[max_items:]]
+    eligible.sort(key=lambda item: (item["phase"] != "WINDOW", *key(item)))
+    capacity = len(eligible) if max_items is None else max_items
+    selected = eligible[:capacity]
+    deferred += [{**r, "reason": "CAPACITY_DEFERRED"} for r in eligible[capacity:]]
     deferred.sort(key=key)
     rejected.sort(key=key)
     return {"schema": "RACE_AI_BOAT_NATIONWIDE_QUEUE_V1",

@@ -1,3 +1,39 @@
+# 2026-11-05 15:14 JST｜連続予想版の最終検証・実原本725件の画面接続（反映直前）
+
+固定GET・論理24巡/65分/日付停止の撤廃、T−15〜T−10優先、既存workerの自動引継ぎと私有表示を実装。凍結ソースでPython **1036件成功**、Node **179件成功**。合成ブラウザは320/390/1440/1920幅・**39操作群/60PNG**、エラー0、元サイトGET0、生成POSTなし。最終状態ラベル変更後も自動表示4群を再検証した。複数agentの独立レビューで見つかった空のP0追加ID・初回取得のhandoff境界・checkpoint欠落・403回復期限・学習版別名入力の再利用判定を修正し、回帰を確認した。
+
+実保存run41967896991の126 ZIP/API digestを厳格読戻し。**144レース、725保存予想（基準623、研究学習版102）、P0 288/P1 437、結果観測192版**を私有projectionへ接続した。623基準行のSHA・Top8・全順位・原本参照、全192観測、170 member参照を保全。肥大した監査文書を表示入力へ重ねていた問題は、原本を消さず検証済み付帯文書の重複を除いて修正。JSONサイズ保護は据え置きで入力40,910,737→16,171,960bytes。読み戻しから推論・公式サイトGETは0。学習版を含む725と、基準623を混同しない。
+
+先行runはsuccess、第22巡まで完了、prepared_round=null、チェックポイントの取得数282・source_wait=nullを独立認証。mainは0e45c029e18d5f3f1e7a04aecedab3c4af261748のまま。旧ローカル288原本DBのSHA c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a・元取得3回・中断要確認を保全し、native生成を再開しない。適用後はGitHub生成元のみをsupervisorが監視する。
+
+ここまでは最終検証と旧保存原本の接続。新HEADのrun起動・新しい予想保存・T15〜T10実測・実画面照合は、これから別記する。[検証とソースSHA](evidence/2026-11-05/continuous-deadline-forecast/verification.json) / [実原本読戻し](evidence/2026-11-05/continuous-deadline-forecast/real-saved-projection.json) / [先行checkpoint](evidence/2026-11-05/continuous-deadline-forecast/predecessor.json)。
+
+---
+
+# 2026-11-05 実装更新｜取得固定回数・論理24巡/65分/日付停止を撤廃、連続引継ぎと私有表示を接続
+
+この項は今回の作業treeのコード変更を説明する。稼働先へ適用したHEAD、実行run、独立ZIP、実際の保存件数・ブラウザ照合は、適用後の証拠として別に記録する。コードが連続運転に対応したことを、24時間実運転や全日無欠落の証明とはしない。下の時点付き実測と過去原本を保持する。
+
+| 対象 | 今回の変更と保全する条件 |
+| --- | --- |
+| 取得回数 | 固定45GET/処理・累積240GET停止を撤廃。上限はNone/null、取得数・累計は記録し、負数/bool/回数減少を拒否 |
+| 論理巡回 | 24巡・65分で終了せず、対象日を固定したtransactionを完了してJST日別に引き継ぐ。旧日の原本と累計を消さない |
+| 取得順・保存目標 | T−15～T−10のWINDOWを優先し、そのphase内で締切順。3予想/5試行の打切りを撤廃し、適格な全対象を確認。T−10後は210秒より前の遅延fallbackとして区別 |
+| 取得元の待機 | 429/Retry-After、一時障害、未公開展示、認証・利用条件、真正性の要確認を記録。即時再試行や別endpoint迂回を行わず、期限なし要確認を時刻や日付で解除しない |
+| 原本・再起動 | V1の正常上限終了は旧バイト/SHAを保全して移行。中断/不整合/認証等は要確認を維持。lock初期化記録によりcheckpoint欠落を初回として再作成しない |
+| GitHub物理worker | 同じworkflow・concurrency・既存認証actorを使用。物理上限360分、330分handoff、24batch区切りを独立保存後に次workerへ引き継ぐ。論理巡回の終了上限ではない |
+| アプリへの接続 | GitHubモードは認証したartifactのSHAを検証した私有projectionを読取り表示。画面側provider/native生成は起動せず、GitHub生成とローカル生成を重ねない |
+
+物理workerを切り替える`WORKER_HANDOFF`と、日付を変える`DAY_HANDOFF`を区別した。引継ぎ前に追加GETを停止し、既に生成できた原本は保存・検証して残す。次runの起動だけを予想成功と数えず、確認済みHEADを親に持つcommitのforceなし追記・先行run/queued照合・単一writerを使う。`GITHUB_TOKEN`の自己pushが再帰起動すると仮定せず、新PAT・別workflow・新しい外部サービスを作らない。
+
+表示は元データ取得・生成・保存時刻と待機理由、次回確認、次の締切を扱い、証拠不足はUNKNOWN、未保存はNOT_SAVED、目標後の保存はLATEとする。GitHubへの保存と、本人の画面へ見えた時刻の独立受領証明は区別する。過去の固定ZIPが新しいコードや最新件数へ自動更新されたとは扱わない。
+
+関連回帰と独立レビューでは、WINDOW順の実GET、404のserver Retry-After、元行/source/rawの結び付き、日付を跨ぐ待機・累計、正常終了移行と要確認保全、欠落checkpointを検証した。全体試験の最終件数と実適用は適用工程で記録する。[起動・連続運転・表示の契約](LOCAL_FORECAST_GENERATION.md)。
+
+未完成は、他3競技の適格な当日入力、全16系統×全レースの実運転、全日P1無欠落、恒久私有保管、実機Safari、学習版の前向き優位性。BOATの事実から別競技の特徴を作らず、未校正確率/未検証回収率を実績表示せず、本番モデルを切り替えない。main統合・一般公開・実投票・追加課金は行わない。
+
+---
+
 # 2026-11-05 14:25 JST｜第15巡回の元ZIP独立照合・学習候補比較の累積更新（実行中runの完了ではない）
 
 既存Draft PR #71 / workflow 405276784 / run `41967896991` を読み取り監査。点検時のPR HEAD `b2b7e9e47c16a805c5710a7193df67507bf5b0d8`、同workflowはこのrunのみ`in_progress`で、追加の`queued/pending/waiting`なし。GitHub Actions上の「Deadline-ordered five-model round 15」はcompleted/success、round 16は実行中。**今回の確定範囲は第15巡回の保存済みartifactのみ**。第16巡回以降やrun全体の終了を完了扱いにしない。

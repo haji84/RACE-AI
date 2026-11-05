@@ -192,6 +192,9 @@ class PrivateCycleProjectionTests(unittest.TestCase):
         state=seal(dict(schema="RACE_AI_PRIVATE_ARTIFACT_READBACK_V1",day_jst="2030-04-01",rows=rows,observations=[],receipts=[receipt],complete=False))
         view=M.project_state(state,dataset_status="SYNTHETIC_ONLY",original_documents=[parsed])
         self.assertEqual(view["records"][0]["prediction"]["generated_at"],at)
+        self.assertEqual(view["records"][0]["prediction"]["source_captured_at"], base["captured_at"])
+        without_original = M.project_state(state, dataset_status="SYNTHETIC_ONLY")
+        self.assertIsNone(without_original["records"][0]["prediction"]["source_captured_at"])
         self.assertEqual(view["records"][0]["prediction"]["persisted_at"],receipt["created_at"])
 
     def test_ranking_identity_clock_and_hash_conflicts_fail_closed(self):

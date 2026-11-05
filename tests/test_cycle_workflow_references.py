@@ -1,5 +1,9 @@
 """Guard the real composite round, not the obsolete inline workflow layout."""
 import re
+import os
+import subprocess
+import tempfile
+import json
 import unittest
 from pathlib import Path
 
@@ -23,10 +27,19 @@ class WorkflowReferencesTest(unittest.TestCase):
     def assert_round_contract(self, text):
         self.assertIn('using: composite', text)
         steps = re.split(r'^    - name: ', text, flags=re.MULTILINE)[1:]
-        self.assertEqual(len(steps), 6)
-        prepare, forecast, freeze, audit, result, complete = steps
+        self.assertEqual(len(steps), 8)
+        prepare, discovery, p0freeze, forecast, freeze, audit, result, complete = steps
         self.assertIn('id: ready', prepare)
         self.assertIn('github_existing_cycle.py repeat-prepare', prepare)
+        self.assertIn('github_existing_cycle.py supplement --round', discovery)
+        self.assertIn('id: discovery', discovery)
+        self.assertIn('id: discovery_freeze', p0freeze)
+        self.assertIn("steps.discovery.outputs.supplement_ready == 'true'", p0freeze)
+        self.assertIn('path: p0_supplement_output/cycle-${{ inputs.round }}/forecasts.json', p0freeze)
+        self.assertIn('steps.ready.outputs.p0_name', p0freeze)
+        self.assertIn('uses: ' + UPLOAD, p0freeze)
+        self.assertIn('if-no-files-found: error', p0freeze)
+        self.assertNotIn('overwrite: true', p0freeze)
         self.assertIn('github_existing_cycle.py forecast', forecast)
         for step in steps[1:]:
             self.assertIn("if: steps.ready.outputs.active == 'true'", step)
@@ -42,6 +55,8 @@ class WorkflowReferencesTest(unittest.TestCase):
             self.assertIn('if-no-files-found: error', step)
             self.assertNotIn('overwrite: true', step)
         self.assertIn('github_existing_cycle.py audit', audit)
+        self.assertIn('P0_SUPPLEMENT_ARTIFACT: ${{ steps.discovery_freeze.outputs.artifact-id }}', audit)
+        self.assertIn('supplement_args+=(--p0-supplement "$P0_SUPPLEMENT_ARTIFACT")', audit)
         self.assertIn("--p1-artifact '${{ steps.freeze.outputs.artifact-id }}'", audit)
         self.assertIn('github_existing_cycle.py repeat-complete', complete)
         self.assertIn("--p1-artifact '${{ steps.freeze.outputs.artifact-id }}'", complete)
@@ -62,7 +77,8 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn("if: steps.first_p0.outputs.capture != 'true'", text)
         self.assertLess(text.index('first_p0_bootstrap.py preflight'), text.index('first_p0_bootstrap.py capture'))
         self.assertLess(text.index('first_p0_bootstrap.py capture'), text.index('id: first_upload'))
-        self.assertLess(text.index('github_existing_cycle.py supplement'), text.index('id: p0supplement'))
+        self.assertIn('first_p0_bootstrap.py capture-wait', text)
+        self.assertNotIn('id: p0supplement', text)
         self.assertNotIn('run: python scripts/existing_day_program.py', text)
         self.assertIn('cancel-in-progress: false', text)
         finalize = next(step for step in re.split(r'^      - name: ', text, flags=re.MULTILINE)
@@ -73,9 +89,22 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertLess(text.index('first_p0_bootstrap.py finalize'), text.index('github_existing_cycle.py restore'))
         self.assertLess(text.index('github_existing_cycle.py restore'), text.index('github_existing_cycle.py repeat-start'))
         self.assertIn('RACE_AI_FIRST_P0_CAPTURED: ${{ steps.first_p0.outputs.capture }}', text)
-        self.assertLess(text.index('github_existing_cycle.py repeat-start'), text.index('github_existing_cycle.py supplement'))
-        self.assertLess(text.index('github_existing_cycle.py restore'), text.index('github_existing_cycle.py supplement'))
-        self.assertLess(text.index('id: p0supplement'), text.index('uses: ./.github/actions/existing-model-round'))
+        self.assertNotIn('github_existing_cycle.py supplement', text)
+        workers = [step for step in re.split(r'^      - name: ', text, flags=re.MULTILINE)
+                   if 'uses: ./.github/actions/existing-model-round' in step]
+        self.assertEqual(len(workers), 24)
+        for worker in workers:
+            self.assertIn("if: steps.repeat_start.outputs.session_ready == 'true'", worker)
+        self.assertIn('timeout-minutes: 360', text)
+        self.assertIn('RACE_AI_EVENT_DAY=', text)
+        self.assertIn('RACE_AI_WORKER_HANDOFF_AT=', text)
+        self.assertIn('datetime.now(timezone.utc)', text)
+        self.assertIn('timedelta(minutes=330)', text)
+        for name in ('Save first P0 separately', 'Read back original ZIP'):
+            step = next(step for step in re.split(r'^      - name: ', text, flags=re.MULTILINE)
+                        if step.startswith(name))
+            self.assertIn("steps.first_capture.outputs.capture_complete == 'true'", step)
+        self.assertIn("if: steps.restore.conclusion == 'success'", text)
         for command in ('git push', 'gh api --method PUT', 'first_p0_bootstrap.py finalize'):
             self.assertNotIn(command, ROUND.read_text())
         self.assert_round_contract(ROUND.read_text())
@@ -83,7 +112,7 @@ class WorkflowReferencesTest(unittest.TestCase):
     def test_result_before_forecast_freeze_is_rejected(self):
         text = ROUND.read_text()
         parts = re.split(r'(?=^    - name: )', text, flags=re.MULTILINE)
-        parts[3], parts[4] = parts[4], parts[3]
+        parts[5], parts[6] = parts[6], parts[5]
         with self.assertRaises(AssertionError):
             self.assert_round_contract(''.join(parts))
 
@@ -98,3 +127,21 @@ class WorkflowReferencesTest(unittest.TestCase):
         ]:
             with self.subTest(mutation=old), self.assertRaises(AssertionError):
                 self.assert_round_contract(text.replace(old, new, 1))
+
+    def test_optional_discovery_receipt_is_omitted_when_no_new_original_exists(self):
+        audit = next(step for step in re.split(r'^    - name: ', ROUND.read_text(), flags=re.MULTILINE)
+                     if 'github_existing_cycle.py audit' in step)
+        script = audit.split('      run: |\n', 1)[1]
+        script = '\n'.join(line[8:] for line in script.splitlines())
+        script = script.replace('${{ inputs.round }}', '1').replace('${{ steps.freeze.outputs.artifact-id }}', '123')
+        with tempfile.TemporaryDirectory() as folder:
+            executable = Path(folder) / 'python'
+            executable.write_text("#!/bin/bash\n/usr/bin/python3 -c 'import json,sys; print(json.dumps(sys.argv[1:]))' \"$@\"\n")
+            executable.chmod(0o700)
+            for receipt in ('', '456'):
+                env = dict(os.environ, PATH=folder + os.pathsep + os.environ['PATH'], P0_SUPPLEMENT_ARTIFACT=receipt)
+                result = subprocess.run(['bash', '-e', '-c', script], env=env, check=True,
+                                        text=True, capture_output=True)
+                args = json.loads(result.stdout)
+                expected = ['scripts/github_existing_cycle.py', 'audit', '--round', '1', '--p1-artifact', '123']
+                self.assertEqual(args, expected + (['--p0-supplement', receipt] if receipt else []))

@@ -10,7 +10,7 @@ END="2030-01-15T10:00:00+09:00"
 class PurchaseReviewTests(unittest.TestCase):
     def test_clear_early_preview_and_final_deadline(self):
         p=policy(END)
-        self.assertEqual(p["first_preview_target_at"],"2030-01-15T09:30:00+09:00")
+        self.assertEqual(p["first_preview_target_at"],"2030-01-15T09:45:00+09:00")
         self.assertEqual(p["final_forecast_visible_by"],"2030-01-15T09:50:00+09:00")
         self.assertFalse(p["readiness_evidence_independently_verified"])
 
