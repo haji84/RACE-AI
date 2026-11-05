@@ -56,3 +56,5 @@ Task 3: adapter/probe/CI implemented; synthetic native 6-racer two-model integra
 Final review: independent reviewer identified 6 important issues. All fixed with reproductions RED→GREEN: special finishes, opportunity windows, missing winner methods, wrong-key new URLs, authenticated quota/retention, postcommit availability clocks. Focused suite 33 tests passed. Minor documentation of partial supplementation corrected. No model file changed.
 
 Final focused suite: 34 tests PASS (synthetic); additional known-F opportunity, concurrent reservation, authenticated expiry and provider special-note retention verified.
+
+Follow-up safety check: conflicting duplicate history now stops model supplementation instead of disappearing from opportunity windows. New repro RED→GREEN; focused suite 35 PASS.

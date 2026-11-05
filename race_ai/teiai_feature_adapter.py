@@ -110,6 +110,7 @@ def enrich_observed_snapshot(snapshot,histories,official_archives,*,verified_at,
             need(selected,'TEIAI_HISTORY_REGISTRATION_NOT_IN_RACE')
             parsed=dict(rows=selected,duplicate_count=0,quarantine=[])
             source_id='teiai-race-'+rid
+        need(not parsed['quarantine'],'TEIAI_CONFLICTING_DUPLICATE_HISTORY')
         need(all(race_parts(r['race_id'])[0]<=captured.astimezone(JST).date() for r in parsed['rows']),
              'TEIAI_RACE_AFTER_CAPTURE')
         eligible=[r for r in parsed['rows'] if race_parts(r['race_id'])[0]<event_day]

@@ -137,3 +137,10 @@ class FeatureTests(unittest.TestCase):
         self.assertEqual(r['features']['recent_mean_st']['history']['total_n'],2)
         self.assertEqual(x['reports']['4001']['summary']['total']['starts'],2)
         self.assertEqual(x['reports']['4001']['summary']['total']['abnormal_or_missing_n'],1)
+
+    def test_conflicting_duplicate_cannot_disappear_from_recent_window(self):
+        s,h,o=inputs()
+        first=['2030-03-30','桐生','1','予選','杯','一般','1','1','0.12','','1','01','逃げ','6.80','11','22','']
+        conflict=first.copy();conflict[8]='0.13'
+        raw=csv_bytes([first,conflict]);h={'4001':dict(h['4001'],raw=raw,source_sha256=hashlib.sha256(raw).hexdigest())}
+        with self.assertRaisesRegex(ValueError,'CONFLICTING_DUPLICATE'):run(s,h,o)
