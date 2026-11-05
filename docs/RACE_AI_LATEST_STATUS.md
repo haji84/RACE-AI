@@ -1,3 +1,17 @@
+# 2026-11-05 17:13 JST｜取消runの全21巡予想・結果ZIPと継続原本を独立照合（起動保留）
+
+対象: Draft PR #71 / branch `feat/four-sport-forecast-audit-view-20261022` / workflow 405276784 / 最新確認HEAD `f8089a33fd5e768deff156e1aaa3c265b1fb4171`。Actions全run直近30件を再取得し、このworkflowのin_progress/queued/pending/waitingは確認範囲で0件。最新run `41979370711`はcompleted/cancelled（16:05:36 JST）であり、正常終了runとして扱わない。Job logの第22巡待機stepに `The operation was canceled` を確認。誰が取り消したか、なぜ取り消されたかはActions記録からは不明。
+
+**新しく独立完遂した整合性監査（17:13 JST）：** 取消runの第1〜21巡の予想ZIP **21件**を個別に再ダウンロードし、GitHub側のcontinuity `receipts` 登録SHA256と実バイトSHA256、ZIP CRCをすべて照合。結果・PDCA ZIP **21件**も別々に再取得し、同じreceiptのSHA、ZIP CRC、内部status.round_no=1..21と、各ZIP内 `current-p1-original.zip` が該当巡の予想ZIP実バイトと完全一致することを検証。前runから持ち越された継続ZIP `13395880555`（SHA256 `12cc88117f6bf486ec6fab14d6c3dd78634632b634eb20d9653755b24195cbca`）の内包旧予想原本ZIP **104件**も個別に展開し、同梱receiptの実SHA/CRC一致。旧104件＋当run21件の予想原本計**125件**の照合に不一致0件。結果ZIPの予想・採点件数は途中で減少なし。
+
+**第21巡の成功確定範囲を修正：** 第21巡の結果ZIP内 `status.json` は保存時点の `completed_round=20/prepared_round=21` だったが、取消後に保存された継続ZIPの `repeat-session.json` は `completed_round=21/prepared_round=null` と21個の `verified_at` 付き対証跡を保持する。したがって**第21巡の独立読戻しまで完了**、第22巡は待機中キャンセル、第23・24巡はskipped。run全体はキャンセルのまま。最後の保存済み結果は `round_no=21/updated_at=2026-11-05T07:02:18.662992+00:00`（16:02:18 JST）、基準698予想（P0=288/P1=410）、通常546採点（HIT195/MISS351）、研究学習版132件、前向き同条件110モデル別行。これらは**前回既報の保存値の再検証であり新規増分ではない**。
+
+**継続判断：** 上記は予想原本125件と当runの結果原本21件の整合性検証であり、過去の全結果・全学習元artifactの再ダウンロード、Drive保全、取消主体の特定、作業HEADと当run HEADの完全互換性までは未確認。現HEADのコードは `requests_used=334/source_limit=null/max_rounds=null/stop_at=null` の実行契約で、今回の明示された**公式GET240・24巡/65分・1巡45/最大3レース**という条件と矛盾する。別チャットからの上限撤廃変更を、この監査のために無断巻戻しせず、取消run rerun・新トリガー・他workflow・新PR・新モデル・本番切替は**一切実施しない**。上限を回避する再起動は認めない。再開には矛盾する実行契約の解決、取消原因の確認、原本と学習元の残照合が必要。
+
+予想・採点の既存数字を新成績として加算しない。artifact7日保持は恒久私有保管ではなく、全競技全モデル、全日P1無欠落、学習版の前向き統計的優位性は引き続き未実証。新タスク/頻度/PR/workflow/課金/main統合/一般公開/実投票/本番自動切替なし。
+
+---
+
 # 2026-11-05 16:46 JST｜run取消を検出、第21巡の保存ZIPを独立検証（継続起動保留）
 
 対象：既存Draft PR #71、workflow 405276784、branch `feat/four-sport-forecast-audit-view-20261022`。今回監査でPR HEAD `03df29ce161aa926da2ae53a82d30e8dfccd56cd`、状態文書元blob `678e0a25dfb375b0d67b3a02c12bbe43391ef444`。全Actions直近30runから当該workflowのin_progress/queued/pending/waitingは0件。最新run `41979370711`（実行HEAD `5ef86817daea89544d03f462f58110e1222a9518`）は**2026-11-05 16:05:36 JSTにcompleted/cancelled**。Jobログで第1〜21巡のstepはsuccess、第22巡の「Wait for next deadline scan or worker handoff」は16:03:21 JSTに `The operation was canceled`、23〜24巡skipped。取消操作の主体・原因は未確認。今回run再実行・追加トリガー・キャンセルなし。
