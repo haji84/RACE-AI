@@ -1,3 +1,15 @@
+# 2026-11-06 04:37 JST｜前worker完走と次worker第10巡の保存物一覧を監査（内部独立検証は保留）
+
+既存Draft PR #71 / `feat/four-sport-forecast-audit-view-20261022`、監査時HEAD `9a6085be9b88c3ae5f3a6d5c96210247871bdefb`、workflow `405276784`。前run [42079188438](https://github.com/haji84/RACE-AI/actions/runs/42079188438) は **04:06:49 JST completed/success**。Actions jobで第24巡とcontinuity構築が `completed/success`。後続run [42090917336](https://github.com/haji84/RACE-AI/actions/runs/42090917336) は **04:07:53 JST起動/in_progress**。直近100 run中、同workflowの稼働はこの1件、queued/pending/waitingは0。キャンセル・rerun・追加pushなし、同時writerはAPI上1件。
+
+後続runのActions jobでは **第10巡までsuccess**、実行中stepは `Deadline-ordered five-model round 11`。保存済みの第10巡の予想artifact `13446497882`（GitHub API digest `sha256:df708ad32ffc63bce01120afe1b431e1bdfafbf51efc16e92b2c2a361bcf54c8`、API時刻19:36:50 UTC）と結果・PDCA artifact `13447616575`（API digest `sha256:97f19fca7e0e3b118040b5b53ad9e491fcaaf3e2857010f718910b2eb54e6a06`、API時刻19:36:53 UTC）を一覧で対にして確認。第10巡のAPI保存メタデータを第10巡の内部読戻し完了と混同しない。
+
+**確認の限界:** 第9巡の予想・結果、前runのcontinuity、当日初回P0原本はGitHub connectorからZIPを取得したが、この実行環境のローカルファイル解析がエラーで、実ZIPバイトSHA、CRC、内部 `status.json.round_no/updated_at`、`forecasts.csv`、`automatic_learning`、`learned_shadow_comparison`、`coverage_audit`、学習元の独立読戻しを今回完遂できていない。API digest登録は独立SHA一致の証明ではない。直近独立監査で確認済みの11/6初回P0=312モデル別件（156R×2）を維持し、**最新P1・結果採点・学習版・的中率/回収率/収支の増分は未確認**。0件との断定も、過去日の成績の流用も行わない。P0初回原本・過去予想を再生成しない。
+
+先行監査記録の稼働コード `source_limit=null/max_rounds=null`・workflow timeout360分と、当定期指示の240GET/24巡/65分が未整合。今回の内部カウンター検査不能につき上限遵守を新規認定しない。明示的な4xx/429/日付/真正性停止を回避する後続起動も行わない。他チャットの更新を残し、新タスク・頻度・workflow・PR・モデル系統・課金・Cloudflare/Vercel・main統合・公開・実投票・本番自動採用の変更なし。
+
+---
+
 # 2026-11-06 JST｜展示映像の6艇候補・自動取込・既存2モデルの実験接続を追加（実映像の受入は未完成）
 
 既存Draft PR #71の同じブランチで実装。別作業のTeiai履歴、全選手期別データ、worker引継ぎの更新をfast-forwardで保全し、確認済み基点は `3123f54ebea1b90eff453c322fd3009cd5a52097`。新PR・外部タスク・workflow・予想モデル系統・有料サービスを追加していない。
