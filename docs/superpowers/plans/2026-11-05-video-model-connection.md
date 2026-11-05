@@ -25,7 +25,7 @@
 - [x] Connect optional local intake/analysis and model hooks to existing command paths, without stopping the running forecast service or adding a cron/workflow. Missing source/validation/training support must remain visible and inactive. Document actual automatic operation separately from configurable, unactivated code.
 - [x] Run integrated decoder→all-six candidates→measurement→context→existing-family tests, preserve originals, compare mobile/PC display, and request independent review. All synthetic results remain labelled synthetic.
 - [ ] Obtain authorized actual exhibition footage, independently label/review all-six identities and phases, quantify ID switches/missingness/measurement errors, then save pre-cutoff shadow predictions and compare future official results. **Cannot mark complete from synthetic tests, generic model smoke, local hashes or source403 responses.**
-- [ ] Record completed, uncompleted and external gates in `docs/RACE_AI_LATEST_STATUS.md`, source/evidence hashes, current worker state, latest PR HEAD and exact-code CI. Non-force updates to existing PR only.
+- [x] Record completed, uncompleted and external gates in `docs/RACE_AI_LATEST_STATUS.md`, source/evidence hashes, current worker state, latest PR HEAD and exact-code CI. Non-force updates to existing PR only.
 
 ## Review focus
 

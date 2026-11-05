@@ -198,5 +198,30 @@
     "real-device Safari"
   ],
   "publication_or_main_merge": false,
-  "production_model_change": false
+  "production_model_change": false,
+  "github_ci": {
+    "checked_at": "2026-11-05T18:41:00.525674+00:00",
+    "tested_head": "981768b4a2f46076877202f7676c9639644e5624",
+    "exact_checkout_head_confirmed_in_logs": true,
+    "viewer_run_id": 42085233304,
+    "viewer_url": "https://github.com/haji84/RACE-AI/actions/runs/42085233304",
+    "autorace_run_id": 42085233355,
+    "both_runs_completed_success": true,
+    "normal_python_discovered": 1451,
+    "normal_python_skipped": 44,
+    "isolated_video_python_passed": 104,
+    "isolated_video_python_skipped": 0,
+    "all_44_normal_skips_matched_to_isolated_passes": true,
+    "browser_checks_passed": 39,
+    "video_ui_node_passed": 12,
+    "autorace_ubuntu_passed": 31,
+    "autorace_windows_passed": 21,
+    "autorace_windows_explicit_posix_skips": 10,
+    "all_racer_intake_state": "HOLD_OWNER_STATE_KEY_MISSING",
+    "all_racer_upstream_gets": 0,
+    "encrypted_restore_state": "SKIPPED",
+    "viewer_private_log_sha256": "ca0ef31fd12e7f0ca8e68c07ffc36b2a24f4845ae16d9cf15eaf40b1d57ab042",
+    "autorace_private_log_sha256": "45716f5b7318813278293edbaf64b67e3baa0f691a0242574611d4a961debce4"
+  },
+  "concurrent_audit_head_preserved": "04c43216c318af28a008133bae5ae69263343866"
 }
