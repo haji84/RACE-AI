@@ -15,7 +15,7 @@
 
 10:34 JSTに後続のin_progress/queued/pending/waiting各0、先行run成功、継続すべき未来レース・未確定結果ありを実API再取得で確認。既存trigger `docs/evidence/boat-nationwide-pilot-trigger.txt` のみ1回CAS更新し、commit `74572f2f304f9122cff987b05001b4455c29780c` により**新run `41949401478`** が10:34:11 JSTに `in_progress` 開始。これは新runの予想や結果成果を意味しない。起動後は重複後続push禁止。既存同一concurrency `boat-nationwide-cutoff-20261103`、cancel-in-progress=false、180秒/24巡/65分、1セッション240 GET・1巡45 GET・最大3レース・締切210秒、単一writerを維持。原本/過去予想・既存5モデル係数は不変。新タスク/別workflow/新PR/新モデル/Cloudflare/Vercel/追加課金/main統合/公開/実投票/無検証本番切替なし。
 
-今回のローカル独立ZIP照合は成功したが、これを全ソースの独立監査や全日無欠落、学習版の有意な優位性に拡張していない。旧記録と他チャットの進行は以下に保持。
+非公開Driveのフォルダ/root所有者一致、双方shared=false、owner権限のみはこの巡回で実確認。既存14ファイルに今回runの第22巡回ZIP3件は未登録。しかし、GitHub artifact参照をDrive uploadへ直接渡す試行は `BLOCKED_FILE_REFERENCE` / `file_uri must be a connector file reference object` により拒否された。**今回の第22巡回ZIP3件のDrive新規保存・Drive読戻しSHA照合は0件**。元GitHub ZIPは無改変で、上記独立ローカル再ハッシュ済み。公開repoへの個人Drive識別情報の記載なし。Drive未達を保全成功と偽らない。\n\n今回のローカル独立ZIP照合は成功したが、これを全ソースの独立監査や全日無欠落、学習版の有意な優位性に拡張していない。旧記録と他チャットの進行は以下に保持。
 
 ---
 
