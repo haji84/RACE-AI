@@ -14,7 +14,7 @@ CLI `scripts/boat_video_analyze.py` と実行手順 [展示映像の実験計測
 
 **自動予想は継続：** 開発・テスト・pushのためにアプリPID157669や監視を停止・再起動せず、既存workflow405276784のrun42055132384（固定実行HEAD `f15448d0a00887cff9153a3398b18a3b0761a04e`）だけがin_progress、auto enabled/continuous=true、RUNNING、停止/エラーnullを再確認した。ローカル既存288原本DBのSHAは `c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a` のまま。予想workflow/triggerを変更せず、後続を別予約していない。ユーザーの現在の上限撤廃と開発中継続の指示を、過去の監査文書にある旧制限で巻き戻していない。main統合・一般公開・実投票・本番切替なし。
 
-[ソースSHA・検証・受入差分の証拠](evidence/2026-11-06/boat-video-measurements/verification.json)。GitHub上のexact HEADのCIはpush後に別確認する。以下は過去時点の監査記録として保持する。
+[ソースSHA・検証・受入差分の証拠](evidence/2026-11-06/boat-video-measurements/verification.json)。**GitHubコードCI確定（01:35 JST）：** 実装SHA `326cb90e66b17239b7539c845a8ba577902f0fd6` のexact checkoutをjob logで確認。[Viewer run42065221293](https://github.com/haji84/RACE-AI/actions/runs/42065221293) と既存AUTORACE run42065221265はともにcompleted/success。通常Python discoveryは1,241件中任意CV14件skip、別の固定CV venvで映像関連70件をskipなしで成功、追加映像UI Node10件も成功した。ローカルの全1,241件skipなし実行とは区別する。この追記は文書と証拠だけで、実装ソースSHAは不変。以下は過去時点の監査記録として保持する。
 
 ---
 

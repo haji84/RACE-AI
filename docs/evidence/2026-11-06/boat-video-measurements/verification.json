@@ -128,5 +128,23 @@
     "real-device Safari acceptance"
   ],
   "publication_or_main_merge": false,
-  "production_model_change": false
+  "production_model_change": false,
+  "github_ci": {
+    "checked_at": "2026-11-05T16:37:22.591213+00:00",
+    "tested_head": "326cb90e66b17239b7539c845a8ba577902f0fd6",
+    "exact_checkout_head_confirmed_in_job_log": true,
+    "viewer_run_id": 42065221293,
+    "autorace_run_id": 42065221265,
+    "both_runs_completed_success": true,
+    "linux_windows_training_contracts_success": true,
+    "normal_python_discovered": 1241,
+    "normal_python_skipped_optional_cv": 14,
+    "isolated_cv_tests_passed": 70,
+    "isolated_cv_tests_skipped": 0,
+    "video_ui_node_tests_passed": 10,
+    "browser_ui_checks_success": true,
+    "code_ci_log_sha256": "de076b16a7dc94b012218963a4aea14f054179a8a11f8c569818505644a1181e",
+    "raw_log_committed": false,
+    "subsequent_update_scope": "DOCUMENTATION_ONLY_SOURCE_MANIFEST_UNCHANGED"
+  }
 }
