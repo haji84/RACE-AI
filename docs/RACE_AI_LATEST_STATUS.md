@@ -1,3 +1,17 @@
+# 2026-11-05 16:46 JST｜run取消を検出、第21巡の保存ZIPを独立検証（継続起動保留）
+
+対象：既存Draft PR #71、workflow 405276784、branch `feat/four-sport-forecast-audit-view-20261022`。今回監査でPR HEAD `03df29ce161aa926da2ae53a82d30e8dfccd56cd`、状態文書元blob `678e0a25dfb375b0d67b3a02c12bbe43391ef444`。全Actions直近30runから当該workflowのin_progress/queued/pending/waitingは0件。最新run `41979370711`（実行HEAD `5ef86817daea89544d03f462f58110e1222a9518`）は**2026-11-05 16:05:36 JSTにcompleted/cancelled**。Jobログで第1〜21巡のstepはsuccess、第22巡の「Wait for next deadline scan or worker handoff」は16:03:21 JSTに `The operation was canceled`、23〜24巡skipped。取消操作の主体・原因は未確認。今回run再実行・追加トリガー・キャンセルなし。
+
+**今回取得した最新保存第21巡の実バイト照合：** P1予想 `boat-national-cutoff-41979370711-cycle-21`（artifact 13395371515、保存16:02:11 JST、SHA256 `17e44570cfb6dc8b9e50511c8a5018d4caffbb47033b743f67536b519a4c90de`）／結果PDCA `race-existing-cycle-41979370711-cycle-21`（artifact 13395351632、16:02:20 JST、SHA256 `acaf98ae69cf9c1bdbdeccee306e3da0d0d04a31a3737fa229b253f15860a0b8`）／取消後の継続ZIP `race-cycle-continuity-41979370711`（artifact 13395880555、16:03:23 JST、SHA256 `12cc88117f6bf486ec6fab14d6c3dd78634632b634eb20d9653755b24195cbca`）。3件ともGitHub API digestと実SHA一致・ZIP CRC正常。結果ZIP内`current-p1-original.zip`は別取得P1実バイトに一致。継続ZIPの内包元ZIP104件の各SHAは内包receiptと全件一致、CRC異常なし。ただし追加当runの21個のP1元ZIPは継続ZIP内に直接同梱されず、**全原本復元・中断再開の完全整合性は未認定**。
+
+**前回15:42第11巡→今回16:02第21巡の実保存差分**（重複レースでなくモデル別件数）：基準5系統668→**698（+30）**、P0=288不変、P1=380→**410（+30、82レース×5）**。通常採点504→**546（+42）**、HIT186→**195（+9）**、MISS318→**351（+33）**。保留は結果待ち123・異常18・返還7・RESULT_REJECTED4で、MISSと混同しない。`forecasts.csv`698行、race_id/phase/model重複0、`model_coverage.total_saved_forecasts=698`一致。公式結果観測247版。 `status.json.round_no=21/updated_at=2026-11-05T07:02:18.662992+00:00`、ただし`bounded_repeat_session.completed_round=20/prepared_round=21`なので第21巡の保存成功と継続完走を区別する。
+
+研究学習版120→**132**（+12）、確定結果の前向き同条件比較98→**110モデル別行**（+12、55レース×2）。同じ110行で基準33的中・仮払戻74,790円、候補35的中・85,050円（候補+2的中、+10,260円）。一意の通常結果100レースをtrain75/validation25とした`FITTED_SHADOW_ONLY`候補。全学習元artifactを今回独立再取得しておらず、統計的優位性は未証明、本番採用なし、基準5モデル・過去買い目は不変。網羅監査は144対象・締切済110・未来34・P1五系統完備77レース、締切済未保存33レース×5＝**165モデル別行**。未公表展示が予想時点に取得可能だったかは未検証で、分母から除かない。
+
+**停止と設定衝突：** 実原本では`requests_used=334/source_limit=null/max_rounds=null/stop_at=null`、本定期指示の240GET・24巡・65分と不一致。別途の承認変更をこの監査で勝手に巻き戻さず、cancelled runのrerunや停止条件回避の後続pushも禁止して保持。4xx/429・原本不一致が原因とは断定できない。Driveの新規保存、owner/shared再認証、全学習元の独立読戻しは今回未実施。GitHub7日artifactと1日ソースZIPは恒久の非公開保存ではない。他3競技・全16系統・全日P1無欠落・期限なし保全・学習版の前向き優位性は未完成。新タスク/頻度/workflow/PR/モデル/外部サービス/課金/main統合/一般公開/実投票/本番自動切替なし。
+
+---
+
 # 2026-11-05 15:44 JST｜実第11巡回の独立ZIP再照合と前向き比較の更新（実行中runの途中保存）
 
 対象は既存Draft PR #71 / 既存workflow405276784 / run `41979370711`。監査時PR HEADは `4f7d813a92e5403fe385b7cfdff626616f0f30e3`、実行run HEADは `5ef86817daea89544d03f462f58110e1222a9518`。Actions全run一覧で同workflowのin_progressはこの1件のみ、queued/pending/waitingは確認範囲で0件。先行のrun41967896991はcompleted/success、失敗run41979177157は再実行しない。追加push・新run予約・実行中キャンセルなし。
