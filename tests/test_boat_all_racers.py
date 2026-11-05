@@ -79,3 +79,11 @@ class BulkCLITests(unittest.TestCase):
             self.assertEqual(out['upstream_gets'],0)
             self.assertEqual(out['status'],'VERIFIED_ENCRYPTED_ALL_RACERS_CACHE_REUSED')
             self.assertTrue(restore_checkpoint(p/'second')['durable_encrypted_storage_verified'])
+
+    def test_workflow_rerun_keeps_previous_attempt_artifact(self):
+        import re
+        text=Path('.github/workflows/forecast-audit-ui.yml').read_text()
+        template=re.search(r'name: (official-all-racers-.*)',text)[1]
+        first=template.replace('${{ github.run_id }}','123').replace('${{ github.run_attempt }}','1')
+        second=template.replace('${{ github.run_id }}','123').replace('${{ github.run_attempt }}','2')
+        self.assertNotEqual(first,second)

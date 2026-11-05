@@ -31,3 +31,5 @@ Ruling: user's repeated execution request authorizes direct implementation and e
 Ledger update: Tasks1/2 implemented, actual1643 racers/9858 courses and full existing K1008 starts/621racers/1645union loaded, all1643lookups and serialized readback match. Source plaintext remains in private memory/workspace only.
 Task3 implemented with existing codec and encrypted cache reuse. Focused20 tests PASS; real owner-key capture/readback pending Actions.
 Independent review: three important findings fixed RED→GREEN (zero national samples, latest term membership/asof, A-B-A reversion stop). JST calendar and encrypted cache reuse also verified. Minor capacity limit8MiB documented; no promise of unbounded multi-term state.
+
+Final local suite before push:1296 tests,0failures,14skips. Workflow YAML validated as3existing+2new jobs, no schedule. Actions first attempt intake succeeded with dependent readback skipped (key HOLD to be checked in completed logs). Follow-up: artifact name includes run_attempt to preserve earlier HOLD/encrypted receipts on reruns; regression RED→GREEN. Focused21 tests pass.
