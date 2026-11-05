@@ -1,3 +1,19 @@
+# 2026-11-06 06:25 JST｜当日第20巡の実ZIP検証と前worker24巡の引継ぎ監査（新P1・採点増分なし）
+
+対象は既存Draft PR #71、同一workflow 405276784、GitHub上の確認HEAD `ea8b71dad0bf9dced24d3cf4ffce23eae015fb88`。確認時のrun [42102544987](https://github.com/haji84/RACE-AI/actions/runs/42102544987) は `in_progress` 1件、対象workflow直近100件にqueued/pending/waitingなし。前run [42090917336](https://github.com/haji84/RACE-AI/actions/runs/42090917336) は `completed/success`（05:19:12 JST）。前run最終継続artifact `13450426983` を実ZIPバイトで独立取得し、GitHub API digestとSHA256 `db7f17ed2b1814333210f4d88fd21c3d7f5d1eb5bbc4ff27bd2171e436fdbc11` が一致、ZIP CRC正常。内部 `repeat-session.json` は `completed_round=24/prepared_round=null`、第24巡の別保存読戻しreceiptを保持。前run24巡完走を認定。
+
+**現run第20巡の別保存原本の独立照合:** P1試行ZIP artifact `13454831900` の実SHA256 `55e3473622df25a663533b3b33d655d0897e2625c0001601414220e6efc77862`、結果・PDCA ZIP artifact `13454831911` の実SHA256 `5ebb4640c8a5fa03b1c35a84e2322b15cc83facf6c0cae67709b37680a9cdbea` はそれぞれGitHub登録digestと一致、ZIP CRC異常なし。結果ZIP内 `current-p1-original.zip` は独立取得P1 ZIPと実バイトSHA一致。`first-p0-original.zip` は当日初回P0 artifact `13428142302` とSHA256 `6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc` で一致、初回receipt索引の登録digestとも一致し再生成・上書きはなし。
+
+**巡回の境界:** 結果ZIP内 `status.json.round_no=20/updated_at=2026-11-06 06:22:55 JST`、`bounded_repeat_session.completed_round=19/prepared_round=20`。第19巡までの独立読戻しreceiptがあり、第20巡は元ZIP保存・独立ハッシュ照合のみ確認。run全体の完走とはしない。現run `requests_used=202`、`halted_reason=null/source_wait=null`。公式6艇の展示後入力は未成立（`national.json.reason=NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES`）、次の候補確認は08:20 JST。
+
+**当日成績:** 13会場156レース、朝版P0=312モデル別予想（2系統×156R）、P1=0、公式結果観測=0、通常採点=0、学習版=0、未来比較=0、`forecasts.csv`実312行/重複なし。 `coverage_audit`: 未来156/締切済0。学習は `INSUFFICIENT_VERIFIED_RACES`、`external_research_summary=NO_AUDITED_IMPORT_MANIFEST`。従って新しい的中率、回収率、仮想収支は算出しない。過去の日の成績を今日に混ぜない。
+
+**安全・保全未達:** 実GETは202<240だが、保存セッション `source_limit=null/max_rounds=null/stop_at=null`、現workflow `timeout-minutes=360` は当定期指示の240GET・24巡・65分と不一致。別に記録されたオーナーの上限撤廃指示とも競合。実行中runをキャンセルせず、無制限実行の後続起動・同run rerun・設定の無検証変更・並列writer増加はしない。Google Driveの対象非公開保管フォルダは今回も所有者一致/`shared=false`を直接確認したが、元ZIP6件の新規保存はLibrary側 `container_session_expired` で6/6失敗。別経路の単独再試行も同じ失敗、GitHub→Drive直結は参照型不一致。**今回のDrive新規保存0件であり、恒久保全完了ではない。** 元ZIPの編集・再圧縮、公開Gitへの私有URL/ID・生予想・認証値の転記はなし。
+
+次の作業は既存workflowの安全上限の運用契約一致と、08:20以降の展示公表を実際に確認した5基準モデルP1の締切前独立保存、結果が出た後の別イベント採点・係数学習・LEARNED_SHADOW前向き同条件対照。既存タスク・実行頻度・workflow・新PR・新モデル・外部サービス・追加課金・main統合・一般公開・実投票・基準モデル本番係数は無変更。
+
+---
+
 # 2026-11-06 05:18 JST｜最新保存第23巡を独立ZIP照合、前worker第24巡も復元確認（事前予想増分0）
 
 対象：既存Draft PR #71 / `feat/four-sport-forecast-audit-view-20261022`、確認時HEAD `aae143f374135c14b681b244f5900be8612d560f`、既存workflow `405276784`。直近30run確認では [run 42090917336](https://github.com/haji84/RACE-AI/actions/runs/42090917336) が `in_progress` 1件、同workflowのqueued/pending/waitingは0。現runの第23巡保存済みだが、第24巡は実行中でありrun全体の成功とは判定しない。追加trigger・キャンセル・rerunなし。
