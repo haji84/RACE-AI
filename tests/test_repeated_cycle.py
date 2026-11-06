@@ -110,7 +110,7 @@ class RepeatedControllerTests(unittest.TestCase):
         self.assertEqual(out['halted_reason'],'ROUND_SOURCE_BUDGET_EXHAUSTED')
         self.assertEqual(out['requests_used'],old['requests_used'])
         self.assertEqual(out['source_wait'],waiting)
-        self.assertEqual(out['lifetime_requests'],545)
+        self.assertEqual(out['lifetime_requests'],old['lifetime_requests'])
         self.assertEqual(r.prepare(self.path,2,now=now+timedelta(seconds=1))['reason'],
                          'ROUND_SOURCE_BUDGET_EXHAUSTED')
         before=self.path.read_bytes()
