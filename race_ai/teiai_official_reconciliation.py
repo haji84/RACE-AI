@@ -19,7 +19,7 @@ if _REFERENCE not in race_ai.__path__:race_ai.__path__.append(_REFERENCE)
 from .core import _blocks, parse_k
 
 FIELDS=('race_id','racer_id','lane','course','st','st_status','finish','result_code','winner_method')
-OFFICIAL_K_PARSER_REVISION=9
+OFFICIAL_K_PARSER_REVISION=10
 
 
 def _complete_document(text):
@@ -46,9 +46,10 @@ def parse_k_rows(raw,day):
     A printed course is restored; an absent course stays absent. Raw provenance
     and dispositions always come from the original bytes.
     """
-    day=date.fromisoformat(day);text=unicodedata.normalize('NFKC',raw.decode('cp932'))
+    day=date.fromisoformat(day);text=raw.decode('cp932')
     venue=race=None;late={};adapted=[]
-    for line in text.splitlines():
+    for original in text.splitlines():
+        line=unicodedata.normalize('NFKC',original)
         marker=re.fullmatch(r'\s*([0-9]{1,2})K(BGN|END)\s*',line)
         if marker:
             venue=int(marker[1]) if marker[2]=='BGN' else None;race=None
@@ -62,7 +63,9 @@ def parse_k_rows(raw,day):
             key=(f'{day:%Y%m%d}-{venue:02d}-{race:02d}',int(lane))
             need(key not in late,'OFFICIAL_LATE_DUPLICATE_ROW');late[key]=(reg,int(course) if course and course!='0' else None,timing,code[0])
             line=f' 欠 {lane} {reg}'
-        adapted.append(line)
+        # Preserve non-adapted source bytes: NFKC can introduce combining
+        # characters in names that cannot round-trip through CP932.
+        adapted.append(line if missing else original)
     rows=parse_k('\n'.join(adapted).encode('cp932') if late else raw,day.isoformat())
     for row in rows:
         # The pinned legacy parser uses midnight as a date-sort placeholder.

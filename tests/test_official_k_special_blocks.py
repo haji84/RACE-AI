@@ -17,6 +17,14 @@ def packet(*, late=False, extra=''):
 
 
 class OfficialSpecialBlocksTests(unittest.TestCase):
+    def test_late_row_adaptation_preserves_original_cp932_name_bytes(self):
+        # NFKC of a standalone half-width voiced mark contains U+3099, which
+        # CP932 cannot encode. Only the late-row transport may be rewritten.
+        raw=packet(late=True).replace(b'TEST', 'ｶﾞﾞ'.encode('cp932'),1)
+        rows=official_day(raw,day='2030-01-01')['rows']
+        self.assertEqual(len(rows),6)
+        self.assertEqual(rows[-1]['st_status'],'L')
+
     def test_daily_date_is_not_invented_as_actual_race_start_time(self):
         rows=official_day(packet(),day='2030-01-01')['rows']
         self.assertTrue(all(row['race_at'] is None for row in rows))
