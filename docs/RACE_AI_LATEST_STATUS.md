@@ -1,3 +1,24 @@
+<!-- RACEAI_20261106_2237_CYCLE24_VERIFIED_LIMIT_AND_CI -->
+# 2026-11-06 22:37 JST｜最終第24巡の独立照合、上限逸脱675GET、旧無制限CI試験3件を安全仕様へ修正
+
+**固定対象:** 既存Draft PR #71 / 同一ブランチ、今回記録直前の最新HEAD `bd515aea09b720544c9365eaf387e75d4f3cb9f3`。workflow405276784の最新run42211744943は固定SHA `fb4f70b026424d9b50b792dc308a378664ee7c81`で2026-11-06 21:57:43 JSTまでにcompleted/success。取得した最新100 runではこのworkflowのin_progress/queued/pending/waitingは0。完走成功は公式GET上限遵守の証拠ではない。未来レース0、未確認結果17、特殊/要確認8、真正性拒否4であり、旧セッション上限違反の後継回避になり得るため追加trigger/cancel/rerunは行っていない。
+
+**最終第24巡原本:** 全artifact一覧から名前の第24巡を選択。元P1 ZIP `13504190716` 実SHA256 `f45933784ee8c7aab5fa1d748400ac39863983c50c8cc8da786968936c8d72ed`、結果・PDCA ZIP `13503686892` 同 `0a8034c9c1dc732a6f6613e158275b66d34c2446c0bc1b6194a338678804137c`、継続ZIP `13504510192` 同 `c764592b727418d28681e7a6c85392865693b0def393d25f29d3b53add0eb8cb`。3件ともGitHub API digestとの一致、ZIP CRC異常0。結果ZIP内current-p1-original.zipは独立元P1とバイト一致。初回P0 ZIP SHA256 `6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc`は既存docs/evidence/2026-11-06/p0-first-receipt.jsonと一致。status.jsonのcanonical report_sha256、repeat-session.jsonのsession_sha256も独立再計算一致。status.round_no=24、updated_at=2026-11-06T12:57:25.358152+00:00。継続readback receipt24件、completed_round=24。
+
+**実差分:** 21:33時点の第16巡から基準保存P0=312/P1=420、モデル別採点644行、LEARNED_SHADOW134行、同条件paired126行=63一意レース、通常確定127Rのすべてが増減0。モデル別P0/P1収支・率も同じなので前掲21:33の7行表を正本参照し、重複合算を新成績と報告しない。ボート13会場156Rは全締切済み、P1完備84R、残り72R×5=360モデル別予想不足。通常確定共通分母127Rに対しP1 Bは保存済み31?ではなく正しく**37的中/78採点=47.44%**、一方全正常確定対象では**37/127=29.13%（未予想49件）**。この2つを混同しない。欠測展示が公表済みだったかは未実証。公式結果履歴revision380件、未確認・拒否をMISSに加えない。
+
+**学習版の安全評価:** 127一意通常確定Rから学習96/時間順検証31、FITTED_SHADOW_ONLY。LEARNED_SHADOW保存134/比較可能126行。学習元ZIP全件の今回再取得はしていないため全比較の再真正性完了は主張しない。学習候補の未来優位性未証明、本番基準5系統と原本は不変。
+
+**重大問題:** 結果ZIP内session requests_used=675（forecast234/result441）、指定240GETを**435超過**。continuityも675、source_limit/max_rounds/stop_at=null、completed_round24。以前の第16巡452GETから223増えたが、予想・通常採点・モデル別収支に新規変化はない。この実行は固定旧SHAの無制限版であり、安全成功とは呼ばない。確認時の最新ブランチrace_ai/repeated_cycle.pyにはSOURCE_LIMIT=240、ROUND_SOURCE_LIMIT=45、MAX_ROUNDS=24、MAX_SECONDS=3900、POLL_SECONDS=180が存在する。ただし、この正しいHEADでの実worker 240以内停止は依然0実証。
+
+**CIの実原因と修正:** 旧HEAD444f5588のViewer contract42219066802は1941テスト中の3失敗（test_local_forecast_automationの過去無制限期待2件、test_observed_weight_learningの無期限stop_at期待1件）でfailure。失敗ログを取得し、既存テスト2ファイルだけを修正。241GETからの再開はREVIEW_WAIT / SOURCE_BUDGET_EXHAUSTEDを要求し、移行元原本の不変を確認し、65分・24巡・240/45GETが次の毎時起動前に不当に早く止まらないことを要求。修正commit `99070bda6c020b47d195f94b24ebd3013acc8cc0` と `bd515aea09b720544c9365eaf387e75d4f3cb9f3`。後者のAUTORACE CI42226834201はsuccess、Viewer CI42226834231は確認時pending。未完了CIを成功と呼ばない。追加モデル、予想実装、workflow、schedule、実行制限値は変更していない。
+
+**保全:** 本人専用Driveのフォルダ権限は接続アカウント本人とowner一致/shared=falseを独立確認。最新run原本名の検索結果0件。GitHub元ZIPのDrive新規転送はコネクタがファイル参照を拒否し、今回新規保存0件。ZIPはGitHub7日artifact依存、永久private保存とは認定しない。外部研究manifestは未検証のまま、他競技16系統/全4競技完了へ換算しない。
+
+**次の合格条件:** 後続の**新しい固定HEAD**で実際に起動された既存workerが累計GET<=240・1巡<=45・24巡/65分内で安全に停止し、その予想/結果/継続3元ZIPを独立読戻しできること。過去不適合workerの同run rerun、上限回避push、無承認の本番切替は行わない。
+
+---
+
 <!-- RACEAI_AUTOMATION_20261106_CYCLE16_MODELWISE_QUOTA_RESTORED -->
 # 2026-11-06 21:33 JST｜最新保存第16巡の独立監査、モデル別採点更新、有限安全制限を再復元
 
