@@ -1,3 +1,18 @@
+<!-- RACEAI_AUTOMATION_20261106_1524_CYCLE09_QUOTA -->
+# 2026-11-06 15:24 JST｜第9巡の独立原本・採点を確認、240 GET制限を既存PRへ復元
+
+**固定HEADと稼働区別:** 既存Draft PR #71、同一ブランチの安全修正commit `f1e732061fd61556b301c97e994430c101e75ad0` で`race_ai/repeated_cycle.py`の既定値をSOURCE_LIMIT=240、ROUND_SOURCE_LIMIT=45、MAX_ROUNDS=24、MAX_SECONDS=3900、POLL_SECONDS=180に復元し、既存制限テストを同一commitで整合。旧セッションや停止証拠を後書きで改変しない。修正後の実worker検証とexact-HEAD CI結果はこの時点で未確定。現在のrun [42172002810](https://github.com/haji84/RACE-AI/actions/runs/42172002810) は**修正前の固定HEAD `e4fed1d74b2e43170ceb314a518bdba4104f21ff` でin_progress**、今回の修正はこのプロセスへ適用されていない。queued/pending/waitingの後続は確認範囲で0件。旧run rerun、追加trigger、cancelなし。
+
+**最新独立読戻し（保存済み第9巡のみ）:** 第9巡の結果ZIP artifact `13482461562`、SHA256 `ca2e0ff3b431310e44630085297a256ed94205cc59af08b06ddb7dc8f3ef445d` とP1 ZIP `13482301968`、SHA256 `041947fc7c3a2835684461698ea5b2ed42c8904adcaa929229e788476a23388b` をGitHubから別取得。双方API digest＝実ZIP SHA256、CRC破損0。結果ZIP内P1原本はP1 artifact実ZIPと同一。初回P0内包ZIPのSHA `6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc` は既報と不変。結果ZIPのstatus.round_no=9、updated_at=2026-11-06T06:24:13.849479+00:00。sessionは読戻し前のcompleted_round=8/prepared_round=9であり、第9巡readback完了やrun完走を先取りしない。
+
+**第9巡までの保存済み成果（11月6日ボート156R）:** P0=312、P1=305、合計617モデル・時点行。通常確定の採点417行＝HIT145/MISS272、未採点200。7モデル・時点それぞれ8点各100円の仮定で、採点済みに限る仮投入333,600円／仮受取274,680円／仮収支-58,920円／回収率82.34％。同レース複数モデル・時点の合計であり、156R全体や実投票の成績ではない。通常結果81R、締切済110R・未来46R、P1五モデル不足260モデル別行をcoverage_auditへ残す。未公開展示を取得可能だったと推定しない。研究LEARNED_SHADOWは基準から別計上88モデル別予想・同条件paired72行、前向き改善は未認定。
+
+**重大な実行逸脱:** 第9巡保存時点の旧run session.requests_used=**258**（forecast114/result144）、指定240回を**18回超過**。旧固定HEADのsource_limit=nullにより停止していない。これを正常な上限遵守と報告しない。後続runの先行予約は停止条件の回避になるため行わず、既存の実行中writerをキャンセルしない。今後の別runで240以内の停止と、最後の保存原本独立readbackを実証するまで安全運転未達。
+
+**保全:** 本人専用Driveフォルダの権限を当該接続アカウントとのowner一致・shared=falseで再確認した。ただしGithub ZIP→Drive uploadはconnector file_uri型エラーで成立せず、今回新規Drive原本0。GitHub artifactは7日保持のまま。新PR、別workflow、毎時タスク変更、モデル系統追加、Cloudflare/Vercel、main統合、一般公開、追加課金、実投票、本番自動切替なし。
+
+---
+
 <!-- RACEAI_AUTHORIZED_NO_NUMERIC_CAPS_RESTORED_AGAIN_20261106 -->
 # 2026-11-06 14:55 JST｜並行更新の数値上限再導入を修正、旧計数と取得元の待機は保全
 
