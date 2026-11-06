@@ -1,7 +1,7 @@
 <!-- RACEAI_FINAL_VERIFIED_SCOPE_AND_REMAINING_GATES_20261106 -->
 # 2026-11-06 15:26 JST｜上限なし修正のコードCI成功、後継Worker実行中・映像3条件は未完成
 
-**完成を確認した範囲:** 既存Draft PR #71で、認証復帰・一要求内の原本検証再利用・数値上限なしの修正を保存した。並行の会場履歴/公式K/成績/予算画面の変更も保全した。修正を含むコードHEAD [45a2749](https://github.com/haji84/RACE-AI/commit/45a2749e36806035cd275c4b54bb2437931a2528)の既存Viewer [42172920937](https://github.com/haji84/RACE-AI/actions/runs/42172920937)・AUTORACE [42172920961](https://github.com/haji84/RACE-AI/actions/runs/42172920961)はcompleted/success。観測した後続HEAD1298618との差は別競技のaudit JSON2件のみで、ソース・テスト・Workflowは同じだった。この追記自体は記録だけで、そのChecksを過去のコードCIと混同しない。
+**完成を確認した範囲:** 既存Draft PR #71で、認証復帰・一要求内の原本検証再利用・数値上限なしの修正を保存した。並行の会場履歴/公式K/成績/予算画面の変更も保全した。修正を含むコードHEAD [45a2749](https://github.com/haji84/RACE-AI/commit/45a2749e36806035cd275c4b54bb2437931a2528)の既存Viewer [42172920937](https://github.com/haji84/RACE-AI/actions/runs/42172920937)・AUTORACE [42172920961](https://github.com/haji84/RACE-AI/actions/runs/42172920961)はcompleted/success。観測した後続HEAD1298618との差は別競技のaudit JSON2件のみで、ソース・テスト・Workflowは同じだった。この追記自体は記録だけで、そのChecksを過去のコードCIと混同しない。続くf1e7320で同じ数値上限が再導入されたため、検証済みの346335be（None既定・計数/取得元待機/整合性保持）とd20be01dの試験を復元した。再導入側の差分は数値既定とその既定を要求する試験であり、新たな実カウンタ保護は失っていない。両方の監査記録は保持した。
 
 **自動運転の最新事実:** 旧run42164651846は05:47:39 UTCに通常終了していた。前のin_progress表示を現在へ延長した説明を訂正する。並行の数値上限再導入は後継条件と矛盾しており、今回の修正後、同じWorkflowの後継 [42172002810](https://github.com/haji84/RACE-AI/actions/runs/42172002810)が06:03:02 UTCに自動起動した。06:23 UTCの正規メタデータで実行中を再確認。約15分の引継ぎ間隔があり、全時間・全レースを無欠落で連続実行したという認定はしない。人工的な取得/巡回/時間上限はNone、401/403・429/Retry-After・真正性停止、計数・旧申告・受領証は保持している。実行中runを手動停止・cancel・rerunしていない。監視は同じ私有保存先/ポートのPID423218、映像intake271439は保持、初回DBのSHAは不変。
 
@@ -10,6 +10,21 @@
 **未完成・外部入力条件:** 実映像の最終識別は旧AI参照10例で0、有効位置0、動画特徴を使う前向き比較0件。現方式の識別性能不足、解析に使える現行展示映像・独立正解・水面/時計/強さ参照の未接続が残る。6艇継続追跡、ターン・出足・行き足・伸びの強さ、動画による改善は完成していない。実機Safariも未受入。取得・解析を認められた映像供給経路と独立参照の接続が必要で、既知403等の迂回や不明な素材の学習使用はしていない。全4競技/全モデルの無欠落運転、98%達成、私有原本の無期限保管もこの結果から認定しない。
 
 実装・合成/実データ試験・失敗と修正・証拠のSHAは[続行証拠](evidence/2026-11-06/real-video-validation/continuation.json)に保存。main統合・一般公開・実投票・本番モデル切替、新PR/Workflow/サービス/課金は実施していない。
+
+---
+
+<!-- RACEAI_AUTOMATION_20261106_1524_CYCLE09_QUOTA -->
+# 2026-11-06 15:24 JST｜第9巡の独立原本・採点を確認、240 GET制限を既存PRへ復元
+
+**固定HEADと稼働区別:** 既存Draft PR #71、同一ブランチの安全修正commit `f1e732061fd61556b301c97e994430c101e75ad0` で`race_ai/repeated_cycle.py`の既定値をSOURCE_LIMIT=240、ROUND_SOURCE_LIMIT=45、MAX_ROUNDS=24、MAX_SECONDS=3900、POLL_SECONDS=180に復元し、既存制限テストを同一commitで整合。旧セッションや停止証拠を後書きで改変しない。修正後の実worker検証とexact-HEAD CI結果はこの時点で未確定。現在のrun [42172002810](https://github.com/haji84/RACE-AI/actions/runs/42172002810) は**修正前の固定HEAD `e4fed1d74b2e43170ceb314a518bdba4104f21ff` でin_progress**、今回の修正はこのプロセスへ適用されていない。queued/pending/waitingの後続は確認範囲で0件。旧run rerun、追加trigger、cancelなし。
+
+**最新独立読戻し（保存済み第9巡のみ）:** 第9巡の結果ZIP artifact `13482461562`、SHA256 `ca2e0ff3b431310e44630085297a256ed94205cc59af08b06ddb7dc8f3ef445d` とP1 ZIP `13482301968`、SHA256 `041947fc7c3a2835684461698ea5b2ed42c8904adcaa929229e788476a23388b` をGitHubから別取得。双方API digest＝実ZIP SHA256、CRC破損0。結果ZIP内P1原本はP1 artifact実ZIPと同一。初回P0内包ZIPのSHA `6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc` は既報と不変。結果ZIPのstatus.round_no=9、updated_at=2026-11-06T06:24:13.849479+00:00。sessionは読戻し前のcompleted_round=8/prepared_round=9であり、第9巡readback完了やrun完走を先取りしない。
+
+**第9巡までの保存済み成果（11月6日ボート156R）:** P0=312、P1=305、合計617モデル・時点行。通常確定の採点417行＝HIT145/MISS272、未採点200。7モデル・時点それぞれ8点各100円の仮定で、採点済みに限る仮投入333,600円／仮受取274,680円／仮収支-58,920円／回収率82.34％。同レース複数モデル・時点の合計であり、156R全体や実投票の成績ではない。通常結果81R、締切済110R・未来46R、P1五モデル不足260モデル別行をcoverage_auditへ残す。未公開展示を取得可能だったと推定しない。研究LEARNED_SHADOWは基準から別計上88モデル別予想・同条件paired72行、前向き改善は未認定。
+
+**重大な実行逸脱:** 第9巡保存時点の旧run session.requests_used=**258**（forecast114/result144）、指定240回を**18回超過**。旧固定HEADのsource_limit=nullにより停止していない。これを正常な上限遵守と報告しない。後続runの先行予約は停止条件の回避になるため行わず、既存の実行中writerをキャンセルしない。今後の別runで240以内の停止と、最後の保存原本独立readbackを実証するまで安全運転未達。
+
+**保全:** 本人専用Driveフォルダの権限を当該接続アカウントとのowner一致・shared=falseで再確認した。ただしGithub ZIP→Drive uploadはconnector file_uri型エラーで成立せず、今回新規Drive原本0。GitHub artifactは7日保持のまま。新PR、別workflow、毎時タスク変更、モデル系統追加、Cloudflare/Vercel、main統合、一般公開、追加課金、実投票、本番自動切替なし。
 
 ---
 
