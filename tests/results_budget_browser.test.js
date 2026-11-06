@@ -55,12 +55,21 @@ for record in overflow['records']:
   assert.equal(await page.locator('#saved-results-table tbody tr').count(),2);
   assert.match(await page.locator('#saved-results-table').innerText(),/的中/);
   assert.match(await page.locator('#saved-results-table').innerText(),/結果待ち/);
+  const savedRate=page.locator('#saved-result-metrics .metric').filter({hasText:'保存Top8的中率'});
+  assert.equal(await savedRate.count(),1);assert.match(await savedRate.innerText(),/100\.0%/);assert.match(await savedRate.innerText(),/1 \/ 1/);
+  const boughtRate=page.locator('#simulation-metrics .metric').filter({hasText:'購入予定分の的中率'});
+  assert.equal(await boughtRate.count(),1);assert.match(await boughtRate.innerText(),/100\.0%/);
+  assert.match(await page.locator('#simulation-comparison thead').innerText(),/的中率/);
+  assert.match(await page.locator('#simulation-comparison thead').innerText(),/確定分回収率/);
   assert.match(await page.locator('#simulation-metrics').innerText(),/1,600円/);
   assert.match(await page.locator('#simulation-metrics').innerText(),/800円/);
   assert.match(await page.locator('#simulation-metrics').innerText(),/未確定/);
   const budget=page.locator('#simulation-budget');await budget.fill('1000');await budget.press('Tab');
   assert.equal(await budget.inputValue(),'1000');assert.match(await page.locator('#simulation-metrics').innerText(),/200円/);
   assert.match(await page.locator('#simulation-metrics').innerText(),/400円/);
+  await budget.fill('700');await budget.press('Tab');
+  assert.match(await boughtRate.innerText(),/算出対象なし/);assert.match(await savedRate.innerText(),/100\.0%/);
+  await budget.fill('1000');await budget.press('Tab');
   await budget.fill('50');await budget.press('Tab');assert.equal(await budget.inputValue(),'1000');
   assert.match(await page.locator('#simulation-message').innerText(),/100円/);
   assert.match(await page.locator('#result-metrics').innerText(),/未検証/);
@@ -84,7 +93,8 @@ for record in overflow['records']:
   await page.locator('[data-page="results"]').filter({visible:true}).first().click();
   assert.equal(await page.locator('#saved-results-table tbody tr').count(),1);
   assert.match(await page.locator('#result-coverage').innerText(),/対象 1レース/);
-  assert.match(await page.locator('#saved-results-table').innerText(),/未予想/);await page.close();
+  assert.match(await page.locator('#saved-results-table').innerText(),/未予想/);
+  assert.match(await savedRate.innerText(),/算出対象なし/);await page.close();
  }
  console.log('PASS results + editable daily budget: observed hit/pending,4models,10k→1k,unknown money,originals/formal gates unchanged,mobile/desktop');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();if(server)await new Promise(r=>server.close(r));fs.rmSync(folder,{recursive:true,force:true});});
