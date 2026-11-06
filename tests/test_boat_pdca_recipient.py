@@ -6,6 +6,7 @@ import json
 import os
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from race_ai.boat_history_store import instant,wire
 from race_ai.boat_pdca_state import PdcaState,PUBLIC_FIXTURE_KEY,sha
@@ -34,6 +35,166 @@ class RecipientTests(unittest.TestCase):
     def pointer(self,report,commit='a'*40):
         return dict(report,status='READY',source_commit=commit,
             cipher_path='state/boat-pdca-incoming/v1/'+report['cipher_sha256']+'.enc')
+
+    def canonical(self,state_path,folder,*,generation=1,previous_sha=None,key=OWNER):
+        state=PdcaState(state_path)
+        try:proof=state.checkpoint(folder,generation=generation,previous_cipher_sha256=previous_sha,key=key)
+        finally:state.close()
+        pointer=dict(schema='RACE_AI_BOAT_PRODUCTION_STATE_INPUT_V1',status='READY',repository_id='1416489937',
+            source_commit='d'*40,cipher_path=f'state/boat-pdca/v1/g{generation:06d}/state.enc',
+            cipher_sha256=proof['cipher_sha256'],scope=proof['scope'])
+        return pointer,(folder/'state.enc').read_bytes()
+
+    def receive_stale(self,transfer,cipher,current,current_cipher,out,*,key=OWNER):
+        pointer=self.pointer(transfer)
+        records={
+            'https://raw.githubusercontent.com/haji84/RACE-AI/'+pointer['source_commit']+'/'+pointer['cipher_path']:cipher,
+            'https://raw.githubusercontent.com/haji84/RACE-AI/'+current['source_commit']+'/'+current['cipher_path']:current_cipher}
+        calls=[]
+        def fetch(url):calls.append(url);return records[url]
+        value=self.m.receive_transfer(pointer,out,key=key,fetch=fetch,run_id='201',source_head=HEAD,
+            previous_pointer=current,now=NOW)
+        self.assertEqual(len(calls),2)
+        return value
+
+    def test_verified_same_generation_is_already_covered_without_another_checkpoint(self):
+        state,_=invented_research_state(self.root)
+        transfer=self.transfer(state,self.root/'offer');cipher=(self.root/'offer/transfer.enc').read_bytes()
+        current,current_cipher=self.canonical(state,self.root/'canonical')
+        before=state.read_bytes();out=self.root/'covered'
+        with patch.object(PdcaState,'checkpoint',side_effect=AssertionError('no new checkpoint for covered originals')):
+            result=self.receive_stale(transfer,cipher,current,current_cipher,out)
+        self.assertEqual(result['status'],'OWNER_PDCA_TRANSFER_ALREADY_COVERED')
+        self.assertFalse(result['encrypted_checkpoint_created'])
+        self.assertTrue(result['production_schema_readback_verified'])
+        self.assertTrue(result['incoming_originals_covered'])
+        self.assertEqual(result['scope'],current['scope'])
+        self.assertEqual(result['cipher_sha256'],current['cipher_sha256'])
+        self.assertEqual(result['pairs_verified'],1)
+        self.assertEqual(result['score_replays'],1)
+        self.assertFalse(result['plaintext_published'])
+        self.assertEqual(list(out.iterdir()),[])
+        self.assertEqual(state.read_bytes(),before)
+
+    def test_later_canonical_keeps_every_incoming_original_and_newer_result_revision(self):
+        from tests.test_boat_pdca_state import result
+        state,pair=invented_research_state(self.root)
+        transfer=self.transfer(state,self.root/'offer');cipher=(self.root/'offer/transfer.enc').read_bytes()
+        first,_=self.canonical(state,self.root/'first')
+        updated=result(pair);updated.update(captured_at='2026-11-06T11:30:00+09:00',source_sha256='c'*64)
+        updated['data']['payouts'][0]['payout_per_100_yen']=2400
+        current_state=PdcaState(state)
+        try:current_state.score(pair['pair_sha256'],updated,NOW)
+        finally:current_state.close()
+        current,current_cipher=self.canonical(state,self.root/'canonical',generation=2,previous_sha=first['cipher_sha256'])
+        before=state.read_bytes();out=self.root/'covered'
+        with patch.object(PdcaState,'checkpoint',side_effect=AssertionError('covered transfer must not advance generation')):
+            result=self.receive_stale(transfer,cipher,current,current_cipher,out)
+        self.assertEqual(result['status'],'OWNER_PDCA_TRANSFER_ALREADY_COVERED')
+        self.assertFalse(result['encrypted_checkpoint_created'])
+        self.assertEqual(result['scope']['generation'],2)
+        self.assertEqual(result['result_revisions'],2)
+        self.assertEqual(list(out.iterdir()),[])
+        self.assertEqual(state.read_bytes(),before)
+
+    def test_same_generation_with_missing_incoming_originals_is_not_skipped(self):
+        from tests.test_boat_pdca_state import result
+        state,pair=invented_research_state(self.root)
+        current,current_cipher=self.canonical(state,self.root/'canonical')
+        updated=result(pair);updated.update(captured_at='2026-11-06T11:30:00+09:00',source_sha256='c'*64)
+        updated['data']['payouts'][0]['payout_per_100_yen']=2400
+        changed=PdcaState(state)
+        try:changed.score(pair['pair_sha256'],updated,NOW)
+        finally:changed.close()
+        transfer=self.transfer(state,self.root/'offer');cipher=(self.root/'offer/transfer.enc').read_bytes()
+        out=self.root/'rejected'
+        with self.assertRaisesRegex(ValueError,'STATE_REGRESSION_'):
+            self.receive_stale(transfer,cipher,current,current_cipher,out)
+        self.assertFalse((out/'sealed').exists())
+        self.assertFalse((out/'incoming.sqlite').exists())
+
+    def test_later_generation_with_conflicting_original_result_is_not_skipped(self):
+        from tests.test_boat_pdca_state import result
+        state,pair=invented_research_state(self.root)
+        transfer=self.transfer(state,self.root/'offer');cipher=(self.root/'offer/transfer.enc').read_bytes()
+        other=PdcaState.create(self.root/'conflicting.sqlite',mode='production')
+        try:
+            other.retain_pair(self.root/'pair.json')
+            conflict=result(pair);conflict['source_sha256']='c'*64
+            conflict['data']['payouts'][0]['payout_per_100_yen']=2400
+            other.score(pair['pair_sha256'],conflict,NOW)
+        finally:other.close()
+        current,current_cipher=self.canonical(self.root/'conflicting.sqlite',self.root/'canonical',generation=2,previous_sha='e'*64)
+        with self.assertRaisesRegex(ValueError,'STATE_REGRESSION_'):
+            self.receive_stale(transfer,cipher,current,current_cipher,self.root/'rejected')
+        self.assertFalse((self.root/'rejected/sealed').exists())
+        self.assertFalse((self.root/'rejected/incoming.sqlite').exists())
+
+    def test_already_covered_candidate_still_authenticates_incoming_and_canonical_cipher(self):
+        state,_=invented_research_state(self.root)
+        transfer=self.transfer(state,self.root/'offer');cipher=(self.root/'offer/transfer.enc').read_bytes()
+        current,current_cipher=self.canonical(state,self.root/'canonical')
+        wrong_current,wrong_cipher=self.canonical(state,self.root/'wrong-key-canonical',key=os.urandom(32))
+        for name,incoming,raw,prior,prior_raw in (
+            ('incoming-hash',transfer,cipher+b'changed',current,current_cipher),
+            ('canonical-hash',transfer,cipher,current,current_cipher+b'changed'),
+            ('canonical-key',transfer,cipher,wrong_current,wrong_cipher)):
+            with self.subTest(name=name),self.assertRaisesRegex(ValueError,'HASH|AUTHENTICATION'):
+                self.receive_stale(incoming,raw,prior,prior_raw,self.root/name)
+            self.assertFalse((self.root/name/'incoming.sqlite').exists())
+            self.assertFalse((self.root/name/'sealed').exists())
+        with self.assertRaisesRegex(ValueError,'OWNER_KEY'):
+            self.receive_stale(transfer,cipher,current,current_cipher,self.root/'wrong-owner',key=os.urandom(32))
+
+    def test_already_covered_candidate_rejects_validly_encrypted_but_tampered_transport(self):
+        state,_=invented_research_state(self.root)
+        transfer=self.transfer(state,self.root/'offer');cipher=(self.root/'offer/transfer.enc').read_bytes()
+        current,current_cipher=self.canonical(state,self.root/'canonical')
+        body=json.loads(cipher);raw=bytearray(base64.b64decode(body['ciphertext']));raw[-1]^=1
+        body['ciphertext']=base64.b64encode(raw).decode();tampered=(wire(body)+'\n').encode()
+        changed=dict(transfer,cipher_sha256=sha(tampered))
+        with self.assertRaisesRegex(ValueError,'RECIPIENT_TRANSFER_AUTHENTICATION_FAILED'):
+            self.receive_stale(changed,tampered,current,current_cipher,self.root/'rejected')
+        self.assertFalse((self.root/'rejected/incoming.sqlite').exists())
+
+    def test_forward_generation_keeps_exact_parent_identity_checks(self):
+        state,_=invented_research_state(self.root)
+        current,_=self.canonical(state,self.root/'canonical')
+        transfer=self.transfer(state,self.root/'offer',previous=current)
+        for field,value in (('cipher_sha256','e'*64),('source_commit','e'*40)):
+            prior=dict(current,**{field:value})
+            with self.subTest(field=field),self.assertRaisesRegex(ValueError,'RECIPIENT_PREVIOUS_STATE_MISMATCH'):
+                self.m.receive_transfer(self.pointer(transfer),self.root/field,key=OWNER,
+                    fetch=lambda _:self.fail('parent mismatch must fail before source GET'),
+                    run_id='201',source_head=HEAD,previous_pointer=prior,now=NOW)
+
+    def test_cli_already_covered_succeeds_without_new_encrypted_output(self):
+        from contextlib import redirect_stdout
+        from io import StringIO
+        from scripts.boat_pdca_transfer import main
+        state,_=invented_research_state(self.root)
+        transfer=self.transfer(state,self.root/'offer');cipher=(self.root/'offer/transfer.enc').read_bytes()
+        incoming=self.pointer(transfer);current,current_cipher=self.canonical(state,self.root/'canonical')
+        records={
+            'https://raw.githubusercontent.com/haji84/RACE-AI/'+incoming['source_commit']+'/'+incoming['cipher_path']:cipher,
+            'https://raw.githubusercontent.com/haji84/RACE-AI/'+current['source_commit']+'/'+current['cipher_path']:current_cipher}
+        offered=self.root/'incoming.json';offered.write_text(wire(incoming))
+        previous=self.root/'previous.json';previous.write_text(wire(current))
+        output=self.root/'received';gha=self.root/'github-output';printed=StringIO()
+        receive=self.m.receive_transfer
+        def replay(pointer,root,**kwargs):
+            return receive(pointer,root,fetch=records.__getitem__,now=NOW,**kwargs)
+        with patch.dict(os.environ,{'RACE_AI_STATE_KEY':base64.b64encode(OWNER).decode(),'GITHUB_OUTPUT':str(gha)}),\
+                patch('scripts.boat_pdca_transfer.receive_transfer',side_effect=replay),redirect_stdout(printed):
+            code=main(['receive','--input',str(offered),'--previous-input',str(previous),
+                '--private-dir',str(output),'--run-id','201','--source-head',HEAD])
+        self.assertEqual(code,0)
+        report=json.loads((output/'status.json').read_text())
+        self.assertEqual(report['status'],'OWNER_PDCA_TRANSFER_ALREADY_COVERED')
+        self.assertFalse(report['encrypted_checkpoint_created'])
+        self.assertEqual(gha.read_text(),'encrypted=false\n')
+        self.assertEqual({path.name for path in output.iterdir()},{'status.json'})
+        self.assertNotIn(base64.b64encode(OWNER).decode(),printed.getvalue())
 
     def test_receiver_is_stable_public_identity_and_refuses_fixture_root(self):
         one=self.receiver();two=self.m.receiver_document(key=OWNER,run_id='101',source_head=HEAD)
