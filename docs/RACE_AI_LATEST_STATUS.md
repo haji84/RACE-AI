@@ -1,3 +1,63 @@
+<!-- RACEAI_AUTOMATION_20261106_0928_CYCLE06 -->
+# 2026-11-06 09:28 JST｜唐津2R確定結果の増分採点、第6巡原本SHA/CRC独立照合
+
+**対象と実行:** 既存Draft PR #71、branch `feat/four-sport-forecast-audit-view-20261022`。確認時PR HEAD `90e98805d2e8deea99f46dacb082edb98917bc5c`。同一workflow `405276784` の最新run [42134238827](https://github.com/haji84/RACE-AI/actions/runs/42134238827) はin_progress、同workflowのqueued/pending/waitingは確認した最新一覧で0件。前run [42124871318](https://github.com/haji84/RACE-AI/actions/runs/42124871318)はcompleted/success、第24巡最終継続元ZIP `13464303868` を独立SHA/CRCで再検証し、completed_round=24を確認。新規trigger、rerun、cancel、writer増設なし。
+
+**最新の実保存成果:** 現run第6巡の結果・PDCA元ZIP artifact `13466556835`、GitHub API digestおよび独立取得した実ZIP SHA256 `7aef778701771e81272fad8874eda421d3d55f3b26605563fbc7dda2a3460b93` が一致、ZIP CRC正常。対になるP1元ZIP `13466152173` の実SHA256 `2ca215b5e951a62d4c4ac3379bf738ff2fa6bf7578c0497fd5e5415ad26ee181` もAPI digest一致、CRC正常。結果ZIP内 `current-p1-original.zip` と別取得のP1元ZIPはバイト一致。現run内部 `status.json.round_no=6` / `updated_at=2026-11-06T00:27:15.930596+00:00`（09:27:15 JST）、`completed_round=5/prepared_round=6` なので**第6巡の保存・独立照合は成立、第6巡の継続receipt完了はまだ未認定**。当日初回P0元ZIP `13428142302` は実SHA `6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc`、中の `forecasts.json` SHA `e9ef52b153f8648aedec59fb3233d2405528e862858b211b754801d409ce0860` とも `docs/evidence/2026-11-06/p0-first-receipt.json` に一致。第6巡結果ZIPの `first-p0-original.zip` にバイト一致、P0/P1の再生成・上書きなし。
+
+**第24巡の既報値との差分:** 11/6のボート13場156R、朝版P0=312モデル別件は不変。新たに唐津3R（`20261106-23-03`、09:27 JST締切）へ展示後5系統P1を09:13:02 JSTに元ZIP `13464214744` として独立保存した事実を第6巡から照合。P1は20→**25モデル別件（5R×5）**、全基準予想332→**337件**。公式唐津2Rは09:19:05 JST（締切09:01後）の別結果観測で通常確定、**1-2-6／3連単100円2,050円**。公式結果observationsの別revisionを維持。通常採点は14→**21モデル別件**（HIT11→**13**、MISS3→**8**）、3つの通常確定レース×7モデル系統。未確認をMISSへ変換しない。各8点×100円の7系統すべてを仮想購入した場合、累計投入16,800円、累計払戻19,510円、**仮想損益+2,710円・仮回収率116.13%**。前回14モデル別行に対し今回は+7行、+2HIT/+5MISS、仮想投入+5,600円・受取+4,100円・損益-1,500円。条件付きモデル別採点は全国156Rの的中率ではなく、実投票も0件。
+
+**PDCA:** 唐津2RはP1 Bコース・モーターおよびC-liteのみ的中。P0観測相性2系統とP1観測相性2系統は3着不一致、P1展示Aは1着不一致で不的中。3着候補選択の前向き改善を研究対象として保持し、既存8点・重み・過去予想を変更しない。最新 `automatic_learning` は通常確定一意3R、最少8R未達による `INSUFFICIENT_VERIFIED_RACES`、学習済係数・当日 `LEARNED_SHADOW`・学習版前向き比較の新増分0。 `coverage_audit` は第6巡09:27時点で全156R、締切済5R、未来151R、P1完備5R、未採点の締切済結果は通常判定確定を確認するまでMISSにしない。`model_coverage.json` で登録16系統と基準7モデル/時点を区分、`external_research_summary.json` は `NO_AUDITED_IMPORT_MANIFEST`。他競技の正式採点には今回加算しない。
+
+**重大な安全条件:** 現run第6巡のGET `requests_used=74` は当該runの240件上限内。ただし `source_limit=null/max_rounds=null/stop_at=null` の無制限設定は継続し、直前run実績269回は240件超過29回。workflow `timeout-minutes=360`、物理handoff330分も指定24巡/65分と衝突。上限/4xx/429/真正性等の停止条件の回避を認めず、追加triggerは行わない。現在のworkerをキャンセルせず、無検証の制限変更をpushしない。今回Drive新規保存・全学習元再認証は未実施で、過去全runの永久保全や学習候補の有意な精度改善は未認定。新task、実行頻度変更、新workflow/PR/モデル、Cloudflare/Vercel/課金、main統合、公開、実投票、本番自動切替なし。
+
+---
+
+<!-- RACEAI_AUTOMATION_20261106_0911_CYCLE24 -->
+# 2026-11-06 09:11 JST｜第24巡完走、三国1Rの通常結果を正式照合、原本7 ZIPを非公開追補、安全上限超過を検出
+
+**最新実状態:** Draft PR #71の確認時HEAD `24ad152952338a96881aedc3b09d47ce1b80c8ae`。既存workflow `405276784` のrun [42124871318](https://github.com/haji84/RACE-AI/actions/runs/42124871318) は `completed/success`。その直後に既存run [42134238827](https://github.com/haji84/RACE-AI/actions/runs/42134238827) が別の既存triggerで起動し `in_progress`、対象workflowのqueued/pending/waiting=0。こちらからの追加trigger・rerun・cancel・workflow変更なし。
+
+**最終完了原本:** 旧run第24巡の結果/PDCA artifact `13464717720`（ZIP実SHA256 `f8c0a2b113caf6926a125926b76a45d29e0becdb32bed3b8ce1f1b6a50cc1597`）、対応P1 artifact `13464717704`（`c7ff0d266fd6d95d6c9725be328bfd944967354fb5db9efc4aafdfbc441dd7d8`）、最終継続 `13464303868`（`df36a67f08a8208639d8223bc98a680362b4565cdb70b421f70a522ad11db0f2`）。3件ともAPI digestと独立取得ZIP実SHA256一致、CRC異常なし。結果ZIP内 `current-p1-original.zip` はP1原本バイトに一致。初回P0原本 `13428142302` の実ZIP・内包 `forecasts.json` のSHAは `docs/evidence/2026-11-06/p0-first-receipt.json` と一致し、結果ZIP内 `first-p0-original.zip` と実バイト一致。継続 `repeat-session.json` は `completed_round=24/prepared_round=null` と24件の `verified_at` receiptを保持。最終 `status.json.round_no=24/updated_at=2026-11-06 09:04:15 JST`。後続runにおける新しい巡回の成功までは推定しない。
+
+**予想・結果の実差分:** 11/6公式台帳156R、初回P0は312モデル別予想で不変。P1は15→**20件**（唐津1R・2R、三国1R・2Rの4R×5系統）、うち三国2Rの新P1 artifact `13463429322` は09:01:13 JST保存、09:13 JST締切より11分47秒前。基準合計327→**332件**。唐津1Rに続き三国1Rも通常確定 `1-3-4/100円360円`、結果の後イベント元SHAを区別して保存。通常採点は7→**14モデル別件**、HIT5→**11**、MISS2→**3**。2つの通常確定レースに対する7系統×2で、レース数14ではない。8点×100円の研究上の全モデル仮投入11,200円/払戻15,410円/仮収支+4,210円/仮回収率137.59%。条件付きのモデル別行的中率11/14=78.57%は全156Rの的中率ではない。締切済3R/未来153R、結果未確認の唐津2Rを外れにしない。P1五系統完備の締切済3Rだが全156Rの網羅完了ではない。
+
+**学習・PDCA:** `automatic_learning.state=INSUFFICIENT_VERIFIED_RACES`、一意の通常確定レース2（最小8）で学習適格母数未達。`trained_observed_models.json` は学習済係数モデルなし、当日 `LEARNED_SHADOW=0`・同条件比較0。展示Aは2Rとも外れ、2Rとも3着候補不一致。改善は研究候補のみで元Top8/5モデル式/係数、本番モデルは不変。外部研究正式manifestはなし。他3競技の同時点原本・公式結果は正式照合未実施。
+
+**今回の非公開保全:** Google Driveの指定フォルダについてfolder ID一致、唯一owner、`shared=false`を改めて確認。第22〜24巡の予想元ZIP3件+結果元ZIP3件+第24巡完走の継続元ZIP1件、計**7件を新規保存**。7件すべてDriveから独立再取得して実SHA256/API digest一致、CRC異常0。第22巡結果ZIPを最初に誤ってP1名で新規保存したため、元バイトを変えずメタデータのみ正しい結果ZIP名へ修正し、改名後のDrive metadataと原本実SHAを確認。未保存元ZIP以外を上書きせず、私有Drive URL/ID・認証・生予想/結果をGitHubへ書かない。既報44件に追加された7件で11/6対象の保全は計51件だが、全run・全学習元・全公式改訂履歴の恒久保全は未証明。GitHub artifact保持7日は不変。
+
+**重大な未整合:** 第24巡 `requests_used=269`。明示上限240 GETを **29回超過** した実測であり、単なる設定不一致ではない。現行 `source_limit=null/max_rounds=null/stop_at=null`・workflow timeout360分は240 GET/24巡/65分に不適合。現行runをキャンセルせず、上限/4xx/429/真正性エラーの回避目的で後続pushを追加しない。後続runも旧コードを使う可能性があるため、安全条件を満たした自動運用とは認定しない。既存上限の実装・回帰検証は今回未完了。新タスク、新PR、別workflow、新モデル系統、追加課金、公開、main統合、実投票、本番自動採用は行っていない。
+
+---
+
+# 2026-11-06 08:58 JST｜第21巡SHA照合・三国1R結果待ち・11/6原本44 ZIP非公開読戻し
+
+既存run [42124871318](https://github.com/haji84/RACE-AI/actions/runs/42124871318) はin_progress 1件、同workflowのqueued/pending/waitingなし。第21巡の結果原本artifact `13464416656`、実ZIP SHA256 `b60f011a029bc0ebf2e721d004947ecab0cf0902e9eb793958ca3ae84f8c6081`、対応P1試行ZIP `13464476510` SHA256 `58c3a6a7d263478d2da07462c79bd55124f5ce94fbcfa3701d5811a6d74c677a`。GitHub登録digest・独立取得実バイトSHA一致、CRC異常なし。内部`round_no=21/updated_at=2026-11-06 08:55:17 JST`、`completed_round=20/prepared_round=21`。第21巡は保存と独立照合まで、読戻し完走は未認定。
+
+P0初回312行、P1締切前15行（唐津1R・三国1R・唐津2Rの既存5系統）、合計327モデル別行で変動なし。唐津1Rの通常結果は2-1-4／2,650円で保存済み7モデル別採点5的中・2不的中。第21巡で三国1Rの後イベント結果を1版追加取得したが、状態は`PENDING/OFFICIAL_RESULT_PAYOUT_ONLY`。未確認の通常確定結果へ昇格せず、スコアも不的中へ変更しない。全対象156R中締切済2R・未来154R。学習は`INSUFFICIENT_VERIFIED_RACES`のまま、LEARNED_SHADOW正式比較の新増分なし。
+
+非公開Driveに第21巡のP1元ZIPと結果元ZIPを追加保全、元の42件と合わせ**11/6原本計44件**。対象run第1～21巡のP1試行原本21件＋結果・PDCA原本21件＝42件、初回P0 1件、前run継続ZIP 1件。保存先owner一致/`shared=false`確認済み。44件すべてDriveから別取得し、GitHub原本実バイトSHAと44/44一致、CRC異常0、計21,059,662バイト。保全できたのは指定の44原本であって他run全件/全公式改訂/全学習素材の永久保全ではない。公開GitHubへDrive ID/URL・個人情報・買い目本文は転記しない。
+
+**安全差分：** 第21巡公式GETは229回。ユーザー指示の1セッション240回上限まで11回しか残らない一方、稼働コード`source_limit=null/max_rounds=null/stop_at=null`、workflow timeout360分は指示の240GET/24巡/65分と不整合。現runをキャンセル/介入せず、上限回避目的の後続push・同run rerunも禁止維持。現行コードの無制限継続を安全成立とはしない。新workflow、新PR、モデル変更、頻度変更、追加課金、main統合、公開、投票、本番自動切替なし。
+
+---
+
+# 2026-11-06 08:53 JST｜11/6初の実結果照合・P1第三レース・現run第1～20巡40原本ZIPを非公開保全
+
+**GitHub独立証拠：** 既存run [42124871318](https://github.com/haji84/RACE-AI/actions/runs/42124871318) はこの監査時点`in_progress`、同workflow 405276784のqueued/pending/waitingなし。実行元HEAD `cf74fcc56ce1855e8f118ce39a6eed71b1e95e0a`。最新実保存第20巡の結果/PDCA原本artifact `13464760617`、実ZIP SHA256 `4af82017337bcb29f274fa1cf3635b40d48f5467a2756d5a238ed1cb90a30d6b`、対応P1試行ZIP `13464835477` SHA256 `39ca5c2f1a7a5cb5d59023a00906c2e9983228a377c9984a14684d7c0ad783da`。GitHub API digestと独立取得したZIP実バイトSHA一致、CRC異常なし。内部`status.round_no=20/updated_at=2026-11-06 08:52:08 JST`、継続は`completed_round=19/prepared_round=20`なので第20巡の読戻し完走までは未認定。
+
+**凍結予想の増分：** 13場156Rの初回P0は312モデル別行のまま。展示後P1は唐津1R・三国1Rに加え**唐津2R（`20261106-23-02`）へ既存5系統5件追加**し、P1が**15行＝3R×5系統**、当日の基準計327モデル別行。唐津2Rの締切09:01 JSTに対し初回P1保存08:49:13 JST（元artifact `13462499574`、実SHA `24417543a72db1713e4cbbc596d6fb6d82874b4bb6c14fde87cd53db362e7a4f`）で、210秒の事前余裕を満たした。旧P0・P1は無変更。
+
+**本日の最初の正式結果・PDCA（重複レースではない）：** 11/6唐津1Rの公式結果を、先行PENDING `OFFICIAL_RESULT_PAYOUT_ONLY` と後続の独立`AVAILABLE`の2版として保持。後続結果には6艇の登録番号・通常着順、3連単**2-1-4／100円払戻2,650円**を含み、結果時刻08:49:17 JSTは08:35締切後。旧結果観測のrevisionを消さず、基準原本に結果を後付けしない。通常採点は**1レースに対するP0二系統＋P1五系統の7モデル別行、HIT 5・MISS 2**。各8点×100円の仮想購入では7行合計投入5,600円・払戻13,250円・仮収支+7,650円、見かけのモデル別行的中率5/7＝71.43%、回収率236.61%。ただし**実際には1レースであり、7件の独立レースや全日成績の証拠ではない。** P0二系統とも的中、P1はコースモーターB・観測相性・ST重視相性の3系統的中、展示Aと当地ST C-liteは3着候補不一致で不的中。次のPDCA研究は既存8点の3着候補順位の前向き評価に限定し、本番係数や過去買い目は書き換えない。
+
+**学習の境界：** 一意の通常結果は現状1レース、既存の`automatic_learning=INSUFFICIENT_VERIFIED_RACES`、当日LEARNED_SHADOW/前向き比較の正式増分0。1Rの結果を7学習サンプルに膨らませない。返還・訂正・結果待ちを不的中へ転換しない。成績の統計的優越・全16モデル/全4競技・全レース網羅性は未達。
+
+**Driveの原本保全を実完走：** 本人専用フォルダはGoogle Drive metadataで唯一のowner、`shared=false`と実確認。今回のGitHub run **第1～20巡のP1試行原本20 ZIP＋結果・PDCA原本20 ZIP＝40 ZIP**、および11/6初回P0 ZIP1件、前runの継続ZIP1件、合計**42件を既存非公開Driveへ新規保存**。当初`container_path`はsession-expired、GitHub→Drive直結はblockedだったが、GitHub downloadで返った原本の`file_id`をそのままLibraryの`source_file_ref`へ渡す経路で成功。42件を**Driveから別途再取得**し、42/42がGitHubからの原本ZIP実SHA256・GitHub API digestと一致し、CRC異常0、総原本バイト20,104,726。ZIPの上書き・加工・再圧縮は一切なし。所有者限定の保管を確認できたのはこのフォルダと42ファイルであり、過去全run・全学習ソースの永続的保存完了ではない。公開GitHubに個人Drive URL/ID・認証・生結果/買い目は転載しない。
+
+**未解決の実行条件：** 第20巡で公式GET `requests_used=213`。現行`source_limit=null/max_rounds=null/stop_at=null`、workflow `timeout-minutes=360` はユーザーの240GET/24巡/65分と未整合のまま。別チャットの上限解除指示履歴があり、稼働中runを停止したり上限を回避したりする後続push/同run rerun、無検証の設定改変は実施しない。今回新workflow、新PR、新モデル、頻度変更、追加課金、main統合、公開、実投票、本番自動切替はなし。
+
+---
+
 # 2026-11-06 08:46 JST｜展示後5系統P1が2レース10件、新規ZIP17件を非公開Driveで独立読戻し
 
 **本巡の実増分：** 既存workflow 405276784 のrun [42124871318](https://github.com/haji84/RACE-AI/actions/runs/42124871318)、実行コードSHA `cf74fcc56ce1855e8f118ce39a6eed71b1e95e0a`。同workflowの直近100実行では実行中1件・queued/pending/waiting 0件。runは継続中であり同runのrerun・追加trigger・キャンセルなし。最新の保存済み結果原本は第17巡、`status.json.round_no=17`、`updated_at=2026-11-06 08:44:16 JST`、前巡の読戻し `completed_round=16/prepared_round=17`。第17巡は実ZIPハッシュとCRC検証まで完了し、読戻し完了を後付け認定しない。
