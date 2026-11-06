@@ -81,8 +81,14 @@ def git_auth():
     token=os.environ.get('GH_TOKEN');need(token and '\n' not in token and '\r' not in token,'FEED_GITHUB_TOKEN_REQUIRED')
     # One process-scoped, repository-specific credential; never saved to Git.
     count=int(os.environ.get('GIT_CONFIG_COUNT','0'));need(0<=count<=32,'FEED_GIT_CONFIG_BOUND')
-    os.environ.update({f'GIT_CONFIG_KEY_{count}':'http.https://github.com/haji84/RACE-AI.extraheader',
-                       f'GIT_CONFIG_VALUE_{count}':'AUTHORIZATION: basic '+base64.b64encode(('x-access-token:'+token).encode()).decode(),
+    name='http.https://github.com/haji84/RACE-AI.extraheader'
+    value='AUTHORIZATION: basic '+base64.b64encode(('x-access-token:'+token).encode()).decode()
+    existing=[os.environ.get(f'GIT_CONFIG_VALUE_{i}') for i in range(count)
+              if os.environ.get(f'GIT_CONFIG_KEY_{i}')==name]
+    need(not existing or len(existing)==1 and existing[0]==value,'FEED_GIT_CREDENTIAL_SCOPE_CONFLICT')
+    if existing:return
+    os.environ.update({f'GIT_CONFIG_KEY_{count}':name,
+                       f'GIT_CONFIG_VALUE_{count}':value,
                        'GIT_CONFIG_COUNT':str(count+1)})
 
 def main(argv=None):
@@ -122,7 +128,10 @@ def main(argv=None):
         report=F.publish_view(git,bootstrap,view,parent=parent,previous=previous,generation=generation)
         print(wire(report));return 0
     except Exception as e:
-        reason=str(e) if isinstance(e,ValueError) and re.fullmatch('FEED_[A-Z0-9_]{1,90}',str(e)) else 'FEED_OPERATION_FAILED'
-        print(wire(dict(status='ENCRYPTED_VIEW_REJECTED',reason=reason)));return 2
+        reason=str(e) if isinstance(e,ValueError) and re.fullmatch('(?:FEED|MODEL_RUNTIME|ALL_MODEL_CLI|BOAT_ALL_MODEL_CYCLE|STATE|GITHUB)_[A-Z0-9_]{1,90}',str(e)) else 'FEED_OPERATION_FAILED'
+        import traceback
+        frames=traceback.extract_tb(e.__traceback__)
+        location=Path(frames[-1].filename).name+':'+str(frames[-1].lineno) if frames else None
+        print(wire(dict(status='ENCRYPTED_VIEW_REJECTED',reason=reason,failure_class=type(e).__name__,failure_at=location)));return 2
 
 if __name__=='__main__':raise SystemExit(main())

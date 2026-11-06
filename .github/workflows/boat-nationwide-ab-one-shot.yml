@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   saved_view_publication:
-    name: Encrypted saved result display only (no official source requests)
+    name: Encrypted saved-model display and retained-input execution (no official source requests)
     if: github.repository == 'haji84/RACE-AI' && startsWith(github.event.head_commit.message, 'saved-view:')
     runs-on: ubuntu-24.04
     timeout-minutes: 20

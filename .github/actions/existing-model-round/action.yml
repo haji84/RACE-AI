@@ -6,7 +6,7 @@ inputs:
     description: Monotonic round within a replaceable worker batch
   saved-view-key:
     required: true
-    description: Existing owner state secret, used only by encrypted display publication
+    description: Existing owner state secret, used only in private encrypted model and display paths
 runs:
   using: composite
   steps:
