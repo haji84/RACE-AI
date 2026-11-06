@@ -441,15 +441,25 @@ jobs:
               out.write('All-racer intake status: '+report['status']+'\n')
               out.write('No plaintext source or database artifact; HOLD is not ingestion success.\n')
           PY
-      - name: Checkpoint first published venue-history month (or explicit owner-key HOLD)
+      - name: Reuse pinned history before any bounded bootstrap capture
         id: venue_capture
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
         run: |
-          python -m scripts.boat_venue_history capture-month --month 200501 --max-files 5 --out-dir "$RUNNER_TEMP/venue-history-month"
           python - <<'PY'
           import json, os, pathlib
-          report=json.loads((pathlib.Path(os.environ['RUNNER_TEMP'])/'venue-history-month'/'summary.json').read_text())
+          from scripts.boat_venue_history import capture_month
+          from scripts.boat_all_racers import _write
+          pointer=json.loads(pathlib.Path('audit/state/boat-venue-history-input.json').read_text())
+          folder=pathlib.Path(os.environ['RUNNER_TEMP'])/'venue-history-month'
+          if pointer.get('status')=='READY':
+              assert pointer.get('schema')=='RACE_AI_BOAT_VENUE_COLLECTION_INPUT_V1' and pointer.get('repository_id')=='1416489937'
+              folder.mkdir(mode=0o700)
+              report=dict(status='PINNED_HISTORY_READBACK_REQUIRED_NO_PROVIDER_GET',upstream_gets=0,encrypted_checkpoint_created=False)
+              _write(folder/'summary.json',json.dumps(report).encode())
+          else:
+              assert pointer.get('status')=='WAITING_ENCRYPTED_INPUT'
+              report=capture_month(folder,month='200501',max_files=5)
           with open(os.environ['GITHUB_OUTPUT'],'a') as out:
               out.write('encrypted='+str(report.get('encrypted_checkpoint_created') is True).lower()+'\n')
           with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
