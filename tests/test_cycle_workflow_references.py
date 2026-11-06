@@ -27,8 +27,8 @@ class WorkflowReferencesTest(unittest.TestCase):
     def assert_round_contract(self, text):
         self.assertIn('using: composite', text)
         steps = re.split(r'^    - name: ', text, flags=re.MULTILINE)[1:]
-        self.assertEqual(len(steps), 8)
-        prepare, discovery, p0freeze, forecast, freeze, audit, result, complete = steps
+        self.assertEqual(len(steps), 9)
+        prepare, discovery, p0freeze, forecast, freeze, audit, result, complete, display = steps
         self.assertIn('id: ready', prepare)
         self.assertIn('github_existing_cycle.py repeat-prepare', prepare)
         self.assertIn('github_existing_cycle.py supplement --round', discovery)
@@ -41,7 +41,7 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn('if-no-files-found: error', p0freeze)
         self.assertNotIn('overwrite: true', p0freeze)
         self.assertIn('github_existing_cycle.py forecast', forecast)
-        for step in steps[1:]:
+        for step in steps[1:-1]:
             self.assertIn("if: steps.ready.outputs.active == 'true'", step)
             self.assertNotIn('continue-on-error:', step)
         for step, ident, path, name in [
@@ -61,13 +61,17 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn('github_existing_cycle.py repeat-complete', complete)
         self.assertIn("--p1-artifact '${{ steps.freeze.outputs.artifact-id }}'", complete)
         self.assertIn("--result-artifact '${{ steps.result.outputs.artifact-id }}'", complete)
+        self.assertIn('continue-on-error: true',display)
+        self.assertIn('scripts.boat_saved_view_feed --result-artifact',display)
+        self.assertIn('RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}',display)
+        self.assertIn("if: steps.ready.outputs.active == 'true'",display)
 
     def test_existing_cycle_create_only_first_p0_then_reuses_original(self):
         text = WORKFLOW.read_text()
         # The existing first-receipt bootstrap now creates its metadata index;
-        # recurring rounds still have no repository-write command. Source
+        # recurring rounds additionally publish display-only ciphertext. Source
         # accounting starts before the missing-only supplement, not after it.
-        self.assertIn('contents: write  # Create-only first P0 receipt index', text)
+        self.assertRegex(text,r'permissions:\n  contents: write[^\n]*\n  actions: read\n')
         self.assertIn('actions: read', text)
         self.assertIn('persist-credentials: false', text)
         for marker in ('id: first_p0', 'first_p0_bootstrap.py preflight',

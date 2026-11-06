@@ -926,10 +926,37 @@
       generation.message = "保存済み予想 " + parsed.records.length + "レースを表示しています。";
       adoptDataset(parsed);showPage("races",true);
       $("file-message").textContent = generation.message;
+      if (encrypted) startSavedFeed(encrypted.content,version);
     } catch {
       generation.message = "保存原本を読み込めませんでした。保存先と同期状態を確認してください。";
       $("file-message").textContent = generation.message;renderGeneration();
     }
+  }
+  function startSavedFeed(path,version) {
+    const forecastSha=document.querySelector('meta[name="race-ai-saved-view-forecast-sha"]')?.content;
+    if(!forecastSha||!window.SavedViewCrypto?.readLive)return;
+    const status=node("p","muted small","結果の自動同期を確認しています。");status.id="saved-view-sync";status.setAttribute("role","status");
+    $("result-coverage").after(status);
+    let previous={forecastSha,generation:0,cipherSha:path.split("/").at(-1).replace(".json","")},busy=false;
+    async function check() {
+      if(busy||version!==importVersion||!dataset||document.hidden)return;
+      if(document.activeElement?.matches('input,select,textarea'))return;
+      busy=true;
+      try {
+        const result=await window.SavedViewCrypto.readLive(location.hash,previous);
+        if(version!==importVersion||!dataset)return;
+        if(result) {
+          const parsed=M.parse(result.view);
+          if(document.activeElement?.matches('input,select,textarea'))return;
+          dataset=parsed;previous={forecastSha,generation:result.header.generation,cipherSha:result.cipherSha};
+          renderAll();status.dataset.generation=String(previous.generation);
+        }
+        status.textContent="結果を自動同期中（60秒ごとに確認） · 最終同期 "+stamp(dataset.results_synced_at)+" JST。収集処理の停止中は前回の結果を表示します。";
+      } catch {status.textContent="自動同期を確認できません。前回取得した結果を表示中です。60秒後に再確認します。";}
+      finally {busy=false;}
+    }
+    check();const timer=setInterval(()=>{if(version!==importVersion){clearInterval(timer);return;}check();},60000);
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden)check();});
   }
   document.querySelectorAll("[data-page]").forEach(b => b.addEventListener("click", () => showPage(b.dataset.page, true)));
   document.querySelectorAll("[data-sport]").forEach(b => b.addEventListener("click", () => setSport(b.dataset.sport)));

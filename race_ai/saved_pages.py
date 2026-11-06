@@ -36,14 +36,16 @@ def _hex(value):
     need(type(value) is str and HEX.fullmatch(value),'PAGES_HASH_REQUIRED');return value
 
 
-def _index(ident):
+def _index(ident,forecast_sha):
     html=_asset_bytes(WEB,'index.html').decode()
     tag='<script defer src="./app.js"></script>'
     need(html.count(tag)==html.count('</head>')==1,'PAGES_INDEX_INVALID')
     html=html.replace(tag,'<script defer src="./saved-view-crypto.js"></script>\n  '+tag)
     html=html.replace('</head>','<meta name="referrer" content="no-referrer">\n'
+        '<meta name="race-ai-saved-view-forecast-sha" content="'+_hex(forecast_sha)+'">\n'
         '<meta name="race-ai-encrypted-saved-view" content="./views/'+ident+'.json">\n</head>')
     html=html.replace('href="./forecast-audit.html"','href="#research"')
+    html=html.replace("connect-src 'self'","connect-src 'self' https://raw.githubusercontent.com/haji84/RACE-AI/state/boat-saved-view/")
     for name in ASSETS:
         if name.endswith(('.js','.css')):
             version=sha(_asset_bytes(WEB,name))[:12]
@@ -106,6 +108,8 @@ def build_site(state_path,public_dir,private_dir,*,expected_source_sha256,viewer
         need(state.content_sha256()==expected_source_sha256,'PAGES_SOURCE_CHANGED')
     finally:state.close()
     raw=wire(view).encode();need(0<len(raw)<=MAX_VIEW,'PAGES_VIEW_BOUND')
+    from .saved_view_feed import originals_sha
+    forecast_sha=originals_sha(view)
     # Display capability only: never a replacement for RACE_AI_STATE_KEY.
     key=reused[0] if reused else AESGCM.generate_key(bit_length=256);nonce=os.urandom(12)
     header=dict(schema=SCHEMA,source_content_sha256=expected_source_sha256)
@@ -120,8 +124,9 @@ def build_site(state_path,public_dir,private_dir,*,expected_source_sha256,viewer
     save(private/'viewer.json',(wire(viewer)+'\n').encode())
     save(private/'owner-url.txt',(BASE_URL+'#saved='+(reused[1] if reused else ident)+'.'+keytext+'\n').encode())
     files={name:_asset_bytes(WEB,name) for name in ASSETS}
-    path='views/'+ident+'.json';files.update({'index.html':_index(ident),'.nojekyll':b'',path:encoded})
+    path='views/'+ident+'.json';files.update({'index.html':_index(ident,forecast_sha),'.nojekyll':b'',path:encoded})
     manifest=dict(schema=BUILD,source_content_sha256=expected_source_sha256,cipher_path=path,cipher_sha256=ident,
+        forecast_sha256=forecast_sha,
         races=len(view['records']),predictions=sum(1+len(r.get('comparison_predictions',[])) for r in view['records']),
         files={name:dict(sha256=sha(body),bytes=len(body)) for name,body in sorted(files.items())})
     if reused:manifest['view_id']=reused[1]
@@ -136,7 +141,7 @@ def _bundle_bytes(folder,*,expected_manifest_sha256=None):
     raw=_read(root/'site-build.json',32768)
     if expected_manifest_sha256 is not None:need(sha(raw)==_hex(expected_manifest_sha256),'PAGES_BUILD_PIN_MISMATCH')
     m=_json(raw,32768)
-    fields={'schema','source_content_sha256','cipher_path','cipher_sha256','races','predictions','files'}
+    fields={'schema','source_content_sha256','cipher_path','cipher_sha256','forecast_sha256','races','predictions','files'}
     need(type(m) is dict and set(m) in (fields,fields|{'view_id'})
          and m['schema']==BUILD,'PAGES_MANIFEST_INVALID')
     if 'view_id' in m:_hex(m['view_id'])
@@ -156,7 +161,7 @@ def _bundle_bytes(folder,*,expected_manifest_sha256=None):
         body=_read(root/name);entry=m['files'][name]
         need(type(entry) is dict and entry==dict(bytes=len(body),sha256=sha(body)),'PAGES_FILE_HASH_MISMATCH')
         if name in ASSETS:need(body==_asset_bytes(WEB,name),'PAGES_ASSET_MODIFIED')
-        elif name=='index.html':need(body==_index(ident),'PAGES_ASSET_MODIFIED')
+        elif name=='index.html':need(body==_index(ident,_hex(m['forecast_sha256'])),'PAGES_ASSET_MODIFIED')
         elif name=='.nojekyll':need(body==b'','PAGES_ASSET_MODIFIED')
         else:
             need(sha(body)==ident,'PAGES_CIPHER_HASH_MISMATCH')

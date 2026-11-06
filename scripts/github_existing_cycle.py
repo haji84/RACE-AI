@@ -210,6 +210,13 @@ def observe_due_results(due,observations,day,guard=None):
                 need(response.geturl()==url,'OFFICIAL_RESULT_SOURCE_IDENTITY_MISMATCH')
                 need(0<len(raw)<=MAX_BYTES,'official response body rejected')
             at=datetime.now(timezone.utc).isoformat()
+            if os.environ.get('RACE_AI_SAVED_VIEW_CAPTURE')=='true':
+                try:
+                    from race_ai.saved_view_feed import retain_capture
+                    retain_capture(Path(os.environ['RUNNER_TEMP'])/'boat-saved-view-captures',raw,
+                        dict(source_url=url,captured_at=at,source_sha256=hashlib.sha256(raw).hexdigest(),http_status=200))
+                except Exception:
+                    failures.append(dict(race_id=rid,state='DISPLAY_SOURCE_CACHE_UNAVAILABLE',reason='PRIVATE_DISPLAY_CAPTURE_FAILED'))
             observation=parse_update(raw,kind='raceresult',day=d,venue=venue,race_no=n,source_url=url,captured_at=at,entries=None)
             observation.update(source_url=url,source_sha256=hashlib.sha256(raw).hexdigest())
             if guard is not None:guard.http_success()

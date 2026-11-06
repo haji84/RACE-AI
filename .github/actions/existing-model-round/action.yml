@@ -4,6 +4,9 @@ inputs:
   round:
     required: true
     description: Monotonic round within a replaceable worker batch
+  saved-view-key:
+    required: true
+    description: Existing owner state secret, used only by encrypted display publication
 runs:
   using: composite
   steps:
@@ -43,6 +46,7 @@ runs:
       shell: bash
       env:
         P0_SUPPLEMENT_ARTIFACT: ${{ steps.discovery_freeze.outputs.artifact-id }}
+        RACE_AI_SAVED_VIEW_CAPTURE: 'true'
       run: |
         supplement_args=()
         if [[ -n "$P0_SUPPLEMENT_ARTIFACT" ]]; then
@@ -62,3 +66,10 @@ runs:
       if: steps.ready.outputs.active == 'true'
       shell: bash
       run: python scripts/github_existing_cycle.py repeat-complete --round '${{ inputs.round }}' --p1-artifact '${{ steps.freeze.outputs.artifact-id }}' --result-artifact '${{ steps.result.outputs.artifact-id }}'
+    - name: Automatically publish encrypted saved-forecast result comparisons
+      continue-on-error: true
+      if: steps.ready.outputs.active == 'true'
+      shell: bash
+      env:
+        RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
+      run: python -m scripts.boat_saved_view_feed --result-artifact '${{ steps.result.outputs.artifact-id }}'

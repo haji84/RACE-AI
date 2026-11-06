@@ -252,6 +252,7 @@ class AutomaticForecastTests(unittest.TestCase):
     def test_legacy_numeric_cap_migration_retains_counter_and_original_record(self):
         target,original=self.legacy_record(state="STOPPED",halted_reason="SOURCE_BUDGET_EXHAUSTED",
                                            requests_used=240,requests_total=240)
+        initial_calls=list(self.service.calls)
         self.service.requests=241;self.service.now+=timedelta(seconds=180)
         restarted=M.ForecastAutomation(self.service);self.addCleanup(restarted.stop)
         out=restarted.tick()
@@ -260,7 +261,7 @@ class AutomaticForecastTests(unittest.TestCase):
         self.assertEqual(out["requests_used"],241)
         self.assertEqual(out["requests_total"],241)
         self.assertEqual(target.read_bytes(),original)
-        self.assertEqual(self.service.calls,[])
+        self.assertEqual(self.service.calls,initial_calls)
 
     def test_legacy_clock_evidence_is_not_rebased_to_hide_reversal(self):
         self.legacy_record(last_observed_at=(self.service.now+timedelta(minutes=10)).isoformat())

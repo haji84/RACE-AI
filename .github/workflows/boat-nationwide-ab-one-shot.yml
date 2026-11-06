@@ -7,7 +7,7 @@ on:
       - docs/evidence/boat-nationwide-pilot-trigger.txt
       - .github/workflows/boat-nationwide-ab-one-shot.yml
 permissions:
-  contents: write  # Create-only first P0 receipt index on this Draft PR branch.
+  contents: write  # Existing first-P0 index and encrypted display feed only.
   actions: read
 concurrency:
   group: boat-nationwide-cutoff-20261103
@@ -33,6 +33,21 @@ jobs:
       - name: Test originals, pending results, tampering and unchanged models
         run: |
           python -m unittest tests.test_continuity_checkpoint tests.test_continuity_archive_size tests.test_first_receipt_continuity tests.test_cycle_recovery tests.test_existing_model_coverage tests.test_frozen_day_cycle tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_ab_shadow tests.test_requested_public_cards tests.test_observed_p1_connection tests.test_external_research_registry tests.test_repeated_cycle tests.test_observed_weight_learning tests.test_first_p0_bootstrap -v
+      - name: Install pinned encrypted display dependencies
+        continue-on-error: true
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Initialize encrypted display feed from pinned saved forecasts
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_saved_view_feed --seed-only
+      - name: Catch up saved forecasts from verified previous official result archive
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_saved_view_feed
       - name: Pin event day and physical worker handoff using actual clock
         run: |
           python - <<'PY_CLOCK'
@@ -83,144 +98,168 @@ jobs:
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '1'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 02
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '2'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 03
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '3'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 04
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '4'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 05
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '5'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 06
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '6'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 07
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '7'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 08
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '8'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 09
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '9'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 10
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '10'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 11
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '11'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 12
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '12'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 13
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '13'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 14
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '14'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 15
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '15'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 16
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '16'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 17
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '17'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 18
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '18'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 19
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '19'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 20
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '20'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 21
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '21'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 22
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '22'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 23
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '23'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Deadline-ordered five-model round 24
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
         env: {GH_TOKEN: '${{ github.token }}'}
         with:
           round: '24'
+          saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
       - name: Build compact sealed handoff without retained original ZIP archives
         if: always()
         run: python -m race_ai.continuity_checkpoint --source-dir cycle_recovery_output --out-dir cycle_checkpoint_output --expected-run '${{ github.run_id }}'
