@@ -21,13 +21,14 @@ from .saved_pdca_view import WEB
 from scripts.boat_history_collect import private_root,save
 
 SCHEMA='RACE_AI_SAVED_WEB_VIEW_V1'
+UPDATED_SCHEMA='RACE_AI_SAVED_WEB_VIEW_V2'
 BUILD='RACE_AI_SAVED_PAGES_BUILD_V1'
 BASE_URL='https://haji84.github.io/RACE-AI/'
 MAX_VIEW=5*1024*1024
 MAX_WIRE=8*1024*1024
 HEX=re.compile('[a-f0-9]{64}\\Z')
 ASSETS=('style.css','app.js','forecast-audit-model.js','product-data.js',
-        'existing-model-catalog.js','ui-model.js','saved-view-crypto.js',
+        'existing-model-catalog.js','ui-model.js','saved-performance.js','saved-view-crypto.js',
         'data/example-synthetic-forecast-audit.json')
 
 
@@ -43,6 +44,10 @@ def _index(ident):
     html=html.replace('</head>','<meta name="referrer" content="no-referrer">\n'
         '<meta name="race-ai-encrypted-saved-view" content="./views/'+ident+'.json">\n</head>')
     html=html.replace('href="./forecast-audit.html"','href="#research"')
+    for name in ASSETS:
+        if name.endswith(('.js','.css')):
+            version=sha(_asset_bytes(WEB,name))[:12]
+            html=html.replace('"./'+name+'"','"./'+name+'?v='+version+'"')
     return html.encode()
 
 
@@ -65,17 +70,35 @@ def _envelope(raw):
     body=_json(raw,MAX_WIRE)
     need(type(body) is dict and set(body)=={'header','nonce','ciphertext'},'PAGES_CIPHER_INVALID')
     header=body['header']
-    need(type(header) is dict and set(header)=={'schema','source_content_sha256'} and header['schema']==SCHEMA,'PAGES_CIPHER_INVALID')
+    need(type(header) is dict,'PAGES_CIPHER_INVALID')
+    fields={'schema','source_content_sha256'}
+    if header.get('schema')==UPDATED_SCHEMA:fields.add('view_id');_hex(header.get('view_id'))
+    else:need(header.get('schema')==SCHEMA,'PAGES_CIPHER_INVALID')
+    need(set(header)==fields,'PAGES_CIPHER_INVALID')
     _hex(header['source_content_sha256'])
     need(len(_decode(body['nonce']))==12 and 16<=len(_decode(body['ciphertext']))<=MAX_VIEW+16,'PAGES_CIPHER_INVALID')
     return body
 
 
-def build_site(state_path,public_dir,private_dir,*,expected_source_sha256):
+def _viewer(path):
+    path=Path(path)
+    need(path.is_file() and not path.is_symlink() and not path.stat().st_mode&0o077,'PAGES_VIEW_KEY_PRIVATE_REQUIRED')
+    private_root(path.absolute().parent)
+    doc=_json(_read(path,1024),1024)
+    need(type(doc) is dict and set(doc) in ({'key','cipher_sha256'},{'key','cipher_sha256','view_id'}),'PAGES_VIEW_KEY_INVALID')
+    _hex(doc['cipher_sha256']);view_id=_hex(doc.get('view_id',doc['cipher_sha256']))
+    text=doc['key'];need(type(text) is str and re.fullmatch('[A-Za-z0-9_-]{43}',text),'PAGES_VIEW_KEY_INVALID')
+    key=base64.b64decode(text.replace('-','+').replace('_','/')+'=',validate=True)
+    need(len(key)==32 and base64.urlsafe_b64encode(key).decode().rstrip('=')==text,'PAGES_VIEW_KEY_INVALID')
+    return key,view_id
+
+
+def build_site(state_path,public_dir,private_dir,*,expected_source_sha256,viewer_from=None):
     _hex(expected_source_sha256)
     public=Path(public_dir).absolute();private=Path(private_dir).absolute()
     a=public.resolve();b=private.resolve()
     need(a!=b and a not in b.parents and b not in a.parents,'PAGES_OUTPUTS_MUST_BE_SEPARATE')
+    reused=_viewer(viewer_from) if viewer_from is not None else None
     state=PdcaState(state_path)
     try:
         need(state.content_sha256()==expected_source_sha256,'PAGES_SOURCE_CONTENT_MISMATCH')
@@ -84,20 +107,24 @@ def build_site(state_path,public_dir,private_dir,*,expected_source_sha256):
     finally:state.close()
     raw=wire(view).encode();need(0<len(raw)<=MAX_VIEW,'PAGES_VIEW_BOUND')
     # Display capability only: never a replacement for RACE_AI_STATE_KEY.
-    key=AESGCM.generate_key(bit_length=256);nonce=os.urandom(12)
+    key=reused[0] if reused else AESGCM.generate_key(bit_length=256);nonce=os.urandom(12)
     header=dict(schema=SCHEMA,source_content_sha256=expected_source_sha256)
+    if reused:header.update(schema=UPDATED_SCHEMA,view_id=reused[1])
     cipher=AESGCM(key).encrypt(nonce,raw,wire(header).encode())
     encoded=(wire(dict(header=header,nonce=base64.b64encode(nonce).decode(),ciphertext=base64.b64encode(cipher).decode()))+'\n').encode()
     need(len(encoded)<=MAX_WIRE,'PAGES_CIPHER_BOUND');ident=sha(encoded)
     private=private_root(private);public=private_root(public)
     keytext=base64.urlsafe_b64encode(key).decode().rstrip('=')
-    save(private/'viewer.json',(wire(dict(key=keytext,cipher_sha256=ident))+'\n').encode())
-    save(private/'owner-url.txt',(BASE_URL+'#saved='+ident+'.'+keytext+'\n').encode())
+    viewer=dict(key=keytext,cipher_sha256=ident)
+    if reused:viewer['view_id']=reused[1]
+    save(private/'viewer.json',(wire(viewer)+'\n').encode())
+    save(private/'owner-url.txt',(BASE_URL+'#saved='+(reused[1] if reused else ident)+'.'+keytext+'\n').encode())
     files={name:_asset_bytes(WEB,name) for name in ASSETS}
     path='views/'+ident+'.json';files.update({'index.html':_index(ident),'.nojekyll':b'',path:encoded})
     manifest=dict(schema=BUILD,source_content_sha256=expected_source_sha256,cipher_path=path,cipher_sha256=ident,
         races=len(view['records']),predictions=sum(1+len(r.get('comparison_predictions',[])) for r in view['records']),
         files={name:dict(sha256=sha(body),bytes=len(body)) for name,body in sorted(files.items())})
+    if reused:manifest['view_id']=reused[1]
     for name,body in files.items():private_root((public/name).parent);save(public/name,body)
     metadata=(wire(manifest)+'\n').encode();save(public/'site-build.json',metadata)
     validate_bundle(public,expected_manifest_sha256=sha(metadata))
@@ -109,8 +136,10 @@ def _bundle_bytes(folder,*,expected_manifest_sha256=None):
     raw=_read(root/'site-build.json',32768)
     if expected_manifest_sha256 is not None:need(sha(raw)==_hex(expected_manifest_sha256),'PAGES_BUILD_PIN_MISMATCH')
     m=_json(raw,32768)
-    need(type(m) is dict and set(m)=={'schema','source_content_sha256','cipher_path','cipher_sha256','races','predictions','files'}
+    fields={'schema','source_content_sha256','cipher_path','cipher_sha256','races','predictions','files'}
+    need(type(m) is dict and set(m) in (fields,fields|{'view_id'})
          and m['schema']==BUILD,'PAGES_MANIFEST_INVALID')
+    if 'view_id' in m:_hex(m['view_id'])
     ident=_hex(m['cipher_sha256']);_hex(m['source_content_sha256']);path='views/'+ident+'.json'
     need(m['cipher_path']==path and type(m['races']) is int and 0<m['races']<=5000
          and type(m['predictions']) is int and m['predictions']==4*m['races'],'PAGES_SCOPE_INVALID')
@@ -133,6 +162,7 @@ def _bundle_bytes(folder,*,expected_manifest_sha256=None):
             need(sha(body)==ident,'PAGES_CIPHER_HASH_MISMATCH')
             envelope=_envelope(body)
             need(envelope['header']['source_content_sha256']==m['source_content_sha256'],'PAGES_SOURCE_CONTENT_MISMATCH')
+            need(envelope['header'].get('view_id')==m.get('view_id'),'PAGES_VIEW_ID_MISMATCH')
         files[name]=body
     return m,files
 
