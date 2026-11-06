@@ -111,6 +111,6 @@ Actual private-input offline profiling reproduced redundant per-status work: fou
 ## Preserve the authorized no-ceiling policy after a second concurrent reversal
 
 - [x] Restore all four numeric defaults toNone after concurrent40325f9/7e11d9a, preserving newly recorded round-start counters, historical claims, source waits, prepared transactions and receipts. Keep optional explicitly bounded library controls and monotonic total-integrity checks. Repair the duplicated syntactically broken test file.93targetedPASS/0skip;5independentPASS/0skip;reviewGREEN. The310GET/27round/78minute checks are synthetic, not real additional collection.
-- [ ] Verify this subsequent policy-fix commit in the existing CI. Do not relabel earlier63ecc92/b10758b passing checks as tests of this later source.
+- [x] Verify subsequent no-ceiling policy in the existing CI at45a2749:Viewer42172920937 and AUTORACE42172920961completedSUCCESS;policy source346335be unchanged. Prior63ecc92/b10758bchecks stayhistorical. Subsequent1298618changesonlyauditJSON;finalrecordchangesonlydocs. Video/P1budget/Safarifieldgatesremainunmet asrecorded.
 
 No live forecast, private checkpoint, original or process was reset by this policy repair. The video field goals remain unmet.
