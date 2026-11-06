@@ -1,0 +1,12 @@
+{
+  "command": "python -m unittest discover -s tests",
+  "errors": 0,
+  "existing_model_coefficients_changed": false,
+  "failures": 0,
+  "log_sha256": "f28d48155a6f565ea70e510aaab18ed433ee8e90d6dcc7122b3132780f43a773",
+  "real_data_evidence_separately_recorded": true,
+  "reported_total": 1873,
+  "schema": "RACE_AI_ALL_PERIOD_INTEGRATION_LOCAL_TEST_COUNTS_V1",
+  "skipped": 98,
+  "synthetic_and_mock_tests": true
+}
