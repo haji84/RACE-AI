@@ -1,3 +1,16 @@
+<!-- RACEAI_AUTOMATION_20261107_0645_SINGLE_SUCCESSOR_RESERVED -->
+# 2026-11-07 06:45 JST｜実workerの展示待機を監査し、同じ公式concurrency群へ後続1件のみ予約
+
+**差分:** 対象Draft PR #71ブランチの監査時HEAD `ccdbe9fd4cec1531228849d6a6db24191e87b9e9`、既存workflow `405276784`の全run一覧と現在のjob steps、初回P0索引、最新完了原本artifact一覧を実APIから読取。現在run `42289399740`（起動HEAD `ad220c84eb4ff86b9f00dbab4d6246c4d08190b2`）は`in_progress`、既存初回P0の認証復元・再利用成功後、`Wait without source requests for the authenticated exhibition window`が進行中。取得session開始・展示後P1生成・通常公式確定・自動学習・未来LEARNED_SHADOW比較は本runでまだ検証できない。本runのGitHub artifact一覧は0件。終了・安全停止・GET値・原本の新規読戻し成功を主張しない。
+
+**後続1件の予約:** 実行直前にリストを再取得。実行中の同workflow workerは`42289399740`だけで、queued/pending/waitingは0件、現在の待機stepに失敗なし、当日未来レースが残る。既存トリガー`docs/evidence/boat-nationwide-pilot-trigger.txt`を**一度だけ**原blob SHAによる更新で追記。変更commit `b11b4fa54622e85c6a9fadbd561313b3f725adba`。GitHub APIを再取得し、新run `42299260917`が**pending**、現run `42289399740`は**in_progress**を確認。後続は同じofficial concurrency group `boat-nationwide-cutoff-20261103`に入る、`cancel-in-progress=false`。追加予約・cancel・rerunは0。実行中writerは1つ。特に4xx/429・原本不一致・上限・日付停止を解除しない。
+
+**原本と採点を分離:** 当日の最新完了の正式巡回は、先行run `42259181853` の保存済み**第14巡**（2026-11-07 03:06:24 JST）。今回GitHub artifact APIで結果ZIP `13527208833` の登録digest `5c32aff739d718d0cde99e2f38c4e005b4fb34524986b514c94877e6dc7f8208`、展示後P1 ZIP `13527811422` の登録digest `83b6a3f8e92f1ef603576dad282a7fc62cf3f6a2475bb4fb2da6b67cb9590f5c` を確認。両実バイトと内包statusは先行監査で独立照合済みだが、**今回の新規実ZIPダウンロードによる再照合は実施していない**。初回P0の`p0-first-receipt.json`は132レース/264予想・元ZIP SHA `98abf598c8685bef240f03e135e900dce78b89057c80959b93934d601d58dd3d`、当初索引は変更なし。新runの未完了成果・別jobの研究展示用出力は基準5モデル実績に混ぜない。第14巡に基づく公式通常確定0・P1基準5系統0・日内モデル別収支/的中率/回収率未算定を維持。
+
+**安全制約と残作業:** 現branchのworkflowに`240GET/総・45GET/巡・最大24巡・65分/取得session・180秒間隔・最大3レース/巡・締切210秒前`の既存境界があり、解除なし。実workerは展示待ちであり制限内での正常停止の証拠はまだない。現workflowには saved-view と official で`concurrency.group`分岐が残る。今回のofficial後続はofficialと同じグループだが、**workflow全ジョブが一群の条件は未達**。実worker運転中のworkflow変更なし。原本7日保持を永久私有DBとは呼ばず、無承認の本番モデル切替・実投票・main/公開・新PR/別workflow/新タスク/頻度変更/Cloudflare・Vercel/追加課金なし。新しい確定成績がないため利用者通知に足る予測精度差分はない。
+
+---
+
 <!-- RACEAI_ALL_MODEL_ACTIVE_ENTRANTS_20261107 -->
 # 2026-11-07 JST｜出場艇・全会場出走表・モデル取込を接続。実workerは原本復元後の展示待機
 
