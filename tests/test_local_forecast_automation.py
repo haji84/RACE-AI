@@ -86,7 +86,6 @@ class AutomaticForecastTests(unittest.TestCase):
         self.assertEqual(restarted.tick()["round_no"], 2)
         self.assertEqual(self.service.calls.count(("boat", "P0")), 2)
 
-    @patch('race_ai.local_forecast_automation.SOURCE_LIMIT',None)
     def test_source_count_beyond_old_limit_continues_and_survives_restart(self):
         self.service.requests = 241
         first = self.controller.tick()
@@ -252,7 +251,6 @@ class AutomaticForecastTests(unittest.TestCase):
         self.assertEqual(target.read_bytes(),original)
         self.assertEqual(len(self.service.calls),2)
 
-    @patch('race_ai.local_forecast_automation.SOURCE_LIMIT',None)
     def test_legacy_numeric_cap_migration_retains_counter_and_original_record(self):
         target,original=self.legacy_record(state="STOPPED",halted_reason="SOURCE_BUDGET_EXHAUSTED",
                                            requests_used=240,requests_total=240)
