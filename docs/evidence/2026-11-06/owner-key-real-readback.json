@@ -16,7 +16,7 @@
     "scope": "ALL_RECORDS_IN_PUBLISHED_TERM_FILE_NOT_ALL_CAREERS_OR_ACTIVE_REGISTRY",
     "initial_actions_reader": "FAILED_BASE64_REGEXP_STACK_OVERFLOW",
     "repaired_local_reader": "AUTHENTICATED_AND_VERIFIED",
-    "repaired_actions_reader": "PENDING"
+    "repaired_actions_reader": "AUTHENTICATED_AND_VERIFIED_ON_SEPARATE_RUNNER"
   },
   "venue_history": {
     "artifact_id": 13466519644,
@@ -43,5 +43,11 @@
   "forward_race_verified_by_this_intake": false,
   "formal_backtest_eligible": false,
   "production_promoted": false,
-  "raw_or_plaintext_published": false
+  "raw_or_plaintext_published": false,
+  "repaired_actions_run_url": "https://github.com/haji84/RACE-AI/actions/runs/42139398162",
+  "repaired_actions_head": "b607654d3d603bcb7106c0a005a5d8902788827a",
+  "repaired_actions_reader_job_url": "https://github.com/haji84/RACE-AI/actions/runs/42139398162/job/127636721950",
+  "repaired_actions_term_upstream_gets": 0,
+  "repaired_actions_venue_reader": "AUTHENTICATED_AND_VERIFIED_ON_SEPARATE_RUNNER_5_DAY_BATCH",
+  "extended_private_month_counts": "owner-key-200501-venue-counts.json"
 }
