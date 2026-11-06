@@ -49,3 +49,5 @@ CIに渡す実データは暗号文のみ。復元したSQLite・原本・プロ
 この1Rは観測相性の元版/履歴版とも的中、ST重視は元版的中/履歴版不的中。これはモデル別の1レース比較であり、全対象の的中率や改善効果の実証ではない。[原本や買い目を含まない件数証拠](evidence/2026-11-06/history-pdca-initial-real-result-counts.json)。予想は07:20 JST保存のV2をそのまま使用し、結果後に作り直していない。
 
 ローカルの保存証拠とGitHub SHA一覧の存在確認を、正式forecast receiptへの接続完了と混同しない。`independent_pre_cutoff_receipt_verified=false`、`accuracy_improvement_proven=false`を維持する。実データの暗号化公開→別runner復元が完了するまでは、1〜4の全実運用完成とは報告しない。
+
+09:56 JST追補: 別の既存worker artifact13467416383（ZIP SHA `cd35457e034ca09c2600605b30a4e99d2c2a405c9e2b137ce34f5351ba554997`）をSHA/CRC照合し、同じV2原本との通常結果比較は5Rへ増えた。観測相性は元版3/5・履歴版4/5、ST重視は両版3/5。締切済7Rのうち、観測保留1Rと未観測1Rは不的中にしない。結果版5・採点5を保持し、再実行で件数が増えない。追加公式GET0件、改善効果・正式receipt・PDCA journalのGitHub同期は未証明。[件数証拠](evidence/2026-11-06/history-pdca-followup-real-result-counts.json)。
