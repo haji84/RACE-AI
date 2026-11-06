@@ -187,6 +187,10 @@ def prepare_video_context(report, identity_evidence, *, race_id, cutoff_at, rost
     not grant forecast eligibility or independent human-held-out validation.
     No coefficient, sign, probability, strength or official time is inferred.
     """
+    if type(identity_evidence) is dict and identity_evidence.get('schema_version') == 'RACE_AI_BOAT_VIDEO_SEQUENTIAL_COMPARISON_EVIDENCE_V1':
+        from .boat_video_sequential_context import prepare_sequential_video_context
+        return prepare_sequential_video_context(report, identity_evidence, race_id=race_id,
+            cutoff_at=cutoff_at, roster=roster, as_of=as_of)
     try:
         raw = _report(report)
         target_roster = _roster(roster)
@@ -292,6 +296,9 @@ def validate_video_context(context, *, race_id, cutoff_at, roster, as_of):
     their exact hash and pre-cutoff availability. For source replay, reconstruct
     with ``prepare_video_context`` from the original report and evidence.
     """
+    if type(context) is dict and context.get('schema_version') == 'RACE_AI_BOAT_VIDEO_SEQUENTIAL_MODEL_CONTEXT_V1':
+        from .boat_video_sequential_context import validate_sequential_video_context
+        return validate_sequential_video_context(context, race_id=race_id, cutoff_at=cutoff_at, roster=roster, as_of=as_of)
     if type(context) is dict and context.get("schema_version") == "RACE_AI_BOAT_VIDEO_PHYSICAL_MODEL_CONTEXT_V2":
         from .boat_video_physical_context import validate_physical_video_context
         return validate_physical_video_context(context, race_id=race_id, cutoff_at=cutoff_at, roster=roster, as_of=as_of)

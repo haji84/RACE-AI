@@ -234,13 +234,21 @@ class TiledBoatDetector:
     """Optional fixed native-pixel tiles plus the unchanged full-frame model.
 
     Each crop uses the same detector, preprocessing and confidence threshold.
-    Geometry is remapped before the existing global NMS/candidate cap. This
-    retains hull proposals only; it supplies no identities or field validation.
-    No assets are loaded by this wrapper, and factories keep it disabled.
+    Geometry is remapped before score-ordered global NMS with the existing IoU
+    and candidate cap. A kept larger proposal may also explain a smaller tile
+    fragment by matching its source-clipped extent at that same IoU, when the
+    fragment touches the crossed internal edge within one model-input pixel.
+    This is geometric candidate stitching, not identities or field validation;
+    distinct overlapping hulls can remain geometrically ambiguous. No assets
+    are loaded by this wrapper, and factories keep it disabled.
     """
     def __init__(self, *, detector):
         _require(callable(detector), "a local hull detector is required")
         self.detector = detector
+
+    def _precision_input_side(self):
+        return (416 if type(self.detector) is PinnedBoatDetector
+                and self.detector.kind == "nanodet" else 640)
 
     def metadata(self):
         result = (self.detector.metadata() if type(self.detector) is PinnedBoatDetector
@@ -248,7 +256,14 @@ class TiledBoatDetector:
         result["tiling"] = {"mode": "FIXED_NATIVE_TILES_AND_FULL_FRAME", "tile_size": 832,
                             "stride": 624, "overlap_fraction": .25,
                             "full_frame_included": True, "max_inference_calls": 7,
-                            "global_nms_iou": .5, "max_candidates": 12}
+                            "global_nms_iou": .5, "max_candidates": 12,
+                            "boundary_duplicate_policy":
+                            "SAME_INTERNAL_EDGE_ONE_INPUT_PIXEL_AND_CLIPPED_IOU",
+                            "boundary_precision_input_side": self._precision_input_side(),
+                            "boundary_precision_input_pixels": 1,
+                            "boundary_precision_native_rule": "MAX_SOURCE_SIDE_DIVIDED_BY_INPUT_SIDE",
+                            "boundary_precision_basis": ("PINNED_MODEL_PREPROCESSING"
+                                if type(self.detector) is PinnedBoatDetector else "INJECTED_DEFAULT_640_POLICY")}
         return result
 
     def __call__(self, frame):
@@ -266,15 +281,54 @@ class TiledBoatDetector:
                  for y in origins(height) for x in origins(width)]
         crops = [box for box in crops if box != (0, 0, width, height)]
         _require(len(crops) <= 6, "bounded native tile layout is required")
-        proposals = _detections(self.detector(frame.copy()), width, height)
+        proposals = [(row, (0, 0, width, height))
+                     for row in _detections(self.detector(frame.copy()), width, height)]
         for x, y, w, h in crops:
             rows = _detections(self.detector(frame[y:y+h, x:x+w].copy()), w, h)
             for row in rows:
                 a, b, c, d = row["box"]
                 left, top = x+a, y+b
                 right, bottom = min(float(width), x+a+c), min(float(height), y+b+d)
-                proposals.append({"box": [left, top, right-left, bottom-top], "score": row["score"]})
-        return _nms(proposals)
+                proposals.append(({"box": [left, top, right-left, bottom-top],
+                                   "score": row["score"]}, (x, y, w, h)))
+
+        def clipped_duplicate(child, source, parent, parent_source):
+            if source == parent_source:
+                return False
+            a, b, c, d = child["box"]
+            x, y, w, h = parent["box"]
+            sx, sy, sw, sh = source
+            px, py, pw, ph = parent_source
+            # One detector-input pixel mapped back through crop resizing is a
+            # preprocessing precision bound, not a footage-tuned pixel margin.
+            margin = max(sw, sh)/self._precision_input_side()
+            same_internal_edge = (
+                (sx > 0 and x < sx and a-sx <= margin)
+                or (sy > 0 and y < sy and b-sy <= margin)
+                or (sx+sw < width and x+w > sx+sw and sx+sw-(a+c) <= margin)
+                or (sy+sh < height and y+h > sy+sh and sy+sh-(b+d) <= margin))
+            # A parent must be larger and its own source must see the whole
+            # child. Two views truncated on opposite sides cannot explain each
+            # other. An outer frame boundary cannot truncate a valid parent.
+            if (w*h <= c*d or not (px <= a and py <= b and a+c <= px+pw and b+d <= py+ph)
+                    or not same_internal_edge):
+                return False
+            left, top = max(x, sx), max(y, sy)
+            right, bottom = min(x+w, sx+sw), min(y+h, sy+sh)
+            return (right > left and bottom > top
+                    and _iou([left, top, right-left, bottom-top], child["box"]) > .5)
+
+        kept = []
+        for row, source in sorted(proposals, key=lambda p: (-p[0]["score"], tuple(p[0]["box"]))):
+            # Only retained, higher/equal-confidence proposals may suppress a
+            # fragment. Keep the existing NMS ordering and score unchanged.
+            if all(_iou(row["box"], old["box"]) <= .5
+                   and not clipped_duplicate(row, source, old, old_source)
+                   for old, old_source in kept):
+                kept.append((row, source))
+                if len(kept) == 12:
+                    break
+        return [row for row, _ in kept]
 
 
 class LocalOCRInferenceError(ValueError):
