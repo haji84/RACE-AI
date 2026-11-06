@@ -1,3 +1,16 @@
+<!-- RACEAI_AUTOMATION_20261107_0808_SAVED_VIEW_SCHEMA_FAILURE -->
+# 2026-11-07 08:08 JST｜saved-view事前登録検査のスキーマ不一致。公式予想workerには影響を加えず監査
+
+**新しい実差分と原因:** workflow405276784の別系統 saved-view run `42308698200` は2026-11-07 07:59:26 JSTに`completed/failure`。当該jobの「Verify public prospective policy is still before its first outcome」が `AssertionError` で停止。checkoutの固定HEAD `a77ef3e5c34feef06fb3840c7ac1845ac8b2ae7d` の `prospective-evaluation-plan.json` 内の `schema=RACE_AI_PRE_OUTCOME_BUDGET_PLAN_COUNTS_V1` に対し、既存workflowは `RACE_AI_PROSPECTIVE_EVALUATION_REGISTRATION_V1` を要求している。スキーマ不一致は原本実ファイルと実jobログから確認済み。結果改訂・4xx/429・公式取得上限が原因とは認定しない。今回のsaved-view研究政策受領artifactは0件であり、未来評価の独立事前登録成功とは扱わない。時計や事前登録条件を事後的に変えたり、過去時刻の証明を作成しない。
+
+**公式workerと保存の分離:** 同workflow official run `42289399740` は今回GitHub再取得時 `in_progress`、`Wait without source requests for the authenticated exhibition window` が進行中。現runのartifact0件。公式後続 `42299260917` は既に`pending`（artifact0件）。追加トリガー/cancel/rerunは実施しない。同時公式writerは1。saved-view失敗runのofficial jobはskippedのため、公式P1/通常結果を失敗と断定しない。
+
+**前回から変化のない正式実績:** 最後の保存済み公式完了巡回はrun42259181853第14巡（03:06:24 JST）。予想/結果元ZIPのAPI登録digestと以前の独立SHA検証履歴を照合、今回は元ZIPの新規バイト取得・再SHAではない。P0観測相性132予想、P0 ST重視相性132予想、P1既存5系統0、通常採点0、学習版未来比較0。今回の的中率・仮想収支・回収率は未算定。全16系統、全4競技、前向き学習優位性、期限なし非公開全履歴保存、有限GET実停止は未完成。
+
+**保全:** 既存workflows/モデル/係数/予想原本/公式結果/初回P0/評価方針を変更せず、この監査記録だけを既存Draft PR #71へ追記。他チャット記録も保持。事前政策の有効性に矛盾があるため、「コード変更なしの検証成功」とは報告しない。private ID・URL・認証情報・生データ掲載なし。
+
+---
+
 <!-- RACEAI_OFFICIAL_LIVE_ROOT_CAUSE_FOLLOWUP_20261107 -->
 # 2026-11-07 JST｜403追加原因調査：追跡情報は回収できず、STREAKS提供元への照会を準備
 
