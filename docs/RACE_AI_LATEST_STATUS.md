@@ -1,3 +1,30 @@
+<!-- RACEAI_AUTOMATION_20261106_MODEL_BY_MODEL_1809 -->
+# 2026-11-06 18:09 JST｜モデル別の仮想収支・的中率と次worker安全上限の復元
+
+**今回の実差分:** 基準モデル全体の合算値だけで収益性を説明すると各モデルの強弱が見えないため、これ以降の正式報告は `stage + model_id` ごとに、採点済件数/的中数・率/投資/払戻/純損益/回収率/未採点件数を分離する。LEARNED_SHADOWも研究用別枠とし、P0/P1、異なるモデルの予想を同じ「1件の的中率」に混合しない。
+
+**独立監査に使った保存済み原本:** 同workflowの最新**完了済み**run `42177614402` 第24巡。予想artifact 13487355443 (`sha256:f5d6c1151e4530f72eb295ca54c326132fdd590e3ae2e5e300655ab487f108be`)、結果artifact 13487495212 (`sha256:1d9478fb89464c7a70ca96d9ecf58dcec9a96753fa604d704d9bdc8e2df606f6`)、継続artifact 13487220725 (`sha256:c8e0f0a48f96eaca9e726477df9a7c14f8aca183b67be8d5dd6c0574edd2a45a`)を実ZIP読戻しし、実SHA256=API digest・CRC正常。結果ZIP内 `status.json` の `round_no=24`・`updated_at=2026-11-06T08:01:21.786868+00:00`、`scoreboard` と `per_forecast` を照合。保存済みの通常採点だけが分母。直近in_progress runの未完了巡回を加算しない。
+
+| 予想版・基準モデル | 保存 | 採点 | 的中 | 的中率 | 投入(各8点×100円) | 払戻 | 仮想純損益 | 回収率 | 未採点 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| P0 観測相性 `boat-observed-pairwise-factor-v1` | 156 | 103 | 25 | 24.27% | 82,400円 | 50,860円 | -31,540円 | 61.72% | 53 |
+| P0 ST重視相性 `boat-observed-pairwise-start-v1` | 156 | 103 | 24 | 23.30% | 82,400円 | 49,730円 | -32,670円 | 60.35% | 53 |
+| P1 A `boat-display-rating-PL-reference-v1-UNVALIDATED` | 74 | 67 | 14 | 20.90% | 53,600円 | 25,860円 | -27,740円 | 48.25% | 7 |
+| P1 B `boat-course-motor-shadow-v0.1-UNTRAINED` | 74 | 67 | 31 | 46.27% | 53,600円 | 49,340円 | -4,260円 | 92.05% | 7 |
+| P1 C-lite `boat-local-start-course-shadow-v0.1-UNTRAINED` | 74 | 67 | 26 | 38.81% | 53,600円 | 37,150円 | -16,450円 | 69.31% | 7 |
+| P1 観測相性 `boat-observed-pairwise-factor-v1` | 74 | 67 | 18 | 26.87% | 53,600円 | 37,730円 | -15,870円 | 70.39% | 7 |
+| P1 ST重視相性 `boat-observed-pairwise-start-v1` | 74 | 67 | 20 | 29.85% | 53,600円 | 43,410円 | -10,190円 | 80.99% | 7 |
+
+**判定と網羅性:** P1 Bの採点済67件における回収率92.05%が最良だが、全基準モデルの仮想純損益はマイナス。P0モデルは各53件、P1モデルは各7件が未採点。未確認・異常・結果拒否を不的中にしない。締切済・未保存を分母から除いて全国網羅済みとは主張しない。全体合算は監査用照合値でしかなく、モデル選抜の根拠に使用しない。学習版paired104行/52Rは基準7モデル採点541行と別管理し、改善優位なし・本番モデル不変。
+
+**安全コードと実稼働の区別:** 既存Draft PR #71の同ブランチ `race_ai/repeated_cycle.py` と `tests/test_repeated_cycle.py` だけを、既存の安全検証済み版blobへCAS更新。修正commit `080c8f2fc72f7f1f5670de21b5e1829b50a3d29f` と `5c76f2ee9c39e18a2f9d9f128f5fb192e7f4caca`。デフォルト `SOURCE_LIMIT=240`/`ROUND_SOURCE_LIMIT=45`/`MAX_ROUNDS=24`/`MAX_SECONDS=3900`/`POLL_SECONDS=180` の回帰テストを復元。更新HEADのAUTORACE CIは成功、Viewer CIは確認時点でpending。**修正後workerのGET以内安全停止・原本読戻しは未実証**。
+
+新しく起動した同workflow run `42191323045` は2026-11-06 17:56:49 JSTから `in_progress`、実行固定HEAD `9bad5644bf7f0a21a15907073ba86ad10b27aede` は安全修正前（当該ソースの上限がNone）。18:09 JST時点でこのrunの完成済み巡回artifactは0件。安全コードをブランチに復元しても進行中runには適用されない。停止回避の追加push/後続起動・cancel/rerunはしない。GET違反・4xx/429・真正性不一致の原因を迂回せず監査する。
+
+**運用境界:** 同じPR・workflow・concurrencyを維持、実行頻度、新タスク/PR/workflow、新モデル系統、Cloudflare/Vercel、追加課金、main統合、一般公開、実投票、本番自動切替は変更なし。GitHub7日artifactを恒久非公開DBとは呼ばない。
+
+---
+
 <!-- RACEAI_MODEL_SPECIFIC_REPORT_CORRECTION_20261106 -->
 # 2026-11-06 18:01 JST｜モデルごとに的中率・仮想収支・回収率を分離する正式報告ルール
 
