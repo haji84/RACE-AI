@@ -1,1 +1,1 @@
-{"schema":"RACE_AI_BOAT_VENUE_DATASET_INPUT_V1","status":"WAITING_ENCRYPTED_INPUT","repository_id":"1416489937"}
+{"dataset_path": "state/boat-venue-history/v1/datasets/d1d0e8f7c71f68745248c61cc612f6821fcbc24b4ebd8d951a5b2e89ae32192d/dataset.json", "dataset_sha256": "d1d0e8f7c71f68745248c61cc612f6821fcbc24b4ebd8d951a5b2e89ae32192d", "repository_id": "1416489937", "schema": "RACE_AI_BOAT_VENUE_DATASET_INPUT_V1", "source_commit": "74273079428f6502ca58849d4001450ddd36c55c", "status": "READY"}
