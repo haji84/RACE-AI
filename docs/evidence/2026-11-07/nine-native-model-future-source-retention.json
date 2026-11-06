@@ -1,0 +1,22 @@
+{
+  "plaintext_published": false,
+  "pointers": [
+    {
+      "archive_path": "state/boat-venue-history/v1/research-archives/db35c80074a8a26c7ffd51f93a0f39afaf3fb390146169c1e6321945bd13abbd/archive.zip",
+      "archive_sha256": "db35c80074a8a26c7ffd51f93a0f39afaf3fb390146169c1e6321945bd13abbd",
+      "manifest_path": "state/boat-venue-history/v1/research-archives/db35c80074a8a26c7ffd51f93a0f39afaf3fb390146169c1e6321945bd13abbd/manifest.json",
+      "manifest_sha256": "5cc04a14bdc44cf824049b24da2c3e85cbafff50681a8465460f46a25ca0944a",
+      "metadata_path": "state/boat-venue-history/v1/research-archives/db35c80074a8a26c7ffd51f93a0f39afaf3fb390146169c1e6321945bd13abbd/metadata.json",
+      "metadata_sha256": "1af69401a64fd15d43235a9d1cd557628939a9e675389d4846268cbd24937579",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_PRIVATE_SOURCE_ARCHIVE_INPUT_V1",
+      "source_artifact_id": 13549117749,
+      "source_commit": "f7ae24e0ffae7b92ec7d766053a4e8b94d98bcb9",
+      "status": "READY"
+    }
+  ],
+  "production_promoted": false,
+  "requested_archives": 1,
+  "retained_archives": 1,
+  "status": "OWNER_PRIVATE_SOURCE_ARCHIVES_RETENTION_VERIFIED"
+}
