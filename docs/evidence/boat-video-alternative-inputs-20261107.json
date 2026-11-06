@@ -1,0 +1,381 @@
+{
+  "schema": "race-ai-boat-video-no-contact-alternative-inputs-v1",
+  "recorded_at_utc": "2026-11-06T23:08:30.161597+00:00",
+  "existing_draft_pr": 71,
+  "user_direction": "Explore another method; PLAY inquiry deferred, not authorized or sent",
+  "result": "NEW_LICENSED_STILLS_OBTAINED_AND_REAL_LOCAL_MODELS_TESTED; NUMERIC_ROUTE_CONFIRMED_CURRENT_VALUES_PENDING; CURRENT_VIDEO_NOT_OBTAINED",
+  "external_inquiries_sent": 0,
+  "sender_details_collected": false,
+  "new_licensed_stills": {
+    "count": 6,
+    "total_original_bytes": 12794659,
+    "originals": [
+      {
+        "photo_id": "5154436789",
+        "source_page_url": "https://www.flickr.com/photos/fotois/5154436789/",
+        "source_page_http_status": 200,
+        "source_page_sha256": "16dfb4c3371e84a06c7b645aa8516e44d76e19aa9cb64cfc5b8e18794a1a2c49",
+        "date_taken_as_published": "2010-11-03 16:28:33",
+        "date_taken_timezone": null,
+        "author_attribution": "Fotois.com / Dmaniax.com / 246g.com",
+        "license_as_declared": "CC BY 2.0",
+        "license_url": "https://creativecommons.org/licenses/by/2.0/",
+        "original_bytes": 2315247,
+        "original_dimensions": [
+          1800,
+          1200
+        ],
+        "original_sha256": "8b47653746e81f8547ffb10634f8bc423a8d41837c83453101a8e4731b2382b0",
+        "download_http_status": 200,
+        "download_completed_at_utc": "2026-11-06T22:33:37.233098+00:00",
+        "pts_seconds": null
+      },
+      {
+        "photo_id": "5154441373",
+        "source_page_url": "https://www.flickr.com/photos/fotois/5154441373/",
+        "source_page_http_status": 200,
+        "source_page_sha256": "f74aa6f3a5d145a2a313916a9580a71f8167068d50da7f0546d0523068589bb9",
+        "date_taken_as_published": "2010-11-03 16:28:41",
+        "date_taken_timezone": null,
+        "author_attribution": "Fotois.com / Dmaniax.com / 246g.com",
+        "license_as_declared": "CC BY 2.0",
+        "license_url": "https://creativecommons.org/licenses/by/2.0/",
+        "original_bytes": 1962283,
+        "original_dimensions": [
+          1800,
+          1200
+        ],
+        "original_sha256": "b9b503e0ad7d9bed4afa7adafe53b810e0b6ee6ccdfda8b1b43d965582122ed7",
+        "download_http_status": 200,
+        "download_completed_at_utc": "2026-11-06T22:35:48.501743+00:00",
+        "pts_seconds": null
+      },
+      {
+        "photo_id": "5154455275",
+        "source_page_url": "https://www.flickr.com/photos/fotois/5154455275/",
+        "source_page_http_status": 200,
+        "source_page_sha256": "22a3efde5e864b0172afc9c55306707eb0bef9fa231c78d3ff2cc266ca3263c5",
+        "date_taken_as_published": "2010-11-03 16:43:50",
+        "date_taken_timezone": null,
+        "author_attribution": "Fotois.com / Dmaniax.com / 246g.com",
+        "license_as_declared": "CC BY 2.0",
+        "license_url": "https://creativecommons.org/licenses/by/2.0/",
+        "original_bytes": 2138332,
+        "original_dimensions": [
+          1800,
+          1200
+        ],
+        "original_sha256": "a0d3945f9899a4e99dc9f7f10ae9dacf014de33fc4cde903882fd6f96f32dfc5",
+        "download_http_status": 200,
+        "download_completed_at_utc": "2026-11-06T22:35:57.195020+00:00",
+        "pts_seconds": null
+      },
+      {
+        "photo_id": "5155102146",
+        "source_page_url": "https://www.flickr.com/photos/fotois/5155102146/",
+        "source_page_http_status": 200,
+        "source_page_sha256": "1f1f480130a00c099b04a5f6b1ff222ec751ead1139aef727f06f863e11ac490",
+        "date_taken_as_published": "2010-11-03 16:46:30",
+        "date_taken_timezone": null,
+        "author_attribution": "Fotois.com / Dmaniax.com / 246g.com",
+        "license_as_declared": "CC BY 2.0",
+        "license_url": "https://creativecommons.org/licenses/by/2.0/",
+        "original_bytes": 2363396,
+        "original_dimensions": [
+          1800,
+          1200
+        ],
+        "original_sha256": "9a7d83c01f2a324c60b64cfc54c8b23200b1a50fcfca1926f3552747e539b948",
+        "download_http_status": 200,
+        "download_completed_at_utc": "2026-11-06T22:36:06.605081+00:00",
+        "pts_seconds": null
+      },
+      {
+        "photo_id": "5155060740",
+        "source_page_url": "https://www.flickr.com/photos/fotois/5155060740/",
+        "source_page_http_status": 200,
+        "source_page_sha256": "18791c776d25c282298dd12dad8ef321ebf9b30476caa6c91304381c2beec33a",
+        "date_taken_as_published": "2010-11-03 16:30:32",
+        "date_taken_timezone": null,
+        "author_attribution": "Fotois.com / Dmaniax.com / 246g.com",
+        "license_as_declared": "CC BY 2.0",
+        "license_url": "https://creativecommons.org/licenses/by/2.0/",
+        "original_bytes": 1783226,
+        "original_dimensions": [
+          1800,
+          1200
+        ],
+        "original_sha256": "a92f1c8052013e7a2fcdec69e70ee3c0bead535d383a19d2e5cc59b8e6197e6b",
+        "download_http_status": 200,
+        "download_completed_at_utc": "2026-11-06T22:36:14.001069+00:00",
+        "pts_seconds": null
+      },
+      {
+        "photo_id": "5154458285",
+        "source_page_url": "https://www.flickr.com/photos/fotois/5154458285/",
+        "source_page_http_status": 200,
+        "source_page_sha256": "8be7efcb429eedfd4b08c0250661f1f93b38549621debdbb46b12958ca4aa12e",
+        "date_taken_as_published": "2010-11-03 16:44:12",
+        "date_taken_timezone": null,
+        "author_attribution": "Fotois.com / Dmaniax.com / 246g.com",
+        "license_as_declared": "CC BY 2.0",
+        "license_url": "https://creativecommons.org/licenses/by/2.0/",
+        "original_bytes": 2232175,
+        "original_dimensions": [
+          1800,
+          1200
+        ],
+        "original_sha256": "c3edce80bb0d4ad26faba2d657fbeabb91b6646dd889377a14793f73cf01b36a",
+        "download_http_status": 200,
+        "download_completed_at_utc": "2026-11-06T22:36:22.913614+00:00",
+        "pts_seconds": null
+      }
+    ],
+    "source_files_independently_hash_checked": 106,
+    "source_requests": 46,
+    "all_source_requests_status200": true,
+    "class1_readability_established": false,
+    "AI_visible_classes": [
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "stills_are_not_current_race_video": true,
+    "continuous_video_frames": 0
+  },
+  "AI_development_reference": {
+    "human_ground_truth": false,
+    "independent_heldout": false,
+    "annotator_model_output_blind": true,
+    "globally_frozen_before_predictions": "UNKNOWN_NOT_ASSERTED",
+    "source_ledger_readability_prose_was_seen": true,
+    "summary": {
+      "photo_count": 6,
+      "craft_regions": 11,
+      "rider_bearing_craft_regions": 10,
+      "partial_bow_only_craft_regions": 1,
+      "direct_readable_hull_number_regions": 8,
+      "direct_readable_counts_by_label": {
+        "2": 3,
+        "3": 1,
+        "4": 2,
+        "5": 1,
+        "6": 1
+      },
+      "direct_readable_classes": [
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "class_1_established": false,
+      "unknown_craft_number_regions": 3,
+      "semantic_non_target_regions": 9,
+      "unresolved_background_regions": 1,
+      "strict_complete_craft_count_ground_truth": false
+    },
+    "PTS": null,
+    "track_id_assigned": false,
+    "photo_repeated_to_manufacture_video": false,
+    "forecast_eligible": false,
+    "production_eligible": false
+  },
+  "real_model_diagnostics": {
+    "video_source_checkout": "ef818e510c8ceb62d4c147ab8d4db1c3cf252435",
+    "video_modules_byte_unchanged_relative_to": "7d10dc895cbd90fd3553f613b2987f7bf3dd6540",
+    "initial_failure": {
+      "cause": "2160000pixel still exceeds unchanged 2073600pixel input guard",
+      "detector_forwards": 0,
+      "manual_OCR_calls_returned": 8,
+      "those_first_outputs_retained": false,
+      "failed_script_and_receipt_preserved": true
+    },
+    "corrected_input_transform": {
+      "original_wh": [
+        1800,
+        1200
+      ],
+      "analysis_wh": [
+        1763,
+        1175
+      ],
+      "scale_x": 0.9794444444444445,
+      "scale_y": 0.9791666666666666,
+      "interpolation": "INTER_AREA",
+      "original_source_pixels_unchanged": true,
+      "existing_input_guard_unchanged": true
+    },
+    "NanoDet": {
+      "photos": 1,
+      "completed_detector_forwards": 1,
+      "generic_detections": 0,
+      "completed_CRNN_forwards_retained": 8
+    },
+    "existing_YOLOX_fixed_settings": {
+      "photos": 6,
+      "completed_detector_forwards": 6,
+      "generic_detections": 5,
+      "completed_CRNN_forwards_retained": 31,
+      "raw_number_proposals": 1,
+      "direct_readable_AI_number_matches": 0,
+      "proposal_reference": "UNKNOWN; no correct/wrong certification",
+      "fixed_IoU_gate": 0.5,
+      "AI_geometry_point_matches": 3,
+      "strict_precision_or_recall_denominator_valid": false
+    },
+    "retained_completed_detector_forwards": 7,
+    "retained_completed_CRNN_forwards": 39,
+    "manual_ROI_new_photo_4_decoded_4": true,
+    "manual_ROI_is_not_automatic_identity": true,
+    "full_temporal_identity_pipeline_executed": false,
+    "calibrated_probability_or_independent_accuracy_claimed": false,
+    "production_worker_weights_thresholds_or_model_changed": false,
+    "forecast_eligible": false,
+    "production_eligible": false,
+    "retained_manual_ROI_composition": {
+      "reused_Amagasaki_one_digit_regions": 6,
+      "new_Kiryu_one_digit_4": 1,
+      "new_Kiryu_multi_digit_64_non_ID": 1,
+      "retained_calls": 8
+    },
+    "YOLOX_reader_statuses_all_COMPLETE": true,
+    "YOLOX_reader_skipped_views": 0,
+    "YOLOX_reader_inference_errors": 0
+  },
+  "official_numeric_alternative": {
+    "announcement_date": "2022-01-15",
+    "announced_publication_start": "2022-01-20",
+    "public_display_fields": [
+      "ttime",
+      "rnd",
+      "cnr",
+      "str"
+    ],
+    "dedicated_lap_turn_independent_straight_import_implemented": false,
+    "exhibition_time_and_valid_ST_already_connected": true,
+    "conditional_prior_actual_course_history_path_exists": true,
+    "course_history_is_not_current_entry_prediction": true,
+    "guide_sources": [
+      {
+        "url": "https://www.boatrace-toda.jp/xml/news/16688.html",
+        "status": 200,
+        "sha256": "276b0a04c2bdcf2593df5b6d2c6c328573fff889708bc728bde8bb4e97f95d46"
+      },
+      {
+        "url": "https://www.boatrace-toda.jp/xml/news/16688.xml",
+        "status": 200,
+        "sha256": "4ed7a3a9df4819b419da9829ff0f405d9fa9b47aa585a479878b287d63d4603d"
+      },
+      {
+        "url": "https://todaboat-telprd.powercms.hosting/3d30eba176d74db6b23994d7efe8ae18.jpg",
+        "status": 200,
+        "sha256": "dc8c904a18dfa5321a72e508aaac196fb14cca5778cd8fd1008c033e3c10649a"
+      },
+      {
+        "url": "https://todaboat-telprd.powercms.hosting/42f4d6e51395c346a07914699dd72e43.jpg",
+        "status": 200,
+        "sha256": "32d4016cb94e1af68fcf3653ec11e88d0aa20052f562452d73e68f8405f92c62"
+      },
+      {
+        "url": "https://www.boatrace-toda.jp/news/news.html?id=16688",
+        "status": 200,
+        "sha256": "84d0b1a6360358c4aa7a2280b3679bc7d64e0db8fcde240d758abf670cecf0c7"
+      },
+      {
+        "url": "https://www.boatrace-toda.jp/assets/img/toda_tenjidata.png",
+        "status": 200,
+        "sha256": "c5aeb06306db7f15b998eb2f5fa5e2d2666b6ebec695535901af75f6c1a49c19"
+      },
+      {
+        "url": "https://www.boatrace-toda.jp/assets/js/news_content.js",
+        "status": 200,
+        "sha256": "a8b1789ee915f354dddee1713d9bd898f3db9537458fa8cb362dabae32b346a7"
+      },
+      {
+        "url": "https://www.boatrace-toda.jp/assets/js/race_table_original.js",
+        "status": 200,
+        "sha256": "939d791d35507ca4026b3974016fd56fc370f9b3ecf0b8da1c249222ac9e5d53"
+      }
+    ],
+    "UI_selection": {
+      "date": "20261107",
+      "venue_code": "02",
+      "race": 1,
+      "derived_from_metadata_and_selection_code_not_browser_render": true,
+      "selection_frozen_before_request": true,
+      "http_status": 404,
+      "measurement_rows": 0,
+      "availability": "PENDING_NOT_AVAILABLE_AT_CAPTURE",
+      "XML_body_date_race_entrants_verified": false,
+      "captured_at_utc": "2026-11-06T22:49:41.146430+00:00",
+      "published_numeric_source_url": "https://www.boatrace-toda.jp/xml/kaisai/20261107/race_table_original_01.xml",
+      "response_sha256": "fe9aaf11dd23ea1d08e03634c2bd61bdd171e7ea6ea53fda1892866a6cfe9bef"
+    },
+    "unit": "UNKNOWN",
+    "exact_distance_metres": "UNKNOWN",
+    "daily_publication_time": "UNKNOWN",
+    "race_XML_requests": 1,
+    "retries": 0,
+    "dates_or_races_enumerated": false,
+    "new_values_used_in_forecast": false
+  },
+  "independent_current_video_search": {
+    "new_public_document_GETs": 4,
+    "all_document_status200": true,
+    "venues": [
+      "Ashiya: published non-racing Nov7",
+      "Shimonoseki: Nov7 racing, published Play wrapper points to BOATCAST child; child not requested"
+    ],
+    "new_denial_observed": false,
+    "opening_time_is_not_broadcast_start_time": true,
+    "known_denied_footage_requested_via_alternate_route": false,
+    "acquired_media_bytes": 0,
+    "decoded_frames": 0,
+    "not_a_worldwide_absence_claim": true
+  },
+  "separate_archive_metadata_search": {
+    "queries": 2,
+    "both_status200": true,
+    "first_result_count": 1,
+    "first_item_excluded": "YouTube-origin copy; no licenseurl",
+    "explicit_license_query_results": 0,
+    "media_downloads": 0,
+    "not_a_global_absence_claim": true
+  },
+  "private_evidence_sha256": {
+    "new_photo_ledger": "9bce741a7354da537b3ef91cf47fb3c62dfa987d2f416c782a981630a241d0d2",
+    "new_photo_index": "9c903d393bf2cddd3190bd0b2c8de4394d525132c5796225c3e26df1456b302b",
+    "independent_source_integrity_check": "90a3f67f9a3fb7842282f519600ddb519b61b6fec7ed0982d67e44d3ff0d7de0",
+    "new_AI_native_reference": "d52e8a6e27fd37f8ba7290ddc5fe55f6efcf845a82ae06849dec858ed7a09e93",
+    "manual_static_reference": "fb20dd610bc4beb20c1f5c45c51a3abb9822bb5aba9cd3bb771b686304dcbb31",
+    "initial_failure": "f873b84f11b01f58d8663872fe6bcc6c152d089e0f2107ffbbc9105f2ea3265b",
+    "corrected_NanoDet_and_manual_CTC": "07e8edc018f5efbc7bdc72d8d293ead393084350343703916838d81375141774",
+    "YOLOX_six_photo_diagnostic": "1d365b0b6998da378f8fd149686072bd4fd7716686be66e8dc6640494b62c5b5",
+    "fixed_AI_geometry_and_number_check": "ff7a1c9a2d23c779126666ce38da95ddb87c23771c4ce553b9884b05244cefdd",
+    "numeric_latest_tree": "603586492434a372f2da104da1e2867ee32dd459c57c23b1bf55f42865986fca",
+    "numeric_guide": "5c91f76bc5682a789d4815793fb98131d936a9e8275ad60d357167dd84ebe26f",
+    "numeric_current_selection": "8e781dec2594ad861ae66ba1183d99b03ebfcc8c680b2e2b2006095a56650d96",
+    "independent_current_video_search": "782e2cb3763534970105a2a0634323d0741a0c039cd944b3d0259135a6ab6028",
+    "archive_first_metadata_search": "b19c2fdf5252cb50f74fd04321f185ed0cb45781094f276db5c33380b1780927",
+    "archive_explicit_license_search": "59abdde59b809db3ba90070ba8a2bad13924d4eeea165f142e8abbb4e3957b0b"
+  },
+  "preservation": {
+    "protected_processes_observed_alive": [
+      423218,
+      271439
+    ],
+    "seed_forecast_db_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+    "prediction_originals_runtime_limits_or_provider_waits_changed": false,
+    "manual_dispatch_rerun_or_cancel": false,
+    "new_PR_workflow_forecast_family_account_or_paid_service": false,
+    "main_merge_public_app_deploy_or_production_switch": false,
+    "photos_annotations_or_weights_published_to_Git": false
+  },
+  "official_LIVE_403_resolved": false,
+  "six_boat_tracking_completed": false,
+  "video_strength_validated": false,
+  "prospective_video_accuracy_improvement_proven": false
+}
