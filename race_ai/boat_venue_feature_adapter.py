@@ -63,9 +63,9 @@ def enrich_venue_snapshot(snapshot,folder,pointer,*,verified_at,allow_source=Non
         if b['numeric_finish_n']==n and not b['special_result_n']:
             add('course_mean_finish',sum((i+1)*count for i,count in enumerate(b['finish_counts']))/n,n)
         else:participant['missing']['course_mean_finish']='UNRESOLVED_DISPOSITION'
-        if b['st_n']:
-            f=sum(v for code,v in b['dispositions'].items() if code.startswith('F'))
-            l=sum(v for code,v in b['dispositions'].items() if code.startswith('L'))
+        statuses=b.get('st_status_counts')
+        if b['st_n'] and type(statuses) is dict and all(type(v) is int and v>=0 for v in statuses.values()) and sum(statuses.values())==n and statuses.get('OK',0)==b['st_n']:
+            f=statuses.get('F',0);l=statuses.get('L',0)
             add('course_mean_st',b['mean_st'],b['st_n'],f,l,n-b['st_n']-f-l);st_participants+=1
         else:participant['missing']['course_mean_st']='UNRESOLVED_DISPOSITION'
     _validate(out)

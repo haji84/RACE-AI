@@ -64,3 +64,28 @@ class VenueFeatureTests(unittest.TestCase):
         r=enrich_venue_snapshot(snapshot,out,pointer,verified_at='2030-04-01T01:40:00Z',allow_source=lambda *a:True)
         self.assertEqual(r['course_st_participants'],6)
         self.assertTrue(all(p['missing']['course_mean_finish']=='UNRESOLVED_DISPOSITION' for p in r['snapshot']['participants']))
+
+    def test_finish_f_does_not_reclassify_missing_st_as_observed_f_timing(self):
+        from race_ai.boat_venue_feature_adapter import enrich_venue_snapshot
+        from tests.test_boat_entry_observations import daily_pair,uncompressed_lzh
+        _,body=daily_pair()
+        body=body.replace(b'2026/11/04',b'2026/11/01').replace(
+            b'01 1 4001 TEST 55 33 6.80 1 0.12 1.50.4',
+            b'F 1 4001 TEST 55 33 6.80 1 -- 1.50.4')
+        out,pointer,snapshot=self.dataset(raw=uncompressed_lzh(body,'K261101.TXT'))
+        r=enrich_venue_snapshot(snapshot,out,pointer,verified_at='2030-04-01T01:40:00Z',allow_source=lambda *a:True)
+        h=r['snapshot']['participants'][0]['features']['course_mean_st']['history']
+        self.assertEqual((h['total_n'],h['ok_n'],h['f_n'],h['l_n'],h['missing_n']),(2,1,0,0,1))
+
+    def test_legacy_grid_without_st_status_counts_withholds_st_feature(self):
+        from race_ai.boat_venue_feature_adapter import enrich_venue_snapshot
+        from race_ai.boat_venue_dataset import lookup
+        out,pointer,snapshot=self.dataset()
+        def legacy(*args,**kwargs):
+            p=lookup(*args,**kwargs)
+            for b in p['by_actual_course'].values():b.pop('st_status_counts',None)
+            return p
+        with patch('race_ai.boat_venue_feature_adapter.lookup',side_effect=legacy):
+            r=enrich_venue_snapshot(snapshot,out,pointer,verified_at='2030-04-01T01:40:00Z',allow_source=lambda *a:True)
+        self.assertEqual(r['course_st_participants'],0)
+        self.assertTrue(all(p['missing']['course_mean_st']=='UNRESOLVED_DISPOSITION' for p in r['snapshot']['participants']))
