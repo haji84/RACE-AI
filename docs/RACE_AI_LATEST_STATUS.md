@@ -1,3 +1,16 @@
+<!-- RACEAI_AUTOMATION_20261106_1134_CYCLE24 -->
+# 2026-11-06 11:34 JST｜既存run第24巡の完走と正式採点増分、公式GET417回の超過確認
+
+**独立確認:** PR #71（Draft）の監査時HEAD `a0c2479f4ffec04e05ec62a145c5f7a658815a4d`、既存workflow `405276784` の完了run `42142323217` の1ジョブはcompleted/success。全artifact50件から最終第24巡を選び、結果・PDCA元ZIP `13471056161`（実SHA256 `9645cbe76d1ba655c0f70755220e2dec5f7558e1f247565fc89cfd50b2acb28d`）、P1元ZIP `13469979920`（`7ad8436a60de8a3c563a10552c25d39ce0bfd6891fb73c91d92e7ae4bd286ff3`）、最終継続ZIP `13471395500`（`075c97b9dce072a562c5c897348dd01c4cb7182dbbd5cb5b4d837562e8e1bd92`）を別取得。3件ともGitHub API digestと実ZIP SHA256一致、CRC異常なし。結果ZIP内P1は別取得元ZIPと完全一致、内包P0の実ZIP SHA `6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc` も既存初回P0と一致。継続JSONは`completed_round=24/prepared_round=null`、24巡すべてにreadback receiptがある。
+
+**確定した増分:** 11/6対象13場156R。基準予想はP0=312件不変、P1=120件（10:51既報105件から+15）で計432件。CSV432行にrace_id/phase/modelの重複0。通常確定は一意15R（+4）、モデル別正式採点105件（+28）、的中51（+14）・不的中54（+14）。全7モデル/時点を1モデル8点×100円で仮想購入した場合のみ投入84,000円・受取62,910円・収支-21,090円・回収率74.89%。同じ15Rを7系統で採点した数字で、全国156Rの実成績や実投票ではない。締切済24R、結果待ち7R、異常2R。5系統P1が欠けた締切済3R×5=15モデル別件はcoverage_auditから除外せず、展示公開済みの推測はしない。結果観測revisionは46件。
+
+**学習研究:** `automatic_learning.state=FITTED_SHADOW_ONLY`、一意の通常確定15R、TRAIN12/VALIDATION3で既存観測相性2系統の係数候補を作成。LEARNED_SHADOW保存14モデル別件（既報8件から+6）だが、正式な未来ペア結果比較はまだ0件。過去holdoutと未来優位性を混同しない。基準5系統・元買い目は変更なし、モデルの本番自動切替なし。今回全14シャドーそれぞれの元学習artifactを独立再取得できたと主張しない。
+
+**最重要の未達:** 実ZIPの`repeat-session.json.requests_used=417`、内訳forecast333/result84。指定1セッション240 GETを**177回超過**。現行`race_ai/repeated_cycle.py`は`SOURCE_LIMIT=None`、`MAX_ROUNDS=None`、`MAX_SECONDS=None`のまま。正常終了は安全上限遵守の証拠ではない。保存済みの過去原本は書き換えない。ローカル限定の安全上限候補（240 GET/24巡/65分、1巡45回）と対応回帰テストは既存workflow掲載の175テストPASSだが、**GitHub PRへは未適用・CI未検証**。再実行・後続trigger・上限回避・稼働中workerキャンセルは実施せず、現時点のqueued/pending/waitingの全件一覧は取得できていないため後続ゼロと断定しない。修正の採用には最新HEADとの競合照合、元原本の保全、既存CIが必要。Drive追加保存の今回増分は実施なし。新workflow・新PR・別モデル系統・追加課金・公開・main統合・投票・本番自動採用は行っていない。
+
+---
+
 <!-- RACEAI_VIDEO_COMPLETION_CONTINUATION_20261106 -->
 # 2026-11-06 10:54 JST｜映像識別・校正・モデル接続を続行、実映像の受入は不合格
 
