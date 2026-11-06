@@ -5,12 +5,12 @@ Camera/PTS declarations and hashes are not independent field certification.
 No source is fetched, no position is interpolated, and originals stay unchanged.
 """
 from copy import deepcopy
+from fractions import Fraction
 import math
 
 from .actions_contract import digest
 from .boat_video_calibration import _camera_frames, _hull, _inside
 from .boat_video_evaluation import _JST, _race_day, _report, _roster, _time, _tree
-from .boat_video_identity import _homography
 from .boat_video_measurements import IDENTITIES, _crossings, _gate, measure_tracks
 from .boat_video_model_context import FEATURE_IDS, FEATURE_SCHEMA, _CONTEXT_FIELDS, _sha, _LABEL
 from .boat_video_physical_context import _identities, _uncertainty
@@ -133,11 +133,14 @@ def _window(part, comparison, camera_hash, size, duration):
             matrix = binding['raw_to_reference']
             _need(type(matrix) is list and len(matrix) == 3 and all(type(r) is list and len(r) == 3 and
                   all(_finite(v) for v in r) for r in matrix))
-            # _camera_frames emits normalized transforms. The shared camera
-            # contract rejects singular/near-singular maps; passing it does
-            # not authenticate the retained matrix or its image accuracy.
+            # Data-only readers do not need the optional video runtime.
+            # Exact arithmetic prevents cancellation from making a singular
+            # matrix look invertible. Keep the same normalized camera contract;
+            # passing it does not authenticate the matrix or its accuracy.
             _need(abs(matrix[2][2]-1.) <= 1e-12)
-            _homography(matrix)
+            a,b,c,d,e,f,g,h,i = (Fraction(v) for row in matrix for v in row)
+            determinant = a*(e*i-f*h)-b*(d*i-f*g)+c*(d*h-e*g)
+            _need(_finite(float(determinant)) and abs(determinant) > Fraction(1e-8))
         previous_index, previous_t = row['frame_index'], row['t']
     if [r['frame_index'] for r in rows] != part['frame_indices']:
         return 'EXACT_PHASE_FRAME_WINDOW_MISMATCH'
