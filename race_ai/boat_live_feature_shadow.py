@@ -57,7 +57,10 @@ def _validated_extra(base_source, extra, generated_at, boats):
     return by_lane
 
 
-def build_live_feature_shadow(base_source, extra, generated_at):
+def build_live_feature_shadow(base_source, extra, generated_at, *, parameters=None):
+    if parameters is not None:
+        from .existing_boat_parameter_adapters import validate_parameters
+        parameters = validate_parameters(MODEL_ID, parameters)
     boats=_valid(base_source,generated_at)
     by_lane=_validated_extra(base_source,extra,generated_at,boats)
     motor_mean=math.fsum(x["motor_two_place_rate_percent"] for x in boats)/len(boats)
@@ -75,15 +78,20 @@ def build_live_feature_shadow(base_source, extra, generated_at):
         score=(math.log(base_rate)+exhibit_mean-b["exhibition_time_seconds"]
                 +COURSE_LOG_BONUS[b["lane"]-1]
                 +MOTOR_LOG_PER_PERCENT_POINT*(b["motor_two_place_rate_percent"]-motor_mean))
+        if parameters is not None:
+            score=(parameters['log_national_rate']*math.log(base_rate) +
+                   parameters['exhibition_delta']*(exhibit_mean-b['exhibition_time_seconds']) +
+                   parameters['course_log_bonus_'+str(b['lane'])] +
+                   parameters['motor_deviation']*(b['motor_two_place_rate_percent']-motor_mean))
         used=[]
         if item["local_win_rate"] is not None and national is not None:
-            score+=.08*(item["local_win_rate"]-national)
+            score+=(.08 if parameters is None else parameters['local_rate_delta'])*(item["local_win_rate"]-national)
             used.append("LOCAL_WIN_RATE")
         if average_st_mean is not None and item["average_st"] is not None:
-            score+=2.*(average_st_mean-item["average_st"])
+            score+=(2. if parameters is None else parameters['average_st_delta'])*(average_st_mean-item["average_st"])
             used.append("ACTUAL_AVERAGE_ST")
         if preview_st_mean is not None and item["exhibition_st"] is not None:
-            score+=.65*(preview_st_mean-item["exhibition_st"])
+            score+=(.65 if parameters is None else parameters['exhibition_st_delta'])*(preview_st_mean-item["exhibition_st"])
             used.append("EXHIBITION_ST_OBSERVATION")
         # Missing data are neutral to this *experimental* model, explicitly
         # reported per racer, not assumed to be zero or a disqualifier.
@@ -91,7 +99,7 @@ def build_live_feature_shadow(base_source, extra, generated_at):
         status.append({"lane":b["lane"],"racer_id":b["racer_id"],
                        "features_used":used,
                        "historic_course_tactics_available":False})
-    full=_rank(strengths,[b["lane"] for b in boats])
+    full=_rank(strengths,[b["lane"] for b in boats],stable=parameters is not None)
     output={"schema":"RACE_AI_BOAT_CURRENT_FEATURE_SHADOW_V1",
             "model_id":MODEL_ID,"race_id":base_source["race_id"],
             "cutoff_at":base_source["cutoff_at"],"as_of":generated_at,
@@ -106,5 +114,7 @@ def build_live_feature_shadow(base_source, extra, generated_at):
             "method_and_entry_historical_truth":"NOT_AVAILABLE_TO_THIS_MODEL",
             "untrained":True,"calibrated":False,"odds_used":False,
             "auto_promoted":False,"betting_decision":"NO_BET"}
+    if parameters is not None:
+        output['research_parameters']=dict(parameters)
     output["bundle_sha256"]=_digest(output)
     return output

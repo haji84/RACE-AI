@@ -75,6 +75,7 @@ runs:
       run: python -m scripts.boat_all_model_cycle readback --round '${{ inputs.round }}' --artifact '${{ steps.all_models_freeze.outputs.artifact-id }}'
     - name: Generate private venue research after baseline originals are frozen
       if: steps.ready.outputs.active == 'true'
+      id: native_research
       shell: bash
       run: python scripts/github_existing_cycle.py venue-research-forecast --round '${{ inputs.round }}'
     - name: Freeze owner-encrypted venue research separately from baseline originals
@@ -83,7 +84,7 @@ runs:
       id: venue_research_freeze
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
-        name: boat-venue-research-p1-${{ github.run_id }}-${{ inputs.round }}
+        name: ${{ steps.native_research.outputs.all_model_pairs == 'true' && 'all-existing-model-pairs' || 'boat-venue-research-p1' }}-${{ github.run_id }}-${{ inputs.round }}
         path: ${{ runner.temp }}/boat-venue-research-p1/cycle-${{ inputs.round }}/
         if-no-files-found: ignore
         retention-days: 7

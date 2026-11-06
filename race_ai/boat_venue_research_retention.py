@@ -19,6 +19,7 @@ from .boat_venue_learning_handoff import FILES, publish_learning_candidate
 from .boat_venue_history_handoff import GitStateRepository, PREFIX, TRANSFER_REF
 from .boat_venue_dataset import _bytes, _sha
 from .boat_venue_research_receipt import MAX_ARCHIVE_BYTES, verify_private_p1_artifact
+from .all_existing_model_receipt import verify_private_pairs_artifact
 from .actions_contract import digest
 from .permissioned_source_delivery import read_json_bytes
 from scripts.boat_all_racers import _read
@@ -123,7 +124,10 @@ def _source_intake(root, now, key):
     _need(type(metadata) is dict and type(metadata.get('workflow_run')) is dict,
           'SOURCE_METADATA_INVALID')
     run = metadata['workflow_run']
-    admission = verify_private_p1_artifact(raw, metadata, now=now,
+    name = metadata.get('name')
+    verifier = (verify_private_pairs_artifact if type(name) is str and
+                name.startswith('all-existing-model-pairs-') else verify_private_p1_artifact)
+    admission = verifier(raw, metadata, now=now,
         expected_run_id=run.get('id'), expected_head_sha=run.get('head_sha'))
     manifest = _source_manifest(raw, metadata_raw, metadata, admission, key)
     # Keep descriptors rather than every archive's potentially 64 MiB bytes.

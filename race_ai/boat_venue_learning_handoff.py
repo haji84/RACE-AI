@@ -51,9 +51,16 @@ def _verified(files):
             _write(root / name, _bounded(files[name], limit))
         payload = read_candidate(root)
     training = payload.get('training')
-    need(type(training) is dict and training.get('state') == 'FITTED_SHADOW_ONLY'
-         and set(training.get('models', {})) == set(MODEL_IDS),
-         'VENUE_LEARNING_FITTED_TWO_FAMILIES_REQUIRED')
+    need(type(training) is dict and training.get('state') == 'FITTED_SHADOW_ONLY',
+         'VENUE_LEARNING_FITTED_TRAINING_REQUIRED')
+    if training.get('schema') == 'RACE_AI_ALL_EXISTING_MODEL_FIT_V1':
+        # The registry verifier authenticates the complete cell roster and each
+        # fitted member; genuinely missing members remain explicit HOLD cells.
+        need(type(training.get('models')) is dict and bool(training['models']),
+             'VENUE_LEARNING_FITTED_REGISTRY_MEMBERS_REQUIRED')
+    else:
+        need(set(training.get('models', {})) == set(MODEL_IDS),
+             'VENUE_LEARNING_FITTED_TWO_FAMILIES_REQUIRED')
     verify_training(training)
     expected = dict(payload['summary'], encrypted_readback_verified=True,
                     plaintext_published=False)
@@ -62,7 +69,7 @@ def _verified(files):
     except (ValueError, UnicodeError) as exc:
         raise ValueError('VENUE_LEARNING_SUMMARY_INVALID') from exc
     need(_bytes(summary) == _bytes(expected), 'VENUE_LEARNING_SUMMARY_MISMATCH')
-    return training['training_sha256']
+    return training['training_sha256'], len(training['models'])
 
 
 def _git(repo, transport):
@@ -95,7 +102,7 @@ def publish_learning_candidate(folder, repo, *, transport=None):
     need(_key_ready(), 'OWNER_STATE_KEY_REQUIRED')
     root = _path(folder)
     files = {name: _read(root / name, limit) for name, limit in FILES.items()}
-    training_sha = _verified(files)  # Wrong local owner key must fail before Git.
+    training_sha, _ = _verified(files)  # Wrong local owner key must fail before Git.
     identity = _sha(files['learning.json'])
     prefix = PREFIX + 'learning/' + identity + '/'
     git = _git(repo, transport)
@@ -139,7 +146,7 @@ def restore_learning_candidate(pointer, output, repo, *, transport=None):
     files = {'learning.json': manifest}
     for name in ('learning.enc', 'summary.json'):
         files[name] = _bounded(git.read(commit, prefix + name, FILES[name]), FILES[name])
-    training_sha = _verified(files)
+    training_sha, fitted_model_count = _verified(files)
     need(training_sha == pointer['training_sha256'], 'VENUE_LEARNING_TRAINING_HASH_INVALID')
     root = _output_ready(root)
     root.mkdir(parents=True, mode=0o700, exist_ok=True)
@@ -147,4 +154,5 @@ def restore_learning_candidate(pointer, output, repo, *, transport=None):
         _write(root / name, raw)
     return dict(status='OWNER_VENUE_LEARNING_READBACK_VERIFIED', source_commit=commit,
                 manifest_sha256=pointer['manifest_sha256'], training_sha256=training_sha,
-                fitted_model_count=2, encrypted_readback_verified=True, plaintext_published=False)
+                fitted_model_count=fitted_model_count, encrypted_readback_verified=True,
+                plaintext_published=False)

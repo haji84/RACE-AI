@@ -85,7 +85,7 @@ def _valid(source, generated_at):
     return order
 
 
-def _rank(strengths, lanes=None):
+def _rank(strengths, lanes=None, *, stable=False):
     lanes = tuple(range(1, len(strengths)+1)) if lanes is None else tuple(lanes)
     if (len(lanes) != len(strengths) or not 3 <= len(lanes) <= 6
             or len(set(lanes)) != len(lanes) or any(type(n) is not int or not 1 <= n <= 6 for n in lanes)
@@ -96,11 +96,11 @@ def _rank(strengths, lanes=None):
     out = []
     for a,b,c in itertools.permutations(lanes,3):
         x,y,z = (by_lane[i] for i in (a,b,c))
-        if len(lanes) == 6:
+        if not stable and len(lanes) == 6:
             p = x/total * y/(total-x) * z/(total-x-y)
         else:
-            # Sum remaining strengths to avoid cancellation in small fields
-            # with one very strong entrant; the legacy six arithmetic stays.
+            # Small fields and fitted coefficients can have dominant boats;
+            # sum remaining strengths while retaining legacy six arithmetic.
             second = math.fsum(by_lane[lane] for lane in lanes if lane != a)
             third = math.fsum(by_lane[lane] for lane in lanes if lane not in (a,b))
             p = x/total * y/second * z/third
@@ -112,7 +112,11 @@ def _rank(strengths, lanes=None):
     return out
 
 
-def build_pair(source, generated_at):
+def build_pair(source, generated_at, *, parameters=None):
+    fitted = {}
+    if parameters is not None:
+        from .existing_boat_parameter_adapters import validate_group_parameters
+        fitted = validate_group_parameters(parameters, MODEL_IDS)
     boats = _valid(source, generated_at)
     avg = math.fsum(b["exhibition_time_seconds"] for b in boats)/len(boats)
     motor_avg = math.fsum(b["motor_two_place_rate_percent"] for b in boats)/len(boats)
@@ -121,11 +125,18 @@ def build_pair(source, generated_at):
     for b in boats:
         rate = max(b["national_win_rate"] if b["national_win_rate"] is not None else 1.0,0.01)
         raw = math.log(rate) + avg - b["exhibition_time_seconds"]
-        base.append(math.exp(max(-20,min(20,raw))))
+        a = fitted.get(BASELINE_ID)
+        base_raw = raw if a is None else (a['log_national_rate']*math.log(rate) +
+                                         a['exhibition_delta']*(avg-b['exhibition_time_seconds']))
+        base.append(math.exp(max(-20,min(20,base_raw))))
         # No hindsight or trained coefficient: fixed upfront shadow hypothesis.
         adjust = COURSE_LOG_BONUS[b["lane"]-1] + MOTOR_LOG_PER_PERCENT_POINT * (
             b["motor_two_place_rate_percent"] - motor_avg)
-        candidate.append(math.exp(max(-20,min(20,raw+adjust))))
+        p = fitted.get(CHALLENGER_ID)
+        candidate_raw = raw+adjust if p is None else (
+            p['log_national_rate']*math.log(rate) + p['exhibition_delta']*(avg-b['exhibition_time_seconds']) +
+            p['course_log_bonus_'+str(b['lane'])] + p['motor_deviation']*(b['motor_two_place_rate_percent']-motor_avg))
+        candidate.append(math.exp(max(-20,min(20,candidate_raw))))
     out = {"schema":"RACE_AI_BOAT_PRE_CUTOFF_AB_PAIR_V1",
            "race_id":source["race_id"], "cutoff_at":source["cutoff_at"],
            "source_captured_at":source["captured_at"],"generated_at":generated_at,
@@ -134,7 +145,7 @@ def build_pair(source, generated_at):
            "actual_result_at_forecast_time":None,
            "models":[]}
     for model, strengths in zip(MODEL_IDS,(base,candidate)):
-        ranked = _rank(strengths, [b["lane"] for b in boats])
+        ranked = _rank(strengths, [b["lane"] for b in boats], stable=model in fitted)
         record = {"model_id":model, "trained":False,"calibrated":False,
                   "odds_independent":True,"purchase_decision":"NO_BET",
                   "full_120":[{"ticket":"-".join(map(str,r["ticket"])),"score":r["score"]} for r in ranked],
@@ -142,6 +153,8 @@ def build_pair(source, generated_at):
                   "model_score_top8_sum":math.fsum(r["score"] for r in ranked[:8]),
                   "hypothesis":"No bonus; exact PR64-style rating and exhibition-time PL" if model==BASELINE_ID
                     else "Fixed exploratory course log bonuses +0.20,+0.10,+0.04,-0.04,-0.12,-0.18; motor log +0.003 per 2-place-rate percentage point deviation"}
+        if model in fitted:
+            record['research_parameters'] = dict(fitted[model])
         record["model_sha256"] = _digest(record)
         out["models"].append(record)
     out["bundle_sha256"] = _digest(out)

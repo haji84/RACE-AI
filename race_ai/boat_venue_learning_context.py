@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 import hashlib
 import io
 from pathlib import Path
+import re
 import stat
 import tempfile
 import time
@@ -90,7 +91,11 @@ def context_from_encrypted_artifact(raw_zip, artifact_id, *, now, _fetch=None):
     training = payload.get('training')
     _need(type(training) is dict, 'FITTED_TRAINING_REQUIRED')
     verify_training(training)
-    _need(training.get('state') == 'FITTED_SHADOW_ONLY', 'FITTED_TRAINING_REQUIRED')
+    # Both the legacy complete pair and a verified registry fitted subset use
+    # this clock boundary. A roster of missing members is never a live context.
+    _need(training.get('state') == 'FITTED_SHADOW_ONLY' and
+          type(training.get('models')) is dict and bool(training['models']),
+          'FITTED_TRAINING_REQUIRED')
     created = _timestamp(training.get('created_at'))
     available = _timestamp(training.get('data_available_until'))
     _need(available <= created <= now, 'TRAINING_CLOCK_INVALID')
@@ -99,14 +104,19 @@ def context_from_encrypted_artifact(raw_zip, artifact_id, *, now, _fetch=None):
           receipt['id'] == artifact_id and receipt.get('expired') is False,
           'ARTIFACT_IDENTITY_INVALID')
     name = receipt.get('name')
+    registry_candidate = training.get('schema') == 'RACE_AI_ALL_EXISTING_MODEL_FIT_V1'
+    prefixes = ('boat-venue-learning-', 'all-existing-model-learning-') if registry_candidate else ('boat-venue-learning-',)
     _need(type(name) is str and 0 < len(name) <= 200 and
-          name.startswith('boat-venue-learning-') and len(name) > len('boat-venue-learning-'),
+          any(name.startswith(prefix) and len(name) > len(prefix) for prefix in prefixes),
           'ARTIFACT_NAME_INVALID')
     run = receipt.get('workflow_run')
     _need(type(run) is dict and type(run.get('id')) is int and run['id'] > 0 and
           type(run.get('repository_id')) is int and run['repository_id'] == REPOSITORY_ID and
           type(run.get('head_repository_id')) is int and run['head_repository_id'] == REPOSITORY_ID,
           'ARTIFACT_REPOSITORY_INVALID')
+    if registry_candidate:
+        _need(type(run.get('head_sha')) is str and re.fullmatch('[a-f0-9]{40}', run['head_sha']),
+              'ARTIFACT_HEAD_INVALID')
     _need(type(receipt.get('size_in_bytes')) is int and
           receipt['size_in_bytes'] == len(raw_zip) and
           receipt.get('digest') == 'sha256:'+hashlib.sha256(raw_zip).hexdigest(),

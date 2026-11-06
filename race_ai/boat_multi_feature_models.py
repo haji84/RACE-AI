@@ -151,7 +151,7 @@ def validate_snapshot(raw):
     return raw
 
 
-def _scores(snapshot):
+def _scores(snapshot, parameters=None):
     """Two deliberately distinct feature weighting assumptions, not fitted."""
     weather=snapshot["conditions"]
     breeze=weather["wind_speed_mps"]/12.0
@@ -184,6 +184,22 @@ def _scores(snapshot):
         rough=(0.9*ability+0.45*recent+0.95*course+0.45*motor
                +0.3*start+0.25*exhibition+0.55*lane_prior
                -0.15*breeze*(7-lane)/6-0.10*swell*lane/6-0.08*rain*(7-lane)/6)
+        if parameters and MODEL_IDS[0] in parameters:
+            p=parameters[MODEL_IDS[0]]
+            comprehensive=(p['ability']*ability+p['recent']*recent+p['motor']*motor+p['course']*course
+                           +p['start']*start+p['exhibition']*exhibition+p['st']*st+p['lane_prior']*lane_prior)
+        if parameters and MODEL_IDS[1] in parameters:
+            p=parameters[MODEL_IDS[1]]
+            calm_front=(p['calm_ability']*ability+p['calm_recent']*recent+p['calm_motor']*motor
+                        +p['calm_course']*course+p['calm_lane_prior']*lane_prior+p['calm_start']*start
+                        +p['calm_st']*st+p['calm_exhibition']*exhibition)
+            attack=(p['attack_ability']*ability+p['attack_recent']*recent+p['attack_motor']*motor
+                    +p['attack_course']*course+p['attack_start']*start+p['attack_exhibition']*exhibition
+                    +p['attack_st']*st+p['attack_lane_prior']*lane_prior)
+            rough=(p['rough_ability']*ability+p['rough_recent']*recent+p['rough_course']*course
+                   +p['rough_motor']*motor+p['rough_start']*start+p['rough_exhibition']*exhibition
+                   +p['rough_lane_prior']*lane_prior+p['rough_breeze']*breeze*(7-lane)/6
+                   +p['rough_swell']*swell*lane/6+p['rough_rain']*rain*(7-lane)/6)
         result.append({"lane":lane,"comprehensive":comprehensive,
                        "calm_front":calm_front,"attack":attack,"rough":rough})
     # Weather changes scenario likelihood, never enters features from results.
@@ -196,7 +212,7 @@ def _scores(snapshot):
     return result,{"calm_front":calm_share,"attack":attack_share,"rough":rough_share}
 
 
-def _sparse_scores(snapshot):
+def _sparse_scores(snapshot, parameters=None):
     """Omit unavailable feature and weather terms, without assigning values."""
     weather = snapshot["conditions"]
     transformed_weather = {}
@@ -212,6 +228,18 @@ def _sparse_scores(snapshot):
     }
     order = ("ability_rating","recent_form_rating","motor_rating","course_suitability_rating",
              "start_consistency_rating","exhibition_time_seconds","exhibition_start_seconds","lane_prior")
+    parameter_order = ("ability","recent","motor","course","start","exhibition","st","lane_prior")
+    weather_weights = (-.15,-.10,-.08)
+    if parameters and MODEL_IDS[0] in parameters:
+        p = parameters[MODEL_IDS[0]]
+        weights["comprehensive"] = tuple(p[name] for name in parameter_order)
+    if parameters and MODEL_IDS[1] in parameters:
+        p = parameters[MODEL_IDS[1]]
+        for component, prefix in (("calm_front","calm"),("attack","attack"),("rough","rough")):
+            # The native rough equation has no exhibition-ST term.
+            weights[component] = tuple(0. if prefix == "rough" and name == "st"
+                                       else p[prefix+"_"+name] for name in parameter_order)
+        weather_weights = tuple(p["rough_"+name] for name in ("breeze","swell","rain"))
     result = []
     for row in sorted(snapshot["entrants"],key=lambda r:r["lane"]):
         f = row["features"]
@@ -226,11 +254,11 @@ def _sparse_scores(snapshot):
                   for name,coefficients in weights.items()}
         penalties = []
         if "wind_speed_mps" in transformed_weather:
-            penalties.append(-.15*transformed_weather["wind_speed_mps"]*(7-lane)/6)
+            penalties.append(weather_weights[0]*transformed_weather["wind_speed_mps"]*(7-lane)/6)
         if "wave_height_cm" in transformed_weather:
-            penalties.append(-.10*transformed_weather["wave_height_cm"]*lane/6)
+            penalties.append(weather_weights[1]*transformed_weather["wave_height_cm"]*lane/6)
         if "wet_surface_factor" in transformed_weather:
-            penalties.append(-.08*transformed_weather["wet_surface_factor"]*(7-lane)/6)
+            penalties.append(weather_weights[2]*transformed_weather["wet_surface_factor"]*(7-lane)/6)
         scores["rough"] += math.fsum(penalties)
         result.append(dict(lane=lane,**scores))
     rough_terms, attack_terms = [.15], [.32]
@@ -249,27 +277,36 @@ def _sparse_scores(snapshot):
     return result,dict(calm_front=calm_share,attack=attack_share,rough=rough_share)
 
 
-def _pl(strengths):
+def _pl(strengths, *, stable=False):
     universe=[]
     total=math.fsum(strengths.values())
     for a,b,c in itertools.permutations(sorted(strengths),3):
-        p=(strengths[a]/total)*(strengths[b]/(total-strengths[a]))*(
-            strengths[c]/(total-strengths[a]-strengths[b]))
+        if stable or len(strengths) < 6:
+            after_a=math.fsum(v for n,v in strengths.items() if n!=a)
+            after_ab=math.fsum(v for n,v in strengths.items() if n not in (a,b))
+            p=(strengths[a]/total)*(strengths[b]/after_a)*(strengths[c]/after_ab)
+        else:
+            p=(strengths[a]/total)*(strengths[b]/(total-strengths[a]))*(
+                strengths[c]/(total-strengths[a]-strengths[b]))
         universe.append(([a,b,c],p))
     if len(universe)!=math.perm(len(strengths),3) or not math.isclose(math.fsum(p for _,p in universe),1,abs_tol=1e-10):
         raise FeatureModelError("candidate universe not normalized")
     return {tuple(triple): p for triple,p in universe}
 
 
-def run_models(raw):
+def run_models(raw, *, parameters=None):
     """Return two scored *research* Top8s; NO persistence or betting assertion."""
     s=validate_snapshot(raw)
     sparse = s["schema"] == SCHEMA_SPARSE
-    by_lane, scenario_shares=_sparse_scores(s) if sparse else _scores(s)
+    if parameters is not None:
+        from .existing_boat_parameter_adapters import validate_group_parameters
+        parameters=validate_group_parameters(parameters, MODEL_IDS)
+    by_lane, scenario_shares=_sparse_scores(s, parameters) if sparse else _scores(s, parameters)
     component={}
     for name in ("comprehensive","calm_front","attack","rough"):
         vals={r["lane"]:math.exp(r[name]) for r in by_lane}
-        component[name]=_pl(vals)
+        family=MODEL_IDS[0] if name=='comprehensive' else MODEL_IDS[1]
+        component[name]=_pl(vals,stable=parameters is not None and family in parameters)
     output={}
     for model in MODEL_IDS:
         if model==MODEL_IDS[0]:
@@ -309,6 +346,9 @@ def run_models(raw):
                 missingness_policy="OMIT_UNAVAILABLE_TERMS",missing_conditions=dict(s["conditions_missing"]),
                 missing_features=[dict(lane=r["lane"],participant_id=r["participant_id"],missing=dict(r["missing"]))
                                   for r in sorted(s["entrants"],key=lambda r:r["lane"])])
+        if parameters and model in parameters:
+            result['research_parameters']=dict(parameters[model])
+            result['explanation']='Caller-supplied research coefficients in the original native equation'
         result["prediction_sha256"]=digest(result)
         output[model]=result
     return output

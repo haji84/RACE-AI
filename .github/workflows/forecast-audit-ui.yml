@@ -266,7 +266,11 @@ jobs:
           if [[ -f audit/state/boat-venue-learning-owner-research.json ]]; then
             policy_args+=(--owner-research-record audit/state/boat-venue-learning-owner-research.json)
           fi
-          python -m scripts.boat_venue_learning --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/boat-venue-learning" "${policy_args[@]}"
+          if [[ -f audit/state/all-existing-model-owner-research.json ]]; then
+            python -m scripts.all_existing_model_learning fit --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/boat-venue-learning"
+          else
+            python -m scripts.boat_venue_learning --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/boat-venue-learning" "${policy_args[@]}"
+          fi
       - name: Keep owner-encrypted learning candidate and count-only status
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:

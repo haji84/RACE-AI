@@ -277,11 +277,13 @@ def recover(get,day,*,current_run,out,clock=None,video_receipt_verifier=None):
         scanned.append(run['id'])
         for listed in artifacts:
             private_name=listed.get('name')
-            if type(private_name) is str and private_name.startswith('boat-venue-research-p1-'):
+            private_prefix=next((prefix for prefix in ('boat-venue-research-p1-', 'all-existing-model-pairs-')
+                                 if type(private_name) is str and private_name.startswith(prefix)),None)
+            if private_prefix is not None:
                 # Discover saved handles even when the worker stopped before
                 # publishing its result report. No ZIP, key or admission here.
                 try:
-                    need(re.fullmatch('boat-venue-research-p1-'+str(run['id'])+'-[1-9][0-9]*',private_name),
+                    need(re.fullmatch(re.escape(private_prefix)+str(run['id'])+'-[1-9][0-9]*',private_name),
                          'PRIVATE_VENUE_ARTIFACT_NAME_INVALID')
                     ident=listed['id'];need(type(ident) is int and ident>0,'PRIVATE_VENUE_ARTIFACT_ID_INVALID')
                     meta=json.loads(get(f'actions/artifacts/{ident}'))

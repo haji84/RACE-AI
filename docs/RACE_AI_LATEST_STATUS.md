@@ -1,3 +1,27 @@
+<!-- RACEAI_AUTOMATION_20261107_0246_FINITE_DRIVE4 -->
+# 2026-11-07 02:46 JST｜有限上限を読み込んだ実Workerで第7巡まで監査、初回P0＋最終3ZIPを非公開Driveへ4件保全・独立読戻し成功
+
+**今回の重要な差分:** 従来 `BLOCKED_FILE_REFERENCE` により失敗していた本人専用Driveへの保全を、正規のLibrary/Google Drive create-only upload経路（元GitHub artifactの正確な `source_file_ref`）で初めて当日の4原本について完走した。指定保存先の所有者が現在の接続本人と一致、フォルダ `shared=false`・所有者単独権限を先に独立確認。対象フォルダ内に2026-11-07/run42249906279の同名ZIPが0件であることをLibrary一覧とDrive検索で確認し、新規4件を追加した。保存後に4件をDriveから独立再取得して実SHA256・CRCを確認し、4件ともGitHub元ZIP/API digestと完全一致、CRC異常0。さらに4件それぞれの保存先親フォルダ一致、個別 `shared=false`、ownerのみの権限とサイズを確認した。公開GitHubにはプライベートDriveのフォルダ/ファイルID・URL・個人情報・生ZIPを記載しない。
+
+| 2026-11-07に新規保全した元ZIP | 元GitHub artifact | 実SHA256 = Drive読戻しSHA256 | サイズ |
+|---|---:|---|---:|
+| 新日初回P0（絶対非再生成） | 13520355202 | `98abf598c8685bef240f03e135e900dce78b89057c80959b93934d601d58dd3d` | 748,467B |
+| 前完了run第24巡 P1 | 13524672657 | `7828e856a68e33c4f461879a6feefd52f616403eb43c55abffb2378136790f77` | 2,806B |
+| 前完了run第24巡 公式結果・PDCA | 13524522979 | `98c60aa1f413668fe0352bb65cfd9556ec23018286e69c583e245b37d08387b5` | 771,569B |
+| 前完了run第24巡 継続状態 | 13525525010 | `e72ad2adceaf8093ea1c18b63f5223ddfbea30d8e817611825f3decf2928a7af` | 1,461,114B |
+
+**新しい有限上限の実Worker（重大な前進、ただし停止未実証）:** workflow405276784の前run42249906279は 2026-11-07 02:23 JSTにcompleted/success、最終第24巡の継続ZIPでGET205回・readback receipts24件。旧固定HEAD `8dd88b5...` の `source_limit/max_rounds/stop_at=None` であり、205<240という偶然を『240上限の実証』にはしない。現在run42259181853は固定HEAD `b0f94a2b4440fc4f7b71e3ae6f84b9f2bd8535ec` で **in_progress**。結果第7巡 artifact13526836309と独立P1 artifact13525787880を別取得し、結果ZIP SHA256=`4e1e912daa422aa3ba06e73daf546e74055fb8a4eaaced02eb771b5186fa69e3`、P1 ZIP SHA256=`6de4f63f8400362c7a488eefb1691fd1b9936575b740e2aae93306fcca0ecd35`。各実バイトはAPI digest一致、CRC異常0。結果内P1 ZIPは独立P1と一致、内包P0は初回原本SHAと一致。内包statusの `round_no=7`、`updated_at=2026-11-06T17:45:22.056664+00:00`（02:45:22 JST）、canonical report_sha256再計算一致。内包sessionの `completed_round=6/prepared_round=7`は第7巡readback**前**の値であり、第7巡継続receipt完了とは区別する。
+
+**現在runの境界:** 第7巡保存session `requests_used=67`（forecast67）、`round_started_requests=54`ゆえこの巡の取得13回で、1巡45回以内。`source_limit=240/max_rounds=24/stop_at=2026-11-07 03:32:03 JST` が実セッションに存在し、旧runのNone既定から有限設定に移行したことを原本で初めて確認。`halted_reason=None`、現実行は進行中。**240GET以内・24巡/65分以内での実停止と終了後の継続ZIP独立読戻しは未達**。コードの既定値は240/45/24/3900秒・180秒のまま、4xx/429/日付/原本不一致を回避しない。
+
+**後続1件の安全な先行予約:** 照合時点で現在run42259181853がin_progress、別worker queued/pending/waiting=0、未来132R、停止原因なし、既存workflowは同concurrency group/cancel-in-progress=falseと確認。既存trigger.txtに一行だけ追加するcommit `d777681e5f83dfb8e74f246b6b8c05d86ea20d82` で同workflowの後続run42264560643を1件作成し、API上 `pending` を確認。現在runはキャンセル・rerunしない、同時writerなし。後続が既に1件あるため追加pushは禁止。先行予約は現在runの正常停止を回避する許可ではなく、GitHub待機/起動遅延の空白は残る。
+
+**モデル別成績と網羅性:** 2026-11-07の台帳はボート11会場132レース。保存P0は観測相性132とST重視相性132、合計264行。展示後P1の基準5モデルはいずれも保存0、通常確定・採点0、公式結果revision0、日内未確定132Rで、モデル別の的中率/収支/回収率は**未算定**（0%/0円と記載しない）。`coverage_audit`では未来132/締切済0/P1五系統完備0。`automatic_learning=INSUFFICIENT_VERIFIED_RACES`、TRAIN0/VALIDATION0、LEARNED_SHADOW予想0/同条件比較0。登録16系統の全予想成功ではない。external_research_summaryはNO_AUDITED_IMPORT_MANIFEST。P0初回索引 `docs/evidence/2026-11-07/p0-first-receipt.json`（JSON SHA、GitHub元ZIP SHA、保存時刻）と当日の4原本を突合し、旧予想再生成/上書きなし。
+
+**保留条件:** 今回のDrive4件は真に保存・読戻しできたが、これを全日・全run・全競技の無期限私有保存完成とは呼ばない。現worker停止実証、最初の展示後5モデル×未来レースの締切前凍結、結果改訂別保存、モデル別の回収率PDCAと前向き学習優位性は未完成。新タスク/新PR/別workflow/頻度・既存5基準式/買い目/係数・main/一般公開/追加課金・Cloudflare/Vercel・実投票・本番自動切替は変更していない。今回GitHubで変更したのは既存triggerの予約1回と本監査文書のみ。
+
+---
+
 <!-- RACEAI_AUTOMATION_20261107_0155_CYCLE14_NO_NEW_SCORE -->
 # 2026-11-07 01:55 JST｜新日第14巡原本再検証。予想/採点の実績差分なし
 
