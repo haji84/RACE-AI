@@ -112,6 +112,35 @@ jobs:
           path: ${{ runner.temp }}/boat-consumer/consumer-proof.json
           retention-days: 3
           if-no-files-found: error
+  boat_pdca_owner_recipient:
+    name: BOAT owner public recipient (root key stays in Actions)
+    if: github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Derive only the receiving public key from the configured owner secret
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          RACE_AI_SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: python -m scripts.boat_pdca_transfer receiver --private-dir "$RUNNER_TEMP/boat-owner-recipient"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-owner-recipient-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/boat-owner-recipient/receiver.json
+            ${{ runner.temp }}/boat-owner-recipient/status.json
+          retention-days: 7
+          if-no-files-found: error
   boat_pdca_production_readback:
     name: BOAT production encrypted-state acceptance or explicit HOLD
     if: github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository

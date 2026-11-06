@@ -23,12 +23,14 @@ from scripts.boat_history_collect import private_root,save
 
 REPO='haji84/RACE-AI'
 STATE_REF='state/boat-pdca-encrypted-history'
+TRANSFER_REF='state/boat-pdca-transfer'
 HEAD_PATH='state/boat-pdca/v1/latest.json'
 INPUT_SCHEMA='RACE_AI_BOAT_PRODUCTION_STATE_INPUT_V1'
 
 
 class GitStateRepository:
-    def __init__(self,repo):
+    def __init__(self,repo,*,ref=STATE_REF):
+        need(ref in (STATE_REF,TRANSFER_REF),'STATE_REF_NOT_ALLOWED');self.ref=ref
         self.repo=Path(repo).resolve();self._check_remote()
 
     def _run(self,args,*,body=None,env=None):
@@ -44,9 +46,9 @@ class GitStateRepository:
         self.fetch_url=fetch[0];self.push_url=push[0]
 
     def head(self):
-        raw=self._run(['ls-remote','--heads',self.fetch_url,'refs/heads/'+STATE_REF]).decode().strip()
+        raw=self._run(['ls-remote','--heads',self.fetch_url,'refs/heads/'+self.ref]).decode().strip()
         if not raw:return None
-        m=re.fullmatch(r'([a-f0-9]{40})\s+refs/heads/'+re.escape(STATE_REF),raw)
+        m=re.fullmatch(r'([a-f0-9]{40})\s+refs/heads/'+re.escape(self.ref),raw)
         need(m is not None,'STATE_REF_IDENTITY_INVALID');return m[1]
 
     def fetch(self,commit):self._run(['fetch','--no-tags','--no-write-fetch-head',self.fetch_url,commit])
@@ -78,7 +80,7 @@ class GitStateRepository:
     def push(self,commit,parent):
         need(self.head()==parent,'STATE_REF_CONCURRENT_UPDATE')
         # A normal fast-forward push also rejects a concurrent divergent writer.
-        self._run(['push',self.push_url,commit+':refs/heads/'+STATE_REF])
+        self._run(['push',self.push_url,commit+':refs/heads/'+self.ref])
         need(self.head()==commit,'STATE_REMOTE_COMMIT_NOT_VERIFIED')
 
 
