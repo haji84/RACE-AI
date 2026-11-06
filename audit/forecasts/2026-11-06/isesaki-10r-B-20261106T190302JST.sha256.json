@@ -1,0 +1,18 @@
+{
+  "schema": "RACE_AI_AUTORACE_FORECAST_SHA_ONLY_RESEARCH_B_V1",
+  "record_type": "PRE_CUTOFF_RESEARCH_B_HASH_AUDIT_NOT_FORMAL_INDEPENDENT_STORAGE",
+  "race_id": "autorace:2026-11-06:isesaki:10",
+  "phase": "B_AFTER_TRIAL_BEFORE_CUTOFF",
+  "generated_at_jst": "2026-11-06T19:03:02.581971+09:00",
+  "cutoff_at_jst": "2026-11-06T19:19:00+09:00",
+  "forecast_content_sha256": "aaf84592e5a59cc2af0ed10ff3033654721597067bdc212bae482c5be99b6fc6",
+  "prior_A_forecast_sha256": "07da5b0e8ea8e46a9ffa5b66455833452acf2e0aa3fd5de27c7d0d6154c0ea56",
+  "same_day_trial_source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/1/10",
+  "official_independent_crosscheck": false,
+  "pre_cutoff_prediction_body_not_public": true,
+  "pre_cutoff_original_immutable_offsite_preservation": false,
+  "calibrated_probabilities": false,
+  "result_not_known_at_generation": true,
+  "no_prior_A_mutation": true,
+  "note": "Private original is a ChatGPT local attachment; public GitHub stores SHA only. Research audit, not eligible for formal independently archived accuracy. Post-trial B cannot be described as pre-trial A."
+}
