@@ -1,3 +1,12 @@
+<!-- RACEAI_20261106_2013_CYCLE17_DIFF_ONLY -->
+# 2026-11-06 20:13 JST｜保存第17巡を独立再照合（モデル成績の変化なし）
+
+run42201006851は旧固定SHA 0ff6439af131cef1b364be283786de3b9bf5f6be でin_progress。新しく保存された第17巡結果ZIP artifact13498016396のGitHub API/実SHA256=37c3a8d574d3b73b825a47dcb4de9ac8142b4325261d4948aa669d4c93606d4a、P1元予想ZIP artifact13498161078の同SHA256=6d6a04fad5588f89fdf2ed4bd012fe2df12628b86b23a22ca7a7c65d819e3450。ZIP CRC両方正常、結果内包current-p1-original.zipは独立予想ZIPにバイト一致、first-p0-original.zip SHA256は6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fcで不変、status.report_sha256もcanonical JSON再計算で一致。status.round_no=17、updated_at=2026-11-06T11:12:18.511792+00:00。
+
+第16巡と比較したモデル別予想数・通常採点・的中・仮損益・仮回収率は**全7段階/モデル行で増減0**。第16巡モデル別成績表をそのまま参照。台帳は締切済152R・未来4R、P1五系統予想不足350モデル別行。学習版130予想/同条件比較118行も増減0。公式取得セッションは累計GET=527（第16巡の504から+23）、240上限を**287 GET超過**、source_limit=nullの旧実workerである。ブランチには有限制限の修正を反映済みだが、実行中workerでは未検証で安全認定できない。今回後続の予約・キャンセル・再実行・Drive追加保管・モデル自動昇格なし。
+
+---
+
 <!-- RACEAI_AUTO_20261106_2010_CYCLE16_SAFETY -->
 # 2026-11-06 20:10 JST｜モデル別第16巡結果を独立ZIP監査、240 GET上限再復元
 
