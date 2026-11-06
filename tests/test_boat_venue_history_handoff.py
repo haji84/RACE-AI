@@ -1,0 +1,50 @@
+"""Synthetic monthly source, owner encryption and append-only Git handoff."""
+import json,os,tempfile,unittest
+from pathlib import Path
+from unittest.mock import patch
+from tests.test_boat_history_catalog import index,menu
+from tests.test_boat_venue_history import archive
+from tests.test_boat_pdca_recipient import OWNER
+import base64
+
+class MemoryGit:
+    def __init__(self):self.current='a'*40;self.trees={self.current:{'unrelated.enc':b'preserve'}}
+    def head(self):return self.current
+    def fetch(self,c):pass
+    def exists(self,c,p):return p in self.trees[c]
+    def read(self,c,p,limit):
+        raw=self.trees[c][p];assert len(raw)<=limit;return raw
+    def commit(self,files,parent):
+        c=f'{len(self.trees):040x}';self.trees[c]=dict(self.trees[parent],**files);return c
+    def push(self,c,parent):assert parent==self.current;self.current=c
+
+class HandoffTests(unittest.TestCase):
+    def setUp(self):
+        self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup);self.root=Path(self.temp.name)
+        self.env=patch.dict(os.environ,RACE_AI_STATE_KEY=base64.b64encode(OWNER).decode());self.env.start();self.addCleanup(self.env.stop)
+    def collection(self):
+        from scripts.boat_venue_history import capture_month,_store_progress
+        root=self.root/'source';root.mkdir()
+        with patch('scripts.boat_venue_history._now',return_value='2030-01-01T00:00:02Z'),patch('scripts.boat_venue_history._http',side_effect=[(menu(),'2030-01-01T00:00:00Z'),(index(days=('04',)),'2030-01-01T00:00:00Z'),(archive(),'2030-01-01T00:00:01Z')]):
+            r=capture_month(root/'202611/attempt-000001',month='202611',not_after='2026-11-04')
+        _store_progress(root,dict(schema='RACE_AI_ALL_PUBLISHED_HISTORY_PROGRESS_V1',months=['202611'],menu_sha256='a'*64,
+            captured_at='2030-01-01T00:00:00Z',not_after='2026-11-04',heads={'202611':dict(kind='ENCRYPTED',folder='202611/attempt-000001',
+            ciphertext_sha256=r['ciphertext_sha256'],attempt=1,generation=1,month_complete=r['catalog']['month_complete'])}))
+        return root
+    def test_publish_restore_and_repeat_keeps_other_state_and_original_cipher(self):
+        from race_ai.boat_venue_history_handoff import publish_collection,readback_collection
+        root=self.collection();git=MemoryGit()
+        p=publish_collection(root,self.root,transport=git)
+        self.assertEqual(git.trees[git.current]['unrelated.enc'],b'preserve')
+        r=readback_collection(p,self.root/'restored',self.root,transport=git)
+        self.assertEqual(r['parsed_days'],1);self.assertEqual(r['months_restored'],1)
+        before=git.current;p2=publish_collection(root,self.root,transport=git)
+        self.assertEqual(p,p2);self.assertEqual(git.current,before)
+    def test_source_manifest_mac_and_remote_cipher_tampering_stop(self):
+        from race_ai.boat_venue_history_handoff import publish_collection,readback_collection
+        root=self.collection();git=MemoryGit();p=publish_collection(root,self.root,transport=git)
+        c=next(k for k in git.trees[git.current] if k.endswith('history.checkpoint'))
+        git.trees[git.current][c]+=b'bad'
+        with self.assertRaises(ValueError):readback_collection(p,self.root/'bad',self.root,transport=git)
+        record=json.loads((root/'collection.json').read_text());record['state']['heads']={};(root/'collection.json').write_text(json.dumps(record))
+        with self.assertRaises(ValueError):publish_collection(root,self.root,transport=git)

@@ -20,7 +20,7 @@ class VenueCLITests(unittest.TestCase):
             if url.endswith('/mday.html'):return index(days=('04',)),now
             return archive(day='2026-11-04'),now
         with tempfile.TemporaryDirectory() as folder,patch.dict(os.environ,{'RACE_AI_STATE_KEY':key}):
-            with patch.object(cli,'_http',side_effect=fetch),patch.object(catalog,'official_day',side_effect=ValueError('OLD_PARSER')),patch.object(catalog,'OFFICIAL_K_PARSER_REVISION',1):
+            with patch.object(cli,'_http',side_effect=fetch),patch.object(catalog,'parse_archive',side_effect=ValueError('OLD_PARSER')),patch.object(catalog,'OFFICIAL_K_PARSER_REVISION',1):
                 first=collect_all(Path(folder)/'all',initialize=True)
                 self.assertEqual(first['complete_months'],0)
             with patch.object(cli,'_http',side_effect=AssertionError('no re-fetch')):

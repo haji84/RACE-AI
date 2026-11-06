@@ -12,23 +12,31 @@ def index(month='202611',days=('04','05')):
     return (f'<script>var dir="/od2/K/{month}/k{month[2:]}";</script>' + ''.join(f'<input type="radio" name="MDAY" value="{d}">' for d in days)).encode()
 
 class CatalogTests(unittest.TestCase):
+    def test_restore_authenticates_quarantined_raw_archive_too(self):
+        c=HistoryMonth(month='202611',index_raw=index(),not_after='2026-11-05')
+        c.record('2026-11-04',b'broken',captured_at=NOW)
+        with c.db:c.db.execute('UPDATE archives SET raw=?',(b'tampered',))
+        raw=c.serialize()
+        with self.assertRaises(ValueError):HistoryMonth.restore(raw,expected_sha256=hashlib.sha256(raw).hexdigest(),month='202611')
+
     def test_publication_placeholder_stays_pending_with_preserved_raw_bytes(self):
         from tests.test_boat_entry_observations import uncompressed_lzh
         raw=uncompressed_lzh('STARTK\n01KBGN\nボートレース桐生\nデータは、この場の全レース終了後に登録されます。\n01KEND\nENDK'.encode('cp932'),'K261104.TXT')
         c=HistoryMonth(month='202611',index_raw=index(days=('04',)),not_after='2026-11-05')
         c.record('2026-11-04',raw,captured_at=NOW)
-        self.assertEqual(c._heads()[0][3],'WAITING_PUBLICATION')
-        self.assertEqual(c.pending(),['2026-11-04'])
-        self.assertEqual(c.summary()['waiting_publication_days'],1)
-        self.assertEqual(c.summary()['pending_days'],1)
+        self.assertEqual(c._heads()[0][3],'PARTIAL_SOURCE')
+        self.assertEqual(c.pending(),[])
+        self.assertEqual(c.summary()['partial_source_days'],1)
+        self.assertEqual(c.summary()['pending_days'],0)
         self.assertFalse(c.summary()['month_complete'])
+        self.assertEqual(len(list(c.archives())),1)
 
     def test_reanalysis_uses_retained_bytes_and_preserves_original_observation(self):
         from unittest.mock import patch
         import race_ai.boat_history_catalog as catalog
         c=HistoryMonth(month='202611',index_raw=index(days=('04',)),not_after='2026-11-05')
         raw=archive()
-        with patch.object(catalog,'official_day',side_effect=ValueError('OLD_PARSER')),patch.object(catalog,'OFFICIAL_K_PARSER_REVISION',1):
+        with patch.object(catalog,'parse_archive',side_effect=ValueError('OLD_PARSER')),patch.object(catalog,'OFFICIAL_K_PARSER_REVISION',1):
             c.record('2026-11-04',raw,captured_at=NOW)
         before=c.db.execute('SELECT * FROM observations').fetchall()
         self.assertTrue(c.reparse('2026-11-04',parsed_at='2030-01-02T00:00:00Z'))

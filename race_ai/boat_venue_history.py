@@ -11,6 +11,7 @@ import math
 from .actions_contract import stamp,digest
 from .teiai_history import need,racer_number,VENUES
 from .teiai_official_reconciliation import official_day
+from .official_k_archive import parse_archive
 from .official_lzh_extract import extract_daily_lzh
 from .boat_racer_tendencies import METHODS
 from .official_archive_probe import official_url
@@ -70,15 +71,15 @@ class VenueHistory:
         self.roster={racer_number(p) for p in roster};self.ids=set(self.roster)
         self.sources={};self.buckets={};self.races=Counter();self.starts=Counter();self._coverage_cache=None
 
-    def add_archive(self,raw,*,day,captured_at):
+    def add_archive(self,raw,*,day,captured_at,allow_partial=False):
         d=date.fromisoformat(day);need(day==d.isoformat(),'VENUE_DAY_NOT_CANONICAL');captured=stamp(captured_at)
         need(captured<=self.clock(),'VENUE_CAPTURE_FROM_FUTURE')
         need(self.start<=d<=self.end and d<=captured.astimezone(JST).date(),'VENUE_SOURCE_DAY_INVALID')
         sha=hashlib.sha256(raw).hexdigest()
         if day in self.sources:
             need(self.sources[day]['source_sha256']==sha,'VENUE_REVISED_DAY_REBUILD_REQUIRED');return
-        parsed=official_day(extract_daily_lzh(raw,f'K{d:%y%m%d}.TXT'),day=day)
-        need(not parsed['unpublished_venues'],'VENUE_DAY_NOT_FULLY_PUBLISHED')
+        parsed=parse_archive(raw,day=day)
+        need(not parsed['unpublished_venues'] or allow_partial is True and d<captured.astimezone(JST).date(),'VENUE_DAY_NOT_FULLY_PUBLISHED')
         # A whole date is admitted atomically only after the existing strict
         # national parser accepted every recorded race. Unsupported files remain
         # catalog gaps; not silently filtered races in a complete-date claim.
@@ -97,22 +98,32 @@ class VenueHistory:
             self.starts[v]+=1
         for rid in {r['race_id'] for r in rows}:self.races[rid[9:11]]+=1
         self.sources[day]=dict(source_url=official_url(d,'K'),source_sha256=sha,captured_at=captured_at,
-                               parsed_starts=len(rows),parsed_races=len({r['race_id'] for r in rows}))
+                               parsed_starts=len(rows),parsed_races=len({r['race_id'] for r in rows}),
+                               archive_member_sha256=parsed['archive_member_sha256'],
+                               payout_conflict_races=parsed['payout_conflict_races'],cancelled_races=parsed['cancelled_races'],
+                               unreported_venues=sorted(set(parsed['unreported_venues']+parsed['unpublished_venues'])))
         self.available_at=max(self.available_at,self.clock(),captured);self._coverage_cache=None
 
-    def _coverage(self,as_of):
+    def _coverage(self,as_of,venue=None):
         need(stamp(as_of)>=self.available_at,'VENUE_CAPTURE_OR_IMPORT_AFTER_AS_OF')
         if self._coverage_cache is None:
             expected=(self.end-self.start).days+1;processed=len(self.sources)
+            self._venue_gaps=Counter(v for s in self.sources.values() for v in s.get('unreported_venues',[]))
+            unreported=sum(self._venue_gaps.values())
             self._coverage_cache=dict(requested_start=self.start.isoformat(),requested_end=self.end.isoformat(),
                     requested_calendar_days=expected,fully_parsed_days=processed,
                     unavailable_or_unprocessed_days=expected-processed,
-                    source_window_complete=processed==expected,source_set_sha256=digest(self.sources))
-        return self._coverage_cache.copy()
+                    unreported_venue_days=unreported,
+                    source_window_complete=processed==expected and unreported==0,source_set_sha256=digest(self.sources))
+        coverage=self._coverage_cache.copy()
+        if venue is not None:
+            missing=self._venue_gaps[venue]
+            coverage.update(unreported_venue_days=missing,source_window_complete=coverage['fully_parsed_days']==coverage['requested_calendar_days'] and missing==0)
+        return coverage
 
     def profile(self,racer_id,venue_code,*,as_of):
         racer_number(racer_id);need(venue_code in NAMES and racer_id in self.ids,'VENUE_PROFILE_IDENTITY_INVALID')
-        coverage=self._coverage(as_of);b=self.buckets.get((racer_id,venue_code,0),_bucket())
+        coverage=self._coverage(as_of,venue_code);b=self.buckets.get((racer_id,venue_code,0),_bucket())
         observed=b['n']>0;complete=coverage['source_window_complete']
         state=('COMPLETE_OBSERVED' if observed else 'COMPLETE_NO_OBSERVATIONS') if complete else ('PARTIAL_OBSERVED' if observed else 'INCOMPLETE_NO_OBSERVATIONS')
         return dict(racer_id=racer_id,venue_code=venue_code,venue_name=NAMES[venue_code],
