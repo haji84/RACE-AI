@@ -1,0 +1,105 @@
+{
+  "accuracy_improvement_proven": false,
+  "canonical_input": {
+    "cipher_path": "state/boat-pdca/v1/g000002/state.enc",
+    "cipher_sha256": "26ecb63e6c958e173ba761823efe7d7d69bc3126a72c8d2429f575657917b6cb",
+    "repository_id": "1416489937",
+    "schema": "RACE_AI_BOAT_PRODUCTION_STATE_INPUT_V1",
+    "scope": {
+      "generation": 2,
+      "mode": "production",
+      "previous_cipher_sha256": "965b707422e4ea566b81a0866f69c58e12a0e3e3e168360c9c50d16f5d8393ad",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PDCA_ENCRYPTED_SQLITE_V1"
+    },
+    "source_commit": "d6ab35ad7c7b24980480c7935744d68216f81698",
+    "status": "READY"
+  },
+  "consumer_artifact": {
+    "archive_download_url": "https://api.github.com/repos/haji84/RACE-AI/actions/artifacts/13474449504/zip",
+    "created_at": "2026-11-06T03:34:52Z",
+    "digest": "sha256:bfa5a50e932135a17b184147f8228931cd9cabf9c89f634583b313344b05a3d4",
+    "expired": false,
+    "expires_at": "2026-11-13T03:34:52Z",
+    "id": 13474449504,
+    "name": "boat-owner-pdca-readback-42156874611-1",
+    "size_in_bytes": 818,
+    "updated_at": "2026-11-06T03:34:52Z",
+    "url": "https://api.github.com/repos/haji84/RACE-AI/actions/artifacts/13474449504",
+    "workflow_run": {
+      "head_branch": "feat/four-sport-forecast-audit-view-20261022",
+      "head_repository_id": 1416489937,
+      "head_sha": "bbcd76cf16aa390413154670a7b619b1c6743bf3",
+      "id": 42156874611,
+      "repository_id": 1416489937
+    }
+  },
+  "independent_consumer": {
+    "accuracy_improvement_proven": false,
+    "cipher_sha256": "26ecb63e6c958e173ba761823efe7d7d69bc3126a72c8d2429f575657917b6cb",
+    "incoming_content_sha256": "6d13d191adc7185c0c20e7b9a1162a7793bd2462cdb5b1aa8eaa9eb51f5b41f0",
+    "incoming_originals_verified": true,
+    "independent_pre_cutoff_receipt_verified": false,
+    "mode": "production",
+    "original_bytes_verified": true,
+    "pairs": 157,
+    "pairs_verified": 157,
+    "plaintext_published": false,
+    "producer_run_id": "42156874611",
+    "production_schema_readback_verified": true,
+    "recipient_key_id": "e2632dc802c5e35205d81ff630ed1cb4bc887b0fae407db591098a76d31cc10e",
+    "result_revisions": 5,
+    "retained_file_versions": 759,
+    "scope": {
+      "generation": 2,
+      "mode": "production",
+      "previous_cipher_sha256": "965b707422e4ea566b81a0866f69c58e12a0e3e3e168360c9c50d16f5d8393ad",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PDCA_ENCRYPTED_SQLITE_V1"
+    },
+    "score_replays": 5,
+    "scorings": 5,
+    "source_head": "bbcd76cf16aa390413154670a7b619b1c6743bf3",
+    "state_content_sha256": "b5dde0f0906d1e766fc50727313d22fd682d4c0fa6e5a65643d848abc12c7739",
+    "status": "OWNER_PDCA_TRANSFER_READBACK_VERIFIED",
+    "transfer_sha256": "77b4ddaf26b700d4c661550150c3563258f049cc80a327124971f04fb5c67b1d"
+  },
+  "morning_ui": {
+    "original_top8_preserved": true,
+    "other_time_pairs_excluded_from_ui": 1,
+    "predictions": 624,
+    "races": 156
+  },
+  "november_5_originals": {
+    "historical_predictions_regenerated": false,
+    "raw_zip_count": 2,
+    "raw_zip_crc_verified": true,
+    "reconciliation_files_retained": 2
+  },
+  "plaintext_published": false,
+  "producer_artifact": {
+    "archive_download_url": "https://api.github.com/repos/haji84/RACE-AI/actions/artifacts/13475227989/zip",
+    "created_at": "2026-11-06T03:34:23Z",
+    "digest": "sha256:6ca5e2971359f274cf9dca63a019e09369c1febb286849709563407f9186c26f",
+    "expired": false,
+    "expires_at": "2026-11-13T03:34:19Z",
+    "id": 13475227989,
+    "name": "boat-owner-pdca-state-42156874611-1",
+    "size_in_bytes": 72214251,
+    "updated_at": "2026-11-06T03:34:23Z",
+    "url": "https://api.github.com/repos/haji84/RACE-AI/actions/artifacts/13475227989",
+    "workflow_run": {
+      "head_branch": "feat/four-sport-forecast-audit-view-20261022",
+      "head_repository_id": 1416489937,
+      "head_sha": "bbcd76cf16aa390413154670a7b619b1c6743bf3",
+      "id": 42156874611,
+      "repository_id": 1416489937
+    }
+  },
+  "producer_run_id": "42156874611",
+  "public_site_updated": false,
+  "real_data": true,
+  "root_key_exported": false,
+  "schema": "RACE_AI_OWNER_PDCA_SYNC_COUNTS_V1",
+  "source_head": "bbcd76cf16aa390413154670a7b619b1c6743bf3"
+}
