@@ -1,3 +1,22 @@
+<!-- RACEAI_AUTOMATION_20261107_0127_FIRST_P0_AND_FINITE_BOUNDS -->
+# 2026-11-07 01:27 JST｜新日初回P0凍結・第5巡監査、数値制限の再復元
+
+**対象:** 既存Draft PR #71、workflow405276784、同一PR枝。01:27 JSTに最新実行一覧/同run artifactを再取得。進行中run42249906279は固定旧SHA `8dd88b5f6b75ec38e425fe9f685aab719872cdbb`（11/7 01:10 JST頃起動）で `in_progress`。同workflowの別 queued/pending/waiting は取得した最新60 runで0。現在のworkerに後からのGitHub修正は適用されない。run cancel/rerun、追加trigger=0、既存workflow/タスクのスケジュール変更=0。
+
+**新日原本の真正性:** `docs/evidence/2026-11-07/p0-first-receipt.json`（初回run42249906279、元P0 artifact13520355202、2026-11-07 01:11:14 JST保存）を確認。元ZIPを独立再取得し実SHA256=`98abf598c8685bef240f03e135e900dce78b89057c80959b93934d601d58dd3d`、GitHub API digest一致、ZIP CRC異常0。内包 `forecasts.json`のSHA256=`109be9efcd7d6744120b53e00c82473b1544983cfb1060f3fe22442c799f36af`、初回索引と一致。P0は132レース×既存2系統＝264モデル予想行で、初回原本を再生成していない。
+
+**完了巡回のみの監査:** 全artifact一覧中の結果第5巡artifact13521675958（2026-11-07 01:25:41 JST保存）の実ZIP SHA256=`3bb174f9812866ed7380ab293fb731957fb5d12e416317f2f79dbe87c9425d10`、別保存P1 ZIP artifact13521725869実SHA256=`a12dd1e95d51aa7a80bf4c72e335818aa37f8d4f9fe6896a0750d17f2a355b77`。API digest完全一致、双方ZIP CRC異常0。結果ZIP内の `current-p1-original.zip` と独立P1 ZIPはバイトSHA一致、`first-p0-original.zip` は初回元ZIPとSHA一致。内包`status.json`の`round_no=5`、`updated_at=2026-11-06T16:25:39.088346+00:00`、canonical `report_sha256`一致。継続sessionはreadback前 `completed_round=4/prepared_round=5`、5巡readback完了とは混同しない。
+
+**新日モデル別成績:** P0観測相性は保存132、通常採点0、保留132、的中率・収支・回収率は未算定（投資0円は「実績0%」の意味ではない）。P0 ST重視相性も保存132、採点0、保留132。P1のA/B/C-lite/観測相性/ST重視相性は各保存0、採点0で、締切前展示の予想条件未到来。13?会場と断定せず対象は実台帳132R。最新結果観測revision0、学習`INSUFFICIENT_VERIFIED_RACES`、TRAIN/VALIDATION0、LEARNED_SHADOW0、未来同条件比較0。全132Rは現時点で未来、過去11/6の収支を新日へ持ち込まない。
+
+**重大な設定衝突の是正:** 監査時の最新枝 `race_ai/repeated_cycle.py`がMAX_ROUNDS/SOURCE_LIMIT/MAX_SECONDS/ROUND_SOURCE_LIMIT=`None`へ再変更されていた。これは本自動化で明示された24巡/240GET/65分/45GET上限と矛盾。既存PR71の同一branch上で、以前の安全検証済みコードと互換性試験を以下4コミットで復元した。`3897739`（実装）、`71c91c0`（反復境界回帰テスト）、`786a781`（65分の時間試験）、`574e69c`（ローカル取得停止回帰テスト）。現在枝ソースの既定値はMAX_ROUNDS=24、SOURCE_LIMIT=240、MAX_SECONDS=3900、ROUND_SOURCE_LIMIT=45、POLL_SECONDS=180。既存concurrencyグループとcancel-in-progress=falseは不変。現在進行中のrunの第5巡保存sessionは `requests_used=42`だが `source_limit/max_rounds/stop_at=None`、旧runゆえ安全実証には数えない。
+
+**検証境界:** 修正後の実workerで合計GET<=240、1巡GET<=45、24巡/65分内停止と独立継続ZIP読戻しはなお0件。修正後HEADのViewer/AUTORACE CIは確認時 `pending/in_progress`、合格と誤報しない。未来132レースが残るが現在writerが進行中で上限ポリシー未適用のため、後継先回り予約は実施しない。既存の作業を中断せず、停止回避pushをしない。
+
+**保全:** 初回GitHub artifactは7日保持（無期限所有者限定保全ではない）。指定Private Driveへの本実行での新規保存・所有者/非共有再照合は未実施のため、恒久保全と報告しない。基準5系統の重み/買い目・過去原本・既存workflow/PR/毎時頻度・他タスク・本番切替・実投票・公開・課金・外部サービス変更なし。次は修正後の別workerで上限実運転証明と再取得3ZIPの一致が合格条件。
+
+---
+
 <!-- RACEAI_OFFICIAL_LIVE_ACCESS_20261107 -->
 # 2026-11-07 JST｜公式LIVEの403は未解消：通常再生SDKと正規の照会先を確認
 
