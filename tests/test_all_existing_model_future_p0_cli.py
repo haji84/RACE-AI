@@ -155,6 +155,8 @@ class FutureP0CliTests(unittest.TestCase):
             result = self.run_cli()
         self.assertFalse(result['ready'])
         self.assertEqual(self.calls, [])
+        self.assertEqual(result['failure_phase'], 'OWNER_KEY')
+        self.assertEqual(result['exception_type'], 'ValueError')
 
     def test_fresh_candidate_waits_for_actual_clock_and_late_margin_holds_without_artifacts(self):
         self.candidate_meta['created_at'] = self.now.isoformat()
@@ -173,6 +175,66 @@ class FutureP0CliTests(unittest.TestCase):
         self.assertEqual(result['forecast_partition_count'], 0)
         self.assertFalse(self.root.exists())
         self.assertFalse(self.runtime_plain.exists())
+
+    def test_safe_phase_type_and_static_error_code_diagnose_restore_without_raw_messages(self):
+        with patch.object(runtime, 'restore_runtime', side_effect=ValueError('MODEL_RUNTIME_PINNED_CIPHER_MISMATCH')):
+            result = self.run_cli()
+        self.assertFalse(result['ready'])
+        self.assertEqual(result['failure_phase'], 'RESTORE_RUNTIME')
+        self.assertEqual(result['exception_type'], 'ValueError')
+        self.assertEqual(result['error_code'], 'MODEL_RUNTIME_PINNED_CIPHER_MISMATCH')
+
+    def test_diagnostics_hide_unknown_exception_text_and_keyerror_values(self):
+        sensitive = 'https://private.example/raw?key=DO_NOT_PUBLISH'
+        for error in (RuntimeError(sensitive), KeyError(sensitive), ValueError('MODEL_RUNTIME_'+sensitive)):
+            diagnostic = cli.safe_diagnostic(error)
+            self.assertEqual(diagnostic['error_code'], 'UNCLASSIFIED_EXCEPTION')
+            self.assertNotIn(sensitive, str(diagnostic))
+            self.assertNotIn('missing_field', diagnostic)
+        self.assertEqual(cli.safe_diagnostic(KeyError('files')), dict(exception_type='KeyError',
+            error_code='MISSING_EXPECTED_FIELD', missing_field='files'))
+
+    def test_private_p0_packet_and_actual_original_above_four_mib_use_existing_eight_mib_bound(self):
+        files = runtime.open_runtime(self.runtime_cipher, key=KEY)
+        packet = runtime._json(files['p0-source.json'], runtime.FILE_LIMITS['p0-source.json'])
+        document = packet['document']; document['explicit_fixture_padding'] = 'x'*(4*1024*1024+1024)
+        original = cli.wire(document)
+        self.source_zip = zipped({'forecasts.json': original})
+        self.source_meta.update(digest='sha256:'+sha256(self.source_zip).hexdigest(), size_in_bytes=len(self.source_zip))
+        packet = cli.wire(dict(document=document, receipt=cli._receipt(self.source_meta, document)))
+        for raw in (original, packet):
+            self.assertGreater(len(raw), 4*1024*1024)
+            self.assertLess(len(raw), runtime.FILE_LIMITS['p0-source.json'])
+        files['p0-source.json'] = packet
+        self.runtime_cipher, header = runtime.seal_runtime(files,
+            receiver_document(key=KEY, run_id='42', source_head='a'*40), created_at=self.now.isoformat())
+        self.pointer.update(header=header, cipher_sha256=sha256(self.runtime_cipher).hexdigest(),
+                            cipher_path='runtime/'+sha256(self.runtime_cipher).hexdigest()+'.enc')
+        (self.repo/runtime.INPUT_PATH).write_bytes(cli.wire(self.pointer))
+        self.mapping['actions/artifacts/100/zip'] = self.source_zip
+        self.mapping['actions/artifacts/100'] = cli.wire(self.source_meta)
+        result = self.run_cli()
+        self.assertTrue(result['ready'], result)
+        self.assertEqual(result['forecast_partition_count'], 9)
+        from race_ai.permissioned_source_delivery import MAX_SOURCE_BYTES
+        self.assertEqual(MAX_SOURCE_BYTES, 4*1024*1024)
+
+    def test_p0_eight_mib_limit_and_existing_duplicate_json_rejection_remain(self):
+        files = runtime.open_runtime(self.runtime_cipher, key=KEY)
+        path = self.temp/'source-packet.json'; path.write_bytes(files['p0-source.json']); path.chmod(0o600)
+        limit = runtime.FILE_LIMITS['p0-source.json']
+        path.write_bytes(b' '*(limit+1))
+        with self.assertRaises(ValueError): cli.original_p0({'p0-source.json': str(path)})
+        path.write_bytes(b'{"document":{},"document":{},"receipt":{}}')
+        with self.assertRaisesRegex(ValueError, 'MODEL_RUNTIME_JSON_INVALID'):
+            cli.original_p0({'p0-source.json': str(path)})
+        path.write_bytes(files['p0-source.json'])
+        oversized = zipped({'forecasts.json': b'{"fixture_padding":"'+b'x'*limit+b'"}'})
+        self.source_meta.update(digest='sha256:'+sha256(oversized).hexdigest(), size_in_bytes=len(oversized))
+        self.mapping['actions/artifacts/100/zip'] = oversized
+        self.mapping['actions/artifacts/100'] = cli.wire(self.source_meta)
+        with self.assertRaisesRegex(ValueError, 'MODEL_RUNTIME_JSON_INVALID'):
+            cli.original_p0({'p0-source.json': str(path)})
 
 
 if __name__ == '__main__': unittest.main()

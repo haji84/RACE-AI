@@ -29,6 +29,45 @@ ROOT = Path(__file__).resolve().parents[1]
 ROUND = 900001
 SCHEMA = 'RACE_AI_ALL_EXISTING_MODEL_FUTURE_P0_COUNTS_V1'
 HEAD = re.compile(r'[a-f0-9]{40}\Z')
+SAFE_EXCEPTION_TYPES = frozenset(('ValueError', 'RuntimeError', 'KeyError', 'TypeError', 'AttributeError',
+    'FileNotFoundError', 'PermissionError', 'OSError', 'TimeoutError', 'TimeoutExpired',
+    'CalledProcessError', 'JSONDecodeError', 'BadZipFile', 'InvalidTag', 'InvalidSignature', 'AssertionError'))
+SAFE_MISSING_FIELDS = frozenset(('files', 'ranker.json', 'p0-source.json', 'document', 'receipt', 'training',
+    'models', 'model_states', 'created_at', 'expires_at', 'workflow_run', 'head_sha', 'head_repository',
+    'repository', 'repository_id', 'head_repository_id', 'id', 'name', 'status', 'source_commit',
+    'dataset_sha256', 'dataset_path', 'cipher_path', 'cipher_sha256', 'header', 'run_id', 'source_refs',
+    'source_audit', 'requests', 'cutoff_at', 'summary', 'partition_count', 'forecast_partition_count',
+    'captured_native_input_count', 'training_sha256', 'predictions', 'source_url', 'source_sha256',
+    'participants', 'race_id', 'source_evidence', 'snapshot', 'scope', 'as_of', 'sales_cutoff_at'))
+SAFE_ERROR_CODE = re.compile(r'(?:MODEL_RUNTIME_|VENUE_LEARNING_CONTEXT_|ALL_MODEL_|GITHUB_|'
+    r'HISTORY_|VENUE_DATASET_|VENUE_LEARNING_|BOAT_ALL_MODEL_CYCLE_|OWNER_STATE_)[A-Z0-9_]{1,120}\Z')
+SAFE_PHASES = frozenset(('OWNER_KEY', 'ENVIRONMENT', 'CURRENT_RUN_METADATA', 'OUTPUT_PATH',
+    'CANDIDATE_DOWNLOAD', 'CANDIDATE_METADATA', 'CANDIDATE_ADMISSION', 'RUNTIME_POINTER',
+    'GITHUB_READ_CREDENTIAL', 'RESTORE_RUNTIME', 'ORIGINAL_P0_PACKET', 'ORIGINAL_P0_METADATA',
+    'ORIGINAL_P0_DOWNLOAD', 'ORIGINAL_P0_READBACK', 'BASELINE_RANKER', 'DATASET_POINTER',
+    'DATASET_READBACK', 'CANDIDATE_AVAILABILITY_CLOCK', 'BUILD_REQUESTS', 'SEAL_PAIRS',
+    'LOCAL_READBACK', 'FINAL_MARGIN', 'GENERATION_STATUS', 'PAIR_ARTIFACT_METADATA',
+    'PAIR_ARTIFACT_DOWNLOAD', 'PAIR_ARTIFACT_ADMISSION'))
+
+
+def safe_diagnostic(exc):
+    """Expose static code/type only; never exception text, URLs or arguments."""
+    kind = type(exc).__name__
+    result = dict(exception_type=kind if kind in SAFE_EXCEPTION_TYPES else 'Exception',
+                  error_code='UNCLASSIFIED_EXCEPTION')
+    if type(exc) is KeyError:
+        if len(exc.args) == 1 and type(exc.args[0]) is str and exc.args[0] in SAFE_MISSING_FIELDS:
+            result.update(error_code='MISSING_EXPECTED_FIELD', missing_field=exc.args[0])
+    elif isinstance(exc, (ValueError, RuntimeError)):
+        code = str(exc)
+        if SAFE_ERROR_CODE.fullmatch(code):
+            result['error_code'] = code
+    return result
+
+
+def mark(phase, name):
+    if phase is not None:
+        phase(name)
 
 
 def need(ok, reason):
@@ -50,8 +89,10 @@ def wire(value):
     return (json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(',', ':'), allow_nan=False)+'\n').encode()
 
 
-def environment():
+def environment(*, phase=None):
+    mark(phase, 'OWNER_KEY')
     state_key('production')
+    mark(phase, 'ENVIRONMENT')
     need(os.environ.get('GITHUB_ACTIONS') == 'true' and os.environ.get('GITHUB_REPOSITORY') == 'haji84/RACE-AI'
          and os.environ.get('GITHUB_REPOSITORY_ID') == '1416489937', 'TRUSTED_ACTIONS_REQUIRED')
     run = os.environ.get('GITHUB_RUN_ID', '')
@@ -59,6 +100,7 @@ def environment():
     temp = Path(os.environ.get('RUNNER_TEMP', ''))
     need(temp.is_absolute() and temp.is_dir() and not any(p.is_symlink() for p in (temp, *temp.parents))
          and not temp.resolve().is_relative_to(ROOT.resolve()), 'PRIVATE_TEMP_REQUIRED')
+    mark(phase, 'CURRENT_RUN_METADATA')
     actual = read_json_bytes(gh('actions/runs/'+run))
     need(type(actual) is dict and actual.get('id') == int(run) and type(actual.get('head_sha')) is str
          and HEAD.fullmatch(actual['head_sha']) and all(type(actual.get(k)) is dict and
@@ -86,12 +128,18 @@ def metadata(ident):
     return value
 
 
-def candidate(ident, env):
+def candidate(ident, env, *, phase=None):
+    mark(phase, 'CANDIDATE_DOWNLOAD')
     raw = gh('actions/artifacts/'+str(ident)+'/zip')
     # The existing reader obtains independently fetched metadata after owner
     # decryption. No caller-authored receipt is substituted for that request.
-    context = context_from_encrypted_artifact(raw, ident, now=utc_now(),
-        _fetch=lambda url: metadata(ident) if url == BASE+'/actions/artifacts/'+str(ident) else None)
+    def fetch(url):
+        mark(phase, 'CANDIDATE_METADATA')
+        value = metadata(ident) if url == BASE+'/actions/artifacts/'+str(ident) else None
+        mark(phase, 'CANDIDATE_ADMISSION')
+        return value
+    mark(phase, 'CANDIDATE_ADMISSION')
+    context = context_from_encrypted_artifact(raw, ident, now=utc_now(), _fetch=fetch)
     receipt = context['receipt']; run = receipt['workflow_run']
     need(run['id'] == env['run_id'] and run['head_sha'] == env['head_sha'] and re.fullmatch(
         r'(boat-venue-learning|all-existing-model-learning)-'+str(env['run_id'])+r'-[1-9][0-9]*', receipt['name']),
@@ -99,18 +147,24 @@ def candidate(ident, env):
     return context
 
 
-def original_p0(files):
+def original_p0(files, *, phase=None):
+    mark(phase, 'ORIGINAL_P0_PACKET')
     need('p0-source.json' in files, 'CURRENT_P0_PACKET_MISSING')
-    packet = read_json_bytes(_read(files['p0-source.json'], runtime.FILE_LIMITS['p0-source.json'], private=True))
+    packet = runtime._json(_read(files['p0-source.json'], runtime.FILE_LIMITS['p0-source.json'], private=True),
+                           runtime.FILE_LIMITS['p0-source.json'])
     need(type(packet) is dict and set(packet) == {'document', 'receipt'}, 'P0_PACKET_SCHEMA')
     proof = packet['receipt']; ident = proof.get('artifact_id') if type(proof) is dict else None
-    actual = metadata(ident); raw = gh('actions/artifacts/'+str(ident)+'/zip')
+    mark(phase, 'ORIGINAL_P0_METADATA')
+    actual = metadata(ident)
+    mark(phase, 'ORIGINAL_P0_DOWNLOAD')
+    raw = gh('actions/artifacts/'+str(ident)+'/zip')
+    mark(phase, 'ORIGINAL_P0_READBACK')
     need(actual.get('digest') == 'sha256:'+sha256(raw).hexdigest() and
          actual.get('size_in_bytes') == len(raw) and actual.get('expired') is False and
          stamp(actual['created_at']) <= utc_now() < stamp(actual['expires_at']), 'P0_ACTUAL_BYTES_OR_CLOCK')
     with open_original_zip(raw, actual, expected_kind='P0', max_plain_zip_bytes=runtime.FILE_LIMITS['p0-source.json']) as archive:
         need(archive.namelist() == ['forecasts.json'], 'P0_ORIGINAL_MEMBER_REQUIRED')
-        document = read_json_bytes(archive.read('forecasts.json'))
+        document = runtime._json(archive.read('forecasts.json'), runtime.FILE_LIMITS['p0-source.json'])
     need(digest(document) == digest(packet['document']) and _receipt(actual, document) == proof,
          'P0_RUNTIME_ORIGINAL_BINDING')
     return document, proof
@@ -139,22 +193,28 @@ def local_records(root):
     return records
 
 
-def generate(ident, root, env):
+def generate(ident, root, env, *, phase=None):
     from race_ai.all_existing_model_future_p0 import build_future_p0_requests
     need(not root.exists(), 'OUTPUT_EXISTS_DO_NOT_RESET')
-    context = candidate(ident, env)
+    context = candidate(ident, env, phase=phase)
+    mark(phase, 'RUNTIME_POINTER')
     pointer = read_json_bytes(_read(ROOT/runtime.INPUT_PATH, 64*1024)); runtime._validate_pointer(pointer)
+    mark(phase, 'GITHUB_READ_CREDENTIAL')
     git_auth()  # Existing process-scoped GitHub credential; restore performs reads only.
     with tempfile.TemporaryDirectory(prefix='future-p0-private-', dir=env['temp']) as temporary:
         private = Path(temporary)
+        mark(phase, 'RESTORE_RUNTIME')
         restored = runtime.restore_runtime(pointer, ROOT, private/'runtime')
-        files = restored['files']; document, proof = original_p0(files)
+        files = restored['files']; document, proof = original_p0(files, phase=phase)
+        mark(phase, 'BASELINE_RANKER')
         baseline = read_json_bytes(_read(files['ranker.json'], runtime.FILE_LIMITS['ranker.json'], private=True))
         dataset_options = {}; source_refs = _sources(document)
         dataset_path = ROOT/'audit/state/boat-venue-dataset-input.json'
         if dataset_path.exists():
+            mark(phase, 'DATASET_POINTER')
             dataset_pointer = read_json_bytes(_read(dataset_path, 8192)); dataset_url = _pin(dataset_pointer)
             need(context['training'].get('venue_dataset_sha256') == dataset_pointer['dataset_sha256'], 'DATASET_CANDIDATE_BINDING')
+            mark(phase, 'DATASET_READBACK')
             report = readback_dataset(dataset_pointer, private/'dataset', ROOT)
             need(report.get('status') == 'ENCRYPTED_ALL_VENUE_GRID_READBACK_VERIFIED' and
                  report.get('plaintext_published') is False, 'DATASET_READBACK_REQUIRED')
@@ -164,6 +224,7 @@ def generate(ident, root, env):
                                    dataset_verified_at=utc_now().isoformat())
         # GitHub created_at has one-second precision. Wait for actual time;
         # never move a supplied clock or receipt forward to clear this guard.
+        mark(phase, 'CANDIDATE_AVAILABILITY_CLOCK')
         ready_at = stamp(context['receipt']['created_at'])+timedelta(seconds=1)
         remaining = (ready_at-utc_now()).total_seconds()
         if remaining > 0:
@@ -173,6 +234,7 @@ def generate(ident, root, env):
         need(now >= ready_at, 'CANDIDATE_RECEIPT_PRECISION_WINDOW')
         def analysis(ref, rights, purpose):
             return purpose == 'analysis' and (ref, rights) in source_refs
+        mark(phase, 'BUILD_REQUESTS')
         prepared = build_future_p0_requests(document, proof, now=now, baseline_ranker=baseline,
             training=context['training'], allow_source=analysis, **dataset_options)
         if not prepared['requests']:
@@ -180,6 +242,7 @@ def generate(ident, root, env):
         need(len(prepared['requests']) == 9, 'NINE_REQUESTS_REQUIRED')
         allowed = {tuple(pair) for pair in prepared['source_refs']}
         need(allowed <= source_refs, 'SOURCE_CLOSURE_REQUIRED')
+        mark(phase, 'SEAL_PAIRS')
         summary = make_private_pairs(context, prepared['requests'], root, now=utc_now(),
             allow_source=lambda ref, rights, purpose: purpose == 'analysis' and (ref, rights) in allowed)
         need(summary.get('forecast_partition_count') == summary.get('partition_count') == 9 and
@@ -187,11 +250,13 @@ def generate(ident, root, env):
              'NINE_ENCRYPTED_PAIRS_REQUIRED')
         # The aggregate is stored outside the upload tree. Only opaque codec
         # partitions may enter the all-or-none independently admitted ZIP.
+        mark(phase, 'LOCAL_READBACK')
         aggregate = read_json_bytes(_read(root/'summary.json', 1024*1024, private=True))
         need(aggregate == summary, 'AGGREGATE_BINDING')
         (root/'summary.json').unlink()
         records = local_records(root)
         cutoff = min(_seal_cutoff(p) for p in records)
+        mark(phase, 'FINAL_MARGIN')
         need(utc_now()+timedelta(minutes=10) < cutoff, 'CUTOFF_MARGIN_ELAPSED')
         return dict(state='NINE_FUTURE_P0_PAIRS_ENCRYPTED_LOCAL_ONLY', ready=True,
             forecast_partition_count=9, baseline_forecast_count=9, learned_forecast_count=9,
@@ -202,15 +267,21 @@ def generate(ident, root, env):
             venue_enriched=bool(dataset_options))
 
 
-def readback(ident, root, env):
+def readback(ident, root, env, *, phase=None):
+    mark(phase, 'LOCAL_READBACK')
     local = local_records(root)
+    mark(phase, 'GENERATION_STATUS')
     previous = read_json_bytes(_read(root.with_name(root.name+'.status.json'), 128*1024, private=True))
     need(previous.get('schema') == SCHEMA and previous.get('workflow_run_id') == env['run_id'] and
          previous.get('expected_head_sha') == env['head_sha'] and
          previous.get('training_sha256') == local[0]['training']['training_sha256'] and
          previous.get('candidate_artifact_id') == local[0]['training_receipt']['id'], 'GENERATION_STATUS_BINDING')
-    actual = metadata(ident); raw = gh('actions/artifacts/'+str(ident)+'/zip')
+    mark(phase, 'PAIR_ARTIFACT_METADATA')
+    actual = metadata(ident)
+    mark(phase, 'PAIR_ARTIFACT_DOWNLOAD')
+    raw = gh('actions/artifacts/'+str(ident)+'/zip')
     need(actual.get('name') == f'all-existing-model-pairs-{env["run_id"]}-{ROUND}', 'PAIR_ARTIFACT_NAME')
+    mark(phase, 'PAIR_ARTIFACT_ADMISSION')
     admission, records = _verified_private_pairs_artifact(raw, actual, now=utc_now(),
         expected_run_id=env['run_id'], expected_head_sha=env['head_sha'])
     need(admission['forecast_partition_count'] == admission['partition_count'] == 9 and
@@ -237,17 +308,23 @@ def main(argv=None):
         source_requests=0, plaintext_published=False, production_promoted=False,
         actual_purchases=False, accuracy_improvement_proven=False)
     status = None
+    current_phase = ['ENVIRONMENT']
+    def phase(name):
+        current_phase[0] = name if name in SAFE_PHASES else 'UNKNOWN_PHASE'
     try:
-        env = environment(); root = output_path(args.out_dir, env)
+        env = environment(phase=phase)
+        phase('OUTPUT_PATH')
+        root = output_path(args.out_dir, env)
         status = root.with_name(root.name+'.status.json')
         result.update(artifact_name=f'all-existing-model-pairs-{env["run_id"]}-{ROUND}',
                       expected_head_sha=env['head_sha'], workflow_run_id=env['run_id'])
-        result.update(generate(args.candidate_artifact, root, env) if args.candidate_artifact else
-                      readback(args.readback_artifact, root, env))
+        result.update(generate(args.candidate_artifact, root, env, phase=phase) if args.candidate_artifact else
+                      readback(args.readback_artifact, root, env, phase=phase))
     except Exception as exc:
         reason = str(exc)
         result.update(state='HOLD_FUTURE_P0', ready=False, reason=reason if re.fullmatch(
             r'ALL_MODEL_FUTURE_P0(?:_CLI)?_[A-Z_]{1,100}', reason) else 'FUTURE_P0_OPERATION_REJECTED')
+        result.update(failure_phase=current_phase[0], **safe_diagnostic(exc))
     if status is not None:
         save(status, wire(result), replace=True)
     if os.environ.get('GITHUB_OUTPUT'):
