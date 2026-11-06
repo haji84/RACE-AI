@@ -1,3 +1,18 @@
+<!-- RACEAI_AUTOMATION_20261106_1248_SAFETY_AND_CYCLE24 -->
+# 2026-11-06 12:48 JST｜第24巡原本の独立照合、上限超過の修正を既存PRへ適用
+
+**第24巡実原本:** 既存workflow405276784、run [42148186039](https://github.com/haji84/RACE-AI/actions/runs/42148186039) はcompleted/success（GitHub最終更新11:57:26 JST）。全50 artifact一覧から第24巡P1原本ZIP `13472992546` / `1020bca258f9493a4b79b379ea6cb0bd6ad40da59c559bd56de2547db00e99b2`、結果ZIP `13473452006` / `f76fefdc554d005ef0d4a3a6ca8ed1a8898a718f525e8285f79843563184dda4`、continuity ZIP `13473566824` / `fb85292c00ba9563a2a3e8b4877a3caf2c8916e89c50160c72f38cf06de2efc5` を別取得。3件ともGitHub API digestと実バイトSHA256一致、ZIP CRC異常なし。内部`status.round_no=24`、`updated_at=11:57:11 JST`、継続`completed_round=24`、原本P0内包SHA `6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc` を再確認。今回は学習元artifact全件の独立再取得と新たな公式プロバイダ照合までは未実施。
+
+**11/6の確認済み保存値:** 対象156R、P0=312、展示後P1=200（前回120から+80、40R×5）、基準計512（+80、CSVのrace/phase/model一意512）。公式通常結果の保存済み採点207モデル・時点行（前回105から+102）、HIT95（+44）/MISS112（+58）。7モデル/時点の各8点100円仮購入で投入165,600円、受取201,450円、差引+35,850円、回収率121.65%。正式成績は採点済207モデル・時点行の条件付きであり、全国156Rの的中率でも実投票でもない。42締切済R・114未来R、通常確定31R、P1五系統完備35R、未保存P1=35モデル別行をcoverage_auditに残す。欠測が公開済展示の取りこぼしかは未検証。
+
+**係数研究:** 通常確定一意31R（学習24/未使用検証7）で2つの既存観測相性系統に`FITTED_SHADOW_ONLY`。LEARNED_SHADOW保存46モデル別行（前回14から+32）。同条件で公式結果が保存されたpaired=28行（14種類のレース）。観測相性は基準/学習版とも6/14的中、ST重視相性は両者7/14的中だが、ST重視の学習版仮受取22,170円、基準26,620円で-4,450円。学習成功と未来の精度改善を混同しない。親学習artifact全件独立再照合が未完了のため、本番採用・優位性認定なし。
+
+**安全不一致の修正:** この旧runの`repeat-session.json.requests_used=427`（指定240を187超過）、旧コード`SOURCE_LIMIT=None`。既存PR #71の同じbranchへコードと2既存テストのみcommit [8ddde850](https://github.com/haji84/RACE-AI/commit/8ddde8509ae7c308927d0a984b4fa9ff30efb453) をfast-forward/expected-head lease成功で適用。`SOURCE_LIMIT=240`、`ROUND_SOURCE_LIMIT=45`、`MAX_ROUNDS=24`、`MAX_SECONDS=65*60`、旧runの停止解除・上限水増し禁止を明示した。元source bundleからpatch適用した同系統のローカル単体50テストPASS。commit 8ddde850自身のViewer CI run42158394123は並行pushでcancelled、**exact-HEAD CI合格も既存workflowでの新上限実運用遵守もまだ未実証**。後続HEAD 8535ef81のViewer CIが進行中で、sourceファイルの新blob SHA `48287a965ab8c6e12ec2b1afed44c049ab47313a` は保持確認。
+
+**継続判定:** 12:48時点で確認可能なrepository最新Actions一覧内には405276784のrun42148186039より新しい実行がない。最終runが超過427 GETで安全正常とは認められないため、旧run rerun・上限回避目的の後続トリガーは追加しない。既存毎時スケジュール、concurrency、他workflow/タスク、モデル、原本、main、公開、課金、投票は不変更。Driveの新規保存・owner/share再確認は今回未実施。GitHub artifact 7日保持のままで期限なし私有保存は未完成。
+
+---
+
 <!-- RACEAI_AUTOMATION_20261106_1134_CYCLE24 -->
 # 2026-11-06 11:34 JST｜既存run第24巡の完走と正式採点増分、公式GET417回の超過確認
 
