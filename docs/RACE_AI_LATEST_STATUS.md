@@ -1,3 +1,20 @@
+<!-- RACEAI_LIMIT_RESTORED_IN_EXISTING_PR_20261106_1443 -->
+# 2026-11-06 14:43 JST｜旧Workerの公式GET上限超過を独立検出し、既存PR71の次回コードへ上限制御を復元
+
+**確認したHEADと実run:** 既存Draft PR #71・同じbranchへ安全制御commit [40325f9](https://github.com/haji84/RACE-AI/commit/40325f978575f5cdaa2be00c4e5ba8466be0b0d3)をfast-forward適用。workflow405276784の実行中run [42164651846](https://github.com/haji84/RACE-AI/actions/runs/42164651846)は**旧HEAD 70514b3で開始したまま**であり、今回のコード修正は実行中プロセスには適用されない。同workflowのqueued/pending/waitingは監査時0件。追加trigger・run cancel・rerun・別workflow・schedule変更なし。
+
+**独立保存検証（完了済みartifact第22巡、実run全体はまだin_progress）:** 予想ZIP artifact 13480781705の実SHA256=`11c2437cbb9e8c8f7a3d5c4e7737aaaa1ad5ce97169f9a2e885ad4a2b99f1f55`、結果/PDCA ZIP artifact 13480502682の実SHA256=`4cd09d3bbdf9fb94321452746967a176e31268d85f9a2c90b3a19ac99017c244`。GitHub API登録digestと実バイトが両方一致、両ZIP CRC正常、結果ZIP内P1のZIPハッシュも予想ZIPと一致。内部status.jsonは`round_no=22`、`updated_at=2026-11-06T05:42:20.995662+00:00`。同一status内repeat sessionの`completed_round=21/prepared_round=22`は読戻し直前の状態であり、第22巡の継続読戻し完了やrun successとは主張しない。初回P0 ZIPの元SHA=`6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc`で不変。
+
+**この保存時点の実集計:** 対象156R。基準モデル・時点予想582行（P0 312/P1 270）、通常採点364行（HIT132/MISS232）、未採点218行。基準7モデル・時点を各8点100円で全採点分のみ仮想購入した計算で投資291,200円・払戻260,660円・仮収支-30,540円・仮回収率89.51%。実購入なし。締切済97R・未来59R、5系統P1完全50R、締切済P1不足235モデル別行。展示が当時公表されたか不明な未保存を取得可能な取りこぼしと断定しない。公式結果観測revision156件。
+
+**自動学習の実数:** 既存観測相性2系統のみFITTED_SHADOW_ONLY、異なる通常確定72Rを学習54R/検証18Rに分離。研究LEARNED_SHADOWは基準に合算せず74予想、未来結果の同条件ペア58モデル行＝異なる29R。観測相性は学習版8/29対元版9/29、仮払戻26,020円対27,280円。ST重視相性は学習版10/29対元版10/29、仮払戻27,130円対31,580円。学習版優位性は未実証、基準5モデルの式・重み・買い目と本番選択に変更なし。学習元全件の再独立取得は今回実施せず。
+
+**重大な安全上限違反と改修範囲:** 旧実run第22巡の`requests_used=582`（forecast253/result329）で指定240回を**342超過**。旧実行コードの`SOURCE_LIMIT=None/MAX_ROUNDS=None/MAX_SECONDS=None`と一致。これを安全正常運転と認定しない。既存PR71の同じブランチへ`race_ai/repeated_cycle.py`および既存2テストファイルだけを修正、公式GET総240回・1巡45回・最大24巡・65分、停止したセッションの上限移行による再開を防ぐ制御を復元。以前取得した実行ソースへの同じ製品コード差分で関連80テストPASS、さらに現HEADとのテスト差分整合を修正し同じPRへ適用。正確な修正HEADのCIではAUTORACE既存contract [42169864380](https://github.com/haji84/RACE-AI/actions/runs/42169864380)がcompleted/success、Viewer既存contract [42169864461](https://github.com/haji84/RACE-AI/actions/runs/42169864461)は監査時in_progress。**修正後の新しい実Workerによる240回以内停止・原本読戻しの実証は未達**。旧runはキャンセルしない。安全停止の迂回となる後続を予約しない。
+
+**未達と保全:** 全16系統/4競技の実ライブ全レース、完全P1網羅、永久本人専用保存、学習版の前向き統計的優位性は未完成。今回Driveへの新規原本保存と所有者/非共有の再検証はなし。7日間artifactを永久保管と呼ばず、私有URL/ID・認証情報・元生データは公開記録に含めない。新タスク/PR/workflow/モデル系統/課金/Cloudflare/Vercel/main統合/一般公開/実投票/無検証の本番自動切替なし。
+
+---
+
 <!-- RACEAI_FINAL_REQUEST_VIEW_CI_20261106 -->
 # 2026-11-06 14:26 JST｜表示修正の既存CI成功、実映像3条件は未完成
 
