@@ -1,3 +1,22 @@
+<!-- RACEAI_AUTOMATION_20261107_0155_CYCLE14_NO_NEW_SCORE -->
+# 2026-11-07 01:55 JST｜新日第14巡原本再検証。予想/採点の実績差分なし
+
+**独立照合した現在値:** PR #71の対象枝を再取得し、記録直前HEAD `43ae65a93c6a25666d3c3de495eab3498353321a`。対象workflow405276784の実run42249906279は固定旧HEAD `8dd88b5f6b75ec38e425fe9f685aab719872cdbb`でin_progress。リポジトリ直近100 runで別の予想worker queued/pending/waitingは0。追加run42253504820はsaved-view表示専用job completed/successで、official_national jobはskipped。別writerが動いたことを意味しない。実行中runはキャンセルしない。
+
+**全artifact一覧から最新完了巡回を判定:** 2026-11-07 01:55 JST確認時、結果ZIPと予想ZIPがそろっている第14巡が最新。第15巡は予想ZIPのみ存在し結果ZIPが未保存のため、予想数・採点数へ未完了分を加算しない。第14巡結果 artifact `13523515299` は実ZIP SHA256=`02d5d87db860dce706df9fb545aa131270e8c3160711aade4bc1944224251daa`、予想artifact `13521734995` は実ZIP SHA256=`36ddc7f8cdebcef1eb03b4d80481b1bd3f1bc96044afd94b762ed1216e56a4f2`。両者GitHub API digest一致・ZIP CRC異常なし。結果ZIP内`current-p1-original.zip`と別取得P1原本はSHA一致、`first-p0-original.zip`のSHA=`98abf598c8685bef240f03e135e900dce78b89057c80959b93934d601d58dd3d`は初回P0元ZIP/初回receiptと一致。`status.json`の`round_no=14`、`updated_at=2026-11-06T16:52:44.372389+00:00`、`report_sha256`はcanonical再計算一致。sessionは第14巡readback前`completed_round=13/prepared_round=14`であり、継続第14巡完了と混同しない。
+
+**モデル別成績（新日）:** 台帳ボート11会場132R、通常確定0R、全132Rが未来。P0観測相性132予想行・通常採点0/保留132、P0 ST重視相性132行・通常採点0/保留132。P1のA/B/C-lite/観測相性/ST重視相性は各0行で、まだ締切210秒前の展示後予想窓に入っていない。的中率・回収率・仮損益は両P0モデルとも**未算定**（0%や損益0円を成績とは扱わない）。第6巡以前から予想/採点/収支の実績差分は0。次の最初の締切は08:35 JSTで、national.json次回候補照会は08:20 JST。予想不足を分母から除外せず、未公表展示を取得可能だったと決めつけない。
+
+**学習・結果・その他モデル:** 通常確定結果0R、公式結果revision0、`automatic_learning.state=INSUFFICIENT_VERIFIED_RACES`、TRAIN0/VALIDATION0。`trained_observed_models.json`の更新係数0、LEARNED_SHADOW保存0、同条件前向き比較0。model_coverageは登録16系統を列挙するが実予想接続は当日P0の2系統だけ。出走表台帳132Rを全16モデル予想成功へ読み替えない。external_researchは`NO_AUDITED_IMPORT_MANIFEST`。新しい予想と公式結果が揃っていないので精度改善の報告なし。
+
+**起動/上限の監査:** 第14巡結果ZIP内`bounded_repeat_session.requests_used=111`、内訳forecast111、`source_limit=None/max_rounds=None/stop_at=None`、`halted_reason=None`。前回第6巡の55回から56回増加。まだ240超過ではないが、制限を守って停止した実証では**ない**。現在のPR枝`race_ai/repeated_cycle.py`ではSOURCE_LIMIT=240、ROUND_SOURCE_LIMIT=45、MAX_ROUNDS=24、MAX_SECONDS=65*60、POLL_SECONDS=180を実読取し、現在HEADの既存Viewer/AUTORACE CIはともにcompleted/success。しかしこの修正は旧固定SHAの進行中workerには反映されない。`.github/workflows/boat-nationwide-ab-one-shot.yml`は予想jobの既存concurrency=`boat-nationwide-cutoff-20261103`、`cancel-in-progress=false`を保持。4xx/429/真正性不一致による停止回避をせず、旧無上限workerに後続を追加予約しない。現在runに対しcancel/rerunなし。
+
+**本人専用保存の確認:** この実行で接続Driveアカウントの本人owner一致、指定フォルダ`shared=false`・フォルダ種別を再確認。対象の新日run/P0ファイル名をフォルダ内に絞って検索し、同名候補なし。新日初回P0元ZIPをDriveへそのまま追加保存する試行は、GitHub artifactのコネクタ参照が`BLOCKED_FILE_REFERENCE`で拒否され、新規保存0件・独立読戻し未成立。GitHub artifactの7日保持を期限なしの非公開保全とは呼ばず、私有フォルダID・URL・認証値をこの公開文書に載せない。
+
+**今回の操作:** 既存PR71の本監査追記のみ。元ZIPと過去予想・公式結果revision・基準モデル式/重み/買い目・係数・既存workflow/タスク/実行頻度/他タスク・本番モデル選択・課金/Cloudflare/Vercel・main統合・一般公開・実投票は一切変更しない。次の合格条件は、有限上限が固定されたHEADで新たに開始する正常workerによる実GET<=240、1巡GET<=45、上限到達時の安全停止、予想/結果/継続の独立原本読戻し、未来レースのP1と通常結果の前向き照合。
+
+---
+
 <!-- RACEAI_AUTOMATION_20261107_0131_CYCLE06_AND_DRIVE_CHECK -->
 # 2026-11-07 01:31 JST｜第6巡独立読戻し・所有者専用Driveを再確認
 

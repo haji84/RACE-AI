@@ -267,6 +267,7 @@ def recover(get,day,*,current_run,out,clock=None,video_receipt_verifier=None):
         video_receipt_verifier=VideoContextArchiveReader(get,clock=clock).verify
     video_context_artifact_ids=set()
     video_shadow_rejections=[]
+    venue_research_refs=[];venue_research_ref_rejections=0
     from .observed_result_history import context_from_result_archive as history_from_archive,history_proof
     source_control=previous_source_control(get,day,current_run=current_run)
     from .observed_weight_learning import context_from_result_archive,merge_shadow_rows,training_proof,attach_snapshots
@@ -275,6 +276,37 @@ def recover(get,day,*,current_run,out,clock=None,video_receipt_verifier=None):
         artifacts=artifact_pages(get,run['id'])
         scanned.append(run['id'])
         for listed in artifacts:
+            private_name=listed.get('name')
+            if type(private_name) is str and private_name.startswith('boat-venue-research-p1-'):
+                # Discover saved handles even when the worker stopped before
+                # publishing its result report. No ZIP, key or admission here.
+                try:
+                    need(re.fullmatch('boat-venue-research-p1-'+str(run['id'])+'-[1-9][0-9]*',private_name),
+                         'PRIVATE_VENUE_ARTIFACT_NAME_INVALID')
+                    ident=listed['id'];need(type(ident) is int and ident>0,'PRIVATE_VENUE_ARTIFACT_ID_INVALID')
+                    meta=json.loads(get(f'actions/artifacts/{ident}'))
+                    need(type(meta) is dict and type(meta.get('id')) is int and meta['id']==ident and
+                         meta.get('name')==private_name and meta.get('expired') is False and
+                         type(meta.get('size_in_bytes')) is int and 0<meta['size_in_bytes']<=64*1024*1024,
+                         'PRIVATE_VENUE_ARTIFACT_METADATA_INVALID')
+                    workflow=meta.get('workflow_run')
+                    need(type(workflow) is dict and type(workflow.get('id')) is int and workflow['id']==run['id'] and
+                         all(type(workflow.get(key)) is int and workflow[key]==1416489937
+                             for key in ('repository_id','head_repository_id')) and
+                         ('head_sha' not in run or workflow.get('head_sha')==run['head_sha']),
+                         'PRIVATE_VENUE_ARTIFACT_RUN_INVALID')
+                    from .boat_venue_research_receipt import validate_research_refs
+                    handles=validate_research_refs([dict(artifact_id=ident,run_id=workflow['id'],
+                        head_sha=workflow.get('head_sha'),digest=meta.get('digest'))])
+                    need(type(meta.get('created_at')) is str and len(meta['created_at'])<=64,
+                         'PRIVATE_VENUE_ARTIFACT_CLOCK_INVALID')
+                    saved=ts(meta['created_at']);observed=clock()
+                    need(isinstance(observed,datetime) and observed.utcoffset() is not None and saved<=observed,
+                         'PRIVATE_VENUE_ARTIFACT_CLOCK_INVALID')
+                    if saved.astimezone(JST).date().isoformat()==day:
+                        venue_research_refs=validate_research_refs(venue_research_refs+handles)
+                except Exception:venue_research_ref_rejections+=1
+                continue
             prefix=('boat-p0-existing-' if artifact_matches(listed['name'],f'boat-p0-existing-{run["id"]}') else
                     'boat-national-cutoff-' if artifact_matches(listed['name'],f'boat-national-cutoff-{run["id"]}') else
                     'race-existing-cycle-' if artifact_matches(listed['name'],f'race-existing-cycle-{run["id"]}') else
@@ -359,6 +391,14 @@ def recover(get,day,*,current_run,out,clock=None,video_receipt_verifier=None):
                              all(type(value) is int and value>0 for value in handles) and
                              handles==sorted(set(handles)),'BOAT_VIDEO_ARCHIVE_REJECTED')
                         video_context_artifact_ids.update(handles)
+                        if payload_day==day and 'venue_research_artifact_refs' in report:
+                            # Handles are independently authenticated/decrypted
+                            # by the private scorer before any outcome is admitted.
+                            from .boat_venue_research_receipt import validate_research_refs
+                            try:
+                                venue_research_refs=validate_research_refs(
+                                    venue_research_refs+report['venue_research_artifact_refs'])
+                            except (ValueError,TypeError):venue_research_ref_rejections+=1
                 if payload_day==day and candidate is not None and (learning_context is None or ts(meta['created_at'])>ts(learning_context['receipt']['created_at'])):
                     learning_context=candidate
     from .boat_video_archive import validate_optional_video_training
@@ -382,6 +422,8 @@ def recover(get,day,*,current_run,out,clock=None,video_receipt_verifier=None):
         state['video_context_artifact_ids']=sorted(video_context_artifact_ids)
     if video_shadow_rejections:
         state['video_shadow_rejections']=video_shadow_rejections
+    if venue_research_refs:state['venue_research_artifact_refs']=venue_research_refs
+    if venue_research_ref_rejections:state['venue_research_ref_rejections']=venue_research_ref_rejections
     state['state_sha256']=hashlib.sha256(json.dumps(state,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
     (out/'continuity.json').write_text(json.dumps(state,ensure_ascii=False))
     return state

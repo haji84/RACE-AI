@@ -27,8 +27,10 @@ class WorkflowReferencesTest(unittest.TestCase):
     def assert_round_contract(self, text):
         self.assertIn('using: composite', text)
         steps = re.split(r'^    - name: ', text, flags=re.MULTILINE)[1:]
-        self.assertEqual(len(steps), 9)
-        prepare, discovery, p0freeze, forecast, freeze, audit, result, complete, display = steps
+        private_steps=[step for step in steps if 'venue-research-' in step]
+        baseline_steps=[step for step in steps if step not in private_steps]
+        self.assertEqual(len(baseline_steps), 9)
+        prepare, discovery, p0freeze, forecast, freeze, audit, result, complete, display = baseline_steps
         self.assertIn('id: ready', prepare)
         self.assertIn('github_existing_cycle.py repeat-prepare', prepare)
         self.assertIn('github_existing_cycle.py supplement --round', discovery)
@@ -41,7 +43,7 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn('if-no-files-found: error', p0freeze)
         self.assertNotIn('overwrite: true', p0freeze)
         self.assertIn('github_existing_cycle.py forecast', forecast)
-        for step in steps[1:-1]:
+        for step in baseline_steps[1:-1]:
             self.assertIn("if: steps.ready.outputs.active == 'true'", step)
             self.assertNotIn('continue-on-error:', step)
         for step, ident, path, name in [
@@ -66,6 +68,21 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn('scripts.boat_saved_view_feed --result-artifact',display)
         self.assertIn('RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}',display)
         self.assertIn("if: steps.ready.outputs.active == 'true'",display)
+        # Optional private work may fail independently; ordinary forecast and
+        # result originals must retain their strict failure and receipt rules.
+        self.assertEqual(len(private_steps),6)
+        private_forecast,private_freeze,private_receipt,private_pdca,private_retain,private_result=private_steps
+        for step in private_steps:self.assertIn("if: steps.ready.outputs.active == 'true'",step)
+        for step in (private_freeze,private_result):
+            self.assertIn('uses: '+UPLOAD,step)
+            self.assertIn('continue-on-error: true',step)
+            self.assertIn('path: ${{ runner.temp }}/boat-venue-research-',step)
+            self.assertNotIn('overwrite: true',step)
+        self.assertIn('steps.venue_research_freeze.outputs.artifact-id',private_receipt)
+        for before,after in ((freeze,private_forecast),(private_forecast,private_freeze),
+                             (private_freeze,private_receipt),(private_receipt,audit),
+                             (audit,private_pdca),(private_pdca,private_retain),(private_retain,result)):
+            self.assertLess(text.index(before),text.index(after))
 
     def test_display_only_activation_cannot_queue_another_official_collector(self):
         text=WORKFLOW.read_text()
@@ -127,7 +144,7 @@ class WorkflowReferencesTest(unittest.TestCase):
             self.assertNotIn(command, ROUND.read_text())
         self.assert_round_contract(ROUND.read_text())
 
-    def test_result_before_forecast_freeze_is_rejected(self):
+    def test_private_work_before_baseline_freeze_is_rejected(self):
         text = ROUND.read_text()
         parts = re.split(r'(?=^    - name: )', text, flags=re.MULTILINE)
         parts[5], parts[6] = parts[6], parts[5]

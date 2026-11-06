@@ -41,6 +41,24 @@ runs:
         path: boat_nationwide_output/national.json
         if-no-files-found: error
         retention-days: 7
+    - name: Generate private venue research after baseline originals are frozen
+      if: steps.ready.outputs.active == 'true'
+      shell: bash
+      run: python scripts/github_existing_cycle.py venue-research-forecast --round '${{ inputs.round }}'
+    - name: Freeze owner-encrypted venue research separately from baseline originals
+      if: steps.ready.outputs.active == 'true'
+      continue-on-error: true
+      id: venue_research_freeze
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: boat-venue-research-p1-${{ github.run_id }}-${{ inputs.round }}
+        path: ${{ runner.temp }}/boat-venue-research-p1/cycle-${{ inputs.round }}/
+        if-no-files-found: ignore
+        retention-days: 7
+    - name: Verify private research ciphertext and its independent pre-cutoff clock
+      if: steps.ready.outputs.active == 'true' && steps.venue_research_freeze.outputs.artifact-id != ''
+      shell: bash
+      run: python scripts/github_existing_cycle.py venue-research-readback --p1-artifact '${{ steps.venue_research_freeze.outputs.artifact-id }}'
     - name: Read back original and independently check later official results
       if: steps.ready.outputs.active == 'true'
       shell: bash
@@ -53,6 +71,23 @@ runs:
           supplement_args+=(--p0-supplement "$P0_SUPPLEMENT_ARTIFACT")
         fi
         python scripts/github_existing_cycle.py audit --round '${{ inputs.round }}' --p1-artifact '${{ steps.freeze.outputs.artifact-id }}' "${supplement_args[@]}"
+    - name: Compare admitted private research with already verified official outcomes
+      if: steps.ready.outputs.active == 'true'
+      shell: bash
+      run: python scripts/github_existing_cycle.py venue-research-pdca --round '${{ inputs.round }}'
+    - name: Retain forecast and PDCA ciphertext on the existing GitHub state ref
+      if: steps.ready.outputs.active == 'true'
+      shell: bash
+      run: python scripts/github_existing_cycle.py venue-research-retain --round '${{ inputs.round }}'
+    - name: Keep only owner-encrypted private research PDCA
+      if: steps.ready.outputs.active == 'true'
+      continue-on-error: true
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: boat-venue-research-pdca-${{ github.run_id }}-${{ inputs.round }}
+        path: ${{ runner.temp }}/boat-venue-research-pdca/cycle-${{ inputs.round }}/
+        if-no-files-found: ignore
+        retention-days: 7
     - name: Save status and PDCA as a separate immutable result event
       if: steps.ready.outputs.active == 'true'
       id: result
