@@ -1,3 +1,16 @@
+<!-- RACEAI_AUTOMATION_20261107_0131_CYCLE06_AND_DRIVE_CHECK -->
+# 2026-11-07 01:31 JST｜第6巡独立読戻し・所有者専用Driveを再確認
+
+既存workflow405276784/run42249906279の保存済み結果から第6巡を独立取得。結果artifact13521411929の実ZIP/API digest SHA256=`7802d86d12df12184956f04aeddcd3dd9678336cdf84393937592b3e43f93971`、予想artifact13521606570は`5b4bf7797969523a0d671e55e8a208dc5bdb2e466ddd89c73bc1414c47daacd8`、どちらもCRC異常0。結果内P1元ZIPと独立P1 ZIPは一致。初回P0元ZIPは `98abf598c8685bef240f03e135e900dce78b89057c80959b93934d601d58dd3d` で初回receiptと一致。status.round_no=6、updated_at=2026-11-06T16:28:47.070454+00:00（JST 01:28:47）、report_sha256はcanonical JSONから再計算して一致。内包sessionは第6巡readback前のcompleted_round=5/prepared_round=6で区別。
+
+新日台帳132R、朝版P0の観測相性132件・ST重視相性132件、通常採点0・結果保留各132、展示後P1の5系統0、学習版0。結果公表前のため、各モデルの的中率・仮想損益・回収率は未算定（0%や0円の確定実績とはしない）。今回第5巡から的中・学習・P1件数の差分なし。継続session.requests_used=55、固定旧workerのsource_limit/max_rounds/stop_at=None。改修後枝の240/45/24/65分が、この進行中workerに適用されたという証拠ではない。
+
+指定Driveフォルダをこの実行で再照合し、接続アカウントのowner権限が一致、共有状態`shared=false`、フォルダ自体の種別を確認。新日P0 ZIPの同名ファイルはDriveの対象フォルダ検索では0件。GitHubの元artifact参照をDriveへ無改変送信する試行は、コネクタが正規の `file_uri` として受け付けず失敗。追加保存0件、Driveからの独立読戻しは未成立。公開GitHubには私有Drive URL/ID、個人アカウント情報を書かない。別の転送方法でこの制限を回避していない。
+
+既存PR71の有限上限のコード復元コミットを保持。復元4ファイルを含む既存AUTORACE CI（HEAD574e69c）は `completed/success`。追加監査文書commit422ca5b時点のAUTORACEは`completed/success`、Viewerは確認時`pending`。新しい実workerでのGET<=240を安全実証したと主張しない。実行中runはキャンセルせず、後継予約もせず、既存workflow/スケジュール/モデル/PR/本番切替等は変更なし。
+
+---
+
 <!-- RACEAI_AUTOMATION_20261107_0127_FIRST_P0_AND_FINITE_BOUNDS -->
 # 2026-11-07 01:27 JST｜新日初回P0凍結・第5巡監査、数値制限の再復元
 
