@@ -67,6 +67,15 @@ for record in overflow['records']:
   const budget=page.locator('#simulation-budget');await budget.fill('1000');await budget.press('Tab');
   assert.equal(await budget.inputValue(),'1000');assert.match(await page.locator('#simulation-metrics').innerText(),/200円/);
   assert.match(await page.locator('#simulation-metrics').innerText(),/400円/);
+  const raceBudget=page.locator('#simulation-race-budget');assert.equal(await raceBudget.inputValue(),'800');
+  await raceBudget.selectOption('1000');
+  assert.match(await page.locator('#simulation-rule').innerText(),/モデル間の支持/);
+  assert.match(await page.locator('#simulation-metrics').innerText(),/1,000円/);
+  assert.equal(await page.locator('#simulation-comparison tbody tr').count(),8);
+  await page.locator('#simulation-ledger-details > summary').click();
+  const allocation=page.locator('#simulation-ledger tbody tr').first().locator('details');await allocation.locator('summary').click();
+  assert.match(await allocation.innerText(),/支持モデル/);assert.match(await allocation.innerText(),/履歴安定/);
+  await raceBudget.selectOption('800');
   await budget.fill('700');await budget.press('Tab');
   assert.match(await boughtRate.innerText(),/算出対象なし/);assert.match(await savedRate.innerText(),/100\.0%/);
   await budget.fill('1000');await budget.press('Tab');

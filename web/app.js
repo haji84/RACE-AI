@@ -25,6 +25,7 @@
     budget: validBudget(preferences.budget) ? preferences.budget : 10000,
     raceBudget: validBudget(preferences.raceBudget) ? preferences.raceBudget : 2000,
     simulationBudget: validBudget(preferences.simulationBudget) ? preferences.simulationBudget : 10000, resultGroupKey: "",
+    simulationRaceBudget: [800,1000].includes(preferences.simulationRaceBudget) ? preferences.simulationRaceBudget : 800,
     maxPicks: [8, 16, 24, 32].includes(preferences.maxPicks) ? preferences.maxPicks : 8,
     candidates: [], purchases: [], confirmed: new Set(), visible: 60
   };
@@ -76,7 +77,7 @@
   const badge = n => node("span", "lane lane-" + (n <= 6 ? n : "other"), String(n));
   const combo = values => { const n = node("span", "combo"); values.forEach((v, i) => { if (i) n.append(node("span", "combo-dash", "−")); n.append(badge(v)); }); return n; };
   function persistPreferences() {
-    try { localStorage.setItem(storageKey, JSON.stringify({budget: state.budget, raceBudget: state.raceBudget, simulationBudget: state.simulationBudget, maxPicks: state.maxPicks, sport: state.sport})); } catch { /* App remains usable with storage disabled. */ }
+    try { localStorage.setItem(storageKey, JSON.stringify({budget: state.budget, raceBudget: state.raceBudget, simulationBudget: state.simulationBudget, simulationRaceBudget: state.simulationRaceBudget, maxPicks: state.maxPicks, sport: state.sport})); } catch { /* App remains usable with storage disabled. */ }
   }
   function table(headers, rows) {
     const t = node("table"), head = node("tr"), body = node("tbody");
@@ -500,12 +501,23 @@
   function savedResultsTable(rows,group) {
     return table(["レース","結果","Top8の判定","100円払戻","結果取得 JST"],rows.map(r=>[button(raceName(r),"text-button",()=>openRace(r.race_id)),resultCombination(r),outcomeBadge(r,group?P.pick(r,group):null),payoutSummary(r.result),stamp(r.result?.observed_at)]));
   }
+  function allocationView(entry) {
+    const a=entry.allocation;if(!a)return "—";
+    const detail=node("details");detail.append(node("summary","",a.raceBudget===800?"Top8各100円":"追加配分 "+yen(a.raceBudget-800-a.held)+" · 未配分 "+yen(a.held)));
+    detail.append(node("p","muted small","配分判定時点 "+stamp(a.decisionAt)+" JST。支持モデルはIDごとに1種類と数えます。履歴安定は同じモデル・版の履歴あり／なし両方で支持された数。同点は組合せの数値順です。"));
+    detail.append(table(["組合せ","配分額","支持モデル","履歴安定"],a.tickets.map(t=>[t.combination.join("−"),yen(t.amount),a.raceBudget===800?"—":t.families+"種類",a.raceBudget===800?"—":t.stableFamilies+"種類"])));
+    if(a.held)detail.append(node("p","notice","支持する異なるモデルが2種類に満たないため、追加200円は未配分です。"));
+    return detail;
+  }
   function renderSavedResults(rows) {
     const groups=M.modelGroups(rows),select=$("results-model");
     if (!groups.some(g=>g.key===state.resultGroupKey)) state.resultGroupKey=groups[0]?.key || "";
     select.replaceChildren(...groups.map(g=>new Option(stageName(g)+" · "+modelName(g),g.key)));select.value=state.resultGroupKey;select.disabled=!groups.length;
     $("simulation-budget").value=state.simulationBudget;
     $("simulation-budget").disabled=!groups.length;
+    $("simulation-race-budget").value=String(state.simulationRaceBudget);$("simulation-race-budget").disabled=!groups.length;
+    $("simulation-rule").textContent=state.simulationRaceBudget===1000?"各日、締切順に1レース上限1,000円を確保。Top8各100円に加え、追加200円をモデル間の支持・履歴安定性による参考指標で配分します。根拠不足の追加分は未配分として残し、後続へ配り直しません。払戻・返還は再投資しません。":"各日、締切順に保存Top8へ各100円（1レース800円）。全8点分が足りないレースは見送り、払戻・返還は再投資しません。予想が締切前に保存され、3連単を買えた場合の試算です。";
+    $("simulation-allocation-note").hidden=state.simulationRaceBudget!==1000;
     const group=groups.find(g=>g.key===state.resultGroupKey)||null,c=P.summarize(rows,group);
     $("saved-result-metrics").replaceChildren(metric("取得結果",c.available+"レース","保存された結果・中止"),metric("的中",c.hits+"レース","選択モデルと取得結果の一致"),metric("不的中",c.misses+"レース","選択モデルと取得結果の不一致"),metric("結果待ち",c.pending+"レース","未取得分を不的中にしません"));
     $("saved-result-metrics").append(metric("保存Top8的中率",hitRate(c),c.hits+" / "+(c.hits+c.misses)+"レース（結果待ち・照合不可等を除外）"));
@@ -517,15 +529,15 @@
       for (const id of ["simulation-comparison","simulation-ledger"]) $(id).replaceChildren();return;
     }
     try {
-      const scenarios=groups.map(g=>({group:g,sim:P.simulate(rows,g,state.simulationBudget)}));
-      const chosen=scenarios.find(s=>s.group.key===state.resultGroupKey),s=chosen.sim;
+      const scenarios=groups.flatMap(g=>[800,1000].map(raceBudget=>({group:g,sim:P.simulate(rows,g,state.simulationBudget,{raceBudget})})));
+      const chosen=scenarios.find(s=>s.group.key===state.resultGroupKey&&s.sim.raceBudget===state.simulationRaceBudget),s=chosen.sim;
       const net=n=>n===null?"未確定":(n>0?"＋":"")+yen(n);
-      $("simulation-metrics").replaceChildren(metric("予定購入額",yen(s.spent),s.bought+"レース · 実購入なし"),metric("未使用予算",yen(s.unspent),"1日 "+yen(s.budgetPerDay)+" × "+s.days.length+"日"),metric("確認済み払戻",yen(s.payout),"返還 "+yen(s.refund)),metric("確定分の収支",net(s.settledNet),"購入額 "+yen(s.settledStake)+" の分だけ"),metric("未確定購入額",yen(s.pendingStake),"結果・払戻待ちのレース分"),metric("全体の収支",net(s.net),"仮の残高 "+yen(s.balance)));
-      $("simulation-metrics").append(metric("確定分の回収率",s.roi===null?"未確定":s.roi.toFixed(1)+"%","確認済み払戻・返還 ÷ 確定分購入額"),metric("収支確定の購入予定",s.settledStake/800+" / "+s.bought+"レース","日予算で選んだ対象のみ"),metric("購入予定分の的中率",hitRate(s.boughtComparison),s.boughtComparison.hits+" / "+(s.boughtComparison.hits+s.boughtComparison.misses)+"レース（結果待ち等を除外）"));
-      $("simulation-comparison").replaceChildren(table(["モデル・履歴条件","購入予定分の的中 / 照合済","購入予定分の的中率","確定分回収率","予定購入額","払戻","返還","確定分収支","未確定額","全体収支"],scenarios.map(({group,sim:t})=>[modelName(group),t.boughtComparison.hits+" / "+(t.boughtComparison.hits+t.boughtComparison.misses),hitRate(t.boughtComparison),t.roi===null?"未確定":t.roi.toFixed(1)+"%",yen(t.spent),yen(t.payout),yen(t.refund),net(t.settledNet),yen(t.pendingStake),net(t.net)])));
+      $("simulation-metrics").replaceChildren(metric("予定購入額",yen(s.spent),s.bought+"レース · 上限"+yen(s.raceBudget)+"/レース · 実購入なし"),metric("未使用予算",yen(s.unspent),"1日 "+yen(s.budgetPerDay)+" × "+s.days.length+"日 · 追加未配分 "+yen(s.held)),metric("確認済み払戻",yen(s.payout),"返還 "+yen(s.refund)),metric("確定分の収支",net(s.settledNet),"購入額 "+yen(s.settledStake)+" の分だけ"),metric("未確定購入額",yen(s.pendingStake),"結果・払戻待ちのレース分"),metric("全体の収支",net(s.net),"仮の残高 "+yen(s.balance)));
+      $("simulation-metrics").append(metric("確定分の回収率",s.roi===null?"未確定":s.roi.toFixed(1)+"%","確認済み払戻・返還 ÷ 確定分購入額"),metric("収支確定の購入予定",s.settledCount+" / "+s.bought+"レース","日予算で選んだ対象のみ"),metric("購入予定分の的中率",hitRate(s.boughtComparison),s.boughtComparison.hits+" / "+(s.boughtComparison.hits+s.boughtComparison.misses)+"レース（結果待ち等を除外）"));
+      $("simulation-comparison").replaceChildren(table(["モデル・履歴条件","1レース上限","購入予定分の的中 / 照合済","購入予定分の的中率","確定分回収率","予定購入額","払戻","返還","確定分収支","未確定額","全体収支"],scenarios.map(({group,sim:t})=>[modelName(group),yen(t.raceBudget)+(t.raceBudget===1000?" · 参考配分":" · 均等"),t.boughtComparison.hits+" / "+(t.boughtComparison.hits+t.boughtComparison.misses),hitRate(t.boughtComparison),t.roi===null?"未確定":t.roi.toFixed(1)+"%",yen(t.spent),yen(t.payout),yen(t.refund),net(t.settledNet),yen(t.pendingStake),net(t.net)])));
       const raceMap=new Map(rows.map(r=>[r.race_id,r]));
       const reasons={DAILY_BUDGET_LIMIT:"日予算上限で見送り",NO_UNAMBIGUOUS_SAVED_MODEL:"原本未取得・選択不可",MODEL_IDENTITY_UNKNOWN:"モデル・版・時点が未取得",COMPLETE_TOP8_NOT_SAVED:"Top8が未完備",TRIFECTA_NOT_OFFERED:"3連単非発売",SAVE_CLOCK_UNKNOWN:"保存時刻未確認",NOT_SAVED_BEFORE_CUTOFF:"締切前保存を確認できません"};
-      $("simulation-ledger").replaceChildren(table(["日付・レース","予定額","払戻","返還","収支","配分の状態"],s.rows.map(e=>[e.day+" · "+raceName(raceMap.get(e.race_id)),yen(e.stake),e.stake?net(e.payout):"—",e.stake?net(e.refund):"—",e.stake?net(e.net):"—",e.reason?(reasons[e.reason]||e.reason):e.net===null?"結果・払戻待ち":"取得結果で試算済み"])));
+      $("simulation-ledger").replaceChildren(table(["日付・レース","予定額","払戻","返還","収支","配分内訳・根拠","配分の状態"],s.rows.map(e=>[e.day+" · "+raceName(raceMap.get(e.race_id)),yen(e.stake),e.stake?net(e.payout):"—",e.stake?net(e.refund):"—",e.stake?net(e.net):"—",allocationView(e),e.reason?(reasons[e.reason]||e.reason):e.net===null?"結果・払戻待ち":"取得結果で試算済み"])));
     } catch {
       for (const id of ["simulation-comparison","simulation-ledger"]) $(id).replaceChildren();
       $("simulation-metrics").replaceChildren(empty("試算を表示できません","金額・結果・保存原本の整合性を確認してください。"));
@@ -963,6 +975,10 @@
   $("load-synthetic").addEventListener("click", loadSynthetic);
   $("clear-data").addEventListener("click", () => { ++importVersion;generation.ownsDisplay = false;generation.suppressed = true; dataset = null; state.selectedId = ""; state.predictionKeys = {}; state.candidates = []; state.confirmed.clear(); $("purchase-ack").checked = false; refreshSelects(); renderAll(); $("file-message").textContent = "読み込んだ予想と候補をメモリから消去しました。手動購入記録は再読込まで保持します。"; });
   $("results-model").addEventListener("change",e=>{state.resultGroupKey=e.target.value;renderResults();});
+  $("simulation-race-budget").addEventListener("change",e=>{
+    const value=Number(e.target.value);if(![800,1000].includes(value))return;
+    state.simulationRaceBudget=value;persistPreferences();$("simulation-message").textContent="1レース上限 "+yen(value)+" で再計算しました。";renderResults();
+  });
   $("simulation-budget").addEventListener("change",e=>{
     const value=Number(e.target.value);
     if (!validBudget(value)) { e.target.value=state.simulationBudget;$("simulation-message").textContent="日予算は100〜10,000,000円の100円単位で入力してください。";return; }

@@ -7,6 +7,7 @@
   const ticket=t=>Array.isArray(t)&&t.length===3&&t.every(n=>Number.isInteger(n)&&n>=1&&n<=99)&&new Set(t).size===3;
   const money=n=>Number.isSafeInteger(n)&&n>=0;
   const add=(a,b)=>{const v=a+b;if(!Number.isSafeInteger(v))throw new RangeError('SIMULATION_AMOUNT_OVERFLOW');return v;};
+  const multiply=(a,b)=>{const v=a*b;if(!Number.isSafeInteger(v))throw new RangeError('SIMULATION_AMOUNT_OVERFLOW');return v;};
   const predictions=r=>[r.prediction,...(r.comparison_predictions||[])].filter(Boolean);
   function pick(row,group){
     if(row.scope!==group.scope||row.sport!==group.sport)return null;
@@ -43,15 +44,15 @@
     const matches=r.winning_combinations.filter(t=>saved.has(key(t)));
     return {status:matches.length?'HIT':'MISS',matches};
   }
-  function settlement(row,prediction){
+  function settlement(row,prediction,allocation){
     const comparison=compare(row,prediction),r=row.result;
     const hold=()=>({comparison:comparison.status,payout:null,refund:null,settled:false});
-    if(comparison.status==='VOID')return {comparison:'VOID',payout:0,refund:800,settled:true};
+    if(comparison.status==='VOID')return {comparison:'VOID',payout:0,refund:allocation.stake,settled:true};
     if(!['HIT','MISS'].includes(comparison.status))return hold();
     const refunded=refundRule(r);if(!refunded)return hold();
     let refund=0,payout=0;
-    for(const t of prediction.ordered_top8){
-      if(refunded(t)){refund+=100;continue;}
+    for(const {combination:t,amount:stake} of allocation.tickets){
+      if(refunded(t)){refund=add(refund,stake);continue;}
       if(!comparison.matches.some(w=>key(w)===key(t)))continue;
       let amount;
       if(r.payouts!==undefined){
@@ -61,9 +62,9 @@
         if(r.winning_combinations.length===1&&r.payout_yen_per_100!=null&&r.payout_yen_per_100!==amount)return hold();
       }else if(r.winning_combinations.length===1)amount=r.payout_yen_per_100;
       else return hold();
-      if(!money(amount))return hold();payout=add(payout,amount);
+      if(!money(amount))return hold();payout=add(payout,multiply(amount,stake/100));
     }
-    return {comparison:refund===800?'VOID':comparison.status,payout,refund,settled:true};
+    return {comparison:refund===allocation.stake?'VOID':comparison.status,payout,refund,settled:true};
   }
   function planReason(row,p){
     if(!p)return 'NO_UNAMBIGUOUS_SAVED_MODEL';
@@ -75,6 +76,32 @@
     if(asof>generated||generated>saved||saved>=cutoff)return 'NOT_SAVED_BEFORE_CUTOFF';
     return null;
   }
+  function allocate(row,p,raceBudget=800){
+    if(![800,1000].includes(raceBudget))throw new RangeError('RACE_BUDGET_INVALID');
+    if(planReason(row,p))throw new Error('SAVED_PLAN_INELIGIBLE');
+    const tickets=p.ordered_top8.map(t=>({combination:t.slice(),amount:100,families:0,stableFamilies:0}));
+    const base={raceBudget,stake:800,held:raceBudget-800,tickets,evidenceStatus:'FLAT_TOP8',decisionAt:p.persisted_at,tieRule:'NUMERIC_COMBINATION_ORDER'};
+    if(raceBudget===800)return base;
+    const cutoff=Date.parse(p.cutoff_at||row.cutoff_at),asof=Date.parse(p.as_of),decision=Date.parse(p.persisted_at);
+    const identity=q=>JSON.stringify([q.model_id,q.model_version,q.stage,q.variant??null]);
+    const peers=predictions(row).filter(q=>!planReason(row,q)&&q.stage===p.stage&&Date.parse(q.cutoff_at||row.cutoff_at)===cutoff&&Date.parse(q.as_of)===asof&&Date.parse(q.persisted_at)<=decision);
+    const multiplicity=new Map();for(const q of peers)multiplicity.set(identity(q),(multiplicity.get(identity(q))||0)+1);
+    const usable=peers.filter(q=>multiplicity.get(identity(q))===1);
+    for(const item of tickets){
+      const families=new Set(),versions=new Map();
+      for(const q of usable)if(q.ordered_top8.some(t=>key(t)===key(item.combination))){
+        families.add(q.model_id);const id=JSON.stringify([q.model_id,q.model_version]);
+        if(!versions.has(id))versions.set(id,{model:q.model_id,variants:new Set()});versions.get(id).variants.add(q.variant);
+      }
+      item.families=families.size;
+      item.stableFamilies=new Set([...versions.values()].filter(v=>v.variants.has('HISTORY_BASELINE')&&v.variants.has('HISTORY_ADDED')).map(v=>v.model)).size;
+    }
+    const numericOrder=(a,b)=>{for(let i=0;i<3;i++)if(a.combination[i]!==b.combination[i])return a.combination[i]-b.combination[i];return 0;};
+    const supported=tickets.filter(t=>t.families>=2).sort((a,b)=>b.families-a.families||b.stableFamilies-a.stableFamilies||numericOrder(a,b));
+    if(!supported.length)return {...base,evidenceStatus:'ADDITIONAL_EVIDENCE_MISSING'};
+    for(let i=0;i<2;i++)supported[i%supported.length].amount+=100;
+    return {...base,stake:1000,held:0,evidenceStatus:'CROSS_MODEL_SUPPORT_REFERENCE'};
+  }
   function summarize(records,group){
     const rows=group?records.filter(r=>r.scope===group.scope&&r.sport===group.sport):records;
     const stats={races:rows.length,available:0,hits:0,misses:0,pending:0,void:0,noForecast:0,review:0};
@@ -85,8 +112,9 @@
     }
     return stats;
   }
-  function simulate(records,group,budget){
+  function simulate(records,group,budget,{raceBudget=800}={}){
     if(!Number.isSafeInteger(budget)||budget<100||budget>10000000||budget%100)throw new RangeError('DAILY_BUDGET_INVALID');
+    if(![800,1000].includes(raceBudget))throw new RangeError('RACE_BUDGET_INVALID');
     const selected=records.filter(r=>r.scope===group.scope&&r.sport===group.sport);
     if(new Set(selected.map(r=>r.race_id)).size!==selected.length)throw new Error('DUPLICATE_SAVED_RACE');
     const dates=[...new Set(selected.map(r=>r.event_date_jst))].sort(),days=[],rows=[];
@@ -94,36 +122,37 @@
     const boughtComparison={hits:0,misses:0,pending:0,void:0,noForecast:0,review:0};
     const counts={HIT:'hits',MISS:'misses',PENDING:'pending',VOID:'void',NO_FORECAST:'noForecast',REVIEW:'review'};
     for(const day of dates){
-      let remaining=budget;const d={day,budget,spent:0,payout:0,refund:0,settledStake:0,pendingStake:0,bought:0,skippedBudget:0};
+      let remaining=budget;const d={day,budget,spent:0,reserved:0,held:0,payout:0,refund:0,settledStake:0,settledCount:0,pendingStake:0,bought:0,skippedBudget:0};
       const dated=selected.filter(r=>r.event_date_jst===day).map(r=>({row:r,p:pick(r,group)}));
       const cutoff=x=>{const n=Date.parse(x.p?.cutoff_at||x.row.cutoff_at);return Number.isFinite(n)?n:Infinity;};
       dated.sort((a,b)=>cutoff(a)-cutoff(b)||(a.row.race_id<b.row.race_id?-1:a.row.race_id>b.row.race_id?1:0));
       for(const {row:r,p} of dated){
         const observed=compare(r,p);comparison[counts[observed.status]]++;
-        const reason=planReason(r,p),entry={race_id:r.race_id,day,prediction:p,comparison:observed.status,stake:0,payout:null,refund:null,net:null,reason};
-        if(!reason&&remaining<800){entry.reason='DAILY_BUDGET_LIMIT';d.skippedBudget++;}
+        const reason=planReason(r,p),entry={race_id:r.race_id,day,prediction:p,comparison:observed.status,stake:0,allocation:null,payout:null,refund:null,net:null,reason};
+        if(!reason&&remaining<raceBudget){entry.reason='DAILY_BUDGET_LIMIT';d.skippedBudget++;}
         else if(!reason){
-          remaining-=800;d.spent+=800;d.bought++;entry.stake=800;
+          const allocation=allocate(r,p,raceBudget);entry.allocation=allocation;entry.stake=allocation.stake;
+          remaining-=raceBudget;d.reserved+=raceBudget;d.held+=allocation.held;d.spent+=entry.stake;d.bought++;
           boughtComparison[counts[observed.status]]++;
-          const s=settlement(r,p);
+          const s=settlement(r,p,allocation);
           // Settle a complete race plan together; unknown winning payouts keep
-          // that whole800-yen plan pending, rather than inventing a zero loss.
+          // that whole allocated plan pending, rather than inventing a zero loss.
           if(s.settled){
-            entry.payout=s.payout;entry.refund=s.refund;entry.net=add(add(s.payout,s.refund),-800);
-            d.payout=add(d.payout,s.payout);d.refund=add(d.refund,s.refund);d.settledStake+=800;
-          }else d.pendingStake+=800;
+            entry.payout=s.payout;entry.refund=s.refund;entry.net=add(add(s.payout,s.refund),-entry.stake);
+            d.payout=add(d.payout,s.payout);d.refund=add(d.refund,s.refund);d.settledStake+=entry.stake;d.settledCount++;
+          }else d.pendingStake+=entry.stake;
         }
         rows.push(entry);
       }
-      d.unspent=remaining;d.settledNet=d.settledStake?add(add(d.payout,d.refund),-d.settledStake):null;
-      d.net=d.pendingStake?null:add(add(d.payout,d.refund),-d.spent);d.balance=add(remaining,add(d.payout,d.refund));days.push(d);
+      d.unspent=remaining+d.held;d.settledNet=d.settledStake?add(add(d.payout,d.refund),-d.settledStake):null;
+      d.net=d.pendingStake?null:add(add(d.payout,d.refund),-d.spent);d.balance=add(d.unspent,add(d.payout,d.refund));days.push(d);
     }
-    const total={budgetPerDay:budget,budgetTotal:0,spent:0,unspent:0,payout:0,refund:0,settledStake:0,pendingStake:0,bought:0,skippedBudget:0,balance:0};
-    for(const d of days)for(const [name,source] of Object.entries({budgetTotal:'budget',spent:'spent',unspent:'unspent',payout:'payout',refund:'refund',settledStake:'settledStake',pendingStake:'pendingStake',bought:'bought',skippedBudget:'skippedBudget',balance:'balance'}))total[name]=add(total[name],d[source]);
+    const total={budgetPerDay:budget,raceBudget,budgetTotal:0,spent:0,reserved:0,held:0,unspent:0,payout:0,refund:0,settledStake:0,settledCount:0,pendingStake:0,bought:0,skippedBudget:0,balance:0};
+    for(const d of days)for(const [name,source] of Object.entries({budgetTotal:'budget',spent:'spent',reserved:'reserved',held:'held',unspent:'unspent',payout:'payout',refund:'refund',settledStake:'settledStake',settledCount:'settledCount',pendingStake:'pendingStake',bought:'bought',skippedBudget:'skippedBudget',balance:'balance'}))total[name]=add(total[name],d[source]);
     total.settledNet=total.settledStake?add(add(total.payout,total.refund),-total.settledStake):null;
     total.net=total.pendingStake?null:add(add(total.payout,total.refund),-total.spent);
     total.roi=total.settledStake?(total.payout+total.refund)/total.settledStake*100:null;
     return {...total,comparison,boughtComparison,days,rows,hypothetical:true,reinvested:false};
   }
-  return Object.freeze({compare,pick,simulate,summarize});
+  return Object.freeze({compare,pick,simulate,summarize,allocate});
 });
