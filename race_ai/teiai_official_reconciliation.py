@@ -19,7 +19,7 @@ if _REFERENCE not in race_ai.__path__:race_ai.__path__.append(_REFERENCE)
 from .core import _blocks, parse_k
 
 FIELDS=('race_id','racer_id','lane','course','st','st_status','finish','result_code','winner_method')
-OFFICIAL_K_PARSER_REVISION=10
+OFFICIAL_K_PARSER_REVISION=12
 
 
 def _complete_document(text):
@@ -56,16 +56,20 @@ def parse_k_rows(raw,day):
         header=HEADER.match(line)
         if header:race=int(header[1])
         missing=re.fullmatch(r'\s*([FLS][012]?)\s+([1-6])\s+([0-9]{4})\s+.+?\s+[0-9]+\.[0-9]{2}\s+(?:([0-6])\s+)?([FLS](?:[0-9]+\.[0-9]{2})?)\s+(?:\.\s*){2,3}',line)
-        if missing:
-            code,lane,reg,course,timing=missing.groups()
-            need(code[0]==timing[0],'OFFICIAL_DISPOSITION_ST_CONFLICT')
+        unknown=re.fullmatch(r'\s*00\s+([1-6])\s+([0-9]{4})\s+.+?\s+[0-9]+\.[0-9]{2}\s+(?:\.\s*){2,3}',line)
+        if missing or unknown:
+            if unknown:
+                lane,reg=unknown.groups();course=None;timing=None;status='MISSING'
+            else:
+                code,lane,reg,course,timing=missing.groups();status=code[0]
+                need(status==timing[0],'OFFICIAL_DISPOSITION_ST_CONFLICT')
             need(venue is not None and race is not None,'OFFICIAL_LATE_CONTEXT_MISSING')
             key=(f'{day:%Y%m%d}-{venue:02d}-{race:02d}',int(lane))
-            need(key not in late,'OFFICIAL_LATE_DUPLICATE_ROW');late[key]=(reg,int(course) if course and course!='0' else None,timing,code[0])
+            need(key not in late,'OFFICIAL_LATE_DUPLICATE_ROW');late[key]=(reg,int(course) if course and course!='0' else None,timing,status)
             line=f' 欠 {lane} {reg}'
         # Preserve non-adapted source bytes: NFKC can introduce combining
         # characters in names that cannot round-trip through CP932.
-        adapted.append(line if missing else original)
+        adapted.append(line if missing or unknown else original)
     rows=parse_k('\n'.join(adapted).encode('cp932') if late else raw,day.isoformat())
     for row in rows:
         # The pinned legacy parser uses midnight as a date-sort placeholder.
@@ -156,6 +160,10 @@ def official_day(raw, *, day):
     for row in rows:
         row['winner_method']=methods[row['race_id']]
         value=dispositions.get((row['race_id'],row['lane']))
+        # Some official K rows explicitly print 00. Keep that source code and
+        # observed timing/course; 00 supplies no confirmed numeric placing.
+        if value is not None and value[0]=='00' and row['finish']==0:
+            row['finish']=None
         need(value is not None and value[1]==row['racer_id'] and
              (row['finish'] is None or row['finish'] in range(1,7)),'OFFICIAL_DISPOSITION_IDENTITY_OR_FINISH_INVALID')
         row['result_code']=value[0]

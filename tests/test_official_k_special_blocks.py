@@ -29,6 +29,17 @@ class OfficialSpecialBlocksTests(unittest.TestCase):
         rows=official_day(packet(),day='2030-01-01')['rows']
         self.assertTrue(all(row['race_at'] is None for row in rows))
 
+    def test_printed_zero_zero_is_unknown_finish_not_zero_place(self):
+        rows=official_day(packet().replace(b'06 6 4006',b'00 6 4006'),day='2030-01-01')['rows']
+        self.assertIsNone(rows[-1]['finish'])
+        self.assertEqual(rows[-1]['result_code'],'00')
+        self.assertEqual((rows[-1]['course'],rows[-1]['st_status'],rows[-1]['st']),(6,'OK',.12))
+
+    def test_zero_zero_without_course_or_st_does_not_become_confirmed_absence(self):
+        raw=packet().replace(b'06 6 4006 TEST 11 22 6.80 6 0.12 1.50.0',b'00 6 4006 TEST 11 22 6.80 . . .')
+        row=official_day(raw,day='2030-01-01')['rows'][-1]
+        self.assertEqual((row['finish'],row['course'],row['st'],row['st_status'],row['result_code']),(None,None,None,'MISSING','00'))
+
     def test_four_digit_payout_is_not_misread_as_result_registration(self):
         raw=packet().replace(b'01KEND','単勝 1 1200\n複勝 2 1400\n01KEND'.encode('cp932'))
         rows=official_day(raw,day='2030-01-01')['rows']
