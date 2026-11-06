@@ -89,6 +89,43 @@ class FirstP0BootstrapTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'FIRST_P0_RESTORE_LOCAL_BYTES_CONFLICT'):
                     cycle.restore('2030-04-01')
 
+    def test_github_artifact_reader_is_fail_closed_for_4xx_and_unknown(self):
+        from scripts import github_existing_cycle as cycle
+        import subprocess
+        for stderr,expected in (
+            (b'gh: HTTP 429: rate limited', 'GITHUB_API_READ_HTTP_429_HALT'),
+            (b'gh: HTTP 403: forbidden', 'GITHUB_API_READ_HTTP_403_HALT'),
+            (b'gh: some unexpected failure', 'GITHUB_API_READ_UNCLASSIFIED_CLI_ERROR_HALT'),
+        ):
+            failed=subprocess.CompletedProcess(['gh'],1,b'',stderr)
+            with self.subTest(stderr=stderr):
+                with patch.object(cycle.subprocess,'run',return_value=failed) as call:
+                    with patch.object(cycle.time,'sleep') as sleeper:
+                        with self.assertRaisesRegex(RuntimeError,expected):
+                            cycle.gh('actions/artifacts/42/zip')
+                        self.assertEqual(call.call_count,1)
+                        sleeper.assert_not_called()
+
+    def test_github_artifact_reader_retries_only_bounded_5xx_and_timeouts(self):
+        from scripts import github_existing_cycle as cycle
+        import subprocess
+        failure=subprocess.CompletedProcess(['gh'],1,b'',b'gh: HTTP 503: temporarily unavailable')
+        success=subprocess.CompletedProcess(['gh'],0,b'unchanged-zip-bytes',b'')
+        with patch.object(cycle.subprocess,'run',side_effect=[failure,success]) as call:
+            with patch.object(cycle.time,'sleep') as sleeper:
+                self.assertEqual(cycle.gh('actions/artifacts/42/zip'),b'unchanged-zip-bytes')
+                self.assertEqual(call.call_count,2)
+                sleeper.assert_called_once_with(1)
+        with patch.object(cycle.subprocess,'run',side_effect=[subprocess.TimeoutExpired(['gh'],50),success]) as call:
+            with patch.object(cycle.time,'sleep') as sleeper:
+                self.assertEqual(cycle.gh('actions/artifacts/42/zip'),b'unchanged-zip-bytes')
+                self.assertEqual(call.call_count,2)
+        with patch.object(cycle.subprocess,'run',return_value=failure) as call:
+            with patch.object(cycle.time,'sleep'):
+                with self.assertRaisesRegex(RuntimeError,'GITHUB_API_READ_HTTP_503_HALT'):
+                    cycle.gh('actions/artifacts/42/zip')
+                self.assertEqual(call.call_count,3)
+
     def test_incomplete_artifact_listing_blocks_blind_regeneration(self):
         incomplete = {'total_count': 2, 'artifacts': []}
         with patch.object(boot, 'day_runs', return_value=[{'id': 2}]), \
