@@ -1,6 +1,6 @@
 # 実データPDCAの暗号化公開・GitHub復元
 
-2026-11-06、オーナーの「進めよ」に対応して、実データ受入の経路を追加した。**鍵が実行環境へ渡るまで実データの公開・復元は完了しない。** この接続によるGitHub Secrets管理はHTTP403で拒否された。権限変更や別の認証情報での回避、既存鍵の置換、自動鍵生成は行わない。
+2026-11-06追補：所有者設定済みの同じキーで、実データG3のGit保存と別runner復元を確認した。157予想ペア・6結果版・6採点・独立証拠付き前向き6レースを保持する。[最新受入記録](BOAT_FULL_HISTORY_AND_PROSPECTIVE_STATUS_20261106.md)、[G3実復元証拠](evidence/2026-11-06/owner-g3-prospective-readback-counts.json)。Secret管理APIのHTTP403と、設定済みキーで暗号化復元できることは別の事実。キー不足を現在の阻害要因として残さない。
 
 ## 追加した接続
 
@@ -36,7 +36,9 @@ CIに渡す実データは暗号文のみ。復元したSQLite・原本・プロ
 
 ## 現在の受入状態
 
-既定入力は`WAITING_ENCRYPTED_INPUT`。鍵不足では`HOLD_OWNER_STATE_KEY_MISSING`、鍵があっても暗号文未公開なら`HOLD_ENCRYPTED_INPUT_REQUIRED`。どちらも源流GET0件で、成功した実データ同期とは扱わない。wrong key/hash/scope/pathや欠損状態は拒否し、旧版へfallbackしない。
+現在の固定入力は`READY`のG3。初期入力が`WAITING_ENCRYPTED_INPUT`のときは、鍵不足では`HOLD_OWNER_STATE_KEY_MISSING`、鍵があっても暗号文未公開なら`HOLD_ENCRYPTED_INPUT_REQUIRED`。どちらも源流GET0件で、成功した実データ同期とは扱わない。wrong key/hash/scope/pathや欠損状態は拒否し、旧版へfallbackしない。
+
+以下09:56 JSTまでの記録は初回設定前後の経緯。現在のキー/復元の未完了条件ではない。
 
 継続確認のCI `42138375467` では、GitHub側の鍵検査が通り、PDCAの状態は`HOLD_ENCRYPTED_INPUT_REQUIRED`へ進んだ。ローカルの環境変数・秘密変数bindingは未設定であり、同じ既存鍵をこちらへ接続する必要がある。前runの鍵不足記録を、現在もGitHubに鍵がない証拠として使わない。
 
