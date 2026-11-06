@@ -39,5 +39,13 @@ Interface: `allocate(row,prediction,raceBudget=800)` returns weighted tickets/ev
 Files: `web/index.html`, `web/app.js`, `tests/results_budget_browser.test.js`, `docs/BOAT_SAVED_PAGES.md`.
 
 - [x] RED browser assertions for800/1,000 switch, daily cap, reference evidence and held amount; implement and GREEN390/1440.
-- [ ] Fresh read-only review; resolve Critical/Important issues.
-- [ ] Independently verify the same624 originals and weighted real-data money, update existing PR preserving concurrent work, publish encrypted snapshot with exact parent, verify served hashes and original URL.
+- [x] Fresh read-only review; resolve Critical/Important issues.
+- [x] Independently verify the same624 originals and weighted real-data money, update existing PR preserving concurrent work, publish encrypted snapshot with exact parent, verify served hashes and original URL.
+
+## Delivered validation
+
+- Feature commit `260b6c7`, included in `b90663be108b43876c672902a5741c7d0295d9f5`; concurrent source work preserved.23 financial tests,67 focused Node tests,10 Python tests, encrypted Pages7-page browser regression and new390/1440 browser flow passed. Fresh review had no Critical/Important findings; corrected its minor pending-amount documentation finding.
+- Independent Python calculation verified16 real saved-data scenarios (4 model conditions ×2 daily budgets ×2 per-race caps). The encrypted display payload, all624 originals,156 races and existing URL are unchanged. All8 selected1,000-yen scenarios had enough reference support to allocate the full cap.
+- Pages commit `5bce6b515165ee689255f75f291a7c3b1f719502` built successfully. Live served hashes, controls, weighted money, rates, settled race counts and reload passed at390/1440 without key HTTP/storage or console errors.
+- Source workflow `42192459766` was cancelled while concurrent PR heads advanced; no full-CI success is claimed for that run. Published UI verification above is independent of that workflow.
+- The support rule remains an unvalidated reference indicator. Calibrated confidence and automatic longshot allocation are not delivered by this change; the UI states those limits.
