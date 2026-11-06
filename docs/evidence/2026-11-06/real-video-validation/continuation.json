@@ -1,6 +1,6 @@
 {
   "schema_version": "RACE_AI_REAL_VIDEO_COMPLETION_CONTINUATION_V1",
-  "checked_at": "2026-11-06T04:10:08.580942+00:00",
+  "checked_at": "2026-11-06T04:38:00+00:00",
   "scope": "IMPLEMENTATION_AND_ACTUAL_ARCHIVAL_TESTS_NOT_OPERATIONAL_ACCEPTANCE",
   "local_integration_base_head": "63c0a50bc685f630581d941d18ac2917faf8bc65",
   "source_code_sha256": {
@@ -685,7 +685,8 @@
       "seconds": 389.439,
       "status": "OK",
       "log_sha256": "fc243432612b96ee2c7674a39b29e9be5b66ffc4ec70f5c56175d56f9dc8bd01",
-      "scope": "ALL_CURRENT_CODE_WITH_CV_AND_HISTORY_DEPS_CONCURRENT_MERGE_AND_UNLIMITED_POLICY"
+      "scope": "WORKTREE_BASE_B5A7568_WITH_UNLIMITED_POLICY_RESTORATION_BEFORE_LATER_26_FILE_MERGE; NOT_LATEST_HEAD_FULL_SUITE",
+      "later_26_file_merge_included": false
     },
     "saved_original_browser": {
       "status": "PASS",
@@ -740,25 +741,78 @@
       "web/app.js": "71432a14763db3aa81a7113a7ac10d9ab6de3323f16c4878ee7b768a64ef35fc",
       ".github/workflows/forecast-audit-ui.yml": "b868b24a154afebf0056a627878bcffea9b0529b2cd5e5d9db71627596aa8527"
     },
-    "followup_existing_ci": "PENDING_THIS_FINAL_CODE_AND_RECORD_UPDATE; PRIOR_CI_RUNS_RETAIN_EXACT_HISTORICAL_STATUS"
+    "followup_existing_ci": "PENDING_THIS_FINAL_CODE_AND_RECORD_UPDATE; PRIOR_CI_RUNS_RETAIN_EXACT_HISTORICAL_STATUS",
+    "followup_task_source_sha256_scope": "HISTORICAL_SOURCE_CONTENT_TESTED_WITH_1806_NATIVE_BEFORE_LATER_26_FILE_MERGE; RETAINED_NOT_RELABELED_AS_LATEST",
+    "latest_concurrent_source_regression": {
+      "tests": 113,
+      "passed": 113,
+      "skipped": 0,
+      "seconds": 37.361,
+      "status": "OK",
+      "log_sha256": "6b307bdc45abe8189a21ea8f144ee0eec0e3ad0dac7c863f9e4d212cd1c95d68",
+      "scope": "WORKTREE_BASE_BF5655F_AFTER_26_FILE_MERGE_WITH_LOCAL_FORECAST_AUTOMATION_UNLIMITED_POLICY_TEST_RESTORED; SCOPED_ONLY",
+      "modules": [
+        "tests.test_boat_history_prospective",
+        "tests.test_boat_pdca_state",
+        "tests.test_boat_venue_dataset",
+        "tests.test_boat_venue_history",
+        "tests.test_boat_venue_history_handoff",
+        "tests.test_local_forecast_automation",
+        "tests.test_official_k_archive_consensus",
+        "tests.test_official_k_special_blocks",
+        "tests.test_teiai_feature_adapter",
+        "tests.test_teiai_history"
+      ],
+      "full_latest_head_suite": false
+    }
   },
   "continuity": {
-    "observed_at": "2026-11-06T01:54:30.449461+00:00",
-    "scope": "LOCAL_API_STATUS_ONLY",
-    "saved_model_forecasts": 425,
+    "observed_at": "2026-11-06T04:19:56+00:00",
+    "scope": "LOCAL_API_STATUS_ONLY_NOT_INDEPENDENT_PRE_CUTOFF_SAVE_PROOF",
+    "saved_model_forecasts": 509,
     "races": 156,
     "p0_forecasts": 312,
-    "p1_forecasts": 113,
-    "state": "RUNNING",
+    "p1_forecasts": 197,
+    "result_observations": 70,
+    "result_races": 30,
+    "state": "SOURCE_WAIT",
     "continuous": true,
-    "existing_active_run_id": 42142323217,
+    "continuous_means_configuration_not_active_run": true,
+    "recorded_active_run_id": 42148186039,
+    "recorded_run_actual_status": "completed",
+    "recorded_run_actual_conclusion": "success",
+    "recorded_run_completed_at": "2026-11-06T02:57:26Z",
+    "recorded_run_head_sha": "8494b85923e10d57f9c6f23a28f3aa38bfc33797",
+    "subsequent_active_or_queued_runs_observed_at_0421_utc": 0,
+    "checkpoint_last_observed_at": "2026-11-06T02:39:32.683246+00:00",
+    "checkpoint_sha256": "5f2df7227e59934f410d189be1a60af643791acaa57213b32785821b28adb108",
+    "workflow_api_wait": {
+      "http_status": 401,
+      "state": "AUTHORIZATION_WAIT",
+      "reason": "SOURCE_AUTHORIZATION_REQUIRED",
+      "retry_at": null
+    },
+    "official_github_cli_auth_status": {
+      "checked_at": "2026-11-06T04:38:00+00:00",
+      "exit_code": 0,
+      "logged_in_reported": true,
+      "invalid_token_reported": false,
+      "same_configured_auth_context": true,
+      "private_log_sha256": "ecb08b31ffe6489d11874cad4300698163412a0a1720df2b71bc1d362ed7b74e",
+      "does_not_establish_old_401_cause_or_resume": true
+    },
+    "recovery_status": "TRUSTED_RECOVERY_PREPARATION_PENDING_NOT_EXECUTED",
+    "checkpoint_wait_reset": false,
+    "direct_checkpoint_or_lock_tampering": false,
+    "alternate_identity_or_route_used": false,
+    "diagnosis_sha256": "e87a9cb8268f6cf4d1b4eac400fa31c5b4530a0c3dbcd8a60b6fd25c28ecd378",
     "original_database_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
     "protected_pids": [
       157669,
       271439
     ],
     "restarted": false,
-    "private_continuity_sha256": "6329aa1d2b454492594fbcdfe70e568eb27870a2facc04877551aa45e872993d"
+    "forecast_workflow_trigger_rerun_cancel_by_this_work": false
   },
   "activation_gates": [
     "AUTHORIZED_CURRENT_MEDIA",
@@ -950,5 +1004,25 @@
       "private_result_sha256": "c685765359f9bd5f408d86f26c6f75bc59ae27dc5c71d078d4fbcc852c92de87",
       "private_manifest_sha256": "60d554a356a08397cbdc947d0ecbd1fd86334c3416a6ec7441a1f3f4987185a0"
     }
-  }
+  },
+  "historical_continuity_observations": [
+    {
+      "observed_at": "2026-11-06T01:54:30.449461+00:00",
+      "scope": "LOCAL_API_STATUS_ONLY",
+      "saved_model_forecasts": 425,
+      "races": 156,
+      "p0_forecasts": 312,
+      "p1_forecasts": 113,
+      "state": "RUNNING",
+      "continuous": true,
+      "existing_active_run_id": 42142323217,
+      "original_database_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+      "protected_pids": [
+        157669,
+        271439
+      ],
+      "restarted": false,
+      "private_continuity_sha256": "6329aa1d2b454492594fbcdfe70e568eb27870a2facc04877551aa45e872993d"
+    }
+  ]
 }

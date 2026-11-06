@@ -89,3 +89,11 @@ Implementation HEAD2318cac completed existing Viewer42148288953 and AUTORACE4214
 - [ ] Operational video acceptance: authorized current exhibition inputs, qualified immutable contexts, real pre-cutoff model pairs and later official results demonstrating improvement.
 
 The unmet field checkboxes are deliberate measured failures, not completed by extra tests, raw OCR views, camera self-fit, old-frame reuse or production adoption. No original forecast, current production model, protected process, main branch, public deployment or wager was replaced or executed.
+
+## Operational authorization recovery followup
+
+The existing supervisor persisted a GitHub API HTTP401 at02:39 UTC; its authorization wait has no retry time. The referenced worker completed successfully at02:57 UTC, while the stale local active-run field remained unchanged. A successful same-context official `gh auth status` diagnoses current authentication but does not establish the cause of the original denial or itself clear the checkpoint.
+
+- [ ] Add and independently review an explicit operator CLI recovery for the exact saved401/checkpoint SHA. Under the existing mutex/flock, verify the same GitHub connection through official auth status, the existing workflow and its authenticated completed checkpoint. Preserve the former refusal in a recovery receipt and retain source waits, counters, transaction intents and original bytes. No POST or trigger in recovery; no JSON authorization grants or automatic denial probes.
+- [ ] Run meaningful regression and existing PR checks. Apply only after a current no-overlapping-worker check and an exclusive private checkpoint backup. If needed, restart only the existing idle local monitor on the same port/configuration; preserve the separate video intake and remote original artifacts. Normal successor logic must still enforce all ordinary source/transaction/integrity gates.
+- [ ] Record actual recovery/resulting runtime state separately from the still-failed video field acceptance. Authentication verification or a software CI success cannot complete identification, physical strength measurement or forward accuracy validation.

@@ -86,6 +86,50 @@ def admitted_headers(server, nonce):
 
 
 class LocalForecastServerTests(unittest.TestCase):
+    def test_github_reconnect_is_explicit_and_runs_after_bind_before_automation(self):
+        events = []
+        fake = types.SimpleNamespace(origin="http://127.0.0.1:8765",
+                                     serve_forever=lambda: events.append("serve"))
+        class Context:
+            def __enter__(self):
+                events.append("bound")
+                return fake
+            def __exit__(self, *args):
+                events.append("closed")
+        digest = "a" * 64
+        with patch("race_ai.local_forecast_service.LocalForecastService"), \
+             patch("race_ai.github_continuous_supervisor.GitHubSupervisor") as supervisor, \
+             patch("race_ai.local_forecast_server.make_server", return_value=Context()), \
+             patch("builtins.print"):
+            supervisor.return_value.reconnect_authorization.side_effect = lambda value: events.append(("verify", value))
+            self.assertEqual(main(["--private-dir", "/private/forecasts", "--automatic-mode", "github",
+                                   "--supervisor-dir", "/private/supervisor",
+                                   "--reconnect-github-auth-checkpoint-sha256", digest]), 0)
+        self.assertEqual(events, ["bound", ("verify", digest), "serve", "closed"])
+
+    def test_github_reconnect_failure_closes_bound_server_without_starting_automation(self):
+        events = []
+        fake = types.SimpleNamespace(origin="http://127.0.0.1:8765",
+                                     serve_forever=lambda: events.append("serve"))
+        class Context:
+            def __enter__(self): return fake
+            def __exit__(self, *args): events.append("closed")
+        with patch("race_ai.local_forecast_service.LocalForecastService"), \
+             patch("race_ai.github_continuous_supervisor.GitHubSupervisor") as supervisor, \
+             patch("race_ai.local_forecast_server.make_server", return_value=Context()), \
+             patch("builtins.print"):
+            supervisor.return_value.reconnect_authorization.side_effect = ValueError("FIXED_AUTH_REVIEW")
+            self.assertEqual(main(["--private-dir", "/private/forecasts", "--automatic-mode", "github",
+                                   "--supervisor-dir", "/private/supervisor",
+                                   "--reconnect-github-auth-checkpoint-sha256", "a" * 64]), 2)
+        self.assertEqual(events, ["closed"])
+
+    def test_reconnect_option_never_grants_native_mode_authority(self):
+        with patch("sys.stderr"), self.assertRaises(SystemExit) as error:
+            main(["--private-dir", "/private/forecasts",
+                  "--reconnect-github-auth-checkpoint-sha256", "a" * 64])
+        self.assertEqual(error.exception.code, 2)
+
     def test_github_cli_wires_existing_supervisor_and_private_cache_only(self):
         fake = types.SimpleNamespace(origin="http://127.0.0.1:8765", serve_forever=lambda:None)
         class Context:

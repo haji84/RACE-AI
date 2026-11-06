@@ -6,6 +6,8 @@ import json
 import base64
 import subprocess
 import zipfile
+import hashlib
+from copy import deepcopy
 from pathlib import Path
 from unittest.mock import patch
 try:
@@ -314,3 +316,235 @@ class SupervisorTests(unittest.TestCase):
         self.assertIn(line(2372),compact)
         self.assertIn(line(2499),compact)
         self.assertTrue(compact.endswith(line(3000)))
+
+    def _authorization_checkpoint(self):
+        wait = dict(state="AUTHORIZATION_WAIT", reason="SOURCE_AUTHORIZATION_REQUIRED",
+                    retry_at=None, http_status=401, attempts=1)
+        with patch.object(self.api, "active_runs", side_effect=WorkflowAPIWait(wait)):
+            self.assertEqual(self.supervisor.tick()["state"], "SOURCE_WAIT")
+        path = Path(self.temp.name) / "supervisor.json"
+        body = path.read_bytes()
+        return path, body, hashlib.sha256(body).hexdigest(), wait
+
+    def _authorization_verification(self):
+        return dict(repo="haji84/RACE-AI", workflow_id=405276784, run_id=11,
+                    active_run_ids=[], source_control_sha256="a" * 64,
+                    verification="GH_AUTH_STATUS_AND_AUTHENTICATED_WORKFLOW_READS")
+
+    def test_explicit_401_reconnection_preserves_originals_and_never_dispatches(self):
+        path, before, digest, wait = self._authorization_checkpoint()
+        self.supervisor._state.update(intent={"marker": "retained", "predecessor": 9},
+            source_control={"source_wait": {"http_status": 403}, "lifetime_requests": 3120},
+            active_run_id=11, last_adopted_run_id=11)
+        self.supervisor._save()
+        before = path.read_bytes(); digest = hashlib.sha256(before).hexdigest()
+        state_before = deepcopy(self.supervisor._state)
+        with patch.object(self.api, "verify_authorization", create=True,
+                          return_value=self._authorization_verification()) as verify:
+            result = self.supervisor.reconnect_authorization(digest)
+        verify.assert_called_once_with()
+        self.assertEqual(result["state"], "AUTHORIZATION_RECONNECTED")
+        saved = json.loads(path.read_bytes())
+        self.assertIsNone(saved["api_wait"])
+        receipt = saved["authorization_recoveries"][-1]
+        self.assertEqual(receipt["previous_checkpoint_sha256"], digest)
+        self.assertEqual(receipt["previous_api_wait"], wait)
+        self.assertEqual(receipt["verification"], self._authorization_verification())
+        self.assertEqual(receipt["checked_at"], self.now.isoformat())
+        for key, value in state_before.items():
+            if key != "api_wait": self.assertEqual(saved[key], value)
+        self.assertEqual(self.api.commits, [])
+        self.supervisor.stop()
+        reopened = GitHubSupervisor(Path(self.temp.name), client=self.api, clock=lambda: self.now)
+        self.addCleanup(reopened.stop)
+        self.assertTrue(reopened._acquire())
+        self.assertIsNone(reopened._state["api_wait"])
+        self.assertEqual(reopened._state["intent"], state_before["intent"])
+
+    def test_reconnection_requires_exact_checkpoint_and_only_the_401_api_latch(self):
+        path, before, digest, wait = self._authorization_checkpoint()
+        with patch.object(self.api, "verify_authorization", create=True) as verify:
+            for value in (None, True, "a" * 63, "b" * 64):
+                with self.assertRaises(ValueError): self.supervisor.reconnect_authorization(value)
+            verify.assert_not_called()
+        self.assertEqual(path.read_bytes(), before)
+        variants = [dict(wait, http_status=403), dict(wait, http_status=429),
+                    dict(wait, state="RATE_LIMIT_WAIT"), dict(wait, retry_at=self.now.isoformat()),
+                    dict(wait, reason="SOURCE_REVIEW_REQUIRED"), None]
+        for variant in variants:
+            self.supervisor._state["api_wait"] = variant; self.supervisor._save()
+            current = path.read_bytes()
+            with patch.object(self.api, "verify_authorization", create=True) as verify:
+                with self.assertRaises(ValueError):
+                    self.supervisor.reconnect_authorization(hashlib.sha256(current).hexdigest())
+                verify.assert_not_called()
+            self.assertEqual(path.read_bytes(), current)
+
+    def test_reconnection_provider_failure_keeps_original_checkpoint_and_latch(self):
+        path, before, digest, wait = self._authorization_checkpoint()
+        for error in (ValueError("GITHUB_AUTHORIZATION_NOT_CONFIRMED"),
+                      WorkflowAPIWait(dict(wait, http_status=403)), OSError("fictional outage")):
+            with patch.object(self.api, "verify_authorization", create=True, side_effect=error):
+                with self.assertRaises((ValueError, OSError)):
+                    self.supervisor.reconnect_authorization(digest)
+            self.assertEqual(path.read_bytes(), before)
+            self.assertEqual(self.supervisor._state["api_wait"], wait)
+        self.assertEqual(self.api.commits, [])
+
+    def test_reconnection_rejects_clock_reversal_without_provider_read(self):
+        path, before, digest, _ = self._authorization_checkpoint()
+        self.now -= timedelta(seconds=1)
+        with patch.object(self.api, "verify_authorization", create=True) as verify:
+            with self.assertRaisesRegex(ValueError, "CLOCK_REVERSED"):
+                self.supervisor.reconnect_authorization(digest)
+            verify.assert_not_called()
+        self.assertEqual(path.read_bytes(), before)
+
+    def test_reconnection_rejects_clock_reversal_during_provider_read(self):
+        path, before, digest, _ = self._authorization_checkpoint()
+        def backwards():
+            self.now -= timedelta(seconds=1)
+            return self._authorization_verification()
+        with patch.object(self.api, "verify_authorization", create=True, side_effect=backwards):
+            with self.assertRaisesRegex(ValueError, "CLOCK_REVERSED"):
+                self.supervisor.reconnect_authorization(digest)
+        self.assertEqual(path.read_bytes(), before)
+
+    def test_reconnection_save_failure_keeps_in_memory_denial_and_never_dispatches(self):
+        path, before, digest, wait = self._authorization_checkpoint()
+        with patch.object(self.api, "verify_authorization", create=True,
+                          return_value=self._authorization_verification()):
+            with patch.object(self.supervisor, "_save", side_effect=OSError("fictional disk failure")):
+                with self.assertRaises(OSError): self.supervisor.reconnect_authorization(digest)
+        self.assertEqual(path.read_bytes(), before)
+        self.assertEqual(self.supervisor._state["api_wait"], wait)
+        self.assertNotIn("authorization_recoveries", self.supervisor._state)
+        with patch.object(self.api, "active_runs", side_effect=AssertionError("denial retained")):
+            self.assertEqual(self.supervisor.tick()["state"], "SOURCE_WAIT")
+        self.assertEqual(self.api.commits, [])
+
+    def test_reconnection_refuses_stale_provider_run_and_preserves_source_denial(self):
+        path, _, _, _ = self._authorization_checkpoint()
+        self.supervisor._state["last_adopted_run_id"] = 12; self.supervisor._save()
+        before = path.read_bytes(); digest = hashlib.sha256(before).hexdigest()
+        with patch.object(self.api, "verify_authorization", create=True,
+                          return_value=self._authorization_verification()):
+            with self.assertRaisesRegex(ValueError, "WORKFLOW_METADATA_PENDING"):
+                self.supervisor.reconnect_authorization(digest)
+        self.assertEqual(path.read_bytes(), before)
+        self.supervisor._state["last_adopted_run_id"] = 11; self.supervisor._save()
+        digest = hashlib.sha256(path.read_bytes()).hexdigest()
+        self.api.control["source_wait"] = dict(state="AUTHORIZATION_WAIT", reason="SOURCE_AUTHORIZATION_REQUIRED",
+                                              retry_at=None, http_status=403, attempts=1)
+        with patch.object(self.api, "verify_authorization", create=True,
+                          return_value=self._authorization_verification()):
+            self.supervisor.reconnect_authorization(digest)
+        result = self.supervisor.tick()
+        self.assertEqual(result["state"], "SOURCE_WAIT")
+        self.assertEqual(result["waiting_state"], "AUTHORIZATION_WAIT")
+        self.assertEqual(self.supervisor._state["source_control"]["source_wait"], self.api.control["source_wait"])
+        self.assertEqual(self.api.commits, [])
+
+    def test_reconnection_does_not_overwrite_changed_checkpoint_or_lock(self):
+        for replace in ("checkpoint", "lock"):
+            with self.subTest(replace=replace):
+                if replace == "lock":
+                    self.supervisor.stop()
+                    self.supervisor = GitHubSupervisor(Path(self.temp.name), client=self.api, clock=lambda: self.now)
+                    self.addCleanup(self.supervisor.stop)
+                path, before, digest, _ = self._authorization_checkpoint()
+                conflicting = b"retained independent checkpoint"
+                def changed():
+                    if replace == "checkpoint": path.write_bytes(conflicting)
+                    else:
+                        lock = path.with_name("supervisor.lock"); lock.unlink()
+                        lock.write_bytes(b"new owner"); lock.chmod(0o600)
+                    return self._authorization_verification()
+                with patch.object(self.api, "verify_authorization", create=True, side_effect=changed):
+                    with self.assertRaises(ValueError): self.supervisor.reconnect_authorization(digest)
+                self.assertEqual(path.read_bytes(), conflicting if replace == "checkpoint" else before)
+                self.assertEqual(self.api.commits, [])
+                if replace == "checkpoint":
+                    # Restore this fictional fixture only, before the independent lock case.
+                    path.write_bytes(before)
+
+    def test_401_wait_remains_latched_on_ordinary_ticks_without_reconnection(self):
+        path, before, _, _ = self._authorization_checkpoint()
+        self.now += timedelta(days=30)
+        with patch.object(self.api, "verify_authorization", create=True) as verify:
+            with patch.object(self.api, "active_runs", side_effect=AssertionError("no automatic retry")):
+                result = self.supervisor.tick()
+                self.assertEqual(result["state"], "SOURCE_WAIT")
+                self.assertEqual(result["waiting_state"], "AUTHORIZATION_WAIT")
+            verify.assert_not_called()
+        self.assertEqual(path.read_bytes(), before)
+
+    def test_provider_verification_uses_official_auth_and_same_workflow_reads_only(self):
+        from race_ai.github_continuous_supervisor import WORKFLOW, WORKFLOW_FILE
+        client = GitHubCLI()
+        workflow = dict(id=WORKFLOW, path=WORKFLOW_FILE, state="active")
+        latest = dict(id=11, workflow_id=WORKFLOW, head_branch="feat/four-sport-forecast-audit-view-20261022",
+                      head_sha="a" * 40, status="completed", conclusion="success",
+                      repository=dict(id=1416489937, full_name="haji84/RACE-AI"),
+                      head_repository=dict(id=1416489937, full_name="haji84/RACE-AI"))
+        control = dict(run_id=11, source_wait=dict(http_status=403), lifetime_requests=3120)
+        response = subprocess.CompletedProcess([], 0, b"private account metadata", b"private diagnostics")
+        with patch("race_ai.github_continuous_supervisor.subprocess.run", return_value=response) as run:
+            with patch.object(client, "api", return_value=workflow) as api:
+                with patch.object(client, "active_runs", return_value=[]):
+                    with patch.object(client, "latest_run", return_value=latest):
+                        with patch.object(client, "final_control", return_value=control) as final:
+                            result = client.verify_authorization()
+        self.assertEqual(run.call_args.args[0], ["gh", "auth", "status", "--hostname", "github.com"])
+        self.assertEqual(run.call_args.kwargs["stdout"], subprocess.PIPE)
+        self.assertEqual(run.call_args.kwargs["stderr"], subprocess.PIPE)
+        self.assertNotIn("env", run.call_args.kwargs)
+        api.assert_called_once_with(f"actions/workflows/{WORKFLOW}")
+        final.assert_called_once_with(latest)
+        self.assertEqual(result["run_id"], 11)
+        self.assertEqual(result["workflow_id"], WORKFLOW)
+        self.assertEqual(result["source_control_sha256"], hashlib.sha256(
+            json.dumps(control, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest())
+        self.assertNotIn("private", json.dumps(result))
+
+    def test_provider_verification_failure_never_changes_credentials_or_exposes_output(self):
+        client = GitHubCLI()
+        failures = [subprocess.CompletedProcess([], 1, b"private output", b"private error"),
+                    subprocess.TimeoutExpired("gh", 50), OSError("private credential path")]
+        for failure in failures:
+            with patch("race_ai.github_continuous_supervisor.subprocess.run",
+                       **({"side_effect": failure} if isinstance(failure, Exception) else {"return_value": failure})) as run:
+                with patch.object(client, "api") as api:
+                    with self.assertRaisesRegex(ValueError, "GITHUB_AUTHORIZATION_NOT_CONFIRMED") as caught:
+                        client.verify_authorization()
+                    api.assert_not_called()
+                self.assertNotIn("private", str(caught.exception))
+                self.assertEqual(run.call_count, 1)
+
+    def test_provider_verification_rejects_wrong_workflow_run_or_checkpoint(self):
+        from race_ai.github_continuous_supervisor import WORKFLOW, WORKFLOW_FILE
+        workflow = dict(id=WORKFLOW, path=WORKFLOW_FILE, state="active")
+        latest = dict(id=11, workflow_id=WORKFLOW, head_branch="feat/four-sport-forecast-audit-view-20261022",
+                      head_sha="a" * 40, status="completed", conclusion="success",
+                      repository=dict(id=1416489937, full_name="haji84/RACE-AI"),
+                      head_repository=dict(id=1416489937, full_name="haji84/RACE-AI"))
+        cases = [(dict(workflow, id=1), latest, {"run_id": 11}, []),
+                 (dict(workflow, path="other.yml"), latest, {"run_id": 11}, []),
+                 (dict(workflow, state="disabled_manually"), latest, {"run_id": 11}, []),
+                 (workflow, dict(latest, workflow_id=1), {"run_id": 11}, []),
+                 (workflow, dict(latest, head_branch="main"), {"run_id": 11}, []),
+                 (workflow, dict(latest, repository={"full_name": "another/repo"}), {"run_id": 11}, []),
+                 (workflow, dict(latest, head_repository={"full_name": "another/repo"}), {"run_id": 11}, []),
+                 (workflow, dict(latest, repository=dict(id=1, full_name="haji84/RACE-AI")), {"run_id": 11}, []),
+                 (workflow, dict(latest, head_repository=None), {"run_id": 11}, []),
+                 (workflow, dict(latest, conclusion="failure"), {"run_id": 11}, []),
+                 (workflow, latest, {"run_id": 10}, []),
+                 (workflow, latest, {"run_id": 11}, [dict(latest, head_branch="main")])]
+        for wf, run, control, active in cases:
+            client = GitHubCLI()
+            with patch("race_ai.github_continuous_supervisor.subprocess.run", return_value=subprocess.CompletedProcess([], 0, b"", b"")):
+                with patch.object(client, "api", return_value=wf):
+                    with patch.object(client, "active_runs", return_value=active):
+                        with patch.object(client, "latest_run", return_value=run):
+                            with patch.object(client, "final_control", return_value=control):
+                                with self.assertRaises(ValueError): client.verify_authorization()
