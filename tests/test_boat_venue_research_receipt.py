@@ -164,6 +164,21 @@ class PrivateP1ReceiptTests(unittest.TestCase):
         return api.verify_private_p1_artifact(raw, self.metadata(raw) if metadata is None else metadata,
                                               **arguments)
 
+    def assert_public_counts(self, public, metadata, record_hashes, training_sha256):
+        for value in [*record_hashes, training_sha256]:
+            self.assertIsInstance(value, str)
+            self.assertRegex(value, r'\A[0-9a-f]{64}\Z')
+        count = len(record_hashes)
+        self.assertEqual(public, dict(
+            schema='RACE_AI_PRIVATE_VENUE_P1_ARTIFACT_ADMISSION_COUNTS_V1',
+            status='PRIVATE_VENUE_P1_ARTIFACT_PRE_CUTOFF_VERIFIED',
+            artifact_id=metadata['id'], artifact_name=metadata['name'], artifact_digest=metadata['digest'],
+            workflow_run_id=RUN_ID, head_sha=HEAD, saved_at=metadata['created_at'],
+            unique_races=count, baseline_forecast_count=count*2, learned_forecast_count=count*2,
+            record_sha256=record_hashes, training_sha256=training_sha256,
+            independent_pre_cutoff_receipt_verified=True, provider_permission_confirmed=False,
+            production_promoted=False, actual_purchases=False, plaintext_published=False))
+
     def test_missing_owner_key_rejects_before_zip_or_metadata_inspection(self):
         api = self.api()
         with patch.dict(os.environ, RACE_AI_STATE_KEY=''), patch.object(
@@ -193,9 +208,22 @@ class PrivateP1ReceiptTests(unittest.TestCase):
             for name in ('provider_permission_confirmed', 'production_promoted',
                          'actual_purchases', 'plaintext_published'):
                 self.assertIs(result[name], False)
-            public = json.dumps(result)
-            for secret in ('weights', 'ordered_top8', 'participants', 'source_url', '4001', 'payloads', 'snapshot'):
-                self.assertNotIn(secret, public)
+            self.assert_public_counts(result, self.metadata(raw), [digest(p) for p in self.payloads[:count]],
+                                      self.payloads[0]['training']['training_sha256'])
+
+    def test_public_count_contract_accepts_id_digits_inside_a_full_hash_but_rejects_leaked_fields(self):
+        raw, _ = self.archive()
+        result = self.verify(self.api(), raw)
+        controlled_hash = '4001'+'a'*60
+        public = dict(result, record_sha256=[controlled_hash])
+        self.assert_public_counts(public, self.metadata(raw), [controlled_hash], result['training_sha256'])
+        for field, value in (('participants', ['4001']), ('weights', [.1]),
+                             ('ordered_top8', [[1, 2, 3]]), ('source_url', 'https://example.test/private'),
+                             ('snapshot', {'participants':['4001']}), ('payloads', [{'private':True}]),
+                             ('record_sha256', ['4001'])):
+            with self.subTest(field=field), self.assertRaises(AssertionError):
+                self.assert_public_counts(dict(public, **{field:value}), self.metadata(raw),
+                                          [controlled_hash], result['training_sha256'])
 
     def test_wrong_artifact_digest_identity_run_head_name_and_expiry_are_rejected(self):
         api = self.api()

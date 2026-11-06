@@ -204,6 +204,11 @@ def generate(ident, root, env):
 
 def readback(ident, root, env):
     local = local_records(root)
+    previous = read_json_bytes(_read(root.with_name(root.name+'.status.json'), 128*1024, private=True))
+    need(previous.get('schema') == SCHEMA and previous.get('workflow_run_id') == env['run_id'] and
+         previous.get('expected_head_sha') == env['head_sha'] and
+         previous.get('training_sha256') == local[0]['training']['training_sha256'] and
+         previous.get('candidate_artifact_id') == local[0]['training_receipt']['id'], 'GENERATION_STATUS_BINDING')
     actual = metadata(ident); raw = gh('actions/artifacts/'+str(ident)+'/zip')
     need(actual.get('name') == f'all-existing-model-pairs-{env["run_id"]}-{ROUND}', 'PAIR_ARTIFACT_NAME')
     admission, records = _verified_private_pairs_artifact(raw, actual, now=utc_now(),
@@ -211,7 +216,9 @@ def readback(ident, root, env):
     need(admission['forecast_partition_count'] == admission['partition_count'] == 9 and
          admission['frozen_input_only_partition_count'] == 0 and
          {digest(p) for p in records} == {digest(p) for p in local}, 'ACTUAL_NINE_PAIR_READBACK_REQUIRED')
-    return dict(state='NINE_FUTURE_P0_PAIRS_ACTUAL_PRE_CUTOFF_VERIFIED', ready=True,
+    lineage = {name: previous[name] for name in ('candidate_artifact_id', 'cutoff_at', 'source_audit_sha256',
+        'runtime_pointer', 'runtime_pointer_sha256', 'venue_enriched') if name in previous}
+    return dict(lineage, state='NINE_FUTURE_P0_PAIRS_ACTUAL_PRE_CUTOFF_VERIFIED', ready=True,
         forecast_partition_count=9, baseline_forecast_count=9, learned_forecast_count=9,
         artifact_id=ident, artifact_digest=actual['digest'], saved_at=actual['created_at'],
         independent_pre_cutoff_receipt_verified=True, encrypted_readback_verified=True,

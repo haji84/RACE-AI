@@ -130,6 +130,8 @@ class FutureP0CliTests(unittest.TestCase):
         verified = self.run_cli('--readback-artifact', 201)
         self.assertTrue(verified['independent_pre_cutoff_receipt_verified'], verified)
         self.assertEqual(verified['forecast_partition_count'], 9)
+        self.assertEqual(verified['source_audit_sha256'], result['source_audit_sha256'])
+        self.assertEqual(verified['runtime_pointer'], result['runtime_pointer'])
         self.assertTrue(all(route.startswith('actions/') for route in self.calls))
 
     def test_wrong_actual_candidate_head_holds_without_runtime_restore(self):
@@ -153,6 +155,24 @@ class FutureP0CliTests(unittest.TestCase):
             result = self.run_cli()
         self.assertFalse(result['ready'])
         self.assertEqual(self.calls, [])
+
+    def test_fresh_candidate_waits_for_actual_clock_and_late_margin_holds_without_artifacts(self):
+        self.candidate_meta['created_at'] = self.now.isoformat()
+        self.mapping['actions/artifacts/200'] = cli.wire(self.candidate_meta)
+        def sleep(seconds): self.now += timedelta(seconds=seconds)
+        with patch.object(cli.time, 'sleep', side_effect=sleep) as waited:
+            result = self.run_cli()
+        self.assertTrue(result['ready'], result)
+        self.assertGreater(waited.call_args.args[0], 1)
+        self.assertLessEqual(waited.call_args.args[0], 2)
+
+    def test_only_actual_future_race_with_ten_minute_margin_can_create_output(self):
+        self.now += timedelta(minutes=6)
+        result = self.run_cli()
+        self.assertFalse(result['ready'])
+        self.assertEqual(result['forecast_partition_count'], 0)
+        self.assertFalse(self.root.exists())
+        self.assertFalse(self.runtime_plain.exists())
 
 
 if __name__ == '__main__': unittest.main()
