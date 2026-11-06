@@ -1,3 +1,20 @@
+<!-- RACEAI_AUTOMATION_20261106_2305_EXACT_HEAD_CI_PASS -->
+# 2026-11-06 23:05 JST｜最新HEADの既存Viewer/AUTORACE CI両成功、実workerの上限遵守は未実証
+
+**今回新しく確定した事実:** 既存Draft PR #71、同一branch HEAD `ca4e86d9e13ac80b8ba0e68976c54df040e5849b` の既存Viewer CI run `42227209786` とAUTORACE CI run `42227209831` は両方 `completed/success`。22:37段階のViewer pendingから進展。race_ai/repeated_cycle.py の現在HEADを再読取し、MAX_ROUNDS=24、POLL_SECONDS=180、SOURCE_LIMIT=240、MAX_SECONDS=3900、ROUND_SOURCE_LIMIT=45を確認。CI合格は**このHEADでの実workerが制限内で停止できた証拠ではない**。先行上限超過の旧runを正常な安全運転と呼ばない。
+
+**既存workflow405276784の実運転:** GitHub直近100 runのうち同workflowのin_progress/queued/pending/waiting=0。最新の完了実run `42211744943` は21:57:43 JSTに `completed/success`、起動固定旧SHA `fb4f70b026424d9b50b792dc308a378664ee7c81`。最終保存第24巡 status.round_no=24 / updated_at=2026-11-06T12:57:25.358152+00:00。継続原本はGET675回（上限240より435超過）、source_limit=nullで運転しており、修正後HEADの実運転とは区別する。日付内の予定156Rは全締切済・未来0R、結果未確認17R・要確認8R・拒否4R。旧上限違反を後継起動で迂回することはしないため、今回trigger/push/cancel/rerun=0。新タスク・workflow・頻度変更なし。
+
+**実ZIP/API再照合:** 最新完了runの全artifactから第24巡の独立元P1 ZIP `13504190716`、公式結果/PDCA ZIP `13503686892`、継続ZIP `13504510192` を再取得。各実SHA256は順に `f45933784ee8c7aab5fa1d748400ac39863983c50c8cc8da786968936c8d72ed`、`0a8034c9c1dc732a6f6613e158275b66d34c2446c0bc1b6194a338678804137c`、`c764592b727418d28681e7a6c85392865693b0def393d25f29d3b53add0eb8cb` でGitHub API digestと一致、ZIP CRC破損0。結果ZIP内のcurrent-p1-original.zipと独立予想ZIPはバイト一致、初回P0 SHA256= `6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc` で初回receiptと一致。status.report_sha256、repeat-session.session_sha256をcanonical JSONで再計算して一致。
+
+**モデル別成績／学習:** 基準モデルはP0各156保存・127採点、P1各84保存・78採点、総採点644モデル×時点行。直前21:33のモデル別7行表から的中・回収率・仮想損益に差分なし。複数モデル合算を単一の仮想成績にしない。台帳全156Rに対しP1完備84R・不足72R×5=360モデル行、未公表展示を取得できたとは断定しない。LEARNED_SHADOW保存134行、同条件比較126行=異なる63R、学習TRAIN96/VALIDATION31。学習版優位性は未証明。本巡、参照する全親学習ZIPの独立再取得はしていないため、全比較の真正性再証明とはしない。
+
+**非公開保全:** 指定Driveフォルダのownerが接続アカウント本人でshared=falseを再確認し、同run第24巡3ZIPの同名既存保存がないことを確認。元GitHub artifact 1件の新規Driveアップロードを試したが `BLOCKED_FILE_REFERENCE` でコネクタ送信不能。新規Drive保存0、他の原本に対する転送迂回なし。過去の保管成功分と今回の未保存分を混同せず、GitHub artifact7日を永久・所有者限定DBと呼ばない。私有ID・URL・認証情報・大量生原本は公開GitHubに記載しない。
+
+**今回の実差分:** 最新HEADの既存Viewer/AUTORACE CIがともに成功したこと。予想/結果/PDCA/係数、モデル別実績と全原本は不変。次の実証は、制限値を保持したHEADで起動する**新しい正常worker**の実GET<=240・1巡<=45、24巡/65分内の安全停止、予想/結果/継続原本の独立読戻し。全4競技/16系統の継続接続、本番自動採用、期限なし非公開原本保存は未完了。
+
+---
+
 <!-- RACEAI_20261106_2237_CYCLE24_VERIFIED_LIMIT_AND_CI -->
 # 2026-11-06 22:37 JST｜最終第24巡の独立照合、上限逸脱675GET、旧無制限CI試験3件を安全仕様へ修正
 
