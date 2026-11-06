@@ -274,7 +274,7 @@ class SupervisorTests(unittest.TestCase):
     def test_trigger_gate_rejects_unapplied_physical_workflow_and_omitted_file_content(self):
         from race_ai.github_continuous_supervisor import BRANCH, TRIGGER
         workflow=(Path(__file__).resolve().parents[1]/".github/workflows/boat-nationwide-ab-one-shot.yml").read_bytes()
-        policy=b"MAX_ROUNDS = None\nMAX_SECONDS = None\n"
+        policy=b"MAX_ROUNDS = 24\nMAX_SECONDS = 65 * 60\nSOURCE_LIMIT = 240\nROUND_SOURCE_LIMIT = 45\nPOLL_SECONDS = 180\n"
         def document(body):return {"type":"file","encoding":"base64","content":base64.b64encode(body).decode()}
         responses={"pulls/71":{"state":"open","head":{"ref":BRANCH,"sha":"a"*40}},
             "git/commits/"+"a"*40:{"tree":{"sha":"b"*40}},

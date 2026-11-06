@@ -1,7 +1,7 @@
 # BOAT active entrants, native model execution and owner view
 
 The requested path uses the existing GitHub-only deployment. It does not
-restart the active source worker or change canonical PDCA state. New runtime
+stop or restart an active source worker or change canonical PDCA state. New runtime
 inputs and additional model outputs are encrypted for the existing owner key.
 
 ## Source and model validation
@@ -53,8 +53,8 @@ inputs and additional model outputs are encrypted for the existing owner key.
 
 ## Live verification
 
-The existing active source run remains untouched. New collector behavior can
-only apply to a successor using the reviewed source commit. Current exhibition
+No source worker was active during the display-only deployments below. New
+collector behavior applies only to a successor using its reviewed source commit. Current exhibition
 predictions require the official exhibition to be published before the cutoff.
 The display-only publication path makes no requests to official race sources.
 Its real encrypted execution/save/readback and browser results are recorded
@@ -119,3 +119,52 @@ regression set passed 274 tests. An independent read-only review passed 18
 focused crypto/reader tests and found no remaining blocker after the optional
 import fix. Dormant one-shot workflows use separate triggers and are not
 reactivated or covered by this national source activation.
+
+### Protected-reader deployment and live readback
+
+The privacy integration at `5108558b5c5d92559eb93a7d740ec909110b00ff`
+completed display-only [Actions 42284458311](https://github.com/haji84/RACE-AI/actions/runs/42284458311).
+Its actual original-reuse probe succeeded with the same 132 races, 264 baseline
+forecasts and first artifact `13520355202`, without regeneration or source GETs.
+All already-issued additional P0 families remained issued: new forecast count
+was zero.
+
+Actual encrypted feed generation 6 is commit
+`2f8da904498f9d77f39072180f2520d979ab89b5`, cipher
+`be1864dd56a2e5d96fb3e7123a6a7e9784121a429dec68b4d653287cddffed4f`.
+Independent decrypt/readback verified the same 2,414 originals across 288 races,
+all seven Nov 7 P0 families on each of 132 races, unchanged previous originals,
+144 final results, 12 cancellations and 132 pending future races. A new live
+browser pass at 390 and 1440 pixels verified generation 6, participant names,
+editable daily budgets and the 1,000-yen race simulation; the display key was
+absent from requests and browser storage.
+
+The privacy-head Viewer CI ran 2,423 tests and found five optional-video fixture
+errors: its invented result receipt omitted the artifact name and run ID now
+required by the shared archive reader. The fixture now supplies its synthetic
+native result identity; production receipt checks were not weakened. All eight
+tests in that module passed after the correction. This failed run is not claimed
+as a passing complete suite; the follow-up CI must validate the final head.
+
+### Key-free host handoff and source-free startup
+
+The host now authenticates a separate strict count-only summary plus the exact
+encrypted continuity, including both actual GitHub ZIP digests, repository,
+run and head. It never reads the owner key or decrypts the continuity. Unknown
+reason strings are masked to a fixed review code; 401/403 holds, 429 retry times,
+prepared-round holds and hard source latches stay enforced. An encrypted
+predecessor without its companion holds rather than invoking host decryption.
+
+The bounded-policy gate verifies exactly 24 rounds, 3,900 seconds, 240 requests,
+45 per round and 180-second polling. An early worker waits source-free for the
+authenticated first T-15 window before starting its source session. The original
+330-minute physical handoff is retained. An unreachable window waits to that
+original deadline, and a no-future-window exit records only a sealed operational
+day handoff, preserving counters and denials. The host waits until next JST
+midnight rather than repeatedly dispatch the same finished day.
+
+The final local integration batch passed 120 tests, including actual execution
+of the workflow's checkpoint, encryption and count-only producer commands and
+key-free host readback. An independent read-only review passed 75 focused tests
+and found no blocker. Future actual exhibition capture is still distinct from
+these deterministic handoff and retained-data checks.

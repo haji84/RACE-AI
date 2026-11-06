@@ -722,6 +722,105 @@ def audit(day,p1_id,p0_supplement=None,round_no=None,*,video_context_artifacts=(
         checkpoint(ROOT/'cycle_recovery_output/continuity.json',recovered,rows,observations,sources,p1_doc=p1_doc,p1_receipt=p1_meta)
     print(json.dumps({k:report[k] for k in ('day_jst','forecast_count','distinct_races','scored_forecasts','source_request_count','auto_promoted')},ensure_ascii=False))
 
+def _restored_window_cutoffs(day,now):
+    """Use the already restored first P0 bytes; never read a source or GitHub."""
+    def read(path,limit):
+        need(path.is_file() and not any(p.is_symlink() for p in (path,*path.parents))
+             and 0<path.stat().st_size<=limit,'SOURCE_WINDOW_RESTORED_INPUT_REQUIRED')
+        with path.open('rb') as source:raw=source.read(limit+1)
+        need(len(raw)<=limit,'SOURCE_WINDOW_RESTORED_INPUT_BOUND')
+        return raw
+    body=read(ROOT/'boat_all_day_output/forecasts.json',32*1024*1024)
+    known=json.loads(read(ROOT/'docs/evidence'/day/'p0-first-receipt.json',32*1024))
+    meta=json.loads(read(ROOT/'boat_all_day_output/first-receipt.json',128*1024))
+    run=meta.get('workflow_run',{})
+    need(known.get('schema')=='RACE_AI_P0_FIRST_RECEIPT_V1' and known.get('day_jst')==day
+         and known.get('json_sha256')==hashlib.sha256(body).hexdigest()
+         and type(known.get('artifact_id')) is int and known['artifact_id']>0
+         and meta.get('id')==known['artifact_id'] and meta.get('expired') is False
+         and meta.get('created_at')==known.get('server_created_at')
+         and meta.get('digest')=='sha256:'+known.get('zip_sha256','')
+         and run.get('id')==known.get('run_id') and type(run.get('id')) is int and run['id']>0
+         and run.get('head_repository_id')==1416489937,'SOURCE_WINDOW_RESTORED_P0_BINDING_REJECTED')
+    from race_ai.repeated_cycle import matches
+    need(matches(meta.get('name'),f'boat-p0-existing-{run["id"]}') and ts(meta['created_at'])<=now,
+         'SOURCE_WINDOW_RESTORED_P0_CLOCK_REJECTED')
+    document=json.loads(body)
+    need(document.get('schema')=='RACE_AI_EXISTING_P0_DAY_V1' and document.get('day_jst')==day
+         and document.get('actual_purchases') is False,'SOURCE_WINDOW_RESTORED_P0_DAY_REJECTED')
+    schedule=document.get('schedule',[]);suites=document.get('predictions',[])
+    need(type(schedule) is list and len(schedule)<=24*12 and type(suites) is list and len(suites)<=24*12,
+         'SOURCE_WINDOW_RESTORED_SCHEDULE_BOUND')
+    from race_ai.frozen_day_cycle import official_id
+    rows=[(r.get('race_id'),r.get('cutoff_at')) for r in schedule if type(r) is dict]
+    need(len(rows)==len(schedule) and all(type(r) is dict for r in suites),
+         'SOURCE_WINDOW_RESTORED_SCHEDULE_REJECTED')
+    rows.extend((official_id(r['race_id']),r.get('sales_cutoff_at')) for r in suites)
+    cutoffs={}
+    for rid,value in rows:
+        need(type(rid) is str and re.fullmatch(day.replace('-','')+r'-(0[1-9]|1[0-9]|2[0-4])-(0[1-9]|1[0-2])',rid),
+             'SOURCE_WINDOW_RESTORED_RACE_REJECTED')
+        cutoff=ts(value)
+        need(cutoff.astimezone(JST).date().isoformat()==day
+             and (rid not in cutoffs or cutoffs[rid]==cutoff),'SOURCE_WINDOW_RESTORED_CUTOFF_REJECTED')
+        cutoffs[rid]=cutoff
+    return sorted(cutoffs.values())
+
+
+def wait_for_window(day=None,*,clock=None,sleeper=None):
+    """Wait source-free for T-15, before starting the bounded source session."""
+    clock=clock or (lambda:datetime.now(timezone.utc));sleeper=sleeper or time.sleep
+    started=clock();need(isinstance(started,datetime) and started.utcoffset() is not None,'SOURCE_WINDOW_AWARE_CLOCK_REQUIRED')
+    day=day or os.environ.get('RACE_AI_EVENT_DAY') or started.astimezone(JST).date().isoformat()
+    need(date.fromisoformat(day).isoformat()==day,'SOURCE_WINDOW_EVENT_DAY_REJECTED')
+    def finish(state,now):
+        reason='DAY_HANDOFF' if state=='NO_FUTURE_WINDOW' else state if state in ('DAY_HANDOFF','WORKER_HANDOFF') else None
+        path=ROOT/'cycle_recovery_output/bootstrap-source-control.json'
+        if reason is not None and (path.exists() or path.is_symlink()):
+            need(path.is_file() and not any(p.is_symlink() for p in (path,*path.parents)),
+                 'SOURCE_WINDOW_BOOTSTRAP_CONTROL_REJECTED')
+            from scripts.first_p0_bootstrap import bootstrap_control,_save_control
+            control=bootstrap_control(day,int(os.environ['GITHUB_RUN_ID']))
+            normal=(None,'BOUNDED_SESSION_END','MAX_ROUNDS_REACHED','SESSION_SOURCE_BUDGET_EXHAUSTED',
+                    'SOURCE_BUDGET_EXHAUSTED','DAY_CHANGED','DAY_HANDOFF','WORKER_HANDOFF')
+            if control.get('control_reason') in normal and control.get('control_reason')!=reason:
+                control['control_reason']=reason
+                _save_control(control)
+        ready=state=='SOURCE_WINDOW_READY'
+        result=dict(state=state,window_ready=ready,source_requests=0,source_session_started=False,
+                    waited_seconds=max(0,(now-started).total_seconds()))
+        if os.environ.get('GITHUB_OUTPUT'):
+            with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+                output.write('window_ready='+('true' if ready else 'false')+'\n')
+                output.write('handoff_reason='+('' if ready else state)+'\n')
+        print(json.dumps(result,sort_keys=True),flush=True)
+        return result
+    if started.astimezone(JST).date().isoformat()!=day:return finish('DAY_HANDOFF',started)
+    deadline=os.environ.get('RACE_AI_WORKER_HANDOFF_AT')
+    need(deadline is not None,'WORKER_HANDOFF_DEADLINE_REQUIRED')
+    deadline=ts(deadline)
+    need(deadline<=started+timedelta(minutes=330),'WORKER_HANDOFF_DEADLINE_REJECTED')
+    if started>=deadline:return finish('WORKER_HANDOFF',started)
+    need(not (ROOT/'cycle_recovery_output/repeat-session.json').exists(),'SOURCE_WINDOW_SESSION_ALREADY_STARTED')
+    cutoffs=_restored_window_cutoffs(day,started)
+    now=started
+    while True:
+        if now.astimezone(JST).date().isoformat()!=day:return finish('DAY_HANDOFF',now)
+        if now>=deadline:return finish('WORKER_HANDOFF',now)
+        remaining=[cutoff for cutoff in cutoffs if cutoff>now]
+        if not remaining:return finish('NO_FUTURE_WINDOW',now)
+        opening=remaining[0]-timedelta(minutes=15)
+        if now>=opening:return finish('SOURCE_WINDOW_READY',now)
+        seconds=min(30.,(opening-now).total_seconds(),(deadline-now).total_seconds())
+        print(json.dumps(dict(state='WAITING_FIRST_EXHIBITION_WINDOW',wait_seconds=seconds,
+            source_requests=0,source_session_started=False),sort_keys=True),flush=True)
+        sleeper(seconds)
+        current=clock()
+        need(isinstance(current,datetime) and current.utcoffset() is not None and current>=now,
+             'SOURCE_WINDOW_CLOCK_REGRESSION_HANDOFF')
+        now=current
+
+
 def repeat_start(day):
     from race_ai.repeated_cycle import start, write_state
     need(int(os.environ.get('GITHUB_RUN_ATTEMPT','1'))==1,'RETRY_REQUIRES_NEW_TRIGGER_TO_PRESERVE_RECEIPTS')
@@ -837,7 +936,7 @@ def repeat_complete(day,round_no,p1_id,result_id):
 
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument('command',choices=['restore','forecast','audit','supplement','repeat-start','repeat-prepare','repeat-complete',
+    p.add_argument('command',choices=['restore','forecast','audit','supplement','wait-for-window','repeat-start','repeat-prepare','repeat-complete',
         'venue-research-forecast','venue-research-readback','venue-research-pdca','venue-research-retain'])
     p.add_argument('--p1-artifact',type=int);p.add_argument('--p0-supplement',type=int)
     p.add_argument('--result-artifact',type=int);p.add_argument('--round',type=int)
@@ -847,6 +946,9 @@ def main():
     if a.video_context_artifact and a.command not in ('restore','forecast','audit'):
         p.error('--video-context-artifact applies only to restore, forecast or audit')
     video_options={'video_context_artifacts':a.video_context_artifact} if a.video_context_artifact else {}
+    if a.command=='wait-for-window':
+        wait_for_window()
+        return
     day=event_day()
     if a.command=='restore':restore(day,**video_options)
     elif a.command=='forecast':forecast(day,**dict(video_options,**({'round_no':a.round} if a.round is not None else {})))

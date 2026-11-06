@@ -67,6 +67,10 @@ def saved_training(training, receipt):
     raw = buffer.getvalue()
     metadata = deepcopy(receipt)
     metadata['digest'] = 'sha256:'+hashlib.sha256(raw).hexdigest()
+    # This helper represents a saved result artifact, including the native
+    # archive identity now shared by clear and encrypted archive readers.
+    metadata['name'] = 'race-existing-cycle-99'
+    metadata['workflow_run']['id'] = 99
     return raw, metadata
 
 

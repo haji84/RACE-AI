@@ -27,6 +27,7 @@ from .saved_view_run import display_only_run
 
 REPO = "haji84/RACE-AI"
 REPO_ID = 1416489937
+JST = timezone(timedelta(hours=9))
 BRANCH = "feat/four-sport-forecast-audit-view-20261022"
 WORKFLOW = 405276784
 TRIGGER = "docs/evidence/boat-nationwide-pilot-trigger.txt"
@@ -39,7 +40,8 @@ SHA = re.compile(r"[a-f0-9]{40,64}\Z")
 OWNED_TRIGGER_LINE = re.compile(
     r"\d{4}-\d{2}-\d{2}T\S+ RACE_AI_CONTINUOUS_[a-f0-9]{32}: "
     r"owner-authorized continuous successor after authenticated run [1-9][0-9]*; "
-    r"same workflow/single writer, unlimited logical rounds/time, preferred T-15\.\.T-10, "
+    r"same workflow/single writer, (?:unlimited logical rounds/time|"
+    r"bounded per-worker handoff \(24 rounds/65 minutes, 240 requests/45 per round\)), preferred T-15\.\.T-10, "
     r"preserve originals and upstream waits; no new service, model, bet or promotion\.\r?\n?\Z")
 
 
@@ -186,11 +188,21 @@ class GitHubCLI:
 
     def final_control(self, run):
         from .cycle_recovery import artifact_pages, authenticated_source_control
+        from .boat_source_control import read_summary, require_legacy_clear
         rows = artifact_pages(self.raw, run["id"])
         selected = [a for a in rows if a.get("name") == f"race-cycle-continuity-{run['id']}"]
         if len(selected) != 1: raise ValueError("WORKFLOW_CHECKPOINT_NOT_AVAILABLE")
         meta = self.api(f"actions/artifacts/{selected[0]['id']}")
+        if meta.get("id") != selected[0]["id"]: raise ValueError("WORKFLOW_CHECKPOINT_ID_INVALID")
         raw = self.raw(f"actions/artifacts/{meta['id']}/zip")
+        companions = [a for a in rows if a.get("name") == f"race-source-control-{run['id']}"]
+        if len(companions) > 1: raise ValueError("WORKFLOW_CHECKPOINT_CONTROL_DUPLICATE")
+        if companions:
+            public_meta = self.api(f"actions/artifacts/{companions[0]['id']}")
+            if public_meta.get("id") != companions[0]["id"]: raise ValueError("WORKFLOW_CHECKPOINT_ID_INVALID")
+            public = self.raw(f"actions/artifacts/{public_meta['id']}/zip")
+            return read_summary(public, public_meta, raw, meta, run_id=run["id"], head_sha=run.get("head_sha"))
+        require_legacy_clear(raw)
         value = authenticated_source_control(raw, meta, expected_run=run["id"])
         if value is None: raise ValueError("WORKFLOW_CHECKPOINT_NOT_AVAILABLE")
         return value
@@ -203,12 +215,21 @@ class GitHubCLI:
         if not SHA.fullmatch(head): raise ValueError("WORKFLOW_HEAD_INVALID")
         commit = self.api("git/commits/" + head)
         source = self._file("race_ai/repeated_cycle.py",head).decode()
+        expected = {"MAX_ROUNDS":24, "MAX_SECONDS":65*60, "SOURCE_LIMIT":240,
+                    "ROUND_SOURCE_LIMIT":45, "POLL_SECONDS":180}
         constants = {}
         for node in ast.parse(source).body:
             if isinstance(node,ast.Assign) and len(node.targets)==1 and isinstance(node.targets[0],ast.Name):
-                if node.targets[0].id in ("MAX_ROUNDS","MAX_SECONDS"):
-                    constants[node.targets[0].id] = ast.literal_eval(node.value)
-        if constants != {"MAX_ROUNDS":None,"MAX_SECONDS":None}:
+                name = node.targets[0].id
+                if name in expected:
+                    if name in constants: raise ValueError("CONTINUOUS_WORKFLOW_NOT_APPLIED")
+                    value = node.value
+                    if isinstance(value,ast.BinOp) and isinstance(value.op,ast.Mult):
+                        left,right = ast.literal_eval(value.left),ast.literal_eval(value.right)
+                        if type(left) is not int or type(right) is not int: raise ValueError("CONTINUOUS_WORKFLOW_NOT_APPLIED")
+                        constants[name] = left*right
+                    else: constants[name] = ast.literal_eval(value)
+        if constants != expected or any(type(value) is not int for value in constants.values()):
             raise ValueError("CONTINUOUS_WORKFLOW_NOT_APPLIED")
         deployed=(Path(__file__).resolve().parents[1]/WORKFLOW_FILE).read_bytes()
         if self._file(WORKFLOW_FILE,head)!=deployed:
@@ -498,6 +519,11 @@ class GitHubSupervisor:
                 if reason not in NORMAL_HANDOFF:
                     self._save()
                     return self._publish("REVIEW_WAIT", halted_reason="PREDECESSOR_SOURCE_REVIEW_REQUIRED")
+                if (control.get("previous_stop_reason") == "DAY_HANDOFF"
+                        and control.get("day_jst") == now.astimezone(JST).date().isoformat()):
+                    midnight = (now.astimezone(JST)+timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+                    self._save()
+                    return self._publish("WAITING", waiting_reason="NEXT_JST_DAY", next_run_at=midnight.isoformat(), halted_reason=None)
                 trigger = self.client.read_trigger()
                 intent = self._state.get("intent")
                 if intent and intent["marker"] in trigger["content"]:
@@ -511,7 +537,7 @@ class GitHubSupervisor:
                 if self._stop.is_set(): return self._publish("PAUSED")
                 line = ("\n" + now.isoformat() + " " + intent["marker"] +
                         f": owner-authorized continuous successor after authenticated run {latest['id']}; "
-                        "same workflow/single writer, unlimited logical rounds/time, preferred T-15..T-10, "
+                        "same workflow/single writer, bounded per-worker handoff (24 rounds/65 minutes, 240 requests/45 per round), preferred T-15..T-10, "
                         "preserve originals and upstream waits; no new service, model, bet or promotion.\n")
                 self._verify_files()
                 intent["commit_sha"] = self.client.append_trigger(trigger, line)

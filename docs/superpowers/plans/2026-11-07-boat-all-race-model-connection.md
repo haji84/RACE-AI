@@ -15,12 +15,29 @@
 5. Root: shared collector integration, history/fitted checkpoint restore/export, model-level persistence/coverage, feed append protocol/bootstrap/site build, encrypted real data activation and verification. Owns `scripts/boat_nationwide_ab_pilot.py`, `scripts/github_existing_cycle.py`, `saved_view_feed.py`, `saved_pages.py`, feed/browser crypto and workflow integration.
 
 ## Tasks
-- [ ] Each independent domain: read exact native contracts; write meaningful failing tests, implement, verify affected tests, report files/commands and limitations. No public/private payload printing or live source calls by delegates.
-- [ ] Integrate actual entrant selection and owned all-venue adapter; ensure ready family execution is not gated by unrelated models' missing inputs.
-- [ ] Connect verified historical inputs and real fitted artifacts; persist outputs with unchanged prior originals, stage and pre-cutoff receipts.
-- [ ] Unify existing and native forecast views, enrich racer names, evolve encrypted feed append semantics and preserve old originals.
-- [ ] Fresh review, whole affected suites and browser flows, real retained source replay, existing URL publication/readback. Preserve concurrent branch updates.
-- [ ] Record evidence and exact live/replay scope. New current-day exhibition collection must wait for actual publication rather than invent post-exhibition inputs at night.
+- [x] Each independent domain: read exact native contracts; write meaningful failing tests, implement, verify affected tests, report files/commands and limitations. No public/private payload printing or live source calls by delegates.
+- [x] Integrate actual entrant selection and owned all-venue adapter; ensure ready family execution is not gated by unrelated models' missing inputs.
+- [x] Connect verified historical inputs and real fitted artifacts; persist outputs with unchanged prior originals, stage and pre-cutoff receipts.
+- [x] Unify existing and native forecast views, enrich racer names, evolve encrypted feed append semantics and preserve old originals.
+- [x] Fresh review, whole affected suites and browser flows, real retained source replay, existing URL publication/readback. Preserve concurrent branch updates.
+- [x] Record evidence and exact live/replay scope. New current-day exhibition collection must wait for actual publication rather than invent post-exhibition inputs at night.
+
+## Bounded source handoff follow-up
+
+Protect all native original and continuity uploads with the existing Actions-only
+owner key before activating a successor. Preserve the actual GitHub outer ZIP
+receipt and unchanged inner originals. A host supervisor must read only a
+separate count-only control summary bound to the encrypted continuity, never
+receive the owner key. Keep the deployed 240/45 requests, 24 rounds, 65-minute
+source session and 180-second poll limits. An early worker may wait without
+source requests for the authenticated first T-15 window, within its existing
+physical handoff deadline, before starting its bounded session.
+
+- [x] Encrypt all five native producer paths and integrate their readers.
+- [x] Verify count-only host control compatibility and source-free startup wait.
+- [ ] Review and deploy the exact follow-up, then record the actual source-worker
+  state. Future exhibition inputs and prospective accuracy remain unproved
+  until their genuine observations and pre-cutoff save receipts exist.
 
 ## Review focus
 - A missing exhibition does not mean withdrawn; explicit source roster governs.

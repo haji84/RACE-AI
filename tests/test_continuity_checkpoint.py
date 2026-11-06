@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from unittest.mock import patch
 import zipfile
 
 try:
@@ -281,7 +282,23 @@ class ContinuityCheckpointTests(unittest.TestCase):
             self.assertEqual(original.read('repeat-session.json'),session())
         self.assertIn('name: race-cycle-continuity-${{ github.run_id }}', upload)
         self.assertIn('if: always()', upload)
-        self.assertIn('if-no-files-found: warn', upload)
+        self.assertIn('if-no-files-found: error', upload)
+        control=next(step for step in steps if step.startswith('Derive count-only handoff control'))
+        command=control.split('        run: ',1)[1].strip().replace('${{ runner.temp }}',str(private))
+        result=subprocess.run(['bash','-e','-c',command],cwd=self.root,env=env,text=True,capture_output=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+        public=(private/'boat-source-control/source-control.json').read_bytes()
+        outer=io.BytesIO()
+        with zipfile.ZipFile(outer,'w') as artifact:artifact.writestr('source-control.json',public)
+        public_zip=outer.getvalue()
+        public_receipt=dict(receipt,id=72,name='race-source-control-7',size_in_bytes=len(public_zip),
+            digest='sha256:'+hashlib.sha256(public_zip).hexdigest())
+        receipt['size_in_bytes']=len(raw)
+        from race_ai.boat_source_control import read_summary
+        with patch.dict(os.environ,{},clear=True):
+            restored=read_summary(public_zip,public_receipt,raw,receipt,run_id=7,head_sha='a'*40)
+        self.assertEqual(restored['previous_session_requests'],json.loads(session())['requests_used'])
+        self.assertEqual(restored['previous_run_id'],7)
 
 
 if __name__ == '__main__':

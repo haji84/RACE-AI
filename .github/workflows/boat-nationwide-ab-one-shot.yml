@@ -93,7 +93,7 @@ jobs:
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
       - name: Test originals, pending results, tampering and unchanged models
         run: |
-          python -m unittest tests.test_continuity_checkpoint tests.test_continuity_archive_size tests.test_first_receipt_continuity tests.test_cycle_recovery tests.test_existing_model_coverage tests.test_frozen_day_cycle tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_ab_shadow tests.test_requested_public_cards tests.test_observed_p1_connection tests.test_external_research_registry tests.test_repeated_cycle tests.test_observed_weight_learning tests.test_first_p0_bootstrap -v
+          python -m unittest tests.test_continuity_checkpoint tests.test_continuity_archive_size tests.test_first_receipt_continuity tests.test_cycle_recovery tests.test_existing_model_coverage tests.test_frozen_day_cycle tests.test_existing_day_program tests.test_program_race_isolation tests.test_boat_observed_pairwise_models tests.test_boat_ab_shadow tests.test_requested_public_cards tests.test_observed_p1_connection tests.test_external_research_registry tests.test_repeated_cycle tests.test_observed_weight_learning tests.test_first_p0_bootstrap tests.test_boat_private_original_archive tests.test_private_original_archive_readers tests.test_boat_source_control tests.test_github_existing_cycle_startup_wait tests.test_cycle_workflow_references -v
       - name: Install pinned encrypted display dependencies
         continue-on-error: true
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
@@ -150,9 +150,13 @@ jobs:
         if: steps.first_p0.outputs.capture != 'true' || steps.first_capture.outputs.capture_complete == 'true'
         env: {GH_TOKEN: '${{ github.token }}'}
         run: python scripts/github_existing_cycle.py restore
+      - name: Wait without source requests for the authenticated exhibition window
+        id: exhibition_window
+        if: steps.restore.conclusion == 'success'
+        run: python scripts/github_existing_cycle.py wait-for-window
       - name: Initialize continuous source session and account for initial B GET
         id: repeat_start
-        if: steps.restore.conclusion == 'success'
+        if: steps.restore.conclusion == 'success' && steps.exhibition_window.outputs.window_ready == 'true'
         env:
           RACE_AI_FIRST_P0_CAPTURED: ${{ steps.first_p0.outputs.capture }}
         run: python scripts/github_existing_cycle.py repeat-start
@@ -359,11 +363,24 @@ jobs:
         run: python -m scripts.boat_private_original_archive pack --kind CONTINUITY --input cycle_checkpoint_output --output-dir '${{ runner.temp }}/boat-private-originals/continuity'
       - name: Preserve verified continuity journal without public source pages
         if: always() && steps.checkpoint_private.outcome == 'success'
+        id: checkpoint_upload
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: race-cycle-continuity-${{ github.run_id }}
           path: ${{ runner.temp }}/boat-private-originals/continuity/private-original.enc
-          if-no-files-found: warn
+          if-no-files-found: error
+          retention-days: 7
+      - name: Derive count-only handoff control from the exact encrypted continuity
+        if: always() && steps.checkpoint_upload.outcome == 'success'
+        id: source_control_pack
+        run: python -m scripts.boat_source_control pack --cipher '${{ runner.temp }}/boat-private-originals/continuity/private-original.enc' --output-dir '${{ runner.temp }}/boat-source-control'
+      - name: Preserve count-only source control for the existing supervisor
+        if: always() && steps.source_control_pack.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: race-source-control-${{ github.run_id }}
+          path: ${{ runner.temp }}/boat-source-control/source-control.json
+          if-no-files-found: error
           retention-days: 7
       - name: Prepare exact source verification bundle, no data or credentials
         if: always()

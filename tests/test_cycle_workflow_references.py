@@ -190,6 +190,30 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn('boat_private_original_archive pack --kind CONTINUITY',text)
         self.assertIn("steps.checkpoint_private.outcome == 'success'",checkpoint)
 
+    def test_source_window_precedes_bounded_session_and_control_has_no_original_path(self):
+        text=WORKFLOW.read_text().split('  official_national:',1)[1]
+        steps=re.split(r'^      - name: ',text,flags=re.MULTILINE)
+        window=next(p for p in steps if p.startswith('Wait without source requests'))
+        start=next(p for p in steps if p.startswith('Initialize continuous source session'))
+        checkpoint=next(p for p in steps if p.startswith('Preserve verified continuity journal'))
+        control=next(p for p in steps if p.startswith('Derive count-only handoff control'))
+        upload=next(p for p in steps if p.startswith('Preserve count-only source control'))
+        self.assertLess(text.index(window),text.index(start))
+        self.assertIn('github_existing_cycle.py wait-for-window',window)
+        self.assertIn("steps.exhibition_window.outputs.window_ready == 'true'",start)
+        self.assertIn('id: checkpoint_upload',checkpoint)
+        self.assertIn("steps.checkpoint_upload.outcome == 'success'",control)
+        self.assertIn('boat_source_control pack --cipher',control)
+        self.assertIn('private-original.enc',control)
+        self.assertIn("steps.source_control_pack.outcome == 'success'",upload)
+        self.assertIn('race-source-control-${{ github.run_id }}',upload)
+        self.assertIn('path: ${{ runner.temp }}/boat-source-control/source-control.json',upload)
+        self.assertIn('if-no-files-found: error',upload)
+        for step in (window,start,checkpoint,control,upload):
+            self.assertNotIn('continue-on-error:',step)
+        self.assertNotIn('cycle_checkpoint_output',upload)
+        self.assertNotIn('RACE_AI_STATE_KEY',upload)
+
     def test_missing_or_wrong_receipt_and_overwrite_are_rejected(self):
         text = ROUND.read_text()
         for old, new in [

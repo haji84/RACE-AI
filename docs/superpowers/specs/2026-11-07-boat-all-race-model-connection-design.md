@@ -19,7 +19,7 @@ Names bind by official registration identity, preferring same-race program names
 ## Validation
 
 Synthetic 3/4/5/6-entrant cases, non-contiguous lanes, withdrawal vs unpublished, all venue identities including legacy navigation variants, wrong identities and payout/roster mismatches. Complete six-entrant existing predictions must be unchanged. Real retained source replay and source hash checks validate adapters without retroactive forecast claims. Test model-by-model dispatch with genuine training fixtures, future-data rejection, append-only encrypted feed union, name identity binding, browser budgets/model choice preservation and results/returns. Verify the existing URL and report live pre-cutoff collection separately from offline replay; no claim of universal future source availability or improved hit rate.
-# Source-original privacy completion
+## Source-original privacy completion
 
 Before enabling the updated source worker, its existing first/supplement P0,
 five-model P1, result journal/CSV and complete continuity artifacts must also
@@ -33,3 +33,18 @@ unchanged. Old clear artifacts remain readable without rewriting them or
 fabricating new receipts. Encryption failure stops the corresponding upload.
 The root key stays in Actions; no provider, key replacement or permission
 change is introduced.
+
+An existing host supervisor reads a separate count-only control artifact,
+bound to the actual encrypted continuity bytes and both GitHub receipts. Its
+schema permits only operational counters, day, fixed stop/wait enums and run
+identity. The owner key remains in Actions. Missing or inconsistent companion
+control holds encrypted predecessors; the legacy clear-checkpoint reader remains
+available without granting the host decryption access.
+
+Before a new bounded session starts, an early source worker may wait without
+source requests for T-15 from its authenticated restored P0 schedule. It retains
+the original 330-minute physical handoff and 30-second maximum sleep/heartbeat.
+The source limits remain 240 requests/session, 45/round, 24 rounds, 65 minutes
+and 180-second polling. No-future-window completion preserves sealed counters
+and source denials and records a day handoff; the host waits until next JST
+midnight after enforcing incomplete-transaction, denial and hard-stop guards.

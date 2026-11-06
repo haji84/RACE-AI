@@ -143,7 +143,7 @@ def authenticated_source_control(raw, meta, *, expected_run=None, now=None):
     # A known temporary HTTP wait is not an unqualified legacy hard halt. Keep
     # the original reason separately so this is an auditable policy migration.
     hard_reason=None if normal or wait and wait['retry_at'] is not None else reason
-    return dict(source_wait=wait,previous_run_id=run,
+    return dict(source_wait=wait,previous_run_id=run,day_jst=state['day_jst'],
         previous_session_requests=state['requests_used'],
         completed_round=state['completed_round'],prepared_round=prepared,
         lifetime_requests=lifetime_requests,lifetime_completed_rounds=lifetime_rounds,
