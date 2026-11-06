@@ -31,6 +31,21 @@
 
 ---
 
+<!-- RACEAI_AUTOMATION_20261106_1051_CYCLE17 -->
+# 2026-11-06 10:51 JST｜ボート第17巡の実原本照合・学習候補の未来初保存・10原本を非公開保全
+
+**確認対象:** 既存Draft PR #71、workflow `405276784`。確認時GitHub HEAD `80654331d1c56385243d11ef4f8ffcc2efb3ba30`、現run [42142323217](https://github.com/haji84/RACE-AI/actions/runs/42142323217) は`in_progress`、同workflowのqueued/pending/waiting=0。前run [42134238827](https://github.com/haji84/RACE-AI/actions/runs/42134238827) は`completed/success`。その最終継続ZIP `13468605667` はAPI digestと実ZIP SHA `18b831f6ad60e52f08e3fdf58868df5a382b013230d6a6513447221bdaf1daad` 一致・CRC正常、completed_round=24、受領24件。現runの第17巡結果ZIP `13469659050`（実SHA `0e62f49e73cd481e83972d728f9a87fbbb14f191afef64ce0bcb219302a0b547`）と対応P1 ZIP `13469738969`（`8a6ad6bf04136ab8c9349c32270e8ccdf4202de12ff58b155fc8241b9aa4f92c`）を独立取得し、両GitHub登録SHA/ZIP CRCと結果ZIP内P1元ZIPの実バイト一致を確認。status.round_no=17、updated_at=2026-11-06T01:51:29.872739Z（10:51:29 JST）。継続はcompleted_round=16/prepared_round=17で、**第17巡は保存・独立取得成功、継続読戻しの最終承認は未完了**。
+
+**11/6の実増分（09:28既報との比較）:** 13場156レースの朝版P0 `312`モデル別件は初回ZIP `13428142302` の実SHAと内部JSON SHAが正本receiptと一致し無変更。展示後P1は25→**105モデル別予想（21レース×5、+80件）**、基準計337→**417件**。CSV417行、race_id/phase/model_idの重複0。公式通常結果は一意11レース、7モデル/時点×11＝**77モデル別採点**（HIT**37**・MISS**40**、既報21採点/13HIT/8MISSから+56行/+24HIT/+32MISS）。8点各100円×全7モデル/時点の研究仮想合算は投入**61,600円**、受取**47,590円**、損益**-14,010円**、回収率**77.26%**。これは11レースを7系統採点した値で、全国156レースの成績でも実投票でもない。締切済19R、未来137R。通常確定11R、結果待ち6R、異常2Rを区別。締切済の展示後5モデル不足は2レース×5＝**10モデル別件**、公式展示が当時公開済みかは未証明。原本を改作して穴埋めしない。
+
+**係数学習と未来シャドーの実差分:** 既存観測相性2系統の `automatic_learning.state=FITTED_SHADOW_ONLY` に初めて到達。通常確定一意11レース、TRAIN9/VALIDATION2を確認。学習済み係数モデルは**2系統**（基準5モデルの係数・式・既存買い目は不変）。研究用 `LEARNED_SHADOW` は**8モデル別件・4未来レース**に保存され、同条件で結果確定のペア比較は**0件**。保存済み最初の2件（同一1レース）は親の独立学習artifact `13469747293` をGitHubから別途取得し、API digest/実ZIP SHA `1f8f6b2f9223ff04be56d3923d1ad846a646e43acb4062f24f6a2547b567d301`・CRC正常、内部training_sha `49edc143925ff2087b60fb7adb48c59e69da3a97e3038b5cec5b43adeef48985` と一致。学習元artifact作成01:38:55Z＜入力as_of01:41:51Z＜締切10:55JST、対象レースは学習/検証IDに含まれないことを検証。他の6シャドーについて全親元を再認証できたとは扱わず、未来での的中率改善・統計的優越・本番自動採用は未達。学習validationはわずか2レースで採用判断できない。
+
+**今回の私有保全:** 指定Google Driveフォルダを直接メタデータ確認し、単独owner権限・shared=false・共有ドライブ外と照合。未保存の元GitHub ZIP **10件**（現run第10巡結果、第11/12巡P1・結果、第17巡P1・結果、前run第24巡P1・結果・最終continuity）を、改変なし新規保存。10件すべてDriveから独立再取得してGitHub原本と実バイトSHA256完全一致、CRC異常0。公開GitHubへ私的Drive URL/ID・認証・予想本文を転記しない。これら10件を全run/全学習元の永久保全と誤認しない。
+
+**停止条件の重大未整合:** 前run第24巡の実GET `300`回、現run第17巡で`290`回。指定の1セッション公式GET240回を前runで60回、現runで50回**実超過**。実コード `race_ai/repeated_cycle.py` の `SOURCE_LIMIT=None/MAX_ROUNDS=None/MAX_SECONDS=None` とworkflow `timeout-minutes:360` は240GET/24巡/65分契約に不適合。現runは固定SHAで稼働中なので、本監査ではキャンセルも安全上限を迂回する追加triggerも行わず、設定修正成功と主張しない。まず独立したコード修正・契約テスト・既存原本保全を通した後にのみ安全な後続を判断する。旧モデル買い目・本番係数・他タスク・新workflow/PR/モデル系統・課金・公開・実投票は変更なし。
+
+---
+
 <!-- RACEAI_HISTORY_PDCA_20261106_0940 -->
 # 2026-11-06 09:40 JST｜履歴PDCAの実結果1R照合と、暗号化状態のGitHub受入経路
 
