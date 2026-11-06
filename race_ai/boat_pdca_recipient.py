@@ -182,11 +182,17 @@ def _already_covered(pointer,plain,current_pointer,root,*,key,fetch,clock):
             report=readback(current_pointer,current_root,key=key,fetch=fetch,now=clock)
             need(report.get('production_schema_readback_verified') is True,'RECIPIENT_PREVIOUS_RESTORE_REQUIRED')
             current=PdcaState(current_root/'state.sqlite')
-            try:_no_regression(incoming,current)
+            try:
+                content_id=pointer['scope']['source_content_sha256']
+                manifest='source-states/v1/'+content_id+'/manifest.json'
+                if current.db.execute('SELECT 1 FROM heads WHERE name=?',(manifest,)).fetchone():
+                    current.verify_contribution(content_id)
+                else:_no_regression(incoming,current)
             finally:current.close()
         finally:incoming.close()
     return dict(report,status='OWNER_PDCA_TRANSFER_ALREADY_COVERED',encrypted_checkpoint_created=False,
         incoming_originals_covered=True,cipher_sha256=current_pointer['cipher_sha256'],
+        incoming_content_sha256=pointer['scope']['source_content_sha256'],
         scope=current_pointer['scope'],transfer_sha256=pointer['cipher_sha256'],source_gets=2)
 
 

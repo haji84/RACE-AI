@@ -2,10 +2,13 @@
 from copy import deepcopy
 import json
 
-from .boat_history_comparison import verify_pair,verify_freeze_receipt
+from .boat_history_comparison import verify_pair_original,verify_freeze_receipt
 from .boat_pdca_state import need
 from .boat_history_store import instant
 from .private_cycle_projection import _observation,_ResultObservationRejection
+from .teiai_history import VENUES
+
+VENUE_NAMES={code:name for name,code in VENUES.items()}
 
 
 def project_pdca(state):
@@ -15,7 +18,7 @@ def project_pdca(state):
         observations.setdefault(rid,[]).append(json.loads(body))
     records=[];seen=set()
     for pair_sha,json_sha,receipt_sha in state.db.execute('SELECT sha,json_sha,receipt_sha FROM pairs ORDER BY sha'):
-        raw=state._get(json_sha);pair=verify_pair(json.loads(raw));receipt=json.loads(state._get(receipt_sha))
+        raw=state._get(json_sha);pair=verify_pair_original(json.loads(raw));receipt=json.loads(state._get(receipt_sha))
         verify_freeze_receipt(pair,receipt,json_sha)
         rid=pair['race_id'];need(rid not in seen,'PDCA_VIEW_MULTIPLE_PAIR_VERSIONS_REQUIRE_SELECTION');seen.add(rid)
         snapshot=pair['baseline']['snapshot'];predictions=[]
@@ -30,7 +33,9 @@ def project_pdca(state):
                     server_saved_at=receipt['write_completed_at'],cutoff_at=pair['cutoff_at'],odds_independent=model.get('odds_independent'),
                     original_json_sha256=json_sha,physical_receipt_sha256=receipt_sha,pair_sha256=pair_sha,
                     source_provenance='OWNER_SAVED_PDCA_PAIR',external_receipt_verified=False,missing_reasons=[]))
-        row=dict(race_id=rid,sport='boat',venue=snapshot['venue'],race_no=int(rid[-2:]),
+        venue=snapshot['venue']
+        label=VENUE_NAMES.get(venue.removeprefix('boatrace-jcd-'),venue) if venue.startswith('boatrace-jcd-') else venue
+        row=dict(race_id=rid,sport='boat',venue=label,race_no=int(rid[-2:]),
             event_date_jst=snapshot['event_date_jst'],cutoff_at=pair['cutoff_at'],saved_cutoff_variants=[pair['cutoff_at']],
             offering_status='UNKNOWN',race_status='UNKNOWN',observed_at=pair['generated_at'],
             participants=[dict(number=p['lane'],registration_no=p['registration_no'],name=None) for p in snapshot['participants']],

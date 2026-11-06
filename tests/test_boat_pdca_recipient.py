@@ -113,6 +113,24 @@ class RecipientTests(unittest.TestCase):
         self.assertFalse((out/'sealed').exists())
         self.assertFalse((out/'incoming.sqlite').exists())
 
+    def test_covered_union_uses_the_incoming_manifest_with_different_active_heads(self):
+        state,_=invented_research_state(self.root);incoming=PdcaState(state)
+        try:
+            with incoming.db:
+                incoming._put('history.sqlite',b'fictional previous version')
+                incoming._put('history.sqlite',b'fictional incoming current version')
+        finally:incoming.close()
+        transfer=self.transfer(state,self.root/'offer');cipher=(self.root/'offer/transfer.enc').read_bytes()
+        canonical=PdcaState.create(self.root/'union.sqlite',mode='production');incoming=PdcaState(state)
+        try:
+            with canonical.db:canonical._put('history.sqlite',b'fictional previous version')
+            canonical.merge_from(incoming)
+        finally:canonical.close();incoming.close()
+        current,current_cipher=self.canonical(self.root/'union.sqlite',self.root/'canonical',generation=2,previous_sha='e'*64)
+        report=self.receive_stale(transfer,cipher,current,current_cipher,self.root/'covered')
+        self.assertEqual(report['status'],'OWNER_PDCA_TRANSFER_ALREADY_COVERED')
+        self.assertTrue(report['incoming_originals_covered'])
+
     def test_later_generation_with_conflicting_original_result_is_not_skipped(self):
         from tests.test_boat_pdca_state import result
         state,pair=invented_research_state(self.root)

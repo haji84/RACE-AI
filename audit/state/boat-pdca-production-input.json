@@ -1,15 +1,1 @@
-{
-  "cipher_path": "state/boat-pdca/v1/g000001/state.enc",
-  "cipher_sha256": "965b707422e4ea566b81a0866f69c58e12a0e3e3e168360c9c50d16f5d8393ad",
-  "repository_id": "1416489937",
-  "schema": "RACE_AI_BOAT_PRODUCTION_STATE_INPUT_V1",
-  "scope": {
-    "generation": 1,
-    "mode": "production",
-    "previous_cipher_sha256": null,
-    "repository_id": "1416489937",
-    "schema": "RACE_AI_BOAT_PDCA_ENCRYPTED_SQLITE_V1"
-  },
-  "source_commit": "966120fa70249cea2d2060ca3bfc503f295a89cb",
-  "status": "READY"
-}
+{"cipher_path":"state/boat-pdca/v1/g000002/state.enc","cipher_sha256":"26ecb63e6c958e173ba761823efe7d7d69bc3126a72c8d2429f575657917b6cb","repository_id":"1416489937","schema":"RACE_AI_BOAT_PRODUCTION_STATE_INPUT_V1","scope":{"generation":2,"mode":"production","previous_cipher_sha256":"965b707422e4ea566b81a0866f69c58e12a0e3e3e168360c9c50d16f5d8393ad","repository_id":"1416489937","schema":"RACE_AI_BOAT_PDCA_ENCRYPTED_SQLITE_V1"},"source_commit":"d6ab35ad7c7b24980480c7935744d68216f81698","status":"READY"}

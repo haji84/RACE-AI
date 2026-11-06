@@ -113,7 +113,8 @@ def prepare_pair(snapshot,history_store,now):
     return pair
 
 
-def verify_pair(pair):
+def verify_pair_original(pair):
+    """Check retained original bindings without running today's model code."""
     sealed(pair,'pair_sha256')
     need(pair.get('schema')=='RACE_AI_RECENT_HISTORY_PROSPECTIVE_PAIR_V2','HISTORY_PAIR_SCHEMA_REQUIRED_LEGACY_NOT_ADMITTED')
     need(pair.get('actual_purchases') is False and pair.get('auto_promoted') is False,'HISTORY_PAIR_RESEARCH_ONLY')
@@ -128,7 +129,17 @@ def verify_pair(pair):
              'HISTORY_PAIR_NONHISTORY_FEATURE_CHANGED')
     for variant in ('baseline','history'):
         version=pair[variant];sealed(version['suite'],'suite_sha256')
+        need(version['suite']['snapshot_sha256']==digest(version['snapshot']),'HISTORY_PAIR_SNAPSHOT_BINDING_MISMATCH')
         need(all(len(m['ordered_top8'])==8 for m in version['suite']['models'].values()),'HISTORY_PAIR_EXACT_EIGHT_REQUIRED')
+        for mid,model in version['suite']['models'].items():
+            sealed(model,'prediction_sha256')
+            need(model['model_id']==mid and model['snapshot_sha256']==version['suite']['snapshot_sha256']
+                 and model['as_of']==pair['generated_at'],'HISTORY_PAIR_MODEL_BINDING_MISMATCH')
+    return pair
+
+
+def verify_pair(pair):
+    verify_pair_original(pair);a=pair['baseline']['snapshot']
     replay=prepare_pair(a,EvidenceHistory(pair['history_evidence']),pair['generated_at'])
     need(replay['pair_sha256']==pair['pair_sha256'],'HISTORY_PAIR_MODEL_OR_EVIDENCE_REPLAY_MISMATCH')
     return pair

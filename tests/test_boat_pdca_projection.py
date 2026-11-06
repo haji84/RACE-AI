@@ -5,6 +5,7 @@ from pathlib import Path
 import subprocess
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from race_ai.boat_pdca_state import PdcaState
 from race_ai.boat_history_store import wire
@@ -40,6 +41,13 @@ class PdcaProjectionTests(unittest.TestCase):
         self.assertEqual(row['result']['status'],'final')
         self.assertEqual(len(row['result_observations']),1)
         self.assertEqual(row['result_revisions'],[])
+
+    def test_opening_saved_originals_never_executes_the_model_again(self):
+        with patch('race_ai.boat_history_comparison.prepare_pair',side_effect=AssertionError('view regenerated prediction')),\
+             patch('race_ai.boat_history_comparison.run',side_effect=AssertionError('view executed model')):
+            view=self.project(self.state)
+        original=self.pair['baseline']['suite']['models']
+        self.assertEqual(view['records'][0]['prediction']['prediction_sha256'],original[view['records'][0]['prediction']['model_id']]['prediction_sha256'])
 
     def test_existing_browser_parser_keeps_both_variants_and_research_scope(self):
         view=self.project(self.state)
