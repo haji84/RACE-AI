@@ -362,6 +362,7 @@
     if (!result) return append(box, node("p", "muted", "結果待ち：結果はまだ取得されていません。"));
     const label = (r.private_cycle_view ? {final:"取得結果（公式確定時刻は未取得）",pending:"取得結果待ち",void:"中止・不成立（観測値）",unsupported:"照合不可"} : {final: "確定結果（読込値）", pending: "結果待ち", void: "中止・不成立", unsupported: "照合不可"})[result.status] || "結果未確認";
     box.append(node("strong", "", (r.scope === "synthetic" ? "合成テスト · " : "") + label));
+    box.append(node("p","muted small",resultReason(r)));
     result.winning_combinations.forEach(t => box.append(combo(t)));
     if (result.status === "final") box.append(node("p", "muted", "100円当たり払戻 " + payoutSummary(result) + (r.scope === "synthetic" ? "（架空）" : "（読込値）")));
     box.append(node("p", "muted small", "結果確認 " + stamp(result.confirmed_at) + " JST"));
@@ -482,7 +483,24 @@
   function outcomeBadge(r,p) {
     const status=P.compare(r,p).status;
     const labels={HIT:"的中",MISS:"不的中",PENDING:"結果待ち",VOID:"中止・返還",REVIEW:"照合不可",NO_FORECAST:"未予想・原本未選択"};
-    return node("span","saved-outcome outcome-"+status.toLowerCase(),(r.scope==="synthetic"?"合成・":"")+labels[status]);
+    const note=r.result?.cutoff_reference&&status!=="VOID"?"（参考照合・締切差あり）":status==="PENDING"?"（"+resultReason(r)+"）":"";
+    return node("span","saved-outcome outcome-"+status.toLowerCase(),(r.scope==="synthetic"?"合成・":"")+labels[status]+note);
+  }
+  function resultReason(r) {
+    const result=r.result,reference=result?.cutoff_reference;
+    if(reference) {
+      const clocks="原本締切 "+stamp(reference.original_cutoff_at)+" JST／結果ページ "+stamp(reference.result_schedule_cutoff_at)+" JST（差 "+reference.offset_seconds/60+"分）。";
+      return clocks+(reference.basis==="RAW_OFFICIAL_CANCELLATION_SELECTED_RACE"?"公式の中止表示を照合。中止ページの予定時刻変更を保持しています。":"公式結果と6選手を照合。原本は両方の締切前に保存済み。締切差を残した参考照合です。");
+    }
+    if(result?.status==="unsupported") {
+      const reason=r.result_observation_rejections?.find(e=>e.captured_at===result.observed_at)?.reason;
+      return ({RESULT_CUTOFF_MISMATCH:"締切情報の不一致を確認中",RESULT_ROSTER_MISMATCH:"出走者情報の不一致を確認中",RESULT_IDENTITY_UNVERIFIED:"公式ページのレース識別を確認できません",RESULT_FINISH_ORDER_MISMATCH:"着順と払戻の整合性を確認中"})[reason]||"取得した結果の整合性を確認中";
+    }
+    if(result?.status==="void")return "公式の中止・返還表示を照合済み";
+    if(result?.status==="final")return "取得結果と保存Top8を照合済み";
+    if(Number.isFinite(Date.parse(r.cutoff_at))&&Date.parse(r.cutoff_at)>Date.now())return "締切前";
+    if(result?.status==="pending")return "公式の着順情報が未公表";
+    return "締切後・結果未同期";
   }
   function resultCombination(r) { return r.result?.winning_combinations?.map(t=>t.join("−")).join(" / ") || (r.result?.status==="void"?"中止・不成立":"未取得"); }
   function payoutSummary(result) {
@@ -499,7 +517,7 @@
     return values.join(" / ") || "未取得";
   }
   function savedResultsTable(rows,group) {
-    return table(["レース","結果","Top8の判定","100円払戻","結果取得 JST"],rows.map(r=>[button(raceName(r),"text-button",()=>openRace(r.race_id)),resultCombination(r),outcomeBadge(r,group?P.pick(r,group):null),payoutSummary(r.result),stamp(r.result?.observed_at)]));
+    return table(["レース","結果","Top8の判定","100円払戻","結果取得 JST","照合状態・理由"],rows.map(r=>[button(raceName(r),"text-button",()=>openRace(r.race_id)),resultCombination(r),outcomeBadge(r,group?P.pick(r,group):null),payoutSummary(r.result),stamp(r.result?.observed_at),resultReason(r)]));
   }
   function allocationView(entry) {
     const a=entry.allocation;if(!a)return "—";
@@ -521,8 +539,10 @@
     const group=groups.find(g=>g.key===state.resultGroupKey)||null,c=P.summarize(rows,group);
     $("saved-result-metrics").replaceChildren(metric("取得結果",c.available+"レース","保存された結果・中止"),metric("的中",c.hits+"レース","選択モデルと取得結果の一致"),metric("不的中",c.misses+"レース","選択モデルと取得結果の不一致"),metric("結果待ち",c.pending+"レース","未取得分を不的中にしません"));
     $("saved-result-metrics").append(metric("保存Top8的中率",hitRate(c),c.hits+" / "+(c.hits+c.misses)+"レース（結果待ち・照合不可等を除外）"));
+    $("saved-result-metrics").append(metric("中止・返還",c.void+"レース","不的中に含めません"),metric("照合保留",c.review+"レース","情報不一致などを確認中"));
     const latest=rows.map(r=>r.result?.observed_at).filter(v=>v&&Number.isFinite(Date.parse(v))).sort((a,b)=>Date.parse(a)-Date.parse(b)).at(-1);
-    $("result-coverage").textContent="対象 "+rows.length+"レース · 結果取得 "+c.available+" · 中止・返還 "+c.void+" · 未予想・照合不可 "+(c.noForecast+c.review)+" · 最終結果取得 "+stamp(latest)+" JST。取得結果による参考照合です。公式の独立検証とは別です。";
+    const references=rows.filter(r=>r.result?.cutoff_reference&&r.result.status==="final").length,cancelReferences=rows.filter(r=>r.result?.cutoff_reference&&r.result.status==="void").length;
+    $("result-coverage").textContent="対象 "+rows.length+"レース · 結果取得 "+c.available+" · 中止・返還 "+c.void+" · 未予想・照合不可 "+(c.noForecast+c.review)+" · 最終同期 "+stamp(dataset?.results_synced_at)+" JST · 最終結果取得 "+stamp(latest)+" JST · 締切差の参考照合 "+references+" · 中止ページの時刻変更 "+cancelReferences+"。原本の時刻は変更せず、公式成績には加算しません。";
     $("saved-results-table").replaceChildren(savedResultsTable(rows,group));
     if (!groups.length) {
       $("simulation-metrics").replaceChildren(empty("試算する保存予想は未取得です","取得した結果は上の一覧に表示しています。"));
@@ -554,7 +574,7 @@
     const settled = rows.filter(r => r.result);
     const resultHeading = $("official-results").parentElement.querySelector("h2");
     resultHeading.textContent = rows.some(r => r.private_cycle_view) ? "レース別の結果観測（独立未検証）" : "レース別の公式結果";
-    $("official-results").replaceChildren(...(settled.length ? settled.slice(0, 100).map(r => append(node("article", "official-result-row"), button(raceName(r), "text-button", () => openRace(r.race_id)), node("span", "tag scope-" + r.scope, scopeName(r.scope)), resultView(r))) : [empty("公式結果は未取得です", "予想と別時点の結果原本が読み込まれると表示されます。全レースの取得完了を意味しません。") ]));
+    $("official-results").replaceChildren(...(settled.length ? settled.map(r => append(node("article", "official-result-row"), button(raceName(r), "text-button", () => openRace(r.race_id)), node("span", "tag scope-" + r.scope, scopeName(r.scope)), resultView(r))) : [empty("公式結果は未取得です", "予想と別時点の結果原本が読み込まれると表示されます。全レースの取得完了を意味しません。") ]));
     const imported = rows.filter(r => r.scope !== "synthetic" && r.actual_purchase?.confirmed === true);
     const importedTotal = imported.reduce((sum, r) => ({stake: sum.stake + r.actual_purchase.stake_yen, payout: sum.payout + r.actual_purchase.payout_yen, refund: sum.refund + r.actual_purchase.refund_yen}), {stake: 0, payout: 0, refund: 0});
     $("imported-purchases").replaceChildren(...(imported.length ? [node("p", "muted", "取込申告 " + imported.length + "件 · 支出 " + yen(importedTotal.stake) + " · 払戻 " + yen(importedTotal.payout) + " · 返還 " + yen(importedTotal.refund)), table(["レース", "区分", "購入申告", "払戻申告", "返還申告"], imported.map(r => [raceName(r), scopeName(r.scope), yen(r.actual_purchase.stake_yen), yen(r.actual_purchase.payout_yen), yen(r.actual_purchase.refund_yen)]))] : [node("p", "muted", "取込購入申告 0件 · 記録なし。合成テストは実購入に含めません。") ]));
