@@ -41,3 +41,14 @@
 - First actual candidate is pinned by `audit/state/boat-venue-learning-input.json`; the existing transfer ref retains the encrypted three-file candidate. A fresh remote fetch authenticated and decrypted it with the owner key.
 - Independent final code review found no Critical/Important issue; a Minor GitHub timestamp-precision availability edge case was reproduced RED and fixed GREEN with subsecond/full-second and strict expiry regressions. Final focused tests: 46 passed.
 - Provider-data GETs for this research fit: zero. Four public terms pages reviewed. Real future learned-model P1 evaluation remains unperformed; retrospective holdout and synthetic inference are distinct.
+
+## Task 4 — close the ordinary P1 orchestration gap
+
+- [x] Freeze ordinary baseline first; add private preloading before the new research as-of input, copied venue-enriched P1 input, identical-input baseline/learned forecasts and encrypted output; leave ordinary source contracts and models unchanged.
+- [x] Independently admit actual artifact metadata/bytes/clock; carry only handles across existing rounds and worker recovery; score against existing official observations using the unchanged paired scorer.
+- [x] Reuse the existing state publisher to retain exact forecast/PDCA ciphertext with scoped ephemeral Git authentication; preserve every baseline and original.
+- [ ] Final independent integration review, fresh focused/full tests, exact final HEAD Actions, actual owner-key context preload, and final handoff. The first fit HEAD b466fd8 Actions42251633906 is successful; the real candidate ZIP13521002313 was authenticated and independently decrypted, deterministic coefficients/metrics confirmed, then retained and remotely restored at dcc9905239f4f070c00b9e6ad5d665ac91c724ac.
+- [ ] Actual future P1 experiment and its later official-result PDCA. No invented exhibition observations or claims of prospective trained-model accuracy.
+
+
+Final integration review: no Critical/Important findings remain after baseline-first freezing, success-only encrypted upload staging, quarantine of late/partial candidates, per-race PDCA partitions, exact cipher-ZIP retention, and metadata-only recovery of interrupted worker handles. Optional private uploads cannot halt baseline result collection. Focused final tests: 102 passed. Fresh full verification: 2,062 tests passed (112 skipped), 304.472s, after the concurrent changes and all review fixes. Three workflow/action YAML files parsed; original nine modules, baseline weights, fitter and provider PermissionPolicy unchanged. Exact final HEAD Actions remains the last pending software gate at commit time.

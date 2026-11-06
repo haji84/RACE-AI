@@ -90,7 +90,197 @@ def restore(day,*,video_context_artifacts=(),video_reader=None):
         write_state(ROOT/'cycle_recovery_output/continuity.json',state,key='state_sha256')
     print(json.dumps(dict(state='ORIGINAL_REUSED_NO_REGENERATION',races=doc['race_count'],forecasts=len(rows),artifact_id=meta['id'])))
 
-def forecast(day,*,video_context_artifacts=(),video_reader=None):
+def _venue_research_preload(*,round_no,clock=None):
+    """Optional private I/O finishes before fresh official P1 capture begins."""
+    config=ROOT/'audit/state/boat-venue-learning-context-input.json'
+    if not config.is_file():return None,None
+    import tempfile,shutil
+    folder=None
+    try:
+        need(type(round_no) is int and 1<=round_no<=1_000_000,'VENUE_RESEARCH_ROUND_REQUIRED')
+        private_base=Path(os.environ.get('RUNNER_TEMP',tempfile.gettempdir()))
+        # Both restored plaintext and sealed forecasts stay outside Git.
+        private_base=private_base.resolve()
+        need(private_base!=ROOT.resolve() and ROOT.resolve() not in private_base.parents,
+             'VENUE_RESEARCH_PRIVATE_ROOT_REQUIRED')
+        folder=Path(tempfile.mkdtemp(prefix='boat-venue-preload-',dir=private_base))
+        from race_ai.boat_venue_research_runtime import preload_venue_research
+        runtime=preload_venue_research(config,ROOT/'audit/state/boat-venue-dataset-input.json',
+            folder,ROOT,gh=gh,clock=clock)
+        runtime['preload_folder']=folder
+        runtime['output_folder']=private_base/'boat-venue-research-p1'/f'cycle-{round_no}'
+        need(not runtime['output_folder'].exists(),'VENUE_RESEARCH_OUTPUT_EXISTS_NO_RESET')
+        return runtime,None
+    except Exception:
+        if folder is not None:shutil.rmtree(folder,ignore_errors=True)
+        return None,'VENUE_RESEARCH_PRELOAD_REJECTED'
+
+
+def _venue_research_generate(result,runtime,error):
+    """Only successful sealed candidates enter the private upload directory."""
+    if runtime is None and error is None:return
+    from race_ai.boat_venue_research_forecast import forecast_private_venue_p1
+    from race_ai.boat_venue_feature_adapter import RIGHTS
+    from scripts.boat_history_collect import private_root
+    import re,shutil,tempfile
+    summary=dict(generated_races=0,learned_shadow_count=0,rejected_races=0,
+        independent_pre_cutoff_receipt_verified=False,production_promoted=False,
+        plaintext_published=False,provider_permission_confirmed=False,actual_purchases=False)
+    try:
+        if error:
+            summary['reason']=error
+        else:
+            private_root(runtime['output_folder'])
+            pointer=runtime['dataset_pointer']
+            url='https://raw.githubusercontent.com/haji84/RACE-AI/'+pointer['source_commit']+'/'+pointer['dataset_path']
+            attempt_base=private_root(runtime['preload_folder']/'attempts')
+            for bundle in result.get('observed_pairwise_p1_bundles',[]):
+                attempt=None
+                try:
+                    source_pairs={(s['source_url'],s['source_rights_ref']) for s in bundle['snapshot']['sources']}
+                    source_pairs.add((url,RIGHTS))
+                    def owner_analysis(source,rights,purpose):
+                        return purpose=='analysis' and (source,rights) in source_pairs
+                    rid=bundle['race_id']
+                    need(type(rid) is str and re.fullmatch(r'\d{8}-\d{2}-\d{2}',rid),
+                         'VENUE_RESEARCH_RACE_ID_REQUIRED')
+                    destination=runtime['output_folder']/rid
+                    need(not destination.exists(),'VENUE_RESEARCH_ORIGINAL_EXISTS_NO_RESET')
+                    attempt=attempt_base/rid
+                    status=forecast_private_venue_p1(bundle,runtime['context'],runtime['dataset_folder'],
+                        pointer,attempt,now=datetime.now(timezone.utc),
+                        dataset_verified_at=runtime['dataset_verified_at'],allow_source=owner_analysis)
+                    need(not destination.exists(),'VENUE_RESEARCH_ORIGINAL_EXISTS_NO_RESET')
+                    attempt.rename(destination)
+                    summary['generated_races']+=1
+                    summary['learned_shadow_count']+=status['learned_shadow_count']
+                except Exception:
+                    summary['rejected_races']+=1
+                    if attempt is not None and attempt.exists():
+                        # Keep late/partial ciphertext, excluding it from the
+                        # all-or-none archive of successful original forecasts.
+                        base=Path(os.environ.get('RUNNER_TEMP',tempfile.gettempdir()))
+                        quarantine=private_root(base/'boat-venue-research-quarantine')
+                        target=Path(tempfile.mkdtemp(prefix='rejected-',dir=quarantine))/'cipher'
+                        attempt.rename(target)
+    except Exception:
+        summary['reason']='VENUE_RESEARCH_GENERATION_REJECTED'
+    finally:
+        if runtime is not None and runtime.get('preload_folder'):
+            shutil.rmtree(runtime['preload_folder'],ignore_errors=True)
+    result['venue_research_summary']=summary
+
+
+def venue_research_forecast(day,round_no):
+    """Run private research only AFTER the independent baseline upload step."""
+    try:
+        result=json.loads((ROOT/'boat_nationwide_output/national.json').read_text())
+        if not result.get('observed_pairwise_p1_bundles'):
+            summary=dict(state='NO_PRIVATE_P1_INPUT',generated_races=0,learned_shadow_count=0,
+                independent_pre_cutoff_receipt_verified=False,production_promoted=False,plaintext_published=False)
+            print(json.dumps(summary,sort_keys=True));return summary
+        runtime,error=_venue_research_preload(round_no=round_no)
+        _venue_research_generate(result,runtime,error)
+        summary=result.get('venue_research_summary',dict(state='PRIVATE_VENUE_RESEARCH_NOT_CONFIGURED'))
+    except Exception:
+        summary=dict(state='HOLD_PRIVATE_VENUE_FORECAST',plaintext_published=False,
+                     production_promoted=False)
+    print(json.dumps(summary,sort_keys=True));return summary
+
+
+def venue_research_readback(artifact_id):
+    """Admit only ciphertext independently saved before every race cutoff."""
+    from race_ai.boat_venue_research_receipt import verify_private_p1_artifact
+    from race_ai.boat_pdca_state import state_key
+    try:
+        state_key('production')
+        need(type(artifact_id) is int and artifact_id>0,'VENUE_RESEARCH_ARTIFACT_REQUIRED')
+        metadata=json.loads(gh(f'actions/artifacts/{artifact_id}'))
+        raw=gh(f'actions/artifacts/{artifact_id}/zip')
+        report=verify_private_p1_artifact(raw,metadata,now=datetime.now(timezone.utc),
+            expected_run_id=int(os.environ['GITHUB_RUN_ID']),expected_head_sha=os.environ['GITHUB_SHA'])
+        from race_ai.boat_venue_research_receipt import validate_research_refs
+        from race_ai.repeated_cycle import write_state
+        path=ROOT/'cycle_recovery_output/continuity.json'
+        continuity=load_state(path,event_day())
+        reference=dict(artifact_id=artifact_id,run_id=metadata['workflow_run']['id'],
+            head_sha=metadata['workflow_run']['head_sha'],digest=metadata['digest'])
+        continuity['venue_research_artifact_refs']=validate_research_refs(
+            continuity.get('venue_research_artifact_refs',[])+[reference])
+        write_state(path,continuity,key='state_sha256')
+    except Exception:
+        report=dict(status='HOLD_PRIVATE_VENUE_P1_READBACK',
+            independent_pre_cutoff_receipt_verified=False,production_promoted=False,plaintext_published=False)
+    print(json.dumps(report,sort_keys=True));return report
+
+
+def venue_research_pdca(day,round_no):
+    """Revisit all retained private handles using already-observed official results."""
+    import tempfile
+    from race_ai.boat_venue_research_receipt import validate_research_refs
+    from race_ai.boat_venue_research_pdca import score_private_p1_artifact
+    from race_ai.boat_pdca_state import state_key
+    result=dict(status='PRIVATE_VENUE_PDCA_NOT_RUN',archives_processed=0,paired_forecasts=0,rejected_archives=0,
+        production_promoted=False,plaintext_published=False,actual_purchases=False)
+    try:
+        state_key('production')
+        need(type(round_no) is int and round_no>0,'VENUE_RESEARCH_ROUND_REQUIRED')
+        continuity=load_state(ROOT/'cycle_recovery_output/continuity.json',day)
+        references=validate_research_refs(continuity.get('venue_research_artifact_refs',[]))
+        if references:
+            observations=json.loads((ROOT/'existing_cycle_output/official-result-observations.json').read_text())
+            latest,_=latest_result_observations(observations)
+            private_base=Path(os.environ.get('RUNNER_TEMP',tempfile.gettempdir()))
+            root=private_base/'boat-venue-research-pdca'/f'cycle-{round_no}'
+            from scripts.boat_history_collect import private_root
+            private_root(root)
+            for reference in references:
+                try:
+                    ident=reference['artifact_id'];meta=json.loads(gh(f'actions/artifacts/{ident}'))
+                    need(meta['digest']==reference['digest'],'VENUE_RESEARCH_ORIGINAL_DIGEST_CHANGED')
+                    raw=gh(f'actions/artifacts/{ident}/zip')
+                    archive_base=private_root(private_base/'boat-venue-research-archives')
+                    archive=private_root(archive_base/str(ident))
+                    from scripts.boat_history_collect import save
+                    save(archive/'archive.zip',raw)
+                    save(archive/'metadata.json',json.dumps(meta,sort_keys=True).encode())
+                    scored=score_private_p1_artifact(raw,meta,latest,root/str(ident),now=datetime.now(timezone.utc),
+                        expected_run_id=reference['run_id'],expected_head_sha=reference['head_sha'])
+                    result['archives_processed']+=1
+                    result['paired_forecasts']+=scored['paired_forecasts']
+                except Exception:result['rejected_archives']+=1
+        result['status']='PRIVATE_VENUE_PDCA_CIPHERTEXT_PREPARED'
+    except Exception:result['status']='HOLD_PRIVATE_VENUE_PDCA'
+    print(json.dumps(result,sort_keys=True));return result
+
+
+def venue_research_retain(round_no):
+    """Retain exact forecast/PDCA ciphertext on the existing GitHub state ref."""
+    import tempfile
+    from race_ai.boat_venue_research_retention import retain_private_research
+    result=dict(status='PRIVATE_VENUE_RETENTION_NOT_NEEDED',retained_candidates=0,
+                production_promoted=False,plaintext_published=False)
+    try:
+        need(type(round_no) is int and round_no>0,'VENUE_RESEARCH_ROUND_REQUIRED')
+        base=Path(os.environ.get('RUNNER_TEMP',tempfile.gettempdir()))
+        folders=[]
+        for kind in ('boat-venue-research-p1','boat-venue-research-pdca'):
+            folders.extend(p.parent for p in (base/kind/f'cycle-{round_no}').rglob('learning.json'))
+        if folders:result=retain_private_research(folders,ROOT)
+        archives=[p.parent for p in (base/'boat-venue-research-archives').glob('*/archive.zip')]
+        if archives:
+            from race_ai.boat_venue_research_retention import retain_private_source_archives
+            result['source_archives']=retain_private_source_archives(archives,ROOT)
+    except Exception:
+        result=dict(status='HOLD_PRIVATE_VENUE_RETENTION',retained_candidates=0,
+                    production_promoted=False,plaintext_published=False)
+    out=ROOT/'existing_cycle_output';out.mkdir(exist_ok=True)
+    # Pointers and aggregate status only; all source/prediction bytes stay encrypted.
+    (out/'venue-research-retention.json').write_text(json.dumps(result,sort_keys=True))
+    print(json.dumps({k:v for k,v in result.items() if k!='pointers'},sort_keys=True));return result
+
+
+def forecast(day,*,video_context_artifacts=(),video_reader=None,round_no=None):
     from scripts import boat_nationwide_ab_pilot as pilot
     state=load_state(ROOT/'cycle_recovery_output/continuity.json',day)
     index=json.loads(pilot.FROZEN_INDEX.read_text())
@@ -335,6 +525,8 @@ def audit(day,p1_id,p0_supplement=None,round_no=None,*,video_context_artifacts=(
         report['automatic_learning']={'state':'LEARNING_INPUT_REJECTED','reason':str(exc)[:200],
                                       'auto_promoted':False,'accuracy_improvement_proven':False}
     report['next_action']='FREEZE_TRAINED_CANDIDATES_THEN_COMPARE_FUTURE_RACES'
+    if recovered.get('venue_research_artifact_refs'):
+        report['venue_research_artifact_refs']=recovered['venue_research_artifact_refs']
     if reader.artifact_ids:
         report['video_context_artifact_ids']=reader.artifact_ids
     if video_error:
@@ -484,7 +676,8 @@ def repeat_complete(day,round_no,p1_id,result_id):
 
 def main():
     p=argparse.ArgumentParser()
-    p.add_argument('command',choices=['restore','forecast','audit','supplement','repeat-start','repeat-prepare','repeat-complete'])
+    p.add_argument('command',choices=['restore','forecast','audit','supplement','repeat-start','repeat-prepare','repeat-complete',
+        'venue-research-forecast','venue-research-readback','venue-research-pdca','venue-research-retain'])
     p.add_argument('--p1-artifact',type=int);p.add_argument('--p0-supplement',type=int)
     p.add_argument('--result-artifact',type=int);p.add_argument('--round',type=int)
     p.add_argument('--video-context-artifact',type=int,action='append',default=[],
@@ -495,7 +688,11 @@ def main():
     video_options={'video_context_artifacts':a.video_context_artifact} if a.video_context_artifact else {}
     day=event_day()
     if a.command=='restore':restore(day,**video_options)
-    elif a.command=='forecast':forecast(day,**video_options)
+    elif a.command=='forecast':forecast(day,**dict(video_options,**({'round_no':a.round} if a.round is not None else {})))
+    elif a.command=='venue-research-forecast':venue_research_forecast(day,a.round)
+    elif a.command=='venue-research-readback':venue_research_readback(a.p1_artifact)
+    elif a.command=='venue-research-pdca':venue_research_pdca(day,a.round)
+    elif a.command=='venue-research-retain':venue_research_retain(a.round)
     elif a.command=='supplement':supplement(day,a.round)
     elif a.command=='repeat-start':repeat_start(day)
     elif a.command=='repeat-prepare':repeat_prepare(day,a.round)
