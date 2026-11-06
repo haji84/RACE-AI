@@ -91,7 +91,7 @@ class AutomaticForecastTests(unittest.TestCase):
         first = self.controller.tick()
         self.assertEqual(first["state"], "WAITING")
         self.assertEqual(first["requests_used"], 241)
-        self.assertIsNone(first["source_limit"])
+        self.assertEqual(first["source_limit"], 240)  # Existing bounded source policy metadata.
         self.assertEqual(self.service.calls, [("boat", "P0"), ("boat", "P1")])
         self.controller.stop()
         restarted = M.ForecastAutomation(self.service)
