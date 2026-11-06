@@ -743,10 +743,14 @@ def _system_tessdata():
 
 def _identity_extractor(args):
     """Keep asset paths in a callable; every media gets new temporal state."""
+    options = {"model_path": _path(args.hull_model), "detector_kind": args.detector_kind or "yolox"}
+    if args.tiled_hulls:
+        options["tiled_hulls"] = True
+    if args.crnn_model is not None:
+        from .boat_video_crnn import make_crnn_identity_extractor
+        return make_crnn_identity_extractor(crnn_model_path=_path(args.crnn_model), **options)
     from .boat_video_identity import make_local_identity_extractor
-
-    return make_local_identity_extractor(
-        model_path=_path(args.hull_model), detector_kind=args.detector_kind or "yolox",
+    return make_local_identity_extractor(**options,
         tesseract_path=_path(args.tesseract or shutil.which("tesseract")),
         tessdata_path=_path(args.tessdata) if args.tessdata else _system_tessdata())
 
@@ -763,15 +767,19 @@ def main(argv=None, *, extractor=None):
                         help="persist private model connection attempts; requires independently supplied Python evidence for research predictions")
     parser.add_argument("--hull-model", help="existing hash-pinned local hull ONNX model; enables unverified number/temporal candidates")
     parser.add_argument("--detector-kind", choices=("yolox", "nanodet"), help="local hull detector (default: yolox)")
+    parser.add_argument("--tiled-hulls", action="store_true", help="optional native hull tiles using the same local detector; increases inference time")
+    parser.add_argument("--crnn-model", help="optional hash-pinned local CRNN asset for uncalibrated raw temporal candidates; replaces local Tesseract")
     parser.add_argument("--tesseract", help="local OCR executable (default: system tesseract)")
     parser.add_argument("--tessdata", help="local directory containing eng.traineddata (default: standard system data)")
     args = parser.parse_args(argv)
     if not 0.1 <= args.poll_seconds <= 60:
         parser.error("poll interval out of bounds")
-    identity_flags = any(value is not None for value in
-                         (args.hull_model, args.detector_kind, args.tesseract, args.tessdata))
+    identity_flags = args.tiled_hulls or any(value is not None for value in
+                         (args.hull_model, args.detector_kind, args.crnn_model, args.tesseract, args.tessdata))
     if identity_flags and (args.hull_model is None or extractor is not None):
         parser.error("identity options require a hull model and the real local extractor")
+    if args.crnn_model is not None and (args.tesseract is not None or args.tessdata is not None):
+        parser.error("CRNN and Tesseract assets cannot be combined")
     try:
         if args.hull_model is not None:
             extractor = _identity_extractor(args)

@@ -52,6 +52,10 @@ def connect_report(report, *, identity_evidence=None, model_inputs=None, receipt
     independently authenticates that exact context hash. No absent inputs are
     inferred, no result fitting occurs, and no original forecast is written.
 
+    A physical V2 context additionally requires ``calibration_manifest`` bound
+    to this original report. Its frozen ``measurement_parameters`` are replayed;
+    an explicit ``physical_parameters`` override must recreate identical bytes.
+
     Without a frozen context, the returned context is prepared at the actual
     clock for independent storage and a later snapshot. A saved context keeps
     its own earlier availability clock, while actual generation starts and
@@ -72,13 +76,25 @@ def connect_report(report, *, identity_evidence=None, model_inputs=None, receipt
         except (KeyError, TypeError, ValueError):
             reasons.append('FROZEN_VIDEO_CONTEXT_REJECTED')
     target = dict(race_id=raw['race_id'], cutoff_at=raw['cutoff_at'], roster=raw['roster'], as_of=context_as_of)
+    physical = (type(frozen) is dict and frozen.get('schema_version') == 'RACE_AI_BOAT_VIDEO_PHYSICAL_MODEL_CONTEXT_V2' or
+        type(evidence) is dict and evidence.get('schema_version') == 'RACE_AI_BOAT_VIDEO_PHYSICAL_COMPARISON_EVIDENCE_V1' or
+        type(supplied) is dict and 'calibration_manifest' in supplied)
     try:
-        context = prepare_video_context(raw, evidence, **target)
+        if physical:
+            from .boat_video_physical_context import prepare_physical_video_context
+            if type(supplied) is not dict or 'calibration_manifest' not in supplied:
+                reasons.append('PHYSICAL_CALIBRATION_MANIFEST_MISSING')
+                raise ValueError('PHYSICAL_CALIBRATION_MANIFEST_MISSING')
+            parameters = supplied.get('physical_parameters',
+                frozen.get('measurement_parameters',{}) if type(frozen) is dict else {})
+            context = prepare_physical_video_context(raw,evidence,supplied['calibration_manifest'],**target,**parameters)
+        else:
+            context = prepare_video_context(raw, evidence, **target)
     except (KeyError, TypeError, ValueError, OverflowError, RecursionError):
         # Invalid independent declarations cannot prevent retaining a fully
         # typed missing context for the unchanged, valid original report.
         context = prepare_video_context(raw, None, **target)
-        reasons.append('IDENTITY_EVIDENCE_REJECTED')
+        reasons.append('PHYSICAL_CALIBRATION_OR_EVIDENCE_REJECTED' if physical else 'IDENTITY_EVIDENCE_REJECTED')
     if not context['eligible_for_research']:
         reasons.extend(context['missing_reasons'])
     if started >= cutoff:

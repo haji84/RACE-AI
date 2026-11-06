@@ -230,6 +230,53 @@ class PinnedBoatDetector:
             raise ValueError("local detector inference failed") from None
 
 
+class TiledBoatDetector:
+    """Optional fixed native-pixel tiles plus the unchanged full-frame model.
+
+    Each crop uses the same detector, preprocessing and confidence threshold.
+    Geometry is remapped before the existing global NMS/candidate cap. This
+    retains hull proposals only; it supplies no identities or field validation.
+    No assets are loaded by this wrapper, and factories keep it disabled.
+    """
+    def __init__(self, *, detector):
+        _require(callable(detector), "a local hull detector is required")
+        self.detector = detector
+
+    def metadata(self):
+        result = (self.detector.metadata() if type(self.detector) is PinnedBoatDetector
+                  else {"engine": "INJECTED_TILED_DETECTOR"})
+        result["tiling"] = {"mode": "FIXED_NATIVE_TILES_AND_FULL_FRAME", "tile_size": 832,
+                            "stride": 624, "overlap_fraction": .25,
+                            "full_frame_included": True, "max_inference_calls": 7,
+                            "global_nms_iou": .5, "max_candidates": 12}
+        return result
+
+    def __call__(self, frame):
+        width, height = _pixels(frame)
+
+        def origins(length):
+            if length <= 832:
+                return [0]
+            values = list(range(0, length-832+1, 624))
+            if values[-1] != length-832:
+                values.append(length-832)
+            return values
+
+        crops = [(x, y, min(832, width-x), min(832, height-y))
+                 for y in origins(height) for x in origins(width)]
+        crops = [box for box in crops if box != (0, 0, width, height)]
+        _require(len(crops) <= 6, "bounded native tile layout is required")
+        proposals = _detections(self.detector(frame.copy()), width, height)
+        for x, y, w, h in crops:
+            rows = _detections(self.detector(frame[y:y+h, x:x+w].copy()), w, h)
+            for row in rows:
+                a, b, c, d = row["box"]
+                left, top = x+a, y+b
+                right, bottom = min(float(width), x+a+c), min(float(height), y+b+d)
+                proposals.append({"box": [left, top, right-left, bottom-top], "score": row["score"]})
+        return _nms(proposals)
+
+
 class LocalOCRInferenceError(ValueError):
     """A safe, per-crop local OCR runtime failure; initialization stays fatal."""
     def __init__(self, code):
@@ -394,7 +441,8 @@ class BoatIdentityProvider:
         self._next_id = 1
 
     def metadata(self):
-        detector = self.detector.metadata() if type(self.detector) is PinnedBoatDetector else {"engine": "INJECTED_DETECTOR"}
+        detector = (self.detector.metadata() if type(self.detector) in (PinnedBoatDetector, TiledBoatDetector)
+                    else {"engine": "INJECTED_DETECTOR"})
         reader = self.number_reader.metadata() if type(self.number_reader) is LocalTesseractNumberReader else {"engine": "INJECTED_NUMBER_READER"}
         return {"schema_version": "RACE_AI_LOCAL_BOAT_IDENTITY_PROVIDER_V1", "detector": detector,
                 "number_reader": reader, "minimum_digit_observations": self.minimum,
@@ -456,7 +504,7 @@ class BoatIdentityProvider:
                 if _iou(row["box"], raw[j]["box"]) >= .2:
                     blocked.update((i, j))
                     flags.add("OVERLAPPING_HULL_CANDIDATES")
-        observed, failed_ocr = [], set()
+        observed = []
         for index, row in enumerate(raw):
             if index in blocked:
                 continue
@@ -465,7 +513,6 @@ class BoatIdentityProvider:
             except LocalOCRInferenceError as error:
                 flags.add(f"LOCAL_OCR_{error.code}")
                 blocked.add(index)
-                failed_ocr.add(index)
                 continue
             if ambiguous:
                 flags.add("AMBIGUOUS_NUMBER_MARKS")
@@ -496,12 +543,12 @@ class BoatIdentityProvider:
                 if not any(row["number"] is not None and row["number"]["number"] == old["number"]
                            for row in observed):
                     continue
-            # A failed hull may have moved within the normal association gate.
+            # A blocked hull may have moved within the normal association gate.
             # Only a fresh matching mark can anchor a nearby healthy old track;
             # an unread neighbor must not receive the interrupted identity.
-            failed_neighbor = any(_association_cost(predicted, raw[index]["box"]) is not None
-                                  for index in failed_ocr)
-            surviving.append({**old, "requires_current_number": conflicting_number or failed_neighbor})
+            interrupted_neighbor = any(_association_cost(predicted, raw[index]["box"]) is not None
+                                       for index in blocked)
+            surviving.append({**old, "requires_current_number": conflicting_number or interrupted_neighbor})
         previous = surviving
         costs = []
         for old in previous:
@@ -578,9 +625,12 @@ class BoatIdentityProvider:
 
 def create_local_identity_provider(*, model_path, tesseract_path, tessdata_path,
                                    detector_kind="yolox", exclusions=(), min_observations=3,
-                                   max_gap_seconds=.5):
+                                   max_gap_seconds=.5, tiled_hulls=False):
     """Explicit local paths only; importing this module never loads/downloads assets."""
+    _require(type(tiled_hulls) is bool, "the optional tiled hull setting must be boolean")
     detector = PinnedBoatDetector(model_path=model_path, detector_kind=detector_kind)
+    if tiled_hulls:
+        detector = TiledBoatDetector(detector=detector)
     reader = LocalTesseractNumberReader(tesseract_path=tesseract_path, tessdata_path=tessdata_path)
     return BoatIdentityProvider(detector=detector, number_reader=reader, exclusions=exclusions,
                                 min_observations=min_observations, max_gap_seconds=max_gap_seconds)
@@ -588,19 +638,21 @@ def create_local_identity_provider(*, model_path, tesseract_path, tessdata_path,
 
 def make_local_identity_extractor(*, model_path, tesseract_path, tessdata_path,
                                   detector_kind="yolox", exclusions=(), min_observations=3,
-                                  max_gap_seconds=.5):
+                                  max_gap_seconds=.5, tiled_hulls=False):
     """Configure local intake; instantiate isolated tracking state for each media.
 
     Assets load only when the returned extractor is called. Configured paths stay
     in this callable and are never added to its returned tracking report.
     """
+    _require(type(tiled_hulls) is bool, "the optional tiled hull setting must be boolean")
     excluded = deepcopy(exclusions)
 
     def extract(path, *, options=None):
         provider = create_local_identity_provider(
             model_path=model_path, tesseract_path=tesseract_path, tessdata_path=tessdata_path,
             detector_kind=detector_kind, exclusions=deepcopy(excluded),
-            min_observations=min_observations, max_gap_seconds=max_gap_seconds)
+            min_observations=min_observations, max_gap_seconds=max_gap_seconds,
+            tiled_hulls=tiled_hulls)
         from .boat_video_tracking import extract_tracks
         return extract_tracks(path, options=options, identity_provider=provider)
 

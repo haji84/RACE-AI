@@ -37,3 +37,31 @@ Ruling: retain the existing forecast models, all pre-cutoff/roster/camera/common
 The brief environment-starting notice resolved with the original PIDs and original DB SHA intact; no restart or environment publication was performed. Code changes remain on existing PR71's branch, with no external task/service/workflow added.
 
 One frozen raw FP32 component transfer batch was executed by a separate worker before reading labels. Within-clip video unique raw agreement2/9 (baseline sampled frames1/7), separate still4/6; normalization views are duplicates, one video proposal is unmatched geometry. Accepted temporal identities remain0. One hull crossed the3s soft budget (3.831s) before three later views were skipped; no hard deadline claim. No production integration or post-holdout tuning. The separately published current LIVE screen explicitly showed outside broadcast hours08:16JST, unlike the stopped403 archive; neither current race media nor future authorization is established.
+
+## Owner-requested completion continuation (2026-11-06 UTC)
+
+The owner explicitly requests execution through completion again. Existing constraints and acceptance gaps remain binding; no repeated design/permission pause. Current source baseline deb5909 has both exact CI success; concurrent audit-only updates through7faea33 are retained. No production model or original forecast changes.
+
+### Task 1: Actual hull resolution and OCR candidates
+
+- [ ] Reproduce generic detector/preprocessing losses using DEVELOPMENT frames only; freeze a single fixed tiled policy before scoring. Do not ship an upstream-demo alignment that worsens field behavior without a proven model contract.
+- [ ] Add optional `TiledBoatDetector` and `tiled_hulls=False` factory argument in `boat_video_identity.py`; same pinned weights, thresholds and legacy defaults. Validate offsets, edges, global duplicate suppression, resource bounds and explicit provenance in `test_boat_video_tiled_detector.py` RED then GREEN.
+- [ ] Add optional pinned FP32 full-vocabulary actual-pixel reader/provider in `boat_video_crnn.py`; use frozen MSER/deskew preprocessing, keep raw CTC likelihood separate from calibrated confidence, never inject fabricated0.90/1 scores into the legacy contract. Old Tesseract0.90 remains unchanged. Require >=3 actual temporal observations and all existing geometric interruption gates. Test CTC/geometry/ambiguity/deadline/pins and temporal reset behavior before implementation.
+- [ ] Freeze a new independent actual-video source and reference split before these fixed-engine outputs; count wrong/missing/unmatched, unique observations vs normalization duplicates, runtime and every skipped/error sample. Development hull gains are not heldout identity accuracy.
+
+### Task 2: Real-coordinate calibration and sequential exhibition phases
+
+- [ ] Implement `calibrate_tracks(tracking, manifest)` and `measure_calibrated_tracks(tracking, manifest, *, phase_windows, start_gate, max_gap_seconds)` in `boat_video_calibration.py`, new scoped tests first. Bind media/decoded pixels/PTS/global camera scene, separate fit anchors and independently supplied check landmarks, validate clock-reference differences and actual geometric residuals. Reject duplicate/degenerate/nonfinite/horizon data and raw-frame/reference-coordinate mismatch. Never certify heuristic camera or boat-point uncertainty as field accuracy.
+- [ ] Root integrates a separately validated physical context path into existing-model admission: metre-based per-lane phase intervals can differ in frame/time only when world-frame/calibration/clock/identity evidence actually supports comparison. Existing V1 pixel/common-frame context remains strict and byte compatible. Same feature IDs and two existing forecast families; no default strength direction or invented probability. New calibrated/context schemas remain UNVALIDATED/productionfalse.
+- [ ] Evaluate any actual positions only against independent calibration/clock/strength targets. Missing source data stays missing; no self-fit or configured windows called ground truth.
+
+### Task 3: Operational independent archive and comparison bridge
+
+- [ ] Add `VideoContextArchiveReader` in `boat_video_archive.py`: independently read authenticated existing GitHub artifact/run metadata and ZIP bytes, exact digest/context hash/race/cutoff/roster/as-of checks, reject foreign/tampered/late envelopes. Cache per invocation and select historical contexts without leaking newer data.
+- [ ] Wire optional artifact inputs and receipt verifier through `scripts/github_existing_cycle.py` forecast/audit and `cycle_recovery.py` replay. Preserve no-video behavior and original bytes. New tests execute actual existing model mathematics, saved P1, independently re-read receipt and official-result scoring; synthetic scope remains explicit. Producer/upload/current-video acquisition and actual paired races are separate gates, not silently completed by reader support.
+
+### Task 4: Actual-source access, review and acceptance
+
+- [ ] Inspect only ordinary public sources and distinct current LIVE resources. Known denied archives remain stopped; outside-broadcast-hours is availability, not denial. Preserve proxy/CA/TLS. Publicly accessible UNKNOWN-rights media may be privately evaluated with attribution; no training/reuse/distribution permission is inferred.
+- [ ] Freeze new source bytes, capture clocks and reference protocol before new-engine evaluation. No original/time backdating, label substitution, threshold tuning on heldout, new forecast family, service, workflow or fee.
+- [ ] Review each scoped implementation, integrate disjoint changes, run meaningful regression and existing full CI, then preserve actual positive/negative evidence and runtime continuity in latest status. Mark actual field gates complete only when measured.
