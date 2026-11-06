@@ -50,6 +50,12 @@ class LocalForecastService:
             auto = automation.status() if automation is not None else {"enabled": False, "state": "DISABLED"}
             revisions = {}
             delivery = {}
+            workflow_day = (self._now().astimezone(native.JST).date().isoformat()
+                            if self.workflow_projection_root is not None else None)
+            prepared = (self._prepare_workflow_snapshot(workflow_day,
+                boat_stages=tuple(stage for stage, supported in self.capabilities.get("boat", {}).items() if supported))
+                if workflow_day is not None else None)
+            workflow_count = 0
             # Read native saved operations only. Status never calls a provider
             # or creates an operation, including while automatic work is stopped.
             for sport, stages in self.capabilities.items():
@@ -57,15 +63,17 @@ class LocalForecastService:
                 delivery[sport] = {}
                 for stage, supported in stages.items():
                     if not supported: continue
-                    latest = self.latest(sport, stage)
+                    latest = (self._select_workflow_snapshot(sport, stage, prepared)
+                              if prepared is not None else self.latest(sport, stage))
                     revisions[sport][stage] = latest.get("revision")
                     delivery[sport][stage] = self._delivery(latest, sport, stage, auto)
+                    if prepared is not None:
+                        workflow_count += latest.get("summary", {}).get("reused", 0)
             with self.journal.connect() as db:
                 count = db.execute("SELECT COUNT(*) FROM dispatch_originals").fetchone()[0]
             if self.workflow_projection_root is not None:
-                count = sum(self.latest(s, stage).get("summary", {}).get("reused", 0)
-                    for s, stages in self.capabilities.items() for stage, supported in stages.items() if supported)
-            return dict(day_jst=self._now().astimezone(native.JST).date().isoformat(),
+                count = workflow_count
+            return dict(day_jst=workflow_day or self._now().astimezone(native.JST).date().isoformat(),
                 capabilities=self.capabilities,
                 saved_prediction_count=count, auto=auto, latest_revisions=revisions, delivery=delivery,
                 source_status="CURRENT_DAY_OFFICIAL_INPUT_REQUIRED",
@@ -170,6 +178,11 @@ class LocalForecastService:
         return value
 
     def _workflow_latest(self, sport, stage, day):
+        return self._select_workflow_snapshot(sport, stage,
+            self._prepare_workflow_snapshot(day, boat_stages=(stage,) if sport == "boat" else ()))
+
+    def _prepare_workflow_snapshot(self, day, *, boat_stages=("P0", "P1")):
+        """Own one freshly validated view and its optional context for this request."""
         from .workflow_live_projection import read_projection
         try:
             snapshot = read_projection(self.workflow_projection_root, day=day)
@@ -178,18 +191,10 @@ class LocalForecastService:
         if not snapshot or snapshot["status"]["day_jst"] != day:
             return dict(available=False, revision=None, day_jst=day)
         view = deepcopy(snapshot["view"])
-        records = []
-        for row in view["records"]:
-            if row["sport"] != sport: continue
-            predictions = [p for p in [row.get("prediction"), *row.get("comparison_predictions", [])]
-                           if p and p["stage"] == stage]
-            row["prediction"] = predictions[0] if predictions else None
-            row["comparison_predictions"] = predictions[1:]
-            records.append(row)
-        view["records"] = records
-        count = sum((1 if r["prediction"] else 0)+len(r["comparison_predictions"]) for r in records)
-        revision_inputs = dict(source=snapshot["status"]["revision"], sport=sport, stage=stage)
-        if count and sport == "boat":
+        boat_rows = [row for row in view["records"] if row["sport"] == "boat"]
+        context_revision = None
+        if any(p and p["stage"] in boat_stages for row in boat_rows
+               for p in [row.get("prediction"), *row.get("comparison_predictions", [])]):
             from .boat_context_store import read_contexts, merge_contexts, attach_contexts
             contexts = []
             for root in dict.fromkeys((self.root, self.workflow_projection_root)):
@@ -199,11 +204,35 @@ class LocalForecastService:
                     # Optional observations never prevent saved originals from
                     # loading, and a damaged sidecar never becomes model input.
                     continue
-            context_revision = attach_contexts(view, merge_contexts(*contexts))
-            if context_revision is not None:
-                revision_inputs["boat_observation_context"] = context_revision
+            context_revision = attach_contexts({"records": boat_rows}, merge_contexts(*contexts))
+        return dict(day_jst=day, source_revision=snapshot["status"]["revision"],
+                    view=view, context_revision=context_revision)
+
+    @staticmethod
+    def _select_workflow_snapshot(sport, stage, prepared):
+        # These shallow rows share only request-owned data. Status returns
+        # metadata; an external latest call owns its entire fresh preparation.
+        if sport not in native.SPORTS or stage not in ("P0", "P1"):
+            raise ValueError("SAVED_VIEW_SELECTOR_REJECTED")
+        if "view" not in prepared:
+            return dict(prepared)
+        view = dict(prepared["view"])
+        records = []
+        for source in view["records"]:
+            if source["sport"] != sport: continue
+            row = dict(source)
+            predictions = [p for p in [row.get("prediction"), *row.get("comparison_predictions", [])]
+                           if p and p["stage"] == stage]
+            row["prediction"] = predictions[0] if predictions else None
+            row["comparison_predictions"] = predictions[1:]
+            records.append(row)
+        view["records"] = records
+        count = sum((1 if r["prediction"] else 0)+len(r["comparison_predictions"]) for r in records)
+        revision_inputs = dict(source=prepared["source_revision"], sport=sport, stage=stage)
+        if count and sport == "boat" and prepared["context_revision"] is not None:
+            revision_inputs["boat_observation_context"] = prepared["context_revision"]
         return dict(available=count>0, revision=native.digest(revision_inputs) if count else None,
-            day_jst=day, view=view if count else None, source_kind="GITHUB_AUTHENTICATED_ORIGINALS",
+            day_jst=prepared["day_jst"], view=view if count else None, source_kind="GITHUB_AUTHENTICATED_ORIGINALS",
             summary=dict(generated=0,reused=count,missing=None,coverage_known=False,races=len(records)))
 
     def _write(self, name, value):
