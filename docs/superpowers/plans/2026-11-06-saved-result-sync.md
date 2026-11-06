@@ -38,5 +38,13 @@ Files: `web/app.js`, focused browser tests, existing viewer docs.
 
 - [x] Display last synchronization, cancellation, clock-reference notes and per-race pending/rejection reasons without weakening official gates.
 - [x] Independent read-only review and meaningful existing financial/crypto/browser regressions.
-- [ ] Import all verified archives/cached raw pages into a private copy; independently verify every original, latest result, budgets and counts.
-- [ ] Update the existing encrypted Pages snapshot under an exact parent and verify the live owner URL; report remaining upcoming/unpublished cases honestly.
+- [x] Import all verified archives/cached raw pages into a private copy; independently verify every original, latest result, budgets and counts.
+- [x] Update the existing encrypted Pages snapshot under an exact parent and verify the live owner URL; report remaining upcoming/unpublished cases honestly.
+
+## Verified delivery
+
+- Source changes `9e1c23b` and `ace732b`; existing PR71 preserved, no main merge or worker changes. Fresh independent review approved after canonical raw-observation binding, prior-capture conflict rollback and cancellation-contradiction regressions.53 focused Python tests, existing10 viewer Python tests,67 financial/product Node tests, encrypted7-page browser regression and the expanded390/1440 workflow passed.
+- Retained original archive metadata/digests/CRC plus33 bounded official result-page GETs under40, no HTTP errors or retries. Initial captures and later publication checks remain separate private versions. Old pairs/results/scores and all624 original predictions are unchanged.
+- At2026-11-06 19:41 JST:135 finished results (11 clearly labelled raw-backed60s references) and12 cancellations/refunds,147 available results. Two official finish records were unpublished and7 races were ahead of their original cutoffs at synchronization. These9 remain pending, not misses. Cancelled replacement schedules are labelled separately.
+- Pages commit `05105ed283ada4d9a1d5b194d36d01d408f1de0e` built. Every served SHA, original secret URL, all156 result-table rows and149 observed detail cards,16 independent money scenarios, exact saved Top8, both viewport widths and reload were verified live. No key HTTP/storage or console errors.
+- Broader source CI run `42205740684` was still in progress at publication; no full-CI completion is claimed here. The public site remains a saved snapshot with an explicit synchronization timestamp, not a promise of continuous live result delivery.
