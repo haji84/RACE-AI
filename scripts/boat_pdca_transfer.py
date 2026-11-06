@@ -37,6 +37,7 @@ def main(argv=None):
     c.add_argument('--source-head',default=os.environ.get('RACE_AI_SOURCE_HEAD'))
     d=commands.add_parser('verify');d.add_argument('--folder',type=Path,required=True)
     d.add_argument('--private-dir',type=Path,required=True);d.add_argument('--transfer-sha',required=True)
+    d.add_argument('--input',type=Path)
     d.add_argument('--run-id',default=os.environ.get('GITHUB_RUN_ID'))
     d.add_argument('--source-head',default=os.environ.get('RACE_AI_SOURCE_HEAD'))
     e=commands.add_parser('publish-incoming');e.add_argument('--folder',type=Path,required=True)
@@ -46,6 +47,7 @@ def main(argv=None):
     f.add_argument('--consumer-proof',type=Path,required=True);f.add_argument('--consumer-sha',required=True)
     f.add_argument('--producer-run-id',required=True);f.add_argument('--producer-head',required=True)
     f.add_argument('--transfer-sha',required=True);f.add_argument('--recipient-key-id',required=True)
+    f.add_argument('--incoming-content-sha')
     f.add_argument('--initialize',action='store_true');f.add_argument('--expected-parent')
     args=parser.parse_args(argv)
     try:
@@ -83,8 +85,14 @@ def main(argv=None):
                         handoff=bounded_json(root/'sealed/handoff-proof.json')
                         out.write('transfer_sha256='+handoff['transfer_sha256']+'\n')
         elif args.command=='verify':
+            content_id=None
+            if args.input:
+                transfer=bounded_json(args.input)
+                if transfer.get('cipher_sha256')!=args.transfer_sha:raise ValueError('RECIPIENT_CIPHER_HASH_MISMATCH')
+                content_id=transfer['scope']['source_content_sha256']
             report=verify_received_checkpoint(args.folder,args.private_dir,expected_run_id=args.run_id,
-                expected_source_head=args.source_head,expected_transfer_sha=args.transfer_sha)
+                expected_source_head=args.source_head,expected_transfer_sha=args.transfer_sha,
+                expected_incoming_content_sha256=content_id)
             root=private_root(args.private_dir)
         elif args.command=='publish-incoming':
             report=publish_incoming(args.repo,args.folder);root=private_root(args.private_dir)
@@ -93,7 +101,8 @@ def main(argv=None):
             report=publish_received(args.repo,args.folder,consumer_proof=args.consumer_proof,
                 expected_run_id=args.producer_run_id,expected_source_head=args.producer_head,
                 expected_transfer_sha=args.transfer_sha,expected_consumer_sha=args.consumer_sha,
-                expected_recipient_key_id=args.recipient_key_id,initialize=args.initialize,expected_parent=args.expected_parent)
+                expected_recipient_key_id=args.recipient_key_id,expected_incoming_content_sha256=args.incoming_content_sha,
+                initialize=args.initialize,expected_parent=args.expected_parent)
             root=private_root(args.private_dir);save(root/'production-input.json',(wire(report)+'\n').encode())
         save(root/'status.json',(wire(report)+'\n').encode());print(wire(report));return 0
     except Exception as exc:

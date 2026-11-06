@@ -28,8 +28,8 @@ from scripts.boat_history_collect import private_root,save
 REPO_ID='1416489937'
 RECEIVER_SCHEMA='RACE_AI_BOAT_OWNER_RECIPIENT_V1'
 INPUT='RACE_AI_BOAT_TRANSFER_INPUT_V1'
-ENVELOPE='RACE_AI_BOAT_OWNER_TRANSFER_V1'
-HANDOFF='RACE_AI_BOAT_OWNER_TRANSFER_PROOF_V1'
+ENVELOPE='RACE_AI_BOAT_OWNER_TRANSFER_V2'
+HANDOFF='RACE_AI_BOAT_OWNER_TRANSFER_PROOF_V2'
 DOMAIN=b'RACE_AI_BOAT_PDCA_OWNER_RECIPIENT_V1'
 MAX_TRANSFER=96*1024*1024
 HEAD=re.compile(r'[a-f0-9]{40}\Z')
@@ -103,14 +103,14 @@ def _previous(value):
 
 def _header(value):
     fields={'schema','repository_id','mode','generation','previous_cipher_sha256','previous_source_commit',
-            'recipient_key_id','source_state_sha256','receiver_document_sha256','receiver_run_id','receiver_source_head'}
+            'recipient_key_id','source_state_sha256','source_content_sha256','receiver_document_sha256','receiver_run_id','receiver_source_head'}
     need(type(value) is dict and set(value)==fields and value['schema']==ENVELOPE and value['repository_id']==REPO_ID
          and value['mode']=='production','RECIPIENT_SCOPE_INVALID')
     scope_for('production',value['generation'],value['previous_cipher_sha256'])
     need(value['generation']<=999999,'RECIPIENT_GENERATION_BOUND')
     if value['generation']==1:need(value['previous_source_commit'] is None,'RECIPIENT_PREVIOUS_COMMIT_INVALID')
     else:_hex(value['previous_source_commit'],HEAD)
-    for field in ('recipient_key_id','source_state_sha256','receiver_document_sha256'):_hex(value[field])
+    for field in ('recipient_key_id','source_state_sha256','source_content_sha256','receiver_document_sha256'):_hex(value[field])
     _run(value['receiver_run_id']);_hex(value['receiver_source_head'],HEAD);return value
 
 
@@ -132,13 +132,18 @@ def encrypt_transfer(state_path,receiver,*,expected_receiver_sha,expected_run_id
     state=PdcaState(state_path)
     try:
         need(state.mode=='production','RECIPIENT_PRODUCTION_STATE_REQUIRED')
-        root=private_root(output);_audit(state,private_root(root/'verification'),now or datetime.now(timezone.utc))
         raw=sqlite_snapshot(state_path)
     finally:state.close()
+    root=private_root(output);save(root/'source.sqlite',raw);snapshot=PdcaState(root/'source.sqlite')
+    try:
+        audited=_audit(snapshot,private_root(root/'verification'),now or datetime.now(timezone.utc))
+        content_id=audited['state_content_sha256']
+    finally:snapshot.close()
     header=_header(dict(schema=ENVELOPE,repository_id=REPO_ID,mode='production',generation=previous['generation']+1 if previous else 1,
         previous_cipher_sha256=previous_pointer['cipher_sha256'] if previous else None,
         previous_source_commit=previous_pointer['source_commit'] if previous else None,
-        recipient_key_id=receiver['key_id'],source_state_sha256=sha(raw),receiver_document_sha256=expected_receiver_sha,
+        recipient_key_id=receiver['key_id'],source_state_sha256=sha(raw),source_content_sha256=content_id,
+        receiver_document_sha256=expected_receiver_sha,
         receiver_run_id=expected_run_id,receiver_source_head=expected_source_head))
     nonce=os.urandom(12);cipher=AESGCM(_session(shared,header,epub,public)).encrypt(nonce,
         gzip.compress(raw,compresslevel=3,mtime=0),wire(header).encode())
@@ -172,6 +177,7 @@ def _already_covered(pointer,plain,current_pointer,root,*,key,fetch,clock):
         try:
             need(incoming.mode=='production','RECIPIENT_PRODUCTION_STATE_REQUIRED')
             _audit(incoming,private_root(scratch/'incoming-verification'),clock)
+            need(incoming.content_sha256()==pointer['scope']['source_content_sha256'],'RECIPIENT_SOURCE_CONTENT_MISMATCH')
             current_root=private_root(scratch/'current')
             report=readback(current_pointer,current_root,key=key,fetch=fetch,now=clock)
             need(report.get('production_schema_readback_verified') is True,'RECIPIENT_PREVIOUS_RESTORE_REQUIRED')
@@ -217,39 +223,63 @@ def receive_transfer(pointer,root,*,key=None,fetch=None,run_id,source_head,previ
     if covered_candidate:
         return _already_covered(pointer,plain,previous_pointer,root,key=key,fetch=fetch,
             clock=now or datetime.now(timezone.utc))
-    root=private_root(root);save(root/'incoming.sqlite',plain);state=PdcaState(root/'incoming.sqlite')
+    root=private_root(root);save(root/'incoming.sqlite',plain);incoming=PdcaState(root/'incoming.sqlite')
+    state=None;oldstate=None
     try:
-        need(state.mode=='production','RECIPIENT_PRODUCTION_STATE_REQUIRED')
+        need(incoming.mode=='production','RECIPIENT_PRODUCTION_STATE_REQUIRED')
         clock=now or datetime.now(timezone.utc)
+        _audit(incoming,private_root(root/'incoming-check'),clock)
+        need(incoming.content_sha256()==header['source_content_sha256'],'RECIPIENT_SOURCE_CONTENT_MISMATCH')
+        state=PdcaState.create(root/'canonical.sqlite',mode='production')
         if previous_pointer is not None:
             oldroot=private_root(root/'previous')
             previous_report=readback(previous_pointer,oldroot,key=key,fetch=fetch,now=clock)
             need(previous_report.get('production_schema_readback_verified') is True,'RECIPIENT_PREVIOUS_RESTORE_REQUIRED')
-            oldstate=PdcaState(oldroot/'state.sqlite')
-            try:_no_regression(oldstate,state)
-            finally:oldstate.close()
+            oldstate=PdcaState(oldroot/'state.sqlite');oldstate.db.backup(state.db)
+        contribution=state.merge_from(incoming)
+        need(contribution==header['source_content_sha256'],'RECIPIENT_SOURCE_CONTENT_MISMATCH')
+        before_scores=state.inventory()['scorings']
+        # Independent sources can retain different revisions for one race.
+        # Append derived comparisons; original pairs, results and scores stay.
+        for pair_sha,json_sha in state.db.execute('SELECT sha,json_sha FROM pairs').fetchall():
+            pair=json.loads(state._get(json_sha))
+            latest=state.db.execute('SELECT body FROM results WHERE race_id=? ORDER BY captured_at DESC LIMIT 1',
+                                    (pair['race_id'],)).fetchone()
+            if latest is not None:state.score(pair_sha,json.loads(latest[0]),clock)
+        added_scores=state.inventory()['scorings']-before_scores
+        if oldstate is not None:_no_regression(oldstate,state)
         report=_audit(state,private_root(root/'incoming-verification'),clock)
         inventory=state.inventory();sealed=private_root(root/'sealed')
         proof=state.checkpoint(sealed,generation=header['generation'],previous_cipher_sha256=header['previous_cipher_sha256'],key=key)
-    finally:state.close()
+    finally:
+        incoming.close()
+        if state is not None:state.close()
+        if oldstate is not None:oldstate.close()
     handoff=dict(schema=HANDOFF,producer_run_id=run_id,source_head=source_head,transfer_sha256=pointer['cipher_sha256'],
         recipient_key_id=header['recipient_key_id'],source_state_sha256=header['source_state_sha256'],
-        cipher_sha256=proof['cipher_sha256'],scope=proof['scope'],source_inventory=inventory)
+        cipher_sha256=proof['cipher_sha256'],scope=proof['scope'],source_inventory=inventory,
+        incoming_content_sha256=header['source_content_sha256'])
     save(sealed/'handoff-proof.json',(wire(handoff)+'\n').encode())
     return dict(report,status='OWNER_PDCA_TRANSFER_SEALED',encrypted_checkpoint_created=True,
-        cipher_sha256=proof['cipher_sha256'],scope=proof['scope'],source_gets=1+(previous_pointer is not None))
+        cipher_sha256=proof['cipher_sha256'],scope=proof['scope'],source_gets=1+(previous_pointer is not None),
+        union_derived_scorings_added=added_scores,
+        incoming_content_sha256=header['source_content_sha256'],incoming_originals_verified=True)
 
 
-def verify_received_checkpoint(folder,root,*,key=None,expected_run_id,expected_source_head,expected_transfer_sha,now=None):
+def verify_received_checkpoint(folder,root,*,key=None,expected_run_id,expected_source_head,expected_transfer_sha,
+                               expected_incoming_content_sha256=None,now=None):
     key=state_key('production',key);folder=Path(folder)
     handoff=_json(_file(folder/'handoff-proof.json',16384),16384)
     fields={'schema','producer_run_id','source_head','transfer_sha256','recipient_key_id','source_state_sha256',
-            'cipher_sha256','scope','source_inventory'}
+            'cipher_sha256','scope','source_inventory','incoming_content_sha256'}
     need(type(handoff) is dict and set(handoff)==fields and handoff['schema']==HANDOFF and
          handoff['producer_run_id']==_run(expected_run_id) and handoff['source_head']==_hex(expected_source_head,HEAD)
          and handoff['transfer_sha256']==_hex(expected_transfer_sha),'RECIPIENT_PRODUCER_IDENTITY_INVALID')
     need(handoff['recipient_key_id']==sha(_private(key).public_key().public_bytes_raw()),'RECIPIENT_OWNER_KEY_MISMATCH')
     _hex(handoff['source_state_sha256']);_hex(handoff['cipher_sha256']);scope=_scope(handoff['scope'])
+    contribution=_hex(handoff['incoming_content_sha256'])
+    if expected_incoming_content_sha256 is not None:
+        need(contribution==_hex(expected_incoming_content_sha256),'RECIPIENT_SOURCE_CONTENT_MISMATCH')
     proof=_json(_file(folder/'proof.json',8192),8192)
     need(proof==dict(scope=scope,cipher_sha256=handoff['cipher_sha256'],synthetic_only=False,plaintext_published=False),
          'RECIPIENT_CHECKPOINT_PROOF_MISMATCH')
@@ -257,12 +287,14 @@ def verify_received_checkpoint(folder,root,*,key=None,expected_run_id,expected_s
     state=restore_state(folder/'state.enc',root/'state.sqlite',expected_sha256=handoff['cipher_sha256'],expected_scope=scope,key=key)
     try:
         need(state.inventory()==handoff['source_inventory'],'RECIPIENT_INVENTORY_CHANGED')
+        state.verify_contribution(contribution)
         report=_audit(state,root,now or datetime.now(timezone.utc))
     finally:state.close()
     return dict(report,status='OWNER_PDCA_TRANSFER_READBACK_VERIFIED',production_schema_readback_verified=True,
         cipher_sha256=handoff['cipher_sha256'],scope=scope,producer_run_id=expected_run_id,
         source_head=expected_source_head,transfer_sha256=expected_transfer_sha,
-        recipient_key_id=handoff['recipient_key_id'],plaintext_published=False)
+        recipient_key_id=handoff['recipient_key_id'],incoming_content_sha256=contribution,
+        incoming_originals_verified=True,plaintext_published=False)
 
 
 def publish_incoming(repo,folder,*,transport=None):
@@ -294,7 +326,8 @@ def publish_incoming(repo,folder,*,transport=None):
 
 
 def publish_received(repo,folder,*,consumer_proof,expected_run_id,expected_source_head,expected_transfer_sha,
-                     expected_consumer_sha,expected_recipient_key_id,initialize=False,expected_parent=None,transport=None):
+                     expected_consumer_sha,expected_recipient_key_id,expected_incoming_content_sha256=None,
+                     initialize=False,expected_parent=None,transport=None):
     """Publish ciphertext after caller authenticates both Actions artifact digests.
 
     The independently supplied consumer-file hash MUST come from its verified
@@ -310,6 +343,11 @@ def publish_received(repo,folder,*,consumer_proof,expected_run_id,expected_sourc
     expected={'producer_run_id':_run(expected_run_id),'source_head':_hex(expected_source_head,HEAD),
               'transfer_sha256':_hex(expected_transfer_sha),'recipient_key_id':_hex(expected_recipient_key_id)}
     need(all(consumer.get(k)==v and handoff.get(k)==v for k,v in expected.items()),'RECIPIENT_PRODUCER_IDENTITY_INVALID')
+    contribution=_hex(handoff['incoming_content_sha256'])
+    need(consumer.get('incoming_content_sha256')==contribution and consumer.get('incoming_originals_verified') is True,
+         'RECIPIENT_INCOMING_ORIGINALS_REQUIRED')
+    if expected_incoming_content_sha256 is not None:
+        need(contribution==_hex(expected_incoming_content_sha256),'RECIPIENT_SOURCE_CONTENT_MISMATCH')
     scope=_scope(handoff['scope']);cipher_sha=_hex(handoff['cipher_sha256'])
     need(consumer.get('scope')==scope and consumer.get('cipher_sha256')==cipher_sha,'RECIPIENT_CONSUMER_CHECKPOINT_MISMATCH')
     inventory=handoff['source_inventory']

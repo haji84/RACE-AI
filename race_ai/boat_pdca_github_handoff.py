@@ -120,7 +120,7 @@ def _no_regression(previous,current):
 
 
 def _audit(state,root,now):
-    clock=instant(now);before=state.inventory();state.materialize(root/'materialized')
+    clock=instant(now);before=state.inventory();content_id=state.content_sha256();state.materialize(root/'materialized')
     pairs={}
     for ident, in state.db.execute('SELECT sha FROM pairs'):
         path=root/'materialized/pairs'/f'{ident}.json';pair=load_pair(path);receipt=read_freeze_receipt(path,pair)
@@ -137,10 +137,11 @@ def _audit(state,root,now):
         need(latest is not None and state.db.execute('SELECT 1 FROM scores WHERE pair_sha=? AND result_sha=?',
              (ident,latest[0])).fetchone() is not None,'STATE_LATEST_RESULT_NOT_SCORED')
         need(state.score(ident,json.loads(latest[1]),clock)['reused'] is True,'STATE_SCORE_REPLAY_NOT_IDEMPOTENT');replays+=1
-    need(state.inventory()==before,'STATE_READBACK_CHANGED_INVENTORY')
+    need(state.inventory()==before and state.content_sha256()==content_id,'STATE_READBACK_CHANGED_INVENTORY')
     from .boat_history_prospective import verify_retained_trials
     admitted=verify_retained_trials(state,root/'materialized',clock)
     return dict(before,pairs_verified=len(pairs),score_replays=replays,original_bytes_verified=True,
+                state_content_sha256=content_id,
                 accuracy_improvement_proven=False,independent_pre_cutoff_receipt_verified=False,**admitted)
 
 

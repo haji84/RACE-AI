@@ -217,7 +217,7 @@ jobs:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           RACE_AI_SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
           RACE_AI_EXPECTED_TRANSFER_SHA: ${{ needs.boat_pdca_owner_transfer.outputs.transfer_sha256 }}
-        run: python -m scripts.boat_pdca_transfer verify --folder "$RUNNER_TEMP/boat-owner-state-incoming/sealed" --private-dir "$RUNNER_TEMP/boat-owner-state-readback" --transfer-sha "$RACE_AI_EXPECTED_TRANSFER_SHA"
+        run: python -m scripts.boat_pdca_transfer verify --folder "$RUNNER_TEMP/boat-owner-state-incoming/sealed" --private-dir "$RUNNER_TEMP/boat-owner-state-readback" --transfer-sha "$RACE_AI_EXPECTED_TRANSFER_SHA" --input audit/state/boat-pdca-transfer-input.json
       - name: Keep count-only independent readback proof
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -347,6 +347,7 @@ jobs:
           python -m tests.private_cycle_ui_fixture --out "$UI_PRIVATE_CYCLE_EXPORT"
           python -m tests.private_dispatch_ui_fixture --out "$UI_DISPATCH_VIEWS"
           node tests/ui_browser.test.js
+          node tests/saved_pdca_browser.test.js
           node --test tests/boat_video_ui.test.mjs
       - name: Retain synthetic-only UI interaction evidence
         if: always()

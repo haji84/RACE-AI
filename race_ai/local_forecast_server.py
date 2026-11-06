@@ -32,6 +32,7 @@ ASSETS = {
 SPORTS = frozenset(("boat", "keirin", "autorace", "horse"))
 STAGES = frozenset(("P0", "P1", "A_PRE_TRIAL", "B_POST_TRIAL"))
 CAPABILITY = b'<meta name="race-ai-generation-api" content="/api/forecast">'
+SAVED_CAPABILITY = b'<meta name="race-ai-private-saved-view" content="/api/forecast/saved">'
 MAX_REQUEST = 1024
 MAX_STATIC = 4 * 1024 * 1024
 MAX_RESPONSE = 32 * 1024 * 1024
@@ -227,6 +228,15 @@ class ForecastHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         if not self._local():
             return
+        if self.path == "/api/forecast/saved":
+            if getattr(self.server.service,"saved_only",False) is not True:
+                self._error("NOT_FOUND")
+                return
+            try:
+                self._json(200,self.server.service.saved_projection())
+            except Exception as error:
+                self._service_failure(error)
+            return
         if self.path == "/api/forecast/status":
             try:
                 value = self.server.service.status()
@@ -275,7 +285,8 @@ class ForecastHandler(BaseHTTPRequestHandler):
             if relative == "index.html":
                 if body.count(b"</head>") != 1:
                     raise OSError("index head missing")
-                body = body.replace(b"</head>", CAPABILITY + b"\n</head>", 1)
+                capability = SAVED_CAPABILITY if getattr(self.server.service,"saved_only",False) is True else CAPABILITY
+                body = body.replace(b"</head>", capability + b"\n</head>", 1)
             self._reply(200, body, content_type)
         except OSError:
             self._error("NOT_FOUND")
