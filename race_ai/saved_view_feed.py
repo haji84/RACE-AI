@@ -21,6 +21,7 @@ BOOT='RACE_AI_SAVED_VIEW_BOOTSTRAP_V1'
 FEED='RACE_AI_SAVED_WEB_VIEW_V3'
 APPEND_FEED='RACE_AI_SAVED_WEB_VIEW_V4'
 REF='state/boat-saved-view'
+HISTORY_READER_PROTOCOL = 5
 DOMAIN=b'RACE_AI_SAVED_VIEW_BOOTSTRAP_V1'
 MUTABLE={'result','result_revisions','result_observations','result_observation_rejections','missing_reasons'}
 
@@ -85,6 +86,12 @@ def open_bootstrap(raw,*,key=None):
     return dict(h,key=display)
 
 def _header(h):
+    if type(h) is dict and h.get('schema')=='RACE_AI_SAVED_WEB_HISTORY_V5':
+        fields={'schema','view_id','forecast_sha256','source_content_sha256','generation',
+                'previous_cipher_sha256','history_index_sha256'}
+        need(set(h)==fields and type(h['generation']) is int and 1<=h['generation']<=999999,'FEED_HEADER_INVALID')
+        for field in fields-{'schema','generation'}:_hex(h[field])
+        return h
     fields={'schema','source_content_sha256','view_id','forecast_sha256','generation','previous_cipher_sha256'}
     need(type(h) is dict,'FEED_HEADER_INVALID')
     if h.get('schema')==APPEND_FEED:fields.add('forecast_inventory_sha256');_hex(h.get('forecast_inventory_sha256'))
@@ -176,6 +183,20 @@ class FeedRepository(GitStateRepository):
     def __init__(self,repo):
         super().__init__(repo);self.ref=REF
 
+    def commit_snapshot(self,files,parent):
+        """Bound the head tree; staged originals stay reachable through parents."""
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix='boat-view-head-') as folder:
+            env=dict(os.environ,GIT_INDEX_FILE=str(Path(folder)/'index'))
+            self._run(['read-tree','--empty'],env=env)
+            for path,raw in sorted(files.items()):
+                blob=self._run(['hash-object','-w','--stdin'],body=raw,env=env).decode().strip()
+                self._run(['update-index','--add','--cacheinfo','100644,'+blob+','+path],env=env)
+            tree=self._run(['write-tree'],env=env).decode().strip()
+            return self._run(['-c','user.name=RACE-AI encrypted state',
+                '-c','user.email=race-ai-state@users.noreply.github.com','-c','commit.gpgSign=false',
+                'commit-tree',tree,'-p',parent],body=b'Retain bounded encrypted display router\n',env=env).decode().strip()
+
     def validate_tree(self,commit):
         rows=self._run(['ls-tree','-r','--format=%(objectmode)\t%(path)',commit]).decode().splitlines()
         need(0<len(rows)<=10000,'FEED_TREE_BOUND')
@@ -186,7 +207,23 @@ class FeedRepository(GitStateRepository):
                 raw=self.read(commit,path,MAX_WIRE);need(sha(raw)==Path(path).stem,'FEED_HISTORY_HASH')
                 _header(_json(raw,MAX_WIRE)['header'])
 
-def current_view(git,bootstrap):
+def _history_reader(git):
+    def read(locator):
+        commit=locator['commit'];path='views/'+_hex(locator['cipher_sha256'])+'.json'
+        if not git.exists(commit,path):git.fetch(commit)
+        raw=git.read(commit,path,MAX_WIRE)
+        need(sha(raw)==locator['cipher_sha256'],'FEED_HISTORY_HASH')
+        return raw
+    return read
+
+def _history_day(index,day,load_catalog):
+    from . import saved_view_history as H
+    for item in H._indexes(index,load_catalog):
+        if day in item['days']:return item['days'][day]
+    raise ValueError('HISTORY_DAY_UNAVAILABLE')
+
+def current_view(git,bootstrap,*,day=None):
+    git._saved_history_context=None
     parent=git.head()
     if parent is None:
         commit=bootstrap['pages_commit'];git.fetch(commit);ident=bootstrap['cipher_sha256']
@@ -199,16 +236,29 @@ def current_view(git,bootstrap):
         need(type(latest) is dict and set(latest)=={'header','cipher_sha256'},'FEED_MANIFEST_INVALID')
         h=_header(latest['header']);ident=_hex(latest['cipher_sha256'])
         raw=git.read(parent,'views/'+ident+'.json',MAX_WIRE);need(sha(raw)==ident,'FEED_CIPHER_HASH')
-        header,view=decrypt_view(raw,bootstrap['key'],view_id=bootstrap['view_id'])
+        if h['schema']=='RACE_AI_SAVED_WEB_HISTORY_V5':
+            from . import saved_view_history as H
+            header,index=H.decrypt_history_router(raw,bootstrap['key'],view_id=bootstrap['view_id'])
+            read=_history_reader(git)
+            load_catalog=lambda locator:H.decrypt_catalog(read(locator),bootstrap['key'],view_id=bootstrap['view_id'])
+            selected=day or max(index['days'])
+            descriptor=_history_day(index,selected,load_catalog)
+            view=H.decrypt_day_chunks(descriptor,read,bootstrap['key'],view_id=bootstrap['view_id'],forecast_sha256=bootstrap['forecast_sha256'])
+            git._saved_history_context=dict(index=index,selected_day=selected)
+        else:header,view=decrypt_view(raw,bootstrap['key'],view_id=bootstrap['view_id'])
         need(header==h,'FEED_MANIFEST_MISMATCH');generation=h['generation']
     need(forecast_anchor(view)==bootstrap['forecast_sha256'],'FEED_ORIGINAL_CHANGED')
     return parent,ident,generation,view
 
-def publish_view(git,bootstrap,view,*,parent,previous,generation):
+def publish_view(git,bootstrap,view,*,parent,previous,generation,history=False):
     need(git.ref==REF and git.head()==parent,'FEED_CONCURRENT_UPDATE')
     need(forecast_anchor(view)==bootstrap['forecast_sha256'],'FEED_ORIGINAL_CHANGED')
-    actual_parent,actual_previous,actual_generation,before=current_view(git,bootstrap)
+    context=getattr(git,'_saved_history_context',None)
+    selected=context['selected_day'] if context else None
+    actual_parent,actual_previous,actual_generation,before=current_view(git,bootstrap,day=selected)
     need((actual_parent,actual_previous,actual_generation)==(parent,previous,generation),'FEED_PREDECESSOR_MISMATCH')
+    if history or getattr(git,'_saved_history_context',None):
+        return _publish_history_view(git,bootstrap,view,before,parent=parent,previous=previous,generation=generation)
     ensure_append_only(before,view)
     raw=encrypt_view(view,bootstrap['key'],view_id=bootstrap['view_id'],source_sha=bootstrap['cipher_sha256'],generation=generation+1,previous=previous)
     h=_json(raw,MAX_WIRE)['header'];ident=sha(raw)
@@ -216,6 +266,69 @@ def publish_view(git,bootstrap,view,*,parent,previous,generation):
     commit=git.commit(files,parent);git.validate_tree(commit);git.push(commit,parent)
     for path,body in files.items():need(git.read(commit,path,MAX_WIRE)==body,'FEED_READBACK_MISMATCH')
     return dict(status='ENCRYPTED_VIEW_PUBLISHED',generation=generation+1,commit=commit,cipher_sha256=ident)
+
+def _publish_history_view(git,bootstrap,view,before,*,parent,previous,generation):
+    from . import saved_view_history as H
+    key=bootstrap['key'];view_id=bootstrap['view_id'];anchor=bootstrap['forecast_sha256']
+    context=getattr(git,'_saved_history_context',None);old=context['index'] if context else None
+    read=_history_reader(git)
+    load_catalog=lambda loc:H.decrypt_catalog(read(loc),key,view_id=view_id)
+    load_day=lambda desc:H.decrypt_day_chunks(desc,read,key,view_id=view_id,forecast_sha256=anchor)
+    def split(value):
+        return {day:dict(deepcopy({k:v for k,v in value.items() if k not in ('records','forecast_base_sha256')}),
+                         records=deepcopy(rows),forecast_base_sha256=anchor)
+            for day,rows in _group_days(value).items()}
+    changed=split(view)
+    if old is None:
+        days=split(before)
+        for day,part in changed.items():
+            if day in days:ensure_append_only(days[day],part)
+            days[day]=part
+        changed=days
+    else:
+        for day,part in changed.items():
+            try:descriptor=_history_day(old,day,load_catalog)
+            except ValueError as error:
+                if str(error)!='HISTORY_DAY_UNAVAILABLE':raise
+            else:ensure_append_only(load_day(descriptor),part)
+    combined=dict(view,records=[row for part in changed.values() for row in part['records']],forecast_base_sha256=anchor)
+    package=H.encrypt_day_chunks(combined,key,view_id=view_id,forecast_sha256=anchor)
+    stage=git.commit(package['files'],parent)
+    descriptors=H.bind_history_locators(package['days'],stage)
+    updates={}
+    for day,descriptor in descriptors.items():updates.setdefault(day[:7],{})[day]=descriptor
+    indexes={};prefix=None
+    if old:
+        index=old
+        while True:
+            indexes[index['current_month']]=index
+            prefix=index['previous_catalog']
+            if index['current_month']<=min(updates) or prefix is None:break
+            index=load_catalog(prefix)
+    months=sorted(set(indexes)|set(updates))
+    current=None
+    for month in months:
+        stored=indexes.get(month);dates=dict(stored['days']) if stored else {}
+        dates.update(updates.get(month,{}))
+        current=H.build_history(dates,current_month=month,previous_catalog=prefix,forecast_sha256=anchor)
+        if month!=months[-1]:
+            catalog=H.encrypt_catalog(current,key,view_id=view_id)
+            stage=git.commit(catalog['files'],stage)
+            prefix=H.bind_history_locators(catalog['locator'],stage)
+    H.validate_history_transition(old or before,current,load_day=load_day,load_catalog=load_catalog)
+    raw=H.encrypt_history_router(current,key,view_id=view_id,source_sha=bootstrap['cipher_sha256'],
+        generation=generation+1,previous=previous)
+    header=_json(raw,MAX_WIRE)['header'];ident=sha(raw)
+    files={'views/'+ident+'.json':raw,'latest.json':(wire(dict(header=header,cipher_sha256=ident))+'\n').encode()}
+    commit=git.commit_snapshot(files,stage);git.validate_tree(commit);git.push(commit,parent)
+    for path,body in files.items():need(git.read(commit,path,MAX_WIRE)==body,'FEED_READBACK_MISMATCH')
+    return dict(status='ENCRYPTED_HISTORY_VIEW_PUBLISHED',generation=generation+1,commit=commit,
+        cipher_sha256=ident,updated_dates=len(descriptors),head_files=len(files))
+
+def _group_days(view):
+    found={}
+    for row in view['records']:found.setdefault(row['event_date_jst'],[]).append(row)
+    return found
 
 def retain_capture(folder,raw,receipt):
     root=private_root(folder);need(sha(raw)==receipt['source_sha256'],'FEED_CAPTURE_HASH')

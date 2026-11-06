@@ -29,7 +29,7 @@
     maxPicks: [8, 16, 24, 32].includes(preferences.maxPicks) ? preferences.maxPicks : 8,
     candidates: [], purchases: [], confirmed: new Set(), visible: 60
   };
-  let dataset = null, importVersion = 0;
+  let dataset = null, importVersion = 0, savedHistory = null;
   const generation = {api: null, ready: false, busy: false, nonce: null, capabilities: {}, day: null, message: "",
     auto: null, delivery: {}, autoMessage: "", connectionUncertain: false, ownsDisplay: false, suppressed: false,
     revisions: {}, seen: {}, timer: null, statusBusy: false, latestBusy: false, latestQueued: false,
@@ -653,6 +653,9 @@
   }
   function renderMeta() {
     document.querySelectorAll("[data-sport]").forEach(b => { const active = b.dataset.sport === state.sport; b.classList.toggle("active", active); b.setAttribute("aria-pressed", String(active)); });
+    const historyActive=savedHistory?.active&&savedHistory.version===importVersion;
+    $("period-all").disabled=Boolean(historyActive);
+    for(const option of $("period-filter").options)option.disabled=Boolean(historyActive&&option.value!=="day");
     $("selected-date").value = state.day; $("period-all").checked = state.allDates; $("period-filter").value = state.allDates ? "all" : state.period; $("display-day").textContent = state.allDates ? "読み込んだ全期間 / " + sports[state.sport] : (state.period === "week" ? "週の基準 " : "") + state.day + " JST / " + sports[state.sport];
     $("daily-budget").value = state.budget; $("settings-sport").value = state.sport;
     const kind = dataset?.dataset_status;
@@ -960,31 +963,64 @@
     if(!forecastSha||!window.SavedViewCrypto?.readLive)return;
     const status=node("p","muted small","結果の自動同期を確認しています。");status.id="saved-view-sync";status.setAttribute("role","status");
     $("result-coverage").after(status);
-    let previous={forecastSha,generation:0,cipherSha:path.split("/").at(-1).replace(".json","")},busy=false;
+    let previous={forecastSha,generation:0,cipherSha:path.split("/").at(-1).replace(".json","")},busy=false,queuedDay=null;
+    const choices=new Map();
+    function rememberChoices() {
+      if(!races().some(row=>row.event_date_jst===state.day))return;
+      const identities={};
+      for(const row of races()){const p=prediction(row);if(p)identities[row.race_id]=M.savedPredictionIdentity(p);}
+      choices.delete(state.day);choices.set(state.day,{selectedId:state.selectedId,resultGroupKey:state.resultGroupKey,identities,venue:state.venue});
+      if(choices.size>32)choices.delete(choices.keys().next().value);
+    }
+    function applySaved(result,day=result.history?.day??state.day) {
+      const parsed=M.parse(result.view);if(!parsed.records.length)throw new Error("saved originals empty");
+      if(result.history&&(day!==result.history.day||parsed.records.some(row=>row.event_date_jst!==day)))throw new Error("saved history day mismatch");
+      rememberChoices();const choice=choices.get(day),keys={};
+      for(const row of parsed.records) {
+        const identity=choice?.identities[row.race_id];if(identity==null)continue;
+        const index=predictions(row).findIndex(p=>M.savedPredictionIdentity(p)===identity);
+        if(index<0)throw new Error("saved original selection unavailable");keys[row.race_id]=index;
+      }
+      dataset=parsed;state.day=day;state.predictionKeys=keys;
+      if(choice){state.selectedId=choice.selectedId;state.resultGroupKey=choice.resultGroupKey;state.venue=choice.venue;}
+      previous={forecastSha,generation:result.header.generation,cipherSha:result.cipherSha};
+      if(result.history) {
+        savedHistory.active=true;state.followsToday=false;state.allDates=false;state.period="day";
+      }
+      refreshSelects();renderAll();status.dataset.generation=String(previous.generation);status.dataset.historyDay=state.day;
+    }
+    function syncedMessage() {
+      status.textContent=(savedHistory.active?"保存履歴は日付を選んで表示できます。":"")+"結果を自動同期中（60秒ごとに確認） · 最終同期 "+stamp(dataset.results_synced_at)+" JST。収集処理の停止中は前回の結果を表示します。";
+    }
+    async function selectDay(day) {
+      if(version!==importVersion||!savedHistory.active)return;
+      if(busy){queuedDay=day;return;}
+      busy=true;const oldDay=state.day;status.textContent=day+" の保存原本を読み込んでいます。";
+      try {
+        const result=await window.SavedViewCrypto.readDay(location.hash,previous,day);
+        if(version!==importVersion||!dataset)return;
+        applySaved(result,day);state.visible=60;syncedMessage();
+      } catch {
+        $("selected-date").value=oldDay;
+        status.textContent="保存履歴を取得できません。前回取得した日付・原本を表示中です。日付を選び直して再確認できます。";
+      } finally {busy=false;drainDay();}
+    }
+    function drainDay() {if(queuedDay!==null){const day=queuedDay;queuedDay=null;selectDay(day);}}
+    savedHistory={version,active:false,selectDay,noteDayChange:day=>{rememberChoices();if(busy)queuedDay=day;}};
     async function check() {
       if(busy||version!==importVersion||!dataset||document.hidden)return;
       if(document.activeElement?.matches('input,select,textarea'))return;
       busy=true;
       try {
-        const result=await window.SavedViewCrypto.readLive(location.hash,previous);
+        const result=await window.SavedViewCrypto.readLive(location.hash,previous,{day:state.day});
         if(version!==importVersion||!dataset)return;
         if(result) {
-          const parsed=M.parse(result.view);
           if(document.activeElement?.matches('input,select,textarea'))return;
-          const chosen=new Map(races().map(row=>{const p=prediction(row);return [row.race_id,p?M.savedPredictionIdentity(p):null];})),keys={};
-          for(const row of parsed.records){
-            const identity=chosen.get(row.race_id);if(identity==null)continue;
-            const index=predictions(row).findIndex(p=>M.savedPredictionIdentity(p)===identity);
-            if(index<0)throw new Error("saved original selection unavailable");
-            keys[row.race_id]=index;
-          }
-          dataset=parsed;state.predictionKeys=keys;previous={forecastSha,generation:result.header.generation,cipherSha:result.cipherSha};
-          refreshSelects();
-          renderAll();status.dataset.generation=String(previous.generation);
+          applySaved(result);
         }
-        status.textContent="結果を自動同期中（60秒ごとに確認） · 最終同期 "+stamp(dataset.results_synced_at)+" JST。収集処理の停止中は前回の結果を表示します。";
+        syncedMessage();
       } catch {status.textContent="自動同期を確認できません。前回取得した結果を表示中です。60秒後に再確認します。";}
-      finally {busy=false;}
+      finally {busy=false;drainDay();}
     }
     check();const timer=setInterval(()=>{if(version!==importVersion){clearInterval(timer);return;}check();},60000);
     document.addEventListener("visibilitychange",()=>{if(!document.hidden)check();});
@@ -1002,7 +1038,7 @@
     if (Object.hasOwn(pageNames,target)) { event.preventDefault();showPage(target,true); }
     else { const element = document.getElementById(target);if (element) { event.preventDefault();element.focus();element.scrollIntoView(); } }
   });
-  $("selected-date").addEventListener("change", () => { if (!$("selected-date").value) { $("selected-date").value = state.day; return; } state.day = $("selected-date").value; state.followsToday = false; state.allDates = false; state.period = "day"; state.visible = 60; refreshSelects(); renderAll(); });
+  $("selected-date").addEventListener("change", () => { if (!$("selected-date").value) { $("selected-date").value = state.day; return; } if(savedHistory?.version===importVersion){if(savedHistory.active){savedHistory.selectDay($("selected-date").value);return;}savedHistory.noteDayChange($("selected-date").value);} state.day = $("selected-date").value; state.followsToday = false; state.allDates = false; state.period = "day"; state.visible = 60; refreshSelects(); renderAll(); });
   $("period-all").addEventListener("change", () => { state.allDates = $("period-all").checked; state.visible = 60; refreshSelects(); renderAll(); });
   $("period-filter").addEventListener("change", e => { state.allDates = e.target.value === "all"; state.period = state.allDates ? "day" : e.target.value; state.visible = 60; refreshSelects(); renderAll(); });
   function search(value) { state.query = value; state.visible = 60; $("race-search").value = value; $("global-search").value = value; renderRaces(); }

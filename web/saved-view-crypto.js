@@ -24,6 +24,8 @@
     const bytes=new Uint8Array(size);let offset=0;for(const p of parts){bytes.set(p,offset);offset+=p.length;}return bytes;
   }
   const FEED="RACE_AI_SAVED_WEB_VIEW_V3",APPEND_FEED="RACE_AI_SAVED_WEB_VIEW_V4",BASE="https://raw.githubusercontent.com/haji84/RACE-AI/state/boat-saved-view/";
+  const HISTORY="RACE_AI_SAVED_WEB_HISTORY_V5",INDEX="RACE_AI_SAVED_WEB_HISTORY_INDEX_V1",CATALOG="RACE_AI_SAVED_WEB_HISTORY_CATALOG_V1",DAY="RACE_AI_SAVED_WEB_HISTORY_DAY_V1";
+  const REPO="https://raw.githubusercontent.com/haji84/RACE-AI/",INDEX_PLAIN=512*1024,INDEX_WIRE=768*1024,CHUNK_PLAIN=8*1024*1024,CHUNK_WIRE=12*1024*1024,HOPS=1200;
   const hex=v=>typeof v==="string"&&/^[a-f0-9]{64}$/.test(v);
   const canonical=h=>JSON.stringify(Object.fromEntries(Object.keys(h).sort().map(k=>[k,h[k]])));
   const snapshots=new Map(),encoder=new TextEncoder();
@@ -79,7 +81,7 @@
   }
   async function inventory(view,numbers) {
     if(view?.schema!=="RACE_AI_PRIVATE_CYCLE_VIEW_V1"||!Array.isArray(view.records)||!view.records.length||view.records.length>5000)fail();
-    const values=Object.create(null),races=new Set();let count=0,batch=[];
+    const values=Object.create(null),byDay=Object.create(null),races=new Set();let count=0,batch=[];
     const flush=async()=>{for(const [identity,content] of await Promise.all(batch)){if(Object.hasOwn(values,identity)&&values[identity]!==content)fail();values[identity]=content;}batch=[];};
     for(const row of view.records) {
       if(!row||typeof row.race_id!=="string"||races.has(row.race_id)||!Array.isArray(row.comparison_predictions||[]))fail();races.add(row.race_id);
@@ -88,10 +90,10 @@
       for(const p of predictions) {
         if(!p||typeof p!=="object"||Array.isArray(p))fail();
         const binding="["+JSON.stringify(row.race_id)+","+JSON.stringify(savedIdentity(p,numbers))+"]";
-        batch.push(Promise.all([hash(binding),hash(stable(p,numbers))]));if(batch.length===128)await flush();
+        batch.push(Promise.all([hash(binding),hash(stable(p,numbers))]).then(pair=>{const day=dayValue(row.event_date_jst),entries=byDay[day]||(byDay[day]=Object.create(null));if(Object.hasOwn(entries,pair[0])&&entries[pair[0]]!==pair[1])fail();entries[pair[0]]=pair[1];return pair;}));if(batch.length===128)await flush();
       }
     }
-    await flush();return {values,digest:await hash(JSON.stringify(Object.fromEntries(Object.keys(values).sort().map(k=>[k,values[k]]))))};
+    await flush();return {values,byDay,digest:await hash(JSON.stringify(Object.fromEntries(Object.keys(values).sort().map(k=>[k,values[k]]))))};
   }
   async function snapshot(view,numbers,header,feed) {
     const result=await inventory(view,numbers);
@@ -111,9 +113,39 @@
   function feedHeader(h) {
     const names=["forecast_sha256","generation","previous_cipher_sha256","schema","source_content_sha256","view_id"];
     if(h?.schema===APPEND_FEED)names.push("forecast_inventory_sha256");
-    if(!fields(h,names) || ![FEED,APPEND_FEED].includes(h.schema) || h.schema===APPEND_FEED&&!hex(h.forecast_inventory_sha256) ||
+    if(h?.schema===HISTORY)names.push("history_index_sha256");
+    if(!fields(h,names) || ![FEED,APPEND_FEED,HISTORY].includes(h.schema) || h.schema===APPEND_FEED&&!hex(h.forecast_inventory_sha256) || h.schema===HISTORY&&!hex(h.history_index_sha256) ||
        !Number.isSafeInteger(h.generation) || h.generation<1 || h.generation>999999 ||
        ![h.forecast_sha256,h.previous_cipher_sha256,h.source_content_sha256,h.view_id].every(hex))fail();
+  }
+  function dayValue(value) {
+    if(typeof value!=="string"||!/^\d{4}-\d{2}-\d{2}$/.test(value))fail();
+    const parsed=new Date(value+"T00:00:00Z");if(!Number.isFinite(parsed.getTime())||parsed.toISOString().slice(0,10)!==value)fail();return value;
+  }
+  function locator(value) {
+    if(!fields(value,["commit","cipher_sha256"])||typeof value.commit!=="string"||!/^[a-f0-9]{40}$/.test(value.commit)||!hex(value.cipher_sha256))fail();return value;
+  }
+  function descriptor(value) {
+    if(!fields(value,["day","chunks","races","forecasts","plain_bytes","view_sha256","forecast_inventory_sha256"]))fail();
+    dayValue(value.day);
+    if(!Number.isSafeInteger(value.races)||value.races<1||value.races>288||!Number.isSafeInteger(value.forecasts)||value.forecasts<0||value.forecasts>32768||
+       !Number.isSafeInteger(value.plain_bytes)||value.plain_bytes<1||value.plain_bytes>PLAIN||!hex(value.view_sha256)||!hex(value.forecast_inventory_sha256)||
+       !Array.isArray(value.chunks)||!value.chunks.length||value.chunks.length>64)fail();
+    value.chunks.forEach(locator);if(new Set(value.chunks.map(row=>row.cipher_sha256)).size!==value.chunks.length)fail();return value;
+  }
+  function historyIndex(value) {
+    if(!fields(value,["schema","current_month","days","previous_catalog","forecast_base_sha256"])||value.schema!==INDEX||!hex(value.forecast_base_sha256)||
+       typeof value.current_month!=="string"||!/^\d{4}-\d{2}$/.test(value.current_month))fail();
+    dayValue(value.current_month+"-01");
+    if(!value.days||typeof value.days!=="object"||Array.isArray(value.days)||!Object.keys(value.days).length||Object.keys(value.days).length>31)fail();
+    for(const [day,entry] of Object.entries(value.days)){dayValue(day);if(day.slice(0,7)!==value.current_month||descriptor(entry).day!==day)fail();}
+    if(value.previous_catalog!==null)locator(value.previous_catalog);return value;
+  }
+  function childHeader(h) {
+    const names=["schema","view_id","forecast_sha256"];
+    if(h?.schema===CATALOG) {names.push("history_index_sha256");if(!hex(h.history_index_sha256))fail();}
+    else {if(h?.schema!==DAY)fail();names.push("day","part","forecast_inventory_sha256");dayValue(h.day);if(!Number.isSafeInteger(h.part)||h.part<0||h.part>=64||!hex(h.forecast_inventory_sha256))fail();}
+    if(!fields(h,names)||!hex(h.view_id)||!hex(h.forecast_sha256))fail();
   }
   async function fetched(url,limit=LIMIT) {
     const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
@@ -134,18 +166,27 @@
       const envelope=JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(bytes));
       if(!fields(envelope,["header","nonce","ciphertext"]))fail();
       const h=envelope.header;
-      const feed=[FEED,APPEND_FEED].includes(h?.schema);
+      const feed=[FEED,APPEND_FEED,HISTORY].includes(h?.schema),child=[CATALOG,DAY].includes(h?.schema);
       const updated=h?.schema==="RACE_AI_SAVED_WEB_VIEW_V2";
       if(feed) {if(!live)fail();feedHeader(h);if(h.view_id!==m[1])fail();}
+      else if(child){if(!live)fail();childHeader(h);if(h.view_id!==m[1])fail();}
       else if(!fields(h,updated?["schema","source_content_sha256","view_id"]:["schema","source_content_sha256"]) ||
          (updated?h.view_id!==m[1]:h.schema!==SCHEMA||ident!==m[1]) || !hex(h.source_content_sha256))fail();
       const nonce=base64(envelope.nonce,16),cipher=base64(envelope.ciphertext,LIMIT);
-      if(nonce.length!==12 || cipher.length<16 || cipher.length>PLAIN+16)fail();
+      const plainLimit=h.schema===DAY?CHUNK_PLAIN:[HISTORY,CATALOG].includes(h.schema)?INDEX_PLAIN:PLAIN;
+      if(nonce.length!==12 || cipher.length<16 || cipher.length>plainLimit+16)fail();
       const aad=new TextEncoder().encode(canonical(h));
       const plain=await crypto.subtle.decrypt({name:"AES-GCM",iv:nonce,additionalData:aad,tagLength:128},key,cipher);
-      if(plain.byteLength>PLAIN)fail();
+      if(plain.byteLength>plainLimit)fail();
       const {view,numbers}=lossless(new TextDecoder("utf-8",{fatal:true}).decode(plain));
-      return {view,header:h,snapshot:await snapshot(view,numbers,h,feed)};
+      let saved;
+      if([HISTORY,CATALOG].includes(h.schema)) {
+        historyIndex(view);if(view.forecast_base_sha256!==h.forecast_sha256||await hash(stable(view,numbers))!==h.history_index_sha256)fail();
+        saved={history:view,anchor:h.forecast_sha256,digest:h.history_index_sha256,header:h};
+      } else if(h.schema===DAY) {
+        saved=await inventory(view,numbers);if(view.forecast_base_sha256!==h.forecast_sha256||saved.digest!==h.forecast_inventory_sha256||view.records.some(row=>row.event_date_jst!==h.day))fail();saved.anchor=h.forecast_sha256;
+      } else saved=await snapshot(view,numbers,h,feed);
+      return {view,header:h,snapshot:saved,numbers,plainBytes:plain.byteLength};
     } catch {fail();}
     finally {if(keyBytes)keyBytes.fill(0);}
   }
@@ -156,7 +197,71 @@
     const expected=document.querySelector('meta[name="race-ai-saved-view-forecast-sha"]')?.content;
     if(expected&&result.snapshot.anchor!==expected)fail();remember(target[1],result.snapshot);return result.view;
   }
-  async function readLive(fragment,previous) {
+  const equal=(left,right)=>JSON.stringify(left)===JSON.stringify(right);
+  const includesInventory=(before,after)=>!Object.keys(before).some(key=>after[key]!==before[key]);
+  function archiveURL(value) {locator(value);return new URL(REPO+value.commit+"/views/"+value.cipher_sha256+".json");}
+  async function catalog(value,fragment,anchor,newerMonth) {
+    const result=await decode(await fetched(archiveURL(value),INDEX_WIRE),value.cipher_sha256,fragment,true);
+    if(result.header.schema!==CATALOG||result.snapshot.anchor!==anchor||result.view.current_month>=newerMonth)fail();return result.view;
+  }
+  async function dateDescriptor(index,day,fragment) {
+    dayValue(day);let current=historyIndex(index);const seen=new Set();
+    for(let step=0;step<=HOPS;step++) {
+      if(Object.hasOwn(current.days,day))return current.days[day];
+      if(day.slice(0,7)>=current.current_month||current.previous_catalog===null||step===HOPS)fail();
+      const marker=canonical(current.previous_catalog);if(seen.has(marker))fail();seen.add(marker);
+      current=await catalog(current.previous_catalog,fragment,index.forecast_base_sha256,current.current_month);
+    }
+    fail();
+  }
+  async function historyDay(entry,fragment,anchor) {
+    descriptor(entry);const records=[],numberMaps=[],rootNumbers=new WeakMap();let full=null,metadata=null,plainBytes=0;
+    for(let part=0;part<entry.chunks.length;part++) {
+      const value=entry.chunks[part],result=await decode(await fetched(archiveURL(value),CHUNK_WIRE),value.cipher_sha256,fragment,true),h=result.header;
+      if(h.schema!==DAY||h.forecast_sha256!==anchor||h.day!==entry.day||h.part!==part)fail();
+      const currentMetadata=stable(result.view,result.numbers,null,null,new Set(["records"]));
+      if(full===null){full={...result.view,records};metadata=currentMetadata;const tokens=result.numbers.get(result.view);if(tokens)rootNumbers.set(full,tokens);}else if(metadata!==currentMetadata)fail();
+      records.push(...result.view.records);numberMaps.push(result.numbers);plainBytes+=result.plainBytes;
+      if(plainBytes>PLAIN||records.length>288)fail();
+    }
+    const numbers={get:object=>{const root=rootNumbers.get(object);if(root)return root;for(const map of numberMaps){const found=map.get(object);if(found)return found;}}};
+    // The new records array has no numeric scalar fields; original child objects
+    // retain their lossless Python number tokens through the joined weak maps.
+    const saved=await inventory(full,numbers);
+    if(full.records.length!==entry.races||Object.keys(saved.values).length!==entry.forecasts||plainBytes!==entry.plain_bytes||
+       saved.digest!==entry.forecast_inventory_sha256||await hash(stable(full,numbers))!==entry.view_sha256)fail();
+    saved.anchor=anchor;return {view:full,snapshot:saved};
+  }
+  async function historyContinuation(before,current,fragment,loadDay) {
+    if(before.anchor!==current.forecast_base_sha256)fail();
+    if(!before.history) {
+      for(const [day,values] of Object.entries(before.byDay)) {
+        const entry=await dateDescriptor(current,day,fragment),result=await loadDay(entry);
+        if(!includesInventory(values,result.snapshot.values))fail();
+      }
+      return;
+    }
+    const old=before.history;if(current.current_month<old.current_month)fail();
+    const indexes=[current],oldIndexes=[old],seen=[new Set(),new Set()];let left=old,right=current;
+    async function older(index,side) {
+      if(index.previous_catalog===null||seen[side].size>=HOPS)fail();
+      const marker=canonical(index.previous_catalog);if(seen[side].has(marker))fail();seen[side].add(marker);
+      return catalog(index.previous_catalog,fragment,before.anchor,index.current_month);
+    }
+    while(!equal(left.previous_catalog,right.previous_catalog)) {
+      if(left.previous_catalog===null){right=await older(right,1);indexes.push(right);}
+      else if(right.previous_catalog===null)fail();
+      else if(left.current_month<right.current_month){right=await older(right,1);indexes.push(right);}
+      else if(left.current_month>right.current_month){left=await older(left,0);oldIndexes.push(left);}
+      else {left=await older(left,0);oldIndexes.push(left);right=await older(right,1);indexes.push(right);}
+    }
+    for(const [day,entry] of oldIndexes.flatMap(index=>Object.entries(index.days))) {
+      const next=indexes.find(item=>Object.hasOwn(item.days,day))?.days[day];if(!next)fail();
+      if(equal(entry,next))continue;
+      const prior=await loadDay(entry),after=await loadDay(next);if(!includesInventory(prior.snapshot.values,after.snapshot.values))fail();
+    }
+  }
+  async function readLive(fragment,previous,options={}) {
     const m=/^#saved=([a-f0-9]{64})\.([A-Za-z0-9_-]{43})$/.exec(fragment);if(!m||!hex(previous.forecastSha))fail();
     const before=snapshots.get(previous.cipherSha);if(!before||before.anchor!==previous.forecastSha)fail();
     const url=new URL(BASE+"latest.json");url.searchParams.set("check",String(Date.now()));
@@ -164,13 +269,30 @@
     if(!fields(latest,["header","cipher_sha256"])||!hex(latest.cipher_sha256))fail();
     const h=latest.header;feedHeader(h);
     if(h.view_id!==m[1]||h.forecast_sha256!==previous.forecastSha||h.generation<previous.generation)fail();
-    if(h.generation===previous.generation){if(latest.cipher_sha256!==previous.cipherSha||h.schema===APPEND_FEED&&h.forecast_inventory_sha256!==before.digest)fail();return null;}
+    if(h.generation===previous.generation){if(latest.cipher_sha256!==previous.cipherSha||h.schema===APPEND_FEED&&h.forecast_inventory_sha256!==before.digest||h.schema===HISTORY&&h.history_index_sha256!==before.digest)fail();return null;}
     if(h.generation===previous.generation+1&&h.previous_cipher_sha256!==previous.cipherSha)fail();
-    const result=await decode(await fetched(new URL(BASE+"views/"+latest.cipher_sha256+".json")),latest.cipher_sha256,fragment,true);
+    const result=await decode(await fetched(new URL(BASE+"views/"+latest.cipher_sha256+".json"),h.schema===HISTORY?INDEX_WIRE:LIMIT),latest.cipher_sha256,fragment,true);
     if(canonical(result.header)!==canonical(h))fail();
+    if(h.schema===HISTORY) {
+      const day=options.day||Object.keys(result.view.days).sort().at(-1);
+      // Retain at most the selected date while comparing other dates in turn.
+      // A transition must not rebuild the whole historical view in memory.
+      let selectedMarker=null,selectedValue=null;
+      const loadDay=async entry=>{const marker=JSON.stringify(entry);if(marker===selectedMarker)return selectedValue;const value=await historyDay(entry,fragment,before.anchor);if(entry.day===day){selectedMarker=marker;selectedValue=value;}return value;};
+      await historyContinuation(before,result.view,fragment,loadDay);
+      const entry=await dateDescriptor(result.view,day,fragment),selected=await loadDay(entry);
+      remember(latest.cipher_sha256,result.snapshot,previous.cipherSha);
+      return {view:selected.view,header:h,cipherSha:latest.cipher_sha256,history:{day,currentMonth:result.view.current_month}};
+    }
+    if(before.history)fail();
     if(result.snapshot.anchor!==before.anchor||Object.keys(before.values).some(k=>result.snapshot.values[k]!==before.values[k]))fail();
     remember(latest.cipher_sha256,result.snapshot,previous.cipherSha);
     return {view:result.view,header:result.header,cipherSha:latest.cipher_sha256};
   }
-  window.SavedViewCrypto=Object.freeze({read,readLive});
+  async function readDay(fragment,previous,day) {
+    const before=snapshots.get(previous.cipherSha);if(!before?.history||before.anchor!==previous.forecastSha||before.header.generation!==previous.generation)fail();
+    const entry=await dateDescriptor(before.history,day,fragment),selected=await historyDay(entry,fragment,before.anchor);
+    return {view:selected.view,header:before.header,cipherSha:previous.cipherSha,history:{day,currentMonth:before.history.current_month}};
+  }
+  window.SavedViewCrypto=Object.freeze({read,readLive,readDay});
 })();

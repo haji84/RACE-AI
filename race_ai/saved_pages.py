@@ -45,7 +45,9 @@ def _index(ident,forecast_sha):
         '<meta name="race-ai-saved-view-forecast-sha" content="'+_hex(forecast_sha)+'">\n'
         '<meta name="race-ai-encrypted-saved-view" content="./views/'+ident+'.json">\n</head>')
     html=html.replace('href="./forecast-audit.html"','href="#research"')
-    html=html.replace("connect-src 'self'","connect-src 'self' https://raw.githubusercontent.com/haji84/RACE-AI/state/boat-saved-view/")
+    # Historical ciphertext is addressed by its immutable commit in this same
+    # repository. The reader additionally validates the exact commit/blob path.
+    html=html.replace("connect-src 'self'","connect-src 'self' https://raw.githubusercontent.com/haji84/RACE-AI/state/boat-saved-view/ https://raw.githubusercontent.com/haji84/RACE-AI/")
     for name in ASSETS:
         if name.endswith(('.js','.css')):
             version=sha(_asset_bytes(WEB,name))[:12]
