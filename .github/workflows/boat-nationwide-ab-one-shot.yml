@@ -22,6 +22,35 @@ jobs:
       - name: Exact reviewed display publisher
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: '${{ github.sha }}'}
+      - name: Verify public prospective policy is still before its first outcome
+        id: prospective_policy
+        if: hashFiles('docs/evidence/2026-11-07/prospective-evaluation-plan.json') != ''
+        run: |
+          python - <<'PY_PLAN'
+          from datetime import datetime, timezone
+          from pathlib import Path
+          import hashlib, json, os, re
+          path=Path('docs/evidence/2026-11-07/prospective-evaluation-plan.json')
+          raw=path.read_bytes(); plan=json.loads(raw)
+          assert plan['schema']=='RACE_AI_PROSPECTIVE_EVALUATION_REGISTRATION_V1'
+          assert re.fullmatch('[a-f0-9]{40}',plan['policy_commit'])
+          files={'web/product-data.js','web/saved-performance.js','scripts/boat_budget_plan.cjs'}
+          assert set(plan['policy_files_sha256'])==files
+          now=datetime.now(timezone.utc)
+          start=datetime.fromisoformat(plan['created_at'].replace('Z','+00:00'))
+          cutoff=datetime.fromisoformat(plan['first_included_cutoff_at'].replace('Z','+00:00'))
+          ready=start<=now<cutoff and all(hashlib.sha256(Path(name).read_bytes()).hexdigest()==digest for name,digest in plan['policy_files_sha256'].items())
+          with open(os.environ['GITHUB_OUTPUT'],'a') as output:output.write('ready='+str(ready).lower()+'\n')
+          print(json.dumps({'status':'PROSPECTIVE_POLICY_WINDOW_OPEN' if ready else 'PROSPECTIVE_POLICY_WINDOW_CLOSED','policy_sha256':hashlib.sha256(raw).hexdigest(),'private_plan_uploaded':False}))
+          PY_PLAN
+      - name: Independently witness only the public pre-result policy declaration
+        if: steps.prospective_policy.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-prospective-evaluation-policy-${{ github.run_id }}
+          path: docs/evidence/2026-11-07/prospective-evaluation-plan.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Pinned official parser for retained result bytes
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: 761247bee0209e37b1af6b8885e92cad3e9260a5, path: pr64-reference}
