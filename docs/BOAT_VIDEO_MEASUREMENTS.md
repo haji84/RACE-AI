@@ -186,4 +186,18 @@ CRNNの正しいFP32資産SHAは`a84b1f6e11a65c2d733cb0cc1f014aae3f99051e3f11447
 
 既存`github_existing_cycle.py`の`restore`/`forecast`/`audit`には任意の`--video-context-artifact ID`を追加した。認証器は予想・fit・保存済み再演・復元まで伝える。より新しい文脈を過去snapshotへ混入せず、各時点で利用可能だった文脈を選ぶ。無指定の既定動作と通常予想の出力は保つ。任意動画の失敗は理由を記録して隔離し、必須の予想原本や動画以外の整合性エラーは引き続き拒否する。
 
-当日動画の常時取得、実測校正参照、実文脈を既存workflowへ私的に届けるproducer/upload、動画特徴を用いた実学習・締切前ペア予想・未来公式結果での改善実証は、実データの記録が必要な受入条件である。読取器や架空データのE2E試験だけで完成としない。最新の実測件数・完成区分は`RACE_AI_LATEST_STATUS.md`と対応する証拠に記録する。
+当日動画の常時取得、実測校正参照、実文脈の独立保存、動画特徴を用いた実学習・締切前ペア予想・未来公式結果での改善実証は、実データの記録が必要な受入条件である。読取器や架空データのE2E試験だけで完成としない。最新の実測件数・完成区分は`RACE_AI_LATEST_STATUS.md`と対応する証拠に記録する。
+
+## カメラ補正失敗時の識別継続
+
+実験CRNN経路は、背景不足とカメラfit失敗だけについて、数字の継続と計測用カメラ区間を別に扱える。補正がない各フレームで新しい一致した数字を読むことを必須とし、未読・曖昧・重複・遮蔽・時間欠落・画面切替で継続を中断する。追跡結果の`scene`は実際の計測用区間を保持し、別の`identity_continuity_scene`を位置校正へ流用しない。数字が続いたことを理由にカメラ変換や有効な物理位置を作らない。既存Tesseractの既定経路は変更しない。
+
+## 暗号化した文脈の発行と自動取込の接続
+
+`race_ai.boat_video_publication`は、保護された元映像・元報告・艇番証拠・凍結文脈を再照合してから、既存の`RACE_AI_STATE_KEY`を使うAES-256-GCMで文脈を暗号化する。鍵は引数やGit、ログへ出さない。暗号文も実際のrepository/workflow/branch/HEADへ結び付け、上限を超えるdispatch本文は送らない。既存Viewer workflowに追加したdispatch専用jobだけが`video-context.enc`を保存する。publicリポジトリのartifactへ平文特徴や映像は保存しない。
+
+既存`boat_video_intake.main(...)`の信頼するPython呼出元は、既存の証拠/モデル入力/受領証検証callbacksと任意の`context_publisher`を渡せる。`make_context_publisher(...)`の送信関数・platform readiness・非秘密の設定revisionを明示しない場合はHOLDで、勝手にGitHubへ送らない。CLIやキューJSONから検証関数や発行権限を設定できない。
+
+発行試行は私有`video-publications/`へ呼出前にSTARTEDを追記する。受付済み・通信結果不明・例外・中断したSTARTEDは文脈単位で重複送信を抑止する。送信前と確認できる特定HOLDだけが、設定revision変更後かつ締切前に再確認できる。dispatch受付は独立受領証の確認ではなく、`receipt_verified=false`のまま。archive readerが実APIのrun/HEAD/保存時刻・ZIP実digest・暗号文を検証して初めて、既存cycleへ渡す。
+
+この経路のコードと架空データ試験が成功しても、プラットフォーム上のdispatch可否、実鍵の接続、実映像文脈の保存、現行workerでの利用を認定しない。稼働中プロセスは自動再起動していない。公式映像の視聴拒否は迂回せず、実入力のない状態で本番採用を有効化しない。
