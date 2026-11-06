@@ -1,3 +1,22 @@
+<!-- RACEAI_AUTOMATION_20261107_0351_ARTIFACT_GH_FAILURE_REVIEW -->
+# 2026-11-07 03:51 JST｜後続2 run のGitHub元ZIP取得失敗を検出、原本保全と安全な失敗分類を実装
+
+**現在の運転状態:** 監査直前のPR #71ブランチHEAD `4144fe706dd6ce82faee411e5bc0fccd7ace7896`。対象workflow405276784の最新ボートrun 42264560643 は2026-11-07 03:13:01 JSTに `completed/failure`。その先行run 42259181853 も2026-11-07 03:09:25 JSTに `completed/failure`。最新40件のrepository runから同workflowの `in_progress/queued/pending/waiting` は0件、実workerなし。今回、失敗runのrerun/cancel・新トリガーは0。エラー原因が未確定で全原本のrestoreを完走できていないため、新runで迂回・再開しない。
+
+**1件目の正確な失敗点:** run42259181853の第14巡までは完了予想/結果ZIPとも存在。第15巡 `scripts/github_existing_cycle.py supplement()`→`original()`→GitHub artifact13520355202/zipのCLIダウンロードが終了コード1となり失敗。tracebackで `subprocess.CalledProcessError` を確認。`gh` は stderr を捕捉しても記録しない旧実装のため、**HTTP 4xx/429/5xx/ネットワーク要因のいずれか現時点では分類不能**。原本改竄や公式GET上限到達が原因だと断定しない。後継run42264560643は独立再生の `restore()`→`cycle_recovery.recover()`におけるGitHub artifact13521606570/zipのCLI終了コード1で、予想ステップ開始前に失敗。前runのfailedを正常完走とせず、後継runも完走としない。
+
+**今回の独立の元バイト確認:** GitHub公式artifact APIで13520355202（初回P0元ZIP SHA256 `98abf598c8685bef240f03e135e900dce78b89057c80959b93934d601d58dd3d`）、13521606570（既存P1元ZIP `5b4bf7797969523a0d671e55e8a208dc5bdb2e466ddd89c73bc1414c47daacd8`）を個別再取得。実バイトSHAは各登録digestと一致し、ZIP CRC異常なし。初回P0内 `forecasts.json` SHA=`109be9efcd7d6744120b53e00c82473b1544983cfb1060f3fe22442c799f36af` は2026-11-07初回索引と一致。**2件のartifactが現在読めることは実証したが、失敗run中のHTTP応答の正体・全履歴の完全な復元には代えない**。
+
+**最新完了巡回のみの独立監査:** run42259181853の第14巡結果ZIP13527208833 SHA256 `5c32aff739d718d0cde99e2f38c4e005b4fb34524986b514c94877e6dc7f8208`、P1 ZIP13527811422 SHA256 `83b6a3f8e92f1ef603576dad282a7fc62cf3f6a2475bb4fb2da6b67cb9590f5c`、失敗後に保存された継続ZIP13528026736 SHA256 `2712e88754d23e7d37a735d1385a711bc09d655b4c6c4e1840ff383c685fd295` を独立再取得。3件ともAPI digest一致、CRC異常0。第14巡結果の内包P0/P1はそれぞれ独立ZIPと完全一致。`status.json` は `round_no=14`、`updated_at=2026-11-06T18:06:24.807205+00:00`（03:06:24 JST）、canonical report SHA再計算一致。継続 `repeat-session.json` のSHAも再計算一致し、`requests_used=134`、`source_limit=240`、`max_rounds=24`、`completed_round=14/prepared_round=15`、`halted_reason=null`。**安全上限240以内の正常な停止実証ではなく、14巡後の異常終了**。失敗した第15巡を結果済みに加算しない。
+
+**2026-11-07基準モデルと学習:** ボート11会場132R、P0観測相性132保存/採点0/保留132、P0 ST重視相性132保存/採点0/保留132。P1既存5モデルすべて保存0、通常公式確定0、学習train0/validation0、LEARNED_SHADOW予想0/paired比較0。学習版の改善証明なし。的中率・仮想収支・回収率はモデル別に**未算定**とし、0%や回収率0%とは扱わない。`coverage_audit`は対象132/未来132/締切済0、全16系統の成功ではない。
+
+**既存PR #71内の最小安全修正:** `scripts/github_existing_cycle.py`のGitHub artifact読取を修正。成功時の元bytesは無改変で返す。CLI stderrを公開せず、明示HTTP 4xx/429・原因分類不能は**即時停止**。明示HTTP 5xxまたはCLIのtransport timeoutだけ合計最大3回の有界再試行、なお失敗なら停止。公式データへの取得上限・真正性検証・結果改訂・既存モデルは変更なし。既存 `tests/test_first_p0_bootstrap.py` に4xx/429/不明時の再試行なし、5xx/timeoutの有界再試行と最終停止を検証する2試験を追加。保存されたsource bundleで関連unittest15件PASS。コードcommit `86b34fe01bcf9409263e6d9339a0f756792c72df`、試験commit `4144fe706dd6ce82faee411e5bc0fccd7ace7896`。exact-HEAD AUTORACE CI `42274260873` はsuccess、Viewer CI `42274261069` は03:50時点でpending。これらは修正後の実ボートworkerの復旧実証ではない。
+
+**残条件と保全:** 直近の失敗2件から安全に復旧するには、同日全runの予想・結果・継続原本を改めて復元照合し、最初に失敗したGitHub ZIP取得のHTTP区分と現在の実権限を確認したうえで、新たな正常runの独立原本読戻しを完走する必要がある。02:46時点に本人専用Driveへ保全済みの当日4原本は今回変更せず、新規Drive保存0件。Driveの個人情報や私有URL/IDは公開記録に載せない。新PR/新workflow/毎時タスク変更/モデル追加/係数の無検証採用/Cloudflare・Vercel/追加課金/main/一般公開/実投票/他タスク変更なし。
+
+---
+
 <!-- RACEAI_AUTOMATION_20261107_0246_FINITE_DRIVE4 -->
 # 2026-11-07 02:46 JST｜有限上限を読み込んだ実Workerで第7巡まで監査、初回P0＋最終3ZIPを非公開Driveへ4件保全・独立読戻し成功
 
