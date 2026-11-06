@@ -17,6 +17,20 @@ def packet(*, late=False, extra=''):
 
 
 class OfficialSpecialBlocksTests(unittest.TestCase):
+    def test_four_digit_payout_is_not_misread_as_result_registration(self):
+        raw=packet().replace(b'01KEND','単勝 1 1200\n複勝 2 1400\n01KEND'.encode('cp932'))
+        rows=official_day(raw,day='2030-01-01')['rows']
+        self.assertEqual([r['result_code'] for r in rows],['01','02','03','04','05','06'])
+
+    def test_full_daily_document_requires_exact_end_marker(self):
+        for raw in (packet().replace(b'ENDK',b''),packet()+b'\nTRAILING',packet().replace(b'01KEND',b'02KEND')):
+            with self.assertRaises(ValueError):official_day(raw,day='2030-01-01')
+
+    def test_duplicate_or_invalid_empty_venue_is_not_silently_ignored(self):
+        for venue in ('01','25'):
+            extra=venue+'KBGN\n2030/01/01\n[払戻金]\n'+'\n'.join(f'{n}R' for n in range(1,13))+'\n'+venue+'KEND'
+            with self.assertRaises(ValueError):official_day(packet(extra=extra),day='2030-01-01')
+
     def test_explicit_blank_twelve_race_payout_table_is_unreported_not_cancelled(self):
         extra='02KBGN\n2030/01/01\n[払戻金]\n'+'\n'.join(f'{n}R   ' for n in range(1,13))+'\n02KEND'
         result=official_day(packet(extra=extra),day='2030-01-01')

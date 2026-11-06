@@ -5,6 +5,7 @@ The caller supplies an official observation authenticated by the existing
 result parser. Summaries accept only reports from this admission boundary.
 """
 from copy import deepcopy
+import json
 
 from .actions_contract import digest
 from .boat_history_comparison import load_pair,read_freeze_receipt,score_pair,need
@@ -75,3 +76,37 @@ def summarize_trials(reports):
         excluded_special_or_pending_races=sum(not r['prospective_metric_eligible'] for r in latest.values()),
         models=[rows[k] for k in sorted(rows)],accuracy_improvement_proven=False,
         actual_purchases=False,production_promoted=False)
+
+
+def verify_retained_trials(state,root,now):
+    """Replay owner-authenticated admitted results without changing originals.
+
+    This checks stored admission/model/result bindings. External GitHub clocks
+    were verified at admission; this offline replay does not re-query GitHub.
+    """
+    reports=[]
+    for name,ident in state.db.execute("SELECT name,sha FROM files WHERE name LIKE 'prospective-admissions/%.json'"):
+        report=json.loads(state._get(ident));sealed(report,'report_sha256')
+        need(report.get('schema')=='RACE_AI_AUTHENTICATED_HISTORY_TRIAL_RESULT_V1' and
+             report.get('independent_pre_cutoff_receipt_verified') is True,'PROSPECTIVE_ADMISSION_REQUIRED')
+        pair=load_pair(root/'pairs'/f"{report['pair_sha256']}.json")
+        observations=[json.loads(row[0]) for row in state.db.execute('SELECT body FROM results WHERE race_id=?',(pair['race_id'],))]
+        matches=[o for o in observations if o['captured_at']==report['result_captured_at'] and o['source_sha256']==report['result_sha256']]
+        need(len(matches)==1,'PROSPECTIVE_RETAINED_RESULT_MISSING')
+        replay=score_pair(pair,matches[0],now)
+        need(replay['models']==report['models'] and report['race_id']==pair['race_id'] and
+             report['prospective_metric_eligible']==all(r['paired'] for r in replay['models']) and
+             report['actual_purchases'] is False and report['production_promoted'] is False,
+             'PROSPECTIVE_RETAINED_SCORING_CONFLICT')
+        reports.append(report)
+    latest={}
+    for report in reports:
+        pair=report['pair_sha256']
+        if pair not in latest or instant(latest[pair]['result_captured_at'])<instant(report['result_captured_at']):latest[pair]=report
+    for report in latest.values():
+        observations=[json.loads(row[0]) for row in state.db.execute('SELECT body FROM results WHERE race_id=?',(report['race_id'],))]
+        observation=max(observations,key=lambda o:instant(o['captured_at']))
+        need(instant(observation['captured_at'])==instant(report['result_captured_at']) and observation['source_sha256']==report['result_sha256'],
+             'PROSPECTIVE_LATEST_RESULT_ADMISSION_REQUIRED')
+    return dict(admitted_prospective_races=len(latest),admitted_summary=summarize_trials(reports),
+                external_receipts_rechecked_live=False)

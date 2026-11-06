@@ -96,7 +96,7 @@ class HistoryTests(unittest.TestCase):
         for i in range(1,7):k.append(f' {i:02} {i} {4000+i} TEST 11 22 6.80 {i} 0.10 1.50.0')
         k+=[' 単勝 1 110',' 複勝 1 100 2 140',' 2連単 1-2 500 人気 3',' 2連複 1-2 440 人気 2',
             ' 拡連複 1-2 150 人気 1','       1-3 190 人気 4','       2-3 350 人気 6',
-            ' 3連単 1-2-3 1920 人気 11',' 3連複 1-2-3 610 人気 5','01KEND']
+            ' 3連単 1-2-3 1920 人気 11',' 3連複 1-2-3 610 人気 5','01KEND','FINALK']
         p=official_day('\n'.join(k).encode('cp932'),day='2030-03-30')['payouts']['20300330-01-01']
         self.assertEqual(len(p),10)
         self.assertEqual(reconcile_payouts(p,p),dict(requested=10,matched=10,missing=0,mismatched=0))

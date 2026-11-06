@@ -7,6 +7,11 @@ def multi(*bodies):
     return b''.join(uncompressed_lzh(b,'K300101.TXT')[:-1] for b in bodies)+b'\0'
 
 class ConsensusTests(unittest.TestCase):
+    def test_standalone_parser_import_loads_its_pinned_reference(self):
+        import subprocess,sys
+        p=subprocess.run([sys.executable,'-c','from race_ai.official_k_archive import parse_archive'],capture_output=True,timeout=10)
+        self.assertEqual(p.returncode,0,p.stderr.decode())
+
     def parse(self,raw):
         from race_ai.official_k_archive import parse_archive
         return parse_archive(raw,day='2030-01-01')

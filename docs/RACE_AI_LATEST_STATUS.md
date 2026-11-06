@@ -30,6 +30,38 @@
 
 ---
 
+<!-- RACEAI_AUTOMATION_20261106_1305_PARENT_AUDIT_CI_FIX -->
+# 2026-11-06 13:05 JST｜学習元19 artifactを独立照合、既存GET上限のCI回帰不一致を修正
+
+**実行状態・HEAD:** 既存Draft PR #71 / workflow 405276784、今回の監査直前HEAD `3a2f6e8fbe142665bc4ca53ef7f911316df45f77`。GitHub Actions repository直近100 runに同workflowの in_progress/queued/pending/waiting はなく、最新race worker `42148186039` は2026-11-06 11:57:26 JST に completed/success。ただし実行SHA `8494b85923e10d57f9c6f23a28f3aa38bfc33797` は**240 GET修正前**。旧runの実数427/240で上限187件超過し、successを安全運転の実証に換算しない。現HEADによる新しい405276784実runはまだなし。旧超過のrerun/新trigger追加なし。
+
+**初回原本と最新完了巡:** 同run第24巡のP1 ZIP artifact `13472992546`（SHA256 `1020bca258f9493a4b79b379ea6cb0bd6ad40da59c559bd56de2547db00e99b2`）、結果ZIP `13473452006`（`f76fefdc554d005ef0d4a3a6ca8ed1a8898a718f525e8285f79843563184dda4`）、継続ZIP `13473566824`（`fb85292c00ba9563a2a3e8b4877a3caf2c8916e89c50160c72f38cf06de2efc5`）を再取得して各実バイトSHA/API digest一致・ZIP CRC正常を検証。結果ZIP `status.round_no=24`、更新11:57:11 JST、継続`completed_round=24`。第24巡のP1が結果ZIPの埋込み原本と同一。初回P0 ZIP artifact `13428142302`（SHA `6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc`）は同日初回索引と埋込みP0に一致、312件を再生成・上書きせず。
+
+**新規の独立学習元監査（前報からの進展）:** 11/6の最終結果`learned_shadow_comparison.per_forecast`に存在する46研究予想（2既存観測相性系統）の参照先を重複排除し、**19件すべての元GitHub結果artifact ZIPを個別再ダウンロード**した。19件すべてAPI digest＝実ZIP SHA256、CRC異常なし。各ZIP内`trained_observed_models.json.training_sha256`が内部statusの学習版SHAに一致し、参照する46行も全件一致。46行すべてで「学習元artifactのGitHubサーバー作成時刻 < 当該基準予想の入力as_of < シャドー保存時刻 < レース締切」、基準8点との対応、学習/検証race_idの非重複を確認。内訳は結果確定の同条件比較28モデル別行（14種類のレース）と結果待ち18行。これは**参照・時系列・原本整合の独立監査合格**であり、係数推定全計算の再現、入力の第三者証明、実際の性能向上の認定ではない。
+
+**固定時点の成果（新たな予想増分ではない）:** 最終ZIPは対象156R、P0=312・P1=200（基準512モデル別件）、通常採点207モデル/時点行（HIT95/MISS112）、仮想購入8点各100円の条件付き損益+35,850円／回収率121.65%。31種類の通常確定レースをTRAIN24/未使用検証7とし、学習研究用46予想、通常paired28行。観測相性14比較は元/学習版とも6的中、ST重視14比較は元/学習版とも7的中、ST重視の学習版払戻は元より4,450円少ない。全国156R全体の的中率・回収率や実購入の成績に拡張しない。coverage_auditは締切済42R・未来114R、P1未保存7R×5系統=35行で、展示が当時公開済みかは未証明。
+
+**GET上限テストの修復・CI:** 旧HEADのViewer run `42158798013` は、旧仕様 `source_limit is None` を要求する単一回帰テストが240の新契約と矛盾して失敗。他は合格。既存PR branch上でその期待値だけを240へ変更したtest-only commit `3a2f6e8fbe142665bc4ca53ef7f911316df45f77`。修正後の同HEAD Viewer `42159523879` は2026-11-06 13:02:30 JSTにcompleted/success、全job successまたは明示skip。既存workflow設定・モデル・原本は変更なし。これで**CI上の回帰整合は成立**したが、405276784での実際の240 GET以内停止・24巡/65分遵守は引き続き**未実証**。
+
+**保存境界・禁止事項:** 非公開保管先は本人所有・非共有をメタデータ確認したが、今回のGitHub元ZIPからDriveへの保存はconnector egress拒否で不成立、新規Drive保存0。無期限保管・全学習元の私有保全は未完成。取得上限を回避する追加起動、旧run rerun、既存workflow/schedule/タスク・PR追加、main統合、一般公開、課金、実投票、旧予想改変、研究版の本番自動採用はなし。全16系統・全4競技・無欠落の未来直前予想・学習版の優越性は未達。
+
+---
+
+<!-- RACEAI_AUTOMATION_20261106_1248_SAFETY_AND_CYCLE24 -->
+# 2026-11-06 12:48 JST｜第24巡原本の独立照合、上限超過の修正を既存PRへ適用
+
+**第24巡実原本:** 既存workflow405276784、run [42148186039](https://github.com/haji84/RACE-AI/actions/runs/42148186039) はcompleted/success（GitHub最終更新11:57:26 JST）。全50 artifact一覧から第24巡P1原本ZIP `13472992546` / `1020bca258f9493a4b79b379ea6cb0bd6ad40da59c559bd56de2547db00e99b2`、結果ZIP `13473452006` / `f76fefdc554d005ef0d4a3a6ca8ed1a8898a718f525e8285f79843563184dda4`、continuity ZIP `13473566824` / `fb85292c00ba9563a2a3e8b4877a3caf2c8916e89c50160c72f38cf06de2efc5` を別取得。3件ともGitHub API digestと実バイトSHA256一致、ZIP CRC異常なし。内部`status.round_no=24`、`updated_at=11:57:11 JST`、継続`completed_round=24`、原本P0内包SHA `6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc` を再確認。今回は学習元artifact全件の独立再取得と新たな公式プロバイダ照合までは未実施。
+
+**11/6の確認済み保存値:** 対象156R、P0=312、展示後P1=200（前回120から+80、40R×5）、基準計512（+80、CSVのrace/phase/model一意512）。公式通常結果の保存済み採点207モデル・時点行（前回105から+102）、HIT95（+44）/MISS112（+58）。7モデル/時点の各8点100円仮購入で投入165,600円、受取201,450円、差引+35,850円、回収率121.65%。正式成績は採点済207モデル・時点行の条件付きであり、全国156Rの的中率でも実投票でもない。42締切済R・114未来R、通常確定31R、P1五系統完備35R、未保存P1=35モデル別行をcoverage_auditに残す。欠測が公開済展示の取りこぼしかは未検証。
+
+**係数研究:** 通常確定一意31R（学習24/未使用検証7）で2つの既存観測相性系統に`FITTED_SHADOW_ONLY`。LEARNED_SHADOW保存46モデル別行（前回14から+32）。同条件で公式結果が保存されたpaired=28行（14種類のレース）。観測相性は基準/学習版とも6/14的中、ST重視相性は両者7/14的中だが、ST重視の学習版仮受取22,170円、基準26,620円で-4,450円。学習成功と未来の精度改善を混同しない。親学習artifact全件独立再照合が未完了のため、本番採用・優位性認定なし。
+
+**安全不一致の修正:** この旧runの`repeat-session.json.requests_used=427`（指定240を187超過）、旧コード`SOURCE_LIMIT=None`。既存PR #71の同じbranchへコードと2既存テストのみcommit [8ddde850](https://github.com/haji84/RACE-AI/commit/8ddde8509ae7c308927d0a984b4fa9ff30efb453) をfast-forward/expected-head lease成功で適用。`SOURCE_LIMIT=240`、`ROUND_SOURCE_LIMIT=45`、`MAX_ROUNDS=24`、`MAX_SECONDS=65*60`、旧runの停止解除・上限水増し禁止を明示した。元source bundleからpatch適用した同系統のローカル単体50テストPASS。commit 8ddde850自身のViewer CI run42158394123は並行pushでcancelled、**exact-HEAD CI合格も既存workflowでの新上限実運用遵守もまだ未実証**。後続HEAD 8535ef81のViewer CIが進行中で、sourceファイルの新blob SHA `48287a965ab8c6e12ec2b1afed44c049ab47313a` は保持確認。
+
+**継続判定:** 12:48時点で確認可能なrepository最新Actions一覧内には405276784のrun42148186039より新しい実行がない。最終runが超過427 GETで安全正常とは認められないため、旧run rerun・上限回避目的の後続トリガーは追加しない。既存毎時スケジュール、concurrency、他workflow/タスク、モデル、原本、main、公開、課金、投票は不変更。Driveの新規保存・owner/share再確認は今回未実施。GitHub artifact 7日保持のままで期限なし私有保存は未完成。
+
+---
+
 <!-- RACEAI_AUTOMATION_20261106_1134_CYCLE24 -->
 # 2026-11-06 11:34 JST｜既存run第24巡の完走と正式採点増分、公式GET417回の超過確認
 

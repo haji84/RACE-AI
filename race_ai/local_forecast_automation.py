@@ -311,6 +311,8 @@ class ForecastAutomation:
             self._halt("AUTOMATIC_SOURCE_STATUS_REJECTED", now); return False
         self._state["requests_total"]+=used-self._state["requests_used"]
         self._state["requests_used"] = used
+        if SOURCE_LIMIT is not None and used>=SOURCE_LIMIT:
+            self._halt('SOURCE_BUDGET_EXHAUSTED',now);return False
         reason = value.get("halted_reason")
         if reason:
             self._halt(reason if type(reason) is str and _CODE.fullmatch(reason) else "SOURCE_HALTED",now)

@@ -111,14 +111,15 @@ class VenueHistory:
             self._venue_gaps=Counter(v for s in self.sources.values() for v in s.get('unreported_venues',[]))
             unreported=sum(self._venue_gaps.values())
             self._coverage_cache=dict(requested_start=self.start.isoformat(),requested_end=self.end.isoformat(),
-                    requested_calendar_days=expected,fully_parsed_days=processed,
+                    requested_calendar_days=expected,parsed_source_files=processed,
+                    fully_parsed_days=processed-sum(bool(s.get('unreported_venues')) for s in self.sources.values()),
                     unavailable_or_unprocessed_days=expected-processed,
                     unreported_venue_days=unreported,
                     source_window_complete=processed==expected and unreported==0,source_set_sha256=digest(self.sources))
         coverage=self._coverage_cache.copy()
         if venue is not None:
             missing=self._venue_gaps[venue]
-            coverage.update(unreported_venue_days=missing,source_window_complete=coverage['fully_parsed_days']==coverage['requested_calendar_days'] and missing==0)
+            coverage.update(unreported_venue_days=missing,source_window_complete=coverage['parsed_source_files']==coverage['requested_calendar_days'] and missing==0)
         return coverage
 
     def profile(self,racer_id,venue_code,*,as_of):

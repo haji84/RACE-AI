@@ -27,7 +27,7 @@ def daily_pair():
             b.append(f" {frame} {4000 + frame} TEST")
             k.append(f" {finishes[frame-1]:02d} {frame} {4000+frame} TEST 55 33 6.80 {courses[frame-1]} 0.12 1.50.4")
     b.append("17BEND")
-    k.append("17KEND")
+    k.extend(["17KEND","FINALK"])
     return "\n".join(b).encode("cp932"), "\n".join(k).encode("cp932")
 
 
