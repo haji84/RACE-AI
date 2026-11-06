@@ -200,8 +200,13 @@ jobs:
           python -m venv "$RUNNER_TEMP/race-ai-video-tools"
           "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m pip install -r requirements-video.txt
           if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null || ! command -v tesseract >/dev/null; then
+            # The Azure HTTP mirror stalled package downloads before any video test ran.
+            # Keep Ubuntu's signed packages and use its canonical HTTPS archive.
+            if [ -f /etc/apt/apt-mirrors.txt ]; then
+              sudo sed -i 's|http://azure.archive.ubuntu.com/ubuntu|https://archive.ubuntu.com/ubuntu|g' /etc/apt/apt-mirrors.txt
+            fi
             sudo apt-get update
-            sudo apt-get install -y ffmpeg tesseract-ocr tesseract-ocr-eng
+            sudo apt-get install --no-install-recommends -y ffmpeg tesseract-ocr tesseract-ocr-eng
           fi
           "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m unittest tests.test_boat_video_tracking tests.test_boat_video_identity tests.test_boat_video_identity_tracking tests.test_boat_video_ocr_reliability tests.test_boat_video_intake tests.test_boat_video_cli -v
       - name: Integrated product UI contracts
