@@ -348,6 +348,7 @@ jobs:
           python -m tests.private_dispatch_ui_fixture --out "$UI_DISPATCH_VIEWS"
           node tests/ui_browser.test.js
           node tests/saved_pdca_browser.test.js
+          node tests/saved_pages_browser.test.js
           node --test tests/boat_video_ui.test.mjs
       - name: Retain synthetic-only UI interaction evidence
         if: always()

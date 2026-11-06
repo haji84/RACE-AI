@@ -283,7 +283,7 @@
     const [eyebrow, title, description] = pageNames[page];
     $("page-eyebrow").textContent = eyebrow; $("page-title").textContent = title; $("page-description").textContent = description;
     $("preference-strip").hidden = !["home", "races", "picks"].includes(page);
-    if (location.hash !== "#" + page) history.pushState(null, "", "#" + page);
+    if (!document.querySelector('meta[name="race-ai-encrypted-saved-view"]') && location.hash !== "#" + page) history.pushState(null, "", "#" + page);
     if (page === "detail") renderDetail();
     if (page === "picks") renderTickets();
     if (moveFocus) { $("page-title").tabIndex = -1; $("page-title").focus({preventScroll: true}); window.scrollTo({top: 0}); }
@@ -569,7 +569,7 @@
     $("delivery-record").textContent = (stale ? "前回の保存記録：" : "") + recorded[delivery.window_status] + (delivery.saved_at ? " · 保存 " + stamp(delivery.saved_at) + " JST" : " · 保存完了の時刻は未確認です");
   }
   function renderGeneration() {
-    if (document.getElementById("race-ai-private-saved-data") || document.querySelector('meta[name="race-ai-private-saved-view"]')) {
+    if (document.getElementById("race-ai-private-saved-data") || document.querySelector('meta[name="race-ai-private-saved-view"],meta[name="race-ai-encrypted-saved-view"]')) {
       $("forecast-generate").hidden = true;$("forecast-follow-latest").hidden = true;$("forecast-stage").disabled = true;
       $("generation-title").textContent = "保存済み予想";
       $("generation-description").textContent = "保存原本の買い目と結果を表示しています。モデル・履歴あり／なしをレース詳細で選べます。";
@@ -812,11 +812,13 @@
   async function loadSavedDataset() {
     const inline = document.getElementById("race-ai-private-saved-data");
     const endpoint = document.querySelector('meta[name="race-ai-private-saved-view"]');
-    if (!inline && !endpoint) return;
+    const encrypted = document.querySelector('meta[name="race-ai-encrypted-saved-view"]');
+    if (!inline && !endpoint && !encrypted) return;
     const version = ++importVersion;
     try {
       let raw;
       if (inline) raw = JSON.parse(inline.textContent);
+      else if (encrypted) raw = await window.SavedViewCrypto.read(encrypted.content,location.hash);
       else {
         if (endpoint.content !== "/api/forecast/saved") throw new Error("invalid saved endpoint");
         const response = await fetch(endpoint.content,{credentials:"same-origin",cache:"no-store"});
@@ -839,7 +841,17 @@
   }
   document.querySelectorAll("[data-page]").forEach(b => b.addEventListener("click", () => showPage(b.dataset.page, true)));
   document.querySelectorAll("[data-sport]").forEach(b => b.addEventListener("click", () => setSport(b.dataset.sport)));
-  window.addEventListener("hashchange", () => showPage(location.hash.slice(1)));
+  window.addEventListener("hashchange", () => {
+    if (document.querySelector('meta[name="race-ai-encrypted-saved-view"]')) { location.reload();return; }
+    showPage(location.hash.slice(1));
+  });
+  document.addEventListener("click", event => {
+    if (!document.querySelector('meta[name="race-ai-encrypted-saved-view"]')) return;
+    const anchor = event.target.closest?.('a[href^="#"]');if (!anchor) return;
+    const target = anchor.getAttribute("href").slice(1);
+    if (Object.hasOwn(pageNames,target)) { event.preventDefault();showPage(target,true); }
+    else { const element = document.getElementById(target);if (element) { event.preventDefault();element.focus();element.scrollIntoView(); } }
+  });
   $("selected-date").addEventListener("change", () => { if (!$("selected-date").value) { $("selected-date").value = state.day; return; } state.day = $("selected-date").value; state.followsToday = false; state.allDates = false; state.period = "day"; state.visible = 60; refreshSelects(); renderAll(); });
   $("period-all").addEventListener("change", () => { state.allDates = $("period-all").checked; state.visible = 60; refreshSelects(); renderAll(); });
   $("period-filter").addEventListener("change", e => { state.allDates = e.target.value === "all"; state.period = state.allDates ? "day" : e.target.value; state.visible = 60; refreshSelects(); renderAll(); });
