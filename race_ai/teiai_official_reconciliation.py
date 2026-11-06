@@ -19,7 +19,7 @@ if _REFERENCE not in race_ai.__path__:race_ai.__path__.append(_REFERENCE)
 from .core import _blocks, parse_k
 
 FIELDS=('race_id','racer_id','lane','course','st','st_status','finish','result_code','winner_method')
-OFFICIAL_K_PARSER_REVISION=8
+OFFICIAL_K_PARSER_REVISION=9
 
 
 def _complete_document(text):
@@ -65,6 +65,10 @@ def parse_k_rows(raw,day):
         adapted.append(line)
     rows=parse_k('\n'.join(adapted).encode('cp932') if late else raw,day.isoformat())
     for row in rows:
+        # The pinned legacy parser uses midnight as a date-sort placeholder.
+        # K does not provide the actual race-start timestamp. Never expose that
+        # placeholder as an observed time; B's printed cutoff stays separate.
+        row['race_at']=None
         key=(row['race_id'],row['lane'])
         if key in late:
             reg,course,timing,status=late[key]

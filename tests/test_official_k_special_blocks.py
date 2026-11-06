@@ -17,6 +17,10 @@ def packet(*, late=False, extra=''):
 
 
 class OfficialSpecialBlocksTests(unittest.TestCase):
+    def test_daily_date_is_not_invented_as_actual_race_start_time(self):
+        rows=official_day(packet(),day='2030-01-01')['rows']
+        self.assertTrue(all(row['race_at'] is None for row in rows))
+
     def test_four_digit_payout_is_not_misread_as_result_registration(self):
         raw=packet().replace(b'01KEND','単勝 1 1200\n複勝 2 1400\n01KEND'.encode('cp932'))
         rows=official_day(raw,day='2030-01-01')['rows']
