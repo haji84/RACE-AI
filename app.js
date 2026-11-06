@@ -51,6 +51,7 @@
     return box;
   };
   const metric = (label, value, sub, icon = "▥") => append(node("article", "metric"), node("span", "metric-icon", icon), append(node("div"), node("span", "metric-label", label), node("strong", "", value), node("small", "muted", sub)));
+  const hitRate = stats => stats.hits + stats.misses ? (stats.hits / (stats.hits + stats.misses) * 100).toFixed(1) + "%" : "算出対象なし";
   const scopeName = scope => ({official: "公式対象・読込値", research: "研究 / 監査", synthetic: "合成テスト"})[scope] || "証拠未確認";
   const races = () => dataset?.records || [];
   const scoped = () => U.filterRaces(races(), {sport: state.sport, day: state.day, allDates: state.allDates, period: state.period, sort: state.sort});
@@ -507,6 +508,7 @@
     $("simulation-budget").disabled=!groups.length;
     const group=groups.find(g=>g.key===state.resultGroupKey)||null,c=P.summarize(rows,group);
     $("saved-result-metrics").replaceChildren(metric("取得結果",c.available+"レース","保存された結果・中止"),metric("的中",c.hits+"レース","選択モデルと取得結果の一致"),metric("不的中",c.misses+"レース","選択モデルと取得結果の不一致"),metric("結果待ち",c.pending+"レース","未取得分を不的中にしません"));
+    $("saved-result-metrics").append(metric("保存Top8的中率",hitRate(c),c.hits+" / "+(c.hits+c.misses)+"レース（結果待ち・照合不可等を除外）"));
     const latest=rows.map(r=>r.result?.observed_at).filter(v=>v&&Number.isFinite(Date.parse(v))).sort((a,b)=>Date.parse(a)-Date.parse(b)).at(-1);
     $("result-coverage").textContent="対象 "+rows.length+"レース · 結果取得 "+c.available+" · 中止・返還 "+c.void+" · 未予想・照合不可 "+(c.noForecast+c.review)+" · 最終結果取得 "+stamp(latest)+" JST。取得結果による参考照合です。公式の独立検証とは別です。";
     $("saved-results-table").replaceChildren(savedResultsTable(rows,group));
@@ -519,8 +521,8 @@
       const chosen=scenarios.find(s=>s.group.key===state.resultGroupKey),s=chosen.sim;
       const net=n=>n===null?"未確定":(n>0?"＋":"")+yen(n);
       $("simulation-metrics").replaceChildren(metric("予定購入額",yen(s.spent),s.bought+"レース · 実購入なし"),metric("未使用予算",yen(s.unspent),"1日 "+yen(s.budgetPerDay)+" × "+s.days.length+"日"),metric("確認済み払戻",yen(s.payout),"返還 "+yen(s.refund)),metric("確定分の収支",net(s.settledNet),"購入額 "+yen(s.settledStake)+" の分だけ"),metric("未確定購入額",yen(s.pendingStake),"結果・払戻待ちのレース分"),metric("全体の収支",net(s.net),"仮の残高 "+yen(s.balance)));
-      $("simulation-metrics").append(metric("確定分の回収率",s.roi===null?"未確定":s.roi.toFixed(1)+"%","確認済み払戻・返還 ÷ 確定分購入額"),metric("収支確定の購入予定",s.settledStake/800+" / "+s.bought+"レース","日予算で選んだ対象のみ"));
-      $("simulation-comparison").replaceChildren(table(["モデル・履歴条件","購入予定分の的中 / 照合済","予定購入額","払戻","返還","確定分収支","未確定額","全体収支"],scenarios.map(({group,sim:t})=>[modelName(group),t.boughtComparison.hits+" / "+(t.boughtComparison.hits+t.boughtComparison.misses),yen(t.spent),yen(t.payout),yen(t.refund),net(t.settledNet),yen(t.pendingStake),net(t.net)])));
+      $("simulation-metrics").append(metric("確定分の回収率",s.roi===null?"未確定":s.roi.toFixed(1)+"%","確認済み払戻・返還 ÷ 確定分購入額"),metric("収支確定の購入予定",s.settledStake/800+" / "+s.bought+"レース","日予算で選んだ対象のみ"),metric("購入予定分の的中率",hitRate(s.boughtComparison),s.boughtComparison.hits+" / "+(s.boughtComparison.hits+s.boughtComparison.misses)+"レース（結果待ち等を除外）"));
+      $("simulation-comparison").replaceChildren(table(["モデル・履歴条件","購入予定分の的中 / 照合済","購入予定分の的中率","確定分回収率","予定購入額","払戻","返還","確定分収支","未確定額","全体収支"],scenarios.map(({group,sim:t})=>[modelName(group),t.boughtComparison.hits+" / "+(t.boughtComparison.hits+t.boughtComparison.misses),hitRate(t.boughtComparison),t.roi===null?"未確定":t.roi.toFixed(1)+"%",yen(t.spent),yen(t.payout),yen(t.refund),net(t.settledNet),yen(t.pendingStake),net(t.net)])));
       const raceMap=new Map(rows.map(r=>[r.race_id,r]));
       const reasons={DAILY_BUDGET_LIMIT:"日予算上限で見送り",NO_UNAMBIGUOUS_SAVED_MODEL:"原本未取得・選択不可",MODEL_IDENTITY_UNKNOWN:"モデル・版・時点が未取得",COMPLETE_TOP8_NOT_SAVED:"Top8が未完備",TRIFECTA_NOT_OFFERED:"3連単非発売",SAVE_CLOCK_UNKNOWN:"保存時刻未確認",NOT_SAVED_BEFORE_CUTOFF:"締切前保存を確認できません"};
       $("simulation-ledger").replaceChildren(table(["日付・レース","予定額","払戻","返還","収支","配分の状態"],s.rows.map(e=>[e.day+" · "+raceName(raceMap.get(e.race_id)),yen(e.stake),e.stake?net(e.payout):"—",e.stake?net(e.refund):"—",e.stake?net(e.net):"—",e.reason?(reasons[e.reason]||e.reason):e.net===null?"結果・払戻待ち":"取得結果で試算済み"])));
