@@ -119,7 +119,8 @@ class VenueHistory:
         coverage=self._coverage_cache.copy()
         if venue is not None:
             missing=self._venue_gaps[venue]
-            coverage.update(unreported_venue_days=missing,source_window_complete=coverage['parsed_source_files']==coverage['requested_calendar_days'] and missing==0)
+            coverage.update(unreported_venue_days=missing,fully_parsed_days=coverage['parsed_source_files']-missing,
+                source_window_complete=coverage['parsed_source_files']==coverage['requested_calendar_days'] and missing==0)
         return coverage
 
     def profile(self,racer_id,venue_code,*,as_of):
