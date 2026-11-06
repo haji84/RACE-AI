@@ -870,7 +870,7 @@
     "local_status_request_scoped_fix": {
       "source_sha256": "c07e5e37523464aa69053c0052a908adb867ec4848077ac351d7453502b6851d",
       "test_sha256": "efdeab74f48bb968e3d86ac04aaab332631ea538f65ec43460692a02b4ffa03a",
-      "status": "REVIEWED_APPLIED_LOCAL_TARGETED_TESTS_HEALTH_AND_READONLY_CHROMIUM_PASSED_FINAL_CODE_PUSH_CI_NOT_YET_STARTED",
+      "status": "REVIEWED_APPLIED_LOCAL_TARGETED_TESTS_ACTUAL_READONLY_UI_AND_EXACT_CODE_CI_PASSED",
       "one_fresh_integrity_and_context_preparation_per_request": true,
       "cross_request_cache": false,
       "next_request_updated_or_tampered_data_checked": true,
@@ -894,8 +894,8 @@
         "seconds": 0.155,
         "scope": "CODE_AND_CONTROLLED_REGRESSION_NOT_LIVE_LATENCY"
       },
-      "existing_pr_commit": "PENDING_ROOT_COMMIT_AND_PUSH",
-      "final_ci": "NOT_YET_STARTED_FOR_FINAL_CODE_PUSH_AT_THIS_RECORD_TIME",
+      "existing_pr_commit": "63ecc928ed89e87901e4ccaa5184b30518f9c895",
+      "final_ci": "SUCCESS_EXACT_REQUEST_SCOPED_VIEW_CODE_HEAD_63ECC92",
       "runtime_applied_at": "2026-11-06T05:08:14+00:00",
       "runtime_health": {
         "observed_at": "2026-11-06T05:08:53.147696+00:00",
@@ -960,7 +960,82 @@
         "private_report_sha256": "9faba57edab169f6031e1685125eddfa1e9ba9c0f05969c0017f1a53d4e3e33d",
         "private_attempt2_json_sha256": "b3e0ce1c117771c5bd3dfaac33f008fda967ae81472ec8f0ce5807d8d6f4ec78",
         "first_attempt_harness_csp_eval_issue_corrected_without_weakening_app_csp": true
+      },
+      "existing_ci_receipt": {
+        "checked_at": "2026-11-06T05:25:49.624789+00:00",
+        "scope": "EXISTING_PR71_REQUEST_SCOPED_VIEW_FIX",
+        "runs": [
+          {
+            "id": 42167380144,
+            "workflow_id": 392270247,
+            "head_sha": "63ecc928ed89e87901e4ccaa5184b30518f9c895",
+            "head_branch": "feat/four-sport-forecast-audit-view-20261022",
+            "event": "pull_request",
+            "status": "completed",
+            "conclusion": "success",
+            "created_at": "2026-11-06T05:15:50Z",
+            "updated_at": "2026-11-06T05:22:56Z",
+            "html_url": "https://github.com/haji84/RACE-AI/actions/runs/42167380144"
+          },
+          {
+            "id": 42167380137,
+            "workflow_id": 405150548,
+            "head_sha": "63ecc928ed89e87901e4ccaa5184b30518f9c895",
+            "head_branch": "feat/four-sport-forecast-audit-view-20261022",
+            "event": "pull_request",
+            "status": "completed",
+            "conclusion": "success",
+            "created_at": "2026-11-06T05:15:50Z",
+            "updated_at": "2026-11-06T05:16:14Z",
+            "html_url": "https://github.com/haji84/RACE-AI/actions/runs/42167380137"
+          }
+        ],
+        "private_actual_ui_report_sha256": "9faba57edab169f6031e1685125eddfa1e9ba9c0f05969c0017f1a53d4e3e33d",
+        "field_identification_strength_video_forward_acceptance": "NOT_ESTABLISHED",
+        "new_forecast_independent_receipt_sha256": "8e0cf4c01f63b5d9743afc42039241d59f9d32d0d5782466c75127cc56444f83",
+        "private_receipt_sha256": "4019ac16f329d0d75f02bee53b5f389d5bb0db45b32f9bbb9f40291dd49ac6ca",
+        "ci_log_sha256": "218d889aa3ee4e2d59a257fe955d217a64112cb24f777e9de5673284a0cf9377",
+        "general_python": {
+          "tests": 1853,
+          "skipped": 140,
+          "seconds": 200.126,
+          "status": "OK"
+        },
+        "isolated_video_python": {
+          "tests": 251,
+          "skipped": 0,
+          "seconds": 23.659,
+          "status": "OK"
+        },
+        "ci_is_not_field_acceptance": true,
+        "following_record_only_commit_checks": "SEPARATE_GITHUB_CHECKS_NOT_YET_STARTED_AT_THIS_RECORD_TIME"
       }
+    },
+    "licensed_additional_catalog_check": {
+      "checked_at": "2026-11-06T05:22:29.587654+00:00",
+      "provider": "WIKIMEDIA_COMMONS",
+      "latest_http_status": 403,
+      "latest_response_at": "2026-11-06T05:20:46+00:00",
+      "state": "ALL_COMMONS_REQUESTS_STOPPED",
+      "new_requests": 1,
+      "new_media_downloads": 0,
+      "new_frames": 0,
+      "model_calls": 0,
+      "previous_429_cooldown_headers_not_confirmed_before_new_request": true,
+      "decision_error_recorded": true,
+      "cached_successful_queries": 10,
+      "cached_distinct_file_pages": 65,
+      "unfetched_continuations": 2,
+      "other_usable_licensed_clip_identified_in_cached_coverage": false,
+      "global_no_other_licensed_video_claim": false,
+      "private_receipt_sha256": "720dd64e6efe2e0771f5c08e834bbbb1e21b5fa82f2b248894e3ec7c88a3edab",
+      "runtime_network_policy": {
+        "mode": "unrestricted",
+        "state": "enforced",
+        "observations_current": true,
+        "configuration_changed_or_published": false
+      },
+      "http_403_cause": "NOT_ESTABLISHED_NOT_ASSUMED_TO_BE_ENVIRONMENT_ALLOWLIST"
     }
   },
   "continuity": {
