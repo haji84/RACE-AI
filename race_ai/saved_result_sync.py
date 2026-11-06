@@ -61,8 +61,8 @@ def parse_capture(raw,receipt):
             records.append(dict(race_id=base['race_id'],lane=int(lane),racer_registration_id=person[1],
                 name=person[2].strip(),finish=int(finish) if finish.isdecimal() else None,
                 finish_status='FINISHED' if finish.isdecimal() else finish,verified_official=True))
-    need(len(records)==6 and {r['lane'] for r in records}==set(range(1,7)) and
-         len({r['racer_registration_id'] for r in records})==6,'RESULT_ROSTER_IDENTITY_MISMATCH')
+    need(3<=len(records)<=6 and len({r['lane'] for r in records})==len(records) and
+         len({r['racer_registration_id'] for r in records})==len(records),'RESULT_ROSTER_IDENTITY_MISMATCH')
     payouts=[]
     for cells in old.expanded_rows(old.table_with(frame,'勝式','組番','払戻金'),4):
         label,combo,amount,_=(c.text().strip() for c in cells)
@@ -137,6 +137,8 @@ def read_batch(state):
 
 def project_observation(observation,row,*,freeze_at,raw_bound=False):
     """Keep strict scoring intact; flag an optional raw-backed UI reference."""
+    if row.get('cutoff_at') is None and len(row.get('saved_cutoff_variants',[]))>1 and raw_bound:
+        return _reconcile_original_cutoffs(observation,row)
     try:return _observation(observation,row)
     except ValueError as error:
         if str(error)!='RESULT_CUTOFF_MISMATCH' or not raw_bound:raise
@@ -146,7 +148,33 @@ def project_observation(observation,row,*,freeze_at,raw_bound=False):
     cancelled=data.get('status') in ('cancelled','no_contest') and data.get('confirmed') is True
     need(original.astimezone(jst).date()==observed.astimezone(jst).date() and (cancelled or abs(offset)<=60),'RESULT_CUTOFF_MISMATCH')
     need(instant(freeze_at)<(original if cancelled else min(original,observed)) and instant(observation['captured_at'])>=max(original,observed),'RESULT_CUTOFF_REFERENCE_CHRONOLOGY')
-    need(len(row.get('participants',[]))==6 and (cancelled or len(data.get('results',[]))==6),'RESULT_CUTOFF_REFERENCE_ROSTER_REQUIRED')
+    need(3<=len(row.get('participants',[]))<=6 and (cancelled or 3<=len(data.get('results',[]))<=6),'RESULT_CUTOFF_REFERENCE_ROSTER_REQUIRED')
     reference=_observation(observation,{**row,'cutoff_at':observation['closed_at'],'saved_cutoff_variants':[observation['closed_at']]})
     reference['cutoff_reference']=dict(original_cutoff_at=row['cutoff_at'],result_schedule_cutoff_at=observation['closed_at'],offset_seconds=offset,formal_eligible=False,basis='RAW_OFFICIAL_CANCELLATION_SELECTED_RACE' if cancelled else 'RAW_OFFICIAL_PAGE_SAME_ROSTER_SAVED_BEFORE_BOTH')
     return reference
+
+def _reconcile_original_cutoffs(observation,row):
+    """Project the same authenticated raw result against every saved clock.
+
+    This is a display reference only. No original cutoff or formal settlement
+    is changed, and every saved forecast must precede both source clocks.
+    """
+    from .boat_saved_model_view import validate_cutoff_reconciliation
+    variants=row['saved_cutoff_variants'];clocks=[instant(c) for c in variants]+[instant(observation['closed_at'])]
+    need((max(clocks)-min(clocks)).total_seconds()<=60,'RESULT_CUTOFF_MISMATCH')
+    predictions=[p for p in [row.get('prediction'),*row.get('comparison_predictions',[])] if p is not None]
+    need(predictions,'RESULT_CUTOFF_REFERENCE_CHRONOLOGY')
+    projected=[]
+    for cutoff in variants:
+        narrow={**row,'cutoff_at':cutoff,'saved_cutoff_variants':[cutoff]}
+        saved=max(instant(p['persisted_at']) for p in predictions)
+        result=project_observation(observation,narrow,freeze_at=saved.isoformat(),raw_bound=True)
+        result.pop('cutoff_reference',None);projected.append(result)
+    need(all(wire(r)==wire(projected[0]) for r in projected),'RESULT_CUTOFF_REFERENCE_CONFLICT')
+    result=projected[0]
+    result['cutoff_reconciliation']=dict(basis='RAW_OFFICIAL_RESULT_PER_ORIGINAL_CUTOFF',formal_eligible=False,
+        original_cutoffs=list(variants),source_sha256=observation['source_sha256'],
+        maximum_offset_seconds=(max(clocks)-min(clocks)).total_seconds(),
+        roster_identity_verified=True,all_originals_saved_before_both=True)
+    validate_cutoff_reconciliation(row,result)
+    return result

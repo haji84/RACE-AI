@@ -9,6 +9,8 @@ import hashlib
 from urllib.parse import urlsplit, parse_qs
 from .actions_contract import digest
 from .boat_ab_shadow import _valid, _time
+from .boat_active_roster import active_roster
+from .boat_live_feature_shadow import _validated_extra
 from .boat_observed_pairwise_models import predict_pair, FEATURE_TRANSFORMS, MODEL_IDS, HISTORY_FIELDS
 
 RIGHTS = 'OWNER_PERSONAL_OFFICIAL_HTML_ANALYSIS_20261104'
@@ -45,9 +47,7 @@ def build_bundle(base, extra, generated_at, *, program_url, preview_url,
         sources.append(dict(source_id=sid,source_url=locator(url,kind,rid),source_sha256=sha,
             source_rights_ref=RIGHTS,published_at=None,captured_at=at,evidence_basis='CAPTURED_BY_CLAIM'))
         http.append(dict(source_id=sid,request_url=url,source_sha256=sha,captured_at=at))
-    need(len(extra['participants']) == 6, 'P1 six ST observations required')
-    by_lane={x['lane']:x for x in extra['participants']}
-    need(set(by_lane)==set(range(1,7)), 'P1 duplicate or missing lane')
+    by_lane=_validated_extra(base,extra,generated_at,boats)
     history=None
     if history_context is not None:
         from .observed_result_history import prepare_history
@@ -126,15 +126,15 @@ def verified_rows(bundle, receipt, body_sha):
         need(all(not HISTORY_FIELDS.intersection(row['features']) for row in snap['participants']),
              'P1 numeric history requires explicit history evidence')
     check_clock(snap['as_of'],snap['sales_cutoff_at'],receipt['created_at'])
+    lanes=active_roster(snap['participants'],identity_key='registration_no')
     roster={str(x['lane']):x['registration_no'] for x in snap['participants']}
-    need(len(snap['participants'])==6 and set(roster)==set(map(str,range(1,7))) and len(set(roster.values()))==6,'P1 observed roster invalid')
     output=[]
     for mid,model in suite['models'].items():
         sealed(model,'prediction_sha256')
         need(model['model_id']==mid and model['race_id']==snap['race_id'] and model['as_of']==snap['as_of'] and
              model['sales_cutoff_at']==snap['sales_cutoff_at'] and model['snapshot_sha256']==digest(snap) and
              model['stage']=='P1' and model['official_prediction'] is False,'P1 observed model binding mismatch')
-        ranked=[x['combination'] for x in model['candidates']];rank_check(ranked,model['ordered_top8'])
+        ranked=[x['combination'] for x in model['candidates']];rank_check(ranked,model['ordered_top8'],lanes=lanes)
         output.append(dict(race_id=rid,sport='boat',stage='P1',model_id=mid,as_of=snap['as_of'],
             cutoff_at=snap['sales_cutoff_at'],server_saved_at=receipt['created_at'],artifact_id=receipt['id'],
             original_json_sha256=body_sha,model_sha256=model['prediction_sha256'],roster=roster,

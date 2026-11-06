@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 import hashlib, io, itertools, json, math, re, zipfile
 from .actions_contract import digest
 from .repeated_cycle import matches as artifact_matches
+from .boat_active_roster import active_roster, match_result_roster
 
 UNIVERSE=set(itertools.permutations(range(1,7),3))
 def need(ok,reason):
@@ -19,7 +20,8 @@ def sealed(item,key):
     need(item.get(key)==digest({k:v for k,v in item.items() if k!=key}),'original hash changed: '+key)
 def official_id(value):
     m=re.fullmatch(r'boat:(\d{4}-\d\d-\d\d):boatrace-jcd-(\d\d):([1-9]|1[0-2])',value)
-    need(m is not None,'original race ID invalid')
+    need(m is not None and 1<=int(m[2])<=24,'original race ID invalid')
+    datetime.strptime(m[1],'%Y-%m-%d')
     return m[1].replace('-','')+'-'+m[2]+'-'+m[3].zfill(2)
 def archive_json(raw,receipt,member,expected_name):
     need(isinstance(raw,bytes) and len(raw)<=32*1024*1024,'bounded archive required')
@@ -39,9 +41,17 @@ def check_clock(generated,cutoff,server):
     g,c,s=ts(generated),ts(cutoff),ts(server)
     need(g<c and s<c and (g<=s or s.microsecond==0 and s<=g<s+timedelta(seconds=1)),
          'forecast not independently stored before cutoff')
-def rank_check(ranked,top):
+def rank_check(ranked,top,lanes=None):
+    lanes=tuple(range(1,7)) if lanes is None else tuple(lanes)
+    need(3<=len(lanes)<=6 and len(set(lanes))==len(lanes) and
+         all(type(n) is int and 1<=n<=6 for n in lanes),'invalid active ranked roster')
+    universe=set(itertools.permutations(lanes,3))
+    need(isinstance(ranked,list) and all(isinstance(r,(list,tuple)) and len(r)==3 and
+         all(type(n) is int for n in r) for r in ranked),'invalid ranked combination')
+    need(isinstance(top,list) and all(isinstance(r,list) and len(r)==3 and
+         all(type(n) is int for n in r) for r in top),'invalid original top combination')
     combos=[tuple(r) for r in ranked]
-    need(len(combos)==120 and set(combos)==UNIVERSE,'incomplete ranked universe')
+    need(len(combos)==len(universe) and set(combos)==universe,'incomplete ranked universe')
     need([list(t) for t in combos[:8]]==top,'original top8 does not match rank')
 
 def read_p0(raw,receipt,*,expected_day):
@@ -55,14 +65,14 @@ def read_p0(raw,receipt,*,expected_day):
         sealed(suite,'suite_sha256');rid=official_id(suite['race_id'])
         need(rid not in seen and suite['event_date_jst']==expected_day and suite['stage']=='P0','duplicate or wrong-day suite')
         seen.add(rid);check_clock(suite['as_of'],suite['sales_cutoff_at'],receipt['created_at'])
+        lanes=active_roster(suite['observations'],identity_key='registration_no')
         roster={str(x['lane']):x['registration_no'] for x in suite['observations']}
-        need(set(roster)==set(map(str,range(1,7))) and len(set(roster.values()))==6,'original roster invalid')
         for mid,model in suite['models'].items():
             sealed(model,'prediction_sha256')
             need(mid==model['model_id'] and model['race_id']==suite['race_id'] and model['as_of']==suite['as_of']
                 and model['sales_cutoff_at']==suite['sales_cutoff_at'] and model['snapshot_sha256']==suite['snapshot_sha256'],
                 'cross-race/model binding rejected')
-            ranked=[x['combination'] for x in model['candidates']];rank_check(ranked,model['ordered_top8'])
+            ranked=[x['combination'] for x in model['candidates']];rank_check(ranked,model['ordered_top8'],lanes=lanes)
             output.append(dict(race_id=rid,sport='boat',stage='P0',model_id=mid,as_of=suite['as_of'],
                 cutoff_at=suite['sales_cutoff_at'],server_saved_at=receipt['created_at'],artifact_id=receipt['id'],
                 original_json_sha256=body_sha,model_sha256=model['prediction_sha256'],
@@ -83,12 +93,12 @@ def read_p1(raw,receipt):
         if shadow is None:continue
         sealed(shadow,'bundle_sha256')
         need(shadow['source_snapshot_sha256']==pair['source_sha256'],'P1 original inputs differ')
+        lanes=active_roster(shadow['features'],identity_key='racer_id')
         roster={str(x['lane']):x['racer_id'] for x in shadow['features']}
-        need(set(roster)==set(map(str,range(1,7))) and len(set(roster.values()))==6,'P1 original roster invalid')
         for model in [*pair['models'],shadow]:
             key='model_sha256' if 'model_sha256' in model else 'bundle_sha256';sealed(model,key)
             ranked=[list(map(int,x['ticket'].split('-'))) for x in model['full_120']]
-            top=[list(map(int,x['ticket'].split('-'))) for x in model['top8']];rank_check(ranked,top)
+            top=[list(map(int,x['ticket'].split('-'))) for x in model['top8']];rank_check(ranked,top,lanes=lanes)
             asof=model.get('as_of',pair['generated_at']);check_clock(asof,pair['cutoff_at'],receipt['created_at'])
             rows.append(dict(race_id=rid,sport='boat',stage='P1',model_id=model['model_id'],as_of=asof,
                 cutoff_at=pair['cutoff_at'],server_saved_at=receipt['created_at'],artifact_id=receipt['id'],
@@ -107,6 +117,10 @@ def read_p1(raw,receipt):
 
 def settle(row,observation):
     base={k:v for k,v in row.items() if k not in ('ranked','roster')}
+    lanes=active_roster([dict(lane=int(lane),registration_no=registration)
+                         for lane,registration in row['roster'].items()],identity_key='registration_no')
+    rank_check(row['ranked'],row['top8'],lanes=lanes)
+    stake=len(row['top8'])*100
     if observation is None:return dict(base,state='RESULT_PENDING')
     need(observation.get('race_id')==row['race_id'],'foreign result')
     need(observation.get('body_identity_verified') is True,'unverified official identity')
@@ -116,22 +130,28 @@ def settle(row,observation):
     data=observation.get('data')
     if observation.get('status')!='AVAILABLE' or not isinstance(data,dict):return dict(base,state='RESULT_PENDING')
     if data.get('status') in ('cancelled','no_contest') and data.get('confirmed') is True:
-        return dict(base,state='FULL_REFUND',stake_yen=800,received_yen=800,net_yen=0)
+        return dict(base,state='FULL_REFUND',stake_yen=stake,received_yen=stake,net_yen=0)
     if data.get('finish_confirmed') is not True:return dict(base,state='RESULT_PENDING')
-    roster={str(x['lane']):x['racer_registration_id'] for x in data.get('results',[])}
-    need(len(data.get('results',[]))==6 and roster==row['roster'],'official/frozen racer identity mismatch')
-    if data.get('refund_boats'):return dict(base,state='REFUND_REVIEW_REQUIRED')
-    if any(x.get('finish_status')!='FINISHED' for x in data['results']):return dict(base,state='ABNORMAL_FINISH_REVIEW_REQUIRED')
+    results=match_result_roster(row,data.get('results',[]),race_id=row['race_id'])
+    refunds=data.get('refund_boats',[])
+    need(type(refunds) is list and all(type(n) is int and 1<=n<=6 for n in refunds)
+         and len(set(refunds))==len(refunds),'official refund identities invalid')
+    observed_lanes={r['lane'] for r in data.get('results',[])}
+    if any(n in lanes or n not in observed_lanes for n in refunds):return dict(base,state='REFUND_REVIEW_REQUIRED')
+    if any(x.get('finish_status')!='FINISHED' for x in results):return dict(base,state='ABNORMAL_FINISH_REVIEW_REQUIRED')
     if data.get('status')!='settled' or data.get('confirmed') is not True:return dict(base,state='SETTLEMENT_PENDING')
     payouts=[x for x in data.get('payouts',[]) if x.get('bet_type')=='trifecta']
     if len(payouts)!=1:return dict(base,state='SPECIAL_SETTLEMENT_REVIEW_REQUIRED')
     winner=payouts[0]['combination'];yen=payouts[0]['payout_per_100_yen']
-    need(tuple(winner) in UNIVERSE and data.get('top3')==winner and type(yen) is int and yen>=0,'payout/result mismatch')
-    rank=row['ranked'].index(winner)+1;hit=rank<=8;top=row['top8']
+    need(type(winner) is list and all(type(n) is int for n in winner) and
+         tuple(winner) in set(itertools.permutations(lanes,3)) and type(data.get('top3')) is list
+         and all(type(n) is int for n in data['top3']) and data.get('top3')==winner and
+         type(yen) is int and yen>=0,'payout/result mismatch')
+    rank=row['ranked'].index(winner)+1;hit=rank<=len(row['top8']);top=row['top8']
     miss=('HIT' if hit else 'WINNER_NOT_COVERED' if not any(t[0]==winner[0] for t in top) else
           'FIRST_SECOND_PAIR_NOT_COVERED' if not any(t[:2]==winner[:2] for t in top) else 'THIRD_PLACE_MISMATCH')
     return dict(base,state='HIT' if hit else 'MISS',winning_combination=winner,payout_per_100_yen=yen,
-        hit_rank=rank,stake_yen=800,received_yen=yen if hit else 0,net_yen=(yen if hit else 0)-800,
+        hit_rank=rank,stake_yen=stake,received_yen=yen if hit else 0,net_yen=(yen if hit else 0)-stake,
         pdca=miss,manshu_opportunity=yen>=10000,manshu_hit=hit and yen>=10000)
 
 def evaluate(rows,observations):

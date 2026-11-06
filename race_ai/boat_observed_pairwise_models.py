@@ -16,7 +16,7 @@ import re
 from urllib.parse import urlsplit
 
 from .actions_contract import ContractError, canonical, digest, stamp
-from .legacy_boat_rank import plackett_luce
+from .boat_active_roster import rank_active
 
 
 SCHEMA = "RACE_AI_BOAT_OBSERVED_PAIRWISE_V1"
@@ -201,8 +201,8 @@ def _validate(snapshot):
         raise ObservedPairwiseError("as_of must precede JST event cutoff")
     sources = _validate_sources(snapshot, as_of)
     participants = snapshot["participants"]
-    if type(participants) is not list or len(participants) != 6:
-        raise ObservedPairwiseError("exactly six participants required")
+    if type(participants) is not list or not 3 <= len(participants) <= 6:
+        raise ObservedPairwiseError("three to six confirmed active participants required")
     lanes, registrations = set(), set()
     history_claims = {}
     exhibition_n = 0
@@ -243,8 +243,8 @@ def _research_flags():
             "result_or_cutoff_proof_eligible": False, "purchase_decision": "NO_BET"}
 
 
-def _spec():
-    return {
+def _spec(entrant_count=6):
+    spec = {
         "model_ids": list(MODEL_IDS), "model_version": MODEL_VERSION,
         "feature_ranges": deepcopy(FEATURE_RANGES), "feature_transforms": deepcopy(FEATURE_TRANSFORMS),
         "history_schema": sorted(HISTORY_KEYS), "missing_reasons": sorted(MISSING_REASONS),
@@ -257,13 +257,18 @@ def _spec():
         "candidate_rule": "legacy_boat_rank.plackett_luce; score descending then lexical combination; Top8",
         "missing_assumption": "absent contrast is neutral; no dynamic weight normalization",
     }
+    if entrant_count != 6:
+        spec.update(model_version="0.2.0-ACTIVE-ROSTER-UNTRAINED", active_entrant_count=entrant_count,
+                    utility="sum_k (w_k/N) sum_j!=i,both_observed (z_ik-z_jk); N=active entrant count")
+    return spec
 
 
 def _contrasts(snapshot):
     rows = sorted(snapshot["participants"], key=lambda row: row["lane"])
+    lanes = [row["lane"] for row in rows]
     normalized = {}
     counts, pair_counts, discriminating_counts = {}, {}, {}
-    comparisons = {lane: {} for lane in range(1, 7)}
+    comparisons = {lane: {} for lane in lanes}
     contrasts = []
     for name, (low, high) in FEATURE_RANGES.items():
         values = {}
@@ -275,10 +280,10 @@ def _contrasts(snapshot):
         counts[name] = len(values)
         pair_counts[name] = len(values) * (len(values) - 1) // 2
         discriminating_counts[name] = 0
-        for lane in range(1, 7):
+        for lane in lanes:
             comparisons[lane][name] = len(values) - 1 if lane in values else 0
-        for left in range(1, 7):
-            for right in range(left + 1, 7):
+        for index, left in enumerate(lanes):
+            for right in lanes[index + 1:]:
                 if left in values and right in values:
                     delta = values[left] - values[right]
                     discriminating_counts[name] += delta != 0
@@ -287,23 +292,24 @@ def _contrasts(snapshot):
     coverage = {
         "observed_feature_counts": counts, "observed_pair_counts": pair_counts,
         "discriminating_pair_counts": discriminating_counts,
-        "observed_feature_value_count": sum(counts.values()), "possible_feature_value_count": 48,
-        "observed_pair_count": sum(pair_counts.values()), "possible_pair_count": 120,
+        "observed_feature_value_count": sum(counts.values()), "possible_feature_value_count": len(lanes)*len(FEATURE_RANGES),
+        "observed_pair_count": sum(pair_counts.values()), "possible_pair_count": math.comb(len(lanes),2)*len(FEATURE_RANGES),
         "discriminating_pair_count": sum(discriminating_counts.values()),
         "entrant_comparisons": [{"lane": lane, "by_feature": comparisons[lane],
-                                  "total": sum(comparisons[lane].values())} for lane in range(1, 7)],
+                                  "total": sum(comparisons[lane].values())} for lane in lanes],
     }
     return normalized, contrasts, coverage
 
 
 def _model_result(model_id, normalized, coverage, binding):
     utilities = []
-    for lane in range(1, 7):
+    by_lane = {row["lane"]: row for row in coverage["entrant_comparisons"]}
+    for lane in by_lane:
         utility, lower, upper = Fraction(0), Fraction(0), Fraction(0)
         for name, weight in zip(FEATURE_RANGES, WEIGHTS[model_id]):
-            scale = Fraction(str(weight)) / 6
+            scale = Fraction(str(weight)) / len(by_lane)
             values = normalized[name]
-            for other in range(1, 7):
+            for other in by_lane:
                 if lane == other:
                     continue
                 if lane in values and other in values:
@@ -319,13 +325,14 @@ def _model_result(model_id, normalized, coverage, binding):
                 upper += scale * hi
         utilities.append({"lane": lane, "utility": float(utility), "strength": math.exp(float(utility)),
                           "completion_lower": float(lower), "completion_upper": float(upper),
-                          "observed_comparisons": coverage["entrant_comparisons"][lane - 1]["total"]})
+                          "observed_comparisons": by_lane[lane]["total"]})
     score_discriminating = len({row["utility"] for row in utilities}) > 1
-    ranked = plackett_luce({row["lane"]: row["strength"] for row in utilities})
+    ranked = rank_active({row["lane"]: row["strength"] for row in utilities})
     candidates = [{"combination": row["combination"], "score": row["probability"]} for row in ranked["triples"]]
     candidates.sort(key=lambda row: (-row["score"], row["combination"]))
     result = {
-        **binding, **_research_flags(), "model_id": model_id, "model_version": MODEL_VERSION,
+        **binding, **_research_flags(), "model_id": model_id,
+        "model_version": MODEL_VERSION if len(by_lane)==6 else "0.2.0-ACTIVE-ROSTER-UNTRAINED",
         "status": "OBSERVED_CONTRASTS" if score_discriminating else "UNINFORMATIVE_TIE_BREAK",
         "score_discriminating": score_discriminating,
         "model_status": "RESEARCH_UNTRAINED_NOT_CALIBRATED", "validation_status": "UNVALIDATED",
@@ -366,7 +373,7 @@ def predict_pair(snapshot, *, allow_source=None, model_ids=None):
                 raise ObservedPairwiseError("source analysis permission callback failed") from exc
             if allowed is not True:
                 raise ObservedPairwiseError("source analysis permission denied")
-    spec = _spec()
+    spec = _spec(len(frozen["participants"]))
     binding = {key: frozen[key] for key in ("scope", "race_id", "event_date_jst", "venue", "race_revision",
                                            "stage", "as_of", "sales_cutoff_at", "race_source_id")}
     binding.update(snapshot_sha256=snapshot_sha, model_spec_sha256=digest(spec))

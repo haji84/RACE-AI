@@ -53,7 +53,8 @@ async function buildChallenger(facts,rows){
  const total=entries.reduce((s,x)=>s+x.score,0);
  for(const x of entries)x.score/=total;
  entries.sort((a,b)=>b.score-a.score||a.ticket.join('-').localeCompare(b.ticket.join('-')));
- if(entries.length!==120||Math.abs(entries.reduce((s,x)=>s+x.score,0)-1)>1e-9)throw Error('PDCA_PROBABILITY_MASS');
+ const activeCount=facts.racers.length;
+ if(entries.length!==activeCount*(activeCount-1)*(activeCount-2)||Math.abs(entries.reduce((s,x)=>s+x.score,0)-1)>1e-9)throw Error('PDCA_PROBABILITY_MASS');
  const input=history.map(h=>({race_id:h.report.race_id,result_source_sha256:h.report.source_sha256,report_sha256:h.report_sha256,db_saved_at:h.db_saved_at}));
  const training_digest=await sha(JSON.stringify(input));
  return {status:'PDCA_CHALLENGER_READY',candidate:{

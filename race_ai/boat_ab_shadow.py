@@ -57,8 +57,8 @@ def _valid(source, generated_at):
         if not isinstance(source[k], str) or re.fullmatch(r"[0-9a-f]{64}", source[k]) is None:
             raise ValueError("real source SHA absent")
     boats = source["boats"]
-    if not isinstance(boats, list) or len(boats) != 6:
-        raise ValueError("all six official entrants required")
+    if not isinstance(boats, list) or not 3 <= len(boats) <= 6:
+        raise ValueError("three to six confirmed active entrants required")
     order = sorted(boats, key=lambda b:b["lane"] if isinstance(b, dict) and type(b.get("lane")) is int else 100)
     seen = set()
     for b in order:
@@ -70,7 +70,7 @@ def _valid(source, generated_at):
         if type(lane) is not int or lane not in range(1,7) or lane in seen:
             raise ValueError("distinct lane identities required")
         seen.add(lane)
-        if not isinstance(b["racer_id"], str) or re.fullmatch(r"\d{4}", b["racer_id"]) is None:
+        if not isinstance(b["racer_id"], str) or re.fullmatch(r"[0-9]{4}", b["racer_id"]) is None:
             raise ValueError("actual racer registration id required")
         for key, minimum, maximum in (("exhibition_time_seconds",4,12),
                                       ("motor_two_place_rate_percent",0,100)):
@@ -80,20 +80,33 @@ def _valid(source, generated_at):
         rate = b["national_win_rate"]
         if rate is not None and (type(rate) not in (float,int) or not math.isfinite(rate) or not 0 <= rate <= 10):
             raise ValueError("invalid observed national win rate")
-    if len(seen) != 6 or len({r["racer_id"] for r in order}) != 6:
+    if len(seen) != len(boats) or len({r["racer_id"] for r in order}) != len(boats):
         raise ValueError("duplicate entrants")
     return order
 
 
-def _rank(strengths):
+def _rank(strengths, lanes=None):
+    lanes = tuple(range(1, len(strengths)+1)) if lanes is None else tuple(lanes)
+    if (len(lanes) != len(strengths) or not 3 <= len(lanes) <= 6
+            or len(set(lanes)) != len(lanes) or any(type(n) is not int or not 1 <= n <= 6 for n in lanes)
+            or any(type(v) not in (int,float) or not math.isfinite(v) or v <= 0 for v in strengths)):
+        raise ValueError("valid active physical lane strengths required")
+    by_lane = dict(zip(lanes, strengths))
     total = math.fsum(strengths)
     out = []
-    for a,b,c in itertools.permutations(range(1,7),3):
-        x,y,z = (strengths[i-1] for i in (a,b,c))
-        p = x/total * y/(total-x) * z/(total-x-y)
+    for a,b,c in itertools.permutations(lanes,3):
+        x,y,z = (by_lane[i] for i in (a,b,c))
+        if len(lanes) == 6:
+            p = x/total * y/(total-x) * z/(total-x-y)
+        else:
+            # Sum remaining strengths to avoid cancellation in small fields
+            # with one very strong entrant; the legacy six arithmetic stays.
+            second = math.fsum(by_lane[lane] for lane in lanes if lane != a)
+            third = math.fsum(by_lane[lane] for lane in lanes if lane not in (a,b))
+            p = x/total * y/second * z/third
         out.append({"ticket":[a,b,c], "score":p})
     mass = math.fsum(row["score"] for row in out)
-    if len(out)!=120 or not math.isfinite(mass) or not math.isclose(mass,1.0,abs_tol=1e-9):
+    if len(out)!=math.perm(len(lanes),3) or not math.isfinite(mass) or not math.isclose(mass,1.0,abs_tol=1e-9):
         raise ValueError("3-way PL distribution invalid")
     out.sort(key=lambda row:(-row["score"],row["ticket"]))
     return out
@@ -101,8 +114,8 @@ def _rank(strengths):
 
 def build_pair(source, generated_at):
     boats = _valid(source, generated_at)
-    avg = math.fsum(b["exhibition_time_seconds"] for b in boats)/6
-    motor_avg = math.fsum(b["motor_two_place_rate_percent"] for b in boats)/6
+    avg = math.fsum(b["exhibition_time_seconds"] for b in boats)/len(boats)
+    motor_avg = math.fsum(b["motor_two_place_rate_percent"] for b in boats)/len(boats)
     base = []
     candidate = []
     for b in boats:
@@ -121,7 +134,7 @@ def build_pair(source, generated_at):
            "actual_result_at_forecast_time":None,
            "models":[]}
     for model, strengths in zip(MODEL_IDS,(base,candidate)):
-        ranked = _rank(strengths)
+        ranked = _rank(strengths, [b["lane"] for b in boats])
         record = {"model_id":model, "trained":False,"calibrated":False,
                   "odds_independent":True,"purchase_decision":"NO_BET",
                   "full_120":[{"ticket":"-".join(map(str,r["ticket"])),"score":r["score"]} for r in ranked],

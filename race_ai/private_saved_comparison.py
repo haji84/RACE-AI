@@ -215,24 +215,42 @@ def _result(schedule, captures, selected_rows, evaluated):
         if data.get("finish_confirmed") is not True or data.get("confirmed") is not True or data.get("status") != "settled":
             return "RESULT_PENDING", selected
         results = data.get("results", [])
-        _need(type(results) is list and len(results) == 6 and all(type(r) is dict and
+        _need(type(results) is list and 3<=len(results)<=6 and all(type(r) is dict and
               type(r.get("lane")) is int and re.fullmatch(r"\d{4}", r.get("racer_registration_id", "")) for r in results), "result roster")
         roster = {str(r["lane"]):r["racer_registration_id"] for r in results}
-        _need(set(roster) == set(map(str,range(1,7))) and len(set(roster.values())) == 6 and
-              all(row is None or row["roster"] == roster for row in selected_rows), "result/frozen roster")
+        active_references=[row for row in selected_rows if row is not None and len(row.get('roster',{}))<6]
+        if type(schedule.get('roster')) is dict and len(schedule['roster'])<6:
+            active_references.append(schedule)
+        all_result_lanes={r['lane'] for r in results}
+        if active_references:
+            from .boat_active_roster import match_result_roster, result_roster_bindings
+            proofs=[(row,result_roster_bindings(row,race_id=schedule['race_id'])) for row in active_references]
+            known={}
+            for _,(_,bindings,_) in proofs:
+                _need(all(known[n]==pid for n,pid in bindings.items() if n in known),'conflicting saved result identities')
+                known.update(bindings)
+            _need(len(set(known.values()))==len(known),'conflicting saved registration lanes')
+            reference=min(proofs,key=lambda item:(len(item[0]['roster']),-len(item[1][1])))[0]
+            results=match_result_roster(reference,results,race_id=schedule['race_id'])
+            _need(all(len(row['roster'])!=len(reference['roster']) or row['roster']==reference['roster']
+                      for row in active_references),'conflicting active result references')
+            roster={str(r['lane']):r['racer_registration_id'] for r in results}
+        else:
+            _need(len(results)==6 and set(roster) == set(map(str,range(1,7))) and len(set(roster.values())) == 6 and
+                  all(row is None or row["roster"] == roster for row in selected_rows), "result/frozen roster")
         refunds = data.get("refund_boats", [])
         _need(type(refunds) is list and all(type(n) is int and 1 <= n <= 6 for n in refunds) and
               len(set(refunds)) == len(refunds), "refund format")
-        if refunds or data.get("refunds") or data.get("refund_combinations"):
+        if any(str(n) in roster or n not in all_result_lanes for n in refunds) or data.get("refunds") or data.get("refund_combinations"):
             return "REFUND_REVIEW_REQUIRED", selected
         if any(r.get("finish_status") != "FINISHED" for r in results):
             return "ABNORMAL_FINISH_REVIEW_REQUIRED", selected
         finishes = [r.get("finish") for r in results]
-        _need(all(type(n) is int and 1 <= n <= 6 for n in finishes), "normal finish positions")
-        if len(set(finishes)) != 6:
+        _need(all(type(n) is int and 1 <= n <= len(results) for n in finishes), "normal finish positions")
+        if len(set(finishes)) != len(results):
             return "SPECIAL_SETTLEMENT_REVIEW_REQUIRED", selected
         ordered = [r["lane"] for r in sorted(results, key=lambda r:r["finish"])]
-        _need(data.get("top3") == ordered[:3], "finish order/top3 conflict")
+        _need(_ticket(data.get("top3")) and data.get("top3") == ordered[:3], "finish order/top3 conflict")
         payouts = [p for p in data.get("payouts", []) if type(p) is dict and p.get("bet_type") == "trifecta"]
         if schedule.get("trifecta_offered") is False:
             _need(not payouts, "unoffered trifecta payout conflict")

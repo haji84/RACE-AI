@@ -19,8 +19,7 @@ def _need(p,msg):
     if not p:raise ValueError(msg)
 
 
-def build_live_feature_shadow(base_source, extra, generated_at):
-    boats=_valid(base_source,generated_at)
+def _validated_extra(base_source, extra, generated_at, boats):
     _need(isinstance(extra,dict) and set(extra)=={
         "race_id","observed_at","source_sha256","participants"},
           "exact same current-race extra feature evidence required")
@@ -30,8 +29,8 @@ def build_live_feature_shadow(base_source, extra, generated_at):
           and _time(extra["observed_at"])< _time(base_source["cutoff_at"]),
           "new features must be observed before the prediction")
     values=extra["participants"]
-    _need(isinstance(values,list) and len(values)==6,
-          "six current official racer facts required")
+    _need(isinstance(values,list) and len(values)==len(boats),
+          "all active current official racer facts required")
     by_lane={}
     for r in values:
         _need(isinstance(r,dict) and set(r)=={
@@ -41,7 +40,7 @@ def build_live_feature_shadow(base_source, extra, generated_at):
         lane=r["lane"]
         _need(type(lane) is int and lane in range(1,7) and lane not in by_lane
               and isinstance(r["racer_id"],str) and re.fullmatch(r"\d{4}",r["racer_id"]),
-              "identical official six entrants required")
+              "identical official active entrants required")
         for key,low,high in (("local_win_rate",0,10),
                              ("average_st",0,1),("exhibition_st",0,1)):
             n=r[key]
@@ -52,11 +51,17 @@ def build_live_feature_shadow(base_source, extra, generated_at):
         _need((r["exhibition_st_status"]=="OK")==(r["exhibition_st"] is not None),
               "exhibition ST missing is not numeric zero")
         by_lane[lane]=r
-    _need(set(by_lane)==set(range(1,7)) and
+    _need(set(by_lane)=={b["lane"] for b in boats} and
           all(by_lane[b["lane"]]["racer_id"]==b["racer_id"] for b in boats),
           "racelist and exhibition ST racer IDs disagree")
-    motor_mean=math.fsum(x["motor_two_place_rate_percent"] for x in boats)/6
-    exhibit_mean=math.fsum(x["exhibition_time_seconds"] for x in boats)/6
+    return by_lane
+
+
+def build_live_feature_shadow(base_source, extra, generated_at):
+    boats=_valid(base_source,generated_at)
+    by_lane=_validated_extra(base_source,extra,generated_at,boats)
+    motor_mean=math.fsum(x["motor_two_place_rate_percent"] for x in boats)/len(boats)
+    exhibit_mean=math.fsum(x["exhibition_time_seconds"] for x in boats)/len(boats)
     observed_race_st=[r["average_st"] for r in by_lane.values() if r["average_st"] is not None]
     observed_preview_st=[r["exhibition_st"] for r in by_lane.values() if r["exhibition_st"] is not None]
     average_st_mean=math.fsum(observed_race_st)/len(observed_race_st) if len(observed_race_st)>=2 else None
@@ -86,7 +91,7 @@ def build_live_feature_shadow(base_source, extra, generated_at):
         status.append({"lane":b["lane"],"racer_id":b["racer_id"],
                        "features_used":used,
                        "historic_course_tactics_available":False})
-    full=_rank(strengths)
+    full=_rank(strengths,[b["lane"] for b in boats])
     output={"schema":"RACE_AI_BOAT_CURRENT_FEATURE_SHADOW_V1",
             "model_id":MODEL_ID,"race_id":base_source["race_id"],
             "cutoff_at":base_source["cutoff_at"],"as_of":generated_at,

@@ -280,6 +280,58 @@ def venue_research_retain(round_no):
     print(json.dumps({k:v for k,v in result.items() if k!='pointers'},sort_keys=True));return result
 
 
+def _all_model_capture(round_no):
+    """Read the prepared private inventory before any fresh official source."""
+    if round_no is None:return None,None
+    try:
+        need(type(round_no) is int and 1<=round_no<=999999,'ALL_MODEL_ROUND_REQUIRED')
+        base=Path(os.environ['RUNNER_TEMP']).absolute()
+        need(base!=ROOT.resolve() and ROOT.resolve() not in base.parents,'ALL_MODEL_PRIVATE_ROOT_REQUIRED')
+        root=base/'boat-all-model-runtime'
+        def read(name,maximum):
+            path=root/name
+            need(not any(p.is_symlink() for p in (path,*path.parents)) and path.is_file()
+                 and not path.stat().st_mode&0o077 and not root.stat().st_mode&0o077,
+                 'ALL_MODEL_PRIVATE_FILE_REQUIRED')
+            need(0<path.stat().st_size<=maximum,'ALL_MODEL_PRIVATE_FILE_BOUND')
+            with path.open('rb') as stream:raw=stream.read(maximum+1)
+            need(0<len(raw)<=maximum,'ALL_MODEL_PRIVATE_FILE_BOUND')
+            return raw
+        def pairs(items):
+            out={}
+            for key,value in items:
+                need(key not in out,'ALL_MODEL_DUPLICATE_JSON_KEY');out[key]=value
+            return out
+        marker=json.loads(read('runtime-ready.json',128*1024),object_pairs_hook=pairs)
+        run=os.environ.get('GITHUB_RUN_ID');head=os.environ.get('GITHUB_SHA')
+        import re
+        need(type(run) is str and re.fullmatch(r'[1-9][0-9]*',run) and type(head) is str
+             and re.fullmatch(r'[0-9a-f]{40}',head),'ALL_MODEL_RUN_HEAD_REQUIRED')
+        need(type(marker) is dict and marker.get('schema')=='RACE_AI_BOAT_ALL_MODEL_RUNTIME_READY_V1'
+             and marker.get('ready') is True and type(marker.get('round_no')) is int and marker.get('round_no')==round_no
+             and marker.get('run_id')==run and marker.get('source_code_commit')==head
+             and all(marker.get(k) is True for k in ('verified_runtime','history_identity_verified','owner_reviewed')),
+             'ALL_MODEL_PREPARED_RUNTIME_REQUIRED')
+        files=marker.get('runtime_files')
+        need(type(files) is dict and files.get('source_code_commit')==head and files.get('run_id')==run
+             and all(files.get(k) is True for k in ('verified_runtime','history_identity_verified','owner_reviewed')),
+             'ALL_MODEL_RUNTIME_BINDING_REQUIRED')
+        for name in ('pointer_sha256','metadata_sha256','issued_models_sha256'):
+            need(type(marker.get(name)) is str and re.fullmatch(r'[0-9a-f]{64}',marker[name]),'ALL_MODEL_RUNTIME_HASH_REQUIRED')
+        raw=read('issued-models.json',4*1024*1024)
+        need(hashlib.sha256(raw).hexdigest()==marker['issued_models_sha256'],'ALL_MODEL_ISSUED_MATRIX_CHANGED')
+        issued=json.loads(raw,object_pairs_hook=pairs)
+        from scripts.boat_nationwide_ab_pilot import validated_issued_models
+        validated_issued_models(issued)
+        from race_ai.boat_all_model_cycle import retain_current_input
+        folder=base/'boat-all-model-inputs'/f'cycle-{round_no}'
+        def sink(program,beforeinfo,as_of):
+            return retain_current_input(program,beforeinfo,as_of,folder)
+        return dict(issued_models=issued,input_sink=sink),None
+    except (OSError,ValueError,TypeError,KeyError,UnicodeError):
+        return None,'ALL_MODEL_RUNTIME_UNAVAILABLE_OR_REJECTED'
+
+
 def forecast(day,*,video_context_artifacts=(),video_reader=None,round_no=None):
     from scripts import boat_nationwide_ab_pilot as pilot
     state=load_state(ROOT/'cycle_recovery_output/continuity.json',day)
@@ -300,7 +352,17 @@ def forecast(day,*,video_context_artifacts=(),video_reader=None,round_no=None):
     # Optional archive I/O precedes fresh official model snapshots. It must not
     # consume the remaining physical-save window of already generated P1 rows.
     reader,video_error=_video_sources(state,video_context_artifacts,video_reader)
-    result=pilot.run(schedule_snapshot=state.get('schedule_cache'))
+    capture,capture_error=_all_model_capture(round_no)
+    prior_sink,prior_issued=pilot.MODEL_INPUT_SINK,pilot.ISSUED_MODELS
+    pilot.MODEL_INPUT_SINK=capture['input_sink'] if capture is not None else None
+    pilot.ISSUED_MODELS=capture['issued_models'] if capture is not None else None
+    try:
+        result=pilot.run(schedule_snapshot=state.get('schedule_cache'))
+    finally:
+        pilot.MODEL_INPUT_SINK,pilot.ISSUED_MODELS=prior_sink,prior_issued
+    if round_no is not None:
+        result['all_model_collection']=dict(state='PREPARED_RUNTIME_ADMITTED' if capture is not None else
+            'ADDITIONAL_FAMILIES_UNAVAILABLE',**({'reason':capture_error} if capture_error else {}))
     from race_ai.observed_weight_learning import make_shadows
     result['learned_pairwise_shadows']=[];result['learning_failures']=[]
     if video_error:

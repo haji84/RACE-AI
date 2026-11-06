@@ -171,7 +171,10 @@ def _authorize(group, payload, allow_source):
         hashes = set()
         if group == "boat_full":
             references = {r["source_ref"] for r in snapshot.get("entrants", [])}
-            references.add(snapshot.get("conditions_source"))
+            # The explicitly sparse schema may carry no weather observations.
+            # Its validator requires all condition provenance to be None then.
+            if snapshot.get("conditions_source") is not None:
+                references.add(snapshot["conditions_source"])
         elif group in ("boat_ab", "boat_clite", "boat_tactical"):
             base = payload.get("source", payload.get("base_source", {}))
             hashes = {base.get("program_source_sha256"), base.get("beforeinfo_source_sha256")}
@@ -386,7 +389,8 @@ def dispatch(schedule, native_inputs, *, now, allow_source=None, originals=()):
             pending = [per_model[mid] for mid in mids if mid in per_model and per_model[mid]["status"] == "INPUT_MISSING"]
             if not pending:
                 continue
-            payload = supplied.get("shared" if group == "shared_learned" else group)
+            payload = (supplied.get("shared_learned", supplied.get("shared"))
+                       if group == "shared_learned" else supplied.get(group))
             if group == "seller" and row["stage"] == "P0":
                 day = _time(row["cutoff_at"]).astimezone(JST).date().isoformat()
                 saved_day = seller_days.get(day)

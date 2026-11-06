@@ -19,6 +19,13 @@ runs:
       id: discovery
       shell: bash
       run: python scripts/github_existing_cycle.py supplement --round '${{ inputs.round }}'
+    - name: Restore private history and fitted models before fresh exhibition capture
+      if: steps.ready.outputs.active == 'true'
+      continue-on-error: true
+      shell: bash
+      env:
+        RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
+      run: python -m scripts.boat_all_model_cycle prepare --round '${{ inputs.round }}'
     - name: Freeze new P0 separately before any result reads
       if: steps.ready.outputs.active == 'true' && steps.discovery.outputs.supplement_ready == 'true'
       id: discovery_freeze
@@ -31,7 +38,7 @@ runs:
     - name: Forecast future unpublished originals with existing five models
       if: steps.ready.outputs.active == 'true'
       shell: bash
-      run: python scripts/github_existing_cycle.py forecast
+      run: python scripts/github_existing_cycle.py forecast --round '${{ inputs.round }}'
     - name: Freeze this round before reading any outcomes
       if: steps.ready.outputs.active == 'true'
       id: freeze
@@ -41,6 +48,31 @@ runs:
         path: boat_nationwide_output/national.json
         if-no-files-found: error
         retention-days: 7
+    - name: Execute remaining native families from the same retained exhibition
+      if: steps.ready.outputs.active == 'true'
+      continue-on-error: true
+      id: all_models
+      shell: bash
+      env:
+        RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
+      run: python -m scripts.boat_all_model_cycle generate --round '${{ inputs.round }}' --baseline-artifact '${{ steps.freeze.outputs.artifact-id }}'
+    - name: Freeze additional native forecasts as owner ciphertext only
+      if: steps.ready.outputs.active == 'true' && steps.all_models.outputs.ready == 'true'
+      continue-on-error: true
+      id: all_models_freeze
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: boat-all-model-forecasts-${{ github.run_id }}-r${{ inputs.round }}
+        path: ${{ runner.temp }}/boat-all-model-forecasts/cycle-${{ inputs.round }}/forecasts.enc
+        if-no-files-found: error
+        retention-days: 7
+    - name: Verify additional ciphertext and its independent save receipt
+      if: steps.ready.outputs.active == 'true' && steps.all_models_freeze.outputs.artifact-id != ''
+      continue-on-error: true
+      shell: bash
+      env:
+        RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
+      run: python -m scripts.boat_all_model_cycle readback --round '${{ inputs.round }}' --artifact '${{ steps.all_models_freeze.outputs.artifact-id }}'
     - name: Generate private venue research after baseline originals are frozen
       if: steps.ready.outputs.active == 'true'
       shell: bash

@@ -148,12 +148,12 @@ def _roster(rows):
     return result
 
 
-def _context(raw, *, kind, source_url, captured_at, expected_race_id, roster):
+def _context(raw, *, kind, source_url, captured_at, expected_race_id, roster, roster_validator=None):
     expected = _identity(source_url, kind)
     day, venue, race_no = expected
     if expected_race_id != f"{day}-{venue}-{race_no:02d}":
         raise ValueError("BOAT_CONTEXT_EXPECTED_RACE_MISMATCH")
-    bound = None if kind == "racelist" else _roster(roster)
+    bound = None if kind == "racelist" else (roster_validator or _roster)(roster)
     captured = _moment(captured_at)
     if type(raw) is not bytes or not 1 <= len(raw) <= MAX_BYTES:
         raise ValueError("BOAT_CONTEXT_BOUNDED_ORIGINAL_BYTES_REQUIRED")

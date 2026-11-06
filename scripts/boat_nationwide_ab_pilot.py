@@ -44,8 +44,13 @@ import race_ai
 race_ai.__path__.insert(0,str(ROOT/"race_ai"))
 from race_ai.boat_deadline_queue import select_due_races
 from race_ai.boat_freeze_index import load_original_race_ids
-from race_ai.boat_live_feature_shadow import build_live_feature_shadow
-from race_ai.observed_p1_connection import build_bundle as build_observed_p1
+from race_ai.boat_live_feature_shadow import build_live_feature_shadow, MODEL_ID as CLITE_ID
+from race_ai.observed_p1_connection import build_bundle as build_observed_p1, MODEL_IDS as OBSERVED_IDS
+from race_ai.boat_official_program import parse_program as parse_official_racelist
+from race_ai.boat_active_exhibition import parse_active_beforeinfo
+from race_ai.boat_all_model_inputs import build_native_inputs
+MODEL_INPUT_SINK=None
+ISSUED_MODELS=None
 OBSERVED_HISTORY_CONTEXT=None
 ENTRY_OBSERVATION_HISTORY=None
 supplemental_contexts={}
@@ -69,6 +74,31 @@ requests_used=0
 MAX_HTML=MAX_BYTES
 SOURCE_GUARD=None
 _HANDOFF_REASONS=frozenset(('DAY_HANDOFF','WORKER_HANDOFF'))
+
+
+def applicable_p1_model_ids():
+    from race_ai.existing_model_dispatch import catalog, GROUPS
+    morning={mid for group,mids in GROUPS if group=='seller' for mid in mids}
+    return frozenset(spec['model_id'] for spec in catalog()
+                     if 'boat' in spec['applicable_sports'] and spec['model_id'] not in morning)
+
+
+def validated_issued_models(value):
+    """The runner supplies the authenticated inventory; reject malformed IDs."""
+    if value is None:return None
+    from race_ai.existing_model_dispatch import catalog
+    known={spec['model_id'] for spec in catalog()}
+    if type(value) is not dict or len(value)>10000:
+        raise ValueError('ISSUED_MODEL_MATRIX_INVALID')
+    result={}
+    for rid,mids in value.items():
+        if (type(rid) is not str or not re.fullmatch(r'[0-9]{8}-(?:0[1-9]|1[0-9]|2[0-4])-(?:0[1-9]|1[0-2])',rid)
+                or type(mids) is not list or any(type(mid) is not str or mid not in known for mid in mids)
+                or len(set(mids))!=len(mids)):
+            raise ValueError('ISSUED_MODEL_MATRIX_INVALID')
+        datetime.strptime(rid[:8],'%Y%m%d')
+        result[rid]=frozenset(mids)
+    return result
 
 
 def _clock(day=None):
@@ -371,32 +401,52 @@ def make_pair(day,race):
         paused=collect_entry_history(context,day,paused=paused)
         return dict(race_id=race_id,state='PROGRAM_STATS_UNSUPPORTED_CONTEXT_ONLY',
                     program_sha256=program_sha,exhibition_sha256=preview_sha,source_wait=paused),None,None,None,None
-    if (program["race_id"]!=race_id or program["closed_at"]!=race["cutoff_at"]
-            or any(r["entry_status"]!="listed" for r in program["boats"])):
+    if program["race_id"]!=race_id or program["closed_at"]!=race["cutoff_at"]:
         return {"race_id":race_id,"state":"OFFICIAL_PROGRAM_OR_WITHDRAWAL_CONFLICT"},None,None,None,None
-    motor=motor_top2(raw,program["boats"])
+    active=[r for r in program['boats'] if r['entry_status']=='listed']
+    if program.get('race_status','LISTED')!='LISTED' or not 3<=len(active)<=6:
+        return dict(race_id=race_id,state='RACE_NOT_OPEN_FOR_TRIFECTA'),None,None,None,None
     official_preview_url=preview_endpoint(day,venue,n,"beforeinfo")
     _clock(day)
     preview,preview_at,preview_sha=get(official_preview_url,day=day,not_yet_published=True)
-    context=capture_before_context(preview,url=official_preview_url,captured_at=preview_at,
-                                   race=race,boats=program['boats'])
+    result=parse_active_beforeinfo(preview,program=program,source_url=official_preview_url,captured_at=preview_at.isoformat())
+    roster=[dict(lane=r['lane'],registration_number=r['racer_registration_id']) for r in active]
+    context=dict(schema='RACE_AI_BOAT_SUPPLEMENTAL_CONTEXT_V1',race_id=race_id,cutoff_at=race['cutoff_at'],
+                 roster=roster,beforeinfo=result['context'],pitreport=None,entry_history=None,forecast_inputs_used=False)
     if context is not None:supplemental_contexts[race_id]=context
-    result=parse_update(preview,kind="beforeinfo",day=day,venue=venue,race_no=n,
-                        source_url=official_preview_url,captured_at=preview_at.isoformat(),
-                        entries=program["boats"])
-    if result["status"]!="AVAILABLE" or result.get("data") is None:
+    if result.get("data") is None:
         comment_wait=collect_pitreport(context,day)
         comment_wait=collect_entry_history(context,day,paused=comment_wait)
         return {"race_id":race_id,"state":"EXHIBITION_NOT_FULLY_PUBLISHED",
                 "source_sha256":preview_sha,
                 "source_wait":comment_wait or _publication_wait(race,_clock(day))},None,None,None,None
     six=sorted(result["data"]["boats"],key=lambda r:r["lane"])
-    if len(six)!=6 or any(r["display_time"] is None for r in six):
+    if len(six)!=len(active) or any(r["display_time"] is None for r in six):
         comment_wait=collect_pitreport(context,day)
         comment_wait=collect_entry_history(context,day,paused=comment_wait)
         return {"race_id":race_id,"state":"EXHIBITION_TIME_INCOMPLETE",
                 "source_wait":comment_wait or _publication_wait(race,_clock(day))},None,None,None,None
-    entrants={r["lane"]:r for r in program["boats"]}
+    generated=observed_timestamp()
+    retention=None
+    if callable(MODEL_INPUT_SINK):
+        try:
+            MODEL_INPUT_SINK(program,result,generated)
+            retention=dict(state='SOURCE_INPUT_RETAINED')
+        except (ValueError,OSError,KeyError,TypeError) as ex:
+            retention=dict(state='INPUT_RETENTION_REJECTED',failure_class=type(ex).__name__)
+    if race.get('source_capture_only') is True:
+        if _clock(day)+MIN_TO_CUTOFF>=cutoff:
+            return dict(race_id=race_id,state='TOO_LATE_AFTER_SOURCE'),None,None,None,None
+        ready=retention is not None and retention['state']=='SOURCE_INPUT_RETAINED'
+        return dict(race_id=race_id,state='SOURCE_READY_ADDITIONAL_MODELS' if ready else 'ADDITIONAL_MODEL_INPUT_REJECTED',
+            program_sha256=program_sha,exhibition_sha256=preview_sha,generated_at=generated,
+            additional_model_input=retention or dict(state='INPUT_SINK_UNAVAILABLE')),None,None,None,None
+    prepared=build_native_inputs(program,result,as_of=generated)
+    if 'boat_ab' not in prepared['native_inputs']:
+        return dict(race_id=race_id,state='READY_MODEL_SPECIFIC_INPUTS',
+                    model_readiness=prepared['readiness']),None,None,None,None
+    motor={r['lane']:r.get('motor_top2_rate',r.get('motor_two_place_rate_percent')) for r in active}
+    entrants={r["lane"]:r for r in active}
     boats=[]
     for measured in six:
         known=entrants[measured["lane"]]
@@ -409,7 +459,6 @@ def make_pair(day,race):
             "exhibition_time_seconds":measured["display_time"],
             "motor_two_place_rate_percent":motor[measured["lane"]],
         })
-    generated=observed_timestamp()
     data={
         "race_id":race_id, "cutoff_at":race["cutoff_at"],
         "captured_at":max(at,preview_at).isoformat(timespec="microseconds"),
@@ -434,7 +483,7 @@ def make_pair(day,race):
             "average_st":r["average_st"],
             "exhibition_st":next(x for x in six if x["lane"]==r["lane"])["preview_st"],
             "exhibition_st_status":next(x for x in six if x["lane"]==r["lane"])["preview_st_status"],
-        } for r in program["boats"]],
+        } for r in active],
     }
     extended=None
     try:
@@ -490,9 +539,11 @@ def make_pair(day,race):
         return {"race_id":race_id,"state":"TOO_LATE_AFTER_MODEL"},None,None,None,None
     paused=collect_pitreport(context,day,paused=paused)
     paused=collect_entry_history(context,day,paused=paused)
-    return {"race_id":race_id,"state":"AB_GENERATED_NOT_YET_EXTERNAL_FROZEN",
+    status={"race_id":race_id,"state":"AB_GENERATED_NOT_YET_EXTERNAL_FROZEN",
             "program_sha256":program_sha,"exhibition_sha256":preview_sha,
-            "generated_at":generated,"source_wait":paused},computed,extended,priced,observed
+            "generated_at":generated,"source_wait":paused}
+    if retention is not None:status['additional_model_input']=retention
+    return status,computed,extended,priced,observed
 
 
 def run(*, schedule_snapshot=None):
@@ -595,8 +646,11 @@ def run(*, schedule_snapshot=None):
         # saved_at and SHA readback, and a live CAS store is not deployed.
         previously_frozen=load_original_race_ids(
             FROZEN_INDEX,as_of=selection_clock.isoformat())
+        issued=(validated_issued_models(ISSUED_MODELS) if callable(MODEL_INPUT_SINK) else None)
+        completed=(previously_frozen if issued is None else frozenset(
+            rid for rid,mids in issued.items() if applicable_p1_model_ids()<=mids))
         queue=select_due_races(prospective_rows,selection_clock.isoformat(),
-                              already_frozen=previously_frozen,max_items=None)
+                              already_frozen=completed,max_items=None)
         race_waits=_candidate_waits(schedule_snapshot,rows)
     except (OSError, ValueError, UnicodeError) as ex:
         if str(ex) in _HANDOFF_REASONS:return stop(str(ex),schedule=listing,queue=rows,tries=venue_errors)
@@ -604,7 +658,8 @@ def run(*, schedule_snapshot=None):
                     source={"url":url,"source_sha256":index_sha,"captured_at":index_at.isoformat()},
                     tries=venue_errors)
     attempts=list(after_close_rows)
-    attempts.extend({"race_id":r["race_id"],"state":"ALREADY_FROZEN_IN_CANONICAL_INDEX"}
+    attempts.extend({"race_id":r["race_id"],"state":"ALL_APPLICABLE_MODELS_ALREADY_SAVED" if issued is not None
+                     else "ALREADY_FROZEN_IN_CANONICAL_INDEX"}
                     for r in queue["rejected"] if r["reason"]=="ALREADY_FROZEN")
     forecasts=[];extra_forecasts=[];priced_watches=[];observed_forecasts=[]
     handoff=False;handoff_reason='DAY_HANDOFF'
@@ -617,7 +672,10 @@ def run(*, schedule_snapshot=None):
                 attempts.append(dict(race_id=rid,state='WAITING_PUBLICATION',
                                      source_wait=race_waits[rid],phase=race.get('phase')))
                 continue
-            status,pair,extended,priced,observed=make_pair(day,race)
+            baseline_ids=set(model.MODEL_IDS)|{CLITE_ID}|set(OBSERVED_IDS)
+            source_only=(issued is not None and (rid in previously_frozen or bool(baseline_ids&issued.get(rid,frozenset()))))
+            source_race=dict(race,source_capture_only=True) if source_only else race
+            status,pair,extended,priced,observed=make_pair(day,source_race)
             status.update(phase=race.get('phase'),cutoff_at=race['cutoff_at'],
                           target_at=(datetime.fromisoformat(race['cutoff_at'])-timedelta(minutes=10)).isoformat())
             if observed is not None and 'suite' not in observed:
@@ -630,6 +688,7 @@ def run(*, schedule_snapshot=None):
                 if wait.get('state')=='WAITING_PUBLICATION':race_waits[rid]=dict(wait)
                 else:paused=dict(wait)
             attempts.append(status)
+            if status.get('state')=='SOURCE_READY_ADDITIONAL_MODELS':race_waits.pop(rid,None)
             if pair is not None:
                 race_waits.pop(rid,None)
                 forecasts.append(pair)
@@ -677,9 +736,10 @@ def run(*, schedule_snapshot=None):
         waiting_publication_races=len(remaining_waits),forecast_pairs=len(forecasts),
         external_target_save_verified=False)
     next_check=None if handoff else _next_check(rows,remaining_waits,datetime.now(timezone.utc),
-        frozen=previously_frozen|frozenset(p['race_id'] for p in forecasts),paused=paused)
+        frozen=completed|frozenset(p['race_id'] for p in forecasts),paused=paused)
     reason=(handoff_reason if handoff else paused['reason'] if paused else
             'NEEDS_INDEPENDENT_GITHUB_ARTIFACT_TIME_CHECK' if forecasts else
+            'ADDITIONAL_MODEL_INPUTS_RETAINED' if any(r.get('state')=='SOURCE_READY_ADDITIONAL_MODELS' for r in attempts) else
             'NO_COMPLETE_EXHIBITION_IN_ORDERED_CANDIDATES')
     return stop(reason,
                 source=source,schedule=listing,

@@ -44,7 +44,7 @@ def score_pair(original, winner, observed_at, server_saved_at):
     models=bundle.get("models")
     if not isinstance(models,list) or len(models)!=2 or [m.get("model_id") for m in models]!=list(MODEL_IDS):
         raise ValueError("baseline and challenger model must both be frozen")
-    output=[]
+    output=[]; active_lanes=None
     for m in models:
         if m.get("model_sha256")!=_digest({k:v for k,v in m.items() if k!="model_sha256"}):
             raise ValueError("model bytes changed after forecast")
@@ -53,10 +53,20 @@ def score_pair(original, winner, observed_at, server_saved_at):
             raise ValueError("unsafe research model claims")
         rows=m.get("full_120",[])
         picks=m.get("top8",[])
-        if (not isinstance(rows,list) or len(rows)!=120 or not isinstance(picks,list)
-                or picks!=rows[:8] or len(picks)!=8):
+        if (not isinstance(rows,list) or not all(type(row) is dict and type(row.get('ticket')) is str
+                and re.fullmatch(r'[1-6]-[1-6]-[1-6]',row['ticket']) for row in rows)):
+            raise ValueError("valid physical ranked tickets required")
+        lanes=sorted({int(n) for row in rows for n in row['ticket'].split('-')})
+        if not 3<=len(lanes)<=6 or active_lanes is not None and active_lanes!=lanes:
+            raise ValueError("same active roster required for both models")
+        active_lanes=lanes
+        tickets={'-'.join(map(str,t)) for t in itertools.permutations(lanes,3)}
+        if winner not in tickets:
+            raise ValueError("result triple outside frozen active roster")
+        if (len(rows)!=len(tickets) or not isinstance(picks,list)
+                or picks!=rows[:8] or len(picks)!=min(8,len(tickets))):
             raise ValueError("full ranked distribution and top eight required")
-        if ({x["ticket"] for x in rows}!=TICKETS
+        if ({x["ticket"] for x in rows}!=tickets
                 or not all(type(x["score"]) in (int,float) and math.isfinite(x["score"])
                            and 0<x["score"]<1 for x in rows)
                 or not math.isclose(math.fsum(x["score"] for x in rows),1,abs_tol=1e-9)

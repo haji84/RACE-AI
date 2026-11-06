@@ -18,6 +18,8 @@ from race_ai.boat_pdca_recipient import _json
 from race_ai.boat_history_store import wire
 from race_ai.saved_pages import _read
 from race_ai.cycle_recovery import result_archive,_result_day
+from race_ai.boat_saved_view_intake import append_views,project_native_state
+from race_ai.saved_pages import MAX_VIEW
 
 def gh(path):
     p=subprocess.run(['gh','api','repos/haji84/RACE-AI/'+path],capture_output=True,timeout=90)
@@ -32,8 +34,48 @@ def observations(ident,*,day,expected_sha=None,allow_other_day=False):
          and info.get('head_sha')==run.get('head_sha'),'FEED_ARTIFACT_WORKFLOW')
     raw=gh(f'actions/artifacts/{ident}/zip')
     if expected_sha is not None:need(sha(raw)==expected_sha,'FEED_CATCHUP_HASH')
-    if allow_other_day and _result_day(raw,meta)!=day:return []
-    return result_archive(raw,meta,day)
+    actual=_result_day(raw,meta)
+    days={day} if type(day) is str else set(day)
+    if allow_other_day and actual not in days:return []
+    need(actual in days,'FEED_RESULT_DAY_REQUIRED')
+    return result_archive(raw,meta,actual)
+
+def intake_saved_models(view):
+    """Use authenticated private runtime/readback; never request official pages."""
+    additions=[];names=None
+    config=ROOT/'audit/state/boat-model-runtime-input.json'
+    if config.exists():
+        from scripts.boat_all_model_cycle import prepare_runtime
+        runtime=prepare_runtime(round_no=0);files=runtime['runtime_files']
+        if files.get('native-view.json'):
+            additions.append(_json(_read(Path(files['native-view.json']),MAX_VIEW),MAX_VIEW))
+        # Registry names are explicitly bound to a verified source and ID.
+        if files.get('racers.sqlite'):
+            import sqlite3
+            registry={};db=sqlite3.connect(Path(files['racers.sqlite']).resolve().as_uri()+'?mode=ro&immutable=1',uri=True)
+            try:
+                for ident,url,captured,source,raw in db.execute('SELECT id,url,captured_at,sha,raw FROM sources'):
+                    need(sha(raw)==source,'FEED_RACER_SOURCE_HASH')
+                    for pid,body in db.execute('SELECT racer_id,document FROM racers WHERE source_id=?',(ident,)):
+                        document=_json(body.encode(),128*1024)
+                        need(document.get('racer_id')==pid,'FEED_RACER_NAME_BINDING')
+                        registry[pid]=dict(name=document['name'],verified=True,source_url=url,source_sha256=source,captured_at=captured)
+            finally:db.close()
+            names=dict(registry=registry,races={})
+    continuity=ROOT/'cycle_recovery_output/continuity.json'
+    if continuity.is_file():
+        state=_json(_read(continuity,32*1024*1024),32*1024*1024)
+        additions.append(project_native_state(state))
+    reference=Path(os.environ['RUNNER_TEMP'])/'boat-all-model-readback.json'
+    if reference.is_file():
+        from race_ai.boat_all_model_store import restore_forecasts
+        from race_ai.boat_all_model_cycle import project_round
+        record=_json(_read(reference,64*1024),64*1024)
+        need(str(record.get('run_id'))==os.environ.get('GITHUB_RUN_ID'),'FEED_MODEL_READBACK_RUN')
+        payload=restore_forecasts(record['pointer'],ROOT)
+        projected=project_round(payload,record['receipt'])
+        additions.append(projected)
+    return append_views(view,additions,names=names) if additions or names else view
 
 def git_auth():
     token=os.environ.get('GH_TOKEN');need(token and '\n' not in token and '\r' not in token,'FEED_GITHUB_TOKEN_REQUIRED')
@@ -56,12 +98,14 @@ def main(argv=None):
         if a.seed_only:
             if parent:print(wire(dict(status='ENCRYPTED_VIEW_ALREADY_INITIALIZED',generation=generation)));return 0
         else:
-            days={r['event_date_jst'] for r in view['records']};need(len(days)==1,'FEED_SINGLE_SAVED_DAY_REQUIRED');day=days.pop()
+            previous_view=view;view=intake_saved_models(view)
+            changed=wire(view)!=wire(previous_view)
+            days={r['event_date_jst'] for r in view['records']}
             missing={r['race_id'] for r in view['records'] if not r['result'] or r['result']['status'] in ('pending','unsupported')}
-            if not a.result_artifact and not missing:
+            if not a.result_artifact and not missing and not changed:
                 print(wire(dict(status='SAVED_RESULTS_ALREADY_COMPLETE',generation=generation)));return 0
             ident=a.result_artifact or config['catchup_artifact_id']
-            items=observations(ident,day=day,expected_sha=None if a.result_artifact else config['catchup_sha256'],allow_other_day=bool(a.result_artifact))
+            items=observations(ident,day=days,expected_sha=None if a.result_artifact else config['catchup_sha256'],allow_other_day=True)
             if not a.result_artifact:
                 # Initial catch-up fills gaps. Settled seed observations and their
                 # raw-backed references remain intact; later same-day rounds
@@ -72,7 +116,7 @@ def main(argv=None):
             from race_ai.official_race_updates import endpoint
             urls={endpoint(date.fromisoformat(r['event_date_jst']),r['race_id'][9:11],int(r['race_id'][-2:]),'raceresult') for r in view['records']}
             captures=[c for c in F.load_captures(capture_dir) if c[1]['source_url'] in urls]
-            if not items and not captures:
+            if not items and not captures and not changed:
                 print(wire(dict(status='SAVED_DAY_UNCHANGED',generation=generation)));return 0
             view=F.update_view(view,items,captures=captures,synced_at=datetime.now(timezone.utc).isoformat())
         report=F.publish_view(git,bootstrap,view,parent=parent,previous=previous,generation=generation)

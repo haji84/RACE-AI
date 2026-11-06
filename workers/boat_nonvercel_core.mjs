@@ -19,7 +19,7 @@ function sourceUrl(url,kind,rid){
 function assertFacts(f,now){
  if(!f||f.schema!==SCHEMA||f.phase!=='post_exhibition'||!ID.test(f.race_id)
   ||!HEX.test(f.source_sha256||'')||f.rights_verified!==true
-  ||f.license_purpose!=='private_analysis'||!HEX.test(f.program_sha256||'')||!Array.isArray(f.racers)||f.racers.length!==6)throw Error('FACTS_UNADMITTED');
+  ||f.license_purpose!=='private_analysis'||!HEX.test(f.program_sha256||'')||!Array.isArray(f.racers)||f.racers.length<3||f.racers.length>6)throw Error('FACTS_UNADMITTED');
  sourceUrl(f.source_url,'beforeinfo',f.race_id);
  let cutoff=clock(f.cutoff_at),capture=clock(f.captured_at),m=ID.exec(f.race_id);
  if(day(cutoff)!==m[1].slice(0,4)+'-'+m[1].slice(4,6)+'-'+m[1].slice(6,8)
@@ -33,24 +33,30 @@ function assertFacts(f,now){
    throw Error('INVALID_SIX_BOATS');
   lanes.add(r.lane);racers.add(r.registration_no);
  }
- if(lanes.size!==6||racers.size!==6)throw Error('BOAT_IDENTITY_INCOMPLETE');
+ if(lanes.size!==f.racers.length||racers.size!==f.racers.length)throw Error('BOAT_IDENTITY_INCOMPLETE');
 }
 function predict(f){
  let r=[...f.racers].sort((a,b)=>a.lane-b.lane);
- const mean=r.reduce((a,x)=>a+x.exhibition_time_seconds,0)/6;
+ const mean=r.reduce((a,x)=>a+x.exhibition_time_seconds,0)/r.length;
  const strengths=r.map(x=>Math.exp(Math.max(-20,Math.min(20,
   Math.log(Math.max(x.national_win_rate??1,.01))+mean-x.exhibition_time_seconds))));
  const total=strengths.reduce((a,b)=>a+b,0);
- const all120=triples.map(t=>{
-  let [a,b,c]=t.map(n=>strengths[n-1]);
-  return {ticket:t,score:a/total*b/(total-a)*c/(total-a-b)};
+ const byLane=new Map(r.map((x,i)=>[x.lane,strengths[i]]));
+ const all120=triples.filter(t=>t.every(n=>byLane.has(n))).map(t=>{
+  let [a,b,c]=t.map(n=>byLane.get(n));
+  // Preserve six-entrant floating-point outputs exactly. Small fields sum
+  // the remaining strengths directly to avoid cancellation at extreme ratios.
+  const second=r.length===6?total-a:r.filter(x=>x.lane!==t[0]).reduce((s,x)=>s+byLane.get(x.lane),0);
+  const third=r.length===6?total-a-b:r.filter(x=>x.lane!==t[0]&&x.lane!==t[1]).reduce((s,x)=>s+byLane.get(x.lane),0);
+  return {ticket:t,score:a/total*b/second*c/third};
  }).sort((a,b)=>b.score-a.score||a.ticket.join('').localeCompare(b.ticket.join('')));
- if(all120.length!==120||Math.abs(all120.reduce((a,b)=>a+b.score,0)-1)>1e-9)throw Error('MODEL_MASS');
+ if(all120.length!==r.length*(r.length-1)*(r.length-2)||Math.abs(all120.reduce((a,b)=>a+b.score,0)-1)>1e-9)throw Error('MODEL_MASS');
  return {phase:'post_exhibition',race_id:f.race_id,cutoff_at:f.cutoff_at,as_of:f.captured_at,
   model_id:MODEL,calibrated:false,odds_used:false,source_sha256:f.source_sha256,program_sha256:f.program_sha256,
   top8:all120.slice(0,8).map(x=>x.ticket),all120,
   base_rating_missing:r.filter(x=>x.national_win_rate===null).map(x=>x.lane),
-  rationale:'PR64 untrained PL: official national win-rate baseline and six measured exhibition times; uncalibrated.'};
+  rationale:r.length===6?'PR64 untrained PL: official national win-rate baseline and six measured exhibition times; uncalibrated.':
+   'PR64 untrained PL: official national win-rate baseline and active measured exhibition times; uncalibrated.'};
 }
 async function freeze(db,f,{now=()=>Date.now()}={}){
  assertFacts(f,now());let value=predict(f),body=JSON.stringify(value),sha=await digest(body);

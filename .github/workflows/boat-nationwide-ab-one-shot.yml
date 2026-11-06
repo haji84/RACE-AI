@@ -17,7 +17,7 @@ jobs:
     name: Encrypted saved result display only (no official source requests)
     if: github.repository == 'haji84/RACE-AI' && startsWith(github.event.head_commit.message, 'saved-view:')
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     steps:
       - name: Exact reviewed display publisher
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -33,6 +33,32 @@ jobs:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
         run: python -m scripts.boat_saved_view_feed --seed-only
       - name: Automatically match saved results and publish encrypted display
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_saved_view_feed
+      - name: Execute current-day P0 native families with the retained real inputs
+        id: all_models_bootstrap
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_all_model_cycle bootstrap-current --round 0
+      - name: Freeze new P0 families as owner ciphertext only
+        if: steps.all_models_bootstrap.outputs.ready == 'true'
+        id: all_models_bootstrap_freeze
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-all-model-forecasts-${{ github.run_id }}-r0
+          path: ${{ runner.temp }}/boat-all-model-forecasts/cycle-0/forecasts.enc
+          if-no-files-found: error
+          retention-days: 7
+      - name: Read back genuine current-day P0 execution and retain encrypted originals
+        if: steps.all_models_bootstrap_freeze.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_all_model_cycle readback --round 0 --artifact '${{ steps.all_models_bootstrap_freeze.outputs.artifact-id }}'
+      - name: Publish the unified saved-model view
         env:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
@@ -119,6 +145,32 @@ jobs:
         env:
           RACE_AI_FIRST_P0_CAPTURED: ${{ steps.first_p0.outputs.capture }}
         run: python scripts/github_existing_cycle.py repeat-start
+      - name: Execute new-day P0 families from the authenticated first receipt
+        if: steps.restore.conclusion == 'success'
+        continue-on-error: true
+        id: new_day_models
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_all_model_cycle bootstrap-current --round 0
+      - name: Freeze additional new-day P0 as owner ciphertext
+        if: steps.new_day_models.outputs.ready == 'true'
+        continue-on-error: true
+        id: new_day_models_freeze
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-all-model-forecasts-${{ github.run_id }}-r0
+          path: ${{ runner.temp }}/boat-all-model-forecasts/cycle-0/forecasts.enc
+          if-no-files-found: error
+          retention-days: 7
+      - name: Verify and retain additional new-day P0 originals
+        if: steps.new_day_models_freeze.outputs.artifact-id != ''
+        continue-on-error: true
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_all_model_cycle readback --round 0 --artifact '${{ steps.new_day_models_freeze.outputs.artifact-id }}'
+      - name: Publish authenticated new-day originals with the existing owner view
+        if: steps.restore.conclusion == 'success'
+        continue-on-error: true
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_saved_view_feed
       - name: Deadline-ordered five-model round 01
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round

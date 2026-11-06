@@ -12,19 +12,30 @@ from __future__ import annotations
 from datetime import date, datetime, timezone
 import itertools
 import math
+import re
 
 from .comprehensive_four_sport_models import (
     ModelInputError, MODEL_IDS, COMMON_REQUIRED, SPORT_REQUIRED, SPORT_OPTIONAL,
     ENV_COMMON, ENV_SPORT, SYNTHETIC, RESEARCH,
-    digest, moment, validate, _number, HISTORICAL_HORSE_FEATURES
+    digest, moment, validate, _number, HISTORICAL_HORSE_FEATURES, SCHEMA, SCHEMA_SPARSE
 )
 
 LEARNED_ID="multisport-chronological-ranker-v1"
 VECTOR_VERSION="sparse-observed-feature-and-observation-mask-v2-horse-history"
 TRAIN_ONLY_VERSION="0.3-train-only-horse-history"
+SPARSE_VECTOR_VERSION="boat-observed-feature-environment-and-mask-v1"
+SPARSE_TRAIN_ONLY_VERSION="0.4-train-only-sparse-boat"
+SPARSE_CHRONOLOGICAL_VERSION="0.4-chronological-sparse-boat"
 
 
-def vector_schema(sport):
+def vector_schema(sport,*,sparse=False):
+    if sparse:
+        names=COMMON_REQUIRED+SPORT_REQUIRED[sport]+SPORT_OPTIONAL[sport]
+        environment=ENV_COMMON+ENV_SPORT[sport]
+        return (tuple(names)+tuple("observed_"+k for k in names)+
+                tuple("env_"+k for k in environment)+tuple("observed_env_"+k for k in environment)+
+                ("draw_prior","is_front","is_closer","is_stalker",
+                 "wetness_x_course","wind_x_tactics","distance_x_stamina"))
     return (tuple(COMMON_REQUIRED)+tuple(SPORT_REQUIRED[sport])+
             tuple(SPORT_OPTIONAL[sport])+
             tuple("observed_"+name for name in SPORT_OPTIONAL[sport])+
@@ -33,6 +44,8 @@ def vector_schema(sport):
 
 
 def _vector(p,race,env,sport):
+    if race["schema"]==SCHEMA_SPARSE:
+        return _sparse_vector(p,race,env,sport)
     f=p["features"]
     vals=[f[x]["value"] for x in COMMON_REQUIRED+SPORT_REQUIRED[sport]]
     # Missing historical contrast is neutral, not evidence against the horse.
@@ -52,6 +65,34 @@ def _vector(p,race,env,sport):
     schema=vector_schema(sport)
     if len(vals)!=len(schema) or any(not math.isfinite(x) for x in vals):
         raise ModelInputError("feature vector not finite")
+    return vals
+
+
+def _sparse_vector(p,snapshot,env,sport):
+    """Zero denotes an omitted term; masks distinguish absent from observed zero.
+
+    This vector does not modify the snapshot or create an observation. Every
+    interaction is absent unless both source observations are available.
+    """
+    names=COMMON_REQUIRED+SPORT_REQUIRED[sport]+SPORT_OPTIONAL[sport]
+    environment=ENV_COMMON+ENV_SPORT[sport]
+    f=p["features"]
+    vals=[f[k]["value"] if k in f else 0.0 for k in names]
+    vals.extend(float(k in f) for k in names)
+    vals.extend(env[k]["value"] if k in env else 0.0 for k in environment)
+    vals.extend(float(k in env) for k in environment)
+    vals.extend([
+        1-(p["draw"]-1)/5,
+        float(p["style"]=="front"),float(p["style"]=="closer"),float(p["style"]=="stalker"),
+        env["surface_wetness"]["value"]*f["course_compatibility"]["value"]
+            if "surface_wetness" in env and "course_compatibility" in f else 0.0,
+        min(1,env["wind_mps"]["value"]/40)*f["tactical_adaptability"]["value"]
+            if "wind_mps" in env and "tactical_adaptability" in f else 0.0,
+        min(1,snapshot["race"]["distance_m"]/10000)*f["stamina"]["value"]
+            if "stamina" in f and snapshot["race"]["distance_m"] is not None else 0.0,
+    ])
+    if len(vals)!=len(vector_schema(sport,sparse=True)) or any(not math.isfinite(v) for v in vals):
+        raise ModelInputError("sparse vector not finite")
     return vals
 
 
@@ -95,8 +136,10 @@ def _all_triples(x_by_number,weights):
 def forecast(snapshot,model,*,allow_source=None):
     checked=validate(snapshot,allow_source=allow_source)
     race=snapshot["race"]
-    if model.get("model_id")!=LEARNED_ID or model.get("sport")!=race["sport"] or (
-         model.get("vector_schema") != list(vector_schema(race["sport"]))):
+    sparse=snapshot["schema"]==SCHEMA_SPARSE
+    schema=vector_schema(race["sport"],sparse=sparse)
+    if (model.get("model_id")!=LEARNED_ID or model.get("sport")!=race["sport"] or
+        model.get("input_schema",SCHEMA)!=snapshot["schema"] or model.get("vector_schema")!=list(schema)):
         raise ModelInputError("model version/sport/features conflict")
     if model.get("trained_scope")!=snapshot["scope"]:
         raise ModelInputError("training source scope differs")
@@ -104,15 +147,16 @@ def forecast(snapshot,model,*,allow_source=None):
         raise ModelInputError("learned model integrity mismatch")
     if moment(race["as_of"])<=moment(model["trained_until"]):
         raise ModelInputError("prediction must follow training cutoff")
-    if model.get("model_version")==TRAIN_ONLY_VERSION:
+    if model.get("model_version") in (TRAIN_ONLY_VERSION,SPARSE_TRAIN_ONLY_VERSION,SPARSE_CHRONOLOGICAL_VERSION):
         created=moment(model.get("created_at"))
         data_until=moment(model.get("trained_data_until"))
-        if not data_until<=moment(model["trained_until"])<=created:
+        boundary=moment(model.get("test_end",model["trained_until"]))
+        if not data_until<=boundary<=created:
             raise ModelInputError("artifact creation/training chronology invalid")
         if created>moment(race["as_of"]):
             raise ModelInputError("prediction precedes artifact creation")
     weights=model.get("weights")
-    if (not isinstance(weights,list) or len(weights)!=len(vector_schema(race["sport"])) or
+    if (not isinstance(weights,list) or len(weights)!=len(schema) or
         any(type(x) not in (int,float) or not math.isfinite(x) for x in weights)):
         raise ModelInputError("untrusted learned weights")
     universe=_all_triples(_vectors(snapshot,race["sport"]),weights)
@@ -131,14 +175,24 @@ def forecast(snapshot,model,*,allow_source=None):
        "official_result":None,
        "missing_optional_by_participant":checked["missing_optional"],
        "validation_status":"RESEARCH_NO_EXTERNAL_RECEIPT"}
+    if sparse:
+        answer.update(input_schema=SCHEMA_SPARSE,
+                      missing_features_by_participant={p["number"]:p["missing"] for p in snapshot["participants"]},
+                      missing_environment=snapshot["environment_missing"],
+                      missing_input_semantics="Omitted terms with separately learned observation masks")
     answer["prediction_sha256"]=digest(answer)
     return answer
 
 
 def _label(result,snapshot,*,scope,allow_result,window_end):
-    if not isinstance(result,dict) or set(result)!={
+    fields={
         "race_id","status","ordered_top3","published_at","captured_at",
-        "source_ref","source_rights_ref"}:
+        "source_ref","source_rights_ref"}
+    if snapshot["schema"]==SCHEMA_SPARSE and isinstance(result,dict) and "source_sha256" in result:
+        fields.add("source_sha256")
+        if not isinstance(result["source_sha256"],str) or re.fullmatch("[0-9a-f]{64}",result["source_sha256"]) is None:
+            raise ModelInputError("result source hash invalid")
+    if not isinstance(result,dict) or set(result)!=fields:
         raise ModelInputError("result label separate schema required")
     if result["race_id"]!=snapshot["race"]["race_id"] or result["status"]!="settled":
         raise ModelInputError("only settled same-race labels admitted")
@@ -148,8 +202,12 @@ def _label(result,snapshot,*,scope,allow_result,window_end):
         type(x) is not int or x not in ids for x in result_order
     ) or len(set(result_order))!=3:
         raise ModelInputError("official ordered three-place label invalid")
-    published=moment(result["published_at"]);captured=moment(result["captured_at"])
-    if not moment(snapshot["race"]["sales_cutoff_at"])<published<=captured<=window_end:
+    captured=moment(result["captured_at"])
+    unknown_publication=snapshot["schema"]==SCHEMA_SPARSE and result["published_at"] is None
+    published=None if unknown_publication else moment(result["published_at"])
+    cutoff=moment(snapshot["race"]["sales_cutoff_at"])
+    if (not cutoff<captured<=window_end or
+        published is not None and not cutoff<published<=captured):
         raise ModelInputError("result unavailable at cohort verification boundary")
     if not result["source_ref"] or not result["source_rights_ref"]:
         raise ModelInputError("result source proof missing")
@@ -188,7 +246,7 @@ def _evaluate(records,w,sport):
 
 def _fit_weights(train,sport,epochs,lr,regularization):
     """Shared original deterministic optimizer; accepts admitted train records only."""
-    weights=[0.0]*len(vector_schema(sport))
+    weights=[0.0]*len(vector_schema(sport,sparse=train[0][0]["schema"]==SCHEMA_SPARSE))
     train.sort(key=lambda row:row[0]["race"]["race_id"])
     for _ in range(epochs):
         for snap,finish in train:
@@ -216,12 +274,14 @@ def fit_training_only(rows,*,sport,train_end_at,allow_source=None,allow_result=N
     regularization=_number(l2,0,.1,"l2")
     if not isinstance(rows,list) or len(rows)>10000:
         raise ModelInputError("labeled dataset size invalid")
-    seen=set();train=[];scope=None;captured=[]
+    seen=set();train=[];scope=None;captured=[];input_schema=None
     for item in rows:
         if not isinstance(item,dict) or set(item)!={"snapshot","result"}:
             raise ModelInputError("feature snapshot/label isolation required")
         snap=item["snapshot"]
         validate(snap,allow_source=allow_source)
+        if input_schema is None:input_schema=snap["schema"]
+        if input_schema!=snap["schema"]:raise ModelInputError("mixed complete/sparse input schemas")
         race=snap["race"]
         if race["sport"]!=sport:
             raise ModelInputError("mixed sport models not admitted")
@@ -249,7 +309,7 @@ def fit_training_only(rows,*,sport,train_end_at,allow_source=None,allow_result=N
     model={
         "model_id":LEARNED_ID,"model_version":TRAIN_ONLY_VERSION,
         "sport":sport,"vector_version":VECTOR_VERSION,
-        "vector_schema":list(vector_schema(sport)),
+        "vector_schema":list(vector_schema(sport,sparse=input_schema==SCHEMA_SPARSE)),
         "trained_until":train_end_at,
         "trained_data_until":max(captured).astimezone(timezone.utc).isoformat(),
         "created_at":created.astimezone(timezone.utc).isoformat(),
@@ -263,6 +323,9 @@ def fit_training_only(rows,*,sport,train_end_at,allow_source=None,allow_result=N
         "prediction_eligible_without_external_receipt":False,
         "data_sources_independently_attested":False,
     }
+    if input_schema==SCHEMA_SPARSE:
+        model.update(input_schema=SCHEMA_SPARSE,model_version=SPARSE_TRAIN_ONLY_VERSION,vector_version=SPARSE_VECTOR_VERSION,
+                     result_time_semantics="CAPTURED_AVAILABILITY_BOUND_PUBLICATION_MAY_BE_UNKNOWN")
     model["model_sha256"]=digest(model)
     return model
 
@@ -314,7 +377,7 @@ def evaluate_training_candidate(rows,model,*,validation_end_at,
 
 def fit_chronological(rows,*,sport,train_end_at,validation_end_at,test_end_at,
                       allow_source=None,allow_result=None,epochs=48,
-                      learning_rate=.025,l2=.005):
+                      learning_rate=.025,l2=.005,now=None):
     if sport not in SPORT_REQUIRED:
         raise ModelInputError("unknown sport")
     train_end=moment(train_end_at);valid_end=moment(validation_end_at);test_end=moment(test_end_at)
@@ -326,12 +389,14 @@ def fit_chronological(rows,*,sport,train_end_at,validation_end_at,test_end_at,
     regularization=_number(l2,0,.1,"l2")
     if not isinstance(rows,list) or len(rows)>10000:
         raise ModelInputError("labeled dataset size invalid")
-    seen=set();train=[];valid=[];test=[];scope=None
+    seen=set();train=[];valid=[];test=[];scope=None;input_schema=None;admitted=[]
     for item in rows:
         if not isinstance(item,dict) or set(item)!={"snapshot","result"}:
             raise ModelInputError("feature snapshot/label isolation required")
         snap=item["snapshot"]
         checked=validate(snap,allow_source=allow_source)
+        if input_schema is None:input_schema=snap["schema"]
+        if input_schema!=snap["schema"]:raise ModelInputError("mixed complete/sparse input schemas")
         race=snap["race"]
         if race["sport"]!=sport:
             raise ModelInputError("mixed sport models not admitted")
@@ -347,9 +412,10 @@ def fit_chronological(rows,*,sport,train_end_at,validation_end_at,test_end_at,
         cap=train_end if cohort is train else valid_end if cohort is valid else test_end
         label=_label(item["result"],snap,scope=scope,allow_result=allow_result,window_end=cap)
         cohort.append((snap,label))
+        admitted.append(item)
     if len(train)<6 or len(valid)<2 or len(test)<2:
         raise ModelInputError("at least six train, two validation, two test races required")
-    schema=vector_schema(sport)
+    schema=vector_schema(sport,sparse=input_schema==SCHEMA_SPARSE)
     # TRAIN ONLY: validation and test labels do not enter the gradient.
     # Deterministic order of race identity makes fitting reproducible.
     weights=_fit_weights(train,sport,epochs,lr,regularization)
@@ -371,5 +437,16 @@ def fit_chronological(rows,*,sport,train_end_at,validation_end_at,test_end_at,
         "prediction_eligible_without_external_receipt":False,
         "data_sources_independently_attested":False
     }
+    if input_schema==SCHEMA_SPARSE:
+        if now is not None and not callable(now):raise ModelInputError("creation clock must be a trusted callable")
+        created=datetime.now(timezone.utc) if now is None else now()
+        if not isinstance(created,datetime) or created.utcoffset() is None or created<test_end:
+            raise ModelInputError("creation clock must follow chronological cohort boundaries")
+        model.update(input_schema=SCHEMA_SPARSE,model_version=SPARSE_CHRONOLOGICAL_VERSION,vector_version=SPARSE_VECTOR_VERSION,
+                     created_at=created.astimezone(timezone.utc).isoformat(),created_at_independently_attested=False,
+                     trained_data_until=max(moment(r["result"]["captured_at"]) for r in admitted).astimezone(timezone.utc).isoformat(),
+                     training_data_sha256=digest(sorted(admitted,key=lambda r:r["snapshot"]["race"]["race_id"])),
+                     validation_example_ids=[s["race"]["race_id"] for s,_ in valid],test_example_ids=[s["race"]["race_id"] for s,_ in test],
+                     result_time_semantics="CAPTURED_AVAILABILITY_BOUND_PUBLICATION_MAY_BE_UNKNOWN")
     model["model_sha256"]=digest(model)
     return model

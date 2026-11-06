@@ -8,12 +8,14 @@ never invented numbered official result revisions.
 from copy import deepcopy
 from datetime import date, timezone, timedelta
 import json
+import itertools
 import math
 import re
 
 from .actions_contract import digest, stamp
 from .boat_observed_pairwise_models import MODEL_IDS
 from .frozen_day_cycle import check_clock, official_id
+from .boat_active_roster import active_roster, match_result_roster, result_roster_bindings
 
 SCHEMA = "RACE_AI_PRIVATE_CYCLE_VIEW_V1"
 INPUT_SCHEMAS = {"RACE_AI_RECOVERED_FIRST_RECEIPTS_V1", "RACE_AI_PRIVATE_ARTIFACT_READBACK_V1"}
@@ -94,10 +96,15 @@ def _ticket(value):
     return type(value) is list and len(value) == 3 and all(type(n) is int and 1 <= n <= 6 for n in value) and len(set(value)) == 3
 
 
-def _ranking(top, ranked):
-    _need(type(top) is list and len(top) == 8 and all(_ticket(t) for t in top), "Top8 format")
-    _need(type(ranked) is list and len(ranked) == 120 and all(_ticket(t) for t in ranked), "ranking format")
-    _need(len({tuple(t) for t in ranked}) == 120 and ranked[:8] == top, "ranking/Top8 mismatch")
+def _ranking(top, ranked, lanes=None):
+    _need(type(ranked) is list and all(_ticket(t) for t in ranked), "ranking format")
+    lanes = sorted({n for t in ranked for n in t}) if lanes is None else list(lanes)
+    _need(3<=len(lanes)<=6 and len(set(lanes))==len(lanes)
+          and all(type(n) is int and 1<=n<=6 for n in lanes), "ranking roster")
+    count = math.perm(len(lanes),3)
+    _need(type(top) is list and len(top) == min(8,count) and all(_ticket(t) for t in top), "Top8 format")
+    _need(len(ranked)==count and {tuple(t) for t in ranked}==set(itertools.permutations(lanes,3))
+          and ranked[:8] == top, "ranking/Top8 mismatch")
 
 
 def _race(value, day):
@@ -158,7 +165,14 @@ def _native_entries(documents):
                     out.append([int(n) for n in row["ticket"].split("-")])
                 return out
             top, ranked = triples(model.get("top8")), triples(model.get("full_120"))
-        _ranking(top, ranked)
+        people = parent.get("observations")
+        if people is not None:
+            lanes = active_roster(people,identity_key="registration_no")
+        elif isinstance(model.get("features"),list):
+            lanes = active_roster(model["features"],identity_key="racer_id")
+        else:
+            lanes = None
+        _ranking(top, ranked, lanes)
         data = dict(model=model, parent=parent, stage=stage, race_id=rid, cutoff_at=cutoff, as_of=as_of,
                     top8=top, ranked=ranked, source_sha256=source_sha,
                     artifact_id=wrapper.get("artifact_id"), member_sha256=wrapper.get("member_sha256"))
@@ -274,15 +288,18 @@ def _prediction(row, entries):
     _need(type(row) is dict and row.get("sport") == "boat" and row.get("stage") in ("P0","P1"), "saved forecast identity")
     _label(row.get("model_id")); _sha(row.get("model_sha256")); _sha(row.get("original_json_sha256"))
     _need(type(row.get("artifact_id")) is int and row["artifact_id"] > 0, "artifact identity")
-    _ranking(row.get("top8"), row.get("ranked"))
+    roster = row.get("roster")
+    _need(type(roster) is dict and 3<=len(roster)<=6 and
+          all(type(n) is str and re.fullmatch(r"[1-6]",n) for n in roster) and
+          all(type(v) is str and re.fullmatch(r"[0-9]{4}",v) for v in roster.values())
+          and len(set(roster.values())) == len(roster), "saved roster")
+    _ranking(row.get("top8"), row.get("ranked"), [int(n) for n in roster])
+    result_roster_bindings(row,race_id=row["race_id"])
     _clock(row.get("as_of")); _clock(row.get("server_saved_at"))
     try:
         check_clock(row["as_of"], row["cutoff_at"], row["server_saved_at"])
     except (ValueError, TypeError) as exc:
         raise PrivateCycleProjectionError("private saved cycle rejected: forecast chronology") from exc
-    roster = row.get("roster")
-    _need(type(roster) is dict and set(roster) == set(map(str, range(1,7))) and
-          all(type(v) is str and re.fullmatch(r"\d{4}",v) for v in roster.values()) and len(set(roster.values())) == 6, "saved roster")
     p = dict(model_id=row["model_id"], model_version=row.get("model_version"), stage=row["stage"],
              ordered_top8=deepcopy(row["top8"]), ordered_candidates=deepcopy(row["ranked"]),
              prediction_sha256=row["model_sha256"], input_sha256=row.get("input_sha256"), source_sha256=row.get("source_sha256"),
@@ -296,7 +313,7 @@ def _prediction(row, entries):
         _need(type(snapshot) is dict and official_id(snapshot.get("race_id")) == row["race_id"] and
               snapshot.get("stage") == row["stage"] and _clock(snapshot.get("as_of")) == _clock(row["as_of"]) and
               _clock(snapshot.get("sales_cutoff_at")) == _clock(row["cutoff_at"]), "saved learning snapshot identity")
-        _need(type(snapshot.get("participants")) is list and len(snapshot["participants"]) == 6 and
+        _need(type(snapshot.get("participants")) is list and len(snapshot["participants"]) == len(roster) and
               {str(r.get("lane")):r.get("registration_no") for r in snapshot["participants"]} == roster,
               "saved learning snapshot roster")
         p["input_sha256"] = row["learning_snapshot_sha256"]
@@ -387,13 +404,19 @@ def _observation(observation, row):
     _need(type(records) is list and all(type(r) is dict and type(r.get("lane")) is int for r in records), "result roster format")
     if records:
         roster = {str(r["lane"]):r.get("racer_registration_id") for r in records}
-        _result_need(len(records) == 6 and set(roster) == set(map(str,range(1,7))) and len(roster) == len(records), "RESULT_ROSTER_LANES_MISMATCH")
-        _result_need(all(type(pid) is str and re.fullmatch(r"\d{4}",pid) for pid in roster.values()) and
-                     len(set(roster.values())) == 6, "RESULT_ROSTER_IDENTITY_MISMATCH")
+        _result_need(3<=len(records)<=6 and all(1<=r["lane"]<=6 for r in records)
+                     and len(roster) == len(records), "RESULT_ROSTER_LANES_MISMATCH")
+        _result_need(all(type(pid) is str and re.fullmatch(r"[0-9]{4}",pid) for pid in roster.values()) and
+                     len(set(roster.values())) == len(roster), "RESULT_ROSTER_IDENTITY_MISMATCH")
         _result_need(all("race_id" not in r or r["race_id"] == row["race_id"] for r in records), "RESULT_RACE_IDENTITY_MISMATCH")
         _result_need(all("verified_official" not in r or r["verified_official"] is True for r in records), "RESULT_IDENTITY_UNVERIFIED")
         if row.get("participants"):
-            _result_need(roster == {str(p["number"]):p["registration_no"] for p in row["participants"]}, "RESULT_ROSTER_MISMATCH")
+            try:
+                records = match_result_roster(row,records,race_id=row["race_id"])
+            except ValueError:
+                _result_need(False,"RESULT_ROSTER_MISMATCH")
+        else:
+            _result_need(len(records)==6 and set(roster)==set(map(str,range(1,7))),"RESULT_ROSTER_LANES_MISMATCH")
     if observation.get("status") != "AVAILABLE": return result
     if data.get("confirmed") is True and data.get("status") in ("cancelled","no_contest"):
         result["status"] = "void"
@@ -405,9 +428,11 @@ def _observation(observation, row):
         winners = []
         for payout in payouts:
             combo, amount = payout.get("combination"), payout.get("payout_per_100_yen")
-            _result_need(_ticket(combo) and type(amount) is int and amount >= 0, "RESULT_PAYOUT_INVALID")
+            _result_need(_ticket(combo) and all(n in {r["lane"] for r in records} for n in combo)
+                         and type(amount) is int and amount >= 0, "RESULT_PAYOUT_INVALID")
             winners.append(deepcopy(combo))
-        _result_need(len({tuple(t) for t in winners}) == len(winners) and data.get("top3") in winners, "RESULT_WINNER_MISMATCH")
+        _result_need(len({tuple(t) for t in winners}) == len(winners) and _ticket(data.get("top3"))
+                     and data.get("top3") in winners, "RESULT_WINNER_MISMATCH")
         _result_need(all(type(r.get("finish")) is int and 1 <= r["finish"] <= 6 or
                          r.get("finish") is None and r.get("finish_status") != "FINISHED" for r in records),
                      "RESULT_FINISH_ORDER_MISMATCH")
@@ -460,6 +485,14 @@ def project_state(state, *, dataset_status, original_documents=None):
                    result_observations=[], result_observation_rejections=[], result_revisions=[], missing_reasons=[])
         records[rid] = row
         return row
+    def displayed_identity(person):
+        person=deepcopy(person)
+        if "number" not in person:
+            person["number"]=person["lane"]
+        if "registration_no" not in person:
+            values=[person[key] for key in ("racer_registration_id","registration_number","participant_id","racer_id") if key in person]
+            person["registration_no"]=values[0]
+        return person
     seen = set()
     for source in source_rows + shadows:
         _need(type(source) is dict, "saved forecast object")
@@ -475,8 +508,51 @@ def project_state(state, *, dataset_status, original_documents=None):
             if "SAVED_FORECAST_CUTOFF_CONFLICT" not in row["missing_reasons"]:
                 row["missing_reasons"].append("SAVED_FORECAST_CUTOFF_CONFLICT")
         participants = [dict(number=int(n), registration_no=pid) for n,pid in sorted(roster.items(), key=lambda item:int(item[0]))]
-        _need(not row["participants"] or row["participants"] == participants, "one race roster conflict")
-        row["participants"] = participants
+        existing = row["participants"]
+        current = {p["number"]:p["registration_no"] for p in participants}
+        previous = {p["number"]:p["registration_no"] for p in existing}
+        _need(all(previous[n]==pid for n,pid in current.items() if n in previous), "one race roster conflict")
+        _,source_known,source_withdrawn = result_roster_bindings(source,race_id=row["race_id"])
+        prior_known,prior_withdrawn = {},set()
+        if existing:
+            _,prior_known,prior_withdrawn = result_roster_bindings(row,race_id=row["race_id"])
+        _need(all(prior_known[n]==pid for n,pid in source_known.items() if n in prior_known), "one race roster conflict")
+        known = dict(prior_known)
+        known.update(source_known)
+        _need(len(set(known.values()))==len(known), "one race registration lane conflict")
+        withdrawn = source_withdrawn|prior_withdrawn
+        snapshots = deepcopy(row.get("saved_participant_rosters",[]))
+        for snapshot in source.get("saved_participant_rosters",[]):
+            if snapshot not in snapshots:
+                snapshots.append(deepcopy(snapshot))
+        if existing and previous!=current:
+            _need(set(previous)<=set(current) or set(current)<=set(previous), "incompatible active rosters")
+            selected = existing if len(previous)<len(current) else participants
+            selected_lanes = {p["number"] for p in selected}
+            _need((set(previous)|set(current))-selected_lanes<=withdrawn, "unexplained saved participant subset")
+            for people in (existing,participants):
+                if not any(snapshot.get("participants")==people for snapshot in snapshots):
+                    snapshots.append(dict(race_id=row["race_id"],participants=deepcopy(people)))
+            row["participants"] = selected
+        else:
+            row["participants"] = participants
+        if snapshots:
+            for snapshot in snapshots:
+                snapshot["participants"]=[displayed_identity(person) for person in snapshot["participants"]]
+            row["saved_participant_rosters"] = snapshots
+        if withdrawn:
+            row["withdrawn_lanes"] = sorted(withdrawn)
+            people = deepcopy(row.get("withdrawn_participants",[]))
+            for person in source.get("withdrawn_participants",[]):
+                if not any(p.get("number",p.get("lane"))==person.get("number",person.get("lane")) for p in people):
+                    people.append(deepcopy(person))
+            for lane in sorted(withdrawn):
+                if lane in known and not any(p.get("number",p.get("lane"))==lane for p in people):
+                    people.append(dict(number=lane,registration_no=known[lane],active=False,withdrawn=True))
+            if people:
+                row["withdrawn_participants"] = [displayed_identity(person) for person in people]
+            row["roster_status"] = "OFFICIAL_ACTIVE"
+        result_roster_bindings(row,race_id=row["race_id"])
         if row["prediction"] is None: row["prediction"] = prediction
         else: row["comparison_predictions"].append(prediction)
     schedule = state.get("schedule", [])

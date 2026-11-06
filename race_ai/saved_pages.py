@@ -24,8 +24,8 @@ SCHEMA='RACE_AI_SAVED_WEB_VIEW_V1'
 UPDATED_SCHEMA='RACE_AI_SAVED_WEB_VIEW_V2'
 BUILD='RACE_AI_SAVED_PAGES_BUILD_V1'
 BASE_URL='https://haji84.github.io/RACE-AI/'
-MAX_VIEW=5*1024*1024
-MAX_WIRE=8*1024*1024
+MAX_VIEW=64*1024*1024
+MAX_WIRE=90*1024*1024
 HEX=re.compile('[a-f0-9]{64}\\Z')
 ASSETS=('style.css','app.js','forecast-audit-model.js','product-data.js',
         'existing-model-catalog.js','ui-model.js','saved-performance.js','saved-view-crypto.js',
@@ -95,7 +95,7 @@ def _viewer(path):
     return key,view_id
 
 
-def build_site(state_path,public_dir,private_dir,*,expected_source_sha256,viewer_from=None):
+def build_site(state_path,public_dir,private_dir,*,expected_source_sha256,viewer_from=None,extra_views=(),names=None):
     _hex(expected_source_sha256)
     public=Path(public_dir).absolute();private=Path(private_dir).absolute()
     a=public.resolve();b=private.resolve()
@@ -107,9 +107,14 @@ def build_site(state_path,public_dir,private_dir,*,expected_source_sha256,viewer
         view=project_pdca(state)
         need(state.content_sha256()==expected_source_sha256,'PAGES_SOURCE_CHANGED')
     finally:state.close()
-    raw=wire(view).encode();need(0<len(raw)<=MAX_VIEW,'PAGES_VIEW_BOUND')
-    from .saved_view_feed import originals_sha
+    from .saved_view_feed import originals_sha,ensure_append_only
     forecast_sha=originals_sha(view)
+    if extra_views or names is not None:
+        from .boat_saved_model_view import merge_saved_views
+        original=view;view=merge_saved_views(view,extra_views,names=names)
+        view['forecast_base_sha256']=forecast_sha
+        ensure_append_only(original,view)
+    raw=wire(view).encode();need(0<len(raw)<=MAX_VIEW,'PAGES_VIEW_BOUND')
     # Display capability only: never a replacement for RACE_AI_STATE_KEY.
     key=reused[0] if reused else AESGCM.generate_key(bit_length=256);nonce=os.urandom(12)
     header=dict(schema=SCHEMA,source_content_sha256=expected_source_sha256)
@@ -147,7 +152,7 @@ def _bundle_bytes(folder,*,expected_manifest_sha256=None):
     if 'view_id' in m:_hex(m['view_id'])
     ident=_hex(m['cipher_sha256']);_hex(m['source_content_sha256']);path='views/'+ident+'.json'
     need(m['cipher_path']==path and type(m['races']) is int and 0<m['races']<=5000
-         and type(m['predictions']) is int and m['predictions']==4*m['races'],'PAGES_SCOPE_INVALID')
+         and type(m['predictions']) is int and 0<=m['predictions']<=128*m['races'],'PAGES_SCOPE_INVALID')
     expected=set(ASSETS)|{'index.html','.nojekyll',path}
     need(type(m['files']) is dict and set(m['files'])==expected,'PAGES_FILES_REJECTED')
     actual=set()

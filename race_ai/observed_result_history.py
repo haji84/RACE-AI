@@ -13,6 +13,7 @@ import zipfile
 
 from .actions_contract import digest, stamp
 from .boat_observed_pairwise_models import FEATURE_TRANSFORMS
+from .boat_active_roster import active_roster
 
 SCHEMA = 'RACE_AI_OBSERVED_RESULT_HISTORY_V1'
 EVIDENCE_SCHEMA = 'RACE_AI_OBSERVED_HISTORY_EVIDENCE_V1'
@@ -42,12 +43,8 @@ def _race(rid):
 
 
 def _roster(participants):
-    need(type(participants) is list and len(participants)==6,'history six participants required')
+    active_roster(participants,identity_key='registration_no')
     rows=[dict(lane=r['lane'],registration_no=r['registration_no']) for r in participants]
-    need(all(type(r['lane']) is int and type(r['registration_no']) is str and
-             re.fullmatch(r'[0-9]{4}',r['registration_no']) for r in rows) and
-         {r['lane'] for r in rows}==set(range(1,7)) and
-         len({r['registration_no'] for r in rows})==6,'history participant identity mismatch')
     return sorted(rows,key=lambda r:r['lane'])
 
 

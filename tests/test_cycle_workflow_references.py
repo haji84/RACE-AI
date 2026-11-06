@@ -28,7 +28,8 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn('using: composite', text)
         steps = re.split(r'^    - name: ', text, flags=re.MULTILINE)[1:]
         private_steps=[step for step in steps if 'venue-research-' in step]
-        baseline_steps=[step for step in steps if step not in private_steps]
+        model_steps=[step for step in steps if 'boat_all_model_cycle' in step or 'boat-all-model-forecasts' in step]
+        baseline_steps=[step for step in steps if step not in private_steps+model_steps]
         self.assertEqual(len(baseline_steps), 9)
         prepare, discovery, p0freeze, forecast, freeze, audit, result, complete, display = baseline_steps
         self.assertIn('id: ready', prepare)
@@ -68,6 +69,19 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn('scripts.boat_saved_view_feed --result-artifact',display)
         self.assertIn('RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}',display)
         self.assertIn("if: steps.ready.outputs.active == 'true'",display)
+        self.assertEqual(len(model_steps),4)
+        preload,generate,encrypted_freeze,receipt=model_steps
+        self.assertIn(' prepare --round ',preload)
+        self.assertLess(text.index(preload),text.index(forecast))
+        self.assertLess(text.index(freeze),text.index(generate))
+        self.assertIn("--baseline-artifact '${{ steps.freeze.outputs.artifact-id }}'",generate)
+        self.assertLess(text.index(generate),text.index(encrypted_freeze))
+        self.assertLess(text.index(encrypted_freeze),text.index(receipt))
+        self.assertLess(text.index(receipt),text.index(audit))
+        self.assertIn('forecasts.enc',encrypted_freeze)
+        self.assertNotIn('forecasts.json',encrypted_freeze)
+        self.assertIn('steps.all_models_freeze.outputs.artifact-id',receipt)
+        for step in model_steps:self.assertIn('continue-on-error: true',step)
         # Optional private work may fail independently; ordinary forecast and
         # result originals must retain their strict failure and receipt rules.
         self.assertEqual(len(private_steps),6)

@@ -10,6 +10,7 @@ from copy import deepcopy
 from .boat_ab_cohort import RACE_ID, wilson
 from .boat_observed_pairwise_models import MODEL_IDS as OBSERVED
 from .frozen_day_cycle import check_clock, rank_check, settle, ts
+from .boat_active_roster import result_roster_bindings
 from .private_saved_comparison import _result
 from .boat_cutoff_revision import cutoff_views,apply_cutoff_evidence
 
@@ -19,7 +20,7 @@ SPECIAL = frozenset({'CANCELLED', 'NO_CONTEST', 'NO_TRIFECTA',
     'SPECIAL_SETTLEMENT_REVIEW_REQUIRED'})
 
 
-def _official_result(race, observations, now):
+def _official_result(race, observations, now, roster_rows=None):
     """Adapt actual observations to the existing strict result classifier.
 
     Its capture wrapper describes caller-supplied authenticated observations;
@@ -42,7 +43,18 @@ def _official_result(race, observations, now):
             references=[dict(source_sha256=admitted.get('source_sha256'),
                 scope='CALLER_AUTHENTICATED_OBSERVATION')],
             available_at_boundary=True)]
-        state, selected = _result(race, captures, [], now)
+        references=[]
+        for row in roster_rows or []:
+            if len(row.get('roster',{}))>=6:
+                continue
+            try:
+                result_roster_bindings(row,race_id=race['race_id'])
+                check_clock(row['as_of'],row['cutoff_at'],row['server_saved_at'])
+                if ts(row['server_saved_at'])<=now and ts(row['cutoff_at'])==ts(race['cutoff_at']):
+                    references.append(row)
+            except (ValueError,TypeError,KeyError,AttributeError):
+                pass
+        state, selected = _result(race, captures, references, now)
         return state, selected, admitted
     except (ValueError, TypeError, KeyError, AttributeError):
         return 'RESULT_REJECTED', None, None
@@ -70,12 +82,9 @@ def _first_original(rows, race, now):
         return None, 'CONFLICTING_FIRST_RECEIPT', len(valid)-1
     row = first[0]
     try:
-        # rank_check binds all 120 permutations to the exact original first 8.
-        if (len(row['top8']) != 8 or
-                any(len(t) != 3 or any(type(n) is not int for n in t)
-                    for tickets in (row['ranked'], row['top8']) for t in tickets)):
-            raise ValueError('exact eight ordered distinct integer triples required')
-        rank_check(row['ranked'], row['top8'])
+        # Bind the original up-to-eight picks to its complete active universe.
+        roster,_,_=result_roster_bindings(row,race_id=race['race_id'])
+        rank_check(row['ranked'], row['top8'],lanes=roster)
     except (ValueError, TypeError, KeyError, AttributeError) as exc:
         return None, 'INCOMPATIBLE_ORIGINAL: '+str(exc)[:140], len(valid)-1
     return row, None, len(valid)-1
@@ -116,7 +125,8 @@ def all_race_top8_target(rows, schedule, observations, *, now, expected_models,
     race_rows = []; forecasts = []; eligible_ids = []
     for race in schedule:
         rid = race['race_id']; future = ts(race['cutoff_at']) > now
-        state, selected, admitted = ('FUTURE', None, None) if future else _official_result(race, by_result[rid], now)
+        roster_rows=[row for (race_id,_),saved in forecast_rows.items() if race_id==rid for row in saved]
+        state, selected, admitted = ('FUTURE', None, None) if future else _official_result(race, by_result[rid], now,roster_rows)
         if rid in blocked:state,selected,admitted='RESULT_REJECTED',None,None
         eligible = state == 'FINAL_NORMAL'
         if eligible:
@@ -145,6 +155,8 @@ def all_race_top8_target(rows, schedule, observations, *, now, expected_models,
                             item['cutoff_revision_evidence']=deepcopy(original['cutoff_revision_evidence'])
                         if original.get('training_sha256') is not None:
                             item['training_sha256'] = original['training_sha256']
+                        if len(original['top8'])!=8:
+                            item['stake_yen']=verdict['stake_yen']
                     except (ValueError, TypeError, KeyError, AttributeError) as exc:
                         reason = 'INCOMPATIBLE_ORIGINAL: '+str(exc)[:140]
                 if not item['issued']:
@@ -169,7 +181,9 @@ def all_race_top8_target(rows, schedule, observations, *, now, expected_models,
     counts = Counter(r['result_state'] for r in race_rows)
     pending = counts['RESULT_PENDING']; special = sum(counts[s] for s in SPECIAL)
     unknown = len(schedule)-counts['FUTURE']-eligible-pending-special
-    return dict(target_hit_rate=.98, exact_ticket_count=8,
+    variable_ticket_count=any(type(row.get('roster')) is dict and len(row['roster'])==3
+                              for row in rows+(learned_rows or []))
+    output=dict(target_hit_rate=.98, exact_ticket_count=None if variable_ticket_count else 8,
         denominator_scope='ENDED_SCHEDULED_OFFICIAL_FINAL_NORMAL_RACES',
         selection_policy='FIRST_PRE_CUTOFF_ORIGINAL_PER_RACE_PHASE_MODEL_VARIANT',
         scheduled_races=len(schedule), ended_races=len(schedule)-counts['FUTURE'],
@@ -187,3 +201,6 @@ def all_race_top8_target(rows, schedule, observations, *, now, expected_models,
             'The declared schedule and caller authentication bound this audit.',
             'Schedule completion describes classified outcomes; missing forecast coverage is reported separately.',
             'An observed 98% point estimate is not proof of future accuracy; races may be correlated.'])
+    if variable_ticket_count:
+        output.update(maximum_ticket_count=8,ticket_count_policy='MIN_8_PERM_ACTIVE_ENTRANTS_3')
+    return output

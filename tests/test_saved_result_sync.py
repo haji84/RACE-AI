@@ -84,6 +84,44 @@ class JournalTests(unittest.TestCase):
   with self.assertRaises(ValueError):M.project_observation(o,row,freeze_at=row['cutoff_at'],raw_bound=True)
   o['closed_at']=(datetime.fromisoformat(o['closed_at'])+timedelta(seconds=1)).isoformat()
   with self.assertRaises(ValueError):M.project_observation(o,row,freeze_at=self.pair['generated_at'],raw_bound=True)
+ def test_raw_result_can_reference_two_saved_cutoffs_without_rewriting_either_original(self):
+  from race_ai.boat_pdca_projection import project_pdca
+  from race_ai.boat_saved_model_view import merge_saved_views
+  from race_ai import saved_view_feed as F
+  from tests.test_boat_pdca_state import result
+  from datetime import datetime,timedelta
+  base=project_pdca(self.state);addition=deepcopy(base)
+  old=addition['records'][0]['prediction'];old['cutoff_at']=(datetime.fromisoformat(old['cutoff_at'])+timedelta(seconds=60)).isoformat()
+  old['model_id']='invented-extra-native';old['stage']='P1'
+  joined=merge_saved_views(base,[addition]);row=joined['records'][0]
+  o=result(self.pair);o['captured_at']='2026-11-06T03:00:00Z';row['result_observations'].append(o)
+  frozen=deepcopy([row['prediction'],*row['comparison_predictions']])
+  with self.assertRaises(ValueError):M.project_observation(o,row,freeze_at=self.pair['generated_at'])
+  projected=M.project_observation(o,row,freeze_at=self.pair['generated_at'],raw_bound=True)
+  self.assertEqual(projected['status'],'final');self.assertFalse(projected['cutoff_reconciliation']['formal_eligible'])
+  self.assertEqual(frozen,[row['prediction'],*row['comparison_predictions']]);self.assertIsNone(row['cutoff_at'])
+  newer=deepcopy(o);newer['captured_at']='2026-11-06T03:01:00Z';newer.update(status='PENDING',data=None)
+  row['result']=projected
+  held=F.update_view(joined,[newer],synced_at='2026-11-06T03:02:00Z')
+  self.assertNotEqual(held['records'][0]['result']['status'],'final')
+ def test_proven_withdrawn_identity_survives_multi_cutoff_reference(self):
+  from tests.test_boat_active_downstream import saved,with_proof,outcome
+  from tests.test_private_cycle_projection import seal
+  from race_ai.private_cycle_projection import project_state
+  from race_ai.boat_saved_model_view import merge_saved_views
+  from datetime import datetime,timedelta
+  state,_=saved((1,2,3,4,5))
+  for p in state['rows']:with_proof(p,(6,))
+  o=outcome(state['rows'][0],extra=(6,));o['data']['results'][-1]['finish_status']='欠'
+  state['observations']=[o];seal(state)
+  view=project_state(state,dataset_status='SYNTHETIC_ONLY');extra=deepcopy(view)
+  for p in [extra['records'][0]['prediction'],*extra['records'][0]['comparison_predictions']]:
+   p['cutoff_at']=(datetime.fromisoformat(p['cutoff_at'])+timedelta(seconds=60)).isoformat()
+  row=merge_saved_views(view,[extra])['records'][0]
+  result=M.project_observation(o,row,freeze_at=row['prediction']['persisted_at'],raw_bound=True)
+  self.assertEqual(result['status'],'final');self.assertEqual(len(row['result_observations'][0]['data']['results']),6)
+  row['withdrawn_participants'][0]['registration_no']='4999'
+  with self.assertRaises(ValueError):M.project_observation(o,row,freeze_at=row['prediction']['persisted_at'],raw_bound=True)
  def test_raw_selected_race_cancellation_can_refund_without_six_finish_records(self):
   from tests.test_boat_pdca_state import result
   from datetime import datetime,timedelta

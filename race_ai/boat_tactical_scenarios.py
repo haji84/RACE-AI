@@ -46,8 +46,8 @@ def _time_no_future(v,decision):
 
 
 def _profiles(profiles, boats,generated_at):
-    _need(isinstance(profiles, list) and len(profiles)==6,
-          "all six racer historical profiles required; no absent profile fabricated")
+    _need(isinstance(profiles, list) and len(profiles)==len(boats),
+          "all active racer historical profiles required; no absent profile fabricated")
     output={}
     keys={"racer_id","as_of","sample_races","actual_entry_course_history",
           "by_frame_actual_course_counts","wins_by_actual_course_and_kimarite",
@@ -116,7 +116,7 @@ def _profiles(profiles, boats,generated_at):
               "historic method of winner for inside course losses required")
         output[rid]=x
     _need(set(output)=={x["racer_id"] for x in boats},
-          "history and official program do not have same six racers")
+          "history and official program do not have same active racers")
     return output
 
 
@@ -201,7 +201,7 @@ def predict_tactical_shadow(source, histories, venue, generated_at, *,
                            max_ticket_count=8, preclose_odds=None):
     """Third C shadow, never silently substitute for A/B or promise man-shu.
 
-    Source has exactly the unchanged A/B official six entrant data schema.
+    Source has exactly the A/B official confirmed active entrant data schema.
     Histories must be extracted from genuine prior results upstream; per-source
     receipt flags are claims and must be authenticated independently before
     this research output is eligible for a real prospective study.
@@ -213,11 +213,11 @@ def predict_tactical_shadow(source, histories, venue, generated_at, *,
     venue=_venue(venue,generated_at)
     _need(source["race_id"][9:11]==venue["venue_code"],
           "venue source and selected race identity mismatch")
-    # All 720 bijective actual entry permutations are candidates. The official
+    # All bijective active-entrant entry permutations are candidates. The official
     # preview parser currently does NOT verify a future actual course, so the
     # entrant's assigned course must remain an inferred scenario, not a fact.
     scenarios=[]
-    for arrangement in itertools.permutations(range(1,7)):
+    for arrangement in itertools.permutations(range(1,len(boats)+1)):
         p=1.
         for row,course in zip(boats,arrangement):
             p*=_entry_probability(verified[row["racer_id"]],venue,row["lane"],course)
@@ -226,19 +226,19 @@ def predict_tactical_shadow(source, histories, venue, generated_at, *,
     total_mass=math.fsum(p for _,p in scenarios)
     _need(total_mass>0,"no admissible entry configuration")
     scenarios=[(courses,p/total_mass) for courses,p in scenarios]
-    all_tickets=list(itertools.permutations(range(1,7),3))
+    all_tickets=list(itertools.permutations([row["lane"] for row in boats],3))
     distribution={ticket:0. for ticket in all_tickets}
     mode_mass={mode:venue["winner_method_rates"][mode] for mode in MODES}
-    field={"mean_exhibition":math.fsum(x["exhibition_time_seconds"] for x in boats)/6}
+    field={"mean_exhibition":math.fsum(x["exhibition_time_seconds"] for x in boats)/len(boats)}
     for courses,p_course in scenarios:
         for mode in MODES:
             method_weight=mode_mass[mode]*p_course
             if method_weight<=0: continue
-            strengths=[_base_strength(row,verified[row["racer_id"]],venue,course,mode,field)
-                       for row,course in zip(boats,courses)]
-            total=math.fsum(strengths)
+            strengths={row["lane"]:_base_strength(row,verified[row["racer_id"]],venue,course,mode,field)
+                       for row,course in zip(boats,courses)}
+            total=math.fsum(strengths.values())
             for a,b,c in all_tickets:
-                sa,sb,sc=strengths[a-1],strengths[b-1],strengths[c-1]
+                sa,sb,sc=strengths[a],strengths[b],strengths[c]
                 distribution[(a,b,c)]+=method_weight*sa/total*sb/(total-sa)*sc/(total-sa-sb)
     total=math.fsum(distribution.values())
     _need(math.isclose(total,1.,rel_tol=0,abs_tol=1e-7),"scenario mixture probabilities not normalized")

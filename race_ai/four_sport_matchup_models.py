@@ -18,7 +18,7 @@ import itertools
 import math
 
 from .comprehensive_four_sport_models import (
-    ModelInputError, validate, digest, _utility, HISTORICAL_HORSE_FEATURES
+    ModelInputError, validate, digest, _utility, HISTORICAL_HORSE_FEATURES, SCHEMA_SPARSE
 )
 
 MODEL_IDS = (
@@ -46,9 +46,9 @@ def _softmax(scores):
 
 def _race_stress(env):
     e = {k: v["value"] for k,v in env.items()}
-    wind = _ratio(e["wind_mps"]/24)
-    rain = _ratio(e["rain_mm_h"]/45)
-    surface = _ratio(e["surface_wetness"])
+    wind = _ratio(e.get("wind_mps",0)/24)
+    rain = _ratio(e.get("rain_mm_h",0)/45)
+    surface = _ratio(e.get("surface_wetness",0))
     sport_wet = _ratio(max(e.get("wet_track_factor",0),
                            e.get("going_wetness",0),
                            e.get("wave_cm",0)/150))
@@ -80,37 +80,37 @@ def _runner_utility(row, *, sport, env, n):
 
 def _slot_score(row, *, stage, scenario, stress, n, sport):
     f = {key: val["value"] for key,val in row["features"].items()}
-    draw = 1.0-(row["draw"]-1)/max(1,n-1)
+    draw = 1.0-(row["draw"]-1)/max(1,(6 if sport=="boat" else n)-1)
     style = row["style"]
-    base = (0.42 * f["start_reliability"] + 0.18*draw) if stage == 1 else (
-           0.27*f["finishing_power"] + 0.18*f["stamina"] +
-           0.16*f["tactical_adaptability"] + 0.09*f["consistency"])
+    base = (0.42 * f.get("start_reliability",0) + 0.18*draw) if stage == 1 else (
+           0.27*f.get("finishing_power",0) + 0.18*f.get("stamina",0) +
+           0.16*f.get("tactical_adaptability",0) + 0.09*f.get("consistency",0))
     if stage == 3:
-        base += 0.23*f["stamina"]+0.12*f["consistency"]
+        base += 0.23*f.get("stamina",0)+0.12*f.get("consistency",0)
     if scenario == "FRONT":
-        base += 0.42*f["start_reliability"] + 0.22*draw
+        base += 0.42*f.get("start_reliability",0) + 0.22*draw
         if style == "front":base += .22
     elif scenario == "CHASE":
-        base += 0.36*f["finishing_power"]+0.24*f["tactical_adaptability"]
+        base += 0.36*f.get("finishing_power",0)+0.24*f.get("tactical_adaptability",0)
         if style in ("closer","stalker"):base += .18
     elif scenario == "DISRUPTED":
-        base += stress*(.45*f["consistency"]+.55*f["tactical_adaptability"])
+        base += stress*(.45*f.get("consistency",0)+.55*f.get("tactical_adaptability",0))
         if style == "allround":base += .12
     elif scenario != "BALANCED":
         raise ModelInputError("unknown trajectory")
     if sport == "boat":
-        base += (.19 if stage == 1 else .10)*f["start_timing"]
-        base += stress*.18*f.get("wave_response",f["course_compatibility"])
+        base += (.19 if stage == 1 else .10)*f.get("start_timing",0)
+        base += stress*.18*f.get("wave_response",f.get("course_compatibility",0))
     elif sport == "keirin":
-        base += (.14 if stage == 1 else .09)*f["attack_success"]
-        base += (.16 if stage == 3 else .08)*f["line_coordination"]
+        base += (.14 if stage == 1 else .09)*f.get("attack_success",0)
+        base += (.16 if stage == 3 else .08)*f.get("line_coordination",0)
     elif sport == "autorace":
-        base += (.19 if stage == 1 else .07)*f["handicap_adjustment"]
-        base += stress*.30*f["wet_track_fit"]
+        base += (.19 if stage == 1 else .07)*f.get("handicap_adjustment",0)
+        base += stress*.30*f.get("wet_track_fit",0)
     elif sport == "horse":
-        base += (.18 if stage == 1 else .08)*f.get("early_pace",f["start_reliability"])
-        base += (.26 if stage == 3 else .12)*f["closing_sectional"]
-        base += stress*.15*f["distance_surface_fit"]
+        base += (.18 if stage == 1 else .08)*f.get("early_pace",f.get("start_reliability",0))
+        base += (.26 if stage == 3 else .12)*f.get("closing_sectional",0)
+        base += stress*.15*f.get("distance_surface_fit",0)
         # Experimental research win-pattern prior, stronger for first place.
         if stage == 1:
             base += .10*sum(f[k]-.5 for k in HISTORICAL_HORSE_FEATURES if k in f)
@@ -123,28 +123,28 @@ def _coupling(p, leader, second, *, stage, sport, scenario, stress):
     if sport == "keirin":
         group = p["group_id"]
         if group is not None and group == leader["group_id"]:
-            bonus += .48*p["features"]["line_coordination"]["value"]
+            bonus += .48*p["features"].get("line_coordination",{}).get("value",0)
             if leader["style"]=="front" and p["style"] in ("stalker","closer"):
                 bonus += .24
         if second is not None and group is not None and group == second["group_id"]:
-            bonus += .17*p["features"]["line_coordination"]["value"]
+            bonus += .17*p["features"].get("line_coordination",{}).get("value",0)
     if sport == "horse":
         if leader["style"]=="front" and p["style"]=="closer":
-            bonus += (.10 if scenario=="FRONT" else .30)*p["features"]["finishing_power"]["value"]
+            bonus += (.10 if scenario=="FRONT" else .30)*p["features"].get("finishing_power",{}).get("value",0)
         if leader["style"]=="front" and p["style"]=="front":
             bonus -= .20*(1+stress)
     if sport == "boat":
         # Second/third place does not follow the leader deterministically;
         # tactical start/course adjustment is a deliberately weak prior.
         if p["draw"]>leader["draw"] and scenario=="DISRUPTED":
-            bonus += .10*p["features"]["tactical_adaptability"]["value"]
+            bonus += .10*p["features"].get("tactical_adaptability",{}).get("value",0)
     if sport == "autorace":
         if p["style"]=="closer" and leader["style"]=="front":
-            bonus += .16*p["features"]["finishing_power"]["value"]
+            bonus += .16*p["features"].get("finishing_power",{}).get("value",0)
         if scenario=="DISRUPTED":
-            bonus += .15*stress*p["features"]["wet_track_fit"]["value"]
+            bonus += .15*stress*p["features"].get("wet_track_fit",{}).get("value",0)
     if stage == 3 and second is not None and p["style"]=="closer":
-        bonus += .12*p["features"]["stamina"]["value"]
+        bonus += .12*p["features"].get("stamina",{}).get("value",0)
     return bonus
 
 
@@ -228,6 +228,12 @@ def predict(raw, *, allow_source=None):
             "official_result":None,
             "purchase_decision":"NO_BET",
         }
+        if raw["schema"]==SCHEMA_SPARSE:
+            record.update(model_version="0.2.0-SPARSE-UNTRAINED",input_schema=SCHEMA_SPARSE,
+                          missing_features_by_participant={p["number"]:p["missing"] for p in rows},
+                          missing_environment=raw["environment_missing"],
+                          missing_input_semantics="Unavailable terms omitted; no observed values imputed",
+                          unknown_publication_time_allowed=True)
         record["prediction_sha256"]=digest(record)
         output[model]=record
     return output

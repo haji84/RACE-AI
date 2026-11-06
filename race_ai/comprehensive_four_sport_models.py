@@ -18,6 +18,9 @@ import re
 JST=timezone(timedelta(hours=9))
 MODEL_IDS=("multisport-factor-interaction-v1","multisport-scenario-ensemble-v1")
 SCHEMA="RACE_AI_FOUR_SPORT_EVIDENCED_SNAPSHOT_V1"
+SCHEMA_SPARSE="RACE_AI_FOUR_SPORT_EVIDENCED_SNAPSHOT_SPARSE_V1"
+MISSING_REASONS=frozenset({"NOT_AVAILABLE","NOT_PUBLISHED","NOT_YET_PUBLISHED","NO_PRIOR_SAMPLES",
+                           "MISSING","F","L","UNRESOLVED_DISPOSITION","UNVERIFIED_SOURCE"})
 # These are smoothed, pre-cutoff relative historical win signals, NOT 8/8=100%.
 # Missing/unverified signals are neutral and never fabricated.
 HISTORICAL_HORSE_FEATURES=(
@@ -133,20 +136,26 @@ def feature_inventory(sport):
             "sport_optional":SPORT_OPTIONAL[sport],
             "environment_required":ENV_COMMON+ENV_SPORT[sport]}
 
-def _observation(item,*,name,asof,permission,scope,is_env=False):
-    exact(item,{"value","published_at","captured_at","source_ref",
-                "source_rights_ref","sample_n","transform_id"},name)
+def _observation(item,*,name,asof,permission,scope,is_env=False,sparse=False):
+    fields={"value","published_at","captured_at","source_ref",
+            "source_rights_ref","sample_n","transform_id"}
+    exact(item,fields|({"source_sha256"} if sparse else set()),name)
     bounds=ENV_RANGES.get(name,(0,1)) if is_env else (0,1)
     value=_number(item["value"],*bounds,name)
     if name in HISTORICAL_HORSE_FEATURES and item["transform_id"]!=HISTORY_TRANSFORM:
         raise ModelInputError(name+" requires historical count transform")
-    pub=moment(item["published_at"]);capture=moment(item["captured_at"])
-    if not pub<=capture<=asof:
+    capture=moment(item["captured_at"])
+    pub=None if sparse and item["published_at"] is None else moment(item["published_at"])
+    if capture>asof or pub is not None and pub>capture:
         raise ModelInputError(name+" published/captured after as_of")
+    if sparse and (not isinstance(item["source_sha256"],str) or
+                   re.fullmatch("[0-9a-f]{64}",item["source_sha256"]) is None):
+        raise ModelInputError(name+" source content hash absent")
     if not all(isinstance(item[k],str) and 0<len(item[k])<=256 for k in
                ("source_ref","source_rights_ref","transform_id")):
         raise ModelInputError(name+" source and transform evidence absent")
-    if type(item["sample_n"]) is not int or not 1<=item["sample_n"]<=10000000:
+    if not (sparse and item["sample_n"] is None) and (
+        type(item["sample_n"]) is not int or not 1<=item["sample_n"]<=10000000):
         raise ModelInputError(name+" sample support absent")
     if scope==RESEARCH and (permission is None or
              permission(item["source_ref"],item["source_rights_ref"],"analysis") is not True):
@@ -159,16 +168,18 @@ def validate(raw,*,allow_source=None):
     The callback is only an interface; passing a fictional always-True gate
     does NOT constitute real rights approval.
     """
-    root={"schema","scope","race","participants","environment"}
+    sparse=isinstance(raw,dict) and raw.get("schema")==SCHEMA_SPARSE
+    root={"schema","scope","race","participants","environment"}|({"environment_missing"} if sparse else set())
     exact(raw,root,"snapshot")
     _no_market(raw)
-    if raw["schema"]!=SCHEMA or raw["scope"] not in (SYNTHETIC,RESEARCH):
+    if raw["schema"] not in (SCHEMA,SCHEMA_SPARSE) or raw["scope"] not in (SYNTHETIC,RESEARCH):
         raise ModelInputError("unadmitted scope/schema")
     race=raw["race"]
     exact(race,{"race_id","sport","venue","event_date_jst","sales_cutoff_at",
                 "as_of","distance_m","surface","race_kind","race_revision"},"race")
     sport=race["sport"]
     if sport not in KINDS:raise ModelInputError("unknown sport")
+    if sparse and sport!="boat":raise ModelInputError("sparse schema currently supports boat only")
     if not isinstance(race["race_id"],str) or not 8<=len(race["race_id"])<=200:
         raise ModelInputError("stable race ID required")
     if not isinstance(race["venue"],str) or not race["venue"] or len(race["venue"])>128:
@@ -192,24 +203,25 @@ def validate(raw,*,allow_source=None):
         sport=="autorace" and race["surface"]!="track" or
         sport=="horse" and race["surface"] not in ("turf","dirt","synthetic")):
         raise ModelInputError("sport/course mismatch")
-    _number(race["distance_m"],100,10000,"distance")
+    if not sparse or race["distance_m"] is not None:
+        _number(race["distance_m"],100,10000,"distance")
     participants=raw["participants"]
     if not isinstance(participants,list):raise ModelInputError("participants required")
     n=len(participants)
-    if sport=="boat" and n!=6 or sport=="keirin" and n not in (7,9) or (
+    if sport=="boat" and (not 3<=n<=6 if sparse else n!=6) or sport=="keirin" and n not in (7,9) or (
         sport=="autorace" and not 3<=n<=8) or (
         sport=="horse" and not 3<=n<=18):
         raise ModelInputError("sport field size unsupported")
     seen=set()
     missing_by_runner={}
     for p in participants:
-        exact(p,{"number","identity","draw","style","group_id","features"},"participant")
-        if type(p["number"]) is not int or not 1<=p["number"]<=99 or p["number"] in seen:
+        exact(p,{"number","identity","draw","style","group_id","features"}|({"missing"} if sparse else set()),"participant")
+        if type(p["number"]) is not int or not 1<=p["number"]<=(6 if sparse else 99) or p["number"] in seen:
             raise ModelInputError("participant number repeated/out of range")
         seen.add(p["number"])
         if not isinstance(p["identity"],str) or len(p["identity"])<1 or len(p["identity"])>100:
             raise ModelInputError("participant identity absent")
-        if type(p["draw"]) is not int or not 1<=p["draw"]<=n:
+        if type(p["draw"]) is not int or not 1<=p["draw"]<=(6 if sparse else n) or sparse and p["draw"]!=p["number"]:
             raise ModelInputError("draw outside declared field")
         if p["style"] not in STYLES:
             raise ModelInputError("unknown/pre-result running style")
@@ -224,23 +236,33 @@ def validate(raw,*,allow_source=None):
             raise ModelInputError("prohibited participant feature")
         mandatory=set(COMMON_REQUIRED+SPORT_REQUIRED[sport])
         missing=mandatory-set(f)
-        if missing:
+        if missing and not sparse:
             raise ModelInputError("required features missing: "+",".join(sorted(missing)))
+        if sparse:
+            _missing_partition(f,p["missing"],allowed,"participant")
+            if not f:raise ModelInputError("at least one observed participant feature required")
         missing_by_runner[p["number"]]=sorted(allowed-set(f))
         for key,value in f.items():
-            _observation(value,name=key,asof=asof,permission=allow_source,scope=raw["scope"])
+            _observation(value,name=key,asof=asof,permission=allow_source,scope=raw["scope"],sparse=sparse)
     env=raw["environment"]
     allowed_environment=set(ENV_COMMON+ENV_SPORT[sport])
-    exact(env,allowed_environment,"race environment")
+    if sparse:_missing_partition(env,raw["environment_missing"],allowed_environment,"race environment")
+    else:exact(env,allowed_environment,"race environment")
     for key,value in env.items():
         _observation(value,name=key,asof=asof,permission=allow_source,
-                     scope=raw["scope"],is_env=True)
+                     scope=raw["scope"],is_env=True,sparse=sparse)
     # A sorted order guarantees consistent hash independent of input ordering.
     participants=sorted(participants,key=lambda r:r["number"])
     return {"snapshot":raw,"participants":participants,
             "missing_optional":missing_by_runner,
             "snapshot_sha256":digest(raw),"as_of":asof,"cutoff":cutoff,
             "sport":sport}
+
+def _missing_partition(observed,missing,allowed,name):
+    if (not isinstance(observed,dict) or not isinstance(missing,dict) or
+        set(observed)&set(missing) or set(observed)|set(missing)!=allowed or
+        any(not isinstance(v,str) or v not in MISSING_REASONS for v in missing.values())):
+        raise ModelInputError(name+" observed/missing partition invalid")
 
 def _strength(u):
     return math.exp(max(-8,min(8,u)))
@@ -282,34 +304,34 @@ def _utility(participant,*,sport,scenario,conditions,n):
     # Center the untrained prior: a missing signal or value 0.5 must add zero.
     if sport=="horse":
         score+=math.fsum(.18*(f[k]-.5) for k in HISTORICAL_HORSE_FEATURES if k in f)
-    draw=1.0-(participant["draw"]-1)/max(1,n-1)
+    draw=1.0-(participant["draw"]-1)/max(1,(6 if sport=="boat" else n)-1)
     # All venue conditions can influence scoring through interactions with
     # observed athlete adaptation and style. Weights remain untrained.
     if sport=="boat":
-        sport_stress=(env["wave_cm"]/250+.4*env["water_current_strength"]
-                      +.3*env["crosswind_factor"]+.2*env["tide_activity"])
+        sport_stress=(env.get("wave_cm",0)/250+.4*env.get("water_current_strength",0)
+                      +.3*env.get("crosswind_factor",0)+.2*env.get("tide_activity",0))
     elif sport=="keirin":
-        sport_stress=(.5*env["wind_exposure"]+.3*env["bank_steepness"]
-                      +.4*env["track_roughness"]+.25*env["line_complexity"])
+        sport_stress=(.5*env.get("wind_exposure",0)+.3*env.get("bank_steepness",0)
+                      +.4*env.get("track_roughness",0)+.25*env.get("line_complexity",0))
     elif sport=="autorace":
-        sport_stress=(.4*(env["track_temp_c"]+10)/95+.5*env["wet_track_factor"]
-                      +.3*(1-env["grip_factor"])+.3*env["starting_grid_bias"])
+        sport_stress=(.4*(env.get("track_temp_c",0)+10)/95+.5*env.get("wet_track_factor",0)
+                      +.3*(1-env.get("grip_factor",0))+.3*env.get("starting_grid_bias",0))
     else:
-        sport_stress=(.5*env["going_wetness"]+.25*env["course_cushion"]
-                      +.25*env["rail_position"]+.45*env["pace_pressure"])
-    score+=.12*sport_stress*f["course_compatibility"]
-    score+=.10*sport_stress*f["tactical_adaptability"]
-    wet=max(env["surface_wetness"],
+        sport_stress=(.5*env.get("going_wetness",0)+.25*env.get("course_cushion",0)
+                      +.25*env.get("rail_position",0)+.45*env.get("pace_pressure",0))
+    score+=.12*sport_stress*f.get("course_compatibility",0)
+    score+=.10*sport_stress*f.get("tactical_adaptability",0)
+    wet=max(env.get("surface_wetness",0),
             env.get("wet_track_factor",0),env.get("going_wetness",0))
-    rough=min(1,(env["wind_mps"]/24+env["rain_mm_h"]/40+wet)/3)
+    rough=min(1,(env.get("wind_mps",0)/24+env.get("rain_mm_h",0)/40+wet)/3)
     if scenario=="FRONT":
-        score+=.8*f["start_reliability"]+.4*draw+.30*f.get("early_pace",0)
+        score+=.8*f.get("start_reliability",0)+.4*draw+.30*f.get("early_pace",0)
         if participant["style"]=="front":score+=.22
     elif scenario=="CLOSING":
-        score+=.9*f["finishing_power"]+.38*f["stamina"]+.35*f.get("closing_3f_quality",0)
+        score+=.9*f.get("finishing_power",0)+.38*f.get("stamina",0)+.35*f.get("closing_3f_quality",0)
         if participant["style"]=="closer":score+=.25
     elif scenario=="DISRUPTION":
-        score+=.9*f["tactical_adaptability"]+.6*f["consistency"]-.25*f["start_reliability"]
+        score+=.9*f.get("tactical_adaptability",0)+.6*f.get("consistency",0)-.25*f.get("start_reliability",0)
         score+=rough*f.get("wet_track_fit",f.get("rain_performance",0))
         if participant["style"]=="allround":score+=.15
     elif scenario!="BASE":
@@ -345,9 +367,9 @@ def _distribution(rows,sport,scenario,env):
 
 def _mix_weights(env):
     e={k:item["value"] for k,item in env.items()}
-    wet=max(e["surface_wetness"],e.get("wet_track_factor",0),e.get("going_wetness",0))
-    disruption=min(.58,.18+.20*min(1,e["wind_mps"]/20)+
-                   .15*min(1,e["rain_mm_h"]/30)+.15*wet)
+    wet=max(e.get("surface_wetness",0),e.get("wet_track_factor",0),e.get("going_wetness",0))
+    disruption=min(.58,.18+.20*min(1,e.get("wind_mps",0)/20)+
+                   .15*min(1,e.get("rain_mm_h",0)/30)+.15*wet)
     closing=.28+.04*min(1,e.get("pace_pressure",e.get("line_complexity",0)))
     front=1-closing-disruption
     if front<0:raise ModelInputError("invalid scenario normalization")
@@ -384,6 +406,12 @@ def predict(raw,*,allow_source=None):
            "source_proof_not_equivalent_to_authorization":True,
            "external_pre_cutoff_receipt":None,"official_result":None,
            "purchase_decision":"NO_BET"}
+        if raw["schema"]==SCHEMA_SPARSE:
+            v.update(model_version="0.2.0-SPARSE-UNTRAINED",input_schema=SCHEMA_SPARSE,
+                     missing_features_by_participant={p["number"]:p["missing"] for p in rows},
+                     missing_environment=raw["environment_missing"],
+                     missing_input_semantics="Unavailable terms omitted; no observed values imputed",
+                     unknown_publication_time_allowed=True)
         v["prediction_sha256"]=digest(v)
         outputs[model]=v
     return outputs

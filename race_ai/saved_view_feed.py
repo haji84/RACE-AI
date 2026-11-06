@@ -19,6 +19,7 @@ from scripts.boat_history_collect import private_root,save
 
 BOOT='RACE_AI_SAVED_VIEW_BOOTSTRAP_V1'
 FEED='RACE_AI_SAVED_WEB_VIEW_V3'
+APPEND_FEED='RACE_AI_SAVED_WEB_VIEW_V4'
 REF='state/boat-saved-view'
 DOMAIN=b'RACE_AI_SAVED_VIEW_BOOTSTRAP_V1'
 MUTABLE={'result','result_revisions','result_observations','result_observation_rejections','missing_reasons'}
@@ -29,6 +30,30 @@ def originals_sha(view):
     records=[{k:v for k,v in r.items() if k not in MUTABLE} for r in view['records']]
     need(len({r['race_id'] for r in records})==len(records),'FEED_DUPLICATE_RACE')
     return digest(records)
+
+def forecast_inventory(view):
+    """Stable saved-forecast bindings, independent of display names/results."""
+    from .boat_saved_model_view import saved_prediction_identity
+    originals_sha(view);out={}
+    for row in view['records']:
+        for prediction in [row.get('prediction'),*row.get('comparison_predictions',[])]:
+            if prediction is None:continue
+            identity=digest([row['race_id'],saved_prediction_identity(prediction)])
+            content=digest(prediction)
+            need(identity not in out or out[identity]==content,'FEED_CONFLICTING_ORIGINAL')
+            out[identity]=content
+    need(len(out)<=320000,'FEED_FORECAST_COUNT_BOUND');return out
+
+def inventory_sha(view):return digest(forecast_inventory(view))
+
+def forecast_anchor(view):
+    return _hex(view['forecast_base_sha256']) if 'forecast_base_sha256' in view else originals_sha(view)
+
+def ensure_append_only(previous,current):
+    need(forecast_anchor(previous)==forecast_anchor(current),'FEED_ANCHOR_CHANGED')
+    before=forecast_inventory(previous);after=forecast_inventory(current)
+    need(all(after.get(k)==v for k,v in before.items()),'FEED_ORIGINAL_REMOVED_OR_CHANGED')
+    return after
 
 def _session(shared,header):
     return HKDF(algorithm=hashes.SHA256(),length=32,salt=REPO_ID.encode(),
@@ -60,14 +85,19 @@ def open_bootstrap(raw,*,key=None):
     return dict(h,key=display)
 
 def _header(h):
-    need(type(h) is dict and set(h)=={'schema','source_content_sha256','view_id','forecast_sha256','generation','previous_cipher_sha256'}
-         and h['schema']==FEED and type(h['generation']) is int and 1<=h['generation']<=999999,'FEED_HEADER_INVALID')
+    fields={'schema','source_content_sha256','view_id','forecast_sha256','generation','previous_cipher_sha256'}
+    need(type(h) is dict,'FEED_HEADER_INVALID')
+    if h.get('schema')==APPEND_FEED:fields.add('forecast_inventory_sha256');_hex(h.get('forecast_inventory_sha256'))
+    need(set(h)==fields and h['schema'] in (FEED,APPEND_FEED)
+         and type(h['generation']) is int and 1<=h['generation']<=999999,'FEED_HEADER_INVALID')
     for f in ('source_content_sha256','view_id','forecast_sha256','previous_cipher_sha256'):_hex(h[f])
     return h
 
 def encrypt_view(view,key,*,view_id,source_sha,generation,previous):
-    h=_header(dict(schema=FEED,source_content_sha256=source_sha,view_id=view_id,
-                   forecast_sha256=originals_sha(view),generation=generation,previous_cipher_sha256=previous))
+    h=dict(schema=FEED,source_content_sha256=source_sha,view_id=view_id,
+           forecast_sha256=forecast_anchor(view),generation=generation,previous_cipher_sha256=previous)
+    if 'forecast_base_sha256' in view:h.update(schema=APPEND_FEED,forecast_inventory_sha256=inventory_sha(view))
+    _header(h)
     plain=wire(view).encode();need(0<len(plain)<=MAX_VIEW,'FEED_VIEW_BOUND');nonce=os.urandom(12)
     cipher=AESGCM(key).encrypt(nonce,plain,wire(h).encode())
     raw=(wire(dict(header=h,nonce=base64.b64encode(nonce).decode(),ciphertext=base64.b64encode(cipher).decode()))+'\n').encode()
@@ -76,7 +106,7 @@ def encrypt_view(view,key,*,view_id,source_sha,generation,previous):
 def decrypt_view(raw,key,*,view_id):
     doc=_json(raw,MAX_WIRE);need(type(doc) is dict and set(doc)=={'header','nonce','ciphertext'},'FEED_CIPHER_INVALID')
     h=doc['header']
-    if h.get('schema')==FEED:_header(h)
+    if h.get('schema') in (FEED,APPEND_FEED):_header(h)
     else:_envelope(raw)
     need((sha(raw)==view_id if h.get('schema')=='RACE_AI_SAVED_WEB_VIEW_V1' else h.get('view_id')==view_id),'FEED_VIEW_ID_MISMATCH')
     nonce=_decode(doc['nonce'],12);cipher=_decode(doc['ciphertext'],MAX_VIEW+16)
@@ -85,6 +115,8 @@ def decrypt_view(raw,key,*,view_id):
     except Exception:raise ValueError('FEED_AUTH_FAILED') from None
     view=_json(plain,MAX_VIEW);forecast=originals_sha(view)
     if h.get('schema')==FEED:need(forecast==h['forecast_sha256'],'FEED_FORECAST_MISMATCH')
+    if h.get('schema')==APPEND_FEED:
+        need(forecast_anchor(view)==h['forecast_sha256'] and inventory_sha(view)==h['forecast_inventory_sha256'],'FEED_FORECAST_MISMATCH')
     return h,view
 
 def update_view(view,observations,*,synced_at,captures=()):
@@ -120,7 +152,10 @@ def update_view(view,observations,*,synced_at,captures=()):
         if not incoming:continue
         old=row['result_observations'];merged=_merge([*old,*incoming]);row['result_observations']=merged
         latest=max(merged,key=lambda o:instant(o['captured_at']))
-        if old and digest(latest)==digest(max(old,key=lambda o:instant(o['captured_at']))):continue
+        if old and digest(latest)==digest(max(old,key=lambda o:instant(o['captured_at']))) and \
+           (row.get('result') or {}).get('status') in ('final','void','pending') and \
+           (row.get('cutoff_at') is not None or (row.get('result') or {}).get('cutoff_reconciliation')):
+            continue
         need(instant(latest['captured_at'])<=instant(synced_at),'FEED_FUTURE_OBSERVATION')
         row['result_observation_rejections']=[]
         row['missing_reasons']=[r for r in row['missing_reasons'] if r!='LATEST_RESULT_OBSERVATION_REJECTED']
@@ -166,12 +201,15 @@ def current_view(git,bootstrap):
         raw=git.read(parent,'views/'+ident+'.json',MAX_WIRE);need(sha(raw)==ident,'FEED_CIPHER_HASH')
         header,view=decrypt_view(raw,bootstrap['key'],view_id=bootstrap['view_id'])
         need(header==h,'FEED_MANIFEST_MISMATCH');generation=h['generation']
-    need(originals_sha(view)==bootstrap['forecast_sha256'],'FEED_ORIGINAL_CHANGED')
+    need(forecast_anchor(view)==bootstrap['forecast_sha256'],'FEED_ORIGINAL_CHANGED')
     return parent,ident,generation,view
 
 def publish_view(git,bootstrap,view,*,parent,previous,generation):
     need(git.ref==REF and git.head()==parent,'FEED_CONCURRENT_UPDATE')
-    need(originals_sha(view)==bootstrap['forecast_sha256'],'FEED_ORIGINAL_CHANGED')
+    need(forecast_anchor(view)==bootstrap['forecast_sha256'],'FEED_ORIGINAL_CHANGED')
+    actual_parent,actual_previous,actual_generation,before=current_view(git,bootstrap)
+    need((actual_parent,actual_previous,actual_generation)==(parent,previous,generation),'FEED_PREDECESSOR_MISMATCH')
+    ensure_append_only(before,view)
     raw=encrypt_view(view,bootstrap['key'],view_id=bootstrap['view_id'],source_sha=bootstrap['cipher_sha256'],generation=generation+1,previous=previous)
     h=_json(raw,MAX_WIRE)['header'];ident=sha(raw)
     files={'views/'+ident+'.json':raw,'latest.json':(wire(dict(header=h,cipher_sha256=ident))+'\n').encode()}

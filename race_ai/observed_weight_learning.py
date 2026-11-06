@@ -57,24 +57,26 @@ def source_snapshot(suite):
 
 
 def vectors(snapshot):
-    """Same sum(pairwise contrast)/6 as the fixed observed model; no imputation."""
+    """Same active-entrant contrast divisor as the fixed model; no imputation."""
     _validate(snapshot)
     values, _, _ = _contrasts(snapshot)
-    return {i:[float(sum((v[i]-v[j] for j in range(1,7) if j != i and i in v and j in v), 0)/6)
-               for name in FEATURES for v in (values[name],)] for i in range(1,7)}
+    lanes=sorted(row['lane'] for row in snapshot['participants'])
+    return {i:[float(sum((v[i]-v[j] for j in lanes if j != i and i in v and j in v), 0)/len(lanes))
+               for name in FEATURES for v in (values[name],)] for i in lanes}
 
 
 def _metrics(records, weights):
-    hits=0; loss=0.; received=0
+    hits=0; loss=0.; received=0;stake=0
     for row in records:
         ranking=_all_triples(row['vectors'], weights)
+        stake+=len(ranking[:8])*100
         hit=row['winner'] in [x['combination'] for x in ranking[:8]]
         hits+=hit; received+=row['payout'] if hit else 0
         loss+=_gradient(row['vectors'],row['winner'],weights)[1]
     n=len(records)
     return dict(races=n, hits=hits, hit_at_8=hits/n if n else None,
-                mean_log_loss=loss/n if n else None, stake_yen=n*800,
-                received_yen=received, roi=received/(n*800) if n else None,
+                mean_log_loss=loss/n if n else None, stake_yen=stake,
+                received_yen=received, roi=received/stake if stake else None,
                 prospective=False)
 
 
@@ -150,7 +152,7 @@ def fit_from_verified(rows, observations, *, now, video_contexts=None, video_rec
     while train and ts(train[-1]['result_captured_at'])==boundary:
         holdout.insert(0,train.pop())
     if len(train)<6:return seal(out,'training_sha256')
-    supports=[sum(any(abs(row['vectors'][i][j])>0 for i in range(1,7)) for row in train)
+    supports=[sum(any(abs(vector[j])>0 for vector in row['vectors'].values()) for row in train)
               for j in range(len(FEATURES))]
     out.update(state='FITTED_SHADOW_ONLY',train_races=len(train),validation_races=len(holdout),
         train_race_ids=[r['race_id'] for r in train],validation_race_ids=[r['race_id'] for r in holdout],
@@ -162,7 +164,9 @@ def fit_from_verified(rows, observations, *, now, video_contexts=None, video_rec
             gradients=[_gradient(r['vectors'],r['winner'],weights)[0] for r in train]
             weights=[min(4.,max(0.,w+LR*(sum(g[j] for g in gradients)/(3*len(train))-L2*(w-base[j]))))
                      if supports[j]>=4 else base[j] for j,w in enumerate(weights)]
-        out['models'][mid]=dict(model_id=mid,model_version='0.2.0-FITTED-SHADOW',
+        active=any(len(row['vectors'])!=6 for row in records)
+        out['models'][mid]=dict(model_id=mid,model_version=(
+            '0.2.0-FITTED-SHADOW-ACTIVE-ROSTER' if active else '0.2.0-FITTED-SHADOW'),
             weights=weights,base_weights=base,coefficients_changed=weights!=base,
             training=_metrics(train,weights),holdout=_metrics(holdout,weights),
             holdout_baseline=_metrics(holdout,base),calibrated=False,
@@ -212,13 +216,16 @@ def make_shadows(snapshot, baseline_suite, context, *, video_context=None, video
     x=vectors(snapshot);out=[]
     for mid in MODEL_IDS:
         model=training['models'][mid]; ranked=_all_triples(x,model['weights'])
-        record=dict(schema=SCHEMA_SHADOW,variant='LEARNED_SHADOW',model_id=mid,model_version=model['model_version'],
+        version=model['model_version']
+        if len(x)!=6 and not version.endswith('-ACTIVE-ROSTER'):
+            version+='-ACTIVE-ROSTER'
+        record=dict(schema=SCHEMA_SHADOW,variant='LEARNED_SHADOW',model_id=mid,model_version=version,
             race_id=rid,stage=snapshot['stage'],as_of=snapshot['as_of'],cutoff_at=snapshot['sales_cutoff_at'],
             input_sha256=digest(snapshot),training_sha256=training['training_sha256'],
             training=deepcopy(training),training_receipt=deepcopy(receipt),
             baseline_model_sha256=baseline_suite['models'][mid]['prediction_sha256'],
             candidates=ranked,ordered_top8=[v['combination'] for v in ranked[:8]],
-            candidate_count=120,calibrated=False,auto_promoted=False,actual_purchases=False)
+            candidate_count=len(ranked),calibrated=False,auto_promoted=False,actual_purchases=False)
         out.append(seal(record,'prediction_sha256'))
     return out
 
@@ -256,7 +263,8 @@ def read_shadow_rows(doc, receipt, baseline_rows, *, video_receipt_verifier=None
             recreated={q['model_id']:q for q in make_shadows(bundle['snapshot'],bundle['suite'],context)}
         need(recreated[p['model_id']]==p and p['baseline_model_sha256']==base['model_sha256'], 'candidate replay differs')
         check_clock(p['as_of'],p['cutoff_at'],receipt['created_at'])
-        ranked=[q['combination'] for q in p['candidates']];rank_check(ranked,p['ordered_top8'])
+        ranked=[q['combination'] for q in p['candidates']]
+        rank_check(ranked,p['ordered_top8'],lanes=[int(lane) for lane in base['roster']])
         row={k:deepcopy(v) for k,v in base.items() if k not in ('learning_snapshot','learning_snapshot_sha256')}
         row.update(top8=p['ordered_top8'],ranked=ranked,model_sha256=p['prediction_sha256'],
             variant=p['variant'] if video else 'LEARNED_SHADOW',training_sha256=p['training_sha256'],
@@ -295,6 +303,8 @@ def score_shadows(rows, baseline_rows, observations):
                 baseline_hit=baseline['state']=='HIT' if paired else None,
                 candidate_received_yen=candidate.get('received_yen') if paired else None,
                 baseline_received_yen=baseline.get('received_yen') if paired else None)
+            if paired and (candidate['stake_yen']!=800 or baseline['stake_yen']!=800):
+                item.update(candidate_stake_yen=candidate['stake_yen'],baseline_stake_yen=baseline['stake_yen'])
         except (ValueError,KeyError,TypeError) as exc:
             item=dict(race_id=row['race_id'],stage=row['stage'],model_id=row['model_id'],
                 training_sha256=row['training_sha256'],state='RESULT_REJECTED',paired=False,reason=str(exc)[:160])
@@ -305,8 +315,8 @@ def score_shadows(rows, baseline_rows, observations):
         n=len(items);ch=sum(i['candidate_hit'] for i in items);bh=sum(i['baseline_hit'] for i in items)
         board.append(dict(stage=phase,model_id=mid,training_sha256=sha,paired_races=n,
             candidate_hits=ch,baseline_hits=bh,candidate_hit_rate=ch/n,baseline_hit_rate=bh/n,
-            candidate_roi=sum(i['candidate_received_yen'] for i in items)/(n*800),
-            baseline_roi=sum(i['baseline_received_yen'] for i in items)/(n*800),
+            candidate_roi=sum(i['candidate_received_yen'] for i in items)/sum(i.get('candidate_stake_yen',800) for i in items),
+            baseline_roi=sum(i['baseline_received_yen'] for i in items)/sum(i.get('baseline_stake_yen',800) for i in items),
             promotion_allowed=False))
     return dict(saved_shadow_forecasts=len(entries),paired_forecasts=sum(e['paired'] for e in entries),
         per_forecast=entries,scoreboard=board,accuracy_improvement_proven=False,auto_promoted=False,

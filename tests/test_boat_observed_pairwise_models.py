@@ -328,14 +328,14 @@ class ObservedPairwiseTest(unittest.TestCase):
             mutate(snapshot)
             self.assert_rejected(snapshot)
 
-    def test_identity_dates_revisions_and_unique_six_boats(self):
+    def test_identity_dates_revisions_and_unique_confirmed_boats(self):
         mutations = [lambda s: s.update(race_revision=True), lambda s: s.update(race_revision=0),
                      lambda s: s.update(race_id="boat:2030-04-02:boatrace-jcd-01:1"),
                      lambda s: s.update(venue="boatrace-jcd-02"),
                      lambda s: s.update(race_id="boat:2030-04-01:boatrace-jcd-25:1"),
                      lambda s: s.update(race_id="boat:2030-04-01:boatrace-jcd-01:13"),
                      lambda s: s.update(event_date_jst="20300401"),
-                     lambda s: s.update(stage="P2"), lambda s: s["participants"].pop(),
+                     lambda s: s.update(stage="P2"), lambda s: s.update(participants=s["participants"][:2]),
                      lambda s: s["participants"][0].update(lane=True),
                      lambda s: s["participants"][1].update(lane=1),
                      lambda s: s["participants"][1].update(registration_no="4001"),

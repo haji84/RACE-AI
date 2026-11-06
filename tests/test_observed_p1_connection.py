@@ -103,24 +103,25 @@ class LivePilotWiringTests(unittest.TestCase):
         from pathlib import Path
         race_ai.__path__.append(str(Path(__file__).resolve().parents[1]/"pr64-reference/race_ai"))
         from scripts import boat_nationwide_ab_pilot as pilot
+        from tests.test_boat_official_program import page
+        from tests.test_boat_observation_context import before_table, starts
         class FixedClock(datetime):
             @classmethod
             def now(cls,tz=None):
                 now=datetime.fromisoformat(AT)
                 return now.astimezone(tz) if tz is not None else now.replace(tzinfo=None)
         b,e,p=inputs()
-        program=dict(race_id=b['race_id'],closed_at=b['cutoff_at'],boats=[
-            dict(lane=r['lane'],racer_registration_id=r['racer_id'],national_win_rate=r['national_win_rate'],
-                 entry_status='listed',local_win_rate=5.,average_st=.15) for r in b['boats']])
-        preview=dict(status='AVAILABLE',data=dict(boats=[
-            dict(lane=r['lane'],racer_registration_id=r['racer_id'],display_time=r['exhibition_time_seconds'],
-                 preview_st=e['participants'][r['lane']-1]['exhibition_st'],preview_st_status='OK') for r in b['boats']]))
-        captures=[(b'program',datetime.fromisoformat(PROGRAM_AT),'a'*64),
-                  (b'preview',datetime.fromisoformat(PREVIEW_AT),'b'*64),
+        # Exercise the owned source adapters on complete fictional official
+        # structures; only transport and optional enrichment are replaced.
+        program=page(venue='01',race_no=1,row_options={n:dict(name=f'選手 {n}') for n in range(1,7)}).replace(b'20:30',b'10:59')
+        preview=page(venue='01',race_no=1,content=before_table(display='6.82')+starts(populated=True)).replace(
+            b'/owpc/pc/race/racelist?rno=',b'/owpc/pc/race/beforeinfo?rno=').replace(b'20:30',b'10:59')
+        captures=[(program,datetime.fromisoformat(PROGRAM_AT),hashlib.sha256(program).hexdigest()),
+                  (preview,datetime.fromisoformat(PREVIEW_AT),hashlib.sha256(preview).hexdigest()),
                   pilot.SourceError('FICTIONAL_ODDS_NOT_AVAILABLE')]
-        with patch.object(pilot,'get',side_effect=captures),patch.object(pilot,'parse_official_racelist',return_value=program), \
+        with patch.object(pilot,'get',side_effect=captures), \
              patch.object(pilot,'datetime',FixedClock), \
-             patch.object(pilot,'parse_update',return_value=preview),patch.object(pilot,'motor_top2',return_value={r['lane']:r['motor_two_place_rate_percent'] for r in b['boats']}), \
+             patch.object(pilot,'collect_pitreport',return_value=None),patch.object(pilot,'collect_entry_history',return_value=None), \
              patch.object(pilot,'observed_timestamp',return_value=AT),patch.object(pilot,'requests_used',45), \
              patch.dict('os.environ',{'RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED':'true'}):
             output=pilot.make_pair(date(2030,4,1),dict(race_id=b['race_id'],cutoff_at=b['cutoff_at']))
