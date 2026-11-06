@@ -1038,7 +1038,7 @@
       "http_403_cause": "NOT_ESTABLISHED_NOT_ASSUMED_TO_BE_ENVIRONMENT_ALLOWLIST"
     },
     "second_authorized_unlimited_policy_restoration": {
-      "status": "IMPLEMENTED_TESTED_INDEPENDENT_REVIEW_GREEN_PENDING_THIS_CODE_PUSH_CI",
+      "status": "COMMITTED_MERGED_WITH_PARALLEL_UI_AND_HISTORY_AND_VERIFIED_IN_EXISTING_SOURCE_CI",
       "conflicting_commits": [
         "40325f9",
         "7e11d9a"
@@ -1093,7 +1093,40 @@
       "derived_lifetime_total_decrease_rejected_before_write": true,
       "broken_duplicate_syntax_test_repaired": true,
       "actual_427_request_history_or_live_checkpoints_modified": false,
-      "workflows_markers_runs_processes_modified": false
+      "workflows_markers_runs_processes_modified": false,
+      "implemented_in": "2e80179a0c392dded5f13ca3e7a16229301b82f1",
+      "merged_pushed_head": "21afbd59c377af0f9a325736205654b3ea7948d5",
+      "verified_source_ci_head": "45a2749e36806035cd275c4b54bb2437931a2528",
+      "successful_ci": [
+        {
+          "id": 42172920937,
+          "workflow_id": 392270247,
+          "head_sha": "45a2749e36806035cd275c4b54bb2437931a2528",
+          "status": "completed",
+          "conclusion": "success",
+          "updated_at": "2026-11-06T06:20:59Z",
+          "html_url": "https://github.com/haji84/RACE-AI/actions/runs/42172920937"
+        },
+        {
+          "id": 42172920961,
+          "workflow_id": 405150548,
+          "head_sha": "45a2749e36806035cd275c4b54bb2437931a2528",
+          "status": "completed",
+          "conclusion": "success",
+          "updated_at": "2026-11-06T06:12:11Z",
+          "html_url": "https://github.com/haji84/RACE-AI/actions/runs/42172920961"
+        }
+      ],
+      "source_tests_workflows_equal_observed_1298618_head": true,
+      "private_final_receipt_sha256": "81b99553f70eea52faadc363a924dec31a2d7f8f6a4cae15b16d2805466fcac2",
+      "incoming_local_automation_test_repair": {
+        "tests": 36,
+        "passed": 36,
+        "skipped": 0,
+        "seconds": 2.867,
+        "source_test_sha256": "6f71bcf1ebe65784361b82dc1de46152e5604e55ada9b79b7256705a11065a8d",
+        "log_sha256": "8671f0b182a67663bb2614792384fa946c480ccedb5a18def9eb3037ada7ad5e"
+      }
     },
     "subsequent_unknown_finish_parser_regression": {
       "tests": 25,
@@ -1102,6 +1135,45 @@
       "seconds": 0.214,
       "log_sha256": "6ad87e134abc3ca3e24083a7de743b5e06dd1089f92fd91e940e39bfba0cbc71",
       "scope": "CONCURRENT_K_UNKNOWN_FINISH_MISSING_TIMING_AND_DIRECT_CALLER_REPAIRS_RETAINED"
+    },
+    "upstream_results_budget_ui": {
+      "scope": "PRESERVED_CONCURRENT_FEATURES",
+      "synthetic_contract_tests": 15,
+      "synthetic_skipped": 0,
+      "synthetic_browser_scripts": [
+        "results_budget_browser",
+        "saved_pdca_browser",
+        "saved_pages_browser"
+      ],
+      "synthetic_browsers": "PASS",
+      "python_related_tests": 34,
+      "python_passed": 34,
+      "python_skipped": 0,
+      "python_seconds": 36.302,
+      "actual_readonly_browser": "PASS_ORIGINAL_DISPLAY_AND_CONTROLS_ONLY",
+      "widths": [
+        390,
+        1440
+      ],
+      "saved_count_at_main_check": 663,
+      "p0": 312,
+      "p1": 351,
+      "ledger_races": 156,
+      "observed_result_races": 73,
+      "get_requests": 26,
+      "unsafe_external_source_generation_requests": 0,
+      "ordered_top8_sha_and_repeat_bytes_unchanged": true,
+      "private_report_sha256": "64efa77b35ab5771801beda8375bfcaa6d4a74a5a7ac9f83a98e5b3aea506243",
+      "main_json_sha256": "3206b08ce19dcaaca267c62372f5ba47e4d31ce37c4d9d09029b02911d9b25ba",
+      "current_real_p1_budget_simulation": "NOT_ESTABLISHED",
+      "reason": "ALL_PLANS_EXCLUDED_FOR_MODEL_IDENTITY_UNKNOWN_OR_SAVE_CLOCK_UNKNOWN",
+      "pending_net_branch_live": "NOT_APPLICABLE_SYNTHETIC_ONLY_PASS",
+      "later_p1_count_observation": 372,
+      "later_all_groups_eligible_plans": 0,
+      "coverage_assertion_failure_preserved_not_product_error": true,
+      "safari": false,
+      "original_reference8_recomparison": false,
+      "video_field_validation": false
     }
   },
   "continuity": {
@@ -1178,7 +1250,7 @@
     "manual_workflow_dispatch_trigger_rerun_cancel": false,
     "normal_existing_monitor_handoff_may_follow_after_all_unchanged_checks": true,
     "successor_run_id": 42164651846,
-    "state_source": "LOCAL_STATUS_HEALTH_AND_AUTHENTICATED_GITHUB_RUN_METADATA",
+    "state_source": "AUTHENTICATED_GITHUB_METADATA_20261106T062300Z_CURRENT_SUCCESSOR_NOT_OLD_COMPLETED_RUN",
     "successor_run": {
       "workflow_id": 405276784,
       "id": 42164651846,
@@ -1289,7 +1361,23 @@
       "scope": "READONLY_UI_API_ORIGINAL_CONSISTENCY_NOT_INDEPENDENT_PRE_CUTOFF_TIME_PROOF_FOR_ALL_600",
       "independent_artifact_527_regular_plus_52_shadow_is_separate_prior_time": true,
       "private_attempt2_json_sha256": "b3e0ce1c117771c5bd3dfaac33f008fda967ae81472ec8f0ce5807d8d6f4ec78"
-    }
+    },
+    "new_successor_run": {
+      "id": 42172002810,
+      "head_sha": "e4fed1d74b2e43170ceb314a518bdba4104f21ff",
+      "status": "in_progress",
+      "conclusion": null,
+      "created_at": "2026-11-06T06:03:02Z"
+    },
+    "old_run_completion": {
+      "id": 42164651846,
+      "status": "completed",
+      "conclusion": "success",
+      "updated_at": "2026-11-06T05:47:39Z"
+    },
+    "successor_created_at": "2026-11-06T06:03:02Z",
+    "handoff_gap_observed_minutes": 15.383,
+    "handoff_gap_reason_scope": "CONCURRENT_FINITE_POLICY_CONFLICT_WAS_OBSERVED_AND_REPAIRED; NO_CLAIM_OF_UNINTERRUPTED_ALL_RACE_COVERAGE"
   },
   "activation_gates": [
     "AUTHORIZED_CURRENT_MEDIA",
