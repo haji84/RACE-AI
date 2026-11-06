@@ -1,0 +1,450 @@
+"use strict";
+(function (root, factory) {
+  const audit = typeof module === "object" && module.exports ? require("./forecast-audit-model.js") : root.RaceAuditModel;
+  const api = factory(audit);
+  if (typeof module === "object" && module.exports) module.exports = api;
+  root.RaceProductData = api;
+})(typeof globalThis !== "undefined" ? globalThis : this, function (Audit) {
+  const sports = ["boat", "keirin", "autorace", "horse"];
+  const scopes = ["official", "research", "synthetic"];
+  const stages = ["P0", "P1", "UNKNOWN"];
+  const nativeAutoraceStages = ["A_PRE_TRIAL", "B_POST_TRIAL"];
+  const summaryStages = [...stages.slice(0,2), ...nativeAutoraceStages, "UNKNOWN"];
+  const privateCycleSchema = "RACE_AI_PRIVATE_CYCLE_VIEW_V1";
+  const sha = value => typeof value === "string" && /^[a-f0-9]{64}$/i.test(value);
+  const stamp = value => typeof value === "string" && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(value) && validDay(value.slice(0,10)) && Number.isFinite(Date.parse(value));
+  const text = value => typeof value === "string" && value.trim().length > 0;
+  function fail(message) { throw new Error(message); }
+  function freeze(value) {
+    if (value && typeof value === "object") {
+      for (const child of Object.values(value)) freeze(child);
+      Object.freeze(value);
+    }
+    return value;
+  }
+  function clone(raw) {
+    let encoded;
+    try {
+      encoded = typeof raw === "string" ? raw : JSON.stringify(raw, (_key, value) => {
+        if (typeof value === "number" && !Number.isFinite(value) || ["function", "symbol", "bigint"].includes(typeof value)) fail("有限のJSONデータが必要です。");
+        return value;
+      });
+      if (typeof encoded !== "string" || encoded.length > 32 * 1024 * 1024) fail("JSONデータが大きすぎます。");
+      return JSON.parse(encoded);
+    } catch (error) {
+      if (/JSON/.test(error.message)) throw error;
+      fail("JSONデータの形式が不正です。");
+    }
+  }
+  function canonical(value) {
+    if (Array.isArray(value)) return "[" + value.map(canonical).join(",") + "]";
+    if (value && typeof value === "object") return "{" + Object.keys(value).sort().map(k => JSON.stringify(k) + ":" + canonical(value[k])).join(",") + "}";
+    return JSON.stringify(value);
+  }
+  function validDay(day) {
+    return typeof day === "string" && /^\d{4}-\d\d-\d\d$/.test(day) && Number.isFinite(Date.parse(day + "T00:00:00Z")) && new Date(day + "T00:00:00Z").toISOString().slice(0, 10) === day;
+  }
+  function ticket(value) {
+    return Array.isArray(value) && value.length === 3 && value.every(x => Number.isInteger(x) && x > 0 && x <= 99) && new Set(value).size === 3;
+  }
+  function validateStamps(value, fields) {
+    if (!value) return;
+    for (const field of fields) if (value[field] != null && !stamp(value[field])) fail("保存時刻の形式が不正です: " + field);
+  }
+  function marketIsolation(value) {
+    if (!value || typeof value !== "object") return;
+    for (const [key, child] of Object.entries(value)) {
+      if (key !== "odds_independent" && /odds|popularity|market|payout|確定配当|人気/i.test(key)) fail("予想に市場由来の値を混ぜないでください。");
+      marketIsolation(child);
+    }
+  }
+  function candidateOrder(p) {
+    for (const field of ["candidates", "ordered_candidates"]) {
+      const rows = p[field];
+      if (rows == null) continue;
+      if (!Array.isArray(rows) || !rows.length || rows.length > 941094) fail("保存候補の形式が不正です。");
+      const combinations = rows.map(row => Array.isArray(row) ? row : row?.combination);
+      if (combinations.some(t => !ticket(t)) || new Set(combinations.map(t => t.join("-"))).size !== combinations.length) fail("保存候補に重複・不正な組合せがあります。");
+      if (rows.some(row => !Array.isArray(row) && row.score != null && (typeof row.score !== "number" || !Number.isFinite(row.score) || row.score < 0))) fail("保存候補スコアが不正です。");
+      if (canonical(combinations.slice(0, p.ordered_top8.length)) !== canonical(p.ordered_top8)) fail("保存候補順位とTop8が一致しません。");
+    }
+    if (p.candidates != null && p.ordered_candidates != null) {
+      const combos = rows => rows.map(r => Array.isArray(r) ? r : r.combination);
+      if (canonical(combos(p.candidates)) !== canonical(combos(p.ordered_candidates))) fail("保存候補順位が一致しません。");
+    }
+  }
+  function refunds(result) {
+    if (!result) return;
+    if (result.refund_boats != null && (!Array.isArray(result.refund_boats) || result.refund_boats.some(x => !Number.isInteger(x) || x < 1 || x > 99) || new Set(result.refund_boats).size !== result.refund_boats.length)) fail("返還対象の形式が不正です。");
+    if (result.refunds != null && (!Array.isArray(result.refunds) || result.refunds.length > 10000)) fail("返還記録の形式が不正です。");
+    if (result.refund_combinations != null) {
+      const combinations = result.refund_combinations;
+      if (!Array.isArray(combinations) || combinations.length > 10000 || combinations.some(t => !ticket(t)) ||
+          new Set(combinations.map(t => t.join("-"))).size !== combinations.length) fail("返還組合せの形式が不正です。");
+      if (result.refunds != null) {
+        const detailed = result.refunds.map(r => r?.combination);
+        if (detailed.some(t => !ticket(t)) || canonical(detailed.map(t => t.join("-")).sort()) !==
+            canonical(combinations.map(t => t.join("-")).sort())) fail("返還組合せの別名と明細が一致しません。");
+      }
+    }
+    const visit = value => {
+      if (!value || typeof value !== "object") return;
+      for (const [key, child] of Object.entries(value)) {
+        if (/refund.*yen|yen.*refund/i.test(key) && (!Number.isSafeInteger(child) || child < 0)) fail("返還金額が不正です。");
+        visit(child);
+      }
+    };
+    visit(result);
+  }
+  function sourcePinned(row) {
+    return row.scope === "official" && sha(row.source_sha256) && text(row.source_provenance);
+  }
+  // These gates check importer assertions and matching saved pins. The browser
+  // cannot authenticate the importer's authority, signature or source rights.
+  function eligiblePrediction(row, p) {
+    const receipt = p?.external_receipt;
+    return !!(!row.private_cycle_view && sourcePinned(row) && p && text(p.model_id) && stages.slice(0, 2).includes(p.stage) && Audit.eligiblePrediction(row, p) &&
+      receipt && text(receipt.authority) && receipt.content_sha256 === p.prediction_sha256 &&
+      receipt.source_sha256 === row.source_sha256 && stamp(receipt.server_received_at) &&
+      Date.parse(receipt.server_received_at) === Date.parse(p.persisted_at));
+  }
+  function hasRefund(result) {
+    return !!(result?.refund_boats?.length || result?.refunds?.length || result?.refund_combinations?.length || result?.refund_yen > 0 || result?.status === "void");
+  }
+  function eligibleResult(row) {
+    const r = row.result, evidence = r?.evidence;
+    return !!(!row.private_cycle_view && sourcePinned(row) && row.offering_status === "TRIFECTA_OFFERED" &&
+      r?.status === "final" && r.official === true && sha(r.source_sha256) && stamp(r.confirmed_at) &&
+      stamp(row.cutoff_at) && Date.parse(r.confirmed_at) >= Date.parse(row.cutoff_at) && !hasRefund(r) &&
+      evidence && text(evidence.authority) && evidence.content_sha256 === r.source_sha256 &&
+      stamp(evidence.observed_at) && Date.parse(evidence.observed_at) === Date.parse(r.confirmed_at));
+  }
+  function candidates(row) { return [row.prediction, ...(row.comparison_predictions || [])].filter(Boolean); }
+  function identity(p) { return canonical([p.stage || "UNKNOWN", p.model_id || null, p.model_version]); }
+  function selectPrediction(row, options = {}) {
+    const fields = {stage:"stage",modelId:"model_id",version:"model_version",variant:"variant",predictionSha:"prediction_sha256",outputSha:"output_sha256"};
+    const supplied = Object.keys(fields).filter(key => Object.hasOwn(options,key));
+    if (!supplied.length) return row.prediction || null;
+    return candidates(row).find(p => supplied.every(key => p[fields[key]] === options[key])) || null;
+  }
+  function optionalSha(value, label) { if (value != null && !sha(value)) fail(label + "のSHAが不正です。"); }
+  function optionalLabel(value, label, max = 250) { if (value != null && (!text(value) || value.length > max)) fail(label + "が不正です。"); }
+  function missingReasons(value) {
+    if (value == null) return [];
+    if (!Array.isArray(value) || value.length > 1000 || value.some(reason => !text(reason) || reason.length > 2000)) fail("欠測理由が不正です。");
+    return value;
+  }
+  function partialResult(result) {
+    if (!result || typeof result !== "object" || Array.isArray(result) || !["final","pending","void","unsupported"].includes(result.status) ||
+        !Array.isArray(result.winning_combinations) || result.winning_combinations.some(t => !ticket(t)) ||
+        new Set(result.winning_combinations.map(t => t.join("-"))).size !== result.winning_combinations.length ||
+        (result.status === "final" ? result.winning_combinations.length === 0 : result.winning_combinations.length !== 0)) fail("観測結果の形式が不正です。");
+    if (result.payout_yen_per_100 != null && (!Number.isSafeInteger(result.payout_yen_per_100) || result.payout_yen_per_100 < 0)) fail("観測払戻が不正です。");
+    validateStamps(result,["confirmed_at","observed_at"]);optionalSha(result.source_sha256,"観測結果");refunds(result);
+    result.official = false;
+  }
+  function parsePrivateCycle(value) {
+    if (!["REAL_REPORTED","SYNTHETIC_ONLY"].includes(value.dataset_status) || !Array.isArray(value.records) || value.records.length > 10000) fail("私有循環データの種別・レース配列が不正です。");
+    if (value.event_date_jst != null && !validDay(value.event_date_jst)) fail("JST開催日が不正です。");
+    optionalSha(value.source_state_sha256,"循環状態");
+    const seen = new Set();
+    for (const row of value.records) {
+      const dispatchRow = row?.native_dispatch_view === true || row?.source_observation_view === true;
+      if (!row || typeof row !== "object" || Array.isArray(row) || !text(row.race_id) || row.race_id.length > 250 ||
+          !sports.includes(row.sport) || !(dispatchRow && row.venue == null || text(row.venue) && row.venue.length <= 100) ||
+          !(dispatchRow && row.race_no == null || Number.isInteger(row.race_no) && row.race_no >= 1 && row.race_no <= 99) ||
+          !validDay(row.event_date_jst) || !["TRIFECTA_OFFERED","NOT_OFFERED","UNKNOWN"].includes(row.offering_status)) fail("私有循環レースの識別情報が不正です。");
+      if (seen.has(row.race_id)) fail("同じレースIDの重複があります。");seen.add(row.race_id);
+      validateStamps(row,["cutoff_at","observed_at","as_of","updated_at"]);
+      if (row.cutoff_at && new Date(Date.parse(row.cutoff_at) + 9 * 60 * 60 * 1000).toISOString().slice(0,10) !== row.event_date_jst) fail("JST開催日と締切時刻が一致しません。");
+      let savedCutoffs=null,scheduleCutoffs=null,observationCutoffs=null;
+      for (const field of ["saved_cutoff_variants","saved_schedule_cutoff_variants","saved_observation_cutoff_variants"]) if (row[field] != null) {
+        const observationVariants=field==="saved_observation_cutoff_variants";
+        if (!Array.isArray(row[field]) || row[field].length > 64 || row[field].some(value=>!stamp(value) || !observationVariants && new Date(Date.parse(value)+9*60*60*1000).toISOString().slice(0,10)!==row.event_date_jst)) fail("保存された締切一覧が不正です。");
+        const instants=new Set(row[field].map(Date.parse));if(new Set(row[field]).size!==row[field].length) fail("保存された締切が重複しています。");
+        if(field==="saved_cutoff_variants")savedCutoffs=instants.size?instants:null;
+        else if(observationVariants)observationCutoffs=instants.size?instants:null;
+        else scheduleCutoffs=instants;
+      }
+      if (savedCutoffs && (savedCutoffs.size>1 ? row.cutoff_at!==null : row.cutoff_at==null || !savedCutoffs.has(Date.parse(row.cutoff_at)))) fail("原本間の締切不一致を単一時刻に変更できません。");
+      if (!savedCutoffs && scheduleCutoffs?.size>1 && row.cutoff_at!==null) fail("台帳間の締切不一致を単一時刻に変更できません。");
+      if (observationCutoffs && (observationCutoffs.size<2 || row.cutoff_at!==null)) fail("取得観測間の締切不一致を単一時刻に変更できません。");
+      optionalSha(row.source_sha256,"情報源");optionalSha(row.source_sha,"情報源");
+      if (row.source_sha != null && row.source_sha256 != null && row.source_sha !== row.source_sha256) fail("元データSHAが一致しません。");
+      if (row.participants != null) {
+        if (!Array.isArray(row.participants) || row.participants.length > 99) fail("出走表の形式が不正です。");
+        const numbers = new Set();
+        for (const person of row.participants) {
+          if (!person || typeof person !== "object" || !Number.isInteger(person.number) || person.number < 1 || person.number > 99 || numbers.has(person.number)) fail("出走番号が不正です。");
+          numbers.add(person.number);optionalLabel(person.name,"出走者名",500);optionalLabel(person.registration_no,"登録番号",100);
+        }
+      }
+      const reasons = missingReasons(row.missing_reasons);
+      row.scope = value.dataset_status === "SYNTHETIC_ONLY" ? "synthetic" : "research";
+      row.private_cycle_view = true;row.source_schema = privateCycleSchema;row.evidence_imported_only = true;
+      if (row.source_observation_view === true) {
+        const observation=row.source_observation;
+        if (row.prediction!=null || row.comparison_predictions?.length || row.result!=null || row.result_observations?.length || row.cutoff_at!=null ||
+            savedCutoffs?.size || scheduleCutoffs?.size || observationCutoffs?.size || row.offering_status!=="UNKNOWN" ||
+            !observation || typeof observation!=="object" || observation.kind!=="CAPTURED_PUBLIC_PAGE_FACTS" || !stamp(observation.observed_at) ||
+            !sha(observation.source_sha256) || !sha(observation.original_json_sha256) || !Number.isSafeInteger(observation.artifact_id) || observation.artifact_id<1 ||
+            observation.source_uri!==row.race_id || observation.source_url!==observation.source_uri || observation.final_url!==observation.source_uri) fail("取得ページ観測と予想・結果を混在させられません。");
+        let url;try{url=new URL(observation.source_url);}catch{fail("取得ページURLが不正です。");}
+        if(url.protocol!=="https:" || url.username || url.password || url.hash || observation.source_url.length>512)fail("取得ページURLが不正です。");
+        observation.independent_source_verified=false;observation.pre_cutoff_receipt_verified=false;
+      }
+      if (row.scheduled_stages != null && (!Array.isArray(row.scheduled_stages) || !row.scheduled_stages.length || row.scheduled_stages.length > 4 ||
+          new Set(row.scheduled_stages).size !== row.scheduled_stages.length || row.scheduled_stages.some(stage=>!stages.slice(0,2).includes(stage) && !(row.sport === "autorace" && nativeAutoraceStages.includes(stage))))) fail("対象台帳の予想時点が不正です。");
+      if (row.dispatch_slots != null) {
+        if (!dispatchRow || !Array.isArray(row.dispatch_slots) || row.dispatch_slots.length > 4096) fail("モデル別状態の形式が不正です。");
+        const statuses=["NOT_APPLICABLE","INPUT_MISSING","TRAINED_ARTIFACT_MISSING","DEADLINE_PASSED","RULE_FILTERED","UNCONNECTED_NATIVE_RUNTIME","SOURCE_NOT_AUTHORIZED","INPUT_REJECTED","GENERATED_UNATTESTED","ORIGINAL_REUSED"];
+        const slots = new Set();
+        for (const slot of row.dispatch_slots) {
+          if (!slot || typeof slot !== "object" || Array.isArray(slot) || !text(slot.model_id) || slot.model_id.length > 128 ||
+              !(stages.slice(0,2).includes(slot.stage) || row.sport === "autorace" && nativeAutoraceStages.includes(slot.stage)) ||
+              !statuses.includes(slot.status) || typeof slot.applicable !== "boolean") fail("モデル別状態の識別情報が不正です。");
+          optionalLabel(slot.model_version,"モデル版",100);optionalLabel(slot.reason,"状態理由",2000);
+          if (row.scheduled_stages && !row.scheduled_stages.includes(slot.stage)) fail("モデル別状態の時点が対象台帳にありません。");
+          optionalLabel(slot.projection_status,"表示状態",100);optionalLabel(slot.projection_reason,"表示理由",2000);
+          optionalSha(slot.output_sha256,"保存出力本文");optionalSha(slot.prediction_sha256,"モデル別原本");
+          const key=canonical([slot.stage,slot.model_id,slot.model_version ?? null]);
+          if (slots.has(key)) fail("同じモデル別状態が重複しています。");slots.add(key);
+        }
+      }
+      if (row.prediction != null && (!row.prediction || typeof row.prediction !== "object" || Array.isArray(row.prediction))) fail("保存予想の形式が不正です。");
+      if (row.comparison_predictions != null && (!Array.isArray(row.comparison_predictions) || row.comparison_predictions.length > 64)) fail("比較モデル予想の件数が不正です。");
+      if (row.comparison_predictions?.some(p => !p || typeof p !== "object" || Array.isArray(p))) fail("比較保存予想の形式が不正です。");
+      if (row.actual_purchase != null && (row.actual_purchase.confirmed !== true || ["stake_yen","payout_yen","refund_yen"].some(key => !Number.isSafeInteger(row.actual_purchase[key]) || row.actual_purchase[key] < 0))) fail("購入申告の形式が不正です。");
+      const identities = new Set();
+      for (const p of candidates(row)) {
+        if (!p || typeof p !== "object" || Array.isArray(p) || !Array.isArray(p.ordered_top8) || !p.ordered_top8.length || p.ordered_top8.length > 8 ||
+            p.ordered_top8.some(t => !ticket(t)) || new Set(p.ordered_top8.map(t => t.join("-"))).size !== p.ordered_top8.length) fail("私有循環の保存Top8が不正です。");
+        if (!stages.includes(p.stage) && !(row.sport === "autorace" && nativeAutoraceStages.includes(p.stage))) fail("競技に対応する保存時点が必要です。");
+        if (row.scheduled_stages && !row.scheduled_stages.includes(p.stage)) fail("保存予想の時点が対象台帳にありません。");
+        optionalLabel(p.model_id,"モデルID",128);optionalLabel(p.model_version,"モデル版",100);optionalLabel(p.variant,"保存モデル区分",250);
+        validateStamps(p,["generated_at","as_of","persisted_at","server_saved_at","cutoff_at","observed_at"]);
+        if (p.cutoff_at && row.cutoff_at && Date.parse(p.cutoff_at) !== Date.parse(row.cutoff_at)) fail("保存予想とレースの締切が一致しません。");
+        if (savedCutoffs && !savedCutoffs.has(Date.parse(p.cutoff_at))) fail("保存予想の締切が原本の一覧にありません。");
+        if (p.persisted_at && p.server_saved_at && Date.parse(p.persisted_at) !== Date.parse(p.server_saved_at)) fail("保存予想の保存時刻が一致しません。");
+        const nativeDispatch = p.native_dispatch_prediction === true;
+        if (nativeDispatch && !sha(p.output_sha256)) fail("保存出力本文のSHAが必要です。");
+        if (p.prediction_sha256 == null ? !(nativeDispatch && p.hash_basis === "NATIVE_OUTPUT_CONTENT") : !sha(p.prediction_sha256)) fail("保存予想のSHAが不正です。");
+        for (const field of ["input_sha256","source_sha256","model_sha256","original_json_sha256","training_sha256","output_sha256"]) optionalSha(p[field],field);
+        if (!nativeDispatch && p.model_sha256 != null && p.model_sha256 !== p.prediction_sha256) fail("保存モデルのSHAが一致しません。");
+        if (p.artifact_id != null && (!Number.isSafeInteger(p.artifact_id) || p.artifact_id < 1)) fail("原本artifact IDが不正です。");
+        if (p.odds_independent != null && typeof p.odds_independent !== "boolean") fail("オッズ分離の保存値が不正です。");
+        marketIsolation(p);candidateOrder(p);
+        const key = canonical([p.stage,p.model_id ?? null,p.model_version ?? null,p.variant ?? null,p.prediction_sha256,p.output_sha256 ?? null]);
+        if (identities.has(key)) fail("同じ保存予想原本の重複があります。");identities.add(key);
+        p.external_receipt_verified = false;p.private_cycle_view = true;
+        const absent = missingReasons(p.missing_reasons);
+        for (const [field,reason] of [["model_id","MODEL_ID_NOT_SAVED"],["model_version","MODEL_VERSION_NOT_SAVED"],["generated_at","GENERATED_AT_NOT_SAVED"],["input_sha256","INPUT_SHA_NOT_SAVED"],["source_sha256","SOURCE_SHA_NOT_SAVED"],["odds_independent","ODDS_INDEPENDENCE_NOT_SAVED"]]) if (p[field] == null) absent.push(reason);
+        absent.push("INDEPENDENT_RECEIPT_NOT_VERIFIED");p.missing_reasons = [...new Set(absent)];
+        if (p.prediction_sha256 == null) p.missing_reasons.push("NATIVE_PREDICTION_SHA_NOT_SAVED");
+      }
+      if (row.result != null) partialResult(row.result);
+      if (row.result_revisions != null && (!Array.isArray(row.result_revisions) || row.result_revisions.length)) fail("私有循環の取得観測を公式改訂番号へ変換できません。");
+      row.result_revisions = row.result_revisions || [];
+      if (row.result_observations != null && (!Array.isArray(row.result_observations) || row.result_observations.length > 10000)) fail("取得観測履歴が不正です。");
+      const captures = new Map();
+      for (const observation of row.result_observations || []) {
+        if (!observation || typeof observation !== "object" || Array.isArray(observation) || observation.race_id !== row.race_id || !stamp(observation.captured_at)) fail("取得観測の識別情報・時刻が不正です。");
+        optionalSha(observation.source_sha256,"取得観測");validateStamps(observation,["closed_at"]);
+        const previous = captures.get(observation.captured_at);
+        if (previous && canonical(previous) !== canonical(observation)) fail("同じ取得時刻の観測内容が矛盾しています。");
+        captures.set(observation.captured_at,observation);
+      }
+      if (row.result_observation_rejections != null) {
+        if (!Array.isArray(row.result_observation_rejections) || row.result_observation_rejections.length>10000) fail("結果観測の照合不可記録が不正です。");
+        const seenRejections=new Set();
+        for (const rejected of row.result_observation_rejections) {
+          if (!rejected || typeof rejected!=="object" || !stamp(rejected.captured_at) || typeof rejected.reason!=="string" || !/^[A-Z][A-Z0-9_]{0,199}$/.test(rejected.reason)) fail("結果観測の照合不可理由が不正です。");
+          optionalSha(rejected.source_sha256,"照合不可観測");
+          const key=canonical([Date.parse(rejected.captured_at),rejected.source_sha256??null]);
+          if(seenRejections.has(key) || !(row.result_observations||[]).some(o=>Date.parse(o.captured_at)===Date.parse(rejected.captured_at) && (o.source_sha256??null)===(rejected.source_sha256??null))) fail("照合不可記録が元の結果観測と一致しません。");
+          seenRejections.add(key);
+          if(row.result?.status==="final" && Date.parse(row.result.observed_at)===Date.parse(rejected.captured_at)) fail("照合不可の結果観測を確定結果にできません。");
+        }
+      }
+      if (savedCutoffs?.size>1 && row.result?.status==="final") fail("原本間の締切が未確定の結果は照合できません。");
+      if (!savedCutoffs && scheduleCutoffs?.size>1 && row.result?.status==="final") fail("台帳間の締切が未確定の結果は照合できません。");
+      if (observationCutoffs && row.result?.status==="final") fail("取得観測間の締切が未確定の結果は照合できません。");
+      reasons.push("PRIVATE_CYCLE_RESEARCH_VIEW_ONLY","INDEPENDENT_RECEIPT_NOT_VERIFIED");
+      if (!candidates(row).length) reasons.push("NO_SAVED_PREDICTION");
+      row.missing_reasons = [...new Set(reasons)];
+    }
+    value.evidence_imported_only = true;
+    value.verification_limitations = "保存された私有循環状態の研究閲覧です。未保存のモデル版・生成時刻・入力SHAを補完せず、観測履歴を公式改訂や独立保存証拠として扱いません。";
+    return freeze(value);
+  }
+  function parse(raw) {
+    if (!Audit) fail("監査データ検証モジュールが必要です。");
+    const value = clone(raw);
+    if (value?.schema === privateCycleSchema) return parsePrivateCycle(value);
+    if (!value || value.schema !== "RACE_AI_FORECAST_AUDIT_V1") fail("未対応のデータ形式です。");
+    if (!["AUDIT_ONLY", "REAL_REPORTED", "SYNTHETIC_ONLY"].includes(value.dataset_status) || !Array.isArray(value.records) || value.records.length > 10000) fail("データ種別・レース配列が不正です。");
+    if (value.event_date_jst != null && !validDay(value.event_date_jst)) fail("JST開催日が不正です。");
+    const seen = new Set();
+    value.records = value.records.map(row => {
+      if (!row || typeof row !== "object") fail("レースの形式が不正です。");
+      if (row.source_sha != null) {
+        if (row.source_sha256 != null && row.source_sha256 !== row.source_sha) fail("元データSHAが一致しません。");
+        row.source_sha256 = row.source_sha;
+      }
+      if (row.sport === "horse_local" || row.sport === "horse_jra") {
+        row.source_sport = row.sport;
+        row.sport = "horse";
+      }
+      if (seen.has(row.race_id)) fail("同じレースIDの重複があります。");
+      seen.add(row.race_id);
+      if (row.scope != null && !scopes.includes(row.scope)) fail("データの範囲が不正です。");
+      const day = row.event_date_jst || Audit.raceDay(row) || value.event_date_jst || null;
+      if (day != null && !validDay(day)) fail("JST開催日が不正です。");
+      if (row.event_date_jst != null && !validDay(row.event_date_jst)) fail("JST開催日が不正です。");
+      validateStamps(row, ["cutoff_at", "observed_at", "as_of", "updated_at"]);
+      if (day && row.cutoff_at && new Date(Date.parse(row.cutoff_at) + 9 * 60 * 60 * 1000).toISOString().slice(0, 10) !== day) fail("JST開催日と締切時刻が一致しません。");
+      row.event_date_jst = day;
+      const reasons = row.missing_reasons == null ? [] : row.missing_reasons;
+      if (!Array.isArray(reasons) || reasons.some(r => !text(r))) fail("欠測理由が不正です。");
+      row.missing_reasons = reasons;
+      if (value.dataset_status === "SYNTHETIC_ONLY") row.scope = "synthetic";
+      else if (value.dataset_status !== "REAL_REPORTED" || row.scope !== "official" || !sha(row.source_sha256) || !text(row.source_provenance)) {
+        if (row.scope === "synthetic") fail("合成と実データを混在させないでください。");
+        if (row.scope !== "research") reasons.push("OFFICIAL_SCOPE_OR_SOURCE_EVIDENCE_MISSING");
+        row.scope = "research";
+      }
+      if (row.comparison_predictions != null && (!Array.isArray(row.comparison_predictions) || row.comparison_predictions.length > 64)) fail("比較モデル予想の件数が不正です。");
+      const variants = candidates(row), identities = new Set();
+      for (const p of variants) {
+        if (!p || typeof p !== "object" || Array.isArray(p)) fail("予想の形式が不正です。");
+        p.stage = p.stage || row.stage || "UNKNOWN";
+        if (!stages.includes(p.stage)) fail("予想時点はP0/P1/UNKNOWNが必要です。");
+        if (p.model_id != null && (!text(p.model_id) || p.model_id.length > 128)) fail("モデル識別子が不正です。");
+        validateStamps(p, ["generated_at", "persisted_at", "cutoff_at", "as_of", "observed_at"]);
+        marketIsolation(p);
+        candidateOrder(p);
+        if (identities.has(identity(p))) fail("同じ時点・モデル・版の重複があります。");
+        identities.add(identity(p));
+        // Reuse the existing strict odds-free audit admission for each saved
+        // variant. Its older model key does not distinguish P0 from P1.
+        const check = {...row, prediction:p}; delete check.comparison_predictions;
+        Audit.parse({...value, records:[check]});
+        if (p.stage === "UNKNOWN") reasons.push("PREDICTION_STAGE_NOT_SAVED");
+        if (!p.model_id) reasons.push("MODEL_ID_NOT_SAVED");
+        if (!eligiblePrediction(row, p)) reasons.push("EXTERNAL_RECEIPT_PIN_MISSING_OR_MISMATCHED");
+      }
+      if (!variants.length) {
+        const check = {...row}; delete check.comparison_predictions;
+        Audit.parse({...value, records:[check]});
+        reasons.push(row.no_forecast_reason || "NO_SAVED_PREDICTION");
+      }
+      if (row.result_revisions != null) {
+        row.result_revisions.forEach((r, index) => {
+          if (r.revision_no !== index + 1) fail("結果改訂の版は連続している必要があります。");
+          validateStamps(r, ["confirmed_at", "observed_at"]);
+          refunds(r);
+        });
+        if (row.result_revisions.length && !row.result) fail("最新の公式結果と改訂履歴が一致しません。");
+        if (row.result_revisions.length) {
+          const withoutRevision = result => Object.fromEntries(Object.entries(result).filter(([key]) => key !== "revision_no"));
+          if (canonical(withoutRevision(row.result_revisions.at(-1))) !== canonical(withoutRevision(row.result))) fail("最新結果の払戻・返還・出典と改訂履歴が一致しません。");
+        }
+      }
+      refunds(row.result);
+      validateStamps(row.result, ["confirmed_at", "observed_at"]);
+      if (row.result && !eligibleResult(row)) reasons.push(hasRefund(row.result) ? "REFUND_REVIEW_REQUIRED" : "OFFICIAL_RESULT_PIN_MISSING_OR_MISMATCHED");
+      row.missing_reasons = [...new Set(reasons)];
+      row.evidence_imported_only = true;
+      return row;
+    });
+    value.evidence_imported_only = true;
+    value.verification_limitations = "保存された取込元の申告・SHA・時刻の整合性を表示します。ブラウザは署名・権限・独立時刻を認証しません。";
+    return freeze(value);
+  }
+  function newStats() {
+    return {ledger:0, officialLedger:0, researchLedger:0, syntheticLedger:0, frozenReported:0, noForecast:0,
+      evaluable:0, hits:null, hit8:null, excluded:0, actualPurchases:0, actualStake:0, actualPayout:0,
+      actualRefund:0, actualNet:null, evidence_imported_only:true, stage_mixed:false,
+      identity_mixed:false, prediction_identities:[]};
+  }
+  function scored(row, p) {
+    return eligiblePrediction(row, p) && row.result.winning_combinations.some(w => p.ordered_top8.some(t => Audit.ticketKey(t) === Audit.ticketKey(w)));
+  }
+  function accumulate(stats, row, p = row.prediction) {
+    stats.ledger++;
+    stats[row.scope + "Ledger"]++;
+    if (eligiblePrediction(row, p)) stats.frozenReported++; else stats.noForecast++;
+    if (eligibleResult(row)) {
+      stats.evaluable++;
+      stats.hits = (stats.hits || 0) + (scored(row, p) ? 1 : 0);
+    } else stats.excluded++;
+    const a = row.actual_purchase;
+    if (row.scope === "official" && a?.confirmed === true) {
+      stats.actualPurchases++; stats.actualStake += a.stake_yen;
+      stats.actualPayout += a.payout_yen; stats.actualRefund += a.refund_yen;
+    }
+  }
+  function finish(stats, identities) {
+    stats.prediction_identities = [...identities].sort().map(key => {
+      const [stage, model_id, model_version] = JSON.parse(key);
+      return {stage, model_id, model_version};
+    });
+    stats.stage_mixed = new Set(stats.prediction_identities.map(p => p.stage)).size > 1;
+    stats.identity_mixed = identities.size > 1;
+    stats.hit8 = stats.evaluable && identities.size === 1 ? stats.hits / stats.evaluable : null;
+    stats.actualNet = stats.actualPurchases ? stats.actualPayout + stats.actualRefund - stats.actualStake : null;
+    return stats;
+  }
+  function summary(records) {
+    const overall = newStats(), bySport = Object.fromEntries(sports.map(s => [s, newStats()]));
+    const byScope = Object.fromEntries(scopes.map(s => [s, newStats()]));
+    const byStage = Object.fromEntries(summaryStages.map(s => [s, newStats()]));
+    const identitySets = new Map([overall, ...Object.values(bySport), ...Object.values(byScope), ...Object.values(byStage)].map(s => [s, new Set()]));
+    for (const row of records) {
+      const stage = row.prediction?.stage || "UNKNOWN";
+      for (const target of [overall, bySport[row.sport], byScope[row.scope]]) {
+        accumulate(target, row);
+        if (row.scope === "official" && row.prediction) identitySets.get(target).add(identity(row.prediction));
+      }
+      for (const phase of summaryStages) {
+        if (nativeAutoraceStages.includes(phase) && (row.sport !== "autorace" || !row.private_cycle_view)) continue;
+        const variants = candidates(row).filter(p => p.stage === phase);
+        // Each named stage keeps the full official schedule denominator,
+        // including races with no saved forecast at that stage. UNKNOWN remains
+        // the explicit unknown/missing-primary view rather than another cohort.
+        const declared=(row.scheduled_stages||[]).includes(phase) || (row.dispatch_slots||[]).some(slot=>slot.stage===phase);
+        if (phase === "UNKNOWN" ? stage !== "UNKNOWN" : row.scope !== "official" && !variants.length && !declared) continue;
+        accumulate(byStage[phase], row, variants[0] || null);
+        if (row.scope === "official") for (const p of variants) identitySets.get(byStage[phase]).add(identity(p));
+      }
+    }
+    for (const [stats, identities] of identitySets) finish(stats, identities);
+    return {overall, bySport, byScope, byStage};
+  }
+  function modelGroups(records) {
+    const groups = new Map();
+    for (const row of records) for (const p of candidates(row)) {
+      const variant = p.private_cycle_view ? p.variant ?? null : null;
+      const key = canonical([row.scope, row.sport, p.stage, p.model_id || null, p.model_version, variant]);
+      if (!groups.has(key)) groups.set(key, {key, scope:row.scope, sport:row.sport, stage:p.stage,
+        model_id:p.model_id || null, model_version:p.model_version, variant, private_cycle_view:!!p.private_cycle_view, issued:0, ...newStats(),
+        comparison:"保存原本の参考比較（同一未来レース・入力・時刻の並走は別途検証）"});
+    }
+    for (const group of groups.values()) {
+      const cohort = records.filter(r => {
+        if (r.scope !== group.scope || r.sport !== group.sport) return false;
+        const declared=[...(r.scheduled_stages||[]),...(r.dispatch_slots||[]).map(slot=>slot.stage)];
+        return !r.private_cycle_view || !declared.length || declared.includes(group.stage) || candidates(r).some(p=>p.stage===group.stage);
+      });
+      for (const row of cohort) {
+        const p = candidates(row).find(p => p.stage === group.stage && (p.model_id || null) === group.model_id && p.model_version === group.model_version &&
+          (!group.private_cycle_view || (p.variant ?? null) === group.variant)) || null;
+        if (p) group.issued++;
+        accumulate(group, row, p);
+      }
+      finish(group, new Set(group.scope === "official" ? [canonical([group.stage, group.model_id, group.model_version])] : []));
+    }
+    return [...groups.values()];
+  }
+  return Object.freeze({parse, summary, selectPrediction, modelGroups, eligiblePrediction, eligibleResult, candidates});
+});

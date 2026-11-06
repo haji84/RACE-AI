@@ -1,0 +1,397 @@
+{
+  "schema": "RACE_AI_FORECAST_AUDIT_V1",
+  "dataset_status": "SYNTHETIC_ONLY",
+  "event_date_jst": "2030-01-01",
+  "note": "ALL RACES & PAYOUTS FICTIONAL. Two research models, fake receipts and result revisions to exercise visual evaluation, NOT true predictions or actual results.",
+  "records": [
+    {
+      "race_id": "synthetic:2030-01-01:boat:1",
+      "sport": "boat",
+      "venue": "合成テスト会場",
+      "race_no": 1,
+      "cutoff_at": "2030-01-01T10:00:00+09:00",
+      "offering_status": "TRIFECTA_OFFERED",
+      "race_status": "scheduled",
+      "evidence_url": null,
+      "source_provenance": "SYNTHETIC_ONLY",
+      "no_forecast_reason": null,
+      "prediction": {
+        "ordered_top8": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            1,
+            3
+          ],
+          [
+            1,
+            3,
+            2
+          ],
+          [
+            3,
+            1,
+            2
+          ],
+          [
+            2,
+            3,
+            1
+          ],
+          [
+            3,
+            2,
+            1
+          ],
+          [
+            4,
+            1,
+            2
+          ],
+          [
+            4,
+            2,
+            1
+          ]
+        ],
+        "generated_at": "2030-01-01T09:00:00+09:00",
+        "persisted_at": "2030-01-01T09:05:00+09:00",
+        "cutoff_at": "2030-01-01T10:00:00+09:00",
+        "input_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "prediction_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "model_version": "synthetic-view-example",
+        "external_receipt_verified": true,
+        "odds_independent": true,
+        "rationale": "合成テスト用の並べ替え例。実在レースの根拠ではない。"
+      },
+      "result": {
+        "status": "final",
+        "winning_combinations": [
+          [
+            1,
+            2,
+            3
+          ]
+        ],
+        "confirmed_at": "2030-01-01T11:00:00+09:00",
+        "payout_yen_per_100": 2500
+      },
+      "comparison_predictions": [
+        {
+          "model_id": "boat-comprehensive-v1",
+          "model_version": "0.1.0-UNTRAINED",
+          "ordered_top8": [
+            [
+              1,
+              2,
+              3
+            ],
+            [
+              2,
+              1,
+              3
+            ],
+            [
+              1,
+              3,
+              2
+            ],
+            [
+              2,
+              3,
+              1
+            ],
+            [
+              1,
+              4,
+              2
+            ],
+            [
+              4,
+              1,
+              2
+            ],
+            [
+              3,
+              1,
+              2
+            ],
+            [
+              1,
+              2,
+              4
+            ]
+          ],
+          "generated_at": "2030-01-01T09:00:00+09:00",
+          "persisted_at": "2030-01-01T09:05:00+09:00",
+          "cutoff_at": "2030-01-01T10:00:00+09:00",
+          "input_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+          "prediction_sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "external_receipt_verified": true,
+          "odds_independent": true,
+          "rationale": "合成テスト専用の固定8点。実際のモデル実績・外部時刻証明ではない。",
+          "comparison_only": true,
+          "receipt_status": "SYNTHETIC_TEST_RECEIPT_ONLY"
+        },
+        {
+          "model_id": "boat-scenario-mixture-v1",
+          "model_version": "0.1.0-UNTRAINED",
+          "ordered_top8": [
+            [
+              4,
+              1,
+              2
+            ],
+            [
+              2,
+              4,
+              1
+            ],
+            [
+              4,
+              2,
+              1
+            ],
+            [
+              2,
+              1,
+              4
+            ],
+            [
+              3,
+              4,
+              1
+            ],
+            [
+              4,
+              3,
+              1
+            ],
+            [
+              1,
+              4,
+              3
+            ],
+            [
+              2,
+              3,
+              4
+            ]
+          ],
+          "generated_at": "2030-01-01T09:00:00+09:00",
+          "persisted_at": "2030-01-01T09:05:00+09:00",
+          "cutoff_at": "2030-01-01T10:00:00+09:00",
+          "input_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+          "prediction_sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "external_receipt_verified": true,
+          "odds_independent": true,
+          "rationale": "合成テスト専用の固定8点。実際のモデル実績・外部時刻証明ではない。",
+          "comparison_only": true,
+          "receipt_status": "SYNTHETIC_TEST_RECEIPT_ONLY"
+        }
+      ],
+      "result_revisions": [
+        {
+          "revision_no": 1,
+          "status": "final",
+          "winning_combinations": [
+            [
+              4,
+              2,
+              1
+            ]
+          ],
+          "confirmed_at": "2030-01-01T10:50:00+09:00",
+          "payout_yen_per_100": 5100
+        },
+        {
+          "revision_no": 2,
+          "status": "final",
+          "winning_combinations": [
+            [
+              1,
+              2,
+              3
+            ]
+          ],
+          "confirmed_at": "2030-01-01T11:00:00+09:00",
+          "payout_yen_per_100": 2500
+        }
+      ]
+    },
+    {
+      "race_id": "synthetic:2030-01-01:keirin:1",
+      "sport": "keirin",
+      "venue": "合成テスト会場",
+      "race_no": 1,
+      "cutoff_at": "2030-01-01T10:00:00+09:00",
+      "offering_status": "TRIFECTA_OFFERED",
+      "race_status": "scheduled",
+      "evidence_url": null,
+      "source_provenance": "SYNTHETIC_ONLY",
+      "no_forecast_reason": null,
+      "prediction": {
+        "ordered_top8": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            1,
+            3
+          ],
+          [
+            1,
+            3,
+            2
+          ],
+          [
+            3,
+            1,
+            2
+          ],
+          [
+            2,
+            3,
+            1
+          ],
+          [
+            3,
+            2,
+            1
+          ],
+          [
+            4,
+            1,
+            2
+          ],
+          [
+            4,
+            2,
+            1
+          ]
+        ],
+        "generated_at": "2030-01-01T09:00:00+09:00",
+        "persisted_at": "2030-01-01T09:05:00+09:00",
+        "cutoff_at": "2030-01-01T10:00:00+09:00",
+        "input_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "prediction_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "model_version": "synthetic-view-example",
+        "external_receipt_verified": true,
+        "odds_independent": true,
+        "rationale": "合成テスト用の並べ替え例。実在レースの根拠ではない。"
+      },
+      "result": {
+        "status": "final",
+        "winning_combinations": [
+          [
+            5,
+            3,
+            4
+          ]
+        ],
+        "confirmed_at": "2030-01-01T11:00:00+09:00"
+      }
+    },
+    {
+      "race_id": "synthetic:2030-01-01:autorace:1",
+      "sport": "autorace",
+      "venue": "合成テスト会場",
+      "race_no": 1,
+      "cutoff_at": "2030-01-01T10:00:00+09:00",
+      "offering_status": "TRIFECTA_OFFERED",
+      "race_status": "scheduled",
+      "evidence_url": null,
+      "source_provenance": "SYNTHETIC_ONLY",
+      "no_forecast_reason": "SYNTHETIC_EXAMPLE_MISSING_INPUT",
+      "prediction": null,
+      "result": {
+        "status": "final",
+        "winning_combinations": [
+          [
+            1,
+            2,
+            3
+          ]
+        ],
+        "confirmed_at": "2030-01-01T11:00:00+09:00"
+      }
+    },
+    {
+      "race_id": "synthetic:2030-01-01:horse:1",
+      "sport": "horse",
+      "venue": "合成テスト会場",
+      "race_no": 1,
+      "cutoff_at": "2030-01-01T10:00:00+09:00",
+      "offering_status": "TRIFECTA_OFFERED",
+      "race_status": "scheduled",
+      "evidence_url": null,
+      "source_provenance": "SYNTHETIC_ONLY",
+      "no_forecast_reason": null,
+      "prediction": {
+        "ordered_top8": [
+          [
+            1,
+            2,
+            3
+          ],
+          [
+            2,
+            1,
+            3
+          ],
+          [
+            1,
+            3,
+            2
+          ],
+          [
+            3,
+            1,
+            2
+          ],
+          [
+            2,
+            3,
+            1
+          ],
+          [
+            3,
+            2,
+            1
+          ],
+          [
+            4,
+            1,
+            2
+          ],
+          [
+            4,
+            2,
+            1
+          ]
+        ],
+        "generated_at": "2030-01-01T09:00:00+09:00",
+        "persisted_at": "2030-01-01T09:05:00+09:00",
+        "cutoff_at": "2030-01-01T10:00:00+09:00",
+        "input_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "prediction_sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "model_version": "synthetic-view-example",
+        "external_receipt_verified": true,
+        "odds_independent": true,
+        "rationale": "合成テスト用の並べ替え例。実在レースの根拠ではない。"
+      },
+      "result": {
+        "status": "pending",
+        "winning_combinations": [],
+        "confirmed_at": null
+      }
+    }
+  ]
+}
