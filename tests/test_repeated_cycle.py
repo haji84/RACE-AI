@@ -13,9 +13,54 @@ from tests.test_frozen_day_cycle import sample, observation
 def stamp(s='2030-04-01T03:35:00+00:00'):
     return datetime.fromisoformat(s)
 
+class ProductionSafetyPolicyTests(unittest.TestCase):
+    def test_real_worker_defaults_are_hard_bounded(self):
+        # Deliberately outside legacy test fixtures; do not mask these values.
+        self.assertEqual(r.MAX_ROUNDS, 24)
+        self.assertEqual(r.POLL_SECONDS, 180)
+        self.assertEqual(r.SOURCE_LIMIT, 240)
+        self.assertEqual(r.MAX_SECONDS, 65 * 60)
+        self.assertEqual(r.ROUND_SOURCE_LIMIT, 45)
+
+    def test_real_worker_cannot_exceed_session_or_round_quota(self):
+        now=stamp()
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'bounded.json'
+            state=r.start(path, day='2030-04-01', run_id=111, now=now)
+            self.assertEqual(state['source_limit'],240)
+            self.assertEqual(state['max_rounds'],24)
+            self.assertEqual(r.instant(state['stop_at']),now+timedelta(minutes=65))
+            self.assertTrue(r.prepare(path,1,now=now)['active'])
+            guard=r.SourceGuard(path,clock=lambda:now)
+            for _ in range(45):guard.charge('forecast')
+            with self.assertRaisesRegex(ValueError,'ROUND_SOURCE_BUDGET_EXHAUSTED'):
+                guard.charge('result')
+            self.assertEqual(r.load(path)['requests_used'],45)
+
+    def test_old_unbounded_state_cannot_be_reopened_under_finite_defaults(self):
+        now=stamp()
+        with tempfile.TemporaryDirectory() as tmp:
+            path=Path(tmp)/'old.json'
+            with patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,
+                                SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None):
+                r.start(path,day='2030-04-01',run_id=112,now=now)
+                guard=r.SourceGuard(path,clock=lambda:now)
+                for _ in range(241):guard.charge('result')
+            before=path.read_bytes()
+            with self.assertRaisesRegex(ValueError,'SESSION_POLICY_MIGRATION_REQUIRES_NEW_RUN'):
+                r.start(path,day='2030-04-01',run_id=112,now=now+timedelta(seconds=1))
+            self.assertEqual(before,path.read_bytes())
+
+
 class RepeatedControllerTests(unittest.TestCase):
     def setUp(self):
         self.assertIsNotNone(r, 'bounded repeated controller not connected')
+        # Existing recovery fixtures intentionally model historical unbounded
+        # sessions. Patch only their test scope; production defaults remain finite.
+        legacy = patch.multiple(r, MAX_ROUNDS=None, MAX_SECONDS=None,
+                                SOURCE_LIMIT=None, ROUND_SOURCE_LIMIT=None)
+        legacy.start()
+        self.addCleanup(legacy.stop)
         self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
         self.path = Path(self.tmp.name)/'session.json'
     def test_current_default_policy_has_no_numeric_limits(self):
