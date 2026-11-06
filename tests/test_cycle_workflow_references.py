@@ -105,7 +105,7 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn('run: python scripts/github_existing_cycle.py restore',display)
         self.assertNotIn('github_existing_cycle.py forecast',display)
         self.assertNotIn('github_existing_cycle.py repeat-start',display)
-        self.assertNotIn('github_existing_cycle.py',display)
+        self.assertEqual(re.findall(r'run: python scripts/github_existing_cycle\.py ([^\n]+)',display),['restore'])
         self.assertNotIn('first_p0_bootstrap.py',display)
         official=text.split('  official_national:',1)[1]
         self.assertIn("!startsWith(github.event.head_commit.message, 'saved-view:')",official)
@@ -136,8 +136,9 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn("if: steps.first_p0.outputs.capture == 'true'", finalize)
         self.assertIn('steps.first_upload.outputs.artifact-id', finalize)
         self.assertLess(text.index('id: first_upload'), text.index('first_p0_bootstrap.py finalize'))
-        self.assertLess(text.index('first_p0_bootstrap.py finalize'), text.index('github_existing_cycle.py restore'))
-        self.assertLess(text.index('github_existing_cycle.py restore'), text.index('github_existing_cycle.py repeat-start'))
+        official=text.split('  official_national:',1)[1]
+        self.assertLess(official.index('first_p0_bootstrap.py finalize'), official.index('github_existing_cycle.py restore'))
+        self.assertLess(official.index('github_existing_cycle.py restore'), official.index('github_existing_cycle.py repeat-start'))
         self.assertIn('RACE_AI_FIRST_P0_CAPTURED: ${{ steps.first_p0.outputs.capture }}', text)
         self.assertNotIn('github_existing_cycle.py supplement', text)
         workers = [step for step in re.split(r'^      - name: ', text, flags=re.MULTILINE)
