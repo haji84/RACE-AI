@@ -13,12 +13,13 @@ from pathlib import Path
 import re
 from .source_retry_policy import SourceWait, plan_http_wait, wait_active
 
-MAX_ROUNDS = 24
+MAX_ROUNDS = None
 POLL_SECONDS = 180
-# Contracted bounds: each writer is one session, never unlimited.
-SOURCE_LIMIT = 240
-MAX_SECONDS = 65 * 60
-ROUND_SOURCE_LIMIT = 45
+# The owner removed numeric ceilings. Counts, provenance, upstream waits and
+# integrity latches remain enforced; None never means uncounted requests.
+SOURCE_LIMIT = None
+MAX_SECONDS = None
+ROUND_SOURCE_LIMIT = None
 CACHE_SECONDS = 180
 JST = timezone(timedelta(hours=9))
 _NORMAL_ENDS=frozenset(('BOUNDED_SESSION_END','MAX_ROUNDS_REACHED','DAY_CHANGED','DAY_HANDOFF',
@@ -49,6 +50,7 @@ def write_state(path, value, key='session_sha256'):
     target.parent.mkdir(parents=True, exist_ok=True)
     data = {k:v for k,v in value.items() if k != key}
     if data.get('schema') == 'RACE_AI_BOUNDED_REPEAT_V1':
+        previous = None
         _need(type(data.get('requests_used')) is int and data['requests_used'] >= 0,
               'session request count')
         _need(type(data.get('completed_round')) is int and data['completed_round']>=0,'session round count')
@@ -60,13 +62,25 @@ def write_state(path, value, key='session_sha256'):
             _need(data['completed_round']>=previous['completed_round'],'session round count decreased')
             for field in ('lifetime_requests_base','lifetime_completed_rounds_base'):
                 _need(data.get(field,0)>=previous.get(field,0),'session lifetime count decreased')
-            _need(not previous['halted_reason'] or data.get('halted_reason'),
+            migration=data.get('policy_migration',{})
+            allowed=(all(limit is None for limit in (MAX_ROUNDS,MAX_SECONDS,SOURCE_LIMIT,ROUND_SOURCE_LIMIT)) and
+                     previous['halted_reason'] in _NORMAL_ENDS and
+                     migration.get('from_session_sha256')==_digest(previous) and
+                     migration.get('previous_halted_reason')==previous['halted_reason'] and
+                     data.get('stop_at') is None and data.get('max_rounds') is None)
+            _need(not previous['halted_reason'] or data.get('halted_reason') or allowed,
                   'session halt cannot be cleared')
-        # Never reset old count / limit to conceal an exceeded quota.
-        _need(data['requests_used'] <= SOURCE_LIMIT, 'SESSION_SOURCE_BUDGET_EXCEEDED')
+        if SOURCE_LIMIT is not None:
+            _need(data['requests_used'] <= SOURCE_LIMIT, 'SESSION_SOURCE_BUDGET_EXCEEDED')
         data['source_limit'] = SOURCE_LIMIT
         data['lifetime_requests'] = data.get('lifetime_requests_base',0)+data['requests_used']
         data['lifetime_completed_rounds'] = data.get('lifetime_completed_rounds_base',0)+data['completed_round']
+        if previous is not None:
+            for total,base,used in (('lifetime_requests','lifetime_requests_base','requests_used'),
+                                    ('lifetime_completed_rounds','lifetime_completed_rounds_base','completed_round')):
+                claimed=previous.get(total,previous.get(base,0)+previous[used])
+                _need(type(claimed) is int and claimed>=0,'session lifetime total')
+                _need(data[total]>=claimed,'session lifetime total decreased')
     data[key] = _digest(data)
     temp = target.with_name(target.name + '.tmp')
     temp.write_text(json.dumps(data, ensure_ascii=False, sort_keys=True), encoding='utf-8')
@@ -107,12 +121,23 @@ def start(path, *, day, run_id, now, source_control=None):
     if Path(path).exists():
         old = load(path)
         _need(old['run_id'] == run_id and old['day_jst'] == day, 'foreign existing session')
-        # A saved run is never reopened to reset its limits or clear a halt.
-        _need(old.get('source_limit') == SOURCE_LIMIT and
-              old.get('max_rounds') == MAX_ROUNDS and
-              old.get('stop_at') is not None and
-              old['requests_used'] <= SOURCE_LIMIT,
-              'SESSION_POLICY_MIGRATION_REQUIRES_NEW_RUN')
+        unlimited=all(limit is None for limit in (MAX_ROUNDS,MAX_SECONDS,SOURCE_LIMIT,ROUND_SOURCE_LIMIT))
+        if unlimited and (old.get('stop_at') is not None or old.get('max_rounds') is not None or
+                          old.get('source_limit') is not None or old['halted_reason'] in _NORMAL_ENDS):
+            prior=copy.deepcopy(old)
+            migration=dict(from_session_sha256=_digest(prior),
+                previous_halted_reason=prior['halted_reason'],previous_stop_at=prior.get('stop_at'),
+                previous_max_rounds=prior.get('max_rounds'),previous_source_limit=prior.get('source_limit'))
+            if prior.get('policy_migration') is not None:
+                migration['previous_policy_migration']=copy.deepcopy(prior['policy_migration'])
+            old.update(stop_at=None,max_rounds=None,source_limit=None,policy_migration=migration)
+            if old['halted_reason'] in _NORMAL_ENDS:old['halted_reason']=None
+            return write_state(path,old)
+        if not unlimited:
+            _need(old.get('source_limit') == SOURCE_LIMIT and old.get('max_rounds') == MAX_ROUNDS and
+                  (MAX_SECONDS is None or old.get('stop_at') is not None) and
+                  (SOURCE_LIMIT is None or old['requests_used'] <= SOURCE_LIMIT),
+                  'SESSION_POLICY_MIGRATION_REQUIRES_NEW_RUN')
         return old
     control = {} if source_control is None else source_control
     _need(type(control) is dict,'source control mapping')
@@ -126,7 +151,8 @@ def start(path, *, day, run_id, now, source_control=None):
         source_wait=_verification_wait('PREVIOUS_SOURCE_HALT_REQUIRES_REVIEW',
                                       (source_wait or {}).get('attempts',0)+1)
     state = dict(schema='RACE_AI_BOUNDED_REPEAT_V1', day_jst=day, run_id=run_id,
-                 started_at=now.isoformat(), stop_at=(now+timedelta(seconds=MAX_SECONDS)).isoformat(),
+                 started_at=now.isoformat(),
+                 stop_at=(now+timedelta(seconds=MAX_SECONDS)).isoformat() if MAX_SECONDS is not None else None,
                  completed_round=0, prepared_round=None, last_started_at=None,
                  requests_used=0, requests_by_kind={}, halted_reason=None, receipts=[],
                  source_wait=source_wait, source_control=copy.deepcopy(control),
@@ -144,17 +170,18 @@ def prepare(path, round_no, *, now, next_action_at=None):
         return dict(active=False,wait_seconds=0,reason='DAY_HANDOFF')
     if reason:
         return dict(active=False, wait_seconds=0, reason=reason)
-    # A normal end is latched. Do not reset the same run to evade its cap.
-    if now >= instant(state['stop_at']):
+    # Explicitly configured library limits remain available; the authorized
+    # default has none. Previously stored numeric policy is migrated in start.
+    if state.get('stop_at') is not None and now >= instant(state['stop_at']):
         state['halted_reason']='BOUNDED_SESSION_END'
         write_state(path,state)
         return dict(active=False,wait_seconds=0,reason='BOUNDED_SESSION_END')
-    if round_no > MAX_ROUNDS or state['completed_round'] >= MAX_ROUNDS:
+    if MAX_ROUNDS is not None and (round_no > MAX_ROUNDS or state['completed_round'] >= MAX_ROUNDS):
         state['halted_reason']='MAX_ROUNDS_REACHED'
         write_state(path,state)
         return dict(active=False,wait_seconds=0,reason='MAX_ROUNDS_REACHED')
-    # Reserve enough room for the contracted maximum 45 official GET in a round.
-    if SOURCE_LIMIT-state['requests_used'] < ROUND_SOURCE_LIMIT:
+    if (SOURCE_LIMIT is not None and
+            SOURCE_LIMIT-state['requests_used'] < (ROUND_SOURCE_LIMIT or 1)):
         state['halted_reason']='SESSION_SOURCE_BUDGET_EXHAUSTED'
         write_state(path,state)
         return dict(active=False,wait_seconds=0,reason='SESSION_SOURCE_BUDGET_EXHAUSTED')
@@ -205,12 +232,12 @@ class SourceGuard:
         handoff=state.get('worker_handoff_at')
         _need(handoff is None or now<instant(handoff),'WORKER_HANDOFF')
         _need(not state['halted_reason'], state['halted_reason'] or 'halted')
-        _need(state['stop_at'] is not None and now < instant(state['stop_at']), 'BOUNDED_SESSION_END')
-        if state['requests_used']>=SOURCE_LIMIT:
+        _need(state.get('stop_at') is None or now < instant(state['stop_at']), 'BOUNDED_SESSION_END')
+        if SOURCE_LIMIT is not None and state['requests_used']>=SOURCE_LIMIT:
             state['halted_reason']='SESSION_SOURCE_BUDGET_EXHAUSTED'
             write_state(self.path,state)
             raise ValueError('SESSION_SOURCE_BUDGET_EXHAUSTED')
-        if (state['prepared_round'] is not None and
+        if (ROUND_SOURCE_LIMIT is not None and state['prepared_round'] is not None and
                 state['requests_used']-state.get('round_started_requests',0)>=ROUND_SOURCE_LIMIT):
             state['halted_reason']='ROUND_SOURCE_BUDGET_EXHAUSTED'
             write_state(self.path,state)

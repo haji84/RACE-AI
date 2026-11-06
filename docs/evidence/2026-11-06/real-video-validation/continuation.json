@@ -1036,6 +1036,72 @@
         "configuration_changed_or_published": false
       },
       "http_403_cause": "NOT_ESTABLISHED_NOT_ASSUMED_TO_BE_ENVIRONMENT_ALLOWLIST"
+    },
+    "second_authorized_unlimited_policy_restoration": {
+      "status": "IMPLEMENTED_TESTED_INDEPENDENT_REVIEW_GREEN_PENDING_THIS_CODE_PUSH_CI",
+      "conflicting_commits": [
+        "40325f9",
+        "7e11d9a"
+      ],
+      "owner_instructions": [
+        "取得上限なし",
+        "その上限や停止もなし",
+        "開発中も自動運転を止めない"
+      ],
+      "default_limits": {
+        "source_requests": null,
+        "per_round_requests": null,
+        "rounds": null,
+        "seconds": null
+      },
+      "source_sha256": "346335be7e60dbaa98d436589c4e2e0f28d83c7974bb11e5a9adf049a3f5fdbf",
+      "repeated_test_sha256": "d20be01d80783c0b43e57f87b15c62529931256fcbe96dd414db46c1b20343fa",
+      "learning_test_sha256": "01f62e195993320965270e54f812cf751862d502b459dd21dd5b30704ebf5e09",
+      "tests": 93,
+      "passed": 93,
+      "skipped": 0,
+      "seconds": 11.412,
+      "private_summary_sha256": "7526b4246d0bc14d1d5a7def67f03dbdfc1f812e02eca0bb8c570bb759e99a8e",
+      "raw_green_sha256": "343f066c940b54c0cfa68ef9701a1ee4c4bcbb376d6d31aead77cffca9ec7caf",
+      "independent_review_sha256": "da83c9907f94e2a24d40de41ee29bf7e6a49bfbbb83430d62eba2a5249a01bc5",
+      "independent_tests": {
+        "passed": 5,
+        "skipped": 0,
+        "seconds": 0.218
+      },
+      "simulated_over_old_caps": {
+        "charged_requests": 310,
+        "rounds": 27,
+        "elapsed_minutes": 78,
+        "scope": "SYNTHETIC_NO_REAL_SOURCE_GETS"
+      },
+      "preserved": [
+        "historical_request_claims",
+        "requests_by_kind",
+        "monotonic_lifetime_counters",
+        "round_started_requests",
+        "prepared_transaction",
+        "receipts",
+        "previous_migration_digest_chain",
+        "source_control",
+        "http401",
+        "http403",
+        "http429",
+        "retry_after",
+        "integrity_halts"
+      ],
+      "derived_lifetime_total_decrease_rejected_before_write": true,
+      "broken_duplicate_syntax_test_repaired": true,
+      "actual_427_request_history_or_live_checkpoints_modified": false,
+      "workflows_markers_runs_processes_modified": false
+    },
+    "subsequent_unknown_finish_parser_regression": {
+      "tests": 25,
+      "passed": 25,
+      "skipped": 0,
+      "seconds": 0.214,
+      "log_sha256": "6ad87e134abc3ca3e24083a7de743b5e06dd1089f92fd91e940e39bfba0cbc71",
+      "scope": "CONCURRENT_K_UNKNOWN_FINISH_MISSING_TIMING_AND_DIRECT_CALLER_REPAIRS_RETAINED"
     }
   },
   "continuity": {

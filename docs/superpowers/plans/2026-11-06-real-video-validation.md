@@ -106,3 +106,11 @@ Actual private-input offline profiling reproduced redundant per-status work: fou
 - [x] Independently review and run regression:62PASS/0skip plus4 independent request tests. Inputs advanced during live operation, so no AFTER profile or speed ratio is claimed. Apply to local monitor406374 at05:08 UTC while remote predictions42164651846 and intake271439 remain active. One real status response returned200 in6.75s, with600saved model/stage records; local count and timing are observations, not independent save-clock proof or a latency guarantee.
 - [x] Verify actual private Chromium interaction at390/1440:18 displayed original selections match orderedTop8 and SHA references, repeated stage API bytes unchanged,24 GET-only requests,18 private screenshots, no external/source/generation/unsafe requests, page errors or horizontal overflow. This is not actual Safari or another comparison with the original eight reference images; video field gates still fail.
 - [x] Verify exact source commit63ecc92: existing Viewer42167380144 and AUTORACE42167380137 completedSUCCESS. CI general1853/140explicit skips and isolatedCV251/0skip are separate scopes. The following record-only commit retains those source/test/workflow bytes and receives its own GitHub Checks; video field acceptance remains incomplete.
+
+
+## Preserve the authorized no-ceiling policy after a second concurrent reversal
+
+- [x] Restore all four numeric defaults toNone after concurrent40325f9/7e11d9a, preserving newly recorded round-start counters, historical claims, source waits, prepared transactions and receipts. Keep optional explicitly bounded library controls and monotonic total-integrity checks. Repair the duplicated syntactically broken test file.93targetedPASS/0skip;5independentPASS/0skip;reviewGREEN. The310GET/27round/78minute checks are synthetic, not real additional collection.
+- [ ] Verify this subsequent policy-fix commit in the existing CI. Do not relabel earlier63ecc92/b10758b passing checks as tests of this later source.
+
+No live forecast, private checkpoint, original or process was reset by this policy repair. The video field goals remain unmet.
