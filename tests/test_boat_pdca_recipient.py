@@ -214,6 +214,107 @@ class RecipientTests(unittest.TestCase):
         self.assertEqual({path.name for path in output.iterdir()},{'status.json'})
         self.assertNotIn(base64.b64encode(OWNER).decode(),printed.getvalue())
 
+    def cli_receive_stale(self,transfer,cipher,current,current_cipher,output,*,error=None):
+        from contextlib import redirect_stdout
+        from io import StringIO
+        from scripts.boat_pdca_transfer import main
+        incoming=self.pointer(transfer)
+        records={
+            'https://raw.githubusercontent.com/haji84/RACE-AI/'+incoming['source_commit']+'/'+incoming['cipher_path']:cipher,
+            'https://raw.githubusercontent.com/haji84/RACE-AI/'+current['source_commit']+'/'+current['cipher_path']:current_cipher}
+        offered=self.root/(output.name+'-input.json');offered.write_text(wire(incoming))
+        previous=self.root/(output.name+'-previous.json');previous.write_text(wire(current))
+        gha=self.root/(output.name+'-outputs');printed=StringIO();receive=self.m.receive_transfer
+        def replay(pointer,root,**kwargs):
+            if error is not None:raise error
+            return receive(pointer,root,fetch=records.__getitem__,now=NOW,**kwargs)
+        with patch.dict(os.environ,{'RACE_AI_STATE_KEY':base64.b64encode(OWNER).decode(),'GITHUB_OUTPUT':str(gha)}),\
+                patch('scripts.boat_pdca_transfer.receive_transfer',side_effect=replay),redirect_stdout(printed):
+            code=main(['receive','--input',str(offered),'--previous-input',str(previous),
+                '--private-dir',str(output),'--run-id','201','--source-head',HEAD])
+        return code,printed.getvalue(),gha
+
+    def test_cli_noncoverage_is_explicit_rebase_hold_without_import_or_rewrite(self):
+        state,_=invented_research_state(self.root)
+        current,current_cipher=self.canonical(state,self.root/'canonical')
+        extra=b'fictional extra captured original'
+        changed=PdcaState(state)
+        try:
+            with changed.db:changed._put('capture/extra-original.bin',extra)
+        finally:changed.close()
+        transfer=self.transfer(state,self.root/'offer');cipher=(self.root/'offer/transfer.enc').read_bytes()
+        originals={path:(path.read_bytes(),path.stat().st_mtime_ns)
+            for path in [state,self.root/'pair.json',self.root/'canonical/state.enc',self.root/'offer/transfer.enc']}
+        before=deepcopy((transfer,current));output=self.root/'rebase'
+        with patch.object(PdcaState,'checkpoint',side_effect=AssertionError('rebase HOLD cannot issue a checkpoint')):
+            code,printed,gha=self.cli_receive_stale(transfer,cipher,current,current_cipher,output)
+        self.assertEqual(code,0)
+        report=json.loads((output/'status.json').read_text())
+        self.assertEqual(report['status'],'HOLD_TRANSFER_REBASE_REQUIRED')
+        self.assertEqual(report['reason'],'STATE_REGRESSION_FILES')
+        self.assertFalse(report['incoming_originals_covered'])
+        self.assertFalse(report['transfer_imported'])
+        self.assertFalse(report['encrypted_checkpoint_created'])
+        self.assertTrue(report['canonical_state_preserved'])
+        self.assertEqual(report['required_next_generation'],2)
+        self.assertEqual(report['source_gets'],2)
+        self.assertEqual(gha.read_text(),'encrypted=false\n')
+        self.assertEqual({path.name for path in output.iterdir()},{'status.json'})
+        self.assertEqual(originals,{path:(path.read_bytes(),path.stat().st_mtime_ns) for path in originals})
+        self.assertEqual((transfer,current),before)
+        self.assertNotIn(extra.decode(),printed)
+        self.assertNotIn(str(self.root),printed)
+        self.assertNotIn(base64.b64encode(OWNER).decode(),printed)
+
+    def test_library_noncoverage_remains_value_error_with_original_state_reason(self):
+        state,_=invented_research_state(self.root)
+        current,current_cipher=self.canonical(state,self.root/'canonical')
+        changed=PdcaState(state)
+        try:
+            with changed.db:changed._put('capture/extra-original.bin',b'fictional extra original')
+        finally:changed.close()
+        transfer=self.transfer(state,self.root/'offer');cipher=(self.root/'offer/transfer.enc').read_bytes()
+        output=self.root/'library-rejected'
+        with self.assertRaisesRegex(ValueError,'^STATE_REGRESSION_FILES$') as caught:
+            self.receive_stale(transfer,cipher,current,current_cipher,output)
+        self.assertEqual(type(caught.exception).__name__,'StaleTransferRebaseRequired')
+        self.assertEqual(caught.exception.required_next_generation,2)
+        self.assertEqual(list(output.iterdir()),[])
+
+    def test_cli_authentication_future_or_untyped_failures_are_still_fatal(self):
+        from tests.test_boat_pdca_state import result
+        state,pair=invented_research_state(self.root)
+        transfer=self.transfer(state,self.root/'offer');cipher=(self.root/'offer/transfer.enc').read_bytes()
+        current,current_cipher=self.canonical(state,self.root/'canonical')
+        wrong,wrong_cipher=self.canonical(state,self.root/'wrong-canonical',key=os.urandom(32))
+        future=PdcaState.create(self.root/'future.sqlite',mode='production')
+        try:
+            future.retain_pair(self.root/'pair.json')
+            outcome=result(pair);outcome['captured_at']='2026-11-06T13:00:00+09:00'
+            future.score(pair['pair_sha256'],outcome,'2026-11-06T13:05:00+09:00')
+        finally:future.close()
+        future_pointer,future_cipher=self.canonical(self.root/'future.sqlite',self.root/'future-canonical')
+        invalid_mode=deepcopy(current);invalid_mode['scope']['mode']='synthetic'
+        for name,raw,prior,prior_raw,error in (
+            ('incoming-hash',cipher+b'changed',current,current_cipher,None),
+            ('current-key',cipher,wrong,wrong_cipher,None),
+            ('future-current',cipher,future_pointer,future_cipher,None),
+            ('invalid-mode',cipher,invalid_mode,current_cipher,None),
+            ('untyped-same-code',cipher,current,current_cipher,ValueError('STATE_REGRESSION_FILES')),
+            ('unknown',cipher,current,current_cipher,RuntimeError('private-sentinel'))):
+            with self.subTest(name=name):
+                output=self.root/name
+                code,printed,gha=self.cli_receive_stale(transfer,raw,prior,prior_raw,output,error=error)
+                self.assertEqual(code,2)
+                self.assertEqual(json.loads(printed)['status'],'OWNER_TRANSFER_REJECTED')
+                self.assertNotIn('HOLD_TRANSFER_REBASE_REQUIRED',printed)
+                self.assertNotIn('private-sentinel',printed)
+                self.assertFalse((output/'status.json').exists())
+                self.assertFalse((output/'sealed').exists())
+                self.assertFalse((output/'incoming.sqlite').exists())
+                self.assertEqual(list(output.iterdir()) if output.exists() else [],[])
+                self.assertFalse(gha.exists())
+
     def test_receiver_is_stable_public_identity_and_refuses_fixture_root(self):
         one=self.receiver();two=self.m.receiver_document(key=OWNER,run_id='101',source_head=HEAD)
         self.assertEqual(one['public_key'],two['public_key'])

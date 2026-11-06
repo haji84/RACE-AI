@@ -9,7 +9,7 @@ import sys
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 from race_ai.boat_pdca_recipient import (receiver_document,encrypt_transfer,receive_transfer,
-    verify_received_checkpoint,publish_incoming,publish_received,_json,_file)
+    verify_received_checkpoint,publish_incoming,publish_received,StaleTransferRebaseRequired,_json,_file)
 from race_ai.boat_history_store import wire
 from scripts.boat_history_collect import private_root,save
 
@@ -75,8 +75,17 @@ def main(argv=None):
                 from race_ai.boat_pdca_import_registry import reuse_import
                 report=reuse_import(pointer,_json(_file(args.accepted_imports,1_000_000),1_000_000),args.private_dir)
             if report is None:
-                report=receive_transfer(pointer,args.private_dir,run_id=args.run_id,
-                    source_head=args.source_head,previous_pointer=previous)
+                try:
+                    report=receive_transfer(pointer,args.private_dir,run_id=args.run_id,
+                        source_head=args.source_head,previous_pointer=previous)
+                except StaleTransferRebaseRequired as exc:
+                    # Authentication and audits succeeded, but import is still
+                    # rejected. Preserve both inputs for an explicit forward rebase.
+                    report=dict(status='HOLD_TRANSFER_REBASE_REQUIRED',reason=str(exc),
+                        incoming_originals_covered=False,transfer_imported=False,
+                        encrypted_checkpoint_created=False,canonical_state_preserved=True,
+                        required_next_generation=exc.required_next_generation,source_gets=2,
+                        plaintext_published=False)
             root=private_root(args.private_dir)
             if os.environ.get('GITHUB_OUTPUT'):
                 with open(os.environ['GITHUB_OUTPUT'],'a') as out:

@@ -372,11 +372,15 @@ def main(argv=None):
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument("--automatic-mode", choices=("native", "github"), default="native")
     parser.add_argument("--supervisor-dir", type=Path)
+    parser.add_argument("--reconnect-github-auth-checkpoint-sha256",
+                        help="Explicitly revalidate the existing GitHub connection for this exact 401 checkpoint")
     args = parser.parse_args(argv)
     if args.automatic_mode == "github" and args.supervisor_dir is None:
         parser.error("--supervisor-dir is required for --automatic-mode github")
     if args.automatic_mode == "native" and args.supervisor_dir is not None:
         parser.error("--supervisor-dir requires --automatic-mode github")
+    if args.reconnect_github_auth_checkpoint_sha256 is not None and args.automatic_mode != "github":
+        parser.error("--reconnect-github-auth-checkpoint-sha256 requires --automatic-mode github")
     try:
         from .local_forecast_service import LocalForecastService
         if args.automatic_mode == "github":
@@ -389,6 +393,8 @@ def main(argv=None):
             service = LocalForecastService(args.private_dir)
             server = make_server(service, port=args.port)
         with server as running:
+            if args.reconnect_github_auth_checkpoint_sha256 is not None:
+                automatic.reconnect_authorization(args.reconnect_github_auth_checkpoint_sha256)
             print("RACE-AI local forecast: " + running.origin, flush=True)
             try:
                 running.serve_forever()

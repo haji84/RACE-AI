@@ -25,6 +25,7 @@ from .private_cycle_capture import _parent_handle
 from .source_retry_policy import wait_active, plan_http_wait
 
 REPO = "haji84/RACE-AI"
+REPO_ID = 1416489937
 BRANCH = "feat/four-sport-forecast-audit-view-20261022"
 WORKFLOW = 405276784
 TRIGGER = "docs/evidence/boat-nationwide-pilot-trigger.txt"
@@ -107,6 +108,53 @@ class GitHubCLI:
 
     def api(self, endpoint, **kwargs):
         return json.loads(self.raw(endpoint, **kwargs))
+
+    def verify_authorization(self):
+        """Explicitly verify the current inherited connection, without writes.
+
+        This confirms current access; it does not diagnose the old 401, refresh
+        credentials, switch identities, or claim to reproduce an unknown failed
+        endpoint. Ordinary ticks never call this operator recovery probe.
+        """
+        try:
+            result = subprocess.run(["gh", "auth", "status", "--hostname", "github.com"],
+                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=50)
+        except (OSError, subprocess.SubprocessError):
+            raise ValueError("GITHUB_AUTHORIZATION_NOT_CONFIRMED") from None
+        if result.returncode:
+            raise ValueError("GITHUB_AUTHORIZATION_NOT_CONFIRMED")
+        workflow = self.api(f"actions/workflows/{WORKFLOW}")
+        if (not isinstance(workflow, dict) or type(workflow.get("id")) is not int or
+                workflow["id"] != WORKFLOW or workflow.get("path") != WORKFLOW_FILE or
+                workflow.get("state") != "active"):
+            raise ValueError("WORKFLOW_AUTHORIZATION_IDENTITY_INVALID")
+        active = self.active_runs()
+        latest = self.latest_run()
+        if not isinstance(active, list):
+            raise ValueError("WORKFLOW_RUN_IDENTITY_INVALID")
+        for run in active + [latest]:
+            if (not isinstance(run, dict) or type(run.get("id")) is not int or run["id"] < 1 or
+                    type(run.get("workflow_id")) is not int or run["workflow_id"] != WORKFLOW or
+                    run.get("head_branch") != BRANCH or
+                    not isinstance(run.get("head_sha"), str) or
+                    re.fullmatch(r"[a-f0-9]{40}", run["head_sha"]) is None):
+                raise ValueError("WORKFLOW_RUN_IDENTITY_INVALID")
+            for field in ("repository", "head_repository"):
+                repository = run.get(field)
+                if (not isinstance(repository, dict) or repository.get("full_name") != REPO or
+                        type(repository.get("id")) is not int or repository["id"] != REPO_ID):
+                    raise ValueError("WORKFLOW_RUN_IDENTITY_INVALID")
+        if latest.get("status") != "completed" or latest.get("conclusion") != "success":
+            raise ValueError("WORKFLOW_AUTHORIZATION_CHECKPOINT_UNAVAILABLE")
+        control = self.final_control(latest)
+        if (not isinstance(control, dict) or
+                type(control.get("previous_run_id", control.get("run_id"))) is not int or
+                control.get("previous_run_id", control.get("run_id")) != latest["id"]):
+            raise ValueError("WORKFLOW_COUNTER_IDENTITY_INVALID")
+        return dict(repo=REPO, workflow_id=WORKFLOW, run_id=latest["id"],
+                    active_run_ids=sorted(run["id"] for run in active),
+                    source_control_sha256=hashlib.sha256(wire(control)).hexdigest(),
+                    verification="GH_AUTH_STATUS_AND_AUTHENTICATED_WORKFLOW_READS")
 
     def active_runs(self):
         found = {}
@@ -334,6 +382,59 @@ class GitHubSupervisor:
                 counter_as_of=control.get("receipt",{}).get("created_at"),
                 counter_scope="AUTHENTICATED_COMPLETED_RUN")
 
+    def reconnect_authorization(self, expected_checkpoint_sha256):
+        """Recover one reviewed 401 latch after current provider verification.
+
+        The trusted operator supplies only the exact original checkpoint hash.
+        This method never triggers a run or clears a racing-source wait. All
+        normal handoff checks still run on the next ordinary tick.
+        """
+        with self._mutex:
+            if (not isinstance(expected_checkpoint_sha256, str) or
+                    re.fullmatch(r"[a-f0-9]{64}", expected_checkpoint_sha256) is None):
+                raise ValueError("SUPERVISOR_RECONNECT_CHECKPOINT_REQUIRED")
+            if not self._acquire():
+                raise ValueError("ANOTHER_SUPERVISOR_ACTIVE")
+            if self._state_digest != expected_checkpoint_sha256:
+                raise ValueError("SUPERVISOR_RECONNECT_CHECKPOINT_CHANGED")
+            wait = self._state.get("api_wait")
+            if (not isinstance(wait, dict) or type(wait.get("http_status")) is not int or
+                    wait["http_status"] != 401 or wait.get("state") != "AUTHORIZATION_WAIT" or
+                    wait.get("reason") != "SOURCE_AUTHORIZATION_REQUIRED" or wait.get("retry_at") is not None):
+                raise ValueError("SUPERVISOR_RECONNECT_401_WAIT_REQUIRED")
+            now = moment(self.clock())
+            if now < moment(self._state["last_observed_at"]):
+                raise ValueError("CLOCK_REVERSED")
+            verification = self.client.verify_authorization()
+            self._verify_files()
+            if verification["run_id"] < self._state.get("last_adopted_run_id", 0):
+                raise ValueError("WORKFLOW_METADATA_PENDING")
+            checked_at = moment(self.clock())
+            if checked_at < now:
+                raise ValueError("CLOCK_REVERSED")
+            candidate = deepcopy(self._state)
+            history = candidate.setdefault("authorization_recoveries", [])
+            if not isinstance(history, list):
+                raise ValueError("SUPERVISOR_RECONNECT_HISTORY_INVALID")
+            history.append(dict(previous_checkpoint_sha256=expected_checkpoint_sha256,
+                                previous_api_wait=deepcopy(wait), checked_at=checked_at.isoformat(),
+                                verification=verification))
+            candidate["api_wait"] = None
+            if len(wire(candidate)) > 1024 * 1024 - 128:
+                raise ValueError("SUPERVISOR_STATE_SIZE")
+            original_state = self._state
+            self._state = candidate
+            try:
+                self._save()
+            except BaseException:
+                # Even a late filesystem failure must not permit this process
+                # to continue with an unacknowledged in-memory authorization.
+                self._state = original_state
+                raise
+            return dict(state="AUTHORIZATION_RECONNECTED", checkpoint_sha256=self._state_digest,
+                        checked_at=checked_at.isoformat(), workflow_id=WORKFLOW,
+                        run_id=verification["run_id"])
+
     def tick(self):
         with self._mutex:
             try:
@@ -346,6 +447,7 @@ class GitHubSupervisor:
                 api_wait = self._state.get("api_wait")
                 if api_wait is not None and wait_active(api_wait,now):
                     return self._publish("SOURCE_WAIT",waiting_reason="WORKFLOW_API_UNAVAILABLE",
+                        waiting_state=api_wait.get("state"),
                         next_run_at=api_wait.get("retry_at"),retry_at=api_wait.get("retry_at"))
                 if api_wait is not None:
                     self._state["api_wait"]=None;self._save()
