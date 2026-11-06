@@ -29,6 +29,8 @@ Connect the projection to the existing local read-only API/file import, with a r
 
 ## Acceptance
 
+Concurrent canonical generation 1 holds another worker's Fukuoka6R trial. The next transfer must append the incoming original journal to that restored state, preserve canonical active heads, retain every incoming file version and source head selection in a content-addressed source manifest, and stop on conflicting immutable identities. Independent restore pins the source content hash from its own checkout and checks its complete contribution. Same-race differing result revisions append deterministic comparison scores before audit; this never regenerates forecasts or replaces historical rows. Publication uses the exact previous canonical parent and a normal fast-forward push.
+
 Invented data tests: recipient/root substitution, tamper/size/JSON/Base64/path/hash/scope errors, unchanged originals, version preservation, repeated scores, first/subsequent publication, expected parent and Git destination checks, missing-key/input GET0 and no private output/logs.
 
 Actual acceptance: authenticate Actions receiver; encrypt and deliver existing local state; producer and second-runner restore; publish canonical owner-key checkpoint; existing production readback proves all 156 originals and latest retained scores; verify site projection Top8 against those same originals. No model promotion, accuracy claim, independent pre-cutoff attestation claim or indefinite-retention claim follows from synchronization.

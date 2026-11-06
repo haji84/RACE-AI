@@ -60,7 +60,7 @@
     const list = predictions(r), saved = state.predictionKeys[r?.race_id];
     return saved === undefined ? list[0] || null : list[saved] || null;
   };
-  const modelName = p => p ? text(p.model_id || p.model_version) + (p.model_id ? " / " + text(p.model_version) : "") + (p.variant ? " · " + text(p.variant) : "") : "未予想";
+  const modelName = p => p ? text(p.model_id || p.model_version) + (p.model_id ? " / " + text(p.model_version) : "") + (p.variant ? " · " + ({HISTORY_BASELINE:"履歴なし",HISTORY_ADDED:"履歴あり"}[p.variant] || text(p.variant)) : "") : "未予想";
   const stageName = p => ({P0: "P0 朝版", P1: "P1 展示・試走後", A_PRE_TRIAL:"A 試走前", B_POST_TRIAL:"B 試走後"})[p?.stage] || "時点未取得";
   const ticketsFor = id => state.candidates.filter(t => t.raceId === id);
   const dailyPurchases = () => state.purchases.filter(p => p.day === A.jstToday());
@@ -569,6 +569,13 @@
     $("delivery-record").textContent = (stale ? "前回の保存記録：" : "") + recorded[delivery.window_status] + (delivery.saved_at ? " · 保存 " + stamp(delivery.saved_at) + " JST" : " · 保存完了の時刻は未確認です");
   }
   function renderGeneration() {
+    if (document.getElementById("race-ai-private-saved-data") || document.querySelector('meta[name="race-ai-private-saved-view"]')) {
+      $("forecast-generate").hidden = true;$("forecast-follow-latest").hidden = true;$("forecast-stage").disabled = true;
+      $("generation-title").textContent = "保存済み予想";
+      $("generation-description").textContent = "保存原本の買い目と結果を表示しています。モデル・履歴あり／なしをレース詳細で選べます。";
+      $("generation-message").textContent = generation.message || "保存原本を読み込んでいます。";
+      return;
+    }
     const stage = $("forecast-stage").value;
     const automatic = automaticMode();
     const available = generation.ready && generation.capabilities[state.sport]?.[stage] === true;
@@ -802,6 +809,34 @@
     } catch (error) { if (version === importVersion) $("file-message").textContent = "合成テストの読込失敗：" + error.message; }
     finally { $("load-synthetic").disabled = false; }
   }
+  async function loadSavedDataset() {
+    const inline = document.getElementById("race-ai-private-saved-data");
+    const endpoint = document.querySelector('meta[name="race-ai-private-saved-view"]');
+    if (!inline && !endpoint) return;
+    const version = ++importVersion;
+    try {
+      let raw;
+      if (inline) raw = JSON.parse(inline.textContent);
+      else {
+        if (endpoint.content !== "/api/forecast/saved") throw new Error("invalid saved endpoint");
+        const response = await fetch(endpoint.content,{credentials:"same-origin",cache:"no-store"});
+        if (!response.ok) throw new Error("saved originals unavailable");
+        raw = await response.json();
+      }
+      const parsed = M.parse(raw);
+      if (version !== importVersion) return;
+      if (!parsed.records.length) throw new Error("saved originals empty");
+      const dates = parsed.records.map(r=>r.event_date_jst).filter(Boolean).sort();
+      state.day = dates.at(-1) || state.day;state.sport = parsed.records[0].sport;
+      state.followsToday = false;state.allDates = false;state.period = "day";
+      generation.message = "保存済み予想 " + parsed.records.length + "レースを表示しています。";
+      adoptDataset(parsed);showPage("races",true);
+      $("file-message").textContent = generation.message;
+    } catch {
+      generation.message = "保存原本を読み込めませんでした。保存先と同期状態を確認してください。";
+      $("file-message").textContent = generation.message;renderGeneration();
+    }
+  }
   document.querySelectorAll("[data-page]").forEach(b => b.addEventListener("click", () => showPage(b.dataset.page, true)));
   document.querySelectorAll("[data-sport]").forEach(b => b.addEventListener("click", () => setSport(b.dataset.sport)));
   window.addEventListener("hashchange", () => showPage(location.hash.slice(1)));
@@ -865,4 +900,5 @@
   document.addEventListener("change",()=>{if(automaticMode() && generation.pausedForEditing)queueMicrotask(()=>loadAutomaticLatest(true));});
   refreshSelects(); renderAll(); showPage(location.hash.slice(1) || "home");
   connectGeneration();
+  loadSavedDataset();
 })();

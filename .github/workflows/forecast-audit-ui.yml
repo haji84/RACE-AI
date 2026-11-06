@@ -176,7 +176,7 @@ jobs:
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           RACE_AI_SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
-        run: python -m scripts.boat_pdca_transfer receive --input audit/state/boat-pdca-transfer-input.json --previous-input audit/state/boat-pdca-production-input.json --private-dir "$RUNNER_TEMP/boat-owner-state"
+        run: python -m scripts.boat_pdca_transfer receive --input audit/state/boat-pdca-transfer-input.json --previous-input audit/state/boat-pdca-production-input.json --accepted-imports audit/state/boat-pdca-accepted-imports.json --private-dir "$RUNNER_TEMP/boat-owner-state"
       - name: Retain only owner-encrypted canonical state and public counts
         id: upload
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -217,7 +217,7 @@ jobs:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           RACE_AI_SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
           RACE_AI_EXPECTED_TRANSFER_SHA: ${{ needs.boat_pdca_owner_transfer.outputs.transfer_sha256 }}
-        run: python -m scripts.boat_pdca_transfer verify --folder "$RUNNER_TEMP/boat-owner-state-incoming/sealed" --private-dir "$RUNNER_TEMP/boat-owner-state-readback" --transfer-sha "$RACE_AI_EXPECTED_TRANSFER_SHA"
+        run: python -m scripts.boat_pdca_transfer verify --folder "$RUNNER_TEMP/boat-owner-state-incoming/sealed" --private-dir "$RUNNER_TEMP/boat-owner-state-readback" --transfer-sha "$RACE_AI_EXPECTED_TRANSFER_SHA" --input audit/state/boat-pdca-transfer-input.json
       - name: Keep count-only independent readback proof
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
@@ -347,6 +347,7 @@ jobs:
           python -m tests.private_cycle_ui_fixture --out "$UI_PRIVATE_CYCLE_EXPORT"
           python -m tests.private_dispatch_ui_fixture --out "$UI_DISPATCH_VIEWS"
           node tests/ui_browser.test.js
+          node tests/saved_pdca_browser.test.js
           node --test tests/boat_video_ui.test.mjs
       - name: Retain synthetic-only UI interaction evidence
         if: always()
@@ -491,7 +492,7 @@ jobs:
     needs: official_all_racer_intake
     if: github.event_name == 'pull_request' && needs.official_all_racer_intake.outputs.encrypted == 'true'
     runs-on: ubuntu-24.04
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with: {persist-credentials: false, ref: '${{ github.event.pull_request.head.sha }}'}
@@ -523,6 +524,10 @@ jobs:
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
         run: python -m scripts.boat_venue_history restore-month --month 200501 --folder "$RUNNER_TEMP/venue-history-readback"
+      - name: Restore pinned full-period monthly generations and verify every original hash
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_venue_history_handoff readback --input audit/state/boat-venue-history-input.json --out-dir "$RUNNER_TEMP/venue-history-all-period"
 
   video_context_cipher_ingest:
     name: Private video-context ciphertext intake or explicit HOLD

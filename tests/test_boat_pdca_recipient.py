@@ -113,6 +113,24 @@ class RecipientTests(unittest.TestCase):
         self.assertFalse((out/'sealed').exists())
         self.assertFalse((out/'incoming.sqlite').exists())
 
+    def test_covered_union_uses_the_incoming_manifest_with_different_active_heads(self):
+        state,_=invented_research_state(self.root);incoming=PdcaState(state)
+        try:
+            with incoming.db:
+                incoming._put('history.sqlite',b'fictional previous version')
+                incoming._put('history.sqlite',b'fictional incoming current version')
+        finally:incoming.close()
+        transfer=self.transfer(state,self.root/'offer');cipher=(self.root/'offer/transfer.enc').read_bytes()
+        canonical=PdcaState.create(self.root/'union.sqlite',mode='production');incoming=PdcaState(state)
+        try:
+            with canonical.db:canonical._put('history.sqlite',b'fictional previous version')
+            canonical.merge_from(incoming)
+        finally:canonical.close();incoming.close()
+        current,current_cipher=self.canonical(self.root/'union.sqlite',self.root/'canonical',generation=2,previous_sha='e'*64)
+        report=self.receive_stale(transfer,cipher,current,current_cipher,self.root/'covered')
+        self.assertEqual(report['status'],'OWNER_PDCA_TRANSFER_ALREADY_COVERED')
+        self.assertTrue(report['incoming_originals_covered'])
+
     def test_later_generation_with_conflicting_original_result_is_not_skipped(self):
         from tests.test_boat_pdca_state import result
         state,pair=invented_research_state(self.root)
@@ -476,10 +494,112 @@ class RecipientTests(unittest.TestCase):
                      if line.strip().startswith('run: python -m scripts.boat_pdca_transfer verify '))
         env={'RACE_AI_STATE_KEY':base64.b64encode(OWNER).decode(),'RUNNER_TEMP':str(self.root),
              'RACE_AI_SOURCE_HEAD':HEAD,'GITHUB_RUN_ID':'200','RACE_AI_EXPECTED_TRANSFER_SHA':r['cipher_sha256']}
+        self.assertIn('--input audit/state/boat-pdca-transfer-input.json',command)
         def verify(folder,root,**kw):return self.m.verify_received_checkpoint(folder,root,now=NOW,**kw)
-        with patch.dict(os.environ,env),patch('scripts.boat_pdca_transfer.verify_received_checkpoint',side_effect=verify),redirect_stdout(StringIO()):
+        with patch.dict(os.environ,env),patch('scripts.boat_pdca_transfer.bounded_json',return_value=self.pointer(r)),patch('scripts.boat_pdca_transfer.verify_received_checkpoint',side_effect=verify),redirect_stdout(StringIO()):
             argv=[os.path.expandvars(part) for part in shlex.split(command)][3:]
             code=main(argv)
         self.assertEqual(code,0)
         proof=json.loads((self.root/'boat-owner-state-readback/status.json').read_text())
         self.assertTrue(proof['production_schema_readback_verified'])
+
+    def test_state_content_identity_ignores_sqlite_layout_and_detects_retained_changes(self):
+        state,_=invented_research_state(self.root);first=PdcaState(state)
+        other=PdcaState.create(self.root/'copy.sqlite',mode='production')
+        try:
+            fingerprint=first.content_sha256();first.db.backup(other.db)
+            self.assertEqual(fingerprint,other.content_sha256())
+            with other.db:other._put('additional-original.json',b'fictional retained original')
+            self.assertNotEqual(fingerprint,other.content_sha256())
+            first.db.backup(other.db);same_count=other.inventory()
+            with other.db:other.db.execute("UPDATE scores SET body=body||' '")
+            self.assertEqual(same_count,other.inventory())
+            self.assertNotEqual(fingerprint,other.content_sha256())
+        finally:first.close();other.close()
+
+    def test_merge_retains_both_sources_and_previous_active_file_head(self):
+        a=self.root/'a';b=self.root/'b';a.mkdir(mode=0o700);b.mkdir(mode=0o700)
+        old_path,_=invented_research_state(a);new_path,_=invented_research_state(b)
+        old=PdcaState(old_path);new=PdcaState(new_path)
+        try:
+            with old.db:old_sha=old._put('history.sqlite',b'fictional previous history')
+            with new.db:new_sha=new._put('history.sqlite',b'fictional incoming history')
+            source_id=new.content_sha256();before=old.inventory()
+            self.assertEqual(old.merge_from(new),source_id)
+            self.assertEqual(old.db.execute("SELECT sha FROM heads WHERE name='history.sqlite'").fetchone(),(old_sha,))
+            self.assertEqual(old._get(new_sha),b'fictional incoming history')
+            self.assertTrue(old.verify_contribution(source_id))
+            self.assertEqual(old.inventory()['pairs'],before['pairs'])
+            first=old.content_sha256();old.merge_from(new)
+            self.assertEqual(first,old.content_sha256())
+            with old.db:old.db.execute("UPDATE scores SET body=body||' '")
+            with self.assertRaises(ValueError):old.verify_contribution(source_id)
+        finally:old.close();new.close()
+
+    def test_conflicting_pair_receipts_cannot_replace_previous_original(self):
+        from race_ai.actions_contract import digest
+        a=self.root/'a';b=self.root/'b';a.mkdir(mode=0o700);b.mkdir(mode=0o700)
+        old_path,pair=invented_research_state(a);new_path,_=invented_research_state(b)
+        old=PdcaState(old_path);new=PdcaState(new_path)
+        try:
+            before=old.content_sha256();ident=pair['pair_sha256']
+            receipt_sha=new.db.execute('SELECT receipt_sha FROM pairs WHERE sha=?',(ident,)).fetchone()[0]
+            receipt=json.loads(new._get(receipt_sha));receipt['write_completed_at']='2026-11-06T01:30:00.001000+09:00'
+            receipt['receipt_sha256']=digest({k:v for k,v in receipt.items() if k!='receipt_sha256'})
+            with new.db:
+                changed=new._put(f'pairs/{ident}.receipt.json',(wire(receipt)+'\n').encode())
+                new.db.execute('UPDATE pairs SET receipt_sha=? WHERE sha=?',(changed,ident))
+            with self.assertRaisesRegex(ValueError,'MERGE_RECORD_CONFLICT'):old.merge_from(new)
+            self.assertEqual(before,old.content_sha256())
+        finally:old.close();new.close()
+
+    def test_next_transfer_unions_previous_originals_instead_of_losing_another_workers_data(self):
+        a=self.root/'a';b=self.root/'b';a.mkdir(mode=0o700);b.mkdir(mode=0o700)
+        old_path,_=invented_research_state(a);new_path,_=invented_research_state(b)
+        s=PdcaState(old_path)
+        with s.db:s._put('previous-worker-original.json',b'fictional preserved prior research')
+        s.close()
+        first=self.transfer(old_path,self.root/'first')
+        old=self.m.receive_transfer(self.pointer(first),self.root/'old',key=OWNER,
+            fetch=lambda _:(self.root/'first/transfer.enc').read_bytes(),run_id='200',source_head=HEAD,now=NOW)
+        previous=dict(schema='RACE_AI_BOAT_PRODUCTION_STATE_INPUT_V1',status='READY',repository_id='1416489937',
+            source_commit='d'*40,cipher_path='state/boat-pdca/v1/g000001/state.enc',
+            cipher_sha256=old['cipher_sha256'],scope=old['scope'])
+        second=self.transfer(new_path,self.root/'second',previous=previous)
+        def fetch(url):return (self.root/('old/sealed/state.enc' if '/g000001/' in url else 'second/transfer.enc')).read_bytes()
+        produced=self.m.receive_transfer(self.pointer(second),self.root/'new',key=OWNER,fetch=fetch,
+            run_id='201',source_head=HEAD,previous_pointer=previous,now=NOW)
+        self.assertEqual(produced['scope']['generation'],2)
+        proof=self.m.verify_received_checkpoint(self.root/'new/sealed',self.root/'reader',key=OWNER,
+            expected_run_id='201',expected_source_head=HEAD,expected_transfer_sha=second['cipher_sha256'],now=NOW)
+        self.assertTrue(proof['incoming_originals_verified'])
+        self.assertEqual((self.root/'reader/materialized/previous-worker-original.json').read_bytes(),b'fictional preserved prior research')
+
+    def test_union_retains_divergent_pair_and_result_revisions_for_the_same_race(self):
+        from race_ai.boat_history_store import HistoryStore
+        from race_ai.boat_history_comparison import prepare_pair,freeze_pair
+        from tests.test_boat_history_comparison import current
+        from tests.test_boat_pdca_state import result
+        a=self.root/'a';b=self.root/'b';a.mkdir(mode=0o700);b.mkdir(mode=0o700)
+        old_path,pair_a=invented_research_state(a);new_path,_=invented_research_state(b)
+        old=self.transfer(old_path,self.root/'first')
+        sealed=self.m.receive_transfer(self.pointer(old),self.root/'old',key=OWNER,
+            fetch=lambda _:(self.root/'first/transfer.enc').read_bytes(),run_id='200',source_head=HEAD,now=NOW)
+        # Separate valid journal for the same race, with its own later frozen pair.
+        new_path.unlink();history=HistoryStore(b/'history.sqlite')
+        pair_b=prepare_pair(current(),history,'2026-11-06T01:31:00+09:00');history.close()
+        freeze_pair(pair_b,b/'later.json',clock=lambda:instant('2026-11-06T01:31:00+09:00'))
+        incoming=PdcaState.create(new_path,mode='production');incoming.retain_pair(b/'later.json')
+        later=result(pair_b);later['captured_at']='2026-11-06T11:20:00+09:00'
+        incoming.score(pair_b['pair_sha256'],later,NOW);incoming.close()
+        previous=dict(schema='RACE_AI_BOAT_PRODUCTION_STATE_INPUT_V1',status='READY',repository_id='1416489937',
+            source_commit='d'*40,cipher_path='state/boat-pdca/v1/g000001/state.enc',
+            cipher_sha256=sealed['cipher_sha256'],scope=sealed['scope'])
+        transfer=self.transfer(new_path,self.root/'second',previous=previous)
+        def fetch(url):return (self.root/('old/sealed/state.enc' if '/g000001/' in url else 'second/transfer.enc')).read_bytes()
+        report=self.m.receive_transfer(self.pointer(transfer),self.root/'new',key=OWNER,fetch=fetch,
+            run_id='201',source_head=HEAD,previous_pointer=previous,now=NOW)
+        self.assertEqual(report['pairs'],2);self.assertEqual(report['result_revisions'],2)
+        self.assertEqual(report['scorings'],3)
+        self.assertTrue(self.m.verify_received_checkpoint(self.root/'new/sealed',self.root/'reader',key=OWNER,
+            expected_run_id='201',expected_source_head=HEAD,expected_transfer_sha=transfer['cipher_sha256'],now=NOW)['incoming_originals_verified'])
