@@ -81,7 +81,8 @@ def build_dataset(root,output,*,roster=(),end):
     source_part=_seal(sources,out/'sources.enc',dict(days=len(engine.sources)));sources.close()
     state=dict(schema=SCHEMA,source_manifest_sha256=_sha(raw),created_at=as_of,available_at=as_of,
         requested_start=start,requested_end=end,summary=summary,parts=parts,sources=source_part,
-        acquisition_complete=len(s['heads'])==len(s['months']),formal_backtest_eligible=False,production_promoted=False)
+        acquisition_complete=len(s['heads'])==len(s['months']) and not gaps and summary['coverage']['source_window_complete'],
+        formal_backtest_eligible=False,production_promoted=False)
     _write(out/'dataset.json',_bytes(dict(state=state,mac=_manifest_mac(state))))
     return dict(summary,status='ENCRYPTED_VENUE_DATASET_CREATED',partitions=len(parts),available_at=as_of,
                 source_gaps=len(gaps),plaintext_published=False)

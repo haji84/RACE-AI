@@ -18,7 +18,7 @@ def inputs():
         raw=csv_bytes([['2030-03-30','桐生','1','予選','架空杯','一般',str(i),str(i),'0.12','',str(i),f'{i:02}','逃げ' if i==1 else '', '6.80','11','22','1.50.0']])
         histories[str(4000+i)]=dict(raw=raw,source_url=f'https://boatrace-db.jp/api/racer/{4000+i}/results/',
             source_sha256=hashlib.sha256(raw).hexdigest(),captured_at=CAPTURE,stored_at=CAPTURE,published_at=None)
-    k.append('01KEND');raw=uncompressed_lzh('\n'.join(k).encode('cp932'),'K300330.TXT')
+    k.extend(['01KEND','FINALK']);raw=uncompressed_lzh('\n'.join(k).encode('cp932'),'K300330.TXT')
     official={'2030-03-30':dict(raw=raw,source_sha256=hashlib.sha256(raw).hexdigest(),captured_at=CAPTURE,
                               source_url='https://www1.mbrace.or.jp/od2/K/203003/k300330.lzh')}
     snap=fixture(all_missing=True,research=True)
@@ -125,10 +125,10 @@ class FeatureTests(unittest.TestCase):
             ['2030-03-30','桐生','1','予選','杯','一般','1','1','0.12','','1','01','逃げ','6.80','11','22',''],
             ['2030-03-30','桐生','2','予選','杯','一般','1','1','-0.02','F','','F','','6.80','11','22','']])
         from race_ai.official_lzh_extract import extract_daily_lzh
-        text=extract_daily_lzh(o['2030-03-30']['raw'],'K300330.TXT').decode('cp932').replace('01KEND','')
+        text=extract_daily_lzh(o['2030-03-30']['raw'],'K300330.TXT').decode('cp932').replace('01KEND\nFINALK','')
         text+='\n 2R TEST H1800m\n 差し\n F 1 4001 TEST 11 22 6.80 1 F0.02 0.00.0\n'
         for i in range(2,7):text+=f' {i-1:02} {i} {4000+i} TEST 11 22 6.80 {i} 0.12 1.50.0\n'
-        text+='01KEND\n';o['2030-03-30']['raw']=uncompressed_lzh(text.encode('cp932'),'K300330.TXT')
+        text+='01KEND\nFINALK\n';o['2030-03-30']['raw']=uncompressed_lzh(text.encode('cp932'),'K300330.TXT')
         o['2030-03-30']['source_sha256']=hashlib.sha256(o['2030-03-30']['raw']).hexdigest()
         h={'4001':dict(h['4001'],raw=raw,source_sha256=hashlib.sha256(raw).hexdigest())}
         x=run(s,h,o);r=x['snapshot']['participants'][0]

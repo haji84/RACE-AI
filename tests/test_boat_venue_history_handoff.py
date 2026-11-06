@@ -22,10 +22,10 @@ class HandoffTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup);self.root=Path(self.temp.name)
         self.env=patch.dict(os.environ,RACE_AI_STATE_KEY=base64.b64encode(OWNER).decode());self.env.start();self.addCleanup(self.env.stop)
-    def collection(self):
+    def collection(self,raw=None):
         from scripts.boat_venue_history import capture_month,_store_progress
         root=self.root/'source';root.mkdir()
-        with patch('scripts.boat_venue_history._now',return_value='2030-01-01T00:00:02Z'),patch('scripts.boat_venue_history._http',side_effect=[(menu(),'2030-01-01T00:00:00Z'),(index(days=('04',)),'2030-01-01T00:00:00Z'),(archive(),'2030-01-01T00:00:01Z')]):
+        with patch('scripts.boat_venue_history._now',return_value='2030-01-01T00:00:02Z'),patch('scripts.boat_venue_history._http',side_effect=[(menu(),'2030-01-01T00:00:00Z'),(index(days=('04',)),'2030-01-01T00:00:00Z'),(archive() if raw is None else raw,'2030-01-01T00:00:01Z')]):
             r=capture_month(root/'202611/attempt-000001',month='202611',not_after='2026-11-04')
         _store_progress(root,dict(schema='RACE_AI_ALL_PUBLISHED_HISTORY_PROGRESS_V1',months=['202611'],menu_sha256='a'*64,
             captured_at='2030-01-01T00:00:00Z',not_after='2026-11-04',heads={'202611':dict(kind='ENCRYPTED',folder='202611/attempt-000001',
@@ -59,3 +59,12 @@ class HandoffTests(unittest.TestCase):
         _store_progress(root,record['state']);git=MemoryGit();p=publish_collection(root,self.root,transport=git)
         out=self.root/'all-generations';readback_collection(p,out,self.root,transport=git)
         chain=_chain(out,'202611',record['state']['heads']['202611']);self.assertEqual(len(chain),2)
+
+    def test_authenticated_partial_source_does_not_become_complete_on_handoff(self):
+        from race_ai.boat_venue_history_handoff import publish_collection,readback_collection
+        from tests.test_boat_entry_observations import uncompressed_lzh
+        raw=uncompressed_lzh('STARTK\n01KBGN\nボートレース桐生\nデータは、この場の全レース終了後に登録されます。\n01KEND\nFINALK'.encode('cp932'),'K261104.TXT')
+        root=self.collection(raw);git=MemoryGit();p=publish_collection(root,self.root,transport=git)
+        report=readback_collection(p,self.root/'partial-restored',self.root,transport=git)
+        self.assertFalse(report['all_period_collection_complete'])
+        self.assertEqual(report['partial_source_days'],1)

@@ -5,6 +5,15 @@ from unittest.mock import patch
 from tests.test_boat_venue_history_handoff import HandoffTests,MemoryGit
 
 class VenueDatasetTests(HandoffTests):
+    def test_all_month_heads_with_only_partial_day_cannot_claim_acquisition_complete(self):
+        from race_ai.boat_venue_dataset import build_dataset,verify_dataset
+        from tests.test_boat_entry_observations import uncompressed_lzh
+        raw=uncompressed_lzh('STARTK\n01KBGN\nボートレース桐生\nデータは、この場の全レース終了後に登録されます。\n01KEND\nFINALK'.encode('cp932'),'K261104.TXT')
+        root=self.collection(raw);out=self.root/'partial-dataset'
+        with patch('race_ai.boat_venue_dataset._now',return_value='2030-01-02T00:00:00+00:00'):
+            build_dataset(root,out,roster=['4999'],end='2026-11-04')
+        self.assertFalse(verify_dataset(out)['acquisition_complete'])
+
     def test_encrypted_grid_roundtrip_and_capture_clock_cannot_be_backdated(self):
         from race_ai.boat_venue_dataset import build_dataset,verify_dataset,lookup
         root=self.collection();out=self.root/'dataset'

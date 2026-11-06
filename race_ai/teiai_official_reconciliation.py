@@ -19,7 +19,23 @@ if _REFERENCE not in race_ai.__path__:race_ai.__path__.append(_REFERENCE)
 from .core import _blocks, parse_k
 
 FIELDS=('race_id','racer_id','lane','course','st','st_status','finish','result_code','winner_method')
-OFFICIAL_K_PARSER_REVISION=6
+OFFICIAL_K_PARSER_REVISION=8
+
+
+def _complete_document(text):
+    lines=[line.strip() for line in text.splitlines() if line.strip()]
+    need(lines and lines[0]=='STARTK' and lines[-1] in ('FINALK','ENDK'),'OFFICIAL_K_DOCUMENT_NOT_CLOSED')
+    current=None;blocks=0
+    for line in lines[1:-1]:
+        marker=re.fullmatch(r'([0-9]{1,2})K(BGN|END)',line)
+        if marker:
+            venue=int(marker[1])
+            if marker[2]=='BGN':
+                need(current is None,'OFFICIAL_K_NESTED_BLOCK');current=venue;blocks+=1
+            else:
+                need(current==venue,'OFFICIAL_K_BLOCK_END_MISMATCH');current=None
+        else:need(current is not None and line not in ('STARTK','FINALK','ENDK'),'OFFICIAL_K_CONTENT_OUTSIDE_BLOCK')
+    need(current is None and blocks>0,'OFFICIAL_K_DOCUMENT_NOT_CLOSED')
 
 
 def parse_k_rows(raw,day):
@@ -70,7 +86,7 @@ def official_day(raw, *, day):
     remain missing, not invented. Does not authenticate caller-supplied bytes.
     """
     day=date.fromisoformat(day);text=unicodedata.normalize('NFKC',raw.decode('cp932'))
-    need('STARTK' in text[:200],'OFFICIAL_K_START_MARKER_REQUIRED')
+    _complete_document(text)
     methods={};payouts={};dispositions={};cancelled=[];unpublished=[];unreported=[];seen_venues=set()
     for venue,block in _blocks(text,'K'):
         need(venue in range(1,25) and venue not in seen_venues,'OFFICIAL_K_DUPLICATE_OR_INVALID_VENUE');seen_venues.add(venue)
@@ -102,8 +118,10 @@ def official_day(raw, *, day):
             methods[rid]=method_of(segment)
             for line in segment.splitlines():
                 t=line.split()
-                if len(t)>=3 and re.fullmatch(r'[1-6]',t[1]) and re.fullmatch(r'[0-9]{4}',t[2]):
-                    dispositions[(rid,int(t[1]))]=t[0]
+                if (len(t)>=3 and re.fullmatch(r'(?:[0-9]{2}|[FKLS][012]?|欠|欠場|失|転|落|沈|妨|エ|不|不完)',t[0])
+                        and re.fullmatch(r'[1-6]',t[1]) and re.fullmatch(r'[0-9]{4}',t[2])):
+                    key=(rid,int(t[1]));need(key not in dispositions,'OFFICIAL_DUPLICATE_DISPOSITION')
+                    dispositions[key]=(t[0],t[2])
             found=[]
             labels={'単勝':('win',1),'複勝':('place',1),'3連単':('trifecta',3),
                     '3連複':('trio',3),'2連単':('exacta',2),'2連複':('quinella',2),'拡連複':('wide',2)}
@@ -130,7 +148,10 @@ def official_day(raw, *, day):
     rows=parse_k_rows(raw,day.isoformat()) if methods else []
     for row in rows:
         row['winner_method']=methods[row['race_id']]
-        row['result_code']=dispositions.get((row['race_id'],row['lane']))
+        value=dispositions.get((row['race_id'],row['lane']))
+        need(value is not None and value[1]==row['racer_id'] and
+             (row['finish'] is None or row['finish'] in range(1,7)),'OFFICIAL_DISPOSITION_IDENTITY_OR_FINISH_INVALID')
+        row['result_code']=value[0]
     return dict(rows=rows,payouts=payouts,cancelled_races=sorted(cancelled),unpublished_venues=sorted(unpublished),unreported_venues=sorted(unreported),
                 parser_revision=OFFICIAL_K_PARSER_REVISION,source_sha256=hashlib.sha256(raw).hexdigest())
 

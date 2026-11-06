@@ -85,7 +85,7 @@ def verify_retained_trials(state,root,now):
     were verified at admission; this offline replay does not re-query GitHub.
     """
     reports=[]
-    for name,ident in state.db.execute("SELECT name,sha FROM heads WHERE name LIKE 'prospective-admissions/%.json'"):
+    for name,ident in state.db.execute("SELECT name,sha FROM files WHERE name LIKE 'prospective-admissions/%.json'"):
         report=json.loads(state._get(ident));sealed(report,'report_sha256')
         need(report.get('schema')=='RACE_AI_AUTHENTICATED_HISTORY_TRIAL_RESULT_V1' and
              report.get('independent_pre_cutoff_receipt_verified') is True,'PROSPECTIVE_ADMISSION_REQUIRED')
@@ -99,5 +99,14 @@ def verify_retained_trials(state,root,now):
              report['actual_purchases'] is False and report['production_promoted'] is False,
              'PROSPECTIVE_RETAINED_SCORING_CONFLICT')
         reports.append(report)
-    return dict(admitted_prospective_races=len(reports),admitted_summary=summarize_trials(reports),
+    latest={}
+    for report in reports:
+        pair=report['pair_sha256']
+        if pair not in latest or instant(latest[pair]['result_captured_at'])<instant(report['result_captured_at']):latest[pair]=report
+    for report in latest.values():
+        observations=[json.loads(row[0]) for row in state.db.execute('SELECT body FROM results WHERE race_id=?',(report['race_id'],))]
+        observation=max(observations,key=lambda o:instant(o['captured_at']))
+        need(instant(observation['captured_at'])==instant(report['result_captured_at']) and observation['source_sha256']==report['result_sha256'],
+             'PROSPECTIVE_LATEST_RESULT_ADMISSION_REQUIRED')
+    return dict(admitted_prospective_races=len(latest),admitted_summary=summarize_trials(reports),
                 external_receipts_rechecked_live=False)

@@ -88,7 +88,7 @@ def readback_collection(pointer,root,repo,*,transport=None):
     raw=git.read(commit,pointer['manifest_path'],1000000)
     need(hashlib.sha256(raw).hexdigest()==pointer['manifest_sha256'],'VENUE_MANIFEST_HASH_INVALID');s=_signed(raw)['state']
     root=Path(root);root.mkdir(parents=True,mode=0o700,exist_ok=True);need(not any(root.iterdir()),'VENUE_OUTPUT_EXISTS_DO_NOT_RESET')
-    _write(root/'collection.json',raw);totals={k:0 for k in ('parsed_days','missing_days','quarantined_days','pending_days','waiting_publication_days')}
+    _write(root/'collection.json',raw);totals={k:0 for k in ('listed_days','parsed_days','missing_days','quarantined_days','pending_days','waiting_publication_days','partial_source_days')}
     for m,h in sorted(s['heads'].items()):
         relative=h['folder'];expected=h['ciphertext_sha256'];generation=h['generation'];attempt=h['attempt']
         while expected is not None:
@@ -110,6 +110,7 @@ def readback_collection(pointer,root,repo,*,transport=None):
         need(generation==0,'VENUE_REMOTE_GENERATION_CHAIN_INVALID')
     return dict(totals,status='OWNER_VENUE_COLLECTION_READBACK_VERIFIED',months_restored=len(s['heads']),
         published_months=len(s['months']),manifest_sha256=pointer['manifest_sha256'],
-        all_period_collection_complete=len(s['heads'])==len(s['months']) and not any(totals[k] for k in ('missing_days','quarantined_days'))
-            and totals['pending_days']==totals['waiting_publication_days'],
+        all_period_collection_complete=len(s['heads'])==len(s['months']) and totals['listed_days']>0 and
+            totals['parsed_days']==totals['listed_days'] and not any(totals[k] for k in ('missing_days','quarantined_days','partial_source_days','pending_days','waiting_publication_days')),
+        unprocessed_listed_days=totals['pending_days']-totals['waiting_publication_days'],
         not_yet_published_days=totals['waiting_publication_days'],plaintext_published=False,formal_backtest_eligible=False)
