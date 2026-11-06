@@ -230,6 +230,53 @@ class PinnedBoatDetector:
             raise ValueError("local detector inference failed") from None
 
 
+class TiledBoatDetector:
+    """Optional fixed native-pixel tiles plus the unchanged full-frame model.
+
+    Each crop uses the same detector, preprocessing and confidence threshold.
+    Geometry is remapped before the existing global NMS/candidate cap. This
+    retains hull proposals only; it supplies no identities or field validation.
+    No assets are loaded by this wrapper, and factories keep it disabled.
+    """
+    def __init__(self, *, detector):
+        _require(callable(detector), "a local hull detector is required")
+        self.detector = detector
+
+    def metadata(self):
+        result = (self.detector.metadata() if type(self.detector) is PinnedBoatDetector
+                  else {"engine": "INJECTED_TILED_DETECTOR"})
+        result["tiling"] = {"mode": "FIXED_NATIVE_TILES_AND_FULL_FRAME", "tile_size": 832,
+                            "stride": 624, "overlap_fraction": .25,
+                            "full_frame_included": True, "max_inference_calls": 7,
+                            "global_nms_iou": .5, "max_candidates": 12}
+        return result
+
+    def __call__(self, frame):
+        width, height = _pixels(frame)
+
+        def origins(length):
+            if length <= 832:
+                return [0]
+            values = list(range(0, length-832+1, 624))
+            if values[-1] != length-832:
+                values.append(length-832)
+            return values
+
+        crops = [(x, y, min(832, width-x), min(832, height-y))
+                 for y in origins(height) for x in origins(width)]
+        crops = [box for box in crops if box != (0, 0, width, height)]
+        _require(len(crops) <= 6, "bounded native tile layout is required")
+        proposals = _detections(self.detector(frame.copy()), width, height)
+        for x, y, w, h in crops:
+            rows = _detections(self.detector(frame[y:y+h, x:x+w].copy()), w, h)
+            for row in rows:
+                a, b, c, d = row["box"]
+                left, top = x+a, y+b
+                right, bottom = min(float(width), x+a+c), min(float(height), y+b+d)
+                proposals.append({"box": [left, top, right-left, bottom-top], "score": row["score"]})
+        return _nms(proposals)
+
+
 class LocalOCRInferenceError(ValueError):
     """A safe, per-crop local OCR runtime failure; initialization stays fatal."""
     def __init__(self, code):
@@ -394,7 +441,8 @@ class BoatIdentityProvider:
         self._next_id = 1
 
     def metadata(self):
-        detector = self.detector.metadata() if type(self.detector) is PinnedBoatDetector else {"engine": "INJECTED_DETECTOR"}
+        detector = (self.detector.metadata() if type(self.detector) in (PinnedBoatDetector, TiledBoatDetector)
+                    else {"engine": "INJECTED_DETECTOR"})
         reader = self.number_reader.metadata() if type(self.number_reader) is LocalTesseractNumberReader else {"engine": "INJECTED_NUMBER_READER"}
         return {"schema_version": "RACE_AI_LOCAL_BOAT_IDENTITY_PROVIDER_V1", "detector": detector,
                 "number_reader": reader, "minimum_digit_observations": self.minimum,
@@ -431,7 +479,9 @@ class BoatIdentityProvider:
             found.append(value)
         return (found[0], False) if len(found) == 1 else (None, len(found) > 1)
 
-    def identify(self, frame, detections, *, t, frame_index, scene, previous_to_current=None):
+    def identify(self, frame, detections, *, t, frame_index, scene, previous_to_current=None,
+                 require_current_number=False):
+        _require(type(require_current_number) is bool, "fresh identity observation setting must be boolean")
         width, height = _pixels(frame)
         _require(_finite(t) and t >= 0 and type(frame_index) is int and frame_index >= 0
                  and type(scene) is int and scene >= 0)
@@ -456,7 +506,7 @@ class BoatIdentityProvider:
                 if _iou(row["box"], raw[j]["box"]) >= .2:
                     blocked.update((i, j))
                     flags.add("OVERLAPPING_HULL_CANDIDATES")
-        observed, failed_ocr = [], set()
+        observed = []
         for index, row in enumerate(raw):
             if index in blocked:
                 continue
@@ -465,11 +515,14 @@ class BoatIdentityProvider:
             except LocalOCRInferenceError as error:
                 flags.add(f"LOCAL_OCR_{error.code}")
                 blocked.add(index)
-                failed_ocr.add(index)
                 continue
             if ambiguous:
                 flags.add("AMBIGUOUS_NUMBER_MARKS")
                 blocked.add(index)
+                continue
+            if require_current_number and number is None:
+                blocked.add(index)
+                flags.add("FRESH_IDENTITY_OBSERVATION_REQUIRED")
                 continue
             observed.append({**row, "raw_index": index, "number": number})
         duplicate = {number for number, count in Counter(
@@ -496,12 +549,12 @@ class BoatIdentityProvider:
                 if not any(row["number"] is not None and row["number"]["number"] == old["number"]
                            for row in observed):
                     continue
-            # A failed hull may have moved within the normal association gate.
+            # A blocked hull may have moved within the normal association gate.
             # Only a fresh matching mark can anchor a nearby healthy old track;
             # an unread neighbor must not receive the interrupted identity.
-            failed_neighbor = any(_association_cost(predicted, raw[index]["box"]) is not None
-                                  for index in failed_ocr)
-            surviving.append({**old, "requires_current_number": conflicting_number or failed_neighbor})
+            interrupted_neighbor = any(_association_cost(predicted, raw[index]["box"]) is not None
+                                       for index in blocked)
+            surviving.append({**old, "requires_current_number": conflicting_number or interrupted_neighbor})
         previous = surviving
         costs = []
         for old in previous:
@@ -576,11 +629,75 @@ class BoatIdentityProvider:
                 "identity_validated": False, "model_eligible": False, "field_validation": "NOT_ESTABLISHED"}
 
 
+
+CAMERA_IDENTITY_POLICY = "FRESH_IDENTITY_OBSERVATIONS_DURING_SOFT_CAMERA_FAILURES_V1"
+_SOFT_IDENTITY_CAMERA_FAILURES = {"INSUFFICIENT_BACKGROUND", "CAMERA_FIT_REJECTED"}
+_IDENTITY_CAMERA_STATUSES = _SOFT_IDENTITY_CAMERA_FAILURES | {
+    "ACCEPTED", "REFERENCE_INITIALIZATION", "DISPLAY_PTS_GAP", "SCENE_CHANGE_OR_BACKGROUND_MISMATCH"}
+
+
+def identify_with_camera_evidence(provider, frame, detections, *, t, frame_index, scene,
+                                  camera_status, previous_to_current=None):
+    """Opt-in identity evidence continuity, separate from metric camera geometry.
+
+    Fresh matching numeric identity observations may retain a logical identity
+    through only the two explicit soft camera-fit failures. They do not establish
+    a camera transform or a metric position. Hard cuts, clock/shape gaps and
+    unexplained metric-scene jumps reset evidence. The ordinary provider API and
+    extraction path do not opt in. Identity observations may originate in an
+    explicitly labeled experimental reader/classifier; this helper does not
+    promote their source or confidence. Caller ``scene`` always remains the
+    actual global metric camera scene in the returned observation.
+    """
+    _require(isinstance(provider, BoatIdentityProvider), "explicit temporal identity provider required")
+    width, height = _pixels(frame)
+    _require(_finite(t) and t >= 0 and type(frame_index) is int and frame_index >= 0 and
+             type(scene) is int and scene >= 0 and type(camera_status) is str and
+             camera_status in _IDENTITY_CAMERA_STATUSES, "invalid camera identity evidence")
+    _require((camera_status == "ACCEPTED") == (previous_to_current is not None),
+             "camera status and supplied transform disagree")
+    if previous_to_current is not None:
+        _homography(previous_to_current)
+    state = getattr(provider, "_camera_identity_state", None)
+    if state is not None:
+        _require(scene >= state["metric_scene"], "metric camera scenes must not decrease")
+    soft = camera_status in _SOFT_IDENTITY_CAMERA_FAILURES
+    hard = (provider._time is not None and t-provider._time > provider.max_gap or
+            provider._shape is not None and provider._shape != (width, height))
+    if state is None:
+        logical_scene = 0 if provider._scene is None else provider._scene+1
+    else:
+        hard = (hard or camera_status not in _SOFT_IDENTITY_CAMERA_FAILURES | {"ACCEPTED"} or
+                scene > state["metric_scene"]+1 or
+                camera_status == "ACCEPTED" and scene != state["metric_scene"] or
+                provider._scene != state["logical_scene"])
+        logical_scene = max(state["logical_scene"], provider._scene)+1 if hard else state["logical_scene"]
+    fresh_required = previous_to_current is None or bool(hard)
+    result = provider.identify(frame, detections, t=t, frame_index=frame_index, scene=logical_scene,
+        previous_to_current=previous_to_current, require_current_number=fresh_required)
+    _require(type(result) is dict and result.get("scene") == logical_scene,
+             "temporal identity observation scene mismatch")
+    # Commit helper bookkeeping only after the underlying valid call succeeds.
+    provider._camera_identity_state = {"metric_scene": scene, "logical_scene": logical_scene}
+    result["scene"] = scene
+    result["identity_continuity_scene"] = logical_scene
+    result["identity_camera_evidence"] = {
+        "policy": CAMERA_IDENTITY_POLICY, "camera_status": camera_status,
+        "fresh_identity_required": fresh_required,
+        "continuity_preserved_across_metric_reset": bool(state is not None and soft and not hard and
+                                                          scene != state["metric_scene"]),
+        "metric_positions_inferred": False}
+    return result
+
+
 def create_local_identity_provider(*, model_path, tesseract_path, tessdata_path,
                                    detector_kind="yolox", exclusions=(), min_observations=3,
-                                   max_gap_seconds=.5):
+                                   max_gap_seconds=.5, tiled_hulls=False):
     """Explicit local paths only; importing this module never loads/downloads assets."""
+    _require(type(tiled_hulls) is bool, "the optional tiled hull setting must be boolean")
     detector = PinnedBoatDetector(model_path=model_path, detector_kind=detector_kind)
+    if tiled_hulls:
+        detector = TiledBoatDetector(detector=detector)
     reader = LocalTesseractNumberReader(tesseract_path=tesseract_path, tessdata_path=tessdata_path)
     return BoatIdentityProvider(detector=detector, number_reader=reader, exclusions=exclusions,
                                 min_observations=min_observations, max_gap_seconds=max_gap_seconds)
@@ -588,19 +705,21 @@ def create_local_identity_provider(*, model_path, tesseract_path, tessdata_path,
 
 def make_local_identity_extractor(*, model_path, tesseract_path, tessdata_path,
                                   detector_kind="yolox", exclusions=(), min_observations=3,
-                                  max_gap_seconds=.5):
+                                  max_gap_seconds=.5, tiled_hulls=False):
     """Configure local intake; instantiate isolated tracking state for each media.
 
     Assets load only when the returned extractor is called. Configured paths stay
     in this callable and are never added to its returned tracking report.
     """
+    _require(type(tiled_hulls) is bool, "the optional tiled hull setting must be boolean")
     excluded = deepcopy(exclusions)
 
     def extract(path, *, options=None):
         provider = create_local_identity_provider(
             model_path=model_path, tesseract_path=tesseract_path, tessdata_path=tessdata_path,
             detector_kind=detector_kind, exclusions=deepcopy(excluded),
-            min_observations=min_observations, max_gap_seconds=max_gap_seconds)
+            min_observations=min_observations, max_gap_seconds=max_gap_seconds,
+            tiled_hulls=tiled_hulls)
         from .boat_video_tracking import extract_tracks
         return extract_tracks(path, options=options, identity_provider=provider)
 

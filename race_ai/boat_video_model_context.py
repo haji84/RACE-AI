@@ -292,6 +292,9 @@ def validate_video_context(context, *, race_id, cutoff_at, roster, as_of):
     their exact hash and pre-cutoff availability. For source replay, reconstruct
     with ``prepare_video_context`` from the original report and evidence.
     """
+    if type(context) is dict and context.get("schema_version") == "RACE_AI_BOAT_VIDEO_PHYSICAL_MODEL_CONTEXT_V2":
+        from .boat_video_physical_context import validate_physical_video_context
+        return validate_physical_video_context(context, race_id=race_id, cutoff_at=cutoff_at, roster=roster, as_of=as_of)
     try:
         _need(type(context) is dict and set(context) == _CONTEXT_FIELDS)
         value = deepcopy(context)

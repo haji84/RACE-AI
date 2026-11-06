@@ -32,6 +32,21 @@ MIN_VIDEO_SUPPORT = 4
 _SHA = re.compile(r'sha256:[0-9a-f]{64}\Z')
 
 
+def _raw_video_schema(coordinate_space):
+    if coordinate_space == 'REFERENCE_IMAGE_PX':
+        rows = FEATURE_SCHEMA
+    elif coordinate_space == 'WATER_PLANE_METRES':
+        from .boat_video_physical_context import PHYSICAL_FEATURE_SCHEMA
+        rows = PHYSICAL_FEATURE_SCHEMA
+    else:
+        raise ValueError('unsupported video input coordinate space')
+    return [dict(feature_id=f, phase=p, metric_name=m, unit=u) for f,p,m,u in rows]
+
+
+def _contrast_schema():
+    return [dict(feature_id=f, phase=p, metric_name=m, unit='dimensionless') for f,p,m,_ in FEATURE_SCHEMA]
+
+
 def _policy():
     return dict(epochs=existing.EPOCHS, learning_rate=existing.LR,
         l2_to_initial_weights=existing.L2, base_weight_min=0., base_weight_max=4.,
@@ -177,12 +192,15 @@ def fit_with_video(rows, observations, video_contexts, *, now, receipt_verifier=
     by_result = {result['race_id']: result for result in observations}
     from .frozen_day_cycle import settle
     records = []
+    admitted_input_schemas = {}
     for lineage in admitted['source_lineage']:
         row = by_input[(lineage['race_id'], lineage['snapshot_sha256'], lineage['forecast_sha256'])]
         snapshot = row['learning_snapshot']
         existing.need(row['roster'] == {str(p['lane']): p['registration_no'] for p in snapshot['participants']},
                       'video learning snapshot/official roster binding mismatch')
         context, proof = _admit(video_contexts.get(row['race_id']), snapshot, receipt_verifier, now=now)
+        if context is not None:
+            admitted_input_schemas[context['coordinate_space']] = deepcopy(context['feature_schema'])
         verdict = settle(row, by_result[row['race_id']])
         records.append(dict(**deepcopy(lineage), input_as_of=row['as_of'],
             roster_sha256=digest(row['roster']), vectors=video_vectors(snapshot, context),
@@ -223,6 +241,13 @@ def fit_with_video(rows, observations, video_contexts, *, now, receipt_verifier=
             'Pairs with overlapping uncertainty intervals contribute no contrast or directional evidence.',
             'Unsupported video coefficients remain zero; no automatic production adoption.',
             'Independent human heldout validation remains unsatisfied.'])
+    if 'WATER_PLANE_METRES' in admitted_input_schemas:
+        # The fitted dimensions are existing within-race contrasts, not raw
+        # pixels/metres pooled across races. Keep legacy artifacts byte-identical.
+        out['video_feature_schema'] = _contrast_schema()
+        out['video_context_coordinate_spaces'] = sorted(admitted_input_schemas)
+        out['video_input_feature_schemas'] = admitted_input_schemas
+        out['limitations'][1] = 'Raw units are normalized only within a comparable feature/race context.'
     for mid in MODEL_IDS:
         base = list(WEIGHTS[mid]) + [0.] * len(FEATURE_IDS)
         weights = _fit(train, supports, mid) if fitted else base[:]
@@ -238,9 +263,21 @@ def fit_with_video(rows, observations, video_contexts, *, now, receipt_verifier=
 def verify_video_training(training):
     """Check sealed experimental semantics; external archive authentication is separate."""
     existing.check(training, 'training_sha256')
+    typed_input_fields = {'video_context_coordinate_spaces', 'video_input_feature_schemas'}
+    declared = typed_input_fields.intersection(training)
+    existing.need(not declared or declared == typed_input_fields, 'incomplete video input unit declarations')
+    expected_schema = _raw_video_schema('REFERENCE_IMAGE_PX')
+    if declared:
+        spaces = training['video_context_coordinate_spaces']
+        schemas = training['video_input_feature_schemas']
+        existing.need(type(spaces) is list and all(type(space) is str for space in spaces) and spaces == sorted(set(spaces)) and
+            'WATER_PLANE_METRES' in spaces and set(spaces) <= {'REFERENCE_IMAGE_PX','WATER_PLANE_METRES'} and
+            type(schemas) is dict and set(schemas) == set(spaces), 'video input coordinate declarations')
+        existing.need(all(schemas[space] == _raw_video_schema(space) for space in spaces),
+                      'video input feature units differ from coordinate space')
+        expected_schema = _contrast_schema()
     existing.need(training['schema'] == SCHEMA_TRAIN and training['feature_schema'] == list(FEATURES) and
-        training['video_feature_schema'] == [dict(feature_id=f, phase=p, metric_name=m, unit=u)
-                                            for f,p,m,u in FEATURE_SCHEMA] and
+        training['video_feature_schema'] == expected_schema and
         training['normalization'] == NORMALIZATION and training['source_family_ids'] == list(MODEL_IDS) and
         training['model_version'] == MODEL_VERSION and set(training['models']) == set(MODEL_IDS),
         'video training schema or existing family mismatch')
@@ -352,6 +389,8 @@ def make_video_shadows(snapshot, baseline_suite, context, video_context, *, rece
     admitted, proof = _admit(video_context, snapshot, receipt_verifier)
     if admitted is None:
         return []
+    existing.need(admitted['coordinate_space'] in training.get('video_context_coordinate_spaces',['REFERENCE_IMAGE_PX']),
+                  'video input coordinate space not declared by frozen training')
     vectors = video_vectors(snapshot, admitted)
     out = []
     for mid in MODEL_IDS:

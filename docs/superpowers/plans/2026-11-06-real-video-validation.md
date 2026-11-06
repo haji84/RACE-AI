@@ -37,3 +37,41 @@ Ruling: retain the existing forecast models, all pre-cutoff/roster/camera/common
 The brief environment-starting notice resolved with the original PIDs and original DB SHA intact; no restart or environment publication was performed. Code changes remain on existing PR71's branch, with no external task/service/workflow added.
 
 One frozen raw FP32 component transfer batch was executed by a separate worker before reading labels. Within-clip video unique raw agreement2/9 (baseline sampled frames1/7), separate still4/6; normalization views are duplicates, one video proposal is unmatched geometry. Accepted temporal identities remain0. One hull crossed the3s soft budget (3.831s) before three later views were skipped; no hard deadline claim. No production integration or post-holdout tuning. The separately published current LIVE screen explicitly showed outside broadcast hours08:16JST, unlike the stopped403 archive; neither current race media nor future authorization is established.
+
+## Owner-requested completion continuation (2026-11-06 UTC)
+
+The owner explicitly requests execution through completion again. Existing constraints and acceptance gaps remain binding; no repeated design/permission pause. Current source baseline deb5909 has both exact CI success; concurrent audit-only updates through7faea33 are retained. No production model or original forecast changes.
+
+### Task 1: Actual hull resolution and OCR candidates
+
+- [x] Reproduce generic detector/preprocessing losses using DEVELOPMENT frames only; freeze a single fixed tiled policy before scoring. Do not ship an upstream-demo alignment that worsens field behavior without a proven model contract.
+- [x] Add optional `TiledBoatDetector` and `tiled_hulls=False` factory argument in `boat_video_identity.py`; same pinned weights, thresholds and legacy defaults. Validate offsets, edges, global duplicate suppression, resource bounds and explicit provenance in `test_boat_video_tiled_detector.py` RED then GREEN.
+- [x] Add optional pinned FP32 full-vocabulary actual-pixel reader/provider in `boat_video_crnn.py`; use frozen MSER/deskew preprocessing, keep raw CTC likelihood separate from calibrated confidence, never inject fabricated0.90/1 scores into the legacy contract. Old Tesseract0.90 remains unchanged. Require >=3 actual temporal observations and all existing geometric interruption gates. Test CTC/geometry/ambiguity/deadline/pins and temporal reset behavior before implementation.
+- [x] Freeze a new independent actual-video source and reference split before these fixed-engine outputs; count wrong/missing/unmatched, unique observations vs normalization duplicates, runtime and every skipped/error sample. Development hull gains are not heldout identity accuracy.
+
+### Task 2: Real-coordinate calibration and sequential exhibition phases
+
+- [x] Implement `calibrate_tracks(tracking, manifest)` and `measure_calibrated_tracks(tracking, manifest, *, phase_windows, start_gate, max_gap_seconds)` in `boat_video_calibration.py`, new scoped tests first. Bind media/decoded pixels/PTS/global camera scene, separate fit anchors and independently supplied check landmarks, validate clock-reference differences and actual geometric residuals. Reject duplicate/degenerate/nonfinite/horizon data and raw-frame/reference-coordinate mismatch. Never certify heuristic camera or boat-point uncertainty as field accuracy.
+- [x] Root integrates a separately validated physical context path into existing-model admission: metre-based per-lane phase intervals can differ in frame/time only when world-frame/calibration/clock/identity evidence actually supports comparison. Existing V1 pixel/common-frame context remains strict and byte compatible. Same feature IDs and two existing forecast families; no default strength direction or invented probability. New calibrated/context schemas remain UNVALIDATED/productionfalse.
+- [ ] Evaluate any actual positions only against independent calibration/clock/strength targets. Missing source data stays missing; no self-fit or configured windows called ground truth.
+
+### Task 3: Operational independent archive and comparison bridge
+
+- [x] Add `VideoContextArchiveReader` in `boat_video_archive.py`: independently read authenticated existing GitHub artifact/run metadata and ZIP bytes, exact digest/context hash/race/cutoff/roster/as-of checks, reject foreign/tampered/late envelopes. Cache per invocation and select historical contexts without leaking newer data.
+- [x] Wire optional artifact inputs and receipt verifier through `scripts/github_existing_cycle.py` forecast/audit and `cycle_recovery.py` replay. Preserve no-video behavior and original bytes. New tests execute actual existing model mathematics, saved P1, independently re-read receipt and official-result scoring; synthetic scope remains explicit. Producer/upload/current-video acquisition and actual paired races are separate gates, not silently completed by reader support.
+
+### Task 4: Actual-source access, review and acceptance
+
+- [x] Inspect only ordinary public sources and distinct current LIVE resources. Known denied archives remain stopped; outside-broadcast-hours is availability, not denial. Preserve proxy/CA/TLS. Publicly accessible UNKNOWN-rights media may be privately evaluated with attribution; no training/reuse/distribution permission is inferred.
+- [x] Freeze new source bytes, capture clocks and reference protocol before new-engine evaluation. No original/time backdating, label substitution, threshold tuning on heldout, new forecast family, service, workflow or fee.
+- [ ] Review each scoped implementation, integrate disjoint changes, run meaningful regression and existing full CI, then preserve actual positive/negative evidence and runtime continuity in latest status. Mark actual field gates complete only when measured.
+
+### Continuation outcomes and remaining field gates
+
+Core code committed in4266ae0, fresh camera identity and encrypted publication/intake code in5fab717; concurrent PDCA, checkpoint, HTTPS package and SHA-only research updates are preserved by merges. Optional paths keep legacy defaults, original forecasts and existing model families. Full native Python regression:1727 PASS/0skip in266.454s. Scoped reviews passed after fixes for stale identities, omitted interior calibration points, turn-radius error bounds, optional-source restore failures and pre-download size rejection. Final integrated review and exact pushed CI receipts are recorded with the latest status.
+
+The private publisher is implemented, including protected original bindings, domain-separated authenticated encryption, existing workflow event isolation, durable pre-call journaling and independent encrypted-artifact readback. Code availability is separate from platform dispatch activation, owner-key connection, actual context receipts and current-worker activation; no live process was restarted.
+
+Both newly frozen Toda archival sources were evaluated without fabricated race jobs. October15: four cases, each0/15 readable reference identities; fixed tiles improved hull matches20/44→37/44 but false hull regions2→12. August19: reset control, fresh-camera CRNN and private appearance experiment were frozen separately before independent scoring. All sampled valid positions remain0; no field strength/calibration target or video-based forward forecast/result pair exists. The private appearance prototype was not shipped. A further old-media-only PERSON localization feasibility test failed and stopped before color assignment. These negative results do not complete identification, strength or accuracy acceptance.
+
+Fukuoka's current LIVE source returned403/P01002 at10:23JST through the ordinary published player and was stopped. Previously denied resources remain stopped. Readable authorized current footage, adequate independent number/track labels, measured water-plane/clock/contact references, strength targets, and later official outcomes remain necessary inputs. Human Safari acceptance is still a separate device gate. No retrospective labels, unknown-rights training, playback bypass or new paid model was used to manufacture completion.
