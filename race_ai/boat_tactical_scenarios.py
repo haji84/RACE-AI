@@ -157,14 +157,17 @@ def _entry_probability(hist,venue,frame,course):
     return (racer[str(course)]+ALPHA_ENTRY*venue_p)/(sum(racer.values())+ALPHA_ENTRY)
 
 
-def _base_strength(row,hist,venue,course,model_mode,field):
+def _base_strength(row,hist,venue,course,model_mode,field,parameters=None):
     rate=max(row["national_win_rate"] if row["national_win_rate"] is not None else 1.0,.01)
     mean=field["mean_exhibition"]
     value=math.log(rate)+mean-row["exhibition_time_seconds"]
+    if parameters is not None:
+        value=(parameters['log_national_rate']*math.log(rate) +
+               parameters['exhibition_delta']*(mean-row['exhibition_time_seconds']))
     raw=hist["actual_entry_course_history"][str(course)]
     baseline=max(.015,venue["course_win_rate"][course-1])
     shrunk_win=(raw["wins"]+ALPHA_COURSE*baseline)/(raw["starts"]+ALPHA_COURSE)
-    value+=.45*math.log(max(.001,shrunk_win)/baseline)
+    value+=(.45 if parameters is None else parameters['course_logratio'])*math.log(max(.001,shrunk_win)/baseline)
     # Recent form, unlike age or lifetime grade, benefits a genuine recent
     # improvement but is strongly shrunk when the racer has few starts.
     form=hist["recent_form"]
@@ -172,50 +175,32 @@ def _base_strength(row,hist,venue,course,model_mode,field):
     if newest["starts"] and longer["starts"]:
         p10=newest["top3"]/newest["starts"]
         p30=longer["top3"]/longer["starts"]
-        value+=.38*(p10-p30)*newest["starts"]/(newest["starts"]+12)
+        value+=(.38 if parameters is None else parameters['recent_form_delta'])*(p10-p30)*newest["starts"]/(newest["starts"]+12)
     # Source-framed historical displacement describes observed results. It
     # cannot establish that a particular rival CAUSED the displacement.
     t=hist["tendencies"]
     if course>row["lane"] and t["crossed_by_outer_frame"]:
         prior=venue["course_top3_rate"][course-1]
         resilience=(t["crossed_by_outer_frame_top3"]+10*prior)/(t["crossed_by_outer_frame"]+10)
-        value+=.4*(resilience-prior)
+        value+=(.4 if parameters is None else parameters['displacement'])*(resilience-prior)
     if course==1 and t["in1_starts"]>0:
         prior=max(.015,venue["course_win_rate"][0])
         defense=(t["in1_wins"]+12*prior)/(t["in1_starts"]+12)
-        value+=.40*math.log(max(.001,defense)/prior)
+        value+=(.40 if parameters is None else parameters['inside_defense'])*math.log(max(.001,defense)/prior)
         if model_mode in ("sashi","makuri"):
             total_losses=max(1,t["in1_starts"]-t["in1_wins"])
             observed=t["in1_losses_by_winner_method"].get(model_mode,0)/total_losses
-            value-=.12*min(1,observed)
+            value-=(.12 if parameters is None else parameters['inside_loss_method'])*min(1,observed)
     if model_mode!="other":
         by_mode=hist["wins_by_actual_course_and_kimarite"][str(course)]
         old_wins=sum(by_mode.values())
         ref=max(.01,venue["winner_method_rates"][model_mode])
         shrunk=(by_mode.get(model_mode,0)+ALPHA_METHOD*ref)/(old_wins+ALPHA_METHOD)
-        value+=.30*math.log(max(.001,shrunk)/ref)
+        value+=(.30 if parameters is None else parameters['winning_method'])*math.log(max(.001,shrunk)/ref)
     return math.exp(max(-20.,min(20.,value)))
 
 
-def predict_tactical_shadow(source, histories, venue, generated_at, *,
-                           max_ticket_count=8, preclose_odds=None):
-    """Third C shadow, never silently substitute for A/B or promise man-shu.
-
-    Source has exactly the unchanged A/B official six entrant data schema.
-    Histories must be extracted from genuine prior results upstream; per-source
-    receipt flags are claims and must be authenticated independently before
-    this research output is eligible for a real prospective study.
-    """
-    _need(type(max_ticket_count) is int and 1<=max_ticket_count<=8,
-          "bounded original Hit@8 ticket count required")
-    boats=_valid(source,generated_at)
-    verified=_profiles(histories,boats,generated_at)
-    venue=_venue(venue,generated_at)
-    _need(source["race_id"][9:11]==venue["venue_code"],
-          "venue source and selected race identity mismatch")
-    # All 720 bijective actual entry permutations are candidates. The official
-    # preview parser currently does NOT verify a future actual course, so the
-    # entrant's assigned course must remain an inferred scenario, not a fact.
+def _entry_scenarios(boats, verified, venue):
     scenarios=[]
     for arrangement in itertools.permutations(range(1,7)):
         p=1.
@@ -225,7 +210,71 @@ def predict_tactical_shadow(source, histories, venue, generated_at, *,
             scenarios.append((arrangement,p))
     total_mass=math.fsum(p for _,p in scenarios)
     _need(total_mass>0,"no admissible entry configuration")
-    scenarios=[(courses,p/total_mass) for courses,p in scenarios]
+    return [(courses,p/total_mass) for courses,p in scenarios]
+
+
+def tactical_winner_probability(source, histories, venue, generated_at, winning, *, parameters=None):
+    """Native 720-entry/five-method mixture for just one ordered outcome.
+
+    The objective reuses the exact strength equation and clipping of inference;
+    it never collapses the mixture into one averaged PL utility.
+    """
+    _need(type(winning) in (list,tuple) and len(winning)==3 and
+          all(type(n) is int and 1<=n<=6 for n in winning) and len(set(winning))==3,
+          'three distinct winning lanes required')
+    if parameters is not None:
+        from .existing_boat_parameter_adapters import validate_parameters
+        parameters=validate_parameters(MODEL_ID,parameters)
+    boats=_valid(source,generated_at)
+    verified=_profiles(histories,boats,generated_at)
+    venue=_venue(venue,generated_at)
+    _need(source['race_id'][9:11]==venue['venue_code'],'venue source and selected race identity mismatch')
+    field={'mean_exhibition':math.fsum(x['exhibition_time_seconds'] for x in boats)/6}
+    # Every course/mode has the same native strength across entry arrangements.
+    strength_cache={(row['lane'],course,mode):_base_strength(
+        row,verified[row['racer_id']],venue,course,mode,field,parameters)
+        for row in boats for course in range(1,7) for mode in MODES}
+    probability=0.
+    for courses,p_course in _entry_scenarios(boats,verified,venue):
+        for mode in MODES:
+            weight=venue['winner_method_rates'][mode]*p_course
+            if weight<=0:continue
+            strengths=[strength_cache[(row['lane'],course,mode)] for row,course in zip(boats,courses)]
+            total=math.fsum(strengths)
+            sa,sb,sc=(strengths[n-1] for n in winning)
+            if parameters is not None:
+                after_a=math.fsum(s for n,s in enumerate(strengths,1) if n!=winning[0])
+                after_ab=math.fsum(s for n,s in enumerate(strengths,1) if n not in winning[:2])
+                probability+=weight*sa/total*sb/after_a*sc/after_ab
+            else:
+                probability+=weight*sa/total*sb/(total-sa)*sc/(total-sa-sb)
+    _need(math.isfinite(probability) and 0<=probability<=1,'native winner probability invalid')
+    return probability
+
+
+def predict_tactical_shadow(source, histories, venue, generated_at, *,
+                           max_ticket_count=8, preclose_odds=None, parameters=None):
+    """Third C shadow, never silently substitute for A/B or promise man-shu.
+
+    Source has exactly the unchanged A/B official six entrant data schema.
+    Histories must be extracted from genuine prior results upstream; per-source
+    receipt flags are claims and must be authenticated independently before
+    this research output is eligible for a real prospective study.
+    """
+    _need(type(max_ticket_count) is int and 1<=max_ticket_count<=8,
+          "bounded original Hit@8 ticket count required")
+    if parameters is not None:
+        from .existing_boat_parameter_adapters import validate_parameters
+        parameters=validate_parameters(MODEL_ID,parameters)
+    boats=_valid(source,generated_at)
+    verified=_profiles(histories,boats,generated_at)
+    venue=_venue(venue,generated_at)
+    _need(source["race_id"][9:11]==venue["venue_code"],
+          "venue source and selected race identity mismatch")
+    # All 720 bijective actual entry permutations are candidates. The official
+    # preview parser currently does NOT verify a future actual course, so the
+    # entrant's assigned course must remain an inferred scenario, not a fact.
+    scenarios=_entry_scenarios(boats,verified,venue)
     all_tickets=list(itertools.permutations(range(1,7),3))
     distribution={ticket:0. for ticket in all_tickets}
     mode_mass={mode:venue["winner_method_rates"][mode] for mode in MODES}
@@ -234,12 +283,19 @@ def predict_tactical_shadow(source, histories, venue, generated_at, *,
         for mode in MODES:
             method_weight=mode_mass[mode]*p_course
             if method_weight<=0: continue
-            strengths=[_base_strength(row,verified[row["racer_id"]],venue,course,mode,field)
+            strengths=[_base_strength(row,verified[row["racer_id"]],venue,course,mode,field,parameters)
                        for row,course in zip(boats,courses)]
             total=math.fsum(strengths)
+            if parameters is not None:
+                after_one={a:math.fsum(s for i,s in enumerate(strengths,1) if i!=a) for a in range(1,7)}
+                after_two={(a,b):math.fsum(s for i,s in enumerate(strengths,1) if i not in (a,b))
+                           for a in range(1,7) for b in range(1,7) if a!=b}
             for a,b,c in all_tickets:
                 sa,sb,sc=strengths[a-1],strengths[b-1],strengths[c-1]
-                distribution[(a,b,c)]+=method_weight*sa/total*sb/(total-sa)*sc/(total-sa-sb)
+                if parameters is not None:
+                    distribution[(a,b,c)]+=method_weight*sa/total*sb/after_one[a]*sc/after_two[(a,b)]
+                else:
+                    distribution[(a,b,c)]+=method_weight*sa/total*sb/(total-sa)*sc/(total-sa-sb)
     total=math.fsum(distribution.values())
     _need(math.isclose(total,1.,rel_tol=0,abs_tol=1e-7),"scenario mixture probabilities not normalized")
     ranked=sorted(({"ticket":"-".join(map(str,t)),"score":p/total}
@@ -296,5 +352,8 @@ def predict_tactical_shadow(source, histories, venue, generated_at, *,
         "validated_accuracy":False,
         "explanation":"Untrained historical entry-course/method scenario mixture; verified historical source/venue receipts must be checked by upstream adapter.",
     }
+    if parameters is not None:
+        out['research_parameters']=dict(parameters)
+        out['explanation']='Caller-supplied coefficients in the original entry-course/method scenario mixture; historical receipts require upstream authentication.'
     out["bundle_sha256"]=_digest(out)
     return out

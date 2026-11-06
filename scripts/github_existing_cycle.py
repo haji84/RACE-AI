@@ -175,17 +175,63 @@ def venue_research_forecast(day,round_no):
     """Run private research only AFTER the independent baseline upload step."""
     try:
         result=json.loads((ROOT/'boat_nationwide_output/national.json').read_text())
-        if not result.get('observed_pairwise_p1_bundles'):
+        if not result.get('observed_pairwise_p1_bundles') and not _native_pending_folder(round_no).is_dir():
             summary=dict(state='NO_PRIVATE_P1_INPUT',generated_races=0,learned_shadow_count=0,
                 independent_pre_cutoff_receipt_verified=False,production_promoted=False,plaintext_published=False)
             print(json.dumps(summary,sort_keys=True));return summary
         runtime,error=_venue_research_preload(round_no=round_no)
-        _venue_research_generate(result,runtime,error)
-        summary=result.get('venue_research_summary',dict(state='PRIVATE_VENUE_RESEARCH_NOT_CONFIGURED'))
+        if runtime and runtime['context']['training'].get('schema')=='RACE_AI_ALL_EXISTING_MODEL_FIT_V1':
+            summary=_all_model_research_generate(runtime,round_no)
+        else:
+            _venue_research_generate(result,runtime,error)
+            summary=result.get('venue_research_summary',dict(state='PRIVATE_VENUE_RESEARCH_NOT_CONFIGURED'))
     except Exception:
         summary=dict(state='HOLD_PRIVATE_VENUE_FORECAST',plaintext_published=False,
                      production_promoted=False)
     print(json.dumps(summary,sort_keys=True));return summary
+
+
+def _native_pending_folder(round_no):
+    import tempfile
+    need(type(round_no) is int and 1<=round_no<=1_000_000,'ALL_MODEL_ROUND_REQUIRED')
+    return Path(os.environ.get('RUNNER_TEMP',tempfile.gettempdir()))/'all-existing-model-inputs'/f'cycle-{round_no}'
+
+
+def _all_model_research_generate(runtime,round_no):
+    """Only verified ciphertext partitions enter the existing upload root."""
+    import re,shutil,tempfile
+    from race_ai.all_existing_model_runtime import generate_current_pairs
+    from scripts.boat_history_collect import private_root
+    staging=runtime['preload_folder']/'native-pairs'
+    summary=dict(state='HOLD_PRIVATE_NATIVE_INPUTS',production_promoted=False,plaintext_published=False)
+    try:
+        summary=generate_current_pairs(runtime,_native_pending_folder(round_no),staging,
+                                       now=datetime.now(timezone.utc))
+        if summary.get('pending_removed') is True and summary.get('encrypted_readback_verified') is True:
+            destination=runtime['output_folder']
+            private_root(destination.parent)
+            need(not destination.exists(),'ALL_MODEL_ORIGINAL_EXISTS_NO_RESET')
+            children=[p for p in staging.iterdir() if re.fullmatch('[a-f0-9]{64}',p.name)]
+            need(len(children)==summary['partition_count'],'ALL_MODEL_PARTITION_COUNT_MISMATCH')
+            need({path.name for path in staging.iterdir()}=={'summary.json'}|{path.name for path in children},
+                 'ALL_MODEL_UPLOAD_LAYOUT_INVALID')
+            (staging/'summary.json').unlink()
+            staging.rename(destination)
+            # Root aggregate status is deliberately excluded from the all-or-none
+            # receipt ZIP; each opaque partition has its own codec summary.
+            if os.environ.get('GITHUB_OUTPUT'):
+                with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+                    output.write('all_model_pairs=true\n')
+    except Exception:
+        summary=dict(state='HOLD_PRIVATE_NATIVE_INPUTS',production_promoted=False,plaintext_published=False)
+    finally:
+        if staging.exists() and any(staging.iterdir()):
+            base=Path(os.environ.get('RUNNER_TEMP',tempfile.gettempdir()))
+            quarantine=private_root(base/'boat-venue-research-quarantine')
+            target=Path(tempfile.mkdtemp(prefix='native-',dir=quarantine))/'cipher'
+            staging.rename(target)
+        shutil.rmtree(runtime['preload_folder'],ignore_errors=True)
+    return summary
 
 
 def venue_research_readback(artifact_id):
@@ -197,7 +243,11 @@ def venue_research_readback(artifact_id):
         need(type(artifact_id) is int and artifact_id>0,'VENUE_RESEARCH_ARTIFACT_REQUIRED')
         metadata=json.loads(gh(f'actions/artifacts/{artifact_id}'))
         raw=gh(f'actions/artifacts/{artifact_id}/zip')
-        report=verify_private_p1_artifact(raw,metadata,now=datetime.now(timezone.utc),
+        if metadata.get('name','').startswith('all-existing-model-pairs-'):
+            from race_ai.all_existing_model_receipt import verify_private_pairs_artifact
+            verifier=verify_private_pairs_artifact
+        else:verifier=verify_private_p1_artifact
+        report=verifier(raw,metadata,now=datetime.now(timezone.utc),
             expected_run_id=int(os.environ['GITHUB_RUN_ID']),expected_head_sha=os.environ['GITHUB_SHA'])
         from race_ai.boat_venue_research_receipt import validate_research_refs
         from race_ai.repeated_cycle import write_state
@@ -244,8 +294,24 @@ def venue_research_pdca(day,round_no):
                     from scripts.boat_history_collect import save
                     save(archive/'archive.zip',raw)
                     save(archive/'metadata.json',json.dumps(meta,sort_keys=True).encode())
-                    scored=score_private_p1_artifact(raw,meta,latest,root/str(ident),now=datetime.now(timezone.utc),
-                        expected_run_id=reference['run_id'],expected_head_sha=reference['head_sha'])
+                    if meta.get('name','').startswith('all-existing-model-pairs-'):
+                        from race_ai.all_existing_model_pdca import _score_verified_private_pairs,RESULT_FIELDS
+                        from race_ai.all_existing_model_receipt import _verified_private_pairs_artifact
+                        from race_ai.all_existing_model_intake import _results
+                        from race_ai.existing_model_dispatch import _race_key
+                        now=datetime.now(timezone.utc)
+                        admission,records=_verified_private_pairs_artifact(raw,meta,now=now,
+                            expected_run_id=reference['run_id'],expected_head_sha=reference['head_sha'])
+                        forecasts=[record for record in records if 'pair' in record]
+                        wanted={(record['pair']['sport'],_race_key(record['pair']['race_id'],record['pair']['sport']))
+                                for record in forecasts}
+                        converted,_=_results(latest,now)
+                        labels=[{key:item['result'][key] for key in RESULT_FIELDS} for identity,item in converted.items()
+                                if identity in wanted and item['result']['status']!='pending']
+                        scored=_score_verified_private_pairs(admission,records,labels,root/str(ident),now=now)
+                    else:
+                        scored=score_private_p1_artifact(raw,meta,latest,root/str(ident),now=datetime.now(timezone.utc),
+                            expected_run_id=reference['run_id'],expected_head_sha=reference['head_sha'])
                     result['archives_processed']+=1
                     result['paired_forecasts']+=scored['paired_forecasts']
                 except Exception:result['rejected_archives']+=1
@@ -300,7 +366,11 @@ def forecast(day,*,video_context_artifacts=(),video_reader=None,round_no=None):
     # Optional archive I/O precedes fresh official model snapshots. It must not
     # consume the remaining physical-save window of already generated P1 rows.
     reader,video_error=_video_sources(state,video_context_artifacts,video_reader)
-    result=pilot.run(schedule_snapshot=state.get('schedule_cache'))
+    native_events=[];previous_sink=pilot.NATIVE_INPUT_SINK
+    capture=(round_no is not None and (ROOT/'audit/state/all-existing-model-owner-research.json').is_file())
+    if capture:pilot.NATIVE_INPUT_SINK=native_events.append
+    try:result=pilot.run(schedule_snapshot=state.get('schedule_cache'))
+    finally:pilot.NATIVE_INPUT_SINK=previous_sink
     from race_ai.observed_weight_learning import make_shadows
     result['learned_pairwise_shadows']=[];result['learning_failures']=[]
     if video_error:
@@ -324,6 +394,13 @@ def forecast(day,*,video_context_artifacts=(),video_reader=None,round_no=None):
     if reader.artifact_ids:
         result['video_context_artifact_ids']=reader.artifact_ids
     (pilot.OUTPUT/'national.json').write_text(json.dumps(result,ensure_ascii=False,sort_keys=True,separators=(',',':')))
+    # This optional private handoff follows the exact baseline write. Failure
+    # cannot alter that original or cause additional official source requests.
+    if capture and native_events:
+        try:
+            from race_ai.all_existing_model_inputs import current_requests,write_private_pending_requests
+            write_private_pending_requests(current_requests(native_events),_native_pending_folder(round_no))
+        except Exception:pass
 
 
 def supplement(day,round_no=None):

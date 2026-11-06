@@ -41,14 +41,23 @@ async function historyBefore(rows, facts){
  return [...byRace.values()].filter(x=>x.report.eligible_normal_accuracy!==false
    && !(x.report.refund_boats?.length)).sort((a,b)=>a.report.race_id.localeCompare(b.report.race_id));
 }
-async function buildChallenger(facts,rows){
+function researchPseudocount(parameters){
+ if(parameters===undefined)return 12;
+ if(!parameters||typeof parameters!=='object'||Array.isArray(parameters)
+   ||Object.keys(parameters).some(key=>key!=='lane_pseudocount'))throw Error('PDCA_PARAMETERS_INVALID');
+ const value=Object.hasOwn(parameters,'lane_pseudocount')?parameters.lane_pseudocount:12;
+ if(typeof value!=='number'||!Number.isFinite(value)||value<1||value>48)throw Error('PDCA_PARAMETERS_INVALID');
+ return value;
+}
+async function buildChallenger(facts,rows,parameters=undefined){
+ const pseudocount=researchPseudocount(parameters);
  const history=await historyBefore(rows,facts);
  if(history.length<MIN_HISTORY)return {status:'PDCA_NOT_ENOUGH_EARLIER_RESULTS',count:history.length};
  const laneCounts=[0,0,0,0,0,0];
  for(const h of history)laneCounts[h.report.official_top3[0]-1]++;
  const n=history.length;
  // Laplace-smoothed, capped lane-prior research hypothesis, not a fitted model.
- const factors=laneCounts.map(c=>Math.min(1.30,Math.max(0.70,(c+12)/(n/6+12))));
+ const factors=laneCounts.map(c=>Math.min(1.30,Math.max(0.70,(c+pseudocount)/(n/6+pseudocount))));
  const raw=predict(facts),entries=raw.all120.map(x=>({ticket:x.ticket,score:x.score*factors[x.ticket[0]-1]}));
  const total=entries.reduce((s,x)=>s+x.score,0);
  for(const x of entries)x.score/=total;

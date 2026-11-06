@@ -27,6 +27,11 @@ RACE_FIELDS = {
 DRIVER_FIELDS = {
     "car_no", "handicap_m", "recent_finishes", "trial_seconds", "trial_observed_at"
 }
+RESEARCH_PARAMETER_SPECS = {
+    "recent_weight": (1.20, 0.0, 4.0),
+    "handicap_weight": (-.01, -.05, 0.0),
+    "trial_weight": (.90, 0.0, 3.0),
+}
 
 
 class ObservedInputError(ValueError):
@@ -118,13 +123,28 @@ def _check(snapshot, generated_at):
     return sorted(ids), race, generated
 
 
-def predict_personal(snapshot, *, generated_at):
+def _research_parameters(parameters):
+    if parameters is None:
+        parameters = {}
+    _need(type(parameters) is dict and
+          not (set(parameters) - set(RESEARCH_PARAMETER_SPECS)), "RESEARCH_PARAMETERS")
+    values = {}
+    for name, (default, low, high) in RESEARCH_PARAMETER_SPECS.items():
+        value = parameters.get(name, default)
+        _need(type(value) in (int, float) and math.isfinite(value)
+              and low <= value <= high, "RESEARCH_PARAMETERS")
+        values[name] = float(value)
+    return values
+
+
+def predict_personal(snapshot, *, generated_at, parameters=None):
     """Full ordered-trifecta rank with 8 fixed + 4 *experimental* extras.
 
     Only handicap, actual prior finish positions and participant-bound trial
     seconds influence ranks. More evidence-rich models may outperform this
     untrained baseline; no accuracy guarantee or calibration is implied.
     """
+    params = _research_parameters(parameters)
     ids, race, generated = _check(snapshot, generated_at)
     pre = race["phase"] == PHASES[0]
     drivers = {x["car_no"]: x for x in snapshot["drivers"]}
@@ -136,24 +156,32 @@ def predict_personal(snapshot, *, generated_at):
         # 1st = 1.0, 8th = .125. Observed finish values only.
         recent = math.fsum((9 - pos)/8 for pos in d["recent_finishes"])
         recent /= len(d["recent_finishes"])
-        # Fixed explicit engineering assumptions, NOT learned coefficients.
-        score = 1.20 * recent - .01*d["handicap_m"]
+        # Defaults are the original heuristic. Research fitting supplies only
+        # these native coefficients; phase and observed-input rules stay fixed.
+        score = params["recent_weight"] * recent + params["handicap_weight"]*d["handicap_m"]
         if not pre:
             # Relative same-race trial performance. Ties add no preference.
             relative = ((max_trial - d["trial_seconds"]) /
                         (max_trial - min_trial)) if max_trial > min_trial else 0.0
-            score += .90 * relative
+            score += params["trial_weight"] * relative
         utility[car] = score
     # Plackett-Luce selection without replacement. These are mathematical
     # relative weights, NOT verified chances of a winning combination.
     weights = {car: math.exp(utility[car]) for car in ids}
     total = math.fsum(weights.values())
     first = {k: weights[k] / total for k in ids}
+    active = ("recent_weight", "handicap_weight") + (() if pre else ("trial_weight",))
+    research = any(params[name] != RESEARCH_PARAMETER_SPECS[name][0] for name in active)
     rows = []
     for a, b, c in itertools.permutations(ids, 3):
         w = weights
-        v = first[a] * w[b] / (total - w[a])
-        v *= w[c] / (total - w[a] - w[b])
+        # Broad bounded research coefficients can sharply separate weights.
+        # Sum the remaining native PL terms to avoid cancellation there, while
+        # preserving the exact original arithmetic for the baseline/defaults.
+        after_a = math.fsum(w[d] for d in ids if d != a) if research else total - w[a]
+        after_ab = math.fsum(w[d] for d in ids if d != a and d != b) if research else total - w[a] - w[b]
+        v = first[a] * w[b] / after_a
+        v *= w[c] / after_ab
         rows.append({"combination": [a,b,c], "relative_weight": v})
     rows.sort(key=lambda x: (-x["relative_weight"], x["combination"]))
     z = math.fsum(row["relative_weight"] for row in rows)

@@ -85,12 +85,19 @@ def _valid(source, generated_at):
     return order
 
 
-def _rank(strengths):
+def _rank(strengths, *, stable=False):
     total = math.fsum(strengths)
     out = []
     for a,b,c in itertools.permutations(range(1,7),3):
         x,y,z = (strengths[i-1] for i in (a,b,c))
-        p = x/total * y/(total-x) * z/(total-x-y)
+        if stable:
+            # Fitted coefficient bounds can produce much wider strengths.
+            # Sum remaining boats rather than cancel two dominant floats.
+            after_a = math.fsum(s for i,s in enumerate(strengths,1) if i != a)
+            after_ab = math.fsum(s for i,s in enumerate(strengths,1) if i not in (a,b))
+            p = x/total * y/after_a * z/after_ab
+        else:
+            p = x/total * y/(total-x) * z/(total-x-y)
         out.append({"ticket":[a,b,c], "score":p})
     mass = math.fsum(row["score"] for row in out)
     if len(out)!=120 or not math.isfinite(mass) or not math.isclose(mass,1.0,abs_tol=1e-9):
@@ -99,7 +106,11 @@ def _rank(strengths):
     return out
 
 
-def build_pair(source, generated_at):
+def build_pair(source, generated_at, *, parameters=None):
+    fitted = {}
+    if parameters is not None:
+        from .existing_boat_parameter_adapters import validate_group_parameters
+        fitted = validate_group_parameters(parameters, MODEL_IDS)
     boats = _valid(source, generated_at)
     avg = math.fsum(b["exhibition_time_seconds"] for b in boats)/6
     motor_avg = math.fsum(b["motor_two_place_rate_percent"] for b in boats)/6
@@ -108,11 +119,18 @@ def build_pair(source, generated_at):
     for b in boats:
         rate = max(b["national_win_rate"] if b["national_win_rate"] is not None else 1.0,0.01)
         raw = math.log(rate) + avg - b["exhibition_time_seconds"]
-        base.append(math.exp(max(-20,min(20,raw))))
+        a = fitted.get(BASELINE_ID)
+        base_raw = raw if a is None else (a['log_national_rate']*math.log(rate) +
+                                         a['exhibition_delta']*(avg-b['exhibition_time_seconds']))
+        base.append(math.exp(max(-20,min(20,base_raw))))
         # No hindsight or trained coefficient: fixed upfront shadow hypothesis.
         adjust = COURSE_LOG_BONUS[b["lane"]-1] + MOTOR_LOG_PER_PERCENT_POINT * (
             b["motor_two_place_rate_percent"] - motor_avg)
-        candidate.append(math.exp(max(-20,min(20,raw+adjust))))
+        p = fitted.get(CHALLENGER_ID)
+        candidate_raw = raw+adjust if p is None else (
+            p['log_national_rate']*math.log(rate) + p['exhibition_delta']*(avg-b['exhibition_time_seconds']) +
+            p['course_log_bonus_'+str(b['lane'])] + p['motor_deviation']*(b['motor_two_place_rate_percent']-motor_avg))
+        candidate.append(math.exp(max(-20,min(20,candidate_raw))))
     out = {"schema":"RACE_AI_BOAT_PRE_CUTOFF_AB_PAIR_V1",
            "race_id":source["race_id"], "cutoff_at":source["cutoff_at"],
            "source_captured_at":source["captured_at"],"generated_at":generated_at,
@@ -121,7 +139,7 @@ def build_pair(source, generated_at):
            "actual_result_at_forecast_time":None,
            "models":[]}
     for model, strengths in zip(MODEL_IDS,(base,candidate)):
-        ranked = _rank(strengths)
+        ranked = _rank(strengths, stable=model in fitted)
         record = {"model_id":model, "trained":False,"calibrated":False,
                   "odds_independent":True,"purchase_decision":"NO_BET",
                   "full_120":[{"ticket":"-".join(map(str,r["ticket"])),"score":r["score"]} for r in ranked],
@@ -129,6 +147,8 @@ def build_pair(source, generated_at):
                   "model_score_top8_sum":math.fsum(r["score"] for r in ranked[:8]),
                   "hypothesis":"No bonus; exact PR64-style rating and exhibition-time PL" if model==BASELINE_ID
                     else "Fixed exploratory course log bonuses +0.20,+0.10,+0.04,-0.04,-0.12,-0.18; motor log +0.003 per 2-place-rate percentage point deviation"}
+        if model in fitted:
+            record['research_parameters'] = dict(fitted[model])
         record["model_sha256"] = _digest(record)
         out["models"].append(record)
     out["bundle_sha256"] = _digest(out)

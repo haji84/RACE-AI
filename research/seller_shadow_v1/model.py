@@ -24,6 +24,27 @@ MAX_RACES_PER_DAY = 5
 THRESHOLD_NATIONAL = 5.6
 THRESHOLD_WAKU = 7.8
 VALID_CLASS = frozenset({"A1", "A2", "B1"})
+RESEARCH_PARAMETER_SPECS = {
+    "second_national_weight": (1.0, 0.0, 3.0),
+    "second_course_weight": (1.0, 0.0, 3.0),
+    "score_national_weight": (2.0, 0.0, 6.0),
+    "score_course_weight": (1.0, 0.0, 3.0),
+    "score_gap_weight": (.5, 0.0, 2.0),
+}
+
+
+def _research_parameters(parameters):
+    if parameters is None:
+        parameters = {}
+    if type(parameters) is not dict or set(parameters) - set(RESEARCH_PARAMETER_SPECS):
+        raise ValueError("Invalid seller research parameters")
+    values = {}
+    for name, (default, low, high) in RESEARCH_PARAMETER_SPECS.items():
+        value = parameters.get(name, default)
+        if type(value) not in (int, float) or not math.isfinite(value) or not low <= value <= high:
+            raise ValueError("Invalid seller research parameters")
+        values[name] = float(value)
+    return values
 
 
 def read_csv(path: str | Path) -> dict[str, dict[str, str]]:
@@ -71,14 +92,16 @@ def z(values: list[float], value: float) -> float:
     return (value - avg) / math.sqrt(variance) if variance > 0 else 0.0
 
 
-def purchase_tickets(boats: list[dict]) -> dict[str, list[dict]]:
+def purchase_tickets(boats: list[dict], *, parameters=None) -> dict[str, list[dict]]:
     # 1st lane is always 1. Rank all remaining lanes as the second-position
     # candidate on z(national win) + z(same-lane historical win).
+    params = _research_parameters(parameters)
     rivals = boats[1:]
     national = [b["national"] for b in rivals]
     course = [b["course"] for b in rivals]
     seconds = sorted(rivals,
-                     key=lambda b: (-(z(national, b["national"]) + z(course, b["course"])), b["lane"]))
+                     key=lambda b: (-(params["second_national_weight"] * z(national, b["national"])
+                                      + params["second_course_weight"] * z(course, b["course"])), b["lane"]))
     first_sec, backup_sec = seconds[0]["lane"], seconds[1]["lane"]
 
     def thirds(second: int) -> list[int]:
@@ -101,14 +124,17 @@ def purchase_tickets(boats: list[dict]) -> dict[str, list[dict]]:
     }
 
 
-def race_score(boats: list[dict]) -> float:
+def race_score(boats: list[dict], *, parameters=None) -> float:
+    params = _research_parameters(parameters)
     first = boats[0]
-    return (2 * (first["national"] - 6.0) + (first["course"] - 8.0)
-            + 0.5 * (first["national"] - max(b["national"] for b in boats[1:])))
+    return (params["score_national_weight"] * (first["national"] - 6.0)
+            + params["score_course_weight"] * (first["course"] - 8.0)
+            + params["score_gap_weight"] * (first["national"] - max(b["national"] for b in boats[1:])))
 
 
 def generate(cards: dict[str, dict[str, str]], waku: dict[str, dict[str, str]],
-             day: date, at: datetime, *, dry_run: bool = False) -> dict:
+             day: date, at: datetime, *, dry_run: bool = False, parameters=None) -> dict:
+    params = _research_parameters(parameters)
     if at.tzinfo is None:
         raise ValueError("A timezone-aware execution timestamp is required")
     jst = at.astimezone(JST)
@@ -142,14 +168,14 @@ def generate(cards: dict[str, dict[str, str]], waku: dict[str, dict[str, str]],
                 first["course"] < THRESHOLD_WAKU):
             data.append({"race_id": race_id, "status": "FILTERED"})
             continue
-        eligible.append((race_score(boats), race_id, boats))
+        eligible.append((race_score(boats, parameters=params), race_id, boats))
     eligible.sort(key=lambda x: (-x[0], x[1]))
     for pos, (score, race_id, boats) in enumerate(eligible):
         if pos >= MAX_RACES_PER_DAY:
             data.append({"race_id": race_id, "status": "RANK_LIMIT"})
         else:
             data.append({"race_id": race_id, "status": "SHADOW_DRY_RUN" if dry_run else "LOCAL_UNATTESTED",
-                         "score": round(score, 6), "tickets": purchase_tickets(boats)})
+                         "score": round(score, 6), "tickets": purchase_tickets(boats, parameters=params)})
     data.sort(key=lambda x: x["race_id"])
     return {"model": VERSION, "date": day.isoformat(), "built_at_jst": jst.isoformat(),
             "status": "DRY_RUN_NOT_PROSPECTIVE" if dry_run else "AWAITING_INDEPENDENT_TIMESTAMP",

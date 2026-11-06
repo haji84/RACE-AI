@@ -245,7 +245,7 @@ def validate(raw,*,allow_source=None):
 def _strength(u):
     return math.exp(max(-8,min(8,u)))
 
-def _utility(participant,*,sport,scenario,conditions,n):
+def _utility(participant,*,sport,scenario,conditions,n,parameters=None):
     f={key:item["value"] for key,item in participant["features"].items()}
     env={key:item["value"] for key,item in conditions.items()}
     # All [0,1] input features are observed/normalized before the model.
@@ -271,6 +271,9 @@ def _utility(participant,*,sport,scenario,conditions,n):
                "carried_weight_fit":.14,"pedigree_surface_fit":.13},
     }
     weight.update(per_sport[sport])
+    parameters = parameters or {}
+    weight.update({key.removeprefix("utility."): value for key, value in parameters.items()
+                   if key.startswith("utility.")})
     # Optional named indicators are not cosmetic. All admitted optional
     # features contribute small untrained positive desirability weights,
     # unless a more specific provisional coefficient is listed above.
@@ -303,42 +306,43 @@ def _utility(participant,*,sport,scenario,conditions,n):
             env.get("wet_track_factor",0),env.get("going_wetness",0))
     rough=min(1,(env["wind_mps"]/24+env["rain_mm_h"]/40+wet)/3)
     if scenario=="FRONT":
-        score+=.8*f["start_reliability"]+.4*draw+.30*f.get("early_pace",0)
+        score+=parameters.get("scenario.front_start",.8)*f["start_reliability"]+.4*draw+.30*f.get("early_pace",0)
         if participant["style"]=="front":score+=.22
     elif scenario=="CLOSING":
-        score+=.9*f["finishing_power"]+.38*f["stamina"]+.35*f.get("closing_3f_quality",0)
+        score+=parameters.get("scenario.closing_power",.9)*f["finishing_power"]+.38*f["stamina"]+.35*f.get("closing_3f_quality",0)
         if participant["style"]=="closer":score+=.25
     elif scenario=="DISRUPTION":
-        score+=.9*f["tactical_adaptability"]+.6*f["consistency"]-.25*f["start_reliability"]
+        score+=parameters.get("scenario.disruption_tactics",.9)*f["tactical_adaptability"]+.6*f["consistency"]+parameters.get("scenario.disruption_start",-.25)*f["start_reliability"]
         score+=rough*f.get("wet_track_fit",f.get("rain_performance",0))
         if participant["style"]=="allround":score+=.15
     elif scenario!="BASE":
         raise ModelInputError("scenario unknown")
     return _strength(score)
 
-def _pair_synergy(first,second,third,lookup,sport,scenario):
+def _pair_synergy(first,second,third,lookup,sport,scenario,parameters=None):
     # Correlation in 1-2-3 placing: same line in Keirin may follow each
     # other; other sports only use pre-race style-based relationships.
     a,b,c=lookup[first],lookup[second],lookup[third]
     val=0.0
+    parameters = parameters or {}
     if sport=="keirin" and a["group_id"] is not None:
-        if a["group_id"]==b["group_id"]:val+=.12
-        if b["group_id"]==c["group_id"]:val+=.09
+        if a["group_id"]==b["group_id"]:val+=parameters.get("pair.line_first_second",.12)
+        if b["group_id"]==c["group_id"]:val+=parameters.get("pair.line_second_third",.09)
     if scenario=="FRONT" and a["style"]=="front" and b["style"] in ("stalker","allround"):
-        val+=.07
-    if scenario=="CLOSING" and c["style"]=="closer":val+=.11
+        val+=parameters.get("pair.front_follower",.07)
+    if scenario=="CLOSING" and c["style"]=="closer":val+=parameters.get("pair.closing_third",.11)
     return math.exp(val)
 
-def _distribution(rows,sport,scenario,env):
+def _distribution(rows,sport,scenario,env,parameters=None):
     n=len(rows)
-    strengths={p["number"]:_utility(p,sport=sport,scenario=scenario,conditions=env,n=n) for p in rows}
+    strengths={p["number"]:_utility(p,sport=sport,scenario=scenario,conditions=env,n=n,parameters=parameters) for p in rows}
     lookup={p["number"]:p for p in rows}
     total=math.fsum(strengths.values())
     choices=[]
     for a,b,c in itertools.permutations(sorted(strengths),3):
         wa,wb,wc=strengths[a],strengths[b],strengths[c]
         pr=wa/total*wb/(total-wa)*wc/(total-wa-wb)
-        pr*=_pair_synergy(a,b,c,lookup,sport,scenario)
+        pr*=_pair_synergy(a,b,c,lookup,sport,scenario,parameters)
         choices.append(([a,b,c],pr))
     normalizer=math.fsum(x[1] for x in choices)
     return {tuple(x):p/normalizer for x,p in choices}
@@ -353,11 +357,13 @@ def _mix_weights(env):
     if front<0:raise ModelInputError("invalid scenario normalization")
     return {"FRONT":front,"CLOSING":closing,"DISRUPTION":disruption}
 
-def predict(raw,*,allow_source=None):
+def predict(raw,*,allow_source=None,research_parameters=None):
     data=validate(raw,allow_source=allow_source)
     env=raw["environment"];rows=data["participants"];sport=data["sport"]
-    baseline=_distribution(rows,sport,"BASE",env)
-    scenarios={key:_distribution(rows,sport,key,env) for key in ("FRONT","CLOSING","DISRUPTION")}
+    from .existing_common_parameter_adapters import _resolve_model_sets, _stamp
+    parameters=_resolve_model_sets(research_parameters,sport,MODEL_IDS)
+    baseline=_distribution(rows,sport,"BASE",env,parameters.get(MODEL_IDS[0]))
+    scenarios={key:_distribution(rows,sport,key,env,parameters.get(MODEL_IDS[1])) for key in ("FRONT","CLOSING","DISRUPTION")}
     weights=_mix_weights(env)
     mixed={triple:math.fsum(weights[k]*scenarios[k][triple] for k in weights)
            for triple in baseline}
@@ -384,6 +390,7 @@ def predict(raw,*,allow_source=None):
            "source_proof_not_equivalent_to_authorization":True,
            "external_pre_cutoff_receipt":None,"official_result":None,
            "purchase_decision":"NO_BET"}
+        _stamp(v,parameters.get(model))
         v["prediction_sha256"]=digest(v)
         outputs[model]=v
     return outputs

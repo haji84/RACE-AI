@@ -123,7 +123,7 @@ def validate_snapshot(raw):
     return raw
 
 
-def _scores(snapshot):
+def _scores(snapshot, parameters=None):
     """Two deliberately distinct feature weighting assumptions, not fitted."""
     weather=snapshot["conditions"]
     breeze=weather["wind_speed_mps"]/12.0
@@ -156,6 +156,22 @@ def _scores(snapshot):
         rough=(0.9*ability+0.45*recent+0.95*course+0.45*motor
                +0.3*start+0.25*exhibition+0.55*lane_prior
                -0.15*breeze*(7-lane)/6-0.10*swell*lane/6-0.08*rain*(7-lane)/6)
+        if parameters and MODEL_IDS[0] in parameters:
+            p=parameters[MODEL_IDS[0]]
+            comprehensive=(p['ability']*ability+p['recent']*recent+p['motor']*motor+p['course']*course
+                           +p['start']*start+p['exhibition']*exhibition+p['st']*st+p['lane_prior']*lane_prior)
+        if parameters and MODEL_IDS[1] in parameters:
+            p=parameters[MODEL_IDS[1]]
+            calm_front=(p['calm_ability']*ability+p['calm_recent']*recent+p['calm_motor']*motor
+                        +p['calm_course']*course+p['calm_lane_prior']*lane_prior+p['calm_start']*start
+                        +p['calm_st']*st+p['calm_exhibition']*exhibition)
+            attack=(p['attack_ability']*ability+p['attack_recent']*recent+p['attack_motor']*motor
+                    +p['attack_course']*course+p['attack_start']*start+p['attack_exhibition']*exhibition
+                    +p['attack_st']*st+p['attack_lane_prior']*lane_prior)
+            rough=(p['rough_ability']*ability+p['rough_recent']*recent+p['rough_course']*course
+                   +p['rough_motor']*motor+p['rough_start']*start+p['rough_exhibition']*exhibition
+                   +p['rough_lane_prior']*lane_prior+p['rough_breeze']*breeze*(7-lane)/6
+                   +p['rough_swell']*swell*lane/6+p['rough_rain']*rain*(7-lane)/6)
         result.append({"lane":lane,"comprehensive":comprehensive,
                        "calm_front":calm_front,"attack":attack,"rough":rough})
     # Weather changes scenario likelihood, never enters features from results.
@@ -168,26 +184,35 @@ def _scores(snapshot):
     return result,{"calm_front":calm_share,"attack":attack_share,"rough":rough_share}
 
 
-def _pl(strengths):
+def _pl(strengths, *, stable=False):
     universe=[]
     total=math.fsum(strengths.values())
     for a,b,c in itertools.permutations(sorted(strengths),3):
-        p=(strengths[a]/total)*(strengths[b]/(total-strengths[a]))*(
-            strengths[c]/(total-strengths[a]-strengths[b]))
+        if stable:
+            after_a=math.fsum(v for n,v in strengths.items() if n!=a)
+            after_ab=math.fsum(v for n,v in strengths.items() if n not in (a,b))
+            p=(strengths[a]/total)*(strengths[b]/after_a)*(strengths[c]/after_ab)
+        else:
+            p=(strengths[a]/total)*(strengths[b]/(total-strengths[a]))*(
+                strengths[c]/(total-strengths[a]-strengths[b]))
         universe.append(([a,b,c],p))
     if len(universe)!=120 or not math.isclose(math.fsum(p for _,p in universe),1,abs_tol=1e-10):
         raise FeatureModelError("candidate universe not normalized")
     return {tuple(triple): p for triple,p in universe}
 
 
-def run_models(raw):
+def run_models(raw, *, parameters=None):
     """Return two scored *research* Top8s; NO persistence or betting assertion."""
     s=validate_snapshot(raw)
-    by_lane, scenario_shares=_scores(s)
+    if parameters is not None:
+        from .existing_boat_parameter_adapters import validate_group_parameters
+        parameters=validate_group_parameters(parameters, MODEL_IDS)
+    by_lane, scenario_shares=_scores(s, parameters)
     component={}
     for name in ("comprehensive","calm_front","attack","rough"):
         vals={r["lane"]:math.exp(r[name]) for r in by_lane}
-        component[name]=_pl(vals)
+        family=MODEL_IDS[0] if name=='comprehensive' else MODEL_IDS[1]
+        component[name]=_pl(vals,stable=parameters is not None and family in parameters)
     output={}
     for model in MODEL_IDS:
         if model==MODEL_IDS[0]:
@@ -222,6 +247,9 @@ def run_models(raw):
             "persistence_receipt":None,
             "official_result":None,
         }
+        if parameters and model in parameters:
+            result['research_parameters']=dict(parameters[model])
+            result['explanation']='Caller-supplied research coefficients in the original native equation'
         result["prediction_sha256"]=digest(result)
         output[model]=result
     return output

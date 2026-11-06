@@ -69,32 +69,33 @@ def _trajectory_weights(env):
     return {"FRONT":front,"CHASE":chase,"DISRUPTED":disruptive}
 
 
-def _runner_utility(row, *, sport, env, n):
+def _runner_utility(row, *, sport, env, n, parameters=None):
     # The validated numeric observations are normalized 0..1, with documented
     # transforms and as-of source metadata. _utility supplies a baseline
     # from every available supported feature rather than discarding optional
     # pre-race information. Its coefficients are NOT learned or calibrated.
     return math.log(_utility(row,sport=sport,scenario="BASE",
-                             conditions=env,n=n))
+                             conditions=env,n=n,parameters=parameters))
 
 
-def _slot_score(row, *, stage, scenario, stress, n, sport):
+def _slot_score(row, *, stage, scenario, stress, n, sport, parameters=None):
     f = {key: val["value"] for key,val in row["features"].items()}
     draw = 1.0-(row["draw"]-1)/max(1,n-1)
     style = row["style"]
-    base = (0.42 * f["start_reliability"] + 0.18*draw) if stage == 1 else (
-           0.27*f["finishing_power"] + 0.18*f["stamina"] +
+    parameters = parameters or {}
+    base = (parameters.get("slot.first_start",.42) * f["start_reliability"] + parameters.get("slot.first_draw",.18)*draw) if stage == 1 else (
+           parameters.get("slot.later_finish",.27)*f["finishing_power"] + parameters.get("slot.later_stamina",.18)*f["stamina"] +
            0.16*f["tactical_adaptability"] + 0.09*f["consistency"])
     if stage == 3:
-        base += 0.23*f["stamina"]+0.12*f["consistency"]
+        base += parameters.get("slot.third_stamina",.23)*f["stamina"]+0.12*f["consistency"]
     if scenario == "FRONT":
-        base += 0.42*f["start_reliability"] + 0.22*draw
+        base += parameters.get("trajectory.front_start",.42)*f["start_reliability"] + 0.22*draw
         if style == "front":base += .22
     elif scenario == "CHASE":
-        base += 0.36*f["finishing_power"]+0.24*f["tactical_adaptability"]
+        base += parameters.get("trajectory.chase_finish",.36)*f["finishing_power"]+0.24*f["tactical_adaptability"]
         if style in ("closer","stalker"):base += .18
     elif scenario == "DISRUPTED":
-        base += stress*(.45*f["consistency"]+.55*f["tactical_adaptability"])
+        base += stress*(.45*f["consistency"]+parameters.get("trajectory.disrupted_tactics",.55)*f["tactical_adaptability"])
         if style == "allround":base += .12
     elif scenario != "BALANCED":
         raise ModelInputError("unknown trajectory")
@@ -117,22 +118,23 @@ def _slot_score(row, *, stage, scenario, stress, n, sport):
     return base
 
 
-def _coupling(p, leader, second, *, stage, sport, scenario, stress):
+def _coupling(p, leader, second, *, stage, sport, scenario, stress, parameters=None):
     """Pre-race follower/leader relation, not inferred from final positions."""
     bonus = 0.0
+    parameters = parameters or {}
     if sport == "keirin":
         group = p["group_id"]
         if group is not None and group == leader["group_id"]:
-            bonus += .48*p["features"]["line_coordination"]["value"]
+            bonus += parameters.get("coupling.line_leader",.48)*p["features"]["line_coordination"]["value"]
             if leader["style"]=="front" and p["style"] in ("stalker","closer"):
                 bonus += .24
         if second is not None and group is not None and group == second["group_id"]:
-            bonus += .17*p["features"]["line_coordination"]["value"]
+            bonus += parameters.get("coupling.line_second",.17)*p["features"]["line_coordination"]["value"]
     if sport == "horse":
         if leader["style"]=="front" and p["style"]=="closer":
             bonus += (.10 if scenario=="FRONT" else .30)*p["features"]["finishing_power"]["value"]
         if leader["style"]=="front" and p["style"]=="front":
-            bonus -= .20*(1+stress)
+            bonus += parameters.get("coupling.horse_front_competition",-.20)*(1+stress)
     if sport == "boat":
         # Second/third place does not follow the leader deterministically;
         # tactical start/course adjustment is a deliberately weak prior.
@@ -140,26 +142,26 @@ def _coupling(p, leader, second, *, stage, sport, scenario, stress):
             bonus += .10*p["features"]["tactical_adaptability"]["value"]
     if sport == "autorace":
         if p["style"]=="closer" and leader["style"]=="front":
-            bonus += .16*p["features"]["finishing_power"]["value"]
+            bonus += parameters.get("coupling.autorace_closer",.16)*p["features"]["finishing_power"]["value"]
         if scenario=="DISRUPTED":
             bonus += .15*stress*p["features"]["wet_track_fit"]["value"]
     if stage == 3 and second is not None and p["style"]=="closer":
-        bonus += .12*p["features"]["stamina"]["value"]
+        bonus += parameters.get("coupling.third_closer_stamina",.12)*p["features"]["stamina"]["value"]
     return bonus
 
 
-def _ordered_distribution(participants, env, sport, scenario):
+def _ordered_distribution(participants, env, sport, scenario, parameters=None):
     n = len(participants)
     by_id = {p["number"]:p for p in participants}
     stress = _race_stress(env)
-    base = {p["number"]:_runner_utility(p,sport=sport,env=env,n=n)
+    base = {p["number"]:_runner_utility(p,sport=sport,env=env,n=n,parameters=parameters)
             for p in participants}
     numbers = sorted(by_id)
     def logits(ids, stage, leader=None, second=None):
         return {j:base[j]+_slot_score(by_id[j],stage=stage,scenario=scenario,
-                    stress=stress,n=n,sport=sport) +
+                    stress=stress,n=n,sport=sport,parameters=parameters) +
                     (_coupling(by_id[j],by_id[leader],by_id[second] if second is not None else None,
-                               stage=stage,sport=sport,scenario=scenario,stress=stress)
+                               stage=stage,sport=sport,scenario=scenario,stress=stress,parameters=parameters)
                      if leader is not None else 0)
                 for j in ids}
     first = _softmax(logits(numbers,1))
@@ -180,15 +182,17 @@ def _ordered_distribution(participants, env, sport, scenario):
     return probability
 
 
-def predict(raw, *, allow_source=None):
+def predict(raw, *, allow_source=None, research_parameters=None):
     """Produce two independent research models with strict as-of provenance."""
     checked = validate(raw,allow_source=allow_source)
     sport = checked["sport"]
     rows = checked["participants"]
     env = raw["environment"]
-    first = _ordered_distribution(rows,env,sport,"BALANCED")
+    from .existing_common_parameter_adapters import _resolve_model_sets, _stamp
+    parameters = _resolve_model_sets(research_parameters,sport,MODEL_IDS)
+    first = _ordered_distribution(rows,env,sport,"BALANCED",parameters.get(MODEL_IDS[0]))
     weight = _trajectory_weights(env)
-    branches = {name:_ordered_distribution(rows,env,sport,name)
+    branches = {name:_ordered_distribution(rows,env,sport,name,parameters.get(MODEL_IDS[1]))
                 for name in SCENARIOS}
     mixture = {combo:math.fsum(weight[name]*branches[name][combo]
                              for name in weight) for combo in first}
@@ -228,6 +232,7 @@ def predict(raw, *, allow_source=None):
             "official_result":None,
             "purchase_decision":"NO_BET",
         }
+        _stamp(record,parameters.get(model))
         record["prediction_sha256"]=digest(record)
         output[model]=record
     return output

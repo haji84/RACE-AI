@@ -171,6 +171,9 @@ def fit_from_verified(rows, observations, *, now, video_contexts=None, video_rec
 
 
 def verify_training(training):
+    if training.get('schema') == 'RACE_AI_ALL_EXISTING_MODEL_FIT_V1':
+        from .all_existing_model_learning import verify_training as verify_all_training
+        return verify_all_training(training)
     if training.get('schema') == 'RACE_AI_EXISTING_OBSERVED_VIDEO_WEIGHT_FIT_V1':
         from .boat_video_learning import verify_video_training
         return verify_video_training(training)

@@ -48,6 +48,8 @@ from race_ai.boat_live_feature_shadow import build_live_feature_shadow
 from race_ai.observed_p1_connection import build_bundle as build_observed_p1
 OBSERVED_HISTORY_CONTEXT=None
 ENTRY_OBSERVATION_HISTORY=None
+# Optional caller-owned RAM callback. It performs no publication or source I/O.
+NATIVE_INPUT_SINK=None
 supplemental_contexts={}
 from race_ai.boat_manshu_watch import freeze_priced_tail
 from race_ai.official_race_updates import endpoint as update_endpoint
@@ -490,6 +492,16 @@ def make_pair(day,race):
         return {"race_id":race_id,"state":"TOO_LATE_AFTER_MODEL"},None,None,None,None
     paused=collect_pitreport(context,day,paused=paused)
     paused=collect_entry_history(context,day,paused=paused)
+    if NATIVE_INPUT_SINK is not None:
+        try:
+            from race_ai.all_existing_model_inputs import build_current_requests
+            NATIVE_INPUT_SINK(build_current_requests(data,extra,observed,
+                program_url=url,preview_url=official_preview_url,
+                program_captured_at=at.isoformat(),preview_captured_at=preview_at.isoformat()))
+        except Exception:
+            # Private retention failure never discards a ready native baseline.
+            # The callback's caller owns its private status; no raw facts log.
+            pass
     return {"race_id":race_id,"state":"AB_GENERATED_NOT_YET_EXTERNAL_FROZEN",
             "program_sha256":program_sha,"exhibition_sha256":preview_sha,
             "generated_at":generated,"source_wait":paused},computed,extended,priced,observed
