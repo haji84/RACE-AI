@@ -1,3 +1,22 @@
+<!-- RACEAI_AUTOMATION_20261106_CYCLE24_VERIFIED_1751 -->
+# 2026-11-06 17:51 JST｜第24巡の独立ZIP監査と上限違反確定（後続起動せず）
+
+**固定の事実:** 既存Draft PR #71のブランチ HEAD `35295f9f13f3e8f81766100cbce110481268f024` を確認。対象workflow `405276784` のrun [42177614402](https://github.com/haji84/RACE-AI/actions/runs/42177614402) は旧固定SHA `f6987b3466b4b58f1420c20018e9be886e7a1c06` で2026-11-06 17:01:40 JSTまでに `completed/success`。GitHub repository最新30 runでは対象の後継in_progress/queued/pending/waitingは確認されなかった。ただし全履歴の完全な待機網羅ではないため、追加pushやrerunは**0件**。16:44の第16巡観測を今回の最終状態へ延長しない。
+
+**独立の元ZIP監査:** 対象runのGitHub全50 artifactから第24巡を抽出。P1元予想artifact `13487355443`（実ZIP/API SHA256 `f5d6c1151e4530f72eb295ca54c326132fdd590e3ae2e5e300655ab487f108be`）、結果artifact `13487495212`（同 `1d9478fb89464c7a70ca96d9ecf58dcec9a96753fa604d704d9bdc8e2df606f6`）、継続artifact `13487220725`（同 `c8e0f0a48f96eaca9e726477df9a7c14f8aca183b67be8d5dd6c0574edd2a45a`）をコネクタから再取得し、実バイトSHA256とGitHubのAPI digest一致、3 ZIPのCRC異常0。結果ZIP内の`current-p1-original.zip`は独立取得P1 ZIPとバイト一致、初回`first-p0-original.zip`の実SHAは初回索引 `docs/evidence/2026-11-06/p0-first-receipt.json`と同じ `6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc`。旧P0/P1再生成なし。内包`status.json`は`round_no=24`、`updated_at=2026-11-06T08:01:21.786868+00:00`。最終continuityの`repeat-session.json`は`completed_round=24`、readback receipt 24件。第24巡以降の未完了値は加算しない。
+
+**保存された実績（最終巡、11/6ボート13会場156R）:** 基準P0=312件・P1=370件、計682モデル×時点行。結果通常採点541行=HIT158/MISS383。未採点141行=RESULT_PENDING92、異常着順要確認41、RESULT_REJECTED8。採点済み541行の仮想8点×各100円は投入432,800円、受取294,080円、仮収支**-138,720円**、仮回収率**67.95%**。前回第16巡比P1 +5、通常採点+16、HIT±0、MISS+16、仮収支-12,800円。個別レース156件の正式的中率ではなく、複数基準モデルとP0/P1を重複する研究値。実投票0。公式結果観測履歴245revisionを保持し、未確認を外れにしない。
+
+**学習と網羅:** 研究用観測相性2系統だけを一意103レースから学習78・時系列未使用検証25に分割、`FITTED_SHADOW_ONLY`。LEARNED_SHADOW 114モデル別予想、結果済み同条件paired 104モデル別行（**52種類のレース**）。観測相性: 元12/52的中・学習11/52、仮受取31,190円対29,930円。ST重視相性: 元13/52・学習14/52、仮受取36,050円対32,760円。学習版優位は証明されず本番切替なし。今回、114件が参照する親学習元ZIP全件の独立再取得は未実施。台帳は保存時点で締切済133R/未来23R、P1五系統完備73R、締切済P1未保存300モデル別行。未公表展示の取得可能性は不明。全16系統/全4競技完了には換算しない。
+
+**安全違反:** 最終継続原本`requests_used=732`（予想290/結果442）、指定上限240を**492 GET超過**。`source_limit=null`、`max_rounds=null`、`stop_at=null`で動作。旧runのsuccessは上限遵守ではない。ブランチ最新`race_ai/repeated_cycle.py`では`SOURCE_LIMIT=240`、`ROUND_SOURCE_LIMIT=45`、`MAX_ROUNDS=24`、`MAX_SECONDS=3900`、`POLL_SECONDS=180`を実読取。ただし**修正HEADでの実workerが240 GET以内で安全停止・読戻しできたという実証は0件**。旧runの停止条件を後続起動で回避しない。既存concurrencyは同グループ、`cancel-in-progress: false`を再確認。
+
+**保全と制限:** 本人専用Driveは接続ユーザーと所有者一致・shared=falseを確認。対象run原本の未保存名を検索したが0件。GitHub取得ZIPのDriveアップロードは`BLOCKED_FILE_REFERENCE`で成立しなかったので、今回Drive新規保存0件。これはGitHub7日artifactの無期限owner-only保全ではない。私有フォルダ情報、生の大容量原本、認証情報は公開GitHubに記録しない。他タスク/実行頻度、新workflow、新PR、Cloudflare/Vercel、課金、main統合、一般公開、実投票、モデル自動昇格は一切変更しない。
+
+**次の合格条件:** 修正済みコードで起動された**別の正常な実worker**で累計GET240以内・巡回45以内を実証し、停止時に予想/結果/継続元ZIPを独立再読込すること。上限違反した旧runを安全成功としない。
+
+---
+
 <!-- RACEAI_AUTOMATION_20261106_CYCLE16_VERIFIED_1644 -->
 # 2026-11-06 16:44 JST｜既存run第16巡の原本を独立読戻し、旧実行のGET上限超過を再確認
 
