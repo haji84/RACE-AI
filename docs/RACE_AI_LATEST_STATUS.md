@@ -3,6 +3,8 @@
 
 **この作業の範囲:** 選手情報の並行実装を取り込み、公式90日分と期別成績を1653プロフィールへ統合済み。締切改訂・集計漏れ・保存完了時計の修正を維持し、11/6朝のV2原本156ペア/624予想を再生成していない。既存workerの第21巡artifactだけを再利用し、09:01 JST時点の締切済3Rのうち通常確定1Rを照合した。観測相性は元版/履歴版とも的中、ST重視は元版的中/履歴版不的中。結果の再実行で版数や採点数は増えない。追加の公式GETは0件。[件数のみの証拠](evidence/2026-11-06/history-pdca-initial-real-result-counts.json)。これ以後のworker増分を照合したとは主張しない。
 
+**09:51 JST追補:** 大きい暗号文のBase64検査で発生したスタック上限を再現し、並行Codexと同じ修正へ統一した。修正後の[GitHub別runner](https://github.com/haji84/RACE-AI/actions/runs/42139398162/job/127636721950)で、期別選手1643人/9858コース行と2005年1月の限定checkpointの実復元が成功。GitHub側の鍵は利用可能になった。PDCA専用156ペア/90日履歴journalはローカルの同じ鍵への接続待ちであり、全状態の同期や精度改善は未認定。公開fixture/production形式の架空8MiB・鍵違い・改変拒否など統合後31テストも通過した。
+
 **新しい受入経路:** `boat_pdca_github.py`で、所有者鍵を検査してから同じGitHub内の専用state refへ暗号文を世代別に追記。固定commit/SHA/scopeを既存CIの別runnerで私的復元し、元bytes・保存完了receipt・最新採点の再実行を確認する。公開artifactは件数と受入状態だけ。main/稼働worker・既存予想・モデル重み・権限・実投票を変更しない。送信先URLの変更と現在ファイルhead欠落は、新規回帰テストで拒否を確認した。
 
 **確認と残件:** ローカルPython1567件/失敗0（任意CV依存56件skip）、Node202件/失敗0、第三者レビューのImportant2件を再現して修正済み。既存Draft [PR #71](https://github.com/haji84/RACE-AI/pull/71)へ非force反映し、GitHub CIで再確認中。ローカルは所有者鍵がなく、Secrets管理APIも403で拒否されたため、別認証・権限変更・鍵置換は行っていない。現入力は`WAITING_ENCRYPTED_INPUT`。**実データ暗号化公開→別runner復元は未完了**であり、正式な締切前receipt接続と精度改善も未証明。[所有者設定後の具体的な実行手順](BOAT_PDCA_PRODUCTION_HANDOFF.md)。別workerの全run保管・全競技の自動運用完成をこの確認へ加算しない。
