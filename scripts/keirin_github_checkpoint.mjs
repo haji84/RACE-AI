@@ -28,8 +28,9 @@ function validKey(key,mode){
  return key;
 }
 function decode64(value,max){
- need(typeof value==='string'&&value.length<=4*Math.ceil(max/3)&&/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value),'INVALID_BASE64');
+ need(typeof value==='string'&&value.length<=4*Math.ceil(max/3),'INVALID_BASE64');
  const out=Buffer.from(value,'base64');
+ // Exact re-encoding rejects noncanonical input without a size-dependent regex stack.
  need(out.length<=max&&out.toString('base64')===value,'INVALID_BASE64');
  return out;
 }
