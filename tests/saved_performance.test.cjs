@@ -14,6 +14,62 @@ if(fs.existsSync(file)){
     as_of:day+'T07:00:00+09:00',generated_at:day+'T07:00:00+09:00',persisted_at:day+'T07:01:00+09:00'},comparison_predictions:[],result:null};
  }
  function final(r,combination=[1,2,3],payout=2000){r.result={status:'final',winning_combinations:[combination],payout_yen_per_100:payout};return r;}
+ function supported(r){
+  const peer=structuredClone(r.prediction);peer.model_id='independent-peer';peer.ordered_top8=[...structuredClone(top8.slice(4,6)),[6,5,4],[6,5,3],[6,4,3],[5,6,4],[5,6,3],[5,4,3]];
+  r.comparison_predictions=[peer,{...structuredClone(peer),variant:'HISTORY_ADDED'}];return r;
+ }
+ test('1,000-yen allocation follows cross-model support rather than the first forecast rank',()=>{
+  const r=supported(final(row(),top8[4])),before=JSON.stringify(r),a=P.allocate(r,r.prediction,1000);
+  assert.deepEqual(a.tickets.map(t=>t.amount),[100,100,100,100,200,200,100,100]);
+  assert.equal(a.tickets[4].families,2);assert.equal(a.tickets[4].stableFamilies,1);
+  const result=P.simulate([r],group,10000,{raceBudget:1000});
+  assert.equal(result.spent,1000);assert.equal(result.payout,4000);assert.equal(result.net,3000);assert.equal(result.settledCount,1);
+  assert.equal(JSON.stringify(r),before);
+ });
+ test('1,000-yen plans reserve10 daily slots and do not reinvest weighted returns',()=>{
+  const rows=Array.from({length:13},(_,i)=>supported(final(row(i+1),top8[4],100000)));
+  const a=P.simulate(rows,group,10000,{raceBudget:1000});
+  assert.equal(a.bought,10);assert.equal(a.spent,10000);assert.equal(a.reserved,10000);assert.equal(a.unspent,0);assert.equal(a.payout,2000000);
+  assert.equal(P.simulate(rows,group,5000,{raceBudget:1000}).bought,5);
+ });
+ test('missing or correlated evidence holds200 instead of topping up the first forecast',()=>{
+  const r=final(row());r.comparison_predictions=[{...structuredClone(r.prediction),variant:'HISTORY_ADDED'}];
+  const a=P.simulate(Array.from({length:12},(_,i)=>({...structuredClone(r),race_id:'held-'+i})),group,10000,{raceBudget:1000});
+  assert.equal(a.bought,10);assert.equal(a.spent,8000);assert.equal(a.held,2000);assert.equal(a.unspent,2000);
+  assert.equal(a.rows[0].allocation.evidenceStatus,'ADDITIONAL_EVIDENCE_MISSING');assert.equal(a.rows[0].allocation.tickets[0].amount,100);
+ });
+ test('future, different-stage, different-asof, mismatched-cutoff and duplicate peers cannot influence extra allocation',()=>{
+  for(const mutate of [p=>{p.persisted_at='2026-11-06T07:02:00+09:00';},p=>{p.stage='P1';},p=>{p.as_of='2026-11-06T06:59:00+09:00';},p=>{p.cutoff_at='2026-11-06T12:01:00+09:00';}]){
+   const r=supported(row());r.comparison_predictions.forEach(mutate);assert.equal(P.allocate(r,r.prediction,1000).held,200);
+  }
+  const r=supported(row());r.comparison_predictions=r.comparison_predictions.flatMap(p=>[p,structuredClone(p)]);
+  assert.equal(P.allocate(r,r.prediction,1000).held,200);
+ });
+ test('weighted refunds, cancellation, dead heat and unknown payouts use the actual ticket amounts',()=>{
+  const r=supported(final(row()));r.result.refund_boats=[4];let a=P.simulate([r],group,10000,{raceBudget:1000});assert.equal(a.refund,700);assert.equal(a.net,1700);
+  r.result={status:'void',winning_combinations:[]};a=P.simulate([r],group,10000,{raceBudget:1000});assert.equal(a.refund,1000);assert.equal(a.net,0);
+  r.result={status:'final',winning_combinations:[top8[4],top8[0]],payouts:[{bet_type:'trifecta',combination:top8[4],payout_per_100_yen:1200},{bet_type:'trifecta',combination:top8[0],payout_per_100_yen:500}]};
+  a=P.simulate([r],group,10000,{raceBudget:1000});assert.equal(a.payout,2900);assert.equal(a.net,1900);
+  delete r.result.payouts;a=P.simulate([r],group,10000,{raceBudget:1000});assert.equal(a.pendingStake,1000);assert.equal(a.net,null);
+ });
+ test('a sole supported candidate receives both100-yen units and weighted overflow is rejected',()=>{
+  const r=supported(final(row(),top8[4]));r.comparison_predictions.forEach(p=>{p.ordered_top8[1]=[6,4,2];});
+  const a=P.simulate([r],group,10000,{raceBudget:1000});assert.equal(a.rows[0].allocation.tickets[4].amount,300);assert.equal(a.payout,6000);
+  r.result.payout_yen_per_100=Number.MAX_SAFE_INTEGER;assert.throws(()=>P.simulate([r],group,10000,{raceBudget:1000}));
+ });
+ test('1,000-yen caps reset per JST day while held additions stay unused',()=>{
+  const rows=[supported(row(1)),supported(row(2)),supported(row(1,'2026-11-07')),supported(row(2,'2026-11-07'))];
+  const a=P.simulate(rows,group,1000,{raceBudget:1000});assert.equal(a.bought,2);assert.equal(a.spent,2000);assert.equal(a.pendingStake,2000);assert.equal(a.days.length,2);
+ });
+ test('support allocation is independent of future results and uses a declared combination tie break',()=>{
+  const r=supported(row()),before=P.allocate(r,r.prediction,1000);final(r,[6,5,4],999999);
+  assert.deepEqual(P.allocate(r,r.prediction,1000),before);
+  const flat=row();flat.comparison_predictions=[{...structuredClone(flat.prediction),model_id:'peer'}];
+  const a=P.allocate(flat,flat.prediction,1000);flat.prediction.ordered_top8.reverse();
+  const b=P.allocate(flat,flat.prediction,1000);
+  assert.deepEqual(a.tickets.filter(t=>t.amount>100).map(t=>t.combination),b.tickets.filter(t=>t.amount>100).map(t=>t.combination).sort((x,y)=>x.join('-').localeCompare(y.join('-'))));
+  assert.throws(()=>P.simulate([r],group,10000,{raceBudget:900}));
+ });
  test('Top8 matches are visible without promoting research to official performance',()=>{
   const r=final(row());const before=JSON.stringify(r);
   assert.equal(P.compare(r,r.prediction).status,'HIT');
