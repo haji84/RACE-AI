@@ -1,0 +1,30 @@
+{
+  "accuracy_improvement_proven": false,
+  "actual_purchases": false,
+  "additional_official_site_gets": 0,
+  "checked_at": "2026-11-06T00:01:24.625631+00:00",
+  "ended_declared_races": 3,
+  "external_hash_manifest_precedes_results": true,
+  "independent_pre_cutoff_receipt_verified": false,
+  "models": {
+    "boat-observed-pairwise-factor-v1": {
+      "baseline_hits": 1,
+      "history_hits": 1,
+      "paired_races": 1
+    },
+    "boat-observed-pairwise-start-v1": {
+      "baseline_hits": 1,
+      "history_hits": 0,
+      "paired_races": 1
+    }
+  },
+  "original_forecasts_regenerated": false,
+  "paired_result_races": 1,
+  "pending_observed_races": 1,
+  "real_github_encrypted_handoff_verified": false,
+  "repeated_scoring_did_not_increase_rows": true,
+  "scheduled_races": 156,
+  "schema": "RACE_AI_NOV6_FROZEN_HISTORY_PAIR_INITIAL_COUNTS_V1",
+  "source_artifact_id": 13464416656,
+  "source_zip_sha256": "b60f011a029bc0ebf2e721d004947ecab0cf0902e9eb793958ca3ae84f8c6081"
+}
