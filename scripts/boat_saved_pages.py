@@ -17,12 +17,13 @@ def main(argv=None):
     b=sub.add_parser('build');b.add_argument('--state',type=Path,required=True)
     b.add_argument('--public-dir',type=Path,required=True);b.add_argument('--private-dir',type=Path,required=True)
     b.add_argument('--source-sha',required=True)
+    b.add_argument('--viewer-from',type=Path)
     p=sub.add_parser('publish');p.add_argument('--repo',type=Path,default=ROOT)
     p.add_argument('--public-dir',type=Path,required=True);p.add_argument('--private-dir',type=Path,required=True)
     p.add_argument('--manifest-sha',required=True);p.add_argument('--initialize',action='store_true');p.add_argument('--expected-parent')
     args=parser.parse_args(argv)
     try:
-        if args.command=='build':report=build_site(args.state,args.public_dir,args.private_dir,expected_source_sha256=args.source_sha)
+        if args.command=='build':report=build_site(args.state,args.public_dir,args.private_dir,expected_source_sha256=args.source_sha,viewer_from=args.viewer_from)
         else:report=publish_site(args.repo,args.public_dir,expected_manifest_sha256=args.manifest_sha,initialize=args.initialize,expected_parent=args.expected_parent)
         root=private_root(args.private_dir);save(root/(args.command+'-status.json'),(wire(report)+'\n').encode())
         print(wire(report));return 0

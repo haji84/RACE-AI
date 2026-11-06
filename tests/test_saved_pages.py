@@ -43,6 +43,7 @@ class SavedPagesTests(unittest.TestCase):
                 body=path.read_bytes();self.assertNotIn(keydoc['key'].encode(),body)
                 self.assertNotIn(self.pair['pair_sha256'].encode(),body)
         self.assertTrue((public/'.nojekyll').is_file())
+        self.assertIn('app.js?v=',(public/'index.html').read_text())
         self.assertIn('#saved='+report['cipher_sha256']+'.'+keydoc['key'],(private/'owner-url.txt').read_text())
         self.assertTrue((private/'owner-url.txt').read_text().startswith('https://haji84.github.io/RACE-AI/'))
 
@@ -52,6 +53,30 @@ class SavedPagesTests(unittest.TestCase):
         self.assertFalse((self.root/'public/index.html').exists())
         with self.assertRaises(ValueError):
             self.m.build_site(self.state,self.root/'same',self.root/'same/private',expected_source_sha256=self.content)
+
+    def test_updated_payload_reuses_only_the_existing_private_view_key_and_url(self):
+        original=self.build();old_url=(self.root/'private/owner-url.txt').read_bytes()
+        report=self.m.build_site(self.state,self.root/'updated-public',self.root/'updated-private',
+            expected_source_sha256=self.content,viewer_from=self.root/'private/viewer.json')
+        self.assertNotEqual(report['cipher_sha256'],original['cipher_sha256'])
+        self.assertEqual(report['view_id'],original['cipher_sha256'])
+        self.assertEqual((self.root/'updated-private/owner-url.txt').read_bytes(),old_url)
+        private=json.loads((self.root/'updated-private/viewer.json').read_text())
+        envelope=json.loads((self.root/'updated-public'/report['cipher_path']).read_text())
+        self.assertEqual(envelope['header']['schema'],'RACE_AI_SAVED_WEB_VIEW_V2')
+        self.assertEqual(envelope['header']['view_id'],original['cipher_sha256'])
+        key=base64.urlsafe_b64decode(private['key']+'=')
+        self.assertTrue(AESGCM(key).decrypt(base64.b64decode(envelope['nonce']),base64.b64decode(envelope['ciphertext']),wire(envelope['header']).encode()))
+        for path in (self.root/'updated-public').rglob('*'):
+            if path.is_file():self.assertNotIn(private['key'].encode(),path.read_bytes())
+
+    def test_viewer_reuse_rejects_public_or_malformed_key_files(self):
+        self.build();p=self.root/'private/viewer.json';p.chmod(0o644)
+        with self.assertRaises(ValueError):
+            self.m.build_site(self.state,self.root/'new-public',self.root/'new-private',expected_source_sha256=self.content,viewer_from=p)
+        p.chmod(0o600);data=json.loads(p.read_text());data['key']='invalid';p.write_text(wire(data))
+        with self.assertRaises(ValueError):
+            self.m.build_site(self.state,self.root/'new-public',self.root/'new-private',expected_source_sha256=self.content,viewer_from=p)
 
     def test_extra_plaintext_symlink_and_modified_assets_are_rejected(self):
         self.build();public=self.root/'public'

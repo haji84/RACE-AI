@@ -36,7 +36,7 @@ def export_view(view,output,*,web_root=WEB):
     html=_asset_bytes(web_root,'index.html').decode()
     styles=_asset_bytes(web_root,'style.css').decode()
     scripts=[]
-    for name in ('forecast-audit-model.js','product-data.js','existing-model-catalog.js','ui-model.js','app.js'):
+    for name in ('forecast-audit-model.js','product-data.js','existing-model-catalog.js','ui-model.js','saved-performance.js','app.js'):
         body=_asset_bytes(web_root,name).decode()
         if re.search('</script',body,re.I):raise ValueError('SAVED_VIEW_SCRIPT_INVALID')
         scripts.append(body)

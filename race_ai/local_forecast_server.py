@@ -26,6 +26,7 @@ ASSETS = {
     "/product-data.js": ("product-data.js", "text/javascript; charset=utf-8"),
     "/existing-model-catalog.js": ("existing-model-catalog.js", "text/javascript; charset=utf-8"),
     "/ui-model.js": ("ui-model.js", "text/javascript; charset=utf-8"),
+    "/saved-performance.js": ("saved-performance.js", "text/javascript; charset=utf-8"),
     "/data/example-synthetic-forecast-audit.json": (
         "data/example-synthetic-forecast-audit.json", "application/json; charset=utf-8"),
 }

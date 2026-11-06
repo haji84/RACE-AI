@@ -2,7 +2,7 @@
 /* PR #62 page shell, saved originals and server-managed automatic generation. */
 (() => {
   const $ = id => document.getElementById(id);
-  const U = globalThis.RaceUI, M = globalThis.RaceProductData, A = globalThis.RaceAuditModel, C = globalThis.RaceExistingModelCatalog;
+  const U = globalThis.RaceUI, M = globalThis.RaceProductData, A = globalThis.RaceAuditModel, C = globalThis.RaceExistingModelCatalog, P = globalThis.RaceSavedPerformance;
   const sports = {boat: "ボートレース", keirin: "競輪", autorace: "オートレース", horse: "競馬"};
   const icons = {boat: "◒", keirin: "♧", autorace: "♧", horse: "♞"};
   const pageNames = {
@@ -10,7 +10,7 @@
     races: ["ALL RACES", "全レース一覧", "未予想も含めて、取得できたレースを確認。"],
     detail: ["RACE DETAIL", "レース詳細", "出走情報・保存済み予想・根拠を、取得時点ごとに。"],
     picks: ["TICKET ALLOCATION", "買い目配分", "予算に合わせて候補を編集。確定した候補も、実購入とは別の記録です。"],
-    results: ["PERFORMANCE", "成績分析", "公式結果・対象分母と、ご自身の購入記録を確認。"],
+    results: ["RESULTS & SIMULATION", "レース結果・収支", "保存予想の的中状況と、日予算を変えた場合の収支を確認。"],
     research: ["MODEL & EVIDENCE", "研究", "モデル・学習版・時点と、保存された根拠を比較。"],
     settings: ["PREFERENCES", "設定", "予算・表示と、読み込む情報源を管理。"]
   };
@@ -24,6 +24,7 @@
     forecastOnly: false, candidatesOnly: false, selectedId: "", detailTab: "outlook", predictionKeys: {},
     budget: validBudget(preferences.budget) ? preferences.budget : 10000,
     raceBudget: validBudget(preferences.raceBudget) ? preferences.raceBudget : 2000,
+    simulationBudget: validBudget(preferences.simulationBudget) ? preferences.simulationBudget : 10000, resultGroupKey: "",
     maxPicks: [8, 16, 24, 32].includes(preferences.maxPicks) ? preferences.maxPicks : 8,
     candidates: [], purchases: [], confirmed: new Set(), visible: 60
   };
@@ -74,7 +75,7 @@
   const badge = n => node("span", "lane lane-" + (n <= 6 ? n : "other"), String(n));
   const combo = values => { const n = node("span", "combo"); values.forEach((v, i) => { if (i) n.append(node("span", "combo-dash", "−")); n.append(badge(v)); }); return n; };
   function persistPreferences() {
-    try { localStorage.setItem(storageKey, JSON.stringify({budget: state.budget, raceBudget: state.raceBudget, maxPicks: state.maxPicks, sport: state.sport})); } catch { /* App remains usable with storage disabled. */ }
+    try { localStorage.setItem(storageKey, JSON.stringify({budget: state.budget, raceBudget: state.raceBudget, simulationBudget: state.simulationBudget, maxPicks: state.maxPicks, sport: state.sport})); } catch { /* App remains usable with storage disabled. */ }
   }
   function table(headers, rows) {
     const t = node("table"), head = node("tr"), body = node("tbody");
@@ -263,6 +264,8 @@
     meta.append(node("span", "", r.event_date_jst || "日付 未取得"), node("strong", "", "締切 " + time(r.cutoff_at)));
     head.append(title, meta); card.append(head);
     const tags = node("div", "race-tags"); tags.append(node("span", "tag scope-" + r.scope, scopeName(r.scope)), node("span", "tag", forecastStatus(r, p)), node("span", "tag", stageName(p))); card.append(tags);
+    tags.append(outcomeBadge(r,p));
+    if (r.result?.status === "final") card.append(node("p","small","結果 " + resultCombination(r) + " · 100円払戻 " + payoutSummary(r.result)));
     if (r.missing_reasons?.includes("SAVED_FORECAST_CUTOFF_CONFLICT")) tags.append(node("span","tag","原本間で締切の記録差あり"));
     card.append(participantGrid(r));
     const foot = node("div", "race-card-footer"), saved = node("div", "card-prediction");
@@ -322,7 +325,7 @@
     });
   }
   function renderRaces() {
-    const all = scoped(), filtered = U.filterRaces(races(), {sport: state.sport, day: state.day, allDates: state.allDates, period: state.period, query: state.query, venue: state.venue, sort: state.sort, forecastOnly: state.forecastOnly, candidatesOnly: state.candidatesOnly, candidateRaceIds: state.candidates.map(t => t.raceId)}).filter(r => state.statusFilter === "all" || U.outcome(r, {predictionEligible: M.eligiblePrediction(r, r.prediction), resultEligible: M.eligibleResult(r)}) === state.statusFilter);
+    const all = scoped(), filtered = U.filterRaces(races(), {sport: state.sport, day: state.day, allDates: state.allDates, period: state.period, query: state.query, venue: state.venue, sort: state.sort, forecastOnly: state.forecastOnly, candidatesOnly: state.candidatesOnly, candidateRaceIds: state.candidates.map(t => t.raceId)}).filter(r => state.statusFilter === "all" || (r.private_cycle_view && r.scope !== "synthetic" && state.statusFilter !== "PREDICTION_UNVERIFIED" ? P.compare(r,prediction(r)).status : U.outcome(r, {predictionEligible: M.eligiblePrediction(r, r.prediction), resultEligible: M.eligibleResult(r)})) === state.statusFilter);
     $("race-count").textContent = "表示 " + filtered.length + "件 / 対象 " + all.length + "件（未予想 " + all.filter(r => !predictions(r).length).length + "件を含む）";
     const coverage = U.modelCoverage(all, C.models, {sport: state.sport});
     $("all-race-model-scope").textContent = sports[state.sport] + " · 適用 " + coverage.applicable_models + " / 登録 " + C.models.length + "モデル · 対象台帳 " + coverage.target_races + "レース（保存予想なし " + all.filter(r => !predictions(r).length).length + "レースを含む） · " + coverage.display_stages.map(stage=>stageName({stage}) + " " + coverage.models.reduce((sum,m)=>sum+(m.stages[stage].target_races||0),0) + "対象枠").join(" / ");
@@ -340,7 +343,7 @@
     if (!list.length) select.append(new Option("未予想・保存原本なし", ""));
     list.forEach((p, i) => select.append(new Option(stageName(p) + " · " + modelName(p) + (p === r.prediction ? " · 基準原本" : " · 比較原本"), String(i))));
     select.disabled = !list.length; select.value = String(state.predictionKeys[r.race_id] ?? 0);
-    select.addEventListener("change", () => { state.predictionKeys[r.race_id] = Number(select.value); renderDetail(); renderTickets(); });
+    select.addEventListener("change", () => { state.predictionKeys[r.race_id] = Number(select.value); renderAll(); });
     label.append(select); return label;
   }
   function forecastPanel(r, p) {
@@ -353,11 +356,12 @@
   }
   function resultView(r) {
     const result = r.result, box = node("div", "result-block");
-    if (!result) return append(box, node("p", "muted", "公式結果は未取得です。"));
+    box.append(outcomeBadge(r,prediction(r)));
+    if (!result) return append(box, node("p", "muted", "結果待ち：結果はまだ取得されていません。"));
     const label = (r.private_cycle_view ? {final:"取得結果（公式確定時刻は未取得）",pending:"取得結果待ち",void:"中止・不成立（観測値）",unsupported:"照合不可"} : {final: "確定結果（読込値）", pending: "結果待ち", void: "中止・不成立", unsupported: "照合不可"})[result.status] || "結果未確認";
     box.append(node("strong", "", (r.scope === "synthetic" ? "合成テスト · " : "") + label));
     result.winning_combinations.forEach(t => box.append(combo(t)));
-    if (result.payout_yen_per_100 !== null && result.payout_yen_per_100 !== undefined) box.append(node("p", "muted", "100円当たり払戻 " + yen(result.payout_yen_per_100) + (r.scope === "synthetic" ? "（架空）" : "（読込値）")));
+    if (result.status === "final") box.append(node("p", "muted", "100円当たり払戻 " + payoutSummary(result) + (r.scope === "synthetic" ? "（架空）" : "（読込値）")));
     box.append(node("p", "muted small", "結果確認 " + stamp(result.confirmed_at) + " JST"));
     if (result.observed_at) box.append(node("p", "muted small", "観測取得 " + stamp(result.observed_at) + " JST（公式確定時刻とは別）"));
     if (U.refundSummary(result) !== "未取得") box.append(node("p", "muted", U.refundSummary(result)));
@@ -473,8 +477,62 @@
     if (r?.scope === "synthetic") $("confirmation-state").textContent += " 合成テストを実購入として記録することはできません。";
     $("ticket-form").querySelector("button").disabled = !r;
   }
+  function outcomeBadge(r,p) {
+    const status=P.compare(r,p).status;
+    const labels={HIT:"的中",MISS:"不的中",PENDING:"結果待ち",VOID:"中止・返還",REVIEW:"照合不可",NO_FORECAST:"未予想・原本未選択"};
+    return node("span","saved-outcome outcome-"+status.toLowerCase(),(r.scope==="synthetic"?"合成・":"")+labels[status]);
+  }
+  function resultCombination(r) { return r.result?.winning_combinations?.map(t=>t.join("−")).join(" / ") || (r.result?.status==="void"?"中止・不成立":"未取得"); }
+  function payoutSummary(result) {
+    if (result?.status!=="final") return "未取得";
+    const winners=result.winning_combinations||[];
+    const values=winners.map(t=>{
+      let amount;
+      if (result.payouts!==undefined) {
+        const matches=Array.isArray(result.payouts)?result.payouts.filter(p=>p?.bet_type==="trifecta"&&Array.isArray(p.combination)&&p.combination.join("-")===t.join("-")):[];
+        if (matches.length===1) amount=matches[0].payout_per_100_yen;
+      } else if (winners.length===1) amount=result.payout_yen_per_100;
+      return (winners.length>1?t.join("−")+"：":"")+(Number.isSafeInteger(amount)&&amount>=0?yen(amount):"未取得・照合不可");
+    });
+    return values.join(" / ") || "未取得";
+  }
+  function savedResultsTable(rows,group) {
+    return table(["レース","結果","Top8の判定","100円払戻","結果取得 JST"],rows.map(r=>[button(raceName(r),"text-button",()=>openRace(r.race_id)),resultCombination(r),outcomeBadge(r,group?P.pick(r,group):null),payoutSummary(r.result),stamp(r.result?.observed_at)]));
+  }
+  function renderSavedResults(rows) {
+    const groups=M.modelGroups(rows),select=$("results-model");
+    if (!groups.some(g=>g.key===state.resultGroupKey)) state.resultGroupKey=groups[0]?.key || "";
+    select.replaceChildren(...groups.map(g=>new Option(stageName(g)+" · "+modelName(g),g.key)));select.value=state.resultGroupKey;select.disabled=!groups.length;
+    $("simulation-budget").value=state.simulationBudget;
+    $("simulation-budget").disabled=!groups.length;
+    const group=groups.find(g=>g.key===state.resultGroupKey)||null,c=P.summarize(rows,group);
+    $("saved-result-metrics").replaceChildren(metric("取得結果",c.available+"レース","保存された結果・中止"),metric("的中",c.hits+"レース","選択モデルと取得結果の一致"),metric("不的中",c.misses+"レース","選択モデルと取得結果の不一致"),metric("結果待ち",c.pending+"レース","未取得分を不的中にしません"));
+    const latest=rows.map(r=>r.result?.observed_at).filter(v=>v&&Number.isFinite(Date.parse(v))).sort((a,b)=>Date.parse(a)-Date.parse(b)).at(-1);
+    $("result-coverage").textContent="対象 "+rows.length+"レース · 結果取得 "+c.available+" · 中止・返還 "+c.void+" · 未予想・照合不可 "+(c.noForecast+c.review)+" · 最終結果取得 "+stamp(latest)+" JST。取得結果による参考照合です。公式の独立検証とは別です。";
+    $("saved-results-table").replaceChildren(savedResultsTable(rows,group));
+    if (!groups.length) {
+      $("simulation-metrics").replaceChildren(empty("試算する保存予想は未取得です","取得した結果は上の一覧に表示しています。"));
+      for (const id of ["simulation-comparison","simulation-ledger"]) $(id).replaceChildren();return;
+    }
+    try {
+      const scenarios=groups.map(g=>({group:g,sim:P.simulate(rows,g,state.simulationBudget)}));
+      const chosen=scenarios.find(s=>s.group.key===state.resultGroupKey),s=chosen.sim;
+      const net=n=>n===null?"未確定":(n>0?"＋":"")+yen(n);
+      $("simulation-metrics").replaceChildren(metric("予定購入額",yen(s.spent),s.bought+"レース · 実購入なし"),metric("未使用予算",yen(s.unspent),"1日 "+yen(s.budgetPerDay)+" × "+s.days.length+"日"),metric("確認済み払戻",yen(s.payout),"返還 "+yen(s.refund)),metric("確定分の収支",net(s.settledNet),"購入額 "+yen(s.settledStake)+" の分だけ"),metric("未確定購入額",yen(s.pendingStake),"結果・払戻待ちのレース分"),metric("全体の収支",net(s.net),"仮の残高 "+yen(s.balance)));
+      $("simulation-metrics").append(metric("確定分の回収率",s.roi===null?"未確定":s.roi.toFixed(1)+"%","確認済み払戻・返還 ÷ 確定分購入額"),metric("収支確定の購入予定",s.settledStake/800+" / "+s.bought+"レース","日予算で選んだ対象のみ"));
+      $("simulation-comparison").replaceChildren(table(["モデル・履歴条件","購入予定分の的中 / 照合済","予定購入額","払戻","返還","確定分収支","未確定額","全体収支"],scenarios.map(({group,sim:t})=>[modelName(group),t.boughtComparison.hits+" / "+(t.boughtComparison.hits+t.boughtComparison.misses),yen(t.spent),yen(t.payout),yen(t.refund),net(t.settledNet),yen(t.pendingStake),net(t.net)])));
+      const raceMap=new Map(rows.map(r=>[r.race_id,r]));
+      const reasons={DAILY_BUDGET_LIMIT:"日予算上限で見送り",NO_UNAMBIGUOUS_SAVED_MODEL:"原本未取得・選択不可",MODEL_IDENTITY_UNKNOWN:"モデル・版・時点が未取得",COMPLETE_TOP8_NOT_SAVED:"Top8が未完備",TRIFECTA_NOT_OFFERED:"3連単非発売",SAVE_CLOCK_UNKNOWN:"保存時刻未確認",NOT_SAVED_BEFORE_CUTOFF:"締切前保存を確認できません"};
+      $("simulation-ledger").replaceChildren(table(["日付・レース","予定額","払戻","返還","収支","配分の状態"],s.rows.map(e=>[e.day+" · "+raceName(raceMap.get(e.race_id)),yen(e.stake),e.stake?net(e.payout):"—",e.stake?net(e.refund):"—",e.stake?net(e.net):"—",e.reason?(reasons[e.reason]||e.reason):e.net===null?"結果・払戻待ち":"取得結果で試算済み"])));
+    } catch {
+      for (const id of ["simulation-comparison","simulation-ledger"]) $(id).replaceChildren();
+      $("simulation-metrics").replaceChildren(empty("試算を表示できません","金額・結果・保存原本の整合性を確認してください。"));
+      $("simulation-message").textContent="試算できない金額または結果が含まれています。";
+    }
+  }
   function renderResults() {
     const rows = scoped(), sum = M.summary(rows), g = sum.overall;
+    renderSavedResults(rows);
     $("result-metrics").replaceChildren(metric("全対象の台帳", g.ledger + "件", "取得範囲は独立確認が必要"), metric("公式・評価可能", g.evaluable + "件", "未予想も分母に含む"), metric("全対象 Hit@8_all", g.hit8 === null ? "未検証" : (g.hit8 * 100).toFixed(2) + "%", "的中 " + (g.hits ?? "未検証") + " / 評価可能 " + g.evaluable), metric("証拠不足・評価外", g.excluded + "件", "未確定・研究・合成を区別"));
     $("rate-limitations").textContent = g.identity_mixed ? "モデル・版・時点が混在するため、合算率を表示しません。研究ページのモデル別集計を確認してください。" : g.stage_mixed ? "朝版・展示後版が混在するため、合算率を表示しません。時点別の集計を確認してください。" : "保存された取込値の整合性に基づく集計です。原本の権限・署名・独立時刻はブラウザで認証していません。";
     $("result-sports").replaceChildren(table(["競技", "台帳", "評価可能", "的中", "Hit@8_all"], Object.entries(sum.bySport).map(([sport, stats]) => [sports[sport], stats.ledger, stats.evaluable, stats.hits ?? "未検証", stats.hit8 === null ? "未検証" : (stats.hit8 * 100).toFixed(2) + "%"])));
@@ -902,6 +960,12 @@
   $("forecast-follow-latest").addEventListener("click",()=>loadAutomaticLatest(true,true));
   $("load-synthetic").addEventListener("click", loadSynthetic);
   $("clear-data").addEventListener("click", () => { ++importVersion;generation.ownsDisplay = false;generation.suppressed = true; dataset = null; state.selectedId = ""; state.predictionKeys = {}; state.candidates = []; state.confirmed.clear(); $("purchase-ack").checked = false; refreshSelects(); renderAll(); $("file-message").textContent = "読み込んだ予想と候補をメモリから消去しました。手動購入記録は再読込まで保持します。"; });
+  $("results-model").addEventListener("change",e=>{state.resultGroupKey=e.target.value;renderResults();});
+  $("simulation-budget").addEventListener("change",e=>{
+    const value=Number(e.target.value);
+    if (!validBudget(value)) { e.target.value=state.simulationBudget;$("simulation-message").textContent="日予算は100〜10,000,000円の100円単位で入力してください。";return; }
+    state.simulationBudget=value;persistPreferences();$("simulation-message").textContent="1日予算 "+yen(value)+" で再計算しました。";renderResults();
+  });
   // A local clock change updates the display day, without fetching race sources.
   function checkDay() { if (automaticMode()) return;const today = A.jstToday(); if (state.followsToday && state.day !== today) { state.day = today; refreshSelects(); renderAll(); } }
   setInterval(checkDay, 30000);
