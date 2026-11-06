@@ -159,11 +159,16 @@ def read_freeze_receipt(path,pair=None):
     need(receipt_path.is_file() and not receipt_path.is_symlink() and receipt_path.stat().st_size<=4096,
          'NO_VERIFIED_LOCAL_FREEZE_RECEIPT')
     pair=pair or load_pair(path);receipt=json.loads(receipt_path.read_text())
+    return verify_freeze_receipt(pair,receipt,hashlib.sha256(path.read_bytes()).hexdigest())
+
+
+def verify_freeze_receipt(pair,receipt,file_sha256):
+    """Validate the same receipt against an exact retained pair blob, without I/O."""
     sealed(receipt,'receipt_sha256')
     need(receipt.get('schema')=='RACE_AI_LOCAL_PAIR_FREEZE_RECEIPT_V1' and
         receipt['pair_sha256']==pair['pair_sha256'] and receipt['cutoff_at']==pair['cutoff_at'] and
         receipt['information_as_of']==pair['generated_at'] and
-        receipt['file_sha256']==hashlib.sha256(path.read_bytes()).hexdigest(), 'LOCAL_FREEZE_RECEIPT_BINDING')
+        receipt['file_sha256']==file_sha256, 'LOCAL_FREEZE_RECEIPT_BINDING')
     need(receipt.get('local_pre_cutoff_completion_verified') is True and
         instant(pair['generated_at'])<=instant(receipt['write_started_at'])<=instant(receipt['write_completed_at'])<instant(pair['cutoff_at']),
         'LATE_FREEZE_OR_CLOCK_REGRESSION')

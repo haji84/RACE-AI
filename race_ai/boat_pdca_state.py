@@ -191,6 +191,76 @@ class PdcaState:
         return dict(mode=self.mode,**{label:self.db.execute('SELECT count(*) FROM '+table).fetchone()[0]
             for label,table in [('pairs','pairs'),('result_revisions','results'),('scorings','scores'),('retained_file_versions','files')]})
 
+    def content_manifest(self):
+        """Describe exact retained facts without exposing prediction/source bodies."""
+        self.verify_files();blobs=[]
+        for ident, in self.db.execute('SELECT sha FROM blobs ORDER BY sha'):
+            self._get(ident)  # Also authenticate historical versions, not only heads.
+            blobs.append(ident)
+        rows=dict(schema=SCHEMA,mode=self.mode,blobs=blobs)
+        for table,columns in (('files','name,sha'),('heads','name,sha'),('pairs','sha,json_sha,receipt_sha')):
+            rows[table]=list(self.db.execute('SELECT '+columns+' FROM '+table+' ORDER BY '+columns))
+        rows['results']=[(rid,at,ident,sha(body.encode())) for rid,at,ident,body in
+            self.db.execute('SELECT race_id,captured_at,sha,body FROM results ORDER BY race_id,captured_at,sha')]
+        rows['scores']=[(pair,result,sha(body.encode())) for pair,result,body in
+            self.db.execute('SELECT pair_sha,result_sha,body FROM scores ORDER BY pair_sha,result_sha')]
+        return rows
+
+    def content_sha256(self):
+        """Identify retained facts independent of SQLite layout or AEAD nonce."""
+        return digest(self.content_manifest())
+
+    def merge_from(self,source):
+        """Append an authenticated frozen source, preserving existing active heads.
+
+        Same logical filenames can denote different history databases. Every
+        version remains retained; a source manifest preserves the incoming
+        source's own head selection. This does not combine model inputs.
+        Conflicting pair/capture/score identities stop instead of overwriting.
+        """
+        need(self is not source and self.mode==source.mode=='production','STATE_MERGE_PRODUCTION_REQUIRED')
+        manifest=source.content_manifest();ident=digest(manifest)
+        name='source-states/v1/'+ident+'/manifest.json'
+        descriptor=(wire(dict(schema='RACE_AI_PDCA_SOURCE_V1',content_sha256=ident,content=manifest))+'\n').encode()
+        with self.db:
+            for key,body in source.db.execute('SELECT sha,body FROM blobs'):
+                self.db.execute('INSERT OR IGNORE INTO blobs VALUES (?,?)',(key,body))
+            for name_version,blob in source.db.execute('SELECT name,sha FROM files'):
+                self.db.execute('INSERT OR IGNORE INTO files VALUES (?,?)',(name_version,blob))
+            for table in ('pairs','results','scores'):
+                existing=set(self.db.execute('SELECT * FROM '+table))
+                for row in source.db.execute('SELECT * FROM '+table):
+                    if row in existing:continue
+                    try:self.db.execute('INSERT INTO '+table+' VALUES ('+','.join('?' for _ in row)+')',row)
+                    except sqlite3.IntegrityError:raise ValueError('STATE_MERGE_RECORD_CONFLICT_'+table.upper()) from None
+                    existing.add(row)
+            for filename,blob in source.db.execute('SELECT name,sha FROM heads'):
+                self.db.execute('INSERT OR IGNORE INTO heads VALUES (?,?)',(filename,blob))
+            prior=self.db.execute('SELECT sha FROM heads WHERE name=?',(name,)).fetchone()
+            need(prior is None or prior==(sha(descriptor),),'STATE_MERGE_MANIFEST_CONFLICT')
+            self._put(name,descriptor)
+            self.verify_contribution(ident)
+        return ident
+
+    def verify_contribution(self,ident):
+        need(type(ident) is str and re.fullmatch('[a-f0-9]{64}',ident),'STATE_SOURCE_ID_INVALID')
+        name='source-states/v1/'+ident+'/manifest.json'
+        row=self.db.execute('SELECT sha FROM heads WHERE name=?',(name,)).fetchone()
+        need(row is not None,'STATE_SOURCE_MANIFEST_MISSING')
+        raw=self._get(row[0]);need(len(raw)<=4*1024*1024,'STATE_SOURCE_MANIFEST_BOUND')
+        descriptor=json.loads(raw);source=descriptor.get('content')
+        need(set(descriptor)=={'schema','content_sha256','content'} and descriptor['schema']=='RACE_AI_PDCA_SOURCE_V1'
+             and descriptor['content_sha256']==ident and digest(source)==ident and type(source) is dict,
+             'STATE_SOURCE_MANIFEST_INVALID')
+        current=self.content_manifest()
+        need(set(source)==set(current) and source['schema']==SCHEMA and source['mode']==self.mode,
+             'STATE_SOURCE_SCOPE_INVALID')
+        for table in ('files','pairs','results','scores'):
+            need({tuple(r) for r in source[table]}<={tuple(r) for r in current[table]},'STATE_SOURCE_RECORDS_MISSING')
+        need(set(source['blobs'])<=set(current['blobs']),'STATE_SOURCE_BLOBS_MISSING')
+        need({tuple(r) for r in source['heads']}<={tuple(r) for r in current['files']},'STATE_SOURCE_HEAD_VERSION_MISSING')
+        return True
+
     def materialize(self,root):
         self.verify_files()
         root=private_root(root)
