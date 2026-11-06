@@ -124,6 +124,124 @@ def current_requests(events):
     return result
 
 
+def _additional_source_pairs(native_payload, *, as_of):
+    """Check builder manifests and direct proofs before exposing exact pairs.
+
+    The caller authenticates retained input bytes. These local checks neither
+    authenticate capture time independently nor grant new provider rights.
+    """
+    from .all_existing_model_source_derivations import validate_source_derivations, _direct as check_direct
+    local = validate_source_derivations(native_payload)
+    pairs = set(); bindings = {}; clock = _time(as_of)
+    if 'source_evidence' in native_payload:
+        evidence = native_payload['source_evidence']
+        _need(type(evidence) is list, 'ADDITIONAL_SOURCE_EVIDENCE_REQUIRED')
+        for source in evidence:
+            _need(type(source) is dict and type(source.get('source_ref')) is str,
+                  'ADDITIONAL_SOURCE_FIELDS')
+            if not source['source_ref'].lower().startswith('urn:'):
+                _need({'source_sha256', 'captured_at', 'source_rights_ref'}.issubset(source),
+                      'ADDITIONAL_SOURCE_HASH_AND_CAPTURE_REQUIRED')
+    def visit(value):
+        if type(value) is dict:
+            ref = value.get('source_ref', value.get('source_url'))
+            if 'source_ref' in value and 'source_url' in value:
+                _need(value['source_ref'] == value['source_url'], 'CONFLICTING_SOURCE_ALIASES')
+            rights = value.get('source_rights_ref')
+            if ref is not None and rights is not None:
+                _need(type(ref) is str and type(rights) is str, 'ADDITIONAL_SOURCE_FIELDS')
+                if ref.lower().startswith('urn:'):
+                    _need((ref, rights) in local, 'UNVERIFIED_LOCAL_SOURCE')
+                else:
+                    # Manifest validation returns early when no URN is used;
+                    # direct metadata still needs the original as-of bound.
+                    check_direct(value, clock)
+                    if 'captured_at' in value and 'source_sha256' in value:
+                        identity = (ref, rights, _time(value['captured_at']))
+                        binding = (value['source_sha256'], None if value.get('published_at') is None
+                                   else _time(value['published_at']))
+                        _need(identity not in bindings or bindings[identity] == binding,
+                              'CONFLICTING_ADDITIONAL_SOURCE')
+                        bindings[identity] = binding
+                pairs.add((ref, rights))
+            for child in value.values(): visit(child)
+        elif type(value) in (list, tuple):
+            for child in value: visit(child)
+    visit(native_payload)
+    _need(pairs and local.issubset(pairs), 'ADDITIONAL_SOURCE_EVIDENCE_REQUIRED')
+    return pairs
+
+
+def validate_additional_requests(requests, *, now=None):
+    """Detach current P1 BOAT capsules without relaxing the legacy five path.
+
+    Inputs are already acquired and authenticated by the caller. Validation
+    uses their own as-of clocks; the private runtime separately checks actual
+    execution time and its independently admitted candidate artifact.
+    """
+    from . import all_existing_model_registry as registry
+    from .existing_model_dispatch import _race_key
+    if now is not None:
+        from datetime import datetime
+        _need(type(now) is datetime and now.utcoffset() is not None, 'ADDITIONAL_PHYSICAL_CLOCK_REQUIRED')
+    _need(type(requests) in (list, tuple) and len(requests) <= 24*12*15, 'ADDITIONAL_REQUEST_LIMIT')
+    _need(len(_bytes(requests)) <= MAX_PENDING_BYTES, 'ADDITIONAL_SIZE_LIMIT')
+    known = {cell['cell_key']: cell for cell in registry.cells() if cell['sport'] == 'boat'}
+    result = []; seen = {}
+    for supplied in requests:
+        try:
+            _need(type(supplied) is dict and set(supplied) == {'cell_key', 'native_payload'} and
+                  type(supplied['cell_key']) is str and supplied['cell_key'] in known and
+                  type(supplied['native_payload']) is dict, 'ADDITIONAL_REQUEST_FIELDS')
+            request = deepcopy(supplied); cell = known[request['cell_key']]; native = request['native_payload']
+            info = registry.identity(cell['model_id'], 'boat', native)
+            _need(info['scope'] == 'OPERATOR_SUPPLIED_RESEARCH' and info['stage'] == 'P1',
+                  'ADDITIONAL_SCOPE_OR_STAGE')
+            if now is not None:
+                _need(_time(info['as_of']) <= now < _time(info['cutoff_at']), 'ADDITIONAL_PHYSICAL_CLOCK')
+            roster = info['roster']
+            _need(type(roster) is dict and 3 <= len(roster) <= 6 and len(set(roster.values())) == len(roster) and
+                  all(type(value) is str and len(value) == 4 and value.isascii() and value.isdecimal() and
+                      int(value) > 0 for value in roster.values()), 'ADDITIONAL_REGISTERED_ROSTER')
+            pairs = _additional_source_pairs(native, as_of=info['as_of'])
+            def analysis(ref, rights, purpose):
+                return purpose == 'analysis' and (ref, rights) in pairs
+            registry.validate_payload(cell['model_id'], 'boat', native, at=info['as_of'], allow_source=analysis)
+            group = cell['group']
+            if group in ('shared', 'shared_learned'):
+                from .comprehensive_four_sport_models import validate
+                validate(native['snapshot'], allow_source=analysis)
+            elif group == 'boat_full':
+                from .boat_multi_feature_models import validate_snapshot
+                validate_snapshot(native['snapshot'])
+            elif group == 'boat_observed':
+                _validate(native['snapshot'])
+            elif group in ('boat_ab', 'boat_clite', 'boat_tactical'):
+                source = native.get('source', native.get('base_source'))
+                boats = _valid(source, info['as_of'])
+                if group == 'boat_clite':
+                    from .boat_live_feature_shadow import _validated_extra
+                    _validated_extra(source, native['extra'], info['as_of'], boats)
+                elif group == 'boat_tactical':
+                    from .boat_tactical_scenarios import _profiles, _venue
+                    decision = info['as_of'] if now is None else now.isoformat()
+                    _profiles(native['histories'], boats, decision); _venue(native['venue'], decision)
+                    _need(source['race_id'][9:11] == native['venue']['venue_code'], 'ADDITIONAL_TACTICAL_VENUE')
+            elif group == 'boat_pdca':
+                # The legacy PDCA contract's pure bounded Node kernel owns
+                # its facts schema and 24 earlier-result prerequisite too.
+                registry.predict(cell['model_id'], 'boat', native, at=info['as_of'], allow_source=analysis)
+            identity = (request['cell_key'], _race_key(info['race_id'], 'boat'))
+            fingerprint = digest(native)
+            if identity in seen:
+                _need(seen[identity] == fingerprint, 'CONFLICTING_ADDITIONAL_INPUT')
+                continue
+            seen[identity] = fingerprint; result.append(request)
+        except (TypeError, KeyError, AttributeError, OverflowError, IndexError) as exc:
+            raise ValueError('NATIVE_INPUT_ADDITIONAL_REQUEST_INVALID') from exc
+    return result
+
+
 def build_current_requests(data, extra, observed, *, program_url, preview_url,
                            program_captured_at, preview_captured_at):
     """Retain only native families for which actual collected inputs exist."""

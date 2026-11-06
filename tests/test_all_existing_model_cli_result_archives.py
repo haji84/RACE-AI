@@ -1,7 +1,7 @@
 """Encrypted input + separate encrypted official-result admission into fitting."""
 from contextlib import redirect_stdout
 from copy import deepcopy
-from datetime import datetime,timedelta
+from datetime import datetime,timedelta,timezone
 from hashlib import sha256
 import io,json
 from pathlib import Path
@@ -105,6 +105,17 @@ class CliResultArchiveTests(unittest.TestCase):
         self.assertEqual(len(cli._merge_verified_result_observations([original,same])),1)
         self.assertEqual(cli._merge_verified_result_observations([original,same]),
                          cli._merge_verified_result_observations([same,original]))
+
+    def test_equivalent_offset_clocks_merge_without_rewriting_original_bytes(self):
+        original=result_fixture.settled();offset=deepcopy(original)
+        for field in ('captured_at','available_at','published_at','upstream_published_at','closed_at'):
+            if offset.get(field) is not None:
+                offset[field]=datetime.fromisoformat(offset[field].replace('Z','+00:00')).astimezone(
+                    timezone(timedelta(hours=9))).isoformat()
+        first=cli._merge_verified_result_observations([original,offset])
+        second=cli._merge_verified_result_observations([offset,original])
+        self.assertEqual(first,second);self.assertEqual(len(first),1)
+        self.assertIn(first[0],[original,offset])
 
     def test_cached_result_receipt_must_match_independent_github_metadata(self):
         self.metadata[202]=dict(self.result_meta,digest='sha256:'+'0'*64)

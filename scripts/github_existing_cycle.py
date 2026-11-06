@@ -219,6 +219,101 @@ def _native_pending_folder(round_no):
     return Path(os.environ.get('RUNNER_TEMP',tempfile.gettempdir()))/'all-existing-model-inputs'/f'cycle-{round_no}'
 
 
+def _verified_round_additional_requests(round_no,*,now):
+    """Continue only the current round's already-read-back private ciphertext.
+
+    A missing readback marker is the legacy/default path. A present marker
+    must bind the exact sealed bytes, current run/head/round, private view and
+    append-only pointer. No Git/provider operation or external receipt refresh
+    occurs here; the preceding Actions readback acquired that actual receipt.
+    """
+    from copy import deepcopy
+    from datetime import datetime as AwareDatetime
+    from race_ai.actions_contract import digest
+    from race_ai import boat_all_model_cycle as engine,boat_all_model_store as store
+    from race_ai.all_existing_model_inputs import _location
+    from race_ai.all_existing_model_runtime import _private_file
+    from race_ai import all_existing_model_registry as registry
+    from race_ai.existing_model_dispatch import _race_key
+    from race_ai.permissioned_source_delivery import read_json_bytes
+    from scripts import boat_all_model_cycle as cycle
+    need(type(round_no) is int and 1<=round_no<=999999,'ALL_MODEL_NATIVE_ROUND_REQUIRED')
+    need(type(now) is AwareDatetime and now.utcoffset() is not None,'ALL_MODEL_NATIVE_CLOCK_REQUIRED')
+    marker=Path(os.environ.get('RUNNER_TEMP',''))/'boat-all-model-readback.json'
+    if not marker.exists() and not marker.is_symlink():return []
+    env=cycle._environment()
+    need(marker==env['temp']/'boat-all-model-readback.json','ALL_MODEL_NATIVE_MARKER_PATH_INVALID')
+    def read(path,limit):
+        path=Path(path)
+        _location(path.parent)
+        _private_file(path)
+        return cycle._read(path,limit,private=True)
+    reference=read_json_bytes(read(marker,128*1024))
+    fields={'schema','pointer','receipt','private_view_path','view_sha256','round_no','run_id'}
+    need(type(reference) is dict and set(reference)==fields and reference['schema']==cycle.READBACK_SCHEMA and
+         type(reference['round_no']) is int and reference['round_no']==round_no and
+         reference['run_id']==env['run_id'],'ALL_MODEL_NATIVE_READBACK_IDENTITY_INVALID')
+    path,manifest_path=cycle._paths(env,round_no)
+    cipher=read(path,store.MAX_WIRE)
+    payload=store.open_forecasts(cipher)  # Normal owner-key API; no raw key lookup/output here.
+    header=store.forecast_header(cipher);cipher_sha=hashlib.sha256(cipher).hexdigest()
+    need(header['run_id']==env['run_id'] and header['round_no']==round_no and
+         payload.get('schema')==engine.SCHEMA and payload.get('stage')=='P1' and
+         payload.get('source_code_commit')==env['head'] and str(payload.get('run_id'))==env['run_id'],
+         'ALL_MODEL_NATIVE_CIPHER_IDENTITY_INVALID')
+    pointer=store._validate_pointer(reference['pointer'])
+    need(pointer['cipher_sha256']==cipher_sha and pointer['header']==header,
+         'ALL_MODEL_NATIVE_READBACK_CIPHER_MISMATCH')
+    manifest=read_json_bytes(read(manifest_path,8192))
+    manifest_fields={'operation','round_no','run_id','head_sha','inputs_sha256','baseline_artifact',
+                     'cipher_sha256','payload_sha256'}
+    need(type(manifest) is dict and set(manifest)==manifest_fields and manifest['operation']=='generate' and
+         type(manifest['round_no']) is int and manifest['round_no']==round_no and
+         manifest['run_id']==env['run_id'] and manifest['head_sha']==env['head'] and
+         manifest['cipher_sha256']==cipher_sha and manifest['payload_sha256']==digest(payload) and
+         type(manifest['inputs_sha256']) is str and re.fullmatch('[a-f0-9]{64}',manifest['inputs_sha256']) and
+         (manifest['baseline_artifact'] is None or type(manifest['baseline_artifact']) is int and
+          manifest['baseline_artifact']>0),'ALL_MODEL_NATIVE_SEAL_MANIFEST_MISMATCH')
+    baseline=payload.get('baseline')
+    need((baseline is None and manifest['baseline_artifact'] is None) or
+         type(baseline) is dict and type(baseline.get('receipt')) is dict and
+         baseline['receipt'].get('artifact_id')==manifest['baseline_artifact'],
+         'ALL_MODEL_NATIVE_BASELINE_BINDING_INVALID')
+    receipt=engine._receipt(reference['receipt'],digest(payload),env['head'],env['run_id'])
+    saved=ts(receipt['created_at']);generated=ts(payload['generated_at'])
+    need(saved<=now and generated<=now and engine._not_before(payload['generated_at'],receipt['created_at']),
+         'ALL_MODEL_NATIVE_READBACK_CLOCK_INVALID')
+    expected_view=env['temp']/'boat-all-model-views'/f'cycle-{round_no}.json'
+    need(reference['private_view_path']==str(expected_view),'ALL_MODEL_NATIVE_VIEW_PATH_INVALID')
+    view_raw=read(expected_view,store.MAX_PLAIN)
+    need(reference['view_sha256']==hashlib.sha256(view_raw).hexdigest(),'ALL_MODEL_NATIVE_VIEW_HASH_INVALID')
+    view=read_json_bytes(view_raw)
+    need(type(view) is dict and view.get('schema')=='RACE_AI_PRIVATE_CYCLE_VIEW_V1' and
+         view.get('independent_receipts_verified') is True and view.get('source_requests')==0 and
+         ts(view['as_of'])==ts(payload['as_of']),'ALL_MODEL_NATIVE_VIEW_BINDING_INVALID')
+    # Replay uses the exact source-authorizer scope signed in each capsule.
+    # Older ciphertext has no capsules and contributes no reconstructed inputs.
+    capsules=engine.verify_native_input_capsules(payload)
+    requests=[];known={c['cell_key']:c for c in registry.cells()};seen={}
+    for capsule in capsules:
+        need(capsule['stage']=='P1' and capsule['sport']=='boat','ALL_MODEL_NATIVE_STAGE_INVALID')
+        for group,native in capsule['native_inputs'].items():
+            for mid in capsule['group_model_ids'][group]:
+                key=registry.cell_key('boat',mid)
+                need(key in known and known[key]['group']==group,'ALL_MODEL_NATIVE_CELL_INVALID')
+                info=registry.identity(mid,'boat',native)
+                need(info['scope']=='OPERATOR_SUPPLIED_RESEARCH' and info['stage']=='P1' and
+                     ts(info['as_of'])<=generated and saved+timedelta(seconds=1)<ts(info['cutoff_at']),
+                     'ALL_MODEL_NATIVE_PRE_CUTOFF_INPUT_REQUIRED')
+                identity=(key,_race_key(info['race_id'],'boat'));fingerprint=digest(native)
+                if identity in seen:
+                    need(seen[identity]==fingerprint,'ALL_MODEL_NATIVE_CONFLICTING_INPUT')
+                    continue
+                seen[identity]=fingerprint
+                requests.append(dict(cell_key=key,native_payload=deepcopy(native)))
+    return requests
+
+
 def _all_model_research_generate(runtime,round_no):
     """Only verified ciphertext partitions enter the existing upload root."""
     import re,shutil,tempfile
@@ -227,8 +322,10 @@ def _all_model_research_generate(runtime,round_no):
     staging=runtime['preload_folder']/'native-pairs'
     summary=dict(state='HOLD_PRIVATE_NATIVE_INPUTS',production_promoted=False,plaintext_published=False)
     try:
-        summary=generate_current_pairs(runtime,_native_pending_folder(round_no),staging,
-                                       now=datetime.now(timezone.utc))
+        additional=_verified_round_additional_requests(round_no,now=datetime.now(timezone.utc))
+        options=dict(now=datetime.now(timezone.utc))
+        if additional:options['additional_requests']=additional
+        summary=generate_current_pairs(runtime,_native_pending_folder(round_no),staging,**options)
         if summary.get('pending_removed') is True and summary.get('encrypted_readback_verified') is True:
             destination=runtime['output_folder']
             private_root(destination.parent)
