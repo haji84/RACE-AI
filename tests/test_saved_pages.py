@@ -14,6 +14,37 @@ from tests.test_boat_pdca_github_handoff import invented_research_state
 
 
 class SavedPagesTests(unittest.TestCase):
+    def test_portrait_assets_are_packaged_and_can_refresh_without_private_state(self):
+        from race_ai.racer_portraits import FILES
+        built=self.build();public=self.root/'public'
+        for name in FILES:self.assertTrue((public/name).is_file(),name)
+        self.assertIn('racer-portraits.js?v=',(public/'index.html').read_text())
+        class LocalPages(self.m.PagesRepository):
+            def _check_remote(inner):inner.fetch_url=inner.push_url=inner._run(['remote','get-url','origin']).decode().strip()
+        repo=self.root/'repo';remote=self.root/'remote.git';repo.mkdir()
+        for args in (['git','init','--bare',str(remote)],['git','init',str(repo)],['git','-C',str(repo),'remote','add','origin',str(remote)]):
+            subprocess.run(args,check=True,capture_output=True)
+        git=LocalPages(repo)
+        first=self.m.publish_site(repo,public,expected_manifest_sha256=built['manifest_sha256'],initialize=True,transport=git)
+        parent=first['source_commit']
+        ciphertext=git.read(parent,built['cipher_path'],self.m.MAX_WIRE)
+        prior=json.loads(git.read(parent,'site-build.json',32768))
+        before=git._run(['ls-tree','-r',parent,'--','views'])
+        # There are no original SQLite files, keys or owner URL inputs to refresh.
+        report=self.m.refresh_site_assets(repo,expected_parent=parent,transport=git)
+        current=report['source_commit']
+        self.assertEqual(git.read(current,built['cipher_path'],self.m.MAX_WIRE),ciphertext)
+        self.assertEqual(git._run(['ls-tree','-r',current,'--','views']),before)
+        after=json.loads(git.read(current,'site-build.json',32768))
+        self.assertEqual({k:v for k,v in prior.items() if k!='files'}, {k:v for k,v in after.items() if k!='files'})
+        for name in FILES:self.assertEqual(git.read(current,name,self.m.MAX_WIRE),(public/name).read_bytes())
+        self.assertEqual(report['portrait_count'],6)
+        with self.assertRaises(ValueError):self.m.refresh_site_assets(repo,expected_parent=parent,transport=git)
+        # A partial manifest cannot silently adopt a damaged Pages deployment.
+        damaged=deepcopy(after);damaged['files']={built['cipher_path']:after['files'][built['cipher_path']]}
+        bad=git.commit({'site-build.json':(wire(damaged)+'\n').encode()},current);git.push(bad,current)
+        with self.assertRaises(ValueError):self.m.refresh_site_assets(repo,expected_parent=bad,transport=git)
+
     def setUp(self):
         from race_ai import saved_pages
         self.m=saved_pages;self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)

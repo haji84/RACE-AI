@@ -16,6 +16,7 @@ import stat
 import sys
 import threading
 from urllib.parse import parse_qsl, urlsplit
+from .racer_portraits import FILES as PORTRAIT_FILES
 
 ASSETS = {
     "/": ("index.html", "text/html; charset=utf-8"),
@@ -30,6 +31,8 @@ ASSETS = {
     "/data/example-synthetic-forecast-audit.json": (
         "data/example-synthetic-forecast-audit.json", "application/json; charset=utf-8"),
 }
+ASSETS.update({'/' + name: (name, 'image/webp' if name.endswith('.webp') else 'text/javascript; charset=utf-8')
+               for name in PORTRAIT_FILES})
 SPORTS = frozenset(("boat", "keirin", "autorace", "horse"))
 STAGES = frozenset(("P0", "P1", "A_PRE_TRIAL", "B_POST_TRIAL"))
 CAPABILITY = b'<meta name="race-ai-generation-api" content="/api/forecast">'

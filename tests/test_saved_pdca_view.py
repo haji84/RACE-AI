@@ -10,6 +10,22 @@ from tests.test_local_forecast_server import serving,request
 
 
 class SavedPdcaViewTests(unittest.TestCase):
+    def test_portraits_are_served_locally_and_embedded_in_offline_export(self):
+        from race_ai.racer_portraits import FILES
+        from race_ai.saved_pdca_view import SavedPdcaService,export_view
+        service=SavedPdcaService(self.state)
+        with serving(service,automatic=False) as (server,_):
+            for name in FILES:
+                status,headers,body=request(server,'GET','/'+name)
+                self.assertEqual(status,200,name)
+                self.assertTrue(body)
+                if name.endswith('.webp'):self.assertIn('image/webp',headers['Content-Type'])
+            self.assertEqual(request(server,'GET','/assets/racer-portraits/boat-9999.webp')[0],404)
+        out=self.root/'portrait-export.html';export_view(service.saved_projection(),out)
+        html=out.read_text()
+        self.assertNotIn('src="./racer-portraits.js"',html)
+        self.assertEqual(html.count('data:image/webp;base64,'),6)
+
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
         self.root=Path(self.tmp.name);self.state,self.pair=invented_research_state(self.root)
