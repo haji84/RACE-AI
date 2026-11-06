@@ -252,6 +252,28 @@ jobs:
           path: ${{ runner.temp }}/boat-production-readback/production-readback-status.json
           retention-days: 7
           if-no-files-found: error
+      - name: Connect frozen venue observations to existing shadow fitter or explicit HOLD
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          RACE_AI_SOURCE_REVIEW_KEY: ${{ secrets.RACE_AI_SOURCE_REVIEW_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          policy_args=()
+          if [[ -f audit/state/boat-venue-learning-permissions.json ]]; then
+            policy_args+=(--permission-policy audit/state/boat-venue-learning-permissions.json)
+          fi
+          python -m scripts.boat_venue_learning --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/boat-venue-learning" "${policy_args[@]}"
+      - name: Keep owner-encrypted learning candidate and count-only status
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-venue-learning-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/boat-venue-learning/learning.enc
+            ${{ runner.temp }}/boat-venue-learning/learning.json
+            ${{ runner.temp }}/boat-venue-learning/summary.json
+          retention-days: 7
+          if-no-files-found: error
   viewer_contract:
     if: github.event_name == 'pull_request'
     name: Viewer audit contract
