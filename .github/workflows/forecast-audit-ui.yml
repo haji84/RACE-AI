@@ -263,6 +263,9 @@ jobs:
           if [[ -f audit/state/boat-venue-learning-permissions.json ]]; then
             policy_args+=(--permission-policy audit/state/boat-venue-learning-permissions.json)
           fi
+          if [[ -f audit/state/boat-venue-learning-owner-research.json ]]; then
+            policy_args+=(--owner-research-record audit/state/boat-venue-learning-owner-research.json)
+          fi
           python -m scripts.boat_venue_learning --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/boat-venue-learning" "${policy_args[@]}"
       - name: Keep owner-encrypted learning candidate and count-only status
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -567,6 +570,10 @@ jobs:
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
         run: python -m scripts.boat_venue_dataset readback --input audit/state/boat-venue-dataset-input.json --out-dir "$RUNNER_TEMP/venue-history-grid"
+      - name: Restore immutable encrypted personal-research coefficients
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_venue_learning_handoff readback --input audit/state/boat-venue-learning-input.json --out-dir "$RUNNER_TEMP/venue-learning-retained"
 
   video_context_cipher_ingest:
     name: Private video-context ciphertext intake or explicit HOLD
