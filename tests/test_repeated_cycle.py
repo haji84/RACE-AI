@@ -373,6 +373,7 @@ class RepeatedControllerTests(unittest.TestCase):
         r.SourceGuard(self.path,clock=lambda:now).http_success()
         self.assertEqual(r.load(self.path)['source_wait']['state'],'AUTHORIZATION_WAIT')
 
+    @patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None)
     def test_hard_inherited_identity_halt_overrides_stale_timed_wait(self):
         now=stamp();wait=r.plan_http_wait(429,{},now)
         r.start(self.path,day='2030-04-01',run_id=99,now=now,source_control=dict(
