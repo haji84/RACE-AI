@@ -474,9 +474,15 @@ def extract_tracks(path, *, options=None, identity_provider=None):
                 if identity_provider is not None:
                     if previous is not None and camera_homography is None:
                         camera_scene += 1
-                    observation = identity_provider.identify(frame, detections, t=float(t),
-                        frame_index=frame_index, scene=camera_scene,
-                        previous_to_current=camera_homography)
+                    camera_identity = getattr(identity_provider, "identify_with_camera_status", None)
+                    if callable(camera_identity):
+                        observation = camera_identity(frame, detections, t=float(t), frame_index=frame_index,
+                            scene=camera_scene, camera_status=camera["status"],
+                            previous_to_current=camera_homography)
+                    else:
+                        observation = identity_provider.identify(frame, detections, t=float(t),
+                            frame_index=frame_index, scene=camera_scene,
+                            previous_to_current=camera_homography)
                     frame_sha256 = hashlib.sha256(frame.tobytes()).hexdigest()
                     observation = {**observation, "decoded_frame_sha256": frame_sha256}
                     identity_observations.append(json.loads(json.dumps(observation, allow_nan=False)))

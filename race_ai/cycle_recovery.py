@@ -253,16 +253,21 @@ def validate_document_history(document,proofs):
     from .observed_result_history import validate_history_proofs
     for item in evidence:validate_history_proofs(item,proofs)
 
-def recover(get,day,*,current_run,out,clock=None):
+def recover(get,day,*,current_run,out,clock=None,video_receipt_verifier=None):
     """Read every same-day P1 original and every saved result journal, no writes upstream."""
     rows=[];observations=[];receipts=[];scanned=[];index_entries=[]
     learning_shadows=[];learning_context=None;training_proofs={}
     history_context=None;history_proofs={};history_documents=[]
     entry_history_cache=None;entry_history_order=None;entry_history_rejections=0
     clock=clock or (lambda:datetime.now(timezone.utc))
+    if video_receipt_verifier is None:
+        from .boat_video_archive import VideoContextArchiveReader
+        video_receipt_verifier=VideoContextArchiveReader(get,clock=clock).verify
+    video_context_artifact_ids=set()
+    video_shadow_rejections=[]
     from .observed_result_history import context_from_result_archive as history_from_archive,history_proof
     source_control=previous_source_control(get,day,current_run=current_run)
-    from .observed_weight_learning import read_shadow_rows,context_from_result_archive,merge_shadow_rows,training_proof,validate_shadow_training,attach_snapshots
+    from .observed_weight_learning import context_from_result_archive,merge_shadow_rows,training_proof,attach_snapshots
     out.mkdir(parents=True,exist_ok=True)
     for run in day_runs(get,day,current_run=current_run):
         artifacts=artifact_pages(get,run['id'])
@@ -308,7 +313,14 @@ def recover(get,day,*,current_run,out,clock=None):
                             entry_history_cache=candidate_cache;entry_history_order=order
                     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
                         body_sha=hashlib.sha256(archive.read('national.json')).hexdigest()
-                    learning_shadows+=read_shadow_rows(doc,meta,items)
+                    from .boat_video_archive import read_optional_video_shadows
+                    accepted,rejected=read_optional_video_shadows(doc,meta,items,
+                        receipt_verifier=video_receipt_verifier)
+                    learning_shadows+=accepted;video_shadow_rejections+=rejected
+                    if not rejected:
+                        video_context_artifact_ids.update(record['video_receipt']['id']
+                            for record in doc.get('learned_pairwise_shadows',[])
+                            if record.get('schema')=='RACE_AI_EXISTING_OBSERVED_VIDEO_SHADOW_V1')
                     history_documents.append(doc)
                     for pair in doc.get('paired_forecasts',[]):
                         index_entries.append(dict(race_id=pair['race_id'],cutoff_at=pair['cutoff_at'],run_id=run['id'],artifact_id=ident,server_created_at=meta['created_at'],zip_sha256=hashlib.sha256(raw).hexdigest(),json_sha256=body_sha,bundle_sha256=pair['bundle_sha256']))
@@ -326,10 +338,30 @@ def recover(get,day,*,current_run,out,clock=None):
                     history_context=prior_history
                 if payload_day==day:observations+=day_observations
                 candidate=context_from_result_archive(raw,meta)
-                if candidate is not None:training_proofs[str(meta['id'])]=training_proof(candidate)
+                if candidate is not None:
+                    training_proofs[str(meta['id'])]=training_proof(candidate)
+                    if candidate['training']['schema']=='RACE_AI_EXISTING_OBSERVED_VIDEO_WEIGHT_FIT_V1':
+                        video_context_artifact_ids.update(lineage['video_receipt_proof']['id']
+                            for lineage in candidate['training']['source_lineage']
+                            if lineage.get('video_receipt_proof') is not None)
+                # Retain source handles even before enough races support a fit.
+                # Their parent result bytes are authenticated above; these IDs
+                # are independently read again before any next fit/inference.
+                with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+                    if 'status.json' in archive.namelist():
+                        need(archive.getinfo('status.json').file_size<=16*1024*1024,
+                             'oversized cycle report')
+                        report=json.loads(archive.read('status.json'))
+                        handles=report.get('video_context_artifact_ids',[])
+                        need(type(handles) is list and len(handles)<=10000 and
+                             all(type(value) is int and value>0 for value in handles) and
+                             handles==sorted(set(handles)),'BOAT_VIDEO_ARCHIVE_REJECTED')
+                        video_context_artifact_ids.update(handles)
                 if payload_day==day and candidate is not None and (learning_context is None or ts(meta['created_at'])>ts(learning_context['receipt']['created_at'])):
                     learning_context=candidate
-    validate_shadow_training(learning_shadows,training_proofs)
+    from .boat_video_archive import validate_optional_video_training
+    learning_shadows,rejected=validate_optional_video_training(learning_shadows,training_proofs)
+    video_shadow_rejections+=rejected
     for document in history_documents:validate_document_history(document,history_proofs)
     unique,excluded=first_receipt_rows(rows)
     _,journal=latest_result_observations(observations)
@@ -342,6 +374,12 @@ def recover(get,day,*,current_run,out,clock=None):
                entry_observation_history=entry_history_cache,
                entry_observation_history_rejections=entry_history_rejections,
                entry_observation_history_rejection_reason='ENTRY_HISTORY_CACHE_REJECTED' if entry_history_rejections else None)
+    if video_context_artifact_ids:
+        # IDs are handles for the next invocation to independently re-read;
+        # they are not JSON authentication claims or substitute receipt proofs.
+        state['video_context_artifact_ids']=sorted(video_context_artifact_ids)
+    if video_shadow_rejections:
+        state['video_shadow_rejections']=video_shadow_rejections
     state['state_sha256']=hashlib.sha256(json.dumps(state,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode()).hexdigest()
     (out/'continuity.json').write_text(json.dumps(state,ensure_ascii=False))
     return state

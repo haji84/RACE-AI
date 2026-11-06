@@ -54,7 +54,20 @@ def original(day):
     need(rows[0]['original_json_sha256']==known['json_sha256'],'original body changed')
     return doc,attach_snapshots(doc,rows),receipt,raw
 
-def restore(day):
+def _video_sources(state,requested,reader=None):
+    """Lazy optional archive reads; no video source GET occurs in the default flow."""
+    from race_ai.boat_video_archive import VideoContextArchiveReader
+    reader=reader or VideoContextArchiveReader(gh)
+    try:
+        inherited=state.get('video_context_artifact_ids',[])
+        need(type(inherited) is list and type(requested) in (tuple,list),
+             'BOAT_VIDEO_ARCHIVE_REJECTED')
+        reader.load(inherited+list(requested))
+        return reader,None
+    except (ValueError,KeyError,TypeError):
+        return reader,'BOAT_VIDEO_ARCHIVE_REJECTED'
+
+def restore(day,*,video_context_artifacts=(),video_reader=None):
     import zipfile,io
     doc,rows,meta,raw=original(day);folder=ROOT/'boat_all_day_output';folder.mkdir(exist_ok=True)
     with zipfile.ZipFile(io.BytesIO(raw)) as z:body=z.read('forecasts.json')
@@ -64,10 +77,20 @@ def restore(day):
     else:
         with target.open('xb') as f:f.write(body)
     (folder/'first-receipt.json').write_text(json.dumps(meta,ensure_ascii=False))
-    state=recover(gh,day,current_run=int(os.environ['GITHUB_RUN_ID']),out=ROOT/'cycle_recovery_output')
+    reader,error=_video_sources({},video_context_artifacts,video_reader)
+    state=recover(gh,day,current_run=int(os.environ['GITHUB_RUN_ID']),out=ROOT/'cycle_recovery_output',
+                  video_receipt_verifier=reader.verify)
+    if reader.artifact_ids or error:
+        from race_ai.repeated_cycle import write_state
+        if reader.artifact_ids:
+            state['video_context_artifact_ids']=sorted(set(state.get('video_context_artifact_ids',[]))|
+                                                       set(reader.artifact_ids))
+        if error:
+            state.setdefault('video_context_rejections',[]).append({'reason':error})
+        write_state(ROOT/'cycle_recovery_output/continuity.json',state,key='state_sha256')
     print(json.dumps(dict(state='ORIGINAL_REUSED_NO_REGENERATION',races=doc['race_count'],forecasts=len(rows),artifact_id=meta['id'])))
 
-def forecast(day):
+def forecast(day,*,video_context_artifacts=(),video_reader=None):
     from scripts import boat_nationwide_ab_pilot as pilot
     state=load_state(ROOT/'cycle_recovery_output/continuity.json',day)
     index=json.loads(pilot.FROZEN_INDEX.read_text())
@@ -84,18 +107,32 @@ def forecast(day):
     if session.exists():pilot.SOURCE_GUARD=SourceGuard(session)
     pilot.OBSERVED_HISTORY_CONTEXT=state.get('history_context')
     pilot.ENTRY_OBSERVATION_HISTORY=state.get('entry_observation_history')
+    # Optional archive I/O precedes fresh official model snapshots. It must not
+    # consume the remaining physical-save window of already generated P1 rows.
+    reader,video_error=_video_sources(state,video_context_artifacts,video_reader)
     result=pilot.run(schedule_snapshot=state.get('schedule_cache'))
     from race_ai.observed_weight_learning import make_shadows
     result['learned_pairwise_shadows']=[];result['learning_failures']=[]
+    if video_error:
+        result['learning_failures'].append({'reason':video_error})
     context=state.get('learning_context')
     for bundle in result.get('observed_pairwise_p1_bundles',[]):
         if context is None or 'suite' not in bundle:continue
         try:
             need(ts(bundle['snapshot']['sales_cutoff_at'])-datetime.now(timezone.utc)>timedelta(seconds=210),
                  'learned inference too near cutoff')
-            result['learned_pairwise_shadows']+=make_shadows(bundle['snapshot'],bundle['suite'],context)
+            if context['training']['schema']=='RACE_AI_EXISTING_OBSERVED_VIDEO_WEIGHT_FIT_V1':
+                need(video_error is None,video_error)
+                envelope=reader.select(bundle['snapshot'])
+                need(envelope is not None,'AUTHENTICATED_VIDEO_CONTEXT_UNAVAILABLE')
+                result['learned_pairwise_shadows']+=make_shadows(bundle['snapshot'],bundle['suite'],context,
+                    video_context=envelope,video_receipt_verifier=reader.verify)
+            else:
+                result['learned_pairwise_shadows']+=make_shadows(bundle['snapshot'],bundle['suite'],context)
         except (ValueError,KeyError,TypeError) as exc:
             result['learning_failures'].append({'race_id':bundle['race_id'],'reason':str(exc)[:180]})
+    if reader.artifact_ids:
+        result['video_context_artifact_ids']=reader.artifact_ids
     (pilot.OUTPUT/'national.json').write_text(json.dumps(result,ensure_ascii=False,sort_keys=True,separators=(',',':')))
 
 
@@ -200,9 +237,10 @@ def observe_due_results(due,observations,day,guard=None):
             failures.append(dict(race_id=rid,state='SOURCE_OR_PARSE_UNAVAILABLE',reason=type(exc).__name__+': '+str(exc)[:120]))
     return observations,failures,requests_used
 
-def audit(day,p1_id,p0_supplement=None,round_no=None):
+def audit(day,p1_id,p0_supplement=None,round_no=None,*,video_context_artifacts=(),video_reader=None):
     doc,rows,p0_meta,p0_zip=original(day);sources=[p0_meta];p1_doc=None;p1_meta=None
     recovered=load_state(ROOT/'cycle_recovery_output/continuity.json',day)
+    reader,video_error=_video_sources(recovered,video_context_artifacts,video_reader)
     rows+=recovered['rows'];sources+=recovered['receipts']
     out=ROOT/'existing_cycle_output';out.mkdir(exist_ok=True)
     (out/'first-p0-original.zip').write_bytes(p0_zip)
@@ -252,12 +290,19 @@ def audit(day,p1_id,p0_supplement=None,round_no=None):
                                      'included_in_formal_scoreboard':False}
     (out/'external_research_summary.json').write_text(json.dumps(report['external_research'],ensure_ascii=False,indent=2))
 
-    from race_ai.observed_weight_learning import (fit_from_verified,read_shadow_rows,
-        merge_shadow_rows,score_shadows,coverage_audit,validate_shadow_training)
+    from race_ai.observed_weight_learning import (fit_from_verified,
+        merge_shadow_rows,score_shadows,coverage_audit)
     shadow_rows=list(recovered.get('learning_shadows',[]))
-    if p1_doc is not None: shadow_rows+=read_shadow_rows(p1_doc,p1_meta,rows)
+    from race_ai.boat_video_archive import read_optional_video_shadows,validate_optional_video_training
+    video_rejections=list(recovered.get('video_shadow_rejections',[]))
+    if p1_doc is not None:
+        accepted,rejected=read_optional_video_shadows(p1_doc,p1_meta,rows,receipt_verifier=reader.verify)
+        shadow_rows+=accepted;video_rejections+=rejected
     shadow_rows=merge_shadow_rows(shadow_rows)
-    validate_shadow_training(shadow_rows,recovered.get('training_proofs',{}))
+    shadow_rows,rejected=validate_optional_video_training(shadow_rows,recovered.get('training_proofs',{}))
+    video_rejections+=rejected
+    if video_rejections:
+        report['video_shadow_rejections']=video_rejections
     if p1_doc is not None:
         from race_ai.cycle_recovery import validate_document_history
         validate_document_history(p1_doc,recovered.get('history_proofs',{}))
@@ -267,7 +312,12 @@ def audit(day,p1_id,p0_supplement=None,round_no=None):
         observations=latest_observations,learned_rows=shadow_rows)
     training_path=out/'trained_observed_models.json'
     try:
-        training=fit_from_verified(rows,latest_observations,now=datetime.now(timezone.utc))
+        need(video_error is None,video_error)
+        if reader.artifact_ids:
+            training=fit_from_verified(rows,latest_observations,now=datetime.now(timezone.utc),
+                video_contexts=reader.contexts_for_rows(rows),video_receipt_verifier=reader.verify)
+        else:
+            training=fit_from_verified(rows,latest_observations,now=datetime.now(timezone.utc))
         prior=(recovered.get('learning_context') or {}).get('training')
         if prior is not None and {k:v for k,v in prior.items() if k not in ('created_at','training_sha256')}=={k:v for k,v in training.items() if k not in ('created_at','training_sha256')}:
             training=prior  # Do not invent a new candidate version for unchanged evidence.
@@ -278,6 +328,10 @@ def audit(day,p1_id,p0_supplement=None,round_no=None):
         report['automatic_learning']={'state':'LEARNING_INPUT_REJECTED','reason':str(exc)[:200],
                                       'auto_promoted':False,'accuracy_improvement_proven':False}
     report['next_action']='FREEZE_TRAINED_CANDIDATES_THEN_COMPARE_FUTURE_RACES'
+    if reader.artifact_ids:
+        report['video_context_artifact_ids']=reader.artifact_ids
+    if video_error:
+        report['video_context_status']=video_error
     report['updated_at']=datetime.now(timezone.utc).isoformat()
     report['round_no']=round_no
     if session_path.exists():report['bounded_repeat_session']=load_session(session_path)
@@ -409,6 +463,11 @@ def repeat_complete(day,round_no,p1_id,result_id):
     if context is not None:
         continuity['learning_context']=context
         continuity.setdefault('training_proofs',{})[str(meta['id'])]=training_proof(context)
+    if 'video_context_artifact_ids' in report:
+        handles=report['video_context_artifact_ids']
+        need(type(handles) is list and all(type(ident) is int and ident>0 for ident in handles) and
+             handles==sorted(set(handles)),'BOAT_VIDEO_ARCHIVE_REJECTED')
+        continuity['video_context_artifact_ids']=handles
     write_state(ROOT/'cycle_recovery_output/continuity.json',continuity,key='state_sha256')
     state=complete(ROOT/'cycle_recovery_output/repeat-session.json',round_no,
                    now=datetime.now(timezone.utc),forecast_artifact=p1_id,result_artifact=result_id)
@@ -420,13 +479,19 @@ def main():
     p=argparse.ArgumentParser()
     p.add_argument('command',choices=['restore','forecast','audit','supplement','repeat-start','repeat-prepare','repeat-complete'])
     p.add_argument('--p1-artifact',type=int);p.add_argument('--p0-supplement',type=int)
-    p.add_argument('--result-artifact',type=int);p.add_argument('--round',type=int);a=p.parse_args()
+    p.add_argument('--result-artifact',type=int);p.add_argument('--round',type=int)
+    p.add_argument('--video-context-artifact',type=int,action='append',default=[],
+                   help='Optional independently read existing-run video-context artifact ID; repeatable')
+    a=p.parse_args()
+    if a.video_context_artifact and a.command not in ('restore','forecast','audit'):
+        p.error('--video-context-artifact applies only to restore, forecast or audit')
+    video_options={'video_context_artifacts':a.video_context_artifact} if a.video_context_artifact else {}
     day=event_day()
-    if a.command=='restore':restore(day)
-    elif a.command=='forecast':forecast(day)
+    if a.command=='restore':restore(day,**video_options)
+    elif a.command=='forecast':forecast(day,**video_options)
     elif a.command=='supplement':supplement(day,a.round)
     elif a.command=='repeat-start':repeat_start(day)
     elif a.command=='repeat-prepare':repeat_prepare(day,a.round)
     elif a.command=='repeat-complete':repeat_complete(day,a.round,a.p1_artifact,a.result_artifact)
-    else:audit(day,a.p1_artifact,a.p0_supplement,a.round)
+    else:audit(day,a.p1_artifact,a.p0_supplement,a.round,**video_options)
 if __name__=='__main__':main()

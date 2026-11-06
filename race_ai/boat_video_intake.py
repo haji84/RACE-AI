@@ -49,6 +49,14 @@ _CLASSES = {"PRIORITY_T_MINUS_15_TO_10", "PRE_CUTOFF_LATE_WINDOW", "LATE_HISTORI
 _FAILURES = {"MEDIA_INTEGRITY_REJECTED", "ANALYSIS_FAILED", "REPORT_PERSIST_FAILED",
              "INTERRUPTED_PREVIOUS_ATTEMPT", "STORAGE_UNAVAILABLE"}
 _MAX_CONNECTION = 32 * 1024 * 1024
+_PUBLICATION_SCHEMA = 'RACE_AI_BOAT_VIDEO_INTAKE_PUBLICATION_V1'
+_PUBLICATION_NAME = re.compile(r'([a-f0-9]{64})\.([a-f0-9]{64})\.(started|finished)\.json\Z')
+_PUBLICATION_ACCEPTED = 'DISPATCH_REQUEST_ACCEPTED_NOT_ARTIFACT_RECEIPT'
+_PUBLICATION_UNKNOWN = 'HOLD_PUBLICATION_OUTCOME_UNKNOWN'
+_PREPOST_HOLDS = {'HOLD_OWNER_STATE_KEY_REQUIRED', 'HOLD_PLATFORM_ACTIVATION_UNVERIFIED',
+    'HOLD_VIDEO_PUBLICATION_DEADLINE', 'HOLD_DISPATCH_PAYLOAD_TOO_LARGE',
+    'HOLD_ORIGINALS_OR_CONTEXT_UNAVAILABLE', 'HOLD_PUBLISHER_TRANSPORT_UNCONFIGURED',
+    'HOLD_PUBLICATION_CLOCK_UNAVAILABLE'}
 
 
 class IntakeStorageError(ValueError):
@@ -472,8 +480,212 @@ def _connection_reports(directory, selected):
         yield _decode_report(_read_report(directory, ident + '.json'), ident)
 
 
+@contextmanager
+def _publication_store(private_root):
+    with _parent_handle(_path(private_root)) as parent:
+        _private(os.fstat(parent), directory=True)
+        try:
+            os.mkdir('video-publications', 0o700, dir_fd=parent)
+            os.fsync(parent)
+        except FileExistsError:
+            pass
+        directory = os.open('video-publications', os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW,
+                            dir_fd=parent)
+        try:
+            _private(os.fstat(directory), directory=True)
+            yield directory
+        finally:
+            os.close(directory)
+
+
+def _publication_view(value, *, outcome=None, status=None):
+    return dict(context_sha256=value['context_sha256'], report_sha256=value['report_sha256'],
+        publisher_configuration_sha256=value['publisher_configuration_sha256'],
+        outcome=value['outcome'] if outcome is None else outcome,
+        status=value['status'] if status is None else status,
+        artifact_receipt_verified=False, production_eligible=False)
+
+
+def _publication_event(context, configuration, phase, outcome, status, *, response=None):
+    from .actions_contract import digest
+    value = dict(schema_version=_PUBLICATION_SCHEMA, context_sha256=context['context_sha256'],
+        report_sha256=context['report_sha256'], publisher_configuration_sha256=configuration,
+        recorded_at=datetime.now(timezone.utc).isoformat(), phase=phase, outcome=outcome, status=status,
+        artifact_receipt_verified=False, production_eligible=False)
+    if outcome == 'ACCEPTED':
+        value.update(context_count=1, cipher_sha256=response['cipher_sha256'],
+                     dispatch_sha256=response['dispatch_sha256'])
+    value['state_sha256'] = digest(value)
+    return value
+
+
+def _publication_events(directory, context):
+    from .actions_contract import digest
+    events = {}
+    for name in _names(directory):
+        if name == 'process.lock':
+            continue
+        match = _PUBLICATION_NAME.fullmatch(name)
+        _need(match is not None)
+        if match[1] != context['context_sha256']:
+            continue
+        value = _json(_read(directory, name))
+        fields = {'schema_version', 'context_sha256', 'report_sha256', 'publisher_configuration_sha256',
+            'recorded_at', 'phase', 'outcome', 'status', 'artifact_receipt_verified',
+            'production_eligible', 'state_sha256'}
+        if value.get('outcome') == 'ACCEPTED':
+            fields |= {'context_count', 'cipher_sha256', 'dispatch_sha256'}
+            _need(type(value.get('context_count')) is int and value['context_count'] == 1 and all(type(value.get(key)) is str and
+                _SHA.fullmatch(value[key]) for key in ('cipher_sha256', 'dispatch_sha256')))
+        _need(set(value) == fields and value['schema_version'] == _PUBLICATION_SCHEMA and
+            value['context_sha256'] == context['context_sha256'] and
+            value['report_sha256'] == context['report_sha256'] and
+            value['publisher_configuration_sha256'] == match[2] and value['phase'] == match[3] and
+            value['artifact_receipt_verified'] is False and value['production_eligible'] is False and
+            digest({key: child for key, child in value.items() if key != 'state_sha256'}) == value['state_sha256'])
+        _time(value['recorded_at'])
+        _need((value['phase'] == 'started' and value['outcome'] == 'STARTED' and
+               value['status'] == 'PUBLICATION_ATTEMPT_STARTED') or
+              (value['phase'] == 'finished' and
+               ((value['outcome'] == 'HOLD' and value['status'] in _PREPOST_HOLDS) or
+                (value['outcome'] == 'ACCEPTED' and value['status'] == _PUBLICATION_ACCEPTED) or
+                (value['outcome'] == 'UNKNOWN' and value['status'] == _PUBLICATION_UNKNOWN))))
+        events[match[2], match[3]] = value
+    return events
+
+
+def _publication_binding(root, report, bundle, evidence, inputs):
+    from .boat_video_model_context import validate_video_context
+    context = bundle['video_context']
+    _need(validate_video_context(context, race_id=report['race_id'], cutoff_at=report['cutoff_at'],
+        as_of=context['as_of'], roster=report['roster']) == context and
+        context['eligible_for_research'] is True and context['report_sha256'] == report['report_sha256'])
+    with _report_directory(root, create=False) as reports:
+        _need(_decode_report(_read_report(reports, report['report_sha256']+'.json'), report['report_sha256']) == report)
+    media_name = report['source']['media_sha256'] + '.media'
+    with _store(root, create=False) as (_, directories):
+        _media_checked(directories['media'], media_name, report['source']['media_sha256'])
+    return dict(report=deepcopy(report), identity_evidence=deepcopy(evidence), model_inputs=deepcopy(inputs),
+        connection_bundle=deepcopy(bundle), video_context=deepcopy(context),
+        report_path=root/'video-evaluations'/(report['report_sha256']+'.json'),
+        media_path=root/'video-intake'/'media'/media_name)
+
+
+def _publish_context(root, report, bundle, evidence, inputs, publisher, clock):
+    """Journal one trusted callback; UNKNOWN/accepted contexts never auto-retry."""
+    context = bundle['video_context']
+    configuration = None
+    fallback = dict(context_sha256=context['context_sha256'], report_sha256=report['report_sha256'],
+        publisher_configuration_sha256=None, outcome='HOLD', status='HOLD_PUBLISHER_CONFIGURATION_REQUIRED',
+        artifact_receipt_verified=False, production_eligible=False)
+    started = False
+    try:
+        try:
+            configuration = getattr(publisher, 'configuration_sha256', None)
+        except Exception:
+            return fallback, None
+        if not (callable(publisher) and type(configuration) is str and _SHA.fullmatch(configuration)):
+            return fallback, None
+        fallback['publisher_configuration_sha256'] = configuration
+        with _publication_store(root) as directory:
+            with _lock(directory, 'process.lock', nonblocking=True):
+                events = _publication_events(directory, context)
+                for (config, phase), event in events.items():
+                    if phase == 'finished' and event['outcome'] in ('ACCEPTED', 'UNKNOWN'):
+                        return _publication_view(event), False
+                    if phase == 'started' and (config, 'finished') not in events:
+                        return _publication_view(event, outcome='UNKNOWN', status=_PUBLICATION_UNKNOWN), False
+                if (configuration, 'finished') in events:
+                    return _publication_view(events[configuration, 'finished']), False
+                prefix = context['context_sha256']+'.'+configuration
+                event = _publication_event(context, configuration, 'started', 'STARTED', 'PUBLICATION_ATTEMPT_STARTED')
+                _immutable(directory, prefix+'.started.json', _wire(event))
+                started = True
+                try:
+                    from .boat_video_connection import _instant
+                    instant = _instant(clock)
+                except Exception:
+                    response = dict(status='HOLD_PUBLICATION_CLOCK_UNAVAILABLE')
+                else:
+                    if instant >= _time(context['cutoff_at']):
+                        response = dict(status='HOLD_VIDEO_PUBLICATION_DEADLINE')
+                    else:
+                        try:
+                            binding = _publication_binding(root, report, bundle, evidence, inputs)
+                        except Exception:
+                            response = dict(status='HOLD_ORIGINALS_OR_CONTEXT_UNAVAILABLE')
+                        else:
+                            try:
+                                response = publisher(binding)
+                            except Exception:
+                                response = None
+                status = (response.get('status') if type(response) is dict and
+                          type(response.get('status')) is str else None)
+                accepted = (status == _PUBLICATION_ACCEPTED and type(response.get('context_count')) is int and
+                    response['context_count'] == 1 and
+                    all(type(response.get(key)) is str and _SHA.fullmatch(response[key])
+                        for key in ('cipher_sha256', 'dispatch_sha256')))
+                outcome = 'ACCEPTED' if accepted else 'HOLD' if status in _PREPOST_HOLDS else 'UNKNOWN'
+                status = status if outcome != 'UNKNOWN' else _PUBLICATION_UNKNOWN
+                final = _publication_event(context, configuration, 'finished', outcome, status, response=response)
+                _immutable(directory, prefix+'.finished.json', _wire(final))
+                return _publication_view(final), True
+    except Exception:
+        fallback.update(outcome='UNKNOWN' if started else 'HOLD',
+                        status=_PUBLICATION_UNKNOWN if started else 'HOLD_PUBLICATION_STORAGE_UNAVAILABLE')
+        return fallback, True if started else None
+
+
+def _publication_summary(states, created, reused=()):
+    unique = {(state['context_sha256'], state['publisher_configuration_sha256']): state for state in states}
+    return dict(status='PUBLICATION_ATTEMPTS_RECORDED' if unique else 'WAITING_FOR_QUALIFIED_CONTEXTS',
+        processed=sum(key in created for key in unique),
+        reused=sum(key in reused and key not in created for key in unique),
+        states=list(unique.values()), counts={outcome: sum(row['outcome'] == outcome for row in unique.values())
+            for outcome in sorted({row['outcome'] for row in unique.values()})},
+        artifact_receipt_verified=False, production_eligible=False)
+
+
+def make_context_publisher(*, configuration_sha256, expected_head_sha, key_provider=None,
+                           platform_ready=False, send=None, clock=None):
+    """Configure a trusted Python adapter; construction performs no external I/O.
+
+    ``configuration_sha256`` is an opaque NONSECRET revision, never a key hash.
+    Change it when a known pre-POST HOLD is configured. A sender is mandatory;
+    this adapter never falls back to gh, activates a platform, or creates keys.
+    The intake journal records dispatch acceptance, never an artifact receipt.
+    """
+    _need(type(configuration_sha256) is str and _SHA.fullmatch(configuration_sha256) and
+        type(expected_head_sha) is str and re.fullmatch(r'[a-f0-9]{40}', expected_head_sha) and
+        type(platform_ready) is bool and (key_provider is None or callable(key_provider)) and
+        (send is None or callable(send)))
+
+    def publish(binding):
+        from .boat_video_publication import prepare_publication, dispatch_publication
+        try:
+            key = None if key_provider is None else key_provider()
+        except Exception:
+            return dict(status='HOLD_OWNER_STATE_KEY_REQUIRED')
+        item = {name: binding[name] for name in ('report_path', 'media_path', 'identity_evidence', 'video_context')}
+        inputs = binding['model_inputs']
+        if type(inputs) is dict and 'calibration_manifest' in inputs:
+            item['calibration_manifest'] = inputs['calibration_manifest']
+        summary, request = prepare_publication([item], expected_head_sha=expected_head_sha, key=key, clock=clock)
+        if request is None:
+            return summary
+        if not platform_ready:
+            return dict(status='HOLD_PLATFORM_ACTIVATION_UNVERIFIED')
+        if send is None:
+            return dict(status='HOLD_PUBLISHER_TRANSPORT_UNCONFIGURED')
+        return dispatch_publication(summary, request, key=key, clock=clock, platform_ready=True, send=send)
+
+    publish.configuration_sha256 = configuration_sha256
+    return publish
+
+
 def process_connections(private_root, *, identity_evidence_provider=None, model_inputs_provider=None,
-                        receipt_verifier=None, clock=None, report_sha256s=None, _session=None):
+                        receipt_verifier=None, clock=None, report_sha256s=None, _session=None,
+                        context_publisher=None):
     """Connect completed private reports without a second job/state schema.
 
     Providers are optional trusted Python dependencies accepting a detached
@@ -485,6 +697,13 @@ def process_connections(private_root, *, identity_evidence_provider=None, model_
     ``report_sha256s`` selection reads only those reports; an unfiltered rescan
     considers upcoming cutoffs first. ``_session`` is an internal per-poll
     cache, never persistent state or an independent authentication source.
+
+    An optional trusted ``context_publisher(binding)`` has a NONSECRET
+    ``configuration_sha256`` revision. Eligible frozen contexts and protected
+    local originals are bound before invocation. Its separate immutable
+    journal permits a new configuration after an explicit pre-POST HOLD;
+    accepted or unknown/interrupted POST outcomes never auto-retry. No CLI or
+    JSON field supplies this callback, and acceptance is not a saved receipt.
     """
     from .boat_video_connection import connect_report, input_fingerprint
     try:
@@ -500,6 +719,11 @@ def process_connections(private_root, *, identity_evidence_provider=None, model_
         created = session.setdefault('created', set())
         summary = dict(status='WAITING_FOR_COMPLETED_REPORTS', processed=0, reused=0, failed=0,
             counts={}, states=[], production_eligible=False, forecast_originals_modified=False)
+        publication_states = []
+        publication_created = session.setdefault('publication_created', set()) if context_publisher is not None else set()
+        publication_reused = session.setdefault('publication_reused', set()) if context_publisher is not None else set()
+        if context_publisher is not None:
+            summary['context_publications'] = _publication_summary([], publication_created)
         with _connection_store(private_root) as (root, directory):
             try:
                 with _lock(directory, 'process.lock', nonblocking=True):
@@ -553,6 +777,19 @@ def process_connections(private_root, *, identity_evidence_provider=None, model_
                                     'connection_sha256', 'status', 'missing_reasons')}
                                 summary['states'].append(state)
                                 summary['counts'][bundle['status']] = summary['counts'].get(bundle['status'], 0) + 1
+                                if context_publisher is not None and bundle['video_context']['eligible_for_research']:
+                                    publication, fresh = _publish_context(root, report, bundle, evidence, inputs,
+                                                                         context_publisher, clock)
+                                    publication_states.append(publication)
+                                    if fresh:
+                                        publication_created.add((publication['context_sha256'],
+                                                                 publication['publisher_configuration_sha256']))
+                                    elif fresh is False:
+                                        publication_reused.add((publication['context_sha256'],
+                                                                publication['publisher_configuration_sha256']))
+                                    summary['context_publications'] = _publication_summary(publication_states,
+                                                                                          publication_created,
+                                                                                          publication_reused)
                             except Exception:
                                 # A provider/model/storage failure never changes
                                 # the successful report or intake state files.
@@ -594,12 +831,17 @@ def _merge_connection_results(results, session):
         summary['status'] = 'CONNECTION_ATTEMPTS_INCOMPLETE' if failures else 'CONNECTION_ATTEMPTS_RECORDED'
     elif any(result['status'] == 'BUSY' for result in results):
         summary['status'] = 'BUSY'
+    if any('context_publications' in result for result in results):
+        publication_states = [state for result in results
+            for state in result.get('context_publications', {}).get('states', [])]
+        summary['context_publications'] = _publication_summary(publication_states,
+            session.get('publication_created', set()), session.get('publication_reused', set()))
     return summary
 
 
 def process_ready(private_root, *, now=None, extractor=None, connect_models=False,
                   identity_evidence_provider=None, model_inputs_provider=None,
-                  receipt_verifier=None, connection_clock=None):
+                  receipt_verifier=None, connection_clock=None, context_publisher=None):
     """Consume ready jobs once, giving T-15..T-10 priority in cutoff order.
 
     ``now`` affects scheduling only. Evaluation start/completion always use the
@@ -608,6 +850,8 @@ def process_ready(private_root, *, now=None, extractor=None, connect_models=Fals
     A nonblocking flock lets an existing runtime skip a concurrent consumer.
     ``connect_models`` optionally connects saved reports using independent
     Python providers. It never changes the original job/state/report schemas.
+    ``context_publisher`` is used only by that explicitly enabled connection
+    loop; the default creates no publication directory or result fields.
     """
     try:
         instant = datetime.now(timezone.utc) if now is None else now
@@ -621,10 +865,13 @@ def process_ready(private_root, *, now=None, extractor=None, connect_models=Fals
                     results, connection_results, connection_session = [], [], {}
                     def connect_saved(selected=None):
                         try:
+                            publication_options = ({'context_publisher': context_publisher}
+                                                   if context_publisher is not None else {})
                             outcome = process_connections(root,
                                 identity_evidence_provider=identity_evidence_provider,
                                 model_inputs_provider=model_inputs_provider, receipt_verifier=receipt_verifier,
-                                clock=connection_clock, report_sha256s=selected, _session=connection_session)
+                                clock=connection_clock, report_sha256s=selected, _session=connection_session,
+                                **publication_options)
                         except Exception:
                             outcome = dict(status='CONNECTION_STORAGE_UNAVAILABLE', processed=0, reused=0,
                                 failed=1, counts={}, states=[])
@@ -743,16 +990,25 @@ def _system_tessdata():
 
 def _identity_extractor(args):
     """Keep asset paths in a callable; every media gets new temporal state."""
+    options = {"model_path": _path(args.hull_model), "detector_kind": args.detector_kind or "yolox"}
+    if args.tiled_hulls:
+        options["tiled_hulls"] = True
+    if args.crnn_model is not None:
+        from .boat_video_crnn import make_crnn_identity_extractor
+        return make_crnn_identity_extractor(crnn_model_path=_path(args.crnn_model), **options)
     from .boat_video_identity import make_local_identity_extractor
-
-    return make_local_identity_extractor(
-        model_path=_path(args.hull_model), detector_kind=args.detector_kind or "yolox",
+    return make_local_identity_extractor(**options,
         tesseract_path=_path(args.tesseract or shutil.which("tesseract")),
         tessdata_path=_path(args.tessdata) if args.tessdata else _system_tessdata())
 
 
-def main(argv=None, *, extractor=None):
-    """Poll the local queue once by default, or explicitly until interrupted."""
+def main(argv=None, *, extractor=None, identity_evidence_provider=None, model_inputs_provider=None,
+         receipt_verifier=None, connection_clock=None, context_publisher=None):
+    """Poll the existing loop; optional providers are trusted Python args only.
+
+    Connection callbacks require explicit ``--connect-models``. No CLI option
+    loads callbacks, keys or receipt authentication from JSON or module names.
+    """
     parser = _Parser(description=__doc__)
     parser.add_argument("--private-root", required=True)
     mode = parser.add_mutually_exclusive_group()
@@ -763,21 +1019,32 @@ def main(argv=None, *, extractor=None):
                         help="persist private model connection attempts; requires independently supplied Python evidence for research predictions")
     parser.add_argument("--hull-model", help="existing hash-pinned local hull ONNX model; enables unverified number/temporal candidates")
     parser.add_argument("--detector-kind", choices=("yolox", "nanodet"), help="local hull detector (default: yolox)")
+    parser.add_argument("--tiled-hulls", action="store_true", help="optional native hull tiles using the same local detector; increases inference time")
+    parser.add_argument("--crnn-model", help="optional hash-pinned local CRNN asset for uncalibrated raw temporal candidates; replaces local Tesseract")
     parser.add_argument("--tesseract", help="local OCR executable (default: system tesseract)")
     parser.add_argument("--tessdata", help="local directory containing eng.traineddata (default: standard system data)")
     args = parser.parse_args(argv)
     if not 0.1 <= args.poll_seconds <= 60:
         parser.error("poll interval out of bounds")
-    identity_flags = any(value is not None for value in
-                         (args.hull_model, args.detector_kind, args.tesseract, args.tessdata))
+    identity_flags = args.tiled_hulls or any(value is not None for value in
+                         (args.hull_model, args.detector_kind, args.crnn_model, args.tesseract, args.tessdata))
     if identity_flags and (args.hull_model is None or extractor is not None):
         parser.error("identity options require a hull model and the real local extractor")
+    if args.crnn_model is not None and (args.tesseract is not None or args.tessdata is not None):
+        parser.error("CRNN and Tesseract assets cannot be combined")
+    connection_options = {key: value for key, value in dict(
+        identity_evidence_provider=identity_evidence_provider, model_inputs_provider=model_inputs_provider,
+        receipt_verifier=receipt_verifier, connection_clock=connection_clock,
+        context_publisher=context_publisher).items() if value is not None}
+    if connection_options and (not args.connect_models or not all(callable(value) for value in connection_options.values())):
+        parser.error("trusted callbacks require explicit connection mode")
     try:
         if args.hull_model is not None:
             extractor = _identity_extractor(args)
         while True:
             print(json.dumps(process_ready(args.private_root, extractor=extractor,
-                                           connect_models=args.connect_models), sort_keys=True), flush=True)
+                                           connect_models=args.connect_models,
+                                           **connection_options), sort_keys=True), flush=True)
             if not args.follow:
                 return 0
             time.sleep(args.poll_seconds)
