@@ -35,9 +35,20 @@ for record in overflow['records']:
  record['result']=deepcopy(view['records'][0]['result']);record['result'].update(winning_combinations=[record['prediction']['ordered_top8'][0]],payout_yen_per_100=9007199254740991)
  record['result_observations']=[]
 (r/'overflow.json').write_text(json.dumps(overflow))
+from tests.test_saved_result_sync import packet
+from race_ai.saved_result_sync import retain_batch
+import hashlib
+def retain_source(raw,at):
+ raw=raw.replace(b'20300401',b'20261106').replace(b'jcd=01',b'jcd=17')
+ meta=dict(source_url='https://www.boatrace.jp/owpc/pc/race/raceresult?rno=1&jcd=17&hd=20261106',captured_at=at,source_sha256=hashlib.sha256(raw).hexdigest(),http_status=200)
+ journal=PdcaState(p);retain_batch(journal,[],[dict(raw=raw,receipt=meta)]);journal.close()
+retain_source(packet(cancel=True,finish=False),'2026-11-06T03:30:00Z')
+export_view(SavedPdcaService(p).saved_projection(),r/'cancelled.html')
+retain_source(packet(),'2026-11-06T03:31:00Z')
+export_view(SavedPdcaService(p).saved_projection(),r/'reference.html')
 `,folder],{cwd:root,encoding:'utf8'});assert.equal(py.status,0,py.stderr);
  const original=JSON.parse(fs.readFileSync(path.join(folder,'expected.json')));
- server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/html');const name=['/multi.html','/no-forecast.html'].includes(req.url)?req.url.slice(1):'view.html';res.end(fs.readFileSync(path.join(folder,name)));});
+ server=http.createServer((req,res)=>{res.setHeader('Content-Type','text/html');const name=['/multi.html','/no-forecast.html','/cancelled.html','/reference.html'].includes(req.url)?req.url.slice(1):'view.html';res.end(fs.readFileSync(path.join(folder,name)));});
  await new Promise(r=>server.listen(0,'127.0.0.1',r));
  browser=await chromium.launch({headless:true,...(process.env.CHROMIUM_PATH?{executablePath:process.env.CHROMIUM_PATH}:fs.existsSync('/usr/bin/chromium')?{executablePath:'/usr/bin/chromium'}:{}),args:['--no-sandbox']});
  for(const width of [390,1440]){
@@ -103,7 +114,22 @@ for record in overflow['records']:
   assert.equal(await page.locator('#saved-results-table tbody tr').count(),1);
   assert.match(await page.locator('#result-coverage').innerText(),/対象 1レース/);
   assert.match(await page.locator('#saved-results-table').innerText(),/未予想/);
-  assert.match(await savedRate.innerText(),/算出対象なし/);await page.close();
+  assert.match(await savedRate.innerText(),/算出対象なし/);
+  await page.goto('http://127.0.0.1:'+server.address().port+'/cancelled.html');
+  await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'));
+  await page.locator('[data-page="results"]').filter({visible:true}).first().click();
+  assert.match(await page.locator('#saved-results-table').innerText(),/中止・返還/);
+  assert.match(await page.locator('#simulation-metrics').innerText(),/返還 800円/);
+  assert.match(await page.locator('#result-coverage').innerText(),/最終同期/);
+  await page.goto('http://127.0.0.1:'+server.address().port+'/reference.html');
+  await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'));
+  await page.locator('[data-page="results"]').filter({visible:true}).first().click();
+  assert.match(await page.locator('#saved-results-table').innerText(),/参考照合/);
+  assert.match(await page.locator('#saved-results-table').innerText(),/原本締切[\s\S]*10:59/);
+  assert.match(await page.locator('#saved-results-table').innerText(),/結果ページ[\s\S]*11:00/);
+  assert.match(await page.locator('#saved-results-table').innerText(),/差 1分/);
+  assert.match(await page.locator('#result-coverage').innerText(),/締切差の参考照合 1/);
+  assert.match(await page.locator('#result-metrics').innerText(),/未検証/);await page.close();
  }
  console.log('PASS results + editable daily budget: observed hit/pending,4models,10k→1k,unknown money,originals/formal gates unchanged,mobile/desktop');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();if(server)await new Promise(r=>server.close(r));fs.rmSync(folder,{recursive:true,force:true});});

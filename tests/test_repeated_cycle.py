@@ -26,6 +26,29 @@ class RepeatedControllerTests(unittest.TestCase):
         self.assertIsNone(state['source_limit'])
         self.assertIsNone(state['max_rounds'])
         self.assertIsNone(state['stop_at'])
+
+    def test_explicit_bounded_policy_records_its_configured_limits(self):
+        with patch.multiple(r,MAX_ROUNDS=24,MAX_SECONDS=65*60,SOURCE_LIMIT=240,ROUND_SOURCE_LIMIT=45):
+            now=stamp()
+            state=r.start(self.path,day='2030-04-01',run_id=99,now=now)
+            self.assertEqual(r.POLL_SECONDS,180)
+            self.assertEqual(r.ROUND_SOURCE_LIMIT,45)
+            self.assertEqual(state['source_limit'],240)
+            self.assertEqual(state['max_rounds'],24)
+            self.assertEqual(r.instant(state['stop_at']),now+timedelta(minutes=65))
+
+    def test_explicit_bounded_policy_does_not_reinterpret_an_existing_unlimited_counter(self):
+        now=stamp()
+        r.start(self.path,day='2030-04-01',run_id=99,now=now)
+        guard=r.SourceGuard(self.path,clock=lambda:now)
+        for _ in range(241):guard.charge('forecast')
+        old=r.load(self.path);before=self.path.read_bytes()
+        with patch.multiple(r,MAX_ROUNDS=24,MAX_SECONDS=65*60,SOURCE_LIMIT=240,ROUND_SOURCE_LIMIT=45):
+            with self.assertRaisesRegex(ValueError,'SESSION_POLICY_MIGRATION_REQUIRES_NEW_RUN'):
+                r.start(self.path,day='2030-04-01',run_id=99,now=now+timedelta(seconds=20))
+        self.assertEqual(r.load(self.path),old)
+        self.assertEqual(self.path.read_bytes(),before)
+
     def test_first_then_second_round_requires_ack_and_wait(self):
         now=stamp(); state=r.start(self.path, day='2030-04-01', run_id=99, now=now)
         first=r.prepare(self.path,1,now=now)

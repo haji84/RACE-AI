@@ -1,9 +1,11 @@
 """Read retained pairs into the existing private UI; no fetch, prediction or scoring."""
 from copy import deepcopy
 import json
+import re
 
 from .boat_history_comparison import verify_pair_original,verify_freeze_receipt
 from .boat_pdca_state import need
+from .actions_contract import digest
 from .boat_history_store import instant
 from .private_cycle_projection import _observation,_ResultObservationRejection
 from .teiai_history import VENUES
@@ -12,10 +14,13 @@ VENUE_NAMES={code:name for name,code in VENUES.items()}
 
 
 def project_pdca(state):
+    from .saved_result_sync import read_batch,project_observation,_merge
     state.verify_files();need(state.mode=='production','PDCA_VIEW_PRODUCTION_STATE_REQUIRED')
     observations={}
-    for rid,body in state.db.execute('SELECT race_id,body FROM results ORDER BY captured_at,sha'):
-        observations.setdefault(rid,[]).append(json.loads(body))
+    extra,raw_sources,synced_at=read_batch(state)
+    existing=[json.loads(body) for body, in state.db.execute('SELECT body FROM results ORDER BY captured_at,sha')]
+    for observation in _merge([*existing,*extra]):
+        observations.setdefault(observation['race_id'],[]).append(observation)
     records=[];seen=set()
     for pair_sha,json_sha,receipt_sha in state.db.execute('SELECT sha,json_sha,receipt_sha FROM pairs ORDER BY sha'):
         raw=state._get(json_sha);pair=verify_pair_original(json.loads(raw));receipt=json.loads(state._get(receipt_sha))
@@ -40,11 +45,14 @@ def project_pdca(state):
             offering_status='UNKNOWN',race_status='UNKNOWN',observed_at=pair['generated_at'],
             participants=[dict(number=p['lane'],registration_no=p['registration_no'],name=None) for p in snapshot['participants']],
             prediction=predictions[0],comparison_predictions=predictions[1:],result=None,result_revisions=[],
-            result_observations=deepcopy(observations.get(rid,[])),missing_reasons=[],source_provenance='OWNER_SAVED_PDCA_PAIR')
+            result_observations=deepcopy(observations.get(rid,[])),result_observation_rejections=[],missing_reasons=[],source_provenance='OWNER_SAVED_PDCA_PAIR')
         if row['result_observations']:
             latest=max(row['result_observations'],key=lambda o:instant(o['captured_at']))
-            try:row['result']=_observation(latest,row)
-            except (KeyError,TypeError,ValueError,_ResultObservationRejection):
+            try:row['result']=project_observation(latest,row,freeze_at=receipt['write_completed_at'],raw_bound=digest(latest) in raw_sources)
+            except (KeyError,TypeError,ValueError,_ResultObservationRejection) as error:
+                reason=str(error) if re.fullmatch('[A-Z][A-Z0-9_]{1,199}',str(error)) else 'RESULT_OBSERVATION_INVALID'
+                row['result']=dict(status='unsupported',winning_combinations=[],confirmed_at=None,observed_at=latest['captured_at'],official=False,source_sha256=latest.get('source_sha256'))
+                row['result_observation_rejections'].append(dict(captured_at=latest['captured_at'],source_sha256=latest.get('source_sha256'),reason=reason))
                 row['missing_reasons'].append('LATEST_RESULT_OBSERVATION_REJECTED')
         records.append(row)
     need(records,'PDCA_VIEW_NO_SAVED_PAIRS')
@@ -52,4 +60,4 @@ def project_pdca(state):
     return dict(schema='RACE_AI_PRIVATE_CYCLE_VIEW_V1',dataset_status='REAL_REPORTED',
         event_date_jst=next(iter(days)) if len(days)==1 else None,records=sorted(records,key=lambda r:r['race_id']),
         source_provenance='OWNER_SAVED_PDCA_PAIR',accuracy_improvement_proven=False,
-        independent_pre_cutoff_receipt_verified=False,formal_backtest_eligible=False)
+        independent_pre_cutoff_receipt_verified=False,formal_backtest_eligible=False,results_synced_at=synced_at)
