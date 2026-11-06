@@ -63,12 +63,24 @@
     const list = predictions(r), saved = state.predictionKeys[r?.race_id];
     return saved === undefined ? list[0] || null : list[saved] || null;
   };
-  const modelName = p => p ? text(p.model_id || p.model_version) + (p.model_id ? " / " + text(p.model_version) : "") + (p.variant ? " · " + ({HISTORY_BASELINE:"履歴なし",HISTORY_ADDED:"履歴あり"}[p.variant] || text(p.variant)) : "") : "未予想";
+  const modelName = p => {
+    if(!p)return "未予想";
+    const code=p.code_identity || M.codeIdentity?.(p), version=p.model_version ?? (code ? "保存コード "+code.slice(0,7) : "未取得");
+    return text(p.model_id || p.model_version) + (p.model_id ? " / " + text(version) : "") + (p.variant ? " · " + ({HISTORY_BASELINE:"履歴なし",HISTORY_ADDED:"履歴あり"}[p.variant] || text(p.variant)) : "");
+  };
   const stageName = p => ({P0: "P0 朝版", P1: "P1 展示・試走後", A_PRE_TRIAL:"A 試走前", B_POST_TRIAL:"B 試走後"})[p?.stage] || "時点未取得";
   const ticketsFor = id => state.candidates.filter(t => t.raceId === id);
   const dailyPurchases = () => state.purchases.filter(p => p.day === A.jstToday());
   const knownParticipants = r => Array.isArray(r?.participants) ? r.participants : [];
   const participantNumber = p => p.number ?? p.lane ?? p.horse_no ?? p.bib_number;
+  const participantRegistration = p => p.registration_no || p.registration_number || p.registration_id || p.racer_registration_id || p.racer_id;
+  const participantLabel = (p, r) => {
+    const registration = participantRegistration(p), number = participantNumber(p);
+    const bound = registration ? knownParticipants(r).find(person => participantRegistration(person) === registration &&
+      (number == null || participantNumber(person) === number)) : null;
+    const name = p.name || bound?.name;
+    return (name ? text(name) : "名前 未取得") + (registration ? "（登録 " + text(registration) + "）" : "");
+  };
   const maxNumber = r => {
     const numbers = knownParticipants(r).map(participantNumber).filter(Number.isInteger);
     const saved = predictions(r).flatMap(p => p.ordered_top8.flat());
@@ -170,8 +182,8 @@
       const section = node("section"); section.id = "boat-context-beforeinfo";
       section.append(node("h3", "", "公式直前情報の観測"), sourceFacts(before));
       if (Array.isArray(before.participants) && before.participants.length) {
-        section.append(table(["艇番", "登録", "体重 kg", "調整重量 kg", "チルト 度", "プロペラ表示", "部品交換の記載"], before.participants.map(person => [person.lane, person.registration_number, person.bodyweight_kg, person.adjustmentweight_kg, person.tilt, person.propeller_change_marker, Array.isArray(person.parts_replacement) && person.parts_replacement.length ? person.parts_replacement.join(" / ") : null])));
-        section.append(node("h3", "member-heading", "展示タイム・展示ST"), table(["艇番", "登録", "展示タイム 秒", "展示ST 原文", "ST状態", "展示の表示位置", "実進入コース"], before.participants.map(person => [person.lane, person.registration_number, person.display_time, person.exhibition_st_raw ?? person.exhibition_st, {OK:"正常ST", F:"F（フライング表示）", L:"L（出遅れ表示）", NOT_PUBLISHED:"未公表"}[person.exhibition_st_status] || "未取得", person.exhibition_source_position_number, person.exhibition_course])), node("p", "muted small", "展示の表示位置は、本番の実進入コースの確定値ではありません。空欄は変更なし・STゼロを意味しません。"));
+        section.append(table(["艇番", "選手 / 登録", "体重 kg", "調整重量 kg", "チルト 度", "プロペラ表示", "部品交換の記載"], before.participants.map(person => [person.lane, participantLabel(person, r), person.bodyweight_kg, person.adjustmentweight_kg, person.tilt, person.propeller_change_marker, Array.isArray(person.parts_replacement) && person.parts_replacement.length ? person.parts_replacement.join(" / ") : null])));
+        section.append(node("h3", "member-heading", "展示タイム・展示ST"), table(["艇番", "選手 / 登録", "展示タイム 秒", "展示ST 原文", "ST状態", "展示の表示位置", "実進入コース"], before.participants.map(person => [person.lane, participantLabel(person, r), person.display_time, person.exhibition_st_raw ?? person.exhibition_st, {OK:"正常ST", F:"F（フライング表示）", L:"L（出遅れ表示）", NOT_PUBLISHED:"未公表"}[person.exhibition_st_status] || "未取得", person.exhibition_source_position_number, person.exhibition_course])), node("p", "muted small", "展示の表示位置は、本番の実進入コースの確定値ではありません。空欄は変更なし・STゼロを意味しません。"));
       } else section.append(node("p", "muted", "選手別の直前観測値は未取得です。"));
       const weather = before.weather;
       section.append(node("h3", "member-heading", "公式気象・水面の観測"), weather ? facts([["天候", weather.weather_label], ["気温 ℃", weather.air_temperature_c], ["水温 ℃", weather.water_temperature_c], ["風速 m/s", weather.wind_speed_mps], ["波高 cm", weather.wave_height_cm], ["風向の公式表示コード", weather.wind_direction_source_code], ["掲載対象レース", Number.isInteger(weather.reported_race_no) ? weather.reported_race_no + "R時点" : null], ["気象欄の時刻原文", weather.source_reported_local_time], ["気象の公開日時 JST", stamp(weather.reported_at)], ["気象の鮮度", "未確認（日付付きの公式公開日時は未取得）"]]) : node("p", "muted", "気象・水面の補足観測は未取得です。"));
@@ -181,7 +193,7 @@
     if (pit) {
       const section = node("section"); section.id = "boat-context-pitreport";
       section.append(node("h3", "member-heading", "公式ピットレポートの選手コメント"), node("p", "muted small", "公式掲載の発言・取材記録です。選手の評価を走行性能の計測値へ置き換えません。"), sourceFacts(pit));
-      if (Array.isArray(pit.participants) && pit.participants.length) section.append(table(["艇番", "登録 / 選手", "公式掲載コメント", "発言者 / 取材者"], pit.participants.map(person => [person.lane, text(person.registration_number) + " / " + text(person.name), person.comment, "選手 " + text(person.comment_attribution?.racer_name) + " / 取材 " + text(person.comment_attribution?.reporter ?? pit.reporter)])));
+      if (Array.isArray(pit.participants) && pit.participants.length) section.append(table(["艇番", "選手 / 登録", "公式掲載コメント", "発言者 / 取材者"], pit.participants.map(person => [person.lane, participantLabel(person, r), person.comment, "選手 " + text(person.comment_attribution?.racer_name) + " / 取材 " + text(person.comment_attribution?.reporter ?? pit.reporter)])));
       else section.append(node("p", "muted", pit.status === "NOT_OFFERED" ? "この公式ページではピットレポートの提供がありません。" : "選手コメントは未取得です。"));
       box.append(section);
     } else box.append(node("p", "muted", "公式ピットレポートの補足観測は未取得です。"));
@@ -192,7 +204,7 @@
     const rate = (count, denominator) => denominator > 0 ? (count / denominator * 100).toFixed(1) + "%" : null;
     const bucketFields = bucket => [bucket.starts, bucket.wins, bucket.top2, bucket.top3, rate(bucket.top3, bucket.denominator)];
     for (const profile of profiles) {
-      historySection.append(node("h3", "", "登録 " + text(profile.racer_id)), facts([["集計基準 JST", stamp(profile.as_of)], ["全観測レース数", profile.sample_races], ["率の意味", "条件に該当した過去の観測割合・将来の確率は未検証"]]), table(["過去の条件", "出走数", "1着数", "2着内数", "3着内数", "観測3着内率"], [["inward", "枠より内へ入った"], ["outer_to_inner3", "外枠から1〜3コースへ入った"], ["displaced", "枠より外へずれた"], ["crossed_by_outer_frame", "外枠艇が内側にいた"], ["any_inward_mover_present", "内へ入った艇がいたレース"]].map(([key, label]) => [label, ...bucketFields(profile.conditional_buckets?.[key])])));
+      historySection.append(node("h3", "", participantLabel({registration_no:profile.racer_id}, r)), facts([["集計基準 JST", stamp(profile.as_of)], ["全観測レース数", profile.sample_races], ["率の意味", "条件に該当した過去の観測割合・将来の確率は未検証"]]), table(["過去の条件", "出走数", "1着数", "2着内数", "3着内数", "観測3着内率"], [["inward", "枠より内へ入った"], ["outer_to_inner3", "外枠から1〜3コースへ入った"], ["displaced", "枠より外へずれた"], ["crossed_by_outer_frame", "外枠艇が内側にいた"], ["any_inward_mover_present", "内へ入った艇がいたレース"]].map(([key, label]) => [label, ...bucketFields(profile.conditional_buckets?.[key])])));
       if (profile.actual_course_when_inward_mover_present) {
         const courses = node("details"); courses.append(node("summary", "", "内へ入った艇がいた時の実コース別成績"), table(["実コース", "出走数", "1着数", "2着内数", "3着内数", "観測3着内率"], Array.from({length:6}, (_, index) => [index + 1, ...bucketFields(profile.actual_course_when_inward_mover_present[String(index + 1)])]))); historySection.append(courses);
       }
@@ -214,10 +226,10 @@
       ["生成時刻 JST", stamp(p?.generated_at)], ["保存時刻 JST", stamp(p?.persisted_at)], ["予想原本の締切 JST", stamp(p?.cutoff_at || r.cutoff_at)],
       ...(r.saved_cutoff_variants?.length>1 ? [["保存原本の締切一覧 JST",r.saved_cutoff_variants.map(stamp).join(" / ")]]:[]),
       ["取得 / as-of JST", stamp(p?.as_of || r.as_of || r.observed_at)], ["情報源", sourceText(r.source_provenance)],
-      ["元SHA", r.source_sha || r.source_sha256], ["入力SHA", p?.input_sha256], ["予想SHA", p?.prediction_sha256],
+      ["予想の元SHA", p?.source_sha256], ["レース観測の元SHA", r.source_sha || r.source_sha256], ["入力SHA", p?.input_sha256], ["予想SHA", p?.prediction_sha256],
       ["出力本文SHA", p?.output_sha256], ["モデル / 学習物SHA", p?.model_sha256],
       ...(p?.variant==="LEARNED_SHADOW" || p?.training_sha256 ? [["学習元artifact ID",p?.training_artifact_id],["学習物SHA",p?.training_sha256],["学習元ZIP digest",p?.training_receipt_digest],["基準モデル原本SHA",p?.baseline_model_sha256]]:[]),
-      ["原本JSON SHA", p?.original_json_sha256], ["原本artifact ID", p?.artifact_id], ["保存モデル区分", p?.variant], ["保存済みサーバー時刻の申告 JST", stamp(p?.server_saved_at)],
+      ["原本JSON SHA", p?.original_json_sha256], ["原本artifact ID", p?.artifact_id], ["保存コードのコミット", p?.source_code_commit], ["保存モデル区分", p?.variant], ["保存済みサーバー時刻の申告 JST", stamp(p?.server_saved_at)],
       ["レシート時刻 JST", stamp(p?.external_receipt?.server_received_at || p?.receipt_timestamp || p?.evidence_receipt?.timestamp)], ["独立検証", "取込値のみ・原本と外部時刻の独立照合は別途必要"]];
   }
   function forecastStatus(r, p = prediction(r)) {
@@ -231,8 +243,8 @@
     const number = participantNumber(p), card = node("article", "racer-card"), avatar = node("div", "racer-avatar");
     if (Number.isInteger(number)) avatar.append(badge(number));
     avatar.append(node("span", "avatar-silhouette", "◉"));
-    const registration = p.registration_no || p.registration_id || p.racer_registration_id;
-    card.append(avatar, node("strong", "racer-name", p.placeholder ? "出走者 未取得" : p.name ? text(p.name) : registration ? "登録 " + text(registration) : "名前 未取得"), node("small", "muted", p.placeholder ? "表示用の枠" : text(registration)));
+    const registration = participantRegistration(p);
+    card.append(avatar, node("strong", "racer-name", p.placeholder ? "出走者 未取得" : p.name ? text(p.name) : "名前 未取得"), node("small", "muted", p.placeholder ? "表示用の枠" : registration ? "登録 " + text(registration) : "登録 未取得"));
     if (expanded && !p.placeholder) {
       const fields = node("dl", "racer-fields");
       for (const [label, value] of [["登録番号", registration], ["モーター", p.motor_no], ["平均ST", p.average_st], ["展示タイム", p.display_time]]) {
@@ -343,7 +355,12 @@
     const label = node("label", "prediction-picker", "保存予想・モデル・時点"), select = node("select"); select.id = "prediction-select";
     const list = predictions(r);
     if (!list.length) select.append(new Option("未予想・保存原本なし", ""));
-    list.forEach((p, i) => select.append(new Option(stageName(p) + " · " + modelName(p) + (p === r.prediction ? " · 基準原本" : " · 比較原本"), String(i))));
+    const modelIdentity=p=>JSON.stringify([p.stage,p.model_id,p.model_version,p.variant,M.codeIdentity?.(p)]);
+    list.forEach((p, i) => {
+      const repeated=list.filter(other=>modelIdentity(other)===modelIdentity(p)).length>1;
+      const clock=p.as_of && Number.isFinite(Date.parse(p.as_of)) ? new Intl.DateTimeFormat("ja-JP",{timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date(p.as_of)) : "未取得";
+      select.append(new Option(stageName(p) + " · " + modelName(p) + (p === r.prediction ? " · 基準原本" : " · 比較原本") + (repeated ? " · 取得 " + clock + " JST · 原本 " + (i+1) : ""), String(i)));
+    });
     select.disabled = !list.length; select.value = String(state.predictionKeys[r.race_id] ?? 0);
     select.addEventListener("change", () => { state.predictionKeys[r.race_id] = Number(select.value); renderAll(); });
     label.append(select); return label;
@@ -390,12 +407,12 @@
     if (state.detailTab === "outlook") content.append(forecastPanel(r, p), append(node("div", "section-heading member-heading"), node("h2", "", "出走メンバー"), node("span", "tag", knownParticipants(r).length ? knownParticipants(r).length + "名の読込値" : "出走表 未取得")), participantGrid(r, true));
     if (state.detailTab === "participants") {
       content.append(participantGrid(r, true));
-      if (knownParticipants(r).length) content.append(table(["番号", "名前", "登録", "モーター", "平均ST", "展示"], knownParticipants(r).map(person => [participantNumber(person), person.name, person.registration_no || person.registration_id || person.racer_registration_id, person.motor_no, person.average_st, person.display_time])));
+      if (knownParticipants(r).length) content.append(table(["番号", "名前", "登録", "モーター", "平均ST", "展示"], knownParticipants(r).map(person => [participantNumber(person), person.name || "名前 未取得", participantRegistration(person), person.motor_no, person.average_st, person.display_time])));
     }
     if (state.detailTab === "preview") {
       const people = knownParticipants(r), observationContext = boatObservationContext(r);
       if (observationContext) content.append(node("h2", "", "保存予想原本の直前情報"));
-      if (people.length) content.append(table(["番号", "展示タイム", "展示ST", "進入", "直前コメント"], people.map(person => [participantNumber(person), person.display_time, person.preview_st, person.preview_course, person.comment || person.last_comment])));
+      if (people.length) content.append(table(["番号", "選手 / 登録", "展示タイム", "展示ST", "進入", "直前コメント"], people.map(person => [participantNumber(person), participantLabel(person, r), person.display_time, person.preview_st, person.preview_course, person.comment || person.last_comment])));
       const weather = r.weather || r.weather_preview;
       if (weather && Object.keys(weather).length) content.append(facts(Object.entries(weather).map(([key, value]) => [key, sourceText(value)])));
       else content.append(empty(observationContext ? "保存予想原本の気象・直前情報は未取得です" : "気象・直前情報は未取得です", "保存原本に存在する項目だけを表示します。"));
@@ -483,11 +500,15 @@
   function outcomeBadge(r,p) {
     const status=P.compare(r,p).status;
     const labels={HIT:"的中",MISS:"不的中",PENDING:"結果待ち",VOID:"中止・返還",REVIEW:"照合不可",NO_FORECAST:"未予想・原本未選択"};
-    const note=r.result?.cutoff_reference&&status!=="VOID"?"（参考照合・締切差あり）":status==="PENDING"?"（"+resultReason(r)+"）":"";
+    const note=(r.result?.cutoff_reference||r.result?.cutoff_reconciliation)&&status!=="VOID"?"（参考照合・締切差あり）":status==="PENDING"?"（"+resultReason(r)+"）":"";
     return node("span","saved-outcome outcome-"+status.toLowerCase(),(r.scope==="synthetic"?"合成・":"")+labels[status]+note);
   }
   function resultReason(r) {
     const result=r.result,reference=result?.cutoff_reference;
+    if(result?.cutoff_reconciliation){
+      const proof=result.cutoff_reconciliation;
+      return "原本締切 "+proof.original_cutoffs.map(stamp).join(" / ")+" JST。公式結果と登録出走者を照合。全原本が両方の締切前に保存済み。最大"+proof.maximum_offset_seconds+"秒の記録差を残した参考照合です。";
+    }
     if(reference) {
       const clocks="原本締切 "+stamp(reference.original_cutoff_at)+" JST／結果ページ "+stamp(reference.result_schedule_cutoff_at)+" JST（差 "+reference.offset_seconds/60+"分）。";
       return clocks+(reference.basis==="RAW_OFFICIAL_CANCELLATION_SELECTED_RACE"?"公式の中止表示を照合。中止ページの予定時刻変更を保持しています。":"公式結果と6選手を照合。原本は両方の締切前に保存済み。締切差を残した参考照合です。");
@@ -521,27 +542,29 @@
   }
   function allocationView(entry) {
     const a=entry.allocation;if(!a)return "—";
-    const detail=node("details");detail.append(node("summary","",a.raceBudget===800?"Top8各100円":"追加配分 "+yen(a.raceBudget-800-a.held)+" · 未配分 "+yen(a.held)));
+    const baseStake=a.baseStake ?? a.tickets.length*100;
+    const detail=node("details");detail.append(node("summary","",a.raceBudget===800?"保存"+a.tickets.length+"点各100円"+(a.held?" · 未配分 "+yen(a.held):""):"追加配分 "+yen(a.stake-baseStake)+" · 未配分 "+yen(a.held)));
     detail.append(node("p","muted small","配分判定時点 "+stamp(a.decisionAt)+" JST。支持モデルはIDごとに1種類と数えます。履歴安定は同じモデル・版の履歴あり／なし両方で支持された数。同点は組合せの数値順です。"));
     detail.append(table(["組合せ","配分額","支持モデル","履歴安定"],a.tickets.map(t=>[t.combination.join("−"),yen(t.amount),a.raceBudget===800?"—":t.families+"種類",a.raceBudget===800?"—":t.stableFamilies+"種類"])));
-    if(a.held)detail.append(node("p","notice","支持する異なるモデルが2種類に満たないため、追加200円は未配分です。"));
+    if(a.held)detail.append(node("p","notice",a.raceBudget===800?"保存された全点の購入額とレース上限の差は未配分として残します。":"支持する異なるモデルが2種類に満たないため、追加"+yen(a.held)+"は未配分です。"));
     return detail;
   }
   function renderSavedResults(rows) {
     const groups=M.modelGroups(rows),select=$("results-model");
     if (!groups.some(g=>g.key===state.resultGroupKey)) state.resultGroupKey=groups[0]?.key || "";
-    select.replaceChildren(...groups.map(g=>new Option(stageName(g)+" · "+modelName(g),g.key)));select.value=state.resultGroupKey;select.disabled=!groups.length;
+    select.replaceChildren(...groups.map(g=>new Option(stageName(g)+" · "+modelName(g)+(g.ambiguous_originals?" · 複数原本 "+g.ambiguous_originals+"レース":""),g.key)));select.value=state.resultGroupKey;select.disabled=!groups.length;
     $("simulation-budget").value=state.simulationBudget;
     $("simulation-budget").disabled=!groups.length;
     $("simulation-race-budget").value=String(state.simulationRaceBudget);$("simulation-race-budget").disabled=!groups.length;
-    $("simulation-rule").textContent=state.simulationRaceBudget===1000?"各日、締切順に1レース上限1,000円を確保。Top8各100円に加え、追加200円をモデル間の支持・履歴安定性による参考指標で配分します。根拠不足の追加分は未配分として残し、後続へ配り直しません。払戻・返還は再投資しません。":"各日、締切順に保存Top8へ各100円（1レース800円）。全8点分が足りないレースは見送り、払戻・返還は再投資しません。予想が締切前に保存され、3連単を買えた場合の試算です。";
+    $("simulation-race-budget").querySelector('[value="800"]').textContent="800円 · 各100円（最大8点）";
+    $("simulation-rule").textContent=state.simulationRaceBudget===1000?"各日、締切順に1レース上限1,000円を確保。保存予想の各点に100円（最大8点、3名出走の全6通りは600円）を配分し、残りをモデル間の支持・履歴安定性による参考指標で配分します。根拠不足の追加分は未配分として残し、後続へ配り直しません。払戻・返還は再投資しません。":"各日、締切順に1レース上限800円を確保し、保存予想の各点に100円（最大8点、3名出走の全6通りは600円）を配分します。未配分額は後続へ配り直しません。上限を確保できないレースは見送り、払戻・返還は再投資しません。予想が締切前に保存され、3連単を買えた場合の試算です。";
     $("simulation-allocation-note").hidden=state.simulationRaceBudget!==1000;
     const group=groups.find(g=>g.key===state.resultGroupKey)||null,c=P.summarize(rows,group);
     $("saved-result-metrics").replaceChildren(metric("取得結果",c.available+"レース","保存された結果・中止"),metric("的中",c.hits+"レース","選択モデルと取得結果の一致"),metric("不的中",c.misses+"レース","選択モデルと取得結果の不一致"),metric("結果待ち",c.pending+"レース","未取得分を不的中にしません"));
     $("saved-result-metrics").append(metric("保存Top8的中率",hitRate(c),c.hits+" / "+(c.hits+c.misses)+"レース（結果待ち・照合不可等を除外）"));
     $("saved-result-metrics").append(metric("中止・返還",c.void+"レース","不的中に含めません"),metric("照合保留",c.review+"レース","情報不一致などを確認中"));
     const latest=rows.map(r=>r.result?.observed_at).filter(v=>v&&Number.isFinite(Date.parse(v))).sort((a,b)=>Date.parse(a)-Date.parse(b)).at(-1);
-    const references=rows.filter(r=>r.result?.cutoff_reference&&r.result.status==="final").length,cancelReferences=rows.filter(r=>r.result?.cutoff_reference&&r.result.status==="void").length;
+    const references=rows.filter(r=>(r.result?.cutoff_reference||r.result?.cutoff_reconciliation)&&r.result.status==="final").length,cancelReferences=rows.filter(r=>r.result?.cutoff_reference&&r.result.status==="void").length;
     $("result-coverage").textContent="対象 "+rows.length+"レース · 結果取得 "+c.available+" · 中止・返還 "+c.void+" · 未予想・照合不可 "+(c.noForecast+c.review)+" · 最終同期 "+stamp(dataset?.results_synced_at)+" JST · 最終結果取得 "+stamp(latest)+" JST · 締切差の参考照合 "+references+" · 中止ページの時刻変更 "+cancelReferences+"。原本の時刻は変更せず、公式成績には加算しません。";
     $("saved-results-table").replaceChildren(savedResultsTable(rows,group));
     if (!groups.length) {
@@ -556,7 +579,7 @@
       $("simulation-metrics").append(metric("確定分の回収率",s.roi===null?"未確定":s.roi.toFixed(1)+"%","確認済み払戻・返還 ÷ 確定分購入額"),metric("収支確定の購入予定",s.settledCount+" / "+s.bought+"レース","日予算で選んだ対象のみ"),metric("購入予定分の的中率",hitRate(s.boughtComparison),s.boughtComparison.hits+" / "+(s.boughtComparison.hits+s.boughtComparison.misses)+"レース（結果待ち等を除外）"));
       $("simulation-comparison").replaceChildren(table(["モデル・履歴条件","1レース上限","購入予定分の的中 / 照合済","購入予定分の的中率","確定分回収率","予定購入額","払戻","返還","確定分収支","未確定額","全体収支"],scenarios.map(({group,sim:t})=>[modelName(group),yen(t.raceBudget)+(t.raceBudget===1000?" · 参考配分":" · 均等"),t.boughtComparison.hits+" / "+(t.boughtComparison.hits+t.boughtComparison.misses),hitRate(t.boughtComparison),t.roi===null?"未確定":t.roi.toFixed(1)+"%",yen(t.spent),yen(t.payout),yen(t.refund),net(t.settledNet),yen(t.pendingStake),net(t.net)])));
       const raceMap=new Map(rows.map(r=>[r.race_id,r]));
-      const reasons={DAILY_BUDGET_LIMIT:"日予算上限で見送り",NO_UNAMBIGUOUS_SAVED_MODEL:"原本未取得・選択不可",MODEL_IDENTITY_UNKNOWN:"モデル・版・時点が未取得",COMPLETE_TOP8_NOT_SAVED:"Top8が未完備",TRIFECTA_NOT_OFFERED:"3連単非発売",SAVE_CLOCK_UNKNOWN:"保存時刻未確認",NOT_SAVED_BEFORE_CUTOFF:"締切前保存を確認できません"};
+      const reasons={DAILY_BUDGET_LIMIT:"日予算上限で見送り",NO_UNAMBIGUOUS_SAVED_MODEL:"原本未取得、または同条件に複数原本",MODEL_IDENTITY_UNKNOWN:"モデル・版・時点が未取得",COMPLETE_TOP8_NOT_SAVED:"Top8が未完備",TRIFECTA_NOT_OFFERED:"3連単非発売",SAVE_CLOCK_UNKNOWN:"保存時刻未確認",NOT_SAVED_BEFORE_CUTOFF:"締切前保存を確認できません"};
       $("simulation-ledger").replaceChildren(table(["日付・レース","予定額","払戻","返還","収支","配分内訳・根拠","配分の状態"],s.rows.map(e=>[e.day+" · "+raceName(raceMap.get(e.race_id)),yen(e.stake),e.stake?net(e.payout):"—",e.stake?net(e.refund):"—",e.stake?net(e.net):"—",allocationView(e),e.reason?(reasons[e.reason]||e.reason):e.net===null?"結果・払戻待ち":"取得結果で試算済み"])));
     } catch {
       for (const id of ["simulation-comparison","simulation-ledger"]) $(id).replaceChildren();
@@ -796,7 +819,7 @@
     state.predictionKeys = {};
     for (const row of parsed.records) {
       const old = chosen.get(row.race_id), list = predictions(row);
-      const index = old ? list.findIndex(p=>p.stage===old.stage && p.model_id===old.model_id && p.model_version===old.model_version && p.prediction_sha256===old.prediction_sha256 && p.output_sha256===old.output_sha256) : -1;
+      const index = old ? list.findIndex(p=>M.savedPredictionIdentity ? M.savedPredictionIdentity(p)===M.savedPredictionIdentity(old) : p.stage===old.stage && p.model_id===old.model_id && p.model_version===old.model_version && p.variant===old.variant && p.prediction_sha256===old.prediction_sha256 && p.output_sha256===old.output_sha256) : -1;
       if (index >= 0) state.predictionKeys[row.race_id] = index;
     }
     if (!identifiers.has(state.selectedId)) state.selectedId = "";
@@ -948,7 +971,15 @@
         if(result) {
           const parsed=M.parse(result.view);
           if(document.activeElement?.matches('input,select,textarea'))return;
-          dataset=parsed;previous={forecastSha,generation:result.header.generation,cipherSha:result.cipherSha};
+          const chosen=new Map(races().map(row=>{const p=prediction(row);return [row.race_id,p?M.savedPredictionIdentity(p):null];})),keys={};
+          for(const row of parsed.records){
+            const identity=chosen.get(row.race_id);if(identity==null)continue;
+            const index=predictions(row).findIndex(p=>M.savedPredictionIdentity(p)===identity);
+            if(index<0)throw new Error("saved original selection unavailable");
+            keys[row.race_id]=index;
+          }
+          dataset=parsed;state.predictionKeys=keys;previous={forecastSha,generation:result.header.generation,cipherSha:result.cipherSha};
+          refreshSelects();
           renderAll();status.dataset.generation=String(previous.generation);
         }
         status.textContent="結果を自動同期中（60秒ごとに確認） · 最終同期 "+stamp(dataset.results_synced_at)+" JST。収集処理の停止中は前回の結果を表示します。";
