@@ -45,5 +45,12 @@ Modify `race_ai/saved_pages.py`, `web/saved-view-crypto.js`, CLI/tests for optio
 
 - [x] RED→GREEN for original V1 link + updated V2 payload, wrong view/key/hash/AAD, private key mode and publication bounds.
 - [x] Fresh independent review; fix confirmed Important/Critical findings before actual update.
-- [ ] Verify all624 original forecasts, accepted result counts and hypothetical money independently; publish code to existing PR71, preserve concurrent changes, full CI.
-- [ ] Publish reviewed encrypted Pages update under expected parent; verify original owner URL, actual result/money controls and served hashes; report cause/fix and data coverage.
+- [x] Verify all624 original forecasts, accepted result counts and hypothetical money independently; publish code to existing PR71, preserve concurrent changes, full CI.
+- [x] Publish reviewed encrypted Pages update under expected parent; verify original owner URL, actual result/money controls and served hashes; report cause/fix and data coverage.
+
+## Completed validation
+
+- Source implementation: `204cc2b`, included in tested descendant `006bbfdc40c1fc511429e1f1c45ea5d2b4184709`. Existing PR71 CI run `42170868715` succeeded, including1,869 Python discovery tests,251 isolated video tests and all financial/browser contracts. AUTORACE run `42170868654` also succeeded.
+- Private readback: all624 original predictions across156 races unchanged;30 final results displayed;126 races remain pending or unavailable. Eight independent money scenarios and both390/1440 viewports passed.
+- GitHub Pages update: `9dfd704016e4199942c11a064f400f738ae13eea`. Every served file SHA and the original owner URL were verified against the reviewed encrypted bundle. Live result tables, all4 condition selections,10,000→5,000 budget changes, original Top8 and reload passed without transmitting or storing the view key. No worker, original checkpoint key, model or actual purchase was changed.
+- Private validation records remain outside Git. The site represents the saved snapshot, not a claim of continuous live result delivery.
