@@ -1,3 +1,20 @@
+<!-- RACEAI_AUTOMATION_20261107_0403_ALL_CURRENT_DAY_ORIGINAL_ARCHIVES_INDEPENDENT_AUDIT -->
+# 2026-11-07 04:03 JST｜新日保存済み全38巡のP1・結果原本を独立再取得して元ZIP照合（実worker再開は保留）
+
+**実行証拠:** 既存Draft PR #71の対象枝・今回の監査前HEAD `70280d99fc908853c505e6a546d28a9288a67a32`。対象workflow405276784は新日run42249906279がcompleted/success、第2 run42259181853および後続run42264560643がcompleted/failure。同workflowの最新実行リストでin_progress/queued/pending/waiting=0。既存実行をrerun/cancelせず、失敗を迂回する新トリガーも作成していない。
+
+**当日全38保存済み巡回の独立実バイト監査:** 最初のrun42249906279の24巡、次のrun42259181853の完了第14巡まで計38巡について、GitHub ActionsのP1元ZIP **38件** と結果・PDCA元ZIP **38件** をすべてGitHubから別々に再ダウンロード。初回P0元ZIP **1件** も別取得。計77件の各実バイトSHA256はGitHub artifact APIの登録digestと**77/77一致**、ZIP CRC異常0。38件の結果ZIPすべてについて、内包`current-p1-original.zip`が各独立P1 ZIPと一致、`first-p0-original.zip`が固定初回P0 ZIP SHA256 `98abf598c8685bef240f03e135e900dce78b89057c80959b93934d601d58dd3d` と一致。各結果内`status.json`のrun_id/round_noとcanonical report_sha256も38/38一致。初回P0の`forecasts.json` SHA256は`109be9efcd7d6744120b53e00c82473b1544983cfb1060f3fe22442c799f36af`、同日初回receiptと一致。既存予想原本を再生成/書換えしていない。
+
+**継続原本の独立監査:** 成功した先行runの最終continuity artifact13525525010 ZIP SHA256 `e72ad2adceaf8093ea1c18b63f5223ddfbea30d8e817611825f3decf2928a7af`、失敗run42259181853のcontinuity artifact13528026736 SHA256 `2712e88754d23e7d37a735d1385a711bc09d655b4c6c4e1840ff383c685fd295`、次の失敗run42264560643のbootstrap source-control artifact13527094985 SHA256 `7a467aead18c05ced18e2d0d5517e9bf5eef049e5d9e3c5a60bf3473fb55ed01` はすべてGitHub API digestと一致、CRC異常0。それぞれ内包state_sha256 / session_sha256 / source_control_sha256をcanonical再計算して一致。先行成功runの最終GET205、後続で第14巡まで成功したrunのGET134、有限設定240・最大24巡。最終の `completed_round=14/prepared_round=15` でその先の第15巡はCLIダウンロード失敗、上限安全停止の実証ではない。
+
+**正式な成績・網羅性:** 最新の正常に凍結された2026-11-07第14巡は`status.updated_at=2026-11-06T18:06:24.807205+00:00`（JST 03:06:24）。11会場132レース、P0観測相性132・ST重視132、P1既存5系統すべて0、通常確定・モデル別採点0、LEARNED_SHADOW0、未来同条件比較0。各モデルの的中率・仮想損益・回収率は未算定。後の失敗runの未完了巡回を上積みしない。異常・未確認結果をMISSにしない。
+
+**安全上の未完了を明確化:** 今回は独立した外部監査環境で、当日保存済みの全P0/P1/結果・継続原本の**バイト整合**を確認した。一方、GitHub Actions実workerの`gh api .../zip`が失敗した**当時のHTTPコード**は旧ログに残っておらず、403/429等だった可能性を排除できない。この実行ではworker内のrestoreを再実行しておらず、GitHub Actionsトークンの現行権限や実際の復旧動作は未実証。原本が存在することだけを理由に新runをトリガーせず、4xx/429/真正性停止の迂回をしない。最初に必要なのは修正後コードで失敗HTTP分類とActions実権限の安全な確認・同一原本の有界restoreで、成功時にはじめて新しい未来のP1に進む。
+
+**変更範囲:** 今回の追加は監査文書のみ。既存の予想/結果ZIP、保管場所、同時writer、workflow/concurrency、最大24巡・65分・180秒・240 GET/総・45 GET/巡・3レース・締切210秒の制限、タスク/頻度・既存5モデル式/買い目・研究モデル/係数・新PR/新workflow・main・公開・課金・Cloudflare/Vercel・実投票・本番自動昇格に変更なし。全16系統/4競技の前向き優位性は未完成。
+
+---
+
 <!-- RACEAI_ALL_EXISTING_MODEL_LEARNING_20261107 -->
 # 2026-11-07 03:55 JST｜全16系統31競技枠の研究用学習を接続。実学習2系統・未来PDCAは未完了
 
