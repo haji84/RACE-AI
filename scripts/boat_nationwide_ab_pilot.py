@@ -46,7 +46,7 @@ from race_ai.boat_deadline_queue import select_due_races
 from race_ai.boat_freeze_index import load_original_race_ids
 from race_ai.boat_live_feature_shadow import build_live_feature_shadow, MODEL_ID as CLITE_ID
 from race_ai.observed_p1_connection import build_bundle as build_observed_p1, MODEL_IDS as OBSERVED_IDS
-from race_ai.boat_official_program import parse_program as parse_official_racelist
+from race_ai.boat_official_program import parse_program as parse_official_racelist, BoatProgramError
 from race_ai.boat_active_exhibition import parse_active_beforeinfo
 from race_ai.boat_all_model_inputs import build_native_inputs
 MODEL_INPUT_SINK=None
@@ -381,7 +381,7 @@ def make_pair(day,race):
     try:
         program=parse_official_racelist(raw,day=day,venue=venue,race_no=n,
                          source_url=url,captured_at=at.isoformat())
-    except SourceError:
+    except (SourceError,BoatProgramError):
         # Official SG navigation may exceed the pinned forecast adapter's
         # supported statistics layout. Strict metadata can still bind weather,
         # equipment and attributed comments without constructing model inputs.
@@ -592,7 +592,7 @@ def run(*, schedule_snapshot=None):
                          source_url=source_url,captured_at=at.isoformat())
                     if identity["status"]!="OFFICIAL_BODY_IDENTITY_VERIFIED":
                         raise SourceError("RACELIST_IDENTITY_UNVERIFIED")
-                except SourceError:
+                except (SourceError,BoatProgramError):
                     from race_ai.boat_observation_context import parse_program_roster
                     metadata=parse_program_roster(body,source_url=source_url,captured_at=at.isoformat(),
                         expected_race_id=f'{day:%Y%m%d}-{venue}-01')

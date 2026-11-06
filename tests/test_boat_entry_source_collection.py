@@ -252,28 +252,24 @@ class PipelineHistoryTests(unittest.TestCase):
 
     def test_pending_exhibition_collects_history_after_pitreport(self):
         order=[];boats=[dict(lane=i,racer_registration_id=str(4000+i),entry_status='listed') for i in range(1,7)]
-        with patch.object(pilot,'_clock',return_value=NOW),patch.object(pilot,'get',side_effect=[(b'program',AT,'a'*64),(b'preview',AT,'b'*64)]),patch.object(pilot,'parse_official_racelist',return_value=dict(race_id=RID,closed_at=CUTOFF,boats=boats)),patch.object(pilot,'motor_top2',return_value={}),patch.object(pilot,'capture_before_context',return_value=context()),patch.object(pilot,'parse_update',return_value=dict(status='PENDING',data=None)),patch.object(pilot,'collect_pitreport',side_effect=lambda *a,**k:order.append('pit')),patch.object(pilot,'collect_entry_history',side_effect=lambda *a,**k:order.append('history')):
+        with patch.object(pilot,'_clock',return_value=NOW),patch.object(pilot,'get',side_effect=[(b'program',AT,'a'*64),(b'preview',AT,'b'*64)]),patch.object(pilot,'parse_official_racelist',return_value=dict(race_id=RID,closed_at=CUTOFF,boats=boats)),patch.object(pilot,'motor_top2',return_value={}),patch.object(pilot,'capture_before_context',return_value=context()),patch.object(pilot,'parse_active_beforeinfo',return_value=dict(status='PENDING',data=None,context=context()['beforeinfo'])),patch.object(pilot,'collect_pitreport',side_effect=lambda *a,**k:order.append('pit')),patch.object(pilot,'collect_entry_history',side_effect=lambda *a,**k:order.append('history')):
             out=pilot.make_pair(DAY,dict(race_id=RID,cutoff_at=CUTOFF))
         self.assertEqual(order,['pit','history'])
         self.assertIsNone(out[1])
 
     def test_history_worker_handoff_preserves_ready_pair_after_odds_and_pit(self):
-        from tests.test_observed_p1_connection import inputs
-        base,extra,_=inputs()
-        program=dict(race_id=RID,closed_at=CUTOFF,boats=[dict(lane=r['lane'],
-            racer_registration_id=r['racer_id'],national_win_rate=r['national_win_rate'],
-            entry_status='listed',local_win_rate=5.,average_st=.15) for r in base['boats']])
-        preview=dict(status='AVAILABLE',data=dict(boats=[dict(lane=r['lane'],
-            racer_registration_id=r['racer_id'],display_time=r['exhibition_time_seconds'],
-            preview_st=.12,preview_st_status='OK') for r in base['boats']]))
+        from tests.test_boat_official_program import page
+        from tests.test_boat_observation_context import before_table,starts
+        program=page(venue='17',race_no=12,row_options={n:dict(name=f'選手 {n}') for n in range(1,7)}).replace(b'20300401',b'20261105').replace(b'20:30',b'21:00')
+        preview=page(venue='17',race_no=12,content=before_table(display='6.82')+starts(populated=True)).replace(b'20300401',b'20261105').replace(b'20:30',b'21:00').replace(b'/owpc/pc/race/racelist?rno=',b'/owpc/pc/race/beforeinfo?rno=')
         order=[]
         def transport(url,**kwargs):
-            if '/racelist?' in url:return b'program',AT,'a'*64
-            if '/beforeinfo?' in url:return b'preview',AT,'b'*64
+            if '/racelist?' in url:return program,AT,hashlib.sha256(program).hexdigest()
+            if '/beforeinfo?' in url:return preview,AT,hashlib.sha256(preview).hexdigest()
             if '/odds3t?' in url:
                 order.append('odds');raise pilot.SourceError('ODDS_UNAVAILABLE')
             order.append('history');raise ValueError('WORKER_HANDOFF')
-        with patch.object(pilot,'_clock',return_value=NOW),patch.object(pilot,'get',side_effect=transport),patch.object(pilot,'parse_official_racelist',return_value=program),patch.object(pilot,'parse_update',return_value=preview),patch.object(pilot,'capture_before_context',return_value=context()),patch.object(pilot,'motor_top2',return_value={i:30+i for i in range(1,7)}),patch.object(pilot,'observed_timestamp',return_value=NOW.isoformat()),patch.object(pilot,'collect_pitreport',side_effect=lambda *a,**k:order.append('pit')),patch.object(pilot,'ENTRY_OBSERVATION_HISTORY',None),patch.object(pilot,'OBSERVED_HISTORY_CONTEXT',None),patch.dict('os.environ',{'RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED':'true'}):
+        with patch.object(pilot,'_clock',return_value=NOW),patch.object(pilot,'get',side_effect=transport),patch.object(pilot,'observed_timestamp',return_value=NOW.isoformat()),patch.object(pilot,'collect_pitreport',side_effect=lambda *a,**k:order.append('pit')),patch.object(pilot,'ENTRY_OBSERVATION_HISTORY',None),patch.object(pilot,'OBSERVED_HISTORY_CONTEXT',None),patch.dict('os.environ',{'RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED':'true'}):
             result=pilot.make_pair(DAY,dict(race_id=RID,cutoff_at=CUTOFF))
         self.assertEqual(order,['odds','pit','history'])
         self.assertEqual(result[0]['source_wait']['state'],'WORKER_HANDOFF')
