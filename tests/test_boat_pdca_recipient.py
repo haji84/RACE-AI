@@ -175,3 +175,49 @@ class RecipientTests(unittest.TestCase):
         self.assertEqual(final['scope']['generation'],1)
         self.assertEqual(final['status'],'READY')
         with self.assertRaises(ValueError):self.m.publish_received(repo,self.root/'producer/sealed',**kwargs)
+
+    def test_git_rewrite_chain_cannot_redirect_a_validated_github_destination(self):
+        import subprocess
+        from race_ai.boat_pdca_github_handoff import GitStateRepository
+        repo=self.root/'repo'
+        subprocess.run(['git','init',str(repo)],check=True,capture_output=True)
+        def run(*args):return subprocess.run(['git','-C',str(repo),*args],check=True,capture_output=True)
+        good='https://github.com/haji84/RACE-AI.git'
+        run('remote','add','origin','review-safe-alias')
+        run('config','url.'+good+'.insteadOf','review-safe-alias')
+        run('config','url.file:///unrelated.git.insteadOf',good)
+        self.assertEqual(run('remote','get-url','origin').stdout.decode().strip(),good)
+        with self.assertRaisesRegex(ValueError,'REWRITES_REJECTED'):GitStateRepository(repo)
+        run('config','--remove-section','url.'+good)
+        run('config','--remove-section','url.file:///unrelated.git')
+        run('remote','set-url','origin',good)
+        transport=GitStateRepository(repo)
+        run('config','url.file:///unrelated.git.pushInsteadOf',good)
+        with self.assertRaisesRegex(ValueError,'REWRITES_REJECTED'):transport.head()
+
+    def test_workflow_consumer_restores_the_producer_artifacts_nested_checkpoint(self):
+        from contextlib import redirect_stdout
+        from io import StringIO
+        import shlex
+        import shutil
+        from unittest.mock import patch
+        from scripts.boat_pdca_transfer import main
+        state,_=invented_research_state(self.root);r=self.transfer(state,self.root/'offer')
+        self.m.receive_transfer(self.pointer(r),self.root/'producer',key=OWNER,
+            fetch=lambda _:(self.root/'offer/transfer.enc').read_bytes(),run_id='200',source_head=HEAD,now=NOW)
+        # upload-artifact roots sealed/* and status.json at their common parent.
+        incoming=self.root/'boat-owner-state-incoming'
+        shutil.copytree(self.root/'producer/sealed',incoming/'sealed')
+        (incoming/'status.json').write_text('{"status":"OWNER_PDCA_TRANSFER_SEALED"}')
+        workflow=(Path(__file__).resolve().parents[1]/'.github/workflows/forecast-audit-ui.yml').read_text()
+        command=next(line.strip()[5:] for line in workflow.splitlines()
+                     if line.strip().startswith('run: python -m scripts.boat_pdca_transfer verify '))
+        env={'RACE_AI_STATE_KEY':base64.b64encode(OWNER).decode(),'RUNNER_TEMP':str(self.root),
+             'RACE_AI_SOURCE_HEAD':HEAD,'GITHUB_RUN_ID':'200','RACE_AI_EXPECTED_TRANSFER_SHA':r['cipher_sha256']}
+        def verify(folder,root,**kw):return self.m.verify_received_checkpoint(folder,root,now=NOW,**kw)
+        with patch.dict(os.environ,env),patch('scripts.boat_pdca_transfer.verify_received_checkpoint',side_effect=verify),redirect_stdout(StringIO()):
+            argv=[os.path.expandvars(part) for part in shlex.split(command)][3:]
+            code=main(argv)
+        self.assertEqual(code,0)
+        proof=json.loads((self.root/'boat-owner-state-readback/status.json').read_text())
+        self.assertTrue(proof['production_schema_readback_verified'])

@@ -151,6 +151,80 @@ jobs:
             ${{ runner.temp }}/boat-owner-recipient/status.json
           retention-days: 7
           if-no-files-found: error
+  boat_pdca_owner_transfer:
+    name: BOAT receive encrypted originals using the existing owner key
+    if: github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    outputs:
+      encrypted: ${{ steps.receive.outputs.encrypted }}
+      transfer_sha256: ${{ steps.receive.outputs.transfer_sha256 }}
+      artifact_id: ${{ steps.upload.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Decrypt owner-addressed transport, preserve prior state and seal canonical checkpoint
+        id: receive
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          RACE_AI_SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
+        run: python -m scripts.boat_pdca_transfer receive --input audit/state/boat-pdca-transfer-input.json --previous-input audit/state/boat-pdca-production-input.json --private-dir "$RUNNER_TEMP/boat-owner-state"
+      - name: Retain only owner-encrypted canonical state and public counts
+        id: upload
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-owner-pdca-state-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/boat-owner-state/sealed/state.enc
+            ${{ runner.temp }}/boat-owner-state/sealed/proof.json
+            ${{ runner.temp }}/boat-owner-state/sealed/handoff-proof.json
+            ${{ runner.temp }}/boat-owner-state/status.json
+          retention-days: 7
+          if-no-files-found: error
+  boat_pdca_owner_transfer_readback:
+    name: BOAT independent runner restores transferred production originals
+    needs: boat_pdca_owner_transfer
+    if: needs.boat_pdca_owner_transfer.outputs.encrypted == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Read the exact producer artifact from this run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          artifact-ids: ${{ needs.boat_pdca_owner_transfer.outputs.artifact_id }}
+          path: ${{ runner.temp }}/boat-owner-state-incoming
+          merge-multiple: true
+      - name: Authenticate canonical state, exact originals and idempotent result replay
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          RACE_AI_SOURCE_HEAD: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_EXPECTED_TRANSFER_SHA: ${{ needs.boat_pdca_owner_transfer.outputs.transfer_sha256 }}
+        run: python -m scripts.boat_pdca_transfer verify --folder "$RUNNER_TEMP/boat-owner-state-incoming/sealed" --private-dir "$RUNNER_TEMP/boat-owner-state-readback" --transfer-sha "$RACE_AI_EXPECTED_TRANSFER_SHA"
+      - name: Keep count-only independent readback proof
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-owner-pdca-readback-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/boat-owner-state-readback/status.json
+          retention-days: 7
+          if-no-files-found: error
   boat_pdca_production_readback:
     name: BOAT production encrypted-state acceptance or explicit HOLD
     if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository

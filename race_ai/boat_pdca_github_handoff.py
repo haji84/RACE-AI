@@ -31,9 +31,18 @@ INPUT_SCHEMA='RACE_AI_BOAT_PRODUCTION_STATE_INPUT_V1'
 class GitStateRepository:
     def __init__(self,repo,*,ref=STATE_REF):
         need(ref in (STATE_REF,TRANSFER_REF),'STATE_REF_NOT_ALLOWED');self.ref=ref
-        self.repo=Path(repo).resolve();self._check_remote()
+        self.repo=Path(repo).resolve();self._reject_rewrites();self._check_remote()
+
+    def _reject_rewrites(self,env=None):
+        result=subprocess.run(['git','config','--get-regexp',r'^url\..*\.(insteadof|pushinsteadof)$'],
+            cwd=self.repo,stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=15,env=env)
+        need(result.returncode in (0,1),'STATE_GIT_CONFIG_INSPECTION_FAILED')
+        # Passing a once-expanded URL back to Git applies rewrites again. Reject
+        # them instead of changing inherited credential helpers or auth headers.
+        need(result.returncode==1,'STATE_GIT_URL_REWRITES_REJECTED')
 
     def _run(self,args,*,body=None,env=None):
+        if args and args[0] in ('ls-remote','fetch','push'):self._reject_rewrites(env)
         result=subprocess.run(['git',*args],cwd=self.repo,input=body,stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,timeout=60,env=env)
         need(result.returncode==0,'STATE_GIT_OPERATION_FAILED');return result.stdout
