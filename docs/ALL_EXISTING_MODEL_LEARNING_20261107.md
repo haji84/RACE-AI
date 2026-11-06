@@ -4,7 +4,7 @@
 
 ## 1. 調査したAPIと既存構成
 
-艇愛DB仕様・権利・公式配布仕様は[既存調査](TEIAI_HISTORY_INTEGRATION.md)、[個人研究判断と原文SHA](BOAT_PERSONAL_RESEARCH_LEARNING_20261107.md)を再利用。今回の提供元データAPI追加GETは0件。認証された保存済み原本と実GitHubメタデータを使用した。
+艇愛DB仕様・権利・公式配布仕様は[既存調査](TEIAI_HISTORY_INTEGRATION.md)、[個人研究判断と原文SHA](BOAT_PERSONAL_RESEARCH_LEARNING_20261107.md)を再利用。今回の艇愛DBデータAPI追加GETは0件。認証された保存済み原本と実GitHubメタデータを使用した。
 
 API一覧（既存調査の再掲、末尾 `/` が必要）
 
@@ -100,7 +100,7 @@ BOAT RACE公式K/B配布、mbrace選手期別配布を照合基準にしてい�
 
 ## 12. 次の最小工程
 
-新しい全モデル候補の実Actions artifactを読戻し、独立メタデータ確認後に既存contextポインターを更新する。その次の既存巡回で実A/B/C-lite/observed元入力を締切前に暗号化保持し、別に取得した公式正常結果と結合する。各枠で最低8件（train6/holdout2）を満たしてから、対象入力集合へ明示的に結び付けた研究判断のもとで再学習する。既存研究判断の再使用によって新しい出典/入力を黙って許可しない。未来1件の保存と結果一巡を実測するまで、本番切替や予想精度向上を主張しない。
+実Actions artifactと既存全会場gridの所有者キー復元・独立メタデータ検査を終え、既存contextポインターを実artifactに更新した。次の既存巡回で実A/B/C-lite/observed元入力を締切前に暗号化保持し、別に取得した公式正常結果と結合する。各枠で最低8件（train6/holdout2）を満たしてから、対象入力集合へ明示的に結び付けた研究判断のもとで再学習する。既存研究判断の再使用によって新しい出典/入力を黙って許可しない。未来1件の保存と結果一巡を実測するまで、本番切替や予想精度向上を主張しない。
 
 ## 検証記録（実測）
 
@@ -108,5 +108,15 @@ BOAT RACE公式K/B配布、mbrace選手期別配布を照合基準にしてい�
 - 全体実行後に追加した4競技rankerの実学習artifactによる後日入力契約を含む追加対象10件は成功（6.738秒）。runtime/CLI最新18件も成功（40.541秒）。
 - Node：`node --test tests/*.test.mjs`、119件成功、失敗0。既存YAML3ファイルの解析・Python構文・`git diff --check`成功。
 - 独立レビュー：当初のseller見送りPDCA・本人名簿・ranker支持/評価/用途不一致、日内の無関係結果混入・保存時刻メタデータの自己申告を修正。現時点でCritical/Important指摘の残り0。
-- GitHub Actions：この実装HEADをこれからpushして確認する。まだ成功として記載しない。
+- 実装HEAD `34608b4863a816247231ce4ef3e32752682b07b9`： [Viewer Actions 42273374848](https://github.com/haji84/RACE-AI/actions/runs/42273374848) と [AUTORACE Actions 42273375048](https://github.com/haji84/RACE-AI/actions/runs/42273375048) は実APIで `completed/success` を確認。所有者キーでの実学習jobと実候補の独立復元も成功。
 - 別件の既存未来収集worker run42264560643は旧HEADで原本復元中のGitHub ZIP取得が失敗して終了。現在の全モデル実装を使った未来予想成功とは扱わず、同じ失敗を迂回して原本を再生成しない。
+
+### 実Actions候補の受入と予想経路の固定
+
+実装HEAD `34608b4863a816247231ce4ef3e32752682b07b9` の実jobが作成したartifact `13531437402`（run `42273374848`）を独立にダウンロードし、実GitHub APIメタデータを再取得して、repo/run/head・実ZIP SHA・保存時刻・期限・所有者暗号化を検査した。training SHA `138780934da999f7cc25ffb4de7e37f5c340c47bd5544e14398a2fe29cf2b4dd`、実2学習/29不足、元の係数・支持数・holdout指標の完全一致を確認。既存state ref保存元 `105e091816a25eaeb3798f0b6aaba6aa535ad2b2` へ追記し、別フォルダから復元して候補全体一致を再確認した。
+
+既存の`boat-venue-learning-context-input.json`と`boat-venue-learning-input.json`を、この実artifactと認証済み暗号文へ更新した。さらに通常のruntime preloaderで実候補と全会場gridを再復元し、2026-11-06 18:51:56 UTCに両者のSHA一致と31枠/実2学習を確認した。GitHub artifactのZIPは実コネクタ取得バイト、メタデータはGitHub APIの別GETを使用した。runtime readerの検証を省略していない。これは実未来P1の生成・保存・採点ではない。
+
+[公開可能な件数・SHA・保存証拠](evidence/2026-11-07/all-existing-model-learning-counts.json)に詳細を保持。暗号化候補の3ファイル以外の生入力や係数は公開していない。期限は2026-11-13 18:44:50 UTCであり、期限後のreceiptを自動延長しない。
+
+初回CIの全Python検証は2,209件・失敗0（170skip）、382.272秒。後段の隔離video検証283件も成功した。ローカルの112skipとCIの170skipを同じ件数と書かず、重複する検査件数を足して独立件数としない。参照先固定後の最終CIはPRの最新チェックを参照する。既存Node検証stepにも新規のnative PDCA係数テストを追加した。

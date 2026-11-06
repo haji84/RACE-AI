@@ -30,5 +30,11 @@ No new model family, default coefficient/formula changes, public private plainte
 - [x] Add registry-backed native intake, shared deterministic bounded fitter, held-out metrics and thirty-one-cell readiness states.
 - [x] Add scoped all-model owner decision and encrypted candidate schema dispatch, immutable retention and actual artifact context readback.
 - [x] Connect genuine current native input retention, encrypted same-input research predictions and native paired PDCA to the existing round.
-- [ ] Fit available real members with the owner key, report missing real members explicitly; run focused/full tests, independent review, PR71 push, exact-HEAD Actions and actual encrypted artifact readback.
-- [ ] Report actual future learned-model execution separately; no invented future observations/results.
+- [x] Fit available real members with the owner key, report missing real members explicitly; run focused/full tests, independent review, PR71 push, exact-HEAD Actions and actual encrypted artifact readback.
+- [x] Report actual future learned-model execution separately; no invented future observations/results.
+
+## Evidence and limits
+
+Implementation `34608b4863a816247231ce4ef3e32752682b07b9`: local full2,208 tests OK112skipped; later-ranker and actual mixed/source-only PDCA10 targeted tests pass; Node119pass; independent review has no remaining Critical/Important findings. Exact implementation Actions42273374848/42273375048 success. Actual CI artifact13531437402 independently decrypted with owner key, compared with real8race fit, retained/read back from existing Git state, and loaded with the actual all-venue grid. Existing context/retained pointers now pin that verified candidate; this is a research-only candidate.
+
+Real coverage remains2BOATfamilies/8races6train2holdout,29cells input-missing. No real future learned P1 or prospective PDCA has completed; no real nonboat cohort/source policy is claimed. See `docs/ALL_EXISTING_MODEL_LEARNING_20261107.md` and its aggregate evidence JSON.
