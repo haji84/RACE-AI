@@ -14,7 +14,7 @@ permissions:
   contents: read
 concurrency:
   group: ${{ github.event_name == 'workflow_dispatch' && format('boat-video-publication-{0}', github.run_id) || format('forecast-audit-{0}', github.ref) }}
-  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+  cancel-in-progress: false
 jobs:
   train_only_tests:
     if: github.event_name == 'pull_request'

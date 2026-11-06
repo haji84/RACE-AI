@@ -19,6 +19,48 @@ if _REFERENCE not in race_ai.__path__:race_ai.__path__.append(_REFERENCE)
 from .core import _blocks, parse_k
 
 FIELDS=('race_id','racer_id','lane','course','st','st_status','finish','result_code','winner_method')
+OFFICIAL_K_PARSER_REVISION=4
+
+
+def parse_k_rows(raw,day):
+    """Retain printed late-start rows outside the legacy timing grammar.
+
+    The legacy parser's missing-row transport supplies its six-lane checks.
+    Its temporary ABSENT status is immediately replaced by the original L.
+    A printed course is restored; an absent course stays absent. Raw provenance
+    and dispositions always come from the original bytes.
+    """
+    day=date.fromisoformat(day);text=unicodedata.normalize('NFKC',raw.decode('cp932'))
+    venue=race=None;late={};adapted=[]
+    for line in text.splitlines():
+        marker=re.fullmatch(r'\s*([0-9]{1,2})K(BGN|END)\s*',line)
+        if marker:
+            venue=int(marker[1]) if marker[2]=='BGN' else None;race=None
+        header=HEADER.match(line)
+        if header:race=int(header[1])
+        missing=re.fullmatch(r'\s*([FL][012]?)\s+([1-6])\s+([0-9]{4})\s+.+?\s+[0-9]+\.[0-9]{2}\s+(?:([1-6])\s+)?([FL](?:[0-9]+\.[0-9]{2})?)\s+(?:\.\s*){2,3}',line)
+        if missing:
+            code,lane,reg,course,timing=missing.groups()
+            need(code[0]==timing[0],'OFFICIAL_DISPOSITION_ST_CONFLICT')
+            need(venue is not None and race is not None,'OFFICIAL_LATE_CONTEXT_MISSING')
+            key=(f'{day:%Y%m%d}-{venue:02d}-{race:02d}',int(lane))
+            need(key not in late,'OFFICIAL_LATE_DUPLICATE_ROW');late[key]=(reg,int(course) if course else None,timing,code[0])
+            line=f' 欠 {lane} {reg}'
+        adapted.append(line)
+    rows=parse_k('\n'.join(adapted).encode('cp932') if late else raw,day.isoformat())
+    for row in rows:
+        key=(row['race_id'],row['lane'])
+        if key in late:
+            reg,course,timing,status=late[key]
+            need(row['racer_id']==reg and row['course'] is None and row['st'] is None
+                 and row['finish'] is None and row['st_status']=='ABSENT','OFFICIAL_LATE_BRIDGE_INVALID')
+            row.update(course=course,st_status=status,st_raw=timing)
+    courses={}
+    for row in rows:
+        if row['course'] is None:continue
+        seen=courses.setdefault(row['race_id'],set())
+        need(row['course'] not in seen,'OFFICIAL_DUPLICATE_ACTUAL_COURSE');seen.add(row['course'])
+    return rows
 
 
 def official_day(raw, *, day):
@@ -28,12 +70,28 @@ def official_day(raw, *, day):
     remain missing, not invented. Does not authenticate caller-supplied bytes.
     """
     day=date.fromisoformat(day);text=unicodedata.normalize('NFKC',raw.decode('cp932'))
-    methods={};payouts={};dispositions={}
+    need('STARTK' in text[:200],'OFFICIAL_K_START_MARKER_REQUIRED')
+    methods={};payouts={};dispositions={};cancelled=[];unpublished=[]
     for venue,block in _blocks(text,'K'):
-        headers=list(HEADER.finditer(block));need(headers,'OFFICIAL_K_NO_RACES')
-        pre=block[:headers[0].start()]
+        headers=list(HEADER.finditer(block))
+        if not headers and 'データは、この場の全レース終了後に登録されます。' in block:
+            lines=[line.strip() for line in block.splitlines() if line.strip()]
+            need(len(lines)==2 and lines[0].startswith('ボートレース') and
+                 lines[1]=='データは、この場の全レース終了後に登録されます。','OFFICIAL_PUBLICATION_PLACEHOLDER_CHANGED')
+            code=f'{venue:02d}';need(code not in unpublished,'OFFICIAL_DUPLICATE_UNPUBLISHED_VENUE');unpublished.append(code)
+            continue
+        pre=block[:headers[0].start()] if headers else block
         dates=re.findall(r'(20\d\d)\s*/\s*(\d{1,2})\s*/\s*(\d{1,2})',pre)
         need(dates and {(int(y),int(m),int(d)) for y,m,d in dates}=={(day.year,day.month,day.day)},'OFFICIAL_K_DATE_UNVERIFIED')
+        if not headers:
+            labels=[line for line in block.splitlines() if re.match(r'^\s*[0-9]{1,2}R\b',line)]
+            need(labels and not re.search(r'^\s*\S+\s+[1-6]\s+[0-9]{4}\s',block,re.M),'OFFICIAL_K_NO_RACES')
+            for line in labels:
+                match=re.fullmatch(r'\s*([0-9]{1,2})R\s+中\s*止\s*',line)
+                need(match is not None,'OFFICIAL_K_CANCELLATION_UNVERIFIED')
+                rid=f'{day:%Y%m%d}-{venue:02d}-{int(match[1]):02d}';race_parts(rid)
+                need(rid not in cancelled,'OFFICIAL_K_DUPLICATE_CANCELLATION');cancelled.append(rid)
+            continue
         for i,h in enumerate(headers):
             rid=f'{day:%Y%m%d}-{venue:02d}-{int(h[1]):02d}'
             race_parts(rid);need(rid not in methods,'OFFICIAL_K_DUPLICATE_RACE')
@@ -65,11 +123,13 @@ def official_day(raw, *, day):
                     if re.fullmatch(r'[1-6](?:-[1-6]){'+str(n-1)+r'}',combo) and amount.isdecimal():
                         found.append(dict(bet_type=kind,combo=combo,amount=int(amount)))
             payouts[rid]=found
-    rows=parse_k(raw,day.isoformat())
+    need(methods or cancelled or unpublished,'OFFICIAL_K_NO_RACES')
+    rows=parse_k_rows(raw,day.isoformat()) if methods else []
     for row in rows:
         row['winner_method']=methods[row['race_id']]
         row['result_code']=dispositions.get((row['race_id'],row['lane']))
-    return dict(rows=rows,payouts=payouts,source_sha256=hashlib.sha256(raw).hexdigest())
+    return dict(rows=rows,payouts=payouts,cancelled_races=sorted(cancelled),unpublished_venues=sorted(unpublished),
+                parser_revision=OFFICIAL_K_PARSER_REVISION,source_sha256=hashlib.sha256(raw).hexdigest())
 
 
 def reconcile_rows(provider, official):

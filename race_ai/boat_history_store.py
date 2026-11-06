@@ -15,10 +15,11 @@ import unicodedata
 from .boat_entry_observations import build_entry_history_from_archives, extract_daily_lzh
 from .boat_racer_tendencies import profile_before
 from .boat_k_day_methods import HEADER
-from .core import _blocks, parse_k, SourceError
+from .core import _blocks, SourceError
+from .teiai_official_reconciliation import parse_k_rows as parse_k
 
 JST=timezone(timedelta(hours=9))
-PARSER_REVISION=3
+PARSER_REVISION=4
 
 
 def wire(value):

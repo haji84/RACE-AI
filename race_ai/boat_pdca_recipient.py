@@ -12,6 +12,7 @@ import json
 import os
 from pathlib import Path
 import re
+from tempfile import TemporaryDirectory
 
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric.x25519 import X25519PrivateKey,X25519PublicKey
@@ -162,6 +163,33 @@ def _pointer(value):
     return value
 
 
+def _already_covered(pointer,plain,current_pointer,root,*,key,fetch,clock):
+    """A stale offer is a no-op only after both states are restored and audited.
+
+    Comparison copies never become another canonical checkpoint. In particular,
+    generation numbers, inventory counts or transfer headers alone cannot prove
+    that the current state preserves every immutable incoming original.
+    """
+    root=private_root(root)
+    with TemporaryDirectory(dir=root,prefix='.covered-state-check-') as folder:
+        scratch=Path(folder);save(scratch/'incoming.sqlite',plain)
+        incoming=PdcaState(scratch/'incoming.sqlite')
+        try:
+            need(incoming.mode=='production','RECIPIENT_PRODUCTION_STATE_REQUIRED')
+            _audit(incoming,private_root(scratch/'incoming-verification'),clock)
+            need(incoming.content_sha256()==pointer['scope']['source_content_sha256'],'RECIPIENT_SOURCE_CONTENT_MISMATCH')
+            current_root=private_root(scratch/'current')
+            report=readback(current_pointer,current_root,key=key,fetch=fetch,now=clock)
+            need(report.get('production_schema_readback_verified') is True,'RECIPIENT_PREVIOUS_RESTORE_REQUIRED')
+            current=PdcaState(current_root/'state.sqlite')
+            try:_no_regression(incoming,current)
+            finally:current.close()
+        finally:incoming.close()
+    return dict(report,status='OWNER_PDCA_TRANSFER_ALREADY_COVERED',encrypted_checkpoint_created=False,
+        incoming_originals_covered=True,cipher_sha256=current_pointer['cipher_sha256'],
+        scope=current_pointer['scope'],transfer_sha256=pointer['cipher_sha256'],source_gets=2)
+
+
 def receive_transfer(pointer,root,*,key=None,fetch=None,run_id,source_head,previous_pointer=None,now=None):
     try:key=state_key('production',key)
     except ValueError:return dict(status='HOLD_OWNER_STATE_KEY_MISSING',source_gets=0,encrypted_checkpoint_created=False)
@@ -170,9 +198,12 @@ def receive_transfer(pointer,root,*,key=None,fetch=None,run_id,source_head,previ
     pointer=_pointer(pointer);header=pointer['scope'];_run(run_id);_hex(source_head,HEAD)
     owner=_private(key);public=owner.public_key().public_bytes_raw()
     need(sha(public)==header['recipient_key_id'],'RECIPIENT_OWNER_KEY_MISMATCH')
-    if header['generation']==1:need(previous_pointer is None,'RECIPIENT_UNEXPECTED_PREVIOUS_STATE')
-    else:
-        old=_previous(previous_pointer)
+    current_scope=_previous(previous_pointer) if previous_pointer is not None else None
+    covered_candidate=current_scope is not None and header['generation']<=current_scope['generation']
+    if not covered_candidate and header['generation']==1:
+        need(previous_pointer is None,'RECIPIENT_UNEXPECTED_PREVIOUS_STATE')
+    elif not covered_candidate:
+        old=current_scope if current_scope is not None else _previous(previous_pointer)
         need(old['generation']+1==header['generation'] and previous_pointer['cipher_sha256']==header['previous_cipher_sha256']
              and previous_pointer['source_commit']==header['previous_source_commit'],'RECIPIENT_PREVIOUS_STATE_MISMATCH')
     url='https://raw.githubusercontent.com/'+REPO+'/'+pointer['source_commit']+'/'+pointer['cipher_path']
@@ -189,6 +220,9 @@ def receive_transfer(pointer,root,*,key=None,fetch=None,run_id,source_head,previ
         compressed=AESGCM(_session(shared,header,epub,public)).decrypt(nonce,ciphertext,wire(header).encode())
     except Exception:raise ValueError('RECIPIENT_TRANSFER_AUTHENTICATION_FAILED') from None
     plain=inflate(compressed);need(sha(plain)==header['source_state_sha256'],'RECIPIENT_PLAINTEXT_HASH_MISMATCH')
+    if covered_candidate:
+        return _already_covered(pointer,plain,previous_pointer,root,key=key,fetch=fetch,
+            clock=now or datetime.now(timezone.utc))
     root=private_root(root);save(root/'incoming.sqlite',plain);incoming=PdcaState(root/'incoming.sqlite')
     state=None;oldstate=None
     try:

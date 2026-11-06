@@ -1,0 +1,70 @@
+"""Invented K text: explicit missing-course late starts and cancellation blocks."""
+import hashlib
+import unittest
+
+from race_ai.teiai_official_reconciliation import official_day
+
+
+def packet(*, late=False, extra=''):
+    lines=['STARTK','01KBGN','2030/01/01',' 1R TEST H1800m',' 逃げ']
+    for lane in range(1,7):
+        if late and lane==6:
+            lines.append(' L0 6 4006 TEST 11 22 6.80 L . . .')
+        else:
+            lines.append(f' {lane:02} {lane} {4000+lane} TEST 11 22 6.80 {lane} 0.12 1.50.0')
+    lines.extend(['01KEND',extra,'ENDK'])
+    return '\n'.join(lines).encode('cp932')
+
+
+class OfficialSpecialBlocksTests(unittest.TestCase):
+    def test_explicit_not_yet_published_venue_is_not_a_no_race_claim(self):
+        extra='02KBGN\nボートレース戸田\nデータは、この場の全レース終了後に登録されます。\n02KEND'
+        result=official_day(packet(extra=extra),day='2030-01-01')
+        self.assertEqual(len(result['rows']),6)
+        self.assertEqual(result['unpublished_venues'],['02'])
+        self.assertEqual(result['cancelled_races'],[])
+
+    def test_large_flying_timing_is_preserved_raw_and_excluded_from_ok_st(self):
+        raw=packet(late=True).replace(b'L0 6 4006 TEST 11 22 6.80 L . . .',b'F 6 4006 TEST 11 22 6.80 6 F1.23 . .')
+        row=next(r for r in official_day(raw,day='2030-01-01')['rows'] if r['lane']==6)
+        self.assertEqual((row['course'],row['st_status'],row['st_raw']),(6,'F','F1.23'))
+        self.assertIsNone(row['st']);self.assertIsNone(row['finish'])
+
+    def test_late_numeric_over_one_second_and_l1_preserve_actual_course(self):
+        for code,timing in (('L0','L1.34'),('L1','L9.99')):
+            raw=packet(late=True).replace(b'L0 6 4006 TEST 11 22 6.80 L . . .',f'{code} 6 4006 TEST 11 22 6.80 6 {timing} . .'.encode())
+            with self.subTest(code=code):
+                row=next(r for r in official_day(raw,day='2030-01-01')['rows'] if r['lane']==6)
+                self.assertEqual((row['course'],row['st_status'],row['st_raw'],row['result_code']),(6,'L',timing,code))
+                self.assertIsNone(row['st']);self.assertIsNone(row['finish'])
+
+    def test_l1_without_course_is_not_assigned_its_lane(self):
+        raw=packet(late=True).replace(b'L0 6',b'L1 6')
+        row=next(r for r in official_day(raw,day='2030-01-01')['rows'] if r['lane']==6)
+        self.assertEqual(row['result_code'],'L1');self.assertIsNone(row['course'])
+
+    def test_explicit_l0_without_course_stays_unknown_and_preserves_raw_hash(self):
+        raw=packet(late=True)
+        result=official_day(raw,day='2030-01-01')
+        self.assertEqual(result['source_sha256'],hashlib.sha256(raw).hexdigest())
+        row=next(r for r in result['rows'] if r['lane']==6)
+        self.assertEqual(len(result['rows']),6)
+        self.assertEqual((row['racer_id'],row['result_code'],row['st_status']),('4006','L0','L'))
+        self.assertIsNone(row['course']);self.assertIsNone(row['st']);self.assertIsNone(row['finish'])
+
+    def test_explicit_cancelled_venue_is_counted_without_inventing_entrants(self):
+        extra='02KBGN\n2030/01/01\n 1R 中 止\n 2R 中 止\n02KEND'
+        result=official_day(packet(extra=extra),day='2030-01-01')
+        self.assertEqual(len(result['rows']),6)
+        self.assertEqual(result['cancelled_races'],['20300101-02-01','20300101-02-02'])
+
+    def test_unmarked_empty_or_conflicting_cancellation_is_rejected(self):
+        for body in ('2030/01/01','2030/01/01\n 1R 中 止\n 1R 中 止',
+                     '2030/01/02\n 1R 中 止','2030/01/01\n 1R 中 止\n 2R 不明',
+                     '2030/01/01\n 1R 中 止\n 01 1 4001 TEST 11 22 6.80 1 0.12 1.50.0'):
+            with self.subTest(body=body),self.assertRaises(ValueError):
+                official_day(packet(extra='02KBGN\n'+body+'\n02KEND'),day='2030-01-01')
+
+    def test_unknown_missing_course_disposition_does_not_get_coerced(self):
+        raw=packet(late=True).replace(b'L0 6',b'F 6')
+        with self.assertRaises(ValueError):official_day(raw,day='2030-01-01')

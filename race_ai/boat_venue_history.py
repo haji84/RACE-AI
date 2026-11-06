@@ -78,6 +78,7 @@ class VenueHistory:
         if day in self.sources:
             need(self.sources[day]['source_sha256']==sha,'VENUE_REVISED_DAY_REBUILD_REQUIRED');return
         parsed=official_day(extract_daily_lzh(raw,f'K{d:%y%m%d}.TXT'),day=day)
+        need(not parsed['unpublished_venues'],'VENUE_DAY_NOT_FULLY_PUBLISHED')
         # A whole date is admitted atomically only after the existing strict
         # national parser accepted every recorded race. Unsupported files remain
         # catalog gaps; not silently filtered races in a complete-date claim.

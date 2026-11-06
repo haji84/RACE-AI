@@ -9,6 +9,65 @@ from tests.test_boat_history_catalog import menu,index
 from tests.test_boat_venue_history import archive
 
 class VenueCLITests(unittest.TestCase):
+    def test_old_quarantine_is_reanalysed_on_resume_without_any_provider_get(self):
+        import base64
+        from scripts import boat_venue_history as cli
+        import race_ai.boat_history_catalog as catalog
+        from datetime import datetime,timezone
+        now=datetime.now(timezone.utc).isoformat();key=base64.b64encode(os.urandom(32)).decode()
+        def fetch(url):
+            if url.endswith('/dmenu.html'):return b'<script>var dir="/od2/K/";</script><option value="202611">x</option>',now
+            if url.endswith('/mday.html'):return index(days=('04',)),now
+            return archive(day='2026-11-04'),now
+        with tempfile.TemporaryDirectory() as folder,patch.dict(os.environ,{'RACE_AI_STATE_KEY':key}):
+            with patch.object(cli,'_http',side_effect=fetch),patch.object(catalog,'official_day',side_effect=ValueError('OLD_PARSER')),patch.object(catalog,'OFFICIAL_K_PARSER_REVISION',1):
+                first=collect_all(Path(folder)/'all',initialize=True)
+                self.assertEqual(first['complete_months'],0)
+            with patch.object(cli,'_http',side_effect=AssertionError('no re-fetch')):
+                second=collect_all(Path(folder)/'all')
+                self.assertEqual(second['complete_months'],1)
+
+    def test_two_bounded_downloads_overlap_and_both_are_checkpointed(self):
+        import base64,threading,time
+        from scripts import boat_venue_history as cli
+        from datetime import datetime,timezone
+        now=datetime.now(timezone.utc).isoformat();key=base64.b64encode(os.urandom(32)).decode()
+        lock=threading.Lock();active=maximum=0
+        def fetch(url):
+            nonlocal active,maximum
+            if url.endswith('/dmenu.html'):return b'<script>var dir="/od2/K/";</script><option value="202611">x</option>',now
+            if url.endswith('/mday.html'):return index(),now
+            with lock:active+=1;maximum=max(maximum,active)
+            time.sleep(.1)
+            with lock:active-=1
+            return archive(day='2026-11-04' if url.endswith('04.lzh') else '2026-11-05'),now
+        with tempfile.TemporaryDirectory() as folder,patch.dict(os.environ,{'RACE_AI_STATE_KEY':key}),patch.object(cli,'_http',side_effect=fetch):
+            report=capture_month(Path(folder)/'batch',month='202611')
+            self.assertEqual(report['catalog']['parsed_days'],2)
+            self.assertEqual(report['upstream_gets'],4)
+        self.assertEqual(maximum,2)
+
+    def test_rate_limit_stops_queue_and_survives_other_inflight_success(self):
+        import base64,threading,time
+        from scripts import boat_venue_history as cli
+        from race_ai.source_retry_policy import SourceWait,plan_http_wait
+        from datetime import datetime,timezone
+        now=datetime.now(timezone.utc).isoformat();key=base64.b64encode(os.urandom(32)).decode();calls=[]
+        def fetch(url):
+            if url.endswith('/dmenu.html'):return b'<script>var dir="/od2/K/";</script><option value="202611">x</option>',now
+            if url.endswith('/mday.html'):return index(days=('03','04','05')),now
+            calls.append(url)
+            if url.endswith('03.lzh'):
+                wait=SourceWait('HTTP_RATE_LIMIT',state='RATE_LIMIT_WAIT');wait.plan=plan_http_wait(429,{'Retry-After':'3600'},now);raise wait
+            time.sleep(.1);return archive(day='2026-11-04'),now
+        with tempfile.TemporaryDirectory() as folder,patch.dict(os.environ,{'RACE_AI_STATE_KEY':key}),patch.object(cli,'_http',side_effect=fetch):
+            report=capture_month(Path(folder)/'batch',month='202611')
+            self.assertLessEqual(len(calls),2)
+            self.assertFalse(any(url.endswith('05.lzh') for url in calls))
+            self.assertEqual(report['source_wait']['http_status'],429)
+            c,_=cli.restore_month(Path(folder)/'batch',expected_month='202611')
+            self.assertIsNotNone(c.active_wait(now))
+
     def test_full_grid_with_partial_actual_input_and_no_individual_public_output(self):
         with tempfile.TemporaryDirectory() as folder:
             p=Path(folder);(p/'menu.html').write_bytes(menu());(p/'index.html').write_bytes(index());(p/'term.lzh').write_bytes(term_archive());(p/'k261104.lzh').write_bytes(archive())

@@ -4,7 +4,9 @@ No provider API crawl, raw public output, forecast mutation, substitute key,
 new scheduler or new cloud. Missing/unsupported dates stay explicit gaps.
 """
 import argparse
+import atexit
 import base64
+from concurrent.futures import ThreadPoolExecutor,wait as wait_futures,FIRST_COMPLETED
 from datetime import date,datetime,timedelta,timezone
 import hashlib
 import hmac
@@ -13,10 +15,11 @@ import os
 from pathlib import Path
 import re
 import sqlite3
+import ssl
 import tempfile
+import threading
 import time
-from urllib.error import HTTPError,URLError
-from urllib.request import Request,build_opener
+import httpx
 
 from race_ai.actions_contract import stamp
 from race_ai.teiai_history import need
@@ -24,26 +27,55 @@ from race_ai.boat_racer_term import extract_term,parse_term
 from race_ai.boat_history_catalog import HistoryMonth,published_months
 from race_ai.boat_venue_history import VenueHistory,JST
 from race_ai.official_archive_probe import official_url
-from race_ai.permissioned_source_delivery import NoRedirect
 from race_ai.source_retry_policy import SourceWait,plan_http_wait,wait_active
 from scripts.boat_all_racers import _read,_write,_codec,_key_ready,_now
 
 MENU='https://www1.mbrace.or.jp/od2/K/dmenu.html'
-SOURCE=re.compile(r'https://www1\.mbrace\.or\.jp/od2/K/(?:dmenu\.html|[0-9]{6}/(?:mday\.html|k[0-9]{6}\.lzh))\Z')
+SOURCE=re.compile(r'https://www1\.mbrace\.or\.jp/od2/(?:K/(?:dmenu\.html|[0-9]{6}/(?:mday\.html|k[0-9]{6}\.lzh))|B/[0-9]{6}/b[0-9]{6}\.lzh)\Z')
+_SESSION=None
+_HTTP_LOCK=threading.Lock()
+_HTTP_NEXT_START=0.
+_HTTP_WAIT=None
+
+
+def _source_wait(plan,*,attempted):
+    global _HTTP_WAIT
+    if plan.get('http_status')!=404:_HTTP_WAIT=plan
+    wait=SourceWait(plan['reason'],plan['retry_at'],state=plan['state'])
+    wait.plan=plan;wait.upstream_attempted=attempted
+    raise wait from None
+
+
+def _http_session():
+    global _SESSION,_HTTP_NEXT_START,_HTTP_WAIT
+    with _HTTP_LOCK:
+        for pause in (False,True):
+            if _HTTP_WAIT and wait_active(_HTTP_WAIT,_now()):_source_wait(_HTTP_WAIT,attempted=False)
+            _HTTP_WAIT=None
+            if not pause:time.sleep(max(0.,_HTTP_NEXT_START-time.monotonic()))
+        _HTTP_NEXT_START=time.monotonic()+1. # one start/second across both connections
+        if _SESSION is None:
+            _SESSION=httpx.Client(verify=ssl.create_default_context(),follow_redirects=False,trust_env=True,
+                timeout=25,limits=httpx.Limits(max_connections=2,max_keepalive_connections=2))
+            atexit.register(_SESSION.close)
+        return _SESSION
 
 
 def _http(url):
     need(SOURCE.fullmatch(url),'HISTORY_TRANSPORT_URL_REJECTED')
     try:
-        with build_opener(NoRedirect()).open(Request(url,headers={'User-Agent':'RACE-AI-owner-personal-published-history/1'}),timeout=25) as response:
+        with _http_session().stream('GET',url,headers={'User-Agent':'RACE-AI-owner-personal-published-history/1'}) as response:
+            if response.status_code!=200:_source_wait(plan_http_wait(response.status_code,response.headers,_now()),attempted=True)
             limit=200000 if url.endswith('.html') else 16000000
-            raw=response.read(limit+1)
-            need(response.status==200 and response.geturl()==url and 0<len(raw)<=limit,'HISTORY_HTTP_IDENTITY_SIZE_REJECTED')
-        captured=_now();time.sleep(1) # local conservative spacing, not a claimed provider quota
+            chunks=[];size=0
+            for chunk in response.iter_bytes():
+                size+=len(chunk);need(size<=limit,'HISTORY_HTTP_IDENTITY_SIZE_REJECTED');chunks.append(chunk)
+            raw=b''.join(chunks)
+            need(str(response.url)==url and raw,'HISTORY_HTTP_IDENTITY_SIZE_REJECTED')
+        captured=_now()
         return raw,captured
-    except (HTTPError,URLError,TimeoutError,OSError) as exc:
-        plan=plan_http_wait(exc.code if isinstance(exc,HTTPError) else None,getattr(exc,'headers',{}),_now())
-        wait=SourceWait(plan['reason'],plan['retry_at'],state=plan['state']);wait.plan=plan;raise wait from None
+    except (httpx.HTTPError,TimeoutError,OSError):
+        _source_wait(plan_http_wait(None,{},_now()),attempted=True)
 
 
 def inspect_sources(source_dir,*,term_file,menu_file,end):
@@ -87,7 +119,7 @@ def restore_month(folder,*,expected_month):
     return c,report
 
 
-def capture_month(out,*,month,not_after=None,roster=(),resume=None,max_files=31):
+def capture_month(out,*,month,not_after=None,roster=(),resume=None,max_files=31,reparse_only=False):
     out=Path(out);out.mkdir(parents=True,mode=0o700,exist_ok=True)
     need(not any(out.iterdir()),'HISTORY_OUTPUT_EXISTS_DO_NOT_RESET')
     if not _key_ready():
@@ -96,10 +128,21 @@ def capture_month(out,*,month,not_after=None,roster=(),resume=None,max_files=31)
         _write(out/'summary.json',json.dumps(report).encode());return report
     need(type(max_files) is int and 1<=max_files<=31,'HISTORY_BATCH_LIMIT_INVALID')
     until=not_after or datetime.now(JST).date().isoformat()
-    gets=0
+    gets=0;counter_lock=threading.Lock();paused=[None]
     def fetch(url):
         nonlocal gets
-        gets+=1;return _http(url)
+        if paused[0]:
+            plan=paused[0];exc=SourceWait(plan['reason'],plan['retry_at'],state=plan['state'])
+            exc.plan=plan;exc.upstream_attempted=False;raise exc
+        attempted=True
+        try:return _http(url)
+        except SourceWait as exc:
+            attempted=getattr(exc,'upstream_attempted',True)
+            if exc.plan.get('http_status')!=404:paused[0]=exc.plan
+            raise
+        finally:
+            if attempted:
+                with counter_lock:gets+=1
     def hold(plan):
         report=dict(status='HOLD_SOURCE_WAIT',month=month,upstream_gets=gets,source_wait=plan,
                     encrypted_checkpoint_created=False,all_available_period_complete=False)
@@ -115,9 +158,12 @@ def capture_month(out,*,month,not_after=None,roster=(),resume=None,max_files=31)
                 if wait_active(previous['source_wait'],_now()):return hold(previous['source_wait'])
             else:need(previous['status']=='HOLD_OWNER_STATE_KEY_MISSING','HISTORY_RESUME_STATE_INVALID')
             resume=None
+    need(not reparse_only or resume is not None,'HISTORY_REPARSE_REQUIRES_CHECKPOINT')
     if resume is not None:
         catalog,old=restore_month(resume,expected_month=month)
         scope=_scope(old['scope']['generation']+1,old['ciphertext_sha256'])
+        if reparse_only:
+            for day in catalog.reparse_candidates():catalog.reparse(day,parsed_at=_now())
     else:
         try:
             menu,_=fetch(MENU);need(month in published_months(menu),'HISTORY_MONTH_NOT_PUBLISHED')
@@ -125,15 +171,30 @@ def capture_month(out,*,month,not_after=None,roster=(),resume=None,max_files=31)
         except SourceWait as exc:return hold(exc.plan)
         catalog=HistoryMonth(month=month,index_raw=index,not_after=until,roster=roster);scope=_scope()
     wait=catalog.active_wait(_now())
-    if not wait:
-        for day in catalog.pending()[:max_files]:
-            try:
-                raw,captured=fetch(official_url(date.fromisoformat(day),'K'))
-                catalog.record(day,raw,captured_at=captured);catalog.set_wait(None)
-            except SourceWait as exc:
-                plan=exc.plan
-                if plan.get('http_status')==404:catalog.missing(day,captured_at=_now(),http_status=404);continue
-                catalog.set_wait(plan);wait=plan;break
+    if not wait and not reparse_only:
+        days=iter(catalog.pending()[:max_files])
+        with ThreadPoolExecutor(max_workers=2,thread_name_prefix='official-history') as pool:
+            pending={}
+            def submit():
+                day=next(days,None)
+                if day is not None:pending[pool.submit(fetch,official_url(date.fromisoformat(day),'K'))]=day
+            submit();submit()
+            while pending:
+                done,_=wait_futures(pending,return_when=FIRST_COMPLETED)
+                for future in done:
+                    day=pending.pop(future)
+                    try:
+                        raw,captured=future.result();catalog.record(day,raw,captured_at=captured,parsed_at=_now())
+                    except SourceWait as exc:
+                        plan=exc.plan
+                        if plan.get('http_status')==404:catalog.missing(day,captured_at=_now(),http_status=404)
+                        else:wait=plan
+                if not wait and not paused[0]:
+                    while len(pending)<2:
+                        before=len(pending);submit()
+                        if len(pending)==before:break
+        # A late successful in-flight response must not erase an earlier 429.
+        catalog.set_wait(wait)
     plain=catalog.serialize();sha=hashlib.sha256(plain).hexdigest()
     with tempfile.TemporaryDirectory(prefix='race-ai-history-seal-') as temp:
         t=Path(temp);_write(t/'private.sqlite',plain);_write(t/'scope.json',json.dumps(scope).encode())
@@ -211,7 +272,7 @@ def collect_all(out,*,initialize=False,max_months=None):
                 catalog,receipt=restore_month(folder,expected_month=month)
                 need(receipt['ciphertext_sha256']==old['ciphertext_sha256'],'HISTORY_PROGRESS_HEAD_MISMATCH')
                 if catalog.summary()['month_complete']:continue
-                if not catalog.pending():continue
+                if not catalog.pending() and not catalog.reparse_candidates():continue
         else:folder=None
         if max_months is not None and completed>=max_months:break
         attempt=old.get('attempt',old.get('generation',0))+1 if old else 1
@@ -227,7 +288,8 @@ def collect_all(out,*,initialize=False,max_months=None):
                 need(not (target/'history.checkpoint').exists(),'HISTORY_HOLD_HAS_UNEXPECTED_CIPHERTEXT')
                 report=_verify_hold(report) # authenticated orphan HOLD, never decrypt as a SQLite checkpoint
         else:
-            report=capture_month(target,month=month,resume=folder,not_after=state.get('not_after',stamp(state['captured_at']).astimezone(JST).date().isoformat()))
+            report=capture_month(target,month=month,resume=folder,not_after=state.get('not_after',stamp(state['captured_at']).astimezone(JST).date().isoformat()),
+                                 reparse_only=bool(old and old.get('kind')!='HOLD' and not catalog.pending() and catalog.reparse_candidates()))
         if report['encrypted_checkpoint_created']:
             head=dict(kind='ENCRYPTED',folder=relative,ciphertext_sha256=report['ciphertext_sha256'],attempt=attempt,
                       generation=report['scope']['generation'],month_complete=report['catalog']['month_complete'])
@@ -245,12 +307,12 @@ def collect_all(out,*,initialize=False,max_months=None):
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__);sub=p.add_subparsers(dest='action',required=True)
     s=sub.add_parser('inspect');s.add_argument('--source-dir',required=True);s.add_argument('--term-file',required=True);s.add_argument('--menu-file',required=True);s.add_argument('--end',required=True)
-    s=sub.add_parser('capture-month');s.add_argument('--out-dir',required=True);s.add_argument('--month',required=True);s.add_argument('--resume');s.add_argument('--max-files',type=int,default=31)
+    s=sub.add_parser('capture-month');s.add_argument('--out-dir',required=True);s.add_argument('--month',required=True);s.add_argument('--resume');s.add_argument('--max-files',type=int,default=31);s.add_argument('--reparse-only',action='store_true')
     s=sub.add_parser('restore-month');s.add_argument('--folder',required=True);s.add_argument('--month',required=True)
     s=sub.add_parser('collect-all');s.add_argument('--out-dir',required=True);s.add_argument('--initialize',action='store_true');s.add_argument('--max-months',type=int)
     args=p.parse_args(argv)
     if args.action=='inspect':report=inspect_sources(args.source_dir,term_file=args.term_file,menu_file=args.menu_file,end=args.end)
-    elif args.action=='capture-month':report=capture_month(args.out_dir,month=args.month,resume=args.resume,max_files=args.max_files)
+    elif args.action=='capture-month':report=capture_month(args.out_dir,month=args.month,resume=args.resume,max_files=args.max_files,reparse_only=args.reparse_only)
     elif args.action=='restore-month':
         catalog,report=restore_month(args.folder,expected_month=args.month)
         report=dict(status='ENCRYPTED_MONTH_HISTORY_READBACK_VERIFIED',month=args.month,catalog=catalog.summary(),plaintext_published=False)
