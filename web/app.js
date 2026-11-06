@@ -239,12 +239,25 @@
     if (M.eligiblePrediction?.(r, p)) return "証拠付き保存予想（読込値）";
     return "保存予想・証拠不足";
   }
-  function participantCard(p, expanded = false) {
+  function participantCard(p, race, expanded = false) {
     const number = participantNumber(p), card = node("article", "racer-card"), avatar = node("div", "racer-avatar");
     if (Number.isInteger(number)) avatar.append(badge(number));
-    avatar.append(node("span", "avatar-silhouette", "◉"));
+    const silhouette = node("span", "avatar-silhouette", "◉");
+    silhouette.setAttribute("aria-hidden", "true");
+    const status = node("small", "portrait-status", race?.scope === "synthetic" ? "合成表示" : "イラスト準備中");
+    const portrait = globalThis.RaceRacerPortraits?.get(race, p);
+    if (portrait) {
+      const img = node("img", "racer-portrait");
+      img.alt = portrait.name + "選手のイラスト";
+      img.width = img.height = 88;
+      img.loading = "lazy"; img.decoding = "async"; img.referrerPolicy = "no-referrer";
+      img.dataset.registration = portrait.registration;
+      img.addEventListener("error", () => { img.remove(); avatar.append(silhouette); status.textContent = "イラスト読込待ち"; }, {once: true});
+      img.src = portrait.src; avatar.append(img); status.textContent = "イラスト";
+    } else avatar.append(silhouette);
     const registration = participantRegistration(p);
     card.append(avatar, node("strong", "racer-name", p.placeholder ? "出走者 未取得" : p.name ? text(p.name) : "名前 未取得"), node("small", "muted", p.placeholder ? "表示用の枠" : registration ? "登録 " + text(registration) : "登録 未取得"));
+    if (!p.placeholder) card.append(status);
     if (expanded && !p.placeholder) {
       const fields = node("dl", "racer-fields");
       for (const [label, value] of [["登録番号", registration], ["モーター", p.motor_no], ["平均ST", p.average_st], ["展示タイム", p.display_time]]) {
@@ -258,10 +271,10 @@
     const people = knownParticipants(r), box = node("div", "racer-grid" + (expanded ? " expanded" : ""));
     if (people.length) {
       box.dataset.entrants = String(people.length);
-      people.forEach(p => box.append(participantCard(p, expanded)));
+      people.forEach(p => box.append(participantCard(p, r, expanded)));
     } else if (r.sport === "boat") {
       box.classList.add("placeholder-entrants");
-      for (let i = 1; i <= 6; i++) box.append(participantCard({number: i, placeholder: true}));
+      for (let i = 1; i <= 6; i++) box.append(participantCard({number: i, placeholder: true}, r));
     } else return empty("出走メンバーは未取得です", "人数・個別成績は保存原本に含まれていません。");
     return box;
   }
@@ -651,7 +664,24 @@
     $("all-model-coverage").replaceChildren(coverageTable);
     $("additional-models-note").textContent = coverage.additional_model_ids.length ? "カタログ外の保存モデルID：" + coverage.additional_model_ids.join(" / ") + "。下の保存原本比較で個別に確認できます。" : "モデルIDのない原本を既存モデルへ推測で割り当てません。モデル版・区分・時点は下の保存原本比較で確認できます。";
   }
+  function renderPortraitGallery() {
+    const portraits = globalThis.RaceRacerPortraits;
+    if (!portraits || $("racer-portrait-gallery")) return;
+    const panel = node("section", "panel portrait-panel"); panel.id = "racer-portrait-gallery";
+    panel.append(node("h2", "", "選手イラスト"), node("p", "muted", "公式プロフィール写真を参考にしたイラストです。現在" + portraits.all.length + "選手分に対応。未作成の選手は「イラスト準備中」と表示します。"));
+    const details = node("details"), grid = node("div", "racer-grid portrait-gallery");
+    details.append(node("summary", "", "対応選手と参照元を確認する"));
+    for (const entry of portraits.all) {
+      const card = participantCard({registration_no:entry.registration, name:entry.name}, {sport:"boat", scope:"research"});
+      const link = node("a", "text-link", "公式プロフィール");
+      link.href = entry.sourceUrl; link.target = "_blank"; link.rel = "noopener noreferrer";
+      card.append(link); grid.append(card);
+    }
+    details.append(grid); panel.append(details);
+    document.querySelector("#page-settings .two-column > div").append(panel);
+  }
   function renderMeta() {
+    renderPortraitGallery();
     document.querySelectorAll("[data-sport]").forEach(b => { const active = b.dataset.sport === state.sport; b.classList.toggle("active", active); b.setAttribute("aria-pressed", String(active)); });
     const historyActive=savedHistory?.active&&savedHistory.version===importVersion;
     $("period-all").disabled=Boolean(historyActive);

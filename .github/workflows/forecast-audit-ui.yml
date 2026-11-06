@@ -13,7 +13,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: ${{ github.event_name == 'workflow_dispatch' && format('boat-video-publication-{0}', github.run_id) || format('forecast-audit-{0}', github.ref) }}
+  group: ${{ github.event_name == 'workflow_dispatch' && format('boat-video-publication-{0}', github.run_id) || format('forecast-audit-{0}-{1}', github.ref, github.event.pull_request.head.sha || github.sha) }}
   cancel-in-progress: false
 jobs:
   train_only_tests:
@@ -227,6 +227,9 @@ jobs:
           if-no-files-found: error
   boat_pdca_production_readback:
     name: BOAT production encrypted-state acceptance or explicit HOLD
+    permissions:
+      contents: read
+      actions: read  # Re-read only this repository's actual encrypted artifacts.
     if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-24.04
     timeout-minutes: 8
@@ -274,6 +277,7 @@ jobs:
             python -m scripts.boat_venue_learning --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/boat-venue-learning" "${policy_args[@]}"
           fi
       - name: Keep owner-encrypted learning candidate and count-only status
+        id: model_candidate
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: boat-venue-learning-${{ github.run_id }}-${{ github.run_attempt }}
@@ -281,6 +285,42 @@ jobs:
             ${{ runner.temp }}/boat-venue-learning/learning.enc
             ${{ runner.temp }}/boat-venue-learning/learning.json
             ${{ runner.temp }}/boat-venue-learning/summary.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Freeze the requested future P0 comparison from retained inputs only
+        id: future_p0
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          # Explicit one-shot commit request; routine CI never issues forecasts.
+          if [[ "$(git log -1 --format=%s)" == future-p0:* ]]; then
+            python -m scripts.all_existing_model_future_p0 --candidate-artifact '${{ steps.model_candidate.outputs.artifact-id }}' --out-dir "$RUNNER_TEMP/all-existing-model-future-p0"
+          fi
+      - name: Independently save the nine encrypted future P0 pairs
+        id: future_p0_upload
+        if: steps.future_p0.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-model-pairs-${{ github.run_id }}-900001
+          path: ${{ runner.temp }}/all-existing-model-future-p0/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Re-read actual saved future pairs and verify the pre-cutoff witness
+        if: steps.future_p0_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.all_existing_model_future_p0 --readback-artifact '${{ steps.future_p0_upload.outputs.artifact-id }}' --out-dir "$RUNNER_TEMP/all-existing-model-future-p0"
+      - name: Retain count-only actual future comparison proof
+        if: steps.future_p0_upload.outputs.artifact-id != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-model-future-p0-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/all-existing-model-future-p0.status.json
           retention-days: 7
           if-no-files-found: error
   viewer_contract:
@@ -362,7 +402,7 @@ jobs:
           node --check web/product-data.js
           node --check web/existing-model-catalog.js
           node --check scripts/existing_pdca_offline.mjs
-          node --test --test-reporter=tap tests/ui_model.test.js tests/product_data.test.cjs tests/model_catalog.test.cjs tests/existing_pdca_offline.test.mjs tests/saved_performance.test.cjs
+          node --test --test-reporter=tap tests/ui_model.test.js tests/product_data.test.cjs tests/model_catalog.test.cjs tests/existing_pdca_offline.test.mjs tests/saved_performance.test.cjs tests/racer_portraits.test.cjs
       - name: Install isolated pinned browser test tooling
         run: |
           npm install --prefix "$RUNNER_TEMP/race-ai-ui-tools" --no-package-lock --ignore-scripts playwright@1.62.1
@@ -382,6 +422,7 @@ jobs:
           node tests/saved_pdca_browser.test.js
           node tests/saved_pages_browser.test.js
           node tests/results_budget_browser.test.js
+          node tests/racer_portraits_browser.test.cjs
           node --test tests/boat_video_ui.test.mjs
       - name: Retain synthetic-only UI interaction evidence
         if: always()

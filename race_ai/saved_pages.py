@@ -18,6 +18,7 @@ from .boat_pdca_recipient import _json
 from .boat_pdca_projection import project_pdca
 from .local_forecast_server import _asset_bytes
 from .saved_pdca_view import WEB
+from .racer_portraits import FILES as PORTRAIT_FILES,REGISTRATIONS
 from scripts.boat_history_collect import private_root,save
 
 SCHEMA='RACE_AI_SAVED_WEB_VIEW_V1'
@@ -29,7 +30,7 @@ MAX_WIRE=90*1024*1024
 HEX=re.compile('[a-f0-9]{64}\\Z')
 ASSETS=('style.css','app.js','forecast-audit-model.js','product-data.js',
         'existing-model-catalog.js','ui-model.js','saved-performance.js','saved-view-crypto.js',
-        'data/example-synthetic-forecast-audit.json')
+        'data/example-synthetic-forecast-audit.json') + PORTRAIT_FILES
 
 
 def _hex(value):
@@ -224,3 +225,54 @@ def publish_site(repo,folder,*,expected_manifest_sha256,initialize=False,expecte
     return dict(status='PAGES_BRANCH_PUBLISHED',source_commit=commit,branch='gh-pages',
                 cipher_sha256=manifest['cipher_sha256'],manifest_sha256=expected_manifest_sha256,
                 races=manifest['races'],predictions=manifest['predictions'],plaintext_published=False)
+
+
+def refresh_site_assets(repo,*,expected_parent,transport=None):
+    """Refresh presentation only; inherit every ciphertext and owner-link field."""
+    git=transport or PagesRepository(repo)
+    need(git.ref=='gh-pages','PAGES_REF_REQUIRED')
+    parent=git.head()
+    need(parent is not None and parent==expected_parent,'PAGES_TRUSTED_PARENT_REQUIRED')
+    git.fetch(parent);paths=_tree(git,parent)
+    need('site-build.json' in paths,'PAGES_EXISTING_TREE_REJECTED')
+    manifest=_json(git.read(parent,'site-build.json',32768),32768)
+    fields={'schema','source_content_sha256','cipher_path','cipher_sha256','forecast_sha256','races','predictions','files'}
+    need(type(manifest) is dict and set(manifest) in (fields,fields|{'view_id'})
+         and manifest['schema']==BUILD,'PAGES_MANIFEST_INVALID')
+    ident=_hex(manifest['cipher_sha256']);path='views/'+ident+'.json'
+    _hex(manifest['source_content_sha256']);_hex(manifest['forecast_sha256'])
+    if 'view_id' in manifest:_hex(manifest['view_id'])
+    need(manifest['cipher_path']==path and type(manifest['files']) is dict
+         and path in manifest['files'] and set(manifest['files'])<=set(ASSETS)|{'index.html','.nojekyll',path},
+         'PAGES_FILES_REJECTED')
+    required=(set(ASSETS)-set(PORTRAIT_FILES))|{'index.html','.nojekyll',path}
+    need(required<=set(manifest['files']),'PAGES_FILES_REJECTED')
+    need(type(manifest['races']) is int and 0<manifest['races']<=5000
+         and type(manifest['predictions']) is int and 0<=manifest['predictions']<=128*manifest['races'],
+         'PAGES_SCOPE_INVALID')
+    # Validate the existing manifest's pinned bytes, including the current cipher.
+    for name,entry in manifest['files'].items():
+        need(name in paths,'PAGES_FILES_REJECTED')
+        if name=='.nojekyll':
+            need(git._run(['cat-file','-s',parent+':'+name]).strip()==b'0','PAGES_ASSET_MODIFIED');body=b''
+        else:body=git.read(parent,name,MAX_WIRE)
+        need(entry==dict(bytes=len(body),sha256=sha(body)),'PAGES_FILE_HASH_MISMATCH')
+        if name==path:
+            need(sha(body)==ident,'PAGES_CIPHER_HASH_MISMATCH');envelope=_envelope(body)
+            need(envelope['header']['source_content_sha256']==manifest['source_content_sha256']
+                 and envelope['header'].get('view_id')==manifest.get('view_id'),'PAGES_SOURCE_CONTENT_MISMATCH')
+    before=git._run(['ls-tree','-r',parent,'--','views'])
+    files={name:_asset_bytes(WEB,name) for name in ASSETS}
+    files.update({'index.html':_index(ident,manifest['forecast_sha256']),'.nojekyll':b''})
+    cipher_entry=manifest['files'][path]
+    manifest['files']={name:dict(bytes=len(body),sha256=sha(body)) for name,body in sorted(files.items())}
+    manifest['files'][path]=cipher_entry
+    metadata=(wire(manifest)+'\n').encode();files['site-build.json']=metadata
+    commit=git.commit(files,parent);_tree(git,commit)
+    need(git._run(['ls-tree','-r',commit,'--','views'])==before,'PAGES_CIPHERTEXT_CHANGED')
+    git.push(commit,parent)
+    for name,body in files.items():
+        if body:need(git.read(commit,name,MAX_WIRE)==body,'PAGES_REMOTE_BYTES_MISMATCH')
+    return dict(status='PAGES_PRESENTATION_REFRESHED',source_commit=commit,parent_commit=parent,
+                cipher_sha256=ident,manifest_sha256=sha(metadata),portrait_count=len(REGISTRATIONS),
+                ciphertext_unchanged=True,plaintext_published=False)
