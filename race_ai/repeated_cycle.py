@@ -13,13 +13,13 @@ from pathlib import Path
 import re
 from .source_retry_policy import SourceWait, plan_http_wait, wait_active
 
-MAX_ROUNDS = None
+MAX_ROUNDS = 24
 POLL_SECONDS = 180
-# The owner removed numeric ceilings. Counts, provenance, upstream waits and
-# integrity latches remain enforced; None never means uncounted requests.
-SOURCE_LIMIT = None
-MAX_SECONDS = None
-ROUND_SOURCE_LIMIT = None
+# Pinned operational ceilings: never bypass the 240-request/session,
+# 45-request/round, 24-round and 65-minute safety bounds.
+SOURCE_LIMIT = 240
+MAX_SECONDS = 65 * 60
+ROUND_SOURCE_LIMIT = 45
 CACHE_SECONDS = 180
 JST = timezone(timedelta(hours=9))
 _NORMAL_ENDS=frozenset(('BOUNDED_SESSION_END','MAX_ROUNDS_REACHED','DAY_CHANGED','DAY_HANDOFF',
@@ -170,8 +170,8 @@ def prepare(path, round_no, *, now, next_action_at=None):
         return dict(active=False,wait_seconds=0,reason='DAY_HANDOFF')
     if reason:
         return dict(active=False, wait_seconds=0, reason=reason)
-    # Explicitly configured library limits remain available; the authorized
-    # default has none. Previously stored numeric policy is migrated in start.
+    # Enforce the pinned operational ceilings. Previously stopped sessions
+    # cannot be reactivated under a more permissive policy.
     if state.get('stop_at') is not None and now >= instant(state['stop_at']):
         state['halted_reason']='BOUNDED_SESSION_END'
         write_state(path,state)

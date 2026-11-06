@@ -18,14 +18,28 @@ class RepeatedControllerTests(unittest.TestCase):
         self.assertIsNotNone(r, 'bounded repeated controller not connected')
         self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
         self.path = Path(self.tmp.name)/'session.json'
-    def test_current_default_policy_has_no_numeric_limits(self):
+    def test_current_default_policy_pins_all_safety_limits(self):
         self.assertEqual(r.POLL_SECONDS,180)
-        for field in ('MAX_ROUNDS','MAX_SECONDS','SOURCE_LIMIT','ROUND_SOURCE_LIMIT'):
-            self.assertIsNone(getattr(r,field))
-        state=r.start(self.path,day='2030-04-01',run_id=99,now=stamp())
-        self.assertIsNone(state['source_limit'])
-        self.assertIsNone(state['max_rounds'])
-        self.assertIsNone(state['stop_at'])
+        self.assertEqual(r.MAX_ROUNDS,24)
+        self.assertEqual(r.MAX_SECONDS,65*60)
+        self.assertEqual(r.SOURCE_LIMIT,240)
+        self.assertEqual(r.ROUND_SOURCE_LIMIT,45)
+        now=stamp()
+        state=r.start(self.path,day='2030-04-01',run_id=99,now=now)
+        self.assertEqual(state['source_limit'],240)
+        self.assertEqual(state['max_rounds'],24)
+        self.assertEqual(r.instant(state['stop_at']),now+timedelta(minutes=65))
+    def test_default_safety_refuses_restarting_a_foreign_unbounded_session(self):
+        now=stamp()
+        with patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None):
+            r.start(self.path,day='2030-04-01',run_id=99,now=now)
+            guard=r.SourceGuard(self.path,clock=lambda:now)
+            for _ in range(241):guard.charge('forecast')
+        old=r.load(self.path)
+        with self.assertRaisesRegex(ValueError,'SESSION_POLICY_MIGRATION_REQUIRES_NEW_RUN'):
+            r.start(self.path,day='2030-04-01',run_id=99,now=now+timedelta(seconds=20))
+        self.assertEqual(r.load(self.path),old)
+
     def test_first_then_second_round_requires_ack_and_wait(self):
         now=stamp(); state=r.start(self.path, day='2030-04-01', run_id=99, now=now)
         first=r.prepare(self.path,1,now=now)
@@ -37,6 +51,7 @@ class RepeatedControllerTests(unittest.TestCase):
         next_round=r.prepare(self.path,2,now=now+timedelta(seconds=30))
         self.assertFalse(next_round['active']); self.assertEqual(next_round['wait_seconds'],150)
         self.assertTrue(r.prepare(self.path,2,now=now+timedelta(seconds=180))['active'])
+    @patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None)
     def test_continuous_rounds_beyond_24_and_65minutes_then_day_handoff(self):
         now=stamp(); state=r.start(self.path,day='2030-04-01',run_id=99,now=now)
         self.assertIsNone(state['stop_at']);self.assertIsNone(state['max_rounds'])
@@ -49,6 +64,7 @@ class RepeatedControllerTests(unittest.TestCase):
         self.assertEqual(r.prepare(self.path,28,now=next_day)['reason'],'DAY_HANDOFF')
         self.assertIsNone(r.load(self.path)['halted_reason'])
         with self.assertRaises(ValueError):r.start(self.path,day='2030-04-02',run_id=99,now=now)
+    @patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None)
     def test_unlimited_source_count_preserves_hash_tamper_detection(self):
         now=stamp();r.start(self.path,day='2030-04-01',run_id=99,now=now)
         guard=r.SourceGuard(self.path,clock=lambda:now)
@@ -62,6 +78,7 @@ class RepeatedControllerTests(unittest.TestCase):
         data=json.loads(self.path.read_text());data['requests_used']=0;self.path.write_text(json.dumps(data))
         with self.assertRaisesRegex(ValueError,'hash'):r.load(self.path)
 
+    @patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None)
     def test_over_240_count_survives_round_completion_and_restart(self):
         now=stamp();original=r.start(self.path,day='2030-04-01',run_id=99,now=now)
         self.assertIsNone(original['source_limit'])
@@ -78,6 +95,7 @@ class RepeatedControllerTests(unittest.TestCase):
         self.assertEqual(r.prepare(self.path,2,now=now+timedelta(seconds=30))['reason'],'POLL_INTERVAL')
         self.assertTrue(r.prepare(self.path,2,now=now+timedelta(seconds=180))['active'])
 
+    @patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None)
     def test_prepared_round_continues_beyond_old_45_request_ceiling(self):
         now=stamp();r.start(self.path,day='2030-04-01',run_id=99,now=now)
         self.assertTrue(r.prepare(self.path,1,now=now)['active'])
@@ -103,6 +121,7 @@ class RepeatedControllerTests(unittest.TestCase):
         data['session_sha256']=hashlib.sha256(raw).hexdigest()
         self.path.write_text(json.dumps(data))
 
+    @patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None)
     def test_legacy_policy_metadata_and_counts_above_240_are_accepted(self):
         now=stamp();original=r.start(self.path,day='2030-04-01',run_id=99,now=now)
         self.legacy_session(requests_used=280,requests_by_kind={'forecast':280})
@@ -114,6 +133,7 @@ class RepeatedControllerTests(unittest.TestCase):
         for field in ('started_at','stop_at','completed_round','prepared_round'):
             self.assertEqual(after[field],original[field])
 
+    @patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None)
     def test_authorized_numeric_policy_migration_preserves_counter_and_halt_evidence(self):
         now=stamp();r.start(self.path,day='2030-04-01',run_id=99,now=now)
         self.legacy_session(requests_used=240,requests_by_kind={'forecast':240},
@@ -125,6 +145,7 @@ class RepeatedControllerTests(unittest.TestCase):
         r.SourceGuard(self.path,clock=lambda:now).charge('forecast')
         self.assertEqual(r.load(self.path)['requests_used'],241)
 
+    @patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None)
     def test_old_round_quota_migration_preserves_prepared_round_wait_and_lifetime(self):
         now=stamp();r.start(self.path,day='2030-04-01',run_id=99,now=now,
             source_control=dict(lifetime_requests=500,lifetime_completed_rounds=38))
@@ -159,6 +180,7 @@ class RepeatedControllerTests(unittest.TestCase):
         self.assertEqual(done['lifetime_completed_rounds'],39)
         self.assertEqual(len(done['receipts']),1)
 
+    @patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None)
     def test_numeric_policy_migration_does_not_clear_authorization_or_integrity_halts(self):
         now=stamp();r.start(self.path,day='2030-04-01',run_id=99,now=now)
         waiting=r.plan_http_wait(403,{},now)
@@ -190,6 +212,7 @@ class RepeatedControllerTests(unittest.TestCase):
             with self.assertRaises(ValueError):r.write_state(self.path,value)
         self.assertEqual(r.load(self.path)['requests_used'],1)
 
+    @patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None)
     def test_all_default_numeric_limits_are_removed_with_actual_accounting(self):
         for field in ('MAX_ROUNDS','MAX_SECONDS','SOURCE_LIMIT','ROUND_SOURCE_LIMIT'):
             self.assertIsNone(getattr(r,field))
@@ -246,6 +269,7 @@ class RepeatedControllerTests(unittest.TestCase):
                 r.complete(path,number,now=at,forecast_artifact=number*2,result_artifact=number*2+1)
             self.assertEqual(r.prepare(path,25,now=now+timedelta(minutes=60))['reason'],'MAX_ROUNDS_REACHED')
 
+    @patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None)
     def test_repeated_policy_migration_retains_prior_migration_and_exact_old_totals(self):
         now=stamp();r.start(self.path,day='2030-04-01',run_id=99,now=now)
         prior_migration=dict(from_session_sha256='a'*64,previous_halted_reason='MAX_ROUNDS_REACHED')
@@ -258,6 +282,7 @@ class RepeatedControllerTests(unittest.TestCase):
         self.assertEqual(migrated['requests_used'],old['requests_used'])
         self.assertEqual(migrated['lifetime_requests'],old['lifetime_requests'])
 
+    @patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None)
     def test_policy_migration_never_lowers_inconsistent_prior_lifetime_claims(self):
         now=stamp();r.start(self.path,day='2030-04-01',run_id=99,now=now,
             source_control=dict(lifetime_requests=500,lifetime_completed_rounds=38))
@@ -272,6 +297,7 @@ class RepeatedControllerTests(unittest.TestCase):
                     r.start(self.path,day='2030-04-01',run_id=99,now=now)
                 self.assertEqual(self.path.read_bytes(),before)
 
+    @patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None)
     def test_legacy_missing_derived_totals_keep_saved_bases_and_actual_counts(self):
         now=stamp();r.start(self.path,day='2030-04-01',run_id=99,now=now,
             source_control=dict(lifetime_requests=500,lifetime_completed_rounds=38))
@@ -288,6 +314,7 @@ class RepeatedControllerTests(unittest.TestCase):
         self.assertEqual(out['lifetime_completed_rounds'],39)
         self.assertEqual(out['policy_migration']['from_session_sha256'],r._digest(old))
 
+    @patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None)
     def test_authorized_policy_migration_preserves_old_state_digest_and_counts(self):
         now=stamp();r.start(self.path,day='2030-04-01',run_id=99,now=now)
         self.legacy_session(requests_used=241,requests_by_kind={'forecast':241},max_rounds=24,
@@ -299,6 +326,7 @@ class RepeatedControllerTests(unittest.TestCase):
         self.assertEqual(out['policy_migration']['from_session_sha256'],r._digest(old))
         self.assertEqual(out['policy_migration']['previous_halted_reason'],'BOUNDED_SESSION_END')
 
+    @patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None)
     def test_inherited_source_wait_and_lifetime_totals_survive_restart(self):
         now=stamp();wait=r.plan_http_wait(429,{'Retry-After':'7200'},now)
         control=dict(source_wait=wait,lifetime_requests=500,lifetime_completed_rounds=38,
@@ -345,6 +373,7 @@ class RepeatedControllerTests(unittest.TestCase):
         r.SourceGuard(self.path,clock=lambda:now).http_success()
         self.assertEqual(r.load(self.path)['source_wait']['state'],'AUTHORIZATION_WAIT')
 
+    @patch.multiple(r,MAX_ROUNDS=None,MAX_SECONDS=None,SOURCE_LIMIT=None,ROUND_SOURCE_LIMIT=None)
     def test_hard_inherited_identity_halt_overrides_stale_timed_wait(self):
         now=stamp();wait=r.plan_http_wait(429,{},now)
         r.start(self.path,day='2030-04-01',run_id=99,now=now,source_control=dict(
