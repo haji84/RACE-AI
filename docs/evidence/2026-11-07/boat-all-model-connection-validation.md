@@ -181,3 +181,31 @@ also completed successfully, restored the unchanged first original and published
 encrypted feed generation 7. No source worker was active when the reviewed
 successor activation was prepared. A real GitHub read-only readiness check
 accepted the exact deployed bounded policy and unchanged workflow bytes.
+
+### Actual bounded source activation
+
+Only after the above checks passed and the authenticated active-source list was
+empty, commit `ad220c84eb4ff86b9f00dbab4d6246c4d08190b2` started
+[source Actions 42289399740](https://github.com/haji84/RACE-AI/actions/runs/42289399740).
+Its source job `128138553596` passed the native original/privacy/handoff test
+gate, reused the registered first P0 rather than capturing another, and
+successfully restored its authenticated originals. It reached the actual
+`Wait without source requests for the authenticated exhibition window` step;
+the bounded source session and forecast rounds had not started at this check.
+The earliest retained cutoff is Nov 7 08:35 JST, so its first T-15 window is
+08:20 JST. This confirms real waiting and restore, not a completed future P1.
+
+The existing key-free GitHub supervisor adopted that exact active run and head
+as `RUNNING`, with a live private heartbeat and no owner root key. Counters are
+explicitly unverified while the active job has no final authenticated control
+artifact; they are not replaced with zero. It preserves the per-worker limits
+and waits/holds and permits a verified successor only after a successful,
+fully committed predecessor. The host coordinator must remain available to
+dispatch later bounded workers; GitHub executes the models and retains their
+encrypted state. This is not a claim of environment-independent perpetual
+operation, universal future source availability or improved prospective hit rate.
+
+Remaining input gap: the seller P0 selection strategy still lacks genuine
+national/same-frame rating points. It retains its own daily-selection rule and
+does not block the applicable exhibition families. No missing rating points,
+unpublished exhibition, future result or cutoff save receipt was invented.

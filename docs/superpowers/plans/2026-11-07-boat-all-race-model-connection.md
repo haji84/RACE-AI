@@ -35,7 +35,7 @@ physical handoff deadline, before starting its bounded session.
 
 - [x] Encrypt all five native producer paths and integrate their readers.
 - [x] Verify count-only host control compatibility and source-free startup wait.
-- [ ] Review and deploy the exact follow-up, then record the actual source-worker
+- [x] Review and deploy the exact follow-up, then record the actual source-worker
   state. Future exhibition inputs and prospective accuracy remain unproved
   until their genuine observations and pre-cutoff save receipts exist.
 
