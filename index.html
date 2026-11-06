@@ -13,11 +13,11 @@
   <script defer src="./product-data.js?v=cffe2a307ef0"></script>
   <script defer src="./existing-model-catalog.js?v=fddb2d463bc1"></script>
   <script defer src="./ui-model.js?v=736594300d0b"></script>
-  <script defer src="./saved-performance.js?v=868e58bdc2fc"></script>
+  <script defer src="./saved-performance.js?v=2b058d2d4e9c"></script>
   <script defer src="./saved-view-crypto.js?v=decb4347bd44"></script>
-  <script defer src="./app.js?v=033f03bbf035"></script>
+  <script defer src="./app.js?v=2cafa5746442"></script>
 <meta name="referrer" content="no-referrer">
-<meta name="race-ai-encrypted-saved-view" content="./views/a698314b1c6d9b5e09a62d36cc953cdd65148555a5ba1ae0edf0e25adbeab97a.json">
+<meta name="race-ai-encrypted-saved-view" content="./views/1aa45bc8fa085f4a3ccc31312491c054f486e928571479146dd54b5958eabff3.json">
 </head>
 <body>
   <a href="#main-content" class="skip-link">本文に移動</a>
@@ -79,12 +79,12 @@
       </section>
       <section class="panel" aria-labelledby="simulation-title">
         <div class="section-heading"><h2 id="simulation-title">日予算を変えた収支シミュレーション</h2><span class="tag">仮の購入・実投票なし</span></div>
-        <div class="scenario-controls"><label>1日予算（円）<input id="simulation-budget" type="number" min="100" max="10000000" step="100" value="10000" aria-describedby="simulation-rule"></label></div>
+        <div class="scenario-controls"><label>1日予算（円）<input id="simulation-budget" type="number" min="100" max="10000000" step="100" value="10000" aria-describedby="simulation-rule"></label><label>1レース上限<select id="simulation-race-budget" aria-describedby="simulation-rule simulation-allocation-note"><option value="800">800円 · Top8各100円</option><option value="1000">1,000円 · 支持・安定性の参考配分</option></select></label></div>
         <p id="simulation-rule" class="muted small">各日、締切順に保存Top8へ各100円（1レース800円）。全8点分が足りないレースは見送り、払戻・返還は再投資しません。予想が締切前に保存され、3連単を買えた場合の試算です。</p>
-        <p id="simulation-message" class="message" role="status"></p><div id="simulation-metrics" class="metrics"></div>
+        <p id="simulation-allocation-note" class="notice small" hidden>モデルの支持・履歴安定性は、実績で検証した信頼度や的中確率ではありません。予想順位を追加配分の基準には使いません。事前の人気・オッズが未保存のため、穴への自動配分は含めません。</p><p id="simulation-message" class="message" role="status"></p><div id="simulation-metrics" class="metrics"></div>
         <p class="muted small">結果・払戻が不明なレースは、購入予定額を保留し、確定分収支に含めません。仮の残高＝予算−予定購入額＋確認済み払戻・返還。</p>
         <h3>モデル・履歴条件ごとの比較</h3><p class="muted small">各条件に同じ日予算を使う独立した試算です。複数モデルの購入額を合算しません。</p><div id="simulation-comparison"></div>
-        <details><summary>選択モデルのレース別配分を見る</summary><div id="simulation-ledger"></div></details>
+        <details id="simulation-ledger-details"><summary>選択モデルのレース別配分を見る</summary><div id="simulation-ledger"></div></details>
       </section>
       <section class="panel" aria-labelledby="saved-results-list-title"><h2 id="saved-results-list-title">全レースの結果とTop8判定</h2><div id="saved-results-table"></div></section>
       <div class="section-heading"><h2>公式証拠がそろった対象の成績</h2><span class="tag">公式 / 研究 / 合成を区別</span></div><div class="metrics" id="result-metrics"></div><p id="rate-limitations" class="muted small"></p><section class="panel"><h2>競技別・対象分母</h2><p class="muted">未予想を除外せず、証拠がそろった公式結果を評価します。98%は未達・実証未確認の目標です。</p><div id="result-sports"></div><h2 class="stage-heading">予想時点ごとの成績</h2><div id="result-stages"></div></section><section class="panel"><h2>レース別の公式結果</h2><div id="official-results"></div></section><section class="panel"><h2>取込購入申告</h2><p class="muted">保存原本に含まれる購入済み申告の閲覧専用記録です。この端末の手入力と重複加算しません。</p><div id="imported-purchases"></div></section><section class="panel"><div class="section-heading"><h2>手動の購入・払戻記録</h2><span class="tag">予想成績と別集計</span></div><div id="manual-metrics" class="metrics"></div><p class="muted">ご自身の申告記録です。払戻額の手入力は公式結果の証明にはなりません。</p><div id="purchase-list"></div><p id="result-message" class="message" role="status"></p></section></section>
