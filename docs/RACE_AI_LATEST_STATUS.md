@@ -1,3 +1,20 @@
+<!-- RACEAI_AUTOMATION_20261106_CYCLE16_VERIFIED_1644 -->
+# 2026-11-06 16:44 JST｜既存run第16巡の原本を独立読戻し、旧実行のGET上限超過を再確認
+
+**確認元と現在性:** Draft PR #71のbranchを確認、検証時HEAD `e0f1697debe9fc7529ebe777b17080c7251be0e7`。既存workflow `405276784`のrun [42177614402](https://github.com/haji84/RACE-AI/actions/runs/42177614402) は旧固定コード `f6987b3466b4b58f1420c20018e9be886e7a1c06` で**in_progress**。同workflowの取得済み直近300 runで別のqueued/pending/waitingを認めず、後続トリガーは発行しない。runのjobでは第16巡のstepがcompleted/success、第17巡がin_progress。以下は第16巡の保存済み時点の数字で、実行中の未保存第17巡を加算しない。
+
+**独立保存物:** 予想ZIP artifact `13486475784`の実バイトSHA256 `08b59f28de37403bb636f3153014ee614deda6ea364fefe4bffa077e1198a425`、結果・PDCA ZIP artifact `13485861917`の実バイトSHA256 `3cea9580775d108a2ce137736805d95d98405b4632845dbfd5bf0b8530e30d8c` は各GitHub API digestと一致し、外側ZIPのCRC異常は0。結果ZIP内包P1 ZIPは独立取得P1 ZIPとバイト一致。P0 ZIP artifact `13428142302`のSHA256 `6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc` ともバイト一致。結果内部statusは `round_no=16`、`updated_at=2026-11-06T07:42:15.424733+00:00`。同ZIP内sessionの `completed_round=15/prepared_round=16` はアップロード時の値であり、完了巡回artifactと混同しない。
+
+**実成績と前回第12巡との差分:** 13場156R、基準P0=312、P1=365、計677モデル・時点行（第12巡から増減0）。通常確定採点525（HIT158/MISS367、増減0）、未採点152。モデル・時点ごと8点×100円の仮定で投入420,000円、受取294,080円、仮収支 **-125,920円**、仮回収率 **70.02%**。実購入なし。締切済130R・未来26R、P1五系統が揃う72R、締切済P1不足290モデル別行。未公表展示の公開可能性は未証明。結果取得失敗16件は外れに換算しない。公式結果履歴revision235件は原本内に存在。
+
+**自動学習と同条件比較:** 係数学習は通常確定100一意レースを時系列でTRAIN75/VALIDATION25に分離した研究版のみ。LEARNED_SHADOW112モデル別行、独立した基準とのpaired100行=異なる50R、前向き優位性未立証、本番自動採用なし。今回学習元ZIP全件の独立再取得は行っておらず、全比較の新規真正性監査完了を主張しない。
+
+**安全違反と処置:** 旧run第16巡の内包session実数は `requests_used=493`（forecast193/result300）、`source_limit=null`、`max_rounds=null`、`stop_at=null`。指定240 GETを **253 GET超過**。第12巡378から+115 GET、予想件数や採点は変わらず。run successやstep successは上限遵守ではない。現在HEADの `race_ai/repeated_cycle.py` はSOURCE_LIMIT=240、ROUND_SOURCE_LIMIT=45、MAX_ROUNDS=24、MAX_SECONDS=3900、POLL_SECONDS=180を独立読取で確認し、当該安全版commit `db7063d4a8536ee877bebb52cac64aec3c642b63` の既存Viewer/AUTORACE両CIはsuccess。ただし修正後の新worker実証はまだ0件。旧runのcancel/rerun、停止の迂回を目的とした新トリガー、運用上限の解除はしない。並行作業が指定上限をNoneに戻していた履歴を残し、今後も新HEADと固定run SHAを区別して検証する。
+
+**変更境界:** 今回は監査記録のみ。元P0/P1、基準5モデル、学習係数、実行頻度、workflow/concurrency、他タスク、新PR/main/公開/課金/実投票を変更しない。Drive新規保全なし。artifact7日を恒久私有保管と呼ばない。
+
+---
+
 <!-- RACEAI_AUTOMATION_20261106_1634_BOUNDED_RESTORE_CYCLE12 -->
 # 2026-11-06 16:34 JST｜240 GETの指定上限を再復元、最新保存第12巡を独立検証
 
