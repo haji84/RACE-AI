@@ -72,3 +72,5 @@ Pagesは60秒ごとに固定のGitHub raw配信先から最新manifestを読み�
 `audit/state/boat-saved-view-input.json` は表示鍵だけを既存のowner公開受信鍵に暗号化したbootstrapと、初期表示のcommit/cipher/予想digest、初回不足分を補う既存結果Artifactの固定SHAを参照する。`RACE_AI_STATE_KEY` はActions内でのみ使い、表示鍵でSQLite原本を復号できる構成にはしない。配信した過去の表示暗号文は削除しない。初回追いつきは不足/保留分だけを取得し、すでに全レース確認できた場合は期限付きArtifactを再取得しない。
 
 対象はbootstrapで指定した保存済み予想・対象日である。別日の結果は混ぜず、将来日の予想取込や24時間の無期限スケジュールの完成を意味しない。自動反映は既存の結果収集処理の稼働と保存に依存する。締切差の参考照合や研究表示を公式的中率の根拠へ昇格させない。
+
+保存結果の追いつきだけを実行するときは、head commitの件名を `saved-view:` で始める。この場合は同じworkflowの表示専用jobと独立したconcurrency groupを使い、公式収集jobを起動・待機列へ追加しない。実行中の公式収集を変更・停止せず、公開済みの暗号文と固定した過去Artifactだけを読み書きする。通常の収集workflowでは、確認済みの各round後の表示hookを使用する。収集側の上流ポリシー変更を本機能が承認・検証したという意味ではない。

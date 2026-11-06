@@ -6,7 +6,7 @@
 
 **Architecture:** The existing write-enabled GitHub result worker publishes only AES-GCM encrypted display projections to a dedicated fixed branch. Pages reads that GitHub raw feed every 60 seconds. An owner-recipient encrypted bootstrap delivers only the existing display key and pinned initial cipher to Actions; the root checkpoint key stays in Actions. No new service, permission, source request, worker frequency, or model execution is added by the publisher.
 
-**Constraints:** GitHub only; preserve original forecasts, result revisions, canonical state, existing viewer URL, and active workers. Never publish plaintext data/keys/raw pages. Keep 240/session, 45/round, 24 rounds, 65 minutes, 180-second collection polling. Display/reference comparisons remain separate from formal accuracy.
+**Constraints:** GitHub only; preserve original forecasts, result revisions, canonical state, existing viewer URL, and active workers. Never publish plaintext data/keys/raw pages. The display publisher makes zero official GETs and never modifies collection policy. Display/reference comparisons remain separate from formal accuracy.
 
 **Review focus:** Wrong recipient/purpose; concurrent feed writers; incompatible or newer pending observations; stale/tampered feed; draft amounts/settings overwritten by refresh.
 
@@ -29,3 +29,5 @@
 - [ ] Fresh review; fix important findings and verify full affected suites.
 - [ ] Preserve concurrent branch changes, publish reviewed static reader and encrypted bootstrap; do not launch another worker while active/queued.
 - [ ] Verify real Actions producer readback and existing owner link. Report actual scope and worker availability; do not claim indefinite scheduling or improved accuracy.
+
+Deployment ruling: a concurrent upstream source worker was found active. Activate only the display job using a `saved-view:` head commit and independent concurrency group; exclude the official source job for that commit. The active old workflow is untouched. Upstream independently changed source limits to `None`; preserve that work, make zero official requests in this publisher, and make no claim that the source worker satisfies the earlier bounded policy. This feature's tests cover publication isolation, not approval of upstream collection policy.

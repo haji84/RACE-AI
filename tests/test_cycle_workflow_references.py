@@ -61,10 +61,22 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn('github_existing_cycle.py repeat-complete', complete)
         self.assertIn("--p1-artifact '${{ steps.freeze.outputs.artifact-id }}'", complete)
         self.assertIn("--result-artifact '${{ steps.result.outputs.artifact-id }}'", complete)
-        self.assertIn('continue-on-error: true',display)
+        self.assertIn('if ! python -m scripts.boat_saved_view_feed',display)
+        self.assertIn('::warning::',display)
         self.assertIn('scripts.boat_saved_view_feed --result-artifact',display)
         self.assertIn('RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}',display)
         self.assertIn("if: steps.ready.outputs.active == 'true'",display)
+
+    def test_display_only_activation_cannot_queue_another_official_collector(self):
+        text=WORKFLOW.read_text()
+        display=text.split('  saved_view_publication:',1)[1].split('  official_national:',1)[0]
+        self.assertIn("startsWith(github.event.head_commit.message, 'saved-view:')",display)
+        self.assertNotIn('github_existing_cycle.py',display)
+        self.assertNotIn('first_p0_bootstrap.py',display)
+        official=text.split('  official_national:',1)[1]
+        self.assertIn("!startsWith(github.event.head_commit.message, 'saved-view:')",official)
+        self.assertIn("&& 'boat-saved-view-publication' || 'boat-nationwide-cutoff-20261103'",text)
+        self.assertIn('cancel-in-progress: false',text)
 
     def test_existing_cycle_create_only_first_p0_then_reuses_original(self):
         text = WORKFLOW.read_text()

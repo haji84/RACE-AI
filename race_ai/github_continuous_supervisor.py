@@ -23,6 +23,7 @@ import zipfile
 
 from .private_cycle_capture import _parent_handle
 from .source_retry_policy import wait_active, plan_http_wait
+from .saved_view_run import display_only_run
 
 REPO = "haji84/RACE-AI"
 REPO_ID = 1416489937
@@ -167,15 +168,21 @@ class GitHubCLI:
                 for row in rows:
                     if row.get("head_branch") != BRANCH or row.get("workflow_id") != WORKFLOW:
                         raise ValueError("WORKFLOW_RUN_IDENTITY_INVALID")
+                    if display_only_run(row):continue
                     found[row["id"]] = row
                 if len(rows) < 100: break
                 page += 1
         return list(found.values())
 
     def latest_run(self):
-        data = self.api(f"actions/workflows/{WORKFLOW}/runs?branch={BRANCH}&per_page=1")
-        rows = data["workflow_runs"]
-        return rows[0] if rows else None
+        for page in range(1,101):
+            data=self.api(f"actions/workflows/{WORKFLOW}/runs?branch={BRANCH}&per_page=100&page={page}")
+            rows=data['workflow_runs']
+            if not isinstance(rows,list):raise ValueError('WORKFLOW_RUN_PAGE_INVALID')
+            for row in rows:
+                if not display_only_run(row):return row
+            if len(rows)<100:return None
+        raise ValueError('WORKFLOW_RUN_PAGE_BOUND')
 
     def final_control(self, run):
         from .cycle_recovery import artifact_pages, authenticated_source_control

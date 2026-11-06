@@ -15,6 +15,24 @@ except ImportError:
 
 class FeedTests(unittest.TestCase):
  def test_feed_exists(self):self.assertIsNotNone(F,'automatic saved result feed is missing')
+ def test_display_runs_do_not_look_like_source_writers_or_source_checkpoints(self):
+  from unittest.mock import patch
+  from race_ai.github_continuous_supervisor import GitHubCLI,WORKFLOW,BRANCH
+  source=dict(id=11,workflow_id=WORKFLOW,head_branch=BRANCH,event='push',display_title='existing source',head_commit={'message':'existing source'})
+  display={**source,'id':12,'display_title':'saved-view: publish','head_commit':{'message':'saved-view: publish'}}
+  api=GitHubCLI()
+  with patch.object(api,'api',side_effect=lambda path:{'workflow_runs':[display,source]}):
+   self.assertEqual([r['id'] for r in api.active_runs()],[11])
+   self.assertEqual(api.latest_run()['id'],11)
+ def test_display_only_prior_run_does_not_block_source_recovery(self):
+  import json
+  from race_ai.cycle_recovery import _previous_runs,BRANCH
+  display=dict(id=12,created_at='2030-04-01T03:00:00Z',head_branch=BRANCH,event='push',status='in_progress',display_title='saved-view: publish',head_commit={'message':'saved-view: publish'})
+  self.assertEqual(list(_previous_runs(lambda _:json.dumps({'workflow_runs':[display]}).encode(),current_run=13)),[])
+ def test_display_mode_matches_github_case_insensitive_prefix(self):
+  from race_ai.saved_view_run import display_only_run
+  self.assertTrue(display_only_run(dict(event='push',display_title='Saved-View: publish',head_commit={'message':'SAVED-VIEW: publish'})))
+  self.assertFalse(display_only_run(dict(event='push',display_title='saved-view: publish',head_commit={'message':'normal source'})))
 
 @unittest.skipIf(F is None,'not yet implemented')
 class ProjectionTests(unittest.TestCase):

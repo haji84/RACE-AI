@@ -67,9 +67,11 @@ runs:
       shell: bash
       run: python scripts/github_existing_cycle.py repeat-complete --round '${{ inputs.round }}' --p1-artifact '${{ steps.freeze.outputs.artifact-id }}' --result-artifact '${{ steps.result.outputs.artifact-id }}'
     - name: Automatically publish encrypted saved-forecast result comparisons
-      continue-on-error: true
       if: steps.ready.outputs.active == 'true'
       shell: bash
       env:
         RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
-      run: python -m scripts.boat_saved_view_feed --result-artifact '${{ steps.result.outputs.artifact-id }}'
+      run: |
+        if ! python -m scripts.boat_saved_view_feed --result-artifact '${{ steps.result.outputs.artifact-id }}'; then
+          echo '::warning::Encrypted result display update held; source collection continues.'
+        fi

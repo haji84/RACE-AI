@@ -9,6 +9,7 @@ import copy,hashlib,io,json,re,zipfile
 from .frozen_day_cycle import need,ts,read_p1,read_p0,archive_json
 from .first_receipt_continuity import first_receipt_rows,latest_result_observations
 from .repeated_cycle import matches as artifact_matches
+from .saved_view_run import display_only_run
 BRANCH='feat/four-sport-forecast-audit-view-20261022'
 WORKFLOW=405276784
 JST=timezone(timedelta(hours=9))
@@ -149,6 +150,7 @@ def _previous_runs(get,*,current_run,earliest=None):
             at=ts(run['created_at'])
             if earliest is not None and at<earliest:continue
             if run['id']==current_run or run['head_branch']!=BRANCH:continue
+            if display_only_run(run):continue
             if run['event'] not in ('push','workflow_dispatch'):continue
             # Queued successors are not prior executions. An earlier in-flight
             # writer is unresolved and cannot safely be assumed to have no receipt.
