@@ -2,7 +2,9 @@
 
 No new model/weights, current-entry inference, recent-history substitution or
 retrospective availability claim. The course condition is today's FRAME applied
-to past ACTUAL courses. Unknown historical courses and source gaps withhold it.
+to past ACTUAL courses. The default withholds unknown/incomplete windows; an
+explicit research-only mode describes observed known-course rows and preserves
+all source gaps/unknown membership in its evidence, without a completeness claim.
 """
 from copy import deepcopy
 from datetime import date
@@ -16,14 +18,17 @@ from .teiai_history import need
 RIGHTS='OWNER_PERSONAL_OFFICIAL_VENUE_HISTORY_ANALYSIS_20261106'
 FIELDS=('course_mean_finish','course_mean_st')
 
-def enrich_venue_snapshot(snapshot,folder,pointer,*,verified_at,allow_source=None):
+def enrich_venue_snapshot(snapshot,folder,pointer,*,verified_at,allow_source=None,observed_only=False):
     """Return a copied snapshot and private evidence; caller admits source use.
 
     Source-period membership comes from the owner-authenticated dataset and its
     pinned encrypted originals. A key/hash is not a permission grant. Both
-    existing models must receive this same returned snapshot.
+    existing models must receive this same returned snapshot. observed_only is
+    an explicit opt-in to an observed-row statistic, never a complete-career
+    estimate: unreported days and unknown-course memberships stay unknown.
     """
     _validate(snapshot);need(snapshot['scope']=='OPERATOR_SUPPLIED_RESEARCH','VENUE_FEATURE_RESEARCH_ONLY')
+    need(type(observed_only) is bool,'VENUE_FEATURE_OBSERVED_SCOPE_REQUIRED')
     need(callable(allow_source),'VENUE_FEATURE_SOURCE_USE_REVIEW_REQUIRED')
     raw,state=_manifest(folder);now=stamp(snapshot['as_of']);verified=stamp(verified_at)
     need(stamp(state['available_at'])<=verified<=now<stamp(snapshot['sales_cutoff_at']),'VENUE_FEATURE_AVAILABILITY_OR_CUTOFF')
@@ -47,14 +52,16 @@ def enrich_venue_snapshot(snapshot,folder,pointer,*,verified_at,allow_source=Non
         for name in FIELDS:
             participant['features'].pop(name,None);participant['missing'][name]='NO_PRIOR_SAMPLES'
         evidence[pid]=dict(profile=profile,condition='HISTORICAL_ACTUAL_COURSE_EQUALS_CURRENT_FRAME_NOT_CURRENT_ENTRY',
-            current_frame=participant['lane'],period_start=state['requested_start'],period_end=state['requested_end'])
-        if not profile['history_completeness']:
+            current_frame=participant['lane'],period_start=state['requested_start'],period_end=state['requested_end'],
+            source_scope='OBSERVED_KNOWN_COURSE_ROWS_IN_PUBLISHED_FILES_ONLY' if observed_only else 'COMPLETE_SOURCE_WINDOW',
+            unknown_course_rows_excluded_without_membership_inference=profile['stats']['unknown_course_n'])
+        if not profile['history_completeness'] and not observed_only:
             participant['missing'].update({name:'SOURCE_UNAVAILABLE' for name in FIELDS});continue
-        if profile['stats']['unknown_course_n']:
+        if profile['stats']['unknown_course_n'] and not observed_only:
             participant['missing'].update({name:'NO_VERIFIED_COURSE' for name in FIELDS});continue
         b=profile['by_actual_course'][str(participant['lane'])];n=b['opportunities']
         if not n:continue
-        window='official-venue-course-all-available-'+digest(evidence[pid])
+        window=('official-venue-course-observed-published-files-only-' if observed_only else 'official-venue-course-all-available-')+digest(evidence[pid])
         def add(name,value,ok,f=0,l=0,missing=0):
             need(ok>0 and ok+f+l+missing==n and missing>=0,'VENUE_FEATURE_INCONSISTENT_COUNTS')
             participant['features'][name]=dict(value=value,sample_n=ok,source_id=source_id,transform_id=FEATURE_TRANSFORMS[name],
@@ -70,5 +77,6 @@ def enrich_venue_snapshot(snapshot,folder,pointer,*,verified_at,allow_source=Non
         else:participant['missing']['course_mean_st']='UNRESOLVED_DISPOSITION'
     _validate(out)
     return dict(snapshot=out,venue_evidence=evidence,dataset_sha256=sha,course_st_participants=st_participants,
+        observed_only=observed_only,source_coverage_complete=all(e['profile']['history_completeness'] for e in evidence.values()),
         actual_entry_course_inferred=False,recent_history_replaced=False,model_coefficients_changed=False,
         formal_backtest_eligible=False,production_promoted=False,actual_purchases=False)
