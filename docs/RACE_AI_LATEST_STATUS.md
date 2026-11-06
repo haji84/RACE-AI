@@ -1,3 +1,18 @@
+<!-- RACEAI_AUTOMATION_20261106_0928_CYCLE06 -->
+# 2026-11-06 09:28 JST｜唐津2R確定結果の増分採点、第6巡原本SHA/CRC独立照合
+
+**対象と実行:** 既存Draft PR #71、branch `feat/four-sport-forecast-audit-view-20261022`。確認時PR HEAD `90e98805d2e8deea99f46dacb082edb98917bc5c`。同一workflow `405276784` の最新run [42134238827](https://github.com/haji84/RACE-AI/actions/runs/42134238827) はin_progress、同workflowのqueued/pending/waitingは確認した最新一覧で0件。前run [42124871318](https://github.com/haji84/RACE-AI/actions/runs/42124871318)はcompleted/success、第24巡最終継続元ZIP `13464303868` を独立SHA/CRCで再検証し、completed_round=24を確認。新規trigger、rerun、cancel、writer増設なし。
+
+**最新の実保存成果:** 現run第6巡の結果・PDCA元ZIP artifact `13466556835`、GitHub API digestおよび独立取得した実ZIP SHA256 `7aef778701771e81272fad8874eda421d3d55f3b26605563fbc7dda2a3460b93` が一致、ZIP CRC正常。対になるP1元ZIP `13466152173` の実SHA256 `2ca215b5e951a62d4c4ac3379bf738ff2fa6bf7578c0497fd5e5415ad26ee181` もAPI digest一致、CRC正常。結果ZIP内 `current-p1-original.zip` と別取得のP1元ZIPはバイト一致。現run内部 `status.json.round_no=6` / `updated_at=2026-11-06T00:27:15.930596+00:00`（09:27:15 JST）、`completed_round=5/prepared_round=6` なので**第6巡の保存・独立照合は成立、第6巡の継続receipt完了はまだ未認定**。当日初回P0元ZIP `13428142302` は実SHA `6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc`、中の `forecasts.json` SHA `e9ef52b153f8648aedec59fb3233d2405528e862858b211b754801d409ce0860` とも `docs/evidence/2026-11-06/p0-first-receipt.json` に一致。第6巡結果ZIPの `first-p0-original.zip` にバイト一致、P0/P1の再生成・上書きなし。
+
+**第24巡の既報値との差分:** 11/6のボート13場156R、朝版P0=312モデル別件は不変。新たに唐津3R（`20261106-23-03`、09:27 JST締切）へ展示後5系統P1を09:13:02 JSTに元ZIP `13464214744` として独立保存した事実を第6巡から照合。P1は20→**25モデル別件（5R×5）**、全基準予想332→**337件**。公式唐津2Rは09:19:05 JST（締切09:01後）の別結果観測で通常確定、**1-2-6／3連単100円2,050円**。公式結果observationsの別revisionを維持。通常採点は14→**21モデル別件**（HIT11→**13**、MISS3→**8**）、3つの通常確定レース×7モデル系統。未確認をMISSへ変換しない。各8点×100円の7系統すべてを仮想購入した場合、累計投入16,800円、累計払戻19,510円、**仮想損益+2,710円・仮回収率116.13%**。前回14モデル別行に対し今回は+7行、+2HIT/+5MISS、仮想投入+5,600円・受取+4,100円・損益-1,500円。条件付きモデル別採点は全国156Rの的中率ではなく、実投票も0件。
+
+**PDCA:** 唐津2RはP1 Bコース・モーターおよびC-liteのみ的中。P0観測相性2系統とP1観測相性2系統は3着不一致、P1展示Aは1着不一致で不的中。3着候補選択の前向き改善を研究対象として保持し、既存8点・重み・過去予想を変更しない。最新 `automatic_learning` は通常確定一意3R、最少8R未達による `INSUFFICIENT_VERIFIED_RACES`、学習済係数・当日 `LEARNED_SHADOW`・学習版前向き比較の新増分0。 `coverage_audit` は第6巡09:27時点で全156R、締切済5R、未来151R、P1完備5R、未採点の締切済結果は通常判定確定を確認するまでMISSにしない。`model_coverage.json` で登録16系統と基準7モデル/時点を区分、`external_research_summary.json` は `NO_AUDITED_IMPORT_MANIFEST`。他競技の正式採点には今回加算しない。
+
+**重大な安全条件:** 現run第6巡のGET `requests_used=74` は当該runの240件上限内。ただし `source_limit=null/max_rounds=null/stop_at=null` の無制限設定は継続し、直前run実績269回は240件超過29回。workflow `timeout-minutes=360`、物理handoff330分も指定24巡/65分と衝突。上限/4xx/429/真正性等の停止条件の回避を認めず、追加triggerは行わない。現在のworkerをキャンセルせず、無検証の制限変更をpushしない。今回Drive新規保存・全学習元再認証は未実施で、過去全runの永久保全や学習候補の有意な精度改善は未認定。新task、実行頻度変更、新workflow/PR/モデル、Cloudflare/Vercel/課金、main統合、公開、実投票、本番自動切替なし。
+
+---
+
 <!-- RACEAI_AUTOMATION_20261106_0911_CYCLE24 -->
 # 2026-11-06 09:11 JST｜第24巡完走、三国1Rの通常結果を正式照合、原本7 ZIPを非公開追補、安全上限超過を検出
 
