@@ -21,11 +21,14 @@ test('the initial six athletes resolve to their own official-profile illustratio
 test('spaced official names and matching registration aliases retain identity', () => {
   assert.equal(R.get(race, {registration_no:'4238', racer_id:'4238', name:'毒島　　誠'})?.name, '毒島誠');
   assert.equal(R.get(race, {registration_number:'4320', name:'峰 竜太'})?.name, '峰竜太');
+  assert.equal(R.get(race, {participant_id:'4238', name:'毒島誠'})?.registration, '4238');
+  assert.equal(R.get(race, {registration_no:'4238', participant_id:'4238'})?.registration, '4238');
 });
 
 test('missing, conflicting, malformed and unknown registrations never choose a face', () => {
   for (const person of [{}, {number:4238}, {registration_no:'9999'}, {registration_no:'../4238'},
     {registration_no:4238}, {registration_no:'4238', racer_id:'4320'},
+    {registration_no:'4238', participant_id:'4320'},
     {registration_no:null, racer_id:'4238'}, {registration_no:'4238', name:'峰竜太'},
     {registration_no:'4238', name:12}, {registration_no:'4238', placeholder:true}]) {
     assert.equal(R.get(race, person), null, JSON.stringify(person));

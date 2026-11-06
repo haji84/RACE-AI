@@ -11,7 +11,7 @@
     sourceUrl: 'https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=' + registration
   })));
   const byRegistration = new Map(all.map(item => [item.registration, item]));
-  const fields = ['registration_no', 'registration_number', 'registration_id', 'racer_registration_id', 'racer_id'];
+  const fields = ['registration_no', 'registration_number', 'registration_id', 'racer_registration_id', 'racer_id', 'participant_id'];
   function get(race, person) {
     if (!race || race.sport !== 'boat' || race.scope === 'synthetic' || race.synthetic === true ||
         !person || person.placeholder) return null;
