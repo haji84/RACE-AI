@@ -112,9 +112,18 @@ class PdcaState:
                  self.db.execute('PRAGMA quick_check').fetchall()==[('ok',)],'STATE_SCHEMA_OR_INTEGRITY_INVALID')
             modes=self.db.execute('SELECT mode FROM meta').fetchall()
             need(len(modes)==1,'STATE_MODE_INVALID');self.mode=modes[0][0];scope_for(self.mode,1)
+            self.verify_files()
         except Exception:self.db.close();raise
 
     def close(self):self.db.close()
+
+    def verify_files(self):
+        versions=set(self.db.execute('SELECT name,sha FROM files'))
+        heads=dict(self.db.execute('SELECT name,sha FROM heads'))
+        need(set(heads)=={name for name,_ in versions},'STATE_FILE_HEADS_INCOMPLETE')
+        need(all((name,value) in versions for name,value in heads.items()),'STATE_FILE_HEAD_VERSION_MISMATCH')
+        blobs={r[0] for r in self.db.execute('SELECT sha FROM blobs')}
+        need(all(value in blobs for _,value in versions),'STATE_FILE_BLOB_MISSING')
 
     def _put(self,name,raw):
         name_ok(name);need(type(raw) is bytes and len(raw)<=MAX_PLAIN,'STATE_FILE_BOUND_EXCEEDED')
@@ -183,6 +192,7 @@ class PdcaState:
             for label,table in [('pairs','pairs'),('result_revisions','results'),('scorings','scores'),('retained_file_versions','files')]})
 
     def materialize(self,root):
+        self.verify_files()
         root=private_root(root)
         for name,ident in self.db.execute('SELECT name,sha FROM heads ORDER BY name'):
             name_ok(name);p=root/name;private_root(p.parent);save(p,self._get(ident))
@@ -190,6 +200,7 @@ class PdcaState:
     def checkpoint(self,root,*,generation,previous_cipher_sha256=None,key=None):
         from cryptography.hazmat.primitives.ciphers.aead import AESGCM
         scope=scope_for(self.mode,generation,previous_cipher_sha256);key=state_key(self.mode,key)
+        self.verify_files()
         raw=sqlite_snapshot(self.path);nonce=os.urandom(12)
         encrypted=AESGCM(key).encrypt(nonce,gzip.compress(raw,compresslevel=3,mtime=0),wire(scope).encode())
         envelope=(wire(dict(header=scope,nonce=base64.b64encode(nonce).decode(),ciphertext=base64.b64encode(encrypted).decode()))+'\n').encode()

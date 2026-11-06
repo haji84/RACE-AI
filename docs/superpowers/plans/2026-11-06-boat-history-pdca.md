@@ -12,6 +12,15 @@
 
 ## Completion work authorized after overlap check
 
+### Real-data acceptance continuation (owner: 「進めよ」)
+
+- [ ] Reuse an authenticated existing Nov6 result artifact to score the already frozenV2 pairs; preserve observations/revisions privately and publish counts only. No forecast regeneration or second official collector.
+- [ ] Add an opt-in production state publisher targeting only an encrypted-state ref in the same GitHub repository. Require the owner key before any Git mutation; preserve every generation and reject an absent existing ref without explicit initialization.
+- [ ] Add a pinned same-repository encrypted-state readback entrypoint to the existing CI. Missing key or encrypted input returns explicitHOLD/zeroGET. Only ciphertext and public metadata may be read/published, never plaintext state or keys.
+- [ ] Test wrongrepo/ref/hash/key/generation, missingstate, plaintext refusal, score replay and no secret logging using invented data; fresh review, full checks and existingPR publication.
+
+GitHub Secrets metadata request returned403 Resource not accessible by integration; do not bypass the denial or replace an unknown existing owner key. Cloud runtime has no owner-key binding. Implementation and local actual-data scoring continue independently of that missing credential.
+
 Owner explicitly requested completion of steps 1–4 on 2026-11-06 JST. Keep the existing isolated worktree and PR71; preserve concurrent racer/video commits. Implement inline without another design confirmation.
 
 - [x] Reproduce and fix malformed K membership loss. Preserve unresolved B-program opportunities separately from confirmed starts, retain V1 imports, add a parser revision, and replay cached archives without HTTP.
