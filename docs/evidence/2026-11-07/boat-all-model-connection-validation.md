@@ -168,3 +168,16 @@ of the workflow's checkpoint, encryption and count-only producer commands and
 key-free host readback. An independent read-only review passed 75 focused tests
 and found no blocker. Future actual exhibition capture is still distinct from
 these deterministic handoff and retained-data checks.
+
+The exact follow-up `59a3c44eaab6b16305be828e39b5e4f4466d2db9` passed
+[Viewer CI 42287788057](https://github.com/haji84/RACE-AI/actions/runs/42287788057)
+and [AUTORACE CI 42287788123](https://github.com/haji84/RACE-AI/actions/runs/42287788123).
+Normal full Python discovery passed 2,447 tests (170 optional skips); the
+additional experimental-video batch passed 283 tests, and both Node batches
+passed (88 and 71). Browser checks covered 320, 390, 1440 and 1920 pixel widths,
+original hashes, retained model selection, private restart and budget flows.
+Display-only [Actions 42287779744](https://github.com/haji84/RACE-AI/actions/runs/42287779744)
+also completed successfully, restored the unchanged first original and published
+encrypted feed generation 7. No source worker was active when the reviewed
+successor activation was prepared. A real GitHub read-only readiness check
+accepted the exact deployed bounded policy and unchanged workflow bytes.
