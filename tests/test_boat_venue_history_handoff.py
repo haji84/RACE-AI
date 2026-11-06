@@ -22,13 +22,13 @@ class HandoffTests(unittest.TestCase):
     def setUp(self):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup);self.root=Path(self.temp.name)
         self.env=patch.dict(os.environ,RACE_AI_STATE_KEY=base64.b64encode(OWNER).decode());self.env.start();self.addCleanup(self.env.stop)
-    def collection(self,raw=None):
+    def collection(self,raw=None,day='2026-11-04'):
         from scripts.boat_venue_history import capture_month,_store_progress
         root=self.root/'source';root.mkdir()
-        with patch('scripts.boat_venue_history._now',return_value='2030-01-01T00:00:02Z'),patch('scripts.boat_venue_history._http',side_effect=[(menu(),'2030-01-01T00:00:00Z'),(index(days=('04',)),'2030-01-01T00:00:00Z'),(archive() if raw is None else raw,'2030-01-01T00:00:01Z')]):
-            r=capture_month(root/'202611/attempt-000001',month='202611',not_after='2026-11-04')
+        with patch('scripts.boat_venue_history._now',return_value='2030-01-01T00:00:02Z'),patch('scripts.boat_venue_history._http',side_effect=[(menu(),'2030-01-01T00:00:00Z'),(index(days=(day[-2:],)),'2030-01-01T00:00:00Z'),(archive(day=day) if raw is None else raw,'2030-01-01T00:00:01Z')]):
+            r=capture_month(root/'202611/attempt-000001',month='202611',not_after=day)
         _store_progress(root,dict(schema='RACE_AI_ALL_PUBLISHED_HISTORY_PROGRESS_V1',months=['202611'],menu_sha256='a'*64,
-            captured_at='2030-01-01T00:00:00Z',not_after='2026-11-04',heads={'202611':dict(kind='ENCRYPTED',folder='202611/attempt-000001',
+            captured_at='2030-01-01T00:00:00Z',not_after=day,heads={'202611':dict(kind='ENCRYPTED',folder='202611/attempt-000001',
             ciphertext_sha256=r['ciphertext_sha256'],attempt=1,generation=1,month_complete=r['catalog']['month_complete'])}))
         return root
     def test_publish_restore_and_repeat_keeps_other_state_and_original_cipher(self):
