@@ -9,7 +9,7 @@ import sys
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT))
 from race_ai.boat_pdca_recipient import (receiver_document,encrypt_transfer,receive_transfer,
-    verify_received_checkpoint,publish_incoming,publish_received,_json)
+    verify_received_checkpoint,publish_incoming,publish_received,_json,_file)
 from race_ai.boat_history_store import wire
 from scripts.boat_history_collect import private_root,save
 
@@ -32,6 +32,7 @@ def main(argv=None):
     b.add_argument('--private-dir',type=Path,required=True);b.add_argument('--previous-input',type=Path)
     c=commands.add_parser('receive');c.add_argument('--input',type=Path,required=True)
     c.add_argument('--previous-input',type=Path);c.add_argument('--private-dir',type=Path,required=True)
+    c.add_argument('--accepted-imports',type=Path)
     c.add_argument('--run-id',default=os.environ.get('GITHUB_RUN_ID'))
     c.add_argument('--source-head',default=os.environ.get('RACE_AI_SOURCE_HEAD'))
     d=commands.add_parser('verify');d.add_argument('--folder',type=Path,required=True)
@@ -67,8 +68,13 @@ def main(argv=None):
                 output=args.private_dir,previous_pointer=previous)
             root=private_root(args.private_dir)
         elif args.command=='receive':
-            report=receive_transfer(bounded_json(args.input),args.private_dir,run_id=args.run_id,
-                source_head=args.source_head,previous_pointer=previous)
+            report=None;pointer=bounded_json(args.input)
+            if args.accepted_imports:
+                from race_ai.boat_pdca_import_registry import reuse_import
+                report=reuse_import(pointer,_json(_file(args.accepted_imports,1_000_000),1_000_000),args.private_dir)
+            if report is None:
+                report=receive_transfer(pointer,args.private_dir,run_id=args.run_id,
+                    source_head=args.source_head,previous_pointer=previous)
             root=private_root(args.private_dir)
             if os.environ.get('GITHUB_OUTPUT'):
                 with open(os.environ['GITHUB_OUTPUT'],'a') as out:

@@ -17,6 +17,24 @@ def packet(*, late=False, extra=''):
 
 
 class OfficialSpecialBlocksTests(unittest.TestCase):
+    def test_explicit_blank_twelve_race_payout_table_is_unreported_not_cancelled(self):
+        extra='02KBGN\n2030/01/01\n[払戻金]\n'+'\n'.join(f'{n}R   ' for n in range(1,13))+'\n02KEND'
+        result=official_day(packet(extra=extra),day='2030-01-01')
+        self.assertEqual(result['unreported_venues'],['02'])
+        self.assertEqual(result['cancelled_races'],[])
+        self.assertEqual(len(result['rows']),6)
+
+    def test_printed_s_timing_is_preserved_without_treating_it_as_ok(self):
+        raw=packet(late=True).replace(b'L0 6 4006 TEST 11 22 6.80 L . . .',b'S1 6 4006 TEST 11 22 6.80 6 S0.20 . .')
+        row=next(r for r in official_day(raw,day='2030-01-01')['rows'] if r['lane']==6)
+        self.assertEqual((row['course'],row['st_status'],row['st_raw'],row['result_code']),(6,'S','S0.20','S1'))
+        self.assertIsNone(row['st']);self.assertIsNone(row['finish'])
+
+    def test_printed_zero_course_is_unknown_not_lane_or_course_zero(self):
+        raw=packet(late=True).replace(b'L0 6 4006 TEST 11 22 6.80 L . . .',b'L0 6 4006 TEST 11 22 6.80 0 L0.00 . .')
+        row=next(r for r in official_day(raw,day='2030-01-01')['rows'] if r['lane']==6)
+        self.assertIsNone(row['course']);self.assertEqual(row['st_raw'],'L0.00')
+
     def test_explicit_not_yet_published_venue_is_not_a_no_race_claim(self):
         extra='02KBGN\nボートレース戸田\nデータは、この場の全レース終了後に登録されます。\n02KEND'
         result=official_day(packet(extra=extra),day='2030-01-01')

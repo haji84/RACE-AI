@@ -8,9 +8,11 @@ import base64
 import binascii
 from datetime import datetime
 import json
+import os
 import re
 from urllib.parse import quote
-from urllib.request import Request, urlopen
+from urllib.request import Request, build_opener
+from .permissioned_source_delivery import NoRedirect
 
 REPO = "haji84/RACE-AI"
 BASE = "https://api.github.com/repos/" + REPO
@@ -39,27 +41,21 @@ def _date(value):
 def _github_json(url):
     if not url.startswith(BASE + "/"):
         raise ReceiptVerificationError("untrusted GitHub API endpoint")
-    req = Request(url, headers={
+    headers={
         "Accept": "application/vnd.github+json",
         "User-Agent": "RACE-AI-freeze-audit/1",
-    })
-    with urlopen(req, timeout=8) as response:
+    }
+    token=os.environ.get('GH_TOKEN') or os.environ.get('GITHUB_TOKEN')
+    if token:headers['Authorization']='Bearer '+token
+    req = Request(url,headers=headers)
+    with build_opener(NoRedirect()).open(req, timeout=8) as response:
         data = response.read(2_000_001)
     if len(data) > 2_000_000:
         raise ReceiptVerificationError("GitHub response too large")
     return json.loads(data)
 
 
-def verify_github_freeze(receipt, content_hash, persisted_at, cutoff_at, *, _fetch=None):
-    """Callback for verified_event_projection.project(...verify_freeze=...).
-
-    Verify two independent GitHub HTTPS API responses:
-    a server-assigned push or same-repo PR workflow-run created_at BEFORE cutoff,
-    and the committed prediction hash anchor pinned to that run's exact SHA.
-
-    Local persisted_at is checked for consistency, but its clock is NOT used
-    as independent timestamp evidence. _fetch is for offline tests only.
-    """
+def _read_freeze_document(receipt,persisted_at,cutoff_at,*,_fetch=None):
     if not isinstance(receipt, dict) or set(receipt) != {"run_id", "path"}:
         raise ReceiptVerificationError("receipt requires run_id and path")
     run_id, path = receipt["run_id"], receipt["path"]
@@ -67,8 +63,6 @@ def verify_github_freeze(receipt, content_hash, persisted_at, cutoff_at, *, _fet
         raise ReceiptVerificationError("run_id invalid")
     if not isinstance(path, str) or not SAFE_PATH.fullmatch(path):
         raise ReceiptVerificationError("anchor must be in audit/freezes")
-    if not isinstance(content_hash, str) or not HEX64.fullmatch(content_hash):
-        raise ReceiptVerificationError("forecast hash invalid")
     deadline, claimed = _date(cutoff_at), _date(persisted_at)
     if not claimed < deadline:
         raise ReceiptVerificationError("local persisted_at is not before cutoff")
@@ -100,9 +94,48 @@ def verify_github_freeze(receipt, content_hash, persisted_at, cutoff_at, *, _fet
         anchor = json.loads(raw)
     except (ValueError, binascii.Error, UnicodeDecodeError) as exc:
         raise ReceiptVerificationError("corrupt anchor") from exc
+    return anchor
+
+
+def verify_github_freeze(receipt,content_hash,persisted_at,cutoff_at,*,_fetch=None):
+    """Verify a single hash at an exact server-witnessed pre-cutoff commit.
+
+    Local clocks are consistency checks, not independent timestamp evidence.
+    _fetch is reserved for invented offline responses in tests.
+    """
+    if not isinstance(content_hash,str) or not HEX64.fullmatch(content_hash):
+        raise ReceiptVerificationError('forecast hash invalid')
+    anchor=_read_freeze_document(receipt,persisted_at,cutoff_at,_fetch=_fetch)
     if (not isinstance(anchor, dict) or anchor.get("schema") != ANCHOR_SCHEMA
         or anchor.get("prediction_sha256") != content_hash
         or anchor.get("cutoff_at") != cutoff_at
         or not isinstance(anchor.get("race_id"), str) or not anchor["race_id"]):
         raise ReceiptVerificationError("anchor hash/identity/cutoff mismatch")
+    return True
+
+
+def verify_github_pair_manifest(receipt,expected_entry,*,_fetch=None):
+    """Verify exact membership of unchanged V2 pair/body/physical-receipt hashes.
+
+    The same server clock, same-repository event and immutable content checks
+    used for single anchors apply. Producer admission flags grant no trust.
+    """
+    fields={'pair_sha256','file_sha256','local_freeze_receipt_sha256','race_id','stage','write_completed_at','cutoff_at'}
+    def valid(entry):
+        return (type(entry) is dict and set(entry)==fields and
+            all(type(entry[k]) is str and HEX64.fullmatch(entry[k]) for k in ('pair_sha256','file_sha256','local_freeze_receipt_sha256')) and
+            type(entry['race_id']) is str and re.fullmatch(r'[0-9]{8}-(?:0[1-9]|1[0-9]|2[0-4])-(?:0[1-9]|1[0-2])',entry['race_id']) and
+            entry['stage'] in ('P0','P1') and _date(entry['write_completed_at'])<_date(entry['cutoff_at']))
+    if not valid(expected_entry):raise ReceiptVerificationError('pair manifest entry invalid')
+    doc=_read_freeze_document(receipt,expected_entry['write_completed_at'],expected_entry['cutoff_at'],_fetch=_fetch)
+    if (type(doc) is not dict or doc.get('schema')!='RACE_AI_RESEARCH_PAIRS_SHA_ONLY_V2' or
+        doc.get('research_only') is not True or doc.get('actual_purchases') is not False or doc.get('auto_promoted') is not False):
+        raise ReceiptVerificationError('pair manifest schema/scope invalid')
+    entries=doc.get('entries');prepared=doc.get('prepared_races');scheduled=doc.get('scheduled_races')
+    if (type(entries) is not list or type(prepared) is not int or type(scheduled) is not int or
+        not 1<=prepared<=scheduled<=288 or len(entries)!=prepared or not all(valid(e) for e in entries) or
+        len({e['pair_sha256'] for e in entries})!=len(entries)):
+        raise ReceiptVerificationError('pair manifest duplicate/count invalid')
+    matches=[e for e in entries if e['pair_sha256']==expected_entry['pair_sha256']]
+    if matches!=[expected_entry]:raise ReceiptVerificationError('pair manifest membership mismatch')
     return True

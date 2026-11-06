@@ -19,7 +19,7 @@ if _REFERENCE not in race_ai.__path__:race_ai.__path__.append(_REFERENCE)
 from .core import _blocks, parse_k
 
 FIELDS=('race_id','racer_id','lane','course','st','st_status','finish','result_code','winner_method')
-OFFICIAL_K_PARSER_REVISION=4
+OFFICIAL_K_PARSER_REVISION=6
 
 
 def parse_k_rows(raw,day):
@@ -38,13 +38,13 @@ def parse_k_rows(raw,day):
             venue=int(marker[1]) if marker[2]=='BGN' else None;race=None
         header=HEADER.match(line)
         if header:race=int(header[1])
-        missing=re.fullmatch(r'\s*([FL][012]?)\s+([1-6])\s+([0-9]{4})\s+.+?\s+[0-9]+\.[0-9]{2}\s+(?:([1-6])\s+)?([FL](?:[0-9]+\.[0-9]{2})?)\s+(?:\.\s*){2,3}',line)
+        missing=re.fullmatch(r'\s*([FLS][012]?)\s+([1-6])\s+([0-9]{4})\s+.+?\s+[0-9]+\.[0-9]{2}\s+(?:([0-6])\s+)?([FLS](?:[0-9]+\.[0-9]{2})?)\s+(?:\.\s*){2,3}',line)
         if missing:
             code,lane,reg,course,timing=missing.groups()
             need(code[0]==timing[0],'OFFICIAL_DISPOSITION_ST_CONFLICT')
             need(venue is not None and race is not None,'OFFICIAL_LATE_CONTEXT_MISSING')
             key=(f'{day:%Y%m%d}-{venue:02d}-{race:02d}',int(lane))
-            need(key not in late,'OFFICIAL_LATE_DUPLICATE_ROW');late[key]=(reg,int(course) if course else None,timing,code[0])
+            need(key not in late,'OFFICIAL_LATE_DUPLICATE_ROW');late[key]=(reg,int(course) if course and course!='0' else None,timing,code[0])
             line=f' 欠 {lane} {reg}'
         adapted.append(line)
     rows=parse_k('\n'.join(adapted).encode('cp932') if late else raw,day.isoformat())
@@ -71,7 +71,7 @@ def official_day(raw, *, day):
     """
     day=date.fromisoformat(day);text=unicodedata.normalize('NFKC',raw.decode('cp932'))
     need('STARTK' in text[:200],'OFFICIAL_K_START_MARKER_REQUIRED')
-    methods={};payouts={};dispositions={};cancelled=[];unpublished=[]
+    methods={};payouts={};dispositions={};cancelled=[];unpublished=[];unreported=[]
     for venue,block in _blocks(text,'K'):
         headers=list(HEADER.finditer(block))
         if not headers and 'データは、この場の全レース終了後に登録されます。' in block:
@@ -86,6 +86,8 @@ def official_day(raw, *, day):
         if not headers:
             labels=[line for line in block.splitlines() if re.match(r'^\s*[0-9]{1,2}R\b',line)]
             need(labels and not re.search(r'^\s*\S+\s+[1-6]\s+[0-9]{4}\s',block,re.M),'OFFICIAL_K_NO_RACES')
+            if '[払戻金]' in block and len(labels)==12 and all(re.fullmatch(r'\s*'+str(n)+r'R\s*',line) for n,line in enumerate(labels,1)):
+                unreported.append(f'{venue:02d}');continue
             for line in labels:
                 match=re.fullmatch(r'\s*([0-9]{1,2})R\s+中\s*止\s*',line)
                 need(match is not None,'OFFICIAL_K_CANCELLATION_UNVERIFIED')
@@ -123,12 +125,12 @@ def official_day(raw, *, day):
                     if re.fullmatch(r'[1-6](?:-[1-6]){'+str(n-1)+r'}',combo) and amount.isdecimal():
                         found.append(dict(bet_type=kind,combo=combo,amount=int(amount)))
             payouts[rid]=found
-    need(methods or cancelled or unpublished,'OFFICIAL_K_NO_RACES')
+    need(methods or cancelled or unpublished or unreported,'OFFICIAL_K_NO_RACES')
     rows=parse_k_rows(raw,day.isoformat()) if methods else []
     for row in rows:
         row['winner_method']=methods[row['race_id']]
         row['result_code']=dispositions.get((row['race_id'],row['lane']))
-    return dict(rows=rows,payouts=payouts,cancelled_races=sorted(cancelled),unpublished_venues=sorted(unpublished),
+    return dict(rows=rows,payouts=payouts,cancelled_races=sorted(cancelled),unpublished_venues=sorted(unpublished),unreported_venues=sorted(unreported),
                 parser_revision=OFFICIAL_K_PARSER_REVISION,source_sha256=hashlib.sha256(raw).hexdigest())
 
 

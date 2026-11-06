@@ -15,17 +15,21 @@ from .teiai_history import need,racer_number
 from .boat_venue_history import VenueHistory
 from .official_lzh_extract import extract_daily_lzh
 from .teiai_official_reconciliation import official_day,OFFICIAL_K_PARSER_REVISION
+from .official_k_archive import parse_archive
 from .source_retry_policy import wait_active
 
 SCHEMA='RACE_AI_OFFICIAL_HISTORY_MONTH_V1'
 MAX_DB=8*1024*1024
 
 
-def _interpret(day,raw):
+def _interpret(day,raw,captured_at):
     try:
         d=date.fromisoformat(day)
-        parsed=official_day(extract_daily_lzh(raw,f'K{d:%y%m%d}.TXT'),day=day)
-        if parsed['unpublished_venues']:return 'WAITING_PUBLICATION','OFFICIAL_EXPLICIT_END_OF_VENUE_PUBLICATION_PENDING',len(parsed['rows'])
+        parsed=parse_archive(raw,day=day)
+        if parsed['unpublished_venues']:
+            from .boat_venue_history import JST
+            past=d<stamp(captured_at).astimezone(JST).date()
+            return ('PARTIAL_SOURCE' if past else 'WAITING_PUBLICATION'),'OFFICIAL_EXPLICIT_END_OF_VENUE_PUBLICATION_PENDING',len(parsed['rows'])
         return 'PARSED',None,len(parsed['rows'])
     except (ValueError,UnicodeError):
         return 'QUARANTINED','OFFICIAL_FORMAT_OR_SPECIAL_RESULT_UNSUPPORTED',0
@@ -97,7 +101,7 @@ class HistoryMonth:
         sha=hashlib.sha256(raw).hexdigest();last=self.db.execute('SELECT sha,captured_at FROM observations WHERE day=? ORDER BY id DESC LIMIT 1',(day,)).fetchone()
         if last and last[0]==sha:return False
         need(not last or stamp(last[1])<=stamp(captured_at),'HISTORY_OBSERVATION_CLOCK_REGRESSION')
-        state,reason,n=_interpret(day,raw)
+        state,reason,n=_interpret(day,raw,captured_at)
         with self.db:
             self.db.execute('INSERT OR IGNORE INTO archives VALUES (?,?)',(sha,raw))
             current=self.db.execute('INSERT INTO observations(day,sha,captured_at,state,reason,starts) VALUES (?,?,?,?,?,?)',(day,sha,captured_at,state,reason,n)).lastrowid
@@ -112,7 +116,7 @@ class HistoryMonth:
         events=self.db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='parse_events'").fetchone()
         result=[]
         for day,_,_,state,_,_ in self._heads():
-            if state!='QUARANTINED':continue
+            if state not in ('QUARANTINED','WAITING_PUBLICATION'):continue
             row=self.db.execute('SELECT parser_revision FROM parse_events WHERE observation_id=(SELECT max(id) FROM observations WHERE day=?)',(day,)).fetchone() if events else None
             if not row or row[0]<OFFICIAL_K_PARSER_REVISION:result.append(day)
         return result
@@ -136,7 +140,7 @@ class HistoryMonth:
         if event:
             if event[0] is not None:need(clock>=stamp(event[0]),'HISTORY_REPARSE_CLOCK_REGRESSION')
             if event[1]==OFFICIAL_K_PARSER_REVISION:return False
-        state,reason,n=_interpret(day,stored[0])
+        state,reason,n=_interpret(day,stored[0],captured_at)
         with self.db:
             self._events_table()
             current=self.db.execute('INSERT INTO observations(day,sha,captured_at,state,reason,starts) VALUES (?,?,?,?,?,?)',(day,sha,captured_at,state,reason,n)).lastrowid
@@ -161,7 +165,7 @@ class HistoryMonth:
 
     def archives(self):
         for day,sha,captured,state,_,_ in self._heads():
-            if state!='PARSED':continue
+            if state not in ('PARSED','PARTIAL_SOURCE'):continue
             raw=self.db.execute('SELECT raw FROM archives WHERE sha=?',(sha,)).fetchone()[0]
             need(hashlib.sha256(raw).hexdigest()==sha,'HISTORY_RAW_HASH_MISMATCH')
             yield dict(day=day,raw=raw,captured_at=captured,source_sha256=sha)
@@ -172,6 +176,7 @@ class HistoryMonth:
         index_raw=self.db.execute('SELECT index_raw FROM meta').fetchone()[0]
         excluded=len(_Fields(index_raw).days)-expected
         waiting=sum(r[3]=='WAITING_PUBLICATION' for r in heads)
+        partial=sum(r[3]=='PARTIAL_SOURCE' for r in heads)
         report=dict(schema=SCHEMA,month=self.month,listed_days=expected,parsed_days=states['PARSED'],
                     missing_days=states['MISSING'],quarantined_days=states['QUARANTINED'],pending_days=expected-len(heads)+waiting,
                     revision_observations=self.db.execute('SELECT count(*) FROM observations').fetchone()[0],
@@ -179,6 +184,7 @@ class HistoryMonth:
                     excluded_listed_days=excluded,month_complete=expected>0 and states['PARSED']==expected and excluded==0,
                     all_available_period_complete=False,formal_backtest_eligible=False)
         if waiting:report['waiting_publication_days']=waiting
+        if partial:report['partial_source_days']=partial
         return report
 
     def serialize(self):
@@ -191,4 +197,6 @@ class HistoryMonth:
         obj.db.execute('PRAGMA trusted_schema=OFF');obj.db.execute('PRAGMA foreign_keys=ON')
         need(obj.db.execute('PRAGMA quick_check').fetchall()==[('ok',)] and obj.db.execute('PRAGMA foreign_key_check').fetchall()==[], 'HISTORY_MONTH_DB_CORRUPT')
         need(obj.db.execute('SELECT schema,month FROM meta').fetchall()==[(SCHEMA,month)],'HISTORY_MONTH_SCOPE_MISMATCH')
-        list(obj.archives());return obj
+        for stored_sha,archive in obj.db.execute('SELECT sha,raw FROM archives'):
+            need(hashlib.sha256(archive).hexdigest()==stored_sha,'HISTORY_RAW_HASH_MISMATCH')
+        return obj
