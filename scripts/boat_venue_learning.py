@@ -1,17 +1,42 @@
 """Connect owner-restored venue observations to existing shadow-model learning.
 
 No provider GETs, backfill, new model, plaintext publication or promotion.
-Missing purpose-specific source permission is a reported HOLD, never a grant.
+Use a scoped owner personal-research decision or external source-use review.
+An owner decision is never represented as a provider licence or promotion.
 """
 import argparse,hmac,json,os,re
 from datetime import datetime,timezone
 from pathlib import Path
 
 from race_ai.boat_venue_learning import rows_from_journal,fit_venue_rows,seal_candidate
-from race_ai.boat_pdca_state import PdcaState,state_key
+from race_ai.boat_pdca_state import PdcaState,state_key,restore_state
 from race_ai.permissioned_source_delivery import PermissionPolicy,SourceDeliveryError
 from race_ai.teiai_history import need
 from scripts.boat_all_racers import _key_ready,_read,_write
+from scripts.boat_history_collect import private_root
+
+
+def load_verified_intake(restored_dir,state_input,*,now,authenticate_owner_cipher=False):
+    root=private_root(restored_dir)
+    pointer=json.loads(_read(Path(state_input),8192))
+    status=json.loads(_read(root/'production-readback-status.json',1000000))
+    need(status.get('production_schema_readback_verified') is True and
+         status['source_commit']==pointer['source_commit'],'VENUE_LEARNING_READBACK_BINDING')
+    if authenticate_owner_cipher:
+        # Reauthenticate the exact pointer scope/cipher before an owner's
+        # decision is issued or consumed, independently of the status JSON.
+        import tempfile
+        with tempfile.TemporaryDirectory(prefix='owner-cipher-check-',dir=root) as tmp:
+            verified=restore_state(root/'state.enc',Path(tmp)/'state.sqlite',
+                expected_sha256=pointer['cipher_sha256'],expected_scope=pointer['scope'])
+            try:need(verified.content_sha256()==status['state_content_sha256'],'VENUE_LEARNING_READBACK_CONTENT_CHANGED')
+            finally:verified.close()
+    state=PdcaState(root/'state.sqlite')
+    try:
+        need(state.content_sha256()==status['state_content_sha256'],'VENUE_LEARNING_READBACK_CONTENT_CHANGED')
+        rows,obs=rows_from_journal(state,root/'materialized',now=now.isoformat())
+    finally:state.close()
+    return rows,obs,pointer,status['state_content_sha256']
 
 
 def main(argv=None,*,now=None):
@@ -20,6 +45,7 @@ def main(argv=None,*,now=None):
     p.add_argument('--state-input',default='audit/state/boat-pdca-production-input.json')
     p.add_argument('--dataset-input',default='audit/state/boat-venue-dataset-input.json')
     p.add_argument('--permission-policy')
+    p.add_argument('--owner-research-record',help='Verify a previously authenticated owner research decision; never issue one implicitly')
     args=p.parse_args(argv);now=now or datetime.now(timezone.utc)
     try:
         if not _key_ready():
@@ -27,11 +53,6 @@ def main(argv=None,*,now=None):
             out=Path(args.out_dir);out.mkdir(parents=True,mode=0o700,exist_ok=False)
             _write(out/'summary.json',json.dumps(result,sort_keys=True).encode())
             print(json.dumps(result));return 0
-        root=Path(args.restored_dir)
-        pointer=json.loads(_read(Path(args.state_input),8192))
-        status=json.loads(_read(root/'production-readback-status.json',1000000))
-        need(status.get('production_schema_readback_verified') is True and
-             status['source_commit']==pointer['source_commit'],'VENUE_LEARNING_READBACK_BINDING')
         allow=None;policy_sha=None;review_reason='MODEL_TRAINING_REVIEW_NOT_CONFIGURED'
         if args.permission_policy:
             # Same independent reviewer key used by the existing source bridge;
@@ -48,13 +69,12 @@ def main(argv=None,*,now=None):
                     'source policy signature unverified':'SOURCE_POLICY_SIGNATURE_UNVERIFIED',
                     'independent reviewer key not configured':'INDEPENDENT_REVIEWER_KEY_NOT_CONFIGURED',
                 }.get(str(exc),'MODEL_TRAINING_REVIEW_REJECTED')
-        state=PdcaState(root/'state.sqlite')
-        try:
-            need(state.content_sha256()==status['state_content_sha256'],'VENUE_LEARNING_READBACK_CONTENT_CHANGED')
-            rows,obs=rows_from_journal(state,root/'materialized',now=now.isoformat())
-        finally:state.close()
-        payload=fit_venue_rows(rows,obs,dataset_pointer=json.loads(_read(Path(args.dataset_input),8192)),now=now,allow_training=allow)
-        payload['summary'].update(source_commit=pointer['source_commit'],source_content_sha256=status['state_content_sha256'],permission_policy_sha256=policy_sha,permission_review_reason=review_reason)
+        rows,obs,pointer,content=load_verified_intake(args.restored_dir,args.state_input,now=now,
+            authenticate_owner_cipher=bool(args.owner_research_record))
+        owner_record=json.loads(_read(Path(args.owner_research_record),64000)) if args.owner_research_record else None
+        payload=fit_venue_rows(rows,obs,dataset_pointer=json.loads(_read(Path(args.dataset_input),8192)),now=now,allow_training=allow,
+            owner_research_record=owner_record,source_pointer=pointer,state_content_sha256=content)
+        payload['summary'].update(source_commit=pointer['source_commit'],source_content_sha256=content,permission_policy_sha256=policy_sha,permission_review_reason=review_reason)
         result=seal_candidate(payload,args.out_dir);print(json.dumps(result,sort_keys=True));return 0
     except Exception as exc:
         reason=str(exc) if isinstance(exc,ValueError) and re.fullmatch('VENUE_LEARNING_[A-Z_]{1,80}',str(exc)) else 'VENUE_LEARNING_OPERATION_REJECTED'

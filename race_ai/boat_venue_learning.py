@@ -23,7 +23,7 @@ def _pin(p):
          p.get('dataset_path')==PREFIX+'datasets/'+p['dataset_sha256']+'/dataset.json','VENUE_LEARNING_PIN_REQUIRED')
     return 'https://raw.githubusercontent.com/haji84/RACE-AI/'+p['source_commit']+'/'+p['dataset_path']
 
-def fit_venue_rows(rows,observations,*,dataset_pointer,now,allow_training=None):
+def training_intake(rows,observations,*,dataset_pointer):
     """Subset authenticated reader rows, never attach today's profile to them.
 
     Select the latest observed input before filtering for the pinned dataset.
@@ -50,12 +50,36 @@ def fit_venue_rows(rows,observations,*,dataset_pointer,now,allow_training=None):
         eligible.append(row);permissions.update((s['source_url'],s['source_rights_ref']) for s in snap['sources'])
     ids={r['race_id'] for r in eligible};obs=[o for o in observations if o['race_id'] in ids]
     permissions.update((o['source_url'],RESULT_RIGHTS) for o in obs)
-    unapproved=sum(not callable(allow_training) or allow_training(u,r,'model_training') is not True for u,r in sorted(permissions))
+    return dict(eligible=eligible,observations=obs,source_refs=[list(p) for p in sorted(permissions)],excluded=excluded,observed_unique_races=len(selected))
+
+
+def fit_venue_rows(rows,observations,*,dataset_pointer,now,allow_training=None,owner_research_record=None,
+                   source_pointer=None,state_content_sha256=None):
+    from .boat_venue_research import verify_owner_research_decision
+    binding=dict(source_pointer=source_pointer,state_content_sha256=state_content_sha256,dataset_pointer=dataset_pointer,now=now)
+    if owner_research_record is not None:
+        try:verify_owner_research_decision(owner_research_record,**binding)
+        except ValueError as exc:
+            return dict(summary=dict(schema='RACE_AI_VENUE_LEARNING_CONNECTION_COUNTS_V1',state='HOLD_OWNER_RESEARCH_DECISION',
+                owner_research_rejection=str(exc) if str(exc).startswith('OWNER_RESEARCH_') else 'OWNER_RESEARCH_RECORD_REJECTED',
+                provider_permission_confirmed=False,actual_purchases=False,production_promoted=False),training=None,excluded=[])
+    intake=training_intake(rows,observations,dataset_pointer=dataset_pointer)
+    eligible=intake['eligible'];obs=intake['observations'];permissions=intake['source_refs'];excluded=intake['excluded']
+    sha=dataset_pointer['dataset_sha256']
+    unapproved=sum(not callable(allow_training) or allow_training(u,r,'model_training') is not True for u,r in permissions)
     summary=dict(schema='RACE_AI_VENUE_LEARNING_CONNECTION_COUNTS_V1',dataset_sha256=sha,
-        observed_unique_races=len(selected),eligible_venue_races=len(eligible),minimum_fit_races=MIN_RACES,
+        observed_unique_races=intake['observed_unique_races'],eligible_venue_races=len(eligible),minimum_fit_races=MIN_RACES,
         unapproved_training_sources=unapproved,excluded_races_count=len(excluded),actual_purchases=False,
         production_promoted=False,new_model_created=False,historical_inputs_backfilled=False,baseline_coefficients_changed=False)
-    if not eligible or unapproved:
+    owner_sha=None
+    if owner_research_record is not None:
+        try:owner_sha=verify_owner_research_decision(owner_research_record,source_refs=permissions,**binding)
+        except ValueError as exc:
+            summary.update(state='HOLD_OWNER_RESEARCH_DECISION',owner_research_rejection=str(exc) if str(exc).startswith('OWNER_RESEARCH_') else 'OWNER_RESEARCH_RECORD_REJECTED')
+            return dict(summary=summary,training=None,excluded=excluded)
+        summary.update(training_basis='OWNER_PERSONAL_RESEARCH',owner_research_decision_sha256=owner_sha,
+            provider_permission_confirmed=False,owner_admitted_sources=len(permissions),provider_review_missing_sources=unapproved)
+    if not eligible or unapproved and owner_sha is None:
         summary['state']='HOLD_MODEL_TRAINING_PERMISSION' if unapproved else 'INSUFFICIENT_VERIFIED_RACES'
         return dict(summary=summary,training=None,excluded=excluded)
     training=fit_from_verified(eligible,obs,now=now)
@@ -63,9 +87,14 @@ def fit_venue_rows(rows,observations,*,dataset_pointer,now,allow_training=None):
     for lineage in training['source_lineage']:
         if receipts[lineage['race_id']] is not None:lineage['input_receipt']=receipts[lineage['race_id']]
     training.update(venue_dataset_sha256=sha,venue_input_policy='ORIGINAL_FROZEN_INPUT_ONLY_NO_BACKFILL')
+    if owner_sha:
+        training.update(training_basis='OWNER_PERSONAL_RESEARCH',owner_research_decision_sha256=owner_sha,
+                        provider_permission_confirmed=False)
     seal(training,'training_sha256');summary.update(state=training['state'],train_races=training['train_races'],
         validation_races=training['validation_races'],fitted_model_count=len(training['models']),training_sha256=training['training_sha256'])
-    return dict(summary=summary,training=training,excluded=excluded)
+    payload=dict(summary=summary,training=training,excluded=excluded)
+    if owner_sha:payload.update(owner_research_record=owner_research_record,source_refs=permissions)
+    return payload
 
 
 def rows_from_journal(state,root,*,now,_fetch=None):

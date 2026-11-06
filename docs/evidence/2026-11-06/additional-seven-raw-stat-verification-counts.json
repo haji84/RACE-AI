@@ -1,0 +1,18 @@
+{
+  "checked_at": "2026-11-06T10:18:08.304565+00:00",
+  "checked_frozen_races": 7,
+  "checked_months": 263,
+  "checked_original_source_days": 7962,
+  "checked_overall_and_course_cells": 294,
+  "checked_racer_venue_pairs": 42,
+  "dataset_sha256": "3deb20e26ccc73add405032a45a790abb02d8424e43bb7d1e9b45861ab3d7a19",
+  "denominators_verified": true,
+  "finish_counts_verified": true,
+  "model_coefficients_changed": false,
+  "new_provider_gets": 0,
+  "participant_entries": 42,
+  "private_raw_published": false,
+  "schema": "RACE_AI_ADDITIONAL_VENUE_RAW_CONSERVATION_COUNTS_V1",
+  "st_counts_values_and_dispersion_verified": true,
+  "unknown_courses_preserved": true
+}

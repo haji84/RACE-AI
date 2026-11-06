@@ -1,0 +1,24 @@
+{
+  "actual_purchases": false,
+  "dataset_sha256": "3deb20e26ccc73add405032a45a790abb02d8424e43bb7d1e9b45861ab3d7a19",
+  "earliest_cutoff": "2026-11-06T19:14:00+09:00",
+  "existing_model_count": 2,
+  "github_receipt_run": 42199640691,
+  "independent_pre_cutoff_receipts_verified": 7,
+  "independent_saved_at": "2026-11-06T10:03:04Z",
+  "last_cutoff": "2026-11-06T20:16:00+09:00",
+  "new_frozen_races": 7,
+  "new_model_family": false,
+  "new_provider_data_gets": 0,
+  "official_results_added": 0,
+  "participant_entries": 42,
+  "pending_official_results": 7,
+  "production_promoted": false,
+  "schema": "RACE_AI_ADDITIONAL_VENUE_FREEZE_COUNTS_V1",
+  "training_executed": false,
+  "venues": [
+    "01",
+    "12",
+    "15"
+  ]
+}

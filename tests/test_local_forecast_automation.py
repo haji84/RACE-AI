@@ -86,25 +86,46 @@ class AutomaticForecastTests(unittest.TestCase):
         self.assertEqual(restarted.tick()["round_no"], 2)
         self.assertEqual(self.service.calls.count(("boat", "P0")), 2)
 
-    def test_source_count_over_240_refuses_prediction_and_survives_restart(self):
+    def test_source_count_beyond_old_limit_continues_and_survives_restart(self):
         self.service.requests = 241
         first = self.controller.tick()
-        self.assertEqual(first["state"], "REVIEW_WAIT")
-        self.assertEqual(first["halted_reason"], "SOURCE_BUDGET_EXHAUSTED")
+        self.assertEqual(first["state"], "WAITING")
         self.assertEqual(first["requests_used"], 241)
-        self.assertEqual(first["source_limit"], 240)
-        self.assertEqual(self.service.calls, [])
+        self.assertIsNone(first["source_limit"])
+        self.assertEqual(self.service.calls, [("boat", "P0"), ("boat", "P1")])
         self.controller.stop()
         restarted = M.ForecastAutomation(self.service)
         self.addCleanup(restarted.stop)
         self.service.requests = 365
         self.service.now += timedelta(seconds=180)
         later = restarted.tick()
-        self.assertEqual(later["state"], "REVIEW_WAIT")
-        self.assertEqual(later["halted_reason"], "SOURCE_BUDGET_EXHAUSTED")
-        self.assertEqual(later["requests_used"], 241)
-        self.assertEqual(later["round_no"], 0)
-        self.assertEqual(self.service.calls, [])
+        self.assertEqual(later["state"], "WAITING")
+        self.assertEqual(later["requests_used"], 365)
+        self.assertEqual(later["stop_at"], first["stop_at"])
+        self.assertEqual(later["round_no"], 2)
+        self.assertEqual(self.service.calls.count(("boat", "P0")), 2)
+        self.service.requests = 364
+        self.service.now += timedelta(seconds=180)
+        self.assertEqual(restarted.tick()["halted_reason"], "AUTOMATIC_SOURCE_STATUS_REJECTED")
+
+    @patch('race_ai.local_forecast_automation.SOURCE_LIMIT',240)
+    def test_explicit_bounded_source_policy_refuses_extra_work_and_survives_restart(self):
+        self.service.requests=241
+        first=self.controller.tick()
+        self.assertEqual(first['state'],'REVIEW_WAIT')
+        self.assertEqual(first['halted_reason'],'SOURCE_BUDGET_EXHAUSTED')
+        self.assertEqual(first['requests_used'],241)
+        self.assertEqual(first['source_limit'],240)
+        self.assertEqual(self.service.calls,[])
+        self.controller.stop()
+        restarted=M.ForecastAutomation(self.service);self.addCleanup(restarted.stop)
+        self.service.requests=365;self.service.now+=timedelta(seconds=180)
+        later=restarted.tick()
+        self.assertEqual(later['state'],'REVIEW_WAIT')
+        self.assertEqual(later['halted_reason'],'SOURCE_BUDGET_EXHAUSTED')
+        self.assertEqual(later['requests_used'],241)
+        self.assertEqual(later['round_no'],0)
+        self.assertEqual(self.service.calls,[])
 
     def test_legacy_count_only_halt_is_preserved_without_resuming_or_reset(self):
         self.controller.tick()
@@ -252,16 +273,28 @@ class AutomaticForecastTests(unittest.TestCase):
     def test_legacy_numeric_cap_migration_retains_counter_and_original_record(self):
         target,original=self.legacy_record(state="STOPPED",halted_reason="SOURCE_BUDGET_EXHAUSTED",
                                            requests_used=240,requests_total=240)
-        initial_calls=list(self.service.calls)
         self.service.requests=241;self.service.now+=timedelta(seconds=180)
         restarted=M.ForecastAutomation(self.service);self.addCleanup(restarted.stop)
         out=restarted.tick()
-        self.assertEqual(out["state"],"REVIEW_WAIT")
-        self.assertEqual(out["halted_reason"],"SOURCE_BUDGET_EXHAUSTED")
+        self.assertEqual(out["state"],"WAITING")
         self.assertEqual(out["requests_used"],241)
         self.assertEqual(out["requests_total"],241)
         self.assertEqual(target.read_bytes(),original)
-        self.assertEqual(self.service.calls,initial_calls)
+
+    @patch('race_ai.local_forecast_automation.SOURCE_LIMIT',240)
+    def test_explicit_bounded_source_policy_keeps_legacy_bytes_without_new_generation(self):
+        target,original=self.legacy_record(state='STOPPED',halted_reason='SOURCE_BUDGET_EXHAUSTED',
+                                           requests_used=240,requests_total=240)
+        prior_calls=list(self.service.calls)
+        self.service.requests=241;self.service.now+=timedelta(seconds=180)
+        restarted=M.ForecastAutomation(self.service);self.addCleanup(restarted.stop)
+        out=restarted.tick()
+        self.assertEqual(out['state'],'REVIEW_WAIT')
+        self.assertEqual(out['halted_reason'],'SOURCE_BUDGET_EXHAUSTED')
+        self.assertEqual(out['requests_used'],241)
+        self.assertEqual(out['requests_total'],241)
+        self.assertEqual(target.read_bytes(),original)
+        self.assertEqual(self.service.calls,prior_calls)
 
     def test_legacy_clock_evidence_is_not_rebased_to_hide_reversal(self):
         self.legacy_record(last_observed_at=(self.service.now+timedelta(minutes=10)).isoformat())

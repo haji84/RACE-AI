@@ -125,3 +125,15 @@ Actual private-input offline profiling reproduced redundant per-status work: fou
 - [x] Verify subsequent no-ceiling policy in the existing CI at45a2749:Viewer42172920937 and AUTORACE42172920961completedSUCCESS;policy source346335be unchanged. Prior63ecc92/b10758bchecks stayhistorical. Subsequent1298618changesonlyauditJSON;finalrecordchangesonlydocs. Video/P1budget/Safarifieldgatesremainunmet asrecorded.
 
 No live forecast, private checkpoint, original or process was reset by this policy repair. The video field goals remain unmet.
+
+## Final full-footage followup and data-only consumer repair
+
+- [x] Inspect the raw licensed source beyond the old references: twelve direct glyphs, two per digit1–6, plus five explicit non-digit examples, are feasible. The old missing3 label was a reference-coverage gap, not source absence. All new AI labels are correlated DEVELOPMENT, with unknowns excluded and no human/holdout claim.
+- [x] Train one fixed CC-only HOG localizer and run actual archived-pixel comparisons; reject it. Separate exact-glyph recognition from localization: native10/12 versus padded3/12 is an oracle diagnostic, not full-video accuracy.
+- [x] Run one full775-frame/97-sample matched actual detector/camera/dual-reader comparison.679 detector+1343CRNN forwards; native2 unverified events, zero valid positions. New10-frame geometry matches7/45 with sparse uncertainty; post-output-selected two-frame diagnostics do not pass IoU.5. No threshold/ROI/weight adjustment after outputs; no adoption.
+- [x] Isolate native camera cadence using the same HSV masks/unchanged gates, strict all-eight-H composition and nineteen blind AI shore checks. Availability15→39 does not establish accuracy of the thirty new intervals; retain original defaults.
+- [x] Repair serialized-context validation for real forecast workers without optional NumPy/CV. Use exact standard-library determinant checks; reject duplicate/proportional/degenerate/overflow matrices and keep original normalized/1e-8 contracts. TDD and independent review GREEN; final full1938PASS/0skip, four synthetic Chromium suites PASS.
+- [x] Preserve concurrent saved-result reconciliation and audit originals while retaining the owner's fourNone defaults. Incoming finite-control tests use explicit bounded library settings; unlimited tests exercise real defaults without hiding them behind mocks.105scopedPASS,18result-syncPASS,35NodePASS.
+- [ ] Field acceptance remains unmet: verified six-boat tracking/strength and authentic current-video pre-cutoff pairs with later official results. Source403, missing representative independent references and zero qualified positions/pairs cannot be converted into completion by code tests or raw hypotheses.
+
+All raw failures/labels/weights/receipts remain private and immutable; only sanitized aggregates and code enter existing Draft PR71. No new PR/workflow/forecast family/paid service/main merge/public deployment/wager/production-model switch or live-process stop was performed.

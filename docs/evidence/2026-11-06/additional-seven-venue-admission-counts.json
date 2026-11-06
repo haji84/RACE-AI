@@ -1,0 +1,88 @@
+{
+  "accuracy_improvement_proven": false,
+  "actual_purchases": false,
+  "additional_frozen_races": 7,
+  "additional_normal_result_races": 7,
+  "additional_participant_entries": 42,
+  "checked_at": "2026-11-06T11:38:36.464643+00:00",
+  "comparison_axis": "RECENT_INPUT_ADDITION_WITH_IDENTICAL_SHARED_VENUE_COURSE_INPUTS",
+  "diagnostic_official_html_gets": 1,
+  "direct_final_result_gets": 1,
+  "eligible_venue_learning_races": 8,
+  "independent_pre_cutoff_receipts_verified": 7,
+  "minimum_fit_races": 8,
+  "new_provider_gets": 2,
+  "original_inputs_unchanged": true,
+  "production_promoted": false,
+  "production_state_pointer": {
+    "cipher_path": "state/boat-pdca/v1/g000007/state.enc",
+    "cipher_sha256": "1e091ed56127fafcb2e3062ffabdd06168fbe7de12de2bfad4902677b6af921d",
+    "repository_id": "1416489937",
+    "schema": "RACE_AI_BOAT_PRODUCTION_STATE_INPUT_V1",
+    "scope": {
+      "generation": 7,
+      "mode": "production",
+      "previous_cipher_sha256": "e85f43fc1fddd7e6e4daf41f64c927177e3c030c77a6bb2d324f63969379ff20",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PDCA_ENCRYPTED_SQLITE_V1"
+    },
+    "source_commit": "7dfc63101ba7c65662f03d506c09a86d126e6536",
+    "status": "READY"
+  },
+  "reused_result_artifact_id": 13499001029,
+  "schema": "RACE_AI_ADDITIONAL_SEVEN_VENUE_ADMISSION_COUNTS_V1",
+  "source_scope": "SIX_NORMALIZED_OFFICIAL_RESULTS_FROM_EXISTING_ZIP_WITH_SHA_AND_ZIP_RETAINED_ENCRYPTED; ONE_VERIFIED_DIRECT_OFFICIAL_HTML_RESULT; ONE_LATER_OFFICIAL_HTML_DIAGNOSTIC_RETAINED_SEPARATELY",
+  "state_content_sha256": "acaf50cb43abff101fc77a334348756c6bae8b8f7fe25f07f4e7f566a86435fd",
+  "state_inventory": {
+    "mode": "production",
+    "pairs": 165,
+    "result_revisions": 14,
+    "retained_file_versions": 840,
+    "scorings": 14
+  },
+  "teiai_api_gets": 0,
+  "total_authenticated_prospective_races": 14,
+  "training_executed": false,
+  "training_state": "HOLD_MODEL_TRAINING_PERMISSION",
+  "unapproved_training_sources": 62,
+  "venue_cohort_summary": {
+    "accuracy_improvement_proven": false,
+    "actual_purchases": false,
+    "excluded_special_or_pending_races": 0,
+    "models": [
+      {
+        "baseline_hit_rate": 0.375,
+        "baseline_hits": 3,
+        "baseline_received_yen": 8480,
+        "baseline_roi": 1.325,
+        "baseline_stake_yen": 6400,
+        "history_hit_rate": 0.25,
+        "history_hits": 2,
+        "history_received_yen": 7740,
+        "history_roi": 1.209375,
+        "history_stake_yen": 6400,
+        "model_id": "boat-observed-pairwise-factor-v1",
+        "scored": 8
+      },
+      {
+        "baseline_hit_rate": 0.125,
+        "baseline_hits": 1,
+        "baseline_received_yen": 2440,
+        "baseline_roi": 0.38125,
+        "baseline_stake_yen": 6400,
+        "history_hit_rate": 0.5,
+        "history_hits": 4,
+        "history_received_yen": 13660,
+        "history_roi": 2.134375,
+        "history_stake_yen": 6400,
+        "model_id": "boat-observed-pairwise-start-v1",
+        "scored": 8
+      }
+    ],
+    "normal_races": 8,
+    "production_promoted": false,
+    "result_revisions": 8,
+    "schema": "RACE_AI_AUTHENTICATED_HISTORY_TRIAL_SUMMARY_V1",
+    "unique_races": 8
+  }
+}

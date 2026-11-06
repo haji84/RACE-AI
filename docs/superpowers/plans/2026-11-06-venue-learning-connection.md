@@ -23,7 +23,7 @@
 ## Task 3 — existing Actions and acceptance
 - [x] Add intake/verify and ciphertext/count-only upload steps to existing production readback job; no new workflow/job/schedule.
 - [x] Run regression suite; independent review and finding resolution.
-- [ ] Push only PR71 and confirm exact-code Actions (record run/HEAD in final handoff).
+- [x] Push only PR71 and confirm exact-code Actions: `c3afa0621f89be2eadc0664e3305e103c4f9c736`, run `42194670879` success.
 - [x] Record current rights-source URLs/SHA, actual versus synthetic results and sample deficits in `docs/BOAT_VENUE_LEARNING_CONNECTION_20261106.md`.
 
 ## Rulings
@@ -38,3 +38,16 @@
 - Real owner-key G5 restore and independent GitHub receipt recheck: **7 observed / 1 pinned venue input / 19 unapproved training sources**, `HOLD_MODEL_TRAINING_PERMISSION`; encrypted readback matched and source content SHA remained unchanged.
 - One fresh whole-connection reviewer: **no Critical / Important findings**; 71 targeted tests passed independently. Minor finding: expired policy produced a generic error with no count artifact. Reproduced RED, changed to persisted permission-specific HOLD with no optimizer call, then **54 focused tests passed**.
 - Reviewer exclusions ruled valid: provider legal sufficiency is still unconfirmed; reviewer did not independently rerun owner-key G5; accuracy improvement and production adoption remain unproven and prohibited. No such acceptance claim is made.
+
+## Follow-up: seven additional real races
+
+The owner asked to add the missing races. Reused the published dataset and official B archive without changing the models. Seven originals were physically frozen before their deadlines and independently witnessed by run `42199640691` at `2026-11-06T10:03:04Z`; earliest cutoff `10:14Z`, latest `11:16Z`. G6 retained those inputs before outcomes.
+
+- [x] Recount 42 racer/venue profiles, 294 overall/course buckets, from all 7,962 retained original days; counts/finishes/ST values and dispersion matched, gaps preserved.
+- [x] Obtain all seven normal official outcomes. Reuse six from the authenticated existing cycle-24 result ZIP; one direct official result and one diagnostic HTML GET, zero Teiai API GETs. Direct diagnostic measurement fields matched the cached observation; capture/reconciliation metadata retained separately.
+- [x] Recheck independent manifest receipts, score originals idempotently, retain result-source ZIP/raw diagnostics and publish G7. Remote owner-key readback verified: 165 pairs, 14 results, 14 scorings, 840 retained file versions.
+- [x] Check the real intake: 14 admitted distinct races, **8 pinned venue-feature races**, minimum8 satisfied, **62 unapproved training sources**, training remains HOLD and optimizer not executed.
+- [x] Full Python regression after retaining concurrent PR work: **1,938 tests, 112 skipped, zero failures/errors**. Existing model and fitter files unchanged; final G7 remote owner-key readback passed.
+- [ ] Confirm final G7 PR71 Actions; record exact HEAD/run in the final handoff.
+
+No model family, coefficient, original, external service, schedule, permission, main merge or actual purchase changed. The candidate comparison still concerns recent-history addition with shared venue/course inputs, not a trained-coefficient improvement claim.
