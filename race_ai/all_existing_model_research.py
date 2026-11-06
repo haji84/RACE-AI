@@ -61,6 +61,15 @@ def _source_refs(values):
               all(type(value) is str for value in item), 'SOURCE_SCOPE')
         url, rights = item
         _need(rights in LEGACY_RIGHTS or rights == HTML_RIGHTS, 'SOURCE_SCOPE')
+        if url.startswith('urn:race-ai:'):
+            # Local content references grant no provider rights. Input admission
+            # replays their complete manifests and direct upstream closure;
+            # the owner MAC also binds the exact native inputs and contracts.
+            from .all_existing_model_source_derivations import NAMESPACES
+            _need(any(re.fullmatch('urn:race-ai:'+re.escape(name)+':[a-f0-9]{64}',url)
+                      for name in NAMESPACES),'SOURCE_SCOPE')
+            pairs.add((url,rights))
+            continue
         guard_right = 'OWNER_PERSONAL_OFFICIAL_B_ANALYSIS_20261104' if rights == HTML_RIGHTS else rights
         _legacy_refs([(url, guard_right)])
         pairs.add((url, rights))

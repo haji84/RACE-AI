@@ -266,7 +266,9 @@ jobs:
           if [[ -f audit/state/boat-venue-learning-owner-research.json ]]; then
             policy_args+=(--owner-research-record audit/state/boat-venue-learning-owner-research.json)
           fi
-          if [[ -f audit/state/all-existing-model-owner-research.json ]]; then
+          if [[ -f audit/state/all-existing-model-derived-owner-research.json ]]; then
+            python -m scripts.all_existing_model_learning fit --restored-dir "$RUNNER_TEMP/boat-production-readback" --derive-from-observed --owner-research-record audit/state/all-existing-model-derived-owner-research.json --out-dir "$RUNNER_TEMP/boat-venue-learning"
+          elif [[ -f audit/state/all-existing-model-owner-research.json ]]; then
             python -m scripts.all_existing_model_learning fit --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/boat-venue-learning"
           else
             python -m scripts.boat_venue_learning --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/boat-venue-learning" "${policy_args[@]}"

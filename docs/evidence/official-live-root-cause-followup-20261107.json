@@ -1,0 +1,131 @@
+{
+  "schema": "race-ai-official-live-root-cause-followup-v1",
+  "recorded_at_utc": "2026-11-06T22:23:04.520490+00:00",
+  "existing_draft_pr": 71,
+  "parent_head": "b19bc2bf4c7d083ccc1ed12c3b8f9f9d55ee5da8",
+  "result": "SPECIFIC_P01002_REJECTION_CONDITION_NOT_IDENTIFIED; PROVIDER_INQUIRY_PREPARED_NOT_SENT",
+  "official_live_access_restored": false,
+  "confirmed_denial": {
+    "observed_at_utc": "2026-11-06T09:18:34.313Z",
+    "http_status": 403,
+    "error_id": "P01002",
+    "body_id": "163",
+    "message": "この動画の視聴は許可されていません。",
+    "body_id_is_not_a_verified_request_trace_id": true,
+    "specific_cause": "UNKNOWN"
+  },
+  "additional_cached_forensics": {
+    "historical_Fukuoka_exhibition_denial_is_not_current_LIVE": true,
+    "historical_body_bytes": 134,
+    "body_fieldnames": [
+      "id",
+      "code",
+      "status",
+      "error_id",
+      "message"
+    ],
+    "additional_network_record_counts": [
+      109,
+      8
+    ],
+    "alternate_saved_1848byte_payload": "Fukuoka current LIVE observation: 200 BR-font.ttf, not video or denial diagnostics",
+    "current_denial_request_method_auth_presence_response_headers_trace_ID_recovered": false,
+    "missing_headers_do_not_prove_unauthenticated_request": true,
+    "scope": "Inspected retained recorder files and their recording logic, not all possible external logs"
+  },
+  "environment_diagnostic_metadata": {
+    "network_policy": "unrestricted",
+    "network_policy_state": "enforced",
+    "observations_current": true,
+    "retained_history_status": "not_found",
+    "retained_records": [],
+    "omitted_records": 0,
+    "legacy_snapshot_available": false,
+    "does_not_prove_provider_authorization": true
+  },
+  "new_provider_primary_sources": [
+    {
+      "url": "https://cloud.play.jp/streaks/",
+      "status": 200,
+      "retrieved_at_utc": "2026-11-06T22:12:44.138345+00:00",
+      "whole_source_sha256": "185dddaaca3797eb1624ed75588cbe11781e60b848b0c8f648e68403a8a9622f",
+      "excerpt_sha256": "2720efa5ce5d846329a391c9b093c85e70c06acc7cde048ba197bf17e2dbf469",
+      "finding": "Official product capability confirms rights-aware/device/asset licensing; it does not map any condition toP01002 or prove that BOATCAST enabled it."
+    },
+    {
+      "url": "https://cloud.play.jp/streaks/",
+      "status": 200,
+      "retrieved_at_utc": "2026-11-06T22:12:44.138345+00:00",
+      "whole_source_sha256": "185dddaaca3797eb1624ed75588cbe11781e60b848b0c8f648e68403a8a9622f",
+      "excerpt_sha256": "659083b8a872befae51ca11291a38c7538a2e7f125b90b233cc0f83430ce5690",
+      "finding": "Official product can control delivery based on viewer environment/user status/asset conditions; no code-specific cause is specified."
+    },
+    {
+      "url": "https://cloud.play.jp/streaks/",
+      "status": 200,
+      "retrieved_at_utc": "2026-11-06T22:12:44.138345+00:00",
+      "whole_source_sha256": "185dddaaca3797eb1624ed75588cbe11781e60b848b0c8f648e68403a8a9622f",
+      "excerpt_sha256": "e825c2c345d516d00dd6eed25136b72c98caa859319bfdc9f900129bef65a83a",
+      "finding": "Security capabilities and access-log observability are documented. No key/token/URLvalue was examined or reused; capability is not proof of observed denial reason."
+    }
+  ],
+  "provider_product_capabilities_do_not_identify_BOATCAST_policy": true,
+  "P01002_specific_or_generic_code_mapping": "NOT_ESTABLISHED",
+  "viewer_API_contract_or_billing_issue_proven_as_cause": false,
+  "provider_inquiry": {
+    "url": "https://www.play.jp/contact",
+    "http_status": 200,
+    "category": "「PLAY CLOUD(STREAKS)」サービスに関するお問い合わせ",
+    "reply_notice": "お問い合わせ内容の確認後、担当者よりご連絡させていただきます。",
+    "reply_capable_public_inquiry_entry_identified": true,
+    "dedicated_live_technical_answer_or_authorization_guaranteed": false,
+    "required_as_displayed": [
+      "問い合わせ区分",
+      "会社/所属名",
+      "お名前",
+      "メールアドレス",
+      "電話番号"
+    ],
+    "requiredness_evidence": "Visible 必須 labels reviewed on saved full-page screenshot; DOM native required=false does not mean optional",
+    "privacy_consent_checkbox_displayed": true,
+    "sender_details_supplied": false,
+    "inquiry_submission_authorized_by_user": false,
+    "inputs_entered": 0,
+    "forms_submitted": 0,
+    "non_GET_browser_requests_blocked": 9,
+    "draft_document": "../BOATCAST_OFFICIAL_LIVE_ACCESS_20261107.md",
+    "next_action_requires": "Explicit user instruction to send, sender details, and consent to the form handling of personal information."
+  },
+  "verification": {
+    "new_primary_source_full_and_slice_hash_checks": "PASS",
+    "new_primary_source_quote_count": 3,
+    "provider_form_browser_metadata_and_visual_review": "PASS",
+    "successful_new_live_playback_claimed": false,
+    "application_code_or_tests_changed": false
+  },
+  "private_evidence_sha256": {
+    "extra_cache_forensics": "7011a9cd59c84148706fc825ad931bac174c6c874064ca4df209648606294b0a",
+    "provider_public_spec_research": "33566e04850ca554adf27459248bc405d7d3af759d06ed9804ca89acbeb9f5e0",
+    "provider_primary_source_excerpts": "f8d40ea3f4e4702d3f855338e0978bc1f0987a934f0d9d9ed6e898775467bd52",
+    "public_contact_page_receipt": "486e5b915ec74b15daee3f67448bd89236f98f6154c0317aa1bb1201c4aed52e",
+    "public_contact_html": "af6c2b38e993aead72f0ec743035e794b11438bb205a480308b18d177d1ba16f",
+    "public_contact_browser": "738f06c018822319cd9e08380b09165bdfc079181b0f56d90363f45e5d2d9671",
+    "public_contact_screenshot": "b68b9d1f03854e15d7bb803f015e2aabcd37374f9f0a1717cc83e4627ae4f11d",
+    "read_only_browser_script": "cc53bd3493353bbcc8c96685ede992bb6bf8b69a587df503c91a9c78645d57fe"
+  },
+  "preservation": {
+    "documentation_only_isolated_checkout": true,
+    "original_runtime_checkout_HEAD": "ef818e510c8ceb62d4c147ab8d4db1c3cf252435",
+    "protected_processes_observed_alive": [
+      423218,
+      271439
+    ],
+    "seed_forecast_db_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+    "runtime_source_limit_counter_or_wait_changes": false,
+    "manual_forecast_dispatch_rerun_cancel": false,
+    "new_PR_workflow_forecast_model_family_or_paid_service": false,
+    "main_merge_public_app_deploy_or_production_model_switch": false
+  },
+  "media_or_playback_API_retries_this_investigation": 0,
+  "external_messages_forms_or_contracts_submitted": 0
+}
