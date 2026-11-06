@@ -28,7 +28,10 @@ function validKey(key,mode){
  return key;
 }
 function decode64(value,max){
- need(typeof value==='string'&&value.length<=4*Math.ceil(max/3)&&/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value),'INVALID_BASE64');
+ // Avoid a repeated capture/alternative: valid multi-MiB snapshots otherwise
+ // overflow V8's regexp stack. The canonical round trip below checks padding
+ // position and pad bits as well as the decoded size.
+ need(typeof value==='string'&&value.length<=4*Math.ceil(max/3)&&value.length%4===0&&!/[^A-Za-z0-9+/=]/.test(value),'INVALID_BASE64');
  const out=Buffer.from(value,'base64');
  need(out.length<=max&&out.toString('base64')===value,'INVALID_BASE64');
  return out;
