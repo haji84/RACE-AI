@@ -138,8 +138,10 @@ def _audit(state,root,now):
              (ident,latest[0])).fetchone() is not None,'STATE_LATEST_RESULT_NOT_SCORED')
         need(state.score(ident,json.loads(latest[1]),clock)['reused'] is True,'STATE_SCORE_REPLAY_NOT_IDEMPOTENT');replays+=1
     need(state.inventory()==before,'STATE_READBACK_CHANGED_INVENTORY')
+    from .boat_history_prospective import verify_retained_trials
+    admitted=verify_retained_trials(state,root/'materialized',clock)
     return dict(before,pairs_verified=len(pairs),score_replays=replays,original_bytes_verified=True,
-                accuracy_improvement_proven=False,independent_pre_cutoff_receipt_verified=False)
+                accuracy_improvement_proven=False,independent_pre_cutoff_receipt_verified=False,**admitted)
 
 
 def publish_checkpoint(state_path,repo,output,*,initialize=False,expected_parent=None,key=None,transport=None,now=None):

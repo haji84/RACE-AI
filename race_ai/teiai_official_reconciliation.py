@@ -71,8 +71,9 @@ def official_day(raw, *, day):
     """
     day=date.fromisoformat(day);text=unicodedata.normalize('NFKC',raw.decode('cp932'))
     need('STARTK' in text[:200],'OFFICIAL_K_START_MARKER_REQUIRED')
-    methods={};payouts={};dispositions={};cancelled=[];unpublished=[];unreported=[]
+    methods={};payouts={};dispositions={};cancelled=[];unpublished=[];unreported=[];seen_venues=set()
     for venue,block in _blocks(text,'K'):
+        need(venue in range(1,25) and venue not in seen_venues,'OFFICIAL_K_DUPLICATE_OR_INVALID_VENUE');seen_venues.add(venue)
         headers=list(HEADER.finditer(block))
         if not headers and 'データは、この場の全レース終了後に登録されます。' in block:
             lines=[line.strip() for line in block.splitlines() if line.strip()]

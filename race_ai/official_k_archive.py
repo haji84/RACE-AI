@@ -22,7 +22,7 @@ def parse_archive(raw,*,day):
     need(1<=len(entries)<=4,'OFFICIAL_ARCHIVE_MEMBER_LIMIT')
     total=0;previous=0;documents=[];hashes=[]
     for e in entries:
-        need(e.filename.upper()==name and not any(x in e.filename for x in ('/','\\','..'))
+        need(type(e.filename) is str and e.filename.upper()==name and not any(x in e.filename for x in ('/','\\','..'))
              and not getattr(e,'directory',None),'OFFICIAL_ARCHIVE_MEMBER_NAME_INVALID')
         start=e.header_offset;body=e.file_offset;end=body+e.compress_size
         need(type(start) is int and previous==start and start<body<end<=len(raw), 'OFFICIAL_ARCHIVE_MEMBER_BOUNDS_INVALID')

@@ -28,6 +28,39 @@ def invented_pair(root):
 
 
 class PdcaStateTests(unittest.TestCase):
+    def test_import_unions_originals_without_replacing_existing_heads_and_is_idempotent(self):
+        from race_ai.boat_pdca_state import PdcaState
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);pair,path=invented_pair(root)
+            target=PdcaState.create(root/'target.sqlite',mode='synthetic')
+            source=PdcaState.create(root/'source.sqlite',mode='synthetic')
+            target.retain_pair(path);source.retain_pair(path)
+            with target.db:target._put('shared.json',b'newer current original')
+            with source.db:source._put('shared.json',b'older incoming original');source._put('incoming.json',b'keep')
+            source.score(pair['pair_sha256'],result(pair),'2026-11-06T12:00:00+09:00')
+            target.import_state(source)
+            self.assertEqual(target._get(dict(target.db.execute('SELECT name,sha FROM heads'))['shared.json']),b'newer current original')
+            self.assertEqual(target.inventory()['result_revisions'],1)
+            before=target.inventory();target.import_state(source);self.assertEqual(target.inventory(),before)
+            self.assertTrue(target.score(pair['pair_sha256'],result(pair),'2026-11-06T12:00:00+09:00')['reused'])
+            target.close();source.close()
+
+    def test_import_conflict_rolls_back_and_refuses_mixed_scope(self):
+        from race_ai.boat_pdca_state import PdcaState
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);pair,path=invented_pair(root)
+            a=PdcaState.create(root/'a.sqlite',mode='synthetic');b=PdcaState.create(root/'b.sqlite',mode='synthetic')
+            for s in (a,b):s.retain_pair(path)
+            a.score(pair['pair_sha256'],result(pair),'2026-11-06T12:00:00+09:00')
+            changed=result(pair);changed['data']['payouts'][0]['payout_per_100_yen']=999
+            b.score(pair['pair_sha256'],changed,'2026-11-06T12:00:00+09:00')
+            before=a.inventory()
+            with self.assertRaises(ValueError):a.import_state(b)
+            self.assertEqual(a.inventory(),before)
+            p=PdcaState.create(root/'production.sqlite',mode='production')
+            with self.assertRaises(ValueError):a.import_state(p)
+            a.close();b.close();p.close()
+
     def test_encrypted_restore_preserves_pair_history_and_scores_each_result_revision_once(self):
         from race_ai.boat_pdca_state import PdcaState,restore_state
         with tempfile.TemporaryDirectory() as d:

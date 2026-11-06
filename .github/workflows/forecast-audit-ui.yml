@@ -527,6 +527,10 @@ jobs:
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
         run: python -m scripts.boat_venue_history_handoff readback --input audit/state/boat-venue-history-input.json --out-dir "$RUNNER_TEMP/venue-history-all-period"
+      - name: Restore encrypted venue grid and verify all racer and course cells
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_venue_dataset readback --input audit/state/boat-venue-dataset-input.json --out-dir "$RUNNER_TEMP/venue-history-grid"
 
   video_context_cipher_ingest:
     name: Private video-context ciphertext intake or explicit HOLD

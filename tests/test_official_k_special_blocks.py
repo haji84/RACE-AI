@@ -17,6 +17,11 @@ def packet(*, late=False, extra=''):
 
 
 class OfficialSpecialBlocksTests(unittest.TestCase):
+    def test_duplicate_or_invalid_empty_venue_is_not_silently_ignored(self):
+        for venue in ('01','25'):
+            extra=venue+'KBGN\n2030/01/01\n[払戻金]\n'+'\n'.join(f'{n}R' for n in range(1,13))+'\n'+venue+'KEND'
+            with self.assertRaises(ValueError):official_day(packet(extra=extra),day='2030-01-01')
+
     def test_explicit_blank_twelve_race_payout_table_is_unreported_not_cancelled(self):
         extra='02KBGN\n2030/01/01\n[払戻金]\n'+'\n'.join(f'{n}R   ' for n in range(1,13))+'\n02KEND'
         result=official_day(packet(extra=extra),day='2030-01-01')

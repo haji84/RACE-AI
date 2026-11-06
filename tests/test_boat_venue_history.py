@@ -14,6 +14,15 @@ def archive(venue=17,day='2026-11-04'):
     return uncompressed_lzh(k,'K'+day[2:4]+day[5:7]+day[8:]+'.TXT')
 
 class VenueHistoryTests(unittest.TestCase):
+    def test_unreported_venue_cannot_prove_no_start_but_other_venue_can_be_complete(self):
+        from tests.test_official_k_special_blocks import packet
+        extra='02KBGN\n2030/01/01\n[払戻金]\n'+'\n'.join(f'{n}R' for n in range(1,13))+'\n02KEND'
+        h=VenueHistory(start='2030-01-01',end='2030-01-01',roster=['4999'],clock=lambda:datetime(2030,1,2,tzinfo=timezone.utc))
+        h.add_archive(uncompressed_lzh(packet(extra=extra),'K300101.TXT'),day='2030-01-01',captured_at='2030-01-02T00:00:00Z')
+        self.assertEqual(h.profile('4999','02',as_of='2030-01-02T00:00:00Z')['coverage_status'],'INCOMPLETE_NO_OBSERVATIONS')
+        self.assertEqual(h.profile('4999','01',as_of='2030-01-02T00:00:00Z')['coverage_status'],'COMPLETE_NO_OBSERVATIONS')
+        self.assertFalse(h.summary(as_of='2030-01-02T00:00:00Z')['all_venue_player_history_complete'])
+
     def make(self):return VenueHistory(start='2026-11-04',end='2026-11-05',roster=['4001','4999'],clock=lambda:datetime(2030,1,1,tzinfo=timezone.utc))
     def test_full_grid_no_data_is_unobserved_not_zero_performance(self):
         h=self.make();out=list(h.profiles(as_of=NOW))

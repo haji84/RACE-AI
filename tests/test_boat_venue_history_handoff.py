@@ -48,3 +48,14 @@ class HandoffTests(unittest.TestCase):
         with self.assertRaises(ValueError):readback_collection(p,self.root/'bad',self.root,transport=git)
         record=json.loads((root/'collection.json').read_text());record['state']['heads']={};(root/'collection.json').write_text(json.dumps(record))
         with self.assertRaises(ValueError):publish_collection(root,self.root,transport=git)
+
+    def test_prior_generation_chain_survives_remote_restore_and_resume(self):
+        from scripts.boat_venue_history import capture_month,_store_progress
+        from race_ai.boat_venue_history_handoff import publish_collection,readback_collection,_chain
+        root=self.collection();record=json.loads((root/'collection.json').read_text());old=record['state']['heads']['202611']
+        with patch('scripts.boat_venue_history._http',side_effect=AssertionError('no GET')):
+            report=capture_month(root/'202611/attempt-000002',month='202611',resume=root/old['folder'],reparse_only=True)
+        record['state']['heads']['202611']=dict(old,folder='202611/attempt-000002',generation=2,attempt=2,ciphertext_sha256=report['ciphertext_sha256'])
+        _store_progress(root,record['state']);git=MemoryGit();p=publish_collection(root,self.root,transport=git)
+        out=self.root/'all-generations';readback_collection(p,out,self.root,transport=git)
+        chain=_chain(out,'202611',record['state']['heads']['202611']);self.assertEqual(len(chain),2)
