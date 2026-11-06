@@ -17,9 +17,39 @@ def packet(*, late=False, extra=''):
 
 
 class OfficialSpecialBlocksTests(unittest.TestCase):
+    def test_late_row_adaptation_preserves_original_cp932_name_bytes(self):
+        # NFKC of a standalone half-width voiced mark contains U+3099, which
+        # CP932 cannot encode. Only the late-row transport may be rewritten.
+        raw=packet(late=True).replace(b'TEST', 'ｶﾞﾞ'.encode('cp932'),1)
+        rows=official_day(raw,day='2030-01-01')['rows']
+        self.assertEqual(len(rows),6)
+        self.assertEqual(rows[-1]['st_status'],'L')
+
     def test_daily_date_is_not_invented_as_actual_race_start_time(self):
         rows=official_day(packet(),day='2030-01-01')['rows']
         self.assertTrue(all(row['race_at'] is None for row in rows))
+
+    def test_printed_zero_zero_is_unknown_finish_not_zero_place(self):
+        rows=official_day(packet().replace(b'06 6 4006',b'00 6 4006'),day='2030-01-01')['rows']
+        self.assertIsNone(rows[-1]['finish'])
+        self.assertEqual(rows[-1]['result_code'],'00')
+        self.assertEqual((rows[-1]['course'],rows[-1]['st_status'],rows[-1]['st']),(6,'OK',.12))
+
+    def test_zero_zero_without_course_or_st_does_not_become_confirmed_absence(self):
+        raw=packet().replace(b'06 6 4006 TEST 11 22 6.80 6 0.12 1.50.0',b'00 6 4006 TEST 11 22 6.80 . . .')
+        row=official_day(raw,day='2030-01-01')['rows'][-1]
+        self.assertEqual((row['finish'],row['course'],row['st'],row['st_status'],row['result_code']),(None,None,None,'MISSING','00'))
+
+    def test_zero_zero_with_printed_course_st_and_dot_race_time_preserves_measurements(self):
+        for dots in (b'. .',b'. . .'):
+            raw=packet().replace(b'06 6 4006 TEST 11 22 6.80 6 0.12 1.50.0',b'00 6 4006 TEST 11 22 6.80 6 0.12 '+dots)
+            row=official_day(raw,day='2030-01-01')['rows'][-1]
+            self.assertEqual((row['finish'],row['course'],row['st'],row['st_status']),(None,6,.12,'OK'))
+
+    def test_direct_shared_row_parser_normalizes_zero_zero_finish(self):
+        from race_ai.teiai_official_reconciliation import parse_k_rows
+        row=parse_k_rows(packet().replace(b'06 6 4006',b'00 6 4006'),'2030-01-01')[-1]
+        self.assertIsNone(row['finish'])
 
     def test_four_digit_payout_is_not_misread_as_result_registration(self):
         raw=packet().replace(b'01KEND','単勝 1 1200\n複勝 2 1400\n01KEND'.encode('cp932'))

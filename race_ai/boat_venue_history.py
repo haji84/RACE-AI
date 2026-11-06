@@ -21,7 +21,7 @@ JST=timezone(timedelta(hours=9))
 
 
 def _bucket():
-    return dict(n=0,finishes=[0]*6,dispositions=Counter(),st_n=0,st_sum=0,st_sum2=0,
+    return dict(n=0,finishes=[0]*6,dispositions=Counter(),st_status_counts=Counter(),st_n=0,st_sum=0,st_sum2=0,
                 unknown_course_n=0,inward_n=0,outward_n=0,
                 wins_by_method=Counter(),in1_loss_winner_method_proxy=Counter(),
                 unknown_winner_method_n=0,special_result_n=0)
@@ -31,6 +31,7 @@ def _update(b,row,*,special):
     b['n']+=1;finish=row['finish'];course=row['course'];method=row.get('winner_method')
     if finish in range(1,7):b['finishes'][finish-1]+=1
     else:b['dispositions'][row.get('result_code') or 'UNKNOWN']+=1
+    b['st_status_counts'][row['st_status']]+=1
     if row['st_status']=='OK' and row['st'] is not None:
         value=int(round(row['st']*100));b['st_n']+=1;b['st_sum']+=value;b['st_sum2']+=value*value
     if course is None:b['unknown_course_n']+=1
@@ -52,7 +53,7 @@ def _stats(b):
         finish_counts=f.copy(),wins=f[0],top2=sum(f[:2]),top3=sum(f[:3]),
         win_rate_numeric=f[0]/n if n else None,top2_rate_numeric=sum(f[:2])/n if n else None,
         top3_rate_numeric=sum(f[:3])/n if n else None,dispositions=dict(b['dispositions']),
-        st_n=sn,mean_st=b['st_sum']/(sn*100) if sn else None,
+        st_n=sn,st_status_counts=dict(b['st_status_counts']),mean_st=b['st_sum']/(sn*100) if sn else None,
         st_std_population=math.sqrt(max(0,variance)) if sn else None,
         unknown_course_n=b['unknown_course_n'],entered_inward_observed=b['inward_n'],
         displaced_outward_observed=b['outward_n'],wins_by_method=dict(b['wins_by_method']),

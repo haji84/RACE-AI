@@ -1,7 +1,9 @@
 """Generate through the existing native models; every source here is fictional."""
 from copy import deepcopy
 from datetime import datetime
+from hashlib import sha256
 import importlib
+import json
 from pathlib import Path
 import tempfile
 import unittest
@@ -313,3 +315,121 @@ class ActualSaveBoundaryTests(unittest.TestCase):
                     commit_clock=lambda: datetime.fromisoformat("2030-01-15T12:00:00+09:00"),
                     cutoff_buffer_seconds=210)
             self.assertEqual(journal.originals(), [])
+
+
+class WorkflowStatusRequestTests(unittest.TestCase):
+    def setUp(self):
+        from race_ai import boat_context_store as contexts
+        from tests.test_boat_context_store import context, view, DAY
+        self.contexts = contexts
+        self.context_fixture = context
+        self.day = DAY
+        self.now = datetime.fromisoformat(DAY+'T11:50:00+09:00')
+        self.temp = tempfile.TemporaryDirectory(); self.addCleanup(self.temp.cleanup)
+        self.root = Path(self.temp.name); self.supervisor = self.root/'supervisor'
+        self.supervisor.mkdir(mode=0o700)
+        self.service = service_module.LocalForecastService(self.root,
+            workflow_projection_root=self.supervisor, clock=lambda: self.now)
+        self.service.capabilities = Provider.capabilities
+        self.view = view()
+        self.view['audit'] = {'nested': [{'retain': 'original evidence'}]}
+        row = self.view['records'][0]
+        p1 = deepcopy(row['prediction']); p1.update(stage='P1',model_id='saved-display',
+            generated_at=DAY+'T11:47:00+09:00',persisted_at=DAY+'T11:48:00+09:00')
+        row['comparison_predictions'] = [p1]
+        horse = deepcopy(row); horse.update(sport='horse',race_id='fictional-horse',comparison_predictions=[])
+        self.view['records'].append(horse)
+        contexts.save_context(self.supervisor, context())
+        self.publish()
+
+    def publish(self, revision='a'*64):
+        self.revision = revision
+        base = self.supervisor/'workflow-projection'; folder = base/'days'/self.day/'snapshots'/revision
+        folder.mkdir(mode=0o700,parents=True,exist_ok=True)
+        for directory in (base,base/'days',base/'days'/self.day,base/'days'/self.day/'snapshots'):
+            directory.chmod(0o700)
+        pointer = dict(day_jst=self.day,revision=revision)
+        values = dict(view=self.view,status=dict(day_jst=self.day,revision=revision),manifest={})
+        for name,value in values.items():
+            raw=json.dumps(value).encode(); path=folder/(name+'.json'); path.write_bytes(raw); path.chmod(0o600)
+            pointer[name+'_sha256']=sha256(raw).hexdigest()
+        for path in (base/'current.json',base/'days'/self.day/'current.json'):
+            path.write_text(json.dumps(pointer)); path.chmod(0o600)
+        self.snapshot_folder=folder
+
+    def test_status_reads_one_fresh_snapshot_and_one_context_pass_for_all_sports(self):
+        from race_ai import workflow_live_projection as projection
+        merged=self.contexts.merge_contexts(self.contexts.read_contexts(self.root,day=self.day),
+            self.contexts.read_contexts(self.supervisor,day=self.day))
+        context_revision=self.contexts.attach_contexts(deepcopy(self.view),merged)
+        with patch.object(projection,'read_projection',wraps=projection.read_projection) as read, \
+             patch.object(self.contexts,'read_contexts',wraps=self.contexts.read_contexts) as contexts, \
+             patch.object(self.contexts,'merge_contexts',wraps=self.contexts.merge_contexts) as merge, \
+             patch.object(self.contexts,'attach_contexts',wraps=self.contexts.attach_contexts) as attach, \
+             patch.object(native,'run_suite',side_effect=AssertionError('status inferred')):
+            status=self.service.status()
+        self.assertEqual(read.call_count,1)
+        self.assertEqual(contexts.call_count,2)
+        self.assertEqual(merge.call_count,1); self.assertEqual(attach.call_count,1)
+        self.assertEqual(status['saved_prediction_count'],3)
+        for stage in ('P0','P1'):
+            self.assertEqual(status['latest_revisions']['boat'][stage],native.digest(dict(
+                source=self.revision,sport='boat',stage=stage,boat_observation_context=context_revision)))
+        self.assertEqual(status['latest_revisions']['horse']['P0'],native.digest(dict(
+            source=self.revision,sport='horse',stage='P0')))
+        self.assertIsNone(status['latest_revisions']['horse']['P1'])
+        self.assertEqual(status['delivery']['boat']['P1']['saved_at'],self.day+'T11:48:00+09:00')
+        self.assertEqual(status['delivery']['boat']['P1']['window_status'],'ON_TIME')
+
+    def test_external_latest_owns_nested_data_and_new_requests_revalidate_updates_and_tampering(self):
+        first=self.service.latest('boat','P0')
+        row=first['view']['records'][0]
+        row['prediction']['ordered_top8'][0][0]=6
+        row['participants'][0]['registration_no']='9999'
+        row['boat_observation_context']['beforeinfo']['participants'][0]['body_weight_kg']=999
+        first['view']['audit']['nested'].clear()
+        again=self.service.latest('boat','P0')
+        self.assertEqual(again['view']['records'][0]['prediction']['ordered_top8'],[[1,2,3]])
+        self.assertEqual(again['view']['records'][0]['boat_observation_context']['beforeinfo']['participants'][0]['body_weight_kg'],52)
+        self.assertEqual(again['view']['audit'],self.view['audit'])
+        previous=self.service.status()
+        newer=self.context_fixture(self.day+'T11:49:00+09:00')
+        newer['beforeinfo']['participants'][0]['body_weight_kg']=53
+        self.contexts.save_context(self.supervisor,newer)
+        self.publish('b'*64)
+        updated=self.service.status()
+        self.assertNotEqual(previous['latest_revisions']['boat']['P0'],updated['latest_revisions']['boat']['P0'])
+        self.assertEqual(self.service.latest('boat','P0')['view']['records'][0]['boat_observation_context']['beforeinfo']['participants'][0]['body_weight_kg'],53)
+        (self.snapshot_folder/'view.json').write_text('{}')
+        rejected=self.service.latest('boat','P0')
+        self.assertFalse(rejected['available']); self.assertEqual(rejected['reason'],'SAVED_WORKFLOW_VIEW_PENDING')
+        self.assertEqual(self.service.status()['saved_prediction_count'],0)
+
+    def test_external_horse_or_empty_stage_does_not_process_unrelated_boat_context(self):
+        boat=self.view['records'][0]
+        boat['prediction']=boat['comparison_predictions'][0]
+        boat['comparison_predictions']=[]
+        self.publish('d'*64)
+        with patch.object(self.contexts,'merge_contexts',side_effect=AssertionError('irrelevant boat context')):
+            self.assertTrue(self.service.latest('horse','P0')['available'])
+            self.assertFalse(self.service.latest('boat','P0')['available'])
+
+    def test_context_matching_empty_stage_and_request_day_stay_consistent(self):
+        self.view['records'][0]['participants'][0]['registration_no']='9999'
+        self.view['records'][0]['comparison_predictions']=[]
+        self.publish('c'*64)
+        latest=self.service.latest('boat','P0')
+        self.assertNotIn('boat_observation_context',latest['view']['records'][0])
+        self.assertEqual(latest['revision'],native.digest(dict(source=self.revision,sport='boat',stage='P0')))
+        empty=self.service.latest('boat','P1')
+        self.assertIsNone(empty['revision']);self.assertIsNone(empty['view'])
+        before=datetime.fromisoformat(self.day+'T23:59:59+09:00')
+        after=datetime.fromisoformat('2030-04-02T00:00:00+09:00')
+        calls=[before]
+        self.service.clock=lambda:calls.pop() if calls else after
+        status=self.service.status()
+        self.assertEqual(status['day_jst'],self.day)
+        self.assertEqual(status['saved_prediction_count'],2)
+        following=self.service.status()
+        self.assertEqual(following['day_jst'],'2030-04-02')
+        self.assertEqual(following['saved_prediction_count'],0)

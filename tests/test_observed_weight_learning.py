@@ -116,14 +116,14 @@ class LearningTests(unittest.TestCase):
         self.assertNotIn('learning_snapshot',rows[0])
 
 class ContinuityAndCoverage(unittest.TestCase):
-    def test_current_session_does_not_stop_before_hourly_trigger(self):
+    def test_current_session_stays_bounded_independent_of_hourly_trigger(self):
         from race_ai import repeated_cycle as r
         with tempfile.TemporaryDirectory() as temp:
             start=datetime(2030,4,1,3,57,tzinfo=timezone.utc)
             s=r.start(Path(temp)/'s.json',day='2030-04-01',run_id=99,now=start)
-            self.assertIsNone(s['stop_at'])
-            self.assertIsNone(s['max_rounds'])
-            self.assertIsNone(r.SOURCE_LIMIT)
+            self.assertEqual(r.instant(s['stop_at'])-start,timedelta(minutes=65))
+            self.assertEqual(s['max_rounds'],24)
+            self.assertEqual(r.SOURCE_LIMIT,240)
     def test_ended_races_with_missing_models_are_counted(self):
         self.assertIsNotNone(learning,'coverage implementation missing')
         rows,obs=dataset(2)

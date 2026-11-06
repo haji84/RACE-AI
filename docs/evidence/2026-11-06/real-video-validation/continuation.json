@@ -1,6 +1,6 @@
 {
   "schema_version": "RACE_AI_REAL_VIDEO_COMPLETION_CONTINUATION_V1",
-  "checked_at": "2026-11-06T04:38:00+00:00",
+  "checked_at": "2026-11-06T05:15:16.600890+00:00",
   "scope": "IMPLEMENTATION_AND_ACTUAL_ARCHIVAL_TESTS_NOT_OPERATIONAL_ACCEPTANCE",
   "local_integration_base_head": "63c0a50bc685f630581d941d18ac2917faf8bc65",
   "source_code_sha256": {
@@ -741,7 +741,22 @@
       "web/app.js": "71432a14763db3aa81a7113a7ac10d9ab6de3323f16c4878ee7b768a64ef35fc",
       ".github/workflows/forecast-audit-ui.yml": "b868b24a154afebf0056a627878bcffea9b0529b2cd5e5d9db71627596aa8527"
     },
-    "followup_existing_ci": "PENDING_THIS_FINAL_CODE_AND_RECORD_UPDATE; PRIOR_CI_RUNS_RETAIN_EXACT_HISTORICAL_STATUS",
+    "followup_existing_ci": {
+      "run_id": 42164381973,
+      "head_sha": "8075675482a80599795a4e5150c734777056a18b",
+      "status": "completed",
+      "conclusion": "success",
+      "checked_at": "2026-11-06T04:52:15.147583+00:00",
+      "private_receipt_sha256": "212421d8f3006ff0feae019371872c8020bcae6bf5c99ff54a9ce40330406bf2",
+      "jobs_success": 11,
+      "jobs_explicitly_skipped": 2,
+      "skipped_jobs": [
+        "Private video-context ciphertext intake or explicit HOLD",
+        "BOAT independent runner restores transferred production originals"
+      ],
+      "latest_merged_head_ci": "PENDING_SEPARATE_VERIFICATION",
+      "prior_exact_ci_receipts_preserved": true
+    },
     "followup_task_source_sha256_scope": "HISTORICAL_SOURCE_CONTENT_TESTED_WITH_1806_NATIVE_BEFORE_LATER_26_FILE_MERGE; RETAINED_NOT_RELABELED_AS_LATEST",
     "latest_concurrent_source_regression": {
       "tests": 113,
@@ -764,55 +779,451 @@
         "tests.test_teiai_history"
       ],
       "full_latest_head_suite": false
+    },
+    "authorization_reconnection": {
+      "commit": "8075675482a80599795a4e5150c734777056a18b",
+      "scope": "EXPLICIT_TRUSTED_LOCAL_CLI_SAME_CONFIGURED_GITHUB_CONNECTION_EXACT_401_CHECKPOINT_ONLY",
+      "same_repo_workflow_branch_and_authenticated_final_checkpoint_required": true,
+      "no_http_self_authorization_endpoint": true,
+      "source_403_429_waits_integrity_and_unknown_transaction_intents_preserved": true,
+      "mutex_private_flock_file_inode_digest_clock_and_save_failure_guards": true,
+      "prior_401_checkpoint_digest_and_verified_source_control_hash_preserved": true,
+      "reconnect_method_dispatches_or_mutates_github": false,
+      "unit_and_boundary": {
+        "tests": 40,
+        "passed": 40,
+        "skipped": 0,
+        "seconds": 2.077,
+        "log_sha256": "9475c22f5bff405254ecded9ad789ffd14a1921066df27b1a232f185c00e137c"
+      },
+      "integrated": {
+        "tests": 125,
+        "passed": 125,
+        "skipped": 0,
+        "seconds": 9.218,
+        "log_sha256": "a0abef0342407c23f2eaaf4af8aabb2c8095814d34dcbd2c456a9f493bf70886"
+      },
+      "cli": {
+        "tests": 19,
+        "passed": 19,
+        "skipped": 0,
+        "seconds": 5.436,
+        "added_tests": 3,
+        "log_sha256": "8664cbf551fe9853dbf8e703716169215da92f6101ef9b807ca20484a33a1f8a"
+      },
+      "independent_review": {
+        "verdict": "GREEN_NO_SCOPED_P1_P2",
+        "sha256": "df3ce9381bf3cfe888c8e51f7b1e091da2e839c46d6b31eb26211af0a299ed54",
+        "reviewer_did_not_observe_live_activation": true
+      },
+      "source_sha256": {
+        "race_ai/github_continuous_supervisor.py": "6026b91819df709b694fc1db14f317bc9335c03c8ed9b8b66918a1e425d45e1d",
+        "race_ai/local_forecast_server.py": "546f3abd45fb970213f5d27a0794e2d41370a8ed4dbfa8a0e5bb30b6c1c1d7e0",
+        "tests/test_github_continuous_supervisor.py": "158b519ae992fb378b73d9822a159deaca818deab60f5a44376e341250020930",
+        "tests/test_local_forecast_server.py": "c8df03cb3b2ee40ab3877c9b412556fcd0f2902e98fa551d3c7cf02cd2223226"
+      }
+    },
+    "latest_incoming_saved_pages_regression": {
+      "tests": 15,
+      "passed": 15,
+      "skipped": 0,
+      "seconds": 3.454,
+      "log_sha256": "4dd90408ac1ebcef0a69eb83f2bdaf05d0bd8c01365952b59596dd849421a87d",
+      "scope": "INCOMING_SAVED_PAGES_AND_VENUE_SOFTWARE_CONTRACTS"
+    },
+    "latest_saved_pages_browser": {
+      "status": "PASS",
+      "actual_webcrypto": true,
+      "pages": 7,
+      "checks": [
+        "RELOAD_AND_LINKS",
+        "FOUR_SAVED_VARIANTS",
+        "PAST_DAY",
+        "NO_KEY_REQUEST_OR_STORAGE",
+        "TAMPER_WRONG_MISSING_KEY_REFUSED"
+      ],
+      "log_sha256": "26cd21131de9c6a3ce2f51888da702056798dee741ee7f04f7e3cf005597d2a1",
+      "scope": "SOFTWARE_CONTRACT_NOT_SAFARI_OR_FIELD_ACCURACY"
+    },
+    "latest_full_native_after_auth_recovery": {
+      "status": "OK",
+      "tests": 1848,
+      "passed": 1848,
+      "skipped": 0,
+      "seconds": 442.671,
+      "process_exit_code": 0,
+      "source_head": "8075675482a80599795a4e5150c734777056a18b",
+      "log_sha256": "c12c04dbebe8f6dfb5dc86ee25c1f5669a977b863f05395a471126ddbf508da7",
+      "scope": "8075675_AUTH_RECONNECT_CODE_WITH_FINAL_SUPERVISOR_SHA6026; DOES_NOT_INCLUDE_LATER_OFFICIAL_K_NONE_TIME_REPAIR_MERGED_WHILE_SUITE_RUNNING",
+      "full_latest_merged_head_suite": false
+    },
+    "final_incoming_official_k_regression": {
+      "tests": 20,
+      "passed": 20,
+      "skipped": 0,
+      "seconds": 1.651,
+      "status": "OK",
+      "log_sha256": "abe4136ecf0c24f78000de9fefce630f6957b2d0872f71c52fd882809335908f",
+      "scope": "POST_8075675_OFFICIAL_K_SPECIAL_BLOCK_AND_ARCHIVE_CONSENSUS_NONE_RACE_AT_REPAIR_MERGED_IN_0C86DB4",
+      "first_command_nonexistent_module_import_error_corrected_without_implementation_change": true
+    },
+    "local_status_request_scoped_fix": {
+      "source_sha256": "c07e5e37523464aa69053c0052a908adb867ec4848077ac351d7453502b6851d",
+      "test_sha256": "efdeab74f48bb968e3d86ac04aaab332631ea538f65ec43460692a02b4ffa03a",
+      "status": "REVIEWED_APPLIED_LOCAL_TARGETED_TESTS_ACTUAL_READONLY_UI_AND_EXACT_CODE_CI_PASSED",
+      "one_fresh_integrity_and_context_preparation_per_request": true,
+      "cross_request_cache": false,
+      "next_request_updated_or_tampered_data_checked": true,
+      "tests": 62,
+      "passed": 62,
+      "skipped": 0,
+      "seconds": 40.581,
+      "log_sha256": "aa6e51cad46abee6b11978e7e8014e942b7b6dbdf9490828fed11f7c6c27ee88",
+      "private_report_sha256": "b9df392f363fe94fb2f12474afb09461a34be581bdd618a70214951d5cd5c5c6",
+      "private_seal_sha256": "87e221ac34d835ff8a22100cba3989dc1578ee38213b1e6740fc5bd1152f17ea",
+      "identical_input_after_profile_executed": false,
+      "after_profile_reason": "CANONICAL_INPUT_ADVANCED_AND_CONTEXT_COUNT_CHANGED_82_TO_89_DURING_AUTOMATION",
+      "speed_ratio_or_deployed_latency_improvement_claimed": false,
+      "live_ui_response_verified": true,
+      "independent_review": {
+        "verdict": "GREEN_NO_SCOPED_P1_P2",
+        "sha256": "989ec7fcd5f966d1a50afb0f32f26d9a4d866d576981ae0cf46aa95bec79fc11",
+        "independent_tests": 4,
+        "passed": 4,
+        "skipped": 0,
+        "seconds": 0.155,
+        "scope": "CODE_AND_CONTROLLED_REGRESSION_NOT_LIVE_LATENCY"
+      },
+      "existing_pr_commit": "63ecc928ed89e87901e4ccaa5184b30518f9c895",
+      "final_ci": "SUCCESS_EXACT_REQUEST_SCOPED_VIEW_CODE_HEAD_63ECC92",
+      "runtime_applied_at": "2026-11-06T05:08:14+00:00",
+      "runtime_health": {
+        "observed_at": "2026-11-06T05:08:53.147696+00:00",
+        "response_status": 200,
+        "elapsed_seconds": 6.749750457005575,
+        "private_receipt_sha256": "7ed3576c8e90a7e5f8fd60779a40f0ab268cbb6aaa0d486a54172629cf44fa63",
+        "single_observation_not_before_after_speed_ratio_or_sla": true
+      },
+      "readonly_390_1440_browser_acceptance": {
+        "result": "PASS",
+        "browser": "Chromium",
+        "started_at": "2026-11-06T05:09:21.720528+00:00",
+        "finished_at": "2026-11-06T05:10:11.968197+00:00",
+        "scope": "ACTUAL_PRIVATE_SAVED_FORECASTS_READONLY_UI_ORIGINAL_CONSISTENCY_NOT_SAFARI_REFERENCE8_OR_FIELD_ACCURACY",
+        "widths": [
+          390,
+          1440
+        ],
+        "per_width_stage_counts": {
+          "P0": {
+            "races": 156,
+            "saved_predictions": 312
+          },
+          "P1": {
+            "races": 156,
+            "saved_predictions": 288
+          }
+        },
+        "saved_prediction_count": 600,
+        "displayed_model_options_verified": 18,
+        "per_width_model_options": {
+          "P0": 2,
+          "P1": 7
+        },
+        "ordered_top8_and_all_prediction_sha_match_api": true,
+        "repeated_stage_get_response_bytes_unchanged": true,
+        "get_requests": 24,
+        "post_requests": 0,
+        "unsafe_requests": 0,
+        "external_requests": 0,
+        "source_requests": 0,
+        "generation_requests": 0,
+        "page_errors": 0,
+        "horizontal_overflow": 0,
+        "private_screenshots": 18,
+        "status_http_codes": [
+          200,
+          200
+        ],
+        "observed_status_seconds": [
+          2.3922,
+          2.8486
+        ],
+        "single_observations_not_speed_ratio_or_sla": true,
+        "root_visual_spot_checks": [
+          "390-P1-model-detail",
+          "1440-home"
+        ],
+        "safari_tested": false,
+        "original_eight_reference_comparison": false,
+        "field_accuracy_tested": false,
+        "private_report_sha256": "9faba57edab169f6031e1685125eddfa1e9ba9c0f05969c0017f1a53d4e3e33d",
+        "private_attempt2_json_sha256": "b3e0ce1c117771c5bd3dfaac33f008fda967ae81472ec8f0ce5807d8d6f4ec78",
+        "first_attempt_harness_csp_eval_issue_corrected_without_weakening_app_csp": true
+      },
+      "existing_ci_receipt": {
+        "checked_at": "2026-11-06T05:25:49.624789+00:00",
+        "scope": "EXISTING_PR71_REQUEST_SCOPED_VIEW_FIX",
+        "runs": [
+          {
+            "id": 42167380144,
+            "workflow_id": 392270247,
+            "head_sha": "63ecc928ed89e87901e4ccaa5184b30518f9c895",
+            "head_branch": "feat/four-sport-forecast-audit-view-20261022",
+            "event": "pull_request",
+            "status": "completed",
+            "conclusion": "success",
+            "created_at": "2026-11-06T05:15:50Z",
+            "updated_at": "2026-11-06T05:22:56Z",
+            "html_url": "https://github.com/haji84/RACE-AI/actions/runs/42167380144"
+          },
+          {
+            "id": 42167380137,
+            "workflow_id": 405150548,
+            "head_sha": "63ecc928ed89e87901e4ccaa5184b30518f9c895",
+            "head_branch": "feat/four-sport-forecast-audit-view-20261022",
+            "event": "pull_request",
+            "status": "completed",
+            "conclusion": "success",
+            "created_at": "2026-11-06T05:15:50Z",
+            "updated_at": "2026-11-06T05:16:14Z",
+            "html_url": "https://github.com/haji84/RACE-AI/actions/runs/42167380137"
+          }
+        ],
+        "private_actual_ui_report_sha256": "9faba57edab169f6031e1685125eddfa1e9ba9c0f05969c0017f1a53d4e3e33d",
+        "field_identification_strength_video_forward_acceptance": "NOT_ESTABLISHED",
+        "new_forecast_independent_receipt_sha256": "8e0cf4c01f63b5d9743afc42039241d59f9d32d0d5782466c75127cc56444f83",
+        "private_receipt_sha256": "4019ac16f329d0d75f02bee53b5f389d5bb0db45b32f9bbb9f40291dd49ac6ca",
+        "ci_log_sha256": "218d889aa3ee4e2d59a257fe955d217a64112cb24f777e9de5673284a0cf9377",
+        "general_python": {
+          "tests": 1853,
+          "skipped": 140,
+          "seconds": 200.126,
+          "status": "OK"
+        },
+        "isolated_video_python": {
+          "tests": 251,
+          "skipped": 0,
+          "seconds": 23.659,
+          "status": "OK"
+        },
+        "ci_is_not_field_acceptance": true,
+        "following_record_only_commit_checks": "SEPARATE_GITHUB_CHECKS_NOT_YET_STARTED_AT_THIS_RECORD_TIME"
+      }
+    },
+    "licensed_additional_catalog_check": {
+      "checked_at": "2026-11-06T05:22:29.587654+00:00",
+      "provider": "WIKIMEDIA_COMMONS",
+      "latest_http_status": 403,
+      "latest_response_at": "2026-11-06T05:20:46+00:00",
+      "state": "ALL_COMMONS_REQUESTS_STOPPED",
+      "new_requests": 1,
+      "new_media_downloads": 0,
+      "new_frames": 0,
+      "model_calls": 0,
+      "previous_429_cooldown_headers_not_confirmed_before_new_request": true,
+      "decision_error_recorded": true,
+      "cached_successful_queries": 10,
+      "cached_distinct_file_pages": 65,
+      "unfetched_continuations": 2,
+      "other_usable_licensed_clip_identified_in_cached_coverage": false,
+      "global_no_other_licensed_video_claim": false,
+      "private_receipt_sha256": "720dd64e6efe2e0771f5c08e834bbbb1e21b5fa82f2b248894e3ec7c88a3edab",
+      "runtime_network_policy": {
+        "mode": "unrestricted",
+        "state": "enforced",
+        "observations_current": true,
+        "configuration_changed_or_published": false
+      },
+      "http_403_cause": "NOT_ESTABLISHED_NOT_ASSUMED_TO_BE_ENVIRONMENT_ALLOWLIST"
     }
   },
   "continuity": {
-    "observed_at": "2026-11-06T04:19:56+00:00",
-    "scope": "LOCAL_API_STATUS_ONLY_NOT_INDEPENDENT_PRE_CUTOFF_SAVE_PROOF",
-    "saved_model_forecasts": 509,
-    "races": 156,
-    "p0_forecasts": 312,
-    "p1_forecasts": 197,
-    "result_observations": 70,
-    "result_races": 30,
-    "state": "SOURCE_WAIT",
+    "scope": "LOCAL_RUNNING_HEALTH_AND_ACTUAL_READONLY_UI_600_OBSERVATION_PLUS_SEPARATE_AUTHENTICATED_ONE_RACE_FIVE_MODEL_PRE_CUTOFF_SAVE_PROOF",
+    "observed_at": "2026-11-06T05:06:06+00:00",
+    "state": "RUNNING",
     "continuous": true,
-    "continuous_means_configuration_not_active_run": true,
-    "recorded_active_run_id": 42148186039,
-    "recorded_run_actual_status": "completed",
-    "recorded_run_actual_conclusion": "success",
-    "recorded_run_completed_at": "2026-11-06T02:57:26Z",
-    "recorded_run_head_sha": "8494b85923e10d57f9c6f23a28f3aa38bfc33797",
-    "subsequent_active_or_queued_runs_observed_at_0421_utc": 0,
-    "checkpoint_last_observed_at": "2026-11-06T02:39:32.683246+00:00",
-    "checkpoint_sha256": "5f2df7227e59934f410d189be1a60af643791acaa57213b32785821b28adb108",
-    "workflow_api_wait": {
-      "http_status": 401,
-      "state": "AUTHORIZATION_WAIT",
-      "reason": "SOURCE_AUTHORIZATION_REQUIRED",
-      "retry_at": null
+    "initial_local_api_state_after_restart": "NOT_STARTED",
+    "initial_state_means": "FETCHING_VERIFIED_FINAL_ORIGINALS_NOT_PROOF_OF_ACTIVE_SUCCESSOR",
+    "last_saved_forecast_observation": {
+      "observed_at": "2026-11-06T04:19:56+00:00",
+      "saved_model_forecasts": 509,
+      "races": 156,
+      "p0_forecasts": 312,
+      "p1_forecasts": 197,
+      "result_observations": 70,
+      "result_races": 30,
+      "scope": "HISTORICAL_LOCAL_API_ONLY_NOT_LATEST_OR_INDEPENDENT_SAVE_CLOCK_PROOF"
     },
-    "official_github_cli_auth_status": {
-      "checked_at": "2026-11-06T04:38:00+00:00",
-      "exit_code": 0,
-      "logged_in_reported": true,
-      "invalid_token_reported": false,
-      "same_configured_auth_context": true,
-      "private_log_sha256": "ecb08b31ffe6489d11874cad4300698163412a0a1720df2b71bc1d362ed7b74e",
-      "does_not_establish_old_401_cause_or_resume": true
+    "verified_final_run_counters": {
+      "run_id": 42148186039,
+      "requests_used": 427,
+      "lifetime_requests": 3547,
+      "lifetime_completed_rounds": 287,
+      "scope": "AUTHENTICATED_COMPLETED_RUN_NOT_NEW_SAVE_OR_SUCCESSOR_PROOF"
     },
-    "recovery_status": "TRUSTED_RECOVERY_PREPARATION_PENDING_NOT_EXECUTED",
-    "checkpoint_wait_reset": false,
+    "preflight": {
+      "checked_at": "2026-11-06T04:45:56.333327+00:00",
+      "checkpoint_unchanged": true,
+      "active_run_ids": [],
+      "verification": "GH_AUTH_STATUS_AND_AUTHENTICATED_WORKFLOW_READS",
+      "repo": "haji84/RACE-AI",
+      "workflow_id": 405276784,
+      "run_id": 42148186039,
+      "source_control_sha256": "08d8c13c8a554c0d5182138201a249ff1a2fa866646d85cecaa56a8ab3699b22",
+      "private_receipt_sha256": "a33b9a1aef3748a54e78b3c9e68cd1cd6cd30cb4619ac91625f90ad3a41173ad"
+    },
+    "original_checkpoint_backup_sha256": "5f2df7227e59934f410d189be1a60af643791acaa57213b32785821b28adb108",
+    "reconnection": {
+      "applied_at": "2026-11-06T04:46:41.072582+00:00",
+      "recovery_count": 1,
+      "previous_api_wait": {
+        "http_status": 401,
+        "state": "AUTHORIZATION_WAIT",
+        "reason": "SOURCE_AUTHORIZATION_REQUIRED",
+        "retry_at": null
+      },
+      "api_wait_after_reconnect": null,
+      "recovery_only_checkpoint_sha256": "321c1d534288dc0aff596e2a0dae0d1139b4dbda101a718c0c0147172e6a399b",
+      "reconstructed_from_original_with_only_api_wait_and_receipt_addition_matches": true,
+      "subsequent_normal_tick_state_updates_are_separate": true
+    },
+    "monitor_transition": {
+      "graceful_local_monitor_close_at": "2026-11-06T05:08:14+00:00",
+      "previous_pid": 400731,
+      "current_pid": 406374,
+      "purpose": "APPLY_REVIEWED_REQUEST_SCOPED_STATUS_FIX_WITHOUT_STOPPING_REMOTE_FORECAST_WORKER",
+      "same_private_root_loopback_port_and_auth_context": true,
+      "loopback_port": 8765,
+      "intake_pid": 271439,
+      "intake_restarted": false,
+      "active_forecast_worker_run_id": 42164651846,
+      "active_forecast_worker_remained_in_progress": true,
+      "active_forecast_worker_cancelled": false,
+      "checkpoint_after_close_backup_sha256": "1863a475d4dea2d9b428f0ec4c4a1c2abb9716c9c232cd27ab577f88a5cd8c8e",
+      "checkpoint_state_signature_valid": true,
+      "checkpoint_active_run_id": 42164651846,
+      "stale_401_reconnect_flag_reapplied": false,
+      "api_wait_history_or_intent_reset": false
+    },
+    "original_database_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
     "direct_checkpoint_or_lock_tampering": false,
     "alternate_identity_or_route_used": false,
-    "diagnosis_sha256": "e87a9cb8268f6cf4d1b4eac400fa31c5b4530a0c3dbcd8a60b6fd25c28ecd378",
-    "original_database_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
-    "protected_pids": [
-      157669,
-      271439
+    "manual_workflow_dispatch_trigger_rerun_cancel": false,
+    "normal_existing_monitor_handoff_may_follow_after_all_unchanged_checks": true,
+    "successor_run_id": 42164651846,
+    "state_source": "LOCAL_STATUS_HEALTH_AND_AUTHENTICATED_GITHUB_RUN_METADATA",
+    "successor_run": {
+      "workflow_id": 405276784,
+      "id": 42164651846,
+      "created_at": "2026-11-06T04:48:20Z",
+      "status": "in_progress",
+      "head_sha": "70514b3076614ea94b10e6595a9df9f5e858b320",
+      "reconnect_commit_is_ancestor": true,
+      "origin": "NORMAL_EXISTING_SUPERVISOR_HANDOFF_NOT_MANUAL_DISPATCH",
+      "new_forecast_saves_verified": true,
+      "all_races_pre_cutoff_coverage_certified": false
+    },
+    "local_api_status_response": "HTTP200_ONE_OBSERVATION_6_749750457_SECONDS",
+    "checkpoint_adopted_successor_run_id": 42164651846,
+    "checkpoint_workflow_api_wait_after_adoption": null,
+    "independent_new_forecast_save_proof": {
+      "workflow_id": 405276784,
+      "run_id": 42164651846,
+      "cycle": 3,
+      "p1_artifact_id": 13479011897,
+      "p1_artifact_created_at": "2026-11-06T04:59:07Z",
+      "result_artifact_id": 13478907182,
+      "result_artifact_created_at": "2026-11-06T04:59:16Z",
+      "new_unique_races": 1,
+      "new_regular_existing_model_p1_forecasts": 5,
+      "new_learned_shadow_forecasts": 2,
+      "github_server_creation_seconds_before_cutoff": 893,
+      "preferred_15_to_10_minute_window_satisfied": true,
+      "current_five_official_results": "PENDING_NOT_INCLUDED_AS_NEW_COMPLETED_PAIR_RESULTS",
+      "both_artifact_api_digest_equals_actual_bytes_sha256": true,
+      "all_zip_crc_valid": true,
+      "p1_bytes_identical_to_embedded_original_in_result_zip": true,
+      "initial_p0_artifact_sha256": "6f900ac94d433aa11bf5b73a70ae68cd6ecf8849000fbb0726b3abd7769e82fc",
+      "all_312_initial_prediction_sha_and_top8_retained": true,
+      "new_forecasts_use_video_features": false,
+      "all_races_pre_cutoff_coverage_certified": false,
+      "sanitized_private_receipt_sha256": "8e0cf4c01f63b5d9743afc42039241d59f9d32d0d5782466c75127cc56444f83",
+      "private_manifest_sha256": "d9a8ed3f90de89de99abf0bd92449c2f9a4cc1121106d616f17b7981a632ccc1",
+      "independent_checked_at": "2026-11-06T05:04:59.253219+00:00",
+      "p1_zip_sha256": "fba27c52a19a8e3d0ca8c934fc7d7326fcb039922e18b27a1440f60466d3909d",
+      "p1_json_sha256": "42bcd4c2d2efb2f484111c8031b353b7f9b7baf182d95f50d6e96de2221bb2c8",
+      "result_zip_sha256": "a8c0ff445660c3170a4b94ff0a4afc50c9e2844757c206512c74dd20af048bdd",
+      "original_p0_json_sha256": "e9ef52b153f8648aedec59fb3233d2405528e862858b211b754801d409ce0860"
+    },
+    "verified_result_artifact_totals": {
+      "artifact_id": 13478907182,
+      "created_at": "2026-11-06T04:59:16Z",
+      "regular_forecasts": 527,
+      "regular_scored": 307,
+      "regular_unscored": 220,
+      "learned_shadow_forecasts": 52,
+      "combined_forecasts": 579,
+      "scope": "THIS_AUTHENTICATED_ARTIFACT_ONLY_NOT_YET_FRESH_UI_STATUS",
+      "normal_feature_paired_model_rows": 44,
+      "normal_feature_paired_distinct_races": 22,
+      "baseline_hits": 15,
+      "learned_candidate_hits": 15,
+      "improvement_proven": false,
+      "video_feature_pairs": 0,
+      "current_five_pending_predictions_not_reported_as_completed_pairs": true,
+      "p0_forecasts": 312,
+      "p1_forecasts": 215,
+      "learned_shadow_distinct_races": 26,
+      "normal_feature_unpaired_learned_forecasts": 8
+    },
+    "historical_monitor_transitions": [
+      {
+        "graceful_idle_monitor_close_at": "2026-11-06T04:46:32+00:00",
+        "previous_pid": 157669,
+        "current_pid": 400731,
+        "same_private_root_loopback_port_and_auth_context": true,
+        "loopback_port": 8765,
+        "intake_pid": 271439,
+        "intake_restarted": false,
+        "active_forecast_worker_cancelled": false
+      }
     ],
-    "restarted": false,
-    "forecast_workflow_trigger_rerun_cancel_by_this_work": false
+    "latest_local_health_observation": {
+      "observed_at": "2026-11-06T05:08:53.147696+00:00",
+      "response_status": 200,
+      "automatic_state": "RUNNING",
+      "continuous": true,
+      "active_run_id": 42164651846,
+      "source_limit": null,
+      "max_rounds": null,
+      "stop_at": null,
+      "workflow_api_wait": null,
+      "counter_scope": "ACTIVE_RUN_UNVERIFIED",
+      "requests_used": null,
+      "lifetime_requests": null,
+      "lifetime_completed_rounds": null,
+      "saved_prediction_count": 600,
+      "scope": "LOCAL_ONLY_NOT_INDEPENDENT_600_PRE_CUTOFF_SAVE_CERTIFICATION",
+      "private_receipt_sha256": "7ed3576c8e90a7e5f8fd60779a40f0ab268cbb6aaa0d486a54172629cf44fa63"
+    },
+    "latest_local_ui_observation": {
+      "started_at": "2026-11-06T05:09:21.720528+00:00",
+      "finished_at": "2026-11-06T05:10:11.968197+00:00",
+      "browser": "Chromium",
+      "widths": [
+        390,
+        1440
+      ],
+      "saved_prediction_count": 600,
+      "p0_display_count": 312,
+      "p1_display_count": 288,
+      "automatic_state": "RUNNING",
+      "continuous": true,
+      "scope": "READONLY_UI_API_ORIGINAL_CONSISTENCY_NOT_INDEPENDENT_PRE_CUTOFF_TIME_PROOF_FOR_ALL_600",
+      "independent_artifact_527_regular_plus_52_shadow_is_separate_prior_time": true,
+      "private_attempt2_json_sha256": "b3e0ce1c117771c5bd3dfaac33f008fda967ae81472ec8f0ce5807d8d6f4ec78"
+    }
   },
   "activation_gates": [
     "AUTHORIZED_CURRENT_MEDIA",
@@ -1003,6 +1414,30 @@
       "private_report_sha256": "56abdb5c443fb7e5e9bb8ea0bcf648ef7daf543425723d8139444f3f9dcc8991",
       "private_result_sha256": "c685765359f9bd5f408d86f26c6f75bc59ae27dc5c71d078d4fbcc852c92de87",
       "private_manifest_sha256": "60d554a356a08397cbdc947d0ecbd1fd86334c3416a6ec7441a1f3f4987185a0"
+    },
+    "fresh_official_source_availability": {
+      "checked_at": "2026-11-06T04:48:02.268590+00:00",
+      "scope": "TWO_DISTINCT_OFFICIAL_NORMAL_PUBLISHED_PATHS_NOT_ALL_VENUES",
+      "private_summary_sha256": "37743b7b5bb3adc034def72d99849f056c6f8c9878b98cf35577d506ad510cf4",
+      "toda": {
+        "state": "NORMAL_BROWSER_TUNNEL_CONNECTION_FAILED_STOPPED",
+        "error": "ERR_TUNNEL_CONNECTION_FAILED",
+        "http_authorization_denial_observed": false,
+        "actual_video_played": false
+      },
+      "heiwajima": {
+        "published_pages_http_status": 200,
+        "state": "KNOWN_STOPPED_PROVIDER_BOUNDARY_NOT_REQUESTED",
+        "provider_playback_api_requests": 0,
+        "http_authorization_denial_observed_on_this_resource": false,
+        "actual_video_played": false
+      },
+      "actual_media_clips_acquired": 0,
+      "actual_media_frames_acquired": 0,
+      "continuous_six_numbers_verified": false,
+      "inference_ground_truth_or_scoring_run": false,
+      "rights_or_training_reuse_permission_established": false,
+      "alternate_identity_route_session_transport_or_denied_resource_retry": false
     }
   },
   "historical_continuity_observations": [
@@ -1023,6 +1458,54 @@
       ],
       "restarted": false,
       "private_continuity_sha256": "6329aa1d2b454492594fbcdfe70e568eb27870a2facc04877551aa45e872993d"
+    },
+    {
+      "observed_at": "2026-11-06T04:19:56+00:00",
+      "scope": "LOCAL_API_STATUS_ONLY_NOT_INDEPENDENT_PRE_CUTOFF_SAVE_PROOF",
+      "saved_model_forecasts": 509,
+      "races": 156,
+      "p0_forecasts": 312,
+      "p1_forecasts": 197,
+      "result_observations": 70,
+      "result_races": 30,
+      "state": "SOURCE_WAIT",
+      "continuous": true,
+      "continuous_means_configuration_not_active_run": true,
+      "recorded_active_run_id": 42148186039,
+      "recorded_run_actual_status": "completed",
+      "recorded_run_actual_conclusion": "success",
+      "recorded_run_completed_at": "2026-11-06T02:57:26Z",
+      "recorded_run_head_sha": "8494b85923e10d57f9c6f23a28f3aa38bfc33797",
+      "subsequent_active_or_queued_runs_observed_at_0421_utc": 0,
+      "checkpoint_last_observed_at": "2026-11-06T02:39:32.683246+00:00",
+      "checkpoint_sha256": "5f2df7227e59934f410d189be1a60af643791acaa57213b32785821b28adb108",
+      "workflow_api_wait": {
+        "http_status": 401,
+        "state": "AUTHORIZATION_WAIT",
+        "reason": "SOURCE_AUTHORIZATION_REQUIRED",
+        "retry_at": null
+      },
+      "official_github_cli_auth_status": {
+        "checked_at": "2026-11-06T04:38:00+00:00",
+        "exit_code": 0,
+        "logged_in_reported": true,
+        "invalid_token_reported": false,
+        "same_configured_auth_context": true,
+        "private_log_sha256": "ecb08b31ffe6489d11874cad4300698163412a0a1720df2b71bc1d362ed7b74e",
+        "does_not_establish_old_401_cause_or_resume": true
+      },
+      "recovery_status": "TRUSTED_RECOVERY_PREPARATION_PENDING_NOT_EXECUTED",
+      "checkpoint_wait_reset": false,
+      "direct_checkpoint_or_lock_tampering": false,
+      "alternate_identity_or_route_used": false,
+      "diagnosis_sha256": "e87a9cb8268f6cf4d1b4eac400fa31c5b4530a0c3dbcd8a60b6fd25c28ecd378",
+      "original_database_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+      "protected_pids": [
+        157669,
+        271439
+      ],
+      "restarted": false,
+      "forecast_workflow_trigger_rerun_cancel_by_this_work": false
     }
   ]
 }

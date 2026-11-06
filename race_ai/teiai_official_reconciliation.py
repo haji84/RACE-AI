@@ -19,7 +19,7 @@ if _REFERENCE not in race_ai.__path__:race_ai.__path__.append(_REFERENCE)
 from .core import _blocks, parse_k
 
 FIELDS=('race_id','racer_id','lane','course','st','st_status','finish','result_code','winner_method')
-OFFICIAL_K_PARSER_REVISION=9
+OFFICIAL_K_PARSER_REVISION=13
 
 
 def _complete_document(text):
@@ -46,29 +46,39 @@ def parse_k_rows(raw,day):
     A printed course is restored; an absent course stays absent. Raw provenance
     and dispositions always come from the original bytes.
     """
-    day=date.fromisoformat(day);text=unicodedata.normalize('NFKC',raw.decode('cp932'))
+    day=date.fromisoformat(day);text=raw.decode('cp932')
     venue=race=None;late={};adapted=[]
-    for line in text.splitlines():
+    for original in text.splitlines():
+        line=unicodedata.normalize('NFKC',original)
         marker=re.fullmatch(r'\s*([0-9]{1,2})K(BGN|END)\s*',line)
         if marker:
             venue=int(marker[1]) if marker[2]=='BGN' else None;race=None
         header=HEADER.match(line)
         if header:race=int(header[1])
         missing=re.fullmatch(r'\s*([FLS][012]?)\s+([1-6])\s+([0-9]{4})\s+.+?\s+[0-9]+\.[0-9]{2}\s+(?:([0-6])\s+)?([FLS](?:[0-9]+\.[0-9]{2})?)\s+(?:\.\s*){2,3}',line)
-        if missing:
-            code,lane,reg,course,timing=missing.groups()
-            need(code[0]==timing[0],'OFFICIAL_DISPOSITION_ST_CONFLICT')
+        unknown=re.fullmatch(r'\s*00\s+([1-6])\s+([0-9]{4})\s+.+?\s+[0-9]{1,3}\s+[0-9]{1,3}\s+[0-9]+\.[0-9]{2}\s+(?:\.\s*){2,3}',line)
+        if missing or unknown:
+            if unknown:
+                lane,reg=unknown.groups();course=None;timing=None;status='MISSING'
+            else:
+                code,lane,reg,course,timing=missing.groups();status=code[0]
+                need(status==timing[0],'OFFICIAL_DISPOSITION_ST_CONFLICT')
             need(venue is not None and race is not None,'OFFICIAL_LATE_CONTEXT_MISSING')
             key=(f'{day:%Y%m%d}-{venue:02d}-{race:02d}',int(lane))
-            need(key not in late,'OFFICIAL_LATE_DUPLICATE_ROW');late[key]=(reg,int(course) if course and course!='0' else None,timing,code[0])
+            need(key not in late,'OFFICIAL_LATE_DUPLICATE_ROW');late[key]=(reg,int(course) if course and course!='0' else None,timing,status)
             line=f' 欠 {lane} {reg}'
-        adapted.append(line)
+        # Preserve non-adapted source bytes: NFKC can introduce combining
+        # characters in names that cannot round-trip through CP932.
+        adapted.append(line if missing or unknown else original)
     rows=parse_k('\n'.join(adapted).encode('cp932') if late else raw,day.isoformat())
     for row in rows:
         # The pinned legacy parser uses midnight as a date-sort placeholder.
         # K does not provide the actual race-start timestamp. Never expose that
         # placeholder as an observed time; B's printed cutoff stays separate.
         row['race_at']=None
+        # 00 is an explicit unknown placing, including for direct callers of
+        # this shared wrapper. It never supplies numeric rank zero.
+        if row['finish']==0:row['finish']=None
         key=(row['race_id'],row['lane'])
         if key in late:
             reg,course,timing,status=late[key]
