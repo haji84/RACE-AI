@@ -4,7 +4,7 @@ The forecast process and outcome process never share result inputs. This runner
 is not a scheduler, does not publish raw pages or change model coefficients.
 """
 from datetime import datetime,timezone,timedelta,date
-import argparse,hashlib,json,os,subprocess,sys,time
+import argparse,hashlib,json,os,re,subprocess,sys,time
 from pathlib import Path
 from urllib import request,error
 ROOT=Path(__file__).resolve().parents[1]
@@ -41,8 +41,30 @@ def source_identity_conflict(reason):
     }
 
 def gh(path):
-    result=subprocess.run(['gh','api',f'repos/{REPO}/'+path],check=True,capture_output=True,timeout=50)
-    return result.stdout
+    """Read GitHub receipt; retry *only explicit 5xx or transport timeout*.
+
+    Never retry 4xx/429, unknown CLI failures or integrity mismatches. Raw
+    CLI stderr may contain private identifiers, so expose only a status class.
+    Independent callers must still verify server digest and original ZIP bytes.
+    """
+    command=['gh','api',f'repos/{REPO}/'+path]
+    for attempt in range(3):
+        try:
+            result=subprocess.run(command,check=False,capture_output=True,timeout=50)
+        except subprocess.TimeoutExpired:
+            if attempt==2:raise RuntimeError('GITHUB_API_TIMEOUT_HALT') from None
+            time.sleep(attempt+1)
+            continue
+        if result.returncode==0:return result.stdout
+        message=result.stderr.decode('utf-8',errors='replace')
+        match=re.search(r'(?i)\bHTTP[\s:]+([45][0-9]{2})\b',message)
+        status=int(match.group(1)) if match else None
+        if status is not None and 500<=status<=599 and attempt<2:
+            time.sleep(attempt+1)
+            continue
+        reason=f'HTTP_{status}' if status else 'UNCLASSIFIED_CLI_ERROR'
+        raise RuntimeError(f'GITHUB_API_READ_{reason}_HALT') from None
+    raise RuntimeError('GITHUB_API_READ_ATTEMPTS_EXHAUSTED_HALT')
 
 def original(day):
     index=ROOT/'docs/evidence'/day/'p0-first-receipt.json'
