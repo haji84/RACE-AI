@@ -40,6 +40,17 @@ class OfficialSpecialBlocksTests(unittest.TestCase):
         row=official_day(raw,day='2030-01-01')['rows'][-1]
         self.assertEqual((row['finish'],row['course'],row['st'],row['st_status'],row['result_code']),(None,None,None,'MISSING','00'))
 
+    def test_zero_zero_with_printed_course_st_and_dot_race_time_preserves_measurements(self):
+        for dots in (b'. .',b'. . .'):
+            raw=packet().replace(b'06 6 4006 TEST 11 22 6.80 6 0.12 1.50.0',b'00 6 4006 TEST 11 22 6.80 6 0.12 '+dots)
+            row=official_day(raw,day='2030-01-01')['rows'][-1]
+            self.assertEqual((row['finish'],row['course'],row['st'],row['st_status']),(None,6,.12,'OK'))
+
+    def test_direct_shared_row_parser_normalizes_zero_zero_finish(self):
+        from race_ai.teiai_official_reconciliation import parse_k_rows
+        row=parse_k_rows(packet().replace(b'06 6 4006',b'00 6 4006'),'2030-01-01')[-1]
+        self.assertIsNone(row['finish'])
+
     def test_four_digit_payout_is_not_misread_as_result_registration(self):
         raw=packet().replace(b'01KEND','単勝 1 1200\n複勝 2 1400\n01KEND'.encode('cp932'))
         rows=official_day(raw,day='2030-01-01')['rows']

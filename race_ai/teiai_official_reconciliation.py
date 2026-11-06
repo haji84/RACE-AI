@@ -19,7 +19,7 @@ if _REFERENCE not in race_ai.__path__:race_ai.__path__.append(_REFERENCE)
 from .core import _blocks, parse_k
 
 FIELDS=('race_id','racer_id','lane','course','st','st_status','finish','result_code','winner_method')
-OFFICIAL_K_PARSER_REVISION=12
+OFFICIAL_K_PARSER_REVISION=13
 
 
 def _complete_document(text):
@@ -56,7 +56,7 @@ def parse_k_rows(raw,day):
         header=HEADER.match(line)
         if header:race=int(header[1])
         missing=re.fullmatch(r'\s*([FLS][012]?)\s+([1-6])\s+([0-9]{4})\s+.+?\s+[0-9]+\.[0-9]{2}\s+(?:([0-6])\s+)?([FLS](?:[0-9]+\.[0-9]{2})?)\s+(?:\.\s*){2,3}',line)
-        unknown=re.fullmatch(r'\s*00\s+([1-6])\s+([0-9]{4})\s+.+?\s+[0-9]+\.[0-9]{2}\s+(?:\.\s*){2,3}',line)
+        unknown=re.fullmatch(r'\s*00\s+([1-6])\s+([0-9]{4})\s+.+?\s+[0-9]{1,3}\s+[0-9]{1,3}\s+[0-9]+\.[0-9]{2}\s+(?:\.\s*){2,3}',line)
         if missing or unknown:
             if unknown:
                 lane,reg=unknown.groups();course=None;timing=None;status='MISSING'
@@ -76,6 +76,9 @@ def parse_k_rows(raw,day):
         # K does not provide the actual race-start timestamp. Never expose that
         # placeholder as an observed time; B's printed cutoff stays separate.
         row['race_at']=None
+        # 00 is an explicit unknown placing, including for direct callers of
+        # this shared wrapper. It never supplies numeric rank zero.
+        if row['finish']==0:row['finish']=None
         key=(row['race_id'],row['lane'])
         if key in late:
             reg,course,timing,status=late[key]
@@ -160,10 +163,6 @@ def official_day(raw, *, day):
     for row in rows:
         row['winner_method']=methods[row['race_id']]
         value=dispositions.get((row['race_id'],row['lane']))
-        # Some official K rows explicitly print 00. Keep that source code and
-        # observed timing/course; 00 supplies no confirmed numeric placing.
-        if value is not None and value[0]=='00' and row['finish']==0:
-            row['finish']=None
         need(value is not None and value[1]==row['racer_id'] and
              (row['finish'] is None or row['finish'] in range(1,7)),'OFFICIAL_DISPOSITION_IDENTITY_OR_FINISH_INVALID')
         row['result_code']=value[0]
