@@ -138,34 +138,6 @@ class PdcaState:
         need(row is not None,'STATE_BLOB_MISSING');raw=inflate(row[0])
         need(sha(raw)==ident,'STATE_BLOB_HASH_MISMATCH');return raw
 
-    def import_state(self,other):
-        """Union an authenticated restored journal; preserve current heads.
-
-        The caller authenticates the incoming checkpoint. No source permission
-        or forecast admission is granted here. Conflicting immutable rows stop
-        and roll back the whole import, including newly copied blobs/files.
-        """
-        need(isinstance(other,PdcaState) and self.mode==other.mode,'STATE_IMPORT_MODE_MISMATCH')
-        self.verify_files();other.verify_files()
-        for ident, in other.db.execute('SELECT sha FROM blobs'):other._get(ident)
-        keys={'pairs':('sha',),'results':('sha',),'scores':('pair_sha','result_sha')}
-        try:
-            with self.db:
-                for row in other.db.execute('SELECT * FROM blobs'):
-                    self.db.execute('INSERT OR IGNORE INTO blobs VALUES (?,?)',row)
-                self.db.executemany('INSERT OR IGNORE INTO files VALUES (?,?)',other.db.execute('SELECT * FROM files'))
-                for table,columns in keys.items():
-                    names=[v[1] for v in other.db.execute('PRAGMA table_info('+table+')')]
-                    for row in other.db.execute('SELECT * FROM '+table):
-                        values=tuple(row[names.index(k)] for k in columns)
-                        old=self.db.execute('SELECT * FROM '+table+' WHERE '+' AND '.join(k+'=?' for k in columns),values).fetchone()
-                        need(old is None or old==row,'STATE_IMPORT_IMMUTABLE_CONFLICT')
-                        if old is None:self.db.execute('INSERT INTO '+table+' VALUES ('+','.join('?' for _ in row)+')',row)
-                self.db.executemany('INSERT OR IGNORE INTO heads VALUES (?,?)',other.db.execute('SELECT * FROM heads'))
-                self.verify_files()
-        except sqlite3.IntegrityError:raise ValueError('STATE_IMPORT_IMMUTABLE_CONFLICT') from None
-        return self.inventory()
-
     def retain_history(self,path,*,synthetic_fixture=False,captures=None):
         need(self.mode!='synthetic' or synthetic_fixture is True,'SYNTHETIC_HISTORY_FIXTURE_REQUIRED')
         raw=sqlite_snapshot(path)
