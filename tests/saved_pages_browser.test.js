@@ -15,15 +15,16 @@ r=Path(sys.argv[1]);p,_=invented_research_state(r);s=PdcaState(p)
 try:pin=s.content_sha256()
 finally:s.close()
 build_site(p,r/'public',r/'private',expected_source_sha256=pin)
+build_site(p,r/'updated-public',r/'updated-private',expected_source_sha256=pin,viewer_from=r/'private/viewer.json')
 `,folder],{cwd:root,encoding:'utf8'});assert.equal(py.status,0,py.stderr);
  const secret=JSON.parse(fs.readFileSync(path.join(folder,'private/viewer.json'))),requests=[],errors=[];
  const fragment=fs.readFileSync(path.join(folder,'private/owner-url.txt'),'utf8').trim().split('#')[1];
- let tamper=false;
+ let tamper=false,activeRoot='public';
  server=http.createServer((req,res)=>{
   requests.push({url:req.url,method:req.method,referrer:req.headers.referer||''});
-  const name=req.url.replace(/^\/RACE-AI\//,'')||'index.html';
+  const name=new URL(req.url,'http://localhost').pathname.replace(/^\/RACE-AI\//,'')||'index.html';
   if(!/^([a-z-]+\.(html|js|css)|views\/[a-f0-9]{64}\.json|data\/example-synthetic-forecast-audit\.json)$/.test(name)){res.statusCode=404;return res.end();}
-  const file=path.join(folder,'public',name);
+  const file=path.join(folder,activeRoot,name);
   if(!fs.existsSync(file)){res.statusCode=404;return res.end();}
   res.setHeader('Content-Type',name.endsWith('.js')?'text/javascript':name.endsWith('.css')?'text/css':name.endsWith('.json')?'application/json':'text/html');
   let raw=fs.readFileSync(file);if(tamper&&name.startsWith('views/'))raw=Buffer.concat([raw,Buffer.from(' ')]);res.end(raw);
@@ -51,6 +52,10 @@ build_site(p,r/'public',r/'private',expected_source_sha256=pin)
  assert.equal((await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}))).includes(secret.key),false);
  assert.equal(requests.some(r=>(r.url+r.referrer).includes(secret.key)||r.method!=='GET'),false);
  assert.deepEqual(errors,[]);
+ activeRoot='updated-public';await page.reload();
+ await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'));
+ assert.equal(new URL(page.url()).hash,'#'+fragment,'original V1 owner link must open the updated V2 payload');
+ assert.equal(await page.locator('#page-races .race-card').count(),1);
  for(const suffix of ['',fragment.replace(/\.[A-Za-z0-9_-]{43}$/,'.'+ 'A'.repeat(43)),fragment]){
   tamper=suffix===fragment;await page.goto(base+(suffix?'#'+suffix:''));
   await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('読めません')||document.querySelector('#file-message').textContent.includes('読み込めません'),{},{timeout:7000});

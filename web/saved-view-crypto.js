@@ -28,21 +28,25 @@
     try {
       if(typeof fragment!=="string" || fragment.length!==115)fail();
       const m=/^#saved=([a-f0-9]{64})\.([A-Za-z0-9_-]{43})$/.exec(fragment);if(!m)fail();
-      if(path!=="./views/"+m[1]+".json")fail();
+      const target=/^\.\/views\/([a-f0-9]{64})\.json$/.exec(path);if(!target)fail();
       const url=new URL(path,location.href);if(url.origin!==location.origin)fail();
       keyBytes=base64(m[2].replace(/-/g,"+").replace(/_/g,"/")+"=",44);if(keyBytes.length!==32)fail();
       const key=await crypto.subtle.importKey("raw",keyBytes,"AES-GCM",false,["decrypt"]);keyBytes.fill(0);
       const response=await fetch(url,{credentials:"omit",cache:"no-store",redirect:"error",referrerPolicy:"no-referrer"});
       if(!response.ok || response.url!==url.href)fail();
       const bytes=await bounded(response),hash=Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256",bytes)),n=>n.toString(16).padStart(2,"0")).join("");
-      if(hash!==m[1])fail();
+      if(hash!==target[1])fail();
       const envelope=JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(bytes));
       if(!fields(envelope,["header","nonce","ciphertext"]))fail();
       const h=envelope.header;
-      if(!fields(h,["schema","source_content_sha256"]) || h.schema!==SCHEMA || typeof h.source_content_sha256!=="string" || !/^[a-f0-9]{64}$/.test(h.source_content_sha256))fail();
+      const updated=h?.schema==="RACE_AI_SAVED_WEB_VIEW_V2";
+      if(!fields(h,updated?["schema","source_content_sha256","view_id"]:["schema","source_content_sha256"]) ||
+         (updated?h.view_id!==m[1]:h.schema!==SCHEMA||target[1]!==m[1]) ||
+         typeof h.source_content_sha256!=="string" || !/^[a-f0-9]{64}$/.test(h.source_content_sha256))fail();
       const nonce=base64(envelope.nonce,16),cipher=base64(envelope.ciphertext,LIMIT);
       if(nonce.length!==12 || cipher.length<16 || cipher.length>PLAIN+16)fail();
-      const aad=new TextEncoder().encode(JSON.stringify({schema:h.schema,source_content_sha256:h.source_content_sha256}));
+      const header={schema:h.schema,source_content_sha256:h.source_content_sha256};if(updated)header.view_id=h.view_id;
+      const aad=new TextEncoder().encode(JSON.stringify(header));
       const plain=await crypto.subtle.decrypt({name:"AES-GCM",iv:nonce,additionalData:aad,tagLength:128},key,cipher);
       if(plain.byteLength>PLAIN)fail();
       return JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(plain));

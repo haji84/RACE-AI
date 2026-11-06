@@ -326,11 +326,12 @@ jobs:
       - name: Integrated product UI contracts
         run: |
           node --check web/app.js
+          node --check web/saved-performance.js
           node --check web/ui-model.js
           node --check web/product-data.js
           node --check web/existing-model-catalog.js
           node --check scripts/existing_pdca_offline.mjs
-          node --test --test-reporter=tap tests/ui_model.test.js tests/product_data.test.cjs tests/model_catalog.test.cjs tests/existing_pdca_offline.test.mjs
+          node --test --test-reporter=tap tests/ui_model.test.js tests/product_data.test.cjs tests/model_catalog.test.cjs tests/existing_pdca_offline.test.mjs tests/saved_performance.test.cjs
       - name: Install isolated pinned browser test tooling
         run: |
           npm install --prefix "$RUNNER_TEMP/race-ai-ui-tools" --no-package-lock --ignore-scripts playwright@1.62.1
@@ -349,6 +350,7 @@ jobs:
           node tests/ui_browser.test.js
           node tests/saved_pdca_browser.test.js
           node tests/saved_pages_browser.test.js
+          node tests/results_budget_browser.test.js
           node --test tests/boat_video_ui.test.mjs
       - name: Retain synthetic-only UI interaction evidence
         if: always()

@@ -22,7 +22,7 @@ export_view(view,root/'view.html')
     if(req.url==='/offline.html'){res.setHeader('Content-Type','text/html');return res.end(fs.readFileSync(path.join(folder,'view.html')));}
     if(req.url==='/api/forecast/saved'){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify(original));}
     const asset=req.url==='/'?'index.html':req.url.slice(1);
-    if(!['index.html','app.js','product-data.js','ui-model.js','existing-model-catalog.js','forecast-audit-model.js','style.css'].includes(asset)){res.statusCode=404;return res.end();}
+    if(!['index.html','app.js','product-data.js','ui-model.js','saved-performance.js','existing-model-catalog.js','forecast-audit-model.js','style.css'].includes(asset)){res.statusCode=404;return res.end();}
     let body=fs.readFileSync(path.join(root,'web',asset));
     if(asset==='index.html')body=Buffer.from(body.toString().replace('</head>','<meta name="race-ai-private-saved-view" content="/api/forecast/saved"></head>'));
     res.setHeader('Content-Type',asset.endsWith('.js')?'text/javascript':asset.endsWith('.css')?'text/css':'text/html');res.end(body);
