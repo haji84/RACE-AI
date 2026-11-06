@@ -351,7 +351,7 @@
     }
   ],
   "scenarios": 28,
-  "schema": "RACE_AI_PRE_OUTCOME_BUDGET_PLAN_COUNTS_V1",
+  "schema": "RACE_AI_PROSPECTIVE_EVALUATION_REGISTRATION_V1",
   "source_view": {
     "cipher_sha256": "be1864dd56a2e5d96fb3e7123a6a7e9784121a429dec68b4d653287cddffed4f",
     "commit": "2f8da904498f9d77f39072180f2520d979ab89b5"

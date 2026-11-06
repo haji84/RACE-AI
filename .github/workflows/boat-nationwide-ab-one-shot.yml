@@ -32,6 +32,7 @@ jobs:
           import hashlib, json, os, re
           path=Path('docs/evidence/2026-11-07/prospective-evaluation-plan.json')
           raw=path.read_bytes(); plan=json.loads(raw)
+          # A public declaration wraps counts; it is never the private plan.
           assert plan['schema']=='RACE_AI_PROSPECTIVE_EVALUATION_REGISTRATION_V1'
           assert re.fullmatch('[a-f0-9]{40}',plan['policy_commit'])
           files={'web/product-data.js','web/saved-performance.js','scripts/boat_budget_plan.cjs'}
