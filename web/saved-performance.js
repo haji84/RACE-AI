@@ -10,6 +10,7 @@
   const multiply=(a,b)=>{const v=a*b;if(!Number.isSafeInteger(v))throw new RangeError('SIMULATION_AMOUNT_OVERFLOW');return v;};
   const predictions=r=>[r.prediction,...(r.comparison_predictions||[])].filter(Boolean);
   const codeIdentity=p=>Data?.codeIdentity ? Data.codeIdentity(p) : null;
+  const facts=(row,p)=>Data?.effectivePredictionFacts ? Data.effectivePredictionFacts(row,p) : p;
   function pick(row,group){
     if(row.scope!==group.scope||row.sport!==group.sport)return null;
     const found=predictions(row).filter(p=>p.model_id===group.model_id&&p.model_version===group.model_version&&p.stage===group.stage&&(p.variant??null)===(group.variant??null)&&codeIdentity(p)===(group.code_identity??null));
@@ -79,12 +80,16 @@
   }
   function planReason(row,p){
     if(!p)return 'NO_UNAMBIGUOUS_SAVED_MODEL';
-    if(typeof p.model_id!=='string'||!p.model_id.trim()||(!(typeof p.model_version==='string'&&p.model_version.trim())&&!codeIdentity(p))||!['P0','P1','A_PRE_TRIAL','B_POST_TRIAL'].includes(p.stage))return 'MODEL_IDENTITY_UNKNOWN';
+    const f=facts(row,p);
+    if(typeof p.model_id!=='string'||!p.model_id.trim()||(!(typeof f.model_version==='string'&&f.model_version.trim())&&!codeIdentity(p)&&!f.native_evidence)||!['P0','P1','A_PRE_TRIAL','B_POST_TRIAL'].includes(p.stage))return 'MODEL_IDENTITY_UNKNOWN';
     if(!validPlan(p,row))return 'COMPLETE_TOP8_NOT_SAVED';
     if(row.offering_status==='NOT_OFFERED')return 'TRIFECTA_NOT_OFFERED';
-    const cutoff=Date.parse(p.cutoff_at||row.cutoff_at),generated=Date.parse(p.generated_at),saved=Date.parse(p.persisted_at),asof=Date.parse(p.as_of);
-    if(![cutoff,generated,saved,asof].every(Number.isFinite))return 'SAVE_CLOCK_UNKNOWN';
-    if(asof>generated||generated>saved||saved>=cutoff)return 'NOT_SAVED_BEFORE_CUTOFF';
+    const cutoff=Date.parse(p.cutoff_at||row.cutoff_at),generated=Date.parse(f.generated_at),saved=Date.parse(p.persisted_at),asof=Date.parse(p.as_of);
+    if(![cutoff,saved,asof].every(Number.isFinite)||!Number.isFinite(generated)&&!f.native_evidence)return 'SAVE_CLOCK_UNKNOWN';
+    // An authenticated native as-of plus its physical pre-cutoff original can
+    // substantiate a hypothetical plan without manufacturing generated_at.
+    const allowance=f.save_clock_tolerance_ms||0;
+    if(asof>saved+allowance||Number.isFinite(generated)&&(asof>generated||generated>saved+allowance)||saved>=cutoff)return 'NOT_SAVED_BEFORE_CUTOFF';
     return null;
   }
   function allocate(row,p,raceBudget=800){
@@ -95,14 +100,14 @@
     const base={raceBudget,baseStake,stake:baseStake,held:raceBudget-baseStake,tickets,evidenceStatus:'FLAT_TOP8',decisionAt:p.persisted_at,tieRule:'NUMERIC_COMBINATION_ORDER'};
     if(raceBudget===800)return base;
     const cutoff=Date.parse(p.cutoff_at||row.cutoff_at),asof=Date.parse(p.as_of),decision=Date.parse(p.persisted_at);
-    const identity=q=>JSON.stringify([q.model_id,q.model_version,codeIdentity(q),q.stage,q.variant??null]);
+    const identity=q=>JSON.stringify([q.model_id,facts(row,q).model_version,codeIdentity(q),q.stage,q.variant??null]);
     const peers=predictions(row).filter(q=>!planReason(row,q)&&q.stage===p.stage&&Date.parse(q.cutoff_at||row.cutoff_at)===cutoff&&Date.parse(q.as_of)===asof&&Date.parse(q.persisted_at)<=decision);
     const multiplicity=new Map();for(const q of peers)multiplicity.set(identity(q),(multiplicity.get(identity(q))||0)+1);
     const usable=peers.filter(q=>multiplicity.get(identity(q))===1);
     for(const item of tickets){
       const families=new Set(),versions=new Map();
       for(const q of usable)if(q.ordered_top8.some(t=>key(t)===key(item.combination))){
-        families.add(q.model_id);const id=JSON.stringify([q.model_id,q.model_version,codeIdentity(q)]);
+        families.add(q.model_id);const id=JSON.stringify([q.model_id,facts(row,q).model_version,codeIdentity(q)]);
         if(!versions.has(id))versions.set(id,{model:q.model_id,variants:new Set()});versions.get(id).variants.add(q.variant);
       }
       item.families=families.size;
@@ -166,5 +171,5 @@
     total.roi=total.settledStake?(total.payout+total.refund)/total.settledStake*100:null;
     return {...total,comparison,boughtComparison,days,rows,hypothetical:true,reinvested:false};
   }
-  return Object.freeze({compare,pick,simulate,summarize,allocate});
+  return Object.freeze({compare,pick,simulate,summarize,allocate,planReason});
 });
