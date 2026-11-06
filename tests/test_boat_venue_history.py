@@ -21,6 +21,8 @@ class VenueHistoryTests(unittest.TestCase):
         h.add_archive(uncompressed_lzh(packet(extra=extra),'K300101.TXT'),day='2030-01-01',captured_at='2030-01-02T00:00:00Z')
         self.assertEqual(h.profile('4999','02',as_of='2030-01-02T00:00:00Z')['coverage_status'],'INCOMPLETE_NO_OBSERVATIONS')
         self.assertEqual(h.profile('4999','01',as_of='2030-01-02T00:00:00Z')['coverage_status'],'COMPLETE_NO_OBSERVATIONS')
+        self.assertEqual(h.profile('4999','01',as_of='2030-01-02T00:00:00Z')['coverage']['fully_parsed_days'],1)
+        self.assertEqual(h.profile('4999','02',as_of='2030-01-02T00:00:00Z')['coverage']['fully_parsed_days'],0)
         self.assertFalse(h.summary(as_of='2030-01-02T00:00:00Z')['all_venue_player_history_complete'])
 
     def make(self):return VenueHistory(start='2026-11-04',end='2026-11-05',roster=['4001','4999'],clock=lambda:datetime(2030,1,1,tzinfo=timezone.utc))

@@ -1,0 +1,88 @@
+{
+  "actual_purchases": false,
+  "admitted_prospective_races": 6,
+  "admitted_summary": {
+    "accuracy_improvement_proven": false,
+    "actual_purchases": false,
+    "excluded_special_or_pending_races": 0,
+    "models": [
+      {
+        "baseline_hit_rate": 0.6666666666666666,
+        "baseline_hits": 4,
+        "baseline_received_yen": 4100,
+        "baseline_roi": 0.8541666666666666,
+        "baseline_stake_yen": 4800,
+        "history_hit_rate": 0.8333333333333334,
+        "history_hits": 5,
+        "history_received_yen": 7690,
+        "history_roi": 1.6020833333333333,
+        "history_stake_yen": 4800,
+        "model_id": "boat-observed-pairwise-factor-v1",
+        "scored": 6
+      },
+      {
+        "baseline_hit_rate": 0.6666666666666666,
+        "baseline_hits": 4,
+        "baseline_received_yen": 4100,
+        "baseline_roi": 0.8541666666666666,
+        "baseline_stake_yen": 4800,
+        "history_hit_rate": 0.6666666666666666,
+        "history_hits": 4,
+        "history_received_yen": 5040,
+        "history_roi": 1.05,
+        "history_stake_yen": 4800,
+        "model_id": "boat-observed-pairwise-start-v1",
+        "scored": 6
+      }
+    ],
+    "normal_races": 6,
+    "production_promoted": false,
+    "result_revisions": 6,
+    "schema": "RACE_AI_AUTHENTICATED_HISTORY_TRIAL_SUMMARY_V1",
+    "unique_races": 6
+  },
+  "canonical_input": {
+    "cipher_path": "state/boat-pdca/v1/g000003/state.enc",
+    "cipher_sha256": "6409e715752b8f007f1e5fda09f2f1e4de485d04e6fcb043745d516af8db4014",
+    "repository_id": "1416489937",
+    "schema": "RACE_AI_BOAT_PRODUCTION_STATE_INPUT_V1",
+    "scope": {
+      "generation": 3,
+      "mode": "production",
+      "previous_cipher_sha256": "26ecb63e6c958e173ba761823efe7d7d69bc3126a72c8d2429f575657917b6cb",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PDCA_ENCRYPTED_SQLITE_V1"
+    },
+    "source_commit": "f9467915996c5e32905306866b4caadff0bce4e0",
+    "status": "READY"
+  },
+  "encrypted_admission_state_published": true,
+  "external_receipts_rechecked_live": false,
+  "first_score_reused": false,
+  "forecast_cutoff_at": "2026-11-06T13:06:00+09:00",
+  "forecast_generated_at": "2026-11-06T02:23:22.039214+00:00",
+  "forecast_original_regenerated": false,
+  "forecast_race_id": "20261106-22-06",
+  "independent_github_witness_created_at": "2026-11-06T02:30:26Z",
+  "independent_github_witness_run": 42150748961,
+  "independent_pre_cutoff_receipt_verified": true,
+  "initial_source_observation": "PENDING_OFFICIAL_RESULT_PAYOUT_ONLY",
+  "official_normal_metric_eligible": true,
+  "original_file_sha256": "265470f23f10511fb79be97ad10f03a21ad0bf4a31e989d8dfc24bab7631fe7a",
+  "pair_sha256": "5e234f103825f64a61a4f43b014b1f55c24d43346a63c2eba200c84023d566f4",
+  "prospective_metric_scope": "5 original main-cohort races plus1 separately preregistered later research trial; each admitted race counted once",
+  "result_captured_at": "2026-11-06T04:25:24.473242+00:00",
+  "result_source_sha256": "3f6301c8ee4dcc16b8a9ec8d755517130ae11ba3ee348e488c78f8ad941d8399",
+  "second_score_reused": true,
+  "source_grade_and_motor_epochs_imputed": false,
+  "source_observations": 2,
+  "state_inventory": {
+    "mode": "production",
+    "pairs": 157,
+    "result_revisions": 6,
+    "retained_file_versions": 778,
+    "scorings": 6
+  },
+  "synthetic_test": false,
+  "upstream_gets": 2
+}
