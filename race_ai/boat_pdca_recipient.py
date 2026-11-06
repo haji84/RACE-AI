@@ -34,6 +34,18 @@ DOMAIN=b'RACE_AI_BOAT_PDCA_OWNER_RECIPIENT_V1'
 MAX_TRANSFER=96*1024*1024
 HEAD=re.compile(r'[a-f0-9]{40}\Z')
 SHA=re.compile(r'[a-f0-9]{64}\Z')
+_STALE_NONCOVERAGE_REASONS=frozenset({'STATE_REGRESSION_FILES','STATE_REGRESSION_PAIRS',
+    'STATE_REGRESSION_RESULTS','STATE_REGRESSION_SCORES','STATE_REGRESSION_BLOBS',
+    'STATE_REGRESSION_HEAD_NAMES','STATE_REGRESSION_HEAD'})
+
+
+class StaleTransferRebaseRequired(ValueError):
+    """Two authenticated, audited states require an explicit forward rebase."""
+    def __init__(self,reason,*,current_generation):
+        need(reason in _STALE_NONCOVERAGE_REASONS,'RECIPIENT_REBASE_REASON_INVALID')
+        need(type(current_generation) is int and current_generation>=1,'RECIPIENT_REBASE_GENERATION_INVALID')
+        super().__init__(reason)
+        self.required_next_generation=current_generation+1
 
 
 def _hex(value,pattern=SHA):
@@ -176,7 +188,12 @@ def _already_covered(pointer,plain,current_pointer,root,*,key,fetch,clock):
             report=readback(current_pointer,current_root,key=key,fetch=fetch,now=clock)
             need(report.get('production_schema_readback_verified') is True,'RECIPIENT_PREVIOUS_RESTORE_REQUIRED')
             current=PdcaState(current_root/'state.sqlite')
-            try:_no_regression(incoming,current)
+            try:
+                try:_no_regression(incoming,current)
+                except ValueError as exc:
+                    if str(exc) not in _STALE_NONCOVERAGE_REASONS:raise
+                    raise StaleTransferRebaseRequired(str(exc),
+                        current_generation=current_pointer['scope']['generation']) from None
             finally:current.close()
         finally:incoming.close()
     return dict(report,status='OWNER_PDCA_TRANSFER_ALREADY_COVERED',encrypted_checkpoint_created=False,
