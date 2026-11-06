@@ -102,6 +102,9 @@ class WorkflowReferencesTest(unittest.TestCase):
         text=WORKFLOW.read_text()
         display=text.split('  saved_view_publication:',1)[1].split('  official_national:',1)[0]
         self.assertIn("startsWith(github.event.head_commit.message, 'saved-view:')",display)
+        self.assertIn('run: python scripts/github_existing_cycle.py restore',display)
+        self.assertNotIn('github_existing_cycle.py forecast',display)
+        self.assertNotIn('github_existing_cycle.py repeat-start',display)
         self.assertNotIn('github_existing_cycle.py',display)
         self.assertNotIn('first_p0_bootstrap.py',display)
         official=text.split('  official_national:',1)[1]

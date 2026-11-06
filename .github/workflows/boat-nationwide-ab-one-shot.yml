@@ -63,6 +63,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
         run: python -m scripts.boat_saved_view_feed
+      - name: Verify current Actions access can restore the same saved originals
+        timeout-minutes: 8
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # Read-only GitHub archive replay. No official source GET, forecast
+        # regeneration, source-worker restart or replacement checkpoint.
+        run: python scripts/github_existing_cycle.py restore
   official_national:
     name: Existing frozen P0, exhibition P1, separate official results and PDCA
     if: github.repository == 'haji84/RACE-AI' && !startsWith(github.event.head_commit.message, 'saved-view:')
