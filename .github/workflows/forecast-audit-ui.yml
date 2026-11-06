@@ -8,7 +8,7 @@ permissions:
   contents: read
 concurrency:
   group: forecast-audit-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   train_only_tests:
     strategy:

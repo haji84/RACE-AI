@@ -12,6 +12,45 @@ def index(month='202611',days=('04','05')):
     return (f'<script>var dir="/od2/K/{month}/k{month[2:]}";</script>' + ''.join(f'<input type="radio" name="MDAY" value="{d}">' for d in days)).encode()
 
 class CatalogTests(unittest.TestCase):
+    def test_publication_placeholder_stays_pending_with_preserved_raw_bytes(self):
+        from tests.test_boat_entry_observations import uncompressed_lzh
+        raw=uncompressed_lzh('STARTK\n01KBGN\nボートレース桐生\nデータは、この場の全レース終了後に登録されます。\n01KEND\nENDK'.encode('cp932'),'K261104.TXT')
+        c=HistoryMonth(month='202611',index_raw=index(days=('04',)),not_after='2026-11-05')
+        c.record('2026-11-04',raw,captured_at=NOW)
+        self.assertEqual(c._heads()[0][3],'WAITING_PUBLICATION')
+        self.assertEqual(c.pending(),['2026-11-04'])
+        self.assertEqual(c.summary()['waiting_publication_days'],1)
+        self.assertEqual(c.summary()['pending_days'],1)
+        self.assertFalse(c.summary()['month_complete'])
+
+    def test_reanalysis_uses_retained_bytes_and_preserves_original_observation(self):
+        from unittest.mock import patch
+        import race_ai.boat_history_catalog as catalog
+        c=HistoryMonth(month='202611',index_raw=index(days=('04',)),not_after='2026-11-05')
+        raw=archive()
+        with patch.object(catalog,'official_day',side_effect=ValueError('OLD_PARSER')),patch.object(catalog,'OFFICIAL_K_PARSER_REVISION',1):
+            c.record('2026-11-04',raw,captured_at=NOW)
+        before=c.db.execute('SELECT * FROM observations').fetchall()
+        self.assertTrue(c.reparse('2026-11-04',parsed_at='2030-01-02T00:00:00Z'))
+        self.assertEqual(c.db.execute('SELECT * FROM observations ORDER BY id LIMIT 1').fetchall(),before)
+        self.assertEqual(c.summary()['revision_observations'],2)
+        self.assertEqual(c.summary()['parsed_days'],1)
+        self.assertEqual(c.summary()['quarantined_days'],0)
+        self.assertEqual(list(c.archives())[0]['raw'],raw)
+        self.assertEqual(list(c.archives())[0]['captured_at'],NOW)
+        event=c.db.execute('SELECT parsed_at,parser_revision FROM parse_events ORDER BY observation_id DESC LIMIT 1').fetchone()
+        self.assertEqual(event,('2030-01-02T00:00:00Z',catalog.OFFICIAL_K_PARSER_REVISION))
+        self.assertFalse(c.reparse('2026-11-04',parsed_at='2030-01-03T00:00:00Z'))
+        self.assertEqual(c.summary()['revision_observations'],2)
+
+    def test_reanalysis_requires_existing_hash_bound_source_and_later_clock(self):
+        c=HistoryMonth(month='202611',index_raw=index(),not_after='2026-11-05')
+        c.record('2026-11-04',archive(),captured_at=NOW)
+        with self.assertRaises(ValueError):c.reparse('2026-11-04',parsed_at='2029-12-31T00:00:00Z')
+        with self.assertRaises(ValueError):c.reparse('2026-11-05',parsed_at=NOW)
+        with c.db:c.db.execute('UPDATE archives SET raw=?',(b'corrupt',))
+        with self.assertRaises(ValueError):c.reparse('2026-11-04',parsed_at='2030-01-02T00:00:00Z')
+
     def test_only_published_months_and_days_no_endpoint_guessing(self):
         self.assertEqual(published_months(menu()),['200501','202611'])
         self.assertEqual(published_days(index(),month='202611',not_after='2026-11-04'),['2026-11-04'])

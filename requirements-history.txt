@@ -3,3 +3,4 @@ cryptography==46.0.3
 
 # Reuse the pinned PR64 safe single-entry LZH reader for all-racer fan files.
 lhafile==0.3.1
+httpx==0.28.1

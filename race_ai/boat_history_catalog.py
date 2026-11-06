@@ -14,11 +14,21 @@ from .actions_contract import stamp
 from .teiai_history import need,racer_number
 from .boat_venue_history import VenueHistory
 from .official_lzh_extract import extract_daily_lzh
-from .teiai_official_reconciliation import official_day
+from .teiai_official_reconciliation import official_day,OFFICIAL_K_PARSER_REVISION
 from .source_retry_policy import wait_active
 
 SCHEMA='RACE_AI_OFFICIAL_HISTORY_MONTH_V1'
 MAX_DB=8*1024*1024
+
+
+def _interpret(day,raw):
+    try:
+        d=date.fromisoformat(day)
+        parsed=official_day(extract_daily_lzh(raw,f'K{d:%y%m%d}.TXT'),day=day)
+        if parsed['unpublished_venues']:return 'WAITING_PUBLICATION','OFFICIAL_EXPLICIT_END_OF_VENUE_PUBLICATION_PENDING',len(parsed['rows'])
+        return 'PARSED',None,len(parsed['rows'])
+    except (ValueError,UnicodeError):
+        return 'QUARANTINED','OFFICIAL_FORMAT_OR_SPECIAL_RESULT_UNSUPPORTED',0
 
 
 class _Fields(HTMLParser):
@@ -80,19 +90,57 @@ class HistoryMonth:
         return self.db.execute('SELECT day,sha,captured_at,state,reason,starts FROM observations o '
                                'WHERE id=(SELECT max(i.id) FROM observations i WHERE i.day=o.day) ORDER BY day').fetchall()
 
-    def record(self,day,raw,*,captured_at):
+    def record(self,day,raw,*,captured_at,parsed_at=None):
         self._day(day);stamp(captured_at)
+        if parsed_at is not None:need(stamp(parsed_at)>=stamp(captured_at),'HISTORY_REPARSE_CLOCK_REGRESSION')
         need(type(raw) is bytes and 0<len(raw)<=16000000,'HISTORY_ARCHIVE_SIZE_INVALID')
         sha=hashlib.sha256(raw).hexdigest();last=self.db.execute('SELECT sha,captured_at FROM observations WHERE day=? ORDER BY id DESC LIMIT 1',(day,)).fetchone()
         if last and last[0]==sha:return False
         need(not last or stamp(last[1])<=stamp(captured_at),'HISTORY_OBSERVATION_CLOCK_REGRESSION')
-        try:
-            d=date.fromisoformat(day);parsed=official_day(extract_daily_lzh(raw,f'K{d:%y%m%d}.TXT'),day=day)
-            state,reason,n='PARSED',None,len(parsed['rows'])
-        except (ValueError,UnicodeError):state,reason,n='QUARANTINED','OFFICIAL_FORMAT_OR_SPECIAL_RESULT_UNSUPPORTED',0
+        state,reason,n=_interpret(day,raw)
         with self.db:
             self.db.execute('INSERT OR IGNORE INTO archives VALUES (?,?)',(sha,raw))
-            self.db.execute('INSERT INTO observations(day,sha,captured_at,state,reason,starts) VALUES (?,?,?,?,?,?)',(day,sha,captured_at,state,reason,n))
+            current=self.db.execute('INSERT INTO observations(day,sha,captured_at,state,reason,starts) VALUES (?,?,?,?,?,?)',(day,sha,captured_at,state,reason,n)).lastrowid
+            self._events_table()
+            self.db.execute('INSERT INTO parse_events VALUES (?,NULL,?,?)',(current,parsed_at,OFFICIAL_K_PARSER_REVISION))
+        return True
+
+    def _events_table(self):
+        self.db.execute('CREATE TABLE IF NOT EXISTS parse_events (observation_id INTEGER PRIMARY KEY REFERENCES observations(id), prior_observation_id INTEGER REFERENCES observations(id), parsed_at TEXT, parser_revision INTEGER NOT NULL)')
+
+    def reparse_candidates(self):
+        events=self.db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='parse_events'").fetchone()
+        result=[]
+        for day,_,_,state,_,_ in self._heads():
+            if state!='QUARANTINED':continue
+            row=self.db.execute('SELECT parser_revision FROM parse_events WHERE observation_id=(SELECT max(id) FROM observations WHERE day=?)',(day,)).fetchone() if events else None
+            if not row or row[0]<OFFICIAL_K_PARSER_REVISION:result.append(day)
+        return result
+
+    def reparse(self,day,*,parsed_at):
+        """Append a parser interpretation of retained bytes; never fetch/reset.
+
+        The source capture clock is unchanged. A separate event records the
+        later processing clock and parser revision, including failed repairs.
+        V1 snapshots gain the optional event table only on explicit reanalysis.
+        """
+        self._day(day);clock=stamp(parsed_at)
+        previous=self.db.execute('SELECT id,sha,captured_at FROM observations WHERE day=? ORDER BY id DESC LIMIT 1',(day,)).fetchone()
+        need(previous is not None and previous[1] is not None,'HISTORY_REPARSE_REQUIRES_RETAINED_SOURCE')
+        prior_id,sha,captured_at=previous
+        need(clock>=stamp(captured_at),'HISTORY_REPARSE_CLOCK_REGRESSION')
+        stored=self.db.execute('SELECT raw FROM archives WHERE sha=?',(sha,)).fetchone()
+        need(stored is not None and hashlib.sha256(stored[0]).hexdigest()==sha,'HISTORY_RAW_HASH_MISMATCH')
+        events=self.db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='parse_events'").fetchone()
+        event=self.db.execute('SELECT parsed_at,parser_revision FROM parse_events WHERE observation_id=?',(prior_id,)).fetchone() if events else None
+        if event:
+            if event[0] is not None:need(clock>=stamp(event[0]),'HISTORY_REPARSE_CLOCK_REGRESSION')
+            if event[1]==OFFICIAL_K_PARSER_REVISION:return False
+        state,reason,n=_interpret(day,stored[0])
+        with self.db:
+            self._events_table()
+            current=self.db.execute('INSERT INTO observations(day,sha,captured_at,state,reason,starts) VALUES (?,?,?,?,?,?)',(day,sha,captured_at,state,reason,n)).lastrowid
+            self.db.execute('INSERT INTO parse_events VALUES (?,?,?,?)',(current,prior_id,parsed_at,OFFICIAL_K_PARSER_REVISION))
         return True
 
     def missing(self,day,*,captured_at,http_status):
@@ -108,7 +156,7 @@ class HistoryMonth:
         return wait if wait is not None and wait_active(wait,now) else None
 
     def pending(self):
-        done={r[0] for r in self._heads()}
+        done={r[0] for r in self._heads() if r[3]!='WAITING_PUBLICATION'}
         return [d for (d,) in self.db.execute('SELECT day FROM expected ORDER BY day') if d not in done]
 
     def archives(self):
@@ -123,12 +171,15 @@ class HistoryMonth:
         expected=self.db.execute('SELECT count(*) FROM expected').fetchone()[0]
         index_raw=self.db.execute('SELECT index_raw FROM meta').fetchone()[0]
         excluded=len(_Fields(index_raw).days)-expected
-        return dict(schema=SCHEMA,month=self.month,listed_days=expected,parsed_days=states['PARSED'],
-                    missing_days=states['MISSING'],quarantined_days=states['QUARANTINED'],pending_days=expected-len(heads),
+        waiting=sum(r[3]=='WAITING_PUBLICATION' for r in heads)
+        report=dict(schema=SCHEMA,month=self.month,listed_days=expected,parsed_days=states['PARSED'],
+                    missing_days=states['MISSING'],quarantined_days=states['QUARANTINED'],pending_days=expected-len(heads)+waiting,
                     revision_observations=self.db.execute('SELECT count(*) FROM observations').fetchone()[0],
                     unique_archive_bytes=self.db.execute('SELECT coalesce(sum(length(raw)),0) FROM archives').fetchone()[0],
                     excluded_listed_days=excluded,month_complete=expected>0 and states['PARSED']==expected and excluded==0,
                     all_available_period_complete=False,formal_backtest_eligible=False)
+        if waiting:report['waiting_publication_days']=waiting
+        return report
 
     def serialize(self):
         self.db.commit();raw=self.db.serialize();need(len(raw)<=MAX_DB,'HISTORY_MONTH_PARTITION_SIZE_LIMIT');return raw
