@@ -19,7 +19,7 @@
     "race_ai/cycle_recovery.py": "570aeedf114934f835459187f906822c4e17bb9b55cfdda385393a7ac5ebcc3f",
     "scripts/github_existing_cycle.py": "ff19e50075e837cc9c27c49e2dc00f2db66bf0f70fe98ed4d695ef26116deba8",
     "scripts/boat_video_analyze.py": "90b125d8234eaa23fcf7af36e25c726bfca8fd85575c5e0686709a4555838bd5",
-    ".github/workflows/forecast-audit-ui.yml": "0dcceeddb4fdf11725b478d69f68edcd01b7d318a1692b5ef31e9cf769c39ea7"
+    ".github/workflows/forecast-audit-ui.yml": "538e8de4d1d890e35784a9c9022f16b7b2c0828cd76a89d7e0cedf1c93ebab16"
   },
   "implementation": {
     "optional_tiled_same_pinned_detector": true,
@@ -554,13 +554,115 @@
       "passed": 1727,
       "skipped": 0,
       "seconds": 266.454,
-      "log_sha256": "432341c46efea22eddbdea43e8fa26b7885017d4dc850fbdfe79509bbc282004"
+      "log_sha256": "432341c46efea22eddbdea43e8fa26b7885017d4dc850fbdfe79509bbc282004",
+      "source_head": "27c198141ca6ded3c4a3f0d85a1f09417fb34c8b"
     },
     "scoped_and_cross_contract_review": "GREEN_NO_P1_P2",
-    "private_final_review_sha256": "400104fd2e0a03c6bfb946b7d77845f09e53dafe82c3339a0f1312bce72e5f4c",
-    "yaml_event_isolation": "8_PULL_REQUEST_JOBS_1_CIPHERTEXT_DISPATCH_JOB",
-    "existing_ci": "PENDING_PUSHED_EXACT_HEAD",
-    "browser_ci": "PENDING_EXISTING_WORKFLOW"
+    "private_final_review_sha256": "c9c0a0d3813bac2792c00218ee545e0d9637b859167bf5b88c25d0efaa549a56",
+    "yaml_event_isolation": "9_PULL_REQUEST_JOBS_1_CIPHERTEXT_DISPATCH_JOB",
+    "existing_ci": "SUCCESS_EXACT_RUN_HEAD_2318CAC",
+    "browser_ci": "SUCCESS_SYNTHETIC_ONLY_NOT_SAFARI_OR_FIELD_ACCURACY",
+    "concurrent_recipient_handoff_regression": {
+      "tests": 16,
+      "passed": 16,
+      "skipped": 0,
+      "seconds": 8.505,
+      "source_head": "2318cac2a411d7050e0abf0a5c849778b1f99193",
+      "log_sha256": "2fe394f6c5dcc0e594862fefbef39828864d5fa6ab5f4b93b1d332b773504374"
+    },
+    "cancelled_prior_ci": {
+      "id": 42147499659,
+      "head_sha": "27c198141ca6ded3c4a3f0d85a1f09417fb34c8b",
+      "conclusion": "cancelled",
+      "reason": "NEW_CONCURRENT_HEAD_PUSH",
+      "general_python_and_isolated_cv_steps": "SUCCESS",
+      "browser_step": "CANCELLED_NOT_PASSED"
+    },
+    "implementation_ci_receipt": {
+      "checked_at": "2026-11-06T02:17:09.353253+00:00",
+      "runs": [
+        {
+          "id": 42148288953,
+          "workflow_id": 392270247,
+          "head_sha": "2318cac2a411d7050e0abf0a5c849778b1f99193",
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/haji84/RACE-AI/actions/runs/42148288953",
+          "created_at": "2026-11-06T02:07:30Z",
+          "updated_at": "2026-11-06T02:12:45Z"
+        },
+        {
+          "id": 42148288971,
+          "workflow_id": 405150548,
+          "head_sha": "2318cac2a411d7050e0abf0a5c849778b1f99193",
+          "event": "pull_request",
+          "status": "completed",
+          "conclusion": "success",
+          "html_url": "https://github.com/haji84/RACE-AI/actions/runs/42148288971",
+          "created_at": "2026-11-06T02:07:30Z",
+          "updated_at": "2026-11-06T02:07:51Z"
+        }
+      ],
+      "checkout_commit": "e536bc389f17af6c55147fd2c822394c78d29c23",
+      "checkout_parents": [
+        "bca59ebc5c7174e79d2dba027a97890f5d0d3d1f",
+        "2318cac2a411d7050e0abf0a5c849778b1f99193"
+      ],
+      "all_listed_task_source_hashes_match_branch_head_and_ci_checkout": true,
+      "additional_pr_base_files": [
+        "race_ai/discovery_reconcile.py",
+        "tests/test_discovery_reconcile.py"
+      ],
+      "general_python": {
+        "tests": 1735,
+        "skipped": 140,
+        "seconds": 122.426,
+        "status": "OK"
+      },
+      "isolated_video_python": {
+        "tests": 251,
+        "skipped": 0,
+        "seconds": 19.426,
+        "status": "OK"
+      },
+      "browser": {
+        "scope": "SYNTHETIC_ONLY",
+        "checks": 39,
+        "errors": [],
+        "widths": [
+          320,
+          390,
+          1440,
+          1920
+        ],
+        "source_requests": 0,
+        "png_files": 60,
+        "manual_visual_spot_review": [
+          "390-detail",
+          "1440-home"
+        ],
+        "iphone_safari": false,
+        "eight_reference_images_recompared_this_continuation": false
+      },
+      "product_ui_node": {
+        "tests": 48,
+        "passed": 48
+      },
+      "video_ui_node": {
+        "tests": 12,
+        "passed": 12,
+        "skipped": 0
+      },
+      "synthetic_ui_artifact": {
+        "id": 13470784383,
+        "sha256": "d716e61169a7cb30c590eb8695685034c332db64a23f0308632d1ab2727a8a59",
+        "crc_errors": 0
+      },
+      "ci_log_sha256": "0eeee3867b6e561c28bc7bc9f715920517bc90bcb60e695fde822e8f8027dbfd"
+    },
+    "implementation_ci_private_receipt_sha256": "7b1bb3359ffdd8f23ba31fe363322e327f943f44eea88fd4e674e9f4a8006c51",
+    "public_transcription_review_sha256": "194f1453b5c843b492a09d0f6350ce4dfc65492c653f100b03248723b3c0e3cf"
   },
   "continuity": {
     "observed_at": "2026-11-06T01:54:30.449461+00:00",
@@ -584,10 +686,10 @@
     "AUTHORIZED_CURRENT_MEDIA",
     "ADEQUATE_INDEPENDENT_IDENTITIES_AND_TRACK_LABELS",
     "FIELD_CALIBRATION_CLOCK_CONTACT_AND_STRENGTH_TARGETS",
-    "OWNER_KEY_LOCAL_CONNECTION",
-    "PLATFORM_DISPATCH_VERIFICATION",
     "INDEPENDENT_CURRENT_CONTEXT_RECEIPTS",
-    "PRE_CUTOFF_FROZEN_PAIRS_AND_LATER_OFFICIAL_RESULTS"
+    "PRE_CUTOFF_FROZEN_PAIRS_AND_LATER_OFFICIAL_RESULTS",
+    "LOCAL_SENDER_AUTHORIZED_CRYPTO_CONNECTION_WITHOUT_EXPORTING_ACTIONS_ROOT_KEY",
+    "VIDEO_INGEST_WITH_CURRENT_CONFIGURED_KEY_NOT_TESTED"
   ],
   "main_merge_or_public_deployment": false,
   "wagers": false,
@@ -602,5 +704,39 @@
     "Same references reused across cases do not multiply independent sample size.",
     "CTC sequence likelihood and appearance margins are uncalibrated, not prediction probabilities.",
     "Code/fixture tests and hull agreement do not establish strength or prospective improvement."
-  ]
+  ],
+  "platform_negative_test": {
+    "scope": "ONE_INVALID_INPUT_NEGATIVE_TEST_KEY_HOLD_BEFORE_PAYLOAD_NOT_REAL_CONTEXT_RECEIPT",
+    "checked_at": "2026-11-06T02:02:06.979687+00:00",
+    "run": {
+      "id": 42147537641,
+      "event": "workflow_dispatch",
+      "head_sha": "27c198141ca6ded3c4a3f0d85a1f09417fb34c8b",
+      "status": "completed",
+      "conclusion": "success",
+      "created_at": "2026-11-06T02:00:42Z",
+      "updated_at": "2026-11-06T02:00:54Z",
+      "html_url": "https://github.com/haji84/RACE-AI/actions/runs/42147537641"
+    },
+    "receiver_status": "HOLD_OWNER_STATE_KEY_REQUIRED",
+    "uploaded_artifact_count": 0,
+    "private_features_or_keys_sent": false,
+    "platform_dispatch_observed": true,
+    "real_producer_or_live_process_activated": false,
+    "payload_rejection_tested_on_actual_runner": false,
+    "key_gate_held_before_payload": true,
+    "private_receipt_sha256": "c5abce5b76f6f9a2e9a5ed292a2521e9ea8a37101029cf1d60c3356b70deccca"
+  },
+  "concurrent_public_recipient_status": {
+    "scope": "READ_ONLY_EXISTING_RECIPIENT_STATUS_NOT_VIDEO_ACTIVATION",
+    "run_id": 42148288953,
+    "artifact_id": 13470563954,
+    "artifact_digest": "sha256:f8e965bfa43e7b6cf88f5b7fd25eac6899b16e7604f3fd5bb6e12d54de90236b",
+    "status": {
+      "status": "OWNER_RECIPIENT_READY"
+    },
+    "member_count": 2,
+    "owner_key_or_receiver_private_material_read": false,
+    "video_publication_compatibility_or_receipt_verified": false
+  }
 }
