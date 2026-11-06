@@ -1,3 +1,16 @@
+<!-- RACEAI_AUTOMATION_20261107_0535_RESTORE_SUCCESS_AND_OFFICIAL_STARTED -->
+# 2026-11-07 05:35 JST｜Actions内原本復元成功を実証。新しい正式workerは実行中、通常採点は未増加
+
+**今回確認した差分:** 既存workflow405276784のsaved-view run42287779744は2026-11-07 05:26:42 JSTにcompleted/success。GitHub Actions jobログの`scripts/github_existing_cycle.py restore`は05:26:39 JSTに`ORIGINAL_REUSED_NO_REGENERATION`、実際に元P0の132レース/264予想の復元を正常終了した。同runの研究モデル`bootstrap-current`はcontexts=132だが**generated_forecasts=0**であり、P1展示後5モデル・公式結果の成功ではない。これまでの当日保存済み原本77件は04:03に独立SHA/CRC照合済み、旧失敗時のHTTPコードはいまだ不明。
+
+**新しい本来のworker:** 別作業がこの確認直前に既存triggerを更新し、HEAD `ad220c84eb4ff86b9f00dbab4d6246c4d08190b2` でworkflow run42289399740を開始（05:33:46 JST）。official_national jobがin_progress、saved-view jobはskipped。05:35 JST時点の実ステップは`Check all earlier same-day receipts before first P0`成功、`Reuse authenticated first original`は**in_progress**。まだ新runのrestore完走、予想/結果/PDCA ZIP、GET実数、240回上限安全停止の新証拠なし。今回の自動化からtrigger追加/cancel/rerun/新PR/タスク変更は**0件**。同時に待機中の予想runも検出なし。
+
+**最新の正式完了巡回は不変:** 新日run42259181853の保存済み第14巡（JST 03:06:24）、132レース、初回P0既存2系統各132予想、P1基準5系統0、通常採点0、学習版未来比較0。研究用暗号化saved-view artifactを正式予想や公式採点に加算しない。したがって的中率・収支・回収率は未算定。
+
+**検出した運転上の差異:** 現workflowのconcurrency.groupがcommit接頭辞によりsaved-view用とofficial_national用の**2群を条件分岐**している。official_national内は`boat-nationwide-cutoff-20261103` / cancel-in-progress=falseだが、workflow全体での「同じgroup」は現状満たしていない。worker運転中にworkflow更新・追加起動を行わず、次回の安全な改修ゲートとして残す。既存有限上限240/45 GET、24巡/65分/180秒、原本不一致・4xx/429停止を緩和しない。
+
+---
+
 <!-- RACEAI_AUTOMATION_20261107_0403_ALL_CURRENT_DAY_ORIGINAL_ARCHIVES_INDEPENDENT_AUDIT -->
 # 2026-11-07 04:03 JST｜新日保存済み全38巡のP1・結果原本を独立再取得して元ZIP照合（実worker再開は保留）
 
