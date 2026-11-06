@@ -131,7 +131,7 @@ def _merge_verified_result_observations(observations):
         race=_race_key(original['race_id'],'boat');captured=ts(original['captured_at'])
         normalized=deepcopy(original);normalized['race_id']=race
         for name in ('captured_at','available_at','published_at','upstream_published_at','closed_at'):
-            if normalized.get(name) is not None:normalized[name]=ts(normalized[name]).isoformat()
+            if normalized.get(name) is not None:normalized[name]=ts(normalized[name]).astimezone(timezone.utc).isoformat()
         key=(race,captured);fingerprint=digest(normalized)
         if key in seen:
             old,representative=seen[key]

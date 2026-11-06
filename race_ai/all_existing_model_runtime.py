@@ -12,7 +12,9 @@ import stat
 import time
 
 from .actions_contract import digest
-from .all_existing_model_inputs import read_private_pending_requests, _location, _directory
+from .all_existing_model_inputs import (
+    read_private_pending_requests, validate_additional_requests, _additional_source_pairs, _location, _directory,
+)
 from .all_existing_model_learning import SCHEMA, verify_training
 from .all_existing_model_pairs import (
     make_private_pairs, verify_private_record, record_partition_key, record_identity,
@@ -149,7 +151,7 @@ def _verify_output(root, summary, expected, expected_pairs, context):
     return min(cutoffs)
 
 
-def generate_current_pairs(runtime, pending_folder, output, *, now):
+def generate_current_pairs(runtime, pending_folder, output, *, now, additional_requests=()):
     """Return aggregate status after private input enrichment and exact readback."""
     started = time.monotonic()
     state_key('production')  # Before pending paths, context or grid are inspected.
@@ -177,9 +179,34 @@ def generate_current_pairs(runtime, pending_folder, output, *, now):
     if not originals:
         return _hold('NO_PENDING_INPUTS')
     references = _sources(originals) | {(url, RIGHTS)}
+    requests = deepcopy(originals)
+    extra = validate_additional_requests(additional_requests, now=now)
+    if extra:
+        from . import all_existing_model_registry as registry
+        from .existing_model_dispatch import _race_key
+        identities = set(); cohorts = {}
+        def identity(request):
+            info = registry.identity(request['cell_key'][5:], 'boat', request['native_payload'])
+            race = _race_key(info['race_id'], 'boat')
+            return (request['cell_key'], race), info, race
+        def cohort(info):
+            return (info['roster'], ts(info['race_cutoff_at']), info['scope'])
+        for request in originals:
+            key, info, race = identity(request)
+            _need(race not in cohorts or cohorts[race] == cohort(info), 'ORIGINAL_RACE_BINDING_CONFLICT')
+            cohorts[race] = cohort(info); identities.add(key)
+        for request in extra:
+            key, info, race = identity(request)
+            _need(ts(info['as_of']) <= now < ts(info['cutoff_at']), 'ADDITIONAL_PHYSICAL_CLOCK')
+            _need(race not in cohorts or cohorts[race] == cohort(info), 'ADDITIONAL_RACE_BINDING_CONFLICT')
+            # The original five remain authoritative even when the engine's
+            # equivalent native input has different builder/source metadata.
+            if key in identities:
+                continue
+            references.update(_additional_source_pairs(request['native_payload'], as_of=info['as_of']))
+            requests.append(request); identities.add(key); cohorts[race] = cohort(info)
     def analysis(source, rights, purpose):
         return purpose == 'analysis' and (source, rights) in references
-    requests = deepcopy(originals)
     for request in requests:
         if request['cell_key'] not in {'boat/'+mid for mid in OBSERVED}:
             continue
@@ -198,7 +225,7 @@ def generate_current_pairs(runtime, pending_folder, output, *, now):
         result = make_private_pairs(context, requests, root, now=physical, allow_source=analysis)
     except ValueError as exc:
         if str(exc) == 'ALL_MODEL_PRIVATE_PAIRS_CUTOFF_ELAPSED_DURING_SEAL':
-            return _hold('QUARANTINED_CUTOFF_ELAPSED_DURING_SEAL', requested=len(originals))
+            return _hold('QUARANTINED_CUTOFF_ELAPSED_DURING_SEAL', requested=len(requests))
         raise
     expected = {(request['cell_key'], digest(request['native_payload'])) for request in requests}
     expected_pairs = {(request['cell_key'], digest(request['native_payload']))
@@ -209,15 +236,15 @@ def generate_current_pairs(runtime, pending_folder, output, *, now):
             type(result.get('partition_count')) is not int or result['partition_count'] <= 0 or
             result.get('captured_native_input_count') != len(expected) or
             result.get('unretained_native_input_count') != 0):
-        return _hold('INCOMPLETE_ENCRYPTED_NATIVE_INPUTS', requested=len(originals),
+        return _hold('INCOMPLETE_ENCRYPTED_NATIVE_INPUTS', requested=len(requests),
                      partitions=result.get('partition_count', 0))
     cutoff = _verify_output(root, result, expected, expected_pairs, context)
     elapsed = time.monotonic()-started
     _need(elapsed >= 0, 'CLOCK_REGRESSED')
     if now+timedelta(seconds=elapsed) >= cutoff:
-        return _hold('QUARANTINED_CUTOFF_ELAPSED_DURING_READBACK', requested=len(originals),
+        return _hold('QUARANTINED_CUTOFF_ELAPSED_DURING_READBACK', requested=len(requests),
                      partitions=result['partition_count'])
     # A new or changed pending batch must never be removed as an older batch's
     # cleanup. The private reader repeats source, hash and permission checks.
     _remove_original_pending(pending_folder, originals)
-    return dict(result, native_request_count=len(originals), pending_removed=True)
+    return dict(result, native_request_count=len(requests), pending_removed=True)
