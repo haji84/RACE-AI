@@ -10,6 +10,8 @@ from .existing_model_dispatch import GROUPS, InputMissing, _scope, _bind, _autho
 from .boat_observed_pairwise_models import MODEL_IDS as OBSERVED, WEIGHTS, FEATURE_RANGES, predict_pair
 from .observed_weight_learning import vectors, ts
 from .four_sport_learning import LEARNED_ID, vector_schema, forecast as ranker_forecast, _all_triples
+from .comprehensive_four_sport_models import SCHEMA as SHARED_SCHEMA, SCHEMA_SPARSE as SHARED_SPARSE
+from .boat_multi_feature_models import SCHEMA_SPARSE as FULL_SPARSE
 from . import existing_boat_parameter_adapters as boat
 from . import existing_common_parameter_adapters as common
 from . import existing_special_parameter_adapters as special
@@ -25,10 +27,13 @@ def cell_key(sport,model_id):return sport+'/'+model_id
 def group(model_id):
     return next(name for name,ids in GROUPS if model_id in ids)
 
-def specs(model_id,sport):
+def specs(model_id,sport,*,input_schema=None):
     need(any(m['model_id']==model_id and sport in m['applicable_sports'] for m in catalog()),'MODEL_SPORT_NOT_APPLICABLE')
     if model_id in OBSERVED:return {k:(v,0.,4.) for k,v in zip(FEATURE_RANGES,WEIGHTS[model_id])}
-    if model_id==LEARNED_ID:return {name:(0.,-8.,8.) for name in vector_schema(sport)}
+    if model_id==LEARNED_ID:
+        need(input_schema in (None,SHARED_SCHEMA,SHARED_SPARSE),'RANKER_INPUT_SCHEMA')
+        need(input_schema!=SHARED_SPARSE or sport=='boat','SPARSE_SPORT')
+        return {name:(0.,-8.,8.) for name in vector_schema(sport,sparse=input_schema==SHARED_SPARSE)}
     adapter=boat if group(model_id) in ('boat_ab','boat_clite','boat_tactical','boat_full') else common if group(model_id)=='shared' else special
     return adapter.specs(model_id,sport)
 
@@ -41,8 +46,21 @@ def cells():
 
 def registry_sha256():return digest(dict(version=VERSION,cells=cells()))
 
-def validate_parameters(model_id,sport,parameters):
-    spec=specs(model_id,sport)
+def parameter_contract(model_id,sport,*,input_schema):
+    """Bind an explicit sparse native schema without changing the dense catalog.
+
+    The existing catalog digest describes the original dense contracts. Sparse
+    artifacts additionally bind this exact schema and coefficient vocabulary;
+    their frozen input and contract digests are retained in the owner intake.
+    """
+    kind=group(model_id)
+    need(sport=='boat' and ((kind in ('shared','shared_learned') and input_schema==SHARED_SPARSE) or
+                           (kind=='boat_full' and input_schema==FULL_SPARSE)),'SPARSE_PARAMETER_CONTRACT')
+    return dict(schema='RACE_AI_EXISTING_SPARSE_PARAMETER_CONTRACT_V1',model_id=model_id,sport=sport,
+                input_schema=input_schema,parameters={k:list(v) for k,v in specs(model_id,sport,input_schema=input_schema).items()})
+
+def validate_parameters(model_id,sport,parameters,*,input_schema=None):
+    spec=specs(model_id,sport,input_schema=input_schema)
     need(type(parameters) is dict and set(parameters)==set(spec),'PARAMETER_FIELDS')
     need(all(type(v) in (int,float) and math.isfinite(v) and spec[k][1]<=v<=spec[k][2]
              for k,v in parameters.items()),'PARAMETER_BOUNDS')
@@ -120,7 +138,8 @@ def identity(model_id,sport,payload,*,race_id=None):
     elif kind in ('shared','shared_learned'):
         roster={str(p['number']):p['identity'] for p in snapshot['participants']};stage=payload.get('stage','P1');at=race['as_of']
     elif kind=='boat_full':
-        roster={str(p['lane']):p['participant_id'] for p in snapshot['entrants']};stage='P1';at=race['as_of']
+        roster={str(p['lane']):p['participant_id'] for p in snapshot['entrants']}
+        stage=payload.get('stage','P1') if snapshot.get('schema')==FULL_SPARSE else 'P1';at=race['as_of']
     else:
         roster={str(p['lane']):p['registration_no'] for p in snapshot['participants']};stage=snapshot['stage'];at=race['as_of']
     return dict(race_id=race['race_id'],stage=stage,as_of=at,cutoff_at=race['sales_cutoff_at'],
@@ -160,7 +179,7 @@ def validate_payload(model_id,sport,payload,*,at,allow_source=None,race_id=None)
     return info
 
 def predict(model_id,sport,payload,parameters=None,*,at,allow_source=None,native_training=None):
-    if parameters is not None:validate_parameters(model_id,sport,parameters)
+    if parameters is not None:validate_parameters(model_id,sport,parameters,input_schema=payload.get('snapshot',{}).get('schema'))
     at=at.isoformat() if isinstance(at,datetime) else at
     validate_payload(model_id,sport,payload,at=at,allow_source=allow_source)
     if model_id in OBSERVED:

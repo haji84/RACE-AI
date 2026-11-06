@@ -57,9 +57,35 @@ def _sources(payload):
             for child in value:visit(child)
     visit(payload);return pairs
 
+def _lineage(row):
+    value=dict(race_id=row['race_id'],input_sha256=row['input_sha256'],as_of=row['as_of'],
+        cutoff_at=row['cutoff_at'],input_saved_at=row['input_saved_at'],
+        result_captured_at=row['result']['captured_at'],result_sha256=row['result']['source_sha256'])
+    if 'input_derivation' in row:
+        proof=row['input_derivation']
+        value.update(input_derivation={k:deepcopy(v) for k,v in proof.items() if k!='original_record'},
+            input_derivation_sha256=digest(proof),input_save_semantics='ORIGINAL_OBSERVATION_AVAILABILITY_BOUND')
+    return value
+
+def _ranker_label(row):
+    snapshot=row['native_payload']['snapshot'];sport=row['sport']
+    result={k:row['result'].get(k) for k in ('race_id','status','ordered_top3','published_at',
+        'captured_at','source_ref','source_rights_ref')}
+    # Outer admission already binds each supported alias to the same race.
+    need(_race_key(result['race_id'],sport)==_race_key(snapshot['race']['race_id'],sport),'RANKER_RESULT_IDENTITY')
+    result['race_id']=snapshot['race']['race_id']
+    if snapshot['schema']==registry.SHARED_SPARSE:
+        result['source_sha256']=row['result']['source_sha256']
+    return result
+
 def _record(row,now,allow_source,allow_training):
     need(type(row) is dict,'RECORD_REQUIRED');mid=row['model_id'];sport=row['sport']
+    if 'input_derivation' in row:
+        from .all_existing_model_derivation import verify_derivation
+        verify_derivation(row,now=now,allow_source=allow_source,allow_training=allow_training)
     registry.specs(mid,sport);payload=row['native_payload']
+    from .all_existing_model_source_derivations import validate_source_derivations
+    validate_source_derivations(payload)
     need(row['input_sha256']==digest(payload),'INPUT_HASH')
     info=registry.identity(mid,sport,payload,race_id=row['race_id'])
     need(row['scope'] in ('SYNTHETIC_ONLY','OPERATOR_SUPPLIED_RESEARCH') and row['scope']==info['scope'],'SCOPE')
@@ -79,6 +105,14 @@ def _record(row,now,allow_source,allow_training):
     if row['scope']!='SYNTHETIC_ONLY':
         need(callable(allow_training) and all(allow_training(u,r,'model_training') is True for u,r in sources),'TRAINING_PERMISSION')
     registry.validate_payload(mid,sport,payload,at=row['as_of'],allow_source=allow_source,race_id=row['race_id'])
+    if mid==LEARNED_ID:
+        from .four_sport_learning import _label
+        # Validate every separate label before choosing a cohort. This checks
+        # holdout provenance without exposing it to the coefficient optimizer.
+        _label(_ranker_label(row),payload['snapshot'],scope=row['scope'],window_end=now,
+            allow_result=lambda source,rights,purpose: purpose=='result_evaluation' and
+                (source,rights)==(result['source_ref'],result['source_rights_ref']) and
+                callable(allow_training) and allow_training(source,rights,'model_training') is True)
     return deepcopy(row)
 
 def _metrics(rows,parameters,allow_source):
@@ -170,16 +204,19 @@ def fit(records,*,now,allow_source=None,allow_training=None):
         boundary=ts(holdout[0]['result']['captured_at'])
         while train and ts(train[-1]['result']['captured_at'])==boundary:holdout.insert(0,train.pop())
         if len(train)<6:continue
-        mid=cell['model_id'];sport=cell['sport'];base={k:v[0] for k,v in registry.specs(mid,sport).items()}
+        mid=cell['model_id'];sport=cell['sport']
+        schemas={r['native_payload'].get('snapshot',{}).get('schema') for r in rows}
+        if mid==LEARNED_ID:need(len(schemas)==1,'MIXED_RANKER_INPUT_SCHEMAS')
+        input_schema=next(iter(schemas)) if len(schemas)==1 else None
+        base={k:v[0] for k,v in registry.specs(mid,sport,input_schema=input_schema).items()}
         native_training=None
         if mid==LEARNED_ID:
             from .existing_common_parameter_adapters import fit_ranker
             from .four_sport_learning import _vectors, _all_triples
             labeled=[]
             for row in train:
-                result={k:row['result'].get(k) for k in ('race_id','status','ordered_top3','published_at','captured_at','source_ref','source_rights_ref')}
-                need(result['published_at'] is not None,'RANKER_PUBLICATION_CLOCK_REQUIRED')
-                labeled.append(dict(snapshot=row['native_payload']['snapshot'],result=result))
+                snapshot=row['native_payload']['snapshot']
+                labeled.append(dict(snapshot=snapshot,result=_ranker_label(row)))
             admitted_results={(row['result']['source_ref'],row['result']['source_rights_ref']) for row in train}
             def ranker_result_admission(source,rights,purpose):
                 # _record independently admitted these exact result sources
@@ -250,9 +287,10 @@ def fit(records,*,now,allow_source=None,allow_training=None):
             train_race_ids=[r['race_id'] for r in train],validation_race_ids=[r['race_id'] for r in holdout],
             training=metrics,holdout=validation,holdout_baseline=baseline_metrics,
             coefficients_changed=parameters!=base,native_training=native_training,
-            source_lineage=[dict(race_id=r['race_id'],input_sha256=r['input_sha256'],
-                as_of=r['as_of'],cutoff_at=r['cutoff_at'],input_saved_at=r['input_saved_at'],
-                result_captured_at=r['result']['captured_at'],result_sha256=r['result']['source_sha256']) for r in rows])
+            source_lineage=[_lineage(r) for r in rows])
+        if input_schema in (registry.SHARED_SPARSE,registry.FULL_SPARSE):
+            model.update(input_schema=input_schema,parameter_contract_sha256=digest(
+                registry.parameter_contract(mid,sport,input_schema=input_schema)))
         seal(model,'model_sha256');out['models'][key]=model
         out['model_states'][key].update(state='FITTED_SHADOW_ONLY',train_races=len(train),validation_races=len(holdout))
     if out['models']:out['state']='FITTED_SHADOW_ONLY'
@@ -314,11 +352,15 @@ def verify_training(training):
             need(type(model) is dict and key==registry.cell_key(model['sport'],model['model_id']) and
                  model['state']=='FITTED_SHADOW_ONLY' and hash_value(model['model_sha256']) and
                  model['model_sha256']==digest({k:v for k,v in model.items() if k!='model_sha256'}),'MEMBER_INTEGRITY')
-            mid,sport=model['model_id'],model['sport'];spec=registry.specs(mid,sport)
-            parameters=registry.validate_parameters(mid,sport,model['parameters'])
+            mid,sport=model['model_id'],model['sport'];input_schema=model.get('input_schema')
+            if 'input_schema' in model or 'parameter_contract_sha256' in model:
+                contract=registry.parameter_contract(mid,sport,input_schema=input_schema)
+                need(model.get('parameter_contract_sha256')==digest(contract),'PARAMETER_CONTRACT')
+            spec=registry.specs(mid,sport,input_schema=input_schema)
+            parameters=registry.validate_parameters(mid,sport,model['parameters'],input_schema=input_schema)
             base={name:values[0] for name,values in spec.items()}
             need(type(model['base_parameters']) is dict and model['base_parameters']==base,'BASE_PARAMETERS')
-            registry.validate_parameters(mid,sport,model['base_parameters'])
+            registry.validate_parameters(mid,sport,model['base_parameters'],input_schema=input_schema)
             train_n,valid_n,n=model['train_races'],model['validation_races'],model['unique_races']
             need(all(type(count) is int for count in (train_n,valid_n,n)) and
                  train_n>=6 and valid_n>=2 and n>=MIN_RACES and train_n+valid_n==n,'COHORT')
@@ -348,6 +390,26 @@ def verify_training(training):
                 saved=timestamp(row['input_saved_at']);result_at=timestamp(row['result_captured_at'])
                 check_clock(row['as_of'],row['cutoff_at'],row['input_saved_at'])
                 need(asof<=result_at and saved<=result_at and cutoff<=result_at<=available,'LINEAGE_CLOCK')
+                if any(name in row for name in ('input_derivation','input_derivation_sha256','input_save_semantics')):
+                    from .all_existing_model_derivation import SCHEMA as DERIVATION_SCHEMA,DERIVATION_ID,AVAILABILITY_BASIS
+                    proof=row.get('input_derivation')
+                    fields={'schema','derivation_id','derived_at','original_record_sha256','original_model_id',
+                        'original_payload_sha256','original_snapshot_sha256','original_input_receipt',
+                        'original_input_saved_at','original_as_of','original_cutoff_at','native_input_sha256',
+                        'data_availability_basis','derived_payload_saved_before_cutoff'}
+                    need(type(proof) is dict and set(proof)==fields and
+                        proof['schema']==DERIVATION_SCHEMA and proof['derivation_id']==DERIVATION_ID and
+                        proof['data_availability_basis']==AVAILABILITY_BASIS and
+                        proof['derived_payload_saved_before_cutoff'] is False and
+                        row.get('input_save_semantics')=='ORIGINAL_OBSERVATION_AVAILABILITY_BOUND' and
+                        hash_value(row.get('input_derivation_sha256')),'DERIVATION_LINEAGE')
+                    need(all(hash_value(proof[field]) for field in ('original_record_sha256','original_payload_sha256',
+                        'original_snapshot_sha256','native_input_sha256')) and proof['original_model_id'] in OBSERVED and
+                        type(proof['original_input_receipt']) is dict and bool(proof['original_input_receipt']) and
+                        proof['native_input_sha256']==row['input_sha256'] and
+                        proof['original_as_of']==row['as_of'] and proof['original_cutoff_at']==row['cutoff_at'] and
+                        proof['original_input_saved_at']==row['input_saved_at'] and
+                        saved<=timestamp(proof['derived_at'])<=created,'DERIVATION_LINEAGE_BINDING')
                 result_times[rid]=result_at
             need(set(result_times)==train_ids|valid_ids,'LINEAGE_COHORT')
             need(max(result_times[rid] for rid in train_ids)<min(result_times[rid] for rid in valid_ids),
@@ -365,13 +427,17 @@ def verify_training(training):
                 need(timestamp(native['data_available_until'])<=available and timestamp(native['created_at'])<=created,
                      'NATIVE_TRAINING_CLOCK')
             elif mid==LEARNED_ID:
-                from .four_sport_learning import vector_schema, VECTOR_VERSION, TRAIN_ONLY_VERSION
+                from .four_sport_learning import (vector_schema, VECTOR_VERSION, TRAIN_ONLY_VERSION,
+                    SPARSE_VECTOR_VERSION, SPARSE_TRAIN_ONLY_VERSION)
+                sparse=input_schema==registry.SHARED_SPARSE
                 need(type(native) is dict and native.get('model_id')==mid and native.get('sport')==sport and
                      hash_value(native.get('model_sha256')) and
                      native['model_sha256']==digest({k:v for k,v in native.items() if k!='model_sha256'}),
                      'NATIVE_TRAINING_INTEGRITY')
-                need(native['trained_scope']==training['scope'] and native['vector_version']==VECTOR_VERSION and
-                     native['model_version']==TRAIN_ONLY_VERSION and native['vector_schema']==list(vector_schema(sport)) and
+                need(native['trained_scope']==training['scope'] and native['vector_version']==(SPARSE_VECTOR_VERSION if sparse else VECTOR_VERSION) and
+                     native['model_version']==(SPARSE_TRAIN_ONLY_VERSION if sparse else TRAIN_ONLY_VERSION) and
+                     native.get('input_schema',registry.SHARED_SCHEMA)==(registry.SHARED_SPARSE if sparse else registry.SHARED_SCHEMA) and
+                     native['vector_schema']==list(vector_schema(sport,sparse=sparse)) and
                      type(native['weights']) is list and
                      all(type(value) in (int,float) for value in native['weights']) and
                      native['weights']==[parameters[name] for name in spec] and
@@ -398,6 +464,8 @@ def forecast_pair(training,cell_key,payload,*,now,allow_source=None):
     verify_training(training);need(type(now) is datetime and now.utcoffset() is not None,'AWARE_CLOCK')
     need(ts(training['created_at'])<=now and cell_key in training['models'],'CANDIDATE_NOT_AVAILABLE')
     model=training['models'][cell_key];mid=model['model_id'];sport=model['sport']
+    if model.get('input_schema') is not None:
+        need(payload.get('snapshot',{}).get('schema')==model['input_schema'],'CANDIDATE_INPUT_SCHEMA')
     info=registry.validate_payload(mid,sport,payload,at=now,allow_source=allow_source)
     need(now<ts(info['cutoff_at']),'FORECAST_CUTOFF')
     past={_race_key(rid,sport) for rid in model['train_race_ids']+model['validation_race_ids']}

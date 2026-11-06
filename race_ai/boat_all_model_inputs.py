@@ -403,7 +403,7 @@ def build_native_inputs(program, beforeinfo, *, as_of, history_context=None, fit
             if full: conditions[full] = value
     race = _shared_race(rid, cutoff, at, distance=program.get("distance_m"))
     snapshot = _snapshot(race, participants, environment)
-    native = {"shared": dict(snapshot=snapshot), "boat_full": dict(scope=RESEARCH, source_evidence=deepcopy(evidence), snapshot=dict(
+    native = {"shared": dict(snapshot=snapshot, source_evidence=deepcopy(evidence)), "boat_full": dict(scope=RESEARCH, source_evidence=deepcopy(evidence), snapshot=dict(
         schema="RACE_AI_BOAT_MULTI_FEATURE_SNAPSHOT_SPARSE_V1", scope=RESEARCH, race_id=rid,
         venue=race["venue"], event_date_jst=race["event_date_jst"], sales_cutoff_at=cutoff, as_of=at,
         entrants=full_rows, conditions=conditions, conditions_missing={k: "NOT_AVAILABLE" for k in CONDITIONS if k not in conditions},
@@ -417,9 +417,13 @@ def build_native_inputs(program, beforeinfo, *, as_of, history_context=None, fit
     if base is not None and not motor_missing:
         native["boat_ab"] = dict(scope=RESEARCH, source=base, source_evidence=deepcopy(evidence))
         extra_sha = hashlib.sha256((program_source["source_sha256"]+preview_source["source_sha256"]).encode()).hexdigest()
-        extra_source = dict(composite, source_sha256=extra_sha)
+        extra_source = dict(source_ref="urn:race-ai:boat-clite-extra:"+extra_sha,
+            source_sha256=extra_sha, source_rights_ref=RIGHTS, published_at=None,
+            captured_at=preview_source["captured_at"], source_members=deepcopy([program_source,preview_source]),
+            transform_id="SHA256_UTF8_CONCAT_PROGRAM_AND_BEFOREINFO_HEX_V1")
         native["boat_clite"] = dict(scope=RESEARCH, base_source=base, extra=dict(race_id=rid,
             observed_at=preview_source["captured_at"], source_sha256=extra_sha, participants=extra_rows), source_evidence=deepcopy(evidence)+[extra_source])
+        evidence.append(extra_source)
         readiness.update({g: dict(state="READY", reasons=[]) for g in ("boat_ab", "boat_clite")})
     else:
         reasons = (["ACTIVE_EXHIBITION_MEASUREMENTS_MISSING"] if exhibition_missing else []) + (["OBSERVED_MOTOR_RATE_MISSING"] if motor_missing else [])
@@ -447,7 +451,8 @@ def build_native_inputs(program, beforeinfo, *, as_of, history_context=None, fit
             refs.update((o["source_ref"], o["source_rights_ref"]) for o in environment.values())
             # Structural replay only; the dispatch caller independently authorizes sources.
             forecast(snapshot, fitted_model, allow_source=lambda ref, rights, purpose: (ref, rights) in refs and purpose == "analysis")
-            native["shared_learned"] = dict(snapshot=deepcopy(snapshot), learned_model=deepcopy(fitted_model))
+            native["shared_learned"] = dict(snapshot=deepcopy(snapshot), learned_model=deepcopy(fitted_model),
+                                           source_evidence=deepcopy(evidence))
             readiness["shared_learned"] = dict(state="READY", reasons=[])
         except ValueError:
             readiness["shared_learned"] = dict(state="TRAINED_ARTIFACT_MISSING", reasons=["FITTED_MODEL_SCHEMA_SCOPE_INTEGRITY_OR_CLOCK_REJECTED"])

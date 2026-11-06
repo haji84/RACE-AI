@@ -310,7 +310,7 @@ def generate(round_no, baseline_artifact=None):
                                   expected_run=env["run_id"], expected_head=env["head"])
             document = _json(raw, store.MAX_PLAIN); receipt = _receipt(meta, document)
         return engine.forecast_round(contexts, marker["runtime_files"], now=utc_now(), baseline_document=document,
-                                     baseline_receipt=receipt, issued_models=issued)
+                                     baseline_receipt=receipt, issued_models=issued, runtime_pointer=_pointer()[0])
     return _sealed("generate", round_no, contexts, baseline_artifact, build)
 
 
@@ -333,7 +333,8 @@ def bootstrap_current(round_no=0):
         return dict(ready=False, contexts=0, generated_forecasts=0)
     issued = _json(_read(marker["issued_p0_models_path"], 1024*1024, private=True), 1024*1024)
     return _sealed("bootstrap-current", round_no, dict(document=document, receipt=receipt), None,
-        lambda: engine.forecast_saved_p0(document, receipt, marker["runtime_files"], now=utc_now(), issued_models=issued))
+        lambda: engine.forecast_saved_p0(document, receipt, marker["runtime_files"], now=utc_now(),
+                                        issued_models=issued, runtime_pointer=_pointer()[0]))
 
 
 def readback(round_no, ident):

@@ -19,16 +19,19 @@ from .boat_active_exhibition import SCHEMA as BEFORE_SCHEMA, _program
 from .boat_observation_context import JST, _identity
 from .boat_all_model_inputs import build_native_inputs
 from .boat_history_store import HistoryStore, wire
-from .boat_model_runtime import FILE_LIMITS
+from .boat_model_runtime import FILE_LIMITS, _validate_pointer as _validate_runtime_pointer
 from .boat_pdca_recipient import _json as bounded_json
 from .dispatch_product_projection import project_dispatch
-from .existing_model_dispatch import dispatch, GROUPS, _native_hash
+from .existing_model_dispatch import dispatch, GROUPS, _native_hash, _bind
 from .existing_model_coverage import catalog
 from .observed_p1_connection import locator
 from scripts.boat_history_collect import private_root, save
 
 SCHEMA = "RACE_AI_BOAT_ALL_MODEL_ROUND_V1"
 INPUT_SCHEMA = "RACE_AI_BOAT_RETAINED_NATIVE_INPUT_V1"
+CAPSULE_SCHEMA = "RACE_AI_BOAT_FROZEN_NATIVE_DISPATCH_INPUT_V1"
+MAX_NATIVE_CAPSULE_BYTES = 12 * 1024 * 1024
+MAX_NATIVE_GROUP_BYTES = 2 * 1024 * 1024
 REPO_ID = "1416489937"
 REPO = "haji84/RACE-AI"
 _SHA = re.compile(r"[a-f0-9]{64}\Z")
@@ -144,7 +147,7 @@ def _private_file(path, limit, *, read=True):
     return raw
 
 
-def _runtime(files):
+def _runtime(files, runtime_pointer=None):
     _need(type(files) is dict and all(files.get(k) is True for k in
           ("verified_runtime", "history_identity_verified", "owner_reviewed")), "TRUSTED_RESTORED_RUNTIME_REQUIRED")
     head = files.get("source_code_commit")
@@ -160,9 +163,23 @@ def _runtime(files):
                 model = None
         except (ValueError, OSError):
             model = None
+    provenance = dict(source_code_commit=head, metadata_sha256=sha256(metadata).hexdigest(),
+                      history_identity_verified=True, owner_reviewed=True)
+    if runtime_pointer is not None:
+        pointer = deepcopy(_validate_runtime_pointer(runtime_pointer))
+        for name, expected in pointer['header']['files'].items():
+            path = _private_file(files.get(name), FILE_LIMITS[name], read=False)
+            actual = sha256(); size = 0
+            with path.open('rb') as stream:
+                for block in iter(lambda: stream.read(1024 * 1024), b''):
+                    size += len(block)
+                    _need(size <= FILE_LIMITS[name], 'RUNTIME_FILE_BOUND_INVALID')
+                    actual.update(block)
+            _need(dict(sha256=actual.hexdigest(), size=size) == expected, 'RUNTIME_POINTER_FILE_MISMATCH')
+        provenance.update(runtime_pointer=pointer, runtime_pointer_sha256=digest(pointer),
+                          runtime_cipher_sha256=pointer['cipher_sha256'])
     history = _ReadOnlyHistoryStore(history_path)
-    return history, model, dict(source_code_commit=head, metadata_sha256=sha256(metadata).hexdigest(),
-                                history_identity_verified=True, owner_reviewed=True)
+    return history, model, provenance
 
 
 class _ReadOnlyHistoryStore(HistoryStore):
@@ -328,7 +345,101 @@ def _postprocess(report, issued, readiness, stage):
     report["status_counts"] = dict(Counter(s["status"] for s in report["slots"]))
 
 
-def forecast_round(contexts, runtime_files, *, now, baseline_document=None, baseline_receipt=None, issued_models=None):
+def _native_capsule(schedule, native, clock, report, analysis_source_refs):
+    capsule = dict(schema=CAPSULE_SCHEMA, race_id=schedule['race_id'], sport=schedule['sport'],
+        stage=schedule['stage'], generated_at=clock.isoformat(), dispatch_input_sha256=report['input_sha256'],
+        native_inputs=deepcopy(native), group_model_ids={g: list(dict(GROUPS)[g]) for g in native},
+        native_payload_sha256={g: digest(p) for g, p in native.items()},
+        analysis_source_refs=[list(pair) for pair in sorted(analysis_source_refs)])
+    capsule['capsule_sha256'] = digest(capsule)
+    return capsule
+
+
+def verify_native_input_capsules(payload):
+    """Return private frozen inputs after hash, identity and native output replay.
+
+    Callers authenticate ciphertext and its external receipt first. Replaying
+    the saved source pairs checks structural bindings; it grants no new source
+    permission and does not attest any physical save clock. Older payloads
+    without capsules remain readable and return an empty list.
+    """
+    return _verify_native_input_capsules(payload, replay_outputs=True)
+
+
+def _verify_native_input_capsules(payload, *, replay_outputs):
+    _need(type(payload) is dict and payload.get('schema') == SCHEMA, 'ROUND_SCHEMA_INVALID')
+    if 'native_input_capsules' not in payload:
+        return []
+    from . import all_existing_model_registry as registry
+    capsules = payload['native_input_capsules']; reports = payload.get('dispatch_reports')
+    _need(type(capsules) is list and type(reports) is list and len(capsules) == len(reports) <= 288,
+          'NATIVE_CAPSULE_COUNT_INVALID')
+    _need(len(wire(capsules).encode()) <= MAX_NATIVE_CAPSULE_BYTES, 'NATIVE_CAPSULE_BOUND_INVALID')
+    provenance = payload.get('runtime_provenance', {})
+    _need(type(provenance) is dict and provenance.get('source_code_commit') == payload.get('source_code_commit'),
+          'RUNTIME_PROVENANCE_HEAD_MISMATCH')
+    if any(k in provenance for k in ('runtime_pointer', 'runtime_pointer_sha256', 'runtime_cipher_sha256')):
+        pointer = _validate_runtime_pointer(provenance.get('runtime_pointer'))
+        _need(provenance.get('runtime_pointer_sha256') == digest(pointer) and
+              provenance.get('runtime_cipher_sha256') == pointer['cipher_sha256'] and
+              provenance.get('metadata_sha256') == pointer['header']['files']['metadata.json']['sha256'],
+              'RUNTIME_POINTER_BINDING_INVALID')
+    fields = {'schema', 'race_id', 'sport', 'stage', 'generated_at', 'dispatch_input_sha256',
+              'native_inputs', 'group_model_ids', 'native_payload_sha256', 'analysis_source_refs', 'capsule_sha256'}
+    known = dict(GROUPS); seen = set()
+    for capsule, report in zip(capsules, reports):
+        _need(type(capsule) is dict and set(capsule) == fields and capsule['schema'] == CAPSULE_SCHEMA and
+              capsule['capsule_sha256'] == digest({k: v for k, v in capsule.items() if k != 'capsule_sha256'}),
+              'NATIVE_CAPSULE_HASH_INVALID')
+        schedule = report.get('schedule')
+        _need(type(schedule) is list and len(schedule) == 1, 'NATIVE_CAPSULE_SCHEDULE_INVALID')
+        row = schedule[0]; key = (capsule['race_id'], capsule['stage'])
+        _need(key not in seen and capsule['race_id'] == row['race_id'] and capsule['sport'] == row['sport'] == 'boat'
+              and capsule['stage'] == row['stage'] == payload['stage'] and
+              _time(capsule['generated_at']) == _time(report['as_of']) == _time(payload['generated_at']),
+              'NATIVE_CAPSULE_IDENTITY_INVALID')
+        seen.add(key); clock = _time(capsule['generated_at']); native = capsule['native_inputs']
+        _need(type(native) is dict and set(native) <= set(known) and
+              capsule['group_model_ids'] == {g: list(known[g]) for g in native} and
+              capsule['native_payload_sha256'] == {g: digest(p) for g, p in native.items()},
+              'NATIVE_CAPSULE_GROUP_BINDING_INVALID')
+        inputs = {row['race_id']: {row['stage']: native}}
+        _need(capsule['dispatch_input_sha256'] == report['input_sha256'] == digest(inputs),
+              'NATIVE_CAPSULE_DISPATCH_HASH_INVALID')
+        source_refs = capsule['analysis_source_refs']
+        _need(type(source_refs) is list and len(source_refs) <= 4096 and all(
+              type(pair) is list and len(pair) == 2 and all(type(v) is str and 0 < len(v) <= 4096 for v in pair)
+              for pair in source_refs), 'NATIVE_CAPSULE_SOURCE_SCOPE_INVALID')
+        refs = {tuple(pair) for pair in source_refs}
+        _need(source_refs == [list(pair) for pair in sorted(refs)], 'NATIVE_CAPSULE_SOURCE_SCOPE_INVALID')
+        allow = lambda ref, rights, purpose: purpose == 'analysis' and (ref, rights) in refs
+        roster = {str(p['number']): p['registration_no'] for p in row['participants'] if p.get('active') is True}
+        for group, value in native.items():
+            _need(type(value) is dict and len(wire(value).encode()) <= MAX_NATIVE_GROUP_BYTES,
+                  'NATIVE_CAPSULE_GROUP_BOUND_INVALID')
+            _bind(group, value, row, clock)
+            for mid in known[group]:
+                info = registry.validate_payload(mid, row['sport'], value, at=clock, allow_source=allow)
+                _need(info['roster'] == roster and _time(info['race_cutoff_at']) == _time(row['cutoff_at']),
+                      'NATIVE_CAPSULE_ROSTER_OR_CUTOFF_MISMATCH')
+        if not replay_outputs:
+            continue
+        replay = _json_copy(dispatch(schedule, inputs, now=clock, allow_source=allow,
+                                    originals=report.get('retained_originals', [])))
+        _need(replay['native_invocations'] == report['native_invocations'], 'NATIVE_CAPSULE_INVOCATION_REPLAY_MISMATCH')
+        by_model = {(s['model_id'], s.get('model_version')): s for s in replay['slots']}
+        for slot in report['slots']:
+            if slot['status'] not in ('GENERATED_UNATTESTED', 'ORIGINAL_REUSED'):
+                continue
+            actual = by_model.get((slot['model_id'], slot.get('model_version')))
+            _need(actual is not None and actual['status'] == slot['status'] and
+                  all(actual.get(k) == slot.get(k) for k in ('prediction', 'prediction_sha256', 'output_sha256', 'native_context')),
+                  'NATIVE_CAPSULE_PREDICTION_REPLAY_MISMATCH')
+    return deepcopy(capsules)
+
+
+def forecast_round(contexts, runtime_files, *, now, baseline_document=None, baseline_receipt=None, issued_models=None,
+                   runtime_pointer=None):
     """Run each ready P1 family once; reuse baseline originals and issued slots."""
     clock = _clock(now)
     _need(type(contexts) is list and len(contexts) <= 288, "BOUNDED_CONTEXTS_REQUIRED")
@@ -338,10 +449,10 @@ def forecast_round(contexts, runtime_files, *, now, baseline_document=None, base
         rid = item["program"]["race_id"]
         _need(rid not in current and _time(item["as_of"]) <= clock, "DUPLICATE_OR_FUTURE_CONTEXT")
         current[rid] = item; schedules[rid] = _schedule(item, active, withdrawn)
-    history, fitted, provenance = _runtime(runtime_files)
+    history, fitted, provenance = _runtime(runtime_files, runtime_pointer)
     try:
         originals, baseline = _originals(baseline_document, baseline_receipt, current, provenance["source_code_commit"], clock)
-        issued = _issued(issued_models); reports = []; readiness_rows = []; skipped = []
+        issued = _issued(issued_models); reports = []; readiness_rows = []; skipped = []; capsules = []
         for rid, item in current.items():
             own_originals = [p for p in originals if p["race_id"] == rid]
             saved = issued.get(rid, set()) | {p["model_id"] for p in own_originals}
@@ -372,15 +483,18 @@ def forecast_round(contexts, runtime_files, *, now, baseline_document=None, base
                               originals=own_originals)
             report["schedule"] = [schedules[rid]]
             _postprocess(report, issued.get(rid, set()), readiness, "P1")
+            capsules.append(_native_capsule(schedules[rid], native, clock, report, refs))
             reports.append(report); readiness_rows.append(dict(race_id=rid, stage="P1", groups=readiness))
         payload = dict(schema=SCHEMA, stage="P1", generated_at=clock.isoformat(), as_of=clock.isoformat(),
             source_code_commit=provenance["source_code_commit"], run_id=runtime_files.get("run_id"),
             runtime_provenance=provenance, current_inputs=list(current.values()), dispatch_reports=reports,
-            model_readiness=readiness_rows, skipped_contexts=skipped, baseline=baseline,
+            model_readiness=readiness_rows, skipped_contexts=skipped, baseline=baseline, native_input_capsules=capsules,
             summary=dict(contexts=len(contexts), generated_forecasts=sum(s["status"] == "GENERATED_UNATTESTED" for r in reports for s in r["slots"]),
                          reused_baseline_forecasts=sum(s["status"] == "ORIGINAL_REUSED" for r in reports for s in r["slots"])),
             source_requests=0, originals_overwritten=False)
-        return _json_copy(payload)
+        payload = _json_copy(payload)
+        _verify_native_input_capsules(payload, replay_outputs=False)
+        return payload
     finally:
         history.close()
 
@@ -391,6 +505,7 @@ def project_round(payload, receipt):
           and payload.get("originals_overwritten") is False, "ROUND_SCHEMA_INVALID")
     current_receipt = _receipt(receipt, digest(payload), payload["source_code_commit"], payload.get("run_id"))
     _need(_not_before(payload["generated_at"], current_receipt["created_at"]), "RECEIPT_BEFORE_DISPATCH")
+    verify_native_input_capsules(payload)
     baseline = payload.get("baseline")
     prior_receipt = (_receipt(baseline["receipt"], baseline["document_sha256"], baseline["receipt"]["head_sha"])
                      if baseline is not None else None)
@@ -443,7 +558,7 @@ def project_round(payload, receipt):
                 originals_overwritten=False)
 
 
-def forecast_saved_p0(document, receipt, runtime_files, *, now, issued_models=None):
+def forecast_saved_p0(document, receipt, runtime_files, *, now, issued_models=None, runtime_pointer=None):
     """Issue new P0 families now from exact older, authenticated source inputs.
 
     Original observed predictions remain untouched. Only the new shared input's
@@ -486,9 +601,9 @@ def forecast_saved_p0(document, receipt, runtime_files, *, now, issued_models=No
     _need(len(rows) == document.get("model_forecast_count"), "SAVED_P0_MODEL_COUNT_INVALID")
     first, duplicates = first_receipt_rows(rows)
     enriched = attach_snapshots(document, first)
-    history, fitted, provenance = _runtime(runtime_files)
+    history, fitted, provenance = _runtime(runtime_files, runtime_pointer)
     try:
-        issued = _issued(issued_models); reports = []; origins = {}; readiness_rows = []; skipped = []
+        issued = _issued(issued_models); reports = []; origins = {}; readiness_rows = []; skipped = []; capsules = []
         for row in enriched:
             rid = row["race_id"]
             if rid in origins:
@@ -528,15 +643,18 @@ def forecast_saved_p0(document, receipt, runtime_files, *, now, issued_models=No
                 if slot["model_id"] in p1_only and slot["model_id"] not in saved:
                     slot.update(status="RULE_FILTERED", reason="WAITING_EXHIBITION")
             report["status_counts"] = dict(Counter(s["status"] for s in report["slots"]))
+            capsules.append(_native_capsule(schedule, native, clock, report, refs))
             reports.append(report)
             readiness_rows.append(dict(race_id=rid, stage="P0", groups={group: dict(
                 state=next(s["status"] for s in report["slots"] if s["model_id"] == mids[0]),
                 reasons=[next(s["reason"] for s in report["slots"] if s["model_id"] == mids[0])]) for group, mids in GROUPS}))
-        return _json_copy(dict(schema=SCHEMA, stage="P0", generated_at=clock.isoformat(), as_of=clock.isoformat(),
+        payload = _json_copy(dict(schema=SCHEMA, stage="P0", generated_at=clock.isoformat(), as_of=clock.isoformat(),
             source_code_commit=provenance["source_code_commit"], run_id=runtime_files.get("run_id"), runtime_provenance=provenance,
             current_inputs=[], input_origins=origins, dispatch_reports=reports, model_readiness=readiness_rows,
-            skipped_contexts=skipped, baseline=None, source_requests=0, originals_overwritten=False,
+            skipped_contexts=skipped, baseline=None, source_requests=0, originals_overwritten=False, native_input_capsules=capsules,
             summary=dict(contexts=len(origins), generated_forecasts=sum(s["status"] == "GENERATED_UNATTESTED" for r in reports for s in r["slots"]),
                          reused_baseline_forecasts=0), first_receipt_duplicates=duplicates))
+        _verify_native_input_capsules(payload, replay_outputs=False)
+        return payload
     finally:
         history.close()

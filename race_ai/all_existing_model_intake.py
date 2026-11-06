@@ -48,7 +48,7 @@ def _legacy_boat(observation):
         roster={}, payout_per_100_yen=0, refund_numbers=[], closed_at=observation.get('closed_at'))
     if observation.get('status') != 'AVAILABLE' or type(data) is not dict:
         return result
-    if data.get('status') in ('cancelled', 'no_contest') or data.get('refund_boats'):
+    if data.get('status') in ('cancelled', 'no_contest', 'special', 'dead_heat') or data.get('refund_boats'):
         result['status'] = 'special'
         return result
     if data.get('finish_confirmed') is not True:

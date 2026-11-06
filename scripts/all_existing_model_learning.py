@@ -87,8 +87,84 @@ def _merge_native_records(original,additional):
     return merged
 
 
-def load_intake(restored_dir,state_input,dataset_input,*,now,native_archive_dirs=()):
+def _intake_identity(records,*,result_admissions=()):
+    """Bind all data/contracts; keep the new derivation operation clock separate.
+
+    Every invocation records its actual derived_at in the encrypted lineage.
+    The owner grants the same frozen data and deterministic transformation on
+    re-execution, without claiming the derived bytes were saved in the past.
+    Legacy input identity is byte-for-byte unchanged.
+    """
+    from race_ai.all_existing_model_source_derivations import validate_source_derivations
+    for row in records:validate_source_derivations(row['native_payload'])
+    if result_admissions:
+        return digest(dict(schema='RACE_AI_RESULT_ARCHIVE_BOUND_INTAKE_V1',
+            record_identity_sha256=_intake_identity(records),result_admissions=list(result_admissions)))
+    if not any('input_derivation' in row for row in records):return digest(records)
+    from race_ai.all_existing_model_registry import parameter_contract
+    from race_ai.all_existing_model_derivation import SCHEMA,DERIVATION_ID,AVAILABILITY_BASIS
+    normalized=deepcopy(records);contracts={}
+    for row in normalized:
+        if 'input_derivation' not in row:continue
+        proof=row['input_derivation']
+        if (type(proof) is not dict or proof.get('schema')!=SCHEMA or
+                proof.get('derivation_id')!=DERIVATION_ID or proof.get('data_availability_basis')!=AVAILABILITY_BASIS or
+                proof.get('derived_payload_saved_before_cutoff') is not False or type(proof.get('derived_at')) is not str):
+            raise ValueError('ALL_MODEL_DERIVED_INTAKE_IDENTITY_SCHEMA')
+        proof.pop('derived_at')
+        schema=row['native_payload']['snapshot']['schema']
+        key=row['sport']+'/'+row['model_id']
+        contract=digest(parameter_contract(row['model_id'],row['sport'],input_schema=schema))
+        if key in contracts and contracts[key]!=contract:
+            raise ValueError('ALL_MODEL_DERIVED_PARAMETER_CONTRACT_CONFLICT')
+        contracts[key]=contract
+    return digest(dict(schema='RACE_AI_DERIVED_INTAKE_CONTENT_IDENTITY_V1',
+                       records=normalized,parameter_contracts=contracts))
+
+
+def _merge_verified_result_observations(observations):
+    """Select latest canonical captures without rewriting authenticated bytes."""
+    from race_ai.existing_model_dispatch import _race_key
+    from race_ai.observed_weight_learning import ts
+    seen={};latest={}
+    for original in observations:
+        race=_race_key(original['race_id'],'boat');captured=ts(original['captured_at'])
+        normalized=deepcopy(original);normalized['race_id']=race
+        for name in ('captured_at','available_at','published_at','upstream_published_at','closed_at'):
+            if normalized.get(name) is not None:normalized[name]=ts(normalized[name]).isoformat()
+        key=(race,captured);fingerprint=digest(normalized)
+        if key in seen:
+            old,representative=seen[key]
+            if fingerprint!=old:raise ValueError('ALL_MODEL_RESULT_ARCHIVE_CONFLICTING_REVISIONS')
+            if digest(original)<digest(representative):seen[key]=(fingerprint,deepcopy(original))
+        else:seen[key]=(fingerprint,deepcopy(original))
+    for (race,captured),(_,original) in sorted(seen.items(),key=lambda item:(item[0][1],item[0][0])):
+        latest[race]=original
+    return [latest[key] for key in sorted(latest)]
+
+
+def load_intake(restored_dir,state_input,dataset_input,*,now,native_archive_dirs=(),derive_observed=False,
+                native_round_archive_dirs=(),result_archive_dirs=()):
     rows,observations,pointer,content=load_verified_intake(restored_dir,state_input,now=now,authenticate_owner_cipher=True)
+    result_admissions=[]
+    if result_archive_dirs:
+        from race_ai.all_existing_model_result_intake import observations_from_result_artifact
+        if type(result_archive_dirs) not in (tuple,list) or len(result_archive_dirs)>32:
+            raise ValueError('ALL_MODEL_RESULT_ARCHIVE_BOUNDED_LIST_REQUIRED')
+        combined=list(observations);seen_results={}
+        for path in result_archive_dirs:
+            raw,metadata=_native_archive(path);_reverify_native_metadata(metadata)
+            run=metadata['workflow_run']
+            admitted=observations_from_result_artifact(raw,metadata,now=now,
+                expected_run_id=run.get('id'),expected_head_sha=run.get('head_sha'))
+            identity=metadata['id'];fingerprint=digest(metadata)
+            if identity in seen_results:
+                if seen_results[identity]!=fingerprint:
+                    raise ValueError('ALL_MODEL_RESULT_ARCHIVE_CONFLICTING_METADATA')
+                continue
+            seen_results[identity]=fingerprint;combined.extend(admitted['observations'])
+            result_admissions.append(admitted['receipt'])
+        observations=_merge_verified_result_observations(combined)
     dataset=json.loads(_read(Path(dataset_input),8192))
     intake=training_intake(rows,observations,dataset_pointer=dataset)
     # The legacy selector chooses one input per race. Retain both genuinely
@@ -96,18 +172,31 @@ def load_intake(restored_dir,state_input,dataset_input,*,now,native_archive_dirs
     selected={r['race_id']:r['learning_snapshot_sha256'] for r in intake['eligible']}
     native_rows=[r for r in rows if selected.get(r['race_id'])==r['learning_snapshot_sha256']]
     records=records_from_observed(native_rows,intake['observations'])
-    if native_archive_dirs:
+    if derive_observed:
+        from race_ai.all_existing_model_derivation import derive_records
+        derived=derive_records(records,now=now,include_groups=('shared','shared_learned','boat_full'))
+        records=_merge_native_records(records,derived)
+        intake=deepcopy(intake)
+        intake.update(derived_record_count=len(derived),
+            derived_model_ids=sorted({row['model_id'] for row in derived}),
+            derived_payloads_saved_before_cutoff=False,
+            derived_input_availability_basis='DERIVED_FROM_INDEPENDENT_PRE_CUTOFF_ORIGINAL')
+    if native_archive_dirs or native_round_archive_dirs:
         from race_ai.all_existing_model_intake import records_from_private_artifact
+        from race_ai.all_existing_model_round_intake import records_from_round_artifact
         from race_ai.all_existing_model_learning import _sources
-        if type(native_archive_dirs) not in (tuple,list) or len(native_archive_dirs)>32:
+        if (type(native_archive_dirs) not in (tuple,list) or type(native_round_archive_dirs) not in (tuple,list) or
+                len(native_archive_dirs)+len(native_round_archive_dirs)>32):
             raise ValueError('ALL_MODEL_NATIVE_ARCHIVE_BOUNDED_LIST_REQUIRED')
         original_count=len(records);summaries=[];seen={}
-        for path in native_archive_dirs:
+        archives=[(records_from_private_artifact,path) for path in native_archive_dirs]
+        archives.extend((records_from_round_artifact,path) for path in native_round_archive_dirs)
+        for reader,path in archives:
             raw,metadata=_native_archive(path);_reverify_native_metadata(metadata)
             run=metadata['workflow_run']
             # Admission performs authenticated decryption/native replay and
             # checks the entire ZIP, repo, digest, run/head and external clock.
-            admitted=records_from_private_artifact(raw,metadata,observations,now=now,
+            admitted=reader(raw,metadata,observations,now=now,
                 expected_run_id=run.get('id'),expected_head_sha=run.get('head_sha'))
             ident=admitted['summary']['artifact_id'];fingerprint=digest(metadata)
             if ident in seen:
@@ -124,8 +213,19 @@ def load_intake(restored_dir,state_input,dataset_input,*,now,native_archive_dirs
         intake=deepcopy(intake)
         intake.update(source_refs=[list(pair) for pair in sorted(refs)],native_archive_intakes=summaries,
             native_archive_count=len(summaries),native_admitted_records=len(records)-original_count)
+    if result_admissions:
+        intake=deepcopy(intake)
+        intake.update(result_archive_count=len(result_admissions),result_archive_admissions=result_admissions)
+    if derive_observed:
+        from race_ai.all_existing_model_learning import _sources
+        refs={tuple(pair) for pair in intake['source_refs']}
+        for record in records:
+            refs.update(_sources(record['native_payload']))
+            refs.add((record['result']['source_ref'],record['result']['source_rights_ref']))
+        intake['source_refs']=[list(pair) for pair in sorted(refs)]
     return records,dict(source_pointer=pointer,state_content_sha256=content,dataset_pointer=dataset,
-        source_refs=intake['source_refs'],intake_sha256=digest(records),registry_sha256=registry_sha256()),intake
+        source_refs=intake['source_refs'],intake_sha256=_intake_identity(records,result_admissions=result_admissions),
+        registry_sha256=registry_sha256()),intake
 
 
 def main(argv=None,*,now=None):
@@ -137,6 +237,12 @@ def main(argv=None,*,now=None):
     parser.add_argument('--owner-research-record',default='audit/state/all-existing-model-owner-research.json')
     parser.add_argument('--native-archive-dir',action='append',default=[],
         help='Existing private archive.zip/metadata.json container; outcomes come only from the authenticated restored journal')
+    parser.add_argument('--native-round-archive-dir',action='append',default=[],
+        help='Owner-encrypted native round ZIP and independently reverified metadata')
+    parser.add_argument('--result-archive-dir',action='append',default=[],
+        help='Owner-encrypted RESULT ZIP and independently reverified metadata; never a plaintext result sidecar')
+    parser.add_argument('--derive-from-observed',action='store_true',
+        help='Replay documented sparse native transforms from independently frozen originals; derived bytes are created now')
     parser.add_argument('--out-dir');parser.add_argument('--expires-at')
     args=parser.parse_args(argv);now=now or datetime.now(timezone.utc)
     try:
@@ -146,6 +252,9 @@ def main(argv=None,*,now=None):
         state_key('production')
         options=dict(now=now)
         if args.native_archive_dir:options['native_archive_dirs']=args.native_archive_dir
+        if args.native_round_archive_dir:options['native_round_archive_dirs']=args.native_round_archive_dir
+        if args.result_archive_dir:options['result_archive_dirs']=args.result_archive_dir
+        if args.derive_from_observed:options['derive_observed']=True
         records,binding,intake=load_intake(args.restored_dir,args.state_input,args.dataset_input,**options)
         record_path=Path(args.owner_research_record)
         if args.command=='issue-decision':
@@ -166,6 +275,12 @@ def main(argv=None,*,now=None):
         trained.update(training_basis='OWNER_PERSONAL_RESEARCH',owner_research_decision_sha256=decision_sha,
             venue_dataset_sha256=binding['dataset_pointer']['dataset_sha256'],
             source_content_sha256=binding['state_content_sha256'])
+        if args.derive_from_observed:
+            trained.update(owner_bound_intake_sha256=binding['intake_sha256'],
+                intake_identity_semantics='DATA_AND_PARAMETER_CONTRACTS_WITH_SEPARATE_DERIVATION_CLOCK')
+        if args.result_archive_dir:
+            trained.update(owner_bound_intake_sha256=binding['intake_sha256'],
+                result_archive_admissions_sha256=digest(intake['result_archive_admissions']))
         seal(trained,'training_sha256');verify_training(trained)
         summary=dict(schema='RACE_AI_ALL_EXISTING_MODEL_COUNTS_V1',state=trained['state'],
             model_family_count=16,applicable_model_cells=31,fitted_model_count=len(trained['models']),
@@ -177,9 +292,15 @@ def main(argv=None,*,now=None):
             provider_permission_confirmed=False,provider_review_missing_sources=len(admitted),
             baseline_coefficients_changed=False,new_model_created=False,accuracy_improvement_proven=False,
             production_promoted=False,actual_purchases=False,plaintext_published=False)
-        if args.native_archive_dir:
+        if args.native_archive_dir or args.native_round_archive_dir:
             summary.update(native_archive_count=intake['native_archive_count'],
                 native_admitted_records=intake['native_admitted_records'])
+        if args.result_archive_dir:summary['result_archive_count']=intake['result_archive_count']
+        if args.derive_from_observed:
+            summary.update(derived_record_count=intake['derived_record_count'],
+                derived_model_ids=intake['derived_model_ids'],
+                derived_payloads_saved_before_cutoff=False,
+                derived_input_availability_basis=intake['derived_input_availability_basis'])
         result=seal_candidate(dict(summary=summary,training=trained,excluded=[],owner_research_record=decision),args.out_dir)
         print(json.dumps(result,sort_keys=True));return 0
     except Exception as exc:

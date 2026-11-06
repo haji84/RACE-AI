@@ -103,6 +103,9 @@ def _original_index(originals, schedule):
         phase = prediction.get("stage", prediction.get("phase"))
         if row["model_id"] == "boat-pdca-lane-shadow-v1" and phase == "post_exhibition":
             phase = "P1"
+        if (row['model_id'] in FULL and race['stage']=='P0' and
+                prediction.get('input_schema')!='RACE_AI_BOAT_MULTI_FEATURE_SNAPSHOT_SPARSE_V1'):
+            raise ValueError('original complete exhibition model requires P1')
         if (prediction.get("cutoff_at") is not None and _time(prediction["cutoff_at"]) != _time(race["cutoff_at"]) or
                 phase is not None and phase != race["stage"]):
             raise ValueError("original native cutoff or stage differs from outer identity")
@@ -223,8 +226,13 @@ def _bind(group, payload, row, now):
         sport = race.get("sport", "autorace" if group == "autorace_personal" else "boat")
         as_of = race.get("as_of", race.get("as_of_at"))
         if group in ("boat_full", "boat_observed"):
-            if group == "boat_full" and row["stage"] != "P1":
-                raise InputRejected("complete exhibition input requires P1")
+            if group == "boat_full":
+                sparse_p0=(source.get("schema")=="RACE_AI_BOAT_MULTI_FEATURE_SNAPSHOT_SPARSE_V1" and
+                           payload.get("stage")=="P0" and row["stage"]=="P0")
+                if row["stage"]!="P1" and not sparse_p0:
+                    raise InputRejected("complete exhibition input requires P1")
+                if payload.get("stage",row["stage"])!=row["stage"]:
+                    raise InputRejected("native stage differs from schedule")
             if group == "boat_observed" and source.get("stage") != row["stage"]:
                 raise InputRejected("native stage differs from schedule")
         if group == "autorace_personal" and race.get("phase") != row["stage"]:
