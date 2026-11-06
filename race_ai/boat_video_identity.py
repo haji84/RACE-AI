@@ -479,7 +479,9 @@ class BoatIdentityProvider:
             found.append(value)
         return (found[0], False) if len(found) == 1 else (None, len(found) > 1)
 
-    def identify(self, frame, detections, *, t, frame_index, scene, previous_to_current=None):
+    def identify(self, frame, detections, *, t, frame_index, scene, previous_to_current=None,
+                 require_current_number=False):
+        _require(type(require_current_number) is bool, "fresh identity observation setting must be boolean")
         width, height = _pixels(frame)
         _require(_finite(t) and t >= 0 and type(frame_index) is int and frame_index >= 0
                  and type(scene) is int and scene >= 0)
@@ -517,6 +519,10 @@ class BoatIdentityProvider:
             if ambiguous:
                 flags.add("AMBIGUOUS_NUMBER_MARKS")
                 blocked.add(index)
+                continue
+            if require_current_number and number is None:
+                blocked.add(index)
+                flags.add("FRESH_IDENTITY_OBSERVATION_REQUIRED")
                 continue
             observed.append({**row, "raw_index": index, "number": number})
         duplicate = {number for number, count in Counter(
@@ -621,6 +627,67 @@ class BoatIdentityProvider:
                 "exclusion_boxes": [list(row["box"]) for row in raw], "quality_flags": sorted(flags),
                 "raw_candidate_count": len(raw), "unresolved_candidate_count": len(raw)-len(regions),
                 "identity_validated": False, "model_eligible": False, "field_validation": "NOT_ESTABLISHED"}
+
+
+
+CAMERA_IDENTITY_POLICY = "FRESH_IDENTITY_OBSERVATIONS_DURING_SOFT_CAMERA_FAILURES_V1"
+_SOFT_IDENTITY_CAMERA_FAILURES = {"INSUFFICIENT_BACKGROUND", "CAMERA_FIT_REJECTED"}
+_IDENTITY_CAMERA_STATUSES = _SOFT_IDENTITY_CAMERA_FAILURES | {
+    "ACCEPTED", "REFERENCE_INITIALIZATION", "DISPLAY_PTS_GAP", "SCENE_CHANGE_OR_BACKGROUND_MISMATCH"}
+
+
+def identify_with_camera_evidence(provider, frame, detections, *, t, frame_index, scene,
+                                  camera_status, previous_to_current=None):
+    """Opt-in identity evidence continuity, separate from metric camera geometry.
+
+    Fresh matching numeric identity observations may retain a logical identity
+    through only the two explicit soft camera-fit failures. They do not establish
+    a camera transform or a metric position. Hard cuts, clock/shape gaps and
+    unexplained metric-scene jumps reset evidence. The ordinary provider API and
+    extraction path do not opt in. Identity observations may originate in an
+    explicitly labeled experimental reader/classifier; this helper does not
+    promote their source or confidence. Caller ``scene`` always remains the
+    actual global metric camera scene in the returned observation.
+    """
+    _require(isinstance(provider, BoatIdentityProvider), "explicit temporal identity provider required")
+    width, height = _pixels(frame)
+    _require(_finite(t) and t >= 0 and type(frame_index) is int and frame_index >= 0 and
+             type(scene) is int and scene >= 0 and type(camera_status) is str and
+             camera_status in _IDENTITY_CAMERA_STATUSES, "invalid camera identity evidence")
+    _require((camera_status == "ACCEPTED") == (previous_to_current is not None),
+             "camera status and supplied transform disagree")
+    if previous_to_current is not None:
+        _homography(previous_to_current)
+    state = getattr(provider, "_camera_identity_state", None)
+    if state is not None:
+        _require(scene >= state["metric_scene"], "metric camera scenes must not decrease")
+    soft = camera_status in _SOFT_IDENTITY_CAMERA_FAILURES
+    hard = (provider._time is not None and t-provider._time > provider.max_gap or
+            provider._shape is not None and provider._shape != (width, height))
+    if state is None:
+        logical_scene = 0 if provider._scene is None else provider._scene+1
+    else:
+        hard = (hard or camera_status not in _SOFT_IDENTITY_CAMERA_FAILURES | {"ACCEPTED"} or
+                scene > state["metric_scene"]+1 or
+                camera_status == "ACCEPTED" and scene != state["metric_scene"] or
+                provider._scene != state["logical_scene"])
+        logical_scene = max(state["logical_scene"], provider._scene)+1 if hard else state["logical_scene"]
+    fresh_required = previous_to_current is None or bool(hard)
+    result = provider.identify(frame, detections, t=t, frame_index=frame_index, scene=logical_scene,
+        previous_to_current=previous_to_current, require_current_number=fresh_required)
+    _require(type(result) is dict and result.get("scene") == logical_scene,
+             "temporal identity observation scene mismatch")
+    # Commit helper bookkeeping only after the underlying valid call succeeds.
+    provider._camera_identity_state = {"metric_scene": scene, "logical_scene": logical_scene}
+    result["scene"] = scene
+    result["identity_continuity_scene"] = logical_scene
+    result["identity_camera_evidence"] = {
+        "policy": CAMERA_IDENTITY_POLICY, "camera_status": camera_status,
+        "fresh_identity_required": fresh_required,
+        "continuity_preserved_across_metric_reset": bool(state is not None and soft and not hard and
+                                                          scene != state["metric_scene"]),
+        "metric_positions_inferred": False}
+    return result
 
 
 def create_local_identity_provider(*, model_path, tesseract_path, tessdata_path,

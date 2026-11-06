@@ -22,7 +22,7 @@ from .repeated_cycle import matches
 SCHEMA = 'RACE_AI_BOAT_VIDEO_CONTEXT_ARCHIVE_V1'
 MEMBER = 'video-contexts.json'
 REPOSITORY_ID = 1416489937
-WORKFLOW_IDS = (405276784,)
+WORKFLOW_IDS = (405276784,392270247)
 BRANCH = 'feat/four-sport-forecast-audit-view-20261022'
 MAX_BYTES = 32 * 1024 * 1024
 _ERROR = 'BOAT_VIDEO_ARCHIVE_REJECTED'
@@ -109,12 +109,13 @@ class VideoContextArchiveReader:
     producer is started or installed by this reader. An optional source remains
     inactive until those actual pre-cutoff artifacts exist.
     """
-    def __init__(self, get, *, clock=None, allowed_workflow_ids=WORKFLOW_IDS):
+    def __init__(self, get, *, clock=None, allowed_workflow_ids=WORKFLOW_IDS,owner_key=None):
         _need(callable(get) and type(allowed_workflow_ids) is tuple and
               0 < len(allowed_workflow_ids) <= 8 and
-              all(type(value) is int and value > 0 for value in allowed_workflow_ids))
+              all(type(value) is int and value in WORKFLOW_IDS for value in allowed_workflow_ids))
         self.get, self.clock = get, clock or (lambda: datetime.now(timezone.utc))
         self.workflow_ids = allowed_workflow_ids
+        self._owner_key=owner_key
         self._archives = {}
 
     @property
@@ -150,20 +151,32 @@ class VideoContextArchiveReader:
               producer.get('head_repository', {}).get('id') == REPOSITORY_ID and
               producer.get('head_branch') == BRANCH and
               producer.get('head_sha') == source['head_sha'] and
-              producer.get('event') in ('push', 'workflow_dispatch') and
               producer.get('status') in ('in_progress', 'completed'))
+        encrypted=producer['workflow_id']==392270247
+        _need(producer.get('event')=='workflow_dispatch' if encrypted else
+              producer.get('event') in ('push','workflow_dispatch'))
         saved = ts(meta['created_at'])
         _need(ts(producer['created_at']) <= saved <= self._now())
         raw = self.get(f'actions/artifacts/{ident}/zip')
         _need(type(raw) is bytes and 0 < len(raw) <= MAX_BYTES and
               meta.get('digest') == 'sha256:'+hashlib.sha256(raw).hexdigest())
         with zipfile.ZipFile(io.BytesIO(raw)) as bundle:
-            _need(bundle.namelist() == [MEMBER])
-            info = bundle.getinfo(MEMBER)
+            member='video-context.enc' if encrypted else MEMBER
+            _need(bundle.namelist() == [member])
+            info = bundle.getinfo(member)
             _need(0 < info.file_size <= MAX_BYTES and not info.flag_bits & 1 and
                   (info.external_attr >> 16) & 0o170000 != 0o120000)
             _need(bundle.testzip() is None)
-            document = _json(bundle.read(info))
+            body=bundle.read(info)
+            if encrypted:
+                # Public-repository artifacts keep ciphertext. Actual API run
+                # HEAD and receipt time supply the decryption/authentication
+                # scope; caller/embedded JSON claims cannot replace them.
+                from .boat_video_publication import decrypt_publication
+                document,_=decrypt_publication(body,expected_head_sha=producer['head_sha'],
+                    key=self._owner_key,available_at=meta['created_at'])
+            else:
+                document = _json(body)
         _need(type(document) is dict and set(document) == {'schema', 'contexts'} and
               document['schema'] == SCHEMA and type(document['contexts']) is list and
               0 < len(document['contexts']) <= 2048)

@@ -15,7 +15,8 @@ import math
 import time
 
 from .boat_video_identity import (
-    BoatIdentityProvider, LocalOCRInferenceError, PinnedBoatDetector, _box, _finite, _intersects,
+    BoatIdentityProvider, LocalOCRInferenceError, PinnedBoatDetector, CAMERA_IDENTITY_POLICY,
+    identify_with_camera_evidence, _box, _finite, _intersects,
     _iou, _local_file, _pixels, _require,
 )
 
@@ -297,8 +298,16 @@ class ExperimentalCRNNIdentityProvider(BoatIdentityProvider):
         result['number_reader'] = (self.number_reader.metadata()
             if type(self.number_reader) is PinnedCRNNNumberReader else dict(engine='INJECTED_RAW_CTC_READER'))
         result.update(identity_admission_policy=ADMISSION_POLICY, score_scope=SCORE_SCOPE,
+                      camera_gap_identity_policy=CAMERA_IDENTITY_POLICY,
+                      metric_camera_compensation_inferred_from_identity=False,
                       calibrated_identification_probability=False)
         return result
+
+    def identify_with_camera_status(self, frame, detections, *, t, frame_index, scene,
+                                    camera_status, previous_to_current=None):
+        """Explicit fresh-identity opt-in; never infer missing camera geometry."""
+        return identify_with_camera_evidence(self, frame, detections, t=t, frame_index=frame_index,
+            scene=scene, camera_status=camera_status, previous_to_current=previous_to_current)
 
     def _number(self, frame, hull, overlays):
         x, y, width, height = hull
