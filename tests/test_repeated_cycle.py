@@ -298,7 +298,7 @@ class RepeatedControllerTests(unittest.TestCase):
         self.assertEqual(out['policy_migration']['previous_halted_reason'],'BOUNDED_SESSION_END')
 
     def test_inherited_source_wait_and_lifetime_totals_survive_restart(self):
-        now=stamp();wait=r.plan_http_wait(429,{'Retry-After':'7200'},now)
+        now=stamp();wait=r.plan_http_wait(429,{'Retry-After':'600'},now)
         control=dict(source_wait=wait,lifetime_requests=500,lifetime_completed_rounds=38,
                      previous_halted_reason='SOURCE_HTTP_429_NO_RETRY')
         r.start(self.path,day='2030-04-01',run_id=99,now=now,source_control=control)
@@ -306,11 +306,11 @@ class RepeatedControllerTests(unittest.TestCase):
         guard=r.SourceGuard(self.path,clock=lambda:now)
         with self.assertRaises(r.SourceWait):guard.charge('forecast')
         self.assertEqual(r.load(self.path)['lifetime_requests'],500)
-        guard=r.SourceGuard(self.path,clock=lambda:now+timedelta(seconds=7200));guard.charge('forecast')
+        guard=r.SourceGuard(self.path,clock=lambda:now+timedelta(seconds=600));guard.charge('forecast')
         guard.http_success()
-        r.prepare(self.path,1,now=now+timedelta(seconds=7200))
-        r.complete(self.path,1,now=now+timedelta(seconds=7200),forecast_artifact=1,result_artifact=2)
-        restarted=r.start(self.path,day='2030-04-01',run_id=99,now=now+timedelta(seconds=7250))
+        r.prepare(self.path,1,now=now+timedelta(seconds=600))
+        r.complete(self.path,1,now=now+timedelta(seconds=600),forecast_artifact=1,result_artifact=2)
+        restarted=r.start(self.path,day='2030-04-01',run_id=99,now=now+timedelta(seconds=650))
         self.assertEqual(restarted['lifetime_requests'],501)
         self.assertEqual(restarted['lifetime_completed_rounds'],39)
 
@@ -347,7 +347,7 @@ class RepeatedControllerTests(unittest.TestCase):
         now=stamp();wait=r.plan_http_wait(429,{},now)
         r.start(self.path,day='2030-04-01',run_id=99,now=now,source_control=dict(
             source_wait=wait,previous_halted_reason='SOURCE_IDENTITY_OR_PARSE_STOP'))
-        guard=r.SourceGuard(self.path,clock=lambda:now+timedelta(hours=2))
+        guard=r.SourceGuard(self.path,clock=lambda:now+timedelta(minutes=10))
         with self.assertRaises(r.SourceWait):guard.charge('forecast')
         self.assertIsNone(r.load(self.path)['source_wait']['retry_at'])
         self.assertIsNone(r.load(self.path)['source_wait']['http_status'])

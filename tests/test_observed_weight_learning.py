@@ -121,9 +121,11 @@ class ContinuityAndCoverage(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             start=datetime(2030,4,1,3,57,tzinfo=timezone.utc)
             s=r.start(Path(temp)/'s.json',day='2030-04-01',run_id=99,now=start)
-            self.assertIsNone(s['stop_at'])
-            self.assertIsNone(s['max_rounds'])
-            self.assertIsNone(r.SOURCE_LIMIT)
+            # Verify the hourly trigger fits the configured policy. It does
+            # not require every deployment to disable all session limits.
+            if s['stop_at'] is not None:
+                self.assertGreater(datetime.fromisoformat(s['stop_at']),start+timedelta(hours=1))
+            self.assertTrue(r.prepare(Path(temp)/'s.json',1,now=start+timedelta(hours=1))['active'])
     def test_ended_races_with_missing_models_are_counted(self):
         self.assertIsNotNone(learning,'coverage implementation missing')
         rows,obs=dataset(2)

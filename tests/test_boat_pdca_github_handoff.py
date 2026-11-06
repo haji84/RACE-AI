@@ -30,6 +30,36 @@ def invented_research_state(root):
 
 
 class GithubHandoffTests(unittest.TestCase):
+    def test_pinned_fetches_remain_reachable_for_incremental_following_fetch(self):
+        from race_ai.boat_pdca_github_handoff import GitStateRepository
+        class LocalFixtureGit(GitStateRepository):
+            def _check_remote(self):self.fetch_url=self.push_url=self._run(['remote','get-url','origin']).decode().strip()
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d);bare=root/'remote.git';producer=root/'producer';consumer=root/'consumer'
+            subprocess.run(['git','init','--bare',str(bare)],check=True,capture_output=True)
+            for path in (producer,consumer):
+                subprocess.run(['git','init',str(path)],check=True,capture_output=True)
+                subprocess.run(['git','-C',str(path),'remote','add','origin',str(bare)],check=True,capture_output=True)
+            source=LocalFixtureGit(producer);first=source.commit({'one.enc':b'invented'},None);source.push(first,None)
+            second=source.commit({'two.enc':b'more invented'},first);source.push(second,first)
+            reader=LocalFixtureGit(consumer);reader.fetch(first)
+            reachable=lambda:set(reader._run(['rev-list','--all']).decode().splitlines())
+            self.assertIn(first,reachable())
+            reader.fetch(second);self.assertTrue({first,second}<=reachable())
+            with patch.object(reader,'_run') as network:
+                with self.assertRaises(ValueError):reader.fetch('--upload-pack=unexpected')
+                network.assert_not_called()
+
+    def test_large_pinned_fetch_has_a_bounded_longer_timeout_than_local_commands(self):
+        from race_ai.boat_pdca_github_handoff import GitStateRepository
+        git=object.__new__(GitStateRepository);git.repo=Path('.')
+        with patch.object(git,'_reject_rewrites'),patch('race_ai.boat_pdca_github_handoff.subprocess.run',return_value=subprocess.CompletedProcess([],0,b'',b'')) as run:
+            git._run(['fetch','fixture'])
+            self.assertGreater(run.call_args.kwargs['timeout'],60)
+            self.assertLessEqual(run.call_args.kwargs['timeout'],180)
+            git._run(['rev-list','--all'])
+            self.assertLessEqual(run.call_args.kwargs['timeout'],60)
+
     def test_cli_missing_key_reports_hold_and_unexpected_errors_do_not_echo_private_data(self):
         import io
         from contextlib import redirect_stdout

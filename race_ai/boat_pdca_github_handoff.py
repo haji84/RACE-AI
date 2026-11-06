@@ -44,7 +44,7 @@ class GitStateRepository:
     def _run(self,args,*,body=None,env=None):
         if args and args[0] in ('ls-remote','fetch','push'):self._reject_rewrites(env)
         result=subprocess.run(['git',*args],cwd=self.repo,input=body,stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,timeout=60,env=env)
+            stderr=subprocess.PIPE,timeout=180 if args and args[0]=='fetch' else 60,env=env)
         need(result.returncode==0,'STATE_GIT_OPERATION_FAILED');return result.stdout
 
     def _check_remote(self):
@@ -60,7 +60,13 @@ class GitStateRepository:
         m=re.fullmatch(r'([a-f0-9]{40})\s+refs/heads/'+re.escape(self.ref),raw)
         need(m is not None,'STATE_REF_IDENTITY_INVALID');return m[1]
 
-    def fetch(self,commit):self._run(['fetch','--no-tags','--no-write-fetch-head',self.fetch_url,commit])
+    def fetch(self,commit):
+        need(type(commit) is str and re.fullmatch('[a-f0-9]{40}',commit),'STATE_COMMIT_INVALID')
+        # Keep the exact object locally reachable so the next pinned dataset
+        # fetch can negotiate its already-restored monthly ancestors. These
+        # private local refs are never pushed or used as trusted remote heads.
+        self._run(['fetch','--no-tags','--no-write-fetch-head',self.fetch_url,
+                   commit+':refs/race-ai/pinned-state/'+commit])
 
     def read(self,commit,path,limit):
         need(re.fullmatch('[a-f0-9]{40}',commit) is not None,'STATE_COMMIT_INVALID')
