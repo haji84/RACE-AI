@@ -9,6 +9,7 @@ import hashlib, io, itertools, json, math, re, zipfile
 from .actions_contract import digest
 from .repeated_cycle import matches as artifact_matches
 from .boat_active_roster import active_roster, match_result_roster
+from .boat_private_original_archive import open_original_zip
 
 UNIVERSE=set(itertools.permutations(range(1,7),3))
 def need(ok,reason):
@@ -23,12 +24,23 @@ def official_id(value):
     need(m is not None and 1<=int(m[2])<=24,'original race ID invalid')
     datetime.strptime(m[1],'%Y-%m-%d')
     return m[1].replace('-','')+'-'+m[2]+'-'+m[3].zfill(2)
+
+def original_archive_bound(raw, maximum):
+    """Keep legacy ZIP limits; reserve envelope overhead for encrypted ZIPs."""
+    if not isinstance(raw,bytes) or not 0<len(raw)<=maximum+64*1024:return False
+    if len(raw)<=maximum:return True
+    try:
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            return archive.namelist()==['private-original.enc']
+    except (zipfile.BadZipFile,ValueError):return False
+
 def archive_json(raw,receipt,member,expected_name):
-    need(isinstance(raw,bytes) and len(raw)<=32*1024*1024,'bounded archive required')
+    need(original_archive_bound(raw,32*1024*1024),'bounded archive required')
     need(receipt.get('expired') is False and artifact_matches(receipt.get('name'),expected_name),'foreign or expired archive')
     need(receipt.get('workflow_run',{}).get('head_repository_id')==1416489937,'foreign repository')
     need(receipt.get('digest')=='sha256:'+hashlib.sha256(raw).hexdigest(),'archive digest mismatch')
-    with zipfile.ZipFile(io.BytesIO(raw)) as z:
+    kind={'forecasts.json':'P0','national.json':'P1'}.get(member)
+    with open_original_zip(raw,receipt,expected_kind=kind,max_plain_zip_bytes=32*1024*1024) as z:
         need(z.namelist()==[member] and z.getinfo(member).file_size<=32*1024*1024,'archive layout rejected')
         body=z.read(member)
     def unique(pairs):

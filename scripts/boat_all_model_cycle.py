@@ -27,6 +27,7 @@ from race_ai.actions_contract import digest
 from race_ai.boat_history_store import wire
 from race_ai.boat_pdca_recipient import _json
 from race_ai.boat_pdca_state import state_key
+from race_ai.boat_private_original_archive import open_original_zip
 from race_ai.existing_model_coverage import catalog
 from race_ai.frozen_day_cycle import official_id
 from race_ai.repeated_cycle import artifact_name as baseline_name, matches
@@ -244,7 +245,10 @@ def _artifact(ident, *, member, expected_name, expected_run, expected_head):
     archive = gh(f"actions/artifacts/{ident}/zip")
     need(len(archive) <= 40*1024*1024 and meta.get("size_in_bytes") == len(archive)
          and meta.get("digest") == "sha256:"+sha256(archive).hexdigest(), "ARTIFACT_ARCHIVE_HASH_MISMATCH")
-    with zipfile.ZipFile(io.BytesIO(archive)) as source:
+    opened=(open_original_zip(archive,meta,expected_kind='P1' if member=='national.json' else 'P0',
+                              max_plain_zip_bytes=32*1024*1024)
+            if member in ('national.json','forecasts.json') else zipfile.ZipFile(io.BytesIO(archive)))
+    with opened as source:
         infos = source.infolist()
         need(len(infos) == 1 and infos[0].filename == member and infos[0].orig_filename == member
              and not infos[0].is_dir() and stat.S_IFMT(infos[0].external_attr >> 16) in (0, stat.S_IFREG)

@@ -67,6 +67,7 @@ jobs:
         timeout-minutes: 8
         env:
           GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
         # Read-only GitHub archive replay. No official source GET, forecast
         # regeneration, source-worker restart or replacement checkpoint.
         run: python scripts/github_existing_cycle.py restore
@@ -128,13 +129,16 @@ jobs:
         if: steps.first_p0.outputs.capture == 'true'
         env: {GH_TOKEN: '${{ github.token }}'}
         run: python scripts/first_p0_bootstrap.py capture-wait
+      - name: Protect first P0 before public artifact storage
+        if: steps.first_p0.outputs.capture == 'true' && steps.first_capture.outputs.capture_complete == 'true'
+        run: python -m scripts.boat_private_original_archive pack --kind P0 --input boat_all_day_output/forecasts.json --output-dir '${{ runner.temp }}/boat-private-originals/first-p0'
       - name: Save first P0 separately before reading results
         if: steps.first_p0.outputs.capture == 'true' && steps.first_capture.outputs.capture_complete == 'true'
         id: first_upload
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: boat-p0-existing-${{ github.run_id }}
-          path: boat_all_day_output/forecasts.json
+          path: ${{ runner.temp }}/boat-private-originals/first-p0/private-original.enc
           if-no-files-found: error
           retention-days: 7
       - name: Read back original ZIP and create-only first receipt index
@@ -349,12 +353,16 @@ jobs:
       - name: Build compact sealed handoff without retained original ZIP archives
         if: always()
         run: python -m race_ai.continuity_checkpoint --source-dir cycle_recovery_output --out-dir cycle_checkpoint_output --expected-run '${{ github.run_id }}'
+      - name: Protect complete continuity before public artifact storage
+        if: always() && hashFiles('cycle_checkpoint_output/**') != ''
+        id: checkpoint_private
+        run: python -m scripts.boat_private_original_archive pack --kind CONTINUITY --input cycle_checkpoint_output --output-dir '${{ runner.temp }}/boat-private-originals/continuity'
       - name: Preserve verified continuity journal without public source pages
-        if: always()
+        if: always() && steps.checkpoint_private.outcome == 'success'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: race-cycle-continuity-${{ github.run_id }}
-          path: cycle_checkpoint_output/
+          path: ${{ runner.temp }}/boat-private-originals/continuity/private-original.enc
           if-no-files-found: warn
           retention-days: 7
       - name: Prepare exact source verification bundle, no data or credentials

@@ -26,26 +26,38 @@ runs:
       env:
         RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
       run: python -m scripts.boat_all_model_cycle prepare --round '${{ inputs.round }}'
+    - name: Protect new P0 before public artifact storage
+      if: steps.ready.outputs.active == 'true' && steps.discovery.outputs.supplement_ready == 'true'
+      shell: bash
+      env:
+        RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
+      run: python -m scripts.boat_private_original_archive pack --kind P0 --input 'p0_supplement_output/cycle-${{ inputs.round }}/forecasts.json' --output-dir '${{ runner.temp }}/boat-private-originals/p0-supplement-${{ inputs.round }}'
     - name: Freeze new P0 separately before any result reads
       if: steps.ready.outputs.active == 'true' && steps.discovery.outputs.supplement_ready == 'true'
       id: discovery_freeze
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
         name: ${{ steps.ready.outputs.p0_name }}
-        path: p0_supplement_output/cycle-${{ inputs.round }}/forecasts.json
+        path: ${{ runner.temp }}/boat-private-originals/p0-supplement-${{ inputs.round }}/private-original.enc
         if-no-files-found: error
         retention-days: 7
     - name: Forecast future unpublished originals with existing five models
       if: steps.ready.outputs.active == 'true'
       shell: bash
       run: python scripts/github_existing_cycle.py forecast --round '${{ inputs.round }}'
+    - name: Protect this baseline original before public artifact storage
+      if: steps.ready.outputs.active == 'true'
+      shell: bash
+      env:
+        RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
+      run: python -m scripts.boat_private_original_archive pack --kind P1 --input boat_nationwide_output/national.json --output-dir '${{ runner.temp }}/boat-private-originals/p1-${{ inputs.round }}'
     - name: Freeze this round before reading any outcomes
       if: steps.ready.outputs.active == 'true'
       id: freeze
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
         name: ${{ steps.ready.outputs.forecast_name }}
-        path: boat_nationwide_output/national.json
+        path: ${{ runner.temp }}/boat-private-originals/p1-${{ inputs.round }}/private-original.enc
         if-no-files-found: error
         retention-days: 7
     - name: Execute remaining native families from the same retained exhibition
@@ -121,13 +133,19 @@ runs:
         path: ${{ runner.temp }}/boat-venue-research-pdca/cycle-${{ inputs.round }}/
         if-no-files-found: ignore
         retention-days: 7
+    - name: Protect result journal and nested originals before public artifact storage
+      if: steps.ready.outputs.active == 'true'
+      shell: bash
+      env:
+        RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
+      run: python -m scripts.boat_private_original_archive pack --kind RESULT --input existing_cycle_output --output-dir '${{ runner.temp }}/boat-private-originals/result-${{ inputs.round }}'
     - name: Save status and PDCA as a separate immutable result event
       if: steps.ready.outputs.active == 'true'
       id: result
       uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
       with:
         name: ${{ steps.ready.outputs.result_name }}
-        path: existing_cycle_output/
+        path: ${{ runner.temp }}/boat-private-originals/result-${{ inputs.round }}/private-original.enc
         if-no-files-found: error
         retention-days: 7
     - name: Verify result archive before admitting the next round

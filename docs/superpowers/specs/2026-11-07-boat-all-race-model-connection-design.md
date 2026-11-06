@@ -19,3 +19,17 @@ Names bind by official registration identity, preferring same-race program names
 ## Validation
 
 Synthetic 3/4/5/6-entrant cases, non-contiguous lanes, withdrawal vs unpublished, all venue identities including legacy navigation variants, wrong identities and payout/roster mismatches. Complete six-entrant existing predictions must be unchanged. Real retained source replay and source hash checks validate adapters without retroactive forecast claims. Test model-by-model dispatch with genuine training fixtures, future-data rejection, append-only encrypted feed union, name identity binding, browser budgets/model choice preservation and results/returns. Verify the existing URL and report live pre-cutoff collection separately from offline replay; no claim of universal future source availability or improved hit rate.
+# Source-original privacy completion
+
+Before enabling the updated source worker, its existing first/supplement P0,
+five-model P1, result journal/CSV and complete continuity artifacts must also
+use the configured owner key. New outer GitHub artifacts contain only
+`private-original.enc`; the encrypted inner ZIP preserves every original byte.
+The source-only verification bundle contains code and remains separate.
+
+Readers verify the actual outer GitHub ZIP digest and repository/run/head/name
+before decryption. Native JSON member hashes and GitHub `created_at` stay
+unchanged. Old clear artifacts remain readable without rewriting them or
+fabricating new receipts. Encryption failure stops the corresponding upload.
+The root key stays in Actions; no provider, key replacement or permission
+change is introduced.

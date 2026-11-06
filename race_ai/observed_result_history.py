@@ -14,6 +14,7 @@ import zipfile
 from .actions_contract import digest, stamp
 from .boat_observed_pairwise_models import FEATURE_TRANSFORMS
 from .boat_active_roster import active_roster
+from .boat_private_original_archive import open_original_zip
 
 SCHEMA = 'RACE_AI_OBSERVED_RESULT_HISTORY_V1'
 EVIDENCE_SCHEMA = 'RACE_AI_OBSERVED_HISTORY_EVIDENCE_V1'
@@ -116,7 +117,7 @@ def context_from_result_archive(raw, receipt, *, verified_at):
     _receipt(receipt,verified_at)
     day=_result_day(raw,receipt)
     observations=result_archive(raw,receipt,day)
-    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+    with open_original_zip(raw,receipt,expected_kind='RESULT',max_plain_zip_bytes=32*1024*1024) as archive:
         need(sum(i.file_size for i in archive.infolist())<=512*1024*1024 and archive.testzip() is None,
              'history archive member CRC/bounds')
         report=None

@@ -24,13 +24,14 @@ from .cycle_recovery import (BRANCH, WORKFLOW, JST, _result_day, _wait,
                              artifact_pages)
 from .first_receipt_continuity import first_receipt_rows, latest_result_observations
 from .frozen_day_cycle import archive_json, read_p1, ts
-from .private_cycle_capture import (MAX_METADATA, MAX_ZIP, _parent_handle,
+from .private_cycle_capture import (MAX_METADATA, MAX_ZIP, MAX_ZIP_WIRE, _parent_handle,
                                      _read as remote_read, _write_at,
                                      capture_artifacts)
 from .private_cycle_projection import project_state
 from .private_cycle_restore import _json, _read, restore_manifest
 from .repeated_cycle import matches
 from .saved_delivery import assess_delivery
+from .boat_private_original_archive import open_original_zip
 
 _SHA = re.compile(r"[a-f0-9]{64}\Z")
 _REPOSITORY_ID = 1416489937
@@ -172,12 +173,12 @@ def _artifact(get, base, ident, expected=None):
         restore_manifest(manifest, folder)
         entry = manifest["artifacts"][0]
         meta = _json(_local(folder, entry["metadata_file"], MAX_METADATA))
-        raw = _local(folder, entry["zip_file"])
+        raw = _local(folder, entry["zip_file"], MAX_ZIP_WIRE)
     else:
         meta_wire = remote_read(get, f"actions/artifacts/{ident}", MAX_METADATA)
         meta = _json(meta_wire)
         _receipt_matches(meta, expected)
-        raw = remote_read(get, f"actions/artifacts/{ident}/zip", MAX_ZIP)
+        raw = remote_read(get, f"actions/artifacts/{ident}/zip", MAX_ZIP_WIRE)
         day = _day(meta, raw, _kind(meta))
         responses = {f"actions/artifacts/{ident}": meta_wire,
                      f"actions/artifacts/{ident}/zip": raw}
@@ -188,7 +189,7 @@ def _artifact(get, base, ident, expected=None):
 
 
 def _report(raw, meta, day):
-    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+    with open_original_zip(raw,meta,expected_kind='RESULT',max_plain_zip_bytes=MAX_ZIP) as archive:
         _need(archive.getinfo("status.json").file_size <= 16 * 1024 * 1024)
         report = _json(archive.read("status.json"))
     _need(type(report) is dict and report.get("day_jst") == day and

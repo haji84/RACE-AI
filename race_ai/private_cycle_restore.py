@@ -22,10 +22,12 @@ from .cycle_recovery import result_archive, p0_original_or_empty
 from .existing_model_coverage import catalog
 from .first_receipt_continuity import first_receipt_rows, latest_result_observations
 from .frozen_day_cycle import read_p0, read_p1, ts
+from .boat_private_original_archive import open_original_zip
 
 MAX_ARTIFACTS = 100
 MAX_METADATA_BYTES = 1024 * 1024
 MAX_ZIP_BYTES = 32 * 1024 * 1024
+MAX_ZIP_WIRE_BYTES = MAX_ZIP_BYTES + 64 * 1024
 MAX_TOTAL_BYTES = 256 * 1024 * 1024
 _SHA = re.compile(r'[a-f0-9]{64}\Z')
 _JST = timezone(timedelta(hours=9))
@@ -158,10 +160,10 @@ def _restore(manifest,root):
             _need(type(workflow['repository_id']) is int and workflow['repository_id']==1416489937)
         saved=ts(meta['created_at'])
         if 'created_at' in entry:_need(meta['created_at']==entry['created_at'])
-        raw=_read(private_root,entry['zip_file'],MAX_ZIP_BYTES,budget)
+        raw=_read(private_root,entry['zip_file'],MAX_ZIP_WIRE_BYTES,budget)
         _need(hashlib.sha256(raw).hexdigest()==entry['zip_sha256'] and meta.get('digest')=='sha256:'+entry['zip_sha256'])
         primary=_MEMBERS[kind]
-        with zipfile.ZipFile(io.BytesIO(raw)) as z:
+        with open_original_zip(raw,meta,expected_kind=kind.upper(),max_plain_zip_bytes=MAX_ZIP_BYTES) as z:
             names=z.namelist();_need(len(names)==len(set(names)) and primary in names)
             sizes=[i.file_size for i in z.infolist()]
             _need(all(type(n) is int and n>=0 for n in sizes))

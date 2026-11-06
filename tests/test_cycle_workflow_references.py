@@ -29,7 +29,8 @@ class WorkflowReferencesTest(unittest.TestCase):
         steps = re.split(r'^    - name: ', text, flags=re.MULTILINE)[1:]
         private_steps=[step for step in steps if 'venue-research-' in step]
         model_steps=[step for step in steps if 'boat_all_model_cycle' in step or 'boat-all-model-forecasts' in step]
-        baseline_steps=[step for step in steps if step not in private_steps+model_steps]
+        protection_steps=[step for step in steps if 'boat_private_original_archive' in step]
+        baseline_steps=[step for step in steps if step not in private_steps+model_steps+protection_steps]
         self.assertEqual(len(baseline_steps), 9)
         prepare, discovery, p0freeze, forecast, freeze, audit, result, complete, display = baseline_steps
         self.assertIn('id: ready', prepare)
@@ -38,7 +39,7 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn('id: discovery', discovery)
         self.assertIn('id: discovery_freeze', p0freeze)
         self.assertIn("steps.discovery.outputs.supplement_ready == 'true'", p0freeze)
-        self.assertIn('path: p0_supplement_output/cycle-${{ inputs.round }}/forecasts.json', p0freeze)
+        self.assertIn('path: ${{ runner.temp }}/boat-private-originals/p0-supplement-${{ inputs.round }}/private-original.enc', p0freeze)
         self.assertIn('steps.ready.outputs.p0_name', p0freeze)
         self.assertIn('uses: ' + UPLOAD, p0freeze)
         self.assertIn('if-no-files-found: error', p0freeze)
@@ -48,8 +49,8 @@ class WorkflowReferencesTest(unittest.TestCase):
             self.assertIn("if: steps.ready.outputs.active == 'true'", step)
             self.assertNotIn('continue-on-error:', step)
         for step, ident, path, name in [
-            (freeze, 'freeze', 'boat_nationwide_output/national.json', 'forecast_name'),
-            (result, 'result', 'existing_cycle_output/', 'result_name'),
+            (freeze, 'freeze', '${{ runner.temp }}/boat-private-originals/p1-${{ inputs.round }}/private-original.enc', 'forecast_name'),
+            (result, 'result', '${{ runner.temp }}/boat-private-originals/result-${{ inputs.round }}/private-original.enc', 'result_name'),
         ]:
             self.assertIn('id: ' + ident, step)
             self.assertIn('uses: ' + UPLOAD, step)
@@ -82,6 +83,12 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertNotIn('forecasts.json',encrypted_freeze)
         self.assertIn('steps.all_models_freeze.outputs.artifact-id',receipt)
         for step in model_steps:self.assertIn('continue-on-error: true',step)
+        self.assertEqual(len(protection_steps),3)
+        for protected,kind,upload in zip(protection_steps,('P0','P1','RESULT'),(p0freeze,freeze,result)):
+            self.assertIn('--kind '+kind,protected)
+            self.assertNotIn('continue-on-error:',protected)
+            self.assertIn('RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}',protected)
+            self.assertLess(text.index(protected),text.index(upload))
         # Optional private work may fail independently; ordinary forecast and
         # result originals must retain their strict failure and receipt rules.
         self.assertEqual(len(private_steps),6)
@@ -165,9 +172,23 @@ class WorkflowReferencesTest(unittest.TestCase):
     def test_private_work_before_baseline_freeze_is_rejected(self):
         text = ROUND.read_text()
         parts = re.split(r'(?=^    - name: )', text, flags=re.MULTILINE)
-        parts[5], parts[6] = parts[6], parts[5]
+        left=next(i for i,p in enumerate(parts) if p.startswith('    - name: Freeze this round before'))
+        right=next(i for i,p in enumerate(parts) if p.startswith('    - name: Generate private venue research'))
+        parts[left],parts[right]=parts[right],parts[left]
         with self.assertRaises(AssertionError):
             self.assert_round_contract(''.join(parts))
+
+    def test_first_original_and_checkpoint_never_upload_plaintext(self):
+        text=WORKFLOW.read_text().split('  official_national:',1)[1]
+        steps=re.split(r'^      - name: ',text,flags=re.MULTILINE)
+        first=next(p for p in steps if p.startswith('Save first P0 separately'))
+        checkpoint=next(p for p in steps if p.startswith('Preserve verified continuity journal'))
+        for step in (first,checkpoint):
+            self.assertIn('private-original.enc',step)
+            self.assertIn('path: ${{ runner.temp }}/boat-private-originals/',step)
+        self.assertIn('boat_private_original_archive pack --kind P0',text)
+        self.assertIn('boat_private_original_archive pack --kind CONTINUITY',text)
+        self.assertIn("steps.checkpoint_private.outcome == 'success'",checkpoint)
 
     def test_missing_or_wrong_receipt_and_overwrite_are_rejected(self):
         text = ROUND.read_text()

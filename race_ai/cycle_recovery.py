@@ -5,11 +5,13 @@ The caller supplies authenticated GitHub API reads. Incomplete history stops
 new forecasts; it is never silently treated as an empty database.
 """
 from datetime import datetime,timedelta,timezone
+from contextlib import contextmanager
 import copy,hashlib,io,json,re,zipfile
-from .frozen_day_cycle import need,ts,read_p1,read_p0,archive_json
+from .frozen_day_cycle import need,ts,read_p1,read_p0,archive_json,original_archive_bound
 from .first_receipt_continuity import first_receipt_rows,latest_result_observations
 from .repeated_cycle import matches as artifact_matches
 from .saved_view_run import display_only_run
+from .boat_private_original_archive import open_original_zip
 BRANCH='feat/four-sport-forecast-audit-view-20261022'
 WORKFLOW=405276784
 JST=timezone(timedelta(hours=9))
@@ -40,20 +42,29 @@ def artifact_pages(get, run_id):
         need(len(rows)==100,'ARTIFACT_PAGINATION_INCOMPLETE')
         page+=1
 
+@contextmanager
 def _verified_zip(raw, meta, expected_name):
-    need(isinstance(raw,bytes) and 0<len(raw)<=CONTINUITY_ARCHIVE_MAX_BYTES,'bounded cycle archive')
+    need(original_archive_bound(raw,CONTINUITY_ARCHIVE_MAX_BYTES),'bounded cycle archive')
     need(meta.get('expired') is False and meta.get('name')==expected_name and
          meta.get('workflow_run',{}).get('head_repository_id')==1416489937,
          'foreign/expired continuity archive')
     need(meta.get('digest')=='sha256:'+hashlib.sha256(raw).hexdigest(),
          'continuity archive hash mismatch')
     ts(meta['created_at'])
-    archive=zipfile.ZipFile(io.BytesIO(raw))
-    need(len(archive.namelist())==len(set(archive.namelist())),'duplicate continuity member')
-    need(sum(info.file_size for info in archive.infolist())<=512*1024*1024,
-         'oversized continuity members')
-    need(archive.testzip() is None,'continuity member CRC mismatch')
-    return archive
+    def members(archive):
+        need(len(archive.namelist())==len(set(archive.namelist())),'duplicate continuity member')
+        need(sum(info.file_size for info in archive.infolist())<=512*1024*1024,
+             'oversized continuity members')
+        need(archive.testzip() is None,'continuity member CRC mismatch')
+    # Preserve legacy rejection reasons before the shared opener's stricter
+    # generic ZIP checks. Encrypted native members are read only after AEAD.
+    with zipfile.ZipFile(io.BytesIO(raw)) as outer:
+        encrypted='private-original.enc' in outer.namelist()
+        if not encrypted:members(outer)
+    with open_original_zip(raw,meta,expected_kind='CONTINUITY',
+                           max_plain_zip_bytes=CONTINUITY_ARCHIVE_MAX_BYTES) as archive:
+        if encrypted:members(archive)
+        yield archive
 
 def _wait(value):
     if value is None:return None
@@ -168,12 +179,12 @@ def day_runs(get,day,*,current_run):
     return sorted(selected,key=lambda x:(ts(x['created_at']),x['id']))
 
 def result_archive(raw,meta,day):
-    need(isinstance(raw,bytes) and len(raw)<=32*1024*1024,'bounded result archive')
+    need(original_archive_bound(raw,32*1024*1024),'bounded result archive')
     run=meta['workflow_run']['id']
     need(meta.get('expired') is False and artifact_matches(meta.get('name'),f'race-existing-cycle-{run}') and
          meta['workflow_run'].get('head_repository_id')==1416489937,'foreign/expired cycle archive')
     need(meta.get('digest')=='sha256:'+hashlib.sha256(raw).hexdigest(),'cycle archive hash mismatch')
-    with zipfile.ZipFile(io.BytesIO(raw)) as z:
+    with open_original_zip(raw,meta,expected_kind='RESULT',max_plain_zip_bytes=32*1024*1024) as z:
         member='official-result-observations.json'
         need(len(z.namelist())==len(set(z.namelist())) and member in z.namelist(),'cycle member missing/duplicate')
         need(z.getinfo(member).file_size<=16*1024*1024,'oversized result journal')
@@ -187,11 +198,11 @@ def result_archive(raw,meta,day):
 def _result_day(raw,meta):
     """Determine an authenticated payload day before filtering a lookback run."""
     run=meta['workflow_run']['id']
-    need(isinstance(raw,bytes) and len(raw)<=32*1024*1024 and meta.get('expired') is False and
+    need(original_archive_bound(raw,32*1024*1024) and meta.get('expired') is False and
          artifact_matches(meta.get('name'),f'race-existing-cycle-{run}') and
          meta['workflow_run'].get('head_repository_id')==1416489937 and
          meta.get('digest')=='sha256:'+hashlib.sha256(raw).hexdigest(),'cycle archive identity')
-    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+    with open_original_zip(raw,meta,expected_kind='RESULT',max_plain_zip_bytes=32*1024*1024) as archive:
         need(len(archive.namelist())==len(set(archive.namelist())),'duplicate cycle member')
         if 'status.json' in archive.namelist():
             need(archive.getinfo('status.json').file_size<=16*1024*1024,'oversized cycle report')
@@ -347,7 +358,7 @@ def recover(get,day,*,current_run,out,clock=None,video_receipt_verifier=None):
                         order=(ts(candidate_cache['checked_at']),ts(meta['created_at']),ident)
                         if entry_history_order is None or order>entry_history_order:
                             entry_history_cache=candidate_cache;entry_history_order=order
-                    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+                    with open_original_zip(raw,meta,expected_kind='P1',max_plain_zip_bytes=32*1024*1024) as archive:
                         body_sha=hashlib.sha256(archive.read('national.json')).hexdigest()
                     from .boat_video_archive import read_optional_video_shadows
                     accepted,rejected=read_optional_video_shadows(doc,meta,items,
@@ -383,7 +394,7 @@ def recover(get,day,*,current_run,out,clock=None,video_receipt_verifier=None):
                 # Retain source handles even before enough races support a fit.
                 # Their parent result bytes are authenticated above; these IDs
                 # are independently read again before any next fit/inference.
-                with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+                with open_original_zip(raw,meta,expected_kind='RESULT',max_plain_zip_bytes=32*1024*1024) as archive:
                     if 'status.json' in archive.namelist():
                         need(archive.getinfo('status.json').file_size<=16*1024*1024,
                              'oversized cycle report')

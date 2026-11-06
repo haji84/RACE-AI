@@ -1,5 +1,6 @@
 """Compact final handoffs retain sealed JSON without recursively packing ZIPs."""
 import hashlib
+import base64
 import io
 import json
 import os
@@ -247,8 +248,10 @@ class ContinuityCheckpointTests(unittest.TestCase):
         steps = re.split(r'^      - name: ', WORKFLOW.read_text(), flags=re.MULTILINE)[1:]
         upload = next(step for step in steps if 'name: race-cycle-continuity-' in step)
         before = steps[steps.index(upload) - 1]
+        build = steps[steps.index(upload) - 2]
         self.assertIn('if: always()', before)
-        command = before.split('        run: ', 1)[1].strip()
+        self.assertIn("steps.checkpoint_private.outcome == 'success'",upload)
+        command = build.split('        run: ', 1)[1].strip()
         self.assertIn('race_ai.continuity_checkpoint', command)
         command = command.replace('${{ github.run_id }}', '7')
         self.write('repeat-session.json', session())
@@ -256,9 +259,26 @@ class ContinuityCheckpointTests(unittest.TestCase):
             env=dict(os.environ, GITHUB_RUN_ID='7', PYTHONPATH=str(ROOT)),
             text=True, capture_output=True)
         self.assertEqual(result.returncode, 0, result.stderr)
+        private=self.root/'runner-private';private.mkdir(mode=0o700)
+        key=bytes(range(32))
+        env=dict(os.environ,GITHUB_RUN_ID='7',GITHUB_SHA='a'*40,
+            GITHUB_REPOSITORY='haji84/RACE-AI',GITHUB_REPOSITORY_ID='1416489937',GITHUB_ACTIONS='true',
+            RUNNER_TEMP=str(private),PYTHONPATH=str(ROOT),RACE_AI_STATE_KEY=base64.b64encode(key).decode())
+        protect=before.split('        run: ',1)[1].strip().replace('${{ runner.temp }}',str(private))
+        self.assertIn('boat_private_original_archive pack --kind CONTINUITY',protect)
+        result=subprocess.run(['bash','-e','-c',protect],cwd=self.root,env=env,text=True,capture_output=True)
+        self.assertEqual(result.returncode,0,result.stderr)
         path = re.search(r'^          path: (.+)$', upload, re.MULTILINE).group(1).strip()
-        self.assertEqual(path, 'cycle_checkpoint_output/')
-        self.assertEqual((self.root / path / 'repeat-session.json').read_bytes(), session())
+        self.assertEqual(path,'${{ runner.temp }}/boat-private-originals/continuity/private-original.enc')
+        cipher=Path(path.replace('${{ runner.temp }}',str(private))).read_bytes()
+        packed=io.BytesIO()
+        with zipfile.ZipFile(packed,'w') as outer:outer.writestr('private-original.enc',cipher)
+        raw=packed.getvalue();receipt=dict(id=71,name='race-cycle-continuity-7',expired=False,
+            digest='sha256:'+hashlib.sha256(raw).hexdigest(),created_at='2030-04-01T01:00:00Z',
+            workflow_run=dict(id=7,repository_id=1416489937,head_repository_id=1416489937,head_sha='a'*40))
+        from race_ai.boat_private_original_archive import open_original_zip
+        with open_original_zip(raw,receipt,expected_kind='CONTINUITY',key=key) as original:
+            self.assertEqual(original.read('repeat-session.json'),session())
         self.assertIn('name: race-cycle-continuity-${{ github.run_id }}', upload)
         self.assertIn('if: always()', upload)
         self.assertIn('if-no-files-found: warn', upload)

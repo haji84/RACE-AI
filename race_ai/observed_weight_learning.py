@@ -16,6 +16,7 @@ from .boat_observed_pairwise_models import (
     MODEL_IDS, WEIGHTS, FEATURE_RANGES, ROOT_FIELDS, SCHEMA, _validate, _contrasts,
 )
 from .four_sport_learning import _gradient, _all_triples
+from .boat_private_original_archive import open_original_zip
 
 SCHEMA_TRAIN = 'RACE_AI_EXISTING_OBSERVED_WEIGHT_FIT_V1'
 SCHEMA_SHADOW = 'RACE_AI_EXISTING_OBSERVED_LEARNED_SHADOW_V1'
@@ -331,7 +332,7 @@ def context_from_result_archive(raw, receipt):
     need(receipt.get('digest')=='sha256:'+hashlib.sha256(raw).hexdigest() and receipt.get('expired') is False,
          'training archive authentication failed')
     need(receipt['workflow_run']['head_repository_id']==1416489937,'foreign training archive')
-    with zipfile.ZipFile(io.BytesIO(raw)) as z:
+    with open_original_zip(raw,receipt,expected_kind='RESULT',max_plain_zip_bytes=32*1024*1024) as z:
         need(len(z.namelist())==len(set(z.namelist())), 'duplicate training ZIP members')
         if 'trained_observed_models.json' not in z.namelist():return None
         need(z.getinfo('trained_observed_models.json').file_size<4*1024*1024,'training artifact too large')

@@ -23,10 +23,12 @@ from contextlib import contextmanager
 from .frozen_day_cycle import read_p0, read_p1
 from .cycle_recovery import result_archive, p0_original_or_empty
 from .repeated_cycle import matches
+from .boat_private_original_archive import open_original_zip
 
 REPO='haji84/RACE-AI'
 REPOSITORY_ID=1416489937
 MAX_ZIP=32*1024*1024
+MAX_ZIP_WIRE=MAX_ZIP+64*1024
 MAX_METADATA=1024*1024
 MAX_TOTAL=256*1024*1024
 HEX=re.compile(r'^[a-f0-9]{64}$')
@@ -87,7 +89,7 @@ def _unique(pairs):
 def _gh_get(endpoint):
     need(re.fullmatch(r'actions/artifacts/[1-9][0-9]*(?:/zip)?',endpoint) is not None,
          'ARTIFACT_ENDPOINT_REQUIRED')
-    limit=MAX_ZIP if endpoint.endswith('/zip') else MAX_METADATA
+    limit=MAX_ZIP_WIRE if endpoint.endswith('/zip') else MAX_METADATA
     process=None
     try:
         process=subprocess.Popen(['gh','api',f'repos/{REPO}/{endpoint}'],stdout=subprocess.PIPE,
@@ -170,12 +172,12 @@ def capture_artifacts(day, artifact_ids, output_dir, *, github_get=None, expecte
             need(type(run['repository_id']) is int and run['repository_id']==REPOSITORY_ID,
                  'ARTIFACT_REPOSITORY_REJECTED')
         size=meta.get('size_in_bytes')
-        need(size is None or type(size) is int and 0<size<=MAX_ZIP,'ARTIFACT_READ_TOO_LARGE')
+        need(size is None or type(size) is int and 0<size<=MAX_ZIP_WIRE,'ARTIFACT_READ_TOO_LARGE')
         choices=[kind for kind,prefix in [('p0','boat-p0-existing-'),('p1','boat-national-cutoff-'),
                                          ('result','race-existing-cycle-')]
                  if matches(meta.get('name'),prefix+str(run['id']))]
         need(len(choices)==1,'ARTIFACT_NAME_REJECTED');kind=choices[0]
-        raw=_read(get,f'actions/artifacts/{ident}/zip',MAX_ZIP)
+        raw=_read(get,f'actions/artifacts/{ident}/zip',MAX_ZIP_WIRE)
         digest=sha256(raw).hexdigest()
         need(meta.get('digest')=='sha256:'+digest and pins.get(ident,digest)==digest,'ARTIFACT_DIGEST_REJECTED')
         if kind=='p0': _,rows=p0_original_or_empty(raw,meta,day);member='forecasts.json'
@@ -187,7 +189,7 @@ def capture_artifacts(day, artifact_ids, output_dir, *, github_get=None, expecte
             from .cycle_recovery import JST
             need(created.utcoffset() is not None and created.astimezone(JST).date()==parsed_day,'FORECAST_DAY_REJECTED')
         else: result_archive(raw,meta,day);member='official-result-observations.json'
-        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        with open_original_zip(raw,meta,expected_kind=kind.upper(),max_plain_zip_bytes=MAX_ZIP) as archive:
             need(archive.getinfo(member).file_size<=MAX_ZIP,'ARTIFACT_READ_TOO_LARGE')
             member_sha=sha256(archive.read(member)).hexdigest()
         total+=len(raw)+len(metadata_wire)

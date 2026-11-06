@@ -90,9 +90,9 @@ def _video_sources(state,requested,reader=None):
         return reader,'BOAT_VIDEO_ARCHIVE_REJECTED'
 
 def restore(day,*,video_context_artifacts=(),video_reader=None):
-    import zipfile,io
+    from race_ai.boat_private_original_archive import open_original_zip
     doc,rows,meta,raw=original(day);folder=ROOT/'boat_all_day_output';folder.mkdir(exist_ok=True)
-    with zipfile.ZipFile(io.BytesIO(raw)) as z:body=z.read('forecasts.json')
+    with open_original_zip(raw,meta,expected_kind='P0',max_plain_zip_bytes=32*1024*1024) as z:body=z.read('forecasts.json')
     target=folder/'forecasts.json'
     if target.exists():
         need(target.read_bytes()==body,'FIRST_P0_RESTORE_LOCAL_BYTES_CONFLICT')
@@ -796,7 +796,7 @@ def repeat_prepare(day,round_no):
     print(json.dumps(dict(round=round_no,**decision)))
 
 def repeat_complete(day,round_no,p1_id,result_id):
-    import io,zipfile
+    from race_ai.boat_private_original_archive import open_original_zip
     from race_ai.repeated_cycle import artifact_name,complete
     from race_ai.cycle_recovery import result_archive
     run_id=int(os.environ['GITHUB_RUN_ID'])
@@ -808,7 +808,7 @@ def repeat_complete(day,round_no,p1_id,result_id):
          meta['name']==artifact_name('race-existing-cycle',run_id,round_no),'round result receipt identity')
     raw=gh(f'actions/artifacts/{result_id}/zip')
     result_archive(raw,meta,day)
-    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+    with open_original_zip(raw,meta,expected_kind='RESULT',max_plain_zip_bytes=32*1024*1024) as archive:
         report=json.loads(archive.read('status.json'))
     local=json.loads((ROOT/'existing_cycle_output/status.json').read_text())
     need(report==local and report['round_no']==round_no and str(report['run_id'])==str(run_id),'round result readback mismatch')
