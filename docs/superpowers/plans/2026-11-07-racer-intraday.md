@@ -27,29 +27,29 @@
 
 Files: create race_ai/racer_intraday_source.py and tests/test_racer_intraday_source.py; modify race_ai/racer_daily.py and its tests.
 Interfaces: parse_result(raw,receipt)->{status,race_id,rows,deadlines,fact_sha256}; schedule(raw,receipt)->active venues; DailyStore.catalogue(...,extra_rows=(),live=None) emits backward compatibleV1 or explicitV2 with today metrics.
-- [ ] RED: explicit cs order differs from lane, F/L/absence, wrong body identity/future capture/partial finish, and pending response do not fabricate confirmed rows.
-- [ ] Implement bounded pure adapters using official dataheader/holdingheader/maindata identities and rlinklist deadlines. Compare an actual source with retained K facts privately.
-- [ ] RED: first result at10:10 adds once to the same registration/course for second race12:00; unchanged/revised result and next-day K replacement never double count. Implement overlay, today per-person records, and historical guards' metadata.
-- [ ] Run affected source/aggregate tests; commit.
+- [x] RED: explicit cs order differs from lane, F/L/absence, wrong body identity/future capture/partial finish, and pending response do not fabricate confirmed rows.
+- [x] Implement bounded pure adapters using official dataheader/holdingheader/maindata identities and rlinklist deadlines. Compare an actual source with retained K facts privately.
+- [x] RED: first result at10:10 adds once to the same registration/course for second race12:00; unchanged/revised result and next-day K replacement never double count. Implement overlay, today per-person records, and historical guards' metadata.
+- [x] Run affected source/aggregate tests; commit.
 
 ### Task2: Incremental encrypted collection and publisher
 
 Files: create race_ai/racer_intraday.py, race_ai/racer_intraday_handoff.py, scripts/racer_intraday_refresh.py and focused tests; modify shared history audit/publisher with backward compatible defaults.
 Interfaces: advance(base,state,now,fetch,max_requests=12)->new private captures/state/coverage; restore/save journal on transfer ref; refresh(repo,private_dir,initialize=False) restores daily base and intraday index, advances facts, publishes typed aggregate/status receipts.
-- [ ] RED: bounded fair due queue, future races never fetched prematurely, persisted404/429/review waits, and atomic same-day replay.
-- [ ] Implement one dated official index/day, per-venue SP result/header bootstrap, due results before low-frequency revision checks, optional current K after21JST. Keep incomplete schedule coverage explicit.
-- [ ] RED: fresh runner restores small delta packets without unrelated blobs/whole90day copies; state cannot reset after corruption/missing/normal revert; CAS preserves other namespaces.
-- [ ] Implement AES-GCM SQLite packets with encrypted queue/index and new captures; namespace-HMAC head/ancestry audit. Retain original encrypted generations, resolve latest pointers, skip K-covered older packets.
-- [ ] RED: derived-only publication changes exactly the aggregate and status fixed paths, hash mismatch preserves previous browser data, retries can replay retained unpublished updates.
-- [ ] Implement atomic two-file publisher, normal UI/forecast publication inheritance, run affected Python tests; commit.
+- [x] RED: bounded fair due queue, future races never fetched prematurely, persisted404/429/review waits, and atomic same-day replay.
+- [x] Implement one dated official index/day, per-venue SP result/header bootstrap, due results before low-frequency revision checks, optional current K after21JST. Keep incomplete schedule coverage explicit.
+- [x] RED: fresh runner restores small delta packets without unrelated blobs/whole90day copies; state cannot reset after corruption/missing/normal revert; CAS preserves other namespaces.
+- [x] Implement AES-GCM SQLite packets with encrypted queue/index and new captures; namespace-HMAC head/ancestry audit. Retain original encrypted generations, resolve latest pointers, skip K-covered older packets.
+- [x] RED: derived-only publication changes exactly the aggregate and status fixed paths, hash mismatch preserves previous browser data, retries can replay retained unpublished updates.
+- [x] Implement atomic two-file publisher, normal UI/forecast publication inheritance, run affected Python tests; commit.
 
 ### Task3: Live card and bounded browser refresh
 
 Files: web/racer-daily.js, web/racer-profiles.js, web/app.js, local/Pages/offline allowlists and related Node/browser tests.
 Interfaces: V1/V2 parse; status pointer polling60seconds while visible, full aggregate fetch only when SHA changes; reference API exposes intraday asOf and per-person current-day records.
-- [ ] RED: before/after first-race update, correct course metrics, insufficient samples, same-day later cutoff allowed / closed earlier race withheld, stale/hash disagreement and synthetic identity isolation.
-- [ ] Implement explicit past90days+today labels, current-day result count/list, last result/last check/waits, six-course reference and current-period strengths.
-- [ ] Verify fixed endpoints/omitted credentials, offline no-network embedding, legacyV1 support and API validation; run full affected Node suite and existing profile/explorer/Crypto/offline browsers; commit.
+- [x] RED: before/after first-race update, correct course metrics, insufficient samples, same-day later cutoff allowed / closed earlier race withheld, stale/hash disagreement and synthetic identity isolation.
+- [x] Implement explicit past90days+today labels, current-day result count/list, last result/last check/waits, six-course reference and current-period strengths.
+- [x] Verify fixed endpoints/omitted credentials, offline no-network embedding, legacyV1 support and API validation; run full affected Node suite and existing profile/explorer/Crypto/offline browsers; commit.
 
 ### Task4: Verified publication and schedule correction
 

@@ -20,7 +20,7 @@ from .local_forecast_server import _asset_bytes
 from .saved_pdca_view import WEB
 from .racer_portraits import FILES as PORTRAIT_FILES,REGISTRATIONS
 from .racer_profiles import FILES as PROFILE_FILES
-from .racer_daily import API_FILE as DAILY_API, PUBLIC_PATH as DAILY_PUBLIC
+from .racer_daily import API_FILE as DAILY_API, PUBLIC_PATH as DAILY_PUBLIC,STATUS_PATH as DAILY_STATUS
 from scripts.boat_history_collect import private_root,save
 
 SCHEMA='RACE_AI_SAVED_WEB_VIEW_V1'
@@ -188,7 +188,7 @@ def validate_bundle(folder,*,expected_manifest_sha256=None):
 
 def _tree(git,commit):
     rows=git._run(['ls-tree','-r','--format=%(objectmode)\t%(path)',commit]).decode().splitlines()
-    paths=[];allowed=set(ASSETS)|{'index.html','.nojekyll','site-build.json',DAILY_PUBLIC}
+    paths=[];allowed=set(ASSETS)|{'index.html','.nojekyll','site-build.json',DAILY_PUBLIC,DAILY_STATUS}
     for row in rows:
         mode,tab,path=row.partition('\t')
         need(mode=='100644' and tab and (path in allowed or re.fullmatch('views/[a-f0-9]{64}\\.json',path)),

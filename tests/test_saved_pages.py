@@ -37,11 +37,26 @@ class SavedPagesTests(unittest.TestCase):
         published_daily=publish_daily_catalogue(repo,catalogue,transport=git);parent=published_daily['pages_commit']
         self.assertEqual(published_daily.get('public_url'),'https://raw.githubusercontent.com/haji84/RACE-AI/gh-pages/data/racer-daily.json','scheduled data must be readable without relying on a GITHUB_TOKEN Pages build')
         self.assertEqual(git.read(parent,PUBLIC_PATH,4000000),daily)
+        status_path='data/racer-live-status.json'
+        self.assertTrue(git.exists(parent,status_path),'the browser must be able to check a small status without downloading all profiles')
+        status=json.loads(git.read(parent,status_path,16000));self.assertEqual(status['catalogue_sha256'],sha(daily))
         refreshed=self.m.refresh_site_assets(repo,expected_parent=parent,transport=git)
         self.assertEqual(git.read(refreshed['source_commit'],PUBLIC_PATH,4000000),daily)
         published=self.m.publish_site(repo,public,expected_manifest_sha256=built['manifest_sha256'],expected_parent=refreshed['source_commit'],transport=git)
         self.assertEqual(git.read(published['source_commit'],PUBLIC_PATH,4000000),daily)
+        self.assertEqual(git.read(published['source_commit'],status_path,16000),git.read(parent,status_path,16000))
         self.assertEqual(git._run(['ls-tree','-r',published['source_commit'],'--','views']),before)
+        from datetime import timedelta
+        from race_ai.racer_intraday import IntradayState
+        from tests.intraday_fixture import day_index,packet
+        live=IntradayState()
+        def source(url):return (day_index() if '/race/index?' in url else packet()[0]),NOW.isoformat()
+        live.advance(store,now=NOW,fetch=source,max_requests=2);store.clock=lambda:NOW+timedelta(minutes=5)
+        current=store.catalogue(ROSTER,as_of=store.clock().isoformat(),extra_rows=live.extra_rows(store,now=NOW),live=live.metadata(NOW))
+        accepted=publish_daily_catalogue(repo,current,transport=git)
+        self.assertEqual(json.loads(git.read(accepted['pages_commit'],PUBLIC_PATH,4000000))['people'][0]['summary']['starts'],4)
+        legacy=deepcopy(catalogue);legacy['generated_at']=(NOW+timedelta(minutes=10)).isoformat()
+        with self.assertRaises(ValueError):publish_daily_catalogue(repo,legacy,transport=git)
 
     def test_official_profiles_migrate_into_old_pages_without_changing_any_cipher(self):
         from race_ai.racer_profiles import FILES

@@ -87,7 +87,8 @@ def parse_result(raw,receipt,*,now):
     for s in starts:
         lane=_integer(s.get('teino'),1,6);need(lane not in by,'INTRADAY_SOURCE_START_IDENTITY_CONFLICT')
         course=_integer(s.get('cs'),0,6);display=_integer(s.get('csdisp'),0,6)
-        need(display==course and (course==0 or course not in courses),'INTRADAY_SOURCE_COURSE_CONFLICT')
+        need(display==0 or display==course and course not in courses,'INTRADAY_SOURCE_COURSE_CONFLICT')
+        if not display:course=0
         if course:courses.add(course)
         by[lane]=(course or None,*_st(s.get('st','')))
     rows=[];lanes=set();regs=set()

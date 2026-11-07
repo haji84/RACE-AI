@@ -184,3 +184,14 @@ class HandoffTests(unittest.TestCase):
         report=json.loads(output.getvalue());self.assertEqual(result,1)
         self.assertEqual(report['exception_type'],'TimeoutExpired');self.assertTrue(report['code_trace'])
         self.assertNotIn('PRIVATE_',output.getvalue());self.assertNotIn(self.t.name,output.getvalue())
+    def test_daily_reconciliation_can_retain_without_publishing_a_k_only_catalogue(self):
+        import os,base64
+        from unittest.mock import patch
+        from scripts import racer_daily_refresh as cli
+        loaded=load_daily(self.repo,initialize=True,key=self.key,transport=self.git,now=NOW)
+        loaded['store'].record('2026-11-04',archive(),captured_at='2026-11-05T00:00:00Z');save_daily(loaded,loaded['store'].catalogue(ROSTER,as_of=NOW.isoformat()),key=self.key);loaded['store'].close()
+        def local_load(repo,**kwargs):return load_daily(repo,transport=self.git,**kwargs)
+        with patch.dict(os.environ,{'RACE_AI_STATE_KEY':base64.b64encode(self.key).decode()}),patch.object(cli,'load_daily',local_load),patch.object(cli,'collect_recent',return_value={'status':'NO_CHANGES','requests':0,'new_files':0}),patch.object(cli,'publish_daily_catalogue',side_effect=AssertionError('K_ONLY_MUST_NOT_BE_PUBLISHED')):
+            try:report=cli.refresh(self.repo,Path(self.t.name)/'retain-only',now=NOW,publish=False)
+            except TypeError as e:self.fail('morning reconciliation needs a retain-only stage: '+str(e))
+        self.assertEqual(report['status'],'DAILY_RETAINED');self.assertIsNone(report['public']);self.assertEqual(report['retained']['generation'],2)

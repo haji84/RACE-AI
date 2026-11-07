@@ -11,6 +11,8 @@ SCHEMA='RACE_AI_RACER_DAILY_V1'
 CHECKPOINT='RACE_AI_RACER_DAILY_CHECKPOINT_V1'
 PUBLIC_PATH='data/racer-daily.json'
 PUBLIC_URL='https://raw.githubusercontent.com/haji84/RACE-AI/gh-pages/'+PUBLIC_PATH
+STATUS_PATH='data/racer-live-status.json'
+STATUS_URL='https://raw.githubusercontent.com/haji84/RACE-AI/gh-pages/'+STATUS_PATH
 API_FILE='racer-daily.js'
 MAX_DB=16*1024*1024
 MAX_PUBLIC=4*1024*1024
@@ -126,6 +128,7 @@ class DailyStore:
                 if rid in canonical:continue
                 if rid not in selected or at>selected[rid][0]:selected[rid]=(at,list(group.values()))
             for _,group in selected.values():rows.extend(group)
+            rows.sort(key=lambda r:(r['race_id'],r['racer_id']))
         for person in roster:
             reg=person['registration'];need(re.fullmatch('[0-9]{4}',reg) and reg not in seen and type(person['name']) is str,'DAILY_ROSTER_INVALID');seen.add(reg)
             own=[r for r in rows if r['racer_id']==reg]

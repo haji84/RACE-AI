@@ -46,6 +46,14 @@ class SourceTests(unittest.TestCase):
         self.assertEqual(self.parse(d)['rows'],[])
         d=result_document();d['maindata'].update(rstop=1,teiinfolist=[],stinfolist=[])
         self.assertEqual(self.parse(d)['status'],'CANCELLED');self.assertEqual(self.parse(d)['rows'],[])
+    def test_absent_reserved_slot_is_not_mistaken_for_an_actual_entry_course(self):
+        d=result_document();d['maindata']['teiinfolist'][5]['chk']='欠'
+        for r in d['maindata']['stinfolist']:
+            if r['teino']=='6':r.update(cs=6,csdisp='0',boatflag=0,st='')
+        try:out=self.parse(d)
+        except ValueError as e:self.fail('the real absent-boat display slot must remain absent: '+str(e))
+        own=next(r for r in out['rows'] if r['racer_id']=='4006')
+        self.assertEqual((own['st_status'],own['course']),('ABSENT',None))
     def test_wrong_race_course_binding_hash_or_future_clock_is_rejected(self):
         mutations=[lambda d:d['holdingheader'].update(hd='20261106'),lambda d:d['maindata'].update(rno=2),lambda d:d['raceheader'].update(rno=3),
           lambda d:d['maindata']['teiinfolist'][0].update(registno='4002'),lambda d:d['maindata']['stinfolist'][0].update(cs=2),lambda d:d['maindata']['stinfolist'][0].update(csdisp='3')]

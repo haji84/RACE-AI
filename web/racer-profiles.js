@@ -42,6 +42,11 @@
     const day = race.event_date_jst, clock = typeof day === 'string' ? Date.parse(day + 'T00:00:00Z') : NaN;
     if (!Number.isFinite(clock) || new Date(clock).toISOString().slice(0, 10) !== day) return empty('DATE_UNKNOWN', '対象日を確認できないため、コース成績のみ表示します。');
     if (day <= period.end) return empty('HISTORICAL_REFERENCE', 'この集計は対象レース以降を含むため、当時の展開予想には使用しません。');
+    if (referenceApi?.asOf) {
+      const cutoff = typeof race.cutoff_at === 'string' ? Date.parse(race.cutoff_at) : NaN;
+      if (!Number.isFinite(cutoff)) return empty('CUTOFF_UNKNOWN', '締切時刻を確認できないため、この時点の成績で展開を評価しません。');
+      if (cutoff <= Date.parse(referenceApi.asOf)) return empty('HISTORICAL_REFERENCE', 'この集計は対象レースの締切以降に更新されているため、当時の展開予想には使用しません。');
+    }
     const stats = profile.term.courses.find(c => c.course === course);
     if (!stats || stats.starts < minimumStarts) return empty('INSUFFICIENT', 'このコースは10走未満のため、成績から展開を評価しません。');
     const people = Array.isArray(race.participants) ? race.participants : [], positions = people.map(position);
