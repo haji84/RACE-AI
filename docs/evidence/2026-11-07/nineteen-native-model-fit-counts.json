@@ -1,0 +1,27 @@
+{
+  "accuracy_improvement_proven": false,
+  "baseline_coefficients_changed": false,
+  "boat_cells": 14,
+  "boat_records": 112,
+  "derived_record_count": 0,
+  "encrypted_local_readback_verified": true,
+  "fitted_cells": 19,
+  "holdout_races_per_cell": 2,
+  "horse_cells": 5,
+  "horse_real_future_pdca_verified": false,
+  "horse_records": 40,
+  "horse_same_ordered_cohort_verified": true,
+  "native_records": 152,
+  "new_model_created": false,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "remaining_cells": 12,
+  "source_availability_boundary_ties": false,
+  "state": "ACTUAL_NINETEEN_NATIVE_CELLS_RESEARCH_FIT",
+  "train_races_per_cell": 6,
+  "training_sha256": "87840763c2ce2656b85b2b09e3c766950bc67db11c9d467f8e7976284fbd7059",
+  "unique_races_by_sport": {
+    "boat": 8,
+    "horse": 8
+  }
+}

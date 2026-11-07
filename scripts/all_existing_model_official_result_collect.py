@@ -192,7 +192,8 @@ def _journal_origin(cipher,*,key,run_id,head_sha,now,saved_at=None):
         body.get('schema')==JOURNAL_V2,'PRIOR_JOURNAL_ORIGIN_NOT_REPLAYABLE')
     fields={'schema','execution_day','manifest_sha256','maximum_requests','epoch_started_at','attempts','captures','cases',
         'manifest','workflow_run_id','code_sha','collection_plan_sha256'}
-    need(fields<=set(body)<=fields|{'browser_attempt','browser_index','browser_captures','browser_request_checkpoint'} and
+    need(fields<=set(body)<=fields|{'browser_attempt','browser_index','browser_captures','browser_request_checkpoint',
+        'browser_process_diagnostic','browser_failure','browser_quarantine'} and
         type(body['workflow_run_id']) is int and body['workflow_run_id']==run_id and body['code_sha']==head_sha,
         'JOURNAL_ORIGIN_RUN')
     epoch=stamp(body['epoch_started_at']);original=_manifest(body['manifest'],epoch)
@@ -374,16 +375,64 @@ def _safe_file(root,name,maximum):
     _private_file(path);return _read(path,maximum)
 
 
-def browser_capture(plan,directory):
+class BrowserCaptureFailure(ValueError):
+    def __init__(self,diagnostic):
+        super().__init__('ALL_MODEL_OFFICIAL_COLLECT_BROWSER_CAPTURE_PROCESS')
+        self.process_diagnostic=diagnostic
+
+
+def _process_diagnostic(process=None,error=None):
+    """Retain bounded facts/hashes, never child output text or environment."""
+    result=dict(schema='RACE_AI_OFFICIAL_BROWSER_PROCESS_DIAGNOSTIC_V1',
+        timed_out=isinstance(error,subprocess.TimeoutExpired),stdout_request_count_authoritative=False)
+    code=getattr(process,'returncode',None)
+    result['returncode']=code if type(code) is int and -255<=code<=255 else None
+    outputs={}
+    for name in ('stdout','stderr'):
+        value=getattr(process,name,None) if process is not None else getattr(error,name,None)
+        if name=='stdout' and value is None:value=getattr(error,'output',None)
+        raw=value.encode('utf8') if type(value) is str else value if type(value) is bytes else None
+        result[name+'_present']=raw is not None
+        if raw is not None:
+            result[name+'_byte_count']=len(raw);result[name+'_sha256']=sha256(raw).hexdigest();outputs[name]=raw
+    raw=outputs.get('stdout',b'')
+    if 0<len(raw)<=16384:
+        try:
+            value=read_json_bytes(raw)
+            if type(value) is dict:
+                if value.get('state') in ('HOLD','CAPTURED'):result['stdout_state']=value['state']
+                for name in ('actual_request_count','captured_case_count','held_case_count'):
+                    if type(value.get(name)) is int and 0<=value[name]<=32:result['stdout_reported_'+name]=value[name]
+                if type(value.get('stopped_host')) is bool:result['stdout_stopped_host']=value['stopped_host']
+                # This fixed namespace contains code constants, not exception
+                # messages. Unknown stdout fields are never copied.
+                codes={'PRIVATE_PLAN','PLAN_SCHEMA','CASE_SCHEMA','CASE_CLOCK_OR_NUMBER','CASE_VENUE','CASE_IDENTITY',
+                    'STATIC_CACHE_SCHEMA','STATIC_CACHE_BYTES','STATIC_CACHE_PROOF','STATIC_CACHE_MIME','STATIC_CACHE_CLOCK',
+                    'STATIC_CACHE_BOUND','CONFLICTING_STATIC_CACHE','CLOCK_REGRESSION','PRIVATE_PATH','PRIVATE_SYMLINK',
+                    'PRIVATE_OUTSIDE_GIT','PRIVATE_PARENT','OUTPUT_EXISTS','FIXED_CHROMIUM_REQUIRED','PROXY_CONFIGURATION',
+                    'WEBSOCKET_BLOCK_REQUIRED','CHROMIUM_BYTE_GUARD_REQUIRED','CLI_ARGUMENTS'}
+                if value.get('error_code') in {'OFFICIAL_BROWSER_'+code for code in codes}:
+                    result['stdout_error_code']=value['error_code']
+        except (ValueError,TypeError,UnicodeError):pass
+    if error is not None:result.update(future.safe_diagnostic(error))
+    return result
+
+
+def browser_capture(plan,directory,*,diagnostic_sink=None):
     request=directory.with_name(directory.name+'.plan.json');_write(request,future.wire(plan))
     env=dict(os.environ)
     for name in list(env):
         if name=='RACE_AI_STATE_KEY' or name in ('GH_TOKEN','GITHUB_TOKEN') or name.startswith(('ACTIONS_','GIT_CONFIG_VALUE_')):
             env.pop(name,None)
+    process=None;error=None
     try:
-        subprocess.run(['node',str(ROOT/'scripts/official_result_browser_capture.cjs'),'--plan',str(request),
+        process=subprocess.run(['node',str(ROOT/'scripts/official_result_browser_capture.cjs'),'--plan',str(request),
             '--out-dir',str(directory)],capture_output=True,timeout=100,env=env,check=False)
-    except subprocess.TimeoutExpired:pass
+    except (subprocess.TimeoutExpired,OSError) as exc:error=exc
+    diagnostic=_process_diagnostic(process,error)
+    if diagnostic_sink is not None:diagnostic_sink(diagnostic)
+    if not (directory/'capture-index.json').exists() and not directory.is_dir():
+        raise BrowserCaptureFailure(diagnostic)
     if (directory/'capture-index.json').exists():
         return read_json_bytes(_safe_file(directory,'capture-index.json',4*1024*1024))
     checkpoints=[]
@@ -391,7 +440,7 @@ def browser_capture(plan,directory):
         for path in directory.iterdir():
             match=re.fullmatch(r'request-ledger-([0-9]{3})\.json',path.name)
             if match and 1<=int(match[1])<=32:checkpoints.append((int(match[1]),path.name))
-    need(bool(checkpoints),'BROWSER_CAPTURE_PROCESS')
+    if not checkpoints:raise BrowserCaptureFailure(diagnostic)
     number,name=max(checkpoints)
     checkpoint=read_json_bytes(_safe_file(directory,name,4*1024*1024))
     need(type(checkpoint) is dict and checkpoint.get('schema')=='RACE_AI_OFFICIAL_RESULT_BROWSER_REQUEST_CHECKPOINT_V1' and
@@ -403,13 +452,102 @@ def browser_capture(plan,directory):
     return dict(schema='RACE_AI_OFFICIAL_RESULT_BROWSER_INTERRUPTED_V1',checkpoint=checkpoint)
 
 
-def browser_sources(index,directory,planned,*,started,now,remaining):
-    need(type(index) is dict and index.get('schema')=='RACE_AI_OFFICIAL_RESULT_BROWSER_CAPTURE_V1' and
+def _index_header(index,planned,*,started,now,remaining):
+    need(type(index) is dict and len(future.wire(index))<=4*1024*1024 and
+        index.get('schema')=='RACE_AI_OFFICIAL_RESULT_BROWSER_CAPTURE_V1' and
         type(index.get('actual_request_count')) is int and 0<=index['actual_request_count']<=remaining and
-        index.get('normal_ui_only') is True and index.get('manual_api_requests')==0 and
-        started<=stamp(index['started_at'])<=stamp(index['completed_at'])<=now and
+        index.get('normal_ui_only') is True and type(index.get('manual_api_requests')) is int and
+        index['manual_api_requests']==0 and started<=stamp(index['started_at'])<=stamp(index['completed_at'])<=now and
         type(index.get('responses')) is list and len(index['responses'])<=160 and
-        type(index.get('cases')) is list and len(index['cases'])<=len(planned),'BROWSER_CAPTURE_INDEX')
+        type(index.get('cases')) is list and len(index['cases'])<=len(planned) and
+        type(index.get('ledger')) is list and len(index['ledger'])<=2048,'BROWSER_CAPTURE_INDEX')
+    count=index['actual_request_count'];responses=index['responses'];ledger=index['ledger']
+    need(all(type(e) is dict and type(e.get('sequence')) is int and 1<=e['sequence']<=count for e in responses) and
+        len({e['sequence'] for e in responses})==len(responses) and all(type(e) is dict for e in ledger),
+        'BROWSER_CAPTURE_INDEX_COUNTER')
+    requests=[e for e in ledger if 'sequence' in e]
+    need(all(type(e['sequence']) is int and 1<=e['sequence']<=count for e in requests) and
+        len(requests)==count and {e['sequence'] for e in requests}==set(range(1,count+1)),
+        'BROWSER_CAPTURE_INDEX_COUNTER')
+    for case in index['cases']:
+        need(type(case) is dict and type(case.get('responses',[])) is list and len(case.get('responses',[]))<=160 and
+            all(type(r) is dict and type(r.get('sequence')) is int and 1<=r['sequence']<=count
+                for r in case.get('responses',[])),'BROWSER_CAPTURE_INDEX_COUNTER')
+
+
+def _index_diagnostic(index,planned):
+    """Allowlisted evidence of a returned index, not a source or label grant."""
+    answer={k:index[k] for k in ('schema','started_at','completed_at','actual_request_count','normal_ui_only','manual_api_requests')}
+    answer.update(diagnostic_projection_only=True,original_index_sha256=digest(index))
+    reasons={'FINISHED','HTTP_ACCESS_DENIED','TIME_LIMIT','REQUEST_LIMIT','REQUEST_TIMEOUT','REQUEST_DISPATCH_FAILED',
+        'CAPTURE_ERROR','CAPTURE_HOLD','BODY_BOUND','BYTE_GUARD_UNAVAILABLE','LEDGER_LIMIT'}
+    answer['stop_reason']=index.get('stop_reason') if index.get('stop_reason') in reasons else 'UNRECOGNIZED_STOP_REASON'
+    answer['stopped_host']=index.get('stopped_host') is True
+    def facts(entry):
+        value={}
+        if type(entry) is not dict:return value
+        for key in ('sequence','status','byte_count'):
+            if type(entry.get(key)) is int and 0<=entry[key]<=2*1024*1024:value[key]=entry[key]
+        for key in ('request_started_at','headers_received_at','response_received_at','body_captured_at'):
+            try:
+                if type(entry.get(key)) is str and len(entry[key])<=64:stamp(entry[key]);value[key]=entry[key]
+            except (ValueError,TypeError):pass
+        if entry.get('method') in ('GET','POST'):value['method']=entry['method']
+        if entry.get('resource_type') in ('document','xhr','fetch','script','stylesheet'):value['resource_type']=entry['resource_type']
+        return value
+    answer['responses']=[facts(e) for e in index['responses']]
+    answer['ledger']=[facts(e) for e in index['ledger']]
+    known={(c['sport'],c['race_id']) for c in planned};answer['cases']=[]
+    for entry in index['cases']:
+        if type(entry) is not dict or (entry.get('sport'),entry.get('race_id')) not in known:continue
+        case=dict(sport=entry['sport'],race_id=entry['race_id'],responses=[])
+        for ref in entry.get('responses',[]) if type(entry.get('responses')) is list else []:
+            if type(ref) is dict and ref.get('role') in ('identity','result','program','result_companion') and \
+                type(ref.get('sequence')) is int and 0<ref['sequence']<=32:
+                case['responses'].append(dict(role=ref['role'],sequence=ref['sequence']))
+        answer['cases'].append(case)
+    return answer
+
+
+def _browser_quarantine(index,directory,*,maximum_json):
+    """Retain bounded opaque originals before interpreting or admitting sources."""
+    refs={};invalid=[]
+    def reference(name,kind,limit):
+        if type(name) is not str:invalid.append((None,kind,None,limit));return
+        old=refs.get(name);refs[name]=(kind,min(limit,old[1])) if old else (kind,limit)
+    for entry in index['responses']:
+        for field,kind,limit in (('body_file','RESPONSE_BODY',MAX_BYTES),('metadata_file','HTTP_METADATA',65536),
+                ('request_body_file','REQUEST_BODY',16384)):
+            if entry.get(field) is not None:reference(entry[field],kind,limit)
+    for case in index['cases']:
+        dom=case.get('rendered_dom')
+        if type(dom) is dict and dom.get('file') is not None:reference(dom['file'],'RENDERED_DOM',MAX_BYTES)
+    if (directory/'capture-index.json').exists():refs['capture-index.json']=('ORIGINAL_INDEX',MAX_BYTES)
+    value=dict(schema='RACE_AI_OFFICIAL_BROWSER_QUARANTINE_V1',complete=True,failure_code=None,
+        returned_index_sha256=digest(index),files=[],inventory=[])
+    inventory=[];used=0
+    items=[('returned-index.canonical.json','CANONICAL_RETURNED_OBJECT',future.wire(index),MAX_BYTES)]
+    items.extend((name,kind,None,limit) for name,(kind,limit) in refs.items());items.extend(invalid)
+    for name,kind,body,limit in items:
+        item=dict(file=name if type(name) is str and len(name)<=240 else None,kind=kind,status='REJECTED')
+        try:
+            need(type(name) is str,'QUARANTINE_FILE_REFERENCE')
+            remaining=8*1024*1024-used;need(remaining>0,'QUARANTINE_RAW_BOUND')
+            if body is None:body=_safe_file(directory,name,min(limit,remaining))
+            need(type(body) is bytes and len(body)<=limit and len(body)<=remaining,'QUARANTINE_FILE_BOUND')
+            used+=len(body);item.update(status='RETAINED',byte_count=len(body),source_sha256=sha256(body).hexdigest())
+            value['files'].append(dict(file=name,kind=kind,byte_count=len(body),source_sha256=sha256(body).hexdigest(),raw_base64=b64(body)))
+        except Exception:
+            value.update(complete=False,failure_code='QUARANTINE_FILE_MISSING_UNSAFE_OR_BOUND')
+        inventory.append(item)
+    value.update(inventory=inventory,inventory_sha256=digest(inventory),referenced_file_count=len(items),retained_raw_bytes=used)
+    if len(future.wire(value))>min(12*1024*1024,maximum_json):
+        value.update(complete=False,failure_code='QUARANTINE_JSON_BOUND',files=[],inventory=[],retained_raw_bytes=0)
+    return value
+
+
+def browser_sources(index,directory,planned,*,started,now,remaining):
+    _index_header(index,planned,started=started,now=now,remaining=remaining)
     responses={};total=0;originals=[]
     for entry in index['responses']:
         need(type(entry) is dict and type(entry.get('sequence')) is int and entry['sequence'] not in responses,'BROWSER_RESPONSE_INDEX')
@@ -487,7 +625,7 @@ def _status(journal,manifest,*,ready=False,state='NO_NEW_AUTHENTICATED_RESULTS')
         source_failure_case_count=sum(v for k,v in counts.items() if k.startswith('HOLD_')),
         journal_encrypted_local_only=True,independent_journal_artifact_receipt_verified=False,
         source_request_count_semantics=('STARTED_OR_DURABLY_RESERVED_ATTEMPTS' if browser and
-            browser['state']=='INTERRUPTED' else 'VERIFIED_REQUEST_ATTEMPTS' if not uncertain else 'UNKNOWN_WITH_RESERVED_LIMIT'),
+            browser['state'] in ('INTERRUPTED','INDEX_RECEIVED','REJECTED') else 'VERIFIED_REQUEST_ATTEMPTS' if not uncertain else 'UNKNOWN_WITH_RESERVED_LIMIT'),
         independent_result_artifact_receipt_verified=False,artifact_retention_days=7,
         normal_confirmed_cases_by_sport=normal,normal_eight_case_requirement_met=bool(sports) and all(n>=8 for n in normal.values()))
 
@@ -572,9 +710,12 @@ def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,bro
                 sports={case['sport'] for case in browser_cases}
                 browser_plan['static_cache']=[entry for entry in plan['static_cache']
                     if policy._url(entry['metadata']['source_url'])[0] in sports]
-            directory=work/'browser'
+            directory=work/'browser';stage='PROCESS';index=None
+            def process_diagnostic(value):
+                journal['browser_process_diagnostic']=deepcopy(value);persist()
             try:
-                index=browser(browser_plan,directory);finished=clock()
+                index=(browser(browser_plan,directory,diagnostic_sink=process_diagnostic) if browser is browser_capture
+                    else browser(browser_plan,directory));finished=clock();stage='INDEX_VALIDATION'
                 if index.get('schema')=='RACE_AI_OFFICIAL_RESULT_BROWSER_INTERRUPTED_V1':
                     checkpoint=index['checkpoint'];count=checkpoint['actual_request_count']
                     need(type(count) is int and 0<count<=remaining and
@@ -587,10 +728,15 @@ def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,bro
                     persist()
                     index=None
                 if index is None:raise ValueError('ALL_MODEL_OFFICIAL_COLLECT_BROWSER_INTERRUPTED')
-                found,states,originals=browser_sources(index,directory,browser_cases,started=started,now=finished,remaining=remaining)
+                _index_header(index,browser_cases,started=started,now=finished,remaining=remaining)
                 count=index['actual_request_count'];budget.used+=count;budget.last=finished
-                journal['browser_attempt'].update(state='COMPLETE',actual_request_count=count,completed_at=finished.isoformat(),
-                    stop_reason=index['stop_reason']);journal['browser_index']=index;journal['browser_captures']=originals
+                journal['browser_attempt'].update(state='INDEX_RECEIVED',actual_request_count=count,completed_at=finished.isoformat())
+                journal['browser_index']=_index_diagnostic(index,browser_cases);persist();stage='QUARANTINE'
+                journal['browser_quarantine']=_browser_quarantine(index,directory,
+                    maximum_json=max(0,MAX_PLAIN-len(future.wire(journal))-4096))
+                persist();need(journal['browser_quarantine']['complete'],'BROWSER_QUARANTINE_INCOMPLETE');stage='SOURCE_VALIDATION'
+                found,states,originals=browser_sources(index,directory,browser_cases,started=started,now=finished,remaining=remaining)
+                journal['browser_attempt'].update(state='COMPLETE',stop_reason=index['stop_reason']);journal['browser_captures']=originals
                 for value in states:native_by_case[(value['sport'],value['race_id'])][1]['state']=value['state']
                 for sport,race_id,capture in found:
                     native,entry=native_by_case[(sport,race_id)]
@@ -598,7 +744,10 @@ def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,bro
                     try:label=_parse(capture,native,sport,now=finished,allow_order_only=manifest['allow_order_only'])
                     except (ValueError,KeyError,TypeError):entry['state']='HOLD_RESULT_PARSE';continue
                     captures.append(capture);observations.append(label);entry['state']=label['status']
-            except Exception:
+            except Exception as exc:
+                journal['browser_failure']=dict(stage=stage,**future.safe_diagnostic(exc))
+                if isinstance(exc,BrowserCaptureFailure):journal['browser_process_diagnostic']=deepcopy(exc.process_diagnostic)
+                if journal['browser_attempt']['state']=='INDEX_RECEIVED':journal['browser_attempt']['state']='REJECTED'
                 if journal['browser_attempt']['state']!='INTERRUPTED':
                     for _,entry in native_by_case.values():entry['state']='HOLD_BROWSER_SOURCE_UNVERIFIED'
             persist()
