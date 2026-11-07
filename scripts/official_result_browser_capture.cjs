@@ -20,10 +20,14 @@ function contentType(headers){
 }
 function time(value){need(typeof value==='string'&&value.length<=64&&/(?:Z|[+-]\d\d:\d\d)$/.test(value)&&Number.isFinite(Date.parse(value)),'AWARE_CLOCK');return Date.parse(value);}
 function requireCurrentClock(plan,now=new Date()){
- if(!Object.hasOwn(plan,'not_before'))return;
- const parsed=time(plan.not_before),fraction=/\.(\d+)(?:Z|[+-]\d\d:\d\d)$/.exec(plan.not_before);
- const minimum=parsed+(fraction&&/[1-9]/.test(fraction[1].slice(3))?1:0);
- need(now instanceof Date&&Number.isFinite(now.valueOf())&&now.valueOf()>=minimum,'CLOCK_REGRESSION');
+ if(!Object.hasOwn(plan,'not_before')&&!Object.hasOwn(plan,'not_after'))return;
+ need(now instanceof Date&&Number.isFinite(now.valueOf()),'AWARE_CLOCK');
+ if(Object.hasOwn(plan,'not_before')){
+  const parsed=time(plan.not_before),fraction=/\.(\d+)(?:Z|[+-]\d\d:\d\d)$/.exec(plan.not_before);
+  const minimum=parsed+(fraction&&/[1-9]/.test(fraction[1].slice(3))?1:0);
+  need(now.valueOf()>=minimum,'CLOCK_REGRESSION');
+ }
+ if(Object.hasOwn(plan,'not_after'))need(now.valueOf()<time(plan.not_after),'CLOCK_AUTHORIZATION_EXPIRED');
 }
 function day(value){need(typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value,'EVENT_DAY');return value;}
 function placeCode(item){const value=item.place_code??OBSERVED_AUTO_CODES[item.venue];need(Number.isInteger(value)&&value>=1&&value<=20&&(!Object.hasOwn(OBSERVED_AUTO_CODES,item.venue)||value===OBSERVED_AUTO_CODES[item.venue]),'SAVED_AUTO_PLACE_CODE');return value;}
@@ -34,7 +38,7 @@ function safeUrl(value,sport){
 }
 function validatePlan(value,now=new Date()){
  need(now instanceof Date&&Number.isFinite(now.valueOf()),'AWARE_CLOCK');
- need(keys(value,['schema','cases'],['request_budget','static_cache','not_before'])&&value.schema===SCHEMA&&Array.isArray(value.cases)&&value.cases.length>=1&&value.cases.length<=24,'PLAN_SCHEMA');
+ need(keys(value,['schema','cases'],['request_budget','static_cache','not_before','not_after'])&&value.schema===SCHEMA&&Array.isArray(value.cases)&&value.cases.length>=1&&value.cases.length<=24,'PLAN_SCHEMA');
  requireCurrentClock(value,now);
  if(Object.hasOwn(value,'request_budget'))need(Number.isInteger(value.request_budget)&&value.request_budget>=1&&value.request_budget<=MAX_REQUESTS,'REQUEST_BUDGET');
  const seen=new Set(),counts={};
@@ -138,16 +142,43 @@ function privatePath(value){
 }
 function createPrivateOutput(value){const target=privatePath(value);need(!fs.existsSync(target),'OUTPUT_EXISTS');const parent=fs.statSync(path.dirname(target));need(parent.isDirectory()&&parent.uid===process.getuid()&&!(parent.mode&0o022),'PRIVATE_PARENT');fs.mkdirSync(target,{mode:0o700});return target;}
 function savePrivate(root,name,raw){need(typeof name==='string'&&/^[a-zA-Z0-9_.-]+$/.test(name)&&!['.','..'].includes(name),'PRIVATE_FILE_NAME');fs.writeFileSync(path.join(root,name),raw,{mode:0o600,flag:'wx'});}
+function responseClock(row){
+ try{const started=time(row.request_started_at),completed=time(row.response_received_at);need(started<=completed&&(!Object.hasOwn(row,'body_captured_at')||time(row.body_captured_at)===completed),'CASE_RESPONSE_CLOCK');return [completed,started];}
+ catch{throw Error('OFFICIAL_BROWSER_CASE_RESPONSE_CLOCK');}
+}
+function identicalResponse(rows){
+ if(rows.length<=1)return rows[0];
+ const fingerprints=[],clocks=new Map(),sequences=new Set();
+ for(const row of rows){
+  need(Number.isInteger(row.sequence)&&row.sequence>0&&!sequences.has(row.sequence)&&['GET','POST'].includes(row.method)&&
+   typeof row.source_sha256==='string'&&/^[a-f0-9]{64}$/.test(row.source_sha256)&&Number.isInteger(row.byte_count)&&row.byte_count>=0&&row.byte_count<=MAX_BODY,'CASE_RESPONSE_PROOF');
+  sequences.add(row.sequence);clocks.set(row,responseClock(row));
+  if(row.method==='POST')need(typeof row.request_body_sha256==='string'&&/^[a-f0-9]{64}$/.test(row.request_body_sha256)&&typeof row.request_content_type==='string'&&row.request_content_type.length>0,'CASE_RESPONSE_PROOF');
+  else need(!Object.hasOwn(row,'request_body_sha256')&&!Object.hasOwn(row,'request_content_type'),'CASE_RESPONSE_PROOF');
+  const id=row.request_identity,caseId=row.case_identity;
+  fingerprints.push(JSON.stringify([row.url,row.method,row.request_body_sha256??null,row.request_content_type??null,
+   id?[id.placeCode,id.raceDate,id.raceNo]:null,caseId?[caseId.sport,caseId.expected_date,caseId.venue,caseId.race_no]:null,
+   row.source_sha256,row.byte_count]));
+ }
+ need(new Set(fingerprints).size===1,'CASE_RESPONSE_CONFLICT');
+ return [...rows].sort((a,b)=>clocks.get(a)[0]-clocks.get(b)[0]||clocks.get(a)[1]-clocks.get(b)[1]||a.sequence-b.sequence)[0];
+}
 function caseResponses(item,entries){
- const found=[];
+ const grouped=new Map();let repeated=false;const add=(role,row)=>{if(!grouped.has(role))grouped.set(role,[]);grouped.get(role).push(row);};
+ const choose=rows=>{if(rows.length>1)repeated=true;return identicalResponse(rows);};
  if(item.sport==='autorace'){
   const roles={OtherRaceInfo:'identity',RaceResult:'result',Program:'program',RaceRefund:'result_companion'};
-  for(const row of entries){const id=row.request_identity;if(row.status!==200||!id||id.raceDate!==item.expected_date||id.raceNo!==item.race_no||id.placeCode!==placeCode(item))continue;const role=roles[new URL(row.url).pathname.split('/').pop()];if(role)found.push({role,sequence:row.sequence});}
+  for(const row of entries){const id=row.request_identity;if(row.status!==200||!id||id.raceDate!==item.expected_date||id.raceNo!==item.race_no||id.placeCode!==placeCode(item))continue;const role=roles[new URL(row.url).pathname.split('/').pop()];if(role)add(role,row);}
  }else{
-  const identity=entries.filter(r=>r.status===200&&new URL(r.url).pathname==='/pc/json'&&new URL(r.url).searchParams.get('type')==='JSJ001'&&r.case_identity?.expected_date===item.expected_date&&r.case_identity?.venue===item.venue&&r.case_identity?.race_no===item.race_no).at(-1);
-  if(identity){const selector=new URL(identity.url).searchParams.get('encp');found.push({role:'identity',sequence:identity.sequence});for(const row of entries)if(row.status===200&&new URL(row.url).pathname==='/pc/json'&&new URL(row.url).searchParams.get('type')==='JSJ012'&&new URL(row.url).searchParams.get('encp')===selector)found.push({role:'result',sequence:row.sequence});}
+  const identities=entries.filter(r=>r.status===200&&new URL(r.url).pathname==='/pc/json'&&new URL(r.url).searchParams.get('type')==='JSJ001');
+  const parsed=r=>plain(r.case_identity)&&r.case_identity.sport==='keirin'&&typeof r.case_identity.expected_date==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(r.case_identity.expected_date)&&typeof r.case_identity.venue==='string'&&/^keirin-jyo-[0-9]{2}$/.test(r.case_identity.venue)&&Number.isInteger(r.case_identity.race_no)&&r.case_identity.race_no>=1&&r.case_identity.race_no<=12;
+  const matching=identities.filter(r=>parsed(r)&&r.case_identity.expected_date===item.expected_date&&r.case_identity.venue===item.venue&&r.case_identity.race_no===item.race_no),urls=new Set(matching.map(r=>r.url));
+  const identity=choose(identities.filter(r=>matching.includes(r)||urls.has(r.url)&&!parsed(r)));
+  if(identity){const selector=new URL(identity.url).searchParams.get('encp');add('identity',identity);for(const row of entries)if(row.status===200&&new URL(row.url).pathname==='/pc/json'&&new URL(row.url).searchParams.get('type')==='JSJ012'&&new URL(row.url).searchParams.get('encp')===selector)add('result',row);}
  }
- return found;
+ const selected=new Map();for(const role of ['identity','result','program','result_companion'])if(grouped.has(role))selected.set(role,choose(grouped.get(role)));
+ if(repeated&&selected.has('identity')&&selected.has('result'))need(responseClock(selected.get('identity'))[0]<=responseClock(selected.get('result'))[0],'CASE_RESPONSE_CLOCK');
+ return [...selected].map(([role,row])=>({role,sequence:row.sequence}));
 }
 function cleanLabel(value){return String(value).replace(/\s+/g,' ').trim();}
 function browserEnvironment(env=process.env){const out={};for(const name of ['PATH','HOME','LANG','LC_ALL','TMPDIR','XDG_CACHE_HOME','HTTP_PROXY','HTTPS_PROXY','NO_PROXY','http_proxy','https_proxy','no_proxy','SSL_CERT_FILE','NODE_EXTRA_CA_CERTS','REQUESTS_CA_BUNDLE'])if(typeof env[name]==='string')out[name]=env[name];return out;}

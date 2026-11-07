@@ -326,7 +326,11 @@ jobs:
             if [[ -f audit/state/manual-official-backup-freeze-input.json ]]; then
               plan=audit/state/manual-official-backup-freeze-input.json
             fi
-            python -m scripts.all_existing_model_official_freeze --input "$plan" --candidate-artifact '${{ steps.native_model_candidate.outputs.artifact-id }}' --out-dir "$RUNNER_TEMP/official-native-freeze"
+            if [[ -f audit/state/manual-official-future-freeze-input.json ]]; then
+              plan=audit/state/manual-official-future-freeze-input.json
+            fi
+            candidate_artifact="$(python -c 'import json,sys; p=json.load(open(sys.argv[1])); print(p["carrier_artifact"]["id"] if p["schema"]=="RACE_AI_MANUAL_OFFICIAL_NATIVE_FREEZE_INPUT_V3" else sys.argv[2])' "$plan" '${{ steps.native_model_candidate.outputs.artifact-id }}')"
+            python -m scripts.all_existing_model_official_freeze --input "$plan" --candidate-artifact "$candidate_artifact" --out-dir "$RUNNER_TEMP/official-native-freeze"
           fi
       - name: Independently save the encrypted official native input capsules
         id: official_native_upload
@@ -349,6 +353,9 @@ jobs:
           if [[ -f audit/state/manual-official-backup-freeze-input.json ]]; then
             plan=audit/state/manual-official-backup-freeze-input.json
           fi
+          if [[ -f audit/state/manual-official-future-freeze-input.json ]]; then
+            plan=audit/state/manual-official-future-freeze-input.json
+          fi
           python -m scripts.all_existing_model_official_freeze --input "$plan" --readback-artifact '${{ steps.official_native_upload.outputs.artifact-id }}' --out-dir "$RUNNER_TEMP/official-native-freeze"
       - name: Keep count-only official native receipt proof
         if: steps.official_native_upload.outputs.artifact-id != ''
@@ -368,7 +375,12 @@ jobs:
         shell: bash
         run: |
           if [[ "$(git log -1 --format=%s)" == official-source-freeze:* ]]; then
-            python -m scripts.all_existing_model_source_packet_freeze --input audit/state/official-source-packet-freeze-input.json --candidate-artifact '${{ steps.native_model_candidate.outputs.artifact-id }}' --out-dir "$RUNNER_TEMP/official-source-packet"
+            plan=audit/state/official-source-packet-freeze-input.json
+            if [[ -f audit/state/official-source-packet-future-freeze-input.json ]]; then
+              plan=audit/state/official-source-packet-future-freeze-input.json
+            fi
+            candidate_artifact="$(python -c 'import json,sys; p=json.load(open(sys.argv[1])); print(p["carrier_artifact"]["id"] if p["schema"]=="RACE_AI_OFFICIAL_SOURCE_PACKET_FREEZE_INPUT_V2" else sys.argv[2])' "$plan" '${{ steps.native_model_candidate.outputs.artifact-id }}')"
+            python -m scripts.all_existing_model_source_packet_freeze --input "$plan" --candidate-artifact "$candidate_artifact" --out-dir "$RUNNER_TEMP/official-source-packet"
           fi
       - name: Independently save encrypted native inputs from the official source packet
         id: official_source_packet_upload
@@ -385,7 +397,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
-        run: python -m scripts.all_existing_model_source_packet_freeze --readback-artifact '${{ steps.official_source_packet_upload.outputs.artifact-id }}' --out-dir "$RUNNER_TEMP/official-source-packet"
+        shell: bash
+        run: |
+          plan=audit/state/official-source-packet-freeze-input.json
+          if [[ -f audit/state/official-source-packet-future-freeze-input.json ]]; then
+            plan=audit/state/official-source-packet-future-freeze-input.json
+          fi
+          python -m scripts.all_existing_model_source_packet_freeze --input "$plan" --readback-artifact '${{ steps.official_source_packet_upload.outputs.artifact-id }}' --out-dir "$RUNNER_TEMP/official-source-packet"
       - name: Keep count-only official source packet receipt proof
         if: steps.official_source_packet_upload.outputs.artifact-id != ''
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -646,6 +664,16 @@ jobs:
         run: node --test --test-reporter=tap tests/forecast_audit.test.cjs tests/full_odds.test.cjs tests/odds_feed_worker.test.mjs tests/odds_auto_source_cron.test.mjs tests/odds_three_cycle_audit.test.mjs tests/private_wire_vault.test.mjs
       - name: Install pinned private history cache crypto (synthetic keys only)
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Verify owner-requested seller retirement and legacy readback
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import unittest, race_ai
+          race_ai.__path__.extend(str(Path(root) / 'race_ai') for root in ('pr64-reference', 'pr72-reference'))
+          suite = unittest.defaultTestLoader.loadTestsFromName('tests.test_seller_retirement')
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          raise SystemExit(not result.wasSuccessful())
+          PY
       - name: Validate history formats, official reconciliation and unchanged model contracts offline
         run: python -m unittest discover -s tests -p 'test_teiai*.py' -v
       - name: Python synthetic journal to viewer projection tests
@@ -664,7 +692,7 @@ jobs:
             sudo apt-get install --no-install-recommends -y ffmpeg tesseract-ocr tesseract-ocr-eng
           fi
           "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m unittest tests.test_boat_video_tracking tests.test_boat_video_identity tests.test_boat_video_identity_tracking tests.test_boat_video_ocr_reliability tests.test_boat_video_intake tests.test_boat_video_cli tests.test_boat_video_tiled_detector tests.test_boat_video_crnn tests.test_boat_video_camera_identity tests.test_boat_video_calibration tests.test_boat_video_physical_context tests.test_boat_video_sequential_context tests.test_boat_video_vision_cli tests.test_boat_video_publication tests.test_boat_video_publication_intake -v
-          "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m unittest tests.test_boat_video_marker_reader tests.test_boat_video_marker_flow tests.test_boat_video_marker_identity tests.test_boat_video_marker_pipeline tests.test_boat_video_marker_verifier tests.test_boat_video_ppocr tests.test_boat_video_marker_cli -v
+          "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m unittest tests.test_boat_video_marker_reader tests.test_boat_video_marker_flow tests.test_boat_video_marker_identity tests.test_boat_video_marker_pipeline tests.test_boat_video_marker_verifier tests.test_boat_video_ppocr tests.test_boat_video_marker_cli tests.test_boat_video_rider_detector tests.test_boat_video_rider_tracking -v
       - name: Integrated product UI contracts
         run: |
           node --check web/app.js
@@ -690,9 +718,13 @@ jobs:
         shell: bash
         run: |
           if [[ "$(git log -1 --format=%s)" == official-results-collect:* ]]; then
-            echo 'requested=true' >> "$GITHUB_OUTPUT"
             export CHROMIUM_PATH="$(node -e 'process.stdout.write(require("playwright").chromium.executablePath())')"
-            python -m scripts.all_existing_model_official_result_collect --input audit/state/official-result-collect-input.json --out-dir "$RUNNER_TEMP/official-result-collection"
+            if [[ -f audit/state/official-result-recovery-request.json ]]; then
+              python -m scripts.all_existing_model_official_result_recovery --input audit/state/official-result-recovery-request.json --out-dir "$RUNNER_TEMP/official-result-collection"
+            else
+              echo 'requested=true' >> "$GITHUB_OUTPUT"
+              python -m scripts.all_existing_model_official_result_collect --input audit/state/official-result-collect-input.json --out-dir "$RUNNER_TEMP/official-result-collection"
+            fi
           fi
       - name: Independently save only the collected official result ciphertext
         id: collected_official_result_upload
@@ -718,14 +750,26 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
-        run: python -m scripts.all_existing_model_official_result_collect --input audit/state/official-result-collect-input.json --out-dir "$RUNNER_TEMP/official-result-collection" --readback-artifact '${{ steps.collected_official_result_upload.outputs.artifact-id }}'
+        shell: bash
+        run: |
+          if [[ -f audit/state/official-result-recovery-request.json ]]; then
+            python -m scripts.all_existing_model_official_result_recovery --input audit/state/official-result-recovery-request.json --out-dir "$RUNNER_TEMP/official-result-collection" --readback-artifact '${{ steps.collected_official_result_upload.outputs.artifact-id }}'
+          else
+            python -m scripts.all_existing_model_official_result_collect --input audit/state/official-result-collect-input.json --out-dir "$RUNNER_TEMP/official-result-collection" --readback-artifact '${{ steps.collected_official_result_upload.outputs.artifact-id }}'
+          fi
       - name: Verify the actual encrypted collection journal even when results remain held
         if: always() && steps.official_collection_journal_upload.outputs.artifact-id != ''
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
-        run: python -m scripts.all_existing_model_official_result_collect --input audit/state/official-result-collect-input.json --out-dir "$RUNNER_TEMP/official-result-collection" --readback-journal-artifact '${{ steps.official_collection_journal_upload.outputs.artifact-id }}'
+        shell: bash
+        run: |
+          if [[ -f audit/state/official-result-recovery-request.json ]]; then
+            python -m scripts.all_existing_model_official_result_recovery --input audit/state/official-result-recovery-request.json --out-dir "$RUNNER_TEMP/official-result-collection" --readback-journal-artifact '${{ steps.official_collection_journal_upload.outputs.artifact-id }}'
+          else
+            python -m scripts.all_existing_model_official_result_collect --input audit/state/official-result-collect-input.json --out-dir "$RUNNER_TEMP/official-result-collection" --readback-journal-artifact '${{ steps.official_collection_journal_upload.outputs.artifact-id }}'
+          fi
       - name: Keep count-only official result collection status
         if: always() && steps.official_result_collect.outputs.requested == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02

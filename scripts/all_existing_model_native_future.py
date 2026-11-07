@@ -36,6 +36,7 @@ ORIGIN_SCHEMA = 'RACE_AI_ALL_NATIVE_FUTURE_ORIGIN_V1'
 MANIFEST_SCHEMA = 'RACE_AI_ALL_NATIVE_FUTURE_INPUT_V1'
 MANIFEST_SCHEMA_V2 = 'RACE_AI_ALL_NATIVE_FUTURE_INPUT_V2'
 MANIFEST_SCHEMA_V3 = 'RACE_AI_ALL_NATIVE_FUTURE_INPUT_V3'
+MANIFEST_SCHEMA_V4 = 'RACE_AI_ALL_NATIVE_FUTURE_INPUT_V4'
 SCHEMA = 'RACE_AI_ALL_NATIVE_FUTURE_COUNTS_V1'
 PROVENANCE_SCHEMA = 'RACE_AI_ALL_NATIVE_FUTURE_PROVENANCE_V1'
 MANIFEST_FIELDS = {'schema', 'candidate_artifact_id', 'candidate_digest', 'source_input_artifact_id',
@@ -45,6 +46,7 @@ EXPECTED_CELLS = frozenset(c['cell_key'] for c in registry.cells() if c['sport']
 ALL_BOAT_CELLS = frozenset(c['cell_key'] for c in registry.cells() if c['sport'] == 'boat' and c['group'] != 'seller')
 V3_CELLS = {sport:frozenset(c['cell_key'] for c in registry.cells() if c['sport']==sport and c['group']!='seller')
             for sport in ('boat','autorace','keirin','horse')}
+V4_CELLS = {sport:V3_CELLS[sport] for sport in ('boat','horse')}
 MINIMUM_LEAD = timedelta(minutes=10)
 PHASES = future.SAFE_PHASES | frozenset(('MANIFEST', 'SOURCE_METADATA', 'SOURCE_DOWNLOAD', 'SOURCE_ADMISSION',
                                        'SOURCE_PROVENANCE', 'GENERATION_BINDING', 'SEAL_ORIGIN',
@@ -58,6 +60,17 @@ def need(ok, reason):
 
 def validate_manifest(value):
     """Pin the two actual artifacts and the input producer without aliases."""
+    if type(value) is dict and value.get('schema')==MANIFEST_SCHEMA_V4:
+        from race_ai.all_existing_model_future_baseline import validate_pin
+        need(set(value)=={'schema','candidate_cell_count','candidate_artifact_id','candidate_digest',
+             'source_input_artifacts','horse_baseline_artifact'} and type(value['candidate_cell_count']) is int and
+             value['candidate_cell_count']==19,'NINETEEN_MANIFEST_FIELDS')
+        prior={key:deepcopy(item) for key,item in value.items() if key!='horse_baseline_artifact'}
+        prior.update(schema=MANIFEST_SCHEMA_V3,candidate_cell_count=30);validate_manifest(prior)
+        baseline=validate_pin(value['horse_baseline_artifact'])
+        need(baseline['id'] not in {value['candidate_artifact_id'],*(p['id'] for p in value['source_input_artifacts'])},
+             'DISTINCT_BASELINE_ARTIFACT_REQUIRED')
+        return deepcopy(value)
     if type(value) is dict and value.get('schema')==MANIFEST_SCHEMA_V3:
         need(set(value)=={'schema','candidate_cell_count','candidate_artifact_id','candidate_digest',
              'source_input_artifacts'} and type(value['candidate_cell_count']) is int and
@@ -221,9 +234,10 @@ def candidate(manifest, *, phase=None):
     future.mark(phase, 'CANDIDATE_ADMISSION')
     context = context_from_encrypted_artifact(raw, ident, now=future.utc_now(), _fetch=fetch)
     need(context['receipt']['digest'] == manifest['candidate_digest'], 'CANDIDATE_MANIFEST_DIGEST')
-    if manifest['schema']==MANIFEST_SCHEMA_V3:
+    if manifest['schema'] in (MANIFEST_SCHEMA_V3,MANIFEST_SCHEMA_V4):
         owner=_candidate_from_zip(raw).get('owner_research_record')
-        _training_v3(context['training'],owner,require_owner=True)
+        _training_profile(context['training'],owner,require_owner=True,
+            profile='V4' if manifest['schema']==MANIFEST_SCHEMA_V4 else 'V3')
         context['owner_research_record']=owner
     # This artifact may legitimately be produced by an earlier run. The
     # encrypted artifact reader, rather than the current-run identity, admits it.
@@ -283,6 +297,7 @@ def _lineage(manifest, prepared, admission):
 
 def generate(manifest, root, env, *, phase=None):
     if manifest['schema']==MANIFEST_SCHEMA_V3:return _generate_v3(manifest,root,env,phase=phase)
+    if manifest['schema']==MANIFEST_SCHEMA_V4:return _generate_v3(manifest,root,env,phase=phase,profile='V4')
     need(not root.exists(), 'OUTPUT_EXISTS_DO_NOT_RESET')
     context = candidate(manifest, phase=phase)
     admission, records = source(manifest, phase=phase)
@@ -324,6 +339,8 @@ def generate(manifest, root, env, *, phase=None):
 def readback(ident, manifest, root, env, *, phase=None,readback_origin_artifact=None):
     if manifest['schema']==MANIFEST_SCHEMA_V3:
         return _readback_v3(ident,manifest,root,env,phase=phase,origin_ident=readback_origin_artifact)
+    if manifest['schema']==MANIFEST_SCHEMA_V4:
+        return _readback_v3(ident,manifest,root,env,phase=phase,origin_ident=readback_origin_artifact,profile='V4')
     need(readback_origin_artifact is None,'ORIGIN_V_THREE_ONLY')
     future.mark(phase, 'LOCAL_READBACK')
     count = _manifest_count(manifest)
@@ -400,6 +417,52 @@ def _training_v3(training,owner=None,*,require_owner=False):
          decision['model_cells']==sorted(c['cell_key'] for c in registry.cells()), 'OWNER_V_TWO_TRAINING_BINDING')
 
 
+def _training_v4(training,owner=None,*,require_owner=False):
+    from race_ai import all_existing_model_research as research
+    verify_training(training);cells=set().union(*V4_CELLS.values())
+    need(len(cells)==19 and set(training['models'])==cells and
+         training.get('training_basis')=='OWNER_PERSONAL_RESEARCH' and
+         'common_eight_per_sport' not in training and 'label_evaluation_scope' not in training and
+         sum(len(model['source_lineage']) for model in training['models'].values())==152,
+         'EXACT_NINETEEN_ORDINARY_OWNER_SCOPE')
+    cohorts={}
+    for cell,model in training['models'].items():
+        sport=model['sport'];need((model['unique_races'],model['train_races'],model['validation_races'])==(8,6,2),
+            'NINETEEN_EIGHT_SIX_TWO_COHORT')
+        cohort=(frozenset(_race_key(race,sport) for race in model['train_race_ids']),
+            frozenset(_race_key(race,sport) for race in model['validation_race_ids']),
+            frozenset((_race_key(row['race_id'],sport),future.stamp(row['cutoff_at']),row['result_sha256'])
+                for row in model['source_lineage']))
+        need(sport not in cohorts or cohorts[sport]==cohort,'NINETEEN_SAME_SPORT_COHORT')
+        cohorts[sport]=cohort
+        need(all('native_generation_evidence' in row and 'input_derivation' not in row and
+             (sport!='boat' or row['native_generation_evidence']['stage']=='P1')
+             for row in model['source_lineage']),'NINETEEN_ORIGINAL_NATIVE_RECEIPTS_REQUIRED')
+    if owner is None and not require_owner:return
+    from race_ai.all_existing_model_future_baseline import verify_owner
+    verify_owner(training,owner,schema=research.SCHEMA)
+
+
+def _training_profile(training,owner=None,*,require_owner=False,profile='V3'):
+    need(profile in ('V3','V4'),'FUTURE_PROTOCOL')
+    return (_training_v3 if profile=='V3' else _training_v4)(training,owner,require_owner=require_owner)
+
+
+def _profile_cells(profile):
+    need(profile in ('V3','V4'),'FUTURE_PROTOCOL')
+    return V3_CELLS if profile=='V3' else V4_CELLS
+
+
+def _baseline_context_v4(manifest,context):
+    from race_ai.all_existing_model_future_baseline import load_baseline
+    baseline=load_baseline(manifest['horse_baseline_artifact'],now=future.utc_now(),fetch_metadata=future.metadata,
+        fetch_zip=lambda ident:future.gh('actions/artifacts/'+str(ident)+'/zip'))
+    need(baseline['receipt']['id']!=context['receipt']['id'] and
+         future.stamp(baseline['receipt']['created_at'])+timedelta(seconds=1)<=
+         future.stamp(context['training']['created_at']),'DISTINCT_PRE_FIT_BASELINE_REQUIRED')
+    return baseline
+
+
 def source_v3(manifest,*,phase=None):
     admissions=[];records=[];total=0
     for pin in manifest['source_input_artifacts']:
@@ -415,15 +478,16 @@ def source_v3(manifest,*,phase=None):
     return admissions,records
 
 
-def prepare_requests_v3(context,source_verified_records,*,now):
+def prepare_requests_v3(context,source_verified_records,*,now,profile='V3',baseline_context=None):
     """Select exact original capsules after actual source/candidate admission."""
     from race_ai.four_sport_learning import LEARNED_ID
     need(type(now) is datetime and now.utcoffset() is not None,'AWARE_CLOCK')
-    training=context['training'];_training_v3(training,context.get('owner_research_record'))
+    training=context['training'];_training_profile(training,context.get('owner_research_record'),profile=profile)
+    cell_sets=_profile_cells(profile)
     available=future.stamp(context['receipt']['created_at'])+timedelta(seconds=1)
     need(available<=now,'CANDIDATE_NOT_YET_AVAILABLE')
     need(type(source_verified_records) is list and 0<len(source_verified_records)<=16384,'SOURCE_RECORDS')
-    expected=set().union(*V3_CELLS.values());groups={};past={(model['sport'],_race_key(race,model['sport']))
+    expected=set().union(*cell_sets.values());groups={};past={(model['sport'],_race_key(race,model['sport']))
         for model in training['models'].values() for race in model['train_race_ids']+model['validation_race_ids']}
     for record in source_verified_records:
         capsules=record.get('captured_native_inputs',[]);need(type(capsules) is list,'SOURCE_CAPSULE_LIST')
@@ -447,8 +511,8 @@ def prepare_requests_v3(context,source_verified_records,*,now):
             case[cell][2].append(origin)
             if record.get('cell_key')==cell and record.get('training',{}).get('training_sha256')==training['training_sha256']:
                 origin['already_forecast_with_candidate']=True
-    selected=[];held={};counts={sport:0 for sport in V3_CELLS}
-    for sport,cells in V3_CELLS.items():
+    selected=[];held={};counts={sport:0 for sport in cell_sets};comparisons={}
+    for sport,cells in cell_sets.items():
         cases=[]
         for (kind,race),case in groups.items():
             if kind!=sport:continue
@@ -468,6 +532,16 @@ def prepare_requests_v3(context,source_verified_records,*,now):
             ranker=case[sport+'/'+LEARNED_ID][0]['native_payload']
             if type(ranker.get('learned_model')) is not dict:
                 reason='HOLD_MISSING_NATIVE_BASELINE';unavailable=[sport+'/'+LEARNED_ID];continue
+            if profile=='V4' and sport=='horse':
+                if baseline_context is None:
+                    reason='HOLD_MISSING_AUTHENTICATED_RESEARCH_BASELINE';unavailable=[sport+'/'+LEARNED_ID];continue
+                from race_ai.all_existing_model_future_baseline import verify_attachment
+                try:
+                    for origin in case[sport+'/'+LEARNED_ID][2]:
+                        verify_attachment(ranker,baseline_context,sport=sport,now=now,
+                            generated_at=origin['original_generated_at'])
+                except (ValueError,KeyError,TypeError,AttributeError):
+                    reason='HOLD_NATIVE_BASELINE_ATTACHMENT_INVALID';unavailable=[sport+'/'+LEARNED_ID];continue
             model=training['models'][sport+'/'+LEARNED_ID]['native_training'];asof=future.stamp(case[sport+'/'+LEARNED_ID][1]['as_of'])
             if asof<=future.stamp(model['trained_until']) or future.stamp(model['created_at'])>asof:
                 reason='HOLD_NATIVE_INPUT_PRECEDES_MODEL_CLOCK';unavailable=[sport+'/'+LEARNED_ID];continue
@@ -482,12 +556,17 @@ def prepare_requests_v3(context,source_verified_records,*,now):
                         native_training=member['native_training'])
                 except (ValueError,KeyError,TypeError,AttributeError):failure=True;unavailable=[cell];break
             if failure:reason='HOLD_NATIVE_BASELINE_OR_CANDIDATE_NOT_EXECUTABLE';continue
-            selected.append((sport,race,cutoff,case));counts[sport]=len(cells);break
+            selected.append((sport,race,cutoff,case));counts[sport]=len(cells)
+            if profile=='V4':comparisons[sport]=dict(
+                baseline_model_sha256=ranker['learned_model']['model_sha256'],candidate_model_sha256=model['model_sha256'],
+                ranker_parameters_identical=ranker['learned_model'].get('weights')==model.get('weights'),
+                improvement_claimed=False)
+            break
         if counts[sport]==0:held[sport]=dict(reason=reason,unavailable_source_cells=unavailable,not_generated_cells=sorted(cells))
     requests=[dict(cell_key=cell,native_payload=deepcopy(case[cell][0]['native_payload']))
-        for sport,_,_,case in selected for cell in sorted(V3_CELLS[sport])]
-    capsules=[deepcopy(case[cell][0]) for sport,_,_,case in selected for cell in sorted(V3_CELLS[sport])]
-    origins={digest(origin):deepcopy(origin) for sport,_,_,case in selected for cell in V3_CELLS[sport] for origin in case[cell][2]}
+        for sport,_,_,case in selected for cell in sorted(cell_sets[sport])]
+    capsules=[deepcopy(case[cell][0]) for sport,_,_,case in selected for cell in sorted(cell_sets[sport])]
+    origins={digest(origin):deepcopy(origin) for sport,_,_,case in selected for cell in cell_sets[sport] for origin in case[cell][2]}
     clocks,unknown=_retained_source_clocks(requests,now) if requests else ([],0)
     audit=dict(schema='RACE_AI_ALL_NATIVE_FUTURE_PROVENANCE_V3',selected_at=now.isoformat(),
         candidate_available_at=available.isoformat(),capsules=capsules,original_source_partitions=[origins[k] for k in sorted(origins)],
@@ -495,15 +574,23 @@ def prepare_requests_v3(context,source_verified_records,*,now):
         retained_source_clocks=clocks,source_capture_clock_missing_count=unknown,source_clocks_rewritten=False,
         native_input_clocks_rewritten=False,provider_refetched=False,
         owner_research_record=deepcopy(context.get('owner_research_record')))
-    return dict(requests=requests,source_audit=audit,source_refs=sorted(set().union(*(_sources(r['native_payload'])
+    if profile=='V4':
+        audit['schema']='RACE_AI_ALL_NATIVE_FUTURE_PROVENANCE_V4'
+        audit['horse_baseline_receipt']=deepcopy(baseline_context['receipt']) if baseline_context else None
+    result=dict(requests=requests,source_audit=audit,source_refs=sorted(set().union(*(_sources(r['native_payload'])
         for r in requests))) if requests else [],forecast_counts_by_sport=counts,held_sports=held,
-        all_thirty_cells_produced=sum(counts.values())==30,source_requests=0)
+        source_requests=0)
+    result['all_thirty_cells_produced' if profile=='V3' else 'all_nineteen_cells_produced']=sum(counts.values())==len(expected)
+    if profile=='V4':result['ranker_comparisons']=comparisons
+    return result
 
 
-def local_records_v3(root):
+def local_records_v3(root,*,profile='V3'):
     from race_ai.all_existing_model_runtime import _private_directory,_private_file
     _private_directory(root);children=list(root.iterdir())
-    need(1<=len(children)<=30 and all(re.fullmatch('[a-f0-9]{64}',p.name) for p in children),'THIRTY_OR_PARTIAL_OPAQUE_PARTITIONS')
+    cell_sets=_profile_cells(profile)
+    need(1<=len(children)<=sum(map(len,cell_sets.values())) and
+         all(re.fullmatch('[a-f0-9]{64}',p.name) for p in children),'THIRTY_OR_PARTIAL_OPAQUE_PARTITIONS')
     records=[];cases={}
     for folder in sorted(children):
         _private_directory(folder);need({p.name for p in folder.iterdir()}=={'learning.enc','learning.json','summary.json'},'PARTITION_LAYOUT')
@@ -512,20 +599,22 @@ def local_records_v3(root):
         need(verify_private_record(payload) is True and 'pair' in payload and folder.name==record_partition_key(payload),'PRIVATE_PAIR_READBACK')
         public=read_json_bytes(future._read(folder/'summary.json',1024*1024,private=True))
         need(public==dict(payload['summary'],encrypted_readback_verified=True,plaintext_published=False),'PARTITION_PUBLIC_BINDING')
-        sport=payload['pair']['sport'];need(sport in V3_CELLS,'THIRTY_SPORT')
+        sport=payload['pair']['sport'];need(sport in cell_sets,'THIRTY_SPORT')
         cases.setdefault(sport,[]).append(payload);records.append(payload)
     for sport,parts in cases.items():
-        need(len(parts)==len(V3_CELLS[sport]) and {p['cell_key'] for p in parts}==V3_CELLS[sport] and
+        need(len(parts)==len(cell_sets[sport]) and {p['cell_key'] for p in parts}==cell_sets[sport] and
              len({_race_key(p['pair']['race_id'],sport) for p in parts})==1,'COMPLETE_SPORT_PAIR_CELLS')
     need(len({p['training']['training_sha256'] for p in records})==1 and
          len({digest(p['training_receipt']) for p in records})==1,'SAME_THIRTY_CANDIDATE')
-    _training_v3(records[0]['training'])
+    _training_profile(records[0]['training'],profile=profile)
     return records
 
 
 def _generation_mac_v3(value):
     from race_ai.boat_pdca_state import state_key
-    key=hmac.digest(state_key('production'),b'RACE_AI_ALL_NATIVE_FUTURE_GENERATION_V3','sha256')
+    domain=(b'RACE_AI_ALL_NATIVE_FUTURE_GENERATION_V4' if value.get('future_protocol')=='V4_FIXED_NINETEEN_V1'
+        else b'RACE_AI_ALL_NATIVE_FUTURE_GENERATION_V3')
+    key=hmac.digest(state_key('production'),domain,'sha256')
     return hmac.digest(key,future.wire({k:v for k,v in value.items() if k!='owner_generation_mac'}),'sha256').hex()
 
 
@@ -622,13 +711,18 @@ def _archive_member_hashes_v3(raw):
         return {entry.filename:sha256(archive.read(entry)).hexdigest() for entry in archive.infolist()}
 
 
-def _generate_v3(manifest,root,env,*,phase=None):
+def _generate_v3(manifest,root,env,*,phase=None,profile='V3'):
     need(not root.exists() and not root.with_name(root.name+'.origin').exists(),'OUTPUT_EXISTS_DO_NOT_RESET')
     context=candidate(manifest,phase=phase)
+    baseline=_baseline_context_v4(manifest,context) if profile=='V4' else None
     admissions,records=source_v3(manifest,phase=phase)
-    future.mark(phase,'BUILD_REQUESTS');prepared=prepare_requests_v3(context,records,now=future.utc_now())
-    public={key:prepared[key] for key in ('forecast_counts_by_sport','held_sports','all_thirty_cells_produced')}
-    if not prepared['requests']:return dict(public,state='HOLD_NO_COMPLETE_THIRTY_NATIVE_FUTURE_CASE',ready=False,
+    future.mark(phase,'BUILD_REQUESTS');prepared=prepare_requests_v3(context,records,now=future.utc_now(),
+        profile=profile,baseline_context=baseline)
+    complete_key='all_thirty_cells_produced' if profile=='V3' else 'all_nineteen_cells_produced'
+    word='THIRTY' if profile=='V3' else 'NINETEEN';target=sum(map(len,_profile_cells(profile).values()))
+    public={key:prepared[key] for key in ('forecast_counts_by_sport','held_sports',complete_key)}
+    if profile=='V4':public['ranker_comparisons']=prepared['ranker_comparisons']
+    if not prepared['requests']:return dict(public,state='HOLD_NO_COMPLETE_'+word+'_NATIVE_FUTURE_CASE',ready=False,
         forecast_partition_count=0,origin_ready=False,origin_artifact_name=_origin_name_v3(env),
         independent_origin_receipt_verified=False,complete_independent_receipts_verified=False,origin_local_only=True)
     allowed={tuple(pair) for pair in prepared['source_refs']};count=len(prepared['requests'])
@@ -639,12 +733,12 @@ def _generate_v3(manifest,root,env,*,phase=None):
          summary.get('frozen_input_only_partition_count')==0 and summary.get('captured_native_input_count')==count,
          'THIRTY_OR_PARTIAL_ENCRYPTED_PAIRS')
     need(read_json_bytes(future._read(root/'summary.json',1024*1024,private=True))==summary,'AGGREGATE_BINDING')
-    (root/'summary.json').unlink();local=local_records_v3(root);cutoff=min(_seal_cutoff(p) for p in local)
+    (root/'summary.json').unlink();local=local_records_v3(root,profile=profile);cutoff=min(_seal_cutoff(p) for p in local)
     need(future.utc_now()+MINIMUM_LEAD<cutoff,'CUTOFF_MARGIN_ELAPSED')
     audit=prepared['source_audit'];audit['source_admissions']=admissions
     need(len(future.wire(audit))<=32*1024*1024,'SOURCE_AUDIT_BOUND')
-    result=dict(public,schema=SCHEMA,state='THIRTY_CANDIDATE_FUTURE_PAIRS_ENCRYPTED_LOCAL_ONLY',ready=True,
-        candidate_cell_count=30,candidate_artifact_id=manifest['candidate_artifact_id'],candidate_digest=manifest['candidate_digest'],
+    result=dict(public,schema=SCHEMA,state=word+'_CANDIDATE_FUTURE_PAIRS_ENCRYPTED_LOCAL_ONLY',ready=True,
+        candidate_cell_count=target,candidate_artifact_id=manifest['candidate_artifact_id'],candidate_digest=manifest['candidate_digest'],
         source_input_artifacts=manifest['source_input_artifacts'],manifest_sha256=digest(manifest),source_audit_sha256=digest(audit),
         forecast_partition_count=count,baseline_forecast_count=count,learned_forecast_count=count,captured_native_input_count=count,
         cutoff_at=cutoff.isoformat(),training_sha256=context['training']['training_sha256'],workflow_run_id=env['run_id'],
@@ -652,6 +746,8 @@ def _generate_v3(manifest,root,env,*,phase=None):
         local_member_sha256=_local_member_hashes_v3(root),origin_ready=True,origin_artifact_name=_origin_name_v3(env),
         independent_origin_receipt_verified=False,complete_independent_receipts_verified=False,origin_local_only=True,
         origin_generated_at=future.utc_now().isoformat())
+    if profile=='V4':result.update(future_protocol='V4_FIXED_NINETEEN_V1',
+        horse_baseline_artifact=deepcopy(manifest['horse_baseline_artifact']))
     result['owner_generation_mac']=_generation_mac_v3(result)
     future.save(root.with_name(root.name+'.source.json'),future.wire(audit))
     future.save(root.with_name(root.name+'.generation.json'),future.wire(result))
@@ -660,7 +756,7 @@ def _generate_v3(manifest,root,env,*,phase=None):
         ('local_record_sha256','local_member_sha256','owner_generation_mac')},**origin)
 
 
-def _readback_v3(ident,manifest,root,env,*,phase=None,origin_ident=None):
+def _readback_v3(ident,manifest,root,env,*,phase=None,origin_ident=None,profile='V3'):
     previous=read_json_bytes(future._read(root.with_name(root.name+'.generation.json'),128*1024,private=True))
     audit=future.runtime._json(future._read(root.with_name(root.name+'.source.json'),32*1024*1024,private=True),32*1024*1024)
     need(type(previous.get('owner_generation_mac')) is str and re.fullmatch('[a-f0-9]{64}',previous['owner_generation_mac']) and
@@ -674,7 +770,7 @@ def _readback_v3(ident,manifest,root,env,*,phase=None,origin_ident=None):
     else:
         local_origin,_=_local_origin_v3(root,manifest,previous,audit,env)
         origin['origin_cipher_sha256']=sha256(local_origin).hexdigest()
-    local=local_records_v3(root)
+    local=local_records_v3(root,profile=profile)
     need(all(future.stamp(record['generated_at'])<=future.stamp(previous['origin_generated_at']) for record in local),
          'ORIGIN_FORECAST_GENERATION_CLOCK')
     need(previous.get('ready') is True and previous.get('manifest_sha256')==digest(manifest) and
@@ -686,14 +782,38 @@ def _readback_v3(ident,manifest,root,env,*,phase=None,origin_ident=None):
          previous.get('training_sha256')==local[0]['training']['training_sha256'] and
          previous.get('local_record_sha256')==sorted(digest(p) for p in local) and
          previous.get('local_member_sha256')==_local_member_hashes_v3(root),'GENERATION_STATUS_BINDING')
-    _training_v3(local[0]['training'],audit.get('owner_research_record'),require_owner=True)
+    _training_profile(local[0]['training'],audit.get('owner_research_record'),require_owner=True,profile=profile)
     capsules=[c for p in local for c in p.get('captured_native_inputs',[])]
     need(sorted(digest(c) for c in capsules)==sorted(digest(c) for c in audit['capsules']),'SOURCE_PROVENANCE_BINDING')
-    counts={sport:sum(p['pair']['sport']==sport for p in local) for sport in V3_CELLS}
-    need(previous.get('forecast_counts_by_sport')==counts and previous.get('all_thirty_cells_produced')==(len(local)==30) and
+    cell_sets=_profile_cells(profile);target=sum(map(len,cell_sets.values()))
+    counts={sport:sum(p['pair']['sport']==sport for p in local) for sport in cell_sets}
+    complete_key='all_thirty_cells_produced' if profile=='V3' else 'all_nineteen_cells_produced'
+    need(previous.get('forecast_counts_by_sport')==counts and previous.get(complete_key)==(len(local)==target) and
          set(previous.get('held_sports',{}))=={sport for sport,count in counts.items() if count==0} and
          {(p['pair']['sport'],_race_key(p['pair']['race_id'],p['pair']['sport'])) for p in local}==
          {(case['sport'],case['race_id']) for case in audit['selected_cases']},'PARTIAL_SPORT_BINDING')
+    if profile=='V4':
+        from race_ai.all_existing_model_future_baseline import verify_attachment
+        need(previous.get('future_protocol')=='V4_FIXED_NINETEEN_V1' and previous.get('candidate_cell_count')==19 and
+             previous.get('horse_baseline_artifact')==manifest['horse_baseline_artifact'],'NINETEEN_GENERATION_BINDING')
+        baseline=_baseline_context_v4(manifest,dict(training=local[0]['training'],receipt=local[0]['training_receipt']))
+        need(audit.get('horse_baseline_receipt')==baseline['receipt'],'NINETEEN_BASELINE_RECEIPT_BINDING')
+        for capsule in capsules:
+            if capsule['cell_key']=='horse/multisport-chronological-ranker-v1':
+                origins=[o for o in audit['original_source_partitions'] if o['cell_key']==capsule['cell_key'] and
+                    o['input_sha256']==capsule['input_sha256']]
+                need(bool(origins),'NINETEEN_BASELINE_ORIGINAL_GENERATION_REQUIRED')
+                for original in origins:verify_attachment(capsule['native_payload'],baseline,sport='horse',
+                    now=future.utc_now(),generated_at=original['original_generated_at'])
+        comparisons={}
+        from race_ai.four_sport_learning import LEARNED_ID
+        for record in local:
+            if record['cell_key'].split('/',1)[1]!=LEARNED_ID:continue
+            sport=record['pair']['sport'];old=record['native_payload']['learned_model']
+            new=record['training']['models'][record['cell_key']]['native_training']
+            comparisons[sport]=dict(baseline_model_sha256=old['model_sha256'],candidate_model_sha256=new['model_sha256'],
+                ranker_parameters_identical=old.get('weights')==new.get('weights'),improvement_claimed=False)
+        need(previous.get('ranker_comparisons')==comparisons,'NINETEEN_RANKER_IDENTITY_BINDING')
     raw=future.gh('actions/artifacts/'+str(ident)+'/zip')
     admission,parts=_verified_private_pairs_artifact(raw,actual,now=future.utc_now(),
         expected_run_id=env['run_id'],expected_head_sha=env['head_sha'])
@@ -706,7 +826,7 @@ def _readback_v3(ident,manifest,root,env,*,phase=None,origin_ident=None):
     result={key:value for key,value in previous.items() if key not in
         ('local_record_sha256','local_member_sha256','owner_generation_mac')}
     origin['complete_independent_receipts_verified']=origin['independent_origin_receipt_verified']
-    result.update(state='THIRTY_CANDIDATE_FUTURE_PAIRS_ACTUAL_PRE_CUTOFF_VERIFIED',artifact_id=ident,
+    result.update(state=('THIRTY' if profile=='V3' else 'NINETEEN')+'_CANDIDATE_FUTURE_PAIRS_ACTUAL_PRE_CUTOFF_VERIFIED',artifact_id=ident,
         artifact_digest=actual['digest'],saved_at=actual['created_at'],independent_pre_cutoff_receipt_verified=True,**origin)
     return result
 
@@ -731,11 +851,12 @@ def main(argv=None):
                       expected_head_sha=env['head_sha'], workflow_run_id=env['run_id'])
         phase('MANIFEST')
         manifest = validate_manifest(read_json_bytes(future._read(args.manifest, 8192)))
-        if manifest['schema']==MANIFEST_SCHEMA_V3:
+        if manifest['schema'] in (MANIFEST_SCHEMA_V3,MANIFEST_SCHEMA_V4):
             result.update(origin_ready=False,origin_artifact_name=_origin_name_v3(env),
                 independent_origin_receipt_verified=False,complete_independent_receipts_verified=False,origin_local_only=True)
         need(args.readback_origin_artifact is None or
-             (manifest['schema']==MANIFEST_SCHEMA_V3 and args.readback_artifact is not None),'ORIGIN_REQUIRES_V_THREE_PAIR_READBACK')
+             (manifest['schema'] in (MANIFEST_SCHEMA_V3,MANIFEST_SCHEMA_V4) and args.readback_artifact is not None),
+             'ORIGIN_REQUIRES_V_THREE_PAIR_READBACK')
         readback_options=dict(phase=phase)
         if args.readback_origin_artifact is not None:readback_options['readback_origin_artifact']=args.readback_origin_artifact
         result.update(readback(args.readback_artifact, manifest, root, env, **readback_options) if args.readback_artifact is not None

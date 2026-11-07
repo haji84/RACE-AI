@@ -118,6 +118,16 @@ test('live request clock cannot regress behind the authenticated epoch',enabled,
  const value={...plan([auto]),not_before:'2030-01-01T03:00:00.000001Z'};
  assert.throws(()=>api.requireCurrentClock(value,NOW));assert.doesNotThrow(()=>api.requireCurrentClock(value,new Date('2030-01-01T03:00:00.001Z')));
 });
+test('optional recovery expiry rejects every dispatch at deadline including after spacing',enabled,async()=>{
+ const deadline='2030-01-01T03:00:00.500Z',value={...plan([auto]),not_before:NOW.toISOString(),not_after:deadline};
+ assert.equal(api.validatePlan(value,NOW).not_after,deadline);
+ assert.doesNotThrow(()=>api.requireCurrentClock(value,new Date('2030-01-01T03:00:00.499Z')));
+ assert.throws(()=>api.requireCurrentClock(value,new Date(deadline)),/CLOCK_AUTHORIZATION_EXPIRED/);
+ let elapsed=NOW.valueOf();const budget=api.createBudget(8,{now:()=>elapsed,sleep:async ms=>{elapsed+=ms;}});
+ assert.ok(await budget.reserve());assert.ok(await budget.reserve());
+ assert.throws(()=>api.requireCurrentClock(value,new Date(elapsed)),/CLOCK_AUTHORIZATION_EXPIRED/);
+ assert.doesNotThrow(()=>api.requireCurrentClock(plan([auto]),new Date('2031-01-01T00:00:00Z')));
+});
 test('private output is fresh outside Git with 0700 directory and 0600 create-only files',enabled,()=>{
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'official-ui-test-'));try{
   const out=path.join(root,'capture');api.createPrivateOutput(out);api.savePrivate(out,'request.body',Buffer.from('invented'));
@@ -133,6 +143,46 @@ test('response role selection binds each AUTO literal request body and KEIRIN op
  const json=(sequence,type,encp)=>({sequence,url:'https://keirin.jp/pc/json?encp='+encp+'&type='+type,method:'GET',status:200,...(type==='JSJ001'?{case_identity:{sport:'keirin',expected_date:keirin.expected_date,venue:keirin.venue,race_no:keirin.race_no}}:{})});
  assert.deepEqual(api.caseResponses(keirin,[json(1,'JSJ001','same'),json(2,'JSJ012','other'),json(3,'JSJ012','same')]),[{role:'identity',sequence:1},{role:'result',sequence:3}]);
  assert.deepEqual(api.caseResponses(keirin,[{...json(1,'JSJ001','same'),case_identity:{...keirin,race_no:9}},json(3,'JSJ012','same')]),[]);
+});
+test('identical repeated AUTO reads select earliest proven role without changing originals',enabled,()=>{
+ const row=(sequence,endpoint,second)=>({sequence,url:'https://autorace.jp/race_info/'+endpoint,method:'POST',status:200,
+  request_identity:{placeCode:3,raceDate:auto.expected_date,raceNo:auto.race_no},request_body_sha256:'b'.repeat(64),request_content_type:'application/json',
+  source_sha256:(endpoint==='OtherRaceInfo'?'a':'c').repeat(64),byte_count:123,
+  request_started_at:`2030-01-01T02:59:${String(second).padStart(2,'0')}Z`,response_received_at:`2030-01-01T02:59:${String(second+1).padStart(2,'0')}Z`});
+ const entries=[row(1,'OtherRaceInfo',1),row(2,'OtherRaceInfo',3),row(3,'RaceResult',5),row(4,'RaceResult',7)],before=structuredClone(entries);
+ const expected=[{role:'identity',sequence:1},{role:'result',sequence:3}];
+ assert.deepEqual(api.caseResponses(auto,entries),expected);assert.deepEqual(api.caseResponses(auto,[...entries].reverse()),expected);
+ assert.deepEqual(entries,before);
+ const other={...row(5,'OtherRaceInfo',9),request_identity:{placeCode:3,raceDate:auto.expected_date,raceNo:3},source_sha256:'f'.repeat(64)};
+ assert.deepEqual(api.caseResponses(auto,[...entries,other]),expected);
+ for(const change of [{source_sha256:'f'.repeat(64)},{byte_count:124},{request_body_sha256:'d'.repeat(64)},
+   {url:'https://www.autorace.jp/race_info/OtherRaceInfo'},{request_content_type:'application/json;charset=UTF-8'},
+   {source_sha256:undefined},{byte_count:undefined},{request_body_sha256:undefined},{response_received_at:undefined}]){
+  const changed=[entries[0],{...entries[1],...change},...entries.slice(2)];
+  assert.throws(()=>api.caseResponses(auto,changed),/CASE_RESPONSE/);
+ }
+ const lateIdentity=[row(1,'OtherRaceInfo',20),row(2,'OtherRaceInfo',22),row(3,'RaceResult',5)];
+ assert.throws(()=>api.caseResponses(auto,lateIdentity),/CASE_RESPONSE_CLOCK/);
+});
+test('KEIRIN repeated identity and result require identical source proof instead of choosing a correction',enabled,()=>{
+ const row=(sequence,type,second)=>({sequence,url:'https://keirin.jp/pc/json?encp=literal-selector&type='+type,method:'GET',status:200,
+  ...(type==='JSJ001'?{case_identity:{sport:'keirin',expected_date:keirin.expected_date,venue:keirin.venue,race_no:keirin.race_no}}:{}),
+  source_sha256:(type==='JSJ001'?'a':'b').repeat(64),byte_count:123,
+  request_started_at:`2030-01-01T02:59:${String(second).padStart(2,'0')}Z`,response_received_at:`2030-01-01T02:59:${String(second+1).padStart(2,'0')}Z`});
+ const rows=[row(1,'JSJ001',1),row(2,'JSJ001',3),row(3,'JSJ012',5),row(4,'JSJ012',7)],before=structuredClone(rows);
+ assert.deepEqual(api.caseResponses(keirin,[...rows].reverse()),[{role:'identity',sequence:1},{role:'result',sequence:3}]);assert.deepEqual(rows,before);
+ for(const changed of [{...rows[1],source_sha256:'f'.repeat(64)},{...rows[1],byte_count:undefined},
+   {...rows[1],url:rows[1].url.replace('literal-selector','different-selector')}]){
+  assert.throws(()=>api.caseResponses(keirin,[rows[0],changed,...rows.slice(2)]),/CASE_RESPONSE/);
+ }
+ assert.throws(()=>api.caseResponses(keirin,[rows[0],rows[1],rows[2],{...rows[3],source_sha256:'f'.repeat(64)}]),/CASE_RESPONSE/);
+ const other={...rows[1],case_identity:{...rows[1].case_identity,race_no:9},source_sha256:'f'.repeat(64)};
+ assert.deepEqual(api.caseResponses(keirin,[rows[0],other,rows[2]]),[{role:'identity',sequence:1},{role:'result',sequence:3}]);
+ const unparsed={...rows[1],source_sha256:'f'.repeat(64)};delete unparsed.case_identity;
+ assert.throws(()=>api.caseResponses(keirin,[rows[0],unparsed,rows[2]]),/CASE_RESPONSE/);
+ const missingProof={...rows[1]};delete missingProof.case_identity;
+ assert.throws(()=>api.caseResponses(keirin,[rows[0],missingProof,rows[2]]),/CASE_RESPONSE/);
+ assert.deepEqual(api.caseResponses(keirin,[rows[0],{...unparsed,url:unparsed.url.replace('literal-selector','unrelated-selector')},rows[2]]),[{role:'identity',sequence:1},{role:'result',sequence:3}]);
 });
 test('network byte guard stops a chunked response above the body cap',enabled,async()=>{
  const handlers={};let stopped=null;const session={send:async()=>{},on:(event,fn)=>{handlers[event]=fn;}};
@@ -156,7 +206,7 @@ test('offline browser transport retains exact natural UI request/response bytes 
   async waitForLoadState(){}async waitForTimeout(ms){await new Promise(r=>setTimeout(r,Math.min(ms,5)));}async close(){}
   async goto(){await perform(item.ui_entry_url,'GET','document',Buffer.alloc(0),Buffer.from('<html>invented index</html>'));}
   locator(selector){const endpoint=selector.includes('data-main-menu')?'RaceResult':selector.includes('data-raceno')?'OtherRaceInfo':null;const label=selector.includes('data-main-menu')?'レース結果':selector.includes('data-raceno')?'2R':'初日';
-   const loc={count:async()=>1,isVisible:async()=>true,waitFor:async()=>{},innerText:async()=>label,click:async()=>{if(endpoint)await perform('https://autorace.jp/race_info/'+endpoint,'POST','xhr',Buffer.from(JSON.stringify({placeCode:3,raceDate:item.expected_date,raceNo:2})),sourceBody);},last:()=>loc};return loc;}
+   const loc={count:async()=>1,isVisible:async()=>true,waitFor:async()=>{},innerText:async()=>label,click:async()=>{if(endpoint){const body=Buffer.from(JSON.stringify({placeCode:3,raceDate:item.expected_date,raceNo:2}));await perform('https://autorace.jp/race_info/'+endpoint,'POST','xhr',body,sourceBody);if(endpoint==='OtherRaceInfo')await perform('https://autorace.jp/race_info/'+endpoint,'POST','xhr',body,sourceBody);}},last:()=>loc};return loc;}
   async content(){return '<html>invented rendered result</html>';}
  }
  const page=new Page(),context=new EventEmitter();Object.assign(context,{setDefaultTimeout(){},routeWebSocket:async()=>{},newCDPSession:async()=>({send:async()=>{},on(){}}),route:async(_,fn)=>{handler=fn;},newPage:async()=>page,close:async()=>{closed=true;}});
@@ -167,7 +217,9 @@ test('offline browser transport retains exact natural UI request/response bytes 
  }
  try{
   const index=await api.capturePlan(plan([item]),path.join(root,'capture'),{executablePath:process.execPath,chromium:{launch:async opts=>{launchOptions=opts;return {newContext:async()=>context,close:async()=>{}};}}});
-  assert.equal(index.actual_request_count,3);assert.equal(index.cases[0].state,'CAPTURED');assert.deepEqual(index.cases[0].responses.map(x=>x.role),['identity','result']);assert.equal(closed,true);assert.equal(launchOptions.timeout,12000);
+  assert.equal(index.actual_request_count,4);assert.equal(index.cases[0].state,'CAPTURED');assert.deepEqual(index.cases[0].responses.map(x=>x.role),['identity','result']);assert.equal(closed,true);assert.equal(launchOptions.timeout,12000);
+  const identities=index.responses.filter(x=>x.url.endsWith('/OtherRaceInfo'));assert.equal(identities.length,2);assert.equal(index.cases[0].responses[0].sequence,identities[0].sequence);
+  for(const identity of identities){assert.deepEqual(fs.readFileSync(path.join(root,'capture',identity.body_file)),sourceBody);assert.equal(api.sha(fs.readFileSync(path.join(root,'capture',identity.request_body_file))),identity.request_body_sha256);}
   const result=index.responses.find(x=>x.url.endsWith('/RaceResult'));assert.deepEqual(fs.readFileSync(path.join(root,'capture',result.body_file)),sourceBody);
   const request=fs.readFileSync(path.join(root,'capture',result.request_body_file));assert.equal(api.sha(request),result.request_body_sha256);assert.deepEqual(JSON.parse(request),{placeCode:3,raceDate:item.expected_date,raceNo:2});
   assert.equal(index.cases[0].browser_metadata.normal_ui_only,true);assert.equal(index.cases[0].browser_metadata.ledger.some(x=>x.event==='NORMAL_SEMANTIC_UI_CLICK'&&x.label==='レース結果'),true);

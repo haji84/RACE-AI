@@ -259,7 +259,9 @@ class BrowserCollectorIntegrationTests(unittest.TestCase):
         dom=dict(context['rendered_dom_capture']['metadata'],file='dom.html',captured_at=(start+timedelta(seconds=3)).isoformat())
         self.fixture.clock.value=start+timedelta(seconds=4)
         return dict(schema='RACE_AI_OFFICIAL_RESULT_BROWSER_CAPTURE_V1',started_at=start.isoformat(),completed_at=self.fixture.clock.now().isoformat(),
-            actual_request_count=2,normal_ui_only=True,manual_api_requests=0,stop_reason='FINISHED',responses=responses,ledger=[],cases=[dict(
+            actual_request_count=2,normal_ui_only=True,manual_api_requests=0,stop_reason='FINISHED',responses=responses,
+            ledger=[dict(sequence=n,status=200,request_started_at=(start+timedelta(seconds=n-.2)).isoformat(),
+                headers_received_at=(start+timedelta(seconds=n)).isoformat()) for n in (1,2)],cases=[dict(
                 sport='autorace',race_id=plan['cases'][0]['race_id'],state='CAPTURED',responses=[dict(role='identity',sequence=1),dict(role='result',sequence=2)],
                 rendered_dom=dom,browser_metadata={})])
     def run_collect(self,maximum=None):
@@ -319,6 +321,70 @@ class BrowserCollectorIntegrationTests(unittest.TestCase):
         main=next(x for x in journal['browser_captures'] if x['metadata']['source_url'].endswith('/RaceResult'))
         self.assertEqual(base64.b64decode(main['raw_base64']),self.auto.wire(self.data['result']))
         self.assertEqual(main['metadata']['source_sha256'],sha256(base64.b64decode(main['raw_base64'])).hexdigest())
+
+    def test_rejected_response_roles_keep_bounded_count_and_encrypted_failure_detail(self):
+        original=self.browser
+        def repeated(plan,directory):
+            index=original(plan,directory)
+            index['cases'][0]['responses'].append(dict(role='identity',sequence=1))
+            return index
+        self.browser=repeated;status=self.run_collect();self.assertFalse(status['ready'])
+        self.assertEqual(status['source_requests'],2)
+        journal=open_forecasts((self.fixture.root/'out.collection.enc').read_bytes(),key=KEY)
+        self.assertEqual(journal['browser_attempt']['state'],'REJECTED')
+        self.assertEqual(journal['browser_attempt']['actual_request_count'],2)
+        self.assertEqual(journal['browser_failure']['stage'],'SOURCE_VALIDATION')
+        self.assertEqual(journal['browser_failure']['error_code'],'ALL_MODEL_OFFICIAL_COLLECT_BROWSER_CASE_RESPONSES')
+        self.assertIn('browser_quarantine',journal)
+        self.assertTrue(journal['browser_quarantine']['complete'])
+        preserved={f['file']:base64.b64decode(f['raw_base64']) for f in journal['browser_quarantine']['files']}
+        self.assertEqual(preserved['r2.body'],self.auto.wire(self.data['result']))
+        self.assertEqual(preserved['q2.body'],base64.b64decode(self.data['metadata']['auto_result_context']['request_body_base64']))
+        self.assertTrue(journal['browser_index']['diagnostic_projection_only'])
+        self.assertEqual([r['role'] for r in journal['browser_index']['cases'][0]['responses']],['identity','result','identity'])
+        self.assertNotIn('browser_failure',json.dumps(status))
+
+    def test_contradictory_index_zero_with_real_response_references_stays_unknown(self):
+        original=self.browser
+        def contradictory(plan,directory):
+            index=original(plan,directory);index['actual_request_count']=0
+            index['cases'][0]['responses'].append(dict(role='identity',sequence=1));return index
+        self.browser=contradictory;status=self.run_collect();self.assertIsNone(status['source_requests'])
+        journal=open_forecasts((self.fixture.root/'out.collection.enc').read_bytes(),key=KEY)
+        self.assertEqual(journal['browser_attempt']['state'],'RESERVED')
+        self.assertEqual(journal['browser_failure']['stage'],'INDEX_VALIDATION')
+
+    def test_oversized_quarantine_retains_inventory_but_never_grants_result_authority(self):
+        original=self.browser
+        def oversized(plan,directory):
+            index=original(plan,directory);path=directory/'r1.body'
+            path.write_bytes(b'x'*(2*1024*1024+1));return index
+        self.browser=oversized;status=self.run_collect();self.assertFalse(status['ready'])
+        journal=open_forecasts((self.fixture.root/'out.collection.enc').read_bytes(),key=KEY)
+        self.assertIn('browser_quarantine',journal);quarantine=journal['browser_quarantine']
+        self.assertFalse(quarantine['complete']);self.assertEqual(len(quarantine['inventory_sha256']),64)
+        self.assertEqual(journal['browser_attempt']['state'],'REJECTED')
+        self.assertEqual(journal['browser_failure']['stage'],'QUARANTINE')
+        self.assertLess(len(json.dumps(journal)),12*1024*1024)
+        self.assertFalse((self.fixture.root/'out/results.enc').exists())
+
+    def test_process_failure_never_trusts_stdout_zero_or_persists_secret_stderr(self):
+        from types import SimpleNamespace
+        f=self.fixture;secret=b'https://fixture.invalid?sig=PRIVATE_SAS_AND_KEY'
+        def failed(plan,directory):
+            process=SimpleNamespace(returncode=1,stdout=b'{"state":"HOLD","actual_request_count":0}\n',stderr=secret)
+            with patch.object(f.api.subprocess,'run',return_value=process):
+                return f.api.browser_capture(plan,directory)
+        self.browser=failed;status=self.run_collect();self.assertFalse(status['ready']);self.assertIsNone(status['source_requests'])
+        journal=open_forecasts((f.root/'out.collection.enc').read_bytes(),key=KEY)
+        self.assertEqual(journal['browser_attempt']['state'],'RESERVED')
+        self.assertIn('browser_process_diagnostic',journal)
+        process=journal['browser_process_diagnostic']
+        self.assertEqual(process['returncode'],1);self.assertEqual(process['stdout_reported_actual_request_count'],0)
+        self.assertFalse(process['stdout_request_count_authoritative'])
+        self.assertEqual(process['stderr_sha256'],sha256(secret).hexdigest())
+        self.assertNotIn('PRIVATE_SAS_AND_KEY',json.dumps(journal));self.assertNotIn('fixture.invalid',json.dumps(journal))
+        self.assertNotIn('browser_process_diagnostic',json.dumps(status))
 
 class JournalResumeCollectorTests(OfficialResultCollectorTests):
     def v2(self,prior=()):

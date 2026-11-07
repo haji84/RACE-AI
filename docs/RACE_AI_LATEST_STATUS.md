@@ -1,3 +1,20 @@
+<!-- RACEAI_RIDER_PART_LIFECYCLE_CHECKPOINT_20261107 -->
+# 2026-11-07 16:50 JST｜未達原因を分離し、匿名乗員の実画素追跡を追加。6艇番の完成は未達
+
+**実装済み:** 既存SHA固定YOLOXのPERSON headをboatと別型で読む `boat_video_rider_detector.py`、番号と分離した `boat_video_rider_tracking.py`、既存marker CLIの任意 `--rider-model` を追加。同じ原frame/PTSで匿名乗員とmarkerを別fieldへ保存する。番号producerは既定Noneで、近さ/包含/色/余った番号から結合しない。本番予想・既存intake既定は変更しない。実LK・current detection・flow-only・lost/曖昧性と最後の検出を分け、宣言された印字3根拠がある時の番号保持も新しい印字観測と区別する。
+
+**失敗修正と検証:** 再played画素の矛盾後に古い番号が復活する不具合、同じ/ほぼ同じ印字へ別乗員が異番号を主張する不具合、重なるflow-onlyの二重出力をREDで再現・修正。独立レビューGREEN（番号/重複/相互交差7case）。新detector39・任意CLI16も独立PASS。関連映像 **670件PASS/0skip、71.743秒**。これは最新repository全体の全テスト合格や現場精度の証明ではない。775全編は旧CLI89e63、任意rider追加はCLI b3f802/track7d337とsource scopeを分けて保存する。
+
+**実映像で確認した部分と未達:** 固定61原frameの実YOLOX427forwardで373候補、原画全件採点は実乗員part369・船外機4・同乗員の重複part11（369内）。6人全員を検出したのは53/61frame。実LK＋その実検出の完全replay（新NN0）は402track行、匿名4IDは全61で継続したが、残りは断絶/重複が残る。数字は全None・船体boxなし。402行の別原画採点は乗員part377・船外機25。6人の可視partは全61に存在するが、重複/船外機なしの6出力は30/61、6番partは7匿名ID・4番は11IDに断絶した。全61出力に一致するread-only traceでは、廃棄17keyにもcurrent LKの支持があり、形状差/重複候補との対応付けを追加調査している。flow成功を人物/艇番の意味的正解へ読み替えない。
+
+**全編の意味採点を完了:** 既存全775frameの606登録は、正しい現在印字564・背景非数字36・艇体非数字5・UNKNOWN1。封印済606ラベルへ後から追加65を結合すると正しい印字63・艇体非数字2、ラベル変更0。最大同時正読3、固定17frameの6番号完走0/6は変わらない。AI DEVELOPMENT/学習重複であり一般精度ではない。
+
+**番号器の未達:** 正しい乗員cropを与えてもRGB番号器は10/18（誤7/UNKNOWN1、4/6正答0、全6一致0/3）、旧HOGへ20字追加したlinearもRBFも印字oracle5/18で全体改善無し。失敗を保全し本番へ採用しない。既存許諾写真の未注釈分から直接印字・可視部位を追加確認中で、UNKNOWN原動画を訓練しない。背景除外、一意なphysical part/print binding、遮蔽後再同定、6番号同時継続と現在レース検証は未完成。強さ評価や予想改善はこの件数では実証していない。
+
+**保全・外部条件:** 既存2稼働プロセス・保護checkout・予想原本を維持、停止/再起動・本番モデル切替・main統合・一般公開・投票なし。取得総数/GET/巡回数/総稼働時間の停止上限は本追加で設けない。既知403と同provider追加probe停止は維持し、拒否回避・問い合わせ送信・新サービス/課金なし。全会場403や一律の外部API契約必須とは断定しない。実機Safariと4競技の継続運転/改善実証は別の未達として保持。
+
+[原因・実装・実測](BOAT_VIDEO_MARKER_IDENTITY_20261107.md)／[版を分けた証拠とSHA](evidence/boat-video-identity-causes-20261107.json)。6艇の自動識別完成へ実装と再検証を継続中。
+
 <!-- RACEAI_SIX_BOAT_CAUSAL_CORRECTION_20261107 -->
 # 2026-11-07 16:08 JST｜識別の欠測原因を再現して修正。固定102機会は59→67、6艇継続は開発中
 
@@ -2164,3 +2181,20 @@ PR #71のHEAD `d079bd99b1ed5b26a1aeade60b216bebc9f30218` と過去runを読み�
 - 今回ローカル再計算サマリーSHA256: 9ca4a68d72cb38060271ad93883c163efc210417cff953b89873dfb8f023c3d6。
 
 直前16:42の状態文書全文は [変更前の監査記録](evidence/2026-11-04/status-before-paired-comparison-1720.md) に元blob4729606f7d217fffa092c7251e11af87816e92f1のまま保存。過去の証拠や他チャットの記録を削除していない。
+
+
+---
+<!-- RACEAI_AUTOMATION_20261107_1726_READONLY_AUDIT -->
+## 2026-11-07 17:26 JST｜RACE-AI既存source第2巡と19枠研究fitの安全監査
+
+**監査対象**：Draft PR #71、branch `feat/four-sport-forecast-audit-view-20261022`、監査時 HEAD `329014cb3cef495ebc1df5558fa012f5e150b646`。既存 source workflow 405276784 の run `42352096559`（起動HEAD `784b446c62790d4cb3c7efe2e4f88dc778daa079`）は `in_progress`。実jobは第1巡 `success`、第2巡 `in_progress`、第3巡以降 `pending` のstep状態。別runの待機/queued/pending/waitingは一覧内で0件。現在runをcancel/rerunせず、追加source triggerも行わない。
+
+**原本の独立読取**：現在runの第2巡に対応する暗号化artifact `boat-national-cutoff-42352096559-cycle-02`／id `13567480576` を独立ダウンロード。実ZIPバイトのSHA256 `e084dc3a72f0e5eca34579bf52f52963a3d2cf52cc9deda4d7a98b100e9a2544` がGitHub API登録digestに一致、ZIP破損なし、暗号化member `private-original.enc` の存在確認。**鍵のない検査のため内部status/forecasts.csv/公式結果・係数・HMACは読戻し未実施**。第2巡のファイルが存在することと、実行step完了・予想採点成功は区別する。
+
+**前回正常終了workerのsource control**：run `42342290428` は `completed/success`、HEAD `df05282fc85265b99c43141c74dff678a53518ac`。original-vaultの公開運用カウンター `state/boat-source-control/v1/latest.json` 参照先の同日レコードについて、repo id `1416489937`、branch、workflow `405276784`、run id/HEAD/statusとcontrol/continuity実artifact id・size・API digestの一致を確認。既存メタデータの第4巡・146/240GET・`BOUNDED_SESSION_END`・source_wait=nullは過去runの値で、現在実行中runのGETや停止理由に転用しない。MAC/HMACの検証と所有者鍵による暗号原本復号はこの監査では行っていない。
+
+**モデルと結果の区分**：公開の残枠記録は実研究fit **19/31枠（BOAT14/HORSE5）**、元入力152 records（112+40）、同競技8実レース／枠を6 train/2 holdoutで学習。HORSE通常8結果・特殊2結果。残12枠はAUTO6、KEIRIN5、seller1。19候補の未来レースでの独立保存・実PDCA・本番採用は未実証。元のBOAT14ペアは通常1レースの比較であり、成績の優位性証明ではない。実Actions `42352845874` と `42353120278` は `failure`、後者のviewer jobは動画fixture `tests.test_boat_video_marker_cli.MarkerCliTests.setUpClass` でAssertionError。全体CI成功や19候補の本番読戻しを主張しない。
+
+**収集HOLD**：既存result collector run `42349536138` は全workflow successでもAUTO/KEIRINの6ケース `HOLD_BROWSER_SOURCE_UNVERIFIED`。当該暗号journal id `13565712487` のbrowser予約24件は実通信回数UNKNOWN（全予約上限32）として保持。再起動・別credential/URL・回数reset・未確認結果の外れ認定は行わない。売主型のwaku10一次値もINPUT_MISSINGのまま。
+
+**保全**：原本/係数/買い目/学習SHA/旧スナップショット/trigger/workflow/スケジュールは無変更。このstatus追記は実source GETを発火するworkflowのpaths filter対象外。新source・表示jobの明示起動、新モデル、新PR、本番切替、main統合、一般公開、実投票、外部サービス・課金は実施しない。最新実行中runと終了runの成果を混合せず、28シナリオの正式収支・モデル別的中率は未独立確認。

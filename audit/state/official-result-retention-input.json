@@ -28,10 +28,10 @@
   ],
   "result_artifacts": [
     {
-      "digest": "sha256:bf724b11e0ea4e1a893d91656699fc6aad5897ed1a1e343c839efadb50a49168",
-      "head_sha": "3402a09eaabb8a7bfc3e9919946bbb7d66ae0e11",
-      "id": 13562547496,
-      "run_id": 42343017180
+      "digest": "sha256:9d23960289d145c22b72b47a9c80574d44a4d0cac44ecc88a752df0d9e38d9a4",
+      "head_sha": "9b4bc37648fbfad421daa80bd2300cda5e97e9df",
+      "id": 13565712482,
+      "run_id": 42349536138
     }
   ],
   "schema": "RACE_AI_OFFICIAL_RESULT_RETAIN_INPUT_V1"

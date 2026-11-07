@@ -1,6 +1,10 @@
 # 既存モデルの実データ学習・前向きPDCA進捗（2026-11-07 JST）
 
-最新の実学習は **BOATの14枠**。展開系とPDCA系を加え、独立した締切前保存と通常確定結果を確認した同じP1の8レースで、全14枠を学習6・holdout2に分けた。**112件は全て保存済みnative原入力で、事後派生0件**。暗号化候補の独立復元も確認した。[実件数と保持pointer](evidence/2026-11-07/fourteen-native-model-learning-counts.json)。残る **17枠の実学習は未完了**。以下の9枠の三国1R実未来PDCAは以前の候補の証跡であり、新14枠の未来成績へ流用しない。
+最新は **19/31枠（BOAT14・HORSE5）の実学習成功、残12枠（AUTO6・KEIRIN5・売主型1）**。競馬の正常8件・特殊2件を公式原本と締切前native入力へ照合し、正常8件×5モデルの40原入力を既存BOAT112原入力と結合した。全19枠が学習6／検証2、事後派生0、暗号化復元成功。[19枠実学習の件数](evidence/2026-11-07/nineteen-native-model-fit-counts.json)。既存のV3 CI入口と新しい内容結合MACを使い、旧14枠のMAC・予想・PDCA・保持pointerは残す。
+
+19候補の実未来PDCAは未完了。成立済みの未来PDCAは下記のBOAT14枠・通常1レースである。AUTO／KEIRINの結果収集はbrowser予約24件の通信件数が不明で停止し、失敗journalを継承して再取得を防ぐ。[失敗証跡と現在の阻害要因](REMAINING_MODEL_COMPLETION_20261107.md)。以下は先行候補の履歴であり、古い未完了件数を現在の件数と混同しない。
+
+先行する実学習は **BOATの14枠**。展開系とPDCA系を加え、独立した締切前保存と通常確定結果を確認した同じP1の8レースで、全14枠を学習6・holdout2に分けた。**112件は全て保存済みnative原入力で、事後派生0件**。暗号化候補の独立復元も確認した。[実件数と保持pointer](evidence/2026-11-07/fourteen-native-model-learning-counts.json)。この時点では **17枠の実学習が未完了**だった。以下の9枠の三国1R実未来PDCAは以前の候補の証跡であり、新14枠の未来成績へ流用しない。
 
 14枠は[Actions 42334526055](https://github.com/haji84/RACE-AI/actions/runs/42334526055)でも実fit・暗号化復元に成功し、ローカルと係数・支持数・holdoutが一致した。rankerの実学習時計とそれを含むSHAは実行ごとに別に保持する。同runの16入力原本を12:35:08 JSTに独立保存し、オート48入力・競輪40入力の締切前receiptと所有者キーによる復号を確認した。これは入力保存であり、他競技の学習・予想・PDCA成功ではない。[14枠CIと88入力](evidence/2026-11-07/fourteen-ci-and-nonboat-freeze-counts.json)。
 

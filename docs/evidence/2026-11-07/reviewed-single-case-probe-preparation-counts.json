@@ -1,0 +1,18 @@
+{
+  "actual_provider_requests": 0,
+  "cache_reused_count": 4,
+  "case_count": 1,
+  "checkpoint_count": 3,
+  "maximum_requests": 8,
+  "old_actual_browser_request_count": null,
+  "old_total_debited_upper_bound": 32,
+  "old_unknown_browser_reserved_upper_bound": 24,
+  "plaintext_published": false,
+  "plan_cipher_sha256": "796211086aa050e9dfd517a8b351e4ef74bf1a044a61be188912a920ce16e9f2",
+  "prepared_at": "2026-11-07T08:09:38.391003+00:00",
+  "prior_journal_count": 2,
+  "probe_sport": "autorace",
+  "production_promoted": false,
+  "root_review_capsule_issued": false,
+  "state": "ONE_REVIEWED_PROBE_PREPARED_NOT_AUTHORIZED_OR_EXECUTED"
+}

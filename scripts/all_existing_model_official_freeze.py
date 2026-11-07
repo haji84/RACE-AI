@@ -1,7 +1,7 @@
 """One-time authenticated official-cache native freeze; no provider requests."""
 import argparse
 from copy import deepcopy
-from datetime import datetime,timedelta,timezone
+from datetime import date,datetime,timedelta,timezone
 from hashlib import sha256
 import json
 import os
@@ -22,6 +22,7 @@ from race_ai.all_existing_model_receipt import _verified_private_pairs_artifact
 from race_ai.boat_all_model_store import open_forecasts
 from race_ai.boat_pdca_state import state_key
 from race_ai.boat_venue_learning import read_candidate
+from race_ai.boat_venue_learning_context import context_from_encrypted_artifact,_candidate_from_zip
 from race_ai.four_sport_model_suite import ALL_MODELS
 from race_ai.four_sport_learning import LEARNED_ID
 from race_ai.permissioned_source_delivery import read_json_bytes
@@ -33,6 +34,7 @@ ROOT=Path(__file__).resolve().parents[1]
 ROUND=900002
 SCHEMA='RACE_AI_MANUAL_OFFICIAL_NATIVE_FREEZE_INPUT_V1'
 V2_SCHEMA='RACE_AI_MANUAL_OFFICIAL_NATIVE_FREEZE_INPUT_V2'
+V3_SCHEMA='RACE_AI_MANUAL_OFFICIAL_NATIVE_FREEZE_INPUT_V3'
 STATUS='RACE_AI_MANUAL_OFFICIAL_NATIVE_FREEZE_COUNTS_V1'
 CELLS={'horse/'+mid for mid in (*ALL_MODELS,LEARNED_ID)}
 
@@ -49,9 +51,15 @@ def load_manifest(path,*,now):
     fields={'schema','execution_day','sealed_path','index_sha256','maximum_races',
             'source_metadata_path','source_metadata_sha256'}
     need(type(value) is dict and ((value.get('schema')==SCHEMA and set(value)==fields) or
-         (value.get('schema')==V2_SCHEMA and set(value)==fields|{'excluded_native_artifacts'})),
+         (value.get('schema')==V2_SCHEMA and set(value)==fields|{'excluded_native_artifacts'}) or
+         (value.get('schema')==V3_SCHEMA and set(value)==fields|{'excluded_native_artifacts','horse_baseline_artifact','carrier_artifact'})),
          'MANIFEST_SCHEMA')
-    if value['schema']==V2_SCHEMA:_exclusion_pins(value)
+    if value['schema'] in (V2_SCHEMA,V3_SCHEMA):_exclusion_pins(value)
+    if value['schema']==V3_SCHEMA:
+        from race_ai.all_existing_model_future_baseline import validate_pin
+        validate_pin(value['horse_baseline_artifact'])
+        validate_pin(value['carrier_artifact'])
+        need(value['horse_baseline_artifact']['id']!=value['carrier_artifact']['id'],'DISTINCT_INPUT_ONLY_CARRIER_REQUIRED')
     need(type(value['maximum_races']) is int and 1<=value['maximum_races']<=8 and
         value['execution_day']==now.astimezone(jra.JST).date().isoformat(),'EXECUTION_DAY_OR_BOUND')
     need(type(value['sealed_path']) is str and re.fullmatch(
@@ -67,7 +75,8 @@ def load_manifest(path,*,now):
 
 def _exclusion_pins(manifest):
     values=manifest.get('excluded_native_artifacts')
-    need(type(values) is list and 1<=len(values)<=8,'EXCLUDED_NATIVE_ARTIFACTS_BOUND')
+    need(type(values) is list and (0 if manifest.get('schema')==V3_SCHEMA else 1)<=len(values)<=8,
+         'EXCLUDED_NATIVE_ARTIFACTS_BOUND')
     seen=set()
     for value in values:
         need(type(value) is dict and set(value)=={'id','digest','run_id','head_sha'} and
@@ -82,7 +91,7 @@ def _exclusion_pins(manifest):
 def authenticated_excluded_races(manifest,*,now):
     """Read existing actual HORSE input receipts; never infer exclusions from IDs."""
     if manifest.get('schema')==SCHEMA:return set(),0
-    need(manifest.get('schema')==V2_SCHEMA,'MANIFEST_SCHEMA')
+    need(manifest.get('schema') in (V2_SCHEMA,V3_SCHEMA),'MANIFEST_SCHEMA')
     pins=_exclusion_pins(manifest);races=set()
     for pin in pins:
         actual=future.metadata(pin['id'])
@@ -176,16 +185,88 @@ def local_records(root):
     return records
 
 
+def _load_horse_baseline(pin):
+    from race_ai.all_existing_model_future_baseline import load_baseline
+    return load_baseline(pin,now=utc_now(),fetch_metadata=future.metadata,
+        fetch_zip=lambda ident:future.gh('actions/artifacts/'+str(ident)+'/zip'))
+
+
+def _load_carrier(pin):
+    from race_ai.all_existing_model_future_baseline import validate_pin,verify_owner
+    state_key('production');pin=validate_pin(pin)
+    raw=future.gh('actions/artifacts/'+str(pin['id'])+'/zip')
+    def fetch(_):
+        actual=future.metadata(pin['id']);run=actual.get('workflow_run')
+        need(actual.get('id')==pin['id'] and actual.get('digest')==pin['digest'] and type(run) is dict and
+             run.get('id')==pin['run_id'] and run.get('head_sha')==pin['head_sha'],'CARRIER_ARTIFACT_BINDING')
+        return actual
+    context=context_from_encrypted_artifact(raw,pin['id'],now=utc_now(),_fetch=fetch)
+    verify_owner(context['training'],_candidate_from_zip(raw).get('owner_research_record'))
+    need(not CELLS&set(context['training']['models']) and
+         all(key.startswith('boat/') for key in context['training']['models']),'INPUT_ONLY_BOAT_CARRIER_REQUIRED')
+    return context
+
+
+def _check_horse_baseline(records,baseline):
+    from race_ai.all_existing_model_future_baseline import verify_attachment
+    for record in records:
+        ranker=next(c for c in record['captured_native_inputs'] if c['cell_key']=='horse/'+LEARNED_ID)
+        verify_attachment(ranker['native_payload'],baseline,sport='horse',now=utc_now(),generated_at=record['generated_at'])
+
+
+def _rule_id(manifest):
+    if manifest['schema']!=V3_SCHEMA:return 'JRA_2026_SATURDAY_ALL_RACES_START_MINUS_60_SECONDS'
+    event=date.fromisoformat(manifest['execution_day']);weekday={5:'SATURDAY',6:'SUNDAY'}.get(event.weekday())
+    need(weekday is not None,'SUPPORTED_OFFICIAL_WEEKEND_RULE_REQUIRED')
+    return f'JRA_{event.year}_{weekday}_ALL_RACES_START_MINUS_60_SECONDS'
+
+
+def _replay_original_inputs(manifest,records,baseline,env):
+    """Rebuild original facts from their retained owner-encrypted source bytes."""
+    from race_ai.all_existing_model_future_baseline import attach
+    with tempfile.TemporaryDirectory(prefix='manual-native-replay-',dir=env['temp']) as temporary:
+        private=Path(temporary);copy_sealed(manifest,private/'sealed');restored=private/'restored'
+        key=state_key('production');capture.restore_cache(private/'sealed',restored,key=key,
+            expected_index_sha256=manifest['index_sha256'])
+        cache=capture._load(restored);need(cache['execution_day']==manifest['execution_day'],'CACHE_EXECUTION_DAY')
+        originals=original_metadata(manifest,key=key);rule=capture.read_capture(restored,jra.RULE_URL)
+        evidence=dict(raw=rule['raw'],metadata=bind_metadata(rule['raw'],rule['metadata'],originals.get(jra.RULE_URL)),
+            sales_channel=jra.CHANNEL,rule_id=_rule_id(manifest))
+        for record in records:
+            ranker=next(c['native_payload'] for c in record['captured_native_inputs'] if c['cell_key']=='horse/'+LEARNED_ID)
+            proof=ranker['baseline_attachment'];url=proof['source_metadata']['source_url']
+            source=capture.read_capture(restored,url)
+            actual=bind_metadata(source['raw'],source['metadata'],originals.get(url))
+            converted=jra.build_sparse_payload(source['raw'],actual,
+                now=future.stamp(ranker['snapshot']['race']['as_of']),
+                source_rights_ref=capture.official_rights_ref('horse'),cutoff_evidence=evidence)
+            need(converted['state']=='READY','RAW_SOURCE_NATIVE_REQUIRED')
+            expected=converted['native_payload']
+            for capsule in record['captured_native_inputs']:
+                wanted=(attach(expected,baseline,sport='horse',source_metadata=actual,
+                    now=future.stamp(proof['attached_at'])) if capsule['cell_key']=='horse/'+LEARNED_ID else expected)
+                need(capsule['native_payload']==wanted,'RAW_SOURCE_NATIVE_BINDING')
+
+
 def generate(ident,root,env,manifest):
     need(not root.exists(),'OUTPUT_EXISTS_DO_NOT_RESET')
-    key=state_key('production');context=future.candidate(ident,env)
+    key=state_key('production')
+    if manifest['schema']==V3_SCHEMA:
+        need(ident==manifest['carrier_artifact']['id'],'CARRIER_ARGUMENT_MISMATCH')
+        context=_load_carrier(manifest['carrier_artifact'])
+    else:context=future.candidate(ident,env)
     need(context['training']['scope']=='OPERATOR_SUPPLIED_RESEARCH','REAL_RESEARCH_CANDIDATE_REQUIRED')
+    baseline=None;ranker_payloads={}
+    if manifest['schema']==V3_SCHEMA:
+        need(manifest['horse_baseline_artifact']['id']!=ident and not CELLS&set(context['training']['models']),
+             'DISTINCT_INPUT_ONLY_CARRIER_REQUIRED')
+        baseline=_load_horse_baseline(manifest['horse_baseline_artifact'])
     ready=future.stamp(context['receipt']['created_at'])+timedelta(seconds=1)
     remaining=(ready-utc_now()).total_seconds()
     if 0<remaining<=2:time.sleep(remaining+.02)
     need(utc_now()>=ready,'CANDIDATE_RECEIPT_PRECISION')
     excluded=set();exclusion_counts={}
-    if manifest['schema']==V2_SCHEMA:
+    if manifest['schema'] in (V2_SCHEMA,V3_SCHEMA):
         excluded,excluded_artifacts=authenticated_excluded_races(manifest,now=utc_now())
         exclusion_counts=dict(excluded_native_artifact_count=excluded_artifacts,
             excluded_native_race_count=len(excluded),excluded_cached_card_count=0)
@@ -199,7 +280,7 @@ def generate(ident,root,env,manifest):
         proof=capture.read_capture(restored,jra.RULE_URL)
         rule=bind_metadata(proof['raw'],proof['metadata'],originals.get(jra.RULE_URL))
         evidence=dict(raw=proof['raw'],metadata=rule,sales_channel=jra.CHANNEL,
-            rule_id='JRA_2026_SATURDAY_ALL_RACES_START_MINUS_60_SECONDS')
+            rule_id=_rule_id(manifest))
         rights=capture.official_rights_ref('horse')
         for url in sorted(cache['captures']):
             parsed=urlsplit(url)
@@ -216,14 +297,21 @@ def generate(ident,root,env,manifest):
                     exclusion_counts['excluded_cached_card_count']+=1;continue
                 cutoff=future.stamp(race['sales_cutoff_at'])
                 if cutoff<utc_now()+timedelta(seconds=120):holds+=1;continue
+                if baseline is not None:
+                    from race_ai.all_existing_model_future_baseline import attach
+                    attached=attach(native,baseline,sport='horse',source_metadata=actual,now=utc_now())
+                    original=deepcopy(attached);original.pop('learned_model');original.pop('baseline_attachment')
+                    need(original==native,'BASELINE_SOURCE_FACTS_CHANGED')
+                    ranker_payloads[race['race_id']]=attached
                 selected.append((cutoff,race['race_id'],native))
             except (ValueError,KeyError,TypeError):rejected+=1
         selected=sorted(selected,key=lambda row:(row[0],row[1]))[:manifest['maximum_races']]
         need(len({race for _,race,_ in selected})==len(selected),'DUPLICATE_RACE_SOURCE')
         if not selected:return dict(exclusion_counts,state='HOLD_NO_READY_FUTURE_NATIVE_INPUTS',ready=False,
             ready_races=0,held_cards=holds,rejected_cards=rejected)
-        requests=[dict(cell_key=cell,native_payload=deepcopy(native))
-            for _,_,native in selected for cell in sorted(CELLS)]
+        requests=[dict(cell_key=cell,native_payload=deepcopy(
+            ranker_payloads[race] if baseline is not None and cell=='horse/'+LEARNED_ID else native))
+            for _,race,native in selected for cell in sorted(CELLS)]
         refs=set().union(*(_sources(row['native_payload']) for row in requests))
         summary=make_private_pairs(context,requests,root,now=utc_now(),allow_source=lambda source,right,purpose:
             purpose=='analysis' and (source,right) in refs)
@@ -233,7 +321,13 @@ def generate(ident,root,env,manifest):
         aggregate=read_json_bytes(_read(root/'summary.json',1024*1024))
         need(aggregate==summary,'ROOT_SUMMARY_BINDING');(root/'summary.json').unlink()
         records=local_records(root)
+        if baseline is not None:_check_horse_baseline(records,baseline)
         need(min(_seal_cutoff(p) for p in records)>=utc_now()+timedelta(seconds=120),'FINAL_MARGIN_ELAPSED')
+        if baseline is not None:exclusion_counts.update(future_baseline_schema=V3_SCHEMA,
+            horse_baseline_artifact=deepcopy(manifest['horse_baseline_artifact']),baseline_attached_native_input_count=len(records),
+            carrier_artifact=deepcopy(manifest['carrier_artifact']),
+            baseline_training_sha256=baseline['training']['training_sha256'],baseline_receipt_verified=True,
+            freeze_manifest_sha256=digest(manifest))
         return dict(exclusion_counts,state='OFFICIAL_NATIVE_INPUTS_ENCRYPTED_LOCAL_ONLY',ready=True,
             ready_races=len(records),held_cards=holds,rejected_cards=rejected,partition_count=len(records),
             frozen_input_only_partition_count=len(records),forecast_partition_count=0,
@@ -244,14 +338,32 @@ def generate(ident,root,env,manifest):
             independent_pre_cutoff_receipt_verified=False)
 
 
-def readback(ident,root,env):
+def readback(ident,root,env,*,manifest=None):
     local=local_records(root)
     previous=read_json_bytes(_read(root.with_name(root.name+'.status.json'),128*1024))
+    has_baseline=any('baseline_attachment' in capsule['native_payload']
+        for record in local for capsule in record['captured_native_inputs'])
+    need(has_baseline==(previous.get('future_baseline_schema')==V3_SCHEMA),'BASELINE_SCHEMA_BINDING')
     hashes=sorted(digest(p) for p in local)
     need(previous.get('schema')==STATUS and previous.get('workflow_run_id')==env['run_id'] and
          previous.get('expected_head_sha')==env['head_sha'] and previous.get('record_sha256')==hashes and
          previous.get('candidate_artifact_id')==local[0]['training_receipt']['id'] and
          previous.get('training_sha256')==local[0]['training']['training_sha256'],'LOCAL_GENERATION_STATUS')
+    baseline=None
+    if previous.get('future_baseline_schema')==V3_SCHEMA:
+        need(type(manifest) is dict and manifest.get('schema')==V3_SCHEMA and
+             digest(manifest)==previous.get('freeze_manifest_sha256') and
+             manifest.get('horse_baseline_artifact')==previous.get('horse_baseline_artifact') and
+             manifest.get('carrier_artifact')==previous.get('carrier_artifact'),'SOURCE_MANIFEST_REQUIRED')
+        carrier=_load_carrier(previous['carrier_artifact'])
+        baseline=_load_horse_baseline(previous['horse_baseline_artifact'])
+        need(carrier['receipt']==local[0]['training_receipt'] and carrier['training']==local[0]['training'] and
+             baseline['receipt']['id']!=previous['candidate_artifact_id'] and
+             previous.get('baseline_attached_native_input_count')==len(local) and
+             previous.get('baseline_training_sha256')==baseline['training']['training_sha256'],
+             'BASELINE_GENERATION_BINDING')
+        _check_horse_baseline(local,baseline)
+        _replay_original_inputs(manifest,local,baseline,env)
     actual=future.metadata(ident);raw=future.gh('actions/artifacts/'+str(ident)+'/zip')
     need(actual.get('name')==f'all-existing-model-pairs-{env["run_id"]}-{ROUND}','ACTUAL_ARTIFACT_NAME')
     admitted,records=_verified_private_pairs_artifact(raw,actual,now=utc_now(),
@@ -261,6 +373,13 @@ def readback(ident,root,env):
          sorted(digest(p) for p in records)==hashes,'ACTUAL_NATIVE_INPUT_READBACK')
     lineage={key:previous[key] for key in ('source_index_sha256','original_metadata_cipher_sha256',
         'held_cards','rejected_cards') if key in previous}
+    if baseline is not None:
+        _check_horse_baseline(records,baseline)
+        lineage.update(future_baseline_schema=V3_SCHEMA,horse_baseline_artifact=deepcopy(previous['horse_baseline_artifact']),
+            carrier_artifact=deepcopy(previous['carrier_artifact']),
+            baseline_attached_native_input_count=len(records),baseline_training_sha256=baseline['training']['training_sha256'],
+            baseline_receipt_verified=True,freeze_manifest_sha256=previous['freeze_manifest_sha256'],
+            original_source_native_replay_verified=True)
     for key,limit in (('excluded_native_artifact_count',8),('excluded_native_race_count',64),
                       ('excluded_cached_card_count',32)):
         if key in previous:
@@ -291,7 +410,13 @@ def main(argv=None):
             need(args.input is not None,'INPUT_MANIFEST_REQUIRED')
             manifest=load_manifest(args.input,now=utc_now())
             result.update(generate(args.candidate_artifact,root,env,manifest))
-        else:result.update(readback(args.readback_artifact,root,env))
+        else:
+            previous=read_json_bytes(_read(status,128*1024))
+            if previous.get('future_baseline_schema')==V3_SCHEMA:
+                need(args.input is not None,'SOURCE_MANIFEST_REQUIRED')
+                manifest=load_manifest(args.input,now=utc_now())
+                result.update(readback(args.readback_artifact,root,env,manifest=manifest))
+            else:result.update(readback(args.readback_artifact,root,env))
     except Exception as exc:
         reason=str(exc)
         result.update(state='HOLD_OFFICIAL_NATIVE_FREEZE',ready=False,reason=reason if re.fullmatch(
