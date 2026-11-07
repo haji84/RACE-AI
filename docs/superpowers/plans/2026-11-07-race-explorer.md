@@ -66,8 +66,8 @@
 
 **Interfaces:** Existing control IDs, saved-view hooks, dataset schema and asset list remain compatible. Native details organize operational/model explanations; connected generation controls remain available. Preview data retains its existing main/supplementary boundary and observation timestamps.
 
-- [ ] Add browser cases showing actual preview values/F/L, zero values and invalid supplemental-context rejection; run before changing the preview presentation and verify the intended failure.
-- [ ] Move venue/search controls above cards, simplify mobile spacing, provide a compact weather/preview view, retain source details behind a disclosure, and make profiles/cards/tabs usable by keyboard and touch.
-- [ ] Add the explorer browser to the existing UI workflow. Run the existing UI unit command, `tests/ui_browser.test.js`, explorer/portrait/venue/results/saved-page browsers and Python `tests.test_saved_pages`/`tests.test_saved_pdca_view`; inspect mobile and PC screenshots and commit.
-- [ ] Request one fresh whole-change review against this plan/spec. Resolve material findings, preserving source/deadline/identity gates.
+- [x] Add browser cases showing actual preview values/F/L, zero values and invalid supplemental-context rejection; run before changing the preview presentation and verify the intended failure.
+- [x] Move venue/search controls above cards, simplify mobile spacing, provide a compact weather/preview view, retain source details behind a disclosure, and make profiles/cards/tabs usable by keyboard and touch.
+- [x] Add the explorer browser to the existing UI workflow. Run the existing UI unit command, `tests/ui_browser.test.js`, explorer/portrait/venue/results/saved-page browsers and Python `tests.test_saved_pages`/`tests.test_saved_pdca_view`; inspect mobile and PC screenshots and commit.
+- [x] Request one fresh whole-change review against this plan/spec. Resolve material findings, preserving source/deadline/identity gates.
 - [ ] Rebase onto the latest existing PR branch without replacing concurrent work, push normally, and use `refresh_site_assets` against the current pinned Pages parent. Verify all ciphertext trees/manifest fields are unchanged, new HTTP asset hashes match, and the deployed explorer browser passes.

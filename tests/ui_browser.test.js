@@ -83,7 +83,9 @@ async function main() {
     await page.goto(base);
     await page.locator('#source-state').waitFor();
     assert.equal(await page.locator('#forecast-generate').isDisabled(),true,'static viewer cannot pretend to generate');
+    await page.locator('#operation-details>summary').click();
     assert.match(await page.locator('#generation-message').innerText(),/ローカル予想サーバー/);
+    await page.locator('#operation-details>summary').click();
     assert.match(await page.locator('#source-state').innerText(), /未取得|未読込|未接続/);
     assert.equal(await page.locator('#page-home .race-card').count(),0);
     await page.locator('[data-page="research"]').filter({visible:true}).first().click();
@@ -107,6 +109,7 @@ async function main() {
     assert.ok(await page.locator('#page-races .race-card').count()>0);
     await page.locator('#period-filter').selectOption('week');
     assert.equal(await page.locator('#page-races .race-card').count(),1);
+    await page.locator('#race-filters>summary').click();
     await page.locator('#status-filter').selectOption('HIT');
     assert.equal(await page.locator('#page-races .race-card').count(),0,'synthetic match cannot be official HIT');
     await page.locator('#status-filter').selectOption('all');

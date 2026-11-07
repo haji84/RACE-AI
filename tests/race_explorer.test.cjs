@@ -51,3 +51,14 @@ test('official race links reject conflicting identities, unknown metadata and sy
     assert.deepEqual(U.boatRaceLinks({...row,...patch}),[],JSON.stringify(patch));
   }
 });
+test('unloaded venues link to their official venue and selected-day calendar without inventing a race',()=>{
+  const links=U.boatVenueLinks({sport:'boat',venue:'尼崎',event_date_jst:'2030-01-02'});
+  assert.deepEqual(links.map(l=>l.kind),['stadium','calendar']);
+  assert.equal(new URL(links[0].url).pathname,'/owpc/pc/site/place/stadium');
+  assert.equal(new URL(links[0].url).searchParams.get('jcd'),'13');
+  assert.equal(new URL(links[1].url).searchParams.get('hd'),'20300102');
+  assert.equal(new URL(links[0].url).searchParams.has('rno'),false);
+  assert.deepEqual(U.boatVenueLinks({sport:'boat',venue:'未知の会場',event_date_jst:'2030-01-02'}),[]);
+  assert.deepEqual(U.boatVenueLinks({sport:'horse',venue:'尼崎',event_date_jst:'2030-01-02'}),[]);
+  assert.deepEqual(U.boatVenueLinks({sport:'boat',venue:'尼崎',event_date_jst:'2030-02-30'}).map(l=>l.kind),['stadium']);
+});
