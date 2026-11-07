@@ -45,9 +45,9 @@ Nesnad「[Kyotei - Sept 7 2021](https://commons.wikimedia.org/wiki/File:Kyotei_-
 
 最新コードでもCLIで全775原frameを再処理し、全BGR SHA・元PTS・indexが以前のcanonical decodeと一致。原本SHA・ctime、source/重みの実行前後pinも不変だった。最新receipt `ecf119e92b7ea89ff768a7b0fe5fa1a9039ea10d7d1cd4adcae90b306d2d734e`、journal `92d998ba52e0f44e8a95e94f4278c18dfc938d8a93d9e568625ef137492a6f22`。
 
-最新全編は606登録、最大同時3。全606件の原画採点は別工程で進めており、件数を正解数としない。frame37の建物の線を4とする反例は最新でも同じ位置に残る。76frameの98件の一致を全編へ外挿しない。SUCCESSは処理完遂・原本整合性の状態で、識別精度の合格ではない。以前の旧版全編510登録と、そのreceipt/journalは別の版として保存した。
+最新全編は606登録、最大同時3。全606件をcurrent原画で採点・封印し、現在の正しい艇番印字564件、背景非数字36件、艇体上の非数字5件、判読不能UNKNOWN1件だった。全606行のrow/event hashと完全被覆を照合した。正しい印字の最大同時数も3で、学習重複のあるAI DEVELOPMENT参照である。frame37の建物の線を4とする反例は最新でも同じ位置に残る。76frameの98件の一致を全編へ外挿しない。SUCCESSは処理完遂・原本整合性の状態で、識別精度の合格ではない。以前の旧版全編510登録と、そのreceipt/journalは別の版として保存した。
 
-最新775の同じ番号入力を使った対応付けだけの再生では、旧Mと新Mのhint無しが全775件で一致し541登録、hint有りは実出力と全775件で一致し606登録（追加65、削除0）だった。これは追加NN/OCR/LKを実行しないcounterfactualであり、実推論を増やした証拠ではない。追加65件の意味的正誤は全606採点へ結合して判定する。
+最新775の同じ番号入力を使った対応付けだけの再生では、旧Mと新Mのhint無しが全775件で一致し541登録、hint有りは実出力と全775件で一致し606登録（追加65、削除0）だった。これは追加NN/OCR/LKを実行しないcounterfactualであり、実推論を増やした証拠ではない。全606採点を先に封印した後で追加65件へ一意に結合すると、正しい印字63件と艇体上の非数字誤登録2件だった。旧541件は正しい印字501・背景非数字36・艇体非数字3・UNKNOWN1。正読の増加と誤登録の増加を両方保持し、ラベル変更は0。
 
 ## 継続性・背景除外の追加検証
 
@@ -62,9 +62,25 @@ Nesnad「[Kyotei - Sept 7 2021](https://commons.wikimedia.org/wiki/File:Kyotei_-
 
 既存YOLOXの別映像3frame・最終20boxを全て原画確認すると、全6艇の物理partは各frameに含まれていた。ただし全体envelope1・hull part11・複数混在8。riderを含む正解枠とのIoU不足を、艇の一部すら検出していないことと同一視しない。番号・現在の可視対象・歴史的な番号根拠を分離し、艇に結びついたrider partも別型で調べている。これを全6の自動番号識別成功とは数えない。
 
+### 乗員の検出と番号読取を分けた修正
+
+`boat_video_rider_detector.py` を追加し、既存SHA固定YOLOXのCOCO class0 PERSONを、boat/hullとは別の `RIDER_PART_TYPED` 候補として返す。モデル・前処理・固定score条件・native7viewは既存と同じ。person候補は乗員の所属や番号の証明ではなく、重みの追加配布・download・本番既定切替は行わない。元のboat detectorは変更しない。
+
+固定3原frameのcached後処理では各6人、全18件が別々の実乗員の頭部/胴体に対応した。可視rider全景の参照IoU≥.5は16/18で、2件は腕の範囲が欠ける部分検出。親艇への最大重なり候補9/18は複数艇が混ざり、person boxの包含や最近傍だけで艇番を結合できない。
+
+製品detectorの別実行は、固定61原frame・元BGR/PTSで427回forwardし、373候補を保存した。候補数6のframeは40、5は8、7は11、8は2で、全61で6人を一意に検出したとは言わない。全3anchorのbox/score配列は先のcached18件と完全一致。全373件の原画採点は、実乗員part369（境界に別乗員が混ざる可能性UNKNOWN2を含む）・船外機の非人物4・同乗員重複part11（369の内数）。実乗員6人が揃うのは53/61frameで、原画上は6人とも全61で可視だった。これを全6継続の合格にはしない。番号未読を余った番号で埋めない。
+
+`boat_video_rider_tracking.py` は、typed detectorと実LKの対応を使い、未読でも匿名Rを出す。現在の画素支持・最後の再検出・fresh/flow-only・lost/曖昧性を区別し、番号は別の明示physical-pair producerだけが3つの別frame/PTS/BGRから作れる。包含/近さ/色/appearanceだけを印字観測として受け入れない。宣言pairも真正性証明ではなく、既定producer=Noneで番号は全UNKNOWN。矛盾するreplayed画素で古い番号が復活する問題、別Rが同じ印字へ異番号を主張する問題、重なるflow-onlyを二重出力する問題をREDで再現・修正し、独立レビュー7case GREEN。
+
+固定61の実LK＋先の実検出373件の完全replay（新NN0）では402track行、匿名4IDは全61で継続。数字は全None・船体boxなし。402行の別原画採点は乗員part377・船外機25、既存373検出を一意joinしflow-only29も全件目視した。6人の可視part自体は全61で存在する一方、重複/船外機なしの6出力は30/61。6番のpartは7匿名ID、4番は11IDへ断絶し、これを6艇の連続IDには数えない。余分なflow-only棄却5も原画確認し同乗員の重複partとして別保存した。観察範囲で同Rの別primaryへのswapは0だが、AI DEVELOPMENT/短い2秒で現場精度ではない。flow-successを実乗員や艇番の証明にはしない。
+
+番号分類には別の不足がある。写真の直接印字と結び付いた乗員12例で学習したRIDER RGB分類器も、正しい乗員cropを与えたoracle18例で一致10・誤り7・UNKNOWN1、全6一致0/3、4/6の正答は0だった。背景29例も24例を数字へ誤分類し、単独gateや番号器へ採用しない。Todoの4/6は衣服自体の低彩度、6は黄緑側のhue、1は直立の白上衣と黒下衣など、訓練写真との画素・姿勢差を確認した。日照原因や個別部位の判断寄与は未確定。正しい領域を与えるだけでは番号問題が解決しないという容量検証であり、OCRや自動6艇識別の合格ではない。
+
 16原frameの性能計測では全候補抽出がprofile内pipeline時間の約67%。refresh8はrefresh1より速いが登録27→16へ低下した。2band並列は全8,509候補と順序が一致した一方、壁時間約4%短縮に対しCPU約56%・最大RSS約65%増で、採用根拠は弱い。profile/同時負荷の影響もあり実時間性能の保証ではない。候補削除や古い番号の保持で高速化したことにはしない。
 
-最終映像回帰は **627件PASS/0skip、69.171秒**、関連6moduleは122件PASS。独立レビューで発見したflow再計算後の品質値による例外中断も再現して修正・再レビューGREEN。旧全体Python3,106件PASSは以前のcommitの記録で、後続の全HEADが合格したとは扱わない。
+marker修正時の映像回帰は **627件PASS/0skip、69.171秒**、関連6moduleは122件PASS。独立レビューで発見したflow再計算後の品質値による例外中断も再現して修正・再レビューGREEN。旧全体Python3,106件PASSは以前のcommitの記録で、後続の全HEADが合格したとは扱わない。
+
+rider/任意CLIを含む新しい映像回帰は **670件PASS/0skip、71.743秒**。detector39・CLI16の独立制御テストもPASS。これは関連映像moduleの検証で、最新repository全HEADの全3,000件超や現場精度の合格を意味しない。775全編の実行は旧CLI `89e63…`、rider追加はCLI `b3f802…` とsource scopeを分けて保存する。
 
 ## 実行方法と範囲
 
@@ -80,6 +96,8 @@ python scripts/boat_video_marker_analyze.py \
 ```
 
 SHA固定の私有モデルが必要。今回の資産は同じクラウドworkspaceの `owner-files/six-boat-completion-20261107` に保全している。cloneだけで重みを取得する処理はなく、新しい外部サービス・アカウント・課金を要求しない。出力先は新規の私有directoryで、既存ファイルや原本を上書きしない。
+
+任意に `--rider-model /private/object_detection_yolox_2022nov.onnx` を加えると、同じ原frame・PTSで匿名PERSON partを処理し、`pipeline_result.rider_part_tracking` とreceiptへ別保存する。marker番号はriderへ結合しない。local SHA固定モデルのみを使い、途中rider失敗も既存journalの部分保存とFAILEDにし、SUCCESSを出さない。既定のmarker経路・intake・予想エンジンは保持する。
 
 `--single-continuous-shot` は利用者による単一shotの申告であり、自動的なshot認証ではない。通常のintake/job/予想モデルへこの開発reportを昇格させない。既存の1ファイルのデコード資源保護は明示し、取得レース数・総GET数・巡回回数・総稼働時間の停止上限は追加していない。
 

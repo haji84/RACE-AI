@@ -101,19 +101,43 @@ def _terminal(directory, name, record):
 
 def _pipeline(args, factory):
     if factory is not None:
-        return factory(refresh_frames=args.refresh_frames, label_policy=POLICY), dict(
+        pipeline, metadata = factory(refresh_frames=args.refresh_frames, label_policy=POLICY), dict(
             execution_mode='INJECTED_SYNTHETIC_TEST', pinned_models=False,
             injected_metadata='SYNTHETIC_TEST_CALLBACKS_NOT_PINNED_MODELS')
-    from race_ai.boat_video_ppocr import PinnedPPOCRRecognizer
-    from race_ai.boat_video_marker_verifier import PinnedDevelopmentMarkerVerifier
-    from race_ai.boat_video_marker_pipeline import MarkerIdentityPipeline, CLASSIFIER_POLICY
-    recognizer = PinnedPPOCRRecognizer(model_path=args.recognizer_model)
-    verifier = PinnedDevelopmentMarkerVerifier(context_model_path=args.context_model,
-        glyph_model_path=args.glyph_model, development_opt_in=True)
-    pipeline = MarkerIdentityPipeline(recognizer, verifier, refresh_frames=args.refresh_frames,
-                                      label_policy=CLASSIFIER_POLICY)
-    return pipeline, dict(execution_mode='PINNED_LOCAL_DEVELOPMENT_MODELS', pinned_models=True,
-                         recognizer=recognizer.metadata(), verifier=verifier.metadata())
+    else:
+        from race_ai.boat_video_ppocr import PinnedPPOCRRecognizer
+        from race_ai.boat_video_marker_verifier import PinnedDevelopmentMarkerVerifier
+        from race_ai.boat_video_marker_pipeline import MarkerIdentityPipeline, CLASSIFIER_POLICY
+        recognizer = PinnedPPOCRRecognizer(model_path=args.recognizer_model)
+        verifier = PinnedDevelopmentMarkerVerifier(context_model_path=args.context_model,
+            glyph_model_path=args.glyph_model, development_opt_in=True)
+        pipeline = MarkerIdentityPipeline(recognizer, verifier, refresh_frames=args.refresh_frames,
+                                          label_policy=CLASSIFIER_POLICY)
+        metadata = dict(execution_mode='PINNED_LOCAL_DEVELOPMENT_MODELS', pinned_models=True,
+                        recognizer=recognizer.metadata(), verifier=verifier.metadata())
+    if args.rider_model is not None:
+        from race_ai.boat_video_rider_detector import PinnedRiderPartDetector
+        from race_ai.boat_video_rider_tracking import RiderPartTracker
+        detector = PinnedRiderPartDetector(model_path=args.rider_model, tiled=True)
+        riders = RiderPartTracker(detector, number_provider=None)
+        pipeline = _MarkerAndRiderPipeline(pipeline, riders)
+        metadata['rider_part_tracking'] = dict(
+            execution_scope=metadata['execution_mode'], detector=detector.metadata(),
+            number_binding='NOT_IMPLEMENTED_NO_NUMBER_PRODUCER',
+            marker_numbers_assigned_to_riders=False, hull_positions_inferred=False,
+            model_eligible=False)
+    return pipeline, metadata
+
+
+class _MarkerAndRiderPipeline:
+    """Keep two independent observations; proximity does not establish pairing."""
+    def __init__(self, markers, riders):
+        self.markers, self.riders = markers, riders
+
+    def update(self, frame, **context):
+        result = self.markers.update(frame, **context)
+        result['rider_part_tracking'] = self.riders.update(frame, **context)
+        return result
 
 
 def _summary(status, count, **extra):
@@ -128,6 +152,7 @@ def main(argv=None, *, pipeline_factory=None):
     parser.add_argument('--recognizer-model', required=True)
     parser.add_argument('--context-model', required=True)
     parser.add_argument('--glyph-model', required=True)
+    parser.add_argument('--rider-model', help='optional pinned local YOLOX; anonymous person parts, no number binding')
     parser.add_argument('--development', action='store_true', required=True)
     parser.add_argument('--single-continuous-shot', action='store_true', required=True,
                         help='caller declaration; no automatic shot authentication')
@@ -149,6 +174,8 @@ def main(argv=None, *, pipeline_factory=None):
             raise _Failure('ARGUMENTS_REJECTED')
         for field in ('media', 'output_dir', 'recognizer_model', 'context_model', 'glyph_model'):
             setattr(args, field, _local_path(getattr(args, field)))
+        if args.rider_model is not None:
+            args.rider_model = _local_path(args.rider_model)
         guards = {key: getattr(args, key) for key in ('processing_timeout_seconds',
                   'max_duration_seconds', 'max_decoded_frames', 'max_bytes', 'max_pixels', 'max_dimension')}
         options = _options(guards)

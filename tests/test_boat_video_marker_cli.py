@@ -128,6 +128,66 @@ class MarkerCliTests(unittest.TestCase):
             self.assertEqual(stat.S_IMODE(f.stat().st_mode), 0o600)
         self.assertEqual(original, {f: (f.read_bytes(), f.stat().st_mtime_ns) for f in original})
 
+    @unittest.skipUnless(importlib.util.find_spec('cv2'), 'optional video dependencies')
+    def test_optional_rider_tracks_are_saved_separately_without_number_binding(self):
+        from race_ai.boat_video_rider_detector import SCHEMA
+        class Detector:
+            def __init__(self, *, model_path, tiled):
+                self.model_path = model_path
+            def metadata(self):
+                return {'engine': 'INJECTED_SYNTHETIC_PERSON_TEST', 'model_eligible': False}
+            def __call__(self, frame):
+                return dict(schema_version=SCHEMA, frame_sha256=sha256(frame.tobytes()).hexdigest(),
+                    coordinate_space='IMAGE_PX', semantic_type='RIDER_PART_TYPED',
+                    detections=[dict(box=[10., 10., 20., 30.], score=.9,
+                                     semantic_type='RIDER_PART_TYPED', coco_class_id=0)],
+                    engine=self.metadata(), identity_validated=False, model_eligible=False)
+        args = self.arguments() + ['--rider-model', str(self.models[0])]
+        with patch('race_ai.boat_video_rider_detector.PinnedRiderPartDetector', Detector):
+            code, _, err = self.invoke(args)
+        self.assertEqual((code, err), (0, ''))
+        rows = self.journal()
+        self.assertEqual(len(rows), len(self.hashes))
+        for row in rows:
+            riders = row['pipeline_result']['rider_part_tracking']
+            self.assertEqual(riders['frame_sha256'], row['decoded_bgr_sha256'])
+            self.assertEqual(riders['frame_index'], row['frame_index'])
+            self.assertTrue(riders['tracks'])
+            self.assertTrue(all(r['number'] is None and r['hull_box'] is None for r in riders['tracks']))
+            self.assertFalse(riders['model_eligible'])
+        receipt = json.loads((self.output / 'receipt.json').read_text())
+        self.assertFalse(receipt['pinned_models'])
+        self.assertEqual(receipt['rider_part_tracking']['number_binding'], 'NOT_IMPLEMENTED_NO_NUMBER_PRODUCER')
+        self.assertEqual(receipt['rider_part_tracking']['execution_scope'], 'INJECTED_SYNTHETIC_TEST')
+
+    def test_remote_rider_asset_rejected_before_native_execution(self):
+        args = self.arguments() + ['--rider-model', 'https://owner-secret.invalid/model.onnx']
+        self.assertEqual(self.invoke(args)[0], 2)
+        self.assertEqual(self.calls, [])
+        self.assertFalse(self.output.exists())
+
+    @unittest.skipUnless(importlib.util.find_spec('cv2'), 'optional video dependencies')
+    def test_rider_runtime_failure_preserves_partial_journal_without_success(self):
+        from race_ai.boat_video_rider_detector import SCHEMA
+        class Detector:
+            def __init__(self, **kwargs):
+                self.count = 0
+            def metadata(self):
+                return {'engine': 'INJECTED_SYNTHETIC_PERSON_TEST'}
+            def __call__(self, frame):
+                self.count += 1
+                if self.count == 3:
+                    raise RuntimeError('owner-secret should not escape')
+                return dict(schema_version=SCHEMA, frame_sha256=sha256(frame.tobytes()).hexdigest(),
+                    coordinate_space='IMAGE_PX', semantic_type='RIDER_PART_TYPED', detections=[],
+                    engine=self.metadata(), identity_validated=False, model_eligible=False)
+        with patch('race_ai.boat_video_rider_detector.PinnedRiderPartDetector', Detector):
+            code, out, err = self.invoke(self.arguments() + ['--rider-model', str(self.models[0])])
+        self.assertEqual(code, 2)
+        self.assertEqual(len(self.journal()), 2)
+        self.assertFalse((self.output / 'receipt.json').exists())
+        self.assertEqual(json.loads((self.output / 'failure.json').read_text())['failure_code'], 'FRAME_ANALYSIS_FAILED')
+
     def test_existing_output_symlink_and_git_output_cannot_be_overwritten(self):
         self.output.mkdir()
         sentinel = self.output / 'frames.jsonl'; sentinel.write_bytes(b'original')

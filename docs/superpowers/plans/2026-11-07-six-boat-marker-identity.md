@@ -83,9 +83,23 @@ not a hull detector; background rejection needs a separately tested correction.
   measured cases, controlled-only hypotheses and unavailable annotations.
 - [x] RED/GREEN the five same-pixel-lineage restarts with explicit, atomic
   correspondence and adversarial checks; independently review the change.
-- [ ] Re-run actual automatic inference without truth-selected input crops;
+- [x] Re-run actual automatic inference without truth-selected input crops;
   score changed and unchanged events before any acceptance claim.
 - [ ] Resolve background false positives while preserving genuine markers;
   use only assets with training permission and disclose development overlap.
 - [ ] Establish a distinct visible-object/number-binding contract and test
   actual simultaneous six-boat continuity, lost/reacquired states and cuts.
+
+## Continuation: distinct visible-rider and print evidence
+
+- [x] Decode the existing pinned COCO PERSON head separately; preserve boat defaults and source pixels.
+- [x] Verify all18 anchor PERSON parts, then actual61 original frames/427 forwards and all373 native candidate rows.
+- [x] Implement anonymous current-pixel rider lifecycle with typed optional physical-print pairs and no default number producer.
+- [x] RED/GREEN replay conflicts, shared/near-shared print claims and overlapping flow-only parts; independent review.
+- [x] Replay actual detections with actual LK on61 native frames, seal before semantic scoring; retain false motors/duplicates.
+- [x] Add optional existing CLI rider output, local assets only, separate numbers and fail/partial preservation;670 relevant tests PASS.
+- [ ] Resolve demonstrated rider association resets using current points, without reducing numeric or ambiguity requirements.
+- [ ] Complete automatic physical part/print binding and actual simultaneous six numbered identities, with extras/misses/swaps audited.
+- [ ] Add already-licensed local direct-print diversity; evaluate a suitable image representation with no unknown-rights training.
+
+All17 retired keys still had current LK support; no LK loss was reported in the61-frame trace; output scope remains image hypotheses. All source-only truth joins are post-inference diagnostics. UNKNOWN/Todo is private inference only. Number/CNN capacity, semantic gate and body tracking are distinct tests; no failed prototype is promoted to forecasting.

@@ -1,6 +1,6 @@
 {
   "schema_version": "RACE_AI_BOAT_IDENTITY_CAUSAL_CONTINUATION_V1",
-  "recorded_at_jst": "2026-11-07T15:58:07.384734+09:00",
+  "recorded_at_jst": "2026-11-07T16:49:23.327405+09:00",
   "existing_draft_pr": 71,
   "request_complete": false,
   "continuous_six_boat_identification_complete": false,
@@ -144,7 +144,7 @@
       "6": 27
     },
     "maximum_simultaneous_registered": 3,
-    "native_review_status": "PENDING_EXHAUSTIVE_606_EVENT_AI_REVIEW",
+    "native_review_status": "EXHAUSTIVE_606_EVENT_NATIVE_AI_REVIEW_FROZEN",
     "known_current_false_example": {
       "frame": 37,
       "number": 4,
@@ -160,6 +160,27 @@
       "ELIGIBLE": 915,
       "NOT_REQUESTED": 366,
       "OMITTED": 0
+    },
+    "native_AI_semantics": {
+      "current_print_matches": 564,
+      "background_nonnumeric_false": 36,
+      "craft_nonnumeric_false": 5,
+      "unreadable_UNKNOWN": 1,
+      "number_glyph_wrong_label_or_current_swap_confirmed": 0,
+      "all_606_unique_rows_and_event_hashes_covered": true,
+      "maximum_simultaneous_current_correct_prints": 3,
+      "longest_same_id_consecutive_current_correct_frames_by_number": {
+        "1": 28,
+        "2": 14,
+        "3": 11,
+        "4": 28,
+        "5": 58,
+        "6": 10
+      },
+      "human_GT": false,
+      "training_overlap": true,
+      "independent_holdout": false,
+      "field_accuracy": false
     }
   },
   "full775_association_only_counterfactual": {
@@ -172,8 +193,25 @@
     "old_events_preserved": 541,
     "added": 65,
     "removed": 0,
-    "added_semantics_status": "UNSCORED",
-    "scope": "counterfactual from actual CLASSIFIER policy observations, not new video inference or CTC blank-mode equivalence"
+    "added_semantics_status": "POST_REFERENCE_SEAL_JOIN_COMPLETE_NO_LABEL_CHANGES",
+    "scope": "counterfactual from actual CLASSIFIER policy observations, not new video inference or CTC blank-mode equivalence",
+    "native_AI_semantics": {
+      "old541": {
+        "correct_current_print": 501,
+        "background_nonnumeric": 36,
+        "craft_nonnumeric": 3,
+        "UNKNOWN": 1
+      },
+      "added65": {
+        "correct_current_print": 63,
+        "background_nonnumeric": 0,
+        "craft_nonnumeric": 2,
+        "UNKNOWN": 0
+      },
+      "removed": 0,
+      "all65_full_identity_source_PTS_BGR_number_box_unique_exact_joins": true,
+      "independent_replay_output_parity_checked": true
+    }
   },
   "checks": {
     "all_video_tests": {
@@ -192,7 +230,15 @@
     "all_repository_3106_pass_is_older_commit_only": true,
     "CI_baseline": "7ccc3843 and upstream 746263a7 viewer job cancelled during full Python at existing 15-minute deadline",
     "CI_change": "Same existing viewer job 40-minute test deadline plus seven marker modules in existing isolated video step; no new jobs/workflow/schedule/source polling",
-    "latest_rebased_GitHub_checks_complete": false
+    "latest_rebased_GitHub_checks_complete": false,
+    "rider_integration_relevant_video_regression": {
+      "tests": 670,
+      "skips": 0,
+      "result": "PASS",
+      "seconds": 71.743,
+      "scope": "All test_boat_video*.py at rider tracker7d/detector28c/CLI b3f; not full repository HEAD test result",
+      "log_sha256": "abd67f34d50eafce8d89e305e106afeaf5a5f136999999dc4ebf70b1d43a9314"
+    }
   },
   "unsuitable_private_prototypes_not_adopted": {
     "glyph_plus20": {
@@ -252,6 +298,48 @@
       "real4_blue_mask_zero": 3,
       "false4_blue_mask_zero": 5,
       "mandatory_color_rejection_adopted": false
+    },
+    "rider_appearance": {
+      "photo_training_riders": 12,
+      "photo_training_background": 8,
+      "direct_number_teachers_per_class": 2,
+      "Fotois_transfer_correct": 5,
+      "Fotois_transfer_total": 8,
+      "nontrain_background_numeric_false": 24,
+      "nontrain_background_total": 29,
+      "Todo_oracle_rider_ROI_correct": 10,
+      "Todo_oracle_rider_ROI_wrong": 7,
+      "Todo_oracle_rider_ROI_UNKNOWN": 1,
+      "Todo_all6_frame_pass": 0,
+      "Todo_frames": 3,
+      "number4_and6_correct": 0,
+      "Todo_training": false,
+      "oracle_ROI_is_automatic_inference": false,
+      "printed_number_recognition": false,
+      "independent_number_from_color_certification": false,
+      "feature_pose_color_domain_differences_observed": true,
+      "illumination_causality_established": false
+    },
+    "RBF_glyph_capacity": {
+      "existing_TRAIN_rows": 14120,
+      "same_existing_541_features_and_all_labels": true,
+      "fit_calls": 1,
+      "kernel": "RBF",
+      "C": 2,
+      "gamma_scale_actual": 0.12205147067990423,
+      "TRAIN_correct": 14118,
+      "TRAIN_total": 14120,
+      "TRAIN_quality_is_field_accuracy": false,
+      "Todo_oracle_glyph_correct": 5,
+      "Todo_oracle_glyph_reject0": 11,
+      "Todo_oracle_glyph_wrong_nonzero": 2,
+      "all6_anchor_pass": 0,
+      "relative_to_plus20_linear_same_aggregate": true,
+      "improved_cases": 2,
+      "worsened_cases": 2,
+      "trainer_DEV_results_seen": true,
+      "Todo_training": false,
+      "production_adoption": false
     }
   },
   "object_part_extent_diagnosis": {
@@ -314,6 +402,157 @@
     "actual_gate_fixtures": "5bec6c4a8485236cf49e350da683572d56decf31b0605416224217ae46993934",
     "all_video_tests": "24769c26a528f37156a071bba23d05f585869c65be85539f9b5c50ae57fea228",
     "body_glyph_physical_pairs": "f401e9b2230315a08a28d648ab9efb803da51bb8b72bfa0bf084a7ef91c1cf10",
-    "official_input_scope_audit": "027417256fc3f55399b451c4d0109b3926970ac4fcd7461d19a279288a262b93"
+    "official_input_scope_audit": "027417256fc3f55399b451c4d0109b3926970ac4fcd7461d19a279288a262b93",
+    "all606_native_AI_score": "5de18ea513fb4ace6d236afeff5b63c716b0248977555e0a849a283a5994afb4",
+    "all606_coverage_receipt": "37edcb33b67abce5ebf941df868811212f161e350641955c20ba790640daea20",
+    "added65_postsealed_AI_join": "140b6f9764054633868436788897b912d91cbaaa6a5370ee335b7d032cdadf2a",
+    "added65_join_receipt": "df5524382a393df8121679b43ab50d4bbd3b60f0cecf584bb8b0ca819d65ade3",
+    "person18_native_AI_source_audit": "96eb5dc4fab8b41569863ad2d3a8ec65fcd0eff4e74246baaa891fdb242d333d",
+    "person18_rider_extent_comparison": "306ecdec28aec2ee5c77bfb8fc0c936363071e5f411c86e09e262ed972e80db4",
+    "rider18_number_oracle_score": "cef33b943e12518ab300314092e99caea7c7dbc112b5f65d624748fab9103793",
+    "rider30_pixel_source_differences": "71604012e0f8bf9b61088de658f66b89d2999e50be8d06761c075c0d97eaf59d",
+    "rider_detector61_complete": "e0a530421522a13b0fa5b0896be4697e7fd86c34c9c65860fcc927c2b1e9694d",
+    "rider_detector61_cached3_parity": "115596276de6e1eb97b2af787994c137ef834375ab8490df0106b7e22c510f1a",
+    "rider_detector61_AI373_score": "ecb2b44d820f98cc7dfb8b898f34af487c9a4fadb8b70166d73d3c1f1b2b2e39",
+    "rider_tracker61_final_complete": "783ef58bb3555d381d04d57d21c6a3f9c96ec896a5f77ce73ed8063077292e45",
+    "rider_tracker61_final_journal": "18da1f087176c053dbb0bfc410d51a62d8119f78ef6dad6789d8f6cb785727ca",
+    "rider_tracker61_causal_trace": "0837483c3c1314a41dc858b580c89f127f2ba491db97024df4e2ee5b28daf8e2",
+    "rider_tracker_independent_review": "d22e347b3b40ab3353c6ec542bc6c1e697ee3b1a7427cc90dc45ddad3a0153f9",
+    "marker_rider_CLI_independent_review": "4cc7af256f630db552f47c71a35c2aa60c727ed25e706d490d7c1d56f188b9b2",
+    "RBF_TRAIN_only_report": "007ba931d9e9afa6923c1685b5168afa5d5ca117143c266c6c07ac9f6d5f6b24",
+    "RBF_oracle18_postseal_score": "3e7e4b1b477da6772621dad96d3e04a624ff131ea9772d339537af0357e4d751",
+    "rider_tracker61_native_AI402_plus5_score": "24c78dd9e7efcd7fa5aff8cbf1268ff371222599047992a07e9920e30553a100"
+  },
+  "rider_part_development": {
+    "status": "IMPLEMENTED_LOCAL_ANONYMOUS_RIDER_PATH_NOT_SIX_NUMBERED_IDENTITIES",
+    "existing_yolox_asset_sha256": "c5c2d13e59ae883e6af3b45daea64af4833a4951c92d116ec270d9ddbe998063",
+    "class0_person_not_class8_boat": true,
+    "preexisting_fixed_half_objectness_times_class_and_raw_argmax": true,
+    "no_new_forecast_family_or_production_default": true,
+    "three_anchor_cached_postprocess": {
+      "new_NN_calls": 0,
+      "genuine_single_rider_parts": 18,
+      "candidates": 18,
+      "all6_rider_parts_each_anchor": true,
+      "full_visible_rider_IoU_half_matches": 16,
+      "full_visible_rider_references": 18,
+      "max_overlap_parent_hull_is_mixed": 9,
+      "automatic_parent_boat_link_established": false,
+      "numeric_ID_established": false
+    },
+    "actual_product_detector61": {
+      "original_frames": 61,
+      "source_frame_range_inclusive": [
+        270,
+        330
+      ],
+      "current_native_BGR_PTS_verified_all": true,
+      "actual_DNN_forward_calls": 427,
+      "all_three_cached_anchors_boxes_scores_exact": true,
+      "candidate_total": 373,
+      "candidate_count_frame_frequency": {
+        "5": 8,
+        "6": 40,
+        "7": 11,
+        "8": 2
+      },
+      "runtime_seconds": 276.624,
+      "source_and_model_pins_unchanged": true,
+      "exhaustive_semantic_review": "FROZEN_373_CURRENT_NATIVE_CANDIDATE_ROWS",
+      "numeric_inference_calls": 0,
+      "six_rider_continuity_established": false,
+      "rider_IS_hull": false,
+      "source_rights": "UNKNOWN_PRIVATE_INFERENCE_ONLY_NOT_TRAINING_OR_DISTRIBUTION",
+      "semantics": {
+        "primary_rider_parts": 369,
+        "clear_single_rider_parts": 367,
+        "secondary_boundary_purity_UNKNOWN": 2,
+        "motor_NO_PERSON": 4,
+        "same_rider_duplicate_parts": 11,
+        "distinct_rider_frame_presences": 358,
+        "all6_primary_riders_present_frames": 53,
+        "total_frames": 61,
+        "all6_riders_known_source_visible_frames": 61,
+        "missing_primary6_source_frames": [
+          296,
+          297,
+          298,
+          310,
+          311,
+          313
+        ],
+        "missing_primary3_source_frames": [
+          319,
+          324
+        ],
+        "misses_prefinal_score_NMS_cause": "UNOBSERVED_DO_NOT_ATTRIBUTE",
+        "independent_heldout": false
+      }
+    },
+    "guards": {
+      "per_view_head_selection": 256,
+      "NMS_candidates": 12,
+      "maximum_native_views_per_frame": 7,
+      "guards_are_per_input_resources_not_race_GET_or_lifetime_limits": true
+    },
+    "number_binding": "Separate physical pair dependency; containment/nearest/appearance/elimination never establish printed number",
+    "model_eligible": false,
+    "actual_product_anonymous_tracker61": {
+      "source_sha256": "7d337999799ecd93943712cd54cf19d5f5f61edccc1bc6d1ad6ba7b69ff8a464",
+      "original_frames": 61,
+      "actual_LK": true,
+      "cached_actual_detector_DNN_outputs_replayed": true,
+      "new_DNN_calls": 0,
+      "earlier_actual_detector_DNN_calls": 427,
+      "number_provider": null,
+      "all_number_fields_UNKNOWN": true,
+      "hull_positions_inferred": false,
+      "track_rows": 402,
+      "visibility_counts": {
+        "CURRENT_DETECTION_UNTRACKED": 23,
+        "DETECTION_AND_PIXEL_TRACK": 350,
+        "PIXEL_TRACKED_RIDER_HYPOTHESIS": 29
+      },
+      "stable_anonymous_keys_for_all61": 4,
+      "other_tracklets_fragmented": true,
+      "semantic_review": "EXHAUSTIVE_NATIVE_AI402_PLUS5_REJECTED_SEALED",
+      "all_pins_unchanged": true,
+      "six_numbered_identity_success": false,
+      "semantics": {
+        "primary_rider_part_rows": 377,
+        "nonperson_motor_rows": 25,
+        "all6_primary_source_rider_parts_present_frames": 61,
+        "total_frames": 61,
+        "exact6_outputs_without_duplicates_or_motor_extra_frames": 30,
+        "same_rider_duplicate_part_rows": 11,
+        "same_primary_source_observed_swaps_within_any_R": 0,
+        "rider_to_motor_switches_observed": 0,
+        "R8_is_motor_frames": 25,
+        "source6_fragmented_R_IDs": 7,
+        "source4_fragmented_R_IDs": 11,
+        "R1_R2_R3_R4_current_primary_parts_continuous_all61": true,
+        "rejected_flow_only_duplicate_components_separately_retained": 5,
+        "source_numbers_are_postoutput_diagnostics_not_inference_outputs": true,
+        "human_ground_truth": false,
+        "independent_holdout": false
+      }
+    },
+    "independent_review": "GREEN_DETECTOR39_TRACKER7_TARGETED_CLI16_CONTROLLED_TESTS_NOT_REAL_ACCURACY",
+    "CLI": {
+      "optional_argument": "--rider-model LOCAL_PINNED_YOLOX",
+      "same_original_frames_in_separate_journal_field": "pipeline_result.rider_part_tracking",
+      "marker_numbers_assigned_to_riders": false,
+      "number_binding": "NOT_IMPLEMENTED_NO_NUMBER_PRODUCER",
+      "production_intake_or_forecast_defaults_changed": false
+    }
+  },
+  "source_code_sha256_scope": "Frozen marker full775 actual execution; original CLI89e63 remains historical, not the later optional rider CLI",
+  "rider_integration_source_code_sha256": {
+    "race_ai/boat_video_rider_detector.py": "28c1052f5744641b6f0f3ec48c3aa774af7eff5f0fceaffe5372cefdc2228b34",
+    "race_ai/boat_video_rider_tracking.py": "7d337999799ecd93943712cd54cf19d5f5f61edccc1bc6d1ad6ba7b69ff8a464",
+    "scripts/boat_video_marker_analyze.py": "b3f802050ae392dc4357311cfc946543dc6233536cf41adbd89f04bec75b448f",
+    "tests/test_boat_video_rider_detector.py": "69ac610d9956a35cdcb1092e9cb49a34b37e5ea0a406f6a17944aadee4ae0615",
+    "tests/test_boat_video_rider_tracking.py": "46fe30af6a273fd5608c448dec68bdf01a030a49a7c463daa43ad3c3c65d9660",
+    "tests/test_boat_video_marker_cli.py": "666c51bf52dc1bd1142d9e750feb7c2696521764700944f61cef9a8e6bceaa29"
   }
 }
