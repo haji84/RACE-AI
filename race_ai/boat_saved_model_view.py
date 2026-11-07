@@ -219,12 +219,21 @@ def _names(names):
     return races, registry
 
 
-def _rosters(rows):
+def _rosters(rows, aliases=()):
+    from .boat_name_aliases import validate_person_alias, exact_alias_pair, person_aliases
     snapshots, bindings, named, current_people = [], {}, {}, []
     active = []
     for row in rows:
         people = _participants(row)
         current_people.extend(people)
+        if aliases:
+            withdrawn_people = row.get('withdrawn_participants', [])
+            _need(type(withdrawn_people) is list and all(type(p) is dict for p in withdrawn_people),
+                  "withdrawn participant names")
+            known_withdrawn = [p for p in withdrawn_people if any(p.get(k) is not None for k in
+                ('registration_no', 'registration_number', 'registration_id', 'racer_registration_id', 'racer_id'))]
+            _participants(dict(row, participants=known_withdrawn))
+            current_people.extend(known_withdrawn)
         original = row.get("saved_participant_rosters")
         if original is None:
             original = [dict(participants=deepcopy(people), source_sha256=row.get("source_sha256"),
@@ -234,6 +243,15 @@ def _rosters(rows):
             _need(type(snapshot) is dict and type(snapshot.get("participants")) is list, "saved roster snapshot")
             _participants(dict(row, participants=snapshot["participants"]))
             snapshots.append(snapshot)
+        # An older snapshot may predate display-name enrichment. Retain the
+        # exact current B spelling before replacing that display with full,
+        # separately sourced registry text; derived full displays need no new
+        # snapshot on replay.
+        if aliases and people and any(person.get('name') and any(
+                _name_key(person['name']) == _name_key(f['short_name']) for f in person_aliases(person, aliases))
+                for person in people) and not any(s['participants'] == people for s in original):
+            snapshots.append(dict(participants=deepcopy(people), source_sha256=row.get('source_sha256'),
+                observed_at=row.get('observed_at'), source_provenance=row.get('source_provenance')))
         if people:
             withdrawn = row.get("withdrawn_lanes", [])
             _need(type(withdrawn) is list and all(type(n) is int and 1 <= n <= 6 for n in withdrawn) and len(set(withdrawn)) == len(withdrawn), "withdrawn lanes")
@@ -241,13 +259,20 @@ def _rosters(rows):
             explicit = row.get("roster_status") == "OFFICIAL_ACTIVE" or bool(withdrawn) or all(p.get("active") is True for p in people)
             active.append(([p for p in people if p["number"] not in withdrawn], explicit, withdrawn))
     snapshots = _unique(snapshots)
-    for person in current_people + [p for snapshot in snapshots for p in snapshot["participants"]]:
+    all_named_people = current_people + [p for snapshot in snapshots for p in snapshot["participants"]]
+    for person in all_named_people:
         number, pid = person["number"], _registration(person)
         _need(number not in bindings or bindings[number] == pid, "same-race roster identity conflict")
         _need(pid not in bindings.values() or bindings.get(number) == pid, "same-race registration lane conflict")
         bindings[number] = pid
+    for fact in aliases:
+        _need(bindings.get(fact['number']) == fact['registration_no'], "name alias roster mismatch")
+    for person in all_named_people:
+        pid = _registration(person)
+        validate_person_alias(person, aliases)
         if person.get("name") and (person.get("name_source") or {}).get("kind") != "VERIFIED_RACER_REGISTRY":
-            _need(pid not in named or _name_key(named[pid]["name"]) == _name_key(person["name"]), "same-race name conflict")
+            _need(pid not in named or _name_key(named[pid]["name"]) == _name_key(person["name"])
+                  or exact_alias_pair(named[pid], person, aliases), "same-race name conflict")
             named.setdefault(pid, person)
     if not active: return [], snapshots, named, [], []
     full = set(bindings)
@@ -269,7 +294,8 @@ def _rosters(rows):
     return deepcopy(selected), snapshots, named, sorted(missing), withdrawn_people
 
 
-def _apply_names(row, named, race_names, registry):
+def _apply_names(row, named, race_names, registry, aliases=()):
+    from .boat_name_aliases import person_aliases, validate_person_alias, full_source_kind
     mapping = race_names.get(row["race_id"], {})
     people = row.get("participants", []) + row.get("withdrawn_participants", [])
     by_registration = {_registration(p):p for p in people}
@@ -277,8 +303,24 @@ def _apply_names(row, named, race_names, registry):
         meta = _name_metadata(item, pid, race_id=row["race_id"])
         _need(pid in by_registration, "same-race name absent from roster")
         _need(meta.get("number") is None or meta["number"] == by_registration[pid]["number"], "name lane mismatch")
+        if person_aliases(by_registration[pid], aliases):
+            validate_person_alias(dict(by_registration[pid], name=meta['name'], name_source=dict(
+                kind='SAME_RACE_PROGRAM', **{k:meta[k] for k in ('source_url', 'source_sha256') if k in meta})), aliases)
     for person in people:
         pid = _registration(person)
+        alias = person_aliases(person, aliases)
+        if alias:
+            validate_person_alias(person, aliases)
+            if pid in registry:
+                _need(any(_name_key(registry[pid]['name']) == _name_key(f['full_name']) for f in alias),
+                      "name alias registry conflict")
+            fact = alias[0]; source = fact['full_source']
+            person['name'] = fact['full_name']
+            kind = full_source_kind(fact)
+            person['name_source'] = dict(kind=kind, registration_no=pid,
+                **({'verified':True} if kind == 'VERIFIED_RACER_REGISTRY' else {'race_id':row['race_id']}),
+                **{k:deepcopy(source[k]) for k in ('source_sha256', 'source_url', 'captured_at')})
+            continue
         if pid in mapping:
             item = _name_metadata(mapping[pid], pid, race_id=row["race_id"]); kind = "SAME_RACE_PROGRAM"
         elif pid in named:
@@ -458,12 +500,15 @@ def _merge_record(rows, race_names, registry):
     elif len({_clock(c) for c in row.get("saved_schedule_cutoff_variants", [])}) > 1:
         row["cutoff_at"] = None
     if row.get("sport") == "boat":
-        people, snapshots, named, withdrawn, withdrawn_people = _rosters(rows)
+        from .boat_name_aliases import collect_alias_facts, FIELD as ALIAS_FIELD
+        aliases = collect_alias_facts(rows)
+        people, snapshots, named, withdrawn, withdrawn_people = _rosters(rows, aliases)
         row["participants"] = people
         if snapshots: row["saved_participant_rosters"] = snapshots
         if withdrawn:
             row.update(withdrawn_lanes=withdrawn, withdrawn_participants=withdrawn_people, roster_status="OFFICIAL_ACTIVE")
-        _apply_names(row, named, race_names, registry)
+        if aliases: row[ALIAS_FIELD] = aliases
+        _apply_names(row, named, race_names, registry, aliases)
     row["result_observations"] = _observations(rows, "result_observations")
     row["result_observation_rejections"] = _observations(rows, "result_observation_rejections", rejection=True)
     for source in rows: _need(not source.get("result_revisions"), "official result revisions in private view")

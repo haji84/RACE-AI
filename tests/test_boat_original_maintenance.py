@@ -45,6 +45,13 @@ class MaintenanceSelectionTests(unittest.TestCase):
         self.assertEqual(held['selected'],[]);self.assertEqual(held['deferred'],1)
         with self.assertRaises(ValueError):M.select_native_batch(rows[1:],7,lambda _:False,2)
 
+    def test_staged_continuity_is_shared_once_with_ordinary_control_in_the_same_capture(self):
+        rows=[dict(id=801,name='race-cycle-continuity-7'),dict(id=802,name='race-source-control-7')]
+        second=M.select_native_batch(rows,7,lambda _:False,1,already_selected=[801])
+        self.assertEqual(second['selected'],[802])
+        self.assertEqual(second['already_retained'],0,'staged selections became authenticated cached originals')
+        self.assertEqual(second['new_originals'],1)
+
     def test_all_model_native_envelopes_are_targets_and_retained_kinds(self):
         owner=dict(records=[dict(prediction=dict(artifact_id=901,receipt_run_id='42'),comparison_predictions=[])])
         ids,runs=M.targets_from_view(owner)
@@ -307,6 +314,93 @@ class MaintenanceIntegrationTests(unittest.TestCase):
         self.assertFalse(second['target_cycle_complete'])
         third=self.run_backfill(owner(ids));fourth=self.run_backfill(owner(ids))
         self.assertFalse(third['complete']);self.assertTrue(fourth['complete'])
+
+    def test_cited_forecasts_across_fifteen_runs_precede_older_uncited_archives(self):
+        cited=list(range(10000,10080));supplementary=list(range(1000,1200))
+        native={run:[ident for index,ident in enumerate(cited) if index%15==run-2] for run in range(2,17)}
+        native[2]=supplementary+native[2]
+        retained,_=self.bounded_fixture(native)
+        owner=dict(records=[dict(prediction=dict(artifact_id=ident),comparison_predictions=[]) for ident in cited])
+        first=self.run_backfill(owner)
+        self.assertEqual(set(cited)-retained,set(),'uncited native archives consumed the cited forecast batch')
+        self.assertGreaterEqual(len(set(supplementary)&retained),32)
+        self.assertEqual(first['runs_scanned'],15)
+        self.assertLessEqual(first['selected_capture_ids'],128);self.assertFalse(first['complete'])
+        for _ in range(4):
+            last=self.run_backfill(owner)
+            if last['complete']:break
+        self.assertTrue(last['complete']);self.assertEqual(retained,set(cited+supplementary))
+
+    def test_priority_capture_does_not_close_a_run_with_an_unretained_uncited_original(self):
+        raw,metadata=original(ident=102,run=2)
+        self.responses.update({'actions/artifacts/102':metadata,'actions/artifacts/102/zip':raw,
+            'actions/runs/2/artifacts?per_page=100':wire(dict(total_count=2,
+                artifacts=[json.loads(self.meta),json.loads(metadata)]))})
+        with patch.object(M,'MAX_ARTIFACTS',1),patch.object(M,'MAX_PRIORITY_ARTIFACTS',1),\
+             patch.object(M.R,'retain_closed_run_responses',side_effect=AssertionError('uncited original was hidden from closure')):
+            report=self.run_backfill()
+        self.assertEqual(report['selected_capture_ids'],1)
+        self.assertEqual(report['deferred_native_artifacts'],1)
+        self.assertEqual(report['closed_runs_retained'],0);self.assertFalse(report['complete'])
+        self.assertIsNotNone(M.V.lookup_original(101,self.writer.repo,transport=self.writer,key=vault_fixture.KEY))
+        self.assertIsNone(M.V.lookup_original(102,self.writer.repo,transport=self.writer,key=vault_fixture.KEY))
+
+    def test_required_window_over128_preserves_secondary_progress_then_closes(self):
+        cited=list(range(10000,10200));supplementary=list(range(1000,1200))
+        retained,_=self.bounded_fixture({2:supplementary+cited})
+        owner=dict(records=[dict(prediction=dict(artifact_id=ident),comparison_predictions=[]) for ident in cited])
+        first=self.run_backfill(owner)
+        self.assertEqual(len(set(cited)&retained),96)
+        self.assertEqual(len(set(supplementary)&retained),32)
+        self.assertFalse(first['target_cycle_complete']);self.assertFalse(first['complete'])
+        reports=[first]
+        for _ in range(8):
+            reports.append(self.run_backfill(owner))
+            if reports[-1]['complete']:break
+        self.assertEqual(retained,set(cited+supplementary));self.assertTrue(reports[-1]['complete'])
+        self.assertTrue(all(report['selected_capture_ids']<=128 and report['descriptor_lookups']<=512 and
+                            report['reserved_io_bytes']<=512*1024*1024 for report in reports))
+
+    def test_ordinary_reserve_is_uncited_even_when_cited_ids_sort_first(self):
+        cited=list(range(1000,1200));supplementary=list(range(10000,10200))
+        retained,_=self.bounded_fixture({2:cited+supplementary})
+        owner=dict(records=[dict(prediction=dict(artifact_id=ident),comparison_predictions=[]) for ident in cited])
+        report=self.run_backfill(owner)
+        self.assertEqual(len(set(cited)&retained),96)
+        self.assertEqual(len(set(supplementary)&retained),32,'later cited IDs consumed the ordinary native reserve')
+        self.assertEqual(report['priority_capture_ids'],96);self.assertEqual(report['ordinary_capture_ids'],32)
+
+    def test_old_completed_descriptor_progress_revisits_missing_cited_originals_once(self):
+        cited=list(range(10000,10080));supplementary=list(range(1000,1200))
+        retained,_=self.bounded_fixture({2:supplementary+cited})
+        with patch.dict(os.environ,self.fixture.env,clear=True):
+            parent=self.writer.head();self.writer.fetch(parent);key=M.V._keys(None)[1]
+            state=M._progress(self.writer,parent,key)
+            state.pop('priority_policy_version',None)
+            state.update(targets_sha256=M.V._sha(M.V._wire(cited)),target_cycle_complete=True,
+                         pending_runs=[2],pending_targets={'2':cited})
+            self.append(self.writer,M.PROGRESS_PATH,M.V._signed(state,key))
+        owner=dict(records=[dict(prediction=dict(artifact_id=ident),comparison_predictions=[]) for ident in cited])
+        first=self.run_backfill(owner)
+        self.assertEqual(first['target_descriptors_checked'],80)
+        self.assertEqual(set(cited)-retained,set())
+        second=self.run_backfill(owner)
+        self.assertEqual(second['target_descriptors_checked'],0,'the policy migration repeated a completed priority cycle')
+
+    def test_growing_cited_view_still_advances_uncited_native_archives_each_pass(self):
+        cited=list(range(10000,11000));supplementary=list(range(1000,1400))
+        retained,_=self.bounded_fixture({2:supplementary+cited})
+        previous=0
+        for count in (200,328,456,584,712):
+            owner=dict(records=[dict(prediction=dict(artifact_id=ident),comparison_predictions=[])
+                                for ident in cited[:count]])
+            report=self.run_backfill(owner)
+            ordinary=len(set(supplementary)&retained)
+            self.assertGreaterEqual(ordinary-previous,32,'continuous cited growth starved ordinary native progress')
+            self.assertLessEqual(report['priority_capture_ids'],96)
+            self.assertLessEqual(report['selected_capture_ids'],128)
+            self.assertFalse(report['complete']);self.assertFalse(report['full_current_view_readback_verified'])
+            previous=ordinary
 
     def test_actual_capture_closure_and_cached_replay_require_no_live_fallback(self):
         report=self.run_backfill()

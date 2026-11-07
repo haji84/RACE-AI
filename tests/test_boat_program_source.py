@@ -1,5 +1,6 @@
 """Official program capture uses invented B bytes and local encrypted Git only."""
 from copy import deepcopy
+import base64
 from datetime import date,datetime,timezone,timedelta
 from hashlib import sha256
 import importlib
@@ -223,6 +224,141 @@ class ProgramSourceTests(unittest.TestCase):
         report=json.loads(output.getvalue())
         self.assertEqual(report['day_jst'],DAY);self.assertEqual(report['source_requests'],0)
         self.assertNotIn('cards',report)
+
+
+    def retained_original_source(self,*,receipt_change=None,encrypted=False,day=DAY,receipt_utc=False):
+        self.raw=collector_archive()
+        if day!=DAY:
+            from tests.test_boat_entry_observations import uncompressed_lzh
+            parsed=date.fromisoformat(day)
+            text=collector.extract_daily_lzh(self.raw,'B300115.TXT').decode('cp932')
+            text=text.replace('2030年1月15日',f'{parsed.year}年{parsed.month}月{parsed.day}日')
+            self.raw=uncompressed_lzh(text.encode('cp932'),f'B{parsed:%y%m%d}.TXT')
+        captured=day+'T05:00:00+09:00';saved=day+'T05:01:00+09:00';as_of=day+'T06:30:00+09:00'
+        if receipt_utc:saved=datetime.fromisoformat(saved).astimezone(timezone.utc).isoformat()
+        with patch.dict(os.environ,self.env,clear=True),\
+             patch.object(collector.request,'build_opener',return_value=Opener(self.raw)),\
+             patch.object(Response,'geturl',return_value=collector.official_url(date.fromisoformat(day),'B')):
+            self.document=collector.collect(clock=lambda:datetime.fromisoformat(captured))
+        self.receipt=dict(self.receipt,created_at=saved,payload_sha256=program.digest(self.document))
+        outer=vault_fixtures.packed({'forecasts.json':V._wire(self.document)})
+        if encrypted:
+            cipher=V.native.seal_original_zip(outer,run_id='42',head_sha=HEAD,kind='P0',key=KEY)
+            outer=vault_fixtures.packed({'private-original.enc':cipher})
+        metadata=dict(id=self.receipt['artifact_id'],name='boat-p0-existing-42',expired=False,
+            created_at=saved,expires_at=(datetime.fromisoformat(saved)+timedelta(days=7)).isoformat(),
+            digest='sha256:'+V._sha(outer),size_in_bytes=len(outer),
+            workflow_run=dict(id=42,repository_id=1416489937,head_repository_id=1416489937,head_sha=HEAD))
+        locator=V.retain_original(outer,V._wire(metadata),self.f.writer.repo,expected_parent=self.f.parent,
+            key=KEY,transport=self.f.writer,readback_transport=self.f.reader,now=datetime.fromisoformat(as_of))
+        self.capture_receipt=dict(source_url=self.document['source_url'],captured_at=self.document['captured_at'],
+            source_sha256=self.document['source_sha256'],http_status=200)
+        self.capture()
+        if receipt_change:receipt_change(self.receipt)
+        return program.retain_program_source(day,self.document,self.receipt,self.f.writer.repo,
+            expected_parent=locator['source_commit'],capture_dir=self.f.root/'boat-program-source',
+            key=KEY,transport=self.f.writer,readback_transport=self.f.reader,now=datetime.fromisoformat(as_of))
+
+    def test_name_alias_source_uses_exact_authenticated_original_bytes_without_flags_or_http(self):
+        loader=getattr(program,'load_name_alias_source',None);self.assertTrue(callable(loader))
+        retained=self.retained_original_source(encrypted=True);shutil.rmtree(self.f.root/'boat-program-source')
+        worker=self.f.git('name-alias-worker')
+        with patch.dict(os.environ,{},clear=True),\
+             patch('urllib.request.urlopen',side_effect=AssertionError('alias source HTTP')),\
+             patch.object(collector.request,'build_opener',side_effect=AssertionError('alias source HTTP')):
+            part=loader(DAY,worker.repo,as_of=AT,key=KEY,transport=worker)
+        self.assertEqual(part,dict(day=DAY,raw_b_base64=base64.b64encode(self.raw).decode('ascii'),
+            source_url=URL,source_sha256=V._sha(self.raw),captured_at=CAPTURE))
+        self.assertEqual(self.f.writer.head(),retained['source_commit'])
+        self.assertEqual(program.load_program_source(DAY,self.document,self.receipt,worker.repo,
+            key=KEY,transport=worker,as_of=AT)['raw'],self.raw)
+
+    def test_name_alias_source_returns_none_only_for_genuinely_absent_day_catalog(self):
+        loader=getattr(program,'load_name_alias_source',None);self.assertTrue(callable(loader))
+        self.assertIsNone(loader(DAY,self.f.reader.repo,as_of=AT,key=KEY,transport=self.f.reader))
+        self.retained_original_source()
+        self.assertIsNone(loader('2030-01-16',self.f.reader.repo,as_of=AT,key=KEY,transport=self.f.reader))
+        with self.assertRaises(ValueError):loader(DAY,self.f.reader.repo,as_of=AT,key=b'x'*32,transport=self.f.reader)
+        with self.assertRaises(ValueError):loader(DAY,self.f.reader.repo,as_of=CAPTURE,key=KEY,transport=self.f.reader)
+
+    def test_name_alias_source_holds_on_signed_changed_day_hash_or_receipt_binding(self):
+        loader=getattr(program,'load_name_alias_source',None);self.assertTrue(callable(loader))
+        retained=self.retained_original_source();git=self.f.writer
+        original=V._unsigned(git.read(retained['source_commit'],retained['catalog_path'],16384),program._key(KEY))
+        parent=retained['source_commit']
+        for field,value in (('day_jst','2030-01-16'),('source_sha256','f'*64),('receipt_sha256','e'*64)):
+            state=deepcopy(original);state['binding'][field]=value
+            commit=git.commit({retained['catalog_path']:V._signed(state,program._key(KEY))},parent);git.push(commit,parent)
+            with self.subTest(field=field),self.assertRaises(ValueError):
+                loader(DAY,self.f.reader.repo,as_of=AT,key=KEY,transport=self.f.reader)
+            parent=commit
+
+    def test_name_alias_source_checks_actual_original_receipt_and_corrupt_catalog(self):
+        loader=getattr(program,'load_name_alias_source',None);self.assertTrue(callable(loader))
+        retained=self.retained_original_source(receipt_change=lambda receipt:receipt.update(created_at=DAY+'T05:01:01+09:00'))
+        with self.assertRaises(ValueError):loader(DAY,self.f.reader.repo,as_of=AT,key=KEY,transport=self.f.reader)
+        git=self.f.writer;bad=git.commit({retained['catalog_path']:b'corrupt catalog'},retained['source_commit'])
+        git.push(bad,retained['source_commit'])
+        with self.assertRaises(ValueError):loader(DAY,self.f.reader.repo,as_of=AT,key=KEY,transport=self.f.reader)
+
+    def test_name_alias_source_never_falls_back_after_retained_capture_corruption(self):
+        loader=getattr(program,'load_name_alias_source',None);self.assertTrue(callable(loader))
+        retained=self.retained_original_source();git=self.f.writer
+        paths=git._run(['ls-tree','-r','--name-only',retained['source_commit']]).decode().splitlines()
+        chunks=[path for path in paths if '/chunks/' in path];self.assertTrue(chunks)
+        bad=git.commit({path:b'broken ciphertext' for path in chunks},retained['source_commit'])
+        git.push(bad,retained['source_commit'])
+        with patch('urllib.request.urlopen',side_effect=AssertionError('alias source HTTP')),self.assertRaises(ValueError):
+            loader(DAY,self.f.reader.repo,as_of=AT,key=KEY,transport=self.f.reader)
+
+    def test_name_alias_source_requires_the_retained_original_p0_and_actual_day(self):
+        loader=getattr(program,'load_name_alias_source',None);self.assertTrue(callable(loader))
+        self.capture();retained=self.retain()
+        self.assertTrue((self.f.root/'boat-program-source'/DAY).is_dir())
+        with self.assertRaisesRegex(ValueError,'PROGRAM_SOURCE_ONE_VERIFIED_FIRST_P0_REQUIRED'):
+            loader(DAY,self.f.reader.repo,as_of=AT,key=KEY,transport=self.f.reader)
+        # Moving a genuine signed catalog to another day is not an absent
+        # source and must not return None or relabel the captured archive.
+        raw=self.f.writer.read(retained['source_commit'],retained['catalog_path'],16384)
+        path=program.PREFIX+'2030-01-16.json'
+        moved=self.f.writer.commit({path:raw},retained['source_commit']);self.f.writer.push(moved,retained['source_commit'])
+        with self.assertRaises(ValueError):
+            loader('2030-01-16',self.f.reader.repo,as_of='2030-01-16T06:30:00+09:00',key=KEY,transport=self.f.reader)
+
+    def test_name_alias_source_selects_exact_bound_receipt_among_supplemental_p0s_before_zip_read(self):
+        retained=self.retained_original_source();git=self.f.writer
+        original_locator=V.lookup_original(100,git.repo,key=KEY,transport=git)
+        original=V.restore_original(original_locator,git.repo,key=KEY,transport=git)
+        parent=retained['source_commit'];extras=[]
+        for ident,round_no in ((1,1),(1100,2)):
+            metadata=dict(original['metadata'],id=ident,name=f'boat-p0-existing-42-cycle-{round_no:02d}')
+            locator=V.retain_original(original['raw_zip'],V._wire(metadata),git.repo,expected_parent=parent,
+                key=KEY,transport=git,readback_transport=self.f.reader,now=datetime.fromisoformat(AT))
+            extras.append(locator);parent=locator['source_commit']
+        # Supplemental ciphertext is irrelevant to the bound receipt and must
+        # never be hydrated merely because it shares the genuine source run.
+        changes={}
+        for locator in extras:
+            reference={name:locator[name] for name in ('batch_path','batch_sha256','entry_sha256','artifact_id','kind')}
+            entry=V._batch_entry(git,parent,reference,V._keys(KEY)[1])
+            changes.update({chunk['path']:b'unselected supplemental ciphertext' for chunk in entry['chunks']})
+        bad=git.commit(changes,parent);git.push(bad,parent)
+        with patch.object(V,'restore_original',wraps=V.restore_original) as restore:
+            source=program.load_name_alias_source(DAY,self.f.reader.repo,as_of=AT,key=KEY,transport=self.f.reader)
+        self.assertEqual(source['source_sha256'],V._sha(self.raw))
+        self.assertEqual([call.args[0]['artifact_id'] for call in restore.call_args_list],[100])
+
+    def test_name_alias_source_month_boundary_uses_only_actual_capture_utc_and_jst_months(self):
+        day='2030-02-01';self.retained_original_source(day=day,receipt_utc=True)
+        self.assertTrue(self.receipt['created_at'].startswith('2030-01-31'))
+        with patch.object(V,'list_originals',wraps=V.list_originals) as listing:
+            source=program.load_name_alias_source(day,self.f.reader.repo,as_of=day+'T06:30:00+09:00',
+                key=KEY,transport=self.f.reader)
+        self.assertEqual(base64.b64decode(source['raw_b_base64']),self.raw)
+        self.assertEqual(source['captured_at'],day+'T05:00:00+09:00')
+        self.assertEqual({call.args[0] for call in listing.call_args_list},{'2030-01','2030-02'})
+        self.assertEqual(len(listing.call_args_list),2)
+        self.assertTrue(all(call.kwargs['run_id']==42 for call in listing.call_args_list))
 
 
 if __name__=='__main__':unittest.main()

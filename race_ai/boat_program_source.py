@@ -6,6 +6,7 @@ The original P0 document and actual physical receipt remain unchanged; the
 seller's existing raw/archive/day/roster checks authenticate the projection.
 """
 from datetime import date,datetime,timezone
+import base64
 import os
 from pathlib import Path
 import re
@@ -146,6 +147,71 @@ def load_program_source(day,document,receipt,repo,key=None,transport=None,*,as_o
     if not git.exists(commit,path):return None
     state=_catalog(V._read(git,commit,path,16384),mac_key)
     return _restore(state,day,document,receipt,repo,key=key,transport=git,as_of=as_of)
+
+
+def _original_source_pack(state,day,repo,commit,*,key,transport):
+    """Resolve only this B bundle's authenticated run to its retained P0."""
+    locator=state['capture_locator'];transport.fetch(locator['source_commit'])
+    vault_mac=V._keys(key)[1]
+    reference={name:locator[name] for name in
+        ('batch_path','batch_sha256','entry_sha256','artifact_id','kind')}
+    summary=V._batch_entry(transport,locator['source_commit'],reference,vault_mac)['header']['summary']
+    capture=V.restore_capture_bundle(locator,repo,key=key,transport=transport)
+    _need(len(capture['captures'])==1,'ONE_PROGRAM_CAPTURE_REQUIRED')
+    raw,metadata_raw=capture['captures'][0]
+    captured=_capture_receipt(V._json(metadata_raw,16384),day)
+    _need(V._sha(raw)==captured['source_sha256'],'CAPTURE_DOCUMENT_CONFLICT')
+    clock=V._time(captured['captured_at'])
+    # Query only the source clock's UTC/JST partitions (at most two adjacent
+    # months). Neither the retention time nor a predicted save clock selects
+    # the receipt. Supplemental P0s share this run and remain untouched.
+    months={clock.astimezone(zone).strftime('%Y-%m') for zone in (timezone.utc,JST)}
+    candidates=[]
+    for month in sorted(months):
+        originals=V.list_originals(month,repo,source_commit=commit,
+            run_id=summary['run_id'],key=key,transport=transport)
+        for item in originals:
+            if item['kind']!='P0':continue
+            reference={name:item[name] for name in
+                ('batch_path','batch_sha256','entry_sha256','artifact_id','kind')}
+            original_summary=V._batch_entry(transport,commit,reference,vault_mac)['header']['summary']
+            _need(original_summary['run_id']==summary['run_id'] and original_summary['head_sha']==summary['head_sha'],
+                  'FIRST_P0_SOURCE_RUN_CONFLICT')
+            physical=dict(repository_id=V.REPO_ID,repository='haji84/RACE-AI',run_id=str(original_summary['run_id']),
+                head_sha=original_summary['head_sha'],artifact_id=original_summary['artifact_id'],
+                created_at=original_summary['created_at'],payload_sha256=state['binding']['document_sha256'],
+                independently_verified=True)
+            if digest(physical)==state['binding']['receipt_sha256']:candidates.append(item)
+    _need(len(candidates)==1,'ONE_VERIFIED_FIRST_P0_REQUIRED')
+    original=V.restore_original(candidates[0],repo,key=key,transport=transport)
+    metadata=original['metadata'];run=metadata['workflow_run']
+    _need(run['id']==summary['run_id'] and run['head_sha']==summary['head_sha'],'FIRST_P0_SOURCE_RUN_CONFLICT')
+    with V._native_key(key),V.native.open_original_zip(original['raw_zip'],metadata,expected_kind='P0',
+            max_plain_zip_bytes=32*1024*1024) as archive:
+        _need(archive.namelist()==['forecasts.json'],'FIRST_P0_DOCUMENT_LAYOUT_INVALID')
+        document=V._json(archive.read('forecasts.json'),32*1024*1024)
+    # Normalize the actual preserved GitHub response in the same way as the
+    # existing retain CLI; no current metadata or original save time is made.
+    receipt=dict(repository_id=V.REPO_ID,repository='haji84/RACE-AI',run_id=str(run['id']),head_sha=run['head_sha'],
+        artifact_id=metadata['id'],created_at=metadata['created_at'],payload_sha256=digest(document),independently_verified=True)
+    return document,receipt
+
+
+def load_name_alias_source(day,repo,*,as_of,key=None,transport=None):
+    """Return one exact retained B manifest part; never fetch an official URL.
+
+    An absent authenticated day index returns None. A missing original, changed
+    receipt, bad ciphertext or invalid day/roster/source clock stops the load.
+    """
+    mac_key=_key(key);day=_day(day);git=V._transport(repo,transport);commit=git.head()
+    _need(commit is not None,'EXISTING_VAULT_REF_REQUIRED');git.fetch(commit)
+    path=PREFIX+day.isoformat()+'.json'
+    if not git.exists(commit,path):return None
+    state=_catalog(V._read(git,commit,path,16384),mac_key)
+    document,receipt=_original_source_pack(state,day,repo,commit,key=key,transport=git)
+    source=_restore(state,day,document,receipt,repo,key=key,transport=git,as_of=as_of)
+    return dict(day=day.isoformat(),raw_b_base64=base64.b64encode(source['raw']).decode('ascii'),
+        source_url=document['source_url'],source_sha256=document['source_sha256'],captured_at=document['captured_at'])
 
 
 def _report(state,commit,path,raw,*,unchanged=False):
