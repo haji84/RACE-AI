@@ -17,6 +17,10 @@ from tests.test_all_existing_model_official_result_retention import MemoryRemote
 from tests import test_all_existing_model_official_results as result_fixture
 
 
+def corrupt_last_byte(raw):
+    return raw[:-1]+bytes([raw[-1]^1])
+
+
 class WorkerOfficialResultRetainTests(unittest.TestCase):
     def setUp(self):
         self.cli=importlib.import_module('scripts.all_existing_model_official_result_retain')
@@ -127,9 +131,16 @@ class WorkerOfficialResultRetainTests(unittest.TestCase):
         restored=[self.cli.retention.restore(p,self.reader.repo,key=KEY,transport=self.reader) for p in status['pointers']]
         self.assertEqual([r['metadata_raw'] for r in restored],[self.metadata_raw,second_raw])
 
+    def test_readback_corruption_fixture_changes_an_existing_x_tail(self):
+        raw=b'authored-cipherx'
+        changed=corrupt_last_byte(raw)
+        self.assertNotEqual(changed,raw)
+        self.assertEqual(changed[:-1],raw[:-1]);self.assertEqual(len(changed),len(raw))
+
     def test_failed_independent_readback_never_creates_done_or_retries_same_epoch(self):
         read=self.reader.read
-        with self.patches(),patch.object(self.reader,'read',side_effect=lambda *a:read(*a)[:-1]+b'x'),self.assertRaises(ValueError):self.run_retention()
+        with self.patches(),patch.object(self.reader,'read',side_effect=lambda *a:corrupt_last_byte(read(*a))) as readback,self.assertRaises(ValueError):self.run_retention()
+        readback.assert_called()
         self.assertEqual(len(self.writer.commits),1)
         self.assertFalse(any(p.name.startswith('done-') for p in (self.root/'out').iterdir()))
         with self.patches():self.fetch.side_effect=AssertionError('no automatic repeat after integrity failure');status=self.run_retention()
