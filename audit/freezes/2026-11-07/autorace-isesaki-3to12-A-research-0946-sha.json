@@ -1,0 +1,82 @@
+{
+  "schema": "RACE_AI_AUTORACE_RESEARCH_CHECKSUM_BATCH_V1",
+  "source_type": "manually checked public racecards; not official data receipt",
+  "generated_at_jst": "2026-11-07T09:46:13+09:00",
+  "phase": "A_PRE_TRIAL",
+  "model": "personal research untrained heuristic; existing RACE-AI model not executed",
+  "original_store": "conversation zip only (library permission failure); durable private custody not proven",
+  "probabilities": "NOT_CALIBRATED",
+  "notes": "Multiple entries for a rider in same day can represent legally permitted two-race participation. Pre-trial A has not incorporated same-day prior heat results, road changes or confirmed trials.",
+  "races": [
+    {
+      "race_id": "autorace:2026-11-07:isesaki:3",
+      "cutoff_at_jst": "2026-11-07T15:48:00+09:00",
+      "original_file": "autorace_20261107_isesaki_03R_A_v1.json",
+      "original_sha256": "899fe84a57fcd80e272ee54f35e9511bcae8cfe8d38db37cac93055c4f32b92b",
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/2/3"
+    },
+    {
+      "race_id": "autorace:2026-11-07:isesaki:4",
+      "cutoff_at_jst": "2026-11-07T16:16:00+09:00",
+      "original_file": "autorace_20261107_isesaki_04R_A_v1.json",
+      "original_sha256": "7292aeb48ba0a8731ddc5405cad38b7427cdd039d7df7ec2fe173ca70af1c57d",
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/2/4"
+    },
+    {
+      "race_id": "autorace:2026-11-07:isesaki:5",
+      "cutoff_at_jst": "2026-11-07T16:44:00+09:00",
+      "original_file": "autorace_20261107_isesaki_05R_A_v1.json",
+      "original_sha256": "3d518f2b8a790a98eea026546f054fcde4c0e2678ef2c4d10c967be548fa42ce",
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/2/5"
+    },
+    {
+      "race_id": "autorace:2026-11-07:isesaki:6",
+      "cutoff_at_jst": "2026-11-07T17:13:00+09:00",
+      "original_file": "autorace_20261107_isesaki_06R_A_v1.json",
+      "original_sha256": "940f6d8b177590edea97383f0468e850ed5e0f76b9eecb7455bb62d2f7582bdb",
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/2/6"
+    },
+    {
+      "race_id": "autorace:2026-11-07:isesaki:7",
+      "cutoff_at_jst": "2026-11-07T17:43:00+09:00",
+      "original_file": "autorace_20261107_isesaki_07R_A_v1.json",
+      "original_sha256": "0239c4eb6085c20345873bfec680b63001c11ccb7dbcba9fc0b4534515c16030",
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/2/7"
+    },
+    {
+      "race_id": "autorace:2026-11-07:isesaki:8",
+      "cutoff_at_jst": "2026-11-07T18:14:00+09:00",
+      "original_file": "autorace_20261107_isesaki_08R_A_v1.json",
+      "original_sha256": "07dc54e102cfb3b74b542ddfb8284b5ac61e9858e8b30be3b60b646a9b82e6f4",
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/2/8"
+    },
+    {
+      "race_id": "autorace:2026-11-07:isesaki:9",
+      "cutoff_at_jst": "2026-11-07T18:46:00+09:00",
+      "original_file": "autorace_20261107_isesaki_09R_A_v1.json",
+      "original_sha256": "4ffba4e858ed5b8a2e7165bb587dd291be8fe28b497455f9ced47b210965423e",
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/2/9"
+    },
+    {
+      "race_id": "autorace:2026-11-07:isesaki:10",
+      "cutoff_at_jst": "2026-11-07T19:19:00+09:00",
+      "original_file": "autorace_20261107_isesaki_10R_A_v1.json",
+      "original_sha256": "34b40a52e90d91f11f0476cdc2451564a7a3368e307b1620cfdf29aed7bda75b",
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/2/10"
+    },
+    {
+      "race_id": "autorace:2026-11-07:isesaki:11",
+      "cutoff_at_jst": "2026-11-07T19:53:00+09:00",
+      "original_file": "autorace_20261107_isesaki_11R_A_v1.json",
+      "original_sha256": "0cce74f3cfefae3cc8e6163c37f51bf589c14165c3cccdc26347cef159693319",
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/2/11"
+    },
+    {
+      "race_id": "autorace:2026-11-07:isesaki:12",
+      "cutoff_at_jst": "2026-11-07T20:28:00+09:00",
+      "original_file": "autorace_20261107_isesaki_12R_A_v1.json",
+      "original_sha256": "8ab06be33348abac5a4361fff5026de5ec85fba668316bd2eab73360f37f99c9",
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/2/12"
+    }
+  ]
+}
