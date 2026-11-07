@@ -1,3 +1,4 @@
-2026-11-07T09:06:00Z
+2026-11-07T09:11:00Z
 Initialize the authorized daily namespace after verified filtered Git history restoration. Existing state is never reset.
 Runtime: 613bce34c5261fb76b815b6e42295678c9932a4d
+Report only code locations for runner diagnosis; never exception output, arguments, data or keys.
