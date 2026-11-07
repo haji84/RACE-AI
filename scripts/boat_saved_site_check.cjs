@@ -83,7 +83,7 @@ async function run(context,{compactResults=false,probeRaceId=null}={}){
     '/opt/google/chrome/chrome','/usr/bin/chromium'].find(path=>fs.existsSync(path));
   assert.ok(executablePath,'installed browser required');
   const browser=await chromium.launch({headless:true,executablePath,args:['--no-sandbox']});
-  let blocked=0,leaked=false,checked=0,futureVisible=false,nativeVisible=false,currentResults=0,p1Groups=0;
+  let blocked=0,leaked=false,checked=0,futureVisible=false,nativeVisible=false,currentResults=0,p1Groups=0,rationaleViewsChecked=0;
   try{
     const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
     page.setDefaultTimeout(45000);
@@ -155,7 +155,17 @@ async function run(context,{compactResults=false,probeRaceId=null}={}){
         assert.equal(await page.locator('.race-result-summary').isVisible(),true);
         if(probeRaceId)assert.match(await page.locator('.race-result-summary .saved-outcome').innerText(),/的中|不的中/);
         const normal=await page.locator('#race-detail').innerText();assert.doesNotMatch(normal,/SAVED FORECAST|PRIVATE_CYCLE|INDEPENDENT_RECEIPT|予想SHA/);
-        assert.equal(await page.locator('#race-detail .forecast-panel').count(),1);assert.equal(await page.locator('#race-detail .race-audit-details').getAttribute('open'),null);
+        assert.equal(await page.locator('#race-detail .forecast-panel').count(),1);assert.equal(await page.locator('#race-detail .race-audit-details').count(),0);
+        const expectedRace=probeRaceId||(context.future_native||context.native_probe).race_id;
+        const selected=await page.locator('#prediction-select').inputValue(),modelId=await page.locator('#race-detail .forecast-panel').getAttribute('data-model-id');
+        const rationale=await page.locator('#race-detail .forecast-rationale').count()?await page.locator('#race-detail .forecast-rationale').innerText():null;
+        await page.locator('[data-page="research"]').filter({visible:true}).first().click();
+        const audit=page.locator('#research-race-audit');assert.equal(await audit.isVisible(),true);assert.equal(await page.locator('#research-race-select').inputValue(),expectedRace);assert.equal(await page.locator('#research-prediction-select').inputValue(),selected);
+        assert.equal(await audit.locator('.race-audit-details').evaluate(n=>n.tagName),'SECTION');assert.equal(await audit.locator('.race-audit-details').getAttribute('data-model-id'),modelId);assert.match(await audit.innerText(),/予想SHA/);
+        await audit.locator('[data-return-to-race]').click();assert.equal(await page.locator('#prediction-select').inputValue(),selected);
+        assert.equal(await page.locator('#race-detail .forecast-rationale').count()?await page.locator('#race-detail .forecast-rationale').innerText():null,rationale);
+        if(rationale){assert.equal(await page.locator('#race-detail .forecast-rationale-heading').innerText(),'予想根拠');rationaleViewsChecked++;}
+
       }
       await page.locator('[data-page="results"]').filter({visible:true}).first().click();
       p1Groups=await page.locator('#results-model option').evaluateAll(options=>options.filter(o=>o.textContent.startsWith('P1 ')).length);
@@ -187,7 +197,7 @@ async function run(context,{compactResults=false,probeRaceId=null}={}){
       verified_at:verifiedAt.toISOString(),widths_checked:checked,
       feed_generation:Number(await page.locator('#saved-view-sync').getAttribute('data-generation')),
       ...dateEvidence({...context,current_day:currentDay,date_scope:undefined},currentResults,p1Groups),
-      selected_saved_day:context.day,compact_result_ui_verified:compactResults,probe_result_matched:Boolean(compactResults&&probeRaceId),
+      selected_saved_day:context.day,compact_result_ui_verified:compactResults,research_audit_verified:compactResults,available_rationale_preserved:compactResults,rationale_views_checked:rationaleViewsChecked,probe_result_matched:Boolean(compactResults&&probeRaceId),
       native_p1_groups_required:context.native_p1_groups,native_p1_detail_visible:nativeVisible,
       future_native_visible_before_cutoff:futureVisible,previous_day_checked:context.old_day!==null,
       active_model_families:15,removed_seller_hidden:true,
