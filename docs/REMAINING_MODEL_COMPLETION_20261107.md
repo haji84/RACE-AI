@@ -167,3 +167,7 @@ Python readerは全raw／metadata／台帳／時計／SHA照合を維持し、�
 新Nov7 data witnessはrun42395208517／job128471073052の実SUCCESS（17:18:24Z）と正確なmetadata／ログhashへ固定した。旧Nov6 witnessも維持する。入力アダプター27件が成功し、過去の元as-ofより後のdataset・検証時刻・serverjob完了を使う入力は拒否する。ここでのログhashは実MCPのUTF8/BOM付き応答から得た値で、実Actionsの生byte同値は未確認のため、提供元へアクセスしない専用history-witness-check prefixで先に確認する。不一致はHOLDとし、別hashや最新値へ自動切替しない。
 
 553の初回検証はPython4,058件（詳細skip数は実ログ）と動画283＋283件が成功したが、最終ブラウザー検証で閉じた詳細欄の旧表示assertionが失敗し、全体はFAIL／次のAUTO cap0・通信0のまま。所有者の折りたたみ表示を保ち、通常の詳細開閉を使うテストへ更新し、全ブラウザー経路をローカル再検証している。新たなcollector HEADの初回全体成功前に取得を再開しない。
+
+## 現行の研究ページを含む全ブラウザー検証
+
+並行所有者の現行UI版 `ed676742448d9068c12e8cb39b6b87923b0888fc` を保持し、テストだけを更新した。4幅（320／390／1440／1920）の全39チェック、生成・自動・継続更新、残る9 browser scriptがすべて成功。閉じた詳細欄の文字列を表示済みと見なさず、通常の研究ページ遷移から原本SHA・全文JSON・元race／model・正確な時刻を検査して元の表示へ戻る。既存製品UI、モデル、予想原本は変更していない。次の取得用HEADで全CIを実行し、成功前のcap発行・実AUTO取得は引き続き0。[失敗と修正の件数](evidence/2026-11-07/553-ui-contract-failure-and-correction-counts.json)。
