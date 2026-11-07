@@ -608,6 +608,43 @@ jobs:
           path: ${{ runner.temp }}/cash-native-pdca.status.json
           retention-days: 7
           if-no-files-found: error
+      - name: Score explicitly requested thirty-cell nonfinancial native comparison
+        id: thirty_order_pdca
+        if: hashFiles('audit/state/all-existing-model-thirty-order-pdca-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == all-thirty-order-pdca:* ]]; then
+            echo 'requested=true' >> "$GITHUB_OUTPUT"
+            python -m scripts.all_existing_model_thirty_order_pdca --input audit/state/all-existing-model-thirty-order-pdca-input.json --out-dir "$RUNNER_TEMP/thirty-order-pdca"
+          fi
+      - name: Retain only encrypted thirty-cell nonfinancial comparison partitions
+        id: thirty_order_pdca_upload
+        if: steps.thirty_order_pdca.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.thirty_order_pdca.outputs.artifact_name }}
+          path: ${{ runner.temp }}/thirty-order-pdca/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Independently read back the actual thirty-cell nonfinancial artifact
+        if: steps.thirty_order_pdca_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.all_existing_model_thirty_order_pdca --input audit/state/all-existing-model-thirty-order-pdca-input.json --out-dir "$RUNNER_TEMP/thirty-order-pdca" --readback-artifact '${{ steps.thirty_order_pdca_upload.outputs.artifact-id }}'
+      - name: Keep count-only thirty-cell nonfinancial comparison status
+        if: always() && steps.thirty_order_pdca.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-thirty-order-pdca-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/thirty-order-pdca.status.json
+          retention-days: 7
+          if-no-files-found: error
       - name: Freeze the requested future P0 comparison from retained inputs only
         id: future_p0
         env:
@@ -1038,11 +1075,25 @@ jobs:
       - name: Restore pinned full-period monthly generations and verify every original hash
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
-        run: python -m scripts.boat_venue_history_handoff readback --input audit/state/boat-venue-history-input.json --out-dir "$RUNNER_TEMP/venue-history-all-period"
+        shell: bash
+        run: |
+          history_input=audit/state/boat-venue-history-input.json
+          if [[ -f audit/state/boat-venue-history-dated-research-input.json ]]; then
+            history_input=audit/state/boat-venue-history-dated-research-input.json
+          elif [[ -f audit/state/boat-venue-history-nov6-research-input.json ]]; then
+            history_input=audit/state/boat-venue-history-nov6-research-input.json
+          fi
+          python -m scripts.boat_venue_history_handoff readback --input "$history_input" --out-dir "$RUNNER_TEMP/venue-history-all-period"
       - name: Restore encrypted venue grid and verify all racer and course cells
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
-        run: python -m scripts.boat_venue_dataset readback --input audit/state/boat-venue-dataset-input.json --out-dir "$RUNNER_TEMP/venue-history-grid"
+        shell: bash
+        run: |
+          dataset_input=audit/state/boat-venue-dataset-input.json
+          if [[ -f audit/state/boat-venue-dataset-nov6-research-input.json ]]; then
+            dataset_input=audit/state/boat-venue-dataset-nov6-research-input.json
+          fi
+          python -m scripts.boat_venue_dataset readback --input "$dataset_input" --out-dir "$RUNNER_TEMP/venue-history-grid"
       - name: Restore immutable encrypted personal-research coefficients
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}

@@ -35,3 +35,12 @@ JRAの2026年日曜即PAT締切は、保存済み[公式発売時間](https://ww
 復旧request V2の継続取得は、成功したprobeの元V1 capsule、完了journal、native原ZIP、raw RESULTの再認証と原文再解析を必須とする。最大8ケース・32要求、同じ元URLと原terms、全priorの終了から1時間以上、特定の新HEAD/run/attempt 2に限定する。旧実数不明／上限32は保持し、既知DENIEDや再中断を解除しない。実probe・実継続取得はまだ成功していない。
 
 結果取得用のrequest V3は取得日の実時計と1〜7日前の対象日を分離する。元plan・native入力・結果識別日は対象日のまま保持し、HTTP取得・生成・保存は実時刻を記録する。専用MAC付きの型付き許可なしでは標準collectorからも取得できない。公開された日付操作がない場合はHOLDとし、URL推測や入力時計の変更は行わない。現在の初回AUTO request V1は当日1ケース／8要求のままである。
+
+
+## 追加検証：11月7日20:28 JST
+
+現行30枠中19枠が実学習済み、残AUTO6・KEIRIN5。最新c438／42364217725は初回・再実行とも全体SUCCESS（全Python3,614件、360 skip、動画283＋185件）。限定probeは8件・全200でもRESULT 0、上限到達HOLDである。旧UNKNOWN24／旧固定epoch上限32を保持し、新8件は別記録へ暗号化保存・元ZIP/metadata独立復元済み。3CSSの未cache消費を認証済み原本で確認し、元plan・最大8を変えない静的原本の再利用修正を進める。次の取得は12:09:07 UTC以降かつ新HEADの初回全体CI成功・新たな固定attempt 2の認証後に限る。
+
+19候補3世代の実fit・暗号化Git保持・独立復元は完了。新19／全30の実未来PDCAは0。旧BOAT14の通常1レース・14組を流用しない。cash19 CLI接続は合成E2E成功、30候補の金額評価禁止は維持し、全30には順位目的だけの別CLI／Actions接続を実装し、合成35＋1件・独立レビューが成功。実未来30採点は未実施。新接続コードの全体CIと実未来採点は別の未完了条件である。
+
+会場別履歴は11月6日原本を1 GETで追加し、7,003,764出走行・1,167,294レース・2,643選手×24場を再集計、既存Git commit505800f55176867e8a5a06491fcc18eadca8e070から原本群とgridを独立復元した。既存152学習原入力へ新履歴を遡って混ぜない。未掲載17日・未報告156会場日などは残る。日付延長CLIの既存検証記録の継承不具合を修正し、保存済みmenu/indexの再GET 0で新日1 GETを実行した。11月7日は公表待ち1日で成績加算0。暗号目録／新世代はcommit244a7312f1ad32ecf471e35be1c4247e46c5b8efへ保持し新8ファイルを独立復元、全旧世代込みの新commit Actions読戻しは確認待ち。詳細と指定12項目は[最新報告](REMAINING_MODEL_COMPLETION_20261107.md)、件数は[全CIとprobe](evidence/2026-11-07/c438-full-ci-and-bounded-probe-counts.json)・[11月6日grid](evidence/2026-11-07/nov6-all-racer-venue-grid-counts.json)を参照する。

@@ -62,6 +62,12 @@
         "head_sha": "9b4bc37648fbfad421daa80bd2300cda5e97e9df",
         "id": 13565712487,
         "run_id": 42349536138
+      },
+      {
+        "digest": "sha256:973cfb36a0e336d7b6717362bf494f243afffff06a67d3d1b8f976adc5175d88",
+        "head_sha": "c43871ba761c98ad4ba86cfddc1bc2b20585da38",
+        "id": 13572350517,
+        "run_id": 42364217725
       }
     ],
     "schema": "RACE_AI_OFFICIAL_RESULT_COLLECT_INPUT_V2"
