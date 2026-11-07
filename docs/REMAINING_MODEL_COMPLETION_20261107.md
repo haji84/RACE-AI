@@ -213,3 +213,9 @@ CSSのURLが `?20261107` から `?20261108` に変わり、2件が追加GETと�
 元journal ZIP・実APIの元metadata byte・外側owner暗号文を、不変pathのみのGit `f04a8bd1715edf54e2f3059e4ad90aa4c651a833` へ保持した。別Git readerで全byte・AES復元一致、既存ファイル変更0、保持処理の提供元GET 0。現在のproduction取得コードと正確な日付付きstatic cacheを使うNET0再生では、14実応答を原文通りに読み、15番目の予約で正しい2R結果の通常UI要求へ到達した。結果本文は未観測なので中止し、teacher 0／提供元GET 0のまま。コードや取得上限の変更は不要と判断した。次のrequest digestは `d35c63a6e50733e30443cc6e5c299ced526004f5fb76769a1ea2cc38a7f16990`、prior 6。新cap発行・実結果の成功は別に確認する。
 
 BOATのcallerとcold schedule修正は `09973e7fa75b97e0f59d710e8b4599a0429b6be5` へ統合し、並行所有者の動画修正もmerge保持した。YAMLを含む当該pushは `[skip ci]` とし、次の別pushではこの報告だけを更新して、既存Forecast全CIと次の限定取得用HEADを作る。製品web treeは検証済み `ed676742448d9068c12e8cb39b6b87923b0888fc` のまま。新しい未来requestやBOAT source workerを、このコード導入のために起動したとは扱わない。
+
+## AUTO順位結果の未使用CSVを予約前に停止
+
+実JSの正常結果表示はResultの後にOtherと補助refund CSVも要求するため、Resultに15枠目で届くだけでは16枠内の全応答完了を保証できなかった。既存の送信前resource filterへ5行を追加し、結果用schema・AUTO・GET xhr／fetch・計画された同一日／会場／Rの正確なCSV URLだけを予約前に停止する。通常の通知、別case／未知URL、future card、既知401／403／429の停止は維持。CSVは順位parserの入力に使われておらず、必須のmain Result.refundInfo、全8登録ID・順位・特殊結果、Other、DOM、元時計・SHAの検証は保つ。CSV未取得を返還なしや金額証明へ補完しない。
+
+新しい入力契約・正常UI・旧973のCSV404読戻しを含む関連32件がumask022でPASS（30.049秒）、独立2レビューCLEAR。保存した実JSと原文prefixに、未観測部分だけ明示した合成Result2を与えるNET0実験では16予約・16完了・FINISHED／CAPTURED・CSV未送信を確認。実Result2は未取得、teacher 0、提供元GET 0。この修正を含む別HEADで初回全体CIを実行し、成功後にだけ次の固定attempt2を認証する。request d35・prior6・元plan・上限16は不変。
