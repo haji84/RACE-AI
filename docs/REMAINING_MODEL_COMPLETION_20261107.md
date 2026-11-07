@@ -153,3 +153,9 @@ Python readerは全raw／metadata／台帳／時計／SHA照合を維持し、�
 全会場gridは2005-01-01〜2026-11-07の7,964原本、1,167,426レース・7,004,556出走行・2,643選手×24場＝63,432組を再構築し、暗号化全件読戻しに成功。旧7,962原本は認証済み型付きcacheを再利用し、11月6・7日の2原本だけを解析した。旧grid全ファイルは不変、未掲載17日・未報告156会場日を保持。新gridのGit保持・独立Actions読戻しと未来入力への最新世代接続は別工程で進めている。[実grid件数](evidence/2026-11-07/nov7-actual-grid-build-counts.json)。
 
 02dの初回CIは4,030件（429 skip）で2 errors・1 failureとなり、次のAUTO取得はcap0／通信0で停止した。2件はfixtureの0644権限、1件は暗号末尾が偶然xの場合に改変されないテストが原因。fixtureを明示0600にし、改変をXORで必ず異なる値へ変更した。実環境のumask022で関連45件PASS。保護処理は変更せず、全CIを新HEADで再検証する。今後の全suiteは最初の失敗で終了し、成功時は全件を実行する。[実CI失敗と修正](evidence/2026-11-07/02d-first-ci-blocked-before-source-counts.json)。
+
+## 11月7日までの原本・gridを暗号Gitへ保持
+
+新history `9e611681e582e3760a91150264d3d7a0894a1c080a2e2b48a49344973c353ac0` と新grid `7ea4281b5674e605918536ecf905d726d78c721aa0f6c6ed60d4c51d250d5678` は既存transfer refのcommit `bd932a4d91317c5d8349989a96ddb184938c539d` へ追加保存した。78ファイルすべての実追加A差分・旧244a／5058祖先の保持・独立readerでの原byte一致を確認し、263か月の元世代を再利用した通常の新月復元と、全63,432組・7,964原本のgrid復元に成功。元の保存失敗1 GET、別の成功1 GET、実行済みd729コード・ACK・counter・原文を外側のowner暗号archiveへ保持し、未保存だった原文を再現したとは扱わない。
+
+新しいresearch pointerだけを更新・追加し、canonical履歴・dataset・learningおよび旧Nov6参照は不変。既存Actionsの読戻しstepはNov7参照を優先する。新しい実Actionsの結果はまだ未確認なので、未来入力の新世代witnessは未許可のまま。実jobの全復号・原本照合・grid読戻し完了後に、その正確なmetadata／logを別のliteral witnessとして登録する。[実保持・独立復元](evidence/2026-11-07/nov7-actual-history-grid-retention-counts.json)。
