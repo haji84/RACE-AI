@@ -44,6 +44,10 @@ status confirmed finish_confirmed confirmed_scope results payouts top3 dead_heat
 FINISH_FIELDS = frozenset("""
 race_id lane racer_registration_id name finish finish_status verified_official race_time race_time_seconds
 """.split())
+SOURCE_FAILURES = frozenset("ALL_MODEL_OFFICIAL_COLLECT_"+code for code in (
+    "BROWSER_RESPONSE_INDEX", "BROWSER_SOURCE_BOUND", "BROWSER_SOURCE_BYTES", "BROWSER_FRESH_SOURCE_CLOCK",
+    "BROWSER_REQUEST_BODY", "BROWSER_FOREIGN_OR_DUPLICATE_CASE", "BROWSER_CASE_RESPONSES",
+    "BROWSER_CASE_CLOSURE", "BROWSER_DOM_BYTES", "BROWSER_ORIGINAL_POST_REQUIRED", "BROWSER_ACTUAL_PROVENANCE"))
 
 
 def _clock(value):
@@ -235,7 +239,17 @@ def audit_journal(body):
             endpoint = None
         endpoints[endpoint if endpoint in ENDPOINTS else "OTHER"] += 1
     reasons = Counter(c.get("reason") if c.get("reason") in CASE_REASONS else "OTHER"
-                      for c in index.get("cases", []))
+                      for c in index.get("cases", []) if c.get("reason") is not None)
+    case_states = Counter(c.get("state") if c.get("state") in ("CAPTURED", "HOLD_UI_OR_SOURCE_UNAVAILABLE") else "OTHER"
+                          for c in index.get("cases", []))
+    response_codes = {r.get("sequence"): r.get("status") for r in index.get("responses", [])}
+    roles = {}
+    for case in index.get("cases", []):
+        for ref in case.get("responses", []):
+            role = ref.get("role") if ref.get("role") in ("result", "identity") else "OTHER"
+            status = response_codes.get(ref.get("sequence"))
+            code = str(status) if type(status) is int and 100 <= status <= 599 else "UNKNOWN"
+            roles.setdefault(role, Counter())[code] += 1
     ledger = index.get("ledger", [])
     method = lambda e: e.get("method") if e.get("method") in ("GET", "POST") else "OTHER"
     methods = Counter(method(e) for e in ledger if type(e.get("sequence")) is int and e["sequence"] > 0)
@@ -258,6 +272,9 @@ def audit_journal(body):
         "semantic_ui_clicks": sum(e.get("event") == "NORMAL_SEMANTIC_UI_CLICK" for e in ledger) if original else None,
         "saved_rendered_dom_count": _retained_dom_count(body),
         "case_reason_counts": dict(reasons) if original else None,
+        "case_state_counts": dict(case_states) if original else None,
+        "required_role_status_counts": {k: dict(v) for k, v in roles.items()} if original else None,
+        "failure_error_code": failure.get("error_code") if failure.get("error_code") in SOURCE_FAILURES else "OTHER",
         "failure_stage": stage if stage in ("PROCESS", "INDEX_VALIDATION", "LAUNCH", "INDEX_HEADER", "QUARANTINE", "SOURCE_VALIDATION") else "OTHER",
         "original_index_available": original,
     }

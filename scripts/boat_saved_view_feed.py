@@ -242,6 +242,9 @@ def main(argv=None):
         import traceback
         frames=traceback.extract_tb(e.__traceback__)
         location=Path(frames[-1].filename).name+':'+str(frames[-1].lineno) if frames else None
-        print(wire(dict(status='ENCRYPTED_VIEW_REJECTED',reason=reason,failure_class=type(e).__name__,failure_at=location)));return 2
+        report=dict(status='ENCRYPTED_VIEW_REJECTED',reason=reason,failure_class=type(e).__name__,failure_at=location)
+        if isinstance(e,SavedModelViewError) and getattr(e,'conflict_counts',None) is not None:
+            report['conflict_counts']=e.conflict_counts
+        print(wire(report));return 2
 
 if __name__=='__main__':raise SystemExit(main())

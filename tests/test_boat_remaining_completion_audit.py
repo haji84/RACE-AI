@@ -129,6 +129,21 @@ class RemainingCompletionAuditTests(unittest.TestCase):
         self.assertEqual(result["wire_method_counts"], {"POST": 1})
         self.assertEqual(result["blocked_method_counts"], {})
 
+    def test_source_validation_failure_and_required_roles_are_fixed_counts(self):
+        body = journal({"stop_reason": "FINISHED", "ledger": [], "responses": [
+            {"sequence": 1, "status": 404}, {"sequence": 2, "status": 200},
+            {"sequence": 3, "status": 200}], "cases": [{"state": "CAPTURED", "responses": [
+                {"role": "result", "sequence": 2}, {"role": "identity", "sequence": 3}]}]})
+        body["browser_failure"] = dict(stage="SOURCE_VALIDATION", error_code="ALL_MODEL_OFFICIAL_COLLECT_BROWSER_SOURCE_BYTES")
+        result = audit.audit_journal(body)
+        self.assertEqual(result["failure_error_code"], "ALL_MODEL_OFFICIAL_COLLECT_BROWSER_SOURCE_BYTES")
+        self.assertEqual(result["required_role_status_counts"], {"result": {"200": 1}, "identity": {"200": 1}})
+        self.assertEqual(result["case_state_counts"], {"CAPTURED": 1})
+        self.assertEqual(result["case_reason_counts"], {})
+        body["browser_failure"]["error_code"] = "SECRET"
+        self.assertEqual(audit.audit_journal(body)["failure_error_code"], "OTHER")
+        self.assertNotIn("SECRET", json.dumps(audit.audit_journal(body)))
+
     def test_same_capture_conflict_attributes_only_known_fields_and_preserves_inputs(self):
         left = row(); left["result_observations"][0]["source_sha256"] = "a"*64
         left["result_observations"][0]["data"]["results"] = [{"lane": 1, "finish": 1}]
