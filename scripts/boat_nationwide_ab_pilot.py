@@ -403,7 +403,8 @@ def make_pair(day,race,*,research_target=None):
     if target is not None and (race_id!=target['race_id'] or race['cutoff_at']!=target['cutoff_at']):
         return dict(race_id=race_id,state='HOLD_RESEARCH_TARGET_IDENTITY_OR_CUTOFF_MISMATCH'),None,None,None,None
     cutoff=datetime.fromisoformat(race["cutoff_at"])
-    if cutoff-now<=MIN_TO_CUTOFF:
+    source_margin=timedelta(seconds=600) if target is not None else MIN_TO_CUTOFF
+    if cutoff-now<=source_margin:
         return {"race_id":race_id,"state":"TOO_LATE_BEFORE_SOURCE"},None,None,None,None
     url=racelist_endpoint(day,venue,n)
     raw,at,program_sha=get(url,day=day)
@@ -445,13 +446,15 @@ def make_pair(day,race,*,research_target=None):
             return dict(race_id=race_id,state='HOLD_RESEARCH_TARGET_ROSTER_MISMATCH'),None,None,None,None
     official_preview_url=preview_endpoint(day,venue,n,"beforeinfo")
     preview_clock=_clock(day)
-    if target is not None and preview_clock+MIN_TO_CUTOFF>=cutoff:
+    if target is not None and preview_clock+source_margin>=cutoff:
         return dict(race_id=race_id,state='TOO_LATE_BEFORE_SOURCE'),None,None,None,None
     preview,preview_at,preview_sha=get(official_preview_url,day=day,not_yet_published=True)
     result=parse_active_beforeinfo(preview,program=program,source_url=official_preview_url,captured_at=preview_at.isoformat())
     if target is not None and (result.get('captured_at')!=preview_at.isoformat()
             or result.get('context',{}).get('source',{}).get('captured_at')!=preview_at.isoformat()):
         return dict(race_id=race_id,state='HOLD_RESEARCH_TARGET_CAPTURE_CLOCK_MISMATCH'),None,None,None,None
+    if target is not None and preview_at+source_margin>=cutoff:
+        return dict(race_id=race_id,state='TOO_LATE_AFTER_SOURCE'),None,None,None,None
     roster=[dict(lane=r['lane'],registration_number=r['racer_registration_id']) for r in active]
     context=dict(schema='RACE_AI_BOAT_SUPPLEMENTAL_CONTEXT_V1',race_id=race_id,cutoff_at=race['cutoff_at'],
                  roster=roster,beforeinfo=result['context'],pitreport=None,entry_history=None,forecast_inputs_used=False)
@@ -603,13 +606,15 @@ def make_pair(day,race,*,research_target=None):
 def run(*, schedule_snapshot=None,research_target=None):
     """Run the usual batch, or narrow acquisition to one explicit research race.
 
-    The opt-in target requires an existing usable schedule cache: actual
+    The opt-in target reuses an existing usable schedule cache: actual
     ``official_day_source`` (url, source_sha256, captured_at), nonempty
     ``verified_active_venues``, and ``official_race_registry`` rows with race_id,
     cutoff_at, schedule_captured_at, source_sha256. Existing usable_schedule
     requires current-day official index identity and actual capture age <=180s;
     no P0 payload or caller-invented capture clock substitutes for that cache.
-    Missing/stale cache HOLDs before nationwide discovery or per-race requests.
+    Missing/stale cache uses the actual official day index and only the target
+    venue's R1 schedule. Both paths verify the target's exact race and cutoff
+    before target acquisition; existing cached capture clocks stay unchanged.
     """
     global requests_used, ENTRY_OBSERVATION_HISTORY
     requests_used=0
@@ -627,8 +632,6 @@ def run(*, schedule_snapshot=None,research_target=None):
     paused=None
     from race_ai.repeated_cycle import usable_schedule
     schedule_ready=usable_schedule(schedule_snapshot,day=day.isoformat(),now=now)
-    if target is not None and not schedule_ready:
-        return stop('HOLD_RESEARCH_TARGET_SCHEDULE_UNAVAILABLE')
     if schedule_ready:
         import copy
         cached=copy.deepcopy(schedule_snapshot)
@@ -649,9 +652,21 @@ def run(*, schedule_snapshot=None,research_target=None):
                         source={"failure_class":type(ex).__name__})
         active=listing["active_venues"]
         rows=[];venue_errors=[]
+        venues=active
+        if target is not None:
+            venue=target['race_id'][9:11]
+            if venue not in active:
+                return stop('HOLD_RESEARCH_TARGET_VENUE_INACTIVE',schedule=listing,
+                    source={"url":url,"source_sha256":index_sha,"captured_at":index_at.isoformat()})
+            try:discovery_clock=_clock(day)
+            except ValueError as ex:return stop(str(ex),schedule=listing)
+            if discovery_clock+timedelta(seconds=600)>=datetime.fromisoformat(target['cutoff_at']):
+                return stop('TOO_LATE_BEFORE_SOURCE',schedule=listing,
+                    source={"url":url,"source_sha256":index_sha,"captured_at":index_at.isoformat()})
+            venues=[venue]
         # One verified 12R closing schedule per active venue. Source is original,
         # not inferred from a cached website snippet or the race's number.
-        for venue in active:
+        for venue in venues:
             try:
                 source_url=racelist_endpoint(day,venue,1)
                 body,at,sha=get(source_url,day=day)
