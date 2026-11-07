@@ -288,7 +288,7 @@ async function selectKeirinCard(listPage,item,ledger,{result=false,onListReady}=
  return detail;
 }
 async function selectKeirinCase(listPage,item,ledger){
- const detail=await selectKeirinCard(listPage,item,ledger,{result:true});
+ const detail=await selectKeirinCard(listPage,item,ledger);
  await click(detail,detail.locator('#rcbtn8'),/^競走結果$/,ledger);return detail;
 }
 async function installByteGuard(context,page,stop){
