@@ -1,7 +1,7 @@
 """Bounded daily refresh on the existing encrypted transfer ref."""
 from datetime import datetime,timedelta,timezone
 from pathlib import Path
-import hashlib,hmac,json,re,tempfile
+import hashlib,hmac,json,os,re,tempfile
 from .boat_pdca_github_handoff import GitStateRepository,TRANSFER_REF
 from .racer_daily import DailyStore,wire,sha,need,clock,JST,seal,unseal
 from .boat_pdca_state import state_key
@@ -9,6 +9,23 @@ from .source_retry_policy import SourceWait
 
 PREFIX='state/boat-racer-daily/v1/'
 LATEST=PREFIX+'latest.json'
+
+class _DailyFilteredFetch:
+    """Keep complete ancestry; retrieve only the encrypted blobs actually read.
+
+    Command-scoped promisor settings leave shared repository configuration intact.
+    The inherited transport still validates the remote, rejects URL rewrites and
+    checks every requested commit, tree and blob before using it.
+    """
+    def _run(self,args,*,body=None,env=None):
+        config=dict(os.environ if env is None else env);count=int(config.get('GIT_CONFIG_COUNT','0'))
+        for setting,value in [('remote.origin.promisor','true'),('remote.origin.partialclonefilter','blob:none')]:
+            config['GIT_CONFIG_KEY_'+str(count)]=setting;config['GIT_CONFIG_VALUE_'+str(count)]=value;count+=1
+        config['GIT_CONFIG_COUNT']=str(count)
+        if args and args[0]=='fetch':args=[args[0],'--filter=blob:none',*args[1:]]
+        return super()._run(args,body=body,env=config)
+
+class DailyStateRepository(_DailyFilteredFetch,GitStateRepository):pass
 
 def _mac(doc,key):return hmac.new(state_key('production',key),b'RACE_AI_RACER_DAILY_HEAD_V1\n'+wire(doc).encode(),hashlib.sha256).hexdigest()
 def _head(raw,key):
@@ -29,13 +46,15 @@ def _validate_history(git,parent,current,key):
         if raw in seen:continue
         seen.add(raw)
         need(head['generation']==generation+1 and head['previous_cipher_sha256']==previous and (previous_time is None or stamp>=previous_time),'DAILY_STATE_HISTORY_ROLLBACK_REJECTED')
-        path=doc['cipher_path'];need(git.exists(commit,path) and git.exists(parent,path),'DAILY_STATE_HISTORY_CIPHER_MISSING')
-        need(git._run(['rev-parse',commit+':'+path]).strip()==git._run(['rev-parse',parent+':'+path]).strip(),'DAILY_STATE_HISTORY_CIPHER_CHANGED')
+        path=doc['cipher_path']
+        original=git._run(['ls-tree',commit,'--',path]).strip();retained=git._run(['ls-tree',parent,'--',path]).strip()
+        need(original and retained,'DAILY_STATE_HISTORY_CIPHER_MISSING')
+        need(original==retained,'DAILY_STATE_HISTORY_CIPHER_CHANGED')
         generation=head['generation'];previous=head['cipher_sha256'];previous_time=stamp;last=raw
     need(last==current,'DAILY_STATE_HISTORY_HEAD_MISMATCH')
 
 def load_daily(repo,*,initialize=False,key=None,transport=None,now=None):
-    state_key('production',key);now=clock(now or datetime.now(timezone.utc));git=transport or GitStateRepository(repo,ref=TRANSFER_REF)
+    state_key('production',key);now=clock(now or datetime.now(timezone.utc));git=transport or DailyStateRepository(repo,ref=TRANSFER_REF)
     need(git.ref==TRANSFER_REF,'DAILY_TRANSFER_REF_REQUIRED');parent=git.head();need(parent is not None,'DAILY_EXISTING_TRANSFER_REQUIRED');git.fetch(parent)
     previous=None;raw=None
     if git.exists(parent,LATEST):
@@ -108,7 +127,7 @@ def seed_recent_months(repo,store,*,now,pointer,transport=None):
     from .boat_venue_history_handoff import _signed,PREFIX as MONTH_PREFIX
     from scripts.boat_venue_history import restore_month
     from scripts.boat_all_racers import _write
-    state_key('production');git=transport or GitStateRepository(repo,ref=TRANSFER_REF)
+    state_key('production');git=transport or DailyStateRepository(repo,ref=TRANSFER_REF)
     need(pointer['status']=='READY' and re.fullmatch('[a-f0-9]{40}',pointer['source_commit']) and pointer['manifest_path']==MONTH_PREFIX+'manifests/'+pointer['manifest_sha256']+'.json','DAILY_SEED_POINTER_INVALID')
     commit=pointer['source_commit'];git.fetch(commit);raw=git.read(commit,pointer['manifest_path'],1000000)
     need(sha(raw)==pointer['manifest_sha256'],'DAILY_SEED_MANIFEST_HASH_INVALID');manifest=_signed(raw)['state']
@@ -150,7 +169,8 @@ def publish_daily_catalogue(repo,catalogue,*,transport=None):
     code="let s='';process.stdin.on('data',c=>s+=c);process.stdin.on('end',()=>{try{if(!require('./web/racer-daily.js').parse(JSON.parse(s)))process.exit(1);}catch{process.exit(1);}});"
     result=subprocess.run(['node','-e',code],cwd=Path(__file__).resolve().parents[1],input=raw,capture_output=True,timeout=30)
     need(result.returncode==0,'DAILY_PUBLIC_SCHEMA_REJECTED')
-    git=transport or PagesRepository(repo);need(git.ref=='gh-pages','DAILY_PAGES_REF_REQUIRED')
+    class DailyPagesRepository(_DailyFilteredFetch,PagesRepository):pass
+    git=transport or DailyPagesRepository(repo);need(git.ref=='gh-pages','DAILY_PAGES_REF_REQUIRED')
     for attempt in range(4):
         parent=git.head();need(parent is not None,'DAILY_EXISTING_PAGES_REQUIRED');git.fetch(parent);paths=_tree(git,parent)
         manifest=git.read(parent,'site-build.json',32768);meta=json.loads(manifest)
