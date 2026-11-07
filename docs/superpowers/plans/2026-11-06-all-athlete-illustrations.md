@@ -43,5 +43,5 @@ Files: new canonical `web/data/racer-portraits.json`, generated `web/racer-portr
 ### Task 3: Final review and deployment
 
 - [x] Review the whole change with a fresh reviewer; fix material findings with regressions.
-- [ ] Preserve concurrent source edits, update existing PR71 and refresh current Pages assets by CAS.
-- [ ] Verify HTTP asset hashes, ciphertext identity, complete target coverage and real deployed browser rendering; report the exact created/missing counts.
+- [x] Preserve concurrent source edits, update existing PR71 and refresh current Pages assets by CAS.
+- [x] Verify HTTP asset hashes, ciphertext identity, complete target coverage and real deployed browser rendering; report the exact created/missing counts.
