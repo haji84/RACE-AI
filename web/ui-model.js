@@ -16,6 +16,28 @@
       const code = row?.sport === "boat" && typeof row.venue === "string" ? /^場コード(0[1-9]|1[0-9]|2[0-4])$/.exec(row.venue) : null;
       return code ? boatVenues[Number(code[1]) - 1] : row?.venue;
     },
+    raceDeadline(row = {}) {
+      const valid = value => typeof value === "string" && Number.isFinite(Date.parse(value));
+      if (valid(row.cutoff_at)) return row.cutoff_at;
+      return [...(Array.isArray(row.saved_cutoff_variants) ? row.saved_cutoff_variants : []), row.prediction?.cutoff_at,
+        ...(Array.isArray(row.comparison_predictions) ? row.comparison_predictions.map(p => p?.cutoff_at) : [])]
+        .filter(valid).sort((a, b) => Date.parse(a) - Date.parse(b))[0] || null;
+    },
+    racePhase(row = {}, {now = Date.now()} = {}) {
+      if (["final", "settled", "void", "cancelled"].includes(row.result?.status)) return "results";
+      const deadline = model.raceDeadline(row);
+      if (deadline) return Date.parse(deadline) > now ? "upcoming" : "results";
+      const today = new Date(now + 9 * 3600000).toISOString().slice(0, 10);
+      return validVenueDay(row.event_date_jst) && row.event_date_jst < today ? "results" : "unknown";
+    },
+    raceLists(records, {now = Date.now()} = {}) {
+      const lists = {upcoming: [], results: [], unknown: []};
+      for (const row of records) lists[model.racePhase(row, {now})].push(row);
+      const deadline = row => { const value = Date.parse(model.raceDeadline(row)); return Number.isFinite(value) ? value : -Infinity; };
+      lists.upcoming.sort((a, b) => deadline(a) - deadline(b) || a.race_id.localeCompare(b.race_id));
+      lists.results.sort((a, b) => deadline(b) - deadline(a) || a.race_id.localeCompare(b.race_id));
+      return lists;
+    },
     venueOverview(records, {sport = "boat", now = Date.now(), favorites = []} = {}) {
       const groups = new Map((sport === "boat" ? boatVenues : []).map(venue => [venue, []]));
       for (const row of records) {
@@ -25,10 +47,13 @@
         groups.get(venue).push(row);
       }
       const pinned = new Set(Array.isArray(favorites) ? favorites : []);
-      return [...groups].map(([venue, rows]) => ({venue, count: rows.length, favorite: pinned.has(sport + ":" + venue),
-        nextRace: rows.filter(r => Number.isFinite(Date.parse(r.cutoff_at)) && Date.parse(r.cutoff_at) > now)
-          .sort((a, b) => Date.parse(a.cutoff_at) - Date.parse(b.cutoff_at) || a.race_id.localeCompare(b.race_id))[0] || null
-      })).sort((a, b) => Number(b.favorite) - Number(a.favorite) || Number(b.count > 0) - Number(a.count > 0) || a.venue.localeCompare(b.venue, "ja"));
+      return [...groups].map(([venue, rows]) => {
+        const lists = model.raceLists(rows, {now}), settledCount = lists.results.filter(r => ["final", "settled", "void", "cancelled"].includes(r.result?.status)).length,
+          heldCount = lists.results.filter(r => r.result?.status === "unsupported").length;
+        return {venue, count: rows.length, favorite: pinned.has(sport + ":" + venue), nextRace: lists.upcoming[0] || null,
+          upcomingCount: lists.upcoming.length, resultCount: lists.results.length, unknownCount: lists.unknown.length,
+          settledCount, heldCount, pendingResultCount: lists.results.length - settledCount - heldCount};
+      }).sort((a, b) => Number(b.favorite) - Number(a.favorite) || Number(b.count > 0) - Number(a.count > 0) || a.venue.localeCompare(b.venue, "ja"));
     },
     raceInformation(row = {}, {supplementalPreview = false} = {}) {
       const people = Array.isArray(row.participants) ? row.participants : [];
@@ -42,7 +67,7 @@
         {key: "participants", label: "出走表", available: people.length > 0, detail: people.length ? people.length + "名" : "未取得"},
         {key: "preview", label: "直前情報", available: Boolean(preview), detail: preview ? "取得項目あり" : "未取得"},
         {key: "outlook", label: "保存予想", available: predictions > 0, detail: predictions ? predictions + "原本" : "未予想"},
-        {key: "history", label: "結果", available: Boolean(result), detail: result ? "結果あり" : "結果待ち"}
+        {key: "history", label: "結果", available: Boolean(result), detail: result ? "結果あり" : model.racePhase(row)==="upcoming" ? "レース前" : model.racePhase(row)==="unknown" ? "締切未確認" : "結果待ち"}
       ];
     },
     boatRaceLinks(row) {

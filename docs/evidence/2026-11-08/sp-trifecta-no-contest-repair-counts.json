@@ -1,11 +1,7 @@
 {
-  "schema": "RACE_AI_SP_TRIFECTA_NO_CONTEST_REPAIR_PROOF_V1",
-  "status": "RETAINED_REFUND_PARSER_VERIFIED",
-  "producer_run_id": 42423341964,
-  "producer_job_id": 128556281063,
-  "producer_head_sha": "e638c557cc2f306c63f5c0ef2a6cde4a440f377d",
-  "parser_blob_sha": "a9e7e7ba34953a21d22a3731bf7f4d86195ebe17",
   "accuracy_improvement_proven": false,
+  "actual_audit_schema": "RACE_AI_REMAINING_COMPLETION_AUDIT_V1",
+  "actual_audit_status": "RETAINED_SP_ONLY_AUDIT_VERIFIED",
   "boat": {
     "all_saved_before_both_clocks": 2,
     "current_rejection_reason_counts": {
@@ -36,6 +32,21 @@
   },
   "continuity_projection": null,
   "day_jst": "2026-11-07",
+  "deployed_ui_preservation": {
+    "assets": [
+      "app.js",
+      "index.html",
+      "style.css",
+      "ui-model.js"
+    ],
+    "frozen_product_data_changed": false,
+    "frozen_saved_performance_changed": false,
+    "pages_commit": "f590fb6c0120403014de4f477e7a68b1791554a6",
+    "public_app_sha256_before": "769ea500de4d1787858137bba61f265d02812d16262f4e812587506a8fc065ed",
+    "rendered_original_index_exact": true,
+    "result_wording_only_delta": true,
+    "source_commit": "6582e6d9f5cff00cb619f8d12d0ce9b24e161dce"
+  },
   "diagnostic_only": true,
   "feed_generation": 49,
   "forecasting_performed": false,
@@ -43,7 +54,16 @@
   "native": null,
   "official_source_requests": 0,
   "originals_changed": false,
+  "parser_blob_sha": "a9e7e7ba34953a21d22a3731bf7f4d86195ebe17",
   "plaintext_source_published": false,
+  "planned_result_dispositions": {
+    "final": 129,
+    "unsupported_original_cutoff_conflict": 1,
+    "void": 2
+  },
+  "producer_head_sha": "e638c557cc2f306c63f5c0ef2a6cde4a440f377d",
+  "producer_job_id": 128556281063,
+  "producer_run_id": 42423341964,
   "results_admitted": 0,
   "retained_sp_holds": {
     "authenticated_matching_captures": 3,
@@ -84,30 +104,25 @@
     "source_requests": 0,
     "status": "RETAINED_SP_HOLD_AUDIT_VERIFIED"
   },
-  "source_requests": 0,
-  "planned_result_dispositions": {
-    "final": 129,
-    "void": 2,
-    "unsupported_original_cutoff_conflict": 1
-  },
+  "schema": "RACE_AI_SP_TRIFECTA_NO_CONTEST_REPAIR_PROOF_V1",
   "site_publication_verified": false,
+  "source_requests": 0,
+  "status": "RETAINED_REFUND_PARSER_VERIFIED",
   "validation": {
-    "python_settlement_integrity_and_sync": 31,
-    "python_shared_bridge_and_refresh": 7,
-    "node_frozen_performance": 23,
+    "browser_budget_mobile_and_desktop": true,
     "browser_compact_widths": [
       320,
       390,
       1440
     ],
-    "browser_budget_mobile_and_desktop": true,
-    "independent_review_blockers": 0,
     "frozen_product_and_financial_modules_changed": false,
-    "original_prediction_hash_conserved": true,
-    "thousand_yen_refund": 1000,
     "hits_created": 0,
-    "misses_created": 0
-  },
-  "actual_audit_schema": "RACE_AI_REMAINING_COMPLETION_AUDIT_V1",
-  "actual_audit_status": "RETAINED_SP_ONLY_AUDIT_VERIFIED"
+    "independent_review_blockers": 0,
+    "misses_created": 0,
+    "node_frozen_performance": 23,
+    "original_prediction_hash_conserved": true,
+    "python_settlement_integrity_and_sync": 31,
+    "python_shared_bridge_and_refresh": 7,
+    "thousand_yen_refund": 1000
+  }
 }
