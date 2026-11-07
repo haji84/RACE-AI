@@ -1,3 +1,18 @@
+<!-- RACEAI_AUTOMATION_20261107_1228_RECOVERY_FAILED_SOURCE_HOLD -->
+# 2026-11-07 12:28 JST｜既存表示の暗号履歴が第13世代へ進展。ただしsource復元と表示P0処理は失敗、追加起動HOLD
+
+**実GitHub監査:** 既存Draft PR #71 / `feat/four-sport-forecast-audit-view-20261022`。監査前のPR HEADは `911376d7c070b77ffb0f445c9f6545aec5012fa9`。対象workflow405276784の直近対象5 run（42332035282/42330631694/42329064283/42323582642/42322126540）はすべてcompleted/failure。直近表示run42332035282は2026-11-07 12:21:26 JST終了・failure、公式予想jobはskipped。表示の「当日P0既存系統実行」stepで `ALL_MODEL_PATH_REJECTED / ALL_MODEL_CLI_OPERATION_FAILED` が出た。ラッパーは実例外を隠すため、根本例外は未特定。このrunの新規予想・結果artifactは0件であり、P0実行成功や全5項目完成とは言わない。
+
+**失敗直前までの保存進展:** 当該表示ログには独立の過去結果照合・暗号保存作業の記録がある。保存済みモデルの追加受領342行（P1、4 run参照）、結果観測追加29件、通常確定13レース・結果待ち2レース（いずれも表示回復処理内の集計）を記録。基準5モデルの公式採点への新規加算は不可。別保全工程は128原本のbounded追加と25新規モデル原本の保全をそれぞれ報告するが、`full_current_view_readback_verified=false` と残り59対象artifact・6後回しrunがあり全原本の完成ではない。公開Git上に存在する暗号履歴commit `e743c3522fd97407dab28d8bcc3609712f86dd07` は第13世代・2日付更新を示し、暗号化公開記録のcommit存在を別APIで確認。owner keyでの全履歴読戻し/モデル別正式精算成功とは認定しない。公式source GETは表示jobの回復処理0件。
+
+**公式worker失敗と停止条件:** 直近source run42330631694は2026-11-07 11:52:45 JSTにcompleted/failure。`Reuse authenticated first original` で `VAULT_REFERENCE_KIND_INVALID`（`boat_private_original_vault.py` の署名済み索引参照kindチェック）により停止。原本欠落、原本の改変、認証拒否のいずれかと早合点せず、kind不整合の正確な対象原本と署名整合を調査するまで新sourceを起動しない。count-only latest controlはrun42330631694を示すが `run_conclusion=failure`、`completed_round=0`、`requests_used=0`。これは通常成功や予想0件の認定ではない。旧sourceの再実行/別認証迂回/新run/別保管refへのfallbackをしていない。
+
+**最新確定原本の境界:** 最後に成功をAPIで確認した正式source run42318345435はcompleted/success、公開artifact全件に第9巡の予想ZIP・結果ZIP・継続ZIP・source controlがある。以前の監査記録では基準予想399行、通常採点126行と報告。今回APIのartifact登録digestは読み取ったが、暗号原本の新規復号・ZIP独立実バイトハッシュ・モデル別率/仮収支/28事前シナリオ精算の再算定は**未実施**。新回復の342行等を399件の正式基準予想へ合算しない。
+
+**維持:** 当該監査では旧原本・係数・P0初回索引・結果revision・concurrency・取得GET上限・既存スケジュールを変更しない。待機runの有無は最新API第一ページで直近対象5件completedまで確認、全過去ページの完全列挙ではない。上記真正性停止のためトリガー変更・取消・rerunを見送り。別workflow/新PR/追加タスク・モデル・外部サービス・課金・main統合・公開・実投票・本番自動切替なし。全16系統/4競技、全レース、所有者用履歴、LEARNED_SHADOW未来優位性、5項目の完成は未達。
+
+---
+
 <!-- RACEAI_CONTINUOUS_VIDEO_IDENTITY_IMPLEMENTATION_20261107 -->
 # 2026-11-07 JST｜連続映像の保存を実装・実動画1056フレーム一致。6艇の継続識別は未完成
 
