@@ -9,6 +9,13 @@ test('historical checks report their selected day without claiming current-day r
   const current=C.dateEvidence({day:'2030-04-02',current_day:'2030-04-02'},3,2);
   assert.equal(current.date_scope,'CURRENT_DAY');assert.equal(current.current_day_results,3);
 });
+test('a midnight rollover refuses to relabel the lifecycle counts for the prior day',()=>{
+  const before={day:'2030-04-01',current_day:'2030-04-01'};
+  assert.equal(C.dateEvidence(before,129,57,'2030-04-01').current_day_results,129);
+  const after={day:'2030-04-01',current_day:'2030-04-02'};
+  assert.throws(()=>C.dateEvidence(after,129,57,'2030-04-01'));
+  assert.equal(C.dateEvidence(after,129,57).current_day_results,null);
+});
 const request=(url='https://raw.githubusercontent.com/haji84/RACE-AI/example/latest.json',
   {headers={},method='GET',body=null}={})=>({url:()=>url,headers:()=>headers,method:()=>method,postData:()=>body});
 

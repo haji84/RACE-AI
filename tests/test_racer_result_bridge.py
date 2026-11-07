@@ -1,5 +1,6 @@
 """Real local encrypted feed publication, with invented forecasts/results only."""
 from copy import deepcopy
+from unittest.mock import patch
 from datetime import timedelta
 from pathlib import Path
 import json,subprocess,tempfile,unittest
@@ -9,7 +10,7 @@ from race_ai.racer_intraday import IntradayState
 from race_ai.boat_sp_settlement import parse_settlement,settlement_digest
 from race_ai.racer_daily import sha,wire
 from tests.intraday_fixture import packet
-from tests.test_boat_sp_settlement import document
+from tests.test_boat_sp_settlement import document,no_contest_document
 from tests.test_racer_daily import NOW
 try:
     from race_ai.racer_result_bridge import SavedResultBridge
@@ -44,6 +45,51 @@ class BridgeTests(unittest.TestCase):
         parent,_,generation,view=F.current_view(self.git,self.boot);self.assertEqual(view['records'][0]['result']['winning_combinations'],[[1,2,3]]);self.assertEqual(F.forecast_inventory(view),pin)
         again=self.bridge().publish(state,now=NOW+timedelta(minutes=5));self.assertEqual(again['changed_races'],0);self.assertEqual(self.git.head(),parent)
         self.capture(state,price='1500',at=NOW+timedelta(minutes=10));self.bridge().publish(state,now=NOW+timedelta(minutes=10));_,_,new_generation,new=F.current_view(self.git,self.boot);self.assertEqual(new_generation,generation+1);self.assertEqual(new['records'][0]['result']['payout_yen_per_100'],1500)
+    def test_repaired_parser_replays_retained_bytes_without_replacing_the_original_observation(self):
+        raw,receipt=packet(no_contest_document(),captured=NOW.isoformat())
+        with patch.object(F,'parse_capture',side_effect=ValueError('RESULT_WINNER_INVALID')):
+            old=F.update_view(self.view,[],captures=[(raw,receipt)],synced_at=NOW.isoformat())
+        self.assertEqual(old['records'][0]['result']['status'],'unsupported');self.seed(old)
+        parent,previous,_,retained=F.current_view(self.git,self.boot)
+        old_cipher=self.git.read(parent,'views/'+previous+'.json',F.MAX_WIRE)
+        observations=deepcopy(retained['records'][0]['result_observations']);revisions=deepcopy(retained['records'][0]['result_revisions'])
+        state=IntradayState();parsed=parse_settlement(raw,receipt,now=NOW);pointer=state.remember('RESULT',raw,receipt)
+        pointer.update(settlement_sha256=settlement_digest(parsed),settlement_status=parsed['status'])
+        state.control['settlement_captures']={parsed['race_id']:pointer}
+        controls=deepcopy(state.control);sources=deepcopy(state.new_captures)
+        from scripts import racer_intraday_refresh as R
+        bridge=self.bridge()
+        with patch.object(R,'load_intraday',return_value=dict(previous={},state=state)),\
+             patch.object(R,'OfficialClient',side_effect=AssertionError('no source')),\
+             patch.object(R,'load_daily',side_effect=AssertionError('no base state')),\
+             patch.object(R,'save_intraday',side_effect=AssertionError('no state writes')),\
+             patch.object(R,'publish_daily_catalogue',side_effect=AssertionError('no public writes')),\
+             patch.object(state,'advance',side_effect=AssertionError('no collection')),\
+             patch.object(bridge,'prepare',side_effect=AssertionError('no control mutation')):
+            report=R.replay_retained_results(self.repo,now=NOW+timedelta(minutes=1),bridge=bridge)
+        self.assertEqual(report['result_sync']['confirmed'],1);self.assertEqual(report['changed_races'],1)
+        self.assertTrue(report['readback_verified']);self.assertTrue(report['original_observations_preserved'])
+        self.assertEqual(report['source_requests'],0);self.assertFalse(report['source_state_saved'])
+        head,_,_,out=F.current_view(self.git,self.boot);row=out['records'][0]
+        self.assertEqual(row['result']['status'],'void');self.assertEqual(row['result']['observed_at'],receipt['captured_at'])
+        self.assertEqual(row['result']['source_sha256'],receipt['source_sha256'])
+        self.assertEqual(row['result_observations'],observations);self.assertEqual(row['result_revisions'],revisions)
+        self.assertEqual(F.originals_sha(out),F.originals_sha(retained));self.assertEqual(state.control,controls);self.assertEqual(state.new_captures,sources)
+        self.assertEqual(self.git.read(parent,'views/'+previous+'.json',F.MAX_WIRE),old_cipher)
+        self.assertEqual(self.bridge().publish(state,now=NOW+timedelta(minutes=2))['changed_races'],0);self.assertEqual(self.git.head(),head)
+    def test_same_clock_with_a_different_hash_or_url_cannot_be_repaired_as_the_same_capture(self):
+        raw,receipt=packet(no_contest_document(),captured=NOW.isoformat())
+        state=IntradayState();parsed=parse_settlement(raw,receipt,now=NOW);pointer=state.remember('RESULT',raw,receipt)
+        pointer.update(settlement_sha256=settlement_digest(parsed),settlement_status=parsed['status'])
+        state.control['settlement_captures']={parsed['race_id']:pointer}
+        with patch.object(F,'parse_capture',side_effect=ValueError('RESULT_WINNER_INVALID')):
+            old=F.update_view(self.view,[],captures=[(raw,receipt)],synced_at=NOW.isoformat())
+        for field,value in [('source_sha256','f'*64),('source_url',receipt['source_url']+'&foreign=1')]:
+            with self.subTest(field=field):
+                wrong=deepcopy(old);wrong['records'][0]['result_observations'][0][field]=value;self.seed(wrong);head=self.git.head()
+                with self.assertRaisesRegex(ValueError,'RESULT_CAPTURE_CONFLICT'):
+                    self.bridge().publish(state,now=NOW+timedelta(minutes=1))
+                self.assertEqual(self.git.head(),head)
     def test_a_foreign_writer_is_read_before_result_application_and_originals_stay_unchanged(self):
         bridge=self.bridge();state=IntradayState();self.capture(state);p,old,g,view=F.current_view(self.git,self.boot);other=deepcopy(view);other['safe_display_note']='OTHER_WRITER';F.publish_view(self.git,self.boot,other,parent=p,previous=old,generation=g)
         bridge.publish(state,now=NOW);_,_,_,out=F.current_view(self.git,self.boot);self.assertEqual(out['safe_display_note'],'OTHER_WRITER');self.assertEqual(out['records'][0]['prediction'],self.view['records'][0]['prediction'])
