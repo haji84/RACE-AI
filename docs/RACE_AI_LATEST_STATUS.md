@@ -1,3 +1,13 @@
+<!-- OWNER_REMOVED_SELLER_STATUS_20261107 -->
+# 2026-11-07｜販売者モデルを現在の対象から削除、実サイト15系統の表示確認に成功
+
+ユーザー指示により販売者モデルを実行・新規学習・通常画面・完成条件から外した。現在は15系統/競技別30枠。既存19枠の実学習とBOAT14枠の実未来PDCAの証拠は保持し、残る実学習はAUTO6・KEIRIN5の11枠。下にある旧31枠や販売者入力不足の記録は当時の履歴であり、販売者のwaku10取得を再開しない。
+
+表示専用[42363442840](https://github.com/haji84/RACE-AI/actions/runs/42363442840)は全体success。132P0文脈・新規予想0を暗号化保存し独立読戻し・原本Git保持を通過。2026-11-07T10:27:40.754Zの実Chrome390/1440で、15系統・販売者非表示・当日結果98・native P1 group30・選手名・率/収支・日予算変更・1R1000・前日履歴を確認し、実JSONの最終gateも成功した。削除実装4a52c69cの[全体CI42363760967](https://github.com/haji84/RACE-AI/actions/runs/42363760967)も2026-11-07T10:53:32Zにsuccess。Python3,591件（360 skip）・隔離動画283/185件・Node88/99件・7画面4幅を通過した。並行更新c43871baの削除回帰も成功済み。
+
+元予想・結果revision・元clock・日別成績・固定予算配分は保持した。この削除作業による通常source workerの取消/再起動/設定変更、公式source GETは0。未確認結果・AUTO/KEIRINの通信会計HOLD・将来の的中率改善は未解消のまま。[削除と検証](BOAT_SELLER_RETIREMENT_20261107.md)と[件数証拠](evidence/2026-11-07/seller-retirement-presentation-counts.json)を参照。
+<!-- END_OWNER_REMOVED_SELLER_STATUS_20261107 -->
+
 <!-- RACEAI_RIDER_CURRENT_POINT_CHECKPOINT_20261107 -->
 # 2026-11-07 17:39 JST｜6人の匿名ID断絶を実画素対応で修正。艇番・船外機除外・船体結合は未完成
 
