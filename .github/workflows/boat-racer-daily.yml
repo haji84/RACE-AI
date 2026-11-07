@@ -17,6 +17,10 @@ on:
         description: '公開画面の結果をブラウザで確認（通常巡回では実行しない）'
         type: boolean
         default: false
+      check_current_day:
+        description: '公開画面確認時に当日のレース前・結果待ちの区別も確認'
+        type: boolean
+        default: false
       probe_race_id:
         description: '画面で照合するレースID（確認する場合だけ指定）'
         type: string
@@ -36,7 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ${{ github.event_name == 'push' && github.sha || '0dd7c7a4d34492fc537311b5b7304fadc58768e7' }}
+          ref: ${{ github.event_name == 'push' && github.sha || 'b50a166afca32742e36106f70180168be22dd968' }}
           persist-credentials: true
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -77,6 +81,7 @@ jobs:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           NODE_PATH: ${{ runner.temp }}/result-site-tools/node_modules
           RESULT_PROBE_RACE: ${{ inputs.probe_race_id || '' }}
+          CHECK_CURRENT_DAY: ${{ inputs.check_current_day || 'false' }}
           # The context installs its own repository-scoped credential.
           # Clear checkout's host header for this read-only step only.
           GIT_CONFIG_COUNT: '1'
@@ -91,4 +96,5 @@ jobs:
           python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" "${site_context_args[@]}"
           probe=()
           if [[ -n "$RESULT_PROBE_RACE" ]]; then probe+=("--race-id=$RESULT_PROBE_RACE"); fi
+          if [[ "$CHECK_CURRENT_DAY" == 'true' ]]; then probe+=(--check-current-day); fi
           env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results "${probe[@]}"

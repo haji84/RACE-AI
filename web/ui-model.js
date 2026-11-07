@@ -67,7 +67,7 @@
         {key: "participants", label: "出走表", available: people.length > 0, detail: people.length ? people.length + "名" : "未取得"},
         {key: "preview", label: "直前情報", available: Boolean(preview), detail: preview ? "取得項目あり" : "未取得"},
         {key: "outlook", label: "保存予想", available: predictions > 0, detail: predictions ? predictions + "原本" : "未予想"},
-        {key: "history", label: "結果", available: Boolean(result), detail: result ? "結果あり" : "結果待ち"}
+        {key: "history", label: "結果", available: Boolean(result), detail: result ? "結果あり" : model.racePhase(row)==="upcoming" ? "レース前" : model.racePhase(row)==="unknown" ? "締切未確認" : "結果待ち"}
       ];
     },
     boatRaceLinks(row) {

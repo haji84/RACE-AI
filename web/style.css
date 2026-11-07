@@ -162,3 +162,5 @@ body{overflow-wrap:break-word}button{min-height:34px}input,select{min-height:36p
 #page-races #race-count{margin:0}
 .race-view-tabs{margin-bottom:0}
 #all-races .race-result-card{display:block;padding:16px}#all-races .race-result-card .race-card-head{display:flex;flex-wrap:wrap;align-items:flex-start}#all-races .race-result-card .race-card-head>div{flex:1 1 150px;min-width:0}#all-races .race-result-card .saved-outcome{max-width:100%}
+
+.outcome-upcoming{background:#e8f5fc;color:#2c6687}.outcome-time_unknown{background:#edf1f5;color:#526b87}
