@@ -1,0 +1,88 @@
+{
+  "schema": "RACE_AI_RACER_PORTRAIT_DISPLAY_AUDIT_V1",
+  "root_cause": "Exact full-profile name checks rejected the official B program four-character name spelling.",
+  "target": 1669,
+  "image_cells_checked": 1669,
+  "empty_image_cells": 0,
+  "official_roster_names_checked": 1669,
+  "official_roster_names_missing": 0,
+  "live_gallery": {
+    "official_pairs_checked": 1620,
+    "official_pairs_missing": [],
+    "canonical_names_checked": 1669,
+    "canonical_names_missing": [],
+    "catalogue": 1669,
+    "cards": 1669,
+    "images": 1669,
+    "issues": [],
+    "coverage": {
+      "total": 1669,
+      "ready": 1669,
+      "unavailable": 0,
+      "pending": 0,
+      "complete": true
+    },
+    "overflow": false,
+    "errors": [],
+    "failed_requests": [],
+    "gallery_expansions": 55
+  },
+  "official_program_references": {
+    "source_days": 52,
+    "observed_registration_name_pairs": 1620,
+    "additional_exact_aliases": 169,
+    "before_after_lookup": {
+      "total_canonical": 1669,
+      "official_pairs": 1620,
+      "before_matched": 1451,
+      "after_matched": 1620
+    },
+    "unobserved_target_registrations": 49,
+    "long_profile_names_without_observed_program_spelling": [
+      "5489",
+      "5490"
+    ],
+    "bound": "All1669 roster/profile names and images were checked. Program spelling claims cover the1620 observed pairs; no unobserved abbreviations were inferred."
+  },
+  "unchanged": {
+    "identity_matcher": true,
+    "registrations_and_canonical_names": true,
+    "photo_hashes_and_atlas_cells": true,
+    "all54_image_assets": true,
+    "model_and_forecasts": true
+  },
+  "tests": {
+    "python_passed": 37,
+    "node_passed": 163,
+    "deployed_browser_widths": [
+      320,
+      390,
+      1440
+    ],
+    "browser_fixtures": "Invented UI-only races with exact official name/registration pairs; no forecast claims."
+  },
+  "fresh_review": {
+    "severity_findings": 0,
+    "source_archives_reparsed": 52,
+    "exact_alias_facts_rechecked": 169
+  },
+  "deployment": {
+    "status": "PAGES_PRESENTATION_REFRESHED",
+    "source_commit": "5e14523e55a8e19d8ad47fac340c06821361e4a6",
+    "parent_commit": "946911bd1aba24489242ca615fed15474dd1041d",
+    "cipher_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+    "manifest_sha256": "3d5e70a1d2057b994e54c4d823b2f78f9c55b8b5fd07e6127bd87acee457a4ed",
+    "portrait_count": 1669,
+    "ciphertext_unchanged": true,
+    "plaintext_published": false,
+    "source_branch_commit": "ce89e0adb3ddc6b563481894e7edd7a40356dbd6",
+    "image_assets": 54,
+    "image_bytes_unchanged": true,
+    "manifest_fields_preserved": true,
+    "http_verified": true,
+    "http_files": 68,
+    "http_image_assets": 54
+  },
+  "all_cipher_blobs_unchanged": true,
+  "cipher_files_preserved": 7
+}
