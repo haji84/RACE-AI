@@ -287,6 +287,61 @@ jobs:
             ${{ runner.temp }}/boat-venue-learning/summary.json
           retention-days: 7
           if-no-files-found: error
+      - name: Fit the explicit eight-race native research cohort from authenticated private originals
+        if: hashFiles('audit/state/all-existing-model-native-ci-input.json') != ''
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: python -m scripts.all_existing_model_learning_ci --input audit/state/all-existing-model-native-ci-input.json --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/all-native-learning"
+      - name: Keep the encrypted native research fit and count-only status
+        id: native_model_candidate
+        if: hashFiles('audit/state/all-existing-model-native-ci-input.json') != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-model-learning-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/all-native-learning/learning.enc
+            ${{ runner.temp }}/all-native-learning/learning.json
+            ${{ runner.temp }}/all-native-learning/summary.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Freeze the explicitly requested official native inputs
+        id: official_native_freeze
+        if: hashFiles('audit/state/manual-official-freeze-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          # A one-time request on this commit; this makes no provider requests.
+          if [[ "$(git log -1 --format=%s)" == official-native-freeze:* ]]; then
+            python -m scripts.all_existing_model_official_freeze --input audit/state/manual-official-freeze-input.json --candidate-artifact '${{ steps.native_model_candidate.outputs.artifact-id }}' --out-dir "$RUNNER_TEMP/official-native-freeze"
+          fi
+      - name: Independently save the encrypted official native input capsules
+        id: official_native_upload
+        if: steps.official_native_freeze.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.official_native_freeze.outputs.artifact_name }}
+          path: ${{ runner.temp }}/official-native-freeze/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Re-read the actual official native input artifact before its deadlines
+        if: steps.official_native_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.all_existing_model_official_freeze --readback-artifact '${{ steps.official_native_upload.outputs.artifact-id }}' --out-dir "$RUNNER_TEMP/official-native-freeze"
+      - name: Keep count-only official native receipt proof
+        if: steps.official_native_upload.outputs.artifact-id != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-native-freeze-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/official-native-freeze.status.json
+          retention-days: 7
+          if-no-files-found: error
       - name: Freeze the requested future P0 comparison from retained inputs only
         id: future_p0
         env:

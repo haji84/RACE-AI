@@ -60,7 +60,25 @@ def _source_refs(values):
         _need(isinstance(item, (list, tuple)) and len(item) == 2 and
               all(type(value) is str for value in item), 'SOURCE_SCOPE')
         url, rights = item
+        if rights in ('OWNER_PERSONAL_OFFICIAL_KEIRIN_FACTUAL_ANALYSIS_20261107',
+                      'OWNER_PERSONAL_OFFICIAL_AUTORACE_FACTUAL_ANALYSIS_20261107',
+                      'OWNER_PERSONAL_OFFICIAL_HORSE_FACTUAL_ANALYSIS_20261107'):
+            # The personal-use decision retains the actual sport/source pair.
+            # It neither borrows BOAT rights nor asserts a provider ML grant.
+            from .manual_official_capture import validate_source_pair
+            try:
+                pairs.add(validate_source_pair(url, rights))
+            except ValueError:
+                raise ValueError('ALL_MODEL_OWNER_RESEARCH_SOURCE_SCOPE') from None
+            continue
         _need(rights in LEGACY_RIGHTS or rights == HTML_RIGHTS, 'SOURCE_SCOPE')
+        if rights == HTML_RIGHTS and re.fullmatch(
+                r'https://api\.github\.com/repos/haji84/RACE-AI/actions/artifacts/[1-9][0-9]{0,19}/zip', url):
+            # This is an authenticated capsule's retained storage locator.
+            # Archive/native admission separately verifies its upstream closure;
+            # admitting the exact locator never grants GitHub source rights.
+            pairs.add((url, rights))
+            continue
         if url.startswith('urn:race-ai:'):
             # Local content references grant no provider rights. Input admission
             # replays their complete manifests and direct upstream closure;

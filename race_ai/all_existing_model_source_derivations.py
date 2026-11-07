@@ -49,10 +49,19 @@ def _direct(source, clock, *, member=False, seller=False):
     _need(type(source) is dict, 'SOURCE_MEMBER_INVALID')
     url = source.get('source_ref', source.get('source_url'))
     rights = source.get('source_rights_ref')
-    _need(type(url) is str and type(rights) is str and
-          (rights in LEGACY_RIGHTS or rights == RIGHTS), 'DIRECT_SOURCE_SCOPE_INVALID')
-    guard = 'OWNER_PERSONAL_OFFICIAL_B_ANALYSIS_20261104' if rights == RIGHTS else rights
-    _legacy_refs([(url, guard)])
+    _need(type(url) is str and type(rights) is str, 'DIRECT_SOURCE_SCOPE_INVALID')
+    if rights in ('OWNER_PERSONAL_OFFICIAL_KEIRIN_FACTUAL_ANALYSIS_20261107',
+                  'OWNER_PERSONAL_OFFICIAL_AUTORACE_FACTUAL_ANALYSIS_20261107',
+                  'OWNER_PERSONAL_OFFICIAL_HORSE_FACTUAL_ANALYSIS_20261107'):
+        from .manual_official_capture import validate_source_pair
+        try:
+            validate_source_pair(url, rights)
+        except ValueError:
+            raise ValueError('ALL_MODEL_SOURCE_DERIVATION_DIRECT_SOURCE_SCOPE_INVALID') from None
+    else:
+        _need(rights in LEGACY_RIGHTS or rights == RIGHTS, 'DIRECT_SOURCE_SCOPE_INVALID')
+        guard = 'OWNER_PERSONAL_OFFICIAL_B_ANALYSIS_20261104' if rights == RIGHTS else rights
+        _legacy_refs([(url, guard)])
     if member:
         allowed = BASE_FIELDS | ({'event_date_jst', 'dataset_kind', 'metric_semantics'} if seller else set())
         _need(set(source) == allowed, 'SOURCE_MEMBER_FIELDS_INVALID')

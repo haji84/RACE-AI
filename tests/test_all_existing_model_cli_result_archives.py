@@ -123,4 +123,20 @@ class CliResultArchiveTests(unittest.TestCase):
              patch.object(cli,'_github_json',side_effect=self.external),self.assertRaisesRegex(ValueError,'ACTUAL_METADATA_MISMATCH'):
             cli.load_intake('unused','unused',self.dataset,now=self.now,result_archive_dirs=[self.resultpath])
 
+    def test_already_frozen_native_slots_keep_their_exact_bytes_before_optional_derivation(self):
+        from race_ai.all_existing_model_result_intake import observations_from_result_artifact
+        from race_ai.all_existing_model_round_intake import records_from_round_artifact
+        observations=observations_from_result_artifact(self.result_raw,self.result_meta,now=self.now,
+            expected_run_id=42,expected_head_sha=native.fixtures.HEAD)['observations']
+        frozen=records_from_round_artifact(self.input_raw,self.input_meta,observations,now=self.now,
+            expected_run_id=42,expected_head_sha=native.fixtures.HEAD)['records']
+        with patch.object(cli,'load_verified_intake',side_effect=lambda *a,**k:self.source()), \
+             patch.object(cli,'_github_json',side_effect=self.external):
+            records,_,intake=cli.load_intake('unused','unused',self.dataset,now=self.now,
+                derive_observed=True,native_round_archive_dirs=[self.inpath],result_archive_dirs=[self.resultpath])
+        self.assertTrue(frozen);self.assertGreater(intake['derived_native_slots_preserved'],0)
+        for record in frozen:
+            self.assertIn(record,records)
+            self.assertNotIn('input_derivation',record)
+
 if __name__=='__main__':unittest.main()

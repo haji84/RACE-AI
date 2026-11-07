@@ -391,25 +391,36 @@ def verify_training(training):
                 check_clock(row['as_of'],row['cutoff_at'],row['input_saved_at'])
                 need(asof<=result_at and saved<=result_at and cutoff<=result_at<=available,'LINEAGE_CLOCK')
                 if any(name in row for name in ('input_derivation','input_derivation_sha256','input_save_semantics')):
-                    from .all_existing_model_derivation import SCHEMA as DERIVATION_SCHEMA,DERIVATION_ID,AVAILABILITY_BASIS
+                    from .all_existing_model_derivation import (SCHEMA as DERIVATION_SCHEMA,DERIVATION_ID,
+                        AVAILABILITY_BASIS,NATIVE_SCHEMA,NATIVE_DERIVATION_ID,NATIVE_AVAILABILITY_BASIS)
                     proof=row.get('input_derivation')
+                    need(type(proof) is dict,'DERIVATION_LINEAGE')
+                    native_proof=proof.get('schema')==NATIVE_SCHEMA
                     fields={'schema','derivation_id','derived_at','original_record_sha256','original_model_id',
                         'original_payload_sha256','original_snapshot_sha256','original_input_receipt',
                         'original_input_saved_at','original_as_of','original_cutoff_at','native_input_sha256',
                         'data_availability_basis','derived_payload_saved_before_cutoff'}
-                    need(type(proof) is dict and set(proof)==fields and
-                        proof['schema']==DERIVATION_SCHEMA and proof['derivation_id']==DERIVATION_ID and
-                        proof['data_availability_basis']==AVAILABILITY_BASIS and
+                    if native_proof:fields|={'original_input_receipt_sha256','historical_native_payload_bytes'}
+                    need(set(proof)==fields and
+                        proof['schema']==(NATIVE_SCHEMA if native_proof else DERIVATION_SCHEMA) and
+                        proof['derivation_id']==(NATIVE_DERIVATION_ID if native_proof else DERIVATION_ID) and
+                        proof['data_availability_basis']==(NATIVE_AVAILABILITY_BASIS if native_proof else AVAILABILITY_BASIS) and
                         proof['derived_payload_saved_before_cutoff'] is False and
+                        (not native_proof or proof['historical_native_payload_bytes'] is False) and
                         row.get('input_save_semantics')=='ORIGINAL_OBSERVATION_AVAILABILITY_BOUND' and
                         hash_value(row.get('input_derivation_sha256')),'DERIVATION_LINEAGE')
-                    need(all(hash_value(proof[field]) for field in ('original_record_sha256','original_payload_sha256',
+                    need(sport=='boat' and registry.group(mid) in ('shared','shared_learned','boat_full') and
+                        all(hash_value(proof[field]) for field in ('original_record_sha256','original_payload_sha256',
                         'original_snapshot_sha256','native_input_sha256')) and proof['original_model_id'] in OBSERVED and
                         type(proof['original_input_receipt']) is dict and bool(proof['original_input_receipt']) and
                         proof['native_input_sha256']==row['input_sha256'] and
                         proof['original_as_of']==row['as_of'] and proof['original_cutoff_at']==row['cutoff_at'] and
                         proof['original_input_saved_at']==row['input_saved_at'] and
                         saved<=timestamp(proof['derived_at'])<=created,'DERIVATION_LINEAGE_BINDING')
+                    if native_proof:
+                        need(hash_value(proof['original_input_receipt_sha256']) and
+                             proof['original_input_receipt_sha256']==digest(proof['original_input_receipt']),
+                             'DERIVATION_LINEAGE_BINDING')
                 result_times[rid]=result_at
             need(set(result_times)==train_ids|valid_ids,'LINEAGE_COHORT')
             need(max(result_times[rid] for rid in train_ids)<min(result_times[rid] for rid in valid_ids),
@@ -427,15 +438,16 @@ def verify_training(training):
                 need(timestamp(native['data_available_until'])<=available and timestamp(native['created_at'])<=created,
                      'NATIVE_TRAINING_CLOCK')
             elif mid==LEARNED_ID:
-                from .four_sport_learning import (vector_schema, VECTOR_VERSION, TRAIN_ONLY_VERSION,
-                    SPARSE_VECTOR_VERSION, SPARSE_TRAIN_ONLY_VERSION)
+                from .four_sport_learning import vector_schema, VECTOR_VERSION, TRAIN_ONLY_VERSION, sparse_versions
                 sparse=input_schema==registry.SHARED_SPARSE
+                versions=sparse_versions(sport) if sparse else dict(
+                    vector_version=VECTOR_VERSION,train_only_version=TRAIN_ONLY_VERSION)
                 need(type(native) is dict and native.get('model_id')==mid and native.get('sport')==sport and
                      hash_value(native.get('model_sha256')) and
                      native['model_sha256']==digest({k:v for k,v in native.items() if k!='model_sha256'}),
                      'NATIVE_TRAINING_INTEGRITY')
-                need(native['trained_scope']==training['scope'] and native['vector_version']==(SPARSE_VECTOR_VERSION if sparse else VECTOR_VERSION) and
-                     native['model_version']==(SPARSE_TRAIN_ONLY_VERSION if sparse else TRAIN_ONLY_VERSION) and
+                need(native['trained_scope']==training['scope'] and native['vector_version']==versions['vector_version'] and
+                     native['model_version']==versions['train_only_version'] and
                      native.get('input_schema',registry.SHARED_SCHEMA)==(registry.SHARED_SPARSE if sparse else registry.SHARED_SCHEMA) and
                      native['vector_schema']==list(vector_schema(sport,sparse=sparse)) and
                      type(native['weights']) is list and

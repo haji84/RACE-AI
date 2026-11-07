@@ -28,6 +28,23 @@ SPARSE_TRAIN_ONLY_VERSION="0.4-train-only-sparse-boat"
 SPARSE_CHRONOLOGICAL_VERSION="0.4-chronological-sparse-boat"
 
 
+def sparse_versions(sport):
+    """Return the exact native sparse artifact versions for one sport.
+
+    BOAT keeps the already retained version strings. Other sports bind their
+    own vector semantics without changing the original dense model catalog.
+    """
+    if type(sport) is not str or sport not in SPORT_REQUIRED:
+        raise ModelInputError("unknown sparse sport")
+    if sport=="boat":
+        return dict(vector_version=SPARSE_VECTOR_VERSION,
+                    train_only_version=SPARSE_TRAIN_ONLY_VERSION,
+                    chronological_version=SPARSE_CHRONOLOGICAL_VERSION)
+    return dict(vector_version=f"{sport}-observed-feature-environment-and-mask-v1",
+                train_only_version=f"0.4-train-only-sparse-{sport}",
+                chronological_version=f"0.4-chronological-sparse-{sport}")
+
+
 def vector_schema(sport,*,sparse=False):
     if sparse:
         names=COMMON_REQUIRED+SPORT_REQUIRED[sport]+SPORT_OPTIONAL[sport]
@@ -82,7 +99,7 @@ def _sparse_vector(p,snapshot,env,sport):
     vals.extend(env[k]["value"] if k in env else 0.0 for k in environment)
     vals.extend(float(k in env) for k in environment)
     vals.extend([
-        1-(p["draw"]-1)/5,
+        1-(p["draw"]-1)/max(1,(6 if sport=="boat" else len(snapshot["participants"]))-1),
         float(p["style"]=="front"),float(p["style"]=="closer"),float(p["style"]=="stalker"),
         env["surface_wetness"]["value"]*f["course_compatibility"]["value"]
             if "surface_wetness" in env and "course_compatibility" in f else 0.0,
@@ -147,7 +164,14 @@ def forecast(snapshot,model,*,allow_source=None):
         raise ModelInputError("learned model integrity mismatch")
     if moment(race["as_of"])<=moment(model["trained_until"]):
         raise ModelInputError("prediction must follow training cutoff")
-    if model.get("model_version") in (TRAIN_ONLY_VERSION,SPARSE_TRAIN_ONLY_VERSION,SPARSE_CHRONOLOGICAL_VERSION):
+    creation_versions=(TRAIN_ONLY_VERSION,SPARSE_TRAIN_ONLY_VERSION,SPARSE_CHRONOLOGICAL_VERSION)
+    if sparse and race["sport"]!="boat":
+        versions=sparse_versions(race["sport"])
+        expected=(versions["train_only_version"],versions["chronological_version"])
+        if model.get("vector_version")!=versions["vector_version"] or model.get("model_version") not in expected:
+            raise ModelInputError("model version/sport/features conflict")
+        creation_versions+=expected
+    if model.get("model_version") in creation_versions:
         created=moment(model.get("created_at"))
         data_until=moment(model.get("trained_data_until"))
         boundary=moment(model.get("test_end",model["trained_until"]))
@@ -324,7 +348,8 @@ def fit_training_only(rows,*,sport,train_end_at,allow_source=None,allow_result=N
         "data_sources_independently_attested":False,
     }
     if input_schema==SCHEMA_SPARSE:
-        model.update(input_schema=SCHEMA_SPARSE,model_version=SPARSE_TRAIN_ONLY_VERSION,vector_version=SPARSE_VECTOR_VERSION,
+        versions=sparse_versions(sport)
+        model.update(input_schema=SCHEMA_SPARSE,model_version=versions["train_only_version"],vector_version=versions["vector_version"],
                      result_time_semantics="CAPTURED_AVAILABILITY_BOUND_PUBLICATION_MAY_BE_UNKNOWN")
     model["model_sha256"]=digest(model)
     return model
@@ -442,7 +467,8 @@ def fit_chronological(rows,*,sport,train_end_at,validation_end_at,test_end_at,
         created=datetime.now(timezone.utc) if now is None else now()
         if not isinstance(created,datetime) or created.utcoffset() is None or created<test_end:
             raise ModelInputError("creation clock must follow chronological cohort boundaries")
-        model.update(input_schema=SCHEMA_SPARSE,model_version=SPARSE_CHRONOLOGICAL_VERSION,vector_version=SPARSE_VECTOR_VERSION,
+        versions=sparse_versions(sport)
+        model.update(input_schema=SCHEMA_SPARSE,model_version=versions["chronological_version"],vector_version=versions["vector_version"],
                      created_at=created.astimezone(timezone.utc).isoformat(),created_at_independently_attested=False,
                      trained_data_until=max(moment(r["result"]["captured_at"]) for r in admitted).astimezone(timezone.utc).isoformat(),
                      training_data_sha256=digest(sorted(admitted,key=lambda r:r["snapshot"]["race"]["race_id"])),

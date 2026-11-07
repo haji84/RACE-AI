@@ -179,7 +179,6 @@ def validate(raw,*,allow_source=None):
                 "as_of","distance_m","surface","race_kind","race_revision"},"race")
     sport=race["sport"]
     if sport not in KINDS:raise ModelInputError("unknown sport")
-    if sparse and sport!="boat":raise ModelInputError("sparse schema currently supports boat only")
     if not isinstance(race["race_id"],str) or not 8<=len(race["race_id"])<=200:
         raise ModelInputError("stable race ID required")
     if not isinstance(race["venue"],str) or not race["venue"] or len(race["venue"])>128:
@@ -214,14 +213,18 @@ def validate(raw,*,allow_source=None):
         raise ModelInputError("sport field size unsupported")
     seen=set()
     missing_by_runner={}
+    # Keep observed physical numbers/draws when a sparse field has withdrawals.
+    # Dense contracts retain their original bounds and normalization unchanged.
+    sparse_slots={"boat":6,"keirin":9,"autorace":8,"horse":18}[sport]
     for p in participants:
         exact(p,{"number","identity","draw","style","group_id","features"}|({"missing"} if sparse else set()),"participant")
-        if type(p["number"]) is not int or not 1<=p["number"]<=(6 if sparse else 99) or p["number"] in seen:
+        if type(p["number"]) is not int or not 1<=p["number"]<=(sparse_slots if sparse else 99) or p["number"] in seen:
             raise ModelInputError("participant number repeated/out of range")
         seen.add(p["number"])
         if not isinstance(p["identity"],str) or len(p["identity"])<1 or len(p["identity"])>100:
             raise ModelInputError("participant identity absent")
-        if type(p["draw"]) is not int or not 1<=p["draw"]<=(6 if sparse else n) or sparse and p["draw"]!=p["number"]:
+        if (type(p["draw"]) is not int or not 1<=p["draw"]<=(sparse_slots if sparse else n) or
+            sparse and sport=="boat" and p["draw"]!=p["number"]):
             raise ModelInputError("draw outside declared field")
         if p["style"] not in STYLES:
             raise ModelInputError("unknown/pre-result running style")

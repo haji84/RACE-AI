@@ -32,7 +32,6 @@ def specs(model_id,sport,*,input_schema=None):
     if model_id in OBSERVED:return {k:(v,0.,4.) for k,v in zip(FEATURE_RANGES,WEIGHTS[model_id])}
     if model_id==LEARNED_ID:
         need(input_schema in (None,SHARED_SCHEMA,SHARED_SPARSE),'RANKER_INPUT_SCHEMA')
-        need(input_schema!=SHARED_SPARSE or sport=='boat','SPARSE_SPORT')
         return {name:(0.,-8.,8.) for name in vector_schema(sport,sparse=input_schema==SHARED_SPARSE)}
     adapter=boat if group(model_id) in ('boat_ab','boat_clite','boat_tactical','boat_full') else common if group(model_id)=='shared' else special
     return adapter.specs(model_id,sport)
@@ -54,8 +53,8 @@ def parameter_contract(model_id,sport,*,input_schema):
     their frozen input and contract digests are retained in the owner intake.
     """
     kind=group(model_id)
-    need(sport=='boat' and ((kind in ('shared','shared_learned') and input_schema==SHARED_SPARSE) or
-                           (kind=='boat_full' and input_schema==FULL_SPARSE)),'SPARSE_PARAMETER_CONTRACT')
+    need((kind in ('shared','shared_learned') and input_schema==SHARED_SPARSE) or
+         (sport=='boat' and kind=='boat_full' and input_schema==FULL_SPARSE),'SPARSE_PARAMETER_CONTRACT')
     return dict(schema='RACE_AI_EXISTING_SPARSE_PARAMETER_CONTRACT_V1',model_id=model_id,sport=sport,
                 input_schema=input_schema,parameters={k:list(v) for k,v in specs(model_id,sport,input_schema=input_schema).items()})
 
