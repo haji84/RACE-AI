@@ -836,7 +836,7 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_teiai*.py' -v
       - name: Python synthetic journal to viewer projection tests
         if: steps.official_recovery_preflight.outputs.reuse_prior_verification != 'true'
-        run: python -m unittest discover -s tests -v
+        run: python -m unittest discover -s tests -v -f
       - name: Verify isolated experimental video decoding and measurements
         if: steps.official_recovery_preflight.outputs.reuse_prior_verification != 'true'
         run: |

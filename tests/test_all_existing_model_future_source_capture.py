@@ -72,7 +72,7 @@ class FutureSourceCaptureTests(unittest.TestCase):
         from scripts import all_existing_model_future_source_capture as wrapper
         with tempfile.TemporaryDirectory() as temporary:
             directory=Path(temporary)/'browser';directory.mkdir(mode=0o700)
-            (directory/'capture-index.json').write_text('{}')
+            index=directory/'capture-index.json';index.write_text('{}');index.chmod(0o600)
             with patch.dict(os.environ,{'PATH':'/usr/bin:/bin','RACE_AI_STATE_KEY':'private','GITHUB_TOKEN':'private','GH_TOKEN':'private',
                 'ARBITRARY_PASSWORD':'private','NODE_OPTIONS':'--require=private','HTTPS_PROXY':'http://proxy.test:80',
                 'NODE_EXTRA_CA_CERTS':'/tmp/ca.crt'},clear=True),patch.object(wrapper,'subprocess') as sub:

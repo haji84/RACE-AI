@@ -26,7 +26,8 @@ class FutureNodePathTests(unittest.TestCase):
     def test_only_fixed_real_runner_tooling_path_is_forwarded_without_secrets(self):
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary);modules=root/'race-ai-future-ui-tools'/'node_modules';modules.mkdir(parents=True)
-            browser=root/'browser';browser.mkdir();(browser/'capture-index.json').write_text('{}')
+            browser=root/'browser';browser.mkdir(mode=0o700)
+            index=browser/'capture-index.json';index.write_text('{}');index.chmod(0o600)
             env=dict(GITHUB_ACTIONS='true',GITHUB_REPOSITORY='haji84/RACE-AI',GITHUB_REPOSITORY_ID='1416489937',
                 RUNNER_TEMP=str(root),NODE_PATH=str(modules),NODE_OPTIONS='private',RACE_AI_STATE_KEY='private',
                 GH_TOKEN='private',PNPM_HOME='private',ARBITRARY_SECRET='private')
@@ -41,7 +42,8 @@ class FutureNodePathTests(unittest.TestCase):
         for change in ('relative','multiple','other','repo','symlink','not_actions','missing'):
             with tempfile.TemporaryDirectory() as temporary:
                 root=Path(temporary);modules=root/'race-ai-future-ui-tools'/'node_modules';modules.mkdir(parents=True)
-                browser=root/'browser';browser.mkdir();(browser/'capture-index.json').write_text('{}')
+                browser=root/'browser';browser.mkdir(mode=0o700)
+                index=browser/'capture-index.json';index.write_text('{}');index.chmod(0o600)
                 path=str(modules)
                 if change=='relative':path='race-ai-future-ui-tools/node_modules'
                 elif change=='multiple':path+=os.pathsep+'/other/modules'
