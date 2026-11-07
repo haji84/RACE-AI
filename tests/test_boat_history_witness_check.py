@@ -36,7 +36,7 @@ class HistoryWitnessCheckTests(unittest.TestCase):
         self.assertEqual(len(self.calls),3);self.assertEqual(len(set(self.calls)),3)
         self.assertEqual(report['actual_log_sha256'],self.fixture.fixture['log_sha256'])
         self.assertEqual(report['actual_log_bytes'],len(self.fixture.log))
-        self.assertEqual(set(report),{'schema','state','verified','metadata_pass','actual_log_sha256',
+        self.assertEqual(set(report),{'schema','state','stage','log_transport','verified','metadata_pass','actual_log_sha256',
             'expected_log_sha256','actual_log_bytes','reason'})
         self.assertNotIn('source_days',json.dumps(report));self.assertNotIn('projection',report)
     def test_byte_changed_bom_or_line_endings_are_hold_without_alternate_hash_acceptance(self):

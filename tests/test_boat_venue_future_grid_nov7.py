@@ -118,14 +118,16 @@ class Nov7WitnessTests(unittest.TestCase):
         expected = {f'actions/runs/{run}/attempts/1{tail}' for run in (grid.READBACK_RUN, self.actual_run['id'])
             for tail in ('', '/jobs?per_page=100')}
         expected |= {f'actions/jobs/{job}/logs' for job in (grid.READBACK_JOB, self.job['id'])}
+        expected |= {f'actions/runs/{run}/attempts/1/logs' for run in (grid.READBACK_RUN,self.actual_run['id'])}
         self.assertEqual(set(grid.readback_routes()), expected)
-        with patch('scripts.github_existing_cycle._live_gh', return_value=b'actual GitHub fixture') as fetch:
+        with patch('scripts.github_existing_cycle._live_gh', return_value=b'actual GitHub fixture') as fetch, \
+                patch('race_ai.boat_history_log_archive.extract_readback_log',return_value=b'actual GitHub fixture'):
             for path in expected: self.assertEqual(cli._prospective_grid_get(path), b'actual GitHub fixture')
-            self.assertEqual(fetch.call_count, 6)
+            self.assertEqual(fetch.call_count, 8)
             for path in ('actions/runs/1/attempts/1', f'actions/runs/{self.actual_run["id"]}/attempts/2',
                          f'actions/jobs/{self.job["id"]+1}/logs'):
                 with self.assertRaises(ValueError): cli._prospective_grid_get(path)
-            self.assertEqual(fetch.call_count, 6)
+            self.assertEqual(fetch.call_count, 8)
 
     def test_fourteen_new_native_cells_use_selected_proof(self):
         from race_ai import all_existing_model_registry as registry

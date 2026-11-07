@@ -25,6 +25,7 @@ READBACK_RUN = 42370578793
 READBACK_JOB = 128397771646
 METADATA_SHA = 'a7c6ed0a973309804938eeefdb207b69d3b402c24247a7488fe8b09f676f15bf'
 LOG_SHA = '34b242bba6a1724e1107452da2f2e283ea71abd35a2ef60328334ba3c3dd7208'
+READBACK_LOG_MEMBER = '2_Independently restore encrypted all-racer SQLite.txt'
 REQUIRED_STEPS = {
     2: 'Run actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683',
     7: 'Authenticate, decrypt, verify SQLite and lookup every racer',
@@ -68,8 +69,19 @@ def readback_routes():
         witness = row['readback']
         routes.update((f'actions/runs/{witness["run_id"]}/attempts/1',
                        f'actions/runs/{witness["run_id"]}/attempts/1/jobs?per_page=100',
+                       f'actions/runs/{witness["run_id"]}/attempts/1/logs',
                        f'actions/jobs/{witness["job_id"]}/logs'))
     return frozenset(routes)
+
+
+def readback_log_archive(job_log_path):
+    """Map a registered job to its documented attempt archive and exact member."""
+    matches=[row['readback'] for row in _witnesses() if
+        job_log_path==f'actions/jobs/{row["readback"]["job_id"]}/logs']
+    _need(len(matches)==1,'UNREVIEWED_LOG_ROUTE')
+    selected=matches[0]
+    return dict(route=f'actions/runs/{selected["run_id"]}/attempts/1/logs',
+        member=READBACK_LOG_MEMBER,log_sha256=selected['log_sha256'])
 
 
 def validate_manifest(value):

@@ -114,12 +114,18 @@ def gh(path):
 
 def _prospective_grid_get(path):
     """Narrow reader-only routes for the literal reviewed grid witnesses."""
-    from race_ai.boat_venue_future_grid import readback_routes
+    from race_ai.boat_venue_future_grid import readback_routes,readback_log_archive
     need(path in readback_routes(), 'PROSPECTIVE_GRID_GITHUB_ROUTE')
     # This admission needs fresh actual server metadata, even when the worker
     # has opted into archived original-artifact recovery for other operations.
     from scripts.github_existing_cycle import _live_gh
-    raw = _live_gh(path)
+    if path.startswith('actions/jobs/') and path.endswith('/logs'):
+        from race_ai.boat_history_log_archive import extract_readback_log
+        # A stale cached job-log redirect can point at an expired signed URL.
+        # Use only the documented selected attempt archive, not that URL.
+        archive=_live_gh(readback_log_archive(path)['route'])
+        raw=extract_readback_log(archive,job_log_path=path)
+    else:raw = _live_gh(path)
     need(type(raw) is bytes and 0 < len(raw) <= 8*1024*1024, 'PROSPECTIVE_GRID_GITHUB_BOUND')
     return raw
 
