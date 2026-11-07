@@ -163,7 +163,7 @@
       "skips": 0,
       "passed": true,
       "code_commit": "39c979509ee1b9b163638bc6781c1e9fd4f278f1",
-      "scope": "before final geometric companion and new CLI; remaining source unchanged"
+      "scope": "Executed at the recorded local commit, before the final marker geometry and new CLI; not a full test of the later rebased GitHub HEAD, which includes concurrent non-video changes"
     },
     "final_all_video_tests": {
       "tests": 614,
