@@ -169,3 +169,14 @@ class HandoffTests(unittest.TestCase):
         self.assertNotIn(old_cipher,present,'old daily ciphertext is retained and audited through its tree identity without downloading it')
         config=subprocess.run(['git','-C',str(receiver),'config','--local','--get','remote.origin.promisor'],capture_output=True)
         self.assertEqual(config.returncode,1,'fetch settings must remain command-scoped')
+    def test_runner_failure_reports_code_locations_without_command_or_source_contents(self):
+        import io,sys
+        from contextlib import redirect_stdout
+        from unittest.mock import patch
+        from scripts import racer_daily_refresh as cli
+        output=io.StringIO();error=subprocess.TimeoutExpired(['git','cat-file','PRIVATE_ARGUMENT'],60,output=b'PRIVATE_SOURCE')
+        with patch.object(sys,'argv',['racer_daily_refresh','--private-dir',self.t.name]),patch.object(cli,'refresh',side_effect=error),redirect_stdout(output):
+            result=cli.main()
+        report=json.loads(output.getvalue());self.assertEqual(result,1)
+        self.assertEqual(report['exception_type'],'TimeoutExpired');self.assertTrue(report['code_trace'])
+        self.assertNotIn('PRIVATE_',output.getvalue());self.assertNotIn(self.t.name,output.getvalue())

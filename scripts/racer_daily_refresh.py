@@ -60,5 +60,10 @@ def main():
     try:report=refresh(a.repo,a.private_dir,initialize=a.initialize,verify=a.verify_public);print(wire(report));return 0 if report['status']=='DAILY_REFRESHED' else 2
     except Exception as exc:
         code=str(exc) if isinstance(exc,ValueError) and str(exc).isupper() and len(str(exc))<=100 else 'DAILY_REFRESH_FAILED'
-        print(wire(dict(status='HOLD',reason=code,private_sources_published=False)));return 1
+        trace=[];frame=exc.__traceback__
+        while frame:
+            trace.append(Path(frame.tb_frame.f_code.co_filename).name+':'+str(frame.tb_lineno)+':'+frame.tb_frame.f_code.co_name);frame=frame.tb_next
+        # Code locations diagnose runner/network failures without exception text,
+        # subprocess arguments, captured output, source values or local variables.
+        print(wire(dict(status='HOLD',reason=code,exception_type=type(exc).__name__,code_trace=trace[-8:],private_sources_published=False)));return 1
 if __name__=='__main__':raise SystemExit(main())
