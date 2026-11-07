@@ -247,13 +247,19 @@
     const status = node("small", "portrait-status", race?.scope === "synthetic" ? "合成表示" : "イラスト準備中");
     const portrait = globalThis.RaceRacerPortraits?.get(race, p);
     if (portrait) {
-      const img = node("img", "racer-portrait");
+      const img = node("img", portrait.atlas ? "portrait-atlas-image" : "racer-portrait");
+      let artwork = img;
+      if (portrait.atlas) {
+        const a = portrait.atlas;
+        artwork = node("span", "racer-portrait portrait-atlas atlas-size-" + a.columns + " atlas-x-" + a.column + " atlas-y-" + a.row);
+        artwork.append(img);
+      }
       img.alt = portrait.name + "選手のイラスト";
       img.width = img.height = 88;
       img.loading = "lazy"; img.decoding = "async"; img.referrerPolicy = "no-referrer";
       img.dataset.registration = portrait.registration;
-      img.addEventListener("error", () => { img.remove(); avatar.append(silhouette); status.textContent = "イラスト読込待ち"; }, {once: true});
-      img.src = portrait.src; avatar.append(img); status.textContent = "イラスト";
+      img.addEventListener("error", () => { artwork.remove(); avatar.append(silhouette); status.textContent = "イラスト読込待ち"; }, {once: true});
+      img.src = portrait.src; avatar.append(artwork); status.textContent = "イラスト";
     } else avatar.append(silhouette);
     const registration = participantRegistration(p);
     card.append(avatar, node("strong", "racer-name", p.placeholder ? "出走者 未取得" : p.name ? text(p.name) : "名前 未取得"), node("small", "muted", p.placeholder ? "表示用の枠" : registration ? "登録 " + text(registration) : "登録 未取得"));
@@ -668,16 +674,29 @@
     const portraits = globalThis.RaceRacerPortraits;
     if (!portraits || $("racer-portrait-gallery")) return;
     const panel = node("section", "panel portrait-panel"); panel.id = "racer-portrait-gallery";
-    panel.append(node("h2", "", "選手イラスト"), node("p", "muted", "公式プロフィール写真を参考にしたイラストです。現在" + portraits.all.length + "選手分に対応。未作成の選手は「イラスト準備中」と表示します。"));
+    const coverage = portraits.coverage;
+    panel.append(node("h2", "", "選手イラスト"), node("p", "muted", "公式プロフィール写真を参考にしたイラストです。対象" + coverage.total + "名／" + (portraits.offline ? "このファイルに収録" : "作成済み") + portraits.all.length + "名。未作成の選手は「イラスト準備中」と表示します。"));
     const details = node("details"), grid = node("div", "racer-grid portrait-gallery");
     details.append(node("summary", "", "対応選手と参照元を確認する"));
-    for (const entry of portraits.all) {
-      const card = participantCard({registration_no:entry.registration, name:entry.name}, {sport:"boat", scope:"research"});
-      const link = node("a", "text-link", "公式プロフィール");
-      link.href = entry.sourceUrl; link.target = "_blank"; link.rel = "noopener noreferrer";
-      card.append(link); grid.append(card);
+    const label = node("label", "portrait-search-label", "氏名・登録番号で検索"), search = node("input", "portrait-search");
+    search.type = "search"; search.maxLength = 80; search.id = "portrait-search"; label.htmlFor = search.id;
+    const count = node("p", "muted"), more = button("さらに表示", "outline", () => { shown += 30; render(); });
+    let shown = 30;
+    function render() {
+      const query = search.value.replace(/\s+/g, "");
+      const matches = portraits.all.filter(p => !query || p.registration.includes(query) || p.aliases.some(name => name.replace(/\s+/g, "").includes(query)));
+      grid.replaceChildren();
+      for (const entry of matches.slice(0, shown)) {
+        const card = participantCard({registration_no:entry.registration, name:entry.name}, {sport:"boat", scope:"research"});
+        const link = node("a", "text-link", "公式プロフィール");
+        link.href = entry.sourceUrl; link.target = "_blank"; link.rel = "noopener noreferrer";
+        card.append(link); grid.append(card);
+      }
+      count.textContent = matches.length ? Math.min(shown, matches.length) + "名を表示／該当" + matches.length + "名" : "該当する作成済みイラストはありません。";
+      more.hidden = shown >= matches.length;
     }
-    details.append(grid); panel.append(details);
+    search.addEventListener("input", () => { shown = 30; render(); });
+    details.append(label, search, count, grid, more); render(); panel.append(details);
     document.querySelector("#page-settings .two-column > div").append(panel);
   }
   function renderMeta() {

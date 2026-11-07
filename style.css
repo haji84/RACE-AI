@@ -94,3 +94,10 @@ body{overflow-wrap:break-word}button{min-height:34px}input,select{min-height:36p
 .portrait-gallery .text-link{display:block;font-size:10px;margin-top:8px}
 @media(max-width:640px){.racer-portrait{width:48px;height:48px}.expanded .racer-portrait{width:54px;height:54px}.portrait-status{font-size:8px}.portrait-gallery{grid-template-columns:repeat(2,minmax(0,1fr))}.portrait-gallery .racer-portrait{width:72px;height:72px}}
 @media(max-width:360px){.racer-portrait{width:38px;height:38px}.expanded .racer-portrait{width:42px;height:42px}}
+
+.portrait-atlas{position:relative;overflow:hidden;flex-shrink:0}
+.portrait-atlas>.portrait-atlas-image{display:block;position:absolute;max-width:none;object-fit:fill;left:0;top:0}
+.atlas-size-5>.portrait-atlas-image{width:500%;height:500%}.atlas-size-6>.portrait-atlas-image{width:600%;height:600%}
+.atlas-x-1>.portrait-atlas-image{left:-100%}.atlas-x-2>.portrait-atlas-image{left:-200%}.atlas-x-3>.portrait-atlas-image{left:-300%}.atlas-x-4>.portrait-atlas-image{left:-400%}.atlas-x-5>.portrait-atlas-image{left:-500%}
+.atlas-y-1>.portrait-atlas-image{top:-100%}.atlas-y-2>.portrait-atlas-image{top:-200%}.atlas-y-3>.portrait-atlas-image{top:-300%}.atlas-y-4>.portrait-atlas-image{top:-400%}.atlas-y-5>.portrait-atlas-image{top:-500%}
+.portrait-search-label{display:block;font-size:12px;margin-top:10px}.portrait-search{display:block;width:100%;margin:8px 0 10px;padding:10px;border:1px solid #d1e3ee;border-radius:8px;font:inherit}.portrait-panel .outline{margin-top:14px}
