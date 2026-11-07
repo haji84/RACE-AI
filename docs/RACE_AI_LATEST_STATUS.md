@@ -2181,3 +2181,20 @@ PR #71のHEAD `d079bd99b1ed5b26a1aeade60b216bebc9f30218` と過去runを読み�
 - 今回ローカル再計算サマリーSHA256: 9ca4a68d72cb38060271ad93883c163efc210417cff953b89873dfb8f023c3d6。
 
 直前16:42の状態文書全文は [変更前の監査記録](evidence/2026-11-04/status-before-paired-comparison-1720.md) に元blob4729606f7d217fffa092c7251e11af87816e92f1のまま保存。過去の証拠や他チャットの記録を削除していない。
+
+
+---
+<!-- RACEAI_AUTOMATION_20261107_1726_READONLY_AUDIT -->
+## 2026-11-07 17:26 JST｜RACE-AI既存source第2巡と19枠研究fitの安全監査
+
+**監査対象**：Draft PR #71、branch `feat/four-sport-forecast-audit-view-20261022`、監査時 HEAD `329014cb3cef495ebc1df5558fa012f5e150b646`。既存 source workflow 405276784 の run `42352096559`（起動HEAD `784b446c62790d4cb3c7efe2e4f88dc778daa079`）は `in_progress`。実jobは第1巡 `success`、第2巡 `in_progress`、第3巡以降 `pending` のstep状態。別runの待機/queued/pending/waitingは一覧内で0件。現在runをcancel/rerunせず、追加source triggerも行わない。
+
+**原本の独立読取**：現在runの第2巡に対応する暗号化artifact `boat-national-cutoff-42352096559-cycle-02`／id `13567480576` を独立ダウンロード。実ZIPバイトのSHA256 `e084dc3a72f0e5eca34579bf52f52963a3d2cf52cc9deda4d7a98b100e9a2544` がGitHub API登録digestに一致、ZIP破損なし、暗号化member `private-original.enc` の存在確認。**鍵のない検査のため内部status/forecasts.csv/公式結果・係数・HMACは読戻し未実施**。第2巡のファイルが存在することと、実行step完了・予想採点成功は区別する。
+
+**前回正常終了workerのsource control**：run `42342290428` は `completed/success`、HEAD `df05282fc85265b99c43141c74dff678a53518ac`。original-vaultの公開運用カウンター `state/boat-source-control/v1/latest.json` 参照先の同日レコードについて、repo id `1416489937`、branch、workflow `405276784`、run id/HEAD/statusとcontrol/continuity実artifact id・size・API digestの一致を確認。既存メタデータの第4巡・146/240GET・`BOUNDED_SESSION_END`・source_wait=nullは過去runの値で、現在実行中runのGETや停止理由に転用しない。MAC/HMACの検証と所有者鍵による暗号原本復号はこの監査では行っていない。
+
+**モデルと結果の区分**：公開の残枠記録は実研究fit **19/31枠（BOAT14/HORSE5）**、元入力152 records（112+40）、同競技8実レース／枠を6 train/2 holdoutで学習。HORSE通常8結果・特殊2結果。残12枠はAUTO6、KEIRIN5、seller1。19候補の未来レースでの独立保存・実PDCA・本番採用は未実証。元のBOAT14ペアは通常1レースの比較であり、成績の優位性証明ではない。実Actions `42352845874` と `42353120278` は `failure`、後者のviewer jobは動画fixture `tests.test_boat_video_marker_cli.MarkerCliTests.setUpClass` でAssertionError。全体CI成功や19候補の本番読戻しを主張しない。
+
+**収集HOLD**：既存result collector run `42349536138` は全workflow successでもAUTO/KEIRINの6ケース `HOLD_BROWSER_SOURCE_UNVERIFIED`。当該暗号journal id `13565712487` のbrowser予約24件は実通信回数UNKNOWN（全予約上限32）として保持。再起動・別credential/URL・回数reset・未確認結果の外れ認定は行わない。売主型のwaku10一次値もINPUT_MISSINGのまま。
+
+**保全**：原本/係数/買い目/学習SHA/旧スナップショット/trigger/workflow/スケジュールは無変更。このstatus追記は実source GETを発火するworkflowのpaths filter対象外。新source・表示jobの明示起動、新モデル、新PR、本番切替、main統合、一般公開、実投票、外部サービス・課金は実施しない。最新実行中runと終了runの成果を混合せず、28シナリオの正式収支・モデル別的中率は未独立確認。
