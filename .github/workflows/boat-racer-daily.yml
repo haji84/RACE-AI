@@ -71,11 +71,11 @@ jobs:
           python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results "${args[@]}"
       - name: Install browser check only for an explicit verification run
         if: >-
-          (github.event_name == 'workflow_dispatch' && inputs.verify_site) || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results'))
+          (github.event_name == 'workflow_dispatch' && inputs.verify_site) || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results')) || (github.event_name == 'push' && github.ref == 'refs/heads/codex/retained-result-audit-20261108' && github.actor_id == '173585154' && github.repository_id == '1416489937' && startsWith(github.event.head_commit.message, 'retained-result-audit: verify-site'))
         run: npm install --prefix "$RUNNER_TEMP/result-site-tools" --no-package-lock --ignore-scripts playwright@1.62.1
       - name: Verify private result display without publishing owner data
         if: >-
-          (github.event_name == 'workflow_dispatch' && inputs.verify_site) || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results'))
+          (github.event_name == 'workflow_dispatch' && inputs.verify_site) || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results')) || (github.event_name == 'push' && github.ref == 'refs/heads/codex/retained-result-audit-20261108' && github.actor_id == '173585154' && github.repository_id == '1416489937' && startsWith(github.event.head_commit.message, 'retained-result-audit: verify-site'))
         timeout-minutes: 9
         env:
           GH_TOKEN: ${{ github.token }}
@@ -88,7 +88,14 @@ jobs:
           GIT_CONFIG_KEY_0: http.https://github.com/.extraheader
           GIT_CONFIG_VALUE_0: ''
         run: |
-          python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" --latest-saved-day
+          dates=(--latest-saved-day)
+          checks=()
+          if [[ "$GITHUB_REF" == 'refs/heads/codex/retained-result-audit-20261108' ]]; then
+            [[ "$GITHUB_EVENT_NAME" == 'push' && "$GITHUB_ACTOR_ID" == '173585154' && "$GITHUB_REPOSITORY_ID" == '1416489937' && "$(git log -1 --format=%s)" == retained-result-audit:\ verify-site* ]] || exit 2
+            dates=(--day 2026-11-07)
+            checks+=(--check-current-day)
+          fi
+          python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" "${dates[@]}"
           probe=()
           if [[ -n "$RESULT_PROBE_RACE" ]]; then probe+=("--race-id=$RESULT_PROBE_RACE"); fi
-          env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results "${probe[@]}"
+          env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results "${checks[@]}" "${probe[@]}"

@@ -62,11 +62,12 @@ function validate(context){
   return url.hash.split('.')[1];
 }
 
-function dateEvidence(context,results,p1Groups){
+function dateEvidence(context,results,p1Groups,lifecycleDay){
   const valid=day=>typeof day==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(day)&&
     Number.isFinite(Date.parse(day+'T00:00:00Z'))&&new Date(day+'T00:00:00Z').toISOString().slice(0,10)===day;
   const current=context.current_day??context.day;
   assert.ok(valid(context.day)&&valid(current)&&context.day<=current);
+  if(lifecycleDay!==undefined)assert.equal(lifecycleDay,current,'lifecycle date changed during verification');
   const scope=context.day===current?'CURRENT_DAY':'HISTORICAL_DAY';
   if(context.date_scope!==undefined)assert.equal(context.date_scope,scope);
   assert.ok(Number.isSafeInteger(results)&&results>=0&&Number.isSafeInteger(p1Groups)&&p1Groups>=0);
@@ -76,14 +77,14 @@ function dateEvidence(context,results,p1Groups){
     current_day_p1_groups:scope==='CURRENT_DAY'?p1Groups:null};
 }
 
-async function run(context,{compactResults=false,probeRaceId=null}={}){
+async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDay=false}={}){
   const key=validate(context),{chromium}=require('playwright');
   if(probeRaceId){assert.match(probeRaceId,/^\d{8}-\d{2}-\d{2}$/);assert.equal(probeRaceId.slice(0,8),context.day.replaceAll('-',''));}
   const executablePath=['/usr/bin/google-chrome','/opt/google/chrome/google-chrome',
     '/opt/google/chrome/chrome','/usr/bin/chromium'].find(path=>fs.existsSync(path));
   assert.ok(executablePath,'installed browser required');
   const browser=await chromium.launch({headless:true,executablePath,args:['--no-sandbox']});
-  let blocked=0,leaked=false,checked=0,futureVisible=false,nativeVisible=false,currentResults=0,p1Groups=0,rationaleViewsChecked=0;
+  let blocked=0,leaked=false,checked=0,futureVisible=false,nativeVisible=false,currentResults=0,p1Groups=0,rationaleViewsChecked=0,upcomingRowsChecked=0,venueResultsChecked=0,currentDayLifecycleViews=0,currentDayUpcomingRows=0,currentDayUpcomingCount=null,currentDayClosedCount=null,currentDayPendingCount=null;
   try{
     const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
     page.setDefaultTimeout(45000);
@@ -124,6 +125,23 @@ async function run(context,{compactResults=false,probeRaceId=null}={}){
     for(const width of compactResults?[320,390,1440]:[390,1440]){
       await page.setViewportSize({width,height:1000});await selectDate(context.day);
       await page.locator('[data-page="races"]').filter({visible:true}).first().click();
+      if(await page.locator('#all-venues').isVisible())await page.locator('#all-venues').click();
+      await page.locator('[data-race-view="upcoming"]').click();
+      const upcoming=await page.locator('#all-races [data-cutoff-at]').evaluateAll(nodes=>nodes.map(n=>({at:Date.parse(n.dataset.cutoffAt),phase:n.dataset.racePhase})));
+      for(const value of upcoming){assert.equal(value.phase,'upcoming');assert.ok(value.at>Date.now());}for(let i=1;i<upcoming.length;i++)assert.ok(upcoming[i-1].at<=upcoming[i].at);upcomingRowsChecked+=upcoming.length;
+      if(context.day<context.current_day)assert.equal(upcoming.length,0);
+      await page.locator('[data-race-view="results"]').click();
+      if(context.minimum_results)assert.ok(await page.locator('#all-races .race-result-card').count()>0);
+      if(await page.locator('#all-races .race-result-card').count()){
+        const venue=await page.locator('#all-races .race-result-card').first().getAttribute('data-venue');
+        await page.locator('#venue-buttons [data-venue]').filter({has:page.getByText(venue,{exact:true})}).first().click();
+        assert.equal(await page.locator('#venue-filter').inputValue(),venue);
+        assert.ok((await page.locator('#all-races .race-result-card').evaluateAll((nodes,v)=>nodes.every(n=>n.dataset.venue===v),venue)));
+        await page.locator('[data-race-view="upcoming"]').click();assert.equal(await page.locator('#venue-filter').inputValue(),venue);
+        await page.locator('[data-race-view="results"]').click();assert.equal(await page.locator('#venue-filter').inputValue(),venue);venueResultsChecked++;
+        await page.locator('#all-venues').click();
+      }
+      if(!await page.locator('#page-races [data-open-race]').count())await page.locator('[data-race-view="upcoming"]').click();
       await page.locator('#page-races [data-open-race]').first().click();
       const grid=page.locator('#detail-tab-content .racer-grid[data-entrants]');
       assert.equal(await grid.count(),1);
@@ -140,6 +158,7 @@ async function run(context,{compactResults=false,probeRaceId=null}={}){
       {
         const probe=context.future_native||context.native_probe;
         await page.locator('[data-page="races"]').filter({visible:true}).first().click();
+        await page.locator('[data-race-view="'+(Date.now()<Date.parse(probe.cutoff_at)?'upcoming':'results')+'"]').click();
         const target=await revealRace(page,probe.race_id,context.day_races);await target.click();
         const selected=String(probe.index);
         assert.match(await page.locator('#prediction-select option[value="'+selected+'"]').innerText(),/^P1 /);
@@ -151,7 +170,7 @@ async function run(context,{compactResults=false,probeRaceId=null}={}){
         }
       }
       if(compactResults){
-        if(probeRaceId){await page.locator('[data-page="races"]').filter({visible:true}).first().click();await (await revealRace(page,probeRaceId,context.day_races)).click();await page.locator('#prediction-select').selectOption('0');}
+        if(probeRaceId){await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('[data-race-view="results"]').click();await (await revealRace(page,probeRaceId,context.day_races)).click();await page.locator('#prediction-select').selectOption('0');}
         assert.equal(await page.locator('.race-result-summary').isVisible(),true);
         if(probeRaceId)assert.match(await page.locator('.race-result-summary .saved-outcome').innerText(),/的中|不的中/);
         const normal=await page.locator('#race-detail').innerText();assert.doesNotMatch(normal,/SAVED FORECAST|PRIVATE_CYCLE|INDEPENDENT_RECEIPT|予想SHA/);
@@ -167,6 +186,7 @@ async function run(context,{compactResults=false,probeRaceId=null}={}){
         if(rationale){assert.equal(await page.locator('#race-detail .forecast-rationale-heading').innerText(),'予想根拠');rationaleViewsChecked++;}
 
       }
+      assert.match(await page.locator('[data-page="results"]').filter({visible:true}).first().innerText(),/AI予想結果/);
       await page.locator('[data-page="results"]').filter({visible:true}).first().click();
       p1Groups=await page.locator('#results-model option').evaluateAll(options=>options.filter(o=>o.textContent.startsWith('P1 ')).length);
       assert.ok(p1Groups>=context.native_p1_groups);
@@ -188,6 +208,26 @@ async function run(context,{compactResults=false,probeRaceId=null}={}){
         const old=Number((await page.locator('#saved-result-metrics').innerText()).match(/取得結果\s*(\d+)レース/)?.[1]);
         assert.ok(old>=context.old_completed);
       }
+      if(checkCurrentDay){
+        await selectDate(context.current_day);
+        await page.locator('[data-page="races"]').filter({visible:true}).first().click();
+        if(await page.locator('#all-venues').isVisible())await page.locator('#all-venues').click();
+        await page.locator('[data-race-view="upcoming"]').click();
+        const visible=await page.locator('#all-races [data-cutoff-at]').evaluateAll(nodes=>nodes.map(n=>({at:Date.parse(n.dataset.cutoffAt),label:n.innerText})));
+        for(const row of visible){assert.ok(row.at>Date.now());assert.doesNotMatch(row.label,/結果待ち/);}
+        currentDayUpcomingRows+=visible.length;
+        const count=async view=>Number((await page.locator('[data-race-view="'+view+'"]').innerText()).match(/（(\d+)）/)?.[1]);
+        currentDayUpcomingCount=await count('upcoming');currentDayClosedCount=await count('results');
+        assert.ok(Number.isSafeInteger(currentDayUpcomingCount)&&Number.isSafeInteger(currentDayClosedCount));
+        if(currentDayUpcomingCount>0)assert.ok(visible.length>0);
+        await page.locator('[data-page="results"]').filter({visible:true}).first().click();
+        const metric=label=>page.locator('#saved-result-metrics .metric').filter({has:page.getByText(label,{exact:true})}).locator('strong');
+        assert.equal(await metric('レース前').innerText(),currentDayUpcomingCount+'レース');
+        currentDayPendingCount=Number((await metric('結果待ち').innerText()).match(/^(\d+)レース$/)?.[1]);
+        assert.ok(Number.isSafeInteger(currentDayPendingCount)&&currentDayPendingCount<=currentDayClosedCount);
+        if(!currentDayClosedCount){assert.equal(currentDayPendingCount,0);assert.equal(await page.locator('#saved-results-table .result-mobile-card').count(),0);}
+        assert.equal(await page.locator('#saved-results-table .outcome-upcoming').count(),0);currentDayLifecycleViews++;
+      }
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);checked++;
     }
     assert.deepEqual(errors,[]);assert.equal(leaked,false);
@@ -196,8 +236,9 @@ async function run(context,{compactResults=false,probeRaceId=null}={}){
     return {schema:'RACE_AI_LIVE_SITE_CHECK_COUNTS_V1',status:'LIVE_OWNER_SITE_VERIFIED',
       verified_at:verifiedAt.toISOString(),widths_checked:checked,
       feed_generation:Number(await page.locator('#saved-view-sync').getAttribute('data-generation')),
-      ...dateEvidence({...context,current_day:currentDay,date_scope:undefined},currentResults,p1Groups),
-      selected_saved_day:context.day,compact_result_ui_verified:compactResults,research_audit_verified:compactResults,available_rationale_preserved:compactResults,rationale_views_checked:rationaleViewsChecked,probe_result_matched:Boolean(compactResults&&probeRaceId),
+      ...dateEvidence({...context,current_day:currentDay,date_scope:undefined},currentResults,p1Groups,checkCurrentDay?context.current_day:undefined),
+      lifecycle_checked_day:checkCurrentDay?context.current_day:null,
+      selected_saved_day:context.day,current_day_lifecycle_views_checked:currentDayLifecycleViews,current_day_upcoming_rows_checked:currentDayUpcomingRows,current_day_upcoming_races:currentDayUpcomingCount,current_day_closed_races:currentDayClosedCount,current_day_pending_result_races:currentDayPendingCount,race_lifecycle_tabs_verified:true,upcoming_rows_checked:upcomingRowsChecked,venue_result_views_checked:venueResultsChecked,ai_results_navigation_verified:true,compact_result_ui_verified:compactResults,research_audit_verified:compactResults,available_rationale_preserved:compactResults,rationale_views_checked:rationaleViewsChecked,probe_result_matched:Boolean(compactResults&&probeRaceId),
       native_p1_groups_required:context.native_p1_groups,native_p1_detail_visible:nativeVisible,
       future_native_visible_before_cutoff:futureVisible,previous_day_checked:context.old_day!==null,
       active_model_families:15,removed_seller_hidden:true,
@@ -208,7 +249,7 @@ async function run(context,{compactResults=false,probeRaceId=null}={}){
 }
 
 if(require.main===module){
-  (async()=>run(JSON.parse(fs.readFileSync(process.argv[2],'utf8')),{compactResults:process.argv.includes('--compact-results'),probeRaceId:process.argv.find(v=>v.startsWith('--race-id='))?.slice(10)||null}))()
+  (async()=>run(JSON.parse(fs.readFileSync(process.argv[2],'utf8')),{compactResults:process.argv.includes('--compact-results'),checkCurrentDay:process.argv.includes('--check-current-day'),probeRaceId:process.argv.find(v=>v.startsWith('--race-id='))?.slice(10)||null}))()
     .then(report=>process.stdout.write(JSON.stringify(report)+'\n'))
     .catch(()=>{process.stdout.write(JSON.stringify({status:'LIVE_OWNER_SITE_REJECTED',reason:'SAVED_SITE_BROWSER_CHECK_FAILED'})+'\n');process.exitCode=2;});
 }

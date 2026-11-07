@@ -7,7 +7,6 @@ import os
 from pathlib import Path
 import re
 import sys
-import traceback
 
 ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
@@ -134,9 +133,7 @@ def main(argv=None,*,now=None):
     except Exception as error:
         reason=str(error) if isinstance(error,ValueError) and re.fullmatch(
             r'(?:SAVED_SITE|FEED|HISTORY|VAULT|STATE)_[A-Z0-9_]{1,100}',str(error)) else 'SAVED_SITE_OPERATION_FAILED'
-        trace=[Path(frame.filename).name+':'+str(frame.lineno)+':'+frame.name
-               for frame in traceback.extract_tb(error.__traceback__)[-5:]]
-        print(json.dumps(dict(status='SAVED_SITE_CONTEXT_REJECTED',reason=reason,code_trace=trace),sort_keys=True))
+        print(json.dumps(dict(status='SAVED_SITE_CONTEXT_REJECTED',reason=reason),sort_keys=True))
         return 2
 
 
