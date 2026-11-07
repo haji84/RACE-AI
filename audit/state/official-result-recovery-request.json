@@ -19,9 +19,15 @@
         "head_sha": "9b4bc37648fbfad421daa80bd2300cda5e97e9df",
         "id": 13565712482,
         "run_id": 42349536138
+      },
+      {
+        "digest": "sha256:0be88d04dab4ab775b0d394cd4a7854a7b83805e6e3f59528675c9ddf43cdb64",
+        "head_sha": "11d070dd1984e50d8d5bd6fcca738865cdc93b19",
+        "id": 13578691832,
+        "run_id": 42383095124
       }
     ],
-    "execution_day": "2026-11-07",
+    "execution_day": "2026-11-08",
     "native_artifacts": [
       {
         "digest": "sha256:864d9e43e1ffbcc231a38fc8467648ee21179f402523680700ace75ef397a248",
@@ -48,8 +54,8 @@
         "run_id": 42341849641
       }
     ],
-    "plan_path": "audit/state/official-result-collection-plan-fe3b07ab24adcedb35a69add742cf34a3bd19699f9fb3e559ed06a3fb5cf0c2c.enc",
-    "plan_sha256": "fe3b07ab24adcedb35a69add742cf34a3bd19699f9fb3e559ed06a3fb5cf0c2c",
+    "plan_path": "audit/state/official-result-collection-plan-6b6c4994842068337d87ea5adeb0e7bea383f9a7eb07fb6c3a476a4fed9d3957.enc",
+    "plan_sha256": "6b6c4994842068337d87ea5adeb0e7bea383f9a7eb07fb6c3a476a4fed9d3957",
     "prior_journal_artifacts": [
       {
         "digest": "sha256:dcc4a2c95d0677c00d0bd1c9a6f445decac5930405aff79f5f1d9a6792a78816",
@@ -74,11 +80,18 @@
         "head_sha": "901fb57d2d0f1d0fa0b4051285dca399654a4738",
         "id": 13574582081,
         "run_id": 42371023982
+      },
+      {
+        "digest": "sha256:3e581999ed8e6a0caeb3e15a32cf9ab6f364a8d5013ed4a62515dc9655639747",
+        "head_sha": "973629feb8bac893cc2dd051c6ad649c2783a491",
+        "id": 13577093759,
+        "run_id": 42378920749
       }
     ],
-    "schema": "RACE_AI_OFFICIAL_RESULT_COLLECT_INPUT_V2"
+    "schema": "RACE_AI_OFFICIAL_RESULT_COLLECT_INPUT_V3",
+    "target_event_day": "2026-11-07"
   },
-  "mode": "FIXED_ATTEMPT_TWO_SINGLE_NORMAL_UI_PROBE_16",
+  "mode": "FIXED_ATTEMPT_TWO_HISTORICAL_SINGLE_NORMAL_UI_PROBE_16",
   "old_journal_artifact_id": 13565712487,
   "probe_sport": "autorace",
   "pull_request": 71,
