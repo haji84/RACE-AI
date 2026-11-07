@@ -40,7 +40,35 @@ def source_identity_conflict(reason):
         'external official archive redirect rejected','redirect rejected','unexpected archive entry name',
     }
 
+_ORIGINAL_READER=None
+
+def original_reader():
+    """Opt-in owner-key archive selection; never starts a source session."""
+    if os.environ.get('RACE_AI_ORIGINAL_VAULT_ENABLED')!='true':return None
+    global _ORIGINAL_READER
+    if _ORIGINAL_READER is None:
+        from scripts.boat_saved_view_feed import git_auth
+        from race_ai.boat_original_recovery import ArtifactRecovery
+        git_auth()
+        _ORIGINAL_READER=ArtifactRecovery(_live_gh,ROOT)
+    return _ORIGINAL_READER
+
 def gh(path):
+    reader=original_reader()
+    return reader(path) if reader is not None else _live_gh(path)
+
+def _archived_pages(run):
+    reader=original_reader()
+    return reader.archived_artifact_pages(run) if reader is not None else None
+
+def _is_archived(ident):
+    reader=original_reader()
+    return reader is not None and reader.is_archived(ident)
+
+gh.archived_artifact_pages=_archived_pages
+gh.is_archived=_is_archived
+
+def _live_gh(path):
     """Read GitHub receipt; retry *only explicit 5xx or transport timeout*.
 
     Never retry 4xx/429, unknown CLI failures or integrity mismatches. Raw

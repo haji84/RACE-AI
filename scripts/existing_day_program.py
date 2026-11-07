@@ -94,6 +94,10 @@ def collect(*, clock=lambda: datetime.now(timezone.utc), already_frozen=frozense
         from race_ai.program_race_isolation import normalize_races
         program = normalize_races(body, day=day, source_url=url, observed_at=capture,
                                   archive_sha256=meta['sha256'])
+        if os.environ.get('RACE_AI_SAVED_PROGRAM_CAPTURE')=='true':
+            from race_ai.boat_program_source import capture_program
+            capture_program(raw,dict(source_url=url,captured_at=capture,
+                source_sha256=meta['sha256'],http_status=200))
         status = forecast_program(program, clock=clock, already_frozen=already_frozen,
                                   already_frozen_models=already_frozen_models)
         status.update(extracted_text_sha256=program['extracted_text_sha256'], source_requests=1,

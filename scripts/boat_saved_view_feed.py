@@ -1,6 +1,8 @@
 """Publish encrypted result comparisons using the existing Actions writer only."""
 import argparse
 import base64
+from copy import deepcopy
+from datetime import date
 from datetime import datetime,timezone
 import json
 import os
@@ -13,6 +15,7 @@ sys.path.insert(0,str(ROOT))
 import race_ai
 race_ai.__path__.append(str(ROOT/'pr64-reference/race_ai'))
 from race_ai import saved_view_feed as F
+from race_ai import saved_history_activation as HA
 from race_ai.boat_pdca_state import need,sha
 from race_ai.boat_pdca_recipient import _json
 from race_ai.boat_history_store import wire
@@ -22,8 +25,15 @@ from race_ai.boat_saved_view_intake import append_views,project_native_state
 from race_ai.saved_pages import MAX_VIEW
 
 def gh(path):
-    p=subprocess.run(['gh','api','repos/haji84/RACE-AI/'+path],capture_output=True,timeout=90)
-    need(p.returncode==0,'FEED_GITHUB_READ_FAILED');need(len(p.stdout)<=32*1024*1024,'FEED_ARCHIVE_BOUND');return p.stdout
+    from scripts.github_existing_cycle import gh as original_get
+    raw=original_get(path)
+    need(len(raw)<=32*1024*1024,'FEED_ARCHIVE_BOUND');return raw
+
+def _archived_original(ident):
+    from scripts.github_existing_cycle import gh as original_get
+    return original_get.is_archived(ident) is True
+
+gh.is_archived=_archived_original
 
 def observations(ident,*,day,expected_sha=None,allow_other_day=False):
     need(type(ident) is int and ident>0,'FEED_ARTIFACT_ID')
@@ -40,7 +50,17 @@ def observations(ident,*,day,expected_sha=None,allow_other_day=False):
     need(actual in days,'FEED_RESULT_DAY_REQUIRED')
     return result_archive(raw,meta,actual)
 
-def intake_saved_models(view):
+def intake_day_scope(view,*,day=None,since_day=None):
+    for value in (day,since_day):
+        if value is not None:
+            need(type(value) is str and date.fromisoformat(value).isoformat()==value,'FEED_DAY_INVALID')
+    if day is None and since_day is None:return view
+    output=deepcopy(view)
+    output['records']=[r for r in output['records'] if
+        (r['event_date_jst']==day if day else r['event_date_jst']>=since_day)]
+    return output
+
+def intake_saved_models(view,*,hydrate=False,day=None,since_day=None,recover_runs=()):
     """Use authenticated private runtime/readback; never request official pages."""
     additions=[];names=None
     config=ROOT/'audit/state/boat-model-runtime-input.json'
@@ -75,7 +95,18 @@ def intake_saved_models(view):
         payload=restore_forecasts(record['pointer'],ROOT)
         projected=project_round(payload,record['receipt'])
         additions.append(projected)
-    return append_views(view,additions,names=names) if additions or names else view
+    additions=[intake_day_scope(part,day=day,since_day=since_day) for part in additions]
+    additions=[part for part in additions if part['records']]
+    output=append_views(view,additions,names=names) if additions or names else view
+    if recover_runs:
+        from race_ai.boat_all_model_recovery import recover_saved_models
+        output,counts=recover_saved_models(output,gh,run_ids=recover_runs,day=day)
+        print(wire(dict(counts,intake_status='SAVED_MODEL_ARCHIVES_REPLAYED')))
+    if hydrate:
+        from race_ai.boat_saved_view_intake import hydrate_saved_originals
+        output,counts=hydrate_saved_originals(output,gh)
+        print(wire(dict(status='SAVED_ORIGINAL_EVIDENCE_VERIFIED',**counts)))
+    return output
 
 def git_auth():
     token=os.environ.get('GH_TOKEN');need(token and '\n' not in token and '\r' not in token,'FEED_GITHUB_TOKEN_REQUIRED')
@@ -93,6 +124,12 @@ def git_auth():
 
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--seed-only',action='store_true');p.add_argument('--result-artifact',type=int)
+    p.add_argument('--hydrate-originals',action='store_true')
+    p.add_argument('--history',action='store_true',help='Require compatible active publishers before initial V5 activation')
+    p.add_argument('--history-when-compatible',action='store_true',help='Keep V4 until all active pinned publishers support V5')
+    p.add_argument('--day',help='Explicit historical day for an isolated late result update')
+    p.add_argument('--recover-model-run',type=int,action='append',default=[])
+    p.add_argument('--recover-model-config',action='store_true')
     a=p.parse_args(argv)
     try:
         config=_json(_read(ROOT/'audit/state/boat-saved-view-input.json',8192),8192)
@@ -100,35 +137,61 @@ def main(argv=None):
              and config['schema']=='RACE_AI_SAVED_VIEW_INPUT_V1','FEED_INPUT_INVALID')
         raw=base64.b64decode(config['bootstrap'],validate=True);need(sha(raw)==config['bootstrap_sha256'],'FEED_BOOTSTRAP_HASH')
         bootstrap=F.open_bootstrap(raw);git_auth();git=F.FeedRepository(ROOT)
-        parent,previous,generation,view=F.current_view(git,bootstrap)
+        if a.day is not None:need(date.fromisoformat(a.day).isoformat()==a.day,'FEED_DAY_INVALID')
+        parent,previous,generation,view=F.current_view(git,bootstrap,day=a.day)
+        recover_runs=list(a.recover_model_run)
+        if a.recover_model_config:
+            recovery=_json(_read(ROOT/'audit/state/boat-model-recovery-input.json',8192),8192)
+            need(type(recovery) is dict and set(recovery)=={'schema','run_ids'} and
+                 recovery['schema']=='RACE_AI_BOAT_MODEL_RECOVERY_INPUT_V1' and type(recovery['run_ids']) is list,
+                 'FEED_RECOVERY_CONFIG_INVALID')
+            recover_runs.extend(recovery['run_ids'])
+        need(len(recover_runs)<=16 and all(type(run) is int and run>0 for run in recover_runs),'FEED_RECOVERY_RUN_BOUND')
+        recover_runs=sorted(set(recover_runs))
         if a.seed_only:
             if parent:print(wire(dict(status='ENCRYPTED_VIEW_ALREADY_INITIALIZED',generation=generation)));return 0
-        else:
-            previous_view=view;view=intake_saved_models(view)
+        history_context=getattr(git,'_saved_history_context',None)
+        activate_history=False
+        if not history_context and (a.history or a.history_when_compatible):
+            compatibility=HA.check_history_activation(git)
+            activate_history=compatibility['compatible']
+            print(wire(dict(status='HISTORY_ACTIVATION_COMPATIBLE' if activate_history else 'HISTORY_WAIT_LEGACY_PUBLISHERS',
+                **{key:compatibility[key] for key in ('active_publishers','compatible_publishers','legacy_publishers')})))
+            need(activate_history or not a.history,'HISTORY_LEGACY_PUBLISHERS_ACTIVE')
+        if not a.seed_only:
+            previous_view=view;view=intake_saved_models(view,hydrate=a.hydrate_originals,
+                day=a.day if history_context else None,
+                since_day=history_context['selected_day'] if history_context and not a.day else None,
+                **(dict(recover_runs=recover_runs) if recover_runs else {}))
             changed=wire(view)!=wire(previous_view)
             days={r['event_date_jst'] for r in view['records']}
             missing={r['race_id'] for r in view['records'] if not r['result'] or r['result']['status'] in ('pending','unsupported')}
             if not a.result_artifact and not missing and not changed:
-                print(wire(dict(status='SAVED_RESULTS_ALREADY_COMPLETE',generation=generation)));return 0
-            ident=a.result_artifact or config['catchup_artifact_id']
-            items=observations(ident,day=days,expected_sha=None if a.result_artifact else config['catchup_sha256'],allow_other_day=True)
-            if not a.result_artifact:
-                # Initial catch-up fills gaps. Settled seed observations and their
-                # raw-backed references remain intact; later same-day rounds
-                # handle revisions using retained raw captures.
-                items=[o for o in items if o['race_id'] in missing]
-            capture_dir=Path(os.environ['RUNNER_TEMP'])/'boat-saved-view-captures'
-            from datetime import date
-            from race_ai.official_race_updates import endpoint
-            urls={endpoint(date.fromisoformat(r['event_date_jst']),r['race_id'][9:11],int(r['race_id'][-2:]),'raceresult') for r in view['records']}
-            captures=[c for c in F.load_captures(capture_dir) if c[1]['source_url'] in urls]
-            if not items and not captures and not changed:
-                print(wire(dict(status='SAVED_DAY_UNCHANGED',generation=generation)));return 0
-            view=F.update_view(view,items,captures=captures,synced_at=datetime.now(timezone.utc).isoformat())
-        report=F.publish_view(git,bootstrap,view,parent=parent,previous=previous,generation=generation)
+                if not activate_history:
+                    print(wire(dict(status='SAVED_RESULTS_ALREADY_COMPLETE',generation=generation)));return 0
+            else:
+                ident=a.result_artifact or config['catchup_artifact_id']
+                items=observations(ident,day=days,expected_sha=None if a.result_artifact else config['catchup_sha256'],allow_other_day=True)
+                if not a.result_artifact:
+                    # Initial catch-up fills gaps. Settled seed observations and their
+                    # raw-backed references remain intact; later same-day rounds
+                    # handle revisions using retained raw captures.
+                    items=[o for o in items if o['race_id'] in missing]
+                capture_dir=Path(os.environ['RUNNER_TEMP'])/'boat-saved-view-captures'
+                from race_ai.official_race_updates import endpoint
+                urls={endpoint(date.fromisoformat(r['event_date_jst']),r['race_id'][9:11],int(r['race_id'][-2:]),'raceresult') for r in view['records']}
+                captures=[c for c in F.load_captures(capture_dir) if c[1]['source_url'] in urls]
+                if not items and not captures and not changed:
+                    if not activate_history:
+                        print(wire(dict(status='SAVED_DAY_UNCHANGED',generation=generation)));return 0
+                else:view=F.update_view(view,items,captures=captures,synced_at=datetime.now(timezone.utc).isoformat())
+        report=F.publish_view(git,bootstrap,view,parent=parent,previous=previous,generation=generation,history=activate_history)
         print(wire(report));return 0
     except Exception as e:
-        reason=str(e) if isinstance(e,ValueError) and re.fullmatch('(?:FEED|MODEL_RUNTIME|ALL_MODEL_CLI|BOAT_ALL_MODEL_CYCLE|STATE|GITHUB)_[A-Z0-9_]{1,90}',str(e)) else 'FEED_OPERATION_FAILED'
+        reason=str(e) if isinstance(e,(ValueError,RuntimeError)) and re.fullmatch('(?:FEED|HISTORY|MODEL_RUNTIME|ALL_MODEL_CLI|ALL_MODEL_RECOVERY|BOAT_ALL_MODEL_CYCLE|STATE|GITHUB|SAVED_PREDICTION_EVIDENCE|VAULT)_[A-Z0-9_]{1,90}',str(e)) else 'FEED_OPERATION_FAILED'
+        from race_ai.boat_saved_model_view import SavedModelViewError
+        if isinstance(e,SavedModelViewError) and re.fullmatch('SAVED_MODEL_VIEW_[A-Z0-9_]{1,90}',getattr(e,'reason_code','')):
+            reason=e.reason_code
         import traceback
         frames=traceback.extract_tb(e.__traceback__)
         location=Path(frames[-1].filename).name+':'+str(frames[-1].lineno) if frames else None

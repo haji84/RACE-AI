@@ -22,6 +22,16 @@ CONTINUITY_ARCHIVE_MAX_BYTES=128*1024*1024
 def artifact_pages(get, run_id):
     """Read a complete, duplicate-free artifact listing, including page 2+."""
     need(type(run_id) is int and run_id > 0, 'invalid artifact run')
+    # Only an explicitly declared capability may replace live enumeration.
+    # Dynamic __getattr__ proxies are ordinary transports, not archive stores.
+    archived=vars(get).get('archived_artifact_pages') if hasattr(get,'__dict__') else None
+    declared=getattr(type(get),'archived_artifact_pages',None)
+    if archived is None and callable(declared):archived=lambda ident:declared(get,ident)
+    if callable(archived):
+        rows=archived(run_id)
+        if rows is not None:
+            need(type(rows) is list and len({r['id'] for r in rows})==len(rows),'ARTIFACT_PAGINATION_INCOMPLETE')
+            return rows
     found=[];seen=set();page=1;total=None
     while True:
         suffix='' if page == 1 else f'&page={page}'

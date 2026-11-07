@@ -106,9 +106,10 @@ def _file_hash(path, limit):
 
 def gh(path):
     need(re.fullmatch(r"actions/(?:artifacts/[1-9][0-9]*(?:/zip)?|runs/[1-9][0-9]*)", path), "GITHUB_ROUTE_INVALID")
-    result = subprocess.run(["gh", "api", "repos/"+REPO+"/"+path], capture_output=True, timeout=90)
-    need(result.returncode == 0 and len(result.stdout) <= 40*1024*1024, "GITHUB_READ_FAILED")
-    return result.stdout
+    from scripts.github_existing_cycle import gh as original_get
+    raw=original_get(path)
+    need(len(raw)<=40*1024*1024,"GITHUB_READ_FAILED")
+    return raw
 
 
 def artifact_name(run_id, round_no):
@@ -236,7 +237,9 @@ def _artifact(ident, *, member, expected_name, expected_run, expected_head):
          and str(run.get("id")) == str(expected_run) and run.get("head_sha") == expected_head
          and HEAD.fullmatch(expected_head), "ARTIFACT_IDENTITY_MISMATCH")
     now = utc_now()
-    need(_time(meta["created_at"]) <= now < _time(meta["expires_at"]), "ARTIFACT_CLOCK_INVALID")
+    from scripts.github_existing_cycle import gh as original_get
+    retained=original_get.is_archived(ident) is True and str(run['id'])!=os.environ.get('GITHUB_RUN_ID')
+    need(_time(meta["created_at"])<=now and (retained or now<_time(meta["expires_at"])), "ARTIFACT_CLOCK_INVALID")
     info = _json(gh(f"actions/runs/{run['id']}"), 256*1024)
     need(info.get("id") == run["id"] and info.get("head_sha") == expected_head
          and info.get("repository", {}).get("id") == int(REPO_ID) and info["repository"].get("full_name") == REPO
@@ -314,6 +317,33 @@ def generate(round_no, baseline_artifact=None):
     return _sealed("generate", round_no, contexts, baseline_artifact, build)
 
 
+def _seller_sources(marker,document,receipt,clock):
+    """Decode optional private original bytes; native validation decides readiness."""
+    from race_ai import boat_seller_inputs as seller
+    metadata=_json(_read(marker['runtime_files']['metadata.json'],runtime.FILE_LIMITS['metadata.json'],private=True),runtime.FILE_LIMITS['metadata.json'])
+    cached=None
+    if os.environ.get('RACE_AI_PROGRAM_SOURCE_ENABLED')=='true':
+        from race_ai.boat_program_source import load_program_source
+        cached=load_program_source(document['day_jst'],document,receipt,ROOT,as_of=clock)
+    source=metadata.get('seller_official_source')
+    if source is None and cached is None:return None
+    raw=b''
+    if type(source) is dict and source.get('day')==document.get('day_jst'):
+        try:raw=base64.b64decode(source.get('raw_b_base64',''),validate=True)
+        except (ValueError,TypeError):pass
+    candidate=dict(schema=seller.OFFICIAL_B_SCHEMA,raw=raw,document=document,receipt=receipt)
+    if cached is not None:cards=cached
+    else:
+        try:cards=seller.official_b_cards_source(raw,document,receipt,day=document['day_jst'],as_of=clock)
+        except seller.SellerInputError:cards=candidate
+    waku=None
+    if type(source) is dict and type(source.get('waku10')) is dict:
+        waku=dict(source['waku10']);encoded=waku.pop('raw_base64',None)
+        try:waku['raw']=base64.b64decode(encoded,validate=True)
+        except (ValueError,TypeError):waku['raw']=b''
+    return dict(cards=cards,waku10=waku)
+
+
 def bootstrap_current(round_no=0):
     marker = prepare_runtime(round_no=round_no); env = _environment()
     local = ROOT/"boat_all_day_output/forecasts.json"; local_receipt = ROOT/"boat_all_day_output/first-receipt.json"
@@ -332,9 +362,13 @@ def bootstrap_current(round_no=0):
     else:
         return dict(ready=False, contexts=0, generated_forecasts=0)
     issued = _json(_read(marker["issued_p0_models_path"], 1024*1024, private=True), 1024*1024)
-    return _sealed("bootstrap-current", round_no, dict(document=document, receipt=receipt), None,
-        lambda: engine.forecast_saved_p0(document, receipt, marker["runtime_files"], now=utc_now(),
-                                        issued_models=issued, runtime_pointer=_pointer()[0]))
+    clock=utc_now();seller_sources=_seller_sources(marker,document,receipt,clock)
+    binding=dict(document=document,receipt=receipt)
+    if seller_sources is not None:binding['seller_source_metadata_sha256']=marker['metadata_sha256']
+    options=dict(issued_models=issued,runtime_pointer=_pointer()[0])
+    if seller_sources is not None:options['seller_sources']=seller_sources
+    return _sealed("bootstrap-current", round_no, binding, None,
+        lambda: engine.forecast_saved_p0(document, receipt, marker["runtime_files"], now=clock,**options))
 
 
 def readback(round_no, ident):

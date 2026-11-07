@@ -39,7 +39,11 @@ class SavedModelViewError(ValueError):
 
 def _need(condition, reason):
     if not condition:
-        raise SavedModelViewError("saved model view rejected: " + reason)
+        error=SavedModelViewError("saved model view rejected: " + reason)
+        # All callers supply fixed literals. Preserve a public diagnostic code
+        # without exposing row bodies, racer identities or forecast contents.
+        error.reason_code='SAVED_MODEL_VIEW_'+re.sub('[^A-Za-z0-9]+','_',reason).strip('_').upper()
+        raise error
 
 
 def _tree(value, depth=0):

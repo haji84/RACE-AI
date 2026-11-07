@@ -18,6 +18,9 @@ jobs:
     if: github.repository == 'haji84/RACE-AI' && startsWith(github.event.head_commit.message, 'saved-view:')
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+    env:
+      RACE_AI_ORIGINAL_VAULT_ENABLED: 'true'
+      RACE_AI_PROGRAM_SOURCE_ENABLED: 'true'
     steps:
       - name: Exact reviewed display publisher
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -62,11 +65,27 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
         run: python -m scripts.boat_saved_view_feed --seed-only
+      - name: Retain and independently restore exact saved originals without taking over the active worker
+        timeout-minutes: 12
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        # Exact owner-encrypted Git retention and cache-only replay. Closed-run
+        # receipts are retained only when every native original is present.
+        # Active collection is never adopted, restarted or replaced here.
+        run: python -m scripts.boat_original_maintenance backfill --repo-root . --run-config audit/state/boat-model-recovery-input.json --output '${{ runner.temp }}/boat-original-maintenance.json'
+      - name: Retain safe completed-worker control for the existing hourly coordinator
+        id: handoff_mirror
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_source_control_mirror latest-closed --repo-root . --output '${{ runner.temp }}/boat-source-control-display.json'
       - name: Automatically match saved results and publish encrypted display
         env:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
-        run: python -m scripts.boat_saved_view_feed
+        run: python -m scripts.boat_saved_view_feed --hydrate-originals --history-when-compatible --recover-model-config
       - name: Execute current-day P0 native families with the retained real inputs
         id: all_models_bootstrap
         env:
@@ -88,19 +107,33 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
         run: python -m scripts.boat_all_model_cycle readback --round 0 --artifact '${{ steps.all_models_bootstrap_freeze.outputs.artifact-id }}'
+      - name: Retain the exact current-day model artifact beyond its expiry
+        if: steps.all_models_bootstrap_freeze.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_private_original_vault capture --artifact '${{ steps.all_models_bootstrap_freeze.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-bootstrap-original-vault.json'
       - name: Publish the unified saved-model view
         env:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
-        run: python -m scripts.boat_saved_view_feed
-      - name: Verify current Actions access can restore the same saved originals
-        timeout-minutes: 8
+        run: python -m scripts.boat_saved_view_feed --hydrate-originals --history-when-compatible --recover-model-config
+      - name: Settle the unchanged prospective allocation and report matched saved-model evidence
+        id: prospective_audit
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
-        # Read-only GitHub archive replay. No official source GET, forecast
-        # regeneration, source-worker restart or replacement checkpoint.
-        run: python scripts/github_existing_cycle.py restore
+        run: python -m scripts.boat_prospective_audit --output '${{ runner.temp }}/boat-prospective-audit-display.json'
+      - name: Retain aggregate evaluation counts without private plans or source rows
+        if: always() && steps.prospective_audit.outcome != 'skipped'
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-prospective-evaluation-${{ github.run_id }}-display
+          path: ${{ runner.temp }}/boat-prospective-audit-display.json
+          if-no-files-found: ignore
+          retention-days: 7
   official_national:
     name: Existing frozen P0, exhibition P1, separate official results and PDCA
     if: github.repository == 'haji84/RACE-AI' && !startsWith(github.event.head_commit.message, 'saved-view:')
@@ -127,6 +160,8 @@ jobs:
       - name: Install pinned encrypted display dependencies
         continue-on-error: true
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Enable cache-first original recovery after offline tests
+        run: python -c "import os; open(os.environ['GITHUB_ENV'],'a').write('RACE_AI_ORIGINAL_VAULT_ENABLED=true\\nRACE_AI_SAVED_PROGRAM_CAPTURE=true\\nRACE_AI_PROGRAM_SOURCE_ENABLED=true\\n')"
       - name: Initialize encrypted display feed from pinned saved forecasts
         continue-on-error: true
         env:
@@ -138,7 +173,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
-        run: python -m scripts.boat_saved_view_feed
+        run: python -m scripts.boat_saved_view_feed --hydrate-originals --recover-model-run '${{ github.run_id }}'
       - name: Pin event day and physical worker handoff using actual clock
         run: |
           python - <<'PY_CLOCK'
@@ -175,21 +210,19 @@ jobs:
         if: steps.first_p0.outputs.capture == 'true' && steps.first_capture.outputs.capture_complete == 'true'
         env: {GH_TOKEN: '${{ github.token }}'}
         run: python scripts/first_p0_bootstrap.py finalize --artifact-id '${{ steps.first_upload.outputs.artifact-id }}'
+      - name: Retain the exact first P0 and unchanged GitHub receipt beyond expiry
+        if: steps.first_p0.outputs.capture == 'true' && steps.first_capture.outputs.capture_complete == 'true'
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_private_original_vault capture --artifact '${{ steps.first_upload.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-first-original-vault.json'
       - name: Reuse authenticated first original, never silently regenerate it
         id: restore
         if: steps.first_p0.outputs.capture != 'true' || steps.first_capture.outputs.capture_complete == 'true'
         env: {GH_TOKEN: '${{ github.token }}'}
         run: python scripts/github_existing_cycle.py restore
-      - name: Wait without source requests for the authenticated exhibition window
-        id: exhibition_window
-        if: steps.restore.conclusion == 'success'
-        run: python scripts/github_existing_cycle.py wait-for-window
-      - name: Initialize continuous source session and account for initial B GET
-        id: repeat_start
-        if: steps.restore.conclusion == 'success' && steps.exhibition_window.outputs.window_ready == 'true'
-        env:
-          RACE_AI_FIRST_P0_CAPTURED: ${{ steps.first_p0.outputs.capture }}
-        run: python scripts/github_existing_cycle.py repeat-start
+      - name: Retain the already captured official B for future native input replay
+        if: steps.first_p0.outputs.capture == 'true' && steps.first_capture.outputs.capture_complete == 'true' && steps.restore.conclusion == 'success'
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_program_source retain --day '${{ env.RACE_AI_EVENT_DAY }}' --repo-root . --output '${{ runner.temp }}/boat-program-source-vault.json'
       - name: Execute new-day P0 families from the authenticated first receipt
         if: steps.restore.conclusion == 'success'
         continue-on-error: true
@@ -211,11 +244,29 @@ jobs:
         continue-on-error: true
         env: {GH_TOKEN: '${{ github.token }}'}
         run: python -m scripts.boat_all_model_cycle readback --round 0 --artifact '${{ steps.new_day_models_freeze.outputs.artifact-id }}'
+      - name: Retain exact additional P0 execution and physical save receipt beyond expiry
+        if: steps.new_day_models_freeze.outputs.artifact-id != ''
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_private_original_vault capture --artifact '${{ steps.new_day_models_freeze.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-new-day-original-vault.json'
       - name: Publish authenticated new-day originals with the existing owner view
         if: steps.restore.conclusion == 'success'
         continue-on-error: true
         env: {GH_TOKEN: '${{ github.token }}'}
-        run: python -m scripts.boat_saved_view_feed
+        run: python -m scripts.boat_saved_view_feed --hydrate-originals --recover-model-run '${{ github.run_id }}'
+      - name: Mirror the previous completed worker without exposing its private payload
+        continue-on-error: true
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_source_control_mirror latest-closed --repo-root . --output '${{ runner.temp }}/boat-source-control-previous.json'
+      - name: Wait without source requests for the authenticated exhibition window
+        id: exhibition_window
+        if: steps.restore.conclusion == 'success'
+        run: python scripts/github_existing_cycle.py wait-for-window
+      - name: Initialize continuous source session and account for initial B GET
+        id: repeat_start
+        if: steps.restore.conclusion == 'success' && steps.exhibition_window.outputs.window_ready == 'true'
+        env:
+          RACE_AI_FIRST_P0_CAPTURED: ${{ steps.first_p0.outputs.capture }}
+        run: python scripts/github_existing_cycle.py repeat-start
       - name: Deadline-ordered five-model round 01
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -406,12 +457,24 @@ jobs:
         run: python -m scripts.boat_source_control pack --cipher '${{ runner.temp }}/boat-private-originals/continuity/private-original.enc' --output-dir '${{ runner.temp }}/boat-source-control'
       - name: Preserve count-only source control for the existing supervisor
         if: always() && steps.source_control_pack.outcome == 'success'
+        id: source_control_upload
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: race-source-control-${{ github.run_id }}
           path: ${{ runner.temp }}/boat-source-control/source-control.json
           if-no-files-found: error
           retention-days: 7
+      - name: Retain exact continuity and its count-only companion beyond artifact expiry
+        if: always() && steps.checkpoint_upload.outcome == 'success' && steps.source_control_upload.outcome == 'success'
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_private_original_vault capture --artifact '${{ steps.checkpoint_upload.outputs.artifact-id }}' --artifact '${{ steps.source_control_upload.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-handoff-original-vault.json'
+      - name: Preserve exact raw result responses even if a later validation failed
+        if: always()
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: |
+          if [[ -d '${{ runner.temp }}/boat-saved-view-captures' ]]; then
+            python -m scripts.boat_private_original_vault retain-captures --capture-dir '${{ runner.temp }}/boat-saved-view-captures' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-final-capture-vault.json'
+          fi
       - name: Prepare exact source verification bundle, no data or credentials
         if: always()
         run: tar -czf source-bundle.tar.gz --exclude='.git' --exclude='__pycache__' race_ai scripts tests .github pr64-reference/race_ai pr72-reference/race_ai

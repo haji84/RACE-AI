@@ -7,6 +7,36 @@ from .boat_history_store import instant
 from .saved_view_feed import forecast_anchor,ensure_append_only
 from .private_cycle_projection import project_state
 
+def hydrate_saved_originals(view,get,*,key=None,max_archives=128):
+    """Read missing native evidence once, retaining every sealed prediction."""
+    import json
+    from .actions_contract import digest
+    from .boat_saved_model_view import saved_prediction_identity
+    from .boat_saved_prediction_evidence import hydrate_prediction_evidence
+    need(type(max_archives) is int and 1<=max_archives<=128,'FEED_EVIDENCE_ARCHIVE_BOUND')
+    missing=set()
+    for row in view['records']:
+        known=row.get('saved_prediction_evidence',{})
+        for prediction in _predictions(row):
+            identity=digest([row['race_id'],saved_prediction_identity(prediction)])
+            ident=prediction.get('artifact_id')
+            if identity not in known and type(ident) is int and ident>0 and any(
+                    prediction.get(field) is None for field in ('generated_at','input_sha256','model_version')):
+                missing.add(ident)
+    archives=[];unsupported=0
+    for ident in sorted(missing)[:max_archives]:
+        raw_meta=get(f'actions/artifacts/{ident}')
+        need(type(raw_meta) is bytes and len(raw_meta)<=128*1024,'FEED_EVIDENCE_METADATA_BOUND')
+        metadata=json.loads(raw_meta)
+        need(type(metadata) is dict and metadata.get('id')==ident,'FEED_EVIDENCE_ARTIFACT_ID')
+        name=metadata.get('name','')
+        if not isinstance(name,str) or not name.startswith(('boat-p0-existing-','boat-national-cutoff-')):
+            unsupported+=1;continue
+        archives.append((get(f'actions/artifacts/{ident}/zip'),metadata))
+    output,counts=hydrate_prediction_evidence(view,archives,key=key)
+    counts.update(deferred_archives=max(0,len(missing)-max_archives),unsupported_archives=unsupported)
+    return output,counts
+
 def _predictions(row):return [p for p in [row.get('prediction'),*row.get('comparison_predictions',[])] if p is not None]
 
 def _native_key(rid,p):

@@ -30,7 +30,9 @@ class WorkflowReferencesTest(unittest.TestCase):
         private_steps=[step for step in steps if 'venue-research-' in step]
         model_steps=[step for step in steps if 'boat_all_model_cycle' in step or 'boat-all-model-forecasts' in step]
         protection_steps=[step for step in steps if 'boat_private_original_archive' in step]
-        baseline_steps=[step for step in steps if step not in private_steps+model_steps+protection_steps]
+        vault_steps=[step for step in steps if 'boat_private_original_vault' in step]
+        evaluation_steps=[step for step in steps if 'boat_prospective_audit' in step or 'boat-prospective-audit' in step]
+        baseline_steps=[step for step in steps if step not in private_steps+model_steps+protection_steps+vault_steps+evaluation_steps]
         self.assertEqual(len(baseline_steps), 9)
         prepare, discovery, p0freeze, forecast, freeze, audit, result, complete, display = baseline_steps
         self.assertIn('id: ready', prepare)
@@ -109,10 +111,12 @@ class WorkflowReferencesTest(unittest.TestCase):
         text=WORKFLOW.read_text()
         display=text.split('  saved_view_publication:',1)[1].split('  official_national:',1)[0]
         self.assertIn("startsWith(github.event.head_commit.message, 'saved-view:')",display)
-        self.assertIn('run: python scripts/github_existing_cycle.py restore',display)
+        self.assertIn('scripts.boat_original_maintenance backfill',display)
         self.assertNotIn('github_existing_cycle.py forecast',display)
         self.assertNotIn('github_existing_cycle.py repeat-start',display)
-        self.assertEqual(re.findall(r'run: python scripts/github_existing_cycle\.py ([^\n]+)',display),['restore'])
+        self.assertEqual(re.findall(r'run: python scripts/github_existing_cycle\.py ([^\n]+)',display),[])
+        self.assertIn('RACE_AI_ORIGINAL_VAULT_ENABLED:',display)
+        self.assertIn('boat_saved_view_feed --hydrate-originals',display)
         self.assertNotIn('first_p0_bootstrap.py',display)
         official=text.split('  official_national:',1)[1]
         self.assertIn("!startsWith(github.event.head_commit.message, 'saved-view:')",official)

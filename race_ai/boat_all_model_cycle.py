@@ -558,12 +558,16 @@ def project_round(payload, receipt):
                 originals_overwritten=False)
 
 
-def forecast_saved_p0(document, receipt, runtime_files, *, now, issued_models=None, runtime_pointer=None):
+def forecast_saved_p0(document, receipt, runtime_files, *, now, issued_models=None, runtime_pointer=None,
+                      seller_sources=None):
     """Issue new P0 families now from exact older, authenticated source inputs.
 
     Original observed predictions remain untouched. Only the new shared input's
     race.as_of changes to the actual caller clock. Every original source clock,
     snapshot identity and save receipt is retained under input_origins.
+    Optional seller sources contain ``cards`` from official_b_cards_source and
+    an optional original ``waku10`` CSV source. Their complete daily batch and
+    morning deadline remain native; missing inputs do not block other groups.
     """
     from .boat_all_model_inputs import shared_snapshot_from_observed
     from .boat_observed_pairwise_models import MODEL_IDS as OBSERVED
@@ -604,6 +608,41 @@ def forecast_saved_p0(document, receipt, runtime_files, *, now, issued_models=No
     history, fitted, provenance = _runtime(runtime_files, runtime_pointer)
     try:
         issued = _issued(issued_models); reports = []; origins = {}; readiness_rows = []; skipped = []; capsules = []
+        seller_batch = None; seller_refs = set(); seller_day_hash = None
+        if seller_sources is not None:
+            from .boat_seller_inputs import build_seller_native_inputs, OFFICIAL_B_SCHEMA
+            from .all_existing_model_registry import ROSTER_SCHEMA
+            from .existing_model_dispatch import _race_key
+            _need(type(seller_sources) is dict and "cards" in seller_sources
+                  and set(seller_sources) <= {"cards", "waku10"}, "SELLER_SOURCE_FIELDS_INVALID")
+            seller_cards = seller_sources["cards"]
+            seller_batch = build_seller_native_inputs(seller_cards, seller_sources.get("waku10"),
+                day=document["day_jst"], as_of=clock, expected_race_ids=[r["race_id"] for r in document["schedule"]])
+            if seller_cards is not None and seller_batch["readiness"]["seller"]["state"] != "INPUT_REJECTED":
+                bound = (type(seller_cards) is dict and seller_cards.get("schema") == OFFICIAL_B_SCHEMA
+                         and seller_cards.get("receipt") == proof
+                         and digest(seller_cards.get("document")) == proof["payload_sha256"])
+                if not bound:
+                    seller_batch["native_inputs"] = {}
+                    seller_batch["readiness"]["seller"] = dict(state="INPUT_REJECTED",
+                        reasons=["SELLER_SAVED_P0_SOURCE_BINDING_MISMATCH"])
+                    seller_batch["readiness"]["race_cards"] = deepcopy(seller_batch["readiness"]["seller"])
+                    seller_batch["source_evidence"] = []
+            # A retained seller output represents a whole daily decision.
+            # Without its original batch seal, issued IDs cannot authorize a
+            # second selection against revised waku values or a partial view.
+            prior_seller_day = any("seller-shadow-v1-20261104" in mids and
+                _race_key(rid, "boat").startswith("boat:" + document["day_jst"] + ":") for rid, mids in issued.items())
+            if prior_seller_day:
+                seller_batch["native_inputs"] = {}
+                seller_batch["readiness"]["seller"] = dict(state="RULE_FILTERED",
+                    reasons=["SAVED_SELLER_DAILY_DECISION_RETAINED_NO_RERANK"])
+            for evidence in seller_batch["source_evidence"]:
+                _need(type(evidence) is dict and type(evidence.get("source_sha256")) is str
+                      and _SHA.fullmatch(evidence["source_sha256"]), "SELLER_SOURCE_EVIDENCE_INVALID")
+                seller_refs.add((evidence["source_ref"], evidence["source_rights_ref"]))
+            if "seller" in seller_batch["native_inputs"]:
+                seller_day_hash = digest({k: seller_batch["native_inputs"]["seller"][k] for k in ("cards", "waku", "day")})
         for row in enriched:
             rid = row["race_id"]
             if rid in origins:
@@ -617,6 +656,8 @@ def forecast_saved_p0(document, receipt, runtime_files, *, now, issued_models=No
                 original_document_sha256=digest(document), original_receipt=proof, source_evidence=deepcopy(observed["sources"]),
                 forecast_as_of=clock.isoformat(), source_age_seconds=(clock - _time(original_asof)).total_seconds())
             refs = {(s["source_url"], s["source_rights_ref"]) for s in observed["sources"]}
+            if seller_batch is not None:
+                refs.update(seller_refs)
             native = {}; cutoff = _time(row["cutoff_at"])
             current_day = document["day_jst"] == clock.astimezone(JST).date().isoformat()
             ready = clock < cutoff and current_day
@@ -624,6 +665,17 @@ def forecast_saved_p0(document, receipt, runtime_files, *, now, issued_models=No
                 native["shared"] = dict(snapshot=snap)
                 if fitted is not None:
                     native["shared_learned"] = dict(snapshot=deepcopy(snap), learned_model=deepcopy(fitted))
+                if seller_batch is not None and "seller" in seller_batch["native_inputs"]:
+                    seller = deepcopy(seller_batch["native_inputs"]["seller"])
+                    source = seller_batch["source_evidence"][0]
+                    roster = {str(p["lane"]): p["registration_no"] for p in observed["participants"]}
+                    _need(seller_cards["roster"][rid.replace("-", "")] == roster, "SELLER_CURRENT_ROSTER_MISMATCH")
+                    seller.update(race_id=rid, cutoff_at=row["cutoff_at"], as_of=clock.isoformat(),
+                        registered_roster=dict(schema=ROSTER_SCHEMA, sport="boat", race_id=rid, as_of=clock.isoformat(),
+                            roster=roster, native_input_sha256=seller_day_hash, source_ref=source["source_ref"],
+                            source_rights_ref=source["source_rights_ref"], source_sha256=source["source_sha256"],
+                            captured_at=source["captured_at"]))
+                    native["seller"] = seller
             else:
                 skipped.append(dict(race_id=rid, reason="AT_OR_AFTER_CUTOFF" if clock >= cutoff else "SOURCE_EVENT_DAY_MISMATCH"))
             saved = issued.get(rid, set()) | set(OBSERVED)
@@ -638,6 +690,11 @@ def forecast_saved_p0(document, receipt, runtime_files, *, now, issued_models=No
                 allow_source=lambda ref, rights, purpose: purpose == "analysis" and (ref, rights) in refs)
             report["schedule"] = [schedule]
             _postprocess(report, saved, {}, "P0")
+            if seller_batch is not None and seller_batch["readiness"]["seller"]["state"] != "READY":
+                seller_state = seller_batch["readiness"]["seller"]
+                for slot in report["slots"]:
+                    if slot["model_id"] == "seller-shadow-v1-20261104" and slot["model_id"] not in saved:
+                        slot.update(status=seller_state["state"], reason=seller_state["reasons"][0])
             p1_only = {mid for group, mids in GROUPS if group in {"boat_ab", "boat_clite", "boat_tactical", "boat_full", "boat_pdca"} for mid in mids}
             for slot in report["slots"]:
                 if slot["model_id"] in p1_only and slot["model_id"] not in saved:
@@ -654,6 +711,9 @@ def forecast_saved_p0(document, receipt, runtime_files, *, now, issued_models=No
             skipped_contexts=skipped, baseline=None, source_requests=0, originals_overwritten=False, native_input_capsules=capsules,
             summary=dict(contexts=len(origins), generated_forecasts=sum(s["status"] == "GENERATED_UNATTESTED" for r in reports for s in r["slots"]),
                          reused_baseline_forecasts=0), first_receipt_duplicates=duplicates))
+        if seller_batch is not None:
+            payload["seller_input_readiness"] = _json_copy({key: seller_batch[key] for key in (
+                "day", "as_of", "readiness", "coverage", "source_evidence", "source_requests")})
         _verify_native_input_capsules(payload, replay_outputs=False)
         return payload
     finally:

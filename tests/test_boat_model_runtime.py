@@ -101,6 +101,15 @@ class RuntimeTests(unittest.TestCase):
         with patch.dict(runtime.FILE_LIMITS, {"p0-source.json": 8}), self.assertRaises(ValueError):
             self.seal(files)
 
+    def test_frozen_prospective_plan_is_exact_and_owner_encrypted(self):
+        files=invented_files()
+        files['prospective-budget-plan.json']=b'{"schema":"RACE_AI_PRE_OUTCOME_BUDGET_PLAN_V1","invented_ticket":"2-3-4"}'
+        raw,_=self.seal(files)
+        self.assertNotIn(b'invented_ticket',raw)
+        self.assertEqual(runtime.open_runtime(raw,key=KEY),files)
+        with patch.dict(runtime.FILE_LIMITS,{'prospective-budget-plan.json':16}),self.assertRaises(ValueError):
+            self.seal(files)
+
     def test_required_whitelist_and_actual_sqlite_json_validity(self):
         for mutation in (lambda f: f.pop("history.sqlite"), lambda f: f.update({"../extra": b"private"}),
                          lambda f: f.update({"history.sqlite": b"not-sqlite"}),
@@ -201,6 +210,85 @@ class RuntimeTests(unittest.TestCase):
             self.assertFalse((repo / "forbidden-private").exists())
             self.assertEqual(runtime.publish_runtime(raw, repo, expected_parent=pointer["source_commit"], transport=git), pointer)
 
+    def test_three_runtime_updates_bound_head_and_restore_every_old_pointer_from_fresh_checkouts(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            repo = local_repos(root)
+            git = self.local_git(repo)
+            publications = []
+            parent = None
+            for number in range(1, 4):
+                files = invented_files()
+                files['metadata.json'] = json.dumps({'synthetic_generation': number}).encode()
+                files['prospective-budget-plan.json'] = json.dumps({'synthetic_frozen_plan': number}).encode()
+                raw, _ = runtime.seal_runtime(files, self.receiver, created_at=f'2030-04-01T09:0{number}:00+09:00')
+                pointer = runtime.publish_runtime(raw, repo, expected_parent=parent, transport=git)
+                self.assertEqual(set(git._run(['ls-tree', '-r', '--name-only', pointer['source_commit']]).decode().splitlines()),
+                                 {'latest.json', pointer['cipher_path']})
+                if parent is not None:
+                    self.assertEqual(git._run(['rev-parse', pointer['source_commit'] + '^']).decode().strip(), parent)
+                publications.append((pointer, raw, files))
+                parent = pointer['source_commit']
+            self.assertEqual(runtime.publish_runtime(publications[-1][1], repo, expected_parent=parent, transport=git), publications[-1][0])
+            self.assertEqual(git.head(), parent)
+            for number, (pointer, raw, files) in enumerate(publications):
+                reader_repo = root / ('fresh-' + str(number))
+                subprocess.run(['git', 'init', str(reader_repo)], check=True, capture_output=True)
+                subprocess.run(['git', '-C', str(reader_repo), 'remote', 'add', 'origin', str(root / 'remote.git')], check=True, capture_output=True)
+                reader = self.local_git(reader_repo)
+                self.assertFalse(reader.exists(pointer['source_commit'], pointer['cipher_path']))
+                output = root / ('restored-' + str(number))
+                restored = runtime.restore_runtime(pointer, reader_repo, output, key=KEY, transport=reader)
+                self.assertEqual({name: Path(path).read_bytes() for name, path in restored['files'].items()}, files)
+                self.assertEqual(reader.read(pointer['source_commit'], pointer['cipher_path'], runtime.MAX_SEALED), raw)
+                self.assertEqual(git._run(['merge-base', '--is-ancestor', pointer['source_commit'], parent]), b'')
+
+    def test_legacy_accumulated_runtime_tree_is_audited_before_bounded_successor(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            repo = local_repos(root)
+            git = self.local_git(repo)
+            first_raw, _ = self.seal()
+            first = runtime.publish_runtime(first_raw, repo, expected_parent=None, transport=git)
+            second_files = invented_files();second_files['metadata.json'] = b'{"synthetic_legacy_generation":2}'
+            second_raw, second_header = self.seal(second_files)
+            latest = {name: value for name, value in first.items() if name not in {'status', 'source_commit'}}
+            latest.update(cipher_sha256=hashlib.sha256(second_raw).hexdigest(), header=second_header)
+            latest['cipher_path'] = 'runtime/' + latest['cipher_sha256'] + '.enc'
+            legacy = git.commit({latest['cipher_path']: second_raw, 'latest.json': runtime._wire(latest) + b'\n'}, first['source_commit'])
+            git.push(legacy, first['source_commit'])
+            self.assertEqual(len(git._run(['ls-tree', '-r', '--name-only', legacy]).decode().splitlines()), 3)
+            third_raw, _ = self.seal()
+            third = runtime.publish_runtime(third_raw, repo, expected_parent=legacy, transport=git)
+            self.assertEqual(set(git._run(['ls-tree', '-r', '--name-only', third['source_commit']]).decode().splitlines()),
+                             {'latest.json', third['cipher_path']})
+            self.assertEqual(git.read(first['source_commit'], first['cipher_path'], runtime.MAX_SEALED), first_raw)
+            self.assertEqual(git.read(legacy, latest['cipher_path'], runtime.MAX_SEALED), second_raw)
+            legacy_pointer = dict(latest, status='READY', source_commit=legacy)
+            restored = runtime.restore_runtime(legacy_pointer, repo, root / 'legacy-private', key=KEY, transport=git)
+            self.assertEqual({name: Path(path).read_bytes() for name, path in restored['files'].items()}, second_files)
+
+    def test_corrupt_nonlatest_legacy_cipher_blocks_snapshot_without_pruning(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            repo = local_repos(root)
+            git = self.local_git(repo)
+            old_raw, _ = self.seal()
+            old = runtime.publish_runtime(old_raw, repo, expected_parent=None, transport=git)
+            current_raw, current_header = self.seal()
+            latest = {name: value for name, value in old.items() if name not in {'status', 'source_commit'}}
+            latest.update(cipher_sha256=hashlib.sha256(current_raw).hexdigest(), header=current_header)
+            latest['cipher_path'] = 'runtime/' + latest['cipher_sha256'] + '.enc'
+            corrupted = old_raw[:-1] + bytes([old_raw[-1] ^ 1])
+            bad_parent = git.commit({old['cipher_path']: corrupted, latest['cipher_path']: current_raw,
+                                     'latest.json': runtime._wire(latest) + b'\n'}, old['source_commit'])
+            git.push(bad_parent, old['source_commit'])
+            incoming, _ = self.seal()
+            with self.assertRaisesRegex(ValueError, 'IMMUTABLE_CIPHER_HASH_INVALID'):
+                runtime.publish_runtime(incoming, repo, expected_parent=bad_parent, transport=git)
+            self.assertEqual(git.head(), bad_parent)
+            self.assertEqual(git.read(bad_parent, old['cipher_path'], runtime.MAX_SEALED), corrupted)
+
     def test_git_inherited_plaintext_symlink_and_cipher_path_hash_are_rejected(self):
         for path, body in (("exposed.json", b'{"private":"invented"}'), ("runtime/" + "a" * 64 + ".enc", b"wrong")):
             with self.subTest(path=path), tempfile.TemporaryDirectory() as folder:
@@ -229,6 +317,28 @@ class RuntimeTests(unittest.TestCase):
                 self.assertFalse((root / "output").exists())
             with self.assertRaises(ValueError):
                 runtime.publish_runtime(raw, repo, expected_parent=None, transport=git)
+
+    def test_concurrent_ref_update_after_snapshot_build_is_not_force_replaced(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            repo = local_repos(root)
+            git = self.local_git(repo)
+            raw, _ = self.seal()
+            first = runtime.publish_runtime(raw, repo, expected_parent=None, transport=git)
+            incoming, _ = self.seal()
+            original_snapshot = git.commit_snapshot
+            competing = []
+            def build_while_other_writer_advances(files, parent):
+                candidate = original_snapshot(files, parent)
+                other = git.commit({'latest.json': git.read(parent, 'latest.json', runtime.MAX_HEADER * 2)}, parent)
+                GitStateRepository.push(git, other, parent)
+                competing.append(other)
+                return candidate
+            with patch.object(git, 'commit_snapshot', side_effect=build_while_other_writer_advances), \
+                 self.assertRaisesRegex(ValueError, 'REF_CONCURRENT_UPDATE'):
+                runtime.publish_runtime(incoming, repo, expected_parent=first['source_commit'], transport=git)
+            self.assertEqual(git.head(), competing[0])
+            self.assertEqual(git.read(competing[0], first['cipher_path'], runtime.MAX_SEALED), raw)
 
     def test_inherited_tree_has_total_bounds_without_replacing_current_ref(self):
         with tempfile.TemporaryDirectory() as folder:

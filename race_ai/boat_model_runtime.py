@@ -17,6 +17,7 @@ import re
 import sqlite3
 import stat
 import struct
+import tempfile
 import zipfile
 import zlib
 
@@ -44,6 +45,7 @@ MAX_TREE_ENTRIES = 4096
 FILE_LIMITS = {"history.sqlite": 256 * 1024 * 1024, "racers.sqlite": 16 * 1024 * 1024,
                "ranker.json": 4 * 1024 * 1024, "native-view.json": 24 * 1024 * 1024,
                "p0-source.json": 8 * 1024 * 1024,
+               "prospective-budget-plan.json": 16 * 1024 * 1024,
                "metadata.json": 1024 * 1024}
 REQUIRED = frozenset({"history.sqlite", "racers.sqlite", "ranker.json", "metadata.json"})
 _SHA = re.compile(r"[a-f0-9]{64}\Z")
@@ -258,6 +260,24 @@ class GitRuntimeRepository(GitStateRepository):
         self._reject_rewrites()
         self._check_remote()
 
+    def commit_snapshot(self, files, parent):
+        """Write a bounded current tree while preserving every parent object."""
+        if parent is not None:
+            _hex(parent, _HEAD)
+        with tempfile.TemporaryDirectory(prefix='boat-runtime-head-') as folder:
+            env = dict(os.environ, GIT_INDEX_FILE=str(Path(folder) / 'index'))
+            self._run(['read-tree', '--empty'], env=env)
+            for path, raw in sorted(files.items()):
+                blob = self._run(['hash-object', '-w', '--stdin'], body=raw, env=env).decode().strip()
+                self._run(['update-index', '--add', '--cacheinfo', '100644,' + blob + ',' + path], env=env)
+            tree = self._run(['write-tree'], env=env).decode().strip()
+            args = ['-c', 'user.name=RACE-AI encrypted state',
+                    '-c', 'user.email=race-ai-state@users.noreply.github.com',
+                    '-c', 'commit.gpgSign=false', 'commit-tree', tree]
+            if parent is not None:
+                args += ['-p', parent]
+            return self._run(args, body=b'Retain bounded owner-encrypted model runtime\n', env=env).decode().strip()
+
 
 def _transport(repo, transport):
     git = transport if transport is not None else GitRuntimeRepository(repo)
@@ -276,7 +296,7 @@ def _latest(value):
 
 
 def _tree(git, commit):
-    """Audit every inherited blob before extending a publication tree."""
+    """Audit every blob, including legacy accumulated trees, before use."""
     _hex(commit, _HEAD)
     raw = git._run(["ls-tree", "-rlz", "--full-tree", commit])
     _need(len(raw) <= 4 * 1024 * 1024, "TREE_BOUND_INVALID")
@@ -329,10 +349,12 @@ def _validate_pointer(pointer):
 
 
 def publish_runtime(raw, repo, *, expected_parent, transport=None):
-    """Append encrypted bytes and latest.json under an explicit CAS parent.
+    """Publish only current encrypted bytes and latest.json with a CAS parent.
 
     ``expected_parent=None`` initializes the separate ref only if it is absent.
     All inherited paths, blob hashes and envelope headers are audited first.
+    Older ciphertext stays unchanged and reachable through Git ancestry; old
+    pinned pointers continue to restore the complete tree they authenticated.
     No owner private key is needed to publish a public-recipient envelope.
     """
     header = _split(raw)[0]
@@ -353,8 +375,9 @@ def publish_runtime(raw, repo, *, expected_parent, transport=None):
         _need(git.read(parent, path, MAX_SEALED) == raw, "IMMUTABLE_CIPHER_CHANGED")
         if previous == latest:
             return _pointer(parent, latest)
-    commit = git.commit({path: raw, "latest.json": encoded}, parent)
-    _tree(git, commit)
+    commit = git.commit_snapshot({path: raw, "latest.json": encoded}, parent)
+    written, _ = _tree(git, commit)
+    _need(set(written) == {path, "latest.json"}, "SNAPSHOT_TREE_INVALID")
     git.push(commit, parent)
     _need(git.read(commit, path, MAX_SEALED) == raw
           and git.read(commit, "latest.json", MAX_HEADER * 2) == encoded, "REMOTE_READBACK_MISMATCH")
