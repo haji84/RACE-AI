@@ -447,8 +447,11 @@ def dispatch(schedule, native_inputs, *, now, allow_source=None, originals=()):
                 state = "SOURCE_NOT_AUTHORIZED" if isinstance(exc, SourceNotAuthorized) else "INPUT_MISSING" if isinstance(exc, InputMissing) else "UNCONNECTED_NATIVE_RUNTIME" if isinstance(exc, NativeRuntimeUnavailable) else "INPUT_REJECTED"
                 for s in pending: s.update(status=state, reason=type(exc).__name__)
         slots.extend(per_model.values())
-    return dict(schema="RACE_AI_EXISTING_MODEL_DISPATCH_V1", as_of=clock.isoformat(), slots=slots,
+    report = dict(schema="RACE_AI_EXISTING_MODEL_DISPATCH_V1", as_of=clock.isoformat(), slots=slots,
                 native_invocations=invocations, status_counts=dict(Counter(s["status"] for s in slots)),
                 retained_originals=list(originals_by_key.values()),
                 input_sha256=digest(inputs), source_requests=0, external_receipts_created=False,
                 originals_overwritten=False, new_model_created=False, research_only=True)
+    retired = [item["model_id"] for item in catalog() if is_retired(item["model_id"])]
+    if retired: report["retired_model_ids"] = retired
+    return report

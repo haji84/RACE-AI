@@ -704,7 +704,8 @@ def forecast_saved_p0(document, receipt, runtime_files, *, now, issued_models=No
             reports.append(report)
             readiness_rows.append(dict(race_id=rid, stage="P0", groups={group: dict(
                 state=next(s["status"] for s in report["slots"] if s["model_id"] == mids[0]),
-                reasons=[next(s["reason"] for s in report["slots"] if s["model_id"] == mids[0])]) for group, mids in GROUPS}))
+                reasons=[next(s["reason"] for s in report["slots"] if s["model_id"] == mids[0])])
+                for group, mids in GROUPS if not is_retired(mids[0])}))
         payload = _json_copy(dict(schema=SCHEMA, stage="P0", generated_at=clock.isoformat(), as_of=clock.isoformat(),
             source_code_commit=provenance["source_code_commit"], run_id=runtime_files.get("run_id"), runtime_provenance=provenance,
             current_inputs=[], input_origins=origins, dispatch_reports=reports, model_readiness=readiness_rows,

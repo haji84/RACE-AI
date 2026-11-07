@@ -670,10 +670,11 @@ jobs:
           from pathlib import Path
           import unittest, race_ai
           race_ai.__path__.extend(str(Path(root) / 'race_ai') for root in ('pr64-reference', 'pr72-reference'))
-          suite = unittest.defaultTestLoader.loadTestsFromName('tests.test_seller_retirement')
+          suite = unittest.defaultTestLoader.loadTestsFromNames(('tests.test_seller_retirement','tests.test_boat_saved_p0_seller_sources','tests.test_all_existing_model_generation_clock','tests.test_all_existing_model_cli_derivation','tests.test_boat_seller_inputs','tests.test_boat_seller_official_source','tests.test_dispatch_product_projection','tests.test_boat_saved_display_evidence'))
           result = unittest.TextTestRunner(verbosity=2).run(suite)
           raise SystemExit(not result.wasSuccessful())
           PY
+          node --test tests/model_catalog.test.cjs
       - name: Validate history formats, official reconciliation and unchanged model contracts offline
         run: python -m unittest discover -s tests -p 'test_teiai*.py' -v
       - name: Python synthetic journal to viewer projection tests

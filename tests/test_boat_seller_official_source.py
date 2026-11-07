@@ -6,6 +6,7 @@ import csv
 import hashlib
 import io
 import unittest
+from unittest.mock import patch
 
 from race_ai.actions_contract import digest
 from race_ai import boat_seller_inputs as seller
@@ -160,7 +161,9 @@ class OfficialSellerCardsTests(unittest.TestCase):
         self.assertEqual(late["readiness"]["seller"]["state"], "DEADLINE_PASSED")
         self.assertEqual(late["native_inputs"], {})
 
+    @patch("race_ai.existing_model_coverage.RETIRED_MODEL_IDS", frozenset())
     def test_official_b_evidence_authorizes_only_the_matching_native_daily_cards(self):
+        """Compatibility replay for historical source evidence, not current execution."""
         _, document, _ = fixture()
         batch = seller.build_seller_native_inputs(self.source(), waku_source(), day=DAY, as_of=AT,
             expected_race_ids=[r["race_id"] for r in document["schedule"]])
