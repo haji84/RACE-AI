@@ -1,0 +1,10 @@
+{
+  "schema": "RACE_AI_REMAINING_COMPLETION_AUDIT_INPUT_V1",
+  "day_jst": "2026-11-07",
+  "journal_artifact": {
+    "id": 13574582081,
+    "digest": "sha256:72d1b53eec547a73cff15955e6b7f179f1391283c28d218ca48be95e36e35c79",
+    "run_id": 42371023982,
+    "head_sha": "901fb57d2d0f1d0fa0b4051285dca399654a4738"
+  }
+}

@@ -255,6 +255,17 @@ jobs:
           path: ${{ runner.temp }}/boat-production-readback/production-readback-status.json
           retention-days: 7
           if-no-files-found: error
+      - name: Audit retained completion blockers without provider requests
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == completion-audit:* ]]; then
+            python -m scripts.boat_remaining_completion_audit --input audit/state/remaining-completion-audit-input.json
+          else
+            echo 'Retained completion audit not requested.'
+          fi
       - name: Connect frozen venue observations to existing shadow fitter or explicit HOLD
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
