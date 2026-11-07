@@ -1,0 +1,46 @@
+{
+  "schema": "RACE_AI_BOAT_OWNER_VIEW_READBACK_COUNTS_V1",
+  "observed_no_later_than": "2026-11-07T06:11:39Z",
+  "generation": 20,
+  "history_protocol": 5,
+  "feed_commit": "111af092a884e13f95b19eddb47498d15e131db8",
+  "cipher_sha256": "25e054ea5ad1f2b154775bb9de988aab829934a44e63a9eb7bd1087756144dae",
+  "races": 288,
+  "forecast_originals": 2893,
+  "prior_originals_unchanged": true,
+  "native_p1_forecasts": 378,
+  "native_p1_model_ids": 14,
+  "future_pre_cutoff_native_p1_at_readback": 0,
+  "days": {
+    "2026-11-06": {
+      "final": 144,
+      "void": 12
+    },
+    "2026-11-07": {
+      "final": 68,
+      "missing": 54,
+      "pending": 3,
+      "unsupported": 7
+    }
+  },
+  "unmatched_reason_counts": {
+    "RESULT_CUTOFF_MISMATCH": 6,
+    "RESULT_IDENTITY_UNVERIFIED": 1
+  },
+  "cutoff_drift_seconds_counts": {
+    "120": 1,
+    "180": 2,
+    "240": 2,
+    "300": 1
+  },
+  "original_cutoffs_changed": false,
+  "reconciliation_tolerance_widened": false,
+  "live_browser_verification_pending": true,
+  "prospective_settlement_pending": true,
+  "full_archive_backfill_complete": false,
+  "seller_waku10_available": false,
+  "accuracy_improvement_proven": false,
+  "actual_purchases": false,
+  "plaintext_published": false,
+  "verification_scope": "AUTHENTICATED_VIEWER_AEAD_HTTP_READBACK_NOT_OWNER_VAULT_HMAC"
+}
