@@ -1,3 +1,20 @@
+<!-- RACEAI_CONTINUOUS_VIDEO_IDENTITY_IMPLEMENTATION_20261107 -->
+# 2026-11-07 JST｜連続映像の保存を実装・実動画1056フレーム一致。6艇の継続識別は未完成
+
+**実装・検証済み:** 既存Draft PR71内に、正規の許可済みHLSを私有保存するCollector、再開可能なSQLite台帳、local-only MP4出力、既存intake接続、`--follow`自動巡回を実装した。総GET・区間数・巡回数・総稼働時間で打ち切らない。1応答の資源条件と120秒/256MiBの解析条件を区別し、解析対象外区間の保存後も後続取得を続ける。401/403・429/Retry-After待機を保持し、拒否回避・別variantへの切替・鍵取得はしない。既存の自動予想・動画intakeを停止/再起動していない。
+
+**実動画での連続保存:** 新たに正規ページから取得したmassmatt「Vintage Boat Racing」（CC BY2.0、過去の外国モーターボート映像、35.2352秒/34,405,081B）をstreamcopyし、localhostで実時間の段階公開を行った。最終コードSHA `65d28859…` で25GET全200、12segmentを各1回保存。2窓900+156=1056フレームすべてのBGR SHAと1055個のPTS間隔・窓境界が元映像と一致し、再出力も同一SHA。時計注入・再encode・静止画反復なし。raw PTSには一定offsetがあるため絶対時刻同一とはしない。これは実媒体を使ったSYNTHETIC_TESTのHTTP transport検証であり、現在の日本公式LIVE・現在レース・艇番識別成功の証拠ではない。
+
+**艇番の原因修正と未達:** 数字候補を艇画像の上側という理由だけで除外していた条件1個を修正し、上下移動のRED→GREENを確認。固定された写真の自動検出艇画像では、AI開発参照と一致するdistinct番号領域が0→2。選択済み同一撮影者データであり、独立精度・人間正解とはしない。既存日本競艇動画は全775フレームを照合し、実97sample/679検出forward/962CRNN forwardを実行したが、時間をまたぐ艇番は0→0、有効位置も0、動画での改善は未実証（597.302秒、budget不完了4件/省略view22件）。6艇継続識別・ターン/出足/行き足/伸びの実評価・予想精度改善は完成していない。重み・語彙・閾値・本番モデルを変更せず、映像特徴を現在の本番予想へ適用していない。
+
+**失敗修正・全体検証:** 独立レビューで確認した応答待機の途中終了、同URIの新sequence、SQLite部分保存、export復旧、directory fsync、初回variant固定、不完全受信、sliding PDT、partial stage残存、CLI SQLite例外を再現して修正。最終関連4module60件PASS、並行変更を取り込んだコードcommit `038ca2a…` のPython全体2,635件PASS（847.837秒）。実媒体66保存物のSHA/size/0600を別途再照合。初回の参照checkout不足による失敗と実装途中の失敗ログも保全し、成功へ置き換えていない。
+
+**外部条件・保全:** 公式LIVEの403は未解消で、正規にクラウド取得できる現在映像の確認が必要。問い合わせは引き続き未送信。単なるsource宣言を許諾/レース認証へ昇格しない。実機Safari、4競技の継続実運転と前向き精度改善も今回のtransport成功で完了扱いにしない。起点DB SHA `c40bead0…` と保護checkoutは不変、既存監視/動画intakeは稼働継続。新PR・Issue・workflow・外部schedule・予想モデル系統・追加課金・環境再公開・main統合・一般公開・実投票・本番切替なし。
+
+[操作方法と出典](BOAT_VIDEO_CONTINUOUS_CAPTURE_20261107.md)／[集計・コードSHA・検証証拠](evidence/boat-video-continuous-identity-20261107.json)。全体の完成判定は未達のまま維持する。
+
+---
+
 <!-- RACEAI_AUTOMATION_20261107_0928_COMPLETED_18_AND_SINGLE_SUCCESSOR -->
 # 2026-11-07 09:28 JST｜実worker第18巡までの正常保存と取得枠停止、現worker第5巡の原本照合、後続1件予約
 

@@ -51,3 +51,11 @@ MP4出力はhash確認済みのローカルbytesだけをFFmpegへ渡す。上�
 艇番候補抽出の「艇画像の下側40%にしか数字がない」という固定条件を除去する。既存CRNNの語彙・未校正likelihood・UNKNOWN・複数時刻での一致条件は維持する。色だけで艇番を確定せず、同一フレームの複数加工を独立した連続観測に数えない。
 
 ローカルHLSでの保存成功と、現在の公式LIVE取得、実映像での6艇継続識別は別に判定する。実際の観測結果と未達条件は `docs/RACE_AI_LATEST_STATUS.md` および対応するevidenceへ記録する。静止画の反復や過去映像で現在のレースの識別成功・予想改善を主張しない。
+
+## 開発検証用原本の出典
+
+- 連続保存検証：massmatt, [Vintage Boat Racing](https://www.flickr.com/photos/momentsnotice/48929379743/), [CC BY 2.0](https://creativecommons.org/licenses/by/2.0/)。原本35.2352秒・1056フレーム。私有localhostのHLSへstreamcopyして検証し、現在の日本競艇LIVEとは扱わない。
+- 日本競艇の識別検証：Nesnad, [Kyotei - Sept 7 2021](https://commons.wikimedia.org/wiki/File:Kyotei_-_Sept_7_2021.webm), [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)。既存の私有原本25.859秒・775フレームを使用し、新たなCommons取得は行わない。
+- 写真の位置抽出検証：Fotois.com / Dmaniax.com / 246g.com, [2010年の競艇写真](https://www.flickr.com/photos/fotois/5154436789/), CC BY 2.0。同一撮影者・同一行事の選択済み開発データであり、独立した精度評価用データとはしない。
+
+動画・写真の原本、切出し、モデル重み、私有の取得URLをGitへ追加しない。公開するevidenceは集計・SHA・許諾出典だけとする。
