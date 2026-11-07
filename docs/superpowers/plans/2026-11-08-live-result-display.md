@@ -49,9 +49,9 @@ Interfaces: Japanese display model names separate from internal identities; comp
 - [x] Implement concise header and selection, result before long sections, no duplicate forecast rail, collapsed raw/evidence, friendly wait/review text, synthetic marker retained. Keep model switching, athlete cards, original identities and drafts.
 - [x] Verify result update without reload through actual WebCrypto fixtures, error/quiet preservation, selected model/day and editable budget retention. Run affected Node/explorer/Crypto/offline browsers; commit.
 
-### Task4: Review, publish and verify real same-day reconciliation
+### Task4: Review, publish and verify real saved-result reconciliation
 
 - [x] One fresh read-only whole-change review; one targeted RED→GREEN correction pass. Receipt/packet cache identity corrected; real encrypted restore→publish→quiet replay regression and32 affected tests pass.
-- [ ] Publish reviewed UI assets preserving all ciphertext/portraits and dynamic data. Preserve concurrent source commits.
-- [ ] Source trigger runs new result-only synchronization on existing owner secret, then normal restart verifies retained replay/public SHA and actual saved-result counts. No namespace reset.
+- [x] Publish reviewed UI assets preserving all ciphertext/portraits and dynamic data. Preserve concurrent source commits.
+- [x] Source trigger runs new result-only synchronization on existing owner secret, then normal restart verifies retained replay/public SHA and actual saved-result counts. No namespace reset. Runs42391032608/42391236369 passed; main pinned runtime b98f4e9. Actual execution is after midnight, checking saved November7 results; this does not prove a live finish-to-next-cutoff interval.
 - [ ] Normally merge a workflow-only main PR after required CI with full runtime SHA pin and `--sync-results`. Verify main dispatch, live phone detail/result flow, owner-key-free browser context and count-only evidence. Finish docs/PR71 metadata without merging unrelated draft work.

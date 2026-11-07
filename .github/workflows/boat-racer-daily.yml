@@ -77,6 +77,11 @@ jobs:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           NODE_PATH: ${{ runner.temp }}/result-site-tools/node_modules
           RESULT_PROBE_RACE: ${{ inputs.probe_race_id || '' }}
+          # The context installs its own repository-scoped credential.
+          # Clear checkout's host header for this read-only step only.
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: http.https://github.com/.extraheader
+          GIT_CONFIG_VALUE_0: ''
         run: |
           python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" --latest-saved-day
           probe=()
