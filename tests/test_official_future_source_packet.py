@@ -60,7 +60,7 @@ def capture_fixture():
             for event in metadata['ledger'][2:]:
                 event['at'] = (start+timedelta(seconds=9 if '一覧' in event['label'] else 18)).isoformat()
                 browser_rows.append(event)
-        metadata['ledger'] = browser_rows
+        metadata['ledger'] = sorted(browser_rows, key=lambda entry: entry.get('request_started_at',entry.get('at')))
         race = 'autorace:2030-01-15:isesaki:1' if auto else 'keirin:2030-01-15:keirin-jyo-48:2'
         captured.append(dict(sport=sport, race_id=race, state='CAPTURED',
             responses=[dict(role=role, sequence=len(rows)-1+i) for i, role in enumerate(roles)],
@@ -77,7 +77,9 @@ def capture_fixture():
         minimum_spacing_ms=825, maximum_elapsed_ms=85000, request_timeout_ms=12000,
         stop_reason='FINISHED', stopped_host=False, normal_ui_only=True, manual_api_requests=0,
         formal_learning_or_pdca_claim=False, native_contracts_verified=False,
-        independent_pre_cutoff_receipt_verified=False, cases=captured, responses=rows, ledger=deepcopy(rows))
+        independent_pre_cutoff_receipt_verified=False, cases=captured, responses=rows,
+        ledger=sorted([deepcopy(entry) for case in captured for entry in case['browser_metadata']['ledger']],
+                      key=lambda entry: entry.get('request_started_at',entry.get('at'))))
     return plan, index, files, fixtures.packet(original_cases)['terms_manifest']
 
 
@@ -151,6 +153,69 @@ class FutureSourcePacketTests(unittest.TestCase):
         out=self.build(*data)
         self.assertEqual(out['state'],'READY_INPUTS_ONLY')
         self.assertEqual(out['packet'],first['packet']);self.assertEqual(out['requests'],first['requests'])
+
+    def test_stale_browser_program_identity_cannot_override_the_retained_actual_post(self):
+        plan,index,files,terms=capture_fixture()
+        actual=index['responses'][0]
+        request=wire(dict(placeCode=3,raceDate='2030-01-15',raceNo=2))
+        files[actual['request_body_file']]=request
+        actual.update(request_body_sha256=sha256(request).hexdigest(),request_identity=json.loads(request))
+        metadata=json.loads(files[actual['metadata_file']]);metadata['request_body_sha256']=actual['request_body_sha256']
+        files[actual['metadata_file']]=wire(metadata)
+        index['ledger'][0]=deepcopy(actual)
+        # The stale race-one row has the same response hash/body clock and its
+        # request SHA is still present for OtherRaceInfo. It must never win a
+        # tie against the retained actual Program race-two request.
+        index['cases'][0]['browser_metadata']['ledger'].append(deepcopy(actual))
+        out=self.build(plan,index,files,terms)
+        self.assertEqual(out['state'],'HOLD');self.assertEqual(out['requests'],[]);self.assertIsNone(out['packet'])
+
+    def test_every_browser_numbered_row_must_uniquely_match_a_global_original(self):
+        for mutation in ('extra','duplicate','replacement','response_mismatch'):
+            plan,index,files,terms=capture_fixture();browser=index['cases'][0]['browser_metadata']['ledger']
+            changed=deepcopy(browser[0])
+            if mutation=='extra':changed['sequence']=99
+            elif mutation=='replacement':changed['request_identity']['raceNo']=2
+            elif mutation=='response_mismatch':changed['source_sha256']='f'*64
+            browser.append(changed)
+            out=self.build(plan,index,files,terms)
+            with self.subTest(mutation=mutation):self.assertEqual(out['state'],'HOLD');self.assertEqual(out['requests'],[])
+
+    def test_browser_ui_evidence_must_be_an_ordered_projection_of_the_global_ledger(self):
+        for mutation in ('missing_global','fabricated','duplicate','reordered'):
+            plan,index,files,terms=capture_fixture();browser=index['cases'][1]['browser_metadata']['ledger']
+            event=next(entry for entry in browser if entry.get('event')=='NORMAL_SEMANTIC_UI_CLICK')
+            if mutation=='missing_global':index['ledger'].remove(event)
+            elif mutation=='fabricated':
+                invented=deepcopy(event);invented['at']=(NOW-timedelta(seconds=15)).isoformat();browser.append(invented)
+            elif mutation=='duplicate':browser.append(deepcopy(event))
+            elif mutation=='reordered':browser.reverse()
+            out=self.build(plan,index,files,terms)
+            with self.subTest(mutation=mutation):self.assertEqual(out['state'],'HOLD');self.assertIsNone(out['packet'])
+
+    def test_adapter_cannot_borrow_another_actual_program_row_outside_selected_roles(self):
+        plan,index,files,terms=capture_fixture()
+        plan['cases']=plan['cases'][:1];index['cases']=index['cases'][:1]
+        index['responses']=index['responses'][:2];index['ledger']=deepcopy(index['responses'])
+        browser=index['cases'][0]['browser_metadata']['ledger']
+        # Both real Program bodies finish at the same recorded instant. The
+        # chosen role points to race two; a valid but unselected race-one row
+        # must not be borrowed just because OtherRaceInfo retains its POST SHA.
+        completed=(NOW-timedelta(seconds=40)).isoformat()
+        first=index['responses'][0];first.update(request_started_at=(NOW-timedelta(seconds=52)).isoformat(),response_received_at=completed,body_captured_at=completed)
+        first_meta=json.loads(files[first['metadata_file']]);first_meta.update(fetched_at=first['request_started_at'],response_received_at=completed)
+        files[first['metadata_file']]=wire(first_meta)
+        index['ledger'][0]=deepcopy(first);browser[0]=deepcopy(first)
+        other=deepcopy(first);other.update(sequence=3,request_started_at=(NOW-timedelta(seconds=42)).isoformat(),
+            body_file='response-other.body',metadata_file='response-other.metadata.json',request_body_file='request-other.body')
+        request=wire(dict(placeCode=3,raceDate='2030-01-15',raceNo=2));other.update(request_body_sha256=sha256(request).hexdigest(),request_identity=json.loads(request))
+        files[other['body_file']]=files[first['body_file']];files[other['request_body_file']]=request
+        other_meta=deepcopy(first_meta);other_meta.update(fetched_at=other['request_started_at'],request_body_file=other['request_body_file'],request_body_sha256=other['request_body_sha256'])
+        files[other['metadata_file']]=wire(other_meta)
+        index['responses'].append(other);index['ledger'].append(deepcopy(other));browser.append(deepcopy(other))
+        index['actual_request_count']=3;index['cases'][0]['responses'][0]['sequence']=3
+        out=self.build(plan,index,files,terms)
+        self.assertEqual(out['state'],'HOLD');self.assertEqual(out['requests'],[])
 
     def test_dynamic_data_cannot_be_relabelled_as_static(self):
         plan,index,files,terms=capture_fixture();url='https://keirin.jp/pc/racelist'

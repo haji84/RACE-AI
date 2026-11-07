@@ -137,7 +137,33 @@ def _static_replays(plan, index, originals, files):
               meta['response_received_at'] == event['original_captured_at'], 'STATIC_ORIGINAL_JOIN')
 
 
-def _pack_case(row, item, originals, files, available, now):
+def _browser_source_projection(entries, original_ledger, originals, selected):
+    """Bind every case entry, then expose only its selected HTTP originals.
+
+    The adapters select by URL/hash. An otherwise real, unselected response
+    with identical bytes must not override the explicitly chosen source role.
+    """
+    _need(type(entries) is list and 0 < len(entries) <= len(original_ledger), 'BROWSER_LEDGER_BOUND')
+    cursor = 0; seen = set(); projection = []
+    for entry in entries:
+        _need(type(entry) is dict, 'BROWSER_LEDGER_ENTRY')
+        fingerprint = digest(entry)
+        if 'sequence' in entry:
+            sequence = entry['sequence']
+            _need(type(sequence) is int and sequence in originals and sequence not in seen and
+                  fingerprint == digest(originals[sequence][0]), 'BROWSER_ORIGINAL_RESPONSE_JOIN')
+            seen.add(sequence)
+        while cursor < len(original_ledger) and original_ledger[cursor][0] != fingerprint:
+            cursor += 1
+        _need(cursor < len(original_ledger), 'BROWSER_ORIGINAL_LEDGER_PROJECTION')
+        original = original_ledger[cursor][1]; cursor += 1
+        if 'sequence' not in original or original['sequence'] in selected:
+            projection.append(deepcopy(original))
+    _need(selected <= seen, 'BROWSER_SELECTED_SOURCE_CLOSURE')
+    return projection
+
+
+def _pack_case(row, item, originals, original_ledger, files, available, now):
     sport = item['sport']; browser = deepcopy(row['browser_metadata']); dom = row['rendered_dom']
     _need(row['sport'] == sport and row['race_id'] == item['race_id'] and row['state'] == 'CAPTURED', 'EXACT_CAPTURED_CASE')
     _need(browser['source_url'] == item['ui_entry_url'] and browser['rendered_dom'] == dom and
@@ -148,6 +174,8 @@ def _pack_case(row, item, originals, files, available, now):
     _need(type(roles) is list and len(roles) == 2 and {r['role'] for r in roles} == expected and
           len({r['sequence'] for r in roles}) == 2, 'EXACT_SOURCE_ROLES')
     selected = {r['role']: originals[r['sequence']] for r in roles}
+    browser['ledger'] = _browser_source_projection(browser['ledger'], original_ledger, originals,
+                                                  {r['sequence'] for r in roles})
     _need(all(source in browser['ledger'] and _clock(source['body_captured_at']) <= _clock(dom['captured_at'])
               for source, _, _ in selected.values()), 'DOM_SOURCE_CLOSURE')
     encode = lambda raw: base64.b64encode(raw).decode('ascii')
@@ -183,6 +211,7 @@ def _build(plan, index, files, terms, as_of):
     _no_dynamic_replay(plan); _no_dynamic_replay(index)
     originals = _original_rows(index, files, available, now)
     _static_replays(plan, index, originals, files)
+    original_ledger = [(digest(entry), entry) for entry in index['ledger']]
     rows = index['cases']; _need(type(rows) is list and len(rows) == len(plan['cases']), 'EXACT_CASE_COUNT')
     cases = []; requests = []; bindings = []; seen = set(); refs = set()
     for item in plan['cases']:
@@ -192,7 +221,7 @@ def _build(plan, index, files, terms, as_of):
         seen.add(race)
         matches = [row for row in rows if row['race_id'] == race]
         _need(len(matches) == 1, 'EXACT_CAPTURED_CASE')
-        case, converted = _pack_case(matches[0], item, originals, files, available, now)
+        case, converted = _pack_case(matches[0], item, originals, original_ledger, files, available, now)
         cases.append(case); requests.extend(converted['requests']); refs.update(pair[0] for pair in converted['source_refs'])
         bindings.append(dict(sport=sport, race_id=race, case_sha256=digest(case),
             native_input_count=len(converted['requests']), native_input_sha256=[digest(r['native_payload']) for r in converted['requests']]))
