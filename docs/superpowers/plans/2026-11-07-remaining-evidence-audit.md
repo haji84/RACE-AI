@@ -67,7 +67,7 @@
 - [x] Test same-clock field conflicts, identical replay, redaction and input conservation.
 - [x] Add the actual completed source42376316340 continuity pin and count-only replay.
 - [x] Expose known blocked-request reason/method counts from the already retained native browser index; unavailable projections remain null.
-- [ ] Read actual Actions counts before changing any observation merge rule or sending another native probe.
+- [x] Read actual Actions counts before changing any observation merge rule or sending another native probe. The authenticated continuity comparison returned zero conflicts; the strict rejection was retained.
 
 ## Continuation
 
@@ -89,6 +89,17 @@ Actual run42384768071 passed bounded original maintenance, published the authent
 - [x] Add explicit historical-day selection; retain strict current-day default and all future-forecast clock requirements.
 - [x] Emit selected-day and actual-current-day scope separately; historical counts never become current-day counts.
 - [x] Bind actual final evidence to the unchanged plan day, audit day and browser verification clock.
-- [ ] Review and verify the actual historical owner site at both existing widths.
+- [x] Review and verify the actual historical owner site at both existing widths. Source-free display42386374576 passed; live run42394941895 verified the compact private owner view at three widths, generation42 and129 November7 results. Latest run42398357632/job128480528315 independently verified generation44 with the Research audit at17:55:30Z, preserving the same129 November7 results and null current-day counts.
+
+### Task7: Diagnose the three remaining holds using retained SP bytes
+
+The actual November7 audit is129 final/132, with one600-second cutoff mismatch and two identity-unverified projections. Those rejection labels do not establish why the original SP parser failed.
+
+- [x] Add a read-only authenticated intraday reader after the existing Actions/key/owner checks.
+- [x] Bind each held result to the retained receipt's exact SHA, capture clock, official URL and race identity; never substitute an older or different capture.
+- [x] Replay the supported SP parser and existing strict projection for fixed reason counts only. Keep original forecasts, allocations, holds and source clocks unchanged; authentication failure reports UNAVAILABLE.
+- [x] Verify synthetic hash/privacy/receipt/ambiguous-cutoff cases and the real encrypted intraday restore contract:47 related tests pass, zero skipped; independent audit29 tests pass.
+- [ ] Let the existing source owner integrate the reviewed delta at its next unfrozen boundary. An exact native collection subject may also request this read-only audit in the existing production job, so preparation need not start a separate diagnostic workflow.
+- [ ] Read actual retained-source reason counts before implementing any settlement correction. No provider requests or source-authority changes are introduced by the diagnostic.
 
 The next repair plan is based on the actual count evidence, not an assumed cause. Existing normal BOAT run42376316340 was reserved once after the prior source's actual canonical record and receipts matched. Never restart it or duplicate the native probe.

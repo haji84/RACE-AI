@@ -8,9 +8,9 @@
     "head_sha": "6a1a1f1a12248dc35f22a512783c279544c70086"
   },
   "journal_artifact": {
-    "id": 13577093759,
-    "digest": "sha256:3e581999ed8e6a0caeb3e15a32cf9ab6f364a8d5013ed4a62515dc9655639747",
-    "run_id": 42378920749,
-    "head_sha": "973629feb8bac893cc2dd051c6ad649c2783a491"
+    "id": 13591313088,
+    "digest": "sha256:3daa8481b048baf39213a6eab4993da9bbd301a7e20974c0bd8ce96563732a2b",
+    "run_id": 42413260799,
+    "head_sha": "d41f505cb00557dd1a6173a19b0945d7849e57fd"
   }
 }
