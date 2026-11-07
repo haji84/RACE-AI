@@ -8,7 +8,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'none';script-src 'self';style-src 'self';img-src 'self' data:;connect-src 'self' https://raw.githubusercontent.com/haji84/RACE-AI/state/boat-saved-view/ https://raw.githubusercontent.com/haji84/RACE-AI/;font-src 'none';form-action 'none';object-src 'none';base-uri 'none'">
   <title>RACE AI | レース・予想・分析</title>
   <meta name="description" content="4競技の保存済み予想と結果、モデルの根拠、買い目候補を確認する閲覧用アプリ。">
-  <link rel="stylesheet" href="./style.css?v=7d6104da6aaa">
+  <link rel="stylesheet" href="./style.css?v=4104687b5fe7">
   <script defer src="./forecast-audit-model.js?v=ae91d3f3a068"></script>
   <script defer src="./product-data.js?v=70c9ecc60aaa"></script>
   <script defer src="./existing-model-catalog.js?v=ff08efd5d08e"></script>
@@ -18,9 +18,9 @@
   <script defer src="./racer-portraits.js?v=2c15af470bb5"></script>
   <script defer src="./racer-profiles-data.js?v=2f6cdf0e99ed"></script>
   <script defer src="./racer-profiles.js?v=ab387b5b9958"></script>
-  <script defer src="./racer-daily.js?v=60e461da9024"></script>
+  <script defer src="./racer-daily.js?v=08187ac31a8a"></script>
   <script defer src="./saved-view-crypto.js?v=824e0ca52a2f"></script>
-  <script defer src="./app.js?v=b037124dec33"></script>
+  <script defer src="./app.js?v=a74ad9cd6e2d"></script>
 <meta name="referrer" content="no-referrer">
 <meta name="race-ai-saved-view-forecast-sha" content="4169db99a1d99bbcf96c8fa1bfb076ed2d2fb1f434fc64cf7e43b38e55f5adda">
 <meta name="race-ai-encrypted-saved-view" content="./views/1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec.json">
@@ -34,7 +34,7 @@
       <button type="button" data-page="races"><span aria-hidden="true">▦</span>全レース</button>
       <button type="button" data-page="picks"><span aria-hidden="true">◇</span>買い目</button>
       <button type="button" data-page="results"><span aria-hidden="true">▥</span>結果・収支</button>
-      <button type="button" data-page="research"><span aria-hidden="true">♧</span>研究</button>
+      <button type="button" data-page="research"><span aria-hidden="true">♧</span>分析</button>
       <button type="button" data-page="settings"><span aria-hidden="true">⚙</span>設定</button>
     </nav>
     <div class="sidebar-bottom"><span class="wave-art" aria-hidden="true">≋</span><p>保存された予想を、<br>確かな記録とともに。</p><small>FORECAST / RESULT / EVIDENCE</small></div>
@@ -84,6 +84,7 @@
         <label>表示・試算するモデル<select id="results-model" aria-label="表示・試算するモデル"></select></label>
         <p id="result-coverage" class="muted small"></p><div id="saved-result-metrics" class="metrics"></div>
       </section>
+      <section class="panel" aria-labelledby="saved-results-list-title"><h2 id="saved-results-list-title">レースごとの結果</h2><div id="saved-results-table"></div></section>
       <section class="panel" aria-labelledby="simulation-title">
         <div class="section-heading"><h2 id="simulation-title">日予算を変えた収支シミュレーション</h2><span class="tag">仮の購入・実投票なし</span></div>
         <div class="scenario-controls"><label>1日予算（円）<input id="simulation-budget" type="number" min="100" max="10000000" step="100" value="10000" aria-describedby="simulation-rule"></label><label>1レース上限<select id="simulation-race-budget" aria-describedby="simulation-rule simulation-allocation-note"><option value="800">800円 · Top8各100円</option><option value="1000">1,000円 · 支持・安定性の参考配分</option></select></label></div>
@@ -93,8 +94,8 @@
         <h3>モデル・履歴条件ごとの比較</h3><p class="muted small">各条件に同じ日予算を使う独立した試算です。複数モデルの購入額を合算しません。</p><div id="simulation-comparison"></div>
         <details id="simulation-ledger-details"><summary>選択モデルのレース別配分を見る</summary><div id="simulation-ledger"></div></details>
       </section>
-      <section class="panel" aria-labelledby="saved-results-list-title"><h2 id="saved-results-list-title">全レースの結果とTop8判定</h2><div id="saved-results-table"></div></section>
-      <div class="section-heading"><h2>公式証拠がそろった対象の成績</h2><span class="tag">公式 / 研究 / 合成を区別</span></div><div class="metrics" id="result-metrics"></div><p id="rate-limitations" class="muted small"></p><section class="panel"><h2>競技別・対象分母</h2><p class="muted">未予想を除外せず、証拠がそろった公式結果を評価します。98%は未達・実証未確認の目標です。</p><div id="result-sports"></div><h2 class="stage-heading">予想時点ごとの成績</h2><div id="result-stages"></div></section><section class="panel"><h2>レース別の公式結果</h2><div id="official-results"></div></section><section class="panel"><h2>取込購入申告</h2><p class="muted">保存原本に含まれる購入済み申告の閲覧専用記録です。この端末の手入力と重複加算しません。</p><div id="imported-purchases"></div></section><section class="panel"><div class="section-heading"><h2>手動の購入・払戻記録</h2><span class="tag">予想成績と別集計</span></div><div id="manual-metrics" class="metrics"></div><p class="muted">ご自身の申告記録です。払戻額の手入力は公式結果の証明にはなりません。</p><div id="purchase-list"></div><p id="result-message" class="message" role="status"></p></section></section>
+
+      <details id="result-data-details" class="panel result-data-details"><summary>集計・購入記録の詳細</summary><div class="section-heading"><h2>公式証拠がそろった対象の成績</h2><span class="tag">公式 / 研究 / 合成を区別</span></div><div class="metrics" id="result-metrics"></div><p id="rate-limitations" class="muted small"></p><section class="panel"><h2>競技別・対象分母</h2><p class="muted">未予想を除外せず、証拠がそろった公式結果を評価します。98%は未達・実証未確認の目標です。</p><div id="result-sports"></div><h2 class="stage-heading">予想時点ごとの成績</h2><div id="result-stages"></div></section><section class="panel"><h2>レース別の公式結果</h2><div id="official-results"></div></section><section class="panel"><h2>取込購入申告</h2><p class="muted">保存原本に含まれる購入済み申告の閲覧専用記録です。この端末の手入力と重複加算しません。</p><div id="imported-purchases"></div></section><section class="panel"><div class="section-heading"><h2>手動の購入・払戻記録</h2><span class="tag">予想成績と別集計</span></div><div id="manual-metrics" class="metrics"></div><p class="muted">ご自身の申告記録です。払戻額の手入力は公式結果の証明にはなりません。</p><div id="purchase-list"></div><p id="result-message" class="message" role="status"></p></section></details></section>
 
       <section id="page-research" class="page" hidden><div class="metrics" id="research-metrics"></div><section class="panel"><div class="section-heading"><h2>既存16モデル・全レースの接続状況</h2><span class="tag">既存カタログ</span></div><p id="all-model-coverage-summary" class="muted"></p><p class="muted small">選択した競技・期間の取込台帳をP0・P1それぞれの分母とし、未予想も残します。保存原本の存在数だけを確認する表です。カタログ登録は入力接続・モデル稼働・締切前保存・精度の実証ではありません。</p><div id="all-model-coverage"></div><p id="additional-models-note" class="muted small"></p></section><section class="panel"><h2>モデル・学習版・時点の比較</h2><p class="muted">実際に読み込んだ保存原本の版ごとに表示します。異なる入力や時点の参考比較を、改善の実証には使いません。</p><div id="model-comparison"></div></section><section class="panel"><h2>取得範囲と証拠</h2><div id="research-content"></div></section></section>
 
@@ -115,6 +116,6 @@
       <footer>RACE AI · 予想生成・保存原本の閲覧・手動記録 · 自動投票なし</footer>
     </main>
   </div>
-  <nav class="bottom-nav" aria-label="モバイルナビゲーション"><button type="button" data-page="home"><span aria-hidden="true">⌂</span>ホーム</button><button type="button" data-page="races"><span aria-hidden="true">◒</span>レース</button><button type="button" data-page="picks"><span aria-hidden="true">▤</span>買い目</button><button type="button" data-page="results"><span aria-hidden="true">▥</span>結果・収支</button><button type="button" data-page="research"><span aria-hidden="true">♧</span>研究</button></nav>
+  <nav class="bottom-nav" aria-label="モバイルナビゲーション"><button type="button" data-page="home"><span aria-hidden="true">⌂</span>ホーム</button><button type="button" data-page="races"><span aria-hidden="true">◒</span>レース</button><button type="button" data-page="picks"><span aria-hidden="true">▤</span>買い目</button><button type="button" data-page="results"><span aria-hidden="true">▥</span>結果・収支</button><button type="button" data-page="research"><span aria-hidden="true">♧</span>分析</button></nav>
 </body>
 </html>
