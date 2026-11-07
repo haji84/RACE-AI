@@ -7,7 +7,7 @@
 
 **前向き試算の限定的進展:** `boat-prospective-evaluation-42336097863-r1` の実ZIP `13560632416` を独立再取得、実SHA `6d649b2dcf57021686a9a778229c6156fe1214ae2898140a029a79fa7045c75c` がAPI digestと一致。内包JSONの `frozen_settlement` は登録28シナリオ全件 `SETTLED`、公開事前計画内の `plan_sha256=9f9176a2eb0638436fbc138d20174b4dedab4a0eab7ceea0220a474243baec05` と文字列一致。だが `independent_pre_cutoff_receipt_verified=false`、`prospective_allocation_verified=false`、`accuracy_improvement_proven=false`、`actual_purchases=false`。28ケースは**代替仮想条件**であり、合算購入・前向き改善・正式確定収支とは扱わない。表示ベース `result_states=final41/missing88/unsupported3` は同様に独立公式原本の再照合を今回完了しておらず、正式採点件数に加算しない。
 
-**起動・vault安全HOLD:** 監査時に同workflowの実行中・待機中 `0` 件。ただし count-only `state/boat-source-control/v1/latest.json` は以前の**失敗run42330631694**を指したまま（本runへの更新未確認）。現runの source-control ZIP は正しいが、owner鍵のHMAC/暗号vault原本まで本監査で独立認証したことにはならない。このstale controlを正常・0件に置き換えず、次の公式sourceトリガーは予約しない。保存/表示専用jobも根本未修正の `ALL_MODEL_CLI_OPERATION_FAILED` を持つため無根拠にrerunしない。4xx/429/真正性停止の回避、旧ref fallback、初期化、別認証は無し。既存64?分など安全制限・concurrency/頻度・他ジョブ・暗号原本・本番モデルには手を加えない。
+**起動・vault安全HOLD:** 監査時に同workflowの実行中・待機中 `0` 件。ただし count-only `state/boat-source-control/v1/latest.json` は以前の**失敗run42330631694**を指したまま（本runへの更新未確認）。現runの source-control ZIP は正しいが、owner鍵のHMAC/暗号vault原本まで本監査で独立認証したことにはならない。このstale controlを正常・0件に置き換えず、次の公式sourceトリガーは予約しない。保存/表示専用jobも根本未修正の `ALL_MODEL_CLI_OPERATION_FAILED` を持つため無根拠にrerunしない。4xx/429/真正性停止の回避、旧ref fallback、初期化、別認証は無し。既存の安全制限・concurrency/頻度・他ジョブ・暗号原本・本番モデルには手を加えない。
 
 **未完成の区分:** 原本復元stepと第1巡ZIP/カウンター実バイト検証のみ今回新たに確認。P1/結果/自動係数学習/LEARNED_SHADOWの未来前向き優位性、28条件の物理的事前証明、全4競技16系統、全原本期限なし保管・所有者本番日別表示は未認定。新タスク・新PR・別workflow・クラウド・追加課金・main統合・公開・実投票・本番自動採用なし。
 
