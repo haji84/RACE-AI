@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development or superpowers:executing-plans to implement task-by-task.
 
-**Goal:** Recognize all six printed boat numbers from actual sequential pixels and preserve their visible image tracks without inventing physical measurements.
+**Current goal (owner steering, 2026-11-07):** Identify the six riders primarily by clothing colours (white/black/red/blue/yellow/green), without requiring a readable printed digit, and retain identity using measured current pixel tracks. Historical printed-marker experiments below remain preserved.
 
 **Architecture:** Separate automatic printed-number discovery/recognition from marker association. Keep the existing detector-first provider and camera/strength path compatible.
 
@@ -15,7 +15,7 @@
 - Existing PR71 only, no new forecast family/workflow/task/service/fee, no public/main/wager/production-model change.
 - No denied source retries or alternate host/IP/UA/token workarounds. Existing autoplay and prediction PIDs remain running.
 - No acquisition-count/runtime ceilings. Analysis resource conditions remain explicit, not hidden candidate success.
-- No injected GT ROI/number/color-only identities or repeated stills as temporal evidence.
+- No injected GT ROI/number or repeated stills as temporal evidence. The owner's latest explicit instruction authorizes canonical clothing-colour identity; colour candidates remain separately typed from printed-number evidence and require actual current pixel lineage.
 - Preserve originals/references/weights; model eligibility and field validation remain false until genuinely established.
 
 ## Review Focus
@@ -110,3 +110,17 @@ In the previous7d trace, all17 retired keys still had current LK support; no LK 
 - [x] Prepare9 licensed source-visible rider examples for the separate RGB appearance dataset; preserve3 excluded/UNKNOWN and do not mix them into the glyph-CNN experiment.
 - [ ] Finish clean RGB person/appearance training and automatic-proposal validation, including motorfalse/unknown/sourcegroup restrictions.
 - [ ] Establish hull pixel-instance/physical-binding evidence without truth prompts; test all masks and extras, never certify a generic proposal as wholecraft.
+
+
+## Owner-directed clothing-colour continuation
+
+- [x] Primary clothing-colour candidates independent of printed digits; pale-green/neutral ambiguity, mixed and duplicate handling.
+- [x] Real current-pixel lifecycle and separately typed current colour vs held prior evidence; repeated frames do not add votes.
+- [x] Private snapshot/source hash and atomic final allocation regression, independently RED/GREEN reviewed.
+- [x] Existing CLI clothing-only execution without OCR assets, all-frame private journal and receipt.
+- [x] Native61 actual LK/cached actual detections, then fresh pinned427 forwards from lossless BGR-equivalent video;57 continuous all-six mapping agreements,0 wrong/motor labels.
+- [x] Related696 video tests PASS, preserve earlier failures and concurrent branch updates.
+- [ ] Semantic garment isolation, mixed black/coloured hood diversity, crossing/occlusion and separate venues/long recordings.
+- [ ] Current LIVE availability, real-time throughput and validated hull/strength/forward forecast improvement.
+
+The61-frame result is an already-known low-motion development sequence, not an independent holdout. Only13frames newly observe all6colours at once;57 continuous identities include real-pixel retention. Do not call the whole six-boat product field-validated.

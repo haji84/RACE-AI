@@ -162,8 +162,39 @@ class MarkerCliTests(unittest.TestCase):
             self.assertFalse(riders['model_eligible'])
         receipt = json.loads((self.output / 'receipt.json').read_text())
         self.assertFalse(receipt['pinned_models'])
-        self.assertEqual(receipt['rider_part_tracking']['number_binding'], 'NOT_IMPLEMENTED_NO_NUMBER_PRODUCER')
+        self.assertEqual(receipt['rider_part_tracking']['number_binding'], 'CLOTHING_COLOR_CURRENT_PIXEL_HYPOTHESIS')
+        self.assertFalse(receipt['rider_part_tracking']['printed_numbers_required'])
         self.assertEqual(receipt['rider_part_tracking']['execution_scope'], 'INJECTED_SYNTHETIC_TEST')
+
+    def test_clothing_only_requires_no_print_models_and_saves_actual_clothing_pipeline(self):
+        from race_ai.boat_video_rider_detector import SCHEMA
+        class Detector:
+            def __init__(self,**kw): pass
+            def metadata(self): return {'kind':'CONTROLLED_SYNTHETIC_PERSON'}
+            def __call__(self,frame):
+                return dict(schema_version=SCHEMA,frame_sha256=sha256(frame.tobytes()).hexdigest(),
+                    coordinate_space='IMAGE_PX',semantic_type='RIDER_PART_TYPED',
+                    detections=[dict(box=[10,10,30,40],score=.9,coco_class_id=0,semantic_type='RIDER_PART_TYPED')],
+                    engine=self.metadata(),identity_validated=False,model_eligible=False)
+        args=['--media',str(self.original),'--output-dir',str(self.output),
+              '--rider-model',str(self.models[0]),'--clothing-only',
+              '--development','--single-continuous-shot','--source-role','SYNTHETIC_TEST']
+        with patch('race_ai.boat_video_rider_detector.PinnedRiderPartDetector',Detector):
+            code,out,err=self.invoke(args,injected=False)
+        self.assertEqual(code,0,(out,err))
+        rows=[json.loads(line) for line in (self.output/'frames.jsonl').read_text().splitlines()]
+        self.assertEqual(len(rows),6)
+        result=rows[-1]['pipeline_result']['rider_part_tracking']
+        self.assertFalse(result['clothing_identity_policy']['printed_numbers_required'])
+        self.assertFalse(result['identity_validated'])
+        receipt=json.loads((self.output/'receipt.json').read_text())
+        self.assertEqual(receipt['execution_mode'],'PINNED_LOCAL_DEVELOPMENT_CLOTHING')
+
+    def test_clothing_only_rejects_missing_person_model_before_processing(self):
+        code,out,err=self.invoke(['--media',str(self.original),'--output-dir',str(self.output),
+            '--clothing-only','--development','--single-continuous-shot'])
+        self.assertNotEqual(code,0)
+        self.assertFalse(self.output.exists())
 
     def test_remote_rider_asset_rejected_before_native_execution(self):
         args = self.arguments() + ['--rider-model', 'https://owner-secret.invalid/model.onnx']

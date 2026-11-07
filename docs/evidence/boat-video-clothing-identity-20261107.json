@@ -1,0 +1,142 @@
+{
+  "schema": "RACE_AI_CLOTHING_IDENTITY_DEVELOPMENT_EVIDENCE_V1",
+  "owner_instruction": "PRIMARY_RIDER_CLOTHING_COLORS_NOT_PRINTED_DIGITS",
+  "canonical_colors": {
+    "1": "WHITE",
+    "2": "BLACK",
+    "3": "RED",
+    "4": "BLUE",
+    "5": "YELLOW",
+    "6": "GREEN"
+  },
+  "source_sha256": {
+    "race_ai/boat_video_clothing_identity.py": "93c19b46331ee4adad71bbd7ceffd25f7af5d8a93d1187c78fb5f96aaa7d216a",
+    "scripts/boat_video_marker_analyze.py": "6373de171d2b67364908347f6fb476efdd5ad1b07fd2cde238ff96bb8218f9f9",
+    "tests/test_boat_video_clothing_identity.py": "c111ce8d198dd4d0f104db012c10a2d22c954348d5312ee307d3e9d79a67af50"
+  },
+  "implementation": {
+    "printed_numbers_required": false,
+    "minimum_distinct_source_BGR_frames": 3,
+    "current_LK_required_for_prior_identity": true,
+    "remaining_number_assignment": false,
+    "clothing_region": "TORSO_POSITIONAL_PRIOR_NOT_SEMANTIC_SEGMENTATION",
+    "low_saturation_green": "SIGNED_GREEN_ADVANTAGE_AND_HUE;GREENISH_NEUTRALS_NEVER_FALL_BACK_TO_WHITE",
+    "achromatic": "RELATIVE_CONTEMPORANEOUS_CONTRAST_WITH_EXPLICIT_UNVALIDATED_SHARED_ILLUMINATION_ASSUMPTION",
+    "raw_detector_score_guard": 0.6,
+    "score_is_calibrated_probability": false
+  },
+  "development_sequence": {
+    "original_frames": 61,
+    "source_frame_indices": [
+      270,
+      330
+    ],
+    "source_PTS_seconds": [
+      9.0,
+      11.0
+    ],
+    "duration_seconds": 2.0,
+    "source_rights": "UNKNOWN_PRIVATE_INFERENCE_ONLY_NO_TRAINING_OR_DISTRIBUTION",
+    "actual_detector_forwards_previously_frozen": 427,
+    "raw_PERSON_detections": 373,
+    "execution": "EXACT_FROZEN_DETECTOR_REPLAY_AND_ACTUAL_LK_ON_NATIVE_PIXELS",
+    "GT_inputs": false,
+    "post_output_reference_join": true,
+    "primary_rider_rows": 366,
+    "correct_color_number_candidates": 352,
+    "initial_unknown_rows": 14,
+    "incorrect_color_numbers": 0,
+    "all_six_correct_contiguous_frames": 57,
+    "all_six_correct_source_frame_indices": [
+      274,
+      330
+    ],
+    "extra_motor_rows": 25,
+    "extra_motor_numbered": 0,
+    "evidence_status_counts": {
+      "None": 39,
+      "CURRENT_CLOTHING_COLOR": 289,
+      "CURRENT_PIXEL_TRACK_PRIOR_CLOTHING_COLOR": 63
+    },
+    "raw_journal_sha256": "8bd164010becfd913b406d8b728e56212a438b1449902f9034fb6edeed6be61d",
+    "post_output_score_sha256": "cf8511e187bcc38062003bbd7b88950fa978d3dfc1515006fc911224d83bf222",
+    "run_receipt_sha256": "fe5086de542fdc96c601ba4e4549bfcdfa236750cba3945d67c0b0ab2e8920d6",
+    "development_overlap": true,
+    "holdout": false,
+    "current_color_observations_in_established_agreements": 289,
+    "held_prior_color_identities": 63,
+    "frames_with_all_six_current_color_observations": 13,
+    "green_longest_prior_hold_frames": 22,
+    "green_longest_prior_hold_seconds": 0.732,
+    "secondary_boundary_semantic_unknown_rows": [
+      {
+        "frame_index": 320,
+        "track_id": "R000003"
+      },
+      {
+        "frame_index": 321,
+        "track_id": "R000003"
+      }
+    ],
+    "agreement_scope": "PRIOR_PHYSICAL_RIDER_TRACK_MAPPING_NOT_INDEPENDENT_CURRENT_ROI_PURITY"
+  },
+  "regression": {
+    "command": "python -m unittest discover -s tests -p 'test_boat_video*.py' -v",
+    "passed": 696,
+    "skipped": 0,
+    "elapsed_seconds": 84.946,
+    "log_sha256": "65114f5036f280b358a717ed86c3290cf00b1ca2b027b37b17587fffa231b3cb",
+    "independent_review_sha256": "7b91e66d89d3ecccff20e380f24c5f8a62d504fd3a369c0487bb6b3e1bb4ce8d",
+    "independent_corrected_failures": [
+      "ATOMIC_FINAL_ALLOCATION_FAILURE",
+      "CALLER_PIXEL_ABA_SNAPSHOT"
+    ]
+  },
+  "limitations": [
+    "EASY_LOW_MOTION_DEVELOPMENT_SEQUENCE_ONLY",
+    "POSITIONAL_PRIOR_MAY_INCLUDE_HELMET_BACKGROUND_OR_EQUIPMENT",
+    "BLACK_GARMENTS_WITH_CHROMATIC_HOODS_AND_UNEVEN_LIGHTING_NEED_MORE_VALIDATION",
+    "OCCLUSION_CROSSING_DIFFERENT_VENUE_AND_CURRENT_LIVE_NOT_FIELD_VALIDATED",
+    "COLOUR_NUMBER_ON_RIDER_PART_IS_NOT_HULL_BINDING_OR_METRIC_POSITION",
+    "TURN_ACCELERATION_AND_FORECAST_IMPROVEMENT_NOT_DEMONSTRATED"
+  ],
+  "production": {
+    "identity_validated": false,
+    "model_eligible": false,
+    "forecast_model_switched": false,
+    "automatic_forecast_process_stopped": false,
+    "new_service_or_workflow": false,
+    "acquisition_count_or_lifetime_cap_added": false
+  },
+  "fresh_end_to_end_cli": {
+    "frames": 61,
+    "bgr_matches_original_native_frames": 61,
+    "identities_and_status_match_cached_replay": 61,
+    "rider_boxes_match_cached_replay": 61,
+    "source": "PRIVATE_LOSSLESS_BGR_DERIVATIVE_OF61_ORIGINAL_NATIVE_FRAMES_NO_RESIZE",
+    "derivative_input_sha256": "b5ea65628d3262054eb39a48fb4dbf24b2fce8fd06945ea737c67b3999533604",
+    "derived_actual_PTS_first_last": [
+      9.0,
+      11.0
+    ],
+    "derived_PTS_delta_from_original_seconds_range": [
+      -0.001,
+      0.001
+    ],
+    "PTS_note": "DERIVATIVE_30FPS_MILLISECOND_ROUNDING_NOT_ORIGINAL_WEBM_PTS;ORIGINAL_PTS_RETAINED_BY_SEPARATE_REPLAY",
+    "actual_pinned_NN_forwards": 427,
+    "cached_detections_used_by_cli": false,
+    "OCR_models_loaded": false,
+    "counts": {
+      "agreement": 352,
+      "extra_unknown": 25,
+      "unknown": 14
+    },
+    "receipt_sha256": "204b9bff303cf717c4879ff8668a34d4f87f2baeed242dcd3be86d98f55b689b",
+    "journal_sha256": "35cf6452a2ecc74da579995498413c0726e2291c063cf45bd30c9c9f0fa59a04",
+    "elapsed_seconds": 179.673702,
+    "real_time_throughput_established": false,
+    "field_validated": false,
+    "reconciliation_sha256": "c7ec8c88b0053ca0608ac839d41b24011fe1e3dc70573521260ee1352b166ad4"
+  }
+}
