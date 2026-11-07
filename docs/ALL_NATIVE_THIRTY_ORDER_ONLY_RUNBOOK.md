@@ -194,3 +194,8 @@ The fixed input/archive/crypto caps remain; oversized real data must HOLD.
 Twenty-two synthetic V3/legacy tests and independent review passed. Real thirty-cell
 fit, full real thirty-cell future execution and realistic archive-size acceptance
 remain separate, incomplete gates.
+
+Result-retention requests are differential. Do not re-admit an already archived
+RESULT under a broader native set or different order-only scope. Keep its original
+pointer and bytes unchanged, and put only pending original RESULT pins in the
+retention input; collection checkpoints and training source lists retain history.
