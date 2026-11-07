@@ -16,17 +16,17 @@ Global constraints: GitHub only, no new keys/providers/charges/permission change
 ## Task 1: daily aggregate and durable encrypted state
 Interfaces: DailyStore.record(day,raw,captured_at), catalogue(roster,as_of,days=90), serialize/restore; append-only transfer namespace and authenticated monthly bootstrap.
 - [x] Tests RED for actual K parsing, rate denominators/absences/ST samples, gaps/date boundaries, duplicate/corrected archives, snapshot tamper/rollback.
-- [ ] Implement bounded catalogue and encrypted checkpoint/publication using existing primitives. Run relevant Python tests; commit.
+- [x] Implement bounded catalogue and encrypted checkpoint/publication using existing primitives. Run relevant Python tests; commit.
 
 ## Task 2: bounded collector and scheduled job
 Interfaces: refresh(repo,private_dir,now,initialize=False) restores authenticated state, imports retained recent months on initialization, requests at most7 canonical daily K archives, saves state, emits aggregate release and bounded counts. Publish only one fixed daily JSON path on gh-pages, preserving every other blob.
-- [ ] Tests RED for bounded transport, 404/429, missing state, duplicate/no-source changes, independent state/public CAS and preserved trees.
-- [ ] Implement CLI/workflow with existing owner secret, no plaintext artifacts, fixed-source pin; validate locally and prepare first real Actions run.
+- [x] Tests RED for bounded transport, 404/429, missing state, duplicate/no-source changes, independent state/public CAS and preserved trees.
+- [x] Implement CLI/workflow with existing owner secret, no plaintext artifacts, fixed-source pin; validate locally and prepare first real Actions run.
 
 ## Task 3: card reference and distribution
 Interfaces: RaceRacerDaily.load/get/status/period; strict identity-bound daily cards, explicit period/source gaps/ST counts; no mutation of saved inputs. Same-origin JSON fetch; offline export embeds a local snapshot or explicit unavailable state.
-- [ ] Browser/API tests RED on sparse athletes and unavailable/stale/synthetic/partial data; add daily metrics and six-course cards.
-- [ ] Add fixed asset/extra JSON allowlists, preserve daily data across UI/forecast publications, verify offline CSP and legacy migration. Run existing UI/crypto/profile/package checks; commit.
+- [x] Browser/API tests RED on sparse athletes and unavailable/stale/synthetic/partial data; add daily metrics and six-course cards.
+- [x] Add fixed asset/extra JSON allowlists, preserve daily data across UI/forecast publications, verify offline CSP and legacy migration. Run existing UI/crypto/profile/package checks; commit.
 
 ## Task 4: review, first production run and daily enablement
 - [ ] Fresh read-only whole-change review; one TDD fix pass for material findings.

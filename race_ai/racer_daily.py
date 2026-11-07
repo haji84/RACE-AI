@@ -42,7 +42,8 @@ class DailyStore:
         self.db.executescript('''PRAGMA trusted_schema=OFF;PRAGMA user_version=1;
           CREATE TABLE archives(sha TEXT PRIMARY KEY,raw BLOB NOT NULL);
           CREATE TABLE observations(id INTEGER PRIMARY KEY,day TEXT NOT NULL,sha TEXT NOT NULL,captured_at TEXT NOT NULL);
-          CREATE INDEX by_day ON observations(day,id);''')
+          CREATE INDEX by_day ON observations(day,id);
+          CREATE TABLE waits(day TEXT PRIMARY KEY,retry_at TEXT NOT NULL);''')
     def close(self):self.db.close()
     @property
     def revisions(self):return self.db.execute('SELECT count(*) FROM observations').fetchone()[0]
@@ -57,13 +58,28 @@ class DailyStore:
         h=sha(raw);last=self.db.execute('SELECT sha,captured_at FROM observations WHERE day=? ORDER BY id DESC LIMIT 1',(day,)).fetchone()
         if last and last[0]==h:return False
         need(not last or captured>clock(last[1]),'DAILY_REVISION_CLOCK_REGRESSION')
-        parse_archive(raw,day=day) # Admit a whole source atomically, including supported special results.
+        parsed=parse_archive(raw,day=day) # Admit a whole source atomically, including supported special results.
+        need(not any(r['result_code']=='00' and r['finish'] is None for r in parsed['rows']),'DAILY_UNKNOWN_FINISH_NOT_ADMITTED')
         with self.db:
             self.db.execute('INSERT OR IGNORE INTO archives VALUES (?,?)',(h,raw))
             self.db.execute('INSERT INTO observations(day,sha,captured_at) VALUES (?,?,?)',(day,h,captured.isoformat()))
         return True
     def serialize(self):
         self.db.commit();raw=self.db.serialize();need(len(raw)<=MAX_DB,'DAILY_SNAPSHOT_SIZE_LIMIT');return raw
+    def waiting(self,day,now):
+        row=self.db.execute('SELECT retry_at FROM waits WHERE day=?',(day,)).fetchone()
+        return bool(row and clock(row[0])>clock(now))
+    def wait_until(self,day,retry_at):
+        clock(retry_at)
+        with self.db:self.db.execute('INSERT OR REPLACE INTO waits VALUES (?,?)',(day,retry_at))
+    def compact(self,keep_from):
+        day_value(keep_from)
+        with self.db:
+            self.db.execute('DELETE FROM observations WHERE day<?',(keep_from,))
+            self.db.execute('DELETE FROM observations WHERE id NOT IN (SELECT max(id) FROM observations GROUP BY day)')
+            self.db.execute('DELETE FROM archives WHERE sha NOT IN (SELECT sha FROM observations)')
+            self.db.execute("DELETE FROM waits WHERE day!='*' AND day<?",(keep_from,))
+        self.db.execute('VACUUM')
     @classmethod
     def restore(cls,raw,*,expected_sha256,clock=None):
         need(type(raw) is bytes and 0<len(raw)<=MAX_DB and sha(raw)==expected_sha256,'DAILY_SNAPSHOT_HASH_INVALID')
@@ -74,7 +90,9 @@ class DailyStore:
             need(store.db.execute('PRAGMA integrity_check').fetchone()==('ok',),'DAILY_SNAPSHOT_INTEGRITY_INVALID')
             need(store.db.execute('PRAGMA user_version').fetchone()==(1,),'DAILY_SNAPSHOT_SCHEMA_INVALID')
             objects=store.db.execute("SELECT type,name FROM sqlite_master WHERE type IN ('table','trigger','view')").fetchall()
-            need(set(objects)=={('table','archives'),('table','observations')},'DAILY_SNAPSHOT_OBJECTS_INVALID')
+            base={('table','archives'),('table','observations')}
+            need(set(objects) in (base,base|{('table','waits')}),'DAILY_SNAPSHOT_OBJECTS_INVALID')
+            store.db.execute('CREATE TABLE IF NOT EXISTS waits(day TEXT PRIMARY KEY,retry_at TEXT NOT NULL)')
             for h,body in store.db.execute('SELECT sha,raw FROM archives'):need(sha(body)==h,'DAILY_RETAINED_ARCHIVE_HASH_INVALID')
             need(store.db.execute('SELECT count(*) FROM observations o LEFT JOIN archives a ON a.sha=o.sha WHERE a.sha IS NULL').fetchone()==(0,),'DAILY_RETAINED_ARCHIVE_MISSING')
             return store

@@ -52,6 +52,11 @@ class DailyTests(unittest.TestCase):
         for day,raw,captured in [('2026-11-04',b'broken','2026-11-06T00:00:00Z'),('2026-11-05',archive(),'2026-11-08T00:00:00Z'),('20261104',archive(),'2026-11-06T00:00:00Z')]:
             with self.assertRaises(ValueError):s.record(day,raw,captured_at=captured)
             self.assertEqual(s.serialize(),before)
+    def test_unknown_finish_is_a_source_gap_instead_of_a_zero_performance(self):
+        s=self.make();raw=extract_daily_lzh(archive(),'K261104.TXT').replace(b' 06 6 4006',b' 00 6 4006',1)
+        with self.assertRaisesRegex(ValueError,'DAILY_UNKNOWN_FINISH_NOT_ADMITTED'):
+            s.record('2026-11-04',uncompressed_lzh(raw,'K261104.TXT'),captured_at='2026-11-05T00:00:00Z')
+        self.assertEqual(s.revisions,0)
 
     def test_authenticated_checkpoint_is_bound_to_daily_namespace_and_generation(self):
         s=self.make();s.record('2026-11-04',archive(),captured_at='2026-11-05T00:00:00Z')
