@@ -363,7 +363,7 @@ def prospective_requests(requests, *, now):
         info = registry.validate_payload(row['cell_key'][5:], 'boat', native, at=now, allow_source=allow)
         asof = stamp(info['as_of']); master = stamp(audit['original_source_as_of'])
         _need(info['stage'] == 'P1' and audit['new_native_as_of'] == audit['original_source_as_of'] and
-              stamp(audit['dataset_available_at']) < asof and stamp(audit['dataset_verified_at']) < asof <= master <= now and
+              stamp(audit['dataset_available_at']) < asof and stamp(audit['dataset_verified_at']) < asof == master <= now and
               stamp(proof['completed_at'])+timedelta(seconds=1) < asof and
               now+timedelta(seconds=600) < stamp(info['race_cutoff_at']), 'CARRIER_ORIGINAL_CLOCK')
         race = _race_key(info['race_id'], 'boat'); case = cases.setdefault(race, {})

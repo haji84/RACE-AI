@@ -144,9 +144,45 @@ class Nov7WitnessTests(unittest.TestCase):
                 patch('race_ai.all_existing_model_learning._sources', return_value=set()), \
                 patch('race_ai.existing_model_dispatch._race_key', return_value='synthetic'):
             self.assertEqual(grid.prospective_requests(rows, now=self.now), rows)
-            changed = deepcopy(rows); changed[0]['native_payload']['prospective_grid_evidence']['readback_proof']['log_sha256'] = grid.LOG_SHA
-            with self.assertRaisesRegex(ValueError, 'CARRIER_GRID_PROOF'):
-                grid.prospective_requests(changed, now=self.now)
+            with self.assertRaisesRegex(ValueError, 'CARRIER_INCOMPLETE_FOURTEEN'):
+                grid.prospective_requests(rows[:-1], now=self.now)
+            for mutation in ('log', 'dataset', 'completed_at'):
+                changed = deepcopy(rows)
+                evidence = changed[0]['native_payload']['prospective_grid_evidence']
+                if mutation == 'log': evidence['readback_proof']['log_sha256'] = grid.LOG_SHA
+                elif mutation == 'dataset':
+                    evidence['dataset_pointer'] = dict(evidence['dataset_pointer'], dataset_sha256='f'*64)
+                else: evidence['readback_proof']['completed_at'] = '2026-11-07T11:00:00Z'
+                with self.subTest(mutation=mutation), self.assertRaisesRegex(ValueError, 'CARRIER_GRID_PROOF'):
+                    grid.prospective_requests(changed, now=self.now)
+
+    def test_carrier_rejects_one_native_clock_before_common_original_source_clock(self):
+        from race_ai import all_existing_model_registry as registry
+        master = '2026-11-07T17:18:26.000001Z'
+        info = dict(as_of=master, stage='P1', race_id='synthetic',
+            race_cutoff_at='2030-01-01T01:00:00Z', roster=['1','2','3','4','5','6'], scope='synthetic')
+        audit = dict(schema='RACE_AI_PROSPECTIVE_BOAT_GRID_NATIVE_EVIDENCE_V1', manifest=self.manifest,
+            readback_proof=self.verify(), dataset_pointer=self.pointer,
+            original_source_as_of=master, new_native_as_of=master,
+            dataset_available_at=self.fixture['dataset_available_at'], dataset_verified_at='2026-11-07T17:18:24.5Z')
+        rows = [dict(cell_key=c['cell_key'], native_payload=dict(native_as_of=master,
+                    prospective_grid_evidence=deepcopy(audit)))
+                for c in registry.active_cells() if c['sport']=='boat']
+        self.assertEqual(len(rows), 14)
+
+        # The native schema validators supply identity; this consumer must
+        # additionally require its clock to equal the common capture clock.
+        def accepted_identity(model_id, sport, native, *, at, allow_source):
+            return dict(info, as_of=native['native_as_of'])
+
+        with patch.object(registry, 'validate_payload', side_effect=accepted_identity), \
+                patch('race_ai.all_existing_model_learning._sources', return_value=set()), \
+                patch('race_ai.existing_model_dispatch._race_key', return_value='synthetic'):
+            self.assertEqual(grid.prospective_requests(rows, now=self.now), rows)
+            earlier = deepcopy(rows)
+            earlier[0]['native_payload']['native_as_of'] = '2026-11-07T17:18:26Z'
+            with self.assertRaisesRegex(ValueError, 'CARRIER_ORIGINAL_CLOCK'):
+                grid.prospective_requests(earlier, now=self.now)
 
 
 if __name__ == '__main__': unittest.main()

@@ -201,7 +201,7 @@ class FutureGridTests(unittest.TestCase):
             self.assertEqual(native['prospective_grid_evidence']['original_source_as_of'],ctx['as_of'])
         self.assertEqual(result['current_inputs'][0]['as_of'],ctx['as_of'])
 
-    def test_complete_fourteen_carrier_keeps_exact_enriched_inputs_and_rejects_shortage(self):
+    def test_mixed_native_capture_clocks_hold_without_retiming_original_inputs(self):
         from race_ai import all_existing_model_registry as registry
         from race_ai.boat_history_store import HistoryStore
         from race_ai.boat_all_model_inputs import build_native_inputs
@@ -216,30 +216,53 @@ class FutureGridTests(unittest.TestCase):
         requests=[dict(cell_key=c['cell_key'],native_payload=deepcopy(native[c['group']]))
             for c in registry.active_cells() if c['sport']=='boat']
         self.assertEqual(len(requests),14)
-        self.assertTrue(callable(getattr(grid,'prospective_requests',None)), 'complete source carrier gate is absent')
+        original=deepcopy(requests)
+        # Native source families retain the real preview-capture clock while
+        # snapshot families retain the later build clock. The strict consumer
+        # must HOLD this complete set instead of rewriting either original.
+        clocks={registry.identity(row['cell_key'][5:],'boat',row['native_payload'])['as_of'] for row in requests}
+        self.assertEqual(clocks,{'2030-01-15T09:00:00+09:00',ASOF})
+        for request in requests:
+            self.assertEqual(request['native_payload']['prospective_grid_evidence']['dataset_pointer'],self.pointer)
+        with self.assertRaisesRegex(ValueError,'CARRIER_ORIGINAL_CLOCK'):
+            grid.prospective_requests(requests,now=datetime.fromisoformat(ASOF))
+        from scripts import github_existing_cycle as worker
+        out=self.root/'prospective-pairs'
+        with self.assertRaisesRegex(ValueError,'CARRIER_ORIGINAL_CLOCK'):
+            worker._prospective_carrier_pairs({},requests,out,now=datetime.fromisoformat(ASOF))
+        self.assertFalse(out.exists())
+        self.assertEqual(requests,original)
+
+    def test_original_preview_capture_as_master_admits_all_fourteen_without_retiming_facts(self):
+        from race_ai import all_existing_model_registry as registry
+        from race_ai.boat_history_store import HistoryStore
+        from race_ai.boat_all_model_inputs import build_native_inputs
+        from race_ai.four_sport_learning import LEARNED_ID
+        from tests.test_boat_pdca_history_inputs import retain_days
+        from tests.test_all_existing_model_native_future import training
+        history=HistoryStore(self.root/'fresh-history.sqlite');self.addCleanup(history.close);retain_days(history)
+        p,b=official_inputs(lanes=(1,2,3,4,5,6));original=deepcopy((p,b))
+        model=training(14)['models']['boat/'+LEARNED_ID]['native_training']
+        master=b['captured_at']
+        native=build_native_inputs(p,b,as_of=master,fitted_model=model,prospective_grid=self.capability(),
+            history_context=dict(history_store=history,history_identity_verified=True,owner_reviewed=True))['native_inputs']
+        requests=[dict(cell_key=c['cell_key'],native_payload=deepcopy(native[c['group']]))
+            for c in registry.active_cells() if c['sport']=='boat']
+        self.assertEqual(len(requests),14)
+        self.assertEqual({registry.identity(row['cell_key'][5:],'boat',row['native_payload'])['as_of']
+                          for row in requests},{'2030-01-15T09:00:00+09:00'})
         selected=grid.prospective_requests(requests,now=datetime.fromisoformat(ASOF))
         self.assertEqual(selected,requests)
+        self.assertEqual((p,b),original)
         for request in selected:
-            self.assertEqual(request['native_payload']['prospective_grid_evidence']['dataset_pointer'],self.pointer)
-        with self.assertRaises(ValueError):grid.prospective_requests(requests[:-1],now=datetime.fromisoformat(ASOF))
-        bad=deepcopy(requests);bad[0]['native_payload']['prospective_grid_evidence']['dataset_pointer']['dataset_sha256']='f'*64
-        with self.assertRaises(ValueError):grid.prospective_requests(bad,now=datetime.fromisoformat(ASOF))
-        altered=deepcopy(requests)
-        for row in altered:
-            row['native_payload']['prospective_grid_evidence']['readback_proof']['completed_at']='2026-11-07T11:00:00Z'
-        with self.assertRaises(ValueError):grid.prospective_requests(altered,now=datetime.fromisoformat(ASOF))
+            self.assertEqual(request['native_payload']['prospective_grid_evidence']['original_source_as_of'],master)
         from scripts import github_existing_cycle as worker
-        self.assertTrue(callable(getattr(worker,'_prospective_carrier_pairs',None)),
-            'new input carrier would pass through canonical re-enrichment')
         from race_ai.all_existing_model_pairs import verify_private_record
         from race_ai.boat_venue_learning import read_candidate
         trained=training(14)
         receipt=dict(id=700,name='all-existing-model-learning-7-1',expired=False,size_in_bytes=100,
-            digest='sha256:'+'a'*64,created_at='2030-01-09T00:00:00+00:00',expires_at='2030-02-01T00:00:00Z',
+            digest='sha256:'+'a'*64,created_at=trained['created_at'],expires_at='2030-02-01T00:00:00Z',
             workflow_run=dict(id=7,head_sha='a'*40,repository_id=1416489937,head_repository_id=1416489937))
-        # Same genuine fixture candidate and same new inputs for both members;
-        # the future nineteen/thirty candidate is admitted separately later.
-        receipt['created_at']=trained['created_at']
         out=self.root/'prospective-pairs'
         summary=worker._prospective_carrier_pairs(dict(context=dict(training=trained,receipt=receipt)),
             selected,out,now=datetime.fromisoformat(ASOF))
