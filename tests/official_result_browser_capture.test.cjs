@@ -16,6 +16,17 @@ test('plan binds native case identity and selects only due cases without inventi
  assert.throws(()=>api.validatePlan({...plan([auto]),not_before:'2030-01-01T03:00:00.000001Z'},NOW));
  assert.equal(api.validatePlan({...plan([auto]),not_before:NOW.toISOString()},NOW).not_before,NOW.toISOString());
 });
+test('one official UI day accepts all twelve races while network budget remains thirty-two',enabled,()=>{
+ const races=(base,count)=>Array.from({length:count},(_,i)=>({...base,race_no:i+1,race_id:`${base.sport}:${base.expected_date}:${base.venue}:${i+1}`}));
+ const old=plan(races(auto,8));assert.equal(api.validatePlan(old,NOW).cases.length,8);
+ const full={...plan([...races(auto,12),...races(keirin,11)]),request_budget:32};const before=structuredClone(full);
+ assert.equal(api.validatePlan(full,NOW).cases.length,23);assert.deepEqual(full,before);
+ assert.equal(api.validatePlan(plan(races(keirin,12)),NOW).cases.length,12);
+ assert.throws(()=>api.validatePlan(plan(races(auto,13)),NOW));
+ const thirteenth={...keirin,venue:'keirin-jyo-74',race_id:keirin.race_id.replace('keirin-jyo-48','keirin-jyo-74')};
+ assert.throws(()=>api.validatePlan(plan([...races(keirin,12),thirteenth]),NOW),/VENUE_CASE_BOUND/);
+ assert.throws(()=>api.validatePlan({...full,request_budget:33},NOW),/REQUEST_BUDGET/);
+});
 test('route policy admits only official normal read transport and denies credentials/mutations',enabled,()=>{
  const req=(changes={})=>({url:'https://autorace.jp/race_info/OtherRaceInfo',method:'POST',resource_type:'xhr',content_type:'application/json',body:Buffer.from(JSON.stringify({placeCode:3,raceDate:'2030-01-01',raceNo:2})),headers:{},...changes});
  assert.equal(api.routePolicy(req(),plan([auto])).allow,true);
@@ -44,6 +55,18 @@ test('static cache authenticates original GET bytes clocks and MIME without repl
  assert.equal(loaded.get(metadata.source_url).metadata.response_received_at,metadata.response_received_at);assert.deepEqual(loaded.get(metadata.source_url).raw,raw);
  for(const change of [{status:403},{http_method:'POST'},{source_sha256:'f'.repeat(64)},{resource_type:'document'},{source_url:'https://keirin.jp/pc/json?encp=x&type=JSJ012',final_url:'https://keirin.jp/pc/json?encp=x&type=JSJ012'},{response_received_at:'2030-01-02T00:00:00Z'},{headers:{'content-type':'text/html'}}])assert.throws(()=>api.validateStaticCache([{...entry,metadata:{...metadata,...change}}],plan([keirin]),NOW));
  assert.throws(()=>api.validateStaticCache([{...entry,raw_base64:entry.raw_base64+'='}],plan([keirin]),NOW));
+});
+test('static Content-Type lookup preserves original header casing and rejects ambiguous variants',enabled,()=>{
+ const raw=Buffer.from('/* invented cached script */'),url='https://keirin.jp/pc/static/js/header-fixture.js';
+ const metadata={source_url:url,final_url:url,status:200,byte_count:raw.length,source_sha256:api.sha(raw),fetched_at:'2029-12-31T01:00:00Z',response_received_at:'2029-12-31T01:00:01Z',headers:{'Content-Type':'application/javascript; charset=UTF-8'},http_method:'GET',resource_type:'script'};
+ const entry={raw_base64:raw.toString('base64'),metadata},before=structuredClone(entry);
+ const loaded=api.validateStaticCache([entry],plan([keirin]),NOW);
+ assert.deepEqual(loaded.get(url).metadata,metadata);assert.deepEqual(entry,before);
+ assert.equal(api.contentType(loaded.get(url).metadata.headers),'application/javascript; charset=UTF-8');
+ for(const headers of [{},{'Content-Type':'application/javascript','content-type':'application/javascript'},
+                       {'CONTENT-TYPE':'text/css','Content-Type':'application/javascript'}]){
+  assert.throws(()=>api.validateStaticCache([{...entry,metadata:{...metadata,headers}}],plan([keirin]),NOW));
+ }
 });
 test('global request budget spaces starts and permanently stops on denial/deadline',enabled,async()=>{
  let now=0;const budget=api.createBudget(2,{now:()=>now,sleep:async ms=>{now+=ms;}});

@@ -1,0 +1,23 @@
+{
+  "actual_collection_verified": false,
+  "autorace_cases": 12,
+  "browser_cases": 23,
+  "browser_launches": 0,
+  "case_insensitive_content_type_originals": 95,
+  "independent_review_passed": true,
+  "keirin_cases": 11,
+  "node_offline_tests": 18,
+  "plaintext_published": false,
+  "provider_requests": 0,
+  "request_interval_seconds": 0.825,
+  "request_limit": 32,
+  "request_timeout_seconds": 12,
+  "response_byte_limit": 2097152,
+  "schema": "RACE_AI_REAL_PLAN_OFFLINE_BROWSER_CONTRACT_COUNTS_V1",
+  "source_headers_or_clocks_rewritten": false,
+  "source_plan_sha256_before_and_after": "f76b556bd197541a6baf43fe4fe6e3adf8cef06990a93e987b04501f77351adc",
+  "state": "OFFLINE_REAL_ORIGINAL_BOUNDARIES_VERIFIED",
+  "static_cache_entries": 95,
+  "time_limit_seconds": 85,
+  "venue_race_limit": 12
+}

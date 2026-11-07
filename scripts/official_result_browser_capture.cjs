@@ -14,6 +14,10 @@ const stamp=()=>new Date().toISOString();
 function need(ok,code){if(!ok)throw Error('OFFICIAL_BROWSER_'+code);}
 function plain(x){return x!==null&&typeof x==='object'&&!Array.isArray(x)&&Object.getPrototypeOf(x)===Object.prototype;}
 function keys(x,required,optional=[]){return plain(x)&&required.every(k=>Object.hasOwn(x,k))&&Object.keys(x).every(k=>required.includes(k)||optional.includes(k));}
+function contentType(headers){
+ need(plain(headers),'CONTENT_TYPE_HEADER');const values=Object.entries(headers).filter(([name])=>name.toLowerCase()==='content-type');
+ need(values.length===1&&typeof values[0][1]==='string','CONTENT_TYPE_HEADER');return values[0][1];
+}
 function time(value){need(typeof value==='string'&&value.length<=64&&/(?:Z|[+-]\d\d:\d\d)$/.test(value)&&Number.isFinite(Date.parse(value)),'AWARE_CLOCK');return Date.parse(value);}
 function requireCurrentClock(plan,now=new Date()){
  if(!Object.hasOwn(plan,'not_before'))return;
@@ -44,7 +48,7 @@ function validatePlan(value,now=new Date()){
   if(Object.hasOwn(item,'ui_venue_name'))need(typeof item.ui_venue_name==='string'&&item.ui_venue_name.trim()===item.ui_venue_name&&item.ui_venue_name.length>=1&&item.ui_venue_name.length<=80&&!/[<>\r\n]/.test(item.ui_venue_name),'UI_VENUE_NAME');
   const u=safeUrl(item.ui_entry_url,item.sport);
   need(!u.search&&(item.sport==='autorace'?u.pathname==='/race_info/Live/'+item.venue:u.pathname==='/pc/top'),'UI_ENTRY_URL');
-  const group=item.sport+' '+item.ui_entry_url;counts[group]=(counts[group]||0)+1;need(counts[group]<=8,'VENUE_CASE_BOUND');
+  const group=item.sport+' '+item.ui_entry_url+' '+item.expected_date;counts[group]=(counts[group]||0)+1;need(counts[group]<=12,'VENUE_CASE_BOUND');
  }
  if(Object.hasOwn(value,'static_cache'))validateStaticCache(value.static_cache,value,now);
  return structuredClone(value);
@@ -100,7 +104,7 @@ function validateStaticCache(entries,plan,now=new Date()){
   need(raw.length>0&&raw.length<=MAX_BODY&&raw.toString('base64')===entry.raw_base64&&plain(m),'STATIC_CACHE_BYTES');
   const policy=routePolicy({url:m.source_url,method:m.http_method,resource_type:m.resource_type,headers:{}},plan);
   need(policy.allow&&policy.static&&m.final_url===m.source_url&&m.status===200&&m.byte_count===raw.length&&m.source_sha256===sha(raw),'STATIC_CACHE_PROOF');
-  const mime=m.headers?.['content-type'];need(typeof mime==='string'&&(m.resource_type==='script'?/^(?:application|text)\/(?:javascript|x-javascript|ecmascript)(?:;|$)/i.test(mime):/^text\/css(?:;|$)/i.test(mime)),'STATIC_CACHE_MIME');
+  const mime=contentType(m.headers);need(m.resource_type==='script'?/^(?:application|text)\/(?:javascript|x-javascript|ecmascript)(?:;|$)/i.test(mime):/^text\/css(?:;|$)/i.test(mime),'STATIC_CACHE_MIME');
   need(time(m.fetched_at)<=time(m.response_received_at)&&time(m.response_received_at)<=now.valueOf(),'STATIC_CACHE_CLOCK');
   total+=raw.length;need(total<=MAX_CACHE,'STATIC_CACHE_BOUND');
   need(!out.has(m.source_url)||sha(out.get(m.source_url).raw)===sha(raw),'CONFLICTING_STATIC_CACHE');
@@ -206,7 +210,7 @@ async function capturePlan(input,out,{chromium,executablePath=process.env.CHROMI
     const req=route.request();const request={url:req.url(),method:req.method(),resource_type:req.resourceType(),body:req.postDataBuffer()||Buffer.alloc(0),content_type:req.headers()['content-type']||'',headers:{authorization:req.headers().authorization}};
     const scoped=requestScope(plan,activeCases);const policy=routePolicy(request,scoped);
     if(budget.reason||!policy.allow){add({event:'BLOCKED_REQUEST',reason:budget.reason||policy.reason,method:request.method,resource_type:request.resource_type,at:stamp()});await route.abort().catch(()=>{});return;}
-    if(policy.static&&cache.has(request.url)){const saved=cache.get(request.url);add({event:'STATIC_CACHE_REPLAY',url:request.url,method:'GET',resource_type:request.resource_type,source_sha256:sha(saved.raw),original_captured_at:saved.metadata.response_received_at,at:stamp()});await route.fulfill({status:200,contentType:saved.metadata.headers['content-type'],body:saved.raw});return;}
+    if(policy.static&&cache.has(request.url)){const saved=cache.get(request.url);add({event:'STATIC_CACHE_REPLAY',url:request.url,method:'GET',resource_type:request.resource_type,source_sha256:sha(saved.raw),original_captured_at:saved.metadata.response_received_at,at:stamp()});await route.fulfill({status:200,contentType:contentType(saved.metadata.headers),body:saved.raw});return;}
     const action=dispatch.then(async()=>{
      requireCurrentClock(plan);
      const reservation=await budget.reserve();if(!reservation){await route.abort().catch(()=>{});return;}
@@ -265,5 +269,5 @@ async function main(argv=process.argv.slice(2)){
   const plan=JSON.parse(fs.readFileSync(input,'utf8'));const out=await capturePlan(plan,argv[3]);result={state:out.cases.some(c=>c.state==='CAPTURED')?'CAPTURED':'HOLD',actual_request_count:out.actual_request_count,captured_case_count:out.cases.filter(c=>c.state==='CAPTURED').length,held_case_count:out.cases.filter(c=>c.state!=='CAPTURED').length,stopped_host:out.stopped_host};
  }catch{process.exitCode=1;}process.stdout.write(JSON.stringify(result)+'\n');return result;
 }
-module.exports={SCHEMA,CAPTURE,MAX_BODY,validatePlan,requireCurrentClock,dueCases,requestScope,routePolicy,validateStaticCache,createBudget,makeMetadata,browserMetadata,browserEnvironment,browserProxy,createPrivateOutput,savePrivate,caseResponses,selectAutoCase,selectKeirinCase,openKeirinList,installByteGuard,capturePlan,sha,main};
+module.exports={SCHEMA,CAPTURE,MAX_BODY,validatePlan,requireCurrentClock,dueCases,requestScope,routePolicy,validateStaticCache,createBudget,makeMetadata,browserMetadata,browserEnvironment,browserProxy,createPrivateOutput,savePrivate,caseResponses,selectAutoCase,selectKeirinCase,openKeirinList,installByteGuard,capturePlan,contentType,sha,main};
 if(require.main===module)main();
