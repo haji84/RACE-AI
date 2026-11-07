@@ -664,11 +664,25 @@ jobs:
         run: node --test --test-reporter=tap tests/forecast_audit.test.cjs tests/full_odds.test.cjs tests/odds_feed_worker.test.mjs tests/odds_auto_source_cron.test.mjs tests/odds_three_cycle_audit.test.mjs tests/private_wire_vault.test.mjs
       - name: Install pinned private history cache crypto (synthetic keys only)
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Verify full same-head attempt-one evidence before optional recovery reuse
+        id: official_recovery_preflight
+        if: github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository && github.run_attempt == '2' && hashFiles('audit/state/official-result-recovery-request.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == official-results-collect:* ]]; then
+            python -m scripts.all_existing_model_official_result_recovery --preflight --input audit/state/official-result-recovery-request.json --out-dir "$RUNNER_TEMP/official-result-preflight"
+          fi
       - name: Validate history formats, official reconciliation and unchanged model contracts offline
         run: python -m unittest discover -s tests -p 'test_teiai*.py' -v
       - name: Python synthetic journal to viewer projection tests
+        if: steps.official_recovery_preflight.outputs.reuse_prior_verification != 'true'
         run: python -m unittest discover -s tests -v
       - name: Verify isolated experimental video decoding and measurements
+        if: steps.official_recovery_preflight.outputs.reuse_prior_verification != 'true'
         run: |
           python -m venv "$RUNNER_TEMP/race-ai-video-tools"
           "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m pip install -r requirements-video.txt -r requirements-history.txt

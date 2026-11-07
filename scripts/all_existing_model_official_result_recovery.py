@@ -7,6 +7,7 @@ succeeds. Only the same run's attempt two can dispatch the bounded normal UI.
 import argparse
 import base64
 from copy import deepcopy
+from datetime import timedelta
 from hashlib import sha1,sha256
 import json
 import os
@@ -15,6 +16,7 @@ import re
 import subprocess
 
 from race_ai import all_existing_model_official_recovery as recovery
+from race_ai.actions_contract import digest
 from race_ai.boat_all_model_store import MAX_WIRE
 from race_ai.boat_pdca_github_handoff import TRANSFER_REF
 from race_ai.boat_pdca_state import state_key
@@ -24,9 +26,12 @@ from scripts import all_existing_model_official_result_collect as collector
 from scripts.boat_all_racers import _read,_write
 
 REQUEST_PATH='audit/state/official-result-recovery-request.json'
+PREFLIGHT_SCHEMA='RACE_AI_FIXED_RECOVERY_VERIFICATION_PREFLIGHT_V1'
+FULL_CHECK_STEPS=('Python synthetic journal to viewer projection tests',
+    'Verify isolated experimental video decoding and measurements')
 
 def _api(path):
-    recovery.need(type(path) is str and re.fullmatch(r'(?:actions/runs/[1-9][0-9]*(?:/attempts/[1-9][0-9]*)?|'
+    recovery.need(type(path) is str and re.fullmatch(r'(?:actions/runs/[1-9][0-9]*(?:/attempts/[1-9][0-9]*(?:/jobs\?per_page=100)?)?|'
         r'git/ref/heads/state/boat-pdca-transfer|git/(?:commits|trees|blobs)/[a-f0-9]{40})',path),'GITHUB_ROUTE')
     response=subprocess.run(['gh','api','repos/haji84/RACE-AI/'+path],capture_output=True,timeout=50,check=False)
     recovery.need(response.returncode==0 and 0<len(response.stdout)<=52*1024*1024,'GITHUB_READ')
@@ -131,10 +136,86 @@ def _admit_continuation(raw,request,env,current,first,old,prior_runs,now,key):
     auth=continuation.validate_capsule(raw,data=data,current_run=current,now=now,key=key)
     auth.validate_collector(manifest,new_plan,env,now);return auth
 
+def _full_first_attempt(first,document,env):
+    """Witness both expensive checks, not merely a successful workflow label."""
+    receipt=recovery.run_receipt(first)
+    recovery.need(receipt['id']==env['run_id'] and receipt['head_sha']==env['head_sha'] and
+        receipt['run_attempt']==1 and receipt['status']=='completed' and receipt['conclusion']=='success',
+        'FULL_FIRST_ATTEMPT_REQUIRED')
+    recovery.need(type(document) is dict and type(document.get('total_count')) is int and
+        type(document.get('jobs')) is list and 1<=document['total_count']==len(document['jobs'])<=100,
+        'FIRST_JOBS_COMPLETE')
+    jobs=document['jobs'];seen=set()
+    for job in jobs:
+        recovery.need(type(job) is dict and type(job.get('id')) is int and job['id']>0 and job['id'] not in seen and
+            job.get('run_id')==env['run_id'] and type(job.get('run_attempt')) is int and job['run_attempt']==1 and
+            job.get('head_sha')==env['head_sha'],'FIRST_JOB_BINDING')
+        seen.add(job['id'])
+    viewers=[job for job in jobs if job.get('name')=='Viewer audit contract']
+    recovery.need(len(viewers)==1 and viewers[0].get('status')=='completed' and
+        viewers[0].get('conclusion')=='success','FULL_VIEWER_JOB_REQUIRED')
+    job=viewers[0];steps=job.get('steps');checked=[]
+    recovery.need(type(steps) is list and 2<=len(steps)<=128,'FULL_FIRST_STEPS_REQUIRED')
+    for name in FULL_CHECK_STEPS:
+        matches=[step for step in steps if type(step) is dict and step.get('name')==name]
+        recovery.need(len(matches)==1 and matches[0].get('status')=='completed' and
+            matches[0].get('conclusion')=='success' and type(matches[0].get('number')) is int,
+            'FULL_FIRST_STEPS_REQUIRED')
+        step=matches[0]
+        recovery.need(recovery.clock(step['started_at'])<=recovery.clock(step['completed_at'])<=
+            recovery.clock(receipt['updated_at'])+timedelta(seconds=1),'FIRST_STEP_CLOCK')
+        checked.append({key:step[key] for key in ('name','number','status','conclusion','started_at','completed_at')})
+    proof=dict(schema='RACE_AI_SAME_HEAD_PRIOR_FULL_VERIFICATION_V1',first_attempt=receipt,
+        first_jobs_sha256=digest(document),viewer_job_id=job['id'],verified_steps=checked)
+    return dict(verified_first_attempt=1,verified_first_run_id=env['run_id'],verified_first_head_sha=env['head_sha'],
+        prior_full_jobs_sha256=digest(document),prior_full_verification_sha256=digest(proof))
+
+
+def preflight(input_path):
+    """Read existing authority only; no marker, issuance or source dispatch."""
+    status=dict(schema=PREFLIGHT_SCHEMA,state='FULL_VERIFICATION_REQUIRED',ready=False,
+        reuse_prior_verification=False,source_requests=0,full_verification_executed_in_this_attempt=False,
+        plaintext_published=False,production_promoted=False,actual_purchases=False)
+    try:
+        recovery.need(os.environ.get('GITHUB_RUN_ATTEMPT')=='2','FIXED_ATTEMPT_TWO_ONLY')
+        env,current=_trusted_environment();now=collector.utc_now();key=state_key('production')
+        request=recovery.validate_request(read_json_bytes(_read(Path(input_path),32768)),now)
+        auth=_admit(request,env,current,now,key);recovery.need(auth is not None,'CONSUMED_CAPSULE_ABSENT')
+        first=_api('actions/runs/'+str(env['run_id'])+'/attempts/1')
+        recovery.need(recovery.run_receipt(first)==auth._body['first_attempt'],'FIRST_ATTEMPT_AUTHORIZATION_BINDING')
+        document=_api('actions/runs/'+str(env['run_id'])+'/attempts/1/jobs?per_page=100')
+        proof=_full_first_attempt(first,document,env)
+        # GitHub/source-plan reads may take time. Re-sample physical time;
+        # the later provider step still performs its own fresh admission.
+        plan=collector.load_plan(request['manifest'],key=key,now=collector.utc_now())
+        fresh=collector.utc_now()
+        auth.validate_collector(request['manifest'],plan,env,fresh)
+        audit=auth.audit();remaining=(recovery.clock(audit['expires_at'])-fresh).total_seconds()
+        recovery.need(remaining>=180,'PREFLIGHT_REMAINING_WINDOW')
+        status.update(proof,state='PRIOR_SAME_HEAD_FULL_VERIFICATION_REUSED',reuse_prior_verification=True,
+            recovery_authorization_sha256=audit['authorization_sha256'],recovery_request_sha256=audit['request_sha256'],
+            remaining_authorization_seconds=int(remaining),reused_verification_steps=list(FULL_CHECK_STEPS))
+    except Exception as exc:
+        status.update(**collector.future.safe_diagnostic(exc))
+    return status
+
+
+def _preflight_main(input_path):
+    status=preflight(input_path)
+    if os.environ.get('GITHUB_OUTPUT'):
+        with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+            output.write('reuse_prior_verification='+str(status['reuse_prior_verification']).lower()+'\n')
+            if status['reuse_prior_verification']:
+                output.write('prior_full_verification_sha256='+status['prior_full_verification_sha256']+'\n')
+    print(json.dumps(status,sort_keys=True));return 0
+
+
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--input',default=REQUEST_PATH)
     parser.add_argument('--out-dir',required=True);parser.add_argument('--readback-artifact',type=int)
-    parser.add_argument('--readback-journal-artifact',type=int);args=parser.parse_args(argv)
+    parser.add_argument('--readback-journal-artifact',type=int);parser.add_argument('--preflight',action='store_true')
+    args=parser.parse_args(argv)
+    if args.preflight:return _preflight_main(args.input)
     status=dict(schema=collector.STATUS,state='HOLD_FIXED_RECOVERY_NOT_ISSUED',ready=False,source_requests=0,
         plaintext_published=False,production_promoted=False,actual_purchases=False)
     root=None;manifest=None;authorized=False
