@@ -123,6 +123,30 @@ class RemainingCompletionAuditTests(unittest.TestCase):
         self.assertEqual(audit._payout_shapes(b'not json'),{'INVALID_DOCUMENT':1})
         self.assertEqual(audit._payout_shapes(b'{"maindata":{}}'),{'INVALID_PAYOUT_LIST':1})
 
+    def test_non_result_tokens_and_amount_shapes_are_fixed_semantic_classes(self):
+        raw=json.dumps({'maindata':{'infolist3t':[
+            {'winno':'不成立','dividend':'-'},{'winno':'返還','dividend':'100'},
+            {'winno':'発売なし','dividend':'0'},{'winno':'SECRET','dividend':'SECRET'},
+        ],'returnlist':['1','2','3','4']}}).encode()
+        self.assertEqual(audit._payout_shapes(raw),{'NO_CONTEST':1,'FULL_REFUND':1,'NOT_OFFERED':1,'OTHER':1})
+        result=audit._settlement_field_shapes(raw)
+        self.assertEqual(result,{'amounts':{'PLACEHOLDER':1,'REFUND_100':1,'ZERO':1,'OTHER':1},'refunds':'ALL_TRIFECTAS_COVERED'})
+        self.assertNotIn('SECRET',json.dumps(result))
+
+    def test_original_clock_conflict_is_separate_from_the_actual_source_deadline(self):
+        view,state,now=self.sp_fixture();saved=view['records'][0]
+        saved['cutoff_at']=None;saved['saved_cutoff_variants'].append('2026-11-07T10:10:00+09:00')
+        saved['prediction']['persisted_at']='2026-11-07T10:05:00+09:00'
+        raw,receipt=state.capture.return_value;doc=json.loads(raw);doc['raceheader']['rlinklist'][0]['deadline']='10:10'
+        from tests.intraday_fixture import packet
+        raw,receipt=packet(doc,captured=now.isoformat());state.capture.return_value=raw,receipt
+        saved['result'].update(source_sha256=receipt['source_sha256'],observed_at=receipt['captured_at'])
+        result=audit.audit_retained_sp_holds(view,state=state,now=now)
+        self.assertEqual(result['source_deadline_chronology_counts'],{'ALL_BEFORE_SOURCE_CUTOFF':1})
+        self.assertEqual(result['forecast_chronology_counts'],{'NOT_ALL_BEFORE_ALL_CUTOFFS':1})
+        self.assertEqual(result['projection_reason_counts'],{'RESULT_CUTOFF_MISMATCH':1})
+        self.assertEqual(result['results_admitted'],0)
+
     def test_per_original_cutoff_diagnostic_keeps_the_global_hold(self):
         view,state,now=self.sp_fixture();saved=view['records'][0]
         saved['cutoff_at']=None;saved['saved_cutoff_variants'].append('2026-11-07T10:10:00+09:00')
@@ -445,6 +469,41 @@ class RemainingCompletionAuditTests(unittest.TestCase):
         self.assertEqual(result["results_admitted"], 0)
         self.assertEqual(result['retained_sp_holds'],sp_holds)
         self.assertNotIn("SECRET", raw)
+
+    def test_state_only_mode_never_loads_actions_artifacts(self):
+        from pathlib import Path
+        import race_ai
+        reference=str((Path(__file__).resolve().parents[1]/'pr64-reference'/'race_ai').resolve())
+        if reference not in race_ai.__path__:race_ai.__path__.append(reference)
+        from scripts import all_existing_model_official_result_collect as C
+        from scripts import boat_prospective_audit as A
+        config=json.dumps(dict(schema='RACE_AI_REMAINING_COMPLETION_AUDIT_INPUT_V1',day_jst='2030-04-01',
+                               journal_artifact=dict(id=23,digest='sha256:'+'a'*64,run_id=7,head_sha='b'*40))).encode()
+        with patch('race_ai.boat_pdca_state.state_key',return_value=b's'*32), \
+             patch.object(C,'_repository_file',return_value=config),patch.object(C,'_journal_artifact',side_effect=AssertionError('NO_ACTIONS_ARTIFACT_READ')) as artifacts, \
+             patch.object(A,'_owner_view',return_value=(17,{'records':[row()]})), \
+             patch('scripts.boat_saved_view_feed.git_auth'),patch.object(audit,'_retained_sp_hold_audit',return_value={'status':'VERIFIED'}) as retained:
+            result=audit._load_retained_sp_only('audit/state/remaining-completion-audit-input.json')
+        self.assertEqual(result[0:2],('2030-04-01',17));self.assertEqual(result[3],{'status':'VERIFIED'})
+        artifacts.assert_not_called();retained.assert_called_once()
+
+    def test_state_only_cli_keeps_native_scope_unverified_and_does_not_use_full_loader(self):
+        context={'GITHUB_ACTIONS':'true','GITHUB_REPOSITORY':'haji84/RACE-AI','GITHUB_REPOSITORY_ID':'1416489937'}
+        with patch.dict(os.environ,context,clear=True),patch.object(audit,'_load_retained_sp_only',create=True,
+              return_value=('2030-04-01',17,{'records':[row()]},{'status':'VERIFIED'})), \
+             patch.object(audit,'_load_authenticated',side_effect=AssertionError('FULL_ARTIFACT_LOADER_FORBIDDEN')) as full,patch('builtins.print') as output:
+            self.assertEqual(audit.main(['--input','audit/state/remaining-completion-audit-input.json','--retained-sp-only']),0)
+        value=json.loads(output.call_args.args[0]);self.assertEqual(value['status'],'RETAINED_SP_ONLY_AUDIT_VERIFIED')
+        self.assertIsNone(value['native']);self.assertIsNone(value['journal_artifact_id']);self.assertEqual(value['source_requests'],0)
+        full.assert_not_called()
+
+    def test_state_only_mode_requires_owner_key_before_private_git_or_configuration_reads(self):
+        from scripts import all_existing_model_official_result_collect as C
+        from scripts import boat_prospective_audit as A
+        with patch('race_ai.boat_pdca_state.state_key',side_effect=ValueError('SECRET_MISSING')), \
+             patch.object(C,'_repository_file') as config,patch.object(A,'_owner_view') as view:
+            with self.assertRaises(ValueError):audit._load_retained_sp_only('audit/state/remaining-completion-audit-input.json')
+        config.assert_not_called();view.assert_not_called()
 
 
 if __name__ == "__main__":

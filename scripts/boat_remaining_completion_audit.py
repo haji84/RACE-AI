@@ -138,7 +138,9 @@ def _payout_shapes(raw):
             token=unicodedata.normalize('NFKC',html.unescape(value)).strip()
             if not token:code='EMPTY'
             elif token in ('特払','特払い','特払金'):code='SPECIAL_PAYOUT'
-            elif token in ('不成立','返還','発売なし','発売無'):code='NON_RESULT_TOKEN'
+            elif token=='不成立':code='NO_CONTEST'
+            elif token=='返還':code='FULL_REFUND'
+            elif token in ('発売なし','発売無'):code='NOT_OFFERED'
             elif '<' in token or '>' in token:code='HTML_MARKUP'
             elif re.fullmatch('[1-6]-[1-6]-[1-6]',token):
                 code='ASCII_TRIFECTA' if len(set(token.split('-')))==3 else 'REPEATED_LANE'
@@ -152,6 +154,24 @@ def _payout_shapes(raw):
     return dict(shapes) if shapes else {'EMPTY_LIST':1}
 
 
+def _settlement_field_shapes(raw):
+    import html,re,unicodedata
+    try:doc=json.loads(raw)['maindata'];prices=doc['infolist3t'];returned=doc['returnlist']
+    except Exception:return {'amounts':{'INVALID_DOCUMENT':1},'refunds':'UNKNOWN'}
+    amounts=Counter()
+    if type(prices) is not list:amounts['INVALID_PAYOUT_LIST']+=1
+    else:
+        for item in prices:
+            value=item.get('dividend') if type(item) is dict else None
+            token=unicodedata.normalize('NFKC',html.unescape(str(value))).strip() if value is not None else None
+            token=re.sub(r'[¥￥円,\s]','',token) if token is not None else None
+            code='MISSING' if token is None else 'PLACEHOLDER' if token in ('','-','―','—','–') else 'ZERO' if token=='0' else 'REFUND_100' if token=='100' else 'POSITIVE_AMOUNT' if re.fullmatch('[0-9]+',token) and token.strip('0') else 'OTHER'
+            amounts[code]+=1
+    valid=type(returned) is list and all(type(v) is str and re.fullmatch('[1-6]',v) for v in returned) and len(set(returned))==len(returned)
+    coverage='UNKNOWN' if not valid else 'ALL_TRIFECTAS_COVERED' if len(returned)>=4 else 'PARTIAL' if returned else 'NONE'
+    return dict(amounts=dict(amounts),refunds=coverage)
+
+
 def audit_retained_sp_holds(view,*,state,now):
     """Replay matching retained bytes for counts only; never publish or advance."""
     from race_ai.racer_daily import clock
@@ -162,7 +182,7 @@ def audit_retained_sp_holds(view,*,state,now):
           (r.get('result') or {}).get('status')=='unsupported']
     if len(held)>288:raise ValueError('AUDIT_SP_HOLD_BOUND')
     captures=Counter();parsers=Counter();projections=Counter();matched=0
-    shapes=Counter();per_original=Counter();chronology=Counter()
+    shapes=Counter();per_original=Counter();chronology=Counter();source_chronology=Counter();amounts=Counter();refunds=Counter()
     pointers=state.control.get('settlement_captures',{})
     for row in held:
         result=row['result'];pointer=pointers.get(row['race_id'])
@@ -184,6 +204,7 @@ def audit_retained_sp_holds(view,*,state,now):
             captures['CURRENT_RESULT_RECEIPT_MISMATCH']+=1;continue
         matched+=1
         shapes.update(_payout_shapes(raw))
+        fields=_settlement_field_shapes(raw);amounts.update(fields['amounts']);refunds[fields['refunds']]+=1
         try:observation=parse_settlement(raw,receipt,now=now)
         except Exception as error:
             reason=str(error);parsers[reason if reason in SP_PARSER_REASONS else 'OTHER']+=1;continue
@@ -194,6 +215,9 @@ def audit_retained_sp_holds(view,*,state,now):
         predictions=[p for p in [row.get('prediction'),*row.get('comparison_predictions',[])] if p is not None]
         clocks=[_clock(p.get('persisted_at')) for p in predictions]
         clocks.extend(_clock(p[k]) for p in predictions for k in ('as_of','generated_at','source_captured_at','server_saved_at') if p.get(k) is not None)
+        source_clock=_clock(observation['closed_at'])
+        source_chronology['UNKNOWN' if not predictions or source_clock is None or None in clocks else
+                          'ALL_BEFORE_SOURCE_CUTOFF' if max(clocks)<source_clock else 'NOT_ALL_BEFORE_SOURCE_CUTOFF']+=1
         chronology['UNKNOWN' if not predictions or not cutoffs or None in deadlines or None in clocks else
                    'ALL_BEFORE_ALL_CUTOFFS' if max(clocks)<min(deadlines) else 'NOT_ALL_BEFORE_ALL_CUTOFFS']+=1
         for cutoff in cutoffs:
@@ -215,6 +239,8 @@ def audit_retained_sp_holds(view,*,state,now):
         parser_reason_counts=dict(parsers),projection_reason_counts=dict(projections),
         payout_shape_counts=dict(shapes),per_original_cutoff_projection_reason_counts=dict(per_original),
         forecast_chronology_counts=dict(chronology),
+        source_deadline_chronology_counts=dict(source_chronology),payout_amount_shape_counts=dict(amounts),
+        refund_coverage_counts=dict(refunds),
         source_requests=0,results_admitted=0,originals_changed=False)
 
 
@@ -425,6 +451,27 @@ def _continuity_projection(pin, *, key, now, day, reader):
     return project_native_state(state)
 
 
+def _load_retained_sp_only(path):
+    """Authenticate Git-retained evidence without Actions artifact access."""
+    if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
+    import race_ai
+    reference=str(ROOT/'pr64-reference'/'race_ai')
+    if reference not in race_ai.__path__:race_ai.__path__.append(reference)
+    from race_ai.boat_pdca_state import state_key
+    from scripts import all_existing_model_official_result_collect as C
+    from scripts import boat_prospective_audit as A
+    from scripts.boat_saved_view_feed import git_auth
+    key=state_key('production')
+    value=json.loads(C._repository_file(ROOT/path,32768))
+    required={'schema','day_jst','journal_artifact'}
+    if type(value) is not dict or not required<=set(value)<=required|{'continuity_artifact'} or value['schema']!='RACE_AI_REMAINING_COMPLETION_AUDIT_INPUT_V1':
+        raise ValueError('AUDIT_INPUT_SCHEMA')
+    if date.fromisoformat(value['day_jst']).isoformat()!=value['day_jst']:raise ValueError('AUDIT_INPUT_DAY')
+    C._pins([value['journal_artifact'],*([value['continuity_artifact']] if 'continuity_artifact' in value else [])])
+    now=datetime.now(timezone.utc);git_auth();generation,view=A._owner_view(value['day_jst'])
+    return value['day_jst'],generation,view,_retained_sp_hold_audit(view,now=now,key=key)
+
+
 def _load_authenticated(path):
     # Reached only after the explicit Actions/owner guard.
     if str(ROOT) not in sys.path:
@@ -462,6 +509,7 @@ def _load_authenticated(path):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", required=True)
+    parser.add_argument('--retained-sp-only',action='store_true')
     args = parser.parse_args(argv)
     if not (os.environ.get("GITHUB_ACTIONS") == "true" and
             os.environ.get("GITHUB_REPOSITORY") == "haji84/RACE-AI" and
@@ -472,12 +520,16 @@ def main(argv=None):
     try:
         if args.input != "audit/state/remaining-completion-audit-input.json":
             raise ValueError("AUDIT_INPUT_PATH")
-        day, generation, view, body, receipt, conflicts, sp_holds = _load_authenticated(args.input)
+        if args.retained_sp_only:
+            day,generation,view,sp_holds=_load_retained_sp_only(args.input)
+            body=receipt=conflicts=None
+        else:
+            day,generation,view,body,receipt,conflicts,sp_holds=_load_authenticated(args.input)
         report = {
-            "schema": SCHEMA, "status": "REMAINING_COMPLETION_AUDIT_VERIFIED",
-            "day_jst": day, "feed_generation": generation, "journal_artifact_id": receipt["id"],
+            "schema": SCHEMA, "status": "RETAINED_SP_ONLY_AUDIT_VERIFIED" if args.retained_sp_only else "REMAINING_COMPLETION_AUDIT_VERIFIED",
+            "day_jst": day, "feed_generation": generation, "journal_artifact_id": receipt["id"] if receipt else None,
             "boat": audit_saved_view(view, now=datetime.now(timezone.utc)),
-            "native": audit_journal(body), "source_requests": 0, "official_source_requests": 0,
+            "native": audit_journal(body) if body is not None else None, "source_requests": 0, "official_source_requests": 0,
             "continuity_projection": conflicts,
             "retained_sp_holds": sp_holds,
             "diagnostic_only": True, "plaintext_source_published": False, "originals_changed": False,

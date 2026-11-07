@@ -1,1 +1,1 @@
-2026-11-08: verify the private result viewer after successful result-only catch-up; retain existing state and report safe failure locations only.
+2026-11-08: retained-result-audit branch; inspect authenticated SP marker semantics and original/source clocks using only retained Git state.
