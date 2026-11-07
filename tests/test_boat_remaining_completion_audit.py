@@ -4,10 +4,13 @@ from datetime import datetime, timezone
 from hashlib import sha256
 import base64
 import importlib
+import io
 import json
 import os
+from types import SimpleNamespace
 import unittest
-from unittest.mock import patch
+from unittest.mock import Mock, patch
+import zipfile
 
 try:
     audit = importlib.import_module("scripts.boat_remaining_completion_audit")
@@ -98,6 +101,104 @@ class RemainingCompletionAuditTests(unittest.TestCase):
             "ledger": [{"event": "SECRET", "label": "SECRET"}],
         })
         self.assertNotIn("SECRET", json.dumps(audit.audit_journal(body)))
+
+    def test_retained_request_blockers_are_counted_without_private_values(self):
+        body = journal({
+            "stop_reason": "REQUEST_LIMIT",
+            "responses": [{"method": "GET", "resource_type": "xhr", "status": 200}],
+            "cases": [], "ledger": [
+                {"sequence": 1, "method": "GET"},
+                {"event": "BLOCKED_REQUEST", "reason": "OFFICIAL_BROWSER_NORMAL_READ_IDENTITY", "method": "POST"},
+                {"event": "BLOCKED_REQUEST", "reason": "SECRET", "method": "SECRET"},
+                {"event": "NORMAL_SEMANTIC_UI_CLICK", "label": "4月1日"},
+            ],
+        })
+        value = audit.audit_journal(body)
+        self.assertEqual(value["wire_method_counts"], {"GET": 1})
+        self.assertEqual(value["blocked_reason_counts"],
+                         {"OFFICIAL_BROWSER_NORMAL_READ_IDENTITY": 1, "OTHER": 1})
+        self.assertEqual(value["blocked_method_counts"], {"POST": 1, "OTHER": 1})
+        self.assertNotIn("SECRET", json.dumps(value))
+
+    def test_dispatched_denied_request_is_counted_without_a_retained_response(self):
+        body = journal({"stop_reason": "HTTP_ACCESS_DENIED", "responses": [],
+                        "ledger": [{"sequence": 1, "method": "POST", "status": 403}], "cases": []})
+        body["browser_attempt"]["actual_request_count"] = 1
+        result = audit.audit_journal(body)
+        self.assertEqual(result["source_requests"], 1)
+        self.assertEqual(result["wire_method_counts"], {"POST": 1})
+        self.assertEqual(result["blocked_method_counts"], {})
+
+    def test_same_capture_conflict_attributes_only_known_fields_and_preserves_inputs(self):
+        left = row(); left["result_observations"][0]["source_sha256"] = "a"*64
+        left["result_observations"][0]["data"]["results"] = [{"lane": 1, "finish": 1}]
+        right = deepcopy(left)
+        right["result_observations"][0]["data"]["results"][0]["race_time"] = "SECRET"
+        base = {"records": [left]}; addition = {"records": [right]}
+        before = deepcopy((base, addition))
+        value = audit.audit_observation_conflicts(base, addition)
+        self.assertEqual(value["conflicting_capture_groups"], 1)
+        self.assertEqual(value["same_source_bytes_conflicts"], 1)
+        self.assertEqual(value["differing_data_fields"], {"results": 1})
+        self.assertEqual(value["differing_finish_fields"], {"race_time": 1})
+        self.assertNotIn("SECRET", json.dumps(value))
+        self.assertEqual((base, addition), before)
+
+    def test_identical_replayed_observations_are_not_conflicts(self):
+        value = {"records": [row()]}
+        self.assertEqual(audit.audit_observation_conflicts(value, deepcopy(value))["conflicting_capture_groups"], 0)
+
+    def test_unknown_conflicting_field_name_is_redacted(self):
+        left = row(); right = deepcopy(left)
+        right["result_observations"][0]["SECRET"] = "SECRET"
+        value = audit.audit_observation_conflicts({"records": [left]}, {"records": [right]})
+        self.assertEqual(value["differing_fields"], {"OTHER": 1})
+        self.assertNotIn("SECRET", json.dumps(value))
+
+    def continuity_fixture(self):
+        from race_ai.boat_private_original_archive import seal_original_zip
+        state = dict(schema="RACE_AI_RECOVERED_FIRST_RECEIPTS_V1", complete=True,
+                     day_jst="2030-04-01", rows=[], observations=[])
+        state["state_sha256"] = sha256(json.dumps(state,sort_keys=True,ensure_ascii=False,
+                                                  separators=(",", ":")).encode()).hexdigest()
+        def zipped(name, body):
+            buffer = io.BytesIO()
+            with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as target:
+                target.writestr(name, body)
+            return buffer.getvalue()
+        key = bytes(range(32))  # Public synthetic fixture only.
+        head = "a"*40
+        cipher = seal_original_zip(zipped("continuity.json", json.dumps(state).encode()),
+                                   run_id=42, head_sha=head, kind="CONTINUITY", key=key)
+        raw = zipped("private-original.enc", cipher)
+        pin = dict(id=7, digest="sha256:"+sha256(raw).hexdigest(), run_id=42, head_sha=head)
+        metadata = dict(id=7, name="race-cycle-continuity-42", digest=pin["digest"],
+                        size_in_bytes=len(raw), expired=False, created_at="2030-04-01T01:00:00Z",
+                        expires_at="2030-04-08T01:00:00Z", workflow_run=dict(id=42,
+                        head_sha=head, repository_id=1416489937, head_repository_id=1416489937))
+        reader = SimpleNamespace(metadata=Mock(return_value=metadata),
+                                 gh=Mock(return_value=raw))
+        return pin, key, state, metadata, reader
+
+    def test_continuity_audit_opens_real_encrypted_archive_before_projection(self):
+        pin, key, state, _, future = self.continuity_fixture()
+        reader = SimpleNamespace(future=future, stamp=audit._clock)
+        with patch("race_ai.boat_saved_view_intake.project_native_state", return_value={"records": []}) as project:
+            value = audit._continuity_projection(pin, key=key, now=NOW, day="2030-04-01", reader=reader)
+        self.assertEqual(value, {"records": []})
+        project.assert_called_once_with(state)
+        future.gh.assert_called_once_with("actions/artifacts/7/zip")
+
+    def test_continuity_audit_rejects_metadata_before_archive_fetch(self):
+        for field, value in (("size_in_bytes", True), ("size_in_bytes", 161*1024*1024),
+                             ("expired", True), ("digest", "sha256:"+"0"*64)):
+            with self.subTest(field=field, value=value):
+                pin, key, _, metadata, future = self.continuity_fixture()
+                metadata[field] = value
+                with self.assertRaisesRegex(ValueError, "AUDIT_CONTINUITY_METADATA"):
+                    audit._continuity_projection(pin, key=key, now=NOW, day="2030-04-01",
+                                                 reader=SimpleNamespace(future=future, stamp=audit._clock))
+                future.gh.assert_not_called()
 
     def test_corrupt_original_index_fails(self):
         body = journal()
@@ -229,7 +330,7 @@ class RemainingCompletionAuditTests(unittest.TestCase):
             "GITHUB_ACTIONS": "true", "GITHUB_REPOSITORY": "haji84/RACE-AI",
             "GITHUB_REPOSITORY_ID": "1416489937",
         }
-        fixture = ("2030-04-01", 17, {"records": [row()]}, journal(), {"id": 23})
+        fixture = ("2030-04-01", 17, {"records": [row()]}, journal(), {"id": 23}, None)
         with patch.dict(os.environ, context, clear=True), \
                 patch.object(audit, "_load_authenticated", return_value=fixture), patch("builtins.print") as emitted:
             self.assertEqual(audit.main(["--input", "audit/state/remaining-completion-audit-input.json"]), 0)

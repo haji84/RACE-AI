@@ -124,3 +124,16 @@ In the previous7d trace, all17 retired keys still had current LK support; no LK 
 - [ ] Current LIVE availability, real-time throughput and validated hull/strength/forward forecast improvement.
 
 The61-frame result is an already-known low-motion development sequence, not an independent holdout. Only13frames newly observe all6colours at once;57 continuous identities include real-pixel retention. Do not call the whole six-boat product field-validated.
+
+## Owner-directed exhibition order and commentary cues
+
+**Design:** Keep clothing/current pixels primary; supplement with declared individual-exhibition pass order and timestamped Japanese commentary. Exhibition order is a prior for individual passes, never simultaneous start-exhibition course order. Missing/duplicate passes, cuts, absent boats and unknown phase cannot silently advance an identity counter. Commentary running rank and boat number are separate fields; image x-order is never a running rank. Unbound/partial/corrected/old/finish utterances stay explicit. These observations never become official results or pre-cutoff prediction features.
+
+**Files:** Fix embedded-audio preservation in `race_ai/boat_video_capture.py` with actual audiovisual roundtrip tests; add focused `boat_video_broadcast_context.py` plus parser/timing/crosscheck tests; connect optional local source-bound context to existing `boat_video_marker_analyze.py` and its tests. Local speech recognition is optional and requires pinned existing local assets; public sources are never fetched by the product parser.
+
+- [x] RED/GREEN first embedded audio packet/PTS preservation, silent input, legacy receipt reuse and unsupported codec failure; no extra source GET.
+- [x] RED/GREEN explicit rank/boat parsing, partial/duplicate/correction handling, exhibition prior versus phase/course and absent boats.
+- [x] RED/GREEN exact mediaSHA/sourcePTS/availability/expiry validation, current cloth crosscheck, ambiguity and no future-result transfer.
+- [x] Add existing CLI local context input and optional pinned local speech path; preserve originals and private receipts.
+- [x] Run actual saved-audio transcription if possible, seal raw output before parsing; no speech/identity accuracy claim from a transport smoke test.
+- [x] Independent review, related regressions, preserve concurrent PR71 updates and latest status.

@@ -155,43 +155,55 @@ def seed_recent_months(repo,store,*,now,pointer,transport=None):
             finally:catalog.db.close()
     need(count>0,'DAILY_AUTHENTICATED_SEED_REQUIRED');return count
 
-def publish_daily_catalogue(repo,catalogue,*,transport=None):
-    """Update one derived JSON blob. Inherit every UI, manifest and cipher byte."""
+def publish_daily_catalogue(repo,catalogue,*,transport=None,checked_at=None,state='READY'):
+    """Atomically update derived aggregates/status; inherit UI and ciphertext."""
     import subprocess
-    from .racer_daily import PUBLIC_PATH,PUBLIC_URL,API_FILE,MAX_PUBLIC
+    from .racer_daily import PUBLIC_PATH,PUBLIC_URL,STATUS_PATH,STATUS_URL,API_FILE,MAX_PUBLIC
     from .saved_pages import PagesRepository,_tree
     raw=(wire(catalogue)+'\n').encode();need(len(raw)<=MAX_PUBLIC and catalogue.get('status')=='READY','DAILY_PUBLIC_CATALOGUE_INVALID')
     expected={'schema','status','generated_at','last_source_at','period','coverage','cohort_top2_percent','source','people','unknown_registration_count','denominator','model_inputs_changed'}
-    need(set(catalogue)==expected,'DAILY_PUBLIC_FIELDS_REJECTED')
+    live=catalogue.get('schema')=='RACE_AI_RACER_DAILY_V2'
+    need(set(catalogue)==expected|({'today'} if live else set()),'DAILY_PUBLIC_FIELDS_REJECTED')
     need(set(catalogue['source'])=={'url','sha256','receipts'} and all(set(r)=={'day','url','sha256','captured_at'} for r in catalogue['source']['receipts']),'DAILY_PRIVATE_FIELDS_REJECTED')
     need(set(catalogue['period'])=={'start','end','days'} and set(catalogue['coverage'])=={'parsed_days','missing_days_count','missing_days','partial_days','complete'} and all(set(d)=={'day','venues'} for d in catalogue['coverage']['partial_days']),'DAILY_PRIVATE_FIELDS_REJECTED')
     need(catalogue['denominator']=='confirmed_starts_including_non_numeric_results; confirmed_absences_excluded; ST_OK_samples_only','DAILY_DENOMINATOR_INVALID')
     fields={'starts','wins','seconds','thirds','win_percent','top2_percent','top3_percent','average_st','st_samples','confirmed_absences','dispositions','unknown_course_starts'}
+    if live:
+        need(set(catalogue['today'])=={'day','last_checked_at','latest_result_at','expected_races','confirmed_races','pending_races','schedule_complete','source_state','revision_conflicts','source_receipts'} and all(set(r)=={'url','sha256','captured_at','kind'} for r in catalogue['today']['source_receipts']),'DAILY_PRIVATE_FIELDS_REJECTED')
     for person in catalogue['people']:
-        need(set(person)=={'registration','name','summary','courses','last_race_day'} and set(person['summary'])==fields,'DAILY_PRIVATE_FIELDS_REJECTED')
+        need(set(person)=={'registration','name','summary','courses','last_race_day'}|({'today_stats','today_races'} if live else set()) and set(person['summary'])==fields,'DAILY_PRIVATE_FIELDS_REJECTED')
         need(all(set(c)==fields|{'course'} for c in person['courses']),'DAILY_PRIVATE_FIELDS_REJECTED')
+        if live:need(set(person['today_stats'])==fields and all(set(r)=={'race_id','lane','course','finish','result_code','st','st_status','captured_at'} for r in person['today_races']),'DAILY_PRIVATE_FIELDS_REJECTED')
     code="let s='';process.stdin.on('data',c=>s+=c);process.stdin.on('end',()=>{try{if(!require('./web/racer-daily.js').parse(JSON.parse(s)))process.exit(1);}catch{process.exit(1);}});"
     result=subprocess.run(['node','-e',code],cwd=Path(__file__).resolve().parents[1],input=raw,capture_output=True,timeout=30)
     need(result.returncode==0,'DAILY_PUBLIC_SCHEMA_REJECTED')
+    checked=clock(checked_at or catalogue['generated_at']);need(checked>=clock(catalogue['generated_at']) and state in ('READY','SOURCE_WAIT','SOURCE_HOLD'),'DAILY_STATUS_INVALID')
+    status=dict(schema='RACE_AI_RACER_STATISTICS_STATUS_V1',catalogue_sha256=sha(raw),catalogue_generated_at=catalogue['generated_at'],checked_at=checked.isoformat(),state=state)
+    status_raw=(wire(status)+'\n').encode()
+    def receipt(status,commit,**extra):return dict(status=status,pages_commit=commit,public_sha256=sha(raw),path=PUBLIC_PATH,public_url=PUBLIC_URL,status_sha256=sha(status_raw),status_path=STATUS_PATH,status_url=STATUS_URL,**extra)
     class DailyPagesRepository(_DailyFilteredFetch,PagesRepository):pass
     git=transport or DailyPagesRepository(repo);need(git.ref=='gh-pages','DAILY_PAGES_REF_REQUIRED')
     for attempt in range(4):
         parent=git.head();need(parent is not None,'DAILY_EXISTING_PAGES_REQUIRED');git.fetch(parent);paths=_tree(git,parent)
         manifest=git.read(parent,'site-build.json',32768);meta=json.loads(manifest)
         need(API_FILE in meta['files'] and API_FILE in paths and API_FILE.encode() in git.read(parent,'index.html',100000),'DAILY_UI_NOT_PUBLISHED')
+        if live:need(b'RACE_AI_RACER_DAILY_V2' in git.read(parent,API_FILE,100000),'DAILY_LIVE_UI_NOT_PUBLISHED')
         if PUBLIC_PATH in paths:
             previous=json.loads(git.read(parent,PUBLIC_PATH,MAX_PUBLIC))
+            need(live or previous.get('schema')!='RACE_AI_RACER_DAILY_V2','DAILY_LIVE_CATALOGUE_REQUIRED')
             need(clock(previous['generated_at'])<=clock(catalogue['generated_at']),'DAILY_PUBLIC_ROLLBACK_REJECTED')
             if previous['generated_at']==catalogue['generated_at']:
                 need(wire(previous)==wire(catalogue),'DAILY_PUBLIC_REVISION_AMBIGUOUS')
-                return dict(status='DAILY_PUBLIC_UNCHANGED',pages_commit=parent,public_sha256=sha(raw),path=PUBLIC_PATH,public_url=PUBLIC_URL)
-        before=git._run(['ls-tree','-r',parent,'--','views']);commit=git.commit({PUBLIC_PATH:raw},parent)
+                if STATUS_PATH in paths and git.read(parent,STATUS_PATH,16000)==status_raw:return receipt('DAILY_PUBLIC_UNCHANGED',parent)
+        if STATUS_PATH in paths:
+            prior_status=json.loads(git.read(parent,STATUS_PATH,16000));need(clock(prior_status['checked_at'])<=checked,'DAILY_STATUS_ROLLBACK_REJECTED')
+        before=git._run(['ls-tree','-r',parent,'--','views']);commit=git.commit({PUBLIC_PATH:raw,STATUS_PATH:status_raw},parent)
         need(git.read(commit,'site-build.json',32768)==manifest and git._run(['ls-tree','-r',commit,'--','views'])==before,'DAILY_PAGES_ORIGINALS_CHANGED')
         changed=git._run(['diff-tree','--no-commit-id','--name-only','-r',parent,commit]).decode().splitlines()
-        need(changed==[PUBLIC_PATH],'DAILY_PUBLICATION_SCOPE_REJECTED')
+        need(changed and set(changed)<={PUBLIC_PATH,STATUS_PATH},'DAILY_PUBLICATION_SCOPE_REJECTED')
         try:git.push(commit,parent);break
         except ValueError:
             if attempt==3:raise
-    need(git.read(commit,PUBLIC_PATH,MAX_PUBLIC)==raw,'DAILY_PUBLIC_READBACK_MISMATCH')
-    return dict(status='DAILY_PUBLIC_PUBLISHED',pages_commit=commit,parent_commit=parent,public_sha256=sha(raw),path=PUBLIC_PATH,public_url=PUBLIC_URL,
+    need(git.read(commit,PUBLIC_PATH,MAX_PUBLIC)==raw and git.read(commit,STATUS_PATH,16000)==status_raw,'DAILY_PUBLIC_READBACK_MISMATCH')
+    return receipt('DAILY_PUBLIC_PUBLISHED',commit,parent_commit=parent,changed_paths=changed,
                 unchanged_cipher_count=len(before.splitlines()),presentation_and_ciphertext_unchanged=True,raw_sources_published=False)

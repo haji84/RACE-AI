@@ -851,7 +851,7 @@ jobs:
             sudo apt-get install --no-install-recommends -y ffmpeg tesseract-ocr tesseract-ocr-eng
           fi
           "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m unittest tests.test_boat_video_tracking tests.test_boat_video_identity tests.test_boat_video_identity_tracking tests.test_boat_video_ocr_reliability tests.test_boat_video_intake tests.test_boat_video_cli tests.test_boat_video_tiled_detector tests.test_boat_video_crnn tests.test_boat_video_camera_identity tests.test_boat_video_calibration tests.test_boat_video_physical_context tests.test_boat_video_sequential_context tests.test_boat_video_vision_cli tests.test_boat_video_publication tests.test_boat_video_publication_intake -v
-          "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m unittest tests.test_boat_video_marker_reader tests.test_boat_video_marker_flow tests.test_boat_video_marker_identity tests.test_boat_video_marker_pipeline tests.test_boat_video_marker_verifier tests.test_boat_video_ppocr tests.test_boat_video_marker_cli tests.test_boat_video_rider_detector tests.test_boat_video_rider_tracking tests.test_boat_video_clothing_identity -v
+          "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m unittest tests.test_boat_video_marker_reader tests.test_boat_video_marker_flow tests.test_boat_video_marker_identity tests.test_boat_video_marker_pipeline tests.test_boat_video_marker_verifier tests.test_boat_video_ppocr tests.test_boat_video_marker_cli tests.test_boat_video_rider_detector tests.test_boat_video_rider_tracking tests.test_boat_video_clothing_identity tests.test_boat_video_broadcast_context tests.test_boat_video_commentary -v
       - name: Integrated product UI contracts
         run: |
           node --check web/app.js
@@ -861,7 +861,7 @@ jobs:
           node --check web/existing-model-catalog.js
           node --check scripts/existing_pdca_offline.mjs
           node --test --test-reporter=tap tests/ui_model.test.js tests/race_explorer.test.cjs tests/product_data.test.cjs tests/model_catalog.test.cjs tests/existing_pdca_offline.test.mjs tests/saved_performance.test.cjs tests/racer_portraits.test.cjs tests/racer_portrait_atlas.test.cjs tests/racer_profiles.test.cjs tests/racer_daily.test.cjs
-          python -m unittest tests.test_racer_profiles tests.test_boat_racer_term tests.test_racer_daily tests.test_racer_daily_handoff
+          python -m unittest tests.test_racer_profiles tests.test_boat_racer_term tests.test_racer_daily tests.test_racer_daily_handoff tests.test_racer_intraday_source tests.test_racer_intraday_aggregate tests.test_racer_intraday tests.test_racer_intraday_handoff tests.test_racer_intraday_transport tests.test_racer_intraday_refresh
       - name: Install isolated pinned browser test tooling
         run: |
           npm install --prefix "$RUNNER_TEMP/race-ai-ui-tools" --no-package-lock --ignore-scripts playwright@1.62.1
@@ -955,6 +955,7 @@ jobs:
           node tests/racer_portraits_browser.test.cjs
           node tests/venue_names_browser.test.cjs
           node tests/race_explorer_browser.test.cjs
+          node tests/racer_intraday_browser.test.cjs
           node --test tests/boat_video_ui.test.mjs
       - name: Retain synthetic-only UI interaction evidence
         if: always()

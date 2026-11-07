@@ -394,21 +394,34 @@
     if (!activeDaily || !activeDaily.host.isConnected || !participantDialog?.open) return;
     const {host, race, person} = activeDaily, api = globalThis.RaceRacerDaily, profile = api?.get(race, person);
     const focused = host.contains(document.activeElement) ? document.activeElement.dataset.dailyCourse : null;
-    host.replaceChildren(node("h3", "", "毎日更新の成績（直近90日）"));
+    host.replaceChildren(node("h3", "", "選手の直近成績（過去90日）"));
     if (!profile) { host.append(node("p", "muted small", api?.status === "LOADING" ? "日次の成績を確認しています。" : "この選手の日次成績はまだ取得できていません。公式期別成績は下で確認できます。")); return; }
-    const own = profile.daily, data = api.data, percent = value => Number.isFinite(value) ? value.toFixed(1) + "%" : "未集計", st = value => Number.isFinite(value) ? value.toFixed(2) : "未集計";
+    const own = profile.daily, data = api.data, live = data.today, percent = value => Number.isFinite(value) ? value.toFixed(1) + "%" : "未集計", st = value => Number.isFinite(value) ? value.toFixed(2) : "未集計";
+    if (live) host.firstChild.textContent = "レースごとに更新する成績";
     const yesterday = new Date(Date.parse(A.jstToday() + "T00:00:00Z") - 86400000).toISOString().slice(0, 10);
     if (api.status !== "READY" || data.period.end < yesterday) host.append(node("p", "notice", "更新待ち：前回の集計を表示しています。"));
-    host.append(node("p", "reference-period", "集計対象：" + data.period.start + " 〜 " + data.period.end),
+    host.append(node("p", "reference-period", (live ? "過去90日：" : "集計対象：") + data.period.start + " 〜 " + data.period.end + (live ? " ＋当日確定分（" + live.day + "）" : "")),
       node("p", "muted small", "集計更新 " + stamp(data.generated_at) + " JST · 元結果の取得 " + stamp(data.last_source_at) + " JST"),
-      node("p", data.coverage.complete ? "muted small" : "notice", data.coverage.parsed_days + " / 90日分を取得" + (data.coverage.partial_days.length ? " · 一部会場が未収録の日 " + data.coverage.partial_days.length + "日" : "") + (data.coverage.complete ? "。" : "。未取得の結果は集計に含みません。")));
+      node("p", data.coverage.complete ? "muted small" : "notice", data.coverage.parsed_days + " / 90日分の日次資料を取得" + (data.coverage.partial_days.length ? " · 一部会場が未収録の日 " + data.coverage.partial_days.length + "日" : "") + (data.coverage.complete ? "。" : "。確認できた結果だけを集計しています。")));
+    if (live) {
+      host.append(node("p", "muted small", "本日 " + live.confirmed_races + "レースを反映 / " + (live.expected_races === null ? "対象レース確認中" : "対象 " + live.expected_races + "レース") + " · 更新チェック " + stamp(api.heartbeat?.checked_at || live.last_checked_at) + " JST"));
+      const today = node("section", "reference-strengths daily-today-results");
+      today.append(node("h4", "", "この選手の当日結果 · 出走 " + own.today_stats.starts + "回" + (own.today_stats.confirmed_absences ? " · 欠場 " + own.today_stats.confirmed_absences + "回" : "")));
+      for (const row of own.today_races) {
+        const venue = U.venueName({sport: "boat", venue: "場コード" + row.race_id.slice(9, 11)}), number = Number(row.race_id.slice(-2));
+        const finish = Number.isInteger(row.finish) ? row.finish + "着" : ({F: "フライング", L: "出遅れ", 欠: "欠場", 転: "転覆", 落: "落水", 妨: "妨害", 失: "失格"}[row.result_code] || "失格等");
+        today.append(node("p", "small", venue + " " + number + "R · " + finish + " · " + (row.course ? row.course + "コース" : "進入未確認") + " · ST " + (row.st_status === "OK" ? st(row.st) : row.st_status === "F" || row.st_status === "L" ? row.st_status : "未集計")));
+      }
+      if (!own.today_races.length) today.append(node("p", "muted small", "この選手の当日結果はまだ反映されていません。確定を確認でき次第、成績に加えます。"));
+      host.append(today);
+    }
     const summary = node("div", "reference-summary");
     for (const [label, value] of [["1着率", percent(own.summary.win_percent)], ["2連率", percent(own.summary.top2_percent)], ["3連率", percent(own.summary.top3_percent)], ["平均ST", st(own.summary.average_st)]]) summary.append(append(node("div"), node("small", "", label), node("strong", "", value)));
     host.append(summary, node("p", "reference-records", "出走 " + own.summary.starts + "回 · 1着 " + own.summary.wins + "回 · ST集計 " + own.summary.st_samples + "回 · 欠場 " + own.summary.confirmed_absences + "回"));
     const preferred = globalThis.RaceRacerProfiles.preferredCourses(profile, {baselines: api.baselines}), strengths = node("section", "reference-strengths");
     strengths.append(node("h4", "", "直近の得意コースの目安"));
     for (const row of preferred.courses) strengths.append(node("span", "course-strength", row.course + "コース · 2連率 " + percent(row.top2_percent) + (preferred.basis === "COHORT_ADJUSTED" ? " · 同コース平均比 +" + row.advantage.toFixed(1) + "pt" : " · 本人内で成績上位")));
-    strengths.append(node("p", "muted small", preferred.courses.length ? "10走以上のコースを同じ90日の全選手・同コース平均と比較しています。" : "10走以上のコースがないため、得意コースは評価しません。"));
+    strengths.append(node("p", "muted small", preferred.courses.length ? "10走以上のコースを同じ集計期間の全選手・同コース平均と比較しています。" : "10走以上のコースがないため、得意コースは評価しません。"));
     host.append(strengths);
     const cards = node("div", "reference-courses");
     for (const row of own.courses) {

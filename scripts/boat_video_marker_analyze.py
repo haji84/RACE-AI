@@ -170,6 +170,13 @@ def main(argv=None, *, pipeline_factory=None):
                         help='track clothing colours without OCR or printed-number models')
     parser.add_argument('--anonymous-riders',action='store_true',
                         help='retain anonymous rider output without colour identity')
+    broadcast=parser.add_mutually_exclusive_group()
+    broadcast.add_argument('--broadcast-context',help='private source-bound exhibition/commentary context JSON')
+    broadcast.add_argument('--commentary-model',help='optional pinned local Whisper-tiny directory; no download')
+    parser.add_argument('--broadcast-phase',choices=('UNKNOWN','EXHIBITION_LAP','EXHIBITION_START','RACE'),
+                        default='UNKNOWN',help='declared speech phase; unknown does not assign identity cues')
+    parser.add_argument('--commentary-window-seconds',type=float,default=5.,
+                        help='local speech input window, at most30seconds; every audio chunk is processed')
     parser.add_argument('--development', action='store_true', required=True)
     parser.add_argument('--single-continuous-shot', action='store_true', required=True,
                         help='caller declaration; no automatic shot authentication')
@@ -193,11 +200,17 @@ def main(argv=None, *, pipeline_factory=None):
             or not args.clothing_only and any(getattr(args,key) is None for key in
                                              ('recognizer_model','context_model','glyph_model'))):
             raise _Failure('ARGUMENTS_REJECTED')
+        if (args.broadcast_context is not None or args.commentary_model is not None) and (
+            args.rider_model is None or args.anonymous_riders):
+            raise _Failure('ARGUMENTS_REJECTED')
         for field in ('media', 'output_dir', 'recognizer_model', 'context_model', 'glyph_model'):
             if getattr(args,field) is not None:
                 setattr(args, field, _local_path(getattr(args, field)))
         if args.rider_model is not None:
             args.rider_model = _local_path(args.rider_model)
+        for field in ('broadcast_context','commentary_model'):
+            if getattr(args,field) is not None:
+                setattr(args,field,_local_path(getattr(args,field)))
         guards = {key: getattr(args, key) for key in ('processing_timeout_seconds',
                   'max_duration_seconds', 'max_decoded_frames', 'max_bytes', 'max_pixels', 'max_dimension')}
         options = _options(guards)
@@ -216,6 +229,27 @@ def main(argv=None, *, pipeline_factory=None):
                         probed = len(pts)
                         stage = 'MODEL_SETUP_FAILED'
                         pipeline, metadata = _pipeline(args, pipeline_factory)
+                        broadcast_context=None
+                        if args.broadcast_context is not None or args.commentary_model is not None:
+                            stage='BROADCAST_CONTEXT_SETUP_FAILED'
+                            from race_ai.boat_video_broadcast_context import BroadcastIdentityContext
+                            if args.broadcast_context is not None:
+                                from race_ai.boat_video_capture import _read_private, _json
+                                context=_json(_read_private(args.broadcast_context,maximum=2*1024*1024))
+                                producer='LOCAL_DECLARED_CONTEXT'
+                            else:
+                                from race_ai.boat_video_commentary import PinnedCommentaryRecognizer, transcribe_commentary
+                                recognizer=PinnedCommentaryRecognizer(model_path=args.commentary_model)
+                                context,speech=transcribe_commentary(source,source_path,media_sha256=digest,
+                                    options=options,recognizer=recognizer,phase=args.broadcast_phase,
+                                    window_seconds=args.commentary_window_seconds)
+                                _terminal(directory,'commentary-receipt.json',speech)
+                                producer='LOCAL_PINNED_ASR_UNVERIFIED'
+                            broadcast_context=BroadcastIdentityContext(context,media_sha256=digest)
+                            context_sha=_terminal(directory,'broadcast-context.json',context)
+                            metadata['broadcast_context']=dict(file_sha256=context_sha,source=producer,
+                                time_basis='ABSOLUTE_MEDIA_PTS_SECONDS',prediction_eligible=False,
+                                official_results=False)
                         stage = 'FRAME_ANALYSIS_FAILED'
                         with closing(_decode(source, source_path, width, height, options, np)) as decoded:
                             for index, image in enumerate(decoded):
@@ -224,6 +258,9 @@ def main(argv=None, *, pipeline_factory=None):
                                 original_sha = sha256(image.tobytes()).hexdigest()
                                 relative = pts[index] - pts[0]
                                 result = pipeline.update(image, t=relative, frame_index=index, scene=0)
+                                if broadcast_context is not None:
+                                    result['rider_part_tracking']=broadcast_context.annotate(
+                                        result['rider_part_tracking'],source_pts=pts[index])
                                 if (type(result) is not dict or result.get('frame_index') != index
                                         or result.get('t') != relative
                                         or result.get('frame_sha256') != original_sha

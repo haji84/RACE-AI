@@ -4,6 +4,30 @@
 
 ## 衣服色を主にする追加経路
 
+### 周回展示の順番と実況を補助にする経路
+
+`boat_video_broadcast_context.py` は、明示された個別周回展示の通過index/予定艇順、または時刻付きの「○号艇の周回展示」を補助候補へ変換する。予定順だけで現在の乗員を確定せず、複数乗員が映る場合は未結合。スタート展示の進入コース順と区別する。欠場・区間見逃し・放送切替を勝手な1〜6カウンタで補完しない。
+
+レース実況の艇番と順位は別の値として解析し、服色ですでに得たIDへ「実況で告げられた順位」を対応させる。画像の左右から順位を推測せず、実況で服色ラベルを上書きしない。否定・疑問・人気順・数値断片・言い直しは保留。訂正や新しい発話の後、古い情報を期限切れによって復活させない。実況は公式結果でも締切前予想の入力でもない。
+
+captureの新exportは最初の埋込音声を再圧縮せず残し、旧exportは不変。音声付きの元clipがない場合、既存の音声なし動画から実況は復元できない。別HLS音声groupの取得はこの修正に含まない。
+
+`boat_video_commentary.py` は固定SHAの既存ローカルWhisper-tinyを使う任意経路で、自動downloadなし。5秒窓を全て処理し、音声窓の終端より前に認識結果を使わない。実audio frameのPTS/sample数を検証し、時刻飛びは補間せず拒否する。推定word timestampは使わず、frameの絶対source_ptsへ結合する。2秒の有効期間と放送遅延は未校正の宣言条件。
+
+既存のTorch/Transformersとvideo依存が揃った私有Python環境で実行する（検証環境: Torch2.9.1+cpu、Transformers4.57.3、`requirements-video.txt`）。例:
+
+```bash
+OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 python scripts/boat_video_marker_analyze.py \
+  --media /private/input/video.mkv --output-dir /private/output/new-analysis \
+  --rider-model /private/models/object_detection_yolox_2022nov.onnx \
+  --commentary-model /private/models/whisper-tiny \
+  --clothing-only --broadcast-phase RACE --development --single-continuous-shot
+```
+
+phaseが不明なら既定UNKNOWNのまま文字起こしを保存し、番号を作らない。既存の時刻付き宣言contextを使う場合は `--broadcast-context /private/context.json`。入力はprivate・SHA一致のJSON、出力はGit外の新規私有ディレクトリに `broadcast-context.json` / `commentary-receipt.json` / 全frame journalと受領証を保存する。mediaSHA不一致・音声時刻不整合・途中失敗はSUCCESSにしない。
+
+実音声145.844535秒/30窓を27.906秒で処理。元動画は展示の日本語解説で、番号/順位実況の正解データではない。専門語の誤認識・旧試行の反復を保存し、ASR精度やLIVEの識別改善を合格にしない。別の6秒間引き動画で実人物検出＋実音声認識＋CLI保存も実行したが、連続6艇の受入とは別。関連映像748件PASS。[補助情報の証拠と未実証条件](evidence/boat-video-broadcast-context-20261107.json)。
+
 `race_ai/boat_video_clothing_identity.py` は、既存PERSON提案と実LK追跡に服色の観測を合成する。3つの別原frameで確かめ、色が読めない間は現在の実画素対応が明確なときだけ以前の色IDを保持する。fresh観測と保持を分け、印字観測は常にfalse。重複色・明示的な競合・画面切替・追跡喪失を処理し、残り番号の穴埋めをしない。数字OCRや追加学習モデルは不要。
 
 薄い緑はHSV彩度だけで白へ落とさず、GがR/Bより強いかも確認する。白黒は同じ原frameのneutral候補の明暗差を使い、照明条件の仮説を出力する。単独の中間灰色を黒と決めない。色面積率・検出scoreは校正確率ではない。

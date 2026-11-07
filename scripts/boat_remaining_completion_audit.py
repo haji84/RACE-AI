@@ -29,6 +29,21 @@ OFFICIAL_BROWSER_CASE_RESPONSE_CLOCK UI_OPERATION_REJECTED
 """.split())
 RESOURCE_TYPES = frozenset(("document", "script", "stylesheet", "xhr", "fetch", "other"))
 ENDPOINTS = frozenset(("RaceInfo", "OtherRaceInfo", "RaceResult", "RaceBeforeInfo", "Program"))
+BLOCK_REASONS = STOPS | frozenset("OFFICIAL_BROWSER_"+code for code in (
+    "REQUEST_SCHEMA", "CREDENTIAL_HEADER", "OFFICIAL_SOURCE", "UNNEEDED_RESOURCE",
+    "STATIC_READ_ONLY", "NORMAL_READ_POST", "NORMAL_READ_IDENTITY", "READ_METHOD",
+    "NORMAL_UI_DOCUMENT", "NORMAL_UI_READ", "READ_REQUEST_BODY", "READ_REQUEST_CONTENT_TYPE",
+    "DUPLICATE_FORM_FIELD", "CREDENTIAL_BODY"))
+OBSERVATION_FIELDS = frozenset("""
+schema sport race_id captured_at closed_at source_sha256 source_url body_identity_verified status data
+missing_reason reason source_kind source_format verified_official
+""".split())
+DATA_FIELDS = frozenset("""
+status confirmed finish_confirmed confirmed_scope results payouts top3 dead_heat refund_boats refunds
+""".split())
+FINISH_FIELDS = frozenset("""
+race_id lane racer_registration_id name finish finish_status verified_official race_time race_time_seconds
+""".split())
 
 
 def _clock(value):
@@ -137,6 +152,67 @@ def _retained_dom_count(body):
     return len(found)
 
 
+def audit_observation_conflicts(base, addition):
+    """Attribute observation differences; never decide that they are safe."""
+    groups = {}; base_conflicts = set(); invalid = 0
+    canonical = lambda value: json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
+    for position, view in enumerate((base, addition)):
+        for row in view["records"]:
+            for observation in row.get("result_observations", []):
+                captured = _clock(observation.get("captured_at"))
+                if captured is None:
+                    invalid += 1
+                    continue
+                key = (row["race_id"], captured)
+                values = groups.setdefault(key, {})
+                values.setdefault(canonical(observation), observation)
+                if position == 0 and len(values) > 1:
+                    base_conflicts.add(key)
+    fields = Counter(); data_fields = Counter(); finishes = Counter()
+    same = different = unknown = pairs = conflicts = 0
+    def count_changes(left, right, allowed, output):
+        for field in set(left) | set(right):
+            if (field in left) != (field in right) or canonical(left.get(field)) != canonical(right.get(field)):
+                output[field if field in allowed else "OTHER"] += 1
+    for variants in groups.values():
+        if len(variants) < 2:
+            continue
+        conflicts += 1
+        values = list(variants.values())
+        for index, left in enumerate(values):
+            for right in values[index+1:]:
+                pairs += 1
+                a, b = left.get("source_sha256"), right.get("source_sha256")
+                valid = lambda h: type(h) is str and len(h) == 64 and all(c in "0123456789abcdef" for c in h)
+                if not valid(a) or not valid(b):
+                    unknown += 1
+                elif a == b:
+                    same += 1
+                else:
+                    different += 1
+                count_changes(left, right, OBSERVATION_FIELDS, fields)
+                x, y = left.get("data"), right.get("data")
+                if type(x) is not dict or type(y) is not dict:
+                    continue
+                count_changes(x, y, DATA_FIELDS, data_fields)
+                def by_lane(data):
+                    rows = data.get("results")
+                    if type(rows) is not list or any(type(r) is not dict or type(r.get("lane")) is not int for r in rows):
+                        return {}
+                    return {r["lane"]: r for r in rows} if len({r["lane"] for r in rows}) == len(rows) else {}
+                first, second = by_lane(x), by_lane(y)
+                for lane in set(first) & set(second):
+                    count_changes(first[lane], second[lane], FINISH_FIELDS, finishes)
+    return {
+        "conflicting_capture_groups": conflicts, "variant_pairs": pairs,
+        "base_conflicting_capture_groups": len(base_conflicts),
+        "same_source_bytes_conflicts": same, "different_source_bytes_conflicts": different,
+        "unknown_source_bytes_conflicts": unknown, "uncomparable_observations": invalid,
+        "differing_fields": dict(fields), "differing_data_fields": dict(data_fields),
+        "differing_finish_fields": dict(finishes), "observations_reconciled": 0,
+    }
+
+
 def audit_journal(body):
     from urllib.parse import urlsplit
     index, original = _original_index(body)
@@ -161,6 +237,11 @@ def audit_journal(body):
     reasons = Counter(c.get("reason") if c.get("reason") in CASE_REASONS else "OTHER"
                       for c in index.get("cases", []))
     ledger = index.get("ledger", [])
+    method = lambda e: e.get("method") if e.get("method") in ("GET", "POST") else "OTHER"
+    methods = Counter(method(e) for e in ledger if type(e.get("sequence")) is int and e["sequence"] > 0)
+    blocked = Counter(e.get("reason") if e.get("reason") in BLOCK_REASONS else "OTHER"
+                      for e in ledger if e.get("event") == "BLOCKED_REQUEST")
+    blocked_methods = Counter(method(e) for e in ledger if e.get("event") == "BLOCKED_REQUEST")
     stop = index.get("stop_reason")
     failure = body.get("browser_failure") or {}
     stage = failure.get("stage")
@@ -170,6 +251,9 @@ def audit_journal(body):
         "stop_reason": stop if stop in STOPS else "OTHER",
         "resource_type_counts": dict(resources) if original else None,
         "http_status_counts": dict(statuses), "known_endpoint_counts": dict(endpoints) if original else None,
+        "wire_method_counts": dict(methods) if original else None,
+        "blocked_reason_counts": dict(blocked) if original else None,
+        "blocked_method_counts": dict(blocked_methods) if original else None,
         "static_cache_replays": sum(e.get("event") == "STATIC_CACHE_REPLAY" for e in ledger) if original else None,
         "semantic_ui_clicks": sum(e.get("event") == "NORMAL_SEMANTIC_UI_CLICK" for e in ledger) if original else None,
         "saved_rendered_dom_count": _retained_dom_count(body),
@@ -177,6 +261,37 @@ def audit_journal(body):
         "failure_stage": stage if stage in ("PROCESS", "INDEX_VALIDATION", "LAUNCH", "INDEX_HEADER", "QUARANTINE", "SOURCE_VALIDATION") else "OTHER",
         "original_index_available": original,
     }
+
+
+def _continuity_projection(pin, *, key, now, day, reader):
+    from race_ai.boat_private_original_archive import open_original_zip, MAX_WIRE
+    from race_ai.continuity_checkpoint import _sealed_json
+    from race_ai.boat_saved_view_intake import project_native_state
+    actual = reader.future.metadata(pin["id"])
+    run = actual.get("workflow_run") if type(actual) is dict else None
+    valid = (
+        type(actual) is dict and type(run) is dict and
+        actual.get("id") == pin["id"] and actual.get("digest") == pin["digest"] and
+        actual.get("name") == "race-cycle-continuity-"+str(pin["run_id"]) and
+        type(actual.get("size_in_bytes")) is int and 0 < actual["size_in_bytes"] <= MAX_WIRE and
+        actual.get("expired") is False and run.get("id") == pin["run_id"] and
+        run.get("head_sha") == pin["head_sha"] and
+        all(type(run.get(k)) is int and run[k] == 1416489937 for k in ("repository_id", "head_repository_id")) and
+        reader.stamp(actual["created_at"]) <= now < reader.stamp(actual["expires_at"])
+    )
+    if not valid:
+        raise ValueError("AUDIT_CONTINUITY_METADATA")
+    raw = reader.future.gh("actions/artifacts/"+str(pin["id"])+"/zip")
+    if type(raw) is not bytes or len(raw) != actual["size_in_bytes"] or "sha256:"+sha256(raw).hexdigest() != pin["digest"]:
+        raise ValueError("AUDIT_CONTINUITY_BYTES")
+    with open_original_zip(raw, actual, expected_kind="CONTINUITY", key=key) as archive:
+        info = archive.getinfo("continuity.json")
+        if info.file_size > 32*1024*1024:
+            raise ValueError("AUDIT_CONTINUITY_BOUND")
+        state = _sealed_json(archive.read(info), "state_sha256")
+    if state.get("schema") != "RACE_AI_RECOVERED_FIRST_RECEIPTS_V1" or state.get("complete") is not True or state.get("day_jst") != day:
+        raise ValueError("AUDIT_CONTINUITY_STATE")
+    return project_native_state(state)
 
 
 def _load_authenticated(path):
@@ -193,16 +308,23 @@ def _load_authenticated(path):
     from scripts.boat_saved_view_feed import git_auth
     key = state_key("production")
     value = json.loads(C._repository_file(ROOT/path, 32768))
-    if type(value) is not dict or set(value) != {"schema", "day_jst", "journal_artifact"} or value["schema"] != "RACE_AI_REMAINING_COMPLETION_AUDIT_INPUT_V1":
+    required = {"schema", "day_jst", "journal_artifact"}
+    if type(value) is not dict or not required <= set(value) <= required | {"continuity_artifact"} or value["schema"] != "RACE_AI_REMAINING_COMPLETION_AUDIT_INPUT_V1":
         raise ValueError("AUDIT_INPUT_SCHEMA")
     if date.fromisoformat(value["day_jst"]).isoformat() != value["day_jst"]:
         raise ValueError("AUDIT_INPUT_DAY")
-    C._pins([value["journal_artifact"]])
+    C._pins([value["journal_artifact"], *([value["continuity_artifact"]] if "continuity_artifact" in value else [])])
     now = datetime.now(timezone.utc)
     body, _, receipt = C._journal_artifact(value["journal_artifact"], now=now, key=key)
     git_auth()
     generation, view = A._owner_view(value["day_jst"])
-    return value["day_jst"], generation, view, body, receipt
+    conflicts = None
+    if "continuity_artifact" in value:
+        projected = _continuity_projection(value["continuity_artifact"], key=key, now=now, day=value["day_jst"], reader=C)
+        conflicts = audit_observation_conflicts(view, projected)
+        conflicts["artifact_id"] = value["continuity_artifact"]["id"]
+        conflicts["authenticated_continuity_readback"] = True
+    return value["day_jst"], generation, view, body, receipt, conflicts
 
 
 def main(argv=None):
@@ -218,12 +340,13 @@ def main(argv=None):
     try:
         if args.input != "audit/state/remaining-completion-audit-input.json":
             raise ValueError("AUDIT_INPUT_PATH")
-        day, generation, view, body, receipt = _load_authenticated(args.input)
+        day, generation, view, body, receipt, conflicts = _load_authenticated(args.input)
         report = {
             "schema": SCHEMA, "status": "REMAINING_COMPLETION_AUDIT_VERIFIED",
             "day_jst": day, "feed_generation": generation, "journal_artifact_id": receipt["id"],
             "boat": audit_saved_view(view, now=datetime.now(timezone.utc)),
             "native": audit_journal(body), "source_requests": 0, "official_source_requests": 0,
+            "continuity_projection": conflicts,
             "diagnostic_only": True, "plaintext_source_published": False, "originals_changed": False,
             "forecasting_performed": False, "results_admitted": 0, "accuracy_improvement_proven": False,
         }

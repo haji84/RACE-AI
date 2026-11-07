@@ -11,6 +11,8 @@ SCHEMA='RACE_AI_RACER_DAILY_V1'
 CHECKPOINT='RACE_AI_RACER_DAILY_CHECKPOINT_V1'
 PUBLIC_PATH='data/racer-daily.json'
 PUBLIC_URL='https://raw.githubusercontent.com/haji84/RACE-AI/gh-pages/'+PUBLIC_PATH
+STATUS_PATH='data/racer-live-status.json'
+STATUS_URL='https://raw.githubusercontent.com/haji84/RACE-AI/gh-pages/'+STATUS_PATH
 API_FILE='racer-daily.js'
 MAX_DB=16*1024*1024
 MAX_PUBLIC=4*1024*1024
@@ -99,7 +101,7 @@ class DailyStore:
             return store
         except Exception:
             store.close();raise
-    def catalogue(self,roster,*,as_of,days=90):
+    def catalogue(self,roster,*,as_of,days=90,extra_rows=(),live=None):
         now=clock(as_of);need(now<=clock(self.clock()) and type(days) is int and 1<=days<=180,'DAILY_CATALOGUE_CLOCK_OR_WINDOW_INVALID')
         end=now.astimezone(JST).date()-timedelta(days=1);start=end-timedelta(days=days-1)
         rows=[];receipts=[];partial=[];latest=self.latest();seen=set();people=[]
@@ -109,12 +111,34 @@ class DailyStore:
             receipts.append(dict(day=day,url=official_url(day_value(day),'K'),sha256=item['sha256'],captured_at=item['captured_at']))
             if parsed['unreported_venues'] or parsed['unpublished_venues']:
                 partial.append(dict(day=day,venues=sorted(set(parsed['unreported_venues']+parsed['unpublished_venues']))))
+        if live is not None:
+            need(type(live) is dict and live.get('day')==now.astimezone(JST).date().isoformat(),'DAILY_INTRADAY_CONTEXT_INVALID')
+            # K is canonical per race. A missing/partial day does not erase SP
+            # facts for races absent from that day's actual parsed archive.
+            canonical={r['race_id'] for r in rows};groups={}
+            for row in extra_rows:
+                rid=row.get('race_id');need(type(rid) is str and re.fullmatch(r'[0-9]{8}-(0[1-9]|1[0-9]|2[0-4])-(0[1-9]|1[0-2])',rid),'DAILY_INTRADAY_RACE_INVALID')
+                d=datetime.strptime(rid[:8],'%Y%m%d').date();at=clock(row['captured_at'])
+                need(at<=now and d<=at.astimezone(JST).date() and d<=now.astimezone(JST).date(),'DAILY_INTRADAY_CLOCK_INVALID')
+                if d<start:continue
+                groups.setdefault((rid,at),{})[row['racer_id']]=row
+            selected={}
+            for (rid,at),group in groups.items():
+                need(len(group)==6 and len({r['lane'] for r in group.values()})==6 and all(r['result_code'] not in ('','00') for r in group.values()),'DAILY_INTRADAY_INCOMPLETE_RACE')
+                if rid in canonical:continue
+                if rid not in selected or at>selected[rid][0]:selected[rid]=(at,list(group.values()))
+            for _,group in selected.values():rows.extend(group)
+            rows.sort(key=lambda r:(r['race_id'],r['racer_id']))
         for person in roster:
             reg=person['registration'];need(re.fullmatch('[0-9]{4}',reg) and reg not in seen and type(person['name']) is str,'DAILY_ROSTER_INVALID');seen.add(reg)
             own=[r for r in rows if r['racer_id']==reg]
-            people.append(dict(registration=reg,name=person['name'],summary=stats(own),
+            entry=dict(registration=reg,name=person['name'],summary=stats(own),
                 courses=[dict(course=c,**stats([r for r in own if r['course']==c])) for c in range(1,7)],
-                last_race_day=max((r['race_id'][:8] for r in own),default=None)))
+                last_race_day=max((r['race_id'][:8] for r in own),default=None))
+            if live is not None:
+                today=[r for r in own if r['race_id'][:8]==live['day'].replace('-','')]
+                entry.update(today_stats=stats(today),today_races=[{k:r[k] for k in ('race_id','lane','course','finish','result_code','st','st_status','captured_at')} for r in sorted(today,key=lambda r:r['race_id'])])
+            people.append(entry)
         present={r['day'] for r in receipts};missing=[(start+timedelta(days=i)).isoformat() for i in range(days) if (start+timedelta(days=i)).isoformat() not in present]
         last_capture=max((r['captured_at'] for r in receipts),default=None)
         result=dict(schema=SCHEMA,status='READY' if receipts else 'UNAVAILABLE',generated_at=now.isoformat(),last_source_at=last_capture,
@@ -125,6 +149,10 @@ class DailyStore:
             people=people,unknown_registration_count=len({r['racer_id'] for r in rows}-seen),
             denominator='confirmed_starts_including_non_numeric_results; confirmed_absences_excluded; ST_OK_samples_only',
             model_inputs_changed=False)
+        if live is not None:
+            captures=[r['captured_at'] for r in rows if r.get('captured_at')]
+            result.update(schema='RACE_AI_RACER_DAILY_V2',today=live,status='READY' if receipts or captures else 'UNAVAILABLE',
+                          last_source_at=max([*captures,*([last_capture] if last_capture else [])],default=None))
         need(len(wire(result).encode())<=MAX_PUBLIC,'DAILY_PUBLIC_SIZE_LIMIT');return result
 
 def seal(raw,*,generation,previous,key=None):
