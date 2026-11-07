@@ -226,6 +226,11 @@ class IssuerWorkflowTests(unittest.TestCase):
         job=jobs['official_result_recovery_issuer']
         self.assertEqual(permissions(job,'    '),{'contents':'write','actions':'read'})
         steps=re.split(r'^      - ',job,flags=re.M)[1:]
+        checkout=next(block for block in steps if re.search(r'^        uses: actions/checkout@',block,re.M))
+        options=dict(re.findall(r'^          ([a-z-]+): ([^\n]+)',checkout,re.M))
+        self.assertEqual(options.get('fetch-depth'),'0')
+        self.assertEqual(options.get('filter'),'blob:none')
+        self.assertEqual(options.get('fetch-tags'),'false')
         route=next(block for block in steps if re.search(r'^        id: issue_route$',block,re.M))
         execute=next(block for block in steps if re.search(r'^        id: issue$',block,re.M))
         self.assertLess(steps.index(route),steps.index(execute))

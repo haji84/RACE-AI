@@ -690,12 +690,14 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - name: Checkout exact issue HEAD and its complete parent history
+      - name: Checkout exact issue HEAD with complete parent metadata
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha }}
           fetch-depth: 0
+          filter: blob:none
+          fetch-tags: false
       - name: Route only the explicit issue-only commit prefix
         id: issue_route
         shell: bash
