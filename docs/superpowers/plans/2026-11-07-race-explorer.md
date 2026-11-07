@@ -1,6 +1,6 @@
 # RACE AI 会場ナビ・選手カルテ Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** 会場・レース・選手・直前情報を少ない操作で確認できる、RACE AI 独自の閲覧画面を公開する。
 
@@ -33,10 +33,10 @@
 
 **Interfaces:** `venueOverview(records, {sport, now, favorites})` returns `{venue, count, favorite, nextRace}` entries; BOAT includes all 24 venues plus imported unknown names. `raceInformation(row, {supplementalPreview})` returns four `{key,label,available,detail}` entries for participants/preview/outlook/history. `boatRaceLinks(row)` returns `{kind,label,url}` entries only for a non-synthetic BOAT race with valid, consistent day/venue/R metadata.
 
-- [ ] Write tests for favorite ordering, absent venues, future/unknown deadlines, immutable input, partial information and known 24 venue URLs. Assert conflicting IDs, malformed dates, synthetic and other-sport rows yield no BOAT links.
-- [ ] Run `node --test tests/race_explorer.test.cjs`; expect assertions to fail because the new behavior is absent.
-- [ ] Implement these functions without new dependencies or mutations of stored records.
-- [ ] Run `node --test tests/race_explorer.test.cjs tests/ui_model.test.js`; expect all tests to pass; commit.
+- [x] Write tests for favorite ordering, absent venues, future/unknown deadlines, immutable input, partial information and known 24 venue URLs. Assert conflicting IDs, malformed dates, synthetic and other-sport rows yield no BOAT links.
+- [x] Run `node --test tests/race_explorer.test.cjs`; expect assertions to fail because the new behavior is absent.
+- [x] Implement these functions without new dependencies or mutations of stored records.
+- [x] Run `node --test tests/race_explorer.test.cjs tests/ui_model.test.js`; expect all tests to pass; commit.
 
 ## Task 2: 選手カルテ
 
