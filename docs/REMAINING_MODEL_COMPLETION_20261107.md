@@ -211,3 +211,5 @@ K履歴の2005年開始は実装上の固定下限ではない。保存済みの
 CSSのURLが `?20261107` から `?20261108` に変わり、2件が追加GETとなった。新しい実原本はその正確な新URLのままcacheへ再利用し、queryの別名化や動的応答の再生は行わない。次のrequestは同じ元AUTO2／plan／native4／checkpoint4／上限16を保持し、この新journalだけをpriorへ追加する準備。次の取得は別HEADの初回全体成功・新しい固定attempt2の認証・全原本保持と、20:10:29Z以降の実時計を再確認してからだけ実行する。
 
 元journal ZIP・実APIの元metadata byte・外側owner暗号文を、不変pathのみのGit `f04a8bd1715edf54e2f3059e4ad90aa4c651a833` へ保持した。別Git readerで全byte・AES復元一致、既存ファイル変更0、保持処理の提供元GET 0。現在のproduction取得コードと正確な日付付きstatic cacheを使うNET0再生では、14実応答を原文通りに読み、15番目の予約で正しい2R結果の通常UI要求へ到達した。結果本文は未観測なので中止し、teacher 0／提供元GET 0のまま。コードや取得上限の変更は不要と判断した。次のrequest digestは `d35c63a6e50733e30443cc6e5c299ced526004f5fb76769a1ea2cc38a7f16990`、prior 6。新cap発行・実結果の成功は別に確認する。
+
+BOATのcallerとcold schedule修正は `09973e7fa75b97e0f59d710e8b4599a0429b6be5` へ統合し、並行所有者の動画修正もmerge保持した。YAMLを含む当該pushは `[skip ci]` とし、次の別pushではこの報告だけを更新して、既存Forecast全CIと次の限定取得用HEADを作る。製品web treeは検証済み `ed676742448d9068c12e8cb39b6b87923b0888fc` のまま。新しい未来requestやBOAT source workerを、このコード導入のために起動したとは扱わない。
