@@ -1515,7 +1515,7 @@
     if(!forecastSha||!window.SavedViewCrypto?.readLive)return;
     const status=node("p","muted small","結果の自動同期を確認しています。");status.id="saved-view-sync";status.setAttribute("role","status");
     $("result-coverage").after(status);
-    let previous={forecastSha,generation:0,cipherSha:path.split("/").at(-1).replace(".json","")},busy=false,queuedDay=null;
+    let previous={forecastSha,generation:0,cipherSha:path.split("/").at(-1).replace(".json","")},busy=false,queuedDay=null,followToday=true;
     const choices=new Map();
     function rememberChoices() {
       if(!races().some(row=>row.event_date_jst===state.day))return;
@@ -1524,7 +1524,7 @@
       choices.delete(state.day);choices.set(state.day,{selectedId:state.selectedId,resultGroupKey:state.resultGroupKey,identities,venue:state.venue});
       if(choices.size>32)choices.delete(choices.keys().next().value);
     }
-    function applySaved(result,day=result.history?.day??state.day) {
+    function applySaved(result,day=result.history?.day??(followToday&&result.view.records.some(row=>row.event_date_jst===A.jstToday())?A.jstToday():state.day)) {
       const parsed=M.parse(result.view);if(!parsed.records.length)throw new Error("saved originals empty");
       if(result.history&&(day!==result.history.day||parsed.records.some(row=>row.event_date_jst!==day)))throw new Error("saved history day mismatch");
       const draftIds=['ticket-amount','lane-first','lane-second','lane-third','simulation-budget','race-budget','daily-budget','race-search'];
@@ -1536,6 +1536,7 @@
         if(index<0)throw new Error("saved original selection unavailable");keys[row.race_id]=index;
       }
       dataset=parsed;state.day=day;state.predictionKeys=keys;
+      if(!sameDay)state.raceView=day<A.jstToday()?"results":"upcoming";
       if(choice){state.selectedId=choice.selectedId;state.resultGroupKey=choice.resultGroupKey;state.venue=choice.venue;}
       previous={forecastSha,generation:result.header.generation,cipherSha:result.cipherSha};
       if(result.history) {
@@ -1550,6 +1551,7 @@
     }
     async function selectDay(day) {
       if(version!==importVersion||!savedHistory.active)return;
+      followToday=false;
       if(busy){queuedDay=day;return;}
       busy=true;const oldDay=state.day;status.textContent=day+" の保存原本を読み込んでいます。";
       try {
@@ -1562,12 +1564,12 @@
       } finally {busy=false;drainDay();}
     }
     function drainDay() {if(queuedDay!==null){const day=queuedDay;queuedDay=null;selectDay(day);}}
-    savedHistory={version,active:false,selectDay,noteDayChange:day=>{rememberChoices();if(busy)queuedDay=day;}};
+    savedHistory={version,active:false,selectDay,noteDayChange:day=>{followToday=false;rememberChoices();if(busy)queuedDay=day;}};
     async function check() {
       if(busy||version!==importVersion||!dataset||document.hidden)return;
       busy=true;resultCheck.busy=true;syncResultRefreshUI();
       try {
-        const result=await window.SavedViewCrypto.readLive(location.hash,previous,{day:state.day});
+        const result=await window.SavedViewCrypto.readLive(location.hash,previous,{day:state.day,preferredDay:followToday?A.jstToday():undefined});
         if(version!==importVersion||!dataset)return;
         if(result) {
           applySaved(result);
