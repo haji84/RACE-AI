@@ -55,10 +55,10 @@
 
 **Interfaces:** Use Task 1 functions. `openRace(id, tab="outlook")` preserves existing calls while allowing card shortcuts and the same-venue/day race switcher. `chooseVenue(venue, toggle)` drives the existing venue filter. Only favorite sport/venue identifiers extend the existing preference object.
 
-- [ ] Add failing browser tests for home→venue→race→preview, favorite persistence without forecast storage, empty venue/day behavior, same-day race switching, return-to-list filters, matching official link parameters, and unchanged draft tickets.
-- [ ] Run `EXPLORER_SECTION=navigation node tests/race_explorer_browser.test.cjs`; expect the new navigation assertions to fail.
-- [ ] Add home/main venue panels, the selected venue heading and favorite control, exact-date race buttons, availability shortcuts and safe official links. Keep missing race slots disabled rather than inventing records.
-- [ ] Run all explorer browser cases and venue-name browser cases; expect pass; commit.
+- [x] Add failing browser tests for home→venue→race→preview, favorite persistence without forecast storage, empty venue/day behavior, same-day race switching, return-to-list filters, matching official link parameters, and unchanged draft tickets.
+- [x] Run `EXPLORER_SECTION=navigation node tests/race_explorer_browser.test.cjs`; expect the new navigation assertions to fail.
+- [x] Add home/main venue panels, the selected venue heading and favorite control, exact-date race buttons, availability shortcuts and safe official links. Keep missing race slots disabled rather than inventing records.
+- [x] Run all explorer browser cases and venue-name browser cases; expect pass; commit.
 
 ## Task 4: 情報配置・直前情報・回帰確認と公開
 
