@@ -23,9 +23,22 @@ test('one official UI day accepts all twelve races while network budget remains 
  assert.equal(api.validatePlan(full,NOW).cases.length,23);assert.deepEqual(full,before);
  assert.equal(api.validatePlan(plan(races(keirin,12)),NOW).cases.length,12);
  assert.throws(()=>api.validatePlan(plan(races(auto,13)),NOW));
- const thirteenth={...keirin,venue:'keirin-jyo-74',race_id:keirin.race_id.replace('keirin-jyo-48','keirin-jyo-74')};
- assert.throws(()=>api.validatePlan(plan([...races(keirin,12),thirteenth]),NOW),/VENUE_CASE_BOUND/);
+ assert.throws(()=>api.validatePlan(plan(races(keirin,13)),NOW),/CASE_CLOCK_OR_NUMBER/);
  assert.throws(()=>api.validatePlan({...full,request_budget:33},NOW),/REQUEST_BUDGET/);
+});
+test('two KEIRIN venues sharing top URL get independent twelve-race limits and UI contexts',enabled,async()=>{
+ const other={...keirin,venue:'keirin-jyo-74',race_id:keirin.race_id.replace('keirin-jyo-48','keirin-jyo-74'),ui_venue_name:'別創作競輪場'};
+ const races=(base,count)=>Array.from({length:count},(_,i)=>({...base,race_no:i+1,race_id:`${base.sport}:${base.expected_date}:${base.venue}:${i+1}`}));
+ for(const count of [11,12])assert.equal(api.validatePlan({...plan([...races(keirin,12),...races(other,count)]),request_budget:32},NOW).cases.length,12+count);
+ const input=[...races(keirin,12),...races(other,11)],before=structuredClone(input),groups=[...api.groupCases(input).values()];
+ assert.equal(groups.length,2);assert.deepEqual(groups.map(g=>[g[0].venue,g.length]),[['keirin-jyo-48',12],['keirin-jyo-74',11]]);assert.deepEqual(input,before);
+ const opened=[];const names=[keirin.ui_venue_name,other.ui_venue_name];
+ const page={url:()=>keirin.ui_entry_url,on(){},off(){},waitForTimeout:async()=>{},waitForLoadState:async()=>{},locator(selector){
+  if(selector==='.kaisaichi')return {filter:({hasText})=>({venue:names.find(n=>hasText.test(n))})};
+  assert.equal(selector,'#kaisaiInfoTable tr');return {filter:({has})=>({waitFor:async()=>{},getByRole:()=>({count:async()=>1,isVisible:async()=>true,innerText:async()=>'出走表一覧',click:async()=>{opened.push(has.venue);}})})};
+ }};
+ for(const group of groups)await api.openKeirinList(page,group[0],[]);
+ assert.deepEqual(opened,names);
 });
 test('route policy admits only official normal read transport and denies credentials/mutations',enabled,()=>{
  const req=(changes={})=>({url:'https://autorace.jp/race_info/OtherRaceInfo',method:'POST',resource_type:'xhr',content_type:'application/json',body:Buffer.from(JSON.stringify({placeCode:3,raceDate:'2030-01-01',raceNo:2})),headers:{},...changes});

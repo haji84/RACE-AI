@@ -48,11 +48,13 @@ function validatePlan(value,now=new Date()){
   if(Object.hasOwn(item,'ui_venue_name'))need(typeof item.ui_venue_name==='string'&&item.ui_venue_name.trim()===item.ui_venue_name&&item.ui_venue_name.length>=1&&item.ui_venue_name.length<=80&&!/[<>\r\n]/.test(item.ui_venue_name),'UI_VENUE_NAME');
   const u=safeUrl(item.ui_entry_url,item.sport);
   need(!u.search&&(item.sport==='autorace'?u.pathname==='/race_info/Live/'+item.venue:u.pathname==='/pc/top'),'UI_ENTRY_URL');
-  const group=item.sport+' '+item.ui_entry_url+' '+item.expected_date;counts[group]=(counts[group]||0)+1;need(counts[group]<=12,'VENUE_CASE_BOUND');
+  const group=caseGroupKey(item);counts[group]=(counts[group]||0)+1;need(counts[group]<=12,'VENUE_CASE_BOUND');
  }
  if(Object.hasOwn(value,'static_cache'))validateStaticCache(value.static_cache,value,now);
  return structuredClone(value);
 }
+function caseGroupKey(item){return JSON.stringify([item.sport,item.venue,item.expected_date,item.ui_entry_url]);}
+function groupCases(items){const groups=new Map();for(const item of items){const key=caseGroupKey(item);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(item);}return groups;}
 function dueCases(plan,now=new Date()){return plan.cases.filter(c=>time(c.due_at)<=now.valueOf()).map(c=>structuredClone(c));}
 function requestScope(plan,group){need(Array.isArray(group)&&group.length>0&&group.every(c=>plan.cases.some(p=>p.race_id===c.race_id)),'REQUEST_GROUP');return {...plan,cases:group};}
 function bodyFields(raw,contentType){
@@ -236,7 +238,7 @@ async function capturePlan(input,out,{chromium,executablePath=process.env.CHROMI
      if(['script','stylesheet'].includes(entry.resource_type)&&entry.status===200){try{const authenticated=validateStaticCache([{raw_base64:raw.toString('base64'),metadata}],plan);cache.set(entry.url,authenticated.get(entry.url));}catch{}}
     })().catch(error=>{add({event:'CAPTURE_ERROR',reason:/^OFFICIAL_BROWSER_[A-Z_]+$/.test(error.message)?error.message:'RESPONSE_UNAVAILABLE',at:stamp()});stop('CAPTURE_ERROR');}).finally(()=>{const entry=response.request()._officialCapture;if(entry){clearTimeout(timers.get(entry.sequence));timers.delete(entry.sequence);}pending.delete(task);});pending.add(task);
    });
-   const groups=new Map();for(const item of due){const key=item.sport+' '+item.ui_entry_url;if(!groups.has(key))groups.set(key,[]);groups.get(key).push(item);}
+   const groups=groupCases(due);
    for(const group of groups.values()){
     if(budget.reason)break;activeSport=group[0].sport;activeCases=group;const groupStart=stamp(),groupLedgerStart=ledger.length;let page=await context.newPage(),listPage;await guard(page);
     try{await page.goto(group[0].ui_entry_url,{waitUntil:'domcontentloaded',timeout:TIMEOUT_MS});if(activeSport==='keirin')listPage=await openKeirinList(page,group[0],ledger);
@@ -269,5 +271,5 @@ async function main(argv=process.argv.slice(2)){
   const plan=JSON.parse(fs.readFileSync(input,'utf8'));const out=await capturePlan(plan,argv[3]);result={state:out.cases.some(c=>c.state==='CAPTURED')?'CAPTURED':'HOLD',actual_request_count:out.actual_request_count,captured_case_count:out.cases.filter(c=>c.state==='CAPTURED').length,held_case_count:out.cases.filter(c=>c.state!=='CAPTURED').length,stopped_host:out.stopped_host};
  }catch{process.exitCode=1;}process.stdout.write(JSON.stringify(result)+'\n');return result;
 }
-module.exports={SCHEMA,CAPTURE,MAX_BODY,validatePlan,requireCurrentClock,dueCases,requestScope,routePolicy,validateStaticCache,createBudget,makeMetadata,browserMetadata,browserEnvironment,browserProxy,createPrivateOutput,savePrivate,caseResponses,selectAutoCase,selectKeirinCase,openKeirinList,installByteGuard,capturePlan,contentType,sha,main};
+module.exports={SCHEMA,CAPTURE,MAX_BODY,validatePlan,requireCurrentClock,dueCases,groupCases,requestScope,routePolicy,validateStaticCache,createBudget,makeMetadata,browserMetadata,browserEnvironment,browserProxy,createPrivateOutput,savePrivate,caseResponses,selectAutoCase,selectKeirinCase,openKeirinList,installByteGuard,capturePlan,contentType,sha,main};
 if(require.main===module)main();

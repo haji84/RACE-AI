@@ -210,7 +210,7 @@ test('preview expands experimental evidence, preserves original observations and
     assert.match(rendered,/本番予想への採用は未実施/);
     assert.match(rendered,/研究版への使用状況はモデル版・入力証拠を確認/);
     assert.equal(await panel.locator('video,img,iframe,a').count(),0);
-    assert.match(await page.locator('#detail-tab-content > .table-scroll').first().innerText(),/6\.91/);
+    assert.match(await page.getByRole('tabpanel',{name:'直前情報',exact:true}).getByRole('article').first().innerText(),/6\.91/);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth>innerWidth),false);
     await page.locator('[data-detail-tab="outlook"]').click();
     const tickets=await page.locator('#detail-tab-content .saved-ticket .combo').evaluateAll(nodes =>
@@ -246,7 +246,7 @@ test('all six digit and temporal candidates display measured and missing evidenc
     assert.match(await panel.innerText(),/数字.*時系列.*艇番候補/);
     assert.match(await panel.innerText(),/本番予想への採用は未実施/);
     assert.match(await panel.innerText(),/研究版への使用状況はモデル版・入力証拠を確認/);
-    assert.match(await page.locator('#detail-tab-content > .table-scroll').first().innerText(),/6\.91/);
+    assert.match(await page.getByRole('tabpanel',{name:'直前情報',exact:true}).getByRole('article').first().innerText(),/6\.91/);
     await page.locator('[data-detail-tab="outlook"]').click();
     const tickets=await page.locator('#detail-tab-content .saved-ticket .combo').evaluateAll(nodes =>
       nodes.map(n => [...n.querySelectorAll('.lane')].map(lane => Number(lane.textContent))));
