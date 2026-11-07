@@ -166,15 +166,21 @@ class OrderOnlyPrivatePDCATests(unittest.TestCase):
             with self.subTest(kind=kind),self.assertRaises(ValueError):self.score()
             self.assertFalse(self.out.exists());self.native_meta=original_native;self.result_meta=original_result
     def test_exact_cutoff_result_proof_and_score_tampering_cannot_restore(self):
-        self.score();original=self.payloads()[0]
-        for kind in ('cutoff','label','proof','score','scope'):
-            payload=deepcopy(original)
-            if kind=='cutoff':payload['observation']['closed_at']=(datetime.fromisoformat(payload['observation']['closed_at'])+timedelta(seconds=1)).isoformat()
-            elif kind=='label':payload['observation']['ordered_top3']=[1,2,3]
-            elif kind=='proof':payload['result_source_evidence']['sources'].pop()
-            elif kind=='score':payload['score']['baseline']['log_loss']+=1
-            else:payload['summary']['evaluation_scope']='CASH'
-            with self.subTest(kind=kind),self.assertRaises(ValueError):self.module().verify_private_order_only_pdca(payload)
+        self.score()
+        for original in self.payloads():
+            for kind in ('cutoff','label','proof','score','scope'):
+                with self.subTest(sport=original['observation']['sport'],kind=kind):
+                    payload=deepcopy(original)
+                    if kind=='cutoff':payload['observation']['closed_at']=(datetime.fromisoformat(payload['observation']['closed_at'])+timedelta(seconds=1)).isoformat()
+                    elif kind=='label':
+                        order=payload['observation']['ordered_top3']
+                        payload['observation']['ordered_top3']=[order[1],order[0],order[2]]
+                    elif kind=='proof':payload['result_source_evidence']['sources'].pop()
+                    elif kind=='score':payload['score']['baseline']['log_loss']+=1
+                    else:payload['summary']['evaluation_scope']='CASH'
+                    self.assertNotEqual(payload,original)
+                    self.assertNotEqual(digest(payload),digest(original))
+                    with self.assertRaises(ValueError):self.module().verify_private_order_only_pdca(payload)
     def test_full_day_result_needs_authenticated_other_native_inputs_and_never_scores_input_only(self):
         self.native_raw,self.native_meta=self.native_archive(self.requests[:1],'only-auto',801,2)
         with self.assertRaises(ValueError):self.score()

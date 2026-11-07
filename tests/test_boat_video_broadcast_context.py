@@ -57,6 +57,148 @@ class BroadcastContextTests(unittest.TestCase):
         result=self.parse('先頭は4番、2番手は6番。')
         self.assertEqual(len(result['running_order']),2)
 
+    def test_fixed_leader_escape_link_accepts_each_explicit_boat(self):
+        for boat in range(1,7):
+            for leader in ('先頭','トップ','1番手'):
+                for link in ('は逃げる','が逃げる'):
+                    with self.subTest(boat=boat,leader=leader,link=link):
+                        self.assertEqual(self.parse(f'{leader}{link}{boat}号艇です。')['running_order'],
+                                         [{'rank':1,'boat_number':boat}])
+
+    def test_fixed_following_rank_link_is_not_a_pursued_rank(self):
+        for rank in range(2,7):
+            for boat in range(1,7):
+                for link in ('追走','は追走する','が追走している','で追走中の'):
+                    with self.subTest(rank=rank,boat=boat,link=link):
+                        self.assertEqual(self.parse(f'{rank}番手{link}{boat}号艇。')['running_order'],
+                                         [{'rank':rank,'boat_number':boat}])
+        for text in ('先頭追走3号艇。','トップは追走する2号艇。',
+                     '2番手を追走する4号艇。','2番手の後を追走する6号艇。'):
+            with self.subTest(text=text):self.assertEqual(self.parse(text)['running_order'],[])
+
+    def test_fixed_inside_outside_link_keeps_boat_number_separate_from_rank(self):
+        for rank in range(1,7):
+            for boat in range(1,7):
+                for side in ('内','外'):
+                    with self.subTest(rank=rank,boat=boat,side=side):
+                        self.assertEqual(self.parse(f'{rank}番手は{side}の{boat}号艇。')['running_order'],
+                                         [{'rank':rank,'boat_number':boat}])
+
+    def test_unrecognized_gap_is_not_promoted_to_a_current_rank(self):
+        for text in ('先頭は不明な語句4号艇。','2番手は何か別の話3号艇。',
+                     'トップスピードは6号艇。','先頭集団は2号艇。',
+                     '2番手は残り1周で4号艇。','先頭は依然として3号艇。'):
+            with self.subTest(text=text):self.assertEqual(self.parse(text)['running_order'],[])
+
+    def test_entire_clause_with_multiple_boats_or_ranks_stays_unresolved(self):
+        for text in ('先頭は2号艇と4号艇。','2番手は内の3号艇と6号艇。',
+                     '2番手は4号艇が3番手です。','先頭と2番手は5号艇。',
+                     '先頭2号艇2番手。','先頭は2号艇を抜いた4号艇。'):
+            with self.subTest(text=text):self.assertEqual(self.parse(text)['running_order'],[])
+
+    def test_complete_positive_rank_predicates_do_not_require_asr_punctuation(self):
+        for boats in ((4,6,1),(2,5,3),(6,4,2)):
+            for particle in ('は',''):
+                text=f'先頭{particle}{boats[0]}号艇2番手{particle}{boats[1]}号艇3番手{particle}{boats[2]}号艇'
+                with self.subTest(boats=boats,particle=particle):
+                    self.assertEqual(self.parse(text)['running_order'],
+                        [{'rank':rank,'boat_number':boat} for rank,boat in enumerate(boats,1)])
+
+    def test_complete_fixed_link_predicates_can_follow_without_punctuation(self):
+        for boats in ((4,6,1),(2,5,3),(6,4,2)):
+            text=f'先頭は逃げる{boats[0]}号艇2番手追走{boats[1]}号艇3番手は内の{boats[2]}号艇'
+            with self.subTest(boats=boats):
+                self.assertEqual(self.parse(text)['running_order'],
+                    [{'rank':rank,'boat_number':boat} for rank,boat in enumerate(boats,1)])
+
+    def test_dangling_rank_target_does_not_create_a_predicate_boundary(self):
+        for rank in range(2,6):
+            text=f'{rank}番手に5番の方が{rank+1}番手ですが'
+            with self.subTest(rank=rank):self.assertEqual(self.parse(text)['running_order'],[])
+        self.assertEqual(self.parse('先頭は4号艇2番手ですが')['running_order'],[])
+        self.assertEqual(self.parse('先頭は4号艇2番手を追う6号艇')['running_order'],
+                         [{'rank':1,'boat_number':4}])
+
+    def test_unknown_next_link_does_not_erase_the_previous_safe_claim(self):
+        for leader,following in ((4,6),(2,5),(6,1)):
+            text=f'先頭は{leader}号艇2番手不明語{following}号艇'
+            with self.subTest(leader=leader,following=following):
+                self.assertEqual(self.parse(text)['running_order'],
+                                 [{'rank':1,'boat_number':leader}])
+
+    def test_unknown_text_unit_does_not_link_or_block_other_explicit_ranks(self):
+        self.assertEqual(self.parse('先頭は4号艇2番手不明語6号艇3番手は1号艇')['running_order'],
+                         [{'rank':1,'boat_number':4},{'rank':3,'boat_number':1}])
+        self.assertEqual(self.parse('先頭は4号艇2番手不明語6号艇と2号艇3番手は1号艇')['running_order'],
+                         [{'rank':1,'boat_number':4},{'rank':3,'boat_number':1}])
+        # A dangling rank cannot appropriate a later rank's boat as its own.
+        self.assertEqual(self.parse('先頭は4号艇2番手不明語3番手6号艇')['running_order'],
+                         [{'rank':3,'boat_number':6}])
+
+    def test_only_complete_safe_predicates_survive_before_a_dangling_tail(self):
+        self.assertEqual(self.parse('先頭は4号艇2番手は6号艇3番手ですが')['running_order'],
+                         [{'rank':1,'boat_number':4}])
+        self.assertEqual(self.parse('先頭は4号艇と2号艇2番手は6号艇')['running_order'],
+                         [{'rank':2,'boat_number':6}])
+
+    def test_negation_or_alternative_suffix_cannot_confirm_the_first_boat(self):
+        for text in ('先頭は逃げる2号艇じゃない。','2番手追走4号艇ではありません。',
+                     '3番手は内の6号艇ではない。','先頭は2号艇または4号艇。',
+                     '2番手は3番か6番です。','2番手は4号艇かな。'):
+            with self.subTest(text=text):self.assertEqual(self.parse(text)['running_order'],[])
+
+    def test_past_or_kanji_negated_boat_is_a_correction_not_a_current_rank(self):
+        for boat in range(1,7):
+            for rank in ('先頭','2番手'):
+                for negative in ('ではなかった','じゃなかった','でなかった',
+                                 'では無かった','じゃ無かった','で無かった',
+                                 'では無い','じゃ無い','で無い','では無く',
+                                 'ではありませんでした','じゃありませんでした'):
+                    text=f'{rank}は{boat}号艇{negative}。'
+                    with self.subTest(boat=boat,rank=rank,negative=negative):
+                        parsed=self.parse(text)
+                        self.assertEqual(parsed['running_order'],[])
+                        self.assertEqual(parsed['status'],'CORRECTION_REQUIRES_NEW_OBSERVATION')
+
+    def test_desired_or_wished_boat_is_noncurrent_not_a_running_order(self):
+        for boat in range(1,7):
+            for wish in ('になってほしい','になって欲しい','であってほしい',
+                         'であって欲しい','でいてほしい','でいて欲しい',
+                         'になってほしかった','であって欲しかった',
+                         'だといい','だと良い','ならいい','なら良い',
+                         'であればいい','であれば良い','でありますように'):
+                text=f'先頭は{boat}号艇{wish}。'
+                with self.subTest(boat=boat,wish=wish):
+                    parsed=self.parse(text)
+                    self.assertEqual(parsed['running_order'],[])
+                    self.assertEqual(parsed['status'],'NONCURRENT_OR_PREDICTED_COMMENTARY')
+
+    def test_negated_or_wished_fixed_positive_links_cannot_be_promoted(self):
+        self.assertEqual(self.parse('先頭は逃げる2号艇ではなかった。')['running_order'],[])
+        self.assertEqual(self.parse('2番手追走4号艇じゃ無かった。')['running_order'],[])
+        self.assertEqual(self.parse('3番手は内の6号艇であって欲しい。')['running_order'],[])
+
+    def test_pursuit_comparison_history_or_prediction_is_not_current_position(self):
+        for text in ('先頭を追う3号艇。','2番手を狙う4号艇。',
+                     '先頭との差を詰める6号艇。','先頭から下がった5号艇。',
+                     '2番手は4号艇を追走する。','2番手は3号艇に追走しています。',
+                     '先頭は2号艇に迫る。','先頭は3号艇だった。',
+                     '2番手は4号艇になる予定です。','先頭は6号艇になる見込みです。',
+                     '先頭は逃げたい3号艇。','3番手は逃げる4号艇。',
+                     '2番手は4号艇より速い。','先頭は2号艇という説明です。'):
+            with self.subTest(text=text):self.assertEqual(self.parse(text)['running_order'],[])
+
+    def test_safe_clause_does_not_assign_the_pursuing_boat_in_another_clause(self):
+        self.assertEqual(self.parse('先頭は逃げる2号艇、2番手を追う4号艇。')['running_order'],
+                         [{'rank':1,'boat_number':2}])
+
+    def test_fixed_links_do_not_create_broadcast_cues_in_unknown_phase(self):
+        self.assertEqual(self.parse('先頭は逃げる2号艇。',phase='UNKNOWN')['running_order'],[])
+
+    def test_rank_only_past_guard_does_not_change_current_exhibition_arrival(self):
+        result=self.parse('続いて、3号艇が展示へ向かいました。',phase='EXHIBITION_LAP')
+        self.assertEqual(result['exhibition_boat_number'],3)
+
     def test_duplicate_boat_or_conflicting_rank_is_ambiguous(self):
         for text in ['先頭は1号艇、2番手も1号艇。','先頭は1号艇、先頭は3号艇。']:
             with self.subTest(text=text):

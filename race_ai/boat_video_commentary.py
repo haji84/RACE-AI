@@ -31,6 +31,19 @@ MODEL_FILES={
     'normalizer.json':'bf1c507dc8724ca9cf9903640dacfb69dae2f00edee4f21ceba106a7392f26dd',
     'added_tokens.json':'9715fd2243b6f06a5858b5e32950d2853f73dd5bc201aafcf76f5082a2d8acd1',
     'special_tokens_map.json':'e67ae3a0aaa99abcd9f187138e12db1f65c16a14761c50ef10eef2c174a7a691'}
+KOTOBA_MODEL_REVISION='7eb575277d18909a4af8a24e3ae8cce2e99794ae'
+KOTOBA_MODEL_FILES={
+    'model.safetensors':'0a96a84e307bbb90128a9fd5a45b4f803be212aadef633e24c088fa1ba30f727',
+    'config.json':'65d5e7e4c8bb84a04edeff0a04fa422de14d9d38c3152f6869d4275dec9cc60c',
+    'generation_config.json':'748d850251411dc53679b1a01ecacd44d25b37a8498cc2ccc0457f4b0c06d82f',
+    'preprocessor_config.json':'7ccc62c6f2765af1f3b46c00c9b5894426835a05021c8b9c01eecb6dfb542711',
+    'tokenizer_config.json':'c86c7398ba7f81f784569ea0ae165e252c4a006acc56906f04e5ee3300cf043e',
+    'tokenizer.json':'f70c9740a90657b489cf05b0fa0605c1d497db542f11a70a8cc80a025c94c7d8',
+    'vocab.json':'6788c80b082e9b0d1393147d3a3e62ba19285ac0c82ace8e5ef00f37ead58971',
+    'merges.txt':'2df2990a395e35e8dfbc7511e08c12d56018d8d04691e0133e5d63b21e154dc6',
+    'normalizer.json':'bf1c507dc8724ca9cf9903640dacfb69dae2f00edee4f21ceba106a7392f26dd',
+    'added_tokens.json':'3c51f66c4c21f9e126970078f11ae77a78c74aee8df606ee9daba86e467108e0',
+    'special_tokens_map.json':'baea4ea09372eb4fca86b4e4346139fd73cb807d5087e9de0948e971739c3e74'}
 _PHASES={'RACE','EXHIBITION_LAP','EXHIBITION_START','UNKNOWN'}
 _SAMPLE_RATE=16000
 _CHUNK_SAMPLES=30*_SAMPLE_RATE
@@ -55,17 +68,20 @@ def _quality(text,tokens):
 
 
 class PinnedCommentaryRecognizer:
-    """SHA-pinned multilingual Whisper tiny; no download or model training."""
-    def __init__(self,*,model_path):
+    """Explicit local pinned ASR profiles; no download or model training."""
+    def __init__(self,*,model_path,model_profile='whisper-tiny'):
         try:
+            _need(type(model_profile) is str and model_profile in ('whisper-tiny','kotoba-v2'))
+            kotoba=model_profile=='kotoba-v2'
+            files=dict(KOTOBA_MODEL_FILES if kotoba else MODEL_FILES)
             raw=os.fspath(model_path)
             _need(type(raw) is str and not re.match(r'^[a-zA-Z][a-zA-Z0-9+.-]*:',raw)
                   and not raw.startswith('//') and '..' not in Path(raw).parts)
             directory=Path(raw).absolute()
             _need(directory.is_dir() and not any(p.is_symlink() for p in (directory,*directory.parents)))
-            _need({p.name for p in directory.iterdir()} <= set(MODEL_FILES)|{'README.md'})
+            _need({p.name for p in directory.iterdir()} <= set(files)|{'README.md'})
             pins={};identities={}
-            for name,expected in MODEL_FILES.items():
+            for name,expected in files.items():
                 path=directory/name;before=path.lstat()
                 _need(stat.S_ISREG(before.st_mode) and not path.is_symlink())
                 with path.open('rb') as source:actual=file_digest(source,'sha256').hexdigest()
@@ -77,11 +93,13 @@ class PinnedCommentaryRecognizer:
             import torch
             from transformers import WhisperForConditionalGeneration, WhisperProcessor
             processor=WhisperProcessor.from_pretrained(directory,local_files_only=True)
-            model=WhisperForConditionalGeneration.from_pretrained(directory,local_files_only=True,
-                use_safetensors=True,attn_implementation='eager').to('cpu').eval()
+            attention='sdpa' if kotoba else 'eager'
+            load_options=dict(local_files_only=True,use_safetensors=True,attn_implementation=attention)
+            if kotoba:load_options['dtype']=torch.float32
+            model=WhisperForConditionalGeneration.from_pretrained(directory,**load_options).to('cpu').eval()
             # Loading must not race a writer after the initial pin check. ctime
             # also catches a write/restore of the same bytes during loading.
-            for name,expected in MODEL_FILES.items():
+            for name,expected in files.items():
                 path=directory/name;before=path.lstat()
                 _need(stat.S_ISREG(before.st_mode) and not path.is_symlink())
                 with path.open('rb') as source:actual=file_digest(source,'sha256').hexdigest()
@@ -89,9 +107,21 @@ class PinnedCommentaryRecognizer:
                 current=lambda value:(value.st_ino,value.st_size,value.st_mtime_ns,value.st_ctime_ns)
                 _need(actual==expected and current(before)==current(after)==identities[name])
             self._processor,self._model,self._torch=processor,model,torch
-            self._metadata=dict(model_id='openai/whisper-tiny',model_revision=MODEL_REVISION,
+            self._generation=dict(language='ja',task='transcribe',do_sample=False,return_timestamps=False)
+            if kotoba:
+                # Match the frozen Japanese-profile decoder without prompts,
+                # answer repair, or forcing expected boat names/numbers.
+                self._generation.update(num_beams=1,temperature=0.,condition_on_prev_tokens=False,prompt_ids=None)
+            else:
+                self._generation['max_new_tokens']=440
+            self._metadata=dict(model_profile=model_profile,
+                model_id='kotoba-tech/kotoba-whisper-v2.0' if kotoba else 'openai/whisper-tiny',
+                model_revision=KOTOBA_MODEL_REVISION if kotoba else MODEL_REVISION,
                 model_file_sha256=pins,local_files_only=True,network_requests=0,language='ja',
                 task='transcribe',do_sample=False,attention_mask_supplied=True,
+                attention_implementation=attention,
+                dtype_policy='EXPLICIT_CPU_FLOAT32' if kotoba else 'EXISTING_BACKEND_DEFAULT',
+                generation_options=deepcopy(self._generation),
                 estimated_word_timestamps_used=False,field_validated=False,
                 raw_scores_are_calibrated_probabilities=False)
         except (OSError,ImportError,TypeError,ValueError):
@@ -108,8 +138,7 @@ class PinnedCommentaryRecognizer:
         _need(sha256(image.tobytes()).hexdigest()==original)
         features=self._processor(image,sampling_rate=sample_rate,return_tensors='pt',return_attention_mask=True)
         with self._torch.inference_mode():
-            result=self._model.generate(**features,language='ja',task='transcribe',do_sample=False,
-                return_timestamps=False,max_new_tokens=440)
+            result=self._model.generate(**features,**self._generation)
         tokens=result[0].tolist()
         text=self._processor.batch_decode(result,skip_special_tokens=True)[0]
         _need(sha256(samples.tobytes()).hexdigest()==original)

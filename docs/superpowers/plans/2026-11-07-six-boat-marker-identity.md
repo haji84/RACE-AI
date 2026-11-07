@@ -150,3 +150,37 @@ The61-frame result is an already-known low-motion development sequence, not an i
 - [x] Run final related regressions, record errors/remaining conditions and preserve current PR71 concurrent updates, originals and automatic runtime.
 
 Validation result: automaticphase1/55exhibitionreferencepoints, raw3/55, noacceptedpersistentinterval; onehumanlistened5sclip requestedrankpairs0/2, targetboatunits1/2. These are measuredfailures, not completion. Furtheractivity/ASRquality improvements need more source-bound independently annotated cases; no reference-guided label rewriting.
+
+## Corrective completion after the failed validation (2026-11-08)
+
+**Approach:** Replace OCR-only activity gating with independently pretrained semantic primary-water evidence and retain explicit exhibition topic/label context. Water alone is never a race/exhibition authentication. Evaluate one permissively licensed fixed model/profile before adding it to the product. Replace the inadequate multilingual tiny speech candidate with one pinned Japanese-specialized recognizer profile, preserving all originals and conservative rank parsing. No human-answer-driven homophone repair, model training or threshold sweep.
+
+**Development gates fixed before new outputs:** Primary activity known-positive recall >=90% and known-negative false-positive rate <=5%, reporting the original cohort and the new disjoint/source-labelled cohort separately. Keep UNKNOWN in coverage and misses. Conditional exhibition intervals must retain their context source and sampling/boundary uncertainty; boat identity, exact subphase and live authority are separate claims. Speech must recover the two owner-confirmed regression fields and independently labelled new fields without rank contradictions. A longer past-audio context is a diagnostic only until current-window attribution is verified. No population/98%/forecast quality claim follows from these development checks.
+
+- [x] Freeze new visual and audio validation cohorts/reference boundaries before new model outputs.
+- [x] Verify public model licence, revision, byte hashes and offline inputs; no private-source training or paid/external inference.
+- [x] Run semantic primary-water prototype and old/new cohorts with fixed thresholds, preserve raw masks/decisions before scoring.
+- [x] Run fixed Japanese-ASR acoustic profiles on the same source PCM; freeze output before human scoring and preserve the failed tiny/base results.
+- [x] TDD the accepted local adapters and context/timing contracts, connect existing CLI, independently review and run related tests.
+- [x] Execute real source audio/video through the finished path and report each gate separately; retain live runtime, originals and concurrent PR71 updates.
+
+**Further causal checks, without rewriting those baselines:** The Japanese
+Whisper greedy/beam5 and native Japanese transducer greedy/beam4 profiles are
+sealed separately. The transducer recovers a clean first rank clause and runs
+faster than its input, but a competition vocabulary error still prevents the
+second relation from being parsed. Test one independently frozen generic
+racing vocabulary through the recognizer's documented contextual decoder at
+its default score. Include no names, boat numbers, target sequences, reference
+answers or misspelling replacements. This is a new decoder experiment, not a
+claim that the earlier no-context profiles passed. Preserve original text,
+tokens, PCM, padding, timings and all failed outcomes; score broader fixed
+windows and independent references separately from the known human example.
+
+The semantic V2 passes the tutorial cohort, but misses cross-source content
+despite unchanged .45/.40 geometry. Inspect all missed native scenes and all
+negative controls before choosing any structural correction; do not tune those
+thresholds against the holdout. Any further rule needs a separately frozen
+reference cohort and must continue to distinguish displayed water/boats,
+declared exhibition topic and authenticated current exhibition.
+
+Corrective implementation/measurement completed; acceptance remains split: pooled aquatic screen content passes the fixed development gate, while one-source recall, human rank extraction, authenticated phase/LIVE, physical strength and forward forecast improvement remain unmet. The full4031 baseline exposed two test-fixture defects; upstream bootstrap correction and a genuine PDCA mutation are verified by21 integrated provenance tests. The integrated video regression is868PASS.
