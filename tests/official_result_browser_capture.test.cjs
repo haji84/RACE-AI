@@ -118,6 +118,16 @@ test('live request clock cannot regress behind the authenticated epoch',enabled,
  const value={...plan([auto]),not_before:'2030-01-01T03:00:00.000001Z'};
  assert.throws(()=>api.requireCurrentClock(value,NOW));assert.doesNotThrow(()=>api.requireCurrentClock(value,new Date('2030-01-01T03:00:00.001Z')));
 });
+test('optional recovery expiry rejects every dispatch at deadline including after spacing',enabled,async()=>{
+ const deadline='2030-01-01T03:00:00.500Z',value={...plan([auto]),not_before:NOW.toISOString(),not_after:deadline};
+ assert.equal(api.validatePlan(value,NOW).not_after,deadline);
+ assert.doesNotThrow(()=>api.requireCurrentClock(value,new Date('2030-01-01T03:00:00.499Z')));
+ assert.throws(()=>api.requireCurrentClock(value,new Date(deadline)),/CLOCK_AUTHORIZATION_EXPIRED/);
+ let elapsed=NOW.valueOf();const budget=api.createBudget(8,{now:()=>elapsed,sleep:async ms=>{elapsed+=ms;}});
+ assert.ok(await budget.reserve());assert.ok(await budget.reserve());
+ assert.throws(()=>api.requireCurrentClock(value,new Date(elapsed)),/CLOCK_AUTHORIZATION_EXPIRED/);
+ assert.doesNotThrow(()=>api.requireCurrentClock(plan([auto]),new Date('2031-01-01T00:00:00Z')));
+});
 test('private output is fresh outside Git with 0700 directory and 0600 create-only files',enabled,()=>{
  const root=fs.mkdtempSync(path.join(os.tmpdir(),'official-ui-test-'));try{
   const out=path.join(root,'capture');api.createPrivateOutput(out);api.savePrivate(out,'request.body',Buffer.from('invented'));

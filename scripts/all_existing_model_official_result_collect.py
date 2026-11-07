@@ -193,7 +193,7 @@ def _journal_origin(cipher,*,key,run_id,head_sha,now,saved_at=None):
     fields={'schema','execution_day','manifest_sha256','maximum_requests','epoch_started_at','attempts','captures','cases',
         'manifest','workflow_run_id','code_sha','collection_plan_sha256'}
     need(fields<=set(body)<=fields|{'browser_attempt','browser_index','browser_captures','browser_request_checkpoint',
-        'browser_process_diagnostic','browser_failure','browser_quarantine'} and
+        'browser_process_diagnostic','browser_failure','browser_quarantine','recovery_authorization'} and
         type(body['workflow_run_id']) is int and body['workflow_run_id']==run_id and body['code_sha']==head_sha,
         'JOURNAL_ORIGIN_RUN')
     epoch=stamp(body['epoch_started_at']);original=_manifest(body['manifest'],epoch)
@@ -233,7 +233,7 @@ def _journal_artifact(pin,*,now,key):
     return body,cipher,actual
 
 
-def prior_journals(manifest,*,now,key):
+def prior_journals(manifest,*,now,key,recovery_authorization=None):
     """Guard only explicitly pinned epochs; never infer that unlisted history is safe."""
     if manifest['schema']!=SCHEMA_V2:return {}
     receipts=[];latest=None
@@ -241,6 +241,11 @@ def prior_journals(manifest,*,now,key):
         body,cipher,actual=_journal_artifact(pin,now=now,key=key);epoch=stamp(body['epoch_started_at'])
         latest=max(latest,epoch) if latest is not None else epoch
         attempts=body['attempts'];browser=body.get('browser_attempt')
+        reviewed=False
+        if recovery_authorization is not None:
+            from race_ai.all_existing_model_official_recovery import ValidatedRecovery
+            need(type(recovery_authorization) is ValidatedRecovery,'VALIDATED_RECOVERY_REQUIRED')
+            reviewed=recovery_authorization.validate_prior(manifest,pin,body,cipher,actual,now)
         ledger=[]
         for field in ('browser_index','browser_request_checkpoint'):
             container=body.get(field,{})
@@ -256,12 +261,12 @@ def prior_journals(manifest,*,now,key):
                 ('HOLD_ACCESS_DENIED','ACCESS_DENIED','HTTP_ACCESS_DENIED','DENIED') or
                 body.get(field,{}).get('stopped_host') is True for field in ('browser_index','browser_request_checkpoint')),
             'PRIOR_JOURNAL_DENIED_REQUIRES_OWNER_REVIEW')
-        need(not any(a['state']=='RESERVED' for a in attempts) and
+        need(reviewed or not any(a['state']=='RESERVED' for a in attempts) and
             (browser is None or type(browser) is dict and browser.get('state')=='COMPLETE' and
              type(browser.get('actual_request_count')) is int and
              0<=browser['actual_request_count']<=body['maximum_requests']-len(attempts)),
             'PRIOR_JOURNAL_UNCERTAIN_REQUIRES_OWNER_REVIEW')
-        if browser is not None:
+        if browser is not None and not reviewed:
             index=body.get('browser_index',{});requests=[e for e in index.get('ledger',[]) if 'sequence' in e]
             count=browser['actual_request_count']
             need(index.get('schema')=='RACE_AI_OFFICIAL_RESULT_BROWSER_CAPTURE_V1' and
@@ -630,9 +635,14 @@ def _status(journal,manifest,*,ready=False,state='NO_NEW_AUTHENTICATED_RESULTS')
         normal_confirmed_cases_by_sport=normal,normal_eight_case_requirement_met=bool(sports) and all(n>=8 for n in normal.values()))
 
 
-def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,browser=browser_capture):
+def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,browser=browser_capture,recovery_authorization=None):
     key=state_key('production');now=clock();_manifest(manifest,now);plan=load_plan(manifest,key=key,now=now)
-    prior=prior_journals(manifest,now=now,key=key)
+    recovery=None
+    if recovery_authorization is not None:
+        from race_ai.all_existing_model_official_recovery import ValidatedRecovery
+        need(type(recovery_authorization) is ValidatedRecovery,'VALIDATED_RECOVERY_REQUIRED')
+        recovery=recovery_authorization.validate_collector(manifest,plan,env,now)
+    prior=prior_journals(manifest,now=now,key=key,recovery_authorization=recovery_authorization)
     need(not root.exists() and not any(p.is_symlink() for p in (root,*root.parents)), 'OUTPUT_EXISTS_DO_NOT_RESET')
     natives=freeze.frozen_inputs(manifest,now=now);known,_=results._frozen(natives)
     previous=checkpoints(manifest,natives,now=now,key=key)
@@ -653,6 +663,7 @@ def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,bro
     if manifest['schema']==SCHEMA_V2:
         journal.update(schema=JOURNAL_V2,manifest=deepcopy(manifest),workflow_run_id=env['run_id'],
             code_sha=env['head_sha'],collection_plan_sha256=manifest['plan_sha256'])
+    if recovery is not None:journal['recovery_authorization']=deepcopy(recovery)
     journal_path=root.with_name(root.name+'.collection.enc')
     def persist():save(journal_path,seal_forecasts(journal,run_id=str(env['run_id']),round_no=900006,key=key),replace=journal_path.exists())
     budget=Budget(plan['maximum_requests'],journal,persist,clock,sleeper,opener);due=[]
@@ -703,9 +714,12 @@ def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,bro
             for _,entry in native_by_case.values():entry['state']='REQUEST_LIMIT'
         else:
             budget.wait();started=clock();need(started>=now,'CLOCK_REGRESSED_BEFORE_BROWSER');remaining=budget.remaining
+            if recovery_authorization is not None:
+                recovery_authorization.validate_collector(manifest,plan,env,started)
             journal['browser_attempt']=dict(state='RESERVED',reserved_request_limit=remaining,started_at=started.isoformat());persist()
             browser_plan=dict(schema='RACE_AI_OFFICIAL_RESULT_BROWSER_PLAN_V1',cases=browser_cases,request_budget=remaining,
                 not_before=now.isoformat())
+            if recovery is not None:browser_plan['not_after']=recovery['expires_at']
             if 'static_cache' in plan:
                 sports={case['sport'] for case in browser_cases}
                 browser_plan['static_cache']=[entry for entry in plan['static_cache']

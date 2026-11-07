@@ -25,20 +25,25 @@ class MarkerCliTests(unittest.TestCase):
     def setUpClass(cls):
         cls.fixture = tempfile.TemporaryDirectory()
         cls.original = Path(cls.fixture.name) / 'synthetic.mp4'
+        # Bound encoding itself; muxer offset avoids dropping the final packet
+        # through FFmpeg-version-dependent MP4 edit lists for filter offsets.
         subprocess.run(['ffmpeg', '-nostdin', '-v', 'error', '-f', 'lavfi', '-i',
-                        'testsrc=size=96x64:rate=10:duration=0.7', '-vf', 'setpts=PTS+2/TB',
+                        'testsrc=size=96x64:rate=10', '-frames:v', '6', '-output_ts_offset', '2',
                         '-fps_mode', 'passthrough', '-c:v', 'mpeg4', '-bf', '0', '-threads', '1',
                         str(cls.original)], check=True, capture_output=True, timeout=20)
         frames = json.loads(subprocess.check_output([
-            'ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_frames',
-            '-show_entries', 'frame=best_effort_timestamp_time', '-of', 'json', str(cls.original)], timeout=20))
+            'ffprobe', '-v', 'error', '-select_streams', 'v:0', '-show_frames', '-count_packets',
+            '-show_entries', 'frame=best_effort_timestamp_time:stream=nb_read_packets',
+            '-of', 'json', str(cls.original)], timeout=20))
+        cls.encoded_frames = int(frames['streams'][0]['nb_read_packets'])
         cls.pts = [float(f['best_effort_timestamp_time']) for f in frames['frames']]
         raw = subprocess.check_output(['ffmpeg', '-nostdin', '-v', 'error', '-threads', '1',
             '-i', str(cls.original), '-map', '0:v:0', '-an', '-fps_mode', 'passthrough',
             '-threads', '1', '-pix_fmt', 'bgr24', '-f', 'rawvideo', 'pipe:1'], timeout=20)
         size = 96 * 64 * 3
         cls.hashes = [sha256(raw[i:i+size]).hexdigest() for i in range(0, len(raw), size)]
-        assert len(cls.pts) == len(cls.hashes) == 6 and len(set(cls.hashes)) == 6
+        assert cls.encoded_frames == len(cls.pts) == len(cls.hashes) == 6 and len(set(cls.hashes)) == 6, \
+            f'SYNTHETIC_FIXTURE_COUNTS encoded={cls.encoded_frames} probed={len(cls.pts)} decoded={len(cls.hashes)} unique={len(set(cls.hashes))}'
         assert cls.pts[0] == 2.0
 
     @classmethod

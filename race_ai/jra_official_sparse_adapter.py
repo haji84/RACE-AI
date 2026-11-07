@@ -158,16 +158,96 @@ def _race(document, source_url):
                 surface="turf" if distance[2] == "芝" else "dirt", race_kind="JRA_OFFICIAL_CARD", race_revision=1), start
 
 
+def _rule_visible(node):
+    style = re.sub(r"\s+", "", node.attrs.get("style") or "").lower()
+    return node.tag not in ("head", "script", "style", "noscript", "template") and "hidden" not in node.attrs and \
+        (node.attrs.get("aria-hidden") or "").lower() != "true" and not any(
+            marker in style for marker in ("display:none", "visibility:hidden", "visibility:collapse"))
+
+
+def _rule_text(node):
+    if not _rule_visible(node):
+        return ""
+    return re.sub(r"\s+", "", normalize("NFKC", " ".join(
+        _rule_text(child) if isinstance(child, _Node) else child for child in node.children)))
+
+
+def _rule_nodes(node):
+    if _rule_visible(node):
+        yield node
+        for child in node.children:
+            if isinstance(child, _Node):
+                yield from _rule_nodes(child)
+
+
+def _sunday_sales_rule(document, year):
+    """Bind the ordinary Sunday deadline to its published table column."""
+    title = f"即PAT会員の発売時間({year}年)"
+    heading = None
+    tables = []; headings = 0
+    for node in _rule_nodes(document):
+        if node.tag in ("h1", "h2"):
+            heading = _rule_text(node) if node.tag == "h2" else None
+            headings += heading == title
+        elif node.tag == "table" and heading == title:
+            captions = [child for child in node.children if isinstance(child, _Node) and
+                        child.tag == "caption" and _rule_visible(child)]
+            labels = [child for caption in captions for child in _rule_nodes(caption) if child.tag == "h3"]
+            if len(captions) == 1 and len(labels) == 1 and _rule_text(labels[0]) == "当日発売":
+                tables.append(node)
+    _need(headings == 1 and len(tables) == 1, "SUNDAY_RULE_SECTION")
+    table = tables[0]
+    _need(not list(table.nodes("table")), "SUNDAY_RULE_NESTED_TABLE")
+    rows = [node for node in _rule_nodes(table) if node.tag == "tr"]
+    _need(2 <= len(rows) <= 64, "SUNDAY_RULE_TABLE_BOUND")
+    occupied = {}
+    for r, row in enumerate(rows):
+        cells = [child for child in row.children if isinstance(child, _Node) and
+                 child.tag in ("th", "td") and _rule_visible(child)]
+        c = 0
+        for cell in cells:
+            while (r, c) in occupied:
+                c += 1
+            spans = []
+            for attr, maximum in (("rowspan", 32), ("colspan", 3)):
+                value = cell.attrs.get(attr, "1")
+                _need(type(value) is str and re.fullmatch(r"[1-9][0-9]?", value) is not None and int(value) <= maximum,
+                      "SUNDAY_RULE_SPAN")
+                spans.append(int(value))
+            height, width = spans
+            _need(r+height <= len(rows) and c+width <= 3, "SUNDAY_RULE_SPAN")
+            for rr in range(r, r+height):
+                for cc in range(c, c+width):
+                    _need((rr, cc) not in occupied, "SUNDAY_RULE_SPAN_OVERLAP")
+                    occupied[rr, cc] = cell
+            c += width
+        _need(all((r, cc) in occupied for cc in range(3)), "SUNDAY_RULE_COLUMNS")
+    grid = [[occupied[r, c] for c in range(3)] for r in range(len(rows))]
+    _need(all(cell.tag == "th" for cell in grid[0]) and
+          [_rule_text(cell) for cell in grid[0]] == ["対象レース", "発売開始日時", "発売締切時刻"],
+          "SUNDAY_RULE_COLUMN_HEADINGS")
+    sunday = [row for row in grid[1:] if _rule_text(row[0]) == "日曜日全レース"]
+    _need(len(sunday) == 1 and sunday[0][0].tag == "th" and
+          all(cell.tag == "td" for cell in sunday[0][1:]) and
+          [_rule_text(cell) for cell in sunday[0][1:]] == ["土曜日の19時30分", "各レース発走時刻1分前"],
+          "SUNDAY_RULE_ROW")
+    return True
+
+
 def _cutoff(evidence, race, start, now):
     _need(type(evidence) is dict and set(evidence) == {"raw", "metadata", "sales_channel", "rule_id"}, "CUTOFF_EVIDENCE_SCHEMA")
     event = start.date()
-    _need(evidence["sales_channel"] == CHANNEL and event.weekday() == 5 and
-          evidence["rule_id"] == f"JRA_{event.year}_SATURDAY_ALL_RACES_START_MINUS_60_SECONDS", "SALES_CHANNEL_RULE")
+    weekday = {5: "SATURDAY", 6: "SUNDAY"}.get(event.weekday())
+    _need(evidence["sales_channel"] == CHANNEL and weekday is not None and
+          evidence["rule_id"] == f"JRA_{event.year}_{weekday}_ALL_RACES_START_MINUS_60_SECONDS", "SALES_CHANNEL_RULE")
     document, url, _ = _document(evidence["raw"], evidence["metadata"], now)
     _need(url == RULE_URL, "OFFICIAL_RULE_SOURCE")
-    text = re.sub(r"\s+", "", document.text())
-    _need(f"即PAT会員の発売時間({event.year}年)" in text and "土曜日全レース" in text and
-          "発売締切時刻" in text and "各レース発走時刻1分前" in text, "OFFICIAL_RULE_TEXT")
+    if weekday == "SATURDAY":
+        text = re.sub(r"\s+", "", document.text())
+        _need(f"即PAT会員の発売時間({event.year}年)" in text and "土曜日全レース" in text and
+              "発売締切時刻" in text and "各レース発走時刻1分前" in text, "OFFICIAL_RULE_TEXT")
+    else:
+        _sunday_sales_rule(document, event.year)
     return start-timedelta(seconds=60)
 
 

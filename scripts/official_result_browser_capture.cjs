@@ -20,10 +20,14 @@ function contentType(headers){
 }
 function time(value){need(typeof value==='string'&&value.length<=64&&/(?:Z|[+-]\d\d:\d\d)$/.test(value)&&Number.isFinite(Date.parse(value)),'AWARE_CLOCK');return Date.parse(value);}
 function requireCurrentClock(plan,now=new Date()){
- if(!Object.hasOwn(plan,'not_before'))return;
- const parsed=time(plan.not_before),fraction=/\.(\d+)(?:Z|[+-]\d\d:\d\d)$/.exec(plan.not_before);
- const minimum=parsed+(fraction&&/[1-9]/.test(fraction[1].slice(3))?1:0);
- need(now instanceof Date&&Number.isFinite(now.valueOf())&&now.valueOf()>=minimum,'CLOCK_REGRESSION');
+ if(!Object.hasOwn(plan,'not_before')&&!Object.hasOwn(plan,'not_after'))return;
+ need(now instanceof Date&&Number.isFinite(now.valueOf()),'AWARE_CLOCK');
+ if(Object.hasOwn(plan,'not_before')){
+  const parsed=time(plan.not_before),fraction=/\.(\d+)(?:Z|[+-]\d\d:\d\d)$/.exec(plan.not_before);
+  const minimum=parsed+(fraction&&/[1-9]/.test(fraction[1].slice(3))?1:0);
+  need(now.valueOf()>=minimum,'CLOCK_REGRESSION');
+ }
+ if(Object.hasOwn(plan,'not_after'))need(now.valueOf()<time(plan.not_after),'CLOCK_AUTHORIZATION_EXPIRED');
 }
 function day(value){need(typeof value==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(value)&&new Date(value+'T00:00:00Z').toISOString().slice(0,10)===value,'EVENT_DAY');return value;}
 function placeCode(item){const value=item.place_code??OBSERVED_AUTO_CODES[item.venue];need(Number.isInteger(value)&&value>=1&&value<=20&&(!Object.hasOwn(OBSERVED_AUTO_CODES,item.venue)||value===OBSERVED_AUTO_CODES[item.venue]),'SAVED_AUTO_PLACE_CODE');return value;}
@@ -34,7 +38,7 @@ function safeUrl(value,sport){
 }
 function validatePlan(value,now=new Date()){
  need(now instanceof Date&&Number.isFinite(now.valueOf()),'AWARE_CLOCK');
- need(keys(value,['schema','cases'],['request_budget','static_cache','not_before'])&&value.schema===SCHEMA&&Array.isArray(value.cases)&&value.cases.length>=1&&value.cases.length<=24,'PLAN_SCHEMA');
+ need(keys(value,['schema','cases'],['request_budget','static_cache','not_before','not_after'])&&value.schema===SCHEMA&&Array.isArray(value.cases)&&value.cases.length>=1&&value.cases.length<=24,'PLAN_SCHEMA');
  requireCurrentClock(value,now);
  if(Object.hasOwn(value,'request_budget'))need(Number.isInteger(value.request_budget)&&value.request_budget>=1&&value.request_budget<=MAX_REQUESTS,'REQUEST_BUDGET');
  const seen=new Set(),counts={};
