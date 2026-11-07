@@ -4,7 +4,9 @@
 
 14枠は[Actions 42334526055](https://github.com/haji84/RACE-AI/actions/runs/42334526055)でも実fit・暗号化復元に成功し、ローカルと係数・支持数・holdoutが一致した。rankerの実学習時計とそれを含むSHAは実行ごとに別に保持する。同runの16入力原本を12:35:08 JSTに独立保存し、オート48入力・競輪40入力の締切前receiptと所有者キーによる復号を確認した。これは入力保存であり、他競技の学習・予想・PDCA成功ではない。[14枠CIと88入力](evidence/2026-11-07/fourteen-ci-and-nonboat-freeze-counts.json)。
 
-先行12枠と競馬8レース×5枠の40入力は[Actions 42327254832](https://github.com/haji84/RACE-AI/actions/runs/42327254832)で確認済み。競馬入力は11:04:55 JSTに保存され、最初の締切11:24前の独立証拠がある。[CIと競馬入力保存](evidence/2026-11-07/twelve-ci-fit-and-horse-input-save-counts.json)。新14枠候補の未来PDCAは未実施。
+14枠の新候補は既存source run42336097863の実未来2レースへ接続され、14枠×2レースの28組を13:11:02 JSTに独立保存した。各予想は同じ実native入力による基準版と学習版の対で、締切13:16/13:22前の実artifact13560101855を復号・照合済み。[14枠の未来保存](evidence/2026-11-07/fourteen-future-pairs-counts.json)。公式結果照合と14枠PDCAの成功は、別の実証拠を確認するまで未完了とする。
+
+先行12枠と競馬8レース×5枠の40入力は[Actions 42327254832](https://github.com/haji84/RACE-AI/actions/runs/42327254832)で確認済み。競馬入力は11:04:55 JSTに保存され、最初の締切11:24前の独立証拠がある。[CIと競馬入力保存](evidence/2026-11-07/twelve-ci-fit-and-horse-input-save-counts.json)。予備2レース×5枠の10入力も13:08:32 JSTに実保存・復号し、旧8レースと重複0、合計10の異なる競馬レース入力を保持した。[予備の実保存](evidence/2026-11-07/horse-reserve-input-counts.json)。予備を学習済み・予想作成済みとは呼ばない。
 
 旧readerが新しい`PRIVATE_PAIRS`参照を拒否したため、source run42330631694は新規source GET前に停止した。対応readerと旧6系統catalog互換を公開し、対象10原本と当日初回P0を実復元した。10 ZIPは既存コピーと一致し、メタデータ8件はJSON整形だけの差で値は一致した。保存された原メタデータを別Gitで読み戻し、11索引と初回P0の実GitHub digest・初回receiptを確認した。[復旧根拠](evidence/2026-11-07/source-reader-recovery-counts.json)。初回P0が後で追加されたことを、古い固定snapshotに存在したと読み替えない。
 
