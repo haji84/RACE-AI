@@ -36,11 +36,11 @@ def export_view(view,output,*,web_root=WEB):
     html=_asset_bytes(web_root,'index.html').decode()
     styles=_asset_bytes(web_root,'style.css').decode()
     scripts=[]
-    for name in ('forecast-audit-model.js','product-data.js','existing-model-catalog.js','ui-model.js','saved-performance.js','racer-portraits.js','app.js'):
+    for name in ('forecast-audit-model.js','product-data.js','existing-model-catalog.js','ui-model.js','saved-performance.js','racer-portraits-data.js','racer-portraits.js','app.js'):
         body=_asset_bytes(web_root,name).decode()
         if name=='racer-portraits.js':
             from .racer_portraits import inline_script
-            body=inline_script(body,lambda path:_asset_bytes(web_root,path))
+            body=inline_script(body,lambda path:_asset_bytes(web_root,path),view=view)
         if re.search('</script',body,re.I):raise ValueError('SAVED_VIEW_SCRIPT_INVALID')
         scripts.append(body)
         html=html.replace('<script defer src="./'+name+'"></script>','')

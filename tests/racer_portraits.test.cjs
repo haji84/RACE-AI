@@ -8,7 +8,7 @@ const R = fs.existsSync(filename) ? require(filename) : {all: [], get: () => nul
 const race = {sport: 'boat', scope: 'research'};
 
 test('the initial six athletes resolve to their own official-profile illustration', () => {
-  assert.equal(R.all.length, 6);
+  assert.ok(R.all.length >= 6);
   for (const [registration, name] of [['3415','松井繁'],['3897','白井英治'],['3941','池田浩二'],['4238','毒島誠'],['4320','峰竜太'],['4444','桐生順平']]) {
     const portrait = R.get(race, {registration_no: registration, name});
     assert.equal(portrait?.registration, registration);
@@ -41,12 +41,16 @@ test('other sports and synthetic records do not receive a real boat athlete port
   }
 });
 
-test('each entry has a real lossless WebP asset and immutable local metadata', () => {
-  assert.equal(R.all.length, 6);
+test('each entry has a real WebP asset and immutable local metadata', () => {
+  assert.ok(R.all.length >= 6);
   assert.equal(Object.isFrozen(R.all), true);
+  const checked = new Set();
   for (const item of R.all) {
     assert.equal(Object.isFrozen(item), true);
-    const bytes = fs.readFileSync(path.resolve(__dirname, '../web', item.src));
+    const src = item.src.split('?')[0];
+    if (checked.has(src)) continue;
+    checked.add(src);
+    const bytes = fs.readFileSync(path.resolve(__dirname, '../web', src));
     assert.equal(bytes.subarray(0, 4).toString(), 'RIFF');
     assert.equal(bytes.subarray(8, 12).toString(), 'WEBP');
     assert.ok(bytes.length > 1000 && bytes.length < 4*1024*1024);

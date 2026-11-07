@@ -2,14 +2,23 @@
 'use strict';
 (() => {
   const embedded = null;
-  const all = Object.freeze([
-    ['3415', '松井繁'], ['3897', '白井英治'], ['3941', '池田浩二'],
-    ['4238', '毒島誠'], ['4320', '峰竜太'], ['4444', '桐生順平']
-  ].map(([registration, name]) => Object.freeze({
-    registration, name,
-    src: embedded?.[registration] || './assets/racer-portraits/boat-' + registration + '.webp',
-    sourceUrl: 'https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=' + registration
-  })));
+  const data = typeof module === 'object' && module.exports ? require('./racer-portraits-data.js') : globalThis.RaceRacerPortraitData;
+  const people = Array.isArray(data?.people) ? data.people : [];
+  const all = Object.freeze(people.filter(p => p.state === 'READY').map(p => {
+    const registration = p.registration, asset = p.asset, info = data.assets?.[asset];
+    if (!/^\d{4}$/.test(registration) || typeof p.name !== 'string' || !Array.isArray(p.aliases) ||
+        !info || !/^assets\/racer-portraits\/(?:boat-\d{4}|sheet-\d{4})\.webp$/.test(asset) ||
+        p.source_url !== 'https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=' + registration) return null;
+    let atlas = null;
+    if (p.atlas != null) {
+      const {columns, rows, slot} = p.atlas;
+      if (![5,6].includes(columns) || rows !== columns || !Number.isInteger(slot) || slot < 0 || slot >= rows * columns) return null;
+      atlas = Object.freeze({columns, rows, slot, column:slot % columns, row:Math.floor(slot / columns)});
+    } else if (asset !== 'assets/racer-portraits/boat-' + registration + '.webp') return null;
+    if (embedded !== null && !embedded[asset]) return null;
+    const src = embedded?.[asset] || './' + asset + (atlas ? '?v=' + info.sha256.slice(0,12) : '');
+    return Object.freeze({registration, name:p.name, aliases:Object.freeze([...p.aliases]), src, atlas, sourceUrl:p.source_url});
+  }).filter(Boolean));
   const byRegistration = new Map(all.map(item => [item.registration, item]));
   const fields = ['registration_no', 'registration_number', 'registration_id', 'racer_registration_id', 'racer_id', 'participant_id'];
   function get(race, person) {
@@ -19,10 +28,13 @@
     if (!ids.length || ids.some(id => typeof id !== 'string' || !/^\d{4}$/.test(id) || id !== ids[0])) return null;
     const item = byRegistration.get(ids[0]);
     if (!item || person.name != null && (typeof person.name !== 'string' ||
-        person.name.replace(/\s+/g, '') !== item.name)) return null;
+        !item.aliases.some(name => name.replace(/\s+/g, '') === person.name.replace(/\s+/g, '')))) return null;
     return item;
   }
-  const api = Object.freeze({all, get});
+  const total = Number.isInteger(data?.total) && data.total > 0 && data.total <= 10000 ? data.total : all.length;
+  const unavailable = people.filter(p => p.state === 'SOURCE_UNAVAILABLE').length;
+  const coverage = Object.freeze({total, ready:all.length, unavailable, pending:Math.max(0,total-all.length-unavailable), complete:total>0 && all.length===total});
+  const api = Object.freeze({all, get, coverage, offline:embedded!==null});
   if (typeof module === 'object' && module.exports) module.exports = api;
   else globalThis.RaceRacerPortraits = api;
 })();

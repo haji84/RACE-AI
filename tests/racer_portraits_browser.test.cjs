@@ -59,10 +59,38 @@ let browser, server;
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     await page.screenshot({path:path.join(evidence,`detail-${width}.png`),fullPage:true});
     await page.locator('[data-page="settings"]').filter({visible:true}).first().click();
-    assert.match(await page.locator('#racer-portrait-gallery').innerText(),/現在6選手分/);
+    const ready=await page.evaluate(()=>RaceRacerPortraits.coverage.ready);
+    assert.match(await page.locator('#racer-portrait-gallery').innerText(),/対象1669名/);
     await page.locator('#racer-portrait-gallery summary').click();
-    assert.equal(await page.locator('#racer-portrait-gallery a').count(),6);
-    assert.deepEqual(await page.locator('#racer-portrait-gallery a').evaluateAll(as=>as.map(a=>new URL(a.href).searchParams.get('toban'))),entries.map(e=>e[0]));
+    assert.equal(await page.locator('#racer-portrait-gallery a').count(),Math.min(30,ready));
+    await page.locator('#portrait-search').fill('4320');
+    assert.equal(await page.locator('#racer-portrait-gallery a').count(),1);
+    assert.equal(await page.locator('#racer-portrait-gallery a').getAttribute('href'),'https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4320');
+    await page.locator('#portrait-search').fill('');
+    if(ready>30){await page.locator('#racer-portrait-gallery button').click();assert.equal(await page.locator('#racer-portrait-gallery a').count(),Math.min(60,ready));}
+    const atlasEntries=await page.evaluate(()=>{
+      const list=RaceRacerPortraits.all.filter(p=>p.atlas);
+      const six=list.find(p=>p.atlas.columns===6&&p.atlas.slot===35);
+      const selected=[list[0],list[4],list[24],list[6],list.at(-1),six||list[20]];
+      return selected.map(p=>({registration:p.registration,name:p.name,atlas:p.atlas}));
+    });
+    const atlasFixture=structuredClone(fixture);
+    atlasFixture.records[0].participants=atlasEntries.map((p,i)=>({number:i+1,registration_no:p.registration,name:p.name}));
+    await load(page,atlasFixture);
+    assert.equal(await page.locator('#page-home .portrait-atlas').count(),6);
+    for(const [i,frame] of (await page.locator('#page-home .portrait-atlas').all()).entries()){
+      await frame.scrollIntoViewIfNeeded();
+      await page.waitForFunction(id=>{const img=document.querySelector('#page-home img[data-registration="'+id+'"]');return img&&img.complete&&img.naturalWidth>0;},atlasEntries[i].registration);
+      const geometry=await frame.evaluate(n=>{const a=n.getBoundingClientRect(),img=n.querySelector('img'),b=img.getBoundingClientRect();return {width:a.width,height:a.height,imgWidth:b.width,imgHeight:b.height,x:a.x-b.x,y:a.y-b.y,overflow:getComputedStyle(n).overflow};});
+      const a=atlasEntries[i].atlas;
+      assert.equal(geometry.overflow,'hidden');
+      assert.ok(Math.abs(geometry.imgWidth-geometry.width*a.columns)<1);
+      assert.ok(Math.abs(geometry.imgHeight-geometry.height*a.rows)<1);
+      assert.ok(Math.abs(geometry.x-geometry.width*a.column)<1);
+      assert.ok(Math.abs(geometry.y-geometry.height*a.row)<1);
+    }
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    await page.screenshot({path:path.join(evidence,`atlas-${width}.png`),fullPage:true});
     if (width===390) {
       await page.route('**/assets/racer-portraits/boat-4238.webp',route=>route.abort());
       await page.reload(); await load(page);

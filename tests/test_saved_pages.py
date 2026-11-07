@@ -38,7 +38,7 @@ class SavedPagesTests(unittest.TestCase):
         after=json.loads(git.read(current,'site-build.json',32768))
         self.assertEqual({k:v for k,v in prior.items() if k!='files'}, {k:v for k,v in after.items() if k!='files'})
         for name in FILES:self.assertEqual(git.read(current,name,self.m.MAX_WIRE),(public/name).read_bytes())
-        self.assertEqual(report['portrait_count'],6)
+        self.assertEqual(report['portrait_count'],len(self.m.REGISTRATIONS))
         with self.assertRaises(ValueError):self.m.refresh_site_assets(repo,expected_parent=parent,transport=git)
         # A partial manifest cannot silently adopt a damaged Pages deployment.
         damaged=deepcopy(after);damaged['files']={built['cipher_path']:after['files'][built['cipher_path']]}

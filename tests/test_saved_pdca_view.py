@@ -10,6 +10,20 @@ from tests.test_local_forecast_server import serving,request
 
 
 class SavedPdcaViewTests(unittest.TestCase):
+    def test_local_atlas_accepts_the_exact_renderer_version_url(self):
+        from race_ai.racer_portraits import CATALOGUE
+        from race_ai.saved_pdca_view import SavedPdcaService
+        entry=next(p for p in CATALOGUE['people'] if p['state']=='READY' and p['atlas'])
+        path='/'+entry['asset'];version=CATALOGUE['assets'][entry['asset']]['sha256'][:12]
+        with serving(SavedPdcaService(self.state),automatic=False) as (server,_):
+            plain=request(server,'GET',path)
+            versioned=request(server,'GET',path+'?v='+version)
+            self.assertEqual(versioned[0],200)
+            self.assertEqual(versioned[2],plain[2])
+            self.assertIn('image/webp',versioned[1]['Content-Type'])
+            self.assertEqual(request(server,'GET',path+'?v=invalid')[0],404)
+            self.assertEqual(request(server,'GET','/assets/racer-portraits/sheet-9999.webp?v='+version)[0],404)
+
     def test_portraits_are_served_locally_and_embedded_in_offline_export(self):
         from race_ai.racer_portraits import FILES
         from race_ai.saved_pdca_view import SavedPdcaService,export_view
@@ -21,10 +35,14 @@ class SavedPdcaViewTests(unittest.TestCase):
                 self.assertTrue(body)
                 if name.endswith('.webp'):self.assertIn('image/webp',headers['Content-Type'])
             self.assertEqual(request(server,'GET','/assets/racer-portraits/boat-9999.webp')[0],404)
-        out=self.root/'portrait-export.html';export_view(service.saved_projection(),out)
+        view=service.saved_projection()
+        view['records'][0]['participants']=[dict(number=1,registration_no='4238',name='毒島誠'),
+            dict(number=2,registration_no='2538',name='高橋二朗'),dict(number=3,registration_no='2878',name='富山弘幸')]
+        view['records'][0]['scope']='research'
+        out=self.root/'portrait-export.html';export_view(view,out)
         html=out.read_text()
         self.assertNotIn('src="./racer-portraits.js"',html)
-        self.assertEqual(html.count('data:image/webp;base64,'),6)
+        self.assertEqual(html.count('data:image/webp;base64,'),2)
 
     def setUp(self):
         self.tmp=tempfile.TemporaryDirectory();self.addCleanup(self.tmp.cleanup)
