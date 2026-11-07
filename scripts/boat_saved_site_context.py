@@ -30,14 +30,15 @@ def _aware(value):
         raise ValueError('SAVED_SITE_CLOCK_INVALID') from None
 
 
-def build_context(bootstrap,view,generation,*,now,require_future=False):
+def build_context(bootstrap,view,generation,*,now,require_future=False,selected_day=None):
     _need(isinstance(now,datetime) and now.utcoffset() is not None,'CLOCK_INVALID')
     _need(type(generation) is int and generation>0,'GENERATION_INVALID')
     _need(type(bootstrap.get('key')) is bytes and len(bootstrap['key'])==32 and
           type(bootstrap.get('view_id')) is str and re.fullmatch('[a-f0-9]{64}',bootstrap['view_id']),
           'VIEWER_BINDING_INVALID')
     _need(type(view) is dict and type(view.get('records')) is list,'VIEW_INVALID')
-    day=now.astimezone(JST).date().isoformat()
+    day=selected_day or now.astimezone(JST).date().isoformat()
+    _need(type(day) is str and re.fullmatch(r'\d{4}-\d{2}-\d{2}',day) and day<=now.astimezone(JST).date().isoformat(),'DAY_INVALID')
     rows=[r for r in view['records'] if r.get('sport')=='boat' and r['event_date_jst']==day]
     _need(bool(rows),'CURRENT_DAY_REQUIRED')
     native=set();future=None;probe=None
@@ -86,6 +87,7 @@ def main(argv=None,*,now=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',required=True)
     parser.add_argument('--require-future',action='store_true')
+    parser.add_argument('--latest-saved-day',action='store_true')
     args=parser.parse_args(argv)
     try:
         repo=VCLI._environment(ROOT)
@@ -104,7 +106,8 @@ def main(argv=None,*,now=None):
             if earlier:
                 _,_,_,old=CLI.F.current_view(git,bootstrap,day=earlier[0])
                 view=dict(view,records=[*view['records'],*old['records']])
-        context=build_context(bootstrap,view,generation,now=clock,require_future=args.require_future)
+        selected=max((r['event_date_jst'] for r in view['records'] if r.get('sport')=='boat' and r['event_date_jst']<=day),default=None) if args.latest_saved_day else None
+        context=build_context(bootstrap,view,generation,now=clock,require_future=args.require_future,selected_day=selected)
         fd=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
         with os.fdopen(fd,'w',encoding='utf-8') as stream:
             json.dump(context,stream,ensure_ascii=False,sort_keys=True);stream.write('\n')

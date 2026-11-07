@@ -13,6 +13,10 @@ on:
         type: choice
         options: [intraday, daily]
         default: intraday
+      verify_site:
+        description: '公開画面の結果をブラウザで確認（通常巡回では実行しない）'
+        type: boolean
+        default: false
 permissions:
   contents: read
 concurrency:
@@ -56,3 +60,18 @@ jobs:
           if [[ "$INITIALIZE" == 'true' ]]; then args+=(--initialize); fi
           if [[ "$DAILY_RECONCILE" == 'true' ]]; then args+=(--daily-reconcile); fi
           python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results "${args[@]}"
+      - name: Install browser check only for an explicit verification run
+        if: >-
+          (github.event_name == 'workflow_dispatch' && inputs.verify_site) || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results'))
+        run: npm install --prefix "$RUNNER_TEMP/result-site-tools" --no-package-lock --ignore-scripts playwright@1.62.1
+      - name: Verify private result display without publishing owner data
+        if: >-
+          (github.event_name == 'workflow_dispatch' && inputs.verify_site) || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results'))
+        timeout-minutes: 9
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          NODE_PATH: ${{ runner.temp }}/result-site-tools/node_modules
+        run: |
+          python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" --latest-saved-day
+          env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results

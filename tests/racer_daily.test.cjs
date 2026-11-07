@@ -65,3 +65,10 @@ test('an older valid public pointer cannot replace a newer card or heartbeat',as
  pointer={...original,checked_at:'2026-11-07T02:10:00Z'};await api.load({refresh:true});assert.equal(api.status,'READY');
  pointer=original;await api.load({refresh:true});assert.equal(api.status,'STALE');assert.equal(api.heartbeat.checked_at,'2026-11-07T02:10:00Z');
 });
+test('result sync counts from the small pointer are validated before the normal screen can show them',async t=>{
+ const entry=require.resolve('../web/racer-daily.js');delete require.cache[entry];const api=require(entry),{createHash}=require('node:crypto');
+ const data=require('./racer_daily_fixture.cjs').liveFixture(),text=JSON.stringify(data),sync={schema:'RACE_AI_RESULT_SYNC_V1',state:'READY',checked_at:data.generated_at,races:1,confirmed:1,pending:0,held:0,changed_races:1};
+ let pointer={schema:'RACE_AI_RACER_STATISTICS_STATUS_V1',catalogue_sha256:createHash('sha256').update(text).digest('hex'),catalogue_generated_at:data.generated_at,checked_at:data.generated_at,state:'READY',result_sync:sync};
+ t.mock.method(globalThis,'fetch',async url=>new Response(String(url).includes('racer-live-status')?JSON.stringify(pointer):text));await api.load();assert.equal(api.heartbeat.result_sync.confirmed,1);
+ pointer={...pointer,result_sync:{...sync,confirmed:2}};await api.load({refresh:true});assert.equal(api.status,'STALE');assert.equal(api.heartbeat.result_sync.confirmed,1);
+});

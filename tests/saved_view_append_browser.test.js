@@ -82,7 +82,7 @@ for view in (second,third):
  await page.locator('[data-page="picks"]').filter({visible:true}).first().click();await page.locator('#copy-top8').click();
  await page.locator('#ticket-list .ticket-amount').first().fill('200');await page.locator('#ticket-list .ticket-amount').first().dispatchEvent('change');
  await page.locator('[data-page="settings"]').filter({visible:true}).first().click();await page.locator('#daily-budget').fill('6300');await page.locator('#settings-form button[type="submit"]').click();
- await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('#race-search').fill(expected.venue);await page.locator('#venue-filter').selectOption(expected.venue);await page.locator('#race-sort').selectOption('venue');
+ await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('#race-search').fill(expected.venue);await page.locator('#race-filters > summary').click();await page.locator('#venue-filter').selectOption(expected.venue);await page.locator('#race-sort').selectOption('venue');
  await page.locator('[data-page="results"]').filter({visible:true}).first().click();await page.locator('#results-model').selectOption({index:2});
  const chosenGroup=await page.locator('#results-model').inputValue();await page.locator('#simulation-budget').fill('5000');await page.locator('#simulation-budget').dispatchEvent('change');await page.locator('#result-coverage').click();
  active='v4';await tick();await page.waitForFunction(()=>document.querySelector('#saved-view-sync')?.dataset.generation==='2');

@@ -53,7 +53,7 @@ export_view(refs,root/'profiles.html')
     for(let i=0;i<4;i++){
       await select.selectOption(String(i));
       const p=[original.records[0].prediction,...original.records[0].comparison_predictions][i];
-      const text=await page.locator('#page-detail .right-rail .saved-tickets').innerText();
+      const text=await page.locator('#detail-tab-content .forecast-panel .saved-tickets').innerText();
       for(const combo of p.ordered_top8)assert.ok(text.replace(/\s/g,'').includes(combo.join('−')));
     }
     await page.clock.fastForward(31000);

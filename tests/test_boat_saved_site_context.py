@@ -39,6 +39,12 @@ def invented_view():
 
 
 class ContextTests(unittest.TestCase):
+    def test_explicit_saved_day_after_midnight_keeps_the_actual_clock(self):
+        later=NOW+timedelta(days=1)
+        with self.assertRaisesRegex(ValueError,'SAVED_SITE_CURRENT_DAY_REQUIRED'):C.build_context(BOOTSTRAP,invented_view(),12,now=later)
+        context=C.build_context(BOOTSTRAP,invented_view(),12,now=later,selected_day='2030-04-01')
+        self.assertEqual(context['day'],'2030-04-01');self.assertIsNone(context['future_native']);self.assertEqual(context['minimum_results'],1)
+        with self.assertRaisesRegex(ValueError,'SAVED_SITE_FUTURE_NATIVE_REQUIRED'):C.build_context(BOOTSTRAP,invented_view(),12,now=later,selected_day='2030-04-01',require_future=True)
     def test_uses_real_clocks_filtered_option_indices_and_latest_future_cutoff(self):
         view=invented_view();before=deepcopy(view)
         context=C.build_context(BOOTSTRAP,view,12,now=NOW,require_future=True)

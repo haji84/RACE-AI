@@ -49,6 +49,7 @@ for gen,status in [(1,'PENDING'),(2,'AVAILABLE')]:
  await page.locator('[data-page="results"]').filter({visible:true}).first().click();
  assert.match(await page.locator('#saved-result-metrics').innerText(),/結果待ち\s*1レース/);
  await page.locator('#simulation-budget').fill('5000');await page.locator('#simulation-budget').dispatchEvent('change');await page.locator('#result-coverage').click();
+ await page.locator('#simulation-budget').focus();
  generation=2;tamper=true;await page.clock.fastForward(61000);
  await page.waitForFunction(()=>document.querySelector('#saved-view-sync').textContent.includes('前回取得'));
  assert.equal(await page.locator('#saved-view-sync').getAttribute('data-generation'),'1');
@@ -56,6 +57,7 @@ for gen,status in [(1,'PENDING'),(2,'AVAILABLE')]:
  await page.waitForFunction(()=>document.querySelector('#saved-view-sync')?.dataset.generation==='2');
  assert.match(await page.locator('#saved-result-metrics').innerText(),/取得結果\s*1レース/);
  assert.equal(await page.locator('#simulation-budget').inputValue(),'5000');
+ assert.equal(await page.locator('#simulation-budget').evaluate(el=>el===document.activeElement),true,'result refresh must preserve an active budget edit');
  await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('#page-races [data-open-race]').first().click();
  assert.equal(await page.locator('#prediction-select').inputValue(),'2');
  await page.locator('[data-page="picks"]').filter({visible:true}).first().click();assert.equal(await page.locator('#ticket-list .ticket-amount').count(),8);

@@ -58,5 +58,23 @@ class SettlementTests(unittest.TestCase):
         self.assertIsNotNone(r['result']);self.assertEqual(r['result']['status'],'final');self.assertFalse(r['result']['cutoff_reference']['formal_eligible']);self.assertEqual(r['cutoff_at'],row['cutoff_at']);self.assertEqual(Feed.originals_sha(out),pin)
         late=deepcopy(row);late['prediction']['persisted_at']='2026-11-07T10:02:00+09:00'
         out=Feed.update_view(dict(view,records=[late]),[],captures=[(raw,meta)],synced_at=NOW.isoformat());self.assertEqual(out['records'][0]['result']['status'],'unsupported')
+    def test_saved_native_projection_and_SP_schedule_reference_reach_the_browser_parser(self):
+        import json,subprocess,tempfile
+        from pathlib import Path
+        from race_ai.racer_daily import clock,JST
+        from race_ai.boat_pdca_state import PdcaState
+        from race_ai.boat_pdca_projection import project_pdca
+        from tests.test_boat_pdca_github_handoff import invented_research_state
+        with tempfile.TemporaryDirectory() as folder:
+            path,_=invented_research_state(Path(folder));state=PdcaState(path)
+            try:view=project_pdca(state)
+            finally:state.close()
+            row=view['records'][0];rid=row['race_id'];doc=document(day=rid[:8],venue=rid[9:11],number=int(rid[-2:]));shifted=clock(row['cutoff_at'])+timedelta(minutes=5);doc['raceheader']['rlinklist'][int(rid[-2:])-1]['deadline']=shifted.astimezone(JST).strftime('%H:%M')
+            for entry,person in zip(doc['maindata']['teiinfolist'],row['participants']):entry['registno']=person['registration_no']
+            at=max([shifted,*[clock(o['captured_at']) for o in row['result_observations']]])+timedelta(minutes=5);raw,meta=packet(doc,captured=at.isoformat());updated=Feed.update_view(view,[],captures=[(raw,meta)],synced_at=at.isoformat())
+            self.assertEqual(updated['records'][0]['result']['status'],'final');self.assertFalse(updated['records'][0]['result']['cutoff_reference']['formal_eligible'])
+            code="let s='';process.stdin.on('data',c=>s+=c);process.stdin.on('end',()=>{const d=require('./web/product-data.js').parse(JSON.parse(s));if(d.records[0].result.status!=='final')process.exit(2);});"
+            result=subprocess.run(['node','-e',code],cwd=Path(__file__).resolve().parents[1],input=json.dumps(updated),text=True,capture_output=True)
+            self.assertEqual(result.returncode,0,result.stderr)
         late=deepcopy(row);late['comparison_predictions']=[dict(persisted_at='2026-11-07T10:02:00+09:00')]
         out=Feed.update_view(dict(view,records=[late]),[],captures=[(raw,meta)],synced_at=NOW.isoformat());self.assertEqual(out['records'][0]['result']['status'],'unsupported')
