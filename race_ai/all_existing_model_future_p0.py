@@ -93,6 +93,11 @@ def build_future_p0_requests(document,receipt,*,now,baseline_ranker,training=Non
     original=deepcopy(row['learning_snapshot'])
     _need(original['scope']=='OPERATOR_SUPPLIED_RESEARCH' and original['stage']=='P0','REAL_P0_SOURCE_REQUIRED')
     snapshot=deepcopy(original);snapshot['as_of']=now.isoformat()
+    # A retained program proves no current exhibition-publication status.
+    # Change only this new working copy; the original snapshot stays exact.
+    for participant in snapshot['participants']:
+        for name in ('exhibition_time_seconds','exhibition_start_seconds'):
+            if name not in participant['features']:participant['missing'][name]='MISSING'
     refs=_sources(dict(snapshot=snapshot))
     if dataset_pointer is not None:
         from .boat_venue_learning import _pin
@@ -107,6 +112,9 @@ def build_future_p0_requests(document,receipt,*,now,baseline_ranker,training=Non
         refs|=_sources(dict(snapshot=snapshot))
     shared=shared_snapshot_from_observed(snapshot)
     full=_full_payload(dict(native_payload=dict(snapshot=snapshot)))
+    for entrant in full['snapshot']['entrants']:
+        for name in ('exhibition_time_seconds','exhibition_start_seconds'):
+            if name not in entrant['features']:entrant['missing'][name]='NOT_AVAILABLE'
     _need(type(baseline_ranker) is dict,'BASELINE_RANKER_REQUIRED')
     requests=[]
     for mid in MODEL_IDS:
@@ -132,6 +140,7 @@ def build_future_p0_requests(document,receipt,*,now,baseline_ranker,training=Non
         race_id=row['race_id'],original_document_sha256=digest(document),original_receipt=proof,
         original_snapshot_sha256=row['learning_snapshot_sha256'],original_as_of=original['as_of'],
         original_source_evidence=deepcopy(original['sources']),new_payload_as_of=now.isoformat(),
+        publication_status_checked=False,publication_status_basis='PROGRAM_ONLY_NO_FRESH_EXHIBITION_CHECK',
         new_payload_saved_by_original_receipt=False,original_forecasts_changed=False,
         new_input_sha256={r['cell_key']:digest(r['native_payload']) for r in requests})
     return dict(state='READY_PRIVATE_FUTURE_P0_REQUESTS',requests=requests,race_id=row['race_id'],

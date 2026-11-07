@@ -136,6 +136,8 @@ BOATの疎入力rankerは93座標を持ち、入力schemaと `parameter_contract
 
 実保存の集計は [future-save-counts](evidence/2026-11-07/nine-native-model-future-save-counts.json)、原本保持は [future-source-retention](evidence/2026-11-07/nine-native-model-future-source-retention.json)。同じレースのP1予想や旧2枠候補の評価とは区別する。
 
+P0は番組情報だけを用いる入力区分で、実際の展示実施・公表前だったことを意味しない。保存済み9枠の欠測ラベル `NOT_YET_PUBLISHED` は古い番組原本由来で、新予想時点の公表状況を再確認した証拠ではない。原本は変更しない。以後の新生成だけ、観測系・共通入力は `MISSING`、full入力は `NOT_AVAILABLE` とし、`publication_status_checked=false` を記録する。9枠の入力数値・欠測マスク・全120順位/確率が変更前と同一であることを検証した。保存済み予想や当該PDCAの数値を修正した扱いにはしない。
+
 実行時には4.47MBの当日原本が汎用JSON読込の4MiB制限に達してHOLDした。原本用の既存8MiB runtime契約へ接続し、実132レース原本の再読戻しと、4MiB超・8MiB超・重複キーを含む10件のCLIテストで確認した。汎用4MiB制限は維持した。別のCIでは完全なSHA内の数字列を選手番号と誤認するテストを修正し、公開データの構造・完全なSHA・私有項目不在を検証する。全体ローカルsnapshotは2,562件・失敗0・112 skip、追加のRESULT保持検証20件も成功した。最終固定HEADの全CI結果は別途記録する。
 
 非BOAT原本は、ユーザーの依頼に従いGitHubの108ブランチ先端、ローカル1,799 commit object、関連15 Actions runを実確認したが、適格な実native原本は0件だった。[調査報告](GITHUB_NONBOAT_ORIGINAL_RECOVERY_20261107.md)に範囲と限界を記録した。合成KEIRIN暗号文、SHAのみの記録、未取得の試走、原本を保存していない検査は実学習に数えない。

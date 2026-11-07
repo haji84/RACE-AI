@@ -40,6 +40,47 @@ class FutureP0Tests(unittest.TestCase):
         document,_,_=sample()
         return document,receipt(document,artifact=99,saved='2030-04-01T01:43:00Z')
 
+    def legacy_native(self, document, now, model_id):
+        """Reproduce the earlier preparation from the untouched saved input."""
+        from race_ai.all_existing_model_derivation import _full_payload
+        from race_ai.boat_all_model_inputs import shared_snapshot_from_observed
+        from race_ai.boat_multi_feature_models import MODEL_IDS as FULL
+        from race_ai.four_sport_learning import LEARNED_ID
+        from race_ai.observed_weight_learning import source_snapshot
+        observed=source_snapshot(document['predictions'][0]);observed['as_of']=now.isoformat()
+        if model_id in OBSERVED:return dict(snapshot=observed,scope=observed['scope'])
+        if model_id in FULL:return _full_payload(dict(native_payload=dict(snapshot=observed)))
+        native=dict(snapshot=shared_snapshot_from_observed(observed),stage='P0',scope=observed['scope'])
+        if model_id==LEARNED_ID:native['learned_model']=deepcopy(self.baseline)
+        return native
+
+    def test_future_program_only_missing_metadata_does_not_assert_fresh_publication_status(self):
+        from race_ai.boat_multi_feature_models import MODEL_IDS as FULL
+        document,proof=self.source();original=deepcopy(document)
+        out=self.helper()(document,proof,now=NOW,baseline_ranker=self.baseline)
+        self.assertIs(out['source_audit']['publication_status_checked'],False)
+        self.assertEqual(out['source_audit']['publication_status_basis'],'PROGRAM_ONLY_NO_FRESH_EXHIBITION_CHECK')
+        self.assertEqual(out['source_audit']['original_snapshot_sha256'],document['predictions'][0]['snapshot_sha256'])
+        for request in out['requests']:
+            mid=request['cell_key'][5:];snapshot=request['native_payload']['snapshot']
+            if mid in OBSERVED:
+                for participant in snapshot['participants']:
+                    for name in ('exhibition_time_seconds','exhibition_start_seconds'):
+                        self.assertNotIn(name,participant['features'])
+                        self.assertEqual(participant['missing'][name],'MISSING')
+            elif mid in FULL:
+                for entrant in snapshot['entrants']:
+                    for name in ('exhibition_time_seconds','exhibition_start_seconds'):
+                        self.assertNotIn(name,entrant['features'])
+                        self.assertEqual(entrant['missing'][name],'NOT_AVAILABLE')
+                legacy=self.legacy_native(document,NOW,mid)
+                self.assertEqual(legacy['snapshot']['entrants'][0]['missing']['exhibition_time_seconds'],'NOT_YET_PUBLISHED')
+            else:
+                for participant in snapshot['participants']:
+                    for name in ('exhibition_performance','exhibition_start'):
+                        self.assertEqual(participant['missing'][name],'MISSING')
+        self.assertEqual(document,original)
+
     def test_nine_p0_requests_use_new_clock_and_keep_original_observation_hashes_and_clocks(self):
         document,proof=self.source();original=deepcopy((document,proof,self.baseline))
         out=self.helper()(document,proof,now=NOW,baseline_ranker=self.baseline)
@@ -114,6 +155,16 @@ class FutureP0Tests(unittest.TestCase):
         out=self.helper()(document,proof,now=now,baseline_ranker=self.baseline,training=training)
         for request in out['requests']:
             pair=forecast_pair(training,request['cell_key'],request['native_payload'],now=now,allow_source=lambda *a:True)
+            legacy=self.legacy_native(document,now,request['cell_key'][5:])
+            previous=forecast_pair(training,request['cell_key'],legacy,now=now,allow_source=lambda *a:True)
+            for kind in ('baseline_normalized','learned_normalized'):
+                self.assertEqual(pair[kind]['ranked'],previous[kind]['ranked'])
+                self.assertEqual(pair[kind]['top'],previous[kind]['top'])
+            current_snapshot=request['native_payload']['snapshot'];previous_snapshot=legacy['snapshot']
+            for current,old in zip(current_snapshot.get('entrants',current_snapshot.get('participants')),
+                                   previous_snapshot.get('entrants',previous_snapshot.get('participants'))):
+                self.assertEqual(current['features'],old['features'])
+                self.assertEqual(set(current['missing']),set(old['missing']))
             self.assertEqual(pair['stage'],'P0')
             self.assertEqual(pair['as_of'],now.isoformat())
             self.assertEqual(len(pair['baseline_normalized']['ranked']),120)
