@@ -261,7 +261,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
-          if [[ "$(git log -1 --format=%s)" == completion-audit:* ]]; then
+          message="$(git log -1 --format=%s)"
+          if [[ "$message" == completion-audit:* || "$message" == 'saved-view: audit retained result conflicts without source requests' ]]; then
             python -m scripts.boat_remaining_completion_audit --input audit/state/remaining-completion-audit-input.json
           else
             echo 'Retained completion audit not requested.'

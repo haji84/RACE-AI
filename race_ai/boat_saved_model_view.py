@@ -351,7 +351,13 @@ def _observations(rows, field, *, rejection=False):
             if not rejection: _need(item.get("race_id") == row["race_id"], "result race binding")
             key = (captured, item.get("source_sha256")) if rejection else captured
             wire = _wire(item)
-            _need(key not in seen or seen[key] == wire, "conflicting result observation")
+            if key in seen and seen[key] != wire:
+                from .result_observation_conflict_diagnostics import result_conflict_counts
+                try:
+                    _need(False, "conflicting result observation")
+                except SavedModelViewError as error:
+                    error.conflict_counts = result_conflict_counts(json.loads(seen[key]), item)
+                    raise
             if key not in seen: output.append(deepcopy(item)); seen[key] = wire
     return sorted(output, key=lambda item: _clock(item["captured_at"]))
 

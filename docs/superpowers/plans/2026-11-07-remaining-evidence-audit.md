@@ -71,4 +71,14 @@
 
 ## Continuation
 
+### Task 5: Inspect the actual rejecting pair, retaining the rejection
+
+The authenticated continuity comparison returned zero conflicts, so it does not establish the cause of the actual feed exception. The latest native probe retained a DOM and required result response, then failed SOURCE_VALIDATION; it is no longer correct to describe that attempt as failing to reach the result UI.
+
+- [x] Reproduce strict view rejection with safe fixed field-count evidence, without retaining private values in exceptions or changing acceptance.
+- [x] Expose the actual exception's counts at the existing publisher's error boundary.
+- [x] Add fixed native source-validation codes and required-role HTTP status counts.
+- [ ] Review and exercise the existing source-free display path once, adopting existing queued work and preserving every source/native owner guard.
+- [ ] Repair only a cause established by actual count evidence, then verify retained-original readback.
+
 The next repair plan is based on the actual count evidence, not an assumed cause. Existing normal BOAT run42376316340 was reserved once after the prior source's actual canonical record and receipts matched. Never restart it or duplicate the native probe.
