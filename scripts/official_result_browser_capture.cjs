@@ -232,9 +232,10 @@ async function selectAutoCase(page,item,ledger){
  const result=page.locator('li[data-main-menu="result"] a').last();await result.waitFor({state:'visible',timeout:TIMEOUT_MS});await click(page,result,/^レース結果$/,ledger);return page;
 }
 async function openKeirinList(page,item,ledger){
- need(typeof item.ui_venue_name==='string','UI_VENUE_NAME_REQUIRED');
- const venue=page.locator('.kaisaichi').filter({hasText:new RegExp('^\\s*'+regexEscape(item.ui_venue_name)+'\\s*$')});
- const row=page.locator('#kaisaiInfoTable tr').filter({has:venue});await row.waitFor({state:'visible',timeout:TIMEOUT_MS});
+ need(typeof item.ui_venue_name==='string'&&item.ui_venue_name.trim()===item.ui_venue_name&&item.ui_venue_name.length>0,'UI_VENUE_NAME_REQUIRED');
+ const labels=[item.ui_venue_name];if(item.ui_venue_name.endsWith('競輪場')){const short=item.ui_venue_name.slice(0,-3);need(short.length>0&&!short.endsWith('競輪場'),'UI_VENUE_NAME_REQUIRED');labels.push(short);}
+ const venue=page.locator('.kaisaichi:visible').filter({hasText:new RegExp('^\\s*(?:'+labels.map(regexEscape).join('|')+')\\s*$')});
+ const row=page.locator('#kaisaiInfoTable tr').filter({has:venue});await row.waitFor({state:'visible',timeout:TIMEOUT_MS});need(await venue.count()===1,'VISIBLE_UNIQUE_VENUE');
  return click(page,row.getByRole('button',{name:/^出走表\s*一覧$/}),/^出走表\s*一覧$/,ledger,{popup:true});
 }
 async function selectKeirinCase(listPage,item,ledger){

@@ -34,7 +34,7 @@ test('two KEIRIN venues sharing top URL get independent twelve-race limits and U
  assert.equal(groups.length,2);assert.deepEqual(groups.map(g=>[g[0].venue,g.length]),[['keirin-jyo-48',12],['keirin-jyo-74',11]]);assert.deepEqual(input,before);
  const opened=[];const names=[keirin.ui_venue_name,other.ui_venue_name];
  const page={url:()=>keirin.ui_entry_url,on(){},off(){},waitForTimeout:async()=>{},waitForLoadState:async()=>{},locator(selector){
-  if(selector==='.kaisaichi')return {filter:({hasText})=>({venue:names.find(n=>hasText.test(n))})};
+  if(selector==='.kaisaichi:visible')return {filter:({hasText})=>({venue:names.find(n=>hasText.test(n)),count:async()=>names.filter(n=>hasText.test(n)).length})};
   assert.equal(selector,'#kaisaiInfoTable tr');return {filter:({has})=>({waitFor:async()=>{},getByRole:()=>({count:async()=>1,isVisible:async()=>true,innerText:async()=>'出走表一覧',click:async()=>{opened.push(has.venue);}})})};
  }};
  for(const group of groups)await api.openKeirinList(page,group[0],[]);
