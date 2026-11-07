@@ -171,3 +171,11 @@ Python readerは全raw／metadata／台帳／時計／SHA照合を維持し、�
 ## 現行の研究ページを含む全ブラウザー検証
 
 並行所有者の現行UI版 `ed676742448d9068c12e8cb39b6b87923b0888fc` を保持し、テストだけを更新した。4幅（320／390／1440／1920）の全39チェック、生成・自動・継続更新、残る9 browser scriptがすべて成功。閉じた詳細欄の文字列を表示済みと見なさず、通常の研究ページ遷移から原本SHA・全文JSON・元race／model・正確な時刻を検査して元の表示へ戻る。既存製品UI、モデル、予想原本は変更していない。次の取得用HEADで全CIを実行し、成功前のcap発行・実AUTO取得は引き続き0。[失敗と修正の件数](evidence/2026-11-07/553-ui-contract-failure-and-correction-counts.json)。
+
+## 11月7日gridの実読戻しとログ原byteの検証
+
+実reader `42395208517`／job `128471073052` は17:18:24ZにSUCCESSとなり、263か月と新しい63,432組のgridを復元した。新しい研究参照・未来入力のwitnessを、その実metadata・元ログSHAへ厳密に固定した。これは当該readerの成功であり、同runの全UI検証成功とは区別する。
+
+別の鍵不要チェック `42399864271` は、GitHubの直接job-log取得が署名URLの期限不整合で403となり、原byte取得前にHOLDした。提供元データの403ではなく、通常の取得や提供元の拒否停止規則は変えていない。既登録の2実行に限り、GitHubのrun-attemptログZIPから固定ファイル名と唯一の固定SHAが両方一致する原byteを読む経路へ修正した。ZIPの件数・展開量・各ファイル量・パス・通常ファイル属性を検証し、展開保存も文字コード変換もしない。
+
+実GitHub ZIP（47 member、542,540 byte）で、選択原文34,309 byte・UTF8 BOM保持・SHA `4f2c015998399c4031502cc072635458609269551f019eeda80d6d1673a0ad1f` の一致を確認。修正後にGitHubからmetadataとZIPを再取得したローカルの鍵不要チェックも `HISTORY_WITNESS_VERIFIED`。umask022で関連24件PASS、独立レビューCLEAR。新しいActions上の同チェックは未確認であり、実未来入力・30枠学習・未来PDCAの成功には加算しない。[実確認の件数](evidence/2026-11-07/nov7-actual-reader-log-zip-counts.json)。
