@@ -180,6 +180,10 @@ class RealPreparationEvidenceTests(unittest.TestCase):
         plan=open_forecasts(result['plan_cipher'],key=KEY);self.assertEqual(len(plan['cases']),8)
         self.assertTrue(all(c['sport']=='keirin' for c in plan['cases']))
         self.assertEqual(result['counts']['previous_normal_observation_count'],1)
+        selector=result['counts']['future_selector']
+        self.assertEqual(selector['state'],'selector_absent')
+        self.assertTrue(selector['selector_only']);self.assertFalse(selector['fresh_future_input'])
+        self.assertNotIn('case',selector)
 
     def test_copied_earlier_normal_result_cannot_stand_in_for_current_source_capture(self):
         from tests.official_result_prepare_fixtures import single_fixture,KEY

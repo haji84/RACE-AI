@@ -128,7 +128,7 @@ COUNT_FIELDS=frozenset(('schema','state','ready','kind','prepare_run_id','prepar
     'source_owner_authorization_sha256','original_plan_sha256','selected_case_sha256','plan_plaintext_sha256',
     'plan_cipher_sha256','recovery_request_sha256','earliest_issue_at','case_count','maximum_new_requests',
     'previous_normal_observation_count','source_requests','grants_issued','public_files_written','old_source_requests_actual',
-    'old_source_requests_upper_bound','plaintext_published','production_promoted','actual_purchases'))
+    'old_source_requests_upper_bound','plaintext_published','production_promoted','actual_purchases','future_selector'))
 
 
 def write_outputs(root,value):
@@ -139,6 +139,11 @@ def write_outputs(root,value):
         counts.get('ready') is True and type(raw) is bytes and 0<len(raw)<=MAX_WIRE and
         counts.get('plan_cipher_sha256')==request['manifest']['plan_sha256']==sha256(raw).hexdigest() and
         counts.get('recovery_request_sha256')==digest(request),'OUTPUT_HASHES_OR_FIELDS')
+    if 'future_selector' in counts:
+        from race_ai.keirin_future_selector import validate_metadata
+        selector=validate_metadata(counts['future_selector'])
+        P.need(counts.get('kind')==P.EIGHT and selector['source_journal']==counts.get('previous_source',{}).get(
+            'journal_artifact') and selector['checked_at']==counts.get('prepared_at'),'SELECTOR_OUTPUT_SCOPE')
     header=forecast_header(raw)
     P.need(header['round_no']==P.ROUND and header['run_id']==str(counts['prepare_run_id']),'PREPARATION_PLAN_ENVELOPE')
     I.authority_for(request).validate_request(request,R.clock(counts['prepared_at']))

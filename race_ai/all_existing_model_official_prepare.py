@@ -243,4 +243,8 @@ def prepare_from_evidence(value,data,*,context,run_id,head_sha,now,key):
         maximum_new_requests=new_plan['maximum_requests'],previous_normal_observation_count=len(normal),
         source_requests=0,grants_issued=0,public_files_written=0,old_source_requests_actual=None,
         old_source_requests_upper_bound=32,plaintext_published=False,production_promoted=False,actual_purchases=False)
+    if value['kind']==EIGHT:
+        from .keirin_future_selector import selector_metadata
+        counts['future_selector']=selector_metadata(journal,receipts[source['journal_artifact']['id']],
+            probe_case=source_plan['cases'][0],now=now)
     return dict(plan_cipher=raw,request=request,counts=counts)
