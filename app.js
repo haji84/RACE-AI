@@ -35,7 +35,15 @@
       typeof value === "string" && value.length <= 110 && Object.keys(sports).some(sport => value.startsWith(sport + ":"))))].slice(0, 64)
   };
   let dataset = null, importVersion = 0, savedHistory = null;
+  const savedViewConfigured = Boolean(document.getElementById("race-ai-private-saved-data") || document.querySelector('meta[name="race-ai-private-saved-view"],meta[name="race-ai-encrypted-saved-view"]'));
+  const savedMessages = {
+    LOADING: ["レース情報を読み込んでいます", "保存された予想・結果を確認しています。"],
+    LINK_REQUIRED: ["閲覧用リンクから開いてください", "このURLではレース情報を読み込めません。いつもの閲覧用リンクから開いてください。データファイルの入力は不要です。"],
+    UNAVAILABLE: ["レース情報を確認できません", "レース情報を読み込めませんでした。時間をおいて再読み込みするか、閲覧用リンクを確認してください。"],
+    CLEARED: ["レース情報の表示を消去しました", "再読み込みすると、閲覧用リンクの保存情報を表示します。"]
+  };
   const generation = {api: null, ready: false, busy: false, nonce: null, capabilities: {}, day: null, message: "",
+    savedState: savedViewConfigured ? "LOADING" : null,
     auto: null, delivery: {}, autoMessage: "", connectionUncertain: false, ownsDisplay: false, suppressed: false,
     revisions: {}, seen: {}, timer: null, statusBusy: false, latestBusy: false, latestQueued: false,
     latestQueuedFollow: false, pausedForDrafts: false, pausedForEditing: false};
@@ -633,7 +641,8 @@
       metric("購入の回収率", manual.roi === null ? "未集計" : manual.roi.toFixed(1) + "%", "手入力・確定分のみ", "▥"),
       metric("公式 Hit@8_all", actualImported.hit8 === null ? "未検証" : (actualImported.hit8 * 100).toFixed(1) + "%", "母数 " + actualImported.evaluable + " / 対象 " + actualImported.ledger, "◎")
     );
-    $("home-races").replaceChildren(...(all.length ? all.slice(0, 3).map((r, i) => raceCard(r, i === 0)) : [empty("この条件のレースは未取得です", dataset ? "競技・日付を変更するか、「読み込んだ全期間」を確認してください。" : "許可された保存JSONを読み込むと、レース・モデル・結果を確認できます。", true)]));
+    const savedMessage = !dataset && savedMessages[generation.savedState];
+    $("home-races").replaceChildren(...(all.length ? all.slice(0, 3).map((r, i) => raceCard(r, i === 0)) : [empty(savedMessage?.[0] || "この条件のレースは未取得です", savedMessage?.[1] || (dataset ? "競技・日付を変更するか、「読み込んだ全期間」を確認してください。" : "会場・日付を選んで確認できます。レース情報が届いていない会場は「未取得」と表示します。"))]));
     $("home-candidates").replaceChildren(...candidateItems());
     const budget = $("home-budget"); budget.replaceChildren(node("strong", "", yen(state.budget - manual.spent)), node("p", "muted", "残予算 / " + yen(state.budget)));
     const progress = node("progress"); progress.max = state.budget; progress.value = Math.min(manual.spent, state.budget); progress.setAttribute("aria-label", "本日の予算使用額"); budget.append(progress, node("p", "muted small", "候補額は使用額に含めません。"));
@@ -1016,8 +1025,8 @@
     $("daily-budget").value = state.budget; $("settings-sport").value = state.sport;
     const kind = dataset?.dataset_status;
     $("data-banner").classList.toggle("synthetic-banner", kind === "SYNTHETIC_ONLY");
-    $("data-banner").textContent = kind === "SYNTHETIC_ONLY" ? "合成テスト専用 · レース・予想・結果・払戻は架空です。実績には含みません。" : kind === "REAL_REPORTED" ? "読込原本の申告値 · 出典・外部時刻の独立照合は別途必要です。" : dataset ? "研究・監査データ · 実績の証明には使用しません。" : "データ未取得 · 許可された保存原本を端末内で読み込めます。";
-    $("source-state").textContent = kind === "SYNTHETIC_ONLY" ? "合成テスト表示中" : dataset ? "ローカル原本 / 独立監査未完了" : "データ未取得";
+    $("data-banner").textContent = kind === "SYNTHETIC_ONLY" ? "合成テスト専用 · レース・予想・結果・払戻は架空です。実績には含みません。" : kind === "REAL_REPORTED" ? "読込原本の申告値 · 出典・外部時刻の独立照合は別途必要です。" : dataset ? "研究・監査データ · 実績の証明には使用しません。" : savedMessages[generation.savedState]?.[0] || "レース情報は未取得です。会場・日付を選んで確認できます。";
+    $("source-state").textContent = kind === "SYNTHETIC_ONLY" ? "合成テスト表示中" : dataset ? "保存データを表示中" : generation.savedState === "LINK_REQUIRED" ? "閲覧用リンク待ち" : "データ未取得";
     const dates = [...new Set(races().map(r => r.event_date_jst).filter(Boolean))].sort();
     $("source-date").textContent = "対象日：" + (dates.length ? dates[0] + (dates.length > 1 ? "〜" + dates.at(-1) : "") : "未取得");
     $("source-time").textContent = "取得時刻：" + (dataset ? "各レースの保存原本を参照" : "未取得");
@@ -1047,7 +1056,7 @@
     if (generation.api && operation.dataset.connected !== "true") {
       document.querySelector(".view-controls").before(operation); operation.open = true; operation.dataset.connected = "true";
     }
-    if (document.getElementById("race-ai-private-saved-data") || document.querySelector('meta[name="race-ai-private-saved-view"],meta[name="race-ai-encrypted-saved-view"]')) {
+    if (savedViewConfigured) {
       $("forecast-generate").hidden = true;$("forecast-follow-latest").hidden = true;$("forecast-stage").disabled = true;
       $("generation-title").textContent = "保存済み予想";
       $("generation-description").textContent = "保存原本の買い目と結果を表示しています。モデル・履歴あり／なしをレース詳細で選べます。";
@@ -1293,6 +1302,11 @@
     const encrypted = document.querySelector('meta[name="race-ai-encrypted-saved-view"]');
     if (!inline && !endpoint && !encrypted) return;
     const version = ++importVersion;
+    generation.savedState = "LOADING";
+    if (encrypted && !/^#saved=[a-f0-9]{64}\.[A-Za-z0-9_-]{43}$/.test(location.hash)) {
+      generation.savedState = "LINK_REQUIRED"; generation.message = savedMessages.LINK_REQUIRED[1];
+      $("file-message").textContent = generation.message; renderAll(); return;
+    }
     try {
       let raw;
       if (inline) raw = JSON.parse(inline.textContent);
@@ -1306,6 +1320,7 @@
       const parsed = M.parse(raw);
       if (version !== importVersion) return;
       if (!parsed.records.length) throw new Error("saved originals empty");
+      generation.savedState = "READY";
       const dates = parsed.records.map(r=>r.event_date_jst).filter(Boolean).sort();
       state.day = dates.at(-1) || state.day;state.sport = parsed.records[0].sport;
       state.followsToday = false;state.allDates = false;state.period = "day";
@@ -1314,8 +1329,9 @@
       $("file-message").textContent = generation.message;
       if (encrypted) startSavedFeed(encrypted.content,version);
     } catch {
-      generation.message = "保存原本を読み込めませんでした。保存先と同期状態を確認してください。";
-      $("file-message").textContent = generation.message;renderGeneration();
+      if (version !== importVersion) return;
+      generation.savedState = "UNAVAILABLE"; generation.message = savedMessages.UNAVAILABLE[1];
+      $("file-message").textContent = generation.message;renderAll();
     }
   }
   function startSavedFeed(path,version) {
@@ -1455,7 +1471,7 @@
   $("forecast-stage").addEventListener("change", () => { generation.message = "";renderGeneration();if (automaticMode()) { loadAutomaticLatest(true);scheduleAutomaticPoll(); } });
   $("forecast-follow-latest").addEventListener("click",()=>loadAutomaticLatest(true,true));
   $("load-synthetic").addEventListener("click", loadSynthetic);
-  $("clear-data").addEventListener("click", () => { ++importVersion;generation.ownsDisplay = false;generation.suppressed = true; dataset = null; state.selectedId = ""; state.predictionKeys = {}; state.candidates = []; state.confirmed.clear(); $("purchase-ack").checked = false; refreshSelects(); renderAll(); $("file-message").textContent = "読み込んだ予想と候補をメモリから消去しました。手動購入記録は再読込まで保持します。"; });
+  $("clear-data").addEventListener("click", () => { ++importVersion;generation.savedState = savedViewConfigured ? "CLEARED" : null;generation.ownsDisplay = false;generation.suppressed = true; dataset = null; state.selectedId = ""; state.predictionKeys = {}; state.candidates = []; state.confirmed.clear(); $("purchase-ack").checked = false; refreshSelects(); renderAll(); $("file-message").textContent = "読み込んだ予想と候補をメモリから消去しました。手動購入記録は再読込まで保持します。"; });
   $("results-model").addEventListener("change",e=>{state.resultGroupKey=e.target.value;renderResults();});
   $("simulation-race-budget").addEventListener("change",e=>{
     const value=Number(e.target.value);if(![800,1000].includes(value))return;
