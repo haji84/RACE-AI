@@ -178,4 +178,4 @@ Python readerは全raw／metadata／台帳／時計／SHA照合を維持し、�
 
 別の鍵不要チェック `42399864271` は、GitHubの直接job-log取得が署名URLの期限不整合で403となり、原byte取得前にHOLDした。提供元データの403ではなく、通常の取得や提供元の拒否停止規則は変えていない。既登録の2実行に限り、GitHubのrun-attemptログZIPから固定ファイル名と唯一の固定SHAが両方一致する原byteを読む経路へ修正した。ZIPの件数・展開量・各ファイル量・パス・通常ファイル属性を検証し、展開保存も文字コード変換もしない。
 
-実GitHub ZIP（47 member、542,540 byte）で、選択原文34,309 byte・UTF8 BOM保持・SHA `4f2c015998399c4031502cc072635458609269551f019eeda80d6d1673a0ad1f` の一致を確認。修正後にGitHubからmetadataとZIPを再取得したローカルの鍵不要チェックも `HISTORY_WITNESS_VERIFIED`。umask022で関連24件PASS、独立レビューCLEAR。新しいActions上の同チェックは未確認であり、実未来入力・30枠学習・未来PDCAの成功には加算しない。[実確認の件数](evidence/2026-11-07/nov7-actual-reader-log-zip-counts.json)。
+実GitHub ZIP（47 member、542,540 byte）で、選択原文34,309 byte・UTF8 BOM保持・SHA `4f2c015998399c4031502cc072635458609269551f019eeda80d6d1673a0ad1f` の一致を確認。修正後にGitHubからmetadataとZIPを再取得したローカルの鍵不要チェックも `HISTORY_WITNESS_VERIFIED`。umask022で関連24件PASS、独立レビューCLEAR。実Actions `42402134870`／Viewer job `128491999744` の専用チェックstep11も18:36:56ZにSUCCESSとなった。全workflowは確認時点で検証中であり、当該チェック成功を実未来入力・30枠学習・未来PDCAの成功には加算しない。[実確認の件数](evidence/2026-11-07/nov7-actual-reader-log-zip-counts.json)。
