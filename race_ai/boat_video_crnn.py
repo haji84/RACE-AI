@@ -82,7 +82,7 @@ def candidate_regions(crop):
         if w < 3 or not .13 <= w/h <= 1.6:
             return
         fill = float(np.count_nonzero(mask))/max(1, w*h)
-        if not .08 <= fill <= .9 or y+h*.5 < .4*height:
+        if not .08 <= fill <= .9:
             return
         if x < 1 or y < 1 or x+w >= width-1 or y+h >= height-1:
             return
