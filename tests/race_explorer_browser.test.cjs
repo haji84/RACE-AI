@@ -40,12 +40,58 @@ let browser,server;
       await nav('home');await page.locator('#page-home .racer-card').first().waitFor();
     };
     await load(fixture);
+    if(section==='all'||section==='reference'){
+      const sparse=structuredClone(fixture);
+      sparse.records[0].participants=sparse.records[0].participants.map(({number,registration_no,name})=>({number,registration_no,name}));
+      await load(sparse);await page.locator('#page-home [data-open-participant="4320"]').click();
+      const reference=page.locator('#racer-reference');
+      assert.equal(await reference.count(),1,'a sparse production-style participant must receive actual official athlete information');
+      assert.match(await reference.innerText(),/8\.05/);assert.match(await reference.innerText(),/105/);
+      assert.match(await reference.innerText(),/2025-11-01.*2026-04-30/s);assert.match(await reference.innerText(),/佐賀/);
+      assert.match(await reference.locator('.reference-basic').innerText(),/登録番号\s*4320/);
+      assert.equal(await reference.locator('.reference-course').count(),6);
+      await page.screenshot({path:path.join(evidence,`official-reference-top-${width}.png`)});
+      await reference.locator('[data-study-course="4"]').click();
+      const scenario=reference.locator('.reference-scenario');assert.match(await scenario.innerText(),/19走/);
+      assert.match(await scenario.innerText(),/84\.2%/);assert.match(await scenario.innerText(),/仮定/);
+      await reference.locator('[data-study-course="1"]').click();assert.match(await scenario.innerText(),/逃げ/);
+      await page.screenshot({path:path.join(evidence,`official-reference-${width}.png`),fullPage:true});
+      await page.locator('#participant-dialog').evaluate(n=>n.scrollTop=n.scrollHeight);
+      await page.keyboard.press('Escape');await page.locator('#page-home [data-open-participant="3415"]').click();
+      assert.equal(await page.locator('#participant-dialog').evaluate(n=>n.scrollTop),0,'each newly opened athlete card starts at its basic information');
+      await page.keyboard.press('Escape');
+      const partialOutcomes=[];
+      for(const kind of ['participant','supplement']){
+        const partial=structuredClone(sparse),r=partial.records[0];
+        if(kind==='participant')r.participants[1].preview_course=3;
+        else r.boat_observation_context={forecast_inputs_used:false,beforeinfo:{
+          schema:'RACE_AI_BOAT_OBSERVATION_CONTEXT_V1',kind:'beforeinfo',race_id:r.race_id,status:'PARSED',roster_binding_status:'VERIFIED',forecast_ready:false,
+          source:{source_url:'https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno=1&jcd=03&hd=20300101',sha256:'c'.repeat(64),captured_at:'2030-01-01T09:40:00+09:00',published_at:null},
+          source_cutoff_at:r.cutoff_at,captured_before_cutoff:true,
+          participants:[{lane:2,registration_number:'3897',name:'白井英治',exhibition_course:3}]}};
+        await load(partial);await page.locator('#page-home [data-open-participant="3415"]').click();
+        const text=await page.locator('.reference-scenario').innerText();
+        partialOutcomes.push({kind,conditional:text.includes('逃げ'),partial:/進入.*一部/s.test(text),noInventedNeighbor:!text.includes('2コース 白井英治')&&!text.includes('枠なりを仮定')});
+        await page.keyboard.press('Escape');
+      }
+      assert.deepEqual(partialOutcomes,['participant','supplement'].map(kind=>({kind,conditional:true,partial:true,noInventedNeighbor:true})));
+      const newcomer=structuredClone(sparse);newcomer.records[0].participants[0]={number:1,registration_no:'5497',name:'藤山芽依'};
+      await load(newcomer);await page.locator('#page-home [data-open-participant="5497"]').click();
+      assert.match(await page.locator('#racer-reference .reference-basic').innerText(),/B2/);
+      assert.match(await page.locator('#racer-reference').innerText(),/期別資料に未収録/);
+      assert.equal(await page.locator('#racer-reference .reference-course').count(),0);await page.keyboard.press('Escape');
+      const synthetic=structuredClone(sparse);synthetic.dataset_status='SYNTHETIC_ONLY';
+      await load(synthetic);await page.locator('#page-home [data-open-participant="4320"]').click();
+      assert.equal(await page.locator('#racer-reference').count(),0);await page.keyboard.press('Escape');
+      console.log(`PASS official athlete reference ${width}px: sparse production-style inputs, real period/course data, conditional courses, basic-only profiles and synthetic isolation`);
+    }
     if(section==='all'||section==='profiles'){
+      await load(fixture);
       const opener=page.locator('#page-home [data-open-participant="3415"]');
       assert.equal(await opener.count(),1,'athlete names and illustrations must open the in-page athlete card');
       await opener.click();const dialog=page.locator('#participant-dialog');
       assert.equal(await dialog.isVisible(),true);assert.match(await dialog.innerText(),/松井繁/);
-      const fact=label=>dialog.locator('dt').filter({hasText:new RegExp('^'+label+'$')}).evaluate(n=>n.nextElementSibling.textContent);
+      const fact=label=>dialog.locator('.profile-values dt').filter({hasText:new RegExp('^'+label+'$')}).evaluate(n=>n.nextElementSibling.textContent);
       assert.equal(await fact('全国勝率'),'0.00');assert.equal(await fact('平均ST'),'0.00');
       assert.equal(await fact('モーター2連率'),'0.00%');assert.match(await dialog.innerText(),/テスト支部/);
       const profile=dialog.locator('a[data-official-profile]');

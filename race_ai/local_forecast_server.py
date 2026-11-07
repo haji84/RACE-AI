@@ -17,6 +17,7 @@ import sys
 import threading
 from urllib.parse import parse_qsl, urlsplit
 from .racer_portraits import CATALOGUE as PORTRAIT_CATALOGUE, FILES as PORTRAIT_FILES
+from .racer_profiles import FILES as PROFILE_FILES
 
 ASSETS = {
     "/": ("index.html", "text/html; charset=utf-8"),
@@ -32,7 +33,7 @@ ASSETS = {
         "data/example-synthetic-forecast-audit.json", "application/json; charset=utf-8"),
 }
 ASSETS.update({'/' + name: (name, 'image/webp' if name.endswith('.webp') else 'application/json; charset=utf-8' if name.endswith('.json') else 'text/javascript; charset=utf-8')
-               for name in PORTRAIT_FILES})
+               for name in PORTRAIT_FILES + PROFILE_FILES})
 ASSETS.update({'/' + name + '?v=' + entry['sha256'][:12]: (name, 'image/webp')
                for name, entry in PORTRAIT_CATALOGUE['assets'].items()})
 SPORTS = frozenset(("boat", "keirin", "autorace", "horse"))

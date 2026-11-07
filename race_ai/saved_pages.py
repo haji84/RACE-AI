@@ -19,6 +19,7 @@ from .boat_pdca_projection import project_pdca
 from .local_forecast_server import _asset_bytes
 from .saved_pdca_view import WEB
 from .racer_portraits import FILES as PORTRAIT_FILES,REGISTRATIONS
+from .racer_profiles import FILES as PROFILE_FILES
 from scripts.boat_history_collect import private_root,save
 
 SCHEMA='RACE_AI_SAVED_WEB_VIEW_V1'
@@ -30,7 +31,7 @@ MAX_WIRE=90*1024*1024
 HEX=re.compile('[a-f0-9]{64}\\Z')
 ASSETS=('style.css','app.js','forecast-audit-model.js','product-data.js',
         'existing-model-catalog.js','ui-model.js','saved-performance.js','saved-view-crypto.js',
-        'data/example-synthetic-forecast-audit.json') + PORTRAIT_FILES
+        'data/example-synthetic-forecast-audit.json') + PORTRAIT_FILES + PROFILE_FILES
 
 
 def _hex(value):
@@ -245,7 +246,7 @@ def refresh_site_assets(repo,*,expected_parent,transport=None):
     need(manifest['cipher_path']==path and type(manifest['files']) is dict
          and path in manifest['files'] and set(manifest['files'])<=set(ASSETS)|{'index.html','.nojekyll',path},
          'PAGES_FILES_REJECTED')
-    required=(set(ASSETS)-set(PORTRAIT_FILES))|{'index.html','.nojekyll',path}
+    required=(set(ASSETS)-set(PORTRAIT_FILES)-set(PROFILE_FILES))|{'index.html','.nojekyll',path}
     need(required<=set(manifest['files']),'PAGES_FILES_REJECTED')
     need(type(manifest['races']) is int and 0<manifest['races']<=5000
          and type(manifest['predictions']) is int and 0<=manifest['predictions']<=128*manifest['races'],

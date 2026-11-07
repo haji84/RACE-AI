@@ -14,6 +14,24 @@ from tests.test_boat_pdca_github_handoff import invented_research_state
 
 
 class SavedPagesTests(unittest.TestCase):
+    def test_official_profiles_migrate_into_old_pages_without_changing_any_cipher(self):
+        from race_ai.racer_profiles import FILES
+        built=self.build();public=self.root/'public'
+        for name in FILES:self.assertTrue((public/name).is_file(),name)
+        class LocalPages(self.m.PagesRepository):
+            def _check_remote(inner):inner.fetch_url=inner.push_url=inner._run(['remote','get-url','origin']).decode().strip()
+        repo=self.root/'profile-repo';remote=self.root/'profile-remote.git';repo.mkdir()
+        for args in (['git','init','--bare',str(remote)],['git','init',str(repo)],['git','-C',str(repo),'remote','add','origin',str(remote)]):
+            subprocess.run(args,check=True,capture_output=True)
+        git=LocalPages(repo);legacy=json.loads((public/'site-build.json').read_text())
+        legacy['files']={k:v for k,v in legacy['files'].items() if k not in FILES}
+        files={name:(public/name).read_bytes() for name in legacy['files']}
+        files['site-build.json']=(wire(legacy)+'\n').encode()
+        parent=git.commit(files,None);git.push(parent,None);before=git._run(['ls-tree','-r',parent,'--','views'])
+        report=self.m.refresh_site_assets(repo,expected_parent=parent,transport=git)
+        self.assertEqual(git._run(['ls-tree','-r',report['source_commit'],'--','views']),before)
+        for name in FILES:self.assertEqual(git.read(report['source_commit'],name,self.m.MAX_WIRE),(public/name).read_bytes())
+
     def test_portrait_assets_are_packaged_and_can_refresh_without_private_state(self):
         from race_ai.racer_portraits import FILES
         built=self.build();public=self.root/'public'
