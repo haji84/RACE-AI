@@ -1,0 +1,47 @@
+{
+  "accuracy_improvement_proven": false,
+  "actual_purchases": false,
+  "all_31_real_cells_complete": false,
+  "ci_conclusion": "success",
+  "ci_run_id": 42316299401,
+  "ci_url": "https://github.com/haji84/RACE-AI/actions/runs/42316299401",
+  "implementation_head": "86e6f13e25d1af964bae471c37b28d0e8bbf621d",
+  "isolated_video_tests": 283,
+  "local_provenance_and_cli_focused": {
+    "failures": 0,
+    "tests": 17
+  },
+  "node_test_groups": [
+    88,
+    76
+  ],
+  "plaintext_source_published": false,
+  "production_promoted": false,
+  "provider_html_retained": false,
+  "provider_publication_time_verified": false,
+  "python_full": {
+    "failures": 0,
+    "seconds": 541.611,
+    "skipped": 170,
+    "tests": 2575
+  },
+  "real_future": {
+    "forecast_partitions_restored": 9,
+    "independent_pre_cutoff_save": true,
+    "next_review_record_restored": true,
+    "paired_cells": 9,
+    "pdca_partitions_restored": 9,
+    "source_archives_restored": 2,
+    "unique_races": 1
+  },
+  "real_training": {
+    "fitted_cells": 9,
+    "holdout_races_per_cell": 2,
+    "train_races_per_cell": 6,
+    "unfitted_cells": 22,
+    "unique_races": 8
+  },
+  "repeat_same_output_rejected_without_reset": true,
+  "retained_files_unchanged_after_repeat": true,
+  "schema": "RACE_AI_NATIVE_LEARNING_FINAL_VERIFICATION_V1"
+}
