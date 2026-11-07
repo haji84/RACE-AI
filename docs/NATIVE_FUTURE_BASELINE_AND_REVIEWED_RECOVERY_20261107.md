@@ -1,6 +1,6 @@
 # 実19枠の未来入力と、通信件数不明時の限定復旧
 
-実学習は19/31枠。BOAT14とHORSE5は各8実レース・学習6／検証2、152原入力で学習した。実artifact `13565954830` を所有者キーで復元し、ローカルとの係数・支持数・holdout一致を確認した。[実CI候補の照合](evidence/2026-11-07/nineteen-native-model-ci-parity-counts.json)。全19モデルの432座標のうち支持174、変更171であり、支持不足の座標を無理に変更していない。[座標別の件数](evidence/2026-11-07/nineteen-native-parameter-support-counts.json)。既定registryは不変。
+現行対象は30枠、実学習は19枠。リモートの所有者変更で除外された販売者1枠は、過去31枠の登録・MAC・SHAを保持し、学習済みへ加算しない。BOAT14とHORSE5は各8実レース・学習6／検証2、152原入力で学習した。実artifact `13565954830` を所有者キーで復元し、ローカルとの係数・支持数・holdout一致を確認した。[実CI候補の照合](evidence/2026-11-07/nineteen-native-model-ci-parity-counts.json)。全19モデルの432座標のうち支持174、変更171であり、支持不足の座標を無理に変更していない。[座標別の件数](evidence/2026-11-07/nineteen-native-parameter-support-counts.json)。既定registryは不変。
 
 同runの全Python3,456件は成功（skip310）。全workflowは後段の合成動画fixtureのフレーム数不一致で失敗した。これを実学習失敗や全体CI成功へ読み替えない。[初回19枠CIの結果](evidence/2026-11-07/first-nineteen-ci-workflow-counts.json)。fixtureは6 packet／6復号画像／相異なる6画像・非ゼロPTSを固定し、最新の並行変更を取り込んだ固定依存の動画461検査が成功した。Ubuntu上の全体再検証は次HEADで確認する。
 
@@ -27,3 +27,11 @@ JRAの2026年日曜即PAT締切は、保存済み[公式発売時間](https://ww
 同じrunのViewerジョブのattempt 2だけがこのcapsuleを読める。別HEAD・別attempt・別出力先への再消費、原本不一致、既知の401／403／429・DENIED・host停止は解除しない。再び実数不明なら停止する。新しいjournalと原文の暗号化隔離を別に保存し、旧UNKNOWNをCOMPLETEや実数0へ変えない。
 
 現在は計画の準備までで、実capsule発行・再取得はまだ行っていない。[準備件数](evidence/2026-11-07/reviewed-single-case-probe-preparation-counts.json)。新workflow・定期タスク・外部サービス・本番切替・購入は追加していない。
+
+## 同一HEADの検証再利用と継続取得
+
+新しいpreflightは、信頼するPR71のattempt 2に限定し、実capsule・全prior・元計画に加え、同じHEAD/runのattempt 1でfull Pythonとisolated videoが実行され成功したserver記録を確認する。全読取り後にも期限の残り180秒以上を確認する。成立した場合だけ、この2つの重い検査を再利用する。他の軽量検査・sourceの新しい認証・送信ごとの期限検査・実artifact読戻しは維持する。通常PR／初回／無効な記録では従来どおり検査する。再利用を新規テスト実行やデータ取得成功と報告しない。
+
+復旧request V2の継続取得は、成功したprobeの元V1 capsule、完了journal、native原ZIP、raw RESULTの再認証と原文再解析を必須とする。最大8ケース・32要求、同じ元URLと原terms、全priorの終了から1時間以上、特定の新HEAD/run/attempt 2に限定する。旧実数不明／上限32は保持し、既知DENIEDや再中断を解除しない。実probe・実継続取得はまだ成功していない。
+
+結果取得用のrequest V3は取得日の実時計と1〜7日前の対象日を分離する。元plan・native入力・結果識別日は対象日のまま保持し、HTTP取得・生成・保存は実時刻を記録する。専用MAC付きの型付き許可なしでは標準collectorからも取得できない。公開された日付操作がない場合はHOLDとし、URL推測や入力時計の変更は行わない。現在の初回AUTO request V1は当日1ケース／8要求のままである。

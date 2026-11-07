@@ -1,0 +1,16 @@
+{
+  "actual_fitted_model_count": 19,
+  "attempt": 1,
+  "completed_at": "2026-11-07T08:57:45Z",
+  "conclusion": "success",
+  "current_active_cells": 30,
+  "head_sha": "08b587a25bc0e26610bc5d950f9c72d12e1a1db8",
+  "historical_registry_cells": 31,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "provider_recovery_capsule_was_absent": true,
+  "provider_requests": 0,
+  "registered_originals_preserved": true,
+  "state": "REVIEWED_HEAD_FULL_ATTEMPT_ONE_SUCCEEDED",
+  "workflow_run_id": 42355755138
+}
