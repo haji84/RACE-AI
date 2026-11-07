@@ -97,19 +97,9 @@ def authenticate_future_history(manifest,*,journal_archives,old_run,prior_runs,n
     runs=recovery._prior_runs(dict(manifest=manifest),old_run,prior_runs)
     for pin in pins:
         if pin in result_pins:continue
-        from scripts import all_existing_model_future_source_capture as wrapper
         item=archives[pin['id']];meta=item['metadata']
         need(meta.get('id')==pin['id'] and meta.get('digest')==pin['digest'],'FUTURE_PRIOR_PIN')
-        journal,source,files=wrapper.source_archive(item['raw'],meta,
-            dict(run_id=pin['run_id'],head_sha=pin['head_sha']),now=now,key=key)
-        recovery.no_known_denial(journal)
-        need(journal['raw_retention_complete'] is True and type(journal['source_requests_actual']) is int and
-            wrapper._known(journal['capture_index'],started=clock(journal['epoch_started_at']),
-                finished=clock(journal['completed_at'])),'FUTURE_PRIOR_OUTCOME_UNKNOWN')
-        original_plan=wrapper._open(source['plan.enc'],dict(run_id=pin['run_id'],head_sha=pin['head_sha']),key)
-        index=journal['capture_index'];builder._no_dynamic_replay(index)
-        originals=builder._original_rows(index,files,clock(original_plan['available_after']),clock(index['completed_at']))
-        builder._static_replays(original_plan,index,originals,files)
+        journal,source=_future_epoch(item,pin,now=now,key=key)
         bodies[pin['id']]=journal;receipts[pin['id']]=dict(pin=deepcopy(pin),artifact_metadata=deepcopy(meta),
             cipher_sha256=sha256(source['collection.enc']).hexdigest(),payload_sha256=digest(journal))
     for pin in pins:
@@ -133,6 +123,45 @@ def authenticate_future_history(manifest,*,journal_archives,old_run,prior_runs,n
         prior_journal_guard_scope='EXPLICIT_TRANSITIVELY_CLOSED_PINS_ONLY',minimum_epoch_interval_seconds=3600,
         latest_possible_old_activity_at=latest.isoformat(),old_source_requests_actual=None,
         old_source_requests_upper_bound=32,old_browser_outcome='UNKNOWN',bodies=bodies,receipts=receipts,runs=runs)
+
+
+def _future_epoch(item,pin,*,now,key):
+    """Explicit fresh-source journal readers; legacy collector grants stay closed."""
+    from scripts import all_existing_model_future_source_capture as wrapper
+    env=dict(run_id=pin['run_id'],head_sha=pin['head_sha']);name=item['metadata'].get('name')
+    if name=='official-future-result-capture-'+str(pin['run_id']):
+        from scripts import all_existing_model_future_result_capture as result_wrapper
+        journal,source,_=result_wrapper.source_archive(item['raw'],item['metadata'],env,now=now,key=key)
+        recovery.no_known_denial(journal)
+        need(journal['raw_retention_complete'] is True and type(journal['source_requests_actual']) is int,
+            'FUTURE_PRIOR_OUTCOME_UNKNOWN')
+        return journal,source
+    if name=='official-jra-future-source-capture-'+str(pin['run_id']):
+        from scripts import jra_future_source_capture as horse
+        from . import jra_future_source_capture as horse_core
+        from . import manual_official_capture as capture
+        journal,source,files=horse.source_archive(item['raw'],item['metadata'],env,now=now,key=key)
+        recovery.no_known_denial(journal)
+        cache=journal['capture_cache']
+        need(journal['raw_retention_complete'] is True and type(journal['source_requests_actual']) is int and
+            cache is not None and horse._known(cache),'FUTURE_PRIOR_OUTCOME_UNKNOWN')
+        capture._validate_cache(cache)
+        plan=wrapper._open(source['plan.enc'],env,key)
+        # The original three-source join verifies each raw HTTP hash/clock and
+        # the literal discovery link; source_archive alone is not that replay.
+        bodies={url:files[entry['raw_file']] for url,entry in cache['captures'].items()}
+        horse_core.originals(journal['manifest'],plan,cache,bodies)
+        return journal,source
+    need(name=='official-future-source-capture-'+str(pin['run_id']),'FUTURE_PRIOR_ARTIFACT_PURPOSE')
+    journal,source,files=wrapper.source_archive(item['raw'],item['metadata'],env,now=now,key=key)
+    recovery.no_known_denial(journal)
+    need(journal['raw_retention_complete'] is True and type(journal['source_requests_actual']) is int and
+        wrapper._known(journal['capture_index'],started=clock(journal['epoch_started_at']),
+            finished=clock(journal['completed_at'])),'FUTURE_PRIOR_OUTCOME_UNKNOWN')
+    plan=wrapper._open(source['plan.enc'],env,key);index=journal['capture_index'];builder._no_dynamic_replay(index)
+    originals=builder._original_rows(index,files,clock(plan['available_after']),clock(index['completed_at']))
+    builder._static_replays(plan,index,originals,files)
+    return journal,source
 
 
 def prepare_capture(manifest,contexts,*,now,static_cache=None):

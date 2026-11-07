@@ -123,7 +123,7 @@ class FutureHorseResultTests(unittest.TestCase):
         from tests.test_all_existing_model_source_packet_freeze import KEY
         from tests.test_official_issue_transport import FakeGitHub
         from tests.test_manual_official_capture import Response
-        for outcome in ('success','unknown','denied'):
+        for outcome in ('success','expired_success','late_wire','unknown','denied'):
             value=manifest();pin=value['horse_baseline_artifact'];clock=[NOW]
             native_model=dict(sport='horse',input_schema=horse.jra.native.SCHEMA_SPARSE,
                 created_at=(NOW-timedelta(days=1)).isoformat())
@@ -134,6 +134,7 @@ class FutureHorseResultTests(unittest.TestCase):
             env=dict(run_id=42,head_sha='a'*40,run_attempt=1);plan=horse.prepare(value,baseline,now=NOW)
             body=horse.marker_body(value,env,baseline,{},plan,now=NOW)
             consumed=horse.reserve(body,KEY,horse.MarkerTransport(FakeGitHub()),now=NOW);cipher=consumed.pop('_ciphertext')
+            if outcome=='late_wire':clock[0]+=timedelta(hours=2)
             def get(request,timeout):
                 if outcome=='unknown':raise RuntimeError('authored interruption')
                 clock[0]+=timedelta(seconds=.1)
@@ -144,7 +145,14 @@ class FutureHorseResultTests(unittest.TestCase):
             with tempfile.TemporaryDirectory() as temporary:
                 root=Path(temporary);root.chmod(0o700);source=root/'source';source.mkdir(mode=0o700);directory=root/'cache'
                 with patch.object(wrapper,'utc_now',side_effect=lambda:clock[0]):
-                    try:wrapper.collect(value,plan,directory,opener=get,sleeper=sleep,monotonic=lambda:clock[0].timestamp())
+                    try:
+                        if outcome=='late_wire':
+                            # Authored invalid original: bypass only the injected
+                            # HTTP fixture's runtime guard, then require archive
+                            # verification to reject its real later wire clocks.
+                            with patch.object(wrapper,'guarded_opener',side_effect=lambda _plan,fetch,**_:fetch):
+                                wrapper.collect(value,plan,directory,opener=get,sleeper=sleep,monotonic=lambda:clock[0].timestamp())
+                        else:wrapper.collect(value,plan,directory,opener=get,sleeper=sleep,monotonic=lambda:clock[0].timestamp())
                     except RuntimeError:pass
                 cache=policy._load(directory);items,complete=common.inventory(directory,source,env,key=KEY)
                 reservation=dict(schema=horse.JOURNAL,state='RESERVED',manifest=value,manifest_sha256=horse.digest(value),
@@ -162,7 +170,8 @@ class FutureHorseResultTests(unittest.TestCase):
                         repository_id=1416489937,head_repository_id=1416489937))
                 source_pin=dict(id=801,digest=actual['digest'],run_id=42,head_sha='a'*40)
                 now=clock[0]+timedelta(seconds=2)
-                if outcome=='success':
+                if outcome=='expired_success':now+=timedelta(hours=6)
+                if outcome in ('success','expired_success'):
                     admitted,_=history._future_epoch(dict(raw=raw,metadata=actual),source_pin,now=now,key=KEY)
                     self.assertEqual(admitted['capture_cache'],cache);self.assertEqual(admitted['source_requests_actual'],3)
                 else:
