@@ -816,7 +816,8 @@ class Collector:
                 try:
                     completed=subprocess.run(['ffmpeg','-v','error','-nostdin','-protocol_whitelist','file,pipe',
                         '-format_whitelist','mov,mpegts','-copyts','-i',str(combined),'-map','0:v:0','-c:v','copy',
-                        '-an','-avoid_negative_ts','disabled','-movflags','+faststart','-y',str(media)],
+                        '-map','0:a:0?','-c:a','copy','-avoid_negative_ts','disabled',
+                        '-movflags','+faststart','-y',str(media)],
                         capture_output=True,check=True,timeout=120)
                     _need(not completed.stderr.strip(),'HLS_CAPTURE_LOCAL_REMUX_FAILED')
                 except (OSError,subprocess.SubprocessError):
@@ -831,6 +832,7 @@ class Collector:
                     manifest_sha256=self.manifest_sha256,window_id=window_id,media_sha256=media_sha,captured_at=at,
                     capture_started_at=segments[0]['captured_at'],last_media_captured_at=segments[-1]['captured_at'],
                     segments=metadata,timeline='MEDIA_PTS_NOT_UPSTREAM_PDT',
+                    audio_policy='FIRST_EMBEDDED_AUDIO_STREAM_COPY_IF_PRESENT',
                     map_reuse_scope='URI_RANGE_DISCONTINUITY_CONTEXT_NOT_PROVIDER_IMMUTABILITY_PROOF',
                     forecast_eligible=False,production_eligible=False)
                 pdt_max=self.db.execute('SELECT COALESCE(MAX(id),0) FROM pdt_claims').fetchone()[0]
@@ -877,6 +879,8 @@ def verify_export(export_record):
             for name in ('schema','source_id','source_role','manifest_sha256','window_id','media_sha256','captured_at'):
                 _need(receipt[name]==export_record[name])
             _need(receipt['forecast_eligible'] is False and receipt['production_eligible'] is False)
+            if 'audio_policy' in receipt:
+                _need(receipt['audio_policy']=='FIRST_EMBEDDED_AUDIO_STREAM_COPY_IF_PRESENT')
             segments=list(db.execute('SELECT * FROM segments WHERE window_id=? ORDER BY sequence',(export_record['window_id'],)))
             expected=[]
             for index,segment in enumerate(segments):
