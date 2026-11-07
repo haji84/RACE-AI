@@ -372,9 +372,36 @@ def collect_entry_history(context,day,*,paused=None):
     return None
 
 
-def make_pair(day,race):
+def _research_target(value,now):
+    """An explicit scope narrows genuine acquisition; it supplies no race facts."""
+    if value is None:return None
+    try:
+        if (type(value) is not dict or set(value)!={'race_id','cutoff_at','roster_sha256','active_count'}
+                or type(value['race_id']) is not str
+                or re.fullmatch(r'[0-9]{8}-(?:0[1-9]|1[0-9]|2[0-4])-(?:0[1-9]|1[0-2])',value['race_id']) is None
+                or type(value['cutoff_at']) is not str
+                or re.fullmatch(r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\+09:00',value['cutoff_at']) is None
+                or type(value['roster_sha256']) is not str
+                or re.fullmatch('[a-f0-9]{64}',value['roster_sha256']) is None
+                or type(value['active_count']) is not int or not 3<=value['active_count']<=6):
+            raise ValueError()
+        cutoff=datetime.fromisoformat(value['cutoff_at'])
+        current=now.astimezone(JST).date()
+        if (datetime.strptime(value['race_id'][:8],'%Y%m%d').date()!=current
+                or cutoff.date()!=current or cutoff.utcoffset()!=timedelta(hours=9)
+                or cutoff.isoformat()!=value['cutoff_at'] or cutoff<=now):
+            raise ValueError()
+        return dict(value)
+    except (ValueError,TypeError,KeyError,AttributeError,OverflowError):
+        raise ValueError('HOLD_RESEARCH_TARGET_INVALID') from None
+
+
+def make_pair(day,race,*,research_target=None):
     race_id=race["race_id"];venue=race_id[9:11];n=int(race_id[-2:])
     now=_clock(day)
+    target=_research_target(research_target,now)
+    if target is not None and (race_id!=target['race_id'] or race['cutoff_at']!=target['cutoff_at']):
+        return dict(race_id=race_id,state='HOLD_RESEARCH_TARGET_IDENTITY_OR_CUTOFF_MISMATCH'),None,None,None,None
     cutoff=datetime.fromisoformat(race["cutoff_at"])
     if cutoff-now<=MIN_TO_CUTOFF:
         return {"race_id":race_id,"state":"TOO_LATE_BEFORE_SOURCE"},None,None,None,None
@@ -384,6 +411,8 @@ def make_pair(day,race):
         program=parse_official_racelist(raw,day=day,venue=venue,race_no=n,
                          source_url=url,captured_at=at.isoformat())
     except (SourceError,BoatProgramError):
+        if target is not None:
+            return dict(race_id=race_id,state='HOLD_RESEARCH_TARGET_PROGRAM_UNSUPPORTED'),None,None,None,None
         # Official SG navigation may exceed the pinned forecast adapter's
         # supported statistics layout. Strict metadata can still bind weather,
         # equipment and attributed comments without constructing model inputs.
@@ -408,10 +437,21 @@ def make_pair(day,race):
     active=[r for r in program['boats'] if r['entry_status']=='listed']
     if program.get('race_status','LISTED')!='LISTED' or not 3<=len(active)<=6:
         return dict(race_id=race_id,state='RACE_NOT_OPEN_FOR_TRIFECTA'),None,None,None,None
+    if target is not None:
+        from race_ai.actions_contract import digest
+        registrations=[row['racer_registration_id'] for row in sorted(active,key=lambda row:row['lane'])]
+        if (len(registrations)!=target['active_count'] or any(type(rid) is not str for rid in registrations)
+                or digest(registrations)!=target['roster_sha256']):
+            return dict(race_id=race_id,state='HOLD_RESEARCH_TARGET_ROSTER_MISMATCH'),None,None,None,None
     official_preview_url=preview_endpoint(day,venue,n,"beforeinfo")
-    _clock(day)
+    preview_clock=_clock(day)
+    if target is not None and preview_clock+MIN_TO_CUTOFF>=cutoff:
+        return dict(race_id=race_id,state='TOO_LATE_BEFORE_SOURCE'),None,None,None,None
     preview,preview_at,preview_sha=get(official_preview_url,day=day,not_yet_published=True)
     result=parse_active_beforeinfo(preview,program=program,source_url=official_preview_url,captured_at=preview_at.isoformat())
+    if target is not None and (result.get('captured_at')!=preview_at.isoformat()
+            or result.get('context',{}).get('source',{}).get('captured_at')!=preview_at.isoformat()):
+        return dict(race_id=race_id,state='HOLD_RESEARCH_TARGET_CAPTURE_CLOCK_MISMATCH'),None,None,None,None
     roster=[dict(lane=r['lane'],registration_number=r['racer_registration_id']) for r in active]
     context=dict(schema='RACE_AI_BOAT_SUPPLEMENTAL_CONTEXT_V1',race_id=race_id,cutoff_at=race['cutoff_at'],
                  roster=roster,beforeinfo=result['context'],pitreport=None,entry_history=None,forecast_inputs_used=False)
@@ -432,7 +472,10 @@ def make_pair(day,race):
     retention=None
     if callable(MODEL_INPUT_SINK):
         try:
-            MODEL_INPUT_SINK(program,result,generated)
+            # This new opt-in master uses the actual response capture event;
+            # preserve both raw capture clocks and the baseline generated time.
+            master_asof=preview_at.isoformat() if target is not None else generated
+            MODEL_INPUT_SINK(program,result,master_asof)
             retention=dict(state='SOURCE_INPUT_RETAINED')
         except (ValueError,OSError,KeyError,TypeError) as ex:
             retention=dict(state='INPUT_RETENTION_REJECTED',failure_class=type(ex).__name__)
@@ -557,7 +600,17 @@ def make_pair(day,race):
     return status,computed,extended,priced,observed
 
 
-def run(*, schedule_snapshot=None):
+def run(*, schedule_snapshot=None,research_target=None):
+    """Run the usual batch, or narrow acquisition to one explicit research race.
+
+    The opt-in target requires an existing usable schedule cache: actual
+    ``official_day_source`` (url, source_sha256, captured_at), nonempty
+    ``verified_active_venues``, and ``official_race_registry`` rows with race_id,
+    cutoff_at, schedule_captured_at, source_sha256. Existing usable_schedule
+    requires current-day official index identity and actual capture age <=180s;
+    no P0 payload or caller-invented capture clock substitutes for that cache.
+    Missing/stale cache HOLDs before nationwide discovery or per-race requests.
+    """
     global requests_used, ENTRY_OBSERVATION_HISTORY
     requests_used=0
     supplemental_contexts.clear()
@@ -566,12 +619,17 @@ def run(*, schedule_snapshot=None):
     try:now=_clock()
     except ValueError as ex:return stop(str(ex))
     day=now.astimezone(JST).date()
+    try:target=_research_target(research_target,now)
+    except ValueError as ex:return stop(str(ex))
     if ENTRY_OBSERVATION_HISTORY is not None and (not isinstance(ENTRY_OBSERVATION_HISTORY,dict)
             or ENTRY_OBSERVATION_HISTORY.get('event_day')!=day.isoformat()):
         ENTRY_OBSERVATION_HISTORY=None
     paused=None
     from race_ai.repeated_cycle import usable_schedule
-    if usable_schedule(schedule_snapshot,day=day.isoformat(),now=now):
+    schedule_ready=usable_schedule(schedule_snapshot,day=day.isoformat(),now=now)
+    if target is not None and not schedule_ready:
+        return stop('HOLD_RESEARCH_TARGET_SCHEDULE_UNAVAILABLE')
+    if schedule_ready:
         import copy
         cached=copy.deepcopy(schedule_snapshot)
         source=cached['official_day_source']
@@ -638,6 +696,11 @@ def run(*, schedule_snapshot=None):
     # but never submit them to the pre-close queue or pretend a forecast.
     try:selection_clock=_clock(day)
     except ValueError as ex:return stop(str(ex),schedule=listing,queue=rows,tries=venue_errors)
+    if target is not None:
+        selected=[row for row in rows if row['race_id']==target['race_id']]
+        if len(selected)!=1 or selected[0]['cutoff_at']!=target['cutoff_at']:
+            return stop('HOLD_RESEARCH_TARGET_SCHEDULE_MISMATCH')
+        rows=selected
     prospective_rows=[]
     after_close_rows=[]
     for record in rows:
@@ -686,7 +749,8 @@ def run(*, schedule_snapshot=None):
             baseline_ids=set(model.MODEL_IDS)|{CLITE_ID}|set(OBSERVED_IDS)
             source_only=(issued is not None and (rid in previously_frozen or bool(baseline_ids&issued.get(rid,frozenset()))))
             source_race=dict(race,source_capture_only=True) if source_only else race
-            status,pair,extended,priced,observed=make_pair(day,source_race)
+            options={} if target is None else dict(research_target=target)
+            status,pair,extended,priced,observed=make_pair(day,source_race,**options)
             status.update(phase=race.get('phase'),cutoff_at=race['cutoff_at'],
                           target_at=(datetime.fromisoformat(race['cutoff_at'])-timedelta(minutes=10)).isoformat())
             if observed is not None and 'suite' not in observed:
