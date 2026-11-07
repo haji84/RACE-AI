@@ -97,3 +97,22 @@ class RuntimeTests(unittest.TestCase):
         s.advance(base,now=later,fetch=changed,max_requests=1)
         from race_ai.racer_daily import clock
         self.assertLessEqual(clock(s.control['races']['20261107-01-02']['next_check']),later)
+    def test_newly_due_result_gets_the_saturated_budget_before_confirmed_revisions(self):
+        s=self.state();base=self.base();calls,fetch=self.source();s.advance(base,now=NOW,fetch=fetch,max_requests=2)
+        for n in range(2,13):
+            q=s.control['races'][f'20261107-01-{n:02d}'];q.update(cutoff_at=NOW.isoformat(),next_check=(NOW+timedelta(minutes=31)).isoformat())
+        later=NOW+timedelta(minutes=35)
+        def newly_confirmed(url):
+            from race_ai.racer_intraday_source import identity
+            day,venue,number=identity(url);calls.append(url);doc=result_document(number=number);doc['raceheader']['rlinklist'][1]['deadline']='11:25';return packet(doc)[0],later.isoformat()
+        before=len(calls);s.advance(base,now=later,fetch=newly_confirmed,max_requests=1)
+        self.assertEqual(len(calls),before+1);self.assertTrue(calls[-1].endswith('&rno=2'),'new results must precede old result revision checks')
+        self.assertIn('20261107-01-02',s.control['results'])
+    def test_postponed_target_keeps_its_new_future_deadline(self):
+        s=self.state();base=self.base();calls,fetch=self.source(pending=True);s.advance(base,now=NOW,fetch=fetch,max_requests=2)
+        later=NOW+timedelta(minutes=5);seen=[]
+        def postponed(url):
+            seen.append(url);doc=result_document(pending=True);doc['raceheader']['rlinklist'][0]['deadline']='12:30';return packet(doc)[0],later.isoformat()
+        s.advance(base,now=later,fetch=postponed,max_requests=1)
+        s.advance(base,now=later+timedelta(minutes=5),fetch=postponed,max_requests=1)
+        self.assertEqual(len(seen),1,'a postponed race must wait until the new cutoff plus publication delay')

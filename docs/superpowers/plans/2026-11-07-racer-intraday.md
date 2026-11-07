@@ -54,7 +54,7 @@ Interfaces: V1/V2 parse; status pointer polling60seconds while visible, full agg
 ### Task4: Verified publication and schedule correction
 
 Files: existing .github/workflows/boat-racer-daily.yml, docs/RACE_EXPLORER.md, this plan and public counts-only evidence.
-- [ ] Fresh whole-change read-only review; one targeted TDD correction pass, then affected checks.
+- [x] Fresh whole-change read-only review; one targeted TDD correction pass, then affected checks. Pending results now precede confirmed revisions; postponed targets respect their new cutoff. RED then18 affected tests GREEN.
 - [ ] Preserve concurrent source updates and publish only reviewed UI assets while retaining all cipher/image bytes.
 - [ ] Explicit source marker initializes only the new stream; actual Actions verifies current official facts, ciphertext and public SHA. Normal restart verifies retained replay.
 - [ ] Existing workflow gains bounded daytime5minute cron, keeps06:20 K reconciliation, defaults dispatch to intraday and uses full runtime SHA. Normally merge only workflow PR after required CI.

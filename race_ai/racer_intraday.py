@@ -149,7 +149,7 @@ class IntradayState:
                 except ValueError:self.remember('REJECTED',raw,r);rejected('mbrace')
             self.extra_rows(base,now=now)
         bootstrap=[f'{day:%Y%m%d}-{v}-01' for v in c['venues'] if v not in c['meetings']]
-        due=[rid for rid,q in sorted(c['races'].items(),key=lambda i:(i[1]['next_check'],i[0])) if q['cutoff_at'] and clock(q['next_check'])<=now and rid not in self.canonical]
+        due=[rid for rid,q in sorted(c['races'].items(),key=lambda i:(i[0] in c['results'],i[1]['next_check'],i[0])) if q['cutoff_at'] and clock(q['cutoff_at'])+timedelta(minutes=5)<=now and clock(q['next_check'])<=now and rid not in self.canonical]
         picked=set()
         for target in bootstrap+due:
             if requests>=max_requests or waiting('boatrace'):break
@@ -171,6 +171,7 @@ class IntradayState:
                         q['cutoff_at']=item['cutoff_at']
                     if header_changed:c['meetings'][venue]=self.remember('RESULT',raw,r)
                 q=c['races'].setdefault(target,dict(cutoff_at=None,next_check=now.isoformat()));q['next_check']=(now+timedelta(minutes=30 if out['status']!='PENDING' else 5)).isoformat()
+                if out['status']=='PENDING' and q['cutoff_at']:q['next_check']=max(clock(q['next_check']),clock(q['cutoff_at'])+timedelta(minutes=5)).isoformat()
                 old=c['results'].get(target)
                 if out['status']!='PENDING' and (not old or old['fact_sha256']!=out['fact_sha256']):
                     p=self.remember('RESULT',raw,r);p.update(fact_sha256=out['fact_sha256'],statistics_sha256=out.get('statistics_sha256'));c['results'][target]=p;changed+=1
