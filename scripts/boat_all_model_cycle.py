@@ -113,12 +113,9 @@ def gh(path):
 
 
 def _prospective_grid_get(path):
-    """Narrow reader-only routes for the one reviewed historical grid witness."""
-    from race_ai.boat_venue_future_grid import READBACK_RUN, READBACK_JOB
-    routes = {f'actions/runs/{READBACK_RUN}/attempts/1',
-              f'actions/runs/{READBACK_RUN}/attempts/1/jobs?per_page=100',
-              f'actions/jobs/{READBACK_JOB}/logs'}
-    need(path in routes, 'PROSPECTIVE_GRID_GITHUB_ROUTE')
+    """Narrow reader-only routes for the literal reviewed grid witnesses."""
+    from race_ai.boat_venue_future_grid import readback_routes
+    need(path in readback_routes(), 'PROSPECTIVE_GRID_GITHUB_ROUTE')
     # This admission needs fresh actual server metadata, even when the worker
     # has opted into archived original-artifact recovery for other operations.
     from scripts.github_existing_cycle import _live_gh

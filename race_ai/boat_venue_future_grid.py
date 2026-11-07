@@ -1,6 +1,6 @@
 """Explicit prospective venue inputs, separate from historical training scope.
 
-The only admitted server witness is the reviewed complete b569 reader job.
+Only the two literal reviewed, completed Nov6/Nov7 reader witnesses are admitted.
 No provider, Git writer, model fit, local-key lookup or source-clock adjustment
 exists here. Keys are supplied explicitly by the existing Actions caller.
 """
@@ -38,6 +38,40 @@ def _need(ok, reason):
         raise ValueError('PROSPECTIVE_BOAT_GRID_'+reason)
 
 
+def _witnesses():
+    # Keep the original constants and capability/MAC bytes compatible. No
+    # manifest, environment value or latest pointer can add a registry entry.
+    return (
+        dict(dataset_sha256=DATASET_SHA, source_commit=DATASET_COMMIT, source_days=7963,
+             readback=dict(run_id=READBACK_RUN, run_attempt=1, job_id=READBACK_JOB,
+                 head_sha=READBACK_HEAD, metadata_sha256=METADATA_SHA, log_sha256=LOG_SHA)),
+        dict(dataset_sha256='7ea4281b5674e605918536ecf905d726d78c721aa0f6c6ed60d4c51d250d5678',
+             source_commit='bd932a4d91317c5d8349989a96ddb184938c539d', source_days=7964,
+             readback=dict(run_id=42395208517, run_attempt=1, job_id=128471073052,
+                 head_sha='b3239877b05c2725af459cec13c1d1501a820a09',
+                 metadata_sha256='9fd49f6c2b9b920a06d8c392dbf14a5b3cb94616c513de678a8c6bd7e35a3b32',
+                 log_sha256='4f2c015998399c4031502cc072635458609269551f019eeda80d6d1673a0ad1f')),
+    )
+
+
+def _witness(pointer):
+    found = [row for row in _witnesses() if pointer['dataset_sha256'] == row['dataset_sha256'] and
+             pointer['source_commit'] == row['source_commit']]
+    _need(len(found) == 1, 'UNREVIEWED_DATASET')
+    return found[0]
+
+
+def readback_routes():
+    """Exact GitHub read routes for the two reviewed witnesses only."""
+    routes = set()
+    for row in _witnesses():
+        witness = row['readback']
+        routes.update((f'actions/runs/{witness["run_id"]}/attempts/1',
+                       f'actions/runs/{witness["run_id"]}/attempts/1/jobs?per_page=100',
+                       f'actions/jobs/{witness["job_id"]}/logs'))
+    return frozenset(routes)
+
+
 def validate_manifest(value):
     from .boat_venue_learning import _pin
     _need(type(value) is dict and set(value) == {'schema', 'dataset_pointer', 'readback',
@@ -47,10 +81,7 @@ def validate_manifest(value):
     _need(type(pointer) is dict and set(pointer) == {'schema', 'status', 'repository_id',
           'source_commit', 'dataset_path', 'dataset_sha256'}, 'DATASET_POINTER')
     _pin(pointer)
-    _need(pointer['dataset_sha256'] == DATASET_SHA and pointer['source_commit'] == DATASET_COMMIT,
-          'UNREVIEWED_DATASET')
-    expected = dict(run_id=READBACK_RUN, run_attempt=1, job_id=READBACK_JOB,
-                    head_sha=READBACK_HEAD, metadata_sha256=METADATA_SHA, log_sha256=LOG_SHA)
+    expected = _witness(pointer)['readback']
     _need(type(value['readback']) is dict and value['readback'] == expected, 'UNREVIEWED_READBACK')
     return deepcopy(value)
 
@@ -63,11 +94,12 @@ def _take(value, names):
 def verify_readback(manifest, run, jobs, log, *, now):
     """Authenticate actual API responses; mutable embedded PR heads are omitted."""
     validate_manifest(manifest)
+    witness = _witness(manifest['dataset_pointer'])['readback']
     _need(type(now) is datetime and now.utcoffset() is not None, 'PHYSICAL_CLOCK')
     _need(type(jobs) is dict and type(jobs.get('jobs')) is list and
           type(jobs.get('total_count')) is int and jobs['total_count'] == len(jobs['jobs']) <= 100,
           'ACTUAL_JOBS')
-    found = [job for job in jobs['jobs'] if type(job) is dict and job.get('id') == READBACK_JOB]
+    found = [job for job in jobs['jobs'] if type(job) is dict and job.get('id') == witness['job_id']]
     _need(len(found) == 1, 'READBACK_JOB')
     job = found[0]
     run_part = _take(run, ('id', 'workflow_id', 'path', 'event', 'head_sha', 'head_branch', 'run_attempt'))
@@ -94,11 +126,11 @@ def verify_readback(manifest, run, jobs, log, *, now):
                       run=run_part, job=job_part, required_steps=required)
     # This literal reviewed projection binds repo/owner/HEAD/attempt/job and all
     # required statuses/times. A success-only or operator-supplied receipt fails.
-    _need(digest(projection) == METADATA_SHA, 'READBACK_METADATA_MISMATCH')
-    _need(type(log) is bytes and 0 < len(log) <= 2*1024*1024 and sha256(log).hexdigest() == LOG_SHA,
+    _need(digest(projection) == witness['metadata_sha256'], 'READBACK_METADATA_MISMATCH')
+    _need(type(log) is bytes and 0 < len(log) <= 2*1024*1024 and sha256(log).hexdigest() == witness['log_sha256'],
           'READBACK_LOG_MISMATCH')
     _need(stamp(job_part['completed_at']) <= now, 'READBACK_FROM_FUTURE')
-    return dict(metadata_sha256=METADATA_SHA, log_sha256=LOG_SHA,
+    return dict(metadata_sha256=witness['metadata_sha256'], log_sha256=witness['log_sha256'],
                 completed_at=job_part['completed_at'], projection=projection)
 
 
@@ -107,20 +139,21 @@ def prepare_capability(manifest, folder, repo, *, gh, clock, run_id, head_sha, r
     from .boat_venue_dataset import readback_dataset, _manifest, _sha
     from .permissioned_source_delivery import read_json_bytes
     _key(key); validate_manifest(manifest)
+    row = _witness(manifest['dataset_pointer']); witness = row['readback']
     started = clock()
     def read(path, limit):
         raw = gh(path)
         _need(type(raw) is bytes and 0 < len(raw) <= limit, 'GITHUB_READ_BOUND')
         return raw
-    run = read_json_bytes(read(f'actions/runs/{READBACK_RUN}/attempts/1', 2*1024*1024))
-    jobs = read_json_bytes(read(f'actions/runs/{READBACK_RUN}/attempts/1/jobs?per_page=100', 8*1024*1024))
-    log = read(f'actions/jobs/{READBACK_JOB}/logs', 2*1024*1024)
+    run = read_json_bytes(read(f'actions/runs/{witness["run_id"]}/attempts/1', 2*1024*1024))
+    jobs = read_json_bytes(read(f'actions/runs/{witness["run_id"]}/attempts/1/jobs?per_page=100', 8*1024*1024))
+    log = read(f'actions/jobs/{witness["job_id"]}/logs', 2*1024*1024)
     proof = verify_readback(manifest, run, jobs, log, now=started)
     report = readback_dataset(manifest['dataset_pointer'], folder, repo)
     _need(type(report) is dict and report.get('status') == 'ENCRYPTED_ALL_VENUE_GRID_READBACK_VERIFIED' and
           report.get('plaintext_published') is False and
           (report.get('verified_cells'), report.get('known_racers'), report.get('venues'), report.get('source_days')) ==
-          (63432, 2643, 24, 7963), 'DATASET_RESTORE_NOT_READY')
+          (63432, 2643, 24, row['source_days']), 'DATASET_RESTORE_NOT_READY')
     raw, state = _manifest(folder)
     _need(_sha(raw) == manifest['dataset_pointer']['dataset_sha256'], 'RESTORED_DATASET_CHANGED')
     verified = clock()
@@ -150,9 +183,10 @@ def _mac(data, key):
 
 def seal_capability(manifest, proof, folder, *, available_at, verified_at, run_id, head_sha, round_no, key):
     validate_manifest(manifest)
+    witness = _witness(manifest['dataset_pointer'])['readback']
     _need(type(proof) is dict and set(proof) == {'metadata_sha256', 'log_sha256', 'completed_at', 'projection'} and
-          proof['metadata_sha256'] == digest(proof['projection']) == METADATA_SHA and
-          proof['log_sha256'] == LOG_SHA and
+          proof['metadata_sha256'] == digest(proof['projection']) == witness['metadata_sha256'] and
+          proof['log_sha256'] == witness['log_sha256'] and
           proof['completed_at'] == proof['projection']['job']['completed_at'], 'READBACK_PROOF')
     _need(type(run_id) is str and re.fullmatch('[1-9][0-9]{0,19}', run_id) and
           type(head_sha) is str and re.fullmatch('[a-f0-9]{40}', head_sha) and
@@ -306,9 +340,11 @@ def prospective_requests(requests, *, now):
         _need(type(audit) is dict and audit.get('schema') == 'RACE_AI_PROSPECTIVE_BOAT_GRID_NATIVE_EVIDENCE_V1',
               'CARRIER_GRID_EVIDENCE')
         manifest = validate_manifest(audit.get('manifest'))
+        witness = _witness(manifest['dataset_pointer'])['readback']
         proof = audit.get('readback_proof')
         _need(type(proof) is dict and set(proof) == {'metadata_sha256', 'log_sha256', 'completed_at', 'projection'} and
-              proof['metadata_sha256'] == digest(proof['projection']) == METADATA_SHA and proof['log_sha256'] == LOG_SHA and
+              proof['metadata_sha256'] == digest(proof['projection']) == witness['metadata_sha256'] and
+              proof['log_sha256'] == witness['log_sha256'] and
               proof['completed_at'] == proof['projection']['job']['completed_at'] and
               audit.get('dataset_pointer') == manifest['dataset_pointer'],
               'CARRIER_GRID_PROOF')
