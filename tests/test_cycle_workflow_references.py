@@ -228,6 +228,17 @@ class WorkflowReferencesTest(unittest.TestCase):
             self.assertLess(text.index('scripts.boat_prospective_forward preload'),text.index(name))
             self.assertLess(text.index(name),text.index('uses: ./.github/actions/existing-model-round'))
         self.assertIn("steps.ready.outputs.active == 'true' && inputs.prospective-grid-input == ''",action)
+        discovery=next(step for step in re.split(r'^    - name: ',action,flags=re.MULTILINE)
+                       if step.startswith('Discover and forecast missing future P0'))
+        condition=next(line.strip() for line in discovery.splitlines() if line.strip().startswith('if:'))
+        self.assertEqual(condition,"if: steps.ready.outputs.active == 'true' && env.RACE_AI_FORWARD_REQUEST == ''")
+        self.assertNotIn('inputs.prospective-grid-input',condition)
+        # Normal and the pre-existing explicit-grid caller both have no new
+        # request. Only the new research request suppresses P0 supplementation.
+        for grid_input,request,expected in (('','',True),('legacy-grid.json','',True),
+                                         ('research-grid.json','strict-request.json',False)):
+            with self.subTest(grid_input=grid_input,request=request):
+                self.assertEqual(request=='',expected)
         gate=next(step for step in re.split(r'(?=^    - name: )',action,flags=re.MULTILINE)
                   if step.startswith('    - name: Require exact prospective native carrier readback'))
         changed=action.replace(gate,gate.replace(" && env.RACE_AI_FORWARD_REQUEST != ''",''),1)
