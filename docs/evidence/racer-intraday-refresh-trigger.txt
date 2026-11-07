@@ -1,2 +1,1 @@
-2026-11-08: match retained official BOAT settlements against existing saved forecasts; restore existing namespace, no initialization.
-Runtime: b98f4e9f74bdeb9985c0086ce0a81e479919e988
+2026-11-08: verify the private result viewer after successful result-only catch-up; retain existing state and report safe failure locations only.
