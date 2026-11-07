@@ -9,6 +9,8 @@ let browser,server;
 import sys,json
 from copy import deepcopy
 from pathlib import Path
+import race_ai
+race_ai.__path__.extend(str(Path(reference)/'race_ai') for reference in ('pr64-reference','pr72-reference'))
 from tests.test_boat_pdca_github_handoff import invented_research_state
 from race_ai.boat_pdca_state import PdcaState,sha
 from race_ai.boat_history_store import wire
@@ -27,6 +29,7 @@ def store(result,commit):
 def day(day):
  v=json.loads(json.dumps(seed).replace('2026-11-06',day).replace('20261106',day.replace('-','')))
  v['records'][0]['venue']='架空履歴場'+day;v['records'][0]['saved_prediction_evidence']={}
+ v['records'][0].update(result=None,result_observations=[],result_observation_rejections=[],result_revisions=[])
  return v
 def save(name,raw):
  ident=sha(raw);(p/(name+'.json')).write_bytes(raw);(p/(name+'-latest.json')).write_text(wire(dict(header=json.loads(raw)['header'],cipher_sha256=ident)))
@@ -62,7 +65,7 @@ save('dec-omitted',H.encrypt_history_router(bad_dec,key,view_id=vid,source_sha=p
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
  const page=await browser.newPage({viewport:{width:390,height:844}});page.setDefaultTimeout(10000);page.on('pageerror',error=>errors.push(error.message));page.on('request',request=>requests.push({url:request.url(),headers:request.headers()}));
- await page.route('https://raw.githubusercontent.com/haji84/RACE-AI/**',async route=>{
+ const routeSaved=async route=>{
   const pathname=new URL(route.request().url()).pathname,prefix='/haji84/RACE-AI/';let body;
   if(pathname===prefix+'state/boat-saved-view/latest.json')body=fs.readFileSync(path.join(dir,active+'-latest.json'));
   else if(pathname.startsWith(prefix+'state/boat-saved-view/views/')) {
@@ -76,9 +79,10 @@ save('dec-omitted',H.encrypt_history_router(bad_dec,key,view_id=vid,source_sha=p
    if(corruptCatalog&&(pathname.includes(expected.catalog.cipher_sha256)||pathname.includes(expected.revised_catalog.cipher_sha256)))body=Buffer.concat([body,Buffer.from(' ')]);
   }
   await route.fulfill({contentType:'application/json',headers:{'access-control-allow-origin':'*'},body});
- });
+ };
+ await page.route('https://raw.githubusercontent.com/haji84/RACE-AI/**',routeSaved);
  const fragment=fs.readFileSync(path.join(dir,'private/owner-url.txt'),'utf8').trim().split('#')[1],key=JSON.parse(fs.readFileSync(path.join(dir,'private/viewer.json'))).key;
- await page.clock.install({time:new Date('2026-11-06T04:00:00Z')});await page.goto('http://127.0.0.1:'+server.address().port+'/#'+fragment);
+ await page.clock.install({time:new Date('2026-11-06T00:00:00Z')});await page.goto('http://127.0.0.1:'+server.address().port+'/#'+fragment);
  await page.waitForFunction(()=>document.querySelector('#saved-view-sync')?.dataset.generation==='1');
  await page.evaluate(()=>{const api=window.SavedViewCrypto;window.__historyChecks=0;window.__dateReads=[];window.SavedViewCrypto={...api,readLive:async(...args)=>{try{return await api.readLive(...args);}finally{window.__historyChecks++;}},readDay:async(...args)=>{try{const value=await api.readDay(...args);window.__dateReads.push([args[2],'success']);return value;}catch(error){window.__dateReads.push([args[2],'failed']);throw error;}}};});
  async function tick(){const before=await page.evaluate(()=>window.__historyChecks);await page.clock.fastForward(61000);await page.waitForFunction(before=>window.__historyChecks>before,before);}
@@ -87,6 +91,7 @@ save('dec-omitted',H.encrypt_history_router(bad_dec,key,view_id=vid,source_sha=p
   await page.evaluate(day=>{const input=document.querySelector('#selected-date');input.value=day;input.dispatchEvent(new Event('change',{bubbles:true}));document.activeElement?.blur();},day);
   await page.waitForFunction(({day,count})=>window.__dateReads.slice(count).some(value=>value[0]===day),{day,count});
  }
+ await page.locator('[data-race-view="results"]').click();
  await page.locator('#page-races [data-open-race]').first().click();await page.locator('#prediction-select').selectOption('2');
  await page.locator('[data-page="picks"]').filter({visible:true}).first().click();await page.locator('#copy-top8').click();
  await page.locator('#ticket-list .ticket-amount').first().fill('200');await page.locator('#ticket-list .ticket-amount').first().dispatchEvent('change');
@@ -126,11 +131,45 @@ save('dec-omitted',H.encrypt_history_router(bad_dec,key,view_id=vid,source_sha=p
  assert.equal(await page.locator('#selected-date').inputValue(),'2026-12-01');
  corruptCatalog=false;await chooseDay('2026-11-06');await page.waitForFunction(()=>document.querySelector('#source-date').textContent.includes('2026-11-06'));
  assert.equal(await page.locator('#results-model').inputValue(),group);assert.equal(await page.locator('#simulation-budget').inputValue(),'5000');
- await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('#page-races [data-open-race]').first().click();assert.equal(await page.locator('#prediction-select').inputValue(),'2');
+ await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('[data-race-view="results"]').click();await page.locator('#page-races [data-open-race]').first().click();assert.equal(await page.locator('#prediction-select').inputValue(),'2');
  await page.locator('[data-page="picks"]').filter({visible:true}).first().click();assert.equal(await page.locator('#ticket-list .ticket-amount').count(),8);assert.equal(await page.locator('#ticket-list .ticket-amount').first().inputValue(),'200');
  assert.equal((await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}))).includes(key),false);assert.equal(requests.some(request=>JSON.stringify(request).includes(key)),false);assert.deepEqual(errors,[]);
  await page.locator('[data-page="settings"]').filter({visible:true}).first().click();await page.locator('#data-tools > summary').click();await page.locator('#clear-data').click();
  assert.equal(await page.locator('[data-result-refresh]').first().isDisabled(),true,'clearing the view must disable its result refresh control');
  assert.equal(await page.locator('#period-all').isDisabled(),false,'leaving history restores ordinary import period controls');
+ // The static encrypted seed is older than the live feed. Opening the site on
+ // November 7 must reveal that day's already-saved originals without a date edit.
+ const current=await browser.newPage({viewport:{width:390,height:844}});
+ current.on('pageerror',error=>errors.push(error.message));
+ await current.route('https://raw.githubusercontent.com/haji84/RACE-AI/**',routeSaved);
+ await current.clock.install({time:new Date('2026-11-07T00:00:00Z')});
+ active='nov';
+ await current.goto('http://127.0.0.1:'+server.address().port+'/#'+fragment);
+ await current.waitForFunction(()=>document.querySelector('#saved-view-sync')?.dataset.generation==='2');
+ assert.equal(await current.locator('#selected-date').inputValue(),'2026-11-07','initial live sync must display today instead of pinning the old seed day');
+ assert.equal(await current.locator('#source-date').textContent(),'対象日：2026-11-07');
+ assert.ok(await current.locator('#page-races [data-open-race]').count()>0,'today must expose the saved race cards');
+ await current.locator('#selected-date').fill('2026-11-06');await current.locator('#selected-date').dispatchEvent('change');
+ await current.waitForFunction(()=>document.querySelector('#source-date').textContent==='対象日：2026-11-06');
+ await current.clock.fastForward(61000);
+ assert.equal(await current.locator('#selected-date').inputValue(),'2026-11-06','automatic checks must preserve an explicitly selected historical date');
+ await current.close();
+ for(const scenario of ['late-publication','midnight']) {
+  const live=await browser.newPage({viewport:{width:390,height:844}});
+  live.on('pageerror',error=>errors.push(error.message));
+  await live.route('https://raw.githubusercontent.com/haji84/RACE-AI/**',routeSaved);
+  await live.clock.install({time:new Date(scenario==='midnight'?'2026-11-06T00:00:00Z':'2026-11-07T00:00:00Z')});
+  active=scenario==='midnight'?'nov':'v4';
+  await live.goto('http://127.0.0.1:'+server.address().port+'/#'+fragment);
+  await live.waitForFunction(expected=>document.querySelector('#saved-view-sync')?.dataset.generation===expected,scenario==='midnight'?'2':'1');
+  assert.equal(await live.locator('#selected-date').inputValue(),'2026-11-06','missing or future dates must not displace the available current view');
+  if(scenario==='midnight')await live.clock.setSystemTime(new Date('2026-11-07T00:00:00Z'));
+  active='nov';await live.clock.fastForward(61000);
+  await live.waitForFunction(()=>document.querySelector('#selected-date').value==='2026-11-07');
+  assert.equal(await live.locator('#source-date').textContent(),'対象日：2026-11-07',scenario+' must show today after synchronization');
+  assert.ok(await live.locator('#page-races [data-open-race]').count()>0,scenario+' switches to the upcoming list');
+  await live.close();
+ }
+ assert.deepEqual(errors,[]);
  console.log('PASS bounded owner history: V4->V5, two months, pinned encrypted archives/date selection, omitted originals/corrupt index/missing day held, model/budget/draft preserved, no key requests/storage');
 })().catch(error=>{console.error(error);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();if(server)await new Promise(resolve=>server.close(resolve));fs.rmSync(dir,{recursive:true,force:true});});

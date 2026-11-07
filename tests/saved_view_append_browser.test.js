@@ -9,6 +9,8 @@ let browser,server;
 import sys,json,os,base64
 from copy import deepcopy
 from pathlib import Path
+import race_ai
+race_ai.__path__.extend(str(Path(reference)/'race_ai') for reference in ('pr64-reference','pr72-reference'))
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from tests.test_boat_pdca_github_handoff import invented_research_state
 from tests.test_boat_pdca_state import result
@@ -74,7 +76,7 @@ for view in (second,third):
   await route.fulfill({contentType:'application/json',headers:{'access-control-allow-origin':'*'},body});
  });
  const fragment=fs.readFileSync(path.join(dir,'private/owner-url.txt'),'utf8').trim().split('#')[1],key=JSON.parse(fs.readFileSync(path.join(dir,'private/viewer.json'))).key;
- await page.clock.install({time:new Date('2026-11-06T04:00:00Z')});await page.goto('http://127.0.0.1:'+server.address().port+'/#'+fragment);
+ await page.clock.install({time:new Date('2026-11-06T00:00:00Z')});await page.goto('http://127.0.0.1:'+server.address().port+'/#'+fragment);
  await page.waitForFunction(()=>document.querySelector('#saved-view-sync')?.dataset.generation==='1');
  await page.evaluate(()=>{const api=window.SavedViewCrypto;window.__savedFeedChecks=0;window.SavedViewCrypto={...api,readLive:async(...args)=>{try{return await api.readLive(...args);}finally{window.__savedFeedChecks++;}}};});
  async function tick(){const previous=await page.evaluate(()=>window.__savedFeedChecks);await page.clock.fastForward(61000);await page.waitForFunction(previous=>window.__savedFeedChecks>previous,previous);}

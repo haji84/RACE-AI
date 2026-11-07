@@ -39,10 +39,12 @@
       "style.css",
       "ui-model.js"
     ],
+    "current_day_reader_preserved": true,
+    "current_day_source_commit": "2f318969ca25ee8a3c796d1364e986c0882db2bc",
     "frozen_product_data_changed": false,
     "frozen_saved_performance_changed": false,
-    "pages_commit": "f590fb6c0120403014de4f477e7a68b1791554a6",
-    "public_app_sha256_before": "769ea500de4d1787858137bba61f265d02812d16262f4e812587506a8fc065ed",
+    "pages_commit": "1297f884d9d88536aa15a7d4afaf8a49b6de30bd",
+    "public_app_sha256_before": "8dca67e0c0ab5c29e407c9f26bb3806b18494aa2815299fcfdf7604a04602c0f",
     "rendered_original_index_exact": true,
     "result_wording_only_delta": true,
     "source_commit": "6582e6d9f5cff00cb619f8d12d0ce9b24e161dce"
