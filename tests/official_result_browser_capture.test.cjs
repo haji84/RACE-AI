@@ -118,6 +118,31 @@ test('live request clock cannot regress behind the authenticated epoch',enabled,
  const value={...plan([auto]),not_before:'2030-01-01T03:00:00.000001Z'};
  assert.throws(()=>api.requireCurrentClock(value,NOW));assert.doesNotThrow(()=>api.requireCurrentClock(value,new Date('2030-01-01T03:00:00.001Z')));
 });
+test('AUTO historical result navigation uses the published exact date control and holds when absent',enabled,async()=>{
+ const item={...auto,expected_date:'2029-12-31',race_id:'autorace:2029-12-31:isesaki:2',due_at:'2029-12-31T11:30:00+09:00'};
+ api.validatePlan(plan([item]),NOW);
+ const calls=[];let visible=true;
+ const page={url:()=>auto.ui_entry_url,waitForLoadState:async()=>{},goto:async()=>assert.fail('guessed endpoint'),locator(selector){
+  const locator={last(){return locator;},waitFor:async()=>{if(selector.includes('data-period-date')&&!visible)throw Error('published date unavailable');},
+   count:async()=>1,isVisible:async()=>true,innerText:async()=>selector.includes('data-period-date')?'12月31日':selector.includes('data-raceno')?'2R':'レース結果',
+   click:async()=>calls.push(selector)};return locator;
+ }};
+ await api.selectAutoCase(page,item,[]);assert.equal(calls.length,3);assert.match(calls[0],/data-period-date="2029-12-31"/);
+ visible=false;calls.length=0;await assert.rejects(api.selectAutoCase(page,item,[]),/published date unavailable/);assert.equal(calls.length,0);
+});
+test('KEIRIN historical result navigation requires a visible date and exact returned full date',enabled,async()=>{
+ const item={...keirin,expected_date:'2029-12-31',race_id:'keirin:2029-12-31:keirin-jyo-48:2',due_at:'2029-12-31T11:30:00+09:00'};
+ api.validatePlan(plan([item]),NOW);
+ const calls=[];let value='20300101',visible=true,popup;
+ function locator(selector,detail=false){const row={filter(){return row;},count:async()=>selector.includes('hhlnkRaceDate')&&!visible?0:1,isVisible:async()=>true,
+  inputValue:async()=>selector==='#hhSelJ'?'48':value,innerText:async()=>selector.includes('hhlnkRaceDate')?'12/31':selector==='#hhbtnResultList'?'結果一覧':selector==='#rcbtn8'?'競走結果':selector==='#hhLblRaceDtl'?'2R 競走':'2R',
+  click:async()=>{calls.push(selector);if(selector.includes('hhlnkRaceDate'))value='20291231';if(selector==='#hhRaceBtn2')popup(detailPage);}};return row;}
+ const detailPage={url:()=> 'https://keirin.jp/pc/racelive',waitForLoadState:async()=>{},locator:selector=>locator(selector,true)};
+ const page={url:()=> 'https://keirin.jp/pc/racelist',waitForLoadState:async()=>{},on:(_event,fn)=>{popup=fn;},off:()=>{},
+  goto:async()=>assert.fail('guessed endpoint'),locator:selector=>locator(selector)};
+ assert.equal(await api.selectKeirinCase(page,item,[]),detailPage);assert.equal(value,'20291231');assert.equal(calls[0],'[name="hhlnkRaceDate"]');
+ value='20300101';visible=false;calls.length=0;await assert.rejects(api.selectKeirinCase(page,item,[]),/VISIBLE_UI_CONTROL/);assert.equal(calls.length,0);
+});
 test('optional recovery expiry rejects every dispatch at deadline including after spacing',enabled,async()=>{
  const deadline='2030-01-01T03:00:00.500Z',value={...plan([auto]),not_before:NOW.toISOString(),not_after:deadline};
  assert.equal(api.validatePlan(value,NOW).not_after,deadline);

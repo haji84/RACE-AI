@@ -8,7 +8,7 @@ import argparse
 import base64
 from collections import Counter
 from copy import deepcopy
-from datetime import datetime,timedelta,timezone
+from datetime import datetime,timedelta,timezone,date
 from hashlib import sha256
 import json
 import io
@@ -42,10 +42,12 @@ from scripts.boat_history_collect import save
 ROOT=Path(__file__).resolve().parents[1]
 SCHEMA='RACE_AI_OFFICIAL_RESULT_COLLECT_INPUT_V1'
 SCHEMA_V2='RACE_AI_OFFICIAL_RESULT_COLLECT_INPUT_V2'
+SCHEMA_V3='RACE_AI_OFFICIAL_RESULT_COLLECT_INPUT_V3'
 PLAN='RACE_AI_OFFICIAL_RESULT_COLLECTION_PLAN_V1'
 STATUS='RACE_AI_OFFICIAL_RESULT_COLLECTION_COUNTS_V1'
 JOURNAL='RACE_AI_OFFICIAL_RESULT_COLLECTION_JOURNAL_V1'
 JOURNAL_V2='RACE_AI_OFFICIAL_RESULT_COLLECTION_JOURNAL_V2'
+JOURNAL_V3='RACE_AI_OFFICIAL_RESULT_COLLECTION_JOURNAL_V3'
 ROUND=freeze.ROUND
 MAX_BYTES=2*1024*1024
 INTERVAL=.825
@@ -77,20 +79,31 @@ def _manifest(value,now):
     need(type(now) is datetime and now.utcoffset() is not None,'AWARE_CLOCK')
     fields={'schema','execution_day','plan_path','plan_sha256','native_artifacts','checkpoint_artifacts','allow_order_only'}
     need(type(value) is dict and (value.get('schema')==SCHEMA and set(value)==fields or
-        value.get('schema')==SCHEMA_V2 and set(value)==fields|{'prior_journal_artifacts'}),'MANIFEST_SCHEMA')
+        value.get('schema')==SCHEMA_V2 and set(value)==fields|{'prior_journal_artifacts'} or
+        value.get('schema')==SCHEMA_V3 and set(value)==fields|{'prior_journal_artifacts','target_event_day'}),'MANIFEST_SCHEMA')
     need(value['execution_day']==now.astimezone(JST).date().isoformat() and
         type(value['allow_order_only']) is bool,'EXECUTION_DAY_OR_MODE')
+    if value['schema']==SCHEMA_V3:
+        try:
+            target=value['target_event_day'];valid=type(target) is str and date.fromisoformat(target).isoformat()==target
+            age=(date.fromisoformat(value['execution_day'])-date.fromisoformat(target)).days if valid else -1
+        except ValueError:age=-1
+        need(1<=age<=7,'HISTORICAL_TARGET_DAY')
     hashed=value['plan_sha256']
     need(type(hashed) is str and re.fullmatch('[a-f0-9]{64}',hashed) and
         value['plan_path']=='audit/state/official-result-collection-plan-'+hashed+'.enc','PLAN_CIPHER_PATH')
     natives=_pins(value['native_artifacts']);checkpoints=_pins(value['checkpoint_artifacts'],empty=True)
-    journals=_pins(value['prior_journal_artifacts'],empty=True) if value['schema']==SCHEMA_V2 else set()
+    journals=_pins(value['prior_journal_artifacts'],empty=True) if value['schema'] in (SCHEMA_V2,SCHEMA_V3) else set()
     need(not natives&checkpoints and not journals&(natives|checkpoints) and
         len(natives)+len(checkpoints)+len(journals)<=32,'ARTIFACT_PIN_CONFLICT')
     return value
 
 
 def load_manifest(path,*,now):return _manifest(read_json_bytes(_read(Path(path),32768)),now)
+
+def target_event_day(manifest):return manifest['target_event_day'] if manifest['schema']==SCHEMA_V3 else manifest['execution_day']
+
+def journal_schema(manifest):return JOURNAL_V3 if manifest['schema']==SCHEMA_V3 else JOURNAL_V2 if manifest['schema']==SCHEMA_V2 else JOURNAL
 
 
 def load_plan(manifest,*,key,now):
@@ -99,7 +112,7 @@ def load_plan(manifest,*,key,now):
     value=open_forecasts(raw,key=key)
     fields={'schema','execution_day','cases','terms_manifest','maximum_requests','result_wait_seconds'}
     need(type(value) is dict and fields<=set(value)<=fields|{'static_cache'} and value['schema']==PLAN and
-        value['execution_day']==manifest['execution_day'] and len(future.wire(value))<=MAX_PLAIN,'PLAN_SCHEMA')
+        value['execution_day']==target_event_day(manifest) and len(future.wire(value))<=MAX_PLAIN,'PLAN_SCHEMA')
     need(type(value['maximum_requests']) is int and 1<=value['maximum_requests']<=32 and
         type(value['result_wait_seconds']) is int and 120<=value['result_wait_seconds']<=3600 and
         type(value['cases']) is list and 1<=len(value['cases'])<=32,'PLAN_BOUND')
@@ -189,9 +202,10 @@ def _journal_cipher(raw):
 def _journal_origin(cipher,*,key,run_id,head_sha,now,saved_at=None):
     header=forecast_header(cipher);body=open_forecasts(cipher,key=key)
     need(header['run_id']==str(run_id) and header['round_no']==900006 and
-        body.get('schema')==JOURNAL_V2,'PRIOR_JOURNAL_ORIGIN_NOT_REPLAYABLE')
+        body.get('schema') in (JOURNAL_V2,JOURNAL_V3),'PRIOR_JOURNAL_ORIGIN_NOT_REPLAYABLE')
     fields={'schema','execution_day','manifest_sha256','maximum_requests','epoch_started_at','attempts','captures','cases',
         'manifest','workflow_run_id','code_sha','collection_plan_sha256'}
+    if body.get('schema')==JOURNAL_V3:fields=fields|{'target_event_day'}
     need(fields<=set(body)<=fields|{'browser_attempt','browser_index','browser_captures','browser_request_checkpoint',
         'browser_process_diagnostic','browser_failure','browser_quarantine','recovery_authorization'} and
         type(body['workflow_run_id']) is int and body['workflow_run_id']==run_id and body['code_sha']==head_sha,
@@ -199,7 +213,9 @@ def _journal_origin(cipher,*,key,run_id,head_sha,now,saved_at=None):
     epoch=stamp(body['epoch_started_at']);original=_manifest(body['manifest'],epoch)
     need(epoch<=now and (saved_at is None or epoch<=saved_at+timedelta(seconds=1)) and
         body['execution_day']==original['execution_day'] and body['manifest_sha256']==digest(original) and
-        original['schema']==SCHEMA_V2 and body['collection_plan_sha256']==original['plan_sha256'] and
+        original['schema'] in (SCHEMA_V2,SCHEMA_V3) and body['schema']==journal_schema(original) and
+        (original['schema']!=SCHEMA_V3 or body['target_event_day']==original['target_event_day']) and
+        body['collection_plan_sha256']==original['plan_sha256'] and
         type(body['maximum_requests']) is int and 1<=body['maximum_requests']<=32 and
         type(body['attempts']) is list and len(body['attempts'])<=body['maximum_requests'] and
         type(body['captures']) is list and type(body['cases']) is list and len(body['cases'])<=32,
@@ -235,7 +251,7 @@ def _journal_artifact(pin,*,now,key):
 
 def prior_journals(manifest,*,now,key,recovery_authorization=None):
     """Guard only explicitly pinned epochs; never infer that unlisted history is safe."""
-    if manifest['schema']!=SCHEMA_V2:return {}
+    if manifest['schema'] not in (SCHEMA_V2,SCHEMA_V3):return {}
     receipts=[];latest=None
     for pin in manifest['prior_journal_artifacts']:
         body,cipher,actual=_journal_artifact(pin,now=now,key=key);epoch=stamp(body['epoch_started_at'])
@@ -289,10 +305,13 @@ def prior_journals(manifest,*,now,key,recovery_authorization=None):
 
 
 def _lineage(manifest):
-    return dict(collection_plan_sha256=manifest['plan_sha256'],manifest_sha256=digest(manifest),
+    value=dict(collection_plan_sha256=manifest['plan_sha256'],manifest_sha256=digest(manifest),
         native_artifact_pins_sha256=digest(manifest['native_artifacts']),
         checkpoint_artifact_pins_sha256=digest(manifest['checkpoint_artifacts']),
         native_input_artifact_count=len(manifest['native_artifacts']),allow_order_only=manifest['allow_order_only'])
+    if manifest['schema']==SCHEMA_V3:value.update(execution_day=manifest['execution_day'],target_event_day=manifest['target_event_day'],
+        collection_mode='HISTORICAL_RESULT_LABELS_ONLY')
+    return value
 
 
 class Budget:
@@ -616,7 +635,7 @@ def _status(journal,manifest,*,ready=False,state='NO_NEW_AUTHENTICATED_RESULTS')
     counts=Counter(c['state'] for c in journal['cases']);attempts=journal['attempts']
     browser=journal.get('browser_attempt')
     uncertain=browser is not None and browser['state']=='RESERVED'
-    if manifest['schema']==SCHEMA_V2:uncertain=uncertain or any(a['state']=='RESERVED' for a in attempts)
+    if manifest['schema'] in (SCHEMA_V2,SCHEMA_V3):uncertain=uncertain or any(a['state']=='RESERVED' for a in attempts)
     requests=len(attempts)+(browser.get('actual_request_count',0) if browser else 0)
     sports={case['sport'] for case in journal['cases']};normal={sport:0 for sport in sports}
     for case in journal['cases']:
@@ -637,7 +656,9 @@ def _status(journal,manifest,*,ready=False,state='NO_NEW_AUTHENTICATED_RESULTS')
 
 
 def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,browser=browser_capture,recovery_authorization=None):
-    key=state_key('production');now=clock();_manifest(manifest,now);plan=load_plan(manifest,key=key,now=now)
+    key=state_key('production');now=clock();_manifest(manifest,now)
+    need(manifest['schema']!=SCHEMA_V3 or recovery_authorization is not None,'HISTORICAL_REVIEWED_AUTHORITY_REQUIRED')
+    plan=load_plan(manifest,key=key,now=now)
     recovery=None
     if recovery_authorization is not None:
         from race_ai.all_existing_model_official_recovery import ValidatedRecovery
@@ -662,16 +683,17 @@ def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,bro
     work=root.with_name(root.name+'.work');need(not work.exists(),'UNCERTAIN_PRIOR_EPOCH_DO_NOT_RESET');work.mkdir(mode=0o700)
     journal=dict(schema=JOURNAL,execution_day=manifest['execution_day'],manifest_sha256=digest(manifest),
         maximum_requests=plan['maximum_requests'],epoch_started_at=now.isoformat(),attempts=[],captures=[],cases=[])
-    if manifest['schema']==SCHEMA_V2:
-        journal.update(schema=JOURNAL_V2,manifest=deepcopy(manifest),workflow_run_id=env['run_id'],
+    if manifest['schema'] in (SCHEMA_V2,SCHEMA_V3):
+        journal.update(schema=journal_schema(manifest),manifest=deepcopy(manifest),workflow_run_id=env['run_id'],
             code_sha=env['head_sha'],collection_plan_sha256=manifest['plan_sha256'])
+    if manifest['schema']==SCHEMA_V3:journal['target_event_day']=manifest['target_event_day']
     if recovery is not None:journal['recovery_authorization']=deepcopy(recovery)
     journal_path=root.with_name(root.name+'.collection.enc')
     def persist():save(journal_path,seal_forecasts(journal,run_id=str(env['run_id']),round_no=900006,key=key),replace=journal_path.exists())
     budget=Budget(plan['maximum_requests'],journal,persist,clock,sleeper,opener);due=[]
     for case in plan['cases']:
         identity=(case['sport'],_race_key(case['race_id'],case['sport']));native=known.get(identity)
-        need(native is not None and native['snapshot']['race']['event_date_jst']==manifest['execution_day'],'CASE_WITHOUT_NATIVE_INPUT')
+        need(native is not None and native['snapshot']['race']['event_date_jst']==target_event_day(manifest),'CASE_WITHOUT_NATIVE_INPUT')
         race=native['snapshot']['race'];cutoff=stamp(race['sales_cutoff_at'])
         entry=dict(sport=case['sport'],race_id=case['race_id'],state='NOT_DUE');journal['cases'].append(entry)
         old=previous.get(identity)
@@ -722,6 +744,9 @@ def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,bro
             browser_plan=dict(schema='RACE_AI_OFFICIAL_RESULT_BROWSER_PLAN_V1',cases=browser_cases,request_budget=remaining,
                 not_before=now.isoformat())
             if recovery is not None:browser_plan['not_after']=recovery['expires_at']
+            if manifest['schema']==SCHEMA_V3:
+                midnight=datetime.fromisoformat(manifest['execution_day']).replace(tzinfo=JST)+timedelta(days=1)
+                browser_plan['not_after']=min(midnight,stamp(browser_plan.get('not_after',midnight.isoformat()))).isoformat()
             if 'static_cache' in plan:
                 sports={case['sport'] for case in browser_cases}
                 browser_plan['static_cache']=[entry for entry in plan['static_cache']
@@ -771,7 +796,7 @@ def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,bro
         status=dict(_status(journal,manifest),**prior);status['collection_journal_sha256']=sha256(_read(journal_path,MAX_WIRE)).hexdigest();return status
     generated=clock();need(generated.astimezone(JST).date().isoformat()==manifest['execution_day'],'DAY_ELAPSED')
     payload=results.build_result_payload(captures,observations,run_id=env['run_id'],code_sha=env['head_sha'],generated_at=generated,
-        day_jst=manifest['execution_day'],frozen_native_payloads=natives,allow_order_only=manifest['allow_order_only'])
+        day_jst=target_event_day(manifest),frozen_native_payloads=natives,allow_order_only=manifest['allow_order_only'])
     cipher=results.seal_results(payload,round_no=ROUND,frozen_native_payloads=natives,key=key,allow_order_only=manifest['allow_order_only'])
     need(freeze._local_payload(cipher,env,key=key)==payload,'LOCAL_ENCRYPTED_REPLAY')
     root.mkdir(mode=0o700,exist_ok=False);_write(root/'results.enc',cipher);need(freeze._private_local(root)==cipher,'LOCAL_READBACK')
@@ -794,7 +819,7 @@ def readback(ident,root,env,manifest,*,clock=utc_now):
     journal_path=root.with_name(root.name+'.collection.enc');_private_file(journal_path);journal_raw=_read(journal_path,MAX_WIRE)
     journal=open_forecasts(journal_raw,key=key);header=forecast_header(journal_raw)
     need(sha256(journal_raw).hexdigest()==previous.get('collection_journal_sha256') and header['run_id']==str(env['run_id']) and
-        header['round_no']==900006 and journal.get('schema')==(JOURNAL_V2 if manifest['schema']==SCHEMA_V2 else JOURNAL) and
+        header['round_no']==900006 and journal.get('schema')==journal_schema(manifest) and
         journal.get('manifest_sha256')==digest(manifest),
         'LOCAL_COLLECTION_JOURNAL')
     actual=future.metadata(ident);need(actual.get('id')==ident and actual.get('name')==
@@ -840,7 +865,7 @@ def main(argv=None):
         status.update(workflow_run_id=env['run_id'],expected_head_sha=env['head_sha'],artifact_name=
             f'all-existing-official-results-{env["run_id"]}-{ROUND}')
         manifest=load_manifest(args.input,now=utc_now())
-        if manifest['schema']==SCHEMA_V2:
+        if manifest['schema'] in (SCHEMA_V2,SCHEMA_V3):
             status['journal_artifact_name']='official-result-collection-journal-'+str(env['run_id'])
         if args.readback_journal_artifact is not None and args.readback_artifact is None:
             path=root.with_name(root.name+'.status.json')

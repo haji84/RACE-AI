@@ -93,7 +93,7 @@ def _admit(request,env,current,now,key):
     old=_api('actions/runs/'+str(recovery.OLD_RUN))
     prior_ids=sorted({pin['run_id'] for pin in request['manifest']['prior_journal_artifacts']}-{recovery.OLD_RUN})
     prior_runs=[_api('actions/runs/'+str(ident)) for ident in prior_ids]
-    if request['schema']=='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V2':
+    if recovery.is_continuation_request(request):
         return _admit_continuation(raw,request,env,current,first,old,prior_runs,now,key)
     auth=recovery.validate_capsule(raw,request=request,current_run=current,first_attempt=first,old_run=old,prior_runs=prior_runs,now=now,key=key)
     manifest=request['manifest'];pin=next(p for p in manifest['prior_journal_artifacts'] if p['id']==recovery.OLD_ARTIFACT)

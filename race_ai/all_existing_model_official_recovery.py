@@ -33,6 +33,9 @@ def clock(value):
     need(parsed.utcoffset() is not None,'AWARE_CLOCK');return parsed
 
 def validate_request(value,now):
+    if type(value) is dict and value.get('schema')=='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V3':
+        from .all_existing_model_official_historical import validate_request as historical_request
+        return historical_request(value,now)
     if type(value) is dict and value.get('schema')=='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V2':
         from .all_existing_model_official_continuation import validate_request as continuation_request
         return continuation_request(value,now)
@@ -51,6 +54,11 @@ def validate_request(value,now):
 def capsule_path(request,head_sha,run_id):
     need(type(head_sha) is str and re.fullmatch('[a-f0-9]{40}',head_sha) and type(run_id) is int and run_id>0,'TARGET')
     return 'recovery/official-results/'+digest(request)+'/'+head_sha+'/'+str(run_id)+'/2.enc'
+
+def is_continuation_request(request):
+    return request.get('schema')=='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V2' or (
+        request.get('schema')=='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V3' and
+        request.get('mode')=='FIXED_ATTEMPT_TWO_HISTORICAL_AFTER_VERIFIED_SAME_HOST_PROBE')
 
 def run_receipt(value):
     need(type(value) is dict and type(value.get('id')) is int and value['id']>0 and
@@ -92,13 +100,14 @@ def _evidence(raw,metadata,pin,now,key):
 
 def _plans(request,body,old,new):
     from .manual_official_capture import _url
+    from scripts.all_existing_model_official_result_collect import target_event_day
     original=body['manifest'];manifest=request['manifest']
     cache=old.get('static_cache');filtered=None if cache is None else [entry for entry in cache
         if _url(entry['metadata']['source_url'])[0]==request['probe_sport']]
     need(manifest['native_artifacts']==original['native_artifacts'] and len(manifest['native_artifacts'])==4 and
         all(p in manifest['checkpoint_artifacts'] for p in original['checkpoint_artifacts']) and
         all(p in manifest['prior_journal_artifacts'] for p in original['prior_journal_artifacts']),'ORIGINAL_PINS')
-    need(type(old) is dict and type(new) is dict and old.get('execution_day')==new.get('execution_day')==manifest['execution_day'] and
+    need(type(old) is dict and type(new) is dict and old.get('execution_day')==new.get('execution_day')==target_event_day(manifest) and
         old.get('schema')==new.get('schema')=='RACE_AI_OFFICIAL_RESULT_COLLECTION_PLAN_V1' and
         type(new.get('maximum_requests')) is int and new['maximum_requests']==8 and
         type(new.get('cases')) is list and len(new['cases'])==1 and
@@ -157,6 +166,9 @@ def issue_consume_capsule(data,key):
     _plans(request,oldbody,data['old_plan'],data['new_plan'])
     latest=max(*(clock(r['updated_at'])+timedelta(seconds=1) for r in prior_runs),clock(evidence['artifact_metadata']['created_at'])+timedelta(seconds=1))
     not_before=clock(data['not_before']);expires=clock(data['expires_at'])
+    if request['schema']=='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V3':
+        from .all_existing_model_official_historical import validate_window
+        validate_window(request,data['issued_at'],data['expires_at'])
     need(latest+timedelta(hours=1)<=not_before<=issued<expires<=issued+timedelta(hours=1),'RECOVERY_CLOCK')
     body=dict(schema=SCHEMA,state=STATE,request=request,request_sha256=digest(request),target=deepcopy(target),
         issued_at=data['issued_at'],not_before=data['not_before'],expires_at=data['expires_at'],old_journal=evidence,
@@ -195,6 +207,9 @@ def validate_capsule(raw,*,request,current_run,first_attempt,old_run,now,key,pri
     need(type(value) is dict and set(value)=={'schema','body','mac'} and value['schema']==SCHEMA and
         type(value['body']) is dict and type(value['mac']) is str and hmac.compare_digest(value['mac'],_mac(value['body'],key)),'CAPSULE_MAC')
     b=value['body'];target=b['target'];current=run_receipt(current_run)
+    if request['schema']=='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V3':
+        from .all_existing_model_official_historical import validate_window
+        validate_window(request,b['issued_at'],b['expires_at'])
     need(b['schema']==SCHEMA and b['state']==STATE and b['request']==request and b['request_sha256']==digest(request) and
         target==dict(head_sha=current['head_sha'],run_id=current['id'],run_attempt=current['run_attempt']) and
         target['run_attempt']==2 and current['status'] in ('in_progress','queued') and

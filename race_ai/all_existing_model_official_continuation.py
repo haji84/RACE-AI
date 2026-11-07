@@ -28,6 +28,9 @@ need=probe.need
 clock=probe.clock
 
 def validate_request(value,now):
+    if type(value) is dict and value.get('schema')=='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V3':
+        from .all_existing_model_official_historical import validate_request as historical,CONTINUATION_MODE
+        checked=historical(value,now);need(checked['mode']==CONTINUATION_MODE,'HISTORICAL_CONTINUATION_MODE');return checked
     fields={'schema','repository_id','pull_request','mode','probe_sport','old_journal_artifact_id','manifest',
         'probe_journal_artifact_id','probe_result_artifact_id','probe_request_sha256'}
     need(type(value) is dict and set(value)==fields and value['schema']==REQUEST and value['mode']==MODE,
@@ -136,8 +139,15 @@ def _completed_authority(raw,request,journal,journal_evidence,oldbody,old_eviden
         type(value['body']) is dict and type(value['mac']) is str and
         hmac.compare_digest(value['mac'],probe._mac(value['body'],key)),'ORIGINAL_PROBE_CAPSULE_MAC')
     b=value['body'];source_request=b['request'];target=b['target'];pin=journal_evidence['pin']
-    need(b['schema']==probe.SCHEMA and b['state']==probe.STATE and source_request['schema']==probe.REQUEST and
-        source_request['mode']==probe.MODE and digest(source_request)==request['probe_request_sha256']==b['request_sha256'] and
+    from .all_existing_model_official_historical import REQUEST as HISTORICAL,PROBE_MODE
+    source_probe=(source_request.get('schema')==probe.REQUEST and source_request.get('mode')==probe.MODE or
+        source_request.get('schema')==HISTORICAL and source_request.get('mode')==PROBE_MODE)
+    probe.validate_request(source_request,clock(journal['epoch_started_at']))
+    if source_request.get('schema')==HISTORICAL:
+        from .all_existing_model_official_historical import validate_window
+        validate_window(source_request,b['issued_at'],b['expires_at'])
+    need(b['schema']==probe.SCHEMA and b['state']==probe.STATE and source_probe and
+        digest(source_request)==request['probe_request_sha256']==b['request_sha256'] and
         source_request['probe_sport']==request['probe_sport'] and source_request['manifest']==journal['manifest'] and
         target==dict(run_id=pin['run_id'],head_sha=pin['head_sha'],run_attempt=2) and
         header['run_id']==str(pin['run_id']) and header['round_no']==probe.ROUND and b['old_journal']==old_evidence and
@@ -239,6 +249,9 @@ DATA_FIELDS={'request','target','issued_at','not_before','expires_at','old_run',
 def issue_consume_capsule(data,key):
     need(type(key) is bytes and len(key)==32 and type(data) is dict and set(data)==DATA_FIELDS,'CONTINUATION_ISSUE_FIELDS')
     now=clock(data['issued_at']);request=validate_request(data['request'],now);target=data['target']
+    if request['schema']=='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V3':
+        from .all_existing_model_official_historical import validate_window
+        validate_window(request,data['issued_at'],data['expires_at'])
     need(type(target) is dict and set(target)=={'head_sha','run_id','run_attempt'} and type(target['run_attempt']) is int and
         target['run_attempt']==2,'TARGET');probe.capsule_path(request,target['head_sha'],target['run_id'])
     first=probe.run_receipt(data['first_attempt']);need(first['id']==target['run_id'] and first['head_sha']==target['head_sha'] and
@@ -287,6 +300,9 @@ def validate_capsule(raw,*,data,current_run,now,key):
         type(value['body']) is dict and type(value['mac']) is str and hmac.compare_digest(value['mac'],_mac(value['body'],key)),
         'CONTINUATION_CAPSULE_MAC')
     b=value['body'];current=probe.run_receipt(current_run)
+    if request['schema']=='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V3':
+        from .all_existing_model_official_historical import validate_window
+        validate_window(request,b['issued_at'],b['expires_at'])
     need(set(b)=={'schema','state','request','request_sha256','target','issued_at','not_before','expires_at','first_attempt',
         'old_plan','new_plan','evidence','old_source_requests_actual','old_source_requests_upper_bound','old_browser_outcome',
         'maximum_new_requests','latest_possible_old_activity_at'},'CONTINUATION_CAPSULE_FIELDS')
