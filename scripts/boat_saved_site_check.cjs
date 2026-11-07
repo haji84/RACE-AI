@@ -76,14 +76,14 @@ function dateEvidence(context,results,p1Groups){
     current_day_p1_groups:scope==='CURRENT_DAY'?p1Groups:null};
 }
 
-async function run(context,{compactResults=false,probeRaceId=null}={}){
+async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDay=false}={}){
   const key=validate(context),{chromium}=require('playwright');
   if(probeRaceId){assert.match(probeRaceId,/^\d{8}-\d{2}-\d{2}$/);assert.equal(probeRaceId.slice(0,8),context.day.replaceAll('-',''));}
   const executablePath=['/usr/bin/google-chrome','/opt/google/chrome/google-chrome',
     '/opt/google/chrome/chrome','/usr/bin/chromium'].find(path=>fs.existsSync(path));
   assert.ok(executablePath,'installed browser required');
   const browser=await chromium.launch({headless:true,executablePath,args:['--no-sandbox']});
-  let blocked=0,leaked=false,checked=0,futureVisible=false,nativeVisible=false,currentResults=0,p1Groups=0,rationaleViewsChecked=0,upcomingRowsChecked=0,venueResultsChecked=0;
+  let blocked=0,leaked=false,checked=0,futureVisible=false,nativeVisible=false,currentResults=0,p1Groups=0,rationaleViewsChecked=0,upcomingRowsChecked=0,venueResultsChecked=0,currentDayLifecycleViews=0,currentDayUpcomingRows=0,currentDayUpcomingCount=null,currentDayClosedCount=null,currentDayPendingCount=null;
   try{
     const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
     page.setDefaultTimeout(45000);
@@ -207,6 +207,26 @@ async function run(context,{compactResults=false,probeRaceId=null}={}){
         const old=Number((await page.locator('#saved-result-metrics').innerText()).match(/取得結果\s*(\d+)レース/)?.[1]);
         assert.ok(old>=context.old_completed);
       }
+      if(checkCurrentDay){
+        await selectDate(context.current_day);
+        await page.locator('[data-page="races"]').filter({visible:true}).first().click();
+        if(await page.locator('#all-venues').isVisible())await page.locator('#all-venues').click();
+        await page.locator('[data-race-view="upcoming"]').click();
+        const visible=await page.locator('#all-races [data-cutoff-at]').evaluateAll(nodes=>nodes.map(n=>({at:Date.parse(n.dataset.cutoffAt),label:n.innerText})));
+        for(const row of visible){assert.ok(row.at>Date.now());assert.doesNotMatch(row.label,/結果待ち/);}
+        currentDayUpcomingRows+=visible.length;
+        const count=async view=>Number((await page.locator('[data-race-view="'+view+'"]').innerText()).match(/（(\d+)）/)?.[1]);
+        currentDayUpcomingCount=await count('upcoming');currentDayClosedCount=await count('results');
+        assert.ok(Number.isSafeInteger(currentDayUpcomingCount)&&Number.isSafeInteger(currentDayClosedCount));
+        if(currentDayUpcomingCount>0)assert.ok(visible.length>0);
+        await page.locator('[data-page="results"]').filter({visible:true}).first().click();
+        const metric=label=>page.locator('#saved-result-metrics .metric').filter({has:page.getByText(label,{exact:true})}).locator('strong');
+        assert.equal(await metric('レース前').innerText(),currentDayUpcomingCount+'レース');
+        currentDayPendingCount=Number((await metric('結果待ち').innerText()).match(/^(\d+)レース$/)?.[1]);
+        assert.ok(Number.isSafeInteger(currentDayPendingCount)&&currentDayPendingCount<=currentDayClosedCount);
+        if(!currentDayClosedCount){assert.equal(currentDayPendingCount,0);assert.equal(await page.locator('#saved-results-table .result-mobile-card').count(),0);}
+        assert.equal(await page.locator('#saved-results-table .outcome-upcoming').count(),0);currentDayLifecycleViews++;
+      }
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);checked++;
     }
     assert.deepEqual(errors,[]);assert.equal(leaked,false);
@@ -216,7 +236,7 @@ async function run(context,{compactResults=false,probeRaceId=null}={}){
       verified_at:verifiedAt.toISOString(),widths_checked:checked,
       feed_generation:Number(await page.locator('#saved-view-sync').getAttribute('data-generation')),
       ...dateEvidence({...context,current_day:currentDay,date_scope:undefined},currentResults,p1Groups),
-      selected_saved_day:context.day,race_lifecycle_tabs_verified:true,upcoming_rows_checked:upcomingRowsChecked,venue_result_views_checked:venueResultsChecked,ai_results_navigation_verified:true,compact_result_ui_verified:compactResults,research_audit_verified:compactResults,available_rationale_preserved:compactResults,rationale_views_checked:rationaleViewsChecked,probe_result_matched:Boolean(compactResults&&probeRaceId),
+      selected_saved_day:context.day,current_day_lifecycle_views_checked:currentDayLifecycleViews,current_day_upcoming_rows_checked:currentDayUpcomingRows,current_day_upcoming_races:currentDayUpcomingCount,current_day_closed_races:currentDayClosedCount,current_day_pending_result_races:currentDayPendingCount,race_lifecycle_tabs_verified:true,upcoming_rows_checked:upcomingRowsChecked,venue_result_views_checked:venueResultsChecked,ai_results_navigation_verified:true,compact_result_ui_verified:compactResults,research_audit_verified:compactResults,available_rationale_preserved:compactResults,rationale_views_checked:rationaleViewsChecked,probe_result_matched:Boolean(compactResults&&probeRaceId),
       native_p1_groups_required:context.native_p1_groups,native_p1_detail_visible:nativeVisible,
       future_native_visible_before_cutoff:futureVisible,previous_day_checked:context.old_day!==null,
       active_model_families:15,removed_seller_hidden:true,
@@ -227,7 +247,7 @@ async function run(context,{compactResults=false,probeRaceId=null}={}){
 }
 
 if(require.main===module){
-  (async()=>run(JSON.parse(fs.readFileSync(process.argv[2],'utf8')),{compactResults:process.argv.includes('--compact-results'),probeRaceId:process.argv.find(v=>v.startsWith('--race-id='))?.slice(10)||null}))()
+  (async()=>run(JSON.parse(fs.readFileSync(process.argv[2],'utf8')),{compactResults:process.argv.includes('--compact-results'),checkCurrentDay:process.argv.includes('--check-current-day'),probeRaceId:process.argv.find(v=>v.startsWith('--race-id='))?.slice(10)||null}))()
     .then(report=>process.stdout.write(JSON.stringify(report)+'\n'))
     .catch(()=>{process.stdout.write(JSON.stringify({status:'LIVE_OWNER_SITE_REJECTED',reason:'SAVED_SITE_BROWSER_CHECK_FAILED'})+'\n');process.exitCode=2;});
 }
