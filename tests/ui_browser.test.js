@@ -37,15 +37,23 @@ async function checkUnverifiedOfficialMetrics(page) {
   assert.ok(!text.includes('100%'),'synthetic or unverified hits cannot become official metrics');
   if(!open)await details.locator(':scope > summary').click();
 }
-async function raceAuditText(page) {
-  const details=page.locator('#race-detail .race-audit-details');
-  const open=await details.evaluate(element=>element.open);
-  if(!open)await details.locator(':scope > summary').click();
-  assert.equal(await details.locator('.race-audit-body').isVisible(),true);
-  const text=await page.locator('#race-detail').innerText();
-  if(!open)await details.locator(':scope > summary').click();
-  return text;
+async function withResearchAudit(page,check) {
+  const race=await page.locator('#ticket-race').inputValue();
+  const prediction=await page.locator('#prediction-select').inputValue();
+  const tab=await page.locator('[data-detail-tab][aria-selected="true"]').getAttribute('data-detail-tab');
+  assert.equal(await page.locator('#race-detail .race-audit-details').count(),0,'ordinary race detail contains no technical audit');
+  await page.locator('[data-page="research"]').filter({visible:true}).first().click();
+  const audit=page.locator('#research-race-audit');
+  assert.equal(await audit.isVisible(),true);
+  assert.equal(await audit.getAttribute('data-race-id'),race,'research audit keeps the selected original race');
+  assert.equal(await page.locator('#research-prediction-select').inputValue(),prediction,'research audit keeps the selected original model');
+  const result=await check(audit);
+  await audit.locator('[data-return-to-race]').click();
+  assert.equal(await page.locator('#prediction-select').inputValue(),prediction,'returning from research keeps the selected original model');
+  if(tab!=='outlook')await page.locator(`[data-detail-tab="${tab}"]`).click();
+  return result;
 }
+const raceAuditText=page=>withResearchAudit(page,audit=>audit.innerText());
 async function main() {
   fs.mkdirSync(output, {recursive:true});
   server = http.createServer((req,res) => {
@@ -244,12 +252,16 @@ async function main() {
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'saved-cycle detail has no horizontal overflow');
       await capture(`${width}-saved-cycle-detail.png`);
       await page.locator('[data-detail-tab="history"]').click();
-      assert.match(await page.locator('#result-observations').innerText(),/取得観測履歴（公式改訂番号なし）/);
-      assert.equal(await page.locator('#result-observations details').count(),saved.result_observations.length);
-      for (const details of await page.locator('#result-observations details').all()) await details.locator('summary').click();
-      for (const observation of saved.result_observations) assert.ok((await page.locator('#result-observations').innerText()).includes(observation.source_sha256));
-      const rawBodies=await page.locator('#result-observations [data-observation-raw]').allTextContents();
-      assert.deepEqual(rawBodies,saved.result_observations.map(o=>JSON.stringify(o)),'full raw captures cannot be truncated');
+      await withResearchAudit(page,async audit=>{
+        const observations=audit.locator('#result-observations');
+        assert.match(await observations.innerText(),/取得観測履歴（公式改訂番号なし）/);
+        assert.equal(await observations.locator('article').count(),saved.result_observations.length);
+        for (const observation of saved.result_observations) assert.ok((await observations.innerText()).includes(observation.source_sha256));
+        const rawBodies=await observations.locator('[data-observation-raw]').allTextContents();
+        assert.deepEqual(rawBodies,saved.result_observations.map(o=>JSON.stringify(o)),'full raw captures cannot be truncated');
+        assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'research raw observation history has no horizontal overflow');
+        await capture(`${width}-saved-cycle-research-history.png`);
+      });
       assert.equal(saved.result.confirmed_at ?? null,null,'capture time must not become official confirmation time');
       assert.match(await page.locator('#race-detail').innerText(),/結果取得/,'the visible result clock is labeled as acquisition');
       assert.doesNotMatch(await page.locator('#race-detail').innerText(),/結果確認/,'the UI must not relabel acquisition as confirmation');
@@ -298,14 +310,14 @@ async function main() {
         }
         await page.locator(`#page-races [data-open-race="${saved.race_id}"]`).click();
         await page.locator('[data-detail-tab="analysis"]').click();
-        assert.equal(await page.locator('#dispatch-slot-status tbody tr').count(),saved.dispatch_slots.filter(s=>!retiredIds.has(s.model_id)).length,'active model states displayed; raw originals retained');
+        await withResearchAudit(page,async audit=>assert.equal(await audit.locator('#dispatch-slot-status tbody tr').count(),saved.dispatch_slots.filter(s=>!retiredIds.has(s.model_id)).length,'active model states displayed in research; raw originals retained'));
         for(const [index,p] of variants.entries()) {
           families.add(p.model_id);if(p.prediction_sha256)nativeHashes.add(p.prediction_sha256);
           await page.locator('#prediction-select').selectOption(String(index));
           const shown=await page.locator('#race-detail .forecast-panel').first().locator('.saved-ticket .combo').evaluateAll(nodes=>nodes.map(n=>[...n.querySelectorAll('.lane')].map(x=>Number(x.textContent))));
           assert.deepEqual(shown,p.ordered_top8,'all active native families keep saved candidate order');
           assert.ok((await raceAuditText(page)).includes(p.output_sha256),'output hash displayed separately in details');
-          if(p.prediction_sha256==null) assert.equal(await page.locator('#race-detail').evaluate(n=>[...n.querySelectorAll('dt')].find(x=>x.textContent==='予想SHA').nextElementSibling.textContent),'未取得');
+          if(p.prediction_sha256==null) await withResearchAudit(page,async audit=>assert.equal(await audit.evaluate(n=>[...n.querySelectorAll('dt')].find(x=>x.textContent==='予想SHA').nextElementSibling.textContent),'未取得'));
           if(p.native_top8_available===false) assert.match(await page.locator('#race-detail').innerText(),/保存された5点プラン/);
           if(['A_PRE_TRIAL','B_POST_TRIAL'].includes(p.stage)) assert.match(await page.locator('#prediction-select option:checked').innerText(),/試走前|試走後/);
         }
@@ -341,7 +353,7 @@ async function main() {
         await page.locator('#page-races [data-open-race]').first().click();
         await page.locator('[data-detail-tab="analysis"]').click();
         assert.equal(await page.locator('#prediction-select').isDisabled(),true,'observed pages cannot become forecasts');
-        assert.match(await page.locator('#race-detail').innerText(),/モデル入力・締切・予想・結果は未接続/);
+        assert.match(await raceAuditText(page),/モデル入力・締切・予想・結果は未接続/);
         assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'observed source identifiers cannot overflow the detail title');
         await capture(`${width}-source-observation-${sport}.png`);
       }
@@ -440,7 +452,7 @@ async function main() {
     assert.match(await page.locator('#confirmation-state').innerText(),/候補確定済み/,'automatic refresh preserves confirmation');
     assert.ok((await raceAuditText(page)).includes(nativeSha),'selected original survives refresh');
     assert.equal(await page.locator('[data-detail-tab="analysis"]').getAttribute('aria-selected'),'true');
-    assert.match(await page.locator('#race-detail').innerText(),/09:02/,'new saved observation is displayed');
+    assert.match(await raceAuditText(page),/09:02/,'new saved observation is displayed in research');
     let counterRound=3;
     for(const value of ['365',-1,1.5,Number.MAX_SAFE_INTEGER+1]) {
       automaticSourceStatus={source_limit:null,requests_used:value,round_no:counterRound};
