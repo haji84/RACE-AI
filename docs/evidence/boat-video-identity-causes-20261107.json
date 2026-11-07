@@ -1,6 +1,6 @@
 {
   "schema_version": "RACE_AI_BOAT_IDENTITY_CAUSAL_CONTINUATION_V1",
-  "recorded_at_jst": "2026-11-07T17:17:25.060000+09:00",
+  "recorded_at_jst": "2026-11-07T22:23:57.785953+09:00",
   "existing_draft_pr": 71,
   "request_complete": false,
   "continuous_six_boat_identification_complete": false,
@@ -254,6 +254,15 @@
       "seconds": 68.198,
       "log_sha256": "f97762c5030ff75bf53c4b37f393c81b18812721bd4f9c6531f50ee24e5bd659",
       "scope": "Merged upstream MP4 muxer-offset6/encoded-probed-decoded count fixture and currentpoint tracker98; relevant video modules, not full-repository exactHEAD CI"
+    },
+    "frozen_d9c2_GitHub_workflow": {
+      "commit": "d9c2ee93abd8f88dc8b86337a2c362523b566401",
+      "run_id": 42358009132,
+      "conclusion": "failure",
+      "failed_job": "Viewer audit contract",
+      "failed_step": "Verify owner-requested seller retirement and legacy readback",
+      "CV_source_fix_or_latest_full_CI_green_claim": false,
+      "scope": "Concurrent non-vision seller/legacy contract; preserve owner-requested retirement and report separately from677 local video tests"
     }
   },
   "unsuitable_private_prototypes_not_adopted": {
@@ -456,7 +465,21 @@
     "glyph_CNN_oracle18_raw": "fb62e2ec8eeba0330138e1ba68b7a3e7d793908bcb1be9f5032507cd899f91a7",
     "glyph_CNN_oracle18_postseal_AIscore": "a88a94668330070584ab9a1c8bd16b107f117ef5f09a5c73954768a57317d552",
     "glyph18_blind_native_judgments": "ae1fa3f52f66bb297aa4a93f429b1624f4ab631bd6dbd8308d03e328699cf6d8",
-    "glyph18_blind_native_postseal_join": "3c6279ca8d5ce06605141b062614494f658efdfb9a13713580443660cd19808f"
+    "glyph18_blind_native_postseal_join": "3c6279ca8d5ce06605141b062614494f658efdfb9a13713580443660cd19808f",
+    "RIDER_RGB_V1_model_report": "e0b062b192df60fa235b658d7a814b78ef1013a52b13e45b794c0fe8059d5db0",
+    "RIDER_RGB_V1_all_stages_AI_score": "aa5977f079c1acbdae9587db175b8906355dd74ba559930321a3a6231efefea0",
+    "RIDER_RGB_V1_score_receipt": "c0d468a26628960d66403adc8b1905e1b6a7493b9aded5b8d01342c36c2e7a04",
+    "RIDER_RGB_V1_current391_RAW": "20c5a99051aaad36a2b59299a34fbda7f8ee2b4fa71c91815b4784d17c9a19ec",
+    "RIDER_RGB_V1_no_forward_rank_diagnosis": "951b27ccf5878a3bc8a92a4e29fe6e09038662e27760ef9a57c57cbcc38876bc",
+    "SAM2_original60_RAW": "105e94c4d5ff936337c57f348db950dba855898fe6317a7e2450aaf6e96212fa",
+    "SAM2_original60_native_AIjudgments": "4152d5300532c1b3491e6717c8314d529b9fcb1f27818c5303d36bbe08ce7af2",
+    "SAM2_fixed_selector_postseal_join": "50f6c5d869ed82288f99c6a5dbd0cd3a23abe73ea11317433e8ef555fb7e963c",
+    "SAM2_contactV2_RAW": "e34b50a685e1f8d2840ea98495aa27d72db1ee94b4cc679706c25e0faf58c01b",
+    "SAM2_contactV2_complete": "cb6e4829a637cc173971e2bdfbfb39c21f865e45862772d2b14f0b8d56b4f225",
+    "new_CC100_root_integrity_readback": "37ca3621eb9fa87a59a28e7abf77a5862a5029f3e53bf516d827a93f5f442184",
+    "new_CC1_native_rider_reference": "ebed15a4c34bd76e32a4f1830182b7a04fa33a9621160457cceb314f2d5c9fb8",
+    "SAM2_contactV2_final_manifest": "466e3ea3b779e42b8c5f19de0463ed32d836c22bb40bb270e693ac780b507ecd",
+    "SAM2_contactV2_content_verification": "b39a13858de97569242a50331fd305cdcc35e77c4d5f786f449b8f09fdb01053"
   },
   "rider_part_development": {
     "status": "IMPLEMENTED_LOCAL_ANONYMOUS_RIDER_PATH_NOT_SIX_NUMBERED_IDENTITIES",
@@ -781,7 +804,11 @@
     "ongoing_frozen_training_dataset_modified": false,
     "source_only_annotation_status": "IN_PROGRESS_SEPARATE_NEXT_DATASET_CANDIDATE",
     "new_public_collection_continues_without_added_count_or_lifetime_stop": true,
-    "API_key_account_cookie_or_custom_UA_used_scope": "No API key, new account, authenticated cookie/session or UA impersonation; ordinary public page chain only"
+    "API_key_account_cookie_or_custom_UA_used_scope": "No API key, new account, authenticated cookie/session or UA impersonation; ordinary public page chain only",
+    "verified_preserved_source_files": 100,
+    "verified_unique_original_and_RGB_hashes": 100,
+    "all100_are_number_or_rider_teachers": false,
+    "known_public_frontier_processed_not_catalog_completion_or_configured_count_cap": true
   },
   "current_point_rider_source_code_sha256_scope": "Closed point98 execution and first677 regression with local Matroska fixture; concurrent upstream MP4 fixture is retained in final merged tree",
   "current_merged_rider_source_code_sha256": {
@@ -791,5 +818,137 @@
     "tests/test_boat_video_rider_detector.py": "69ac610d9956a35cdcb1092e9cb49a34b37e5ea0a406f6a17944aadee4ae0615",
     "tests/test_boat_video_rider_tracking.py": "3636a88cecf0f33e6ef97a5325c9d705e8582fbefcf0ef02738964b4c33ecf01",
     "tests/test_boat_video_marker_cli.py": "66278338975ba51b9ec9c1ef91770eb6560b5abce6ef711ae4a7c1a3c2a3dabf"
-  }
+  },
+  "private_RIDER_RGB_CNN_V1": {
+    "status": "AUTOMATIC391_UNMET_NOT_ADOPTED",
+    "model_sha256": "2e433503e0c25b8a7ee58cfcc93e34abddc978d382ad00856c6b09c1d6a03dfc",
+    "training_base_observations": 166,
+    "training_variants": 8300,
+    "epochs": 30,
+    "fit_calls": 1,
+    "parameters": 26279,
+    "new_Flickr_sources_in_training": 0,
+    "class1_native_teachers": 2,
+    "Todo_training": false,
+    "oracle18_matches": 9,
+    "automatic_current391": {
+      "known_primary_rows": 366,
+      "matches": 181,
+      "rejected0": 170,
+      "wrong_number2_to3": 15,
+      "formal_clear_primary": 364,
+      "formal_clear_matches": 179,
+      "secondary_boundary_UNKNOWN": 2,
+      "all6_correct_frames": 0,
+      "total_frames": 61,
+      "correct_per_number1to6": [
+        0,
+        8,
+        51,
+        61,
+        61,
+        0
+      ],
+      "motor_class0_correct": 25,
+      "motor_rows": 25,
+      "max_simultaneous_correct_number_candidates": 4,
+      "longest_matching_current_frames_per_number": [
+        0,
+        5,
+        43,
+        61,
+        61,
+        0
+      ],
+      "number2_strict_longest_excluding_boundary_UNKNOWN": 3
+    },
+    "new_forward_calls": 5,
+    "new_forward_input_examples": 420,
+    "exact_B373_raw_replay_rows_in_C391": 362,
+    "production_adoption": false,
+    "printed_number_observed": false,
+    "human_GT_or_independent_field_accuracy": false
+  },
+  "raw_logit_cause_diagnosis": {
+    "new_NN_calls": 0,
+    "new_fit_calls": 0,
+    "operational_predictions_modified": false,
+    "class1_true_logit_rank": {
+      "rank6": 41,
+      "rank7": 20
+    },
+    "class6_true_logit_rank": {
+      "rank3": 2,
+      "rank4": 50,
+      "rank5": 9
+    },
+    "excluding0_diagnostic_only": {
+      "true1_would_be2": 11,
+      "true1_would_be3": 50,
+      "true6_would_be5": 61,
+      "all25_motors_would_be_falsely_numbered": true
+    },
+    "loosening_reject_or_forcing_nonzero_solves_failure": false,
+    "conclusion": "Number representation/data are insufficient, not only class0 rejection; person presence and unknown number must remain distinct and new licensed pose/color data are needed."
+  },
+  "SAM2_instance_mask_probe": {
+    "publisher_model": "facebook/sam2.1-hiera-tiny",
+    "publisher_revision": "de431c4043854a71d8101e17995dfe596bf101a5",
+    "asset_sha256": "48c14467e5cf9e51870511feb72c89688e82dd74523142c0538b663e193ac2a7",
+    "asset_bytes": 155908064,
+    "license": "Apache-2.0",
+    "new_forecast_model_family": false,
+    "baseline": {
+      "images": 3,
+      "automatic_boat_box_prompts": 20,
+      "masks_retained": 60,
+      "manual_GT_prompts_or_clicks": false,
+      "AI_primary_categories": {
+        "WHOLE_HULL": 34,
+        "WHOLE_CRAFT": 12,
+        "WATER_SHORE_BACKGROUND": 9,
+        "MULTIPLE_BOATS": 3,
+        "HULL_PART": 2
+      },
+      "raw_all60_clean_visible_hull_coverage_per6": [
+        5,
+        5,
+        6
+      ],
+      "fixed_default20_then_mask_NMS_selected": 20,
+      "fixed_selected_clean_visible_hull_coverage_per6": [
+        5,
+        5,
+        6
+      ],
+      "default_selector_is_six_instance_success": false
+    },
+    "automatic_contact_V2": {
+      "status": "RAW_COMPLETE_SEMANTICALLY_UNSCORED",
+      "PERSON_candidates": 18,
+      "BOAT_candidates": 20,
+      "automatic_pairs": 20,
+      "positive": "detected_PERSON_bottomcentre",
+      "negatives": "all_other_detected_PERSON_bottomcentres",
+      "matching": "all_BOAT_boxes_containing_that_contact_hypothesis_no_nearest",
+      "model_vision_decoder_batch_calls_each": 3,
+      "all_multimasks_saved": 60,
+      "manual_GT_or_number_prompts": false,
+      "source_assets_before_after_unchanged": true,
+      "model_or_quality_threshold_changed": false,
+      "clean6_hull_or_number_success_established": false
+    },
+    "product_or_forecast_deployment": false,
+    "source_unknown_rights_private_inference_only": true
+  },
+  "execution_constraint": {
+    "parallel_AI_agents_reported_usage_limit": true,
+    "observed_error": "You’ve hit your usage limit.",
+    "additional_billing_or_account_created": false,
+    "local_evidence_preserved": true,
+    "existing_forecast_processes_stopped_or_restarted": false,
+    "request_complete": false,
+    "remaining_work": "Curate licensed modern rider/clothing data; separate person presence from unknown number; independently score contact masks; implement verified automatic part/number binding and validate six numbered identities."
+  },
+  "current_merged_rider_source_code_sha256_scope": "Frozen tested checkpoint d9c2ee93abd8f88dc8b86337a2c362523b566401; no claim later concurrent full HEAD has been retested"
 }
