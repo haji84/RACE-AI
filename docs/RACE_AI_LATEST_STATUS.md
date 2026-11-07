@@ -2252,3 +2252,14 @@ PR #71のHEAD `d079bd99b1ed5b26a1aeade60b216bebc9f30218` と過去runを読み�
 **収集HOLD**：既存result collector run `42349536138` は全workflow successでもAUTO/KEIRINの6ケース `HOLD_BROWSER_SOURCE_UNVERIFIED`。当該暗号journal id `13565712487` のbrowser予約24件は実通信回数UNKNOWN（全予約上限32）として保持。再起動・別credential/URL・回数reset・未確認結果の外れ認定は行わない。売主型のwaku10一次値もINPUT_MISSINGのまま。
 
 **保全**：原本/係数/買い目/学習SHA/旧スナップショット/trigger/workflow/スケジュールは無変更。このstatus追記は実source GETを発火するworkflowのpaths filter対象外。新source・表示jobの明示起動、新モデル、新PR、本番切替、main統合、一般公開、実投票、外部サービス・課金は実施しない。最新実行中runと終了runの成果を混合せず、28シナリオの正式収支・モデル別的中率は未独立確認。
+
+
+<!-- RACEAI_SOURCE_DAY_HANDOFF_20261107T1335Z -->
+# 2026-11-07 22:35 JST｜最新sourceはDAY_HANDOFFで安全終了、予想巡回0
+
+既存workflow405276784の最新完了run [42376316340](https://github.com/haji84/RACE-AI/actions/runs/42376316340)、実worker HEAD `6a1a1f1a12248dc35f22a512783c279544c70086` は completed/success。GitHub公開artifactの実ZIPを独立ダウンロードし、GitHub API digestとのSHA256一致とZIP展開健全性を確認した。control artifact `13575967848` = `sha256:73fdcd87e18423539a1cbb129e6e8104f99ffa0763d446986035cf54013d8238`、continuity `13576047576` = `sha256:7f0ad9796688ad11e2b2ac062af6673867b08389870e6f990c56eaa8866b95b8`、forecast r0 `13576406441` = `sha256:75b35a7eca913514405deddb53a69c1ac2aa03588d101d3c7493eab5c03c2438`。ZIP内暗号文の所有者鍵による復号・真正性MACは今回未検証。
+
+control内部の確認値は `stop_reason=DAY_HANDOFF`、`completed_round=0`、`requests_used=0`、`source_wait=null`、累計 `lifetime_completed_rounds=524` / `lifetime_requests=9059`。r0アーカイブは暗号化成果の保存であり「巡回1完了」「新P1実予想完成」とは扱わない。最新source実行中/queued/pending/waiting は確認時0。旧 `state/boat-private-originals/state/boat-source-control/v1/latest.json` はrun42352096559を指したままで、新runの所有者MAC付きmirrorと原本読戻しが未確認。安全な新規source起動条件を満たすと推定せず、追加triggerは行わない。
+
+今回の照合前のPR HEADは `713732af0b2446d44c02182a579c5abc20ca0b76`。コードHEADとworker実行HEADは別。現行対象15系統/30枠、研究実学習19/30・残AUTO6+KEIRIN5=11に新認定なし。AUTO/KEIRIN結果collectorの旧UNKNOWN24/固定epoch上限32、既知probe別計上、4xx/429/真正性HOLDは維持。公式結果の新独立照合、LEARNED_SHADOW未来優位性、収支改善は追加認定しない。実原本・履歴・係数・スケジュール/上限・本番モデル・投票は変更せず、他担当の既存CI/復旧を再起動しない。
+<!-- END_RACEAI_SOURCE_DAY_HANDOFF_20261107T1335Z -->
