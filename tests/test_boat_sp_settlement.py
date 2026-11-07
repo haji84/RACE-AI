@@ -14,6 +14,15 @@ def document(**kwargs):
     if d['maindata'] is not None:d['maindata'].update(infolist3t=[dict(winno='1-2-3',dividend='&yen;1,250',pop='1')],returnlist=[])
     return d
 
+def no_contest_document():
+    d=document();body=d['maindata'];body['infolist3t']=[dict(winno='不成立',dividend='100',pop='')]
+    body['returnlist']=['1','2','3','4']
+    for row in body['teiinfolist']:
+        n=int(row['teino']);row['chk']='F' if n<=4 else str(n-4)
+    for row in body['stinfolist']:
+        if int(row['teino'])<=4:row['st']='F.01'
+    return d
+
 class SettlementTests(unittest.TestCase):
     def parse(self,doc=None):
         self.assertTrue(callable(parse_settlement),'SP confirmed results need a strict settlement adapter')
@@ -24,6 +33,49 @@ class SettlementTests(unittest.TestCase):
     def test_missing_finish_or_payout_stays_pending_and_never_fabricates_a_miss(self):
         self.assertEqual(self.parse(document(pending=True))['status'],'PENDING')
         d=document();d['maindata']['infolist3t']=[];self.assertEqual(self.parse(d)['status'],'PENDING')
+
+    def test_explicit_no_contest_refunds_every_trifecta_without_a_winning_ticket(self):
+        out=self.parse(no_contest_document())
+        self.assertEqual(out['status'],'AVAILABLE');self.assertEqual(out['data']['status'],'no_contest')
+        self.assertEqual(out['data']['confirmed_scope'],'TRIFECTA_ONLY')
+        self.assertEqual(out['data']['payouts'],[]);self.assertIsNone(out['data']['top3'])
+        self.assertEqual(out['data']['refund_boats'],[1,2,3,4]);self.assertEqual(len(out['data']['results']),6)
+
+    def test_no_contest_requires_100_yen_and_all_trifecta_coverage(self):
+        for mutate in [lambda d:d['maindata']['infolist3t'][0].update(dividend='70'),
+                       lambda d:d['maindata'].update(returnlist=['1','2','3']),
+                       lambda d:d['maindata']['infolist3t'][0].update(winno='特払')]:
+            d=no_contest_document();mutate(d)
+            with self.subTest(),self.assertRaises(ValueError):self.parse(d)
+
+    def test_no_contest_cannot_refund_numeric_or_nonrefundable_finishers(self):
+        d=document();d['maindata'].update(infolist3t=[dict(winno='不成立',dividend='100')],returnlist=['1','2','3','4'])
+        with self.assertRaises(ValueError):self.parse(d)
+        d=no_contest_document()
+        d['maindata']['teiinfolist'][0]['chk']='転'
+        next(r for r in d['maindata']['stinfolist'] if r['teino']=='1')['st']='.10'
+        with self.assertRaises(ValueError):self.parse(d)
+
+    def test_no_contest_projection_refunds_the_1000_yen_plan_without_a_hit_or_miss(self):
+        import json,subprocess
+        from pathlib import Path
+        top=[[1,2,3],[1,2,4],[1,3,2],[1,3,4],[2,1,3],[2,1,4],[2,3,1],[2,3,4]]
+        p=dict(model_id='fixture-one',model_version='fixture-v1',stage='P0',variant='HISTORY_BASELINE',
+               cutoff_at='2026-11-07T01:00:00Z',as_of='2026-11-07T00:00:00Z',
+               generated_at='2026-11-07T00:00:01Z',persisted_at='2026-11-07T00:00:02Z',ordered_top8=top)
+        peer={**deepcopy(p),'model_id':'fixture-two'}
+        row=dict(race_id='20261107-01-01',sport='boat',scope='research',event_date_jst='2026-11-07',
+                 cutoff_at=p['cutoff_at'],saved_cutoff_variants=[p['cutoff_at']],prediction=p,comparison_predictions=[peer],
+                 participants=[dict(number=n,registration_no=str(4000+n)) for n in range(1,7)],
+                 result=None,result_observations=[],result_revisions=[],missing_reasons=[])
+        view=dict(schema='RACE_AI_PRIVATE_CYCLE_VIEW_V1',records=[row]);original=Feed.originals_sha(view)
+        raw,receipt=packet(no_contest_document(),captured=NOW.isoformat())
+        updated=Feed.update_view(view,[],captures=[(raw,receipt)],synced_at=NOW.isoformat())
+        self.assertEqual(updated['records'][0]['result']['status'],'void');self.assertEqual(Feed.originals_sha(updated),original)
+        group=dict(scope='research',sport='boat',model_id=p['model_id'],model_version=p['model_version'],stage='P0',variant=p['variant'])
+        code="""const assert=require('node:assert/strict'),P=require('./web/saved-performance.js');let s='';process.stdin.on('data',c=>s+=c);process.stdin.on('end',()=>{const d=JSON.parse(s),stats=P.summarize(d.records,d.group),cash=P.simulate(d.records,d.group,10000,{raceBudget:1000});assert.equal(stats.void,1);assert.equal(stats.hits,0);assert.equal(stats.misses,0);assert.equal(cash.spent,1000);assert.equal(cash.refund,1000);assert.equal(cash.net,0);assert.equal(cash.balance,10000);});"""
+        result=subprocess.run(['node','-e',code],cwd=Path(__file__).resolve().parents[1],input=json.dumps(dict(records=updated['records'],group=group)),text=True,capture_output=True)
+        self.assertEqual(result.returncode,0,result.stderr)
     def test_refund_and_dead_heat_keep_every_winning_combination(self):
         d=document();d['maindata']['teiinfolist'][-1]['chk']='欠';d['maindata']['stinfolist'][0].update(csdisp='0',st='');d['maindata']['returnlist']=['6']
         self.assertEqual(self.parse(d)['data']['refund_boats'],[6])

@@ -4,10 +4,19 @@ const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('n
 const http=require('node:http'),{spawnSync}=require('node:child_process'),{chromium}=require('playwright');
 const root=path.resolve(__dirname,'..'),folder=fs.mkdtempSync(path.join(os.tmpdir(),'results-budget-'));
 let server,browser;
+async function checkUnverifiedOfficialMetrics(page){
+ const details=page.locator('#result-data-details'),open=await details.evaluate(element=>element.open);
+ if(!open)await details.locator(':scope > summary').click();
+ assert.equal(await page.locator('#result-metrics').isVisible(),true);
+ assert.match(await page.locator('#result-metrics').innerText(),/未検証/);
+ if(!open)await details.locator(':scope > summary').click();
+}
 (async()=>{
  const py=spawnSync(process.env.RACE_AI_TEST_PYTHON||'python',['-c',`
 from pathlib import Path
 import sys,json
+import race_ai
+race_ai.__path__.extend(str(Path(reference)/'race_ai') for reference in ('pr64-reference','pr72-reference'))
 from tests.test_boat_pdca_github_handoff import invented_research_state
 from tests.test_boat_history_comparison import current,NOW
 from race_ai.boat_history_comparison import prepare_pair,freeze_pair
@@ -93,7 +102,7 @@ export_view(SavedPdcaService(p).saved_projection(),r/'reference.html')
   await budget.fill('1000');await budget.press('Tab');
   await budget.fill('50');await budget.press('Tab');assert.equal(await budget.inputValue(),'1000');
   assert.match(await page.locator('#simulation-message').innerText(),/100円/);
-  assert.match(await page.locator('#result-metrics').innerText(),/未検証/);
+  await checkUnverifiedOfficialMetrics(page);
   const data=await page.evaluate(()=>JSON.parse(document.querySelector('#race-ai-private-saved-data').textContent));
   assert.deepEqual(data,original);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
   assert.equal(requests.some(r=>r.method!=='GET'),false);assert.deepEqual(errors,[]);
@@ -108,7 +117,7 @@ export_view(SavedPdcaService(p).saved_projection(),r/'reference.html')
   await page.locator('[data-page="results"]').filter({visible:true}).first().click();
   assert.match(await page.locator('#saved-results-table').innerText(),/1,230円/);assert.match(await page.locator('#saved-results-table').innerText(),/4,560円/);
   assert.match(await page.locator('#simulation-metrics').innerText(),/5,790円/);
-  await page.locator('#saved-results-table button').first().click();assert.match(await page.locator('#race-detail').innerText(),/4,560円/);
+  await page.locator('#saved-results-table button').filter({visible:true}).first().click();assert.match(await page.locator('#race-detail').innerText(),/4,560円/);
   await page.goto('http://127.0.0.1:'+server.address().port+'/no-forecast.html');
   await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'));
   await page.locator('[data-page="results"]').filter({visible:true}).first().click();
@@ -126,11 +135,24 @@ export_view(SavedPdcaService(p).saved_projection(),r/'reference.html')
   await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'));
   await page.locator('[data-page="results"]').filter({visible:true}).first().click();
   assert.match(await page.locator('#saved-results-table').innerText(),/参考照合/);
-  assert.match(await page.locator('#saved-results-table').innerText(),/原本締切[\s\S]*10:59/);
-  assert.match(await page.locator('#saved-results-table').innerText(),/結果ページ[\s\S]*11:00/);
-  assert.match(await page.locator('#saved-results-table').innerText(),/差 1分/);
+  const referenceCard=page.locator('#saved-results-table .result-mobile-card').filter({hasText:'宮島 1R'});
+  const referenceRow=page.locator('#saved-results-table .result-list-table tbody tr').filter({hasText:'宮島 1R'});
+  const visibleReference=width<600?referenceCard:referenceRow;
+  assert.equal(await visibleReference.count(),1);assert.equal(await visibleReference.isVisible(),true);
+  assert.match(await visibleReference.innerText(),/締切変更を照合済み（参考）/);
+  // The ordinary list presents the short explanation. Exact original clocks
+  // remain in the immutable embedded data, rather than becoming new UI text.
+  const referenceData=await page.evaluate(()=>JSON.parse(document.querySelector('#race-ai-private-saved-data').textContent));
+  const referenceRecord=referenceData.records.find(record=>record.race_id===original.records[0].race_id);
+  assert.equal(referenceRecord.cutoff_at,'2026-11-06T10:59:00+09:00');
+  assert.equal(referenceRecord.result.cutoff_reference.original_cutoff_at,'2026-11-06T10:59:00+09:00');
+  assert.equal(referenceRecord.result.cutoff_reference.result_schedule_cutoff_at,'2026-11-06T11:00:00+09:00');
+  assert.equal(referenceRecord.result.cutoff_reference.offset_seconds,60);
+  assert.deepEqual(referenceData.records.map(record=>({race_id:record.race_id,prediction:record.prediction,
+    comparison_predictions:record.comparison_predictions})),original.records.map(record=>({race_id:record.race_id,
+    prediction:record.prediction,comparison_predictions:record.comparison_predictions})));
   assert.match(await page.locator('#result-coverage').innerText(),/締切差の参考照合 1/);
-  assert.match(await page.locator('#result-metrics').innerText(),/未検証/);await page.close();
+  await checkUnverifiedOfficialMetrics(page);await page.close();
  }
  console.log('PASS results + editable daily budget: observed hit/pending,4models,10k→1k,unknown money,originals/formal gates unchanged,mobile/desktop');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();if(server)await new Promise(r=>server.close(r));fs.rmSync(folder,{recursive:true,force:true});});
