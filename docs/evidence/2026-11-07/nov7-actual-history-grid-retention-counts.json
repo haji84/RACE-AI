@@ -1,0 +1,42 @@
+{
+  "actual_added_file_count": 78,
+  "all_78_remote_original_bytes_equal": true,
+  "canonical_pointer_hashes_preserved": true,
+  "canonical_pointers_changed": false,
+  "dataset_available_at": "2026-11-07T16:46:40.072308+00:00",
+  "executed_recovery_sha256": "d7292104adf3098b43391b8ef0d08b945bcfa13190d8b571f590ff4b459e6abf",
+  "formal_backtest_eligible": false,
+  "grid": {
+    "acquisition_complete": false,
+    "formal_backtest_eligible": false,
+    "known_racers": 2643,
+    "plaintext_published": false,
+    "source_days": 7964,
+    "status": "ENCRYPTED_ALL_VENUE_GRID_READBACK_VERIFIED",
+    "venues": 24,
+    "verified_cells": 63432
+  },
+  "history": {
+    "attempt": 12,
+    "generation": 11,
+    "months": 263,
+    "parsed_days": 7,
+    "pending_days": 0
+  },
+  "known_old_lost_gets": 1,
+  "map_sha256": "f3b8a498217b63a70243278b28505939f04bf61a970f96697c3314b0717ccbb0",
+  "new_actions_readback_pending": true,
+  "new_prospective_grid_witness_not_yet_admitted": true,
+  "new_recovery_gets": 1,
+  "owner_evidence_cipher_sha256": "1bf7dbf9b0c2818859522f5072c4e1b80577d461e61ba52155912f4bd7b43c1e",
+  "parent_commit": "3d9acca32eeeecb664839a41fc8ba13afa999b07",
+  "prior_independent_21fa_baseline_reused": true,
+  "production_promoted": false,
+  "retained_file_count": 78,
+  "retention_operator_sha256": "52cbf695a5a5ae4328673f3a9b4aab2653b3e552e86c44ccfaa1a00f2aa98e82",
+  "retention_provider_gets": 0,
+  "schema": "RACE_AI_PRIVATE_NOV7_78_PATH_RETENTION_PROOF_V1",
+  "source_commit": "bd932a4d91317c5d8349989a96ddb184938c539d",
+  "state": "RECOVERY_AND_GRID_RETAINED_AND_INDEPENDENTLY_READ_BACK",
+  "verified_at": "2026-11-07T17:07:46.612523+00:00"
+}

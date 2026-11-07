@@ -1344,7 +1344,9 @@ jobs:
         shell: bash
         run: |
           dataset_input=audit/state/boat-venue-dataset-input.json
-          if [[ -f audit/state/boat-venue-dataset-nov6-research-input.json ]]; then
+          if [[ -f audit/state/boat-venue-dataset-nov7-research-input.json ]]; then
+            dataset_input=audit/state/boat-venue-dataset-nov7-research-input.json
+          elif [[ -f audit/state/boat-venue-dataset-nov6-research-input.json ]]; then
             dataset_input=audit/state/boat-venue-dataset-nov6-research-input.json
           fi
           python -m scripts.boat_venue_dataset readback --input "$dataset_input" --out-dir "$RUNNER_TEMP/venue-history-grid"
