@@ -91,6 +91,17 @@ let browser, server;
     }
     assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     await page.screenshot({path:path.join(evidence,`atlas-${width}.png`),fullPage:true});
+    const programPeople=[['3556','田中信一'],['4503','上野真之'],['4246','喜多那由'],
+      ['4632','長尾京志'],['3645','淺田千亜'],['4304','藤崎小百']];
+    const programFixture=structuredClone(fixture);
+    programFixture.records[0].participants=programPeople.map(([registration_no,name],i)=>({number:i+1,registration_no,name}));
+    await load(page,programFixture);
+    const programImages='#page-home .racer-card img[data-registration]';
+    assert.equal(await page.locator(programImages).count(),6,'official program name spellings must retain all six portraits');
+    for(const img of await page.locator(programImages).all())await img.scrollIntoViewIfNeeded();
+    await page.waitForFunction(s=>[...document.querySelectorAll(s)].every(i=>i.complete&&i.naturalWidth>0),programImages);
+    assert.deepEqual(await page.locator(programImages).evaluateAll(imgs=>imgs.map(i=>i.dataset.registration)),programPeople.map(p=>p[0]));
+    await page.screenshot({path:path.join(evidence,`official-program-names-${width}.png`),fullPage:true});
     if (width===390) {
       await page.route('**/assets/racer-portraits/boat-4238.webp',route=>route.abort());
       await page.reload(); await load(page);
