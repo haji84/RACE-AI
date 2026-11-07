@@ -159,3 +159,11 @@ Python readerは全raw／metadata／台帳／時計／SHA照合を維持し、�
 新history `9e611681e582e3760a91150264d3d7a0894a1c080a2e2b48a49344973c353ac0` と新grid `7ea4281b5674e605918536ecf905d726d78c721aa0f6c6ed60d4c51d250d5678` は既存transfer refのcommit `bd932a4d91317c5d8349989a96ddb184938c539d` へ追加保存した。78ファイルすべての実追加A差分・旧244a／5058祖先の保持・独立readerでの原byte一致を確認し、263か月の元世代を再利用した通常の新月復元と、全63,432組・7,964原本のgrid復元に成功。元の保存失敗1 GET、別の成功1 GET、実行済みd729コード・ACK・counter・原文を外側のowner暗号archiveへ保持し、未保存だった原文を再現したとは扱わない。
 
 新しいresearch pointerだけを更新・追加し、canonical履歴・dataset・learningおよび旧Nov6参照は不変。既存Actionsの読戻しstepはNov7参照を優先する。新しい実Actionsの結果はまだ未確認なので、未来入力の新世代witnessは未許可のまま。実jobの全復号・原本照合・grid読戻し完了後に、その正確なmetadata／logを別のliteral witnessとして登録する。[実保持・独立復元](evidence/2026-11-07/nov7-actual-history-grid-retention-counts.json)。
+
+## 新しい未来入力と公式結果の回収経路
+
+未来結果専用の取得・暗号化・原文保持・実artifact読戻しを、既存のfuture jobに追加した。元の30枠予想・origin・native原本を認証し、実際に締切前へ保存された対象だけを取得する。過去のNov7授権を別レースへ使わず、別purposeの一度限りmarkerと32通信を使う。AUTO／KEIRINの通常UIとHORSEの実際に掲載された結果リンクを用い、旧UNKNOWN32、全履歴・既知拒否停止、元時計・source／label結合を保持する。実30暗号化fixture込みの結合45件・job契約35件をumask022でも確認。これは合成検証であり、実未来予想・RESULT・新30枠PDCAはまだ0。
+
+新Nov7 data witnessはrun42395208517／job128471073052の実SUCCESS（17:18:24Z）と正確なmetadata／ログhashへ固定した。旧Nov6 witnessも維持する。入力アダプター27件が成功し、過去の元as-ofより後のdataset・検証時刻・serverjob完了を使う入力は拒否する。ここでのログhashは実MCPのUTF8/BOM付き応答から得た値で、実Actionsの生byte同値は未確認のため、提供元へアクセスしない専用history-witness-check prefixで先に確認する。不一致はHOLDとし、別hashや最新値へ自動切替しない。
+
+553の初回検証はPython4,058件（詳細skip数は実ログ）と動画283＋283件が成功したが、最終ブラウザー検証で閉じた詳細欄の旧表示assertionが失敗し、全体はFAIL／次のAUTO cap0・通信0のまま。所有者の折りたたみ表示を保ち、通常の詳細開閉を使うテストへ更新し、全ブラウザー経路をローカル再検証している。新たなcollector HEADの初回全体成功前に取得を再開しない。
