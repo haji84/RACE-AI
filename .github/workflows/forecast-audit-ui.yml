@@ -570,6 +570,44 @@ jobs:
           path: ${{ runner.temp }}/order-only-pdca.status.json
           retention-days: 7
           if-no-files-found: error
+      - name: Score the explicitly requested native cash comparison
+        id: cash_native_pdca
+        if: hashFiles('audit/state/all-existing-model-cash-pdca-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == cash-native-pdca:* ]]; then
+            umask 077
+            echo 'requested=true' >> "$GITHUB_OUTPUT"
+            python -m scripts.all_existing_model_cash_pdca --input audit/state/all-existing-model-cash-pdca-input.json --out-dir "$RUNNER_TEMP/cash-native-pdca"
+          fi
+      - name: Keep only encrypted native cash comparison partitions
+        id: cash_native_pdca_upload
+        if: steps.cash_native_pdca.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.cash_native_pdca.outputs.artifact_name }}
+          path: ${{ runner.temp }}/cash-native-pdca/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Independently verify the actual native cash comparison artifact
+        if: steps.cash_native_pdca_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.all_existing_model_cash_pdca --input audit/state/all-existing-model-cash-pdca-input.json --out-dir "$RUNNER_TEMP/cash-native-pdca" --readback-artifact '${{ steps.cash_native_pdca_upload.outputs.artifact-id }}'
+      - name: Keep count-only native cash comparison status
+        if: always() && steps.cash_native_pdca.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-cash-pdca-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/cash-native-pdca.status.json
+          retention-days: 7
+          if-no-files-found: error
       - name: Freeze the requested future P0 comparison from retained inputs only
         id: future_p0
         env:
