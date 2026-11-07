@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ${{ github.event_name == 'push' && github.sha || 'de5e25eefb4f62b9a78d6c8c407d6b02c03348f6' }}
+          ref: ${{ github.event_name == 'push' && github.sha || 'cfa53f27c3a1e473a893b5b229438f4f52c9b6d6' }}
           persist-credentials: true
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
