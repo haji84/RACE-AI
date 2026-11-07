@@ -7,6 +7,10 @@ inputs:
   saved-view-key:
     required: true
     description: Existing owner state secret, used only in private encrypted model and display paths
+  prospective-grid-input:
+    required: false
+    default: ''
+    description: Explicit future-only research grid manifest; absent preserves the original flow
 runs:
   using: composite
   steps:
@@ -14,13 +18,20 @@ runs:
       id: ready
       shell: bash
       run: python scripts/github_existing_cycle.py repeat-prepare --round '${{ inputs.round }}'
+    - name: Admit explicitly selected research grid before any round source
+      if: steps.ready.outputs.active == 'true' && inputs.prospective-grid-input != ''
+      shell: bash
+      env:
+        RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
+        RACE_AI_PROSPECTIVE_GRID_INPUT: ${{ inputs.prospective-grid-input }}
+      run: python -m scripts.boat_all_model_cycle prepare --round '${{ inputs.round }}' --prospective-grid-input "$RACE_AI_PROSPECTIVE_GRID_INPUT"
     - name: Discover and forecast missing future P0 with existing models
       if: steps.ready.outputs.active == 'true'
       id: discovery
       shell: bash
       run: python scripts/github_existing_cycle.py supplement --round '${{ inputs.round }}'
     - name: Restore private history and fitted models before fresh exhibition capture
-      if: steps.ready.outputs.active == 'true'
+      if: steps.ready.outputs.active == 'true' && inputs.prospective-grid-input == ''
       continue-on-error: true
       shell: bash
       env:
@@ -42,9 +53,16 @@ runs:
         if-no-files-found: error
         retention-days: 7
     - name: Forecast future unpublished originals with existing five models
-      if: steps.ready.outputs.active == 'true'
+      if: steps.ready.outputs.active == 'true' && inputs.prospective-grid-input == ''
       shell: bash
       run: python scripts/github_existing_cycle.py forecast --round '${{ inputs.round }}'
+    - name: Capture new original sources only after explicit grid admission
+      if: steps.ready.outputs.active == 'true' && inputs.prospective-grid-input != ''
+      shell: bash
+      env:
+        RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
+        RACE_AI_PROSPECTIVE_GRID_INPUT: ${{ inputs.prospective-grid-input }}
+      run: python scripts/github_existing_cycle.py forecast --round '${{ inputs.round }}' --prospective-grid-input "$RACE_AI_PROSPECTIVE_GRID_INPUT"
     - name: Protect this baseline original before public artifact storage
       if: steps.ready.outputs.active == 'true'
       shell: bash

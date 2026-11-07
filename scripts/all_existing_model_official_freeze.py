@@ -47,7 +47,11 @@ def utc_now():return datetime.now(timezone.utc)
 
 
 def load_manifest(path,*,now):
-    value=read_json_bytes(_read(Path(path),16384))
+    return validate_manifest(read_json_bytes(_read(Path(path),16384)),now=now)
+
+
+def validate_manifest(value,*,now):
+    """Validate paths and pins before either repository or private-root I/O."""
     fields={'schema','execution_day','sealed_path','index_sha256','maximum_races',
             'source_metadata_path','source_metadata_sha256'}
     need(type(value) is dict and ((value.get('schema')==SCHEMA and set(value)==fields) or
@@ -122,8 +126,8 @@ def _repository_file(path,limit):
     return _read(path,limit)
 
 
-def copy_sealed(manifest,target):
-    source=ROOT/manifest['sealed_path']
+def copy_sealed(manifest,target,*,source_root=None):
+    source=(ROOT if source_root is None else source_root)/manifest['sealed_path']
     need(source.is_dir() and not any(p.is_symlink() for p in (source,*source.parents)),'SEALED_DIRECTORY')
     paths=list(source.iterdir())
     need(1<=len(paths)<=33 and any(p.name=='index.enc' for p in paths) and all(
@@ -150,8 +154,8 @@ def bind_metadata(raw,manual,actual):
     return deepcopy(actual)
 
 
-def original_metadata(manifest,*,key):
-    raw=_repository_file(ROOT/manifest['source_metadata_path'],4*1024*1024)
+def original_metadata(manifest,*,key,source_root=None):
+    raw=_repository_file((ROOT if source_root is None else source_root)/manifest['source_metadata_path'],4*1024*1024)
     need(sha256(raw).hexdigest()==manifest['source_metadata_sha256'],'ORIGINAL_METADATA_CIPHER_SHA')
     value=open_forecasts(raw,key=key)
     need(type(value) is dict and set(value)=={'schema','execution_day','metadata_by_url'} and
@@ -221,15 +225,15 @@ def _rule_id(manifest):
     return f'JRA_{event.year}_{weekday}_ALL_RACES_START_MINUS_60_SECONDS'
 
 
-def _replay_original_inputs(manifest,records,baseline,env):
+def _replay_original_inputs(manifest,records,baseline,env,*,source_root=None):
     """Rebuild original facts from their retained owner-encrypted source bytes."""
     from race_ai.all_existing_model_future_baseline import attach
     with tempfile.TemporaryDirectory(prefix='manual-native-replay-',dir=env['temp']) as temporary:
-        private=Path(temporary);copy_sealed(manifest,private/'sealed');restored=private/'restored'
+        private=Path(temporary);copy_sealed(manifest,private/'sealed',source_root=source_root);restored=private/'restored'
         key=state_key('production');capture.restore_cache(private/'sealed',restored,key=key,
             expected_index_sha256=manifest['index_sha256'])
         cache=capture._load(restored);need(cache['execution_day']==manifest['execution_day'],'CACHE_EXECUTION_DAY')
-        originals=original_metadata(manifest,key=key);rule=capture.read_capture(restored,jra.RULE_URL)
+        originals=original_metadata(manifest,key=key,source_root=source_root);rule=capture.read_capture(restored,jra.RULE_URL)
         evidence=dict(raw=rule['raw'],metadata=bind_metadata(rule['raw'],rule['metadata'],originals.get(jra.RULE_URL)),
             sales_channel=jra.CHANNEL,rule_id=_rule_id(manifest))
         for record in records:
@@ -248,7 +252,7 @@ def _replay_original_inputs(manifest,records,baseline,env):
                 need(capsule['native_payload']==wanted,'RAW_SOURCE_NATIVE_BINDING')
 
 
-def generate(ident,root,env,manifest):
+def generate(ident,root,env,manifest,*,source_root=None):
     need(not root.exists(),'OUTPUT_EXISTS_DO_NOT_RESET')
     key=state_key('production')
     if manifest['schema']==V3_SCHEMA:
@@ -272,11 +276,11 @@ def generate(ident,root,env,manifest):
             excluded_native_race_count=len(excluded),excluded_cached_card_count=0)
     holds=0;rejected=0;selected=[]
     with tempfile.TemporaryDirectory(prefix='manual-native-freeze-',dir=env['temp']) as temporary:
-        private=Path(temporary);copy_sealed(manifest,private/'sealed')
+        private=Path(temporary);copy_sealed(manifest,private/'sealed',source_root=source_root)
         restored=private/'restored'
         capture.restore_cache(private/'sealed',restored,key=key,expected_index_sha256=manifest['index_sha256'])
         cache=capture._load(restored);need(cache['execution_day']==manifest['execution_day'],'CACHE_EXECUTION_DAY')
-        originals=original_metadata(manifest,key=key)
+        originals=original_metadata(manifest,key=key,source_root=source_root)
         proof=capture.read_capture(restored,jra.RULE_URL)
         rule=bind_metadata(proof['raw'],proof['metadata'],originals.get(jra.RULE_URL))
         evidence=dict(raw=proof['raw'],metadata=rule,sales_channel=jra.CHANNEL,
@@ -338,7 +342,7 @@ def generate(ident,root,env,manifest):
             independent_pre_cutoff_receipt_verified=False)
 
 
-def readback(ident,root,env,*,manifest=None):
+def readback(ident,root,env,*,manifest=None,source_root=None):
     local=local_records(root)
     previous=read_json_bytes(_read(root.with_name(root.name+'.status.json'),128*1024))
     has_baseline=any('baseline_attachment' in capsule['native_payload']
@@ -363,7 +367,7 @@ def readback(ident,root,env,*,manifest=None):
              previous.get('baseline_training_sha256')==baseline['training']['training_sha256'],
              'BASELINE_GENERATION_BINDING')
         _check_horse_baseline(local,baseline)
-        _replay_original_inputs(manifest,local,baseline,env)
+        _replay_original_inputs(manifest,local,baseline,env,source_root=source_root)
     actual=future.metadata(ident);raw=future.gh('actions/artifacts/'+str(ident)+'/zip')
     need(actual.get('name')==f'all-existing-model-pairs-{env["run_id"]}-{ROUND}','ACTUAL_ARTIFACT_NAME')
     admitted,records=_verified_private_pairs_artifact(raw,actual,now=utc_now(),

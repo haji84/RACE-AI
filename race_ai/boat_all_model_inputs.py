@@ -303,7 +303,8 @@ def pdca_payload_from_history(facts, *, as_of, history_context, source_evidence)
                 history_availability_semantics="ARCHIVE_SOURCE_CAPTURE_BOUND_NOT_DATABASE_SAVE_ATTESTATION")
 
 
-def build_native_inputs(program, beforeinfo, *, as_of, history_context=None, fitted_model=None):
+def build_native_inputs(program, beforeinfo, *, as_of, history_context=None, fitted_model=None,
+                        prospective_grid=None):
     """Return native groups plus independent readiness records for each group.
 
     ``history_context`` may hold ``history_store``, an authenticated caller's
@@ -493,6 +494,10 @@ def build_native_inputs(program, beforeinfo, *, as_of, history_context=None, fit
             native["boat_pdca"] = pdca
             readiness["boat_pdca"] = dict(state="READY", reasons=[])
             evidence.extend(deepcopy(pdca.get("source_evidence", [])))
-    return dict(schema=SCHEMA, race_id=rid, stage="P1", as_of=at, native_inputs=native,
+    result = dict(schema=SCHEMA, race_id=rid, stage="P1", as_of=at, native_inputs=native,
                 readiness=readiness, source_evidence=deepcopy(evidence),
                 source_publication_times_inferred=False, source_requests=0)
+    if prospective_grid is not None:
+        from .boat_venue_future_grid import enrich_native_inputs
+        return enrich_native_inputs(result, prospective_grid, source_as_of=at)
+    return result

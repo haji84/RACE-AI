@@ -439,7 +439,7 @@ def _verify_native_input_capsules(payload, *, replay_outputs):
 
 
 def forecast_round(contexts, runtime_files, *, now, baseline_document=None, baseline_receipt=None, issued_models=None,
-                   runtime_pointer=None):
+                   runtime_pointer=None, prospective_grid=None):
     """Run each ready P1 family once; reuse baseline originals and issued slots."""
     clock = _clock(now)
     _need(type(contexts) is list and len(contexts) <= 288, "BOUNDED_CONTEXTS_REQUIRED")
@@ -456,6 +456,11 @@ def forecast_round(contexts, runtime_files, *, now, baseline_document=None, base
         for rid, item in current.items():
             own_originals = [p for p in originals if p["race_id"] == rid]
             saved = issued.get(rid, set()) | {p["model_id"] for p in own_originals}
+            if prospective_grid is not None:
+                # A separately requested feature version needs its own native
+                # originals. The old baseline bytes/receipt remain retained;
+                # their predictions cannot stand in for these new inputs.
+                own_originals = []; saved = set()
             cutoff = _time(item["program"]["closed_at"])
             eligible = (item["program"].get("pre_cutoff_eligible") is True
                         and item["beforeinfo"].get("eligible_pre_race") is True
@@ -464,8 +469,10 @@ def forecast_round(contexts, runtime_files, *, now, baseline_document=None, base
             if clock >= cutoff or not eligible:
                 skipped.append(dict(race_id=rid, reason="AT_OR_AFTER_CUTOFF" if clock >= cutoff else "SOURCE_NOT_PRE_CUTOFF_ELIGIBLE"))
             else:
+                options = {} if prospective_grid is None else dict(prospective_grid=prospective_grid)
                 built = build_native_inputs(item["program"], item["beforeinfo"], as_of=item["as_of"],
-                    history_context=dict(history_store=history, history_identity_verified=True, owner_reviewed=True), fitted_model=fitted)
+                    history_context=dict(history_store=history, history_identity_verified=True, owner_reviewed=True),
+                    fitted_model=fitted, **options)
                 native = built["native_inputs"]; readiness = built["readiness"]
                 def admit(evidence):
                     for e in evidence:
@@ -482,7 +489,7 @@ def forecast_round(contexts, runtime_files, *, now, baseline_document=None, base
                               allow_source=lambda ref, rights, purpose: purpose == "analysis" and (ref, rights) in refs,
                               originals=own_originals)
             report["schedule"] = [schedules[rid]]
-            _postprocess(report, issued.get(rid, set()), readiness, "P1")
+            _postprocess(report, issued.get(rid, set()) if prospective_grid is None else set(), readiness, "P1")
             capsules.append(_native_capsule(schedules[rid], native, clock, report, refs))
             reports.append(report); readiness_rows.append(dict(race_id=rid, stage="P1", groups=readiness))
         payload = dict(schema=SCHEMA, stage="P1", generated_at=clock.isoformat(), as_of=clock.isoformat(),

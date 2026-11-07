@@ -211,7 +211,7 @@ class ActionsIssueTests(unittest.TestCase):
             self.assertEqual(github.published,[])
 
 class IssuerWorkflowTests(unittest.TestCase):
-    def test_only_source_free_issuer_job_can_write_and_it_routes_prefix_before_secret_step(self):
+    def test_only_explicit_scoped_jobs_can_write_and_issuer_routes_before_secret_step(self):
         # Check our explicit permission/step boundary without introducing a YAML
         # dependency into the existing complete Python discovery environment.
         raw=(Path(__file__).resolve().parents[1]/'.github/workflows/forecast-audit-ui.yml').read_text()
@@ -238,7 +238,8 @@ class IssuerWorkflowTests(unittest.TestCase):
         self.assertEqual([block for block in steps if 'RACE_AI_STATE_KEY:' in block],[execute])
         self.assertFalse(re.search(r'^  schedule:',raw,re.M))
         for name,other in jobs.items():
-            if name!='official_result_recovery_issuer':self.assertNotEqual(permissions(other,'    ').get('contents'),'write')
+            if name not in ('official_result_recovery_issuer','official_future_source_capture'):
+                self.assertNotEqual(permissions(other,'    ').get('contents'),'write')
 
 
 class IssuerHistoryTests(unittest.TestCase):

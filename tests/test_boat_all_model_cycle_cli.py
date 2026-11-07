@@ -98,6 +98,90 @@ class AllModelCliTests(unittest.TestCase):
         self.assertNotIn(base64.b64encode(KEY).decode(), out.getvalue())
         return code, out.getvalue()
 
+    def test_explicit_grid_prepare_is_bound_before_ready_and_old_prepare_has_no_capability(self):
+        from race_ai import boat_venue_future_grid as grid
+        manifest=self.repo/'audit/state/prospective-grid.json'
+        manifest.write_text('{}')
+        self.assertIn('prospective_grid_input',__import__('inspect').signature(cli.prepare_runtime).parameters,
+            'explicit pre-source grid flag is absent')
+        old=cli.prepare_runtime(round_no=1)
+        self.assertNotIn('prospective_grid',old)
+        calls=[]
+        def denied(*args,**kwargs):
+            calls.append('admit')
+            raise ValueError('PROSPECTIVE_BOAT_GRID_DATASET_RESTORE_NOT_READY')
+        with patch.object(grid,'prepare_capability',side_effect=denied):
+            with self.assertRaises(ValueError):
+                cli.prepare_runtime(round_no=2,prospective_grid_input=manifest)
+        self.assertEqual(calls,['admit'])
+        saved=json.loads((self.temp/'boat-all-model-runtime/runtime-ready.json').read_text())
+        self.assertEqual(saved['round_no'],1)
+
+    def test_requested_grid_cannot_collect_a_source_before_its_admission(self):
+        from scripts import github_existing_cycle as worker
+        from race_ai import boat_venue_future_grid as grid
+        manifest=self.repo/'audit/state/prospective-grid.json'
+        pointer=dict(schema='RACE_AI_BOAT_VENUE_DATASET_INPUT_V1',status='READY',repository_id='1416489937',
+            dataset_sha256=grid.DATASET_SHA,source_commit=grid.DATASET_COMMIT,
+            dataset_path=f'state/boat-venue-history/v1/datasets/{grid.DATASET_SHA}/dataset.json')
+        manifest.write_text(json.dumps(dict(schema=grid.SCHEMA,dataset_pointer=pointer,observed_only=True,
+            course_feature_policy=grid.POLICY,readback=dict(run_id=grid.READBACK_RUN,run_attempt=1,
+                job_id=grid.READBACK_JOB,head_sha=grid.READBACK_HEAD,metadata_sha256=grid.METADATA_SHA,log_sha256=grid.LOG_SHA))))
+        self.assertIn('prospective_grid_input',__import__('inspect').signature(worker.forecast).parameters,
+            'explicit source worker does not require pre-source admission')
+        with patch.object(worker,'ROOT',self.repo), patch.object(worker,'load_state',
+                side_effect=AssertionError('pipeline was reached before grid admission')):
+            with self.assertRaisesRegex(ValueError,'PROSPECTIVE'):
+                worker.forecast('2030-04-01',round_no=1,prospective_grid_input=manifest)
+
+    def test_swallowed_input_sink_rejection_cannot_publish_explicit_default_fallback(self):
+        from scripts import github_existing_cycle as worker
+        from types import SimpleNamespace
+        import scripts
+        recovery=self.repo/'cycle_recovery_output';recovery.mkdir()
+        index=self.repo/'index.json';index.write_text('{"entries":[]}')
+        output=self.repo/'national';output.mkdir()
+        pilot=SimpleNamespace(FROZEN_INDEX=index,MODEL_INPUT_SINK=None,ISSUED_MODELS=None,
+            NATIVE_INPUT_SINK=None,OUTPUT=output)
+        def run(**kwargs):
+            try:pilot.MODEL_INPUT_SINK({}, {}, NOW.isoformat())
+            except ValueError:pass  # The real legacy pilot retains this behavior.
+            return dict(observed_pairwise_p1_bundles=[],paired_forecasts=[dict(fixture=True)])
+        pilot.run=run
+        with patch.object(scripts,'boat_nationwide_ab_pilot',pilot,create=True), \
+             patch.object(cli,'require_prospective_prepared',return_value=object()), \
+             patch.object(worker,'ROOT',self.repo),patch.object(worker,'load_state',return_value=dict(index_entries=[])), \
+             patch.object(worker,'_video_sources',return_value=(SimpleNamespace(artifact_ids=[]),None)), \
+             patch.object(worker,'_all_model_capture',return_value=(dict(issued_models={},input_sink=lambda *args:None),None)):
+            with self.assertRaisesRegex(ValueError,'PROSPECTIVE'):
+                worker.forecast('2030-04-01',round_no=1,prospective_grid_input='explicit.json')
+        self.assertFalse((output/'national.json').exists())
+
+    def test_failed_explicit_capture_cannot_fall_back_to_canonical_pairs(self):
+        from scripts import github_existing_cycle as worker
+        self.assertTrue(callable(getattr(worker,'_prospective_round_requested',None)),
+            'empty explicit native output loses the selected feature version')
+        preload=self.temp/'research-preload';preload.mkdir(mode=0o700)
+        destination=self.temp/'prospective-upload'
+        def legacy_ready(runtime,pending,staging,**kwargs):
+            staging.mkdir();(staging/'summary.json').write_text('{}');(staging/('f'*64)).mkdir()
+            return dict(partition_count=1,encrypted_readback_verified=True,pending_removed=True)
+        with patch.object(worker,'_prospective_round_requested',return_value=True), \
+             patch.object(worker,'_verified_round_additional_requests',return_value=[]), \
+             patch('race_ai.all_existing_model_runtime.generate_current_pairs',side_effect=legacy_ready):
+            result=worker._all_model_research_generate(dict(preload_folder=preload,output_folder=destination),1)
+        self.assertEqual(result['state'],'HOLD_PRIVATE_NATIVE_INPUTS')
+        self.assertFalse(destination.exists())
+
+    def test_grid_witness_reads_fresh_github_metadata_without_archive_substitution(self):
+        from scripts import github_existing_cycle as worker
+        from race_ai.boat_venue_future_grid import READBACK_RUN
+        with patch.object(worker,'gh',return_value=b'archived response'), \
+             patch.object(worker,'_live_gh',return_value=b'actual fresh server response'):
+            self.assertEqual(cli._prospective_grid_get(f'actions/runs/{READBACK_RUN}/attempts/1'),
+                b'actual fresh server response')
+            with self.assertRaises(ValueError):cli._prospective_grid_get('actions/runs/42')
+
     def test_prepare_inventory_rejection_exposes_only_bounded_code_locations(self):
         sentinel = "private-race-sentinel-" + base64.b64encode(KEY).decode()
         view = {"records": [dict(race_id=sentinel)]}

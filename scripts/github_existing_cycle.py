@@ -342,6 +342,36 @@ def _verified_round_additional_requests(round_no,*,now):
     return requests
 
 
+def _prospective_carrier_pairs(runtime,requests,output,*,now):
+    """Seal the exact newly frozen fourteen inputs without canonical enrichment."""
+    from race_ai.boat_venue_future_grid import prospective_requests
+    from race_ai.all_existing_model_learning import _sources
+    from race_ai.all_existing_model_pairs import make_private_pairs
+    selected=prospective_requests(requests,now=now)
+    refs=set().union(*(_sources(row['native_payload']) for row in selected))
+    summary=make_private_pairs(runtime['context'],selected,output,now=now,
+        allow_source=lambda ref,rights,purpose:purpose=='analysis' and (ref,rights) in refs)
+    summary['prospective_grid_carrier']=True
+    summary['original_pending_inputs_unchanged']=True
+    return summary
+
+
+def _prospective_round_requested(round_no):
+    """An admitted explicit mode remains explicit even when generation held."""
+    from scripts import boat_all_model_cycle as cycle
+    from race_ai.boat_venue_future_grid import open_capability
+    temporary=os.environ.get('RUNNER_TEMP')
+    if not temporary:return False
+    path=Path(temporary)/'boat-all-model-runtime'/'runtime-ready.json'
+    if not path.exists() and not path.is_symlink():return False
+    marker=cycle._json(cycle._read(path,128*1024,private=True),128*1024)
+    if 'prospective_grid' not in marker:return False
+    env=cycle._environment()
+    open_capability(marker['prospective_grid'],key=cycle._owner(),run_id=env['run_id'],
+        head_sha=env['head'],round_no=round_no)
+    return True
+
+
 def _all_model_research_generate(runtime,round_no):
     """Only verified ciphertext partitions enter the existing upload root."""
     import re,shutil,tempfile
@@ -352,9 +382,13 @@ def _all_model_research_generate(runtime,round_no):
     try:
         additional=_verified_round_additional_requests(round_no,now=datetime.now(timezone.utc))
         options=dict(now=datetime.now(timezone.utc))
-        if additional:options['additional_requests']=additional
-        summary=generate_current_pairs(runtime,_native_pending_folder(round_no),staging,**options)
-        if summary.get('pending_removed') is True and summary.get('encrypted_readback_verified') is True:
+        prospective=_prospective_round_requested(round_no) or any('prospective_grid_evidence' in row['native_payload'] for row in additional)
+        if prospective:
+            summary=_prospective_carrier_pairs(runtime,additional,staging,**options)
+        else:
+            if additional:options['additional_requests']=additional
+            summary=generate_current_pairs(runtime,_native_pending_folder(round_no),staging,**options)
+        if (summary.get('pending_removed') is True or summary.get('prospective_grid_carrier') is True) and summary.get('encrypted_readback_verified') is True:
             destination=runtime['output_folder']
             private_root(destination.parent)
             need(not destination.exists(),'ALL_MODEL_ORIGINAL_EXISTS_NO_RESET')
@@ -545,7 +579,11 @@ def _all_model_capture(round_no):
         return None,'ALL_MODEL_RUNTIME_UNAVAILABLE_OR_REJECTED'
 
 
-def forecast(day,*,video_context_artifacts=(),video_reader=None,round_no=None):
+def forecast(day,*,video_context_artifacts=(),video_reader=None,round_no=None,prospective_grid_input=None):
+    capability=None
+    if prospective_grid_input is not None:
+        from scripts.boat_all_model_cycle import require_prospective_prepared
+        capability=require_prospective_prepared(round_no,prospective_grid_input)
     from scripts import boat_nationwide_ab_pilot as pilot
     state=load_state(ROOT/'cycle_recovery_output/continuity.json',day)
     index=json.loads(pilot.FROZEN_INDEX.read_text())
@@ -566,6 +604,21 @@ def forecast(day,*,video_context_artifacts=(),video_reader=None,round_no=None):
     # consume the remaining physical-save window of already generated P1 rows.
     reader,video_error=_video_sources(state,video_context_artifacts,video_reader)
     model_capture,capture_error=_all_model_capture(round_no)
+    prospective_retained=[];prospective_rejected=[]
+    if capability is not None:
+        need(model_capture is not None,'PROSPECTIVE_GRID_NATIVE_CAPTURE_REQUIRED')
+        from race_ai.boat_venue_future_grid import require_before_source
+        original_sink=model_capture['input_sink']
+        def prospective_sink(program,beforeinfo,as_of):
+            try:
+                require_before_source(capability,as_of)
+                result=original_sink(program,beforeinfo,as_of)
+                prospective_retained.append(True)
+                return result
+            except Exception:
+                prospective_rejected.append(True)
+                raise
+        model_capture['input_sink']=prospective_sink
     prior_sink,prior_issued=pilot.MODEL_INPUT_SINK,pilot.ISSUED_MODELS
     pilot.MODEL_INPUT_SINK=model_capture['input_sink'] if model_capture is not None else None
     pilot.ISSUED_MODELS=model_capture['issued_models'] if model_capture is not None else None
@@ -577,6 +630,10 @@ def forecast(day,*,video_context_artifacts=(),video_reader=None,round_no=None):
     finally:
         pilot.MODEL_INPUT_SINK,pilot.ISSUED_MODELS=prior_sink,prior_issued
         pilot.NATIVE_INPUT_SINK=previous_sink
+    if capability is not None:
+        # The legacy pilot records retention errors without throwing. An
+        # explicitly selected experiment must not become a default fallback.
+        need(prospective_retained and not prospective_rejected,'PROSPECTIVE_GRID_FRESH_CAPTURE_REQUIRED')
     if round_no is not None:
         result['all_model_collection']=dict(state='PREPARED_RUNTIME_ADMITTED' if model_capture is not None else
             'ADDITIONAL_FAMILIES_UNAVAILABLE',**({'reason':capture_error} if capture_error else {}))
@@ -1102,18 +1159,23 @@ def main():
         'venue-research-forecast','venue-research-readback','venue-research-pdca','venue-research-retain'])
     p.add_argument('--p1-artifact',type=int);p.add_argument('--p0-supplement',type=int)
     p.add_argument('--result-artifact',type=int);p.add_argument('--round',type=int)
+    p.add_argument('--prospective-grid-input',help='Explicit pre-admitted research grid; forecast only')
     p.add_argument('--video-context-artifact',type=int,action='append',default=[],
                    help='Optional independently read existing-run video-context artifact ID; repeatable')
     a=p.parse_args()
     if a.video_context_artifact and a.command not in ('restore','forecast','audit'):
         p.error('--video-context-artifact applies only to restore, forecast or audit')
+    if a.prospective_grid_input is not None and a.command!='forecast':
+        p.error('--prospective-grid-input applies only to forecast')
     video_options={'video_context_artifacts':a.video_context_artifact} if a.video_context_artifact else {}
     if a.command=='wait-for-window':
         wait_for_window()
         return
     day=event_day()
     if a.command=='restore':restore(day,**video_options)
-    elif a.command=='forecast':forecast(day,**dict(video_options,**({'round_no':a.round} if a.round is not None else {})))
+    elif a.command=='forecast':forecast(day,**dict(video_options,
+        **({'round_no':a.round} if a.round is not None else {}),
+        **({'prospective_grid_input':a.prospective_grid_input} if a.prospective_grid_input is not None else {})))
     elif a.command=='venue-research-forecast':venue_research_forecast(day,a.round)
     elif a.command=='venue-research-readback':venue_research_readback(a.p1_artifact)
     elif a.command=='venue-research-pdca':venue_research_pdca(day,a.round)

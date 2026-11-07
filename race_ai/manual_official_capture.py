@@ -39,6 +39,8 @@ _CREDENTIALS=frozenset(('key','api_key','apikey','token','access_token','authori
 _HEX=re.compile(r'[0-9a-f]{64}\Z')
 _SOURCE_FIELDS={'url','final_url','source_rights_ref','source_sha256','size','captured_at','published_at',
                 'content_type','redirect_chain','raw_file','capture_origin','body_identity_verified'}
+HTTP_SCHEMA='RACE_AI_MANUAL_OFFICIAL_HTTP_METADATA_V1'
+HTTP_HEADER_NAMES=frozenset(('content-type','content-length','content-encoding','date','cache-control','location'))
 
 
 def _need(ok,reason):
@@ -213,7 +215,7 @@ def _lock(root):
 
 
 def _source_metadata(value,execution_day,updated):
-    _need(type(value) is dict and set(value)==_SOURCE_FIELDS,'CAPTURE_METADATA_INVALID')
+    _need(type(value) is dict and set(value) in (_SOURCE_FIELDS,_SOURCE_FIELDS|{'http_metadata'}),'CAPTURE_METADATA_INVALID')
     url=value['url'];sport,host=_url(url);validate_source_pair(url,value['source_rights_ref'])
     _need(_url(value['final_url'])==(sport,host),'REDIRECT_HOST_MISMATCH')
     chain=value['redirect_chain']
@@ -228,6 +230,31 @@ def _source_metadata(value,execution_day,updated):
           value['raw_file']==sha256(url.encode()).hexdigest()+'.raw' and
           value['capture_origin'] in ('HTTP_GET','IMPORTED_PRIOR_CAPTURE') and
           type(value['content_type']) is str and len(value['content_type'])<=512,'SOURCE_HASH_OR_SIZE_INVALID')
+    if 'http_metadata' in value:_http_metadata(value['http_metadata'],value,execution_day)
+
+
+def _http_metadata(value,source,execution_day):
+    fields={'schema','attempt_no','source_url','final_url','status','byte_count','source_sha256',
+            'fetched_at','headers_received_at','response_received_at','headers'}
+    _need(type(value) is dict and set(value)==fields and value['schema']==HTTP_SCHEMA and
+          type(value['attempt_no']) is int and 1<=value['attempt_no']<=MAX_REQUESTS and
+          source['capture_origin']=='HTTP_GET','HTTP_METADATA_INVALID')
+    _need(value['source_url']==value['final_url']==source['final_url'] and type(value['status']) is int and value['status']==200 and
+          type(value['byte_count']) is int and value['byte_count']==source['size'] and value['source_sha256']==source['source_sha256'], 'HTTP_SOURCE_BINDING')
+    clocks=[_time(value[key]) for key in ('fetched_at','headers_received_at','response_received_at')]
+    _need(clocks==sorted(clocks) and value['response_received_at']==source['captured_at'] and
+          all(clock.astimezone(JST).date()==_day(execution_day) for clock in clocks),'HTTP_SOURCE_CLOCK')
+    headers=value['headers']
+    _need(type(headers) is list and len(headers)<=32 and all(type(pair) is list and len(pair)==2 and
+          type(pair[0]) is str and pair[0].lower() in HTTP_HEADER_NAMES and
+          type(pair[1]) is str and len(pair[1])<=2048 for pair in headers),'HTTP_HEADERS_INVALID')
+
+
+def _http_headers(headers):
+    # Keep original casing, values and duplicate observations. The sidecar join
+    # decides whether these observations are unambiguous enough for JRA.
+    pairs=headers.raw_items() if hasattr(headers,'raw_items') else headers.items()
+    return [[name,value] for name,value in pairs if type(name) is str and name.lower() in HTTP_HEADER_NAMES]
 
 
 def _validate_cache(cache):
@@ -313,11 +340,12 @@ def _report(cache,*,source_requests=0,cache_hits=0,imported_sources=0):
         independent_pre_cutoff_receipt_verified=False,plaintext_published=False)
 
 
-def _store(root,cache,url,raw,*,final_url,captured_at,content_type,chain,origin):
+def _store(root,cache,url,raw,*,final_url,captured_at,content_type,chain,origin,http_metadata=None):
     metadata=dict(url=url,final_url=final_url,source_rights_ref=official_rights_ref(_url(url)[0]),
         source_sha256=sha256(raw).hexdigest(),size=len(raw),captured_at=captured_at,published_at=None,
         content_type=content_type,redirect_chain=chain,raw_file=sha256(url.encode()).hexdigest()+'.raw',
         capture_origin=origin,body_identity_verified=False)
+    if http_metadata is not None:metadata['http_metadata']=deepcopy(http_metadata)
     _source_metadata(metadata,cache['execution_day'],max(_time(cache['updated_at']),_time(captured_at)))
     if url in cache['captures']:
         _need(cache['captures'][url]==metadata and _read(root/metadata['raw_file'],MAX_BYTES)==raw,'ORIGINAL_EXISTS_DO_NOT_REPLACE')
@@ -365,6 +393,7 @@ def collect_once(urls,*,execution_day,terms_manifest,cache_dir,clock=lambda:date
                     try:response=fetch(Request(current,headers={'User-Agent':'RACE-AI-owner-manual-private-factual-analysis/1.0',
                                                               'Accept':'text/html,application/pdf,application/json;q=0.8'}),timeout=TIMEOUT)
                     except HTTPError as exc:response=exc
+                    headers_received=_now(clock)
                     status=getattr(response,'status',None) or getattr(response,'code',None)
                     _need(type(status) is int,'RESPONSE_STATUS_INVALID')
                     # Any observed authorization/rate denial stops the
@@ -380,6 +409,7 @@ def collect_once(urls,*,execution_day,terms_manifest,cache_dir,clock=lambda:date
                         _need(_url(redirect)==_url(target) and redirect not in chain and len(chain)<4,'REDIRECT_NOT_ALLOWED')
                     elif status==200:
                         state='RESPONSE_REJECTED'
+                        observed_headers=_http_headers(headers)
                         length=headers.get('Content-Length')
                         if length is not None:_need(str(length).isdigit() and 0<int(length)<=MAX_BYTES,'SOURCE_SIZE_LIMIT')
                         _need(headers.get('Content-Encoding','identity').lower() in ('','identity'),'SOURCE_ENCODING_UNSUPPORTED')
@@ -389,7 +419,11 @@ def collect_once(urls,*,execution_day,terms_manifest,cache_dir,clock=lambda:date
                         content_type=headers.get('Content-Type','')
                         _need(type(content_type) is str and len(content_type)<=512,'SOURCE_CONTENT_TYPE_INVALID')
                         _store(root,cache,target,raw,final_url=current,captured_at=captured.isoformat(),
-                               content_type=content_type,chain=deepcopy(chain),origin='HTTP_GET')
+                               content_type=content_type,chain=deepcopy(chain),origin='HTTP_GET',
+                               http_metadata=dict(schema=HTTP_SCHEMA,attempt_no=len(cache['attempts']),source_url=current,
+                                   final_url=response.geturl(),status=status,byte_count=len(raw),source_sha256=sha256(raw).hexdigest(),
+                                   fetched_at=started.isoformat(),headers_received_at=headers_received.isoformat(),
+                                   response_received_at=captured.isoformat(),headers=observed_headers))
                         state='SUCCESS'
                     else:state='HTTP_FAILURE';reason='HTTP_STATUS_UNAVAILABLE'
                 except (ValueError,URLError,TimeoutError,OSError):
