@@ -1,0 +1,63 @@
+{
+  "schema": "RACE_AI_RESULT_RECONCILIATION_PROGRESS_V1",
+  "verified_at_utc": "2026-11-07T16:45:44Z",
+  "scope": "BOAT_LATEST_TWO_SAVED_EVENT_DAYS",
+  "per_day_breakdown_verified": false,
+  "reported_runs": [
+    {
+      "run_id": 42391032608,
+      "job_id": 128458445463,
+      "head_sha": "738cd5298c3f76385c2f9db02651148c0b3c7b4a",
+      "whole_workflow_conclusion": "SUCCESS",
+      "checked_at": "2026-11-07T16:23:57.918228+00:00",
+      "official_source_requests_in_reported_run": 12,
+      "races": 288,
+      "confirmed_or_void": 264,
+      "held": 5,
+      "pending": 19,
+      "changed_races": 12,
+      "retained_generation": 3
+    },
+    {
+      "run_id": 42392234046,
+      "job_id": 128462027824,
+      "head_sha": "eed6c888d666d71407964e2b419ffae15a2a625b",
+      "whole_workflow_conclusion": "FAILURE",
+      "source_and_encrypted_publication_completed": true,
+      "checked_at": "2026-11-07T16:38:26.126389+00:00",
+      "official_source_requests_in_reported_run": 12,
+      "races": 288,
+      "confirmed_or_void": 285,
+      "held": 3,
+      "pending": 0,
+      "changed_races": 11,
+      "retained_generation": 6,
+      "failed_phase": "LIVE_SITE_CONTEXT",
+      "failure_reason": "STATE_GIT_OPERATION_FAILED"
+    }
+  ],
+  "all_intervening_source_runs_enumerated": false,
+  "latest_browser_readback_verified": false,
+  "remaining_held_reasons_verified": false,
+  "forecast_inputs_changed": false,
+  "frozen_financial_policy_changed": false,
+  "private_sources_published": false,
+  "duplicate_retained_k_adapter_published": false,
+  "settlement_guard_validation": {
+    "contract": "BIDIRECTIONAL_FALSE_OR_LATE_START_AND_FINISH_CONSISTENCY",
+    "matched_false_and_late_starts_with_explicit_refunds_preserved": true,
+    "red_contradiction_subcases": 15,
+    "related_tests_passed": 60,
+    "related_tests_skipped": 0,
+    "independent_focused_tests_passed": 19,
+    "review_blockers_remaining": 0
+  },
+  "native_model_fits_verified": 19,
+  "native_model_cells_required": 30,
+  "remaining_autorace_cells": 6,
+  "remaining_keirin_cells": 5,
+  "new_native_future_pdca_verified": 0,
+  "accuracy_improvement_proven": false,
+  "production_model_promoted": false,
+  "actual_purchases": false
+}
