@@ -27,10 +27,10 @@
 
 Files: create `race_ai/boat_sp_settlement.py`, `tests/test_boat_sp_settlement.py`; modify `race_ai/saved_result_sync.py`, `race_ai/saved_view_feed.py`, `race_ai/racer_intraday.py`; add `tests/test_racer_result_queue.py`.
 Interfaces: `parse_settlement(raw,receipt,now)->observation`; `settlement_digest(observation)->hex`; `IntradayState.advance(...,result_targets=())` shares max12 budget and retains `settlement_captures` independently; PC parse remains compatible.
-- [ ] RED tests for real-shaped strict identity/top3/payout/refund/absence/dead heat/cancellation/pending; wrong payload/future/contradictory winners rejected.
-- [ ] Implement SP dispatch in `parse_capture` and URL mapping in `F.update_view`. Add raw-bound SP schedule-change display reference with full roster/pre-both-clock gates; formal false.
-- [ ] RED queue tests: pending settlement despite canonical K, new results before revisions, payout-only revision, prior date/rollover retention, no future fetch, total budget/waits.
-- [ ] Implement optional target queue and capture digest; check before07JST avoids unnecessary new-day schedule discovery during previous-day catchup. Run `python -m unittest tests.test_boat_sp_settlement tests.test_racer_result_queue tests.test_racer_intraday tests.test_saved_result_sync tests.test_saved_view_feed`; commit.
+- [x] RED tests for real-shaped strict identity/top3/payout/refund/absence/dead heat/cancellation/pending; wrong payload/future/contradictory winners rejected.
+- [x] Implement SP dispatch in `parse_capture` and URL mapping in `F.update_view`. Add raw-bound SP schedule-change display reference with full roster/pre-both-clock gates; formal false.
+- [x] RED queue tests: pending settlement despite canonical K, new results before revisions, payout-only revision, prior date/rollover retention, no future fetch, total budget/waits.
+- [x] Implement optional target queue and capture digest; check before07JST avoids unnecessary new-day schedule discovery during previous-day catchup. Run `python -m unittest tests.test_boat_sp_settlement tests.test_racer_result_queue tests.test_racer_intraday tests.test_saved_result_sync tests.test_saved_view_feed`; commit.
 
 ### Task2: Result-only feed bridge and production runtime
 
