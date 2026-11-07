@@ -765,7 +765,7 @@ def audit(day,p1_id,p0_supplement=None,round_no=None,*,video_context_artifacts=(
     if day=='2026-11-04':
         schedule_counts.update(keirin=75,autorace=20,horse=59)
         report['nonboat_discovery_receipt']={'artifact_id':13283229052,'zip_sha256':'86ffb2b44fdbb2119a0401533cd9f182eca0d918ab555c48870d01ef422e0e9d','state':'154_CAPTURED_CARDS_NOT_154_FORECASTS'}
-    report['model_coverage']=coverage(rows,schedule_counts)
+    report['model_coverage']=coverage(rows,schedule_counts,active_only=True)
     # Private originals are not copied into public GitHub. This whitelist-only
     # projection keeps their research grade separate from frozen/scored counts.
     from race_ai.external_research_registry import attach_to_report

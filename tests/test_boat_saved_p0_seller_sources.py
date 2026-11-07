@@ -6,6 +6,7 @@ import inspect
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 from race_ai.actions_contract import digest
 from race_ai import boat_all_model_cycle as cycle
@@ -37,7 +38,9 @@ def original_p0():
     return raw, document, receipt
 
 
+@patch("race_ai.existing_model_coverage.RETIRED_MODEL_IDS", frozenset())
 class SavedP0SellerSourcesTests(unittest.TestCase):
+    """Historical synthetic compatibility; not current model execution."""
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory(); self.addCleanup(self.tmp.cleanup)
         self.root = Path(self.tmp.name)
@@ -133,6 +136,26 @@ class SavedP0SellerSourcesTests(unittest.TestCase):
         self.assertEqual(explicit, omitted)
         self.assertEqual(digest(explicit), "af872beaf23ef959a6d39133c185f5fad76fd48f99ff82ce219c218908f21a54")
         self.assertNotIn("seller_input_readiness", explicit)
+
+
+
+class RemovedSellerP0Tests(unittest.TestCase):
+    def test_complete_missing_and_invalid_seller_inputs_do_not_change_active_p0(self):
+        fixture = SavedP0SellerSourcesTests()
+        fixture.setUp()
+        self.addCleanup(fixture.doCleanups)
+        before = deepcopy((fixture.document, fixture.receipt))
+        expected = fixture.run_p0(None)
+        for sources in (fixture.sources(), fixture.sources(waku=False), {'unusable': True}):
+            with self.subTest(sources=list(sources)):
+                payload = fixture.run_p0(sources)
+                self.assertEqual(payload, expected)
+                self.assertEqual(fixture.slots(payload), [])
+                self.assertNotIn('seller_input_readiness', payload)
+                self.assertTrue(all('seller' not in c['native_inputs']
+                                    for c in payload['native_input_capsules']))
+                self.assertEqual(payload['summary']['generated_forecasts'], 32)
+        self.assertEqual((fixture.document, fixture.receipt), before)
 
 
 if __name__ == "__main__":

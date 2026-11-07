@@ -23,7 +23,7 @@ from .boat_model_runtime import FILE_LIMITS, _validate_pointer as _validate_runt
 from .boat_pdca_recipient import _json as bounded_json
 from .dispatch_product_projection import project_dispatch
 from .existing_model_dispatch import dispatch, GROUPS, _native_hash, _bind
-from .existing_model_coverage import catalog
+from .existing_model_coverage import catalog, is_retired
 from .observed_p1_connection import locator
 from scripts.boat_history_collect import private_root, save
 
@@ -609,7 +609,7 @@ def forecast_saved_p0(document, receipt, runtime_files, *, now, issued_models=No
     try:
         issued = _issued(issued_models); reports = []; origins = {}; readiness_rows = []; skipped = []; capsules = []
         seller_batch = None; seller_refs = set(); seller_day_hash = None
-        if seller_sources is not None:
+        if seller_sources is not None and not is_retired('seller-shadow-v1-20261104'):
             from .boat_seller_inputs import build_seller_native_inputs, OFFICIAL_B_SCHEMA
             from .all_existing_model_registry import ROSTER_SCHEMA
             from .existing_model_dispatch import _race_key

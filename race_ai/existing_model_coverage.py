@@ -17,6 +17,13 @@ from .autorace_personal_baseline import MODEL_ID as AUTO
 
 ALL=('boat','keirin','autorace','horse')
 
+# Keep catalog() stable for immutable archive and owner-decision verification.
+# Current execution and completion use the active selection below.
+RETIRED_MODEL_IDS=frozenset(('seller-shadow-v1-20261104',))
+
+def is_retired(model_id):
+    return isinstance(model_id,str) and model_id in RETIRED_MODEL_IDS
+
 def catalog():
     groups=[(AB,('boat',),'same-race official exhibition and program'),
         ((CLITE,),('boat',),'local win rate and start observations'),
@@ -31,10 +38,17 @@ def catalog():
     return [dict(model_id=mid,applicable_sports=list(sports),required_input=required)
             for ids,sports,required in groups for mid in ids]
 
-def coverage(rows,scheduled):
+def active_catalog():
+    """Current owner-selected families; historical catalog identities stay fixed."""
+    return [item for item in catalog() if not is_retired(item['model_id'])]
+
+
+def coverage(rows,scheduled,*,active_only=False):
+    if active_only:rows=[row for row in rows if not is_retired(row['model_id'])]
+    specs=active_catalog() if active_only else catalog()
     counts=Counter(x['model_id'] for x in rows)
     models=[]
-    for spec in catalog():
+    for spec in specs:
         subset=[x for x in rows if x['model_id']==spec['model_id']]
         models.append(dict(**spec,saved_forecasts=len(subset),
             distinct_races=len({x['race_id'] for x in subset}),
@@ -43,7 +57,8 @@ def coverage(rows,scheduled):
             state='SOME_FROZEN_FORECASTS' if subset else 'NO_FROZEN_FORECAST_INPUT_OR_WINDOW_INCOMPLETE'))
     known={x['model_id'] for x in models}
     return dict(schema='RACE_AI_EXISTING_MODEL_COVERAGE_V1',model_family_count=len(models),
-        scope='previously inventoried 16 families; not every alias or pinned dependency',
+        scope=('current owner-selected families; retired models excluded' if active_only else
+               'previously inventoried 16 families; not every alias or pinned dependency'),
         models=models,total_saved_forecasts=len(rows),scheduled_races_by_sport=scheduled,
         additional_model_ids=sorted(set(counts)-known),all_models_operational=False,
         no_new_predictor=True,missing_models_are_not_losses=True,

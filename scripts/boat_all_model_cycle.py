@@ -318,7 +318,9 @@ def generate(round_no, baseline_artifact=None):
 
 
 def _seller_sources(marker,document,receipt,clock):
-    """Decode optional private original bytes; native validation decides readiness."""
+    """Historical source reader; retired models never request optional inputs."""
+    from race_ai.existing_model_coverage import is_retired
+    if is_retired("seller-shadow-v1-20261104"):return None
     from race_ai import boat_seller_inputs as seller
     metadata=_json(_read(marker['runtime_files']['metadata.json'],runtime.FILE_LIMITS['metadata.json'],private=True),runtime.FILE_LIMITS['metadata.json'])
     cached=None
