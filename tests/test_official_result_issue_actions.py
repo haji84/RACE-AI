@@ -6,6 +6,7 @@ from hashlib import sha256
 import io
 import json
 import os
+import re
 from pathlib import Path
 import tempfile
 import unittest
@@ -211,22 +212,29 @@ class ActionsIssueTests(unittest.TestCase):
 
 class IssuerWorkflowTests(unittest.TestCase):
     def test_only_source_free_issuer_job_can_write_and_it_routes_prefix_before_secret_step(self):
-        import yaml
-        value=yaml.safe_load((Path(__file__).resolve().parents[1]/'.github/workflows/forecast-audit-ui.yml').read_text())
-        jobs=value['jobs'];self.assertTrue('official_result_recovery_issuer' in jobs,'source-free issuer job missing')
-        self.assertEqual(value['permissions'],{'contents':'read'})
-        self.assertEqual(jobs['viewer_contract']['permissions'],{'contents':'read','actions':'read'})
+        # Check our explicit permission/step boundary without introducing a YAML
+        # dependency into the existing complete Python discovery environment.
+        raw=(Path(__file__).resolve().parents[1]/'.github/workflows/forecast-audit-ui.yml').read_text()
+        parts=re.split(r'^  ([a-z_][a-z_0-9]*):\n',raw,flags=re.M)
+        jobs=dict(zip(parts[1::2],parts[2::2]))
+        self.assertTrue('official_result_recovery_issuer' in jobs,'source-free issuer job missing')
+        def permissions(block,indent):
+            match=re.search(r'^'+indent+r'permissions:\n((?:'+indent+r'  [^\n]+\n)+)',block,re.M)
+            return {key:value for key,value in re.findall(r'^'+indent+r'  ([a-z]+): ([a-z]+)',match[1],re.M)} if match else {}
+        self.assertEqual(permissions(raw,''),{'contents':'read'})
+        self.assertEqual(permissions(jobs['viewer_contract'],'    '),{'contents':'read','actions':'read'})
         job=jobs['official_result_recovery_issuer']
-        self.assertEqual(job['permissions'],{'contents':'write','actions':'read'})
-        steps=job['steps'];route=next(s for s in steps if s.get('id')=='issue_route')
-        execute=next(s for s in steps if s.get('id')=='issue')
+        self.assertEqual(permissions(job,'    '),{'contents':'write','actions':'read'})
+        steps=re.split(r'^      - ',job,flags=re.M)[1:]
+        route=next(block for block in steps if re.search(r'^        id: issue_route$',block,re.M))
+        execute=next(block for block in steps if re.search(r'^        id: issue$',block,re.M))
         self.assertLess(steps.index(route),steps.index(execute))
-        self.assertEqual(execute['if'],"steps.issue_route.outputs.requested == 'true'")
-        secret_steps=[s for s in steps if 'RACE_AI_STATE_KEY' in s.get('env',{})]
-        self.assertEqual(secret_steps,[execute])
-        self.assertNotIn('schedule',value.get('on',value.get(True,{})))
+        self.assertIn("        if: steps.issue_route.outputs.requested == 'true'\n",execute)
+        self.assertEqual([block for block in steps if 'RACE_AI_STATE_KEY:' in block],[execute])
+        self.assertFalse(re.search(r'^  schedule:',raw,re.M))
         for name,other in jobs.items():
-            if name!='official_result_recovery_issuer':self.assertNotEqual(other.get('permissions',{}).get('contents'),'write')
+            if name!='official_result_recovery_issuer':self.assertNotEqual(permissions(other,'    ').get('contents'),'write')
+
 
 class IssuerHistoryTests(unittest.TestCase):
     def test_collect_commit_cannot_replace_latest_issue_marker_with_stale_bytes(self):
