@@ -179,6 +179,7 @@ def main(argv=None):
         bootstrap=F.open_bootstrap(raw);git_auth();git=F.FeedRepository(ROOT)
         if a.day is not None:need(date.fromisoformat(a.day).isoformat()==a.day,'FEED_DAY_INVALID')
         parent,previous,generation,view=F.current_view(git,bootstrap,day=a.day)
+        previous_view=deepcopy(view)
         recover_runs=list(a.recover_model_run)
         if a.recover_model_config:
             recovery=_json(_read(ROOT/'audit/state/boat-model-recovery-input.json',8192),8192)
@@ -199,7 +200,7 @@ def main(argv=None):
                 **{key:compatibility[key] for key in ('active_publishers','compatible_publishers','legacy_publishers')})))
             need(activate_history or not a.history,'HISTORY_LEGACY_PUBLISHERS_ACTIVE')
         if not a.seed_only:
-            previous_view=view;view=intake_saved_models(view,hydrate=a.hydrate_originals,
+            view=intake_saved_models(view,hydrate=a.hydrate_originals,
                 day=a.day if history_context else None,
                 since_day=history_context['selected_day'] if history_context and not a.day else None,
                 **(dict(recover_runs=recover_runs) if recover_runs else {}))
@@ -225,10 +226,16 @@ def main(argv=None):
                     if not activate_history:
                         print(wire(dict(status='SAVED_DAY_UNCHANGED',generation=generation)));return 0
                 else:view=F.update_view(view,items,captures=captures,synced_at=datetime.now(timezone.utc).isoformat())
+        if os.environ.get('RACE_AI_ORIGINAL_VAULT_ENABLED')=='true':
+            from scripts.boat_original_maintenance import protect_new_forecast_originals
+            protection=protect_new_forecast_originals(previous_view,view,ROOT)
+            print(wire(protection))
+            need(type(protection) is dict and protection.get('complete') is True,
+                 'FEED_NEW_FORECAST_ORIGINALS_INCOMPLETE')
         report=F.publish_view(git,bootstrap,view,parent=parent,previous=previous,generation=generation,history=activate_history)
         print(wire(report));return 0
     except Exception as e:
-        reason=str(e) if isinstance(e,(ValueError,RuntimeError)) and re.fullmatch('(?:FEED|HISTORY|MODEL_RUNTIME|ALL_MODEL_CLI|ALL_MODEL_RECOVERY|BOAT_ALL_MODEL_CYCLE|STATE|GITHUB|SAVED_PREDICTION_EVIDENCE|SAVED_RESULT_RECOVERY|SAVED_MODEL_VIEW|VAULT)_[A-Z0-9_]{1,90}',str(e)) else 'FEED_OPERATION_FAILED'
+        reason=str(e) if isinstance(e,(ValueError,RuntimeError)) and re.fullmatch('(?:FEED|HISTORY|MODEL_RUNTIME|ALL_MODEL_CLI|ALL_MODEL_RECOVERY|BOAT_ALL_MODEL_CYCLE|STATE|GITHUB|SAVED_PREDICTION_EVIDENCE|SAVED_RESULT_RECOVERY|SAVED_MODEL_VIEW|VAULT|ORIGINAL_MAINTENANCE)_[A-Z0-9_]{1,90}',str(e)) else 'FEED_OPERATION_FAILED'
         from race_ai.boat_saved_model_view import SavedModelViewError
         if isinstance(e,SavedModelViewError) and re.fullmatch('SAVED_MODEL_VIEW_[A-Z0-9_]{1,90}',getattr(e,'reason_code','')):
             reason=e.reason_code

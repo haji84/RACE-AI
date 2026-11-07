@@ -49,7 +49,7 @@ MAX_MONTH_ENTRIES = 32768
 MAX_MONTH_CIPHER_BYTES = 32*1024*1024*1024
 LOOKUP_SPAN = 10000
 JST = timezone(timedelta(hours=9))
-KINDS = frozenset(('P0', 'P1', 'RESULT', 'CONTINUITY', 'ALL_MODEL', 'SOURCE_CONTROL'))
+KINDS = frozenset(('P0', 'P1', 'RESULT', 'CONTINUITY', 'ALL_MODEL', 'SOURCE_CONTROL', 'PRIVATE_PAIRS'))
 _SHA = re.compile(r'[a-f0-9]{64}\Z')
 _HEAD = re.compile(r'[a-f0-9]{40}\Z')
 _MONTH = re.compile(r'\d{4}-(?:0[1-9]|1[0-2])\Z')
@@ -247,6 +247,8 @@ def _kind(metadata):
         return 'ALL_MODEL'
     if name == f'race-source-control-{run}':
         return 'SOURCE_CONTROL'
+    if type(name) is str and re.fullmatch(f'all-existing-model-pairs-{run}-[1-9][0-9]*', name):
+        return 'PRIVATE_PAIRS'
     raise ValueError('VAULT_ARTIFACT_NAME_INVALID')
 
 
@@ -266,7 +268,7 @@ def _artifact(raw, metadata_raw, *, key, now, expected_kind=None, companion=None
     created = _time(metadata.get('created_at'))
     _need(created <= now < _time(metadata.get('expires_at')), 'ARTIFACT_CLOCK_INVALID')
     kind = _kind(metadata)
-    _need(expected_kind is None or expected_kind == kind, 'ARTIFACT_KIND_INVALID')
+    _need(kind in KINDS and (expected_kind is None or expected_kind == kind), 'ARTIFACT_KIND_INVALID')
     # Decrypt and use the existing phase checks. Retention cannot make an
     # unsupported forecast valid or manufacture a source-control receipt.
     if kind in ('P0', 'P1'):
@@ -300,6 +302,10 @@ def _artifact(raw, metadata_raw, *, key, now, expected_kind=None, companion=None
         project_round(payload, dict(repository_id=REPO_ID, repository=REPO, run_id=str(run['id']),
             head_sha=run['head_sha'], artifact_id=metadata['id'], created_at=metadata['created_at'],
             payload_sha256=digest(payload), independently_verified=True))
+    elif kind == 'PRIVATE_PAIRS':
+        from .all_existing_model_receipt import verify_private_pairs_artifact
+        verify_private_pairs_artifact(raw,metadata,now=now,
+            expected_run_id=run['id'],expected_head_sha=run['head_sha'])
     else:
         from .boat_source_control import read_summary
         _need(type(companion) in (tuple, list) and len(companion) == 2, 'CONTINUITY_COMPANION_REQUIRED')
@@ -571,6 +577,9 @@ def _retain(records, repo, *, expected_parent, key, transport, readback_transpor
                       'IMMUTABLE_CAPTURE_CONFLICT')
                 retained.append(previous); existing.append((previous,record)); continue
         entry, chunks = _seal(record, now, encryption_key)
+        # Internal record producers must not publish a signed reference that
+        # the canonical reader will reject only after the remote push.
+        _entry(entry)
         pending.append(entry); files.update(chunks); retained.append(entry)
     if not pending:
         locators=[_locator(parent,r,ref=git.ref) for r in retained]
