@@ -78,7 +78,17 @@ The authenticated continuity comparison returned zero conflicts, so it does not 
 - [x] Reproduce strict view rejection with safe fixed field-count evidence, without retaining private values in exceptions or changing acceptance.
 - [x] Expose the actual exception's counts at the existing publisher's error boundary.
 - [x] Add fixed native source-validation codes and required-role HTTP status counts.
-- [ ] Review and exercise the existing source-free display path once, adopting existing queued work and preserving every source/native owner guard.
+- [x] Review and exercise the existing source-free display path once, adopting existing queued work and preserving every source/native owner guard.
 - [ ] Repair only a cause established by actual count evidence, then verify retained-original readback.
+
+### Task 6: Verify the explicit settlement day across midnight
+
+Actual run42384768071 passed bounded original maintenance, published the authenticated source handoff mirror and strict encrypted-view generations31/32. Its final display check rejected SAVED_SITE_CURRENT_DAY_REQUIRED after JST changed to11/8 while the frozen settlement is11/7.
+
+- [x] Reproduce the after-midnight failure without changing the actual clock.
+- [x] Add explicit historical-day selection; retain strict current-day default and all future-forecast clock requirements.
+- [x] Emit selected-day and actual-current-day scope separately; historical counts never become current-day counts.
+- [x] Bind actual final evidence to the unchanged plan day, audit day and browser verification clock.
+- [ ] Review and verify the actual historical owner site at both existing widths.
 
 The next repair plan is based on the actual count evidence, not an assumed cause. Existing normal BOAT run42376316340 was reserved once after the prior source's actual canonical record and receipts matched. Never restart it or duplicate the native probe.

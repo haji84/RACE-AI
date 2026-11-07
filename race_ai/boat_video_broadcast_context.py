@@ -47,7 +47,14 @@ def parse_commentary(text,*,phase):
     if re.search(r'ゴール|確定|着順|結果|リプレイ|前のレース|前走|昨日|でしょう|予想|かもしれ',normalized):
         out['status']='NONCURRENT_OR_PREDICTED_COMMENTARY';return out
     if phase=='EXHIBITION_LAP':
-        boats=[int(n) for n in re.findall(_BOAT,normalized)]
+        if re.search(r'展示タイム|着率|全国|人気|説明|解説|について',normalized):return out
+        # Bare "1番" in statistics is not a boat. Individual pass shorthand
+        # needs an explicit lap-exhibition phrase, unlike running-rank calls.
+        explicit=rf'(?<![{_NUMERAL}])([1-6])(?![{_NUMERAL}])\s*(?:号艇|番艇)'
+        boats=[int(n) for n in re.findall(explicit,normalized)]
+        if not boats:
+            shorthand=rf'(?<![{_NUMERAL}])([1-6])(?![{_NUMERAL}])\s*番\s*の?\s*周回展示'
+            boats=[int(n) for n in re.findall(shorthand,normalized)]
         if len(set(boats))==1 and not re.search(r'から|まで|スタート展示',normalized):
             out.update(status='EXPLICIT_INDIVIDUAL_EXHIBITION_BOAT',exhibition_boat_number=boats[0])
         return out

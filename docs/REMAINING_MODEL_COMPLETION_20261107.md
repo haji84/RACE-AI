@@ -121,3 +121,14 @@ catalogはPARSED 7,846＋PARTIAL_SOURCE 117。gridの完全観測日は7,845、�
 973／run42378920749は初回・限定再実行とも全体SUCCESS。実16通信は15件HTTP200＋補助refund CSV 1件404で、16上限停止ではなくFINISHED。実OtherRaceInfo(11)・RaceResult(14)・通常UIの実DOMはCAPTUREDだったが、Pythonが全responseに200を要求しSOURCE_VALIDATIONでREJECTEDとなった。旧journal/state/countは変更しない。
 
 完全な元原本から必要HTTP・元request・元DOMだけを既存result adapterへ渡し、独立認証済み締切前nativeと登録8選手を照合した。実1レースはrank_confirmed（100円払戻単位は未証明、金額評価不可）。[原本再利用の準備証跡](evidence/2026-11-07/973-actual-result-source-reuse-preparation-counts.json)。合成本文0・新提供元通信0。既存official-results-freeze経路で新しい正式RESULTの暗号保存・独立読戻しを実行する。原本の取得時刻を新しい時刻へ置換せず、新producerの保存証拠と区別する。新RESULT artifact成功前に確定学習原本へ加算しない。
+
+
+## 実AUTO結果1件の保存完了・次の別ケース（11月8日00:12 JST）
+
+[実run42383095124](https://github.com/haji84/RACE-AI/actions/runs/42383095124)の既存official-results-freezeで、元HTTP・request・実DOMを再取得0で再検証し、RESULT artifact13578691832（digest `sha256:0be88d04dab4ab775b0d394cd4a7854a7b83805e6e3f59528675c9ddf43cdb64`）を14:49:05 UTCに独立保存した。親もfresh API metadata／AES／原native177入力／元source closureを独立再検証し、通常順位1件・登録8人一致。払戻単位未証明のrank_confirmedで、金額評価不可。元source取得14:26:39.308 UTCと新producer保存14:49:05を区別する。[実認証件数](evidence/2026-11-07/973-reused-real-auto-result-authenticated-counts.json)。これは新30学習・新未来予想ではない。実学習19/30のまま、AUTOは必要8通常のうち1、KEIRINは0。
+
+元973 journalの完全ZIP・actual metadataも暗号化してGit `5d8a1e914c2f8e08dd9f403762ba49e1616af074` へ保持、別objectDBで同一bytesを復元した。[保持証跡](evidence/2026-11-07/973-probe-journal-retention-counts.json)。元REJECTED状態、16通信、15×200＋404、旧UNKNOWN24/固定旧epoch32は変更していない。
+
+Python readerは全raw／metadata／台帳／時計／SHA照合を維持し、必須role200を必須としたまま、未参照で同レースのrefund CSV404だけを隔離保持して扱う修正を追加。完備したSOURCE_VALIDATION拒否原本は通信会計だけに再検証できる。データ／cache許可と正常probeは従来どおりCOMPLETEのみ。実DOMの入れ子パスも安全なrelative pathとして復元する。3修正の116テストと独立レビューCLEAR。
+
+1件目の再取得を避け、元から指定されていたAUTO第2ケースを別16枠probeへ準備した。[次の準備](evidence/2026-11-07/historical-auto-case-two-preparation-counts.json)：実取得日2026-11-08 JST／元レース日2026-11-07を区別し、旧4 native・全5 prior・4 checkpoints・原URL／条件／静的原本を保持する。前run terminal14:29:52＋1秒＋1時間の15:29:53 UTC以降、かつ新HEAD初回全体成功・別の固定attempt2を確認後だけ取得する。全5実journalを再認証済み。まだ新capsule未発行／新提供元通信0。

@@ -34,6 +34,7 @@ MODEL_FILES={
 _PHASES={'RACE','EXHIBITION_LAP','EXHIBITION_START','UNKNOWN'}
 _SAMPLE_RATE=16000
 _CHUNK_SAMPLES=30*_SAMPLE_RATE
+_MINIMUM_CUE_AUDIO_RMS=.001
 
 
 def _need(condition):
@@ -186,7 +187,10 @@ def transcribe_commentary(source,path,*,media_sha256,options,recognizer,phase,wi
         estimated_word_timestamps_used=False,latency_calibrated=False,
         cue_validity_seconds=2.,sample_rate=_SAMPLE_RATE,network_requests=0)
     metadata.update(window_seconds=chunk_samples/_SAMPLE_RATE,
-                    requested_window_seconds=float(window_seconds),maximum_model_input_seconds=30.)
+                    requested_window_seconds=float(window_seconds),maximum_model_input_seconds=30.,
+                    recognizer_calls=0,low_signal_chunks=0,
+                    signal_policy=dict(minimum_cue_audio_RMS=_MINIMUM_CUE_AUDIO_RMS,
+                        scope='LOW_SIGNAL_ABSTENTION_NOT_VALIDATED_SPEECH_ABSENCE'))
     if timeline is not None:
         _need(callable(recognizer) and callable(getattr(recognizer,'metadata',None)))
         producer=recognizer.metadata()
@@ -194,7 +198,10 @@ def transcribe_commentary(source,path,*,media_sha256,options,recognizer,phase,wi
         producer_sha=sha256(producer_raw).hexdigest()
         metadata['recognizer']=json.loads(producer_raw)
         command=['ffmpeg','-nostdin','-v','error','-xerror','-threads','1',*_PROTOCOL_ARGS,
-            '-copyts','-i',path,'-map','0:a:0','-vn','-sn','-dn','-ac','1','-ar',str(_SAMPLE_RATE),
+            # Raw PCM has no timestamps. Its source clock is independently
+            # bound by the validated decoded-frame timeline above. copyts
+            # would make output -t end before a large absolute starting PTS.
+            '-i',path,'-map','0:a:0','-vn','-sn','-dn','-ac','1','-ar',str(_SAMPLE_RATE),
             '-t',str(settings['max_duration_seconds']+1/_SAMPLE_RATE),'-f','f32le','pipe:1']
         try:
             decoded=subprocess.run(command,capture_output=True,check=True,
@@ -212,7 +219,14 @@ def transcribe_commentary(source,path,*,media_sha256,options,recognizer,phase,wi
         for position in range(0,len(audio),chunk_samples):
             samples=audio[position:position+chunk_samples].copy()
             pcm_sha=sha256(samples.tobytes()).hexdigest()
-            raw=recognizer(samples,sample_rate=_SAMPLE_RATE)
+            signal_rms=float(np.sqrt(np.mean(samples.astype(np.float64)**2)))
+            signal_peak=float(np.max(np.abs(samples)))
+            if signal_rms<_MINIMUM_CUE_AUDIO_RMS:
+                raw=dict(text='',raw_token_ids=[],quality_status='NEEDS_REVIEW_LOW_SIGNAL',recognizer_invoked=False)
+                metadata['low_signal_chunks']+=1
+            else:
+                raw=recognizer(samples,sample_rate=_SAMPLE_RATE)
+                metadata['recognizer_calls']+=1
             _need(sha256(samples.tobytes()).hexdigest()==pcm_sha and type(raw) is dict
                   and type(raw.get('text')) is str and len(raw['text'])<=20000
                   and type(raw.get('quality_status')) is str)
@@ -223,11 +237,14 @@ def transcribe_commentary(source,path,*,media_sha256,options,recognizer,phase,wi
             if quality=='USABLE_UNVERIFIED':
                 quality=_quality(raw['text'],raw.get('raw_token_ids',[]))
             metadata['chunks'].append(dict(start_pts=start,end_pts=end,
-                audio_pcm_sha256=pcm_sha,quality_status=quality,raw_recognition=raw))
+                audio_pcm_sha256=pcm_sha,quality_status=quality,raw_recognition=raw,
+                signal_rms=signal_rms,signal_peak=signal_peak))
             if quality=='USABLE_UNVERIFIED':
                 context['segments'].append(dict(text=raw['text'],phase=phase,start_pts=start,end_pts=end,
                     available_from_pts=end,valid_until_pts=end+2.,audio_pcm_sha256=pcm_sha,
                     producer_sha256=producer_sha,producer_kind='ASR_LOCAL_UNVERIFIED',exhibition_pass_index=None))
         metadata['chunk_count']=len(metadata['chunks'])
+        if metadata['recognizer_calls']==0:
+            metadata['audio_status']='LOW_SIGNAL_AUDIO_UNRESOLVED'
     _need(_source_pin(source,path,media_sha256,settings['max_bytes'])==pin)
     return context,metadata

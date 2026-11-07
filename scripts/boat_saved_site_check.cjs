@@ -42,6 +42,7 @@ function validate(context){
   assert.equal(url.username,'');assert.equal(url.password,'');
   assert.match(url.hash,/^#saved=[a-f0-9]{64}\.[A-Za-z0-9_-]{43}$/);
   assert.match(context.day,/^\d{4}-\d{2}-\d{2}$/);
+  dateEvidence(context,0,0);
   assert.ok(Number.isSafeInteger(context.generation)&&context.generation>0);
   for(const name of ['minimum_results','native_p1_groups','old_completed'])
     assert.ok(Number.isSafeInteger(context[name])&&context[name]>=0);
@@ -59,6 +60,20 @@ function validate(context){
     assert.ok(Number.isFinite(Date.parse(future.cutoff_at)));
   }
   return url.hash.split('.')[1];
+}
+
+function dateEvidence(context,results,p1Groups){
+  const valid=day=>typeof day==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(day)&&
+    Number.isFinite(Date.parse(day+'T00:00:00Z'))&&new Date(day+'T00:00:00Z').toISOString().slice(0,10)===day;
+  const current=context.current_day??context.day;
+  assert.ok(valid(context.day)&&valid(current)&&context.day<=current);
+  const scope=context.day===current?'CURRENT_DAY':'HISTORICAL_DAY';
+  if(context.date_scope!==undefined)assert.equal(context.date_scope,scope);
+  assert.ok(Number.isSafeInteger(results)&&results>=0&&Number.isSafeInteger(p1Groups)&&p1Groups>=0);
+  return {checked_day:context.day,current_day:current,date_scope:scope,
+    checked_day_results:results,checked_day_p1_groups:p1Groups,
+    current_day_results:scope==='CURRENT_DAY'?results:null,
+    current_day_p1_groups:scope==='CURRENT_DAY'?p1Groups:null};
 }
 
 async function run(context,{compactResults=false,probeRaceId=null}={}){
@@ -166,10 +181,12 @@ async function run(context,{compactResults=false,probeRaceId=null}={}){
     }
     assert.deepEqual(errors,[]);assert.equal(leaked,false);
     assert.equal((await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}))).includes(key),false);
+    const verifiedAt=new Date(),currentDay=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo'}).format(verifiedAt);
     return {schema:'RACE_AI_LIVE_SITE_CHECK_COUNTS_V1',status:'LIVE_OWNER_SITE_VERIFIED',
-      verified_at:new Date().toISOString(),widths_checked:checked,
+      verified_at:verifiedAt.toISOString(),widths_checked:checked,
       feed_generation:Number(await page.locator('#saved-view-sync').getAttribute('data-generation')),
-      current_day_results:currentResults,current_day_p1_groups:p1Groups,selected_saved_day:context.day,compact_result_ui_verified:compactResults,probe_result_matched:Boolean(compactResults&&probeRaceId),
+      ...dateEvidence({...context,current_day:currentDay,date_scope:undefined},currentResults,p1Groups),
+      selected_saved_day:context.day,compact_result_ui_verified:compactResults,probe_result_matched:Boolean(compactResults&&probeRaceId),
       native_p1_groups_required:context.native_p1_groups,native_p1_detail_visible:nativeVisible,
       future_native_visible_before_cutoff:futureVisible,previous_day_checked:context.old_day!==null,
       active_model_families:15,removed_seller_hidden:true,
@@ -184,4 +201,4 @@ if(require.main===module){
     .then(report=>process.stdout.write(JSON.stringify(report)+'\n'))
     .catch(()=>{process.stdout.write(JSON.stringify({status:'LIVE_OWNER_SITE_REJECTED',reason:'SAVED_SITE_BROWSER_CHECK_FAILED'})+'\n');process.exitCode=2;});
 }
-module.exports={validate,requestAdmission,revealRace,requireNativeGroups,run};
+module.exports={validate,dateEvidence,requestAdmission,revealRace,requireNativeGroups,run};

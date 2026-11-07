@@ -9,7 +9,7 @@ from datetime import timedelta
 from hashlib import sha256
 import base64
 import hmac
-from pathlib import Path
+from pathlib import Path,PurePosixPath
 import re
 import tempfile
 
@@ -67,6 +67,9 @@ def _complete(body,metadata,now,*,required=False,expected_limit=8):
     browser=body.get('browser_attempt')
     if browser is None:
         need(not required,'PROBE_BROWSER_REQUIRED');return len(attempts)
+    if not required and type(browser) is dict and browser.get('state')=='REJECTED':
+        from .all_existing_model_known_rejected_wire import known_data_rejected_wire
+        return known_data_rejected_wire(body,metadata,now=now)['actual_request_count']
     need(type(browser) is dict and browser.get('state')=='COMPLETE' and type(browser.get('actual_request_count')) is int,
         'PROBE_BROWSER_INCOMPLETE')
     index=body.get('browser_index');count=browser['actual_request_count']
@@ -120,7 +123,9 @@ def _replay_probe_wire(journal,case,*,expected_limit=8):
     with tempfile.TemporaryDirectory(prefix='official-continuation-wire-') as folder:
         root=Path(folder)
         for file in quarantine['files']:
-            need(type(file) is dict and type(file.get('file')) is str and re.fullmatch('[A-Za-z0-9_.-]{1,200}',file['file']) and
+            need(type(file) is dict and type(file.get('file')) is str and 0<len(file['file'])<=240 and
+                not PurePosixPath(file['file']).is_absolute() and '..' not in PurePosixPath(file['file']).parts and
+                PurePosixPath(file['file']).as_posix()==file['file'] and
                 file['file'] not in names and type(file.get('raw_base64')) is str,'PROBE_WIRE_FILE')
             raw=base64.b64decode(file['raw_base64'],validate=True);used+=len(raw);names.add(file['file'])
             need(used<=8*1024*1024 and len(raw)==file.get('byte_count') and sha256(raw).hexdigest()==file.get('source_sha256'),
@@ -128,7 +133,9 @@ def _replay_probe_wire(journal,case,*,expected_limit=8):
             if file.get('kind') in ('HTTP_METADATA','ORIGINAL_INDEX','CANONICAL_RETURNED_OBJECT'):
                 document=read_json_bytes(raw);probe.no_known_denial(document)
                 if file.get('kind')=='CANONICAL_RETURNED_OBJECT':need(index is None,'DUPLICATE_PROBE_INDEX');index=document
-            _write(root/file['file'],raw)
+            destination=root/file['file'];destination.parent.mkdir(mode=0o700,parents=True,exist_ok=True)
+            _write(destination,raw)
+            need(collector._safe_file(root,file['file'],2*1024*1024)==raw,'PROBE_WIRE_PRIVATE_FILE')
         need(type(index) is dict and digest(index)==quarantine.get('returned_index_sha256'),'PROBE_ORIGINAL_INDEX')
         if expected_limit==16:
             need(type(index.get('maximum_requests')) is int and index['maximum_requests']==16,

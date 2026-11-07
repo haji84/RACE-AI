@@ -42,9 +42,9 @@ class ContextTests(unittest.TestCase):
     def test_explicit_saved_day_after_midnight_keeps_the_actual_clock(self):
         later=NOW+timedelta(days=1)
         with self.assertRaisesRegex(ValueError,'SAVED_SITE_CURRENT_DAY_REQUIRED'):C.build_context(BOOTSTRAP,invented_view(),12,now=later)
-        context=C.build_context(BOOTSTRAP,invented_view(),12,now=later,selected_day='2030-04-01')
+        context=C.build_context(BOOTSTRAP,invented_view(),12,now=later,event_day='2030-04-01')
         self.assertEqual(context['day'],'2030-04-01');self.assertIsNone(context['future_native']);self.assertEqual(context['minimum_results'],1)
-        with self.assertRaisesRegex(ValueError,'SAVED_SITE_FUTURE_NATIVE_REQUIRED'):C.build_context(BOOTSTRAP,invented_view(),12,now=later,selected_day='2030-04-01',require_future=True)
+        with self.assertRaisesRegex(ValueError,'SAVED_SITE_FUTURE_NATIVE_REQUIRED'):C.build_context(BOOTSTRAP,invented_view(),12,now=later,event_day='2030-04-01',require_future=True)
     def test_uses_real_clocks_filtered_option_indices_and_latest_future_cutoff(self):
         view=invented_view();before=deepcopy(view)
         context=C.build_context(BOOTSTRAP,view,12,now=NOW,require_future=True)
@@ -77,6 +77,24 @@ class ContextTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,'SAVED_SITE_FUTURE_NATIVE_REQUIRED'):
             C.build_context(BOOTSTRAP,invented_view(),12,now=NOW+timedelta(hours=1),require_future=True)
 
+    def test_explicit_previous_day_uses_real_current_clock_without_claiming_current_coverage(self):
+        view=invented_view();before=deepcopy(view);next_day=NOW+timedelta(days=1)
+        with self.assertRaisesRegex(ValueError,'SAVED_SITE_CURRENT_DAY_REQUIRED'):
+            C.build_context(BOOTSTRAP,view,12,now=next_day)
+        context=C.build_context(BOOTSTRAP,view,12,now=next_day,event_day='2030-04-01')
+        self.assertEqual(context['day'],'2030-04-01')
+        self.assertEqual(context['current_day'],'2030-04-02')
+        self.assertEqual(context['date_scope'],'HISTORICAL_DAY')
+        self.assertEqual(context['minimum_results'],1);self.assertIsNone(context['future_native'])
+        self.assertEqual(view,before)
+        with self.assertRaisesRegex(ValueError,'SAVED_SITE_FUTURE_NATIVE_REQUIRED'):
+            C.build_context(BOOTSTRAP,view,12,now=next_day,event_day='2030-04-01',require_future=True)
+
+    def test_invalid_or_future_target_day_is_rejected(self):
+        for day in ('2030-02-30','2030-04-02','20300401'):
+            with self.subTest(day=day),self.assertRaisesRegex(ValueError,'SAVED_SITE_EVENT_DAY_INVALID'):
+                C.build_context(BOOTSTRAP,invented_view(),12,now=NOW,event_day=day)
+
     def test_missing_receipts_late_originals_and_future_generation_hold(self):
         view=invented_view()
         for row in view['records']:
@@ -93,7 +111,7 @@ class ContextTests(unittest.TestCase):
 
 
 class CLITests(unittest.TestCase):
-    def execute(self,*,outside=False,failure=None,history=False):
+    def execute(self,*,outside=False,failure=None,history=False,day=None,now=NOW):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);state=root/'audit/state';state.mkdir(parents=True)
             raw=b'invented-bootstrap'
@@ -113,7 +131,7 @@ class CLITests(unittest.TestCase):
                  patch.object(C.CLI.F,'FeedRepository',return_value=git),\
                  patch.object(C.CLI.F,'current_view',side_effect=values) as read,\
                  patch.dict(os.environ,RUNNER_TEMP=folder),redirect_stdout(output):
-                code=C.main(['--output',str(target)],now=NOW)
+                code=C.main(['--output',str(target),*(['--day',day] if day is not None else [])],now=now)
             context=json.loads(target.read_text()) if target.exists() else None
             mode=stat.S_IMODE(target.stat().st_mode) if target.exists() else None
             return code,output.getvalue(),context,mode,read.call_args_list
@@ -128,6 +146,13 @@ class CLITests(unittest.TestCase):
     def test_history_context_reads_an_existing_prior_day_without_publishing(self):
         code,_,context,_,calls=self.execute(history=True)
         self.assertEqual(code,0);self.assertEqual(context['old_completed'],1)
+        self.assertEqual(calls[1].kwargs,dict(day='2030-03-31'))
+
+    def test_explicit_day_selects_its_history_and_earlier_day_once_after_midnight(self):
+        code,_,context,_,calls=self.execute(history=True,day='2030-04-01',now=NOW+timedelta(days=1))
+        self.assertEqual(code,0);self.assertEqual(context['day_races'],3)
+        self.assertEqual(context['current_day'],'2030-04-02')
+        self.assertEqual(calls[0].kwargs,dict(day='2030-04-01'))
         self.assertEqual(calls[1].kwargs,dict(day='2030-03-31'))
 
     def test_public_output_and_private_exception_text_are_rejected_without_leak(self):

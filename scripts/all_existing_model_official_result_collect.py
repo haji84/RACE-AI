@@ -292,8 +292,12 @@ def prior_journals(manifest,*,now,key,recovery_authorization=None,private_static
                 ('HOLD_ACCESS_DENIED','ACCESS_DENIED','HTTP_ACCESS_DENIED','DENIED') or
                 body.get(field,{}).get('stopped_host') is True for field in ('browser_index','browser_request_checkpoint')),
             'PRIOR_JOURNAL_DENIED_REQUIRES_OWNER_REVIEW')
+        rejected_wire=None
+        if not reviewed and type(browser) is dict and browser.get('state')=='REJECTED':
+            from race_ai.all_existing_model_known_rejected_wire import known_data_rejected_wire
+            rejected_wire=known_data_rejected_wire(body,actual,now=now)
         need(reviewed or not any(a['state']=='RESERVED' for a in attempts) and
-            (browser is None or type(browser) is dict and browser.get('state')=='COMPLETE' and
+            (browser is None or type(browser) is dict and (browser.get('state')=='COMPLETE' or rejected_wire is not None) and
              type(browser.get('actual_request_count')) is int and
              0<=browser['actual_request_count']<=body['maximum_requests']-len(attempts)),
             'PRIOR_JOURNAL_UNCERTAIN_REQUIRES_OWNER_REVIEW')
@@ -605,15 +609,74 @@ def _browser_quarantine(index,directory,*,maximum_json):
     return value
 
 
+def _browser_complete_source_wire(index,responses,directory,*,started,now):
+    """Require complete original transport before any narrow HTTP exception."""
+    rows={entry['sequence']:entry for entry in index['responses']}
+    numbered={entry['sequence']:entry for entry in index['ledger'] if 'sequence' in entry}
+    need(len(responses)==index['actual_request_count'] and rows==numbered,'BROWSER_COMPLETE_SOURCE_LEDGER')
+    names=[]
+    for sequence,(raw,meta,request) in responses.items():
+        entry=rows[sequence];headers=meta.get('headers')
+        need(type(headers) is dict and all(type(k) is str and type(v) is str for k,v in headers.items()),'BROWSER_SOURCE_HEADERS')
+        mime=[v for k,v in headers.items() if k.lower()=='content-type']
+        need(len(mime)==1 and mime[0] and entry.get('content_type')==mime[0],'BROWSER_SOURCE_HEADERS')
+        need(entry.get('method') in ('GET','POST') and entry.get('resource_type') in ('document','xhr','fetch','script','stylesheet') and
+            meta.get('source_url')==meta.get('final_url')==entry.get('url') and
+            meta.get('method')==meta.get('http_method')==entry['method'] and meta.get('resource_type')==entry['resource_type'] and
+            type(entry.get('status')) is int and entry['status']==meta.get('status') and 100<=entry['status']<=599 and
+            type(entry.get('byte_count')) is int and entry['byte_count']==meta.get('byte_count')==len(raw) and
+            entry.get('source_sha256')==meta.get('source_sha256')==sha256(raw).hexdigest(),'BROWSER_SOURCE_WIRE_JOIN')
+        policy._url(entry['url'])
+        need(started<=stamp(entry['request_started_at'])==stamp(meta['fetched_at'])<=stamp(entry['headers_received_at'])<=
+            stamp(entry['response_received_at'])==stamp(entry['body_captured_at'])==stamp(meta['response_received_at'])<=now,
+            'BROWSER_SOURCE_WIRE_CLOCK')
+        names.extend((entry['body_file'],entry['metadata_file']))
+        if entry['method']=='POST':
+            need(request is not None and entry.get('request_body_sha256')==meta.get('request_body_sha256')==sha256(request).hexdigest() and
+                type(entry.get('request_content_type')) is str and entry['request_content_type'] and
+                meta.get('request_content_type')==entry['request_content_type'] and
+                meta.get('request_body_file')==entry.get('request_body_file'),'BROWSER_SOURCE_WIRE_REQUEST')
+            names.append(entry['request_body_file'])
+        else:
+            need(not any(k in entry or k in meta for k in ('request_body_file','request_body_sha256','request_content_type')),
+                'BROWSER_SOURCE_WIRE_REQUEST')
+    for case in index['cases']:
+        dom=case.get('rendered_dom')
+        if dom is not None:
+            need(type(dom) is dict,'BROWSER_DOM_BYTES');body=_safe_file(directory,dom['file'],MAX_BYTES)
+            need(type(dom.get('byte_count')) is int and dom['byte_count']==len(body) and
+                dom.get('source_sha256')==sha256(body).hexdigest() and started<=stamp(dom['captured_at'])<=now,'BROWSER_DOM_BYTES')
+            names.append(dom['file'])
+    need(len(names)==len(set(names)),'BROWSER_DUPLICATE_SOURCE_FILE')
+
+
+def _browser_unselected_refund_404(entry,meta,*,index,planned,referenced):
+    if meta.get('status')!=404 or entry['sequence'] in referenced or entry.get('method')!='GET' or \
+            entry.get('resource_type') not in ('xhr','fetch'):return False
+    url=urlsplit(meta['source_url'])
+    if url.scheme!='https' or url.hostname not in ('autorace.jp','www.autorace.jp') or url.query or url.fragment:return False
+    known={(c['sport'],c['race_id']) for c in planned}
+    for case in index['cases']:
+        if case.get('sport')!='autorace' or (case['sport'],case['race_id']) not in known:continue
+        match=re.fullmatch(r'autorace:(\d{4}-\d{2}-\d{2}):([a-z]+):([1-9]|1[0-2])',case['race_id'])
+        if match:
+            day,venue,number=match.groups()
+            if url.path=='/data/refund/'+date.fromisoformat(day).strftime('%Y%m%d')+'-'+venue+'-'+number.zfill(2)+'R-refund.csv':return True
+    return False
+
+
 def browser_sources(index,directory,planned,*,started,now,remaining):
     _index_header(index,planned,started=started,now=now,remaining=remaining)
+    need(index.get('stopped_host') is not True and index.get('stop_reason')!='HTTP_ACCESS_DENIED' and
+        not any(entry.get('status') in (401,403,429) for entry in index['ledger']),'BROWSER_ACCESS_DENIED')
     responses={};total=0;originals=[]
     for entry in index['responses']:
         need(type(entry) is dict and type(entry.get('sequence')) is int and entry['sequence'] not in responses,'BROWSER_RESPONSE_INDEX')
         raw=_safe_file(directory,entry['body_file'],MAX_BYTES);total+=len(raw);need(total<=32*1024*1024,'BROWSER_SOURCE_BOUND')
         meta=read_json_bytes(_safe_file(directory,entry['metadata_file'],65536))
-        need(type(meta) is dict and meta.get('status')==200 and meta.get('byte_count')==len(raw) and
+        need(type(meta) is dict and type(meta.get('status')) is int and type(meta.get('byte_count')) is int and meta['byte_count']==len(raw) and
             meta.get('source_sha256')==sha256(raw).hexdigest(),'BROWSER_SOURCE_BYTES')
+        need(meta['status'] not in (401,403,429),'BROWSER_ACCESS_DENIED')
         if meta.get('resource_type') not in ('script','stylesheet'):
             need(started<=stamp(meta['fetched_at'])<=stamp(meta['response_received_at'])<=now,'BROWSER_FRESH_SOURCE_CLOCK')
         request=None
@@ -625,6 +688,13 @@ def browser_sources(index,directory,planned,*,started,now,remaining):
             if request is not None:original['request_body_base64']=b64(request)
             originals.append(original)
         responses[entry['sequence']]=(raw,meta,request)
+    if any(meta['status']!=200 for _,meta,_ in responses.values()):
+        _browser_complete_source_wire(index,responses,directory,started=started,now=now)
+    referenced={ref['sequence'] for case in index['cases'] for ref in case.get('responses',[])}
+    entries={entry['sequence']:entry for entry in index['responses']}
+    for sequence,(_,meta,_) in responses.items():
+        need(meta['status']==200 or _browser_unselected_refund_404(entries[sequence],meta,
+            index=index,planned=planned,referenced=referenced),'BROWSER_SOURCE_HTTP_STATUS')
     known={(c['sport'],c['race_id']):c for c in planned};captures=[];states=[];seen_cases=set()
     for item in index['cases']:
         identity=(item.get('sport'),item.get('race_id'))
@@ -635,6 +705,7 @@ def browser_sources(index,directory,planned,*,started,now,remaining):
         roles={}
         for ref in item['responses']:
             need(type(ref) is dict and ref.get('role') not in roles and ref.get('sequence') in responses,'BROWSER_CASE_RESPONSES')
+            need(responses[ref['sequence']][1]['status']==200,'BROWSER_SELECTED_SOURCE_STATUS')
             roles[ref['role']]=responses[ref['sequence']]
         need('result' in roles and 'identity' in roles and type(item.get('rendered_dom')) is dict,'BROWSER_CASE_CLOSURE')
         dom=item['rendered_dom'];body=_safe_file(directory,dom['file'],MAX_BYTES)

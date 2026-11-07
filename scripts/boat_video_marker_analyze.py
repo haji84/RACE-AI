@@ -100,7 +100,10 @@ def _terminal(directory, name, record):
 
 
 def _pipeline(args, factory):
-    if args.clothing_only:
+    if args.phase_only:
+        pipeline=None
+        metadata=dict(execution_mode='LOCAL_SCREEN_PHASE_CANDIDATES',pinned_models=True)
+    elif args.clothing_only:
         pipeline = None
         metadata = dict(execution_mode='PINNED_LOCAL_DEVELOPMENT_CLOTHING',pinned_models=True)
     elif factory is not None:
@@ -135,6 +138,13 @@ def _pipeline(args, factory):
             garment_segmentation_validated=False,
             marker_numbers_assigned_to_riders=False, hull_positions_inferred=False,
             model_eligible=False)
+    if args.phase_tessdata is not None:
+        from race_ai.boat_video_phase import LocalJapanesePhaseReader, ExhibitionPhaseTracker
+        reader=LocalJapanesePhaseReader(tesseract_path=args.phase_tesseract,tessdata_path=args.phase_tessdata)
+        pipeline=_ScreenPhasePipeline(pipeline,ExhibitionPhaseTracker(reader))
+        metadata['phase_detection']=dict(reader=reader.metadata(),sampling_interval_seconds=1.,
+            sampling_scope='OCR_SAMPLING_ONLY_EVERY_VIDEO_FRAME_IS_JOURNALED',
+            automatic_current_activity_validated=False,model_eligible=False)
     return pipeline, metadata
 
 
@@ -150,6 +160,28 @@ class _MarkerAndRiderPipeline:
             frame_sha256=riders['frame_sha256'],identity_validated=False,model_eligible=False)
             if self.markers is None else self.markers.update(frame, **context))
         result['rider_part_tracking'] = riders
+        return result
+
+
+class _ScreenPhasePipeline:
+    """Sample OCR while preserving every decoded frame and its original clock."""
+    def __init__(self,base,tracker):
+        self.base,self.tracker=base,tracker
+        self.next_sample=None;self.scene=None
+
+    def update(self,frame,**context):
+        digest=sha256(frame.tobytes()).hexdigest()
+        result=(self.base.update(frame,**context) if self.base is not None else dict(
+            schema_version='RACE_AI_SCREEN_PHASE_PIPELINE_V1',frame_sha256=digest,
+            identity_validated=False,model_eligible=False,**context))
+        fresh=(self.next_sample is None or context['scene']!=self.scene or context['t']>=self.next_sample)
+        observation=None
+        if fresh:
+            observation=self.tracker.update(frame,**context)
+            self.next_sample=context['t']+1.;self.scene=context['scene']
+        result['phase_detection']=dict(frame_sha256=digest,frame_index=context['frame_index'],
+            source_pts=None,fresh_observation=fresh,observation=observation,
+            unobserved_frames_are_not_filled=True,usable_for_identity=False)
         return result
 
 
@@ -170,6 +202,9 @@ def main(argv=None, *, pipeline_factory=None):
                         help='track clothing colours without OCR or printed-number models')
     parser.add_argument('--anonymous-riders',action='store_true',
                         help='retain anonymous rider output without colour identity')
+    parser.add_argument('--phase-only',action='store_true',help='automatic screen-phase candidates without identity models')
+    parser.add_argument('--phase-tesseract',help='explicit local Tesseract executable for screen phase')
+    parser.add_argument('--phase-tessdata',help='private directory with pinned jpn.traineddata')
     broadcast=parser.add_mutually_exclusive_group()
     broadcast.add_argument('--broadcast-context',help='private source-bound exhibition/commentary context JSON')
     broadcast.add_argument('--commentary-model',help='optional pinned local Whisper-tiny directory; no download')
@@ -178,7 +213,7 @@ def main(argv=None, *, pipeline_factory=None):
     parser.add_argument('--commentary-window-seconds',type=float,default=5.,
                         help='local speech input window, at most30seconds; every audio chunk is processed')
     parser.add_argument('--development', action='store_true', required=True)
-    parser.add_argument('--single-continuous-shot', action='store_true', required=True,
+    parser.add_argument('--single-continuous-shot', action='store_true',
                         help='caller declaration; no automatic shot authentication')
     parser.add_argument('--refresh-frames', type=int, default=1,
                         help='discovery refresh interval; every frame is still processed')
@@ -196,9 +231,16 @@ def main(argv=None, *, pipeline_factory=None):
         if args.refresh_frames <= 0 or (pipeline_factory is not None and
                                         args.source_role != 'SYNTHETIC_TEST'):
             raise _Failure('ARGUMENTS_REJECTED')
-        if (args.clothing_only and (args.rider_model is None or args.anonymous_riders)
-            or not args.clothing_only and any(getattr(args,key) is None for key in
+        if not args.phase_only and not args.single_continuous_shot:
+            raise _Failure('ARGUMENTS_REJECTED')
+        if (args.phase_only and (args.clothing_only or args.rider_model is not None
+                               or args.phase_tessdata is None or args.broadcast_context is not None
+                               or args.commentary_model is not None)
+            or args.clothing_only and (args.rider_model is None or args.anonymous_riders)
+            or not (args.clothing_only or args.phase_only) and any(getattr(args,key) is None for key in
                                              ('recognizer_model','context_model','glyph_model'))):
+            raise _Failure('ARGUMENTS_REJECTED')
+        if (args.phase_tesseract is None)!=(args.phase_tessdata is None):
             raise _Failure('ARGUMENTS_REJECTED')
         if (args.broadcast_context is not None or args.commentary_model is not None) and (
             args.rider_model is None or args.anonymous_riders):
@@ -208,7 +250,7 @@ def main(argv=None, *, pipeline_factory=None):
                 setattr(args, field, _local_path(getattr(args, field)))
         if args.rider_model is not None:
             args.rider_model = _local_path(args.rider_model)
-        for field in ('broadcast_context','commentary_model'):
+        for field in ('broadcast_context','commentary_model','phase_tesseract','phase_tessdata'):
             if getattr(args,field) is not None:
                 setattr(args,field,_local_path(getattr(args,field)))
         guards = {key: getattr(args, key) for key in ('processing_timeout_seconds',
@@ -258,6 +300,8 @@ def main(argv=None, *, pipeline_factory=None):
                                 original_sha = sha256(image.tobytes()).hexdigest()
                                 relative = pts[index] - pts[0]
                                 result = pipeline.update(image, t=relative, frame_index=index, scene=0)
+                                if 'phase_detection' in result:
+                                    result['phase_detection']['source_pts']=pts[index]
                                 if broadcast_context is not None:
                                     result['rider_part_tracking']=broadcast_context.annotate(
                                         result['rider_part_tracking'],source_pts=pts[index])
@@ -294,8 +338,10 @@ def main(argv=None, *, pipeline_factory=None):
                     displayed_duration_seconds=duration, journal_sha256=journal_digest.hexdigest(),
                     frame_sampling='NONE_EVERY_DECODED_FRAME', refresh_frames=args.refresh_frames,
                     resource_guards=guards, development_opt_in=True,
-                    label_policy='CLOTHING_COLOR' if args.clothing_only else POLICY,
-                    shot_scope='CALLER_DECLARED_SINGLE_CONTINUOUS_SHOT_NOT_AUTHENTICATED',
+                    label_policy=('SCREEN_PHASE_TEXT_CANDIDATE' if args.phase_only
+                                  else 'CLOTHING_COLOR' if args.clothing_only else POLICY),
+                    shot_scope=('MULTI_SHOT_SCREEN_PHASE_ONLY_NO_IDENTITY_CONTINUITY' if args.phase_only
+                                else 'CALLER_DECLARED_SINGLE_CONTINUOUS_SHOT_NOT_AUTHENTICATED'),
                     classifier_label_scope='DISCRETE_DEVELOPMENT_CLASSIFICATION_NOT_PROBABILITY',
                     field_validation='NOT_ESTABLISHED', identity_validated=False, model_eligible=False,
                     network_requests=0, **metadata)

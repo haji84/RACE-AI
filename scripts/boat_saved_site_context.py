@@ -1,7 +1,7 @@
 """Prepare a private context for the existing owner's live GitHub Pages check."""
 import argparse
 import base64
-from datetime import datetime,timezone,timedelta
+from datetime import date,datetime,timezone,timedelta
 import json
 import os
 from pathlib import Path
@@ -30,17 +30,25 @@ def _aware(value):
         raise ValueError('SAVED_SITE_CLOCK_INVALID') from None
 
 
-def build_context(bootstrap,view,generation,*,now,require_future=False,selected_day=None):
+def _selected_day(requested,now):
+    _need(isinstance(now,datetime) and now.utcoffset() is not None,'CLOCK_INVALID')
+    current=now.astimezone(JST).date().isoformat()
+    if requested is None:return current
+    try:valid=type(requested) is str and date.fromisoformat(requested).isoformat()==requested and requested<=current
+    except (ValueError,TypeError):valid=False
+    _need(valid,'EVENT_DAY_INVALID');return requested
+
+
+def build_context(bootstrap,view,generation,*,now,require_future=False,event_day=None):
     _need(isinstance(now,datetime) and now.utcoffset() is not None,'CLOCK_INVALID')
     _need(type(generation) is int and generation>0,'GENERATION_INVALID')
     _need(type(bootstrap.get('key')) is bytes and len(bootstrap['key'])==32 and
           type(bootstrap.get('view_id')) is str and re.fullmatch('[a-f0-9]{64}',bootstrap['view_id']),
           'VIEWER_BINDING_INVALID')
     _need(type(view) is dict and type(view.get('records')) is list,'VIEW_INVALID')
-    day=selected_day or now.astimezone(JST).date().isoformat()
-    _need(type(day) is str and re.fullmatch(r'\d{4}-\d{2}-\d{2}',day) and day<=now.astimezone(JST).date().isoformat(),'DAY_INVALID')
+    current=now.astimezone(JST).date().isoformat();day=_selected_day(event_day,now)
     rows=[r for r in view['records'] if r.get('sport')=='boat' and r['event_date_jst']==day]
-    _need(bool(rows),'CURRENT_DAY_REQUIRED')
+    _need(bool(rows),'CURRENT_DAY_REQUIRED' if event_day is None else 'SELECTED_DAY_REQUIRED')
     native=set();future=None;probe=None
     for row in rows:
         predictions=[p for p in [row.get('prediction'),*row.get('comparison_predictions',[])]
@@ -77,7 +85,8 @@ def build_context(bootstrap,view,generation,*,now,require_future=False,selected_
     key=base64.urlsafe_b64encode(bootstrap['key']).rstrip(b'=').decode('ascii')
     return dict(schema='RACE_AI_PRIVATE_LIVE_SITE_CHECK_CONTEXT_V1',
         owner_url='https://haji84.github.io/RACE-AI/#saved='+bootstrap['view_id']+'.'+key,
-        day=day,generation=generation,day_races=len(rows),minimum_results=completed(rows),native_p1_groups=len(native),
+        day=day,current_day=current,date_scope='CURRENT_DAY' if day==current else 'HISTORICAL_DAY',
+        generation=generation,day_races=len(rows),minimum_results=completed(rows),native_p1_groups=len(native),
         native_groups=[list(group) for group in sorted(native,key=lambda group:json.dumps(group))],native_probe=probe,
         old_day=old_day,old_completed=completed([r for r in view['records'] if r.get('sport')=='boat'
             and r['event_date_jst']==old_day]),future_native=future)
@@ -87,31 +96,36 @@ def main(argv=None,*,now=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',required=True)
     parser.add_argument('--require-future',action='store_true')
-    parser.add_argument('--latest-saved-day',action='store_true')
+    dates=parser.add_mutually_exclusive_group()
+    dates.add_argument('--day',help='Explicit saved event day; current-day checks never silently fall back')
+    dates.add_argument('--latest-saved-day',action='store_true')
     args=parser.parse_args(argv)
     try:
         repo=VCLI._environment(ROOT)
         folder=Path(os.environ['RUNNER_TEMP']).resolve();target=Path(args.output).resolve()
         _need(target.parent==folder and target.name=='boat-saved-site-context.json','PRIVATE_OUTPUT_REQUIRED')
+        clock=now or datetime.now(timezone.utc);day=_selected_day(args.day,clock)
         config=CLI._json(CLI._read(ROOT/'audit/state/boat-saved-view-input.json',8192),8192)
         _need(config.get('schema')=='RACE_AI_SAVED_VIEW_INPUT_V1','INPUT_INVALID')
         raw=base64.b64decode(config['bootstrap'],validate=True)
         _need(CLI.sha(raw)==config['bootstrap_sha256'],'BOOTSTRAP_HASH_INVALID')
         bootstrap=CLI.F.open_bootstrap(raw);CLI.git_auth();git=CLI.F.FeedRepository(repo)
-        _,_,generation,view=CLI.F.current_view(git,bootstrap)
-        clock=now or datetime.now(timezone.utc);day=clock.astimezone(JST).date().isoformat()
+        _,_,generation,view=CLI.F.current_view(git,bootstrap,**(dict(day=day) if args.day is not None else {}))
+        if args.latest_saved_day:
+            day=max((r['event_date_jst'] for r in view['records'] if r.get('sport')=='boat' and r['event_date_jst']<=day),default=None)
+            _need(day is not None,'CURRENT_DAY_REQUIRED')
         history=getattr(git,'_saved_history_context',None)
         if history:
             earlier=sorted(d for d in history['index']['days'] if d<day)
             if earlier:
                 _,_,_,old=CLI.F.current_view(git,bootstrap,day=earlier[0])
                 view=dict(view,records=[*view['records'],*old['records']])
-        selected=max((r['event_date_jst'] for r in view['records'] if r.get('sport')=='boat' and r['event_date_jst']<=day),default=None) if args.latest_saved_day else None
-        context=build_context(bootstrap,view,generation,now=clock,require_future=args.require_future,selected_day=selected)
+        context=build_context(bootstrap,view,generation,now=clock,require_future=args.require_future,event_day=day if args.latest_saved_day else args.day)
         fd=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
         with os.fdopen(fd,'w',encoding='utf-8') as stream:
             json.dump(context,stream,ensure_ascii=False,sort_keys=True);stream.write('\n')
         print(json.dumps(dict(status='SAVED_SITE_PRIVATE_CONTEXT_READY',generation=generation,
+            checked_day=context['day'],current_day=context['current_day'],date_scope=context['date_scope'],
             native_p1_groups=context['native_p1_groups'],completed_results=context['minimum_results'],
             future_native_available=context['future_native'] is not None,plaintext_published=False,
             official_source_requests=0),sort_keys=True))

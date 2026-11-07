@@ -641,21 +641,46 @@ def main(argv=None, *, transport=None,readback_transport=None,github_get=None,vi
     command.add_argument('--run-id',dest='run_ids',action='append',type=int,default=[])
     command.add_argument('--run-config')
     args=parser.parse_args(argv)
+    phase='OWNER_CONTEXT'
     try:
         repo=VCLI._environment(args.repo_root)
+        phase='OUTPUT_PATH'
         output=VCLI._private_path(args.output,repo,exists=False)
+        phase='RUN_CONFIG'
         run_ids=set(args.run_ids)
         if args.run_config is not None:run_ids.update(_configured_run_ids(repo,args.run_config))
         _need(len(run_ids)<=MAX_RUNS,'RUN_INPUT_INVALID')
         for run in run_ids:_ident(run)
-        owner=(view_loader or _owner_view)(repo)
+        phase='OWNER_VIEW';owner=(view_loader or _owner_view)(repo)
+        phase='BACKFILL'
         report=backfill(owner,repo,artifact_ids=args.artifact_ids,run_ids=run_ids,github_get=github_get,
                         transport=transport,readback_transport=readback_transport,now=now)
+        phase='WRITE_REPORT'
         VCLI._write(output,V._wire(report)+b'\n');print(V._wire(report).decode());return 0
     except Exception as exc:
         reason=str(exc) if isinstance(exc,(ValueError,RuntimeError)) and re.fullmatch(
-            r'(?:VAULT|ORIGINAL_RECOVERY|ORIGINAL_MAINTENANCE|GITHUB)_[A-Z0-9_]{1,100}',str(exc)) else 'ORIGINAL_MAINTENANCE_OPERATION_FAILED'
-        print(V._wire(dict(status='BOAT_ORIGINAL_MAINTENANCE_REJECTED',reason=reason,complete=False,plaintext_published=False)).decode());return 2
+            r'(?:VAULT|ORIGINAL_RECOVERY|ORIGINAL_MAINTENANCE|GITHUB|STATE)_[A-Z0-9_]{1,100}',str(exc)) else 'ORIGINAL_MAINTENANCE_OPERATION_FAILED'
+        from race_ai.boat_saved_model_view import SavedModelViewError
+        report=dict(status='BOAT_ORIGINAL_MAINTENANCE_REJECTED',reason=reason,complete=False,
+                    plaintext_published=False,failure_phase=phase)
+        allowed={'ValueError','RuntimeError','KeyError','TypeError','OSError','FileNotFoundError',
+                 'TimeoutError','TimeoutExpired','CalledProcessError','SavedModelViewError'}
+        report['failure_class']=type(exc).__name__ if type(exc).__name__ in allowed else 'Exception'
+        if isinstance(exc,SavedModelViewError):
+            if re.fullmatch('SAVED_MODEL_VIEW_[A-Z0-9_]{1,90}',getattr(exc,'reason_code','')):
+                report['reason']=exc.reason_code
+            if getattr(exc,'conflict_counts',None) is not None:report['conflict_counts']=exc.conflict_counts
+        import traceback
+        sites=[]
+        for frame in traceback.extract_tb(exc.__traceback__):
+            try:path=Path(frame.filename).resolve().relative_to(ROOT)
+            except ValueError:continue
+            if path.parts[0] not in ('scripts','race_ai','pr64-reference') or path.suffix!='.py':continue
+            if not all(re.fullmatch('[A-Za-z0-9_.-]+',part) for part in path.parts):continue
+            name=frame.name if re.fullmatch('[A-Za-z_][A-Za-z0-9_]{0,99}',frame.name) else 'OTHER'
+            sites.append(dict(file=path.as_posix(),function=name,line=frame.lineno))
+        report['failure_sites']=sites[-16:]
+        print(V._wire(report).decode());return 2
 
 
 if __name__=='__main__':raise SystemExit(main())

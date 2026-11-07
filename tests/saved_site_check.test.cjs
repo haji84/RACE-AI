@@ -2,6 +2,13 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const C=require('../scripts/boat_saved_site_check.cjs');
 const key='fixture-viewer-key';
+test('historical checks report their selected day without claiming current-day results',()=>{
+  const historical=C.dateEvidence({day:'2030-04-01',current_day:'2030-04-02'},98,30);
+  assert.equal(historical.date_scope,'HISTORICAL_DAY');assert.equal(historical.checked_day_results,98);
+  assert.equal(historical.current_day_results,null);assert.equal(historical.current_day_p1_groups,null);
+  const current=C.dateEvidence({day:'2030-04-02',current_day:'2030-04-02'},3,2);
+  assert.equal(current.date_scope,'CURRENT_DAY');assert.equal(current.current_day_results,3);
+});
 const request=(url='https://raw.githubusercontent.com/haji84/RACE-AI/example/latest.json',
   {headers={},method='GET',body=null}={})=>({url:()=>url,headers:()=>headers,method:()=>method,postData:()=>body});
 

@@ -627,6 +627,40 @@ class MaintenanceIntegrationTests(unittest.TestCase):
                 transport=self.writer,readback_transport=self.reader,github_get=lambda _:self.fail('GET without key'),view_loader=lambda _:self.fail('view without key'),now=NOW)
         self.assertEqual(code,2);self.assertEqual(json.loads(out.getvalue())['status'],'BOAT_ORIGINAL_MAINTENANCE_REJECTED')
 
+    def test_cli_keeps_static_failure_context_without_private_exception_text(self):
+        for failure, reason in ((ValueError('STATE_GIT_OPERATION_FAILED'), 'STATE_GIT_OPERATION_FAILED'),
+                                (ValueError('SECRET https://private.invalid/KEY'), 'ORIGINAL_MAINTENANCE_OPERATION_FAILED')):
+            with self.subTest(reason=reason):
+                printed=io.StringIO();output=self.fixture.root/'failed-maintenance.json'
+                with patch.dict(os.environ,self.fixture.env,clear=True),redirect_stdout(printed), \
+                     patch.object(M,'backfill',side_effect=failure):
+                    code=M.main(['backfill','--repo-root',str(self.writer.repo),'--output',str(output)],
+                                view_loader=lambda _:view(),now=NOW)
+                self.assertEqual(code,2);self.assertFalse(output.exists())
+                report=json.loads(printed.getvalue())
+                self.assertEqual(report['reason'],reason)
+                self.assertEqual(report['failure_phase'],'BACKFILL')
+                self.assertEqual(report['failure_class'],'ValueError')
+                self.assertNotIn('SECRET',printed.getvalue());self.assertNotIn('private.invalid',printed.getvalue())
+
+    def test_cli_keeps_actual_strict_conflict_counts_and_stops(self):
+        from race_ai.boat_saved_model_view import merge_saved_views, SavedModelViewError
+        from tests.test_boat_saved_model_view import add_result,view as synthetic_view
+        base=add_result(synthetic_view());addition=deepcopy(base)
+        addition['records'][0]['result_observations'][0]['SECRET']='SECRET'
+        with self.assertRaises(SavedModelViewError) as raised:merge_saved_views(base,[addition])
+        printed=io.StringIO();output=self.fixture.root/'failed-conflict.json'
+        with patch.dict(os.environ,self.fixture.env,clear=True),redirect_stdout(printed), \
+             patch.object(M,'backfill',side_effect=raised.exception):
+            code=M.main(['backfill','--repo-root',str(self.writer.repo),'--output',str(output)],
+                        view_loader=lambda _:view(),now=NOW)
+        report=json.loads(printed.getvalue())
+        self.assertEqual(code,2);self.assertFalse(output.exists())
+        self.assertEqual(report['reason'],'SAVED_MODEL_VIEW_CONFLICTING_RESULT_OBSERVATION')
+        self.assertEqual(report['conflict_counts']['differing_fields'],{'OTHER':1})
+        self.assertEqual(report['conflict_counts']['observations_reconciled'],0)
+        self.assertNotIn('SECRET',printed.getvalue())
+
     def test_direct_backfill_also_requires_actions_owner_context_before_transport(self):
         env=dict(self.fixture.env);env.pop('GITHUB_ACTIONS')
         with patch.dict(os.environ,env,clear=True),self.assertRaises(ValueError):

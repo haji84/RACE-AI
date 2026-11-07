@@ -26,12 +26,14 @@ class CommentaryTests(unittest.TestCase):
         self.temp=tempfile.TemporaryDirectory();self.addCleanup(self.temp.cleanup)
         self.root=Path(self.temp.name)
 
-    def fixture(self,*,audio=True,duration=1.,offset=7.):
+    def fixture(self,*,audio=True,duration=1.,offset=7.,audio_filter=None):
         target=self.root/('audio.mkv' if audio else 'silent.mkv')
         command=['ffmpeg','-nostdin','-v','error','-f','lavfi','-i','testsrc2=size=64x64:rate=10']
         if audio:command+=['-f','lavfi','-i','sine=frequency=521:sample_rate=16000']
         command+=['-t',str(duration),'-output_ts_offset',str(offset),'-c:v','ffv1','-threads','1']
-        if audio:command+=['-c:a','pcm_f32le']
+        if audio:
+            command+=['-c:a','pcm_f32le']
+            if audio_filter is not None:command+=['-af',audio_filter]
         command+=[str(target)]
         subprocess.run(command,check=True,capture_output=True,timeout=20)
         return target
@@ -65,6 +67,23 @@ class CommentaryTests(unittest.TestCase):
         self.assertEqual(segment['producer_kind'],'ASR_LOCAL_UNVERIFIED')
         self.assertEqual(path.read_bytes(),before)
         self.assertFalse(metadata['prediction_eligible'])
+
+    def test_large_absolute_source_pts_does_not_end_pcm_before_the_first_sample(self):
+        context,metadata=self.run_media(self.fixture(offset=2700.))
+        self.assertEqual(self.calls,[(16000,16000)])
+        self.assertEqual(context['segments'][0]['start_pts'],2700.)
+        self.assertEqual(context['segments'][0]['end_pts'],2701.)
+        self.assertEqual(metadata['decoded_sample_count'],16000)
+
+    def test_low_signal_audio_is_unresolved_instead_of_synthetic_boat_speech(self):
+        context,metadata=self.run_media(self.fixture(duration=11.,audio_filter='volume=0.001'))
+        self.assertEqual(self.calls,[])
+        self.assertEqual(context['segments'],[])
+        self.assertEqual(metadata['chunk_count'],3)
+        self.assertEqual(metadata['audio_status'],'LOW_SIGNAL_AUDIO_UNRESOLVED')
+        self.assertEqual(metadata['low_signal_chunks'],3)
+        self.assertTrue(all(c['quality_status']=='NEEDS_REVIEW_LOW_SIGNAL' for c in metadata['chunks']))
+        self.assertTrue(all(c['signal_rms']<.001 for c in metadata['chunks']))
 
     def test_silent_video_never_invokes_recognizer(self):
         context,metadata=self.run_media(self.fixture(audio=False))
