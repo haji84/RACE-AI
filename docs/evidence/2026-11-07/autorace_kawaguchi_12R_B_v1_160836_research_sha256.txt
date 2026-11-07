@@ -1,0 +1,16 @@
+AUTORACE PRE-CUTOFF RESEARCH B HASH ANCHOR
+race=2026-11-07_kawaguchi_12R
+phase=B_AFTER_CONFIRMED_TRIAL
+generated_at_jst=2026-11-07T16:08:36+09:00
+cutoff_jst=2026-11-07T16:33:00+09:00
+forecast_plaintext_sha256=a5f201e3453b269b3b7daaf60f2739b573f4a0967e2174397c9bb806aba481ea
+unchanged_A_plaintext_sha256=0cbda3d49df3cd4deb69ac108c05af7207cc83a0f4f36e63c73884079e3fda3d
+source=https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/1/12
+source_published_at=UNVERIFIED
+official_model=false
+calibrated_probability=false
+result_as_input=false
+full_forecast_private=conversation_attachment_only_not_durable
+append_only=true
+
+No result/payout or source raw data copied to this GitHub anchor.
