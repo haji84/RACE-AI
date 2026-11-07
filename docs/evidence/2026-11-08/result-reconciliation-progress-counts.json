@@ -97,7 +97,7 @@
     "source_requests": 0,
     "results_admitted": 0
   },
-  "retained_sp_parser_diagnostics_verified_on_real_sources": false,
+  "retained_sp_parser_diagnostics_verified_on_real_sources": true,
   "ci_fixture_validation": {
     "failed_run_id": 42389817524,
     "failed_head_sha": "02d370557ce112202883f924dace3db4aadde12b",
@@ -125,7 +125,7 @@
     "related_tests_skipped": 0,
     "independent_audit_tests_passed": 29,
     "review_blockers_remaining": 0,
-    "actual_owner_execution_verified": false,
+    "actual_owner_execution_verified": true,
     "source_requests": 0,
     "results_admitted": 0,
     "state_control_or_forecasts_changed": false

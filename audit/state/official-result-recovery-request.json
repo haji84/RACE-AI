@@ -31,6 +31,12 @@
         "head_sha": "0a5e2a02056ef828dbb805a1d39e537c6546522e",
         "id": 13589980082,
         "run_id": 42407158403
+      },
+      {
+        "digest": "sha256:3325b38c232236be928316a4de3da8e383c84d8eccc6da332761d5eaf6e9b8d7",
+        "head_sha": "d41f505cb00557dd1a6173a19b0945d7849e57fd",
+        "id": 13591897209,
+        "run_id": 42413260799
       }
     ],
     "execution_day": "2026-11-08",
@@ -104,6 +110,12 @@
         "head_sha": "0a5e2a02056ef828dbb805a1d39e537c6546522e",
         "id": 13589112763,
         "run_id": 42407158403
+      },
+      {
+        "digest": "sha256:3daa8481b048baf39213a6eab4993da9bbd301a7e20974c0bd8ce96563732a2b",
+        "head_sha": "d41f505cb00557dd1a6173a19b0945d7849e57fd",
+        "id": 13591313088,
+        "run_id": 42413260799
       }
     ],
     "schema": "RACE_AI_OFFICIAL_RESULT_COLLECT_INPUT_V3",

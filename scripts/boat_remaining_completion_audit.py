@@ -122,6 +122,36 @@ def audit_saved_view(view, *, now):
     }
 
 
+def _payout_shapes(raw):
+    """Classify source syntax without disclosing combinations or amounts."""
+    import html,re,unicodedata
+    try:
+        doc=json.loads(raw)
+        prices=doc.get('maindata',{}).get('infolist3t')
+    except Exception:return {'INVALID_DOCUMENT':1}
+    if type(prices) is not list:return {'INVALID_PAYOUT_LIST':1}
+    shapes=Counter()
+    for item in prices:
+        value=item.get('winno') if type(item) is dict else None
+        if type(value) is not str:code='NON_STRING'
+        else:
+            token=unicodedata.normalize('NFKC',html.unescape(value)).strip()
+            if not token:code='EMPTY'
+            elif token in ('特払','特払い','特払金'):code='SPECIAL_PAYOUT'
+            elif token in ('不成立','返還','発売なし','発売無'):code='NON_RESULT_TOKEN'
+            elif '<' in token or '>' in token:code='HTML_MARKUP'
+            elif re.fullmatch('[1-6]-[1-6]-[1-6]',token):
+                code='ASCII_TRIFECTA' if len(set(token.split('-')))==3 else 'REPEATED_LANE'
+            elif re.fullmatch('[1-6]-[1-6]-[1-6]',re.sub('[−‐‑‒–—―]','-',token)):code='UNICODE_DASH'
+            elif re.fullmatch('[1-6]=[1-6]=[1-6]',token):code='EQUALS_SEPARATED'
+            elif re.fullmatch('[1-6]{3}',token):code='COMPACT_DIGITS'
+            elif re.fullmatch(r'[1-6]\s+[1-6]\s+[1-6]',token):code='SPACE_SEPARATED'
+            elif '\n' in token or '\r' in token:code='MULTILINE'
+            else:code='OTHER'
+        shapes[code]+=1
+    return dict(shapes) if shapes else {'EMPTY_LIST':1}
+
+
 def audit_retained_sp_holds(view,*,state,now):
     """Replay matching retained bytes for counts only; never publish or advance."""
     from race_ai.racer_daily import clock
@@ -132,6 +162,7 @@ def audit_retained_sp_holds(view,*,state,now):
           (r.get('result') or {}).get('status')=='unsupported']
     if len(held)>288:raise ValueError('AUDIT_SP_HOLD_BOUND')
     captures=Counter();parsers=Counter();projections=Counter();matched=0
+    shapes=Counter();per_original=Counter();chronology=Counter()
     pointers=state.control.get('settlement_captures',{})
     for row in held:
         result=row['result'];pointer=pointers.get(row['race_id'])
@@ -152,11 +183,27 @@ def audit_retained_sp_holds(view,*,state,now):
             _clock(receipt['captured_at'])!=_clock(result.get('observed_at'))):
             captures['CURRENT_RESULT_RECEIPT_MISMATCH']+=1;continue
         matched+=1
+        shapes.update(_payout_shapes(raw))
         try:observation=parse_settlement(raw,receipt,now=now)
         except Exception as error:
             reason=str(error);parsers[reason if reason in SP_PARSER_REASONS else 'OTHER']+=1;continue
         if observation['status']!='AVAILABLE':parsers['PENDING']+=1;continue
         parsers['AVAILABLE']+=1
+        cutoffs=[row['cutoff_at']] if row.get('cutoff_at') else row.get('saved_cutoff_variants',[])
+        deadlines=[_clock(v) for v in [*cutoffs,observation['closed_at']]]
+        predictions=[p for p in [row.get('prediction'),*row.get('comparison_predictions',[])] if p is not None]
+        clocks=[_clock(p.get('persisted_at')) for p in predictions]
+        clocks.extend(_clock(p[k]) for p in predictions for k in ('as_of','generated_at','source_captured_at','server_saved_at') if p.get(k) is not None)
+        chronology['UNKNOWN' if not predictions or not cutoffs or None in deadlines or None in clocks else
+                   'ALL_BEFORE_ALL_CUTOFFS' if max(clocks)<min(deadlines) else 'NOT_ALL_BEFORE_ALL_CUTOFFS']+=1
+        for cutoff in cutoffs:
+            try:
+                narrow={**row,'cutoff_at':cutoff,'saved_cutoff_variants':[cutoff]}
+                projected=project_observation(observation,narrow,freeze_at=row['prediction']['persisted_at'],raw_bound=True)
+                reason='SUPPORTED_REFERENCE' if projected.get('cutoff_reference') else 'SUPPORTED'
+            except Exception as error:
+                reason=str(error);reason=reason if reason in REASONS else 'OTHER'
+            per_original[reason]+=1
         try:
             projected=project_observation(observation,row,freeze_at=row['prediction']['persisted_at'],raw_bound=True)
             code='SUPPORTED_REFERENCE' if projected.get('cutoff_reference') or projected.get('cutoff_reconciliation') else 'SUPPORTED'
@@ -166,6 +213,8 @@ def audit_retained_sp_holds(view,*,state,now):
     return dict(status='RETAINED_SP_HOLD_AUDIT_VERIFIED',held_races=len(held),
         authenticated_matching_captures=matched,capture_reason_counts=dict(captures),
         parser_reason_counts=dict(parsers),projection_reason_counts=dict(projections),
+        payout_shape_counts=dict(shapes),per_original_cutoff_projection_reason_counts=dict(per_original),
+        forecast_chronology_counts=dict(chronology),
         source_requests=0,results_admitted=0,originals_changed=False)
 
 
