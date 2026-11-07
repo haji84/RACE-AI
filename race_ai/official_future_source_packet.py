@@ -57,7 +57,7 @@ def _no_dynamic_replay(value):
             _no_dynamic_replay(child)
 
 
-def _original_rows(index, files, available, now):
+def _original_rows(index, files, available, now, expires=None):
     started, completed = _clock(index['started_at']), _clock(index['completed_at'])
     _need(available <= started <= completed == now and completed-started <= timedelta(seconds=85), 'CAPTURE_CLOCK')
     rows = index['responses']; ledger = index['ledger']
@@ -71,6 +71,7 @@ def _original_rows(index, files, available, now):
     originals = {}; previous = None
     for row in numbered:
         fetched, body_at = _clock(row['request_started_at']), _clock(row['body_captured_at'])
+        _need(expires is None or fetched < expires, 'SOURCE_AUTHORIZATION_EXPIRED')
         _need(started <= fetched <= _clock(row.get('headers_received_at', row['response_received_at'])) <=
               _clock(row['response_received_at']) == body_at <= completed and body_at-fetched <= timedelta(seconds=12), 'SOURCE_CLOCK')
         _need(previous is None or fetched-previous >= timedelta(milliseconds=825), 'REQUEST_SPACING')
@@ -198,9 +199,10 @@ def _pack_case(row, item, originals, original_ledger, files, available, now):
 
 def _build(plan, index, files, terms, as_of):
     now = _clock(as_of); day = now.astimezone(capture.JST).date().isoformat()
-    _need(type(plan) is dict and set(plan) <= {'schema','intent','available_after','cases','request_budget','static_cache'} and
+    _need(type(plan) is dict and set(plan) <= {'schema','intent','available_after','cases','request_budget','static_cache','not_after'} and
           plan['schema'] == PLAN and plan['intent'] == INTENT and type(plan['cases']) is list and 1 <= len(plan['cases']) <= 24, 'PLAN_SCHEMA')
     available = _clock(plan['available_after'])
+    expires = _clock(plan['not_after']) if 'not_after' in plan else None
     budget = plan.get('request_budget', 32)
     _need(type(budget) is int and 1 <= budget <= 32 and index['maximum_requests'] == budget, 'PLAN_REQUEST_BUDGET')
     _need(index['schema'] == CAPTURE and index['intent'] == INTENT and index['available_after'] == plan['available_after'] and
@@ -209,7 +211,7 @@ def _build(plan, index, files, terms, as_of):
           index['native_contracts_verified'] is False and index['independent_pre_cutoff_receipt_verified'] is False, 'CAPTURE_INTENT')
     _need(type(files) is dict and len(files) <= 256 and sum(len(raw) for raw in files.values()) <= LIMIT, 'FILES_BOUND')
     _no_dynamic_replay(plan); _no_dynamic_replay(index)
-    originals = _original_rows(index, files, available, now)
+    originals = _original_rows(index, files, available, now, expires)
     _static_replays(plan, index, originals, files)
     original_ledger = [(digest(entry), entry) for entry in index['ledger']]
     rows = index['cases']; _need(type(rows) is list and len(rows) == len(plan['cases']), 'EXACT_CASE_COUNT')

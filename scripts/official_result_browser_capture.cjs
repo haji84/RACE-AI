@@ -61,12 +61,12 @@ function validatePlan(value,now=new Date()){
 }
 function caseGroupKey(item){return JSON.stringify([item.sport,item.venue,item.expected_date,item.ui_entry_url]);}
 function requireFutureClock(plan,now=new Date()){
- requireCurrentClock({not_before:plan.available_after},now);
+ requireCurrentClock({not_before:plan.available_after,...(Object.hasOwn(plan,'not_after')?{not_after:plan.not_after}:{})},now);
  const today=new Date(now.valueOf()+9*3600000).toISOString().slice(0,10);
  for(const item of plan.cases){need(item.expected_date===today,'FUTURE_SAME_EVENT_DAY');need(now.valueOf()+FUTURE_LEAD_MS<time(item.cutoff_at),'FUTURE_CUTOFF_MARGIN');}
 }
 function validateFuturePlan(value,now=new Date()){
- need(keys(value,['schema','intent','available_after','cases'],['request_budget','static_cache'])&&value.schema===FUTURE_SCHEMA&&value.intent===FUTURE_INTENT&&Array.isArray(value.cases),'FUTURE_PLAN_SCHEMA');
+ need(keys(value,['schema','intent','available_after','cases'],['request_budget','static_cache','not_after'])&&value.schema===FUTURE_SCHEMA&&value.intent===FUTURE_INTENT&&Array.isArray(value.cases),'FUTURE_PLAN_SCHEMA');
  time(value.available_after);
  const cases=value.cases.map(item=>{need(keys(item,['sport','race_id','ui_entry_url','expected_date','venue','race_no','cutoff_at'],['ui_venue_name','place_code']),'FUTURE_CASE_SCHEMA');const out={...item,due_at:item.cutoff_at};delete out.cutoff_at;return out;});
  validatePlan({schema:SCHEMA,cases,...(Object.hasOwn(value,'request_budget')?{request_budget:value.request_budget}:{}),...(Object.hasOwn(value,'static_cache')?{static_cache:value.static_cache}:{})},now);

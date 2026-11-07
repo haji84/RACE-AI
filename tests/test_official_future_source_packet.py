@@ -147,6 +147,28 @@ class FutureSourcePacketTests(unittest.TestCase):
         plan,index,files,terms=capture_fixture();plan['request_budget']=3
         self.assertEqual(self.build(plan,index,files,terms)['state'],'HOLD')
 
+    def test_optional_expiry_checks_actual_starts_without_retiming_later_body_completion(self):
+        data=capture_fixture();original=self.build(*data)
+        plan,index,files,terms=data
+        plan['not_after']=(NOW-timedelta(seconds=18)).isoformat()
+        before=deepcopy(data);out=self.build(*data)
+        self.assertEqual(out['state'],'READY_INPUTS_ONLY');self.assertEqual(data,before)
+        self.assertEqual(out['packet'],original['packet']);self.assertEqual(out['requests'],original['requests'])
+        self.assertEqual(out['fixed_as_of'],NOW.isoformat())
+        # The final response completes after expiry. Only its recorded actual
+        # request start is authorized; no source or conversion clock is moved.
+        self.assertGreater(index['responses'][-1]['body_captured_at'],plan['not_after'])
+
+    def test_expiry_rejects_each_at_or_after_boundary_and_malformed_authorization(self):
+        data=capture_fixture()
+        expiries=[row['request_started_at'] for row in data[1]['responses']]
+        expiries.extend([None,0,'2030-01-15T00:00:00',data[0]['available_after']])
+        for expiry in expiries:
+            plan,index,files,terms=deepcopy(data);plan['not_after']=expiry
+            out=self.build(plan,index,files,terms)
+            with self.subTest(expiry=expiry):
+                self.assertEqual(out['state'],'HOLD');self.assertEqual(out['requests'],[]);self.assertIsNone(out['packet'])
+
     def test_response_completion_order_does_not_change_request_identity_or_native_input(self):
         data=capture_fixture();first=self.build(*data)
         data[1]['responses'].reverse()

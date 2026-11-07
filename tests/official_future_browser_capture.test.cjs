@@ -17,6 +17,19 @@ test('future intent requires today, baseline availability and a full ten minute 
  assert.throws(()=>api.validatePlan(input,NOW),/PLAN_SCHEMA/,'result mode must not accept the new intent');
 });
 
+test('optional future authorization expiry is strict and remains active after plan validation',()=>{
+ const input={...plan([auto]),not_after:'2030-01-15T00:00:01Z'},before=structuredClone(input);
+ assert.deepEqual(api.validateFuturePlan(input,NOW),input);assert.deepEqual(input,before);
+ api.requireFutureClock(input,new Date('2030-01-15T00:00:00.999Z'));
+ for(const clock of ['2030-01-15T00:00:01Z','2030-01-15T00:00:01.001Z']){
+  assert.throws(()=>api.requireFutureClock(input,new Date(clock)),/CLOCK_AUTHORIZATION_EXPIRED/);
+ }
+ for(const not_after of ['2030-01-15T00:00:00Z','2030-01-15T00:00:00',null,0]){
+  assert.throws(()=>api.validateFuturePlan({...input,not_after},NOW));
+ }
+ api.requireFutureClock(plan([auto]),new Date('2030-01-15T00:00:02Z'));
+});
+
 test('future route restriction keeps result transport out without changing result policy',()=>{
  assert.equal(typeof api.futureRoutePolicy,'function','future route restriction is missing');
  const request={url:'https://autorace.jp/race_info/Program',method:'POST',resource_type:'xhr',content_type:'application/json',headers:{},body:Buffer.from('{"placeCode":3,"raceDate":"2030-01-15","raceNo":1}')};
@@ -56,6 +69,30 @@ test('future roles select actual Program and companion HTML, never a result subs
  const listing={sequence:1,url:'https://keirin.jp/pc/racelist',method:'POST',resource_type:'document',status:200};
  const detail={...listing,sequence:3,url:'https://keirin.jp/pc/racelive'};
  assert.deepEqual(api.futureCaseResponses(kei,[listing,{...detail,sequence:2},detail],2),[{role:'racelist',sequence:1},{role:'racelive',sequence:3}]);
+});
+
+test('future expiry reached during request spacing prevents a second actual wire',async()=>{
+ const {EventEmitter}=require('node:events'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'future-expiry-')),OriginalDate=Date,started=performance.now();
+ global.Date=class extends OriginalDate{constructor(...args){super(...(args.length?args:[NOW.valueOf()+performance.now()-started]));}static now(){return NOW.valueOf()+performance.now()-started;}};
+ let handler,firstWire=false,secondWire=false,contextClosed=false;
+ const page={goto:async()=>{
+  await perform(auto.ui_entry_url,()=>{firstWire=true;});
+  await perform('https://autorace.jp/race_info/important_notice',()=>{secondWire=true;});
+ },close:async()=>{}};
+ const context=new EventEmitter();Object.assign(context,{setDefaultTimeout(){},routeWebSocket:async()=>{},newCDPSession:async()=>({send:async()=>{},on(){}}),route:async(_,fn)=>{handler=fn;},newPage:async()=>page,close:async()=>{contextClosed=true;}});
+ async function perform(url,onWire){
+  const document=url===auto.ui_entry_url,req={url:()=>url,method:()=> 'GET',resourceType:()=>document?'document':'xhr',postDataBuffer:()=>null,headers:()=>({})};
+  const response={request:()=>req,status:()=>200,url:()=>url,headers:()=>({'content-type':'text/html'}),body:async()=>Buffer.from('<html>fresh source</html>')};
+  await handler({request:()=>req,abort:async()=>{},continue:async()=>{onWire();context.emit('response',response);},fulfill:async()=>assert.fail('no dynamic replay')});
+ }
+ try{
+  const input={...plan([auto]),not_after:new OriginalDate(NOW.valueOf()+500).toISOString()};
+  const index=await api.capturePlan(input,path.join(root,'capture'),{executablePath:process.execPath,chromium:{launch:async()=>({newContext:async()=>context,close:async()=>{}})}});
+  assert.equal(firstWire,true);assert.equal(secondWire,false);assert.equal(contextClosed,true);
+  assert.equal(index.responses.length,1);assert.equal(index.stop_reason,'REQUEST_DISPATCH_FAILED');
+  assert.ok(index.cases.every(item=>item.state!=='CAPTURED'));
+ }finally{global.Date=OriginalDate;fs.rmSync(root,{recursive:true,force:true});}
 });
 
 test('KEIRIN date selection binds its exact current listing instead of conflicting with a prior date',()=>{
