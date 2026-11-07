@@ -67,15 +67,15 @@ assert.equal(M.refundSummary({refund_combinations: [[1, 2, 3]], refund_yen: 0}),
 assert.equal(M.refundSummary({}), "未取得");
 
 const catalogPath = path.join(__dirname, "../web/existing-model-catalog.js");
-assert.ok(fs.existsSync(catalogPath), "all sixteen existing families must be available without a provider request");
+assert.ok(fs.existsSync(catalogPath), "all active existing families must be available without a provider request");
 const catalog = require(catalogPath);
-assert.equal(catalog.models.length, 16);
-assert.equal(new Set(catalog.models.map(m => m.model_id)).size, 16);
-for (const [sport, expected] of [["boat", 15], ["keirin", 5], ["autorace", 6], ["horse", 5]]) {
+assert.equal(catalog.models.length, 15);
+assert.equal(new Set(catalog.models.map(m => m.model_id)).size, 15);
+for (const [sport, expected] of [["boat", 14], ["keirin", 5], ["autorace", 6], ["horse", 5]]) {
   const emptyCoverage = M.modelCoverage([], catalog.models, {sport});
-  assert.equal(emptyCoverage.models.length, 16, "unconnected families never disappear");
+  assert.equal(emptyCoverage.models.length, 15, "unconnected active families never disappear");
   assert.equal(emptyCoverage.applicable_models, expected);
-  assert.equal(emptyCoverage.not_applicable_models, 16 - expected);
+  assert.equal(emptyCoverage.not_applicable_models, 15 - expected);
   assert.equal(emptyCoverage.target_races, 0);
   assert.equal(emptyCoverage.counts_only, true);
   assert.ok(emptyCoverage.models.filter(m => m.applicable).every(m => m.state === "INPUT_MISSING"));
@@ -134,4 +134,4 @@ assert.deepEqual(coverage.display_stages,["P0","P1"]);
 const unknownMetadata=[{race_id:"actual:opaque-race",sport:"boat",event_date_jst:"2030-01-01",venue:null,race_no:null,prediction:null}];
 assert.equal(M.filterRaces(unknownMetadata,{sport:"boat",day:"2030-01-01",query:"opaque",sort:"venue"}).length,1);
 assert.equal(M.filterRaces([...unknownMetadata,{...unknownMetadata[0],race_id:"other:opaque-race",venue:"known"}],{sport:"boat",day:"2030-01-01",sort:"venue"}).length,2);
-console.log("UI model behavior passed: allocation, manual ledger, real filters and all sixteen existing model families");
+console.log("UI model behavior passed: allocation, manual ledger, real filters and all fifteen active model families");

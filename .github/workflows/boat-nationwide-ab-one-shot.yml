@@ -126,6 +126,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
         run: python -m scripts.boat_saved_view_feed --hydrate-originals --history-when-compatible --recover-model-config
+      - name: Refresh the owner page for the explicitly removed seller model
+        if: >-
+          always() && steps.saved_model_publication.outcome == 'success' && startsWith(github.event.head_commit.message, 'saved-view: retire-seller:')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python - <<'PY_REFRESH'
+          import json
+          from race_ai.saved_pages import PagesRepository, refresh_site_assets
+          git=PagesRepository('.')
+          parent=git.head()
+          assert parent is not None
+          print(json.dumps(refresh_site_assets('.',expected_parent=parent,transport=git)))
+          PY_REFRESH
       - name: Install the existing pinned browser checker
         if: always() && steps.saved_model_publication.outcome == 'success'
         id: browser_tooling

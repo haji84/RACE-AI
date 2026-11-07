@@ -36,11 +36,16 @@ def export_view(view,output,*,web_root=WEB):
     html=_asset_bytes(web_root,'index.html').decode()
     styles=_asset_bytes(web_root,'style.css').decode()
     scripts=[]
-    for name in ('forecast-audit-model.js','product-data.js','existing-model-catalog.js','ui-model.js','saved-performance.js','racer-portraits-data.js','racer-portraits.js','racer-profiles-data.js','racer-profiles.js','app.js'):
+    for name in ('forecast-audit-model.js','product-data.js','existing-model-catalog.js','ui-model.js','saved-performance.js','racer-portraits-data.js','racer-portraits.js','racer-profiles-data.js','racer-profiles.js','racer-daily.js','app.js'):
         body=_asset_bytes(web_root,name).decode()
         if name=='racer-portraits.js':
             from .racer_portraits import inline_script
             body=inline_script(body,lambda path:_asset_bytes(web_root,path),view=view)
+        if name=='racer-daily.js':
+            daily=json.loads(_asset_bytes(web_root,'data/racer-daily.json'))
+            encoded=json.dumps(daily,ensure_ascii=False,separators=(',',':'),allow_nan=False).replace('<','\\u003c').replace('\u2028','\\u2028').replace('\u2029','\\u2029')
+            if body.count('const embedded = null;')!=1:raise ValueError('SAVED_DAILY_SCRIPT_INVALID')
+            body=body.replace('const embedded = null;','const embedded = '+encoded+';')
         if re.search('</script',body,re.I):raise ValueError('SAVED_VIEW_SCRIPT_INVALID')
         scripts.append(body)
         html=html.replace('<script defer src="./'+name+'"></script>','')

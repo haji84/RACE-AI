@@ -159,7 +159,8 @@ class RecoveryPreflightWorkflowTests(unittest.TestCase):
             self.assertIn(part,preflight)
         self.assertLess(text.index('Install pinned private history cache crypto'),text.index('id: official_recovery_preflight'))
         self.assertLess(text.index('id: official_recovery_preflight'),text.index(FULL_STEPS[0]))
-        for name in ('Validate history formats, official reconciliation and unchanged model contracts offline',
+        for name in ('Verify owner-requested seller retirement and legacy readback',
+                'Validate history formats, official reconciliation and unchanged model contracts offline',
                 'Integrated product UI contracts','Install isolated pinned browser test tooling',
                 'Collect explicitly requested due official results using normal public navigation',
                 'Verify the collected result artifact against the original frozen inputs',

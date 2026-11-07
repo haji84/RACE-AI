@@ -80,7 +80,20 @@ async function run(context){
       blocked++;return route.abort('blockedbyclient');
     });
     await page.goto(context.owner_url,{waitUntil:'domcontentloaded'});
-    await page.waitForFunction(()=>document.querySelector('#file-message')?.textContent.includes('保存済み予想'),{},{timeout:90000});
+    let currentPresentation=false;
+    for(let attempt=0;attempt<5;attempt++){
+      if(attempt){await page.waitForTimeout(10000);await page.reload({waitUntil:'domcontentloaded'});}
+      await page.waitForFunction(()=>document.querySelector('#file-message')?.textContent.includes('保存済み予想'),{},{timeout:90000});
+      const selection=await page.evaluate(()=>({ids:globalThis.RaceExistingModelCatalog?.models.map(m=>m.model_id),
+        retired:globalThis.RaceExistingModelCatalog?.retired_model_ids || []}));
+      currentPresentation=selection.ids?.length===15 && !selection.ids.includes('seller-shadow-v1-20261104')
+        && selection.retired.includes('seller-shadow-v1-20261104');
+      if(currentPresentation)break;
+      // Only the exact known old presentation may wait for Pages deployment.
+      assert.ok(selection.ids?.length===16 && selection.ids.includes('seller-shadow-v1-20261104')
+        && selection.retired.length===0,'unexpected presentation selection');
+    }
+    assert.ok(currentPresentation,'retired seller still present in deployed assets');
     await page.waitForFunction(expected=>Number(document.querySelector('#saved-view-sync')?.dataset.generation)>=expected,
       context.generation,{timeout:90000});
     async function selectDate(day){
@@ -152,6 +165,7 @@ async function run(context){
       current_day_results:currentResults,current_day_p1_groups:p1Groups,
       native_p1_groups_required:context.native_p1_groups,native_p1_detail_visible:nativeVisible,
       future_native_visible_before_cutoff:futureVisible,previous_day_checked:context.old_day!==null,
+      active_model_families:15,removed_seller_hidden:true,
       participant_names:true,editable_daily_budget:true,per_race_1000_simulation:true,
       hit_miss_rate_roi_and_settled_pending_net_visible:true,
       key_in_requests_or_storage:false,blocked_external_requests:blocked,official_source_requests:0,plaintext_published:false};

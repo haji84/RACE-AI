@@ -11,7 +11,9 @@ from scripts import boat_all_model_cycle as cli
 from tests.test_boat_seller_official_source import fixture,DAY,AT
 
 
+@patch("race_ai.existing_model_coverage.RETIRED_MODEL_IDS", frozenset())
 class SellerRuntimeSourceTests(unittest.TestCase):
+    """Historical synthetic compatibility; not current model execution."""
     def test_exact_b_is_loaded_without_fabricating_waku_or_mutating_originals(self):
         raw,document,receipt=fixture()
         with tempfile.TemporaryDirectory() as folder:
@@ -51,6 +53,13 @@ class SellerRuntimeSourceTests(unittest.TestCase):
                  patch('race_ai.boat_program_source.load_program_source',side_effect=ValueError('PROGRAM_SOURCE_HASH_INVALID')):
                 with self.assertRaisesRegex(ValueError,'PROGRAM_SOURCE_HASH_INVALID'):
                     cli._seller_sources(marker,document,receipt,clock)
+
+
+
+class RemovedSellerSourceTests(unittest.TestCase):
+    def test_current_runtime_does_not_read_any_seller_source(self):
+        with patch.object(cli, '_read', side_effect=AssertionError('retired source read')):
+            self.assertIsNone(cli._seller_sources({}, {}, {}, datetime.fromisoformat(AT)))
 
 
 if __name__=='__main__':unittest.main()

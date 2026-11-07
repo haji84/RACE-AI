@@ -71,7 +71,10 @@
   const scoped = () => U.filterRaces(races(), {sport: state.sport, day: state.day, allDates: state.allDates, period: state.period, sort: state.sort});
   const currentRace = () => races().find(r => r.race_id === state.selectedId);
   const raceName = r => r ? (U.venueName(r) || "開催場 未取得") + " " + (Number.isInteger(r.race_no) ? r.race_no + "R" : "レース番号 未取得") + (r.venue == null || r.race_no == null ? " · " + r.race_id : "") : "レース未選択";
-  const predictions = r => r ? (M.candidates ? M.candidates(r) : [r.prediction, ...(r.comparison_predictions || [])].filter(Boolean)) : [];
+  const retiredModelIds = new Set(C.retired_model_ids || []);
+  const activeModel = value => value && !retiredModelIds.has(value.model_id);
+  const storedPredictions = r => r ? (M.candidates ? M.candidates(r) : [r.prediction, ...(r.comparison_predictions || [])].filter(Boolean)) : [];
+  const predictions = r => storedPredictions(r).filter(activeModel);
   const prediction = r => {
     const list = predictions(r), saved = state.predictionKeys[r?.race_id];
     return saved === undefined ? list[0] || null : list[saved] || null;
@@ -291,12 +294,26 @@
     if (M.eligiblePrediction?.(r, p)) return "証拠付き保存予想（読込値）";
     return "保存予想・証拠不足";
   }
-  let participantDialog = null, participantOpener = null;
+  let participantDialog = null, participantOpener = null, activeDaily = null;
   function closeParticipant() {
     const opener = participantOpener; participantOpener = null;
     participantDialog?.close(); document.body.classList.remove("participant-dialog-open");
     if (opener?.isConnected) opener.focus();
     else { $("page-title").tabIndex = -1; $("page-title").focus({preventScroll: true}); }
+  }
+  function referenceEntryMap(race, api) {
+    let entryMap = null;
+    const people = knownParticipants(race), context = race.boat_observation_context;
+    const reported = people.filter(p => p.preview_course !== null && p.preview_course !== undefined);
+    if (reported.length) entryMap = Object.fromEntries(reported.map(p => [participantNumber(p), p.preview_course]));
+    else if (people.length === 6 && context && validBoatObservationContext(context, race.race_id) && context.beforeinfo?.status === "PARSED" && context.beforeinfo.roster_binding_status === "VERIFIED") {
+      const observed = people.map(p => {
+        const expected = api.get(race, p);
+        return expected && context.beforeinfo.participants.find(value => value.lane === participantNumber(p) && value.registration_number === participantRegistration(p) && api.get(race, value) === expected);
+      });
+      if (context.beforeinfo.participants.some(p => p.exhibition_course !== null && p.exhibition_course !== undefined)) entryMap = Object.fromEntries(observed.filter(p => p && p.exhibition_course !== null && p.exhibition_course !== undefined).map(p => [p.lane, p.exhibition_course]));
+    }
+    return entryMap;
   }
   function athleteReference(race, person, profile) {
     const api = globalThis.RaceRacerProfiles, panel = node("section", "racer-reference"); panel.id = "racer-reference";
@@ -337,17 +354,7 @@
         cards.append(card);
       }
       panel.append(cards, node("p", "muted small", "1着率・3連率は着順件数÷コース出走数で計算。失格等も出走数に含みます。2連率は公式資料の収録値です。"), node("h4", "", "このコースで出る場合の展開予想（参考）"));
-      let entryMap = null;
-      const people = knownParticipants(race), context = race.boat_observation_context;
-      const reported = people.filter(p => p.preview_course !== null && p.preview_course !== undefined);
-      if (reported.length) entryMap = Object.fromEntries(reported.map(p => [participantNumber(p), p.preview_course]));
-      else if (people.length === 6 && context && validBoatObservationContext(context, race.race_id) && context.beforeinfo?.status === "PARSED" && context.beforeinfo.roster_binding_status === "VERIFIED") {
-        const observed = people.map(p => {
-          const expected = api.get(race, p);
-          return expected && context.beforeinfo.participants.find(value => value.lane === participantNumber(p) && value.registration_number === participantRegistration(p) && api.get(race, value) === expected);
-        });
-        if (context.beforeinfo.participants.some(p => p.exhibition_course !== null && p.exhibition_course !== undefined)) entryMap = Object.fromEntries(observed.filter(p => p && p.exhibition_course !== null && p.exhibition_course !== undefined).map(p => [p.lane, p.exhibition_course]));
-      }
+      const entryMap = referenceEntryMap(race, api);
       const lane = participantNumber(person);
       let selectedCourse = Number.isInteger(entryMap?.[lane]) && entryMap[lane] >= 1 && entryMap[lane] <= 6 ? entryMap[lane] : Number.isInteger(person.preview_course) && person.preview_course >= 1 && person.preview_course <= 6 ? person.preview_course : lane || 1;
       const controls = node("nav", "study-course-controls"), scenario = node("section", "reference-scenario");
@@ -382,6 +389,56 @@
       ["個別プロフィール", basic.source_url], ["個別プロフィールSHA", basic.source_sha256]]));
     panel.append(sources); return panel;
   }
+  function renderDailyCard() {
+    if (!activeDaily || !activeDaily.host.isConnected || !participantDialog?.open) return;
+    const {host, race, person} = activeDaily, api = globalThis.RaceRacerDaily, profile = api?.get(race, person);
+    const focused = host.contains(document.activeElement) ? document.activeElement.dataset.dailyCourse : null;
+    host.replaceChildren(node("h3", "", "毎日更新の成績（直近90日）"));
+    if (!profile) { host.append(node("p", "muted small", api?.status === "LOADING" ? "日次の成績を確認しています。" : "この選手の日次成績はまだ取得できていません。公式期別成績は下で確認できます。")); return; }
+    const own = profile.daily, data = api.data, percent = value => Number.isFinite(value) ? value.toFixed(1) + "%" : "未集計", st = value => Number.isFinite(value) ? value.toFixed(2) : "未集計";
+    const yesterday = new Date(Date.parse(A.jstToday() + "T00:00:00Z") - 86400000).toISOString().slice(0, 10);
+    if (api.status !== "READY" || data.period.end < yesterday) host.append(node("p", "notice", "更新待ち：前回の集計を表示しています。"));
+    host.append(node("p", "reference-period", "集計対象：" + data.period.start + " 〜 " + data.period.end),
+      node("p", "muted small", "集計更新 " + stamp(data.generated_at) + " JST · 元結果の取得 " + stamp(data.last_source_at) + " JST"),
+      node("p", data.coverage.complete ? "muted small" : "notice", data.coverage.parsed_days + " / 90日分を取得" + (data.coverage.partial_days.length ? " · 一部会場が未収録の日 " + data.coverage.partial_days.length + "日" : "") + (data.coverage.complete ? "。" : "。未取得の結果は集計に含みません。")));
+    const summary = node("div", "reference-summary");
+    for (const [label, value] of [["1着率", percent(own.summary.win_percent)], ["2連率", percent(own.summary.top2_percent)], ["3連率", percent(own.summary.top3_percent)], ["平均ST", st(own.summary.average_st)]]) summary.append(append(node("div"), node("small", "", label), node("strong", "", value)));
+    host.append(summary, node("p", "reference-records", "出走 " + own.summary.starts + "回 · 1着 " + own.summary.wins + "回 · ST集計 " + own.summary.st_samples + "回 · 欠場 " + own.summary.confirmed_absences + "回"));
+    const preferred = globalThis.RaceRacerProfiles.preferredCourses(profile, {baselines: api.baselines}), strengths = node("section", "reference-strengths");
+    strengths.append(node("h4", "", "直近の得意コースの目安"));
+    for (const row of preferred.courses) strengths.append(node("span", "course-strength", row.course + "コース · 2連率 " + percent(row.top2_percent) + (preferred.basis === "COHORT_ADJUSTED" ? " · 同コース平均比 +" + row.advantage.toFixed(1) + "pt" : " · 本人内で成績上位")));
+    strengths.append(node("p", "muted small", preferred.courses.length ? "10走以上のコースを同じ90日の全選手・同コース平均と比較しています。" : "10走以上のコースがないため、得意コースは評価しません。"));
+    host.append(strengths);
+    const cards = node("div", "reference-courses");
+    for (const row of own.courses) {
+      const card = node("article", "reference-course daily-course"); card.dataset.course = String(row.course);
+      card.append(append(node("div", "reference-course-heading"), badge(row.course), node("strong", "", row.course + "コース"), node("small", "", row.starts + "走")));
+      const metrics = node("dl");
+      for (const [label, value] of [["1着率", percent(row.win_percent)], ["2連率", percent(row.top2_percent)], ["3連率", percent(row.top3_percent)], ["平均ST", st(row.average_st)]]) metrics.append(append(node("div"), node("dt", "", label), node("dd", "", value)));
+      card.append(metrics, node("p", "muted small", "ST集計 " + row.st_samples + "走")); cards.append(card);
+    }
+    host.append(cards, node("p", "muted small", "率の分母は失格・F・L等も含む実出走数です。欠場は除外し、STは正常に記録された標本のみ。期別の得点勝率とは異なります。"));
+    const entryMap = referenceEntryMap(race, api), lane = participantNumber(person);
+    let selected = Number(host.dataset.selectedCourse) || entryMap?.[lane] || person.preview_course || lane || 1;
+    if (!Number.isInteger(selected) || selected < 1 || selected > 6) selected = 1;
+    const controls = node("nav", "study-course-controls"), scenario = node("section", "reference-scenario daily-scenario");
+    controls.setAttribute("aria-label", "日次成績で参考にするコース"); scenario.setAttribute("aria-live", "polite");
+    const render = () => {
+      host.dataset.selectedCourse = String(selected); controls.querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", String(Number(b.dataset.dailyCourse) === selected)));
+      cards.querySelectorAll("article").forEach(c => c.classList.toggle("selected", Number(c.dataset.course) === selected));
+      const result = globalThis.RaceRacerProfiles.scenario(race, person, selected, {entryMap, referenceApi: api}); scenario.replaceChildren(node("h4", "", "直近成績で見る展開（参考）"));
+      if (!result.stats) { scenario.append(node("p", "", result.message)); return; }
+      if (result.entryMessage) scenario.append(node("p", "notice", result.entryMessage));
+      scenario.append(node("span", "tag", {FRAME_ASSUMPTION: "枠なりを仮定（本番進入は未確定）", EXHIBITION: "展示進入を参照（本番進入は未確定）", HYPOTHETICAL: "選択コースを仮定（他艇の進入は未設定）"}[result.basis]),
+        node("p", "", selected + "コース：" + result.path + " · " + result.stats.starts + "走 · 2連率 " + percent(result.stats.top2_percent)), node("p", "", result.condition), node("p", "", result.caution));
+      for (const other of result.comparisons) scenario.append(node("p", "", other.course + "コース " + other.name + "：2連率 " + percent(other.stats.top2_percent) + " · 平均ST " + st(other.stats.average_st) + "（" + other.stats.starts + "走）"));
+      scenario.append(node("p", "muted small", "日次の実績を使った条件別の参考説明です。保存された予想・買い目を変更しません。"));
+    };
+    for (let c = 1; c <= 6; c++) { const b = button(c + "コース", "", () => {selected = c; render();}); b.dataset.dailyCourse = String(c); controls.append(b); }
+    host.append(controls, scenario); render();
+    const sources = node("details", "reference-sources"); sources.append(node("summary", "", "日次集計の出典・未取得日"), facts([["公式結果資料", data.source.url], ["出典集合SHA", data.source.sha256], ["未取得日", data.coverage.missing_days.join("、") || "なし"], ["進入不明の出走", own.summary.unknown_course_starts + "回"]])); host.append(sources);
+    if (focused) controls.querySelector('[data-daily-course="' + focused + '"]')?.focus({preventScroll: true});
+  }
   function openParticipant(person, race, opener) {
     if (!participantDialog) {
       participantDialog = node("dialog", "participant-dialog"); participantDialog.id = "participant-dialog";
@@ -412,7 +469,10 @@
     }
     hero.append(introduction); body.append(hero);
     const reference = globalThis.RaceRacerProfiles?.get(race, person);
-    if (reference) body.append(athleteReference(race, person, reference));
+    if (reference) {
+      const daily = node("section", "racer-reference daily-reference"); daily.id = "racer-daily-reference";
+      activeDaily = {host: daily, race, person}; body.append(daily, athleteReference(race, person, reference));
+    }
     const values = node("div", "profile-values");
     const decimal = (value, suffix = "") => typeof value === "number" && Number.isFinite(value) ? value.toFixed(2) + suffix : value;
     const group = (label, fields, always = false) => {
@@ -457,6 +517,7 @@
     body.append(node("p", "muted small profile-source", "出典：" + sourceText(race.source_provenance) + "。成績は出走情報に保存された期間の値です。未取得の項目を現在の成績で補完していません。"));
     dialog.replaceChildren(header, body); document.body.classList.add("participant-dialog-open");
     if (!dialog.open) dialog.showModal();
+    renderDailyCard();
     dialog.scrollTop = 0;
     close.focus();
   }
@@ -761,9 +822,9 @@
       const rows = predictions(r).map(other => [stageName(other), modelName(other), stamp(other.persisted_at), other.ordered_top8.length + "点", forecastStatus(r, other)]);
       content.append(rows.length ? table(["時点", "モデル / 版", "保存 JST", "保存点数", "証拠状態"], rows) : empty("比較予想は未取得です", "別モデル・朝版・展示後版が保存されるとここで比較できます。"));
       if(r.source_observation_view) content.append(node("h2","","保存済みの出走ページ観測"),node("p","notice","出走ページの取得記録です。モデル入力・締切・予想・結果は未接続です。"),facts([["取得元URL",r.source_observation.source_url],["観測取得 JST",stamp(r.source_observation.observed_at)],["元ページSHA",r.source_observation.source_sha256],["原本JSON SHA",r.source_observation.original_json_sha256],["原本artifact ID",r.source_observation.artifact_id]]));
-      if (r.dispatch_slots?.length) {
+      if (r.dispatch_slots?.some(activeModel)) {
         const labels={NOT_APPLICABLE:"対象外",INPUT_MISSING:"入力未取得",TRAINED_ARTIFACT_MISSING:"学習物未取得",DEADLINE_PASSED:"締切超過・補完なし",RULE_FILTERED:"既存条件の対象外",UNCONNECTED_NATIVE_RUNTIME:"実行経路未接続",SOURCE_NOT_AUTHORIZED:"入力の利用条件未確認",INPUT_REJECTED:"入力不一致",GENERATED_UNATTESTED:"生成済み・外部保存未検証",ORIGINAL_REUSED:"元原本を再利用"};
-        const slots=node("section");slots.id="dispatch-slot-status";slots.append(node("h2","","モデル別の入力・生成状態"),node("p","muted","取込データの状態です。生成済みの表示だけでは、締切前の外部保存や全レースの稼働を確認できません。"),table(["時点","モデル / 版","状態","理由"],r.dispatch_slots.map(slot=>[stageName(slot),modelName(slot),labels[slot.status],slot.projection_reason || slot.reason])));content.append(slots);
+        const slots=node("section");slots.id="dispatch-slot-status";slots.append(node("h2","","モデル別の入力・生成状態"),node("p","muted","取込データの状態です。生成済みの表示だけでは、締切前の外部保存や全レースの稼働を確認できません。"),table(["時点","モデル / 版","状態","理由"],r.dispatch_slots.filter(activeModel).map(slot=>[stageName(slot),modelName(slot),labels[slot.status],slot.projection_reason || slot.reason])));content.append(slots);
       }
     }
     if (state.detailTab === "history") {
@@ -885,7 +946,7 @@
     return detail;
   }
   function renderSavedResults(rows) {
-    const groups=M.modelGroups(rows),select=$("results-model");
+    const groups=M.modelGroups(rows).filter(activeModel),select=$("results-model");
     if (!groups.some(g=>g.key===state.resultGroupKey)) state.resultGroupKey=groups[0]?.key || "";
     select.replaceChildren(...groups.map(g=>new Option(stageName(g)+" · "+modelName(g)+(g.ambiguous_originals?" · 複数原本 "+g.ambiguous_originals+"レース":""),g.key)));select.value=state.resultGroupKey;select.disabled=!groups.length;
     $("simulation-budget").value=state.simulationBudget;
@@ -951,7 +1012,7 @@
     });
   }
   function renderResearch() {
-    const rows = scoped(), allPredictions = rows.flatMap(predictions), groups = M.modelGroups(rows);
+    const rows = scoped(), allPredictions = rows.flatMap(predictions), groups = M.modelGroups(rows).filter(activeModel);
     $("research-metrics").replaceChildren(metric("対象レース", rows.length + "件", "選択した競技・期間"), metric("保存予想", allPredictions.length + "件", "基準・比較モデルを含む"), metric("モデル・時点の版", groups.length + "組", "再予想・再採点なし"), metric("原本の独立監査", "未完了", "取込値の表示"));
     $("model-comparison").replaceChildren(groups.length ? table(["モデル / 版", "区分", "時点", "予想 / 台帳", "評価可能", "Hit@8_all", "比較条件"], groups.map(g => [modelName(g), scopeName(g.scope), stageName(g), g.issued + " / " + g.ledger, g.evaluable, g.hit8 === null ? "未検証" : (g.hit8 * 100).toFixed(2) + "%", g.comparison])) : empty("モデル原本は未取得です", "保存済み予想とモデル版を読み込むと表示します。"));
     renderModelCoverage(rows);
@@ -1167,8 +1228,8 @@
     const parsed = M.parse(result.view), summary = result.summary;
     const count = value => Number.isSafeInteger(value) && value >= 0;
     const unknownCoverage = summary?.coverage_known === false;
-    const validCounts = summary && count(summary.generated) && count(summary.reused) && (unknownCoverage ? summary.missing === null && summary.generated === 0 && count(summary.races) && summary.races === parsed.records.length && summary.reused === parsed.records.reduce((sum,row)=>sum+predictions(row).length,0) : count(summary.missing));
-    if (parsed.event_date_jst != null && parsed.event_date_jst !== result.day_jst || parsed.records.some(row=>row.event_date_jst !== result.day_jst || row.sport !== sport || row.stage != null && row.stage !== stage || row.scheduled_stages?.some(value=>value !== stage) || (row.dispatch_slots || []).some(slot=>slot.stage !== stage) || predictions(row).some(p=>p.stage !== stage)) || !validCounts) throw new Error("automatic response");
+    const validCounts = summary && count(summary.generated) && count(summary.reused) && (unknownCoverage ? summary.missing === null && summary.generated === 0 && count(summary.races) && summary.races === parsed.records.length && summary.reused === parsed.records.reduce((sum,row)=>sum+storedPredictions(row).length,0) : count(summary.missing));
+    if (parsed.event_date_jst != null && parsed.event_date_jst !== result.day_jst || parsed.records.some(row=>row.event_date_jst !== result.day_jst || row.sport !== sport || row.stage != null && row.stage !== stage || row.scheduled_stages?.some(value=>value !== stage) || (row.dispatch_slots || []).some(slot=>slot.stage !== stage) || storedPredictions(row).some(p=>p.stage !== stage)) || !validCounts) throw new Error("automatic response");
     return parsed;
   }
   function activeCandidateEdit() { return document.activeElement?.matches("#ticket-list .ticket-amount, #race-budget") === true; }
@@ -1493,4 +1554,6 @@
   refreshSelects(); renderAll(); showPage(location.hash.slice(1) || "home");
   connectGeneration();
   loadSavedDataset();
+  window.addEventListener("race-ai-daily-updated", renderDailyCard);
+  globalThis.RaceRacerDaily?.load();
 })();

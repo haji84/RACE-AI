@@ -8,7 +8,7 @@ import unittest
 from unittest.mock import patch
 
 from race_ai.actions_contract import digest
-from race_ai.existing_model_coverage import catalog
+from race_ai.existing_model_coverage import catalog, active_catalog
 from race_ai.boat_ab_shadow import build_pair, MODEL_IDS as AB
 from race_ai.boat_multi_feature_models import run_models, MODEL_IDS as FULL
 from race_ai.four_sport_model_suite import run_suite, ALL_MODELS
@@ -43,14 +43,14 @@ class ExistingDispatchTests(unittest.TestCase):
     def test_dispatch_contract_exists(self):
         self.assertIsNotNone(M, "offline existing-model dispatch is missing")
 
-    def test_all_sixteen_slots_preserve_sport_applicability_without_inputs(self):
+    def test_all_fifteen_active_slots_preserve_sport_applicability_without_inputs(self):
         self.assertIsNotNone(M)
         for sport in ("boat","keirin","autorace","horse"):
             rows=schedule(sport+":2030-01-15:fixture:1","2030-01-15T10:00:00+09:00",sport=sport)
             report=M.dispatch(rows,{},now="2030-01-15T09:10:00+09:00")
-            self.assertEqual(len(report["slots"]),16)
-            self.assertEqual({r["model_id"] for r in report["slots"]},{m["model_id"] for m in catalog()})
-            for spec in catalog():
+            self.assertEqual(len(report["slots"]),15)
+            self.assertEqual({r["model_id"] for r in report["slots"]},{m["model_id"] for m in active_catalog()})
+            for spec in active_catalog():
                 r=slot(report,spec["model_id"])
                 if sport not in spec["applicable_sports"]:
                     self.assertEqual(r["status"],"NOT_APPLICABLE")
@@ -233,7 +233,8 @@ class ExistingDispatchTests(unittest.TestCase):
         self.assertEqual(slot(changed,LEARNED_ID)["status"],"INPUT_REJECTED")
         self.assertTrue(all(slot(changed,mid)["status"]=="GENERATED_UNATTESTED" for mid in ALL_MODELS))
 
-    def test_seller_global_five_race_rule_and_0700_window_are_preserved(self):
+    @patch("race_ai.existing_model_coverage.RETIRED_MODEL_IDS", frozenset())
+    def test_historical_seller_global_five_race_rule_and_0700_window_are_preserved(self):
         cards,waku={},{}
         for n in range(1,9):
             rid=f"2030011518{n:02d}";card={"レースコード":rid};w={"レースコード":rid}
@@ -327,7 +328,8 @@ class ExistingDispatchTests(unittest.TestCase):
         self.assertFalse(reused["external_receipt_verified"]);self.assertFalse(reused["official_prediction"])
         self.assertEqual(report["retained_originals"],[original])
 
-    def test_seller_cannot_use_unrelated_source_grants_or_postexhibition_stage(self):
+    @patch("race_ai.existing_model_coverage.RETIRED_MODEL_IDS", frozenset())
+    def test_historical_seller_cannot_use_unrelated_source_grants_or_postexhibition_stage(self):
         rid="203001151801";card={"レースコード":rid};w={"レースコード":rid}
         for n in range(1,7):
             p=f"艇{n}_";card[p+"全国勝率"]="6.5";card[p+"級別"]="A1";w[p+"枠番別勝率"]="8.0"

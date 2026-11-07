@@ -14,6 +14,35 @@ from tests.test_boat_pdca_github_handoff import invented_research_state
 
 
 class SavedPagesTests(unittest.TestCase):
+    def test_daily_catalogue_survives_both_ui_refresh_and_new_forecast_publication(self):
+        from race_ai.racer_daily import API_FILE,PUBLIC_PATH,DailyStore
+        from tests.test_racer_daily import ROSTER,NOW
+        from tests.test_boat_venue_history import archive
+        built=self.build();public=self.root/'public'
+        self.assertTrue((public/API_FILE).is_file(),'daily card API must be included in ordinary and encrypted views')
+        store=DailyStore(clock=lambda:NOW);self.addCleanup(store.close);store.record('2026-11-04',archive(),captured_at='2026-11-05T00:00:00Z')
+        daily=(wire(store.catalogue(ROSTER,as_of=NOW.isoformat()))+'\n').encode()
+        class LocalPages(self.m.PagesRepository):
+            def _check_remote(inner):inner.fetch_url=inner.push_url=inner._run(['remote','get-url','origin']).decode().strip()
+        repo=self.root/'daily-repo';remote=self.root/'daily-remote.git';repo.mkdir()
+        for args in (['git','init','--bare',str(remote)],['git','init',str(repo)],['git','-C',str(repo),'remote','add','origin',str(remote)]):subprocess.run(args,check=True,capture_output=True)
+        git=LocalPages(repo);manifest=json.loads((public/'site-build.json').read_text())
+        files={name:(public/name).read_bytes() for name in manifest['files']};files['site-build.json']=(public/'site-build.json').read_bytes()
+        parent=git.commit(files,None);git.push(parent,None);before=git._run(['ls-tree','-r',parent,'--','views'])
+        from race_ai.racer_daily_handoff import publish_daily_catalogue
+        catalogue=json.loads(daily)
+        with self.assertRaises(ValueError):publish_daily_catalogue(repo,{**catalogue,'private_prediction':{}},transport=git)
+        unexpected=deepcopy(catalogue);unexpected['source']['private_document']='INVENTED_DO_NOT_PUBLISH'
+        with self.assertRaises(ValueError):publish_daily_catalogue(repo,unexpected,transport=git)
+        published_daily=publish_daily_catalogue(repo,catalogue,transport=git);parent=published_daily['pages_commit']
+        self.assertEqual(published_daily.get('public_url'),'https://raw.githubusercontent.com/haji84/RACE-AI/gh-pages/data/racer-daily.json','scheduled data must be readable without relying on a GITHUB_TOKEN Pages build')
+        self.assertEqual(git.read(parent,PUBLIC_PATH,4000000),daily)
+        refreshed=self.m.refresh_site_assets(repo,expected_parent=parent,transport=git)
+        self.assertEqual(git.read(refreshed['source_commit'],PUBLIC_PATH,4000000),daily)
+        published=self.m.publish_site(repo,public,expected_manifest_sha256=built['manifest_sha256'],expected_parent=refreshed['source_commit'],transport=git)
+        self.assertEqual(git.read(published['source_commit'],PUBLIC_PATH,4000000),daily)
+        self.assertEqual(git._run(['ls-tree','-r',published['source_commit'],'--','views']),before)
+
     def test_official_profiles_migrate_into_old_pages_without_changing_any_cipher(self):
         from race_ai.racer_profiles import FILES
         built=self.build();public=self.root/'public'

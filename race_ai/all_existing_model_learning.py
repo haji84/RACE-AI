@@ -12,6 +12,7 @@ import re
 
 from .actions_contract import digest
 from . import all_existing_model_registry as registry
+from .existing_model_coverage import is_retired
 from .boat_observed_pairwise_models import MODEL_IDS as OBSERVED,FEATURE_RANGES,WEIGHTS
 from .observed_weight_learning import ts,fit_from_verified,_gradient,vectors,seal
 from .existing_model_dispatch import _race_key
@@ -296,8 +297,10 @@ def fit(records,*,now,allow_source=None,allow_training=None,allow_order_only=Fal
     need(type(now) is datetime and now.utcoffset() is not None,'AWARE_CLOCK')
     need(type(allow_order_only) is bool,'EXPLICIT_ORDER_ONLY_MODE')
     need(type(records) is list and len(records)<=10000,'BOUNDED_RECORDS')
+    need(all(type(row) is dict for row in records),'RECORD_REQUIRED')
+    active_records=[row for row in records if not is_retired(row.get('model_id'))]
     selected={};blocked=defaultdict(list)
-    for supplied in records:
+    for supplied in active_records:
         key=registry.cell_key(supplied['sport'],supplied['model_id'])
         try:row=_record(supplied,now,allow_source,allow_training,allow_order_only=allow_order_only)
         except ValueError as exc:
@@ -316,13 +319,18 @@ def fit(records,*,now,allow_source=None,allow_training=None,allow_order_only=Fal
         state='NO_FITTED_MODELS',models={},model_states={},auto_promoted=False,production_promoted=False,
         accuracy_improvement_proven=False,provider_permission_confirmed=False,minimum_fit_races=MIN_RACES,
         validation_type='RETROSPECTIVE_AVAILABILITY_ORDERED_HOLDOUT',training_policy=dict(min_train=6,min_holdout=2,minimum_supported_train_races=4),
-        source_intake_sha256=digest(records),scope=next(iter({r['scope'] for r in records}),'SYNTHETIC_ONLY'))
-    need(len({r['scope'] for r in records})<=1,'MIXED_SCOPE')
+        source_intake_sha256=digest(records),scope=next(iter({r['scope'] for r in active_records}),'SYNTHETIC_ONLY'))
+    need(len({r['scope'] for r in active_records})<=1,'MIXED_SCOPE')
     if allow_order_only:
         from .official_order_only_result import EVALUATION_SCOPE
         out.update(label_evaluation_scope=EVALUATION_SCOPE,monetary_evaluation_available=False)
     for cell in registry.cells():
-        key=cell['cell_key'];rows=sorted(groups[key],key=lambda r:(ts(_result_available_at(r)),r['race_id']))
+        key=cell['cell_key']
+        if is_retired(cell['model_id']):
+            out['model_states'][key]=dict(state='RETIRED_BY_OWNER',unique_races=0,
+                                         required_input=cell['required_input'])
+            continue
+        rows=sorted(groups[key],key=lambda r:(ts(_result_available_at(r)),r['race_id']))
         state='HOLD_MODEL_TRAINING_PERMISSION' if blocked[key] else 'INPUT_MISSING' if not rows else 'INSUFFICIENT_VERIFIED_RACES'
         out['model_states'][key]=dict(state=state,unique_races=len(rows),required_input=cell['required_input'])
         if len(rows)<MIN_RACES:continue
@@ -481,11 +489,13 @@ def verify_training(training):
         models=training['models'];states=training['model_states']
         need(type(models) is dict and type(states) is dict and set(states)==set(cells) and
              set(models)<=set(cells),'CELL_ROSTER')
-        allowed={'INPUT_MISSING','HOLD_MODEL_TRAINING_PERMISSION','INSUFFICIENT_VERIFIED_RACES','FITTED_SHADOW_ONLY'}
+        allowed={'INPUT_MISSING','HOLD_MODEL_TRAINING_PERMISSION','INSUFFICIENT_VERIFIED_RACES','FITTED_SHADOW_ONLY','RETIRED_BY_OWNER'}
         for key,state in states.items():
             need(type(state) is dict and state.get('state') in allowed and
                  type(state.get('unique_races')) is int and state['unique_races']>=0 and
                  state.get('required_input')==cells[key]['required_input'],'MEMBER_STATE')
+            if state['state']=='RETIRED_BY_OWNER':
+                need(is_retired(cells[key]['model_id']) and state['unique_races']==0,'RETIRED_MEMBER_STATE')
             need((state['state']=='FITTED_SHADOW_ONLY')==(key in models),'MEMBER_STATE')
             need(state['state']!='INPUT_MISSING' or state['unique_races']==0,'MEMBER_STATE')
         need(training['state'] in ('FITTED_SHADOW_ONLY','NO_FITTED_MODELS') and
@@ -685,6 +695,7 @@ def forecast_pair(training,cell_key,payload,*,now,allow_source=None):
     verify_training(training);need(type(now) is datetime and now.utcoffset() is not None,'AWARE_CLOCK')
     need(ts(training['created_at'])<=now and cell_key in training['models'],'CANDIDATE_NOT_AVAILABLE')
     model=training['models'][cell_key];mid=model['model_id'];sport=model['sport']
+    need(not is_retired(mid),'MODEL_RETIRED')
     if model.get('input_schema') is not None:
         need(payload.get('snapshot',{}).get('schema')==model['input_schema'],'CANDIDATE_INPUT_SCHEMA')
     info=registry.validate_payload(mid,sport,payload,at=now,allow_source=allow_source)

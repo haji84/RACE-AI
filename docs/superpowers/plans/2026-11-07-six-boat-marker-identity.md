@@ -98,8 +98,15 @@ not a hull detector; background rejection needs a separately tested correction.
 - [x] RED/GREEN replay conflicts, shared/near-shared print claims and overlapping flow-only parts; independent review.
 - [x] Replay actual detections with actual LK on61 native frames, seal before semantic scoring; retain false motors/duplicates.
 - [x] Add optional existing CLI rider output, local assets only, separate numbers and fail/partial preservation;670 relevant tests PASS.
-- [ ] Resolve demonstrated rider association resets using current points, without reducing numeric or ambiguity requirements.
+- [x] Resolve demonstrated rider association resets using current points, without reducing numeric or ambiguity requirements (six primary anonymousR keys continuous on61/2s; motor25/numbersUNKNOWN retained).
 - [ ] Complete automatic physical part/print binding and actual simultaneous six numbered identities, with extras/misses/swaps audited.
 - [ ] Add already-licensed local direct-print diversity; evaluate a suitable image representation with no unknown-rights training.
 
-All17 retired keys still had current LK support; no LK loss was reported in the61-frame trace; output scope remains image hypotheses. All source-only truth joins are post-inference diagnostics. UNKNOWN/Todo is private inference only. Number/CNN capacity, semantic gate and body tracking are distinct tests; no failed prototype is promoted to forecasting.
+In the previous7d trace, all17 retired keys still had current LK support; no LK loss was reported across those61 frames; output scope remains image hypotheses. All source-only truth joins are post-inference diagnostics. UNKNOWN/Todo is private inference only. Number/CNN capacity, semantic gate and body tracking are distinct tests; no failed prototype is promoted to forecasting.
+
+- [x] Audit current-point actual61 outputs and all373 raw observations;362fresh+11UNBOUND,391output rows,6same-primaryR across61; retain motor25.
+- [x] Verify exact6/nonzeroPTS fixture, then retain the concurrent upstream MP4 muxer-offset/packet-count correction; first677 local tests PASS, mergedCLI16PASS and merged677/68.198s PASS; no latest full-CI green assertion.
+- [x] Add licensed36 photo glyphs to the distinct glyph-CNN training dataset; oracle18 capacity8agree/9reject/1wrong remains unmet.
+- [x] Prepare9 licensed source-visible rider examples for the separate RGB appearance dataset; preserve3 excluded/UNKNOWN and do not mix them into the glyph-CNN experiment.
+- [ ] Finish clean RGB person/appearance training and automatic-proposal validation, including motorfalse/unknown/sourcegroup restrictions.
+- [ ] Establish hull pixel-instance/physical-binding evidence without truth prompts; test all masks and extras, never certify a generic proposal as wholecraft.

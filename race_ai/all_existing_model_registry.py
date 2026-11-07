@@ -5,7 +5,7 @@ import math
 import re
 
 from .actions_contract import digest
-from .existing_model_coverage import catalog
+from .existing_model_coverage import catalog, is_retired
 from .existing_model_dispatch import GROUPS, InputMissing, _scope, _bind, _authorize, _race_key
 from .boat_observed_pairwise_models import MODEL_IDS as OBSERVED, WEIGHTS, FEATURE_RANGES, predict_pair
 from .observed_weight_learning import vectors, ts
@@ -42,6 +42,11 @@ def cells():
                  ('; independently bound registered entrant roster' if group(item['model_id']) in ('seller','autorace_personal') else ''),trainable=True,
                  parameters={k:list(v) for k,v in specs(item['model_id'],sport).items()})
             for item in catalog() for sport in item['applicable_sports']]
+
+def active_cells():
+    """Current targets, separate from the immutable historical registry digest."""
+    return [cell for cell in cells() if not is_retired(cell['model_id'])]
+
 
 def registry_sha256():return digest(dict(version=VERSION,cells=cells()))
 

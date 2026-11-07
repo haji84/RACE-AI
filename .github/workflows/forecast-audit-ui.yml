@@ -664,6 +664,16 @@ jobs:
         run: node --test --test-reporter=tap tests/forecast_audit.test.cjs tests/full_odds.test.cjs tests/odds_feed_worker.test.mjs tests/odds_auto_source_cron.test.mjs tests/odds_three_cycle_audit.test.mjs tests/private_wire_vault.test.mjs
       - name: Install pinned private history cache crypto (synthetic keys only)
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Verify owner-requested seller retirement and legacy readback
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import unittest, race_ai
+          race_ai.__path__.extend(str(Path(root) / 'race_ai') for root in ('pr64-reference', 'pr72-reference'))
+          suite = unittest.defaultTestLoader.loadTestsFromName('tests.test_seller_retirement')
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          raise SystemExit(not result.wasSuccessful())
+          PY
       - name: Verify full same-head attempt-one evidence before optional recovery reuse
         id: official_recovery_preflight
         if: github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository && github.run_attempt == '2' && hashFiles('audit/state/official-result-recovery-request.json') != ''
@@ -705,8 +715,8 @@ jobs:
           node --check web/product-data.js
           node --check web/existing-model-catalog.js
           node --check scripts/existing_pdca_offline.mjs
-          node --test --test-reporter=tap tests/ui_model.test.js tests/race_explorer.test.cjs tests/product_data.test.cjs tests/model_catalog.test.cjs tests/existing_pdca_offline.test.mjs tests/saved_performance.test.cjs tests/racer_portraits.test.cjs tests/racer_portrait_atlas.test.cjs tests/racer_profiles.test.cjs
-          python -m unittest tests.test_racer_profiles tests.test_boat_racer_term
+          node --test --test-reporter=tap tests/ui_model.test.js tests/race_explorer.test.cjs tests/product_data.test.cjs tests/model_catalog.test.cjs tests/existing_pdca_offline.test.mjs tests/saved_performance.test.cjs tests/racer_portraits.test.cjs tests/racer_portrait_atlas.test.cjs tests/racer_profiles.test.cjs tests/racer_daily.test.cjs
+          python -m unittest tests.test_racer_profiles tests.test_boat_racer_term tests.test_racer_daily tests.test_racer_daily_handoff
       - name: Install isolated pinned browser test tooling
         run: |
           npm install --prefix "$RUNNER_TEMP/race-ai-ui-tools" --no-package-lock --ignore-scripts playwright@1.62.1

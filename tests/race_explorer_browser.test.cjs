@@ -12,11 +12,12 @@ const first={race_id:'20300101-03-01',sport:'boat',venue:'場コード03',race_n
   participants:entries.map(([registration_no,name],i)=>({number:i+1,registration_no,name,grade:'A1',branch:'テスト支部',
     national_win_rate:i===0?0:6.25,local_win_rate:5.55,average_st:i===0?0:0.15,motor_no:10+i,boat_no:20+i,motor_top2_rate:0}))};
 const fixture={schema:'RACE_AI_FORECAST_AUDIT_V1',dataset_status:'REAL_REPORTED',records:[first]};
-let browser,server;
+let browser,server,dailyData=null;
 (async()=>{
   const errors=[],requests=[];
   server=http.createServer((req,res)=>{
     const relative=new URL(req.url,'http://localhost').pathname.replace(/^\/RACE-AI\//,'/'),file=path.resolve(root,'.'+(relative==='/'?'/index.html':relative));
+    if(relative==='/data/racer-daily.json'&&dailyData){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify(dailyData));}
     if(!file.startsWith(root+path.sep)||!fs.existsSync(file)||!fs.statSync(file).isFile()){res.statusCode=404;return res.end();}
     res.setHeader('Content-Type',{'.js':'text/javascript','.css':'text/css','.html':'text/html','.json':'application/json','.webp':'image/webp'}[path.extname(file)]||'application/octet-stream');
     res.end(fs.readFileSync(file));
@@ -39,6 +40,21 @@ let browser,server;
       await page.waitForFunction(()=>document.querySelector('#file-message').textContent.length>0);
       await nav('home');await page.locator('#page-home .racer-card').first().waitFor();
     };
+    if(!process.env.EXPLORER_DEPLOYED_URL&&(section==='all'||section==='daily')){
+      dailyData=require('./racer_daily_fixture.cjs').fixture();
+      assert.equal(await page.evaluate(()=>typeof globalThis.RaceRacerDaily?.load),'function','daily results must load without research JSON input');
+      await page.evaluate(()=>RaceRacerDaily.load({refresh:true}));await load(fixture);
+      await page.locator('#page-home [data-open-participant="4320"]').click();
+      const daily=page.locator('#racer-daily-reference');assert.equal(await daily.locator('.daily-course').count(),6);
+      assert.match(await daily.innerText(),/90日/);assert.match(await daily.innerText(),/40\.0%/);assert.match(await daily.innerText(),/89.*90/s);
+      await daily.locator('[data-daily-course="6"]').click();assert.match(await daily.locator('.daily-scenario').innerText(),/20走/);
+      dailyData.model_inputs_changed=true;await page.evaluate(()=>RaceRacerDaily.load({refresh:true}));
+      assert.match(await daily.innerText(),/前回の集計/);assert.match(await daily.innerText(),/40\.0%/);
+      await page.keyboard.press('Escape');const synthetic=structuredClone(fixture);synthetic.dataset_status='SYNTHETIC_ONLY';await load(synthetic);
+      await page.locator('#page-home [data-open-participant="4320"]').click();assert.equal(await page.locator('#racer-daily-reference').count(),0);await page.keyboard.press('Escape');
+      dailyData=null;await page.reload();
+      console.log(`PASS daily athlete reference ${width}px: automatic fetch, real-course sample display, gap disclosure, stale preservation and synthetic isolation`);
+    }
     await load(fixture);
     if(section==='all'||section==='reference'){
       const sparse=structuredClone(fixture);

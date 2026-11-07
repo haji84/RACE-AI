@@ -29,7 +29,7 @@ export_view(refs,root/'profiles.html')
     if(req.url==='/profiles.html'){res.setHeader('Content-Type','text/html');return res.end(fs.readFileSync(path.join(folder,'profiles.html')));}
     if(req.url==='/api/forecast/saved'){res.setHeader('Content-Type','application/json');return res.end(JSON.stringify(original));}
     const asset=req.url==='/'?'index.html':req.url.slice(1);
-    if(!['index.html','app.js','product-data.js','ui-model.js','saved-performance.js','existing-model-catalog.js','forecast-audit-model.js','racer-portraits-data.js','racer-portraits.js','racer-profiles-data.js','racer-profiles.js','style.css'].includes(asset)){res.statusCode=404;return res.end();}
+    if(!['index.html','app.js','product-data.js','ui-model.js','saved-performance.js','existing-model-catalog.js','forecast-audit-model.js','racer-portraits-data.js','racer-portraits.js','racer-profiles-data.js','racer-profiles.js','racer-daily.js','data/racer-daily.json','style.css'].includes(asset)){res.statusCode=404;return res.end();}
     let body=fs.readFileSync(path.join(root,'web',asset));
     if(asset==='index.html')body=Buffer.from(body.toString().replace('</head>','<meta name="race-ai-private-saved-view" content="/api/forecast/saved"></head>'));
     res.setHeader('Content-Type',asset.endsWith('.js')?'text/javascript':asset.endsWith('.css')?'text/css':'text/html');res.end(body);
@@ -43,6 +43,7 @@ export_view(refs,root/'profiles.html')
     await page.goto(target);
     await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'),{},{timeout:5000});
     assert.equal(await page.evaluate(()=>globalThis.RaceRacerProfiles?.all.length),1669,'official reference data is available in ordinary and offline views');
+    assert.equal(await page.evaluate(()=>typeof globalThis.RaceRacerDaily?.load),'function','daily reference API is available in ordinary and offline views');
     assert.equal(await page.locator('#selected-date').inputValue(),'2026-11-06');
     assert.equal(await page.locator('#page-races .race-card').count(),1);
     await page.locator('#page-races [data-open-race]').first().click();
