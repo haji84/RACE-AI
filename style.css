@@ -161,3 +161,4 @@ body{overflow-wrap:break-word}button{min-height:34px}input,select{min-height:36p
 .race-view-tabs{flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding-bottom:3px;gap:6px}.race-view-tabs button{flex:0 0 auto;white-space:nowrap;font-size:13px;padding:10px;min-height:46px}.venue-explorer .selected-venue .eyebrow{display:none}.venue-explorer .selected-venue p{margin-bottom:6px}.venue-explorer #venue-summary{font-size:11px}.panel.compact .search{flex-direction:row;margin:0;min-height:42px;padding:8px 10px}.panel.compact .search input[type=search]{padding:0;margin:0;border:0}
 #page-races #race-count{margin:0}
 .race-view-tabs{margin-bottom:0}
+#all-races .race-result-card{display:block;padding:16px}#all-races .race-result-card .race-card-head{display:flex;flex-wrap:wrap;align-items:flex-start}#all-races .race-result-card .race-card-head>div{flex:1 1 150px;min-width:0}#all-races .race-result-card .saved-outcome{max-width:100%}
