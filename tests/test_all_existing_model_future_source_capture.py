@@ -73,9 +73,9 @@ class FutureSourceCaptureTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temporary:
             directory=Path(temporary)/'browser';directory.mkdir(mode=0o700)
             (directory/'capture-index.json').write_text('{}')
-            with patch.dict(os.environ,{'RACE_AI_STATE_KEY':'private','GITHUB_TOKEN':'private','GH_TOKEN':'private',
+            with patch.dict(os.environ,{'PATH':'/usr/bin:/bin','RACE_AI_STATE_KEY':'private','GITHUB_TOKEN':'private','GH_TOKEN':'private',
                 'ARBITRARY_PASSWORD':'private','NODE_OPTIONS':'--require=private','HTTPS_PROXY':'http://proxy.test:80',
-                'NODE_EXTRA_CA_CERTS':'/tmp/ca.crt'}),patch.object(wrapper,'subprocess') as sub:
+                'NODE_EXTRA_CA_CERTS':'/tmp/ca.crt'},clear=True),patch.object(wrapper,'subprocess') as sub:
                 sub.run.return_value.returncode=0;sub.run.return_value.stdout=b'{}';sub.run.return_value.stderr=b''
                 wrapper.capture_browser({},directory)
             sent=sub.run.call_args.kwargs['env']
@@ -150,6 +150,8 @@ def archive_directory(directory):
 class FreshNativeIntegrationTests(unittest.TestCase):
     def setUp(self):
         self.helper=baselines.SourcePacketBaselineV2Tests('runTest');self.helper.setUp();self.addCleanup(self.helper.doCleanups)
+        isolated=patch.dict(os.environ,{k:v for k,v in os.environ.items() if k!='NODE_PATH'},clear=True)
+        isolated.start();self.addCleanup(isolated.stop)
         self.directory=self.helper.root/'fresh';self.env=self.helper.env;self.now=self.helper.now
         self.env['run_attempt']=1
 

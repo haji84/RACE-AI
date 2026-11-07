@@ -1,6 +1,7 @@
 """Experiment-wide one-shot reservation with a fake GitHub Git server only."""
 from copy import deepcopy
 from datetime import timedelta
+import os
 import unittest
 from pathlib import Path
 import tempfile
@@ -27,6 +28,10 @@ def fixture():
 
 
 class FutureSourceOnceTests(unittest.TestCase):
+    def setUp(self):
+        isolated=patch.dict(os.environ,{k:v for k,v in os.environ.items() if k!='NODE_PATH'},clear=True)
+        isolated.start();self.addCleanup(isolated.stop)
+
     def test_create_only_canonical_marker_real_mac_aes_and_exact_immutable_readback(self):
         body,now=fixture();api=FakeGitHub();transport=once.FutureSourceMarkerTransport(api)
         audit=once.reserve(body,KEY,transport,now=now)

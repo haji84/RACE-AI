@@ -1009,6 +1009,147 @@ jobs:
           assert all(x["offering_status"]=="UNKNOWN" for x in races)
           print("AUDIT_ONLY 322 distinct race slots; no predictions or outcomes fabricated")
           PY
+  official_future_source_capture:
+    name: One-shot official future native source capture
+    needs: [train_only_tests, pr64_cross_branch_bridge, boat_pdca_state_producer, boat_pdca_state_consumer, viewer_contract]
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/four-sport-forecast-audit-view-20261022' && github.event.pull_request.base.ref == 'codex/actions-four-sport-e2e' && github.event.pull_request.user.login == 'haji84' && github.event.pull_request.user.id == 173585154 && github.actor == 'haji84' && github.actor_id == '173585154' && github.triggering_actor == 'haji84' && github.run_attempt == '1' && needs.train_only_tests.result == 'success' && needs.pr64_cross_branch_bridge.result == 'success' && needs.boat_pdca_state_producer.result == 'success' && needs.boat_pdca_state_consumer.result == 'success' && needs.viewer_contract.result == 'success'
+    permissions:
+      contents: write  # Create only the fixed experiment-wide consumed marker.
+      actions: read
+    runs-on: ubuntu-24.04
+    # Pinned tooling/setup, bounded 85-second browser run, artifact and Git readback.
+    timeout-minutes: 15
+    steps:
+      - name: Checkout exact future source HEAD without persisted credentials
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Route only the explicit current-day future source request
+        id: future_source_route
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == official-future-source-capture:* && -f audit/state/official-future-source-capture-input.json ]]; then
+            echo 'requested=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Checkout immutable PR64 authentication parser
+        if: steps.future_source_route.outputs.requested == 'true'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Checkout immutable PR72 native source adapters
+        if: steps.future_source_route.outputs.requested == 'true'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+      - name: Use the pinned Node runtime for isolated future source tooling
+        if: steps.future_source_route.outputs.requested == 'true'
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.19.0'
+          package-manager-cache: false
+      - name: Install existing pinned private archive dependencies
+        if: steps.future_source_route.outputs.requested == 'true'
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Install isolated pinned future source browser tooling
+        if: steps.future_source_route.outputs.requested == 'true'
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/race-ai-future-ui-tools" --no-package-lock --ignore-scripts playwright@1.62.1
+          "$RUNNER_TEMP/race-ai-future-ui-tools/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Bind the executable to the installed pinned Playwright version
+        id: future_source_browser
+        if: steps.future_source_route.outputs.requested == 'true'
+        env:
+          NODE_PATH: ${{ runner.temp }}/race-ai-future-ui-tools/node_modules
+        shell: bash
+        run: |
+          browser="$(node -e 'if(require("playwright/package.json").version!=="1.62.1")process.exit(1);process.stdout.write(require("playwright").chromium.executablePath())')"
+          test -x "$browser"
+          printf 'chromium_path=%s\n' "$browser" >> "$GITHUB_OUTPUT"
+      - name: Reserve once and encrypt the exact future native source inputs
+        id: future_source_capture
+        if: steps.future_source_route.outputs.requested == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          NODE_PATH: ${{ runner.temp }}/race-ai-future-ui-tools/node_modules
+          CHROMIUM_PATH: ${{ steps.future_source_browser.outputs.chromium_path }}
+        shell: bash
+        run: |
+          umask 077
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          root=Path(os.environ['RUNNER_TEMP'])/'official-future-source-capture'
+          proof=root.with_name(root.name+'.status.json')
+          pending=dict(schema='RACE_AI_OFFICIAL_FUTURE_SOURCE_CAPTURE_COUNTS_V1',ready=False,
+              state='HOLD_SOURCE_OUTCOME_NOT_YET_VERIFIED',source_requests=None,source_request_upper_bound=32,
+              old_source_requests_actual=None,old_source_requests_upper_bound=32,old_browser_outcome='UNKNOWN',
+              plaintext_published=False,actual_purchases=False,production_promoted=False,
+              independent_pre_cutoff_receipt_verified=False)
+          fd=os.open(proof,os.O_WRONLY|os.O_CREAT|os.O_EXCL|getattr(os,'O_NOFOLLOW',0),0o600)
+          with os.fdopen(fd,'w') as stream:json.dump(pending,stream,sort_keys=True)
+          import race_ai
+          race_ai.__path__.extend(str(Path(p).resolve()) for p in ('pr64-reference/race_ai','pr72-reference/race_ai'))
+          from scripts.all_existing_model_future_source_capture import main
+          raise SystemExit(main(['--input','audit/state/official-future-source-capture-input.json','--out-dir',str(root)]))
+          PY
+      - name: Save only ready encrypted native input partitions
+        id: future_source_native_upload
+        if: steps.future_source_capture.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.future_source_capture.outputs.artifact_name }}
+          path: ${{ runner.temp }}/official-future-source-capture/native/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Always retain only encrypted source reservation and original evidence
+        id: future_source_upload
+        if: always() && steps.future_source_route.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.future_source_capture.outputs.source_artifact_name || format('official-future-source-capture-{0}', github.run_id) }}
+          path: ${{ runner.temp }}/official-future-source-capture/source/*.enc
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Verify actual source receipt and every ready native baseline receipt
+        id: future_source_readback
+        if: always() && steps.future_source_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          NATIVE_INPUT_ARTIFACT_ID: ${{ steps.future_source_native_upload.outputs.artifact-id }}
+          SOURCE_CAPTURE_ARTIFACT_ID: ${{ steps.future_source_upload.outputs.artifact-id }}
+        shell: bash
+        run: |
+          umask 077
+          python - <<'PY'
+          import os, race_ai
+          from pathlib import Path
+          race_ai.__path__.extend(str(Path(p).resolve()) for p in ('pr64-reference/race_ai','pr72-reference/race_ai'))
+          from scripts.all_existing_model_future_source_capture import main
+          args=['--input','audit/state/official-future-source-capture-input.json',
+              '--out-dir',str(Path(os.environ['RUNNER_TEMP'])/'official-future-source-capture'),
+              '--readback-source',os.environ['SOURCE_CAPTURE_ARTIFACT_ID']]
+          if os.environ.get('NATIVE_INPUT_ARTIFACT_ID'):args+=['--readback-native',os.environ['NATIVE_INPUT_ARTIFACT_ID']]
+          raise SystemExit(main(args))
+          PY
+      - name: Always retain count-only future source verification status
+        id: future_source_proof
+        if: always() && steps.future_source_route.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-future-source-capture-proof-${{ github.run_id }}-1
+          path: ${{ runner.temp }}/official-future-source-capture.status.json
+          retention-days: 7
+          if-no-files-found: ignore
   official_all_racer_intake:
     name: Official all-racer bulk intake (owner key or explicit HOLD)
     if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository

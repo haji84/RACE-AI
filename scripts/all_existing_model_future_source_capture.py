@@ -95,12 +95,28 @@ def static_cache(admitted,*,key,now):
     return entries
 
 
-def capture_browser(plan,directory,*,diagnostic_sink=None):
-    """Use the existing Node UI, with an allowlisted environment for Node too."""
-    request=directory.with_name(directory.name+'.plan.json');_write(request,future.wire(plan))
+def _node_environment():
+    """One trusted runner tooling path; owner/Git/module injection stays out."""
     names=('PATH','HOME','LANG','LC_ALL','TMPDIR','XDG_CACHE_HOME','HTTP_PROXY','HTTPS_PROXY','NO_PROXY',
         'http_proxy','https_proxy','no_proxy','SSL_CERT_FILE','NODE_EXTRA_CA_CERTS','REQUESTS_CA_BUNDLE','CHROMIUM_PATH')
     env={name:os.environ[name] for name in names if name in os.environ}
+    if 'NODE_PATH' in os.environ:
+        base=Path(os.environ.get('RUNNER_TEMP',''));value=os.environ['NODE_PATH']
+        expected=base/'race-ai-future-ui-tools'/'node_modules'
+        need(os.environ.get('GITHUB_ACTIONS')=='true' and os.environ.get('GITHUB_REPOSITORY')=='haji84/RACE-AI' and
+            os.environ.get('GITHUB_REPOSITORY_ID')=='1416489937' and base.is_absolute() and
+            base.is_dir() and base==base.resolve() and value==str(expected) and os.pathsep not in value and
+            expected.is_dir() and expected==expected.resolve() and
+            not any(p.is_symlink() or (p/'.git').exists() for p in (expected,*expected.parents)),
+            'PINNED_NODE_MODULES_PATH')
+        env['NODE_PATH']=value
+    return env
+
+
+def capture_browser(plan,directory,*,diagnostic_sink=None):
+    """Use the existing Node UI, with an allowlisted environment for Node too."""
+    env=_node_environment()
+    request=directory.with_name(directory.name+'.plan.json');_write(request,future.wire(plan))
     process=None;error=None
     try:
         process=subprocess.run(['node',str(freeze.ROOT/'scripts/official_result_browser_capture.cjs'),
@@ -178,6 +194,7 @@ def generate(manifest,root,env,*,marker_transport=None):
     need(not root.exists() and not root.with_name(root.name+'.browser').exists() and
         not root.with_name(root.name+'.browser.plan.json').exists(),'OUTPUT_EXISTS_DO_NOT_RESET')
     now=utc_now();core.validate_manifest(manifest,now=now);key=state_key('production')
+    _node_environment()  # Reject a bad supplied resolver before consuming once.
     marker_transport=marker_transport or once.FutureSourceMarkerTransport()
     need(marker_transport.read_file(marker_transport.head(),once.PATH,MAX_WIRE) is None,'ONCE_ALREADY_CONSUMED')
     context=freeze._carrier_context(manifest['carrier_artifact']['id'],manifest,now=now)

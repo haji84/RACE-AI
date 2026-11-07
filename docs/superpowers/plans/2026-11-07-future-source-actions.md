@@ -29,8 +29,8 @@ Implementation and verification:
 - [x] Run RED/GREEN fixture tests, neighboring regressions and independent review.
 
 No live provider request, real key access or real future save is part of these
-tests. Synthetic fixtures establish code behavior only. YAML integration and
-the actual future-day operation remain the parent's work.
+tests. Synthetic fixtures establish code behavior only. The actual future-day
+operation remains unverified.
 
 ## One experiment, one consumed reservation
 
@@ -52,9 +52,21 @@ original request start. A later response does not acquire an earlier clock.
 
 ## Parent workflow interface
 
-The parent connects a dedicated owner-PR71 Actions job after existing required
-checks. It requires the existing state secret and `contents: write` for the one
-canonical Git reservation. The wrapper has no workflow/rerun/issue API.
+The existing Forecast audit workflow now contains a dedicated owner-PR71 job
+after the complete Viewer, both-OS training tests, pinned PR64 bridge and
+synthetic state producer/consumer succeed. It requires the existing state secret
+and job-local `contents: write` for the one canonical Git reservation. Global
+and Viewer permissions remain read-only. The wrapper has no workflow/rerun/issue
+API. Only an `official-future-source-capture:` commit and the explicit public
+input file enable its pinned setup and source steps; no input or marker is
+created by this change.
+
+Playwright 1.62.1 and its matching Chromium are installed outside the checkout.
+The parent CLI passes Node only the single normalized, nonsymlink tooling path
+`RUNNER_TEMP/race-ai-future-ui-tools/node_modules`; arbitrary resolver paths and
+inherited credentials/options are rejected or removed before once consumption.
+Source ciphertext and a count-only UNKNOWN sentinel use `always()` retention,
+including interrupted runs; raw browser files and plaintext plans are excluded.
 
 `scripts.all_existing_model_future_source_capture` accepts `--input` and a fresh
 `--out-dir` under `RUNNER_TEMP`. The exact public input schema is
@@ -90,3 +102,11 @@ the implementation and independently passed 26 focused tests including that
 complete fixture integration. Actual provider requests, actual key use and
 actual remote publication during this work were all zero. Live future capture,
 all-sport future comparison and real PDCA remain unverified.
+
+Follow-up job-hook verification passed 53 focused tests, including namespace
+bootstrap/shell routing, isolated real-Node module resolution, failed-source
+retention, and the complete fixture native/source readback. Independent review
+cleared the hook and passed 24 focused tests plus all six shell syntax checks.
+The YAML parsed successfully, and existing workflow content was unchanged
+outside the added job. No public input, actual marker or source acquisition was
+created during this follow-up.
