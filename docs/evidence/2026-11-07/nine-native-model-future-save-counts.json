@@ -1,0 +1,23 @@
+{
+  "admission_sha256": "61cdf5cd6698688df32f3bdfeeafd80798d4d617d812fb99e105a14a25af10b2",
+  "artifact_digest": "sha256:db35c80074a8a26c7ffd51f93a0f39afaf3fb390146169c1e6321945bd13abbd",
+  "artifact_id": 13549117749,
+  "cutoff_at": "2026-11-07T08:47:00+09:00",
+  "encrypted_readback_verified": true,
+  "fitted_cells": 9,
+  "forecast_pairs": 9,
+  "future_pdca_completed": false,
+  "head_sha": "8d956e978abe98eedac9d53eb4bb44c55d451b9f",
+  "independent_pre_cutoff_receipt_verified": true,
+  "normal_result_received": false,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "race_id": "boat:2026-11-07:boatrace-jcd-10:1",
+  "run_id": 42312703008,
+  "saved_at": "2026-11-06T23:35:56Z",
+  "source_requests": 0,
+  "stage": "P0",
+  "state": "ACTUAL_NINE_FUTURE_P0_PRE_CUTOFF_VERIFIED",
+  "training_sha256": "3ea27d5c7709fd51e8a980bce2497ee5a3332760236145624d279ee83e392768",
+  "venue_enriched": true
+}
