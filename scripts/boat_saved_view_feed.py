@@ -3,7 +3,7 @@ import argparse
 import base64
 from copy import deepcopy
 from datetime import date
-from datetime import datetime,timezone
+from datetime import datetime,timedelta,timezone
 import json
 import os
 from pathlib import Path
@@ -60,9 +60,33 @@ def intake_day_scope(view,*,day=None,since_day=None):
         (r['event_date_jst']==day if day else r['event_date_jst']>=since_day)]
     return output
 
+def _runtime_name_aliases(files,*,now=None,include_sources=False):
+    """Use retained source bytes; a corrupt declared source never falls back."""
+    if not files.get('metadata.json'):return ([],None) if include_sources else []
+    metadata=_json(_read(Path(files['metadata.json']),1024*1024),1024*1024)
+    need(type(metadata) is dict,'FEED_ALIAS_METADATA_INVALID')
+    clock=now or datetime.now(timezone.utc)
+    need(isinstance(clock,datetime) and clock.utcoffset() is not None,'FEED_ALIAS_CLOCK_REQUIRED')
+    from race_ai.boat_name_aliases import build_name_aliases
+    manifest=metadata.get('name_alias_sources');facts=[];covered=set()
+    if manifest is not None:
+        need(bool(files.get('racers.sqlite')),'FEED_ALIAS_REGISTRY_REQUIRED')
+        facts=build_name_aliases(manifest,files['racers.sqlite'],now=clock)
+        covered={source['day'] for source in manifest['b_sources']}
+    current=clock.astimezone(timezone(timedelta(hours=9))).date().isoformat()
+    if os.environ.get('RACE_AI_PROGRAM_SOURCE_ENABLED')=='true' and current not in covered:
+        from race_ai.boat_program_source import load_name_alias_source
+        source=load_name_alias_source(current,ROOT,as_of=clock)
+        if source is not None:
+            need(bool(files.get('racers.sqlite')),'FEED_ALIAS_REGISTRY_REQUIRED')
+            manifest=dict(schema='RACE_AI_BOAT_NAME_ALIAS_SOURCES_V1',
+                b_sources=[*(manifest['b_sources'] if manifest is not None else []),source])
+            facts=build_name_aliases(manifest,files['racers.sqlite'],now=clock)
+    return (facts,manifest) if include_sources else facts
+
 def intake_saved_models(view,*,hydrate=False,day=None,since_day=None,recover_runs=()):
     """Use authenticated private runtime/readback; never request official pages."""
-    additions=[];names=None
+    additions=[];names=None;name_aliases=[];alias_sources=None;program_aliases=None
     config=ROOT/'audit/state/boat-model-runtime-input.json'
     if config.exists():
         from scripts.boat_all_model_cycle import prepare_runtime
@@ -82,6 +106,7 @@ def intake_saved_models(view,*,hydrate=False,day=None,since_day=None,recover_run
                         registry[pid]=dict(name=document['name'],verified=True,source_url=url,source_sha256=source,captured_at=captured)
             finally:db.close()
             names=dict(registry=registry,races={})
+        name_aliases,alias_sources=_runtime_name_aliases(files,include_sources=True)
     continuity=ROOT/'cycle_recovery_output/continuity.json'
     if continuity.is_file():
         state=_json(_read(continuity,32*1024*1024),32*1024*1024)
@@ -94,13 +119,25 @@ def intake_saved_models(view,*,hydrate=False,day=None,since_day=None,recover_run
         need(str(record.get('run_id'))==os.environ.get('GITHUB_RUN_ID'),'FEED_MODEL_READBACK_RUN')
         payload=restore_forecasts(record['pointer'],ROOT)
         projected=project_round(payload,record['receipt'])
+        if alias_sources is not None and payload.get('stage')=='P1':
+            from race_ai.boat_name_aliases import build_program_name_aliases
+            program_aliases=build_program_name_aliases(alias_sources,payload,record['receipt'],now=datetime.now(timezone.utc))
         additions.append(projected)
     additions=[intake_day_scope(part,day=day,since_day=since_day) for part in additions]
     additions=[part for part in additions if part['records']]
+    if name_aliases:
+        from race_ai.boat_name_aliases import attach_name_aliases
+        view=attach_name_aliases(view,name_aliases)
+        additions=[attach_name_aliases(part,name_aliases) for part in additions]
+    if program_aliases:
+        from race_ai.boat_name_aliases import attach_name_aliases
+        view=attach_name_aliases(view,program_aliases)
+        additions=[attach_name_aliases(part,program_aliases) for part in additions]
     output=append_views(view,additions,names=names) if additions or names else view
     if recover_runs:
         from race_ai.boat_all_model_recovery import recover_saved_models
-        output,counts=recover_saved_models(output,gh,run_ids=recover_runs,day=day)
+        output,counts=recover_saved_models(output,gh,run_ids=recover_runs,day=day,
+            **(dict(name_alias_sources=alias_sources) if alias_sources is not None else {}))
         print(wire(dict(counts,intake_status='SAVED_MODEL_ARCHIVES_REPLAYED')))
         from race_ai.boat_saved_result_recovery import recover_saved_results
         output,counts=recover_saved_results(output,gh,run_ids=recover_runs)
@@ -191,7 +228,7 @@ def main(argv=None):
         report=F.publish_view(git,bootstrap,view,parent=parent,previous=previous,generation=generation,history=activate_history)
         print(wire(report));return 0
     except Exception as e:
-        reason=str(e) if isinstance(e,(ValueError,RuntimeError)) and re.fullmatch('(?:FEED|HISTORY|MODEL_RUNTIME|ALL_MODEL_CLI|ALL_MODEL_RECOVERY|BOAT_ALL_MODEL_CYCLE|STATE|GITHUB|SAVED_PREDICTION_EVIDENCE|SAVED_RESULT_RECOVERY|VAULT)_[A-Z0-9_]{1,90}',str(e)) else 'FEED_OPERATION_FAILED'
+        reason=str(e) if isinstance(e,(ValueError,RuntimeError)) and re.fullmatch('(?:FEED|HISTORY|MODEL_RUNTIME|ALL_MODEL_CLI|ALL_MODEL_RECOVERY|BOAT_ALL_MODEL_CYCLE|STATE|GITHUB|SAVED_PREDICTION_EVIDENCE|SAVED_RESULT_RECOVERY|SAVED_MODEL_VIEW|VAULT)_[A-Z0-9_]{1,90}',str(e)) else 'FEED_OPERATION_FAILED'
         from race_ai.boat_saved_model_view import SavedModelViewError
         if isinstance(e,SavedModelViewError) and re.fullmatch('SAVED_MODEL_VIEW_[A-Z0-9_]{1,90}',getattr(e,'reason_code','')):
             reason=e.reason_code

@@ -348,7 +348,7 @@ def _metadata(raw,listed,run,clock,get):
     return meta,archived
 
 
-def _project(raw,meta,run,round_no,key):
+def _project(raw,meta,run,round_no,key,*,name_alias_sources=None):
     _need(type(raw) is bytes and len(raw)==meta['size_in_bytes'] and len(raw)<=MAX_ZIP_BYTES
           and meta['digest']=='sha256:'+sha256(raw).hexdigest(),'ARTIFACT_ZIP_HASH_INVALID')
     with _checked_zip(raw,max_zip_bytes=MAX_ZIP_BYTES,max_expanded=store.MAX_WIRE) as archive:
@@ -362,6 +362,10 @@ def _project(raw,meta,run,round_no,key):
     receipt=dict(repository_id=str(REPO_ID),repository=REPO,run_id=str(run['id']),head_sha=run['head_sha'],
                  artifact_id=meta['id'],created_at=meta['created_at'],payload_sha256=digest(payload),independently_verified=True)
     projected=engine.project_round(payload,receipt)
+    if name_alias_sources is not None and payload.get('stage')=='P1':
+        from .boat_name_aliases import build_program_name_aliases,attach_name_aliases
+        aliases=build_program_name_aliases(name_alias_sources,payload,receipt,now=_observed_clock())
+        projected=attach_name_aliases(projected,aliases)
     summary=payload.get('summary')
     _need(type(summary) is dict and all(type(summary.get(name)) is int and summary[name]>=0
           for name in ('contexts','generated_forecasts','reused_baseline_forecasts')),'SUMMARY_INVALID')
@@ -377,7 +381,7 @@ def _new_predictions(before,view):
             if p is not None and digest([row['race_id'],saved_prediction_identity(p)]) not in before]
 
 
-def recover_saved_models(view,get,*,run_ids,day=None,key=None,max_artifacts=MAX_ARTIFACTS):
+def recover_saved_models(view,get,*,run_ids,day=None,key=None,max_artifacts=MAX_ARTIFACTS,name_alias_sources=None):
     """Append missed physical originals from a bounded set of named runs.
 
     Complete exact listings precede selection. Listed ZIP sizes reserve the
@@ -437,7 +441,8 @@ def recover_saved_models(view,get,*,run_ids,day=None,key=None,max_artifacts=MAX_
                 meta,archived=_metadata(meta_raw,listed,run,_observed_clock(),get)
             except _Deferred:
                 counts['deferred_artifacts']+=1;continue
-            projected,summary,receipt=_project(get(f'actions/artifacts/{artifact}/zip'),meta,run,round_no,key)
+            projected,summary,receipt=_project(get(f'actions/artifacts/{artifact}/zip'),meta,run,round_no,key,
+                **(dict(name_alias_sources=name_alias_sources) if name_alias_sources is not None else {}))
             counts['archives_verified']+=1;counts['archived_artifacts']+=int(archived)
             all_predictions=_predictions(projected)
             counts['empty_prediction_archives']+=int(not all_predictions)

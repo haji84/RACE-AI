@@ -21,6 +21,11 @@ from scripts import boat_private_original_vault as VCLI
 
 MAX_RUNS = 16
 MAX_ARTIFACTS = 128
+MAX_PRIORITY_ARTIFACTS = 96
+RESERVED_ORDINARY_ARTIFACTS = MAX_ARTIFACTS-MAX_PRIORITY_ARTIFACTS
+RESERVED_ORDINARY_BYTES = 128*1024*1024
+MAX_PRIORITY_BYTES = 384*1024*1024
+PRIORITY_POLICY_VERSION = 1
 MAX_TARGET_DESCRIPTORS = 128
 MAX_RUN_PROBES = 128
 MAX_DESCRIPTOR_LOOKUPS = 512
@@ -95,7 +100,8 @@ def read_artifact_pages(run, get):
     raise ValueError('ORIGINAL_MAINTENANCE_PAGINATION_BOUND_EXCEEDED')
 
 
-def select_native_batch(rows, run, lookup, limit=MAX_ARTIFACTS,*,byte_limit=None,byte_cost=None,after=0):
+def select_native_batch(rows, run, lookup, limit=MAX_ARTIFACTS,*,byte_limit=None,byte_cost=None,after=0,
+                        already_selected=(),exclude_ids=()):
     """Select new originals, skipping retained IDs rather than counting them.
 
     Source control's exact continuity is included in the same capture call even
@@ -108,7 +114,7 @@ def select_native_batch(rows, run, lookup, limit=MAX_ARTIFACTS,*,byte_limit=None
         ident=_ident(row.get('id'));_need(ident not in seen,'DUPLICATE_LISTED_ID');seen.add(ident)
         kind=R._native_kind(row.get('name'),run)
         if kind is not None:native.append((ident,kind))
-    cached={}
+    cached={};prior=set(already_selected);excluded=set(exclude_ids)
     def is_cached(ident):
         if ident not in cached:cached[ident]=bool(lookup(ident))
         return cached[ident]
@@ -123,12 +129,12 @@ def select_native_batch(rows, run, lookup, limit=MAX_ARTIFACTS,*,byte_limit=None
         if selected and len(selected)>=limit:
             deferred+=sum(i not in selected for i,_ in ordered[index:]);break
         try:
-            if ident in selected or is_cached(ident):visited+=1;continue
+            if ident in selected or ident in prior or ident in excluded or is_cached(ident):visited+=1;continue
             needed=[ident]
             if kind=='SOURCE_CONTROL':
                 _need(len(continuity)==1,'SOURCE_CONTROL_CONTINUITY_REQUIRED')
                 sibling=continuity[0];is_cached(sibling)
-                needed=([sibling] if sibling not in selected else [])+[ident]
+                needed=([sibling] if sibling not in selected and sibling not in prior else [])+[ident]
             if len(selected)+len(needed)>limit:
                 deferred+=1;visited+=1;continue
             cost=sum(byte_cost(i) for i in needed) if byte_cost is not None else 0
@@ -157,17 +163,21 @@ def _window(values,after,limit):
 def _progress(git,parent,mac_key):
     default=dict(schema='RACE_AI_ORIGINAL_MAINTENANCE_PROGRESS_V1',repository_id=V.REPO_ID,
                  target_after=0,run_after=0,pending_runs=[],pending_targets={},artifact_after={},
-                 targets_sha256='',target_cycle_complete=False,target_cycle_dirty=False)
+                 targets_sha256='',target_cycle_complete=False,target_cycle_dirty=False,
+                 priority_policy_version=PRIORITY_POLICY_VERSION)
     if not git.exists(parent,PROGRESS_PATH):return default
     value=V._unsigned(V._read(git,parent,PROGRESS_PATH,1024*1024),mac_key)
     legacy={'schema','repository_id','target_after','run_after','pending_runs'}
-    _need(type(value) is dict and set(value) in (set(default),legacy),'PROGRESS_INVALID')
+    previous=set(default)-{'priority_policy_version'}
+    _need(type(value) is dict and set(value) in (set(default),previous,legacy),'PROGRESS_INVALID')
+    migrate='priority_policy_version' not in value
     value=dict(default,**value)
     _need(value['schema']==default['schema'] and
           value['repository_id']==V.REPO_ID and all(type(value[k]) is int and 0<=value[k]<10**20 for k in ('target_after','run_after')) and
           type(value['pending_runs']) is list and len(value['pending_runs'])<=32768 and
           all(type(run) is int for run in value['pending_runs']) and
           value['pending_runs']==sorted(set(value['pending_runs'])) and
+          type(value['priority_policy_version']) is int and value['priority_policy_version']==PRIORITY_POLICY_VERSION and
           type(value['target_cycle_complete']) is bool and type(value['target_cycle_dirty']) is bool and
           not (value['target_cycle_complete'] and value['target_cycle_dirty']) and type(value['targets_sha256']) is str and
           (value['targets_sha256']=='' or re.fullmatch(r'[0-9a-f]{64}',value['targets_sha256'])) and
@@ -185,6 +195,11 @@ def _progress(git,parent,mac_key):
     for run,after in value['artifact_after'].items():
         _need(str(_ident(run))==run and type(after) is int and 0<=after<10**20 and
               int(run) in value['pending_runs'],'PROGRESS_INVALID')
+    if migrate:
+        # Earlier cycles acknowledged descriptors before their cited originals
+        # were retained. Revisit that maintenance window once, preserving all
+        # pending requirements, native cursors and immutable vault records.
+        value.update(priority_policy_version=0,target_after=0,target_cycle_complete=False,target_cycle_dirty=False)
     return value
 
 
@@ -312,7 +327,6 @@ def backfill(view, repo, *, artifact_ids=(), run_ids=(), github_get=None, transp
         except _BudgetLimit:
             target_after=target_batch[checked-1] if checked else target_start
             target_cycle_complete=False;break
-    if checked==len(target_batch) and target_after==0:target_cycle_dirty=False
     selected=[];scanned=[];cached_closed=0;active=0;byte_deferred=0;descriptor_deferred=0;probed=0
     _need(len(pending)<=32768,'PENDING_RUN_BOUND_EXCEEDED')
     _need(sum(len(ids) for ids in target_runs.values())<=32768,'PENDING_TARGET_BOUND_EXCEEDED')
@@ -350,34 +364,57 @@ def backfill(view, repo, *, artifact_ids=(), run_ids=(), github_get=None, transp
             _need(type(info) is dict and info.get('id')==run,'RUN_IDENTITY_INVALID')
             VCLI._live_run(raw,dict(workflow_run=dict(id=run,head_sha=info.get('head_sha'))))
             pages,rows=read_artifact_pages(run,get)
-            by_id={item['id']:item for item in rows}
-            continuity=[item['id'] for item in rows if R._native_kind(item['name'],run)=='CONTINUITY']
-            def capture_cost(ident):
-                entry=descriptor(ident)
-                if entry is not None:return _restore_cost(entry)
-                value,metadata_raw=metadata(ident)
-                _need(value['workflow_run']['id']==run and R._native_kind(value['name'],run)==R._native_kind(by_id[ident]['name'],run),
-                      'LISTED_ARTIFACT_IDENTITY_INVALID')
-                cost=2*(value['size_in_bytes']+len(metadata_raw))
-                if V._kind(value)=='SOURCE_CONTROL':
-                    _need(len(continuity)==1,'SOURCE_CONTROL_CONTINUITY_REQUIRED')
-                    companion=descriptor(continuity[0])
-                    if companion is not None:cost+=2*sum(item['size'] for item in companion['header']['files'].values())
-                    else:
-                        sibling,sibling_raw=metadata(continuity[0]);cost+=2*(sibling['size_in_bytes']+len(sibling_raw))
-                return cost
-            plan=select_native_batch(rows,run,lookup,MAX_ARTIFACTS-len(selected),
-                                     byte_limit=budget.remaining,byte_cost=capture_cost,after=artifact_after.get(run,0))
-            budget.reserve(plan['reserved_bytes']);selected.extend(plan['selected'])
-            artifact_after[run]=plan['cursor_after']
-            if plan['lookup_limited']:descriptor_deferred+=1
-            scanned.append(dict(run=run,raw=raw,info=info,pages=pages,plan=plan))
+            native_ids=[item['id'] for item in rows if R._native_kind(item['name'],run) is not None]
+            scanned.append(dict(run=run,raw=raw,info=info,pages=pages,rows=rows,
+                                plan=dict(native_ids=native_ids)))
             if info.get('status')!='completed':active+=1
-            if len(selected)>=MAX_ARTIFACTS or (plan['lookup_limited'] and lookup_count>=MAX_DESCRIPTOR_LOOKUPS):
-                run_after=run;break
         except _BudgetLimit:
             descriptor_deferred+=1;run_after=run
             if lookup_count>=MAX_DESCRIPTOR_LOOKUPS or metadata_bytes>=MAX_METADATA_BYTES:break
+    def capture_cost(item,ident):
+        run=item['run'];by_id={row['id']:row for row in item['rows']}
+        continuity=[row['id'] for row in item['rows'] if R._native_kind(row['name'],run)=='CONTINUITY']
+        entry=descriptor(ident)
+        if entry is not None:return _restore_cost(entry)
+        value,metadata_raw=metadata(ident)
+        _need(value['workflow_run']['id']==run and R._native_kind(value['name'],run)==R._native_kind(by_id[ident]['name'],run),
+              'LISTED_ARTIFACT_IDENTITY_INVALID')
+        cost=2*(value['size_in_bytes']+len(metadata_raw))
+        if V._kind(value)=='SOURCE_CONTROL':
+            _need(len(continuity)==1,'SOURCE_CONTROL_CONTINUITY_REQUIRED')
+            companion=descriptor(continuity[0])
+            if companion is not None:cost+=2*sum(record['size'] for record in companion['header']['files'].values())
+            else:
+                sibling,sibling_raw=metadata(continuity[0]);cost+=2*(sibling['size_in_bytes']+len(sibling_raw))
+        return cost
+    # Gather the bounded run pool before selecting any ordinary archive. An
+    # early run's uncited native history cannot consume the later cited slots.
+    window_targets=set(target_batch[:checked])
+    priority_io_limit=min(MAX_PRIORITY_BYTES,max(0,budget.remaining-RESERVED_ORDINARY_BYTES))
+    priority_io=0;priority_capture_ids=0
+    for item in scanned:
+        run=item['run'];wanted=window_targets&target_runs.get(run,set())
+        rows=[row for row in item['rows'] if row['id'] in wanted]
+        if any(R._native_kind(row['name'],run)=='SOURCE_CONTROL' for row in rows):
+            rows.extend(row for row in item['rows'] if R._native_kind(row['name'],run)=='CONTINUITY' and row['id'] not in wanted)
+        if not rows:continue
+        plan=select_native_batch(rows,run,lookup,MAX_PRIORITY_ARTIFACTS-priority_capture_ids,
+            byte_limit=priority_io_limit-priority_io,byte_cost=lambda ident,item=item:capture_cost(item,ident),
+            already_selected=selected)
+        budget.reserve(plan['reserved_bytes']);priority_io+=plan['reserved_bytes']
+        selected.extend(plan['selected']);priority_capture_ids+=len(plan['selected'])
+        if plan['lookup_limited']:descriptor_deferred+=1
+        if lookup_count>=MAX_DESCRIPTOR_LOOKUPS:run_after=run;break
+    for item in scanned:
+        run=item['run']
+        plan=select_native_batch(item['rows'],run,lookup,MAX_ARTIFACTS-len(selected),
+            byte_limit=budget.remaining,byte_cost=lambda ident,item=item:capture_cost(item,ident),
+            after=artifact_after.get(run,0),already_selected=selected,exclude_ids=targets)
+        budget.reserve(plan['reserved_bytes']);selected.extend(plan['selected'])
+        artifact_after[run]=plan['cursor_after']
+        if plan['lookup_limited']:descriptor_deferred+=1
+        if len(selected)>=MAX_ARTIFACTS or (plan['lookup_limited'] and lookup_count>=MAX_DESCRIPTOR_LOOKUPS):
+            run_after=run;break
     missing_before={ident for ident in selected if not lookup(ident)}
     if selected:
         allowed_zips.update(selected)
@@ -391,6 +428,11 @@ def backfill(view, repo, *, artifact_ids=(), run_ids=(), github_get=None, transp
         for endpoint in list(cache):
             if endpoint.endswith('/zip'):del cache[endpoint]
         reader.artifacts.cache.clear()
+    # A descriptor is insufficient to acknowledge a priority window. Keep its
+    # cursor open until every checked original is authenticated in the vault.
+    if any(lookups.get(ident) is None for ident in target_batch[:checked]):
+        target_after=target_start;target_cycle_complete=False
+    elif checked==len(target_batch) and target_after==0:target_cycle_dirty=False
     closed=0;deferred_artifacts=0;incomplete_closed=0
     for item in scanned:
         try:
@@ -431,7 +473,8 @@ def backfill(view, repo, *, artifact_ids=(), run_ids=(), github_get=None, transp
     next_progress=dict(progress,target_after=target_after,run_after=run_after,pending_runs=sorted(pending),
         pending_targets={str(run):sorted(ids) for run,ids in target_runs.items()},
         artifact_after={str(run):after for run,after in artifact_after.items() if run in pending},
-        targets_sha256=targets_sha256,target_cycle_complete=target_cycle_complete,target_cycle_dirty=target_cycle_dirty)
+        targets_sha256=targets_sha256,target_cycle_complete=target_cycle_complete,target_cycle_dirty=target_cycle_dirty,
+        priority_policy_version=PRIORITY_POLICY_VERSION)
     parent=_save_progress(git,parent,progress,next_progress,mac_key,readback_transport,progress_revision)
     complete=target_cycle_complete and not pending and not remaining_targets
     return dict(schema='RACE_AI_BOAT_ORIGINAL_MAINTENANCE_COUNTS_V1',
@@ -441,11 +484,14 @@ def backfill(view, repo, *, artifact_ids=(), run_ids=(), github_get=None, transp
         descriptor_only_cached_targets=cached_targets,descriptor_lookups=lookup_count,known_runs=len(candidates),
         runs_scanned=len(scanned),run_probes=probed,cached_closed_runs=cached_closed,
         selected_capture_ids=len(selected),newly_retained_originals=len(missing_before),
+        priority_capture_ids=priority_capture_ids,ordinary_capture_ids=len(selected)-priority_capture_ids,
         closed_runs_retained=closed,active_runs=active,deferred_runs=max(0,len(candidates)-cached_closed-len(scanned)),pending_run_work=len(pending),
         byte_deferred_runs=byte_deferred,descriptor_deferred_runs=descriptor_deferred,
         deferred_native_artifacts=deferred_artifacts,deferred_target_artifacts=remaining_targets,
         pending_required_artifact_ids=remaining_targets,
         max_new_runs=MAX_RUNS,max_capture_ids=MAX_ARTIFACTS,max_target_descriptors=MAX_TARGET_DESCRIPTORS,
+        max_priority_capture_ids=MAX_PRIORITY_ARTIFACTS,max_priority_io_bytes=MAX_PRIORITY_BYTES,
+        reserved_ordinary_capture_ids=RESERVED_ORDINARY_ARTIFACTS,reserved_ordinary_io_bytes=RESERVED_ORDINARY_BYTES,
         max_descriptor_lookups=MAX_DESCRIPTOR_LOOKUPS,max_run_probes=MAX_RUN_PROBES,
         max_write_attempts=MAX_WRITE_ATTEMPTS,
         reserved_io_bytes=budget.used,max_io_bytes=budget.maximum,metadata_response_bytes=metadata_bytes,
