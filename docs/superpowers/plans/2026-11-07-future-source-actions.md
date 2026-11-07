@@ -61,7 +61,19 @@ API. Only an `official-future-source-capture:` commit and the explicit public
 input file enable its pinned setup and source steps; no input or marker is
 created by this change.
 
-Playwright 1.62.1 and its matching Chromium are installed outside the checkout.
+The same public input path and job also accept
+`RACE_AI_JRA_FUTURE_SOURCE_CAPTURE_INPUT_V1`. A key-free step first calls the
+matching complete manifest validator; unknown or invalid schemas do not reach
+the secret steps. AUTO/KEIRIN uses the existing CLI and native round 900003.
+HORSE uses `scripts.jra_future_source_capture`, native round 900002 and source
+name `official-jra-future-source-capture-RUN`. Native names are always taken from
+the selected CLI's output. Both scopes use the same encrypted-only output
+directories and source-only/dual-artifact readback flags. JRA skips browser
+tooling, uses only its three validated literal current-day sources and keeps
+its separate fixed horse once marker. This routing adds no job, workflow,
+schedule, source permission or date-policy extension.
+
+For AUTO/KEIRIN, Playwright 1.62.1 and its matching Chromium are installed outside the checkout.
 The parent CLI passes Node only the single normalized, nonsymlink tooling path
 `RUNNER_TEMP/race-ai-future-ui-tools/node_modules`; arbitrary resolver paths and
 inherited credentials/options are rejected or removed before once consumption.
@@ -110,3 +122,9 @@ cleared the hook and passed 24 focused tests plus all six shell syntax checks.
 The YAML parsed successfully, and existing workflow content was unchanged
 outside the added job. No public input, actual marker or source acquisition was
 created during this follow-up.
+
+The same-job JRA routing follow-up passed 50 focused tests against the committed
+JRA wrapper, including its five-cell MAC/sidecar/native and dual-ZIP fixture.
+Independent review cleared the routing with 11 focused tests and all seven
+shell syntax checks. These remain fixture/code checks: no actual JRA source,
+future native save or future PDCA completion is claimed.

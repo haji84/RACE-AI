@@ -13,6 +13,9 @@ WORKFLOW=ROOT/'.github/workflows/forecast-audit-ui.yml'
 JOB='official_future_source_capture'
 MANIFEST='audit/state/official-future-source-capture-input.json'
 MODULE='scripts.all_existing_model_future_source_capture'
+JRA_MODULE='scripts.jra_future_source_capture'
+SCHEMAS={'autorace-keirin':'RACE_AI_OFFICIAL_FUTURE_SOURCE_CAPTURE_INPUT_V1','horse':'RACE_AI_JRA_FUTURE_SOURCE_CAPTURE_INPUT_V1'}
+PREFIXES={'autorace-keirin':'official-future-source-capture','horse':'official-jra-future-source-capture'}
 UPLOAD='actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02'
 
 
@@ -69,30 +72,72 @@ class FutureSourceWorkflowTests(unittest.TestCase):
             dep=next(s for s in self.steps if 'ref: '+ref in s)
             self.assertIn('persist-credentials: false',dep)
 
-    def execute(self,step,*,subject='official-future-source-capture: fixture',manifest=True,native_id='',source_id='802'):
+    def execute(self,step,*,subject='official-future-source-capture: fixture',manifest=True,native_id='',source_id='802',
+                scope='autorace-keirin',schema=None,reject=False):
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary);commands=root/'commands';commands.mkdir();runner=root/'private temp';runner.mkdir()
             log=root/'calls.jsonl';output=root/'output'
             git=commands/'git';git.write_text('#!/bin/sh\nprintf "%s\\n" "$FIXTURE_SUBJECT"\n');git.chmod(0o700)
             if manifest:
-                file=root/MANIFEST;file.parent.mkdir(parents=True);file.write_text('{}')
+                file=root/MANIFEST;file.parent.mkdir(parents=True)
+                file.write_text(json.dumps(dict(schema=schema or SCHEMAS[scope],reject=reject)))
             (root/'race_ai').mkdir();(root/'race_ai'/'__init__.py').write_text('')
+            (root/'race_ai'/'permissioned_source_delivery.py').write_text('from json import loads\ndef read_json_bytes(raw):return loads(raw)\n')
             (root/'scripts').mkdir();(root/'scripts'/'__init__.py').write_text('')
-            (root/'scripts'/'all_existing_model_future_source_capture.py').write_text(
-                'import json,os\nfrom pathlib import Path\n'
-                'def main(args):\n'
-                ' with open(os.environ["FIXTURE_LOG"],"a") as f:f.write(json.dumps(args)+"\\n")\n'
-                ' return 0\n')
+            for fixture_scope,core_name,cli in (
+                ('autorace-keirin','all_existing_model_future_source_capture',MODULE),('horse','jra_future_source_capture',JRA_MODULE)):
+                (root/'race_ai'/(core_name+'.py')).write_text(
+                    'def validate_manifest(value,*,now):\n'
+                    ' assert now.utcoffset() is not None\n'
+                    ' if value["schema"]!='+repr(SCHEMAS[fixture_scope])+' or value.get("reject"):raise ValueError("private fixture error")\n'
+                    ' return value\n')
+                (root/'scripts'/(cli.split('.')[-1]+'.py')).write_text(
+                    'import json,os\nfrom pathlib import Path\n'
+                    'def main(args):\n'
+                    ' with open(os.environ["FIXTURE_LOG"],"a") as f:f.write(json.dumps([__name__,args])+"\\n")\n'
+                    ' return 0\n')
             env=dict(os.environ,PATH=str(commands)+os.pathsep+os.environ['PATH'],RUNNER_TEMP=str(runner),
                 GITHUB_OUTPUT=str(output),FIXTURE_SUBJECT=subject,FIXTURE_LOG=str(log),
-                NATIVE_INPUT_ARTIFACT_ID=native_id,SOURCE_CAPTURE_ARTIFACT_ID=source_id)
+                NATIVE_INPUT_ARTIFACT_ID=native_id,SOURCE_CAPTURE_ARTIFACT_ID=source_id,FUTURE_SOURCE_SCOPE=scope)
             result=subprocess.run(['bash','-e','-o','pipefail','-c',script(step)],cwd=root,env=env,
                 capture_output=True,text=True,timeout=10)
-            calls=[json.loads(line) for line in log.read_text().splitlines()] if log.exists() else []
+            recorded=[json.loads(line) for line in log.read_text().splitlines()] if log.exists() else []
+            calls=[row[1] for row in recorded];self.last_fixture_modules=[row[0] for row in recorded]
             values=dict(line.split('=',1) for line in output.read_text().splitlines()) if output.exists() else {}
             status=runner/'official-future-source-capture.status.json'
             proof=json.loads(status.read_text()) if status.exists() else None
             return result,calls,values,proof,str(runner)
+
+    def test_full_keyless_scope_validation_selects_only_the_matching_native_cli(self):
+        validate=ident(self.steps,'future_source_scope');self.assertIsNotNone(validate,'validated scope routing is missing')
+        self.assertNotIn('RACE_AI_STATE_KEY',validate);self.assertNotIn('GH_TOKEN:',validate)
+        self.assertIn('validate_manifest',validate)
+        for scope in SCHEMAS:
+            result,calls,values,_,_=self.execute(validate,scope=scope)
+            self.assertEqual(result.returncode,0,result.stderr);self.assertEqual(calls,[])
+            self.assertEqual(values,dict(scope=scope,source_artifact_prefix=PREFIXES[scope]))
+        for options in (dict(schema='UNSUPPORTED'),dict(reject=True),dict(scope='horse',reject=True)):
+            result,calls,values,_,_=self.execute(validate,**options)
+            self.assertNotEqual(result.returncode,0);self.assertEqual(calls,[]);self.assertEqual(values,{})
+            self.assertNotIn('private fixture error',result.stderr)
+
+    def test_jra_dispatch_uses_same_job_without_browser_and_preserves_source_only_readback(self):
+        self.assertEqual(self.text.count('  official_future_source_capture:\n'),1)
+        capture=ident(self.steps,'future_source_capture');readback=ident(self.steps,'future_source_readback')
+        for step in (capture,readback):self.assertIn('FUTURE_SOURCE_SCOPE:',step)
+        result,calls,_,proof,runner=self.execute(capture,scope='horse')
+        self.assertEqual(result.returncode,0,result.stderr);self.assertEqual(self.last_fixture_modules,[JRA_MODULE])
+        self.assertEqual(proof['schema'],'RACE_AI_JRA_FUTURE_SOURCE_CAPTURE_COUNTS_V1')
+        self.assertEqual(calls,[['--input',MANIFEST,'--out-dir',runner+'/official-future-source-capture']])
+        for native_id in ('','801'):
+            result,calls,_,_,runner=self.execute(readback,scope='horse',native_id=native_id)
+            self.assertEqual(result.returncode,0,result.stderr);self.assertEqual(self.last_fixture_modules,[JRA_MODULE])
+            expected=['--input',MANIFEST,'--out-dir',runner+'/official-future-source-capture','--readback-source','802']
+            if native_id:expected+=['--readback-native','801']
+            self.assertEqual(calls,[expected])
+        for item in self.steps:
+            if 'actions/setup-node@' in item or 'playwright@1.62.1' in item or 'id: future_source_browser' in item:
+                self.assertIn("steps.future_source_scope.outputs.scope == 'autorace-keirin'",item)
 
     def test_route_is_inert_for_routine_wrong_prefix_and_missing_public_manifest(self):
         route=ident(self.steps,'future_source_route')
@@ -128,7 +173,7 @@ class FutureSourceWorkflowTests(unittest.TestCase):
         self.assertIn('path: ${{ runner.temp }}/official-future-source-capture/native/',native)
         self.assertIn("if: always() && steps.future_source_route.outputs.requested == 'true'",source)
         self.assertIn('steps.future_source_capture.outputs.source_artifact_name',source)
-        self.assertIn("format('official-future-source-capture-{0}', github.run_id)",source)
+        self.assertIn("format('{0}-{1}', steps.future_source_scope.outputs.source_artifact_prefix, github.run_id)",source)
         self.assertIn('path: ${{ runner.temp }}/official-future-source-capture/source/*.enc',source)
         for item in (native,source,proof):
             self.assertIn('uses: '+UPLOAD,item);self.assertNotIn('env:',item);self.assertNotIn('overwrite:',item)
