@@ -15,14 +15,14 @@ class RetainedResultAuditBranchTests(unittest.TestCase):
         self.workflow=yaml.load((ROOT/'.github/workflows/boat-racer-daily.yml').read_text(),Loader=yaml.BaseLoader)
         self.step=next(s for s in self.workflow['jobs']['daily']['steps'] if s.get('name','').startswith('Reflect confirmed'))
 
-    def run_script(self,*,branch=BRANCH,subject='retained-result-audit: inspect retained fields',actor='173585154',daily='false',browser=False):
+    def run_script(self,*,branch=BRANCH,subject='retained-result-audit: inspect retained fields',actor='173585154',daily='false',browser=False,fail_replay=False):
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary);commands=root/'bin';commands.mkdir();log=root/'calls'
-            for name,body in [('git','printf "%s\\n" "$SUBJECT"'),('python','printf "%s\\n" "$*" >> "$LOG"'),('node','printf "node %s\\n" "$*" >> "$LOG"')]:
+            for name,body in [('git','printf "%s\\n" "$SUBJECT"'),('python','printf "%s\\n" "$*" >> "$LOG"\ncase "$*" in *--replay-retained-results*) [ "$FAIL_REPLAY" != true ] || exit 2;; esac'),('node','printf "node %s\\n" "$*" >> "$LOG"')]:
                 path=commands/name;path.write_text('#!/bin/sh\n'+body+'\n');path.chmod(0o700)
             env=dict(os.environ,PATH=str(commands)+os.pathsep+os.environ['PATH'],LOG=str(log),SUBJECT=subject,
                      GITHUB_REF='refs/heads/'+branch,GITHUB_EVENT_NAME='push',GITHUB_ACTOR_ID=actor,
-                     GITHUB_REPOSITORY_ID='1416489937',INITIALIZE='false',DAILY_RECONCILE=daily,RUNNER_TEMP=str(root),RESULT_PROBE_RACE='')
+                     GITHUB_REPOSITORY_ID='1416489937',INITIALIZE='false',DAILY_RECONCILE=daily,RUNNER_TEMP=str(root),RESULT_PROBE_RACE='',FAIL_REPLAY=str(fail_replay).lower())
             step=next(s for s in self.workflow['jobs']['daily']['steps'] if s.get('name','').startswith('Verify private')) if browser else self.step
             result=subprocess.run(['bash','-e','-o','pipefail','-c',step['run']],env=env,cwd=root,capture_output=True,text=True)
             return result.returncode,log.read_text().splitlines() if log.exists() else []
@@ -49,6 +49,21 @@ class RetainedResultAuditBranchTests(unittest.TestCase):
         for values in [dict(actor='1',subject='retained-result-audit: verify-site'),dict(subject='retained-result-audit: other')]:
             code,calls=self.run_script(browser=True,**values)
             self.assertNotEqual(code,0);self.assertEqual(calls,[])
+
+    def test_exact_repair_prefix_replays_then_audits_without_collecting_or_initializing(self):
+        subject='retained-result-audit: verify-site repair-retained-results'
+        code,calls=self.run_script(subject=subject,daily='true')
+        self.assertEqual(code,0);self.assertEqual(len(calls),2)
+        self.assertIn('-m scripts.racer_intraday_refresh ',calls[0]);self.assertIn('--replay-retained-results',calls[0])
+        self.assertNotIn('--sync-results',calls[0]);self.assertNotIn('--initialize',calls[0])
+        self.assertIn('--retained-sp-only',calls[1])
+        code,calls=self.run_script(subject=subject,actor='1')
+        self.assertNotEqual(code,0);self.assertEqual(calls,[])
+
+    def test_failed_replay_stops_before_the_after_audit(self):
+        code,calls=self.run_script(subject='retained-result-audit: verify-site repair-retained-results',fail_replay=True)
+        self.assertNotEqual(code,0);self.assertEqual(len(calls),1)
+        self.assertIn('--replay-retained-results',calls[0])
 
     def test_existing_racer_worker_and_daily_reconcile_are_unchanged(self):
         code,calls=self.run_script(branch='main',subject='routine update',daily='true')

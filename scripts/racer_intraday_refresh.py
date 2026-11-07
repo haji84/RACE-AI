@@ -1,5 +1,6 @@
 """Per-race athlete statistics; private delta retention and derived-only release."""
 from contextlib import nullcontext
+from copy import deepcopy
 from datetime import date,datetime,timezone
 from pathlib import Path
 import argparse,json,subprocess,sys
@@ -56,9 +57,44 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
         save(root/'run-report.json',(wire(report)+'\n').encode());return report
     finally:base.close()
 
-def main():
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--repo',type=Path,default=ROOT);p.add_argument('--private-dir',type=Path,required=True);p.add_argument('--initialize',action='store_true');p.add_argument('--daily-reconcile',action='store_true');p.add_argument('--verify-public',action='store_true');p.add_argument('--sync-results',action='store_true');a=p.parse_args()
+def replay_retained_results(repo,*,now=None,intraday_transport=None,bridge=None):
+    """Reproject authenticated retained bytes; do not collect or save source state."""
+    from race_ai import saved_view_feed as F
+    from race_ai.racer_result_bridge import SavedResultBridge,status
+    current=(lambda:clock(now)) if now is not None else (lambda:datetime.now(timezone.utc))
+    started=current();loaded=load_intraday(repo,transport=intraday_transport,now=started)
+    need(loaded['previous'] is not None,'RESULT_REPLAY_EXISTING_STATE_REQUIRED')
+    state=loaded['state'];control=wire(state.control);captures=wire(state.new_captures)
+    bridge=bridge or SavedResultBridge(repo,now=started);before=deepcopy(bridge.rows)
+    result=bridge.publish(state,now=current())
+    need(wire(state.control)==control and wire(state.new_captures)==captures,'RESULT_REPLAY_SOURCE_STATE_CHANGED')
+    checked=current();reader=SavedResultBridge(repo,now=checked,transport=bridge.git,bootstrap=bridge.bootstrap)
+    rows={r['race_id']:r for r in reader.rows}
+    view=lambda records:dict(schema='RACE_AI_PRIVATE_CYCLE_VIEW_V1',records=records)
+    prior=F.forecast_inventory(view(before));after=F.forecast_inventory(view(reader.rows))
+    need(all(after.get(k)==v for k,v in prior.items()),'RESULT_REPLAY_ORIGINAL_CHANGED')
+    for row in before:
+        restored=rows.get(row['race_id']);need(restored is not None,'RESULT_REPLAY_READBACK_MISSING')
+        for field in ('result_observations','result_revisions'):
+            kept={wire(o) for o in restored.get(field,[])}
+            need(all(wire(o) in kept for o in row.get(field,[])),'RESULT_REPLAY_OBSERVATION_CHANGED')
+    need(all(r['race_id'] in rows and wire(rows[r['race_id']].get('result'))==wire(r.get('result'))
+             for r in bridge.rows),'RESULT_REPLAY_READBACK_MISMATCH')
+    return dict(schema='RACE_AI_RETAINED_RESULT_REPLAY_V1',status='RETAINED_RESULTS_REPLAYED',
+        checked_at=checked.isoformat(),source_requests=0,changed_races=result['changed_races'],
+        result_sync=status(now=checked,rows=reader.rows,changed=result['changed_races']),
+        readback_verified=True,original_observations_preserved=True,originals_changed=False,
+        source_state_saved=False,public_catalogue_published=False,forecasting_performed=False,plaintext_published=False)
+
+
+def main(argv=None):
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--repo',type=Path,default=ROOT);p.add_argument('--private-dir',type=Path,required=True);p.add_argument('--initialize',action='store_true');p.add_argument('--daily-reconcile',action='store_true');p.add_argument('--verify-public',action='store_true');p.add_argument('--sync-results',action='store_true');p.add_argument('--replay-retained-results',action='store_true');a=p.parse_args(argv)
     try:
+        if a.replay_retained_results:
+            need(not any((a.initialize,a.daily_reconcile,a.verify_public,a.sync_results)),'RESULT_REPLAY_MODE_CONFLICT')
+            from scripts.boat_private_original_vault import _environment
+            repo=_environment(a.repo)
+            report=replay_retained_results(repo);print(wire(report));return 0
         report=refresh(a.repo,a.private_dir,initialize=a.initialize,daily_reconcile=a.daily_reconcile,verify=a.verify_public,sync_results=a.sync_results);print(wire(report));return 0 if report['status']=='INTRADAY_REFRESHED' and (not a.sync_results or report['result_sync']['state']=='READY') else 2
     except Exception as exc:
         reason=str(exc) if isinstance(exc,ValueError) and str(exc).isupper() and len(str(exc))<=100 else 'INTRADAY_REFRESH_FAILED';trace=[];frame=exc.__traceback__
