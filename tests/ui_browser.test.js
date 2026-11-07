@@ -82,10 +82,19 @@ async function main() {
     await page.clock.install({time:new Date('2030-01-01T00:30:00Z')});
     await page.goto(base);
     await page.locator('#source-state').waitFor();
+    assert.equal(await page.locator('.import-panel').isVisible(),false,'ordinary browsing must not show research data upload controls');
+    assert.equal(await page.locator('#load-synthetic').isVisible(),false,'synthetic tests belong in explicit settings');
+    assert.equal(await page.locator('#operation-details').isVisible(),false,'disconnected operation tools belong in explicit settings');
     assert.equal(await page.locator('#forecast-generate').isDisabled(),true,'static viewer cannot pretend to generate');
+    await page.locator('[data-page="settings"]').filter({visible:true}).first().click();
+    await page.locator('#data-tools>summary').click();
+    assert.equal(await page.locator('.import-panel').isVisible(),true,'manual import remains available when explicitly opened');
     await page.locator('#operation-details>summary').click();
     assert.match(await page.locator('#generation-message').innerText(),/ローカル予想サーバー/);
     await page.locator('#operation-details>summary').click();
+    await page.locator('#data-tools>summary').click();
+    await page.locator('[data-page="home"]').filter({visible:true}).first().click();
+    assert.doesNotMatch(await page.locator('#home-races').innerText(),/JSON|保存原本を.*読み込/);
     assert.match(await page.locator('#source-state').innerText(), /未取得|未読込|未接続/);
     assert.equal(await page.locator('#page-home .race-card').count(),0);
     await page.locator('[data-page="research"]').filter({visible:true}).first().click();
@@ -249,6 +258,8 @@ async function main() {
         assert.equal(view.dataset_status,'SYNTHETIC_ONLY');
         const saved=view.records.find(r=>r.prediction)||view.records[0];
         const variants=[saved.prediction,...saved.comparison_predictions].filter(Boolean);
+        await nav('settings');
+        if(!await page.locator('#data-tools').evaluate(n=>n.open))await page.locator('#data-tools>summary').click();
         await page.locator('#clear-data').click();
         await page.clock.setFixedTime(new Date(saved.event_date_jst+'T00:30:00Z'));
         await page.locator('#race-file').setInputFiles({name:`native-synthetic-${number}.json`,mimeType:'application/json',buffer:Buffer.from(JSON.stringify(view))});
@@ -292,6 +303,8 @@ async function main() {
       mark(`${width}: sixteen native families and four-sport private SQLite restart -> browser, exact hashes/order, native trial phases, five-ticket plan and missing-input states`);
       const sourceView=bundle.source_observation_view;
       assert.equal(sourceView.dataset_status,'SYNTHETIC_ONLY');
+      await nav('settings');
+      if(!await page.locator('#data-tools').evaluate(n=>n.open))await page.locator('#data-tools>summary').click();
       await page.locator('#clear-data').click();
       await page.clock.setFixedTime(new Date(sourceView.event_date_jst+'T00:30:00Z'));
       await page.locator('#race-file').setInputFiles({name:'source-observations-synthetic.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(sourceView))});

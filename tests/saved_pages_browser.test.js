@@ -36,6 +36,8 @@ build_site(p,r/'updated-public',r/'updated-private',expected_source_sha256=pin,v
  await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'),{},{timeout:7000});
  assert.equal(await page.locator('#selected-date').inputValue(),'2026-11-06');
  assert.equal(await page.locator('#page-races .race-card').count(),1);
+ assert.equal(await page.locator('.import-panel').isVisible(),false,'an automatically opened owner view must not ask for data files');
+ assert.equal(await page.locator('#load-synthetic').isVisible(),false);
  for(const name of ['home','races','detail','picks','results','research','settings']){
   if(name==='detail'){await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('#page-races [data-open-race]').first().click();}
   else await page.locator(`[data-page="${name}"]`).filter({visible:true}).first().click();
@@ -57,10 +59,17 @@ build_site(p,r/'updated-public',r/'updated-private',expected_source_sha256=pin,v
  assert.equal(new URL(page.url()).hash,'#'+fragment,'original V1 owner link must open the updated V2 payload');
  assert.equal(await page.locator('#page-races .race-card').count(),1);
  for(const suffix of ['',fragment.replace(/\.[A-Za-z0-9_-]{43}$/,'.'+ 'A'.repeat(43)),fragment]){
-  tamper=suffix===fragment;await page.goto(base+(suffix?'#'+suffix:''));
+  const before=requests.length;tamper=suffix===fragment;await page.goto(base+(suffix?'#'+suffix:''));
   await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('読めません')||document.querySelector('#file-message').textContent.includes('読み込めません'),{},{timeout:7000});
   assert.equal(await page.locator('#page-races .race-card').count(),0);
   assert.equal((await page.locator('#file-message').innerText()).includes(secret.key),false);
+  assert.equal(await page.locator('.import-panel').isVisible(),false);
+  assert.equal(await page.locator('#load-synthetic').isVisible(),false);
+  if(!suffix){
+   assert.match(await page.locator('#data-banner').innerText(),/閲覧用リンク/);
+   assert.doesNotMatch(await page.locator('#home-races').innerText(),/JSON/);
+   assert.equal(requests.slice(before).some(r=>r.url.includes('/views/')),false,'missing owner links must be explained before requesting encrypted race data');
+  }
  }
  console.log('PASS encrypted Pages: actual WebCrypto, 7pages/reload/links, 4variants, past day, no key request/storage, tamper/wrong/missing key refused');
 })().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();if(server)await new Promise(r=>server.close(r));fs.rmSync(folder,{recursive:true,force:true});});
