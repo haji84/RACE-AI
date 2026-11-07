@@ -11,9 +11,9 @@
     const identity = portraits?.get(race, person), profile = identity && byId.get(identity.registration);
     return profile && profile.name === identity.name ? profile : null;
   }
-  function preferredCourses(profile) {
+  function preferredCourses(profile, {baselines = data.cohort_top2_percent} = {}) {
     const rows = (profile?.term?.courses || []).filter(c => Number.isInteger(c.starts) && c.starts >= minimumStarts && Number.isFinite(c.top2_percent));
-    const adjusted = rows.map(c => ({...c, advantage: Number.isFinite(data.cohort_top2_percent?.[c.course - 1]) ? c.top2_percent - data.cohort_top2_percent[c.course - 1] : null}));
+    const adjusted = rows.map(c => ({...c, advantage: Number.isFinite(baselines?.[c.course - 1]) ? c.top2_percent - baselines[c.course - 1] : null}));
     const positive = adjusted.filter(c => c.advantage > 0).sort((a, b) => b.advantage - a.advantage || b.starts - a.starts || a.course - b.course);
     return {basis: positive.length ? 'COHORT_ADJUSTED' : rows.length ? 'WITHIN_RACER' : 'INSUFFICIENT', minimumStarts,
       courses: (positive.length ? positive : adjusted.sort((a, b) => b.top2_percent - a.top2_percent || b.starts - a.starts || a.course - b.course)).slice(0, 2)};
@@ -31,19 +31,21 @@
     ['まくり差し・展開を拾う形', '内側の攻めで生まれた空きを使って差し込む形。', '内側の艇が動かなければ距離の不利が残る。'],
     ['最外から展開を拾う形', '内側の競り合いや空いた進路を利用して追走する形。', '大外の距離があり、コース成績だけで先着を判断しない。']
   ];
-  function scenario(race, person, course, {entryMap = null} = {}) {
-    const profile = get(race, person), empty = (status, message) => ({status, message, comparisons: []});
+  function scenario(race, person, course, {entryMap = null, referenceApi = null} = {}) {
+    const lookup = referenceApi ? (race, person) => referenceApi.get(race, person) : get;
+    const period = referenceApi?.period || data.period;
+    const profile = lookup(race, person), empty = (status, message) => ({status, message, comparisons: []});
     if (!profile) return empty('NO_PROFILE', '登録番号と選手名を照合できません。');
     if (withdrawn(person)) return empty('WITHDRAWN', '欠場として記録されているため、このレースの展開予想は表示しません。');
     if (!Number.isInteger(course) || course < 1 || course > 6) return empty('NO_COURSE', '参考にするコースを選んでください。');
     if (!profile.term) return empty('NO_TERM', 'この選手は今回の期別資料に未収録です。基本情報は確認できます。');
     const day = race.event_date_jst, clock = typeof day === 'string' ? Date.parse(day + 'T00:00:00Z') : NaN;
     if (!Number.isFinite(clock) || new Date(clock).toISOString().slice(0, 10) !== day) return empty('DATE_UNKNOWN', '対象日を確認できないため、コース成績のみ表示します。');
-    if (day <= data.period.end) return empty('HISTORICAL_REFERENCE', 'この集計は対象レース以降を含むため、当時の展開予想には使用しません。');
+    if (day <= period.end) return empty('HISTORICAL_REFERENCE', 'この集計は対象レース以降を含むため、当時の展開予想には使用しません。');
     const stats = profile.term.courses.find(c => c.course === course);
     if (!stats || stats.starts < minimumStarts) return empty('INSUFFICIENT', 'このコースは10走未満のため、成績から展開を評価しません。');
     const people = Array.isArray(race.participants) ? race.participants : [], positions = people.map(position);
-    const references = people.map(p => get(race, p));
+    const references = people.map(p => lookup(race, p));
     const complete = people.length === 6 && positions.every(Number.isInteger) && new Set(positions).size === 6 &&
       references.every(Boolean) && new Set(references.map(p => p?.registration)).size === 6 && !people.some(withdrawn);
     const reported = people.filter(p => p.preview_course !== null && p.preview_course !== undefined);
