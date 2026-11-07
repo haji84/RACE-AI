@@ -1,0 +1,73 @@
+{
+  "schema": "RACE_AI_RACE_EXPLORER_UI_VERIFICATION_V1",
+  "date": "2026-11-07",
+  "scope": "UI_ONLY_NOT_REAL_RACE_ACCURACY_OR_COMPLETE_SOURCE_COVERAGE",
+  "implementation_commit": "383e79570f43f8816c3abd2dcf594a0bf6eae073",
+  "features": [
+    "favorite_venues",
+    "exact_day_race_navigation",
+    "in_page_athlete_cards",
+    "race_information_shortcuts",
+    "labeled_pre_race_weather",
+    "identity_bound_supplemental_observations",
+    "official_empty_venue_links"
+  ],
+  "verification": {
+    "ui_and_context_tests_passed": 98,
+    "ui_and_context_tests_failed": 0,
+    "python_saved_view_packaging_passed": 13,
+    "broad_browser_viewports": [
+      320,
+      390,
+      1440,
+      1920
+    ],
+    "broad_browser_scope": "seven pages, four sports, invented native originals and sixteen model families, immutable drafts and saved output order",
+    "explorer_browser_groups_passed": 12,
+    "explorer_browser_viewports": [
+      320,
+      390,
+      1440
+    ],
+    "encrypted_webcrypto_browser": "PASSED",
+    "saved_pdca_browser": "PASSED",
+    "portrait_browser": "PASSED",
+    "venue_browser": "PASSED",
+    "results_budget_browser": "PASSED",
+    "fresh_code_review": "material findings reproduced RED and fixed GREEN, no deferred findings",
+    "private_actual_forecast_data_used": false
+  },
+  "publication": {
+    "status": "PAGES_PRESENTATION_REFRESHED",
+    "source_commit": "5ff91278484886261cea2ba6443906891a864fcc",
+    "parent_commit": "057ead1ddb7746385505772e812319c44075973a",
+    "cipher_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+    "manifest_sha256": "f07ebc8785ca3be988ec2ae2bb59ac62180a3a9d2ea3ecea824693afcd2bb70a",
+    "portrait_count": 1669,
+    "ciphertext_unchanged": true,
+    "plaintext_published": false,
+    "changed_files": [
+      "app.js",
+      "index.html",
+      "style.css",
+      "ui-model.js"
+    ],
+    "implementation_commit": "383e79570f43f8816c3abd2dcf594a0bf6eae073",
+    "portrait_assets_unchanged": true,
+    "http_verified": true,
+    "http_files": [
+      "app.js",
+      "ui-model.js",
+      "index.html",
+      "style.css",
+      "views/1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec.json"
+    ],
+    "deployed_explorer_verified": true,
+    "deployed_portraits_verified": true,
+    "deployed_viewports": [
+      320,
+      390,
+      1440
+    ]
+  }
+}
