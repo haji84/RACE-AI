@@ -133,7 +133,7 @@ def authenticated_source_control(raw, meta, *, expected_run=None, now=None):
     need(reason is None or isinstance(reason,str) and
          re.fullmatch(r'[A-Z][A-Z0-9_]{0,127}',reason),'source stop reason')
     normal=reason in (None,'BOUNDED_SESSION_END','MAX_ROUNDS_REACHED',
-                      'SESSION_SOURCE_BUDGET_EXHAUSTED','SOURCE_BUDGET_EXHAUSTED',
+                      'SESSION_SOURCE_BUDGET_EXHAUSTED','SOURCE_BUDGET_EXHAUSTED','ROUND_SOURCE_BUDGET_EXHAUSTED',
                       'DAY_CHANGED','DAY_HANDOFF','WORKER_HANDOFF')
     if not normal:
         from .source_retry_policy import plan_http_wait
@@ -457,7 +457,27 @@ def load_state(path,day):
     need(data.get('schema')=='RACE_AI_RECOVERED_FIRST_RECEIPTS_V1' and data.get('complete') is True and data.get('day_jst')==day,'recovery missing or wrong day')
     return data
 
-def due_rows(rows,observations,now,*,limit=None):
+def result_request_budget(session,now):
+    """Remaining existing allowance; never mutate or reopen a source session."""
+    from .repeated_cycle import SOURCE_LIMIT,ROUND_SOURCE_LIMIT
+    from .source_retry_policy import wait_active
+    need(type(session) is dict and now.utcoffset() is not None,'result budget session/clock')
+    used=session.get('requests_used');started=session.get('round_started_requests',0)
+    need(type(used) is int and used>=0 and type(started) is int and 0<=started<=used,
+         'result budget counters')
+    prepared=session.get('prepared_round')
+    need(prepared is None or type(prepared) is int and prepared>=1,'result budget prepared round')
+    if (session.get('halted_reason') or wait_active(session.get('source_wait'),now) or
+            session.get('stop_at') is not None and now>=ts(session['stop_at']) or
+            session.get('worker_handoff_at') is not None and now>=ts(session['worker_handoff_at'])):
+        return 0
+    bounds=[]
+    if SOURCE_LIMIT is not None:bounds.append(SOURCE_LIMIT-used)
+    if ROUND_SOURCE_LIMIT is not None and prepared is not None:bounds.append(ROUND_SOURCE_LIMIT-(used-started))
+    return max(0,min(bounds)) if bounds else None
+
+
+def due_rows(rows,observations,now,*,limit=None,priority_races=()):
     """Poll pending first, at most every five minutes; revisit settled after six hours."""
     latest,_=latest_result_observations(observations)
     by_result={x['race_id']:x for x in latest};by_race={x['race_id']:x for x in rows};due=[]
@@ -470,5 +490,7 @@ def due_rows(rows,observations,now,*,limit=None):
             interval=timedelta(hours=6) if settled else timedelta(minutes=5)
             if ts(old['captured_at'])+interval>now:continue
         due.append((settled,ts(old['captured_at']) if old else ts(row['cutoff_at']),row['race_id'],row))
-    ordered=sorted(due,key=lambda x:x[:3])
+    priority=set(priority_races)
+    need(all(type(rid) is str for rid in priority),'result priority race keys')
+    ordered=sorted(due,key=lambda x:(x[0],x[2] not in priority,x[1],x[2]))
     return [item[3] for item in (ordered if limit is None else ordered[:limit])]

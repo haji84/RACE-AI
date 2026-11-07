@@ -180,6 +180,25 @@ runs:
       if: steps.ready.outputs.active == 'true'
       shell: bash
       run: python scripts/github_existing_cycle.py repeat-complete --round '${{ inputs.round }}' --p1-artifact '${{ steps.freeze.outputs.artifact-id }}' --result-artifact '${{ steps.result.outputs.artifact-id }}'
+    - name: Retain pinned official-result originals with the existing serialized state writer
+      if: steps.ready.outputs.active == 'true' && hashFiles('audit/state/official-result-retention-input.json') != ''
+      continue-on-error: true
+      shell: bash
+      env:
+        GH_TOKEN: ${{ github.token }}
+        RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
+      run: |
+        umask 077
+        python -m scripts.all_existing_model_official_result_retain --input audit/state/official-result-retention-input.json --out-dir '${{ runner.temp }}/official-result-retention' > '${{ runner.temp }}/official-result-retention-status.json'
+    - name: Keep count-only official-result original retention status
+      if: always() && steps.ready.outputs.active == 'true' && hashFiles('audit/state/official-result-retention-input.json') != ''
+      continue-on-error: true
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: official-result-retention-${{ github.run_id }}-${{ inputs.round }}
+        path: ${{ runner.temp }}/official-result-retention-status.json
+        retention-days: 7
+        if-no-files-found: error
     - name: Automatically publish encrypted saved-forecast result comparisons
       if: steps.ready.outputs.active == 'true'
       shell: bash

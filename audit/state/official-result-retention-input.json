@@ -1,0 +1,20 @@
+{
+  "allow_order_only": false,
+  "native_artifacts": [
+    {
+      "digest": "sha256:10db96ba2e8179d37c404f7f9b17acdf9465b4f8a7f6999bc327f03e78a86e21",
+      "head_sha": "728b03530264f3494a408fb92bb61b541d3ae0d3",
+      "id": 13555822588,
+      "run_id": 42327254832
+    }
+  ],
+  "result_artifacts": [
+    {
+      "digest": "sha256:94eb5be8ef74530f876a4e43b5aa4b7df349f7b3dc143174868cab7a0ac3d1fd",
+      "head_sha": "35be5f2c148654f2bc2aeeb07095bec650b5d40c",
+      "id": 13559822755,
+      "run_id": 42338084743
+    }
+  ],
+  "schema": "RACE_AI_OFFICIAL_RESULT_RETAIN_INPUT_V1"
+}

@@ -1,0 +1,20 @@
+{
+  "actual_purchases": false,
+  "cohort_policy": "EARLIEST_COMPLETE_EIGHT_RACES_PER_SPORT",
+  "cohort_size": 8,
+  "commercial_use_permitted": false,
+  "label_evaluation_scope": "ORDER_ONLY_NO_MONETARY_EVALUATION",
+  "owner_instruction_ref": "OWNER_INSTRUCTION_20261107_PERSONAL_RESEARCH",
+  "production_promoted": false,
+  "provider_permission_confirmed": false,
+  "public_raw_data_permitted": false,
+  "purpose": "EXISTING_ALL_FAMILIES_ORDER_ONLY_SHADOW_FIT",
+  "schema": "RACE_AI_OWNER_ORDER_ONLY_FIT_REQUEST_V1",
+  "sports": [
+    "autorace",
+    "boat",
+    "horse",
+    "keirin"
+  ],
+  "target_fitted_model_count": 30
+}

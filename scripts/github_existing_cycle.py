@@ -13,7 +13,7 @@ import race_ai
 race_ai.__path__.append(str(ROOT/'pr64-reference'/'race_ai'))
 from race_ai.frozen_day_cycle import read_p0,read_p1,evaluate,need,ts
 from race_ai.first_receipt_continuity import first_receipt_rows,latest_result_observations
-from race_ai.cycle_recovery import recover,load_state,due_rows
+from race_ai.cycle_recovery import recover,load_state,due_rows,result_request_budget
 from race_ai.observed_weight_learning import attach_snapshots
 JST=timezone(timedelta(hours=9));REPO='haji84/RACE-AI'
 
@@ -740,12 +740,20 @@ def audit(day,p1_id,p0_supplement=None,round_no=None,*,video_context_artifacts=(
     from race_ai.repeated_cycle import SourceGuard,load as load_session,checkpoint
     session_path=ROOT/'cycle_recovery_output/repeat-session.json'
     guard=SourceGuard(session_path) if session_path.exists() else None
-    due=due_rows(rows,recovered['observations'],datetime.now(timezone.utc))
+    at=datetime.now(timezone.utc)
+    # These P1 rows already passed read_p1/first_receipt_rows. Prioritizing their
+    # due keys creates no new archive/source request and never advances a cutoff.
+    priority={row['race_id'] for row in rows if row.get('stage')=='P1'}
+    due=due_rows(rows,recovered['observations'],at,priority_races=priority)
+    eligible_due_count=len(due)
+    allowance=result_request_budget(load_session(session_path),at) if guard is not None else None
+    if allowance is not None:due=due[:allowance]
     observations,failures,requests_used=observe_due_results(due,recovered['observations'],day,guard)
     latest_observations,observations=latest_result_observations(observations)
     report=evaluate([{k:v for k,v in r.items() if k not in ('learning_snapshot','learning_snapshot_sha256')} for r in rows],latest_observations)
     report.update(day_jst=day,updated_at=datetime.now(timezone.utc).isoformat(),run_id=os.environ.get('GITHUB_RUN_ID'),
         code_sha=os.environ.get('GITHUB_SHA'),first_forecast_artifacts=sources,source_request_count=requests_used,
+        result_source_due_count=eligible_due_count,result_source_deferred_count=eligible_due_count-len(due),
         schedule=doc['schedule'],scheduled_boat_races=len(doc['schedule']),
         original_p0_skips=doc['skipped'],no_p0_forecast=[x for x in doc['skipped'] if x['race_id'] not in {r['race_id'] for r in rows if r['stage']=='P0'}],
         result_source_failures=failures,excluded_repeat_forecasts=excluded,

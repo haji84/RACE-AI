@@ -64,8 +64,16 @@ def _reverify_native_metadata(metadata):
         raise ValueError('ALL_MODEL_NATIVE_ARCHIVE_ACTUAL_METADATA_MISMATCH')
 
 
-def _merge_native_records(original,additional):
+def _merge_native_records(original,additional,*,preserve_native_versions=False):
     """Keep originals; an equal-time conflicting frozen input stops intake."""
+    if preserve_native_versions:
+        if type(original) is not list or type(additional) is not list or len(original)+len(additional)>10000:
+            raise ValueError('ALL_MODEL_COMMON_EIGHT_BOUNDED_RECORDS')
+        merged=[];seen=set()
+        for row in original+additional:
+            key=digest(row)
+            if key not in seen:merged.append(row);seen.add(key)
+        return merged
     from race_ai.existing_model_dispatch import _race_key
     from race_ai.observed_weight_learning import ts
     def key(row):
@@ -87,7 +95,7 @@ def _merge_native_records(original,additional):
     return merged
 
 
-def _intake_identity(records,*,result_admissions=()):
+def _intake_identity(records,*,result_admissions=(),common_cohort=None):
     """Bind all data/contracts; keep the new derivation operation clock separate.
 
     Every invocation records its actual derived_at in the encrypted lineage.
@@ -95,6 +103,10 @@ def _intake_identity(records,*,result_admissions=()):
     re-execution, without claiming the derived bytes were saved in the past.
     Legacy input identity is byte-for-byte unchanged.
     """
+    if common_cohort is not None:
+        return digest(dict(schema='RACE_AI_COMMON_EIGHT_PER_SPORT_INTAKE_V1',
+            record_identity_sha256=_intake_identity(records,result_admissions=result_admissions),
+            common_cohort=common_cohort))
     from race_ai.all_existing_model_source_derivations import validate_source_derivations
     for row in records:validate_source_derivations(row['native_payload'])
     if result_admissions:
@@ -202,6 +214,104 @@ def _select_native_cohort(records,*,race_ids=(),size=None,full_native_boat_cohor
     return selected,summary
 
 
+
+def _select_common_eight_per_sport(records,*,now):
+    """Choose original complete cases by source availability, never outcomes.
+
+    Callers independently admit archives before this pure selection. Retained
+    receipt/partition evidence is checked again; no native bytes are derived.
+    """
+    from race_ai import all_existing_model_registry as registry
+    from race_ai.all_existing_model_learning import (_native_generation_evidence,_result_available_at,
+        _common_cohort_sha256)
+    from race_ai.existing_model_dispatch import _race_key
+    from race_ai.observed_weight_learning import ts
+    def require(ok,reason):
+        if not ok:raise ValueError('ALL_MODEL_COMMON_EIGHT_'+reason)
+    require(type(now) is datetime and now.utcoffset() is not None,'AWARE_CLOCK')
+    require(type(records) is list and len(records)<=10000,'BOUNDED_RECORDS')
+    all_cells={c['cell_key']:c for c in registry.cells()}
+    cells={key:c for key,c in all_cells.items() if c['group']!='seller'}
+    expected={sport:{key for key,cell in cells.items() if cell['sport']==sport}
+              for sport in ('boat','autorace','keirin','horse')}
+    require({s:len(v) for s,v in expected.items()}==dict(boat=14,autorace=6,keirin=5,horse=5),'REGISTRY')
+    versions={};race_labels={}
+    def normalized_label(row):
+        value=deepcopy(row['result']);value['race_id']=_race_key(value['race_id'],row['sport'])
+        for key in ('captured_at','published_at','closed_at'):
+            if value.get(key) is not None:value[key]=ts(value[key]).astimezone(timezone.utc).isoformat()
+        return digest(value)
+    for row in records:
+        require(type(row) is dict,'RECORD')
+        if 'input_derivation' in row or 'observed_row' in row:continue
+        key=registry.cell_key(row['sport'],row['model_id'])
+        if key not in cells:
+            require(key in all_cells and all_cells[key]['group']=='seller','FOREIGN_CELL');continue
+        require(row['input_sha256']==digest(row['native_payload']),'INPUT_HASH')
+        info=registry.identity(row['model_id'],row['sport'],row['native_payload'],race_id=row['race_id'])
+        require(_race_key(row['race_id'],row['sport'])==_race_key(info['race_id'],row['sport']) and
+            row['stage']==info['stage'] and row['scope']==info['scope'] and ts(row['as_of'])==ts(info['as_of']) and
+            ts(row['cutoff_at'])==ts(info['cutoff_at']) and
+            (row['sport']!='boat' or row['stage']=='P1'),'NATIVE_IDENTITY')
+        proof=_native_generation_evidence(row,now=now);require(proof is not None,'ORIGINAL_NATIVE_PROOF_REQUIRED')
+        from race_ai.all_existing_model_intake import _ordinary_result
+        admitted,reason=_ordinary_result(row['result'],info,now)
+        require(admitted is not None and reason is None,'NORMAL_RESULT')
+        from race_ai.official_order_only_result import has_order_only_markers,validate_order_only
+        if has_order_only_markers(row['result']) and 'result_observation' in row:
+            original=validate_order_only(row['result_observation'],sport=row['sport'],roster=info['roster'],race_id=row['race_id'])
+            require(normalized_label(dict(row,result=original))==normalized_label(row),'ORIGINAL_RESULT_CONFLICT')
+        if 'result_source_evidence' in row:
+            from race_ai.all_existing_model_official_results import verify_result_source_evidence
+            verify_result_source_evidence(row['result_source_evidence'],result=row.get('result_observation',row['result']),now=now)
+        result=row['result'];require(result.get('sport')==row['sport'] and
+            _race_key(result['race_id'],row['sport'])==_race_key(row['race_id'],row['sport']) and
+            result.get('status') in ('settled','rank_confirmed') and result.get('identity_verified') is True and
+            result.get('roster')==info['roster'] and not result.get('refund_numbers'),'NORMAL_RESULT')
+        require(ts(info['race_cutoff_at'])<ts(result['captured_at'])<=ts(_result_available_at(row))<=now,'RESULT_AVAILABILITY')
+        race_identity=(row['sport'],_race_key(row['race_id'],row['sport']))
+        label_sha=normalized_label(row)
+        require(race_identity not in race_labels or race_labels[race_identity]==label_sha,'RESULT_CONFLICT')
+        race_labels[race_identity]=label_sha
+        identity=(row['sport'],_race_key(row['race_id'],row['sport']),key)
+        rank=(ts(row['as_of']),ts(proof['actual_native_generated_at']),ts(row['input_saved_at']))
+        old=versions.get(identity)
+        if old is not None and rank==old[0]:
+            require(row['input_sha256']==old[1]['input_sha256'] and normalized_label(row)==normalized_label(old[1]),
+                    'AMBIGUOUS_NATIVE_VERSION')
+            # Equal native bytes and clock claims may be independently saved
+            # twice. Choose by receipt identity, never by the result values.
+            receipt_order=lambda r:(r['input_receipt']['artifact_id'],digest(r['input_receipt']),digest(r['input_partitions']))
+            if receipt_order(row)==receipt_order(old[1]):
+                require(digest(row)==digest(old[1]),'AMBIGUOUS_ORIGINAL_RECORD')
+            elif receipt_order(row)<receipt_order(old[1]):versions[identity]=(rank,row,info)
+        elif old is None or rank>old[0]:versions[identity]=(rank,row,info)
+    grouped={}
+    for (sport,race,key),(_,row,info) in versions.items():grouped.setdefault((sport,race),{})[key]=(row,info)
+    complete={sport:[] for sport in expected}
+    for (sport,race),members in grouped.items():
+        if set(members)!=expected[sport]:continue
+        ordered=[members[key] for key in sorted(members)];first=ordered[0][1]
+        require(all(info['roster']==first['roster'] and ts(info['race_cutoff_at'])==ts(first['race_cutoff_at']) and
+            info['scope']==first['scope'] for _,info in ordered),'INPUT_CONFLICT')
+        require(len({normalized_label(row) for row,_ in ordered})==1,'RESULT_CONFLICT')
+        available={ts(_result_available_at(row)) for row,_ in ordered}
+        require(len(available)==1,'SOURCE_CLOSURE_CONFLICT')
+        complete[sport].append((next(iter(available)),race,[row for row,_ in ordered]))
+    selected=[];cohorts={}
+    for sport in ('boat','autorace','keirin','horse'):
+        choices=sorted(complete[sport],key=lambda item:(item[0],item[1]))
+        require(len(choices)>=8,'PER_SPORT_INSUFFICIENT_COMPLETE_RACES')
+        chosen=choices[:8];require(chosen[5][0]<chosen[6][0],'TRAIN_HOLDOUT_AVAILABILITY_TIE')
+        cohorts[sport]=sorted(item[1] for item in chosen)
+        selected.extend(row for _,_,rows in chosen for row in rows)
+    require(len({row['scope'] for row in selected})==1,'MIXED_SCOPE')
+    summary=dict(common_eight_per_sport=True,required_common_cells=30,cohort_counts_by_sport={s:8 for s in expected},
+        record_count=240,common_cohort_sha256=_common_cohort_sha256(digest(selected),cohorts))
+    require(len(selected)==240,'RECORD_COUNT')
+    return selected,summary
+
+
 def _merge_verified_result_observations(observations):
     """Select latest canonical captures without rewriting authenticated bytes."""
     from race_ai.existing_model_dispatch import _race_key
@@ -268,7 +378,11 @@ def _attach_result_source_evidence(records,proofs,*,now):
 
 def load_intake(restored_dir,state_input,dataset_input,*,now,native_archive_dirs=(),derive_observed=False,
                 native_round_archive_dirs=(),result_archive_dirs=(),cohort_race_ids=(),cohort_size=None,
-                keep_other_sports=False,full_native_boat_cohort=False,allow_order_only=False):
+                keep_other_sports=False,full_native_boat_cohort=False,allow_order_only=False,common_eight_per_sport=False):
+    if type(common_eight_per_sport) is not bool or common_eight_per_sport and not (
+            full_native_boat_cohort is True and keep_other_sports is True and allow_order_only is True and
+            type(cohort_size) is int and cohort_size==8 and not cohort_race_ids and not derive_observed):
+        raise ValueError('ALL_MODEL_COMMON_EIGHT_EXPLICIT_FLAGS_REQUIRED')
     rows,observations,pointer,content=load_verified_intake(restored_dir,state_input,now=now,authenticate_owner_cipher=True)
     if type(full_native_boat_cohort) is not bool or full_native_boat_cohort and (derive_observed or
             not (cohort_size==8 and not cohort_race_ids or cohort_size is None and len(cohort_race_ids)==8)):
@@ -356,7 +470,8 @@ def load_intake(restored_dir,state_input,dataset_input,*,now,native_archive_dirs
                     raise ValueError('ALL_MODEL_NATIVE_ARCHIVE_CONFLICTING_METADATA')
                 continue
             seen[ident]=fingerprint
-            records=_merge_native_records(records,admitted['records'])
+            records=_merge_native_records(records,admitted['records'],**(
+                dict(preserve_native_versions=True) if common_eight_per_sport else {}))
             summaries.append(admitted['summary'])
         refs={tuple(pair) for pair in intake['source_refs']}
         for record in records:
@@ -368,7 +483,23 @@ def load_intake(restored_dir,state_input,dataset_input,*,now,native_archive_dirs
     if result_admissions:
         intake=deepcopy(intake)
         intake.update(result_archive_count=len(result_admissions),result_archive_admissions=result_admissions)
-    if cohort_race_ids or cohort_size is not None:
+    common_cohort=None
+    if common_eight_per_sport:
+        if result_source_proofs:
+            records=_attach_result_source_evidence(records,result_source_proofs,now=now)
+        records,common_cohort=_select_common_eight_per_sport(records,now=now)
+        intake=deepcopy(intake);intake.update(common_cohort)
+        intake.update(full_native_boat_cohort=True,derived_record_count=0,
+            cohort_input_policy='ORIGINAL_FROZEN_NATIVE_INPUTS_ONLY',cohort_race_count=8,
+            cohort_required_frozen_cells=14,cohort_input_record_count=112,
+            cohort_selected_by_winning_order=False,
+            cohort_selection='EARLIEST_AVAILABLE_COMPLETE_NATIVE_CASES_PER_SPORT',
+            kept_other_sport_record_count=sum(r['sport']!='boat' for r in records),
+            kept_other_sports=sorted({r['sport'] for r in records if r['sport']!='boat'}))
+        refs=set()
+        for record in records:refs.update(_record_source_refs(record))
+        intake['source_refs']=[list(pair) for pair in sorted(refs)]
+    elif cohort_race_ids or cohort_size is not None:
         if not (derive_observed or full_native_boat_cohort):
             raise ValueError('ALL_MODEL_NATIVE_COHORT_EXPLICIT_DERIVATION_REQUIRED')
         other_sports=[row for row in records if row['sport']!='boat'] if keep_other_sports else []
@@ -415,7 +546,7 @@ def load_intake(restored_dir,state_input,dataset_input,*,now,native_archive_dirs
             refs.update(_sources(record['native_payload']))
             refs.add((record['result']['source_ref'],record['result']['source_rights_ref']))
         intake['source_refs']=[list(pair) for pair in sorted(refs)]
-    if result_source_proofs:
+    if result_source_proofs and not common_eight_per_sport:
         records=_attach_result_source_evidence(records,result_source_proofs,now=now)
         refs={tuple(pair) for pair in intake['source_refs']}
         for record in records:refs.update(_record_source_refs(record))
@@ -430,7 +561,8 @@ def load_intake(restored_dir,state_input,dataset_input,*,now,native_archive_dirs
         intake.update(label_evaluation_scope=EVALUATION_SCOPE,
             order_only_record_count=sum(has_order_only_markers(r['result']) for r in records))
     return records,dict(source_pointer=pointer,state_content_sha256=content,dataset_pointer=dataset,
-        source_refs=intake['source_refs'],intake_sha256=_intake_identity(records,result_admissions=result_admissions),
+        source_refs=intake['source_refs'],intake_sha256=_intake_identity(records,result_admissions=result_admissions,**(
+            dict(common_cohort=common_cohort) if common_eight_per_sport else {})),
         registry_sha256=registry_sha256(),**scope),intake
 
 
@@ -460,6 +592,8 @@ def main(argv=None,*,now=None):
         help='Select eight independently frozen complete fourteen-cell BOAT cases; forbid retrospective derivation')
     parser.add_argument('--allow-order-only',action='store_true',
         help='Explicit owner V2 research scope: confirmed ranks only, with no monetary evaluation')
+    parser.add_argument('--common-eight-per-sport',action='store_true',
+        help='Require unchanged complete eight-case cohorts for BOAT14/AUTO6/KEIRIN5/HORSE5 before owner issuance')
     parser.add_argument('--out-dir');parser.add_argument('--expires-at')
     args=parser.parse_args(argv);now=now or datetime.now(timezone.utc)
     try:
@@ -477,6 +611,7 @@ def main(argv=None,*,now=None):
         if args.keep_other_sports:options['keep_other_sports']=True
         if args.full_native_boat_cohort:options['full_native_boat_cohort']=True
         if args.allow_order_only:options['allow_order_only']=True
+        if args.common_eight_per_sport:options['common_eight_per_sport']=True
         records,binding,intake=load_intake(args.restored_dir,args.state_input,args.dataset_input,**options)
         record_path=Path(args.owner_research_record)
         if args.command=='issue-decision':
@@ -486,6 +621,12 @@ def main(argv=None,*,now=None):
             decision=issue_decision(**binding,now=now,expires_at=expiry)
             record_path.parent.mkdir(parents=True,exist_ok=True)
             _write(record_path,json.dumps(decision,sort_keys=True,indent=2).encode()+b'\n')
+            if args.common_eight_per_sport:
+                from race_ai.all_existing_model_learning import COMMON_COHORT_FIELDS
+                issued=dict(state='OWNER_ALL_MODEL_RESEARCH_DECISION_RECORDED',decision_sha256=digest(decision),
+                    model_family_count=16,applicable_model_cells=31,provider_permission_confirmed=False,production_promoted=False)
+                issued.update({key:intake[key] for key in COMMON_COHORT_FIELDS})
+                print(json.dumps(issued));return 0
             print(json.dumps(dict(state='OWNER_ALL_MODEL_RESEARCH_DECISION_RECORDED',decision_sha256=digest(decision),
                 model_family_count=16,applicable_model_cells=31,provider_permission_confirmed=False,production_promoted=False)));return 0
         if not args.out_dir:parser.error('--out-dir is required for fit')
@@ -504,6 +645,11 @@ def main(argv=None,*,now=None):
         if args.result_archive_dir:
             trained.update(owner_bound_intake_sha256=binding['intake_sha256'],
                 result_archive_admissions_sha256=digest(intake['result_archive_admissions']))
+        if args.common_eight_per_sport:
+            from race_ai.all_existing_model_learning import COMMON_COHORT_FIELDS
+            trained.update({key:intake[key] for key in COMMON_COHORT_FIELDS})
+            trained.update(owner_bound_intake_sha256=binding['intake_sha256'],
+                intake_identity_semantics='ORIGINAL_COMMON_EIGHT_PER_SPORT_V1')
         seal(trained,'training_sha256');verify_training(trained)
         summary=dict(schema='RACE_AI_ALL_EXISTING_MODEL_COUNTS_V1',state=trained['state'],
             model_family_count=16,applicable_model_cells=31,fitted_model_count=len(trained['models']),
@@ -535,6 +681,9 @@ def main(argv=None,*,now=None):
         if args.allow_order_only:
             summary.update(label_evaluation_scope=intake['label_evaluation_scope'],
                 order_only_record_count=intake['order_only_record_count'],monetary_evaluation_available=False)
+        if args.common_eight_per_sport:
+            from race_ai.all_existing_model_learning import COMMON_COHORT_FIELDS
+            summary.update({key:intake[key] for key in COMMON_COHORT_FIELDS})
         result=seal_candidate(dict(summary=summary,training=trained,excluded=[],owner_research_record=decision),args.out_dir)
         print(json.dumps(result,sort_keys=True));return 0
     except Exception as exc:

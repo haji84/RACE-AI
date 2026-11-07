@@ -1,10 +1,10 @@
 {
   "execution_day": "2026-11-07",
   "maximum_races_per_sport": {
-    "autorace": 8,
-    "keirin": 8
+    "autorace": 4,
+    "keirin": 3
   },
-  "packet_path": "audit/state/official-source-packet-1cd8f35899da336bd418d94adadd3885ac0074b124ccaf47503a242f91252b67.enc",
-  "packet_sha256": "1cd8f35899da336bd418d94adadd3885ac0074b124ccaf47503a242f91252b67",
+  "packet_path": "audit/state/official-source-packet-ee2117684cac26830b499ff5b706a2b29fd59f5a05d941d0445b72c74aff3d91.enc",
+  "packet_sha256": "ee2117684cac26830b499ff5b706a2b29fd59f5a05d941d0445b72c74aff3d91",
   "schema": "RACE_AI_OFFICIAL_SOURCE_PACKET_FREEZE_INPUT_V1"
 }

@@ -426,6 +426,13 @@ def fit(records,*,now,allow_source=None,allow_training=None,allow_order_only=Fal
     if out['models']:out['state']='FITTED_SHADOW_ONLY'
     return seal(out,'training_sha256')
 
+COMMON_COHORT_FIELDS=frozenset(('common_eight_per_sport','required_common_cells','cohort_counts_by_sport',
+    'record_count','common_cohort_sha256'))
+
+def _common_cohort_sha256(source_intake_sha256,cohorts):
+    return digest(dict(schema='RACE_AI_COMMON_EIGHT_PER_SPORT_COHORT_V1',
+        source_intake_sha256=source_intake_sha256,cohorts={s:sorted(ids) for s,ids in cohorts.items()}))
+
 def verify_training(training):
     """Validate native parameters, readiness, cohorts and source-clock closure."""
     import re
@@ -651,6 +658,25 @@ def verify_training(training):
                      'NATIVE_TRAINING_CLOCK')
             else:
                 need(native is None,'NATIVE_TRAINING_SCHEMA')
+        if COMMON_COHORT_FIELDS&training.keys():
+            need(COMMON_COHORT_FIELDS<=training.keys() and training['common_eight_per_sport'] is True and
+                 type(training['required_common_cells']) is int and training['required_common_cells']==30 and
+                 type(training['record_count']) is int and training['record_count']==240 and
+                 training['cohort_counts_by_sport']==dict(boat=8,autorace=8,keirin=8,horse=8),'COMMON_COHORT_FIELDS')
+            required={c['cell_key'] for c in registry.cells() if c['group']!='seller'}
+            need(set(models)==required and len(required)==30,'COMMON_COHORT_CELLS')
+            cohorts={};splits={}
+            for model in models.values():
+                need(all('native_generation_evidence' in row and 'input_derivation' not in row and
+                     (model['sport']!='boat' or row['native_generation_evidence']['stage']=='P1')
+                     for row in model['source_lineage']),'COMMON_COHORT_ORIGINAL_NATIVE_PROOF')
+                sport=model['sport'];train=sorted(_race_key(r,sport) for r in model['train_race_ids'])
+                valid=sorted(_race_key(r,sport) for r in model['validation_race_ids'])
+                need((model['unique_races'],model['train_races'],model['validation_races'])==(8,6,2),'COMMON_COHORT_SIZE')
+                need(sport not in splits or splits[sport]==(train,valid),'COMMON_COHORT_SPLIT')
+                splits[sport]=(train,valid);cohorts[sport]=sorted(train+valid)
+            need(hash_value(training['common_cohort_sha256']) and training['common_cohort_sha256']==
+                 _common_cohort_sha256(training['source_intake_sha256'],cohorts),'COMMON_COHORT_BINDING')
     except (KeyError,TypeError,AttributeError,OverflowError) as exc:
         raise ValueError('ALL_MODEL_LEARNING_SCHEMA') from exc
     return True

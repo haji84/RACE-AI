@@ -466,6 +466,37 @@ jobs:
           path: ${{ runner.temp }}/official-result-freeze.status.json
           retention-days: 7
           if-no-files-found: error
+      - name: Execute the explicitly requested common-eight order-only research fit
+        id: order_only_fit
+        if: hashFiles('audit/state/all-existing-model-order-only-ci-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == official-order-only-fit:* ]]; then
+            python -m scripts.all_existing_model_order_only_fit --input audit/state/all-existing-model-order-only-ci-input.json --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/order-only-fit"
+          fi
+      - name: Keep the encrypted thirty-cell research candidate
+        if: steps.order_only_fit.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-model-learning-${{ github.run_id }}-2
+          path: |
+            ${{ runner.temp }}/order-only-fit/learning.enc
+            ${{ runner.temp }}/order-only-fit/learning.json
+            ${{ runner.temp }}/order-only-fit/summary.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Keep the encrypted explicit owner-decision audit separately
+        if: always() && steps.order_only_fit.outputs.owner_record_ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-order-only-owner-decision-${{ github.run_id }}
+          path: ${{ runner.temp }}/order-only-fit.owner-research.enc
+          retention-days: 7
+          if-no-files-found: error
       - name: Freeze the requested future P0 comparison from retained inputs only
         id: future_p0
         env:
@@ -505,8 +536,11 @@ jobs:
   viewer_contract:
     if: github.event_name == 'pull_request'
     name: Viewer audit contract
+    permissions:
+      contents: read
+      actions: read
     runs-on: ubuntu-24.04
-    timeout-minutes: 15
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -586,6 +620,61 @@ jobs:
         run: |
           npm install --prefix "$RUNNER_TEMP/race-ai-ui-tools" --no-package-lock --ignore-scripts playwright@1.62.1
           "$RUNNER_TEMP/race-ai-ui-tools/node_modules/.bin/playwright" install --with-deps chromium
+      - name: Collect explicitly requested due official results using normal public navigation
+        id: official_result_collect
+        if: github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository && hashFiles('audit/state/official-result-collect-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          NODE_PATH: ${{ runner.temp }}/race-ai-ui-tools/node_modules
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == official-results-collect:* ]]; then
+            echo 'requested=true' >> "$GITHUB_OUTPUT"
+            export CHROMIUM_PATH="$(node -e 'process.stdout.write(require("playwright").chromium.executablePath())')"
+            python -m scripts.all_existing_model_official_result_collect --input audit/state/official-result-collect-input.json --out-dir "$RUNNER_TEMP/official-result-collection"
+          fi
+      - name: Independently save only the collected official result ciphertext
+        id: collected_official_result_upload
+        if: steps.official_result_collect.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.official_result_collect.outputs.artifact_name }}
+          path: ${{ runner.temp }}/official-result-collection/results.enc
+          retention-days: 7
+          if-no-files-found: error
+      - name: Retain the encrypted collection journal including interrupted attempts
+        id: official_collection_journal_upload
+        if: always() && steps.official_result_collect.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-result-collection-journal-${{ github.run_id }}
+          path: ${{ runner.temp }}/official-result-collection.collection.enc
+          retention-days: 7
+          if-no-files-found: ignore
+      - name: Verify the collected result artifact against the original frozen inputs
+        if: steps.collected_official_result_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.all_existing_model_official_result_collect --input audit/state/official-result-collect-input.json --out-dir "$RUNNER_TEMP/official-result-collection" --readback-artifact '${{ steps.collected_official_result_upload.outputs.artifact-id }}'
+      - name: Verify the actual encrypted collection journal even when results remain held
+        if: always() && steps.official_collection_journal_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.all_existing_model_official_result_collect --input audit/state/official-result-collect-input.json --out-dir "$RUNNER_TEMP/official-result-collection" --readback-journal-artifact '${{ steps.official_collection_journal_upload.outputs.artifact-id }}'
+      - name: Keep count-only official result collection status
+        if: always() && steps.official_result_collect.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-result-collection-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/official-result-collection.status.json
+          retention-days: 7
+          if-no-files-found: error
       - name: Exercise seven product pages at four viewport widths
         env:
           NODE_PATH: ${{ runner.temp }}/race-ai-ui-tools/node_modules
