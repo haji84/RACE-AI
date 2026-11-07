@@ -33,6 +33,9 @@ def clock(value):
     need(parsed.utcoffset() is not None,'AWARE_CLOCK');return parsed
 
 def validate_request(value,now):
+    if type(value) is dict and value.get('schema')=='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V4':
+        from .all_existing_model_official_probe16 import validate_request as sixteen_request
+        return sixteen_request(value,now)
     if type(value) is dict and value.get('schema')=='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V3':
         from .all_existing_model_official_historical import validate_request as historical_request
         return historical_request(value,now)
@@ -99,6 +102,10 @@ def _evidence(raw,metadata,pin,now,key):
         payload_sha256=digest(body))
 
 def _plans(request,body,old,new):
+    return _plans_with_limit(request,body,old,new,8)
+
+def _plans_with_limit(request,body,old,new,limit):
+    need(type(limit) is int and limit in (8,16),'FIXED_PROBE_PROFILE_LIMIT')
     from .manual_official_capture import _url
     from scripts.all_existing_model_official_result_collect import target_event_day
     original=body['manifest'];manifest=request['manifest']
@@ -109,7 +116,7 @@ def _plans(request,body,old,new):
         all(p in manifest['prior_journal_artifacts'] for p in original['prior_journal_artifacts']),'ORIGINAL_PINS')
     need(type(old) is dict and type(new) is dict and old.get('execution_day')==new.get('execution_day')==target_event_day(manifest) and
         old.get('schema')==new.get('schema')=='RACE_AI_OFFICIAL_RESULT_COLLECTION_PLAN_V1' and
-        type(new.get('maximum_requests')) is int and new['maximum_requests']==8 and
+        type(new.get('maximum_requests')) is int and new['maximum_requests']==limit and
         type(new.get('cases')) is list and len(new['cases'])==1 and
         new['cases'][0].get('sport')==request['probe_sport'] and new['cases'][0] in old.get('cases',[]) and
         new['cases'][0]['route'].get('kind')=='NORMAL_UI' and
@@ -151,6 +158,8 @@ def issue_consume_capsule(data,key):
         'old_run','first_attempt','old_plan','new_plan'}
     need(type(data) is dict and fields<=set(data)<=fields|{'prior_runs'},'ISSUE_FIELDS')
     issued=clock(data['issued_at']);request=validate_request(data['request'],issued);target=data['target']
+    need(request['schema'] in (REQUEST,'RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V3') and
+        request['mode'] in (MODE,'FIXED_ATTEMPT_TWO_HISTORICAL_SINGLE_NORMAL_UI_PROBE'),'LEGACY_PROBE_PROFILE_REQUIRED')
     need(type(target) is dict and set(target)=={'head_sha','run_id','run_attempt'} and target['run_attempt']==2 and
         type(target['run_attempt']) is int,'TARGET')
     capsule_path(request,target['head_sha'],target['run_id'])
@@ -203,7 +212,10 @@ class ValidatedRecovery:
 
 def validate_capsule(raw,*,request,current_run,first_attempt,old_run,now,key,prior_runs=()):
     need(type(key) is bytes and len(key)==32,'EXPLICIT_OWNER_KEY')
-    now=clock(now);validate_request(request,now);value=open_forecasts(raw,key=key);header=forecast_header(raw)
+    now=clock(now);validate_request(request,now)
+    need(request['schema'] in (REQUEST,'RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V3') and
+        request['mode'] in (MODE,'FIXED_ATTEMPT_TWO_HISTORICAL_SINGLE_NORMAL_UI_PROBE'),'LEGACY_PROBE_PROFILE_REQUIRED')
+    value=open_forecasts(raw,key=key);header=forecast_header(raw)
     need(type(value) is dict and set(value)=={'schema','body','mac'} and value['schema']==SCHEMA and
         type(value['body']) is dict and type(value['mac']) is str and hmac.compare_digest(value['mac'],_mac(value['body'],key)),'CAPSULE_MAC')
     b=value['body'];target=b['target'];current=run_receipt(current_run)

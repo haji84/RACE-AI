@@ -274,7 +274,8 @@ def prior_journals(manifest,*,now,key,recovery_authorization=None,private_static
         if recovery_authorization is not None:
             from race_ai.all_existing_model_official_recovery import ValidatedRecovery
             from race_ai.all_existing_model_official_continuation import ValidatedContinuation
-            need(type(recovery_authorization) in (ValidatedRecovery,ValidatedContinuation),'VALIDATED_RECOVERY_REQUIRED')
+            from race_ai.all_existing_model_official_probe16 import ValidatedProbe16
+            need(type(recovery_authorization) in (ValidatedRecovery,ValidatedContinuation,ValidatedProbe16),'VALIDATED_RECOVERY_REQUIRED')
             reviewed=recovery_authorization.validate_prior(manifest,pin,body,cipher,actual,now)
         ledger=[]
         for field in ('browser_index','browser_request_checkpoint'):
@@ -701,7 +702,8 @@ def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,bro
     if recovery_authorization is not None:
         from race_ai.all_existing_model_official_recovery import ValidatedRecovery
         from race_ai.all_existing_model_official_continuation import ValidatedContinuation
-        need(type(recovery_authorization) in (ValidatedRecovery,ValidatedContinuation),'VALIDATED_RECOVERY_REQUIRED')
+        from race_ai.all_existing_model_official_probe16 import ValidatedProbe16
+        need(type(recovery_authorization) in (ValidatedRecovery,ValidatedContinuation,ValidatedProbe16),'VALIDATED_RECOVERY_REQUIRED')
         recovery=recovery_authorization.validate_collector(manifest,plan,env,now)
     private_prior_cache={}
     prior=prior_journals(manifest,now=now,key=key,recovery_authorization=recovery_authorization,

@@ -93,6 +93,8 @@ def _admit(request,env,current,now,key):
     old=_api('actions/runs/'+str(recovery.OLD_RUN))
     prior_ids=sorted({pin['run_id'] for pin in request['manifest']['prior_journal_artifacts']}-{recovery.OLD_RUN})
     prior_runs=[_api('actions/runs/'+str(ident)) for ident in prior_ids]
+    if request.get('schema')=='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V4':
+        return _admit_probe16(raw,request,env,current,first,old,prior_runs,now,key)
     if recovery.is_continuation_request(request):
         return _admit_continuation(raw,request,env,current,first,old,prior_runs,now,key)
     auth=recovery.validate_capsule(raw,request=request,current_run=current,first_attempt=first,old_run=old,prior_runs=prior_runs,now=now,key=key)
@@ -104,6 +106,30 @@ def _admit(request,env,current,now,key):
     recovery.need(old_plan==auth._body['old_plan'] and plan==auth._body['new_plan'],'AUTHENTICATED_PLAN_BYTES')
     auth.validate_collector(manifest,plan,env,now)
     return auth
+
+def _admit_probe16(raw,request,env,current,first,old,prior_runs,now,key):
+    from race_ai import all_existing_model_official_probe16 as sixteen
+    from race_ai import all_existing_model_official_continuation as continuation
+    archives=[];total=len(raw);manifest=request['manifest']
+    for pin in manifest['prior_journal_artifacts']:
+        actual=collector.future.metadata(pin['id']);size=actual.get('size_in_bytes')
+        recovery.need(type(size) is int and 0<size<=collector.results.MAX_ARCHIVE_BYTES and
+            total+size<=256*1024*1024 and actual.get('id')==pin['id'] and actual.get('digest')==pin['digest'] and
+            actual.get('expired') is False and recovery.clock(actual['created_at'])<=now<recovery.clock(actual['expires_at']),
+            'SIXTEEN_PRIOR_METADATA')
+        encoded=collector.future.gh('actions/artifacts/'+str(pin['id'])+'/zip');total+=len(encoded)
+        continuation._pin_metadata(encoded,actual,pin,now);archives.append(dict(raw=encoded,metadata=actual))
+    fixed=next(item for item in archives if item['metadata']['id']==recovery.OLD_ARTIFACT)
+    pin=next(p for p in manifest['prior_journal_artifacts'] if p['id']==recovery.OLD_ARTIFACT)
+    old_body,_=recovery._evidence(fixed['raw'],fixed['metadata'],pin,now,key)
+    old_plan=collector.load_plan(old_body['manifest'],key=key,now=recovery.clock(old_body['epoch_started_at']))
+    plan=collector.load_plan(manifest,key=key,now=now);stored=collector.open_forecasts(raw,key=key)['body']
+    data=dict(request=request,target=stored['target'],issued_at=stored['issued_at'],not_before=stored['not_before'],
+        expires_at=stored['expires_at'],old_run=old,prior_runs=prior_runs,first_attempt=first,
+        old_plan=old_plan,new_plan=plan,old_journal_raw=fixed['raw'],old_journal_metadata=fixed['metadata'],
+        prior_journal_archives=archives)
+    auth=sixteen.validate_capsule(raw,data=data,current_run=current,now=now,key=key)
+    auth.validate_collector(manifest,plan,env,now);return auth
 
 def _admit_continuation(raw,request,env,current,first,old,prior_runs,now,key):
     from race_ai import all_existing_model_official_continuation as continuation

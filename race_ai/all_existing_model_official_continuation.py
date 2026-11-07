@@ -59,7 +59,7 @@ def validate_plan(sport,original,new):
         new.get('terms_manifest')==original.get('terms_manifest') and new.get('static_cache') in (cache,filtered) and
         new.get('result_wait_seconds')==original.get('result_wait_seconds'),'EXACT_SAME_HOST_CONTINUATION_PLAN')
 
-def _complete(body,metadata,now,*,required=False):
+def _complete(body,metadata,now,*,required=False,expected_limit=8):
     """Known wire outcomes, never a missing index or a reported count alone."""
     probe.no_known_denial(body)
     attempts=body['attempts'];need(all(a['state']!='RESERVED' and type(a.get('http_status')) is int and
@@ -82,7 +82,13 @@ def _complete(body,metadata,now,*,required=False):
     bound=min(now,clock(metadata['created_at'])+timedelta(seconds=1))
     need(clock(body['epoch_started_at'])<=clock(browser['started_at'])<=clock(index['started_at'])<=
         clock(index['completed_at'])<=clock(browser['completed_at'])<=bound,'PROBE_BROWSER_CLOCK')
-    if required:need(not attempts and body['maximum_requests']==8 and 1<=count<=8,'PROBE_EIGHT_REQUEST_BOUND')
+    if required:
+        need(type(expected_limit) is int and expected_limit in (8,16),'EXPLICIT_PROBE_PROFILE_REQUIRED')
+        need(not attempts and body['maximum_requests']==expected_limit and 1<=count<=expected_limit,
+             'PROBE_EIGHT_REQUEST_BOUND' if expected_limit==8 else 'PROBE_SIXTEEN_REQUEST_BOUND')
+        if expected_limit==16:
+            need(type(browser.get('reserved_request_limit')) is int and browser['reserved_request_limit']==16,
+                 'PROBE_SIXTEEN_RESERVATION_BOUND')
     return len(attempts)+count
 
 def _pin_metadata(raw,metadata,pin,now):
@@ -100,7 +106,8 @@ def _archive_map(values,pins):
         ident=item['metadata'].get('id');need(ident not in answer,'DUPLICATE_SOURCE_ARCHIVE');answer[ident]=item
     need(set(answer)=={p['id'] for p in pins},'ALL_SOURCE_ARCHIVES_REQUIRED');return answer
 
-def _replay_probe_wire(journal,case):
+def _replay_probe_wire(journal,case,*,expected_limit=8):
+    need(type(expected_limit) is int and expected_limit in (8,16),'EXPLICIT_PROBE_PROFILE_REQUIRED')
     from scripts import all_existing_model_official_result_collect as collector
     from scripts.boat_all_racers import _write
     from .permissioned_source_delivery import read_json_bytes
@@ -123,18 +130,27 @@ def _replay_probe_wire(journal,case):
                 if file.get('kind')=='CANONICAL_RETURNED_OBJECT':need(index is None,'DUPLICATE_PROBE_INDEX');index=document
             _write(root/file['file'],raw)
         need(type(index) is dict and digest(index)==quarantine.get('returned_index_sha256'),'PROBE_ORIGINAL_INDEX')
+        if expected_limit==16:
+            need(type(index.get('maximum_requests')) is int and index['maximum_requests']==16,
+                 'PROBE_SIXTEEN_RAW_INDEX_BOUND')
         planned=[dict(sport=case['sport'],race_id=case['race_id'])]
         need(collector._index_diagnostic(index,planned)==journal['browser_index'],'PROBE_ORIGINAL_INDEX_PROJECTION')
         found,states,originals=collector.browser_sources(index,root,planned,started=clock(journal['browser_attempt']['started_at']),
-            now=clock(journal['browser_attempt']['completed_at']),remaining=8)
+            now=clock(journal['browser_attempt']['completed_at']),remaining=expected_limit)
         need(len(found)==1 and [row[2] for row in found]==journal.get('captures') and
             originals==journal.get('browser_captures') and states==[dict(sport=case['sport'],race_id=case['race_id'],state='CAPTURED')],
             'PROBE_SOURCE_WIRE_JOIN')
 
-def _completed_authority(raw,request,journal,journal_evidence,oldbody,old_evidence,oldplan,probe_first,prior_runs,key):
+def _completed_authority(raw,request,journal,journal_evidence,oldbody,old_evidence,oldplan,probe_first,prior_runs,key,
+                         *,prior_journal_receipts=None,prior_journal_bodies=None):
     """Archival replay of original V1 authority; grants no live dispatch."""
     need(type(raw) is bytes,'ORIGINAL_PROBE_CAPSULE_REQUIRED')
     value=open_forecasts(raw,key=key);header=forecast_header(raw)
+    from . import all_existing_model_official_probe16 as sixteen
+    if type(value) is dict and value.get('schema')==sixteen.SCHEMA:
+        return sixteen.completed_authority(raw,request=request,journal=journal,journal_evidence=journal_evidence,
+            oldbody=oldbody,old_evidence=old_evidence,oldplan=oldplan,probe_first=probe_first,prior_runs=prior_runs,
+            prior_journal_receipts=prior_journal_receipts,prior_journal_bodies=prior_journal_bodies,key=key)
     need(type(value) is dict and set(value)=={'schema','body','mac'} and value['schema']==probe.SCHEMA and
         type(value['body']) is dict and type(value['mac']) is str and
         hmac.compare_digest(value['mac'],probe._mac(value['body'],key)),'ORIGINAL_PROBE_CAPSULE_MAC')
@@ -176,6 +192,13 @@ def _completed_authority(raw,request,journal,journal_evidence,oldbody,old_eviden
     return dict(cipher_sha256=sha256(raw).hexdigest(),body_sha256=digest(b),request_sha256=b['request_sha256'],
         path=probe.capsule_path(source_request,target['head_sha'],target['run_id']))
 
+def _authority_limit(authority):
+    if not {'probe_profile','maximum_new_requests'}&set(authority):return 8
+    from .all_existing_model_official_probe16 import PROFILE,LIMIT
+    need(authority.get('probe_profile')==PROFILE and type(authority.get('maximum_new_requests')) is int and
+         authority['maximum_new_requests']==LIMIT,'AUTHENTICATED_PROBE_PROFILE')
+    return LIMIT
+
 def evidence(data,key,now):
     """Authenticate every original; no JSON-only label or audit can unlock this."""
     from scripts import all_existing_model_official_result_collect as collector
@@ -197,7 +220,7 @@ def evidence(data,key,now):
         need(clock(run['run_started_at'])<=clock(body['epoch_started_at'])<=clock(item['metadata']['created_at'])+timedelta(seconds=1) and
             clock(item['metadata']['created_at'])<=clock(run['updated_at'])+timedelta(seconds=1),'PRIOR_RUN_JOURNAL_CLOCK')
         bodies[pin['id']]=body;receipts[pin['id']]=receipt
-        if pin['id']!=probe.OLD_ARTIFACT:_complete(body,item['metadata'],now,required=pin['id']==request['probe_journal_artifact_id'])
+        if pin['id']!=probe.OLD_ARTIFACT:_complete(body,item['metadata'],now)
     old=bodies[probe.OLD_ARTIFACT];old_receipt=receipts[probe.OLD_ARTIFACT]
     journal=bodies[request['probe_journal_artifact_id']];journal_receipt=receipts[request['probe_journal_artifact_id']]
     original=old['manifest'];need(manifest['native_artifacts']==original['native_artifacts'] and len(manifest['native_artifacts'])==4 and
@@ -205,12 +228,14 @@ def evidence(data,key,now):
         all(p in manifest['prior_journal_artifacts'] for p in original['prior_journal_artifacts']),'ORIGINAL_PINS')
     validate_plan(request['probe_sport'],data['old_plan'],data['new_plan'])
     authority=_completed_authority(data['probe_capsule_raw'],request,journal,journal_receipt,old,old_receipt,
-        data['old_plan'],data['probe_first_attempt'],runs,key)
+        data['old_plan'],data['probe_first_attempt'],runs,key,prior_journal_receipts=receipts,prior_journal_bodies=bodies)
+    limit=_authority_limit(authority)
+    _complete(journal,journal_receipt['artifact_metadata'],now,required=True,expected_limit=limit)
     value=open_forecasts(data['probe_capsule_raw'],key=key)['body']
     cases=value['new_plan']['cases'];need(len(cases)==1,'ORIGINAL_SINGLE_PROBE')
     selected=cases[0];need(selected['sport']==request['probe_sport'] and all(c['route']['ui_entry_url']==
         selected['route']['ui_entry_url'] for c in data['new_plan']['cases']),'SAME_ORIGINAL_PROBE_ROUTE')
-    _replay_probe_wire(journal,selected)
+    _replay_probe_wire(journal,selected,expected_limit=limit)
     parts=[];native_receipts=[]
     for pin in manifest['native_artifacts']:
         item=native_archives[pin['id']];_pin_metadata(item['raw'],item['metadata'],pin,now)
@@ -290,7 +315,8 @@ class ValidatedContinuation:
         need(pin==expected['pin'] and actual==expected['artifact_metadata'] and sha256(cipher).hexdigest()==expected['cipher_sha256'] and
             digest(body)==expected['payload_sha256'],'EXACT_CONTINUATION_PRIOR_RECEIPT')
         if pin['id']==probe.OLD_ARTIFACT:return True
-        _complete(body,actual,now,required=pin['id']==self._body['request']['probe_journal_artifact_id']);return False
+        _complete(body,actual,now,required=pin['id']==self._body['request']['probe_journal_artifact_id'],
+                  expected_limit=_authority_limit(self._body['evidence']['probe_authority']));return False
 
 def validate_capsule(raw,*,data,current_run,now,key):
     need(type(key) is bytes and len(key)==32,'EXPLICIT_OWNER_KEY');now=clock(now)

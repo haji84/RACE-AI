@@ -15,7 +15,10 @@ CONTINUATION_MODE='FIXED_ATTEMPT_TWO_HISTORICAL_AFTER_VERIFIED_SAME_HOST_PROBE'
 
 def validate_window(request,issued_at,expires_at):
     if request.get('schema')!=REQUEST:return
-    midnight=datetime.fromisoformat(request['manifest']['execution_day']).replace(tzinfo=timezone(timedelta(hours=9)))+timedelta(days=1)
+    return validate_capture_window(request['manifest'],issued_at,expires_at)
+
+def validate_capture_window(manifest,issued_at,expires_at):
+    midnight=datetime.fromisoformat(manifest['execution_day']).replace(tzinfo=timezone(timedelta(hours=9)))+timedelta(days=1)
     recovery.need(recovery.clock(issued_at)<recovery.clock(expires_at)<=midnight,'HISTORICAL_CAPTURE_DAY_WINDOW')
 
 def validate_request(value,now):
