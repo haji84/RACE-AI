@@ -46,12 +46,20 @@
     const references = people.map(p => get(race, p));
     const complete = people.length === 6 && positions.every(Number.isInteger) && new Set(positions).size === 6 &&
       references.every(Boolean) && new Set(references.map(p => p?.registration)).size === 6 && !people.some(withdrawn);
-    let mapping = null, basis = 'HYPOTHETICAL';
+    const reported = people.filter(p => p.preview_course !== null && p.preview_course !== undefined);
+    if (entryMap === null && reported.length) entryMap = Object.fromEntries(reported.map(p => [position(p), p.preview_course]));
+    let mapping = null, basis = 'HYPOTHETICAL', entryStatus = 'ABSENT', entryMessage = null, status = 'READY';
     if (entryMap !== null) {
-      if (!complete || typeof entryMap !== 'object' || Array.isArray(entryMap) || Object.keys(entryMap).length !== 6 ||
-          !positions.every(lane => Number.isInteger(entryMap[lane]) && entryMap[lane] >= 1 && entryMap[lane] <= 6) || new Set(Object.values(entryMap)).size !== 6)
-        return empty('ENTRY_CONFLICT', '進入の対応を照合できないため、相手との位置関係は評価しません。');
-      if (entryMap[position(person)] === course) { mapping = entryMap; basis = 'EXHIBITION'; }
+      const keys = typeof entryMap === 'object' && !Array.isArray(entryMap) ? Object.keys(entryMap) : [];
+      if (!complete || !keys.length || keys.some(key => String(Number(key)) !== key || !positions.includes(Number(key)) ||
+          !Number.isInteger(entryMap[key]) || entryMap[key] < 1 || entryMap[key] > 6) || new Set(Object.values(entryMap)).size !== keys.length) {
+        entryStatus = 'CONFLICT'; status = 'ENTRY_CONFLICT'; entryMessage = '進入の対応を照合できないため、本人の条件別説明のみ表示し、相手との位置関係は評価しません。';
+      } else if (keys.length !== 6) {
+        entryStatus = 'PARTIAL'; entryMessage = '展示進入は一部のみ取得しています。全艇の並びが揃わないため、相手とのコース比較は表示しません。';
+      } else {
+        entryStatus = 'COMPLETE';
+        if (entryMap[position(person)] === course) { mapping = entryMap; basis = 'EXHIBITION'; }
+      }
     } else if (complete && position(person) === course) {
       mapping = Object.fromEntries(positions.map(lane => [lane, lane])); basis = 'FRAME_ASSUMPTION';
     }
@@ -65,7 +73,7 @@
         stDelta: Number.isFinite(stats.average_st) && Number.isFinite(other.average_st) ? stats.average_st - other.average_st : null});
     }
     const [path, condition, caution] = paths[course - 1];
-    return {status: 'READY', basis, course, path, condition, caution, stats, comparisons,
+    return {status, basis, entryStatus, entryMessage, course, path, condition, caution, stats, comparisons,
       message: 'コースの一般的な攻め方と公式期別成績を照らし合わせた参考シナリオです。決まり手の得意不得意や今回の着順を確定するものではありません。'};
   }
   const api = Object.freeze({all, get, preferredCourses, scenario, period: freeze(data?.period), source: freeze(data?.source), capturedAt: data?.captured_at});

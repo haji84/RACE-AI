@@ -39,3 +39,15 @@ test('scenarios reject entry conflicts and unavailable samples and avoid hindsig
   assert.equal(P.scenario(r,{...p,entry_status:'withdrawn'},1).status,'WITHDRAWN');
   assert.deepEqual(P.scenario({...r,participants:r.participants.slice(0,2)},p,1).comparisons,[]);
 });
+test('partial entry evidence never invents named neighbors and keeps the selected course explanation',()=>{
+  const r=race(),p=r.participants[0];r.participants[1].preview_course=3;
+  for(const options of [undefined,{entryMap:{2:3}}]){
+    const result=P.scenario(r,p,1,options);
+    assert.equal(result.status,'READY');assert.equal(result.entryStatus,'PARTIAL');
+    assert.equal(result.basis,'HYPOTHETICAL');assert.deepEqual(result.comparisons,[]);
+    assert.match(result.path,/逃げ/);assert.equal(result.stats.starts,26);assert.match(result.entryMessage,/一部/);
+  }
+  const conflict=P.scenario(r,p,1,{entryMap:{1:1,2:1,3:3,4:4,5:5,6:6}});
+  assert.equal(conflict.status,'ENTRY_CONFLICT');assert.equal(conflict.entryStatus,'CONFLICT');
+  assert.deepEqual(conflict.comparisons,[]);assert.match(conflict.path,/逃げ/);assert.equal(conflict.stats.starts,26);
+});

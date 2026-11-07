@@ -331,13 +331,14 @@
       panel.append(cards, node("p", "muted small", "1着率・3連率は着順件数÷コース出走数で計算。失格等も出走数に含みます。2連率は公式資料の収録値です。"), node("h4", "", "このコースで出る場合の展開予想（参考）"));
       let entryMap = null;
       const people = knownParticipants(race), context = race.boat_observation_context;
-      if (people.length === 6 && people.every(p => p.preview_course !== null && p.preview_course !== undefined)) entryMap = Object.fromEntries(people.map(p => [participantNumber(p), p.preview_course]));
+      const reported = people.filter(p => p.preview_course !== null && p.preview_course !== undefined);
+      if (reported.length) entryMap = Object.fromEntries(reported.map(p => [participantNumber(p), p.preview_course]));
       else if (people.length === 6 && context && validBoatObservationContext(context, race.race_id) && context.beforeinfo?.status === "PARSED" && context.beforeinfo.roster_binding_status === "VERIFIED") {
         const observed = people.map(p => {
           const expected = api.get(race, p);
           return expected && context.beforeinfo.participants.find(value => value.lane === participantNumber(p) && value.registration_number === participantRegistration(p) && api.get(race, value) === expected);
         });
-        if (observed.every(p => Number.isInteger(p?.exhibition_course))) entryMap = Object.fromEntries(observed.map(p => [p.lane, p.exhibition_course]));
+        if (context.beforeinfo.participants.some(p => p.exhibition_course !== null && p.exhibition_course !== undefined)) entryMap = Object.fromEntries(observed.filter(p => p && p.exhibition_course !== null && p.exhibition_course !== undefined).map(p => [p.lane, p.exhibition_course]));
       }
       const lane = participantNumber(person);
       let selectedCourse = Number.isInteger(entryMap?.[lane]) && entryMap[lane] >= 1 && entryMap[lane] <= 6 ? entryMap[lane] : Number.isInteger(person.preview_course) && person.preview_course >= 1 && person.preview_course <= 6 ? person.preview_course : lane || 1;
@@ -348,7 +349,8 @@
         controls.querySelectorAll("button").forEach(button => button.setAttribute("aria-pressed", String(Number(button.dataset.studyCourse) === selectedCourse)));
         cards.querySelectorAll(".reference-course").forEach(card => card.classList.toggle("selected", Number(card.dataset.course) === selectedCourse));
         scenario.replaceChildren();
-        if (result.status !== "READY") { scenario.append(node("p", "", result.message)); return; }
+        if (!result.stats) { scenario.append(node("p", "", result.message)); return; }
+        if (result.entryMessage) scenario.append(node("p", "notice", result.entryMessage));
         scenario.append(node("span", "tag", {FRAME_ASSUMPTION: "枠なりを仮定（本番進入は未確定）", EXHIBITION: "展示進入の並びを参照（本番進入は未確定）", HYPOTHETICAL: "選択したコースを仮定（他艇の進入は未設定）"}[result.basis]),
           node("h4", "", selectedCourse + "コース：" + result.path),
           node("p", "", result.stats.starts + "走 · 1着率 " + rate(result.stats.win_percent) + " · 2連率 " + rate(result.stats.top2_percent) + " · 3連率 " + rate(result.stats.top3_percent) + " · 平均ST " + number(result.stats.average_st)),

@@ -58,6 +58,6 @@
 
 ## Task 4: 確認・公開
 
-- [ ] Request one fresh read-only whole-change review; reproduce and fix material findings with tests.
+- [x] Request one fresh read-only whole-change review; reproduce and fix material findings with tests.
 - [ ] Preserve concurrent source changes, update the existing PR and publish through the existing Pages refresh. Verify all ciphertext and portrait assets unchanged and deployed sparse-participant cards populated.
 - [ ] Record source coverage, public-data dates and deployed verification. Complete the plan and report the actual available information and reference-scenario limits.
