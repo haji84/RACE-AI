@@ -248,6 +248,111 @@ def _strict_live_gh(endpoint):
     return strict_live_gh(endpoint)
 
 
+def _forecast_artifact_ids(view):
+    """Exact positive IDs from boat prediction bodies, never result/evidence IDs."""
+    _need(type(view) is dict and type(view.get('records')) is list and len(view['records'])<=5000,
+          'VIEW_INVALID')
+    ids=set()
+    for row in view['records']:
+        _need(type(row) is dict,'ROW_INVALID')
+        if row.get('sport')!='boat':continue
+        comparisons=row.get('comparison_predictions',[])
+        _need(type(comparisons) is list,'ROW_INVALID')
+        for prediction in [row.get('prediction'),*comparisons]:
+            if prediction is None:continue
+            _need(type(prediction) is dict,'PREDICTION_REFERENCE_INVALID')
+            ident=prediction.get('artifact_id')
+            if ident is None:continue
+            if type(ident) is str and re.fullmatch(r'-?(?:0|[1-9][0-9]{0,19})',ident):ident=int(ident)
+            _need(type(ident) is int,'FORECAST_ARTIFACT_ID_INVALID')
+            # Legacy synthetic/non-GitHub references are not live API targets.
+            if ident<=0:continue
+            ids.add(_ident(ident))
+            _need(len(ids)<=32768,'TARGET_BOUND_INVALID')
+    return ids
+
+
+def protect_new_forecast_originals(before,after,repo,*,github_get=None,transport=None,
+                                  readback_transport=None,now=None):
+    """Retain newly visible forecast archives before a caller publishes a view.
+
+    No forecast body, maintenance cursor or closed-run catalog is changed. A
+    deferred bounded pass must not authorize publication; its retained prefix
+    is discovered through authenticated Git cache lookups on the next call.
+    """
+    repo=VCLI._environment(repo)
+    clock=now or datetime.now(timezone.utc)
+    _need(type(clock) is datetime and clock.utcoffset() is not None,'AWARE_CLOCK_REQUIRED')
+    added=sorted(_forecast_artifact_ids(after)-_forecast_artifact_ids(before))
+    _need(len(added)<=MAX_DESCRIPTOR_LOOKUPS,'FORECAST_ADDITION_BOUND_EXCEEDED')
+    git=V._transport(repo,transport);parent=git.head();_need(parent is not None,'TRANSFER_REF_REQUIRED')
+    git.fetch(parent);mac_key=V._keys(None)[1]
+    missing=[];cached=0
+    forecast_kinds={'P0','P1','ALL_MODEL'}
+    for ident in added:
+        locator=V.lookup_original(ident,repo,source_commit=parent,transport=git)
+        if locator is None:missing.append(ident)
+        else:
+            _need(locator['kind'] in forecast_kinds,'FORECAST_ARTIFACT_KIND_INVALID')
+            cached+=1
+    live=github_get or _strict_live_gh
+    responses={};metadata_bytes=0;allowed_zips=set();budget=_ByteBudget(V.MAX_BATCH_PLAIN)
+    def get(endpoint):
+        nonlocal metadata_bytes
+        _need(type(endpoint) is str and re.fullmatch(
+            r'actions/(?:artifacts/[1-9][0-9]{0,19}(?:/zip)?|runs/[1-9][0-9]{0,19})',endpoint),
+            'GITHUB_ENDPOINT_INVALID')
+        if endpoint not in responses:
+            zip_match=re.fullmatch(r'actions/artifacts/([1-9][0-9]*)/zip',endpoint)
+            if zip_match:_need(int(zip_match[1]) in allowed_zips,'ZIP_NOT_PREFLIGHTED')
+            raw=live(endpoint);_need(type(raw) is bytes,'ACTUAL_RESPONSE_BYTES_REQUIRED')
+            if not zip_match:
+                if metadata_bytes+len(raw)>MAX_METADATA_BYTES:raise _BudgetLimit()
+                metadata_bytes+=len(raw)
+            responses[endpoint]=raw
+        return responses[endpoint]
+    selected=[]
+    for ident in missing[:MAX_ARTIFACTS]:
+        try:
+            raw=get(f'actions/artifacts/{ident}');metadata=V._json(raw,V.MAX_METADATA)
+            _need(type(metadata) is dict and metadata.get('id')==ident and metadata.get('expired') is False,
+                  'TARGET_ARTIFACT_IDENTITY_INVALID')
+            _need(type(metadata.get('size_in_bytes')) is int and 0<metadata['size_in_bytes']<=V.MAX_ORIGINAL,
+                  'TARGET_ARTIFACT_IDENTITY_INVALID')
+            _need(V._kind(metadata) in forecast_kinds,'FORECAST_ARTIFACT_KIND_INVALID')
+            budget.reserve(2*(metadata['size_in_bytes']+len(raw)))
+            selected.append(ident)
+        except _BudgetLimit:break
+    if selected:
+        allowed_zips.update(selected);parent=V.refresh_parent(git,parent)
+        captured=VCLI._capture(selected,repo,parent,git,readback_transport,get,clock,allow_refresh=True)
+        locators=captured.get('locators')
+        _need(type(locators) is list and len(locators)==len(selected) and
+              all(type(locator) is dict for locator in locators) and
+              all(type(locator.get('artifact_id')) is int for locator in locators) and
+              {locator['artifact_id'] for locator in locators}==set(selected),
+              'FORECAST_CAPTURE_LOCATORS_MISMATCH')
+        commit=captured.get('source_commit');V._hex(commit,V._HEAD)
+        _need(captured.get('independent_git_readback_verified') is True,'FORECAST_CAPTURE_READBACK_INVALID')
+        for locator in locators:
+            V._validate_locator(locator)
+            _need(locator['source_commit']==commit and locator['ref']==git.ref and locator['kind'] in forecast_kinds,
+                  'FORECAST_CAPTURE_LOCATORS_MISMATCH')
+            reference={name:locator[name] for name in ('batch_path','batch_sha256','entry_sha256','artifact_id','kind')}
+            V._batch_entry(git,commit,reference,mac_key)
+        parent=commit
+    parent=V.refresh_parent(git,parent)
+    remaining=len(missing)-len(selected)
+    return dict(schema='RACE_AI_NEW_FORECAST_ORIGINAL_PROTECTION_COUNTS_V1',
+        status='BOAT_FORECAST_ORIGINALS_PROTECTED' if remaining==0 else 'BOAT_FORECAST_ORIGINALS_DEFERRED',
+        scope='NEW_POSITIVE_BOAT_FORECAST_ARTIFACT_IDS',source_commit=parent,
+        new_forecast_artifacts=len(added),cached_originals=cached,missing_before=len(missing),
+        selected_capture_ids=len(selected),newly_retained_originals=len(selected),remaining=remaining,
+        descriptor_lookups=len(added),max_descriptor_lookups=MAX_DESCRIPTOR_LOOKUPS,max_capture_ids=MAX_ARTIFACTS,
+        reserved_io_bytes=budget.used,max_io_bytes=budget.maximum,metadata_response_bytes=metadata_bytes,
+        full_current_view_readback_verified=False,complete=remaining==0,official_source_requests=0,plaintext_published=False)
+
+
 def backfill(view, repo, *, artifact_ids=(), run_ids=(), github_get=None, transport=None,
              readback_transport=None, now=None):
     """Retain up to 128 capture IDs and scan up to 16 unfinished runs.

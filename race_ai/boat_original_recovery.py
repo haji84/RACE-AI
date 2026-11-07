@@ -120,7 +120,11 @@ def _validate(run_raw,pages,clock):
 
 
 def _native_kind(name,run):
-    try:return V._kind(dict(name=name,workflow_run=dict(id=run)))
+    try:
+        kind=V._kind(dict(name=name,workflow_run=dict(id=run)))
+        # V1 closed-run inventories cover these six BOAT families. Other
+        # independently validated vault families do not change that scope.
+        return kind if kind in {'P0','P1','RESULT','CONTINUITY','ALL_MODEL','SOURCE_CONTROL'} else None
     except ValueError:return None
 
 

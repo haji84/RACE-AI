@@ -245,10 +245,10 @@ def _kind(metadata):
             return kind
     if type(name) is str and re.fullmatch(f'boat-all-model-forecasts-{run}-r(?:0|[1-9][0-9]{{0,5}})', name):
         return 'ALL_MODEL'
-    if type(name) is str and re.fullmatch(f'all-existing-model-pairs-{run}-[1-9][0-9]*', name):
-        return 'PRIVATE_PAIRS'
     if name == f'race-source-control-{run}':
         return 'SOURCE_CONTROL'
+    if type(name) is str and re.fullmatch(f'all-existing-model-pairs-{run}-[1-9][0-9]*', name):
+        return 'PRIVATE_PAIRS'
     raise ValueError('VAULT_ARTIFACT_NAME_INVALID')
 
 
@@ -268,7 +268,7 @@ def _artifact(raw, metadata_raw, *, key, now, expected_kind=None, companion=None
     created = _time(metadata.get('created_at'))
     _need(created <= now < _time(metadata.get('expires_at')), 'ARTIFACT_CLOCK_INVALID')
     kind = _kind(metadata)
-    _need(expected_kind is None or expected_kind == kind, 'ARTIFACT_KIND_INVALID')
+    _need(kind in KINDS and (expected_kind is None or expected_kind == kind), 'ARTIFACT_KIND_INVALID')
     # Decrypt and use the existing phase checks. Retention cannot make an
     # unsupported forecast valid or manufacture a source-control receipt.
     if kind in ('P0', 'P1'):
@@ -304,8 +304,8 @@ def _artifact(raw, metadata_raw, *, key, now, expected_kind=None, companion=None
             payload_sha256=digest(payload), independently_verified=True))
     elif kind == 'PRIVATE_PAIRS':
         from .all_existing_model_receipt import verify_private_pairs_artifact
-        verify_private_pairs_artifact(raw, metadata, now=now,
-            expected_run_id=run['id'], expected_head_sha=run['head_sha'])
+        verify_private_pairs_artifact(raw,metadata,now=now,
+            expected_run_id=run['id'],expected_head_sha=run['head_sha'])
     else:
         from .boat_source_control import read_summary
         _need(type(companion) in (tuple, list) and len(companion) == 2, 'CONTINUITY_COMPANION_REQUIRED')
@@ -577,6 +577,9 @@ def _retain(records, repo, *, expected_parent, key, transport, readback_transpor
                       'IMMUTABLE_CAPTURE_CONFLICT')
                 retained.append(previous); existing.append((previous,record)); continue
         entry, chunks = _seal(record, now, encryption_key)
+        # Internal record producers must not publish a signed reference that
+        # the canonical reader will reject only after the remote push.
+        _entry(entry)
         pending.append(entry); files.update(chunks); retained.append(entry)
     if not pending:
         locators=[_locator(parent,r,ref=git.ref) for r in retained]
