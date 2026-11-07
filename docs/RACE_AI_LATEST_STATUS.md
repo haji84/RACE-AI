@@ -1,3 +1,17 @@
+<!-- RACEAI_AUTOMATION_20261107_0928_COMPLETED_18_AND_SINGLE_SUCCESSOR -->
+# 2026-11-07 09:28 JST｜実worker第18巡までの正常保存と取得枠停止、現worker第5巡の原本照合、後続1件予約
+
+**GitHub実確認:** 既存Draft PR #71 / workflow405276784 / branch `feat/four-sport-forecast-audit-view-20261022`。監査直前HEAD `74883f3291bdb4a71afa34fd511d532faf31c074`。official run `42289399740` は09:06:07 JSTにcompleted/success、全artifact一覧から確認できる正式最終巡回は**第18巡**（結果ZIP保存09:05:32 JST、round readbackログ09:05:38 JST）。ログには `ROUND_SAVED_AND_READBACK_VERIFIED`、累計`forecast_count=284`、`scored_forecasts=14`（モデル別行、14レースとは限らない）、`session_requests=199` がある。P0元索引264行を再生成せず、当該runでは20行分の予想増加。第19〜24巡は `SESSION_SOURCE_BUDGET_EXHAUSTED` で非稼働。240回超過なし、ただし停止条件の内部余裕枠・次runの実GET数まで完成保証しない。
+
+**独立の原本読戻し:** run42289399740の第18巡P1予想artifact `13551060941`、結果artifact `13549429995`、継続artifact `13549854306`、count-only source control `13549734540` をGitHubから再取得。実ZIP SHA256が各API digestに一致、ZIP破損0。source-control.jsonは `completed_round=18`, `requests_used=199`, `stop_reason=SESSION_SOURCE_BUDGET_EXHAUSTED`、2026-11-07当日・元run HEADとの対応一致。内部は`private-original.enc`なので本監査実行環境で復号してstatus.json、forecasts.csv、automatic_learning、learned_shadow_comparison、coverage_auditや公式結果改訂履歴を再計算できていない。**14行を「的中14」と扱わず、最新モデル別的中率・回収率・仮収支は新たに認定しない。**
+
+**現runの最終保存物と進行中を区分:** official run `42299260917` は09:28 JST時点でin_progress。全artifactから第5巡P1 ZIP `13551766772` と結果 ZIP `13551956350` を確認し、両実ZIPのAPI digestとSHA256一致/ZIP破損0。第6巡はP1保存が先行、結果/読戻し未完了なので第6巡を成功実績に含めない。初回P0 receipt `docs/evidence/2026-11-07/p0-first-receipt.json` は132レース・264予想、元原本SHAは不変。未完了runをcompletedと偽らない。
+
+**後続起動の重複防止:** 追加起動直前に同workflow全run・現job・既存トリガーの現blob・concurrency設定を再取得し、現run正常、waiting/queued/pending 0、同時official writer 1、当日未来レース有りを確認。既存 `docs/evidence/boat-nationwide-pilot-trigger.txt` をblob SHA条件付きで1回だけ更新（commit `74883f3291bdb4a71afa34fd511d532faf31c074`）。直後APIで同じofficial群に後続run `42318345435` がpending、`42299260917` がin_progressと確認。これ以上pushしない。旧workerのcancel/rerunなし。240/45 GET、24巡/65分/180秒、最大3レース、締切210秒以上、4xx/429/不一致/日付の停止境界は変更なし。
+
+**別系統の失敗:** saved-view run `42308698200` は事前評価計画スキーマ不一致で失敗（08:08の既存監査参照）。後の `42310259077` はsource復旧段で`UNRESOLVED_PREVIOUS_RUN`を出して失敗。公式worker継続中に保守的整合性検査を緩和せず、saved-view成果を正常結果へ昇格しない。saved-viewとofficialのconcurrencyグループ分岐は依然未達。新しい前向きLEARNED_SHADOW改善、全16系統/全4競技完全稼働、全履歴の永久私有保存、本番モデル切替は未実証。新タスク/PR/workflow/サービス/課金/実投票/main統合なし。
+
+---
 <!-- RACEAI_VIDEO_NO_CONTACT_ALTERNATIVES_20261107 -->
 # 2026-11-07 JST｜問い合わせ以外の経路：許諾付き写真6原本を取得・実推論、公式計測値は公開口確認／現在値は未取得
 
