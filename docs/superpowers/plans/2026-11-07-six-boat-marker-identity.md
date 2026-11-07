@@ -184,3 +184,37 @@ reference cohort and must continue to distinguish displayed water/boats,
 declared exhibition topic and authenticated current exhibition.
 
 Corrective implementation/measurement completed; acceptance remains split: pooled aquatic screen content passes the fixed development gate, while one-source recall, human rank extraction, authenticated phase/LIVE, physical strength and forward forecast improvement remain unmet. The full4031 baseline exposed two test-fixture defects; upstream bootstrap correction and a genuine PDCA mutation are verified by21 integrated provenance tests. The integrated video regression is868PASS.
+
+## Owner-renewed completion: repair missing observations and matched forward comparison
+
+The owner explicitly requests continued implementation rather than another approval or planning stop. Preserve the existing architecture, PR71, originals and live processes. Integrated base for this continuation is `adde0e463115dc08ffb8967d243fdbdfeb5f24fa`; concurrent remote changes must be fetched and preserved before push.
+
+**Diagnosed causes:** crouched/small riders are lost at PERSON detection before clothing classification; BOAT proposals exist but can merge craft or barriers. The scored speech interval retains both boat tokens but corrupts the following relation; the parser does not discard a valid relation. The physical path has no authenticated water-contact/control-point observations. Saved real forecasts and results exist, but no real video-context, video-trained or video-shadow artifacts exist. Existing video learning adjusts ordinary coefficients too, so comparison against a fixed baseline cannot attribute gains to video alone.
+
+**Approach:** test boundary recovery using the same pinned detectors/recognizer, not a sequence of model replacements or answer-driven text repair. Current BOAT proposals may define search views for the PERSON head; they do not certify unique hulls. A predeclared speech context-reset probe stays inside each original input interval and retains its end/availability. Implement a matched forward coordinator over existing model families, freezing identical training races, event separation and a trained nonvideo control before future scoring. Unknown inputs continue to block eligibility.
+
+### Task A: Independent real input and boundary probes
+
+- [x] Freeze source-only AI garment points on new Toda450/675/2025 views before any new NN; 17 visible colours and one UNKNOWN, explicit known-media development scope. No source labels enter the detector manifest.
+- [x] Run one fixed 1.5x BOAT-view PERSON probe; retain complete tensors, native view geometry and all extra/missing detections before independent scoring. Rejected: no additional physical rider, and flags became false PERSON proposals.
+- [x] Run one fixed within-input speech reset probe on original13 and independently preselected8 provisional AI-negative windows. Verify real PCM tail equality, retain all raw outputs and score the human example separately. Rejected: human-field match remains1/2; cropped syntax can hide contradictory context.
+- [ ] Adopt a product correction only if the diagnosed loss is actually recovered; add failing tests before code, then independent review. Keep garment/person/boat/contact evidence distinct.
+
+**Supported OCR boundary repair:** The unchanged Japanese reader returns UNKNOWN on all three new native Toda frames despite their visible outlined `スタート展示` banner. A fixed full-frame inverted white-core mask (`gray > 200`, same PSM11/model/confidence) recovers all three exact labels without lexical correction. Evaluate the frozen original147 cohort before adoption; no threshold sweep. Add an automatic fallback only after a successful integrity-checked grayscale OCR observation remains UNKNOWN. Preserve grayscale explanatory text, ambiguous labels, both raw OCR views and native source coordinates; a failed engine/integrity check never becomes a fallback success. Own `race_ai/boat_video_phase.py` and `tests/test_boat_video_phase.py` only. Declared/current event authentication and identity/model eligibility stay false. TDD must cover fallback recovery, no-op known label, contradictory/explanatory views, failed secondary OCR, immutable pixels and per-view provenance; run a real continuous source interval separately from sparse frames.
+
+### Task B: Existing-family matched forward coordinator
+
+**Files:** `race_ai/boat_video_forward.py`, `tests/test_boat_video_forward.py`. Do not edit concurrently maintained prospective/grid workflows or create another scheduler/model family.
+
+- [x] RED: missing/late/synthetic context, same event in train and evaluation, nonmatching training input/control version, altered frozen forecasts, and result timestamps before cutoff cannot count as real forward evidence.
+- [x] Implement an opt-in private coordinator calling the existing nonvideo and video fitting/prediction functions on the same permitted training rows and model families; bind training/context/event-map/model/forecast hashes in separate immutable study records.
+- [x] GREEN: exercise actual existing model equations and frozen paired scoring, including no contexts/no improvement and degraded challenger. Tests with invented data remain explicitly synthetic. Independent review found and fixed media leakage across retrospective splits, sparse-history status and missing comparison input bindings;86 related tests pass and the scoped re-review approves all three fixes.
+- [x] Verify real retained native P1 replay independently; no old video is backdated or converted into a prospective result. Keep unavailable real comparisons at zero. Both existing native families replay the retained six-participant bundle exactly; authenticated real video training/forward pairs remain absent.
+
+**Software checkpoint:** The integrated video suite is907PASS/0skip with unchanged source pins. The supported phase fallback passes37 tests and independent review; native Toda3/3 labels recover, and21 consecutive frames yield19 readable candidates with2 low-confidence abstentions (16 temporally confirmed/5UNKNOWN). The complete original source is184.266seconds/5528displayed frames despite its180s filename; the actual CLI completes all5528 with source timestamps, private journal/receipt and no network requests. The first181s resource declaration failed and is preserved. OpenCV and the CLI's FFmpeg BGR transforms differ on the reserved61frame interval (same timestamps); canonical test PNGs are therefore bound to the actual CLI journal before new identity inference. These are software/development checks, not six-hull identity, physical strength or forward improvement acceptance.
+
+### Task C: Physical and integrated acceptance
+
+- [ ] Join only separately verified current object/point evidence to existing camera/physical stages; no bbox centre or stable LK region becomes a water-contact point or metre calibration.
+- [ ] Run related regression and independent code/evidence reviews, preserve original forecast SHA and live PIDs, and record exact real versus synthetic/AI-reference scopes in latest status.
+- [ ] Re-fetch remote, preserve other workers, push only existing PR71 and observe exact-commit CI. Do not equate passing software tests or local development observations with all-field completion.

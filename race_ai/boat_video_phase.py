@@ -1,7 +1,8 @@
 """Local Japanese screen-label observations, not authenticated activity phases.
 
-Full-frame sparse OCR, one frozen preprocessing path, and no truth-selected
-crop or homophone repair. Explanatory mentions remain separate from candidate
+Full-frame sparse OCR with a fixed white-core fallback after a successful
+unknown grayscale observation, and no truth-selected crop or homophone repair.
+Explanatory mentions remain separate from candidate
 current screen labels. Neither OCR nor repeated labels establish race identity.
 """
 from collections import defaultdict
@@ -102,6 +103,33 @@ def _make_packet(frame,words,*,status,raw_tsv,reason=None,preprocessing=None,eng
         semantic_scene_verified=False,usable_for_identity=False,production_eligible=False)
 
 
+def _with_ocr_views(frame,views):
+    """Retain each raw observation and classify without joining views' lines."""
+    _need(type(views) is list and 1<=len(views)<=2)
+    checked=[];words=[];page_offset=0
+    for view in views:
+        _need(type(view) is dict)
+        observation=_make_packet(frame,view['words'],status=view['status'],raw_tsv=view['raw_tsv'],
+            reason=view.get('failure_reason'),preprocessing=view.get('preprocessing'),engine=view.get('engine'))
+        _need(view==observation)
+        checked.append(observation)
+        if observation['status']!='OCR_OBSERVATION':continue
+        for word in observation['words']:
+            word=deepcopy(word)
+            # The raw page/line keys remain untouched in ocr_views. Namespace
+            # aggregate pages so unrelated OCR views cannot synthesize a label.
+            word['line_key'][0]+=page_offset
+            words.append(word)
+        page_offset=max((word['line_key'][0] for word in words),default=-1)+1
+    primary=checked[0]
+    if len(checked)==2:
+        _need(primary['status']=='OCR_OBSERVATION' and primary['phase_candidate']=='UNKNOWN')
+    packet=_make_packet(frame,words,status=primary['status'],raw_tsv=primary['raw_tsv'],
+        reason=primary['failure_reason'],preprocessing=primary['preprocessing'],engine=primary['engine'])
+    packet['ocr_views']=checked
+    return packet
+
+
 def _path(value,*,directory=False,executable=False):
     raw=os.fspath(value)
     _need(type(raw) is str and not re.match(r'^[a-zA-Z][a-zA-Z0-9+.-]*:',raw)
@@ -141,6 +169,7 @@ class LocalJapanesePhaseReader:
                 binary_sha256=binary_pin['sha256'],jpn_revision=JPN_REVISION,
                 jpn_sha256=asset_pin['sha256'],psm=11,language='jpn',full_frame=True,
                 preprocessing='GRAYSCALE_SCALE_MIN_2_AND_1920_OVER_MAX_DIM_LINEAR',
+                fallback_preprocessing='FULL_FRAME_SCALED_GRAY_GT200_BINARY_INVERSE_IF_SUCCESSFUL_GRAY_UNKNOWN',
                 minimum_word_confidence=_MIN_CONFIDENCE,
                 confidence_scope='RAW_TESSERACT_WORD_SCORE_NOT_PROBABILITY',
                 source_scope='SCREEN_TEXT_NOT_AUTHENTICATED_CURRENT_ACTIVITY',network_requests=0)
@@ -150,20 +179,32 @@ class LocalJapanesePhaseReader:
     def metadata(self):return deepcopy(self._metadata)
 
     def __call__(self,frame):
-        import cv2
-        width,height=_pixels(frame);digest=sha256(frame.tobytes()).hexdigest()
+        _pixels(frame);digest=sha256(frame.tobytes()).hexdigest()
         image=frame.copy();_need(sha256(image.tobytes()).hexdigest()==digest)
+        primary=self._read_view(image,frame,digest,white_core=False)
+        views=[primary]
+        if primary['status']=='OCR_OBSERVATION' and primary['phase_candidate']=='UNKNOWN':
+            views.append(self._read_view(image,frame,digest,white_core=True))
+        return _with_ocr_views(image,views)
+
+    def _read_view(self,image,source,digest,*,white_core):
+        import cv2
+        width,height=_pixels(image)
         words=[];raw='';prep=None
         try:
-            _need(_pin(self._binary)==self._binary_pin and _pin(self._asset)==self._asset_pin)
+            _need(_pin(self._binary)==self._binary_pin and _pin(self._asset)==self._asset_pin
+                and sha256(source.tobytes()).hexdigest()==digest and sha256(image.tobytes()).hexdigest()==digest)
             scale=min(2.,1920/max(width,height))
             gray=cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
             target=(round(width*scale),round(height*scale))
             if target!=(width,height):gray=cv2.resize(gray,target,interpolation=cv2.INTER_LINEAR)
+            if white_core:gray=cv2.threshold(gray,200,255,cv2.THRESH_BINARY_INV)[1]
             encoded,png=cv2.imencode('.png',gray);_need(encoded)
-            prep=dict(kind='FULL_FRAME_GRAYSCALE',scale=scale,width=gray.shape[1],height=gray.shape[0],
+            prep=dict(kind='FULL_FRAME_INVERTED_WHITE_CORE' if white_core else 'FULL_FRAME_GRAYSCALE',
+                scale=scale,width=gray.shape[1],height=gray.shape[0],
                 scale_x=gray.shape[1]/width,scale_y=gray.shape[0]/height,
                 interpolation='LINEAR',processed_png_sha256=sha256(png.tobytes()).hexdigest())
+            if white_core:prep.update(gray_threshold=200,comparison='GREATER_THAN',binary_inverse=True)
             environment=os.environ.copy();environment['OMP_THREAD_LIMIT']='1'
             result=subprocess.run([str(self._binary),'stdin','stdout','--tessdata-dir',str(self._directory),
                 '-l','jpn','--psm','11','-c','tessedit_create_tsv=1'],input=png.tobytes(),capture_output=True,check=True,timeout=20,
@@ -183,7 +224,7 @@ class LocalJapanesePhaseReader:
                     box=[left,top,right-left,bottom-top],
                     line_key=[int(row[k]) for k in ('page_num','block_num','par_num','line_num')]))
             _need(_pin(self._binary)==self._binary_pin and _pin(self._asset)==self._asset_pin
-                and sha256(frame.tobytes()).hexdigest()==digest and sha256(image.tobytes()).hexdigest()==digest)
+                and sha256(source.tobytes()).hexdigest()==digest and sha256(image.tobytes()).hexdigest()==digest)
             return _make_packet(image,words,status='OCR_OBSERVATION',raw_tsv=raw,
                 preprocessing=prep,engine=self._metadata)
         except (OSError,ValueError,TypeError,KeyError,UnicodeError,subprocess.SubprocessError,cv2.error):
@@ -209,8 +250,12 @@ class ExhibitionPhaseTracker:
             callback=image.copy();packet=self.reader(callback)
             _need(type(packet) is dict and packet.get('schema_version')==SCHEMA
                 and packet.get('frame_sha256')==digest and sha256(callback.tobytes()).hexdigest()==digest)
-            checked=_make_packet(image,packet['words'],status=packet['status'],raw_tsv=packet['raw_tsv'],
-                reason=packet.get('failure_reason'),preprocessing=packet.get('preprocessing'),engine=packet.get('engine'))
+            if 'ocr_views' in packet:
+                checked=_with_ocr_views(image,packet['ocr_views'])
+                _need(packet==checked)
+            else:
+                checked=_make_packet(image,packet['words'],status=packet['status'],raw_tsv=packet['raw_tsv'],
+                    reason=packet.get('failure_reason'),preprocessing=packet.get('preprocessing'),engine=packet.get('engine'))
             _need(all(packet[k]==checked[k] for k in ('phase_candidate','mention_kind','detected_phase_labels','explanatory_context')))
             packet=checked
         except (Exception,):

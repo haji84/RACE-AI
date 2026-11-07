@@ -1,3 +1,11 @@
+## 2026-11-08 作業継続：字幕の自動補完と前向き比較器
+
+日本語OCRは従来の全画面灰色処理が成功してもphaseがUNKNOWNの場合だけ、固定の白文字抽出（gray>200を反転）を追加する。初回viewの説明文・競合は残し、失敗viewの文字を確定根拠にせず、各RAW/座標/画素SHAを保持する。既存CLIの `--phase-only --phase-tesseract /usr/bin/tesseract --phase-tessdata /private/tessdata --development` から自動使用する。入力ごとの実長・表示frame数を検査し、元動画全体を処理したかを受領証で確認する。文字の可読性を現在開催や艇・強さの認証にしない。
+
+`race_ai.boat_video_forward` の `fit_matched` / `register_study` / `forecast` / `score` は既存2系統を呼び、同じ普通特徴・学習race・開催/媒体の分離と、映像なし学習版の対照を固定する。利用者が供給する `record_reader` は既存の認証済み私有artifactから正確なdocumentを取り出す信頼境界であり、JSON内の自己申告verifiedで置換しない。凍結study・予想・結果・比較を別に保存し、比較は入力原本参照まで封印する。新scheduler/モデル系統や本番自動切替は追加しない。実映像の締切前contextと学習実測がない現状を、fixture成功で完成扱いしない。
+
+映像907件・比較関連86件・字幕37件はそれぞれ成功し、独立審査後の修正も確認済み（範囲は重複）。原動画5528frameのCLI完走と、識別学習・実実況・物理測定に残る未達を[中間証拠](evidence/boat-video-phase-matched-forward-checkpoint-20261108.json)に記録する。以下は過去の検証を当時のまま保存した履歴。
+
 # 6艇の画像内識別・継続追跡の検証（2026-11-07）
 
 ## 2026-11-08の追加実装：画面内容の抽出と日本語実況

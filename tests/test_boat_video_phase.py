@@ -176,11 +176,160 @@ class PhaseTests(unittest.TestCase):
         script+="if '--version' in sys.argv: print('tesseract CONTROLLED_TEST')\n"
         script+='else:\n'
         if require_direct:script+=" if '-c' not in sys.argv or 'tessedit_create_tsv=1' not in sys.argv: sys.exit(9)\n"
-        script+=' sys.stdin.buffer.read()\n sys.stdout.write('+repr(tsv)+')\n'
+        if type(tsv) is list:
+            script+=' from pathlib import Path\n'
+            script+=' base=Path(__file__); counter=base.with_suffix(".count")\n'
+            script+=' index=int(counter.read_text()) if counter.exists() else 0\n'
+            script+=' counter.write_text(str(index+1))\n'
+            script+=' base.with_suffix(".input-"+str(index)+".png").write_bytes(sys.stdin.buffer.read())\n'
+            script+=' output='+repr(tsv)+'\n'
+            script+=' if index>=len(output) or output[index] is None: sys.exit(9)\n'
+            script+=' sys.stdout.write(output[index])\n'
+        else:script+=' sys.stdin.buffer.read()\n sys.stdout.write('+repr(tsv)+')\n'
         binary.write_text(script);binary.chmod(0o700)
         with patch.object(self.module,'JPN_SHA256',sha256(asset.read_bytes()).hexdigest()):
             reader=self.module.LocalJapanesePhaseReader(tesseract_path=binary,tessdata_path=data)
         return reader,asset
+
+    def tsv(self,text='',confidence=95.,*,block=1):
+        header='level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n'
+        return header+(f'5\t1\t{block}\t1\t1\t1\t10\t20\t140\t30\t{confidence}\t{text}\n' if text else '')
+
+    def test_unknown_gray_uses_fixed_white_core_view_with_native_evidence(self):
+        gray=self.tsv('ーー');white=self.tsv('スタート展示')
+        reader,asset=self.make_local_reader([gray,white])
+        frame=self.frame(0);frame[:,16:32]=200;frame[:,32:48]=201;frame[:,48:]=255
+        before=frame.copy();out=reader(frame)
+        self.assertEqual(out['phase_candidate'],'EXHIBITION_START')
+        self.assertTrue(np.array_equal(frame,before))
+        self.assertEqual([v['raw_tsv'] for v in out['ocr_views']],[gray,white])
+        self.assertEqual([v['preprocessing']['kind'] for v in out['ocr_views']],
+                         ['FULL_FRAME_GRAYSCALE','FULL_FRAME_INVERTED_WHITE_CORE'])
+        scaled=cv2.resize(cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY),(192,128),interpolation=cv2.INTER_LINEAR)
+        expected=np.where(scaled>200,0,255).astype(np.uint8)
+        observed=cv2.imread(str(self.root/'tesseract.input-1.png'),cv2.IMREAD_GRAYSCALE)
+        self.assertTrue(np.array_equal(observed,expected))
+        for view in out['ocr_views']:
+            self.assertEqual(view['frame_sha256'],sha256(frame.tobytes()).hexdigest())
+            self.assertEqual(view['coordinate_space'],'IMAGE_PX')
+            self.assertEqual(view['words'][0]['box'],[5.,10.,70.,15.])
+            self.assertEqual(view['engine']['psm'],11)
+            self.assertFalse(view['usable_for_identity'])
+            self.assertFalse(view['production_eligible'])
+        self.assertEqual(out['ocr_views'][1]['preprocessing']['gray_threshold'],200)
+        self.assertEqual(out['raw_tsv'],gray)
+
+    def test_known_gray_label_is_not_rerun(self):
+        reader,asset=self.make_local_reader([self.tsv('周回展示')])
+        out=reader(self.frame(0))
+        self.assertEqual(out['phase_candidate'],'EXHIBITION_LAP')
+        self.assertEqual(len(out['ocr_views']),1)
+        self.assertEqual((self.root/'tesseract.count').read_text(),'1')
+
+    def test_gray_explanation_survives_recovered_label_and_blocks_tracker_vote(self):
+        reader,asset=self.make_local_reader([self.tsv('解説'),self.tsv('スタート展示')]*2)
+        tracker=self.module.ExhibitionPhaseTracker(reader)
+        self.update(tracker,0);out=self.update(tracker,1)
+        self.assertEqual(out['ocr']['phase_candidate'],'EXHIBITION_START')
+        self.assertEqual(out['ocr']['mention_kind'],'EXPLANATORY_MENTION')
+        self.assertIn('解説',out['ocr']['raw_text'])
+        self.assertEqual(out['phase'],'UNKNOWN')
+        self.assertEqual(out['distinct_observations'],0)
+
+    def test_conflicting_gray_label_remains_ambiguous_after_fallback(self):
+        reader,asset=self.make_local_reader([self.tsv('周回展示',confidence=1.),self.tsv('スタート展示')])
+        out=reader(self.frame(0))
+        self.assertEqual(out['phase_candidate'],'UNKNOWN')
+        self.assertEqual(out['mention_kind'],'AMBIGUOUS_PHASE_LABELS')
+        self.assertEqual(out['detected_phase_labels'],['EXHIBITION_LAP','EXHIBITION_START'])
+
+    def test_ambiguous_gray_labels_cannot_be_replaced_by_one_fallback_label(self):
+        reader,asset=self.make_local_reader([self.tsv('周回展示 スタート展示'),self.tsv('スタート展示')])
+        out=reader(self.frame(0))
+        self.assertEqual(out['phase_candidate'],'UNKNOWN')
+        self.assertEqual(out['mention_kind'],'AMBIGUOUS_PHASE_LABELS')
+        self.assertEqual(len(out['ocr_views']),2)
+
+    def test_phase_label_is_never_joined_between_ocr_views(self):
+        reader,asset=self.make_local_reader([self.tsv('スタート'),self.tsv('展示')])
+        out=reader(self.frame(0))
+        self.assertEqual(out['phase_candidate'],'UNKNOWN')
+        self.assertEqual(out['mention_kind'],'NO_EXACT_PHASE_LABEL')
+        self.assertNotEqual(out['words'][0]['line_key'],out['words'][1]['line_key'])
+        self.assertEqual(out['ocr_views'][0]['words'][0]['line_key'],[1,1,1,1])
+        self.assertEqual(out['ocr_views'][1]['words'][0]['line_key'],[1,1,1,1])
+
+    def test_failed_secondary_view_retains_successful_gray_unknown(self):
+        gray=self.tsv('解説');reader,asset=self.make_local_reader([gray,None])
+        out=reader(self.frame(0))
+        self.assertEqual(out['status'],'OCR_OBSERVATION')
+        self.assertEqual(out['phase_candidate'],'UNKNOWN')
+        self.assertEqual(out['raw_tsv'],gray)
+        self.assertTrue(out['explanatory_context'])
+        self.assertEqual([v['status'] for v in out['ocr_views']],['OCR_OBSERVATION','OCR_FAILED'])
+        self.assertEqual(out['ocr_views'][1]['failure_reason'],'LOCAL_PHASE_OCR_OR_SOURCE_INTEGRITY_FAILURE')
+
+    def test_primary_engine_failure_never_runs_fallback(self):
+        reader,asset=self.make_local_reader([None,self.tsv('スタート展示')])
+        out=reader(self.frame(0))
+        self.assertEqual(out['status'],'OCR_FAILED')
+        self.assertEqual(out['phase_candidate'],'UNKNOWN')
+        self.assertEqual((self.root/'tesseract.count').read_text(),'1')
+        self.assertEqual(len(out['ocr_views']),1)
+
+    def test_primary_malformed_tsv_never_runs_fallback(self):
+        reader,asset=self.make_local_reader(['invalid\n',self.tsv('スタート展示')])
+        out=reader(self.frame(0))
+        self.assertEqual(out['status'],'OCR_FAILED')
+        self.assertEqual((self.root/'tesseract.count').read_text(),'1')
+
+    def test_secondary_integrity_failure_cannot_publish_a_recovered_label(self):
+        gray=self.tsv();reader,asset=self.make_local_reader([gray,self.tsv('スタート展示')])
+        native_run=self.module.subprocess.run;calls=[]
+        def run(*args,**kwargs):
+            result=native_run(*args,**kwargs);calls.append(result)
+            if len(calls)==2:asset.write_bytes(b'CHANGED_DURING_SECONDARY_OCR')
+            return result
+        with patch.object(self.module.subprocess,'run',side_effect=run):out=reader(self.frame(0))
+        self.assertEqual(out['phase_candidate'],'UNKNOWN')
+        self.assertEqual(out['raw_tsv'],gray)
+        self.assertEqual(out['ocr_views'][1]['status'],'OCR_FAILED')
+        self.assertIn('スタート展示',out['ocr_views'][1]['raw_tsv'])
+        self.assertEqual(out['ocr_views'][1]['words'],[])
+
+    def test_failed_view_words_remain_evidence_and_never_supply_a_label(self):
+        def reader(frame):
+            gray=self.module._make_packet(frame,[],status='OCR_OBSERVATION',raw_tsv=self.tsv())
+            failed=self.module._make_packet(frame,self.words(),status='OCR_FAILED',
+                raw_tsv=self.tsv('スタート展示'),reason='CONTROLLED_FAILED_SECONDARY_VIEW')
+            return self.module._with_ocr_views(frame,[gray,failed])
+        packet=reader(self.frame(0))
+        self.assertEqual(packet['phase_candidate'],'UNKNOWN')
+        self.assertEqual(packet['words'],[])
+        self.assertEqual(packet['ocr_views'][1]['words'],self.words())
+        tracker=self.module.ExhibitionPhaseTracker(reader)
+        self.update(tracker,0);out=self.update(tracker,1)
+        self.assertEqual(out['phase'],'UNKNOWN')
+        self.assertEqual(out['distinct_observations'],0)
+
+    def test_tracker_validates_each_view_before_using_recovered_label(self):
+        reader,asset=self.make_local_reader([self.tsv(),self.tsv('スタート展示')])
+        def tampered(frame):
+            packet=reader(frame);packet['ocr_views'][1]['frame_sha256']='0'*64;return packet
+        out=self.update(self.module.ExhibitionPhaseTracker(tampered),0)
+        self.assertEqual(out['phase'],'UNKNOWN')
+        self.assertIn('INVALID_READER_PACKET',out['quality_flags'])
+
+    def test_recovered_labels_require_distinct_frames_and_keep_ineligible_flags(self):
+        reader,asset=self.make_local_reader([self.tsv(),self.tsv('スタート展示')]*2)
+        tracker=self.module.ExhibitionPhaseTracker(reader)
+        self.assertEqual(self.update(tracker,0)['phase'],'UNKNOWN')
+        out=self.update(tracker,1)
+        self.assertEqual(out['phase'],'EXHIBITION_START')
+        self.assertEqual(len(out['ocr']['ocr_views']),2)
+        for flag in ('verified_current_activity','semantic_scene_verified','usable_for_identity',
+                     'model_eligible','production_eligible'):
+            self.assertFalse(out[flag])
 
     def test_local_reader_returns_original_bound_words_and_fixed_preprocessing(self):
         header='level\tpage_num\tblock_num\tpar_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n'
