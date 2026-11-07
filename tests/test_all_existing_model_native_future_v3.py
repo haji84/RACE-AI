@@ -102,6 +102,48 @@ class NativeFutureV3ManifestTests(unittest.TestCase):
             with self.subTest(change=change),self.assertRaises(ValueError):future.validate_manifest(dict(value,**change))
 
 
+class NativeFutureAuditDecodeTests(unittest.TestCase):
+    """Exercise the V3 private-file decode gate without model fits or keys."""
+    def setUp(self):
+        temporary=tempfile.TemporaryDirectory();self.addCleanup(temporary.cleanup);self.temp=Path(temporary.name)
+        self.root=self.temp/'future';self.audit_path=self.temp/'future.source.json'
+        future.future.save(self.temp/'future.generation.json',future.future.wire({'owner_generation_mac':'0'*64}))
+    def check_decode_rejected(self,raw,reason):
+        future.future.save(self.audit_path,raw,replace=True)
+        with (patch.object(future,'_generation_mac_v3',side_effect=AssertionError('invalid audit reached MAC')) as mac,
+                patch.object(future.future,'metadata',side_effect=AssertionError('GitHub request forbidden')) as metadata,
+                self.assertRaisesRegex(ValueError,reason)):
+            future._readback_v3(201,{},self.root,{})
+        mac.assert_not_called();metadata.assert_not_called()
+    def test_actual_shaped_audit_over_four_mib_reaches_unchanged_mac_rejection(self):
+        request=next(request for request in boat.requests() if registry.group(request['cell_key'].split('/',1)[1])=='boat_ab')
+        native=request['native_payload'];native['source']['synthetic_retained_source_text']='x'*(4*1024*1024)
+        info=registry.identity(request['cell_key'].split('/',1)[1],'boat',native)
+        capsule=dict(request,input_sha256=digest(native),captured_as_of=info['as_of'],cutoff_at=info['cutoff_at'])
+        audit=dict(schema='RACE_AI_ALL_NATIVE_FUTURE_PROVENANCE_V3',selected_at=NOW.isoformat(),
+            candidate_available_at=NOW.isoformat(),capsules=[capsule],original_source_partitions=[],selected_cases=[],
+            retained_source_clocks=[],source_capture_clock_missing_count=0,source_clocks_rewritten=False,
+            native_input_clocks_rewritten=False,provider_refetched=False,owner_research_record=None,source_admissions=[])
+        raw=future.future.wire(audit);self.assertGreater(len(raw),4*1024*1024)
+        future.future.save(self.audit_path,raw)
+        with (patch.object(future,'_generation_mac_v3',return_value='1'*64) as mac,
+                patch.object(future.future,'metadata',side_effect=AssertionError('GitHub request forbidden')) as metadata,
+                self.assertRaisesRegex(ValueError,'GENERATION_PROVENANCE_MAC')):
+            future._readback_v3(201,{},self.root,{})
+        mac.assert_called_once();metadata.assert_not_called()
+    def test_duplicate_nonfinite_overflow_and_depth_reject_before_mac(self):
+        for raw in (b'{"capsules":[],"capsules":[]}',b'{"capsules":[NaN]}',
+                b'{"capsules":[1e999]}',b'{"capsules":'+b'['*65+b'0'+b']'*65+b'}'):
+            with self.subTest(raw=raw[:60]):self.check_decode_rejected(raw,'MODEL_RUNTIME_JSON_INVALID')
+    def test_over_thirty_two_mib_rejects_and_global_and_crypto_bounds_stay_unchanged(self):
+        from race_ai import permissioned_source_delivery as shared
+        raw=b'{"capsules":"'+b'x'*(32*1024*1024)+b'"}'
+        self.check_decode_rejected(raw,'BOUND')
+        self.assertEqual(shared.MAX_SOURCE_BYTES,4*1024*1024)
+        self.assertEqual(origin_store.MAX_PLAIN,24*1024*1024)
+        with self.assertRaises(ValueError):shared.read_json_bytes(b'"'+b'x'*(4*1024*1024)+b'"')
+
+
 class NativeFutureOriginTests(unittest.TestCase):
     """The separate original-proof envelope needs no model fitting."""
     def setUp(self):

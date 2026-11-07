@@ -662,7 +662,7 @@ def _generate_v3(manifest,root,env,*,phase=None):
 
 def _readback_v3(ident,manifest,root,env,*,phase=None,origin_ident=None):
     previous=read_json_bytes(future._read(root.with_name(root.name+'.generation.json'),128*1024,private=True))
-    audit=read_json_bytes(future._read(root.with_name(root.name+'.source.json'),32*1024*1024,private=True))
+    audit=future.runtime._json(future._read(root.with_name(root.name+'.source.json'),32*1024*1024,private=True),32*1024*1024)
     need(type(previous.get('owner_generation_mac')) is str and re.fullmatch('[a-f0-9]{64}',previous['owner_generation_mac']) and
          hmac.compare_digest(previous['owner_generation_mac'],_generation_mac_v3(previous)),'GENERATION_PROVENANCE_MAC')
     actual=future.metadata(ident);need(actual.get('name')==f'all-existing-model-pairs-{env["run_id"]}-{ROUND}','PAIR_ARTIFACT_NAME')
