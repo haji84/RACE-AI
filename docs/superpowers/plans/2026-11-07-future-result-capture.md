@@ -42,3 +42,12 @@ Implementation/test order:
 All implementation evidence is authored fixtures/NET0. Real forward forecasts,
 result acquisition and thirty-cell PDCA remain unverified until actual receipts
 exist. No public operational manifest or consumed marker is created here.
+
+Approved integration follow-up: extend only the existing dedicated future job
+with the explicit `official-future-result-capture:` prefix, bound to the RESULT
+schema on its existing public input path. Preserve both original source routes,
+all five dependency gates and owner/PR/attempt/permission bounds. Key-free full
+validation selects browser setup and the one fixed RESULT upload type. Preserve
+source-only HOLD readback, and join actual source/result IDs with their distinct
+flags. Keep raw plaintext outside upload paths. Test shell routing and the 0600
+aggregate sidecar before independent review; create no operational input/marker.

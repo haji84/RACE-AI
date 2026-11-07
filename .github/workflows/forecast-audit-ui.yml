@@ -1032,6 +1032,8 @@ jobs:
         run: |
           if [[ "$(git log -1 --format=%s)" == official-future-source-capture:* && -f audit/state/official-future-source-capture-input.json ]]; then
             echo 'requested=true' >> "$GITHUB_OUTPUT"
+          elif [[ "$(git log -1 --format=%s)" == official-future-result-capture:* && -f audit/state/official-future-source-capture-input.json ]]; then
+            printf 'requested=true\ncapture_kind=RESULT\n' >> "$GITHUB_OUTPUT"
           fi
       - name: Checkout immutable PR64 authentication parser
         if: steps.future_source_route.outputs.requested == 'true'
@@ -1053,6 +1055,8 @@ jobs:
       - name: Validate the complete public input before choosing its source scope
         id: future_source_scope
         if: steps.future_source_route.outputs.requested == 'true'
+        env:
+          FUTURE_CAPTURE_KIND: ${{ steps.future_source_route.outputs.capture_kind || 'SOURCE' }}
         shell: bash
         run: |
           python - <<'PY'
@@ -1065,12 +1069,16 @@ jobs:
               raw=Path('audit/state/official-future-source-capture-input.json').read_bytes()
               if len(raw)>65536:raise ValueError('INPUT_BOUND')
               value=read_json_bytes(raw)
-              if value.get('schema')=='RACE_AI_OFFICIAL_FUTURE_SOURCE_CAPTURE_INPUT_V1':
+              kind=os.environ['FUTURE_CAPTURE_KIND']
+              if kind=='SOURCE' and value.get('schema')=='RACE_AI_OFFICIAL_FUTURE_SOURCE_CAPTURE_INPUT_V1':
                   from race_ai.all_existing_model_future_source_capture import validate_manifest
                   scope,prefix='autorace-keirin','official-future-source-capture'
-              elif value.get('schema')=='RACE_AI_JRA_FUTURE_SOURCE_CAPTURE_INPUT_V1':
+              elif kind=='SOURCE' and value.get('schema')=='RACE_AI_JRA_FUTURE_SOURCE_CAPTURE_INPUT_V1':
                   from race_ai.jra_future_source_capture import validate_manifest
                   scope,prefix='horse','official-jra-future-source-capture'
+              elif kind=='RESULT' and value.get('schema')=='RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_INPUT_V1':
+                  from race_ai.all_existing_model_future_result_capture import validate_manifest
+                  scope,prefix='official-result','official-future-result-capture'
               else:raise ValueError('INPUT_SCHEMA')
               validate_manifest(value,now=datetime.now(timezone.utc))
           except Exception:raise SystemExit('FUTURE_SOURCE_INPUT_REJECTED') from None
@@ -1078,20 +1086,20 @@ jobs:
               output.write('scope='+scope+'\nsource_artifact_prefix='+prefix+'\n')
           PY
       - name: Use the pinned Node runtime for isolated future source tooling
-        if: steps.future_source_route.outputs.requested == 'true' && steps.future_source_scope.outputs.scope == 'autorace-keirin'
+        if: steps.future_source_route.outputs.requested == 'true' && (steps.future_source_scope.outputs.scope == 'autorace-keirin' || steps.future_source_scope.outputs.scope == 'official-result')
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '24.19.0'
           package-manager-cache: false
       - name: Install isolated pinned future source browser tooling
-        if: steps.future_source_route.outputs.requested == 'true' && steps.future_source_scope.outputs.scope == 'autorace-keirin'
+        if: steps.future_source_route.outputs.requested == 'true' && (steps.future_source_scope.outputs.scope == 'autorace-keirin' || steps.future_source_scope.outputs.scope == 'official-result')
         shell: bash
         run: |
           npm install --prefix "$RUNNER_TEMP/race-ai-future-ui-tools" --no-package-lock --ignore-scripts playwright@1.62.1
           "$RUNNER_TEMP/race-ai-future-ui-tools/node_modules/.bin/playwright" install --with-deps chromium
       - name: Bind the executable to the installed pinned Playwright version
         id: future_source_browser
-        if: steps.future_source_route.outputs.requested == 'true' && steps.future_source_scope.outputs.scope == 'autorace-keirin'
+        if: steps.future_source_route.outputs.requested == 'true' && (steps.future_source_scope.outputs.scope == 'autorace-keirin' || steps.future_source_scope.outputs.scope == 'official-result')
         env:
           NODE_PATH: ${{ runner.temp }}/race-ai-future-ui-tools/node_modules
         shell: bash
@@ -1118,12 +1126,16 @@ jobs:
           root=Path(os.environ['RUNNER_TEMP'])/'official-future-source-capture'
           proof=root.with_name(root.name+'.status.json')
           scope=os.environ['FUTURE_SOURCE_SCOPE']
-          schemas={'autorace-keirin':'RACE_AI_OFFICIAL_FUTURE_SOURCE_CAPTURE_COUNTS_V1','horse':'RACE_AI_JRA_FUTURE_SOURCE_CAPTURE_COUNTS_V1'}
+          schemas={'autorace-keirin':'RACE_AI_OFFICIAL_FUTURE_SOURCE_CAPTURE_COUNTS_V1','horse':'RACE_AI_JRA_FUTURE_SOURCE_CAPTURE_COUNTS_V1',
+              'official-result':'RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_COUNTS_V1'}
           pending=dict(schema=schemas[scope],ready=False,
               state='HOLD_SOURCE_OUTCOME_NOT_YET_VERIFIED',source_requests=None,source_request_upper_bound=32,
               old_source_requests_actual=None,old_source_requests_upper_bound=32,old_browser_outcome='UNKNOWN',
               plaintext_published=False,actual_purchases=False,production_promoted=False,
               independent_pre_cutoff_receipt_verified=False)
+          if scope=='official-result':pending.update(independent_result_artifact_receipt_verified=False,
+              all_requested_cases_confirmed=False,monetary_evaluation_available=False,
+              evaluation_scope='ORDER_ONLY_NO_MONETARY_EVALUATION')
           fd=os.open(proof,os.O_WRONLY|os.O_CREAT|os.O_EXCL|getattr(os,'O_NOFOLLOW',0),0o600)
           with os.fdopen(fd,'w') as stream:json.dump(pending,stream,sort_keys=True)
           import race_ai
@@ -1133,16 +1145,27 @@ jobs:
           elif scope=='horse':
               os.environ.pop('NODE_PATH',None);os.environ.pop('CHROMIUM_PATH',None)
               from scripts.jra_future_source_capture import main
+          elif scope=='official-result':
+              from scripts.all_existing_model_future_result_capture import main
           else:raise SystemExit('FUTURE_SOURCE_SCOPE_REJECTED')
           raise SystemExit(main(['--input','audit/state/official-future-source-capture-input.json','--out-dir',str(root)]))
           PY
       - name: Save only ready encrypted native input partitions
         id: future_source_native_upload
-        if: steps.future_source_capture.outputs.ready == 'true'
+        if: steps.future_source_capture.outputs.ready == 'true' && steps.future_source_scope.outputs.scope != 'official-result'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: ${{ steps.future_source_capture.outputs.artifact_name }}
           path: ${{ runner.temp }}/official-future-source-capture/native/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Save only ready encrypted forward official results
+        id: future_source_result_upload
+        if: steps.future_source_capture.outputs.ready == 'true' && steps.future_source_scope.outputs.scope == 'official-result'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-official-results-${{ github.run_id }}-900030
+          path: ${{ runner.temp }}/official-future-source-capture/result/results.enc
           retention-days: 7
           if-no-files-found: error
       - name: Always retain only encrypted source reservation and original evidence
@@ -1163,6 +1186,7 @@ jobs:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           FUTURE_SOURCE_SCOPE: ${{ steps.future_source_scope.outputs.scope }}
           NATIVE_INPUT_ARTIFACT_ID: ${{ steps.future_source_native_upload.outputs.artifact-id }}
+          RESULT_ARTIFACT_ID: ${{ steps.future_source_result_upload.outputs.artifact-id }}
           SOURCE_CAPTURE_ARTIFACT_ID: ${{ steps.future_source_upload.outputs.artifact-id }}
         shell: bash
         run: |
@@ -1176,11 +1200,18 @@ jobs:
               from scripts.all_existing_model_future_source_capture import main
           elif scope=='horse':
               from scripts.jra_future_source_capture import main
+          elif scope=='official-result':
+              from scripts.all_existing_model_future_result_capture import main
           else:raise SystemExit('FUTURE_SOURCE_SCOPE_REJECTED')
           args=['--input','audit/state/official-future-source-capture-input.json',
               '--out-dir',str(Path(os.environ['RUNNER_TEMP'])/'official-future-source-capture'),
               '--readback-source',os.environ['SOURCE_CAPTURE_ARTIFACT_ID']]
-          if os.environ.get('NATIVE_INPUT_ARTIFACT_ID'):args+=['--readback-native',os.environ['NATIVE_INPUT_ARTIFACT_ID']]
+          if scope=='official-result':
+              if os.environ.get('NATIVE_INPUT_ARTIFACT_ID'):raise SystemExit('FUTURE_RESULT_ARTIFACT_KIND_REJECTED')
+              if os.environ.get('RESULT_ARTIFACT_ID'):args+=['--readback-result',os.environ['RESULT_ARTIFACT_ID']]
+          else:
+              if os.environ.get('RESULT_ARTIFACT_ID'):raise SystemExit('FUTURE_SOURCE_ARTIFACT_KIND_REJECTED')
+              if os.environ.get('NATIVE_INPUT_ARTIFACT_ID'):args+=['--readback-native',os.environ['NATIVE_INPUT_ARTIFACT_ID']]
           raise SystemExit(main(args))
           PY
       - name: Always retain count-only future source verification status

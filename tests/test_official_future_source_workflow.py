@@ -14,8 +14,11 @@ JOB='official_future_source_capture'
 MANIFEST='audit/state/official-future-source-capture-input.json'
 MODULE='scripts.all_existing_model_future_source_capture'
 JRA_MODULE='scripts.jra_future_source_capture'
-SCHEMAS={'autorace-keirin':'RACE_AI_OFFICIAL_FUTURE_SOURCE_CAPTURE_INPUT_V1','horse':'RACE_AI_JRA_FUTURE_SOURCE_CAPTURE_INPUT_V1'}
-PREFIXES={'autorace-keirin':'official-future-source-capture','horse':'official-jra-future-source-capture'}
+RESULT_MODULE='scripts.all_existing_model_future_result_capture'
+SCHEMAS={'autorace-keirin':'RACE_AI_OFFICIAL_FUTURE_SOURCE_CAPTURE_INPUT_V1','horse':'RACE_AI_JRA_FUTURE_SOURCE_CAPTURE_INPUT_V1',
+         'official-result':'RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_INPUT_V1'}
+PREFIXES={'autorace-keirin':'official-future-source-capture','horse':'official-jra-future-source-capture',
+          'official-result':'official-future-result-capture'}
 UPLOAD='actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02'
 
 
@@ -73,7 +76,7 @@ class FutureSourceWorkflowTests(unittest.TestCase):
             self.assertIn('persist-credentials: false',dep)
 
     def execute(self,step,*,subject='official-future-source-capture: fixture',manifest=True,native_id='',source_id='802',
-                scope='autorace-keirin',schema=None,reject=False):
+                scope='autorace-keirin',schema=None,reject=False,result_id='',capture_kind=None):
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary);commands=root/'commands';commands.mkdir();runner=root/'private temp';runner.mkdir()
             log=root/'calls.jsonl';output=root/'output'
@@ -85,7 +88,8 @@ class FutureSourceWorkflowTests(unittest.TestCase):
             (root/'race_ai'/'permissioned_source_delivery.py').write_text('from json import loads\ndef read_json_bytes(raw):return loads(raw)\n')
             (root/'scripts').mkdir();(root/'scripts'/'__init__.py').write_text('')
             for fixture_scope,core_name,cli in (
-                ('autorace-keirin','all_existing_model_future_source_capture',MODULE),('horse','jra_future_source_capture',JRA_MODULE)):
+                ('autorace-keirin','all_existing_model_future_source_capture',MODULE),('horse','jra_future_source_capture',JRA_MODULE),
+                ('official-result','all_existing_model_future_result_capture',RESULT_MODULE)):
                 (root/'race_ai'/(core_name+'.py')).write_text(
                     'def validate_manifest(value,*,now):\n'
                     ' assert now.utcoffset() is not None\n'
@@ -98,7 +102,8 @@ class FutureSourceWorkflowTests(unittest.TestCase):
                     ' return 0\n')
             env=dict(os.environ,PATH=str(commands)+os.pathsep+os.environ['PATH'],RUNNER_TEMP=str(runner),
                 GITHUB_OUTPUT=str(output),FIXTURE_SUBJECT=subject,FIXTURE_LOG=str(log),
-                NATIVE_INPUT_ARTIFACT_ID=native_id,SOURCE_CAPTURE_ARTIFACT_ID=source_id,FUTURE_SOURCE_SCOPE=scope)
+                NATIVE_INPUT_ARTIFACT_ID=native_id,RESULT_ARTIFACT_ID=result_id,SOURCE_CAPTURE_ARTIFACT_ID=source_id,FUTURE_SOURCE_SCOPE=scope,
+                FUTURE_CAPTURE_KIND=capture_kind or ('RESULT' if scope=='official-result' else 'SOURCE'))
             result=subprocess.run(['bash','-e','-o','pipefail','-c',script(step)],cwd=root,env=env,
                 capture_output=True,text=True,timeout=10)
             recorded=[json.loads(line) for line in log.read_text().splitlines()] if log.exists() else []

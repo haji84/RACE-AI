@@ -78,6 +78,22 @@ PDCA alongside the existing BOAT result archive. No monetary metric is produced.
 `ready` means encrypted RESULT exists; only `all_requested_cases_confirmed: true`
 means all three non-BOAT cases are normal. Pending/special/missing are never losses.
 
-This phase adds no workflow or schedule. Later routing belongs in the existing
-dedicated future job after actual forecast/native/source receipts exist. Authored
-test success is not an actual future RESULT or thirty-cell PDCA completion claim.
+The same existing dedicated future job accepts the explicit commit prefix
+`official-future-result-capture:` and the public input path
+`audit/state/official-future-source-capture-input.json`. Its full key-free RESULT
+schema validation runs before the secret-bearing capture step. The original
+`official-future-source-capture:` prefix remains restricted to its original two
+input schemas. Crossing these purposes is rejected. The existing owner, PR71,
+same-branch, attempt-one and five successful dependency gates remain in force.
+
+The RESULT route installs the same pinned browser tooling as A/K, uploads only
+the fixed `result/results.enc` path under the standard 900030 name, and uses
+`--readback-result` with the actual result/source upload IDs. A RESULT HOLD uses
+source-only readback. The existing always-upload source ciphertext and safe
+sibling `.status.json` proof remain separate from browser plaintext. Successful
+RESULT CLI/readback replaces that 0600 status proof with its count-only result.
+
+There is no new workflow or schedule, and no operational public input or marker
+is created here. Actual forecast/native/source receipts must exist first.
+Authored test success is not an actual future RESULT or thirty-cell PDCA
+completion claim.

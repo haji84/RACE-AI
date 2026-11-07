@@ -179,6 +179,8 @@ class FutureResultCaptureCliTests(unittest.TestCase):
              patch.object(self.api,'readback_source',return_value=status) as readback,redirect_stdout(io.StringIO()):
             self.assertEqual(self.api.main(['--input',str(path),'--out-dir',str(self.root),'--readback-source','500']),0)
         self.assertEqual(readback.call_args.args[:4],(500,self.root,self.env,self.manifest));self.assertEqual(self.calls,[])
+        proof=self.root.with_name(self.root.name+'.status.json')
+        self.assertEqual(json.loads(proof.read_text()),status);self.assertEqual(proof.stat().st_mode&0o777,0o600)
     def test_retained_denial_cannot_be_overridden_by_unchanged_successful_capture(self):
         self.assertTrue(self.generate()['ready'])
         path=self.root/'source/collection.enc';journal=open_forecasts(path.read_bytes(),key=KEY)

@@ -422,6 +422,7 @@ def main(argv=None):
         need(args.readback_source is not None,'SOURCE_ARTIFACT_REQUIRED');status=readback(args.readback_result,args.readback_source,root,env,manifest)
     elif args.readback_source:status=readback_source(args.readback_source,root,env,manifest)
     else:status=generate(core.validate_manifest(manifest,now=utc_now()),root,env)
+    proof=root.with_name(root.name+'.status.json');save(proof,future.wire(status),replace=proof.exists())
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'],'a') as stream:
             for name,value in (('ready',str(status['ready']).lower()),('result_artifact_name',status.get('result_artifact_name') or ''),
