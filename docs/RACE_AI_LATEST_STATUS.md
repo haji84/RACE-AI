@@ -1,3 +1,13 @@
+<!-- RACEAI_2031JST_INTEGRATED_CHECK_20261107 -->
+# 2026-11-07 20:31 JST｜統合済みHEADのCI結果と安全停止の再照合
+
+既存Draft PR #71のHEAD `151aa6e59074ba48e73c1036f5256e2396afd479` を再取得。統合後の既存[Viewer CI 42366037173](https://github.com/haji84/RACE-AI/actions/runs/42366037173)は2026-11-07T11:26:35Zに全体completed/success。[並行復旧CI 42364217725](https://github.com/haji84/RACE-AI/actions/runs/42364217725)のattempt2もcompleted/success。ただしCI成功・収集stepのsuccessを、新しいAUTO/KEIRIN通常結果・19枠未来PDCA成功とは認定しない。実結果ZIP保存stepはskipped。
+
+通常source workflow405276784の最新成功runは[42352096559](https://github.com/haji84/RACE-AI/actions/runs/42352096559)。完了3巡・119/240 GET・`BOUNDED_SESSION_END`・`source_wait=null`。独立Git原本refの `state/boat-source-control/v1/latest.json` と当日run別記録をGitHubから取得し、workflow ID・repo ID・run ID・branch・HEAD・completed/success・control/continuity artifact ID/digest/sizeとGitHub APIメタデータの一致を確認した。keylessではHMAC/暗号原本の独立復号は未確認。最新完了source ZIPの実バイト再取得も未実施。今回確認した同workflowのactive/queued/pending/waitingは0。新sourceの起動判断に必要な所有者鍵の真正性検証をこの環境では完了できないため、トリガー追加をしない。
+
+販売者削除は現行15系統/30枠のサイト反映と既存回帰成功が先行実証済み。実学習19/30（BOAT14、HORSE5）、未完了11（AUTO6、KEIRIN5）に変化なし。AUTO/KEIRINの旧collector journalによるbrowser予約24件の実通信数UNKNOWN・HOLDは維持。新しいcollector、失敗runのrerun、capsule独立発行、上限変更、原本改変、本番採用、実投票は行わない。固定28シナリオは実購入ではなく、前向きの精度改善も未認定。
+<!-- END_RACEAI_2031JST_INTEGRATED_CHECK_20261107 -->
+
 <!-- OWNER_REMOVED_SELLER_STATUS_20261107 -->
 # 2026-11-07｜販売者モデルを現在の対象から削除、実サイト15系統の表示確認に成功
 
