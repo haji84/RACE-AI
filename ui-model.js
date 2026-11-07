@@ -5,11 +5,65 @@
     "桐生", "戸田", "江戸川", "平和島", "多摩川", "浜名湖", "蒲郡", "常滑", "津", "三国", "びわこ", "住之江",
     "尼崎", "鳴門", "丸亀", "児島", "宮島", "徳山", "下関", "若松", "芦屋", "福岡", "唐津", "大村"
   ]);
+  const validVenueDay = value => {
+    if (typeof value !== "string" || !/^\d{4}-\d\d-\d\d$/.test(value)) return false;
+    const clock = Date.parse(value + "T00:00:00Z");
+    return Number.isFinite(clock) && new Date(clock).toISOString().slice(0, 10) === value;
+  };
   const model = {
     venueName(row) {
       // Resolve the saved BOAT code for display without rewriting the original record.
       const code = row?.sport === "boat" && typeof row.venue === "string" ? /^場コード(0[1-9]|1[0-9]|2[0-4])$/.exec(row.venue) : null;
       return code ? boatVenues[Number(code[1]) - 1] : row?.venue;
+    },
+    venueOverview(records, {sport = "boat", now = Date.now(), favorites = []} = {}) {
+      const groups = new Map((sport === "boat" ? boatVenues : []).map(venue => [venue, []]));
+      for (const row of records) {
+        const venue = model.venueName(row);
+        if (row.sport !== sport || typeof venue !== "string" || !venue) continue;
+        if (!groups.has(venue)) groups.set(venue, []);
+        groups.get(venue).push(row);
+      }
+      const pinned = new Set(Array.isArray(favorites) ? favorites : []);
+      return [...groups].map(([venue, rows]) => ({venue, count: rows.length, favorite: pinned.has(sport + ":" + venue),
+        nextRace: rows.filter(r => Number.isFinite(Date.parse(r.cutoff_at)) && Date.parse(r.cutoff_at) > now)
+          .sort((a, b) => Date.parse(a.cutoff_at) - Date.parse(b.cutoff_at) || a.race_id.localeCompare(b.race_id))[0] || null
+      })).sort((a, b) => Number(b.favorite) - Number(a.favorite) || Number(b.count > 0) - Number(a.count > 0) || a.venue.localeCompare(b.venue, "ja"));
+    },
+    raceInformation(row = {}, {supplementalPreview = false} = {}) {
+      const people = Array.isArray(row.participants) ? row.participants : [];
+      const present = value => value !== null && value !== undefined && value !== "";
+      const weather = row.weather || row.weather_preview;
+      const preview = supplementalPreview === true || people.some(p => ["display_time", "preview_st", "preview_course", "comment", "last_comment"].some(key => present(p[key]))) ||
+        weather != null && typeof weather === "object" && Object.values(weather).some(present);
+      const predictions = [row.prediction, ...(Array.isArray(row.comparison_predictions) ? row.comparison_predictions : [])].filter(Boolean).length;
+      const result = row.result && ["final", "settled", "void", "cancelled", "unsupported"].includes(row.result.status);
+      return [
+        {key: "participants", label: "出走表", available: people.length > 0, detail: people.length ? people.length + "名" : "未取得"},
+        {key: "preview", label: "直前情報", available: Boolean(preview), detail: preview ? "取得項目あり" : "未取得"},
+        {key: "outlook", label: "保存予想", available: predictions > 0, detail: predictions ? predictions + "原本" : "未予想"},
+        {key: "history", label: "結果", available: Boolean(result), detail: result ? "結果あり" : "結果待ち"}
+      ];
+    },
+    boatRaceLinks(row) {
+      if (!row || row.sport !== "boat" || row.scope === "synthetic" || row.synthetic === true ||
+          !Number.isInteger(row.race_no) || row.race_no < 1 || row.race_no > 12 ||
+          !validVenueDay(row.event_date_jst)) return [];
+      const venue = boatVenues.indexOf(model.venueName(row));
+      if (venue < 0) return [];
+      const code = String(venue + 1).padStart(2, "0"), day = row.event_date_jst.replaceAll("-", "");
+      const identity = /^(\d{8})-(\d{2})-(\d{2})$/.exec(row.race_id || "");
+      if (identity && (identity[1] !== day || identity[2] !== code || Number(identity[3]) !== row.race_no)) return [];
+      return [["participants", "公式出走表", "racelist"], ["preview", "公式直前情報", "beforeinfo"],
+        ["odds", "公式オッズ", "odds3t"], ["history", "公式結果", "raceresult"]].map(([kind, label, page]) =>
+        ({kind, label, url: "https://www.boatrace.jp/owpc/pc/race/" + page + "?" + new URLSearchParams({rno: String(row.race_no), jcd: code, hd: day})}));
+    },
+    boatVenueLinks(row) {
+      if (!row || row.sport !== "boat") return [];
+      const index = boatVenues.indexOf(model.venueName(row)); if (index < 0) return [];
+      const links = [{kind: "stadium", label: "公式の会場情報・開催日程 ↗", url: "https://www.boatrace.jp/owpc/pc/site/place/stadium?jcd=" + String(index + 1).padStart(2, "0")}];
+      if (validVenueDay(row.event_date_jst)) links.push({kind: "calendar", label: "選択日の公式開催一覧 ↗", url: "https://www.boatrace.jp/owpc/pc/race/index?hd=" + row.event_date_jst.replaceAll("-", "")});
+      return links;
     },
     validateTicket(lanes, amount, maxNumber = 6) {
       if (!Array.isArray(lanes) || lanes.length !== 3 || lanes.some(n => !Number.isInteger(n) || n < 1 || n > maxNumber) || new Set(lanes).size !== 3)

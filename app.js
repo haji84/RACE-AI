@@ -16,7 +16,10 @@
   };
   const storageKey = "race-ai-display-v1";
   let preferences = {};
-  try { preferences = JSON.parse(localStorage.getItem(storageKey) || "{}"); } catch { /* Storage is optional. */ }
+  try {
+    const saved = JSON.parse(localStorage.getItem(storageKey) || "{}");
+    if (saved && typeof saved === "object" && !Array.isArray(saved)) preferences = saved;
+  } catch { /* Storage is optional. */ }
   const validBudget = n => Number.isSafeInteger(n) && n >= 100 && n <= 10000000 && n % 100 === 0;
   const state = {
     page: "home", sport: Object.hasOwn(sports, preferences.sport) ? preferences.sport : "boat",
@@ -27,7 +30,9 @@
     simulationBudget: validBudget(preferences.simulationBudget) ? preferences.simulationBudget : 10000, resultGroupKey: "",
     simulationRaceBudget: [800,1000].includes(preferences.simulationRaceBudget) ? preferences.simulationRaceBudget : 800,
     maxPicks: [8, 16, 24, 32].includes(preferences.maxPicks) ? preferences.maxPicks : 8,
-    candidates: [], purchases: [], confirmed: new Set(), visible: 60
+    candidates: [], purchases: [], confirmed: new Set(), visible: 60,
+    favoriteVenues: [...new Set((Array.isArray(preferences.favoriteVenues) ? preferences.favoriteVenues : []).filter(value =>
+      typeof value === "string" && value.length <= 110 && Object.keys(sports).some(sport => value.startsWith(sport + ":"))))].slice(0, 64)
   };
   let dataset = null, importVersion = 0, savedHistory = null;
   const generation = {api: null, ready: false, busy: false, nonce: null, capabilities: {}, day: null, message: "",
@@ -89,7 +94,7 @@
   const badge = n => node("span", "lane lane-" + (n <= 6 ? n : "other"), String(n));
   const combo = values => { const n = node("span", "combo"); values.forEach((v, i) => { if (i) n.append(node("span", "combo-dash", "−")); n.append(badge(v)); }); return n; };
   function persistPreferences() {
-    try { localStorage.setItem(storageKey, JSON.stringify({budget: state.budget, raceBudget: state.raceBudget, simulationBudget: state.simulationBudget, simulationRaceBudget: state.simulationRaceBudget, maxPicks: state.maxPicks, sport: state.sport})); } catch { /* App remains usable with storage disabled. */ }
+    try { localStorage.setItem(storageKey, JSON.stringify({budget: state.budget, raceBudget: state.raceBudget, simulationBudget: state.simulationBudget, simulationRaceBudget: state.simulationRaceBudget, maxPicks: state.maxPicks, sport: state.sport, favoriteVenues: state.favoriteVenues})); } catch { /* App remains usable with storage disabled. */ }
   }
   function table(headers, rows) {
     const t = node("table"), head = node("tr"), body = node("tbody");
@@ -105,6 +110,41 @@
   function sourceText(value) {
     if (Array.isArray(value)) return value.map(v => typeof v === "string" ? v : JSON.stringify(v)).join(" / ");
     return value && typeof value === "object" ? JSON.stringify(value) : text(value);
+  }
+  function weatherPanel(weather, label) {
+    const panel = node("section", "weather-panel"); panel.setAttribute("aria-label", label);
+    panel.append(node("h3", "", "気象・水面"));
+    const grid = node("div", "weather-metrics");
+    for (const [name, keys, unit] of [["天候", ["weather_label", "weather", "condition"], ""], ["気温", ["air_temperature_c", "temperature"], "℃"],
+      ["風速", ["wind_speed_mps", "wind_speed"], "m/s"], ["波高", ["wave_height_cm", "wave_height"], "cm"], ["水温", ["water_temperature_c", "water_temperature"], "℃"]]) {
+      const value = keys.map(key => weather[key]).find(value => (typeof value === "number" || typeof value === "string") && value !== "");
+      if (value === undefined) continue;
+      grid.append(append(node("div", "weather-metric"), node("span", "weather-label", name), node("strong", "weather-value", text(value) + (unit ? " " + unit : ""))));
+    }
+    panel.append(grid.childElementCount ? grid : node("p", "muted small", "気象の保存項目は詳細で確認できます。"));
+    const details = node("details", "weather-details");
+    details.append(node("summary", "", "気象の保存項目をすべて確認"), facts(Object.entries(weather).map(([key, value]) => [key, sourceText(value)])));
+    panel.append(details);
+    return panel;
+  }
+  function previewCards(race, people) {
+    const grid = node("div", "preview-people");
+    const value = v => typeof v === "number" && Number.isFinite(v) ? v.toFixed(2) : text(v);
+    for (const person of people) {
+      const card = node("article", "preview-boat"), header = node("div", "preview-person");
+      const trigger = button(person.name || "出走者情報", "text-button", () => openParticipant(person, race, trigger));
+      trigger.dataset.openParticipant = participantRegistration(person) || "unverified";
+      const number = participantNumber(person); if (Number.isInteger(number)) header.append(badge(number));
+      header.append(trigger); card.append(header);
+      const metrics = node("dl", "preview-metrics");
+      for (const [label, item] of [["展示タイム", value(person.display_time)], ["展示ST", value(person.preview_st)], ["進入", text(person.preview_course)]]) {
+        metrics.append(append(node("div"), node("dt", "", label), node("dd", "", item)));
+      }
+      card.append(metrics);
+      if (person.comment || person.last_comment) card.append(node("p", "preview-comment", person.comment || person.last_comment));
+      grid.append(card);
+    }
+    return grid;
   }
   function validBoatObservationContext(context, raceId) {
     const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -175,7 +215,10 @@
       const status = {PARSED:"取得した項目を表示", NOT_OFFERED:"公式ページで提供なし", UNSUPPORTED_STRUCTURE:"ページ構造を確認できず・照合不可"}[page.status] || "取得状態は未確認";
       const capturedBefore = page.cutoff_eligibility?.captured_before_cutoff ?? page.captured_before_cutoff;
       const cutoffRelation = capturedBefore === false ? "締切後に取得（保存予想への後付けなし）" : capturedBefore === true ? "締切前に取得（入力への反映は別確認）" : "未確認";
-      return facts([["取得状態", status], ["観測取得 JST", stamp(source.captured_at)], ["公式ページの締切 JST", stamp(page.source_cutoff_at)], ["締切と取得の関係", cutoffRelation], ["取得元URL", source.source_url], ["元ページSHA", source.sha256], ["公式公開日時 JST", stamp(source.published_at)], ["掲載時刻の原文", source.published_time_raw], ["鮮度の確認", "未確認（取得時刻と公式公開日時は別の記録）"]]);
+      const wrapper = node("div", "context-source"), details = node("details", "context-source-details");
+      wrapper.append(node("p", "muted small", "観測取得 " + stamp(source.captured_at) + " JST · " + cutoffRelation));
+      details.append(node("summary", "", "取得状態・出典の詳細"), facts([["取得状態", status], ["観測取得 JST", stamp(source.captured_at)], ["公式ページの締切 JST", stamp(page.source_cutoff_at)], ["締切と取得の関係", cutoffRelation], ["取得元URL", source.source_url], ["元ページSHA", source.sha256], ["公式公開日時 JST", stamp(source.published_at)], ["掲載時刻の原文", source.published_time_raw], ["鮮度の確認", "未確認（取得時刻と公式公開日時は別の記録）"]]));
+      wrapper.append(details); return wrapper;
     };
     const before = context.beforeinfo;
     if (before) {
@@ -186,6 +229,7 @@
         section.append(node("h3", "member-heading", "展示タイム・展示ST"), table(["艇番", "選手 / 登録", "展示タイム 秒", "展示ST 原文", "ST状態", "展示の表示位置", "実進入コース"], before.participants.map(person => [person.lane, participantLabel(person, r), person.display_time, person.exhibition_st_raw ?? person.exhibition_st, {OK:"正常ST", F:"F（フライング表示）", L:"L（出遅れ表示）", NOT_PUBLISHED:"未公表"}[person.exhibition_st_status] || "未取得", person.exhibition_source_position_number, person.exhibition_course])), node("p", "muted small", "展示の表示位置は、本番の実進入コースの確定値ではありません。空欄は変更なし・STゼロを意味しません。"));
       } else section.append(node("p", "muted", "選手別の直前観測値は未取得です。"));
       const weather = before.weather;
+      if (weather) section.append(weatherPanel(weather, "補足観測の気象・水面"));
       section.append(node("h3", "member-heading", "公式気象・水面の観測"), weather ? facts([["天候", weather.weather_label], ["気温 ℃", weather.air_temperature_c], ["水温 ℃", weather.water_temperature_c], ["風速 m/s", weather.wind_speed_mps], ["波高 cm", weather.wave_height_cm], ["風向の公式表示コード", weather.wind_direction_source_code], ["掲載対象レース", Number.isInteger(weather.reported_race_no) ? weather.reported_race_no + "R時点" : null], ["気象欄の時刻原文", weather.source_reported_local_time], ["気象の公開日時 JST", stamp(weather.reported_at)], ["気象の鮮度", "未確認（日付付きの公式公開日時は未取得）"]]) : node("p", "muted", "気象・水面の補足観測は未取得です。"));
       box.append(section);
     } else box.append(node("p", "muted", "公式直前情報の補足観測は未取得です。"));
@@ -239,7 +283,88 @@
     if (M.eligiblePrediction?.(r, p)) return "証拠付き保存予想（読込値）";
     return "保存予想・証拠不足";
   }
-  function participantCard(p, race, expanded = false) {
+  let participantDialog = null, participantOpener = null;
+  function closeParticipant() {
+    const opener = participantOpener; participantOpener = null;
+    participantDialog?.close(); document.body.classList.remove("participant-dialog-open");
+    if (opener?.isConnected) opener.focus();
+    else { $("page-title").tabIndex = -1; $("page-title").focus({preventScroll: true}); }
+  }
+  function openParticipant(person, race, opener) {
+    if (!participantDialog) {
+      participantDialog = node("dialog", "participant-dialog"); participantDialog.id = "participant-dialog";
+      participantDialog.setAttribute("aria-labelledby", "participant-dialog-title");
+      participantDialog.addEventListener("cancel", event => { event.preventDefault(); closeParticipant(); });
+      participantDialog.addEventListener("click", event => {
+        if (event.target !== participantDialog) return;
+        const bounds = participantDialog.getBoundingClientRect();
+        if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) closeParticipant();
+      });
+      document.body.append(participantDialog);
+    }
+    const dialog = participantDialog, portrait = globalThis.RaceRacerPortraits?.get(race, person), registration = participantRegistration(person);
+    participantOpener = opener;
+    const header = node("header", "profile-header"), heading = node("div"), title = node("h2", "", portrait?.name || person.name || "選手情報");
+    title.id = "participant-dialog-title";
+    heading.append(node("p", "eyebrow", "RACER CARD"), title);
+    const close = button("×", "profile-close", closeParticipant); close.dataset.closeParticipant = ""; close.setAttribute("aria-label", "選手カルテを閉じる");
+    header.append(heading, close);
+    const body = node("div", "profile-body"), hero = node("div", "profile-hero");
+    hero.append(participantCard(person, race, false, false));
+    const introduction = node("div", "profile-introduction");
+    introduction.append(node("span", "tag scope-" + race.scope, scopeName(race.scope)), node("p", "", raceName(race)), node("p", "muted small", "出走情報の保存値 · 取得 " + stamp(person.captured_at || person.observed_at || race.observed_at || race.as_of) + " JST"));
+    if (portrait) {
+      const link = node("a", "outline profile-official", "公式プロフィールを開く ↗");
+      link.href = portrait.sourceUrl; link.target = "_blank"; link.rel = "noopener noreferrer"; link.referrerPolicy = "no-referrer"; link.dataset.officialProfile = "";
+      introduction.append(link);
+    }
+    hero.append(introduction); body.append(hero);
+    const values = node("div", "profile-values");
+    const decimal = (value, suffix = "") => typeof value === "number" && Number.isFinite(value) ? value.toFixed(2) + suffix : value;
+    const group = (label, fields, always = false) => {
+      const section = node("section", "profile-section"), available = fields.filter(([, value]) => value !== null && value !== undefined && value !== "");
+      section.append(node("h3", "", label));
+      section.append(available.length || always ? facts(always ? fields : available) : node("p", "muted", "この項目の保存値はありません。"));
+      values.append(section);
+    };
+    group("基本情報", [["登録番号", registration], ["級別", person.grade], ["支部", person.branch], ["年齢", person.age]], true);
+    group("成績・スタート", [["全国勝率", decimal(person.national_win_rate)], ["当地勝率", decimal(person.local_win_rate)],
+      ["全国2連率", decimal(person.national_top2_rate, "%")], ["当地2連率", decimal(person.local_top2_rate, "%")], ["平均ST", decimal(person.average_st)]]);
+    group("モーター・ボート", [["モーター番号", person.motor_no], ["モーター2連率", decimal(person.motor_top2_rate, "%")],
+      ["ボート番号", person.boat_no], ["ボート2連率", decimal(person.boat_top2_rate, "%")]]);
+    group("このレースの直前情報", [["展示タイム", decimal(person.display_time)], ["展示ST", person.preview_st], ["展示進入", person.preview_course],
+      ["選手コメント", person.comment || person.last_comment]]);
+    body.append(values);
+    const context = race.boat_observation_context, lane = participantNumber(person);
+    if (portrait && registration && Number.isInteger(lane) && context && validBoatObservationContext(context, race.race_id)) {
+      const supplement = node("section", "profile-supplement"); supplement.id = "profile-supplement";
+      supplement.append(node("h3", "", "補足として取得した直前情報"), node("p", "muted small", "保存予想への反映は未検証です。以下の観測値は保存予想の入力とは別に表示しています。"));
+      let count = 0;
+      for (const [kind, label] of [["beforeinfo", "展示・直前情報の観測"], ["pitreport", "選手コメントの観測"]]) {
+        const page = context[kind];
+        if (page?.status !== "PARSED" || page.roster_binding_status !== "VERIFIED") continue;
+        const observed = page.participants.find(value => value.lane === lane && value.registration_number === registration &&
+          [value.name, value.comment_attribution?.racer_name].every(name => globalThis.RaceRacerPortraits.get(race, {registration_number: registration, name}) === portrait));
+        if (!observed) continue;
+        const fields = kind === "beforeinfo" ? [["展示タイム", decimal(observed.display_time)], ["展示ST", observed.exhibition_st_raw ?? decimal(observed.exhibition_st)],
+          ["ST表示", {OK: "正常ST", F: "F（フライング表示）", L: "L（出遅れ表示）", NOT_PUBLISHED: "未公表"}[observed.exhibition_st_status]],
+          ["実進入コース", observed.exhibition_course], ["体重 kg", observed.bodyweight_kg], ["調整重量 kg", observed.adjustmentweight_kg], ["チルト 度", observed.tilt],
+          ["部品交換", observed.parts_replacement?.join(" / ")]] : [["選手コメント", observed.comment], ["取材者", observed.comment_attribution?.reporter || page.reporter]];
+        const present = fields.filter(([, value]) => value !== null && value !== undefined && value !== ""); if (!present.length) continue;
+        const section = node("section", "profile-section"), details = node("details", "context-source-details");
+        const late = (page.cutoff_eligibility?.captured_before_cutoff ?? page.captured_before_cutoff) === false;
+        section.append(node("h4", "", label), node("p", "muted small", "観測取得 " + stamp(page.source.captured_at) + " JST" + (late ? " · 締切後の取得" : "")), facts(present));
+        details.append(node("summary", "", "取得元と観測の記録"), facts([["取得元URL", page.source.source_url], ["観測SHA", page.source.sha256], ["公式公開日時 JST", stamp(page.source.published_at)]]));
+        section.append(details); supplement.append(section); count++;
+      }
+      if (count) body.append(supplement);
+    }
+    body.append(node("p", "muted small profile-source", "出典：" + sourceText(race.source_provenance) + "。成績は出走情報に保存された期間の値です。未取得の項目を現在の成績で補完していません。"));
+    dialog.replaceChildren(header, body); document.body.classList.add("participant-dialog-open");
+    if (!dialog.open) dialog.showModal();
+    close.focus();
+  }
+  function participantCard(p, race, expanded = false, interactive = true) {
     const number = participantNumber(p), card = node("article", "racer-card"), avatar = node("div", "racer-avatar");
     if (Number.isInteger(number)) avatar.append(badge(number));
     const silhouette = node("span", "avatar-silhouette", "◉");
@@ -262,7 +387,13 @@
       img.src = portrait.src; avatar.append(artwork); status.textContent = ""; status.hidden = true;
     } else avatar.append(silhouette);
     const registration = participantRegistration(p);
-    card.append(avatar, node("strong", "racer-name", p.placeholder ? "出走者 未取得" : p.name ? text(p.name) : "名前 未取得"), node("small", "muted", p.placeholder ? "表示用の枠" : registration ? "登録 " + text(registration) : "登録 未取得"));
+    const identity = [avatar, node("strong", "racer-name", p.placeholder ? "出走者 未取得" : p.name ? text(p.name) : "名前 未取得"), node("small", "muted", p.placeholder ? "表示用の枠" : registration ? "登録 " + text(registration) : "登録 未取得")];
+    if (interactive && !p.placeholder) {
+      const trigger = button("", "racer-identity", () => openParticipant(p, race, trigger));
+      trigger.dataset.openParticipant = registration || "unverified";
+      trigger.setAttribute("aria-label", (p.name || "出走者") + "の選手情報を開く");
+      trigger.append(...identity); card.append(trigger);
+    } else card.append(...identity);
     if (!p.placeholder) card.append(status);
     if (expanded && !p.placeholder) {
       const fields = node("dl", "racer-fields");
@@ -290,6 +421,74 @@
     p.ordered_top8.slice(0, count).forEach((t, index) => list.append(append(node("span", "saved-ticket"), node("small", "ticket-rank", String(index + 1)), combo(t))));
     return list;
   }
+  function informationButtons(race) {
+    const context = race.boat_observation_context;
+    const supplement = race.sport === "boat" && context && validBoatObservationContext(context, race.race_id) &&
+      [context.beforeinfo, context.pitreport].some(page => page?.status === "PARSED" && (page.participants?.length || page.weather && Object.values(page.weather).some(value => value != null)));
+    const nav = node("nav", "race-information"); nav.setAttribute("aria-label", raceName(race) + "の情報");
+    for (const info of U.raceInformation(race, {supplementalPreview: Boolean(supplement)})) {
+      const action = button("", "information-button" + (info.available ? " info-available" : ""), () => openRace(race.race_id, info.key));
+      action.dataset.raceTab = info.key; action.dataset.infoAvailable = String(info.available);
+      action.append(node("strong", "", info.label), node("small", "", info.detail)); nav.append(action);
+    }
+    return nav;
+  }
+  function officialRaceLinks(race) {
+    const nav = node("nav", "official-race-links"); nav.setAttribute("aria-label", "公式情報を別タブで開く");
+    for (const info of U.boatRaceLinks(race)) {
+      const link = node("a", "", info.label + " ↗"); link.href = info.url;
+      link.target = "_blank"; link.rel = "noopener noreferrer"; link.referrerPolicy = "no-referrer"; link.dataset.officialRace = info.kind; nav.append(link);
+    }
+    return nav;
+  }
+  const venueEntries = () => U.venueOverview(scoped(), {sport: state.sport, favorites: state.favoriteVenues});
+  function chooseVenue(venue, toggle = false) {
+    state.venue = toggle && state.venue === venue ? "" : venue; state.visible = 60;
+    refreshSelects(); renderAll(); showPage("races", true);
+  }
+  function venueButton(entry, home = false) {
+    const action = button("", "venue-button" + (home ? " home-venue-button" : "") + (entry.venue === state.venue ? " active" : "") + (entry.favorite ? " favorite-venue" : ""), () => chooseVenue(entry.venue, !home));
+    action.dataset.venue = entry.venue;
+    action.setAttribute("aria-pressed", String(entry.venue === state.venue));
+    action.append(node("span", "venue-name", entry.venue));
+    const next = entry.nextRace, raceNumber = Number.isInteger(next?.race_no) ? next.race_no + "R " : "";
+    const clock = next ? (next.event_date_jst !== state.day ? next.event_date_jst.slice(5) + " " : "") + time(next.cutoff_at) : "";
+    action.append(node("small", "venue-meta", next ? raceNumber + clock : entry.count ? entry.count + "件読込" : "未取得"));
+    return action;
+  }
+  function renderVenueExplorer(entries) {
+    $("venue-buttons").replaceChildren(...entries.map(entry => venueButton(entry)));
+    $("venue-title").textContent = state.venue || "すべての会場";
+    const selected = entries.find(entry => entry.venue === state.venue);
+    $("venue-summary").textContent = selected ? (selected.count ? "選択期間に " + selected.count + "レースの読込値" : "この会場のレースデータは未取得です。開催なしを意味しません。") : "会場を選ぶと、その会場のレースだけを表示します。";
+    $("pin-venue").hidden = !selected;
+    const pinned = Boolean(selected?.favorite);
+    $("pin-venue").textContent = pinned ? "★ マイ会場" : "☆ マイ会場に追加";
+    $("pin-venue").setAttribute("aria-pressed", String(pinned));
+    $("all-venues").hidden = !state.venue;
+    const picker = $("venue-picker");
+    if (picker.dataset.selection !== state.venue) { picker.open = !state.venue; picker.dataset.selection = state.venue; }
+  }
+  function sameVenueRaces(race) {
+    const venue = U.venueName(race);
+    if (!venue || !race.event_date_jst || !Number.isInteger(race.race_no)) return null;
+    const rows = races().filter(row => row.sport === race.sport && row.event_date_jst === race.event_date_jst && U.venueName(row) === venue);
+    const panel = node("section", "same-venue-races"); panel.id = "same-venue-races";
+    const heading = node("div", "section-heading");
+    heading.append(node("strong", "", venue + " · " + race.event_date_jst), button("会場の一覧へ →", "text-button", () => chooseVenue(venue)));
+    panel.append(heading);
+    const nav = node("nav", "race-number-nav"); nav.setAttribute("aria-label", "同じ会場・同じ日のレース");
+    const numbers = race.sport === "boat" ? Array.from({length: 12}, (_, i) => i + 1) : [...new Set(rows.map(row => row.race_no).filter(Number.isInteger))].sort((a, b) => a - b);
+    for (const number of numbers) {
+      const matches = rows.filter(row => row.race_no === number), target = matches.length === 1 ? matches[0] : matches.find(row => row.race_id === race.race_id);
+      const action = button(number + "R", target?.race_id === race.race_id ? "active" : "", () => openRace(target.race_id, state.detailTab));
+      action.dataset.raceNumber = String(number); action.disabled = !target;
+      action.setAttribute("aria-label", number + "R" + (!target ? matches.length ? " 複数の記録があり照合が必要です" : " データ未取得" : "を開く"));
+      if (target?.race_id === race.race_id) action.setAttribute("aria-current", "true");
+      nav.append(action);
+    }
+    panel.append(nav); return panel;
+  }
   function raceCard(r, featured = false) {
     const p = prediction(r), card = node("article", "race-card" + (featured ? " featured" : ""));
     const head = node("div", "race-card-head"), title = node("div"), meta = node("div", "race-time");
@@ -300,7 +499,7 @@
     tags.append(outcomeBadge(r,p));
     if (r.result?.status === "final") card.append(node("p","small","結果 " + resultCombination(r) + " · 100円払戻 " + payoutSummary(r.result)));
     if (r.missing_reasons?.includes("SAVED_FORECAST_CUTOFF_CONFLICT")) tags.append(node("span","tag","原本間で締切の記録差あり"));
-    card.append(participantGrid(r));
+    card.append(participantGrid(r), informationButtons(r));
     const foot = node("div", "race-card-footer"), saved = node("div", "card-prediction");
     saved.append(node("strong", "small", p ? p.native_top8_available === false ? "保存" + p.ordered_top8.length + "点プラン" : "保存Top8 · " + p.ordered_top8.length + "点" : "未予想"), node("p", "muted model-caption", modelName(p)), ticketPreview(p, featured ? 4 : 2));
     const open = button("レース詳細を見る →", "outline", () => openRace(r.race_id)); open.dataset.openRace = r.race_id;
@@ -330,12 +529,15 @@
     persistPreferences(); refreshSelects(); renderAll();
     if (automaticMode()) { loadAutomaticLatest(true);scheduleAutomaticPoll(); }
   }
-  function openRace(id) {
-    state.selectedId = id; state.detailTab = "outlook";
+  function openRace(id, tab = "outlook") {
+    state.selectedId = id; state.detailTab = ["outlook", "participants", "preview", "analysis", "history"].includes(tab) ? tab : "outlook";
     refreshSelects(); showPage("detail", true);
   }
   function renderHome() {
     const manual = U.summarize(dailyPurchases()), all = scoped(), actualImported = M.summary(all).overall;
+    const entries = venueEntries();
+    $("home-venues").replaceChildren(...entries.slice(0, 6).map(entry => venueButton(entry, true)));
+    $("home-venue-note").textContent = entries.some(entry => entry.favorite) ? "★ マイ会場を先頭に表示 · 時刻は読込済みレースの次の締切" : "会場を選んで、☆でマイ会場に追加できます。時刻は次の締切です。";
     $("home-metrics").replaceChildren(
       metric("本日の予算", yen(state.budget), "ご自身の設定", "▣"),
       metric("使用額", manual.purchases ? yen(manual.spent) : "記録なし", "この端末の実購入申告", "▤"),
@@ -363,11 +565,22 @@
     const coverage = U.modelCoverage(all, C.models, {sport: state.sport});
     $("all-race-model-scope").textContent = sports[state.sport] + " · 適用 " + coverage.applicable_models + " / 登録 " + C.models.length + "モデル · 対象台帳 " + coverage.target_races + "レース（保存予想なし " + all.filter(r => !predictions(r).length).length + "レースを含む） · " + coverage.display_stages.map(stage=>stageName({stage}) + " " + coverage.models.reduce((sum,m)=>sum+(m.stages[stage].target_races||0),0) + "対象枠").join(" / ");
     const content = filtered.slice(0, state.visible).map(r => raceCard(r));
-    if (!filtered.length) content.push(empty(all.length ? "条件に一致するレースがありません" : sports[state.sport] + "のレースは未取得です", all.length ? "検索・開催場・候補の条件を変更してください。" : "未取得は開催なしを意味しません。保存原本や対象日を確認してください。"));
+    if (!filtered.length) {
+      const unloaded = state.venue && !all.some(r => U.venueName(r) === state.venue);
+      const message = empty(unloaded ? state.venue + "のレースデータは未取得です" : all.length ? "条件に一致するレースがありません" : sports[state.sport] + "のレースは未取得です", all.length ? "検索・開催場・候補の条件を変更できます。未取得は開催なしを意味しません。" : "未取得は開催なしを意味しません。保存原本や対象日を確認してください。");
+      if (unloaded) {
+        const links = node("nav", "empty-venue-links"); links.setAttribute("aria-label", "この会場の公式情報");
+        for (const info of U.boatVenueLinks({sport: state.sport, venue: state.venue, event_date_jst: state.day})) {
+          const link = node("a", "outline", info.label); link.href = info.url; link.target = "_blank";
+          link.rel = "noopener noreferrer"; link.referrerPolicy = "no-referrer"; link.dataset.officialVenue = info.kind; links.append(link);
+        }
+        if (links.childElementCount) message.append(links);
+      }
+      content.push(message);
+    }
     if (filtered.length > state.visible) content.push(button("さらに60件表示", "outline full", () => { state.visible += 60; renderRaces(); }));
     $("all-races").replaceChildren(...content);
-    const venues = [...new Set(all.map(r => U.venueName(r)).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ja"));
-    $("venue-buttons").replaceChildren(...(venues.length ? venues.map(venue => { const b = button(venue, "venue-button" + (venue === state.venue ? " active" : ""), () => { state.venue = state.venue === venue ? "" : venue; $("venue-filter").value = state.venue; renderRaces(); }); b.setAttribute("aria-pressed", String(state.venue === venue)); return b; }) : [node("p", "muted", "開催場は未取得です。") ]));
+    renderVenueExplorer(venueEntries());
     $("candidate-count").replaceChildren(...candidateItems());
   }
   function predictionPicker(r) {
@@ -410,9 +623,10 @@
     const target = $("race-detail"), r = currentRace(); target.replaceChildren();
     if (!r) { target.append(empty("レースを選択してください", "全レースから保存原本を選ぶと詳細を確認できます。"), button("全レースを開く →", "primary", () => showPage("races", true))); return; }
     const p = prediction(r), layout = node("div", "two-column detail-layout"), main = node("div"), rail = node("aside", "right-rail");
+    const raceNavigation = sameVenueRaces(r); if (raceNavigation) target.append(raceNavigation);
     const panel = node("section", "panel detail-panel"), title = node("div", "detail-title");
     title.append(node("span", "sport-tag", sports[r.sport]), node("h2", "", raceName(r)), node("span", "tag scope-" + r.scope, scopeName(r.scope)));
-    panel.append(title, node("p", "detail-cutoff", (r.cutoff_at==null && r.saved_cutoff_variants?.length ? "選択原本の締切 " : "締切 ") + time(p?.cutoff_at || r.cutoff_at) + " · 発走 " + time(r.start_at)), node("p", "muted small", text(r.event_date_jst) + " JST · 取得 " + stamp(r.observed_at || r.as_of) + " · 状態 " + text(r.race_status)), predictionPicker(r));
+    panel.append(title, node("p", "detail-cutoff", (r.cutoff_at==null && r.saved_cutoff_variants?.length ? "選択原本の締切 " : "締切 ") + time(p?.cutoff_at || r.cutoff_at) + " · 発走 " + time(r.start_at)), node("p", "muted small", text(r.event_date_jst) + " JST · 取得 " + stamp(r.observed_at || r.as_of) + " · 状態 " + text(r.race_status)), officialRaceLinks(r), predictionPicker(r));
     if (r.missing_reasons?.includes("SAVED_FORECAST_CUTOFF_CONFLICT") || r.missing_reasons?.includes("SAVED_SCHEDULE_CUTOFF_CONFLICT")) panel.append(append(node("div","notice"),node("strong","","締切の保存記録に差があります"),node("p","","各予想の元時刻を保持しています。現在の単一の締切へ補正せず、照合できない結果は別に記録します。")));
     const hero = node("div", "detail-hero");
     hero.append(node("p", "eyebrow", "SAVED FORECAST / EVIDENCE"), node("h3", "", p ? "保存された予想を、根拠とともに。" : "出走情報から、レースを知る。"), node("p", "", p?.rationale ? text(p.rationale).slice(0, 180) : r.no_forecast_reason || "取得時点・モデル版と、未取得の項目を確認できます。"), node("span", "hero-wave", "≋"));
@@ -430,10 +644,15 @@
     }
     if (state.detailTab === "preview") {
       const people = knownParticipants(r), observationContext = boatObservationContext(r);
-      if (observationContext) content.append(node("h2", "", "保存予想原本の直前情報"));
-      if (people.length) content.append(table(["番号", "選手 / 登録", "展示タイム", "展示ST", "進入", "直前コメント"], people.map(person => [participantNumber(person), participantLabel(person, r), person.display_time, person.preview_st, person.preview_course, person.comment || person.last_comment])));
+      content.append(node("h2", "", observationContext ? "保存予想原本の直前情報" : "直前情報"), node("p", "muted small", "出走情報の取得 " + stamp(r.observed_at || r.as_of) + " JST · 保存された項目を表示しています。"));
+      if (people.some(person => [person.display_time, person.preview_st, person.preview_course, person.comment, person.last_comment].some(value => value !== undefined && value !== null && value !== ""))) content.append(previewCards(r, people));
+      if (people.length) {
+        const details = node("details", "preview-table");
+        details.append(node("summary", "", "全出走者の直前情報を一覧表で見る"), table(["番号", "選手 / 登録", "展示タイム", "展示ST", "進入", "直前コメント"], people.map(person => [participantNumber(person), participantLabel(person, r), person.display_time, person.preview_st, person.preview_course, person.comment || person.last_comment])));
+        content.append(details);
+      }
       const weather = r.weather || r.weather_preview;
-      if (weather && Object.keys(weather).length) content.append(facts(Object.entries(weather).map(([key, value]) => [key, sourceText(value)])));
+      if (weather && typeof weather === "object" && Object.keys(weather).length) content.append(weatherPanel(weather, "保存された気象・水面"));
       else content.append(empty(observationContext ? "保存予想原本の気象・直前情報は未取得です" : "気象・直前情報は未取得です", "保存原本に存在する項目だけを表示します。"));
       content.append(node("p", "muted small", "展示・試走の原本値は取得時点の記録です。予想への反映状況はモデル版と時点を確認してください。"));
       if (observationContext) content.append(observationContext);
@@ -478,7 +697,7 @@
     layout.append(main, rail); target.append(layout);
   }
   function refreshSelects() {
-    const venues = [...new Set(scoped().map(r => U.venueName(r)).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ja"));
+    const venues = venueEntries().map(entry => entry.venue);
     if (!venues.includes(state.venue)) state.venue = "";
     $("venue-filter").replaceChildren(new Option("すべての開催場", ""), ...venues.map(venue => new Option(venue, venue))); $("venue-filter").value = state.venue;
     const list = scoped(), selected = currentRace();
@@ -687,7 +906,7 @@
       const matches = portraits.all.filter(p => !query || p.registration.includes(query) || p.aliases.some(name => name.replace(/\s+/g, "").includes(query)));
       grid.replaceChildren();
       for (const entry of matches.slice(0, shown)) {
-        const card = participantCard({registration_no:entry.registration, name:entry.name}, {sport:"boat", scope:"research"});
+        const card = participantCard({registration_no:entry.registration, name:entry.name}, {sport:"boat", scope:"research"}, false, false);
         const link = node("a", "text-link", "公式プロフィール");
         link.href = entry.sourceUrl; link.target = "_blank"; link.rel = "noopener noreferrer";
         card.append(link); grid.append(card);
@@ -736,6 +955,10 @@
     $("delivery-record").textContent = (stale ? "前回の保存記録：" : "") + recorded[delivery.window_status] + (delivery.saved_at ? " · 保存 " + stamp(delivery.saved_at) + " JST" : " · 保存完了の時刻は未確認です");
   }
   function renderGeneration() {
+    const operation = $("operation-details");
+    if (generation.api && operation.dataset.connected !== "true") {
+      document.querySelector(".view-controls").before(operation); operation.open = true; operation.dataset.connected = "true";
+    }
     if (document.getElementById("race-ai-private-saved-data") || document.querySelector('meta[name="race-ai-private-saved-view"],meta[name="race-ai-encrypted-saved-view"]')) {
       $("forecast-generate").hidden = true;$("forecast-follow-latest").hidden = true;$("forecast-stage").disabled = true;
       $("generation-title").textContent = "保存済み予想";
@@ -1095,6 +1318,14 @@
   $("race-search").addEventListener("input", e => search(e.target.value));
   $("race-sort").addEventListener("change", e => { state.sort = e.target.value; renderRaces(); });
   $("venue-filter").addEventListener("change", e => { state.venue = e.target.value; renderRaces(); });
+  $("all-venues").addEventListener("click", () => chooseVenue(""));
+  $("home-all-venues").addEventListener("click", () => chooseVenue(""));
+  $("pin-venue").addEventListener("click", () => {
+    if (!state.venue) return;
+    const key = state.sport + ":" + state.venue;
+    state.favoriteVenues = state.favoriteVenues.includes(key) ? state.favoriteVenues.filter(value => value !== key) : [...state.favoriteVenues, key].slice(-64);
+    persistPreferences(); renderHome(); renderRaces();
+  });
   $("status-filter").addEventListener("change", e => { state.statusFilter = e.target.value; renderRaces(); });
   $("prediction-filter").addEventListener("change", e => { state.forecastOnly = e.target.checked; renderRaces(); });
   $("candidate-filter").addEventListener("change", e => { state.candidatesOnly = e.target.checked; renderRaces(); });
