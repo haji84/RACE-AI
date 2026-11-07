@@ -51,10 +51,10 @@
 
 **Files:** `web/app.js`, `web/index.html`, `web/style.css`, `race_ai/saved_pages.py`, `race_ai/saved_pdca_view.py`, `race_ai/local_forecast_server.py`, relevant browser/packaging tests.
 
-- [ ] Reproduce the original bug using name/ID-only participants and assert populated real basic/period/course data in the browser before implementing.
-- [ ] Show official references before empty race-specific groups; retain nonempty saved values in separate sections. Add course cards, preferred-course basis and an explicit course selector with reference scenarios.
-- [ ] Load the new modules in ordinary, local and offline views. Allow a validated old Pages manifest to gain the new profile assets while retaining all cipher bytes and required original files.
-- [ ] Run browser cases at 320/390/1440px, profile/portrait/identity tests, saved-view packaging and WebCrypto/browser regressions. Update the existing UI workflow; commit.
+- [x] Reproduce the original bug using name/ID-only participants and assert populated real basic/period/course data in the browser before implementing.
+- [x] Show official references before empty race-specific groups; retain nonempty saved values in separate sections. Add course cards, preferred-course basis and an explicit course selector with reference scenarios.
+- [x] Load the new modules in ordinary, local and offline views. Allow a validated old Pages manifest to gain the new profile assets while retaining all cipher bytes and required original files.
+- [x] Run browser cases at 320/390/1440px, profile/portrait/identity tests, saved-view packaging and WebCrypto/browser regressions. Update the existing UI workflow; commit.
 
 ## Task 4: 確認・公開
 

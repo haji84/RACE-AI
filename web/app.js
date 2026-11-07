@@ -290,6 +290,88 @@
     if (opener?.isConnected) opener.focus();
     else { $("page-title").tabIndex = -1; $("page-title").focus({preventScroll: true}); }
   }
+  function athleteReference(race, person, profile) {
+    const api = globalThis.RaceRacerProfiles, panel = node("section", "racer-reference"); panel.id = "racer-reference";
+    panel.append(node("h3", "", "選手の公式資料"));
+    const basic = profile.basic, basicPanel = node("section", "reference-basic");
+    const birthday = new Date(basic.birth_date + "T00:00:00Z"), captured = new Date(api.capturedAt);
+    let age = captured.getUTCFullYear() - birthday.getUTCFullYear();
+    if (captured.getUTCMonth() < birthday.getUTCMonth() || captured.getUTCMonth() === birthday.getUTCMonth() && captured.getUTCDate() < birthday.getUTCDate()) age--;
+    basicPanel.append(facts([["登録番号", profile.registration], [basic.grade_basis === "TERM_RECORDED" ? "級別（期別記載）" : "級別（公式検索・資料）", basic.grade], ["支部（資料記載）", basic.branch],
+      ["資料取得時の年齢", Number.isInteger(age) && age >= 0 ? age + "歳" : null], ["登録期", basic.training_term ? basic.training_term + "期" : null],
+      ["資料の身長", basic.height_cm ? basic.height_cm + " cm" : null], ["資料の体重", basic.weight_kg ? basic.weight_kg + " kg" : null]]));
+    panel.append(basicPanel, node("p", "reference-period", "成績集計：" + api.period.start + " 〜 " + api.period.end));
+    if (!profile.term) panel.append(node("p", "reference-empty", "この選手は今回の公式期別資料に未収録です。基本情報と公式プロフィールは確認できます。"));
+    else {
+      const term = profile.term, rate = value => Number.isFinite(value) ? value.toFixed(1) + "%" : "未収録", number = value => Number.isFinite(value) ? value.toFixed(2) : "未収録";
+      const summary = node("div", "reference-summary");
+      for (const [label, value] of [["期別勝率", number(term.win_rate)], ["期別2連率", rate(term.top2_percent)], ["期別3連率", rate(term.top3_percent)], ["期別平均ST", number(term.average_st)]])
+        summary.append(append(node("div"), node("small", "", label), node("strong", "", value)));
+      panel.append(summary, node("p", "reference-records", "出走 " + term.starts + "回 · 1着 " + term.wins + "回 · 優出 " + term.finals + "回 · 優勝 " + term.victories + "回"));
+      const preferred = api.preferredCourses(profile), strengths = node("section", "reference-strengths");
+      strengths.append(node("h4", "", "得意コースの目安"));
+      if (preferred.courses.length) for (const row of preferred.courses) {
+        strengths.append(node("span", "course-strength", row.course + "コース · 2連率 " + rate(row.top2_percent) + (preferred.basis === "COHORT_ADJUSTED" ? " · 同コース平均比 +" + row.advantage.toFixed(1) + "pt" : " · 本人内で成績上位")));
+      } else strengths.append(node("p", "muted small", "10走以上のコースがないため、得意コースは評価しません。"));
+      strengths.append(node("p", "muted small", "10走以上のコースで、同じ期別資料の全選手を合算した同コース2連率との差を比較。得意な決まり手を断定する指標ではありません。"));
+      panel.append(strengths, node("h4", "", "1〜6コースの成績"));
+      const cards = node("div", "reference-courses");
+      for (const row of term.courses) {
+        const card = node("article", "reference-course"); card.dataset.course = String(row.course);
+        card.append(append(node("div", "reference-course-heading"), badge(row.course), node("strong", "", row.course + "コース"), node("small", "", row.starts + "走")));
+        const metrics = node("dl");
+        for (const [label, value] of [["1着率", rate(row.win_percent)], ["2連率", rate(row.top2_percent)], ["3連率", rate(row.top3_percent)], ["平均ST", number(row.average_st)]])
+          metrics.append(append(node("div"), node("dt", "", label), node("dd", "", value)));
+        card.append(metrics);
+        if (row.top2_percent !== null) {
+          const meter = node("meter"); meter.min = 0; meter.max = 100; meter.value = row.top2_percent; meter.setAttribute("aria-label", row.course + "コースの2連率"); card.append(meter);
+        }
+        cards.append(card);
+      }
+      panel.append(cards, node("p", "muted small", "1着率・3連率は着順件数÷コース出走数で計算。失格等も出走数に含みます。2連率は公式資料の収録値です。"), node("h4", "", "このコースで出る場合の展開予想（参考）"));
+      let entryMap = null;
+      const people = knownParticipants(race), context = race.boat_observation_context;
+      if (people.length === 6 && people.every(p => p.preview_course !== null && p.preview_course !== undefined)) entryMap = Object.fromEntries(people.map(p => [participantNumber(p), p.preview_course]));
+      else if (people.length === 6 && context && validBoatObservationContext(context, race.race_id) && context.beforeinfo?.status === "PARSED" && context.beforeinfo.roster_binding_status === "VERIFIED") {
+        const observed = people.map(p => {
+          const expected = api.get(race, p);
+          return expected && context.beforeinfo.participants.find(value => value.lane === participantNumber(p) && value.registration_number === participantRegistration(p) && api.get(race, value) === expected);
+        });
+        if (observed.every(p => Number.isInteger(p?.exhibition_course))) entryMap = Object.fromEntries(observed.map(p => [p.lane, p.exhibition_course]));
+      }
+      const lane = participantNumber(person);
+      let selectedCourse = Number.isInteger(entryMap?.[lane]) && entryMap[lane] >= 1 && entryMap[lane] <= 6 ? entryMap[lane] : Number.isInteger(person.preview_course) && person.preview_course >= 1 && person.preview_course <= 6 ? person.preview_course : lane || 1;
+      const controls = node("nav", "study-course-controls"), scenario = node("section", "reference-scenario");
+      controls.setAttribute("aria-label", "展開の参考にするコース"); scenario.setAttribute("aria-live", "polite");
+      function renderScenario() {
+        const result = api.scenario(race, person, selectedCourse, {entryMap});
+        controls.querySelectorAll("button").forEach(button => button.setAttribute("aria-pressed", String(Number(button.dataset.studyCourse) === selectedCourse)));
+        cards.querySelectorAll(".reference-course").forEach(card => card.classList.toggle("selected", Number(card.dataset.course) === selectedCourse));
+        scenario.replaceChildren();
+        if (result.status !== "READY") { scenario.append(node("p", "", result.message)); return; }
+        scenario.append(node("span", "tag", {FRAME_ASSUMPTION: "枠なりを仮定（本番進入は未確定）", EXHIBITION: "展示進入の並びを参照（本番進入は未確定）", HYPOTHETICAL: "選択したコースを仮定（他艇の進入は未設定）"}[result.basis]),
+          node("h4", "", selectedCourse + "コース：" + result.path),
+          node("p", "", result.stats.starts + "走 · 1着率 " + rate(result.stats.win_percent) + " · 2連率 " + rate(result.stats.top2_percent) + " · 3連率 " + rate(result.stats.top3_percent) + " · 平均ST " + number(result.stats.average_st)),
+          node("p", "", "成立する条件：" + result.condition), node("p", "", "注意する点：" + result.caution));
+        if (result.comparisons.length) {
+          scenario.append(node("h4", "", "隣のコースの選手と比較（同じ期別集計）"));
+          for (const other of result.comparisons) scenario.append(node("p", "", other.course + "コース " + other.name + "：2連率 " + rate(other.stats.top2_percent) + "、平均ST " + number(other.stats.average_st) + "（" + other.stats.starts + "走）。" +
+            (other.stDelta === null ? "STの比較値は未収録。" : Math.abs(other.stDelta) < 0.005 ? "平均STは同水準。" : "本人の平均STが " + Math.abs(other.stDelta).toFixed(2) + (other.stDelta < 0 ? "早い。" : "遅い。"))));
+        } else scenario.append(node("p", "muted small", "相手の対応コースや10走以上の成績が揃わないため、相対評価は表示していません。"));
+        scenario.append(node("p", "muted small", result.message + " 今節の展示ST・モーター・風や波はこの比較に加えていません。保存済みの予想とは別の参考表示です。"));
+      }
+      for (let course = 1; course <= 6; course++) {
+        const button = node("button", "", course + "コース"); button.type = "button"; button.dataset.studyCourse = String(course);
+        button.addEventListener("click", () => { selectedCourse = course; renderScenario(); }); controls.append(button);
+      }
+      panel.append(controls, scenario); renderScenario();
+    }
+    const sources = node("details", "reference-sources");
+    sources.append(node("summary", "", "公式資料の出典・参照時点"), facts([["期別資料", api.source.url], ["資料SHA", api.source.sha256],
+      ["資料の集計期間", api.period.start + " 〜 " + api.period.end], ["資料の接続・取得 JST", stamp(api.capturedAt)], ["公式検索の級別取得 JST", stamp(api.source.current_grade_source?.captured_at)],
+      ["個別プロフィール", basic.source_url], ["個別プロフィールSHA", basic.source_sha256]]));
+    panel.append(sources); return panel;
+  }
   function openParticipant(person, race, opener) {
     if (!participantDialog) {
       participantDialog = node("dialog", "participant-dialog"); participantDialog.id = "participant-dialog";
@@ -319,15 +401,18 @@
       introduction.append(link);
     }
     hero.append(introduction); body.append(hero);
+    const reference = globalThis.RaceRacerProfiles?.get(race, person);
+    if (reference) body.append(athleteReference(race, person, reference));
     const values = node("div", "profile-values");
     const decimal = (value, suffix = "") => typeof value === "number" && Number.isFinite(value) ? value.toFixed(2) + suffix : value;
     const group = (label, fields, always = false) => {
       const section = node("section", "profile-section"), available = fields.filter(([, value]) => value !== null && value !== undefined && value !== "");
+      if (!available.length && reference) return;
       section.append(node("h3", "", label));
       section.append(available.length || always ? facts(always ? fields : available) : node("p", "muted", "この項目の保存値はありません。"));
       values.append(section);
     };
-    group("基本情報", [["登録番号", registration], ["級別", person.grade], ["支部", person.branch], ["年齢", person.age]], true);
+    if (!reference || [person.grade, person.branch, person.age].some(value => value !== undefined && value !== null)) group("読込出走表の基本情報", [["登録番号", registration], ["級別", person.grade], ["支部", person.branch], ["年齢", person.age]], true);
     group("成績・スタート", [["全国勝率", decimal(person.national_win_rate)], ["当地勝率", decimal(person.local_win_rate)],
       ["全国2連率", decimal(person.national_top2_rate, "%")], ["当地2連率", decimal(person.local_top2_rate, "%")], ["平均ST", decimal(person.average_st)]]);
     group("モーター・ボート", [["モーター番号", person.motor_no], ["モーター2連率", decimal(person.motor_top2_rate, "%")],
@@ -362,6 +447,7 @@
     body.append(node("p", "muted small profile-source", "出典：" + sourceText(race.source_provenance) + "。成績は出走情報に保存された期間の値です。未取得の項目を現在の成績で補完していません。"));
     dialog.replaceChildren(header, body); document.body.classList.add("participant-dialog-open");
     if (!dialog.open) dialog.showModal();
+    dialog.scrollTop = 0;
     close.focus();
   }
   function participantCard(p, race, expanded = false, interactive = true) {

@@ -36,7 +36,7 @@ def export_view(view,output,*,web_root=WEB):
     html=_asset_bytes(web_root,'index.html').decode()
     styles=_asset_bytes(web_root,'style.css').decode()
     scripts=[]
-    for name in ('forecast-audit-model.js','product-data.js','existing-model-catalog.js','ui-model.js','saved-performance.js','racer-portraits-data.js','racer-portraits.js','app.js'):
+    for name in ('forecast-audit-model.js','product-data.js','existing-model-catalog.js','ui-model.js','saved-performance.js','racer-portraits-data.js','racer-portraits.js','racer-profiles-data.js','racer-profiles.js','app.js'):
         body=_asset_bytes(web_root,name).decode()
         if name=='racer-portraits.js':
             from .racer_portraits import inline_script
