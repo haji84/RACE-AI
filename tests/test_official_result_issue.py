@@ -180,6 +180,23 @@ class OfficialIssueTests(unittest.TestCase):
             with self.subTest(change=change),self.assertRaises(ValueError):api.verify_publication(raw,
                 data=data,current_run=actual_run(data['first_attempt']),now=NOW,key=KEY,expected_raw=raw)
 
+    def test_integrated_sixteen_profile_replays_its_own_complete_publication_body(self):
+        if importlib.util.find_spec('race_ai.all_existing_model_official_probe16') is None:
+            self.skipTest('committed S dependency is tested in combined integration checkout')
+        api=self.api()
+        from race_ai import all_existing_model_official_probe16 as authority
+        from tests.test_all_existing_model_official_probe16 import fixture as sixteen_fixture
+        data,_,_=sixteen_fixture();raw=authority.issue_consume_capsule(data,KEY)
+        with patch.object(authority,'validate_capsule',side_effect=AssertionError('no invented runtime attempt2')):
+            proof=api.verify_publication(raw,data=data,current_run=actual_run(data['first_attempt']),
+                now=NOW,key=KEY,expected_raw=raw)
+        self.assertEqual(proof['maximum_new_requests'],16)
+        value=open_forecasts(raw,key=KEY);value['body']['maximum_new_requests']=17
+        value['mac']=authority._mac(value['body'],KEY)
+        altered=seal_forecasts(value,run_id='77',round_no=authority.ROUND,key=KEY)
+        with self.assertRaises(ValueError):api.verify_publication(altered,data=data,
+            current_run=actual_run(data['first_attempt']),now=NOW,key=KEY,expected_raw=altered)
+
     def test_literal_registry_rejects_arbitrary_module_and_mode(self):
         api=self.api();data,_,_=fixture()
         self.assertEqual(api.authority_for(data['request']).__name__,'race_ai.all_existing_model_official_recovery')

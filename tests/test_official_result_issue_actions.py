@@ -159,6 +159,35 @@ class ActionsIssueTests(unittest.TestCase):
                     readback=github,key_loader=lambda:KEY,clock=lambda:now)
             self.assertEqual(github.published,[])
 
+    def test_integrated_sixteen_registry_prepares_actual_all_prior_inputs_and_remote_proof(self):
+        import importlib.util
+        if importlib.util.find_spec('race_ai.all_existing_model_official_probe16') is None:
+            self.skipTest('committed S dependency is tested in combined integration checkout')
+        from race_ai.boat_all_model_store import seal_forecasts,forecast_header
+        api=self.api();data,now=self.fixture();request=data['request']
+        request.update(schema='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V4',
+            mode='FIXED_ATTEMPT_TWO_SINGLE_NORMAL_UI_PROBE_16')
+        for key in ('probe_journal_artifact_id','probe_result_artifact_id','probe_request_sha256'):request.pop(key)
+        original=PLAN_BYTES[request['manifest']['plan_path']];header=forecast_header(original)
+        plan=deepcopy(data['new_plan']);plan['maximum_requests']=16
+        raw=seal_forecasts(plan,run_id=header['run_id'],round_no=header['round_no'],key=KEY)
+        hashed=sha256(raw).hexdigest();path='audit/state/official-result-collection-plan-'+hashed+'.enc'
+        request['manifest'].update(plan_path=path,plan_sha256=hashed)
+        snapshot=MemorySnapshot(data);github=MemoryGithub(data)
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory)
+            for name,body in dict(PLAN_BYTES,**{path:raw}).items():
+                out=root/name;out.parent.mkdir(parents=True,exist_ok=True);out.write_bytes(body)
+            original_read=snapshot.read
+            snapshot.read=lambda head,name,limit:raw if name==path else original_read(head,name,limit)
+            with patch.object(api.collector,'ROOT',root):
+                proof=api.issue_once(snapshot=snapshot,issuer_run_id=99,reader=github,writer=github,
+                    readback=github,key_loader=lambda:KEY,clock=lambda:now)
+        self.assertTrue(proof['ready']);self.assertEqual(proof['maximum_new_requests'],16)
+        body=open_forecasts(github.raw,key=KEY)['body']
+        self.assertEqual(len(body['prior_journal_receipts']),2)
+        self.assertIsNone(body['old_source_requests_actual']);self.assertEqual(body['old_source_requests_upper_bound'],32)
+
     def test_no_second_signing_when_canonical_capsule_exists(self):
         api=self.api();data,now=self.fixture();snapshot=MemorySnapshot(data);github=MemoryGithub(data);github.raw=b'existing'
         with self.assertRaises(ValueError):api.issue_once(snapshot=snapshot,issuer_run_id=99,
