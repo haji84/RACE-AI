@@ -1,0 +1,41 @@
+{
+  "head_sha": "b569f3c0248c51092a24db1995d5418c2f1e18e4",
+  "job_conclusion": "success",
+  "job_id": 128397771646,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "readback_counts": [
+    {
+      "all_period_collection_complete": false,
+      "formal_backtest_eligible": false,
+      "listed_days": 7964,
+      "manifest_sha256": "21fa168cf92140ae0c0cb8e85d8897ad2f66c4c211f7f9cebf0ea9f8efbb6708",
+      "missing_days": 0,
+      "months_restored": 263,
+      "not_yet_published_days": 1,
+      "parsed_days": 7846,
+      "partial_source_days": 117,
+      "pending_days": 1,
+      "plaintext_published": false,
+      "published_months": 263,
+      "quarantined_days": 0,
+      "status": "OWNER_VENUE_COLLECTION_READBACK_VERIFIED",
+      "unprocessed_listed_days": 0,
+      "waiting_publication_days": 1
+    },
+    {
+      "acquisition_complete": false,
+      "formal_backtest_eligible": false,
+      "known_racers": 2643,
+      "plaintext_published": false,
+      "source_days": 7963,
+      "status": "ENCRYPTED_ALL_VENUE_GRID_READBACK_VERIFIED",
+      "venues": 24,
+      "verified_cells": 63432
+    }
+  ],
+  "source_provider_requests": 0,
+  "state": "ACTUAL_ACTIONS_FULL_DATED_HISTORY_AND_NOV6_GRID_READBACK_SUCCEEDED",
+  "whole_workflow_success_claimed": false,
+  "workflow_run_id": 42370578793
+}

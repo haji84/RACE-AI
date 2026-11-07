@@ -2,9 +2,12 @@
 
 **現行30枠のうち実学習は19枠（BOAT14・HORSE5）、残11枠はAUTO6・KEIRIN5。新19候補の実未来PDCAは0件。別の旧14候補では通常1レース・14組の実未来PDCAが成立している。現行全30枠の完成ではない。** 販売者1枠は所有者の変更で現行対象から除外され、学習済みには加算しない。過去31枠の登録情報・原本・MAC・SHAは保持する。
 
-確認情報の最終追記は2026-11-07 20:28 JST。19枠はローカルだけでなく、実Actions由来の3世代で復元・係数／支持数／holdout／所有者判断の結合を確認した。旧2世代に加え、最新c438世代の原候補3ファイルも既存Git refへ保持・独立読戻し済み。同HEADの初回・限定再実行は全体SUCCESS。ただし実probeは取得上限でHOLDとなり、新しい確定結果は0件である。
+最新の確認対象は `901fb57d2d0f1d0fa0b4051285dca399654a4738`／[run 42371023982](https://github.com/haji84/RACE-AI/actions/runs/42371023982)。2026-11-07 21:39:30 JSTまでにattempt 1／2とも全体SUCCESSを確認した。実第2回AUTO probeは8 GET・全200でも新RESULT 0のHOLD。19枠は実Actions由来の3世代で係数／支持数／holdout／所有者判断を独立照合済みで、最後に原候補3ファイルをGit保持・独立読戻しした世代はc438のままである。コードの全体CI成功を、候補世代の追加保持や実未来PDCA成功へ加算しない。
 
 ## 最新の実証チェックポイント
+
+- [901の全体CIと実第2回probe](evidence/2026-11-07/901-full-ci-and-second-bounded-probe-counts.json)：attempt 1は全Python3,714件（360 skip・失敗0、1,427.474秒）、動画283＋185件、UI31件を通過。attempt 2は認証済みの同HEAD初回検証のうち重い2検査を再利用し、軽量検査・実取得・暗号journal読戻し・画面検査を実行して全体SUCCESS。第2回probeの通常結果は0件である。
+- [全旧世代を含む日付延長履歴とgridの実Actions読戻し](evidence/2026-11-07/b569-full-history-grid-ci-readback-counts.json)：b569／run42370578793の該当job成功を確認。263か月・掲載7,964日、PARSED7,846／PARTIAL117／公表待ち1日、gridは7,963原本・2,643選手×24場＝63,432セルを復元した。提供元アクセス0。該当job成功をb569全workflow成功とは呼ばない。
 
 - [19枠の実学習](evidence/2026-11-07/nineteen-native-model-fit-counts.json)：152原レコード（BOAT112＋HORSE40）、各枠が共通8実レース・学習6／検証2、後付け派生0。初回ローカル学習SHA `87840763c2ce2656b85b2b09e3c766950bc67db11c9d467f8e7976284fbd7059` は履歴として保持する。既定モデル・既定係数・旧14候補・旧MACを置き換えない。
 - [競馬8通常結果の独立認証](evidence/2026-11-07/eight-normal-horse-results-authenticated-counts.json)：実GitHub receipt付きの3 RESULT ZIPを復元し、公式原本を再解析。通常8・特殊2を区別し、特殊結果は通常学習へ加算しない。
@@ -32,7 +35,13 @@
 
 実probeは8リクエスト・全HTTP 200・拒否0、対象は `HOLD_UI_OR_SOURCE_UNAVAILABLE`、stopは `REQUEST_LIMIT`。新RESULTは0件。document 1件＋未キャッシュCSS 3件＋背景XHR 4件で対象操作前に上限へ達したことを、暗号化された完全原本から確認した。18ファイル・930,772 bytesを暗号journalに保存し、実artifact `13572350517` を所有者キーで認証した。[元ZIP・元metadata・暗号文のGit保持と独立復元](evidence/2026-11-07/c438-probe-journal-retention-counts.json)はcommit `a8da20a384baad9b789a3cdc1ef33b5248d103bc`。
 
-元の署名plan・最大8・ルート・native・checkpointsを変えず、認証済み過去journalから静的CSSだけを再利用する修正を実装し、関連87件と実CJS fixtureによる上限8維持を確認した。次の同一1ケースprobe requestは実8件のjournalを追記済み、まだcapsule未発行。前回terminal＋1秒＋1時間による最早時刻は12:09:07 UTC（21:09:07 JST）。新しい同一HEADの全体CI成功・新しい固定attempt 2・実時計・独立復元を再確認してからだけ送信する。旧UNKNOWN／予約24・旧固定epoch上限32は変更せず、新8件は別epochとして保持する。
+元の署名plan・最大8・ルート・native・checkpointsを変えず、認証済み過去journalの静的原本をruntime cacheへ再利用する修正を実装し、関連87件と実CJS fixtureで上限8維持を確認した。12:09:07 UTCはc438終了後の第2回用境界として保持する。その第2回は901の固定attempt 2で実行済みであり、現在の次回境界と区別する。
+
+901の実第2回AUTO probeは8 GET・全HTTP 200、document 1件＋背景通信7件で `REQUEST_LIMIT`、対象は `HOLD_UI_OR_SOURCE_UNAVAILABLE`、新RESULT 0件。CSS 3件は認証済みcacheから再利用されたが、結果取得成功には至らなかった。POSTの `NORMAL_READ_IDENTITY` 拒否記録は2件あり、拒否されたendpointはjournalへ保持されていないため経路や失敗原因を推測しない。[認証件数](evidence/2026-11-07/901-probe-journal-authenticated-counts.json)。
+
+実journal artifact `13574582081` のdigestは `sha256:72d1b53eec547a73cff15955e6b7f179f1391283c28d218ca48be95e36e35c79`。元ZIP・元metadata・暗号文は既存refのcommit `710b7437740ae38c05c68fb3a26cb00f4e54a374` へ追加し、元バイト一致と独立Git読戻しを確認した。[保持証跡](evidence/2026-11-07/901-probe-journal-retention-counts.json)。旧browser実数UNKNOWN／予約24・旧固定epoch上限32は変更せず、既知の新8件は別epochへ保持する。
+
+[次の同一1ケースrequest](evidence/2026-11-07/third-auto-probe-preparation-counts.json)は上記journalを追加した未発行の準備で、最大8とlive planを保持する。901 attempt 2のterminal `12:39:30 UTC`＋1秒＋1時間による最早時刻は `13:39:31 UTC`（22:39:31 JST）。新しい同一HEADの初回全体CI成功・新たな固定attempt 2の認証・全prior終了・実時計・独立復元を再確認してからだけ送信する。準備を新しいcapsule発行や提供元送信へ加算しない。
 
 ### 会場別履歴の追加実データ
 
@@ -40,7 +49,7 @@
 
 catalogはPARSED 7,846＋PARTIAL_SOURCE 117。gridの完全観測日は7,845、未掲載17日・未報告156会場日が残り、完全な全期間とは報告しない。未観測選手・会場の組み合わせも架空の0成績へ置換しない。新しい2つの `*-nov6-research-input.json` と日付延長の `boat-venue-history-dated-research-input.json` で研究用途へ明示参照できる。過去の学習MAC・再現用の既定pointerと、既定モデルは保持する。今回追加した履歴が、既存152原入力の過去特徴量へ遡って入ったとは扱わない。
 
-日付延長V2のCLI・親原本／目録証拠／暗号化受渡しを実装した。実11月7日のmenu/index 2 GET後、既存V1の全原本検証記録 `full_archive_validation` を継承する構造検証で停止した。この不具合を直し、保存済み目録の再GET 0で新日原本1 GETを実行した。原本は公表待ちのままで解析成績へ加算しない。計3 GET・旧原本再GET 0。暗号化目録・親原本・新世代の8ファイルを既存commit `244a7312f1ad32ecf471e35be1c4247e46c5b8ef` から独立復元した。過去の独立復元済み原本群を再利用した新世代検証と、新commit全原本群のActions読戻し待ちを区別する。[実差分取得](evidence/2026-11-07/nov7-dated-history-delta-counts.json)・[保持証拠](evidence/2026-11-07/nov7-dated-history-retention-counts.json)。
+日付延長V2のCLI・親原本／目録証拠／暗号化受渡しを実装した。実11月7日のmenu/index 2 GET後、既存V1の全原本検証記録 `full_archive_validation` を継承する構造検証で停止した。この不具合を直し、保存済み目録の再GET 0で新日原本1 GETを実行した。原本は公表待ちのままで解析成績へ加算しない。計3 GET・旧原本再GET 0。暗号化目録・親原本・新世代の8ファイルを既存commit `244a7312f1ad32ecf471e35be1c4247e46c5b8ef` から独立復元した。当初の新8ファイルの独立復元に続き、b569／run42370578793では全旧世代を含む263か月の履歴と11月6日gridの実Actions読戻しも成功した。[全原本群とgridの読戻し件数](evidence/2026-11-07/b569-full-history-grid-ci-readback-counts.json)。公表待ち1日・PARTIAL117日は残り、全期間完全取得や実未来採点とは扱わない。[実差分取得](evidence/2026-11-07/nov7-dated-history-delta-counts.json)・[保持証拠](evidence/2026-11-07/nov7-dated-history-retention-counts.json)。
 
 ## 後続の接続実装と検証
 
@@ -60,12 +69,12 @@ catalogはPARSED 7,846＋PARTIAL_SOURCE 117。gridの完全観測日は7,845、�
 | 4. 正確性と件数 | 艇愛対公式Kの既存照合は2レース・延べ8行／独立7出走に限定。HORSE公式10結果は凍結入力の名簿・日付・場・Rへ照合し、通常8・特殊2。旧14候補の未来通常1レース・6登録選手・14組は、新19候補の未来0件と区別する。全体精度100%や14独立レースとは報告しない |
 | 5. 接続特徴量 | 既存nativeの実提供特徴量・母数・欠測・lineageを使い、支持された既存座標だけを学習した。19枠の実fitと各世代の係数・支持数・holdout一致を確認。HORSE5共通8件・6/2は実intakeの独立検証によるもので、フラグだけで保証しない |
 | 6. ファイル一覧 | [接続作業の変更一覧](evidence/2026-11-07/remaining-native-model-changed-files.json)。PR71には並行するUI・動画の変更も含まれる。原本・旧MAC・古いmanifestを保持する |
-| 7. テスト | 旧runの合格・失敗証跡は各HEADの履歴として保持。初回19枠runはfit成功／動画fixtureによる全体失敗、08b attempt 1は全体SUCCESS、同attempt 2は取得前cancelled。c438初回・再実行は全体SUCCESS、全Python3,614件（360 skip）、動画283＋185件。ただし実probeはRESULT 0でHOLD。新しい接続コードの全体CIは確認待ち。合成30枠E2Eや固定依存461検査を実30学習・実未来成功とは数えない |
-| 8. Actions URL | [旧14実fit 42334526055](https://github.com/haji84/RACE-AI/actions/runs/42334526055)、[元未来保存42336097863](https://github.com/haji84/RACE-AI/actions/runs/42336097863)、[初回19候補42352845874](https://github.com/haji84/RACE-AI/actions/runs/42352845874)、[08b全体検証42355755138](https://github.com/haji84/RACE-AI/actions/runs/42355755138)、[c438の初回・限定再実行42364217725](https://github.com/haji84/RACE-AI/actions/runs/42364217725)。attemptごとの結果を区別する |
-| 9. HEAD SHA | 直近全体成功HEADは `c43871ba761c98ad4ba86cfddc1bc2b20585da38`。最新実19候補の学習SHAは `f39104dc8486171d0b8c0d56b97ee788feb0561c1e4a27b81c3d061618c594af`。旧2世代の保持commitは `3761cda8de08055d6a07f8b9d2a928958ce5877e`、第3世代は `9b26d1631aa4b24cd672d1f7bb9234cb6c52ad13`。旧HEAD・初回ローカルSHA・各世代SHAは対応する証跡に保持する |
+| 7. テスト | 旧runの合格・失敗証跡は各HEADの履歴として保持。初回19枠runはfit成功／動画fixtureによる全体失敗、08b attempt 1は全体SUCCESS、同attempt 2は取得前cancelled。c438初回・再実行は全体SUCCESS、全Python3,614件（360 skip）、動画283＋185件。ただし実probeはRESULT 0でHOLD。901はattempt 1／2とも全体SUCCESS、全Python3,714件（360 skip・失敗0）、動画283＋185件、UI31件。実第2回probeもRESULT 0でHOLD。合成30枠E2EやCI成功を実30学習・実未来成功とは数えない |
+| 8. Actions URL | [旧14実fit 42334526055](https://github.com/haji84/RACE-AI/actions/runs/42334526055)、[元未来保存42336097863](https://github.com/haji84/RACE-AI/actions/runs/42336097863)、[初回19候補42352845874](https://github.com/haji84/RACE-AI/actions/runs/42352845874)、[08b全体検証42355755138](https://github.com/haji84/RACE-AI/actions/runs/42355755138)、[c438の初回・限定再実行42364217725](https://github.com/haji84/RACE-AI/actions/runs/42364217725)、[b569全履歴読戻し42370578793](https://github.com/haji84/RACE-AI/actions/runs/42370578793)、[901の初回・第2回probe42371023982](https://github.com/haji84/RACE-AI/actions/runs/42371023982)。attemptとjobごとの結果を区別する |
+| 9. HEAD SHA | 直近全体成功HEADは `901fb57d2d0f1d0fa0b4051285dca399654a4738`。最後にGit保持・独立復元した実19候補世代はc438で、その学習SHAは `f39104dc8486171d0b8c0d56b97ee788feb0561c1e4a27b81c3d061618c594af`。旧2世代の保持commitは `3761cda8de08055d6a07f8b9d2a928958ce5877e`、第3世代は `9b26d1631aa4b24cd672d1f7bb9234cb6c52ad13`。旧HEAD・初回ローカルSHA・各世代SHAは対応する証跡に保持する |
 | 10. 実動作範囲 | 旧14候補は実6/2学習→締切前の基準／学習版独立保存→通常1レースの登録照合→14組PDCA→28暗号化partition別復元まで成立。実19候補はActions3世代でfit・復元・照合し、全3世代の原候補ファイルをGit保持・独立読戻し済み。新19候補の実未来PDCAは0件で、本番運用成功ではない |
-| 11. 未完成と原因 | 現行残11枠はAUTO6・KEIRIN5。旧browser件数UNKNOWN／予約24を保持し、無条件の再取得を停止する。新19候補の未来入力・独立保存・公式結果・PDCAと、十分な前向き標本が未実証。最新検証済みc438の全体CIは成功。追加接続コードとCSS再利用修正の新HEAD全体CIは確認待ち。所有者キー復元は確認済みであり、キー不足を原因としない。販売者は現行対象外 |
-| 12. 次の最小工程 | 認証済み静的CSSの再利用修正と接続コードを新HEADで全体CI検証する。新19候補は新しい締切前入力にgenuine baselineを結び、独立保存→公式結果→PDCAを検証する。AUTO／KEIRINは旧journalを維持し、明示された限定復旧の実記録に従う。各競技8通常結果が揃った後に、30枠×8＝240原レコード・32独立レースの実6/2fitへ進める。新schedule・上限reset・欠測補完・販売者の再追加は行わない |
+| 11. 未完成と原因 | 現行残11枠はAUTO6・KEIRIN5。旧browser件数UNKNOWN／予約24を保持し、無条件の再取得を停止する。新19候補の未来入力・独立保存・公式結果・PDCAと、十分な前向き標本が未実証。901の全体CIとCSS再利用は実検証済みだが、第2回probeも8 GET・RESULT 0のHOLD。全履歴・grid読戻し成功を、残11枠の結果確保・学習成功へ加算しない。所有者キー復元は確認済みであり、キー不足を原因としない。販売者は現行対象外 |
+| 12. 次の最小工程 | 次回requestは未発行の準備であり、13:39:31 UTC以降かつ新HEAD初回全体CI成功・固定attempt 2の認証後だけ許可する。POST拒否の未保存endpointを推測しない。新19候補は新しい締切前入力にgenuine baselineを結び、独立保存→公式結果→PDCAを検証する。AUTO／KEIRINは旧journalを維持し、明示された限定復旧の実記録に従う。各競技8通常結果が揃った後に、30枠×8＝240原レコード・32独立レースの実6/2fitへ進める。新schedule・上限reset・欠測補完・販売者の再追加は行わない |
 
 ## 実証へのリンク
 
@@ -78,7 +87,7 @@ catalogはPARSED 7,846＋PARTIAL_SOURCE 117。gridの完全観測日は7,845、�
 - [旧14候補の通常1レースPDCA](evidence/2026-11-07/fourteen-native-model-future-pdca-counts.json)
 - [旧14候補のPDCA・次回検討15件の保持](evidence/2026-11-07/fourteen-native-model-future-pdca-retention-counts.json)
 
-これらは各段階の不変スナップショット。後続の保持・Checks・probe結果は別の証跡へ追加し、元の評価SHAを変更しない。最新c438と11月6日追加履歴の件数証跡を追補した。
+これらは各段階の不変スナップショット。後続の保持・Checks・probe結果は別の証跡へ追加し、元の評価SHAを変更しない。c438の不変証跡に加えて、901の全体CI・実第2回probe・journal保持と、b569の全履歴／grid読戻し証跡を追補した。
 
 ## 先行段階の原本保持（履歴）
 
@@ -89,6 +98,6 @@ catalogはPARSED 7,846＋PARTIAL_SOURCE 117。gridの完全観測日は7,845、�
 
 ## 復元の実CIと中断時の修正（11月7日21:00 JST）
 
-29eca042／run42369144075は履歴のGit全祖先fetchが180秒上限となって復元job失敗。未発行capsuleのまま後続をcancelし、providerstepはSKIPPED・提供元アクセス0だった。[停止証跡](evidence/2026-11-07/29eca-cancelled-before-provider-counts.json)。履歴・gridの読取りだけを既存VaultGitRepositoryのshallow metadata／必要blob取得へ接続し、writerと保存形式は保持した。[実GitHubの固定manifest読取](evidence/2026-11-07/bounded-history-git-readback-transport-counts.json)は0.893秒・Git object891,789 bytes・鍵読取0・提供元アクセス0で一致。これは全原本群の復元完了ではなく、その新HEAD全体CIは再検証する。
+29eca042／run42369144075は履歴のGit全祖先fetchが180秒上限となって復元job失敗。未発行capsuleのまま後続をcancelし、providerstepはSKIPPED・提供元アクセス0だった。[停止証跡](evidence/2026-11-07/29eca-cancelled-before-provider-counts.json)。履歴・gridの読取りだけを既存VaultGitRepositoryのshallow metadata／必要blob取得へ接続し、writerと保存形式は保持した。[実GitHubの固定manifest読取](evidence/2026-11-07/bounded-history-git-readback-transport-counts.json)は0.893秒・Git object891,789 bytes・鍵読取0・提供元アクセス0で一致。この固定manifest検査だけでは全原本群の復元完了とは呼ばない。その後b569の該当jobで全履歴／grid復元を確認し、901ではattempt 1／2の全体CI成功も確認した。
 
 独立reviewで、目録の暗号保存からV2 progress保存までの中断が同じ目録を再取得することも合成で再現した。未commitの既存要求は取得前HOLDとし、保存済み証拠を維持する。完成済みV2と認証済みHTTP待機の既存再開は維持する。新3再現テストをRED→GREEN、履歴・grid・暗号Git境界70件が成功。判定不能な中断を空の新規収集として再試行しない。

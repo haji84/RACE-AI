@@ -1,3 +1,15 @@
+<!-- RACEAI_2139JST_901_PROBE_AND_FULL_READBACK_20261107 -->
+# 2026-11-07 21:39 JST｜901の全体CIと第2回AUTO probe、全履歴読戻しを確認
+
+既存Draft PR #71の検証HEAD `901fb57d2d0f1d0fa0b4051285dca399654a4738`／[run42371023982](https://github.com/haji84/RACE-AI/actions/runs/42371023982)はattempt 1／2とも全体SUCCESS。初回は全Python3,714件（360 skip・失敗0、1,427.474秒）、動画283＋185件、UI31件を通過した。attempt 2は認証済み同HEAD初回の重い2検査を再利用し、軽量検査・実取得・journal読戻し・画面検査を通過した。[全CI・第2回probeの件数](evidence/2026-11-07/901-full-ci-and-second-bounded-probe-counts.json)。
+
+実第2回AUTO probeは8 GET・全200、document 1件＋背景通信7件で上限到達し、RESULT 0・`HOLD_UI_OR_SOURCE_UNAVAILABLE`／`REQUEST_LIMIT`。CSS 3件のcache再利用は実確認できた。POSTの`NORMAL_READ_IDENTITY`拒否2件はendpoint原本がjournalに残っておらず、拒否経路や原因を推測しない。元journal artifact13574582081のZIP・metadata・暗号文を既存commit `710b7437740ae38c05c68fb3a26cb00f4e54a374` へ保持し、元バイト一致と独立Git読戻しを確認した。[journal認証](evidence/2026-11-07/901-probe-journal-authenticated-counts.json)・[保持](evidence/2026-11-07/901-probe-journal-retention-counts.json)。旧browser実数UNKNOWN／予約24・旧固定epoch上限32は維持する。
+
+日付延長履歴はb569／run42370578793の実Actions jobで全旧世代263か月を復元し、掲載7,964日＝PARSED7,846＋PARTIAL117＋公表待ち1日を確認。11月6日gridも7,963原本・2,643選手×24場＝63,432セルを復元した。提供元アクセス0で、b569の該当job成功と901の全workflow成功を分けて記録する。[実読戻し件数](evidence/2026-11-07/b569-full-history-grid-ci-readback-counts.json)。
+
+実学習19/30、残AUTO6・KEIRIN5、新19候補／現行全30枠の実未来PDCA 0は変わらない。旧BOAT14の通常1レース・14組は別世代の証拠。次の同一1ケースrequestは未発行の準備・最大8・live plan不変であり、直前terminal12:39:30 UTC＋1秒＋1時間の最早13:39:31 UTC（22:39:31 JST）以降かつ新HEAD初回全体CI成功・新たな固定attempt 2認証などの条件を再確認してからだけ送信する。[次回準備](evidence/2026-11-07/third-auto-probe-preparation-counts.json)。新workflow・定期タスク・本番切替・実投票は追加していない。詳細は[現行の残枠報告](REMAINING_MODEL_COMPLETION_20261107.md)。下の記録は各確認時点の履歴として保持する。
+<!-- END_RACEAI_2139JST_901_PROBE_AND_FULL_READBACK_20261107 -->
+
 <!-- RACEAI_2031JST_INTEGRATED_CHECK_20261107 -->
 # 2026-11-07 20:31 JST｜統合済みHEADのCI結果と安全停止の再照合
 
