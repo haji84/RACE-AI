@@ -132,3 +132,16 @@ catalogはPARSED 7,846＋PARTIAL_SOURCE 117。gridの完全観測日は7,845、�
 Python readerは全raw／metadata／台帳／時計／SHA照合を維持し、必須role200を必須としたまま、未参照で同レースのrefund CSV404だけを隔離保持して扱う修正を追加。完備したSOURCE_VALIDATION拒否原本は通信会計だけに再検証できる。データ／cache許可と正常probeは従来どおりCOMPLETEのみ。実DOMの入れ子パスも安全なrelative pathとして復元する。3修正の116テストと独立レビューCLEAR。
 
 1件目の再取得を避け、元から指定されていたAUTO第2ケースを別16枠probeへ準備した。[次の準備](evidence/2026-11-07/historical-auto-case-two-preparation-counts.json)：実取得日2026-11-08 JST／元レース日2026-11-07を区別し、旧4 native・全5 prior・4 checkpoints・原URL／条件／静的原本を保持する。前run terminal14:29:52＋1秒＋1時間の15:29:53 UTC以降、かつ新HEAD初回全体成功・別の固定attempt2を確認後だけ取得する。全5実journalを再認証済み。まだ新capsule未発行／新提供元通信0。
+# 2026-11-08 JST 追記：取得再開前のCI失敗を保持
+
+オートの実通常結果1件は、既存の973原本から必要なレスポンスと実DOMを再利用し、別の公式結果artifactへ暗号化保存した。run `42383095124` は全体SUCCESS（HEAD `11d070dd1984e50d8d5bd6fcca738865cdc93b19`）。その実結果は締切前の出走原本8人と照合済みで、金額評価は許可しない。元の973収集journalのREJECTED状態・404原文・全通信履歴は変更していない。
+
+次の別レースを対象とするc06の初回全CIは、Python 3,911件（401 skip）で3つのassertionが失敗した。可変の収集manifestへ追加された新しいpinを、bootstrapテストが固定seedと誤って扱っていた。固定11 pinの独立fixtureへ分離し、累積pin追加と必須pin改変を区別する回帰テストで検証する。成功した初回CIを必要とする取得ゲートは停止し、このHEAD向けの新しい取得権限発行・提供元アクセスは0。[実CI失敗と停止件数](evidence/2026-11-07/c06-first-ci-blocked-before-source-counts.json)。修正後の別HEADで全体検証をやり直し、成功を確認するまで取得を再開しない。
+
+実学習は19/30枠、AUTO通常結果1件、KEIRIN通常結果0件、新しい30枠の実未来PDCAは0件のまま。追加の接続コード・合成テストと、実データ学習・実未来採点は別に記録する。以下の以前の経緯・失敗・SHAは保全する。
+
+今回の将来入力接続には、既存の公式通常UIからAUTO／KEIRINの出走表だけを取得する経路、JRAの新しい公開ページ・そこに明記された出走表リンク・既存ルール資料の取得経路、11月6日BOAT会場別gridを取得前に明示指定する経路を追加した。既存freeze・native入力契約・baseline照合・暗号化保管・実artifact読み戻しを再利用する。既存workflow内の専用jobは、所有者／PR71／attempt 1／必須5job成功／明示prefixとinputを要求する。新しいworkflow・定期実行・外部サービスは追加していない。
+
+将来取得は競技ごとの固定した一度限りの消費markerを通信前に保存する。同じ実験で日付・HEAD・baselineを変えて再発行できない。既知の拒否は取得停止、不明な通信件数は不明のまま上限付きで保持し、元UNKNOWNの会計を置換しない。実際の取得開始・応答・固定as-of・モデル作成時刻・baseline保存証拠を照合し、最後の保存確認から締切まで600秒を確保する。これらの新規経路で実際の未来入力取得・marker発行・30枠採点が成功したとはまだ主張しない。
+
+11月8日JSTの11月7日原本再確認では、保存済み目録を再利用し、対象原本だけ1 HTTP GETを実行した。HTTP 200後、私有の追加operator記録処理がISO時刻文字列へ`isoformat()`を呼ぶ誤りで停止し、応答本文をcatalog・checkpointへ保存できなかった。原文SHA・応答完了時刻は不明で補完しない。元counterと空のattempt11を残し、既存世代10・公表待ち1日・11月6日gridを維持する。再確認を新しい解析成功へ加算せず、同じcounterの削除・reset・自動再実行は行わない。[実失敗と通信会計](evidence/2026-11-07/nov7-dated-recheck-operator-failure-counts.json)。復旧は失敗記録を保全した独立レビュー済みの明示手順で行う。
