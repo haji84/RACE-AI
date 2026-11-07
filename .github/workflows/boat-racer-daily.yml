@@ -36,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ${{ github.event_name == 'push' && github.sha || '3f28510c103e86f182895c44c3144b5ae7eaf496' }}
+          ref: ${{ github.event_name == 'push' && github.sha || '0dd7c7a4d34492fc537311b5b7304fadc58768e7' }}
           persist-credentials: true
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -83,7 +83,12 @@ jobs:
           GIT_CONFIG_KEY_0: http.https://github.com/.extraheader
           GIT_CONFIG_VALUE_0: ''
         run: |
-          python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" --latest-saved-day
+          site_context_args=(--latest-saved-day)
+          if [[ -n "$RESULT_PROBE_RACE" ]]; then
+            [[ "$RESULT_PROBE_RACE" =~ ^[0-9]{8}-[0-9]{2}-[0-9]{2}$ ]] || exit 2
+            site_context_args=(--day "${RESULT_PROBE_RACE:0:4}-${RESULT_PROBE_RACE:4:2}-${RESULT_PROBE_RACE:6:2}")
+          fi
+          python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" "${site_context_args[@]}"
           probe=()
           if [[ -n "$RESULT_PROBE_RACE" ]]; then probe+=("--race-id=$RESULT_PROBE_RACE"); fi
           env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results "${probe[@]}"
