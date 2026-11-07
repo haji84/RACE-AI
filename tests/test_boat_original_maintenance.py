@@ -24,6 +24,12 @@ def view(ident=101, run=2):
         PRIVATE_NAME='NEVER_PRINT_PRIVATE_PAYLOAD'),comparison_predictions=[])])
 
 
+def forecast_view(ids):
+    return dict(records=[dict(sport='boat',race_id=f'boat:2030-04-01:fixture:{index+1}',
+        prediction=dict(artifact_id=ident,PRIVATE_NAME='NEVER_PRINT_PRIVATE_PAYLOAD'),
+        comparison_predictions=[]) for index,ident in enumerate(ids)])
+
+
 class MaintenanceSelectionTests(unittest.TestCase):
     def setUp(self): self.assertIsNotNone(M, 'bounded original maintenance is absent')
 
@@ -93,6 +99,112 @@ class MaintenanceIntegrationTests(unittest.TestCase):
         with patch.dict(os.environ,self.fixture.env,clear=True):
             return M.backfill(owner_view or view(),self.writer.repo,transport=self.writer,
                 readback_transport=self.reader,github_get=get or self.get,now=NOW,**kwargs)
+
+    def run_protect(self,before,after,get=None):
+        with patch.dict(os.environ,self.fixture.env,clear=True):
+            return M.protect_new_forecast_originals(before,after,self.writer.repo,transport=self.writer,
+                readback_transport=self.reader,github_get=get or self.get,now=NOW)
+
+    def test_new_forecast_guard_retains_only_the_new_actual_original_without_view_mutation(self):
+        raw,metadata=original(ident=102,run=2)
+        self.responses.update({'actions/artifacts/102':metadata,'actions/artifacts/102/zip':raw})
+        before,after=forecast_view([101]),forecast_view([101,102]);sealed=(deepcopy(before),deepcopy(after))
+        report=self.run_protect(before,after)
+        self.assertTrue(report['complete']);self.assertEqual(report['new_forecast_artifacts'],1)
+        self.assertEqual(report['newly_retained_originals'],1);self.assertEqual(report['remaining'],0)
+        self.assertFalse(report['full_current_view_readback_verified'])
+        self.assertNotIn('actions/artifacts/101',self.calls)
+        self.assertIsNone(M.V.lookup_original(101,self.writer.repo,transport=self.writer,key=vault_fixture.KEY))
+        locator=M.V.lookup_original(102,self.writer.repo,transport=self.writer,key=vault_fixture.KEY)
+        restored=M.V.restore_original(locator,self.reader.repo,transport=self.reader,key=vault_fixture.KEY)
+        self.assertEqual(restored['raw_zip'],raw);self.assertEqual(restored['metadata_raw'],metadata)
+        self.assertEqual((before,after),sealed)
+        self.assertFalse(self.writer.exists(report['source_commit'],M.PROGRESS_PATH))
+        self.assertNotIn('PRIVATE_NAME',json.dumps(report));self.assertNotIn('NEVER_PRINT',json.dumps(report))
+
+    def test_new_forecast_guard_cached_and_unchanged_cases_use_no_live_get_or_full_zip_decode(self):
+        before,after=forecast_view([]),forecast_view([101])
+        self.run_protect(before,after);head=self.writer.head()
+        with patch.object(M.V,'restore_original',side_effect=AssertionError('redundant cached ZIP decode')):
+            cached=self.run_protect(before,after,get=lambda _:self.fail('cached original used live API'))
+            unchanged=self.run_protect(after,after,get=lambda _:self.fail('unchanged view used live API'))
+        self.assertTrue(cached['complete']);self.assertEqual(cached['cached_originals'],1)
+        self.assertEqual(cached['selected_capture_ids'],0);self.assertEqual(unchanged['new_forecast_artifacts'],0)
+        self.assertEqual(self.writer.head(),head)
+
+    def test_new_forecast_guard129_missing_progresses_in_two_cache_first_calls(self):
+        ids=list(range(1000,1129))
+        for ident in ids:
+            raw,metadata=original(ident=ident,run=2)
+            self.responses[f'actions/artifacts/{ident}']=metadata
+            self.responses[f'actions/artifacts/{ident}/zip']=raw
+        before,after=forecast_view([]),forecast_view(ids);sealed=deepcopy(after)
+        first=self.run_protect(before,after)
+        self.assertEqual(first['selected_capture_ids'],128);self.assertEqual(first['remaining'],1)
+        self.assertFalse(first['complete']);self.assertLessEqual(first['descriptor_lookups'],512)
+        self.calls.clear();second=self.run_protect(before,after)
+        self.assertTrue(second['complete']);self.assertEqual(second['selected_capture_ids'],1)
+        self.assertEqual(second['cached_originals'],128);self.assertEqual(second['remaining'],0)
+        self.assertEqual(self.calls.count('actions/artifacts/1128/zip'),1)
+        self.assertFalse(any(endpoint.endswith('/zip') and endpoint!='actions/artifacts/1128/zip' for endpoint in self.calls))
+        self.assertEqual(after,sealed)
+        self.assertFalse(self.writer.exists(second['source_commit'],M.PROGRESS_PATH))
+
+    def test_new_forecast_guard_denial_holds_before_write_and_never_retries(self):
+        def denied(endpoint):self.calls.append(endpoint);raise RuntimeError('GITHUB_API_READ_HTTP_403_HALT')
+        with self.assertRaisesRegex(RuntimeError,'^GITHUB_API_READ_HTTP_403_HALT$'):
+            self.run_protect(forecast_view([]),forecast_view([101]),get=denied)
+        self.assertEqual(self.calls,['actions/artifacts/101']);self.assertEqual(self.writer.head(),self.fixture.parent)
+
+    def test_new_forecast_guard_wrong_returned_locator_holds_publication(self):
+        capture=M.VCLI._capture
+        def wrong(*args,**kwargs):
+            result=capture(*args,**kwargs);result['locators'][0]['artifact_id']=999
+            return result
+        with patch.object(M.VCLI,'_capture',side_effect=wrong) as called,self.assertRaisesRegex(
+                ValueError,'^ORIGINAL_MAINTENANCE_FORECAST_CAPTURE_LOCATORS_MISMATCH$'):
+            self.run_protect(forecast_view([]),forecast_view([101]))
+        self.assertEqual(called.call_count,1);self.assertEqual(self.calls.count('actions/artifacts/101/zip'),1)
+
+    def test_new_forecast_guard_wrong_returned_parent_holds_publication(self):
+        capture=M.VCLI._capture
+        def wrong(*args,**kwargs):
+            result=capture(*args,**kwargs);result['source_commit']=self.fixture.parent
+            return result
+        with patch.object(M.VCLI,'_capture',side_effect=wrong),self.assertRaisesRegex(
+                ValueError,'^ORIGINAL_MAINTENANCE_FORECAST_CAPTURE_LOCATORS_MISMATCH$'):
+            self.run_protect(forecast_view([]),forecast_view([101]))
+
+    def test_new_forecast_guard_corrupt_cached_descriptor_holds_without_live_fallback(self):
+        before,after=forecast_view([]),forecast_view([101])
+        self.run_protect(before,after)
+        broken=self.append(self.writer,M.V._lookup_path(101),b'not an authenticated descriptor')
+        with self.assertRaises(ValueError):
+            self.run_protect(before,after,get=lambda _:self.fail('corrupt cache selected a live fallback'))
+        self.assertEqual(self.writer.head(),broken)
+
+    def test_new_forecast_guard_byte_quota_defers_before_zip_read_or_write(self):
+        with patch.object(M.V,'MAX_BATCH_PLAIN',100):
+            report=self.run_protect(forecast_view([]),forecast_view([101]))
+        self.assertFalse(report['complete']);self.assertEqual(report['remaining'],1)
+        self.assertEqual(report['selected_capture_ids'],0);self.assertEqual(self.writer.head(),self.fixture.parent)
+        self.assertNotIn('actions/artifacts/101/zip',self.calls)
+
+    def test_new_forecast_guard_ignores_nonboat_nonpositive_and_evidence_only_references(self):
+        after=forecast_view([-1,0,None]);after['records'].append(dict(sport='keirin',prediction=dict(artifact_id=101)))
+        after['records'][0]['saved_prediction_evidence']={'fixture':dict(artifact=dict(id=102))}
+        after['records'][0]['result']=dict(artifact_id=103)
+        report=self.run_protect(forecast_view([]),after,get=lambda _:self.fail('nonforecast reference used live API'))
+        self.assertTrue(report['complete']);self.assertEqual(report['new_forecast_artifacts'],0)
+        self.assertEqual(self.writer.head(),self.fixture.parent)
+
+    def test_new_forecast_guard_limits_and_environment_hold_before_transport(self):
+        with patch.dict(os.environ,self.fixture.env,clear=True),patch.object(M.V,'_transport',side_effect=AssertionError('I/O before bound')):
+            with self.assertRaisesRegex(ValueError,'^ORIGINAL_MAINTENANCE_FORECAST_ADDITION_BOUND_EXCEEDED$'):
+                M.protect_new_forecast_originals(forecast_view([]),forecast_view(range(1000,1513)),self.writer.repo)
+        env=dict(self.fixture.env);env.pop('GITHUB_ACTIONS')
+        with patch.dict(os.environ,env,clear=True),patch.object(M.V,'_transport',side_effect=AssertionError('I/O before environment')),self.assertRaises(ValueError):
+            M.protect_new_forecast_originals(forecast_view([]),forecast_view([101]),self.writer.repo)
 
     def bounded_fixture(self, native_by_run, retained=(), closed=None):
         """Invented metadata with real signed progress and no expensive ZIPs."""

@@ -98,6 +98,35 @@ class AllModelCliTests(unittest.TestCase):
         self.assertNotIn(base64.b64encode(KEY).decode(), out.getvalue())
         return code, out.getvalue()
 
+    def test_prepare_inventory_rejection_exposes_only_bounded_code_locations(self):
+        sentinel = "private-race-sentinel-" + base64.b64encode(KEY).decode()
+        view = {"records": [dict(race_id=sentinel)]}
+        with patch.object(cli, "_existing_view", return_value=view):
+            code, output = self.run_cli(["prepare", "--round", "1"])
+        self.assertEqual(code, 2)
+        report = json.loads(output)
+        self.assertEqual(report.get("status"), "ALL_MODEL_PATH_REJECTED")
+        self.assertEqual(report.get("reason"), "ALL_MODEL_CLI_OPERATION_FAILED")
+        self.assertEqual(report.get("error_class"), "ValueError")
+        frames = report.get("error_frames", [])
+        self.assertEqual(len(frames), 4)
+        self.assertEqual([frame[0] for frame in frames], [
+            "scripts/boat_all_model_cycle.py", "scripts/boat_all_model_cycle.py",
+            "race_ai/frozen_day_cycle.py", "race_ai/frozen_day_cycle.py"])
+        for frame in frames:
+            self.assertEqual(len(frame), 2)
+            self.assertRegex(frame[0], r"\A(?:scripts|race_ai)/[a-z0-9_]+\.py\Z")
+            self.assertIs(type(frame[1]), int)
+            self.assertGreater(frame[1], 0)
+        self.assertEqual(set(report), {"status", "reason", "error_class", "error_frames"})
+        for private in (sentinel, base64.b64encode(KEY).decode(), str(self.base),
+                        str(Path(cli.__file__).resolve().parents[1]),
+                        "original race ID invalid", "Traceback", "race_id"):
+            self.assertNotIn(private, output)
+        self.assertEqual(self.output.read_text(), "ready=false\n")
+        self.assertFalse((self.temp/"boat-all-model-runtime/runtime-ready.json").exists())
+        self.assertIsNone(self.forecast_git.head())
+
     def test_prepare_cache_binds_exact_pointer_files_and_current_round(self):
         code, _ = self.run_cli(["prepare", "--round", "1"]); self.assertEqual(code, 0)
         ready = cli.restore_ready()
