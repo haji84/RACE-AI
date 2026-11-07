@@ -602,6 +602,7 @@ jobs:
           node tests/saved_pages_browser.test.js
           node tests/results_budget_browser.test.js
           node tests/racer_portraits_browser.test.cjs
+          node tests/venue_names_browser.test.cjs
           node --test tests/boat_video_ui.test.mjs
       - name: Retain synthetic-only UI interaction evidence
         if: always()

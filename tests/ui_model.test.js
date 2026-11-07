@@ -36,6 +36,25 @@ assert.deepEqual(M.filterRaces(records, {allDates: true, candidatesOnly: true, c
 assert.deepEqual(M.filterRaces(records, {allDates: true, forecastOnly: true}).map(r => r.race_id), ["b"]);
 assert.equal(records[0].race_id, "a", "filtering never mutates saved records");
 assert.deepEqual(M.filterRaces(records, {sport: "boat", day: "2026-11-04", period: "week"}).map(r => r.race_id), ["a", "c"], "week includes historical records from the same JST calendar week");
+const venueRows = Object.freeze([
+  Object.freeze({race_id:"coded", sport:"boat", venue:"場コード01", race_no:1}),
+  Object.freeze({race_id:"named", sport:"boat", venue:"桐生", race_no:2}),
+  Object.freeze({race_id:"other-venue", sport:"boat", venue:"場コード24", race_no:1}),
+  Object.freeze({race_id:"other-sport", sport:"horse", venue:"場コード01", race_no:1})
+]);
+const venueBefore = JSON.stringify(venueRows);
+assert.deepEqual(M.filterRaces(venueRows, {sport:"boat", query:"桐生"}).map(r=>r.race_id), ["coded","named"], "venue-name searches find both coded history and named imports");
+assert.deepEqual(M.filterRaces(venueRows, {sport:"boat", venue:"桐生"}).map(r=>r.race_id), ["coded","named"], "one named venue filter includes both stored representations");
+assert.deepEqual(M.filterRaces(venueRows, {sport:"boat", query:"場コード01"}).map(r=>r.race_id), ["coded"], "original venue codes remain searchable");
+assert.deepEqual(M.filterRaces(venueRows, {sport:"boat", venue:"場コード01"}).map(r=>r.race_id), ["coded"], "existing code filter values remain valid");
+for (const [code,name] of [['01','桐生'],['02','戸田'],['03','江戸川'],['04','平和島'],['05','多摩川'],['06','浜名湖'],['07','蒲郡'],['08','常滑'],['09','津'],['10','三国'],['11','びわこ'],['12','住之江'],['13','尼崎'],['14','鳴門'],['15','丸亀'],['16','児島'],['17','宮島'],['18','徳山'],['19','下関'],['20','若松'],['21','芦屋'],['22','福岡'],['23','唐津'],['24','大村']]) {
+  assert.equal(M.venueName({sport:"boat",venue:"場コード"+code}),name);
+}
+for (const venue of [null,undefined,'場コード00','場コード25','場コード1','場コード01 test','架空の会場','桐生']) {
+  assert.equal(M.venueName({sport:"boat",venue}),venue,"unknown venue metadata is never guessed from a race ID");
+}
+assert.equal(M.venueName(venueRows[3]),"場コード01","venue codes are scoped to their sport");
+assert.equal(JSON.stringify(venueRows),venueBefore,"presentation must preserve stored venue codes and race identities");
 const resultRow = {prediction: {ordered_top8: [[1, 2, 3]]}, result: {status: "final", winning_combinations: [[1, 2, 3]]}};
 assert.equal(M.outcome(resultRow, {predictionEligible: true, resultEligible: true}), "HIT");
 assert.equal(M.outcome(resultRow, {predictionEligible: false, resultEligible: false}), "PREDICTION_UNVERIFIED", "synthetic/research apparent wins never become official hits");
