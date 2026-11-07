@@ -81,6 +81,8 @@ def _gh(method, path, body=None):
 
 
 class GithubIssueTransport:
+    _validate_path = staticmethod(_path)
+    _commit_message = 'Retain one consumed fixed official-result recovery capsule'
     def __init__(self, request=None):
         self._request = _gh if request is None else request
         _need(callable(self._request), 'REQUEST')
@@ -131,7 +133,7 @@ class GithubIssueTransport:
 
     def read_file(self, commit, path, limit):
         _hex40(commit)
-        _path(path)
+        self._validate_path(path)
         _need(type(limit) is int and 0 < limit <= MAX_WIRE, 'FILE_BOUND')
         tree = self._root(commit)
         parts = path.split('/')
@@ -173,7 +175,7 @@ class GithubIssueTransport:
             return raw
 
     def publish_capsule(self, path, raw, expected_parent):
-        _path(path)
+        self._validate_path(path)
         _hex40(expected_parent)
         _need(type(raw) is bytes and 0 < len(raw) <= MAX_WIRE, 'CAPSULE_BOUND')
         _need(self.head() == expected_parent, 'CONCURRENT_REF')
@@ -186,7 +188,7 @@ class GithubIssueTransport:
             dict(path=path, mode='100644', type='blob', sha=expected_blob)])))
         tree_id = _hex40(tree.get('sha'))
         commit = _document(self._call('POST', 'git/commits', dict(
-            message='Retain one consumed fixed official-result recovery capsule',
+            message=self._commit_message,
             tree=tree_id, parents=[expected_parent])))
         commit_id = _hex40(commit.get('sha'))
         _need(type(commit.get('tree')) is dict and commit['tree'].get('sha') == tree_id, 'CREATED_COMMIT_TREE')

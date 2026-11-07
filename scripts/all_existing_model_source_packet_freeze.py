@@ -310,20 +310,14 @@ def _counts(records):
     return {sport:sum(record_identity(record)[0]==sport for record in records) for sport in CELLS}
 
 
-def generate(ident,root,env,manifest):
+def seal_selected(ident,root,manifest,context,packet,selected,counts,*,contexts=None,
+                  minimum_margin_seconds=120):
+    """Encrypt already converted requests; the caller preserves their as-of.
+
+    This helper does not select cases or acquire/re-time any source. Fresh
+    browser callers authenticate context/packet originals before entering here.
+    """
     need(not root.exists(),'OUTPUT_EXISTS_DO_NOT_RESET')
-    key=state_key('production');context=(_carrier_context(ident,manifest,now=utc_now()) if manifest['schema']==SCHEMA_V2
-        else future.candidate(ident,env))
-    need(context['training']['scope']=='OPERATOR_SUPPLIED_RESEARCH','REAL_RESEARCH_CANDIDATE_REQUIRED')
-    need(not set().union(*CELLS.values())&set(context['training']['models']),'INPUT_ONLY_CANDIDATE_REQUIRED')
-    ready=future.stamp(context['receipt']['created_at'])+timedelta(seconds=1)
-    remaining=(ready-utc_now()).total_seconds()
-    if 0<remaining<=2:time.sleep(remaining+.02)
-    need(utc_now()>=ready,'CANDIDATE_RECEIPT_PRECISION')
-    contexts=(_baseline_contexts(manifest,now=utc_now(),carrier_id=ident) if manifest['schema']==SCHEMA_V2 else None)
-    packet=load_packet(manifest,key=key,now=utc_now())
-    selected,counts=select_cases(packet,manifest,now=utc_now())
-    if not selected:return dict(counts,state='HOLD_NO_READY_FUTURE_NATIVE_INPUTS',ready=False,ready_races=0)
     attachments=(_attach_baselines(selected,manifest,contexts,now=utc_now()) if contexts is not None else 0)
     requests=[request for row in selected for request in row['requests']]
     refs={tuple(pair) for row in selected for pair in row['source_refs']}
@@ -338,7 +332,7 @@ def generate(ident,root,env,manifest):
          'EXACT_FROZEN_INPUT_COUNTS')
     need(read_json_bytes(_read(root/'summary.json',1024*1024))==summary,'ROOT_SUMMARY_BINDING')
     (root/'summary.json').unlink();records=local_records(root)
-    need(min(_seal_cutoff(p) for p in records)>=utc_now()+timedelta(seconds=120),'FINAL_MARGIN_ELAPSED')
+    need(min(_seal_cutoff(p) for p in records)>=utc_now()+timedelta(seconds=minimum_margin_seconds),'FINAL_MARGIN_ELAPSED')
     extra={}
     if contexts is not None:
         _verify_baselines(records,manifest,contexts,packet,now=utc_now())
@@ -353,7 +347,24 @@ def generate(ident,root,env,manifest):
         encrypted_readback_verified=True,independent_pre_cutoff_receipt_verified=False)
 
 
-def readback(ident,root,env,*,manifest=None):
+def generate(ident,root,env,manifest):
+    need(not root.exists(),'OUTPUT_EXISTS_DO_NOT_RESET')
+    key=state_key('production');context=(_carrier_context(ident,manifest,now=utc_now()) if manifest['schema']==SCHEMA_V2
+        else future.candidate(ident,env))
+    need(context['training']['scope']=='OPERATOR_SUPPLIED_RESEARCH','REAL_RESEARCH_CANDIDATE_REQUIRED')
+    need(not set().union(*CELLS.values())&set(context['training']['models']),'INPUT_ONLY_CANDIDATE_REQUIRED')
+    ready=future.stamp(context['receipt']['created_at'])+timedelta(seconds=1)
+    remaining=(ready-utc_now()).total_seconds()
+    if 0<remaining<=2:time.sleep(remaining+.02)
+    need(utc_now()>=ready,'CANDIDATE_RECEIPT_PRECISION')
+    contexts=(_baseline_contexts(manifest,now=utc_now(),carrier_id=ident) if manifest['schema']==SCHEMA_V2 else None)
+    packet=load_packet(manifest,key=key,now=utc_now())
+    selected,counts=select_cases(packet,manifest,now=utc_now())
+    if not selected:return dict(counts,state='HOLD_NO_READY_FUTURE_NATIVE_INPUTS',ready=False,ready_races=0)
+    return seal_selected(ident,root,manifest,context,packet,selected,counts,contexts=contexts)
+
+
+def readback(ident,root,env,*,manifest=None,_packet_loader=None):
     local=local_records(root);proof=root.with_name(root.name+'.generation.json')
     previous=read_json_bytes(_read(proof if proof.exists() else root.with_name(root.name+'.status.json'),128*1024))
     v2=any('baseline_attachment' in c['native_payload'] or 'learned_model' in c['native_payload']
@@ -368,7 +379,7 @@ def readback(ident,root,env,*,manifest=None):
             p['training']==carrier['training'] and p['training_receipt']==carrier['receipt'] for p in local),
             'CARRIER_ORIGINAL_READBACK')
         contexts=_baseline_contexts(manifest,now=utc_now(),carrier_id=local[0]['training_receipt']['id'])
-        packet=load_packet(manifest,key=state_key('production'),now=utc_now())
+        packet=(_packet_loader or load_packet)(manifest,key=state_key('production'),now=utc_now())
         count=_verify_baselines(local,manifest,contexts,packet,now=utc_now())
         need(previous.get('baseline_attachment_count')==count,'BASELINE_ATTACHMENT_COUNTS')
         extra.update(source_packet_freeze_schema=SCHEMA_V2,manifest_sha256=digest(manifest),
