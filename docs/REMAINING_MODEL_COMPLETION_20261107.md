@@ -2,10 +2,12 @@
 
 **現行30枠のうち実学習は19枠（BOAT14・HORSE5）、残11枠はAUTO6・KEIRIN5。新19候補の実未来PDCAは0件。別の旧14候補では通常1レース・14組の実未来PDCAが成立している。現行全30枠の完成ではない。** 販売者1枠は所有者の変更で現行対象から除外され、学習済みには加算しない。過去31枠の登録情報・原本・MAC・SHAは保持する。
 
-最新の確認対象は `901fb57d2d0f1d0fa0b4051285dca399654a4738`／[run 42371023982](https://github.com/haji84/RACE-AI/actions/runs/42371023982)。2026-11-07 21:39:30 JSTまでにattempt 1／2とも全体SUCCESSを確認した。実第2回AUTO probeは8 GET・全200でも新RESULT 0のHOLD。19枠は実Actions由来の3世代で係数／支持数／holdout／所有者判断を独立照合済みで、最後に原候補3ファイルをGit保持・独立読戻しした世代はc438のままである。コードの全体CI成功を、候補世代の追加保持や実未来PDCA成功へ加算しない。
+最新の取得用確認対象は `d1e9823142b145154dcccb1a6cdca485679ec6c4`／[run 42399972066](https://github.com/haji84/RACE-AI/actions/runs/42399972066) で、初回全体CIは検証中。新しいAUTO2のcapsule・実取得は0。先行973の元HTTP／DOMを再利用した通常AUTO結果1件は認証・独立保存済み。会場別履歴は11月7日までの7,964原本を暗号Gitへ保持し、別runnerで復元済み。実19候補3世代の係数／支持数／holdout／所有者判断と長期保持は確認済みで、コードのCI成功を実30枠学習・実未来PDCA成功へ加算しない。以下の旧run記録は各段階の履歴として保持する。
 
 ## 最新の実証チェックポイント
 
+- [AUTO通常1件の認証](evidence/2026-11-07/973-reused-real-auto-result-authenticated-counts.json)：177個の締切前native入力に対して、実AUTO1レース・登録8ID・確定順位を照合。ORDER_ONLYであり金額評価は不可。元973 journalのREJECTED／背景CSV404は変更せず、公式原文の再取得0で独立RESULT保存に成功した。
+- [11月7日までの暗号保持](evidence/2026-11-07/nov7-actual-history-grid-retention-counts.json)と[実readerログの確認](evidence/2026-11-07/nov7-actual-reader-log-zip-counts.json)：263か月・7,964原本・7,004,556出走行・2,643選手×24場を復元。実reader jobと、修正後の鍵不要ログ照合stepは成功。未掲載17日・未報告156会場日などは残る。
 - [901の全体CIと実第2回probe](evidence/2026-11-07/901-full-ci-and-second-bounded-probe-counts.json)：attempt 1は全Python3,714件（360 skip・失敗0、1,427.474秒）、動画283＋185件、UI31件を通過。attempt 2は認証済みの同HEAD初回検証のうち重い2検査を再利用し、軽量検査・実取得・暗号journal読戻し・画面検査を実行して全体SUCCESS。第2回probeの通常結果は0件である。
 - [全旧世代を含む日付延長履歴とgridの実Actions読戻し](evidence/2026-11-07/b569-full-history-grid-ci-readback-counts.json)：b569／run42370578793の該当job成功を確認。263か月・掲載7,964日、PARSED7,846／PARTIAL117／公表待ち1日、gridは7,963原本・2,643選手×24場＝63,432セルを復元した。提供元アクセス0。該当job成功をb569全workflow成功とは呼ばない。
 
@@ -64,17 +66,17 @@ catalogはPARSED 7,846＋PARTIAL_SOURCE 117。gridの完全観測日は7,845、�
 | 項目 | 実証内容と限界 |
 | --- | --- |
 | 1. 調査したAPI・経路 | 艇愛の仕様・利用条件・実取得は[既存調査](TEIAI_HISTORY_INTEGRATION.md)を継承し、今回の追加艇愛APIアクセスは0。BOAT公式Kは11月6日の原本1 GET、11月7日のmenu/index 2 GETを別記録へ保存。JRAは凍結カードに実際に公開された結果GETリンク、AUTO・KEIRINは既存の公式通常UI経路を使用する。APIの存在から学習・再配布許諾を推定しない |
-| 2. 実取得できたもの | BOAT112原入力、非BOAT33レース・177原入力と実時計・締切前receipt。HORSE公式結果は通常8・特殊2。19枠の実学習に用いたのはBOAT112＋HORSE40＝152原レコード。未提供値は欠測のまま。会場別履歴は上記11月6日までの追加実データを別に保持 |
-| 3. 未取得項目 | 残11枠の学習に必要なAUTO／KEIRIN各8通常結果、十分な実未来標本、全期間の欠測・訂正・公表時刻の完全な履歴は未実証。除外済み販売者の定義不足を、現行30枠の残件へ加算しない |
-| 4. 正確性と件数 | 艇愛対公式Kの既存照合は2レース・延べ8行／独立7出走に限定。HORSE公式10結果は凍結入力の名簿・日付・場・Rへ照合し、通常8・特殊2。旧14候補の未来通常1レース・6登録選手・14組は、新19候補の未来0件と区別する。全体精度100%や14独立レースとは報告しない |
+| 2. 実取得できたもの | BOAT112原入力、非BOAT33レース・177原入力と実時計・締切前receipt。HORSE通常8・特殊2と、AUTO通常1・登録8IDの確定順位。実学習19枠はBOAT112＋HORSE40＝152原レコード。会場別履歴は11月7日まで7,964原本・1,167,426レース・7,004,556出走行・63,432組を暗号Git保持・独立復元。未提供値は欠測のまま |
+| 3. 未取得項目 | AUTOは残7通常結果、KEIRINは8通常結果が必要。新19／30候補の実未来1巡、十分な前向き標本、全期間の欠測・訂正・公表時刻の完全な履歴は未実証。販売者は現行対象外であり、学習成功にも残枠にも加算しない |
+| 4. 正確性と件数 | 艇愛対公式Kの既存照合は2レース・延べ8行／独立7出走に限定。HORSE10結果は通常8・特殊2、AUTO通常1は元の8登録IDと順位を照合。旧14候補の未来通常1レース・6登録選手・14組は、新19／30候補の未来0件と区別する。欠測や少数検証を精度100%とは報告しない |
 | 5. 接続特徴量 | 既存nativeの実提供特徴量・母数・欠測・lineageを使い、支持された既存座標だけを学習した。19枠の実fitと各世代の係数・支持数・holdout一致を確認。HORSE5共通8件・6/2は実intakeの独立検証によるもので、フラグだけで保証しない |
 | 6. ファイル一覧 | [接続作業の変更一覧](evidence/2026-11-07/remaining-native-model-changed-files.json)。PR71には並行するUI・動画の変更も含まれる。原本・旧MAC・古いmanifestを保持する |
 | 7. テスト | 旧runの合格・失敗証跡は各HEADの履歴として保持。初回19枠runはfit成功／動画fixtureによる全体失敗、08b attempt 1は全体SUCCESS、同attempt 2は取得前cancelled。c438初回・再実行は全体SUCCESS、全Python3,614件（360 skip）、動画283＋185件。ただし実probeはRESULT 0でHOLD。901はattempt 1／2とも全体SUCCESS、全Python3,714件（360 skip・失敗0）、動画283＋185件、UI31件。実第2回probeもRESULT 0でHOLD。合成30枠E2EやCI成功を実30学習・実未来成功とは数えない |
-| 8. Actions URL | [旧14実fit 42334526055](https://github.com/haji84/RACE-AI/actions/runs/42334526055)、[元未来保存42336097863](https://github.com/haji84/RACE-AI/actions/runs/42336097863)、[初回19候補42352845874](https://github.com/haji84/RACE-AI/actions/runs/42352845874)、[08b全体検証42355755138](https://github.com/haji84/RACE-AI/actions/runs/42355755138)、[c438の初回・限定再実行42364217725](https://github.com/haji84/RACE-AI/actions/runs/42364217725)、[b569全履歴読戻し42370578793](https://github.com/haji84/RACE-AI/actions/runs/42370578793)、[901の初回・第2回probe42371023982](https://github.com/haji84/RACE-AI/actions/runs/42371023982)。attemptとjobごとの結果を区別する |
-| 9. HEAD SHA | 直近全体成功HEADは `901fb57d2d0f1d0fa0b4051285dca399654a4738`。最後にGit保持・独立復元した実19候補世代はc438で、その学習SHAは `f39104dc8486171d0b8c0d56b97ee788feb0561c1e4a27b81c3d061618c594af`。旧2世代の保持commitは `3761cda8de08055d6a07f8b9d2a928958ce5877e`、第3世代は `9b26d1631aa4b24cd672d1f7bb9234cb6c52ad13`。旧HEAD・初回ローカルSHA・各世代SHAは対応する証跡に保持する |
+| 8. Actions URL | [次の取得用CI42399972066](https://github.com/haji84/RACE-AI/actions/runs/42399972066)は検証中。[実AUTO結果の独立保存42383095124](https://github.com/haji84/RACE-AI/actions/runs/42383095124)は全体SUCCESS。[全履歴reader42395208517](https://github.com/haji84/RACE-AI/actions/runs/42395208517/job/128471073052)と[鍵不要の実ログ照合stepを含む42402134870](https://github.com/haji84/RACE-AI/actions/runs/42402134870/job/128491999744)は該当処理SUCCESS。全workflow・attempt・job・stepの成功を区別する |
+| 9. HEAD SHA | 次の取得用HEADは `d1e9823142b145154dcccb1a6cdca485679ec6c4`。ログ照合step成功HEADは `0302867d89b05bcc6dad190994162f224d92aa43`。実19候補の直近保持世代はc438、学習SHAは `f39104dc8486171d0b8c0d56b97ee788feb0561c1e4a27b81c3d061618c594af`、保持commitは `9b26d1631aa4b24cd672d1f7bb9234cb6c52ad13`。新Nov7履歴・gridの保持commitは `bd932a4d91317c5d8349989a96ddb184938c539d`。旧HEAD・旧世代は各証跡へ保持 |
 | 10. 実動作範囲 | 旧14候補は実6/2学習→締切前の基準／学習版独立保存→通常1レースの登録照合→14組PDCA→28暗号化partition別復元まで成立。実19候補はActions3世代でfit・復元・照合し、全3世代の原候補ファイルをGit保持・独立読戻し済み。新19候補の実未来PDCAは0件で、本番運用成功ではない |
-| 11. 未完成と原因 | 現行残11枠はAUTO6・KEIRIN5。旧browser件数UNKNOWN／予約24を保持し、無条件の再取得を停止する。新19候補の未来入力・独立保存・公式結果・PDCAと、十分な前向き標本が未実証。901の全体CIとCSS再利用は実検証済みだが、第2回probeも8 GET・RESULT 0のHOLD。全履歴・grid読戻し成功を、残11枠の結果確保・学習成功へ加算しない。所有者キー復元は確認済みであり、キー不足を原因としない。販売者は現行対象外 |
-| 12. 次の最小工程 | 次回requestは未発行の準備であり、13:39:31 UTC以降かつ新HEAD初回全体CI成功・固定attempt 2の認証後だけ許可する。POST拒否の未保存endpointを推測しない。新19候補は新しい締切前入力にgenuine baselineを結び、独立保存→公式結果→PDCAを検証する。AUTO／KEIRINは旧journalを維持し、明示された限定復旧の実記録に従う。各競技8通常結果が揃った後に、30枠×8＝240原レコード・32独立レースの実6/2fitへ進める。新schedule・上限reset・欠測補完・販売者の再追加は行わない |
+| 11. 未完成と原因 | 現行残11枠はAUTO6・KEIRIN5。AUTO通常1・KEIRIN通常0のため共通8レースずつに不足。新19／30候補の未来入力・独立保存・公式結果・PDCAと十分な前向き標本は未実証。旧UNKNOWN／予約24は不変。新AUTO2はd1初回全体CI成功待ち。全履歴復元やログ照合成功を学習成功へ加算しない。所有者キー不足は解消済み。欠測17日／156会場日等と1997〜2004年の利用可能性も未解消 |
+| 12. 次の最小工程 | d1の初回全体CIが成功した後だけ、全実prior・1時間待機・固定attempt2・新cap・実TTLを確認し、元AUTO2の限定通常UI取得へ進む。正常journalと確定RESULTを認証して各競技8通常結果まで差分取得し、既存30枠×8＝240原レコード・32独立レースの学習6／検証2を実行。その実候補・genuine baseline・新しい締切前入力を結び、独立保存→公式結果→30枠PDCAを一巡。新schedule・上限reset・欠測補完・販売者再追加・本番切替は行わない |
 
 ## 実証へのリンク
 
@@ -179,3 +181,9 @@ Python readerは全raw／metadata／台帳／時計／SHA照合を維持し、�
 別の鍵不要チェック `42399864271` は、GitHubの直接job-log取得が署名URLの期限不整合で403となり、原byte取得前にHOLDした。提供元データの403ではなく、通常の取得や提供元の拒否停止規則は変えていない。既登録の2実行に限り、GitHubのrun-attemptログZIPから固定ファイル名と唯一の固定SHAが両方一致する原byteを読む経路へ修正した。ZIPの件数・展開量・各ファイル量・パス・通常ファイル属性を検証し、展開保存も文字コード変換もしない。
 
 実GitHub ZIP（47 member、542,540 byte）で、選択原文34,309 byte・UTF8 BOM保持・SHA `4f2c015998399c4031502cc072635458609269551f019eeda80d6d1673a0ad1f` の一致を確認。修正後にGitHubからmetadataとZIPを再取得したローカルの鍵不要チェックも `HISTORY_WITNESS_VERIFIED`。umask022で関連24件PASS、独立レビューCLEAR。実Actions `42402134870`／Viewer job `128491999744` の専用チェックstep11も18:36:56ZにSUCCESSとなった。全workflowは確認時点で検証中であり、当該チェック成功を実未来入力・30枠学習・未来PDCAの成功には加算しない。[実確認の件数](evidence/2026-11-07/nov7-actual-reader-log-zip-counts.json)。
+
+## 全期間の掲載下限を保存済み公式資料で監査
+
+K履歴の2005年開始は実装上の固定下限ではない。保存済みの実公式メニュー（10,636 byte、SHA `809f175fe5d8655ba834a5212ce20ddbb54575252221e06c0d9f3d7c3b79564e`）には2005年1月〜2026年11月の263か月が掲載され、2005年以前の月は0件。実装は全掲載月を読み、その最早月を開始日とする。最新historyは同じmenu SHAと263個の月headを保持し、掲載7,964日＝PARSED 7,847＋PARTIAL_SOURCE 117、解析待ち0。提供元の全経路で2005年以前が取得不能とまでは断定しない。
+
+保存済みの公式ダウンロードページには2005年以前の算出期を含む旧FAN原本7リンクも実掲載されている。ただし選手の期別全国／コース集計であり、会場別の日次K履歴とは別資料。旧レイアウトは未取得・未検証で現parserの対象外であり、1997〜2004年の会場別成績を補完したとは扱わない。推測した古い月URLへの取得は行わず、この監査での提供元GET・鍵利用は0。未掲載17日・未報告156会場日・117 PARTIALの原記録は保持する。
