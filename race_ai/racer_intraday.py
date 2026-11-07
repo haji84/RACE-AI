@@ -59,6 +59,9 @@ def decode_packet(raw):
         return doc
     finally:db.close()
 
+def _capture_key(pointer):
+    return pointer['packet'],pointer['capture_id'],pointer['captured_at']
+
 class IntradayState:
     def __init__(self,control=None,*,loader=None):
         self.control=deepcopy(control) if control else dict(schema=STATE,day=None,venues=[],meetings={},races={},results={},archives={},waits={},schedule=None,conflicts={},last_checked_at=None,catalogue_at=None,material_sha256=None,archive_next=None)
@@ -71,17 +74,18 @@ class IntradayState:
             c['races']={rid:q for rid,q in c['races'].items() if rid[:8]>=(day-timedelta(days=1)).strftime('%Y%m%d') and rid not in self.canonical and rid not in c['results']}
     def remember(self,kind,raw,receipt):
         ident=sha((receipt['source_url']+'\n'+receipt['source_sha256']).encode())
-        capture=dict(id=ident,kind=kind,receipt=receipt,raw=base64.b64encode(raw).decode());self.new_captures[ident]=capture;self.cache[ident]=capture
-        return dict(packet='@self',capture_id=ident,kind=kind,source_sha256=receipt['source_sha256'],source_url=receipt['source_url'],captured_at=receipt['captured_at'])
+        pointer=dict(packet='@self',capture_id=ident,kind=kind,source_sha256=receipt['source_sha256'],source_url=receipt['source_url'],captured_at=receipt['captured_at'])
+        capture=dict(id=ident,kind=kind,receipt=receipt,raw=base64.b64encode(raw).decode());self.new_captures[ident]=capture;self.cache[_capture_key(pointer)]=capture
+        return pointer
     def capture(self,pointer):
-        ident=pointer['capture_id']
-        if ident not in self.cache:
-            need(self.loader is not None,'INTRADAY_CAPTURE_LOADER_REQUIRED');self.cache[ident]=self.loader(pointer)
-        c=self.cache[ident];r=c['receipt'];raw=base64.b64decode(c['raw'],validate=True)
+        ident=pointer['capture_id'];key=_capture_key(pointer)
+        if key not in self.cache:
+            need(self.loader is not None,'INTRADAY_CAPTURE_LOADER_REQUIRED');self.cache[key]=self.loader(pointer)
+        c=self.cache[key];r=c['receipt'];raw=base64.b64decode(c['raw'],validate=True)
         need(c['id']==ident and c['kind']==pointer['kind'] and r['source_url']==pointer['source_url'] and r['source_sha256']==pointer['source_sha256'] and r['captured_at']==pointer['captured_at'] and sha(raw)==r['source_sha256'],'INTRADAY_CAPTURE_BINDING')
         return raw,r
     def facts(self,pointer,now):
-        key=pointer['capture_id']
+        key=_capture_key(pointer)
         if key not in self.facts_cache:
             raw,receipt=self.capture(pointer)
             self.facts_cache[key]=archive_facts(raw,receipt) if pointer['kind']=='K' else parse_result(raw,receipt,now=now)
@@ -113,10 +117,19 @@ class IntradayState:
         wait=c['waits'].get('boatrace');state='SOURCE_WAIT' if wait and clock(wait['until'])>now else 'READY'
         captures=[p['captured_at'] for p in pointers if clock(p['captured_at']).astimezone(JST).date().isoformat()>=day]
         return dict(day=day,last_checked_at=c['last_checked_at'] or now.isoformat(),latest_result_at=max(captures,default=None),expected_races=expected,confirmed_races=len(confirmed),pending_races=None if expected is None else max(0,expected-len(confirmed)),schedule_complete=complete,source_state=state,revision_conflicts=len(c['conflicts']),source_receipts=list(receipts.values()))
-    def advance(self,base,*,now,fetch,max_requests=12):
+    def advance(self,base,*,now,fetch,max_requests=12,result_targets=()):
         now=clock(now);need(type(max_requests) is int and 1<=max_requests<=12,'INTRADAY_REQUEST_BOUND');c=self.control;day=now.astimezone(JST).date();text=day.isoformat();requests=changed=0
         self.extra_rows(base,now=now)
         self.rollover(now)
+        targets={}
+        if result_targets:
+            need(len(result_targets)<=576,'SETTLEMENT_TARGET_BOUND');c.setdefault('settlement_captures',{});c.setdefault('settlement_next',{})
+            for target in result_targets:
+                rid=target['race_id'];need(type(rid) is str and re.fullmatch(r'[0-9]{8}-(0[1-9]|1[0-9]|2[0-4])-(0[1-9]|1[0-2])',rid) and type(target['pending']) is bool,'SETTLEMENT_TARGET_IDENTITY')
+                cutoff=clock(target['cutoff_at']) if target['cutoff_at'] else None
+                if cutoff and cutoff.astimezone(JST).date().strftime('%Y%m%d')==rid[:8] and cutoff+timedelta(minutes=5)<=now:
+                    c['settlement_next'].setdefault(rid,(cutoff+timedelta(minutes=5)).isoformat())
+                    if clock(c['settlement_next'][rid])<=now:targets[rid]=target
         def waiting(key):return key in c['waits'] and clock(c['waits'][key]['until'])>now
         def get(url,host):
             nonlocal requests
@@ -131,7 +144,7 @@ class IntradayState:
                 until=max(clock(exc.retry_at),now+delay).isoformat() if exc.retry_at else (now+delay).isoformat() if status==404 else '9999-12-31T23:59:59+00:00'
                 c['waits'][key]=dict(until=until,reason=exc.reason);return None
         def rejected(host):c['waits'][host]=dict(until=(now+timedelta(hours=6)).isoformat(),reason='SOURCE_HOLD')
-        if c['schedule'] is None:
+        if c['schedule'] is None and (not result_targets or now.astimezone(JST).hour>=7):
             response=get(index_url(day),'boatrace')
             if response:
                 raw,r=response
@@ -145,13 +158,18 @@ class IntradayState:
                 try:
                     need(len(raw)<=1024*1024,'INTRADAY_ARCHIVE_BOUND');facts=archive_facts(raw,r)
                     if not c['archives'].get(text) or c['archives'][text]['source_sha256']!=r['source_sha256']:
-                        c['archives'][text]=self.remember('K',raw,r);self.facts_cache[c['archives'][text]['capture_id']]=facts;changed+=1
+                        c['archives'][text]=self.remember('K',raw,r);self.facts_cache[_capture_key(c['archives'][text])]=facts;changed+=1
                 except ValueError:self.remember('REJECTED',raw,r);rejected('mbrace')
             self.extra_rows(base,now=now)
         bootstrap=[f'{day:%Y%m%d}-{v}-01' for v in c['venues'] if v not in c['meetings']]
-        due=[rid for rid,q in sorted(c['races'].items(),key=lambda i:(i[0] in c['results'],i[1]['next_check'],i[0])) if q['cutoff_at'] and clock(q['cutoff_at'])+timedelta(minutes=5)<=now and clock(q['next_check'])<=now and rid not in self.canonical]
+        due=[rid for rid,q in sorted(c['races'].items(),key=lambda i:(i[0] in c['results'],i[0][:8]!=day.strftime('%Y%m%d'),i[1]['next_check'],i[0])) if q['cutoff_at'] and clock(q['cutoff_at'])+timedelta(minutes=5)<=now and clock(q['next_check'])<=now and rid not in self.canonical]
         picked=set()
-        for target in bootstrap+due:
+        result_due=sorted(targets,key=lambda rid:(not targets[rid]['pending'],rid[:8]!=day.strftime('%Y%m%d'),c['settlement_next'][rid],rid))
+        fresh=[rid for rid in result_due if targets[rid]['pending'] and rid.startswith(day.strftime('%Y%m%d'))]
+        old=[rid for rid in result_due if targets[rid]['pending'] and rid not in fresh]
+        revisions=[rid for rid in result_due if not targets[rid]['pending']]
+        new_stats=[rid for rid in due if rid not in c['results']]
+        for target in fresh+bootstrap+new_stats+old+[rid for rid in due if rid not in new_stats]+revisions:
             if requests>=max_requests or waiting('boatrace'):break
             venue=target[9:11];number=int(target[-2:])
             if target in picked:continue
@@ -172,10 +190,22 @@ class IntradayState:
                     if header_changed:c['meetings'][venue]=self.remember('RESULT',raw,r)
                 q=c['races'].setdefault(target,dict(cutoff_at=None,next_check=now.isoformat()));q['next_check']=(now+timedelta(minutes=30 if out['status']!='PENDING' else 5)).isoformat()
                 if out['status']=='PENDING' and q['cutoff_at']:q['next_check']=max(clock(q['next_check']),clock(q['cutoff_at'])+timedelta(minutes=5)).isoformat()
+                if target in targets:
+                    from .boat_sp_settlement import parse_settlement,settlement_digest
+                    try:
+                        settlement=parse_settlement(raw,r,now=clock(r['captured_at']));fingerprint=settlement_digest(settlement);status=settlement['status']
+                    except ValueError:fingerprint=sha(raw);status='UNSUPPORTED'
+                    previous=c['settlement_captures'].get(target)
+                    supersedes=previous and targets[target].get('after') and clock(previous['captured_at'])<clock(targets[target]['after'])
+                    if not previous or previous['settlement_sha256']!=fingerprint or supersedes:
+                        p=self.remember('RESULT',raw,r);p.update(settlement_sha256=fingerprint,settlement_status=status);c['settlement_captures'][target]=p
+                    interval=5 if targets[target]['pending'] or status!='AVAILABLE' else 30
+                    c['settlement_next'][target]=(now+timedelta(minutes=interval)).isoformat()
+                    if status=='PENDING' and q['cutoff_at']:c['settlement_next'][target]=max(clock(c['settlement_next'][target]),clock(q['cutoff_at'])+timedelta(minutes=5)).isoformat()
                 old=c['results'].get(target)
-                if out['status']!='PENDING' and (not old or old['fact_sha256']!=out['fact_sha256']):
+                if target not in self.canonical and out['status']!='PENDING' and (not old or old['fact_sha256']!=out['fact_sha256']):
                     p=self.remember('RESULT',raw,r);p.update(fact_sha256=out['fact_sha256'],statistics_sha256=out.get('statistics_sha256'));c['results'][target]=p;changed+=1
-                    self.facts_cache[p['capture_id']]=out
+                    self.facts_cache[_capture_key(p)]=out
             except ValueError:self.remember('REJECTED',raw,r);rejected('boatrace')
         c['last_checked_at']=now.isoformat();self.extra_rows(base,now=now)
         return dict(status=self.metadata(now)['source_state'],requests=requests,new_observations=changed)

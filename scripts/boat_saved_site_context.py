@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import re
 import sys
+import traceback
 
 ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
@@ -96,7 +97,9 @@ def main(argv=None,*,now=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',required=True)
     parser.add_argument('--require-future',action='store_true')
-    parser.add_argument('--day',help='Explicit saved event day; current-day checks never silently fall back')
+    dates=parser.add_mutually_exclusive_group()
+    dates.add_argument('--day',help='Explicit saved event day; current-day checks never silently fall back')
+    dates.add_argument('--latest-saved-day',action='store_true')
     args=parser.parse_args(argv)
     try:
         repo=VCLI._environment(ROOT)
@@ -109,13 +112,16 @@ def main(argv=None,*,now=None):
         _need(CLI.sha(raw)==config['bootstrap_sha256'],'BOOTSTRAP_HASH_INVALID')
         bootstrap=CLI.F.open_bootstrap(raw);CLI.git_auth();git=CLI.F.FeedRepository(repo)
         _,_,generation,view=CLI.F.current_view(git,bootstrap,**(dict(day=day) if args.day is not None else {}))
+        if args.latest_saved_day:
+            day=max((r['event_date_jst'] for r in view['records'] if r.get('sport')=='boat' and r['event_date_jst']<=day),default=None)
+            _need(day is not None,'CURRENT_DAY_REQUIRED')
         history=getattr(git,'_saved_history_context',None)
         if history:
             earlier=sorted(d for d in history['index']['days'] if d<day)
             if earlier:
                 _,_,_,old=CLI.F.current_view(git,bootstrap,day=earlier[0])
                 view=dict(view,records=[*view['records'],*old['records']])
-        context=build_context(bootstrap,view,generation,now=clock,require_future=args.require_future,event_day=args.day)
+        context=build_context(bootstrap,view,generation,now=clock,require_future=args.require_future,event_day=day if args.latest_saved_day else args.day)
         fd=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
         with os.fdopen(fd,'w',encoding='utf-8') as stream:
             json.dump(context,stream,ensure_ascii=False,sort_keys=True);stream.write('\n')
@@ -128,7 +134,9 @@ def main(argv=None,*,now=None):
     except Exception as error:
         reason=str(error) if isinstance(error,ValueError) and re.fullmatch(
             r'(?:SAVED_SITE|FEED|HISTORY|VAULT|STATE)_[A-Z0-9_]{1,100}',str(error)) else 'SAVED_SITE_OPERATION_FAILED'
-        print(json.dumps(dict(status='SAVED_SITE_CONTEXT_REJECTED',reason=reason),sort_keys=True))
+        trace=[Path(frame.filename).name+':'+str(frame.lineno)+':'+frame.name
+               for frame in traceback.extract_tb(error.__traceback__)[-5:]]
+        print(json.dumps(dict(status='SAVED_SITE_CONTEXT_REJECTED',reason=reason,code_trace=trace),sort_keys=True))
         return 2
 
 

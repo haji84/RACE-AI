@@ -1,2 +1,1 @@
-Initialize only the new per-race encrypted stream; reuse existing daily base and owner key.
-Requested at 2026-11-07T14:27:11.819387+00:00
+2026-11-08: verify the private result viewer after successful result-only catch-up; retain existing state and report safe failure locations only.

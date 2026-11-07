@@ -129,7 +129,8 @@ save('dec-omitted',H.encrypt_history_router(bad_dec,key,view_id=vid,source_sha=p
  await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('#page-races [data-open-race]').first().click();assert.equal(await page.locator('#prediction-select').inputValue(),'2');
  await page.locator('[data-page="picks"]').filter({visible:true}).first().click();assert.equal(await page.locator('#ticket-list .ticket-amount').count(),8);assert.equal(await page.locator('#ticket-list .ticket-amount').first().inputValue(),'200');
  assert.equal((await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}))).includes(key),false);assert.equal(requests.some(request=>JSON.stringify(request).includes(key)),false);assert.deepEqual(errors,[]);
- await page.locator('[data-page="settings"]').filter({visible:true}).first().click();await page.locator('#clear-data').click();
+ await page.locator('[data-page="settings"]').filter({visible:true}).first().click();await page.locator('#data-tools > summary').click();await page.locator('#clear-data').click();
+ assert.equal(await page.locator('[data-result-refresh]').first().isDisabled(),true,'clearing the view must disable its result refresh control');
  assert.equal(await page.locator('#period-all').isDisabled(),false,'leaving history restores ordinary import period controls');
  console.log('PASS bounded owner history: V4->V5, two months, pinned encrypted archives/date selection, omitted originals/corrupt index/missing day held, model/budget/draft preserved, no key requests/storage');
 })().catch(error=>{console.error(error);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();if(server)await new Promise(resolve=>server.close(resolve));fs.rmSync(dir,{recursive:true,force:true});});

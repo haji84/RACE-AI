@@ -24,6 +24,9 @@ def parse_capture(raw,receipt):
     Start times and unrelated betting-market payouts are not required facts for
     a trifecta result. Missing identities or winning coverage never settle.
     """
+    if str(receipt.get('source_url','')).startswith('https://www.boatrace.jp/owsp/sp/spdata?'):
+        from .boat_sp_settlement import parse_settlement
+        return parse_settlement(raw,receipt,now=instant(receipt['captured_at']))
     from . import official_race_updates as old
     need(type(raw) is bytes and len(raw)<=3*1024*1024 and receipt.get('http_status')==200,'RESULT_CAPTURE_INVALID')
     need(hashlib.sha256(raw).hexdigest()==receipt.get('source_sha256'),'RESULT_CAPTURE_HASH_MISMATCH')
@@ -146,11 +149,16 @@ def project_observation(observation,row,*,freeze_at,raw_bound=False):
     jst=timezone(timedelta(hours=9));offset=(observed-original).total_seconds()
     data=observation.get('data') or {}
     cancelled=data.get('status') in ('cancelled','no_contest') and data.get('confirmed') is True
-    need(original.astimezone(jst).date()==observed.astimezone(jst).date() and (cancelled or abs(offset)<=60),'RESULT_CUTOFF_MISMATCH')
+    sp=observation.get('schedule_binding')=='SP_EXPLICIT_RACE_HEADER'
+    need(original.astimezone(jst).date()==observed.astimezone(jst).date() and (cancelled or abs(offset)<=60 or sp),'RESULT_CUTOFF_MISMATCH')
+    if sp:
+        forecasts=[p for p in [row.get('prediction'),*row.get('comparison_predictions',[])] if p is not None]
+        need(forecasts and all(p.get('persisted_at') is not None and instant(p['persisted_at'])<min(original,observed) and
+            all(p.get(k) is None or instant(p[k])<min(original,observed) for k in ('as_of','generated_at','source_captured_at','server_saved_at')) for p in forecasts),'RESULT_CUTOFF_REFERENCE_CHRONOLOGY')
     need(instant(freeze_at)<(original if cancelled else min(original,observed)) and instant(observation['captured_at'])>=max(original,observed),'RESULT_CUTOFF_REFERENCE_CHRONOLOGY')
     need(3<=len(row.get('participants',[]))<=6 and (cancelled or 3<=len(data.get('results',[]))<=6),'RESULT_CUTOFF_REFERENCE_ROSTER_REQUIRED')
     reference=_observation(observation,{**row,'cutoff_at':observation['closed_at'],'saved_cutoff_variants':[observation['closed_at']]})
-    reference['cutoff_reference']=dict(original_cutoff_at=row['cutoff_at'],result_schedule_cutoff_at=observation['closed_at'],offset_seconds=offset,formal_eligible=False,basis='RAW_OFFICIAL_CANCELLATION_SELECTED_RACE' if cancelled else 'RAW_OFFICIAL_PAGE_SAME_ROSTER_SAVED_BEFORE_BOTH')
+    reference['cutoff_reference']=dict(original_cutoff_at=row['cutoff_at'],result_schedule_cutoff_at=observation['closed_at'],offset_seconds=offset,formal_eligible=False,basis='RAW_OFFICIAL_CANCELLATION_SELECTED_RACE' if cancelled else 'RAW_OFFICIAL_SP_SAME_ROSTER_SAVED_BEFORE_BOTH' if sp else 'RAW_OFFICIAL_PAGE_SAME_ROSTER_SAVED_BEFORE_BOTH')
     return reference
 
 def _reconcile_original_cutoffs(observation,row):

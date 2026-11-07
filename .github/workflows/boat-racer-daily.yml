@@ -1,4 +1,4 @@
-name: BOAT per-race athlete statistics
+name: BOAT per-race results and athlete statistics
 on:
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022]
@@ -13,6 +13,14 @@ on:
         type: choice
         options: [intraday, daily]
         default: intraday
+      verify_site:
+        description: '公開画面の結果をブラウザで確認（通常巡回では実行しない）'
+        type: boolean
+        default: false
+      probe_race_id:
+        description: '画面で照合するレースID（確認する場合だけ指定）'
+        type: string
+        default: ''
 permissions:
   contents: read
 concurrency:
@@ -28,7 +36,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ${{ github.event_name == 'push' && github.sha || '57e1b2b5994712116e5f2be4bba841fc69c3d9ef' }}
+          ref: ${{ github.event_name == 'push' && github.sha || 'b98f4e9f74bdeb9985c0086ce0a81e479919e988' }}
           persist-credentials: true
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -55,4 +63,27 @@ jobs:
           args=()
           if [[ "$INITIALIZE" == 'true' ]]; then args+=(--initialize); fi
           if [[ "$DAILY_RECONCILE" == 'true' ]]; then args+=(--daily-reconcile); fi
-          python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public "${args[@]}"
+          python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results "${args[@]}"
+      - name: Install browser check only for an explicit verification run
+        if: >-
+          (github.event_name == 'workflow_dispatch' && inputs.verify_site) || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results'))
+        run: npm install --prefix "$RUNNER_TEMP/result-site-tools" --no-package-lock --ignore-scripts playwright@1.62.1
+      - name: Verify private result display without publishing owner data
+        if: >-
+          (github.event_name == 'workflow_dispatch' && inputs.verify_site) || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results'))
+        timeout-minutes: 9
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          NODE_PATH: ${{ runner.temp }}/result-site-tools/node_modules
+          RESULT_PROBE_RACE: ${{ inputs.probe_race_id || '' }}
+          # The context installs its own repository-scoped credential.
+          # Clear checkout's host header for this read-only step only.
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: http.https://github.com/.extraheader
+          GIT_CONFIG_VALUE_0: ''
+        run: |
+          python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" --latest-saved-day
+          probe=()
+          if [[ -n "$RESULT_PROBE_RACE" ]]; then probe+=("--race-id=$RESULT_PROBE_RACE"); fi
+          env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results "${probe[@]}"

@@ -132,6 +132,8 @@ def update_view(view,observations,*,synced_at,captures=()):
     from datetime import date
     from .official_race_updates import endpoint
     rows={endpoint(date.fromisoformat(r['event_date_jst']),r['race_id'][9:11],int(r['race_id'][-2:]),'raceresult'):r for r in out['records']}
+    from .racer_intraday_source import result_url
+    rows.update({result_url(r['event_date_jst'],r['race_id'][9:11],int(r['race_id'][-2:])):r for r in out['records'] if r.get('sport')=='boat'})
     parsed=[]
     for raw,receipt in captures:
         need(receipt.get('http_status')==200 and sha(raw)==receipt.get('source_sha256'),'FEED_CAPTURE_HASH')

@@ -155,7 +155,7 @@ def seed_recent_months(repo,store,*,now,pointer,transport=None):
             finally:catalog.db.close()
     need(count>0,'DAILY_AUTHENTICATED_SEED_REQUIRED');return count
 
-def publish_daily_catalogue(repo,catalogue,*,transport=None,checked_at=None,state='READY'):
+def publish_daily_catalogue(repo,catalogue,*,transport=None,checked_at=None,state='READY',result_sync=None):
     """Atomically update derived aggregates/status; inherit UI and ciphertext."""
     import subprocess
     from .racer_daily import PUBLIC_PATH,PUBLIC_URL,STATUS_PATH,STATUS_URL,API_FILE,MAX_PUBLIC
@@ -179,6 +179,10 @@ def publish_daily_catalogue(repo,catalogue,*,transport=None,checked_at=None,stat
     need(result.returncode==0,'DAILY_PUBLIC_SCHEMA_REJECTED')
     checked=clock(checked_at or catalogue['generated_at']);need(checked>=clock(catalogue['generated_at']) and state in ('READY','SOURCE_WAIT','SOURCE_HOLD'),'DAILY_STATUS_INVALID')
     status=dict(schema='RACE_AI_RACER_STATISTICS_STATUS_V1',catalogue_sha256=sha(raw),catalogue_generated_at=catalogue['generated_at'],checked_at=checked.isoformat(),state=state)
+    if result_sync is not None:
+        need(type(result_sync) is dict and set(result_sync)=={'schema','state','checked_at','races','confirmed','pending','held','changed_races'} and result_sync['schema']=='RACE_AI_RESULT_SYNC_V1' and result_sync['state'] in ('READY','SOURCE_WAIT','HOLD','RETRY') and clock(result_sync['checked_at'])<=checked,'RESULT_PUBLIC_STATUS_INVALID')
+        need(all(type(result_sync[k]) is int and 0<=result_sync[k]<=576 for k in ('races','confirmed','pending','held','changed_races')) and result_sync['confirmed']+result_sync['pending']+result_sync['held']==result_sync['races'],'RESULT_PUBLIC_COUNTS_INVALID')
+        status['result_sync']=dict(result_sync)
     status_raw=(wire(status)+'\n').encode()
     def receipt(status,commit,**extra):return dict(status=status,pages_commit=commit,public_sha256=sha(raw),path=PUBLIC_PATH,public_url=PUBLIC_URL,status_sha256=sha(status_raw),status_path=STATUS_PATH,status_url=STATUS_URL,**extra)
     class DailyPagesRepository(_DailyFilteredFetch,PagesRepository):pass
