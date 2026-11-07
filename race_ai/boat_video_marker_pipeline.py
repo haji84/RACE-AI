@@ -72,26 +72,50 @@ def _containment(a, b):
     return intersection/min(w*h, c*d)
 
 
+def _mutual_centers(a, b):
+    """Half-open mutual center inclusion for partial views of one marker."""
+    x, y, w, h = a
+    u, v, c, d = b
+    return (x <= u+c/2 < x+w and y <= v+d/2 < y+h and
+            u <= x+w/2 < u+c and v <= y+h/2 < v+d)
+
+
 def _collapse_views(boxes, labels):
-    """Collapse nested same-label views by larger geometry, never likelihood."""
-    parents, bad = list(range(len(boxes))), set()
-    def find(i):
-        while parents[i] != i:
-            parents[i] = parents[parents[i]]; i = parents[i]
-        return i
+    """Complete-link same-label views; a bridge never merges distinct ends."""
+    same, bad = [set() for _ in boxes], set()
     for i, box in enumerate(boxes):
         for j, other in enumerate(boxes[:i]):
-            if _containment(box, other) >= .8:
-                if labels[i] == labels[j]: parents[find(i)] = find(j)
+            if _containment(box, other) >= .8 or _mutual_centers(box, other):
+                if labels[i] == labels[j]:
+                    same[i].add(j); same[j].add(i)
                 else: bad.update((i, j))
-    groups = {}
-    for i in range(len(boxes)): groups.setdefault(find(i), []).append(i)
-    collapsed, ambiguous = {}, set()
-    for members in groups.values():
-        if any(i in bad for i in members): ambiguous.update(members)
+    # Preserve fail-closed conflict propagation to aliases. This can only
+    # abstain; it never creates a collapsed group or a numeric observation.
+    ambiguous, pending = set(bad), list(bad)
+    while pending:
+        for other in same[pending.pop()]:
+            if other not in ambiguous:
+                ambiguous.add(other); pending.append(other)
+    groups, collapsed = [], {}
+    order = sorted(range(len(boxes)), key=lambda i: (-boxes[i][2]*boxes[i][3], i))
+    for i in order:
+        if i in ambiguous:
+            continue
+        group = next((g for g in groups if all(j in same[i] for j in g)), None)
+        if group is None:
+            groups.append([i])
         else:
-            winner = max(members, key=lambda i: (boxes[i][2]*boxes[i][3], -i))
-            collapsed.update((i, winner) for i in members if i != winner)
+            # The first member has the largest geometry. Every member must
+            # directly match every other, including both sides of a chain.
+            collapsed[i] = group[0]; group.append(i)
+    # M's existing IoU.8 view dedupe must not rejoin representatives of
+    # different complete-link groups and erase their distinct endpoints.
+    for i, group in enumerate(groups):
+        for other in groups[:i]:
+            if labels[group[0]] == labels[other[0]] and _iou(boxes[group[0]], boxes[other[0]]) >= .8:
+                ambiguous.update(group); ambiguous.update(other)
+    collapsed = {i: winner for i, winner in collapsed.items()
+                 if i not in ambiguous and winner not in ambiguous}
     return collapsed, ambiguous
 
 

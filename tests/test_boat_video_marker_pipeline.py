@@ -428,6 +428,86 @@ class MarkerPipelineTests(unittest.TestCase):
         self.assertEqual(held['admission'], 'VISIBLE_BLANK_HOLD')
         self.assertEqual(held['blank_hold_evidence']['expected_number'], 2)
 
+    def test_mutual_center_partial_views_are_one_observation_not_duplicate_number(self):
+        self.numbers = (1,)
+        def partial(frame):
+            full = self.discover(frame)[0]
+            x, y, right, bottom = full['box']
+            return [full, dict(box=[x-1, y+7, right-3, bottom+2])]
+        pipeline = module.MarkerIdentityPipeline(self.recognize, self.verifier, discover=partial,
+                   label_policy='DEVELOPMENT_GLYPH_CLASSIFIER')
+        for index in range(3): result = self.call(pipeline, index)
+        self.assertEqual(len(result['flow']['tracked']), 1)
+        self.assertEqual([r['number'] for r in result['identity']['tracks']], [1])
+        self.assertEqual(result['identity']['tracks'][0]['number_evidence']['observations'], 3)
+
+    def test_mutual_centers_keep_half_open_boundary_and_contradictory_labels_safe(self):
+        _collapse_views = module._collapse_views
+        full, partial = [203, 816, 35, 46], [201, 833, 29, 35]
+        self.assertEqual(_collapse_views([full, partial], [4, 4]), ({1: 0}, set()))
+        self.assertEqual(_collapse_views([full, partial], [4, 5]), ({}, {0, 1}))
+        self.assertEqual(_collapse_views([full, [300, 816, 35, 46]], [4, 4]), ({}, set()))
+        self.assertEqual(_collapse_views([[0, 0, 10, 10], [5, 0, 10, 10]], [4, 4]), ({}, set()))
+
+    def assert_bridge_remains_duplicate_unknown(self, boxes, expected_collapsed):
+        collapsed, ambiguous = module._collapse_views(boxes, [4, 4, 4])
+        self.assertEqual(ambiguous, set())
+        remaining = [box for i, box in enumerate(boxes) if i not in collapsed]
+        tracker = module.MarkerIdentityTracker()
+        for index in range(3):
+            result = tracker.update(self.image(index), [dict(box=list(box), text='4',
+                sequence_likelihood=.2, context_status='SINGLE_MARK') for box in remaining],
+                t=index/10, frame_index=index, scene=0)
+        self.assertEqual(result['tracks'], [])
+        self.assertIn('DUPLICATE_NUMBER', result['quality_flags'])
+        self.assertEqual(len(remaining), 2)
+        self.assertEqual(collapsed, expected_collapsed)
+
+    def test_same_class_pairwise_chain_cannot_merge_distinct_endpoints(self):
+        self.assert_bridge_remains_duplicate_unknown(
+            [[40, 40, 10, 20], [44, 40, 10, 20], [48, 40, 10, 20]], {1: 0})
+
+    def test_larger_middle_view_cannot_bridge_nonmatching_endpoints(self):
+        self.assert_bridge_remains_duplicate_unknown(
+            [[40, 40, 10, 20], [43.5, 39.5, 11, 21], [48, 40, 10, 20]], {0: 1})
+
+    def test_pairwise_matching_contained_views_still_collapse_once(self):
+        boxes = [[40, 40, 20, 30], [43, 42, 15, 25], [46, 44, 8, 18]]
+        self.assertEqual(module._collapse_views(boxes, [4, 4, 4]), ({1: 0, 2: 0}, set()))
+
+    def test_conflicting_label_abstention_still_propagates_to_same_view_aliases(self):
+        boxes = [[40, 40, 10, 20], [44, 40, 10, 20], [48, 40, 10, 20]]
+        self.assertEqual(module._collapse_views(boxes, [4, 4, 5]), ({}, {0, 1, 2}))
+
+
+    def test_separate_complete_groups_cannot_be_recombined_by_m_view_dedupe(self):
+        boxes = [[40, 40, 10, 20], [44, 40, 11, 20], [45, 40, 10, 20]]
+        collapsed, ambiguous = module._collapse_views(boxes, [4, 4, 4])
+        remaining = [box for i, box in enumerate(boxes) if i not in collapsed and i not in ambiguous]
+        tracker = module.MarkerIdentityTracker()
+        for index in range(3):
+            result = tracker.update(self.image(index), [dict(box=box, text='4',
+                sequence_likelihood=.2, context_status='SINGLE_MARK') for box in remaining],
+                t=index/10, frame_index=index, scene=0)
+        self.assertEqual(result['tracks'], [])
+        self.assertEqual(collapsed, {})
+        self.assertEqual(ambiguous, {0, 1, 2})
+
+    def test_reordering_bridge_views_never_creates_single_registered_number(self):
+        import itertools
+        boxes = [[40, 40, 10, 20], [44, 40, 11, 20], [45, 40, 10, 20]]
+        for permutation in itertools.permutations(boxes):
+            with self.subTest(permutation=permutation):
+                collapsed, ambiguous = module._collapse_views(list(permutation), [4, 4, 4])
+                remaining = [box for i, box in enumerate(permutation) if i not in collapsed and i not in ambiguous]
+                tracker = module.MarkerIdentityTracker()
+                for index in range(3):
+                    result = tracker.update(self.image(index), [dict(box=box, text='4',
+                        sequence_likelihood=.2, context_status='SINGLE_MARK') for box in remaining],
+                        t=index/10, frame_index=index, scene=0)
+                self.assertEqual(result['tracks'], [])
+
+
 
 if __name__ == '__main__':
     unittest.main()
