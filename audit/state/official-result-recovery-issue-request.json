@@ -1,0 +1,14 @@
+{
+  "pull_request": 71,
+  "recovery_request_blob_sha256": "4eb159f45c6c7dbd06dfd3b7844b6dc2acd34c15a6c093497b7e4583c2ed4466",
+  "recovery_request_sha256": "499cc66a86fa7009102b02243ef9c238b26577c89fd1b469acb61b4d33ef8a79",
+  "repository_id": 1416489937,
+  "schema": "RACE_AI_OFFICIAL_RESULT_RECOVERY_ISSUE_REQUEST_V1",
+  "target": {
+    "head_sha": "d41f505cb00557dd1a6173a19b0945d7849e57fd",
+    "run_attempt": 2,
+    "run_id": 42413260799
+  },
+  "target_first_viewer_job_id": 128525726971,
+  "workflow_id": 392270247
+}
