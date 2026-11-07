@@ -439,9 +439,9 @@ def make_pair(day,race,*,research_target=None):
         return dict(race_id=race_id,state='RACE_NOT_OPEN_FOR_TRIFECTA'),None,None,None,None
     if target is not None:
         from race_ai.actions_contract import digest
-        registrations=[row['racer_registration_id'] for row in sorted(active,key=lambda row:row['lane'])]
-        if (len(registrations)!=target['active_count'] or any(type(rid) is not str for rid in registrations)
-                or digest(registrations)!=target['roster_sha256']):
+        roster={str(row['lane']):row['racer_registration_id'] for row in active}
+        if (len(roster)!=target['active_count'] or any(type(rid) is not str for rid in roster.values())
+                or digest(roster)!=target['roster_sha256']):
             return dict(race_id=race_id,state='HOLD_RESEARCH_TARGET_ROSTER_MISMATCH'),None,None,None,None
     official_preview_url=preview_endpoint(day,venue,n,"beforeinfo")
     preview_clock=_clock(day)

@@ -29,10 +29,11 @@ class Clock(datetime):
         return NOW.astimezone(tz) if tz is not None else NOW.replace(tzinfo=None)
 
 
-def target(*, race_id=RID, cutoff_at=CUTOFF, registration_ids=None):
+def target(*, race_id=RID, cutoff_at=CUTOFF, registration_ids=None, lane_map=None):
     registrations = ['4001', '4002', '4003', '4004', '4005', '4006'] if registration_ids is None else registration_ids
-    return dict(race_id=race_id, cutoff_at=cutoff_at, roster_sha256=digest(registrations),
-                active_count=len(registrations))
+    roster = {str(lane): registration for lane, registration in enumerate(registrations, 1)} if lane_map is None else lane_map
+    return dict(race_id=race_id, cutoff_at=cutoff_at, roster_sha256=digest(roster),
+                active_count=len(roster))
 
 
 def schedule():
@@ -113,7 +114,8 @@ class ResearchTargetTests(unittest.TestCase):
 
     def test_wrong_current_roster_hash_or_count_stops_before_preview(self):
         wrong_hash = target()
-        wrong_hash['roster_sha256'] = digest(['4999', '4002', '4003', '4004', '4005', '4006'])
+        wrong_hash['roster_sha256'] = digest({'1': '4999', '2': '4002', '3': '4003',
+            '4': '4004', '5': '4005', '6': '4006'})
         wrong_count = target(registration_ids=['4001', '4002', '4003', '4004', '4005'])
         changed_program = sources()[0].replace(b'4001', b'4999')
         for descriptor, raw in ((wrong_hash, None), (wrong_count, None), (target(), changed_program)):
@@ -127,11 +129,19 @@ class ResearchTargetTests(unittest.TestCase):
     def test_three_noncontiguous_active_lanes_use_registration_strings_in_lane_order(self):
         program, preview = sources(lanes=(6, 1, 3))
         result, requests, retained = self.pair(
-            target(registration_ids=['4001', '4003', '4006']), raw_program=program, raw_preview=preview)
+            target(lane_map={'1': '4001', '3': '4003', '6': '4006'}), raw_program=program, raw_preview=preview)
         self.assertEqual(result[0]['state'], 'SOURCE_READY_ADDITIONAL_MODELS')
         self.assertEqual(len(requests), 2)
         self.assertEqual(len(retained), 1)
         self.assertEqual([row['racer_registration_id'] for row in retained[0][0]['boats']], ['4001', '4003', '4006'])
+
+    def test_same_ordered_registration_ids_in_different_lanes_stop_before_preview(self):
+        program, preview = sources(lanes=(6, 1, 3))
+        descriptor = target(lane_map={'2': '4001', '4': '4003', '5': '4006'})
+        result, requests, retained = self.pair(descriptor, raw_program=program, raw_preview=preview)
+        self.assertEqual(result[0]['state'], 'HOLD_RESEARCH_TARGET_ROSTER_MISMATCH')
+        self.assertEqual(len(requests), 1)
+        self.assertEqual(retained, [])
 
     def test_unsupported_program_does_not_fall_back_to_exhibition_context_capture(self):
         raw = page(venue='01', race_no=3, row_options={1: dict(st='not a supported statistic')})
