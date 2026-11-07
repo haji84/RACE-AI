@@ -100,7 +100,10 @@ def _terminal(directory, name, record):
 
 
 def _pipeline(args, factory):
-    if factory is not None:
+    if args.clothing_only:
+        pipeline = None
+        metadata = dict(execution_mode='PINNED_LOCAL_DEVELOPMENT_CLOTHING',pinned_models=True)
+    elif factory is not None:
         pipeline, metadata = factory(refresh_frames=args.refresh_frames, label_policy=POLICY), dict(
             execution_mode='INJECTED_SYNTHETIC_TEST', pinned_models=False,
             injected_metadata='SYNTHETIC_TEST_CALLBACKS_NOT_PINNED_MODELS')
@@ -120,10 +123,16 @@ def _pipeline(args, factory):
         from race_ai.boat_video_rider_tracking import RiderPartTracker
         detector = PinnedRiderPartDetector(model_path=args.rider_model, tiled=True)
         riders = RiderPartTracker(detector, number_provider=None)
+        if not args.anonymous_riders:
+            from race_ai.boat_video_clothing_identity import ClothingColorIdentityTracker
+            riders = ClothingColorIdentityTracker(riders)
         pipeline = _MarkerAndRiderPipeline(pipeline, riders)
         metadata['rider_part_tracking'] = dict(
             execution_scope=metadata['execution_mode'], detector=detector.metadata(),
-            number_binding='NOT_IMPLEMENTED_NO_NUMBER_PRODUCER',
+            number_binding=('NOT_IMPLEMENTED_NO_NUMBER_PRODUCER' if args.anonymous_riders
+                            else 'CLOTHING_COLOR_CURRENT_PIXEL_HYPOTHESIS'),
+            printed_numbers_required=False,
+            garment_segmentation_validated=False,
             marker_numbers_assigned_to_riders=False, hull_positions_inferred=False,
             model_eligible=False)
     return pipeline, metadata
@@ -135,8 +144,12 @@ class _MarkerAndRiderPipeline:
         self.markers, self.riders = markers, riders
 
     def update(self, frame, **context):
-        result = self.markers.update(frame, **context)
-        result['rider_part_tracking'] = self.riders.update(frame, **context)
+        riders = self.riders.update(frame, **context)
+        result = (dict(schema_version='RACE_AI_CLOTHING_COLOR_PIPELINE_V1',
+            frame_index=riders['frame_index'],t=riders['t'],scene=riders['scene'],
+            frame_sha256=riders['frame_sha256'],identity_validated=False,model_eligible=False)
+            if self.markers is None else self.markers.update(frame, **context))
+        result['rider_part_tracking'] = riders
         return result
 
 
@@ -149,10 +162,14 @@ def main(argv=None, *, pipeline_factory=None):
     parser = _Parser(description=__doc__)
     parser.add_argument('--media', required=True)
     parser.add_argument('--output-dir', required=True, help='new private directory outside Git')
-    parser.add_argument('--recognizer-model', required=True)
-    parser.add_argument('--context-model', required=True)
-    parser.add_argument('--glyph-model', required=True)
-    parser.add_argument('--rider-model', help='optional pinned local YOLOX; anonymous person parts, no number binding')
+    parser.add_argument('--recognizer-model')
+    parser.add_argument('--context-model')
+    parser.add_argument('--glyph-model')
+    parser.add_argument('--rider-model', help='pinned local YOLOX; person parts with primary clothing-colour candidates')
+    parser.add_argument('--clothing-only',action='store_true',
+                        help='track clothing colours without OCR or printed-number models')
+    parser.add_argument('--anonymous-riders',action='store_true',
+                        help='retain anonymous rider output without colour identity')
     parser.add_argument('--development', action='store_true', required=True)
     parser.add_argument('--single-continuous-shot', action='store_true', required=True,
                         help='caller declaration; no automatic shot authentication')
@@ -172,8 +189,13 @@ def main(argv=None, *, pipeline_factory=None):
         if args.refresh_frames <= 0 or (pipeline_factory is not None and
                                         args.source_role != 'SYNTHETIC_TEST'):
             raise _Failure('ARGUMENTS_REJECTED')
+        if (args.clothing_only and (args.rider_model is None or args.anonymous_riders)
+            or not args.clothing_only and any(getattr(args,key) is None for key in
+                                             ('recognizer_model','context_model','glyph_model'))):
+            raise _Failure('ARGUMENTS_REJECTED')
         for field in ('media', 'output_dir', 'recognizer_model', 'context_model', 'glyph_model'):
-            setattr(args, field, _local_path(getattr(args, field)))
+            if getattr(args,field) is not None:
+                setattr(args, field, _local_path(getattr(args, field)))
         if args.rider_model is not None:
             args.rider_model = _local_path(args.rider_model)
         guards = {key: getattr(args, key) for key in ('processing_timeout_seconds',
@@ -234,7 +256,8 @@ def main(argv=None, *, pipeline_factory=None):
                     source_first_pts=pts[0], source_last_pts=pts[-1], relative_last_t=pts[-1]-pts[0],
                     displayed_duration_seconds=duration, journal_sha256=journal_digest.hexdigest(),
                     frame_sampling='NONE_EVERY_DECODED_FRAME', refresh_frames=args.refresh_frames,
-                    resource_guards=guards, development_opt_in=True, label_policy=POLICY,
+                    resource_guards=guards, development_opt_in=True,
+                    label_policy='CLOTHING_COLOR' if args.clothing_only else POLICY,
                     shot_scope='CALLER_DECLARED_SINGLE_CONTINUOUS_SHOT_NOT_AUTHENTICATED',
                     classifier_label_scope='DISCRETE_DEVELOPMENT_CLASSIFICATION_NOT_PROBABILITY',
                     field_validation='NOT_ESTABLISHED', identity_validated=False, model_eligible=False,
