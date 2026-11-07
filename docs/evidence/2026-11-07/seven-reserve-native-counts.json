@@ -1,0 +1,21 @@
+{
+  "artifact_digest": "sha256:f80fa852cfdd24847d17fbc0dda98d855571504257b7270d5c3e8c5a9ebc8e42",
+  "artifact_id": 13562395496,
+  "autorace_reserve_races": 4,
+  "fitted_nonboat_cells": 0,
+  "forecast_count": 0,
+  "head_sha": "9623f34a9b40245f7cc2caf498fcb5e1190399c0",
+  "keirin_reserve_races": 3,
+  "native_input_count": 39,
+  "native_partitions": 7,
+  "plaintext_published": false,
+  "pre_cutoff_receipt_verified": true,
+  "run_id": 42341849641,
+  "saved_at": "2026-11-07T05:16:12Z",
+  "source_requests_for_verification": 0,
+  "state": "ACTUAL_SEVEN_RESERVE_NATIVE_INPUTS_AUTHENTICATED",
+  "total_autorace": 12,
+  "total_frozen_nonboat_races": 33,
+  "total_horse": 10,
+  "total_keirin": 11
+}
