@@ -75,6 +75,7 @@
   const activeModel = value => value && !retiredModelIds.has(value.model_id);
   const storedPredictions = r => r ? (M.candidates ? M.candidates(r) : [r.prediction, ...(r.comparison_predictions || [])].filter(Boolean)) : [];
   const predictions = r => storedPredictions(r).filter(activeModel);
+  const displayRows = rows => rows.map(C.forDisplay);
   const prediction = r => {
     const list = predictions(r), saved = state.predictionKeys[r?.race_id];
     return saved === undefined ? list[0] || null : list[saved] || null;
@@ -596,7 +597,7 @@
     const supplement = race.sport === "boat" && context && validBoatObservationContext(context, race.race_id) &&
       [context.beforeinfo, context.pitreport].some(page => page?.status === "PARSED" && (page.participants?.length || page.weather && Object.values(page.weather).some(value => value != null)));
     const nav = node("nav", "race-information"); nav.setAttribute("aria-label", raceName(race) + "の情報");
-    for (const info of U.raceInformation(race, {supplementalPreview: Boolean(supplement)})) {
+    for (const info of U.raceInformation(C.forDisplay(race), {supplementalPreview: Boolean(supplement)})) {
       const action = button("", "information-button" + (info.available ? " info-available" : ""), () => openRace(race.race_id, info.key));
       action.dataset.raceTab = info.key; action.dataset.infoAvailable = String(info.available);
       action.append(node("strong", "", info.label), node("small", "", info.detail)); nav.append(action);
@@ -704,7 +705,7 @@
     refreshSelects(); showPage("detail", true);
   }
   function renderHome() {
-    const manual = U.summarize(dailyPurchases()), all = scoped(), actualImported = M.summary(all).overall;
+    const manual = U.summarize(dailyPurchases()), all = scoped(), actualImported = M.summary(displayRows(all)).overall;
     const entries = venueEntries();
     $("home-venues").replaceChildren(...entries.slice(0, 6).map(entry => venueButton(entry, true)));
     $("home-venue-note").textContent = entries.some(entry => entry.favorite) ? "★ マイ会場を先頭に表示 · 時刻は読込済みレースの次の締切" : "会場を選んで、☆でマイ会場に追加できます。時刻は次の締切です。";
@@ -731,9 +732,9 @@
     });
   }
   function renderRaces() {
-    const all = scoped(), filtered = U.filterRaces(races(), {sport: state.sport, day: state.day, allDates: state.allDates, period: state.period, query: state.query, venue: state.venue, sort: state.sort, forecastOnly: state.forecastOnly, candidatesOnly: state.candidatesOnly, candidateRaceIds: state.candidates.map(t => t.raceId)}).filter(r => state.statusFilter === "all" || (r.private_cycle_view && r.scope !== "synthetic" && state.statusFilter !== "PREDICTION_UNVERIFIED" ? P.compare(r,prediction(r)).status : U.outcome(r, {predictionEligible: M.eligiblePrediction(r, r.prediction), resultEligible: M.eligibleResult(r)})) === state.statusFilter);
+    const all = scoped(), filtered = U.filterRaces(displayRows(races()), {sport: state.sport, day: state.day, allDates: state.allDates, period: state.period, query: state.query, venue: state.venue, sort: state.sort, forecastOnly: state.forecastOnly, candidatesOnly: state.candidatesOnly, candidateRaceIds: state.candidates.map(t => t.raceId)}).filter(r => state.statusFilter === "all" || (r.private_cycle_view && r.scope !== "synthetic" && state.statusFilter !== "PREDICTION_UNVERIFIED" ? P.compare(r,prediction(r)).status : U.outcome(r, {predictionEligible: M.eligiblePrediction(r, r.prediction), resultEligible: M.eligibleResult(r)})) === state.statusFilter);
     $("race-count").textContent = "表示 " + filtered.length + "件 / 対象 " + all.length + "件（未予想 " + all.filter(r => !predictions(r).length).length + "件を含む）";
-    const coverage = U.modelCoverage(all, C.models, {sport: state.sport});
+    const coverage = U.modelCoverage(displayRows(all), C.models, {sport: state.sport});
     $("all-race-model-scope").textContent = sports[state.sport] + " · 適用 " + coverage.applicable_models + " / 登録 " + C.models.length + "モデル · 対象台帳 " + coverage.target_races + "レース（保存予想なし " + all.filter(r => !predictions(r).length).length + "レースを含む） · " + coverage.display_stages.map(stage=>stageName({stage}) + " " + coverage.models.reduce((sum,m)=>sum+(m.stages[stage].target_races||0),0) + "対象枠").join(" / ");
     const content = filtered.slice(0, state.visible).map(r => raceCard(r));
     if (!filtered.length) {
@@ -997,7 +998,7 @@
     }
   }
   function renderResults() {
-    const rows = scoped(), sum = M.summary(rows), g = sum.overall;
+    const rows = scoped(), sum = M.summary(displayRows(rows)), g = sum.overall;
     renderSavedResults(rows);
     $("result-metrics").replaceChildren(metric("全対象の台帳", g.ledger + "件", "取得範囲は独立確認が必要"), metric("公式・評価可能", g.evaluable + "件", "未予想も分母に含む"), metric("全対象 Hit@8_all", g.hit8 === null ? "未検証" : (g.hit8 * 100).toFixed(2) + "%", "的中 " + (g.hits ?? "未検証") + " / 評価可能 " + g.evaluable), metric("証拠不足・評価外", g.excluded + "件", "未確定・研究・合成を区別"));
     $("rate-limitations").textContent = g.identity_mixed ? "モデル・版・時点が混在するため、合算率を表示しません。研究ページのモデル別集計を確認してください。" : g.stage_mixed ? "朝版・展示後版が混在するため、合算率を表示しません。時点別の集計を確認してください。" : "保存された取込値の整合性に基づく集計です。原本の権限・署名・独立時刻はブラウザで認証していません。";
@@ -1035,7 +1036,7 @@
     content.append(table(["レース", "区分", "モデル・時点", "取得時刻 JST", "元SHA", "未取得・理由"], rows.slice(0, 200).map(r => [raceName(r), scopeName(r.scope), modelName(prediction(r)) + " / " + stageName(prediction(r)), stamp(r.observed_at || r.as_of), r.source_sha || r.source_sha256, (r.missing_reasons || []).join(" / ") || r.no_forecast_reason || "追加情報なし"])));
   }
   function renderModelCoverage(rows) {
-    const coverage = U.modelCoverage(rows, C.models, {sport: state.sport});
+    const coverage = U.modelCoverage(displayRows(rows), C.models, {sport: state.sport});
     $("all-model-coverage-summary").textContent = "登録 " + coverage.models.length + "モデル · " + sports[state.sport] + "に適用 " + coverage.applicable_models + " / 対象外 " + coverage.not_applicable_models + " · 対象台帳 " + coverage.target_races + "レース（保存予想なし " + rows.filter(r => !predictions(r).length).length + "レースを含む）";
     const values = coverage.models.map(spec => {
       const name = append(node("div", "catalog-model-name"), node("strong", "", spec.model_id), node("small", "muted", "適用競技：" + spec.applicable_sports.map(sport => sports[sport]).join(" / ")));

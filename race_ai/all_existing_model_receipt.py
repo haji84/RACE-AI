@@ -99,16 +99,16 @@ def _payload_clock(payload, saved, now):
               precision_end < _time(capsule['cutoff_at']), 'CAPTURED_INPUT_PRE_CUTOFF_CLOCK_INVALID')
 
 
-def _verified_private_pairs_artifact(raw, metadata, *, now, expected_run_id, expected_head_sha):
+def _verified_private_pairs_artifact(raw, metadata, *, now, expected_run_id, expected_head_sha, key=None):
     """Return private records only after every archive member has been admitted."""
-    state_key('production')  # Authentication readiness precedes metadata and ZIP parsing.
+    state_key('production',key)  # Authentication readiness precedes metadata and ZIP parsing.
     saved = _metadata(raw, metadata, now, expected_run_id, expected_head_sha)
     payloads = []
     try:
         with zipfile.ZipFile(io.BytesIO(raw)) as archive:
             groups = _entries(archive)
             with tempfile.TemporaryDirectory(prefix='all-model-private-pair-receipt-') as temporary:
-                for index, (key, group) in enumerate(sorted(groups.items())):
+                for index, (partition, group) in enumerate(sorted(groups.items())):
                     root = Path(temporary)/str(index); root.mkdir(mode=0o700)
                     files = {}
                     for name, entry in group.items():
@@ -117,14 +117,14 @@ def _verified_private_pairs_artifact(raw, metadata, *, now, expected_run_id, exp
                         _need(len(body) == entry.file_size and 0 < len(body) <= MEMBER_LIMITS[name],
                               'ZIP_MEMBER_SIZE_INVALID')
                         files[name] = body; _write(root/name, body)
-                    payload = read_candidate(root)
+                    payload = read_candidate(root,**(dict(key=key) if key is not None else {}))
                     _need(type(payload) is dict and payload.get('schema') in (SCHEMA, INPUTS_SCHEMA) and
                           type(payload.get('summary')) is dict, 'PAYLOAD_SCHEMA_INVALID')
                     public = read_json_bytes(files['summary.json'])
                     _need(public == dict(payload['summary'], encrypted_readback_verified=True,
                                          plaintext_published=False), 'PUBLIC_SUMMARY_BINDING_INVALID')
                     _need(verify_private_record(payload) is True, 'PAYLOAD_REPLAY_INVALID')
-                    _need(record_partition_key(payload) == key, 'PAYLOAD_DIRECTORY_MISMATCH')
+                    _need(record_partition_key(payload) == partition, 'PAYLOAD_DIRECTORY_MISMATCH')
                     _payload_clock(payload, saved, now)
                     payloads.append(payload)
     except (zipfile.BadZipFile, RuntimeError, NotImplementedError, KeyError, TypeError,

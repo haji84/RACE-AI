@@ -1,3 +1,71 @@
+<!-- RACEAI_CLOTHING_PRIMARY_IDENTITY_20261107 -->
+# 2026-11-07 22:59 JST｜服色を主にする識別を実装、実映像で6人の対応を57frame連続維持
+
+**実装・実行済み:** オーナーの提案どおり、白1・黒2・赤3・青4・黄5・緑6を主根拠にする `boat_video_clothing_identity.py` を追加。印字番号を必須にしない。既存解析CLIの `--clothing-only` はOCRモデル不要で、人物検出→服色→実LK追跡→全frame私有保存まで動く。新予想モデル・外部サービス・workflowは追加していない。
+
+**実映像の照合:** 既存の低運動61原frame/2秒を自動人物提案から処理。従来の物理R対応と照合した主対象366行は352一致・初期確認中14UNKNOWN・誤番号0。6人すべての色IDはframe274〜330の57frame連続で一致し、追加motor25行は全UNKNOWN。352は現在色観測289＋現在画素で過去色を保持63。全6色を同じ現在frameで新たに観測したのは13frameで、残りは保持を含む。緑の最長保持は22frame/0.732秒。元の境界意味UNKNOWN2行も保持し、352を衣服ROI純度の独立正解数へ読み替えない。
+
+**初回失敗と修正:** 初回は薄緑がneutral白候補へ落ち、重複防止でIDが切れた（全6一致26/61、誤番号0）。G優位の低彩度領域を白の明暗処理へ入れない修正と回帰で、全6一致57/61へ改善。重複・競合・切替・喪失はUNKNOWN、残番号埋めなし。現在の実画素が明確な間だけ色IDを保持し、保持を新観測に数えない。
+
+**検出も再実行:** 原frameとBGRが全61枚一致する私有・無劣化派生動画をCLIに入力し、キャッシュなしの固定モデル427forwardを実施。検出box・色ID・観測/保持状態が先の結果と61/61一致、全frame保存とSUCCESS受領証を確認。派生動画PTSは元と最大±1ms異なるため、元PTS保存の再生検証と区別する。処理179.674秒/入力2秒で、LIVEを実時間処理できた実証ではない。
+
+**検証:** 関連映像696件PASS/0skip（84.946秒）。保存直前メモリ不足の原子的state更新と、caller原画の一時変更→復元からの誤番号を独立レビューでRED再現し、私有snapshot/事前割当でGREEN。旧印字/OCRの失敗と原本は残す。最新HEADの全PR CI成功はまだ主張しない。
+
+**残る条件:** 人物box内の衣服位置priorであり、意味的な衣服segmentationは未完成。ヘルメット/機材境界、黒服＋色hood、別場・角度・交差・隠れ・長尺・現在LIVEの一般精度と実時間性能は追加検証が必要。`identity_validated=false` / `model_eligible=false`。艇体位置・ターン/出足/行き足/伸び・予想精度改善はこの2秒の結果から認定しない。
+
+**保全:** 自動予想PID423218・映像取込PID271439は元起動時刻のまま。保護checkoutと元予想SHA `c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a` 不変。取得総数・GET・巡回数・総時間の停止上限を追加せず、停止/再起動・main統合・一般公開・投票・本番予想モデル切替なし。既知403のprovider停止境界を回避する取得も行わない。
+
+[変更・実行方法](BOAT_VIDEO_MARKER_IDENTITY_20261107.md)／[実測・版・証拠SHA](evidence/boat-video-clothing-identity-20261107.json)。以下は以前の印字方式・他作業の時点別履歴として全て保全する。
+<!-- END_RACEAI_CLOTHING_PRIMARY_IDENTITY_20261107 -->
+
+<!-- RACEAI_2139JST_901_PROBE_AND_FULL_READBACK_20261107 -->
+# 2026-11-07 21:39 JST｜901の全体CIと第2回AUTO probe、全履歴読戻しを確認
+
+既存Draft PR #71の検証HEAD `901fb57d2d0f1d0fa0b4051285dca399654a4738`／[run42371023982](https://github.com/haji84/RACE-AI/actions/runs/42371023982)はattempt 1／2とも全体SUCCESS。初回は全Python3,714件（360 skip・失敗0、1,427.474秒）、動画283＋185件、UI31件を通過した。attempt 2は認証済み同HEAD初回の重い2検査を再利用し、軽量検査・実取得・journal読戻し・画面検査を通過した。[全CI・第2回probeの件数](evidence/2026-11-07/901-full-ci-and-second-bounded-probe-counts.json)。
+
+実第2回AUTO probeは8 GET・全200、document 1件＋背景通信7件で上限到達し、RESULT 0・`HOLD_UI_OR_SOURCE_UNAVAILABLE`／`REQUEST_LIMIT`。CSS 3件のcache再利用は実確認できた。POSTの`NORMAL_READ_IDENTITY`拒否2件はendpoint原本がjournalに残っておらず、拒否経路や原因を推測しない。元journal artifact13574582081のZIP・metadata・暗号文を既存commit `710b7437740ae38c05c68fb3a26cb00f4e54a374` へ保持し、元バイト一致と独立Git読戻しを確認した。[journal認証](evidence/2026-11-07/901-probe-journal-authenticated-counts.json)・[保持](evidence/2026-11-07/901-probe-journal-retention-counts.json)。旧browser実数UNKNOWN／予約24・旧固定epoch上限32は維持する。
+
+日付延長履歴はb569／run42370578793の実Actions jobで全旧世代263か月を復元し、掲載7,964日＝PARSED7,846＋PARTIAL117＋公表待ち1日を確認。11月6日gridも7,963原本・2,643選手×24場＝63,432セルを復元した。提供元アクセス0で、b569の該当job成功と901の全workflow成功を分けて記録する。[実読戻し件数](evidence/2026-11-07/b569-full-history-grid-ci-readback-counts.json)。
+
+実学習19/30、残AUTO6・KEIRIN5、新19候補／現行全30枠の実未来PDCA 0は変わらない。旧BOAT14の通常1レース・14組は別世代の証拠。次の同一1ケースrequestは未発行の準備・最大8・live plan不変であり、直前terminal12:39:30 UTC＋1秒＋1時間の最早13:39:31 UTC（22:39:31 JST）以降かつ新HEAD初回全体CI成功・新たな固定attempt 2認証などの条件を再確認してからだけ送信する。[次回準備](evidence/2026-11-07/third-auto-probe-preparation-counts.json)。新workflow・定期タスク・本番切替・実投票は追加していない。詳細は[現行の残枠報告](REMAINING_MODEL_COMPLETION_20261107.md)。下の記録は各確認時点の履歴として保持する。
+<!-- END_RACEAI_2139JST_901_PROBE_AND_FULL_READBACK_20261107 -->
+<!-- RACEAI_IDENTITY_UNMET_AND_QUOTA_CHECKPOINT_20261107 -->
+# 2026-11-07 22:23 JST｜番号付き6艇は未完成。原因・検証・新原本を保全
+
+**完成した部分:** current点対応を修正し、原画上の6人の可視partを同じ匿名R1〜R6で全61frame/2秒追跡。関連677テストPASS/0skip、統合後68.198秒。既存Draft PR #71へ反映した。数字は全None、船体boxなし、motor25行残存で、番号付き6艇の完成ではない。
+
+**未達原因を実測:** RGB外観V1の自動391入力は、乗員part366中181一致・170棄却・2→3の誤り15、1/6は全61で棄却。全6番号一致0/61。motor25は全て0だが人物も落ちるためgateへ不採用。0を除いた診断でも1→2/3、6→5となり、閾値緩和/残番号埋めで直らない。人物存在と番号未読の分離、衣服/姿勢/色のデータ不足、文字単独の曖昧さ、艇体との一意な結合が残る。旧参照や失敗は書き換えない。
+
+**船体・原本:** 固定SAM2 maskは清潔なhull coverage5/6・5/6・6/6。自動contact V2は手動正解promptなしで20pair/全60maskを保存したが意味未採点。正規公開CC写真の100原本・個別license・nativeRGB/BGRと重複0を確認、施設等も含み100教師ではない。原本resize0、同series相関・catalog未列挙gapを保持し、取得上限を100へ設定した訳ではない。新たな確実な1号艇rider1写真は未訓練V2候補に分離する。
+
+**CIの区別:** 凍結commit d9c2のWorkflow42358009132は、別のseller廃止/legacy readback検証stepで失敗。関連映像677件のローカル合格を全PR/最新HEADのCI合格へ読み替えない。他作業のseller廃止を戻す修正は行わず、scopeを分けて記録する。
+
+**継続を妨げた実行条件:** 複数の並列開発agentが実際に `You’ve hit your usage limit.` でerrored。追加課金/新accountは作らず、全コード・モデル・RAW・参照・失敗・未着手の引継ぎを保全した。現在の番号器やmaskを本番へ採用せず、未検証の確率・回収率を表示しない。
+
+**保全:** 既存2プロセス(PID423218/271439)は元起動時刻のまま、保護checkout/原予想SHAc40bead…を維持。停止/再起動・main統合・一般公開・投票・本番予想モデル切替なし。既知403/同provider停止境界を回避せず、新しい予想モデル系統・外部サービス/課金・取得総数/GET/巡回数/総時間の停止上限は追加していない。現行公式映像の正規接続、実機Safari、4競技継続運転・前向き改善の実証は別未達のまま。
+
+[実装と未達原因](BOAT_VIDEO_MARKER_IDENTITY_20261107.md)／[版・全件数・SHA](evidence/boat-video-identity-causes-20261107.json)。未採点のcontact60mask、許諾source100の人物/印字annotationと未読/機材の分離、番号/part自動結合から再開し、同じ調査や失敗試行を重複させない。
+
+<!-- RACEAI_2031JST_INTEGRATED_CHECK_20261107 -->
+# 2026-11-07 20:31 JST｜統合済みHEADのCI結果と安全停止の再照合
+
+既存Draft PR #71のHEAD `151aa6e59074ba48e73c1036f5256e2396afd479` を再取得。統合後の既存[Viewer CI 42366037173](https://github.com/haji84/RACE-AI/actions/runs/42366037173)は2026-11-07T11:26:35Zに全体completed/success。[並行復旧CI 42364217725](https://github.com/haji84/RACE-AI/actions/runs/42364217725)のattempt2もcompleted/success。ただしCI成功・収集stepのsuccessを、新しいAUTO/KEIRIN通常結果・19枠未来PDCA成功とは認定しない。実結果ZIP保存stepはskipped。
+
+通常source workflow405276784の最新成功runは[42352096559](https://github.com/haji84/RACE-AI/actions/runs/42352096559)。完了3巡・119/240 GET・`BOUNDED_SESSION_END`・`source_wait=null`。独立Git原本refの `state/boat-source-control/v1/latest.json` と当日run別記録をGitHubから取得し、workflow ID・repo ID・run ID・branch・HEAD・completed/success・control/continuity artifact ID/digest/sizeとGitHub APIメタデータの一致を確認した。keylessではHMAC/暗号原本の独立復号は未確認。最新完了source ZIPの実バイト再取得も未実施。今回確認した同workflowのactive/queued/pending/waitingは0。新sourceの起動判断に必要な所有者鍵の真正性検証をこの環境では完了できないため、トリガー追加をしない。
+
+販売者削除は現行15系統/30枠のサイト反映と既存回帰成功が先行実証済み。実学習19/30（BOAT14、HORSE5）、未完了11（AUTO6、KEIRIN5）に変化なし。AUTO/KEIRINの旧collector journalによるbrowser予約24件の実通信数UNKNOWN・HOLDは維持。新しいcollector、失敗runのrerun、capsule独立発行、上限変更、原本改変、本番採用、実投票は行わない。固定28シナリオは実購入ではなく、前向きの精度改善も未認定。
+<!-- END_RACEAI_2031JST_INTEGRATED_CHECK_20261107 -->
+
+<!-- OWNER_REMOVED_SELLER_STATUS_20261107 -->
+# 2026-11-07｜販売者モデルを現在の対象から削除、実サイト15系統の表示確認に成功
+
+ユーザー指示により販売者モデルを実行・新規学習・通常画面・完成条件から外した。現在は15系統/競技別30枠。既存19枠の実学習とBOAT14枠の実未来PDCAの証拠は保持し、残る実学習はAUTO6・KEIRIN5の11枠。下にある旧31枠や販売者入力不足の記録は当時の履歴であり、販売者のwaku10取得を再開しない。
+
+表示専用[42363442840](https://github.com/haji84/RACE-AI/actions/runs/42363442840)は全体success。132P0文脈・新規予想0を暗号化保存し独立読戻し・原本Git保持を通過。2026-11-07T10:27:40.754Zの実Chrome390/1440で、15系統・販売者非表示・当日結果98・native P1 group30・選手名・率/収支・日予算変更・1R1000・前日履歴を確認し、実JSONの最終gateも成功した。削除実装4a52c69cの[全体CI42363760967](https://github.com/haji84/RACE-AI/actions/runs/42363760967)も2026-11-07T10:53:32Zにsuccess。Python3,591件（360 skip）・隔離動画283/185件・Node88/99件・7画面4幅を通過した。並行更新c43871baの削除回帰も成功済み。
+
+元予想・結果revision・元clock・日別成績・固定予算配分は保持した。この削除作業による通常source workerの取消/再起動/設定変更、公式source GETは0。未確認結果・AUTO/KEIRINの通信会計HOLD・将来の的中率改善は未解消のまま。[削除と検証](BOAT_SELLER_RETIREMENT_20261107.md)と[件数証拠](evidence/2026-11-07/seller-retirement-presentation-counts.json)を参照。
+<!-- END_OWNER_REMOVED_SELLER_STATUS_20261107 -->
+
 <!-- RACEAI_RIDER_CURRENT_POINT_CHECKPOINT_20261107 -->
 # 2026-11-07 17:39 JST｜6人の匿名ID断絶を実画素対応で修正。艇番・船外機除外・船体結合は未完成
 
@@ -2215,3 +2283,21 @@ PR #71のHEAD `d079bd99b1ed5b26a1aeade60b216bebc9f30218` と過去runを読み�
 **収集HOLD**：既存result collector run `42349536138` は全workflow successでもAUTO/KEIRINの6ケース `HOLD_BROWSER_SOURCE_UNVERIFIED`。当該暗号journal id `13565712487` のbrowser予約24件は実通信回数UNKNOWN（全予約上限32）として保持。再起動・別credential/URL・回数reset・未確認結果の外れ認定は行わない。売主型のwaku10一次値もINPUT_MISSINGのまま。
 
 **保全**：原本/係数/買い目/学習SHA/旧スナップショット/trigger/workflow/スケジュールは無変更。このstatus追記は実source GETを発火するworkflowのpaths filter対象外。新source・表示jobの明示起動、新モデル、新PR、本番切替、main統合、一般公開、実投票、外部サービス・課金は実施しない。最新実行中runと終了runの成果を混合せず、28シナリオの正式収支・モデル別的中率は未独立確認。
+
+
+<!-- RACE_AI_FIXED_SIXTEEN_PREPARATION_20261107 -->
+### 既存モデル・次の実取得準備（2026-11-07 22:43 JST）
+
+実学習19/30（BOAT14/HORSE5）、残AUTO6/KEIRIN5、新19/30未来PDCA0。直近実取得は901/42371023982 attempt2の8 GET全200・RESULT0・上限HOLD。新V4は元MAX32内の16通信・同一AUTO1レース、旧8契約とUNKNOWN24/旧epoch32を維持し、全prior・実時計・日付越え・固定attempt2を検証。request c89917e0/plan fe3b07abは準備のみ、capsule未発行。通常UIの1R identity完了待ちと最終通信drainを修正、外部通信0の実JS＋合成Result再現15応答保存／返却後不変、独立レビューCLEAR。新HEAD全体CIを確認後だけ実取得する。新workflow/schedule/model/課金/本番昇格/投票なし。
+
+詳細：[指定12項目・新16準備](REMAINING_MODEL_COMPLETION_20261107.md)。
+<!-- /RACE_AI_FIXED_SIXTEEN_PREPARATION_20261107 -->
+<!-- RACEAI_SOURCE_DAY_HANDOFF_20261107T1335Z -->
+# 2026-11-07 22:35 JST｜最新sourceはDAY_HANDOFFで安全終了、予想巡回0
+
+既存workflow405276784の最新完了run [42376316340](https://github.com/haji84/RACE-AI/actions/runs/42376316340)、実worker HEAD `6a1a1f1a12248dc35f22a512783c279544c70086` は completed/success。GitHub公開artifactの実ZIPを独立ダウンロードし、GitHub API digestとのSHA256一致とZIP展開健全性を確認した。control artifact `13575967848` = `sha256:73fdcd87e18423539a1cbb129e6e8104f99ffa0763d446986035cf54013d8238`、continuity `13576047576` = `sha256:7f0ad9796688ad11e2b2ac062af6673867b08389870e6f990c56eaa8866b95b8`、forecast r0 `13576406441` = `sha256:75b35a7eca913514405deddb53a69c1ac2aa03588d101d3c7493eab5c03c2438`。ZIP内暗号文の所有者鍵による復号・真正性MACは今回未検証。
+
+control内部の確認値は `stop_reason=DAY_HANDOFF`、`completed_round=0`、`requests_used=0`、`source_wait=null`、累計 `lifetime_completed_rounds=524` / `lifetime_requests=9059`。r0アーカイブは暗号化成果の保存であり「巡回1完了」「新P1実予想完成」とは扱わない。最新source実行中/queued/pending/waiting は確認時0。旧 `state/boat-private-originals/state/boat-source-control/v1/latest.json` はrun42352096559を指したままで、新runの所有者MAC付きmirrorと原本読戻しが未確認。安全な新規source起動条件を満たすと推定せず、追加triggerは行わない。
+
+今回の照合前のPR HEADは `713732af0b2446d44c02182a579c5abc20ca0b76`。コードHEADとworker実行HEADは別。現行対象15系統/30枠、研究実学習19/30・残AUTO6+KEIRIN5=11に新認定なし。AUTO/KEIRIN結果collectorの旧UNKNOWN24/固定epoch上限32、既知probe別計上、4xx/429/真正性HOLDは維持。公式結果の新独立照合、LEARNED_SHADOW未来優位性、収支改善は追加認定しない。実原本・履歴・係数・スケジュール/上限・本番モデル・投票は変更せず、他担当の既存CI/復旧を再起動しない。
+<!-- END_RACEAI_SOURCE_DAY_HANDOFF_20261107T1335Z -->

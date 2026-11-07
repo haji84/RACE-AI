@@ -48,8 +48,12 @@ def _key_ready():
     need(proc.returncode==0,'OWNER_STATE_KEY_INVALID_OR_PUBLIC_FIXTURE');return True
 
 
-def _codec(action,source,target,scope,*,cipher_sha=None):
+def _codec(action,source,target,scope,*,cipher_sha=None,key=None):
     env=os.environ.copy()
+    if key is not None:
+        import base64
+        from race_ai.boat_pdca_state import state_key
+        env['RACE_AI_STATE_KEY']=base64.b64encode(state_key('production',key)).decode('ascii')
     if cipher_sha is not None:env['RACE_AI_EXPECTED_CIPHER_SHA256']=cipher_sha
     proc=subprocess.run(['node',str(CODEC),action,str(source),str(target),str(scope)],
                         env=env,capture_output=True,timeout=30)

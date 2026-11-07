@@ -1,0 +1,22 @@
+{
+  "base_head": "901fb57d2d0f1d0fa0b4051285dca399654a4738",
+  "capsule_issued": false,
+  "independent_profile_review": "CLEAR",
+  "independent_ui_review": "CLEAR_AFTER_REQUEST_LIMIT_DRAIN_FIX",
+  "new_profile_python_tests": 18,
+  "new_schedules": 0,
+  "new_workflows": 0,
+  "node_failures": 0,
+  "node_seconds": 26.225953916,
+  "normal_ui_node_tests": 35,
+  "prepared_request_sha256": "c89917e055a448b14adba9a26b4f538385b6fbb92c6e1c4665082312be907285",
+  "production_promoted": false,
+  "provider_requests": 0,
+  "python_failures": 0,
+  "python_seconds": 7.41,
+  "real_new_results": 0,
+  "real_nineteen_future_pdca": 0,
+  "real_thirty_future_pdca": 0,
+  "recorded_at": "2026-11-07T13:44:19.596584+00:00",
+  "state": "INTEGRATED_FIXED_SIXTEEN_AND_NORMAL_UI_TESTS_PASSED"
+}

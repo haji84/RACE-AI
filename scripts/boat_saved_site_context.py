@@ -12,6 +12,7 @@ ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
 from scripts import boat_saved_view_feed as CLI
 from scripts import boat_private_original_vault as VCLI
+from race_ai.existing_model_coverage import is_retired
 
 JST=timezone(timedelta(hours=9))
 
@@ -41,7 +42,8 @@ def build_context(bootstrap,view,generation,*,now,require_future=False):
     _need(bool(rows),'CURRENT_DAY_REQUIRED')
     native=set();future=None;probe=None
     for row in rows:
-        predictions=[p for p in [row.get('prediction'),*row.get('comparison_predictions',[])] if p is not None]
+        predictions=[p for p in [row.get('prediction'),*row.get('comparison_predictions',[])]
+                     if p is not None and not is_retired(p.get('model_id'))]
         for index,p in enumerate(predictions):
             if not p or p.get('stage')!='P1' or p.get('native_dispatch_prediction') is not True or \
                p.get('external_receipt_verified') is not True or p.get('eligible_pre_cutoff') is not True:continue

@@ -255,6 +255,17 @@ jobs:
           path: ${{ runner.temp }}/boat-production-readback/production-readback-status.json
           retention-days: 7
           if-no-files-found: error
+      - name: Audit retained completion blockers without provider requests
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == completion-audit:* ]]; then
+            python -m scripts.boat_remaining_completion_audit --input audit/state/remaining-completion-audit-input.json
+          else
+            echo 'Retained completion audit not requested.'
+          fi
       - name: Connect frozen venue observations to existing shadow fitter or explicit HOLD
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
@@ -570,6 +581,81 @@ jobs:
           path: ${{ runner.temp }}/order-only-pdca.status.json
           retention-days: 7
           if-no-files-found: error
+      - name: Score the explicitly requested native cash comparison
+        id: cash_native_pdca
+        if: hashFiles('audit/state/all-existing-model-cash-pdca-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == cash-native-pdca:* ]]; then
+            umask 077
+            echo 'requested=true' >> "$GITHUB_OUTPUT"
+            python -m scripts.all_existing_model_cash_pdca --input audit/state/all-existing-model-cash-pdca-input.json --out-dir "$RUNNER_TEMP/cash-native-pdca"
+          fi
+      - name: Keep only encrypted native cash comparison partitions
+        id: cash_native_pdca_upload
+        if: steps.cash_native_pdca.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.cash_native_pdca.outputs.artifact_name }}
+          path: ${{ runner.temp }}/cash-native-pdca/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Independently verify the actual native cash comparison artifact
+        if: steps.cash_native_pdca_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.all_existing_model_cash_pdca --input audit/state/all-existing-model-cash-pdca-input.json --out-dir "$RUNNER_TEMP/cash-native-pdca" --readback-artifact '${{ steps.cash_native_pdca_upload.outputs.artifact-id }}'
+      - name: Keep count-only native cash comparison status
+        if: always() && steps.cash_native_pdca.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-cash-pdca-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/cash-native-pdca.status.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Score explicitly requested thirty-cell nonfinancial native comparison
+        id: thirty_order_pdca
+        if: hashFiles('audit/state/all-existing-model-thirty-order-pdca-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == all-thirty-order-pdca:* ]]; then
+            echo 'requested=true' >> "$GITHUB_OUTPUT"
+            python -m scripts.all_existing_model_thirty_order_pdca --input audit/state/all-existing-model-thirty-order-pdca-input.json --out-dir "$RUNNER_TEMP/thirty-order-pdca"
+          fi
+      - name: Retain only encrypted thirty-cell nonfinancial comparison partitions
+        id: thirty_order_pdca_upload
+        if: steps.thirty_order_pdca.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.thirty_order_pdca.outputs.artifact_name }}
+          path: ${{ runner.temp }}/thirty-order-pdca/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Independently read back the actual thirty-cell nonfinancial artifact
+        if: steps.thirty_order_pdca_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.all_existing_model_thirty_order_pdca --input audit/state/all-existing-model-thirty-order-pdca-input.json --out-dir "$RUNNER_TEMP/thirty-order-pdca" --readback-artifact '${{ steps.thirty_order_pdca_upload.outputs.artifact-id }}'
+      - name: Keep count-only thirty-cell nonfinancial comparison status
+        if: always() && steps.thirty_order_pdca.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-thirty-order-pdca-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/thirty-order-pdca.status.json
+          retention-days: 7
+          if-no-files-found: error
       - name: Freeze the requested future P0 comparison from retained inputs only
         id: future_p0
         env:
@@ -606,6 +692,64 @@ jobs:
           path: ${{ runner.temp }}/all-existing-model-future-p0.status.json
           retention-days: 7
           if-no-files-found: error
+  official_result_recovery_issuer:
+    name: Source-free exact-run recovery issuer
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/four-sport-forecast-audit-view-20261022' && github.actor == 'haji84' && github.actor_id == '173585154' && github.triggering_actor == 'haji84' && github.run_attempt == '1'
+    permissions:
+      contents: write  # Only this source-free job can append one opaque capsule.
+      actions: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact issue HEAD with complete parent metadata
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+          filter: blob:none
+          fetch-tags: false
+      - name: Route only the explicit issue-only commit prefix
+        id: issue_route
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == official-results-issue:* ]]; then
+            echo 'requested=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Checkout immutable existing PR64 parser for authentication imports
+        if: steps.issue_route.outputs.requested == 'true'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Install existing pinned archive authentication dependencies
+        if: steps.issue_route.outputs.requested == 'true'
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Issue one consumed exact-parent capsule and authenticate remote readback
+        id: issue
+        if: steps.issue_route.outputs.requested == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          umask 077
+          python - <<'PY'
+          from pathlib import Path
+          import os, race_ai
+          race_ai.__path__.append(str(Path('pr64-reference/race_ai').resolve()))
+          from scripts.all_existing_model_official_result_issue import main
+          raise SystemExit(main(['--proof', str(Path(os.environ['RUNNER_TEMP']) / 'official-result-recovery-issue-proof.json')]))
+          PY
+      - name: Retain only public hashes, counts and exact target issuance proof
+        if: always() && steps.issue_route.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-result-recovery-issue-proof-${{ github.run_id }}-1
+          path: ${{ runner.temp }}/official-result-recovery-issue-proof.json
+          retention-days: 7
+          if-no-files-found: error
   viewer_contract:
     if: github.event_name == 'pull_request'
     name: Viewer audit contract
@@ -615,7 +759,7 @@ jobs:
     runs-on: ubuntu-24.04
     # Full Python discovery alone takes over 15 minutes; keep the existing
     # video/browser checks reachable without adding jobs or source polling.
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -670,15 +814,30 @@ jobs:
           from pathlib import Path
           import unittest, race_ai
           race_ai.__path__.extend(str(Path(root) / 'race_ai') for root in ('pr64-reference', 'pr72-reference'))
-          suite = unittest.defaultTestLoader.loadTestsFromName('tests.test_seller_retirement')
+          suite = unittest.defaultTestLoader.loadTestsFromNames(('tests.test_seller_retirement','tests.test_boat_saved_p0_seller_sources','tests.test_all_existing_model_generation_clock','tests.test_all_existing_model_cli_derivation','tests.test_boat_seller_inputs','tests.test_boat_seller_official_source','tests.test_dispatch_product_projection','tests.test_boat_saved_display_evidence','tests.test_boat_saved_site_context'))
           result = unittest.TextTestRunner(verbosity=2).run(suite)
           raise SystemExit(not result.wasSuccessful())
           PY
+          node --test tests/model_catalog.test.cjs
+      - name: Verify full same-head attempt-one evidence before optional recovery reuse
+        id: official_recovery_preflight
+        if: github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository && github.run_attempt == '2' && hashFiles('audit/state/official-result-recovery-request.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == official-results-collect:* ]]; then
+            python -m scripts.all_existing_model_official_result_recovery --preflight --input audit/state/official-result-recovery-request.json --out-dir "$RUNNER_TEMP/official-result-preflight"
+          fi
       - name: Validate history formats, official reconciliation and unchanged model contracts offline
         run: python -m unittest discover -s tests -p 'test_teiai*.py' -v
       - name: Python synthetic journal to viewer projection tests
+        if: steps.official_recovery_preflight.outputs.reuse_prior_verification != 'true'
         run: python -m unittest discover -s tests -v
       - name: Verify isolated experimental video decoding and measurements
+        if: steps.official_recovery_preflight.outputs.reuse_prior_verification != 'true'
         run: |
           python -m venv "$RUNNER_TEMP/race-ai-video-tools"
           "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m pip install -r requirements-video.txt -r requirements-history.txt
@@ -692,7 +851,7 @@ jobs:
             sudo apt-get install --no-install-recommends -y ffmpeg tesseract-ocr tesseract-ocr-eng
           fi
           "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m unittest tests.test_boat_video_tracking tests.test_boat_video_identity tests.test_boat_video_identity_tracking tests.test_boat_video_ocr_reliability tests.test_boat_video_intake tests.test_boat_video_cli tests.test_boat_video_tiled_detector tests.test_boat_video_crnn tests.test_boat_video_camera_identity tests.test_boat_video_calibration tests.test_boat_video_physical_context tests.test_boat_video_sequential_context tests.test_boat_video_vision_cli tests.test_boat_video_publication tests.test_boat_video_publication_intake -v
-          "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m unittest tests.test_boat_video_marker_reader tests.test_boat_video_marker_flow tests.test_boat_video_marker_identity tests.test_boat_video_marker_pipeline tests.test_boat_video_marker_verifier tests.test_boat_video_ppocr tests.test_boat_video_marker_cli tests.test_boat_video_rider_detector tests.test_boat_video_rider_tracking -v
+          "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m unittest tests.test_boat_video_marker_reader tests.test_boat_video_marker_flow tests.test_boat_video_marker_identity tests.test_boat_video_marker_pipeline tests.test_boat_video_marker_verifier tests.test_boat_video_ppocr tests.test_boat_video_marker_cli tests.test_boat_video_rider_detector tests.test_boat_video_rider_tracking tests.test_boat_video_clothing_identity -v
       - name: Integrated product UI contracts
         run: |
           node --check web/app.js
@@ -986,11 +1145,25 @@ jobs:
       - name: Restore pinned full-period monthly generations and verify every original hash
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
-        run: python -m scripts.boat_venue_history_handoff readback --input audit/state/boat-venue-history-input.json --out-dir "$RUNNER_TEMP/venue-history-all-period"
+        shell: bash
+        run: |
+          history_input=audit/state/boat-venue-history-input.json
+          if [[ -f audit/state/boat-venue-history-dated-research-input.json ]]; then
+            history_input=audit/state/boat-venue-history-dated-research-input.json
+          elif [[ -f audit/state/boat-venue-history-nov6-research-input.json ]]; then
+            history_input=audit/state/boat-venue-history-nov6-research-input.json
+          fi
+          python -m scripts.boat_venue_history_handoff readback --input "$history_input" --out-dir "$RUNNER_TEMP/venue-history-all-period"
       - name: Restore encrypted venue grid and verify all racer and course cells
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
-        run: python -m scripts.boat_venue_dataset readback --input audit/state/boat-venue-dataset-input.json --out-dir "$RUNNER_TEMP/venue-history-grid"
+        shell: bash
+        run: |
+          dataset_input=audit/state/boat-venue-dataset-input.json
+          if [[ -f audit/state/boat-venue-dataset-nov6-research-input.json ]]; then
+            dataset_input=audit/state/boat-venue-dataset-nov6-research-input.json
+          fi
+          python -m scripts.boat_venue_dataset readback --input "$dataset_input" --out-dir "$RUNNER_TEMP/venue-history-grid"
       - name: Restore immutable encrypted personal-research coefficients
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}

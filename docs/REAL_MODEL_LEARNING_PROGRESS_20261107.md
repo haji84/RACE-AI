@@ -1,8 +1,8 @@
 # 既存モデルの実データ学習・前向きPDCA進捗（2026-11-07 JST）
 
-最新は **19/31枠（BOAT14・HORSE5）の実学習成功、残12枠（AUTO6・KEIRIN5・売主型1）**。競馬の正常8件・特殊2件を公式原本と締切前native入力へ照合し、正常8件×5モデルの40原入力を既存BOAT112原入力と結合した。全19枠が学習6／検証2、事後派生0、暗号化復元成功。[19枠実学習の件数](evidence/2026-11-07/nineteen-native-model-fit-counts.json)。既存のV3 CI入口と新しい内容結合MACを使い、旧14枠のMAC・予想・PDCA・保持pointerは残す。
+最新は **現行30枠中19枠（BOAT14・HORSE5）の実学習成功、残11枠（AUTO6・KEIRIN5）**。販売者モデルはリモートの所有者変更で現行対象から除外され、過去31枠の登録・原本・MAC・SHAは互換検証用に保持されている。除外を学習成功へ加算しない。競馬の正常8件・特殊2件を公式原本と締切前native入力へ照合し、正常8件×5モデルの40原入力を既存BOAT112原入力と結合した。全19枠が学習6／検証2、事後派生0、暗号化復元成功。[19枠実学習の件数](evidence/2026-11-07/nineteen-native-model-fit-counts.json)。既存のV3 CI入口と新しい内容結合MACを使い、旧14枠のMAC・予想・PDCA・保持pointerは残す。
 
-19候補の実未来PDCAは未完了。成立済みの未来PDCAは下記のBOAT14枠・通常1レースである。AUTO／KEIRINの結果収集はbrowser予約24件の通信件数が不明で停止し、失敗journalを継承して再取得を防ぐ。[失敗証跡と現在の阻害要因](REMAINING_MODEL_COMPLETION_20261107.md)。以下は先行候補の履歴であり、古い未完了件数を現在の件数と混同しない。
+新19候補と全30枠の実未来PDCAは0。成立済みの未来PDCAは下記の旧BOAT14枠・通常1レースである。最新901／[run 42371023982](https://github.com/haji84/RACE-AI/actions/runs/42371023982)は初回・再実行とも全体SUCCESSだが、第2回AUTO probeは8 GET・全200でも新RESULT 0、上限到達HOLDだった。旧browser予約24件の実数UNKNOWN／旧epoch上限32は継承し、新しい既知8件へ置き換えない。[失敗証跡と現在の阻害要因](REMAINING_MODEL_COMPLETION_20261107.md)。以下の各段階の件数は先行候補の履歴として保持し、最新確認は末尾に示す。
 
 先行する実学習は **BOATの14枠**。展開系とPDCA系を加え、独立した締切前保存と通常確定結果を確認した同じP1の8レースで、全14枠を学習6・holdout2に分けた。**112件は全て保存済みnative原入力で、事後派生0件**。暗号化候補の独立復元も確認した。[実件数と保持pointer](evidence/2026-11-07/fourteen-native-model-learning-counts.json)。この時点では **17枠の実学習が未完了**だった。以下の9枠の三国1R実未来PDCAは以前の候補の証跡であり、新14枠の未来成績へ流用しない。
 
@@ -225,6 +225,25 @@ P0は番組情報だけを用いる入力区分で、実際の展示実施・公
 
 ## 17. 最新の実証と12項目報告
 
-[残枠実装・実データ検証報告](REMAINING_MODEL_COMPLETION_20261107.md)に最新12項目を集約した。実学習14/31、新候補の実未来PDCAは通常1レース・14組。非BOATの入力は33レース・177件、競馬は通常5・特殊1結果。残17枠の実学習を、30枠の合成接続テストや新しいコードと混同しない。
+[残枠実装・実データ検証報告](REMAINING_MODEL_COMPLETION_20261107.md)に最新12項目を集約した。現行実学習は19/30、残11枠（AUTO6・KEIRIN5）。非BOATの入力は33レース・177件、競馬は通常8・特殊2結果。旧14候補の実未来PDCAは通常1レース・14組、新19候補と全30枠の実未来PDCAは0。30枠の合成接続テストや全体CI成功を、残11枠の実学習・新候補の未来採点成功へ加算しない。
 
 新14枠の通常PDCA14件＋次回検討1件も、既存refへの追加保持と別GitオブジェクトDBの独立復元を完了した。[15件保持の実証](evidence/2026-11-07/fourteen-native-model-future-pdca-retention-counts.json)。元の評価スナップショットは変更せず、後続の保持証拠を別ファイルで追加した。新source巡回は4巡・146GET、source_wait=nullで正常終了。
+
+
+## 追加検証：11月7日20:28 JST
+
+現行30枠中19枠が実学習済み、残AUTO6・KEIRIN5。最新c438／42364217725は初回・再実行とも全体SUCCESS（全Python3,614件、360 skip、動画283＋185件）。限定probeは8件・全200でもRESULT 0、上限到達HOLDである。旧UNKNOWN24／旧固定epoch上限32を保持し、新8件は別記録へ暗号化保存・元ZIP/metadata独立復元済み。3CSSの未cache消費を認証済み原本で確認し、元plan・最大8を変えない静的原本の再利用修正を進める。次の取得は12:09:07 UTC以降かつ新HEADの初回全体CI成功・新たな固定attempt 2の認証後に限る。
+
+19候補3世代の実fit・暗号化Git保持・独立復元は完了。新19／全30の実未来PDCAは0。旧BOAT14の通常1レース・14組を流用しない。cash19 CLI接続は合成E2E成功、30候補の金額評価禁止は維持し、全30には順位目的だけの別CLI／Actions接続を実装し、合成35＋1件・独立レビューが成功。実未来30採点は未実施。新接続コードの全体CIと実未来採点は別の未完了条件である。
+
+会場別履歴は11月6日原本を1 GETで追加し、7,003,764出走行・1,167,294レース・2,643選手×24場を再集計、既存Git commit505800f55176867e8a5a06491fcc18eadca8e070から原本群とgridを独立復元した。既存152学習原入力へ新履歴を遡って混ぜない。未掲載17日・未報告156会場日などは残る。日付延長CLIの既存検証記録の継承不具合を修正し、保存済みmenu/indexの再GET 0で新日1 GETを実行した。11月7日は公表待ち1日で成績加算0。暗号目録／新世代はcommit244a7312f1ad32ecf471e35be1c4247e46c5b8efへ保持し新8ファイルを独立復元、全旧世代込みの新commit Actions読戻しは確認待ち。詳細と指定12項目は[最新報告](REMAINING_MODEL_COMPLETION_20261107.md)、件数は[全CIとprobe](evidence/2026-11-07/c438-full-ci-and-bounded-probe-counts.json)・[11月6日grid](evidence/2026-11-07/nov6-all-racer-venue-grid-counts.json)を参照する。
+
+## 最新確認：11月7日21:39:30 JST
+
+最新検証HEAD `901fb57d2d0f1d0fa0b4051285dca399654a4738`／[run 42371023982](https://github.com/haji84/RACE-AI/actions/runs/42371023982)はattempt 1／2とも全体SUCCESS。初回は全Python3,714件・skip360・失敗0（1,427.474秒）、動画283＋185件、UI31件が成功した。attempt 2は同じHEADの初回実成功を認証し、重い2検証を再利用した。[全CIと第2回限定probeの件数](evidence/2026-11-07/901-full-ci-and-second-bounded-probe-counts.json)。これは実学習枠や実未来採点数の増加ではない。
+
+第2回AUTO probeは実8 GET・全HTTP 200、document 1件＋背景取得7件で`REQUEST_LIMIT`、対象は`HOLD_UI_OR_SOURCE_UNAVAILABLE`、新RESULT 0。過去journalの認証済みCSS 3件をcache再利用した。`NORMAL_READ_IDENTITY`で拒否されたPOSTは2件だが、endpointはjournal未保持のため推測しない。[原journalの認証](evidence/2026-11-07/901-probe-journal-authenticated-counts.json)。元artifact `13574582081`、digest `sha256:72d1b53eec547a73cff15955e6b7f179f1391283c28d218ca48be95e36e35c79`をcommit `710b7437740ae38c05c68fb3a26cb00f4e54a374`へ元ZIP／metadata／暗号文のまま保持し、独立Git読戻し・元バイト一致を確認した。[保持証拠](evidence/2026-11-07/901-probe-journal-retention-counts.json)。旧browser UNKNOWN24・旧固定epoch上限32は不変。
+
+次の提供元送信は最終終了12:39:30 UTC＋1秒＋1時間による **13:39:31 UTC（22:39:31 JST）**以降に限る。第3回requestは最大8の未発行準備で、live plan変更0。新しい同HEAD初回全体CI成功・固定attempt 2の認証・実時計・全prior終了の再確認が必要である。
+
+履歴／gridは先行b569／[run 42370578793](https://github.com/haji84/RACE-AI/actions/runs/42370578793)の実Actions jobで全旧世代込みの読戻しに成功した。履歴263か月・掲載7,964日＝解析7,846＋部分原本117＋公表待ち1、gridは7,963原本・2,643選手×24場＝63,432セル。提供元アクセス0で、公表待ちや部分原本を完全な成績へ変換しない。[全履歴／gridの実CI読戻し](evidence/2026-11-07/b569-full-history-grid-ci-readback-counts.json)。当該job成功とb569の全workflow成功は区別する。実学習19/30・残11・新19／全30の実未来PDCA 0という状態は変わらない。

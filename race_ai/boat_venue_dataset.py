@@ -32,12 +32,13 @@ def _seal(db,path,metadata):
         _codec('seal',t/'part.sqlite',path,t/'scope.json')
     return dict(metadata,path=path.name,scope=scope,sqlite_sha256=_sha(raw),ciphertext_sha256=_sha(_read(path,12*1024*1024)))
 
-def _open(root,part):
+def _open(root,part,*,key=None):
     path=Path(root)/part['path'];raw=_read(path,12*1024*1024)
     need(_sha(raw)==part['ciphertext_sha256'] and part['scope']==_scope(),'VENUE_DATASET_CIPHER_HASH_INVALID')
     with tempfile.TemporaryDirectory(prefix='boat-venue-part-read-') as t:
         t=Path(t);_write(t/'scope.json',_bytes(part['scope']))
-        _codec('unseal',path,t/'part.sqlite',t/'scope.json',cipher_sha=part['ciphertext_sha256'])
+        _codec('unseal',path,t/'part.sqlite',t/'scope.json',cipher_sha=part['ciphertext_sha256'],
+            **(dict(key=key) if key is not None else {}))
         plain=_read(t/'part.sqlite',8*1024*1024)
     need(_sha(plain)==part['sqlite_sha256'],'VENUE_DATASET_SQLITE_HASH_INVALID')
     db=sqlite3.connect(':memory:');db.deserialize(plain);db.execute('PRAGMA trusted_schema=OFF')
@@ -56,7 +57,14 @@ def build_dataset(root,output,*,roster=(),end):
     need(_key_ready(),'OWNER_STATE_KEY_REQUIRED');root=Path(root);raw=_read(root/'collection.json',1000000);s=_signed(raw)['state']
     out=Path(output);out.mkdir(parents=True,mode=0o700,exist_ok=True);need(not any(out.iterdir()),'VENUE_DATASET_OUTPUT_EXISTS_DO_NOT_RESET')
     start=s['months'][0][:4]+'-'+s['months'][0][4:]+'-01'
-    need(stamp(s['captured_at']).date().isoformat()>=end and end<=s['not_after'],'VENUE_DATASET_END_INVALID')
+    if s['schema']=='RACE_AI_ALL_PUBLISHED_HISTORY_PROGRESS_V2':
+        from .boat_history_dated_inventory import validate_inventory
+        from .boat_venue_history import JST
+        dated=validate_inventory(root,s,manifest_raw=raw)
+        need(stamp(dated['inventory_captured_at']).astimezone(JST).date().isoformat()>=end and
+             end<=s['not_after'],'VENUE_DATASET_END_INVALID')
+    else:
+        need(stamp(s['captured_at']).date().isoformat()>=end and end<=s['not_after'],'VENUE_DATASET_END_INVALID')
     engine=VenueHistory(start=start,end=end,roster=roster,clock=lambda:stamp(_now()));gaps=[]
     for m,h in sorted(s['heads'].items()):
         c,r=restore_month(root/h['folder'],expected_month=m)
@@ -138,7 +146,9 @@ def readback_dataset(pointer,root,repo,*,transport=None):
     need(pointer.get('schema')==INPUT and pointer.get('repository_id')=='1416489937' and pointer.get('status')=='READY' and
         re.fullmatch('[a-f0-9]{40}',pointer.get('source_commit','')) and re.fullmatch('[a-f0-9]{64}',pointer.get('dataset_sha256','')) and
         pointer.get('dataset_path')==PREFIX+'datasets/'+pointer['dataset_sha256']+'/dataset.json','VENUE_DATASET_INPUT_INVALID')
-    git=transport or GitStateRepository(repo,ref=TRANSFER_REF);c=pointer['source_commit'];git.fetch(c)
+    from .boat_private_original_vault import VaultGitRepository
+    git=transport if transport is not None else VaultGitRepository(repo,ref=TRANSFER_REF)
+    c=pointer['source_commit'];git.fetch(c)
     raw=git.read(c,pointer['dataset_path'],1000000);need(_sha(raw)==pointer['dataset_sha256'],'VENUE_DATASET_MANIFEST_HASH_INVALID')
     root=Path(root);root.mkdir(mode=0o700,parents=True,exist_ok=True);need(not any(root.iterdir()),'VENUE_DATASET_OUTPUT_EXISTS_DO_NOT_RESET');_write(root/'dataset.json',raw)
     _,s=_manifest(root);prefix=pointer['dataset_path'].removesuffix('dataset.json')

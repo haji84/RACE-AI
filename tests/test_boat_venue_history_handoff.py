@@ -68,3 +68,22 @@ class HandoffTests(unittest.TestCase):
         report=readback_collection(p,self.root/'partial-restored',self.root,transport=git)
         self.assertFalse(report['all_period_collection_complete'])
         self.assertEqual(report['partial_source_days'],1)
+
+    def test_default_readback_uses_existing_bounded_blob_reader(self):
+        from race_ai import boat_venue_history_handoff as api
+        source=self.collection();git=MemoryGit();pointer=api.publish_collection(source,self.root,transport=git)
+        with patch.object(api,'GitStateRepository',side_effect=AssertionError('full ancestry fetch is forbidden')),patch('race_ai.boat_private_original_vault.VaultGitRepository',return_value=git):
+            result=api.readback_collection(pointer,self.root/'bounded-reader',self.root)
+        self.assertEqual(result['months_restored'],1)
+        self.assertEqual(result['parsed_days'],1)
+
+    def test_default_grid_readback_uses_existing_bounded_blob_reader(self):
+        from race_ai import boat_venue_dataset as api
+        source=self.collection();grid=self.root/'bounded-grid-source'
+        with patch.object(api,'_now',return_value='2030-01-01T00:00:04Z'):
+            api.build_dataset(source,grid,end='2026-11-04')
+        git=MemoryGit();pointer=api.publish_dataset(grid,self.root,transport=git)
+        with patch.object(api,'GitStateRepository',side_effect=AssertionError('full ancestry fetch is forbidden')),patch('race_ai.boat_private_original_vault.VaultGitRepository',return_value=git):
+            result=api.readback_dataset(pointer,self.root/'bounded-grid-reader',self.root)
+        self.assertEqual(result['venues'],24)
+        self.assertGreater(result['verified_cells'],0)

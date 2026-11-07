@@ -118,6 +118,33 @@ test('live request clock cannot regress behind the authenticated epoch',enabled,
  const value={...plan([auto]),not_before:'2030-01-01T03:00:00.000001Z'};
  assert.throws(()=>api.requireCurrentClock(value,NOW));assert.doesNotThrow(()=>api.requireCurrentClock(value,new Date('2030-01-01T03:00:00.001Z')));
 });
+test('AUTO historical result navigation uses the published exact date control and holds when absent',enabled,async()=>{
+ const item={...auto,expected_date:'2029-12-31',race_id:'autorace:2029-12-31:isesaki:2',due_at:'2029-12-31T11:30:00+09:00'};
+ api.validatePlan(plan([item]),NOW);
+ const calls=[];let visible=true;
+ const request={url:()=> 'https://autorace.jp/race_info/OtherRaceInfo',method:()=> 'POST',resourceType:()=> 'xhr',postDataBuffer:()=>Buffer.from(JSON.stringify({placeCode:3,raceDate:item.expected_date,raceNo:item.race_no})),headers:()=>({'content-type':'application/json'})};
+ const identity={request:()=>request,url:()=>request.url(),status:()=>200,finished:async()=>{}};
+ const page={url:()=>auto.ui_entry_url,waitForResponse:async predicate=>{assert.equal(predicate(identity),true);return identity;},waitForLoadState:async()=>{},goto:async()=>assert.fail('guessed endpoint'),locator(selector){
+  const locator={last(){return locator;},waitFor:async()=>{if(selector.includes('data-period-date')&&!visible)throw Error('published date unavailable');},
+   count:async()=>1,isVisible:async()=>true,innerText:async()=>selector.includes('data-period-date')?'12月31日':selector.includes('data-raceno')?'2R':'レース結果',
+   click:async()=>calls.push(selector)};return locator;
+ }};
+ await api.selectAutoCase(page,item,[]);assert.equal(calls.length,3);assert.match(calls[0],/data-period-date="2029-12-31"/);
+ visible=false;calls.length=0;await assert.rejects(api.selectAutoCase(page,item,[]),/published date unavailable/);assert.equal(calls.length,0);
+});
+test('KEIRIN historical result navigation requires a visible date and exact returned full date',enabled,async()=>{
+ const item={...keirin,expected_date:'2029-12-31',race_id:'keirin:2029-12-31:keirin-jyo-48:2',due_at:'2029-12-31T11:30:00+09:00'};
+ api.validatePlan(plan([item]),NOW);
+ const calls=[];let value='20300101',visible=true,popup;
+ function locator(selector,detail=false){const row={filter(){return row;},count:async()=>selector.includes('hhlnkRaceDate')&&!visible?0:1,isVisible:async()=>true,
+  inputValue:async()=>selector==='#hhSelJ'?'48':value,innerText:async()=>selector.includes('hhlnkRaceDate')?'12/31':selector==='#hhbtnResultList'?'結果一覧':selector==='#rcbtn8'?'競走結果':selector==='#hhLblRaceDtl'?'2R 競走':'2R',
+  click:async()=>{calls.push(selector);if(selector.includes('hhlnkRaceDate'))value='20291231';if(selector==='#hhRaceBtn2')popup(detailPage);}};return row;}
+ const detailPage={url:()=> 'https://keirin.jp/pc/racelive',waitForLoadState:async()=>{},locator:selector=>locator(selector,true)};
+ const page={url:()=> 'https://keirin.jp/pc/racelist',waitForLoadState:async()=>{},on:(_event,fn)=>{popup=fn;},off:()=>{},
+  goto:async()=>assert.fail('guessed endpoint'),locator:selector=>locator(selector)};
+ assert.equal(await api.selectKeirinCase(page,item,[]),detailPage);assert.equal(value,'20291231');assert.equal(calls[0],'[name="hhlnkRaceDate"]');
+ value='20300101';visible=false;calls.length=0;await assert.rejects(api.selectKeirinCase(page,item,[]),/VISIBLE_UI_CONTROL/);assert.equal(calls.length,0);
+});
 test('optional recovery expiry rejects every dispatch at deadline including after spacing',enabled,async()=>{
  const deadline='2030-01-01T03:00:00.500Z',value={...plan([auto]),not_before:NOW.toISOString(),not_after:deadline};
  assert.equal(api.validatePlan(value,NOW).not_after,deadline);
@@ -203,6 +230,7 @@ test('offline browser transport retains exact natural UI request/response bytes 
  const sourceBody=Buffer.from('{"invented":"normal-result-source"}');let handler,launchOptions,closed=false;
  class Page extends EventEmitter{
   url(){return item.ui_entry_url;}
+  waitForResponse(predicate){return new Promise(resolve=>{const check=response=>{if(predicate(response)){this.off('response',check);resolve(response);}};this.on('response',check);});}
   async waitForLoadState(){}async waitForTimeout(ms){await new Promise(r=>setTimeout(r,Math.min(ms,5)));}async close(){}
   async goto(){await perform(item.ui_entry_url,'GET','document',Buffer.alloc(0),Buffer.from('<html>invented index</html>'));}
   locator(selector){const endpoint=selector.includes('data-main-menu')?'RaceResult':selector.includes('data-raceno')?'OtherRaceInfo':null;const label=selector.includes('data-main-menu')?'レース結果':selector.includes('data-raceno')?'2R':'初日';
@@ -212,8 +240,8 @@ test('offline browser transport retains exact natural UI request/response bytes 
  const page=new Page(),context=new EventEmitter();Object.assign(context,{setDefaultTimeout(){},routeWebSocket:async()=>{},newCDPSession:async()=>({send:async()=>{},on(){}}),route:async(_,fn)=>{handler=fn;},newPage:async()=>page,close:async()=>{closed=true;}});
  async function perform(url,method,type,body,raw){
   const req={url:()=>url,method:()=>method,resourceType:()=>type,postDataBuffer:()=>body,headers:()=>({'content-type':'application/json'})};let aborted=false;
-  const response={request:()=>req,status:()=>200,url:()=>url,headers:()=>({'content-type':type==='document'?'text/html':'application/json'}),body:async()=>raw};
-  await handler({request:()=>req,abort:async()=>{aborted=true;},continue:async()=>{const n=req._officialCapture.sequence;const progress=JSON.parse(fs.readFileSync(path.join(root,'capture','request-ledger-'+String(n).padStart(3,'0')+'.json')));assert.equal(progress.schema,'RACE_AI_OFFICIAL_RESULT_BROWSER_REQUEST_CHECKPOINT_V1');assert.equal(progress.actual_request_count,n);assert.equal(progress.ledger.at(-1).sequence,n);context.emit('response',response);},fulfill:async()=>{throw Error('no authored cache expected');}});assert.equal(aborted,false);
+  const response={request:()=>req,status:()=>200,url:()=>url,headers:()=>({'content-type':type==='document'?'text/html':'application/json'}),body:async()=>raw,finished:async()=>{}};
+  await handler({request:()=>req,abort:async()=>{aborted=true;},continue:async()=>{const n=req._officialCapture.sequence;const progress=JSON.parse(fs.readFileSync(path.join(root,'capture','request-ledger-'+String(n).padStart(3,'0')+'.json')));assert.equal(progress.schema,'RACE_AI_OFFICIAL_RESULT_BROWSER_REQUEST_CHECKPOINT_V1');assert.equal(progress.actual_request_count,n);assert.equal(progress.ledger.at(-1).sequence,n);context.emit('response',response);page.emit('response',response);},fulfill:async()=>{throw Error('no authored cache expected');}});assert.equal(aborted,false);
  }
  try{
   const index=await api.capturePlan(plan([item]),path.join(root,'capture'),{executablePath:process.execPath,chromium:{launch:async opts=>{launchOptions=opts;return {newContext:async()=>context,close:async()=>{}};}}});

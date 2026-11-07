@@ -6,6 +6,7 @@ import hashlib
 import importlib
 import io
 import unittest
+from unittest.mock import patch
 
 from race_ai.existing_model_dispatch import dispatch
 
@@ -45,7 +46,9 @@ def sources(count=8):
 
 
 class SellerNativeInputsTests(unittest.TestCase):
+    @patch("race_ai.existing_model_coverage.RETIRED_MODEL_IDS", frozenset())
     def test_real_csv_contract_preserves_global_five_selection_and_source_clocks(self):
+        """Compatibility replay for historical source evidence, not current execution."""
         self.assertIsNotNone(adapter, "daily seller source adapter is absent")
         cards, waku, ids = sources()
         before = deepcopy((cards, waku))

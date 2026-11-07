@@ -126,20 +126,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
         run: python -m scripts.boat_saved_view_feed --hydrate-originals --history-when-compatible --recover-model-config
-      - name: Refresh the owner page for the explicitly removed seller model
-        if: >-
-          always() && steps.saved_model_publication.outcome == 'success' && startsWith(github.event.head_commit.message, 'saved-view: retire-seller:')
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          python - <<'PY_REFRESH'
-          import json
-          from race_ai.saved_pages import PagesRepository, refresh_site_assets
-          git=PagesRepository('.')
-          parent=git.head()
-          assert parent is not None
-          print(json.dumps(refresh_site_assets('.',expected_parent=parent,transport=git)))
-          PY_REFRESH
       - name: Install the existing pinned browser checker
         if: always() && steps.saved_model_publication.outcome == 'success'
         id: browser_tooling
@@ -156,6 +142,7 @@ jobs:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           NODE_PATH: ${{ runner.temp }}/boat-live-ui-tools/node_modules
         run: |
+          set -o pipefail
           python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json"
           env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" | tee "$RUNNER_TEMP/boat-live-site-check-counts.json"
       - name: Retain aggregate evaluation counts without private plans or source rows
@@ -174,13 +161,7 @@ jobs:
         env:
           SITE_CHECK_OUTCOME: ${{ steps.owner_site_check.outcome }}
           AUDIT_OUTCOME: ${{ steps.prospective_audit.outcome }}
-        run: |
-          python - <<'PY_DISPLAY_EVIDENCE'
-          import json,os
-          good=all(os.environ[name]=='success' for name in ('SITE_CHECK_OUTCOME','AUDIT_OUTCOME'))
-          print(json.dumps(dict(status='DISPLAY_EVIDENCE_VERIFIED' if good else 'DISPLAY_EVIDENCE_REJECTED')))
-          raise SystemExit(0 if good else 2)
-          PY_DISPLAY_EVIDENCE
+        run: python -m scripts.boat_saved_display_evidence
   official_national:
     name: Existing frozen P0, exhibition P1, separate official results and PDCA
     if: github.repository == 'haji84/RACE-AI' && !startsWith(github.event.head_commit.message, 'saved-view:')

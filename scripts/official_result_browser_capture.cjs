@@ -196,9 +196,39 @@ async function click(page,locator,expected,ledger,{popup=false}={}){
  const target=next||page;await target.waitForLoadState('domcontentloaded',{timeout:TIMEOUT_MS}).catch(()=>{});
  ledger.push({event:'NORMAL_SEMANTIC_UI_CLICK',label,before,after:target.url(),at:stamp()});return target;
 }
+async function autoDateAlreadySelected(page,item,date){
+ let url,entry;try{url=safeUrl(page.url(),'autorace');entry=safeUrl(item.ui_entry_url,'autorace');}catch{return false;}
+ const prefix='/race_info/Live/'+item.venue+'/',dayRace=regexEscape(item.expected_date)+'_(?:[1-9]|1[0-2])';
+ if(url.host!==entry.host||url.search||!new RegExp('^'+regexEscape(prefix)+'(?:Program/'+dayRace+'/program|RaceResult/'+dayRace+'/result)$').test(url.pathname))return false;
+ const selected=page.locator('#live-paragraphday-main [data-period-date="'+item.expected_date+'"]');
+ return await selected.count()===1&&await selected.isVisible()&&await date.count()===1&&await date.isVisible()&&
+  await selected.getAttribute('data-period-date')===item.expected_date&&
+  String(await selected.getAttribute('class')||'').split(/\s+/).includes('liveTabMenu__item--current');
+}
+function autoIdentityResponse(response,item){
+ try{
+  const req=response.request(),url=safeUrl(req.url(),'autorace'),actual=safeUrl(response.url(),'autorace'),entry=safeUrl(item.ui_entry_url,'autorace');
+  if(response.status()!==200||url.host!==entry.host||url.href!==actual.href||url.pathname!=='/race_info/OtherRaceInfo'||url.search)return false;
+  const policy=routePolicy({url:req.url(),method:req.method(),resource_type:req.resourceType(),body:req.postDataBuffer()||Buffer.alloc(0),content_type:req.headers()['content-type']||'',headers:{authorization:req.headers().authorization,Authorization:req.headers().Authorization}},{cases:[item]});
+  const id=policy.request_identity;return policy.allow&&id?.placeCode===placeCode(item)&&id.raceDate===item.expected_date&&id.raceNo===item.race_no;
+ }catch{return false;}
+}
 async function selectAutoCase(page,item,ledger){
- const date=page.locator('#live-paragraphday-main [data-period-date="'+item.expected_date+'"] a');await date.waitFor({state:'visible',timeout:TIMEOUT_MS});await click(page,date,/^.+$/,ledger);
- const race=page.locator('#live-raceno-link [data-raceno="'+item.race_no+'"] a');await race.waitFor({state:'visible',timeout:TIMEOUT_MS});await click(page,race,new RegExp('^'+item.race_no+'R$'),ledger);
+ const date=page.locator('#live-paragraphday-main [data-period-date="'+item.expected_date+'"] a');await date.waitFor({state:'visible',timeout:TIMEOUT_MS});
+ if(await autoDateAlreadySelected(page,item,date))ledger.push({event:'ALREADY_SELECTED_UI_DATE',expected_date:item.expected_date,at:stamp()});
+ else await click(page,date,/^.+$/,ledger);
+ let current;try{current=safeUrl(page.url(),'autorace');}catch{}
+ if(current&&current.host===safeUrl(item.ui_entry_url,'autorace').host&&!current.search&&
+  new RegExp('^'+regexEscape('/race_info/Live/'+item.venue+'/RaceResult/'+item.expected_date)+'_(?:[1-9]|1[0-2])/result$').test(current.pathname)){
+  const program=page.locator('li[data-main-menu="program"] a').last();await program.waitFor({state:'visible',timeout:TIMEOUT_MS});
+  await click(page,program,/^出走表$/,ledger);
+ }
+ const race=page.locator('#live-raceno-link [data-raceno="'+item.race_no+'"] a');await race.waitFor({state:'visible',timeout:TIMEOUT_MS});
+ // A race click schedules an SPA render. Do not switch menus before its
+ // target identity has finished: the render reads the menu after its GET.
+ const [identity]=await Promise.all([page.waitForResponse(response=>autoIdentityResponse(response,item),{timeout:TIMEOUT_MS}),
+  click(page,race,new RegExp('^'+item.race_no+'R$'),ledger)]);
+ need(!await identity.finished(),'IDENTITY_RESPONSE_INCOMPLETE');
  const result=page.locator('li[data-main-menu="result"] a').last();await result.waitFor({state:'visible',timeout:TIMEOUT_MS});await click(page,result,/^レース結果$/,ledger);return page;
 }
 async function openKeirinList(page,item,ledger){
@@ -226,9 +256,11 @@ async function installByteGuard(context,page,stop){
 }
 async function capturePlan(input,out,{chromium,executablePath=process.env.CHROMIUM_PATH||'/usr/bin/chromium'}={}){
  const plan=validatePlan(input),root=createPrivateOutput(out),started=stamp(),due=dueCases(plan),budget=createBudget(plan.request_budget||MAX_REQUESTS);
- const ledger=[],responses=[],cases=[],cache=validateStaticCache(plan.static_cache||[],plan),pending=new Set(),timers=new Map();let browser,context,deadline,activeSport=null,activeCases=[],dispatch=Promise.resolve();
+ const ledger=[],responses=[],cases=[],cache=validateStaticCache(plan.static_cache||[],plan),pending=new Set(),timers=new Map();let browser,context,deadline,activeSport=null,activeCases=[],dispatch=Promise.resolve(),finalizing=false,forcedStop=false;
+ const progress=new Set(),notify=()=>{for(const resolve of progress)resolve();progress.clear();};
+ const drain=async()=>{for(;;){const queued=dispatch;await queued;await Promise.allSettled([...pending]);if(queued!==dispatch)continue;if(forcedStop||(!timers.size&&!pending.size))return;await new Promise(resolve=>progress.add(resolve));}};
  const add=e=>{if(ledger.length<2048)ledger.push(e);else budget.stop('LEDGER_LIMIT');};
- const stop=reason=>{budget.stop(reason);if(context)context.close().catch(()=>{});};
+ const stop=reason=>{forcedStop=true;budget.stop(reason);notify();if(context)context.close().catch(()=>{});};
  deadline=setTimeout(()=>stop('TIME_LIMIT'),ELAPSED_MS);
  try{
   if(due.length){need(typeof executablePath==='string'&&path.isAbsolute(executablePath)&&fs.existsSync(executablePath),'FIXED_CHROMIUM_REQUIRED');
@@ -242,9 +274,10 @@ async function capturePlan(input,out,{chromium,executablePath=process.env.CHROMI
    await context.route('**/*',async route=>{
     const req=route.request();const request={url:req.url(),method:req.method(),resource_type:req.resourceType(),body:req.postDataBuffer()||Buffer.alloc(0),content_type:req.headers()['content-type']||'',headers:{authorization:req.headers().authorization}};
     const scoped=requestScope(plan,activeCases);const policy=routePolicy(request,scoped);
-    if(budget.reason||!policy.allow){add({event:'BLOCKED_REQUEST',reason:budget.reason||policy.reason,method:request.method,resource_type:request.resource_type,at:stamp()});await route.abort().catch(()=>{});return;}
+    if(finalizing||budget.reason||!policy.allow){add({event:'BLOCKED_REQUEST',reason:finalizing?'CAPTURE_FINALIZING':budget.reason||policy.reason,method:request.method,resource_type:request.resource_type,at:stamp()});await route.abort().catch(()=>{});return;}
     if(policy.static&&cache.has(request.url)){const saved=cache.get(request.url);add({event:'STATIC_CACHE_REPLAY',url:request.url,method:'GET',resource_type:request.resource_type,source_sha256:sha(saved.raw),original_captured_at:saved.metadata.response_received_at,at:stamp()});await route.fulfill({status:200,contentType:contentType(saved.metadata.headers),body:saved.raw});return;}
     const action=dispatch.then(async()=>{
+     if(finalizing||budget.reason){await route.abort().catch(()=>{});return;}
      requireCurrentClock(plan);
      const reservation=await budget.reserve();if(!reservation){await route.abort().catch(()=>{});return;}
      requireCurrentClock(plan);
@@ -253,7 +286,7 @@ async function capturePlan(input,out,{chromium,executablePath=process.env.CHROMI
      entry.request_started_at=stamp();requireCurrentClock(plan,new Date(entry.request_started_at));req._officialCapture=entry;add(entry);
      savePrivate(root,'request-ledger-'+String(entry.sequence).padStart(3,'0')+'.json',JSON.stringify({schema:'RACE_AI_OFFICIAL_RESULT_BROWSER_REQUEST_CHECKPOINT_V1',started_at:started,last_updated_at:entry.request_started_at,actual_request_count:budget.count,maximum_requests:plan.request_budget||MAX_REQUESTS,ledger:structuredClone(ledger)},null,2));
      requireCurrentClock(plan);timers.set(entry.sequence,setTimeout(()=>stop('REQUEST_TIMEOUT'),TIMEOUT_MS));await route.continue();budget.completeDispatch();
-    });dispatch=action.catch(()=>stop('REQUEST_DISPATCH_FAILED'));await action;
+    });dispatch=action.catch(()=>stop('REQUEST_DISPATCH_FAILED')).finally(notify);await action;
    });
    context.on('response',response=>{
     const task=(async()=>{const entry=response.request()._officialCapture;if(!entry)return;entry.status=response.status();entry.headers_received_at=stamp();
@@ -267,7 +300,7 @@ async function capturePlan(input,out,{chromium,executablePath=process.env.CHROMI
      }
      responses.push({...entry});
      if(['script','stylesheet'].includes(entry.resource_type)&&entry.status===200){try{const authenticated=validateStaticCache([{raw_base64:raw.toString('base64'),metadata}],plan);cache.set(entry.url,authenticated.get(entry.url));}catch{}}
-    })().catch(error=>{add({event:'CAPTURE_ERROR',reason:/^OFFICIAL_BROWSER_[A-Z_]+$/.test(error.message)?error.message:'RESPONSE_UNAVAILABLE',at:stamp()});stop('CAPTURE_ERROR');}).finally(()=>{const entry=response.request()._officialCapture;if(entry){clearTimeout(timers.get(entry.sequence));timers.delete(entry.sequence);}pending.delete(task);});pending.add(task);
+    })().catch(error=>{add({event:'CAPTURE_ERROR',reason:/^OFFICIAL_BROWSER_[A-Z_]+$/.test(error.message)?error.message:'RESPONSE_UNAVAILABLE',at:stamp()});stop('CAPTURE_ERROR');}).finally(()=>{const entry=response.request()._officialCapture;if(entry){clearTimeout(timers.get(entry.sequence));timers.delete(entry.sequence);}pending.delete(task);notify();});pending.add(task);
    });
    const groups=groupCases(due);
    for(const group of groups.values()){
@@ -279,7 +312,8 @@ async function capturePlan(input,out,{chromium,executablePath=process.env.CHROMI
        page=item.sport==='autorace'?await selectAutoCase(page,item,ledger):await selectKeirinCase(listPage,item,ledger);
        const until=Date.now()+TIMEOUT_MS;let selected=[];
        while(!budget.reason&&Date.now()<until){await Promise.allSettled([...pending]);selected=caseResponses(item,responses.filter(r=>item.sport==='autorace'||r.sequence>before));if(selected.some(r=>r.role==='result')&&selected.some(r=>r.role==='identity'))break;await page.waitForTimeout(100);}
-       need(!budget.reason,'CAPTURE_STOPPED');const raw=Buffer.from(await page.content());need(raw.length<=MAX_BODY,'DOM_BOUND');
+       await drain();need(!budget.reason,'CAPTURE_STOPPED');const raw=Buffer.from(await page.content());need(raw.length<=MAX_BODY,'DOM_BOUND');
+       await drain();need(!budget.reason,'CAPTURE_STOPPED');selected=caseResponses(item,responses.filter(r=>item.sport==='autorace'||r.sequence>before));
        const name='case-'+String(cases.length+1).padStart(2,'0'),folder=path.join(root,name);fs.mkdirSync(folder,{mode:0o700});savePrivate(folder,'rendered-dom.html',raw);
        const dom={file:name+'/rendered-dom.html',source_url:item.ui_entry_url,final_url:page.url(),captured_at:stamp(),byte_count:raw.length,source_sha256:sha(raw)};savePrivate(folder,'dom.metadata.json',JSON.stringify(dom,null,2));
        const provenance=browserMetadata(item,dom,groupStart,ledger.slice(groupLedgerStart));savePrivate(folder,'browser.metadata.json',JSON.stringify(provenance,null,2));
@@ -288,11 +322,11 @@ async function capturePlan(input,out,{chromium,executablePath=process.env.CHROMI
       }catch(error){cases.push({sport:item.sport,race_id:item.race_id,state:'HOLD_UI_OR_SOURCE_UNAVAILABLE',responses:[],reason:/^OFFICIAL_BROWSER_[A-Z_]+$/.test(error.message)?error.message:'UI_OPERATION_REJECTED'});if(budget.reason)break;}
      }
     }catch{for(const item of group)if(!cases.some(c=>c.race_id===item.race_id))cases.push({sport:item.sport,race_id:item.race_id,state:'HOLD_UI_ENTRY_UNAVAILABLE',responses:[]});}
-    await page.close().catch(()=>{});
+    await drain();finalizing=true;await dispatch;await Promise.allSettled([...pending]);await page.close().catch(()=>{});await dispatch;await Promise.allSettled([...pending]);finalizing=false;
    }
   }
  }catch(error){add({event:'CAPTURE_HOLD',reason:/^OFFICIAL_BROWSER_[A-Z_]+$/.test(error.message)?error.message:'BROWSER_OPERATION_REJECTED',at:stamp()});budget.stop('CAPTURE_HOLD');}
- finally{clearTimeout(deadline);for(const timer of timers.values())clearTimeout(timer);if(context)await context.close().catch(()=>{});await Promise.allSettled([...pending]);if(browser)await browser.close().catch(()=>{});}
+ finally{await drain();finalizing=true;await dispatch;await Promise.allSettled([...pending]);clearTimeout(deadline);for(const timer of timers.values())clearTimeout(timer);if(context)await context.close().catch(()=>{});await dispatch;await Promise.allSettled([...pending]);if(browser)await browser.close().catch(()=>{});}
  for(const item of plan.cases)if(!cases.some(c=>c.race_id===item.race_id))cases.push({sport:item.sport,race_id:item.race_id,state:time(item.due_at)>Date.now()?'HOLD_NOT_DUE':'HOLD_'+(budget.reason||'NOT_CAPTURED'),responses:[]});
  const index={schema:CAPTURE,started_at:started,completed_at:stamp(),actual_request_count:budget.count,maximum_requests:plan.request_budget||MAX_REQUESTS,minimum_spacing_ms:SPACING_MS,maximum_elapsed_ms:ELAPSED_MS,request_timeout_ms:TIMEOUT_MS,stop_reason:budget.reason||'FINISHED',stopped_host:budget.reason==='HTTP_ACCESS_DENIED',cases,responses,ledger,normal_ui_only:true,manual_api_requests:0,formal_learning_or_pdca_claim:false};savePrivate(root,'capture-index.json',JSON.stringify(index,null,2));return index;
 }
