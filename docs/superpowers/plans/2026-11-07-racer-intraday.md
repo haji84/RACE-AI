@@ -55,7 +55,9 @@ Interfaces: V1/V2 parse; status pointer polling60seconds while visible, full agg
 
 Files: existing .github/workflows/boat-racer-daily.yml, docs/RACE_EXPLORER.md, this plan and public counts-only evidence.
 - [x] Fresh whole-change read-only review; one targeted TDD correction pass, then affected checks. Pending results now precede confirmed revisions; postponed targets respect their new cutoff. RED then18 affected tests GREEN.
-- [ ] Preserve concurrent source updates and publish only reviewed UI assets while retaining all cipher/image bytes.
-- [ ] Explicit source marker initializes only the new stream; actual Actions verifies current official facts, ciphertext and public SHA. Normal restart verifies retained replay.
-- [ ] Existing workflow gains bounded daytime5minute cron, keeps06:20 K reconciliation, defaults dispatch to intraday and uses full runtime SHA. Normally merge only workflow PR after required CI.
-- [ ] Verify actual main run, live card across3widths, same-day test flow and source coverage/limitations. Record exact run/commit/SHA receipts and finish docs.
+- [x] Preserve concurrent source updates and publish only reviewed UI assets while retaining all cipher/image bytes.
+- [x] Explicit source marker initializes only the new stream; actual Actions verifies current official facts, ciphertext and public SHA. Normal restart verifies retained replay.
+- [x] Existing workflow gains bounded daytime5minute cron, keeps06:20 K reconciliation, defaults dispatch to intraday and uses full runtime SHA. Normally merge only workflow PR after required CI.
+- [x] Verify actual main run, live card across3widths, same-day test flow and source coverage/limitations. Record exact run/commit/SHA receipts and finish docs.
+
+Acceptance receipts: main PR86 merged normally after required CI; source initialization42381661383, main retained restart42381861735 and quiet replay42382190189 succeeded. Public catalogue74e43c8dfc73cb045aca0da5ae47856c7d91f81f2e2e59b0fb3b99582c6ae285; current-day132/132,1669 profiles,294 same-day two-start profiles; actual live browser320/390/1440 passed. Quiet replay0 GET/new captures, generation2 reused, only small status updated. Forecast ciphers7 and portrait assets57 unchanged. Actual future same-day second-start observation remains unobserved because activation was after racing; chronological fixture tests establish the implemented transition. Full project broad run/feature CI are not claimed passed; exact scope and outstanding state are in evidence.
