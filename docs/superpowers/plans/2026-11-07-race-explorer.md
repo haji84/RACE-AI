@@ -44,10 +44,10 @@
 
 **Interfaces:** `participantCard` preserves its existing return type and portrait binding, adding a real athlete-detail button outside the settings gallery. `openParticipant(person, race, opener)` creates/reuses a native dialog; closing restores focus. The card's optional noninteractive mode keeps gallery anchors free of nested buttons.
 
-- [ ] Add browser cases for opening a named athlete, reading saved metrics including zero, closing by button/Esc and focus return; check invalid identities and synthetic people never gain a genuine profile link. A UI-only fixture supplies exact names and clearly invented values, never a real forecast.
-- [ ] Run `EXPLORER_SECTION=profiles node tests/race_explorer_browser.test.cjs`; expect missing interaction assertions to fail.
-- [ ] Implement the profile dialog, labeled data groups, strict official-profile link, and keyboard/accessibility behavior.
-- [ ] Run the profile browser cases and existing portrait browser test; expect pass at 320/390/1440px; commit.
+- [x] Add browser cases for opening a named athlete, reading saved metrics including zero, closing by button/Esc and focus return; check invalid identities and synthetic people never gain a genuine profile link. A UI-only fixture supplies exact names and clearly invented values, never a real forecast.
+- [x] Run `EXPLORER_SECTION=profiles node tests/race_explorer_browser.test.cjs`; expect missing interaction assertions to fail.
+- [x] Implement the profile dialog, labeled data groups, strict official-profile link, and keyboard/accessibility behavior.
+- [x] Run the profile browser cases and existing portrait browser test; expect pass at 320/390/1440px; commit.
 
 ## Task 3: マイ会場・レース切り替え・情報ショートカット
 

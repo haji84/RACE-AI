@@ -239,7 +239,62 @@
     if (M.eligiblePrediction?.(r, p)) return "証拠付き保存予想（読込値）";
     return "保存予想・証拠不足";
   }
-  function participantCard(p, race, expanded = false) {
+  let participantDialog = null, participantOpener = null;
+  function openParticipant(person, race, opener) {
+    if (!participantDialog) {
+      participantDialog = node("dialog", "participant-dialog"); participantDialog.id = "participant-dialog";
+      participantDialog.setAttribute("aria-labelledby", "participant-dialog-title");
+      participantDialog.addEventListener("close", () => {
+        document.body.classList.remove("participant-dialog-open");
+        if (participantOpener?.isConnected) participantOpener.focus();
+        else $("page-title").focus({preventScroll: true});
+        participantOpener = null;
+      });
+      participantDialog.addEventListener("click", event => {
+        if (event.target !== participantDialog) return;
+        const bounds = participantDialog.getBoundingClientRect();
+        if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) participantDialog.close();
+      });
+      document.body.append(participantDialog);
+    }
+    const dialog = participantDialog, portrait = globalThis.RaceRacerPortraits?.get(race, person), registration = participantRegistration(person);
+    participantOpener = opener;
+    const header = node("header", "profile-header"), heading = node("div"), title = node("h2", "", portrait?.name || person.name || "選手情報");
+    title.id = "participant-dialog-title";
+    heading.append(node("p", "eyebrow", "RACER CARD"), title);
+    const close = button("×", "profile-close", () => dialog.close()); close.dataset.closeParticipant = ""; close.setAttribute("aria-label", "選手カルテを閉じる");
+    header.append(heading, close);
+    const body = node("div", "profile-body"), hero = node("div", "profile-hero");
+    hero.append(participantCard(person, race, false, false));
+    const introduction = node("div", "profile-introduction");
+    introduction.append(node("span", "tag scope-" + race.scope, scopeName(race.scope)), node("p", "", raceName(race)), node("p", "muted small", "出走情報の保存値 · 取得 " + stamp(person.captured_at || person.observed_at || race.observed_at || race.as_of) + " JST"));
+    if (portrait) {
+      const link = node("a", "outline profile-official", "公式プロフィールを開く ↗");
+      link.href = portrait.sourceUrl; link.target = "_blank"; link.rel = "noopener noreferrer"; link.referrerPolicy = "no-referrer"; link.dataset.officialProfile = "";
+      introduction.append(link);
+    }
+    hero.append(introduction); body.append(hero);
+    const values = node("div", "profile-values");
+    const decimal = (value, suffix = "") => typeof value === "number" && Number.isFinite(value) ? value.toFixed(2) + suffix : value;
+    const group = (label, fields, always = false) => {
+      const section = node("section", "profile-section"), available = fields.filter(([, value]) => value !== null && value !== undefined && value !== "");
+      section.append(node("h3", "", label));
+      section.append(available.length || always ? facts(always ? fields : available) : node("p", "muted", "この項目の保存値はありません。"));
+      values.append(section);
+    };
+    group("基本情報", [["登録番号", registration], ["級別", person.grade], ["支部", person.branch], ["年齢", person.age]], true);
+    group("成績・スタート", [["全国勝率", decimal(person.national_win_rate)], ["当地勝率", decimal(person.local_win_rate)],
+      ["全国2連率", decimal(person.national_top2_rate, "%")], ["当地2連率", decimal(person.local_top2_rate, "%")], ["平均ST", decimal(person.average_st)]]);
+    group("モーター・ボート", [["モーター番号", person.motor_no], ["モーター2連率", decimal(person.motor_top2_rate, "%")],
+      ["ボート番号", person.boat_no], ["ボート2連率", decimal(person.boat_top2_rate, "%")]]);
+    group("このレースの直前情報", [["展示タイム", decimal(person.display_time)], ["展示ST", person.preview_st], ["展示進入", person.preview_course],
+      ["選手コメント", person.comment || person.last_comment]]);
+    body.append(values, node("p", "muted small profile-source", "出典：" + sourceText(race.source_provenance) + "。成績は出走情報に保存された期間の値です。未取得の項目を現在の成績で補完していません。"));
+    dialog.replaceChildren(header, body); document.body.classList.add("participant-dialog-open");
+    if (!dialog.open) dialog.showModal();
+    close.focus();
+  }
+  function participantCard(p, race, expanded = false, interactive = true) {
     const number = participantNumber(p), card = node("article", "racer-card"), avatar = node("div", "racer-avatar");
     if (Number.isInteger(number)) avatar.append(badge(number));
     const silhouette = node("span", "avatar-silhouette", "◉");
@@ -262,7 +317,13 @@
       img.src = portrait.src; avatar.append(artwork); status.textContent = ""; status.hidden = true;
     } else avatar.append(silhouette);
     const registration = participantRegistration(p);
-    card.append(avatar, node("strong", "racer-name", p.placeholder ? "出走者 未取得" : p.name ? text(p.name) : "名前 未取得"), node("small", "muted", p.placeholder ? "表示用の枠" : registration ? "登録 " + text(registration) : "登録 未取得"));
+    const identity = [avatar, node("strong", "racer-name", p.placeholder ? "出走者 未取得" : p.name ? text(p.name) : "名前 未取得"), node("small", "muted", p.placeholder ? "表示用の枠" : registration ? "登録 " + text(registration) : "登録 未取得")];
+    if (interactive && !p.placeholder) {
+      const trigger = button("", "racer-identity", () => openParticipant(p, race, trigger));
+      trigger.dataset.openParticipant = registration || "unverified";
+      trigger.setAttribute("aria-label", (p.name || "出走者") + "の選手情報を開く");
+      trigger.append(...identity); card.append(trigger);
+    } else card.append(...identity);
     if (!p.placeholder) card.append(status);
     if (expanded && !p.placeholder) {
       const fields = node("dl", "racer-fields");
@@ -687,7 +748,7 @@
       const matches = portraits.all.filter(p => !query || p.registration.includes(query) || p.aliases.some(name => name.replace(/\s+/g, "").includes(query)));
       grid.replaceChildren();
       for (const entry of matches.slice(0, shown)) {
-        const card = participantCard({registration_no:entry.registration, name:entry.name}, {sport:"boat", scope:"research"});
+        const card = participantCard({registration_no:entry.registration, name:entry.name}, {sport:"boat", scope:"research"}, false, false);
         const link = node("a", "text-link", "公式プロフィール");
         link.href = entry.sourceUrl; link.target = "_blank"; link.rel = "noopener noreferrer";
         card.append(link); grid.append(card);
