@@ -681,6 +681,62 @@ jobs:
           path: ${{ runner.temp }}/all-existing-model-future-p0.status.json
           retention-days: 7
           if-no-files-found: error
+  official_result_recovery_issuer:
+    name: Source-free exact-run recovery issuer
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.head.ref == 'feat/four-sport-forecast-audit-view-20261022' && github.actor == 'haji84' && github.actor_id == '173585154' && github.triggering_actor == 'haji84' && github.run_attempt == '1'
+    permissions:
+      contents: write  # Only this source-free job can append one opaque capsule.
+      actions: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout exact issue HEAD and its complete parent history
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+      - name: Route only the explicit issue-only commit prefix
+        id: issue_route
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == official-results-issue:* ]]; then
+            echo 'requested=true' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Checkout immutable existing PR64 parser for authentication imports
+        if: steps.issue_route.outputs.requested == 'true'
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Install existing pinned archive authentication dependencies
+        if: steps.issue_route.outputs.requested == 'true'
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Issue one consumed exact-parent capsule and authenticate remote readback
+        id: issue
+        if: steps.issue_route.outputs.requested == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          umask 077
+          python - <<'PY'
+          from pathlib import Path
+          import os, race_ai
+          race_ai.__path__.append(str(Path('pr64-reference/race_ai').resolve()))
+          from scripts.all_existing_model_official_result_issue import main
+          raise SystemExit(main(['--proof', str(Path(os.environ['RUNNER_TEMP']) / 'official-result-recovery-issue-proof.json')]))
+          PY
+      - name: Retain only public hashes, counts and exact target issuance proof
+        if: always() && steps.issue_route.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-result-recovery-issue-proof-${{ github.run_id }}-1
+          path: ${{ runner.temp }}/official-result-recovery-issue-proof.json
+          retention-days: 7
+          if-no-files-found: error
   viewer_contract:
     if: github.event_name == 'pull_request'
     name: Viewer audit contract
