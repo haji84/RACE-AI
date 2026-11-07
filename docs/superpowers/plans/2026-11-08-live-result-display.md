@@ -36,10 +36,10 @@ Interfaces: `parse_settlement(raw,receipt,now)->observation`; `settlement_digest
 
 Files: create `race_ai/racer_result_bridge.py`, `tests/test_racer_result_bridge.py`; modify `scripts/racer_intraday_refresh.py`, `race_ai/racer_daily_handoff.py`, existing workflow; extend end-to-end tests.
 Interfaces: `SavedResultBridge(repo,now,...)` opens existing bootstrap/current feed and enumerates latest two saved dates; `.targets()` feeds Task1; `.publish(state,now)` applies retained captures against fresh predecessor, no new prediction work. `refresh(...,sync_results=False)` opt-in CLI `--sync-results` used by workflow. `publish_daily_catalogue(...,result_sync=None)` adds typed counts/check status to existing small status path.
-- [ ] RED tests: pending→final→HIT/MISS projection, payout revision, two dates/month boundary, K removal survival, quiet no-generation, CAS replay and original inventory unchanged using real temporary Git/encryption.
-- [ ] Implement bridge with fixed imports/config, bounded dates, per-race rejection isolation and no source/model/original-maintenance calls. Preserve earlier state when feed errors; expose only safe state/counts to public pointer/report.
-- [ ] Save encrypted packets before feed publication, acknowledge only verified commits, and persist acknowledgements without losing captures. Morning reconciliation remains bounded and recombined; no V1 overwrite.
-- [ ] Run affected Python integration suite and publisher tests; commit.
+- [x] RED tests: pending→final→HIT/MISS projection, payout revision, two dates/month boundary, K removal survival, quiet no-generation, CAS replay and original inventory unchanged using real temporary Git/encryption.
+- [x] Implement bridge with fixed imports/config, bounded dates, per-race rejection isolation and no source/model/original-maintenance calls. Preserve earlier state when feed errors; expose only safe state/counts to public pointer/report.
+- [x] Save encrypted packets before feed publication, acknowledge only verified commits, and persist acknowledgements without losing captures. Morning reconciliation remains bounded and recombined; no V1 overwrite.
+- [x] Run affected Python integration suite and publisher tests; commit.
 
 ### Task3: Compact phone detail and honest result status
 

@@ -188,7 +188,8 @@ class IntradayState:
                         settlement=parse_settlement(raw,r,now=clock(r['captured_at']));fingerprint=settlement_digest(settlement);status=settlement['status']
                     except ValueError:fingerprint=sha(raw);status='UNSUPPORTED'
                     previous=c['settlement_captures'].get(target)
-                    if not previous or previous['settlement_sha256']!=fingerprint:
+                    supersedes=previous and targets[target].get('after') and clock(previous['captured_at'])<clock(targets[target]['after'])
+                    if not previous or previous['settlement_sha256']!=fingerprint or supersedes:
                         p=self.remember('RESULT',raw,r);p.update(settlement_sha256=fingerprint,settlement_status=status);c['settlement_captures'][target]=p
                     interval=5 if targets[target]['pending'] or status!='AVAILABLE' else 30
                     c['settlement_next'][target]=(now+timedelta(minutes=interval)).isoformat()

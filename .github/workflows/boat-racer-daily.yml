@@ -55,4 +55,4 @@ jobs:
           args=()
           if [[ "$INITIALIZE" == 'true' ]]; then args+=(--initialize); fi
           if [[ "$DAILY_RECONCILE" == 'true' ]]; then args+=(--daily-reconcile); fi
-          python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public "${args[@]}"
+          python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results "${args[@]}"

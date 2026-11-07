@@ -42,3 +42,10 @@ class ResultQueueTests(unittest.TestCase):
         targets[0]['cutoff_at']='2026-11-07T19:00:00+09:00'
         s.advance(base,now=NOW,fetch=fetch,max_requests=3,result_targets=targets)
         self.assertLessEqual(len(calls),3);self.assertNotIn(targets[0]['race_id'],s.control['settlement_captures']);self.assertTrue(s.control['settlement_captures'])
+    def test_newer_foreign_rejection_requires_a_fresh_receipt_even_for_unchanged_facts(self):
+        s=self.state();base=self.base();calls,fetch=self.source_results();target=self.targets(count=1)
+        s.advance(base,now=NOW,fetch=fetch,max_requests=2,result_targets=target)
+        target[0]['after']=(NOW+timedelta(minutes=1)).isoformat();later=NOW+timedelta(minutes=5)
+        def fresh(url):raw,_=fetch(url);return raw,later.isoformat()
+        s.advance(base,now=later,fetch=fresh,max_requests=1,result_targets=target)
+        self.assertEqual(s.control['settlement_captures'][target[0]['race_id']]['captured_at'],later.isoformat())
