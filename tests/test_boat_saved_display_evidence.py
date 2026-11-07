@@ -50,5 +50,19 @@ class DisplayEvidenceTests(unittest.TestCase):
         site,audit=counts();site['widths_checked']=True
         self.assertFalse(self.check(site,audit))
 
+    def test_explicit_audited_day_is_required_and_cannot_be_labelled_current_after_midnight(self):
+        site,audit=counts();audit['day']='2030-04-01'
+        site.update(checked_day='2030-04-01',current_day='2030-04-02',date_scope='HISTORICAL_DAY',
+                    checked_day_results=98,checked_day_p1_groups=30,verified_at='2030-04-01T16:00:00Z',
+                    current_day_results=None,current_day_p1_groups=None)
+        def check(value):
+            return verified(value,audit,expected_plan_sha256='a'*64,expected_day='2030-04-01',
+                            site_outcome='success',audit_outcome='success')
+        self.assertTrue(check(site))
+        for key,value in (('checked_day','2030-04-02'),('date_scope','CURRENT_DAY'),
+                          ('current_day_results',98),('current_day','2030-02-30')):
+            bad=deepcopy(site);bad[key]=value
+            with self.subTest(key=key):self.assertFalse(check(bad))
+
 if __name__ == '__main__':
     unittest.main()

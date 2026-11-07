@@ -98,6 +98,16 @@ class BroadcastContextTests(unittest.TestCase):
         self.assertEqual(result['exhibition_boat_number'],3)
         self.assertEqual(result['running_order'],[])
 
+    def test_lap_explanation_statistics_and_popularity_are_not_boat_identity(self):
+        for text in ['全国で1番の展示タイムです。','展示タイム1位の1着率です。',
+                     '1号艇の展示タイムを説明します。','人気は3番です。']:
+            with self.subTest(text=text):
+                self.assertIsNone(self.parse(text,'EXHIBITION_LAP')['exhibition_boat_number'])
+
+    def test_explicit_individual_pass_can_use_short_spoken_ban(self):
+        self.assertEqual(self.parse('続いて3番の周回展示です。','EXHIBITION_LAP')
+                         ['exhibition_boat_number'],3)
+
     def test_start_exhibition_is_not_an_individual_pass(self):
         result=self.parse('1号艇、2号艇、3号艇がスタート展示です。','EXHIBITION_START')
         self.assertIsNone(result['exhibition_boat_number'])
