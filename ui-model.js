@@ -13,8 +13,13 @@
   const model = {
     venueName(row) {
       // Resolve the saved BOAT code for display without rewriting the original record.
-      const code = row?.sport === "boat" && typeof row.venue === "string" ? /^場コード(0[1-9]|1[0-9]|2[0-4])$/.exec(row.venue) : null;
+      const code = row?.sport === "boat" && typeof row.venue === "string" ? /^(?:場コード|boatrace-jcd-)(0[1-9]|1[0-9]|2[0-4])$/.exec(row.venue) : null;
       return code ? boatVenues[Number(code[1]) - 1] : row?.venue;
+    },
+    participantName(row, person) {
+      // The existing catalogue checks every supplied registration field and
+      // exact observed name alias before returning the full public name.
+      return root.RaceRacerPortraits?.get(row, person)?.name || person?.name || null;
     },
     raceDeadline(row = {}) {
       const valid = value => typeof value === "string" && Number.isFinite(Date.parse(value));
@@ -188,7 +193,7 @@
         (!venue || model.venueName(r) === venue || r.venue === venue) && (!forecastOnly || !!r.prediction || !!r.comparison_predictions?.length) &&
         (!candidatesOnly || candidateRaceIds.includes(r.race_id)) &&
         (!needle || [model.venueName(r), r.venue, r.race_no + "R", r.race_id, r.prediction?.model_id, r.prediction?.model_version,
-          ...(r.participants || []).flatMap(p => [p.name, p.registration_id, p.racer_registration_id])].filter(Boolean).join(" ").toLocaleLowerCase("ja-JP").includes(needle)));
+          ...(r.participants || []).flatMap(p => [model.participantName(r,p), p.name, p.registration_no, p.registration_id, p.racer_registration_id])].filter(Boolean).join(" ").toLocaleLowerCase("ja-JP").includes(needle)));
       const cutoff = r => Number.isFinite(Date.parse(r.cutoff_at)) ? Date.parse(r.cutoff_at) : Infinity;
       return rows.sort((a, b) => (sort === "time" ? cutoff(a) - cutoff(b) : (model.venueName(a) || "").localeCompare(model.venueName(b) || "", "ja") || (a.race_no ?? 0) - (b.race_no ?? 0)) || a.race_id.localeCompare(b.race_id));
     }
