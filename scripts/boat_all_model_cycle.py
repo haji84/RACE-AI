@@ -402,6 +402,26 @@ def _outputs(values):
                     stream.write(key+"="+value+"\n")
 
 
+def _error_diagnostic(exc):
+    """Expose bounded public code locations without messages or frame values."""
+    kind = type(exc).__name__
+    if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]{0,63}", kind) is None:
+        kind = "Exception"
+    frames = []
+    code_root = Path(__file__).resolve().parents[1]
+    trace = exc.__traceback__
+    while trace is not None:
+        try:
+            path = Path(trace.tb_frame.f_code.co_filename).resolve().relative_to(code_root).as_posix()
+        except (OSError, RuntimeError, ValueError):
+            path = ""
+        if re.fullmatch(r"(?:scripts|race_ai)/[a-z0-9_]+\.py", path):
+            frames.append([path, trace.tb_lineno])
+            frames = frames[-4:]
+        trace = trace.tb_next
+    return dict(error_class=kind, error_frames=frames)
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     subs = parser.add_subparsers(dest="command", required=True)
@@ -422,7 +442,7 @@ def main(argv=None):
         return 0
     except Exception as exc:
         reason = str(exc) if isinstance(exc, CycleError) else "ALL_MODEL_CLI_OPERATION_FAILED"
-        _outputs(dict(ready=False)); print(wire(dict(status="ALL_MODEL_PATH_REJECTED", reason=reason)))
+        _outputs(dict(ready=False)); print(wire(dict(status="ALL_MODEL_PATH_REJECTED", reason=reason, **_error_diagnostic(exc))))
         return 2
 
 
