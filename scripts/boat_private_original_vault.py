@@ -21,7 +21,6 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from race_ai import boat_private_original_vault as V
-from race_ai.boat_pdca_github_handoff import GitStateRepository, TRANSFER_REF
 
 
 def _environment(repo):
@@ -105,7 +104,7 @@ def _gh(endpoint):
 
 def _parent(git, requested):
     parent = git.head() if requested == 'current' else requested
-    V._need(parent is not None, 'EXISTING_TRANSFER_REF_REQUIRED'); V._hex(parent, V._HEAD)
+    V._need(parent is not None, 'EXISTING_VAULT_REF_REQUIRED'); V._hex(parent, V._HEAD)
     return parent
 
 
@@ -119,8 +118,9 @@ def _live_run(raw, metadata):
                     for name in ('repository','head_repository')), 'LIVE_WORKFLOW_IDENTITY_INVALID')
 
 
-def _capture(ids, repo, parent, git, readback, get, now):
+def _capture(ids, repo, parent, git, readback, get, now, *, allow_refresh=False):
     V._need(0 < len(ids) <= V.MAX_BATCH and len(set(ids)) == len(ids), 'BATCH_ARTIFACT_IDS_INVALID')
+    V._need(type(allow_refresh) is bool, 'PARENT_REFRESH_FLAG_INVALID')
     records = []; saved = []; runs = {}; total = 0; companions = {}
     for ident in ids:
         V._id(ident)
@@ -130,7 +130,7 @@ def _capture(ids, repo, parent, git, readback, get, now):
             restored = V.restore_original(locator, repo, transport=git)
             if locator['kind'] == 'CONTINUITY':
                 companions[restored['metadata']['workflow_run']['id']] = (restored['raw_zip'],restored['metadata_raw'])
-            saved.append(locator); continue
+            saved.append((locator,V._sha(restored['raw_zip']),V._sha(restored['metadata_raw']))); continue
         metadata_raw = get(f'actions/artifacts/{ident}')
         metadata = V._json(metadata_raw, V.MAX_METADATA)
         V._need(type(metadata) is dict and metadata.get('id') == ident and metadata.get('expired') is False,
@@ -161,13 +161,38 @@ def _capture(ids, repo, parent, git, readback, get, now):
         if V._kind(metadata) == 'SOURCE_CONTROL':
             record['companion'] = companions.get(metadata['workflow_run']['id'])
     if records:
-        report = V.retain_originals(records, repo, expected_parent=parent, transport=git,
-                                   readback_transport=readback, now=now)
-        report['locators'] += saved; report['retained_originals'] += len(saved)
-        return report
-    return dict(status='EXACT_ORIGINAL_VAULT_UNCHANGED', source_commit=parent,
-                retained_originals=len(saved), locators=saved,
-                independent_git_readback_verified=True, plaintext_published=False)
+        # Source acquisition and authentication above happen once. A known CAS
+        # race may rebase those same exact bytes onto a verified descendant;
+        # denials, integrity errors and unknown Git failures never retry.
+        for attempt in range(3 if allow_refresh else 1):
+            if allow_refresh:parent=V.refresh_parent(git,parent)
+            try:
+                report = V.retain_originals(records, repo, expected_parent=parent, transport=git,
+                                           readback_transport=readback, now=now)
+                break
+            except ValueError as exc:
+                if type(exc) is not ValueError or str(exc) != 'STATE_REF_CONCURRENT_UPDATE' or not allow_refresh or attempt == 2:
+                    raise
+    else:
+        if allow_refresh:parent=V.refresh_parent(git,parent)
+        report = dict(status='EXACT_ORIGINAL_VAULT_UNCHANGED', source_commit=parent,
+                      retained_originals=0, locators=[], independent_git_readback_verified=True,
+                      plaintext_published=False)
+    if saved:
+        # Producer-cache reads choose originals before live GETs. They do not
+        # prove remote retention, so verify cached originals in a different
+        # object database at the exact commit returned by this operation.
+        commit=report['source_commit'];locators=[]
+        with V._independent_reader(git,readback) as reader:
+            reader.fetch(commit)
+            for locator,zip_sha,metadata_sha in saved:
+                pinned=dict(locator,source_commit=commit)
+                restored=V.restore_original(pinned,reader.repo,transport=reader)
+                V._need(V._sha(restored['raw_zip'])==zip_sha
+                        and V._sha(restored['metadata_raw'])==metadata_sha,'REMOTE_ORIGINAL_READBACK_MISMATCH')
+                locators.append(pinned)
+        report['locators'] += locators;report['retained_originals'] += len(locators)
+    return report
 
 
 def _file_records(manifest, repo):
@@ -234,7 +259,8 @@ def main(argv=None, *, transport=None, readback_transport=None, github_get=None,
         V._need(type(clock) is datetime and clock.utcoffset() is not None, 'AWARE_CLOCK_REQUIRED')
         if args.command == 'capture':
             report = _capture(args.artifact, repo, _parent(git,args.expected_parent), git,
-                              readback_transport, github_get or _gh, clock)
+                              readback_transport, github_get or _gh, clock,
+                              allow_refresh=args.expected_parent == 'current')
         elif args.command == 'retain-files':
             report = V.retain_originals(_file_records(args.manifest,repo), repo,
                 expected_parent=_parent(git,args.expected_parent), transport=git,

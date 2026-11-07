@@ -1,4 +1,4 @@
-"""Exact Actions originals and raw source captures on the existing encrypted ref.
+"""Exact Actions originals and raw captures on the fixed encrypted vault ref.
 
 All private bytes, including legacy clear ZIPs and the exact metadata response,
 are inside an owner-key AEAD envelope. Git stores bounded ciphertext chunks,
@@ -29,6 +29,8 @@ from . import boat_private_original_archive as native
 
 SCHEMA = 'RACE_AI_BOAT_PRIVATE_ORIGINAL_VAULT_V1'
 LOCATOR = 'RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1'
+VAULT_REF = 'state/boat-private-originals'
+_REFS = frozenset((VAULT_REF,TRANSFER_REF))
 PREFIX = 'state/boat-private-originals/v1/'
 DOMAIN = SCHEMA.encode('ascii')
 REPO_ID = '1416489937'
@@ -138,15 +140,18 @@ def _unsigned(raw, mac_key):
 class VaultGitRepository(GitStateRepository):
     """Existing Git guards with shallow metadata and on-demand encrypted blobs.
 
-    A fresh readback must not download every historical ciphertext on the shared
-    transfer ref. GitHub's blob filter retains its exact commit/tree identity;
+    A fresh readback must not download every historical ciphertext. The fixed
+    vault ref isolates new writers from legacy transfer-ref source workers.
+    GitHub's blob filter retains its exact commit/tree identity;
     cat-file/show retrieve only the requested missing blobs from the same
     authenticated origin. Git may record standard local promisor/filter
     bookkeeping; credential helpers, auth headers and origin URLs are untouched.
     """
-    def __init__(self,repo,*,ref=TRANSFER_REF):
-        _need(ref == TRANSFER_REF,'TRANSFER_REF_REQUIRED')
-        super().__init__(repo,ref=ref)
+    def __init__(self,repo,*,ref=VAULT_REF):
+        _need(ref in _REFS,'REF_REQUIRED')
+        # Keep the canonical state publisher's ref allowlist unchanged.
+        self.ref=ref;self.repo=Path(repo).resolve()
+        self._reject_rewrites();self._check_remote()
 
     def _run(self,args,*,body=None,env=None):
         if args and args[0] in ('ls-remote','fetch','push'):
@@ -172,8 +177,41 @@ class VaultGitRepository(GitStateRepository):
 
 def _transport(repo, transport):
     git = transport if transport is not None else VaultGitRepository(repo)
-    _need(git.ref == TRANSFER_REF, 'TRANSFER_REF_REQUIRED')
+    _need(git.ref in _REFS, 'REF_REQUIRED')
     return git
+
+
+def refresh_parent(git,expected_parent):
+    """Accept only a verified descendant, walking at most 64 commit headers.
+
+    Shallow commits still contain actual parent IDs, so no merge-base inference
+    or full-history/blob download is needed. Missing refs, rewinds, divergence,
+    metadata failures and an exhausted ancestry bound are stop conditions.
+    """
+    _need(git.ref in _REFS,'REF_REQUIRED');_hex(expected_parent,_HEAD)
+    current=git.head();_need(current is not None,'REF_CONCURRENT_UPDATE_OR_MISSING')
+    _hex(current,_HEAD)
+    if current==expected_parent:return current
+    pending=[current];seen=set()
+    while pending and len(seen)<64:
+        commit=pending.pop(0)
+        if commit==expected_parent:return current
+        if commit in seen:continue
+        seen.add(commit);git.fetch(commit)
+        _need(git._run(['cat-file','-t',commit]).strip()==b'commit','PARENT_REFRESH_ANCESTRY_UNVERIFIED')
+        size=int(git._run(['cat-file','-s',commit]))
+        _need(0<size<=1024*1024,'PARENT_REFRESH_ANCESTRY_UNVERIFIED')
+        raw=git._run(['cat-file','-p',commit])
+        _need(len(raw)==size,'PARENT_REFRESH_ANCESTRY_UNVERIFIED')
+        for line in raw.split(b'\n\n',1)[0].splitlines():
+            if line.startswith(b'parent '):
+                try:parent=line[7:].decode('ascii')
+                except UnicodeError:raise ValueError('VAULT_PARENT_REFRESH_ANCESTRY_UNVERIFIED') from None
+                _hex(parent,_HEAD)
+                if parent==expected_parent:return current
+                if parent not in seen and parent not in pending:pending.append(parent)
+        _need(len(seen)+len(pending)<=64,'PARENT_REFRESH_ANCESTRY_UNVERIFIED')
+    raise ValueError('VAULT_PARENT_REFRESH_ANCESTRY_UNVERIFIED')
 
 
 def _read(git, commit, path, limit):
@@ -414,9 +452,10 @@ def _ref(value):
     return value
 
 
-def _locator(commit, reference):
+def _locator(commit, reference, *, ref=VAULT_REF):
     _hex(commit, _HEAD); _ref(reference)
-    return dict(schema=LOCATOR, status='READY', repository_id=REPO_ID, ref=TRANSFER_REF,
+    _need(ref in _REFS,'REF_REQUIRED')
+    return dict(schema=LOCATOR, status='READY', repository_id=REPO_ID, ref=ref,
                 source_commit=commit, **reference)
 
 
@@ -424,9 +463,9 @@ def _validate_locator(locator):
     _need(type(locator) is dict and set(locator) == {'schema','status','repository_id','ref','source_commit',
           'batch_path','batch_sha256','entry_sha256','artifact_id','kind'} and locator['schema'] == LOCATOR
           and locator['status'] == 'READY' and locator['repository_id'] == REPO_ID
-          and locator['ref'] == TRANSFER_REF, 'LOCATOR_INVALID')
+          and locator['ref'] in _REFS, 'LOCATOR_INVALID')
     return _locator(locator['source_commit'], {k:locator[k] for k in
-        ('batch_path','batch_sha256','entry_sha256','artifact_id','kind')})
+        ('batch_path','batch_sha256','entry_sha256','artifact_id','kind')},ref=locator['ref'])
 
 
 def _batch_entry(git, commit, reference, mac_key):
@@ -463,7 +502,7 @@ def _lookup(git, commit, ident, mac_key):
 @contextmanager
 def _independent_reader(git, supplied):
     if supplied is not None:
-        _need(supplied.ref == TRANSFER_REF and Path(supplied.repo).resolve() != Path(git.repo).resolve(),
+        _need(supplied.ref == git.ref and Path(supplied.repo).resolve() != Path(git.repo).resolve(),
               'INDEPENDENT_GIT_READER_REQUIRED')
         yield supplied
         return
@@ -472,7 +511,7 @@ def _independent_reader(git, supplied):
         for args in (['git','init','--bare',str(root)], ['git','-C',str(root),'remote','add','origin',git.fetch_url]):
             result = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=30)
             _need(result.returncode == 0, 'READBACK_REPOSITORY_FAILED')
-        yield VaultGitRepository(root)
+        yield VaultGitRepository(root,ref=git.ref)
 
 
 def _verify_restored_records(reader,locators,records,key):
@@ -497,10 +536,11 @@ def _retain(records, repo, *, expected_parent, key, transport, readback_transpor
               for record in records) <= MAX_BATCH_PLAIN, 'BATCH_TOTAL_BOUND_INVALID')
     git = _transport(repo, transport)
     if readback_transport is not None:
-        _need(readback_transport.ref == TRANSFER_REF and Path(readback_transport.repo).resolve() != Path(git.repo).resolve(),
+        _need(readback_transport.ref == git.ref and Path(readback_transport.repo).resolve() != Path(git.repo).resolve(),
               'INDEPENDENT_GIT_READER_REQUIRED')
     parent = git.head()
-    _need(parent is not None and parent == expected_parent, 'REF_CONCURRENT_UPDATE_OR_MISSING')
+    _need(parent is not None, 'REF_CONCURRENT_UPDATE_OR_MISSING')
+    if parent!=expected_parent:raise ValueError('STATE_REF_CONCURRENT_UPDATE')
     git.fetch(parent)
     files = {}; pending = []; retained = []; existing = []; lookups = {}; run_indexes = {}; months = {}
     seen = set()
@@ -533,7 +573,7 @@ def _retain(records, repo, *, expected_parent, key, transport, readback_transpor
         entry, chunks = _seal(record, now, encryption_key)
         pending.append(entry); files.update(chunks); retained.append(entry)
     if not pending:
-        locators=[_locator(parent,r) for r in retained]
+        locators=[_locator(parent,r,ref=git.ref) for r in retained]
         with _independent_reader(git,readback_transport) as reader:
             _verify_restored_records(reader,locators,records,key)
         return dict(status='EXACT_ORIGINAL_VAULT_UNCHANGED', source_commit=parent,
@@ -543,7 +583,7 @@ def _retain(records, repo, *, expected_parent, key, transport, readback_transpor
         # Detect broken inherited originals before adding a new batch. The
         # final commit is verified again below, including these old entries.
         with _independent_reader(git,readback_transport) as reader:
-            _verify_restored_records(reader,[_locator(parent,r) for r,_ in existing],
+            _verify_restored_records(reader,[_locator(parent,r,ref=git.ref) for r,_ in existing],
                                      [record for _,record in existing],key)
     # A batch can span months without requiring several ref updates. Every
     # entry's chunks/index live in its own month; the batch is under the first.
@@ -591,7 +631,7 @@ def _retain(records, repo, *, expected_parent, key, transport, readback_transpor
             if git.exists(parent, path):
                 _need(_read(git, parent, path, 8*1024*1024) == body, 'IMMUTABLE_BYTES_CONFLICT')
     commit = git.commit(files, parent); git.push(commit, parent)
-    locators = [_locator(commit, references[id(r)] if id(r) in references else r) for r in retained]
+    locators = [_locator(commit, references[id(r)] if id(r) in references else r,ref=git.ref) for r in retained]
     # Use a different object database, populated from the actual remote commit.
     # Re-reading the writer's just-authored objects would not be independent.
     with _independent_reader(git, readback_transport) as reader:
@@ -716,12 +756,12 @@ def lookup_original(artifact_id, repo, *, source_commit=None, key=None, transpor
     """Read one numeric-ID bucket and one batch; no all-history/blob enumeration."""
     _, mac_key = _keys(key); _id(artifact_id)
     git = _transport(repo, transport); commit = source_commit if source_commit is not None else git.head()
-    _need(commit is not None, 'EXISTING_TRANSFER_REF_REQUIRED'); _hex(commit, _HEAD); git.fetch(commit)
+    _need(commit is not None, 'EXISTING_VAULT_REF_REQUIRED'); _hex(commit, _HEAD); git.fetch(commit)
     _, index = _lookup(git, commit, artifact_id, mac_key)
     reference = index['entries'].get(str(artifact_id))
     if reference is None: return None
     _batch_entry(git, commit, reference, mac_key)
-    return _locator(commit, reference)
+    return _locator(commit, reference,ref=git.ref)
 
 
 def list_originals(month, repo, *, source_commit=None, run_id=None, key=None, transport=None):
@@ -729,7 +769,7 @@ def list_originals(month, repo, *, source_commit=None, run_id=None, key=None, tr
     _, mac_key = _keys(key); _month(month)
     if run_id is not None: _id(run_id)
     git = _transport(repo, transport); commit = source_commit if source_commit is not None else git.head()
-    _need(commit is not None, 'EXISTING_TRANSFER_REF_REQUIRED'); _hex(commit, _HEAD); git.fetch(commit)
+    _need(commit is not None, 'EXISTING_VAULT_REF_REQUIRED'); _hex(commit, _HEAD); git.fetch(commit)
     path = PREFIX+month+'/month.json'
     if not git.exists(commit, path): return []
     index = _index(git, commit, path, dict(kind='month',month=month,runs={},entries=0,cipher_bytes=0), mac_key)
@@ -751,7 +791,7 @@ def list_originals(month, repo, *, source_commit=None, run_id=None, key=None, tr
             _ref(reference)
             _need(ident == str(reference['artifact_id']) or reference['kind'] == 'SOURCE_CAPTURES'
                   and re.fullmatch(r'captures-[a-f0-9]{64}', ident), 'RUN_ENTRY_INVALID')
-            found.append(_locator(commit, reference))
+            found.append(_locator(commit, reference,ref=git.ref))
     if run_id is None: _need(len(found) == index['entries'], 'MONTH_INDEX_INCOMPLETE')
     return found
 

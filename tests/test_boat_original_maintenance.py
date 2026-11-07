@@ -115,7 +115,7 @@ class MaintenanceIntegrationTests(unittest.TestCase):
         def descriptor(_git,_parent,locator,_key):
             return dict(header=dict(summary=dict(run_id=runs_by_id[locator['artifact_id']],kind='P0'),
                                     files={'original.zip':dict(size=100)}),cipher_size=120)
-        def capture(ids,_repo,parent,*args):
+        def capture(ids,_repo,parent,*args,**kwargs):
             retained.update(ids)
             return dict(source_commit=parent,locators=[dict(artifact_id=i,kind='P0') for i in ids])
         def closure(raw,_pages,_repo,*,expected_parent,**kwargs):
@@ -129,6 +129,135 @@ class MaintenanceIntegrationTests(unittest.TestCase):
         stack.enter_context(patch.object(M.V,'_batch_entry',side_effect=descriptor))
         stack.enter_context(patch.object(M.VCLI,'_capture',side_effect=capture))
         return retained,closures
+
+    def dedicated_vault(self):
+        """Seed only an invented local ref from its complete legacy tree."""
+        legacy=self.writer
+        dedicated=vault_fixture.LocalGit(legacy.repo,ref=M.V.VAULT_REF)
+        dedicated.push(self.fixture.parent,None)
+        self.writer=dedicated
+        self.reader=vault_fixture.LocalGit(self.reader.repo,ref=M.V.VAULT_REF)
+        peer=self.fixture.git('parallel-writer',self.fixture.root/'remote.git')
+        peer=vault_fixture.LocalGit(peer.repo,ref=M.V.VAULT_REF)
+        return legacy,peer
+
+    def append(self,git,path='parallel/append.enc',body=b'concurrent encrypted fixture'):
+        parent=git.head();git.fetch(parent)
+        commit=git.commit({path:body},parent);git.push(commit,parent)
+        return commit
+
+    def test_dedicated_vault_ignores_a_legacy_source_append_during_slow_capture(self):
+        legacy,_=self.dedicated_vault();source=[]
+        def during_zip(endpoint):
+            if endpoint.endswith('/zip'):
+                source.append(self.append(legacy,'source/current.enc'))
+            return self.get(endpoint)
+        report=self.run_backfill(get=during_zip)
+        self.assertTrue(report['complete']);self.assertEqual(legacy.head(),source[0])
+        self.assertNotEqual(self.writer.head(),legacy.head())
+        self.assertFalse(self.writer.exists(report['source_commit'],'source/current.enc'))
+        self.assertIsNotNone(M.V.lookup_original(101,self.writer.repo,transport=self.writer,
+            key=vault_fixture.KEY))
+
+    def test_capture_refreshes_a_dedicated_descendant_without_repeating_gets(self):
+        _,peer=self.dedicated_vault()
+        def during_zip(endpoint):
+            if endpoint.endswith('/zip'):self.append(peer)
+            return self.get(endpoint)
+        report=self.run_backfill(get=during_zip)
+        self.assertTrue(report['complete'])
+        self.assertEqual(self.writer.read(report['source_commit'],'parallel/append.enc',100),b'concurrent encrypted fixture')
+        self.assertTrue(all(self.calls.count(endpoint)==1 for endpoint in self.responses))
+
+    def test_catalog_cas_refresh_uses_the_same_actual_responses(self):
+        _,peer=self.dedicated_vault();retain=M.R.retain_closed_run_responses;attempts=[]
+        def concurrent(*args,**kwargs):
+            attempts.append(kwargs['expected_parent'])
+            if len(attempts)==1:self.append(peer)
+            return retain(*args,**kwargs)
+        with patch.object(M.R,'retain_closed_run_responses',side_effect=concurrent):
+            report=self.run_backfill()
+        self.assertTrue(report['complete']);self.assertEqual(len(attempts),2)
+        self.assertTrue(all(self.calls.count(endpoint)==1 for endpoint in self.responses))
+
+    def test_progress_cas_refresh_preserves_a_concurrent_unrelated_append(self):
+        _,peer=self.dedicated_vault();push=self.writer.push;attempts=[]
+        def concurrent(commit,parent):
+            if self.writer.exists(commit,M.PROGRESS_PATH):
+                attempts.append(parent)
+                if len(attempts)==1:self.append(peer)
+            return push(commit,parent)
+        with patch.object(self.writer,'push',side_effect=concurrent):report=self.run_backfill()
+        self.assertTrue(report['complete']);self.assertEqual(len(attempts),2)
+        self.assertEqual(self.writer.read(report['source_commit'],'parallel/append.enc',100),b'concurrent encrypted fixture')
+        self.assertEqual(self.calls.count('actions/artifacts/101/zip'),1)
+
+    def test_another_maintenance_progress_write_during_capture_holds_without_overwrite(self):
+        _,peer=self.dedicated_vault();written=[]
+        def during_zip(endpoint):
+            if endpoint.endswith('/zip'):
+                parent=peer.head();peer.fetch(parent)
+                state=M._progress(peer,parent,M.V._keys(None)[1]);state['run_after']=77
+                raw=M.V._signed(state,M.V._keys(None)[1]);written.append(raw)
+                self.append(peer,M.PROGRESS_PATH,raw)
+            return self.get(endpoint)
+        with self.assertRaisesRegex(ValueError,'^ORIGINAL_MAINTENANCE_PROGRESS_CONCURRENT_UPDATE$'):
+            self.run_backfill(get=during_zip)
+        head=self.writer.head();self.writer.fetch(head)
+        self.assertEqual(self.writer.read(head,M.PROGRESS_PATH,1024*1024),written[0])
+        self.assertFalse(self.writer.exists(head,'state/boat-original-recovery/v1/runs/2/latest.json'))
+
+    def test_another_maintenance_progress_write_before_cas_holds_without_retry(self):
+        _,peer=self.dedicated_vault();push=self.writer.push;attempts=[];written=[]
+        def concurrent(commit,parent):
+            if self.writer.exists(commit,M.PROGRESS_PATH):
+                attempts.append(parent)
+                state=M._progress(peer,parent,M.V._keys(None)[1]);state['run_after']=77
+                raw=M.V._signed(state,M.V._keys(None)[1]);written.append(raw)
+                self.append(peer,M.PROGRESS_PATH,raw)
+            return push(commit,parent)
+        with patch.object(self.writer,'push',side_effect=concurrent),self.assertRaisesRegex(
+                ValueError,'^ORIGINAL_MAINTENANCE_PROGRESS_CONCURRENT_UPDATE$'):
+            self.run_backfill()
+        self.assertEqual(len(attempts),1)
+        head=self.writer.head();self.writer.fetch(head)
+        self.assertEqual(self.writer.read(head,M.PROGRESS_PATH,1024*1024),written[0])
+
+    def test_missing_archive_ref_during_capture_holds(self):
+        _,peer=self.dedicated_vault()
+        def during_zip(endpoint):
+            if endpoint.endswith('/zip'):peer._run(['push',peer.push_url,':refs/heads/'+peer.ref])
+            return self.get(endpoint)
+        with self.assertRaisesRegex(ValueError,'^VAULT_REF_CONCURRENT_UPDATE_OR_MISSING$'):
+            self.run_backfill(get=during_zip)
+        self.assertIsNone(self.writer.head())
+
+    def test_divergent_archive_ref_during_capture_holds(self):
+        _,peer=self.dedicated_vault()
+        def during_zip(endpoint):
+            if endpoint.endswith('/zip'):
+                divergent=peer.commit({'divergent.enc':b'fixture fork'},None)
+                peer._run(['push','--force',peer.push_url,divergent+':refs/heads/'+peer.ref])
+            return self.get(endpoint)
+        with self.assertRaisesRegex(ValueError,'^VAULT_PARENT_REFRESH_ANCESTRY_UNVERIFIED$'):
+            self.run_backfill(get=during_zip)
+
+    def test_unknown_git_denial_and_integrity_failures_are_never_retried(self):
+        failures=['STATE_GIT_OPERATION_FAILED','GITHUB_API_READ_HTTP_403_HALT',
+                  'ORIGINAL_RECOVERY_CLOSED_RUN_IMMUTABLE_CONFLICT']
+        for reason in failures:
+            with self.subTest(reason=reason),patch.object(M.R,'retain_closed_run_responses',
+                    side_effect=ValueError(reason)) as retain,self.assertRaisesRegex(ValueError,'^'+reason+'$'):
+                self.run_backfill()
+            self.assertEqual(retain.call_count,1)
+
+    def test_catalog_known_cas_retries_stop_after_three_attempts(self):
+        with patch.object(M.R,'retain_closed_run_responses',side_effect=ValueError(
+                'ORIGINAL_RECOVERY_CATALOG_REF_CONCURRENT_UPDATE')) as retain,self.assertRaisesRegex(
+                ValueError,'^ORIGINAL_RECOVERY_CATALOG_REF_CONCURRENT_UPDATE$'):
+            self.run_backfill()
+        self.assertEqual(retain.call_count,3)
+        self.assertTrue(all(self.calls.count(endpoint)==1 for endpoint in self.responses))
 
     def test_required_targets_survive_run_and_target_window_rotation(self):
         native={run:[1000+run] for run in range(2,131)}

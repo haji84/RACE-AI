@@ -36,9 +36,12 @@ Interface: `official_b_cards_source(raw_b, document, receipt, *, day, as_of)`
 returns a source-backed cards projection with original hash/clock/roster proof.
 Missing waku remains explicit and does not suppress the recovered cards.
 
-- [ ] Write and observe failing source/hash/roster/semantics tests.
-- [ ] Implement the projection and compatibility with the existing CSV intake.
-- [ ] Verify unchanged seller equations and actual 132-race source counts.
+- [x] Write and observe failing source/hash/roster/semantics tests.
+- [x] Implement the projection and compatibility with the existing CSV intake.
+- [x] Verify unchanged seller equations and actual 132-race source counts.
+
+The genuine nationwide cards cover 132 races and 792 entrants. The separate
+same-frame `waku10` input is still absent; the seller model remains on HOLD.
 
 ### Task B: Native evidence and PDCA (pdca_actual_completion)
 
@@ -50,23 +53,26 @@ actual `(raw_zip, metadata)` pairs and returns a new view with separately bound
 evidence and an aggregate report. Existing prediction dictionaries are exact.
 Node report exports `report(view, options)` and never emits picks/names/keys.
 
-- [ ] Test genuine omitted clocks/input seals, conflicting evidence and unchanged
+- [x] Test genuine omitted clocks/input seals, conflicting evidence and unchanged
   original inventory; test matched cohorts and result-independent allocation.
-- [ ] Implement native evidence and safe aggregate reporting.
-- [ ] Verify actual saved-view counts and confidence-qualified PDCA conclusions.
+- [x] Implement native evidence and safe aggregate reporting.
+- [x] Verify actual saved-view counts and confidence-qualified PDCA conclusions.
 
 ### Task C: Exact encrypted original vault (retention_completion)
 
 Files: new `race_ai/boat_private_original_vault.py`,
 `scripts/boat_private_original_vault.py`, dedicated tests. Reuse the existing
-transfer ref/GitStateRepository and preserve unrelated retained paths.
+GitStateRepository transport and preserve unrelated retained paths. After the
+observed concurrent transfer-writer failure, use the explicitly seeded
+`state/boat-private-originals` ref; preserve literal legacy locator support and
+fail closed if the new ref is missing. See the concurrency correction in the spec.
 Interfaces: `retain_original(raw_zip, metadata_raw, ...)` and
 `restore_original(locator, ...)` return byte-exact native ZIP/metadata, actual
 original clocks and verified archived provenance. No synthetic live receipt.
 
-- [ ] Test exact legacy/encrypted bytes, expiry without live GET, wrong key,
+- [x] Test exact legacy/encrypted bytes, expiry without live GET, wrong key,
   immutable-ID conflicts, missing/tampered chunks, CAS and no denied fallback.
-- [ ] Implement bounded encrypted retention and independent Git readback.
+- [x] Implement bounded encrypted retention and independent Git readback.
 - [ ] Root integrates producer readbacks, recovery selection, raw result capture
   retention and actual backfill through Actions with the existing owner key.
 
@@ -75,9 +81,9 @@ original clocks and verified archived provenance. No synthetic live receipt.
 Files: existing supervisor/feed/Pages intake and narrowly scoped adapters/tests;
 history ownership is assigned after interface review, not concurrent edits.
 
-- [ ] Preserve hourly automation schedule and replace local-path assumptions
+- [x] Preserve hourly automation schedule and replace local-path assumptions
   with GitHub recovery/verified single-writer adoption and explicit stop rules.
-- [ ] Add bounded date-based owner history with immutable archived originals;
+- [x] Add bounded date-based owner history with immutable archived originals;
   retain V4 compatibility while older active publishers are present.
 - [ ] Integrate B/C without changing the active worker; publish/review on the
   existing branch, then validate actual restore and original conservation.
@@ -86,7 +92,7 @@ history ownership is assigned after interface review, not concurrent edits.
 
 - [ ] Observe actual pre-cutoff P1, saved receipt, website reflection and later
   official result/returns for genuine races; report coverage gaps by reason.
-- [ ] Freeze a versioned evaluation/allocation plan before included outcomes;
+- [x] Freeze a versioned evaluation/allocation plan before included outcomes;
   keep historical simulations separate from prospective evidence.
 - [ ] Run affected tests, fresh independent review, full CI and real browser
   checks; record each of the five gates using implementation/live/pending states.

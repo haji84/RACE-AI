@@ -49,6 +49,26 @@ duplicates, and preserve all waits and incomplete transactions.
    proof of prospective improvement. A valid conclusion may be that improvement
    is not demonstrated; results and samples cannot be invented to pass a gate.
 
+## Observed concurrency correction
+
+The first integrated saved-data run, `42319928445`, stopped with
+`VAULT_REF_CONCURRENT_UPDATE_OR_MISSING`: an older active source writer advanced
+the transfer ref while exact archive metadata was being collected. Isolate new
+original retention, recovery catalogs, program-source catalogs, maintenance
+progress and the count-only control mirror on `state/boat-private-originals`.
+This remains in the same public GitHub repository with the existing permission
+scope and encryption key. The branch was explicitly created from transfer commit
+`cc3efc51f2aaa5f519819b2cbed76c913b620f1f`, preserving its complete tree and
+ancestry. Existing literal transfer-ref locators remain readable. A missing state
+ref is still a stop condition; initialization is never an automatic fallback.
+
+For compatible writers sharing the new ref, refresh a stale parent only after a
+bounded ancestry proof. Preserve unrelated paths and bound retries to explicit
+concurrent-update failures using the same validated bytes. Authentication,
+transport, integrity, missing-state and divergent-history failures do not enter
+this retry path. Keep the older active and already reserved source workers
+untouched.
+
 ## Completion recording
 
 Every gate records implementation tests separately from real observations.

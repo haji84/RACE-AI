@@ -80,12 +80,12 @@ class VaultTests(unittest.TestCase):
         self.parent = self.writer.commit({'unrelated/retained.enc': b'existing ciphertext'}, None)
         self.writer.push(self.parent, None)
 
-    def git(self, name):
+    def git(self, name, *, ref=TRANSFER_REF):
         repo = self.root/name
         subprocess.run(['git', 'init', str(repo)], check=True, capture_output=True)
         subprocess.run(['git', '-C', str(repo), 'remote', 'add', 'origin', str(self.remote)],
                        check=True, capture_output=True)
-        return LocalGit(repo, ref=TRANSFER_REF)
+        return LocalGit(repo, ref=ref)
 
     def retain(self, pair=None, **kwargs):
         pair = original() if pair is None else pair

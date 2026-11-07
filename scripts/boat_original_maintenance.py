@@ -25,6 +25,7 @@ MAX_TARGET_DESCRIPTORS = 128
 MAX_RUN_PROBES = 128
 MAX_DESCRIPTOR_LOOKUPS = 512
 MAX_METADATA_BYTES = 64*1024*1024
+MAX_WRITE_ATTEMPTS = 3
 PROGRESS_PATH = 'state/boat-original-maintenance/v1/progress.json'
 RUN_CONFIG_PATH = 'audit/state/boat-model-recovery-input.json'
 
@@ -187,14 +188,36 @@ def _progress(git,parent,mac_key):
     return value
 
 
-def _save_progress(git,parent,before,after,mac_key,readback):
-    if before==after:return parent
-    _need(git.head()==parent,'PROGRESS_CONCURRENT_UPDATE')
+def _progress_revision(git,parent):
+    return V._sha(V._read(git,parent,PROGRESS_PATH,1024*1024)) if git.exists(parent,PROGRESS_PATH) else None
+
+
+def _refresh_parent(git,parent,progress_revision):
+    """Accept only bounded proven descendants with unchanged writer progress."""
+    current=V.refresh_parent(git,parent)
+    _need(_progress_revision(git,current)==progress_revision,'PROGRESS_CONCURRENT_UPDATE')
+    return current
+
+
+def _cas_error(exc,*,catalog=False):
+    allowed={'STATE_REF_CONCURRENT_UPDATE'}
+    if catalog:allowed.add('ORIGINAL_RECOVERY_CATALOG_REF_CONCURRENT_UPDATE')
+    return type(exc) is ValueError and str(exc) in allowed
+
+
+def _save_progress(git,parent,before,after,mac_key,readback,progress_revision):
     raw=V._signed(after,mac_key);_need(len(raw)<=1024*1024,'PROGRESS_BOUND_EXCEEDED')
-    commit=git.commit({PROGRESS_PATH:raw},parent);git.push(commit,parent)
-    with V._independent_reader(git,readback) as reader:
-        reader.fetch(commit);_need(V._read(reader,commit,PROGRESS_PATH,1024*1024)==raw,'PROGRESS_READBACK_FAILED')
-    return commit
+    for attempt in range(MAX_WRITE_ATTEMPTS):
+        parent=_refresh_parent(git,parent,progress_revision)
+        if before==after:return parent
+        try:
+            commit=git.commit({PROGRESS_PATH:raw},parent);git.push(commit,parent)
+        except ValueError as exc:
+            if not _cas_error(exc) or attempt+1==MAX_WRITE_ATTEMPTS:raise
+            continue
+        with V._independent_reader(git,readback) as reader:
+            reader.fetch(commit);_need(V._read(reader,commit,PROGRESS_PATH,1024*1024)==raw,'PROGRESS_READBACK_FAILED')
+        return commit
 
 
 def _restore_cost(entry):
@@ -224,6 +247,7 @@ def backfill(view, repo, *, artifact_ids=(), run_ids=(), github_get=None, transp
     git=V._transport(repo,transport);parent=git.head();_need(parent is not None,'TRANSFER_REF_REQUIRED')
     git.fetch(parent);mac_key=V._keys(None)[1]
     progress=_progress(git,parent,mac_key)
+    progress_revision=_progress_revision(git,parent)
     live=github_get or _strict_live_gh
     reader=R.ArtifactRecovery(live,repo,transport=git)
     cache={};lookups={};descriptors={};live_runs=set();allowed_zips=set();metadata_bytes=0
@@ -357,8 +381,9 @@ def backfill(view, repo, *, artifact_ids=(), run_ids=(), github_get=None, transp
     missing_before={ident for ident in selected if not lookup(ident)}
     if selected:
         allowed_zips.update(selected)
-        captured=VCLI._capture(selected,repo,parent,git,readback_transport,get,clock)
-        parent=captured['source_commit']
+        parent=_refresh_parent(git,parent,progress_revision)
+        captured=VCLI._capture(selected,repo,parent,git,readback_transport,get,clock,allow_refresh=True)
+        parent=_refresh_parent(git,captured['source_commit'],progress_revision)
         for locator in captured['locators']:
             lookups[locator['artifact_id']]=locator;descriptors.pop(locator['artifact_id'],None)
         # _capture already authenticated exact bytes and independently read back
@@ -387,9 +412,18 @@ def backfill(view, repo, *, artifact_ids=(), run_ids=(), github_get=None, transp
             # Full ZIP validation is sequential in the existing closure helper;
             # reserve its whole aggregate workload before the first ZIP read.
             restore_bytes=sum(_restore_cost(descriptor(ident)) for ident in item['plan']['native_ids'])
-            budget.reserve(restore_bytes)
-            retained=R.retain_closed_run_responses(item['raw'],item['pages'],repo,expected_parent=parent,
-                        transport=git,readback_transport=readback_transport,now=clock)
+            for attempt in range(MAX_WRITE_ATTEMPTS):
+                parent=_refresh_parent(git,parent,progress_revision)
+                # A failed CAS can follow sequential ZIP validation. Reserve
+                # that work again before retrying; no extra GitHub GET occurs.
+                budget.reserve(restore_bytes)
+                try:
+                    retained=R.retain_closed_run_responses(item['raw'],item['pages'],repo,expected_parent=parent,
+                                transport=git,readback_transport=readback_transport,now=clock)
+                except ValueError as exc:
+                    if not _cas_error(exc,catalog=True) or attempt+1==MAX_WRITE_ATTEMPTS:raise
+                    continue
+                break
             parent=retained['source_commit'];closed+=1;pending.discard(item['run'])
             target_runs.pop(item['run'],None);artifact_after.pop(item['run'],None)
         except _BudgetLimit:byte_deferred+=1;incomplete_closed+=1
@@ -398,7 +432,7 @@ def backfill(view, repo, *, artifact_ids=(), run_ids=(), github_get=None, transp
         pending_targets={str(run):sorted(ids) for run,ids in target_runs.items()},
         artifact_after={str(run):after for run,after in artifact_after.items() if run in pending},
         targets_sha256=targets_sha256,target_cycle_complete=target_cycle_complete,target_cycle_dirty=target_cycle_dirty)
-    parent=_save_progress(git,parent,progress,next_progress,mac_key,readback_transport)
+    parent=_save_progress(git,parent,progress,next_progress,mac_key,readback_transport,progress_revision)
     complete=target_cycle_complete and not pending and not remaining_targets
     return dict(schema='RACE_AI_BOAT_ORIGINAL_MAINTENANCE_COUNTS_V1',
         status='BOAT_ORIGINAL_MAINTENANCE_COMPLETE' if complete else 'BOAT_ORIGINAL_MAINTENANCE_DEFERRED',
@@ -413,6 +447,7 @@ def backfill(view, repo, *, artifact_ids=(), run_ids=(), github_get=None, transp
         pending_required_artifact_ids=remaining_targets,
         max_new_runs=MAX_RUNS,max_capture_ids=MAX_ARTIFACTS,max_target_descriptors=MAX_TARGET_DESCRIPTORS,
         max_descriptor_lookups=MAX_DESCRIPTOR_LOOKUPS,max_run_probes=MAX_RUN_PROBES,
+        max_write_attempts=MAX_WRITE_ATTEMPTS,
         reserved_io_bytes=budget.used,max_io_bytes=budget.maximum,metadata_response_bytes=metadata_bytes,
         full_current_view_readback_verified=False,complete=complete,
         official_source_requests=0,plaintext_published=False)
