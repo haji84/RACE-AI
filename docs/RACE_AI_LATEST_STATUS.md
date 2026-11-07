@@ -1,3 +1,17 @@
+<!-- RACEAI_AUTOMATION_20261107_1332_RECOVERY_SUCCESS_FROZEN_AUDIT_UNVERIFIED -->
+# 2026-11-07 13:32 JST｜原本復元後の既存公式run成功。第1巡を実ZIP照合、28仮想シナリオは事前receipt未立証
+
+**GitHub実API確認:** Draft PR #71、branch `feat/four-sport-forecast-audit-view-20261022`、workflow `405276784`。監査前の現HEAD `1bafe16e8ff34d38c58778b5a02e4c189c0ef12f`。source run `42336097863`（起動HEAD `013c59c3f41209993bfba1f4b2b93791deba3d6c`）は2026-11-07 13:30:41 JST `completed/success`。先行失敗 `42330631694` の `VAULT_REFERENCE_KIND_INVALID` 後、今回の現runは初回P0原本再利用step18とP0モデル実行step20〜24をsuccessで通過した。先行失敗runをrerunせず、P0初回原本を再生成しなかった。旧エラーが全入力・全runで解消した証明ではない。
+
+**巡回と独立検証の境界:** 全artifact一覧にある現runの正式 `race-existing-cycle-42336097863`（接尾辞なし、**第1巡**）の実GitHub ZIP `13560407497` は、ローカル再SHA256 `2ea1f784579db5797127db32a42dd84ece69ade421ee353e4851c480e8ce85ed` がAPI digestと一致し、ZIP構造正常。中身は `private-original.enc`、鍵なしで `status.json/forecasts.csv/automatic_learning/coverage_audit/learned_shadow_comparison` の検証は不能。独立再取得したsource control ZIP `13559864971` はSHA `0bf5746512cd7c516c4439c6435e551aed64874147623216f222f020311b824a` 一致、JSONは `completed_round=1, requests_used=45, stop_reason=ROUND_SOURCE_BUDGET_EXHAUSTED`。GitHubでround02〜24のstepがsuccessでも、その番号の巡回artifactは存在しないため24巡完成とは認定しない。公式GET 240超過は本runの記録上なし。保存された新P1予想のモデル別件数、公式通常結果の追加採点、学習係数、未来比較、収支は復号していないため**不明**。
+
+**前向き試算の限定的進展:** `boat-prospective-evaluation-42336097863-r1` の実ZIP `13560632416` を独立再取得、実SHA `6d649b2dcf57021686a9a778229c6156fe1214ae2898140a029a79fa7045c75c` がAPI digestと一致。内包JSONの `frozen_settlement` は登録28シナリオ全件 `SETTLED`、公開事前計画内の `plan_sha256=9f9176a2eb0638436fbc138d20174b4dedab4a0eab7ceea0220a474243baec05` と文字列一致。だが `independent_pre_cutoff_receipt_verified=false`、`prospective_allocation_verified=false`、`accuracy_improvement_proven=false`、`actual_purchases=false`。28ケースは**代替仮想条件**であり、合算購入・前向き改善・正式確定収支とは扱わない。表示ベース `result_states=final41/missing88/unsupported3` は同様に独立公式原本の再照合を今回完了しておらず、正式採点件数に加算しない。
+
+**起動・vault安全HOLD:** 監査時に同workflowの実行中・待機中 `0` 件。ただし count-only `state/boat-source-control/v1/latest.json` は以前の**失敗run42330631694**を指したまま（本runへの更新未確認）。現runの source-control ZIP は正しいが、owner鍵のHMAC/暗号vault原本まで本監査で独立認証したことにはならない。このstale controlを正常・0件に置き換えず、次の公式sourceトリガーは予約しない。保存/表示専用jobも根本未修正の `ALL_MODEL_CLI_OPERATION_FAILED` を持つため無根拠にrerunしない。4xx/429/真正性停止の回避、旧ref fallback、初期化、別認証は無し。既存64?分など安全制限・concurrency/頻度・他ジョブ・暗号原本・本番モデルには手を加えない。
+
+**未完成の区分:** 原本復元stepと第1巡ZIP/カウンター実バイト検証のみ今回新たに確認。P1/結果/自動係数学習/LEARNED_SHADOWの未来前向き優位性、28条件の物理的事前証明、全4競技16系統、全原本期限なし保管・所有者本番日別表示は未認定。新タスク・新PR・別workflow・クラウド・追加課金・main統合・公開・実投票・本番自動採用なし。
+
+---
 <!-- RACEAI_AUTOMATION_20261107_1228_RECOVERY_FAILED_SOURCE_HOLD -->
 # 2026-11-07 12:28 JST｜既存表示の暗号履歴が第13世代へ進展。ただしsource復元と表示P0処理は失敗、追加起動HOLD
 
