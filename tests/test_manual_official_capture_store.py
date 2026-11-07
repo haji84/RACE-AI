@@ -139,6 +139,17 @@ class ManualOfficialCaptureStoreTests(unittest.TestCase):
         self.assertEqual(len(candidates), 2)
         return candidates[0]
 
+    def test_legacy_cache_without_http_observations_seals_and_restores_without_backfill(self):
+        legacy=self.capture._load(self.cache)
+        for source in legacy['captures'].values():source.pop('http_metadata',None)
+        self.capture._write(self.cache/'cache.json',self.capture._wire(legacy),replace=True)
+        original={url:deepcopy(self.capture.read_capture(self.cache,url)) for url in URLS}
+        proof=self.seal();self.restore(proof)
+        self.assertEqual(self.capture._load(self.restored),legacy)
+        for url in URLS:
+            self.assertEqual(self.capture.read_capture(self.restored,url),original[url])
+            self.assertNotIn('http_metadata',self.capture.read_capture(self.restored,url)['metadata'])
+
     def test_separate_restore_recovers_exact_bytes_and_metadata_without_plaintext_bundle(self):
         from race_ai.boat_all_model_store import open_forecasts
         original = {url: deepcopy(self.capture.read_capture(self.cache, url)) for url in URLS}
