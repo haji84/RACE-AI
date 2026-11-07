@@ -75,6 +75,93 @@ class RemainingCompletionAuditTests(unittest.TestCase):
     def setUp(self):
         self.assertIsNotNone(audit, "read-only actual completion audit is missing")
 
+    def sp_fixture(self,*,invalid=False):
+        from tests.test_boat_sp_settlement import document
+        from tests.intraday_fixture import packet
+        from tests.test_racer_daily import NOW as capture_at
+        doc=document()
+        if invalid:doc['maindata']['infolist3t'][0]['winno']='3-2-1'
+        raw,receipt=packet(doc,captured=capture_at.isoformat());rid='20261107-01-01'
+        pointer=dict(source_sha256=receipt['source_sha256'],captured_at=receipt['captured_at'])
+        saved=dict(sport='boat',race_id=rid,cutoff_at='2026-11-07T10:00:00+09:00',saved_cutoff_variants=['2026-11-07T10:00:00+09:00'],
+            participants=[dict(number=n,registration_no=str(4000+n)) for n in range(1,7)],
+            prediction=dict(persisted_at='2026-11-07T00:00:00Z'),comparison_predictions=[],
+            result=dict(status='unsupported',source_sha256=receipt['source_sha256'],observed_at=receipt['captured_at']))
+        state=SimpleNamespace(control=dict(settlement_captures={rid:pointer}),capture=Mock(return_value=(raw,receipt)))
+        return dict(records=[saved]),state,capture_at
+
+    def test_retained_sp_hold_audit_reports_exact_safe_parser_reason_without_mutation(self):
+        view,state,now=self.sp_fixture(invalid=True);before=deepcopy((view,state.control))
+        value=audit.audit_retained_sp_holds(view,state=state,now=now)
+        self.assertEqual(value['parser_reason_counts'],{'RESULT_WINNER_MISMATCH':1})
+        self.assertEqual(value['authenticated_matching_captures'],1)
+        self.assertEqual(value['source_requests'],0);self.assertEqual(value['results_admitted'],0)
+        self.assertEqual((view,state.control),before)
+        for field in ('race_id','source_url','source_sha256','participants','winno','dividend'):
+            self.assertNotIn(field,json.dumps(value))
+
+    def test_retained_sp_hold_audit_keeps_ambiguous_saved_cutoff_rejection(self):
+        view,state,now=self.sp_fixture();saved=view['records'][0]
+        saved['cutoff_at']=None;saved['saved_cutoff_variants'].append('2026-11-07T10:10:00+09:00')
+        value=audit.audit_retained_sp_holds(view,state=state,now=now)
+        self.assertEqual(value['projection_reason_counts'],{'RESULT_CUTOFF_MISMATCH':1})
+        self.assertEqual(saved['result']['status'],'unsupported')
+
+    def test_payout_shape_audit_emits_only_fixed_classes(self):
+        raw=json.dumps({'maindata':{'infolist3t':[
+            {'winno':'1-2-3'},{'winno':'特払'},{'winno':'1−2−3'},
+            {'winno':'1=2=3'},{'winno':'<b>1-2-3</b>'},
+            {'winno':'1-1-2'},{'winno':'SECRET_SOURCE_TEXT'},
+        ]}}).encode()
+        result=audit._payout_shapes(raw)
+        self.assertEqual(result,{'ASCII_TRIFECTA':1,'SPECIAL_PAYOUT':1,'UNICODE_DASH':1,
+                                 'EQUALS_SEPARATED':1,'HTML_MARKUP':1,'REPEATED_LANE':1,'OTHER':1})
+        self.assertNotIn('SECRET',json.dumps(result))
+        self.assertNotIn('1-2-3',json.dumps(result))
+
+    def test_payout_shape_audit_never_admits_missing_or_malformed_payloads(self):
+        self.assertEqual(audit._payout_shapes(b'not json'),{'INVALID_DOCUMENT':1})
+        self.assertEqual(audit._payout_shapes(b'{"maindata":{}}'),{'INVALID_PAYOUT_LIST':1})
+
+    def test_per_original_cutoff_diagnostic_keeps_the_global_hold(self):
+        view,state,now=self.sp_fixture();saved=view['records'][0]
+        saved['cutoff_at']=None;saved['saved_cutoff_variants'].append('2026-11-07T10:10:00+09:00')
+        before=deepcopy(view)
+        result=audit.audit_retained_sp_holds(view,state=state,now=now)
+        self.assertEqual(result['per_original_cutoff_projection_reason_counts'],{'SUPPORTED':1,'SUPPORTED_REFERENCE':1})
+        self.assertEqual(result['forecast_chronology_counts'],{'ALL_BEFORE_ALL_CUTOFFS':1})
+        self.assertEqual(result['projection_reason_counts'],{'RESULT_CUTOFF_MISMATCH':1})
+        self.assertEqual(result['results_admitted'],0);self.assertEqual(view,before)
+
+    def test_retained_sp_chronology_checks_every_original_model_clock(self):
+        view,state,now=self.sp_fixture()
+        view['records'][0]['comparison_predictions']=[dict(persisted_at='2026-11-07T00:00:00Z',as_of='2026-11-07T01:01:00Z')]
+        result=audit.audit_retained_sp_holds(view,state=state,now=now)
+        self.assertEqual(result['forecast_chronology_counts'],{'NOT_ALL_BEFORE_ALL_CUTOFFS':1})
+        self.assertEqual(result['results_admitted'],0)
+
+    def test_retained_sp_hold_audit_never_uses_a_different_or_missing_receipt(self):
+        view,state,now=self.sp_fixture();view['records'][0]['result']['source_sha256']='0'*64
+        value=audit.audit_retained_sp_holds(view,state=state,now=now)
+        self.assertEqual(value['capture_reason_counts'],{'CURRENT_RESULT_RECEIPT_MISMATCH':1})
+        state.control['settlement_captures']={}
+        value=audit.audit_retained_sp_holds(view,state=state,now=now)
+        self.assertEqual(value['capture_reason_counts'],{'RETAINED_CAPTURE_UNAVAILABLE':1})
+
+    def test_retained_sp_source_failures_and_private_exceptions_never_escape(self):
+        view,state,now=self.sp_fixture();state.capture.side_effect=ValueError('SECRET_RAW_SOURCE_AND_KEY')
+        value=audit.audit_retained_sp_holds(view,state=state,now=now)
+        self.assertEqual(value['capture_reason_counts'],{'CAPTURE_AUTHENTICATION_REJECTED':1})
+        self.assertNotIn('SECRET',json.dumps(value))
+
+    def test_retained_sp_audit_requires_exact_source_hash_before_parsing(self):
+        view,state,now=self.sp_fixture();raw,receipt=state.capture.return_value
+        state.capture.return_value=(raw+b'x',receipt)
+        value=audit.audit_retained_sp_holds(view,state=state,now=now)
+        self.assertEqual(value['capture_reason_counts'],{'CAPTURE_AUTHENTICATION_REJECTED':1})
+        self.assertEqual(value['parser_reason_counts'],{})
+        self.assertEqual(value['payout_shape_counts'],{})
+
     def test_native_counts_and_readonly_private_redaction(self):
         body = journal(); before = deepcopy(body)
         result = audit.audit_journal(body)
@@ -345,7 +432,8 @@ class RemainingCompletionAuditTests(unittest.TestCase):
             "GITHUB_ACTIONS": "true", "GITHUB_REPOSITORY": "haji84/RACE-AI",
             "GITHUB_REPOSITORY_ID": "1416489937",
         }
-        fixture = ("2030-04-01", 17, {"records": [row()]}, journal(), {"id": 23}, None)
+        sp_holds=dict(status='RETAINED_SP_HOLD_AUDIT_UNAVAILABLE',reason='AUTHENTICATED_STATE_READ_REJECTED',source_requests=0,results_admitted=0)
+        fixture = ("2030-04-01", 17, {"records": [row()]}, journal(), {"id": 23}, None, sp_holds)
         with patch.dict(os.environ, context, clear=True), \
                 patch.object(audit, "_load_authenticated", return_value=fixture), patch("builtins.print") as emitted:
             self.assertEqual(audit.main(["--input", "audit/state/remaining-completion-audit-input.json"]), 0)
@@ -355,6 +443,7 @@ class RemainingCompletionAuditTests(unittest.TestCase):
         self.assertEqual(result["source_requests"], 0)
         self.assertEqual(result["native"]["source_requests"], 8)
         self.assertEqual(result["results_admitted"], 0)
+        self.assertEqual(result['retained_sp_holds'],sp_holds)
         self.assertNotIn("SECRET", raw)
 
 

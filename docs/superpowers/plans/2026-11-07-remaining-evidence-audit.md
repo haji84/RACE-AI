@@ -67,7 +67,7 @@
 - [x] Test same-clock field conflicts, identical replay, redaction and input conservation.
 - [x] Add the actual completed source42376316340 continuity pin and count-only replay.
 - [x] Expose known blocked-request reason/method counts from the already retained native browser index; unavailable projections remain null.
-- [ ] Read actual Actions counts before changing any observation merge rule or sending another native probe.
+- [x] Read actual Actions counts before changing any observation merge rule or sending another native probe. The authenticated continuity comparison returned zero conflicts; the strict rejection was retained.
 
 ## Continuation
 
@@ -89,6 +89,25 @@ Actual run42384768071 passed bounded original maintenance, published the authent
 - [x] Add explicit historical-day selection; retain strict current-day default and all future-forecast clock requirements.
 - [x] Emit selected-day and actual-current-day scope separately; historical counts never become current-day counts.
 - [x] Bind actual final evidence to the unchanged plan day, audit day and browser verification clock.
-- [ ] Review and verify the actual historical owner site at both existing widths.
+- [x] Review and verify the actual historical owner site at both existing widths. Source-free display42386374576 passed; live run42394941895 verified the compact private owner view at three widths, generation42 and129 November7 results. Latest run42398357632/job128480528315 independently verified generation44 with the Research audit at17:55:30Z, preserving the same129 November7 results and null current-day counts.
+
+### Task7: Diagnose the three remaining holds using retained SP bytes
+
+The actual November7 audit is129 final/132, with one600-second cutoff mismatch and two identity-unverified projections. Those rejection labels do not establish why the original SP parser failed.
+
+- [x] Add a read-only authenticated intraday reader after the existing Actions/key/owner checks.
+- [x] Bind each held result to the retained receipt's exact SHA, capture clock, official URL and race identity; never substitute an older or different capture.
+- [x] Replay the supported SP parser and existing strict projection for fixed reason counts only. Keep original forecasts, allocations, holds and source clocks unchanged; authentication failure reports UNAVAILABLE.
+- [x] Verify synthetic hash/privacy/receipt/ambiguous-cutoff cases and the real encrypted intraday restore contract:47 related tests pass, zero skipped; independent audit29 tests pass.
+- [x] Integrate at an actual completed native-source/issuer boundary with an expected-head fast-forward. Completion-audit212f4dc1 changed no workflow or source authority.
+- [x] Read actual retained-source reason counts before implementing any settlement correction. Production128541617986/run42418481443 verified allthree matching captures: RESULT_WINNER_INVALID2 and AVAILABLE1/RESULT_CUTOFF_MISMATCH1, no provider requests or admissions.
+
+### Task8: Inspect supported payout syntax and every original clock
+
+- [x] Add fixed payout-syntax classes after the existing exact receipt binding; never expose original tokens, combinations or amounts.
+- [x] Dry-project temporary copies for each saved cutoff and separately count whether every forecast clock precedes every source/original cutoff. Keep the existing whole-row rejection and originals unchanged.
+- [x] Verify privacy, malformed syntax, preserved ambiguous-cutoff hold and late alternate model clocks. Current33 audit tests pass; related settlement/restore tests remain passing and independent review is clear.
+- [ ] Read actual syntax/chronology counts in the existing source-free production job.
+- [ ] Correct only the demonstrated parser/eligibility defect and verify actual retained-result publication without weakening formal settlement.
 
 The next repair plan is based on the actual count evidence, not an assumed cause. Existing normal BOAT run42376316340 was reserved once after the prior source's actual canonical record and receipts matched. Never restart it or duplicate the native probe.

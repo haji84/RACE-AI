@@ -41,6 +41,14 @@ missing_reason reason source_kind source_format verified_official
 DATA_FIELDS = frozenset("""
 status confirmed finish_confirmed confirmed_scope results payouts top3 dead_heat refund_boats refunds
 """.split())
+SP_PARSER_REASONS=frozenset("""
+RESULT_SP_SETTLEMENT_FIELDS_REQUIRED RESULT_REFUND_INVALID RESULT_CANCELLATION_CONFLICT
+RESULT_START_FINISH_CONFLICT RESULT_REFUND_DISPOSITION_MISSING RESULT_PAYOUT_INVALID
+RESULT_WINNER_INVALID RESULT_WINNER_MISMATCH RESULT_WINNER_REFUND_CONFLICT
+INTRADAY_SOURCE_CAPTURE_INVALID INTRADAY_SOURCE_BODY_IDENTITY_MISMATCH
+INTRADAY_SOURCE_SIX_IDENTITIES_REQUIRED INTRADAY_SOURCE_FINISH_UNSUPPORTED
+INTRADAY_SOURCE_RESULT_BEFORE_CUTOFF
+""".split())
 FINISH_FIELDS = frozenset("""
 race_id lane racer_registration_id name finish finish_status verified_official race_time race_time_seconds
 """.split())
@@ -112,6 +120,112 @@ def audit_saved_view(view, *, now):
         "saved_roster_sizes": dict(saved_rosters), "source_roster_sizes": dict(source_rosters),
         "all_saved_before_both_clocks": early, "latest_held_body_identity_verified": identity_verified,
     }
+
+
+def _payout_shapes(raw):
+    """Classify source syntax without disclosing combinations or amounts."""
+    import html,re,unicodedata
+    try:
+        doc=json.loads(raw)
+        prices=doc.get('maindata',{}).get('infolist3t')
+    except Exception:return {'INVALID_DOCUMENT':1}
+    if type(prices) is not list:return {'INVALID_PAYOUT_LIST':1}
+    shapes=Counter()
+    for item in prices:
+        value=item.get('winno') if type(item) is dict else None
+        if type(value) is not str:code='NON_STRING'
+        else:
+            token=unicodedata.normalize('NFKC',html.unescape(value)).strip()
+            if not token:code='EMPTY'
+            elif token in ('特払','特払い','特払金'):code='SPECIAL_PAYOUT'
+            elif token in ('不成立','返還','発売なし','発売無'):code='NON_RESULT_TOKEN'
+            elif '<' in token or '>' in token:code='HTML_MARKUP'
+            elif re.fullmatch('[1-6]-[1-6]-[1-6]',token):
+                code='ASCII_TRIFECTA' if len(set(token.split('-')))==3 else 'REPEATED_LANE'
+            elif re.fullmatch('[1-6]-[1-6]-[1-6]',re.sub('[−‐‑‒–—―]','-',token)):code='UNICODE_DASH'
+            elif re.fullmatch('[1-6]=[1-6]=[1-6]',token):code='EQUALS_SEPARATED'
+            elif re.fullmatch('[1-6]{3}',token):code='COMPACT_DIGITS'
+            elif re.fullmatch(r'[1-6]\s+[1-6]\s+[1-6]',token):code='SPACE_SEPARATED'
+            elif '\n' in token or '\r' in token:code='MULTILINE'
+            else:code='OTHER'
+        shapes[code]+=1
+    return dict(shapes) if shapes else {'EMPTY_LIST':1}
+
+
+def audit_retained_sp_holds(view,*,state,now):
+    """Replay matching retained bytes for counts only; never publish or advance."""
+    from race_ai.racer_daily import clock
+    from race_ai.racer_intraday_source import identity
+    from race_ai.boat_sp_settlement import parse_settlement
+    from race_ai.saved_result_sync import project_observation
+    held=[r for r in view['records'] if r.get('sport')=='boat' and
+          (r.get('result') or {}).get('status')=='unsupported']
+    if len(held)>288:raise ValueError('AUDIT_SP_HOLD_BOUND')
+    captures=Counter();parsers=Counter();projections=Counter();matched=0
+    shapes=Counter();per_original=Counter();chronology=Counter()
+    pointers=state.control.get('settlement_captures',{})
+    for row in held:
+        result=row['result'];pointer=pointers.get(row['race_id'])
+        if pointer is None:captures['RETAINED_CAPTURE_UNAVAILABLE']+=1;continue
+        try:
+            raw,receipt=state.capture(pointer)
+            if not (type(raw) is bytes and 0<len(raw)<=256*1024 and
+                    type(receipt.get('http_status')) is int and receipt['http_status']==200 and
+                    sha256(raw).hexdigest()==receipt.get('source_sha256') and
+                    clock(receipt['captured_at'])<=clock(now)):
+                raise ValueError('AUDIT_SP_CAPTURE_REJECTED')
+            day,venue,number=identity(receipt['source_url'])
+            if day.replace('-','')+f'-{venue}-{number:02d}'!=row['race_id']:
+                raise ValueError('AUDIT_SP_CAPTURE_REJECTED')
+        except Exception:
+            captures['CAPTURE_AUTHENTICATION_REJECTED']+=1;continue
+        if (receipt['source_sha256']!=result.get('source_sha256') or
+            _clock(receipt['captured_at'])!=_clock(result.get('observed_at'))):
+            captures['CURRENT_RESULT_RECEIPT_MISMATCH']+=1;continue
+        matched+=1
+        shapes.update(_payout_shapes(raw))
+        try:observation=parse_settlement(raw,receipt,now=now)
+        except Exception as error:
+            reason=str(error);parsers[reason if reason in SP_PARSER_REASONS else 'OTHER']+=1;continue
+        if observation['status']!='AVAILABLE':parsers['PENDING']+=1;continue
+        parsers['AVAILABLE']+=1
+        cutoffs=[row['cutoff_at']] if row.get('cutoff_at') else row.get('saved_cutoff_variants',[])
+        deadlines=[_clock(v) for v in [*cutoffs,observation['closed_at']]]
+        predictions=[p for p in [row.get('prediction'),*row.get('comparison_predictions',[])] if p is not None]
+        clocks=[_clock(p.get('persisted_at')) for p in predictions]
+        clocks.extend(_clock(p[k]) for p in predictions for k in ('as_of','generated_at','source_captured_at','server_saved_at') if p.get(k) is not None)
+        chronology['UNKNOWN' if not predictions or not cutoffs or None in deadlines or None in clocks else
+                   'ALL_BEFORE_ALL_CUTOFFS' if max(clocks)<min(deadlines) else 'NOT_ALL_BEFORE_ALL_CUTOFFS']+=1
+        for cutoff in cutoffs:
+            try:
+                narrow={**row,'cutoff_at':cutoff,'saved_cutoff_variants':[cutoff]}
+                projected=project_observation(observation,narrow,freeze_at=row['prediction']['persisted_at'],raw_bound=True)
+                reason='SUPPORTED_REFERENCE' if projected.get('cutoff_reference') else 'SUPPORTED'
+            except Exception as error:
+                reason=str(error);reason=reason if reason in REASONS else 'OTHER'
+            per_original[reason]+=1
+        try:
+            projected=project_observation(observation,row,freeze_at=row['prediction']['persisted_at'],raw_bound=True)
+            code='SUPPORTED_REFERENCE' if projected.get('cutoff_reference') or projected.get('cutoff_reconciliation') else 'SUPPORTED'
+        except Exception as error:
+            reason=str(error);code=reason if reason in REASONS else 'OTHER'
+        projections[code]+=1
+    return dict(status='RETAINED_SP_HOLD_AUDIT_VERIFIED',held_races=len(held),
+        authenticated_matching_captures=matched,capture_reason_counts=dict(captures),
+        parser_reason_counts=dict(parsers),projection_reason_counts=dict(projections),
+        payout_shape_counts=dict(shapes),per_original_cutoff_projection_reason_counts=dict(per_original),
+        forecast_chronology_counts=dict(chronology),
+        source_requests=0,results_admitted=0,originals_changed=False)
+
+
+def _retained_sp_hold_audit(view,*,now,key):
+    try:
+        from race_ai.racer_intraday_handoff import load_intraday
+        loaded=load_intraday(ROOT,now=now,key=key)
+        return audit_retained_sp_holds(view,state=loaded['state'],now=now)
+    except Exception:
+        return dict(status='RETAINED_SP_HOLD_AUDIT_UNAVAILABLE',
+                    reason='AUTHENTICATED_STATE_READ_REJECTED',source_requests=0,results_admitted=0)
 
 
 def _checked_retained_bytes(item):
@@ -341,7 +455,8 @@ def _load_authenticated(path):
         conflicts = audit_observation_conflicts(view, projected)
         conflicts["artifact_id"] = value["continuity_artifact"]["id"]
         conflicts["authenticated_continuity_readback"] = True
-    return value["day_jst"], generation, view, body, receipt, conflicts
+    sp_holds=_retained_sp_hold_audit(view,now=now,key=key)
+    return value["day_jst"], generation, view, body, receipt, conflicts, sp_holds
 
 
 def main(argv=None):
@@ -357,13 +472,14 @@ def main(argv=None):
     try:
         if args.input != "audit/state/remaining-completion-audit-input.json":
             raise ValueError("AUDIT_INPUT_PATH")
-        day, generation, view, body, receipt, conflicts = _load_authenticated(args.input)
+        day, generation, view, body, receipt, conflicts, sp_holds = _load_authenticated(args.input)
         report = {
             "schema": SCHEMA, "status": "REMAINING_COMPLETION_AUDIT_VERIFIED",
             "day_jst": day, "feed_generation": generation, "journal_artifact_id": receipt["id"],
             "boat": audit_saved_view(view, now=datetime.now(timezone.utc)),
             "native": audit_journal(body), "source_requests": 0, "official_source_requests": 0,
             "continuity_projection": conflicts,
+            "retained_sp_holds": sp_holds,
             "diagnostic_only": True, "plaintext_source_published": False, "originals_changed": False,
             "forecasting_performed": False, "results_admitted": 0, "accuracy_improvement_proven": False,
         }
