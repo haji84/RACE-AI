@@ -31,6 +31,18 @@ class WorkflowReferencesTest(unittest.TestCase):
     def assert_round_contract(self, text):
         self.assertIn('using: composite', text)
         steps = re.split(r'^    - name: ', text, flags=re.MULTILINE)[1:]
+        prospective_steps=[step for step in steps if '--prospective-grid-input' in step]
+        if prospective_steps:
+            self.assertEqual(len(prospective_steps),2)
+            preload,capture=prospective_steps
+            self.assertIn("inputs.prospective-grid-input != ''",preload)
+            self.assertIn("inputs.prospective-grid-input != ''",capture)
+            self.assertNotIn('continue-on-error:',preload)
+            self.assertIn('prepare --round',preload)
+            self.assertIn('github_existing_cycle.py forecast',capture)
+            self.assertLess(text.index(preload),text.index('github_existing_cycle.py supplement'))
+            self.assertLess(text.index(preload),text.index(capture))
+            steps=[step for step in steps if step not in prospective_steps]
         private_steps=[step for step in steps if 'venue-research-' in step]
         model_steps=[step for step in steps if 'boat_all_model_cycle' in step or 'boat-all-model-forecasts' in step]
         protection_steps=[step for step in steps if 'boat_private_original_archive' in step]

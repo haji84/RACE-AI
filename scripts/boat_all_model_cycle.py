@@ -112,6 +112,19 @@ def gh(path):
     return raw
 
 
+def _prospective_grid_get(path):
+    """Narrow reader-only routes for the one reviewed historical grid witness."""
+    from race_ai.boat_venue_future_grid import READBACK_RUN, READBACK_JOB
+    routes = {f'actions/runs/{READBACK_RUN}/attempts/1',
+              f'actions/runs/{READBACK_RUN}/attempts/1/jobs?per_page=100',
+              f'actions/jobs/{READBACK_JOB}/logs'}
+    need(path in routes, 'PROSPECTIVE_GRID_GITHUB_ROUTE')
+    from scripts.github_existing_cycle import gh as original_get
+    raw = original_get(path)
+    need(type(raw) is bytes and 0 < len(raw) <= 8*1024*1024, 'PROSPECTIVE_GRID_GITHUB_BOUND')
+    return raw
+
+
 def artifact_name(run_id, round_no):
     return f"boat-all-model-forecasts-{run_id}-r{round_no}"
 
@@ -188,7 +201,7 @@ def _inventory(view, result):
                 result[stage].setdefault(rid, set()).add(mid)
 
 
-def prepare_runtime(*, round_no=0):
+def prepare_runtime(*, round_no=0, prospective_grid_input=None):
     """Restore/recheck immutable inputs and refresh stage-specific issued maps."""
     _round(round_no); env = _environment(); key = _owner(); pointer, pin = _pointer()
     folder = env["temp"]/"boat-all-model-runtime"
@@ -225,6 +238,14 @@ def prepare_runtime(*, round_no=0):
         files={name: dict(path=str(folder/name), **entry) for name, entry in pointer["header"]["files"].items()}, runtime_files=files,
         issued_models_path=str(folder/"issued-models.json"), issued_p0_models_path=str(folder/"issued-p0-models.json"),
         issued_models_sha256=hashes["P1"], issued_p0_models_sha256=hashes["P0"])
+    if prospective_grid_input is not None:
+        from race_ai.boat_venue_future_grid import prepare_capability
+        manifest = _json(_read(prospective_grid_input, 16384), 16384)
+        # Only this explicit branch acquires a grid witness. A failed admission
+        # cannot replace the last successful round's ready marker.
+        marker['prospective_grid'] = prepare_capability(manifest,
+            folder/f'prospective-grid-r{round_no}', ROOT, gh=_prospective_grid_get, clock=utc_now,
+            run_id=env['run_id'], head_sha=env['head'], round_no=round_no, key=key)
     save(folder/"runtime-ready.json", _wire(marker), replace=True)
     return marker
 
@@ -306,6 +327,11 @@ def generate(round_no, baseline_artifact=None):
     need(len(contexts) <= 288, "CONTEXT_COUNT_INVALID")
     if not contexts: return dict(ready=False, contexts=0, generated_forecasts=0)
     issued = _json(_read(marker["issued_models_path"], 1024*1024, private=True), 1024*1024)
+    options = {}
+    if 'prospective_grid' in marker:
+        from race_ai.boat_venue_future_grid import open_capability
+        options['prospective_grid'] = open_capability(marker['prospective_grid'], key=_owner(),
+            run_id=env['run_id'], head_sha=env['head'], round_no=round_no)
     def build():
         document = receipt = None
         if baseline_artifact is not None:
@@ -313,8 +339,29 @@ def generate(round_no, baseline_artifact=None):
                                   expected_run=env["run_id"], expected_head=env["head"])
             document = _json(raw, store.MAX_PLAIN); receipt = _receipt(meta, document)
         return engine.forecast_round(contexts, marker["runtime_files"], now=utc_now(), baseline_document=document,
-                                     baseline_receipt=receipt, issued_models=issued, runtime_pointer=_pointer()[0])
-    return _sealed("generate", round_no, contexts, baseline_artifact, build)
+                                     baseline_receipt=receipt, issued_models=issued, runtime_pointer=_pointer()[0], **options)
+    inputs = contexts if not options else dict(contexts=contexts,
+        prospective_grid_sha256=digest(marker['prospective_grid']))
+    return _sealed("generate", round_no, inputs, baseline_artifact, build)
+
+
+def require_prospective_prepared(round_no, manifest_path):
+    """Fail before a source call when explicitly selected admission is absent."""
+    from race_ai.boat_venue_future_grid import open_capability, require_before_source, validate_manifest
+    env = _environment(); _round(round_no)
+    manifest = _json(_read(manifest_path, 16384), 16384); validate_manifest(manifest)
+    try:
+        marker = restore_ready()
+        need(marker.get('round_no') == round_no and marker.get('run_id') == env['run_id'] and
+             marker.get('source_code_commit') == env['head'] and 'prospective_grid' in marker,
+             'PROSPECTIVE_GRID_PRELOAD_REQUIRED')
+        capability = open_capability(marker['prospective_grid'], key=_owner(), run_id=env['run_id'],
+            head_sha=env['head'], round_no=round_no)
+        need(capability.record['data']['manifest'] == manifest, 'PROSPECTIVE_GRID_REQUEST_CHANGED')
+        require_before_source(capability, utc_now().isoformat())
+        return capability
+    except (OSError, ValueError, KeyError) as exc:
+        raise CycleError('ALL_MODEL_PROSPECTIVE_GRID_PRELOAD_REQUIRED') from exc
 
 
 def _seller_sources(marker,document,receipt,clock):
@@ -430,11 +477,13 @@ def main(argv=None):
     for command in ("prepare", "generate", "bootstrap-current", "readback"):
         p = subs.add_parser(command); p.add_argument("--round", dest="round_no", type=int, default=0, required=command != "bootstrap-current")
         if command == "generate": p.add_argument("--baseline-artifact", type=int)
+        if command == "prepare": p.add_argument("--prospective-grid-input")
         if command == "readback": p.add_argument("--artifact", type=int, required=True)
     args = parser.parse_args(argv)
     try:
         if args.command == "prepare":
-            prepare_runtime(round_no=args.round_no); result = dict(ready=True)
+            options = {} if args.prospective_grid_input is None else dict(prospective_grid_input=args.prospective_grid_input)
+            prepare_runtime(round_no=args.round_no, **options); result = dict(ready=True)
         elif args.command == "generate": result = generate(args.round_no, args.baseline_artifact)
         elif args.command == "bootstrap-current": result = bootstrap_current(args.round_no)
         else: result = readback(args.round_no, args.artifact)
