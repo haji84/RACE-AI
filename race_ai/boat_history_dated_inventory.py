@@ -190,6 +190,7 @@ def extend_collection(source,output,*,not_after=None,max_files=31):
     need(source.resolve()!=out.resolve() and source.resolve() not in out.resolve().parents,'HISTORY_DELTA_SEPARATE_OUTPUT_REQUIRED')
     parentraw,parent=_current(source)
     if parent['schema']==SCHEMA:validate_inventory(source,parent,manifest_raw=parentraw)
+    need(stamp(parent.get('inventory_captured_at',parent['captured_at']))<=stamp(cli._now()),'HISTORY_INVENTORY_PARENT_CLOCK_INVALID')
     end=not_after or stamp(cli._now()).astimezone(JST).date().isoformat()
     need(date.fromisoformat(end).isoformat()==end and parent['not_after']<=end<=stamp(cli._now()).astimezone(JST).date().isoformat(),'HISTORY_INVENTORY_SCOPE_REGRESSION')
     request=dict(schema='RACE_AI_DATED_HISTORY_EXTENSION_REQUEST_V1',parent_manifest_sha256=_sha(parentraw),not_after=end)

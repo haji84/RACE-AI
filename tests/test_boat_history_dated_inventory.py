@@ -246,3 +246,10 @@ class DatedInventoryTests(unittest.TestCase):
         self.assertEqual(r['upstream_gets'],2);self.assertEqual(r['newly_listed_days'],0)
         self.assertFalse(r['all_available_period_complete']);self.assertTrue(r['source_gaps_require_separate_review'])
         self.assertFalse(any(u.endswith('.lzh') for u in calls))
+
+    def test_future_signed_parent_clock_is_rejected_before_any_inventory_request(self):
+        parent=self.parent();state=json.loads((parent/'collection.json').read_text())['state']
+        state['captured_at']='2026-11-08T10:00:00Z';cli._store_progress(parent,state)
+        with patch.object(cli,'_now',return_value=NEW_AT),patch.object(cli,'_http',side_effect=AssertionError('invalid parent clock source0')):
+            with self.assertRaisesRegex(ValueError,'INVENTORY.*CLOCK'):
+                self.api.extend_collection(parent,self.root/'delta',not_after='2026-11-07')
