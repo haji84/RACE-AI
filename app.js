@@ -7,10 +7,10 @@
   const icons = {boat: "◒", keirin: "♧", autorace: "♧", horse: "♞"};
   const pageNames = {
     home: ["YOUR RACE DASHBOARD", "今日のレースを、確かなデータで。", "保存済みの予想・結果と、あなたの買い目候補をひとつに。"],
-    races: ["ALL RACES", "全レース一覧", "未予想も含めて、取得できたレースを確認。"],
+    races: ["RACES & RESULTS", "レース", "締切前の予想と、会場別のレース結果を確認。"],
     detail: ["RACE DETAIL", "レース詳細", "出走情報・保存済み予想・根拠を、取得時点ごとに。"],
     picks: ["TICKET ALLOCATION", "買い目配分", "予算に合わせて候補を編集。確定した候補も、実購入とは別の記録です。"],
-    results: ["RESULTS & SIMULATION", "レース結果・収支", "保存予想の的中状況と、日予算を変えた場合の収支を確認。"],
+    results: ["AI FORECAST RESULTS", "AI予想結果", "保存予想の的中状況と、日予算を変えた場合の収支を確認。"],
     research: ["RESEARCH & VERIFICATION", "研究・検証", "モデルの検証情報と保存データの詳細を確認。"],
     settings: ["PREFERENCES", "設定", "予算・表示と、読み込む情報源を管理。"]
   };
@@ -24,7 +24,7 @@
   const state = {
     page: "home", sport: Object.hasOwn(sports, preferences.sport) ? preferences.sport : "boat",
     day: A.jstToday(), allDates: false, period: "day", statusFilter: "all", followsToday: true, query: "", venue: "", sort: "time",
-    forecastOnly: false, candidatesOnly: false, selectedId: "", detailTab: "outlook", predictionKeys: {},
+    raceView: "upcoming", forecastOnly: false, candidatesOnly: false, selectedId: "", detailTab: "outlook", predictionKeys: {},
     budget: validBudget(preferences.budget) ? preferences.budget : 10000,
     raceBudget: validBudget(preferences.raceBudget) ? preferences.raceBudget : 2000,
     simulationBudget: validBudget(preferences.simulationBudget) ? preferences.simulationBudget : 10000, resultGroupKey: "",
@@ -34,7 +34,7 @@
     favoriteVenues: [...new Set((Array.isArray(preferences.favoriteVenues) ? preferences.favoriteVenues : []).filter(value =>
       typeof value === "string" && value.length <= 110 && Object.keys(sports).some(sport => value.startsWith(sport + ":"))))].slice(0, 64)
   };
-  let dataset = null, importVersion = 0, savedHistory = null, refreshSavedResults = null;
+  let dataset = null, importVersion = 0, savedHistory = null, refreshSavedResults = null, raceBoundaryTimer = null;
   const resultCheck = {busy:false,failed:false};
   const savedViewConfigured = Boolean(document.getElementById("race-ai-private-saved-data") || document.querySelector('meta[name="race-ai-private-saved-view"],meta[name="race-ai-encrypted-saved-view"]'));
   const savedMessages = {
@@ -628,20 +628,24 @@
     refreshSelects(); renderAll(); showPage("races", true);
   }
   function venueButton(entry, home = false) {
-    const action = button("", "venue-button" + (home ? " home-venue-button" : "") + (entry.venue === state.venue ? " active" : "") + (entry.favorite ? " favorite-venue" : ""), () => chooseVenue(entry.venue, !home));
+    const action = button("", "venue-button" + (home ? " home-venue-button" : "") + (entry.venue === state.venue ? " active" : "") + (entry.favorite ? " favorite-venue" : ""), () => { if (home) state.raceView = state.day < A.jstToday() ? "results" : "upcoming"; chooseVenue(entry.venue, !home); });
     action.dataset.venue = entry.venue;
     action.setAttribute("aria-pressed", String(entry.venue === state.venue));
     action.append(node("span", "venue-name", entry.venue));
     const next = entry.nextRace, raceNumber = Number.isInteger(next?.race_no) ? next.race_no + "R " : "";
-    const clock = next ? (next.event_date_jst !== state.day ? next.event_date_jst.slice(5) + " " : "") + time(next.cutoff_at) : "";
-    action.append(node("small", "venue-meta", next ? raceNumber + clock : entry.count ? entry.count + "件読込" : "未取得"));
+    const clock = next ? (next.event_date_jst !== state.day ? next.event_date_jst.slice(5) + " " : "") + time(U.raceDeadline(next)) : "";
+    const label = !entry.count ? "未取得" : !home && state.raceView === "results" ? "結果 " + entry.resultCount + "件 · 確認済 " + entry.settledCount : !home && state.raceView === "unknown" ? "締切未確認 " + entry.unknownCount + "件" : next ? raceNumber + clock : "締切前 0件 · 結果 " + entry.resultCount + "件";
+    action.append(node("small", "venue-meta", label));
     return action;
   }
   function renderVenueExplorer(entries) {
-    $("venue-buttons").replaceChildren(...entries.map(entry => venueButton(entry)));
+    const countKey = {upcoming:"upcomingCount",results:"resultCount",unknown:"unknownCount"}[state.raceView];
+    const ordered = [...entries].sort((a,b) => Number(b.favorite)-Number(a.favorite) || Number(b[countKey]>0)-Number(a[countKey]>0));
+    $("venue-buttons").replaceChildren(...ordered.map(entry => venueButton(entry)));
     $("venue-title").textContent = state.venue || "すべての会場";
     const selected = entries.find(entry => entry.venue === state.venue);
-    $("venue-summary").textContent = selected ? (selected.count ? "選択期間に " + selected.count + "レースの読込値" : "この会場のレースデータは未取得です。開催なしを意味しません。") : "会場を選ぶと、その会場のレースだけを表示します。";
+    $("venue-summary").hidden = !selected;
+    $("venue-summary").textContent = selected ? (selected.count ? "締切前 " + selected.upcomingCount + "件 · レース結果 " + selected.resultCount + "件（結果待ち " + selected.pendingResultCount + "・保留 " + selected.heldCount + "）" : "この会場のレースデータは未取得です。開催なしを意味しません。") : "会場を選ぶと、その会場のレースだけを表示します。";
     $("pin-venue").hidden = !selected;
     const pinned = Boolean(selected?.favorite);
     $("pin-venue").textContent = pinned ? "★ マイ会場" : "☆ マイ会場に追加";
@@ -672,9 +676,10 @@
   }
   function raceCard(r, featured = false) {
     const p = prediction(r), card = node("article", "race-card" + (featured ? " featured" : ""));
+    card.dataset.raceId = r.race_id; card.dataset.racePhase = U.racePhase(r); card.dataset.cutoffAt = U.raceDeadline(r) || "";
     const head = node("div", "race-card-head"), title = node("div"), meta = node("div", "race-time");
     title.append(node("span", "sport-tag", icons[r.sport] + " " + sports[r.sport]), node("h3", "", raceName(r)));
-    meta.append(node("span", "", r.event_date_jst || "日付 未取得"), node("strong", "", "締切 " + time(r.cutoff_at)));
+    meta.append(node("span", "", r.event_date_jst || "日付 未取得"), node("strong", "", "締切 " + time(U.raceDeadline(r))));
     head.append(title, meta); card.append(head);
     const tags = node("div", "race-tags"); tags.append(node("span", "tag scope-" + r.scope, scopeName(r.scope)), node("span", "tag", forecastStatus(r, p)), node("span", "tag", stageName(p))); card.append(tags);
     tags.append(outcomeBadge(r,p));
@@ -701,6 +706,7 @@
     $("preference-strip").hidden = !["home", "races", "picks"].includes(page);
     if (!document.querySelector('meta[name="race-ai-encrypted-saved-view"]') && location.hash !== "#" + page) history.pushState(null, "", "#" + page);
     if (page === "detail") renderDetail();
+    if (page === "races") renderRaces();
     if (page === "research") renderResearch();
     if (page === "picks") renderTickets();
     if (moveFocus) { $("page-title").tabIndex = -1; $("page-title").focus({preventScroll: true}); window.scrollTo({top: 0}); }
@@ -743,29 +749,58 @@
       return append(node("div", "candidate-mini"), button(raceName(r), "text-button", () => { state.selectedId = id; refreshSelects(); showPage("picks", true); }), node("strong", "", yen(ts.reduce((s, t) => s + t.amount, 0))), node("small", "muted", ts.length + "点 · " + (state.confirmed.has(id) ? "候補確定 / 未購入" : "編集中 / 未購入")));
     });
   }
+  function raceResultCard(r) {
+    const p = prediction(r), card = node("article", "race-card race-result-card"), head = node("div", "race-card-head");
+    card.dataset.raceId = r.race_id; card.dataset.racePhase = "results"; card.dataset.venue = U.venueName(r);
+    head.append(append(node("div"),node("h3", "", raceName(r)),node("p", "muted small",r.event_date_jst + " · 締切 " + time(U.raceDeadline(r)))),outcomeBadge(r,p));
+    card.append(head,resultView(r,{showBadge:false}),node("p", "muted small",p ? "AI予想：" + stageName(p) + " · " + modelName(p) : "保存された予想はありません"));
+    const actions = node("div", "race-result-actions"), details = button("結果詳細", "outline", () => openRace(r.race_id,"history")), forecast = button("予想を見る", "text-button", () => openRace(r.race_id));
+    details.dataset.openResult = r.race_id; forecast.dataset.openRace = r.race_id; forecast.dataset.openPrediction = r.race_id; actions.append(details,forecast); card.append(actions); return card;
+  }
+  function setRaceView(view, focus = false) {
+    state.raceView = ["upcoming","results","unknown"].includes(view) ? view : "upcoming"; state.visible = 60; renderRaces();
+    if (focus) $("race-view-" + state.raceView).focus();
+  }
+  function scheduleRaceBoundary(all, now) {
+    clearTimeout(raceBoundaryTimer); raceBoundaryTimer = null;
+    if (state.page !== "races" || document.hidden) return;
+    const lists = U.raceLists(all,{now}); if (!lists.upcoming.length && !lists.unknown.length) return;
+    const next = lists.upcoming[0], delay = next ? Math.max(25,Math.min(60000,Date.parse(U.raceDeadline(next))-now+25)) : 60000;
+    raceBoundaryTimer = setTimeout(() => { raceBoundaryTimer = null; if (state.page === "races") renderRaces(); },delay);
+  }
   function renderRaces() {
-    const all = scoped(), filtered = U.filterRaces(displayRows(races()), {sport: state.sport, day: state.day, allDates: state.allDates, period: state.period, query: state.query, venue: state.venue, sort: state.sort, forecastOnly: state.forecastOnly, candidatesOnly: state.candidatesOnly, candidateRaceIds: state.candidates.map(t => t.raceId)}).filter(r => state.statusFilter === "all" || (r.private_cycle_view && r.scope !== "synthetic" && state.statusFilter !== "PREDICTION_UNVERIFIED" ? P.compare(r,prediction(r)).status : U.outcome(r, {predictionEligible: M.eligiblePrediction(r, r.prediction), resultEligible: M.eligibleResult(r)})) === state.statusFilter);
-    $("race-count").textContent = "表示 " + filtered.length + "件 / 対象 " + all.length + "件（未予想 " + all.filter(r => !predictions(r).length).length + "件を含む）";
+    const now = Date.now(), all = scoped(), matches = U.filterRaces(displayRows(races()), {sport: state.sport, day: state.day, allDates: state.allDates, period: state.period, query: state.query, venue: state.venue, sort: state.sort, forecastOnly: state.forecastOnly, candidatesOnly: state.candidatesOnly, candidateRaceIds: state.candidates.map(t => t.raceId)}), lists = U.raceLists(matches,{now});
+    if (state.raceView === "unknown" && !lists.unknown.length) state.raceView = "upcoming";
+    const phase = state.raceView, status = state.statusFilter === "PREDICTION_UNVERIFIED" ? "REVIEW" : state.statusFilter;
+    let filtered = phase === "results" && status !== "all" ? lists.results.filter(r => P.compare(r,prediction(r)).status === status) : lists[phase];
+    if (state.sort !== "time") { const ids = new Map(matches.map((r,i)=>[r.race_id,i])); filtered = [...filtered].sort((a,b)=>ids.get(a.race_id)-ids.get(b.race_id)); }
+    for (const [view,label] of [["upcoming","これからのレース"],["results","レース結果"],["unknown","締切未確認"]]) {
+      const tab = $("race-view-"+view); tab.textContent = label + "（" + lists[view].length + "）"; tab.hidden = view === "unknown" && !lists.unknown.length; tab.setAttribute("aria-selected",String(view === phase)); tab.tabIndex = view === phase ? 0 : -1;
+    }
+    $("race-status-label").hidden = phase !== "results";
+    $("race-sort").querySelector('[value="time"]').textContent = phase === "results" ? "締切が新しい順" : "締切時刻順";
+    $("all-races").setAttribute("aria-labelledby","race-view-"+phase); $("all-races").dataset.raceListView = phase;
+    const heading = $("all-races").previousElementSibling; if (heading?.classList.contains("race-row-heading")) heading.hidden = phase === "results";
+    $("race-count").textContent = {upcoming:"締切前 ",results:"レース結果 ",unknown:"締切未確認 "}[phase] + filtered.length + "件 / 選択期間の対象 " + all.length + "件";
     const coverage = U.modelCoverage(displayRows(all), C.models, {sport: state.sport});
     $("all-race-model-scope").textContent = sports[state.sport] + " · 適用 " + coverage.applicable_models + " / 登録 " + C.models.length + "モデル · 対象台帳 " + coverage.target_races + "レース（保存予想なし " + all.filter(r => !predictions(r).length).length + "レースを含む） · " + coverage.display_stages.map(stage=>stageName({stage}) + " " + coverage.models.reduce((sum,m)=>sum+(m.stages[stage].target_races||0),0) + "対象枠").join(" / ");
-    const content = filtered.slice(0, state.visible).map(r => raceCard(r));
+    const content = filtered.slice(0,state.visible).map(r => phase === "results" ? raceResultCard(r) : raceCard(r));
     if (!filtered.length) {
-      const unloaded = state.venue && !all.some(r => U.venueName(r) === state.venue);
-      const message = empty(unloaded ? state.venue + "のレースデータは未取得です" : all.length ? "条件に一致するレースがありません" : sports[state.sport] + "のレースは未取得です", all.length ? "検索・開催場・候補の条件を変更できます。未取得は開催なしを意味しません。" : "未取得は開催なしを意味しません。保存原本や対象日を確認してください。");
+      const unloaded = state.venue && !all.some(r => U.venueName(r) === state.venue), title = unloaded ? state.venue + "のレースデータは未取得です" : phase === "upcoming" && all.length ? (lists.unknown.length ? "締切前と確認できるレースはありません" : "締切前のレースはありません") : phase === "results" && all.length && !lists.results.length ? "レース結果はまだありません" : all.length ? "条件に一致するレースがありません" : sports[state.sport] + "のレースは未取得です";
+      const message = empty(title,unloaded || !all.length ? "未取得は開催なしを意味しません。対象日や保存情報を確認してください。" : "会場・検索条件を変更するか、レース結果を確認できます。");
+      if (phase === "upcoming" && lists.results.length) message.append(button("レース結果を見る", "primary", () => setRaceView("results",true)));
+      if (phase === "results" && lists.upcoming.length) message.append(button("これからのレースを見る", "primary", () => setRaceView("upcoming",true)));
       if (unloaded) {
         const links = node("nav", "empty-venue-links"); links.setAttribute("aria-label", "この会場の公式情報");
         for (const info of U.boatVenueLinks({sport: state.sport, venue: state.venue, event_date_jst: state.day})) {
-          const link = node("a", "outline", info.label); link.href = info.url; link.target = "_blank";
-          link.rel = "noopener noreferrer"; link.referrerPolicy = "no-referrer"; link.dataset.officialVenue = info.kind; links.append(link);
+          const link = node("a", "outline", info.label); link.href = info.url; link.target = "_blank"; link.rel = "noopener noreferrer"; link.referrerPolicy = "no-referrer"; link.dataset.officialVenue = info.kind; links.append(link);
         }
         if (links.childElementCount) message.append(links);
       }
       content.push(message);
     }
     if (filtered.length > state.visible) content.push(button("さらに60件表示", "outline full", () => { state.visible += 60; renderRaces(); }));
-    $("all-races").replaceChildren(...content);
-    renderVenueExplorer(venueEntries());
-    $("candidate-count").replaceChildren(...candidateItems());
+    $("all-races").replaceChildren(...content); renderVenueExplorer(venueEntries()); $("candidate-count").replaceChildren(...candidateItems()); scheduleRaceBoundary(all,now);
   }
   function predictionPicker(r, id = "prediction-select") {
     const label = node("label", "prediction-picker", "表示する予想"), select = node("select"); select.id = id;
@@ -1458,7 +1493,7 @@
       if (!parsed.records.length) throw new Error("saved originals empty");
       generation.savedState = "READY";
       const dates = parsed.records.map(r=>r.event_date_jst).filter(Boolean).sort();
-      state.day = dates.at(-1) || state.day;state.sport = parsed.records[0].sport;
+      state.day = dates.at(-1) || state.day;state.raceView = state.day < A.jstToday() ? "results" : "upcoming";state.sport = parsed.records[0].sport;
       state.followsToday = false;state.allDates = false;state.period = "day";
       generation.message = "保存済み予想 " + parsed.records.length + "レースを表示しています。";
       adoptDataset(parsed);showPage("races",true);
@@ -1554,12 +1589,19 @@
     if (Object.hasOwn(pageNames,target)) { event.preventDefault();showPage(target,true); }
     else { const element = document.getElementById(target);if (element) { event.preventDefault();element.focus();element.scrollIntoView(); } }
   });
-  $("selected-date").addEventListener("change", () => { if (!$("selected-date").value) { $("selected-date").value = state.day; return; } if(savedHistory?.version===importVersion){if(savedHistory.active){savedHistory.selectDay($("selected-date").value);return;}savedHistory.noteDayChange($("selected-date").value);} state.day = $("selected-date").value; state.followsToday = false; state.allDates = false; state.period = "day"; state.visible = 60; refreshSelects(); renderAll(); });
+  $("selected-date").addEventListener("change", () => { if (!$("selected-date").value) { $("selected-date").value = state.day; return; } state.raceView = $("selected-date").value < A.jstToday() ? "results" : "upcoming"; if(savedHistory?.version===importVersion){if(savedHistory.active){savedHistory.selectDay($("selected-date").value);return;}savedHistory.noteDayChange($("selected-date").value);} state.day = $("selected-date").value; state.followsToday = false; state.allDates = false; state.period = "day"; state.visible = 60; refreshSelects(); renderAll(); });
   $("period-all").addEventListener("change", () => { state.allDates = $("period-all").checked; state.visible = 60; refreshSelects(); renderAll(); });
   $("period-filter").addEventListener("change", e => { state.allDates = e.target.value === "all"; state.period = state.allDates ? "day" : e.target.value; state.visible = 60; refreshSelects(); renderAll(); });
   function search(value) { state.query = value; state.visible = 60; $("race-search").value = value; $("global-search").value = value; renderRaces(); }
   $("global-search").addEventListener("input", e => { search(e.target.value); showPage("races"); });
   $("race-search").addEventListener("input", e => search(e.target.value));
+  document.querySelectorAll("[data-race-view]").forEach(tab => tab.addEventListener("click", () => setRaceView(tab.dataset.raceView,true)));
+  $("race-view-tabs").addEventListener("keydown", event => {
+    const tabs = [...$("race-view-tabs").querySelectorAll("[data-race-view]")].filter(t => !t.hidden), index = tabs.findIndex(t => t.dataset.raceView === state.raceView); let next;
+    if (event.key === "ArrowRight") next = tabs[(index+1)%tabs.length]; if (event.key === "ArrowLeft") next = tabs[(index+tabs.length-1)%tabs.length]; if (event.key === "Home") next = tabs[0]; if (event.key === "End") next = tabs.at(-1);
+    if (next) { event.preventDefault(); setRaceView(next.dataset.raceView,true); }
+  });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && state.page === "races") renderRaces(); });
   $("race-sort").addEventListener("change", e => { state.sort = e.target.value; renderRaces(); });
   $("venue-filter").addEventListener("change", e => { state.venue = e.target.value; renderRaces(); });
   $("all-venues").addEventListener("click", () => chooseVenue(""));
@@ -1623,7 +1665,7 @@
     state.simulationBudget=value;persistPreferences();$("simulation-message").textContent="1日予算 "+yen(value)+" で再計算しました。";renderResults();
   });
   // A local clock change updates the display day, without fetching race sources.
-  function checkDay() { if (automaticMode()) return;const today = A.jstToday(); if (state.followsToday && state.day !== today) { state.day = today; refreshSelects(); renderAll(); } }
+  function checkDay() { if (automaticMode()) return;const today = A.jstToday(); if (state.followsToday && state.day !== today) { state.day = today; state.raceView = "upcoming"; refreshSelects(); renderAll(); } }
   setInterval(checkDay, 30000);
   document.addEventListener("visibilitychange", () => { if (!document.hidden) checkDay(); });
   window.addEventListener("pagehide",()=>{if(generation.timer!==null)clearTimeout(generation.timer);generation.timer=null;});
