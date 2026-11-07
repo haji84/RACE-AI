@@ -163,7 +163,7 @@ class RiderTrackingTests(unittest.TestCase):
             self.assertEqual(row['number_evidence']['observations'],3)
             self.assertEqual(row['number_evidence']['last_print_t'],.2)
 
-    def test_ambiguous_redetection_does_not_choose_one_view_to_keep_old_identity(self):
+    def test_same_current_point_owner_views_keep_one_representative_and_all_raw_proposals(self):
         self.count=1
         def detector(frame):
             packet=self.detector(frame)
@@ -173,10 +173,132 @@ class RiderTrackingTests(unittest.TestCase):
         tracker=self.tracker(detector=detector)
         key=self.update(tracker,0)['tracks'][0]['track_id']
         result=self.update(tracker,1)
-        self.assertIn('AMBIGUOUS_RIDER_ASSOCIATION',result['quality_flags'])
-        self.assertIn(key,result['lost_track_ids'])
-        self.assertNotIn(key,[row['track_id'] for row in result['tracks']])
+        self.assertEqual([row['track_id'] for row in result['tracks']],[key])
+        self.assertEqual(len(result['raw_detections']),2)
+        self.assertEqual(len(result['unknown_detections']),1)
         self.assertTrue(all(row['number'] is None for row in result['tracks']))
+
+    def test_one_detection_covering_two_old_point_owners_is_ambiguous_and_not_a_new_person(self):
+        self.count=2
+        def detector(frame):
+            packet=self.detector(frame)
+            if int(frame[0,0,0])>0:
+                packet['detections']=[dict(packet['detections'][0],box=[14,55,160,70])]
+            return packet
+        tracker=self.tracker(detector=detector)
+        keys=[row['track_id'] for row in self.update(tracker,0)['tracks']]
+        result=self.update(tracker,1)
+        self.assertEqual(result['tracks'],[])
+        self.assertEqual(result['lost_track_ids'],keys)
+        self.assertEqual(len(result['unknown_detections']),1)
+        self.assertIn('AMBIGUOUS',result['unknown_detections'][0]['reason'])
+
+    def test_current_reliable_points_preserve_identity_when_detection_grows_below_iou_half(self):
+        self.count=1
+        def detector(frame):
+            packet=self.detector(frame)
+            if int(frame[0,0,0])>=3:
+                packet['detections'][0]['box'][2]=125
+            return packet
+        tracker=self.tracker(numbers=True,detector=detector)
+        for index in range(3):
+            result=self.update(tracker,index)
+        key=result['tracks'][0]['track_id']
+        self.numbers=[None]
+        result=self.update(tracker,3)
+        row=result['tracks'][0]
+        self.assertEqual(row['track_id'],key)
+        self.assertEqual(row['number'],1)
+        self.assertEqual(row['number_evidence']['observations'],3)
+        self.assertEqual(row['fresh_label_observations_added'],0)
+        evidence=row['association_evidence']
+        self.assertEqual(evidence['method'],'CURRENT_LK_POINT_SUPPORT')
+        self.assertGreaterEqual(evidence['support_fraction'],.75)
+        self.assertEqual(evidence['foreign_track_points_in_detection'],0)
+        self.assertEqual(evidence['frame_sha256'],result['frame_sha256'])
+
+    def test_partial_same_owner_proposal_is_preserved_unbound_without_new_rider(self):
+        self.count=1
+        def detector(frame):
+            packet=self.detector(frame)
+            if int(frame[0,0,0])>0:
+                packet['detections'].append(dict(packet['detections'][0],box=[14,55,25,70],score=.999))
+            return packet
+        tracker=self.tracker(detector=detector)
+        key=self.update(tracker,0)['tracks'][0]['track_id']
+        result=self.update(tracker,1)
+        self.assertEqual([row['track_id'] for row in result['tracks']],[key])
+        self.assertEqual(len(result['raw_detections']),2)
+        self.assertEqual(len(result['unknown_detections']),1)
+        self.assertIn('UNBOUND',result['unknown_detections'][0]['reason'])
+        self.assertEqual(result['unknown_detections'][0]['score'],.999)
+
+    def test_disjoint_new_visible_person_still_gets_a_new_anonymous_key(self):
+        self.count=2
+        def detector(frame):
+            packet=self.detector(frame)
+            if int(frame[0,0,0])==0:
+                packet['detections']=packet['detections'][:1]
+            return packet
+        tracker=self.tracker(detector=detector)
+        key=self.update(tracker,0)['tracks'][0]['track_id']
+        result=self.update(tracker,1)
+        self.assertEqual(len(result['tracks']),2)
+        self.assertEqual(result['tracks'][0]['track_id'],key)
+        self.assertEqual(result['tracks'][1]['visibility_status'],'CURRENT_DETECTION_UNTRACKED')
+
+    def test_point_fallback_rejects_partial_foreign_and_multiple_old_owners(self):
+        associate=getattr(module,'_point_correspondences',None)
+        self.assertIsNotNone(associate,'current measured point association is missing')
+        if associate is None:
+            return
+        points=np.array([[10,10],[20,10],[10,20],[20,20]],np.float32)
+        pixels={'R1':{'box':[0,0,40,40],'point_count':4}}
+        states={'R1':{'points':points}}
+        matched,_,_,_,_=associate(pixels,states,[{'box':[5,5,100,100],'score':.6}])
+        self.assertEqual(matched,{0:'R1'})
+        partial=[{'box':[5,5,10,10],'score':.99}]
+        partial_result=associate(pixels,states,partial)
+        self.assertEqual(partial_result[0],{})
+        self.assertIn(0,partial_result[2])
+        foreign=np.array([[12,12],[150,12],[12,150],[150,150]],np.float32)
+        pixels['R2']={'box':[0,0,160,160],'point_count':4}
+        states['R2']={'points':foreign}
+        foreign_result=associate(pixels,states,[{'box':[5,5,100,100],'score':.6}])
+        self.assertEqual(foreign_result[0],{})
+        self.assertIn(0,foreign_result[2])
+        pixels['R2']={'box':[5,5,40,40],'point_count':4}
+        states['R2']={'points':points.copy()}
+        matched,ambiguous,unbound,_,_=associate(pixels,states,[{'box':[5,5,100,100],'score':.6}])
+        self.assertEqual(matched,{})
+        self.assertEqual(ambiguous,{'R1','R2'})
+        self.assertIn(0,unbound)
+
+    def test_point_fraction_uses_existing_three_quarters_boundary_without_iou_lowering(self):
+        points=np.array([[10,10],[20,10],[30,10],[10,20],[20,20],[25,20],[100,100],[110,110]],np.float32)
+        pixels={'R1':{'box':[0,0,120,120],'point_count':8}}
+        states={'R1':{'points':points}}
+        matched,_,_,evidence,edges=module._point_correspondences(pixels,states,[{'box':[5,5,26,26],'score':.5}])
+        self.assertEqual(edges['R1'],[])
+        self.assertEqual(matched,{0:'R1'})
+        self.assertEqual(evidence[0]['support_fraction'],.75)
+        matched,_,unbound,_,_=module._point_correspondences(pixels,states,[{'box':[5,5,24,26],'score':.99}])
+        self.assertEqual(matched,{})
+        self.assertIn(0,unbound)
+
+    def test_one_shared_current_point_blocks_new_birth_without_weakening_association(self):
+        points=np.array([[10,10],[20,10],[10,20],[20,20]],np.float32)
+        pixels={'R1':{'box':[0,0,40,40],'point_count':4}}
+        states={'R1':{'points':points}}
+        detections=[{'box':[0,0,40,40],'score':.6},{'box':[19,19,60,60],'score':.99}]
+        matches,_,unbound,_,_=module._point_correspondences(pixels,states,detections)
+        self.assertEqual(matches,{0:'R1'})
+        self.assertIn(1,unbound)
+        self.assertIn('R1',unbound[1]['point_owner_track_ids'])
+        detections[1]['box']=[100,100,60,60]
+        matches,_,unbound,_,_=module._point_correspondences(pixels,states,detections)
+        self.assertEqual(matches,{0:'R1'})
+        self.assertNotIn(1,unbound)
 
     def test_person_semantics_or_identity_cannot_be_promoted_by_detector_metadata(self):
         self.count=1
