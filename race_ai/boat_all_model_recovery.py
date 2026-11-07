@@ -293,6 +293,19 @@ def _attestation(projected,view,day,meta,meta_raw,run,round_no,receipt,key,previ
     return _signed_coverage(state,key)
 
 
+def _check_history_row_bounds(view):
+    """Every indivisible race row must fit its actual V5 day envelope."""
+    from .saved_view_history import MAX_CHUNK_PLAIN
+    anchor=forecast_anchor(view);overheads={}
+    for row in view['records']:
+        day=_day(row['event_date_jst'])
+        if day not in overheads:
+            base={name:value for name,value in view.items() if name!='records'}
+            base.update(event_date_jst=day,forecast_base_sha256=anchor)
+            overheads[day]=len(wire(dict(base,records=[])).encode())
+        if overheads[day]+len(wire(row).encode())>MAX_CHUNK_PLAIN:raise _Deferred()
+
+
 def _write_coverage(view,coverage,updates):
     from .saved_view_history import MAX_CHUNK_PLAIN
     output=deepcopy(view);anchor=forecast_anchor(view);output['forecast_base_sha256']=anchor
@@ -312,6 +325,7 @@ def _write_coverage(view,coverage,updates):
                 row[EVIDENCE_FIELD]=deepcopy(combined[day]);break
         else:raise _Deferred()
     if len(wire(output).encode())>MAX_VIEW_BYTES:raise _Deferred()
+    _check_history_row_bounds(output)
     return output,combined
 
 
@@ -455,9 +469,12 @@ def recover_saved_models(view,get,*,run_ids,day=None,key=None,max_artifacts=MAX_
                 # Missing projection support is not a verified zero-generation
                 # scope. Preserve representable originals, but do not attest
                 # that every saved forecast in this archive is represented.
-                output=merged;counts['deferred_artifacts']+=1
                 counts['unrepresented_scoped_forecasts']+=sum(slot.get('projection_status')=='UNREPRESENTABLE'
                     for row in unsupported for slot in row.get('dispatch_slots',[]))
+                try:_check_history_row_bounds(merged)
+                except _Deferred:
+                    counts['deferred_artifacts']+=1;continue
+                output=merged;counts['deferred_artifacts']+=1
                 continue
             available_days={row['event_date_jst'] for row in merged['records']}
             if not days<=available_days:

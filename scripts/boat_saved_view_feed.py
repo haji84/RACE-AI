@@ -102,6 +102,9 @@ def intake_saved_models(view,*,hydrate=False,day=None,since_day=None,recover_run
         from race_ai.boat_all_model_recovery import recover_saved_models
         output,counts=recover_saved_models(output,gh,run_ids=recover_runs,day=day)
         print(wire(dict(counts,intake_status='SAVED_MODEL_ARCHIVES_REPLAYED')))
+        from race_ai.boat_saved_result_recovery import recover_saved_results
+        output,counts=recover_saved_results(output,gh,run_ids=recover_runs)
+        print(wire(dict(counts,intake_status='SAVED_RESULT_ARCHIVES_REPLAYED')))
     if hydrate:
         from race_ai.boat_saved_view_intake import hydrate_saved_originals
         output,counts=hydrate_saved_originals(output,gh)
@@ -188,7 +191,7 @@ def main(argv=None):
         report=F.publish_view(git,bootstrap,view,parent=parent,previous=previous,generation=generation,history=activate_history)
         print(wire(report));return 0
     except Exception as e:
-        reason=str(e) if isinstance(e,(ValueError,RuntimeError)) and re.fullmatch('(?:FEED|HISTORY|MODEL_RUNTIME|ALL_MODEL_CLI|ALL_MODEL_RECOVERY|BOAT_ALL_MODEL_CYCLE|STATE|GITHUB|SAVED_PREDICTION_EVIDENCE|VAULT)_[A-Z0-9_]{1,90}',str(e)) else 'FEED_OPERATION_FAILED'
+        reason=str(e) if isinstance(e,(ValueError,RuntimeError)) and re.fullmatch('(?:FEED|HISTORY|MODEL_RUNTIME|ALL_MODEL_CLI|ALL_MODEL_RECOVERY|BOAT_ALL_MODEL_CYCLE|STATE|GITHUB|SAVED_PREDICTION_EVIDENCE|SAVED_RESULT_RECOVERY|VAULT)_[A-Z0-9_]{1,90}',str(e)) else 'FEED_OPERATION_FAILED'
         from race_ai.boat_saved_model_view import SavedModelViewError
         if isinstance(e,SavedModelViewError) and re.fullmatch('SAVED_MODEL_VIEW_[A-Z0-9_]{1,90}',getattr(e,'reason_code','')):
             reason=e.reason_code

@@ -188,13 +188,13 @@ def day_runs(get,day,*,current_run):
               if ts(run['created_at'])<end]
     return sorted(selected,key=lambda x:(ts(x['created_at']),x['id']))
 
-def result_archive(raw,meta,day):
+def result_archive(raw,meta,day,*,key=None):
     need(original_archive_bound(raw,32*1024*1024),'bounded result archive')
     run=meta['workflow_run']['id']
     need(meta.get('expired') is False and artifact_matches(meta.get('name'),f'race-existing-cycle-{run}') and
          meta['workflow_run'].get('head_repository_id')==1416489937,'foreign/expired cycle archive')
     need(meta.get('digest')=='sha256:'+hashlib.sha256(raw).hexdigest(),'cycle archive hash mismatch')
-    with open_original_zip(raw,meta,expected_kind='RESULT',max_plain_zip_bytes=32*1024*1024) as z:
+    with open_original_zip(raw,meta,expected_kind='RESULT',key=key,max_plain_zip_bytes=32*1024*1024) as z:
         member='official-result-observations.json'
         need(len(z.namelist())==len(set(z.namelist())) and member in z.namelist(),'cycle member missing/duplicate')
         need(z.getinfo(member).file_size<=16*1024*1024,'oversized result journal')
@@ -205,14 +205,14 @@ def result_archive(raw,meta,day):
         ts(row['captured_at'])
     return items
 
-def _result_day(raw,meta):
+def _result_day(raw,meta,*,key=None):
     """Determine an authenticated payload day before filtering a lookback run."""
     run=meta['workflow_run']['id']
     need(original_archive_bound(raw,32*1024*1024) and meta.get('expired') is False and
          artifact_matches(meta.get('name'),f'race-existing-cycle-{run}') and
          meta['workflow_run'].get('head_repository_id')==1416489937 and
          meta.get('digest')=='sha256:'+hashlib.sha256(raw).hexdigest(),'cycle archive identity')
-    with open_original_zip(raw,meta,expected_kind='RESULT',max_plain_zip_bytes=32*1024*1024) as archive:
+    with open_original_zip(raw,meta,expected_kind='RESULT',key=key,max_plain_zip_bytes=32*1024*1024) as archive:
         need(len(archive.namelist())==len(set(archive.namelist())),'duplicate cycle member')
         if 'status.json' in archive.namelist():
             need(archive.getinfo('status.json').file_size<=16*1024*1024,'oversized cycle report')

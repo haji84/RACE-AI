@@ -103,6 +103,28 @@ class ModelRecoveryTests(unittest.TestCase):
         with patch.object(recovery,'_now',return_value=kwargs.pop('now',CLOCK)):
             return recovery.recover_saved_models(view,get,run_ids=kwargs.pop('run_ids',[42]),key=kwargs.pop('key',KEY),**kwargs)
 
+    def unrepresentable_payload(self):
+        payload=deepcopy(self.payload);payload.pop('native_input_capsules')
+        slot=next(slot for report in payload['dispatch_reports'] for slot in report['slots']
+            if slot.get('prediction') and isinstance(slot['prediction'].get('candidates'),list)
+            and isinstance(slot['prediction']['candidates'][0],dict))
+        prediction=slot['prediction'];prediction['candidates'][0]['unsupported_fixture_attribute']=True
+        seal=next(name for name in ('prediction_sha256','model_sha256','bundle_sha256','prediction_hash') if name in prediction)
+        prediction[seal]=digest({name:value for name,value in prediction.items() if name!=seal})
+        slot.update(prediction_sha256=prediction[seal],output_sha256=digest(prediction))
+        return payload
+
+    def nearly_full_history_row(self):
+        from race_ai import saved_view_history as history
+        from race_ai.saved_view_feed import forecast_anchor
+        base=self.base(known=102);row=base['records'][0]
+        small=deepcopy(row);small.update(race_id='20300401-01-02',race_no=2,prediction=None,comparison_predictions=[])
+        base['records'].append(small);row['review_padding']=''
+        head={name:value for name,value in base.items() if name!='records'}
+        head.update(event_date_jst=DAY,forecast_base_sha256=forecast_anchor(base))
+        row['review_padding']='x'*(history.MAX_CHUNK_PLAIN-128-len(wire(dict(head,records=[])))-len(wire(row)))
+        return base
+
     def test_lost_first_round_is_recovered_when_only_second_round_reached_the_view(self):
         first=self.artifact(101,1);second=self.artifact(102,2)
         base=self.base(known=102);before=deepcopy(base);old=forecast_inventory(base)
@@ -270,15 +292,7 @@ class ModelRecoveryTests(unittest.TestCase):
         self.assertTrue(any('saved_model_archive_evidence' in row for row in result['records']))
 
     def test_unrepresentable_saved_forecast_is_pending_rather_than_an_empty_complete_scope(self):
-        payload=deepcopy(self.payload);payload.pop('native_input_capsules')
-        slot=next(slot for report in payload['dispatch_reports'] for slot in report['slots']
-            if slot.get('prediction') and isinstance(slot['prediction'].get('candidates'),list)
-            and isinstance(slot['prediction']['candidates'][0],dict))
-        prediction=slot['prediction'];prediction['candidates'][0]['unsupported_fixture_attribute']=True
-        seal=next(name for name in ('prediction_sha256','model_sha256','bundle_sha256','prediction_hash') if name in prediction)
-        prediction[seal]=digest({name:value for name,value in prediction.items() if name!=seal})
-        slot.update(prediction_sha256=prediction[seal],output_sha256=digest(prediction))
-        item=self.artifact(101,1,payload=payload)
+        item=self.artifact(101,1,payload=self.unrepresentable_payload())
         result,counts=self.recover(self.base(),self.transport(item))
         self.assertEqual(counts['deferred_artifacts'],1)
         self.assertTrue(any(slot['projection_status']=='UNREPRESENTABLE' for row in result['records'] for slot in row['dispatch_slots']))
@@ -342,6 +356,29 @@ class ModelRecoveryTests(unittest.TestCase):
             with self.subTest(bound=name),patch.object(target,name,limit):
                 result,counts=self.recover(complete,self.transport(first,second),now=NOW.replace(hour=22))
             self.assertEqual(result,complete);self.assertEqual(counts['deferred_artifacts'],1)
+
+    def test_enlarged_row_defers_even_when_a_small_sibling_can_host_coverage(self):
+        from race_ai import saved_view_history as history
+        base=self.nearly_full_history_row();before=deepcopy(base);inventory=forecast_inventory(base)
+        history.encrypt_day_chunks(base,KEY,view_id='a'*64)
+        result,counts=self.recover(base,self.transport(self.artifact(101,1)))
+        self.assertEqual(counts['status'],'SAVED_MODEL_RECOVERY_DEFERRED')
+        self.assertEqual(counts['appended_forecasts'],0);self.assertEqual(counts['deferred_artifacts'],1)
+        self.assertEqual(result,before);self.assertEqual(base,before)
+        self.assertEqual(forecast_inventory(result),inventory)
+        history.encrypt_day_chunks(result,KEY,view_id='a'*64)
+
+    def test_unrepresentable_partial_merge_defers_all_growth_if_a_day_row_would_overflow(self):
+        from race_ai import saved_view_history as history
+        base=self.nearly_full_history_row();before=deepcopy(base);inventory=forecast_inventory(base)
+        history.encrypt_day_chunks(base,KEY,view_id='a'*64)
+        item=self.artifact(101,1,payload=self.unrepresentable_payload())
+        result,counts=self.recover(base,self.transport(item))
+        self.assertEqual(counts['status'],'SAVED_MODEL_RECOVERY_DEFERRED')
+        self.assertEqual(counts['appended_forecasts'],0)
+        self.assertEqual(result,before);self.assertEqual(base,before)
+        self.assertEqual(forecast_inventory(result),inventory)
+        history.encrypt_day_chunks(result,KEY,view_id='a'*64)
 
     def test_invalid_scope_or_missing_owner_key_stops_before_any_transport(self):
         for options in ({'run_ids':list(range(1,18))},{'run_ids':[True]},{'max_artifacts':129},{'key':b'bad'}):
