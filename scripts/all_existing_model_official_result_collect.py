@@ -207,9 +207,10 @@ def _journal_origin(cipher,*,key,run_id,head_sha,now,saved_at=None):
         'manifest','workflow_run_id','code_sha','collection_plan_sha256'}
     if body.get('schema')==JOURNAL_V3:fields=fields|{'target_event_day'}
     need(fields<=set(body)<=fields|{'browser_attempt','browser_index','browser_captures','browser_request_checkpoint',
-        'browser_process_diagnostic','browser_failure','browser_quarantine','recovery_authorization'} and
+        'browser_process_diagnostic','browser_failure','browser_quarantine','recovery_authorization','prior_static_cache'} and
         type(body['workflow_run_id']) is int and body['workflow_run_id']==run_id and body['code_sha']==head_sha,
         'JOURNAL_ORIGIN_RUN')
+    if 'prior_static_cache' in body:_prior_static_lineage(body['prior_static_cache'])
     epoch=stamp(body['epoch_started_at']);original=_manifest(body['manifest'],epoch)
     need(epoch<=now and (saved_at is None or epoch<=saved_at+timedelta(seconds=1)) and
         body['execution_day']==original['execution_day'] and body['manifest_sha256']==digest(original) and
@@ -249,10 +250,22 @@ def _journal_artifact(pin,*,now,key):
     return body,cipher,actual
 
 
-def prior_journals(manifest,*,now,key,recovery_authorization=None):
+def _prior_static_lineage(value):
+    """Count/hash/pin evidence only; no cached source bytes in public status."""
+    need(type(value) is dict and set(value)=={'cache_entry_count','cache_sha256','source_journals','source_receipts_sha256'} and
+        type(value['cache_entry_count']) is int and
+        1<=value['cache_entry_count']<=128 and all(type(value.get(k)) is str and re.fullmatch('[a-f0-9]{64}',value[k])
+            for k in ('cache_sha256','source_receipts_sha256')),'PRIOR_STATIC_CACHE_LINEAGE')
+    _pins(value['source_journals'])
+    return value
+
+
+def prior_journals(manifest,*,now,key,recovery_authorization=None,private_static_cache_out=None):
     """Guard only explicitly pinned epochs; never infer that unlisted history is safe."""
     if manifest['schema'] not in (SCHEMA_V2,SCHEMA_V3):return {}
-    receipts=[];latest=None
+    need(private_static_cache_out is None or type(private_static_cache_out) is dict and not private_static_cache_out,
+        'EMPTY_PRIVATE_STATIC_CACHE_OUT_REQUIRED')
+    receipts=[];latest=None;eligible=[]
     for pin in manifest['prior_journal_artifacts']:
         body,cipher,actual=_journal_artifact(pin,now=now,key=key);epoch=stamp(body['epoch_started_at'])
         latest=max(latest,epoch) if latest is not None else epoch
@@ -299,7 +312,27 @@ def prior_journals(manifest,*,now,key,recovery_authorization=None):
         receipts.append(dict(artifact_id=pin['id'],artifact_digest=pin['digest'],workflow_run_id=pin['run_id'],
             head_sha=pin['head_sha'],epoch_started_at=body['epoch_started_at'],saved_at=actual['created_at'],
             expires_at=actual['expires_at'],journal_cipher_sha256=sha256(cipher).hexdigest(),journal_payload_sha256=digest(body)))
+        # Reviewed UNKNOWN may remain admissible under its existing bound, but
+        # it can never supply reusable bytes. Delay extraction until ALL prior
+        # authorization/denial/uncertainty/interval guards have passed.
+        if private_static_cache_out is not None and type(browser) is dict and browser.get('state')=='COMPLETE' and \
+                'browser_quarantine' in body and any(type(entry) is dict and entry.get('resource_type') in ('script','stylesheet')
+                    for entry in body.get('browser_index',{}).get('responses',[])):
+            eligible.append((deepcopy(pin),body,actual))
     need(latest is None or now-latest>=timedelta(seconds=3600),'PRIOR_EPOCH_TOO_RECENT')
+    if private_static_cache_out is not None and eligible:
+        from race_ai.all_existing_model_prior_static_cache import extract_static_cache,merge_static_cache
+        entries=[];sources=[]
+        for pin,body,actual in eligible:
+            additions=extract_static_cache(body,actual,now=now)
+            entries=merge_static_cache(entries,additions,now=now,sports=('autorace','keirin'))
+            if additions:sources.append(pin)
+        if entries:
+            lineage=dict(cache_entry_count=len(entries),cache_sha256=digest(entries),
+                source_journals=sources,source_receipts_sha256=digest(receipts))
+            _prior_static_lineage(lineage)
+            private_static_cache_out.update(entries=deepcopy(entries),lineage=lineage)
+
     return dict(prior_journal_artifact_count=len(receipts),prior_journal_receipts_sha256=digest(receipts),
         prior_journal_guard_scope='EXPLICIT_PINNED_JOURNALS_ONLY',minimum_epoch_interval_seconds=3600)
 
@@ -641,7 +674,7 @@ def _status(journal,manifest,*,ready=False,state='NO_NEW_AUTHENTICATED_RESULTS')
     for case in journal['cases']:
         if case['state'] in ('settled','rank_confirmed') or case.get('confirmed_result_status') in ('settled','rank_confirmed'):
             normal[case['sport']]+=1
-    return dict(_lineage(manifest),state=state,ready=ready,source_requests=None if uncertain else requests,
+    status=dict(_lineage(manifest),state=state,ready=ready,source_requests=None if uncertain else requests,
         source_requests_upper_bound=journal['maximum_requests'],collection_source_requests=None if uncertain else requests,
         planned_case_count=len(journal['cases']),confirmed_case_count=counts['ALREADY_CONFIRMED'],
         not_due_case_count=counts['NOT_DUE'],no_published_link_case_count=counts['NO_PUBLISHED_RESULT_LINK'],
@@ -653,6 +686,11 @@ def _status(journal,manifest,*,ready=False,state='NO_NEW_AUTHENTICATED_RESULTS')
             browser['state'] in ('INTERRUPTED','INDEX_RECEIVED','REJECTED') else 'VERIFIED_REQUEST_ATTEMPTS' if not uncertain else 'UNKNOWN_WITH_RESERVED_LIMIT'),
         independent_result_artifact_receipt_verified=False,artifact_retention_days=7,
         normal_confirmed_cases_by_sport=normal,normal_eight_case_requirement_met=bool(sports) and all(n>=8 for n in normal.values()))
+    if 'prior_static_cache' in journal:
+        proof=_prior_static_lineage(journal['prior_static_cache'])
+        status.update(prior_static_cache_entry_count=proof['cache_entry_count'],prior_static_cache_sha256=proof['cache_sha256'],
+            prior_static_cache_source_journal_count=len(proof['source_journals']))
+    return status
 
 
 def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,browser=browser_capture,recovery_authorization=None):
@@ -665,7 +703,9 @@ def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,bro
         from race_ai.all_existing_model_official_continuation import ValidatedContinuation
         need(type(recovery_authorization) in (ValidatedRecovery,ValidatedContinuation),'VALIDATED_RECOVERY_REQUIRED')
         recovery=recovery_authorization.validate_collector(manifest,plan,env,now)
-    prior=prior_journals(manifest,now=now,key=key,recovery_authorization=recovery_authorization)
+    private_prior_cache={}
+    prior=prior_journals(manifest,now=now,key=key,recovery_authorization=recovery_authorization,
+        private_static_cache_out=private_prior_cache)
     need(not root.exists() and not any(p.is_symlink() for p in (root,*root.parents)), 'OUTPUT_EXISTS_DO_NOT_RESET')
     natives=freeze.frozen_inputs(manifest,now=now);known,_=results._frozen(natives)
     previous=checkpoints(manifest,natives,now=now,key=key)
@@ -740,6 +780,17 @@ def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,bro
             budget.wait();started=clock();need(started>=now,'CLOCK_REGRESSED_BEFORE_BROWSER');remaining=budget.remaining
             if recovery_authorization is not None:
                 recovery_authorization.validate_collector(manifest,plan,env,started)
+            runtime_cache=None
+            if private_prior_cache.get('entries'):
+                from race_ai.all_existing_model_prior_static_cache import merge_static_cache
+                sports={case['sport'] for case in browser_cases}
+                previous_static=[entry for entry in plan.get('static_cache',[]) if policy._url(entry['metadata']['source_url'])[0] in sports]
+                additions=[entry for entry in private_prior_cache['entries'] if policy._url(entry['metadata']['source_url'])[0] in sports]
+                if additions:
+                    # The MAC-bound plan stays exact. Only this private runtime
+                    # browser request receives already-authenticated originals.
+                    runtime_cache=merge_static_cache(previous_static,additions,now=started,sports=sports)
+                    journal['prior_static_cache']=deepcopy(private_prior_cache['lineage'])
             journal['browser_attempt']=dict(state='RESERVED',reserved_request_limit=remaining,started_at=started.isoformat());persist()
             browser_plan=dict(schema='RACE_AI_OFFICIAL_RESULT_BROWSER_PLAN_V1',cases=browser_cases,request_budget=remaining,
                 not_before=now.isoformat())
@@ -747,7 +798,8 @@ def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,bro
             if manifest['schema']==SCHEMA_V3:
                 midnight=datetime.fromisoformat(manifest['execution_day']).replace(tzinfo=JST)+timedelta(days=1)
                 browser_plan['not_after']=min(midnight,stamp(browser_plan.get('not_after',midnight.isoformat()))).isoformat()
-            if 'static_cache' in plan:
+            if runtime_cache is not None:browser_plan['static_cache']=runtime_cache
+            elif 'static_cache' in plan:
                 sports={case['sport'] for case in browser_cases}
                 browser_plan['static_cache']=[entry for entry in plan['static_cache']
                     if policy._url(entry['metadata']['source_url'])[0] in sports]
