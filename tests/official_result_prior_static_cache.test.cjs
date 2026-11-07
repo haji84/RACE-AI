@@ -26,11 +26,11 @@ function staticEntries(){return cssUrls.map((url,index)=>{
   fetched_at:'2020-01-01T00:00:00Z',response_received_at:'2020-01-01T00:00:01Z'}};
 });}
 
-async function capture(withCache){
+async function capture(withCache,{lateRead=false,closeRead=false}={}){
  const temporary=fs.mkdtempSync(path.join(os.tmpdir(),'prior-static-wire-'));
  const out=path.join(temporary,'capture');
  const entries=staticEntries(),before=structuredClone(entries),requests=[],fulfilled=[];
- let handler,closed=false;
+ let handler,closed=false,lateTask,closingTask;
  const context=new EventEmitter();
  async function perform(url,method,type,body,raw){
   const record={url,method,type,body:Buffer.from(body),continued:false,aborted:false};requests.push(record);
@@ -38,13 +38,13 @@ async function capture(withCache){
    headers:()=>({'content-type':'application/json'})};
   const mime=type==='document'?'text/html':type==='stylesheet'?'text/css':'application/json';
   const response={request:()=>req,status:()=>200,url:()=>url,
-   headers:()=>({'content-type':mime}),body:async()=>raw};
+   headers:()=>({'content-type':mime}),body:async()=>{if(lateRead&&record.sequence===9)await new Promise(resolve=>setTimeout(resolve,25));return raw;},finished:async()=>{}};
   await handler({request:()=>req,abort:async()=>{record.aborted=true;},
    continue:async()=>{
-    record.continued=true;record.sequence=req._officialCapture.sequence;
+    record.continued=true;record.reserved_after_close=closed;record.sequence=req._officialCapture.sequence;
     const checkpoint=JSON.parse(fs.readFileSync(path.join(out,'request-ledger-'+String(record.sequence).padStart(3,'0')+'.json')));
     assert.equal(checkpoint.actual_request_count,record.sequence);
-    context.emit('response',response);
+    context.emit('response',response);context.emit('page-response',response);
    },fulfill:async options=>{
     assert.equal(type,'stylesheet');assert.equal(method,'GET');
     assert.equal(req._officialCapture,undefined,'cache hit must precede reservation and numbered ledger');
@@ -57,6 +57,7 @@ async function capture(withCache){
  }
  class Page extends EventEmitter{
   url(){return item.ui_entry_url;}
+  waitForResponse(predicate,options){assert.equal(options.timeout,12000);return new Promise((resolve,reject)=>{const timer=setTimeout(()=>{context.off('page-response',check);reject(Error('fixture identity wait timeout'));},3000);const check=response=>{if(predicate(response)){clearTimeout(timer);context.off('page-response',check);resolve(response);}};context.on('page-response',check);});}
   async waitForLoadState(){}async waitForTimeout(ms){await new Promise(resolve=>setTimeout(resolve,Math.min(ms,5)));}
   async close(){}
   async goto(){
@@ -74,18 +75,19 @@ async function capture(withCache){
       Buffer.from(JSON.stringify({invented_source:true,endpoint})));
     },last:()=>locator};return locator;
   }
-  async content(){return '<html>invented transport fixture; no result teacher</html>';}
+  async content(){if(lateRead&&!lateTask)lateTask=perform('https://autorace.jp/race_info/OtherRaceInfo','POST','xhr',postBody,Buffer.from(JSON.stringify({invented_source:true,endpoint:'OtherRaceInfo'})));return '<html>invented transport fixture; no result teacher</html>';}
  }
  Object.assign(context,{setDefaultTimeout(){},routeWebSocket:async()=>{},
   newCDPSession:async()=>({send:async()=>{},on(){}}),route:async(_,callback)=>{handler=callback;},
-  newPage:async()=>new Page(),close:async()=>{closed=true;}});
- const plan={schema:api.SCHEMA,cases:[structuredClone(item)],request_budget:8,
+  newPage:async()=>new Page(),close:async()=>{closed=true;if(closeRead&&!closingTask)closingTask=perform('https://autorace.jp/race_info/OtherRaceInfo','POST','xhr',postBody,Buffer.from('{}'));if(closingTask)await closingTask;}});
+ const plan={schema:api.SCHEMA,cases:[structuredClone(item)],request_budget:lateRead?10:8,
   ...(withCache?{static_cache:entries}:{})};
  const original=structuredClone(plan);
  try{
   if(withCache)assert.equal(api.validateStaticCache(entries,plan).size,3);
   const index=await api.capturePlan(plan,out,{executablePath:process.execPath,
    chromium:{launch:async()=>({newContext:async()=>context,close:async()=>{}})}});
+  if(lateTask)await lateTask;
   assert.equal(closed,true);assert.deepEqual(entries,before);assert.deepEqual(plan,original);
   const files=Object.fromEntries(fs.readdirSync(out).filter(name=>fs.statSync(path.join(out,name)).isFile())
    .map(name=>[name,fs.readFileSync(path.join(out,name))]));
@@ -102,7 +104,7 @@ test('uncached normal UI spends its unchanged eight requests before result sourc
   ['document','stylesheet','stylesheet','stylesheet','xhr','xhr','xhr','xhr']);
  assert.deepEqual(index.ledger.filter(row=>Number.isInteger(row.sequence)).map(row=>row.sequence),[1,2,3,4,5,6,7,8]);
  assert.equal(requests.filter(request=>request.method==='POST'&&request.continued).length,0);
- assert.equal(requests.filter(request=>request.method==='POST'&&request.aborted).length,3);
+ assert.equal(requests.filter(request=>request.method==='POST'&&request.aborted).length,1);
  assert.equal(index.responses.some(row=>row.url.endsWith('/RaceResult')),false);
  assert.notEqual(index.cases[0].state,'CAPTURED');assert.equal(index.formal_learning_or_pdca_claim,false);
 });
@@ -136,4 +138,25 @@ test('three validated prior CSS bodies replay with zero dispatches and free thre
  assert.deepEqual(index.cases[0].responses.map(row=>row.role),['identity','result','result_companion']);
  assert.equal(index.normal_ui_only,true);assert.equal(index.manual_api_requests,0);
  assert.equal(index.formal_learning_or_pdca_claim,false);
+});
+
+
+test('queued normal reads finish before context closes and the final index is immutable',{timeout:20000},async()=>{
+ const {index,requests,files}=await capture(true,{lateRead:true,closeRead:true});
+ assert.equal(index.actual_request_count,9,'late queued read must be settled before index count');
+ assert.equal(index.stop_reason,'FINISHED');assert.equal(index.cases[0].state,'CAPTURED');
+ const sent=requests.filter(row=>row.continued);
+ assert.equal(sent.length,9);assert.ok(sent.every(row=>!row.reserved_after_close),'no queued reservation after context close');
+ const numbered=index.ledger.filter(row=>Number.isInteger(row.sequence));
+ assert.equal(numbered.length,9);assert.equal(index.responses.length,9);
+ for(const row of numbered){
+  assert.equal(row.status,200);assert.ok(row.body_captured_at);
+  assert.ok(files[row.body_file]);assert.ok(files[row.metadata_file]);
+ }
+ const stored=JSON.parse(files['capture-index.json']);assert.deepEqual(stored,index,'no ledger mutations after index serialization');
+ assert.equal(index.cases[0].browser_metadata.ledger.filter(row=>Number.isInteger(row.sequence)).length,9);
+ const extra=requests.at(-1);assert.equal(extra.aborted,true);assert.equal(extra.continued,false);
+ assert.equal(extra.sequence,undefined);
+ assert.equal(Object.keys(files).some(name=>name.startsWith('request-010')||name.startsWith('response-010')),false);
+ assert.ok(index.ledger.some(row=>row.event==='BLOCKED_REQUEST'&&row.reason==='CAPTURE_FINALIZING'));
 });

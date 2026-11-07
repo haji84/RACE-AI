@@ -122,7 +122,9 @@ test('AUTO historical result navigation uses the published exact date control an
  const item={...auto,expected_date:'2029-12-31',race_id:'autorace:2029-12-31:isesaki:2',due_at:'2029-12-31T11:30:00+09:00'};
  api.validatePlan(plan([item]),NOW);
  const calls=[];let visible=true;
- const page={url:()=>auto.ui_entry_url,waitForLoadState:async()=>{},goto:async()=>assert.fail('guessed endpoint'),locator(selector){
+ const request={url:()=> 'https://autorace.jp/race_info/OtherRaceInfo',method:()=> 'POST',resourceType:()=> 'xhr',postDataBuffer:()=>Buffer.from(JSON.stringify({placeCode:3,raceDate:item.expected_date,raceNo:item.race_no})),headers:()=>({'content-type':'application/json'})};
+ const identity={request:()=>request,url:()=>request.url(),status:()=>200,finished:async()=>{}};
+ const page={url:()=>auto.ui_entry_url,waitForResponse:async predicate=>{assert.equal(predicate(identity),true);return identity;},waitForLoadState:async()=>{},goto:async()=>assert.fail('guessed endpoint'),locator(selector){
   const locator={last(){return locator;},waitFor:async()=>{if(selector.includes('data-period-date')&&!visible)throw Error('published date unavailable');},
    count:async()=>1,isVisible:async()=>true,innerText:async()=>selector.includes('data-period-date')?'12月31日':selector.includes('data-raceno')?'2R':'レース結果',
    click:async()=>calls.push(selector)};return locator;
@@ -228,6 +230,7 @@ test('offline browser transport retains exact natural UI request/response bytes 
  const sourceBody=Buffer.from('{"invented":"normal-result-source"}');let handler,launchOptions,closed=false;
  class Page extends EventEmitter{
   url(){return item.ui_entry_url;}
+  waitForResponse(predicate){return new Promise(resolve=>{const check=response=>{if(predicate(response)){this.off('response',check);resolve(response);}};this.on('response',check);});}
   async waitForLoadState(){}async waitForTimeout(ms){await new Promise(r=>setTimeout(r,Math.min(ms,5)));}async close(){}
   async goto(){await perform(item.ui_entry_url,'GET','document',Buffer.alloc(0),Buffer.from('<html>invented index</html>'));}
   locator(selector){const endpoint=selector.includes('data-main-menu')?'RaceResult':selector.includes('data-raceno')?'OtherRaceInfo':null;const label=selector.includes('data-main-menu')?'レース結果':selector.includes('data-raceno')?'2R':'初日';
@@ -237,8 +240,8 @@ test('offline browser transport retains exact natural UI request/response bytes 
  const page=new Page(),context=new EventEmitter();Object.assign(context,{setDefaultTimeout(){},routeWebSocket:async()=>{},newCDPSession:async()=>({send:async()=>{},on(){}}),route:async(_,fn)=>{handler=fn;},newPage:async()=>page,close:async()=>{closed=true;}});
  async function perform(url,method,type,body,raw){
   const req={url:()=>url,method:()=>method,resourceType:()=>type,postDataBuffer:()=>body,headers:()=>({'content-type':'application/json'})};let aborted=false;
-  const response={request:()=>req,status:()=>200,url:()=>url,headers:()=>({'content-type':type==='document'?'text/html':'application/json'}),body:async()=>raw};
-  await handler({request:()=>req,abort:async()=>{aborted=true;},continue:async()=>{const n=req._officialCapture.sequence;const progress=JSON.parse(fs.readFileSync(path.join(root,'capture','request-ledger-'+String(n).padStart(3,'0')+'.json')));assert.equal(progress.schema,'RACE_AI_OFFICIAL_RESULT_BROWSER_REQUEST_CHECKPOINT_V1');assert.equal(progress.actual_request_count,n);assert.equal(progress.ledger.at(-1).sequence,n);context.emit('response',response);},fulfill:async()=>{throw Error('no authored cache expected');}});assert.equal(aborted,false);
+  const response={request:()=>req,status:()=>200,url:()=>url,headers:()=>({'content-type':type==='document'?'text/html':'application/json'}),body:async()=>raw,finished:async()=>{}};
+  await handler({request:()=>req,abort:async()=>{aborted=true;},continue:async()=>{const n=req._officialCapture.sequence;const progress=JSON.parse(fs.readFileSync(path.join(root,'capture','request-ledger-'+String(n).padStart(3,'0')+'.json')));assert.equal(progress.schema,'RACE_AI_OFFICIAL_RESULT_BROWSER_REQUEST_CHECKPOINT_V1');assert.equal(progress.actual_request_count,n);assert.equal(progress.ledger.at(-1).sequence,n);context.emit('response',response);page.emit('response',response);},fulfill:async()=>{throw Error('no authored cache expected');}});assert.equal(aborted,false);
  }
  try{
   const index=await api.capturePlan(plan([item]),path.join(root,'capture'),{executablePath:process.execPath,chromium:{launch:async opts=>{launchOptions=opts;return {newContext:async()=>context,close:async()=>{}};}}});
