@@ -1,8 +1,8 @@
 {
-  "artifact_id": 13547940567,
-  "head_sha": "25720dbac8a6489fb650e64864b775984a010fd4",
+  "artifact_id": 13555727734,
+  "head_sha": "728b03530264f3494a408fb92bb61b541d3ae0d3",
   "repository_id": "1416489937",
-  "run_id": 42308214829,
+  "run_id": 42327254832,
   "schema": "RACE_AI_BOAT_VENUE_LEARNING_CONTEXT_INPUT_V1",
-  "training_sha256": "cbba0e5d4aef639b9c8aa6bddf8177d4905d3a109cdc14fb0977b7ce1dce3f15"
+  "training_sha256": "2c55857084ae3ce8fee9cd05fbc2c19867f330f531334bb8a8f29fe321605654"
 }
