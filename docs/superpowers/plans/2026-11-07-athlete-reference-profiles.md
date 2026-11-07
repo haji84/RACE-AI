@@ -43,9 +43,9 @@
 
 **Interfaces:** `get(race, person)` uses existing portrait identity gates. `preferredCourses(profile)` ranks courses with 10+ starts by two-place rate minus the same-term whole-catalogue course baseline; falls back to explicitly labeled within-racer ranking. `scenario(race, person, course, {entryMap})` returns conditional course paths, own measured values and eligible adjacent-racer comparisons. No win probabilities or new saved tickets.
 
-- [ ] Add failing tests for all 6 courses, sparse/zero records, synthetic/mismatched identities, historical-data cutoff, entry conflicts and real-source sampled values.
-- [ ] Implement exact course counts and cautious conditional descriptions. A selected alternate course is hypothetical unless a complete, identity-bound exhibition map establishes positions; do not invent opponents' positions.
-- [ ] Run Node tests and commit.
+- [x] Add failing tests for all 6 courses, sparse/zero records, synthetic/mismatched identities, historical-data cutoff, entry conflicts and real-source sampled values.
+- [x] Implement exact course counts and cautious conditional descriptions. A selected alternate course is hypothetical unless a complete, identity-bound exhibition map establishes positions; do not invent opponents' positions.
+- [x] Run Node tests and commit.
 
 ## Task 3: カルテへの接続と配布
 
