@@ -972,9 +972,11 @@
     }
     if(result?.status==="unsupported") {
       const reason=r.result_observation_rejections?.find(e=>e.captured_at===result.observed_at)?.reason;
+      const clocks=(r.saved_cutoff_variants||[]).map(Date.parse).filter(Number.isFinite);
+      if(reason==="RESULT_CUTOFF_MISMATCH"&&clocks.length>1&&Math.max(...clocks)-Math.min(...clocks)>60000)return "予想原本の締切が一致しないため集計対象外（原本は保持）";
       return ({RESULT_CUTOFF_MISMATCH:"締切情報の不一致を確認中",RESULT_ROSTER_MISMATCH:"出走者情報の不一致を確認中",RESULT_IDENTITY_UNVERIFIED:"公式ページのレース識別を確認できません",RESULT_FINISH_ORDER_MISMATCH:"着順と払戻の整合性を確認中"})[reason]||"取得した結果の整合性を確認中";
     }
-    if(result?.status==="void")return "公式の中止・返還表示を照合済み";
+    if(result?.status==="void")return r.result_observations?.some(o=>o.captured_at===result.observed_at&&o.source_sha256===result.source_sha256&&o.data?.status==="no_contest"&&o.data?.confirmed_scope==="TRIFECTA_ONLY")?"3連単不成立・全額返還を照合済み":"公式の中止・返還表示を照合済み";
     if(result?.status==="final")return "取得結果と保存Top8を照合済み";
     if(U.racePhase(r)==="upcoming")return "レース前";
     if(U.racePhase(r)==="unknown")return "締切時刻を確認できていません";
