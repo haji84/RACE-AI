@@ -258,8 +258,8 @@
       img.width = img.height = 88;
       img.loading = "lazy"; img.decoding = "async"; img.referrerPolicy = "no-referrer";
       img.dataset.registration = portrait.registration;
-      img.addEventListener("error", () => { artwork.remove(); avatar.append(silhouette); status.textContent = "イラスト読込待ち"; }, {once: true});
-      img.src = portrait.src; avatar.append(artwork); status.textContent = "イラスト";
+      img.addEventListener("error", () => { artwork.remove(); avatar.append(silhouette); status.textContent = "イラスト読込待ち"; status.hidden = false; }, {once: true});
+      img.src = portrait.src; avatar.append(artwork); status.textContent = ""; status.hidden = true;
     } else avatar.append(silhouette);
     const registration = participantRegistration(p);
     card.append(avatar, node("strong", "racer-name", p.placeholder ? "出走者 未取得" : p.name ? text(p.name) : "名前 未取得"), node("small", "muted", p.placeholder ? "表示用の枠" : registration ? "登録 " + text(registration) : "登録 未取得"));
