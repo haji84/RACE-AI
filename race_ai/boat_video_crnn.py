@@ -67,8 +67,8 @@ def decode_ctc_logits(logits):
     return text, likelihood
 
 
-def candidate_regions(crop):
-    """Fixed development v2 Otsu/MSER geometry, never OCR an isolated mask."""
+def _component_regions(crop, *, limit):
+    """Share unchanged component geometry between bounded and complete callers."""
     import cv2
     import numpy as np
     _pixels(crop)
@@ -114,9 +114,23 @@ def candidate_regions(crop):
                           old['box'][3]-old['box'][1]]) > .5 for old in selected):
             continue
         selected.append(item)
-        if len(selected) == 4:
+        if limit is not None and len(selected) == limit:
             break
     return selected
+
+
+def candidate_regions(crop):
+    """Original four-region development path; no default policy is changed."""
+    return _component_regions(crop, limit=4)
+
+
+def all_candidate_regions(crop):
+    """All geometric candidates for explicit marker discovery, never identities.
+
+    Do not truncate before semantic context/temporal association. Returning a
+    component makes no assertion that it is text, a hull number or a boat.
+    """
+    return _component_regions(crop, limit=None)
 
 
 def normalize_region(mask, deslant, source_gray):
