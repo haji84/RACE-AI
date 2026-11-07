@@ -8,6 +8,7 @@ from collections import Counter,defaultdict
 from copy import deepcopy
 from datetime import datetime,timedelta
 import math
+import re
 
 from .actions_contract import digest
 from . import all_existing_model_registry as registry
@@ -57,7 +58,86 @@ def _sources(payload):
             for child in value:visit(child)
     visit(payload);return pairs
 
-def _lineage(row):
+GENERATION_SCHEMA='RACE_AI_AUTHENTICATED_NATIVE_GENERATION_CLOCK_V1'
+
+def _native_generation_evidence(row,*,now):
+    """Use a retained physical generation clock, never manufacture a replay time.
+
+    Actual decryption and fresh external metadata admission belong to the
+    input reader. This checks the reader's complete receipt/partition binding
+    again. Legacy journal records have no partitions and keep their old clock.
+    """
+    if 'input_partitions' not in row:return None
+    need(type(now) is datetime and now.utcoffset() is not None,'NATIVE_GENERATION_CLOCK_REQUIRED')
+    parts=row['input_partitions'];receipt=row.get('input_receipt')
+    need(type(parts) is list and 1<=len(parts)<=31 and type(receipt) is dict and
+         receipt.get('independent_pre_cutoff_receipt_verified') is True and
+         type(receipt.get('artifact_metadata')) is dict,'NATIVE_GENERATION_RECEIPT_REQUIRED')
+    metadata=receipt['artifact_metadata'];run=metadata.get('workflow_run')
+    need(type(receipt.get('artifact_id')) is int and 0<receipt['artifact_id']<10**20 and
+         type(metadata.get('id')) is int and metadata['id']==receipt['artifact_id'] and metadata.get('expired') is False and
+         type(receipt.get('workflow_run_id')) is int and 0<receipt['workflow_run_id']<10**20 and
+         type(run) is dict and type(run.get('id')) is int and run['id']==receipt['workflow_run_id'] and
+         all(type(run.get(k)) is int and run[k]==1416489937 for k in ('repository_id','head_repository_id')) and
+         type(receipt.get('head_sha')) is str and re.fullmatch('[a-f0-9]{40}',receipt['head_sha']) and
+         run.get('head_sha')==receipt['head_sha'],'NATIVE_GENERATION_ARTIFACT_IDENTITY')
+    name=receipt.get('artifact_name');run_id=str(receipt['workflow_run_id'])
+    private=type(name) is str and re.fullmatch('all-existing-model-pairs-'+run_id+'-[1-9][0-9]*',name)
+    round_match=re.fullmatch('boat-all-model-forecasts-'+run_id+r'-r(0|[1-9][0-9]{0,5})',name) \
+        if type(name) is str else None
+    need(type(name) is str and len(name)<=200 and (private or round_match) and metadata.get('name')==name and
+         type(receipt.get('digest')) is str and re.fullmatch('sha256:[a-f0-9]{64}',receipt['digest']) and
+         metadata.get('digest')==receipt['digest'] and type(metadata.get('size_in_bytes')) is int and
+         0<metadata['size_in_bytes']<=64*1024*1024,'NATIVE_GENERATION_ARTIFACT_BYTES')
+    need(all(type(row.get(k)) is str for k in ('as_of','cutoff_at','input_saved_at','stage')) and
+         0<len(row['stage'])<=64 and
+         all(type(metadata.get(k)) is str for k in ('created_at','expires_at')) and
+         type(receipt.get('saved_at')) is str,'NATIVE_GENERATION_CLOCK_BINDING')
+    asof=ts(row['as_of']);cutoff=ts(row['cutoff_at']);saved=ts(row['input_saved_at'])
+    need(ts(receipt['saved_at'])==ts(metadata['created_at'])==saved and saved<=now<ts(metadata['expires_at']) and
+         saved+timedelta(seconds=1)<cutoff,'NATIVE_GENERATION_CLOCK_BINDING')
+    hex64=lambda value:type(value) is str and re.fullmatch('[a-f0-9]{64}',value) is not None
+    clocks=[];known={cell['cell_key'] for cell in registry.cells()}
+    for part in parts:
+        need(type(part) is dict and type(part.get('generated_at')) is str,'NATIVE_GENERATION_PARTITION_FIELDS')
+        if private:
+            fields={'carrier_cell_key','generated_at','training_sha256'}
+            pair='pair_sha256' in part
+            fields.add('pair_sha256' if pair else 'native_inputs_record_sha256')
+            need(set(part)==fields and hex64(part.get('training_sha256')) and
+                 hex64(part.get('pair_sha256' if pair else 'native_inputs_record_sha256')) and
+                 (type(part.get('carrier_cell_key')) is str and part['carrier_cell_key'] in known and
+                  part['carrier_cell_key'].startswith(row['sport']+'/') if pair else
+                  part.get('carrier_cell_key') is None),'NATIVE_GENERATION_PARTITION_FIELDS')
+        else:
+            need(set(part)=={'native_group','capsule_sha256','generated_at','dispatch_input_sha256'} and
+                 part.get('native_group')==receipt.get('native_group')==registry.group(row['model_id']) and
+                 all(hex64(receipt.get(k)) for k in ('payload_sha256','cipher_sha256','capsule_sha256',
+                     'dispatch_input_sha256','frozen_native_input_sha256','model_input_sha256')) and
+                 part.get('capsule_sha256')==receipt['capsule_sha256'] and
+                 part.get('dispatch_input_sha256')==receipt['dispatch_input_sha256'] and
+                 receipt.get('model_input_sha256')==row['input_sha256'] and
+                 receipt.get('saved_stage')==row['stage'] and row['stage'] in ('P0','P1') and
+                 receipt.get('stage_binding_semantics')=='CANONICAL_INPUT_FROM_FROZEN_NATIVE_AND_SAVED_STAGE' and
+                 receipt.get('authenticated_original_artifact_verified') is True and
+                 type(receipt.get('round_no')) is int and receipt['round_no']==int(round_match[1]),
+                 'NATIVE_GENERATION_PARTITION_FIELDS')
+        generated=ts(part['generated_at'])
+        need(asof<=generated<saved+timedelta(seconds=1) and generated<cutoff and generated<=now,
+             'NATIVE_GENERATION_CLOCK_BINDING')
+        clocks.append(generated)
+    need(len(set(clocks))==1 and (not private or len({part['training_sha256'] for part in parts})==1),
+         'NATIVE_GENERATION_CONFLICT')
+    return dict(actual_native_generated_at=parts[0]['generated_at'],
+        native_generation_receipt_sha256=digest(receipt),native_generation_partitions_sha256=digest(parts),
+        native_generation_evidence=dict(schema=GENERATION_SCHEMA,stage=row['stage'],
+            receipt=deepcopy(receipt),partitions=deepcopy(parts)))
+
+def _native_replay_at(row,*,now=None):
+    proof=_native_generation_evidence(row,now=now)
+    return proof['actual_native_generated_at'] if proof is not None else row['as_of']
+
+def _lineage(row,*,now=None):
     value=dict(race_id=row['race_id'],input_sha256=row['input_sha256'],as_of=row['as_of'],
         cutoff_at=row['cutoff_at'],input_saved_at=row['input_saved_at'],
         result_captured_at=row['result']['captured_at'],result_sha256=row['result']['source_sha256'])
@@ -65,6 +145,8 @@ def _lineage(row):
         proof=row['input_derivation']
         value.update(input_derivation={k:deepcopy(v) for k,v in proof.items() if k!='original_record'},
             input_derivation_sha256=digest(proof),input_save_semantics='ORIGINAL_OBSERVATION_AVAILABILITY_BOUND')
+    generated=_native_generation_evidence(row,now=now)
+    if generated is not None:value.update(generated)
     return value
 
 def _ranker_label(row):
@@ -104,7 +186,7 @@ def _record(row,now,allow_source,allow_training):
     need(all(type(u) is str and u and type(r) is str and r for u,r in sources),'SOURCE_REQUIRED')
     if row['scope']!='SYNTHETIC_ONLY':
         need(callable(allow_training) and all(allow_training(u,r,'model_training') is True for u,r in sources),'TRAINING_PERMISSION')
-    registry.validate_payload(mid,sport,payload,at=row['as_of'],allow_source=allow_source,race_id=row['race_id'])
+    registry.validate_payload(mid,sport,payload,at=_native_replay_at(row,now=now),allow_source=allow_source,race_id=row['race_id'])
     if mid==LEARNED_ID:
         from .four_sport_learning import _label
         # Validate every separate label before choosing a cohort. This checks
@@ -115,14 +197,15 @@ def _record(row,now,allow_source,allow_training):
                 callable(allow_training) and allow_training(source,rights,'model_training') is True)
     return deepcopy(row)
 
-def _metrics(rows,parameters,allow_source):
+def _metrics(rows,parameters,allow_source,*,now=None):
     losses=[];hits=0;selected=0
     for row in rows:
+        replay_at=_native_replay_at(row,now=now)
         probability=registry.winning_probability(row['model_id'],row['sport'],row['native_payload'],parameters,
-            row['result']['ordered_top3'],at=row['as_of'],allow_source=allow_source)
+            row['result']['ordered_top3'],at=replay_at,allow_source=allow_source)
         losses.append(-math.log(max(probability,1e-12)))
         prediction=registry.predict(row['model_id'],row['sport'],row['native_payload'],parameters,
-                                    at=row['as_of'],allow_source=allow_source)
+                                    at=replay_at,allow_source=allow_source)
         normalized=registry.normalize(row['model_id'],row['sport'],row['native_payload'],prediction,race_id=row['race_id'])
         selected+=bool(normalized['top']);hits+=row['result']['ordered_top3'] in normalized['top']
     selection=bool(rows) and registry.group(rows[0]['model_id'])=='seller'
@@ -132,8 +215,9 @@ def _metrics(rows,parameters,allow_source):
                 loss_kind='NATIVE_FIVE_TICKET_SELECTION_MISS' if selection else 'NATIVE_DISTRIBUTION_LOG_LOSS',
                 hit_rate=hits/len(rows) if rows else None,prospective=False)
 
-def _fit_native(train,mid,sport,allow_source):
+def _fit_native(train,mid,sport,allow_source,*,now=None):
     spec=registry.specs(mid,sport);base={k:v[0] for k,v in spec.items()};params=dict(base);support={}
+    replay_clocks={id(row):_native_replay_at(row,now=now) for row in train}
     if mid in OBSERVED:
         names=list(FEATURE_RANGES);xs=[vectors(r['native_payload']['snapshot']) for r in train]
         support={name:sum(any(abs(x[i][j])>0 for i in x) for x in xs) for j,name in enumerate(names)}
@@ -149,7 +233,7 @@ def _fit_native(train,mid,sport,allow_source):
         loss=0.
         for row in train:
             p=registry.winning_probability(mid,sport,row['native_payload'],candidate,
-                row['result']['ordered_top3'],at=row['as_of'],allow_source=allow_source)
+                row['result']['ordered_top3'],at=replay_clocks[id(row)],allow_source=allow_source)
             loss-=math.log(max(p,1e-12))
         penalty=.01*sum(((candidate[k]-base[k])/max(1.,abs(base[k])))**2 for k in candidate)
         return loss/len(train)+penalty
@@ -160,8 +244,8 @@ def _fit_native(train,mid,sport,allow_source):
         supported=0
         for row in train:
             a=dict(base,**{name:minus});b=dict(base,**{name:plus})
-            pa=registry.winning_probability(mid,sport,row['native_payload'],a,row['result']['ordered_top3'],at=row['as_of'],allow_source=allow_source)
-            pb=registry.winning_probability(mid,sport,row['native_payload'],b,row['result']['ordered_top3'],at=row['as_of'],allow_source=allow_source)
+            pa=registry.winning_probability(mid,sport,row['native_payload'],a,row['result']['ordered_top3'],at=replay_clocks[id(row)],allow_source=allow_source)
+            pb=registry.winning_probability(mid,sport,row['native_payload'],b,row['result']['ordered_top3'],at=replay_clocks[id(row)],allow_source=allow_source)
             supported+=abs(pa-pb)>1e-12
         support[name]=supported
         if supported<4:continue
@@ -279,15 +363,15 @@ def fit(records,*,now,allow_source=None,allow_training=None):
             support=deepcopy(native_training['feature_support_train'])
             metrics=deepcopy(native['training']);validation=deepcopy(native['holdout']);baseline_metrics=deepcopy(native['holdout_baseline'])
         else:
-            parameters,support=_fit_native(train,mid,sport,allow_source)
-            metrics=_metrics(train,parameters,allow_source);validation=_metrics(holdout,parameters,allow_source)
-            baseline_metrics=_metrics(holdout,base,allow_source)
+            parameters,support=_fit_native(train,mid,sport,allow_source,now=now)
+            metrics=_metrics(train,parameters,allow_source,now=now);validation=_metrics(holdout,parameters,allow_source,now=now)
+            baseline_metrics=_metrics(holdout,base,allow_source,now=now)
         model=dict(model_id=mid,sport=sport,state='FITTED_SHADOW_ONLY',parameters=parameters,base_parameters=base,
             parameter_support_train=support,unique_races=len(rows),train_races=len(train),validation_races=len(holdout),
             train_race_ids=[r['race_id'] for r in train],validation_race_ids=[r['race_id'] for r in holdout],
             training=metrics,holdout=validation,holdout_baseline=baseline_metrics,
             coefficients_changed=parameters!=base,native_training=native_training,
-            source_lineage=[_lineage(r) for r in rows])
+            source_lineage=[_lineage(r,now=now) for r in rows])
         if input_schema in (registry.SHARED_SPARSE,registry.FULL_SPARSE):
             model.update(input_schema=input_schema,parameter_contract_sha256=digest(
                 registry.parameter_contract(mid,sport,input_schema=input_schema)))
@@ -390,6 +474,19 @@ def verify_training(training):
                 saved=timestamp(row['input_saved_at']);result_at=timestamp(row['result_captured_at'])
                 check_clock(row['as_of'],row['cutoff_at'],row['input_saved_at'])
                 need(asof<=result_at and saved<=result_at and cutoff<=result_at<=available,'LINEAGE_CLOCK')
+                generation_fields={'actual_native_generated_at','native_generation_receipt_sha256',
+                    'native_generation_partitions_sha256','native_generation_evidence'}
+                if generation_fields&set(row):
+                    need(generation_fields<=set(row),'NATIVE_GENERATION_LINEAGE_FIELDS')
+                    evidence=row['native_generation_evidence']
+                    need(type(evidence) is dict and set(evidence)=={'schema','stage','receipt','partitions'} and
+                         evidence['schema']==GENERATION_SCHEMA,'NATIVE_GENERATION_LINEAGE_FIELDS')
+                    replay=dict(model_id=mid,sport=sport,race_id=row['race_id'],input_sha256=row['input_sha256'],
+                        as_of=row['as_of'],cutoff_at=row['cutoff_at'],input_saved_at=row['input_saved_at'],
+                        stage=evidence['stage'],input_receipt=evidence['receipt'],input_partitions=evidence['partitions'])
+                    expected=_native_generation_evidence(replay,now=created)
+                    need(expected is not None and all(row[name]==expected[name] for name in generation_fields),
+                         'NATIVE_GENERATION_LINEAGE_BINDING')
                 if any(name in row for name in ('input_derivation','input_derivation_sha256','input_save_semantics')):
                     from .all_existing_model_derivation import (SCHEMA as DERIVATION_SCHEMA,DERIVATION_ID,
                         AVAILABILITY_BASIS,NATIVE_SCHEMA,NATIVE_DERIVATION_ID,NATIVE_AVAILABILITY_BASIS)

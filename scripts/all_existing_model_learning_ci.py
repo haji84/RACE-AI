@@ -20,6 +20,8 @@ from scripts.boat_all_racers import _read,_write,_key_ready
 from scripts import all_existing_model_learning as learning
 
 SCHEMA='RACE_AI_ALL_EXISTING_MODEL_CI_INPUT_V1'
+SCHEMA_V2='RACE_AI_ALL_EXISTING_MODEL_CI_INPUT_V2'
+SCHEMA_V3='RACE_AI_ALL_EXISTING_MODEL_CI_INPUT_V3'
 ROOT=Path(__file__).resolve().parents[1]
 BASE='repos/haji84/RACE-AI/actions/artifacts/'
 MAX_ARCHIVE=64*1024*1024
@@ -41,8 +43,14 @@ def _clock(value):
 
 def _manifest(path):
     document=read_json_bytes(_read(Path(path),32*1024))
-    _need(type(document) is dict and set(document)=={'schema','native_artifacts','result_artifacts',
-        'cohort_size','owner_research_record'} and document['schema']==SCHEMA,'MANIFEST_SCHEMA_INVALID')
+    fields={'schema','native_artifacts','result_artifacts','cohort_size','owner_research_record'}
+    legacy=type(document) is dict and set(document)==fields and document.get('schema')==SCHEMA
+    mixed=type(document) is dict and set(document)==fields|{'keep_other_sports'} and \
+        document.get('schema')==SCHEMA_V2 and document.get('keep_other_sports') is True
+    full=type(document) is dict and set(document)==fields|{'keep_other_sports','full_native_boat_cohort'} and \
+        document.get('schema')==SCHEMA_V3 and document.get('full_native_boat_cohort') is True and \
+        type(document.get('keep_other_sports')) is bool
+    _need(legacy or mixed or full,'MANIFEST_SCHEMA_INVALID')
     _need(type(document['cohort_size']) is int and document['cohort_size']==8,'COMMON_EIGHT_COHORT_REQUIRED')
     native=document['native_artifacts'];results=document['result_artifacts']
     _need(type(native) is list and type(results) is list and 1<=len(native) and
@@ -74,7 +82,7 @@ def _gh(path):
     return process.stdout
 
 
-def _metadata(raw,pin,kind,now):
+def _metadata(raw,pin,kind,now,*,allow_generic=False):
     _need(type(raw) is bytes and 0<len(raw)<=32*1024,'METADATA_BOUND_INVALID')
     value=read_json_bytes(raw);run=value.get('workflow_run') if type(value) is dict else None
     _need(type(value) is dict and value.get('id')==pin['id'] and value.get('digest')==pin['digest'] and
@@ -94,7 +102,8 @@ def _metadata(raw,pin,kind,now):
             flag='--native-round-archive-dir'
     else:
         from race_ai.repeated_cycle import matches
-        _need(type(name) is str and len(name)<=200 and matches(name,'race-existing-cycle-'+run_id),
+        _need(type(name) is str and len(name)<=200 and (matches(name,'race-existing-cycle-'+run_id) or
+            allow_generic and re.fullmatch('all-existing-official-results-'+run_id+'-[1-9][0-9]{0,5}',name)),
               'RESULT_ARTIFACT_NAME_INVALID')
         flag='--result-archive-dir'
     return value,flag
@@ -139,15 +148,18 @@ def main(argv=None,*,now=None,_fetch=None,_fit=None):
         fetch=_fetch or _gh;fitter=_fit or learning.main
         arguments=['fit','--restored-dir',args.restored_dir,'--out-dir',str(output),
             '--state-input',args.state_input,'--dataset-input',args.dataset_input,
-            '--owner-research-record',manifest['owner_research_record'],
-            '--derive-from-observed','--cohort-size','8']
+            '--owner-research-record',manifest['owner_research_record'],'--cohort-size','8']
+        arguments.append('--full-native-boat-cohort' if manifest.get('full_native_boat_cohort') is True else
+            '--derive-from-observed')
+        if manifest.get('keep_other_sports') is True:arguments.append('--keep-other-sports')
         counts=dict(native=0,result=0);total=0
         with tempfile.TemporaryDirectory(prefix='all-model-learning-ci-',dir=runner) as temporary:
             private=Path(temporary);private.chmod(0o700)
             for kind,items in (('native',manifest['native_artifacts']),('result',manifest['result_artifacts'])):
                 for pin in items:
                     path=BASE+str(pin['id']);encoded=fetch(path)
-                    metadata,flag=_metadata(encoded,pin,kind,started)
+                    metadata,flag=_metadata(encoded,pin,kind,started,
+                        allow_generic=manifest['schema'] in (SCHEMA_V2,SCHEMA_V3))
                     total+=metadata['size_in_bytes']
                     _need(total<=MAX_TOTAL_ARCHIVES,'TOTAL_ARCHIVE_BOUND_INVALID')
                     raw=fetch(path+'/zip')

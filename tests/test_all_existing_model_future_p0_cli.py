@@ -162,8 +162,16 @@ class FutureP0CliTests(unittest.TestCase):
         self.candidate_meta['created_at'] = self.now.isoformat()
         self.mapping['actions/artifacts/200'] = cli.wire(self.candidate_meta)
         def sleep(seconds): self.now += timedelta(seconds=seconds)
-        with patch.object(cli.time, 'sleep', side_effect=sleep) as waited:
+        # Replace this module's clock facade, rather than the shared Python
+        # time module used by subprocess/background waits in the full suite.
+        from types import SimpleNamespace
+        from unittest.mock import Mock
+        waited = Mock(side_effect=sleep)
+        with patch.object(cli, 'time', SimpleNamespace(sleep=waited)):
             result = self.run_cli()
+            # Other Python components also use time.sleep (for example a
+            # subprocess wait). Their clock must remain outside this fixture.
+            __import__('time').sleep(0)
         self.assertTrue(result['ready'], result)
         self.assertGreater(waited.call_args.args[0], 1)
         self.assertLessEqual(waited.call_args.args[0], 2)

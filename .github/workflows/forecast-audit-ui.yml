@@ -292,7 +292,13 @@ jobs:
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           GH_TOKEN: ${{ github.token }}
-        run: python -m scripts.all_existing_model_learning_ci --input audit/state/all-existing-model-native-ci-input.json --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/all-native-learning"
+        shell: bash
+        run: |
+          plan=audit/state/all-existing-model-native-ci-input.json
+          if [[ -f audit/state/all-existing-model-full-native-ci-input.json ]]; then
+            plan=audit/state/all-existing-model-full-native-ci-input.json
+          fi
+          python -m scripts.all_existing_model_learning_ci --input "$plan" --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/all-native-learning"
       - name: Keep the encrypted native research fit and count-only status
         id: native_model_candidate
         if: hashFiles('audit/state/all-existing-model-native-ci-input.json') != ''
@@ -340,6 +346,78 @@ jobs:
         with:
           name: official-native-freeze-proof-${{ github.run_id }}
           path: ${{ runner.temp }}/official-native-freeze.status.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Freeze the explicitly requested official browser source packet
+        id: official_source_packet
+        if: hashFiles('audit/state/official-source-packet-freeze-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == official-source-freeze:* ]]; then
+            python -m scripts.all_existing_model_source_packet_freeze --input audit/state/official-source-packet-freeze-input.json --candidate-artifact '${{ steps.native_model_candidate.outputs.artifact-id }}' --out-dir "$RUNNER_TEMP/official-source-packet"
+          fi
+      - name: Independently save encrypted native inputs from the official source packet
+        id: official_source_packet_upload
+        if: steps.official_source_packet.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.official_source_packet.outputs.artifact_name }}
+          path: ${{ runner.temp }}/official-source-packet/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Verify actual saved source packet inputs before their deadlines
+        if: steps.official_source_packet_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.all_existing_model_source_packet_freeze --readback-artifact '${{ steps.official_source_packet_upload.outputs.artifact-id }}' --out-dir "$RUNNER_TEMP/official-source-packet"
+      - name: Keep count-only official source packet receipt proof
+        if: steps.official_source_packet_upload.outputs.artifact-id != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-source-packet-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/official-source-packet.status.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Compare the explicitly pinned future native cohort
+        id: native_future
+        if: hashFiles('audit/state/all-existing-model-native-future-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == native-p1-compare:* ]]; then
+            python -m scripts.all_existing_model_native_future --manifest audit/state/all-existing-model-native-future-input.json --out-dir "$RUNNER_TEMP/all-native-future"
+          fi
+      - name: Independently save the encrypted native future comparison
+        id: native_future_upload
+        if: steps.native_future.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.native_future.outputs.artifact_name }}
+          path: ${{ runner.temp }}/all-native-future/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Verify the actual native future comparison receipt
+        if: steps.native_future_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.all_existing_model_native_future --manifest audit/state/all-existing-model-native-future-input.json --out-dir "$RUNNER_TEMP/all-native-future" --readback-artifact '${{ steps.native_future_upload.outputs.artifact-id }}'
+      - name: Keep count-only native future comparison proof
+        if: steps.native_future_upload.outputs.artifact-id != ''
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-native-future-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/all-native-future.status.json
           retention-days: 7
           if-no-files-found: error
       - name: Freeze the requested future P0 comparison from retained inputs only

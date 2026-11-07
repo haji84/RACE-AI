@@ -1,0 +1,124 @@
+{
+  "common_normalized_cohort_verified": true,
+  "derived_records": 0,
+  "encrypted_local_readback_verified": true,
+  "fitted_cells": 14,
+  "holdout_races": 2,
+  "independent_remote_readback_verified": true,
+  "missing_cells": 17,
+  "models": {
+    "boat/boat-comprehensive-v1": {
+      "changed_parameter_count": 7,
+      "holdout_races": 2,
+      "supported_parameter_count": 8,
+      "train_races": 6
+    },
+    "boat/boat-course-entry-method-scenarios-v0.1-UNTRAINED": {
+      "changed_parameter_count": 7,
+      "holdout_races": 2,
+      "supported_parameter_count": 8,
+      "train_races": 6
+    },
+    "boat/boat-course-motor-shadow-v0.1-UNTRAINED": {
+      "changed_parameter_count": 9,
+      "holdout_races": 2,
+      "supported_parameter_count": 9,
+      "train_races": 6
+    },
+    "boat/boat-display-rating-PL-reference-v1-UNVALIDATED": {
+      "changed_parameter_count": 2,
+      "holdout_races": 2,
+      "supported_parameter_count": 2,
+      "train_races": 6
+    },
+    "boat/boat-local-start-course-shadow-v0.1-UNTRAINED": {
+      "changed_parameter_count": 12,
+      "holdout_races": 2,
+      "supported_parameter_count": 12,
+      "train_races": 6
+    },
+    "boat/boat-observed-pairwise-factor-v1": {
+      "changed_parameter_count": 6,
+      "holdout_races": 2,
+      "supported_parameter_count": 6,
+      "train_races": 6
+    },
+    "boat/boat-observed-pairwise-start-v1": {
+      "changed_parameter_count": 6,
+      "holdout_races": 2,
+      "supported_parameter_count": 6,
+      "train_races": 6
+    },
+    "boat/boat-pdca-lane-shadow-v1": {
+      "changed_parameter_count": 1,
+      "holdout_races": 2,
+      "supported_parameter_count": 1,
+      "train_races": 6
+    },
+    "boat/boat-scenario-mixture-v1": {
+      "changed_parameter_count": 25,
+      "holdout_races": 2,
+      "supported_parameter_count": 25,
+      "train_races": 6
+    },
+    "boat/multisport-chronological-ranker-v1": {
+      "changed_parameter_count": 20,
+      "holdout_races": 2,
+      "supported_parameter_count": 20,
+      "train_races": 6
+    },
+    "boat/multisport-conditional-duel-v1": {
+      "changed_parameter_count": 9,
+      "holdout_races": 2,
+      "supported_parameter_count": 9,
+      "train_races": 6
+    },
+    "boat/multisport-factor-interaction-v1": {
+      "changed_parameter_count": 7,
+      "holdout_races": 2,
+      "supported_parameter_count": 7,
+      "train_races": 6
+    },
+    "boat/multisport-race-trajectory-v1": {
+      "changed_parameter_count": 10,
+      "holdout_races": 2,
+      "supported_parameter_count": 10,
+      "train_races": 6
+    },
+    "boat/multisport-scenario-ensemble-v1": {
+      "changed_parameter_count": 9,
+      "holdout_races": 2,
+      "supported_parameter_count": 9,
+      "train_races": 6
+    }
+  },
+  "native_replay_uses_authenticated_original_generation_clock": true,
+  "original_native_input_records": 112,
+  "original_source_clocks_and_values_unchanged": true,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "real_future_fourteen_pdca_verified": false,
+  "records": 112,
+  "remote_readback": {
+    "encrypted_readback_verified": true,
+    "fitted_model_count": 14,
+    "manifest_sha256": "17f9b19a416776b186e1baab3f648fc030aaf2aa28b011508eaf1e0e395d8698",
+    "plaintext_published": false,
+    "source_commit": "17918fbec38de28b3697bb5468aa3332f614e8d3",
+    "status": "OWNER_VENUE_LEARNING_READBACK_VERIFIED",
+    "training_sha256": "45f5ed2650d7faf932f2d756bceb2d64dcfd1f1bb5196d2f3e2117fbc41eac4b"
+  },
+  "retained_pointer": {
+    "manifest_path": "state/boat-venue-history/v1/learning/17f9b19a416776b186e1baab3f648fc030aaf2aa28b011508eaf1e0e395d8698/learning.json",
+    "manifest_sha256": "17f9b19a416776b186e1baab3f648fc030aaf2aa28b011508eaf1e0e395d8698",
+    "repository_id": "1416489937",
+    "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+    "source_commit": "17918fbec38de28b3697bb5468aa3332f614e8d3",
+    "status": "READY",
+    "training_sha256": "45f5ed2650d7faf932f2d756bceb2d64dcfd1f1bb5196d2f3e2117fbc41eac4b"
+  },
+  "state": "ACTUAL_FOURTEEN_NATIVE_CELLS_RESEARCH_FIT",
+  "train_races": 6,
+  "training_sha256": "45f5ed2650d7faf932f2d756bceb2d64dcfd1f1bb5196d2f3e2117fbc41eac4b",
+  "unique_races": 8
+}

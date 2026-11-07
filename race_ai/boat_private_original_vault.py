@@ -49,7 +49,7 @@ MAX_MONTH_ENTRIES = 32768
 MAX_MONTH_CIPHER_BYTES = 32*1024*1024*1024
 LOOKUP_SPAN = 10000
 JST = timezone(timedelta(hours=9))
-KINDS = frozenset(('P0', 'P1', 'RESULT', 'CONTINUITY', 'ALL_MODEL', 'SOURCE_CONTROL'))
+KINDS = frozenset(('P0', 'P1', 'RESULT', 'CONTINUITY', 'ALL_MODEL', 'SOURCE_CONTROL', 'PRIVATE_PAIRS'))
 _SHA = re.compile(r'[a-f0-9]{64}\Z')
 _HEAD = re.compile(r'[a-f0-9]{40}\Z')
 _MONTH = re.compile(r'\d{4}-(?:0[1-9]|1[0-2])\Z')
@@ -245,6 +245,8 @@ def _kind(metadata):
             return kind
     if type(name) is str and re.fullmatch(f'boat-all-model-forecasts-{run}-r(?:0|[1-9][0-9]{{0,5}})', name):
         return 'ALL_MODEL'
+    if type(name) is str and re.fullmatch(f'all-existing-model-pairs-{run}-[1-9][0-9]*', name):
+        return 'PRIVATE_PAIRS'
     if name == f'race-source-control-{run}':
         return 'SOURCE_CONTROL'
     raise ValueError('VAULT_ARTIFACT_NAME_INVALID')
@@ -300,6 +302,10 @@ def _artifact(raw, metadata_raw, *, key, now, expected_kind=None, companion=None
         project_round(payload, dict(repository_id=REPO_ID, repository=REPO, run_id=str(run['id']),
             head_sha=run['head_sha'], artifact_id=metadata['id'], created_at=metadata['created_at'],
             payload_sha256=digest(payload), independently_verified=True))
+    elif kind == 'PRIVATE_PAIRS':
+        from .all_existing_model_receipt import verify_private_pairs_artifact
+        verify_private_pairs_artifact(raw, metadata, now=now,
+            expected_run_id=run['id'], expected_head_sha=run['head_sha'])
     else:
         from .boat_source_control import read_summary
         _need(type(companion) in (tuple, list) and len(companion) == 2, 'CONTINUITY_COMPANION_REQUIRED')
