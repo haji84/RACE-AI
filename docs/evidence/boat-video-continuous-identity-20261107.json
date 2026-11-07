@@ -123,5 +123,40 @@
     "preserved_remote_head": "7d5f19793344abe199f8f8aa92cc4868a78503d5",
     "integration_commit": "6528ae5a78d79249e4f3a901c2b8893f72622fd7",
     "runtime_code_identical_to_full_tested_commit": true
+  },
+  "current_official_normal_ui_check": {
+    "date": "2026-11-07",
+    "venue_code": "10",
+    "venue_name": "三国",
+    "public_player": "https://race.boatcast.jp/?jo=10",
+    "public_stream_ref": "lm-mix-10mikuni-tokyo-20261107",
+    "observed_at_utc": "2026-11-07T00:48:10.456+00:00",
+    "publication_basis": "OFFICIAL_CURRENT_MORNING_EVENT_4R_OPEN_CUTOFF_10_05_JST",
+    "normal_page_http_status": 200,
+    "normal_initialization_api_requests": 1,
+    "http_status": 403,
+    "code": "REQUEST_FAILED",
+    "error_id": "P01002",
+    "id_163_is_not_a_trace_id": true,
+    "state": "AUTHORIZATION_WAIT",
+    "manual_play_clicks": 0,
+    "media_responses": 0,
+    "saved_bytes": 0,
+    "decoded_frames": 0,
+    "retries": 0,
+    "other_venue_fallbacks": 0,
+    "cause_identified": false,
+    "receipt_sha256": "339ddd20fc5567ac596520b666061a3a405a0042e4c16102950d414f6caab645",
+    "evidence_index_sha256": "5ae94c33ce90a1150fc6e444c8b84efcbbd7e00db80ff6b305c70857125c9184",
+    "root_independently_verified_files": 9
+  },
+  "later_video_scope_recheck": {
+    "concurrent_base": "6ef96d0577a6d018781df5b80e23b95066a60e89",
+    "our_video_source_hashes_unchanged": true,
+    "related_modules_tests": 60,
+    "status": "PASS",
+    "seconds": 9.146,
+    "log_sha256": "b9c72a0fe78659700fc1f3f742bb02c6e38e34f0afe6f26f05f97bfa4bb88c61",
+    "full_python_2635_result_scope": "EARLIER_VERIFIED_CODE_SNAPSHOT_038ca2a_NOT_SUBSEQUENT_UNRELATED_WORKER_CHANGES"
   }
 }
