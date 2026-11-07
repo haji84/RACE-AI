@@ -32,12 +32,13 @@ def _seal(db,path,metadata):
         _codec('seal',t/'part.sqlite',path,t/'scope.json')
     return dict(metadata,path=path.name,scope=scope,sqlite_sha256=_sha(raw),ciphertext_sha256=_sha(_read(path,12*1024*1024)))
 
-def _open(root,part):
+def _open(root,part,*,key=None):
     path=Path(root)/part['path'];raw=_read(path,12*1024*1024)
     need(_sha(raw)==part['ciphertext_sha256'] and part['scope']==_scope(),'VENUE_DATASET_CIPHER_HASH_INVALID')
     with tempfile.TemporaryDirectory(prefix='boat-venue-part-read-') as t:
         t=Path(t);_write(t/'scope.json',_bytes(part['scope']))
-        _codec('unseal',path,t/'part.sqlite',t/'scope.json',cipher_sha=part['ciphertext_sha256'])
+        _codec('unseal',path,t/'part.sqlite',t/'scope.json',cipher_sha=part['ciphertext_sha256'],
+            **(dict(key=key) if key is not None else {}))
         plain=_read(t/'part.sqlite',8*1024*1024)
     need(_sha(plain)==part['sqlite_sha256'],'VENUE_DATASET_SQLITE_HASH_INVALID')
     db=sqlite3.connect(':memory:');db.deserialize(plain);db.execute('PRAGMA trusted_schema=OFF')

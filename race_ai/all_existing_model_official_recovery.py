@@ -33,6 +33,9 @@ def clock(value):
     need(parsed.utcoffset() is not None,'AWARE_CLOCK');return parsed
 
 def validate_request(value,now):
+    if type(value) is dict and value.get('schema')=='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V2':
+        from .all_existing_model_official_continuation import validate_request as continuation_request
+        return continuation_request(value,now)
     from scripts import all_existing_model_official_result_collect as collector
     need(type(value) is dict and set(value)=={'schema','repository_id','pull_request','mode','probe_sport',
         'old_journal_artifact_id','manifest'} and value['schema']==REQUEST and

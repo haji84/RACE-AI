@@ -158,13 +158,18 @@ def seal_candidate(payload,output):
     _write(root/'summary.json',_bytes(status));return status
 
 
-def read_candidate(root):
-    need(_key_ready(),'OWNER_STATE_KEY_REQUIRED');root=Path(root)
+def read_candidate(root,*,key=None):
+    if key is None:need(_key_ready(),'OWNER_STATE_KEY_REQUIRED')
+    else:
+        from .boat_pdca_state import state_key
+        key=state_key('production',key)
+    root=Path(root)
     record=json.loads(_read(root/'learning.json',1000000));s=record['state']
-    need(record.keys()=={'state','mac'} and hmac.compare_digest(record['mac'],_manifest_mac(s)) and
+    need(record.keys()=={'state','mac'} and hmac.compare_digest(record['mac'],_manifest_mac(s,
+         **(dict(key=key) if key is not None else {}))) and
          s['schema']=='RACE_AI_ENCRYPTED_VENUE_LEARNING_V1' and s['part']['path']=='learning.enc',
          'VENUE_LEARNING_AUTHENTICATION_FAILED')
-    db=_open(root,s['part'])
+    db=_open(root,s['part'],**(dict(key=key) if key is not None else {}))
     try:rows=db.execute('SELECT document FROM candidate').fetchall()
     finally:db.close()
     need(len(rows)==1 and _sha(rows[0][0])==s['payload_sha256'],'VENUE_LEARNING_PAYLOAD_HASH_INVALID')

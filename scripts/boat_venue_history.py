@@ -208,9 +208,12 @@ def capture_month(out,*,month,not_after=None,roster=(),resume=None,max_files=31,
     return report
 
 
-def _manifest_mac(document):
+def _manifest_mac(document,*,key=None):
     import os
-    key=base64.b64decode(os.environ['RACE_AI_STATE_KEY'],validate=True)
+    if key is None:key=base64.b64decode(os.environ['RACE_AI_STATE_KEY'],validate=True)
+    else:
+        from race_ai.boat_pdca_state import state_key
+        key=state_key('production',key)
     domain_key=hmac.digest(key,b'RACE_AI_ALL_PUBLISHED_HISTORY_MANIFEST_V1','sha256')
     return hmac.new(domain_key,json.dumps(document,sort_keys=True,separators=(',',':')).encode(),'sha256').hexdigest()
 

@@ -32,14 +32,20 @@ def _api(path):
     recovery.need(response.returncode==0 and 0<len(response.stdout)<=52*1024*1024,'GITHUB_READ')
     return bounded_json(response.stdout,52*1024*1024)
 
-def _capsule(request,env,*,fetch=None):
+def _capsule(request,env,*,fetch=None,request_sha256=None):
     """Read only a computed path at one immutable existing-ref commit."""
     fetch=fetch or _api;ref=fetch('git/ref/heads/'+TRANSFER_REF)
     recovery.need(type(ref) is dict and ref.get('ref')=='refs/heads/'+TRANSFER_REF and
         type(ref.get('object')) is dict and ref['object'].get('type')=='commit','EXISTING_TRANSFER_REF')
     commit=ref['object'].get('sha');recovery.need(type(commit) is str and re.fullmatch('[a-f0-9]{40}',commit),'TRANSFER_COMMIT')
     value=fetch('git/commits/'+commit);tree=value.get('tree',{}).get('sha')
-    parts=recovery.capsule_path(request,env['head_sha'],env['run_id']).split('/')
+    if request_sha256 is None:relative=recovery.capsule_path(request,env['head_sha'],env['run_id'])
+    else:
+        recovery.need(type(request_sha256) is str and re.fullmatch('[a-f0-9]{64}',request_sha256) and
+            type(env['head_sha']) is str and re.fullmatch('[a-f0-9]{40}',env['head_sha']) and
+            type(env['run_id']) is int and env['run_id']>0,'ORIGINAL_CAPSULE_PATH')
+        relative='recovery/official-results/'+request_sha256+'/'+env['head_sha']+'/'+str(env['run_id'])+'/2.enc'
+    parts=relative.split('/')
     for index,part in enumerate(parts):
         recovery.need(type(tree) is str and re.fullmatch('[a-f0-9]{40}',tree),'TRANSFER_TREE')
         listing=fetch('git/trees/'+tree)
@@ -82,6 +88,8 @@ def _admit(request,env,current,now,key):
     old=_api('actions/runs/'+str(recovery.OLD_RUN))
     prior_ids=sorted({pin['run_id'] for pin in request['manifest']['prior_journal_artifacts']}-{recovery.OLD_RUN})
     prior_runs=[_api('actions/runs/'+str(ident)) for ident in prior_ids]
+    if request['schema']=='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V2':
+        return _admit_continuation(raw,request,env,current,first,old,prior_runs,now,key)
     auth=recovery.validate_capsule(raw,request=request,current_run=current,first_attempt=first,old_run=old,prior_runs=prior_runs,now=now,key=key)
     manifest=request['manifest'];pin=next(p for p in manifest['prior_journal_artifacts'] if p['id']==recovery.OLD_ARTIFACT)
     body,cipher,actual=collector._journal_artifact(pin,now=now,key=key)
@@ -91,6 +99,37 @@ def _admit(request,env,current,now,key):
     recovery.need(old_plan==auth._body['old_plan'] and plan==auth._body['new_plan'],'AUTHENTICATED_PLAN_BYTES')
     auth.validate_collector(manifest,plan,env,now)
     return auth
+
+def _admit_continuation(raw,request,env,current,first,old,prior_runs,now,key):
+    from race_ai import all_existing_model_official_continuation as continuation
+    manifest=request['manifest'];probe_pin=next(p for p in manifest['prior_journal_artifacts'] if p['id']==request['probe_journal_artifact_id'])
+    original=_capsule(None,dict(head_sha=probe_pin['head_sha'],run_id=probe_pin['run_id']),request_sha256=request['probe_request_sha256'])
+    recovery.need(original is not None,'ORIGINAL_PROBE_CAPSULE_REQUIRED')
+    groups={};total=len(raw)+len(original)
+    for field in ('prior_journal_artifacts','native_artifacts','checkpoint_artifacts'):
+        items=[]
+        for pin in manifest[field]:
+            actual=collector.future.metadata(pin['id']);size=actual.get('size_in_bytes')
+            recovery.need(type(size) is int and 0<size<=collector.results.MAX_ARCHIVE_BYTES and
+                total+size<=256*1024*1024 and actual.get('id')==pin['id'] and actual.get('digest')==pin['digest'] and
+                actual.get('expired') is False and recovery.clock(actual['created_at'])<=now<recovery.clock(actual['expires_at']),
+                'CONTINUATION_SOURCE_METADATA')
+            body=collector.future.gh('actions/artifacts/'+str(pin['id'])+'/zip');total+=len(body)
+            continuation._pin_metadata(body,actual,pin,now);items.append(dict(raw=body,metadata=actual))
+        groups[field]=items
+    stored=collector.open_forecasts(raw,key=key)['body']
+    old_body,_=recovery._evidence(next(item['raw'] for item in groups['prior_journal_artifacts'] if item['metadata']['id']==recovery.OLD_ARTIFACT),
+        next(item['metadata'] for item in groups['prior_journal_artifacts'] if item['metadata']['id']==recovery.OLD_ARTIFACT),
+        next(p for p in manifest['prior_journal_artifacts'] if p['id']==recovery.OLD_ARTIFACT),now,key)
+    old_plan=collector.load_plan(old_body['manifest'],key=key,now=recovery.clock(old_body['epoch_started_at']))
+    new_plan=collector.load_plan(manifest,key=key,now=now)
+    data=dict(request=request,target=stored['target'],issued_at=stored['issued_at'],not_before=stored['not_before'],
+        expires_at=stored['expires_at'],old_run=old,prior_runs=prior_runs,first_attempt=first,
+        probe_first_attempt=_api('actions/runs/'+str(probe_pin['run_id'])+'/attempts/1'),old_plan=old_plan,new_plan=new_plan,
+        journal_archives=groups['prior_journal_artifacts'],native_archives=groups['native_artifacts'],
+        checkpoint_archives=groups['checkpoint_artifacts'],probe_capsule_raw=original)
+    auth=continuation.validate_capsule(raw,data=data,current_run=current,now=now,key=key)
+    auth.validate_collector(manifest,new_plan,env,now);return auth
 
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--input',default=REQUEST_PATH)
@@ -112,7 +151,7 @@ def main(argv=None):
             journal_artifact_name='official-result-collection-journal-'+str(env['run_id']),
             recovery_authorization_sha256=auth.audit()['authorization_sha256'],recovery_request_sha256=auth.audit()['request_sha256'],
             old_source_requests_actual=None,old_source_requests_upper_bound=32,old_browser_outcome='UNKNOWN',
-            maximum_new_requests=8)
+            maximum_new_requests=auth.audit()['maximum_new_requests'])
         if args.readback_artifact is None and args.readback_journal_artifact is None:
             # A second call within this fixed runner cannot dispatch again.
             marker=env['temp']/('official-recovery-consumed-'+auth.audit()['request_sha256']+'-'+env['head_sha']+'-'+str(env['run_id'])+'-2.json')
