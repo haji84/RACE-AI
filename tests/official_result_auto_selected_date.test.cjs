@@ -33,7 +33,7 @@ test('URL and visible current DOM must independently agree before skipping the d
 });
 test('a current result day also skips date refresh when choosing the next explicit race',async()=>{
  const f=page({url:'https://autorace.jp/race_info/Live/isesaki/RaceResult/2030-01-01_12/result'});
- await api.selectAutoCase(f.target,item,f.ledger);assert.deepEqual(f.calls,['program','race','result']);
+ await api.selectAutoCase(f.target,item,f.ledger);assert.deepEqual(f.calls,['race','result']);
 });
 test('day idempotence never grants mismatched read identities or alters literal POST bytes',()=>{
  const body=Buffer.from(JSON.stringify({placeCode:3,raceDate:'2030-01-01',raceNo:12})),before=Buffer.from(body);
@@ -48,7 +48,7 @@ test('SPA target identity response completes before the result click changes men
  f.target.locator=selector=>{const node=baseLocator(selector),old=node.click;node.click=async()=>{if(selector.includes('data-raceno')){assert.equal(registered,true);queueMicrotask(resolveIdentity);}if(selector.includes('data-main-menu'))assert.equal(identityComplete,true);await old();};return node;};
  await api.selectAutoCase(f.target,item,f.ledger);assert.equal(identityComplete,true);assert.deepEqual(f.calls,['race','result']);
 });
-test('a later case in Result menu returns through visible Program before waiting for its identity',async()=>{
+test('Program intent in Result menu returns through visible Program before waiting for its identity',async()=>{
  const next={...item,race_no:2,race_id:'autorace:2030-01-01:isesaki:2'};
  let menu='result',resolveIdentity,complete=false;const calls=[];const req={url:()=> 'https://autorace.jp/race_info/OtherRaceInfo',method:()=> 'POST',resourceType:()=> 'xhr',postDataBuffer:()=>Buffer.from('{"placeCode":3,"raceDate":"2030-01-01","raceNo":"2"}'),headers:()=>({'content-type':'application/json'})};
  const response={request:()=>req,url:()=>req.url(),status:()=>200,finished:async()=>{complete=true;}};
@@ -57,7 +57,7 @@ test('a later case in Result menu returns through visible Program before waiting
    const program=selector.includes('data-main-menu="program"'),result=selector.includes('data-main-menu="result"'),race=selector.includes('data-raceno'),date=selector.includes('data-period-date');
    const node={last:()=>node,count:async()=>1,isVisible:async()=>true,waitFor:async()=>{},getAttribute:async k=>k==='class'?'liveTabMenu__item--current':'2030-01-01',innerText:async()=>program?'出走表':result?'レース結果':race?'2R':'初日',click:async()=>{if(program){menu='program';calls.push('program');}else if(race){calls.push('race');queueMicrotask(resolveIdentity);}else if(result){assert.equal(complete,true);menu='result';calls.push('result');}else if(date)calls.push('date');}};return node;
   }};
- await api.selectAutoCase(target,next,[]);assert.deepEqual(calls,['program','race','result']);assert.equal(complete,true);
+ await api.selectAutoProgram(target,next,[]);assert.deepEqual(calls,['program','race']);assert.equal(complete,true);
 });
 
 test('a failed identity response body holds before any result menu action',async()=>{

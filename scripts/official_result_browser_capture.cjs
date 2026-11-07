@@ -200,7 +200,14 @@ function caseResponses(item,entries){
   if(identity){const selector=new URL(identity.url).searchParams.get('encp');add('identity',identity);for(const row of entries)if(row.status===200&&new URL(row.url).pathname==='/pc/json'&&new URL(row.url).searchParams.get('type')==='JSJ012'&&new URL(row.url).searchParams.get('encp')===selector)add('result',row);}
  }
  const selected=new Map();for(const role of ['identity','result','program','result_companion'])if(grouped.has(role))selected.set(role,choose(grouped.get(role)));
- if(repeated&&selected.has('identity')&&selected.has('result'))need(responseClock(selected.get('identity'))[0]<=responseClock(selected.get('result'))[0],'CASE_RESPONSE_CLOCK');
+ if(repeated&&selected.has('identity')&&selected.has('result')){
+  const identityAt=responseClock(selected.get('identity'))[0];
+  if(item.sport==='autorace'&&responseClock(selected.get('result'))[0]<identityAt){
+   const eligible=grouped.get('result').filter(row=>responseClock(row)[0]>=identityAt);need(eligible.length,'CASE_RESPONSE_CLOCK');
+   selected.set('result',identicalResponse(eligible));
+  }
+  need(identityAt<=responseClock(selected.get('result'))[0],'CASE_RESPONSE_CLOCK');
+ }
  return [...selected].map(([role,row])=>({role,sequence:row.sequence}));
 }
 function cleanLabel(value){return String(value).replace(/\s+/g,' ').trim();}
@@ -232,7 +239,7 @@ async function click(page,locator,expected,ledger,{popup=false}={}){
 async function autoDateAlreadySelected(page,item,date){
  let url,entry;try{url=safeUrl(page.url(),'autorace');entry=safeUrl(item.ui_entry_url,'autorace');}catch{return false;}
  const prefix='/race_info/Live/'+item.venue+'/',dayRace=regexEscape(item.expected_date)+'_(?:[1-9]|1[0-2])';
- if(url.host!==entry.host||url.search||!new RegExp('^'+regexEscape(prefix)+'(?:Program/'+dayRace+'/program|RaceResult/'+dayRace+'/result)$').test(url.pathname))return false;
+ if(url.host!==entry.host||url.search||!new RegExp('^'+regexEscape(prefix)+'(?:Program/'+dayRace+'/program|RaceResult/'+dayRace+'(?:/result)?)$').test(url.pathname))return false;
  const selected=page.locator('#live-paragraphday-main [data-period-date="'+item.expected_date+'"]');
  return await selected.count()===1&&await selected.isVisible()&&await date.count()===1&&await date.isVisible()&&
   await selected.getAttribute('data-period-date')===item.expected_date&&
@@ -246,13 +253,13 @@ function autoIdentityResponse(response,item){
   const id=policy.request_identity;return policy.allow&&id?.placeCode===placeCode(item)&&id.raceDate===item.expected_date&&id.raceNo===item.race_no;
  }catch{return false;}
 }
-async function selectAutoProgram(page,item,ledger){
+async function selectAutoProgram(page,item,ledger,{resultRefresh=false}={}){
  const date=page.locator('#live-paragraphday-main [data-period-date="'+item.expected_date+'"] a');await date.waitFor({state:'visible',timeout:TIMEOUT_MS});
  if(await autoDateAlreadySelected(page,item,date))ledger.push({event:'ALREADY_SELECTED_UI_DATE',expected_date:item.expected_date,at:stamp()});
  else await click(page,date,/^.+$/,ledger);
  let current;try{current=safeUrl(page.url(),'autorace');}catch{}
- if(current&&current.host===safeUrl(item.ui_entry_url,'autorace').host&&!current.search&&
-  new RegExp('^'+regexEscape('/race_info/Live/'+item.venue+'/RaceResult/'+item.expected_date)+'_(?:[1-9]|1[0-2])/result$').test(current.pathname)){
+ if(!resultRefresh&&current&&current.host===safeUrl(item.ui_entry_url,'autorace').host&&!current.search&&
+  new RegExp('^'+regexEscape('/race_info/Live/'+item.venue+'/RaceResult/'+item.expected_date)+'_(?:[1-9]|1[0-2])(?:/result)?$').test(current.pathname)){
   const program=page.locator('li[data-main-menu="program"] a').last();await program.waitFor({state:'visible',timeout:TIMEOUT_MS});
   await click(page,program,/^出走表$/,ledger);
  }
@@ -265,7 +272,7 @@ async function selectAutoProgram(page,item,ledger){
  return page;
 }
 async function selectAutoCase(page,item,ledger){
- await selectAutoProgram(page,item,ledger);
+ await selectAutoProgram(page,item,ledger,{resultRefresh:true});
  const result=page.locator('li[data-main-menu="result"] a').last();await result.waitFor({state:'visible',timeout:TIMEOUT_MS});await click(page,result,/^レース結果$/,ledger);return page;
 }
 async function openKeirinList(page,item,ledger){
