@@ -100,6 +100,11 @@ function routePolicy(req,plan){
     return {allow:true,sport,request_identity:{...identity,raceNo:Number(identity.raceNo)}};
    }
    need(method==='GET','READ_METHOD');
+   // Result/identity JSON and DOM carry the admitted order and abnormality
+   // facts. This separate CSV is unused; abort only the scoped case's literal
+   // ancillary URL, before any wire reservation. Future-card intent is unchanged.
+   if(plan.schema===SCHEMA&&['xhr','fetch'].includes(type)&&plan.cases.some(c=>c.sport==='autorace'&&
+    req.url===u.origin+'/data/refund/'+c.expected_date.replace(/-/g,'')+'-'+c.venue+'-'+String(c.race_no).padStart(2,'0')+'R-refund.csv'))return {allow:false,reason:'OFFICIAL_BROWSER_UNNEEDED_AUTO_REFUND_CSV'};
    if(type==='document')need(plan.cases.some(c=>c.sport===sport&&(u.pathname===new URL(c.ui_entry_url).pathname||u.pathname.startsWith(new URL(c.ui_entry_url).pathname+'/'))),'NORMAL_UI_DOCUMENT');
    else need(['xhr','fetch'].includes(type)&&(/^\/race_info\/(?:XML\/Hold\/Today|important_notice|JushouEvent\/Amount)$/.test(u.pathname)||/^\/data\/notice\/(?:all|info)-\d+\.json$/.test(u.pathname)||/^\/data\/refund\/\d{8}-[a-z]+-\d{2}R-refund\.csv$/.test(u.pathname)),'NORMAL_UI_READ');
   }else{
