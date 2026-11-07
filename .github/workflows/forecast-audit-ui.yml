@@ -690,7 +690,7 @@ jobs:
     runs-on: ubuntu-24.04
     # Full Python discovery alone takes over 15 minutes; keep the existing
     # video/browser checks reachable without adding jobs or source polling.
-    timeout-minutes: 40
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
