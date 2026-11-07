@@ -165,24 +165,32 @@ def _reconcile_original_cutoffs(observation,row):
     """Project the same authenticated raw result against every saved clock.
 
     This is a display reference only. No original cutoff or formal settlement
-    is changed, and every saved forecast must precede both source clocks.
+    is changed. Explicit SP headers check each forecast against its own cutoff
+    and the source cutoff, rather than another model's earlier saved cutoff.
     """
     from .boat_saved_model_view import validate_cutoff_reconciliation
+    need(observation.get('body_identity_verified') is True and isinstance(observation.get('closed_at'),str),'RESULT_IDENTITY_UNVERIFIED')
     variants=row['saved_cutoff_variants'];clocks=[instant(c) for c in variants]+[instant(observation['closed_at'])]
-    need((max(clocks)-min(clocks)).total_seconds()<=60,'RESULT_CUTOFF_MISMATCH')
+    per_model=observation.get('schedule_binding')=='SP_EXPLICIT_RACE_HEADER'
+    need(per_model or (max(clocks)-min(clocks)).total_seconds()<=60,'RESULT_CUTOFF_MISMATCH')
     predictions=[p for p in [row.get('prediction'),*row.get('comparison_predictions',[])] if p is not None]
     need(predictions,'RESULT_CUTOFF_REFERENCE_CHRONOLOGY')
+    if per_model:
+        need(all(isinstance(p.get('cutoff_at'),str) and instant(p['cutoff_at']) in clocks[:-1] for p in predictions),'RESULT_CUTOFF_REFERENCE_CHRONOLOGY')
     projected=[]
     for cutoff in variants:
-        narrow={**row,'cutoff_at':cutoff,'saved_cutoff_variants':[cutoff]}
-        saved=max(instant(p['persisted_at']) for p in predictions)
+        group=[p for p in predictions if not per_model or instant(p['cutoff_at'])==instant(cutoff)]
+        need(group,'RESULT_CUTOFF_REFERENCE_CHRONOLOGY')
+        narrow={**row,'cutoff_at':cutoff,'saved_cutoff_variants':[cutoff],'prediction':group[0],'comparison_predictions':group[1:]}
+        saved=max(instant(p['persisted_at']) for p in group)
         result=project_observation(observation,narrow,freeze_at=saved.isoformat(),raw_bound=True)
         result.pop('cutoff_reference',None);projected.append(result)
     need(all(wire(r)==wire(projected[0]) for r in projected),'RESULT_CUTOFF_REFERENCE_CONFLICT')
     result=projected[0]
-    result['cutoff_reconciliation']=dict(basis='RAW_OFFICIAL_RESULT_PER_ORIGINAL_CUTOFF',formal_eligible=False,
+    result['cutoff_reconciliation']=dict(basis='RAW_OFFICIAL_SP_RESULT_PER_SAVED_MODEL_CUTOFF' if per_model else 'RAW_OFFICIAL_RESULT_PER_ORIGINAL_CUTOFF',formal_eligible=False,
         original_cutoffs=list(variants),source_sha256=observation['source_sha256'],
         maximum_offset_seconds=(max(clocks)-min(clocks)).total_seconds(),
         roster_identity_verified=True,all_originals_saved_before_both=True)
+    if per_model:result['cutoff_reconciliation']['source_cutoff_at']=observation['closed_at']
     validate_cutoff_reconciliation(row,result)
     return result

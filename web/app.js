@@ -964,7 +964,7 @@
     const result=r.result,reference=result?.cutoff_reference;
     if(result?.cutoff_reconciliation){
       const proof=result.cutoff_reconciliation;
-      return "原本締切 "+proof.original_cutoffs.map(stamp).join(" / ")+" JST。公式結果と登録出走者を照合。全原本が両方の締切前に保存済み。最大"+proof.maximum_offset_seconds+"秒の記録差を残した参考照合です。";
+      return "原本締切 "+proof.original_cutoffs.map(stamp).join(" / ")+" JST。公式結果と登録出走者を照合。各予想が自身の締切と公式締切の前に保存済み。最大"+proof.maximum_offset_seconds+"秒の記録差を残した参考照合です。";
     }
     if(reference) {
       const clocks="原本締切 "+stamp(reference.original_cutoff_at)+" JST／結果ページ "+stamp(reference.result_schedule_cutoff_at)+" JST（差 "+reference.offset_seconds/60+"分）。";
