@@ -9,6 +9,7 @@ from datetime import datetime,timedelta,timezone
 from hashlib import sha256
 import io
 import json
+import math
 import os
 from pathlib import Path
 import re
@@ -38,6 +39,85 @@ MAX_ARCHIVE=96*1024*1024
 
 
 def utc_now():return datetime.now(timezone.utc)
+
+
+def wait_for_prior_window(manifest,env,*,reader=None,marker_transport=None,clock=None,sleeper=None,monotonic=None):
+    """Wait using public facts only; the unchanged generator must still admit.
+
+    All prior runs must already be terminal. No source request, marker write,
+    output file, owner-key lookup or capture status is performed here.
+    """
+    from race_ai import all_existing_model_official_issue as issue
+    clock=clock or utc_now;sleeper=sleeper or time.sleep;monotonic=monotonic or time.monotonic
+    need(type(env.get('run_id')) is int and env['run_id']>0 and env.get('run_attempt')==1 and
+        type(env.get('head_sha')) is str and re.fullmatch('[a-f0-9]{40}',env['head_sha']),'WAIT_CURRENT_RUN')
+    start=monotonic();last_tick=start;last_utc=None;origin=None;origin_tick=None;expires=None;snapshots=0
+    need(type(start) in (int,float) and math.isfinite(start),'WAIT_CLOCK')
+    def moment():
+        nonlocal last_tick,last_utc,origin,origin_tick
+        tick=monotonic()
+        need(type(tick) in (int,float) and math.isfinite(tick) and last_tick<=tick<=start+3605,'WAIT_BUDGET')
+        now=clock();need(type(now) is datetime and now.utcoffset() is not None and
+            (last_utc is None or last_utc<=now),'WAIT_CLOCK')
+        if origin is None:origin=now;origin_tick=tick
+        last_tick=tick;last_utc=now
+        core.validate_manifest(manifest,now=now)
+        need(now+timedelta(seconds=700)<=core.clock(manifest['cutoff_at']),'WAIT_CAPTURE_MARGIN')
+        if expires is not None:need(now<expires,'WAIT_EVIDENCE_EXPIRED')
+        return now
+    moment()
+    transport=marker_transport or core.MarkerTransport()
+    # Existing fixed-host transport is single-attempt and never selects an
+    # archived receipt. The final history() still authenticates original ZIPs.
+    reader=reader or transport.json
+    need(transport.read_file(transport.head(),core.PATH,MAX_WIRE) is None,'ONCE_ALREADY_CONSUMED')
+    moment()
+    def snapshot():
+        nonlocal snapshots
+        snapshots+=1;need(snapshots<=4,'WAIT_METADATA_REVISION_BOUND')
+        latest=[];expiries=[]
+        for pin in manifest['prior_journal_artifacts']:
+            need(pin['run_id']!=env['run_id'],'WAIT_FRESH_CURRENT_RUN')
+            actual=reader('actions/artifacts/'+str(pin['id']));now=moment()
+            need(type(actual) is dict and actual.get('id')==pin['id'] and actual.get('digest')==pin['digest'] and
+                actual.get('expired') is False and type(actual.get('size_in_bytes')) is int and
+                0<actual['size_in_bytes']<=MAX_ARCHIVE and actual.get('name') in (
+                    'official-result-collection-journal-'+str(pin['run_id']),
+                    'official-future-source-capture-'+str(pin['run_id']),
+                    'official-jra-future-source-capture-'+str(pin['run_id']),
+                    'official-future-result-capture-'+str(pin['run_id'])),'WAIT_PRIOR_ARTIFACT')
+            binding=actual.get('workflow_run',{})
+            need(type(binding) is dict and binding.get('id')==pin['run_id'] and binding.get('head_sha')==pin['head_sha'] and
+                all(type(binding.get(k)) is int and binding[k]==1416489937 for k in ('repository_id','head_repository_id')),
+                'WAIT_PRIOR_ARTIFACT_SCOPE')
+            saved=core.clock(actual['created_at']);expiry=core.clock(actual['expires_at'])
+            need(saved<=now<expiry,'WAIT_PRIOR_ARTIFACT_CLOCK')
+            run=issue.run_scope(reader('actions/runs/'+str(pin['run_id'])));moment()
+            # Legacy UNKNOWN/cancelled epochs remain terminal evidence. Their
+            # original outcome and MAC are checked by history(), not relabelled.
+            need(run['id']==pin['run_id'] and run['head_sha']==pin['head_sha'] and run['status']=='completed',
+                'WAIT_PRIOR_NOT_TERMINAL')
+            updated=core.clock(run['updated_at'])
+            need(core.clock(run['run_started_at'])<=saved+timedelta(seconds=1) and saved<=updated+timedelta(seconds=1),
+                'WAIT_PRIOR_SAVE_CLOCK')
+            latest.extend((updated,saved));expiries.append(expiry)
+        return max(latest)+timedelta(seconds=3601),min(expiries)
+    boundary,expires=snapshot();refreshed=False
+    while True:
+        now=moment()
+        # A forward UTC jump cannot shorten a physical interval. Any updated
+        # prior boundary uses the same initial UTC/monotonic origin and budget.
+        ready_tick=origin_tick+max(0,(boundary-origin).total_seconds())
+        need(ready_tick<=start+3605,'WAIT_BUDGET')
+        need(boundary+timedelta(seconds=700)<=core.clock(manifest['cutoff_at']) and boundary<expires,
+            'WAIT_WINDOW_UNAVAILABLE')
+        remaining=max((boundary-now).total_seconds(),ready_tick-last_tick)
+        if remaining<=0:
+            if refreshed:return None
+            boundary,expires=snapshot();refreshed=True
+            continue
+        budget=start+3605-last_tick;need(budget>0,'WAIT_BUDGET')
+        sleeper(min(45,remaining,budget));refreshed=False
 
 
 def guarded_opener(plan,opener,*,clock=utc_now,before=None):
@@ -288,8 +368,13 @@ def main(argv=None):
         env=environment();root=future.output_path(args.out_dir,env)
         manifest=core.validate_manifest(read_json_bytes(_read(Path(args.input),65536)),now=utc_now())
         need(args.readback_native is None or args.readback_source is not None,'BOTH_READBACK_ARTIFACTS_REQUIRED')
-        result.update(readback(args.readback_native,args.readback_source,root,env,manifest) if args.readback_native is not None else
-            readback_source(args.readback_source,root,env,manifest) if args.readback_source is not None else generate(manifest,root,env))
+        if args.readback_native is not None:
+            result.update(readback(args.readback_native,args.readback_source,root,env,manifest))
+        elif args.readback_source is not None:
+            result.update(readback_source(args.readback_source,root,env,manifest))
+        else:
+            wait_for_prior_window(manifest,env)
+            result.update(generate(manifest,root,env))
     except Exception as exc:
         code=str(exc);result['reason']=code if re.fullmatch(r'(?:JRA_FUTURE_SOURCE|OFFICIAL_ISSUE_TRANSPORT)_[A-Z_]{1,100}',code) else 'JRA_FUTURE_SOURCE_OPERATION_REJECTED'
         if root is not None and (root/'source'/'reservation.enc').exists():

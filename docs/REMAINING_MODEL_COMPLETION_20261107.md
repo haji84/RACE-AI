@@ -8,6 +8,8 @@
 
 - BC4B／[run42419929184](https://github.com/haji84/RACE-AI/actions/runs/42419929184)の全初回CIは23:04:57ZにSUCCESS。ただし共有PRへ後続の画面更新が入ったため、controller940は発行前に停止した。BC用の新capsule・新取得は0。画面変更を保持した新しい収集用HEADで全初回CIを確認し、同一request・元8ケースの差分取得を行う。
 - 7ac／run42424427219の初回検証中に、共有HEADへ画面検証docsのみの6582e6d9が追加された。controller995も発行前に停止し、新capsule・新取得0を維持する。このdocsを非破壊で取り込み、既存の同HEAD全初回検証・唯一issue子の条件を保持した収集用HEADへ更新する。古いHEADへの強制pushや、前のCIを新HEADの成功とする扱いはしない。
+- 29eの初回検証中にも共有HEADへc32341e6の動画変更が入り、controller1005は発行前停止。既存の同HEAD・唯一issue子の検証条件を変更せず、動画変更も保持する。実行環境の再接続後、未公開コードと原本cacheの保持を確認した。新capsule・新取得0。
+- JRAの実prior終了から1時間＋1秒までの待機を、同じ既存jobへ接続した。通信・once書込み前の待機だけで、全prior実終了・当日・規約・期限・締切・UTC／monotonic・最大4回のmetadata照合を検証し、その後に既存の全認証を再実行する。49近傍テストと32結合テストが成功。既存jobのtimeoutのみ15→80分、新job・schedule・権限は追加しない。[合成検証と未実行条件](evidence/2026-11-08/jra-source-free-cooldown-counts.json)。
 - 認証済み競輪S16原本の最初の当日出走表一覧から、原文の締切・開催日・場・Rと取得証跡だけを読み出す処理を統合。未来用入力ではなく選定候補であり、F30保存後の新規原本取得が別途必須。現在の実競輪原本・未来締切の読取成功は0。[結合検証と境界](evidence/2026-11-08/keirin-selector-integration-counts.json)。
 
 - [最新H3の実5正常結果と全CI](evidence/2026-11-07/d41-real-h3-auto-five-normal-counts.json)：全Python4,266件／500 skip／失敗0／1,706.942秒、動画283＋373件。元の8ケース中2件は既確認、3件を新規認証、3件は未充足。実提供元通信32回と、読戻し追加通信0を区別する。

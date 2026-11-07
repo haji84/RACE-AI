@@ -56,7 +56,7 @@ class FutureSourceWorkflowTests(unittest.TestCase):
         self.assertRegex(self.text,re.compile(r'^permissions:\n  contents: read\n',re.M))
         self.assertRegex(self.jobs['viewer_contract'],r'permissions:\n      contents: read\n      actions: read\n')
         self.assertFalse(re.search(r'^  schedule:',self.text,re.M))
-        timeout=int(re.search(r'^    timeout-minutes: ([0-9]+)$',self.job,re.M)[1]);self.assertLessEqual(timeout,15)
+        timeout=int(re.search(r'^    timeout-minutes: ([0-9]+)$',self.job,re.M)[1]);self.assertEqual(timeout,80)
 
     def test_prefix_and_manifest_gate_every_dependency_and_no_secret_exists_in_setup(self):
         route=ident(self.steps,'future_source_route');self.assertIsNotNone(route)

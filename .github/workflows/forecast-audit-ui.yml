@@ -1062,8 +1062,10 @@ jobs:
       contents: write  # Create only the fixed experiment-wide consumed marker.
       actions: read
     runs-on: ubuntu-24.04
-    # Pinned setup, existing bounded source paths, artifact and Git readback.
-    timeout-minutes: 15
+    # JRA alone may wait source-free for the actual prior-terminal interval:
+    # 3,605-second admission budget plus one in-flight GitHub read, then the
+    # existing bounded capture and readback.
+    timeout-minutes: 80
     steps:
       - name: Checkout exact future source HEAD without persisted credentials
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
