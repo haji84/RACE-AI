@@ -41,6 +41,7 @@ async function withPreview(data, run) {
     await page.waitForFunction(() => document.querySelector('#file-message').textContent.includes('端末内で読み込みました'));
     await page.locator('#page-home [data-open-race]').first().click();
     await page.locator('[data-detail-tab="preview"]').click();
+    for (const summary of await page.locator('.context-source-details > summary').all()) await summary.click();
     await run(page);
     assert.deepEqual(errors, []);
   } finally {

@@ -57,6 +57,7 @@ export_view(SavedPdcaService(p).saved_projection(),r/'reference.html')
   await page.goto('http://127.0.0.1:'+server.address().port+'/');
   await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'));
   assert.equal(await page.locator('#page-races .saved-outcome').count(),2);
+  await page.locator('#race-filters>summary').click();
   await page.locator('#status-filter').selectOption('HIT');assert.equal(await page.locator('#all-races .saved-outcome').count(),1);
   await page.locator('#status-filter').selectOption('PREDICTION_UNVERIFIED');assert.equal(await page.locator('#all-races .saved-outcome').count(),2);
   await page.locator('#status-filter').selectOption('all');
