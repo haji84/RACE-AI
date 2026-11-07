@@ -45,12 +45,9 @@ def context():
 
 
 def bootstrap_manifest():
-    value=json.loads((Path(__file__).resolve().parents[1]/'audit/state/official-result-recovery-request.json').read_bytes())['manifest']
-    if not any(p['id']==13574582081 for p in value['prior_journal_artifacts']):
-        value['prior_journal_artifacts'].append(dict(id=13574582081,run_id=42371023982,
-            head_sha='901fb57d2d0f1d0fa0b4051285dca399654a4738',
-            digest='sha256:72d1b53eec547a73cff15955e6b7f179f1391283c28d218ca48be95e36e35c79'))
-    return value
+    # Reviewed 6a18873b pins plus the last actual 901 journal. Execution requests
+    # advance cumulatively; they must not redefine this immutable bootstrap.
+    return json.loads((Path(__file__).resolve().parent/'fixtures/official-result-issue-bootstrap-pins.json').read_bytes())
 
 
 class OfficialIssueTests(unittest.TestCase):
@@ -110,6 +107,23 @@ class OfficialIssueTests(unittest.TestCase):
             with self.subTest(field=field),self.assertRaises(ValueError):api.check_pin_continuity(value)
         value=deepcopy(manifest);value['prior_journal_artifacts'].pop()
         with self.assertRaises(ValueError):api.check_pin_continuity(value)
+
+    def test_cumulative_appends_cannot_hide_a_missing_or_changed_bootstrap_pin(self):
+        api=self.api();seed=bootstrap_manifest();manifest=deepcopy(seed)
+        for index,field in enumerate(('checkpoint_artifacts','prior_journal_artifacts'),1):
+            manifest[field].append(dict(id=9000000000+index,run_id=9000000000,
+                head_sha='d'*40,digest='sha256:'+str(index)*64))
+        # Continuity permits later epochs; issuance separately authenticates
+        # every supplied archive. Appends cannot replace any required seed.
+        api.check_pin_continuity(manifest)
+        for field,pins in seed.items():
+            for index,pin in enumerate(pins):
+                for change in ('digest','omitted'):
+                    value=deepcopy(manifest)
+                    if change=='digest':value[field][index]['digest']='sha256:'+'0'*64
+                    else:value[field].pop(index)
+                    with self.subTest(field=field,pin=pin['id'],change=change),self.assertRaises(ValueError):
+                        api.check_pin_continuity(value)
 
     def test_previous_issued_epoch_must_have_terminal_attempt_two_and_every_actual_output_pin(self):
         api=self.api();data,_,_=fixture();previous=deepcopy(data['request']);manifest=deepcopy(previous['manifest'])
