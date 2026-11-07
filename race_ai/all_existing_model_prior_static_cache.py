@@ -92,8 +92,8 @@ def _source(entry,files,*,started,completed):
     return dict(raw_base64=base64.b64encode(raw).decode(),metadata=meta)
 
 
-def extract_static_cache(journal,artifact_metadata,*,now):
-    """Validate the entire COMPLETE wire; a normal result is not required."""
+def verified_browser_wire(journal,artifact_metadata,*,now,strict_http=False):
+    """Replay already authenticated originals; this grants no source authority."""
     from scripts import all_existing_model_official_result_collect as collector
     now=clock(now);continuation._complete(journal,artifact_metadata,now,required=False)
     browser=journal.get('browser_attempt');q=journal.get('browser_quarantine')
@@ -145,6 +145,10 @@ def extract_static_cache(journal,artifact_metadata,*,now):
         root=Path(directory);root.chmod(0o700)
         for name,raw in files.items():
             path=root/name;path.parent.mkdir(parents=True,mode=0o700,exist_ok=True);collector._write(path,raw)
+        if strict_http:
+            wire={e['sequence']:(files[e['body_file']],read_json_bytes(files[e['metadata_file']]),
+                files[e['request_body_file']] if 'request_body_file' in e else None) for e in responses}
+            collector._browser_complete_source_wire(index,wire,root,started=started,now=completed)
         found,states,originals=collector.browser_sources(index,root,planned,started=started,now=completed,remaining=remaining)
     need(originals==journal.get('browser_captures') and [r[2] for r in found]==[c for c in journal.get('captures',[])
         if _url(c['metadata']['source_url'])[0] in ('autorace','keirin')],'STATIC_CAPTURE_SOURCE_JOIN')
@@ -153,5 +157,11 @@ def extract_static_cache(journal,artifact_metadata,*,now):
         saved=actual.get((state['sport'],collector._race_key(state['race_id'],state['sport'])),{})
         need(saved.get('state')==state['state'] or state['state']=='CAPTURED' and
             saved.get('state') in ('settled','rank_confirmed','special','HOLD_RESULT_PARSE'),'STATIC_CASE_STATE_JOIN')
-    sports={c['sport'] for c in planned}
+    return index,files,assets
+
+
+def extract_static_cache(journal,artifact_metadata,*,now):
+    """Validate the entire COMPLETE wire; a normal result is not required."""
+    index,_,assets=verified_browser_wire(journal,artifact_metadata,now=now)
+    sports={c['sport'] for c in index['cases']}
     return merge_static_cache([], [a for a in assets if a['metadata']['resource_type'] in ('script','stylesheet')],now=now,sports=sports)

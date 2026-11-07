@@ -6,6 +6,9 @@
 
 ## 最新の実証チェックポイント
 
+- BC4B／[run42419929184](https://github.com/haji84/RACE-AI/actions/runs/42419929184)の全初回CIは23:04:57ZにSUCCESS。ただし共有PRへ後続の画面更新が入ったため、controller940は発行前に停止した。BC用の新capsule・新取得は0。画面変更を保持した新しい収集用HEADで全初回CIを確認し、同一request・元8ケースの差分取得を行う。
+- 認証済み競輪S16原本の最初の当日出走表一覧から、原文の締切・開催日・場・Rと取得証跡だけを読み出す処理を統合。未来用入力ではなく選定候補であり、F30保存後の新規原本取得が別途必須。現在の実競輪原本・未来締切の読取成功は0。[結合検証と境界](evidence/2026-11-08/keirin-selector-integration-counts.json)。
+
 - [最新H3の実5正常結果と全CI](evidence/2026-11-07/d41-real-h3-auto-five-normal-counts.json)：全Python4,266件／500 skip／失敗0／1,706.942秒、動画283＋373件。元の8ケース中2件は既確認、3件を新規認証、3件は未充足。実提供元通信32回と、読戻し追加通信0を区別する。
 - [新原本のGit搬送保存](evidence/2026-11-07/d41-transport-original-backup-counts.json)：結果・journal・公開件数proofの元ZIPと実API metadataを、元の暗号文・AADを変えず別のSHAパスへ保持し、独立readerで全byte一致。元ActionsでMACと原本の読戻しを検証済み。ローカルMAC再認証は実施していない。標準RESULT保存の既存worker向けmanifestも6件へ更新し、その実行結果は別途確認する。
 - [AUTO2の正常S16と次段階準備](evidence/2026-11-07/0a5-real-auto-two-normal-and-continuation-preparation-counts.json)：元0a5の正常結果とd1の16通信・結果0は別記録。旧UNKNOWN実数null／旧epoch上限32、973の404、すべての失敗と旧世代を保持する。

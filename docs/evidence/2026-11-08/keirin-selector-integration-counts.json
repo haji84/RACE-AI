@@ -1,0 +1,43 @@
+{
+  "active_models": 30,
+  "actual_auto_normal_results": 5,
+  "actual_keirin_normal_results": 0,
+  "actual_learned_models": 19,
+  "actual_selector_read": false,
+  "additional_provider_requests": 0,
+  "base_with_parallel_ui_preserved": "c8df8b34a10cde55fd7a8fdcd94d18470ed24513",
+  "checked_at": "2026-11-07T23:14:47Z",
+  "errors": 0,
+  "failures": 0,
+  "fresh_post_f30_native_required": true,
+  "independent_review": "CLEAR_ON_REVIEWED_SELECTOR_DELTA",
+  "initial_command_error": "Nonexistent tests.test_forecast_audit_workflow module; corrected command completed all 39 tests successfully. No implementation failure.",
+  "integrated_tests": 39,
+  "local_owner_key_used": false,
+  "new_candidate_future_pdca": 0,
+  "new_capsule_issued": false,
+  "new_workflows_jobs_schedules": 0,
+  "no_guessed_cutoff": true,
+  "previous_controller": {
+    "id": "940",
+    "state": "STOPPED_CURRENT_PR_ADVANCED_BEFORE_CHILD",
+    "target_head": "bc4b93f44813848fa0390ea3bb09f820b2c8eb7e",
+    "target_run_id": 42419929184,
+    "whole_first_conclusion": "success",
+    "whole_first_updated_at": "2026-11-07T23:04:57Z"
+  },
+  "production_promoted": false,
+  "recovery_raw_sha256": "deb8a5d147ed3ae138d2331509806f74ad89acc7e3aeef9471194bf6dfe93c6a",
+  "recovery_request_sha256": "bcbdaa8b350402d8753d23632709eee6a15b75d6402b1d4cb7108334ed4fa5e6",
+  "reviewed_selector_commit": "5d09a2db0ef97487906b07c826663e181d226200",
+  "schema": "RACE_AI_KEIRIN_SELECTOR_INTEGRATION_COUNTS_V1",
+  "scope": "SYNTHETIC_AND_CONTRACT_TESTS_ONLY",
+  "skipped": 0,
+  "test_modules": [
+    "tests.test_keirin_future_selector",
+    "tests.test_official_result_prepare",
+    "tests.test_all_existing_model_prior_static_cache",
+    "tests.test_official_result_prepare_workflow",
+    "tests.test_native_future_skip_refit_workflow"
+  ]
+}
