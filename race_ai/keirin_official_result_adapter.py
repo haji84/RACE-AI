@@ -266,8 +266,15 @@ def parse_official_result_source(raw,metadata,*,now):
     return facts
 
 
-def parse_result(raw,metadata,*,frozen_native_payload,now,source_rights_ref):
-    """Semantic join only; caller independently authenticates both archives."""
+def parse_result(raw,metadata,*,frozen_native_payload,now,source_rights_ref,allow_order_only=False):
+    """Join authenticated originals; optionally admit a typed nonmonetary order.
+
+    The explicit option changes only a fully confirmed ordinary result whose
+    displayed monetary unit remains unknown. Cash settlement retains its
+    original strict contract. The caller authenticates both archives and the
+    separate owner research purpose before admitting an order-only label.
+    """
+    _need(type(allow_order_only) is bool,'EXPLICIT_ORDER_ONLY_OPTION_REQUIRED')
     now=_clock(now);_need(source_rights_ref==RIGHTS,'SOURCE_PURPOSE_MISMATCH')
     _need(type(frozen_native_payload) is dict and type(frozen_native_payload.get('snapshot')) is dict,
           'FROZEN_NATIVE_INPUT_REQUIRED')
@@ -284,8 +291,14 @@ def parse_result(raw,metadata,*,frozen_native_payload,now,source_rights_ref):
     verified=bool(facts['roster'])
     if verified:_need(facts['roster']==roster,'FROZEN_RESULT_REGISTERED_ROSTER_MISMATCH')
     _need(facts['status']!='settled' or verified,'SETTLED_REGISTERED_ROSTER_REQUIRED')
-    return dict(race_id=race['race_id'],sport='keirin',status=facts['status'],reason=facts['reason'],
+    observation=dict(race_id=race['race_id'],sport='keirin',status=facts['status'],reason=facts['reason'],
         ordered_top3=facts['ordered_top3'],roster=facts['roster'],identity_verified=verified,
         captured_at=facts['captured_at'],published_at=None,source_ref=facts['source_ref'],source_rights_ref=source_rights_ref,
         source_sha256=facts['source_sha256'],payout_per_100_yen=facts['payout_per_100_yen'],
         refund_numbers=facts['refund_numbers'],closed_at=race['sales_cutoff_at'])
+    if allow_order_only and facts['status']=='pending' and facts['reason']=='PAYOUT_UNIT_NOT_VERIFIED':
+        from .official_order_only_result import SCHEMA as ORDER_SCHEMA, EVALUATION_SCOPE, STATUS, REASON, validate_order_only
+        observation.update(schema=ORDER_SCHEMA,status=STATUS,reason=REASON,ordered_top3=facts['observed_top3'],
+            published_payout_yen=facts['observed_payout_yen'],payout_unit_verified=False,evaluation_scope=EVALUATION_SCOPE)
+        return validate_order_only(observation,sport='keirin',roster=roster,race_id=race['race_id'])
+    return observation

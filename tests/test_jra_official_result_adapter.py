@@ -60,6 +60,19 @@ class JraOfficialResultAdapterTests(unittest.TestCase):
         self.assertIsNone(observation["published_at"])
         self.assertEqual(observation["closed_at"], frozen()["snapshot"]["race"]["sales_cutoff_at"])
 
+    def test_current_day_literal_get_context_preserves_historical_result_semantics(self):
+        # Current-day published hrefs use sde01; archived navigation uses sde10.
+        # Both still bind the entire independently observed race identifier.
+        raw=result_html();meta=source_metadata(raw)
+        current=URL.replace('pw01sde10','pw01sde01')
+        meta.update(source_url=current,final_url=current,http_method='GET')
+        expected=dict(self.parse(raw),source_ref=current)
+        self.assertEqual(self.parse(raw,meta=meta),expected)
+        for context in ('00','11','99'):
+            invalid=dict(meta,source_url=current.replace('pw01sde01','pw01sde'+context),
+                         final_url=current.replace('pw01sde01','pw01sde'+context))
+            with self.subTest(context=context),self.assertRaises(ValueError):self.parse(raw,meta=invalid)
+
     def test_unpublished_result_remains_pending_without_a_loss_or_zero_payout(self):
         observation = self.parse(result_html(table=False))
         self.assertEqual(observation["status"], "pending")

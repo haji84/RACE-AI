@@ -16,7 +16,8 @@ from race_ai.actions_contract import digest
 from race_ai import manual_official_capture as capture
 from race_ai import jra_official_sparse_adapter as jra
 from race_ai.all_existing_model_learning import _sources
-from race_ai.all_existing_model_pairs import make_private_pairs,verify_private_record,record_partition_key,INPUTS_SCHEMA,_seal_cutoff
+from race_ai.all_existing_model_pairs import (make_private_pairs,verify_private_record,record_partition_key,
+    record_identity,INPUTS_SCHEMA,_seal_cutoff,_race_key)
 from race_ai.all_existing_model_receipt import _verified_private_pairs_artifact
 from race_ai.boat_all_model_store import open_forecasts
 from race_ai.boat_pdca_state import state_key
@@ -31,6 +32,7 @@ from scripts.boat_history_collect import save
 ROOT=Path(__file__).resolve().parents[1]
 ROUND=900002
 SCHEMA='RACE_AI_MANUAL_OFFICIAL_NATIVE_FREEZE_INPUT_V1'
+V2_SCHEMA='RACE_AI_MANUAL_OFFICIAL_NATIVE_FREEZE_INPUT_V2'
 STATUS='RACE_AI_MANUAL_OFFICIAL_NATIVE_FREEZE_COUNTS_V1'
 CELLS={'horse/'+mid for mid in (*ALL_MODELS,LEARNED_ID)}
 
@@ -46,7 +48,10 @@ def load_manifest(path,*,now):
     value=read_json_bytes(_read(Path(path),16384))
     fields={'schema','execution_day','sealed_path','index_sha256','maximum_races',
             'source_metadata_path','source_metadata_sha256'}
-    need(type(value) is dict and set(value)==fields and value['schema']==SCHEMA,'MANIFEST_SCHEMA')
+    need(type(value) is dict and ((value.get('schema')==SCHEMA and set(value)==fields) or
+         (value.get('schema')==V2_SCHEMA and set(value)==fields|{'excluded_native_artifacts'})),
+         'MANIFEST_SCHEMA')
+    if value['schema']==V2_SCHEMA:_exclusion_pins(value)
     need(type(value['maximum_races']) is int and 1<=value['maximum_races']<=8 and
         value['execution_day']==now.astimezone(jra.JST).date().isoformat(),'EXECUTION_DAY_OR_BOUND')
     need(type(value['sealed_path']) is str and re.fullmatch(
@@ -58,6 +63,48 @@ def load_manifest(path,*,now):
     need(all(type(value[k]) is str and re.fullmatch('[a-f0-9]{64}',value[k])
         for k in ('index_sha256','source_metadata_sha256')),'MANIFEST_SHA')
     return value
+
+
+def _exclusion_pins(manifest):
+    values=manifest.get('excluded_native_artifacts')
+    need(type(values) is list and 1<=len(values)<=8,'EXCLUDED_NATIVE_ARTIFACTS_BOUND')
+    seen=set()
+    for value in values:
+        need(type(value) is dict and set(value)=={'id','digest','run_id','head_sha'} and
+             all(type(value[k]) is int and 0<value[k]<10**20 for k in ('id','run_id')) and
+             type(value['digest']) is str and re.fullmatch('sha256:[a-f0-9]{64}',value['digest']) and
+             type(value['head_sha']) is str and re.fullmatch('[a-f0-9]{40}',value['head_sha']) and
+             value['id'] not in seen,'EXCLUDED_NATIVE_ARTIFACT_PIN')
+        seen.add(value['id'])
+    return values
+
+
+def authenticated_excluded_races(manifest,*,now):
+    """Read existing actual HORSE input receipts; never infer exclusions from IDs."""
+    if manifest.get('schema')==SCHEMA:return set(),0
+    need(manifest.get('schema')==V2_SCHEMA,'MANIFEST_SCHEMA')
+    pins=_exclusion_pins(manifest);races=set()
+    for pin in pins:
+        actual=future.metadata(pin['id'])
+        need(type(actual) is dict and actual.get('id')==pin['id'] and actual.get('digest')==pin['digest'],
+             'EXCLUDED_NATIVE_ARTIFACT_BINDING')
+        raw=future.gh('actions/artifacts/'+str(pin['id'])+'/zip')
+        admitted,records=_verified_private_pairs_artifact(raw,actual,now=now,
+            expected_run_id=pin['run_id'],expected_head_sha=pin['head_sha'])
+        need(1<=len(records)<=8 and admitted['forecast_partition_count']==0 and
+             admitted['partition_count']==admitted['frozen_input_only_partition_count']==len(records) and
+             admitted['captured_native_input_count']==5*len(records),'EXCLUDED_HORSE_INPUT_COUNTS')
+        for record in records:
+            need(record.get('schema')==INPUTS_SCHEMA and record.get('training',{}).get('scope')==
+                 'OPERATOR_SUPPLIED_RESEARCH' and record_identity(record)[0]=='horse',
+                 'EXCLUDED_HORSE_INPUT_REQUIRED')
+            capsules=record['captured_native_inputs']
+            need(len(capsules)==5 and {value['cell_key'] for value in capsules}==CELLS and all(
+                 value['native_payload']['snapshot']['race']['sport']=='horse' and
+                 value['native_payload']['snapshot']['race']['event_date_jst']==manifest['execution_day']
+                 for value in capsules),'EXCLUDED_HORSE_NATIVE_CELLS')
+            races.add(record_identity(record)[1])
+    return races,len(pins)
 
 
 def _repository_file(path,limit):
@@ -137,6 +184,11 @@ def generate(ident,root,env,manifest):
     remaining=(ready-utc_now()).total_seconds()
     if 0<remaining<=2:time.sleep(remaining+.02)
     need(utc_now()>=ready,'CANDIDATE_RECEIPT_PRECISION')
+    excluded=set();exclusion_counts={}
+    if manifest['schema']==V2_SCHEMA:
+        excluded,excluded_artifacts=authenticated_excluded_races(manifest,now=utc_now())
+        exclusion_counts=dict(excluded_native_artifact_count=excluded_artifacts,
+            excluded_native_race_count=len(excluded),excluded_cached_card_count=0)
     holds=0;rejected=0;selected=[]
     with tempfile.TemporaryDirectory(prefix='manual-native-freeze-',dir=env['temp']) as temporary:
         private=Path(temporary);copy_sealed(manifest,private/'sealed')
@@ -160,13 +212,15 @@ def generate(ident,root,env,manifest):
                 if converted['state']!='READY':holds+=1;continue
                 native=converted['native_payload'];race=native['snapshot']['race']
                 need(race['event_date_jst']==manifest['execution_day'],'CARD_EXECUTION_DAY')
+                if excluded and _race_key(race['race_id'],'horse') in excluded:
+                    exclusion_counts['excluded_cached_card_count']+=1;continue
                 cutoff=future.stamp(race['sales_cutoff_at'])
                 if cutoff<utc_now()+timedelta(seconds=120):holds+=1;continue
                 selected.append((cutoff,race['race_id'],native))
             except (ValueError,KeyError,TypeError):rejected+=1
         selected=sorted(selected,key=lambda row:(row[0],row[1]))[:manifest['maximum_races']]
         need(len({race for _,race,_ in selected})==len(selected),'DUPLICATE_RACE_SOURCE')
-        if not selected:return dict(state='HOLD_NO_READY_FUTURE_NATIVE_INPUTS',ready=False,
+        if not selected:return dict(exclusion_counts,state='HOLD_NO_READY_FUTURE_NATIVE_INPUTS',ready=False,
             ready_races=0,held_cards=holds,rejected_cards=rejected)
         requests=[dict(cell_key=cell,native_payload=deepcopy(native))
             for _,_,native in selected for cell in sorted(CELLS)]
@@ -180,7 +234,7 @@ def generate(ident,root,env,manifest):
         need(aggregate==summary,'ROOT_SUMMARY_BINDING');(root/'summary.json').unlink()
         records=local_records(root)
         need(min(_seal_cutoff(p) for p in records)>=utc_now()+timedelta(seconds=120),'FINAL_MARGIN_ELAPSED')
-        return dict(state='OFFICIAL_NATIVE_INPUTS_ENCRYPTED_LOCAL_ONLY',ready=True,
+        return dict(exclusion_counts,state='OFFICIAL_NATIVE_INPUTS_ENCRYPTED_LOCAL_ONLY',ready=True,
             ready_races=len(records),held_cards=holds,rejected_cards=rejected,partition_count=len(records),
             frozen_input_only_partition_count=len(records),forecast_partition_count=0,
             captured_native_input_count=5*len(records),candidate_artifact_id=ident,
@@ -207,6 +261,11 @@ def readback(ident,root,env):
          sorted(digest(p) for p in records)==hashes,'ACTUAL_NATIVE_INPUT_READBACK')
     lineage={key:previous[key] for key in ('source_index_sha256','original_metadata_cipher_sha256',
         'held_cards','rejected_cards') if key in previous}
+    for key,limit in (('excluded_native_artifact_count',8),('excluded_native_race_count',64),
+                      ('excluded_cached_card_count',32)):
+        if key in previous:
+            need(type(previous[key]) is int and 0<=previous[key]<=limit,'LOCAL_EXCLUSION_COUNTS')
+            lineage[key]=previous[key]
     return dict(lineage,state='OFFICIAL_NATIVE_INPUTS_ACTUAL_PRE_CUTOFF_VERIFIED',ready=True,
         partition_count=len(local),frozen_input_only_partition_count=len(local),forecast_partition_count=0,
         captured_native_input_count=5*len(local),ready_races=len(local),record_sha256=hashes,

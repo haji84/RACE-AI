@@ -137,6 +137,12 @@ def _native_replay_at(row,*,now=None):
     proof=_native_generation_evidence(row,now=now)
     return proof['actual_native_generated_at'] if proof is not None else row['as_of']
 
+def _result_available_at(row):
+    values=[row['result']['captured_at']]
+    if 'result_source_evidence' in row:
+        values.extend(source['captured_at'] for source in row['result_source_evidence']['sources'])
+    return max(values,key=ts)
+
 def _lineage(row,*,now=None):
     value=dict(race_id=row['race_id'],input_sha256=row['input_sha256'],as_of=row['as_of'],
         cutoff_at=row['cutoff_at'],input_saved_at=row['input_saved_at'],
@@ -147,10 +153,24 @@ def _lineage(row,*,now=None):
             input_derivation_sha256=digest(proof),input_save_semantics='ORIGINAL_OBSERVATION_AVAILABILITY_BOUND')
     generated=_native_generation_evidence(row,now=now)
     if generated is not None:value.update(generated)
+    if 'result_source_evidence' in row:
+        value.update(result_source_evidence=deepcopy(row['result_source_evidence']),
+            result_source_evidence_sha256=digest(row['result_source_evidence']),
+            result_source_observation=deepcopy(row.get('result_observation',row['result'])),
+            result_source_available_at=_result_available_at(row),
+            result_source_availability_basis='ORIGINAL_HTTP_AND_NORMAL_UI_SOURCE_COMPLETION')
+    from .official_order_only_result import has_order_only_markers,EVALUATION_SCOPE
+    if has_order_only_markers(row['result']):
+        label=deepcopy(row.get('result_observation',row['result']))
+        value.update(result_label=label,result_label_sha256=digest(label),label_evaluation_scope=EVALUATION_SCOPE)
     return value
 
 def _ranker_label(row):
     snapshot=row['native_payload']['snapshot'];sport=row['sport']
+    from .official_order_only_result import has_order_only_markers,validate_order_only
+    if has_order_only_markers(row['result']):
+        return validate_order_only(row['result'],sport=sport,
+            roster={str(p['number']):p['identity'] for p in snapshot['participants']},race_id=snapshot['race']['race_id'])
     result={k:row['result'].get(k) for k in ('race_id','status','ordered_top3','published_at',
         'captured_at','source_ref','source_rights_ref')}
     # Outer admission already binds each supported alias to the same race.
@@ -160,7 +180,7 @@ def _ranker_label(row):
         result['source_sha256']=row['result']['source_sha256']
     return result
 
-def _record(row,now,allow_source,allow_training):
+def _record(row,now,allow_source,allow_training,*,allow_order_only=False):
     need(type(row) is dict,'RECORD_REQUIRED');mid=row['model_id'];sport=row['sport']
     if 'input_derivation' in row:
         from .all_existing_model_derivation import verify_derivation
@@ -178,11 +198,29 @@ def _record(row,now,allow_source,allow_training):
     result=row['result'];need(type(result) is dict and result.get('sport')==sport and
         _race_key(result.get('race_id'),sport)==_race_key(row['race_id'],sport),'RESULT_IDENTITY')
     need(ts(result['captured_at'])<=now and ts(result['captured_at'])>=ts(info['race_cutoff_at']),'RESULT_CLOCK')
-    need(result.get('status')=='settled' and result.get('identity_verified') is True and not result.get('refund_numbers'),'NORMAL_CONFIRMED_RESULT_REQUIRED')
+    from .official_order_only_result import has_order_only_markers,validate_order_only
+    order_only=has_order_only_markers(result)
+    if order_only:
+        need(allow_order_only is True,'ORDER_ONLY_RESEARCH_MODE_REQUIRED')
+        validate_order_only(result,sport=sport,roster=info['roster'],race_id=row['race_id'])
+        need(ts(result['closed_at'])==ts(info['race_cutoff_at']),'ORDER_ONLY_ACTUAL_CUTOFF')
+        if 'result_observation' in row:
+            original=validate_order_only(row['result_observation'],sport=sport,roster=info['roster'],race_id=row['race_id'])
+            need(all(original[name]==value for name,value in result.items() if name!='race_id'),
+                 'ORDER_ONLY_ORIGINAL_LABEL_BINDING')
+    need((order_only or result.get('status')=='settled') and result.get('identity_verified') is True and
+         not result.get('refund_numbers'),'NORMAL_CONFIRMED_RESULT_REQUIRED')
     need(result.get('roster')==info['roster'],'RESULT_ROSTER')
     winner=result.get('ordered_top3');need(type(winner) is list and len(winner)==3 and len(set(winner))==3 and
         all(type(n) is int and str(n) in info['roster'] for n in winner),'RESULT_ORDER')
     sources=_sources(payload);sources.add((result.get('source_ref'),result.get('source_rights_ref')))
+    if 'result_source_evidence' in row:
+        from .all_existing_model_official_results import verify_result_source_evidence
+        original=row.get('result_observation',result)
+        need(type(original) is dict and _race_key(original.get('race_id'),sport)==_race_key(result['race_id'],sport) and
+             all(name in original and original[name]==value for name,value in result.items() if name!='race_id'),
+             'RESULT_SOURCE_OBSERVATION_BINDING')
+        sources.update(verify_result_source_evidence(row['result_source_evidence'],result=original,now=now))
     need(all(type(u) is str and u and type(r) is str and r for u,r in sources),'SOURCE_REQUIRED')
     if row['scope']!='SYNTHETIC_ONLY':
         need(callable(allow_training) and all(allow_training(u,r,'model_training') is True for u,r in sources),'TRAINING_PERMISSION')
@@ -254,13 +292,14 @@ def _fit_native(train,mid,sport,allow_source,*,now=None):
             if score<current-1e-12:params,current=candidate,score
     return params,support
 
-def fit(records,*,now,allow_source=None,allow_training=None):
+def fit(records,*,now,allow_source=None,allow_training=None,allow_order_only=False):
     need(type(now) is datetime and now.utcoffset() is not None,'AWARE_CLOCK')
+    need(type(allow_order_only) is bool,'EXPLICIT_ORDER_ONLY_MODE')
     need(type(records) is list and len(records)<=10000,'BOUNDED_RECORDS')
     selected={};blocked=defaultdict(list)
     for supplied in records:
         key=registry.cell_key(supplied['sport'],supplied['model_id'])
-        try:row=_record(supplied,now,allow_source,allow_training)
+        try:row=_record(supplied,now,allow_source,allow_training,allow_order_only=allow_order_only)
         except ValueError as exc:
             if str(exc)=='ALL_MODEL_LEARNING_TRAINING_PERMISSION':blocked[key].append('HOLD_MODEL_TRAINING_PERMISSION');continue
             raise
@@ -273,20 +312,23 @@ def fit(records,*,now,allow_source=None,allow_training=None):
     groups=defaultdict(list)
     for (key,_),row in selected.items():groups[key].append(row)
     out=dict(schema=SCHEMA,registry_sha256=registry.registry_sha256(),registered_model_ids=sorted({c['model_id'] for c in registry.cells()}),
-        created_at=now.isoformat(),data_available_until=max((r['result']['captured_at'] for r in selected.values()),key=ts,default=now.isoformat()),
+        created_at=now.isoformat(),data_available_until=max((_result_available_at(r) for r in selected.values()),key=ts,default=now.isoformat()),
         state='NO_FITTED_MODELS',models={},model_states={},auto_promoted=False,production_promoted=False,
         accuracy_improvement_proven=False,provider_permission_confirmed=False,minimum_fit_races=MIN_RACES,
         validation_type='RETROSPECTIVE_AVAILABILITY_ORDERED_HOLDOUT',training_policy=dict(min_train=6,min_holdout=2,minimum_supported_train_races=4),
         source_intake_sha256=digest(records),scope=next(iter({r['scope'] for r in records}),'SYNTHETIC_ONLY'))
     need(len({r['scope'] for r in records})<=1,'MIXED_SCOPE')
+    if allow_order_only:
+        from .official_order_only_result import EVALUATION_SCOPE
+        out.update(label_evaluation_scope=EVALUATION_SCOPE,monetary_evaluation_available=False)
     for cell in registry.cells():
-        key=cell['cell_key'];rows=sorted(groups[key],key=lambda r:(ts(r['result']['captured_at']),r['race_id']))
+        key=cell['cell_key'];rows=sorted(groups[key],key=lambda r:(ts(_result_available_at(r)),r['race_id']))
         state='HOLD_MODEL_TRAINING_PERMISSION' if blocked[key] else 'INPUT_MISSING' if not rows else 'INSUFFICIENT_VERIFIED_RACES'
         out['model_states'][key]=dict(state=state,unique_races=len(rows),required_input=cell['required_input'])
         if len(rows)<MIN_RACES:continue
         nv=max(2,len(rows)//4);train,holdout=rows[:-nv],rows[-nv:]
-        boundary=ts(holdout[0]['result']['captured_at'])
-        while train and ts(train[-1]['result']['captured_at'])==boundary:holdout.insert(0,train.pop())
+        boundary=ts(_result_available_at(holdout[0]))
+        while train and ts(_result_available_at(train[-1]))==boundary:holdout.insert(0,train.pop())
         if len(train)<6:continue
         mid=cell['model_id'];sport=cell['sport']
         schemas={r['native_payload'].get('snapshot',{}).get('schema') for r in rows}
@@ -309,7 +351,9 @@ def fit(records,*,now,allow_source=None,allow_training=None):
                 return (purpose=='result_evaluation' and (source,rights) in admitted_results and
                         callable(allow_training) and allow_training(source,rights,'model_training') is True)
             native_training=fit_ranker(labeled,sport=sport,now=now,
-                train_end_at=max(r['result']['captured_at'] for r in train),allow_source=allow_source,
+                train_end_at=(max((_result_available_at(r) for r in train),key=ts)
+                    if any('result_source_evidence' in r for r in train) else max(r['result']['captured_at'] for r in train)),
+                allow_source=allow_source,
                 allow_result=ranker_result_admission)
             names=list(native_training['vector_schema'])
             native_rows=[(_vectors(row['native_payload']['snapshot'],sport),row['result']['ordered_top3'])
@@ -372,6 +416,8 @@ def fit(records,*,now,allow_source=None,allow_training=None):
             training=metrics,holdout=validation,holdout_baseline=baseline_metrics,
             coefficients_changed=parameters!=base,native_training=native_training,
             source_lineage=[_lineage(r,now=now) for r in rows])
+        if allow_order_only:
+            model['label_evaluation_scopes']=sorted({r['result'].get('evaluation_scope','VERIFIED_CASH_SETTLEMENT') for r in rows})
         if input_schema in (registry.SHARED_SPARSE,registry.FULL_SPARSE):
             model.update(input_schema=input_schema,parameter_contract_sha256=digest(
                 registry.parameter_contract(mid,sport,input_schema=input_schema)))
@@ -414,6 +460,11 @@ def verify_training(training):
              'accuracy_improvement_proven','provider_permission_confirmed')),'PROMOTION')
         need(training['scope'] in ('SYNTHETIC_ONLY','OPERATOR_SUPPLIED_RESEARCH') and
              hash_value(training['source_intake_sha256']),'SCOPE')
+        from .official_order_only_result import EVALUATION_SCOPE,validate_order_only
+        order_mode=bool({'label_evaluation_scope','monetary_evaluation_available'}&training.keys())
+        if order_mode:
+            need(training.get('label_evaluation_scope')==EVALUATION_SCOPE and
+                 training.get('monetary_evaluation_available') is False,'ORDER_ONLY_EVALUATION_SCOPE')
         need(type(training['minimum_fit_races']) is int and training['minimum_fit_races']==MIN_RACES and
              training['validation_type']=='RETROSPECTIVE_AVAILABILITY_ORDERED_HOLDOUT' and
              training['training_policy']==dict(min_train=6,min_holdout=2,minimum_supported_train_races=4) and
@@ -464,7 +515,7 @@ def verify_training(training):
             metrics(model['holdout_baseline'],valid_n,optional=mid==LEARNED_ID)
             lineage=model['source_lineage']
             need(type(lineage) is list and len(lineage)==n,'LINEAGE')
-            result_times={}
+            result_times={};main_result_times={};label_scopes=set()
             for row in lineage:
                 need(type(row) is dict and type(row.get('race_id')) is str and
                      hash_value(row.get('input_sha256')) and hash_value(row.get('result_sha256')),'LINEAGE')
@@ -474,6 +525,39 @@ def verify_training(training):
                 saved=timestamp(row['input_saved_at']);result_at=timestamp(row['result_captured_at'])
                 check_clock(row['as_of'],row['cutoff_at'],row['input_saved_at'])
                 need(asof<=result_at and saved<=result_at and cutoff<=result_at<=available,'LINEAGE_CLOCK')
+                label_fields={'result_label','result_label_sha256','label_evaluation_scope'}
+                if label_fields&set(row):
+                    need(order_mode and label_fields<=set(row) and row.get('label_evaluation_scope')==EVALUATION_SCOPE and
+                         hash_value(row.get('result_label_sha256')) and
+                         row['result_label_sha256']==digest(row['result_label']),'ORDER_ONLY_LABEL_LINEAGE')
+                    checked=validate_order_only(row['result_label'],sport=sport,race_id=row['race_id'])
+                    need(checked['source_sha256']==row['result_sha256'] and
+                         timestamp(checked['captured_at'])==result_at and timestamp(checked['closed_at'])==cutoff,
+                         'ORDER_ONLY_LABEL_LINEAGE_BINDING')
+                    label_scopes.add(EVALUATION_SCOPE)
+                else:label_scopes.add('VERIFIED_CASH_SETTLEMENT')
+                source_fields={'result_source_evidence','result_source_evidence_sha256','result_source_observation',
+                    'result_source_available_at','result_source_availability_basis'}
+                source_available=result_at
+                if source_fields&set(row):
+                    need(source_fields<=set(row) and hash_value(row.get('result_source_evidence_sha256')) and
+                         row['result_source_evidence_sha256']==digest(row['result_source_evidence']),
+                         'RESULT_SOURCE_LINEAGE')
+                    original=row['result_source_observation']
+                    need(type(original) is dict and original.get('sport')==sport and
+                         _race_key(original.get('race_id'),sport)==rid and
+                         original.get('source_sha256')==row['result_sha256'] and
+                         timestamp(original.get('captured_at'))==result_at,'RESULT_SOURCE_LINEAGE_BINDING')
+                    if label_fields&set(row):
+                        need(row['result_label_sha256']==digest(original),'ORDER_ONLY_AUTHENTICATED_LABEL_BINDING')
+                    from .all_existing_model_official_results import verify_result_source_evidence
+                    verify_result_source_evidence(row['result_source_evidence'],result=original,now=created)
+                    expected_available=max([original['captured_at']]+[source['captured_at']
+                        for source in row['result_source_evidence']['sources']],key=timestamp)
+                    source_available=timestamp(row['result_source_available_at'])
+                    need(row['result_source_availability_basis']=='ORIGINAL_HTTP_AND_NORMAL_UI_SOURCE_COMPLETION' and
+                         row['result_source_available_at']==expected_available and result_at<=source_available<=available,
+                         'RESULT_SOURCE_AVAILABILITY_BINDING')
                 generation_fields={'actual_native_generated_at','native_generation_receipt_sha256',
                     'native_generation_partitions_sha256','native_generation_evidence'}
                 if generation_fields&set(row):
@@ -518,7 +602,9 @@ def verify_training(training):
                         need(hash_value(proof['original_input_receipt_sha256']) and
                              proof['original_input_receipt_sha256']==digest(proof['original_input_receipt']),
                              'DERIVATION_LINEAGE_BINDING')
-                result_times[rid]=result_at
+                result_times[rid]=source_available;main_result_times[rid]=result_at
+            need((order_mode and model.get('label_evaluation_scopes')==sorted(label_scopes)) or
+                 (not order_mode and 'label_evaluation_scopes' not in model),'LABEL_EVALUATION_SCOPE_BINDING')
             need(set(result_times)==train_ids|valid_ids,'LINEAGE_COHORT')
             need(max(result_times[rid] for rid in train_ids)<min(result_times[rid] for rid in valid_ids),
                  'CHRONOLOGICAL_COHORT')
@@ -561,7 +647,7 @@ def verify_training(training):
                      'created_at_independently_attested')),'NATIVE_PROMOTION')
                 need(timestamp(native['trained_data_until'])<=timestamp(native['trained_until'])<=
                      timestamp(native['created_at'])<=created and
-                     timestamp(native['trained_data_until'])==max(result_times[rid] for rid in train_ids),
+                     timestamp(native['trained_data_until'])==max(main_result_times[rid] for rid in train_ids),
                      'NATIVE_TRAINING_CLOCK')
             else:
                 need(native is None,'NATIVE_TRAINING_SCHEMA')

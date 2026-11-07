@@ -22,6 +22,7 @@ from scripts import all_existing_model_learning as learning
 SCHEMA='RACE_AI_ALL_EXISTING_MODEL_CI_INPUT_V1'
 SCHEMA_V2='RACE_AI_ALL_EXISTING_MODEL_CI_INPUT_V2'
 SCHEMA_V3='RACE_AI_ALL_EXISTING_MODEL_CI_INPUT_V3'
+SCHEMA_V4='RACE_AI_ALL_EXISTING_MODEL_CI_INPUT_V4'
 ROOT=Path(__file__).resolve().parents[1]
 BASE='repos/haji84/RACE-AI/actions/artifacts/'
 MAX_ARCHIVE=64*1024*1024
@@ -50,7 +51,10 @@ def _manifest(path):
     full=type(document) is dict and set(document)==fields|{'keep_other_sports','full_native_boat_cohort'} and \
         document.get('schema')==SCHEMA_V3 and document.get('full_native_boat_cohort') is True and \
         type(document.get('keep_other_sports')) is bool
-    _need(legacy or mixed or full,'MANIFEST_SCHEMA_INVALID')
+    order=type(document) is dict and set(document)==fields|{'keep_other_sports','full_native_boat_cohort','allow_order_only'} and \
+        document.get('schema')==SCHEMA_V4 and document.get('full_native_boat_cohort') is True and \
+        document.get('keep_other_sports') is True and document.get('allow_order_only') is True
+    _need(legacy or mixed or full or order,'MANIFEST_SCHEMA_INVALID')
     _need(type(document['cohort_size']) is int and document['cohort_size']==8,'COMMON_EIGHT_COHORT_REQUIRED')
     native=document['native_artifacts'];results=document['result_artifacts']
     _need(type(native) is list and type(results) is list and 1<=len(native) and
@@ -152,6 +156,7 @@ def main(argv=None,*,now=None,_fetch=None,_fit=None):
         arguments.append('--full-native-boat-cohort' if manifest.get('full_native_boat_cohort') is True else
             '--derive-from-observed')
         if manifest.get('keep_other_sports') is True:arguments.append('--keep-other-sports')
+        if manifest.get('allow_order_only') is True:arguments.append('--allow-order-only')
         counts=dict(native=0,result=0);total=0
         with tempfile.TemporaryDirectory(prefix='all-model-learning-ci-',dir=runner) as temporary:
             private=Path(temporary);private.chmod(0o700)
@@ -159,7 +164,7 @@ def main(argv=None,*,now=None,_fetch=None,_fit=None):
                 for pin in items:
                     path=BASE+str(pin['id']);encoded=fetch(path)
                     metadata,flag=_metadata(encoded,pin,kind,started,
-                        allow_generic=manifest['schema'] in (SCHEMA_V2,SCHEMA_V3))
+                        allow_generic=manifest['schema'] in (SCHEMA_V2,SCHEMA_V3,SCHEMA_V4))
                     total+=metadata['size_in_bytes']
                     _need(total<=MAX_TOTAL_ARCHIVES,'TOTAL_ARCHIVE_BOUND_INVALID')
                     raw=fetch(path+'/zip')

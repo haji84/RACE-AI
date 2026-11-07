@@ -40,7 +40,7 @@ def _identity(document, source_url):
     url = urlsplit(source_url); query = parse_qs(url.query)
     cnames = query.get("CNAME", [])
     _need(url.path == "/JRADB/accessS.html" and set(query) == {"CNAME"} and len(cnames) == 1, "RESULT_SOURCE_URL")
-    cname = re.fullmatch(r"pw01sde10(\d{2})(\d{4})(\d{2})(\d{2})(\d{2})(\d{8})/[A-Fa-f0-9]{2}", cnames[0])
+    cname = re.fullmatch(r"pw01sde(?:10|01)(\d{2})(\d{4})(\d{2})(\d{2})(\d{2})(\d{8})/[A-Fa-f0-9]{2}", cnames[0])
     _need(cname is not None and cname.groups() == (VENUES[venue], y, f"{int(meeting):02d}",
           f"{int(day):02d}", f"{int(number):02d}", event.strftime("%Y%m%d")), "URL_BODY_RACE_IDENTITY")
     return dict(race_id=f"horse:{event.isoformat()}:jra-{VENUES[venue]}:{int(number)}",

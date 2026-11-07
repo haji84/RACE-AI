@@ -75,10 +75,10 @@ def reseal_result(data):
 class AutoraceOfficialResultTests(unittest.TestCase):
     def module(self):return importlib.import_module('race_ai.autorace_official_result_adapter')
 
-    def parse(self, data=None):
+    def parse(self, data=None, **kwargs):
         data = fixture() if data is None else data
         return self.module().parse_result(wire(data['result']), data['metadata'],
-            frozen_native_payload=data['frozen'], now=NOW, source_rights_ref=RIGHTS)
+            frozen_native_payload=data['frozen'], now=NOW, source_rights_ref=RIGHTS, **kwargs)
 
     def test_normal_result_binds_literal_request_frozen_roster_actual_cutoff_and_single_payout(self):
         data = fixture(); before = deepcopy(data); observation = self.parse(data)
@@ -223,6 +223,97 @@ class AutoraceOfficialResultTests(unittest.TestCase):
                 if kind=='multiple':self.assertEqual(self.parse(data)['status'],'special')
                 else:
                     with self.assertRaises(ValueError):self.parse(data)
+
+    def test_default_verified_money_observation_and_digest_remain_exact(self):
+        original=self.parse()
+        self.assertEqual(digest(original),'aa6bf1b70b7a84cc434acadefb55929c12f0fa72daf59d7e7882d29edd705b59')
+        self.assertEqual(self.parse(allow_order_only=False),original)
+        self.assertEqual(self.parse(allow_order_only=True),original)
+
+    def test_explicit_order_only_has_exact_typed_fields_without_cash_projection(self):
+        from race_ai.official_order_only_result import OBSERVATION_FIELDS, validate_order_only
+        from race_ai.all_existing_model_intake import _ordinary_result
+        from race_ai import all_existing_model_registry as registry
+        data=fixture();data['metadata'].pop('auto_result_archive_context');before=deepcopy(data)
+        with self.assertRaises(ValueError):self.parse(data)
+        observation=self.parse(data,allow_order_only=True)
+        self.assertEqual(set(observation),OBSERVATION_FIELDS)
+        self.assertEqual(observation['schema'],'RACE_AI_OFFICIAL_ORDER_ONLY_RESULT_V1')
+        self.assertEqual(observation['status'],'rank_confirmed')
+        self.assertEqual(observation['reason'],'ORDER_CONFIRMED_PAYOUT_UNIT_UNVERIFIED')
+        self.assertEqual(observation['ordered_top3'],[3,4,6])
+        self.assertEqual(observation['published_payout_yen'],21710)
+        self.assertIsNone(observation['payout_per_100_yen'])
+        self.assertIs(observation['payout_unit_verified'],False)
+        self.assertEqual(observation['evaluation_scope'],'ORDER_ONLY_NO_MONETARY_EVALUATION')
+        self.assertEqual(validate_order_only(observation,sport='autorace'),observation)
+        info=registry.identity(ALL_MODELS[0],'autorace',data['frozen'])
+        admitted,reason=_ordinary_result(observation,info,NOW)
+        self.assertIsNone(reason)
+        self.assertEqual(admitted,observation)
+        from race_ai.autorace_ab_pdca import RESULT_STATES
+        self.assertNotIn(observation['status'],RESULT_STATES)
+        self.assertEqual(data,before)
+
+    def test_semantically_unverified_unit_can_only_yield_independently_confirmed_order(self):
+        for text in ('車券は100円から購入できます。','払戻金は100円に対する金額ではありません。'):
+            data=fixture();proof=data['metadata']['auto_result_archive_context']['payout_unit_capture']
+            raw=('<p>'+text+'</p>').encode();proof['raw_base64']=encoded(raw)
+            proof['metadata'].update(byte_count=len(raw),source_sha256=sha256(raw).hexdigest())
+            with self.subTest(text=text):
+                with self.assertRaises(ValueError):self.parse(data)
+                self.assertEqual(self.parse(data,allow_order_only=True)['status'],'rank_confirmed')
+            data['result']['body']['refundInfo']['rt3']['list'][0]['1thCarNo']=2;reseal_result(data)
+            with self.assertRaises(ValueError):self.parse(data,allow_order_only=True)
+
+    def test_order_only_still_rejects_malformed_unit_bytes_host_time_mime_or_namespace(self):
+        for kind in ('hash','host','future','mime','namespace','empty_context'):
+            data=fixture();context=data['metadata']['auto_result_archive_context'];proof=context['payout_unit_capture']
+            if kind=='hash':proof['metadata']['source_sha256']='f'*64
+            elif kind=='host':proof['metadata']['source_url']=proof['metadata']['final_url']='https://example.test/unit'
+            elif kind=='future':proof['metadata']['response_received_at']=(NOW+timedelta(seconds=1)).isoformat()
+            elif kind=='mime':proof['metadata']['headers']={'content-type':'application/json'}
+            elif kind=='namespace':context['schema']='UNTRUSTED'
+            else:data['metadata']['auto_result_archive_context']=None
+            with self.subTest(kind=kind),self.assertRaises(ValueError):self.parse(data,allow_order_only=True)
+
+    def test_order_only_preserves_actual_missing_amount_without_fabricating_zero(self):
+        for kind in ('null','absent'):
+            data=fixture();data['metadata'].pop('auto_result_archive_context')
+            payment=data['result']['body']['refundInfo']['rt3']['list'][0]
+            if kind=='null':payment['refund']=None
+            else:payment.pop('refund')
+            reseal_result(data)
+            with self.subTest(kind=kind):
+                observation=self.parse(data,allow_order_only=True)
+                self.assertEqual(observation['status'],'rank_confirmed')
+                self.assertIsNone(observation['published_payout_yen'])
+                self.assertIsNone(observation['payout_per_100_yen'])
+        for value in (0,-1,True,21710.0):
+            data=fixture();data['metadata'].pop('auto_result_archive_context')
+            data['result']['body']['refundInfo']['rt3']['list'][0]['refund']=value;reseal_result(data)
+            with self.subTest(value=value),self.assertRaises(ValueError):self.parse(data,allow_order_only=True)
+
+    def test_explicit_order_mode_does_not_promote_pending_refund_ties_or_missing_roster(self):
+        for kind in ('pending','refund','tie','missing_roster','wrong_id'):
+            data=fixture();data['metadata'].pop('auto_result_archive_context');body=data['result']['body']
+            if kind=='pending':body['raceResult']=[]
+            elif kind=='refund':body['refundInfo']['absent']=[8]
+            elif kind=='tie':body['raceResult'][1]['order']=1
+            elif kind=='missing_roster':body['raceResult'].pop()
+            else:body['raceResult'][0]['playerCode']=9999
+            reseal_result(data)
+            with self.subTest(kind=kind):
+                if kind in ('missing_roster','wrong_id'):
+                    with self.assertRaises(ValueError):self.parse(data,allow_order_only=True)
+                else:
+                    observation=self.parse(data,allow_order_only=True)
+                    self.assertIn(observation['status'],('pending','special'))
+                    self.assertNotIn('schema',observation)
+
+    def test_order_only_option_requires_a_literal_boolean(self):
+        for value in (1,'true',None):
+            with self.subTest(value=value),self.assertRaises(ValueError):self.parse(allow_order_only=value)
 
 
 if __name__=='__main__':unittest.main()

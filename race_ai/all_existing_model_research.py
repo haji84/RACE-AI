@@ -20,6 +20,9 @@ SCHEMA = 'RACE_AI_ALL_EXISTING_MODEL_OWNER_PERSONAL_RESEARCH_V1'
 PURPOSE = 'EXISTING_ALL_FAMILIES_SHADOW_FIT'
 INSTRUCTION = 'OWNER_INSTRUCTION_20261107_ALL_MODELS'
 DOMAIN = b'RACE_AI_ALL_EXISTING_MODEL_OWNER_PERSONAL_RESEARCH_DECISION_V1'
+ORDER_SCHEMA = 'RACE_AI_ALL_EXISTING_MODEL_OWNER_PERSONAL_RESEARCH_V2'
+ORDER_PURPOSE = 'EXISTING_ALL_FAMILIES_ORDER_ONLY_SHADOW_FIT'
+ORDER_DOMAIN = b'RACE_AI_ALL_EXISTING_MODEL_OWNER_PERSONAL_RESEARCH_DECISION_V2'
 FALSE_FIELDS = ('provider_permission_confirmed', 'production_promoted',
                 'commercial_use_permitted', 'public_raw_data_permitted')
 FIELDS = frozenset(('repository_id', 'basis', 'purpose', 'instruction_ref',
@@ -111,39 +114,49 @@ def _bound(source_pointer, state_content_sha256, dataset_pointer, source_refs,
                 **_scope(registry_sha256))
 
 
-def _mac(decision):
-    key = hmac.digest(state_key('production'), DOMAIN, 'sha256')
+def _mac(decision,*,schema=SCHEMA):
+    _need(schema in (SCHEMA,ORDER_SCHEMA),'RECORD_INVALID')
+    key = hmac.digest(state_key('production'), DOMAIN if schema==SCHEMA else ORDER_DOMAIN, 'sha256')
     return hmac.new(key, digest(decision).encode('ascii'), hashlib.sha256).hexdigest()
 
 
 def issue_decision(*, source_pointer, state_content_sha256, dataset_pointer,
-                   source_refs, intake_sha256, registry_sha256, now, expires_at):
+                   source_refs, intake_sha256, registry_sha256, now, expires_at,label_evaluation_scope=None):
     """Explicitly authenticate owner intent for one fixed private intake."""
     state_key('production')  # A missing key fails before inspecting any input.
     started = _time(now); expires = _time(expires_at)
     _need(started < expires, 'EXPIRY_INVALID')
+    from .official_order_only_result import EVALUATION_SCOPE
+    _need(label_evaluation_scope in (None,EVALUATION_SCOPE),'LABEL_EVALUATION_SCOPE')
+    schema=SCHEMA if label_evaluation_scope is None else ORDER_SCHEMA
     decision = dict(repository_id='1416489937', basis='OWNER_PERSONAL_RESEARCH',
-        purpose=PURPOSE, instruction_ref=INSTRUCTION, issued_at=started.isoformat(),
+        purpose=PURPOSE if schema==SCHEMA else ORDER_PURPOSE, instruction_ref=INSTRUCTION, issued_at=started.isoformat(),
         expires_at=expires.isoformat(),
         **_bound(source_pointer, state_content_sha256, dataset_pointer, source_refs,
                  intake_sha256, registry_sha256),
         **{field: False for field in FALSE_FIELDS})
-    return dict(schema=SCHEMA, decision=decision, mac=_mac(decision))
+    if schema==ORDER_SCHEMA:decision['label_evaluation_scope']=label_evaluation_scope
+    return dict(schema=schema, decision=decision, mac=_mac(decision,schema=schema))
 
 
 def verify_decision(record, *, source_pointer, state_content_sha256, dataset_pointer,
-                    source_refs, intake_sha256, registry_sha256, now):
+                    source_refs, intake_sha256, registry_sha256, now,label_evaluation_scope=None):
     """Verify all scope fields; a legacy two-family MAC is never accepted."""
     state_key('production')
+    from .official_order_only_result import EVALUATION_SCOPE
+    _need(label_evaluation_scope in (None,EVALUATION_SCOPE),'LABEL_EVALUATION_SCOPE')
+    schema=SCHEMA if label_evaluation_scope is None else ORDER_SCHEMA
+    fields=FIELDS if schema==SCHEMA else FIELDS|{'label_evaluation_scope'}
     _need(type(record) is dict and set(record) == {'schema', 'decision', 'mac'} and
-          record['schema'] == SCHEMA and type(record['decision']) is dict and
-          set(record['decision']) == FIELDS, 'RECORD_INVALID')
+          record['schema'] == schema and type(record['decision']) is dict and
+          set(record['decision']) == fields, 'RECORD_INVALID')
     decision = record['decision']
     _need(type(record['mac']) is str and re.fullmatch('[a-f0-9]{64}', record['mac']) and
-          hmac.compare_digest(record['mac'], _mac(decision)), 'SIGNATURE_INVALID')
+          hmac.compare_digest(record['mac'], _mac(decision,schema=schema)), 'SIGNATURE_INVALID')
     _need(decision['repository_id'] == '1416489937' and
-          decision['basis'] == 'OWNER_PERSONAL_RESEARCH' and decision['purpose'] == PURPOSE and
+          decision['basis'] == 'OWNER_PERSONAL_RESEARCH' and decision['purpose'] == (PURPOSE if schema==SCHEMA else ORDER_PURPOSE) and
           decision['instruction_ref'] == INSTRUCTION and
+          (schema==SCHEMA or decision['label_evaluation_scope']==EVALUATION_SCOPE) and
           all(decision[field] is False for field in FALSE_FIELDS), 'USE_SCOPE_INVALID')
     current = _time(now); issued = _time(decision['issued_at']); expires = _time(decision['expires_at'])
     _need(issued < expires, 'EXPIRY_INVALID')

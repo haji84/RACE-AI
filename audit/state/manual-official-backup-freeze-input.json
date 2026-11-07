@@ -1,0 +1,17 @@
+{
+  "excluded_native_artifacts": [
+    {
+      "digest": "sha256:10db96ba2e8179d37c404f7f9b17acdf9465b4f8a7f6999bc327f03e78a86e21",
+      "head_sha": "728b03530264f3494a408fb92bb61b541d3ae0d3",
+      "id": 13555822588,
+      "run_id": 42327254832
+    }
+  ],
+  "execution_day": "2026-11-07",
+  "index_sha256": "da30fe4db1d0dc4e2c6edb2d3be38b8c51a98196d268c795fa8721d4bb853c18",
+  "maximum_races": 8,
+  "schema": "RACE_AI_MANUAL_OFFICIAL_NATIVE_FREEZE_INPUT_V2",
+  "sealed_path": "audit/state/manual-official-capture/2026-11-07-da30fe4db1d0dc4e",
+  "source_metadata_path": "audit/state/manual-official-source-metadata-44dce99d826cd63f06a93f042e9331a0bfbc249482f571720600bf800277a6f5.enc",
+  "source_metadata_sha256": "44dce99d826cd63f06a93f042e9331a0bfbc249482f571720600bf800277a6f5"
+}

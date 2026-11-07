@@ -111,6 +111,11 @@ def _ordinary_result(value, info, now):
     cutoff = _time(info['race_cutoff_at'])
     if value.get('closed_at') is not None:
         _need(_time(value['closed_at']) == cutoff, 'RESULT_ACTUAL_CUTOFF_MISMATCH')
+    from .official_order_only_result import has_order_only_markers, validate_order_only
+    if has_order_only_markers(value):
+        result = validate_order_only(value, roster=info['roster'], race_id=info['race_id'])
+        _need(_time(result['captured_at']) <= now, 'RESULT_CAPTURE_CLOCK_INVALID')
+        return result, None
     status = value.get('status')
     if status == 'pending':
         return None, 'pending'

@@ -218,9 +218,15 @@ def _state(facts, status, reason, refunds=()):
     return facts
 
 
-def parse_official_result_source(raw, metadata, *, now, source_rights_ref):
-    """Inspect private original source facts, without asserting a frozen pair."""
+def parse_official_result_source(raw, metadata, *, now, source_rights_ref, allow_order_only=False):
+    """Inspect private source facts; optional order facts remain unpaired.
+
+    Explicit order-only inspection can retain independently complete normal
+    ranks when a published 100-yen payout basis is missing or unproven. Invalid
+    HTTP bytes, source clocks and supplied context still reject the capture.
+    """
     now = _clock(now)
+    _need(type(allow_order_only) is bool, 'EXPLICIT_ORDER_ONLY_FLAG_REQUIRED')
     capture, parsed = _http(raw, metadata, 'RaceResult', now, source_rights_ref)
     context = metadata.get('auto_result_context')
     _need(type(context) is dict and set(context) == {'schema','request_body_base64','race_info_capture','rendered_dom_capture'} and
@@ -294,33 +300,56 @@ def parse_official_result_source(raw, metadata, *, now, source_rights_ref):
     payment = payments[0]
     _need(type(payment) is dict, 'TRIFECTA_PAYMENT_SCHEMA')
     winning = [_number(payment.get(key),1,8) for key in ('1thCarNo','2thCarNo','3thCarNo')]
-    amount = _number(payment.get('refund'),1,10**9)
+    amount = None if allow_order_only and payment.get('refund') is None else _number(payment.get('refund'),1,10**9)
     ordered = [row['number'] for row in sorted(facts['finish_rows'],key=lambda row:row['finish'])[:3]]
     _need(len(set(winning)) == 3 and winning == ordered, 'FINISH_TRIFECTA_CONFLICT')
-    _need('3連単'+'-'.join(map(str,winning))+f'{amount:,}円' in text, 'RENDERED_TRIFECTA_PAYMENT_MISMATCH')
-    unit_context = metadata.get('auto_result_archive_context')
-    _need(type(unit_context) is dict and set(unit_context) == {'schema','payout_unit_capture'} and
-          unit_context['schema'] == UNIT_CONTEXT, 'PAYOUT_UNIT_CAPTURE_REQUIRED')
-    facts['payout_unit_basis'] = validate_payout_unit_capture(unit_context['payout_unit_capture'],
-        now=now,source_rights_ref=source_rights_ref)
+    displayed = '3連単'+'-'.join(map(str,winning))+(f'{amount:,}円' if amount is not None else '')
+    _need(displayed in text, 'RENDERED_TRIFECTA_PAYMENT_MISMATCH')
+    unit_unknown = False
+    if 'auto_result_archive_context' not in metadata:
+        _need(allow_order_only, 'PAYOUT_UNIT_CAPTURE_REQUIRED')
+        unit_unknown = True
+    else:
+        unit_context = metadata['auto_result_archive_context']
+        _need(type(unit_context) is dict and set(unit_context) == {'schema','payout_unit_capture'} and
+              unit_context['schema'] == UNIT_CONTEXT, 'PAYOUT_UNIT_CAPTURE_REQUIRED')
+        try:
+            facts['payout_unit_basis'] = validate_payout_unit_capture(unit_context['payout_unit_capture'],
+                now=now,source_rights_ref=source_rights_ref)
+        except ValueError as exc:
+            if allow_order_only and str(exc) == 'AUTO_RESULT_EXPLICIT_PUBLISHED_PAYOUT_UNIT_REQUIRED':
+                unit_unknown = True
+            else:
+                raise
+    if unit_unknown:
+        from .official_order_only_result import STATUS,REASON,EVALUATION_SCOPE
+        facts.update(status=STATUS,reason=REASON,ordered_top3=ordered,payout_per_100_yen=None,
+            published_payout_yen=amount,payout_unit_verified=False,evaluation_scope=EVALUATION_SCOPE,
+            refund_numbers=[])
+        return facts
+    if amount is None:
+        return _state(facts,'pending','TRIFECTA_PAYMENT_NOT_AVAILABLE')
     facts.update(status='settled',reason='ORDINARY_SETTLED_RESULT',ordered_top3=ordered,
                  payout_per_100_yen=amount,refund_numbers=[])
     return facts
 
 
-def parse_result(raw, metadata=None, *, frozen_native_payload, now, source_rights_ref):
+def parse_result(raw, metadata=None, *, frozen_native_payload, now, source_rights_ref, allow_order_only=False):
     """Return the exact generic observation, after structural frozen pairing.
 
     A convenience packet is ``{'raw': actual_http_bytes, 'metadata': metadata}``.
     ``metadata.auto_result_context`` retains original request bytes, the earlier
     same-case OtherRaceInfo capture and the resulting DOM, all base64 encoded.
     The caller independently authenticates both native and result archives.
+    ``allow_order_only=True`` may return the separate typed rank-confirmed
+    contract with no monetary evaluation; the default cash contract is strict.
     """
     if metadata is None:
         _need(type(raw) is dict and set(raw) == {'raw','metadata'}, 'ORIGINAL_SOURCE_PACKET_REQUIRED')
         raw, metadata = raw['raw'], raw['metadata']
     now = _clock(now)
-    facts = parse_official_result_source(raw,metadata,now=now,source_rights_ref=source_rights_ref)
+    facts = parse_official_result_source(raw,metadata,now=now,source_rights_ref=source_rights_ref,
+                                       allow_order_only=allow_order_only)
     _need(type(frozen_native_payload) is dict and type(frozen_native_payload.get('snapshot')) is dict,
           'FROZEN_SHARED_NATIVE_INPUT_REQUIRED')
     snapshot = frozen_native_payload['snapshot']; race = snapshot.get('race')
@@ -336,9 +365,15 @@ def parse_result(raw, metadata=None, *, frozen_native_payload, now, source_right
           all(expected.get(car) == code for car,code in facts['roster'].items()) and
           all(str(car) in expected for car in facts['refund_numbers']), 'FROZEN_REGISTERED_ROSTER_MISMATCH')
     complete = facts['roster'] == expected
-    _need(facts['status'] != 'settled' or complete, 'COMPLETE_FROZEN_RESULT_ROSTER_REQUIRED')
-    return dict(race_id=race['race_id'],sport='autorace',status=facts['status'],reason=facts['reason'],
+    _need(facts['status'] not in ('settled','rank_confirmed') or complete, 'COMPLETE_FROZEN_RESULT_ROSTER_REQUIRED')
+    observation = dict(race_id=race['race_id'],sport='autorace',status=facts['status'],reason=facts['reason'],
         ordered_top3=deepcopy(facts['ordered_top3']),roster=deepcopy(facts['roster']),identity_verified=complete,
         captured_at=facts['captured_at'],published_at=None,source_ref=facts['source_ref'],source_rights_ref=source_rights_ref,
         source_sha256=facts['source_sha256'],payout_per_100_yen=facts['payout_per_100_yen'],
         refund_numbers=deepcopy(facts['refund_numbers']),closed_at=race['sales_cutoff_at'])
+    if facts['status'] == 'rank_confirmed':
+        from .official_order_only_result import SCHEMA as ORDER_SCHEMA,EVALUATION_SCOPE,validate_order_only
+        observation.update(schema=ORDER_SCHEMA,published_payout_yen=facts['published_payout_yen'],
+                           payout_unit_verified=False,evaluation_scope=EVALUATION_SCOPE)
+        return validate_order_only(observation,sport='autorace',roster=expected,race_id=race['race_id'])
+    return observation

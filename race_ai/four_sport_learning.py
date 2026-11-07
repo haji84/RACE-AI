@@ -209,6 +209,21 @@ def forecast(snapshot,model,*,allow_source=None):
 
 
 def _label(result,snapshot,*,scope,allow_result,window_end):
+    from .official_order_only_result import has_order_only_markers, validate_order_only
+    if has_order_only_markers(result):
+        race=snapshot["race"]
+        roster={str(p["number"]):p["identity"] for p in snapshot["participants"]}
+        try:
+            checked=validate_order_only(result,sport=race["sport"],roster=roster,race_id=race["race_id"])
+        except ValueError as exc:
+            raise ModelInputError("typed confirmed-order label invalid") from exc
+        if (moment(checked["closed_at"])!=moment(race["sales_cutoff_at"]) or
+            moment(checked["captured_at"])>window_end):
+            raise ModelInputError("result unavailable at cohort verification boundary")
+        if scope==RESEARCH and (allow_result is None or
+            allow_result(checked["source_ref"],checked["source_rights_ref"],"result_evaluation") is not True):
+            raise ModelInputError("result label source not independently admitted")
+        return checked["ordered_top3"]
     fields={
         "race_id","status","ordered_top3","published_at","captured_at",
         "source_ref","source_rights_ref"}

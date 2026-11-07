@@ -76,8 +76,8 @@ class KeirinOfficialResultTests(unittest.TestCase):
         self.assertIsNotNone(importlib.util.find_spec('race_ai.keirin_official_result_adapter'))
         return importlib.import_module('race_ai.keirin_official_result_adapter')
 
-    def parse(self,raw,metadata,frozen):
-        return self.adapter().parse_result(raw,metadata,frozen_native_payload=frozen,now=NOW,source_rights_ref=RIGHTS)
+    def parse(self,raw,metadata,frozen,**options):
+        return self.adapter().parse_result(raw,metadata,frozen_native_payload=frozen,now=NOW,source_rights_ref=RIGHTS,**options)
 
     def test_full_result_matches_frozen_identity_and_explicit_per100_payment(self):
         result,raw,metadata,frozen=fixture();original=deepcopy((metadata,frozen))
@@ -183,6 +183,56 @@ class KeirinOfficialResultTests(unittest.TestCase):
                 entry=ctx['browser_capture']['metadata']['ledger'][0];entry['source_sha256']=sha256(data).hexdigest();entry['byte_count']=len(data)
             else:change_identity(m,lambda selected:selected.update({where:value}))
             with self.subTest(where=where,value=value),self.assertRaises(ValueError):self.parse(raw,m,frozen)
+
+    def test_order_only_opt_in_returns_exact_nonmonetary_label_and_keeps_default_pending(self):
+        result,raw,m,frozen=fixture(unit=False)
+        default=self.parse(raw,m,frozen);out=self.parse(raw,m,frozen,allow_order_only=True)
+        self.assertEqual(default['status'],'pending')
+        self.assertEqual(out['schema'],'RACE_AI_OFFICIAL_ORDER_ONLY_RESULT_V1')
+        self.assertEqual(out['status'],'rank_confirmed')
+        self.assertEqual(out['reason'],'ORDER_CONFIRMED_PAYOUT_UNIT_UNVERIFIED')
+        self.assertEqual(out['evaluation_scope'],'ORDER_ONLY_NO_MONETARY_EVALUATION')
+        self.assertEqual(out['ordered_top3'],[1,2,3]);self.assertEqual(out['published_payout_yen'],1230)
+        self.assertFalse(out['payout_unit_verified']);self.assertIsNone(out['payout_per_100_yen'])
+        self.assertEqual(len(out),19);self.assertEqual(set(out)-set(default),
+            {'schema','published_payout_yen','payout_unit_verified','evaluation_scope'})
+        self.assertTrue(out['identity_verified']);self.assertEqual(out['refund_numbers'],[])
+        self.assertIsNone(out['published_at'])
+
+    def test_order_only_cannot_upgrade_pending_special_or_unknown_official_cutoff(self):
+        for change in ('pending','refund','tie','nonfinish','multiple','remark','cutoff'):
+            result,raw,m,frozen=fixture(unit=False)
+            if change=='pending':result['tyakujyunDispFlg']=False
+            if change=='refund':result['haraiGakuSubData']['APartReturnDispFlg']=True
+            if change=='tie':result['tyakujyunItemSubData'][1]['tyaku']='1'
+            if change=='nonfinish':result['tyakujyunItemSubData'][-1]['tyaku']='欠場'
+            if change=='multiple':result['haraiGakuSubData']['RT3HaraiGakuDispItemSubData']*=2
+            if change=='remark':result['bikouDispFlg']=True
+            if change=='cutoff':change_identity(m,lambda selected:selected['C0201racedtl'].update(aftBetTime=None))
+            raw=rebuild(result,m);default=self.parse(raw,m,frozen)
+            with self.subTest(change=change):
+                self.assertEqual(self.parse(raw,m,frozen,allow_order_only=True),default)
+                self.assertNotEqual(default['status'],'rank_confirmed')
+
+    def test_order_only_does_not_bypass_bindings_or_coerce_option_types(self):
+        for value in (None,1,'true'):
+            result,raw,m,frozen=fixture(unit=False)
+            with self.subTest(option=value),self.assertRaises(ValueError):
+                self.parse(raw,m,frozen,allow_order_only=value)
+        for change in ('race','roster','selector','cutoff','boolean_status'):
+            result,raw,m,frozen=fixture(unit=False)
+            if change=='race':frozen['snapshot']['race']['race_id']='keirin:2030-01-15:keirin-jyo-48:3'
+            if change=='roster':result['tyakujyunItemSubData'][0]['sensyuRegistNo']='019999';raw=rebuild(result,m)
+            if change=='selector':m['source_url']=m['final_url']=m['source_url'].replace('selector-2','selector-3')
+            if change=='cutoff':change_identity(m,lambda selected:selected['C0201racedtl'].update(aftBetTime='12:00'))
+            if change=='boolean_status':result['resultCd']=False;raw=rebuild(result,m)
+            with self.subTest(change=change),self.assertRaises(ValueError):
+                self.parse(raw,m,frozen,allow_order_only=True)
+
+    def test_order_only_option_keeps_unit_verified_cash_result_unchanged(self):
+        result,raw,m,frozen=fixture()
+        default=self.parse(raw,m,frozen);out=self.parse(raw,m,frozen,allow_order_only=True)
+        self.assertEqual(out,default);self.assertEqual(out['status'],'settled');self.assertEqual(len(out),15)
 
 
 if __name__=='__main__':unittest.main()

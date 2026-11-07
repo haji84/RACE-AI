@@ -226,9 +226,49 @@ def _merge_verified_result_observations(observations):
     return [latest[key] for key in sorted(latest)]
 
 
+def _record_source_refs(record):
+    from race_ai.all_existing_model_learning import _sources
+    refs=_sources(record['native_payload'])
+    refs.add((record['result']['source_ref'],record['result']['source_rights_ref']))
+    if 'result_source_evidence' in record:refs.update(_sources(record['result_source_evidence']))
+    return refs
+
+
+def _attach_result_source_evidence(records,proofs,*,now):
+    from race_ai.existing_model_dispatch import _race_key
+    from race_ai.observed_weight_learning import ts
+    from race_ai.all_existing_model_official_results import verify_result_source_evidence
+    if type(proofs) is not list or len(proofs)>10000:
+        raise ValueError('ALL_MODEL_RESULT_SOURCE_PROOF_BOUND')
+    def key(value):
+        return (value['sport'],_race_key(value['race_id'],value['sport']),value['source_sha256'],ts(value['captured_at']))
+    indexed={}
+    for proof in proofs:
+        if type(proof) is not dict or type(proof.get('result_binding')) is not dict:
+            raise ValueError('ALL_MODEL_RESULT_SOURCE_PROOF_FIELDS')
+        indexed.setdefault(key(proof['result_binding']),[]).append(proof)
+    out=[]
+    for original in records:
+        row=deepcopy(original)
+        if row['sport'] not in ('autorace','keirin'):
+            out.append(row);continue
+        observation=row.get('result_observation',row['result'])
+        candidates=indexed.get(key(observation),[])
+        if candidates:
+            matched=[p for p in candidates if p.get('result_observation_sha256')==digest(observation)]
+            if not matched:raise ValueError('ALL_MODEL_RESULT_SOURCE_OBSERVATION_CONFLICT')
+            proof=min(matched,key=lambda p:(ts(p['artifact_receipt']['saved_at']),digest(p)))
+            verify_result_source_evidence(proof,result=observation,now=now)
+            if 'result_source_evidence' in row and row['result_source_evidence']!=proof:
+                raise ValueError('ALL_MODEL_RESULT_SOURCE_PROOF_CONFLICT')
+            row['result_source_evidence']=deepcopy(proof)
+        out.append(row)
+    return out
+
+
 def load_intake(restored_dir,state_input,dataset_input,*,now,native_archive_dirs=(),derive_observed=False,
                 native_round_archive_dirs=(),result_archive_dirs=(),cohort_race_ids=(),cohort_size=None,
-                keep_other_sports=False,full_native_boat_cohort=False):
+                keep_other_sports=False,full_native_boat_cohort=False,allow_order_only=False):
     rows,observations,pointer,content=load_verified_intake(restored_dir,state_input,now=now,authenticate_owner_cipher=True)
     if type(full_native_boat_cohort) is not bool or full_native_boat_cohort and (derive_observed or
             not (cohort_size==8 and not cohort_race_ids or cohort_size is None and len(cohort_race_ids)==8)):
@@ -236,6 +276,8 @@ def load_intake(restored_dir,state_input,dataset_input,*,now,native_archive_dirs
     if type(keep_other_sports) is not bool or keep_other_sports and (not (derive_observed or full_native_boat_cohort) or
             not (cohort_size==8 and not cohort_race_ids or cohort_size is None and len(cohort_race_ids)==8)):
         raise ValueError('ALL_MODEL_OTHER_SPORTS_EXPLICIT_EIGHT_COHORT_REQUIRED')
+    if type(allow_order_only) is not bool or allow_order_only and not keep_other_sports:
+        raise ValueError('ALL_MODEL_ORDER_ONLY_EXPLICIT_OTHER_SPORTS_REQUIRED')
     native_bytes={};authenticated_frozen=None
     def archive_bytes(path,*,remember=False):
         identity=str(Path(path).absolute())
@@ -257,7 +299,7 @@ def load_intake(restored_dir,state_input,dataset_input,*,now,native_archive_dirs
                 authenticated_frozen.extend(deepcopy(capsule['native_payload'])
                     for part in parts for capsule in part.get('captured_native_inputs',[]))
         return authenticated_frozen
-    result_admissions=[]
+    result_admissions=[];result_source_proofs=[]
     if result_archive_dirs:
         from race_ai.all_existing_model_result_intake import observations_from_result_artifact
         if type(result_archive_dirs) not in (tuple,list) or len(result_archive_dirs)>32:
@@ -270,7 +312,8 @@ def load_intake(restored_dir,state_input,dataset_input,*,now,native_archive_dirs
                 from race_ai.all_existing_model_official_results import observations_from_official_result_artifact
                 admitted=observations_from_official_result_artifact(raw,metadata,now=now,
                     expected_run_id=run.get('id'),expected_head_sha=run.get('head_sha'),
-                    frozen_native_payloads=frozen_inputs())
+                    frozen_native_payloads=frozen_inputs(),**(dict(allow_order_only=True) if allow_order_only else {}))
+                result_source_proofs.extend(admitted.get('result_source_evidence',[]))
             else:
                 admitted=observations_from_result_artifact(raw,metadata,now=now,
                     expected_run_id=run.get('id'),expected_head_sha=run.get('head_sha'))
@@ -372,9 +415,23 @@ def load_intake(restored_dir,state_input,dataset_input,*,now,native_archive_dirs
             refs.update(_sources(record['native_payload']))
             refs.add((record['result']['source_ref'],record['result']['source_rights_ref']))
         intake['source_refs']=[list(pair) for pair in sorted(refs)]
+    if result_source_proofs:
+        records=_attach_result_source_evidence(records,result_source_proofs,now=now)
+        refs={tuple(pair) for pair in intake['source_refs']}
+        for record in records:refs.update(_record_source_refs(record))
+        intake['source_refs']=[list(pair) for pair in sorted(refs)]
+    scope={}
+    if allow_order_only:
+        from race_ai.official_order_only_result import EVALUATION_SCOPE,has_order_only_markers
+        for record in records:
+            if has_order_only_markers(record['result']) and 'result_source_evidence' not in record:
+                raise ValueError('ALL_MODEL_ORDER_ONLY_RESULT_SOURCE_EVIDENCE_REQUIRED')
+        scope['label_evaluation_scope']=EVALUATION_SCOPE
+        intake.update(label_evaluation_scope=EVALUATION_SCOPE,
+            order_only_record_count=sum(has_order_only_markers(r['result']) for r in records))
     return records,dict(source_pointer=pointer,state_content_sha256=content,dataset_pointer=dataset,
         source_refs=intake['source_refs'],intake_sha256=_intake_identity(records,result_admissions=result_admissions),
-        registry_sha256=registry_sha256()),intake
+        registry_sha256=registry_sha256(),**scope),intake
 
 
 def main(argv=None,*,now=None):
@@ -401,6 +458,8 @@ def main(argv=None,*,now=None):
         help='Explicitly retain authenticated other-sport native records alongside the common eight BOAT races')
     parser.add_argument('--full-native-boat-cohort',action='store_true',
         help='Select eight independently frozen complete fourteen-cell BOAT cases; forbid retrospective derivation')
+    parser.add_argument('--allow-order-only',action='store_true',
+        help='Explicit owner V2 research scope: confirmed ranks only, with no monetary evaluation')
     parser.add_argument('--out-dir');parser.add_argument('--expires-at')
     args=parser.parse_args(argv);now=now or datetime.now(timezone.utc)
     try:
@@ -417,6 +476,7 @@ def main(argv=None,*,now=None):
         if args.cohort_size is not None:options['cohort_size']=args.cohort_size
         if args.keep_other_sports:options['keep_other_sports']=True
         if args.full_native_boat_cohort:options['full_native_boat_cohort']=True
+        if args.allow_order_only:options['allow_order_only']=True
         records,binding,intake=load_intake(args.restored_dir,args.state_input,args.dataset_input,**options)
         record_path=Path(args.owner_research_record)
         if args.command=='issue-decision':
@@ -433,7 +493,8 @@ def main(argv=None,*,now=None):
         admitted={tuple(p) for p in binding['source_refs']}
         def analysis(url,rights,purpose):return purpose=='analysis' and (url,rights) in admitted
         def training(url,rights,purpose):return purpose=='model_training' and (url,rights) in admitted
-        trained=fit(records,now=now,allow_source=analysis,allow_training=training)
+        trained=fit(records,now=now,allow_source=analysis,allow_training=training,
+            **(dict(allow_order_only=True) if args.allow_order_only else {}))
         trained.update(training_basis='OWNER_PERSONAL_RESEARCH',owner_research_decision_sha256=decision_sha,
             venue_dataset_sha256=binding['dataset_pointer']['dataset_sha256'],
             source_content_sha256=binding['state_content_sha256'])
@@ -471,6 +532,9 @@ def main(argv=None,*,now=None):
         if args.full_native_boat_cohort:
             summary.update(full_native_boat_cohort=True,derived_record_count=0,
                 cohort_input_policy='ORIGINAL_FROZEN_NATIVE_INPUTS_ONLY')
+        if args.allow_order_only:
+            summary.update(label_evaluation_scope=intake['label_evaluation_scope'],
+                order_only_record_count=intake['order_only_record_count'],monetary_evaluation_available=False)
         result=seal_candidate(dict(summary=summary,training=trained,excluded=[],owner_research_record=decision),args.out_dir)
         print(json.dumps(result,sort_keys=True));return 0
     except Exception as exc:
