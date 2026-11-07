@@ -2,6 +2,8 @@
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
 const SCHEMA='RACE_AI_OFFICIAL_RESULT_BROWSER_PLAN_V1',CAPTURE='RACE_AI_OFFICIAL_RESULT_BROWSER_CAPTURE_V1';
+const FUTURE_SCHEMA='RACE_AI_OFFICIAL_FUTURE_BROWSER_PLAN_V1',FUTURE_CAPTURE='RACE_AI_OFFICIAL_FUTURE_BROWSER_CAPTURE_V1';
+const FUTURE_INTENT='CAPTURE_FRESH_NATIVE_FUTURE_CARDS',FUTURE_LEAD_MS=600000;
 const MAX_BODY=2*1024*1024,MAX_CACHE=16*1024*1024,MAX_REQUESTS=32,SPACING_MS=825,TIMEOUT_MS=12000,ELAPSED_MS=85000;
 const AUTO_VENUES=new Set(['isesaki','kawaguchi','hamamatsu','iizuka','sanyou']);
 // Observed normal OtherRaceInfo identities; other venues require a saved source code.
@@ -58,6 +60,18 @@ function validatePlan(value,now=new Date()){
  return structuredClone(value);
 }
 function caseGroupKey(item){return JSON.stringify([item.sport,item.venue,item.expected_date,item.ui_entry_url]);}
+function requireFutureClock(plan,now=new Date()){
+ requireCurrentClock({not_before:plan.available_after},now);
+ const today=new Date(now.valueOf()+9*3600000).toISOString().slice(0,10);
+ for(const item of plan.cases){need(item.expected_date===today,'FUTURE_SAME_EVENT_DAY');need(now.valueOf()+FUTURE_LEAD_MS<time(item.cutoff_at),'FUTURE_CUTOFF_MARGIN');}
+}
+function validateFuturePlan(value,now=new Date()){
+ need(keys(value,['schema','intent','available_after','cases'],['request_budget','static_cache'])&&value.schema===FUTURE_SCHEMA&&value.intent===FUTURE_INTENT&&Array.isArray(value.cases),'FUTURE_PLAN_SCHEMA');
+ time(value.available_after);
+ const cases=value.cases.map(item=>{need(keys(item,['sport','race_id','ui_entry_url','expected_date','venue','race_no','cutoff_at'],['ui_venue_name','place_code']),'FUTURE_CASE_SCHEMA');const out={...item,due_at:item.cutoff_at};delete out.cutoff_at;return out;});
+ validatePlan({schema:SCHEMA,cases,...(Object.hasOwn(value,'request_budget')?{request_budget:value.request_budget}:{}),...(Object.hasOwn(value,'static_cache')?{static_cache:value.static_cache}:{})},now);
+ requireFutureClock(value,now);return structuredClone(value);
+}
 function groupCases(items){const groups=new Map();for(const item of items){const key=caseGroupKey(item);if(!groups.has(key))groups.set(key,[]);groups.get(key).push(item);}return groups;}
 function dueCases(plan,now=new Date()){return plan.cases.filter(c=>time(c.due_at)<=now.valueOf()).map(c=>structuredClone(c));}
 function requestScope(plan,group){need(Array.isArray(group)&&group.length>0&&group.every(c=>plan.cases.some(p=>p.race_id===c.race_id)),'REQUEST_GROUP');return {...plan,cases:group};}
@@ -101,6 +115,15 @@ function routePolicy(req,plan){
   }
   return {allow:true,sport,static:false};
  }catch(error){return {allow:false,reason:/^OFFICIAL_BROWSER_[A-Z_]+$/.test(error.message)?error.message:'OFFICIAL_BROWSER_REQUEST_REJECTED'};}
+}
+function futureRoutePolicy(req,plan){
+ const allowed=routePolicy(req,plan);if(!allowed.allow||allowed.static)return allowed;
+ try{
+  const u=new URL(req.url);
+  need(!/\/(?:RaceResult|RaceRefund)(?:\/|$)/.test(u.pathname)&&u.searchParams.get('type')!=='JSJ012','FUTURE_CARD_READ_ONLY');
+  if(allowed.sport==='keirin'&&req.method==='POST')need(bodyFields(req.body,req.content_type||'').disp!=='PJ0306','FUTURE_CARD_READ_ONLY');
+  return allowed;
+ }catch{return {allow:false,reason:'OFFICIAL_BROWSER_FUTURE_CARD_READ_ONLY'};}
 }
 function validateStaticCache(entries,plan,now=new Date()){
  need(Array.isArray(entries)&&entries.length<=128,'STATIC_CACHE_BOUND');let total=0;const out=new Map();
@@ -181,6 +204,16 @@ function caseResponses(item,entries){
  return [...selected].map(([role,row])=>({role,sequence:row.sequence}));
 }
 function cleanLabel(value){return String(value).replace(/\s+/g,' ').trim();}
+function futureCaseResponses(item,entries,after=0,{listingSequence}={}){
+ if(item.sport==='autorace')return caseResponses(item,entries).filter(row=>['identity','program'].includes(row.role));
+ const selected=[];
+ for(const role of ['racelist','racelive']){
+  const rows=entries.filter(row=>row.status===200&&row.method==='POST'&&row.resource_type==='document'&&new URL(row.url).pathname==='/pc/'+role&&
+   (role==='racelist'?(listingSequence===undefined||row.sequence===listingSequence):row.sequence>after));
+  if(rows.length)selected.push({role,sequence:identicalResponse(rows).sequence});
+ }
+ return selected;
+}
 function browserEnvironment(env=process.env){const out={};for(const name of ['PATH','HOME','LANG','LC_ALL','TMPDIR','XDG_CACHE_HOME','HTTP_PROXY','HTTPS_PROXY','NO_PROXY','http_proxy','https_proxy','no_proxy','SSL_CERT_FILE','NODE_EXTRA_CA_CERTS','REQUESTS_CA_BUNDLE'])if(typeof env[name]==='string')out[name]=env[name];return out;}
 function browserProxy(env=process.env){
  const value=env.HTTPS_PROXY||env.https_proxy||env.HTTP_PROXY||env.http_proxy;if(!value)return undefined;
@@ -213,7 +246,7 @@ function autoIdentityResponse(response,item){
   const id=policy.request_identity;return policy.allow&&id?.placeCode===placeCode(item)&&id.raceDate===item.expected_date&&id.raceNo===item.race_no;
  }catch{return false;}
 }
-async function selectAutoCase(page,item,ledger){
+async function selectAutoProgram(page,item,ledger){
  const date=page.locator('#live-paragraphday-main [data-period-date="'+item.expected_date+'"] a');await date.waitFor({state:'visible',timeout:TIMEOUT_MS});
  if(await autoDateAlreadySelected(page,item,date))ledger.push({event:'ALREADY_SELECTED_UI_DATE',expected_date:item.expected_date,at:stamp()});
  else await click(page,date,/^.+$/,ledger);
@@ -229,6 +262,10 @@ async function selectAutoCase(page,item,ledger){
  const [identity]=await Promise.all([page.waitForResponse(response=>autoIdentityResponse(response,item),{timeout:TIMEOUT_MS}),
   click(page,race,new RegExp('^'+item.race_no+'R$'),ledger)]);
  need(!await identity.finished(),'IDENTITY_RESPONSE_INCOMPLETE');
+ return page;
+}
+async function selectAutoCase(page,item,ledger){
+ await selectAutoProgram(page,item,ledger);
  const result=page.locator('li[data-main-menu="result"] a').last();await result.waitFor({state:'visible',timeout:TIMEOUT_MS});await click(page,result,/^レース結果$/,ledger);return page;
 }
 async function openKeirinList(page,item,ledger){
@@ -238,15 +275,20 @@ async function openKeirinList(page,item,ledger){
  const row=page.locator('#kaisaiInfoTable tr').filter({has:venue});await row.waitFor({state:'visible',timeout:TIMEOUT_MS});need(await venue.count()===1,'VISIBLE_UNIQUE_VENUE');
  return click(page,row.getByRole('button',{name:/^出走表\s*一覧$/}),/^出走表\s*一覧$/,ledger,{popup:true});
 }
-async function selectKeirinCase(listPage,item,ledger){
+async function selectKeirinCard(listPage,item,ledger,{result=false,onListReady}={}){
  need(await listPage.locator('#hhSelJ').inputValue()===item.venue.slice(-2),'VISIBLE_VENUE_IDENTITY');
  const [year,month,date]=item.expected_date.split('-');const wanted=year+month+date;
  if(await listPage.locator('#hhSelK').inputValue()!==wanted){const dateLink=listPage.locator('[name="hhlnkRaceDate"]').filter({hasText:new RegExp('^0?'+Number(month)+'/0?'+Number(date)+'(?:\\D|$)')});await click(listPage,dateLink,/^\d{1,2}\/\d{1,2}/,ledger);}
  need(await listPage.locator('#hhSelK').inputValue()===wanted&&await listPage.locator('#hhSelJ').inputValue()===item.venue.slice(-2),'VISIBLE_DAY_VENUE_IDENTITY');
- await click(listPage,listPage.locator('#hhbtnResultList'),/^結果一覧$/,ledger);
+ if(onListReady)await onListReady();
+ if(result)await click(listPage,listPage.locator('#hhbtnResultList'),/^結果一覧$/,ledger);
  const detail=await click(listPage,listPage.locator('#hhRaceBtn'+item.race_no),new RegExp('^'+item.race_no+'R$'),ledger,{popup:true});
  need(await detail.locator('#hhSelK').inputValue()===wanted&&await detail.locator('#hhSelJ').inputValue()===item.venue.slice(-2),'VISIBLE_DETAIL_IDENTITY');
  const heading=cleanLabel(await detail.locator('#hhLblRaceDtl').innerText());need(new RegExp('^'+item.race_no+'R(?:\\s|$)').test(heading),'VISIBLE_RACE_IDENTITY');
+ return detail;
+}
+async function selectKeirinCase(listPage,item,ledger){
+ const detail=await selectKeirinCard(listPage,item,ledger,{result:true});
  await click(detail,detail.locator('#rcbtn8'),/^競走結果$/,ledger);return detail;
 }
 async function installByteGuard(context,page,stop){
@@ -256,7 +298,9 @@ async function installByteGuard(context,page,stop){
  await session.send('Network.enable');return session;
 }
 async function capturePlan(input,out,{chromium,executablePath=process.env.CHROMIUM_PATH||'/usr/bin/chromium'}={}){
- const plan=validatePlan(input),root=createPrivateOutput(out),started=stamp(),due=dueCases(plan),budget=createBudget(plan.request_budget||MAX_REQUESTS);
+ const future=input?.schema===FUTURE_SCHEMA,plan=future?validateFuturePlan(input):validatePlan(input),root=createPrivateOutput(out),started=stamp(),due=future?plan.cases:dueCases(plan),budget=createBudget(plan.request_budget||MAX_REQUESTS);
+ const checkClock=()=>future?requireFutureClock(plan):requireCurrentClock(plan),required=future?null:['identity','result'];
+ const complete=(item,selected)=>(required||(item.sport==='autorace'?['identity','program']:['racelist','racelive'])).every(role=>selected.some(row=>row.role===role));
  const ledger=[],responses=[],cases=[],cache=validateStaticCache(plan.static_cache||[],plan),pending=new Set(),timers=new Map();let browser,context,deadline,activeSport=null,activeCases=[],dispatch=Promise.resolve(),finalizing=false,forcedStop=false;
  const progress=new Set(),notify=()=>{for(const resolve of progress)resolve();progress.clear();};
  const drain=async()=>{for(;;){const queued=dispatch;await queued;await Promise.allSettled([...pending]);if(queued!==dispatch)continue;if(forcedStop||(!timers.size&&!pending.size))return;await new Promise(resolve=>progress.add(resolve));}};
@@ -266,7 +310,7 @@ async function capturePlan(input,out,{chromium,executablePath=process.env.CHROMI
  try{
   if(due.length){need(typeof executablePath==='string'&&path.isAbsolute(executablePath)&&fs.existsSync(executablePath),'FIXED_CHROMIUM_REQUIRED');
    if(!chromium)chromium=require('playwright').chromium;
-   requireCurrentClock(plan);const proxy=browserProxy();
+   checkClock();const proxy=browserProxy();
    browser=await chromium.launch({executablePath,timeout:TIMEOUT_MS,env:browserEnvironment(),...(proxy?{proxy}:{}),headless:true,args:['--no-sandbox','--disable-background-networking','--disable-component-update','--disable-default-apps','--disable-sync','--no-first-run']});need(!budget.reason,'CAPTURE_STOPPED');
    context=await browser.newContext({serviceWorkers:'block',viewport:{width:1440,height:1100},userAgent:'RACE-AI-owner-personal-normal-browser/1.0'});context.setDefaultTimeout(TIMEOUT_MS);
    need(typeof context.routeWebSocket==='function','WEBSOCKET_BLOCK_REQUIRED');await context.routeWebSocket('**/*',socket=>socket.close());
@@ -274,19 +318,19 @@ async function capturePlan(input,out,{chromium,executablePath=process.env.CHROMI
    context.on('page',page=>guard(page).catch(()=>stop('BYTE_GUARD_UNAVAILABLE')));
    await context.route('**/*',async route=>{
     const req=route.request();const request={url:req.url(),method:req.method(),resource_type:req.resourceType(),body:req.postDataBuffer()||Buffer.alloc(0),content_type:req.headers()['content-type']||'',headers:{authorization:req.headers().authorization}};
-    const scoped=requestScope(plan,activeCases);const policy=routePolicy(request,scoped);
+    const scoped=requestScope(plan,activeCases);const policy=future?futureRoutePolicy(request,scoped):routePolicy(request,scoped);
     if(finalizing||budget.reason||!policy.allow){add({event:'BLOCKED_REQUEST',reason:finalizing?'CAPTURE_FINALIZING':budget.reason||policy.reason,method:request.method,resource_type:request.resource_type,at:stamp()});await route.abort().catch(()=>{});return;}
     if(policy.static&&cache.has(request.url)){const saved=cache.get(request.url);add({event:'STATIC_CACHE_REPLAY',url:request.url,method:'GET',resource_type:request.resource_type,source_sha256:sha(saved.raw),original_captured_at:saved.metadata.response_received_at,at:stamp()});await route.fulfill({status:200,contentType:contentType(saved.metadata.headers),body:saved.raw});return;}
     const action=dispatch.then(async()=>{
      if(finalizing||budget.reason){await route.abort().catch(()=>{});return;}
-     requireCurrentClock(plan);
+     checkClock();
      const reservation=await budget.reserve();if(!reservation){await route.abort().catch(()=>{});return;}
-     requireCurrentClock(plan);
+     checkClock();
      const entry={sequence:reservation.sequence,url:request.url,method:request.method,resource_type:request.resource_type,...(policy.request_identity?{request_identity:policy.request_identity}:{})};
      if(request.method==='POST'){entry.request_body_file='request-'+String(entry.sequence).padStart(3,'0')+'.body';entry.request_body_sha256=sha(request.body);entry.request_content_type=request.content_type;savePrivate(root,entry.request_body_file,request.body);}
-     entry.request_started_at=stamp();requireCurrentClock(plan,new Date(entry.request_started_at));req._officialCapture=entry;add(entry);
+     entry.request_started_at=stamp();if(future)requireFutureClock(plan,new Date(entry.request_started_at));else requireCurrentClock(plan,new Date(entry.request_started_at));req._officialCapture=entry;add(entry);
      savePrivate(root,'request-ledger-'+String(entry.sequence).padStart(3,'0')+'.json',JSON.stringify({schema:'RACE_AI_OFFICIAL_RESULT_BROWSER_REQUEST_CHECKPOINT_V1',started_at:started,last_updated_at:entry.request_started_at,actual_request_count:budget.count,maximum_requests:plan.request_budget||MAX_REQUESTS,ledger:structuredClone(ledger)},null,2));
-     requireCurrentClock(plan);timers.set(entry.sequence,setTimeout(()=>stop('REQUEST_TIMEOUT'),TIMEOUT_MS));await route.continue();budget.completeDispatch();
+     checkClock();timers.set(entry.sequence,setTimeout(()=>stop('REQUEST_TIMEOUT'),TIMEOUT_MS));await route.continue();budget.completeDispatch();
     });dispatch=action.catch(()=>stop('REQUEST_DISPATCH_FAILED')).finally(notify);await action;
    });
    context.on('response',response=>{
@@ -305,20 +349,25 @@ async function capturePlan(input,out,{chromium,executablePath=process.env.CHROMI
    });
    const groups=groupCases(due);
    for(const group of groups.values()){
-    if(budget.reason)break;activeSport=group[0].sport;activeCases=group;const groupStart=stamp(),groupLedgerStart=ledger.length;let page=await context.newPage(),listPage;await guard(page);
+    if(budget.reason)break;activeSport=group[0].sport;activeCases=group;const groupStart=stamp(),groupLedgerStart=ledger.length,groupBefore=budget.count;let page=await context.newPage(),listPage;await guard(page);
     try{await page.goto(group[0].ui_entry_url,{waitUntil:'domcontentloaded',timeout:TIMEOUT_MS});if(activeSport==='keirin')listPage=await openKeirinList(page,group[0],ledger);
      for(const item of group){
       if(budget.reason)break;const before=budget.count;
       try{
-       page=item.sport==='autorace'?await selectAutoCase(page,item,ledger):await selectKeirinCase(listPage,item,ledger);
+       let listingSequence;
+       const onListReady=async()=>{await drain();need(!budget.reason,'CAPTURE_STOPPED');const listing=responses.filter(r=>r.sequence>groupBefore&&r.status===200&&r.method==='POST'&&r.resource_type==='document'&&new URL(r.url).pathname==='/pc/racelist').sort((a,b)=>a.sequence-b.sequence).at(-1);need(listing,'FUTURE_SELECTED_LIST_REQUIRED');listingSequence=listing.sequence;};
+       page=item.sport==='autorace'?(future?await selectAutoProgram(page,item,ledger):await selectAutoCase(page,item,ledger)):(future?await selectKeirinCard(listPage,item,ledger,{onListReady}):await selectKeirinCase(listPage,item,ledger));
+       const select=()=>future?futureCaseResponses(item,responses.filter(r=>r.sequence>groupBefore),before,{listingSequence}):caseResponses(item,responses.filter(r=>item.sport==='autorace'||r.sequence>before));
        const until=Date.now()+TIMEOUT_MS;let selected=[];
-       while(!budget.reason&&Date.now()<until){await Promise.allSettled([...pending]);selected=caseResponses(item,responses.filter(r=>item.sport==='autorace'||r.sequence>before));if(selected.some(r=>r.role==='result')&&selected.some(r=>r.role==='identity'))break;await page.waitForTimeout(100);}
+       while(!budget.reason&&Date.now()<until){await Promise.allSettled([...pending]);selected=select();if(complete(item,selected))break;await page.waitForTimeout(100);}
        await drain();need(!budget.reason,'CAPTURE_STOPPED');const raw=Buffer.from(await page.content());need(raw.length<=MAX_BODY,'DOM_BOUND');
-       await drain();need(!budget.reason,'CAPTURE_STOPPED');selected=caseResponses(item,responses.filter(r=>item.sport==='autorace'||r.sequence>before));
+       await drain();need(!budget.reason,'CAPTURE_STOPPED');if(future)checkClock();selected=select();
        const name='case-'+String(cases.length+1).padStart(2,'0'),folder=path.join(root,name);fs.mkdirSync(folder,{mode:0o700});savePrivate(folder,'rendered-dom.html',raw);
        const dom={file:name+'/rendered-dom.html',source_url:item.ui_entry_url,final_url:page.url(),captured_at:stamp(),byte_count:raw.length,source_sha256:sha(raw)};savePrivate(folder,'dom.metadata.json',JSON.stringify(dom,null,2));
-       const provenance=browserMetadata(item,dom,groupStart,ledger.slice(groupLedgerStart));savePrivate(folder,'browser.metadata.json',JSON.stringify(provenance,null,2));
-       cases.push({sport:item.sport,race_id:item.race_id,state:selected.some(r=>r.role==='result')&&selected.some(r=>r.role==='identity')?'CAPTURED':'HOLD_RESULT_SOURCE_UNAVAILABLE',responses:selected,rendered_dom:dom,browser_metadata:provenance});
+       const provenance=browserMetadata(item,dom,groupStart,ledger.slice(groupLedgerStart));
+       if(future)Object.assign(provenance,{ui_capture_kind:'NORMAL_BROWSER_UI',scope:'OPERATOR_SUPPLIED_RESEARCH',final_url:dom.final_url,stopped_host:false});
+       savePrivate(folder,'browser.metadata.json',JSON.stringify(provenance,null,2));
+       cases.push({sport:item.sport,race_id:item.race_id,state:complete(item,selected)?'CAPTURED':future?'HOLD_FUTURE_SOURCE_UNAVAILABLE':'HOLD_RESULT_SOURCE_UNAVAILABLE',responses:selected,rendered_dom:dom,browser_metadata:provenance});
        if(item.sport==='keirin'&&page!==listPage){await page.close();page=listPage;}
       }catch(error){cases.push({sport:item.sport,race_id:item.race_id,state:'HOLD_UI_OR_SOURCE_UNAVAILABLE',responses:[],reason:/^OFFICIAL_BROWSER_[A-Z_]+$/.test(error.message)?error.message:'UI_OPERATION_REJECTED'});if(budget.reason)break;}
      }
@@ -328,8 +377,8 @@ async function capturePlan(input,out,{chromium,executablePath=process.env.CHROMI
   }
  }catch(error){add({event:'CAPTURE_HOLD',reason:/^OFFICIAL_BROWSER_[A-Z_]+$/.test(error.message)?error.message:'BROWSER_OPERATION_REJECTED',at:stamp()});budget.stop('CAPTURE_HOLD');}
  finally{await drain();finalizing=true;await dispatch;await Promise.allSettled([...pending]);clearTimeout(deadline);for(const timer of timers.values())clearTimeout(timer);if(context)await context.close().catch(()=>{});await dispatch;await Promise.allSettled([...pending]);if(browser)await browser.close().catch(()=>{});}
- for(const item of plan.cases)if(!cases.some(c=>c.race_id===item.race_id))cases.push({sport:item.sport,race_id:item.race_id,state:time(item.due_at)>Date.now()?'HOLD_NOT_DUE':'HOLD_'+(budget.reason||'NOT_CAPTURED'),responses:[]});
- const index={schema:CAPTURE,started_at:started,completed_at:stamp(),actual_request_count:budget.count,maximum_requests:plan.request_budget||MAX_REQUESTS,minimum_spacing_ms:SPACING_MS,maximum_elapsed_ms:ELAPSED_MS,request_timeout_ms:TIMEOUT_MS,stop_reason:budget.reason||'FINISHED',stopped_host:budget.reason==='HTTP_ACCESS_DENIED',cases,responses,ledger,normal_ui_only:true,manual_api_requests:0,formal_learning_or_pdca_claim:false};savePrivate(root,'capture-index.json',JSON.stringify(index,null,2));return index;
+ for(const item of plan.cases)if(!cases.some(c=>c.race_id===item.race_id))cases.push({sport:item.sport,race_id:item.race_id,state:!future&&time(item.due_at)>Date.now()?'HOLD_NOT_DUE':'HOLD_'+(budget.reason||'NOT_CAPTURED'),responses:[]});
+ const index={schema:future?FUTURE_CAPTURE:CAPTURE,...(future?{intent:FUTURE_INTENT,available_after:plan.available_after,native_contracts_verified:false,independent_pre_cutoff_receipt_verified:false}:{}),started_at:started,completed_at:stamp(),actual_request_count:budget.count,maximum_requests:plan.request_budget||MAX_REQUESTS,minimum_spacing_ms:SPACING_MS,maximum_elapsed_ms:ELAPSED_MS,request_timeout_ms:TIMEOUT_MS,stop_reason:budget.reason||'FINISHED',stopped_host:budget.reason==='HTTP_ACCESS_DENIED',cases,responses,ledger,normal_ui_only:true,manual_api_requests:0,formal_learning_or_pdca_claim:false};savePrivate(root,'capture-index.json',JSON.stringify(index,null,2));return index;
 }
 async function main(argv=process.argv.slice(2)){
  let result={state:'HOLD',actual_request_count:0,captured_case_count:0,held_case_count:0,stopped_host:false};
@@ -337,5 +386,5 @@ async function main(argv=process.argv.slice(2)){
   const plan=JSON.parse(fs.readFileSync(input,'utf8'));const out=await capturePlan(plan,argv[3]);result={state:out.cases.some(c=>c.state==='CAPTURED')?'CAPTURED':'HOLD',actual_request_count:out.actual_request_count,captured_case_count:out.cases.filter(c=>c.state==='CAPTURED').length,held_case_count:out.cases.filter(c=>c.state!=='CAPTURED').length,stopped_host:out.stopped_host};
  }catch{process.exitCode=1;}process.stdout.write(JSON.stringify(result)+'\n');return result;
 }
-module.exports={SCHEMA,CAPTURE,MAX_BODY,validatePlan,requireCurrentClock,dueCases,groupCases,requestScope,routePolicy,validateStaticCache,createBudget,makeMetadata,browserMetadata,browserEnvironment,browserProxy,createPrivateOutput,savePrivate,caseResponses,selectAutoCase,selectKeirinCase,openKeirinList,installByteGuard,capturePlan,contentType,sha,main};
+module.exports={SCHEMA,CAPTURE,FUTURE_SCHEMA,FUTURE_CAPTURE,FUTURE_INTENT,MAX_BODY,validatePlan,validateFuturePlan,requireCurrentClock,requireFutureClock,dueCases,groupCases,requestScope,routePolicy,futureRoutePolicy,validateStaticCache,createBudget,makeMetadata,browserMetadata,browserEnvironment,browserProxy,createPrivateOutput,savePrivate,caseResponses,futureCaseResponses,selectAutoProgram,selectAutoCase,selectKeirinCard,selectKeirinCase,openKeirinList,installByteGuard,capturePlan,contentType,sha,main};
 if(require.main===module)main();
