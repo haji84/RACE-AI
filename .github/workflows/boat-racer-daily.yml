@@ -41,7 +41,7 @@ jobs:
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           GH_TOKEN: ${{ github.token }}
-          INITIALIZE: ${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-daily-refresh: initialize') }}
+          INITIALIZE: "${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-daily-refresh: initialize') }}"
         shell: bash
         run: |
           args=()
