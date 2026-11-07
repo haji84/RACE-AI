@@ -24,9 +24,9 @@ runs:
       env:
         RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
         RACE_AI_PROSPECTIVE_GRID_INPUT: ${{ inputs.prospective-grid-input }}
-      run: python -m scripts.boat_all_model_cycle prepare --round '${{ inputs.round }}' --prospective-grid-input "$RACE_AI_PROSPECTIVE_GRID_INPUT"
+      run: python -m scripts.boat_prospective_forward prepare --round '${{ inputs.round }}' --prospective-grid-input "$RACE_AI_PROSPECTIVE_GRID_INPUT"
     - name: Discover and forecast missing future P0 with existing models
-      if: steps.ready.outputs.active == 'true'
+      if: steps.ready.outputs.active == 'true' && env.RACE_AI_FORWARD_REQUEST == ''
       id: discovery
       shell: bash
       run: python scripts/github_existing_cycle.py supplement --round '${{ inputs.round }}'
@@ -140,6 +140,18 @@ runs:
       env:
         RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
       run: python -m scripts.boat_private_original_vault capture --artifact '${{ steps.all_models_freeze.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-model-original-vault-${{ inputs.round }}.json'
+    - name: Retain explicit native carrier originals before the proof barrier
+      if: steps.ready.outputs.active == 'true' && inputs.prospective-grid-input != '' && env.RACE_AI_FORWARD_REQUEST != '' && steps.venue_research_freeze.outputs.artifact-id != ''
+      shell: bash
+      env:
+        RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
+      run: python -m scripts.boat_private_original_vault capture --artifact '${{ steps.venue_research_freeze.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-forward-carrier-vault-${{ inputs.round }}.json'
+    - name: Require exact prospective native carrier readback
+      if: steps.ready.outputs.active == 'true' && inputs.prospective-grid-input != '' && env.RACE_AI_FORWARD_REQUEST != ''
+      shell: bash
+      env:
+        RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
+      run: python -m scripts.boat_prospective_forward prove --round '${{ inputs.round }}' --artifact '${{ steps.venue_research_freeze.outputs.artifact-id }}'
     - name: Read back original and independently check later official results
       if: steps.ready.outputs.active == 'true'
       shell: bash

@@ -348,6 +348,8 @@ def _prospective_carrier_pairs(runtime,requests,output,*,now):
     from race_ai.all_existing_model_learning import _sources
     from race_ai.all_existing_model_pairs import make_private_pairs
     selected=prospective_requests(requests,now=now)
+    from scripts import boat_prospective_forward as forward
+    if forward.active():forward.validate_rows(selected,now=now)
     refs=set().union(*(_sources(row['native_payload']) for row in selected))
     summary=make_private_pairs(runtime['context'],selected,output,now=now,
         allow_source=lambda ref,rights,purpose:purpose=='analysis' and (ref,rights) in refs)
@@ -580,10 +582,15 @@ def _all_model_capture(round_no):
 
 
 def forecast(day,*,video_context_artifacts=(),video_reader=None,round_no=None,prospective_grid_input=None):
+    from scripts import boat_prospective_forward as forward
+    research_request=forward.request(round_no)
     capability=None
     if prospective_grid_input is not None:
         from scripts.boat_all_model_cycle import require_prospective_prepared
         capability=require_prospective_prepared(round_no,prospective_grid_input)
+    if research_request is not None:
+        need(capability is not None and prospective_grid_input==research_request['grid_input_path'],
+             'EXPLICIT_FORWARD_GRID_REQUIRED')
     from scripts import boat_nationwide_ab_pilot as pilot
     state=load_state(ROOT/'cycle_recovery_output/continuity.json',day)
     index=json.loads(pilot.FROZEN_INDEX.read_text())
@@ -626,7 +633,8 @@ def forecast(day,*,video_context_artifacts=(),video_reader=None,round_no=None,pr
     capture=(round_no is not None and (ROOT/'audit/state/all-existing-model-owner-research.json').is_file())
     if capture:pilot.NATIVE_INPUT_SINK=native_events.append
     try:
-        result=pilot.run(schedule_snapshot=state.get('schedule_cache'))
+        options={} if research_request is None else dict(research_target=research_request['target'])
+        result=pilot.run(schedule_snapshot=state.get('schedule_cache'),**options)
     finally:
         pilot.MODEL_INPUT_SINK,pilot.ISSUED_MODELS=prior_sink,prior_issued
         pilot.NATIVE_INPUT_SINK=previous_sink
@@ -1017,6 +1025,12 @@ def wait_for_window(day=None,*,clock=None,sleeper=None):
     if started>=deadline:return finish('WORKER_HANDOFF',started)
     need(not (ROOT/'cycle_recovery_output/repeat-session.json').exists(),'SOURCE_WINDOW_SESSION_ALREADY_STARTED')
     cutoffs=_restored_window_cutoffs(day,started)
+    from scripts import boat_prospective_forward as forward
+    research_request=forward.request()
+    if research_request is not None:
+        cutoff=ts(research_request['target']['cutoff_at'])
+        need(cutoff in cutoffs,'EXPLICIT_TARGET_MISSING_FROM_AUTHENTICATED_FIRST_P0')
+        cutoffs=[cutoff]
     now=started
     while True:
         if now.astimezone(JST).date().isoformat()!=day:return finish('DAY_HANDOFF',now)
@@ -1092,6 +1106,13 @@ def repeat_start(day):
     return dict(state='SOURCE_SESSION_READY',session_ready=True)
 
 def repeat_prepare(day,round_no):
+    from scripts import boat_prospective_forward as forward
+    if forward.active():
+        if forward.done():
+            with open(os.environ['GITHUB_OUTPUT'],'a') as output:
+                output.write('active=false\nreason=EXPLICIT_RESEARCH_COMPLETE\n')
+            return dict(active=False,wait_seconds=0,reason='EXPLICIT_RESEARCH_COMPLETE')
+        forward.request(round_no)
     from race_ai.repeated_cycle import prepare
     path=ROOT/'cycle_recovery_output/repeat-session.json'
     continuity_path=ROOT/'cycle_recovery_output/continuity.json'

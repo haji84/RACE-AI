@@ -171,6 +171,7 @@ jobs:
     env:
       RACE_AI_NATIONWIDE_OWNER_SOURCE_REVIEWED: 'true'
       RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+      RACE_AI_FORWARD_REQUEST: ${{ startsWith(github.event.head_commit.message, 'boat-grid-forward:') && 'audit/state/boat-venue-future-forward-request.json' || '' }}
     steps:
       - name: Exact PR71 code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -214,10 +215,18 @@ jobs:
               output.write('RACE_AI_EVENT_DAY=' + now.astimezone(ZoneInfo('Asia/Tokyo')).date().isoformat() + '\n')
               output.write('RACE_AI_WORKER_HANDOFF_AT=' + (now + timedelta(minutes=330)).isoformat() + '\n')
           PY_CLOCK
+      - name: Admit only the explicit tested-parent BOAT research request
+        id: forward_admit
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_prospective_forward admit
       - name: Check all earlier same-day receipts before first P0
         id: first_p0
         env: {GH_TOKEN: '${{ github.token }}'}
         run: python scripts/first_p0_bootstrap.py preflight
+      - name: Authenticate the requested grid before any bootstrap source GET
+        if: steps.forward_admit.outputs.research == 'true'
+        env: {GH_TOKEN: '${{ github.token }}'}
+        run: python -m scripts.boat_prospective_forward preload
       - name: Obtain first P0 from verified official B only if truly absent
         id: first_capture
         if: steps.first_p0.outputs.capture == 'true'
@@ -253,7 +262,7 @@ jobs:
         env: {GH_TOKEN: '${{ github.token }}'}
         run: python -m scripts.boat_program_source retain --day '${{ env.RACE_AI_EVENT_DAY }}' --repo-root . --output '${{ runner.temp }}/boat-program-source-vault.json'
       - name: Execute new-day P0 families from the authenticated first receipt
-        if: steps.restore.conclusion == 'success'
+        if: steps.restore.conclusion == 'success' && env.RACE_AI_FORWARD_REQUEST == ''
         continue-on-error: true
         id: new_day_models
         env: {GH_TOKEN: '${{ github.token }}'}
@@ -278,7 +287,7 @@ jobs:
         env: {GH_TOKEN: '${{ github.token }}'}
         run: python -m scripts.boat_private_original_vault capture --artifact '${{ steps.new_day_models_freeze.outputs.artifact-id }}' --expected-parent current --repo-root . --output '${{ runner.temp }}/boat-new-day-original-vault.json'
       - name: Publish authenticated new-day originals with the existing owner view
-        if: steps.restore.conclusion == 'success'
+        if: steps.restore.conclusion == 'success' && env.RACE_AI_FORWARD_REQUEST == ''
         continue-on-error: true
         env: {GH_TOKEN: '${{ github.token }}'}
         run: python -m scripts.boat_saved_view_feed --hydrate-originals --recover-model-run '${{ github.run_id }}'
@@ -303,6 +312,7 @@ jobs:
         with:
           round: '1'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 02
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -310,6 +320,7 @@ jobs:
         with:
           round: '2'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 03
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -317,6 +328,7 @@ jobs:
         with:
           round: '3'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 04
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -324,6 +336,7 @@ jobs:
         with:
           round: '4'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 05
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -331,6 +344,7 @@ jobs:
         with:
           round: '5'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 06
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -338,6 +352,7 @@ jobs:
         with:
           round: '6'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 07
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -345,6 +360,7 @@ jobs:
         with:
           round: '7'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 08
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -352,6 +368,7 @@ jobs:
         with:
           round: '8'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 09
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -359,6 +376,7 @@ jobs:
         with:
           round: '9'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 10
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -366,6 +384,7 @@ jobs:
         with:
           round: '10'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 11
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -373,6 +392,7 @@ jobs:
         with:
           round: '11'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 12
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -380,6 +400,7 @@ jobs:
         with:
           round: '12'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 13
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -387,6 +408,7 @@ jobs:
         with:
           round: '13'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 14
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -394,6 +416,7 @@ jobs:
         with:
           round: '14'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 15
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -401,6 +424,7 @@ jobs:
         with:
           round: '15'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 16
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -408,6 +432,7 @@ jobs:
         with:
           round: '16'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 17
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -415,6 +440,7 @@ jobs:
         with:
           round: '17'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 18
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -422,6 +448,7 @@ jobs:
         with:
           round: '18'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 19
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -429,6 +456,7 @@ jobs:
         with:
           round: '19'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 20
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -436,6 +464,7 @@ jobs:
         with:
           round: '20'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 21
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -443,6 +472,7 @@ jobs:
         with:
           round: '21'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 22
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -450,6 +480,7 @@ jobs:
         with:
           round: '22'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 23
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -457,6 +488,7 @@ jobs:
         with:
           round: '23'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
       - name: Deadline-ordered five-model round 24
         if: steps.repeat_start.outputs.session_ready == 'true'
         uses: ./.github/actions/existing-model-round
@@ -464,6 +496,18 @@ jobs:
         with:
           round: '24'
           saved-view-key: ${{ secrets.RACE_AI_STATE_KEY }}
+          prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}
+      - name: Require explicit research READY or retain an honest HOLD
+        if: always() && startsWith(github.event.head_commit.message, 'boat-grid-forward:')
+        run: python -m scripts.boat_prospective_forward finalize
+      - name: Retain count-only prospective BOAT research proof
+        if: always() && startsWith(github.event.head_commit.message, 'boat-grid-forward:')
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-prospective-forward-${{ github.run_id }}
+          path: ${{ runner.temp }}/boat-prospective-forward/proof.json
+          if-no-files-found: error
+          retention-days: 7
       - name: Build compact sealed handoff without retained original ZIP archives
         if: always()
         run: python -m race_ai.continuity_checkpoint --source-dir cycle_recovery_output --out-dir cycle_checkpoint_output --expected-run '${{ github.run_id }}'

@@ -51,7 +51,17 @@ class WorkflowReferencesTest(unittest.TestCase):
         # Keep the original nine mandatory steps separate from optional retention.
         retention_steps=[step for step in steps if step.split('\n',1)[0] in RETENTION_NAMES]
         result_retention_steps=retention_steps
-        baseline_steps=[step for step in steps if step not in private_steps+model_steps+protection_steps+vault_steps+evaluation_steps+retention_steps]
+        forward_steps=[step for step in steps if step.startswith('Require exact prospective native carrier readback\n')]
+        self.assertEqual(len(forward_steps),1)
+        self.assertIn("inputs.prospective-grid-input != ''",forward_steps[0])
+        self.assertIn("env.RACE_AI_FORWARD_REQUEST != ''",forward_steps[0])
+        self.assertNotIn('continue-on-error:',forward_steps[0])
+        for name in ('Retain exact baseline and supplemental P0 originals','Retain exact additional model execution','Retain explicit native carrier originals'):
+            self.assertLess(text.index(name),text.index(forward_steps[0]))
+        self.assertLess(text.index(forward_steps[0]),text.index('github_existing_cycle.py audit'))
+        self.assertIn('scripts.boat_prospective_forward prove --round',forward_steps[0])
+        self.assertIn("--artifact '${{ steps.venue_research_freeze.outputs.artifact-id }}'",forward_steps[0])
+        baseline_steps=[step for step in steps if step not in private_steps+model_steps+protection_steps+vault_steps+evaluation_steps+retention_steps+forward_steps]
         self.assertEqual(len(baseline_steps), 9)
         prepare, discovery, p0freeze, forecast, freeze, audit, result, complete, display = baseline_steps
         self.assertIn('id: ready', prepare)
@@ -195,6 +205,40 @@ class WorkflowReferencesTest(unittest.TestCase):
         official=text.split('  official_national:',1)[1]
         self.assertIn("!startsWith(github.event.head_commit.message, 'saved-view:')",official)
         self.assertIn("&& 'boat-saved-view-publication' || 'boat-nationwide-cutoff-20261103'",text)
+        self.assertIn('cancel-in-progress: false',text)
+
+    def test_explicit_forward_wires_all_callers_and_grid_before_first_source(self):
+        text=WORKFLOW.read_text(); action=ROUND.read_text()
+        self.assertNotIn('workflow_dispatch:',text)
+        workers=[step for step in re.split(r'^      - name: ',text,flags=re.MULTILINE)
+                 if 'uses: ./.github/actions/existing-model-round' in step]
+        self.assertEqual(len(workers),24)
+        for worker in workers:
+            self.assertIn('prospective-grid-input: ${{ steps.forward_admit.outputs.grid_input }}',worker)
+        self.assertLess(text.index('scripts.boat_prospective_forward admit'),text.index('first_p0_bootstrap.py preflight'))
+        self.assertLess(text.index('first_p0_bootstrap.py preflight'),text.index('scripts.boat_prospective_forward preload'))
+        self.assertLess(text.index('scripts.boat_prospective_forward preload'),text.index('first_p0_bootstrap.py capture-wait'))
+        self.assertIn("startsWith(github.event.head_commit.message, 'boat-grid-forward:')",text)
+        self.assertIn('scripts.boat_prospective_forward finalize',text)
+        self.assertIn('boat-prospective-forward/proof.json',text)
+        for name in ('Execute new-day P0 families from the authenticated first receipt',
+                     'Publish authenticated new-day originals with the existing owner view'):
+            step=next(step for step in re.split(r'^      - name: ',text,flags=re.MULTILINE) if step.startswith(name))
+            self.assertIn("env.RACE_AI_FORWARD_REQUEST == ''",step)
+            self.assertLess(text.index('scripts.boat_prospective_forward preload'),text.index(name))
+            self.assertLess(text.index(name),text.index('uses: ./.github/actions/existing-model-round'))
+        self.assertIn("steps.ready.outputs.active == 'true' && inputs.prospective-grid-input == ''",action)
+        gate=next(step for step in re.split(r'(?=^    - name: )',action,flags=re.MULTILINE)
+                  if step.startswith('    - name: Require exact prospective native carrier readback'))
+        changed=action.replace(gate,gate.replace(" && env.RACE_AI_FORWARD_REQUEST != ''",''),1)
+        with self.assertRaises(AssertionError):self.assert_round_contract(changed)
+
+    def test_installation_adds_no_new_source_or_history_prefix_exception(self):
+        text=WORKFLOW.read_text()
+        source=text.split('  official_national:',1)[1].split('    steps:',1)[0]
+        self.assertIn("if: github.repository == 'haji84/RACE-AI' && !startsWith(github.event.head_commit.message, 'saved-view:')",source)
+        self.assertNotIn('boat-forward-install:',text)
+        self.assertNotIn('workflow_dispatch:',text)
         self.assertIn('cancel-in-progress: false',text)
 
     def test_existing_cycle_create_only_first_p0_then_reuses_original(self):
