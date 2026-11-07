@@ -59,6 +59,9 @@ def decode_packet(raw):
         return doc
     finally:db.close()
 
+def _capture_key(pointer):
+    return pointer['packet'],pointer['capture_id'],pointer['captured_at']
+
 class IntradayState:
     def __init__(self,control=None,*,loader=None):
         self.control=deepcopy(control) if control else dict(schema=STATE,day=None,venues=[],meetings={},races={},results={},archives={},waits={},schedule=None,conflicts={},last_checked_at=None,catalogue_at=None,material_sha256=None,archive_next=None)
@@ -71,17 +74,18 @@ class IntradayState:
             c['races']={rid:q for rid,q in c['races'].items() if rid[:8]>=(day-timedelta(days=1)).strftime('%Y%m%d') and rid not in self.canonical and rid not in c['results']}
     def remember(self,kind,raw,receipt):
         ident=sha((receipt['source_url']+'\n'+receipt['source_sha256']).encode())
-        capture=dict(id=ident,kind=kind,receipt=receipt,raw=base64.b64encode(raw).decode());self.new_captures[ident]=capture;self.cache[ident]=capture
-        return dict(packet='@self',capture_id=ident,kind=kind,source_sha256=receipt['source_sha256'],source_url=receipt['source_url'],captured_at=receipt['captured_at'])
+        pointer=dict(packet='@self',capture_id=ident,kind=kind,source_sha256=receipt['source_sha256'],source_url=receipt['source_url'],captured_at=receipt['captured_at'])
+        capture=dict(id=ident,kind=kind,receipt=receipt,raw=base64.b64encode(raw).decode());self.new_captures[ident]=capture;self.cache[_capture_key(pointer)]=capture
+        return pointer
     def capture(self,pointer):
-        ident=pointer['capture_id']
-        if ident not in self.cache:
-            need(self.loader is not None,'INTRADAY_CAPTURE_LOADER_REQUIRED');self.cache[ident]=self.loader(pointer)
-        c=self.cache[ident];r=c['receipt'];raw=base64.b64decode(c['raw'],validate=True)
+        ident=pointer['capture_id'];key=_capture_key(pointer)
+        if key not in self.cache:
+            need(self.loader is not None,'INTRADAY_CAPTURE_LOADER_REQUIRED');self.cache[key]=self.loader(pointer)
+        c=self.cache[key];r=c['receipt'];raw=base64.b64decode(c['raw'],validate=True)
         need(c['id']==ident and c['kind']==pointer['kind'] and r['source_url']==pointer['source_url'] and r['source_sha256']==pointer['source_sha256'] and r['captured_at']==pointer['captured_at'] and sha(raw)==r['source_sha256'],'INTRADAY_CAPTURE_BINDING')
         return raw,r
     def facts(self,pointer,now):
-        key=pointer['capture_id']
+        key=_capture_key(pointer)
         if key not in self.facts_cache:
             raw,receipt=self.capture(pointer)
             self.facts_cache[key]=archive_facts(raw,receipt) if pointer['kind']=='K' else parse_result(raw,receipt,now=now)
@@ -154,7 +158,7 @@ class IntradayState:
                 try:
                     need(len(raw)<=1024*1024,'INTRADAY_ARCHIVE_BOUND');facts=archive_facts(raw,r)
                     if not c['archives'].get(text) or c['archives'][text]['source_sha256']!=r['source_sha256']:
-                        c['archives'][text]=self.remember('K',raw,r);self.facts_cache[c['archives'][text]['capture_id']]=facts;changed+=1
+                        c['archives'][text]=self.remember('K',raw,r);self.facts_cache[_capture_key(c['archives'][text])]=facts;changed+=1
                 except ValueError:self.remember('REJECTED',raw,r);rejected('mbrace')
             self.extra_rows(base,now=now)
         bootstrap=[f'{day:%Y%m%d}-{v}-01' for v in c['venues'] if v not in c['meetings']]
@@ -201,7 +205,7 @@ class IntradayState:
                 old=c['results'].get(target)
                 if target not in self.canonical and out['status']!='PENDING' and (not old or old['fact_sha256']!=out['fact_sha256']):
                     p=self.remember('RESULT',raw,r);p.update(fact_sha256=out['fact_sha256'],statistics_sha256=out.get('statistics_sha256'));c['results'][target]=p;changed+=1
-                    self.facts_cache[p['capture_id']]=out
+                    self.facts_cache[_capture_key(p)]=out
             except ValueError:self.remember('REJECTED',raw,r);rejected('boatrace')
         c['last_checked_at']=now.isoformat();self.extra_rows(base,now=now)
         return dict(status=self.metadata(now)['source_state'],requests=requests,new_observations=changed)

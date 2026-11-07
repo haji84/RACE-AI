@@ -67,3 +67,18 @@ class BridgeTests(unittest.TestCase):
         p,old,g,view=F.current_view(self.git,self.boot);new=deepcopy(view);new['records'].extend(saved_view(('2026-11-08','2026-11-09'))['records']);new['forecast_base_sha256']=self.boot['forecast_sha256'];F.publish_view(self.git,self.boot,new,parent=p,previous=old,generation=g)
         later=SavedResultBridge(self.repo,now=NOW+timedelta(days=2),transport=self.git,bootstrap=self.boot);later.prepare(state)
         self.assertNotIn('20261107-01-01',state.control['settlement_captures']);self.assertIn('20261105-01-01',state.control['settlement_captures'],'unpublished evidence must never be pruned')
+    def test_restored_identical_bytes_with_a_new_receipt_do_not_block_result_publication(self):
+        from tests.test_racer_intraday_handoff import FixtureGit
+        from race_ai.boat_pdca_github_handoff import TRANSFER_REF
+        from race_ai.racer_intraday_handoff import load_intraday,save_intraday
+        from race_ai.racer_intraday_source import parse_result
+        from race_ai.racer_daily import DailyStore
+        git=FixtureGit(self.repo,ref=TRANSFER_REF);root=git.commit({'state/other.enc':b'UNCHANGED_OTHER'},None);git.push(root,None);key=bytes(range(32));base=DailyStore(clock=lambda:NOW+timedelta(minutes=10));self.addCleanup(base.close)
+        first=load_intraday(self.repo,initialize=True,key=key,transport=git,now=NOW);state=first['state'];self.capture(state);doc=document();doc['maindata']['infolist3t'][0]['dividend']='1250';raw,receipt=packet(doc,captured=NOW.isoformat());facts=parse_result(raw,receipt,now=NOW);rid=facts['race_id'];old=state.remember('RESULT',raw,receipt);old.update(fact_sha256=facts['fact_sha256'],statistics_sha256=facts['statistics_sha256']);state.control['results'][rid]=old
+        save_intraday(first,catalogue_sha256='a'*64,now=NOW,key=key)
+        later=NOW+timedelta(minutes=5);second=load_intraday(self.repo,key=key,transport=git,now=later);second['state'].extra_rows(base,now=later);self.capture(second['state'],at=later);save_intraday(second,catalogue_sha256='a'*64,now=later,key=key)
+        replay=load_intraday(self.repo,key=key,transport=git,now=later);state=replay['state'];state.extra_rows(base,now=later)
+        self.assertEqual(state.control['results'][rid]['capture_id'],state.control['settlement_captures'][rid]['capture_id'],'immutable capture IDs remain compatible')
+        report=self.bridge().publish(state,now=later);self.assertEqual(report['confirmed'],1);feed_head=self.git.head()
+        self.bridge().prepare(state);save_intraday(replay,catalogue_sha256='a'*64,now=later,key=key)
+        quiet=load_intraday(self.repo,key=key,transport=git,now=later+timedelta(minutes=5));quiet['state'].extra_rows(base,now=later+timedelta(minutes=5));report=self.bridge().publish(quiet['state'],now=later+timedelta(minutes=5));self.assertEqual(report['changed_races'],0);self.assertEqual(self.git.head(),feed_head)
