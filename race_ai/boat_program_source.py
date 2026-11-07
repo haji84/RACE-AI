@@ -5,7 +5,7 @@ day catalog contains only authenticated hashes and an encrypted vault locator.
 The original P0 document and actual physical receipt remain unchanged; the
 seller's existing raw/archive/day/roster checks authenticate the projection.
 """
-from datetime import date,datetime,timezone
+from datetime import date,datetime,timezone,timedelta
 import base64
 import os
 from pathlib import Path
@@ -21,7 +21,21 @@ from .boat_pdca_state import state_key
 from .boat_seller_inputs import official_b_cards_source
 # Reuse the same pinned official URL/header implementation and parser setup as
 # the existing producer. Importing the module performs no requests or inference.
-from scripts.existing_day_program import official_url,inspect_lzh,JST
+# The saved-view worker reads retained P0 originals without PR72's program
+# bridge. Importing the full day collector here would require that optional
+# bridge even when no official-B request or program parsing is performed.
+# Keep the exact pinned archive source checks, but load them only when used.
+JST=timezone(timedelta(hours=9))
+
+
+def official_url(day,kind):
+    from race_ai.official_archive_probe import official_url as pinned_official_url
+    return pinned_official_url(day,kind)
+
+
+def inspect_lzh(raw):
+    from race_ai.official_archive_probe import inspect_lzh as pinned_inspect_lzh
+    return pinned_inspect_lzh(raw)
 from scripts.boat_private_original_vault import _private_path,_read_private,_write
 
 SCHEMA='RACE_AI_BOAT_PROGRAM_SOURCE_V1'
