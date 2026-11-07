@@ -1,1 +1,1 @@
-2026-11-08: retained-result-audit branch; inspect authenticated SP marker semantics and original/source clocks using only retained Git state.
+2026-11-08: validate the strict no-contest/full-refund parser against authenticated retained SP captures; count-only output.

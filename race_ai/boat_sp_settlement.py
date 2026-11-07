@@ -30,6 +30,15 @@ def parse_settlement(raw,receipt,*,now):
         finish_status='FINISHED' if r['finish'] is not None else r['result_code'],verified_official=True) for r in parsed['rows']]
     need(all(r['lane'] in refunds for r in records if r['finish_status'] in ('F','L','欠')),'RESULT_REFUND_DISPOSITION_MISSING')
     if not prices:return out
+    if len(prices)==1 and type(prices[0]) is dict and unicodedata.normalize('NFKC',html.unescape(str(prices[0].get('winno','')))).strip()=='不成立':
+        amount=unicodedata.normalize('NFKC',html.unescape(str(prices[0].get('dividend',''))))
+        amount=re.sub(r'[¥￥円,\s]','',amount)
+        # With at most two non-refunded boats, every possible trifecta is returned.
+        need(amount=='100' and len(refunds)>=4,'RESULT_TRIFECTA_VOID_PROOF_REQUIRED')
+        need(all(r['finish'] is None and r['finish_status'] in ('F','L','欠') for r in records if r['lane'] in refunds),
+             'RESULT_START_FINISH_CONFLICT')
+        return dict(out,status='AVAILABLE',data=dict(status='no_contest',confirmed=True,finish_confirmed=True,
+            confirmed_scope='TRIFECTA_ONLY',results=records,payouts=[],refund_boats=sorted(refunds),refunds=[],top3=None))
     payouts=[]
     for item in prices:
         need(type(item) is dict,'RESULT_PAYOUT_INVALID')
