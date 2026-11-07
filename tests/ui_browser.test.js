@@ -27,6 +27,25 @@ let automaticSourceStatus = {};
 let automaticDelivery = null;
 const automaticStatusCalls = [];
 const automaticLatestCalls = [];
+async function checkUnverifiedOfficialMetrics(page) {
+  const details=page.locator('#result-data-details');
+  const open=await details.evaluate(element=>element.open);
+  if(!open)await details.locator(':scope > summary').click();
+  assert.equal(await page.locator('#result-metrics').isVisible(),true);
+  const text=await page.locator('#result-metrics').innerText();
+  assert.match(text,/未検証/);
+  assert.ok(!text.includes('100%'),'synthetic or unverified hits cannot become official metrics');
+  if(!open)await details.locator(':scope > summary').click();
+}
+async function raceAuditText(page) {
+  const details=page.locator('#race-detail .race-audit-details');
+  const open=await details.evaluate(element=>element.open);
+  if(!open)await details.locator(':scope > summary').click();
+  assert.equal(await details.locator('.race-audit-body').isVisible(),true);
+  const text=await page.locator('#race-detail').innerText();
+  if(!open)await details.locator(':scope > summary').click();
+  return text;
+}
 async function main() {
   fs.mkdirSync(output, {recursive:true});
   server = http.createServer((req,res) => {
@@ -136,8 +155,12 @@ async function main() {
     }
     mark(`${width}: seven-page navigation and no horizontal overflow`);
     await nav('results');
-    assert.match(await page.locator('#result-metrics').innerText(), /未検証/);
-    assert.ok(!(await page.locator('#result-metrics').innerText()).includes('100%'),'synthetic hits cannot become official metrics');
+    assert.equal(await page.locator('#result-data-details').evaluate(element=>element.open),false,'ordinary results keep audit details collapsed');
+    assert.equal(await page.locator('#result-metrics').isVisible(),false);
+    assert.match(await page.locator('#result-coverage').innerText(),/対象 1レース/);
+    assert.match(await page.locator('#saved-result-metrics').innerText(),/保存Top8的中率/);
+    assert.match(await page.locator('#source-state').innerText(),/合成/);
+    await checkUnverifiedOfficialMetrics(page);
     await nav('races');await page.locator('#page-races [data-open-race]').first().click();
     for(const tab of ['outlook','participants','preview','analysis','history']) {
       await page.locator(`[data-detail-tab="${tab}"]`).click();
@@ -147,7 +170,7 @@ async function main() {
     assert.ok(options>=2,'saved comparison model selectable');
     await page.locator('#prediction-select').selectOption({index:1});
     await page.locator('#prediction-select').selectOption({index:0});
-    assert.ok((await page.locator('#race-detail').innerText()).includes(fixture.records[0].prediction.prediction_sha256),'original prediction SHA displayed');
+    assert.ok((await raceAuditText(page)).includes(fixture.records[0].prediction.prediction_sha256),'original prediction SHA is visible in explicitly opened details');
     mark(`${width}: detail tabs and saved model/stage switching`);
     await nav('picks');
     await page.locator('#race-budget').fill('2000');
@@ -187,7 +210,7 @@ async function main() {
       const saved=generated.records.find(r=>r.sport==='boat' && r.prediction);
       await page.waitForFunction(()=>document.querySelector('#page-races').textContent.includes('fixture'));
       await page.locator('#page-races [data-open-race]').first().click();
-      assert.ok((await page.locator('#race-detail').innerText()).includes(saved.prediction.prediction_sha256),'actual engine saved SHA is displayed unchanged');
+      assert.ok((await raceAuditText(page)).includes(saved.prediction.prediction_sha256),'actual engine saved SHA is displayed unchanged in details');
       await page.locator('[data-detail-tab="history"]').click();
       assert.ok((await page.locator('#race-detail').innerText()).includes('改訂'));
       assert.equal(generated.records.find(r=>r.race_id===saved.race_id).result_revisions.length,2);
@@ -214,9 +237,9 @@ async function main() {
         await page.locator('#prediction-select').selectOption(String(index));
         const displayed=await page.locator('#race-detail .forecast-panel').first().locator('.saved-ticket .combo').evaluateAll(nodes=>nodes.map(n=>[...n.querySelectorAll('.lane')].map(x=>Number(x.textContent))));
         assert.deepEqual(displayed,p.ordered_top8,'saved original Top8 order unchanged');
-        const detail=await page.locator('#race-detail').innerText();
+        const detail=await raceAuditText(page);
         assert.ok(detail.includes(p.prediction_sha256) && detail.includes(p.original_json_sha256),'native SHA and member SHA preserved');
-        if(p.model_version==null) assert.match(await page.locator('#prediction-select option:checked').innerText(),/未取得/);
+        if(p.model_version==null) assert.ok(detail.includes(p.model_id+' / 未取得'),'missing technical model version stays explicit in opened audit details');
       }
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'saved-cycle detail has no horizontal overflow');
       await capture(`${width}-saved-cycle-detail.png`);
@@ -227,12 +250,13 @@ async function main() {
       for (const observation of saved.result_observations) assert.ok((await page.locator('#result-observations').innerText()).includes(observation.source_sha256));
       const rawBodies=await page.locator('#result-observations [data-observation-raw]').allTextContents();
       assert.deepEqual(rawBodies,saved.result_observations.map(o=>JSON.stringify(o)),'full raw captures cannot be truncated');
-      assert.match(await page.locator('#race-detail').innerText(),/結果確認 未取得/,'capture time must not become official confirmation time');
+      assert.equal(saved.result.confirmed_at ?? null,null,'capture time must not become official confirmation time');
+      assert.match(await page.locator('#race-detail').innerText(),/結果取得/,'the visible result clock is labeled as acquisition');
+      assert.doesNotMatch(await page.locator('#race-detail').innerText(),/結果確認/,'the UI must not relabel acquisition as confirmation');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'raw observation history has no horizontal overflow');
       await capture(`${width}-saved-cycle-history.png`);
       await nav('results');
-      assert.match(await page.locator('#result-metrics').innerText(),/未検証/);
-      assert.ok(!(await page.locator('#result-metrics').innerText()).includes('100%'));
+      await checkUnverifiedOfficialMetrics(page);
       const privateStorage=await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}));
       assert.ok(variants.every(p=>!privateStorage.includes(p.prediction_sha256)),'saved originals stay out of browser persistence');
       await nav('races');
@@ -241,11 +265,11 @@ async function main() {
       await page.locator('[data-detail-tab="analysis"]').click();
       for (const [index,p] of learnedVariants.entries()) if(p.variant==='LEARNED_SHADOW') {
         await page.locator('#prediction-select').selectOption(String(index));
-        assert.ok((await page.locator('#race-detail').innerText()).includes(p.prediction_sha256),'saved learned original hash selectable');
-        assert.match(await page.locator('#prediction-select option:checked').innerText(),/LEARNED_SHADOW/);
+        assert.ok((await raceAuditText(page)).includes(p.prediction_sha256),'saved learned original hash selectable in details');
+        assert.match(await raceAuditText(page),/LEARNED_SHADOW/,'technical learned variant remains in opened audit details');
         const displayed=await page.locator('#race-detail .forecast-panel').first().locator('.saved-ticket .combo').evaluateAll(nodes=>nodes.map(n=>[...n.querySelectorAll('.lane')].map(x=>Number(x.textContent))));
         assert.deepEqual(displayed,p.ordered_top8,'saved learned Top8 is never recomputed');
-        const facts=await page.locator('#race-detail').innerText();
+        const facts=await raceAuditText(page);
         for(const field of ['training_sha256','training_receipt_digest','baseline_model_sha256']) if(p[field]!=null)assert.ok(facts.includes(p[field]),`saved learned ${field} visible`);
       }
       mark(`${width}: sealed original ZIP -> private restore -> view -> browser, exact Top8/SHA, P1/learned selection and separate capture history`);
@@ -280,7 +304,7 @@ async function main() {
           await page.locator('#prediction-select').selectOption(String(index));
           const shown=await page.locator('#race-detail .forecast-panel').first().locator('.saved-ticket .combo').evaluateAll(nodes=>nodes.map(n=>[...n.querySelectorAll('.lane')].map(x=>Number(x.textContent))));
           assert.deepEqual(shown,p.ordered_top8,'all active native families keep saved candidate order');
-          assert.ok((await page.locator('#race-detail').innerText()).includes(p.output_sha256),'output hash displayed separately');
+          assert.ok((await raceAuditText(page)).includes(p.output_sha256),'output hash displayed separately in details');
           if(p.prediction_sha256==null) assert.equal(await page.locator('#race-detail').evaluate(n=>[...n.querySelectorAll('dt')].find(x=>x.textContent==='予想SHA').nextElementSibling.textContent),'未取得');
           if(p.native_top8_available===false) assert.match(await page.locator('#race-detail').innerText(),/保存された5点プラン/);
           if(['A_PRE_TRIAL','B_POST_TRIAL'].includes(p.stage)) assert.match(await page.locator('#prediction-select option:checked').innerText(),/試走前|試走後/);
@@ -342,12 +366,12 @@ async function main() {
     assert.match(await page.locator('#source-state').innerText(),/合成/);
     await page.locator('[data-page="races"]').filter({visible:true}).first().click();
     await page.locator('#page-races [data-open-race]').first().click();
-    assert.ok((await page.locator('#race-detail').innerText()).includes(fixture.records[0].prediction.prediction_sha256),'returned exact original hash appears in the app');
+    assert.ok((await raceAuditText(page)).includes(fixture.records[0].prediction.prediction_sha256),'returned exact original hash appears in app details');
     await page.locator('#forecast-generate').click();
     await page.waitForFunction(()=>document.querySelector('#generation-message').textContent.includes('再利用 1'));
     await page.locator('[data-page="races"]').filter({visible:true}).first().click();
     await page.locator('#page-races [data-open-race]').first().click();
-    assert.ok((await page.locator('#race-detail').innerText()).includes(fixture.records[0].prediction.prediction_sha256),'reuse shows the same original hash');
+    assert.ok((await raceAuditText(page)).includes(fixture.records[0].prediction.prediction_sha256),'reuse shows the same original hash in details');
     const before=await page.locator('#race-detail').innerText();
     failGeneration=true;await page.locator('#forecast-generate').click();
     await page.waitForFunction(()=>document.querySelector('#generation-message').textContent.includes('前の表示データ'));
@@ -395,7 +419,7 @@ async function main() {
     await nav('races');await page.locator('#page-races [data-open-race]').first().click();
     await page.locator('[data-detail-tab="analysis"]').click();
     const nativeSha=fixture.records[0].prediction.prediction_sha256;
-    assert.ok((await page.locator('#race-detail').innerText()).includes(nativeSha));
+    assert.ok((await raceAuditText(page)).includes(nativeSha));
     await nav('picks');await page.locator('#copy-top8').click();
     await page.locator('#ticket-list .ticket-amount').first().fill('200');await page.locator('#ticket-list .ticket-amount').first().dispatchEvent('change');
     await page.locator('#confirm-candidates').click();
@@ -414,7 +438,7 @@ async function main() {
     assert.match(await page.locator('#generation-message').innerText(),/取得 366回/,'saved-view updates continue beyond the old request cap');
     assert.deepEqual(await page.locator('#ticket-list .ticket-amount').evaluateAll(ns=>ns.map(n=>n.value)),beforeAmounts,'automatic refresh preserves edited amounts');
     assert.match(await page.locator('#confirmation-state').innerText(),/候補確定済み/,'automatic refresh preserves confirmation');
-    assert.ok((await page.locator('#race-detail').innerText()).includes(nativeSha),'selected original survives refresh');
+    assert.ok((await raceAuditText(page)).includes(nativeSha),'selected original survives refresh');
     assert.equal(await page.locator('[data-detail-tab="analysis"]').getAttribute('aria-selected'),'true');
     assert.match(await page.locator('#race-detail').innerText(),/09:02/,'new saved observation is displayed');
     let counterRound=3;
@@ -524,7 +548,7 @@ async function main() {
     assert.doesNotMatch(await page.locator('#delivery-record').innerText(),/目標内/);
     assert.deepEqual(await page.locator('#ticket-list .ticket-amount').evaluateAll(ns=>ns.map(n=>n.value)),amounts);
     assert.match(await page.locator('#confirmation-state').innerText(),/候補確定済み/);
-    assert.ok((await page.locator('#race-detail').innerText()).includes(fixture.records[0].prediction.prediction_sha256));
+    assert.ok((await raceAuditText(page)).includes(fixture.records[0].prediction.prediction_sha256));
     assert.equal(await page.locator('[data-detail-tab="analysis"]').getAttribute('aria-selected'),'true');
     automaticDelivery.boat.P0={...automaticDelivery.boat.P0,source_captured_at:null};
     await page.clock.fastForward(60001);await page.waitForTimeout(100);

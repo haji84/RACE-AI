@@ -8,6 +8,8 @@ let server,browser;
   const py=spawnSync(process.env.RACE_AI_TEST_PYTHON||'python',['-c',`
 from pathlib import Path
 import sys,json
+import race_ai
+race_ai.__path__.extend(str(Path(reference)/'race_ai') for reference in ('pr64-reference','pr72-reference'))
 from tests.test_boat_pdca_github_handoff import invented_research_state
 from race_ai.saved_pdca_view import SavedPdcaService,export_view
 root=Path(sys.argv[1]);state,_=invented_research_state(root)
