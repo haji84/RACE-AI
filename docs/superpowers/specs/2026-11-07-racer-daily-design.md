@@ -12,6 +12,8 @@
 
 履歴のGit取得は全commit/treeを維持するblob:noneフィルターを使い、実際に読む暗号文だけ取得する。初回実行で全namespaceの履歴一括転送が停止し、新規runner相当の比較では通常取得約1.5GiBに対しcommit/treeは約8MiBだった。古い世代はMAC付きheadの連鎖と元commit/現在treeの同一blobを検証し、不要な旧暗号文のダウンロードを避ける。設定は各Gitコマンドの環境内に限定し、共有リポジトリのconfigを変更しない。
 
+部分取得した親treeへの追記ではwrite-tree --missing-okを使う。通常のwrite-treeが未取得の継承blobまで実体化して停止することを実runnerのコード位置で特定し、別namespaceの1MiB暗号文・旧世代暗号文を取得せず第3世代を正常pushできる試験で再現・修正した。親treeは検証済みremote上に固定し、新しいblobはローカルでhash-object済み、push先の完全性検査とCAS・同一tree検証は維持する。診断出力は例外の種類とコード位置のみで、例外本文・コマンド引数・原文・変数値を出さない。
+
 GitHubの定期実行はmain上のworkflowに限られる。実装は既存PR71へ追加し、定期実行用の1workflowだけをmain向けの独立PRにする。mainの保護・既存CIを回避せず、PR71の他の作業をmainへ混ぜない。workflowはレビュー済み実装SHAを固定して実行する。初回の実収集・反映を確認してから有効化を完了扱いとする。
 
 ## 検証と失敗時

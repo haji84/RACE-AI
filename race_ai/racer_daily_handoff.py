@@ -23,6 +23,10 @@ class _DailyFilteredFetch:
             config['GIT_CONFIG_KEY_'+str(count)]=setting;config['GIT_CONFIG_VALUE_'+str(count)]=value;count+=1
         config['GIT_CONFIG_COUNT']=str(count)
         if args and args[0]=='fetch':args=[args[0],'--filter=blob:none',*args[1:]]
+        # The parent tree is already pinned on the validated remote and new
+        # blobs were written locally. Do not materialize every inherited blob
+        # merely to rebuild its unchanged tree; push verifies connectivity.
+        if args==['write-tree']:args=['write-tree','--missing-ok']
         return super()._run(args,body=body,env=config)
 
 class DailyStateRepository(_DailyFilteredFetch,GitStateRepository):pass
