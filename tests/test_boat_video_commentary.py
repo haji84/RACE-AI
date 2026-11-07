@@ -1,6 +1,8 @@
 """Real local audio transport with declared synthetic recognition outputs."""
 from hashlib import sha256
+from contextlib import nullcontext
 import importlib.util
+import inspect
 import json
 from pathlib import Path
 import shutil
@@ -184,6 +186,140 @@ class CommentaryTests(unittest.TestCase):
         self.assertEqual(self.module._quality('お気持ちも'*30,[1]*100),'NEEDS_REVIEW_REPETITION')
         self.assertEqual(self.module._quality('先頭は1号艇。',list(range(440))),'NEEDS_REVIEW_LENGTH_LIMIT')
         self.assertEqual(self.module._quality('先頭は3号艇、2番手は1号艇。',[1,2,3]),'USABLE_UNVERIFIED')
+
+    def controlled_backend(self,*,on_load=None):
+        """Record real wrapper boundaries without loading weights or networking."""
+        import numpy as np
+        calls={'processor_load':[],'model_load':[],'processor':[],'generate':[],'to':[]}
+        class Processor:
+            def __call__(inner,samples,**kw):
+                calls['processor'].append((samples.copy(),kw))
+                # Kotoba has128mel bins. The wrapper must preserve processor output.
+                return {'input_features':np.zeros((1,128,3),np.float32),
+                        'attention_mask':np.ones((1,3),np.int64)}
+            def batch_decode(inner,result,**kw):
+                return ['未検証の生文字列 7号艇']
+        processor=Processor()
+        class Model:
+            def to(inner,device):calls['to'].append(device);return inner
+            def eval(inner):return inner
+            def generate(inner,**kw):
+                calls['generate'].append(kw)
+                return np.array([[10,20,30]],np.int64)
+        model=Model()
+        class Loader:
+            @classmethod
+            def from_pretrained(cls,*args,**kw):
+                calls['model_load'].append((args,kw))
+                if on_load:on_load()
+                return model
+        def load_processor(*args,**kw):
+            calls['processor_load'].append((args,kw));return processor
+        transformers=ModuleType('transformers')
+        transformers.WhisperForConditionalGeneration=Loader
+        transformers.WhisperProcessor=SimpleNamespace(from_pretrained=load_processor)
+        torch=ModuleType('torch');torch.float32=object();torch.inference_mode=nullcontext
+        return calls,{'torch':torch,'transformers':transformers}
+
+    def controlled_assets(self,name='model'):
+        directory=self.root/name;directory.mkdir()
+        weight=directory/'model.safetensors';weight.write_bytes(b'CONTROLLED_LOCAL_PROFILE_WEIGHT')
+        return directory,{'model.safetensors':sha256(weight.read_bytes()).hexdigest()}
+
+    def require_profiles(self):
+        self.assertIn('model_profile',inspect.signature(self.module.PinnedCommentaryRecognizer).parameters,
+                      'Optional pinned ASR profile selection is missing')
+        self.assertTrue(hasattr(self.module,'KOTOBA_MODEL_FILES'),'Kotoba asset pins are missing')
+
+    def test_default_tiny_profile_keeps_eager_generation_and_local_only_load(self):
+        self.require_profiles()
+        import numpy as np
+        directory,pins=self.controlled_assets();calls,backend=self.controlled_backend()
+        with patch.dict(self.module.MODEL_FILES,pins,clear=True),patch.dict(sys.modules,backend):
+            recognizer=self.module.PinnedCommentaryRecognizer(model_path=directory)
+            result=recognizer(np.full(16000,.1,np.float32))
+        self.assertEqual(recognizer.metadata()['model_profile'],'whisper-tiny')
+        self.assertEqual(recognizer.metadata()['model_id'],'openai/whisper-tiny')
+        self.assertEqual(calls['model_load'][0][1],dict(local_files_only=True,
+            use_safetensors=True,attn_implementation='eager'))
+        self.assertEqual(calls['processor_load'][0][1],dict(local_files_only=True))
+        generated=calls['generate'][0]
+        self.assertEqual(generated['max_new_tokens'],440)
+        self.assertNotIn('condition_on_prev_tokens',generated)
+        self.assertEqual(result['text'],'未検証の生文字列 7号艇')
+
+    def test_explicit_kotoba_profile_preserves_128_mel_features_and_raw_greedy_output(self):
+        self.require_profiles()
+        import numpy as np
+        directory,pins=self.controlled_assets();calls,backend=self.controlled_backend()
+        samples=np.full(80000,.1,np.float32);before=samples.copy()
+        with patch.dict(self.module.KOTOBA_MODEL_FILES,pins,clear=True),patch.dict(sys.modules,backend):
+            recognizer=self.module.PinnedCommentaryRecognizer(model_path=directory,model_profile='kotoba-v2')
+            result=recognizer(samples)
+        metadata=recognizer.metadata()
+        self.assertEqual(metadata['model_profile'],'kotoba-v2')
+        self.assertEqual(metadata['model_id'],'kotoba-tech/kotoba-whisper-v2.0')
+        self.assertEqual(metadata['model_revision'],'7eb575277d18909a4af8a24e3ae8cce2e99794ae')
+        self.assertEqual(metadata['model_file_sha256'],pins)
+        self.assertFalse(metadata['field_validated']);self.assertEqual(metadata['network_requests'],0)
+        self.assertEqual(calls['model_load'][0][1],dict(local_files_only=True,use_safetensors=True,
+            attn_implementation='sdpa',dtype=backend['torch'].float32))
+        self.assertEqual(calls['to'],['cpu'])
+        generated=calls['generate'][0]
+        self.assertEqual(generated['input_features'].shape,(1,128,3))
+        self.assertIn('attention_mask',generated)
+        for key,value in dict(language='ja',task='transcribe',do_sample=False,num_beams=1,
+                temperature=0.,return_timestamps=False,condition_on_prev_tokens=False,prompt_ids=None).items():
+            self.assertIn(key,generated);self.assertEqual(generated[key],value)
+        self.assertNotIn('max_new_tokens',generated,'Use the pinned Kotoba generation config, matching its frozen profile')
+        self.assertNotIn('initial_prompt',generated);self.assertNotIn('hotwords',generated)
+        self.assertEqual(result['text'],'未検証の生文字列 7号艇')
+        self.assertEqual(result['raw_token_ids'],[10,20,30])
+        self.assertTrue(np.array_equal(samples,before));self.assertFalse(result['accuracy_validated'])
+
+    def test_profile_asset_mismatch_is_rejected_before_backend_load(self):
+        self.require_profiles()
+        directory,pins=self.controlled_assets();calls,backend=self.controlled_backend()
+        wrong={'model.safetensors':sha256(b'OTHER_PROFILE_WEIGHT').hexdigest()}
+        with patch.dict(self.module.MODEL_FILES,pins,clear=True), \
+             patch.dict(self.module.KOTOBA_MODEL_FILES,wrong,clear=True),patch.dict(sys.modules,backend):
+            with self.assertRaises(ValueError):
+                self.module.PinnedCommentaryRecognizer(model_path=directory,model_profile='kotoba-v2')
+        self.assertEqual(calls['model_load'],[]);self.assertEqual(calls['processor_load'],[])
+
+    def test_invalid_or_remote_profile_inputs_never_load_backend(self):
+        self.require_profiles()
+        calls,backend=self.controlled_backend()
+        with patch.dict(sys.modules,backend):
+            for profile in ('unknown','WHISPER-TINY',None,True,{'profile':'kotoba-v2'}):
+                with self.subTest(profile=profile),self.assertRaises(ValueError):
+                    self.module.PinnedCommentaryRecognizer(model_path=self.root,model_profile=profile)
+            for profile in ('whisper-tiny','kotoba-v2'):
+                for path in ('https://invalid.example/model','//invalid.example/model',self.root/'missing'):
+                    with self.subTest(profile=profile,path=path),self.assertRaises(ValueError):
+                        self.module.PinnedCommentaryRecognizer(model_path=path,model_profile=profile)
+        self.assertEqual(calls['model_load'],[]);self.assertEqual(calls['processor_load'],[])
+
+    def test_kotoba_weights_changed_during_load_cannot_receive_a_pinned_receipt(self):
+        self.require_profiles()
+        directory,pins=self.controlled_assets();weight=directory/'model.safetensors'
+        calls,backend=self.controlled_backend(on_load=lambda:weight.write_bytes(b'CHANGED_DURING_LOAD'))
+        with patch.dict(self.module.KOTOBA_MODEL_FILES,pins,clear=True),patch.dict(sys.modules,backend):
+            with self.assertRaises(ValueError):
+                self.module.PinnedCommentaryRecognizer(model_path=directory,model_profile='kotoba-v2')
+        self.assertEqual(len(calls['model_load']),1)
+
+    def test_each_profile_rejects_symlink_assets_before_loading(self):
+        self.require_profiles()
+        for profile,constant in [('whisper-tiny','MODEL_FILES'),('kotoba-v2','KOTOBA_MODEL_FILES')]:
+            directory,pins=self.controlled_assets(profile)
+            original=directory/'model.safetensors';target=self.root/(profile+'.original')
+            original.rename(target);original.symlink_to(target)
+            calls,backend=self.controlled_backend()
+            with patch.dict(getattr(self.module,constant),pins,clear=True),patch.dict(sys.modules,backend):
+                with self.assertRaises(ValueError):
+                    self.module.PinnedCommentaryRecognizer(model_path=directory,model_profile=profile)
+            self.assertEqual(calls['model_load'],[]);self.assertEqual(calls['processor_load'],[])
 
 
 if __name__=='__main__':unittest.main()

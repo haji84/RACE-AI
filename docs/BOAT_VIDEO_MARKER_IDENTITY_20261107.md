@@ -1,6 +1,38 @@
 # 6艇の画像内識別・継続追跡の検証（2026-11-07）
 
-## 2026-11-08の展示区間・実実況の検証結果
+## 2026-11-08の追加実装：画面内容の抽出と日本語実況
+
+`boat_video_activity.py` に、固定ローカルUperNet/YOLOXから水面・艇の画面候補を抽出する経路を追加した。水面の占有率だけでは岸の大きい画角を見逃すため、現在の艇検出とADEの艇領域、水面につながる画像境界を使う補完結果を別fieldへ保存する。`primary_water_content_candidate` と `border_connected_boat_content_candidate`、両者の `primary_aquatic_content_candidate` を区別する。湖のclass128の取り漏れも修正したが、検証した旧312点には湖classがなく、この修正による見逃し回復は0だった。
+
+新177点の封印済みAI参照との照合は、aquatic候補が陽性80/85・陰性への誤検出0/92。Fukuokaは55/56・0/90で、事前に決めたFukuokaと全体のゲートを通過した。一方、Nesnadは7/11で場面別90%に届かず、水面単独も72/85で不合格。既知媒体内の別フレームによる開発評価であり、別媒体・humanGT・LIVE・艇の同一性・予想精度の合格とは区別する。
+
+同じmedia SHAの展示文脈がある場合だけ `depicted_exhibition_content_candidate` を出す。文脈なしの新177点は全てfalse、`specific_phase=UNKNOWN`を維持した。画面内の小窓が画像の隅に接している場合の曖昧さも記録する。現在の展示開催・動作・スタート/周回の認証は行わない。
+
+```bash
+python scripts/boat_video_marker_analyze.py \
+  --media /private/input/video.mp4 --output-dir /private/output/new-content-analysis \
+  --phase-only --activity-model /private/models/upernet-convnext-tiny \
+  --activity-boat-model /private/models/object_detection_yolox_2022nov.onnx \
+  --exhibition-topic-context /private/input/source-topic.json --development
+```
+
+文脈JSONは所有者専用600の通常ファイルとし、次の4fieldのみ。`media_sha256` は実入力のSHA、`provenance_sha256` はその文脈の出典受領証のSHAに置く。`topic` は `EXHIBITION_TUTORIAL` / `EXHIBITION_BROADCAST` / `UNKNOWN`。この宣言の一致を開催認証へ昇格させない。
+
+```json
+{"schema_version":"RACE_AI_LOCAL_MEDIA_TOPIC_CONTEXT_V1","media_sha256":"<実入力SHA256>","topic":"EXHIBITION_TUTORIAL","provenance_sha256":"<文脈出典SHA256>"}
+```
+
+毎秒の観測だけを抽出し、全decoded frameと原PTSをjournalへ保存する。浮動小数の差で秒境界を飛ばさないよう、比較だけをmicrosecond精度の固定gridへ合わせた。区間は2つの異なる観測画像から確認し、未観測frameを補間しない。始終端の観測範囲・陰性・UNKNOWN・EOFの打切りを保存し、再表示による同一画像は区間内の確認回数を増やさない。内容の再表示区間は別に記録する。実原画360frameのBGR/PTS全一致と12回の実NN・固定V2幾何値の一致を保全した。さらに原動画4376frameを最終V4コードで全処理し、146回の実NN、同じmediaの展示文脈による54観測点・1候補区間を保存した。全4376frameのBGR/PTSが元decodeと一致し、146回全ての38判定field・class map hashも固定V4と一致。製品CLI全体は577.718秒で、実時間処理は未達、密な区間境界精度は未検証。
+
+`boat_video_reazon.py` は、固定4assetの日本語ReazonSpeech/Sherpaを追加した。任意依存は `requirements-video-speech.txt`。既存CLIで `--commentary-model /private/models/reazonspeech-k2-v2-int8 --commentary-profile reazon-k2-v2-int8` を選べる。既定Tinyは維持し、Kotobaも `--commentary-profile kotoba-v2` で明示する。モデルはダウンロードしない。Reazonの既定は公式greedyで、`reazon-k2-v2-int8-context` は独立作成した一般36語を使う研究用設定。辞書による改善は未実証で、自動採用しない。
+
+一般36語を使うReazon試作では音声約720秒・144窓のNN合計が101.602秒だった（製品CLI全処理時間ではない）。ただし、人の参照がある2つの順位対応は1/2のまま。対象艇番自体は2/2を読める。Whisperの複数設定、一般36語・219句、長い履歴、公式FP32原本の比較も未達を保全し、不明語を正解語へ置換しない。別Base-ASRとの一致はAI参照との比較として別集計する。低信号35窓にも非空の認識文が出たため、低信号保留を維持する。処理速度を認識精度と混同しない。
+
+モデル読込は保持したdescriptorから行い、祖先パスの一時的な差替え・ファイル変更を検知/排除する。実況の否定・願望・追跡対象・言い直しは現在順位として採用せず、途中の不明語は保留する。実装の全テストと実認識の合否を分ける。`model_eligible=false` / `production_eligible=false` を維持し、既存自動予想・予想原本を変更しない。
+
+[今回の機械可読な検証記録](evidence/boat-video-activity-native-commentary-corrections-20261108.json)と `docs/RACE_AI_LATEST_STATUS.md` に、実装済み・開発評価・未達を分けて記録する。
+
+## 前回の展示区間・実実況の検証結果（修正前の記録）
 
 自動区間の既存実装はなく、宣言phaseだけだったため、`boat_video_phase.py` に固定日本語画面OCRと時系列候補を追加して実行した。全147点を原画だけのAI参照と照合すると、展示55点のうち確定候補1点、生候補3点。誤検出0だが見逃し/保留が多く、周回展示18点は全保留。持続区間の検出は未合格。人間GTや実LIVEの認識率ではない。
 

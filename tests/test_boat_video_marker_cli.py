@@ -9,7 +9,9 @@ from pathlib import Path
 import shutil
 import stat
 import subprocess
+import sys
 import tempfile
+from types import ModuleType
 import unittest
 from unittest.mock import patch
 
@@ -257,24 +259,32 @@ class MarkerCliTests(unittest.TestCase):
                     detections=[dict(box=[10,10,30,40],score=.9,coco_class_id=0,semantic_type='RIDER_PART_TYPED')],
                     engine=self.metadata(),identity_validated=False,model_eligible=False)
         class Recognizer:
-            def __init__(self,**kw):pass
-            def metadata(self):return {'kind':'SYNTHETIC_RECOGNITION_TEST'}
+            def __init__(self,**kw):
+                self.profile=kw.get('model_profile',
+                    'reazon-k2-v2-int8-context' if kw.get('context_vocabulary') else 'reazon-k2-v2-int8')
+            def metadata(self):return {'kind':'SYNTHETIC_RECOGNITION_TEST','profile':self.profile}
             def __call__(self,samples,*,sample_rate):
                 return dict(text='先頭は3号艇。',quality_status='USABLE_UNVERIFIED',raw_token_ids=[1,2])
-        args=self.arguments(media=media)+['--rider-model',str(self.models[0]),
-            '--commentary-model',str(self.root),'--broadcast-phase','RACE']
-        with patch('race_ai.boat_video_rider_detector.PinnedRiderPartDetector',Detector), \
-             patch('race_ai.boat_video_commentary.PinnedCommentaryRecognizer',Recognizer):
-            code,out,err=self.invoke(args)
-        self.assertEqual(code,0,(out,err))
-        speech=json.loads((self.output/'commentary-receipt.json').read_text())
-        self.assertEqual(speech['chunk_count'],1)
-        self.assertEqual(speech['audio_timeline']['start_pts'],7.)
-        self.assertEqual(len(self.journal()),10)
-        for row in self.journal():
-            self.assertEqual(row['pipeline_result']['rider_part_tracking']['broadcast_context']['active_cues'],[])
-        context=json.loads((self.output/'broadcast-context.json').read_text())
-        self.assertEqual(context['segments'][0]['available_from_pts'],8.)
+        module=ModuleType('race_ai.boat_video_reazon');module.PinnedReazonCommentaryRecognizer=Recognizer
+        for profile in ['kotoba-v2','reazon-k2-v2-int8','reazon-k2-v2-int8-context']:
+            with self.subTest(profile=profile):
+                self.output=self.root/('output-'+profile)
+                args=self.arguments(media=media)+['--rider-model',str(self.models[0]),
+                    '--commentary-model',str(self.root),'--commentary-profile',profile,'--broadcast-phase','RACE']
+                with patch('race_ai.boat_video_rider_detector.PinnedRiderPartDetector',Detector), \
+                     patch('race_ai.boat_video_commentary.PinnedCommentaryRecognizer',Recognizer), \
+                     patch.dict(sys.modules,{'race_ai.boat_video_reazon':module}):
+                    code,out,err=self.invoke(args)
+                self.assertEqual(code,0,(out,err))
+                speech=json.loads((self.output/'commentary-receipt.json').read_text())
+                self.assertEqual(speech['recognizer']['profile'],profile)
+                self.assertEqual(speech['chunk_count'],1)
+                self.assertEqual(speech['audio_timeline']['start_pts'],7.)
+                self.assertEqual(len(self.journal()),10)
+                for row in self.journal():
+                    self.assertEqual(row['pipeline_result']['rider_part_tracking']['broadcast_context']['active_cues'],[])
+                context=json.loads((self.output/'broadcast-context.json').read_text())
+                self.assertEqual(context['segments'][0]['available_from_pts'],8.)
 
     @unittest.skipUnless(importlib.util.find_spec('cv2'), 'optional video dependencies')
     def test_automatic_phase_only_needs_no_declared_phase_or_identity_models(self):
@@ -315,6 +325,148 @@ class MarkerCliTests(unittest.TestCase):
                 code,out,err=self.invoke(self.arguments()+options)
                 self.assertNotEqual(code,0)
                 self.assertFalse(self.output.exists())
+
+    @unittest.skipUnless(importlib.util.find_spec('cv2'), 'optional video dependencies')
+    def test_primary_water_sampling_preserves_all_frames_and_source_topic_binding(self):
+        from tests.test_boat_video_commentary import CommentaryTests
+        fixture=CommentaryTests();fixture.setUp();self.addCleanup(fixture.doCleanups)
+        media=fixture.fixture(audio=False,duration=2.5)
+        context=dict(schema_version='RACE_AI_LOCAL_MEDIA_TOPIC_CONTEXT_V1',
+            media_sha256=sha256(media.read_bytes()).hexdigest(),topic='EXHIBITION_TUTORIAL',
+            provenance_sha256='a'*64)
+        topic=self.root/'topic.json';topic.write_text(json.dumps(context));topic.chmod(0o600)
+        module=ModuleType('race_ai.boat_video_activity')
+        class Reader:
+            def __init__(self,**kw):pass
+            def metadata(self):return {'kind':'SYNTHETIC_PRIMARY_WATER_TEST'}
+            def __call__(self,frame,*,media_sha256,source_context=None):
+                return dict(frame_sha256=sha256(frame.tobytes()).hexdigest(),
+                    media_sha256=media_sha256,source_context=source_context,status='CONTENT_OBSERVATION',
+                    primary_water_content_candidate=True,
+                    depicted_exhibition_content_candidate=source_context is not None,
+                    authenticated_current_exhibition=False,model_eligible=False)
+        module.LocalPrimaryWaterReader=Reader
+        args=['--media',str(media),'--output-dir',str(self.output),'--phase-only',
+            '--activity-model',str(self.root),'--activity-boat-model',str(self.models[0]),
+            '--exhibition-topic-context',str(topic),'--development','--source-role','SYNTHETIC_TEST']
+        with patch.dict(sys.modules,{'race_ai.boat_video_activity':module}):
+            code,out,err=self.invoke(args,injected=False)
+        self.assertEqual(code,0,(out,err))
+        rows=self.journal();self.assertEqual(len(rows),25)
+        observations=[row['pipeline_result']['primary_water_detection'] for row in rows]
+        self.assertEqual(sum(x['fresh_observation'] for x in observations),3)
+        for row,observation in zip(rows,observations):
+            self.assertEqual(observation['source_pts'],row['source_pts'])
+            self.assertEqual(observation['frame_sha256'],row['decoded_bgr_sha256'])
+            self.assertFalse(observation['usable_for_identity'])
+            if observation['fresh_observation']:
+                self.assertEqual(observation['observation']['source_context'],context)
+                self.assertEqual(observation['observation']['media_sha256'],context['media_sha256'])
+            else:self.assertIsNone(observation['observation'])
+        receipt=json.loads((self.output/'receipt.json').read_text())
+        self.assertFalse(receipt['primary_water_detection']['authenticated_current_exhibition'])
+        intervals=receipt['primary_water_detection']['observed_content_intervals']
+        self.assertEqual(len(intervals['depicted_exhibition_content_candidate']),1)
+        self.assertEqual(intervals['depicted_exhibition_content_candidate'][0]['distinct_positive_samples'],3)
+        self.assertEqual(json.loads((self.output/'exhibition-topic-context.json').read_text()),context)
+
+    def test_primary_water_options_reject_unpaired_assets_and_unbound_topic(self):
+        options=[['--phase-only','--activity-model',str(self.root)],
+                 ['--phase-only','--activity-boat-model',str(self.models[0])],
+                 ['--phase-only','--exhibition-topic-context',str(self.models[0])]]
+        for extra in options:
+            with self.subTest(extra=extra):
+                self.assertNotEqual(self.invoke(self.arguments()+extra)[0],0)
+                self.assertFalse(self.output.exists())
+
+    def test_exhibition_topic_context_requires_exact_media_sha(self):
+        context=dict(schema_version='RACE_AI_LOCAL_MEDIA_TOPIC_CONTEXT_V1',
+            media_sha256='0'*64,topic='EXHIBITION_TUTORIAL',provenance_sha256='a'*64)
+        topic=self.root/'topic.json';topic.write_text(json.dumps(context));topic.chmod(0o600)
+        args=['--media',str(self.media),'--output-dir',str(self.output),'--phase-only',
+            '--activity-model',str(self.root),'--activity-boat-model',str(self.models[0]),
+            '--exhibition-topic-context',str(topic),'--development']
+        code,out,err=self.invoke(args,injected=False)
+        self.assertEqual(code,2)
+        self.assertIn('EXHIBITION_CONTEXT_REJECTED',out)
+        self.assertFalse((self.output/'receipt.json').exists())
+
+    def test_content_intervals_require_distinct_samples_and_keep_boundary_uncertainty(self):
+        self.assertTrue(hasattr(self.cli,'_SampledContentIntervals'),'sampled interval component missing')
+        tracker=self.cli._SampledContentIntervals()
+        def observe(stamp,positive,digest):
+            tracker.update(t=stamp,scene=0,frame_sha256=digest*64,
+                primary_water_content_candidate=positive,depicted_exhibition_content_candidate=False)
+        observe(0.,False,'a');observe(1.,True,'b');observe(2.,True,'b')
+        self.assertEqual(tracker.summary()['primary_water_content_candidate'],[])
+        observe(3.,True,'c');observe(4.,False,'d')
+        interval=tracker.summary()['primary_water_content_candidate'][0]
+        self.assertEqual(interval['first_observed_t'],1.)
+        self.assertEqual(interval['confirmed_from_t'],3.)
+        self.assertEqual(interval['last_observed_t'],3.)
+        self.assertEqual(interval['last_negative_before_t'],0.)
+        self.assertEqual(interval['first_negative_after_t'],4.)
+        self.assertEqual(interval['distinct_positive_samples'],2)
+        self.assertTrue(interval['sampled_points_only'])
+        self.assertEqual(tracker.summary()['depicted_exhibition_content_candidate'],[])
+
+    def test_unknown_content_does_not_create_a_negative_interval_boundary(self):
+        self.assertTrue(hasattr(self.cli,'_SampledContentIntervals'))
+        tracker=self.cli._SampledContentIntervals()
+        for stamp,value,digest in [(0.,True,'a'),(1.,True,'b'),(2.,None,'c')]:
+            tracker.update(t=stamp,scene=0,frame_sha256=digest*64,
+                primary_water_content_candidate=value,depicted_exhibition_content_candidate=value)
+        interval=tracker.summary()['primary_water_content_candidate'][0]
+        self.assertIsNone(interval['first_negative_after_t'])
+        self.assertTrue(interval['right_boundary_censored'])
+        self.assertEqual(interval['right_censor_reason'],'UNKNOWN_CONTENT_OBSERVATION')
+
+    def test_content_interval_resets_on_time_gap_and_has_censored_eof(self):
+        self.assertTrue(hasattr(self.cli,'_SampledContentIntervals'),'sampled interval component missing')
+        tracker=self.cli._SampledContentIntervals()
+        for stamp,scene,digest in [(0.,0,'a'),(1.,0,'b'),(3.,0,'c'),(4.,0,'d'),(5.,1,'e')]:
+            tracker.update(t=stamp,scene=scene,frame_sha256=digest*64,
+                primary_water_content_candidate=True,depicted_exhibition_content_candidate=True)
+        groups=tracker.summary()['depicted_exhibition_content_candidate']
+        self.assertEqual([(x['first_observed_t'],x['last_observed_t']) for x in groups],[(0.,1.),(3.,4.)])
+        self.assertTrue(all(x['first_negative_after_t'] is None for x in groups))
+        self.assertTrue(all(x['right_boundary_censored'] for x in groups))
+
+    def test_repeated_display_content_extends_time_and_can_form_a_separate_later_run(self):
+        tracker=self.cli._SampledContentIntervals()
+        for stamp,positive,digest in [(0.,True,'a'),(1.,True,'b'),(2.,True,'b'),
+                                     (3.,False,'n'),(4.,True,'a'),(5.,True,'b')]:
+            tracker.update(t=stamp,scene=0,frame_sha256=digest*64,
+                primary_water_content_candidate=positive,depicted_exhibition_content_candidate=False)
+        rows=tracker.summary()['primary_water_content_candidate']
+        self.assertEqual([(x['first_observed_t'],x['last_observed_t']) for x in rows],[(0.,2.),(4.,5.)])
+        self.assertEqual([x['distinct_positive_samples'] for x in rows],[2,2])
+
+    def test_primary_water_cadence_keeps_the_ffprobe_microsecond_clock_grid(self):
+        import numpy as np
+        def reader(frame,*,media_sha256,source_context):
+            return dict(frame_sha256=sha256(frame.tobytes()).hexdigest(),media_sha256=media_sha256,
+                status='CONTENT_OBSERVATION',primary_water_content_candidate=True,
+                depicted_exhibition_content_candidate=False)
+        pipeline=self.cli._PrimaryWaterPipeline(None,reader,media_sha256='a'*64,source_context=None)
+        observed=[]
+        for index,stamp in [(0,.036),(30,1.036),(60,2.036),(90,3.036),(120,4.036),(150,5.036)]:
+            row=pipeline.update(np.full((8,8,3),index,dtype=np.uint8),
+                t=stamp-.036,frame_index=index,scene=0)
+            if row['primary_water_detection']['fresh_observation']:observed.append(index)
+        self.assertEqual(observed,[0,30,60,90,120,150])
+
+    def test_aquatic_content_intervals_are_separate_from_water_majority(self):
+        tracker=self.cli._SampledContentIntervals()
+        for stamp,digest in [(0.,'a'),(1.,'b')]:
+            tracker.update(t=stamp,scene=0,frame_sha256=digest*64,
+                primary_water_content_candidate=False,primary_aquatic_content_candidate=True,
+                depicted_exhibition_content_candidate=False)
+        rows=tracker.summary()
+        self.assertIn('primary_aquatic_content_candidate',rows)
+        self.assertEqual(len(rows['primary_aquatic_content_candidate']),1)
+        self.assertEqual(rows['primary_water_content_candidate'],[])
+        self.assertEqual(rows['depicted_exhibition_content_candidate'],[])
 
     def test_remote_rider_asset_rejected_before_native_execution(self):
         args = self.arguments() + ['--rider-model', 'https://owner-secret.invalid/model.onnx']
