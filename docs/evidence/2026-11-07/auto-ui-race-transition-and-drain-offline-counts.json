@@ -25,7 +25,10 @@
     "stop_reason": "FINISHED",
     "normal_semantic_ui_clicks": 2,
     "already_selected_day_clicks": 0,
-    "cached_static_dispatches": 0
+    "cached_static_dispatches": 0,
+    "request_limit_preserves_previously_dispatched_response": true,
+    "delayed_response_beyond_queue_spacing_regression_ms": 1600,
+    "offline_contract_tests_passed": 35
   },
   "ordered_transport_milestones": [
     {

@@ -256,11 +256,11 @@ async function installByteGuard(context,page,stop){
 }
 async function capturePlan(input,out,{chromium,executablePath=process.env.CHROMIUM_PATH||'/usr/bin/chromium'}={}){
  const plan=validatePlan(input),root=createPrivateOutput(out),started=stamp(),due=dueCases(plan),budget=createBudget(plan.request_budget||MAX_REQUESTS);
- const ledger=[],responses=[],cases=[],cache=validateStaticCache(plan.static_cache||[],plan),pending=new Set(),timers=new Map();let browser,context,deadline,activeSport=null,activeCases=[],dispatch=Promise.resolve(),finalizing=false;
+ const ledger=[],responses=[],cases=[],cache=validateStaticCache(plan.static_cache||[],plan),pending=new Set(),timers=new Map();let browser,context,deadline,activeSport=null,activeCases=[],dispatch=Promise.resolve(),finalizing=false,forcedStop=false;
  const progress=new Set(),notify=()=>{for(const resolve of progress)resolve();progress.clear();};
- const drain=async()=>{for(;;){const queued=dispatch;await queued;await Promise.allSettled([...pending]);if(queued!==dispatch)continue;if(budget.reason||(!timers.size&&!pending.size))return;await new Promise(resolve=>progress.add(resolve));}};
+ const drain=async()=>{for(;;){const queued=dispatch;await queued;await Promise.allSettled([...pending]);if(queued!==dispatch)continue;if(forcedStop||(!timers.size&&!pending.size))return;await new Promise(resolve=>progress.add(resolve));}};
  const add=e=>{if(ledger.length<2048)ledger.push(e);else budget.stop('LEDGER_LIMIT');};
- const stop=reason=>{budget.stop(reason);notify();if(context)context.close().catch(()=>{});};
+ const stop=reason=>{forcedStop=true;budget.stop(reason);notify();if(context)context.close().catch(()=>{});};
  deadline=setTimeout(()=>stop('TIME_LIMIT'),ELAPSED_MS);
  try{
   if(due.length){need(typeof executablePath==='string'&&path.isAbsolute(executablePath)&&fs.existsSync(executablePath),'FIXED_CHROMIUM_REQUIRED');

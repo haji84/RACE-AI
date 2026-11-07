@@ -26,11 +26,11 @@ function staticEntries(){return cssUrls.map((url,index)=>{
   fetched_at:'2020-01-01T00:00:00Z',response_received_at:'2020-01-01T00:00:01Z'}};
 });}
 
-async function capture(withCache,{lateRead=false,closeRead=false}={}){
+async function capture(withCache,{lateRead=false,closeRead=false,capDelay=false}={}){
  const temporary=fs.mkdtempSync(path.join(os.tmpdir(),'prior-static-wire-'));
  const out=path.join(temporary,'capture');
  const entries=staticEntries(),before=structuredClone(entries),requests=[],fulfilled=[];
- let handler,closed=false,lateTask,closingTask;
+ let handler,closed=false,lateTask,closingTask,delayedTask;
  const context=new EventEmitter();
  async function perform(url,method,type,body,raw){
   const record={url,method,type,body:Buffer.from(body),continued:false,aborted:false};requests.push(record);
@@ -44,7 +44,8 @@ async function capture(withCache,{lateRead=false,closeRead=false}={}){
     record.continued=true;record.reserved_after_close=closed;record.sequence=req._officialCapture.sequence;
     const checkpoint=JSON.parse(fs.readFileSync(path.join(out,'request-ledger-'+String(record.sequence).padStart(3,'0')+'.json')));
     assert.equal(checkpoint.actual_request_count,record.sequence);
-    context.emit('response',response);context.emit('page-response',response);
+    const emit=()=>{context.emit('response',response);context.emit('page-response',response);};
+    if(capDelay&&record.sequence===5)delayedTask=new Promise(resolve=>setTimeout(()=>{if(!closed)emit();resolve();},1600));else emit();
    },fulfill:async options=>{
     assert.equal(type,'stylesheet');assert.equal(method,'GET');
     assert.equal(req._officialCapture,undefined,'cache hit must precede reservation and numbered ledger');
@@ -63,7 +64,7 @@ async function capture(withCache,{lateRead=false,closeRead=false}={}){
   async goto(){
    await perform(item.ui_entry_url,'GET','document',Buffer.alloc(0),Buffer.from('<html>invented index</html>'));
    for(let index=0;index<cssUrls.length;index++)await perform(cssUrls[index],'GET','stylesheet',Buffer.alloc(0),Buffer.from(entries[index].raw_base64,'base64'));
-   for(const url of notices)await perform(url,'GET','xhr',Buffer.alloc(0),Buffer.from('{"invented_notice":true}'));
+   for(const url of (capDelay?[]:notices))await perform(url,'GET','xhr',Buffer.alloc(0),Buffer.from('{"invented_notice":true}'));
   }
   locator(selector){
    const race=selector.includes('data-raceno'),result=selector.includes('data-main-menu');
@@ -75,19 +76,19 @@ async function capture(withCache,{lateRead=false,closeRead=false}={}){
       Buffer.from(JSON.stringify({invented_source:true,endpoint})));
     },last:()=>locator};return locator;
   }
-  async content(){if(lateRead&&!lateTask)lateTask=perform('https://autorace.jp/race_info/OtherRaceInfo','POST','xhr',postBody,Buffer.from(JSON.stringify({invented_source:true,endpoint:'OtherRaceInfo'})));return '<html>invented transport fixture; no result teacher</html>';}
+  async content(){if((lateRead||capDelay)&&!lateTask){const read=()=>perform('https://autorace.jp/race_info/OtherRaceInfo','POST','xhr',postBody,Buffer.from(JSON.stringify({invented_source:true,endpoint:'OtherRaceInfo'})));lateTask=capDelay?Promise.all([read(),read()]):read();}return '<html>invented transport fixture; no result teacher</html>';}
  }
  Object.assign(context,{setDefaultTimeout(){},routeWebSocket:async()=>{},
   newCDPSession:async()=>({send:async()=>{},on(){}}),route:async(_,callback)=>{handler=callback;},
   newPage:async()=>new Page(),close:async()=>{closed=true;if(closeRead&&!closingTask)closingTask=perform('https://autorace.jp/race_info/OtherRaceInfo','POST','xhr',postBody,Buffer.from('{}'));if(closingTask)await closingTask;}});
- const plan={schema:api.SCHEMA,cases:[structuredClone(item)],request_budget:lateRead?10:8,
+ const plan={schema:api.SCHEMA,cases:[structuredClone(item)],request_budget:capDelay?5:lateRead?10:8,
   ...(withCache?{static_cache:entries}:{})};
  const original=structuredClone(plan);
  try{
   if(withCache)assert.equal(api.validateStaticCache(entries,plan).size,3);
   const index=await api.capturePlan(plan,out,{executablePath:process.execPath,
    chromium:{launch:async()=>({newContext:async()=>context,close:async()=>{}})}});
-  if(lateTask)await lateTask;
+  if(lateTask)await lateTask;if(delayedTask)await delayedTask;
   assert.equal(closed,true);assert.deepEqual(entries,before);assert.deepEqual(plan,original);
   const files=Object.fromEntries(fs.readdirSync(out).filter(name=>fs.statSync(path.join(out,name)).isFile())
    .map(name=>[name,fs.readFileSync(path.join(out,name))]));
@@ -159,4 +160,16 @@ test('queued normal reads finish before context closes and the final index is im
  assert.equal(extra.sequence,undefined);
  assert.equal(Object.keys(files).some(name=>name.startsWith('request-010')||name.startsWith('response-010')),false);
  assert.ok(index.ledger.some(row=>row.event==='BLOCKED_REQUEST'&&row.reason==='CAPTURE_FINALIZING'));
+});
+
+
+test('request cap stops queued reads while preserving a previously dispatched delayed response',{timeout:20000},async()=>{
+ const {index,requests,files}=await capture(true,{capDelay:true});
+ assert.equal(index.actual_request_count,5);assert.equal(index.maximum_requests,5);assert.equal(index.stop_reason,'REQUEST_LIMIT');
+ assert.equal(index.responses.length,5,'last permitted wire response must finish even after the next read hits cap');
+ const last=index.ledger.find(row=>row.sequence===5);assert.equal(last.status,200);assert.ok(last.body_captured_at);
+ assert.ok(files[last.body_file]);assert.ok(files[last.metadata_file]);
+ const sent=requests.filter(row=>row.continued);assert.equal(sent.length,5);assert.ok(sent.every(row=>!row.reserved_after_close));
+ const extra=requests.at(-1);assert.equal(extra.aborted,true);assert.equal(extra.continued,false);assert.equal(extra.sequence,undefined);
+ assert.deepEqual(JSON.parse(files['capture-index.json']),index);assert.equal(index.formal_learning_or_pdca_claim,false);
 });
