@@ -7,9 +7,9 @@
 
 **艇番の原因修正と未達:** 数字候補を艇画像の上側という理由だけで除外していた条件1個を修正し、上下移動のRED→GREENを確認。固定された写真の自動検出艇画像では、AI開発参照と一致するdistinct番号領域が0→2。選択済み同一撮影者データであり、独立精度・人間正解とはしない。既存日本競艇動画は全775フレームを照合し、実97sample/679検出forward/962CRNN forwardを実行したが、時間をまたぐ艇番は0→0、有効位置も0、動画での改善は未実証（597.302秒、budget不完了4件/省略view22件）。6艇継続識別・ターン/出足/行き足/伸びの実評価・予想精度改善は完成していない。重み・語彙・閾値・本番モデルを変更せず、映像特徴を現在の本番予想へ適用していない。
 
-**失敗修正・全体検証:** 独立レビューで確認した応答待機の途中終了、同URIの新sequence、SQLite部分保存、export復旧、directory fsync、初回variant固定、不完全受信、sliding PDT、partial stage残存、CLI SQLite例外を再現して修正。最終関連4module60件PASS、並行変更を取り込んだコードcommit `038ca2a…` のPython全体2,635件PASS（847.837秒）。実媒体66保存物のSHA/size/0600を別途再照合。初回の参照checkout不足による失敗と実装途中の失敗ログも保全し、成功へ置き換えていない。
+**失敗修正・全体検証:** 独立レビューで確認した応答待機の途中終了、同URIの新sequence、SQLite部分保存、export復旧、directory fsync、初回variant固定、不完全受信、sliding PDT、partial stage残存、CLI SQLite例外を再現して修正。最終関連4module60件PASS、並行変更を取り込んだコードcommit `038ca2a…` のPython全体2,635件PASS（847.837秒）。実媒体66保存物のSHA/size/0600を別途再照合。 後続workerの変更を保持した6ef96d0時点でも今回の映像コードSHA不変・関連60件PASSを再確認（後続の無関係な変更全体を2,635件検証済みとは扱わない）。初回の参照checkout不足による失敗と実装途中の失敗ログも保全し、成功へ置き換えていない。
 
-**外部条件・保全:** 公式LIVEの403は未解消で、正規にクラウド取得できる現在映像の確認が必要。問い合わせは引き続き未送信。単なるsource宣言を許諾/レース認証へ昇格しない。実機Safari、4競技の継続実運転と前向き精度改善も今回のtransport成功で完了扱いにしない。起点DB SHA `c40bead0…` と保護checkoutは不変、既存監視/動画intakeは稼働継続。新PR・Issue・workflow・外部schedule・予想モデル系統・追加課金・環境再公開・main統合・一般公開・実投票・本番切替なし。
+**外部条件・保全:** 11/7 09:48:10.456 JST、当日morning開催・4R発売中/10:05締切の根拠を公式portalで確認した新規の三国LIVEも、正規プレーヤーの自動初期化API1回で実HTTP403/P01002「この動画の視聴は許可されていません」。可視Play前に停止し、manual Play0・映像応答0・保存0B/0frame・再要求/別会場切替0、AUTHORIZATION_WAITを記録した。過去の拒否映像は再要求していない。現在映像の403は未解消で、原因の特定・正規アクセス確認が必要。問い合わせは引き続き未送信。単なるsource宣言を許諾/レース認証へ昇格しない。実機Safari、4競技の継続実運転と前向き精度改善も今回のtransport成功で完了扱いにしない。起点DB SHA `c40bead0…` と保護checkoutは不変、既存監視/動画intakeは稼働継続。新PR・Issue・workflow・外部schedule・予想モデル系統・追加課金・環境再公開・main統合・一般公開・実投票・本番切替なし。
 
 [操作方法と出典](BOAT_VIDEO_CONTINUOUS_CAPTURE_20261107.md)／[集計・コードSHA・検証証拠](evidence/boat-video-continuous-identity-20261107.json)。全体の完成判定は未達のまま維持する。
 
