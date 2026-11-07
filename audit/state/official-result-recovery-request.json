@@ -25,6 +25,12 @@
         "head_sha": "11d070dd1984e50d8d5bd6fcca738865cdc93b19",
         "id": 13578691832,
         "run_id": 42383095124
+      },
+      {
+        "digest": "sha256:a50542b17cced7fec3aee37dd3ec5633eccb611c4d087375ef8b62b0b8c2b14e",
+        "head_sha": "0a5e2a02056ef828dbb805a1d39e537c6546522e",
+        "id": 13589980082,
+        "run_id": 42407158403
       }
     ],
     "execution_day": "2026-11-08",
@@ -54,8 +60,8 @@
         "run_id": 42341849641
       }
     ],
-    "plan_path": "audit/state/official-result-collection-plan-6b6c4994842068337d87ea5adeb0e7bea383f9a7eb07fb6c3a476a4fed9d3957.enc",
-    "plan_sha256": "6b6c4994842068337d87ea5adeb0e7bea383f9a7eb07fb6c3a476a4fed9d3957",
+    "plan_path": "audit/state/official-result-collection-plan-0e513b0e9eadde64f69fba65856f71b7c262b07d74b3ef029134b5d406825ff8.enc",
+    "plan_sha256": "0e513b0e9eadde64f69fba65856f71b7c262b07d74b3ef029134b5d406825ff8",
     "prior_journal_artifacts": [
       {
         "digest": "sha256:dcc4a2c95d0677c00d0bd1c9a6f445decac5930405aff79f5f1d9a6792a78816",
@@ -88,19 +94,28 @@
         "run_id": 42378920749
       },
       {
-        "id": 13585774966,
         "digest": "sha256:6fa01a5bac2a3469c3480cc82318cc62c10e85bb2b3d4d08a5a61ceaf97f1e55",
-        "run_id": 42399972066,
-        "head_sha": "d1e9823142b145154dcccb1a6cdca485679ec6c4"
+        "head_sha": "d1e9823142b145154dcccb1a6cdca485679ec6c4",
+        "id": 13585774966,
+        "run_id": 42399972066
+      },
+      {
+        "digest": "sha256:1506a00c1d22c0c55ea54af3c13613a57b1d888f40f5ed89e726b9d6bede44a0",
+        "head_sha": "0a5e2a02056ef828dbb805a1d39e537c6546522e",
+        "id": 13589112763,
+        "run_id": 42407158403
       }
     ],
     "schema": "RACE_AI_OFFICIAL_RESULT_COLLECT_INPUT_V3",
     "target_event_day": "2026-11-07"
   },
-  "mode": "FIXED_ATTEMPT_TWO_HISTORICAL_SINGLE_NORMAL_UI_PROBE_16",
+  "mode": "FIXED_ATTEMPT_TWO_HISTORICAL_AFTER_VERIFIED_SAME_HOST_PROBE",
   "old_journal_artifact_id": 13565712487,
+  "probe_journal_artifact_id": 13589112763,
+  "probe_request_sha256": "d35c63a6e50733e30443cc6e5c299ced526004f5fb76769a1ea2cc38a7f16990",
+  "probe_result_artifact_id": 13589980082,
   "probe_sport": "autorace",
   "pull_request": 71,
   "repository_id": 1416489937,
-  "schema": "RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V4"
+  "schema": "RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V3"
 }

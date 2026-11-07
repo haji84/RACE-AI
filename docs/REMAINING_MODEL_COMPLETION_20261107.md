@@ -219,3 +219,13 @@ BOATのcallerとcold schedule修正は `09973e7fa75b97e0f59d710e8b4599a0429b6be5
 実JSの正常結果表示はResultの後にOtherと補助refund CSVも要求するため、Resultに15枠目で届くだけでは16枠内の全応答完了を保証できなかった。既存の送信前resource filterへ5行を追加し、結果用schema・AUTO・GET xhr／fetch・計画された同一日／会場／Rの正確なCSV URLだけを予約前に停止する。通常の通知、別case／未知URL、future card、既知401／403／429の停止は維持。CSVは順位parserの入力に使われておらず、必須のmain Result.refundInfo、全8登録ID・順位・特殊結果、Other、DOM、元時計・SHAの検証は保つ。CSV未取得を返還なしや金額証明へ補完しない。
 
 新しい入力契約・正常UI・旧973のCSV404読戻しを含む関連32件がumask022でPASS（30.049秒）、独立2レビューCLEAR。保存した実JSと原文prefixに、未観測部分だけ明示した合成Result2を与えるNET0実験では16予約・16完了・FINISHED／CAPTURED・CSV未送信を確認。実Result2は未取得、teacher 0、提供元GET 0。この修正を含む別HEADで初回全体CIを実行し、成功後にだけ次の固定attempt2を認証する。request d35・prior6・元plan・上限16は不変。
+
+## 実AUTO2の正常結果を認証・8ケース継続の準備
+
+修正後のHEAD `0a5e2a02056ef828dbb805a1d39e537c6546522e`／run `42407158403` は初回・2回目とも全体SUCCESS。初回Python4,266件（500 skip・失敗0、2,576.848秒）、動画283＋373件と最終画面検証を通過した。実2回目は16通信の範囲で通常AUTO2を確定し、RESULT `13589980082`（20:30:56Z）とjournal `13589112763`（20:30:57Z）を独立保存・読戻し。2回目全体の終了時刻は20:35:37Z。
+
+その実元ZIPを使用し、全prior・元S16 cap MAC・初回全体証拠・原文／POST／DOM・締切前native・通常結果と8登録IDの結合を、既存 `C.evidence` で親側でも認証した。実AUTO通常結果は累計2／必要8、KEIRINは0／必要8、学習済み19／30はまだ不変。GitHubの期限付きdownload URLに頼らず元ZIPを再利用できるよう、私有cacheのowner・権限・通常ファイル・サイズ・SHAが新鮮な実API metadataと一致する場合だけ読むprivate helperを使用。破損時はHOLD、全証拠検証は省略しない。
+
+次のrequest `499cc66a86fa7009102b02243ef9c238b26577c89fd1b469acb61b4d33ef8a79` は、元の同一会場8ケースを上限32で継続する準備。native4・checkpoint5・prior7を保持し、確認済みケースの再取得を避ける。検証済み単一probeが成立した後の既存専用modeを使い、新たな取得許可を発行したことにはしない。次の実取得は新HEAD初回全体成功・全原本・新cap・固定attempt2・実TTL・21:35:38Z以降を満たす場合だけ。[実認証件数](evidence/2026-11-07/0a5-real-auto-two-normal-and-continuation-preparation-counts.json)。
+
+当日出走原本の準備は、既存ordinary worker `42411771346`／HEAD `7f12c9da9cbfa616a79631eea3d5744dbbc60de2` で開始した。直前に最新のowner-AEAD継続原本・companion・カウンター9059／524とactive／pendingなしを再確認。P0・Bの原本保持手順を通過しているが、通常workerの自然終了・最新counter認証を待って未来対象を確定する。この原本は対象選定に使い、30枠学習後のfresh入力へ遡って見なさない。
