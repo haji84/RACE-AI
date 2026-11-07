@@ -1,16 +1,33 @@
 """Require actual successful count reports, not just a tee pipeline exit code."""
 import json
+from datetime import date,datetime,timedelta,timezone
 import os
 from pathlib import Path
 import re
 
-def verified(site, audit, *, expected_plan_sha256, site_outcome, audit_outcome):
+def verified(site, audit, *, expected_plan_sha256, site_outcome, audit_outcome,expected_day=None):
     if site_outcome != 'success' or audit_outcome != 'success':
         return False
     if not isinstance(site, dict) or not isinstance(audit, dict):
         return False
     if not isinstance(expected_plan_sha256, str) or not re.fullmatch('[a-f0-9]{64}', expected_plan_sha256):
         return False
+    if expected_day is not None:
+        try:
+            current=site['current_day'];stamp=datetime.fromisoformat(site['verified_at'].replace('Z','+00:00'))
+            if (type(expected_day) is not str or date.fromisoformat(expected_day).isoformat()!=expected_day or
+                type(current) is not str or date.fromisoformat(current).isoformat()!=current or current<expected_day or
+                stamp.utcoffset() is None or stamp.astimezone(timezone(timedelta(hours=9))).date().isoformat()!=current or
+                site.get('checked_day')!=expected_day or audit.get('day')!=expected_day):return False
+            current_scope=current==expected_day
+            if site.get('date_scope')!=('CURRENT_DAY' if current_scope else 'HISTORICAL_DAY'):return False
+            for suffix in ('results','p1_groups'):
+                count=site.get('checked_day_'+suffix)
+                if type(count) is not int or count<0:return False
+                value=site.get('current_day_'+suffix)
+                if (current_scope and (type(value) is not int or value!=count) or
+                    not current_scope and value is not None):return False
+        except (KeyError,TypeError,ValueError,AttributeError):return False
     flags = ('participant_names', 'editable_daily_budget', 'per_race_1000_simulation',
              'hit_miss_rate_roi_and_settled_pending_net_visible', 'removed_seller_hidden')
     return (site.get('schema') == 'RACE_AI_LIVE_SITE_CHECK_COUNTS_V1'
@@ -41,7 +58,7 @@ def main():
         good = verified(read('boat-live-site-check-counts.json'), read('boat-prospective-audit-display.json'),
             expected_plan_sha256=plan['plan_sha256'],
             site_outcome=os.environ.get('SITE_CHECK_OUTCOME'),
-            audit_outcome=os.environ.get('AUDIT_OUTCOME'))
+            audit_outcome=os.environ.get('AUDIT_OUTCOME'),expected_day=plan['day'])
     except (OSError, ValueError, KeyError, TypeError):
         pass
     print(json.dumps({'status': 'DISPLAY_EVIDENCE_VERIFIED' if good else 'DISPLAY_EVIDENCE_REJECTED'}))
