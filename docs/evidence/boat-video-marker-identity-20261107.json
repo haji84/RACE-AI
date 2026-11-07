@@ -1,5 +1,7 @@
 {
   "schema_version": "RACE_AI_BOAT_MARKER_IDENTITY_PROGRESS_V1",
+  "record_scope": "Earlier frozen 86-event/614-test baseline; current causal continuation has separate source pins and results",
+  "current_causal_evidence_file": "boat-video-identity-causes-20261107.json",
   "recorded_at_utc": "2026-11-07T04:35:17.347535+00:00",
   "existing_pr": 71,
   "overall_user_request_complete": false,

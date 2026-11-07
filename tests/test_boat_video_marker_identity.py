@@ -1,5 +1,6 @@
 """Controlled typed marker observations; no OCR or real-field accuracy claim."""
 from copy import deepcopy
+from hashlib import sha256
 import importlib
 import importlib.util
 import unittest
@@ -28,6 +29,29 @@ class MarkerIdentityTests(unittest.TestCase):
     def marker(self, number='1', x=40, *, y=40, box=None, context='SINGLE_MARK', likelihood=.2):
         return dict(box=box or [x, y, 10, 16], text=number,
                     sequence_likelihood=None if number == '' else likelihood, context_status=context)
+
+    def context_hint(self, frame, index, box, *, key='S1', status='TRACKED', previous=None,
+                     move=(0., 0.), scene=0, points=40, fb=0., dispersion=0., area=1.):
+        return dict(scope='CONTEXT_IMAGE_TRACK', key=key, status=status,
+            frame_sha256=sha256(frame.tobytes()).hexdigest(), frame_index=index, scene=scene,
+            previous_frame_sha256=sha256(previous.tobytes()).hexdigest() if previous is not None else None,
+            box=list(box), point_count=points,
+            median_displacement_px=list(move) if status == 'TRACKED' else None,
+            median_forward_backward_error_px=fb if status == 'TRACKED' else None,
+            displacement_dispersion_px=dispersion if status == 'TRACKED' else None,
+            affine_area_ratio=area if status == 'TRACKED' else None)
+
+    def lineage_established(self, *, number='1', x=40):
+        tracker = marker_module.MarkerIdentityTracker()
+        previous = None
+        for index in range(3):
+            image = self.frame(index)
+            row = self.marker(number, x)
+            row['context_image_track'] = self.context_hint(image, index, [0, 20, 150, 65],
+                previous=previous, status='SEEDED' if previous is None else 'TRACKED')
+            tracker.update(image, [row], t=index/10, frame_index=index, scene=0)
+            previous = image
+        return tracker, previous
 
     def update(self, tracker, index, markers, *, t=None, scene=0, frame=None):
         return tracker.update(self.frame(index) if frame is None else frame, markers,
@@ -374,6 +398,163 @@ class MarkerIdentityTests(unittest.TestCase):
         for row in evidence['fresh_frames']:
             self.assertEqual(set(row), {'frame_index', 't', 'frame_sha256', 'marker_box',
                                         'sequence_likelihood'})
+
+    def test_recorded_five_same_context_gate_failures_keep_fresh_evidence_without_lowering_minimum(self):
+        # Numeric geometry/state from frozen development diagnostics; all
+        # pixels below are synthetic controls, not private frames or real OCR.
+        cases = [
+            (2, 207, 5, 6.874, 6.907, [1424,1003,38,49], [1387,1007,39,45],
+             [-2632.3529411764853,2500.000000000014], [1375,978,136,98],
+             [1338.6607666015625,980.75146484375,136,98], [-36.3392333984375,2.75146484375],31,.028115948662161827,1.2475323677062988,.92876852517001),
+            (2, 211, 1, 7.007, 7.04, [1242,996,38,38], [1202,938,65,46],
+             [0,0], [1204,977,114,76], [1191.508544921875,920.8983154296875,114,76],
+             [-12.49151611328125,-56.101654052734375],29,.04061058536171913,.5463746786117554,1.0769190588223816),
+            (2, 215, 4, 7.14, 7.174, [1119,848,67,46], [1166,857,38,35],
+             [-1151.51515151517,-772.727272727285], [1108.8592529296875,832.0599365234375,114,76],
+             [1128.5517578125,838.2786254882812,114,76], [19.69244384765625,6.21868896484375],12,.017399363219738007,.5628819465637207,.9919221027619091),
+            (1, 241, 1, 8.008, 8.041, [1323,692,31,43], [1354.5604248046875,767.8436889648438,31,43],
+             [0,0], [1280,670,117,86], [1311.5604248046875,745.8436889648438,117,86],
+             [31.5604248046875,75.84368896484375],23,.037672340869903564,.6987093091011047,1.017260139056516),
+            (3, 316, 4, 10.511, 10.544, [875,777,37,37], [888.3541870117188,856.0651245117188,37,37],
+             [-29.411764705883286,-205.882352941183], [837.9570922851562,759.2068481445312,112,76],
+             [851.311279296875,838.27197265625,112,76], [13.35418701171875,79.06512451171875],35,.06662176549434662,.4955279231071472,1.0210451395325537),
+        ]
+        def pixels(index):
+            image = self.np.full((1080,1920,3),100,self.np.uint8)
+            image[0,0,0] = index % 256
+            return image
+        for number, index, count, before_t, t, old_box, box, velocity, old_context, context, move, points, fb, dispersion, area in cases:
+            with self.subTest(recorded_frame=index):
+                for typed in (False, True):
+                    tracker = marker_module.MarkerIdentityTracker(); previous = None
+                    for step in range(count):
+                        frame_index = index-count+step; image = pixels(frame_index)
+                        row = self.marker(str(number), box=old_box)
+                        if typed:
+                            row['context_image_track'] = self.context_hint(image,frame_index,old_context,
+                                status='SEEDED' if previous is None else 'TRACKED',previous=previous)
+                        tracker.update(image,[row],t=before_t-.033*(count-1-step),frame_index=frame_index,scene=0)
+                        previous = image
+                    old_id = tracker._tracks[0]['track_id']
+                    # Reconstruct the recorded independent M velocity, not a
+                    # detector/GroundTruth ROI or an automatic-inference claim.
+                    tracker._tracks[0]['velocity'] = tuple(velocity)
+                    image = pixels(index); row = self.marker(str(number),box=box)
+                    if typed:
+                        row['context_image_track'] = self.context_hint(image,index,context,previous=previous,
+                            move=move,points=points,fb=fb,dispersion=dispersion,area=area)
+                    result = tracker.update(image,[row],t=t,frame_index=index,scene=0)
+                    if not typed:
+                        self.assertNotEqual(tracker._tracks[0]['track_id'],old_id)
+                        self.assertEqual(result['tracks'],[])
+                        continue
+                    self.assertEqual(tracker._tracks[0]['track_id'],old_id)
+                    self.assertEqual(len(tracker._tracks[0]['evidence']),count+1)
+                    self.assertIn('CONTEXT_IMAGE_TRACK_ASSOCIATION',result['quality_flags'])
+                    if count == 1:
+                        self.assertEqual(result['tracks'],[])  # Still requires THREE fresh frames.
+                        next_image=pixels(index+1); row=self.marker(str(number),box=box)
+                        row['context_image_track']=self.context_hint(next_image,index+1,context,previous=image)
+                        result=tracker.update(next_image,[row],t=t+.033,frame_index=index+1,scene=0)
+                    self.assertEqual(result['tracks'][0]['track_id'],old_id)
+                    self.assertEqual(result['tracks'][0]['number_evidence']['context_image_track_scope'],'CONTEXT_IMAGE_TRACK')
+                    self.assertFalse(result['identity_validated'])
+                    self.assertIsNone(result['tracks'][0]['hull_box'])
+
+    def test_new_key_seed_or_inconsistent_context_motion_cannot_override_geometry(self):
+        for kind in ('key','seed','motion'):
+            with self.subTest(kind=kind):
+                tracker,previous=self.lineage_established(); old_id=tracker._tracks[0]['track_id']
+                image=self.frame(3);row=self.marker(box=[100,40,10,16])
+                hint=self.context_hint(image,3,[0,20,150,65],previous=previous)
+                if kind=='key':hint['key']='M000001'  # Not a selector for an M ID.
+                elif kind=='seed':hint=self.context_hint(image,3,[0,20,150,65],status='SEEDED')
+                else:hint['median_displacement_px']=[10.,0.]
+                row['context_image_track']=hint
+                result=self.update(tracker,3,[row],frame=image)
+                self.assertEqual(result['tracks'],[])
+                self.assertNotEqual(tracker._tracks[0]['track_id'],old_id)
+
+    def test_bad_context_hints_reject_atomically_and_allow_same_frame_retry(self):
+        invalid = [dict(scope='WORLD_IDENTITY'),dict(key=True),dict(status='PREDICTED'),
+                   dict(frame_sha256='0'*64),dict(previous_frame_sha256='0'*64),dict(frame_index=99),
+                   dict(scene=1),dict(point_count=3),dict(point_count=True),
+                   dict(median_forward_backward_error_px=1.1),dict(displacement_dispersion_px=2.1),
+                   dict(affine_area_ratio=1.4),dict(box=[0,0,2,2]),dict(track_id='M000001')]
+        for change in invalid:
+            with self.subTest(change=change):
+                tracker,previous=self.lineage_established(); before=deepcopy(tracker.__dict__)
+                image=self.frame(3);row=self.marker(box=[100,40,10,16])
+                good=self.context_hint(image,3,[0,20,150,65],previous=previous)
+                row['context_image_track']=dict(good,**change)
+                with self.assertRaises(ValueError):self.update(tracker,3,[row],frame=image)
+                self.assertEqual(tracker.__dict__,before)
+                row['context_image_track']=good
+                result=self.update(tracker,3,[row],frame=image)
+                self.assertEqual(result['tracks'][0]['track_id'],'M000001')
+
+    def test_duplicate_context_key_is_not_an_arbitrary_correspondence_selector(self):
+        tracker,previous=self.lineage_established();before=deepcopy(tracker.__dict__);image=self.frame(3)
+        a,b=self.marker(box=[100,40,10,16]),self.marker('2',box=[120,40,10,16])
+        a['context_image_track']=self.context_hint(image,3,[0,20,150,65],previous=previous)
+        b['context_image_track']=deepcopy(a['context_image_track'])
+        with self.assertRaises(ValueError):self.update(tracker,3,[a,b],frame=image)
+        self.assertEqual(tracker.__dict__,before)
+
+    def test_context_hint_never_bypasses_blank_duplicate_or_conflicting_numbers(self):
+        for kind in ('blank','duplicate','conflict','parent','ambiguous','changed_number','replay','scene','gap','size'):
+            with self.subTest(kind=kind):
+                tracker,previous=self.lineage_established();image=self.frame(3)
+                if kind=='size':image=self.frame(3,shape=(100,601,3))
+                if kind=='replay':image=previous.copy()
+                scene=1 if kind=='scene' else 0
+                row=self.marker('' if kind=='blank' else '2' if kind=='changed_number' else '1',box=[100,40,10,16])
+                row['context_image_track']=self.context_hint(image,3,[0,20,150,65],previous=previous,scene=scene)
+                if kind=='ambiguous':row['context_status']='AMBIGUOUS'
+                rows=[row]
+                if kind=='duplicate':rows.append(self.marker('1',box=[300,40,10,16]))
+                if kind=='conflict':rows.append(self.marker('2',box=[101,40,10,16]))
+                if kind=='parent':rows.append(self.marker('64',box=[100,40,10,16],context='MULTIDIGIT_GROUP'))
+                result=self.update(tracker,3,rows,frame=image,scene=scene,t=.7 if kind=='gap' else .3)
+                self.assertEqual(result['tracks'],[])
+
+    def test_different_view_hints_disable_recovery_after_dedup(self):
+        tracker,previous=self.lineage_established();image=self.frame(3)
+        rows=[self.marker(box=[100,40,10,16]),self.marker(box=[100,40,10,16])]
+        for row,key in zip(rows,('S1','S2')):
+            row['context_image_track']=self.context_hint(image,3,[0,20,150,65],previous=previous,key=key)
+        result=self.update(tracker,3,rows,frame=image)
+        self.assertEqual(result['tracks'],[])
+        self.assertIn('DUPLICATE_VIEWS_COLLAPSED',result['quality_flags'])
+
+    def test_context_binding_survives_input_sorting_without_index_aliases(self):
+        tracker=marker_module.MarkerIdentityTracker();previous=None
+        for index in range(4):
+            image=self.frame(index);rows=[]
+            for number,x,context,key in [('1',40,[0,20,150,65],'left'),('2',240,[200,20,150,65],'right')]:
+                row=self.marker(number,box=[x+(60 if index==3 else 0),40,10,16])
+                row['context_image_track']=self.context_hint(image,index,context,key=key,previous=previous,
+                    status='SEEDED' if previous is None else 'TRACKED')
+                rows.append(row)
+            result=self.update(tracker,index,list(reversed(rows)),frame=image)
+            previous=image
+        self.assertEqual([r['track_id'] for r in result['tracks']],['M000001','M000002'])
+        self.assertEqual([r['number_evidence']['fresh_frames'][-1]['context_image_track']['key']
+                          for r in result['tracks']],['left','right'])
+
+    def test_context_input_and_evidence_output_cannot_rewrite_stored_lineage(self):
+        tracker=marker_module.MarkerIdentityTracker();previous=None
+        for index in range(3):
+            image=self.frame(index);row=self.marker()
+            row['context_image_track']=self.context_hint(image,index,[0,20,150,65],previous=previous,
+                status='SEEDED' if previous is None else 'TRACKED')
+            result=self.update(tracker,index,[row],frame=image);previous=image
+        row['context_image_track']['key']='tampered'
+        row['context_image_track']['box'][0]=300
+        result['tracks'][0]['number_evidence']['fresh_frames'][-1]['context_image_track']['key']='tampered'
+        image=self.frame(3);row=self.marker(box=[100,40,10,16])
+        row['context_image_track']=self.context_hint(image,3,[0,20,150,65],previous=previous)
+        self.assertEqual(self.update(tracker,3,[row],frame=image)['tracks'][0]['track_id'],'M000001')
 
 
 if __name__ == '__main__':

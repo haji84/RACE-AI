@@ -65,6 +65,64 @@ def _printed(item, offsets):
     return [x+dx, y+dy, width, height]
 
 
+def _context_image_track(flowed, row, *, frame_sha, frame_index, scene, diagnostic=None):
+    """Expose actual context point lineage; never an existing M-ID selector."""
+    _need(type(flowed) is dict and type(row) is dict and (diagnostic is None or type(diagnostic) is dict))
+    def report(status,reasons):
+        if diagnostic is not None:
+            diagnostic.update(status=status,reasons=reasons,
+                              fallback='GEOMETRY_ONLY' if status != 'ELIGIBLE' else None)
+    if flowed.get('schema_version') != 'RACE_AI_BOAT_MARKER_PIXEL_FLOW_V1':
+        report('UNAVAILABLE',['NONSTANDARD_FLOW_ENVELOPE'])
+        return None  # Nonstandard controlled test providers have no LK proof.
+    _need(flowed.get('coordinate_space') == 'IMAGE_PX' and flowed.get('frame_sha256') == frame_sha
+          and type(flowed.get('frame_index')) is int and flowed['frame_index'] == frame_index
+          and type(flowed.get('scene')) is int and flowed['scene'] == scene)
+    names = ('key','status','previous_frame_sha256','box','point_count','median_displacement_px',
+             'median_forward_backward_error_px','displacement_dispersion_px','affine_area_ratio')
+    _need(all(name in row for name in names))
+    result = _safe_record({name: row[name] for name in names})
+    _need(type(result['key']) is str and 0 < len(result['key']) <= 128
+          and not any(ord(c)<32 or ord(c)==127 for c in result['key'])
+          and type(result['status']) is str and result['status'] in ('SEEDED','TRACKED')
+          and type(result['point_count']) is int and result['point_count'] >= 0
+          and type(result['box']) is list and len(result['box']) == 4
+          and all(_finite(v) for v in result['box']) and min(result['box'][:2]) >= 0
+          and min(result['box'][2:]) >= 1)
+    reasons=[]
+    if not 4 <= result['point_count'] <= 40:
+        reasons.append('POINT_SUPPORT_OUTSIDE_HINT_BOUND')
+    quality=('median_displacement_px','median_forward_backward_error_px','displacement_dispersion_px','affine_area_ratio')
+    if result['status'] == 'SEEDED':
+        _need(result['previous_frame_sha256'] is None and all(result[k] is None for k in quality))
+    else:
+        move=result['median_displacement_px']
+        _need(_hex(result['previous_frame_sha256']) and type(move) is list and len(move)==2
+              and all(_finite(v) for v in move)
+              and _finite(result['median_forward_backward_error_px']) and result['median_forward_backward_error_px'] >= 0
+              and _finite(result['displacement_dispersion_px']) and result['displacement_dispersion_px'] >= 0
+              and _finite(result['affine_area_ratio']) and result['affine_area_ratio'] > 0)
+        movement=math.hypot(*move)
+        _need(math.isfinite(movement))
+        # The producer checks the pre-refit median/dispersion, then reports
+        # recomputed values for its final affine inliers. A finite accepted
+        # flow may therefore be usable without meeting optional hint bounds.
+        if movement > max(8.,.75*math.hypot(*result['box'][2:])):
+            reasons.append('POST_REFIT_DISPLACEMENT_EXCEEDS_HINT_BOUND')
+        if result['displacement_dispersion_px'] > 2:
+            reasons.append('POST_REFIT_DISPERSION_EXCEEDS_HINT_BOUND')
+        if result['median_forward_backward_error_px'] > 1:
+            reasons.append('FORWARD_BACKWARD_ERROR_EXCEEDS_HINT_BOUND')
+        if not .75 <= result['affine_area_ratio'] <= 1.33:
+            reasons.append('AFFINE_AREA_OUTSIDE_HINT_BOUND')
+    if reasons:
+        report('OMITTED',reasons)
+        return None
+    result.update(scope='CONTEXT_IMAGE_TRACK',frame_sha256=frame_sha,frame_index=frame_index,scene=scene)
+    report('ELIGIBLE',[])
+    return result
+
+
 def _containment(a, b):
     x, y, w, h = a
     u, v, c, d = b
@@ -326,6 +384,7 @@ class MarkerIdentityPipeline:
         for (row, printed), box, reading, classification in zip(live, boxes, readings, classes):
             context, glyph, text = classification['context_class'], classification['glyph_class'], reading['text']
             admission, marker, blank_hold_evidence = 'UNKNOWN', None, None
+            hint_diagnostic=dict(status='NOT_REQUESTED',reasons=['NO_FRESH_NUMBER'],fallback=None)
             if self.label_policy == CLASSIFIER_POLICY:
                 if context == 1 and 1 <= glyph <= 6:
                     marker = dict(box=list(printed), text=str(glyph), sequence_likelihood=None,
@@ -354,11 +413,17 @@ class MarkerIdentityPipeline:
                 else:
                     admission = 'HOLD_EXPECTATION_MISMATCH'
             if marker is not None:
+                if marker['text'] in ('1','2','3','4','5','6'):
+                    hint = _context_image_track(flowed,row,frame_sha=original_sha,frame_index=frame_index,scene=scene,
+                                                diagnostic=hint_diagnostic)
+                    if hint is not None:
+                        marker['context_image_track'] = hint
                 markers.append(marker); marker_labels.append(glyph); marker_attempts.append(len(attempts))
             attempts.append(dict(key=row['key'], marker_box=list(printed), box_xyxy=box,
                 flow_context_box=list(row['box']), flow_status=row['status'], recognition=reading,
                 verification=classification, admission=admission,
                 blank_hold_evidence=blank_hold_evidence,
+                context_image_track_diagnostic=hint_diagnostic,
                 pp_classifier_disagreement=bool(text and glyph > 0 and text != str(glyph))))
         nested, ambiguous = _collapse_views([m['box'] for m in markers], marker_labels)
         for i in nested: attempts[marker_attempts[i]]['admission'] = 'COLLAPSED_NESTED_VIEW'

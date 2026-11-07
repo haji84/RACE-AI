@@ -1,3 +1,25 @@
+<!-- RACEAI_SIX_BOAT_CAUSAL_CORRECTION_20261107 -->
+# 2026-11-07 16:08 JST｜識別の欠測原因を再現して修正。固定102機会は59→67、6艇継続は開発中
+
+**実装・実推論済み:** 同じ実LK context・同じfresh番号なのに位置/面積の再判定でIDを切っていた実5件を特定し、typed `CONTEXT_IMAGE_TRACK` を対応付けへ渡す修正を追加。min3・重複・異番号競合・blank・scene/時刻/サイズの拒否を維持した。有限な正規flowが任意hintの品質条件外なら理由付きで従来geometryへ戻し、不正schema/非有限値は拒否する。独立レビューで実flowの再計算後の品質値による中断を再現・修正してGREEN。
+
+**確認した改善と限界:** 同じ76原frame・同じ重み・全自動入力で登録86→98。旧86の番号/bbox/BGR/PTSを保持し、追加12もAI原画参照と一致（部分glyph6、境界接触4、PP生文字不一致3は未修正のまま）。最終source `94d80c7e…/956658ac…` の全76 identity recordを、追加12件を採点した候補版の実出力へ結合。固定17frameは1〜6順 **11/10/13/12/11/10**、合計67/102、初回登録以降67/84。全102の分母・cold startを除外せず、**全17frame完走0/6・最大同時3**を維持。AI DEVELOPMENT/学習重複で、一般精度・人間GT・現在レースの実測とは扱わない。
+
+**全編の処理・意味を区別:** 最終CLIが原本775frameを全処理、index・BGR・元PTSを775/775でcanonicalと照合。原本/全source/旧重みの前後SHA不変、receipt `ecf119e9…` / journal `92d998ba…`。606登録は正解数でなく、全606の原画採点中。frame37の建物を4とする反例は最新でも残る。同じ775入力の対応付けだけの再生は旧M=新M(hint無)が541、新M(hint有)が実606と全775一致（追加65/削除0・新NN/OCR/LK0）。追加65の意味的正誤は未確定。SUCCESSを識別成功としない。
+
+**残る根因:** 岸の部材の偽4で真4も棄却すること、印字markと物理対象のlifecycleが別であること、入力領域がhull part/複数艇混在でrider全景と一致しないこと、少数source/可読性/学習表現の不足、候補全抽出の計算時間。既存YOLOXの別映像3frameでは各6艇のpartは候補に存在するが、20boxの内訳は全体envelope1/hull part11/混在8で、一意な6対象や番号識別の完成ではない。番号・可視body/rider・歴史根拠を分けて検証中。
+
+**不採用も保存:** 写真20字追加は別映像oracle18で5一致/非ゼロ誤読2/棄却11、全6anchor0。広いcontextの既存YOLOXは真の印字16位置中5だけ保持。body HOGは転移艇8/10・背景7/12、wholebody RGB番号分類は転移1/8で本番へ組み込まない。色証拠無しで棄却すると実4も落ちる。性能では全候補抽出が約67%を占め、頻度を下げると登録27→16へ低下。2並列も壁約4%短縮に対しCPU約56%増で未採用。全RAW・学習/入力/失敗・別採点は私有保存。
+
+**検証・保全:** 最終映像 **627件PASS/0skip、69.171秒**（関連6module122件）。旧Python3,106PASSは以前のcommitの記録で、最新HEAD全体の合格とはしない。既存CIのViewerは15分で全Python途中にcancelledだったため、同jobの検証時間を40分へ変更し、既存の映像stepへ7moduleを追加する。新job/workflow/scheduleやsource巡回は追加しない。稼働中の既存2プロセス・保護checkout `ef818e51…`・予想原本SHA `c40bead0…` は維持し、停止/再起動・本番モデル切替・main統合・一般公開・実投票は無し。原動画/重み/私有予想/URLはGitへ追加せず、取得総数/総GET/巡回数/総稼働時間の停止上限を本追加で設けない。
+
+**外部条件:** 既知contentの403と同provider追加probe停止を保持。全会場403・全会場が外部API契約必須という証拠はなく、別providerの現在content/利用条件も未確定。拒否済contentの再要求/別host等の回避・問い合わせ送信・新課金は無し。UNKNOWN既存別映像は私有CV検証のみ、訓練/公開に使わない。実機Safari、4競技の長期実運転、強さ/世界位置と予想改善はこのテスト数で合格にしない。
+
+[原因・修正・実測](BOAT_VIDEO_MARKER_IDENTITY_20261107.md)／[今回のsource版・集計・SHA](evidence/boat-video-identity-causes-20261107.json)。6艇継続の全体完成は未達のまま、実装・再検証を続ける。
+
+---
+
+
 <!-- RACEAI_AUTOMATION_20261107_1415_SOURCE_TEST_SCOPE_FIX -->
 # 2026-11-07 14:15 JST｜新しいsource runは開始前テストで停止。既存9-step検証を追加2保全step対応へ修正し、正式source再起動はHOLD
 

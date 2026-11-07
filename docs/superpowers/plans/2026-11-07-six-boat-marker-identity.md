@@ -47,7 +47,45 @@ Create `race_ai/boat_video_marker_reader.py` and corresponding tests after the f
 Connect the reader/tracker through a local-only sequential executor and existing intake compatibility as warranted by actual inputs. Do not change production defaults.
 
 - [x] Run actual frames without GT ROI through the full automatic path; seal output before scoring (76 source frames; training overlap explicitly retained).
-- [ ] Score the six independently sealed local tracklets, including intermediate continuity/swap checks, negatives, scene cut and unavailable evidence.
+- [x] Score the six independently sealed local tracklets, including intermediate continuity/swap checks, negatives, scene cut and unavailable evidence (all six remain below the continuity criterion).
 - [ ] Fix observed failures rather than lowering the required numeric evidence.
 - [ ] Run relevant and full repository checks; preserve latest concurrent HEAD without force.
 - [ ] Update latest status with implemented/actual-pass/unmet/external-source conditions and exact evidence, never call a static-only or zero-ID result complete.
+
+## Continuation: diagnose the actual missing observations before further changes
+
+The user renewed the request to finish automatic identification. Reusing a
+failed model or relaxing the duplicate/minimum-evidence rules is not a fix.
+The final 76-frame output can be replayed through the same pinned marker
+association code: all 76 identity records reproduce exactly. In the fixed 102
+reference opportunities there are 59 registrations and 43 missing results.
+Of those missing results, 31 already have a current numeric marker reaching
+association: ten association restarts and 21 results below three observations.
+The latter include normal first-seen warm-up, so they are not all software bugs.
+
+Five of the ten restarts have the **same actual LK context key, TRACKED status,
+and same fresh number** as the preceding observation: 2 at frames 207/211/215,
+1 at 241, and 3 at 316. The marker association module discards that pixel
+correspondence and estimates correspondence again from box velocity/area.
+Three of these restarts discard an already established three-frame identity.
+The narrow correction is to carry typed current-pixel correspondence into
+association, preserving all numeric, duplicate, conflict, scene and time rules.
+It must not apply to a newly SEEDED key, blank-number transfer or hidden boxes.
+LK context continuity is explicitly not proof of hull identity.
+
+The duplicate-number failures at frames 480/482 have a different cause: both
+the actual marker and an orange/black bank fender pass the development context
+and glyph classifiers as 4. The duplicate guard correctly abstains. Changing
+that guard would hide the false positive. The context's small glyph patch is
+not a hull detector; background rejection needs a separately tested correction.
+
+- [x] Reproduce missing-stage causes from frozen actual output, separating
+  measured cases, controlled-only hypotheses and unavailable annotations.
+- [x] RED/GREEN the five same-pixel-lineage restarts with explicit, atomic
+  correspondence and adversarial checks; independently review the change.
+- [ ] Re-run actual automatic inference without truth-selected input crops;
+  score changed and unchanged events before any acceptance claim.
+- [ ] Resolve background false positives while preserving genuine markers;
+  use only assets with training permission and disclose development overlap.
+- [ ] Establish a distinct visible-object/number-binding contract and test
+  actual simultaneous six-boat continuity, lost/reacquired states and cuts.

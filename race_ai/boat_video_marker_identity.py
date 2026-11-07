@@ -11,6 +11,7 @@ from copy import deepcopy
 from fractions import Fraction
 from hashlib import sha256
 import math
+import struct
 
 from .boat_video_identity import _box, _center, _finite, _intersects, _iou, _pixels
 
@@ -23,6 +24,56 @@ _LABEL_SOURCE = 'DECLARED_DEVELOPMENT_GLYPH_CLASSIFIER'
 _CLASSIFIER_FIELDS = _FIELDS | {'label_source', 'label_model_sha256'}
 _CLASSIFIER_SCOPE = 'DISCRETE_DEVELOPMENT_CLASSIFICATION_NOT_PROBABILITY'
 _MARGIN = .15
+_CONTEXT_TRACK_FIELDS = {'scope','key','status','frame_sha256','frame_index','scene',
+    'previous_frame_sha256','box','point_count','median_displacement_px',
+    'median_forward_backward_error_px','displacement_dispersion_px','affine_area_ratio'}
+
+
+def _context_track(value, marker_box, width, height, *, frame_sha, frame_index, scene, previous_sha):
+    """Validate a declared measured context lineage, never an M track selector."""
+    _need(type(value) is dict and set(value) == _CONTEXT_TRACK_FIELDS)
+    _need(value['scope'] == 'CONTEXT_IMAGE_TRACK' and type(value['key']) is str
+          and 0 < len(value['key']) <= 128 and not any(ord(c)<32 or ord(c)==127 for c in value['key'])
+          and value['status'] in ('SEEDED','TRACKED') and value['frame_sha256'] == frame_sha
+          and type(value['frame_index']) is int and value['frame_index'] == frame_index
+          and type(value['scene']) is int and value['scene'] == scene
+          and type(value['point_count']) is int and 4 <= value['point_count'] <= 40)
+    box = _box(value['box'], width, height)
+    x,y,w,h = marker_box; a,b,c,d = box
+    _need(a <= x < x+w <= a+c and b <= y < y+h <= b+d)
+    result = deepcopy(value); result['box'] = box
+    quality = ('median_displacement_px','median_forward_backward_error_px',
+               'displacement_dispersion_px','affine_area_ratio')
+    if value['status'] == 'SEEDED':
+        _need(value['previous_frame_sha256'] is None and all(value[k] is None for k in quality))
+    else:
+        prior = value['previous_frame_sha256']; move = value['median_displacement_px']
+        _need(type(prior) is str and len(prior)==64 and all(c in '0123456789abcdef' for c in prior)
+              and (previous_sha is None or prior == previous_sha)
+              and type(move) in (list,tuple) and len(move)==2 and all(_finite(v) for v in move)
+              and math.hypot(*move) <= max(8.,.75*math.hypot(c,d))
+              and _finite(value['median_forward_backward_error_px']) and 0 <= value['median_forward_backward_error_px'] <= 1
+              and _finite(value['displacement_dispersion_px']) and 0 <= value['displacement_dispersion_px'] <= 2
+              and _finite(value['affine_area_ratio']) and .75 <= value['affine_area_ratio'] <= 1.33)
+        result['median_displacement_px'] = [float(v) for v in move]
+    return result
+
+
+def _context_continues(old, row, previous_index, previous_sha):
+    before, after = old.get('context_image_track'), row.get('context_image_track')
+    if (before is None or after is None or after['status'] != 'TRACKED'
+            or before['key'] != after['key'] or before['scene'] != after['scene']
+            or before['frame_index'] != previous_index or before['frame_sha256'] != previous_sha
+            or after['previous_frame_sha256'] != before['frame_sha256']
+            or before['box'][2:] != after['box'][2:]):
+        return False
+    # LK reports float32 displacements. Accept the exact single/double precision
+    # additions used by NumPy runtimes, not a fitted positional tolerance.
+    def fp32(value):
+        return struct.unpack('f',struct.pack('f',value))[0]
+    return all(after['box'][axis] in (before['box'][axis]+delta,
+        fp32(fp32(before['box'][axis])+fp32(delta)))
+        for axis,delta in enumerate(after['median_displacement_px']))
 
 
 def _need(condition):
@@ -113,10 +164,14 @@ def _prepare(markers):
             if groups[i]['text'] == row['text'] and _iou(groups[i]['box'], row['box']) >= .8), None)
         if duplicate is not None:
             flags.add('DUPLICATE_VIEWS_COLLAPSED')
+            different_context = groups[duplicate].get('context_image_track') != row.get('context_image_track')
             if (-(row['sequence_likelihood'] or 0), tuple(row['box'])) < (
                     -(groups[duplicate]['sequence_likelihood'] or 0), tuple(groups[duplicate]['box'])):
                 groups[duplicate] = row
                 index.add(duplicate, row['box'])
+            if different_context:
+                groups[duplicate] = dict(groups[duplicate])
+                groups[duplicate].pop('context_image_track',None)
         else:
             index.add(len(groups), row['box'])
             groups.append(row)
@@ -158,7 +213,8 @@ def _cost(predicted, box):
     return None
 
 
-def _correspondences(previous, observed, blockers, repeated, t):
+def _correspondences(previous, observed, blockers, repeated, t, *, context_matches=None,
+                     previous_index=None, previous_sha=None):
     """Sparse reciprocal-unique matches, bounded by at most six numeric tracks.
 
     We deliberately abstain from ambiguous alternatives rather than selecting
@@ -199,7 +255,25 @@ def _correspondences(previous, observed, blockers, repeated, t):
             ambiguous.add(j)
         else:
             column_best[j] = choices[0][1]
-    return {j:previous[i] for i,j in rows.items() if j not in ambiguous and column_best.get(j)==i}, ambiguous
+    matched = {j:previous[i] for i,j in rows.items() if j not in ambiguous and column_best.get(j)==i}
+    if context_matches is not None:
+        candidates, by_old, by_row = [], Counter(), Counter()
+        for i,old in enumerate(previous):
+            if old['number'] in repeated:
+                continue
+            predicted = _predicted(old,t)
+            if predicted is None or any(_intersects(predicted,box) for box in blockers):
+                continue
+            for j,row in enumerate(observed):
+                # Never infer a number or transfer a blank from a context key.
+                if _number(row) == old['number'] and _context_continues(old,row,previous_index,previous_sha):
+                    candidates.append((i,j)); by_old[i]+=1; by_row[j]+=1
+        for i,j in candidates:
+            if by_old[i] != 1 or by_row[j] != 1 or j in matched and matched[j] is not previous[i]:
+                continue
+            matched = {k:old for k,old in matched.items() if old is not previous[i] or k==j}
+            matched[j] = previous[i]; ambiguous.discard(j); context_matches[j] = previous[i]
+    return matched, ambiguous
 
 
 class MarkerIdentityTracker:
@@ -213,6 +287,7 @@ class MarkerIdentityTracker:
         self._time = self._frame_index = self._scene = self._shape = None
         self._next_id = 1
         self._seen_frames = set()
+        self._frame_sha = None
 
     def update(self, frame, markers, *, t, frame_index, scene):
         width, height = _pixels(frame)
@@ -221,9 +296,12 @@ class MarkerIdentityTracker:
         _need(self._time is None or t > self._time and frame_index > self._frame_index)
         _need(self._scene is None or scene >= self._scene)
         _need(type(markers) is list and len(markers) <= 20000)
-        checked = []
+        checked, context_keys = [], set()
+        frame_sha = sha256(frame.tobytes()).hexdigest()
         for row in markers:
-            _need(type(row) is dict and set(row) in (_FIELDS, _CLASSIFIER_FIELDS)
+            _need(type(row) is dict)
+            fields = set(row)-{'context_image_track'}
+            _need(fields in (_FIELDS, _CLASSIFIER_FIELDS)
                   and type(row['context_status']) is str
                   and row['context_status'] in _CONTEXTS)
             _need(type(row['text']) is str and len(row['text']) <= 512 and
@@ -232,15 +310,19 @@ class MarkerIdentityTracker:
             _need(value is None or _finite(value) and 0 <= value <= 1)
             item = dict(box=_box(row['box'], width, height), text=row['text'],
                 sequence_likelihood=float(value) if value is not None else None, context_status=row['context_status'])
-            if set(row) == _CLASSIFIER_FIELDS:
+            if fields == _CLASSIFIER_FIELDS:
                 _need(row['label_source'] == _LABEL_SOURCE and value is None
                       and row['text'] in ('', '1', '2', '3', '4', '5', '6'))
                 digest = row['label_model_sha256']
                 _need(type(digest) is str and len(digest) == 64
                       and all(c in '0123456789abcdef' for c in digest))
                 item.update(label_source=_LABEL_SOURCE, label_model_sha256=digest)
+            if 'context_image_track' in row:
+                hint = _context_track(row['context_image_track'],item['box'],width,height,
+                    frame_sha=frame_sha,frame_index=frame_index,scene=scene,previous_sha=self._frame_sha)
+                _need(hint['key'] not in context_keys)
+                context_keys.add(hint['key']); item['context_image_track'] = hint
             checked.append(item)
-        frame_sha = sha256(frame.tobytes()).hexdigest()
         frame_key = (width, height, frame_sha)
         new_pixels = frame_key not in self._seen_frames
         reset = (self._time is None or scene != self._scene or self._shape != (width, height)
@@ -251,7 +333,12 @@ class MarkerIdentityTracker:
             flags.add('REPEATED_FRAME_PIXELS')
         if reset:
             flags.add('IMAGE_SCENE_OR_TIME_RESET')
-        matched, ambiguous = _correspondences(previous, observed, blockers, repeated, t)
+        context_matches = {}
+        matched, ambiguous = _correspondences(previous, observed, blockers, repeated, t,
+            context_matches=context_matches if new_pixels else None,
+            previous_index=self._frame_index,previous_sha=self._frame_sha)
+        if context_matches:
+            flags.add('CONTEXT_IMAGE_TRACK_ASSOCIATION')
         if ambiguous:
             flags.add('AMBIGUOUS_MARKER_ASSOCIATION')
         current, output, next_id = [], [], self._next_id
@@ -282,11 +369,15 @@ class MarkerIdentityTracker:
                     marker_box=list(row['box']),sequence_likelihood=row['sequence_likelihood'])
                 if 'label_source' in row:
                     reading.update(label_source=row['label_source'], label_model_sha256=row['label_model_sha256'])
+                if 'context_image_track' in row:
+                    reading.update(context_image_track=deepcopy(row['context_image_track']),
+                        association_method='CONTEXT_IMAGE_TRACK' if j in context_matches else 'GEOMETRY')
                 evidence.append(reading)
                 evidence = evidence[-20:]
                 last_number_t = float(t)
             item = dict(track_id=old['track_id'],number=old['number'],evidence=evidence,box=list(row['box']),
-                        t=float(t),velocity=velocity,last_number_t=last_number_t)
+                        t=float(t),velocity=velocity,last_number_t=last_number_t,
+                        context_image_track=deepcopy(row.get('context_image_track')) if fresh else None)
             current.append(item)
             if len(evidence) < self.minimum:
                 unknown.append(dict(box=list(row['box']), reason='INSUFFICIENT_DISTINCT_NUMBER_OBSERVATIONS'))
@@ -300,6 +391,9 @@ class MarkerIdentityTracker:
                     sequence_likelihood_scope=_SCOPE if any(e['sequence_likelihood'] is not None for e in evidence) else None)
                 if len(models) == 1:
                     number_evidence['label_model_sha256'] = models[0]
+            if any('context_image_track' in e for e in evidence):
+                number_evidence.update(context_image_track_scope='CONTEXT_IMAGE_TRACK',
+                    context_image_track_provenance='DECLARED_LK_CONTEXT_NOT_GLYPH_OR_CRAFT_IDENTITY')
             output.append(dict(number=item['number'],marker_box=list(row['box']),track_id=item['track_id'],
                 hull_box=None,status='FRESH_NUMBER' if fresh else 'HELD_NUMBER', number_evidence=number_evidence))
         duplicates={n for n,count in Counter(r['number'] for r in current).items() if count>1}
@@ -321,5 +415,6 @@ class MarkerIdentityTracker:
         # All validation and allocation above is local; invalid input commits nothing.
         self._tracks, self._next_id = current, next_id
         self._time,self._frame_index,self._scene,self._shape = float(t),frame_index,scene,(width,height)
+        self._frame_sha = frame_sha
         self._seen_frames.add(frame_key)
         return result

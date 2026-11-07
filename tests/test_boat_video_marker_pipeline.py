@@ -4,6 +4,7 @@ from hashlib import sha256
 import importlib
 import importlib.util
 import unittest
+from unittest.mock import patch
 
 try:
     module = importlib.import_module('race_ai.boat_video_marker_pipeline')
@@ -506,6 +507,134 @@ class MarkerPipelineTests(unittest.TestCase):
                         sequence_likelihood=.2, context_status='SINGLE_MARK') for box in remaining],
                         t=index/10, frame_index=index, scene=0)
                 self.assertEqual(result['tracks'], [])
+
+    def test_same_actual_context_key_preserves_fresh_number_through_partial_roi_scale_change(self):
+        self.numbers=(1,)
+        def partial(frame):
+            rows=self.discover(frame)
+            if int(frame[0,0,0])>=3:
+                x,y,right,bottom=rows[0]['box'];rows[0]['box']=[x+3,y+6,right-3,bottom-6]
+            return rows
+        pipeline=module.MarkerIdentityPipeline(self.recognize,self.verifier,discover=partial,
+                   label_policy='DEVELOPMENT_GLYPH_CLASSIFIER',refresh_frames=1)
+        for index in range(3):result=self.call(pipeline,index)
+        old_id=result['identity']['tracks'][0]['track_id'];key=result['flow']['tracked'][0]['key']
+        result=self.call(pipeline,3)
+        self.assertEqual(result['flow']['tracked'][0]['status'],'TRACKED')
+        self.assertEqual(result['flow']['tracked'][0]['key'],key)
+        self.assertEqual(result['identity']['tracks'][0]['track_id'],old_id)
+        self.assertEqual(result['identity']['tracks'][0]['number_evidence']['observations'],4)
+        hint=result['marker_observations'][0]['context_image_track']
+        self.assertEqual(hint['scope'],'CONTEXT_IMAGE_TRACK')
+        self.assertEqual(hint['key'],key)
+        self.assertEqual(hint['frame_sha256'],result['frame_sha256'])
+        self.assertFalse(result['identity_validated'])
+
+    def post_refit_flow(self, *, rotate=False):
+        """Real producer math with controlled corners/LK arrays, not real LK."""
+        from race_ai.boat_video_marker_flow import MarkerPixelFollower
+        np=self.np
+        phase=.3 if rotate else 0.
+        inner_phase=np.pi/4 if rotate else 0.
+        outer=[[50+25*np.cos(phase+2*np.pi*i/5),50+25*np.sin(phase+2*np.pi*i/5)] for i in range(5)]
+        inner=[[50+15*np.cos(inner_phase+2*np.pi*i/4),50+15*np.sin(inner_phase+2*np.pi*i/4)] for i in range(4)]
+        excluded=[[50+35*np.cos(2*np.pi*i/3),50+35*np.sin(2*np.pi*i/3)] for i in range(3)]
+        origin=np.array(outer+inner+excluded,np.float32)
+        destination=origin.copy();destination[:9]+=(origin[:9]-50)*.1
+        if rotate:destination[:,0]+=106.04
+        status=np.ones((12,1),np.uint8);errors=np.zeros((12,1),np.float32)
+        first=np.zeros((200,300,3),np.uint8);second=first.copy();second[0,0,0]=1
+        flow=MarkerPixelFollower()
+        with patch.object(self.cv,'goodFeaturesToTrack',return_value=origin.reshape(-1,1,2)):
+            seed=flow.update(first,[dict(key='S1',box=[0,0,100,100])],t=0.,frame_index=0,scene=0)
+        with patch.object(self.cv,'calcOpticalFlowPyrLK',side_effect=[
+                (destination.reshape(-1,1,2),status,errors),(origin.reshape(-1,1,2),status,errors)]):
+            tracked=flow.update(second,[],t=.033,frame_index=1,scene=0)
+        return first,second,seed,tracked
+
+    def test_optional_context_hint_omits_existing_valid_post_refit_quality_instead_of_aborting(self):
+        for rotate in (False,True):
+            with self.subTest(post_refit_norm_case=rotate):
+                first,second,seed,flowed=self.post_refit_flow(rotate=rotate)
+                tracker=module.MarkerIdentityTracker()
+                seeded=module._context_image_track(seed,seed['tracked'][0],
+                    frame_sha=sha256(first.tobytes()).hexdigest(),frame_index=0,scene=0)
+                tracker.update(first,[dict(box=[40,40,10,16],text='1',sequence_likelihood=.2,
+                    context_status='SINGLE_MARK',context_image_track=seeded)],t=0.,frame_index=0,scene=0)
+                row=flowed['tracked'][0]
+                self.assertEqual(row['status'],'TRACKED');self.assertEqual(row['point_count'],9)
+                self.assertGreater(row['displacement_dispersion_px'],2.)
+                gate=max(8.,.75*self.np.hypot(row['box'][2],row['box'][3]))
+                if rotate:self.assertGreater(self.np.linalg.norm(row['median_displacement_px']),gate)
+                diagnostic={}
+                hint=module._context_image_track(flowed,row,frame_sha=sha256(second.tobytes()).hexdigest(),
+                    frame_index=1,scene=0,diagnostic=diagnostic)
+                self.assertIsNone(hint)
+                self.assertEqual(diagnostic['status'],'OMITTED')
+                self.assertEqual(diagnostic['fallback'],'GEOMETRY_ONLY')
+                self.assertIn('POST_REFIT_DISPERSION_EXCEEDS_HINT_BOUND',diagnostic['reasons'])
+                if rotate:self.assertIn('POST_REFIT_DISPLACEMENT_EXCEEDS_HINT_BOUND',diagnostic['reasons'])
+                x,y,w,h=row['box'];marker=dict(box=[x+40,y+40,10,16],text='1',sequence_likelihood=.2,context_status='SINGLE_MARK')
+                # The direct M API remains strict for an explicitly bad hint.
+                bad={k:deepcopy(row[k]) for k in ('key','status','previous_frame_sha256','box','point_count',
+                    'median_displacement_px','median_forward_backward_error_px','displacement_dispersion_px','affine_area_ratio')}
+                bad.update(scope='CONTEXT_IMAGE_TRACK',frame_sha256=sha256(second.tobytes()).hexdigest(),frame_index=1,scene=0)
+                with self.assertRaises(ValueError):
+                    tracker.update(second,[dict(marker,context_image_track=bad)],t=.033,frame_index=1,scene=0)
+                self.assertEqual(tracker._frame_index,0)
+                result=tracker.update(second,[marker],t=.033,frame_index=1,scene=0)
+                self.assertEqual(result['tracks'],[])
+                self.assertEqual(tracker._tracks[0]['evidence'][-1]['frame_index'],1)
+
+    def test_context_hint_quality_boundaries_omit_only_finite_ineligible_packets(self):
+        _,second,_,flowed=self.post_refit_flow();row=deepcopy(flowed['tracked'][0])
+        row['displacement_dispersion_px']=2.
+        args=dict(frame_sha=sha256(second.tobytes()).hexdigest(),frame_index=1,scene=0)
+        self.assertIsNotNone(module._context_image_track(flowed,row,**args))
+        for field,value,reason in [
+                ('displacement_dispersion_px',2.000001,'POST_REFIT_DISPERSION_EXCEEDS_HINT_BOUND'),
+                ('median_displacement_px',[.75*self.np.hypot(100.,100.)+1e-5,0.],'POST_REFIT_DISPLACEMENT_EXCEEDS_HINT_BOUND')]:
+            with self.subTest(field=field):
+                current=deepcopy(row);current[field]=value;diagnostic={}
+                self.assertIsNone(module._context_image_track(flowed,current,diagnostic=diagnostic,**args))
+                self.assertIn(reason,diagnostic['reasons'])
+        for change in (dict(displacement_dispersion_px=float('nan')),dict(displacement_dispersion_px=None),
+                       dict(median_displacement_px=[float('inf'),0.]),dict(point_count='9'),dict(status='PREDICTED')):
+            with self.subTest(change=change),self.assertRaises(ValueError):
+                module._context_image_track(flowed,dict(row,**change),**args)
+
+    def test_finite_ineligible_flow_keeps_pipeline_geometry_and_records_omission(self):
+        from race_ai.boat_video_marker_flow import MarkerPixelFollower
+        self.numbers=(1,);pipeline=self.pipeline();original=MarkerPixelFollower.update
+        def report_post_refit(flow,*args,**kwargs):
+            result=original(flow,*args,**kwargs)
+            for row in result['tracked']:
+                if row['status']=='TRACKED':row['displacement_dispersion_px']=2.5
+            return result
+        # Controlled producer metadata; the actual accepted post-refit case is
+        # exercised separately above with the real affine/inlier computation.
+        with patch.object(MarkerPixelFollower,'update',report_post_refit):
+            for index in range(3):result=self.call(pipeline,index)
+        self.assertEqual(len(result['identity']['tracks']),1)
+        self.assertEqual(result['identity']['tracks'][0]['number_evidence']['observations'],3)
+        self.assertNotIn('context_image_track',result['marker_observations'][0])
+        diagnostic=result['local_attempts'][0]['context_image_track_diagnostic']
+        self.assertEqual(diagnostic['status'],'OMITTED')
+        self.assertEqual(diagnostic['fallback'],'GEOMETRY_ONLY')
+
+    def test_nonfinite_flow_metadata_still_rejects_atomically_before_hint_fallback(self):
+        from race_ai.boat_video_marker_flow import MarkerPixelFollower
+        self.numbers=(1,);pipeline=self.pipeline();self.call(pipeline,0)
+        original=MarkerPixelFollower.update
+        def nonfinite(flow,*args,**kwargs):
+            result=original(flow,*args,**kwargs)
+            result['tracked'][0]['displacement_dispersion_px']=float('nan')
+            return result
+        with patch.object(MarkerPixelFollower,'update',nonfinite),self.assertRaises(ValueError):
+            self.call(pipeline,1)
+        self.assertEqual(pipeline._index,0)
+        self.call(pipeline,1)
+        self.assertEqual(len(self.call(pipeline,2)['identity']['tracks']),1)
 
 
 

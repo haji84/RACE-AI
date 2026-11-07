@@ -1,0 +1,319 @@
+{
+  "schema_version": "RACE_AI_BOAT_IDENTITY_CAUSAL_CONTINUATION_V1",
+  "recorded_at_jst": "2026-11-07T15:58:07.384734+09:00",
+  "existing_draft_pr": 71,
+  "request_complete": false,
+  "continuous_six_boat_identification_complete": false,
+  "production_default_or_forecast_model_changed": false,
+  "model_eligible": false,
+  "source_code_sha256": {
+    "race_ai/boat_video_crnn.py": "4cc3235b30b1bb23774744e7069e938bda00beed1860a7948ec9e0dfba8d9f06",
+    "race_ai/boat_video_marker_reader.py": "dc67bda29e3fa4664ff49a773cd2a71f97ce5b1c41ff9c7b31953450bdc66081",
+    "race_ai/boat_video_marker_flow.py": "47b36ec633d11bbd7dad382e58f1b59ef9eb066eae2786d69e164c1fead9818d",
+    "race_ai/boat_video_marker_identity.py": "956658ac4757e2314bba91df8bd03c434a7c60d717d58369f28a193228807cd8",
+    "race_ai/boat_video_marker_verifier.py": "6e916e8917a393a4f253bb732cb2de1f4b0cabc3a19a3b88f0185a04c9bb079e",
+    "race_ai/boat_video_ppocr.py": "83d4eff2b1fc8716a092c1e7457489e64a0b6af35aa0224eb4e7220cfe1ba15a",
+    "race_ai/boat_video_marker_pipeline.py": "94d80c7ed00426757294b9b93a9bdc59dedc96ce0636a794ba2f6a6709e452ca",
+    "scripts/boat_video_marker_analyze.py": "89e63bc19f6c80168bc8d3aa2b1cec9e045a8c401d1fcf0187383ca1e8bef5e7"
+  },
+  "actual_missing_stage_reproduction": {
+    "original_frames": 76,
+    "reference_opportunities": 102,
+    "before_registered": 59,
+    "before_missing": 43,
+    "before_missing_primary_barriers": {
+      "association_restart": 10,
+      "below_three_observations": 21,
+      "duplicate_number": 2,
+      "local_glyph_reject0": 3,
+      "known_lineage_flow_loss": 2,
+      "upstream_unresolved_without_dense_reference": 5
+    },
+    "below_three_observations_partition": {
+      "initial_warmup": 7,
+      "association_restart_recovery": 8,
+      "admission_or_duplicate_recovery": 6
+    },
+    "initial7_is_not_all_intrinsically_unavoidable_waits": true,
+    "same_real_context_key_TRACKED_same_fresh_number_restarts": [
+      {
+        "frame": 207,
+        "number": 2,
+        "discarded_fresh_count": 5,
+        "gate": "DISTANCE"
+      },
+      {
+        "frame": 211,
+        "number": 2,
+        "discarded_fresh_count": 1,
+        "gate": "AREA_RATIO"
+      },
+      {
+        "frame": 215,
+        "number": 2,
+        "discarded_fresh_count": 4,
+        "gate": "AREA_RATIO"
+      },
+      {
+        "frame": 241,
+        "number": 1,
+        "discarded_fresh_count": 1,
+        "gate": "DISTANCE"
+      },
+      {
+        "frame": 316,
+        "number": 3,
+        "discarded_fresh_count": 4,
+        "gate": "DISTANCE"
+      }
+    ],
+    "global_seed_lost_by_flow_hypothesis_actual76_cases": 0,
+    "reconcile_mutual_center_mismatch_hypothesis_actual76_cases": 0,
+    "duplicate4_counterexamples": {
+      "frames": [
+        480,
+        482
+      ],
+      "false_region": "orange/black bank fender",
+      "genuine4_also_rejected_by_correct_duplicate_guard": true
+    },
+    "minimum_three_fresh_source_frames_not_reduced": true,
+    "context_pixel_lineage_is_hull_identity_authentication": false
+  },
+  "actual_final76": {
+    "original_frames": 76,
+    "actual_classified_regions": 32587,
+    "actual_PP_crops": 317,
+    "actual_PP_global": 156,
+    "actual_PP_local": 161,
+    "runtime_seconds": 130.56610210597864,
+    "before_events": 86,
+    "after_events": 98,
+    "old86_number_box_BGR_PTS_preserved": true,
+    "added_events": 12,
+    "added12_AI_current_print_match": 12,
+    "added12_clear_partial_glyph": 6,
+    "added12_crop_edge_contact_uncertain": 4,
+    "added12_near_complete": 2,
+    "added12_PP_transcript_disagrees": 3,
+    "PP_original_transcripts_not_rewritten": true,
+    "registered_by_number": {
+      "1": 26,
+      "2": 15,
+      "3": 13,
+      "4": 12,
+      "5": 19,
+      "6": 13
+    },
+    "fixed17_registered_by_number": {
+      "1": 11,
+      "2": 10,
+      "3": 13,
+      "4": 12,
+      "5": 11,
+      "6": 10
+    },
+    "fixed102_registered_before": 59,
+    "fixed102_registered_after": 67,
+    "fixed17_complete_tracklets": 0,
+    "total_fixed17_tracklets": 6,
+    "maximum_simultaneous_registered": 3,
+    "first_qualification_frame_onward_registered": 67,
+    "first_qualification_frame_onward_denominator": 84,
+    "conditional_metric_does_not_replace_full102_denominator": true,
+    "all_hull_boxes_null": true,
+    "human_ground_truth": false,
+    "training_overlap": true,
+    "independent_holdout": false
+  },
+  "actual_full775": {
+    "decoded_frames": 775,
+    "all_native_BGR_and_actual_source_PTS_match_canonical": true,
+    "original_media_sha256": "1ac1f0c27f58d8d64ebb1cfc13c2c4e9133cf7bbcce04052f23c28bf2e37f194",
+    "all_pins_unchanged": true,
+    "CLI_exit_code": 0,
+    "CLI_status": "SUCCESS",
+    "SUCCESS_scope": "complete processing and held-source integrity, not perception accuracy",
+    "registered_events_NOT_accuracy": 606,
+    "registered_by_number": {
+      "1": 103,
+      "2": 58,
+      "3": 15,
+      "4": 174,
+      "5": 229,
+      "6": 27
+    },
+    "maximum_simultaneous_registered": 3,
+    "native_review_status": "PENDING_EXHAUSTIVE_606_EVENT_AI_REVIEW",
+    "known_current_false_example": {
+      "frame": 37,
+      "number": 4,
+      "box": [
+        1296.8341064453125,
+        551.0033569335938,
+        13.0,
+        16.0
+      ],
+      "physical_context": "building window/beam, no boat"
+    },
+    "context_hint_diagnostic_counts": {
+      "ELIGIBLE": 915,
+      "NOT_REQUESTED": 366,
+      "OMITTED": 0
+    }
+  },
+  "full775_association_only_counterfactual": {
+    "new_NN_OCR_LK_forwards": 0,
+    "frames": 775,
+    "old_M_equals_new_M_without_hint_all_frames": true,
+    "new_M_with_hint_equals_actual_all_frames": true,
+    "no_hint_events": 541,
+    "context_hint_events": 606,
+    "old_events_preserved": 541,
+    "added": 65,
+    "removed": 0,
+    "added_semantics_status": "UNSCORED",
+    "scope": "counterfactual from actual CLASSIFIER policy observations, not new video inference or CTC blank-mode equivalence"
+  },
+  "checks": {
+    "all_video_tests": {
+      "passed": true,
+      "tests": 627,
+      "skips": 0,
+      "seconds": 69.171
+    },
+    "related_6_modules": {
+      "passed": true,
+      "tests": 122,
+      "skips": 0
+    },
+    "independent_review": "GREEN after genuine post-refit flow-statistic abort was reproduced and fixed",
+    "quality_fix": "Finite accepted flow outside stricter optional-hint bounds omits the hint with reasons and uses legacy geometry; malformed/nonfinite evidence still rejected; direct M validation unchanged",
+    "all_repository_3106_pass_is_older_commit_only": true,
+    "CI_baseline": "7ccc3843 and upstream 746263a7 viewer job cancelled during full Python at existing 15-minute deadline",
+    "CI_change": "Same existing viewer job 40-minute test deadline plus seven marker modules in existing isolated video step; no new jobs/workflow/schedule/source polling",
+    "latest_rebased_GitHub_checks_complete": false
+  },
+  "unsuitable_private_prototypes_not_adopted": {
+    "glyph_plus20": {
+      "same_old10120_feature_rows_preserved": true,
+      "added_photo_glyphs": 20,
+      "additional_augmented_rows": 4000,
+      "one_fit": true,
+      "old_weights_unchanged": true,
+      "Todo_training": false,
+      "oracle18_correct": 5,
+      "oracle18_wrong_nonzero": 2,
+      "oracle18_reject0": 11,
+      "all6_anchor_pass": 0
+    },
+    "wide_YOLOX": {
+      "actual_forwards": 21,
+      "actual_genuine_print_positions_including_one_duplicate_partial": 16,
+      "retained_genuine_positions": 5,
+      "bank_window_examples_rejected": 5,
+      "specific_body_ownership_proven": false
+    },
+    "DINO_three_frames": {
+      "actual_forwards": 3,
+      "accepted_whole_envelope_matches": 8,
+      "reference_bodies": 18,
+      "all6_frame_pass": 0,
+      "raw_oracle18_geometry_is_not_detected18": true
+    },
+    "body_HOG": {
+      "train_bodies": 10,
+      "train_explicit_background": 16,
+      "DEV_body_correct": 5,
+      "DEV_body_total": 6,
+      "DEV_background_correct": 7,
+      "DEV_background_total": 9,
+      "transfer_body_correct": 8,
+      "transfer_body_total": 10,
+      "transfer_background_correct": 7,
+      "transfer_background_total": 12,
+      "automatic_detection_or_owner_proven": false
+    },
+    "whole_body_appearance": {
+      "train_clean_print_bound_bodies": 9,
+      "train_water_background": 8,
+      "Fotois_direct_pair_correct": 1,
+      "Fotois_direct_pairs": 8,
+      "nontrain_background_numeric_false": 13,
+      "nontrain_background_total": 29,
+      "Todo_training_or_input": false,
+      "printed_number_independence_proven": false
+    },
+    "existing_color_masks": {
+      "photo_chromatic_number_crop_has_corresponding_color": 13,
+      "photo_chromatic_number_crops": 13,
+      "Todo_corresponding_color": 3,
+      "Todo_chromatic_crops": 12,
+      "real4_blue_mask_zero": 3,
+      "false4_blue_mask_zero": 5,
+      "mandatory_color_rejection_adopted": false
+    }
+  },
+  "object_part_extent_diagnosis": {
+    "default_YOLOX_Todo_final_boxes": 20,
+    "whole_envelope": 1,
+    "hull_part": 11,
+    "mixed": 8,
+    "three_frames_each_contain_parts_of_all6_distinct_real_boats": true,
+    "rider_envelope_IoU_failure_is_not_proof_no_hull_part_was_detected": true,
+    "box_equals_single_complete_craft_assumption_valid": false,
+    "raw85_supervised_head": "DESIGN_ONLY_NOT_FITTED",
+    "rider_visual_number_binding": "IN_PREPARATION_NOT_COMPLETED"
+  },
+  "performance": {
+    "profile_original_frames": 16,
+    "refresh1_wall_seconds": 42.83,
+    "refresh8_wall_seconds": 7.214,
+    "refresh1_pipeline_seconds": 41.485,
+    "refresh8_pipeline_seconds": 6.216,
+    "global_discovery_fraction_of_profiled_pipeline": 0.67,
+    "LK_dominant_hypothesis_supported": false,
+    "refresh1_registered": 27,
+    "refresh8_registered": 16,
+    "held_numbers": 0,
+    "profiling_and_simultaneous_load_limit_precision": true,
+    "thread2_all8509_candidates_and_order_exact": true,
+    "thread2_wall_reduction_fraction": 0.0393,
+    "thread2_CPU_increase_fraction": 0.5598,
+    "thread2_peak_RSS_increase_fraction": 0.6503,
+    "thread2_production_adopted": false
+  },
+  "external_input_scope": {
+    "all_venues_HTTP403_proven": false,
+    "all_venues_require_external_API_contract_proven": false,
+    "exact_denials_and_same_provider_probe_stop_retained": true,
+    "current_different_provider_content_confirmed": false,
+    "new_provider_player_or_media_requests_in_scope_audit": 0,
+    "denied_content_retry_or_bypass": false,
+    "Todo_rights_race_date": "UNKNOWN_PRIVATE_CV_INFERENCE_ONLY_NOT_TRAINING_OR_PUBLICATION"
+  },
+  "preservation": {
+    "protected_live_head": "ef818e510c8ceb62d4c147ab8d4db1c3cf252435",
+    "existing_monitor_PID": 423218,
+    "existing_video_intake_PID": 271439,
+    "original_forecast_SQLite_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+    "new_PR_Issue_workflow_schedule_service_paid_API": false,
+    "main_public_app_wager_production_model_switch": false,
+    "new_acquisition_count_total_GET_round_or_lifetime_stop_limit": false,
+    "raw_media_models_private_forecasts_added_to_git": false
+  },
+  "private_evidence_sha256": {
+    "actual_final76": "7312ee1fa6b3dbde4130ea6d20a2daff23786deef2fa0aeb3d1b3faceb0ffa61",
+    "final76_pixel_binding": "f1ee80e1925b0e31c9aa53d7a305ae46fe3d83074d374bb61fce31cdb20e8eef",
+    "added12_ai_score": "472a4d764f8249476adbd5abd4ed30312cb8a83fd51fa4b9e4dd09c1110e53e0",
+    "full775_receipt": "ecf119e92b7ea89ff768a7b0fe5fa1a9039ea10d7d1cd4adcae90b306d2d734e",
+    "full775_journal": "92d998ba52e0f44e8a95e94f4278c18dfc938d8a93d9e568625ef137492a6f22",
+    "full775_source_complete": "17284ff7ed5f9103237f30fef3afd05eb5b3de9a6b5ceb683d159c95056e1352",
+    "full775_counterfactual": "171114e3e78f048ff11a6c1a45770c68e78a9a422a00370ef72c38bac4a75635",
+    "cause_breakdown": "5008efdb4f96e2af84ce5396da953d82d2088c8d4ab60fc288ee8fa4fc8319a3",
+    "actual_gate_fixtures": "5bec6c4a8485236cf49e350da683572d56decf31b0605416224217ae46993934",
+    "all_video_tests": "24769c26a528f37156a071bba23d05f585869c65be85539f9b5c50ae57fea228",
+    "body_glyph_physical_pairs": "f401e9b2230315a08a28d648ab9efb803da51bb8b72bfa0bf084a7ef91c1cf10",
+    "official_input_scope_audit": "027417256fc3f55399b451c4d0109b3926970ac4fcd7461d19a279288a262b93"
+  }
+}

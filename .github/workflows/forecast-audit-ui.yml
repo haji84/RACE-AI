@@ -595,7 +595,9 @@ jobs:
       contents: read
       actions: read
     runs-on: ubuntu-24.04
-    timeout-minutes: 35
+    # Full Python discovery alone takes over 15 minutes; keep the existing
+    # video/browser checks reachable without adding jobs or source polling.
+    timeout-minutes: 40
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -662,6 +664,7 @@ jobs:
             sudo apt-get install --no-install-recommends -y ffmpeg tesseract-ocr tesseract-ocr-eng
           fi
           "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m unittest tests.test_boat_video_tracking tests.test_boat_video_identity tests.test_boat_video_identity_tracking tests.test_boat_video_ocr_reliability tests.test_boat_video_intake tests.test_boat_video_cli tests.test_boat_video_tiled_detector tests.test_boat_video_crnn tests.test_boat_video_camera_identity tests.test_boat_video_calibration tests.test_boat_video_physical_context tests.test_boat_video_sequential_context tests.test_boat_video_vision_cli tests.test_boat_video_publication tests.test_boat_video_publication_intake -v
+          "$RUNNER_TEMP/race-ai-video-tools/bin/python" -m unittest tests.test_boat_video_marker_reader tests.test_boat_video_marker_flow tests.test_boat_video_marker_identity tests.test_boat_video_marker_pipeline tests.test_boat_video_marker_verifier tests.test_boat_video_ppocr tests.test_boat_video_marker_cli -v
       - name: Integrated product UI contracts
         run: |
           node --check web/app.js
