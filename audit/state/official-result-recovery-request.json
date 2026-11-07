@@ -48,8 +48,8 @@
         "run_id": 42341849641
       }
     ],
-    "plan_path": "audit/state/official-result-collection-plan-796211086aa050e9dfd517a8b351e4ef74bf1a044a61be188912a920ce16e9f2.enc",
-    "plan_sha256": "796211086aa050e9dfd517a8b351e4ef74bf1a044a61be188912a920ce16e9f2",
+    "plan_path": "audit/state/official-result-collection-plan-fe3b07ab24adcedb35a69add742cf34a3bd19699f9fb3e559ed06a3fb5cf0c2c.enc",
+    "plan_sha256": "fe3b07ab24adcedb35a69add742cf34a3bd19699f9fb3e559ed06a3fb5cf0c2c",
     "prior_journal_artifacts": [
       {
         "digest": "sha256:dcc4a2c95d0677c00d0bd1c9a6f445decac5930405aff79f5f1d9a6792a78816",
@@ -68,14 +68,20 @@
         "head_sha": "c43871ba761c98ad4ba86cfddc1bc2b20585da38",
         "id": 13572350517,
         "run_id": 42364217725
+      },
+      {
+        "digest": "sha256:72d1b53eec547a73cff15955e6b7f179f1391283c28d218ca48be95e36e35c79",
+        "head_sha": "901fb57d2d0f1d0fa0b4051285dca399654a4738",
+        "id": 13574582081,
+        "run_id": 42371023982
       }
     ],
     "schema": "RACE_AI_OFFICIAL_RESULT_COLLECT_INPUT_V2"
   },
-  "mode": "FIXED_ATTEMPT_TWO_SINGLE_NORMAL_UI_PROBE",
+  "mode": "FIXED_ATTEMPT_TWO_SINGLE_NORMAL_UI_PROBE_16",
   "old_journal_artifact_id": 13565712487,
   "probe_sport": "autorace",
   "pull_request": 71,
   "repository_id": 1416489937,
-  "schema": "RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V1"
+  "schema": "RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V4"
 }

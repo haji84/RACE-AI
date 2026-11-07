@@ -2247,3 +2247,12 @@ PR #71のHEAD `d079bd99b1ed5b26a1aeade60b216bebc9f30218` と過去runを読み�
 **収集HOLD**：既存result collector run `42349536138` は全workflow successでもAUTO/KEIRINの6ケース `HOLD_BROWSER_SOURCE_UNVERIFIED`。当該暗号journal id `13565712487` のbrowser予約24件は実通信回数UNKNOWN（全予約上限32）として保持。再起動・別credential/URL・回数reset・未確認結果の外れ認定は行わない。売主型のwaku10一次値もINPUT_MISSINGのまま。
 
 **保全**：原本/係数/買い目/学習SHA/旧スナップショット/trigger/workflow/スケジュールは無変更。このstatus追記は実source GETを発火するworkflowのpaths filter対象外。新source・表示jobの明示起動、新モデル、新PR、本番切替、main統合、一般公開、実投票、外部サービス・課金は実施しない。最新実行中runと終了runの成果を混合せず、28シナリオの正式収支・モデル別的中率は未独立確認。
+
+
+<!-- RACE_AI_FIXED_SIXTEEN_PREPARATION_20261107 -->
+### 既存モデル・次の実取得準備（2026-11-07 22:43 JST）
+
+実学習19/30（BOAT14/HORSE5）、残AUTO6/KEIRIN5、新19/30未来PDCA0。直近実取得は901/42371023982 attempt2の8 GET全200・RESULT0・上限HOLD。新V4は元MAX32内の16通信・同一AUTO1レース、旧8契約とUNKNOWN24/旧epoch32を維持し、全prior・実時計・日付越え・固定attempt2を検証。request c89917e0/plan fe3b07abは準備のみ、capsule未発行。通常UIの1R identity完了待ちと最終通信drainを修正、外部通信0の実JS＋合成Result再現15応答保存／返却後不変、独立レビューCLEAR。新HEAD全体CIを確認後だけ実取得する。新workflow/schedule/model/課金/本番昇格/投票なし。
+
+詳細：[指定12項目・新16準備](REMAINING_MODEL_COMPLETION_20261107.md)。
+<!-- /RACE_AI_FIXED_SIXTEEN_PREPARATION_20261107 -->

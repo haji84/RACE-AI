@@ -101,3 +101,16 @@ catalogはPARSED 7,846＋PARTIAL_SOURCE 117。gridの完全観測日は7,845、�
 29eca042／run42369144075は履歴のGit全祖先fetchが180秒上限となって復元job失敗。未発行capsuleのまま後続をcancelし、providerstepはSKIPPED・提供元アクセス0だった。[停止証跡](evidence/2026-11-07/29eca-cancelled-before-provider-counts.json)。履歴・gridの読取りだけを既存VaultGitRepositoryのshallow metadata／必要blob取得へ接続し、writerと保存形式は保持した。[実GitHubの固定manifest読取](evidence/2026-11-07/bounded-history-git-readback-transport-counts.json)は0.893秒・Git object891,789 bytes・鍵読取0・提供元アクセス0で一致。この固定manifest検査だけでは全原本群の復元完了とは呼ばない。その後b569の該当jobで全履歴／grid復元を確認し、901ではattempt 1／2の全体CI成功も確認した。
 
 独立reviewで、目録の暗号保存からV2 progress保存までの中断が同じ目録を再取得することも合成で再現した。未commitの既存要求は取得前HOLDとし、保存済み証拠を維持する。完成済みV2と認証済みHTTP待機の既存再開は維持する。新3再現テストをRED→GREEN、履歴・grid・暗号Git境界70件が成功。判定不能な中断を空の新規収集として再試行しない。
+
+
+## 1レース限定16通信の再検証準備（11月07日22:43 JST）
+
+最新の実取得実績は901／run42371023982の8 GET・RESULT 0／HOLDのまま。保存済み実JSを使った外部通信0のproduction再現で、1R操作直後に結果へ切り替えると非同期renderがProgram／OtherRaceInfoを飛ばす原因を確認した。通常のProgram画面→1R→同じ日・場・RのOtherRaceInfo本文完了→結果の順へ修正した。送信済み応答が通信上限到達後も12秒／85秒の既存時間内に保存を完了し、最終indexの後に予約・原本書込みが走らないことも再現検証した。
+
+[外部通信0の検証](evidence/2026-11-07/auto-ui-race-transition-and-drain-offline-counts.json)は、結果本文だけを明示した合成fixtureとし、15通信分の全応答・原本保存・返却後不変を確認。関連Node35件、既存Python106件、新授権の新旧Python98件と独立レビューが成功した。実RESULT取得、実30枠学習、実未来PDCAへ加算しない。
+
+提供元の公表制限と混同せず、旧8通信契約は維持したまま、元の最大32の範囲内で新V4／最大16・同じAUTO 1レースだけの別授権を実装した。通常日／過去日の実取得日、600秒〜1時間の期限、JST日付越え停止、同HEAD初回全体成功→固定attempt2、全prior原本・実metadata・既知結果、拒否時停止と1時間待機を検証する。旧UNKNOWN24／固定旧epoch上限32、既知の後続8＋8を別々に保持する。
+
+[新requestの準備証跡](evidence/2026-11-07/fixed-sixteen-probe-preparation-counts.json)：request SHA `c89917e055a448b14adba9a26b4f538385b6fbb92c6e1c4665082312be907285`、plan SHA `fe3b07ab24adcedb35a69add742cf34a3bd19699f9fb3e559ed06a3fb5cf0c2c`。4 native／3 checkpoints／4 prior journal、同じ1ケース・URL・利用条件・静的原本を保持。未発行の旧8枠準備905fは履歴へ残し、新暗号planだけを追加。これは取得授権の発行ではなく、新HEADの全体CI待ちである。既存の消費済みcapsuleを更新・再利用しない。
+
+実学習19／30・残AUTO6／KEIRIN5、新19／全30の実未来PDCA 0は変わらない。本番モデル・旧MAC・既定学習pointer・既存の原本は保持する。
