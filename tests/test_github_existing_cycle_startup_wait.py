@@ -146,6 +146,48 @@ class StartupWaitTests(unittest.TestCase):
         self.assertFalse(result['window_ready'])
         self.assertEqual(clock.sleeps, [])
 
+    def restored_result_work(self, *, confirmed=False, corrupt=False):
+        race = self.document['schedule'][0]
+        observation = dict(race_id=race['race_id'], captured_at=race['cutoff_at'],
+                           data=dict(confirmed=confirmed, status='settled' if confirmed else 'pending'))
+        state = dict(schema='RACE_AI_RECOVERED_FIRST_RECEIPTS_V1', complete=True, day_jst=DAY,
+                     rows=[dict(race_id=race['race_id'],cutoff_at=race['cutoff_at'],stage='P0')],
+                     observations=[observation], source_control=dict(lifetime_requests=701))
+        state['state_sha256'] = sha256(json.dumps(state,sort_keys=True,separators=(',',':'),
+                                                  ensure_ascii=False).encode()).hexdigest()
+        if corrupt:
+            state['state_sha256'] = '0'*64
+        path = self.root/'cycle_recovery_output'/'continuity.json'
+        path.parent.mkdir(exist_ok=True)
+        path.write_text(json.dumps(state))
+        return path
+
+    def test_after_last_forecast_pending_results_keep_existing_source_gate_ready(self):
+        path = self.restored_result_work()
+        before = path.read_bytes()
+        cutoff = datetime.fromisoformat(self.document['schedule'][0]['cutoff_at'])
+        result, clock, _ = self.execute(cutoff+timedelta(minutes=5))
+        self.assertTrue(result['window_ready'])
+        self.assertEqual(result['work_scope'], 'PENDING_RESULTS')
+        self.assertEqual(result['pending_result_races'], 1)
+        self.assertEqual(result['source_requests'], 0)
+        self.assertFalse(result['source_session_started'])
+        self.assertEqual(clock.sleeps, [])
+        self.assertEqual(path.read_bytes(), before)
+
+    def test_confirmed_results_do_not_open_an_extra_after_hours_session(self):
+        self.restored_result_work(confirmed=True)
+        cutoff = datetime.fromisoformat(self.document['schedule'][0]['cutoff_at'])
+        result, _, _ = self.execute(cutoff+timedelta(hours=7))
+        self.assertFalse(result['window_ready'])
+        self.assertEqual(result['state'], 'NO_FUTURE_WINDOW')
+
+    def test_corrupt_result_work_stops_before_source_readiness(self):
+        self.restored_result_work(corrupt=True)
+        cutoff = datetime.fromisoformat(self.document['schedule'][0]['cutoff_at'])
+        with self.assertRaisesRegex(ValueError, 'recovered state hash mismatch'):
+            self.execute(cutoff+timedelta(minutes=5))
+
     def test_unreachable_window_waits_to_pinned_handoff_without_opening_sources(self):
         cutoff = datetime.fromisoformat(self.document['schedule'][0]['cutoff_at'])
         now = cutoff-timedelta(hours=6)

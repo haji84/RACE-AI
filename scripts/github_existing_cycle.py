@@ -900,13 +900,36 @@ def _restored_window_cutoffs(day,now):
     return sorted(cutoffs.values())
 
 
+def _restored_pending_result_count(day,now):
+    """Work inventory only; existing SourceGuard remains the request authority."""
+    path=ROOT/'cycle_recovery_output/continuity.json'
+    if not path.exists() and not path.is_symlink():return 0
+    need(path.is_file() and not any(p.is_symlink() for p in (path,*path.parents)),
+         'SOURCE_WINDOW_RESULT_STATE_PATH_REJECTED')
+    restored=load_state(path,day)
+    rows=restored.get('rows');observations=restored.get('observations')
+    need(type(rows) is list and type(observations) is list,'SOURCE_WINDOW_RESULT_STATE_REJECTED')
+    latest,_=latest_result_observations(observations)
+    confirmed={o['race_id'] for o in latest if (o.get('data') or {}).get('confirmed') is True
+               and (o.get('data') or {}).get('status') in ('settled','cancelled','no_contest')}
+    pending=set()
+    for row in rows:
+        need(type(row) is dict and type(row.get('race_id')) is str and
+             re.fullmatch(day.replace('-','')+r'-(0[1-9]|1[0-9]|2[0-4])-(0[1-9]|1[0-2])',row['race_id']),
+             'SOURCE_WINDOW_RESULT_RACE_REJECTED')
+        cutoff=ts(row.get('cutoff_at'))
+        need(cutoff.astimezone(JST).date().isoformat()==day,'SOURCE_WINDOW_RESULT_DAY_REJECTED')
+        if cutoff<=now and row['race_id'] not in confirmed:pending.add(row['race_id'])
+    return len(pending)
+
+
 def wait_for_window(day=None,*,clock=None,sleeper=None):
     """Wait source-free for T-15, before starting the bounded source session."""
     clock=clock or (lambda:datetime.now(timezone.utc));sleeper=sleeper or time.sleep
     started=clock();need(isinstance(started,datetime) and started.utcoffset() is not None,'SOURCE_WINDOW_AWARE_CLOCK_REQUIRED')
     day=day or os.environ.get('RACE_AI_EVENT_DAY') or started.astimezone(JST).date().isoformat()
     need(date.fromisoformat(day).isoformat()==day,'SOURCE_WINDOW_EVENT_DAY_REJECTED')
-    def finish(state,now):
+    def finish(state,now,**work):
         reason='DAY_HANDOFF' if state=='NO_FUTURE_WINDOW' else state if state in ('DAY_HANDOFF','WORKER_HANDOFF') else None
         path=ROOT/'cycle_recovery_output/bootstrap-source-control.json'
         if reason is not None and (path.exists() or path.is_symlink()):
@@ -922,6 +945,7 @@ def wait_for_window(day=None,*,clock=None,sleeper=None):
         ready=state=='SOURCE_WINDOW_READY'
         result=dict(state=state,window_ready=ready,source_requests=0,source_session_started=False,
                     waited_seconds=max(0,(now-started).total_seconds()))
+        result.update(work)
         if os.environ.get('GITHUB_OUTPUT'):
             with open(os.environ['GITHUB_OUTPUT'],'a') as output:
                 output.write('window_ready='+('true' if ready else 'false')+'\n')
@@ -941,7 +965,12 @@ def wait_for_window(day=None,*,clock=None,sleeper=None):
         if now.astimezone(JST).date().isoformat()!=day:return finish('DAY_HANDOFF',now)
         if now>=deadline:return finish('WORKER_HANDOFF',now)
         remaining=[cutoff for cutoff in cutoffs if cutoff>now]
-        if not remaining:return finish('NO_FUTURE_WINDOW',now)
+        if not remaining:
+            pending=_restored_pending_result_count(day,now)
+            if pending:
+                return finish('SOURCE_WINDOW_READY',now,work_scope='PENDING_RESULTS',
+                              pending_result_races=pending)
+            return finish('NO_FUTURE_WINDOW',now)
         opening=remaining[0]-timedelta(minutes=15)
         if now>=opening:return finish('SOURCE_WINDOW_READY',now)
         seconds=min(30.,(opening-now).total_seconds(),(deadline-now).total_seconds())

@@ -45,8 +45,29 @@
 
 - [x] Test Actions/owner guard before private I/O.
 - [x] Add a prefix-gated step in the existing production job; no new job.
-- [ ] Run synthetic CLI/privacy checks, review the diff, then publish using expected-head CAS.
-- [ ] Read the completed actual job's count output and record confirmed causes.
+- [x] Run synthetic CLI/privacy checks, review the diff, then publish using expected-head CAS.
+- [x] Read the completed actual job's count output and record confirmed causes.
+
+### Task 3: Preserve result work after the last forecast window
+
+**Files:** scripts/github_existing_cycle.py; tests/test_github_existing_cycle_startup_wait.py.
+
+**Interfaces:** _restored_pending_result_count(day, now) reads the existing sealed restored continuity and counts unique forecast races without a confirmed ordinary/cancelled outcome. wait_for_window retains its existing SOURCE_WINDOW_READY gate when that work remains.
+
+- [x] Reproduce the confirmed NO_FUTURE_WINDOW/zero-round stop with pending results.
+- [x] Add result-work readiness without changing source/session guards, 90-second result wait, five-minute polling eligibility, original forecasts, or operational limits.
+- [x] Verify pending, already-confirmed, absent/corrupt continuity, day/handoff and inherited wait boundaries.
+
+### Task 4: Attribute the actual observation conflict without accepting it
+
+**Files:** existing read-only audit script/input/tests.
+
+**Interfaces:** audit_observation_conflicts(base, addition) returns only fixed field-name difference counts and same-source counts. The authenticated loader may read one explicitly pinned native continuity archive and project it using the existing reader.
+
+- [x] Test same-clock field conflicts, identical replay, redaction and input conservation.
+- [x] Add the actual completed source42376316340 continuity pin and count-only replay.
+- [x] Expose known blocked-request reason/method counts from the already retained native browser index; unavailable projections remain null.
+- [ ] Read actual Actions counts before changing any observation merge rule or sending another native probe.
 
 ## Continuation
 
