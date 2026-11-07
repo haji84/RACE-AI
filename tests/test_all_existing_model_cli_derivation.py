@@ -70,7 +70,7 @@ class DerivedLearningCliTests(unittest.TestCase):
             self.assertEqual(code,0,public.getvalue())
         result=json.loads(public.getvalue());payload=read_candidate(out)
         self.assertTrue(result['encrypted_readback_verified']);self.assertEqual(result['fitted_model_count'],9)
-        self.assertEqual(result['missing_or_unfitted_cells'],22)
+        self.assertEqual(result['missing_or_unfitted_cells'],21)
         self.assertEqual(result['derived_record_count'],56)
         self.assertFalse(result['derived_payloads_saved_before_cutoff'])
         self.assertEqual(len(payload['training']['models']),9)

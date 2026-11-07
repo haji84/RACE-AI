@@ -10,7 +10,7 @@ import math
 import re
 
 from .actions_contract import digest, stamp
-from .existing_model_coverage import catalog
+from .existing_model_coverage import catalog, is_retired
 
 SCHEMA = "RACE_AI_PRIVATE_CYCLE_VIEW_V1"
 DISPATCH_SCHEMA = "RACE_AI_EXISTING_MODEL_DISPATCH_V1"
@@ -273,13 +273,17 @@ def project_dispatch(report, *, dataset_status):
                 rows.append({k: deepcopy(slot[k]) for k in ("race_id", "sport", "stage", "cutoff_at")})
                 seen.add(key)
     _need(type(rows) is list and len(rows) <= 20000, "schedule count")
-    specs = {s["model_id"]: s for s in catalog()}
+    known = {s["model_id"]: s for s in catalog()}
+    retired = report.get("retired_model_ids", [])
+    _need(type(retired) is list and all(type(mid) is str and mid in known and is_retired(mid) for mid in retired)
+          and len(set(retired)) == len(retired), "retired model selection")
+    specs = {mid: spec for mid, spec in known.items() if mid not in retired}
     schedule, records = {}, {}
     for supplied in rows:
         key, cutoff = _schedule_identity(supplied)
         _need(key not in schedule, "duplicate schedule stage")
         pins = supplied.get("model_versions", {})
-        _need(type(pins) is dict and all(mid in specs and (version is None or _label(version, 100)) for mid, version in pins.items()), "schedule model version pins")
+        _need(type(pins) is dict and all(mid in known and (version is None or _label(version, 100)) for mid, version in pins.items()), "schedule model version pins")
         offering = supplied.get("offering_status", "UNKNOWN")
         _need(offering in ("TRIFECTA_OFFERED", "NOT_OFFERED", "UNKNOWN"), "schedule offering status")
         schedule[key] = supplied

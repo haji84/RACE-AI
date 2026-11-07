@@ -1,0 +1,30 @@
+{
+  "schema": "RACE_AI_SELLER_RETIREMENT_PRESENTATION_COUNTS_V1",
+  "status": "PRESENTATION_PUBLISHED_BROWSER_VERIFICATION_PENDING",
+  "before_commit": "d4665a2d08f7c4369ff5bd9cf649fd9a28b12521",
+  "presentation_commit": "cf62654da0379d49b31af363b09c1aa617a0d020",
+  "changed_files": [
+    "app.js",
+    "existing-model-catalog.js",
+    "index.html",
+    "site-build.json"
+  ],
+  "active_model_families": 15,
+  "active_sport_cells": 30,
+  "archived_forecasts_rewritten": false,
+  "ciphertext_files_changed": false,
+  "daily_statistics_changed": false,
+  "owner_link_fields_changed": false,
+  "budget_policy_assets_changed": false,
+  "existing_utf8_asset_sizes_and_hashes_verified": true,
+  "sha256_standard_test_vectors": 3,
+  "read_only_ui_checks": {
+    "seller_not_additional_model": true,
+    "seller_only_row_not_forecast_filter": true,
+    "seller_only_row_not_available_outlook": true,
+    "active_comparison_retained": true,
+    "raw_input_unchanged": true
+  },
+  "official_source_requests": 0,
+  "plaintext_prediction_data_published": false
+}

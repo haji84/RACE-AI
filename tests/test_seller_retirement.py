@@ -93,6 +93,27 @@ class SellerRetirementTests(unittest.TestCase):
         self.assertNotIn(SELLER, {m['model_id'] for m in active['models']})
         self.assertEqual(policy.coverage([], {'boat': 1})['model_family_count'], 16)
 
+    def test_new_projection_does_not_reinsert_a_missing_retired_slot(self):
+        from race_ai.dispatch_product_projection import project_dispatch
+        schedule, inputs, now, _ = legacy_dispatch()
+        report = dispatch.dispatch(schedule, inputs, now=now)
+        view = project_dispatch(report, dataset_status='SYNTHETIC_ONLY')
+        self.assertEqual(report['retired_model_ids'], [SELLER])
+        for row in view['records']:
+            self.assertEqual(len(row['dispatch_slots']), 15)
+            self.assertNotIn(SELLER, {slot['model_id'] for slot in row['dispatch_slots']})
+
+    def test_historical_projection_retains_its_original_catalog_shape(self):
+        from race_ai.dispatch_product_projection import project_dispatch
+        schedule, inputs, now, _ = legacy_dispatch()
+        with patch.object(policy, 'RETIRED_MODEL_IDS', frozenset()):
+            report = dispatch.dispatch(schedule, inputs, now=now)
+        before = deepcopy(report)
+        self.assertNotIn('retired_model_ids', report)
+        view = project_dispatch(report, dataset_status='SYNTHETIC_ONLY')
+        self.assertTrue(all(len(row['dispatch_slots']) == 16 for row in view['records']))
+        self.assertEqual(report, before)
+
     def test_web_catalog_matches_current_targets(self):
         source = (Path(__file__).parents[1] / 'web/existing-model-catalog.js').read_text()
         catalog = json.loads(source.split('const catalog = ', 1)[1].split(';\n', 1)[0])

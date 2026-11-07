@@ -145,7 +145,7 @@ class DispatchProductProjectionTests(unittest.TestCase):
         row, missing = self.project(report)["records"]
         self.assertEqual(row["scheduled_stages"], ["P0", "P1"])
         self.assertEqual(len(row["comparison_predictions"]), 7)
-        self.assertEqual(len(row["dispatch_slots"]), 32)
+        self.assertEqual(len(row["dispatch_slots"]), 30)
         self.assertEqual(missing["race_id"], extra["race_id"])
         self.assertEqual(missing["participants"], extra["participants"])
         self.assertIsNone(missing["prediction"])

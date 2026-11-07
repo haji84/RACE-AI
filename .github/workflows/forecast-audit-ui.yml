@@ -670,10 +670,11 @@ jobs:
           from pathlib import Path
           import unittest, race_ai
           race_ai.__path__.extend(str(Path(root) / 'race_ai') for root in ('pr64-reference', 'pr72-reference'))
-          suite = unittest.defaultTestLoader.loadTestsFromName('tests.test_seller_retirement')
+          suite = unittest.defaultTestLoader.loadTestsFromNames(('tests.test_seller_retirement','tests.test_boat_saved_p0_seller_sources','tests.test_all_existing_model_generation_clock','tests.test_all_existing_model_cli_derivation','tests.test_boat_seller_inputs','tests.test_boat_seller_official_source','tests.test_dispatch_product_projection','tests.test_boat_saved_display_evidence','tests.test_boat_saved_site_context'))
           result = unittest.TextTestRunner(verbosity=2).run(suite)
           raise SystemExit(not result.wasSuccessful())
           PY
+          node --test tests/model_catalog.test.cjs
       - name: Verify full same-head attempt-one evidence before optional recovery reuse
         id: official_recovery_preflight
         if: github.repository == 'haji84/RACE-AI' && github.event.pull_request.number == 71 && github.event.pull_request.head.repo.full_name == github.repository && github.run_attempt == '2' && hashFiles('audit/state/official-result-recovery-request.json') != ''

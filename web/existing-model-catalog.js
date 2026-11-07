@@ -146,6 +146,17 @@
     "seller-shadow-v1-20261104"
   ]
 };
+  const retired = new Set(catalog.retired_model_ids);
+  function forDisplay(row) {
+    if (!row || typeof row !== "object" || Array.isArray(row)) return row;
+    const active = value => value && !retired.has(value.model_id);
+    const comparison = (row.comparison_predictions || []).filter(active);
+    const prediction = active(row.prediction) ? row.prediction : comparison.shift() || null;
+    const view = {...row, prediction, comparison_predictions: comparison};
+    if (Array.isArray(row.dispatch_slots)) view.dispatch_slots = row.dispatch_slots.filter(active);
+    return view;
+  }
+  Object.defineProperty(catalog, "forDisplay", {value: forDisplay, enumerable: false});
   for (const model of catalog.models) { Object.freeze(model.applicable_sports); Object.freeze(model); }
   Object.freeze(catalog.models); Object.freeze(catalog.retired_model_ids); Object.freeze(catalog);
   if (typeof module === "object" && module.exports) module.exports = catalog;

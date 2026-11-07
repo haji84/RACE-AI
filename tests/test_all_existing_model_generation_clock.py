@@ -2,6 +2,7 @@
 from copy import deepcopy
 from datetime import timedelta
 import unittest
+from unittest.mock import patch
 
 from race_ai.actions_contract import digest
 from race_ai import all_existing_model_learning as learning
@@ -57,6 +58,7 @@ class NativeGenerationClockTests(unittest.TestCase):
         self.assertEqual(learning._native_replay_at(row,now=self.case.now),row['as_of'])
         self.assertNotIn('actual_native_generated_at',learning._lineage(row,now=self.case.now))
 
+    @patch("race_ai.existing_model_coverage.RETIRED_MODEL_IDS", frozenset())
     def test_legacy_fitted_artifact_bytes_keep_pre_generation_clock_golden_hashes(self):
         from tests.test_all_existing_model_learning import observed_records
         from tests.test_observed_weight_learning import NOW

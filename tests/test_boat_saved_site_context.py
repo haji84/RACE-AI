@@ -52,6 +52,19 @@ class ContextTests(unittest.TestCase):
         self.assertEqual(context['future_native']['index'],0)
         self.assertEqual(base64.urlsafe_b64decode(context['owner_url'].split('.')[-1]+'='),BOOTSTRAP['key'])
 
+    def test_retired_primary_does_not_shift_native_picker_indices(self):
+        view=invented_view()
+        for row in view['records'][:2]:
+            active=[p for p in [row.get('prediction'),*row.get('comparison_predictions',[])] if p is not None]
+            seller=deepcopy(active[0]);seller.update(model_id='seller-shadow-v1-20261104',stage='P0')
+            row['prediction']=seller;row['comparison_predictions']=active
+        before=deepcopy(view)
+        context=C.build_context(BOOTSTRAP,view,12,now=NOW,require_future=True)
+        self.assertEqual(context['native_probe']['index'],0)
+        self.assertEqual(context['future_native']['index'],0)
+        self.assertEqual(context['native_p1_groups'],2)
+        self.assertEqual(view,before)
+
     def test_absent_future_is_not_promoted_into_a_pre_cutoff_display_receipt(self):
         context=C.build_context(BOOTSTRAP,invented_view(),12,now=NOW+timedelta(hours=1))
         self.assertIsNone(context['future_native'])
