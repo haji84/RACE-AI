@@ -127,7 +127,8 @@ jobs:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
         run: python -m scripts.boat_saved_view_feed --hydrate-originals --history-when-compatible --recover-model-config
       - name: Refresh the owner page for the explicitly removed seller model
-        if: always() && steps.saved_model_publication.outcome == 'success' && startsWith(github.event.head_commit.message, 'saved-view: retire-seller:')
+        if: >-
+          always() && steps.saved_model_publication.outcome == 'success' && startsWith(github.event.head_commit.message, 'saved-view: retire-seller:')
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
