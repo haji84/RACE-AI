@@ -300,20 +300,25 @@ jobs:
           retention-days: 7
           if-no-files-found: error
       - name: Fit the explicit eight-race native research cohort from authenticated private originals
+        id: native_research_fit
         if: hashFiles('audit/state/all-existing-model-native-ci-input.json') != ''
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           GH_TOKEN: ${{ github.token }}
         shell: bash
         run: |
+          if [[ "$(git log -1 --format=%s)" == native-p1-compare:* ]]; then
+            exit 0
+          fi
           plan=audit/state/all-existing-model-native-ci-input.json
           if [[ -f audit/state/all-existing-model-full-native-ci-input.json ]]; then
             plan=audit/state/all-existing-model-full-native-ci-input.json
           fi
           python -m scripts.all_existing_model_learning_ci --input "$plan" --restored-dir "$RUNNER_TEMP/boat-production-readback" --out-dir "$RUNNER_TEMP/all-native-learning"
+          echo 'fit_executed=true' >> "$GITHUB_OUTPUT"
       - name: Keep the encrypted native research fit and count-only status
         id: native_model_candidate
-        if: hashFiles('audit/state/all-existing-model-native-ci-input.json') != ''
+        if: hashFiles('audit/state/all-existing-model-native-ci-input.json') != '' && steps.native_research_fit.outputs.fit_executed == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: all-existing-model-learning-${{ github.run_id }}-${{ github.run_attempt }}
@@ -716,16 +721,18 @@ jobs:
         run: |
           if [[ "$(git log -1 --format=%s)" == official-results-issue:* ]]; then
             echo 'requested=true' >> "$GITHUB_OUTPUT"
+          elif [[ "$(git log -1 --format=%s)" == official-results-prepare:* ]]; then
+            echo 'prepare_requested=true' >> "$GITHUB_OUTPUT"
           fi
       - name: Checkout immutable existing PR64 parser for authentication imports
-        if: steps.issue_route.outputs.requested == 'true'
+        if: steps.issue_route.outputs.requested == 'true' || steps.issue_route.outputs.prepare_requested == 'true'
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
           ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
           path: pr64-reference
       - name: Install existing pinned archive authentication dependencies
-        if: steps.issue_route.outputs.requested == 'true'
+        if: steps.issue_route.outputs.requested == 'true' || steps.issue_route.outputs.prepare_requested == 'true'
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
       - name: Issue one consumed exact-parent capsule and authenticate remote readback
         id: issue
@@ -743,12 +750,39 @@ jobs:
           from scripts.all_existing_model_official_result_issue import main
           raise SystemExit(main(['--proof', str(Path(os.environ['RUNNER_TEMP']) / 'official-result-recovery-issue-proof.json')]))
           PY
+      - name: Prepare authenticated unchanged KEIRIN plan without source or issuance
+        id: prepare
+        if: steps.issue_route.outputs.prepare_requested == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          umask 077
+          python - <<'PY'
+          from pathlib import Path
+          import os, race_ai
+          race_ai.__path__.append(str(Path('pr64-reference/race_ai').resolve()))
+          from scripts.all_existing_model_official_result_prepare import main
+          raise SystemExit(main(['--out-dir', str(Path(os.environ['RUNNER_TEMP']) / 'official-result-recovery-preparation')]))
+          PY
       - name: Retain only public hashes, counts and exact target issuance proof
         if: always() && steps.issue_route.outputs.requested == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: official-result-recovery-issue-proof-${{ github.run_id }}-1
           path: ${{ runner.temp }}/official-result-recovery-issue-proof.json
+          retention-days: 7
+          if-no-files-found: error
+      - name: Retain only encrypted plan, public request and safe preparation counts
+        if: always() && steps.issue_route.outputs.prepare_requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: official-result-recovery-preparation-${{ github.run_id }}-1
+          path: |
+            ${{ runner.temp }}/official-result-recovery-preparation/sealedplan.enc
+            ${{ runner.temp }}/official-result-recovery-preparation/request.json
+            ${{ runner.temp }}/official-result-recovery-preparation/counts.json
           retention-days: 7
           if-no-files-found: error
   viewer_contract:

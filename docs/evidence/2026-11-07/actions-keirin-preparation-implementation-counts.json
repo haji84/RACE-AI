@@ -1,0 +1,26 @@
+{
+  "actual_owner_key_used": false,
+  "actual_plan_preparation_executed": false,
+  "capabilities_issued": 0,
+  "cli_sha256": "88c4df283c8541bb06cabc30eef221e44d753fc4bc53895652cbaf6ce558a75b",
+  "core_sha256": "e84ef0dd8f6aa514a1ea9058e0ad26579e72e1c920514c1fccdd3b5651d7e40f",
+  "existing_issuer_code_and_writer_unchanged": true,
+  "independent_review": "CLEAR_AFTER_TWO_REAL_SYNTHETIC_REPRODUCTIONS_AND_FIXES",
+  "integrated_workflow_failures": 0,
+  "integrated_workflow_tests": 11,
+  "isolated_cli_memory_transport_real_synthetic_crypto_E2E_seconds": 24.753,
+  "isolated_focused_seconds": 63.961,
+  "isolated_focused_tests": 107,
+  "new_code_must_pass_full_same_head_CI_before_preparation_key_lookup": true,
+  "new_jobs": 0,
+  "new_models": 0,
+  "new_schedules": 0,
+  "new_workflows": 0,
+  "production_promoted": false,
+  "schema": "RACE_AI_ACTIONS_KEIRIN_PREPARATION_IMPLEMENTATION_COUNTS_V1",
+  "source_commits": [
+    "a3934cbb748112c0f69bf0808ba133ed5916c548",
+    "53064bf1e5b485b4eb131466acc598d96046f267"
+  ],
+  "source_requests": 0
+}

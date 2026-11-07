@@ -235,7 +235,9 @@ class IssuerWorkflowTests(unittest.TestCase):
         execute=next(block for block in steps if re.search(r'^        id: issue$',block,re.M))
         self.assertLess(steps.index(route),steps.index(execute))
         self.assertIn("        if: steps.issue_route.outputs.requested == 'true'\n",execute)
-        self.assertEqual([block for block in steps if 'RACE_AI_STATE_KEY:' in block],[execute])
+        prepare=next(block for block in steps if re.search(r'^        id: prepare$',block,re.M))
+        self.assertIn("        if: steps.issue_route.outputs.prepare_requested == 'true'\n",prepare)
+        self.assertEqual([block for block in steps if 'RACE_AI_STATE_KEY:' in block],[execute,prepare])
         self.assertFalse(re.search(r'^  schedule:',raw,re.M))
         for name,other in jobs.items():
             if name not in ('official_result_recovery_issuer','official_future_source_capture'):
