@@ -6,7 +6,8 @@ from pathlib import Path
 
 from race_ai.actions_contract import digest
 from race_ai.all_existing_model_learning import fit,records_from_observed,seal,verify_training
-from race_ai.all_existing_model_registry import registry_sha256
+from race_ai.all_existing_model_registry import registry_sha256, active_cells
+from race_ai.existing_model_coverage import active_catalog, is_retired
 from race_ai.all_existing_model_research import issue_decision,verify_decision
 from race_ai.boat_venue_learning import training_intake,seal_candidate
 from race_ai.boat_pdca_state import state_key
@@ -598,8 +599,8 @@ def main(argv=None,*,now=None):
     args=parser.parse_args(argv);now=now or datetime.now(timezone.utc)
     try:
         if not _key_ready():
-            print(json.dumps(dict(state='HOLD_OWNER_STATE_KEY_MISSING',model_family_count=16,
-                applicable_model_cells=31,fitted_model_count=0,production_promoted=False,plaintext_published=False)));return 0
+            print(json.dumps(dict(state='HOLD_OWNER_STATE_KEY_MISSING',model_family_count=len(active_catalog()),
+                applicable_model_cells=len(active_cells()),fitted_model_count=0,production_promoted=False,plaintext_published=False)));return 0
         state_key('production')
         options=dict(now=now)
         if args.native_archive_dir:options['native_archive_dirs']=args.native_archive_dir
@@ -624,11 +625,11 @@ def main(argv=None,*,now=None):
             if args.common_eight_per_sport:
                 from race_ai.all_existing_model_learning import COMMON_COHORT_FIELDS
                 issued=dict(state='OWNER_ALL_MODEL_RESEARCH_DECISION_RECORDED',decision_sha256=digest(decision),
-                    model_family_count=16,applicable_model_cells=31,provider_permission_confirmed=False,production_promoted=False)
+                    model_family_count=len(active_catalog()),applicable_model_cells=len(active_cells()),provider_permission_confirmed=False,production_promoted=False)
                 issued.update({key:intake[key] for key in COMMON_COHORT_FIELDS})
                 print(json.dumps(issued));return 0
             print(json.dumps(dict(state='OWNER_ALL_MODEL_RESEARCH_DECISION_RECORDED',decision_sha256=digest(decision),
-                model_family_count=16,applicable_model_cells=31,provider_permission_confirmed=False,production_promoted=False)));return 0
+                model_family_count=len(active_catalog()),applicable_model_cells=len(active_cells()),provider_permission_confirmed=False,production_promoted=False)));return 0
         if not args.out_dir:parser.error('--out-dir is required for fit')
         decision=json.loads(_read(record_path,100000));decision_sha=verify_decision(decision,**binding,now=now)
         admitted={tuple(p) for p in binding['source_refs']}
@@ -652,11 +653,12 @@ def main(argv=None,*,now=None):
                 intake_identity_semantics='ORIGINAL_COMMON_EIGHT_PER_SPORT_V1')
         seal(trained,'training_sha256');verify_training(trained)
         summary=dict(schema='RACE_AI_ALL_EXISTING_MODEL_COUNTS_V1',state=trained['state'],
-            model_family_count=16,applicable_model_cells=31,fitted_model_count=len(trained['models']),
+            model_family_count=len(active_catalog()),applicable_model_cells=len(active_cells()),fitted_model_count=len(trained['models']),
             fitted_family_count=len({v['model_id'] for v in trained['models'].values()}),
-            missing_or_unfitted_cells=31-len(trained['models']),
+            missing_or_unfitted_cells=len(active_cells())-len(trained['models']),
             observed_unique_races=intake['observed_unique_races'],eligible_venue_races=len(intake['eligible']),
-            model_states=trained['model_states'],training_sha256=trained['training_sha256'],
+            model_states={key:state for key,state in trained['model_states'].items() if not is_retired(key.split('/',1)[1])},
+            training_sha256=trained['training_sha256'],
             training_basis='OWNER_PERSONAL_RESEARCH',owner_research_decision_sha256=decision_sha,
             provider_permission_confirmed=False,provider_review_missing_sources=len(admitted),
             baseline_coefficients_changed=False,new_model_created=False,accuracy_improvement_proven=False,

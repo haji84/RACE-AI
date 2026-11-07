@@ -144,8 +144,7 @@ class AllModelCycleTests(unittest.TestCase):
         slots = {s["model_id"]: s for s in report["slots"]}
         self.assertTrue(all(slots[mid]["status"] == "GENERATED_UNATTESTED" for mid in ALL_MODELS))
         self.assertEqual(slots[LEARNED_ID]["status"], "TRAINED_ARTIFACT_MISSING")
-        self.assertEqual(slots["seller-shadow-v1-20261104"]["status"], "RULE_FILTERED")
-        self.assertEqual(slots["seller-shadow-v1-20261104"]["reason"], "MODEL_P0_ONLY")
+        self.assertNotIn("seller-shadow-v1-20261104", slots)
         self.assertEqual(sum(s["status"] == "NOT_APPLICABLE" for s in slots.values()), 1)
         row = report["schedule"][0]
         self.assertEqual([p["number"] for p in row["participants"]], [1, 2, 3, 4, 5])

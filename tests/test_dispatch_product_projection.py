@@ -34,7 +34,9 @@ def predictions(view):
     return [p for row in view["records"] for p in [row["prediction"], *row["comparison_predictions"]] if p]
 
 
+@patch("race_ai.existing_model_coverage.RETIRED_MODEL_IDS", frozenset())
 def seller_report():
+    """Invented pre-retirement originals must remain readable without new execution."""
     cards, waku = {}, {}
     for n in range(1, 9):
         rid = f"2030011518{n:02d}"; card = {"レースコード": rid}; w = {"レースコード": rid}
@@ -116,7 +118,7 @@ class DispatchProductProjectionTests(unittest.TestCase):
         self.assertEqual(len(view["records"]), 1)
         row = view["records"][0]
         self.assertEqual(row["scheduled_stages"], ["P0"])
-        self.assertEqual(len(row["dispatch_slots"]), 16)
+        self.assertEqual(len(row["dispatch_slots"]), 15)
         self.assertIsNone(row["participants"], "ranking tickets do not prove participant metadata")
         for p in predictions(view):
             original = slot(report, p["model_id"])
@@ -147,7 +149,7 @@ class DispatchProductProjectionTests(unittest.TestCase):
         self.assertEqual(missing["race_id"], extra["race_id"])
         self.assertEqual(missing["participants"], extra["participants"])
         self.assertIsNone(missing["prediction"])
-        self.assertEqual(len(missing["dispatch_slots"]), 16)
+        self.assertEqual(len(missing["dispatch_slots"]), 15)
         self.assertIn("NO_SAVED_PREDICTION", missing["missing_reasons"])
         self.assertTrue(all(s["reason"] == "DISPATCH_SLOT_MISSING" for s in missing["dispatch_slots"]))
 

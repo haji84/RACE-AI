@@ -1,9 +1,9 @@
-/* Generated from race_ai.existing_model_coverage.catalog; catalogue only, no model execution. */
+/* Generated from race_ai.existing_model_coverage.active_catalog; catalogue only, no model execution. */
 (function (root) {
   "use strict";
   const catalog = {
   "schema": "RACE_AI_EXISTING_MODEL_CATALOG_V1",
-  "source": "race_ai.existing_model_coverage.catalog",
+  "source": "race_ai.existing_model_coverage.active_catalog",
   "counts_only": true,
   "models": [
     {
@@ -140,19 +140,14 @@
       ],
       "required_input": "24 earlier verified same-venue results and new pre-cutoff input",
       "required_input_ja": "同会場の検証済み過去24レース結果と新しい締切前入力"
-    },
-    {
-      "model_id": "seller-shadow-v1-20261104",
-      "applicable_sports": [
-        "boat"
-      ],
-      "required_input": "national and historical same-lane rates; frozen before 07:00 JST",
-      "required_input_ja": "全国勝率・過去同枠勝率と07:00 JST以前に凍結した入力"
     }
+  ],
+  "retired_model_ids": [
+    "seller-shadow-v1-20261104"
   ]
 };
   for (const model of catalog.models) { Object.freeze(model.applicable_sports); Object.freeze(model); }
-  Object.freeze(catalog.models); Object.freeze(catalog);
+  Object.freeze(catalog.models); Object.freeze(catalog.retired_model_ids); Object.freeze(catalog);
   if (typeof module === "object" && module.exports) module.exports = catalog;
   else root.RaceExistingModelCatalog = catalog;
 })(typeof globalThis !== "undefined" ? globalThis : this);

@@ -15,7 +15,7 @@ import re
 import subprocess
 
 from .actions_contract import digest, stamp
-from .existing_model_coverage import catalog
+from .existing_model_coverage import catalog, active_catalog, is_retired
 from .boat_ab_shadow import build_pair, MODEL_IDS as AB
 from .boat_live_feature_shadow import build_live_feature_shadow, MODEL_ID as CLITE
 from .boat_tactical_scenarios import predict_tactical_shadow, MODEL_ID as TACTICAL
@@ -309,7 +309,7 @@ def _execute(group, payload, row, now, allow_source):
 
 
 def dispatch(schedule, native_inputs, *, now, allow_source=None, originals=()):
-    """Return every race/stage x sixteen-model slot without external/storage I/O.
+    """Return current active race/stage/model slots without external/storage I/O.
 
     Native inputs are JSON values. Non-callback native real inputs additionally
     require source_evidence[{source_ref,source_rights_ref,source_sha256?}] bound
@@ -359,6 +359,7 @@ def dispatch(schedule, native_inputs, *, now, allow_source=None, originals=()):
             raise ValueError("conflicting original seller daily decisions")
         seller_days[day] = original
     for row in rows:
+        if is_retired("seller-shadow-v1-20261104"):break
         payload = inputs.get(row["race_id"], {}).get(row["stage"], {}).get("seller")
         if row["sport"] == "boat" and row["stage"] == "P0" and isinstance(payload, dict):
             day = _time(row["cutoff_at"]).astimezone(JST).date().isoformat()
@@ -367,7 +368,7 @@ def dispatch(schedule, native_inputs, *, now, allow_source=None, originals=()):
     slots, invocations = [], []
     for row in rows:
         per_model = {}
-        for spec in catalog():
+        for spec in active_catalog():
             mid = spec["model_id"]
             base = {**{k:row[k] for k in ("race_id", "sport", "cutoff_at", "stage")},
                     "model_id":mid, "model_version":None, "prediction":None, "prediction_sha256":None,

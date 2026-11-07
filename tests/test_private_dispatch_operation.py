@@ -51,7 +51,7 @@ class PrivateDispatchOperationTests(unittest.TestCase):
                 rows, inputs = fixture(sport)
                 expected = run_suite(inputs[rows[0]["race_id"]]["P0"]["shared"]["snapshot"])
                 report = operation.run_saved_inputs(self.journal, rows, inputs, at=AT)
-                self.assertEqual(len(report["dispatch"]["slots"]), 16)
+                self.assertEqual(len(report["dispatch"]["slots"]), 15)
                 self.assertEqual(report["dispatch"]["schedule"], rows)
                 self.assertEqual(len(generated(report)), 4)
                 for slot in generated(report):

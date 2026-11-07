@@ -49,7 +49,7 @@ class AllExistingModelLearningTests(unittest.TestCase):
         self.assertEqual(len(fitted['model_states']),31)
         self.assertEqual(len(fitted['models']),2)
         self.assertEqual(fitted['state'],'FITTED_SHADOW_ONLY')
-        self.assertEqual(sum(v['state']=='INPUT_MISSING' for v in fitted['model_states'].values()),29)
+        self.assertEqual(sum(v['state']=='INPUT_MISSING' for v in fitted['model_states'].values()),28)
         self.assertEqual(records,before)
         for value in fitted['models'].values():
             self.assertEqual(value['train_races'],6);self.assertEqual(value['validation_races'],2)

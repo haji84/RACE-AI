@@ -100,7 +100,7 @@ class AllExistingModelCliTests(unittest.TestCase):
                         self.assertEqual(result, 0)
                         self.assertEqual(summary['state'], 'HOLD_OWNER_STATE_KEY_MISSING')
                         self.assertEqual((summary['model_family_count'], summary['applicable_model_cells'],
-                                          summary['fitted_model_count']), (16, 31, 0))
+                                          summary['fitted_model_count']), (15, 30, 0))
             load.assert_not_called()
         self.assertEqual(set(calls.values()), {0})
         self.assertFalse(self.record_path.exists()); self.assertFalse(self.output.exists())
@@ -127,7 +127,7 @@ class AllExistingModelCliTests(unittest.TestCase):
                 repeat, rejected, _ = self.invoke('issue-decision')
         self.assertEqual(result, 0)
         self.assertEqual(summary['state'], 'OWNER_ALL_MODEL_RESEARCH_DECISION_RECORDED')
-        self.assertEqual((summary['model_family_count'], summary['applicable_model_cells']), (16, 31))
+        self.assertEqual((summary['model_family_count'], summary['applicable_model_cells']), (15, 30))
         self.assertEqual(repeat, 2); self.assertEqual(rejected['state'], 'HOLD_ALL_MODEL_RESEARCH')
         self.assertEqual(self.record_path.read_bytes(), original)
         self.assertEqual(calls[cli.fit.__code__], 0)
@@ -149,7 +149,7 @@ class AllExistingModelCliTests(unittest.TestCase):
         self.assertEqual(summary['state'], 'FITTED_SHADOW_ONLY')
         self.assertEqual((summary['model_family_count'], summary['applicable_model_cells'],
                           summary['fitted_model_count'], summary['fitted_family_count'],
-                          summary['missing_or_unfitted_cells']), (16, 31, 2, 2, 29))
+                          summary['missing_or_unfitted_cells']), (15, 30, 2, 2, 28))
         self.assertEqual(summary['eligible_venue_races'], 8)
         self.assertIs(summary['encrypted_readback_verified'], True)
         self.assertIs(summary['provider_permission_confirmed'], False)
@@ -168,7 +168,7 @@ class AllExistingModelCliTests(unittest.TestCase):
         self.assertEqual(training['owner_research_decision_sha256'], digest(decision))
         self.assertEqual(len(training['model_states']), 31)
         self.assertEqual(sum(value['state'] == 'INPUT_MISSING'
-                             for value in training['model_states'].values()), 29)
+                             for value in training['model_states'].values()), 28)
         for model in training['models'].values():
             self.assertEqual((model['unique_races'], model['train_races'], model['validation_races']), (8, 6, 2))
             self.assertEqual(model['native_training']['schema'], 'RACE_AI_EXISTING_OBSERVED_WEIGHT_FIT_V1')

@@ -98,7 +98,7 @@ async function main() {
     assert.match(await page.locator('#source-state').innerText(), /未取得|未読込|未接続/);
     assert.equal(await page.locator('#page-home .race-card').count(),0);
     await page.locator('[data-page="research"]').filter({visible:true}).first().click();
-    assert.equal(await page.locator('#all-model-coverage tbody tr[data-model-id]').count(),16,'empty data must not hide any registered model family');
+    assert.equal(await page.locator('#all-model-coverage tbody tr[data-model-id]').count(),15,'empty data keeps every active model family');
     await page.locator('[data-page="home"]').filter({visible:true}).first().click();
     mark(`${width}: honest empty startup`);
     await page.locator('#race-file').setInputFiles({name:'synthetic.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(fixture))});
@@ -130,7 +130,7 @@ async function main() {
         await page.locator('#page-races [data-open-race]').first().click();
       } else await nav(name);
       await page.locator(`#page-${name}`).waitFor({state:'visible'});
-      if(name==='research') assert.equal(await page.locator('#all-model-coverage tbody tr[data-model-id]').count(),16,'all-model research coverage includes unavailable and inapplicable families');
+      if(name==='research') assert.equal(await page.locator('#all-model-coverage tbody tr[data-model-id]').count(),15,'current coverage excludes the owner-removed model');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,`${width} ${name} overflow`);
       await capture(`${width}-${name}.png`);
     }
@@ -254,10 +254,11 @@ async function main() {
       const bundle=JSON.parse(fs.readFileSync(process.env.UI_DISPATCH_VIEWS,'utf8'));
       assert.equal(bundle.scope,'SYNTHETIC_ONLY');
       const families=new Set(),nativeHashes=new Set();
+      const retiredIds=new Set(await page.evaluate(()=>RaceExistingModelCatalog.retired_model_ids || []));
       for (const [number,view] of bundle.views.entries()) {
         assert.equal(view.dataset_status,'SYNTHETIC_ONLY');
         const saved=view.records.find(r=>r.prediction)||view.records[0];
-        const variants=[saved.prediction,...saved.comparison_predictions].filter(Boolean);
+        const variants=[saved.prediction,...saved.comparison_predictions].filter(p=>p && !retiredIds.has(p.model_id));
         await nav('settings');
         if(!await page.locator('#data-tools').evaluate(n=>n.open))await page.locator('#data-tools>summary').click();
         await page.locator('#clear-data').click();
@@ -266,19 +267,19 @@ async function main() {
         await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('端末内で読み込みました'));
         await page.locator(`[data-sport="${saved.sport}"]`).first().click();await nav('races');
         await page.locator('#selected-date').fill(saved.event_date_jst);await page.locator('#selected-date').dispatchEvent('change');
-        if(saved.prediction?.native_top8_available===false) {
+        if(saved.prediction?.native_top8_available===false && !retiredIds.has(saved.prediction.model_id)) {
           const card=page.locator('#page-races .race-card').filter({has:page.locator(`[data-open-race="${saved.race_id}"]`)});
           assert.match(await card.innerText(),/保存5点プラン/);
           assert.ok(!(await card.innerText()).includes('保存Top8'));
         }
         await page.locator(`#page-races [data-open-race="${saved.race_id}"]`).click();
         await page.locator('[data-detail-tab="analysis"]').click();
-        assert.equal(await page.locator('#dispatch-slot-status tbody tr').count(),saved.dispatch_slots.length,'all native model states retained');
+        assert.equal(await page.locator('#dispatch-slot-status tbody tr').count(),saved.dispatch_slots.filter(s=>!retiredIds.has(s.model_id)).length,'active model states displayed; raw originals retained');
         for(const [index,p] of variants.entries()) {
           families.add(p.model_id);if(p.prediction_sha256)nativeHashes.add(p.prediction_sha256);
           await page.locator('#prediction-select').selectOption(String(index));
           const shown=await page.locator('#race-detail .forecast-panel').first().locator('.saved-ticket .combo').evaluateAll(nodes=>nodes.map(n=>[...n.querySelectorAll('.lane')].map(x=>Number(x.textContent))));
-          assert.deepEqual(shown,p.ordered_top8,'all sixteen native families keep saved candidate order');
+          assert.deepEqual(shown,p.ordered_top8,'all active native families keep saved candidate order');
           assert.ok((await page.locator('#race-detail').innerText()).includes(p.output_sha256),'output hash displayed separately');
           if(p.prediction_sha256==null) assert.equal(await page.locator('#race-detail').evaluate(n=>[...n.querySelectorAll('dt')].find(x=>x.textContent==='予想SHA').nextElementSibling.textContent),'未取得');
           if(p.native_top8_available===false) assert.match(await page.locator('#race-detail').innerText(),/保存された5点プラン/);
@@ -289,6 +290,7 @@ async function main() {
           assert.ok(!(await page.locator('#race-detail').innerText()).includes('nullR'));
         }
         assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'native model/slot content cannot overflow');
+        assert.ok(!(await page.locator('#race-detail').innerText()).includes('seller-shadow-v1-20261104'),'retired forecasts and missing slots stay hidden');
         const variant=variants.at(-1);
         if(saved.sport==='horse') await capture(`${width}-dispatch-horse.png`);
         if(variant?.stage==='A_PRE_TRIAL') await capture(`${width}-dispatch-autorace-A.png`);
@@ -297,10 +299,10 @@ async function main() {
         if(!variants.length) await capture(`${width}-dispatch-missing-metadata.png`);
         if(number===bundle.views.length-2) await capture(`${width}-dispatch-private-readback.png`);
       }
-      assert.equal(families.size,16,'every existing family actually imported and selectable');
+      assert.equal(families.size,15,'every active family imported and selectable; retired seller stays archival');
       const storage=await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}));
       assert.ok([...nativeHashes].every(sha=>!storage.includes(sha)),'no native forecasts persisted in browser storage');
-      mark(`${width}: sixteen native families and four-sport private SQLite restart -> browser, exact hashes/order, native trial phases, five-ticket plan and missing-input states`);
+      mark(`${width}: fifteen active native families and four-sport private SQLite restart -> browser; archived seller hidden, exact hashes/order and missing-input states`);
       const sourceView=bundle.source_observation_view;
       assert.equal(sourceView.dataset_status,'SYNTHETIC_ONLY');
       await nav('settings');
