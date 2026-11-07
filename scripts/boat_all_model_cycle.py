@@ -119,8 +119,10 @@ def _prospective_grid_get(path):
               f'actions/runs/{READBACK_RUN}/attempts/1/jobs?per_page=100',
               f'actions/jobs/{READBACK_JOB}/logs'}
     need(path in routes, 'PROSPECTIVE_GRID_GITHUB_ROUTE')
-    from scripts.github_existing_cycle import gh as original_get
-    raw = original_get(path)
+    # This admission needs fresh actual server metadata, even when the worker
+    # has opted into archived original-artifact recovery for other operations.
+    from scripts.github_existing_cycle import _live_gh
+    raw = _live_gh(path)
     need(type(raw) is bytes and 0 < len(raw) <= 8*1024*1024, 'PROSPECTIVE_GRID_GITHUB_BOUND')
     return raw
 

@@ -173,6 +173,15 @@ class AllModelCliTests(unittest.TestCase):
         self.assertEqual(result['state'],'HOLD_PRIVATE_NATIVE_INPUTS')
         self.assertFalse(destination.exists())
 
+    def test_grid_witness_reads_fresh_github_metadata_without_archive_substitution(self):
+        from scripts import github_existing_cycle as worker
+        from race_ai.boat_venue_future_grid import READBACK_RUN
+        with patch.object(worker,'gh',return_value=b'archived response'), \
+             patch.object(worker,'_live_gh',return_value=b'actual fresh server response'):
+            self.assertEqual(cli._prospective_grid_get(f'actions/runs/{READBACK_RUN}/attempts/1'),
+                b'actual fresh server response')
+            with self.assertRaises(ValueError):cli._prospective_grid_get('actions/runs/42')
+
     def test_prepare_inventory_rejection_exposes_only_bounded_code_locations(self):
         sentinel = "private-race-sentinel-" + base64.b64encode(KEY).decode()
         view = {"records": [dict(race_id=sentinel)]}

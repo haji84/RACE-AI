@@ -208,7 +208,8 @@ def enrich_native_inputs(built, capability, *, source_as_of):
     Evidence is carried inside each new capsule, including unchanged families.
     """
     from .boat_venue_dataset import _manifest, _sha
-    from .boat_venue_feature_adapter import enrich_venue_snapshot
+    from .boat_venue_feature_adapter import enrich_venue_snapshot, RIGHTS
+    from .boat_venue_learning import _pin
     from .boat_all_model_inputs import shared_snapshot_from_observed
     data = require_before_source(capability, source_as_of)
     _need(type(built) is dict and built.get('as_of') == source_as_of and built.get('stage') == 'P1' and
@@ -223,8 +224,10 @@ def enrich_native_inputs(built, capability, *, source_as_of):
           'RESTORED_DATASET_CHANGED')
     snapshot = old['boat_observed']['snapshot']
     _need(snapshot['as_of'] == source_as_of, 'ORIGINAL_SOURCE_CLOCK_CHANGED')
+    source_url = _pin(pointer)
     enriched = enrich_venue_snapshot(snapshot, folder, pointer, verified_at=data['verified_at'],
-        observed_only=True, allow_source=lambda ref, rights, purpose: purpose == 'analysis')
+        observed_only=True, allow_source=lambda ref, rights, purpose:
+            (ref, rights, purpose) == (source_url, RIGHTS, 'analysis'))
     mapped = shared_snapshot_from_observed(enriched['snapshot'])
     out = deepcopy(built); native = out['native_inputs']; prior = {}
     native['boat_observed']['snapshot'] = enriched['snapshot']
