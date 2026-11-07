@@ -57,7 +57,7 @@
   const races = () => dataset?.records || [];
   const scoped = () => U.filterRaces(races(), {sport: state.sport, day: state.day, allDates: state.allDates, period: state.period, sort: state.sort});
   const currentRace = () => races().find(r => r.race_id === state.selectedId);
-  const raceName = r => r ? (r.venue || "開催場 未取得") + " " + (Number.isInteger(r.race_no) ? r.race_no + "R" : "レース番号 未取得") + (r.venue == null || r.race_no == null ? " · " + r.race_id : "") : "レース未選択";
+  const raceName = r => r ? (U.venueName(r) || "開催場 未取得") + " " + (Number.isInteger(r.race_no) ? r.race_no + "R" : "レース番号 未取得") + (r.venue == null || r.race_no == null ? " · " + r.race_id : "") : "レース未選択";
   const predictions = r => r ? (M.candidates ? M.candidates(r) : [r.prediction, ...(r.comparison_predictions || [])].filter(Boolean)) : [];
   const prediction = r => {
     const list = predictions(r), saved = state.predictionKeys[r?.race_id];
@@ -366,7 +366,7 @@
     if (!filtered.length) content.push(empty(all.length ? "条件に一致するレースがありません" : sports[state.sport] + "のレースは未取得です", all.length ? "検索・開催場・候補の条件を変更してください。" : "未取得は開催なしを意味しません。保存原本や対象日を確認してください。"));
     if (filtered.length > state.visible) content.push(button("さらに60件表示", "outline full", () => { state.visible += 60; renderRaces(); }));
     $("all-races").replaceChildren(...content);
-    const venues = [...new Set(all.map(r => r.venue).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ja"));
+    const venues = [...new Set(all.map(r => U.venueName(r)).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ja"));
     $("venue-buttons").replaceChildren(...(venues.length ? venues.map(venue => { const b = button(venue, "venue-button" + (venue === state.venue ? " active" : ""), () => { state.venue = state.venue === venue ? "" : venue; $("venue-filter").value = state.venue; renderRaces(); }); b.setAttribute("aria-pressed", String(state.venue === venue)); return b; }) : [node("p", "muted", "開催場は未取得です。") ]));
     $("candidate-count").replaceChildren(...candidateItems());
   }
@@ -478,7 +478,7 @@
     layout.append(main, rail); target.append(layout);
   }
   function refreshSelects() {
-    const venues = [...new Set(scoped().map(r => r.venue).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ja"));
+    const venues = [...new Set(scoped().map(r => U.venueName(r)).filter(Boolean))].sort((a, b) => a.localeCompare(b, "ja"));
     if (!venues.includes(state.venue)) state.venue = "";
     $("venue-filter").replaceChildren(new Option("すべての開催場", ""), ...venues.map(venue => new Option(venue, venue))); $("venue-filter").value = state.venue;
     const list = scoped(), selected = currentRace();

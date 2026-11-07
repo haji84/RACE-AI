@@ -1,7 +1,16 @@
 /* Reused from PR #62: manual accounting is independent of forecast/result evidence. */
 (function (root) {
   "use strict";
+  const boatVenues = Object.freeze([
+    "桐生", "戸田", "江戸川", "平和島", "多摩川", "浜名湖", "蒲郡", "常滑", "津", "三国", "びわこ", "住之江",
+    "尼崎", "鳴門", "丸亀", "児島", "宮島", "徳山", "下関", "若松", "芦屋", "福岡", "唐津", "大村"
+  ]);
   const model = {
+    venueName(row) {
+      // Resolve the saved BOAT code for display without rewriting the original record.
+      const code = row?.sport === "boat" && typeof row.venue === "string" ? /^場コード(0[1-9]|1[0-9]|2[0-4])$/.exec(row.venue) : null;
+      return code ? boatVenues[Number(code[1]) - 1] : row?.venue;
+    },
     validateTicket(lanes, amount, maxNumber = 6) {
       if (!Array.isArray(lanes) || lanes.length !== 3 || lanes.some(n => !Number.isInteger(n) || n < 1 || n > maxNumber) || new Set(lanes).size !== 3)
         return "1〜" + maxNumber + "の異なる番号を3つ選んでください。";
@@ -97,12 +106,12 @@
       let weekStart = "", weekEnd = "";
       if (day && period === "week") { const start = new Date(day + "T00:00:00Z"); start.setUTCDate(start.getUTCDate() - (start.getUTCDay() + 6) % 7); weekStart = start.toISOString().slice(0, 10); start.setUTCDate(start.getUTCDate() + 7); weekEnd = start.toISOString().slice(0, 10); }
       const rows = records.filter(r => (sport === "all" || r.sport === sport) && (allDates || !day || (period === "week" ? r.event_date_jst >= weekStart && r.event_date_jst < weekEnd : r.event_date_jst === day)) &&
-        (!venue || r.venue === venue) && (!forecastOnly || !!r.prediction || !!r.comparison_predictions?.length) &&
+        (!venue || model.venueName(r) === venue || r.venue === venue) && (!forecastOnly || !!r.prediction || !!r.comparison_predictions?.length) &&
         (!candidatesOnly || candidateRaceIds.includes(r.race_id)) &&
-        (!needle || [r.venue, r.race_no + "R", r.race_id, r.prediction?.model_id, r.prediction?.model_version,
+        (!needle || [model.venueName(r), r.venue, r.race_no + "R", r.race_id, r.prediction?.model_id, r.prediction?.model_version,
           ...(r.participants || []).flatMap(p => [p.name, p.registration_id, p.racer_registration_id])].filter(Boolean).join(" ").toLocaleLowerCase("ja-JP").includes(needle)));
       const cutoff = r => Number.isFinite(Date.parse(r.cutoff_at)) ? Date.parse(r.cutoff_at) : Infinity;
-      return rows.sort((a, b) => (sort === "time" ? cutoff(a) - cutoff(b) : (a.venue || "").localeCompare(b.venue || "", "ja") || (a.race_no ?? 0) - (b.race_no ?? 0)) || a.race_id.localeCompare(b.race_id));
+      return rows.sort((a, b) => (sort === "time" ? cutoff(a) - cutoff(b) : (model.venueName(a) || "").localeCompare(model.venueName(b) || "", "ja") || (a.race_no ?? 0) - (b.race_no ?? 0)) || a.race_id.localeCompare(b.race_id));
     }
   };
   if (typeof module === "object" && module.exports) module.exports = model;

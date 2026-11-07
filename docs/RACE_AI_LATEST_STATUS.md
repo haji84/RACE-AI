@@ -1,3 +1,36 @@
+<!-- RACEAI_SIX_BOAT_MARKER_IDENTITY_20261107 -->
+# 2026-11-07 JST｜1〜6の自動番号登録86件を原画照合。6艇の継続識別は未完成
+
+**実装・検証済み:** 全画面の番号候補抽出、任意の全6,625クラスPP-OCR、3別frameの番号根拠、実画素の局所追跡、再検出による位置補正、重複片の整理、私有の全frame診断CLIを既存Draft PR71へ追加した。元の通常reader・本番予想の既定は変更しない。分類器の離散ラベルはCTC確率と分離し、モデルSHA・非確率scope・`sequence_likelihood=null`を記録。別フレームの原画素が3回必要で、同一frameの加工を票に加算しない。既存の予想・動画intakeプロセスは停止/再起動していない。
+
+**実際の達成範囲:** 許諾済み既存日本動画の4区間・計76原frameを全自動で処理し、1〜6を含む86登録を出力。原画参照に一致する77件と、重複修正で増えた9件を照合し、対象86件の誤番号・背景登録は0。最終source `599dffc6…` の実出力は採点済みイベントとbbox/BGR/PTSが完全一致し、実PP317入力とsoftmaxの全SHAも一致した。4の同一ID連続登録は5→12frame（実PTS差0.367秒）。ただし同一動画の12数字等を学習したAI DEVELOPMENT参照で、独立精度ではない。固定17frameの登録coverageは1〜6順に **10/5/11/12/11/10**、**継続完成0/6・最大同時3**。累積6番号の出現を、現在の6艇継続識別の完成へ数えない。
+
+**全編・失敗の確認:** 別の実CLIで元動画775frameを全処理し、全BGR SHA・実PTSをcanonicalと照合した。原本SHAは `1ac1f0c2…` のまま。SUCCESS receipt `6eacf60c…` は処理完遂・整合性で、510登録の正しさを示すものではない。frame37では建物の線を番号4として登録した反例がある。3実観測アンカーからのCSRT試験も204回すべて枠を返したが、原画採点は正しい船体186・搭乗者だけ1・混合曖昧15・別艇2。約0.567秒の17future追跡成功は9/12試行で全6番号に短い成功例があるものの、同時6艇・長時間・新番号再読ではない。背景除外のDeepLab/DIS/Grounding DINO固定試験は実番号の欠落・UNKNOWN・背景誤認が残り、必須gateや本番へ採用していない。
+
+**修正・テスト:** 独立レビューの入力crop変化、割当後のメモリ確保失敗、矛盾OCRのblank化、異番号へのblank転送、再検出位置の未補正、部分片の連鎖統合とM側での再統合を再現して修正。CLIも保持FDのctime・終了時全SHAを検査し、同サイズ変更＋mtime復元ではSUCCESSを出さない。修正CLIの実モデル6原frameもBGR/元PTSが6/6一致。Python全体 **3,106件PASS/0skip**（988.076秒、code `39c97950…`）、最終変更を含む映像全体 **614件PASS/0skip**（76.537秒、CLI13件・pipeline33件を含む）。全体3,106は後続の変更を含む最新GitHub HEAD全体の検証と読み替えない。原本・重み・途中失敗・モデル出力・別採点を私有保存し、Gitへ追加しない。
+
+**未完成:** 6艇の継続識別、船体と背景の確実な区別、遮蔽後の再同定、同時6艇と別レースでの実証、ターン/出足/行き足/伸びの実測・予想改善。本追加の出力は `identity_validated=false/model_eligible=false` のままで、未検証の予想確率や回収率へ変換していない。実機Safari・4競技長期運転の合否もこの追加テスト数から認定しない。
+
+**外部条件・保全:** 最後に確認した当日三国の正規playerは11/7 09:48:10.456 JSTに403/P01002。現在映像の許可待ちは未解消で、拒否済みcontentの再要求・別経路取得・問い合わせ送信はしていない。現在レースの正規映像と取得/保存/分析の許可確認、独立した正解による検証が必要。保護checkoutは `ef818e51…`、起点予想DB SHAは `c40bead0…` のまま、既存2プロセスは継続。取得総数・総GET・総稼働時間の停止上限を本追加で設けていない。新PR/Issue/workflow/外部schedule/サービス/予想モデル系統/追加課金/環境再公開なし。main統合・一般公開・実投票・本番切替も行っていない。
+
+[実装・実測・実行方法](BOAT_VIDEO_MARKER_IDENTITY_20261107.md)／[source版・集計・検証SHA](evidence/boat-video-marker-identity-20261107.json)。全体完成は未達として維持する。
+
+---
+
+<!-- RACEAI_AUTOMATION_20261107_1332_RECOVERY_SUCCESS_FROZEN_AUDIT_UNVERIFIED -->
+# 2026-11-07 13:32 JST｜原本復元後の既存公式run成功。第1巡を実ZIP照合、28仮想シナリオは事前receipt未立証
+
+**GitHub実API確認:** Draft PR #71、branch `feat/four-sport-forecast-audit-view-20261022`、workflow `405276784`。監査前の現HEAD `1bafe16e8ff34d38c58778b5a02e4c189c0ef12f`。source run `42336097863`（起動HEAD `013c59c3f41209993bfba1f4b2b93791deba3d6c`）は2026-11-07 13:30:41 JST `completed/success`。先行失敗 `42330631694` の `VAULT_REFERENCE_KIND_INVALID` 後、今回の現runは初回P0原本再利用step18とP0モデル実行step20〜24をsuccessで通過した。先行失敗runをrerunせず、P0初回原本を再生成しなかった。旧エラーが全入力・全runで解消した証明ではない。
+
+**巡回と独立検証の境界:** 全artifact一覧にある現runの正式 `race-existing-cycle-42336097863`（接尾辞なし、**第1巡**）の実GitHub ZIP `13560407497` は、ローカル再SHA256 `2ea1f784579db5797127db32a42dd84ece69ade421ee353e4851c480e8ce85ed` がAPI digestと一致し、ZIP構造正常。中身は `private-original.enc`、鍵なしで `status.json/forecasts.csv/automatic_learning/coverage_audit/learned_shadow_comparison` の検証は不能。独立再取得したsource control ZIP `13559864971` はSHA `0bf5746512cd7c516c4439c6435e551aed64874147623216f222f020311b824a` 一致、JSONは `completed_round=1, requests_used=45, stop_reason=ROUND_SOURCE_BUDGET_EXHAUSTED`。GitHubでround02〜24のstepがsuccessでも、その番号の巡回artifactは存在しないため24巡完成とは認定しない。公式GET 240超過は本runの記録上なし。保存された新P1予想のモデル別件数、公式通常結果の追加採点、学習係数、未来比較、収支は復号していないため**不明**。
+
+**前向き試算の限定的進展:** `boat-prospective-evaluation-42336097863-r1` の実ZIP `13560632416` を独立再取得、実SHA `6d649b2dcf57021686a9a778229c6156fe1214ae2898140a029a79fa7045c75c` がAPI digestと一致。内包JSONの `frozen_settlement` は登録28シナリオ全件 `SETTLED`、公開事前計画内の `plan_sha256=9f9176a2eb0638436fbc138d20174b4dedab4a0eab7ceea0220a474243baec05` と文字列一致。だが `independent_pre_cutoff_receipt_verified=false`、`prospective_allocation_verified=false`、`accuracy_improvement_proven=false`、`actual_purchases=false`。28ケースは**代替仮想条件**であり、合算購入・前向き改善・正式確定収支とは扱わない。表示ベース `result_states=final41/missing88/unsupported3` は同様に独立公式原本の再照合を今回完了しておらず、正式採点件数に加算しない。
+
+**起動・vault安全HOLD:** 監査時に同workflowの実行中・待機中 `0` 件。ただし count-only `state/boat-source-control/v1/latest.json` は以前の**失敗run42330631694**を指したまま（本runへの更新未確認）。現runの source-control ZIP は正しいが、owner鍵のHMAC/暗号vault原本まで本監査で独立認証したことにはならない。このstale controlを正常・0件に置き換えず、次の公式sourceトリガーは予約しない。保存/表示専用jobも根本未修正の `ALL_MODEL_CLI_OPERATION_FAILED` を持つため無根拠にrerunしない。4xx/429/真正性停止の回避、旧ref fallback、初期化、別認証は無し。既存の安全制限・concurrency/頻度・他ジョブ・暗号原本・本番モデルには手を加えない。
+
+**未完成の区分:** 原本復元stepと第1巡ZIP/カウンター実バイト検証のみ今回新たに確認。P1/結果/自動係数学習/LEARNED_SHADOWの未来前向き優位性、28条件の物理的事前証明、全4競技16系統、全原本期限なし保管・所有者本番日別表示は未認定。新タスク・新PR・別workflow・クラウド・追加課金・main統合・公開・実投票・本番自動採用なし。
+
+---
 <!-- RACEAI_AUTOMATION_20261107_1228_RECOVERY_FAILED_SOURCE_HOLD -->
 # 2026-11-07 12:28 JST｜既存表示の暗号履歴が第13世代へ進展。ただしsource復元と表示P0処理は失敗、追加起動HOLD
 

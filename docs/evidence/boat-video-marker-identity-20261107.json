@@ -1,0 +1,223 @@
+{
+  "schema_version": "RACE_AI_BOAT_MARKER_IDENTITY_PROGRESS_V1",
+  "recorded_at_utc": "2026-11-07T04:35:17.347535+00:00",
+  "existing_pr": 71,
+  "overall_user_request_complete": false,
+  "continuous_six_boat_identification_complete": false,
+  "production_default_changed": false,
+  "forecast_feature_eligibility": false,
+  "calibrated_identification_probability": false,
+  "source_code_sha256": {
+    "race_ai/boat_video_crnn.py": "4cc3235b30b1bb23774744e7069e938bda00beed1860a7948ec9e0dfba8d9f06",
+    "race_ai/boat_video_marker_reader.py": "dc67bda29e3fa4664ff49a773cd2a71f97ce5b1c41ff9c7b31953450bdc66081",
+    "race_ai/boat_video_marker_flow.py": "47b36ec633d11bbd7dad382e58f1b59ef9eb066eae2786d69e164c1fead9818d",
+    "race_ai/boat_video_marker_identity.py": "8a6851480a4a27da3c225b89118c3127dcd5cc10fcbaca742a8983c877a9215c",
+    "race_ai/boat_video_marker_verifier.py": "6e916e8917a393a4f253bb732cb2de1f4b0cabc3a19a3b88f0185a04c9bb079e",
+    "race_ai/boat_video_ppocr.py": "83d4eff2b1fc8716a092c1e7457489e64a0b6af35aa0224eb4e7220cfe1ba15a",
+    "race_ai/boat_video_marker_pipeline.py": "599dffc681fef29af71bdf4615759d2239c046d48793f13f5fb481f4633704de",
+    "scripts/boat_video_marker_analyze.py": "89e63bc19f6c80168bc8d3aa2b1cec9e045a8c401d1fcf0187383ca1e8bef5e7"
+  },
+  "licensed_source": {
+    "author": "Nesnad",
+    "name": "Kyotei - Sept 7 2021",
+    "license": "CC-BY-SA-4.0",
+    "original_sha256": "1ac1f0c27f58d8d64ebb1cfc13c2c4e9133cf7bbcce04052f23c28bf2e37f194",
+    "original_frames": 775,
+    "media_is_current_official_race": false,
+    "no_new_commons_requests": true
+  },
+  "actual_final_selected_development": {
+    "intervals_inclusive": [
+      [
+        192,
+        216
+      ],
+      [
+        240,
+        256
+      ],
+      [
+        312,
+        328
+      ],
+      [
+        480,
+        496
+      ]
+    ],
+    "original_frames": 76,
+    "actual_ctc_crop_images": 317,
+    "actual_dual_classified_regions": 32587,
+    "elapsed_seconds": 147.40380664699478,
+    "registered_events": 86,
+    "registered_events_by_number": {
+      "1": 21,
+      "2": 10,
+      "3": 11,
+      "4": 12,
+      "5": 19,
+      "6": 13
+    },
+    "all86_same_bbox_BGR_PTS_as_AI_adjudicated_events": true,
+    "AI_reference_registered_wrong_number_or_background_observed": 0,
+    "AI_reference_is_human_ground_truth": false,
+    "independent_holdout": false,
+    "training_overlap": true,
+    "fixed17_reference_current_coverage_by_number": {
+      "1": 10,
+      "2": 5,
+      "3": 11,
+      "4": 12,
+      "5": 11,
+      "6": 10
+    },
+    "complete_fixed17_tracklets": 0,
+    "total_fixed17_tracklets": 6,
+    "maximum_simultaneous_registered": 3,
+    "boat4_same_id_current_frames_inclusive": [
+      485,
+      496
+    ],
+    "boat4_current_run_frames": 12,
+    "boat4_actual_PTS_span_seconds": 0.367,
+    "source_for_numbers": "DECLARED_DEVELOPMENT_GLYPH_CLASSIFIER",
+    "CTC_likelihood_for_classifier_labels": null,
+    "all317_actual_PP_input_and_full_softmax_hashes_match_scored_run": true,
+    "not_generalized_to_full775_or_new_races": true
+  },
+  "full775_original_cli": {
+    "completed_original_frames": 775,
+    "all_BGR_and_actual_PTS_match_canonical": true,
+    "original_unchanged_sha": true,
+    "original_ctime_precedes_run_start": true,
+    "registered_rows_NOT_accuracy": 510,
+    "all510_manually_scored": false,
+    "known_false_example": {
+      "frame_index": 37,
+      "predicted_number": 4,
+      "context": "building window/beam; no boat",
+      "marker_box": [
+        1296.8341064453125,
+        551.0033569335938,
+        13,
+        16
+      ]
+    },
+    "SUCCESS_means": "complete transport/processing and original consistency, not identification accuracy",
+    "source_script_version": "cd57268f7c28b9cf58327017f53b8f26804cac6e0aff391aa12a9d84ebf90f0f",
+    "subsequent_ctime_end_SHA_fix_verified_on_actual_native_frames_192_197": true
+  },
+  "appearance_probe": {
+    "algorithm": "default OpenCV CSRT",
+    "independent_initializations": 12,
+    "actual_future_updates": 204,
+    "future_frames_per_trial": 17,
+    "approx_seconds_after_seed": 0.567,
+    "tracker_boolean_success_rows": 204,
+    "independent_AI_correct_target_hull_patch": 186,
+    "same_target_rider_only": 1,
+    "mixed_ambiguous": 15,
+    "other_target": 2,
+    "strict_all17_correct_hull_trials": 9,
+    "six_distinct_numbers_each_have_a_short_successful_trial": true,
+    "joint_six_boat_tracking_tested": false,
+    "current_number_fresh_observations": 0,
+    "adopted_as_verified_identity": false,
+    "average_update_seconds": 0.4677,
+    "realtime_budget_proven": false,
+    "reference_output_blindness": "predicted boxes/frame outcomes unseen before source-reference seal; sparse aggregate was inadvertently disclosed and recorded"
+  },
+  "rejected_context_gates": {
+    "deeplab": {
+      "fixed_images": 10,
+      "VOC_classes": 21,
+      "known_correct_PP_before": 10,
+      "known_correct_PP_after": 5,
+      "known_references": 12,
+      "background_boat_false_positive": true,
+      "adopted": false
+    },
+    "grounding_dino": {
+      "fixed_images": 10,
+      "known_correct_PP_before": 10,
+      "known_correct_PP_after": 6,
+      "known_references": 12,
+      "background_staircase_boat_false_positive": true,
+      "network_seconds_for10": 258.802,
+      "adopted": false
+    },
+    "dense_DIS": {
+      "consecutive_pairs": 10,
+      "reliable_camera_fits": 5,
+      "known_real_glyph_dynamic": 3,
+      "known_real_glyph_unknown": 9,
+      "known_building_false4_static_like": 2,
+      "static_is_semantic_background": false,
+      "adopted_hard_filter": false
+    }
+  },
+  "checks": {
+    "full_python": {
+      "tests": 3106,
+      "seconds": 988.076,
+      "skips": 0,
+      "passed": true,
+      "code_commit": "39c979509ee1b9b163638bc6781c1e9fd4f278f1",
+      "scope": "Executed at the recorded local commit, before the final marker geometry and new CLI; not a full test of the later rebased GitHub HEAD, which includes concurrent non-video changes"
+    },
+    "final_all_video_tests": {
+      "tests": 614,
+      "seconds": 76.537,
+      "skips": 0,
+      "passed": true,
+      "includes_fixed_CLI_13_tests": true,
+      "final_pipeline_33_tests_included": true
+    },
+    "actual_PP_stock_equivalence": {
+      "images": 3060,
+      "text_exact": 3060,
+      "mean_exact": 3060,
+      "softmax_hash_exact": 3060
+    },
+    "actual_classifiers_stock_equivalence": {
+      "regions": 3060,
+      "both_classes_exact": true
+    },
+    "independent_core_code_review": "GREEN for final 599d source and fixed CLI89e63; no outstanding known implementation P2"
+  },
+  "preservation": {
+    "protected_live_checkout_head": "ef818e510c8ceb62d4c147ab8d4db1c3cf252435",
+    "existing_forecast_process_pid": 423218,
+    "existing_video_intake_pid": 271439,
+    "existing_processes_not_stopped_or_restarted": true,
+    "original_forecast_SQLite_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+    "new_PR_Issue_workflow_schedule_service_paid_API": false,
+    "main_merge_public_app_deploy_actual_vote_production_model_switch": false,
+    "environment_configuration_published": false
+  },
+  "external_conditions": {
+    "current_official_LIVE_access": "AUTHORIZATION_WAIT: HTTP403/P01002 unchanged; no denied-content retry/bypass",
+    "real_Safari_not_established_by_this_work": true,
+    "last_observed_official_denial_jst": "2026-11-07T09:48:10.456+09:00",
+    "official_access_scope": "This work and previously denied content only; not a new observation for every venue",
+    "current_official_video_saved_bytes_this_work": 0,
+    "current_official_video_frames_this_work": 0
+  },
+  "private_evidence_sha256": {
+    "final_actual_pipeline_raw": "371a57a230a0bb56e6af8e01a2233bbf5b95f6d1ce7ee65fbcba700cedfb0805",
+    "final_actual_to_scored_pixels_binding": "22d565d2e17d8bee0d0215aa18625c40fa8ab08f9b5efbce2f22c7b4d3a51921",
+    "independent_86_event_physical_reference": "ef8be51d8ca7ea6530e3fc58471e1343f51ddccbea25a2da7778c0c1a84edac7",
+    "full775_cli_receipt": "6eacf60c101704287a28477bcf2373f520e989cc62b8bcc93045e4cb991a6bd5",
+    "full775_canonical_and_original_check": "27c2eaf58e67b0973ade79670723ee45311425ec3d3e561e5bcba9a34d719e18",
+    "full775_journal": "f943bab96ea47c39735c36f1ce4fb0322e34ecdcd66f9a7fcee672bb8cc12ed2",
+    "fixed_cli_guard_applied_receipt": "bd365c77394ee3c4f550233dedd768c649f6ed7315ac0f346ae6d3559419ba63",
+    "csrt_raw": "0f57d846969b764e1165a4372dfb878669055b224fb6476b28d213e927a05f50",
+    "csrt_all204_independent_ai_score": "e15b52095a7bbc2b4056365bc05885bdf603318985350cea28f395992624204c",
+    "deeplab_raw": "ec554853be258dc7bd2a070c76fb43d99fee935875baaaa0b2b3a526c08722c2",
+    "dis_raw": "732c3b26c3d262268d9c64b9ea5c46f39fde1c26ebf0368b56a9e68b0c42e44e",
+    "grounding_dino_raw": "db18e979b833ba9497b46e679b6d1cf9c811f1b33f60639f4b1b14e35bf69d20",
+    "full_python_log": "d7184802fe9274f93f03fe500de44ef133a124841a2951b6664fc3201c1b96b6",
+    "final_video_tests_log": "ad34a4a987bdc4a52a3e2f6a09891a8edd8113f8593cdad09d1efa4ae87eb466"
+  },
+  "private_media_models_and_raw_predictions_added_to_git": false
+}
