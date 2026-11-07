@@ -783,7 +783,7 @@
   function forecastPanel(r, p) {
     const box = node("section", "forecast-panel");
     if(p){box.dataset.modelId=p.model_id || "";box.dataset.nativeDispatch=String(p.native_dispatch_prediction===true);}
-    box.append(append(node("div", "section-heading"), node("h2", "", "予想の買い目"), node("span", "tag scope-" + r.scope, forecastStatus(r, p))));
+    box.append(append(node("div", "section-heading"), node("h2", "", p?.native_dispatch_prediction ? "取り込んだ予想" : "予想の買い目"), node("span", "tag scope-" + r.scope, forecastStatus(r, p))));
     if (p) { box.append(ticketPreview(p, 8)); if(p.rationale)box.append(node("p", "forecast-rationale", text(p.rationale)));box.append(node("p", "muted small", "保存 " + stamp(p.persisted_at) + " JST · " + p.ordered_top8.length + "点")); }
     else box.append(empty("予想原本は未取得です", r.no_forecast_reason || "このモデル・時点の保存予想がありません。"));
     box.append(button("このレースの買い目を編集 →", "primary full", () => { state.selectedId = r.race_id; refreshSelects(); showPage("picks", true); }));
@@ -1146,7 +1146,7 @@
     $("clear-data").disabled = !dataset;
     renderGeneration();
   }
-  function renderAll() { renderMeta(); renderHome(); renderRaces(); renderTickets(); renderResults(); renderResearch(); if (state.page === "detail") renderDetail(); }
+  function renderAll() { renderMeta(); renderHome(); renderRaces(); renderTickets(); renderResults(); renderResearch(); if (state.page === "detail") renderDetail();syncResultRefreshUI(); }
   function adoptDataset(parsed) {
     refreshSavedResults=null;resultCheck.busy=false;resultCheck.failed=false;
     generation.ownsDisplay = false;generation.suppressed = true;generation.pausedForDrafts = false;generation.pausedForEditing = false;
@@ -1589,7 +1589,7 @@
   $("forecast-stage").addEventListener("change", () => { generation.message = "";renderGeneration();if (automaticMode()) { loadAutomaticLatest(true);scheduleAutomaticPoll(); } });
   $("forecast-follow-latest").addEventListener("click",()=>loadAutomaticLatest(true,true));
   $("load-synthetic").addEventListener("click", loadSynthetic);
-  $("clear-data").addEventListener("click", () => { ++importVersion;generation.savedState = savedViewConfigured ? "CLEARED" : null;generation.ownsDisplay = false;generation.suppressed = true; dataset = null; state.selectedId = ""; state.predictionKeys = {}; state.candidates = []; state.confirmed.clear(); $("purchase-ack").checked = false; refreshSelects(); renderAll(); $("file-message").textContent = "読み込んだ予想と候補をメモリから消去しました。手動購入記録は再読込まで保持します。"; });
+  $("clear-data").addEventListener("click", () => { ++importVersion;refreshSavedResults=null;resultCheck.busy=false;resultCheck.failed=false;generation.savedState = savedViewConfigured ? "CLEARED" : null;generation.ownsDisplay = false;generation.suppressed = true; dataset = null; state.selectedId = ""; state.predictionKeys = {}; state.candidates = []; state.confirmed.clear(); $("purchase-ack").checked = false; refreshSelects(); renderAll(); $("file-message").textContent = "読み込んだ予想と候補をメモリから消去しました。手動購入記録は再読込まで保持します。"; });
   $("results-model").addEventListener("change",e=>{state.resultGroupKey=e.target.value;renderResults();});
   $("simulation-race-budget").addEventListener("change",e=>{
     const value=Number(e.target.value);if(![800,1000].includes(value))return;

@@ -45,9 +45,9 @@ Interfaces: `SavedResultBridge(repo,now,...)` opens existing bootstrap/current f
 
 Files: `web/app.js`, `web/index.html`, `web/style.css`, related browser/Node tests.
 Interfaces: Japanese display model names separate from internal identities; compact result view with combination/outcome/update time; collapsible audit details; manual read-only refresh uses existing encrypted feed polling and optional result status heartbeat.
-- [ ] RED browser reproduction of screenshot: びわこ1R missing result + internal model/version/raw missing codes, large hero and SHA. Assert expected visible compact detail after update at320/390/1440px.
-- [ ] Implement concise header and selection, result before long sections, no duplicate forecast rail, collapsed raw/evidence, friendly wait/review text, synthetic marker retained. Keep model switching, athlete cards, original identities and drafts.
-- [ ] Verify result update without reload through actual WebCrypto fixtures, error/quiet preservation, selected model/day and editable budget retention. Run affected Node/explorer/Crypto/offline browsers; commit.
+- [x] RED browser reproduction of screenshot: びわこ1R missing result + internal model/version/raw missing codes, large hero and SHA. Assert expected visible compact detail after update at320/390/1440px.
+- [x] Implement concise header and selection, result before long sections, no duplicate forecast rail, collapsed raw/evidence, friendly wait/review text, synthetic marker retained. Keep model switching, athlete cards, original identities and drafts.
+- [x] Verify result update without reload through actual WebCrypto fixtures, error/quiet preservation, selected model/day and editable budget retention. Run affected Node/explorer/Crypto/offline browsers; commit.
 
 ### Task4: Review, publish and verify real same-day reconciliation
 

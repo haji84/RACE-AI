@@ -158,10 +158,14 @@ class IntradayState:
                 except ValueError:self.remember('REJECTED',raw,r);rejected('mbrace')
             self.extra_rows(base,now=now)
         bootstrap=[f'{day:%Y%m%d}-{v}-01' for v in c['venues'] if v not in c['meetings']]
-        due=[rid for rid,q in sorted(c['races'].items(),key=lambda i:(i[0] in c['results'],i[1]['next_check'],i[0])) if q['cutoff_at'] and clock(q['cutoff_at'])+timedelta(minutes=5)<=now and clock(q['next_check'])<=now and rid not in self.canonical]
+        due=[rid for rid,q in sorted(c['races'].items(),key=lambda i:(i[0] in c['results'],i[0][:8]!=day.strftime('%Y%m%d'),i[1]['next_check'],i[0])) if q['cutoff_at'] and clock(q['cutoff_at'])+timedelta(minutes=5)<=now and clock(q['next_check'])<=now and rid not in self.canonical]
         picked=set()
         result_due=sorted(targets,key=lambda rid:(not targets[rid]['pending'],rid[:8]!=day.strftime('%Y%m%d'),c['settlement_next'][rid],rid))
-        for target in result_due+bootstrap+due:
+        fresh=[rid for rid in result_due if targets[rid]['pending'] and rid.startswith(day.strftime('%Y%m%d'))]
+        old=[rid for rid in result_due if targets[rid]['pending'] and rid not in fresh]
+        revisions=[rid for rid in result_due if not targets[rid]['pending']]
+        new_stats=[rid for rid in due if rid not in c['results']]
+        for target in fresh+bootstrap+new_stats+old+[rid for rid in due if rid not in new_stats]+revisions:
             if requests>=max_requests or waiting('boatrace'):break
             venue=target[9:11];number=int(target[-2:])
             if target in picked:continue

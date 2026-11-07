@@ -78,6 +78,7 @@ function dateEvidence(context,results,p1Groups){
 
 async function run(context,{compactResults=false,probeRaceId=null}={}){
   const key=validate(context),{chromium}=require('playwright');
+  if(probeRaceId){assert.match(probeRaceId,/^\d{8}-\d{2}-\d{2}$/);assert.equal(probeRaceId.slice(0,8),context.day.replaceAll('-',''));}
   const executablePath=['/usr/bin/google-chrome','/opt/google/chrome/google-chrome',
     '/opt/google/chrome/chrome','/usr/bin/chromium'].find(path=>fs.existsSync(path));
   assert.ok(executablePath,'installed browser required');
@@ -150,7 +151,7 @@ async function run(context,{compactResults=false,probeRaceId=null}={}){
         }
       }
       if(compactResults){
-        if(probeRaceId){await page.locator('[data-page="races"]').filter({visible:true}).first().click();await (await revealRace(page,probeRaceId,context.day_races)).click();}
+        if(probeRaceId){await page.locator('[data-page="races"]').filter({visible:true}).first().click();await (await revealRace(page,probeRaceId,context.day_races)).click();await page.locator('#prediction-select').selectOption('0');}
         assert.equal(await page.locator('.race-result-summary').isVisible(),true);
         if(probeRaceId)assert.match(await page.locator('.race-result-summary .saved-outcome').innerText(),/的中|不的中/);
         const normal=await page.locator('#race-detail').innerText();assert.doesNotMatch(normal,/SAVED FORECAST|PRIVATE_CYCLE|INDEPENDENT_RECEIPT|予想SHA/);

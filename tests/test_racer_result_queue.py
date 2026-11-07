@@ -23,8 +23,9 @@ class ResultQueueTests(unittest.TestCase):
         return calls,fetch
     def test_pending_result_is_fetched_even_when_K_already_contains_its_statistics(self):
         s=self.state();base=self.base();calls,fetch=self.source_results();target=self.targets('20261104')[0]
-        s.advance(base,now=NOW,fetch=fetch,max_requests=2,result_targets=[target])
-        self.assertIn(target['race_id'],s.control['settlement_captures']);self.assertEqual(len(calls),2)
+        s.advance(base,now=NOW,fetch=fetch,max_requests=2);calls.clear()
+        s.advance(base,now=NOW,fetch=fetch,max_requests=1,result_targets=[target])
+        self.assertIn(target['race_id'],s.control['settlement_captures']);self.assertEqual(len(calls),1)
         s.extra_rows(base,now=NOW+timedelta(days=3));self.assertIn(target['race_id'],s.control['settlement_captures'])
     def test_payout_only_change_retains_a_new_settlement_while_unchanged_replay_does_not(self):
         s=self.state();base=self.base();calls,fetch=self.source_results();target=self.targets(count=1)
@@ -49,3 +50,14 @@ class ResultQueueTests(unittest.TestCase):
         def fresh(url):raw,_=fetch(url);return raw,later.isoformat()
         s.advance(base,now=later,fetch=fresh,max_requests=1,result_targets=target)
         self.assertEqual(s.control['settlement_captures'][target[0]['race_id']]['captured_at'],later.isoformat())
+    def test_old_result_backlog_cannot_starve_today_venue_discovery(self):
+        s=self.state();base=self.base();calls,fetch=self.source_results()
+        def venues(url):return (day_index(('01','02','03','04')),NOW.isoformat()) if '/race/index?' in url else fetch(url)
+        s.advance(base,now=NOW,fetch=venues,max_requests=4,result_targets=self.targets('20261104',count=12))
+        self.assertEqual(len(s.control['meetings']),3,'today headers need capacity before old unsettled races')
+    def test_yesterday_unpublished_stats_cannot_take_the_last_slot_from_a_new_today_result(self):
+        s=self.state();base=self.base();calls,fetch=self.source_results();s.advance(base,now=NOW,fetch=fetch,max_requests=2)
+        s.control['races']['20261105-17-01']=dict(cutoff_at='2026-11-05T10:00:00+09:00',next_check='2026-11-05T10:05:00+09:00')
+        s.control['races']['20261107-17-02']=dict(cutoff_at='2026-11-07T10:30:00+09:00',next_check='2026-11-07T10:35:00+09:00')
+        s.advance(base,now=NOW,fetch=fetch,max_requests=1)
+        self.assertIn('hd=20261107',calls[-1]);self.assertTrue(calls[-1].endswith('&rno=2'))

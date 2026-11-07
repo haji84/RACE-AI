@@ -1,4 +1,4 @@
-name: BOAT per-race athlete statistics
+name: BOAT per-race results and athlete statistics
 on:
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022]
@@ -17,6 +17,10 @@ on:
         description: '公開画面の結果をブラウザで確認（通常巡回では実行しない）'
         type: boolean
         default: false
+      probe_race_id:
+        description: '画面で照合するレースID（確認する場合だけ指定）'
+        type: string
+        default: ''
 permissions:
   contents: read
 concurrency:
@@ -72,6 +76,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           NODE_PATH: ${{ runner.temp }}/result-site-tools/node_modules
+          RESULT_PROBE_RACE: ${{ inputs.probe_race_id || '' }}
         run: |
           python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" --latest-saved-day
-          env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results
+          probe=()
+          if [[ -n "$RESULT_PROBE_RACE" ]]; then probe+=("--race-id=$RESULT_PROBE_RACE"); fi
+          env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results "${probe[@]}"
