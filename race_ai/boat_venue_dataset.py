@@ -146,7 +146,9 @@ def readback_dataset(pointer,root,repo,*,transport=None):
     need(pointer.get('schema')==INPUT and pointer.get('repository_id')=='1416489937' and pointer.get('status')=='READY' and
         re.fullmatch('[a-f0-9]{40}',pointer.get('source_commit','')) and re.fullmatch('[a-f0-9]{64}',pointer.get('dataset_sha256','')) and
         pointer.get('dataset_path')==PREFIX+'datasets/'+pointer['dataset_sha256']+'/dataset.json','VENUE_DATASET_INPUT_INVALID')
-    git=transport or GitStateRepository(repo,ref=TRANSFER_REF);c=pointer['source_commit'];git.fetch(c)
+    from .boat_private_original_vault import VaultGitRepository
+    git=transport if transport is not None else VaultGitRepository(repo,ref=TRANSFER_REF)
+    c=pointer['source_commit'];git.fetch(c)
     raw=git.read(c,pointer['dataset_path'],1000000);need(_sha(raw)==pointer['dataset_sha256'],'VENUE_DATASET_MANIFEST_HASH_INVALID')
     root=Path(root);root.mkdir(mode=0o700,parents=True,exist_ok=True);need(not any(root.iterdir()),'VENUE_DATASET_OUTPUT_EXISTS_DO_NOT_RESET');_write(root/'dataset.json',raw)
     _,s=_manifest(root);prefix=pointer['dataset_path'].removesuffix('dataset.json')

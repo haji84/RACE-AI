@@ -292,3 +292,19 @@ class DatedInventoryTests(unittest.TestCase):
         with patch.object(cli,'_now',return_value=NEW_AT),patch.object(cli,'_http',side_effect=AssertionError('unknown parent metadata source0')):
             with self.assertRaisesRegex(ValueError,'ANCESTRAL|FIELDS_INVALID'):
                 self.api.extend_collection(parent,self.root/'delta',not_after='2026-11-07')
+
+    def test_uncommitted_encrypted_inventory_holds_before_reobserving_sources(self):
+        parent=self.parent()
+        with patch.object(cli,'seal_catalog',side_effect=OSError('interrupted after inventory seal')):
+            with self.assertRaisesRegex(OSError,'after inventory seal'):self.extend(parent)
+        out=self.root/'delta';self.assertTrue(list((out/'dated-inventory').glob('*/inventory.checkpoint')))
+        calls=[]
+        def fetch(url):
+            calls.append(url)
+            return (menu() if url==cli.MENU else index(days=('06','07'))),NEW_AT
+        error=None
+        with patch.object(cli,'_now',return_value=NEW_AT),patch.object(cli,'_http',side_effect=fetch):
+            try:self.api.extend_collection(parent,out,not_after='2026-11-07')
+            except ValueError as exc:error=str(exc)
+        self.assertEqual(calls,[],'retained or uncertain inventory acquisition must not be repeated')
+        self.assertIn('UNCOMMITTED_INVENTORY_HOLD',error or '')

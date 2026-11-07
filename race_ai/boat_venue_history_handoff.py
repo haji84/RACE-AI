@@ -135,7 +135,9 @@ def readback_collection(pointer,root,repo,*,transport=None):
          pointer['status']=='READY' and re.fullmatch('[a-f0-9]{40}',pointer['source_commit']) and
          re.fullmatch('[a-f0-9]{64}',pointer['manifest_sha256']) and
          pointer['manifest_path']==PREFIX+'manifests/'+pointer['manifest_sha256']+'.json','VENUE_INPUT_LOCATOR_INVALID')
-    git=transport or GitStateRepository(repo,ref=TRANSFER_REF);commit=pointer['source_commit'];git.fetch(commit)
+    from .boat_private_original_vault import VaultGitRepository
+    git=transport if transport is not None else VaultGitRepository(repo,ref=TRANSFER_REF)
+    commit=pointer['source_commit'];git.fetch(commit)
     raw=git.read(commit,pointer['manifest_path'],1000000)
     need(hashlib.sha256(raw).hexdigest()==pointer['manifest_sha256'],'VENUE_MANIFEST_HASH_INVALID');s=_signed(raw)['state']
     root=Path(root);root.mkdir(parents=True,mode=0o700,exist_ok=True);need(not any(root.iterdir()),'VENUE_OUTPUT_EXISTS_DO_NOT_RESET')

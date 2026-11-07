@@ -44,3 +44,10 @@ JRAの2026年日曜即PAT締切は、保存済み[公式発売時間](https://ww
 19候補3世代の実fit・暗号化Git保持・独立復元は完了。新19／全30の実未来PDCAは0。旧BOAT14の通常1レース・14組を流用しない。cash19 CLI接続は合成E2E成功、30候補の金額評価禁止は維持し、全30には順位目的だけの別CLI／Actions接続を実装し、合成35＋1件・独立レビューが成功。実未来30採点は未実施。新接続コードの全体CIと実未来採点は別の未完了条件である。
 
 会場別履歴は11月6日原本を1 GETで追加し、7,003,764出走行・1,167,294レース・2,643選手×24場を再集計、既存Git commit505800f55176867e8a5a06491fcc18eadca8e070から原本群とgridを独立復元した。既存152学習原入力へ新履歴を遡って混ぜない。未掲載17日・未報告156会場日などは残る。日付延長CLIの既存検証記録の継承不具合を修正し、保存済みmenu/indexの再GET 0で新日1 GETを実行した。11月7日は公表待ち1日で成績加算0。暗号目録／新世代はcommit244a7312f1ad32ecf471e35be1c4247e46c5b8efへ保持し新8ファイルを独立復元、全旧世代込みの新commit Actions読戻しは確認待ち。詳細と指定12項目は[最新報告](REMAINING_MODEL_COMPLETION_20261107.md)、件数は[全CIとprobe](evidence/2026-11-07/c438-full-ci-and-bounded-probe-counts.json)・[11月6日grid](evidence/2026-11-07/nov6-all-racer-venue-grid-counts.json)を参照する。
+
+
+## 復元の実CIと中断時の修正（11月7日21:00 JST）
+
+29eca042／run42369144075は履歴のGit全祖先fetchが180秒上限となって復元job失敗。未発行capsuleのまま後続をcancelし、providerstepはSKIPPED・提供元アクセス0だった。[停止証跡](evidence/2026-11-07/29eca-cancelled-before-provider-counts.json)。履歴・gridの読取りだけを既存VaultGitRepositoryのshallow metadata／必要blob取得へ接続し、writerと保存形式は保持した。[実GitHubの固定manifest読取](evidence/2026-11-07/bounded-history-git-readback-transport-counts.json)は0.893秒・Git object891,789 bytes・鍵読取0・提供元アクセス0で一致。これは全原本群の復元完了ではなく、その新HEAD全体CIは再検証する。
+
+独立reviewで、目録の暗号保存からV2 progress保存までの中断が同じ目録を再取得することも合成で再現した。未commitの既存要求は取得前HOLDとし、保存済み証拠を維持する。完成済みV2と認証済みHTTP待機の既存再開は維持する。新3再現テストをRED→GREEN、履歴・grid・暗号Git境界70件が成功。判定不能な中断を空の新規収集として再試行しない。

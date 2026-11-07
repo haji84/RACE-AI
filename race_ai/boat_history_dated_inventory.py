@@ -232,6 +232,9 @@ def extend_collection(source,output,*,not_after=None,max_files=31):
         if waits:
             prior=cli._verify_hold(json.loads(_read(waits[-1],64000)))
             if wait_active(prior['source_wait'],cli._now()):return dict(prior,upstream_gets=0)
+        # Before a committed V2 pointer, an existing request may have already
+        # acquired its listings. Preserve it and stop instead of fetching again.
+        need(bool(waits),'HISTORY_DELTA_UNCOMMITTED_INVENTORY_HOLD')
     else:
         need(not any(out.iterdir()),'HISTORY_DELTA_OUTPUT_EXISTS_DO_NOT_RESET')
         _write(out/'dated-request.json',_bytes(dict(state=request,mac=cli._manifest_mac(request))))
