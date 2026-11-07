@@ -1,2 +1,2 @@
-Initialize only the new per-race encrypted stream; reuse existing daily base and owner key.
-Requested at 2026-11-07T14:27:11.819387+00:00
+2026-11-08: match retained official BOAT settlements against existing saved forecasts; restore existing namespace, no initialization.
+Runtime: b98f4e9f74bdeb9985c0086ce0a81e479919e988

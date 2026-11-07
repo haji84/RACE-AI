@@ -51,7 +51,7 @@ Interfaces: Japanese display model names separate from internal identities; comp
 
 ### Task4: Review, publish and verify real same-day reconciliation
 
-- [ ] One fresh read-only whole-change review; one targeted RED→GREEN correction pass.
+- [x] One fresh read-only whole-change review; one targeted RED→GREEN correction pass. Receipt/packet cache identity corrected; real encrypted restore→publish→quiet replay regression and32 affected tests pass.
 - [ ] Publish reviewed UI assets preserving all ciphertext/portraits and dynamic data. Preserve concurrent source commits.
 - [ ] Source trigger runs new result-only synchronization on existing owner secret, then normal restart verifies retained replay/public SHA and actual saved-result counts. No namespace reset.
 - [ ] Normally merge a workflow-only main PR after required CI with full runtime SHA pin and `--sync-results`. Verify main dispatch, live phone detail/result flow, owner-key-free browser context and count-only evidence. Finish docs/PR71 metadata without merging unrelated draft work.
