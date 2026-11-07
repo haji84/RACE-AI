@@ -1,0 +1,13 @@
+{
+  "schema": "RACE_AI_GITHUB_FREEZE_ANCHOR_V1",
+  "race_id": "autorace:2026-11-03:hamamatsu:11",
+  "phase": "A_PRE_TRIAL",
+  "model_id": "autorace-personal-observed-baseline-v1",
+  "prediction_sha256": "a87ebc533f6b109fbe9634fe4ebf9777005fb7c959e011c875a88911a10a28d3",
+  "input_sha256": "51b9000b364cba4114c51d33036ddbe2e7c5cac8fd7bcb13d36b45ea69fa528f",
+  "generated_at": "2026-11-03T14:53:13.691612+09:00",
+  "cutoff_at": "2026-11-03T15:22:00+09:00",
+  "private_prediction_not_published": true,
+  "source": "single-observation manual data; prior 0th-place finishes excluded; baseline uncalibrated",
+  "prior_unanchored_invalid_schema_draft_sha": "04a88795451bdb69515bfdd076225b029eb969d79242ca5ef23aecbe888d7fc1"
+}

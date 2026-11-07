@@ -1,0 +1,22 @@
+{
+  "schema": "RACE_AI_AUTORACE_RESEARCH_SHA_ANCHOR_V1",
+  "race_id": "autorace:2026-11-04:sanyo:10",
+  "venue": "山陽",
+  "race_no": 10,
+  "phase": "A_PRE_TRIAL_INPUT_NO_SAME_DAY_TRIAL_USED",
+  "record_kind": "ASSISTANT_MANUALLY_OBSERVED_UNTRAINED_RESEARCH",
+  "model_id": "autorace-personal-observed-baseline-v1",
+  "private_library_path": "/RACE-AI/AutoracePrivate/autorace_20261104_sanyo_10R_A_assistant_observed_RESEARCH.json",
+  "forecast_sha256": "8cf09a6e55e7b1425a9bc7e2adbc904e1b6149c5fb005e42d2e2b4289b111fca",
+  "private_file_sha256": "1b82c1d0969d9621fd5756d97c1bb2b378c2653a6e426117149cc37c767be199",
+  "recorded_generation_at_jst": "2026-11-04T11:47:01.676763+09:00",
+  "sales_cutoff_at_jst": "2026-11-04T15:04:00+09:00",
+  "source_url": "https://autorace.tokyo-sports.co.jp/list/race/202611040610",
+  "trial_data_used": false,
+  "trial_publication_time_independently_verified": false,
+  "formal_external_pre_cutoff_receipt": false,
+  "formal_hit_at_8_eligible": false,
+  "probabilities_calibrated": false,
+  "private_trifecta_picks_not_published": true,
+  "notes": "Pre-cutoff manually observed research baseline, fixed untrained parameters. car1 historic zero/status record excluded. Trial publication time unverified, no externally attested freeze. Private picks retained separately; no recalibration or bet."
+}

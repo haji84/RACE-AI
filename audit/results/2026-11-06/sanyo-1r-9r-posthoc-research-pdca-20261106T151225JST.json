@@ -1,0 +1,203 @@
+{
+  "schema": "RACE_AI_AUTORACE_RESULT_SIDE_POSTHOC_AUDIT_V2",
+  "record_type": "SECONDARY_SOURCE_RESULTS_AND_RESEARCH_FORECAST_HIT_EVALUATION_POSTHOC",
+  "observed_at_jst": "2026-11-06T15:12:25+09:00",
+  "venue": "sanyo",
+  "event_date_jst": "2026-11-06",
+  "secondary_result_source": "https://www.chariloto.com/auto/results/006/2026-11-06",
+  "secondary_racecard_source": "https://www.winticket.jp/autorace/sanyo/racecard/2026110406?index=3",
+  "official_primary_result_independently_verified": false,
+  "evaluation_scope": "only pre-existing forecasts in conversation and immutable GitHub hash records, not forecasts made after race",
+  "full_forecast_text_published_to_public_git": false,
+  "per_race": [
+    {
+      "race_no": 1,
+      "trifecta": [
+        6,
+        7,
+        8
+      ],
+      "trifecta_payout_yen_per_100": 1580,
+      "prior_forecast": "B",
+      "forecast_hash_commit": "dfa560af8e2d025cae83e933d82b3201f95d3996",
+      "research_hit8": true,
+      "research_hit12": true,
+      "simulation_gross_return_percent_8": 197.5,
+      "simulation_gross_return_percent_12": 131.6667,
+      "private_forecast_available_in_conversation": true
+    },
+    {
+      "race_no": 2,
+      "trifecta": [
+        7,
+        5,
+        6
+      ],
+      "trifecta_payout_yen_per_100": 26510,
+      "prior_forecast": "A",
+      "forecast_hash_commit": "dfd93a06ddd2db8892e0a5ed7ef3b17d3d9cacc1",
+      "research_hit8": false,
+      "research_hit12": false,
+      "original_private_full_payload_available_now": false
+    },
+    {
+      "race_no": 3,
+      "trifecta": [
+        8,
+        7,
+        2
+      ],
+      "trifecta_payout_yen_per_100": 7120,
+      "prior_forecast": "A",
+      "forecast_hash_commit": "a8756cf6e2b17aa20f560181c92de3fe22acc225",
+      "research_hit8": false,
+      "research_hit12": false,
+      "refund_status": "UNVERIFIED_DISCREPANCY",
+      "original_private_full_payload_available_now": false
+    },
+    {
+      "race_no": 4,
+      "trifecta": [
+        6,
+        8,
+        1
+      ],
+      "trifecta_payout_yen_per_100": 4110,
+      "prior_forecast": "A",
+      "forecast_hash_commit": "f49a6f9b4e3c36ae4b8956024429b54c4fc70265",
+      "research_hit8": false,
+      "research_hit12": false,
+      "original_private_full_payload_available_now": false
+    },
+    {
+      "race_no": 5,
+      "trifecta": [
+        6,
+        3,
+        4
+      ],
+      "trifecta_payout_yen_per_100": 7240,
+      "prior_forecast": "A",
+      "forecast_hash_commit": "0bf2f5eb8562465989a6afe897993022214a84f6",
+      "research_hit8": false,
+      "research_hit12": false,
+      "original_private_full_payload_available_now": false
+    },
+    {
+      "race_no": 6,
+      "trifecta": [
+        7,
+        6,
+        8
+      ],
+      "trifecta_payout_yen_per_100": 8470,
+      "prior_forecast": null
+    },
+    {
+      "race_no": 7,
+      "trifecta": [
+        7,
+        8,
+        6
+      ],
+      "trifecta_payout_yen_per_100": 1700,
+      "prior_forecast": "A",
+      "forecast_hash_commit": "80654331d1c56385243d11ef4f8ffcc2efb3ba30",
+      "research_hit8": false,
+      "research_hit12": false,
+      "original_private_full_payload_available_now": false
+    },
+    {
+      "race_no": 8,
+      "trifecta": [
+        6,
+        7,
+        4
+      ],
+      "trifecta_payout_yen_per_100": 1500,
+      "prior_forecast": "A",
+      "forecast_hash_commit": "3783058a320f17151737c05208b28d269331c40d",
+      "research_hit8": false,
+      "research_hit12": false,
+      "private_forecast_available_in_conversation": true
+    },
+    {
+      "race_no": 9,
+      "trifecta": [
+        2,
+        3,
+        1
+      ],
+      "trifecta_payout_yen_per_100": 17090,
+      "prior_forecast": null
+    }
+  ],
+  "totals": {
+    "A": {
+      "races": 6,
+      "hit_at_8": 0,
+      "hit_at_12": 0,
+      "simulated_payout_yen": 0,
+      "simulated_gross_return_rate_percent_8": 0,
+      "simulated_gross_return_rate_percent_12": 0,
+      "disclaimer": "refund situation for 3R unverified; do not calculate exact final stake or official ROI"
+    },
+    "B": {
+      "races": 1,
+      "hit_at_8": 1,
+      "hit_at_12": 1,
+      "simulated_stake_yen_at_100_per_bet_8": 800,
+      "simulated_stake_yen_at_100_per_bet_12": 1200,
+      "simulated_payout_yen": 1580,
+      "simulated_gross_return_rate_percent_8": 197.5,
+      "simulated_gross_return_rate_percent_12": 131.6667
+    }
+  },
+  "forecast_noncomparable_note": "A and B refer to different races, so no within-race A-vs-B improvement evidence",
+  "research_only": true,
+  "formal_forward_looking_qualification": false,
+  "real_bets_placed_verified": false,
+  "sanyo_3r_correction": {
+    "prior_posthoc_audit_commit": "f4c725ca592a1c736cc1d9b89268baa9cee5d39a",
+    "prior_claim": "No.6 番田隆弘 欠場, 600 yen conditional refund on 12 picks",
+    "current_conflicting_sources": {
+      "chariloto_race_results": "car 6: rank 9, incident 停止, trial 3.39, abnormal Ａ",
+      "winticket_racecard": "(欠)番田隆弘"
+    },
+    "refund_600_yen_should_not_be_treated_as_verified": true,
+    "refund_confirmation_from_official_primary": "NOT_VERIFIED",
+    "correction_logic": "Earlier scratch/refund estimate was premature. Keep original audit unchanged, append this correction; verify official refund/incident data before any amount or ROI is finalized."
+  },
+  "PDCA_research_only": [
+    {
+      "race_no": 1,
+      "detail": "B captured 6-7-8 inside basic 8; 7 had fastest 3.34 but 6 won with 3.39; rank top two order mattered."
+    },
+    {
+      "race_no": 2,
+      "detail": "A ranked cars 4/7 highly but actual 7-5-6; car6 third missing from all combinations."
+    },
+    {
+      "race_no": 3,
+      "detail": "A was dominated by 1/5/6 while 8-7-2 came in; incident status requires separate verification."
+    },
+    {
+      "race_no": 4,
+      "detail": "A centered on 1/7/5 but winner 6 and runner-up 8 were missed."
+    },
+    {
+      "race_no": 5,
+      "detail": "A centered on 5/1, but winner 6 and remaining 3/4; actual car5 ranked 6th."
+    },
+    {
+      "race_no": 7,
+      "detail": "A centered on 5/7; car8 ran second but never included in basic or additional picks. Winner car7 was included."
+    },
+    {
+      "race_no": 8,
+      "detail": "A centered on car5 which finished 4th; 6-7-4 finish; trial values 7=3.39 6=3.41 5=3.45, not incorporated in A. Track listed 風, not wet."
+    }
+  ],
+  "forecast_change_performed_this_run": false,
+  "model_weights_change_performed_this_run": false
+}

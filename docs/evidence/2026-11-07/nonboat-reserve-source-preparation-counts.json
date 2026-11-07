@@ -1,0 +1,23 @@
+{
+  "actual_requests": 23,
+  "authorization_denials": 0,
+  "encrypted_local_readback_verified": true,
+  "forecasts_created": 0,
+  "independent_pre_cutoff_receipt_verified": false,
+  "models_fitted": 0,
+  "native_inputs": 39,
+  "new_native_inputs_by_sport": {
+    "autorace": 24,
+    "keirin": 15
+  },
+  "new_races_by_sport": {
+    "autorace": 4,
+    "keirin": 3
+  },
+  "packet_sha256": "ee2117684cac26830b499ff5b706a2b29fd59f5a05d941d0445b72c74aff3d91",
+  "plaintext_published": false,
+  "previous_native_inputs_unchanged": true,
+  "production_promoted": false,
+  "state": "ACTUAL_SEVEN_NONBOAT_RESERVES_READY_FOR_FUTURE_INPUT_FREEZE",
+  "timeout_requests": 5
+}

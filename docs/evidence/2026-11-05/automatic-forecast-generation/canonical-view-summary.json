@@ -1,0 +1,28 @@
+{
+  "schema": "RACE_AI_OWNER_PRIVATE_REMOTE_PROJECTION_RECEIPT_V1",
+  "day_jst": "2026-11-05",
+  "source_run_id": 41929106428,
+  "canonical_report_forecasts": 293,
+  "projected_races": 144,
+  "projected_forecasts": 293,
+  "stage_counts": {
+    "P0": 288,
+    "P1": 5
+  },
+  "p1_races": 1,
+  "p1_result_pending": 5,
+  "source_top8_sha_time_identity_match": true,
+  "local_native_profile_touched": false,
+  "semantic_deduplication_with_local": false,
+  "source_requests": 0,
+  "inference_calls": 0,
+  "training_calls": 0,
+  "scoring_calls": 0,
+  "source_originals_modified": false,
+  "independent_receipts_verified": false,
+  "external_source_rights_verified": false,
+  "official_results_authenticated": false,
+  "complete_daily_coverage_proven": false,
+  "cycle_view_sha256": "bb9e959623b61b179f67c3b2bcf79d490341997cc1997cc923cbf2cf852fb527",
+  "p1_view_sha256": "d68a98bf2ee2439830b9fff21bdab6affbd69c15bd77566abf138d8dbbfb6636"
+}

@@ -1,0 +1,59 @@
+{
+  "schema": "RACE_AI_AUTORACE_POST_CUTOFF_TRIAL_OBSERVATION_AUDIT_V1",
+  "record_type": "SECONDARY_TRIAL_OBSERVATION_RESULT_SIDE_NOT_A_PREDICTION",
+  "race_id": "autorace:2026-11-06:isesaki:8",
+  "event_date_jst": "2026-11-06",
+  "venue": "isesaki",
+  "race_no": 8,
+  "observed_at_jst": "2026-11-06T18:33:20+09:00",
+  "trial_source_url": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/1/8",
+  "source_type": "SECONDARY",
+  "primary_official_independently_verified": false,
+  "track_condition_reported": "晴・良走路",
+  "scheduled_cutoff_at_jst": "2026-11-06T18:14:00+09:00",
+  "trial_time_by_car": {
+    "1": 3.43,
+    "2": 3.38,
+    "3": 3.38,
+    "4": 3.41,
+    "5": 3.36,
+    "6": 3.33,
+    "7": 3.33,
+    "8": 3.33
+  },
+  "fastest_trial_car_numbers": [
+    6,
+    7,
+    8
+  ],
+  "previous_research_A": {
+    "generated_at_jst": "2026-11-06T16:24:52.467352+09:00",
+    "hash_commit": "888e702f4ffe86f86a6821eddcb1e92bbae40bff",
+    "forecast_sha256": "621f906675cfa05cc7eab536feced6a782dc41b4e137675e58f8d9666560e26a",
+    "basic8": [
+      "3-5-4",
+      "3-4-5",
+      "5-3-4",
+      "4-3-5",
+      "5-4-3",
+      "4-5-3",
+      "3-5-2",
+      "5-3-2"
+    ],
+    "extra4": [
+      "3-2-5",
+      "3-5-1",
+      "3-5-6",
+      "5-3-1"
+    ],
+    "original_changed": false,
+    "note": "Trial-unaware research A; initial trial publication time was not independently proven; pre-existing A preserved without rewriting."
+  },
+  "observational_difference": "A basic 8 picks used only cars 2/3/4/5. Subsequent trial values show cars 6/7/8 tied fastest at 3.33. This is a possible model coverage gap, not proof of finish order.",
+  "forecast_B": "NOT_CREATED_AFTER_18_14_CUTOFF",
+  "confirmed_trifecta": "NOT_INDEPENDENTLY_VERIFIED",
+  "confirmed_payout_yen": "NOT_INDEPENDENTLY_VERIFIED",
+  "hit_and_roi": "NOT_ASSESSED",
+  "real_purchase": "NOT_CONFIRMED",
+  "model_parameters_changed": false
+}

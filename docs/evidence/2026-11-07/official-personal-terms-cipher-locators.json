@@ -1,0 +1,14 @@
+[
+  {
+    "cipher_path": "audit/state/official-terms-autorace-924cd0d19164a77634987889e24abce891838c8660f0039e4a1481a6d85fc989.enc",
+    "cipher_sha256": "924cd0d19164a77634987889e24abce891838c8660f0039e4a1481a6d85fc989",
+    "policy_source_sha256": "594ca63eff1b6e0fc455266874622105bff43b9cea5489ba44c66d43ef448151",
+    "sport": "autorace"
+  },
+  {
+    "cipher_path": "audit/state/official-terms-keirin-a08bb1c607774986832cf7ec81cb80e8bf8e7e429c9be8a14504ff5b0127f1f0.enc",
+    "cipher_sha256": "a08bb1c607774986832cf7ec81cb80e8bf8e7e429c9be8a14504ff5b0127f1f0",
+    "policy_source_sha256": "fc266dc5019ad080a0939c5ca30cbad3026cf470d5d63fb031e607ed242f410c",
+    "sport": "keirin"
+  }
+]

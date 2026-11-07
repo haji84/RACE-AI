@@ -1,0 +1,22 @@
+{
+  "viewer": {
+    "file": "RACE_AI_20261104_viewer_and_JSON.zip",
+    "bytes": 1182267,
+    "sha256": "41264fe9c1fea7119a65ece96c6c2570f523f1cb80769fdbbcb915be234b9018",
+    "included_files": 13,
+    "crc_verified": true,
+    "all_member_sha256_verified": true
+  },
+  "originals": {
+    "file": "RACE_AI_20261104_originals_preserved.zip",
+    "bytes": 132494671,
+    "sha256": "2eac36d19375c564d6f3b8ec4eaf0a4c35f44a4fb3e1f3c64ee6eb5d5258fbaa",
+    "included_files": 866,
+    "crc_verified": true,
+    "all_member_sha256_verified": true
+  },
+  "original_archive_count": 257,
+  "raw_terminal_archive_in_final_view": false,
+  "private_owner_only": true,
+  "physical_safari_accepted": false
+}

@@ -1,0 +1,13 @@
+{
+  "race_ai/local_forecast_automation.py": "efadf236aad42461dc7c98c333031285f9e4ca263cd7d9577aa2e2e65dcc62c1",
+  "race_ai/local_forecast_service.py": "ae67b1accbd9ec075e15a2100a1ef36291217a621465d252a831ab6729795b0e",
+  "race_ai/local_forecast_server.py": "ede0f357a00c54627274fa1d826fd0f8fd4397d15390555faa07c16a5148902f",
+  "race_ai/current_boat_inputs.py": "cc8ed8fffc8ea7901cd97b890ee3d20b47f8b3ed1b5650848f0e53162e4d6d12",
+  "race_ai/private_dispatch_operation.py": "ae1201d34c01f4677d277eeb97eb42c8df75b87a2b847404dae4477bd41cbfec",
+  "web/app.js": "b7ed333c53a654879dfe263a5ee91a7a4129dfd5f8b1357e1f2b5aaf45c02696",
+  "web/index.html": "b538b13d6d9f55a39411edb5ee9db8966bce4626c67f714cadf7999c76a9c02a",
+  "tests/test_local_forecast_automation.py": "ab6395ffb482efb798cecb26467db0d3e42a85e857c3a723aba5226ee76d76e7",
+  "tests/test_automatic_forecast_integration.py": "b9d0853a414f629eb80e5909d6a772787b5844456d054bebae9b5bedad519010",
+  "tests/test_cycle_workflow_references.py": "3a75a305ae09951770b4bd0bbac7faca1a3d18071b5da95f281408fb0e20b5a2",
+  "tests/boat_refund_replay.test.mjs": "d33687106f8b86e888de70be154f4413ca24482e254e75ac736717e4cdeddf57"
+}

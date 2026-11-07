@@ -1,0 +1,20 @@
+# 2026-11-04 JST: 芦屋3R prospective dual-artifact safety stop (PR #71)
+
+This is an incident/evidence record, not a new forecast, score, deployment, or independent post-result reranking. No raw official HTML, protected storage links, identity secrets, or original ZIP bytes are rewritten.
+
+## Exact original race
+- Race: `20261104-21-03`, 芦屋3R; official cutoff `2026-11-04T09:27:00+09:00`.
+- Original immutable observation **FIRST**: workflow run `41745983907`, artifact `13283517281`, GitHub server created `2026-11-04T00:20:03Z` (09:20:03 JST), ZIP SHA256 `fa9f74de502273b7396a99a58ffd8fc971d8e9a1a661180baa54ab65d74c5a5c`, internal `national.json` SHA256 `7e17442464c194d735f16b2b124fbbe09ace27950f069717a15ef48320768046`, race bundle SHA256 `6a8522d071c8feb6868e26c7531e42adc0a0921519c5a1130f80f4038be42070`. The ZIP bytes and internal JSON were independently read and hashed after download.
+- **SECOND observation: unexpected duplicate, preserve but EXCLUDE from scoring**: separate workflow run `41746084717`, artifact `13282559821`, GitHub server created `2026-11-04T00:20:50Z` (09:20:50 JST), ZIP SHA256 `537a6d152eb1f05d5914500e51e60756ecbe354e0ee880eae56af2976e5ee2ed`, internal `national.json` SHA256 `804c71de1dde6bab0b4ecd745cb5e0e366995c0b2b62f399554916fc25bc3b82`, bundle SHA256 `19526d88bda4d5993c48f647178bd9d7a85c91d976f3ce698cece03f33801e07`. Different sources/rankings were independently written for the SAME race ~47 seconds later, also before cutoff. This is **not an additional race**.
+- Canonical freeze index at `docs/evidence/2026-11-03/boat-canonical-freeze-index.json` records only FIRST as the 28th unique race entry. The SECOND is not inserted or overwritten in the primary index; retain its GitHub artifact and this independent observation log for review.
+- Root cause: concurrent one-shot jobs ran from different commits before a globally atomic per-race claim existed. This is consistent with (but not proof of) a race between source collection and index updates. The existing index is mutable bookkeeping and does NOT provide atomic locking.
+- **SAFETY STOP**: no repeat prediction or additional triggering for the affected race; never overwrite either artifact, never rank, recompute or score the later version, do not double-add to sample sizes. A human must review concurrent-trigger/atomic-claim controls before resuming multiple simultaneous predictors.
+
+## Other verified observations (different conditions)
+- Run `41745983907` result artifact `13283542221`: 2026-11-04 09:20 JST independent official HTML snapshots for 芦屋1R `5-6-1` payout `172,150円`, 芦屋2R `4-1-3` payout `1,800円`, 三国1R `1-2-5` payout `4,440円` with 3号艇 `転`, 三国2R result not fully verified.
+- Existing morning P0 two models scored on the **two normal races only**: 2 normal race IDs × 2 P0 models = 4 model-wise results, each P0 model 0/2 fixed-8 hits and 0% retrospective ROI. The unusually high payout in 芦屋1R is a verified actual >=10,000円 outcome missed by the two P0 models. These are **P0** observations, not A/B/C-lite P1 contest results.
+- 三国1R is a special non-normal 6-boat finish: no ordinary Hit/ROI result, even though the official payout is visible. The P1 original was previously sealed at 08:39 JST, but the P0 result evaluator explicitly says `ABNORMAL_FINISH_REVIEW_REQUIRED`.
+- New P1 芦屋3R at the time of this note: **PENDING official result**, three research models same upstream race snapshot, no outcome score, no auto-selection. Need separate result event after cutoff and official confirmation.
+- Targeted national result replay run `41746292682` stopped before running official independent result script because `tests/test_boat_freeze_index.py` uses fixed `CHECK_AT=2026-11-04T09:00:00+09:00` while the append-only primary index now has a real first receipt at 09:20. The strict historical-as-of rejection is expected from the code; test fixture must become time-aware without relaxing preclose checks. Do not present this failed workflow as success.
+
+This record is factual observation and safety-stop, not consent to resume/repair an automatic forecaster or to promote a model.

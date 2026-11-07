@@ -1,0 +1,42 @@
+name: BOAT real one-shot exhibition evidence (Vercel-free)
+on:
+  push:
+    branches:
+      - feat/four-sport-forecast-audit-view-20261022
+    paths:
+      - docs/evidence/boat-real-pilot-trigger.txt
+permissions:
+  contents: read
+concurrency:
+  group: boat-real-one-shot-20261103
+  cancel-in-progress: false
+jobs:
+  actual_readonly:
+    name: Real single venue/read-only bounded source
+    if: github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    env:
+      BOAT_ONE_SHOT_OWNER_APPROVED: 'true'
+    steps:
+      - name: Checkout exact branch commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Checkout fixed PR64 parser without modifying it
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Inspect one real venue next eligible exhibition
+        run: python scripts/boat_actual_one_shot_probe.py
+      - name: Preserve only derived research prediction, no raw HTML
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-actual-one-shot-${{ github.run_id }}
+          path: pilot_output/pilot.json
+          if-no-files-found: error
+          retention-days: 7

@@ -1,0 +1,31 @@
+{
+  "run_id": 41979370711,
+  "source_head": "5ef86817daea89544d03f462f58110e1222a9518",
+  "artifact_id": 13392858916,
+  "zip_sha256": "48558655011292f84a6a996a8f28d006d33200beaf47a4b78a6c7f338224d737",
+  "github_digest": "sha256:48558655011292f84a6a996a8f28d006d33200beaf47a4b78a6c7f338224d737",
+  "saved_at": "2026-11-05T06:21:53Z",
+  "round_no": 1,
+  "forecast_count": 643,
+  "distinct_races": 144,
+  "runtime_policy": {
+    "max_rounds": null,
+    "stop_at": null,
+    "source_limit": null,
+    "requests_used": 44,
+    "requests_by_kind": {
+      "forecast": 26,
+      "result": 18
+    },
+    "lifetime_requests_base": 282,
+    "lifetime_requests": 326,
+    "completed_round": 0,
+    "prepared_round": 1,
+    "source_wait": null,
+    "halted_reason": null,
+    "worker_handoff_at": "2026-11-05T11:47:13.314712+00:00"
+  },
+  "scope": "Saved round-one result checkpoint before separately verified repeat-complete; running full workflow not yet complete",
+  "actual_purchase": false,
+  "model_production_promoted": false
+}

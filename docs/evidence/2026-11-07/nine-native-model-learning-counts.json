@@ -1,0 +1,92 @@
+{
+  "derived_bytes_saved_before_original_cutoff": false,
+  "derived_record_count": 56,
+  "encrypted_readback_verified": true,
+  "fitted_cells": 9,
+  "holdout_races": 2,
+  "missing_cells": 22,
+  "models": {
+    "boat/boat-comprehensive-v1": {
+      "changed_parameter_count": 3,
+      "holdout_races": 2,
+      "supported_parameter_count": 3,
+      "train_races": 6
+    },
+    "boat/boat-observed-pairwise-factor-v1": {
+      "changed_parameter_count": 6,
+      "holdout_races": 2,
+      "supported_parameter_count": 6,
+      "train_races": 6
+    },
+    "boat/boat-observed-pairwise-start-v1": {
+      "changed_parameter_count": 6,
+      "holdout_races": 2,
+      "supported_parameter_count": 6,
+      "train_races": 6
+    },
+    "boat/boat-scenario-mixture-v1": {
+      "changed_parameter_count": 9,
+      "holdout_races": 2,
+      "supported_parameter_count": 9,
+      "train_races": 6
+    },
+    "boat/multisport-chronological-ranker-v1": {
+      "changed_parameter_count": 15,
+      "holdout_races": 2,
+      "supported_parameter_count": 15,
+      "train_races": 6
+    },
+    "boat/multisport-conditional-duel-v1": {
+      "changed_parameter_count": 6,
+      "holdout_races": 2,
+      "supported_parameter_count": 7,
+      "train_races": 6
+    },
+    "boat/multisport-factor-interaction-v1": {
+      "changed_parameter_count": 4,
+      "holdout_races": 2,
+      "supported_parameter_count": 6,
+      "train_races": 6
+    },
+    "boat/multisport-race-trajectory-v1": {
+      "changed_parameter_count": 6,
+      "holdout_races": 2,
+      "supported_parameter_count": 7,
+      "train_races": 6
+    },
+    "boat/multisport-scenario-ensemble-v1": {
+      "changed_parameter_count": 5,
+      "holdout_races": 2,
+      "supported_parameter_count": 6,
+      "train_races": 6
+    }
+  },
+  "new_derivation_clock_preserved": true,
+  "original_data_availability_verified": true,
+  "plaintext_published": false,
+  "previous_observed_coefficients_and_metrics_unchanged": true,
+  "production_promoted": false,
+  "real_future_pdca_verified": false,
+  "remote_readback": {
+    "encrypted_readback_verified": true,
+    "fitted_model_count": 9,
+    "manifest_sha256": "08c1fc981d092956c08a98f7cea5c9ec41f8305331c775318e035c257d606b09",
+    "plaintext_published": false,
+    "source_commit": "7fe3e90ac1c20bfaf5eb4dfab8c6e3f82aa9568b",
+    "status": "OWNER_VENUE_LEARNING_READBACK_VERIFIED",
+    "training_sha256": "b3e16ab35dcd818d86ea929267fef50bd379e2c91de1925fb8fb6b9764f7aaaf"
+  },
+  "retained_pointer": {
+    "manifest_path": "state/boat-venue-history/v1/learning/08c1fc981d092956c08a98f7cea5c9ec41f8305331c775318e035c257d606b09/learning.json",
+    "manifest_sha256": "08c1fc981d092956c08a98f7cea5c9ec41f8305331c775318e035c257d606b09",
+    "repository_id": "1416489937",
+    "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+    "source_commit": "7fe3e90ac1c20bfaf5eb4dfab8c6e3f82aa9568b",
+    "status": "READY",
+    "training_sha256": "b3e16ab35dcd818d86ea929267fef50bd379e2c91de1925fb8fb6b9764f7aaaf"
+  },
+  "state": "ACTUAL_NINE_NATIVE_CELLS_RESEARCH_FIT",
+  "train_races": 6,
+  "training_sha256": "b3e16ab35dcd818d86ea929267fef50bd379e2c91de1925fb8fb6b9764f7aaaf",
+  "unique_races": 8
+}

@@ -1,0 +1,36 @@
+{
+  "scope": "SYNTHETIC_ONLY",
+  "python": {
+    "passed": 661,
+    "failed": 0,
+    "skipped": 0
+  },
+  "node": {
+    "passed": 169,
+    "failed": 0,
+    "skipped": 0
+  },
+  "browser": {
+    "passed_groups": 29,
+    "page_errors": [],
+    "widths": [
+      320,
+      390,
+      1440,
+      1920
+    ],
+    "png_count": 36
+  },
+  "fixture": {
+    "races": 2,
+    "saved_predictions": 14,
+    "genuine_saved_learned_variants": 2,
+    "result_captures": 2
+  },
+  "private_real_readbacks_this_environment": 0,
+  "source_provider_requests": 0,
+  "independent_review": "MATERIAL_FINDINGS_FIXED_AND_REREVIEWED",
+  "actual_safari_acceptance": false,
+  "full_four_sport_all_race_all_model_live_operation": false,
+  "precision_improvement_proven": false
+}

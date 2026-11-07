@@ -1,0 +1,28 @@
+{
+  "schema": "RACE_AI_AUTORACE_ASSISTANT_SHA_ONLY_FORECAST_RESEARCH_V1",
+  "record_type": "RESEARCH_B_CONTENT_HASH_ONLY",
+  "race_id": "autorace:2026-11-06:sanyo:1",
+  "event_date_jst": "2026-11-06",
+  "venue": "山陽",
+  "race_no": 1,
+  "phase": "B_POST_TRIAL_FROM_WINTICKET_POSTED_VALUES",
+  "generated_at_jst": "2026-11-06T10:36:59.600017+09:00",
+  "scheduled_cutoff_at_jst": "2026-11-06T10:45:00+09:00",
+  "research_forecast_sha256": "3cd9c8e5c05c159a3552c7ed19e36ee28217bdd45e111aba9ea8f4b35041c506",
+  "private_forecast_filename": "autorace_20261106_sanyo_1R_B_assistant_observed_RESEARCH.json",
+  "private_storage_status": "LOCAL_CONVERSATION_ARTIFACT_ONLY_LIBRARY_UPLOAD_DENIED",
+  "ordered_top8_count": 8,
+  "supplemental_four_count": 4,
+  "model_id": "autorace-personal-observed-baseline-v1",
+  "trial_published_all_racers_on_secondary_page": true,
+  "source_urls": [
+    "https://www.winticket.jp/autorace/sanyo/racecard/2026110406/3/1",
+    "https://autorace.tokyo-sports.co.jp/list/race/20261106061"
+  ],
+  "official_trial_independent_verification": false,
+  "independent_pre_cutoff_receipt_verified": false,
+  "formal_hit_at_8_eligible": false,
+  "record_is_sha_only_without_private_picks": true,
+  "previous_research_A_for_this_race": "NOT_FOUND",
+  "comment": "Create-only checksum metadata, no source contents. Commit gives an independent time for hash publication, not official trial validation or an immutable private content archive."
+}

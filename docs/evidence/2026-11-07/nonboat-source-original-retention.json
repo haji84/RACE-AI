@@ -1,0 +1,27 @@
+{
+  "actual_source_input_artifact_id": 13559236491,
+  "forecasts_created": 0,
+  "independent_git_readback_verified": true,
+  "locators": [
+    {
+      "artifact_id": 13559236491,
+      "batch_path": "state/boat-private-originals/v1/2026-11/batches/4d81eacb052090d6ba4954a01028ba314e3c63fd0e9fcd8a346ecd5956eba7b6.json",
+      "batch_sha256": "4d81eacb052090d6ba4954a01028ba314e3c63fd0e9fcd8a346ecd5956eba7b6",
+      "entry_sha256": "e43f9b465b177fb20b834bbdd07069b74437cd3ae057e0b7aaa5f50b38546699",
+      "kind": "PRIVATE_PAIRS",
+      "ref": "state/boat-private-originals",
+      "repository_id": "1416489937",
+      "schema": "RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1",
+      "source_commit": "0490a9d5273d58ae4b50252542608dd40f932431",
+      "status": "READY"
+    }
+  ],
+  "new_input_races": 16,
+  "new_native_inputs": 88,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "retained_originals": 1,
+  "source_commit": "0490a9d5273d58ae4b50252542608dd40f932431",
+  "source_input_run_id": 42334526055,
+  "status": "EXACT_ORIGINAL_VAULT_RETAINED"
+}

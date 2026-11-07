@@ -1,0 +1,18 @@
+{
+  "schema": "RACE_AI_AUTORACE_PDCA_SHA_ANCHOR_V1",
+  "date_jst": "2026-11-04",
+  "record_kind": "POST_RESULT_RESEARCH_AUDIT_NO_FORECAST_MUTATION",
+  "private_library_path": "/RACE-AI/AutoracePrivate/autorace_20261104_sanyo_1R_5R_research_PDCA_2037JST.json",
+  "private_file_sha256": "c69efd208794b2f28875d9902373433c9f9eed4db015ab209332ed00fd6aae4b",
+  "source": "https://www.chariloto.com/auto/results/006/2026-11-04",
+  "race_ids": [
+    "autorace:2026-11-04:sanyo:1",
+    "autorace:2026-11-04:sanyo:5"
+  ],
+  "prediction_sha256_by_race": {
+    "autorace:2026-11-04:sanyo:1": "56b7211a66d5af257551e3846e97e3d936e8fad75d517be83d2e12f02dc32de2",
+    "autorace:2026-11-04:sanyo:5": "0918e644303fc46050725bd596261e0fcbed53f8c708b2e99e42be464bab1a27"
+  },
+  "notes": "Results-only research audit, original A files untouched. Third-party data, unverified official crosscheck and trial-publication timestamp; do not count in formal forward hit-rate. No new B and no model auto-updates.",
+  "private_trifecta_picks_not_published": true
+}

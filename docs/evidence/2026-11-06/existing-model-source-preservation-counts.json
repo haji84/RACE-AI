@@ -1,0 +1,64 @@
+{
+  "all_present_sources_unchanged": true,
+  "baseline_commit": "a8756cf6e2b17aa20f560181c92de3fe22acc225",
+  "baseline_scope": "HEAD at full-collection continuation before this data collection and integration",
+  "files": [
+    {
+      "baseline_sha256": "08852a16224d3eff70c64a091a227c37c79dfca9447ec8ad6f2c12a371f2a8df",
+      "current_sha256": "08852a16224d3eff70c64a091a227c37c79dfca9447ec8ad6f2c12a371f2a8df",
+      "path": "race_ai/boat_racer_tendencies.py",
+      "unchanged": true
+    },
+    {
+      "baseline_sha256": "f9c22bf6e518da7fb42651a92288fd90730d4beedcde6687c9d289148e6a31c1",
+      "current_sha256": "f9c22bf6e518da7fb42651a92288fd90730d4beedcde6687c9d289148e6a31c1",
+      "path": "race_ai/boat_tactical_scenarios.py",
+      "unchanged": true
+    },
+    {
+      "baseline_sha256": "a3795dc77a83cc910f708790975dbc6ed86fcdd57565f173ec7a896545856f23",
+      "current_sha256": "a3795dc77a83cc910f708790975dbc6ed86fcdd57565f173ec7a896545856f23",
+      "path": "race_ai/boat_feature_adapter.py",
+      "unchanged": true
+    },
+    {
+      "baseline_sha256": "38d77bf351592365c087bb594c357f41b68328fbddc66795cc7dc9115dcf370b",
+      "current_sha256": "38d77bf351592365c087bb594c357f41b68328fbddc66795cc7dc9115dcf370b",
+      "path": "race_ai/boat_entry_source_collection.py",
+      "unchanged": true
+    },
+    {
+      "baseline_sha256": "5392ab55c30602d9e81756f278ffc40f2157562a87fd6ffc9f93b785053fea48",
+      "current_sha256": "5392ab55c30602d9e81756f278ffc40f2157562a87fd6ffc9f93b785053fea48",
+      "path": "race_ai/boat_historical_result_roster.py",
+      "unchanged": true
+    },
+    {
+      "baseline_sha256": "fad45bfad635fb46240d62b4c11f8e513d0eb2b9e99ae45b5a7b6fc5a810ea90",
+      "current_sha256": "fad45bfad635fb46240d62b4c11f8e513d0eb2b9e99ae45b5a7b6fc5a810ea90",
+      "path": "race_ai/boat_multi_feature_models.py",
+      "unchanged": true
+    },
+    {
+      "baseline_sha256": "17029dd0652e6d712d2745f0bd3a797e6319329619861e25274b95a1631ccc48",
+      "current_sha256": "17029dd0652e6d712d2745f0bd3a797e6319329619861e25274b95a1631ccc48",
+      "path": "race_ai/boat_observed_pairwise_models.py",
+      "unchanged": true
+    },
+    {
+      "baseline_sha256": "04a5a4a836d70091ca0ef581c831339cdc9f822b343094581e61adef375fe81c",
+      "current_sha256": "04a5a4a836d70091ca0ef581c831339cdc9f822b343094581e61adef375fe81c",
+      "path": "race_ai/boat_k_day_methods.py",
+      "unchanged": true
+    },
+    {
+      "baseline_sha256": "3473d6955e064852fad7c45814b514f80af5ab0ec9652bf8ba95750fddfba138",
+      "current_sha256": "3473d6955e064852fad7c45814b514f80af5ab0ec9652bf8ba95750fddfba138",
+      "path": "race_ai/existing_model_dispatch.py",
+      "unchanged": true
+    }
+  ],
+  "new_model_created": false,
+  "production_training_applied": false,
+  "schema": "RACE_AI_EXISTING_MODEL_SOURCE_PRESERVATION_COUNTS_V1"
+}

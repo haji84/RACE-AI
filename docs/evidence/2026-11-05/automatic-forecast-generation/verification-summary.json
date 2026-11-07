@@ -1,0 +1,81 @@
+{
+  "checked_at_utc": "2026-11-04T23:28:14.112455+00:00",
+  "checks": [
+    {
+      "suite": "python",
+      "command": "python -m unittest discover -s tests",
+      "count": 877,
+      "failures": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "log_sha256": "8ed129bf73741047226fcf1aa9d23c277d71e494fc9af9b4f7e606190878d192"
+    },
+    {
+      "suite": "node",
+      "command": "node --test tests/*.test.cjs tests/*.test.mjs tests/ui_model.test.js",
+      "count": 179,
+      "failures": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "log_sha256": "0e0c7106769f411543aae04c0a1e6067534b36fa55c9696f5b531b24e6851beb"
+    },
+    {
+      "suite": "browser",
+      "command": "node tests/ui_browser.test.js",
+      "count": 37,
+      "failures": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "log_sha256": "ee79eb9d85ba0f88e8f985167710520617be5a9d27dce4a7276e9fa8cc7a4e8e"
+    },
+    {
+      "suite": "native_integration",
+      "command": "python -m unittest tests.test_automatic_forecast_integration -v",
+      "count": 1,
+      "failures": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "log_sha256": "f1cc38971ccc39be2ee80b2d2e67a374f8d059f7aa3264c9c81669211b35db20"
+    },
+    {
+      "suite": "controller",
+      "command": "python -m unittest tests.test_local_forecast_automation -v",
+      "count": 23,
+      "failures": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "log_sha256": "95afff4d2f6300bf4a2f0fed8fbf4c7ebf87779eede09cf94df67c53360cd76d"
+    },
+    {
+      "suite": "remote_reference",
+      "command": "python -m unittest tests.test_cycle_workflow_references tests.test_first_p0_bootstrap tests.test_existing_day_program",
+      "count": 16,
+      "failures": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "log_sha256": "148abc894b0fefcfc033de977c58aad521264ef2992b86d546cd45142d2a9cd5"
+    },
+    {
+      "suite": "independent_review",
+      "command": "python -m unittest tests.test_local_forecast_automation tests.test_local_forecast_server tests.test_cycle_workflow_references",
+      "count": 40,
+      "failures": 0,
+      "skipped": 0,
+      "exit_code": 0,
+      "log_sha256": "ff2229dad4d0985956f8870f5fcef909bf85233325a472c0fa7d9c576e53cf4a"
+    }
+  ],
+  "browser_png_count": 58,
+  "browser_widths": [
+    320,
+    390,
+    1440,
+    1920
+  ],
+  "browser_source_GETs": 0,
+  "local_native_fixture_real_race": false,
+  "main_merged": false,
+  "pushed": false,
+  "environment_published": false,
+  "production_promoted": false
+}

@@ -1,0 +1,969 @@
+{
+  "accuracy_improvement_proven": false,
+  "actual_results_observed": false,
+  "admission_status": "QUARANTINED_V1_NOT_ELIGIBLE",
+  "buying_tickets_published": false,
+  "event_day_jst": "2026-11-06",
+  "existing_model_ids": [
+    "boat-observed-pairwise-factor-v1",
+    "boat-observed-pairwise-start-v1"
+  ],
+  "generated_at": "2026-11-05T16:59:30.875155+00:00",
+  "independent_timestamp_receipt_status": "PENDING_EXISTING_GITHUB_CI_WITNESS",
+  "model_variant_predictions": 624,
+  "original_entries_preserved": true,
+  "pair_count": 156,
+  "pair_hashes": [
+    {
+      "cutoff_at": "2026-11-06T15:20:00+09:00",
+      "pair_sha256": "581c2cd930173627dbb991d65973541eb70550f7deb898189dcfa3f1bf4f2674",
+      "race_id": "20261106-01-01",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:45:00+09:00",
+      "pair_sha256": "59afd32dd04b689f604269a5d5142f2916a4e371612c77e1bd99929abfa4dbf8",
+      "race_id": "20261106-01-02",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:10:00+09:00",
+      "pair_sha256": "612bd3b19680a9186773798a774c99000623e0d72a3080f3a732f64e64682092",
+      "race_id": "20261106-01-03",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:35:00+09:00",
+      "pair_sha256": "68e96f61c1be6fb75b6b880666f6be80cb0c97c53eae6b51db0061e74882798a",
+      "race_id": "20261106-01-04",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T17:01:00+09:00",
+      "pair_sha256": "f7f4283c08ffc80f4afe516db529adff0a3c920a908b5843a46f44ca718d3fc6",
+      "race_id": "20261106-01-05",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T17:28:00+09:00",
+      "pair_sha256": "a57ed4a3b0a7cc91aef0aa73152f87d8409250837db8a1a209f60aeeff4b709e",
+      "race_id": "20261106-01-06",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T17:55:00+09:00",
+      "pair_sha256": "412db67ec766f08609398c7580ebae399b44850e385b9a9c3b72f248ef728d13",
+      "race_id": "20261106-01-07",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T18:23:00+09:00",
+      "pair_sha256": "2bdd597a22459d4a7fbb4428c8342c5e367e82095b2f6c38610fa3918094981f",
+      "race_id": "20261106-01-08",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T18:54:00+09:00",
+      "pair_sha256": "8ba3ea2736d49dc74a965f856a9928297086b0565bcc2f1dd913f6c0a6f54f96",
+      "race_id": "20261106-01-09",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T19:25:00+09:00",
+      "pair_sha256": "e623dfb5a8022544b3691838219b38521774ee5246c1714c62bcfcf290af374b",
+      "race_id": "20261106-01-10",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T19:58:00+09:00",
+      "pair_sha256": "fcc1ef0037a7716dcde5c4bbd02bf20f36e60b1c113aef8f8529dc47657aa5a9",
+      "race_id": "20261106-01-11",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T20:30:00+09:00",
+      "pair_sha256": "82a8c045a196fb8aa885bd2b2a1b1c865f3058fc65fbd3b082d0840cad3addc0",
+      "race_id": "20261106-01-12",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:45:00+09:00",
+      "pair_sha256": "f3f42ec7eac827b99f48fd3385f80b6a03987ceadec216f2c71b75e82dbd4c00",
+      "race_id": "20261106-02-01",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:12:00+09:00",
+      "pair_sha256": "51dfc2db497d3a5cdff1813153cabf38d8997010b6f69b8813b4cb87b28d6314",
+      "race_id": "20261106-02-02",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:39:00+09:00",
+      "pair_sha256": "cf57891204e641829aaedff8032eb530dfab2815ba08c5ff0d524133f44fcf02",
+      "race_id": "20261106-02-03",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:06:00+09:00",
+      "pair_sha256": "9ff067f4caca1cfe14f90095c95547a92a038a0beedbb240042066b0dfbccefb",
+      "race_id": "20261106-02-04",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:33:00+09:00",
+      "pair_sha256": "51d3f652743272e04bfa1cae461633434c11362a096379fd786b05c71760e132",
+      "race_id": "20261106-02-05",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:00:00+09:00",
+      "pair_sha256": "3d6ae417e92db68f63a7f18766b312b1c0e32bbed54f90c0d59f7063384846ee",
+      "race_id": "20261106-02-06",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:28:00+09:00",
+      "pair_sha256": "95102090a54ebd145e5041c57746a3f9edd0c48e44b558282501299d6ea75a4e",
+      "race_id": "20261106-02-07",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:57:00+09:00",
+      "pair_sha256": "b3aef1240653ddb63dedfbd7b6ce0cedfd4e88711f46107bc773798ffc7be1d1",
+      "race_id": "20261106-02-08",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:27:00+09:00",
+      "pair_sha256": "0762d20334b3f06cfb05c94a32a26fb0c114058bb7f3a5ed3a40aed45010ad0f",
+      "race_id": "20261106-02-09",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:57:00+09:00",
+      "pair_sha256": "468f5bc8b692302b689044d293430f8d6452f45f53c55e6a3e5ebdb60d1ffb7f",
+      "race_id": "20261106-02-10",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:28:00+09:00",
+      "pair_sha256": "e870dde6b3d7945859d1fcc53a9c8b0519ee5f8dfbff9c7f635de82a72e104b4",
+      "race_id": "20261106-02-11",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:00:00+09:00",
+      "pair_sha256": "2abd2ddab23e023c987374437698c520b2ffa72428ac00dca52e742c270fe37d",
+      "race_id": "20261106-02-12",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:59:00+09:00",
+      "pair_sha256": "da9cd3cd1572af1b290fd48c35d3106221255c91e0aa5c330d0b6f3b0ce2ee3e",
+      "race_id": "20261106-03-01",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:25:00+09:00",
+      "pair_sha256": "6c29cecbf284ccd9588722e9c73adc35abbac620ab84df1ed306645afd11a618",
+      "race_id": "20261106-03-02",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:51:00+09:00",
+      "pair_sha256": "0e0e2b7fda5e87b5b3c4912ba66ec48c38f09d2005c2c2927944d8625035b4a5",
+      "race_id": "20261106-03-03",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:17:00+09:00",
+      "pair_sha256": "2abec3fff199dd59c4700788a89b9b2605f43a49793022a17fe5a93783015256",
+      "race_id": "20261106-03-04",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:43:00+09:00",
+      "pair_sha256": "2fcf378d2eeaf56f32a0cf73c7f26201522cdcb0078e2fa87d7de20e02871fcf",
+      "race_id": "20261106-03-05",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:09:00+09:00",
+      "pair_sha256": "f4ce2aeed248ca8022ab64994e46d3ecdfea64df0d4a078d0b2f8e7d5431f202",
+      "race_id": "20261106-03-06",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:35:00+09:00",
+      "pair_sha256": "4c8af66f2de8d36992f024f6862292dc6fd9337ccafe2e9cd1108f152affdfde",
+      "race_id": "20261106-03-07",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:02:00+09:00",
+      "pair_sha256": "f9532ce68f0f7ac322a104aca7c35d861e5fc2d4218ee280d1955e9926a7c0d1",
+      "race_id": "20261106-03-08",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:30:00+09:00",
+      "pair_sha256": "72824422440781b1c9bafb2677b0dfddbafc8b87ff0ae9c0b1019011a89ee81b",
+      "race_id": "20261106-03-09",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:59:00+09:00",
+      "pair_sha256": "80d35470fd804caf066f16c38d083c8ac1a8002982abfcab6e4b58647bef8836",
+      "race_id": "20261106-03-10",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:29:00+09:00",
+      "pair_sha256": "502686e93471189264d926bc92ae179d270622fa31acb62b59874d084af76e90",
+      "race_id": "20261106-03-11",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:00:00+09:00",
+      "pair_sha256": "a2263b190bc382c7be5e8e9ca6a67adaca4fc5292b051015d7b35f6d0f8ecda2",
+      "race_id": "20261106-03-12",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:30:00+09:00",
+      "pair_sha256": "2957184a4dde267ea5817e23f866502ad460161af6aa50dccb7665653dd3a8c0",
+      "race_id": "20261106-05-01",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:57:00+09:00",
+      "pair_sha256": "174b3a6aa99b0b7301a690340a729a53441d230485de702f3d1ccb2171bb9f7f",
+      "race_id": "20261106-05-02",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:26:00+09:00",
+      "pair_sha256": "379521d4f1e390d42c0982de5486a636c193de3f315498b9066b86affe40cb27",
+      "race_id": "20261106-05-03",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:55:00+09:00",
+      "pair_sha256": "c590cf2d22dd7568133350705838cd573a930263ef912f2d969a1c1c7dded66c",
+      "race_id": "20261106-05-04",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:24:00+09:00",
+      "pair_sha256": "737aba6ed09ae2f7818b7e7a84553d2aac7e2c2de014163217f3a3289f5b8f8a",
+      "race_id": "20261106-05-05",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:53:00+09:00",
+      "pair_sha256": "8056fac3fbff06bd5b66e2f8f20c46e8596b8d4b54bbbe256a3d2698513a8ab1",
+      "race_id": "20261106-05-06",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:22:00+09:00",
+      "pair_sha256": "9e32d6530fdd02c30e0cc488df945418995ad592e2cd955ef27d7843a0c34103",
+      "race_id": "20261106-05-07",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:51:00+09:00",
+      "pair_sha256": "c9eff686fd4803a7ebf566b6575ac1bea66788d352b963bb5e16753269b5d691",
+      "race_id": "20261106-05-08",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:21:00+09:00",
+      "pair_sha256": "0772c5d091f7bbf79125a7da6c0537577f783c5ff642e12059e9c78195edfbd1",
+      "race_id": "20261106-05-09",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:52:00+09:00",
+      "pair_sha256": "a8af1e76167b39b0230d980db9a2a132a5adcfa3c851f32a26eb8a882b004036",
+      "race_id": "20261106-05-10",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:24:00+09:00",
+      "pair_sha256": "d226eaa8a08ab34b769afa28acb8ac8416a20cfa4395fc9d3f7ac3126bb6123b",
+      "race_id": "20261106-05-11",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:03:00+09:00",
+      "pair_sha256": "2891876a92229912d46dd7d90be012638cffdd88b84ecf1778607501ffbe1558",
+      "race_id": "20261106-05-12",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:25:00+09:00",
+      "pair_sha256": "cedf523a09f2595e2b6463ad2485da81921cfaa2d08725da6dd8379d844289cc",
+      "race_id": "20261106-08-01",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:53:00+09:00",
+      "pair_sha256": "fe0cca9eac1d8bc416b3f5e0f9f982a626328945b4add01f84cc09b47c1acc64",
+      "race_id": "20261106-08-02",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:24:00+09:00",
+      "pair_sha256": "f5887da53db7ed904fbf6dfeb154120dba3c39448a3ca96be19b9af84b745215",
+      "race_id": "20261106-08-03",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:53:00+09:00",
+      "pair_sha256": "1986618708596a70a98155dfa99b44139a857c2ff48508bfaec70f5bc13e4f1b",
+      "race_id": "20261106-08-04",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:28:00+09:00",
+      "pair_sha256": "9355b80de18506aaec4547696f046de69484d7da129835f25a0220eeb3c14327",
+      "race_id": "20261106-08-05",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:58:00+09:00",
+      "pair_sha256": "b5d78e3f5f1bff0b17fa498bd4c5e874bb5c7fa33b10fa40d26e491d370231fc",
+      "race_id": "20261106-08-06",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:26:00+09:00",
+      "pair_sha256": "e2f623b6a85cafa37afaf9904c66772755ed9dfb10f12de4c035284ffd06fdc7",
+      "race_id": "20261106-08-07",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:55:00+09:00",
+      "pair_sha256": "91d0d2796392db6d794d1f36e696f13e04bce7993aa16a7449d4ae89c456bb3d",
+      "race_id": "20261106-08-08",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:23:00+09:00",
+      "pair_sha256": "b0bbfe5ce6aa2491a46592690778da7b6e7da98afd96f1f366fd872c86dcaaae",
+      "race_id": "20261106-08-09",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:01:00+09:00",
+      "pair_sha256": "690134f63632e5129d4d8d490642025e8e65c05c6b59716009451424a6e33242",
+      "race_id": "20261106-08-10",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:34:00+09:00",
+      "pair_sha256": "45420780f911daff6d18e561a377c348245f30c62e6ff2d0d520151ed4f0fa6a",
+      "race_id": "20261106-08-11",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:08:00+09:00",
+      "pair_sha256": "aa2f197745cdec44c7fcdb365651a76a84bad2df23a61c86b69f91b268d1b3c3",
+      "race_id": "20261106-08-12",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T08:47:00+09:00",
+      "pair_sha256": "b483e6cf6564b141d400e84bf280b36d36b836056e0d6af6932fa63ec9c1f023",
+      "race_id": "20261106-10-01",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T09:13:00+09:00",
+      "pair_sha256": "df959eef0abf074e29fc8c69b002fbed34987f7e0b415dc87ef44f683bc8b1c3",
+      "race_id": "20261106-10-02",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T09:39:00+09:00",
+      "pair_sha256": "62bea89e4f27231d3671cde61a775cfdeac10a8e28bb404a38c591d83ccac825",
+      "race_id": "20261106-10-03",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:05:00+09:00",
+      "pair_sha256": "eb9cf9e68f9b288feaaa025934975b5a7d7d9ba3ea8f77369d8cd3be309a9c4d",
+      "race_id": "20261106-10-04",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:33:00+09:00",
+      "pair_sha256": "a9babe33d114c88b643ceaeeed55d809f52d3aee46e8b974737766321b48bc07",
+      "race_id": "20261106-10-05",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:02:00+09:00",
+      "pair_sha256": "4c7d620246078eedfff834140ecfecab2954c80c6d0fae64846aa887ea7aa608",
+      "race_id": "20261106-10-06",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:31:00+09:00",
+      "pair_sha256": "9071d3a2ca47fb0780931f242a52351244377627192406ddb002092b18579dcd",
+      "race_id": "20261106-10-07",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:03:00+09:00",
+      "pair_sha256": "559b0733edd6cabd8f10683991426d85d1279411200c82a392a5e4e407229d8d",
+      "race_id": "20261106-10-08",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:37:00+09:00",
+      "pair_sha256": "151358cd4083e7a5af99ce49feacfa91fca5276e9a91db9d3cfd7c5b79f0f212",
+      "race_id": "20261106-10-09",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:11:00+09:00",
+      "pair_sha256": "19f7322d67937f6938cb28bfdecfd1550a220710bec8fc14a44ef0827fb21dfb",
+      "race_id": "20261106-10-10",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:47:00+09:00",
+      "pair_sha256": "c146f46aade19e2fe3f0a1859b4f495e8336f261f542e8e24251b6bdaf0a4b9d",
+      "race_id": "20261106-10-11",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:25:00+09:00",
+      "pair_sha256": "e846263249d044dd9dd5c494731e91705bab203437079864b9fed3b4de8f2672",
+      "race_id": "20261106-10-12",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:23:00+09:00",
+      "pair_sha256": "f1dd148536cc60ce87ffd152cdbd30f8f4532fb4ae7769a8ccd66f99462979a8",
+      "race_id": "20261106-11-01",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:55:00+09:00",
+      "pair_sha256": "703399fb73d270d56e830654a9ea9845ddf08c53fcd9d2efdbc9b8620009355d",
+      "race_id": "20261106-11-02",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:21:00+09:00",
+      "pair_sha256": "aee6b37e2f5c4e0d9519acc8365f6e48276ea4d174285312ab0f6dcb02429832",
+      "race_id": "20261106-11-03",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:49:00+09:00",
+      "pair_sha256": "e7c68dda4a4158d840665c66abdde6e4b39e1328facabfc255c8c83cf1a7a6a2",
+      "race_id": "20261106-11-04",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:20:00+09:00",
+      "pair_sha256": "2bb02daeaf14aebe4b17bd72ca705eddccd7a32a2273e66aa0e93016bba189d1",
+      "race_id": "20261106-11-05",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:47:00+09:00",
+      "pair_sha256": "884146fd10157b6c47ecb9b1c5b55fb78ba4919eb635a6dae2792cec485e400d",
+      "race_id": "20261106-11-06",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:15:00+09:00",
+      "pair_sha256": "d5b0c748e23b6a8c704e7fcc9881d716a79936021984bfb6b20bcfa9da7f1a69",
+      "race_id": "20261106-11-07",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:49:00+09:00",
+      "pair_sha256": "6ada319ac6b13323795267f8e07d676532e6d43626a204a5971416517f5ab1a6",
+      "race_id": "20261106-11-08",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:20:00+09:00",
+      "pair_sha256": "4db147fe2e89d29cefd4261f413bcb1a5ba65647ac058316042a64d88bc3bb46",
+      "race_id": "20261106-11-09",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:48:00+09:00",
+      "pair_sha256": "6b75a3f833fd906f34d86b8eba24d9fedbaff3398ae31e5c05320387644e7c6a",
+      "race_id": "20261106-11-10",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:23:00+09:00",
+      "pair_sha256": "2e6047f25c6a988568678a6157a65034e8df9cb581014ccfc59b0d0091dff4e4",
+      "race_id": "20261106-11-11",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:58:00+09:00",
+      "pair_sha256": "7ab19537b83a4cab9b0073369fc8d87c7416f077b470d65de32cd8480aa5d72f",
+      "race_id": "20261106-11-12",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:17:00+09:00",
+      "pair_sha256": "960a9413414d7ebc912de13ef98cc0741812a21f513b213bb64e79a11976d192",
+      "race_id": "20261106-12-01",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:51:00+09:00",
+      "pair_sha256": "54012b64ab6ffa9ba56a16c248f9e1ebe2c7fdfcda7534e15161e88705786fe1",
+      "race_id": "20261106-12-02",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:27:00+09:00",
+      "pair_sha256": "627be1cef3a0d7494b53fdd7ceefb2b23e3f571499aa96c2b79efaf859231d3e",
+      "race_id": "20261106-12-03",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:52:00+09:00",
+      "pair_sha256": "b9c510d23dcafc77f82e4fe349cdbeaab07a550f7a5907b94fa41ab764a736e6",
+      "race_id": "20261106-12-04",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T17:19:00+09:00",
+      "pair_sha256": "252d7809144e0ed4df53db632238309dbc905bce5c0884cbc1b36a91b6bb5393",
+      "race_id": "20261106-12-05",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T17:46:00+09:00",
+      "pair_sha256": "97779a47401fb02cd3bda162f1db386e2400cf781e668281a223ad45727f0223",
+      "race_id": "20261106-12-06",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T18:13:00+09:00",
+      "pair_sha256": "c2068f940829b3da1c9fc446d1b5d1ddc7eb4693552948afadc16a0a23f5b19f",
+      "race_id": "20261106-12-07",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T18:43:00+09:00",
+      "pair_sha256": "fdb418ab20048e522cade4a4d4dc1f85b4534e6de71c4f193ad6013acc7c5d51",
+      "race_id": "20261106-12-08",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T19:14:00+09:00",
+      "pair_sha256": "7b452c3b2e6d307fb788623dfdfc1b4635708bc94d25f8fd35f1af2b6a3de4db",
+      "race_id": "20261106-12-09",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T19:47:00+09:00",
+      "pair_sha256": "c914e250a2fcc33ef69221d352a7d88e1a925ed6c980a3738141bcf75a416217",
+      "race_id": "20261106-12-10",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T20:16:00+09:00",
+      "pair_sha256": "527aebfb6ae06d8716b3fb53cdaf4f84ec2b41b0ddb2eb91dd212cbd7169e773",
+      "race_id": "20261106-12-11",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T20:45:00+09:00",
+      "pair_sha256": "08e58d45b5b70c45a9f237f8d30f91aa65c97b4c147e8b9c5c960d42827dce20",
+      "race_id": "20261106-12-12",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:50:00+09:00",
+      "pair_sha256": "befe295936b7625d6c6fe0776a00a2d023d850622b4f72c8e4e293d1302be56e",
+      "race_id": "20261106-14-01",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:17:00+09:00",
+      "pair_sha256": "4bcf2e8516f669e1cdcb9e3bd539fa97a60407315fa2274ebeca458b9b430cd6",
+      "race_id": "20261106-14-02",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:44:00+09:00",
+      "pair_sha256": "2ce7206cbb7d29fa7f7d47efbe7039118721a66630d7492d7102d7c896cd3329",
+      "race_id": "20261106-14-03",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:12:00+09:00",
+      "pair_sha256": "8b86e9b113f6b007930acfd5c56625d5e1571d22d5bd6c59867b88a0b016647b",
+      "race_id": "20261106-14-04",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:40:00+09:00",
+      "pair_sha256": "30bb98a4dbd1f97aea1c25a1156f8c330ab49fcd2cbbad2585a0ed5cdbec481b",
+      "race_id": "20261106-14-05",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:08:00+09:00",
+      "pair_sha256": "52fbff0fd716f49e312ae70a0d77fd7204149ed52cef42cf3d06df582f4090e0",
+      "race_id": "20261106-14-06",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:36:00+09:00",
+      "pair_sha256": "9baa1346307e2e5bcffc9017cf239ff436a4f26020311410490b9410afb62f68",
+      "race_id": "20261106-14-07",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:04:00+09:00",
+      "pair_sha256": "03d55b04ebab32b121d4121a4a1a9d7d242023a41fb25e395cd71c807818eb0e",
+      "race_id": "20261106-14-08",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:34:00+09:00",
+      "pair_sha256": "5ce2e524e490bbcaee08fcc4a0eb92ec6456124a782dea31cfb2be43f3170262",
+      "race_id": "20261106-14-09",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:05:00+09:00",
+      "pair_sha256": "78bae10d8d3e92dd4f85ece38b52252592392e3f8565607a5a715adb3092c8ba",
+      "race_id": "20261106-14-10",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:39:00+09:00",
+      "pair_sha256": "22f7e22249246169c958242411cceccb724ec33c3a335f8cd733ec4660acfbdb",
+      "race_id": "20261106-14-11",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:15:00+09:00",
+      "pair_sha256": "c9d5a2d9f4780108e14052214abc08e89c81380aa1368fe3f7ef79d6b56ec394",
+      "race_id": "20261106-14-12",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:21:00+09:00",
+      "pair_sha256": "1ea5161494e8c6468e2c342007b16c1561c2b5e4f9dfc65f40635bcad9d04b45",
+      "race_id": "20261106-15-01",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:47:00+09:00",
+      "pair_sha256": "5eb4b7a4abe14492abebb8e870c8bcb59cbda12c4876d83d86d6c4c71609d065",
+      "race_id": "20261106-15-02",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:12:00+09:00",
+      "pair_sha256": "122c31ec7391b20a9ae4b2ea90cd9ebae460d8801fdb753c3c5606eaa12071aa",
+      "race_id": "20261106-15-03",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:43:00+09:00",
+      "pair_sha256": "fb579d8297643ada119d8517b2f082fc3300ac442b266a63ff0d0cd4c4bc5eed",
+      "race_id": "20261106-15-04",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T17:10:00+09:00",
+      "pair_sha256": "0fac52cd725024a8e8994bff392b3ded1171ae924da4456f3d92709a5e11e275",
+      "race_id": "20261106-15-05",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T17:37:00+09:00",
+      "pair_sha256": "147a302a42812bc52df34072dc4a92e85eaad0b4230b3da6212d24309d9b7144",
+      "race_id": "20261106-15-06",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T18:04:00+09:00",
+      "pair_sha256": "99e96c8bb3bfbfb3341d9ec3622d5c63357cb90fcddc181eb996219ade9bde57",
+      "race_id": "20261106-15-07",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T18:33:00+09:00",
+      "pair_sha256": "78c6fc7fb7505c305f3f7acab32474b7232ec8837e98bed9b2839f675bc6b1f0",
+      "race_id": "20261106-15-08",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T19:04:00+09:00",
+      "pair_sha256": "b5b9589baea459e2d5fb73297f8166c346991aa208ae0beae3604bca6c4a5e80",
+      "race_id": "20261106-15-09",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T19:36:00+09:00",
+      "pair_sha256": "a59cb9ad41a51241f7b4a58dfb296f726148cacb110119d5cc8d3c9802a2d675",
+      "race_id": "20261106-15-10",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T20:07:00+09:00",
+      "pair_sha256": "bc3558191e4d7cbd429c218c5511fdcf894ca152598b97ee0346f2e02efbe38e",
+      "race_id": "20261106-15-11",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T20:38:00+09:00",
+      "pair_sha256": "04fa27c1e5fb714cb02764874f38c76fdb28798cb3d5df162d64bd724e69e2c7",
+      "race_id": "20261106-15-12",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:16:00+09:00",
+      "pair_sha256": "ce10d470d098264f1398e54eab408cc6726d7051d67ac9b292873d1a77871fb3",
+      "race_id": "20261106-17-01",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:41:00+09:00",
+      "pair_sha256": "3a4d7ab80e1c5e75a9f0e7b40500f1b8b5b1a353d50c7f8a236de57f02d9d3bb",
+      "race_id": "20261106-17-02",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:07:00+09:00",
+      "pair_sha256": "9378469fb3e17f329a36afbce4fdcc456e7c8fcb9f3e6d5fb2ecaa7ba003d0b9",
+      "race_id": "20261106-17-03",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:34:00+09:00",
+      "pair_sha256": "3b0203ef6d60e2e49401b9f87510974b3ce88a8026ea071a61728524a2d64efc",
+      "race_id": "20261106-17-04",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:58:00+09:00",
+      "pair_sha256": "756d278628ca2e7ef544b031fa495df9a20f3a30da5bfa42b1693635ce857e5c",
+      "race_id": "20261106-17-05",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:22:00+09:00",
+      "pair_sha256": "4b3659e79227a4e0347c124de59e6efca03248abb16fc82eff4d21ffd0adbd82",
+      "race_id": "20261106-17-06",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:51:00+09:00",
+      "pair_sha256": "6b29d06905788d1c1efb3737fa54439410ca2852467b9747523c8ed884836484",
+      "race_id": "20261106-17-07",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:20:00+09:00",
+      "pair_sha256": "02c576be28fa0e3a9d4a2e21ec416ae50414eb645c3501f92362d3d981c05c1f",
+      "race_id": "20261106-17-08",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:45:00+09:00",
+      "pair_sha256": "d4efaf90244e8b66866b468fa11d07eb8356f5b699eacc31578d07a71fb7c392",
+      "race_id": "20261106-17-09",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:12:00+09:00",
+      "pair_sha256": "a146922c30e268860bb09ec5ccc6e1d3da4ef57ac22fa6ab2ca6bacdf0e5e520",
+      "race_id": "20261106-17-10",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:42:00+09:00",
+      "pair_sha256": "0df1b6fab3e1dc55e98c0be3a25400db9a3ca2b8d9f5a99ae24fc4fc0f3148cc",
+      "race_id": "20261106-17-11",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:32:00+09:00",
+      "pair_sha256": "7b28d774ddfd7bcaaa619f7ad13439d403c949803eee93badc9c85545c833c90",
+      "race_id": "20261106-17-12",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:43:00+09:00",
+      "pair_sha256": "76d422b696f5cfc05e0dfe709ca496895d4d788c010f3cddeb3d531841cf7c71",
+      "race_id": "20261106-22-01",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:10:00+09:00",
+      "pair_sha256": "a4f033ff9e6bc7679aa168f9f560f8d3a4f4e69ee7e128de724ac1c220a4bb35",
+      "race_id": "20261106-22-02",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:37:00+09:00",
+      "pair_sha256": "dfd89ab3cc64ced4e379b74788beb27a2f799de6fb0f41128b5515055d03c88e",
+      "race_id": "20261106-22-03",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:09:00+09:00",
+      "pair_sha256": "571e26abb39cb417f99b7749903f697a71db19649175733b5c39c2744ea55ad2",
+      "race_id": "20261106-22-04",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:35:00+09:00",
+      "pair_sha256": "cfd758d215576ee3978eee4fc6bb14a3f633dc4cea12e7fb058c2251f213b88a",
+      "race_id": "20261106-22-05",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:06:00+09:00",
+      "pair_sha256": "bd286666d53b85e7257b2f19933759afd3fd4c52e8d0a0b66ec27eee78dd087f",
+      "race_id": "20261106-22-06",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:41:00+09:00",
+      "pair_sha256": "23b5645a73539153cf9420e08dcca0e472d141e0c43aecf4a199f24ec20ed73e",
+      "race_id": "20261106-22-07",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:17:00+09:00",
+      "pair_sha256": "de6f2336dc7882c57d2643fad3ead24bfc612294ac7cea6a3e52ba4f6463b58b",
+      "race_id": "20261106-22-08",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:45:00+09:00",
+      "pair_sha256": "e3f1d01aea5add7bdf6713488bee88ef1dd85bea4a194c359a1bfc69c9780bf4",
+      "race_id": "20261106-22-09",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:11:00+09:00",
+      "pair_sha256": "318ffe90d52ecad3f292924f49129dd2d2505becc6173711289e7c92b0969739",
+      "race_id": "20261106-22-10",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T15:43:00+09:00",
+      "pair_sha256": "107e0c6b83d00da84a7bb588475348096506cbe402fbef64de5f28b0045b7d7e",
+      "race_id": "20261106-22-11",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T16:21:00+09:00",
+      "pair_sha256": "f1a70d701ddc0e0efe81ff214afc7a4c95e848953cda0fb5f49103ef30aebd83",
+      "race_id": "20261106-22-12",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T08:35:00+09:00",
+      "pair_sha256": "9c7f4f6d92ad469c05d2fa4999ee86ede997d4abb6bc4025e8a81bf74ddb00a0",
+      "race_id": "20261106-23-01",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T09:01:00+09:00",
+      "pair_sha256": "7ecb44abc69be0c853521ca9faa7212df23286c7be25f11f4ef9bdb97ea6a43e",
+      "race_id": "20261106-23-02",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T09:27:00+09:00",
+      "pair_sha256": "549727bc35befb422fe5b3843d723cc59481a77c2355688b50641f745cc361e1",
+      "race_id": "20261106-23-03",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T09:53:00+09:00",
+      "pair_sha256": "505a173daf89cc5af4e7e1b7094f2eeae4da673be552ad30779afa9bcb0153cd",
+      "race_id": "20261106-23-04",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:20:00+09:00",
+      "pair_sha256": "517f6b361fd3bd6ff01d793d867fa594b13546237960c71618b5efd6877e8a8c",
+      "race_id": "20261106-23-05",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T10:48:00+09:00",
+      "pair_sha256": "a07361eeafbe2cd1ff020e0fd59e81eaa3f37a864166c36a7ffcdaeb3d563144",
+      "race_id": "20261106-23-06",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T11:23:00+09:00",
+      "pair_sha256": "5d591e11e798130a14538a01bc5d768bbb00cc3fe4bc930e1b3d4daa0e0c1731",
+      "race_id": "20261106-23-07",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:00:00+09:00",
+      "pair_sha256": "7f87a4addfe36057b0a8cf56cf3ff60ae7e6d7777d06c1fe9c23eb5154d8acde",
+      "race_id": "20261106-23-08",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T12:31:00+09:00",
+      "pair_sha256": "9c172c62e12cdcab0933cfde1ddc9da4726ee1b8f73bcb7a65a2c20ad2d44849",
+      "race_id": "20261106-23-09",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:03:00+09:00",
+      "pair_sha256": "d1f6f38c51fef5cc040f00de4ca02191ccb96c9a29e2da7d47dfba1564694aa5",
+      "race_id": "20261106-23-10",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T13:33:00+09:00",
+      "pair_sha256": "8fc5887f2c39551d9faebf116e46022687299a9ba6eb9da0745100a02f89cf7a",
+      "race_id": "20261106-23-11",
+      "stage": "P0"
+    },
+    {
+      "cutoff_at": "2026-11-06T14:14:00+09:00",
+      "pair_sha256": "cef6024bf4705d94e72b550ce1212ebfde019673cef5edcccdc1f859696afc63",
+      "race_id": "20261106-23-12",
+      "stage": "P0"
+    }
+  ],
+  "private_pair_zip_sha256": "20e229cf8c16e57e945b7a16e3ce599d2dbcaa9e158692e05c95f61da1915af5",
+  "protocol_sha256": "3068db672cc018e95a208c4a5009e3e526d75d2680eb6be8b4c3b3686120733e",
+  "quarantine_reasons": [
+    "V1_UNRESOLVED_RACE_MEMBERSHIP_COULD_DISAPPEAR",
+    "NO_PHYSICAL_FREEZE_COMPLETION_RECEIPT"
+  ],
+  "replacement_manifest": "official-history-research-pairs-v2-sha-only.json",
+  "research_only": true,
+  "schema": "RACE_AI_HISTORY_PROSPECTIVE_SHA_ONLY_V1",
+  "source_period": {
+    "archives": 180,
+    "days": 90,
+    "end": "2026-11-04",
+    "start": "2026-08-07"
+  }
+}

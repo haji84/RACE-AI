@@ -1,0 +1,23 @@
+{
+  "appended_real_known_eight_request_journal": {
+    "digest": "sha256:973cfb36a0e336d7b6717362bf494f243afffff06a67d3d1b8f976adc5175d88",
+    "head_sha": "c43871ba761c98ad4ba86cfddc1bc2b20585da38",
+    "id": 13572350517,
+    "run_id": 42364217725
+  },
+  "capsule_issued": false,
+  "maximum_new_requests": 8,
+  "minimum_previous_terminal_plus_hour": "2026-11-07T12:09:07+00:00",
+  "old_browser_outcome": "UNKNOWN",
+  "old_browser_reserved_upper_bound": 24,
+  "old_fixed_epoch_total_upper_bound": 32,
+  "old_request_sha256": "67d0c956693ea6b47f2814de00ac195341c47b2f3aae49cf967b54c61c1e7992",
+  "original_case_routes_terms_native_and_checkpoints_unchanged": true,
+  "plaintext_published": false,
+  "plan_cipher_unchanged": true,
+  "prior_journal_count": 3,
+  "production_promoted": false,
+  "request_sha256": "624f27871136dfdac98678670687ffeffef5a41f28a51e672fabf67ef1643b0f",
+  "source_requests": 0,
+  "state": "NEXT_SAME_CASE_MAX_EIGHT_PROBE_REQUEST_PREPARED_NOT_ISSUED"
+}

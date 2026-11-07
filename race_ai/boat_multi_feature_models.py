@@ -1,0 +1,354 @@
+"""Two independent, odds-free boat trifecta research models.
+
+Offline deterministic inference only. No upstream fetch, source permission grant,
+fitted weights, official-prediction claim, receipt signing or auto-betting.
+
+Strict as-of and feature provenance are required; the model NEVER fills
+missing values with invented mean data. The training/evaluation data and odds
+cannot enter the snapshot through this schema.
+"""
+from __future__ import annotations
+
+from datetime import datetime, timezone, timedelta, date
+import itertools
+import math
+import re
+
+from .actions_contract import canonical, digest, stamp
+from .boat_active_roster import active_roster
+
+JST = timezone(timedelta(hours=9))
+MODEL_IDS = ("boat-comprehensive-v1", "boat-scenario-mixture-v1")
+# Expected as-of numeric rating normalized by an independently approved
+# provider. No coefficient here has been trained or validated with real races.
+FEATURE_RANGES = {
+    "ability_rating": (0, 100),
+    "recent_form_rating": (0, 100),
+    "motor_rating": (0, 100),
+    "course_suitability_rating": (0, 100),
+    "exhibition_time_seconds": (1, 20),
+    "exhibition_start_seconds": (0, 1),
+    "start_consistency_rating": (0, 100),
+}
+CONDITIONS = {"wind_speed_mps": (0, 35), "wave_height_cm": (0, 200),
+              "wind_relative_to_course": (-1, 1), "wet_surface_factor": (0, 1)}
+EXACT_ENTRANTS = {"lane", "participant_id", "features", "source_ref",
+                  "published_at", "captured_at"}
+EXACT_ROOT = {"schema", "scope", "race_id", "venue", "event_date_jst",
+              "sales_cutoff_at", "as_of", "entrants", "conditions",
+              "conditions_source", "conditions_published_at",
+              "conditions_captured_at"}
+SCHEMA = "RACE_AI_BOAT_MULTI_FEATURE_SNAPSHOT_V1"
+SCHEMA_SPARSE = "RACE_AI_BOAT_MULTI_FEATURE_SNAPSHOT_SPARSE_V1"
+MISSING_REASONS = frozenset(("MISSING", "NOT_YET_PUBLISHED", "SOURCE_UNAVAILABLE",
+    "RIGHTS_BLOCKED", "UNRESOLVED_DISPOSITION", "F", "L", "NO_PRIOR_SAMPLES",
+    "NO_VERIFIED_COURSE", "NOT_AVAILABLE"))
+
+
+class FeatureModelError(ValueError):
+    pass
+
+
+def _only(value, fields, name):
+    if not isinstance(value, dict) or set(value) != fields:
+        raise FeatureModelError(name + ": exact fields required")
+
+
+def _finite(value, low, high, name):
+    if type(value) not in (int, float) or not math.isfinite(value) or not low <= value <= high:
+        raise FeatureModelError("invalid or missing " + name)
+    return float(value)
+
+
+def _instant(value, name):
+    try:
+        return stamp(value)
+    except (TypeError, ValueError) as exc:
+        raise FeatureModelError("invalid time: " + name) from exc
+
+
+def _sparse_fields(values, missing, allowlist, name):
+    if (type(values) is not dict or type(missing) is not dict or set(values) & set(missing)
+            or set(values) | set(missing) != set(allowlist)):
+        raise FeatureModelError(name + ": observed/missing must exactly partition fields")
+    if any(type(reason) is not str or reason not in MISSING_REASONS for reason in missing.values()):
+        raise FeatureModelError(name + ": explicit supported missing reason required")
+    for key, value in values.items():
+        _finite(value, *allowlist[key], key)
+
+
+def _available(published, captured, as_of, name, *, sparse):
+    captured = _instant(captured, name + " captured")
+    published = None if sparse and published is None else _instant(published, name + " published")
+    if captured > as_of or published is not None and published > captured:
+        raise FeatureModelError(name + " after as_of or capture")
+
+
+def validate_snapshot(raw):
+    """Accept only locally supplied source-attested feature snapshots.
+
+    This verifies syntax, as-of availability and numeric ranges but CANNOT
+    itself establish source rights or whether a provider's ratings are true.
+    """
+    sparse = isinstance(raw, dict) and raw.get("schema") == SCHEMA_SPARSE
+    _only(raw, EXACT_ROOT | {"conditions_missing"} if sparse else EXACT_ROOT, "boat snapshot")
+    if raw["schema"] not in (SCHEMA, SCHEMA_SPARSE):
+        raise FeatureModelError("snapshot schema mismatch")
+    if raw["scope"] not in ("SYNTHETIC_ONLY", "OPERATOR_SUPPLIED_RESEARCH"):
+        raise FeatureModelError("only explicitly supplied offline research snapshots")
+    if not isinstance(raw["race_id"], str) or not re.fullmatch(r"[a-zA-Z0-9:_-]{8,128}", raw["race_id"]):
+        raise FeatureModelError("race identity missing")
+    if not isinstance(raw["venue"], str) or not 1 <= len(raw["venue"]) <= 64:
+        raise FeatureModelError("venue required")
+    try:
+        day=date.fromisoformat(raw["event_date_jst"])
+        if day.isoformat()!=raw["event_date_jst"]:
+            raise ValueError("noncanonical day")
+    except (ValueError, TypeError) as exc:
+        raise FeatureModelError("event_date_jst invalid") from exc
+    cutoff=_instant(raw["sales_cutoff_at"], "sales cutoff")
+    as_of=_instant(raw["as_of"], "as_of")
+    if not as_of < cutoff or cutoff.astimezone(JST).date()!=day:
+        raise FeatureModelError("as_of must be before JST sales cutoff")
+    rows=raw["entrants"]
+    active_roster(rows, identity_key="participant_id", error_type=FeatureModelError)
+    seen=set()
+    for row in rows:
+        _only(row, EXACT_ENTRANTS | {"missing"} if sparse else EXACT_ENTRANTS, "entrant")
+        lane=row["lane"]
+        if type(lane) is not int or lane not in range(1,7) or lane in seen:
+            raise FeatureModelError("entrants must be unique lanes 1..6")
+        seen.add(lane)
+        if not isinstance(row["participant_id"],str) or not re.fullmatch(r"\d{4}",row["participant_id"]):
+            raise FeatureModelError("four-digit racer identity required")
+        source=row["source_ref"]
+        if not isinstance(source,str) or not 1<=len(source)<=256:
+            raise FeatureModelError("source reference missing")
+        _available(row["published_at"],row["captured_at"],as_of,"entrant feature",sparse=sparse)
+        if sparse:
+            _sparse_fields(row["features"],row["missing"],FEATURE_RANGES,"entrant features")
+        else:
+            _only(row["features"],set(FEATURE_RANGES),"entrant features")
+            for name,(low,high) in FEATURE_RANGES.items():
+                _finite(row["features"][name],low,high,name)
+    if sparse:
+        _sparse_fields(raw["conditions"],raw["conditions_missing"],CONDITIONS,"race conditions")
+        if not raw["conditions"]:
+            if any(raw[key] is not None for key in
+                   ("conditions_source","conditions_published_at","conditions_captured_at")):
+                raise FeatureModelError("unavailable conditions must have null observation provenance")
+            return raw
+    else:
+        _only(raw["conditions"],set(CONDITIONS),"race conditions")
+        for name,(low,high) in CONDITIONS.items():
+            _finite(raw["conditions"][name],low,high,name)
+    if not isinstance(raw["conditions_source"],str) or not raw["conditions_source"]:
+        raise FeatureModelError("conditions source missing")
+    _available(raw["conditions_published_at"],raw["conditions_captured_at"],as_of,
+               "weather / conditions",sparse=sparse)
+    # No permissive field filtering: unsupported odds, predictions,
+    # postrace winner and current-race outcome fields always fail.
+    return raw
+
+
+def _scores(snapshot, parameters=None):
+    """Two deliberately distinct feature weighting assumptions, not fitted."""
+    weather=snapshot["conditions"]
+    breeze=weather["wind_speed_mps"]/12.0
+    swell=weather["wave_height_cm"]/50.0
+    headwind=weather["wind_relative_to_course"]
+    rain=weather["wet_surface_factor"]
+    result=[]
+    for row in sorted(snapshot["entrants"],key=lambda r:r["lane"]):
+        f=row["features"]
+        lane=row["lane"]
+        ability=f["ability_rating"]/100
+        recent=f["recent_form_rating"]/100
+        motor=f["motor_rating"]/100
+        course=f["course_suitability_rating"]/100
+        start=f["start_consistency_rating"]/100
+        # Exhibition clock and exhibition ST are lower-is-better,
+        # centered on *fixed* research anchors, not derived from race results.
+        exhibition=(7.0-f["exhibition_time_seconds"])*0.6
+        st=(0.20-f["exhibition_start_seconds"])*3
+        lane_prior=(7-lane)/6
+        # Model A prioritizes persistent ability + recent trajectory.
+        comprehensive=(1.25*ability+1.0*recent+0.75*motor+0.65*course
+                       +0.35*start+0.35*exhibition+0.2*st+0.3*lane_prior)
+        # Model B uses a mixture of mutually different plausible starts:
+        # strong-front, aggressive attack and rough-water resilience.
+        calm_front=(0.55*ability+0.45*recent+0.55*motor+0.5*course
+                    +0.8*lane_prior+0.55*start+0.55*st+0.25*exhibition)
+        attack=(0.75*ability+0.8*recent+0.5*motor+0.35*course
+                +0.9*start+0.7*exhibition+0.5*st-0.2*lane_prior)
+        rough=(0.9*ability+0.45*recent+0.95*course+0.45*motor
+               +0.3*start+0.25*exhibition+0.55*lane_prior
+               -0.15*breeze*(7-lane)/6-0.10*swell*lane/6-0.08*rain*(7-lane)/6)
+        if parameters and MODEL_IDS[0] in parameters:
+            p=parameters[MODEL_IDS[0]]
+            comprehensive=(p['ability']*ability+p['recent']*recent+p['motor']*motor+p['course']*course
+                           +p['start']*start+p['exhibition']*exhibition+p['st']*st+p['lane_prior']*lane_prior)
+        if parameters and MODEL_IDS[1] in parameters:
+            p=parameters[MODEL_IDS[1]]
+            calm_front=(p['calm_ability']*ability+p['calm_recent']*recent+p['calm_motor']*motor
+                        +p['calm_course']*course+p['calm_lane_prior']*lane_prior+p['calm_start']*start
+                        +p['calm_st']*st+p['calm_exhibition']*exhibition)
+            attack=(p['attack_ability']*ability+p['attack_recent']*recent+p['attack_motor']*motor
+                    +p['attack_course']*course+p['attack_start']*start+p['attack_exhibition']*exhibition
+                    +p['attack_st']*st+p['attack_lane_prior']*lane_prior)
+            rough=(p['rough_ability']*ability+p['rough_recent']*recent+p['rough_course']*course
+                   +p['rough_motor']*motor+p['rough_start']*start+p['rough_exhibition']*exhibition
+                   +p['rough_lane_prior']*lane_prior+p['rough_breeze']*breeze*(7-lane)/6
+                   +p['rough_swell']*swell*lane/6+p['rough_rain']*rain*(7-lane)/6)
+        result.append({"lane":lane,"comprehensive":comprehensive,
+                       "calm_front":calm_front,"attack":attack,"rough":rough})
+    # Weather changes scenario likelihood, never enters features from results.
+    # Larger wind / waves increases the rough-weather mixture.
+    rough_share=min(0.60,0.15+0.12*breeze+0.10*swell+0.06*abs(headwind)+0.05*rain)
+    attack_share=max(0.12,0.32-0.05*swell+0.04*(1-abs(headwind)))
+    calm_share=1-rough_share-attack_share
+    if calm_share < 0:
+        raise FeatureModelError("invalid scenario weights")
+    return result,{"calm_front":calm_share,"attack":attack_share,"rough":rough_share}
+
+
+def _sparse_scores(snapshot, parameters=None):
+    """Omit unavailable feature and weather terms, without assigning values."""
+    weather = snapshot["conditions"]
+    transformed_weather = {}
+    for key, divisor in (("wind_speed_mps",12.),("wave_height_cm",50.),
+                         ("wind_relative_to_course",1.),("wet_surface_factor",1.)):
+        if key in weather:
+            transformed_weather[key] = weather[key]/divisor
+    weights = {
+        "comprehensive": (1.25,1.,.75,.65,.35,.35,.2,.3),
+        "calm_front": (.55,.45,.55,.5,.55,.25,.55,.8),
+        "attack": (.75,.8,.5,.35,.9,.7,.5,-.2),
+        "rough": (.9,.45,.45,.95,.3,.25,0.,.55),
+    }
+    order = ("ability_rating","recent_form_rating","motor_rating","course_suitability_rating",
+             "start_consistency_rating","exhibition_time_seconds","exhibition_start_seconds","lane_prior")
+    parameter_order = ("ability","recent","motor","course","start","exhibition","st","lane_prior")
+    weather_weights = (-.15,-.10,-.08)
+    if parameters and MODEL_IDS[0] in parameters:
+        p = parameters[MODEL_IDS[0]]
+        weights["comprehensive"] = tuple(p[name] for name in parameter_order)
+    if parameters and MODEL_IDS[1] in parameters:
+        p = parameters[MODEL_IDS[1]]
+        for component, prefix in (("calm_front","calm"),("attack","attack"),("rough","rough")):
+            # The native rough equation has no exhibition-ST term.
+            weights[component] = tuple(0. if prefix == "rough" and name == "st"
+                                       else p[prefix+"_"+name] for name in parameter_order)
+        weather_weights = tuple(p["rough_"+name] for name in ("breeze","swell","rain"))
+    result = []
+    for row in sorted(snapshot["entrants"],key=lambda r:r["lane"]):
+        f = row["features"]
+        values = {key: value/100 for key,value in f.items() if key.endswith("_rating")}
+        if "exhibition_time_seconds" in f:
+            values["exhibition_time_seconds"] = (7.-f["exhibition_time_seconds"])*.6
+        if "exhibition_start_seconds" in f:
+            values["exhibition_start_seconds"] = (.20-f["exhibition_start_seconds"])*3
+        lane = row["lane"]
+        values["lane_prior"] = (7-lane)/6
+        scores = {name: math.fsum(weight*values[key] for key,weight in zip(order,coefficients) if key in values)
+                  for name,coefficients in weights.items()}
+        penalties = []
+        if "wind_speed_mps" in transformed_weather:
+            penalties.append(weather_weights[0]*transformed_weather["wind_speed_mps"]*(7-lane)/6)
+        if "wave_height_cm" in transformed_weather:
+            penalties.append(weather_weights[1]*transformed_weather["wave_height_cm"]*lane/6)
+        if "wet_surface_factor" in transformed_weather:
+            penalties.append(weather_weights[2]*transformed_weather["wet_surface_factor"]*(7-lane)/6)
+        scores["rough"] += math.fsum(penalties)
+        result.append(dict(lane=lane,**scores))
+    rough_terms, attack_terms = [.15], [.32]
+    for key,weight in (("wind_speed_mps",.12),("wave_height_cm",.10),
+                       ("wind_relative_to_course",.06),("wet_surface_factor",.05)):
+        if key in transformed_weather:
+            rough_terms.append(weight*abs(transformed_weather[key]))
+    if "wave_height_cm" in transformed_weather:
+        attack_terms.append(-.05*transformed_weather["wave_height_cm"])
+    if "wind_relative_to_course" in transformed_weather:
+        attack_terms.append(.04*(1-abs(transformed_weather["wind_relative_to_course"])))
+    rough_share, attack_share = min(.60,math.fsum(rough_terms)), max(.12,math.fsum(attack_terms))
+    calm_share = 1-rough_share-attack_share
+    if calm_share < 0:
+        raise FeatureModelError("invalid scenario weights")
+    return result,dict(calm_front=calm_share,attack=attack_share,rough=rough_share)
+
+
+def _pl(strengths, *, stable=False):
+    universe=[]
+    total=math.fsum(strengths.values())
+    for a,b,c in itertools.permutations(sorted(strengths),3):
+        if stable or len(strengths) < 6:
+            after_a=math.fsum(v for n,v in strengths.items() if n!=a)
+            after_ab=math.fsum(v for n,v in strengths.items() if n not in (a,b))
+            p=(strengths[a]/total)*(strengths[b]/after_a)*(strengths[c]/after_ab)
+        else:
+            p=(strengths[a]/total)*(strengths[b]/(total-strengths[a]))*(
+                strengths[c]/(total-strengths[a]-strengths[b]))
+        universe.append(([a,b,c],p))
+    if len(universe)!=math.perm(len(strengths),3) or not math.isclose(math.fsum(p for _,p in universe),1,abs_tol=1e-10):
+        raise FeatureModelError("candidate universe not normalized")
+    return {tuple(triple): p for triple,p in universe}
+
+
+def run_models(raw, *, parameters=None):
+    """Return two scored *research* Top8s; NO persistence or betting assertion."""
+    s=validate_snapshot(raw)
+    sparse = s["schema"] == SCHEMA_SPARSE
+    if parameters is not None:
+        from .existing_boat_parameter_adapters import validate_group_parameters
+        parameters=validate_group_parameters(parameters, MODEL_IDS)
+    by_lane, scenario_shares=_sparse_scores(s, parameters) if sparse else _scores(s, parameters)
+    component={}
+    for name in ("comprehensive","calm_front","attack","rough"):
+        vals={r["lane"]:math.exp(r[name]) for r in by_lane}
+        family=MODEL_IDS[0] if name=='comprehensive' else MODEL_IDS[1]
+        component[name]=_pl(vals,stable=parameters is not None and family in parameters)
+    output={}
+    for model in MODEL_IDS:
+        if model==MODEL_IDS[0]:
+            dist=component["comprehensive"]
+        else:
+            dist={triple:math.fsum(scenario_shares[k]*component[k][triple]
+                     for k in scenario_shares) for triple in component["comprehensive"]}
+        norm=math.fsum(dist.values())
+        candidates=sorted(({"combination":list(triple),"score":p/norm}
+                            for triple,p in dist.items()),
+                          key=lambda r:(-r["score"],r["combination"]))
+        result={
+            "model_id":model,
+            "model_version":"0.1.0-UNTRAINED",
+            "model_status":"RESEARCH_UNTRAINED_NOT_CALIBRATED",
+            "validation_status":"UNVALIDATED",
+            "scope":s["scope"],
+            "race_id":s["race_id"],
+            "as_of":s["as_of"],
+            "cutoff_at":s["sales_cutoff_at"],
+            "snapshot_sha256":digest(s),
+            "feature_allowlist_sha256":digest({"entrants":FEATURE_RANGES,"weather":CONDITIONS}),
+            "odds_independent":True,
+            "official_prediction":False,
+            "purchase_decision":"NO_BET",
+            "candidates":candidates,
+            "ordered_top8":[r["combination"] for r in candidates[:8]],
+            "scenario_weights":scenario_shares if model==MODEL_IDS[1] else None,
+            "explanation":"Fixed, untrained multi-feature PL ranking" if model==MODEL_IDS[0]
+                          else "Three-scenario weather/start/course PL mixture",
+            "prediction_probabilities_calibrated":False,
+            "persistence_receipt":None,
+            "official_result":None,
+        }
+        if sparse:
+            result.update(model_version="0.2.0-SPARSE-UNTRAINED",input_schema=SCHEMA_SPARSE,
+                missingness_policy="OMIT_UNAVAILABLE_TERMS",missing_conditions=dict(s["conditions_missing"]),
+                missing_features=[dict(lane=r["lane"],participant_id=r["participant_id"],missing=dict(r["missing"]))
+                                  for r in sorted(s["entrants"],key=lambda r:r["lane"])])
+        if parameters and model in parameters:
+            result['research_parameters']=dict(parameters[model])
+            result['explanation']='Caller-supplied research coefficients in the original native equation'
+        result["prediction_sha256"]=digest(result)
+        output[model]=result
+    return output

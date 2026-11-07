@@ -1,0 +1,14 @@
+{
+  "schema": "RACE_AI_PROSPECTIVE_POLICY_WITNESS_V1",
+  "run_id": 42310259077,
+  "head_sha": "5a985c542dd0cd9b0453c38847476a48eb03d894",
+  "artifact_id": 13548576078,
+  "artifact_created_at": "2026-11-06T23:12:18Z",
+  "first_included_cutoff_at": "2026-11-07T08:35:00+09:00",
+  "policy_sha256": "040ce356eae691b5fe1851ef6746428c06244c084716463c695c1fc0c24e4ac1",
+  "github_archive_digest": "sha256:e9cb53dff01c8f507680d66a0ea56b4af6889983f4ecc40674e529da537e3897",
+  "github_metadata_verified": true,
+  "workflow_policy_guard_success": true,
+  "exact_archive_member_readback": false,
+  "private_plan_uploaded": false
+}

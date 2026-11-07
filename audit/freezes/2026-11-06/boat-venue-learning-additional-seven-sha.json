@@ -1,0 +1,76 @@
+{
+  "actual_purchases": false,
+  "auto_promoted": false,
+  "dataset_sha256": "3deb20e26ccc73add405032a45a790abb02d8424e43bb7d1e9b45861ab3d7a19",
+  "encrypted_state_cipher_sha256": "e85f43fc1fddd7e6e4daf41f64c927177e3c030c77a6bb2d324f63969379ff20",
+  "encrypted_state_commit": "ef6946b25399b3a76bda906ef184273a4544200d",
+  "entries": [
+    {
+      "cutoff_at": "2026-11-06T19:14:00+09:00",
+      "file_sha256": "51990359f747fa38113ebd06031e2f0630801ba821daa89d5c5cf7417f61db06",
+      "local_freeze_receipt_sha256": "913dbcbb833c3c29ab5f67172f838a4c61f364a2829c8ac633a47a5d066ccdf4",
+      "pair_sha256": "5404799ab19002620362244509bddeedb3ba6d6bbeb7c12404a2f74181377a39",
+      "race_id": "20261106-12-09",
+      "stage": "P0",
+      "write_completed_at": "2026-11-06T10:01:01.798178+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T19:25:00+09:00",
+      "file_sha256": "9eabd4cd9cf7a1890d65250263830f14531b0a94cdb6634de1f6fa2941384564",
+      "local_freeze_receipt_sha256": "0afc2d472c4e7520acac4695d8b86622aaf036756b33b8e9caadb176f3c51db2",
+      "pair_sha256": "a77b124224d34cbb75b50cc6f894b2c6a365549e0756ca71ffff4b1fe821d77a",
+      "race_id": "20261106-01-10",
+      "stage": "P0",
+      "write_completed_at": "2026-11-06T10:01:03.770530+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T19:36:00+09:00",
+      "file_sha256": "074dcbfb60e6ce6ea00226305e991944288637cf861a731778b2fc33c29bc526",
+      "local_freeze_receipt_sha256": "f2c0f1e4c114a56d49f2042847af1739812bb4d719f29d5c9da664f15981270c",
+      "pair_sha256": "164dd6b3437465765b124b05b9129c0e79ee702ee28503c8668de760576203e1",
+      "race_id": "20261106-15-10",
+      "stage": "P0",
+      "write_completed_at": "2026-11-06T10:01:05.649364+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T19:47:00+09:00",
+      "file_sha256": "eb8124b20e6f9e5ff0b1176bfe5dc21f4ac27abee9c52c811988bc33c0749252",
+      "local_freeze_receipt_sha256": "ae815211f309322213599fe36034ed063ecf02165adfaf4de2017cf01088247e",
+      "pair_sha256": "d2f5c2c296914b832af3501d9932f9b2247d33b548f3bab15812f9b762b7a346",
+      "race_id": "20261106-12-10",
+      "stage": "P0",
+      "write_completed_at": "2026-11-06T10:01:07.537189+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T19:58:00+09:00",
+      "file_sha256": "1a7927e81746d26bb2777b25131428a8314bfe6ac4148a2737e77ae60e9bc526",
+      "local_freeze_receipt_sha256": "51e31a7f2230b7db3beab7042213f681cf932461d0493119a2ae49ad4ada7a0b",
+      "pair_sha256": "02eac0fb08cdea946ce91cf0f02e8abc7417a64d517270a04eac4946fe8c5eee",
+      "race_id": "20261106-01-11",
+      "stage": "P0",
+      "write_completed_at": "2026-11-06T10:01:09.608701+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T20:07:00+09:00",
+      "file_sha256": "ceb276c56cadc048853081ebb35044be5b539c05ee843abb7d96958a14fcb576",
+      "local_freeze_receipt_sha256": "e52d95f39289322c9dacdcc04d8d0748ac03f4f72988745b3b57034b14d92b65",
+      "pair_sha256": "f85981d96ccbd68f93f9d6311ff869bd34ae253b5f6a922cd5bb588cdf4b39a5",
+      "race_id": "20261106-15-11",
+      "stage": "P0",
+      "write_completed_at": "2026-11-06T10:01:11.325247+00:00"
+    },
+    {
+      "cutoff_at": "2026-11-06T20:16:00+09:00",
+      "file_sha256": "8aa1780bb806cca486c4a97ab9fe587832b8d80f6a2a7c90a4a3823157739c55",
+      "local_freeze_receipt_sha256": "f071b375834c2edc5a78536a7e0ec60e6949557d8b04b7d8643c0f87b937f40a",
+      "pair_sha256": "516cb992936c02fe9e54d3efe6a8854c5b1d68c95ec9542cba3d87d53c31a6b2",
+      "race_id": "20261106-12-11",
+      "stage": "P0",
+      "write_completed_at": "2026-11-06T10:01:13.371275+00:00"
+    }
+  ],
+  "prepared_races": 7,
+  "research_only": true,
+  "scheduled_races": 10,
+  "schema": "RACE_AI_RESEARCH_PAIRS_SHA_ONLY_V2"
+}

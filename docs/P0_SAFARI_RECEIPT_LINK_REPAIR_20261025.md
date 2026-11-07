@@ -1,0 +1,13 @@
+# Safari receipt identity repair — 2026-10-25
+
+Parent Goal #67 / execution #68; existing PR71, base a3d4d011fab8773e2eab07ca83580ab345dfb708. This is a local code/contract repair, not a deployment or actual device acceptance.
+
+The actual viewer exported successful refresh intervals but omitted the race ID on each diagnostic event. The existing three-cycle audit correctly rejected those events because it could not link them to a D1 observation. The repair records the accepted response's race identity, uses the immutable request identity on failures, and preserves that identity in metadata-only V2 export. It does not fill from a later selection, change the audit, fabricate timestamps, include raw prices/authentication, or claim that three successful reads mean source prices changed.
+
+Five integration regressions run the real UI in a controlled Node VM, copy its actual diagnostic, and pass it to the unchanged three-cycle audit. They cover missing/wrong/mixed race IDs, in-flight URL changes, failed reads without stale receipt fields, metadata privacy allowlists and exact equality of all four embedded assets. Original RED output is retained privately; the final relevant Node suites passed66/66 with syntax and whitespace checks. Independent technical review and exact-head CI are recorded in Issue68 after execution; neither is formal GitHub approval.
+
+Broad local Python verification on Windows retained229 cases: three implicit-CP932 decoding errors and two POSIX0600 assertions. Explicit UTF-8 removes the three decoding errors; Windows permission assertions remain. Those tests and Python/source/schema code were not changed. The existing Ubuntu-only GitHub workflow is the relevant platform verification; do not label local Python all-green.
+
+Fresh read-only Cloudflare inspection retained Access protection, read=true/ingest=false, cron0 and four historical120-ticket race records. No source fetch, database write, deployment or access change occurred. Shared account free usage remains UNKNOWN after403; no larger token or paid fallback is authorized. Existing protected deployment equality with this source is unverified.
+
+Next gates: independent review and exact-head CI, current shared-usage evidence, scoped owner permission for a bounded protected UI deployment, then actual owner iPhone Safari authentication/all120/reference state/60-second three-cycle diagnostic. Until that happens, DEVICE_PASS remains false. T-60 odds policy and T-15/T-10 unresolved choice are unchanged; presentation publication is a separate trigger. No main merge, public release, live source polling, model-input odds or betting.

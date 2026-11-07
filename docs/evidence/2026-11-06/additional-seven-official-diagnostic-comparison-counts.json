@@ -1,0 +1,19 @@
+{
+  "cache_status": "AVAILABLE",
+  "cached_original_sha256": "19d6f67f8b70095dc5080293e7153849c73c7fbdb83d9673b5bd9bcf6c3e4025",
+  "checked_at": "2026-11-06T11:27:43.788625+00:00",
+  "compared_boat_results": 6,
+  "cutoff_matches": true,
+  "diagnostic_status": "AVAILABLE",
+  "independently_fetched_original_sha256": "14c8e2c21aaf177cfe470b274e77a22008e52801a88d61f16bb606b43749dca8",
+  "metadata_kept_separate": [
+    "result.captured_at",
+    "entry_reconciliation"
+  ],
+  "new_official_html_gets": 1,
+  "normalized_observed_facts_match": true,
+  "original_sha_matches": false,
+  "race_id": "20261106-01-11",
+  "schema": "RACE_AI_CACHED_OFFICIAL_RESULT_DIAGNOSTIC_COMPARISON_V1",
+  "teiai_api_gets": 0
+}

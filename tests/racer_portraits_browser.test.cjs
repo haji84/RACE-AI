@@ -1,0 +1,132 @@
+/* Invented UI-only race; the six named portraits demonstrate identity, not an actual entry list. */
+'use strict';
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
+const http = require('node:http');
+const {spawnSync} = require('node:child_process');
+const {chromium} = require('playwright');
+const root = path.resolve(__dirname, '../web');
+const entries = [['3415','松井繁'],['3897','白井英治'],['3941','池田浩二'],['4238','毒島誠'],['4320','峰竜太'],['4444','桐生順平']];
+const fixture = {schema:'RACE_AI_FORECAST_AUDIT_V1', dataset_status:'REAL_REPORTED', records:[{
+  race_id:'boat:2030-01-01:portrait-ui:1', sport:'boat', venue:'イラスト表示テスト（架空レース）', race_no:1,
+  event_date_jst:'2030-01-01', cutoff_at:'2030-01-01T10:00:00+09:00', offering_status:'TRIFECTA_OFFERED',
+  source_provenance:'ILLUSTRATION_UI_TEST_ONLY', source_sha256:'a'.repeat(64), scope:'research',
+  prediction:null, result:null,
+  participants:entries.map(([registration_no,name],i)=>({number:i+1, registration_no, name}))
+}]};
+let browser, server;
+(async()=>{
+  const requests = [], errors = [];
+  const baseline = process.env.UI_PORTRAITS_BASELINE ? spawnSync('git',['show','HEAD:web/app.js'],{cwd:path.join(root,'..')}).stdout : null;
+  server = http.createServer((req,res)=>{
+    const relative = new URL(req.url,'http://localhost').pathname.replace(/^\/RACE-AI\//,'');
+    const file = path.resolve(root, relative || 'index.html');
+    if (!file.startsWith(root+path.sep) || !fs.existsSync(file) || !fs.statSync(file).isFile()) {res.statusCode=404;return res.end();}
+    res.setHeader('Content-Type', {'.js':'text/javascript','.css':'text/css','.html':'text/html','.json':'application/json','.webp':'image/webp'}[path.extname(file)] || 'application/octet-stream');
+    res.end(baseline && relative==='app.js' ? baseline : fs.readFileSync(file));
+  });
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  const base = process.env.PORTRAITS_DEPLOYED_URL || `http://127.0.0.1:${server.address().port}/RACE-AI/`;
+  browser = await chromium.launch({headless:true, ...(process.env.CHROMIUM_PATH ? {executablePath:process.env.CHROMIUM_PATH} : fs.existsSync('/usr/bin/chromium') ? {executablePath:'/usr/bin/chromium'} : {}),args:['--no-sandbox']});
+  const evidence = path.resolve(process.env.UI_PORTRAIT_EVIDENCE || 'artifacts/ui-portraits');
+  fs.mkdirSync(evidence,{recursive:true});
+  const load = async(page,data=fixture)=>{
+    await page.evaluate(()=>document.getElementById('file-message').textContent='');
+    await page.locator('#race-file').setInputFiles({name:'illustration-ui-test.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(data))});
+    await page.waitForFunction(()=>document.querySelector('#file-message').textContent.length>0);
+    await page.locator('[data-page="home"]').filter({visible:true}).first().click();
+    await page.waitForFunction(()=>document.querySelector('#page-home .racer-card'));
+  };
+  for (const width of [320,390,1440]) {
+    const context = await browser.newContext({viewport:{width,height:900}});
+    const page = await context.newPage();
+    page.on('request',r=>requests.push(r.url())); page.on('pageerror',e=>errors.push(e.message));
+    await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});
+    await page.goto(base); await load(page);
+    const home = '#page-home .racer-card img.racer-portrait';
+    assert.equal(await page.locator(home).count(),6,'all six own illustrations must appear on the home card');
+    for (const img of await page.locator(home).all()) await img.scrollIntoViewIfNeeded();
+    await page.waitForFunction(selector=>[...document.querySelectorAll(selector)].every(img=>img.complete && img.naturalWidth>0),home);
+    assert.deepEqual(await page.locator(home).evaluateAll(imgs=>imgs.map(img=>img.dataset.registration)), entries.map(e=>e[0]));
+    assert.equal(await page.locator('#page-home .portrait-status:visible').count(),0,'portraits have no extra illustration caption');
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    await page.screenshot({path:path.join(evidence,`home-${width}.png`),fullPage:true});
+    await page.locator('[data-page="races"]').filter({visible:true}).first().click();
+    assert.equal(await page.locator('#page-races img.racer-portrait').count(),6);
+    await page.locator('#page-races [data-open-race]').first().click();
+    assert.equal(await page.locator('#page-detail img.racer-portrait').count(),6);
+    assert.equal(await page.locator('#page-detail .portrait-status:visible').count(),0,'detail portraits have no extra illustration caption');
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    await page.screenshot({path:path.join(evidence,`detail-${width}.png`),fullPage:true});
+    await page.locator('[data-page="settings"]').filter({visible:true}).first().click();
+    const ready=await page.evaluate(()=>RaceRacerPortraits.coverage.ready);
+    assert.match(await page.locator('#racer-portrait-gallery').innerText(),/対象1669名/);
+    await page.locator('#racer-portrait-gallery summary').click();
+    assert.equal(await page.locator('#racer-portrait-gallery a').count(),Math.min(30,ready));
+    assert.equal(await page.locator('#racer-portrait-gallery .portrait-status:visible').count(),0,'gallery portraits have no extra illustration caption');
+    await page.locator('#portrait-search').fill('4320');
+    assert.equal(await page.locator('#racer-portrait-gallery a').count(),1);
+    assert.equal(await page.locator('#racer-portrait-gallery a').getAttribute('href'),'https://www.boatrace.jp/owpc/pc/data/racersearch/profile?toban=4320');
+    await page.locator('#portrait-search').fill('');
+    if(ready>30){await page.locator('#racer-portrait-gallery button').click();assert.equal(await page.locator('#racer-portrait-gallery a').count(),Math.min(60,ready));}
+    const atlasEntries=await page.evaluate(()=>{
+      const list=RaceRacerPortraits.all.filter(p=>p.atlas);
+      const six=list.find(p=>p.atlas.columns===6&&p.atlas.slot===35);
+      const selected=[list[0],list[4],list[24],list[6],list.at(-1),six||list[20]];
+      return selected.map(p=>({registration:p.registration,name:p.name,atlas:p.atlas}));
+    });
+    const atlasFixture=structuredClone(fixture);
+    atlasFixture.records[0].participants=atlasEntries.map((p,i)=>({number:i+1,registration_no:p.registration,name:p.name}));
+    await load(page,atlasFixture);
+    assert.equal(await page.locator('#page-home .portrait-atlas').count(),6);
+    for(const [i,frame] of (await page.locator('#page-home .portrait-atlas').all()).entries()){
+      await frame.scrollIntoViewIfNeeded();
+      await page.waitForFunction(id=>{const img=document.querySelector('#page-home img[data-registration="'+id+'"]');return img&&img.complete&&img.naturalWidth>0;},atlasEntries[i].registration);
+      const geometry=await frame.evaluate(n=>{const a=n.getBoundingClientRect(),img=n.querySelector('img'),b=img.getBoundingClientRect();return {width:a.width,height:a.height,imgWidth:b.width,imgHeight:b.height,x:a.x-b.x,y:a.y-b.y,overflow:getComputedStyle(n).overflow};});
+      const a=atlasEntries[i].atlas;
+      assert.equal(geometry.overflow,'hidden');
+      assert.ok(Math.abs(geometry.imgWidth-geometry.width*a.columns)<1);
+      assert.ok(Math.abs(geometry.imgHeight-geometry.height*a.rows)<1);
+      assert.ok(Math.abs(geometry.x-geometry.width*a.column)<1);
+      assert.ok(Math.abs(geometry.y-geometry.height*a.row)<1);
+    }
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    await page.screenshot({path:path.join(evidence,`atlas-${width}.png`),fullPage:true});
+    const programPeople=[['3556','田中信一'],['4503','上野真之'],['4246','喜多那由'],
+      ['4632','長尾京志'],['3645','淺田千亜'],['4304','藤崎小百']];
+    const programFixture=structuredClone(fixture);
+    programFixture.records[0].participants=programPeople.map(([registration_no,name],i)=>({number:i+1,registration_no,name}));
+    await load(page,programFixture);
+    const programImages='#page-home .racer-card img[data-registration]';
+    assert.equal(await page.locator(programImages).count(),6,'official program name spellings must retain all six portraits');
+    for(const img of await page.locator(programImages).all())await img.scrollIntoViewIfNeeded();
+    await page.waitForFunction(s=>[...document.querySelectorAll(s)].every(i=>i.complete&&i.naturalWidth>0),programImages);
+    assert.deepEqual(await page.locator(programImages).evaluateAll(imgs=>imgs.map(i=>i.dataset.registration)),programPeople.map(p=>p[0]));
+    await page.screenshot({path:path.join(evidence,`official-program-names-${width}.png`),fullPage:true});
+    if (width===390) {
+      await page.route('**/assets/racer-portraits/boat-4238.webp',route=>route.abort());
+      await page.reload(); await load(page);
+      await page.locator('#page-home .racer-card').filter({hasText:'毒島誠'}).scrollIntoViewIfNeeded();
+      await page.waitForFunction(()=>[...document.querySelectorAll('#page-home .portrait-status')].some(n=>n.textContent==='イラスト読込待ち'));
+      assert.equal(await page.locator('#page-home .portrait-status').filter({hasText:'イラスト読込待ち'}).isVisible(),true);
+      assert.equal(await page.locator('#page-home img.racer-portrait').count(),5);
+      assert.equal(await page.locator('#page-home .racer-card .racer-name').filter({hasText:'毒島誠'}).count(),1);
+      await page.unroute('**/assets/racer-portraits/boat-4238.webp');
+      const missing=structuredClone(fixture);
+      missing.records[0].participants[4]={number:5,registration_no:'9999',name:'未作成の表示テスト'};
+      missing.records[0].participants[5].name='別の選手名';
+      missing.records[0].participants[3].participant_id='4320';
+      await load(page,missing);
+      assert.equal(await page.locator('#page-home img.racer-portrait').count(),3);
+      assert.equal(await page.locator('#page-home .portrait-status').filter({hasText:'イラスト準備中'}).count(),3);
+      const synthetic=structuredClone(fixture);synthetic.dataset_status='SYNTHETIC_ONLY';
+      await load(page,synthetic);
+      assert.equal(await page.locator('#page-home img.racer-portrait').count(),0);
+    }
+    await context.close();
+    console.log(`PASS portrait cards ${width}px: six identities, home/list/detail, gallery and responsive layout`);
+  }
+  assert.equal(requests.some(url=>url.startsWith('https://www.boatrace.jp/')),false,'no official-photo requests from visitors');
+  assert.deepEqual(errors,[]);
+})().catch(e=>{console.error(e);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();if(server)await new Promise(r=>server.close(r));});

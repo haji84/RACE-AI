@@ -1,0 +1,17 @@
+{
+  "accuracy_improvement_proven": false,
+  "commit_sha": "e365a86bcee79c2d58ff7f5541a1fb0e13ff5ca8",
+  "formal_forecast_receipt_adapter_connected": false,
+  "independent_pre_cutoff_receipt_verified": false,
+  "manifest_path": "audit/freezes/2026-11-06/official-history-research-pairs-v2-sha-only.json",
+  "manifest_sha256": "1ab4c9d63e76f11296915e71cd6aa5401a891b965e5ec743337c9ad18f31aff8",
+  "pair_bodies_published": false,
+  "public_manifest_precedes_all_declared_cutoffs": true,
+  "real_data_github_encrypted_handoff_verified": false,
+  "remote_manifest_bytes_match": true,
+  "repository_id": 1416489937,
+  "run_id": 42124634538,
+  "run_url": "https://github.com/haji84/RACE-AI/actions/runs/42124634538",
+  "schema": "RACE_AI_GITHUB_HASH_MANIFEST_EXISTENCE_WITNESS_V1",
+  "server_run_created_at": "2026-11-05T22:48:52Z"
+}

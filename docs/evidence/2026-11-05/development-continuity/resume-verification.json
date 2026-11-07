@@ -1,0 +1,41 @@
+{
+  "verified_at": "2026-11-05T14:48:22.854607+00:00",
+  "owner_instruction": "自動運転は開発中も止めないで",
+  "resume_commit": "0fbb642b744319320f317f9bf0b34beed25fce4d",
+  "workflow_id": 405276784,
+  "run_id": 42047977632,
+  "run_status": "in_progress",
+  "predecessor": 41979370711,
+  "predecessor_conclusion": "cancelled",
+  "authenticated_checkpoint": {
+    "id": 13395880555,
+    "digest": "sha256:12cc88117f6bf486ec6fab14d6c3dd78634632b634eb20d9653755b24195cbca",
+    "created_at": "2026-11-05T07:03:23Z"
+  },
+  "prepared_round": null,
+  "source_wait": null,
+  "predecessor_requests": 334,
+  "lifetime_requests": 616,
+  "lifetime_completed_rounds": 43,
+  "runtime": {
+    "enabled": true,
+    "continuous": true,
+    "state": "RUNNING",
+    "active_run_id": 42047977632,
+    "halted_reason": null,
+    "max_rounds": null,
+    "source_limit": null,
+    "stop_at": null,
+    "counter_scope": "ACTIVE_RUN_UNVERIFIED",
+    "round_no": null
+  },
+  "app_pid_preserved": 157669,
+  "existing_supervisor_tests": 25,
+  "new_workflows": 0,
+  "new_external_tasks": 0,
+  "new_models": 0,
+  "production_promotion": false,
+  "real_wagers": false,
+  "originals_overwritten": false,
+  "new_forecasts_verified": false
+}

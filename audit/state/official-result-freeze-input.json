@@ -1,0 +1,15 @@
+{
+  "allow_order_only": false,
+  "execution_day": "2026-11-07",
+  "native_artifacts": [
+    {
+      "digest": "sha256:10db96ba2e8179d37c404f7f9b17acdf9465b4f8a7f6999bc327f03e78a86e21",
+      "head_sha": "728b03530264f3494a408fb92bb61b541d3ae0d3",
+      "id": 13555822588,
+      "run_id": 42327254832
+    }
+  ],
+  "packet_path": "audit/state/official-result-source-packet-dfbafa07ab179046acd127b397a0a067d020cdaa418dcd4ff52fdf8f30cdaacd.enc",
+  "packet_sha256": "dfbafa07ab179046acd127b397a0a067d020cdaa418dcd4ff52fdf8f30cdaacd",
+  "schema": "RACE_AI_OFFICIAL_RESULT_FREEZE_INPUT_V1"
+}

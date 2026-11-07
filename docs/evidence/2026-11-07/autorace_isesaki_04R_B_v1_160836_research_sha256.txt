@@ -1,0 +1,16 @@
+AUTORACE PRE-CUTOFF RESEARCH B HASH ANCHOR
+race=2026-11-07_isesaki_04R
+phase=B_AFTER_CONFIRMED_TRIAL
+generated_at_jst=2026-11-07T16:08:36+09:00
+cutoff_jst=2026-11-07T16:16:00+09:00
+forecast_plaintext_sha256=e136e0e06e5efb615e2932b92c223549808ebdaa2ef530e5c7cb660c07787dc7
+unchanged_A_plaintext_sha256=7292aeb48ba0a8731ddc5405cad38b7427cdd039d7df7ec2fe173ca70af1c57d
+source=https://www.winticket.jp/autorace/isesaki/racecard/2026110603/2/4
+source_published_at=UNVERIFIED
+official_model=false
+calibrated_probability=false
+result_as_input=false
+full_forecast_private=conversation_attachment_only_not_durable
+append_only=true
+
+No result/payout or source raw data copied to this GitHub anchor.

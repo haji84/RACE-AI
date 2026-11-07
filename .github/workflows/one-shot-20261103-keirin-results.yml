@@ -1,0 +1,57 @@
+name: One-time 2026-11-03 keirin results source check
+on:
+  push:
+    branches: [feat/four-sport-forecast-audit-view-20261022]
+    paths: ['.github/workflows/one-shot-20261103-keirin-results.yml']
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    steps:
+      - name: Read only five public results pages without modifying forecasts
+        shell: bash
+        run: |
+          python - <<'PY'
+          from html.parser import HTMLParser
+          from urllib.request import Request, urlopen
+          import re
+          class Text(HTMLParser):
+              def __init__(self):super().__init__();self.a=[];self.skip=0
+              def handle_starttag(self,t,a):
+                  if t in ('style','script'):self.skip+=1
+              def handle_endtag(self,t):
+                  if t in ('style','script'):self.skip=max(0,self.skip-1)
+              def handle_data(self,d):
+                  if not self.skip and d.strip():self.a.append(d.strip())
+          pairs=[('日別一覧','https://keirin.netkeiba.com/race/payback_list/?kaisai_date=20261103'),
+                 ('奈良7R','https://keirin.netkeiba.com/race/result/?race_id=202611035307'),
+                 ('静岡6R','https://keirin.netkeiba.com/race/result/?race_id=202611033806'),
+                 ('静岡7R','https://keirin.netkeiba.com/race/result/?race_id=202611033807'),
+                 ('武雄7R','https://keirin.netkeiba.com/race/result/?race_id=202611038407')]
+          for name,url in pairs:
+              print('\nCHECK',name,url,flush=True)
+              try:
+                  req=Request(url,headers={'User-Agent':'Mozilla/5.0','Accept':'text/html'})
+                  with urlopen(req,timeout=12) as resp:
+                      raw=resp.read(1500000);code=resp.status
+                  parser=Text();parser.feed(raw.decode('utf-8','replace'))
+                  text=' '.join(parser.a);text=re.sub(r'\s+',' ',text)
+                  print('HTTP',code,'bytes',len(raw),'textlen',len(text),flush=True)
+                  markers=['３連単','3連単','払戻金','レース結果決定後に公開されます','奈良','静岡','武雄']
+                  seen=set();count=0
+                  for marker in markers:
+                      start=0
+                      while count<24:
+                          i=text.find(marker,start)
+                          if i<0:break
+                          start=i+len(marker)
+                          if i in seen: continue
+                          seen.add(i);count+=1
+                          print('MATCH',marker,repr(text[max(0,i-50):i+210]),flush=True)
+                      if count>=24:break
+                  if count==0:print('NO_MATCH',text[:500])
+              except Exception as e:
+                  print('SAFE_NO_RESULT',type(e).__name__,str(e)[:180],flush=True)
+          PY

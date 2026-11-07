@@ -1,0 +1,230 @@
+{
+  "target_hit_rate": 0.98,
+  "exact_ticket_count": 8,
+  "denominator_scope": "ENDED_SCHEDULED_OFFICIAL_FINAL_NORMAL_RACES",
+  "selection_policy": "FIRST_PRE_CUTOFF_ORIGINAL_PER_RACE_PHASE_MODEL_VARIANT",
+  "scheduled_races": 144,
+  "ended_races": 110,
+  "future_races": 34,
+  "eligible_normal_final_races": 98,
+  "pending_races": 6,
+  "unknown_races": 2,
+  "special_races": 4,
+  "all_schedule_completion_status": "INCOMPLETE",
+  "all_schedule_completion_scope": "OUTCOMES_ONLY",
+  "result_state_counts": {
+    "ABNORMAL_FINISH_REVIEW_REQUIRED": 4,
+    "FINAL_NORMAL": 98,
+    "FUTURE": 34,
+    "RESULT_PENDING": 6,
+    "RESULT_REJECTED": 2
+  },
+  "scoreboard": [
+    {
+      "stage": "P0",
+      "model_id": "boat-observed-pairwise-factor-v1",
+      "variant": "BASELINE",
+      "eligible": 98,
+      "hits": 33,
+      "issued": 98,
+      "missing": 0,
+      "hit_at_8_all": 0.336734693877551,
+      "hit_at_8_saved_only": 0.336734693877551,
+      "wilson95": {
+        "lower": 0.25090134513623824,
+        "upper": 0.4348847740871676
+      },
+      "distinct_days": 1,
+      "distinct_venue_days": 12,
+      "target_status": "NOT_MET",
+      "target_established": false,
+      "promotion_allowed": false,
+      "trained_version_count": 0
+    },
+    {
+      "stage": "P0",
+      "model_id": "boat-observed-pairwise-start-v1",
+      "variant": "BASELINE",
+      "eligible": 98,
+      "hits": 32,
+      "issued": 98,
+      "missing": 0,
+      "hit_at_8_all": 0.32653061224489793,
+      "hit_at_8_saved_only": 0.32653061224489793,
+      "wilson95": {
+        "lower": 0.24176256274018432,
+        "upper": 0.4243851889346843
+      },
+      "distinct_days": 1,
+      "distinct_venue_days": 12,
+      "target_status": "NOT_MET",
+      "target_established": false,
+      "promotion_allowed": false,
+      "trained_version_count": 0
+    },
+    {
+      "stage": "P1",
+      "model_id": "boat-course-motor-shadow-v0.1-UNTRAINED",
+      "variant": "BASELINE",
+      "eligible": 98,
+      "hits": 24,
+      "issued": 68,
+      "missing": 30,
+      "hit_at_8_all": 0.24489795918367346,
+      "hit_at_8_saved_only": 0.35294117647058826,
+      "wilson95": {
+        "lower": 0.17044970160914977,
+        "upper": 0.3385911096774219
+      },
+      "distinct_days": 1,
+      "distinct_venue_days": 12,
+      "target_status": "NOT_MET",
+      "target_established": false,
+      "promotion_allowed": false,
+      "trained_version_count": 0
+    },
+    {
+      "stage": "P1",
+      "model_id": "boat-display-rating-PL-reference-v1-UNVALIDATED",
+      "variant": "BASELINE",
+      "eligible": 98,
+      "hits": 23,
+      "issued": 68,
+      "missing": 30,
+      "hit_at_8_all": 0.23469387755102042,
+      "hit_at_8_saved_only": 0.3382352941176471,
+      "wilson95": {
+        "lower": 0.16178478951873154,
+        "upper": 0.32761765421930306
+      },
+      "distinct_days": 1,
+      "distinct_venue_days": 12,
+      "target_status": "NOT_MET",
+      "target_established": false,
+      "promotion_allowed": false,
+      "trained_version_count": 0
+    },
+    {
+      "stage": "P1",
+      "model_id": "boat-local-start-course-shadow-v0.1-UNTRAINED",
+      "variant": "BASELINE",
+      "eligible": 98,
+      "hits": 32,
+      "issued": 68,
+      "missing": 30,
+      "hit_at_8_all": 0.32653061224489793,
+      "hit_at_8_saved_only": 0.47058823529411764,
+      "wilson95": {
+        "lower": 0.24176256274018432,
+        "upper": 0.4243851889346843
+      },
+      "distinct_days": 1,
+      "distinct_venue_days": 12,
+      "target_status": "NOT_MET",
+      "target_established": false,
+      "promotion_allowed": false,
+      "trained_version_count": 0
+    },
+    {
+      "stage": "P1",
+      "model_id": "boat-observed-pairwise-factor-v1",
+      "variant": "BASELINE",
+      "eligible": 98,
+      "hits": 24,
+      "issued": 68,
+      "missing": 30,
+      "hit_at_8_all": 0.24489795918367346,
+      "hit_at_8_saved_only": 0.35294117647058826,
+      "wilson95": {
+        "lower": 0.17044970160914977,
+        "upper": 0.3385911096774219
+      },
+      "distinct_days": 1,
+      "distinct_venue_days": 12,
+      "target_status": "NOT_MET",
+      "target_established": false,
+      "promotion_allowed": false,
+      "trained_version_count": 0
+    },
+    {
+      "stage": "P1",
+      "model_id": "boat-observed-pairwise-factor-v1",
+      "variant": "LEARNED_SHADOW",
+      "eligible": 98,
+      "hits": 18,
+      "issued": 53,
+      "missing": 45,
+      "hit_at_8_all": 0.1836734693877551,
+      "hit_at_8_saved_only": 0.33962264150943394,
+      "wilson95": {
+        "lower": 0.11946063375519513,
+        "upper": 0.27174997224015385
+      },
+      "distinct_days": 1,
+      "distinct_venue_days": 12,
+      "target_status": "NOT_MET",
+      "target_established": false,
+      "promotion_allowed": false,
+      "trained_version_count": 35
+    },
+    {
+      "stage": "P1",
+      "model_id": "boat-observed-pairwise-start-v1",
+      "variant": "BASELINE",
+      "eligible": 98,
+      "hits": 23,
+      "issued": 68,
+      "missing": 30,
+      "hit_at_8_all": 0.23469387755102042,
+      "hit_at_8_saved_only": 0.3382352941176471,
+      "wilson95": {
+        "lower": 0.16178478951873154,
+        "upper": 0.32761765421930306
+      },
+      "distinct_days": 1,
+      "distinct_venue_days": 12,
+      "target_status": "NOT_MET",
+      "target_established": false,
+      "promotion_allowed": false,
+      "trained_version_count": 0
+    },
+    {
+      "stage": "P1",
+      "model_id": "boat-observed-pairwise-start-v1",
+      "variant": "LEARNED_SHADOW",
+      "eligible": 98,
+      "hits": 16,
+      "issued": 53,
+      "missing": 45,
+      "hit_at_8_all": 0.16326530612244897,
+      "hit_at_8_saved_only": 0.3018867924528302,
+      "wilson95": {
+        "lower": 0.10306803521803501,
+        "upper": 0.24886583568023965
+      },
+      "distinct_days": 1,
+      "distinct_venue_days": 12,
+      "target_status": "NOT_MET",
+      "target_established": false,
+      "promotion_allowed": false,
+      "trained_version_count": 35
+    }
+  ],
+  "target_established": false,
+  "auto_promoted": false,
+  "statistical_scope": "DESCRIPTIVE_MARGINAL_WILSON95_NOT_INDEPENDENCE_PROOF",
+  "limitations": [
+    "Unknown and pending outcomes are visible but cannot enter the normal-final denominator.",
+    "Missing or incompatible originals contribute zero hits without being fabricated MISS forecasts.",
+    "Models and variants are measured separately; their tickets are never combined.",
+    "The declared schedule and caller authentication bound this audit.",
+    "Schedule completion describes classified outcomes; missing forecast coverage is reported separately.",
+    "An observed 98% point estimate is not proof of future accuracy; races may be correlated."
+  ],
+  "evidence": "READ_ONLY_AUTHENTICATED_SAVED_ORIGINALS",
+  "source_artifact_id": 13395351632,
+  "assessed_at": "2026-11-05T07:02:18.662992+00:00",
+  "new_forecasts_generated": 0,
+  "official_gets": 0,
+  "originals_modified": false
+}

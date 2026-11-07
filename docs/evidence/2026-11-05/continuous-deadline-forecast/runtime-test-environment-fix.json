@@ -1,0 +1,13 @@
+{
+  "initial_source_head": "a1b980aed8eacd4840b828bf25cca3fb8de939f5",
+  "failed_run_id": 41979177157,
+  "failure_stage": "UNIT_TESTS_BEFORE_FIRST_SOURCE_ORIGINAL",
+  "reason": "Production event-day environment was pinned before synthetic future-date test fixtures",
+  "official_source_gets": 0,
+  "saved_new_forecasts": 0,
+  "fix": "Pin actual production event day after unit tests and before preflight/data transaction",
+  "reproduction": "Synthetic make_pair test with real RACE_AI_EVENT_DAY produces DAY_HANDOFF",
+  "verified_test_count": 160,
+  "test_result": "PASS",
+  "workflow_sha256": "9f4146e1dadec0f32c351567af5e730e094c26dd0b89886a2b84ebb9a582fc95"
+}

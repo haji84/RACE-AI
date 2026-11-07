@@ -1,0 +1,74 @@
+{
+  "schema": "RACE_AI_AUTORACE_RESEARCH_CHECKSUM_BATCH_V1",
+  "source_type": "manually checked public racecards",
+  "generated_at_jst": "2026-11-07T09:44:50+09:00",
+  "phase": "A_PRE_TRIAL",
+  "model": "personal research untrained heuristic; existing RACE-AI model not executed",
+  "original_store": "conversation zip only (library permission failure); private durable custody not proven",
+  "probabilities": "NOT_CALIBRATED",
+  "races": [
+    {
+      "race_id": "autorace:2026-11-07:kawaguchi:4",
+      "cutoff_at_jst": "2026-11-07T12:13:00+09:00",
+      "original_file": "autorace_20261107_kawaguchi_04R_A_v1.json",
+      "original_sha256": "f5f5223f0d0370297806db674569fd06debe8cc30020ccda060a7844f6e8edb3",
+      "source": "https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/1/4"
+    },
+    {
+      "race_id": "autorace:2026-11-07:kawaguchi:5",
+      "cutoff_at_jst": "2026-11-07T12:41:00+09:00",
+      "original_file": "autorace_20261107_kawaguchi_05R_A_v1.json",
+      "original_sha256": "ae875e6912f29af97f6caceeee0c00d60e860b9f1e5894d84a300d64d58ce17b",
+      "source": "https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/1/5"
+    },
+    {
+      "race_id": "autorace:2026-11-07:kawaguchi:6",
+      "cutoff_at_jst": "2026-11-07T13:11:00+09:00",
+      "original_file": "autorace_20261107_kawaguchi_06R_A_v1.json",
+      "original_sha256": "cde57c19de5bf1a4ea4313c176bb413f9cd31904667c1fbc45bd864d823e1045",
+      "source": "https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/1/6"
+    },
+    {
+      "race_id": "autorace:2026-11-07:kawaguchi:7",
+      "cutoff_at_jst": "2026-11-07T13:41:00+09:00",
+      "original_file": "autorace_20261107_kawaguchi_07R_A_v1.json",
+      "original_sha256": "a34bb4c163356931eec9e1bbeef56ee4cafe25e37ee7d64d9d7c12f6e6728820",
+      "source": "https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/1/7"
+    },
+    {
+      "race_id": "autorace:2026-11-07:kawaguchi:8",
+      "cutoff_at_jst": "2026-11-07T14:12:00+09:00",
+      "original_file": "autorace_20261107_kawaguchi_08R_A_v1.json",
+      "original_sha256": "f44c6eff9ccd3e6cd108f019de6a165ee0dbe00d9be7002324618e8517ccac5c",
+      "source": "https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/1/8"
+    },
+    {
+      "race_id": "autorace:2026-11-07:kawaguchi:9",
+      "cutoff_at_jst": "2026-11-07T14:44:00+09:00",
+      "original_file": "autorace_20261107_kawaguchi_09R_A_v1.json",
+      "original_sha256": "7ceb1726f2940ccec7edfec46f558417f5e95ff5ac569fe6db64d3ec96cee200",
+      "source": "https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/1/9"
+    },
+    {
+      "race_id": "autorace:2026-11-07:kawaguchi:10",
+      "cutoff_at_jst": "2026-11-07T15:16:00+09:00",
+      "original_file": "autorace_20261107_kawaguchi_10R_A_v1.json",
+      "original_sha256": "f3574b90a16875fab9813958bdfb3cc6f3ba998146b43b03e420449bca7231f1",
+      "source": "https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/1/10"
+    },
+    {
+      "race_id": "autorace:2026-11-07:kawaguchi:11",
+      "cutoff_at_jst": "2026-11-07T15:54:00+09:00",
+      "original_file": "autorace_20261107_kawaguchi_11R_A_v1.json",
+      "original_sha256": "ae1789e21bca1c456edbc3e5f04111908c9029ccc1f7f3f8a75d3ab1d2e485cb",
+      "source": "https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/1/11"
+    },
+    {
+      "race_id": "autorace:2026-11-07:kawaguchi:12",
+      "cutoff_at_jst": "2026-11-07T16:33:00+09:00",
+      "original_file": "autorace_20261107_kawaguchi_12R_A_v1.json",
+      "original_sha256": "0cbda3d49df3cd4deb69ac108c05af7207cc83a0f4f36e63c73884079e3fda3d",
+      "source": "https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/1/12"
+    }
+  ]
+}

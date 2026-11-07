@@ -1,0 +1,43 @@
+{
+  "scope": "OWNER_PRIVATE_REAL_SAVED_ORIGINAL_READBACK_AFTER_NEW_AUTOMATIC_ROUND",
+  "widths": [
+    {
+      "width": 390,
+      "phases": {
+        "P0": {
+          "saved_forecasts": 288,
+          "revision": "2902143a0278264077b5ca808c4149d75ae89cdda19e3a5c3d02b39cb9f93f38",
+          "coverage_known": false,
+          "displayed_original_sha256": "cbeb2d3c181fc649b3a4971293750332b5ba5aab38c0094261a30961b7270237"
+        },
+        "P1": {
+          "saved_forecasts": 465,
+          "revision": "1d9b9e806dceb1d7a7e64654964963e6cf11fc7ef3a981d1654a4a22ba1ffb6b",
+          "coverage_known": false,
+          "displayed_original_sha256": "bbbbc696860db12c5aed3ffb54c408032b3418d8c3c994861539eb69edc48a42"
+        }
+      },
+      "automatic_message": "継続運転 · 自動予想を実行中です · 取得回数上限なし · 保存原本を自動更新しました。保存済み 465件・全モデルの網羅性は未検証です。"
+    },
+    {
+      "width": 1440,
+      "phases": {
+        "P0": {
+          "saved_forecasts": 288,
+          "revision": "2902143a0278264077b5ca808c4149d75ae89cdda19e3a5c3d02b39cb9f93f38",
+          "coverage_known": false,
+          "displayed_original_sha256": "cbeb2d3c181fc649b3a4971293750332b5ba5aab38c0094261a30961b7270237"
+        },
+        "P1": {
+          "saved_forecasts": 465,
+          "revision": "1d9b9e806dceb1d7a7e64654964963e6cf11fc7ef3a981d1654a4a22ba1ffb6b",
+          "coverage_known": false,
+          "displayed_original_sha256": "bbbbc696860db12c5aed3ffb54c408032b3418d8c3c994861539eb69edc48a42"
+        }
+      },
+      "automatic_message": "継続運転 · 自動予想を実行中です · 取得回数上限なし · 保存原本を自動更新しました。保存済み 465件・全モデルの網羅性は未検証です。"
+    }
+  ],
+  "errors": [],
+  "generation_posts": 0
+}

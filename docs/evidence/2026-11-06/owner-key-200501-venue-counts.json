@@ -1,0 +1,220 @@
+{
+  "all_venue_player_history_complete": false,
+  "catalog": {
+    "all_available_period_complete": false,
+    "excluded_listed_days": 0,
+    "formal_backtest_eligible": false,
+    "listed_days": 31,
+    "missing_days": 0,
+    "month": "200501",
+    "month_complete": false,
+    "parsed_days": 29,
+    "pending_days": 0,
+    "quarantined_days": 2,
+    "revision_observations": 31,
+    "schema": "RACE_AI_OFFICIAL_HISTORY_MONTH_V1",
+    "unique_archive_bytes": 1137528
+  },
+  "ciphertext_sha256": "a38bfe63fa1ca16eda585dd2cc329b0edd3384786d0a332ab3d0175da655bd46",
+  "coverage": {
+    "fully_parsed_days": 29,
+    "requested_calendar_days": 31,
+    "requested_end": "2005-01-31",
+    "requested_start": "2005-01-01",
+    "source_set_sha256": "847e8776bf033e69e4469c24a1005a433f26e068c4f673bed51975b72a92f020",
+    "source_window_complete": false,
+    "unavailable_or_unprocessed_days": 2
+  },
+  "formal_backtest_eligible": false,
+  "grid_cells": 58680,
+  "known_racers": 2445,
+  "month": "200501",
+  "observed_racer_venue_pairs": 3504,
+  "observed_races": 4375,
+  "observed_starts": 26250,
+  "previously_downloaded_days_reused": 5,
+  "private_individual_records_published": false,
+  "roster_racers": 1643,
+  "schema": "RACE_AI_BOAT_VENUE_HISTORY_COVERAGE_V1",
+  "sqlite_sha256": "3882ba9ded3e9d86389e311aa7464b900b462072b23d2b08febd07b1b08c3c8b",
+  "storage_scope": "PRIVATE_LOCAL_ENCRYPTED_CHECKPOINT_NOT_INDEFINITE_BACKUP",
+  "upstream_gets_this_resume": 26,
+  "venue_counts": [
+    {
+      "racers": 178,
+      "races": 180,
+      "starts": 1080,
+      "venue_code": "01",
+      "venue_name": "桐生"
+    },
+    {
+      "racers": 143,
+      "races": 168,
+      "starts": 1008,
+      "venue_code": "02",
+      "venue_name": "戸田"
+    },
+    {
+      "racers": 175,
+      "races": 187,
+      "starts": 1122,
+      "venue_code": "03",
+      "venue_name": "江戸川"
+    },
+    {
+      "racers": 138,
+      "races": 180,
+      "starts": 1080,
+      "venue_code": "04",
+      "venue_name": "平和島"
+    },
+    {
+      "racers": 139,
+      "races": 192,
+      "starts": 1152,
+      "venue_code": "05",
+      "venue_name": "多摩川"
+    },
+    {
+      "racers": 170,
+      "races": 192,
+      "starts": 1152,
+      "venue_code": "06",
+      "venue_name": "浜名湖"
+    },
+    {
+      "racers": 177,
+      "races": 240,
+      "starts": 1440,
+      "venue_code": "07",
+      "venue_name": "蒲郡"
+    },
+    {
+      "racers": 169,
+      "races": 192,
+      "starts": 1152,
+      "venue_code": "08",
+      "venue_name": "常滑"
+    },
+    {
+      "racers": 167,
+      "races": 204,
+      "starts": 1224,
+      "venue_code": "09",
+      "venue_name": "津"
+    },
+    {
+      "racers": 162,
+      "races": 180,
+      "starts": 1080,
+      "venue_code": "10",
+      "venue_name": "三国"
+    },
+    {
+      "racers": 91,
+      "races": 132,
+      "starts": 792,
+      "venue_code": "11",
+      "venue_name": "びわこ"
+    },
+    {
+      "racers": 102,
+      "races": 144,
+      "starts": 864,
+      "venue_code": "12",
+      "venue_name": "住之江"
+    },
+    {
+      "racers": 144,
+      "races": 204,
+      "starts": 1224,
+      "venue_code": "13",
+      "venue_name": "尼崎"
+    },
+    {
+      "racers": 128,
+      "races": 168,
+      "starts": 1008,
+      "venue_code": "14",
+      "venue_name": "鳴門"
+    },
+    {
+      "racers": 127,
+      "races": 144,
+      "starts": 864,
+      "venue_code": "15",
+      "venue_name": "丸亀"
+    },
+    {
+      "racers": 127,
+      "races": 180,
+      "starts": 1080,
+      "venue_code": "16",
+      "venue_name": "児島"
+    },
+    {
+      "racers": 140,
+      "races": 192,
+      "starts": 1152,
+      "venue_code": "17",
+      "venue_name": "宮島"
+    },
+    {
+      "racers": 128,
+      "races": 180,
+      "starts": 1080,
+      "venue_code": "18",
+      "venue_name": "徳山"
+    },
+    {
+      "racers": 168,
+      "races": 192,
+      "starts": 1152,
+      "venue_code": "19",
+      "venue_name": "下関"
+    },
+    {
+      "racers": 133,
+      "races": 168,
+      "starts": 1008,
+      "venue_code": "20",
+      "venue_name": "若松"
+    },
+    {
+      "racers": 133,
+      "races": 180,
+      "starts": 1080,
+      "venue_code": "21",
+      "venue_name": "芦屋"
+    },
+    {
+      "racers": 132,
+      "races": 156,
+      "starts": 936,
+      "venue_code": "22",
+      "venue_name": "福岡"
+    },
+    {
+      "racers": 165,
+      "races": 228,
+      "starts": 1368,
+      "venue_code": "23",
+      "venue_name": "唐津"
+    },
+    {
+      "racers": 168,
+      "races": 192,
+      "starts": 1152,
+      "venue_code": "24",
+      "venue_name": "大村"
+    }
+  ],
+  "venues_with_observations": 24,
+  "verified_grid_cells": 58680,
+  "quarantined_dates": [
+    "2005-01-03",
+    "2005-01-16"
+  ],
+  "evidence_kind": "REAL_PRIVATE_ENCRYPTED_MONTH_AGGREGATION",
+  "not_an_independent_provider_crosscheck": true
+}

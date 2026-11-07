@@ -1,0 +1,30 @@
+{
+  "completed_round": 4,
+  "day_jst": "2026-11-07",
+  "lifetime_completed_rounds": 521,
+  "lifetime_requests": 8940,
+  "new_models_created": 0,
+  "old_forecasts_changed": false,
+  "old_session_reset": false,
+  "prepared_round": null,
+  "previous_halted_reason": null,
+  "previous_run_id": 42342290428,
+  "previous_session_requests": 146,
+  "previous_stop_reason": "BOUNDED_SESSION_END",
+  "receipt": {
+    "created_at": "2026-11-07T06:44:42Z",
+    "digest": "sha256:aaa3ad9fbf7ac696c3c178cfce0bc41c90ac15046580bdb5061e9e650b7e0820",
+    "id": 13564850869
+  },
+  "request_caps_changed": false,
+  "schema": "RACE_AI_ACTUAL_SAME_CAP_SOURCE_SUCCESS_COUNTS_V1",
+  "source_control_receipt": {
+    "created_at": "2026-11-07T06:44:43Z",
+    "digest": "sha256:e9295bbff2a5b70f42e1106869cd078c54a93807d63ce13bda814b7103253e18",
+    "id": 13564840837
+  },
+  "source_interval_changed": false,
+  "source_run_url": "https://github.com/haji84/RACE-AI/actions/runs/42342290428",
+  "source_wait": null,
+  "state": "FOUR_BOUNDED_ROUNDS_COMPLETED_WITH_ORIGINAL_LIMITS"
+}

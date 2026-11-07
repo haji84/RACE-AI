@@ -1,0 +1,33 @@
+{
+  "accuracy_improvement_proven": false,
+  "actual_purchases": false,
+  "independent_readback": {
+    "encrypted_readback_verified": true,
+    "fitted_model_count": 9,
+    "manifest_sha256": "81b77da5dc1bca491566a342f2399c2b265ace8536096d4cd895a3f30d981d17",
+    "plaintext_published": false,
+    "source_commit": "0464cbede985565d49dfd0d4e153c0e6e2af194c",
+    "status": "OWNER_VENUE_LEARNING_READBACK_VERIFIED",
+    "training_sha256": "3ea27d5c7709fd51e8a980bce2497ee5a3332760236145624d279ee83e392768"
+  },
+  "parameters_changed": false,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "provenance_label_fix_recorded": true,
+  "raw_html_retention_gap_recorded": true,
+  "retained_pointer": {
+    "manifest_path": "state/boat-venue-history/v1/learning/81b77da5dc1bca491566a342f2399c2b265ace8536096d4cd895a3f30d981d17/learning.json",
+    "manifest_sha256": "81b77da5dc1bca491566a342f2399c2b265ace8536096d4cd895a3f30d981d17",
+    "repository_id": "1416489937",
+    "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+    "source_commit": "0464cbede985565d49dfd0d4e153c0e6e2af194c",
+    "status": "READY",
+    "training_sha256": "3ea27d5c7709fd51e8a980bce2497ee5a3332760236145624d279ee83e392768"
+  },
+  "review_payload_sha256": "311407d31d986e595812734ba33357fcf6a55b4b8ea8a1ed0809d96c426cc8a1",
+  "reviewed_cells": 9,
+  "schema": "RACE_AI_NATIVE_NEXT_FORECAST_REVIEW_COUNTS_V1",
+  "source_pdca_report_sha256": "59b4725990dd2664b91af6f710c84163c8285dc8217b77c386f8959cfbddf287",
+  "source_unique_races": 1,
+  "state": "POST_RESULT_RESEARCH_REVIEW_RECORDED"
+}

@@ -1,0 +1,9 @@
+{
+  "execution_day": "2026-11-07",
+  "index_sha256": "da30fe4db1d0dc4e2c6edb2d3be38b8c51a98196d268c795fa8721d4bb853c18",
+  "maximum_races": 8,
+  "schema": "RACE_AI_MANUAL_OFFICIAL_NATIVE_FREEZE_INPUT_V1",
+  "sealed_path": "audit/state/manual-official-capture/2026-11-07-da30fe4db1d0dc4e",
+  "source_metadata_path": "audit/state/manual-official-source-metadata-44dce99d826cd63f06a93f042e9331a0bfbc249482f571720600bf800277a6f5.enc",
+  "source_metadata_sha256": "44dce99d826cd63f06a93f042e9331a0bfbc249482f571720600bf800277a6f5"
+}

@@ -1,0 +1,23 @@
+{
+  "predecessor_run": 42047977632,
+  "original_artifact_id": 13427340610,
+  "original_zip_bytes": 36517292,
+  "original_zip_sha256": "50cb65bf1a99356b9fe3a5175fe0e4cecf789fae704d58895131afd0fc733777",
+  "selected_members": {
+    "continuity.json": "2ff63b218b4a0ee9e74ab7073dde60d75051e395e93b627872967f416b0bfefc",
+    "repeat-session.json": "d7e918afc7b762ab8b64b6fe35330fb4ad9316aced7286f3317bc8f6b1648907"
+  },
+  "local_compact_zip_bytes": 2912589,
+  "local_compact_zip_sha256": "a63feea2c565106a60e8efcc9c25ab2ef0e208f08dccbc4b6b5faf1c94420411",
+  "local_only_repack_not_github_receipt": true,
+  "all_selected_json_bytes_unchanged": true,
+  "source_files_unchanged": true,
+  "legacy_32_mib_reader_compatible": true,
+  "prior_forecast_originals_preserved": 698,
+  "prior_completed_rounds": 4,
+  "lifetime_requests": 812,
+  "lifetime_completed_rounds": 47,
+  "prepared_round": null,
+  "source_wait": null,
+  "new_remote_worker_verified": false
+}

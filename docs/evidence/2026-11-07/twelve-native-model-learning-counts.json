@@ -1,0 +1,111 @@
+{
+  "common_normalized_cohort_verified": true,
+  "derived_bytes_saved_before_original_cutoff": false,
+  "encrypted_local_readback_verified": true,
+  "fitted_cells": 12,
+  "holdout_races": 2,
+  "independent_remote_readback_verified": true,
+  "missing_cells": 19,
+  "models": {
+    "boat/boat-comprehensive-v1": {
+      "changed_parameter_count": 5,
+      "holdout_races": 2,
+      "supported_parameter_count": 5,
+      "train_races": 6
+    },
+    "boat/boat-course-motor-shadow-v0.1-UNTRAINED": {
+      "changed_parameter_count": 9,
+      "holdout_races": 2,
+      "supported_parameter_count": 9,
+      "train_races": 6
+    },
+    "boat/boat-display-rating-PL-reference-v1-UNVALIDATED": {
+      "changed_parameter_count": 2,
+      "holdout_races": 2,
+      "supported_parameter_count": 2,
+      "train_races": 6
+    },
+    "boat/boat-local-start-course-shadow-v0.1-UNTRAINED": {
+      "changed_parameter_count": 11,
+      "holdout_races": 2,
+      "supported_parameter_count": 12,
+      "train_races": 6
+    },
+    "boat/boat-observed-pairwise-factor-v1": {
+      "changed_parameter_count": 6,
+      "holdout_races": 2,
+      "supported_parameter_count": 6,
+      "train_races": 6
+    },
+    "boat/boat-observed-pairwise-start-v1": {
+      "changed_parameter_count": 6,
+      "holdout_races": 2,
+      "supported_parameter_count": 6,
+      "train_races": 6
+    },
+    "boat/boat-scenario-mixture-v1": {
+      "changed_parameter_count": 14,
+      "holdout_races": 2,
+      "supported_parameter_count": 14,
+      "train_races": 6
+    },
+    "boat/multisport-chronological-ranker-v1": {
+      "changed_parameter_count": 13,
+      "holdout_races": 2,
+      "supported_parameter_count": 13,
+      "train_races": 6
+    },
+    "boat/multisport-conditional-duel-v1": {
+      "changed_parameter_count": 5,
+      "holdout_races": 2,
+      "supported_parameter_count": 5,
+      "train_races": 6
+    },
+    "boat/multisport-factor-interaction-v1": {
+      "changed_parameter_count": 4,
+      "holdout_races": 2,
+      "supported_parameter_count": 4,
+      "train_races": 6
+    },
+    "boat/multisport-race-trajectory-v1": {
+      "changed_parameter_count": 5,
+      "holdout_races": 2,
+      "supported_parameter_count": 5,
+      "train_races": 6
+    },
+    "boat/multisport-scenario-ensemble-v1": {
+      "changed_parameter_count": 4,
+      "holdout_races": 2,
+      "supported_parameter_count": 4,
+      "train_races": 6
+    }
+  },
+  "new_derivation_clock_preserved": true,
+  "original_data_availability_verified": true,
+  "plaintext_published": false,
+  "production_promoted": false,
+  "real_future_twelve_pdca_verified": false,
+  "records": 96,
+  "remote_readback": {
+    "encrypted_readback_verified": true,
+    "fitted_model_count": 12,
+    "manifest_sha256": "2f27edeb2fedd3377d9dbc978ef717287a20a153f8a5feee497159bc40d1edc2",
+    "plaintext_published": false,
+    "source_commit": "29c4bcc989bdf6ed84d3be6f7829d0714289d8ef",
+    "status": "OWNER_VENUE_LEARNING_READBACK_VERIFIED",
+    "training_sha256": "84e14301230d9bca2246407b3c0217729f7a1a7a6927674f08fc3757ae89a906"
+  },
+  "retained_pointer": {
+    "manifest_path": "state/boat-venue-history/v1/learning/2f27edeb2fedd3377d9dbc978ef717287a20a153f8a5feee497159bc40d1edc2/learning.json",
+    "manifest_sha256": "2f27edeb2fedd3377d9dbc978ef717287a20a153f8a5feee497159bc40d1edc2",
+    "repository_id": "1416489937",
+    "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+    "source_commit": "29c4bcc989bdf6ed84d3be6f7829d0714289d8ef",
+    "status": "READY",
+    "training_sha256": "84e14301230d9bca2246407b3c0217729f7a1a7a6927674f08fc3757ae89a906"
+  },
+  "state": "ACTUAL_TWELVE_NATIVE_CELLS_RESEARCH_FIT",
+  "train_races": 6,
+  "training_sha256": "84e14301230d9bca2246407b3c0217729f7a1a7a6927674f08fc3757ae89a906",
+  "unique_races": 8
+}

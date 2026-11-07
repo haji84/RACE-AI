@@ -1,0 +1,42 @@
+name: BOAT Free private runtime verification
+on:
+  push:
+    branches: [feat/four-sport-forecast-audit-view-20261022]
+    paths:
+      - 'workers/boat_free_*.mjs'
+      - 'workers/boat_free_state.sql'
+      - 'workers/boat_official_html.mjs'
+      - 'tests/boat_free_*.mjs'
+      - 'tests/boat_free_numeric_parity.py'
+      - '.github/workflows/boat-free-runtime-check.yml'
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24.19.0
+          package-manager-cache: false
+      - name: Validate Free runtime safety and canonical A/B numerical parity
+        run: |
+          node --check workers/boat_free_runtime.mjs
+          node --test tests/boat_free_model.test.mjs tests/boat_free_runtime.test.mjs tests/boat_free_failures.test.mjs
+          python tests/boat_free_numeric_parity.py
+      - name: Package tested source only, no secrets and no live predictions
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-free-runtime-${{ github.sha }}
+          path: |
+            workers/boat_free_model.mjs
+            workers/boat_free_runtime.mjs
+            workers/boat_free_state.sql
+            workers/boat_official_html.mjs
+          if-no-files-found: error
+          retention-days: 7

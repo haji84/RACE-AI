@@ -1,0 +1,18 @@
+{
+  "artifact_id": 13559826825,
+  "digest": "sha256:112af9ed9ea13ec2d926cf846d860ca3537d0f1abbc0e966ea9b08345842904a",
+  "forecast_count": 0,
+  "head_sha": "b0f8e29a785bf0bf71d09dfe634c3828403ee0be",
+  "independent_pre_cutoff_receipt_verified": true,
+  "new_native_inputs": 10,
+  "new_races": 2,
+  "old_races_reissued": 0,
+  "plaintext_published": false,
+  "previous_inputs_unchanged": true,
+  "previous_races": 8,
+  "production_promoted": false,
+  "run_id": 42336950420,
+  "saved_at": "2026-11-07T04:08:32Z",
+  "state": "ACTUAL_TWO_HORSE_RESERVE_INPUTS_PRE_CUTOFF_VERIFIED",
+  "total_distinct_horse_input_races": 10
+}

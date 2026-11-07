@@ -1,0 +1,2340 @@
+{
+  "schema": "RACE_AI_RACER_PORTRAIT_OFFICIAL_NAME_ALIASES_V1",
+  "scope": "OFFICIAL_PROGRAM_NAME_REFERENCE_ONLY",
+  "target": 1669,
+  "observed_targets": 1620,
+  "official_name_pairs_checked": 1620,
+  "source_days": 52,
+  "affected_athletes": 169,
+  "sources": [
+    {
+      "day": "2026-11-07",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+      "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+      "captured_at": "2026-11-07T03:39:57.024075+00:00",
+      "races": 132,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-11-06",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+      "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+      "captured_at": "2026-11-07T03:39:59.756214+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-11-05",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261105.lzh",
+      "source_sha256": "29ab05acf99f507c8c42e5e8296f55502226f9448a01d7de7ab05faf286a0c60",
+      "captured_at": "2026-11-07T03:40:01.049395+00:00",
+      "races": 144,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-11-04",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261104.lzh",
+      "source_sha256": "61ece81a35dd5340d56a1c18c129d6853e43a30e47b9fa53329f9efebcc88f2a",
+      "captured_at": "2026-11-07T03:40:00.762984+00:00",
+      "races": 144,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-11-03",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261103.lzh",
+      "source_sha256": "5596a90f704f9c00857e9e05ca724c8bde856ff97a306ab2c2ea80df4f354f43",
+      "captured_at": "2026-11-07T03:40:03.850626+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-11-02",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261102.lzh",
+      "source_sha256": "ef480d35572c16c889277a73cc7f54f882283b0de3bf84fc427bb380bc6148c9",
+      "captured_at": "2026-11-07T03:40:04.306865+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-11-01",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261101.lzh",
+      "source_sha256": "31af3b22a951329f4f54228212d012ae0892f6bdc2228707e88162a038e8fceb",
+      "captured_at": "2026-11-07T03:40:03.595110+00:00",
+      "races": 168,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-31",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261031.lzh",
+      "source_sha256": "f45cb1f9fd5caac0d4d34cc2e9e6c2f772ded1bf0583221440ffb4ffad757fb3",
+      "captured_at": "2026-11-07T03:40:07.578066+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-30",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261030.lzh",
+      "source_sha256": "88b395d0f475bb536d6e7bf6f77b753cc7376a7091fafa41a16ff832ee80d863",
+      "captured_at": "2026-11-07T03:40:06.424748+00:00",
+      "races": 144,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-29",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261029.lzh",
+      "source_sha256": "af99f0e9d6c005f090921700c264a83711003b2c24887a1fda54b8df317d4111",
+      "captured_at": "2026-11-07T03:40:07.341316+00:00",
+      "races": 120,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-28",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261028.lzh",
+      "source_sha256": "9adc04038c790e6ee44850e529539b529a158a10eabb7d2d1ead0920d6a7e0a2",
+      "captured_at": "2026-11-07T03:40:08.900517+00:00",
+      "races": 132,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-27",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261027.lzh",
+      "source_sha256": "858cdf313924ad2f7c756d18eea3af8c8948208364382d3f2ace99ade48fcd41",
+      "captured_at": "2026-11-07T03:40:10.769864+00:00",
+      "races": 168,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-26",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261026.lzh",
+      "source_sha256": "2c615b5350757374d33c0700c4ff71e363b9f82f620c1629d5ac60f7b7100a92",
+      "captured_at": "2026-11-07T03:40:11.172836+00:00",
+      "races": 144,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-25",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261025.lzh",
+      "source_sha256": "f4bebf682c5f2a269088091a79d314d3cc42cc45b49706abafaf0f62f49f5f3e",
+      "captured_at": "2026-11-07T03:40:12.083461+00:00",
+      "races": 168,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-24",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261024.lzh",
+      "source_sha256": "85d7d8236fb0a2827ecb3c845146341ae27ee02ca4a3ed2f70e227619cac1537",
+      "captured_at": "2026-11-07T03:40:12.087981+00:00",
+      "races": 168,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-23",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261023.lzh",
+      "source_sha256": "bd5c576e18ad13f1d9e1e5329f08bbf8f9feef52666f7afdee3ba66311698bdb",
+      "captured_at": "2026-11-07T03:40:12.726655+00:00",
+      "races": 168,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-22",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261022.lzh",
+      "source_sha256": "ec1f65cc04b2e4b04c01c5b952b7b88deb48391c6498f60e12de473e573e8200",
+      "captured_at": "2026-11-07T03:40:15.471639+00:00",
+      "races": 168,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-21",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261021.lzh",
+      "source_sha256": "358bca863d653bea0f642db9a0cce2a1741b6b1cec3d19e735d84052ec19aa4c",
+      "captured_at": "2026-11-07T03:40:14.868772+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-20",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261020.lzh",
+      "source_sha256": "fb7939615f77920c4dcaa6cc85caf46f8c1f928d346cc7182ef042a7a3f12254",
+      "captured_at": "2026-11-07T03:40:14.218252+00:00",
+      "races": 144,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-19",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261019.lzh",
+      "source_sha256": "1e23388cae4f6641f7f383d1ff73e3b67ccbfd4f596c213bc2e5fb9aa8fd7687",
+      "captured_at": "2026-11-07T03:40:17.488113+00:00",
+      "races": 132,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-18",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261018.lzh",
+      "source_sha256": "2b690d7900c3f73801ac8bc1ac292f5cf25a66783299b0adb071c26167f3f27a",
+      "captured_at": "2026-11-07T03:40:16.221825+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-17",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261017.lzh",
+      "source_sha256": "04b7523202a6f3756d2d636b150a1048c42835f87afdb7c8a68fcb6a23ac173b",
+      "captured_at": "2026-11-07T03:40:17.847438+00:00",
+      "races": 168,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-16",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261016.lzh",
+      "source_sha256": "36cde34d3dcee8539d3a64144392f085b49e6a0bd3f3959461f974cc9509960e",
+      "captured_at": "2026-11-07T03:40:18.596247+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-15",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261015.lzh",
+      "source_sha256": "25c2a3632bc998c336c106e728550642a0ebc0f435ea74a9be463bcffcc4a96e",
+      "captured_at": "2026-11-07T03:40:19.768334+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-14",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261014.lzh",
+      "source_sha256": "35ec1303474702a671e7bf6214cc5585d5d6e3566dac48de362101e0ac720c0e",
+      "captured_at": "2026-11-07T03:40:21.393100+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-13",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261013.lzh",
+      "source_sha256": "82f4c8b5d567f96cec4e29b4b6115a9886ec92df0844b38105acd83b7f881466",
+      "captured_at": "2026-11-07T03:40:21.916755+00:00",
+      "races": 132,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-12",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261012.lzh",
+      "source_sha256": "26a369557e4199ff35c8a8792558105cdd1dec51fdfb057dab60e663d3c1fc14",
+      "captured_at": "2026-11-07T03:40:21.273783+00:00",
+      "races": 168,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-11",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261011.lzh",
+      "source_sha256": "064f4ac9dc93ece4d340f2d2f98bf49bab65f1c00d8182c571a93b5b191d7d59",
+      "captured_at": "2026-11-07T03:40:23.625011+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-10",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261010.lzh",
+      "source_sha256": "3d731cdcb5072b12f5b8818c3720090f5d1dc704cca2024f71f21244f28f642f",
+      "captured_at": "2026-11-07T03:40:23.100072+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-09",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261009.lzh",
+      "source_sha256": "75fb311b67ed4161aea513ae7d8f22aaf4331bc2651e9ec673a79e8f958a6d76",
+      "captured_at": "2026-11-07T03:40:24.434627+00:00",
+      "races": 144,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-08",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261008.lzh",
+      "source_sha256": "f1c6ddb55c80118f18dbe5891fc49f9d538907b16d61705274cae57eecfa0a33",
+      "captured_at": "2026-11-07T03:40:25.453387+00:00",
+      "races": 144,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-07",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261007.lzh",
+      "source_sha256": "5c46a37d687b3052bcac0ad653ad136189982e7b83c77d7b29244fbc30da2fda",
+      "captured_at": "2026-11-07T03:40:25.958899+00:00",
+      "races": 144,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-06",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261006.lzh",
+      "source_sha256": "adbf3e6ad24f948e1367a3da57f72ddfa039304938f62507e080ef23bb31279e",
+      "captured_at": "2026-11-07T03:40:27.778334+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-05",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261005.lzh",
+      "source_sha256": "495fe47edaecd0838dabf8353bfa30536b2b436fd7b8d1de1e76f1ac338ccc0e",
+      "captured_at": "2026-11-07T03:40:26.860613+00:00",
+      "races": 144,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-04",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261004.lzh",
+      "source_sha256": "4eef6ac573d8a4ea603c646b949646d0131e38ff265f04b982e01f20d0faf3a5",
+      "captured_at": "2026-11-07T03:40:28.296865+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-03",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261003.lzh",
+      "source_sha256": "b12fda529cbd5db423c44cf55fdb473595b3d43dcc060b5e150968830ac82d50",
+      "captured_at": "2026-11-07T03:40:30.285939+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-02",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261002.lzh",
+      "source_sha256": "2b6d7d0d62007b4864aa00c1328608e9c2f1dd5429850a811820e84bde597f34",
+      "captured_at": "2026-11-07T03:40:29.177464+00:00",
+      "races": 168,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-10-01",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261001.lzh",
+      "source_sha256": "7e5c18f0ac742c56d6b890c59097c9333569ac0103285ac0755f62d23ca5a7c1",
+      "captured_at": "2026-11-07T03:40:31.678280+00:00",
+      "races": 168,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-09-30",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260930.lzh",
+      "source_sha256": "bcdfce16cd665a922677826588d917b440d46b043a6c32d607684986b981961b",
+      "captured_at": "2026-11-07T03:40:32.661920+00:00",
+      "races": 144,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-09-29",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260929.lzh",
+      "source_sha256": "d7054808ffde30ae0316a4b6c61d788936d6b6d84e4dc6f1f880c90b62ed0b18",
+      "captured_at": "2026-11-07T03:40:33.584288+00:00",
+      "races": 144,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-09-28",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260928.lzh",
+      "source_sha256": "08d9efe10a8200007138c61a33fedc63706fd1c30792a582b2aea0c8757b0735",
+      "captured_at": "2026-11-07T03:40:34.002985+00:00",
+      "races": 144,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-09-27",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260927.lzh",
+      "source_sha256": "f1a77bd35dac01b69d444ad3cd161faf7497e3b4cb3896eeae55097fed2dc0bc",
+      "captured_at": "2026-11-07T03:40:34.050170+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-09-26",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260926.lzh",
+      "source_sha256": "d92c0284f38649e04bed450babe558dd417dc725c0614f2b589551d43d64f42b",
+      "captured_at": "2026-11-07T03:40:36.924044+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-09-25",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260925.lzh",
+      "source_sha256": "46bf98e0b8711820d0568a6aa1a228912583b9e68e5b53e2f3153fa47a2d6188",
+      "captured_at": "2026-11-07T03:40:35.344366+00:00",
+      "races": 144,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-09-24",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260924.lzh",
+      "source_sha256": "3c17991cc89fee659fadca1cb9c612f5c4172ceacb366faf00c8c8823e93dbd6",
+      "captured_at": "2026-11-07T03:40:36.688102+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-09-23",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260923.lzh",
+      "source_sha256": "a3f8470faa5ee6a116c0cf4f8970eba4c881b59a713d7cff7a1bef675e4f81df",
+      "captured_at": "2026-11-07T03:52:10.689623+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-09-15",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260915.lzh",
+      "source_sha256": "c0b4d23d9c08b9b9a39935f4c2f5b0af4a770cbd31930ad7df74260636ff2362",
+      "captured_at": "2026-11-07T03:52:08.980624+00:00",
+      "races": 156,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-09-06",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260906.lzh",
+      "source_sha256": "fad4525ad09c561a432d3aaa78ee7e335aaf0e50f322bfa508041880a027f1b2",
+      "captured_at": "2026-11-07T03:52:09.695766+00:00",
+      "races": 144,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-08-30",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202608/b260830.lzh",
+      "source_sha256": "f82153f8538aceccb1262e6da77b6f2bdfa38af2efb1ad1e52df7ebb28e59da2",
+      "captured_at": "2026-11-07T03:52:12.814596+00:00",
+      "races": 168,
+      "blocked_races": 0
+    },
+    {
+      "day": "2026-07-24",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202607/b260724.lzh",
+      "source_sha256": "91d397ce3030d468a6e19b183b40fe0c40768add79bc928b035c4887a39c394c",
+      "captured_at": "2026-11-07T03:52:11.593591+00:00",
+      "races": 178,
+      "blocked_races": 2
+    },
+    {
+      "day": "2026-07-19",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202607/b260719.lzh",
+      "source_sha256": "962a0e1af5a328cc4bf7656bed099f2f3365872e635ebfe4494f781f9607c951",
+      "captured_at": "2026-11-07T03:52:14.019952+00:00",
+      "races": 192,
+      "blocked_races": 0
+    },
+    {
+      "day": "2025-03-30",
+      "state": "READY",
+      "source_url": "https://www1.mbrace.or.jp/od2/B/202503/b250330.lzh",
+      "source_sha256": "c0dcd323cf3b8eaa1a77e5b67a9252d99f80f7b7f5085e4c2428792c67e0109c",
+      "captured_at": "2026-11-07T03:54:03.351969+00:00",
+      "races": 144,
+      "blocked_races": 0
+    }
+  ],
+  "entries": [
+    {
+      "registration": "3232",
+      "canonical_name": "山川美由紀",
+      "name": "山川美由",
+      "source": {
+        "day": "2026-09-29",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260929.lzh",
+        "source_sha256": "d7054808ffde30ae0316a4b6c61d788936d6b6d84e4dc6f1f880c90b62ed0b18",
+        "captured_at": "2026-11-07T03:40:33.584288+00:00"
+      }
+    },
+    {
+      "registration": "3284",
+      "canonical_name": "渡邊伸太郎",
+      "name": "渡邊伸太",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "3293",
+      "canonical_name": "宮内由紀英",
+      "name": "宮内由紀",
+      "source": {
+        "day": "2026-11-02",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261102.lzh",
+        "source_sha256": "ef480d35572c16c889277a73cc7f54f882283b0de3bf84fc427bb380bc6148c9",
+        "captured_at": "2026-11-07T03:40:04.306865+00:00"
+      }
+    },
+    {
+      "registration": "3327",
+      "canonical_name": "野長瀬正孝",
+      "name": "野長瀬正",
+      "source": {
+        "day": "2026-10-15",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261015.lzh",
+        "source_sha256": "25c2a3632bc998c336c106e728550642a0ebc0f435ea74a9be463bcffcc4a96e",
+        "captured_at": "2026-11-07T03:40:19.768334+00:00"
+      }
+    },
+    {
+      "registration": "3355",
+      "canonical_name": "橋谷田佳織",
+      "name": "橋谷田佳",
+      "source": {
+        "day": "2026-10-12",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261012.lzh",
+        "source_sha256": "26a369557e4199ff35c8a8792558105cdd1dec51fdfb057dab60e663d3c1fc14",
+        "captured_at": "2026-11-07T03:40:21.273783+00:00"
+      }
+    },
+    {
+      "registration": "3388",
+      "canonical_name": "今垣光太郎",
+      "name": "今垣光太",
+      "source": {
+        "day": "2026-10-20",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261020.lzh",
+        "source_sha256": "fb7939615f77920c4dcaa6cc85caf46f8c1f928d346cc7182ef042a7a3f12254",
+        "captured_at": "2026-11-07T03:40:14.218252+00:00"
+      }
+    },
+    {
+      "registration": "3439",
+      "canonical_name": "大平誉史明",
+      "name": "大平誉史",
+      "source": {
+        "day": "2026-11-03",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261103.lzh",
+        "source_sha256": "5596a90f704f9c00857e9e05ca724c8bde856ff97a306ab2c2ea80df4f354f43",
+        "captured_at": "2026-11-07T03:40:03.850626+00:00"
+      }
+    },
+    {
+      "registration": "3527",
+      "canonical_name": "中嶋誠一郎",
+      "name": "中嶋誠一",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "3528",
+      "canonical_name": "笠野友紀恵",
+      "name": "笠野友紀",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "3556",
+      "canonical_name": "田中信一郎",
+      "name": "田中信一",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "3584",
+      "canonical_name": "佐々木英樹",
+      "name": "佐々木英",
+      "source": {
+        "day": "2026-10-31",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261031.lzh",
+        "source_sha256": "f45cb1f9fd5caac0d4d34cc2e9e6c2f772ded1bf0583221440ffb4ffad757fb3",
+        "captured_at": "2026-11-07T03:40:07.578066+00:00"
+      }
+    },
+    {
+      "registration": "3590",
+      "canonical_name": "濱野谷憲吾",
+      "name": "濱野谷憲",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "3618",
+      "canonical_name": "海野ゆかり",
+      "name": "海野ゆか",
+      "source": {
+        "day": "2026-11-05",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261105.lzh",
+        "source_sha256": "29ab05acf99f507c8c42e5e8296f55502226f9448a01d7de7ab05faf286a0c60",
+        "captured_at": "2026-11-07T03:40:01.049395+00:00"
+      }
+    },
+    {
+      "registration": "3645",
+      "canonical_name": "淺田千亜希",
+      "name": "淺田千亜",
+      "source": {
+        "day": "2026-09-15",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260915.lzh",
+        "source_sha256": "c0b4d23d9c08b9b9a39935f4c2f5b0af4a770cbd31930ad7df74260636ff2362",
+        "captured_at": "2026-11-07T03:52:08.980624+00:00"
+      }
+    },
+    {
+      "registration": "3660",
+      "canonical_name": "長谷川親王",
+      "name": "長谷川親",
+      "source": {
+        "day": "2026-11-04",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261104.lzh",
+        "source_sha256": "61ece81a35dd5340d56a1c18c129d6853e43a30e47b9fa53329f9efebcc88f2a",
+        "captured_at": "2026-11-07T03:40:00.762984+00:00"
+      }
+    },
+    {
+      "registration": "3686",
+      "canonical_name": "鳥居塚孝博",
+      "name": "鳥居塚孝",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "3704",
+      "canonical_name": "本部めぐみ",
+      "name": "本部めぐ",
+      "source": {
+        "day": "2026-11-05",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261105.lzh",
+        "source_sha256": "29ab05acf99f507c8c42e5e8296f55502226f9448a01d7de7ab05faf286a0c60",
+        "captured_at": "2026-11-07T03:40:01.049395+00:00"
+      }
+    },
+    {
+      "registration": "3773",
+      "canonical_name": "津留浩一郎",
+      "name": "津留浩一",
+      "source": {
+        "day": "2026-10-29",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261029.lzh",
+        "source_sha256": "af99f0e9d6c005f090921700c264a83711003b2c24887a1fda54b8df317d4111",
+        "captured_at": "2026-11-07T03:40:07.341316+00:00"
+      }
+    },
+    {
+      "registration": "3808",
+      "canonical_name": "秋田健太郎",
+      "name": "秋田健太",
+      "source": {
+        "day": "2026-11-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+        "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+        "captured_at": "2026-11-07T03:39:59.756214+00:00"
+      }
+    },
+    {
+      "registration": "3825",
+      "canonical_name": "宮嵜隆太郎",
+      "name": "宮嵜隆太",
+      "source": {
+        "day": "2026-10-30",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261030.lzh",
+        "source_sha256": "88b395d0f475bb536d6e7bf6f77b753cc7376a7091fafa41a16ff832ee80d863",
+        "captured_at": "2026-11-07T03:40:06.424748+00:00"
+      }
+    },
+    {
+      "registration": "3841",
+      "canonical_name": "佐々木和伸",
+      "name": "佐々木和",
+      "source": {
+        "day": "2026-11-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+        "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+        "captured_at": "2026-11-07T03:39:59.756214+00:00"
+      }
+    },
+    {
+      "registration": "3859",
+      "canonical_name": "多羅尾達之",
+      "name": "多羅尾達",
+      "source": {
+        "day": "2026-10-30",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261030.lzh",
+        "source_sha256": "88b395d0f475bb536d6e7bf6f77b753cc7376a7091fafa41a16ff832ee80d863",
+        "captured_at": "2026-11-07T03:40:06.424748+00:00"
+      }
+    },
+    {
+      "registration": "3863",
+      "canonical_name": "海老澤泰行",
+      "name": "海老澤泰",
+      "source": {
+        "day": "2026-11-03",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261103.lzh",
+        "source_sha256": "5596a90f704f9c00857e9e05ca724c8bde856ff97a306ab2c2ea80df4f354f43",
+        "captured_at": "2026-11-07T03:40:03.850626+00:00"
+      }
+    },
+    {
+      "registration": "3909",
+      "canonical_name": "佐々木康幸",
+      "name": "佐々木康",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "3915",
+      "canonical_name": "繁野谷圭介",
+      "name": "繁野谷圭",
+      "source": {
+        "day": "2026-11-05",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261105.lzh",
+        "source_sha256": "29ab05acf99f507c8c42e5e8296f55502226f9448a01d7de7ab05faf286a0c60",
+        "captured_at": "2026-11-07T03:40:01.049395+00:00"
+      }
+    },
+    {
+      "registration": "3975",
+      "canonical_name": "小野寺智洋",
+      "name": "小野寺智",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "3999",
+      "canonical_name": "大瀧明日香",
+      "name": "大瀧明日",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4011",
+      "canonical_name": "堀之内紀代子",
+      "name": "堀之内紀",
+      "source": {
+        "day": "2026-10-18",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261018.lzh",
+        "source_sha256": "2b690d7900c3f73801ac8bc1ac292f5cf25a66783299b0adb071c26167f3f27a",
+        "captured_at": "2026-11-07T03:40:16.221825+00:00"
+      }
+    },
+    {
+      "registration": "4016",
+      "canonical_name": "西川新太郎",
+      "name": "西川新太",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4045",
+      "canonical_name": "佐々木裕美",
+      "name": "佐々木裕",
+      "source": {
+        "day": "2026-10-31",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261031.lzh",
+        "source_sha256": "f45cb1f9fd5caac0d4d34cc2e9e6c2f772ded1bf0583221440ffb4ffad757fb3",
+        "captured_at": "2026-11-07T03:40:07.578066+00:00"
+      }
+    },
+    {
+      "registration": "4073",
+      "canonical_name": "大橋純一郎",
+      "name": "大橋純一",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4097",
+      "canonical_name": "貫地谷直人",
+      "name": "貫地谷直",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4112",
+      "canonical_name": "大久保信一郎",
+      "name": "大久保信",
+      "source": {
+        "day": "2026-10-23",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261023.lzh",
+        "source_sha256": "bd5c576e18ad13f1d9e1e5329f08bbf8f9feef52666f7afdee3ba66311698bdb",
+        "captured_at": "2026-11-07T03:40:12.726655+00:00"
+      }
+    },
+    {
+      "registration": "4117",
+      "canonical_name": "廣中智紗衣",
+      "name": "廣中智紗",
+      "source": {
+        "day": "2026-11-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+        "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+        "captured_at": "2026-11-07T03:39:59.756214+00:00"
+      }
+    },
+    {
+      "registration": "4152",
+      "canonical_name": "深水慎一郎",
+      "name": "深水慎一",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4155",
+      "canonical_name": "長野壮志郎",
+      "name": "長野壮志",
+      "source": {
+        "day": "2026-11-05",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261105.lzh",
+        "source_sha256": "29ab05acf99f507c8c42e5e8296f55502226f9448a01d7de7ab05faf286a0c60",
+        "captured_at": "2026-11-07T03:40:01.049395+00:00"
+      }
+    },
+    {
+      "registration": "4158",
+      "canonical_name": "木場雄二郎",
+      "name": "木場雄二",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4184",
+      "canonical_name": "渡邊雄一郎",
+      "name": "渡邊雄一",
+      "source": {
+        "day": "2026-11-05",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261105.lzh",
+        "source_sha256": "29ab05acf99f507c8c42e5e8296f55502226f9448a01d7de7ab05faf286a0c60",
+        "captured_at": "2026-11-07T03:40:01.049395+00:00"
+      }
+    },
+    {
+      "registration": "4196",
+      "canonical_name": "田中太一郎",
+      "name": "田中太一",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4224",
+      "canonical_name": "大橋栄里佳",
+      "name": "大橋栄里",
+      "source": {
+        "day": "2026-11-05",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261105.lzh",
+        "source_sha256": "29ab05acf99f507c8c42e5e8296f55502226f9448a01d7de7ab05faf286a0c60",
+        "captured_at": "2026-11-07T03:40:01.049395+00:00"
+      }
+    },
+    {
+      "registration": "4228",
+      "canonical_name": "吉田慎二郎",
+      "name": "吉田慎二",
+      "source": {
+        "day": "2026-11-01",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261101.lzh",
+        "source_sha256": "31af3b22a951329f4f54228212d012ae0892f6bdc2228707e88162a038e8fceb",
+        "captured_at": "2026-11-07T03:40:03.595110+00:00"
+      }
+    },
+    {
+      "registration": "4246",
+      "canonical_name": "喜多那由夏",
+      "name": "喜多那由",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4275",
+      "canonical_name": "菅野はやか",
+      "name": "菅野はや",
+      "source": {
+        "day": "2026-10-12",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261012.lzh",
+        "source_sha256": "26a369557e4199ff35c8a8792558105cdd1dec51fdfb057dab60e663d3c1fc14",
+        "captured_at": "2026-11-07T03:40:21.273783+00:00"
+      }
+    },
+    {
+      "registration": "4286",
+      "canonical_name": "平田さやか",
+      "name": "平田さや",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4304",
+      "canonical_name": "藤崎小百合",
+      "name": "藤崎小百",
+      "source": {
+        "day": "2025-03-30",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202503/b250330.lzh",
+        "source_sha256": "c0dcd323cf3b8eaa1a77e5b67a9252d99f80f7b7f5085e4c2428792c67e0109c",
+        "captured_at": "2026-11-07T03:54:03.351969+00:00"
+      }
+    },
+    {
+      "registration": "4313",
+      "canonical_name": "西村美智子",
+      "name": "西村美智",
+      "source": {
+        "day": "2026-09-29",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260929.lzh",
+        "source_sha256": "d7054808ffde30ae0316a4b6c61d788936d6b6d84e4dc6f1f880c90b62ed0b18",
+        "captured_at": "2026-11-07T03:40:33.584288+00:00"
+      }
+    },
+    {
+      "registration": "4314",
+      "canonical_name": "青木幸太郎",
+      "name": "青木幸太",
+      "source": {
+        "day": "2026-11-02",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261102.lzh",
+        "source_sha256": "ef480d35572c16c889277a73cc7f54f882283b0de3bf84fc427bb380bc6148c9",
+        "captured_at": "2026-11-07T03:40:04.306865+00:00"
+      }
+    },
+    {
+      "registration": "4317",
+      "canonical_name": "木村紗友希",
+      "name": "木村紗友",
+      "source": {
+        "day": "2026-10-31",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261031.lzh",
+        "source_sha256": "f45cb1f9fd5caac0d4d34cc2e9e6c2f772ded1bf0583221440ffb4ffad757fb3",
+        "captured_at": "2026-11-07T03:40:07.578066+00:00"
+      }
+    },
+    {
+      "registration": "4324",
+      "canonical_name": "海野康志郎",
+      "name": "海野康志",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4346",
+      "canonical_name": "前田健太郎",
+      "name": "前田健太",
+      "source": {
+        "day": "2026-10-27",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261027.lzh",
+        "source_sha256": "858cdf313924ad2f7c756d18eea3af8c8948208364382d3f2ace99ade48fcd41",
+        "captured_at": "2026-11-07T03:40:10.769864+00:00"
+      }
+    },
+    {
+      "registration": "4352",
+      "canonical_name": "下條雄太郎",
+      "name": "下條雄太",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4373",
+      "canonical_name": "若狭奈美子",
+      "name": "若狭奈美",
+      "source": {
+        "day": "2026-11-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+        "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+        "captured_at": "2026-11-07T03:39:59.756214+00:00"
+      }
+    },
+    {
+      "registration": "4385",
+      "canonical_name": "鈴木祐美子",
+      "name": "鈴木祐美",
+      "source": {
+        "day": "2026-08-30",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202608/b260830.lzh",
+        "source_sha256": "f82153f8538aceccb1262e6da77b6f2bdfa38af2efb1ad1e52df7ebb28e59da2",
+        "captured_at": "2026-11-07T03:52:12.814596+00:00"
+      }
+    },
+    {
+      "registration": "4398",
+      "canonical_name": "船岡洋一郎",
+      "name": "船岡洋一",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4408",
+      "canonical_name": "仁科さやか",
+      "name": "仁科さや",
+      "source": {
+        "day": "2026-10-02",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261002.lzh",
+        "source_sha256": "2b6d7d0d62007b4864aa00c1328608e9c2f1dd5429850a811820e84bde597f34",
+        "captured_at": "2026-11-07T03:40:29.177464+00:00"
+      }
+    },
+    {
+      "registration": "4420",
+      "canonical_name": "津久井拓也",
+      "name": "津久井拓",
+      "source": {
+        "day": "2026-11-04",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261104.lzh",
+        "source_sha256": "61ece81a35dd5340d56a1c18c129d6853e43a30e47b9fa53329f9efebcc88f2a",
+        "captured_at": "2026-11-07T03:40:00.762984+00:00"
+      }
+    },
+    {
+      "registration": "4432",
+      "canonical_name": "黄金井力良",
+      "name": "黄金井力",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4447",
+      "canonical_name": "深川麻奈美",
+      "name": "深川麻奈",
+      "source": {
+        "day": "2026-10-22",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261022.lzh",
+        "source_sha256": "ec1f65cc04b2e4b04c01c5b952b7b88deb48391c6498f60e12de473e573e8200",
+        "captured_at": "2026-11-07T03:40:15.471639+00:00"
+      }
+    },
+    {
+      "registration": "4451",
+      "canonical_name": "松崎祐太郎",
+      "name": "松崎祐太",
+      "source": {
+        "day": "2026-10-29",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261029.lzh",
+        "source_sha256": "af99f0e9d6c005f090921700c264a83711003b2c24887a1fda54b8df317d4111",
+        "captured_at": "2026-11-07T03:40:07.341316+00:00"
+      }
+    },
+    {
+      "registration": "4470",
+      "canonical_name": "平田健之佑",
+      "name": "平田健之",
+      "source": {
+        "day": "2026-10-28",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261028.lzh",
+        "source_sha256": "9adc04038c790e6ee44850e529539b529a158a10eabb7d2d1ead0920d6a7e0a2",
+        "captured_at": "2026-11-07T03:40:08.900517+00:00"
+      }
+    },
+    {
+      "registration": "4478",
+      "canonical_name": "櫻本あゆみ",
+      "name": "櫻本あゆ",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4479",
+      "canonical_name": "矢野真梨菜",
+      "name": "矢野真梨",
+      "source": {
+        "day": "2026-10-24",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261024.lzh",
+        "source_sha256": "85d7d8236fb0a2827ecb3c845146341ae27ee02ca4a3ed2f70e227619cac1537",
+        "captured_at": "2026-11-07T03:40:12.087981+00:00"
+      }
+    },
+    {
+      "registration": "4499",
+      "canonical_name": "滝川真由子",
+      "name": "滝川真由",
+      "source": {
+        "day": "2026-11-04",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261104.lzh",
+        "source_sha256": "61ece81a35dd5340d56a1c18c129d6853e43a30e47b9fa53329f9efebcc88f2a",
+        "captured_at": "2026-11-07T03:40:00.762984+00:00"
+      }
+    },
+    {
+      "registration": "4501",
+      "canonical_name": "樋口由加里",
+      "name": "樋口由加",
+      "source": {
+        "day": "2026-10-31",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261031.lzh",
+        "source_sha256": "f45cb1f9fd5caac0d4d34cc2e9e6c2f772ded1bf0583221440ffb4ffad757fb3",
+        "captured_at": "2026-11-07T03:40:07.578066+00:00"
+      }
+    },
+    {
+      "registration": "4503",
+      "canonical_name": "上野真之介",
+      "name": "上野真之",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4525",
+      "canonical_name": "真子奈津実",
+      "name": "真子奈津",
+      "source": {
+        "day": "2026-10-31",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261031.lzh",
+        "source_sha256": "f45cb1f9fd5caac0d4d34cc2e9e6c2f772ded1bf0583221440ffb4ffad757fb3",
+        "captured_at": "2026-11-07T03:40:07.578066+00:00"
+      }
+    },
+    {
+      "registration": "4536",
+      "canonical_name": "喜井つかさ",
+      "name": "喜井つか",
+      "source": {
+        "day": "2026-10-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261006.lzh",
+        "source_sha256": "adbf3e6ad24f948e1367a3da57f72ddfa039304938f62507e080ef23bb31279e",
+        "captured_at": "2026-11-07T03:40:27.778334+00:00"
+      }
+    },
+    {
+      "registration": "4544",
+      "canonical_name": "松田大志郎",
+      "name": "松田大志",
+      "source": {
+        "day": "2026-11-05",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261105.lzh",
+        "source_sha256": "29ab05acf99f507c8c42e5e8296f55502226f9448a01d7de7ab05faf286a0c60",
+        "captured_at": "2026-11-07T03:40:01.049395+00:00"
+      }
+    },
+    {
+      "registration": "4546",
+      "canonical_name": "浜田亜理沙",
+      "name": "浜田亜理",
+      "source": {
+        "day": "2026-11-03",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261103.lzh",
+        "source_sha256": "5596a90f704f9c00857e9e05ca724c8bde856ff97a306ab2c2ea80df4f354f43",
+        "captured_at": "2026-11-07T03:40:03.850626+00:00"
+      }
+    },
+    {
+      "registration": "4548",
+      "canonical_name": "篠木亜衣花",
+      "name": "篠木亜衣",
+      "source": {
+        "day": "2026-10-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261006.lzh",
+        "source_sha256": "adbf3e6ad24f948e1367a3da57f72ddfa039304938f62507e080ef23bb31279e",
+        "captured_at": "2026-11-07T03:40:27.778334+00:00"
+      }
+    },
+    {
+      "registration": "4560",
+      "canonical_name": "庄司樹良々",
+      "name": "庄司樹良",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4564",
+      "canonical_name": "山本景士郎",
+      "name": "山本景士",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4567",
+      "canonical_name": "上村慎太郎",
+      "name": "上村慎太",
+      "source": {
+        "day": "2026-10-31",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261031.lzh",
+        "source_sha256": "f45cb1f9fd5caac0d4d34cc2e9e6c2f772ded1bf0583221440ffb4ffad757fb3",
+        "captured_at": "2026-11-07T03:40:07.578066+00:00"
+      }
+    },
+    {
+      "registration": "4579",
+      "canonical_name": "中嶋健一郎",
+      "name": "中嶋健一",
+      "source": {
+        "day": "2026-11-05",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261105.lzh",
+        "source_sha256": "29ab05acf99f507c8c42e5e8296f55502226f9448a01d7de7ab05faf286a0c60",
+        "captured_at": "2026-11-07T03:40:01.049395+00:00"
+      }
+    },
+    {
+      "registration": "4580",
+      "canonical_name": "長谷川雅和",
+      "name": "長谷川雅",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4587",
+      "canonical_name": "木田峰由季",
+      "name": "木田峰由",
+      "source": {
+        "day": "2026-10-23",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261023.lzh",
+        "source_sha256": "bd5c576e18ad13f1d9e1e5329f08bbf8f9feef52666f7afdee3ba66311698bdb",
+        "captured_at": "2026-11-07T03:40:12.726655+00:00"
+      }
+    },
+    {
+      "registration": "4600",
+      "canonical_name": "井内将太郎",
+      "name": "井内将太",
+      "source": {
+        "day": "2026-10-20",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261020.lzh",
+        "source_sha256": "fb7939615f77920c4dcaa6cc85caf46f8c1f928d346cc7182ef042a7a3f12254",
+        "captured_at": "2026-11-07T03:40:14.218252+00:00"
+      }
+    },
+    {
+      "registration": "4632",
+      "canonical_name": "長尾京志郎",
+      "name": "長尾京志",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4640",
+      "canonical_name": "山ノ内雅人",
+      "name": "山ノ内雅",
+      "source": {
+        "day": "2026-10-09",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261009.lzh",
+        "source_sha256": "75fb311b67ed4161aea513ae7d8f22aaf4331bc2651e9ec673a79e8f958a6d76",
+        "captured_at": "2026-11-07T03:40:24.434627+00:00"
+      }
+    },
+    {
+      "registration": "4660",
+      "canonical_name": "宇田川信一",
+      "name": "宇田川信",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4683",
+      "canonical_name": "向井田直弥",
+      "name": "向井田直",
+      "source": {
+        "day": "2026-10-22",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261022.lzh",
+        "source_sha256": "ec1f65cc04b2e4b04c01c5b952b7b88deb48391c6498f60e12de473e573e8200",
+        "captured_at": "2026-11-07T03:40:15.471639+00:00"
+      }
+    },
+    {
+      "registration": "4706",
+      "canonical_name": "三浦洋次朗",
+      "name": "三浦洋次",
+      "source": {
+        "day": "2026-10-20",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261020.lzh",
+        "source_sha256": "fb7939615f77920c4dcaa6cc85caf46f8c1f928d346cc7182ef042a7a3f12254",
+        "captured_at": "2026-11-07T03:40:14.218252+00:00"
+      }
+    },
+    {
+      "registration": "4714",
+      "canonical_name": "喜多須杏奈",
+      "name": "喜多須杏",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4720",
+      "canonical_name": "西澤日花里",
+      "name": "西澤日花",
+      "source": {
+        "day": "2026-10-27",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261027.lzh",
+        "source_sha256": "858cdf313924ad2f7c756d18eea3af8c8948208364382d3f2ace99ade48fcd41",
+        "captured_at": "2026-11-07T03:40:10.769864+00:00"
+      }
+    },
+    {
+      "registration": "4726",
+      "canonical_name": "島田なぎさ",
+      "name": "島田なぎ",
+      "source": {
+        "day": "2026-10-21",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261021.lzh",
+        "source_sha256": "358bca863d653bea0f642db9a0cce2a1741b6b1cec3d19e735d84052ec19aa4c",
+        "captured_at": "2026-11-07T03:40:14.868772+00:00"
+      }
+    },
+    {
+      "registration": "4729",
+      "canonical_name": "佐藤謙史朗",
+      "name": "佐藤謙史",
+      "source": {
+        "day": "2026-10-28",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261028.lzh",
+        "source_sha256": "9adc04038c790e6ee44850e529539b529a158a10eabb7d2d1ead0920d6a7e0a2",
+        "captured_at": "2026-11-07T03:40:08.900517+00:00"
+      }
+    },
+    {
+      "registration": "4730",
+      "canonical_name": "土屋実沙希",
+      "name": "土屋実沙",
+      "source": {
+        "day": "2026-11-05",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261105.lzh",
+        "source_sha256": "29ab05acf99f507c8c42e5e8296f55502226f9448a01d7de7ab05faf286a0c60",
+        "captured_at": "2026-11-07T03:40:01.049395+00:00"
+      }
+    },
+    {
+      "registration": "4746",
+      "canonical_name": "大豆生田蒼",
+      "name": "大豆生蒼",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4762",
+      "canonical_name": "藤原啓史朗",
+      "name": "藤原啓史",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4765",
+      "canonical_name": "野田部宏子",
+      "name": "野田部宏",
+      "source": {
+        "day": "2026-10-30",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261030.lzh",
+        "source_sha256": "88b395d0f475bb536d6e7bf6f77b753cc7376a7091fafa41a16ff832ee80d863",
+        "captured_at": "2026-11-07T03:40:06.424748+00:00"
+      }
+    },
+    {
+      "registration": "4784",
+      "canonical_name": "向井田真紀",
+      "name": "向井田真",
+      "source": {
+        "day": "2026-10-31",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261031.lzh",
+        "source_sha256": "f45cb1f9fd5caac0d4d34cc2e9e6c2f772ded1bf0583221440ffb4ffad757fb3",
+        "captured_at": "2026-11-07T03:40:07.578066+00:00"
+      }
+    },
+    {
+      "registration": "4791",
+      "canonical_name": "黒澤めぐみ",
+      "name": "黒澤めぐ",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4804",
+      "canonical_name": "高田ひかる",
+      "name": "高田ひか",
+      "source": {
+        "day": "2026-10-12",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261012.lzh",
+        "source_sha256": "26a369557e4199ff35c8a8792558105cdd1dec51fdfb057dab60e663d3c1fc14",
+        "captured_at": "2026-11-07T03:40:21.273783+00:00"
+      }
+    },
+    {
+      "registration": "4811",
+      "canonical_name": "向井田佑紀",
+      "name": "向井田佑",
+      "source": {
+        "day": "2026-10-31",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261031.lzh",
+        "source_sha256": "f45cb1f9fd5caac0d4d34cc2e9e6c2f772ded1bf0583221440ffb4ffad757fb3",
+        "captured_at": "2026-11-07T03:40:07.578066+00:00"
+      }
+    },
+    {
+      "registration": "4847",
+      "canonical_name": "佐藤隆太郎",
+      "name": "佐藤隆太",
+      "source": {
+        "day": "2026-10-13",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261013.lzh",
+        "source_sha256": "82f4c8b5d567f96cec4e29b4b6115a9886ec92df0844b38105acd83b7f881466",
+        "captured_at": "2026-11-07T03:40:21.916755+00:00"
+      }
+    },
+    {
+      "registration": "4856",
+      "canonical_name": "豊田健士郎",
+      "name": "豊田健士",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4864",
+      "canonical_name": "小川日紀太",
+      "name": "小川日紀",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4874",
+      "canonical_name": "池田奈津美",
+      "name": "池田奈津",
+      "source": {
+        "day": "2026-10-09",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261009.lzh",
+        "source_sha256": "75fb311b67ed4161aea513ae7d8f22aaf4331bc2651e9ec673a79e8f958a6d76",
+        "captured_at": "2026-11-07T03:40:24.434627+00:00"
+      }
+    },
+    {
+      "registration": "4893",
+      "canonical_name": "渡邉真奈美",
+      "name": "渡邉真奈",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4897",
+      "canonical_name": "深見亜由美",
+      "name": "深見亜由",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4901",
+      "canonical_name": "出口舞有子",
+      "name": "出口舞有",
+      "source": {
+        "day": "2026-11-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+        "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+        "captured_at": "2026-11-07T03:39:59.756214+00:00"
+      }
+    },
+    {
+      "registration": "4903",
+      "canonical_name": "吉田凌太朗",
+      "name": "吉田凌太",
+      "source": {
+        "day": "2026-11-04",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261104.lzh",
+        "source_sha256": "61ece81a35dd5340d56a1c18c129d6853e43a30e47b9fa53329f9efebcc88f2a",
+        "captured_at": "2026-11-07T03:40:00.762984+00:00"
+      }
+    },
+    {
+      "registration": "4934",
+      "canonical_name": "佐々木翔斗",
+      "name": "佐々木翔",
+      "source": {
+        "day": "2026-11-03",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261103.lzh",
+        "source_sha256": "5596a90f704f9c00857e9e05ca724c8bde856ff97a306ab2c2ea80df4f354f43",
+        "captured_at": "2026-11-07T03:40:03.850626+00:00"
+      }
+    },
+    {
+      "registration": "4938",
+      "canonical_name": "小芦るり華",
+      "name": "小芦るり",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4939",
+      "canonical_name": "宮之原輝紀",
+      "name": "宮之原輝",
+      "source": {
+        "day": "2026-11-04",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261104.lzh",
+        "source_sha256": "61ece81a35dd5340d56a1c18c129d6853e43a30e47b9fa53329f9efebcc88f2a",
+        "captured_at": "2026-11-07T03:40:00.762984+00:00"
+      }
+    },
+    {
+      "registration": "4958",
+      "canonical_name": "溝口海義也",
+      "name": "溝口海義",
+      "source": {
+        "day": "2026-11-03",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261103.lzh",
+        "source_sha256": "5596a90f704f9c00857e9e05ca724c8bde856ff97a306ab2c2ea80df4f354f43",
+        "captured_at": "2026-11-07T03:40:03.850626+00:00"
+      }
+    },
+    {
+      "registration": "4980",
+      "canonical_name": "佐々木完太",
+      "name": "佐々木完",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "4997",
+      "canonical_name": "濱崎寿里矢",
+      "name": "濱崎寿里",
+      "source": {
+        "day": "2026-10-17",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261017.lzh",
+        "source_sha256": "04b7523202a6f3756d2d636b150a1048c42835f87afdb7c8a68fcb6a23ac173b",
+        "captured_at": "2026-11-07T03:40:17.847438+00:00"
+      }
+    },
+    {
+      "registration": "4998",
+      "canonical_name": "中村かなえ",
+      "name": "中村かな",
+      "source": {
+        "day": "2026-11-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+        "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+        "captured_at": "2026-11-07T03:39:59.756214+00:00"
+      }
+    },
+    {
+      "registration": "5000",
+      "canonical_name": "岡本翔太郎",
+      "name": "岡本翔太",
+      "source": {
+        "day": "2026-11-03",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261103.lzh",
+        "source_sha256": "5596a90f704f9c00857e9e05ca724c8bde856ff97a306ab2c2ea80df4f354f43",
+        "captured_at": "2026-11-07T03:40:03.850626+00:00"
+      }
+    },
+    {
+      "registration": "5006",
+      "canonical_name": "久保原秀人",
+      "name": "久保原秀",
+      "source": {
+        "day": "2026-11-05",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261105.lzh",
+        "source_sha256": "29ab05acf99f507c8c42e5e8296f55502226f9448a01d7de7ab05faf286a0c60",
+        "captured_at": "2026-11-07T03:40:01.049395+00:00"
+      }
+    },
+    {
+      "registration": "5007",
+      "canonical_name": "近藤雄一郎",
+      "name": "近藤雄一",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "5009",
+      "canonical_name": "大賀龍之介",
+      "name": "大賀龍之",
+      "source": {
+        "day": "2026-11-02",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261102.lzh",
+        "source_sha256": "ef480d35572c16c889277a73cc7f54f882283b0de3bf84fc427bb380bc6148c9",
+        "captured_at": "2026-11-07T03:40:04.306865+00:00"
+      }
+    },
+    {
+      "registration": "5010",
+      "canonical_name": "宇留田翔平",
+      "name": "宇留田翔",
+      "source": {
+        "day": "2026-10-12",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261012.lzh",
+        "source_sha256": "26a369557e4199ff35c8a8792558105cdd1dec51fdfb057dab60e663d3c1fc14",
+        "captured_at": "2026-11-07T03:40:21.273783+00:00"
+      }
+    },
+    {
+      "registration": "5028",
+      "canonical_name": "原田才一郎",
+      "name": "原田才一",
+      "source": {
+        "day": "2026-11-03",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261103.lzh",
+        "source_sha256": "5596a90f704f9c00857e9e05ca724c8bde856ff97a306ab2c2ea80df4f354f43",
+        "captured_at": "2026-11-07T03:40:03.850626+00:00"
+      }
+    },
+    {
+      "registration": "5047",
+      "canonical_name": "國分将太郎",
+      "name": "國分将太",
+      "source": {
+        "day": "2026-11-02",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261102.lzh",
+        "source_sha256": "ef480d35572c16c889277a73cc7f54f882283b0de3bf84fc427bb380bc6148c9",
+        "captured_at": "2026-11-07T03:40:04.306865+00:00"
+      }
+    },
+    {
+      "registration": "5052",
+      "canonical_name": "赤井星璃菜",
+      "name": "赤井星璃",
+      "source": {
+        "day": "2026-10-18",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261018.lzh",
+        "source_sha256": "2b690d7900c3f73801ac8bc1ac292f5cf25a66783299b0adb071c26167f3f27a",
+        "captured_at": "2026-11-07T03:40:16.221825+00:00"
+      }
+    },
+    {
+      "registration": "5054",
+      "canonical_name": "佐々木大河",
+      "name": "佐々木大",
+      "source": {
+        "day": "2026-11-05",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261105.lzh",
+        "source_sha256": "29ab05acf99f507c8c42e5e8296f55502226f9448a01d7de7ab05faf286a0c60",
+        "captured_at": "2026-11-07T03:40:01.049395+00:00"
+      }
+    },
+    {
+      "registration": "5064",
+      "canonical_name": "品川二千翔",
+      "name": "品川二千",
+      "source": {
+        "day": "2026-11-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+        "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+        "captured_at": "2026-11-07T03:39:59.756214+00:00"
+      }
+    },
+    {
+      "registration": "5065",
+      "canonical_name": "伊久間陽優",
+      "name": "伊久間陽",
+      "source": {
+        "day": "2026-10-31",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261031.lzh",
+        "source_sha256": "f45cb1f9fd5caac0d4d34cc2e9e6c2f772ded1bf0583221440ffb4ffad757fb3",
+        "captured_at": "2026-11-07T03:40:07.578066+00:00"
+      }
+    },
+    {
+      "registration": "5069",
+      "canonical_name": "山崎小葉音",
+      "name": "山崎小葉",
+      "source": {
+        "day": "2026-10-30",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261030.lzh",
+        "source_sha256": "88b395d0f475bb536d6e7bf6f77b753cc7376a7091fafa41a16ff832ee80d863",
+        "captured_at": "2026-11-07T03:40:06.424748+00:00"
+      }
+    },
+    {
+      "registration": "5071",
+      "canonical_name": "野見山拓己",
+      "name": "野見山拓",
+      "source": {
+        "day": "2026-10-28",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261028.lzh",
+        "source_sha256": "9adc04038c790e6ee44850e529539b529a158a10eabb7d2d1ead0920d6a7e0a2",
+        "captured_at": "2026-11-07T03:40:08.900517+00:00"
+      }
+    },
+    {
+      "registration": "5073",
+      "canonical_name": "上原健次郎",
+      "name": "上原健次",
+      "source": {
+        "day": "2026-10-31",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261031.lzh",
+        "source_sha256": "f45cb1f9fd5caac0d4d34cc2e9e6c2f772ded1bf0583221440ffb4ffad757fb3",
+        "captured_at": "2026-11-07T03:40:07.578066+00:00"
+      }
+    },
+    {
+      "registration": "5117",
+      "canonical_name": "冨名腰桃奈",
+      "name": "冨名腰桃",
+      "source": {
+        "day": "2026-10-24",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261024.lzh",
+        "source_sha256": "85d7d8236fb0a2827ecb3c845146341ae27ee02ca4a3ed2f70e227619cac1537",
+        "captured_at": "2026-11-07T03:40:12.087981+00:00"
+      }
+    },
+    {
+      "registration": "5118",
+      "canonical_name": "野田なづき",
+      "name": "野田なづ",
+      "source": {
+        "day": "2026-07-19",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202607/b260719.lzh",
+        "source_sha256": "962a0e1af5a328cc4bf7656bed099f2f3365872e635ebfe4494f781f9607c951",
+        "captured_at": "2026-11-07T03:52:14.019952+00:00"
+      }
+    },
+    {
+      "registration": "5120",
+      "canonical_name": "山本稔太朗",
+      "name": "山本稔太",
+      "source": {
+        "day": "2026-10-28",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261028.lzh",
+        "source_sha256": "9adc04038c790e6ee44850e529539b529a158a10eabb7d2d1ead0920d6a7e0a2",
+        "captured_at": "2026-11-07T03:40:08.900517+00:00"
+      }
+    },
+    {
+      "registration": "5123",
+      "canonical_name": "福山恵里奈",
+      "name": "福山恵里",
+      "source": {
+        "day": "2026-10-24",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261024.lzh",
+        "source_sha256": "85d7d8236fb0a2827ecb3c845146341ae27ee02ca4a3ed2f70e227619cac1537",
+        "captured_at": "2026-11-07T03:40:12.087981+00:00"
+      }
+    },
+    {
+      "registration": "5129",
+      "canonical_name": "山口真喜子",
+      "name": "山口真喜",
+      "source": {
+        "day": "2026-10-24",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261024.lzh",
+        "source_sha256": "85d7d8236fb0a2827ecb3c845146341ae27ee02ca4a3ed2f70e227619cac1537",
+        "captured_at": "2026-11-07T03:40:12.087981+00:00"
+      }
+    },
+    {
+      "registration": "5153",
+      "canonical_name": "佐藤ほのか",
+      "name": "佐藤ほの",
+      "source": {
+        "day": "2026-10-30",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261030.lzh",
+        "source_sha256": "88b395d0f475bb536d6e7bf6f77b753cc7376a7091fafa41a16ff832ee80d863",
+        "captured_at": "2026-11-07T03:40:06.424748+00:00"
+      }
+    },
+    {
+      "registration": "5156",
+      "canonical_name": "坂野さくら",
+      "name": "坂野さく",
+      "source": {
+        "day": "2026-07-19",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202607/b260719.lzh",
+        "source_sha256": "962a0e1af5a328cc4bf7656bed099f2f3365872e635ebfe4494f781f9607c951",
+        "captured_at": "2026-11-07T03:52:14.019952+00:00"
+      }
+    },
+    {
+      "registration": "5167",
+      "canonical_name": "小川竜太朗",
+      "name": "小川竜太",
+      "source": {
+        "day": "2026-10-24",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261024.lzh",
+        "source_sha256": "85d7d8236fb0a2827ecb3c845146341ae27ee02ca4a3ed2f70e227619cac1537",
+        "captured_at": "2026-11-07T03:40:12.087981+00:00"
+      }
+    },
+    {
+      "registration": "5175",
+      "canonical_name": "島崎丈一朗",
+      "name": "島崎丈一",
+      "source": {
+        "day": "2026-10-27",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261027.lzh",
+        "source_sha256": "858cdf313924ad2f7c756d18eea3af8c8948208364382d3f2ace99ade48fcd41",
+        "captured_at": "2026-11-07T03:40:10.769864+00:00"
+      }
+    },
+    {
+      "registration": "5180",
+      "canonical_name": "藤本紗弥香",
+      "name": "藤本紗弥",
+      "source": {
+        "day": "2026-10-31",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261031.lzh",
+        "source_sha256": "f45cb1f9fd5caac0d4d34cc2e9e6c2f772ded1bf0583221440ffb4ffad757fb3",
+        "captured_at": "2026-11-07T03:40:07.578066+00:00"
+      }
+    },
+    {
+      "registration": "5188",
+      "canonical_name": "武井莉里佳",
+      "name": "武井莉里",
+      "source": {
+        "day": "2026-11-03",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261103.lzh",
+        "source_sha256": "5596a90f704f9c00857e9e05ca724c8bde856ff97a306ab2c2ea80df4f354f43",
+        "captured_at": "2026-11-07T03:40:03.850626+00:00"
+      }
+    },
+    {
+      "registration": "5194",
+      "canonical_name": "大久保佑香",
+      "name": "大久保佑",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "5196",
+      "canonical_name": "鰐部太空海",
+      "name": "鰐部太空",
+      "source": {
+        "day": "2026-09-27",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260927.lzh",
+        "source_sha256": "f1a77bd35dac01b69d444ad3cd161faf7497e3b4cb3896eeae55097fed2dc0bc",
+        "captured_at": "2026-11-07T03:40:34.050170+00:00"
+      }
+    },
+    {
+      "registration": "5198",
+      "canonical_name": "奥村明日香",
+      "name": "奥村明日",
+      "source": {
+        "day": "2026-10-30",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261030.lzh",
+        "source_sha256": "88b395d0f475bb536d6e7bf6f77b753cc7376a7091fafa41a16ff832ee80d863",
+        "captured_at": "2026-11-07T03:40:06.424748+00:00"
+      }
+    },
+    {
+      "registration": "5201",
+      "canonical_name": "村上宗太郎",
+      "name": "村上宗太",
+      "source": {
+        "day": "2026-10-13",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261013.lzh",
+        "source_sha256": "82f4c8b5d567f96cec4e29b4b6115a9886ec92df0844b38105acd83b7f881466",
+        "captured_at": "2026-11-07T03:40:21.916755+00:00"
+      }
+    },
+    {
+      "registration": "5205",
+      "canonical_name": "刑部亜里紗",
+      "name": "刑部亜里",
+      "source": {
+        "day": "2026-10-04",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261004.lzh",
+        "source_sha256": "4eef6ac573d8a4ea603c646b949646d0131e38ff265f04b982e01f20d0faf3a5",
+        "captured_at": "2026-11-07T03:40:28.296865+00:00"
+      }
+    },
+    {
+      "registration": "5216",
+      "canonical_name": "長谷川晴哉",
+      "name": "長谷川晴",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "5257",
+      "canonical_name": "西丸侑太朗",
+      "name": "西丸侑太",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "5276",
+      "canonical_name": "大島隆乃介",
+      "name": "大島隆乃",
+      "source": {
+        "day": "2026-11-02",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261102.lzh",
+        "source_sha256": "ef480d35572c16c889277a73cc7f54f882283b0de3bf84fc427bb380bc6148c9",
+        "captured_at": "2026-11-07T03:40:04.306865+00:00"
+      }
+    },
+    {
+      "registration": "5279",
+      "canonical_name": "石渡翔一郎",
+      "name": "石渡翔一",
+      "source": {
+        "day": "2026-10-27",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261027.lzh",
+        "source_sha256": "858cdf313924ad2f7c756d18eea3af8c8948208364382d3f2ace99ade48fcd41",
+        "captured_at": "2026-11-07T03:40:10.769864+00:00"
+      }
+    },
+    {
+      "registration": "5284",
+      "canonical_name": "嘉手苅徹哉",
+      "name": "嘉手苅徹",
+      "source": {
+        "day": "2026-11-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+        "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+        "captured_at": "2026-11-07T03:39:59.756214+00:00"
+      }
+    },
+    {
+      "registration": "5291",
+      "canonical_name": "三嶌こころ",
+      "name": "三嶌ここ",
+      "source": {
+        "day": "2026-09-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260906.lzh",
+        "source_sha256": "fad4525ad09c561a432d3aaa78ee7e335aaf0e50f322bfa508041880a027f1b2",
+        "captured_at": "2026-11-07T03:52:09.695766+00:00"
+      }
+    },
+    {
+      "registration": "5306",
+      "canonical_name": "河内悠利杏",
+      "name": "河内悠利",
+      "source": {
+        "day": "2026-10-30",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261030.lzh",
+        "source_sha256": "88b395d0f475bb536d6e7bf6f77b753cc7376a7091fafa41a16ff832ee80d863",
+        "captured_at": "2026-11-07T03:40:06.424748+00:00"
+      }
+    },
+    {
+      "registration": "5307",
+      "canonical_name": "富永夏哉人",
+      "name": "富永夏哉",
+      "source": {
+        "day": "2026-10-27",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261027.lzh",
+        "source_sha256": "858cdf313924ad2f7c756d18eea3af8c8948208364382d3f2ace99ade48fcd41",
+        "captured_at": "2026-11-07T03:40:10.769864+00:00"
+      }
+    },
+    {
+      "registration": "5326",
+      "canonical_name": "三嶌さらら",
+      "name": "三嶌さら",
+      "source": {
+        "day": "2026-11-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+        "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+        "captured_at": "2026-11-07T03:39:59.756214+00:00"
+      }
+    },
+    {
+      "registration": "5330",
+      "canonical_name": "安河内鈴之介",
+      "name": "安河内鈴",
+      "source": {
+        "day": "2026-11-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+        "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+        "captured_at": "2026-11-07T03:39:59.756214+00:00"
+      }
+    },
+    {
+      "registration": "5346",
+      "canonical_name": "中村紋夕梨",
+      "name": "中村紋夕",
+      "source": {
+        "day": "2026-10-30",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261030.lzh",
+        "source_sha256": "88b395d0f475bb536d6e7bf6f77b753cc7376a7091fafa41a16ff832ee80d863",
+        "captured_at": "2026-11-07T03:40:06.424748+00:00"
+      }
+    },
+    {
+      "registration": "5355",
+      "canonical_name": "萩原丈太朗",
+      "name": "萩原丈太",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "5357",
+      "canonical_name": "田中瀬里奈",
+      "name": "田中瀬里",
+      "source": {
+        "day": "2026-10-24",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261024.lzh",
+        "source_sha256": "85d7d8236fb0a2827ecb3c845146341ae27ee02ca4a3ed2f70e227619cac1537",
+        "captured_at": "2026-11-07T03:40:12.087981+00:00"
+      }
+    },
+    {
+      "registration": "5365",
+      "canonical_name": "石村日奈那",
+      "name": "石村日奈",
+      "source": {
+        "day": "2026-10-30",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261030.lzh",
+        "source_sha256": "88b395d0f475bb536d6e7bf6f77b753cc7376a7091fafa41a16ff832ee80d863",
+        "captured_at": "2026-11-07T03:40:06.424748+00:00"
+      }
+    },
+    {
+      "registration": "5368",
+      "canonical_name": "宮崎心之介",
+      "name": "宮崎心之",
+      "source": {
+        "day": "2026-11-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+        "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+        "captured_at": "2026-11-07T03:39:59.756214+00:00"
+      }
+    },
+    {
+      "registration": "5377",
+      "canonical_name": "鳥居塚嶺王",
+      "name": "鳥居塚嶺",
+      "source": {
+        "day": "2026-09-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260906.lzh",
+        "source_sha256": "fad4525ad09c561a432d3aaa78ee7e335aaf0e50f322bfa508041880a027f1b2",
+        "captured_at": "2026-11-07T03:52:09.695766+00:00"
+      }
+    },
+    {
+      "registration": "5378",
+      "canonical_name": "鈴木結平太",
+      "name": "鈴木結平",
+      "source": {
+        "day": "2026-10-29",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261029.lzh",
+        "source_sha256": "af99f0e9d6c005f090921700c264a83711003b2c24887a1fda54b8df317d4111",
+        "captured_at": "2026-11-07T03:40:07.341316+00:00"
+      }
+    },
+    {
+      "registration": "5386",
+      "canonical_name": "米玉利大悟",
+      "name": "米玉利大",
+      "source": {
+        "day": "2026-11-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+        "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+        "captured_at": "2026-11-07T03:39:59.756214+00:00"
+      }
+    },
+    {
+      "registration": "5387",
+      "canonical_name": "戸田海咲音",
+      "name": "戸田海咲",
+      "source": {
+        "day": "2026-10-31",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261031.lzh",
+        "source_sha256": "f45cb1f9fd5caac0d4d34cc2e9e6c2f772ded1bf0583221440ffb4ffad757fb3",
+        "captured_at": "2026-11-07T03:40:07.578066+00:00"
+      }
+    },
+    {
+      "registration": "5394",
+      "canonical_name": "福西広太郎",
+      "name": "福西広太",
+      "source": {
+        "day": "2026-11-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+        "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+        "captured_at": "2026-11-07T03:39:59.756214+00:00"
+      }
+    },
+    {
+      "registration": "5395",
+      "canonical_name": "日高龍之介",
+      "name": "日高龍之",
+      "source": {
+        "day": "2026-11-05",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261105.lzh",
+        "source_sha256": "29ab05acf99f507c8c42e5e8296f55502226f9448a01d7de7ab05faf286a0c60",
+        "captured_at": "2026-11-07T03:40:01.049395+00:00"
+      }
+    },
+    {
+      "registration": "5398",
+      "canonical_name": "鐘ヶ江真司",
+      "name": "鐘ヶ江真",
+      "source": {
+        "day": "2026-09-23",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202609/b260923.lzh",
+        "source_sha256": "a3f8470faa5ee6a116c0cf4f8970eba4c881b59a713d7cff7a1bef675e4f81df",
+        "captured_at": "2026-11-07T03:52:10.689623+00:00"
+      }
+    },
+    {
+      "registration": "5411",
+      "canonical_name": "木下虎之輔",
+      "name": "木下虎之",
+      "source": {
+        "day": "2026-11-02",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261102.lzh",
+        "source_sha256": "ef480d35572c16c889277a73cc7f54f882283b0de3bf84fc427bb380bc6148c9",
+        "captured_at": "2026-11-07T03:40:04.306865+00:00"
+      }
+    },
+    {
+      "registration": "5412",
+      "canonical_name": "久保田凪紗",
+      "name": "久保田凪",
+      "source": {
+        "day": "2026-10-31",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261031.lzh",
+        "source_sha256": "f45cb1f9fd5caac0d4d34cc2e9e6c2f772ded1bf0583221440ffb4ffad757fb3",
+        "captured_at": "2026-11-07T03:40:07.578066+00:00"
+      }
+    },
+    {
+      "registration": "5428",
+      "canonical_name": "古園井綾南",
+      "name": "古園井綾",
+      "source": {
+        "day": "2026-10-27",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261027.lzh",
+        "source_sha256": "858cdf313924ad2f7c756d18eea3af8c8948208364382d3f2ace99ade48fcd41",
+        "captured_at": "2026-11-07T03:40:10.769864+00:00"
+      }
+    },
+    {
+      "registration": "5446",
+      "canonical_name": "長嶺真李愛",
+      "name": "長嶺真李",
+      "source": {
+        "day": "2026-10-26",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202610/b261026.lzh",
+        "source_sha256": "2c615b5350757374d33c0700c4ff71e363b9f82f620c1629d5ac60f7b7100a92",
+        "captured_at": "2026-11-07T03:40:11.172836+00:00"
+      }
+    },
+    {
+      "registration": "5452",
+      "canonical_name": "上馬場風依",
+      "name": "上馬場風",
+      "source": {
+        "day": "2026-11-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+        "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+        "captured_at": "2026-11-07T03:39:59.756214+00:00"
+      }
+    },
+    {
+      "registration": "5456",
+      "canonical_name": "今村天次朗",
+      "name": "今村天次",
+      "source": {
+        "day": "2026-11-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+        "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+        "captured_at": "2026-11-07T03:39:59.756214+00:00"
+      }
+    },
+    {
+      "registration": "5481",
+      "canonical_name": "阿久根芳仁",
+      "name": "阿久根芳",
+      "source": {
+        "day": "2026-11-07",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261107.lzh",
+        "source_sha256": "387a86da8114ce25f8240c66bd256c0770ad91462dec6142317d0b10d4b5b2b9",
+        "captured_at": "2026-11-07T03:39:57.024075+00:00"
+      }
+    },
+    {
+      "registration": "5492",
+      "canonical_name": "松永隼ノ助",
+      "name": "松永隼ノ",
+      "source": {
+        "day": "2026-11-06",
+        "source_url": "https://www1.mbrace.or.jp/od2/B/202611/b261106.lzh",
+        "source_sha256": "f6d9befd373c2a35e56f25c7fd9897bd101a4e807343a3e269dbddc4a38d4a25",
+        "captured_at": "2026-11-07T03:39:59.756214+00:00"
+      }
+    }
+  ]
+}

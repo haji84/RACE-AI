@@ -1,0 +1,423 @@
+{
+  "actual_course_buckets": 380592,
+  "all_current_registered_racers_independently_proven": false,
+  "all_venue_player_history_complete": false,
+  "available_at": "2026-11-06T05:53:06.991558+00:00",
+  "coverage": {
+    "fully_parsed_days": 7844,
+    "parsed_source_files": 7962,
+    "requested_calendar_days": 7979,
+    "requested_end": "2026-11-05",
+    "requested_start": "2005-01-01",
+    "source_set_sha256": "40bf8da4e2a58821c3259b830f67a537ea64d54835ef35b2c88da9d1efc04a61",
+    "source_window_complete": false,
+    "unavailable_or_unprocessed_days": 17,
+    "unreported_venue_days": 156
+  },
+  "disputed_payout_races": [
+    "20080713-18-05",
+    "20080713-18-09"
+  ],
+  "encrypted_grid_pointer": {
+    "dataset_path": "state/boat-venue-history/v1/datasets/3deb20e26ccc73add405032a45a790abb02d8424e43bb7d1e9b45861ab3d7a19/dataset.json",
+    "dataset_sha256": "3deb20e26ccc73add405032a45a790abb02d8424e43bb7d1e9b45861ab3d7a19",
+    "repository_id": "1416489937",
+    "schema": "RACE_AI_BOAT_VENUE_DATASET_INPUT_V1",
+    "source_commit": "7ef91a3c3ddbe706e1517ede76c1a8ab54b2dacd",
+    "status": "READY"
+  },
+  "formal_backtest_eligible": false,
+  "grid_cells": 63432,
+  "known_racers": 2643,
+  "new_teiai_gets": 0,
+  "observed_racer_venue_pairs": 58826,
+  "observed_races": 1167150,
+  "observed_starts": 7002900,
+  "observed_starts_semantics": "RECORDED_BOAT_ENTRIES_INCLUDING_ABSENCE_AND_ABNORMAL_RESULTS",
+  "private_individual_records_published": false,
+  "private_raw_published": false,
+  "production_promoted": false,
+  "raw_to_grid_conservation": {
+    "formal_backtest_eligible": false,
+    "source_calendar_end": "2026-11-05",
+    "st_first_and_second_moments_verified": true,
+    "status": "ACTUAL_RAW_TO_GRID_COUNT_AND_ST_MOMENT_CONSERVATION_VERIFIED",
+    "totals": {
+      "numeric_finish": 6898776,
+      "opportunities": 7002900,
+      "st_ok": 6963880,
+      "unknown_course": 10109
+    },
+    "verified_cells": 63432
+  },
+  "roster_racers": 1653,
+  "schema": "RACE_AI_REAL_FULL_VENUE_GRID_COUNTS_V1",
+  "unreported_dates_by_venue": {
+    "01": [
+      "2011-03-13",
+      "2011-03-14",
+      "2011-04-01",
+      "2011-04-02",
+      "2011-04-03",
+      "2011-04-04",
+      "2011-04-05",
+      "2011-04-10",
+      "2011-04-11",
+      "2011-04-12",
+      "2011-04-13",
+      "2011-04-14",
+      "2011-04-15",
+      "2011-04-22",
+      "2011-04-23",
+      "2011-04-24",
+      "2011-04-25",
+      "2011-04-26",
+      "2011-04-27",
+      "2020-12-22"
+    ],
+    "02": [
+      "2011-04-02",
+      "2011-04-03",
+      "2011-04-04",
+      "2011-04-05",
+      "2011-04-06",
+      "2019-10-14",
+      "2019-10-15",
+      "2019-10-16",
+      "2019-10-17",
+      "2019-10-18",
+      "2019-10-19",
+      "2021-01-31",
+      "2021-02-01",
+      "2021-02-02"
+    ],
+    "03": [
+      "2011-04-03",
+      "2011-04-04",
+      "2011-04-05",
+      "2011-04-06",
+      "2011-09-21",
+      "2018-07-02",
+      "2022-08-13",
+      "2024-10-18",
+      "2024-10-19",
+      "2024-10-23",
+      "2024-10-24",
+      "2024-10-25",
+      "2024-10-26",
+      "2024-10-27",
+      "2024-11-02",
+      "2024-11-03",
+      "2024-11-04",
+      "2024-11-05",
+      "2024-11-09",
+      "2024-11-10",
+      "2024-11-11",
+      "2024-11-12"
+    ],
+    "04": [
+      "2011-03-14",
+      "2011-04-01",
+      "2011-04-02",
+      "2011-04-03",
+      "2011-04-04",
+      "2021-06-27",
+      "2021-06-28",
+      "2021-06-29"
+    ],
+    "05": [
+      "2011-03-13",
+      "2011-03-14",
+      "2011-04-01",
+      "2011-04-02",
+      "2011-04-03",
+      "2011-04-04",
+      "2011-04-05",
+      "2011-04-06"
+    ],
+    "06": [
+      "2011-03-14",
+      "2011-04-01",
+      "2011-04-02",
+      "2011-04-03"
+    ],
+    "08": [
+      "2021-06-27",
+      "2021-06-28",
+      "2021-06-29"
+    ],
+    "09": [
+      "2011-03-14",
+      "2026-07-30",
+      "2026-07-31",
+      "2026-08-01"
+    ],
+    "10": [
+      "2018-01-16",
+      "2018-01-17",
+      "2022-08-06",
+      "2022-08-07",
+      "2022-08-08",
+      "2022-08-09",
+      "2024-01-03",
+      "2024-01-04",
+      "2024-01-05",
+      "2024-01-06",
+      "2024-01-07"
+    ],
+    "11": [
+      "2024-09-01"
+    ],
+    "12": [
+      "2011-03-14",
+      "2020-08-11",
+      "2020-08-12",
+      "2020-08-13",
+      "2020-08-14",
+      "2020-08-15",
+      "2020-08-16"
+    ],
+    "13": [
+      "2018-06-20",
+      "2018-06-21",
+      "2018-06-26",
+      "2018-06-27",
+      "2018-06-28",
+      "2018-06-29",
+      "2018-06-30",
+      "2018-07-01",
+      "2018-09-06",
+      "2018-09-07",
+      "2018-09-08",
+      "2018-09-09",
+      "2018-09-10",
+      "2018-09-11",
+      "2026-05-16",
+      "2026-05-17",
+      "2026-05-18"
+    ],
+    "14": [
+      "2018-09-07",
+      "2018-09-08",
+      "2018-09-09",
+      "2018-09-10",
+      "2018-09-11"
+    ],
+    "16": [
+      "2018-03-29",
+      "2018-03-30",
+      "2022-02-02"
+    ],
+    "17": [
+      "2020-08-03",
+      "2020-08-04",
+      "2020-08-05",
+      "2020-08-06",
+      "2020-08-07",
+      "2020-08-08",
+      "2022-11-08",
+      "2022-11-09",
+      "2022-11-10",
+      "2022-11-11"
+    ],
+    "18": [
+      "2011-01-08",
+      "2011-01-09",
+      "2011-01-10",
+      "2011-01-11",
+      "2011-01-12",
+      "2011-03-14",
+      "2021-04-19",
+      "2021-04-20"
+    ],
+    "19": [
+      "2019-08-30",
+      "2019-08-31",
+      "2019-09-01",
+      "2019-09-02",
+      "2019-09-03",
+      "2019-09-04"
+    ],
+    "20": [
+      "2024-03-25",
+      "2024-08-29",
+      "2024-08-30"
+    ],
+    "22": [
+      "2011-03-13",
+      "2011-03-14"
+    ]
+  },
+  "unreported_source_dates": 118,
+  "venue_counts": [
+    {
+      "racers": 2411,
+      "races": 49212,
+      "starts": 295272,
+      "venue_code": "01",
+      "venue_name": "桐生"
+    },
+    {
+      "racers": 2472,
+      "races": 49201,
+      "starts": 295206,
+      "venue_code": "02",
+      "venue_name": "戸田"
+    },
+    {
+      "racers": 2418,
+      "races": 44162,
+      "starts": 264972,
+      "venue_code": "03",
+      "venue_name": "江戸川"
+    },
+    {
+      "racers": 2434,
+      "races": 47774,
+      "starts": 286644,
+      "venue_code": "04",
+      "venue_name": "平和島"
+    },
+    {
+      "racers": 2427,
+      "races": 48307,
+      "starts": 289842,
+      "venue_code": "05",
+      "venue_name": "多摩川"
+    },
+    {
+      "racers": 2473,
+      "races": 52708,
+      "starts": 316248,
+      "venue_code": "06",
+      "venue_name": "浜名湖"
+    },
+    {
+      "racers": 2446,
+      "races": 49999,
+      "starts": 299994,
+      "venue_code": "07",
+      "venue_name": "蒲郡"
+    },
+    {
+      "racers": 2476,
+      "races": 51426,
+      "starts": 308556,
+      "venue_code": "08",
+      "venue_name": "常滑"
+    },
+    {
+      "racers": 2447,
+      "races": 48998,
+      "starts": 293988,
+      "venue_code": "09",
+      "venue_name": "津"
+    },
+    {
+      "racers": 2475,
+      "races": 48759,
+      "starts": 292554,
+      "venue_code": "10",
+      "venue_name": "三国"
+    },
+    {
+      "racers": 2454,
+      "races": 45531,
+      "starts": 273186,
+      "venue_code": "11",
+      "venue_name": "びわこ"
+    },
+    {
+      "racers": 2444,
+      "races": 48809,
+      "starts": 292854,
+      "venue_code": "12",
+      "venue_name": "住之江"
+    },
+    {
+      "racers": 2477,
+      "races": 48625,
+      "starts": 291750,
+      "venue_code": "13",
+      "venue_name": "尼崎"
+    },
+    {
+      "racers": 2464,
+      "races": 43334,
+      "starts": 260004,
+      "venue_code": "14",
+      "venue_name": "鳴門"
+    },
+    {
+      "racers": 2461,
+      "races": 50255,
+      "starts": 301530,
+      "venue_code": "15",
+      "venue_name": "丸亀"
+    },
+    {
+      "racers": 2469,
+      "races": 49758,
+      "starts": 298548,
+      "venue_code": "16",
+      "venue_name": "児島"
+    },
+    {
+      "racers": 2456,
+      "races": 47430,
+      "starts": 284580,
+      "venue_code": "17",
+      "venue_name": "宮島"
+    },
+    {
+      "racers": 2463,
+      "races": 47817,
+      "starts": 286902,
+      "venue_code": "18",
+      "venue_name": "徳山"
+    },
+    {
+      "racers": 2463,
+      "races": 48091,
+      "starts": 288546,
+      "venue_code": "19",
+      "venue_name": "下関"
+    },
+    {
+      "racers": 2421,
+      "races": 49899,
+      "starts": 299394,
+      "venue_code": "20",
+      "venue_name": "若松"
+    },
+    {
+      "racers": 2430,
+      "races": 48381,
+      "starts": 290286,
+      "venue_code": "21",
+      "venue_name": "芦屋"
+    },
+    {
+      "racers": 2459,
+      "races": 49368,
+      "starts": 296208,
+      "venue_code": "22",
+      "venue_name": "福岡"
+    },
+    {
+      "racers": 2440,
+      "races": 49158,
+      "starts": 294948,
+      "venue_code": "23",
+      "venue_name": "唐津"
+    },
+    {
+      "racers": 2446,
+      "races": 50148,
+      "starts": 300888,
+      "venue_code": "24",
+      "venue_name": "大村"
+    }
+  ],
+  "venues_with_observations": 24
+}

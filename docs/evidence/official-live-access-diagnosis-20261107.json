@@ -1,0 +1,281 @@
+{
+  "schema": "race-ai-official-live-access-diagnosis-v1",
+  "recorded_at_utc": "2026-11-06T16:08:32.631973+00:00",
+  "repository": "haji84/RACE-AI",
+  "existing_draft_pr": 71,
+  "result": "UNRESOLVED_PROVIDER_VIEWING_DENIAL_CONDITION_UNKNOWN",
+  "official_live_access_restored": false,
+  "cached_normal_player_observation": {
+    "observed_at_utc": "2026-11-06T09:18:34.313Z",
+    "public_entry": "https://race.boatcast.jp/?jo=15",
+    "player_and_sdk_and_venue_settings_http_status": 200,
+    "playback_api_http_status": 403,
+    "safe_error": {
+      "id": "163",
+      "code": "REQUEST_FAILED",
+      "status": "403",
+      "error_id": "P01002",
+      "message": "この動画の視聴は許可されていません。"
+    },
+    "project": "cp-boatrace-prod",
+    "media_reference": "lm-mix-15marugame-tokyo-20261106",
+    "original_sha256": "5c0ed4ff92928a3a811ebe8c69330e46b61f3c5a03f664010c537d1fa6088e1d",
+    "saved_media_bytes": 0,
+    "local_route_blocks": 0,
+    "request_method_and_authentication_header_presence": "UNKNOWN_NOT_CAPTURED",
+    "actual_video_race_identity": "UNKNOWN_NOT_INFERRED_FROM_ADJACENT_UI",
+    "initial_br_only_guard_issue_already_corrected_before_this_403": true
+  },
+  "sdk_static_diagnosis": {
+    "version": "2.5.8",
+    "bytes": 1224425,
+    "sha256": "91e07d987f56c7beb387f0270594db12bb864c95e6e3d2dfc7eee493dd4c0957",
+    "byte_identical_to_previously_observed_sdk": true,
+    "ordinary_http403_flow": [
+      "XHR callback error=null, statusCode=403",
+      "PlaybackApi transport/5xx/status<200 retry predicate is false",
+      "live.js callback passes parsed response to loadMedia",
+      "code/error in response dispatches player.error"
+    ],
+    "403_authentication_refresh_identified_in_this_path": false,
+    "scope_limit": "Static trace of the observed SDK and published live.js; does not establish backend policy or all future/private integrations.",
+    "independently_verified_excerpt_count": 12,
+    "excerpt_receipts": [
+      {
+        "id": "XHR_HTTP_STATUS_CALLBACK",
+        "source_url": "https://front.player.boatrace-cdn.jp/lib/streaks/2.5.8/streaksplayer.min.js?t=20260428000302",
+        "sha256": "91e07d987f56c7beb387f0270594db12bb864c95e6e3d2dfc7eee493dd4c0957",
+        "byte_start": 5541,
+        "byte_end_exclusive": 5914,
+        "excerpt_sha256": "3cc46228c1d7c368e54ef0e37e137437d7a4b2290855fd96e0248ee84ea0db99"
+      },
+      {
+        "id": "PLAYBACK_XHR_OPTIONS",
+        "source_url": "https://front.player.boatrace-cdn.jp/lib/streaks/2.5.8/streaksplayer.min.js?t=20260428000302",
+        "sha256": "91e07d987f56c7beb387f0270594db12bb864c95e6e3d2dfc7eee493dd4c0957",
+        "byte_start": 297104,
+        "byte_end_exclusive": 297289,
+        "excerpt_sha256": "02f0e1af7ccae53ff9d50b24996b5a0bf373270fc8861172991e6ffe89f92148"
+      },
+      {
+        "id": "PLAYBACK_RETRY_AND_PARSE",
+        "source_url": "https://front.player.boatrace-cdn.jp/lib/streaks/2.5.8/streaksplayer.min.js?t=20260428000302",
+        "sha256": "91e07d987f56c7beb387f0270594db12bb864c95e6e3d2dfc7eee493dd4c0957",
+        "byte_start": 297255,
+        "byte_end_exclusive": 297532,
+        "excerpt_sha256": "70298a29c4414f19bc04c4bb16314b0181303f43a2ecfe6affc5073e4a2799bb"
+      },
+      {
+        "id": "LIVE_NORMAL_PLAYBACK_API_CALLBACK",
+        "source_url": "https://front.player.boatrace-cdn.jp/js/live.js?t=20260428000302",
+        "sha256": "eeb812473c139e2f32127b3e49774ffdeb48c97cef7821598e0e191f7ae465d8",
+        "byte_start": 5805,
+        "byte_end_exclusive": 6104,
+        "excerpt_sha256": "d26b0672e50d58e023a2702635616bdcfc9e561a37be6d5039353e5650d289d2"
+      },
+      {
+        "id": "SDK_LOADMEDIA_ERROR_BRANCH",
+        "source_url": "https://front.player.boatrace-cdn.jp/lib/streaks/2.5.8/streaksplayer.min.js?t=20260428000302",
+        "sha256": "91e07d987f56c7beb387f0270594db12bb864c95e6e3d2dfc7eee493dd4c0957",
+        "byte_start": 1203697,
+        "byte_end_exclusive": 1203916,
+        "excerpt_sha256": "10144e8f48edf0fb7bbb34ad9f58c798d9985420202c44493f966b096e00eafa"
+      },
+      {
+        "id": "LIVE_REQUIRED_INPUT_SETTINGS_GATE",
+        "source_url": "https://front.player.boatrace-cdn.jp/js/live.js?t=20260428000302",
+        "sha256": "eeb812473c139e2f32127b3e49774ffdeb48c97cef7821598e0e191f7ae465d8",
+        "byte_start": 48,
+        "byte_end_exclusive": 551,
+        "excerpt_sha256": "09922c9f51b13127ad0065b5d4b6ce7ea332c73eaa3ab6b001f10c9fcdedb5b5"
+      },
+      {
+        "id": "LIVE_MEDIA_OPTIONS_NO_AUTH_VALUE",
+        "source_url": "https://front.player.boatrace-cdn.jp/js/live.js?t=20260428000302",
+        "sha256": "eeb812473c139e2f32127b3e49774ffdeb48c97cef7821598e0e191f7ae465d8",
+        "byte_start": 4833,
+        "byte_end_exclusive": 5169,
+        "excerpt_sha256": "bef4fb6a1170ae79a8c158aaaff30cbd88344a504beb7f2e321e3eb46e3aff34"
+      },
+      {
+        "id": "PLAYER_STORAGE_PURPOSES",
+        "source_url": "https://front.player.boatrace-cdn.jp/js/player.js?t=20260428000302",
+        "sha256": "44638cc804fc585c79ff9736618ec592c00d548b24980e666de5bcf7fe5a1356",
+        "byte_start": 0,
+        "byte_end_exclusive": 1289,
+        "excerpt_sha256": "44638cc804fc585c79ff9736618ec592c00d548b24980e666de5bcf7fe5a1356"
+      },
+      {
+        "id": "BOATCAST_SUPPORTED_PC_BROWSERS",
+        "source_url": "https://boatcast.jp/static/sitepolicy/index.html",
+        "sha256": "34cb1c6e1d4656c8059f303a82025297933330b2bde42b9a258b2d37446f1638",
+        "byte_start": 10593,
+        "byte_end_exclusive": 11020,
+        "excerpt_sha256": "7476c13343b4503216c21ad502b78088d1ca7bd2b71f79b7980024027785e7c5"
+      },
+      {
+        "id": "CONTACT_VISIBLE_REQUIRED_LIMITS_AND_NO_REPLY",
+        "source_url": "https://boatcast.jp/static/contact/index.html",
+        "sha256": "572a6c51e5488a1d22f37ddaece43a0b989a663360066a0f56f24b7e76580328",
+        "byte_start": 3013,
+        "byte_end_exclusive": 3914,
+        "excerpt_sha256": "ec2a1dca8390e9ea1dddb6a39ce0fbb29eb8a0c0af43e6461e0c5e7b37bcd1fd"
+      },
+      {
+        "id": "CONTACT_FORM_METHOD_AND_EXTERNAL_ACTION",
+        "source_url": "https://boatcast.jp/static/contact/index.html",
+        "sha256": "572a6c51e5488a1d22f37ddaece43a0b989a663360066a0f56f24b7e76580328",
+        "byte_start": 4149,
+        "byte_end_exclusive": 4279,
+        "excerpt_sha256": "fd58a9d97df47cb8caccce0ad7e8e791fa1b668d52cb526af7cff05afc164676"
+      },
+      {
+        "id": "CONTACT_ONLY_VISIBLE_TEXT_FIELD",
+        "source_url": "https://boatcast.jp/static/contact/index.html",
+        "sha256": "572a6c51e5488a1d22f37ddaece43a0b989a663360066a0f56f24b7e76580328",
+        "byte_start": 4469,
+        "byte_end_exclusive": 4644,
+        "excerpt_sha256": "9211fb4f6af524d9dbb3ce0a1c46d40eb4e4b6a5c99729d7a1f23c2795c22dec"
+      }
+    ]
+  },
+  "specific_rejection_cause": {
+    "status": "UNKNOWN",
+    "territory_login_origin_ip_publish_window_or_browser_not_proven": true,
+    "detailed_official_P01002_specification_located": false,
+    "linux_headless_not_among_recommended_desktop_environments": true,
+    "unsupported_environment_proven_to_cause403": false
+  },
+  "official_public_feedback_form": {
+    "url": "https://boatcast.jp/static/contact/index.html",
+    "purpose": "Opinions and requests; not an established reply-capable technical support channel",
+    "notice": "ご質問等は返信しかねますので、ご了承ください。",
+    "max_full_width_characters": 500,
+    "half_width_kana_allowed": false,
+    "submitted": false,
+    "reply_capable_technical_recipient_confirmed": false,
+    "inquiry_draft": "../BOATCAST_OFFICIAL_LIVE_ACCESS_20261107.md"
+  },
+  "published_documentation_sources": [
+    {
+      "source_url": "https://boatcast.jp/static/contact/index.html",
+      "http_status": 200,
+      "retrieval_completed_at_utc": "2026-11-06T15:47:51.779789+00:00",
+      "raw_response_sha256": "572a6c51e5488a1d22f37ddaece43a0b989a663360066a0f56f24b7e76580328"
+    },
+    {
+      "source_url": "https://boatcast.jp/static/sitepolicy/index.html",
+      "http_status": 200,
+      "retrieval_completed_at_utc": "2026-11-06T15:46:07.771041+00:00",
+      "raw_response_sha256": "34cb1c6e1d4656c8059f303a82025297933330b2bde42b9a258b2d37446f1638"
+    },
+    {
+      "source_url": "https://www.boatrace-fukuoka.com/modules/other/?page=index_env",
+      "http_status": 200,
+      "retrieval_completed_at_utc": "2026-11-06T15:47:51.897407+00:00",
+      "raw_response_sha256": "f672e1b2d7a5da1ca164ac1e5f1aaaa7809f6204f87b412396dfda0aca4cbf19"
+    },
+    {
+      "source_url": "https://www.boatrace.jp/owpc/pc/extra/enjoy/guide/faq/index.html",
+      "http_status": 200,
+      "retrieval_completed_at_utc": "2026-11-06T15:52:30.944736+00:00",
+      "raw_response_sha256": "ba9fa6fba51eb4dbd5496cbd8819ee12f9d64d608f97978762f1ae52cd6c0bf8"
+    },
+    {
+      "source_url": "https://www.boatrace.jp/owpc/pc/extra/tb/support/faq.html",
+      "http_status": 200,
+      "retrieval_completed_at_utc": "2026-11-06T15:50:12.312974+00:00",
+      "raw_response_sha256": "9e31e44cf5c7ea0465264fb46313fce4eb527fcf439d961c2e6d60cdc461bf41"
+    },
+    {
+      "source_url": "https://www.boatrace.jp/owpc/pc/extra/enjoy/guide/faq/official_web/index.html",
+      "http_status": 200,
+      "retrieval_completed_at_utc": "2026-11-06T15:54:25.554502+00:00",
+      "raw_response_sha256": "40ccd8128449cb16da0c1686205600e5ff3009e38c97533ea6be4f3d002c7f8b"
+    },
+    {
+      "source_url": "https://front.player.boatrace-cdn.jp/js/live.js?t=20260428000302",
+      "http_status": 200,
+      "retrieval_completed_at_utc": "2026-11-06T15:47:52.399382+00:00",
+      "raw_response_sha256": "eeb812473c139e2f32127b3e49774ffdeb48c97cef7821598e0e191f7ae465d8"
+    },
+    {
+      "source_url": "https://front.player.boatrace-cdn.jp/js/player.js?t=20260428000302",
+      "http_status": 200,
+      "retrieval_completed_at_utc": "2026-11-06T15:46:08.050114+00:00",
+      "raw_response_sha256": "44638cc804fc585c79ff9736618ec592c00d548b24980e666de5bcf7fe5a1356"
+    },
+    {
+      "source_url": "https://front.player.boatrace-cdn.jp/lib/streaks/2.5.8/streaksplayer.min.js?t=20260428000302",
+      "http_status": 200,
+      "retrieval_completed_at_utc": "2026-11-06T15:47:52.749924+00:00",
+      "raw_response_sha256": "91e07d987f56c7beb387f0270594db12bb864c95e6e3d2dfc7eee493dd4c0957"
+    }
+  ],
+  "verification": {
+    "cached_denial_and_bootstrap_and_sdk_hash_assertions": "PASS",
+    "all_12_excerpt_full_source_and_byte_slice_hash_checks": "PASS",
+    "regression_command": "python -m unittest tests.test_repeated_cycle tests.test_local_forecast_automation tests.test_observed_weight_learning",
+    "regression_tests_passed": 99,
+    "regression_tests_failed": 0,
+    "regression_log_sha256": "65929eacec25676fe1a09f3a0a627b010a84ee6669ec66102031344bb1c0bc1f",
+    "does_not_establish": "Successful current LIVE playback, real-device Safari, six-boat tracking, measured strength, or prospective video-model accuracy improvement"
+  },
+  "preservation": {
+    "starting_local_head": "85d16fa9a0641a3009f4c21f86c84c4b5379e387",
+    "remote_head_inspected_and_audit_notes_preserved": "701b7716c70d95173621bb6a0865c0dc1f88f1ed",
+    "numeric_caps_from_parallel_work_not_adopted_per_user_instruction": true,
+    "defaults": {
+      "MAX_ROUNDS": null,
+      "SOURCE_LIMIT": null,
+      "MAX_SECONDS": null,
+      "ROUND_SOURCE_LIMIT": null
+    },
+    "repeated_cycle_sha256": "346335be7e60dbaa98d436589c4e2e0f28d83c7974bb11e5a9adf049a3f5fdbf",
+    "counters_integrity_and_provider_waits_preserved": true,
+    "seed_forecast_database_sha256": "c40bead05533ace426188ea8a111b1e4a4a639283f576972ba276e14a3e8ff1a",
+    "protected_processes_observed_alive": [
+      423218,
+      271439
+    ],
+    "latest_checked_forecast_run": {
+      "id": 42211744943,
+      "status": "completed",
+      "conclusion": "success",
+      "updated_at_utc": "2026-11-06T12:57:43Z",
+      "head_sha": "fb4f70b026424d9b50b792dc308a378664ee7c81"
+    },
+    "latest_run_not_described_as_currently_running": true
+  },
+  "private_evidence_sha256": {
+    "client_diagnosis": "655cb1197c57f6026ff433335874bf6cf990c55ccd85eeaaed770af75693b42b",
+    "public_code_and_support_source_report": "4dd45f7001aafa79eddffa9148bc35e40a80c266163c8ad0fc700f4826f02a37",
+    "exact_source_excerpts": "b54fdabf364119055f8e6132d5f4ccf71d95bb6082e224ba1a9cf88e500df29d",
+    "cached_source_independent_check": "81400ac7344251b96d59864f840ea3af6edcab78049f23655ca8c408b2fb7ed0",
+    "static_source_independent_check": "07edcbe65b580c1f21be8e24e3f4d0f1f503719c5bd6265d00c39397e10e042a",
+    "operator_identification_addendum": "8b355b3e7202858765c2a01fd897a70599f85d532e311477f4a1e94fa01a4061",
+    "operator_public_contact_followthrough": "8f7314ce9db07982a52fdb616e0b357579cc54a928ffb92600ccffade5cc2536"
+  },
+  "actions_this_investigation": {
+    "denied_media_or_playback_api_retries": 0,
+    "external_messages_or_form_posts": 0,
+    "credential_values_collected_or_replayed": false,
+    "ip_location_identity_or_header_workaround": false,
+    "protected_runtime_stopped_or_restarted": false,
+    "manual_forecast_dispatch_rerun_or_cancel": false,
+    "new_workflow_pr_model_family_paid_service": false,
+    "main_merge_public_app_deploy_or_production_model_switch": false
+  },
+  "next_legitimate_dependency": "Establish a reply-capable official support/operator channel and obtain the actual viewing condition and permitted automated-analysis acquisition route. Apply only a documented authorized fix, then verify ordinary playback during an active event.",
+  "official_operator_followthrough": {
+    "operator": "一般財団法人BOATRACE振興会",
+    "public_organization_overview": "https://www.boatrace-pr.jp/pc/extra/introduction/about.html",
+    "http_status": 200,
+    "retrieved_at_utc": "2026-11-06T16:06:04.349984+00:00",
+    "source_sha256": "3060ffc18ebd35ed58d72b87f6d017b30f45f6f25473248f6f14a330d354faa7",
+    "general_postal_location_confirmed": true,
+    "phone_email_form_or_contact_link_published_on_this_overview": false,
+    "LIVE_technical_contact_or_reply_guarantee_confirmed": false,
+    "limit": "Only the published operator chain and this overview were checked; not a claim about all other operator pages."
+  }
+}

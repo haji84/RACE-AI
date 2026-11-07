@@ -1,0 +1,2 @@
+PASS 390: explicit generation request, exact returned original, reuse message, invalid response retention and missing native inputs
+PASS 1440: explicit generation request, exact returned original, reuse message, invalid response retention and missing native inputs

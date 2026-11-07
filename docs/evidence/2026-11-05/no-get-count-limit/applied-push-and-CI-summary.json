@@ -1,0 +1,60 @@
+{
+  "checked_at_utc": "2026-11-05T04:32:31.765578+00:00",
+  "owner_approval": "てきようして",
+  "pr": 71,
+  "source_head": "717725c26c3be7ffd1ee02c045b3311a169aef3c",
+  "old_public_head": "897a31c21b703f2474683fb13143f814686f92dd",
+  "successor_run": 41967896991,
+  "predecessor_run": 41964059991,
+  "count_limits": {
+    "cumulative": null,
+    "per_call": null
+  },
+  "cadence_seconds": 180,
+  "max_rounds": 24,
+  "max_seconds": 3900,
+  "workflow_unchanged": true,
+  "source_files_remote_match": true,
+  "main_changed": false,
+  "environment_published": false,
+  "new_workflow_created": false,
+  "new_PR_created": false,
+  "runs": [
+    {
+      "id": 41964059991,
+      "status": "in_progress",
+      "conclusion": null,
+      "head_sha": "fea5b2a404dd5eb5a602d741263a95000c1e3b6f",
+      "updated_at": "2026-11-05T03:50:21Z"
+    },
+    {
+      "id": 41967896991,
+      "status": "pending",
+      "conclusion": null,
+      "head_sha": "717725c26c3be7ffd1ee02c045b3311a169aef3c",
+      "updated_at": "2026-11-05T04:27:14Z"
+    }
+  ],
+  "CI": [
+    {
+      "id": 41967903546,
+      "head_sha": "717725c26c3be7ffd1ee02c045b3311a169aef3c",
+      "status": "completed",
+      "conclusion": "success",
+      "updated_at": "2026-11-05T04:30:37Z"
+    },
+    {
+      "id": 41967903393,
+      "head_sha": "717725c26c3be7ffd1ee02c045b3311a169aef3c",
+      "status": "completed",
+      "conclusion": "success",
+      "updated_at": "2026-11-05T04:27:41Z"
+    }
+  ],
+  "prepush_tests": {
+    "python_focused": 122,
+    "node": 179,
+    "original_full_python": 888,
+    "synthetic_browser_groups": 37
+  }
+}

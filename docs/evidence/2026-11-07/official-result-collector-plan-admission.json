@@ -1,0 +1,26 @@
+{
+  "actual_collector_execution_verified": false,
+  "actual_independent_native_receipts_verified": true,
+  "all_thirty_fit_complete": false,
+  "cases_by_sport": {
+    "autorace": 12,
+    "horse": 9,
+    "keirin": 11
+  },
+  "known_special_retained_but_excluded_from_collection": 1,
+  "maximum_requests": 32,
+  "minimum_result_wait_seconds": 120,
+  "native_artifact_count": 4,
+  "native_capsule_count": 177,
+  "native_distinct_races_verified": 33,
+  "plaintext_published": false,
+  "plan_case_count": 32,
+  "plan_cipher_bytes": 7327549,
+  "plan_cipher_sha256": "4462df5154dfb9cf9580e685ee9ec63e69d961474aea31dda01bc2bf0941d2e8",
+  "prepared_at": "2026-11-07T05:29:35.281036+00:00",
+  "prior_journal_count": 0,
+  "provider_requests_performed": 0,
+  "schema": "RACE_AI_OFFICIAL_RESULT_PLAN_ADMISSION_COUNTS_V1",
+  "state": "OWNER_ENCRYPTED_PLAN_AND_REAL_NATIVE_SOURCES_VERIFIED",
+  "static_cache_reused": 95
+}

@@ -1,0 +1,212 @@
+{
+  "base_head": "7d10dc895cbd90fd3553f613b2987f7bf3dd6540",
+  "files": [
+    {
+      "path": ".github/workflows/forecast-audit-ui.yml",
+      "status": "MODIFIED"
+    },
+    {
+      "path": "audit/state/all-existing-model-derived-owner-research.json",
+      "status": "ADDED"
+    },
+    {
+      "path": "audit/state/boat-venue-learning-context-input.json",
+      "status": "MODIFIED"
+    },
+    {
+      "path": "docs/GITHUB_NONBOAT_ORIGINAL_RECOVERY_20261107.md",
+      "status": "ADDED"
+    },
+    {
+      "path": "docs/REAL_MODEL_LEARNING_PROGRESS_20261107.md",
+      "status": "ADDED"
+    },
+    {
+      "path": "docs/evidence/2026-11-07/github-nonboat-original-recovery-counts.json",
+      "status": "ADDED"
+    },
+    {
+      "path": "docs/evidence/2026-11-07/native-model-future-feature-coverage.json",
+      "status": "ADDED"
+    },
+    {
+      "path": "docs/evidence/2026-11-07/native-model-learning-changed-files.json",
+      "status": "ADDED"
+    },
+    {
+      "path": "docs/evidence/2026-11-07/native-model-learning-final-verification.json",
+      "status": "ADDED"
+    },
+    {
+      "path": "docs/evidence/2026-11-07/nine-native-model-ci-verification.json",
+      "status": "ADDED"
+    },
+    {
+      "path": "docs/evidence/2026-11-07/nine-native-model-future-pdca-counts.json",
+      "status": "ADDED"
+    },
+    {
+      "path": "docs/evidence/2026-11-07/nine-native-model-future-save-counts.json",
+      "status": "ADDED"
+    },
+    {
+      "path": "docs/evidence/2026-11-07/nine-native-model-future-source-retention.json",
+      "status": "ADDED"
+    },
+    {
+      "path": "docs/evidence/2026-11-07/nine-native-model-learning-counts.json",
+      "status": "ADDED"
+    },
+    {
+      "path": "docs/evidence/2026-11-07/nine-native-model-next-review-counts.json",
+      "status": "ADDED"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-11-07-real-model-learning-completion.md",
+      "status": "ADDED"
+    },
+    {
+      "path": "race_ai/all_existing_model_derivation.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "race_ai/all_existing_model_future_p0.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "race_ai/all_existing_model_inputs.py",
+      "status": "MODIFIED"
+    },
+    {
+      "path": "race_ai/all_existing_model_intake.py",
+      "status": "MODIFIED"
+    },
+    {
+      "path": "race_ai/all_existing_model_learning.py",
+      "status": "MODIFIED"
+    },
+    {
+      "path": "race_ai/all_existing_model_registry.py",
+      "status": "MODIFIED"
+    },
+    {
+      "path": "race_ai/all_existing_model_research.py",
+      "status": "MODIFIED"
+    },
+    {
+      "path": "race_ai/all_existing_model_result_intake.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "race_ai/all_existing_model_round_intake.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "race_ai/all_existing_model_runtime.py",
+      "status": "MODIFIED"
+    },
+    {
+      "path": "race_ai/all_existing_model_source_derivations.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "race_ai/boat_all_model_cycle.py",
+      "status": "MODIFIED"
+    },
+    {
+      "path": "race_ai/boat_all_model_inputs.py",
+      "status": "MODIFIED"
+    },
+    {
+      "path": "race_ai/boat_venue_research_retention.py",
+      "status": "MODIFIED"
+    },
+    {
+      "path": "race_ai/existing_model_dispatch.py",
+      "status": "MODIFIED"
+    },
+    {
+      "path": "scripts/all_existing_model_future_p0.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "scripts/all_existing_model_learning.py",
+      "status": "MODIFIED"
+    },
+    {
+      "path": "scripts/boat_all_model_cycle.py",
+      "status": "MODIFIED"
+    },
+    {
+      "path": "scripts/github_existing_cycle.py",
+      "status": "MODIFIED"
+    },
+    {
+      "path": "tests/test_all_existing_model_additional_requests.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "tests/test_all_existing_model_cli_derivation.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "tests/test_all_existing_model_cli_result_archives.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "tests/test_all_existing_model_cycle_capsule_caller.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "tests/test_all_existing_model_derivation.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "tests/test_all_existing_model_future_p0.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "tests/test_all_existing_model_future_p0_cli.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "tests/test_all_existing_model_result_intake.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "tests/test_all_existing_model_result_retention.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "tests/test_all_existing_model_round_intake.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "tests/test_all_existing_model_source_derivations.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "tests/test_all_existing_model_sparse_learning.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "tests/test_boat_all_model_native_capsules.py",
+      "status": "ADDED"
+    },
+    {
+      "path": "tests/test_boat_venue_research_receipt.py",
+      "status": "MODIFIED"
+    }
+  ],
+  "implementation_commits": [
+    "25720db",
+    "0a11ea0",
+    "ecc3142",
+    "10c9547",
+    "d10a55d",
+    "8d956e9",
+    "7b4f672",
+    "86e6f13"
+  ],
+  "schema": "RACE_AI_NATIVE_LEARNING_CHANGED_FILES_V1"
+}

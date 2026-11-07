@@ -1,0 +1,128 @@
+{
+  "schema": "RACE_AI_VIDEO_SEQUENTIAL_STITCHING_MEASURED_EVIDENCE_V1",
+  "recorded_at_jst": "2026-11-06T18:39:15.264910+09:00",
+  "classification": "REUSED_DEVELOPMENT_NOT_UNSEEN_SOURCE_OR_HUMAN_GROUND_TRUTH",
+  "code_commit": "517e290",
+  "collection_policy": {
+    "source_limit": null,
+    "round_source_limit": null,
+    "max_rounds": null,
+    "max_seconds": null,
+    "upstream_denial_and_retry_waits_preserved": true
+  },
+  "actual_prefix": {
+    "decoded_frames": 617,
+    "actual_detector_camera_samples": 78,
+    "identity_evaluated_frames": 7,
+    "numbered_regions": 1,
+    "full_media_tracking": false
+  },
+  "october_paired": {
+    "actual_detector_forwards": 49,
+    "frames": 7,
+    "readable_ai_reference_observations": 35,
+    "unknown_number_references": 7,
+    "hull_references": 42,
+    "baseline": {
+      "hull_proposals": 61,
+      "hull_matches": 42,
+      "false_positive_hulls": 19,
+      "correct_number_outputs": 1
+    },
+    "stitched": {
+      "hull_proposals": 51,
+      "hull_matches": 42,
+      "false_positive_hulls": 9,
+      "correct_number_outputs": 1
+    },
+    "six_readable_reference_opportunities": 0,
+    "six_identity_accuracy": null,
+    "metric_positions_evaluated": false,
+    "camera_basis": "FIXED_OLD_FULL_PREFIX_MASKS_NOT_NEW_METRIC_VALIDATION"
+  },
+  "august_paired": {
+    "actual_detector_forwards": 49,
+    "frames": 7,
+    "baseline_hull_proposals": 47,
+    "stitched_hull_proposals": 45,
+    "baseline_numbered_regions": 0,
+    "stitched_numbered_regions": 0,
+    "camera_basis": "FIXED_OLD_SPARSE_MASKS_NOT_FULL_METRIC_VALIDATION",
+    "frame752": "OVERLAP_REMOVED_REAL_READER_COMPLETE_LOCALIZED_NUMBER_PROPOSALS_EMPTY"
+  },
+  "camera": {
+    "unchanged_baseline_samples": 97,
+    "baseline_outputs_exact": true,
+    "lk_usable_count_failures": 68,
+    "ransac_consensus_failures": 8,
+    "orb_fixed_prototype_adopted": false,
+    "independent_ai_shore_points": 19,
+    "orb_accepted_check_pairs": 0
+  },
+  "current_source": {
+    "venue": "MARUGAME",
+    "date": "2026-11-06",
+    "observed_at_jst": "2026-11-06T18:18:34.313+09:00",
+    "status": 403,
+    "provider_code": "P01002",
+    "playable_media_bytes": 0,
+    "retry_or_bypass": false
+  },
+  "feature_path": {
+    "features": [
+      "turn_sampled_radius",
+      "exit_speed_trend",
+      "runup_speed_trend",
+      "straight_mean_speed"
+    ],
+    "coordinate_space": "REFERENCE_IMAGE_PX",
+    "time_basis": "MEDIA_TIMELINE_SECONDS",
+    "existing_model_families_only": true,
+    "production_eligible": false,
+    "performance_rating": "NOT_COMPUTED",
+    "spatial_passage_and_identity_evidence_supplied": true
+  },
+  "verification": {
+    "full_python_tests": 1906,
+    "full_python_skips": 0,
+    "full_python_seconds": 319.169,
+    "full_python_scope": "517e290_WITH_FINAL_REVIEW_FIX_BEFORE_UNRELATED_VENUE_LEARNING_MERGE",
+    "node_contract_tests": 35,
+    "synthetic_browser_checks": 30,
+    "browser_widths": [
+      320,
+      390,
+      1440,
+      1920
+    ],
+    "browser_screenshots": 34,
+    "device_safari": false,
+    "post_merge_scoped_tests": 65,
+    "full_python_merged_tests": 1918,
+    "full_python_merged_skips": 0,
+    "full_python_merged_seconds": 436.229
+  },
+  "field_acceptance": {
+    "six_boat_tracking": false,
+    "validated_strength": false,
+    "real_video_forward_accuracy_improvement": false
+  },
+  "evidence_sha256": {
+    "initial_actual_prefix": "0bc0fde3fbc68a78c11ae0d870ea89bda08c3cf5ad935f7fc8483c5b7479075b",
+    "blind_number_reference": "a5a11cb1da87fbd0724899ccf4440357b70ef61ed1532d31bcda09fbf11709fd",
+    "october_paired_raw": "1f6fcf53659bfc6c5cf739d666198bf95706fd57b2cbfdfe37300788ef4e5602",
+    "october_independent_scores": "532062210c76f6bdbd47817c2bd65d7adbd45cc8fe4ff26e1323c9938cf866b8",
+    "august_paired_raw": "a9121643210fa6a10e2b830ff32635dc7e9d5a63d610bfa44fc8f04d2bc44193",
+    "camera_diagnosis_report": "0c82a7e599fae13a6aa65034f10069f40529f30d0909e1c6fb250d24707f733f",
+    "new_current_source_access": "6f9b7050f126575b469279c8e09a0ef18eba5edfc905c648284584023ad80fa4",
+    "full_python_final_log": "49585bef61dc3c5bfd077adf0d2b9294f46fee04964cd21b0d2801589db855ba",
+    "synthetic_browser_report": "1ec645a8a2c619b1804bcfe160cb20d4b31bccfead6441dc50b3d628e20708f2",
+    "number_asset_research": "4c4a1f734f18054dd0a8ecaee9149bfb5bf19b21b476b1e3b46a021235977eee",
+    "full_python_merged_log": "4be79896e37d448a36830c8cf847b6e4822e393894df1e2c253206dd4b70b817"
+  },
+  "source_sha256": {
+    "race_ai/boat_video_identity.py": "fc6f1cf16c63bc0db629ef3670dfa45043b4c65f4c00ef73f034f05a8d79a128",
+    "race_ai/boat_video_sequential_context.py": "050e5c0f2b426bd049cac2af030c14431a04e1b2eee95806be68490f8d03ee61",
+    "race_ai/boat_video_model_context.py": "2e6e6f135a48d506ec9f17d49327262fe57c1ded6224c8b57d18cd31e85e4c83"
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "scope": "SYNTHETIC_ONLY",
+  "python": {
+    "passed": 724,
+    "failed": 0,
+    "skipped": 0
+  },
+  "node": {
+    "passed": 175,
+    "failed": 0,
+    "skipped": 0
+  },
+  "browser": {
+    "passed_groups": 31,
+    "page_errors": [],
+    "responsive_widths": [
+      320,
+      390,
+      1440,
+      1920
+    ],
+    "all_native_dispatch_widths": [
+      390,
+      1440
+    ],
+    "png_count": 48
+  },
+  "native_fixture": {
+    "views": 18,
+    "existing_model_families": 16,
+    "private_sqlite_retained_originals": 16,
+    "reopen_operations": 2,
+    "native_forecasts_regenerated_on_readback": 0
+  },
+  "current_environment_real_originals": 0,
+  "source_provider_requests_by_this_work": 0,
+  "new_workflows": 0,
+  "new_scheduled_tasks": 0,
+  "physical_safari_accepted": false,
+  "all_four_sport_real_operation_complete": false,
+  "precision_improvement_proven": false,
+  "independent_review": "MATERIAL_FINDINGS_FIXED_AND_REREVIEWED"
+}

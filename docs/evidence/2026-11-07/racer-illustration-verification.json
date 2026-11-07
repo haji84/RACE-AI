@@ -1,0 +1,58 @@
+{
+  "schema": "RACE_AI_RACER_ILLUSTRATION_VERIFICATION_V1",
+  "target": 1669,
+  "ready": 1669,
+  "missing": 0,
+  "retained_originals": 6,
+  "new_illustrations": 1663,
+  "identity_and_asset_checks": {
+    "roster_union": true,
+    "source_photo_hashes": true,
+    "ordered_cell_bindings": true,
+    "asset_sha256_and_bytes": true,
+    "original_six_byte_identical": true,
+    "transparent_cell_corners": true
+  },
+  "tests": {
+    "targeted_python_passed": 36,
+    "node_contracts_and_browsers_passed": 161,
+    "portrait_browser_viewports": [
+      320,
+      390,
+      1440
+    ],
+    "deployed_browser_viewports": [
+      320,
+      390,
+      1440
+    ],
+    "last_target_registration": "5497",
+    "owner_history_browser_passed": true
+  },
+  "review": {
+    "fresh_reviewer": true,
+    "material_findings": 1,
+    "resolved_findings": 1,
+    "fix": "Exact versioned portrait URLs are allowlisted in the local server; invalid versions and unknown assets remain 404.",
+    "artistic_review": "Source and generated cells visually compared by the implementer."
+  },
+  "deployment": {
+    "status": "PAGES_PRESENTATION_REFRESHED",
+    "source_commit": "946911bd1aba24489242ca615fed15474dd1041d",
+    "parent_commit": "a884223867e11c7a155c0afbe6a3001c1a62b0c1",
+    "cipher_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+    "manifest_sha256": "1a7ad3f7aef344764e0fd4a1221516c55734f8733c4276defd34fe097e68a529",
+    "portrait_count": 1669,
+    "ciphertext_unchanged": true,
+    "plaintext_published": false,
+    "source_branch_commit": "414fa47cb69b6cd55d485b37d9473b7539ba11a1",
+    "originals_unchanged": 6,
+    "manifest_fields_preserved": true,
+    "image_assets": 54,
+    "http_verified": true,
+    "http_files": 68,
+    "http_image_assets": 54
+  },
+  "retained_cipher_files": 7,
+  "all_cipher_blobs_unchanged": true
+}

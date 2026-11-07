@@ -1,0 +1,14 @@
+{
+  "file": "RACE_AI_20261105_prediction_app.zip",
+  "bytes": 6298035,
+  "sha256": "7345b569b55cc98b21bee7db8aa009166a3e307c39dc3cfbbabe6bfb318cb35b",
+  "files": 290,
+  "native_forecasts": 288,
+  "races": 144,
+  "forecast_json_parts": 1,
+  "seed_verified_originals": 288,
+  "crc_verified": true,
+  "all_member_sha256_verified": true,
+  "independent_freeze_verified": false,
+  "all_sports_models_complete": false
+}

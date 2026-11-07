@@ -1,0 +1,195 @@
+{
+  "schema": "RACE_AI_VIDEO_FIELD_VALIDATION_FOLLOWUP_V1",
+  "recorded_at_jst": "2026-11-06T20:27:42.567661+09:00",
+  "code_commit": "26fa5145d9618f57fa5ea232bd58607bd411ceb8",
+  "field_acceptance": {
+    "verified_six_boat_tracking": false,
+    "validated_strength": false,
+    "prospective_video_accuracy_improvement": false,
+    "qualified_current_video_pairs": 0,
+    "unverified_forecast_probability_or_roi_published": false
+  },
+  "collection_policy": {
+    "MAX_ROUNDS": null,
+    "SOURCE_LIMIT": null,
+    "MAX_SECONDS": null,
+    "ROUND_SOURCE_LIMIT": null,
+    "real_denials_and_waits_retained": true,
+    "explicit_finite_library_tests_not_runtime_defaults": true
+  },
+  "training_data": {
+    "source_license": "CC BY-SA 4.0",
+    "source_author": "Nesnad",
+    "source_media_sha256": "1ac1f0c27f58d8d64ebb1cfc13c2c4e9133cf7bbcce04052f23c28bf2e37f194",
+    "inspected_thumbnails": 97,
+    "inspected_native_frames": 10,
+    "direct_native_digit_boxes": 12,
+    "labels_per_digit": 2,
+    "explicit_non_digit_patches": 5,
+    "unknown_excluded": 2,
+    "human_ground_truth": false,
+    "independent_holdout": false,
+    "all_development": true,
+    "corrected_observation": "OLD_REFERENCE_OMITTED_3_BUT_ORIGINAL_HAS_DIRECTLY_READABLE_3"
+  },
+  "oracle_reading": {
+    "training_diagnostic_only": true,
+    "native_correct": 10,
+    "padded_correct": 3,
+    "deslanted_correct": 2,
+    "total_native_glyphs": 12,
+    "not_end_to_end_accuracy": true
+  },
+  "full_matched_video": {
+    "decoded_frames": 775,
+    "actual_samples": 97,
+    "all_bgr_pts_matched": true,
+    "shared_tiling_calls": 97,
+    "hull_detector_dnn_forwards": 679,
+    "actual_crnn_forwards": 1343,
+    "legacy_crnn_forwards": 858,
+    "native_crnn_forwards": 485,
+    "legacy_reader_calls": 118,
+    "legacy_complete": 118,
+    "native_reader_calls": 118,
+    "native_complete": 115,
+    "native_incomplete_budget": 3,
+    "legacy_temporal_candidates": 0,
+    "native_temporal_candidates": 2,
+    "native_valid_positions": 0,
+    "native_position_entries": 582,
+    "camera_status_counts": {
+      "ACCEPTED": 12,
+      "CAMERA_FIT_REJECTED": 8,
+      "INSUFFICIENT_BACKGROUND": 76,
+      "REFERENCE_INITIALIZATION": 1
+    },
+    "elapsed_seconds": 954.112858,
+    "whole_craft_reference": {
+      "frames": 10,
+      "approximate_hulls": 45,
+      "direct_numbers": 25,
+      "unknown_numbers": 20,
+      "hull_detections_in_reference_frames": 15,
+      "geometry_matches_iou_0_5": 7,
+      "strict_exhaustive_frames": 5,
+      "strict_false_positive_hulls": 1,
+      "sparse_unmatched_excluded": 7,
+      "verified_identity_count_legacy": 0,
+      "verified_identity_count_native": 0,
+      "readable_whole_six_opportunities": 0,
+      "split_frozen_before_predictions": false
+    },
+    "additional_two_events": {
+      "frames": [
+        376,
+        384
+      ],
+      "selection_after_outputs": true,
+      "reference_output_blind": true,
+      "both_sparse": true,
+      "matched_known_identity_predictions": 0,
+      "unmatched_predictions_excluded": 2,
+      "native_event_geometry_iou": [
+        0.4655433,
+        0.4299224
+      ],
+      "correctness": "NOT_ESTABLISHED_NO_THRESHOLD_CHANGE"
+    },
+    "native_view_adopted": false,
+    "hog_localizer_adopted": false,
+    "private_only": true
+  },
+  "camera_cadence": {
+    "mask_source": "SAME_ACTUAL_HSV_ONLY_FOR_BOTH_ARMS_NOT_DEFAULT_HULL_MASKING",
+    "sampled_frames": 97,
+    "native_frames": 775,
+    "intervals": 96,
+    "valid_sampled_intervals": 15,
+    "valid_native_compositions": 39,
+    "both": 9,
+    "sampled_only": 6,
+    "native_only": 30,
+    "neither": 51,
+    "shared_hsv_masks_equal": 97,
+    "composition_replay_exact": true,
+    "independent_ai_pairs": 4,
+    "independent_ai_points": 19,
+    "available_independent_pairs_sampled": 1,
+    "available_independent_pairs_native": 1,
+    "checked_points_available": 6,
+    "rms_sampled_px": 1.19886,
+    "rms_native_px": 1.18458,
+    "reference_uncertainty_per_endpoint_px": [
+      6,
+      10
+    ],
+    "new_native_only_intervals_independently_checked": 0,
+    "accuracy_improvement_established": false,
+    "adopted": false
+  },
+  "software_changes": {
+    "sequential_four_image_proxies": true,
+    "existing_model_families_only": true,
+    "serialized_context_validator_requires_numpy": false,
+    "producer_numpy_remains_optional_video_dependency": true,
+    "exact_stdlib_determinant_rejects_cancellation": true,
+    "no_new_dependencies": true,
+    "production_eligibility_promoted": false
+  },
+  "verification": {
+    "final_full_python_tests": 1938,
+    "final_full_python_skips": 0,
+    "final_full_python_seconds": 340.746,
+    "data_only_without_numpy_or_cv_tests": 2,
+    "optional_producer_tests_skipped_in_no_site_environment": 16,
+    "policy_scoped_tests": 105,
+    "result_sync_scoped_tests": 18,
+    "node_contract_tests": 35,
+    "browser_suites": [
+      "ui_browser",
+      "saved_pdca_browser",
+      "saved_pages_browser",
+      "results_budget_browser"
+    ],
+    "all_browser_suites_passed": true,
+    "browser_scope": "SYNTHETIC_ONLY_CHROMIUM_NOT_DEVICE_SAFARI",
+    "last_previously_verified_ci_source": "9242b998a6fc3a5d716f767f1bb11dc47a39aafa",
+    "previously_verified_ci_runs": [
+      42198208757,
+      42198208756
+    ],
+    "previous_ci_not_claimed_for_latest_code": true
+  },
+  "automatic_operation": {
+    "monitor_pid": 423218,
+    "intake_pid": 271439,
+    "old_run": 42191323045,
+    "old_run_completed_at_utc": "2026-11-06T10:10:40Z",
+    "new_run": 42201006851,
+    "new_run_created_at_utc": "2026-11-06T10:13:31Z",
+    "new_run_pinned_head": "0ff6439af131cef1b364be283786de3b9bf5f6be",
+    "local_adoption_at_utc": "2026-11-06T10:14:00.338Z",
+    "manual_dispatch_or_restart": false,
+    "continuous_coverage_guaranteed": false
+  },
+  "evidence_sha256": {
+    "licensed_six_class_pack": "6e1425ea023df451f94a95f18f7e9adacc9e20aa3ba91720955ab74d2475e155",
+    "whole_craft_reference": "b29d6d9051677ca4446056dcb985b7c831650f90be360bad508685bd30a10670",
+    "post_output_selected_two_frame_reference": "31d73d09229679d9b4eca30b7e130ee9da2a3625ad5d6c605bc7658ecc718c6e",
+    "full_matched_final_seal": "36f88de6106f78cf9a75059ee3044626e386be5e75a3054072efc6e0780de871",
+    "full_matched_report": "3e08ca66a8cf82e32e1cd5c06a58b57fd6539257119e652b9c7b089318b1d6e5",
+    "native_cadence_report": "439ef77af59e0ec4cc9fbde255ef538dd3892395155edefaaf94e871fec55771",
+    "no_cap_reconciliation": "6ba5949565b490953e0766159b2c516ddfbff6fd9a354bcf9b62cf260704e445",
+    "exact_validator_review_fix": "7b58cf910a0ec225aeed000e4de7f8e7d976afbfffae56ff5051834f74e6647e",
+    "full_python_final": "ba94453625a64f6e85437fdc500788095728e03263961e28b336de044b6b33a5",
+    "final_browser_suites": "3fa61ce01119434da56d4b259b02b3b5ff795cabeb355c10e6f783ff447d70e9",
+    "normal_handoff_observation": "8455f931ea850e11cfe33ba076cd33b74d4cceea87b33381583b68544294e572"
+  },
+  "source_sha256": {
+    "race_ai/repeated_cycle.py": "346335be7e60dbaa98d436589c4e2e0f28d83c7974bb11e5a9adf049a3f5fdbf",
+    "race_ai/boat_video_identity.py": "fc6f1cf16c63bc0db629ef3670dfa45043b4c65f4c00ef73f034f05a8d79a128",
+    "race_ai/boat_video_sequential_context.py": "0661c27a467744b35c248d5dc4762d17b0bcb4a0a960c205901f346bf367d88a",
+    "race_ai/boat_video_model_context.py": "2e6e6f135a48d506ec9f17d49327262fe57c1ded6224c8b57d18cd31e85e4c83"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "python_tests": 1171,
+  "seconds": 192.93,
+  "failures": 0,
+  "errors": 0,
+  "final_focused_tests": 47,
+  "legacy_focused_tests": 99,
+  "independent_review": "NO_MATERIAL_FINDINGS",
+  "source_sha256": {
+    "race_ai/cycle_recovery.py": "f787f7b99bae6d716ecbebb53609fb64134277bd7515e3520816c5a574605888",
+    "race_ai/continuity_checkpoint.py": "489ccbd527eb377a18a467e9a5e61b70838f5eb6a02b9beccae2075b0e7dedf8",
+    "tests/test_continuity_archive_size.py": "d2758d475eff8c23d96860d9b3d280c2529abf8e011b132850489d11bba7097e",
+    "tests/test_continuity_checkpoint.py": "03c1d8f075d4ba440edca1fec2974abfcc8f8f0d2a0b47291998ab37edc5203b",
+    ".github/workflows/boat-nationwide-ab-one-shot.yml": "56ca86d00851bbe4e4f0fb9ef9bdf0cfbbba43418d3f099d654a08df91a5dc0e",
+    ".gitignore": "9bec0a74d3abbc2d1d12f2095202642157032c110d5c2a2738ff89525bb3a632"
+  },
+  "forecast_model_sources_changed": false,
+  "source_waits_or_counters_cleared": false,
+  "originals_modified_or_deleted": false,
+  "app_restarted": false,
+  "app_pid_preserved": 157669,
+  "new_workflows": 0,
+  "new_models": 0,
+  "real_new_compact_artifact_verified": false,
+  "existing_worker_runs_new_regressions_before_collection": true,
+  "new_private_checkpoint_output_git_ignored": true,
+  "verification_command_correction": {
+    "missing_module": "tests.test_workflow_lifecycle",
+    "correct_module": "tests.test_cycle_workflow_references",
+    "resolved": true
+  },
+  "final_targeted_tests": 53
+}

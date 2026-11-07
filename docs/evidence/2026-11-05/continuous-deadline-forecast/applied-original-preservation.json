@@ -1,0 +1,25 @@
+{
+  "preserved_previous_forecasts": 725,
+  "current_forecasts": 753,
+  "new_variants": 28,
+  "checked": [
+    "SHA",
+    "Top8",
+    "full ranking",
+    "first saved time",
+    "artifact lineage",
+    "original JSON SHA"
+  ],
+  "current_revision": "23062e4d6af661b901cf2907d6d3b2f76ed87088a4fb8a5c91b3d657b39bcaa8",
+  "counts": {
+    "forecasts": 753,
+    "p0_forecasts": 288,
+    "p1_forecasts": 465,
+    "races": 144,
+    "result_observations": 205,
+    "result_races": 94
+  },
+  "originals_regenerated": false,
+  "source_gets_during_comparison": 0,
+  "inference_during_comparison": 0
+}

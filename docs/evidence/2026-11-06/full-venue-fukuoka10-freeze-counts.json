@@ -1,0 +1,33 @@
+{
+  "actual_purchases": false,
+  "all_calendar_source_coverage_complete": false,
+  "all_today_earlier_races_in_recent_window_claim": false,
+  "comparison_axis": "RECENT_INPUT_ADDITION_WITH_IDENTICAL_SHARED_VENUE_COURSE_INPUTS",
+  "course_st_participants": 6,
+  "cutoff_at": "2026-11-06T15:11:00+09:00",
+  "generated_at": "2026-11-06T05:54:37.379051+00:00",
+  "github_head_sha": "9996e08a3b29d3a6bbd86c02f7d7ed4f32e19c64",
+  "github_receipt": {
+    "path": "audit/freezes/2026-11-06/boat-full-venue-20261106-22-10-sha.json",
+    "run_id": 42171293614
+  },
+  "github_run_created_at": "2026-11-06T05:55:45Z",
+  "history_coverage": {
+    "participants_with_recent_finish": 2,
+    "participants_with_recent_st": 6
+  },
+  "independent_pre_cutoff_receipt_verified": true,
+  "model_count": 2,
+  "original_file_sha256": "b687e8506294742100cec1fcf3eebca55a9785274a3f5669c39a27c0bd184850",
+  "pair_sha256": "65372105718d47bab9a441501cd8455ad747852b5aae00951a9791c81577bc4a",
+  "physical_freeze_completed_at": "2026-11-06T05:54:38.182966+00:00",
+  "production_promoted": false,
+  "race_id": "20261106-22-10",
+  "recent_window_definition": "LATEST_UP_TO_10_RECORDED_ELIGIBLE_OPPORTUNITIES_IN_RETAINED_HISTORY_THROUGH_2026-11-05",
+  "result_status": "PENDING_AFTER_CUTOFF",
+  "same_venue_inputs_for_both_models_and_variants": true,
+  "schema": "RACE_AI_FULL_VENUE_REAL_FUTURE_FREEZE_COUNTS_V1",
+  "source_dataset_sha256": "3deb20e26ccc73add405032a45a790abb02d8424e43bb7d1e9b45861ab3d7a19",
+  "source_scope": "OBSERVED_KNOWN_COURSE_ROWS_IN_PUBLISHED_FILES_ONLY",
+  "variant_count": 2
+}

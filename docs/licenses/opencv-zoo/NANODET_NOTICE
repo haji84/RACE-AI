@@ -1,0 +1,7 @@
+Generic NanoDet model and reference tensor decoding from OpenCV Zoo.
+Source: https://github.com/opencv/opencv_zoo/tree/ea593dd89b88d4b3978273a16f0d8cfe93d2e3ea/models/object_detection_nanodet
+Contributor: Sri Siddarth Chakaravarthy / OpenCV GSoC 2022.
+License: Apache-2.0, reproduced in NANODET_LICENSE.
+Model: object_detection_nanodet_2022nov.onnx, 3,800,954 bytes.
+SHA256: 4b82da9944b88577175ee23a459dce2e26e6e4be573def65b1055dc2d9720186.
+Race AI changes: bounded input/output validation, shape-based head pairing, stable distance softmax, letterbox remapping, vessel-only NMS, private crop OCR, and unverified research output gates.

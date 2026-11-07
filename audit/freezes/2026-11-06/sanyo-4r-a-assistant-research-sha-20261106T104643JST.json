@@ -1,0 +1,30 @@
+{
+  "schema": "RACE_AI_AUTORACE_ASSISTANT_SHA_ONLY_FORECAST_RESEARCH_V1",
+  "record_type": "RESEARCH_A_CONTENT_HASH_ONLY",
+  "race_id": "autorace:2026-11-06:sanyo:4",
+  "event_date_jst": "2026-11-06",
+  "venue": "山陽",
+  "race_no": 4,
+  "phase": "A_PRE_TRIAL_INPUT_NO_SAME_DAY_TRIAL_USED",
+  "generated_at_jst": "2026-11-06T10:46:43.358434+09:00",
+  "scheduled_cutoff_at_jst": "2026-11-06T12:03:00+09:00",
+  "research_forecast_sha256": "8eaedb50ccee7ec8834d5ea08d343d766566790f4bddffaf4c98a537b0d2f576",
+  "exact_private_json_file_sha256": "c27fa698d57964b718585ded1ace13e0d73fb5ccf64376c71132005999560550",
+  "private_forecast_filename": "autorace_20261106_sanyo_4R_A_assistant_observed_RESEARCH.json",
+  "forecast_content_location": "LOCAL_CONVERSATION_ARTIFACT_ONLY",
+  "model_id": "autorace-personal-observed-baseline-v1",
+  "source_urls": [
+    "https://autorace.tokyo-sports.co.jp/list/race/20261106064",
+    "https://www.winticket.jp/autorace/sanyo/racecard/2026110406/3/4"
+  ],
+  "excluded_historical_outcome": "car 2 prior 0 finish (2026-11-04) is non-placement and excluded, four other valid finishes used",
+  "ordered_top8_count": 8,
+  "supplemental_four_count": 4,
+  "official_trial_independently_verified": false,
+  "pre_trial_first_publication_verified": false,
+  "independent_pre_cutoff_receipt_verified": false,
+  "formal_hit_at_8_eligible": false,
+  "reported_probabilities_calibrated": false,
+  "full_text_not_in_repo": true,
+  "note": "Append-only, independent proof of earlier trial publication and durable private archive not established."
+}

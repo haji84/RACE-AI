@@ -1,0 +1,21 @@
+{
+  "schema": "AUTORACE_PUBLIC_HASH_ANCHOR_V1",
+  "race_id": "2026-11-07_kawaguchi_7R",
+  "phase": "B_AFTER_CONFIRMED_TRIAL",
+  "version": "B_v1",
+  "generated_at_jst": "2026-11-07T13:25:16+09:00",
+  "conservative_cutoff_jst": "2026-11-07T13:41:00+09:00",
+  "underlying_A_v1_original_sha256": "a34bb4c163356931eec9e1bbeef56ee4cafe25e37ee7d64d9d7c12f6e6728820",
+  "research_B_original_sha256": "6fb2a69c1c8d620fd4fae5dfd90ad0b58baf2b53024ac77c93ca355f249158d1",
+  "predictive_content_published": false,
+  "private_original_state": "local_conversation_attachment_only; GitHub stores SHA and timestamp, not B picks",
+  "source_urls": [
+    "https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/1/7"
+  ],
+  "observed_change": "Observed current trial for all eight cars at 13:24 JST before 13:41 cutoff; A top ticket 8-5-7, B top ticket 8-7-6 due to 7 and 6 trial indicators",
+  "unchanged_preexisting_A": true,
+  "result_and_payout_used": false,
+  "betting": "NO_BET",
+  "scoring": "research heuristic only; all estimated probabilities uncalibrated",
+  "note": "Append-only audit. Github commit timestamp is independent readback evidence, but private payload persistence outside conversation not completed."
+}

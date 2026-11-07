@@ -1,0 +1,9 @@
+{
+  "manifest_path": "state/boat-venue-history/v1/learning/17f9b19a416776b186e1baab3f648fc030aaf2aa28b011508eaf1e0e395d8698/learning.json",
+  "manifest_sha256": "17f9b19a416776b186e1baab3f648fc030aaf2aa28b011508eaf1e0e395d8698",
+  "repository_id": "1416489937",
+  "schema": "RACE_AI_BOAT_VENUE_LEARNING_INPUT_V1",
+  "source_commit": "17918fbec38de28b3697bb5468aa3332f614e8d3",
+  "status": "READY",
+  "training_sha256": "45f5ed2650d7faf932f2d756bceb2d64dcfd1f1bb5196d2f3e2117fbc41eac4b"
+}

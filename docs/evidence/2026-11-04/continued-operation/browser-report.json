@@ -1,0 +1,48 @@
+{
+  "scope": "SYNTHETIC_ONLY",
+  "checks": [
+    "320: honest empty startup",
+    "320: local import, four sports and search",
+    "320: seven-page navigation and no horizontal overflow",
+    "320: detail tabs and saved model/stage switching",
+    "320: editable candidates, confirm and delete",
+    "320: midnight history, rejected import and keyboard",
+    "320: sealed original ZIP -> private restore -> view -> browser, exact Top8/SHA, P1/learned selection and separate capture history",
+    "390: honest empty startup",
+    "390: local import, four sports and search",
+    "390: seven-page navigation and no horizontal overflow",
+    "390: detail tabs and saved model/stage switching",
+    "390: editable candidates, confirm and delete",
+    "390: midnight history, rejected import and keyboard",
+    "existing four-sport engine -> saved SQLite -> read-only projection -> browser, unchanged SHA and separate revisions",
+    "390: sealed original ZIP -> private restore -> view -> browser, exact Top8/SHA, P1/learned selection and separate capture history",
+    "390: sixteen native families and four-sport private SQLite restart -> browser, exact hashes/order, native trial phases, five-ticket plan and missing-input states",
+    "1440: honest empty startup",
+    "1440: local import, four sports and search",
+    "1440: seven-page navigation and no horizontal overflow",
+    "1440: detail tabs and saved model/stage switching",
+    "1440: editable candidates, confirm and delete",
+    "1440: midnight history, rejected import and keyboard",
+    "1440: sealed original ZIP -> private restore -> view -> browser, exact Top8/SHA, P1/learned selection and separate capture history",
+    "1440: sixteen native families and four-sport private SQLite restart -> browser, exact hashes/order, native trial phases, five-ticket plan and missing-input states",
+    "1920: honest empty startup",
+    "1920: local import, four sports and search",
+    "1920: seven-page navigation and no horizontal overflow",
+    "1920: detail tabs and saved model/stage switching",
+    "1920: editable candidates, confirm and delete",
+    "1920: midnight history, rejected import and keyboard",
+    "1920: sealed original ZIP -> private restore -> view -> browser, exact Top8/SHA, P1/learned selection and separate capture history"
+  ],
+  "errors": [],
+  "source_requests": 0,
+  "widths": [
+    320,
+    390,
+    1440,
+    1920
+  ],
+  "dispatch_fixture_widths": [
+    390,
+    1440
+  ]
+}

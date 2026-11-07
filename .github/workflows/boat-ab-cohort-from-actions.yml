@@ -1,0 +1,42 @@
+name: BOAT multi-race A-B prospective cohort (no Vercel)
+on:
+  push:
+    branches:
+      - feat/four-sport-forecast-audit-view-20261022
+    paths:
+      - docs/evidence/boat-ab-cohort-evaluate-trigger.txt
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: boat-prospective-cohort-rebuild
+  cancel-in-progress: false
+jobs:
+  cohort:
+    name: Recheck frozen A/B artifacts against official result receipts
+    if: github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: haji84/RACE-AI
+    steps:
+      - name: Checkout exact PR branch commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.sha }}
+      - name: Validate paired confidence and missing forecasts in synthetic tests
+        run: |
+          python -m unittest tests.test_boat_ab_shadow tests.test_boat_ab_result_audit tests.test_boat_ab_cohort tests.test_boat_ab_cohort_cli -v
+      - name: Re-download original artifacts and calculate actual multi-race cohort
+        run: |
+          python scripts/boat_ab_cohort_from_actions.py --manifest docs/evidence/2026-11-03/boat-ab-prospective-artifact-registry.json --output-directory boat_ab_cohort_output
+      - name: Preserve selected cohort report and traceable input
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: boat-ab-cohort-${{ github.run_id }}
+          path: boat_ab_cohort_output
+          if-no-files-found: warn
+          retention-days: 7

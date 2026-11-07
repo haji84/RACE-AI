@@ -1,0 +1,21 @@
+{
+  "package_filename": "RACE_AI_20261105_automatic_app.zip",
+  "bytes": 12762191,
+  "sha256": "78aa10f498ee4d10eb5c7a96a72748a59224f34a87c5e7d517ce9479bcbfc81f",
+  "file_count": 319,
+  "ZIP_CRC_ok": true,
+  "all_member_SHA256_match": true,
+  "source_file_count": 276,
+  "seed_files": 20,
+  "local_originals": 288,
+  "GitHub_snapshot_originals": 293,
+  "provenance_separate": true,
+  "forecast_JSON_files": 2,
+  "forecast_JSON_total_bytes": 5612931,
+  "each_forecast_JSON_under_4MiB": true,
+  "caches": 0,
+  "symlinks": 0,
+  "isolated_readiness": "LOCAL_FORECAST_READY: saved_predictions=288",
+  "source_GETs": 0,
+  "inference_calls": 0
+}

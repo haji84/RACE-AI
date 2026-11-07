@@ -1,0 +1,9 @@
+2026-11-03 JST: owner-approved one-shot live HTML research probe, 3 GET max, Tokuyama only, no wagers, no Vercel, no public raw data.
+One diagnostic retry 2026-11-03 10:02 JST; still strictly 3 GET per execution and safe-stop.
+Third bounded run: Miyajima one-shot 2026-11-03 JST, 3 requests maximum, source proof only.
+Fourth bounded run: cross-check live Miyajima 1R normalized source against independent Cloudflare JS parser in memory, no raw upload.
+Fifth bounded diagnostic: identify precise JS parser stage mismatch; 3 GET max, 2026-11-03 JST.
+Sixth bounded run: verify repaired navigation parser parity against original frozen Miyajima 1R source.
+Seventh and last bounded source diagnostic: verify actual row count before race; stop if still incompatible.
+Final post-fix one-shot source parity test of Miyajima1R at T minus five minutes; no raw media artifact.
+Postclose one GET only: inspect JS racer cell structure, no new forecast, no post-result inference.
