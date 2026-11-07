@@ -1,0 +1,295 @@
+{
+  "schema": "RACE_AI_RACER_DAILY_VERIFICATION_V1",
+  "status": "PASS",
+  "verified_at": "2026-11-07T10:05:23.300014+00:00",
+  "implementation_commit": "cfa61b38ed05156e23b012cacd802ec922b29b90",
+  "pages_presentation": {
+    "status": "PAGES_PRESENTATION_REFRESHED",
+    "source_commit": "f4cea73eb324f820426918ae700990bd727388bf",
+    "parent_commit": "79f09bc9f197511acb25dc0d49bce3a1b35f44ef",
+    "cipher_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+    "manifest_sha256": "f68d442cb169dc7130df91e003f464c27e2ca66f3c80341a0bd35c36d1a8cc31",
+    "portrait_count": 1669,
+    "ciphertext_unchanged": true,
+    "plaintext_published": false,
+    "changed_assets": [
+      "app.js",
+      "index.html",
+      "racer-daily.js",
+      "racer-profiles.js"
+    ],
+    "unchanged_cipher_count": 7,
+    "unchanged_portrait_image_count": 54,
+    "manifest_identity_unchanged": true,
+    "implementation_commit": "c3ad652d64277f5476c4af7880c3ca895f70f2dd"
+  },
+  "initial_run": {
+    "id": 42358904704,
+    "url": "https://github.com/haji84/RACE-AI/actions/runs/42358904704",
+    "as_of": "2026-11-07T09:15:11.322221+00:00",
+    "collection_status": "COLLECTED",
+    "forecast_inputs_changed": false,
+    "implementation_commit": "5a4054cd3f931df46e49fa1728823636c95b63c7",
+    "last_source_at": "2026-11-07T09:15:08.981222+00:00",
+    "missing_days": 1,
+    "new_source_files": 1,
+    "parsed_days": 89,
+    "partial_days": 0,
+    "period": {
+      "days": 90,
+      "end": "2026-11-06",
+      "start": "2026-08-09"
+    },
+    "private_sources_published": false,
+    "public": {
+      "pages_commit": "3f90497333c9f0b3acc3527615cf74b762987529",
+      "parent_commit": "f4cea73eb324f820426918ae700990bd727388bf",
+      "path": "data/racer-daily.json",
+      "presentation_and_ciphertext_unchanged": true,
+      "public_sha256": "20dc7c4a010ba62c3636793cdd71c1a33230ded0d116b799cac40426802d236c",
+      "public_url": "https://raw.githubusercontent.com/haji84/RACE-AI/gh-pages/data/racer-daily.json",
+      "raw_sources_published": false,
+      "status": "DAILY_PUBLIC_PUBLISHED",
+      "unchanged_cipher_count": 7
+    },
+    "public_profiles": 1669,
+    "retained": {
+      "cipher_path": "state/boat-racer-daily/v1/g000001/c9e17ef61fe02f01a122851c0984639a2d1893b3a1866d5a6535c64f9ac757d7.enc",
+      "cipher_sha256": "c9e17ef61fe02f01a122851c0984639a2d1893b3a1866d5a6535c64f9ac757d7",
+      "generation": 1,
+      "plaintext_published": false,
+      "source_commit": "7ce8e4e689ff8c7227c6c529579a3367719e219b",
+      "status": "DAILY_ENCRYPTED_STATE_RETAINED"
+    },
+    "schema": "RACE_AI_RACER_DAILY_RUN_V1",
+    "seeded_days": 88,
+    "source_requests": 4,
+    "status": "DAILY_REFRESHED"
+  },
+  "main_retained_run": {
+    "id": 42362151647,
+    "url": "https://github.com/haji84/RACE-AI/actions/runs/42362151647",
+    "as_of": "2026-11-07T10:01:45.104827+00:00",
+    "collection_status": "NO_CHANGES",
+    "forecast_inputs_changed": false,
+    "implementation_commit": "cfa61b38ed05156e23b012cacd802ec922b29b90",
+    "last_source_at": "2026-11-07T09:15:08.981222+00:00",
+    "missing_days": 1,
+    "new_source_files": 0,
+    "parsed_days": 89,
+    "partial_days": 0,
+    "period": {
+      "days": 90,
+      "end": "2026-11-06",
+      "start": "2026-08-09"
+    },
+    "private_sources_published": false,
+    "public": {
+      "pages_commit": "d4665a2d08f7c4369ff5bd9cf649fd9a28b12521",
+      "parent_commit": "3f90497333c9f0b3acc3527615cf74b762987529",
+      "path": "data/racer-daily.json",
+      "presentation_and_ciphertext_unchanged": true,
+      "public_sha256": "4a4928ea0d7e9cff768f06536aae2c572f9ef596db532940d73f1dab271971b8",
+      "public_url": "https://raw.githubusercontent.com/haji84/RACE-AI/gh-pages/data/racer-daily.json",
+      "raw_sources_published": false,
+      "status": "DAILY_PUBLIC_PUBLISHED",
+      "unchanged_cipher_count": 7
+    },
+    "public_profiles": 1669,
+    "retained": {
+      "cipher_path": "state/boat-racer-daily/v1/g000002/4cf44f6eeacaf73d5dc3560a73004a7debc4c5249d1cec3913f063154ddac6d2.enc",
+      "cipher_sha256": "4cf44f6eeacaf73d5dc3560a73004a7debc4c5249d1cec3913f063154ddac6d2",
+      "generation": 2,
+      "plaintext_published": false,
+      "source_commit": "c99632c02c7f8915227e6054a9d60a1530f38dc3",
+      "status": "DAILY_ENCRYPTED_STATE_RETAINED"
+    },
+    "schema": "RACE_AI_RACER_DAILY_RUN_V1",
+    "seeded_days": 0,
+    "source_requests": 3,
+    "status": "DAILY_REFRESHED"
+  },
+  "scheduler": {
+    "pr": 85,
+    "url": "https://github.com/haji84/RACE-AI/pull/85",
+    "status": "PASS",
+    "workflow_present_on_main": true,
+    "main_commit": "6ecf770f7f120e38558b9babdcfe3e8ed768b56b",
+    "runtime_commit": "cfa61b38ed05156e23b012cacd802ec922b29b90",
+    "utc_cron": "20 21 * * *",
+    "jst_schedule": "06:20 daily",
+    "workflow_sha256": "9ff1e3dc82e8320f6f0786c3bcf229ff24787387d31a2e251975e6c17b17274f",
+    "actual_main_dispatch_run": 42362151647,
+    "main_protected_after": true,
+    "normal_merge": true,
+    "required_check": "unit",
+    "ci": [
+      {
+        "name": "restore_on_other_runner",
+        "status": "completed",
+        "conclusion": "success",
+        "app_id": 15368
+      },
+      {
+        "name": "CodeRabbit",
+        "status": "completed",
+        "conclusion": "skipped",
+        "app_id": 347564
+      },
+      {
+        "name": "daily_live_once",
+        "status": "completed",
+        "conclusion": "skipped",
+        "app_id": 15368
+      },
+      {
+        "name": "production_key_readiness",
+        "status": "completed",
+        "conclusion": "skipped",
+        "app_id": 15368
+      },
+      {
+        "name": "archive_fixture_from_main",
+        "status": "completed",
+        "conclusion": "skipped",
+        "app_id": 15368
+      },
+      {
+        "name": "personal_hourly",
+        "status": "completed",
+        "conclusion": "skipped",
+        "app_id": 15368
+      },
+      {
+        "name": "discovery_tests",
+        "status": "completed",
+        "conclusion": "success",
+        "app_id": 15368
+      },
+      {
+        "name": "produce",
+        "status": "completed",
+        "conclusion": "success",
+        "app_id": 15368
+      },
+      {
+        "name": "keirin_core",
+        "status": "completed",
+        "conclusion": "success",
+        "app_id": 15368
+      },
+      {
+        "name": "unit",
+        "status": "completed",
+        "conclusion": "success",
+        "app_id": 15368
+      },
+      {
+        "name": "private_two_race_cycle",
+        "status": "completed",
+        "conclusion": "success",
+        "app_id": 15368
+      },
+      {
+        "name": "archive_tests",
+        "status": "completed",
+        "conclusion": "success",
+        "app_id": 15368
+      }
+    ]
+  },
+  "browser": {
+    "status": "PASS",
+    "url": "https://haji84.github.io/RACE-AI/",
+    "data_url": "https://raw.githubusercontent.com/haji84/RACE-AI/gh-pages/data/racer-daily.json",
+    "public_sha256": "4a4928ea0d7e9cff768f06536aae2c572f9ef596db532940d73f1dab271971b8",
+    "generated_at": "2026-11-07T10:01:45.104827+00:00",
+    "period": {
+      "days": 90,
+      "end": "2026-11-06",
+      "start": "2026-08-09"
+    },
+    "coverage": {
+      "complete": false,
+      "missing_days": [
+        "2026-09-14"
+      ],
+      "missing_days_count": 1,
+      "parsed_days": 89,
+      "partial_days": []
+    },
+    "people": 1669,
+    "browser_checks": [
+      {
+        "width": 320,
+        "athletes": 6,
+        "courses": 36,
+        "status": "PASS",
+        "productionRawFetch": true,
+        "originalForecastAccess": false
+      },
+      {
+        "width": 390,
+        "athletes": 6,
+        "courses": 36,
+        "status": "PASS",
+        "productionRawFetch": true,
+        "originalForecastAccess": false
+      },
+      {
+        "width": 1440,
+        "athletes": 6,
+        "courses": 36,
+        "status": "PASS",
+        "productionRawFetch": true,
+        "originalForecastAccess": false
+      }
+    ],
+    "race_entries": "invented UI-only; aggregate metrics from actual published official results"
+  },
+  "verification": {
+    "python_related": {
+      "passed": 99,
+      "failed": 0
+    },
+    "node_related": {
+      "passed": 97,
+      "failed": 0
+    },
+    "local_explorer": {
+      "groups": 18,
+      "widths": [
+        320,
+        390,
+        1440
+      ]
+    },
+    "deployed_existing_explorer": {
+      "groups": 15,
+      "widths": [
+        320,
+        390,
+        1440
+      ]
+    },
+    "encrypted_pages_browser": "PASS",
+    "offline_profile_and_csp_browser": "PASS",
+    "public_http_sha_matches_main_run": true,
+    "daily_publication_changed_only": [
+      "data/racer-daily.json"
+    ],
+    "real_private_forecasts_opened_for_browser_test": false
+  },
+  "limits": {
+    "all90days_complete": false,
+    "missing_days": [
+      "2026-09-14"
+    ],
+    "partial_days": 0,
+    "actual_scheduled_cron_event_observed": false,
+    "main_manual_dispatch_verified": true,
+    "saved_forecasts_recomputed": false,
+    "raw_results_or_sqlite_published": false,
+    "new_key_provider_or_security_settings": false
+  }
+}
