@@ -22,6 +22,10 @@ def parse_settlement(raw,receipt,*,now):
     if parsed['status']=='CANCELLED':
         need(not prices and not refunds,'RESULT_CANCELLATION_CONFLICT')
         return dict(out,status='AVAILABLE',data=dict(status='cancelled',confirmed=True,finish_confirmed=False,results=[],payouts=[],refund_boats=[],refunds=[],top3=None,confirmed_scope='TRIFECTA_ONLY'))
+    need(all((r['finish'] is None or r['st_status'] not in ('F','L','ABSENT')) and
+             (r['st_status'] not in ('F','L') or r['result_code']==r['st_status']) and
+             (r['result_code'] not in ('F','L') or r['st_status']==r['result_code'])
+             for r in parsed['rows']),'RESULT_START_FINISH_CONFLICT')
     records=[dict(race_id=r['race_id'],lane=r['lane'],racer_registration_id=r['racer_id'],name=r['name'],finish=r['finish'],
         finish_status='FINISHED' if r['finish'] is not None else r['result_code'],verified_official=True) for r in parsed['rows']]
     need(all(r['lane'] in refunds for r in records if r['finish_status'] in ('F','L','欠')),'RESULT_REFUND_DISPOSITION_MISSING')
