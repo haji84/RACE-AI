@@ -253,3 +253,42 @@ class DatedInventoryTests(unittest.TestCase):
         with patch.object(cli,'_now',return_value=NEW_AT),patch.object(cli,'_http',side_effect=AssertionError('invalid parent clock source0')):
             with self.assertRaisesRegex(ValueError,'INVENTORY.*CLOCK'):
                 self.api.extend_collection(parent,self.root/'delta',not_after='2026-11-07')
+
+    def validation_report(self):
+        return dict(checked_at=OLD_AT,disputed_payout_races=0,numeric_finish_rows=18,
+            parsed_source_days=1,parser_revision=13,past_day_states={'PARSED':1},
+            requested_end='2026-11-05',requested_start='2026-11-01',source_set_sha256='c'*64,
+            st_centisecond_sum=100,st_centisecond_sum2=1000,st_ok_rows=18,typed_row_count=18,
+            unknown_actual_course_rows=0,unreported_venue_days=0)
+
+    def test_existing_full_archive_validation_remains_ancestral_and_interrupted_v2_resumes(self):
+        parent=self.parent();state=json.loads((parent/'collection.json').read_text())['state']
+        original=self.validation_report();state['full_archive_validation']=original;cli._store_progress(parent,state)
+        with patch.object(self.api,'collect_delta',side_effect=RuntimeError('inventory complete, no new day yet')):
+            with self.assertRaisesRegex(RuntimeError,'inventory complete'):self.extend(parent)
+        out=self.root/'delta';record=json.loads((out/'collection.json').read_text());self.assertEqual(record['state']['full_archive_validation'],original)
+        calls=[]
+        def fetch(url):
+            calls.append(url);self.assertTrue(url.endswith('k261107.lzh'))
+            return archive(day='2026-11-07'),NEW_AT
+        with patch.object(cli,'_now',return_value=NEW_AT),patch.object(cli,'_http',side_effect=fetch):
+            r=self.api.collect_delta(out)
+        self.assertEqual(r['upstream_gets'],1);self.assertEqual(len(calls),1)
+        current=json.loads((out/'collection.json').read_text())['state']
+        self.assertEqual(current['full_archive_validation'],original)
+        self.assertEqual(current['full_archive_validation']['requested_end'],'2026-11-05')
+        for field,value in [('requested_end','2026-11-07'),('checked_at',NEW_AT),('typed_row_count',24),(None,None)]:
+            changed=json.loads(json.dumps(current))
+            if field is None:changed.pop('full_archive_validation')
+            else:changed['full_archive_validation'][field]=value
+            cli._store_progress(out,changed)
+            with patch.object(cli,'_now',return_value=NEW_AT),patch.object(cli,'_http',side_effect=AssertionError('changed ancestral report source0')):
+                with self.assertRaisesRegex(ValueError,'ANCESTRAL_METADATA'):
+                    self.api.collect_delta(out)
+
+    def test_unknown_parent_extra_remains_hold_before_source_request(self):
+        parent=self.parent();state=json.loads((parent/'collection.json').read_text())['state']
+        state['unknown_validation_extension']={'arbitrary':True};cli._store_progress(parent,state)
+        with patch.object(cli,'_now',return_value=NEW_AT),patch.object(cli,'_http',side_effect=AssertionError('unknown parent metadata source0')):
+            with self.assertRaisesRegex(ValueError,'ANCESTRAL|FIELDS_INVALID'):
+                self.api.extend_collection(parent,self.root/'delta',not_after='2026-11-07')

@@ -25,10 +25,35 @@ from scripts.boat_all_racers import _read,_write,_codec
 SCHEMA='RACE_AI_ALL_PUBLISHED_HISTORY_PROGRESS_V2'
 PROOF_SCHEMA='RACE_AI_OFFICIAL_DATED_HISTORY_INVENTORY_V1'
 LIMIT=8*1024*1024
+ANCESTRAL_FIELDS=frozenset({'full_archive_validation'})
+VALIDATION_FIELDS=frozenset('checked_at disputed_payout_races numeric_finish_rows parsed_source_days parser_revision past_day_states requested_end requested_start source_set_sha256 st_centisecond_sum st_centisecond_sum2 st_ok_rows typed_row_count unknown_actual_course_rows unreported_venue_days'.split())
 
 
 def _bytes(value):return json.dumps(value,sort_keys=True,separators=(',',':')).encode()
 def _sha(raw):return hashlib.sha256(raw).hexdigest()
+def validate_ancestral_metadata(state):
+    """Recognize the existing report, without extending its coverage claims."""
+    core={'schema','months','menu_sha256','captured_at','not_after','heads'}
+    if state['schema']==SCHEMA:core|={'inventory_captured_at','inventory_lineage'}
+    need(set(state)<=core|ANCESTRAL_FIELDS,'HISTORY_INVENTORY_ANCESTRAL_FIELDS_INVALID')
+    if 'full_archive_validation' not in state:return
+    report=state['full_archive_validation']
+    need(type(report) is dict and set(report)==VALIDATION_FIELDS,'HISTORY_INVENTORY_ANCESTRAL_METADATA_INVALID')
+    counters=VALIDATION_FIELDS-{'checked_at','past_day_states','requested_start','requested_end','source_set_sha256'}
+    need(all(type(report[k]) is int and report[k]>=0 for k in counters) and report['parser_revision']>=1,
+         'HISTORY_INVENTORY_ANCESTRAL_METADATA_INVALID')
+    states=report['past_day_states']
+    need(type(states) is dict and len(states)<=32 and all(type(k) is str and re.fullmatch('[A-Z_]{1,40}',k) and type(v) is int and v>=0 for k,v in states.items()),'HISTORY_INVENTORY_ANCESTRAL_METADATA_INVALID')
+    need(type(report['source_set_sha256']) is str and re.fullmatch('[a-f0-9]{64}',report['source_set_sha256']),
+         'HISTORY_INVENTORY_ANCESTRAL_METADATA_INVALID')
+    try:start=date.fromisoformat(report['requested_start']);end=date.fromisoformat(report['requested_end'])
+    except (TypeError,ValueError):raise ValueError('HISTORY_INVENTORY_ANCESTRAL_METADATA_INVALID') from None
+    need(start.isoformat()==report['requested_start'] and end.isoformat()==report['requested_end'] and start<=end and report['requested_end']<=state['not_after'] and
+         end<=stamp(report['checked_at']).astimezone(JST).date() and stamp(report['checked_at'])<=stamp(cli._now()),
+         'HISTORY_INVENTORY_ANCESTRAL_METADATA_INVALID')
+
+def _ancestral(state):return {k:state[k] for k in ANCESTRAL_FIELDS if k in state}
+
 def _signed(raw):
     from .boat_venue_history_handoff import _signed as verify
     return verify(raw)
@@ -108,6 +133,8 @@ def validate_inventory(root,state,*,manifest_raw=None):
         parentraw=_read(root/item['folder']/'parent.json',1000000)
         need(_sha(parentraw)==item['parent_manifest_sha256'],'HISTORY_INVENTORY_PARENT_HASH_INVALID')
         parent=_signed(parentraw)['state'];ancestors.append(_sha(parentraw))
+        validate_ancestral_metadata(parent)
+        need(_ancestral(state)==_ancestral(parent),'HISTORY_INVENTORY_ANCESTRAL_METADATA_CHANGED')
         need(parent.get('inventory_lineage',[])==entries[:number],'HISTORY_INVENTORY_PARENT_LINEAGE_INVALID')
         proof=_open_inventory(root,item);proofs.append(proof)
         need(item['folder']=='dated-inventory/'+_sha(_bytes(proof)),'HISTORY_INVENTORY_CONTENT_ADDRESS_INVALID')
@@ -189,6 +216,7 @@ def extend_collection(source,output,*,not_after=None,max_files=31):
     source=Path(source);out=Path(output)
     need(source.resolve()!=out.resolve() and source.resolve() not in out.resolve().parents,'HISTORY_DELTA_SEPARATE_OUTPUT_REQUIRED')
     parentraw,parent=_current(source)
+    validate_ancestral_metadata(parent)
     if parent['schema']==SCHEMA:validate_inventory(source,parent,manifest_raw=parentraw)
     need(stamp(parent.get('inventory_captured_at',parent['captured_at']))<=stamp(cli._now()),'HISTORY_INVENTORY_PARENT_CLOCK_INVALID')
     end=not_after or stamp(cli._now()).astimezone(JST).date().isoformat()

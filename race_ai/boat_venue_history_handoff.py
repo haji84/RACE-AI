@@ -20,8 +20,11 @@ DATED_SCHEMA='RACE_AI_ALL_PUBLISHED_HISTORY_PROGRESS_V2'
 
 def _dated_structure(s):
     """Recognize a bounded V2 locator; encrypted inventory is still required."""
-    need(set(s)=={'schema','months','menu_sha256','captured_at','not_after','heads',
-                  'inventory_captured_at','inventory_lineage'},'VENUE_DATED_COLLECTION_FIELDS_INVALID')
+    required={'schema','months','menu_sha256','captured_at','not_after','heads',
+              'inventory_captured_at','inventory_lineage'}
+    need(set(s) in (required,required|{'full_archive_validation'}),'VENUE_DATED_COLLECTION_FIELDS_INVALID')
+    from .boat_history_dated_inventory import validate_ancestral_metadata
+    validate_ancestral_metadata(s)
     lineage=s['inventory_lineage']
     need(type(lineage) is list and 1<=len(lineage)<=512 and
          type(s['menu_sha256']) is str and re.fullmatch('[a-f0-9]{64}',s['menu_sha256']) and
