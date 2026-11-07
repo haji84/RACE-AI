@@ -8,6 +8,7 @@ import hashlib,hmac,json,re
 from pathlib import Path
 
 from .teiai_history import need
+from .actions_contract import stamp
 from .boat_pdca_github_handoff import GitStateRepository,TRANSFER_REF
 from scripts.boat_venue_history import _manifest_mac,restore_month,_scope
 from scripts.boat_all_racers import _read,_write,_key_ready
@@ -15,16 +16,46 @@ from scripts.boat_all_racers import _read,_write,_key_ready
 PREFIX='state/boat-venue-history/v1/'
 LATEST=PREFIX+'latest.json'
 SCHEMA='RACE_AI_BOAT_VENUE_COLLECTION_INPUT_V1'
+DATED_SCHEMA='RACE_AI_ALL_PUBLISHED_HISTORY_PROGRESS_V2'
+
+def _dated_structure(s):
+    """Recognize a bounded V2 locator; encrypted inventory is still required."""
+    need(set(s)=={'schema','months','menu_sha256','captured_at','not_after','heads',
+                  'inventory_captured_at','inventory_lineage'},'VENUE_DATED_COLLECTION_FIELDS_INVALID')
+    lineage=s['inventory_lineage']
+    need(type(lineage) is list and 1<=len(lineage)<=512 and
+         type(s['menu_sha256']) is str and re.fullmatch('[a-f0-9]{64}',s['menu_sha256']) and
+         stamp(s['captured_at'])<=stamp(s['inventory_captured_at']),
+         'VENUE_DATED_COLLECTION_LINEAGE_INVALID')
+    folders=set()
+    for item in lineage:
+        need(type(item) is dict and set(item)=={'folder','parent_manifest_sha256','inventory_captured_at',
+             'not_after','month_indices','ciphertext_sha256','sqlite_sha256','scope'},
+             'VENUE_DATED_COLLECTION_DESCRIPTOR_INVALID')
+        need(type(item['folder']) is str and re.fullmatch(r'dated-inventory/[a-f0-9]{64}',item['folder']) and
+             item['folder'] not in folders and all(type(item[k]) is str and re.fullmatch('[a-f0-9]{64}',item[k])
+             for k in ('parent_manifest_sha256','ciphertext_sha256','sqlite_sha256')),
+             'VENUE_DATED_COLLECTION_LOCATOR_INVALID')
+        folders.add(item['folder']);stamp(item['inventory_captured_at'])
+        indices=item['month_indices']
+        need(type(indices) is dict and 1<=len(indices)<=512 and set(indices)<=set(s['months']),
+             'VENUE_DATED_COLLECTION_INDICES_INVALID')
+        for index in indices.values():
+            need(type(index) is dict and set(index)=={'sha256','captured_at'} and
+                 type(index['sha256']) is str and re.fullmatch('[a-f0-9]{64}',index['sha256']),
+                 'VENUE_DATED_COLLECTION_INDEX_INVALID')
+            stamp(index['captured_at'])
 
 def _signed(raw):
     record=json.loads(raw);need(set(record)=={'state','mac'} and hmac.compare_digest(record['mac'],_manifest_mac(record['state'])),
         'VENUE_COLLECTION_AUTHENTICATION_FAILED')
-    s=record['state'];need(s['schema']=='RACE_AI_ALL_PUBLISHED_HISTORY_PROGRESS_V1' and
+    s=record['state'];need(s['schema'] in ('RACE_AI_ALL_PUBLISHED_HISTORY_PROGRESS_V1',DATED_SCHEMA) and
         isinstance(s['months'],list) and len(s['months'])==len(set(s['months'])) and
         all(re.fullmatch('[0-9]{6}',m) for m in s['months']) and set(s['heads'])<=set(s['months']),'VENUE_COLLECTION_INVALID')
     for m,h in s['heads'].items():
         need(h['kind']=='ENCRYPTED' and re.fullmatch(m+r'/attempt-[0-9]{6}',h['folder']) and
              re.fullmatch('[a-f0-9]{64}',h['ciphertext_sha256']),'VENUE_COLLECTION_HEAD_INVALID')
+    if s['schema']==DATED_SCHEMA:_dated_structure(s)
     return record
 
 def _chain(root,m,head):
@@ -49,6 +80,10 @@ def _pointer(commit,path,raw):
 def publish_collection(root,repo,*,transport=None):
     need(_key_ready(),'OWNER_STATE_KEY_REQUIRED');root=Path(root)
     raw=_read(root/'collection.json',1000000);s=_signed(raw)['state']
+    dated=None
+    if s['schema']==DATED_SCHEMA:
+        from .boat_history_dated_inventory import validate_inventory
+        dated=validate_inventory(root,s,manifest_raw=raw)
     git=transport or GitStateRepository(repo,ref=TRANSFER_REF);parent=git.head()
     need(parent is not None,'VENUE_EXISTING_TRANSFER_REF_REQUIRED');git.fetch(parent)
     manifest=PREFIX+'manifests/'+hashlib.sha256(raw).hexdigest()+'.json';files={};old=None
@@ -57,8 +92,21 @@ def publish_collection(root,repo,*,transport=None):
         oldraw=git.read(parent,old_pointer['manifest_path'],1000000)
         need(hashlib.sha256(oldraw).hexdigest()==old_pointer['manifest_sha256'],'VENUE_PREVIOUS_MANIFEST_HASH_INVALID')
         old=_signed(oldraw)['state']
-        need(old['months']==s['months'] and old['menu_sha256']==s['menu_sha256'] and old['not_after']==s['not_after']
-             and set(old['heads'])<=set(s['heads']),'VENUE_COLLECTION_REGRESSION')
+        if old['schema']==s['schema']=='RACE_AI_ALL_PUBLISHED_HISTORY_PROGRESS_V1':
+            need(old['months']==s['months'] and old['menu_sha256']==s['menu_sha256'] and old['not_after']==s['not_after']
+                 and set(old['heads'])<=set(s['heads']),'VENUE_COLLECTION_REGRESSION')
+        else:
+            same_inventory=(old['schema']==s['schema']==DATED_SCHEMA and
+                            dict(old,heads={})==dict(s,heads={}))
+            need(dated is not None and (same_inventory or hashlib.sha256(oldraw).hexdigest() in
+                 dated['ancestor_manifest_sha256']) and set(old['heads'])<=set(s['heads']),
+                 'VENUE_COLLECTION_REGRESSION')
+    if dated is not None:
+        from .boat_history_dated_inventory import inventory_files
+        for relative,limit in inventory_files(s):
+            path=PREFIX+relative;body=_read(root/relative,limit)
+            if git.exists(parent,path):need(git.read(parent,path,limit)==body,'VENUE_IMMUTABLE_FILE_CHANGED')
+            else:files[path]=body
     for m,h in sorted(s['heads'].items()):
         chain=_chain(root,m,h)
         if old and m in old['heads']:
@@ -89,6 +137,11 @@ def readback_collection(pointer,root,repo,*,transport=None):
     need(hashlib.sha256(raw).hexdigest()==pointer['manifest_sha256'],'VENUE_MANIFEST_HASH_INVALID');s=_signed(raw)['state']
     root=Path(root);root.mkdir(parents=True,mode=0o700,exist_ok=True);need(not any(root.iterdir()),'VENUE_OUTPUT_EXISTS_DO_NOT_RESET')
     _write(root/'collection.json',raw);totals={k:0 for k in ('listed_days','parsed_days','missing_days','quarantined_days','pending_days','waiting_publication_days','partial_source_days')}
+    if s['schema']==DATED_SCHEMA:
+        from .boat_history_dated_inventory import inventory_files
+        for relative,limit in inventory_files(s):
+            target=root/relative;target.parent.mkdir(parents=True,mode=0o700,exist_ok=True)
+            _write(target,git.read(commit,PREFIX+relative,limit))
     for m,h in sorted(s['heads'].items()):
         relative=h['folder'];expected=h['ciphertext_sha256'];generation=h['generation'];attempt=h['attempt']
         while expected is not None:
@@ -108,6 +161,9 @@ def readback_collection(pointer,root,repo,*,transport=None):
                         relative=candidate;attempt=number;found=True;break
                 need(found,'VENUE_REMOTE_PREVIOUS_GENERATION_MISSING')
         need(generation==0,'VENUE_REMOTE_GENERATION_CHAIN_INVALID')
+    if s['schema']==DATED_SCHEMA:
+        from .boat_history_dated_inventory import validate_inventory
+        validate_inventory(root,s,manifest_raw=raw)
     return dict(totals,status='OWNER_VENUE_COLLECTION_READBACK_VERIFIED',months_restored=len(s['heads']),
         published_months=len(s['months']),manifest_sha256=pointer['manifest_sha256'],
         all_period_collection_complete=len(s['heads'])==len(s['months']) and totals['listed_days']>0 and

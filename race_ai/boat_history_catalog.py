@@ -94,6 +94,25 @@ class HistoryMonth:
         return self.db.execute('SELECT day,sha,captured_at,state,reason,starts FROM observations o '
                                'WHERE id=(SELECT max(i.id) FROM observations i WHERE i.day=o.day) ORDER BY day').fetchall()
 
+    def extend_inventory(self,index_raw,*,not_after,captured_at,parent_sqlite_sha256):
+        """Append an independently observed listing without changing old facts."""
+        clock=stamp(captured_at)
+        need(re.fullmatch('[a-f0-9]{64}',parent_sqlite_sha256 or ''),'HISTORY_INVENTORY_PARENT_HASH_INVALID')
+        rows=self.db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='inventory_observations'").fetchone()
+        previous=self.db.execute('SELECT not_after,captured_at FROM inventory_observations ORDER BY id DESC LIMIT 1').fetchone() if rows else None
+        old_end=previous[0] if previous else self.db.execute('SELECT not_after FROM meta').fetchone()[0]
+        need(not_after>=old_end and (not previous or clock>=stamp(previous[1])),'HISTORY_INVENTORY_CLOCK_OR_SCOPE_REGRESSION')
+        need(all(stamp(r[0])<=clock for r in self.db.execute('SELECT captured_at FROM observations')),'HISTORY_INVENTORY_CLOCK_OR_SCOPE_REGRESSION')
+        days=set(published_days(index_raw,month=self.month,not_after=not_after))
+        old={d for (d,) in self.db.execute('SELECT day FROM expected')}
+        need(old<=days,'HISTORY_INVENTORY_LISTING_REGRESSION')
+        added=sorted(days-old)
+        with self.db:
+            self.db.execute('CREATE TABLE IF NOT EXISTS inventory_observations(id INTEGER PRIMARY KEY,index_raw BLOB NOT NULL,not_after TEXT NOT NULL,captured_at TEXT NOT NULL,parent_sqlite_sha256 TEXT NOT NULL)')
+            self.db.execute('INSERT INTO inventory_observations(index_raw,not_after,captured_at,parent_sqlite_sha256) VALUES (?,?,?,?)',(index_raw,not_after,captured_at,parent_sqlite_sha256))
+            self.db.executemany('INSERT INTO expected VALUES (?)',[(d,) for d in added])
+        return added
+
     def record(self,day,raw,*,captured_at,parsed_at=None):
         self._day(day);stamp(captured_at)
         if parsed_at is not None:need(stamp(parsed_at)>=stamp(captured_at),'HISTORY_REPARSE_CLOCK_REGRESSION')
@@ -173,7 +192,9 @@ class HistoryMonth:
     def summary(self):
         heads=self._heads();states={s:sum(r[3]==s for r in heads) for s in ('PARSED','MISSING','QUARANTINED')}
         expected=self.db.execute('SELECT count(*) FROM expected').fetchone()[0]
-        index_raw=self.db.execute('SELECT index_raw FROM meta').fetchone()[0]
+        events=self.db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='inventory_observations'").fetchone()
+        index_raw=(self.db.execute('SELECT index_raw FROM inventory_observations ORDER BY id DESC LIMIT 1').fetchone()[0]
+                   if events else self.db.execute('SELECT index_raw FROM meta').fetchone()[0])
         excluded=len(_Fields(index_raw).days)-expected
         waiting=sum(r[3]=='WAITING_PUBLICATION' for r in heads)
         partial=sum(r[3]=='PARTIAL_SOURCE' for r in heads)

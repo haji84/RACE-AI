@@ -119,7 +119,7 @@ def restore_month(folder,*,expected_month):
     return c,report
 
 
-def capture_month(out,*,month,not_after=None,roster=(),resume=None,max_files=31,reparse_only=False):
+def capture_month(out,*,month,not_after=None,roster=(),resume=None,max_files=31,reparse_only=False,only_days=None,minimum_source_at=None):
     out=Path(out);out.mkdir(parents=True,mode=0o700,exist_ok=True)
     need(not any(out.iterdir()),'HISTORY_OUTPUT_EXISTS_DO_NOT_RESET')
     if not _key_ready():
@@ -134,6 +134,8 @@ def capture_month(out,*,month,not_after=None,roster=(),resume=None,max_files=31,
         if paused[0]:
             plan=paused[0];exc=SourceWait(plan['reason'],plan['retry_at'],state=plan['state'])
             exc.plan=plan;exc.upstream_attempted=False;raise exc
+        if only_days is not None:
+            need(minimum_source_at is not None and stamp(_now())>=stamp(minimum_source_at),'HISTORY_DELTA_CLOCK_REGRESSION')
         attempted=True
         try:return _http(url)
         except SourceWait as exc:
@@ -172,7 +174,12 @@ def capture_month(out,*,month,not_after=None,roster=(),resume=None,max_files=31,
         catalog=HistoryMonth(month=month,index_raw=index,not_after=until,roster=roster);scope=_scope()
     wait=catalog.active_wait(_now())
     if not wait and not reparse_only:
-        days=iter(catalog.pending()[:max_files])
+        pending_days=catalog.pending()
+        if only_days is not None:
+            need(type(only_days) is list and len(only_days)==len(set(only_days)),'HISTORY_DELTA_DAY_SCOPE_INVALID')
+            for day in only_days:catalog._day(day)
+            pending_days=[d for d in pending_days if d in only_days]
+        days=iter(pending_days[:max_files])
         with ThreadPoolExecutor(max_workers=2,thread_name_prefix='official-history') as pool:
             pending={}
             def submit():
@@ -184,7 +191,10 @@ def capture_month(out,*,month,not_after=None,roster=(),resume=None,max_files=31,
                 for future in done:
                     day=pending.pop(future)
                     try:
-                        raw,captured=future.result();catalog.record(day,raw,captured_at=captured,parsed_at=_now())
+                        raw,captured=future.result()
+                        if only_days is not None:
+                            need(stamp(minimum_source_at)<=stamp(captured)<=stamp(_now()),'HISTORY_DELTA_SOURCE_CLOCK_INVALID')
+                        catalog.record(day,raw,captured_at=captured,parsed_at=_now())
                     except SourceWait as exc:
                         plan=exc.plan
                         if plan.get('http_status')==404:catalog.missing(day,captured_at=_now(),http_status=404)
@@ -195,16 +205,23 @@ def capture_month(out,*,month,not_after=None,roster=(),resume=None,max_files=31,
                         if len(pending)==before:break
         # A late successful in-flight response must not erase an earlier 429.
         catalog.set_wait(wait)
+    return seal_catalog(out,catalog,scope,upstream_gets=gets,source_wait=wait)
+
+
+def seal_catalog(out,catalog,scope,*,upstream_gets=0,source_wait=None):
+    """The unchanged checkpoint codec shared by explicit dated extensions."""
+    out=Path(out);out.mkdir(parents=True,mode=0o700,exist_ok=True)
+    need(not any(out.iterdir()),'HISTORY_OUTPUT_EXISTS_DO_NOT_RESET')
     plain=catalog.serialize();sha=hashlib.sha256(plain).hexdigest()
     with tempfile.TemporaryDirectory(prefix='race-ai-history-seal-') as temp:
         t=Path(temp);_write(t/'private.sqlite',plain);_write(t/'scope.json',json.dumps(scope).encode())
         _codec('seal',t/'private.sqlite',out/'history.checkpoint',t/'scope.json')
     cipher=_read(out/'history.checkpoint',12*1024*1024)
-    report=dict(status='ENCRYPTED_MONTH_HISTORY_CHECKPOINT_CREATED',month=month,catalog=catalog.summary(),
-        upstream_gets=gets,scope=scope,source_wait=wait,sqlite_sha256=sha,ciphertext_sha256=hashlib.sha256(cipher).hexdigest(),
+    report=dict(status='ENCRYPTED_MONTH_HISTORY_CHECKPOINT_CREATED',month=catalog.month,catalog=catalog.summary(),
+        upstream_gets=upstream_gets,scope=scope,source_wait=source_wait,sqlite_sha256=sha,ciphertext_sha256=hashlib.sha256(cipher).hexdigest(),
         encrypted_checkpoint_created=True,all_available_period_complete=False,plaintext_published=False)
     _write(out/'summary.json',json.dumps(report,sort_keys=True).encode())
-    restored,_=restore_month(out,expected_month=month);need(restored.summary()==catalog.summary(),'HISTORY_IMMEDIATE_READBACK_MISMATCH')
+    restored,_=restore_month(out,expected_month=catalog.month);need(restored.summary()==catalog.summary(),'HISTORY_IMMEDIATE_READBACK_MISMATCH');restored.db.close()
     return report
 
 
@@ -248,6 +265,7 @@ def collect_all(out,*,initialize=False,max_months=None):
         # version recovers even the very first pointer-write interruption.
         record=json.loads(_read(versions[-1] if versions else progress,1000000));state=record['state']
         need(hmac.compare_digest(record['mac'],_manifest_mac(state)),'HISTORY_PROGRESS_AUTHENTICATION_FAILED')
+        need(state['schema']=='RACE_AI_ALL_PUBLISHED_HISTORY_PROGRESS_V1','HISTORY_V2_REQUIRES_EXPLICIT_COLLECT_DELTA')
     else:
         waits=sorted(out.glob('initial-wait-*.json')) if out.exists() else []
         if waits:
@@ -313,12 +331,20 @@ def main(argv=None):
     s=sub.add_parser('capture-month');s.add_argument('--out-dir',required=True);s.add_argument('--month',required=True);s.add_argument('--resume');s.add_argument('--max-files',type=int,default=31);s.add_argument('--reparse-only',action='store_true')
     s=sub.add_parser('restore-month');s.add_argument('--folder',required=True);s.add_argument('--month',required=True)
     s=sub.add_parser('collect-all');s.add_argument('--out-dir',required=True);s.add_argument('--initialize',action='store_true');s.add_argument('--max-months',type=int)
+    s=sub.add_parser('extend-all');s.add_argument('--source-dir',required=True);s.add_argument('--out-dir',required=True);s.add_argument('--not-after');s.add_argument('--max-files',type=int,default=31)
+    s=sub.add_parser('collect-delta');s.add_argument('--out-dir',required=True);s.add_argument('--max-files',type=int,default=31)
     args=p.parse_args(argv)
     if args.action=='inspect':report=inspect_sources(args.source_dir,term_file=args.term_file,menu_file=args.menu_file,end=args.end)
     elif args.action=='capture-month':report=capture_month(args.out_dir,month=args.month,resume=args.resume,max_files=args.max_files,reparse_only=args.reparse_only)
     elif args.action=='restore-month':
         catalog,report=restore_month(args.folder,expected_month=args.month)
         report=dict(status='ENCRYPTED_MONTH_HISTORY_READBACK_VERIFIED',month=args.month,catalog=catalog.summary(),plaintext_published=False)
+    elif args.action=='extend-all':
+        from race_ai.boat_history_dated_inventory import extend_collection
+        report=extend_collection(args.source_dir,args.out_dir,not_after=args.not_after,max_files=args.max_files)
+    elif args.action=='collect-delta':
+        from race_ai.boat_history_dated_inventory import collect_delta
+        report=collect_delta(args.out_dir,max_files=args.max_files)
     else:report=collect_all(args.out_dir,initialize=args.initialize,max_months=args.max_months)
     print(json.dumps(report,ensure_ascii=False,sort_keys=True));return report
 

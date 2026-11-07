@@ -57,7 +57,14 @@ def build_dataset(root,output,*,roster=(),end):
     need(_key_ready(),'OWNER_STATE_KEY_REQUIRED');root=Path(root);raw=_read(root/'collection.json',1000000);s=_signed(raw)['state']
     out=Path(output);out.mkdir(parents=True,mode=0o700,exist_ok=True);need(not any(out.iterdir()),'VENUE_DATASET_OUTPUT_EXISTS_DO_NOT_RESET')
     start=s['months'][0][:4]+'-'+s['months'][0][4:]+'-01'
-    need(stamp(s['captured_at']).date().isoformat()>=end and end<=s['not_after'],'VENUE_DATASET_END_INVALID')
+    if s['schema']=='RACE_AI_ALL_PUBLISHED_HISTORY_PROGRESS_V2':
+        from .boat_history_dated_inventory import validate_inventory
+        from .boat_venue_history import JST
+        dated=validate_inventory(root,s,manifest_raw=raw)
+        need(stamp(dated['inventory_captured_at']).astimezone(JST).date().isoformat()>=end and
+             end<=s['not_after'],'VENUE_DATASET_END_INVALID')
+    else:
+        need(stamp(s['captured_at']).date().isoformat()>=end and end<=s['not_after'],'VENUE_DATASET_END_INVALID')
     engine=VenueHistory(start=start,end=end,roster=roster,clock=lambda:stamp(_now()));gaps=[]
     for m,h in sorted(s['heads'].items()):
         c,r=restore_month(root/h['folder'],expected_month=m)
