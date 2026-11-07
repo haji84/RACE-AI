@@ -41,7 +41,7 @@ build_site(p,r/'updated-public',r/'updated-private',expected_source_sha256=pin,v
  assert.equal(await page.locator('.import-panel').isVisible(),false,'an automatically opened owner view must not ask for data files');
  assert.equal(await page.locator('#load-synthetic').isVisible(),false);
  for(const name of ['home','races','detail','picks','results','research','settings']){
-  if(name==='detail'){await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('#page-races [data-open-race]').first().click();}
+  if(name==='detail'){await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('[data-race-view="results"]').click();await page.locator('#page-races [data-open-race]').first().click();}
   else await page.locator(`[data-page="${name}"]`).filter({visible:true}).first().click();
   assert.equal(await page.locator('#page-'+name).isVisible(),true);
   assert.equal(new URL(page.url()).hash,'#'+fragment);

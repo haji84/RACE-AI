@@ -15,7 +15,7 @@ let browser,server;
  browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
  for(const width of [320,390,1440]){
   const page=await browser.newPage({viewport:{width,height:900}}),errors=[];page.on('pageerror',e=>errors.push(e.message));page.setDefaultTimeout(7000);await page.goto('http://127.0.0.1:'+server.address().port+'/');
-  const load=async row=>{await page.locator('#selected-date').fill('2026-11-07');await page.locator('#selected-date').dispatchEvent('change');await page.locator('#race-file').setInputFiles({name:'invented-UI-check.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(pack(row)))});await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('#page-races [data-open-race]').first().click();};
+  const load=async row=>{await page.locator('#selected-date').fill('2026-11-07');await page.locator('#selected-date').dispatchEvent('change');await page.locator('#race-file').setInputFiles({name:'invented-UI-check.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(pack(row)))});await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('[data-race-view="results"]').click();await page.locator('#page-races [data-open-race]').first().click();};
   await load(r);const detail=page.locator('#race-detail'),text=await detail.innerText();
   assert.doesNotMatch(text,/boat-observed|UNTRAINED|NO_SAVED_RESULT|INDEPENDENT_RECEIPT|PRIVATE_CYCLE|予想SHA|研究\s*\/\s*監査|SAVED FORECAST/,'ordinary detail must put audit internals in research');
   const summary=detail.locator('.race-result-summary');assert.equal(await summary.isVisible(),true);assert.match(await summary.innerText(),/結果待ち/);
@@ -38,7 +38,7 @@ let browser,server;
   if(width<640){assert.equal(await page.locator('#saved-results-table .result-mobile-card').count(),2);assert.match(await page.locator('#saved-results-table .result-mobile-card').first().innerText(),/的中/);}
   const results=await page.locator('#saved-results-table').boundingBox(),simulation=await page.locator('#simulation-title').boundingBox();assert.ok(results.y<simulation.y,'race outcomes must come before long budget comparisons');
   assert.doesNotMatch(await page.locator('#page-results').innerText(),/公式証拠がそろった対象|98%は未達|Hit@8_all/);
-  await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('#page-races [data-open-race]').first().click();
+  await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('[data-race-view="results"]').click();await page.locator('#page-races [data-open-race]').first().click();
   await load({...r,prediction:null,comparison_predictions:[],no_forecast_reason:'SOURCE_NOT_AUTHORIZED_FOR_TEST'});
   assert.doesNotMatch(await detail.innerText(),/SOURCE_NOT_AUTHORIZED_FOR_TEST/);assert.equal(await detail.locator('.forecast-rationale').count(),0);
   await page.locator('[data-page="research"]').filter({visible:true}).first().click();assert.match(await research.innerText(),/SOURCE_NOT_AUTHORIZED_FOR_TEST/);

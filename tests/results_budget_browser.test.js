@@ -68,7 +68,7 @@ export_view(SavedPdcaService(p).saved_projection(),r/'reference.html')
   assert.equal(await page.locator('#page-races .saved-outcome').count(),2);
   await page.locator('#race-filters>summary').click();
   await page.locator('#status-filter').selectOption('HIT');assert.equal(await page.locator('#all-races .saved-outcome').count(),1);
-  await page.locator('#status-filter').selectOption('PREDICTION_UNVERIFIED');assert.equal(await page.locator('#all-races .saved-outcome').count(),2);
+  await page.locator('#status-filter').selectOption('PREDICTION_UNVERIFIED');assert.equal(await page.locator('#all-races .saved-outcome').count(),0,'neither the observed hit nor the pending race is held for comparison');
   await page.locator('#status-filter').selectOption('all');
   await page.locator('[data-page="results"]').filter({visible:true}).first().click();
   await page.locator('#simulation-budget').waitFor();assert.equal(await page.locator('#simulation-budget').inputValue(),'10000');
