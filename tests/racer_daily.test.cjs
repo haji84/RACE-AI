@@ -19,3 +19,9 @@ test('daily course scenarios use daily samples and keep the historical cutoff',(
  assert.equal(P.scenario({...race,event_date_jst:'2026-11-06'},p,1,{referenceApi:api}).status,'HISTORICAL_REFERENCE');
  assert.equal(P.preferredCourses(api.get(race,p),{baselines:api.baselines}).courses[0].course,6);
 });
+test('published daily data uses the existing GitHub delivery path and never includes private link fragments',()=>{
+ assert.equal(typeof D.endpoint,'function');
+ const target=D.endpoint({origin:'https://haji84.github.io',pathname:'/RACE-AI/',hash:'#saved=PRIVATE_LINK'});
+ assert.equal(target,'https://raw.githubusercontent.com/haji84/RACE-AI/gh-pages/data/racer-daily.json');assert.doesNotMatch(target,/PRIVATE_LINK/);
+ assert.equal(D.endpoint({origin:'http://127.0.0.1:3000',pathname:'/'}),'./data/racer-daily.json');
+});

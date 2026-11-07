@@ -35,6 +35,7 @@ class SavedPagesTests(unittest.TestCase):
         unexpected=deepcopy(catalogue);unexpected['source']['private_document']='INVENTED_DO_NOT_PUBLISH'
         with self.assertRaises(ValueError):publish_daily_catalogue(repo,unexpected,transport=git)
         published_daily=publish_daily_catalogue(repo,catalogue,transport=git);parent=published_daily['pages_commit']
+        self.assertEqual(published_daily.get('public_url'),'https://raw.githubusercontent.com/haji84/RACE-AI/gh-pages/data/racer-daily.json','scheduled data must be readable without relying on a GITHUB_TOKEN Pages build')
         self.assertEqual(git.read(parent,PUBLIC_PATH,4000000),daily)
         refreshed=self.m.refresh_site_assets(repo,expected_parent=parent,transport=git)
         self.assertEqual(git.read(refreshed['source_commit'],PUBLIC_PATH,4000000),daily)

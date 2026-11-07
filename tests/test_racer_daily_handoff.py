@@ -101,3 +101,45 @@ class HandoffTests(unittest.TestCase):
         with patch.dict(os.environ,{'RACE_AI_STATE_KEY':base64.b64encode(self.key).decode()}),patch.object(cli,'load_daily',local_load):
             report=cli.refresh(self.repo,Path(self.t.name)/'review-wait',now=NOW)
         self.assertEqual(report['status'],'SOURCE_WAIT');self.assertEqual(report['source_requests'],0);self.assertEqual(self.git.head(),before)
+    def test_real_404_retry_policy_without_timestamp_records_a_publication_wait(self):
+        self.require();from race_ai.source_retry_policy import SourceWait,plan_http_wait
+        s=DailyStore(clock=lambda:NOW);self.addCleanup(s.close)
+        def actual_policy(day):
+            plan=plan_http_wait(404,{},NOW);exc=SourceWait(plan['reason'],plan['retry_at'],state=plan['state']);exc.plan=plan;raise exc
+        report=collect_recent(s,now=NOW,fetch=actual_policy,max_requests=1)
+        self.assertEqual(report['unavailable_days'],1);self.assertTrue(s.waiting('2026-11-06',NOW))
+    def test_normal_git_revert_of_daily_generation_is_rejected(self):
+        self.require();first=load_daily(self.repo,initialize=True,key=self.key,transport=self.git,now=NOW)
+        first['store'].record('2026-11-04',archive(),captured_at='2026-11-05T00:00:00Z')
+        a=save_daily(first,first['store'].catalogue(ROSTER,as_of=NOW.isoformat()),key=self.key);first['store'].close()
+        second=load_daily(self.repo,key=self.key,transport=self.git,now=NOW)
+        second['store'].record('2026-11-05',archive(day='2026-11-05'),captured_at='2026-11-06T00:00:00Z')
+        b=save_daily(second,second['store'].catalogue(ROSTER,as_of=NOW.isoformat()),key=self.key);second['store'].close()
+        self.git._run(['switch','-C','revert-test',b['source_commit']])
+        self.git._run(['-c','user.name=Fixture','-c','user.email=fixture@example.invalid','revert','--no-edit',b['source_commit']])
+        reverted=self.git._run(['rev-parse','HEAD']).decode().strip();self.git.push(reverted,b['source_commit'])
+        self.assertFalse(self.git.exists(reverted,b['cipher_path']))
+        with self.assertRaisesRegex(ValueError,'DAILY_STATE_HISTORY'):
+            load_daily(self.repo,key=self.key,transport=self.git,now=NOW)
+    def test_merge_cannot_hide_a_later_generation_from_reachable_history(self):
+        self.require();one=load_daily(self.repo,initialize=True,key=self.key,transport=self.git,now=NOW)
+        one['store'].record('2026-11-04',archive(),captured_at='2026-11-05T00:00:00Z');a=save_daily(one,one['store'].catalogue(ROSTER,as_of=NOW.isoformat()),key=self.key);one['store'].close()
+        two=load_daily(self.repo,key=self.key,transport=self.git,now=NOW)
+        two['store'].record('2026-11-05',archive(day='2026-11-05'),captured_at='2026-11-06T00:00:00Z');b=save_daily(two,two['store'].catalogue(ROSTER,as_of=NOW.isoformat()),key=self.key);two['store'].close()
+        side=self.git.commit({'state/other-namespace.enc':b'UNRELATED_UPDATE'},a['source_commit'])
+        self.git._run(['switch','-C','merge-test',side])
+        self.git._run(['-c','user.name=Fixture','-c','user.email=fixture@example.invalid','merge','-s','ours','--no-edit',b['source_commit']])
+        merged=self.git._run(['rev-parse','HEAD']).decode().strip();self.git.push(merged,b['source_commit'])
+        with self.assertRaisesRegex(ValueError,'DAILY_STATE_HISTORY'):
+            load_daily(self.repo,key=self.key,transport=self.git,now=NOW)
+    def test_unrelated_merge_preserving_the_latest_generation_can_restore(self):
+        self.require();one=load_daily(self.repo,initialize=True,key=self.key,transport=self.git,now=NOW)
+        one['store'].record('2026-11-04',archive(),captured_at='2026-11-05T00:00:00Z');a=save_daily(one,one['store'].catalogue(ROSTER,as_of=NOW.isoformat()),key=self.key);one['store'].close()
+        side=self.git.commit({'state/other-namespace.enc':b'UNRELATED_UPDATE'},a['source_commit'])
+        two=load_daily(self.repo,key=self.key,transport=self.git,now=NOW)
+        two['store'].record('2026-11-05',archive(day='2026-11-05'),captured_at='2026-11-06T00:00:00Z');b=save_daily(two,two['store'].catalogue(ROSTER,as_of=NOW.isoformat()),key=self.key);two['store'].close()
+        self.git._run(['switch','-C','valid-merge-test',b['source_commit']])
+        self.git._run(['-c','user.name=Fixture','-c','user.email=fixture@example.invalid','merge','--no-edit',side])
+        merged=self.git._run(['rev-parse','HEAD']).decode().strip();self.git.push(merged,b['source_commit'])
+        restored=load_daily(self.repo,key=self.key,transport=self.git,now=NOW);self.addCleanup(restored['store'].close)
+        self.assertEqual(restored['previous']['generation'],2)

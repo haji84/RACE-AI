@@ -24,12 +24,12 @@ Interfaces: refresh(repo,private_dir,now,initialize=False) restores authenticate
 - [x] Implement CLI/workflow with existing owner secret, no plaintext artifacts, fixed-source pin; validate locally and prepare first real Actions run.
 
 ## Task 3: card reference and distribution
-Interfaces: RaceRacerDaily.load/get/status/period; strict identity-bound daily cards, explicit period/source gaps/ST counts; no mutation of saved inputs. Same-origin JSON fetch; offline export embeds a local snapshot or explicit unavailable state.
+Interfaces: RaceRacerDaily.load/get/status/period; strict identity-bound daily cards, explicit period/source gaps/ST counts; no mutation of saved inputs. Production fetches the fixed gh-pages JSON through the existing GitHub raw CSP allowlist (GITHUB_TOKEN pushes do not trigger Pages builds); local uses same-origin JSON. Offline export embeds a local snapshot or explicit unavailable state.
 - [x] Browser/API tests RED on sparse athletes and unavailable/stale/synthetic/partial data; add daily metrics and six-course cards.
 - [x] Add fixed asset/extra JSON allowlists, preserve daily data across UI/forecast publications, verify offline CSP and legacy migration. Run existing UI/crypto/profile/package checks; commit.
 
 ## Task 4: review, first production run and daily enablement
-- [ ] Fresh read-only whole-change review; one TDD fix pass for material findings.
+- [x] Fresh read-only whole-change review; one TDD fix pass for material findings. Real404 retry without a timestamp, GitHub raw daily delivery and full reachable-history rollback protection each reproduced RED and corrected. Final Python97/97, Node97/97, explorer18groups and crypto/offline browser GREEN. No review re-dispatch.
 - [ ] Preserve concurrent source updates, publish UI on existing Pages with unchanged original/cipher/portrait files.
 - [ ] Trigger first authorized real initialization on GitHub Actions, verify encrypted retention + live daily JSON + real populated card.
 - [ ] Open and normally integrate the scheduler-only main PR after required CI, with pinned implementation SHA; no bypass. Confirm scheduler registration and first real run.

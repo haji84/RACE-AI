@@ -19,12 +19,28 @@ def _head(raw,key):
     need(re.fullmatch('[a-f0-9]{64}',h['cipher_sha256']) and re.fullmatch('[a-f0-9]{64}',doc['catalogue_sha256']),'DAILY_HEAD_HASH_INVALID')
     return doc
 
+def _validate_history(git,parent,current,key):
+    commits=git._run(['log','--full-history','--topo-order','--reverse','--format=%H',parent,'--',LATEST]).decode().splitlines()
+    need(commits and len(commits)<=999999,'DAILY_STATE_HISTORY_REQUIRED')
+    generation=0;previous=None;previous_time=None;last=None;seen=set()
+    for commit in commits:
+        need(git.exists(commit,LATEST),'DAILY_STATE_HISTORY_DELETION_REJECTED')
+        raw=git.read(commit,LATEST,16000);doc=_head(raw,key);head=doc['head'];stamp=clock(doc['as_of'])
+        if raw in seen:continue
+        seen.add(raw)
+        need(head['generation']==generation+1 and head['previous_cipher_sha256']==previous and (previous_time is None or stamp>=previous_time),'DAILY_STATE_HISTORY_ROLLBACK_REJECTED')
+        path=doc['cipher_path'];need(git.exists(commit,path) and git.exists(parent,path),'DAILY_STATE_HISTORY_CIPHER_MISSING')
+        need(git._run(['rev-parse',commit+':'+path]).strip()==git._run(['rev-parse',parent+':'+path]).strip(),'DAILY_STATE_HISTORY_CIPHER_CHANGED')
+        generation=head['generation'];previous=head['cipher_sha256'];previous_time=stamp;last=raw
+    need(last==current,'DAILY_STATE_HISTORY_HEAD_MISMATCH')
+
 def load_daily(repo,*,initialize=False,key=None,transport=None,now=None):
     state_key('production',key);now=clock(now or datetime.now(timezone.utc));git=transport or GitStateRepository(repo,ref=TRANSFER_REF)
     need(git.ref==TRANSFER_REF,'DAILY_TRANSFER_REF_REQUIRED');parent=git.head();need(parent is not None,'DAILY_EXISTING_TRANSFER_REQUIRED');git.fetch(parent)
     previous=None;raw=None
     if git.exists(parent,LATEST):
         raw=git.read(parent,LATEST,16000);doc=_head(raw,key);previous=doc['head']
+        _validate_history(git,parent,raw,key)
         need(clock(doc['as_of'])<=now,'DAILY_STATE_CLOCK_REGRESSION')
         paths=git._run(['ls-tree','-r','--name-only',parent,'--',PREFIX]).decode().splitlines()
         gens=[int(m[1]) for path in paths if (m:=re.fullmatch(re.escape(PREFIX)+r'g([0-9]{6})/[a-f0-9]{64}\.enc',path))]
@@ -76,7 +92,8 @@ def collect_recent(store,*,now,fetch=None,max_requests=7):
         except SourceWait as exc:
             if getattr(exc,'plan',{}).get('http_status')==404:
                 delay=timedelta(hours=1 if d>=end-timedelta(days=2) else 24)
-                store.wait_until(day,max(clock(exc.retry_at),now+delay).isoformat());missing+=1;continue
+                retry=max(clock(exc.retry_at),now+delay) if exc.retry_at else now+delay
+                store.wait_until(day,retry.isoformat());missing+=1;continue
             retry=max(clock(exc.retry_at),now+timedelta(hours=1)).isoformat() if exc.retry_at else '9999-12-31T23:59:59+00:00'
             store.wait_until('*',retry);status='SOURCE_WAIT';break
         except ValueError as exc:
@@ -118,7 +135,7 @@ def seed_recent_months(repo,store,*,now,pointer,transport=None):
 def publish_daily_catalogue(repo,catalogue,*,transport=None):
     """Update one derived JSON blob. Inherit every UI, manifest and cipher byte."""
     import subprocess
-    from .racer_daily import PUBLIC_PATH,API_FILE,MAX_PUBLIC
+    from .racer_daily import PUBLIC_PATH,PUBLIC_URL,API_FILE,MAX_PUBLIC
     from .saved_pages import PagesRepository,_tree
     raw=(wire(catalogue)+'\n').encode();need(len(raw)<=MAX_PUBLIC and catalogue.get('status')=='READY','DAILY_PUBLIC_CATALOGUE_INVALID')
     expected={'schema','status','generated_at','last_source_at','period','coverage','cohort_top2_percent','source','people','unknown_registration_count','denominator','model_inputs_changed'}
@@ -143,7 +160,7 @@ def publish_daily_catalogue(repo,catalogue,*,transport=None):
             need(clock(previous['generated_at'])<=clock(catalogue['generated_at']),'DAILY_PUBLIC_ROLLBACK_REJECTED')
             if previous['generated_at']==catalogue['generated_at']:
                 need(wire(previous)==wire(catalogue),'DAILY_PUBLIC_REVISION_AMBIGUOUS')
-                return dict(status='DAILY_PUBLIC_UNCHANGED',pages_commit=parent,public_sha256=sha(raw),path=PUBLIC_PATH)
+                return dict(status='DAILY_PUBLIC_UNCHANGED',pages_commit=parent,public_sha256=sha(raw),path=PUBLIC_PATH,public_url=PUBLIC_URL)
         before=git._run(['ls-tree','-r',parent,'--','views']);commit=git.commit({PUBLIC_PATH:raw},parent)
         need(git.read(commit,'site-build.json',32768)==manifest and git._run(['ls-tree','-r',commit,'--','views'])==before,'DAILY_PAGES_ORIGINALS_CHANGED')
         changed=git._run(['diff-tree','--no-commit-id','--name-only','-r',parent,commit]).decode().splitlines()
@@ -152,5 +169,5 @@ def publish_daily_catalogue(repo,catalogue,*,transport=None):
         except ValueError:
             if attempt==3:raise
     need(git.read(commit,PUBLIC_PATH,MAX_PUBLIC)==raw,'DAILY_PUBLIC_READBACK_MISMATCH')
-    return dict(status='DAILY_PUBLIC_PUBLISHED',pages_commit=commit,parent_commit=parent,public_sha256=sha(raw),path=PUBLIC_PATH,
+    return dict(status='DAILY_PUBLIC_PUBLISHED',pages_commit=commit,parent_commit=parent,public_sha256=sha(raw),path=PUBLIC_PATH,public_url=PUBLIC_URL,
                 unchanged_cipher_count=len(before.splitlines()),presentation_and_ciphertext_unchanged=True,raw_sources_published=False)

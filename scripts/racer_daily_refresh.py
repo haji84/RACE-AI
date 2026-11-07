@@ -5,13 +5,14 @@ import argparse,json,subprocess,sys,time
 from urllib.request import Request,build_opener
 ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
-from race_ai.racer_daily import wire,sha,need,JST
+from race_ai.racer_daily import wire,sha,need,JST,PUBLIC_PATH,PUBLIC_URL
 from race_ai.racer_daily_handoff import load_daily,save_daily,collect_recent,seed_recent_months,publish_daily_catalogue
 from scripts.boat_history_collect import private_root,save
 from race_ai.permissioned_source_delivery import NoRedirect
 
 def verify_public(receipt):
-    url='https://haji84.github.io/RACE-AI/'+receipt['path']+'?daily='+receipt['public_sha256'][:16]
+    need(receipt['path']==PUBLIC_PATH and receipt['public_url']==PUBLIC_URL,'DAILY_PUBLIC_URL_REJECTED')
+    url=PUBLIC_URL+'?daily='+receipt['public_sha256'][:16]
     for attempt in range(18):
         try:
             with build_opener(NoRedirect()).open(Request(url,headers={'Cache-Control':'no-cache'}),timeout=20) as response:raw=response.read(4*1024*1024+1)

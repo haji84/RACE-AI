@@ -10,6 +10,7 @@ JST=timezone(timedelta(hours=9))
 SCHEMA='RACE_AI_RACER_DAILY_V1'
 CHECKPOINT='RACE_AI_RACER_DAILY_CHECKPOINT_V1'
 PUBLIC_PATH='data/racer-daily.json'
+PUBLIC_URL='https://raw.githubusercontent.com/haji84/RACE-AI/gh-pages/'+PUBLIC_PATH
 API_FILE='racer-daily.js'
 MAX_DB=16*1024*1024
 MAX_PUBLIC=4*1024*1024

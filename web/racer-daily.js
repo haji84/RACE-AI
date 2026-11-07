@@ -8,6 +8,7 @@
  const day=v=>typeof v==='string'&&/^\d{4}-\d\d-\d\d$/.test(v)&&Number.isFinite(Date.parse(v+'T00:00:00Z'))&&new Date(v+'T00:00:00Z').toISOString().slice(0,10)===v;
  const time=v=>typeof v==='string'&&/T\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/.test(v)&&Number.isFinite(Date.parse(v));
  const n=v=>Number.isSafeInteger(v)&&v>=0&&v<=1000000;
+ function endpoint(location=globalThis.location){return location?.origin==='https://haji84.github.io'&&location.pathname.startsWith('/RACE-AI/')?'https://raw.githubusercontent.com/haji84/RACE-AI/gh-pages/data/racer-daily.json':'./data/racer-daily.json';}
  function metric(r){
   need(r&&['starts','wins','seconds','thirds','st_samples','confirmed_absences','unknown_course_starts'].every(k=>n(r[k])));
   need(r.wins+r.seconds+r.thirds<=r.starts&&r.st_samples<=r.starts&&r.unknown_course_starts<=r.starts);
@@ -49,13 +50,13 @@
   if(inflight)return inflight;
   if(!refresh&&state!=='LOADING')return Promise.resolve(current);
   lastAttempt=Date.now();inflight=(async()=>{
-   try{const next=parse(embedded!==null?embedded:await read(await fetch('./data/racer-daily.json',{credentials:'same-origin',cache:'no-store'})));if(next)current=next;state=next?'READY':'UNAVAILABLE';}
+   try{const url=endpoint(),external=url.startsWith('https:');const next=parse(embedded!==null?embedded:await read(await fetch(url+(external?'?daily='+Date.now():''),{credentials:external?'omit':'same-origin',cache:'no-store'})));if(next)current=next;state=next?'READY':current?'STALE':'UNAVAILABLE';}
    catch{state=current?'STALE':'UNAVAILABLE';}
    finally{inflight=null;if(typeof window!=='undefined')window.dispatchEvent(new Event('race-ai-daily-updated'));}
    return current;
   })();return inflight;
  }
- const api=Object.freeze({parse,load,get:(race,person)=>current?.get(race,person)||null,get data(){return current?.data||null;},get period(){return current?.period;},get baselines(){return current?.baselines;},get source(){return current?.source;},get capturedAt(){return current?.capturedAt;},get status(){return state;},offline:embedded!==null});
+ const api=Object.freeze({parse,load,endpoint,get:(race,person)=>current?.get(race,person)||null,get data(){return current?.data||null;},get period(){return current?.period;},get baselines(){return current?.baselines;},get source(){return current?.source;},get capturedAt(){return current?.capturedAt;},get status(){return state;},offline:embedded!==null});
  if(typeof module==='object'&&module.exports)module.exports=api;
  else{globalThis.RaceRacerDaily=api;const refresh=()=>{if(!document.hidden&&embedded===null&&Date.now()-lastAttempt>30*60000)load({refresh:true});};document.addEventListener('visibilitychange',refresh);setInterval(refresh,30*60000);}
 })();
