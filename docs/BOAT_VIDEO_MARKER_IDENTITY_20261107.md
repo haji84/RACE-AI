@@ -1,5 +1,24 @@
 # 6艇の画像内識別・継続追跡の検証（2026-11-07）
 
+## 2026-11-08の展示区間・実実況の検証結果
+
+自動区間の既存実装はなく、宣言phaseだけだったため、`boat_video_phase.py` に固定日本語画面OCRと時系列候補を追加して実行した。全147点を原画だけのAI参照と照合すると、展示55点のうち確定候補1点、生候補3点。誤検出0だが見逃し/保留が多く、周回展示18点は全保留。持続区間の検出は未合格。人間GTや実LIVEの認識率ではない。
+
+既存原動画4376frameを全てCLIで保存し、146OCR観測を作成。参照147点はBGR/実PTS全一致。phaseだけなら印字モデルや単一shot宣言を使わずに解析できる:
+
+```bash
+python scripts/boat_video_marker_analyze.py \
+  --media /private/input/video.mp4 --output-dir /private/output/new-phase-analysis \
+  --phase-only --phase-tesseract /usr/bin/tesseract \
+  --phase-tessdata /private/models/tessdata-fast-jpn --development
+```
+
+必要な `jpn.traineddata` はコードの固定revision/SHAに一致するローカルassetを用意する。自動downloadなし。1秒間隔はOCRだけのsampleで、全decoded frameを保存する。撮影内容を意味的に理解したphaseではなく、説明文・競合・読めない文字は保留する。音声へ自動的なphase正解を付けず、身体ID/本番予想へ昇格させない。
+
+実実況は正常取得できた同一アーカイブ原本の24分を取得して全288窓を保存し、2R走行/ゴールと次3R展示の混在を確認した。別Base-ASRもTinyを見ずに転記したが、それだけでは人手正解にならない。オーナーが聞き取った5秒では、先頭1番/2番手6番に対し、現製品の順位対応は0/2、対象の明示艇番は1番だけ（1/2）だった。元ASRの「先頭→戦闘」等を正解へ書き換えない。1clipで全体精度を断定せず、この例の未合格を記録する。
+
+空PCMとなる大きな絶対PTS、private TSV設定、fractional OCR box、説明の裸「番」誤受理を修正。低信号はVADの正解ではなく識別根拠の保留とし、高信号でのASR幻覚も残す。関連映像778件PASSはソフトウェア契約の検証で、上記の実認識不合格を取り消さない。[検証値・参照・証拠SHA](evidence/boat-video-phase-commentary-validation-20261108.json)。
+
 **最新の主経路は選手の服色による識別。** オーナーの明示指示に従い、白1・黒2・赤3・青4・黄5・緑6を読み取り、印字番号なしで同じ乗員の実画素を追うコードを追加した。既存の実映像61frame/2秒では、初期確認後の57frame連続で全6色の対応が一致し、誤番号0、motor25行への番号付与0。これは開発中に参照した低運動映像の結果であり、別場・交差・隠れ・現在のLIVEや船体全体の識別まで合格した意味ではない。本番予想モデル・既存自動予想プロセスは切り替えていない。
 
 ## 衣服色を主にする追加経路

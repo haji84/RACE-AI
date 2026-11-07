@@ -276,6 +276,46 @@ class MarkerCliTests(unittest.TestCase):
         context=json.loads((self.output/'broadcast-context.json').read_text())
         self.assertEqual(context['segments'][0]['available_from_pts'],8.)
 
+    @unittest.skipUnless(importlib.util.find_spec('cv2'), 'optional video dependencies')
+    def test_automatic_phase_only_needs_no_declared_phase_or_identity_models(self):
+        from tests.test_boat_video_commentary import CommentaryTests
+        fixture=CommentaryTests();fixture.setUp();self.addCleanup(fixture.doCleanups)
+        media=fixture.fixture(audio=False,duration=2.5)
+        from race_ai.boat_video_phase import _make_packet
+        class Reader:
+            def __init__(self,**kw):pass
+            def metadata(self):return {'kind':'CONTROLLED_SYNTHETIC_SCREEN_LABEL'}
+            def __call__(self,frame):
+                return _make_packet(frame,[dict(text='周回展示',confidence=90.,
+                    box=[1,1,25,10],line_key=[1,1,1,1])],status='OCR_OBSERVATION',raw_tsv='')
+        args=['--media',str(media),'--output-dir',str(self.output),
+              '--phase-only','--phase-tesseract',str(self.models[0]),'--phase-tessdata',str(self.root),
+              '--development','--source-role','SYNTHETIC_TEST']
+        with patch('race_ai.boat_video_phase.LocalJapanesePhaseReader',Reader):
+            code,out,err=self.invoke(args,injected=False)
+        self.assertEqual(code,0,(out,err))
+        rows=self.journal();self.assertEqual(len(rows),25)
+        sampled=[r for r in rows if r['pipeline_result']['phase_detection']['fresh_observation']]
+        self.assertEqual(len(sampled),3)
+        self.assertEqual(sampled[0]['pipeline_result']['phase_detection']['observation']['phase'],'UNKNOWN')
+        self.assertEqual(sampled[1]['pipeline_result']['phase_detection']['observation']['phase'],'EXHIBITION_LAP')
+        for row in rows:
+            phase=row['pipeline_result']['phase_detection']
+            self.assertEqual(phase['frame_sha256'],row['decoded_bgr_sha256'])
+            self.assertEqual(phase['source_pts'],row['source_pts'])
+            if not phase['fresh_observation']:self.assertIsNone(phase['observation'])
+        receipt=json.loads((self.output/'receipt.json').read_text())
+        self.assertEqual(receipt['phase_detection']['sampling_interval_seconds'],1.)
+        self.assertFalse(receipt['model_eligible'])
+
+    def test_phase_only_requires_explicit_phase_assets(self):
+        for options in [['--phase-only'],['--phase-only','--clothing-only'],
+                        ['--phase-tesseract',str(self.models[0])]]:
+            with self.subTest(options=options):
+                code,out,err=self.invoke(self.arguments()+options)
+                self.assertNotEqual(code,0)
+                self.assertFalse(self.output.exists())
+
     def test_remote_rider_asset_rejected_before_native_execution(self):
         args = self.arguments() + ['--rider-model', 'https://owner-secret.invalid/model.onnx']
         self.assertEqual(self.invoke(args)[0], 2)

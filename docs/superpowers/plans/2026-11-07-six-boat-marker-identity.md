@@ -137,3 +137,16 @@ The61-frame result is an already-known low-motion development sequence, not an i
 - [x] Add existing CLI local context input and optional pinned local speech path; preserve originals and private receipts.
 - [x] Run actual saved-audio transcription if possible, seal raw output before parsing; no speech/identity accuracy claim from a transport smoke test.
 - [x] Independent review, related regressions, preserve concurrent PR71 updates and latest status.
+
+## Requested validation of automatic phase and real spoken numbers/ranks
+
+- [x] Audit the existing declared-phase path; do not count manual phase input as automatic classification.
+- [x] Freeze independent source-only visual reference on the entire existing tutorial and actual frame PTS; classify diagrams/monitors/insets separately. AI development reference is not human or field ground truth.
+- [x] Implement local Japanese screen-label candidates and causal repetition with fixed preprocessing before source-label scoring; preserve first configuration failures and rerun without tuning to labels.
+- [x] Reproduce actual explanation-statistic "bare ban" false identity and large absolute audio-PTS truncation; fix with RED/GREEN tests. Keep low-level audio unresolved rather than treating hallucinated transcriptions as verified speech.
+- [x] Seal full automatic phase outputs, score TP/FP/FN/coverage and interval limitations against the frozen reference, then execute the existing CLI on all original frames.
+- [x] Obtain actual announcer audio through the already successful ordinary archive source, retain source packet timestamps and all selected windows, distinguish race transitions and finish calls.
+- [x] Seal independent Base-ASR references before reading Tiny outputs; report AI-reference agreement separately from true speech accuracy, which requires auditory/human reference. No zero-positive denominator gets an invented recognition rate.
+- [x] Run final related regressions, record errors/remaining conditions and preserve current PR71 concurrent updates, originals and automatic runtime.
+
+Validation result: automaticphase1/55exhibitionreferencepoints, raw3/55, noacceptedpersistentinterval; onehumanlistened5sclip requestedrankpairs0/2, targetboatunits1/2. These are measuredfailures, not completion. Furtheractivity/ASRquality improvements need more source-bound independently annotated cases; no reference-guided label rewriting.
