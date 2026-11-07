@@ -16,7 +16,7 @@
 | 8. Actions URL | [14枠実fit・全体成功42334526055](https://github.com/haji84/RACE-AI/actions/runs/42334526055)、[元未来予想42336097863](https://github.com/haji84/RACE-AI/actions/runs/42336097863)、[結果巡回42342290428](https://github.com/haji84/RACE-AI/actions/runs/42342290428)、[初回結果収集42343017180](https://github.com/haji84/RACE-AI/actions/runs/42343017180)。最後のrunは収集・独立読戻し成功、全体は後段UIテストで失敗した。部分成功と全体成功を混同しない |
 | 9. HEAD SHA | 実fitは8cf76d3d023591a4c67d04a0001465ac32b441c5、元未来予想は013c59c3f41209993bfba1f4b2b93791deba3d6c、通常結果はdf05282fc85265b99c43141c74dff678a53518ac、初回非BOAT結果は3402a09eaabb8a7bfc3e9919946bbb7d66ae0e11。最新実装SHAは最終報告とPR71に固定して記載する |
 | 10. 実動作範囲 | 実14枠の6/2学習→所有者キー復元→同一入力の基準／学習版を締切前保存→通常結果の登録6人照合→14組PDCA→28暗号化partitionの別ディレクトリ復元→再実行拒否、85ファイルSHA不変まで確認。特殊1件は元ジャーナルを保ち除外。非BOATは33入力レースと競馬6結果、うち通常5まで。実30学習・実30未来・本番運用成功ではない |
-| 11. 未完成と原因 | 残17枠。非BOAT16は通常8結果／競技の不足、売主型1は本来の特徴量・定義・当時の保存原本の不足。全選手・全会場・全期間の欠測0、長期の十分な前向き標本、全訂正追跡は未確認。新14枠PDCAの追加remote保持は単一writer終了後に行い、現時点のローカル読戻しとは分ける。キー復元は実確認できており、旧キー不足を現在の阻害理由にしない |
+| 11. 未完成と原因 | 残17枠。非BOAT16は通常8結果／競技の不足、売主型1は本来の特徴量・定義・当時の保存原本の不足。全選手・全会場・全期間の欠測0、長期の十分な前向き標本、全訂正追跡は未確認。単一writer終了後に通常14PDCA＋次回検討1件、計15partitionを既存refへ追加し、別GitオブジェクトDBから元バイト一致で復元した。元ZIP5件と競馬の新4結果も同様に追加保持済み。キー復元は実確認できており、旧キー不足を現在の阻害理由にしない |
 | 12. 次の最小工程 | [公開runbook](ALL_NATIVE_THIRTY_ORDER_ONLY_RUNBOOK.md)と公開の暗号化計画・実journal pinを使い、既存タスク／Actionsで通常8結果を揃える。新MACをActions内だけで発行し、30既存枠×8＝240原レコード、32独立レースの6/2実fitと独立保存を検証する。売主型は指標の原定義と真の前07原本が揃うまでHOLD。本番反映・新モデル・新PR／workflow／定期タスク・購入は行わない |
 
 ## 実証へのリンク
@@ -28,3 +28,13 @@
 - [係数を変えない次回検証候補](evidence/2026-11-07/fourteen-native-model-next-review-counts.json)
 
 これらは各段階の不変スナップショット。後続の保持・Checksは別の証跡へ追加し、元の評価SHAを変更しない。
+
+## 後続の原本保持
+
+巡回42342290428は4巡・146/240 GET、lifetime8940 GET／521巡、`BOUNDED_SESSION_END`、source_wait=nullで正常終了。旧上限・間隔・カウンターを変更していない。[実controlとcontinuity照合](evidence/2026-11-07/same-cap-four-round-source-counts.json)。その後、元ZIP／元metadata5件と、新14枠の通常PDCA14件＋次回検討1件を既存refsへ保持し、別GitオブジェクトDBで原本一致を確認した。競馬の追加4通常結果も独立復元した。旧評価スナップショットのSHAは変更しない。
+
+- [元原本5件の保持・独立復元](evidence/2026-11-07/five-original-archives-retention-counts.json)
+- [14枠PDCAと次回検討の15件保持・独立復元](evidence/2026-11-07/fourteen-native-model-future-pdca-retention-counts.json)
+- [新しい競馬4結果の保持・独立復元](evidence/2026-11-07/four-new-horse-results-retention-counts.json)
+
+残る条件は引き続き17枠の実学習と実30未来・十分な標本、売主型の本来の入力。原本保持の成功を学習成功へ加算しない。

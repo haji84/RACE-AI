@@ -1,0 +1,30 @@
+{
+  "existing_two_result_archive_changed": false,
+  "independent_git_readback_verified": true,
+  "native_inputs_or_forecasts_changed": false,
+  "native_original_races": 33,
+  "nonboat_models_trained": 0,
+  "ordinary_results": 4,
+  "original_zip_and_metadata_retained": true,
+  "plaintext_published": false,
+  "pointer": {
+    "archived_at": "2026-11-07T06:53:11.018722+00:00",
+    "artifact_id": 13562547496,
+    "cipher_path": "state/all-existing-model-official-results/v1/bf724b11e0ea4e1a893d91656699fc6aad5897ed1a1e343c839efadb50a49168/653c9a85de9495e99bc73883b3ca1482f1925c54d8927c5b380e6eb05996c7ff.enc",
+    "cipher_sha256": "5e20875ee841e9fbe8e503d11136b0b40d5b9fa46b79027bc5f5ea05a74fe481",
+    "head_sha": "3402a09eaabb8a7bfc3e9919946bbb7d66ae0e11",
+    "independent_git_readback_verified": true,
+    "metadata_sha256": "653c9a85de9495e99bc73883b3ca1482f1925c54d8927c5b380e6eb05996c7ff",
+    "original_zip_sha256": "bf724b11e0ea4e1a893d91656699fc6aad5897ed1a1e343c839efadb50a49168",
+    "ref": "state/boat-pdca-transfer",
+    "repository_id": "1416489937",
+    "schema": "RACE_AI_ALL_EXISTING_OFFICIAL_RESULT_RETENTION_POINTER_V1",
+    "source_commit": "74d03246ff4fa9a6bc740c3b8729ddad8dab7ee3",
+    "workflow_run_id": 42343017180
+  },
+  "production_promoted": false,
+  "result_artifact_id": 13562547496,
+  "result_digest": "sha256:bf724b11e0ea4e1a893d91656699fc6aad5897ed1a1e343c839efadb50a49168",
+  "schema": "RACE_AI_ACTUAL_NONBOAT_RESULTS_REMOTE_RETENTION_COUNTS_V1",
+  "state": "ACTUAL_FOUR_NEW_HORSE_RESULTS_EXACT_ORIGINAL_RETAINED"
+}
