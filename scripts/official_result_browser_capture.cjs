@@ -196,8 +196,19 @@ async function click(page,locator,expected,ledger,{popup=false}={}){
  const target=next||page;await target.waitForLoadState('domcontentloaded',{timeout:TIMEOUT_MS}).catch(()=>{});
  ledger.push({event:'NORMAL_SEMANTIC_UI_CLICK',label,before,after:target.url(),at:stamp()});return target;
 }
+async function autoDateAlreadySelected(page,item,date){
+ let url;try{url=safeUrl(page.url(),'autorace');}catch{return false;}
+ const prefix='/race_info/Live/'+item.venue+'/',dayRace=regexEscape(item.expected_date)+'_(?:[1-9]|1[0-2])';
+ if(url.search||!new RegExp('^'+regexEscape(prefix)+'(?:Program/'+dayRace+'/program|RaceResult/'+dayRace+'/result)$').test(url.pathname))return false;
+ const selected=page.locator('#live-paragraphday-main [data-period-date="'+item.expected_date+'"]');
+ return await selected.count()===1&&await selected.isVisible()&&await date.count()===1&&await date.isVisible()&&
+  await selected.getAttribute('data-period-date')===item.expected_date&&
+  String(await selected.getAttribute('class')||'').split(/\s+/).includes('liveTabMenu__item--current');
+}
 async function selectAutoCase(page,item,ledger){
- const date=page.locator('#live-paragraphday-main [data-period-date="'+item.expected_date+'"] a');await date.waitFor({state:'visible',timeout:TIMEOUT_MS});await click(page,date,/^.+$/,ledger);
+ const date=page.locator('#live-paragraphday-main [data-period-date="'+item.expected_date+'"] a');await date.waitFor({state:'visible',timeout:TIMEOUT_MS});
+ if(await autoDateAlreadySelected(page,item,date))ledger.push({event:'ALREADY_SELECTED_UI_DATE',expected_date:item.expected_date,at:stamp()});
+ else await click(page,date,/^.+$/,ledger);
  const race=page.locator('#live-raceno-link [data-raceno="'+item.race_no+'"] a');await race.waitFor({state:'visible',timeout:TIMEOUT_MS});await click(page,race,new RegExp('^'+item.race_no+'R$'),ledger);
  const result=page.locator('li[data-main-menu="result"] a').last();await result.waitFor({state:'visible',timeout:TIMEOUT_MS});await click(page,result,/^レース結果$/,ledger);return page;
 }
