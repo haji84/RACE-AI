@@ -17,6 +17,13 @@ def catalogue():
 
 
 class PortraitCatalogueTests(unittest.TestCase):
+    def test_official_program_spelling_keeps_the_required_offline_portrait(self):
+        from race_ai.racer_portraits import CATALOGUE,needed_assets
+        view={'records':[{'sport':'boat','scope':'research','participants':[
+            {'registration_no':'4503','name':'上野真之'}]}]}
+        entry=next(p for p in CATALOGUE['people'] if p['registration']=='4503')
+        self.assertEqual(needed_assets(CATALOGUE,view),(entry['asset'],))
+
     def test_valid_shared_atlas_is_deduplicated_and_complete_target_is_explicit(self):
         from race_ai.racer_portraits import validate_catalogue,files_from_catalogue
         doc=catalogue();self.assertEqual(validate_catalogue(doc),doc)

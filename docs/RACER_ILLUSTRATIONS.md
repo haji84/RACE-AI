@@ -17,6 +17,10 @@
 3. WebPと、本人の参照写真SHA・公式プロフィールURL・画像/セル対応を `web/data/racer-portraits.json` に追加する。同JSONから `web/racer-portraits-data.js` を生成する。Pythonの検証済み配信リストもJSONから導出される。
 4. `node --test tests/racer_portraits.test.cjs` と `node tests/racer_portraits_browser.test.cjs` で本人対応・欠測・表示を確認する。
 
+## 公式出走表の省略名
+
+公式B出走表では、5文字以上の氏名が4文字で記載されることがある。登録番号と公式原文の氏名を照合した表記を `aliases` に保持し、同じ選手のイラストへ対応させる。2026-11-07の再確認では52日分・1,620名の公式表記を検査し、169名分の省略表記を追加した。根拠は `docs/evidence/2026-11-07/racer-portrait-official-name-aliases.json` に保存する。カタログやブラウザ用データを再生成するときも、この確認済み表記を保持する。画像54点と各選手のセル対応は変更していない。
+
 ## 保存済みサイトの画面だけを更新する
 
 `race_ai.saved_pages.refresh_site_assets(repo, expected_parent=<独立確認したgh-pagesのSHA>)` は既存の公開manifestを検査し、画面・画像とそのハッシュだけを更新する。暗号文ファイルのGit blob、予想のハッシュ、表示ID、保存件数は保持する。復号鍵・SQLite・本人用URLを引数にしない。
