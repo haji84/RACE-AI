@@ -486,6 +486,93 @@ class CaptureTests(unittest.TestCase):
         self.assertLess(observed.index('exports_fsync'),observed.index('intent_insert'))
 
     @unittest.skipUnless(shutil.which('ffmpeg') and shutil.which('ffprobe'), 'local FFmpeg unavailable')
+    def test_fragment_export_preserves_first_embedded_audio_and_packet_timestamps_without_reencoding(self):
+        sample=self.root/'audiovisual-fragments.mp4'
+        subprocess.run(['ffmpeg','-v','error','-nostdin',
+            '-f','lavfi','-i','testsrc2=size=160x96:rate=6',
+            '-f','lavfi','-i','sine=frequency=440:sample_rate=48000',
+            '-f','lavfi','-i','sine=frequency=880:sample_rate=48000',
+            '-map','0:v:0','-map','1:a:0','-map','2:a:0','-t','2',
+            '-c:v','mpeg4','-threads','1','-g','6','-c:a','aac',
+            '-output_ts_offset','7','-movflags','frag_keyframe+empty_moov',str(sample)],
+            check=True,capture_output=True)
+        original=sample.read_bytes();at=0;init=b'';parts=[]
+        while at<len(original):
+            length=int.from_bytes(original[at:at+4],'big');self.assertGreaterEqual(length,8)
+            kind=original[at+4:at+8];body=original[at:at+length];at+=length
+            if kind==b'moof':parts.append(body)
+            elif parts:parts[-1]+=body
+            else:init+=body
+        self.assertEqual(len(parts),2)
+        body=(b'#EXTM3U\n#EXT-X-TARGETDURATION:2\n#EXT-X-MAP:URI="init.mp4"\n'
+              b'#EXTINF:1,\ns0.m4s\n#EXTINF:1,\ns1.m4s\n#EXT-X-ENDLIST\n')
+        transport=Transport({URL:body,ORIGIN+'/init.mp4':init,
+                             ORIGIN+'/s0.m4s':parts[0],ORIGIN+'/s1.m4s':parts[1]})
+        c=self.collector(transport);window=c.tick()['ready_windows'][0]
+        source_calls=list(transport.calls)
+        exported=c.export_window(window)
+        def packets(path,selector):
+            result=subprocess.run(['ffprobe','-v','error','-select_streams',selector,
+                '-show_packets','-show_data_hash','sha256','-show_entries',
+                'packet=pts_time,dts_time,data_hash','-of','json',str(path)],
+                check=True,capture_output=True)
+            return json.loads(result.stdout)['packets']
+        audio=packets(exported['media_path'],'a:0')
+        self.assertTrue(audio,'embedded commentary must survive the local export')
+        # Matching packet payloads prove the AAC stream was copied, not encoded.
+        self.assertEqual(audio,packets(sample,'a:0'))
+        self.assertEqual(packets(exported['media_path'],'v:0'),packets(sample,'v:0'))
+        self.assertEqual(packets(exported['media_path'],'a:1'),[])
+        self.assertEqual(transport.calls,source_calls,'audio preservation needs no new source request')
+        self.assertEqual(sample.read_bytes(),original)
+        receipt_path=Path(exported['receipt_path']);receipt=receipt_path.read_bytes()
+        self.assertEqual(json.loads(receipt)['audio_policy'],
+                         'FIRST_EMBEDDED_AUDIO_STREAM_COPY_IF_PRESENT')
+        self.assertEqual(capture.verify_export(exported),exported)
+        with patch('subprocess.run',side_effect=AssertionError('published export must be reused')):
+            self.assertEqual(c.export_window(window),exported)
+        self.assertEqual(receipt_path.read_bytes(),receipt)
+
+    @unittest.skipUnless(shutil.which('ffmpeg'),'local FFmpeg unavailable')
+    def test_unsupported_embedded_audio_fails_export_instead_of_silently_dropping_it(self):
+        sample=self.root/'unsupported-audio.mov'
+        subprocess.run(['ffmpeg','-v','error','-nostdin','-f','lavfi','-i',
+            'testsrc2=size=32x32:rate=2','-f','lavfi','-i',
+            'sine=frequency=440:sample_rate=48000','-t','1','-c:v','mpeg4',
+            '-threads','1','-c:a','pcm_mulaw',str(sample)],check=True,capture_output=True)
+        original=sample.read_bytes()
+        c=self.collector(Transport({URL:playlist([0],end=True),ORIGIN+'/s0.m4s':original}))
+        window=c.tick()['ready_windows'][0]
+        with self.assertRaisesRegex(capture.CaptureError,'HLS_CAPTURE_LOCAL_REMUX_FAILED'):
+            c.export_window(window)
+        self.assertFalse(c.list_windows()[0]['exported'])
+        self.assertEqual(list((self.root/'exports').iterdir()),[])
+        self.assertEqual(c.db.execute('SELECT COUNT(*) FROM export_intents').fetchone()[0],0)
+        self.assertEqual(sample.read_bytes(),original)
+
+    @unittest.skipUnless(shutil.which('ffmpeg'),'local FFmpeg unavailable')
+    def test_published_legacy_export_without_audio_policy_remains_byte_exact(self):
+        sample=self.root/'legacy-video-only.mp4'
+        subprocess.run(['ffmpeg','-v','error','-nostdin','-f','lavfi','-i',
+            'testsrc2=size=32x32:rate=2','-t','1','-an','-c:v','mpeg4',
+            '-threads','1',str(sample)],check=True,capture_output=True)
+        c=self.collector(Transport({URL:playlist([0],end=True),ORIGIN+'/s0.m4s':sample.read_bytes()}))
+        window=c.tick()['ready_windows'][0];exported=c.export_window(window)
+        # Reconstruct the old, valid receipt/DB shape in this synthetic store.
+        # A production legacy store must never be rewritten merely to add policy.
+        path=Path(exported['receipt_path']);legacy=json.loads(path.read_bytes())
+        del legacy['audio_policy'];raw=capture._wire(legacy);path.write_bytes(raw)
+        exported['receipt_sha256']=sha256(raw).hexdigest()
+        c.db.execute('UPDATE windows SET export_json=? WHERE id=?',(capture._wire(exported).decode(),window))
+        c.db.execute('UPDATE export_intents SET receipt_json=?,record_json=? WHERE window_id=?',
+            (raw.decode(),capture._wire(exported).decode(),window))
+        self.assertEqual(capture.verify_export(exported),exported)
+        with patch('subprocess.run',side_effect=AssertionError('legacy export must not be remuxed')):
+            self.assertEqual(c.export_window(window),exported)
+        self.assertEqual(path.read_bytes(),raw)
+        self.assertNotIn('audio_policy',json.loads(path.read_bytes()))
+
+    @unittest.skipUnless(shutil.which('ffmpeg') and shutil.which('ffprobe'), 'local FFmpeg unavailable')
     def test_real_fragment_export_is_local_idempotent_and_media_integrity_checked(self):
         sample = self.root/'fixture.mp4'
         subprocess.run(['ffmpeg','-v','error','-nostdin','-f','lavfi','-i','testsrc2=size=160x96:rate=6',
@@ -513,7 +600,11 @@ class CaptureTests(unittest.TestCase):
         probe=subprocess.run(['ffprobe','-v','error','-select_streams','v:0','-count_frames','-show_entries',
                               'stream=nb_read_frames','-of','json',exported['media_path']],check=True,capture_output=True)
         self.assertEqual(json.loads(probe.stdout)['streams'][0]['nb_read_frames'],'12')
+        audio=subprocess.run(['ffprobe','-v','error','-select_streams','a:0','-show_entries',
+                              'stream=index','-of','json',exported['media_path']],check=True,capture_output=True)
+        self.assertEqual(json.loads(audio.stdout)['streams'],[])
         receipt=json.loads(Path(exported['receipt_path']).read_bytes())
+        self.assertEqual(receipt['audio_policy'],'FIRST_EMBEDDED_AUDIO_STREAM_COPY_IF_PRESENT')
         self.assertEqual(receipt['segments'][0]['program_date_time'],'2020-01-01T00:00:00Z')
         self.assertEqual(receipt['captured_at'],exported['captured_at'])
         self.assertNotEqual(receipt['captured_at'],'2020-01-01T00:00:00Z')

@@ -196,6 +196,86 @@ class MarkerCliTests(unittest.TestCase):
         self.assertNotEqual(code,0)
         self.assertFalse(self.output.exists())
 
+    @unittest.skipUnless(importlib.util.find_spec('cv2'), 'optional video dependencies')
+    def test_source_bound_broadcast_context_uses_absolute_audio_pts(self):
+        from race_ai.boat_video_rider_detector import SCHEMA
+        class Detector:
+            def __init__(self,**kw): pass
+            def metadata(self): return {'kind':'CONTROLLED_SYNTHETIC_PERSON'}
+            def __call__(self,frame):
+                return dict(schema_version=SCHEMA,frame_sha256=sha256(frame.tobytes()).hexdigest(),
+                    coordinate_space='IMAGE_PX',semantic_type='RIDER_PART_TYPED',
+                    detections=[dict(box=[10,10,30,40],score=.9,coco_class_id=0,semantic_type='RIDER_PART_TYPED')],
+                    engine=self.metadata(),identity_validated=False,model_eligible=False)
+        from tests.test_boat_video_broadcast_context import BroadcastContextTests
+        fixture=BroadcastContextTests();fixture.setUp()
+        fixture.media=sha256(self.media.read_bytes()).hexdigest()
+        ctx=fixture.context(fixture.segment('2号艇の周回展示です。',phase='EXHIBITION_LAP',
+            start_pts=2.,end_pts=2.1,available_from_pts=2.1,valid_until_pts=2.6))
+        path=self.root/'broadcast.json';path.write_text(json.dumps(ctx));path.chmod(0o600)
+        args=self.arguments()+['--rider-model',str(self.models[0]),'--broadcast-context',str(path)]
+        with patch('race_ai.boat_video_rider_detector.PinnedRiderPartDetector',Detector):
+            code,out,err=self.invoke(args)
+        self.assertEqual(code,0,(out,err))
+        rows=self.journal()
+        self.assertEqual(rows[0]['pipeline_result']['rider_part_tracking']['broadcast_context']['active_cues'],[])
+        self.assertTrue(rows[-1]['pipeline_result']['rider_part_tracking']['broadcast_context']['active_cues'])
+        self.assertEqual(rows[-1]['pipeline_result']['rider_part_tracking']['tracks'][0]
+                         ['broadcast_identity']['exhibition_number_candidate'],2)
+        self.assertTrue((self.output/'broadcast-context.json').is_file())
+        receipt=json.loads((self.output/'receipt.json').read_text())
+        self.assertEqual(receipt['broadcast_context']['time_basis'],'ABSOLUTE_MEDIA_PTS_SECONDS')
+
+    def test_broadcast_options_require_color_rider_tracking(self):
+        for options in [['--broadcast-context',str(self.models[0])],
+                        ['--commentary-model',str(self.models[0])],
+                        ['--rider-model',str(self.models[0]),'--anonymous-riders',
+                         '--broadcast-context',str(self.models[0])]]:
+            with self.subTest(options=options):
+                code,out,err=self.invoke(self.arguments()+options)
+                self.assertNotEqual(code,0)
+                self.assertFalse(self.output.exists())
+
+    def test_broadcast_context_and_local_asr_are_mutually_exclusive(self):
+        code,out,err=self.invoke(self.arguments()+['--rider-model',str(self.models[0]),
+            '--broadcast-context',str(self.models[0]),'--commentary-model',str(self.models[1])])
+        self.assertNotEqual(code,0)
+        self.assertFalse(self.output.exists())
+
+    @unittest.skipUnless(importlib.util.find_spec('cv2'), 'optional video dependencies')
+    def test_local_audio_recognition_is_saved_but_not_available_before_chunk_end(self):
+        from tests.test_boat_video_commentary import CommentaryTests
+        fixture=CommentaryTests();fixture.setUp();self.addCleanup(fixture.doCleanups)
+        media=fixture.fixture()
+        from race_ai.boat_video_rider_detector import SCHEMA
+        class Detector:
+            def __init__(self,**kw):pass
+            def metadata(self):return {'kind':'SYNTHETIC_PERSON_TEST'}
+            def __call__(self,frame):
+                return dict(schema_version=SCHEMA,frame_sha256=sha256(frame.tobytes()).hexdigest(),
+                    coordinate_space='IMAGE_PX',semantic_type='RIDER_PART_TYPED',
+                    detections=[dict(box=[10,10,30,40],score=.9,coco_class_id=0,semantic_type='RIDER_PART_TYPED')],
+                    engine=self.metadata(),identity_validated=False,model_eligible=False)
+        class Recognizer:
+            def __init__(self,**kw):pass
+            def metadata(self):return {'kind':'SYNTHETIC_RECOGNITION_TEST'}
+            def __call__(self,samples,*,sample_rate):
+                return dict(text='先頭は3号艇。',quality_status='USABLE_UNVERIFIED',raw_token_ids=[1,2])
+        args=self.arguments(media=media)+['--rider-model',str(self.models[0]),
+            '--commentary-model',str(self.root),'--broadcast-phase','RACE']
+        with patch('race_ai.boat_video_rider_detector.PinnedRiderPartDetector',Detector), \
+             patch('race_ai.boat_video_commentary.PinnedCommentaryRecognizer',Recognizer):
+            code,out,err=self.invoke(args)
+        self.assertEqual(code,0,(out,err))
+        speech=json.loads((self.output/'commentary-receipt.json').read_text())
+        self.assertEqual(speech['chunk_count'],1)
+        self.assertEqual(speech['audio_timeline']['start_pts'],7.)
+        self.assertEqual(len(self.journal()),10)
+        for row in self.journal():
+            self.assertEqual(row['pipeline_result']['rider_part_tracking']['broadcast_context']['active_cues'],[])
+        context=json.loads((self.output/'broadcast-context.json').read_text())
+        self.assertEqual(context['segments'][0]['available_from_pts'],8.)
+
     def test_remote_rider_asset_rejected_before_native_execution(self):
         args = self.arguments() + ['--rider-model', 'https://owner-secret.invalid/model.onnx']
         self.assertEqual(self.invoke(args)[0], 2)
