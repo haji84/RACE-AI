@@ -53,17 +53,107 @@ def _detections(packet, width, height, digest):
         engine = json.loads(json.dumps(packet['engine'], allow_nan=False))
     except (TypeError,ValueError,OverflowError) as error:
         raise ValueError('BOAT_RIDER_TRACKING_REJECTED') from error
-    checked, seen, unknown = [], set(), []
-    for row in packet['detections']:
+    checked, seen, unknown, raw = [], set(), [], []
+    for raw_index,row in enumerate(packet['detections']):
         _need(type(row) is dict and set(row) == {'box','score','semantic_type','coco_class_id'}
             and row['semantic_type'] == 'RIDER_PART_TYPED' and type(row['coco_class_id']) is int
             and row['coco_class_id'] == 0 and _finite(row['score']) and 0 <= row['score'] <= 1)
         box = _box(row['box'], width, height)
+        original = dict(box=box,score=float(row['score']),semantic_type='RIDER_PART_TYPED',
+                        coco_class_id=0,source_detection_index=raw_index)
+        raw.append(deepcopy(original))
         if row['score'] < .5:
-            unknown.append(dict(box=box, reason='LOW_PERSON_DETECTOR_SCORE'))
+            unknown.append(dict(original,reason='LOW_PERSON_DETECTOR_SCORE'))
         elif tuple(box) not in seen:
-            seen.add(tuple(box)); checked.append(dict(box=box,score=float(row['score'])))
-    return checked, engine, unknown
+            seen.add(tuple(box)); checked.append(dict(box=box,score=float(row['score']),raw_index=raw_index))
+        else:
+            unknown.append(dict(original,reason='UNBOUND_DUPLICATE_CURRENT_BOX'))
+    return checked, engine, unknown, raw
+
+
+def _point_correspondences(pixels, point_states, detections):
+    """Current measured image-point ownership, never a person/number proof.
+
+    Existing IoU geometry stays at .5. A separate exclusive measured support
+    uses the follower's unchanged minimum4/.75 constants. Ambiguous owners and
+    unassigned partial views remain explicit unbound proposals, not births.
+    """
+    import numpy as np
+    edges = {key:[i for i,row in enumerate(detections) if _iou(pixel['box'],row['box']) >= .5]
+             for key,pixel in pixels.items()}
+    columns = Counter(index for choices in edges.values() for index in choices)
+    matches = {choices[0]:key for key,choices in edges.items()
+               if len(choices)==1 and columns[choices[0]]==1}
+    ambiguous = {key for key,choices in edges.items()
+                 if choices and (len(choices)!=1 or columns[choices[0]]!=1)}
+    cloud,counts = {},{}
+    for key,pixel in pixels.items():
+        points = point_states[key]['points']
+        _need(type(points) is np.ndarray and points.ndim==2 and points.shape[1]==2
+              and len(points)==pixel['point_count'] and PARAMETERS['minimum_points'] <= len(points)
+              <= PARAMETERS['maximum_points'] and np.isfinite(points).all())
+        cloud[key] = points
+        counts[key] = []
+        for row in detections:
+            x,y,w,h = row['box']
+            counts[key].append(int(((points[:,0]>=x)&(points[:,0]<x+w)&
+                                    (points[:,1]>=y)&(points[:,1]<y+h)).sum()))
+    strong,point_edges = defaultdict(set),{}
+    for key,values in counts.items():
+        for index,count in enumerate(values):
+            if count >= PARAMETERS['minimum_points'] and count/len(cloud[key]) >= PARAMETERS['minimum_affine_inlier_ratio']:
+                strong[index].add(key)
+        point_edges[key] = [index for index,count in enumerate(values)
+            if key in strong[index] and all(counts[other][index]==0 for other in counts if other!=key)]
+    unbound,hard_ambiguous = {},set()
+    for index,owners in strong.items():
+        if len(owners)>1:
+            hard_ambiguous.update(owners)
+            unbound[index] = dict(reason='UNBOUND_AMBIGUOUS_CURRENT_POINT_OWNERS',
+                                 point_owner_track_ids=sorted(owners))
+    matches = {index:key for index,key in matches.items() if key not in hard_ambiguous and index not in unbound}
+    ambiguous.update(hard_ambiguous)
+    methods = {index:'IOU_GEOMETRY' for index in matches}
+    for key in sorted(pixels):
+        if key in matches.values() or key in hard_ambiguous:
+            continue
+        options = [index for index in point_edges[key] if index not in unbound]
+        if not options:
+            continue
+        index = min(options,key=lambda i:(-counts[key][i],-_iou(pixels[key]['box'],detections[i]['box']),
+                                         tuple(detections[i]['box']),i))
+        other = matches.get(index)
+        if other is not None and other!=key:
+            ambiguous.update((key,other)); hard_ambiguous.update((key,other))
+            matches = {i:k for i,k in matches.items() if k not in (key,other)}
+            unbound[index] = dict(reason='UNBOUND_CONFLICTING_POINT_AND_GEOMETRY_OWNERS',
+                                 point_owner_track_ids=sorted((key,other)))
+            continue
+        matches[index]=key; methods[index]='CURRENT_LK_POINT_SUPPORT'; ambiguous.discard(key)
+    # No detection that shares an existing current owner can silently become a
+    # new person. Keep the entire typed raw proposal and its unresolved reason.
+    # An unmatched old owner still has measured current pixels. A partial or
+    # contested detection touching those pixels is unresolved, not a new person.
+    owner_keys = set(pixels)
+    for index,row in enumerate(detections):
+        if index in matches or index in unbound:
+            continue
+        x,y,w,h = row['box']; center=(x+w/2,y+h/2)
+        owners=[]
+        for key in sorted(owner_keys):
+            a,b,c,d=pixels[key]['box']
+            if counts[key][index] > 0 or a<=center[0]<a+c and b<=center[1]<b+d:
+                owners.append(key)
+        if owners:
+            unbound[index] = dict(reason='UNBOUND_EXISTING_CURRENT_POINT_OWNER',point_owner_track_ids=owners)
+    evidence={}
+    for index,key in matches.items():
+        evidence[index] = dict(scope='CURRENT_LK_IMAGE_POINT_OWNER_HYPOTHESIS',method=methods[index],
+            point_count=len(cloud[key]),points_in_detection=counts[key][index],
+            support_fraction=counts[key][index]/len(cloud[key]),
+            foreign_track_points_in_detection=sum(counts[other][index] for other in counts if other!=key),
+            measured_box=list(pixels[key]['box']),detection_box=list(detections[index]['box']))
+    return matches,ambiguous,unbound,evidence,edges
 
 
 def _pairs(packet, riders, width, height, *, digest, t, frame_index, scene):
@@ -117,27 +207,28 @@ class RiderPartTracker:
         callback_image = image.copy()
         packet = self.detector(callback_image)
         _need(_digest(callback_image) == digest and _digest(frame) == digest)
-        detections,engine,unknown = _detections(packet,width,height,digest)
+        detections,engine,unknown,raw_detections = _detections(packet,width,height,digest)
         reset = (self._time is None or self._scene != scene or self._shape != (width,height)
             or _age(t,self._time) >= Fraction(str(self.max_gap)))
         old = {} if reset else deepcopy(self._objects)
         probe = copy(self._flow)
         measured = probe.update(image,[],t=t,frame_index=frame_index,scene=scene)
+        _need(probe._sha==digest and probe._index==frame_index and probe._time==t
+              and probe._scene==scene and probe._shape==(width,height)
+              and measured['frame_sha256']==digest)
         pixels = {row['key']:row for row in measured['tracked'] if row['status']=='TRACKED' and row['key'] in old}
-        edges = {key:[i for i,row in enumerate(detections) if _iou(pixel['box'],row['box']) >= .5]
-                 for key,pixel in pixels.items()}
-        columns = Counter(index for choices in edges.values() for index in choices)
-        matches = {choices[0]:key for key,choices in edges.items()
-                   if len(choices)==1 and columns[choices[0]]==1}
+        matches,ambiguous,unbound,association,edges = _point_correspondences(pixels,probe._tracks,detections)
         flags = set()
         if reset:
             flags.add('SCENE_SHAPE_OR_TIME_RESET')
-        ambiguous = {key for key,choices in edges.items()
-                     if choices and (len(choices)!=1 or columns[choices[0]]!=1)}
         if ambiguous:
             flags.add('AMBIGUOUS_RIDER_ASSOCIATION')
         candidates, seeds, allowed, next_id = {}, [], set(), self._next_id
         for index,row in enumerate(detections):
+            if index in unbound:
+                original = raw_detections[row['raw_index']]
+                unknown.append(dict(deepcopy(original),**unbound[index]))
+                continue
             key = matches.get(index)
             if key is None:
                 _need(next_id < 2**63)
@@ -148,7 +239,7 @@ class RiderPartTracker:
                 allowed.add(key); state = deepcopy(old[key]['number_state'])
             candidates[key] = dict(box=list(row['box']),score=row['score'],detector_fresh=True,
                 last_detection_t=float(t),last_detection_frame_index=frame_index,last_detection_sha256=digest,
-                number_state=state)
+                number_state=state,association_evidence=deepcopy(association.get(index)))
         for key,pixel in pixels.items():
             if key in candidates or key in ambiguous:
                 continue
@@ -163,7 +254,7 @@ class RiderPartTracker:
                 or any(_intersects(pixel['box'],row['box']) for row in detections)):
                 continue
             allowed.add(key)
-            candidates[key] = dict(old[key],box=list(pixel['box']),detector_fresh=False)
+            candidates[key] = dict(old[key],box=list(pixel['box']),detector_fresh=False,association_evidence=None)
         flow = copy(self._flow)
         flow._tracks = {key:value for key,value in self._flow._tracks.items() if key in allowed}
         flowed = flow.update(image,seeds,t=t,frame_index=frame_index,scene=scene)
@@ -179,11 +270,16 @@ class RiderPartTracker:
             else:
                 visibility = 'PIXEL_TRACKED_RIDER_HYPOTHESIS'
             current[key] = deepcopy(item)
+            relationship = deepcopy(item['association_evidence'])
+            if relationship is not None:
+                relationship.update(frame_sha256=digest,frame_index=frame_index,t=float(t),scene=scene,
+                                    previous_frame_sha256=pixel['previous_frame_sha256'] if pixel else None)
             rows.append(dict(track_id=key,semantic_type='RIDER_PART_TYPED',rider_box=list(item['box']),
                 hull_box=None,visibility_status=visibility,detector_fresh=item['detector_fresh'],
                 detector_score=item['score'],last_detection_t=item['last_detection_t'],
                 last_detection_frame_index=item['last_detection_frame_index'],
                 last_detection_frame_sha256=item['last_detection_sha256'],pixel_support=deepcopy(pixel),
+                association_evidence=relationship,
                 number=None,number_status='UNREAD_NUMBER',number_evidence_status=None,
                 printed_number_observed=False,fresh_label_observations_added=0,number_evidence=None))
         by_key = {row['track_id']:row for row in rows}
@@ -289,7 +385,7 @@ class RiderPartTracker:
         result = dict(schema_version=SCHEMA,coordinate_space='IMAGE_PX',semantic_type='RIDER_PART_TYPED',
             t=float(t),frame_index=frame_index,scene=scene,frame_sha256=digest,tracks=deepcopy(rows),
             lost_track_ids=sorted(set(self._objects)-set(current)),unknown_detections=unknown,
-            detector_engine=engine,flow=flowed,quality_flags=sorted(flags),
+            detector_engine=engine,raw_detections=raw_detections,flow=flowed,quality_flags=sorted(flags),
             model_eligible=False,field_validation='NOT_ESTABLISHED',identity_validated=False,
             metric_positions_inferred=False,hull_positions_inferred=False,forced_six=False)
         self._flow,self._objects,self._next_id = flow,current,next_id
