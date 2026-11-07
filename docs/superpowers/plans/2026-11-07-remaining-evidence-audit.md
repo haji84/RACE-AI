@@ -99,7 +99,15 @@ The actual November7 audit is129 final/132, with one600-second cutoff mismatch a
 - [x] Bind each held result to the retained receipt's exact SHA, capture clock, official URL and race identity; never substitute an older or different capture.
 - [x] Replay the supported SP parser and existing strict projection for fixed reason counts only. Keep original forecasts, allocations, holds and source clocks unchanged; authentication failure reports UNAVAILABLE.
 - [x] Verify synthetic hash/privacy/receipt/ambiguous-cutoff cases and the real encrypted intraday restore contract:47 related tests pass, zero skipped; independent audit29 tests pass.
-- [ ] Let the existing source owner integrate the reviewed delta at its next unfrozen boundary. An exact native collection subject may also request this read-only audit in the existing production job, so preparation need not start a separate diagnostic workflow.
-- [ ] Read actual retained-source reason counts before implementing any settlement correction. No provider requests or source-authority changes are introduced by the diagnostic.
+- [x] Integrate at an actual completed native-source/issuer boundary with an expected-head fast-forward. Completion-audit212f4dc1 changed no workflow or source authority.
+- [x] Read actual retained-source reason counts before implementing any settlement correction. Production128541617986/run42418481443 verified allthree matching captures: RESULT_WINNER_INVALID2 and AVAILABLE1/RESULT_CUTOFF_MISMATCH1, no provider requests or admissions.
+
+### Task8: Inspect supported payout syntax and every original clock
+
+- [x] Add fixed payout-syntax classes after the existing exact receipt binding; never expose original tokens, combinations or amounts.
+- [x] Dry-project temporary copies for each saved cutoff and separately count whether every forecast clock precedes every source/original cutoff. Keep the existing whole-row rejection and originals unchanged.
+- [x] Verify privacy, malformed syntax, preserved ambiguous-cutoff hold and late alternate model clocks. Current33 audit tests pass; related settlement/restore tests remain passing and independent review is clear.
+- [ ] Read actual syntax/chronology counts in the existing source-free production job.
+- [ ] Correct only the demonstrated parser/eligibility defect and verify actual retained-result publication without weakening formal settlement.
 
 The next repair plan is based on the actual count evidence, not an assumed cause. Existing normal BOAT run42376316340 was reserved once after the prior source's actual canonical record and receipts matched. Never restart it or duplicate the native probe.
