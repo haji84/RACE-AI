@@ -67,6 +67,9 @@ def _complete(body,metadata,now,*,required=False,expected_limit=8):
     browser=body.get('browser_attempt')
     if browser is None:
         need(not required,'PROBE_BROWSER_REQUIRED');return len(attempts)
+    if not required and type(browser) is dict and browser.get('state')=='REJECTED':
+        from .all_existing_model_known_rejected_wire import known_data_rejected_wire
+        return known_data_rejected_wire(body,metadata,now=now)['actual_request_count']
     need(type(browser) is dict and browser.get('state')=='COMPLETE' and type(browser.get('actual_request_count')) is int,
         'PROBE_BROWSER_INCOMPLETE')
     index=body.get('browser_index');count=browser['actual_request_count']

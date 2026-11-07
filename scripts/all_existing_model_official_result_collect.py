@@ -292,8 +292,12 @@ def prior_journals(manifest,*,now,key,recovery_authorization=None,private_static
                 ('HOLD_ACCESS_DENIED','ACCESS_DENIED','HTTP_ACCESS_DENIED','DENIED') or
                 body.get(field,{}).get('stopped_host') is True for field in ('browser_index','browser_request_checkpoint')),
             'PRIOR_JOURNAL_DENIED_REQUIRES_OWNER_REVIEW')
+        rejected_wire=None
+        if not reviewed and type(browser) is dict and browser.get('state')=='REJECTED':
+            from race_ai.all_existing_model_known_rejected_wire import known_data_rejected_wire
+            rejected_wire=known_data_rejected_wire(body,actual,now=now)
         need(reviewed or not any(a['state']=='RESERVED' for a in attempts) and
-            (browser is None or type(browser) is dict and browser.get('state')=='COMPLETE' and
+            (browser is None or type(browser) is dict and (browser.get('state')=='COMPLETE' or rejected_wire is not None) and
              type(browser.get('actual_request_count')) is int and
              0<=browser['actual_request_count']<=body['maximum_requests']-len(attempts)),
             'PRIOR_JOURNAL_UNCERTAIN_REQUIRES_OWNER_REVIEW')
