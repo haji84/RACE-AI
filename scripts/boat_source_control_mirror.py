@@ -3,7 +3,6 @@ import argparse
 from datetime import datetime,timezone
 from pathlib import Path
 import re
-import subprocess
 import sys
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -14,12 +13,21 @@ from scripts.boat_private_original_vault import _environment,_parent,_private_pa
 
 
 def _get(endpoint):
+    M._need(type(endpoint) is str and len(endpoint)<=256,'GITHUB_ENDPOINT_INVALID')
     listing=f'actions/workflows/{M.R.WORKFLOW}/runs?per_page=16&status=completed'
-    if endpoint!=listing:return _gh(endpoint)
-    result=subprocess.run(['gh','api','repos/haji84/RACE-AI/'+endpoint],capture_output=True,timeout=60)
-    M._need(result.returncode==0,'GITHUB_READ_DENIED_OR_UNAVAILABLE')
-    M._need(0<len(result.stdout)<=2*1024*1024,'RECENT_RUN_RESPONSE_BOUND_INVALID')
-    return result.stdout
+    if endpoint==listing:
+        limit=2*1024*1024
+    else:
+        page=re.fullmatch(r'actions/runs/[1-9][0-9]{0,19}/artifacts\?per_page=100(?:&page=([1-9][0-9]{0,2}))?',endpoint)
+        if page is None:return _gh(endpoint)
+        M._need(page[1] is None or 2<=int(page[1])<=M.R.MAX_PAGES,'GITHUB_ENDPOINT_INVALID')
+        limit=4*1024*1024
+    # Use the existing authenticated GitHub transport and its denial policy.
+    # Every other endpoint still passes the vault CLI's narrower allowlist.
+    from scripts.github_existing_cycle import _live_gh
+    raw=_live_gh(endpoint)
+    M._need(type(raw) is bytes and 0<len(raw)<=limit,'METADATA_RESPONSE_BOUND_INVALID')
+    return raw
 
 
 def main(argv=None,*,get=None,transport=None,readback_transport=None,now=None):

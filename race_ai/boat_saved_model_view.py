@@ -14,6 +14,7 @@ from datetime import date, datetime, timedelta, timezone
 import json
 import math
 import re
+import unicodedata
 
 SCHEMA = "RACE_AI_PRIVATE_CYCLE_VIEW_V1"
 MAX_BYTES = 64 * 1024 * 1024
@@ -93,6 +94,15 @@ def _sha(value):
 
 def _label(value, maximum=500):
     _need(type(value) is str and 0 < len(value) <= maximum and value == value.strip(), "name or identity label")
+
+
+def _name_key(value):
+    """Compare official spelling/spacing without changing a saved display name.
+
+    This is the existing venue-detail join's NFKC/whitespace rule. Registration,
+    race and lane remain separate strict bindings; differing letters still fail.
+    """
+    return re.sub(r"\s+", "", unicodedata.normalize("NFKC", value))
 
 
 def saved_prediction_identity(prediction):
@@ -231,14 +241,14 @@ def _rosters(rows):
             explicit = row.get("roster_status") == "OFFICIAL_ACTIVE" or bool(withdrawn) or all(p.get("active") is True for p in people)
             active.append(([p for p in people if p["number"] not in withdrawn], explicit, withdrawn))
     snapshots = _unique(snapshots)
-    for person in [p for snapshot in snapshots for p in snapshot["participants"]] + current_people:
+    for person in current_people + [p for snapshot in snapshots for p in snapshot["participants"]]:
         number, pid = person["number"], _registration(person)
         _need(number not in bindings or bindings[number] == pid, "same-race roster identity conflict")
         _need(pid not in bindings.values() or bindings.get(number) == pid, "same-race registration lane conflict")
         bindings[number] = pid
         if person.get("name") and (person.get("name_source") or {}).get("kind") != "VERIFIED_RACER_REGISTRY":
-            _need(pid not in named or named[pid]["name"] == person["name"], "same-race name conflict")
-            named[pid] = person
+            _need(pid not in named or _name_key(named[pid]["name"]) == _name_key(person["name"]), "same-race name conflict")
+            named.setdefault(pid, person)
     if not active: return [], snapshots, named, [], []
     full = set(bindings)
     selected = active[0][0]

@@ -177,6 +177,71 @@ class SavedModelViewTests(unittest.TestCase):
         mismatch = deepcopy(extra); mismatch["records"][0]["participants"][0]["registration_no"] = "4999"
         with self.assertRaises(ValueError): self.merge(base, [mismatch])
 
+    def test_equivalent_official_name_spacing_preserves_first_display_sources_and_rosters(self):
+        for original, incoming in (("合成 太郎", "合成\u3000\u3000太郎"),
+                                   ("合成 太郎", "合成\t 太郎"),
+                                   ("合成 ｶﾞ次郎", "合成\u3000ガ次郎")):
+            with self.subTest(kind="spacing_or_width"):
+                base = view(); extra = view(prediction(stage="P1"))
+                for doc, name, source in ((base, original, "1"*64), (extra, incoming, "2"*64)):
+                    row = doc["records"][0]; person = row["participants"][0]
+                    person.update(name=name, name_source=dict(kind="SAME_RACE_PROGRAM",
+                        registration_no="4201", race_id=row["race_id"], source_sha256=source,
+                        captured_at="2030-04-01T09:03:00+09:00"))
+                    row["saved_participant_rosters"] = [dict(participants=deepcopy(row["participants"]),
+                        source_sha256=source, source_provenance="INVENTED_NATIVE_ROSTER")]
+                before = deepcopy((base, extra))
+                merged = self.merge(base, [extra]); row = merged["records"][0]
+                self.assertEqual((base, extra), before)
+                self.assertEqual(row["participants"][0], base["records"][0]["participants"][0])
+                self.assertEqual(row["saved_participant_rosters"],
+                    [*base["records"][0]["saved_participant_rosters"],
+                     *extra["records"][0]["saved_participant_rosters"]])
+                self.assertEqual(candidates(row), [*candidates(base["records"][0]), *candidates(extra["records"][0])])
+                self.assertEqual(self.merge(merged, [extra]), merged)
+                reverse = self.merge(extra, [base])
+                self.assertEqual(reverse["records"][0]["participants"][0],
+                                 extra["records"][0]["participants"][0])
+
+    def test_equivalent_name_format_never_relaxes_race_registration_or_lane_identity(self):
+        for change in (dict(registration_no="4999"), dict(number=2)):
+            base = view(); extra = view(prediction(stage="P1"))
+            base["records"][0]["participants"][0]["name"] = "合成 太郎"
+            extra["records"][0]["participants"][0].update(name="合成\u3000太郎", **change)
+            before = deepcopy((base, extra))
+            with self.assertRaises(ValueError): self.merge(base, [extra])
+            self.assertEqual((base, extra), before)
+
+    def test_existing_display_stays_first_when_old_snapshot_uses_equivalent_formatting(self):
+        base = view(); extra = view(prediction(stage="P1"))
+        person = base["records"][0]["participants"][0]
+        person.update(name="合成 太郎", name_source=dict(kind="SAME_RACE_PROGRAM",
+            registration_no="4201", race_id="20300401-01-01", source_sha256="1"*64))
+        snapshot = dict(participants=deepcopy(base["records"][0]["participants"]))
+        snapshot["participants"][0]["name"] = "合成\u3000太郎"
+        snapshot["participants"][0]["name_source"]["source_sha256"] = "2"*64
+        base["records"][0]["saved_participant_rosters"] = [snapshot]
+        extra["records"][0]["participants"][0]["name"] = "合成  太郎"
+        merged = self.merge(base, [extra])
+        self.assertEqual(merged["records"][0]["participants"][0], person)
+        self.assertEqual(merged["records"][0]["saved_participant_rosters"][0], snapshot)
+        self.assertEqual(self.merge(merged, [extra]), merged)
+
+    def test_different_name_letters_still_hold_in_current_or_saved_rosters(self):
+        for snapshot_only in (False, True):
+            base = view(); extra = view(prediction(stage="P1"))
+            base["records"][0]["participants"][0]["name"] = "合成 太郎"
+            person = extra["records"][0]["participants"][0]
+            person["name"] = "合成\u3000次郎"
+            if snapshot_only:
+                extra["records"][0]["saved_participant_rosters"] = [dict(
+                    participants=deepcopy(extra["records"][0]["participants"]))]
+                person["name"] = "合成\u3000太郎"
+            before = deepcopy((base, extra))
+            with self.assertRaises(M.SavedModelViewError) as error: self.merge(base, [extra])
+            self.assertEqual(error.exception.reason_code, "SAVED_MODEL_VIEW_SAME_RACE_NAME_CONFLICT")
+            self.assertEqual((base, extra), before)
+
     def test_explicit_withdrawal_subset_keeps_original_rosters_and_physical_lanes(self):
         base = view(); extra = view(prediction(stage="P1"), lanes=(1,3,6))
         extra["records"][0].update(withdrawn_lanes=[2,4,5], roster_status="OFFICIAL_ACTIVE")

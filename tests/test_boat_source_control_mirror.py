@@ -5,6 +5,7 @@ from datetime import datetime,timezone
 import importlib
 import json
 import os
+import sys
 import unittest
 from unittest.mock import patch
 from contextlib import redirect_stdout
@@ -198,6 +199,94 @@ class MirrorTests(unittest.TestCase):
                 get=self.get,transport=self.f.writer,readback_transport=self.f.reader,now=NOW)
         self.assertEqual(result,0,output.getvalue())
         self.assertEqual(json.loads(path.read_bytes())['source_run_id'],7)
+
+    def default_cli(self,*,denied=None):
+        """Run the real default reader against a local fake gh executable."""
+        cli=importlib.import_module('scripts.boat_source_control_mirror')
+        folder=self.f.root/'fake-gh';folder.mkdir();log=folder/'requests.jsonl'
+        responses={f'repos/haji84/RACE-AI/{path}':base64.b64encode(raw).decode()
+                   for path,raw in self.responses.items()}
+        payload=folder/'responses.json';payload.write_text(json.dumps(responses));payload.chmod(0o600)
+        executable=folder/'gh'
+        executable.write_text('#!'+sys.executable+'\n'+
+            'import base64,json,sys\nfrom pathlib import Path\n'+
+            f'with Path({str(log)!r}).open("a") as stream:stream.write(json.dumps(sys.argv[1:])+"\\n")\n'+
+            'if len(sys.argv)!=3 or sys.argv[1]!="api":sys.exit(91)\n'+
+            f'if sys.argv[2]=={denied!r}:\n sys.stderr.write("HTTP 403\\n");sys.exit(1)\n'+
+            f'responses=json.loads(Path({str(payload)!r}).read_text())\n'+
+            'if sys.argv[2] not in responses:sys.stderr.write("unexpected fixture endpoint");sys.exit(92)\n'+
+            'sys.stdout.buffer.write(base64.b64decode(responses[sys.argv[2]]))\n')
+        executable.chmod(0o700)
+        output=io.StringIO();path=self.f.root/'default-reader-report.json'
+        env=dict(self.env,PATH=str(folder)+os.pathsep+os.defpath)
+        with patch.dict(os.environ,env,clear=True),redirect_stdout(output):
+            result=cli.main(['latest-closed','--repo-root',str(self.f.writer.repo),'--output',str(path)],
+                transport=self.f.writer,readback_transport=self.f.reader,now=NOW)
+        calls=[json.loads(line) for line in log.read_text().splitlines()] if log.exists() else []
+        return result,json.loads(output.getvalue()),calls,path
+
+    def test_default_cli_reader_publishes_after_exact_workflow_and_two_artifact_pages(self):
+        listing='actions/workflows/405276784/runs?per_page=16&status=completed'
+        self.responses[listing]=V._wire(dict(workflow_runs=[self.run]))
+        first='actions/runs/7/artifacts?per_page=100';second=first+'&page=2'
+        self.responses[first]=V._wire(dict(total_count=102,artifacts=[
+            dict(id=1000+i,name=f'unrelated-{i}') for i in range(100)]))
+        self.responses[second]=V._wire(dict(total_count=102,artifacts=[self.continuity_meta,self.control_meta]))
+        code,report,calls,path=self.default_cli()
+        self.assertEqual(code,0,report);self.assertEqual(report['source_run_id'],7)
+        self.assertEqual(json.loads(path.read_bytes()),report)
+        endpoints=[args[1] for args in calls]
+        self.assertEqual(endpoints[0],'repos/haji84/RACE-AI/'+listing)
+        self.assertIn('repos/haji84/RACE-AI/'+first,endpoints)
+        self.assertIn('repos/haji84/RACE-AI/'+second,endpoints)
+        self.assertEqual(len(calls),8);self.assertTrue(all(args[0]=='api' for args in calls))
+        self.assertFalse(any('artifacts/1000' in endpoint for endpoint in endpoints))
+
+    def test_default_cli_reader_never_retries_or_skips_a_denied_artifact_listing(self):
+        listing='actions/workflows/405276784/runs?per_page=16&status=completed'
+        self.responses[listing]=V._wire(dict(workflow_runs=[self.run,run_record(6)]))
+        denied='repos/haji84/RACE-AI/actions/runs/7/artifacts?per_page=100'
+        code,report,calls,path=self.default_cli(denied=denied)
+        self.assertEqual(code,2);self.assertEqual(report['status'],'SOURCE_CONTROL_MIRROR_HOLD')
+        self.assertEqual(sum(args[1]==denied for args in calls),1)
+        self.assertFalse(any('actions/runs/6' in args[1] for args in calls))
+        self.assertFalse(path.exists());self.assertEqual(self.f.writer.head(),self.f.parent)
+
+    def test_mirror_default_reader_rejects_widened_or_noncanonical_endpoints_before_network(self):
+        cli=importlib.import_module('scripts.boat_source_control_mirror')
+        workflow='actions/workflows/405276784/runs?per_page=16&status=completed'
+        artifacts='actions/runs/7/artifacts?per_page=100'
+        invalid=[workflow+'&page=2',workflow.replace('16','100'),workflow.replace('405276784','1'),
+            workflow.replace('&status=completed',''),workflow.replace('completed','in_progress'),
+            workflow.replace('per_page=16&status=completed','status=completed&per_page=16'),
+            artifacts+'&page=0',artifacts+'&page=1',artifacts+'&page=01',artifacts+'&page=129',
+            artifacts+'&page=999999',artifacts+'&page=2&page=3',artifacts+'&per_page=100',
+            artifacts.replace('100','101'),artifacts.replace('/7/','/07/'),artifacts+'#fragment',
+            'repos/haji84/RACE-AI/'+workflow,'repos/foreign/RACE-AI/'+artifacts,
+            'https://api.github.com/repos/haji84/RACE-AI/'+workflow,'../'+artifacts,artifacts+'\n']
+        with patch('scripts.github_existing_cycle._live_gh',side_effect=AssertionError('invalid live GET')),\
+             patch('scripts.boat_private_original_vault.subprocess.Popen',side_effect=AssertionError('invalid vault GET')):
+            for endpoint in invalid:
+                with self.subTest(endpoint=endpoint),self.assertRaises(ValueError):cli._get(endpoint)
+
+    def test_default_reader_bounds_metadata_and_preserves_narrow_artifact_delegation(self):
+        cli=importlib.import_module('scripts.boat_source_control_mirror')
+        workflow='actions/workflows/405276784/runs?per_page=16&status=completed'
+        page='actions/runs/7/artifacts?per_page=100&page=128'
+        with patch('scripts.github_existing_cycle._live_gh',return_value=b'{}') as live:
+            self.assertEqual(cli._get(workflow),b'{}');self.assertEqual(cli._get(page),b'{}')
+            self.assertEqual([call.args[0] for call in live.call_args_list],[workflow,page])
+        with patch('scripts.github_existing_cycle._live_gh',side_effect=AssertionError('widened route')),\
+             patch.object(cli,'_gh',return_value=b'exact original bytes') as narrow:
+            for endpoint in ('actions/runs/7','actions/artifacts/71','actions/artifacts/71/zip'):
+                self.assertEqual(cli._get(endpoint),b'exact original bytes');narrow.assert_called_with(endpoint)
+        for endpoint,limit in ((workflow,2*1024*1024),(page,4*1024*1024)):
+            for response in (b'',b'x'*(limit+1)):
+                with self.subTest(endpoint=endpoint,size=len(response)),\
+                     patch('scripts.github_existing_cycle._live_gh',return_value=response) as live,\
+                     self.assertRaisesRegex(ValueError,'CONTROL_MIRROR_METADATA_RESPONSE_BOUND_INVALID'):
+                    cli._get(endpoint)
+                self.assertEqual(live.call_count,1)
 
     def test_independent_source_readback_rejects_different_public_counts(self):
         report=self.publish()
