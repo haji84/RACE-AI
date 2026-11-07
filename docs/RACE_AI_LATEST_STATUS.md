@@ -1,3 +1,18 @@
+<!-- RACEAI_AUTOMATION_20261107_1415_SOURCE_TEST_SCOPE_FIX -->
+# 2026-11-07 14:15 JST｜新しいsource runは開始前テストで停止。既存9-step検証を追加2保全step対応へ修正し、正式source再起動はHOLD
+
+**実GitHub観測:** Draft PR #71 / workflow405276784 / branch `feat/four-sport-forecast-audit-view-20261022`。source run `42341923234`（HEAD `8fda369102025bd0cc9ce30b2df541bb5bafeaf8`）は2026-11-07 14:15:42 JST `completed/failure`。失敗stepは `Test originals, pending results, tampering and unchanged models`、240テスト中1失敗。原因は `tests/test_cycle_workflow_references.py` の9個の必須巡回stepに、新設の結果原本retain/count-only receipt 2 stepを誤算入し、`AssertionError: 11 != 9`。このrunは初回P0復元・新しい公式GET・予想保存まで進んでいない。失敗runの再実行はしない。
+
+**限定修正:** 既存compositeの必須9 stepの検証は減らさず、追加2保全stepを独立して名称・暗号鍵境界・active条件・元結果後の順序・保全結果receipt・optional継続条件で検証する。元モデル・係数・予想原本・コンポジット/ワークフローの実行仕様・GET上限・concurrency・起動頻度は不変。修正の実ActionsでのPASSは**この記録時点では未確認**。新しい正式sourceの起動は行わない。
+
+**HOLD:** count-only original-vault `state/boat-source-control/v1/latest.json` はrun `42330631694`（失敗run）を参照したまま。直近成功run `42336097863` の第1巡のZIPハッシュ検証は既報の範囲だが、このlatestの所有者鍵HMAC/原本確認は今回未実施。成功の証拠に置き換えず、最新control/実run/署名整合が確認されるまで新sourceトリガー禁止。既存原本refやキー、旧run・結果revisionを変更しない。
+
+**研究学習との区別:** 研究実fitは公開監査文書に記録されたBOAT14枠/31枠（同一8実レース6学習・2holdout）、残17枠（売主型1、非BOAT16）。新しいBOAT14枠の公式結果付き未来PDCA、非BOAT全16枠の通常8R/枠、LEARNED_SHADOWの未来優位性は未認定。独立の新原本・追加的中率・正式収支をこの停止runから計上しない。
+
+新タスク・別workflow/PR・追加source run・再実行・本番モデル切替・投票・公開・外部クラウド・課金は行わない。
+
+---
+
 <!-- RACEAI_SIX_BOAT_MARKER_IDENTITY_20261107 -->
 # 2026-11-07 JST｜1〜6の自動番号登録86件を原画照合。6艇の継続識別は未完成
 

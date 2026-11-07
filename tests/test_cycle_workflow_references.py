@@ -36,7 +36,9 @@ class WorkflowReferencesTest(unittest.TestCase):
         protection_steps=[step for step in steps if 'boat_private_original_archive' in step]
         vault_steps=[step for step in steps if 'boat_private_original_vault' in step]
         evaluation_steps=[step for step in steps if 'boat_prospective_audit' in step or 'boat-prospective-audit' in step]
+        # Keep the original nine mandatory steps separate from optional retention.
         retention_steps=[step for step in steps if step.split('\n',1)[0] in RETENTION_NAMES]
+        result_retention_steps=retention_steps
         baseline_steps=[step for step in steps if step not in private_steps+model_steps+protection_steps+vault_steps+evaluation_steps+retention_steps]
         self.assertEqual(len(baseline_steps), 9)
         prepare, discovery, p0freeze, forecast, freeze, audit, result, complete, display = baseline_steps
@@ -69,6 +71,22 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertIn('P0_SUPPLEMENT_ARTIFACT: ${{ steps.discovery_freeze.outputs.artifact-id }}', audit)
         self.assertIn('supplement_args+=(--p0-supplement "$P0_SUPPLEMENT_ARTIFACT")', audit)
         self.assertIn("--p1-artifact '${{ steps.freeze.outputs.artifact-id }}'", audit)
+        self.assertEqual(len(result_retention_steps), 2)
+        original_retain, count_receipt = result_retention_steps
+        self.assertTrue(original_retain.startswith('Retain pinned official-result originals'))
+        self.assertTrue(count_receipt.startswith('Keep count-only official-result original retention status'))
+        self.assertIn('scripts.all_existing_model_official_result_retain --input audit/state/official-result-retention-input.json', original_retain)
+        self.assertIn("if: steps.ready.outputs.active == 'true'", original_retain)
+        self.assertIn('RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}', original_retain)
+        self.assertIn('continue-on-error: true', original_retain)
+        self.assertIn("if: always() && steps.ready.outputs.active == 'true'", count_receipt)
+        self.assertIn('audit/state/official-result-retention-input.json', count_receipt)
+        self.assertIn('uses: ' + UPLOAD, count_receipt)
+        self.assertIn('if-no-files-found: error', count_receipt)
+        self.assertIn('continue-on-error: true', count_receipt)
+        self.assertLess(text.index(complete), text.index(original_retain))
+        self.assertLess(text.index(original_retain), text.index(count_receipt))
+        self.assertLess(text.index(count_receipt), text.index(display))
         self.assertIn('github_existing_cycle.py repeat-complete', complete)
         self.assertIn("--p1-artifact '${{ steps.freeze.outputs.artifact-id }}'", complete)
         self.assertIn("--result-artifact '${{ steps.result.outputs.artifact-id }}'", complete)
