@@ -114,3 +114,10 @@ catalogはPARSED 7,846＋PARTIAL_SOURCE 117。gridの完全観測日は7,845、�
 [新requestの準備証跡](evidence/2026-11-07/fixed-sixteen-probe-preparation-counts.json)：request SHA `c89917e055a448b14adba9a26b4f538385b6fbb92c6e1c4665082312be907285`、plan SHA `fe3b07ab24adcedb35a69add742cf34a3bd19699f9fb3e559ed06a3fb5cf0c2c`。4 native／3 checkpoints／4 prior journal、同じ1ケース・URL・利用条件・静的原本を保持。未発行の旧8枠準備905fは履歴へ残し、新暗号planだけを追加。これは取得授権の発行ではなく、新HEADの全体CI待ちである。既存の消費済みcapsuleを更新・再利用しない。
 
 実学習19／30・残AUTO6／KEIRIN5、新19／全30の実未来PDCA 0は変わらない。本番モデル・旧MAC・既定学習pointer・既存の原本は保持する。
+
+
+## 973の実原本と補助CSV 404（2026-11-07 23:44 JST）
+
+973／run42378920749は初回・限定再実行とも全体SUCCESS。実16通信は15件HTTP200＋補助refund CSV 1件404で、16上限停止ではなくFINISHED。実OtherRaceInfo(11)・RaceResult(14)・通常UIの実DOMはCAPTUREDだったが、Pythonが全responseに200を要求しSOURCE_VALIDATIONでREJECTEDとなった。旧journal/state/countは変更しない。
+
+完全な元原本から必要HTTP・元request・元DOMだけを既存result adapterへ渡し、独立認証済み締切前nativeと登録8選手を照合した。実1レースはrank_confirmed（100円払戻単位は未証明、金額評価不可）。[原本再利用の準備証跡](evidence/2026-11-07/973-actual-result-source-reuse-preparation-counts.json)。合成本文0・新提供元通信0。既存official-results-freeze経路で新しい正式RESULTの暗号保存・独立読戻しを実行する。原本の取得時刻を新しい時刻へ置換せず、新producerの保存証拠と区別する。新RESULT artifact成功前に確定学習原本へ加算しない。
