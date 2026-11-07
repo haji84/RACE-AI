@@ -415,13 +415,31 @@ jobs:
           path: ${{ runner.temp }}/all-native-future/
           retention-days: 7
           if-no-files-found: error
+      - name: Keep the encrypted original-source provenance for the thirty-cell path
+        id: native_future_origin_upload
+        if: steps.native_future.outputs.origin_ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.native_future.outputs.origin_artifact_name }}
+          path: ${{ runner.temp }}/all-native-future.origin/origin.enc
+          retention-days: 7
+          if-no-files-found: error
       - name: Verify the actual native future comparison receipt
         if: steps.native_future_upload.outputs.artifact-id != ''
         env:
           GH_TOKEN: ${{ github.token }}
           GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
-        run: python -m scripts.all_existing_model_native_future --manifest audit/state/all-existing-model-native-future-input.json --out-dir "$RUNNER_TEMP/all-native-future" --readback-artifact '${{ steps.native_future_upload.outputs.artifact-id }}'
+          ORIGIN_REQUIRED: ${{ steps.native_future.outputs.origin_ready }}
+          ORIGIN_ARTIFACT_ID: ${{ steps.native_future_origin_upload.outputs.artifact-id }}
+        shell: bash
+        run: |
+          origin_args=()
+          if [[ "$ORIGIN_REQUIRED" == 'true' ]]; then
+            test -n "$ORIGIN_ARTIFACT_ID"
+            origin_args+=(--readback-origin-artifact "$ORIGIN_ARTIFACT_ID")
+          fi
+          python -m scripts.all_existing_model_native_future --manifest audit/state/all-existing-model-native-future-input.json --out-dir "$RUNNER_TEMP/all-native-future" --readback-artifact '${{ steps.native_future_upload.outputs.artifact-id }}' "${origin_args[@]}"
       - name: Keep count-only native future comparison proof
         if: steps.native_future_upload.outputs.artifact-id != ''
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
@@ -495,6 +513,43 @@ jobs:
         with:
           name: all-existing-order-only-owner-decision-${{ github.run_id }}
           path: ${{ runner.temp }}/order-only-fit.owner-research.enc
+          retention-days: 7
+          if-no-files-found: error
+      - name: Score the explicitly requested nonfinancial native comparison
+        id: order_only_pdca
+        if: hashFiles('audit/state/all-existing-model-order-only-pdca-input.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        shell: bash
+        run: |
+          if [[ "$(git log -1 --format=%s)" == order-only-pdca:* ]]; then
+            echo 'requested=true' >> "$GITHUB_OUTPUT"
+            python -m scripts.all_existing_model_order_only_pdca --input audit/state/all-existing-model-order-only-pdca-input.json --out-dir "$RUNNER_TEMP/order-only-pdca"
+          fi
+      - name: Keep only encrypted native order comparison partitions
+        id: order_only_pdca_upload
+        if: steps.order_only_pdca.outputs.ready == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ steps.order_only_pdca.outputs.artifact_name }}
+          path: ${{ runner.temp }}/order-only-pdca/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Independently verify the actual nonfinancial comparison artifact
+        if: steps.order_only_pdca_upload.outputs.artifact-id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_SHA: ${{ github.event.pull_request.head.sha }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.all_existing_model_order_only_pdca --input audit/state/all-existing-model-order-only-pdca-input.json --out-dir "$RUNNER_TEMP/order-only-pdca" --readback-artifact '${{ steps.order_only_pdca_upload.outputs.artifact-id }}'
+      - name: Keep count-only native order comparison status
+        if: always() && steps.order_only_pdca.outputs.requested == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: all-existing-order-only-pdca-proof-${{ github.run_id }}
+          path: ${{ runner.temp }}/order-only-pdca.status.json
           retention-days: 7
           if-no-files-found: error
       - name: Freeze the requested future P0 comparison from retained inputs only

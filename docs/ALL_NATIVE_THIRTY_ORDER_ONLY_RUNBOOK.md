@@ -93,3 +93,104 @@ verification and optional observed published money. Its scope is
 verified unit/settlement evidence exists. Training, retention, future comparison
 and accuracy improvement are separate claims. This run grants no provider licence,
 production promotion, purchases or public raw-data release.
+
+## Explicit order-only future comparison
+
+`race_ai.all_existing_model_order_only_pdca.score_order_only_pairs_artifacts`
+provides a separate path for authenticated AUTO/KEIRIN `rank_confirmed` labels.
+The existing cash PDCA API continues to reject them. HORSE cash labels and BOAT
+results are outside this new typed path; this API does not convert them or establish
+completion of all30 cells.
+
+Pass the unchanged future-pairs ZIP, its freshly fetched actual artifact metadata,
+the official RESULT ZIP and its own fresh metadata. Bind the expected run/head
+separately for each source. All RESULT rows must replay against independently
+authenticated frozen native inputs before filtering. If a day RESULT contains
+other races, supply their original native archives through
+`additional_native_artifacts`, each with `raw`, `metadata`, `expected_run_id` and
+`expected_head_sha`. Those extra inputs never become forecasts or losses. The
+function fits no model, issues no forecast and makes no provider request.
+
+The private record preserves the original19-field label, its full SHA, original
+source closure/receipt, exact roster/cutoff and both original native forecasts.
+Probability outputs supply winning-order probability, full native rank and log
+loss with the documented floor `1e-15`. Selection outputs supply native ticket
+coverage/hit and abstention; three/five plans remain separate where present.
+Comparison uses the same result within each cell's paired cohort. Missing,
+pending, special or cash-only teachers remain unscored; abstention is not a miss.
+No stake, return, ROI, recovery, profit or payout metric is calculated or displayed.
+The original optional published amount remains private evidence with unknown unit.
+
+The output directory contains only opaque partitions, each holding
+`learning.enc`, `learning.json` and `summary.json`. The aggregate counts sidecar
+is written beside that directory and must not be added inside its ZIP. Preserve
+existing approved encrypted retention; no new workflow or schedule is required.
+After upload, fetch the actual ZIP/metadata and call
+`verify_order_only_pdca_artifact(raw, metadata, now=..., expected_run_id=...,
+expected_head_sha=...)`. Its name must match
+`all-existing-model-order-only-pdca-<run>-<round>`. Independent readback verifies
+every source forecast is present, rejects partial/mixed contexts, and replays at
+the stored original evaluation time. Local readback alone is not this receipt.
+
+Inherited limits remain64MiB per archive and12MiB per encrypted partition, with
+256MiB total source inputs. Shortage, source mismatch, cutoff/roster conflict,
+expiry or an over-limit archive must stop without relaxing those limits. Synthetic
+tests and independent code review cover this path. Actual future30 scoring and
+realistic full30 archive-size acceptance still require future authenticated data.
+
+## Actions entry for typed nonfinancial PDCA
+
+Use the existing production acceptance job with commit subject `order-only-pdca:`
+and the public manifest `audit/state/all-existing-model-order-only-pdca-input.json`.
+It must have exactly `schema: RACE_AI_ORDER_ONLY_PDCA_INPUT_V1`,
+`future_artifact`, `result_artifact`, and `additional_native_artifacts`.
+Each pin has only `id`, `digest`, `run_id`, `head_sha`; extras are unique and at
+most16. The script runs in trusted same-repository PR71 Actions with the existing
+owner secret, never a local-key handoff:
+
+```bash
+python -m scripts.all_existing_model_order_only_pdca \
+  --input audit/state/all-existing-model-order-only-pdca-input.json \
+  --out-dir "$RUNNER_TEMP/order-only-pdca"
+```
+
+The workflow uploads only the opaque partition directory when typed pairs exist,
+then invokes `--readback-artifact <actual-id>`. Status is stored separately and
+projects counts and hashes. Existing per-partition public summaries contain
+aggregate model statistics without raw labels, inputs, coefficients or ticket
+lists. Old output and generation files are never reset after a held readback.
+This entry neither trains nor issues forecasts and makes zero provider requests.
+
+## Thirty-cell future input and original provenance
+
+After a real thirty-cell candidate is independently saved, the existing
+`native-p1-compare:` Actions entry accepts native-future manifest V3. Exact fields:
+`schema: RACE_AI_ALL_NATIVE_FUTURE_INPUT_V3`, `candidate_cell_count: 30`,
+`candidate_artifact_id`, `candidate_digest`, and `source_input_artifacts` (one to16
+unique four-field pins as above). Keep V1/V2 dictionaries and old proof intact.
+
+The candidate must pass common-eight/240-record/owner-V2 checks. Each produced
+sport must have all its original native cell inputs for one race, with the same
+registered roster/cutoff/scope and a genuine baseline. Missing learned baselines,
+old native model clocks, incomplete cases and already-issued candidate/race
+predictions remain reasoned HOLDs. A sport may be absent without claiming all30
+were produced. New capture after fitting can resolve a real clock shortage;
+rewriting an old snapshot clock cannot. All forecasts need the existing ten-minute
+margin and an actual candidate receipt before their decision time.
+
+V3 also seals exact original source admissions/clocks, generation MAC, manifest
+and every opaque member SHA into private `<out>.origin/origin.enc`. Only this
+cipher is uploaded separately as `all-native-future-origin-<run>-900010`. The
+original source/generation JSON files remain private. The existing workflow passes
+both `--readback-artifact <pairs-id>` and
+`--readback-origin-artifact <origin-id>`. Complete independent receipt proof is
+true only after both fresh metadata/ZIP/cipher/bundle/member checks pass. The
+physical origin-generation time must precede its actual save (including the
+one-second server precision rule) and keep the cutoff margin. Pair-only
+compatibility does not claim an independent origin receipt. Preserve the cipher,
+actual metadata and original source archives under the existing retention policy.
+
+The fixed input/archive/crypto caps remain; oversized real data must HOLD.
+Twenty-two synthetic V3/legacy tests and independent review passed. Real thirty-cell
+fit, full real thirty-cell future execution and realistic archive-size acceptance
+remain separate, incomplete gates.
