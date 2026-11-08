@@ -76,6 +76,8 @@ jobs:
               echo '{"status":"FIVE_GATES_SAVED_DATA_VERIFICATION_READY","official_source_requests":0}'
             elif [[ "$(git log -1 --format=%s)" == saved-view:\ forecasts-first\ reconcile-closed* ]]; then
               python -m scripts.boat_saved_view_feed --replay-vault-config audit/state/boat-closed-result-replay-input.json --day 2026-11-08
+            elif [[ "$(git log -1 --format=%s)" == saved-view:\ forecasts-first\ verify-current* ]]; then
+              echo '{"status":"CURRENT_SAVED_SITE_VERIFICATION_READY","official_source_requests":0}'
             else
               python -m scripts.boat_saved_view_feed --forecasts-only --hydrate-originals --day "$FORECAST_DISPLAY_DAY" --recover-model-run "$FORECAST_DISPLAY_RUN_ID"
             fi
@@ -191,6 +193,8 @@ jobs:
             if [[ "$(git log -1 --format=%s)" == saved-view:\ forecasts-first\ five-gates* ]]; then
               dates=(--day 2026-11-07)
             elif [[ "$(git log -1 --format=%s)" == saved-view:\ forecasts-first\ reconcile-closed* ]]; then
+              dates=(--day 2026-11-08)
+            elif [[ "$(git log -1 --format=%s)" == saved-view:\ forecasts-first\ verify-current* ]]; then
               dates=(--day 2026-11-08)
             else
               dates=(--require-future)
