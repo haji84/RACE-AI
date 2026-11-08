@@ -13,14 +13,17 @@ import json
 import os
 from pathlib import Path
 
-from .keirin_discovery import get_single_day, DiscoveryError
+from .keirin_discovery import DiscoveryError
+from .keirin_non_rakuten_day import read_saved_day_roster, OwnerDayRosterError
 
 JST=timezone(timedelta(hours=9))
 
 
-def daily_run(*, today=None, collector=get_single_day):
+def daily_run(*, today=None, collector=None):
     if today is None:
         today=datetime.now(JST).date().isoformat()
+    if collector is None:
+        raise DiscoveryError('RAKUTEN_AUTOMATIC_DISCOVERY_DISABLED_BY_OWNER')
     discovery=collector(today)
     rows=[{
         "race_id":r["race_id"],"event_date_jst":today,
@@ -68,9 +71,13 @@ def main(argv=None):
     p=argparse.ArgumentParser()
     p.add_argument("--day",help="YYYY-MM-DD; default current JST day")
     p.add_argument("--output",required=True)
+    p.add_argument("--source-file",help="owner-saved non-Rakuten dated roster JSON; no network")
     args=p.parse_args(argv)
     try:
-        obj=daily_run(today=args.day)
+        if not args.source_file:
+            raise DiscoveryError("NON_RAKUTEN_SOURCE_FILE_NOT_CONNECTED")
+        obj=daily_run(today=args.day, collector=lambda day:
+            read_saved_day_roster(args.source_file, day))
         size=save_once(args.output,obj)
         print(json.dumps({"schema":obj["schema"],"day":obj["event_date_jst"],
             "source_sha256":obj["source_sha256"],"discovered":obj["discovered_count"],
@@ -78,8 +85,8 @@ def main(argv=None):
             "output_bytes":size,"forecast_generated":0,
             "official_hit8":None,"raw_source_saved":False},ensure_ascii=False))
         return 0
-    except (DiscoveryError, OSError, ValueError):
-        print('{"state":"DAILY_DISCOVERY_INCOMPLETE","forecasts_generated":0}')
+    except (DiscoveryError, OwnerDayRosterError, OSError, ValueError):
+        print('{"state":"NON_RAKUTEN_DAILY_DISCOVERY_INCOMPLETE","forecasts_generated":0,"provider_http_requests":0}')
         return 2
 
 
