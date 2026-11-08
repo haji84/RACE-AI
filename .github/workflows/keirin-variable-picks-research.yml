@@ -3,7 +3,11 @@ on:
   pull_request:
     paths:
       - "race_ai/keirin_variable_selection.py"
+      - "race_ai/keirin_variable_integration.py"
+      - "race_ai/keirin_private_spool.py"
+      - "scripts/keirin_private_agent.py"
       - "tests/test_keirin_variable_selection.py"
+      - "tests/test_keirin_variable_integration.py"
       - "docs/KEIRIN_VARIABLE_SELECTION_RESEARCH_20261108.md"
       - ".github/workflows/keirin-variable-picks-research.yml"
   workflow_dispatch:
@@ -24,5 +28,5 @@ jobs:
           python-version: "3.11"
       - name: Synthetic only, never actual race profit
         run: |
-          python -m unittest -v tests.test_keirin_variable_selection
-          python -m compileall -q race_ai/keirin_variable_selection.py
+          python -m unittest -v tests.test_keirin_variable_selection tests.test_keirin_variable_integration tests.test_keirin_private_spool tests.test_keirin_private_agent
+          python -m compileall -q race_ai/keirin_variable_selection.py race_ai/keirin_variable_integration.py race_ai/keirin_private_spool.py scripts/keirin_private_agent.py
