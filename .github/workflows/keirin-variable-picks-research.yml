@@ -12,6 +12,7 @@ on:
       - "race_ai/keirin_existing_asset_reuse.py"
       - "tests/test_keirin_existing_asset_reuse.py"
       - "scripts/keirin_existing_asset_preflight.py"
+      - "scripts/keirin_existing_archive_verify.py"
       - "race_ai/keirin_shadow_variable_intake.py"
       - "race_ai/keirin_owner_odds_csv.py"
       - "tests/test_keirin_owner_odds_csv.py"
@@ -24,7 +25,7 @@ on:
       - "tests/test_keirin_reference_history_recheck.py"
       - "race_ai/keirin_reference_history_recheck.py"
       - "scripts/keirin_reference_history_audit.py"
-      - "scripts/keirin_variable_reconcile_private.py scripts/keirin_existing_asset_preflight.py"
+      - "scripts/keirin_variable_reconcile_private.py"
       - "docs/KEIRIN_VARIABLE_SELECTION_RESEARCH_20261108.md"
       - ".github/workflows/keirin-variable-picks-research.yml"
   workflow_dispatch:
@@ -51,10 +52,12 @@ jobs:
           persist-credentials: false
       - name: Audit existing encrypted history without new DB or real-data assertions
         run: python -m scripts.keirin_existing_asset_preflight --state-tree "$GITHUB_WORKSPACE/existing-keirin-history"
+      - name: Recover actual retained SYNTHETIC Git archive and verify SHA + SQLite
+        run: python -m scripts.keirin_existing_archive_verify --state-tree "$GITHUB_WORKSPACE/existing-keirin-history" --source-repo "$GITHUB_WORKSPACE"
       - name: Synthetic only, never actual race profit
         env:
           PYTHONPATH: ".:tests"
         run: |
           python -m unittest -v tests.test_keirin_variable_selection tests.test_keirin_variable_integration tests.test_keirin_private_spool tests.test_keirin_private_agent tests.test_keirin_reference_history_recheck tests.test_keirin_shadow_variable_pair tests.test_keirin_mansha_rank_audit tests.test_keirin_owner_odds_csv tests.test_keirin_existing_asset_reuse
           python -m unittest -v tests.test_keirin_real_rider_shadow tests.test_keirin_allowed_delivery tests.test_keirin_owner_manual tests.test_keirin_owner_saved_csv tests.test_keirin_owner_saved_hex tests.test_keirin_permissioned_owner tests.test_keirin_preflight
-          python -m compileall -q race_ai/keirin_variable_selection.py race_ai/keirin_variable_integration.py race_ai/keirin_private_spool.py race_ai/keirin_reference_history_recheck.py race_ai/keirin_real_rider_shadow.py race_ai/keirin_real_shadow_intake.py race_ai/keirin_shadow_variable_pair.py race_ai/keirin_mansha_rank_audit.py race_ai/keirin_existing_asset_reuse.py race_ai/keirin_shadow_variable_intake.py race_ai/keirin_owner_odds_csv.py scripts/keirin_private_agent.py scripts/keirin_permissioned_owner_agent.py scripts/keirin_reference_history_audit.py scripts/keirin_variable_reconcile_private.py
+          python -m compileall -q scripts/keirin_existing_archive_verify.py scripts/keirin_existing_asset_preflight.py race_ai/keirin_variable_selection.py race_ai/keirin_variable_integration.py race_ai/keirin_private_spool.py race_ai/keirin_reference_history_recheck.py race_ai/keirin_real_rider_shadow.py race_ai/keirin_real_shadow_intake.py race_ai/keirin_shadow_variable_pair.py race_ai/keirin_mansha_rank_audit.py race_ai/keirin_existing_asset_reuse.py race_ai/keirin_shadow_variable_intake.py race_ai/keirin_owner_odds_csv.py scripts/keirin_private_agent.py scripts/keirin_permissioned_owner_agent.py scripts/keirin_reference_history_audit.py scripts/keirin_variable_reconcile_private.py
