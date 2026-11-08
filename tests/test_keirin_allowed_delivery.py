@@ -262,6 +262,24 @@ class AllowedFeedTests(unittest.TestCase):
         # Float precision at astronomical magnitudes is expected; this is
         # not a hard eligibility cutoff for any athlete.
 
+    def test_above_200_race_score_reaches_existing_pr71_eight_pick_model(self):
+        data = fixture()
+        for n, points in ((1, 125.75), (2, 217.50), (3, 305.99)):
+            row = next(o for o in data["observations"]
+                       if o["key"] == "rider/%d/race_score" % n)
+            row["value"] = points
+        assembled = assemble(data)
+        snapshot = assembled["private_snapshot"]
+        self.assertIsNotNone(snapshot)
+        self.assertEqual(assembled["status"]["missing_model_inputs"], [])
+        existing = run_pr71_for_next_race(
+            snapshot, run_suite=run_suite, verify_suite=verify_suite,
+            source_admission=lambda *_: True,
+            model_id="multisport-scenario-ensemble-v1", issued_at=ISSUED)
+        self.assertEqual(len(existing["top8"]), 8)
+        self.assertFalse(existing["trained"])
+        self.assertEqual(assembled["status"]["checked_count"], 347)
+
     def test_negative_nonfinite_or_non_numeric_scores_rejected(self):
         for invalid in (-1, float("inf"), float("-inf"), float("nan"),
                         "120", True, None):
