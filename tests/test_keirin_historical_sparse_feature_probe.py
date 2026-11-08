@@ -5,7 +5,8 @@ import math
 import unittest
 
 from race_ai.keirin_historical_sparse_feature_probe import (
-    SCHEMA, HistoricalSparseProbeError, probe_saved_sparse_research
+    SCHEMA, HistoricalSparseProbeError, probe_saved_sparse_research,
+    probe_saved_second_race_reference
 )
 
 
@@ -121,6 +122,80 @@ class HistoricalSparseFeatureProofTests(unittest.TestCase):
         self.assertEqual(check["state"],
                          "BLOCKED_SOURCE_PUBLISHED_AT_AND_PER_PURPOSE_RIGHTS_NOT_ATTESTED")
 
+
+
+def second_reference():
+    lines=[[1,3,5],[2,4],[6,7]]
+    role={n:(g[0],i) for g in lines for i,n in enumerate(g)}
+    return {
+        "schema":"MATS2R_RESEARCH_SCENARIO_PREDICTION_V1",
+        "status":"research_only_uncalibrated_no_official_frozen_proof",
+        "race":{
+            "date_jst":"2026-11-08","venue":"松山","race_number":2,
+            "as_of_jst":"2026-11-08T20:43:43+09:00",
+            "sales_cutoff_jst":"20:55",
+            "line_assumptions":lines,
+        },
+        "methodology":{
+            "independent_validation":False,
+            "calibrated":False,
+            "source_admission_verified_for_RACE_AI":False,
+        },
+        "participants":[{
+            "n":n,"name":f"fictional_{n}",
+            "p":70+n,"w":2,"nr":20+n,"p3":6,"b":n,
+            "esc":2,"mak":1,"sashi":1,"mark":1,
+            "recent":[1,2,3,4,5,6],
+            "line":role[n][0],"role":role[n][1],
+        } for n in range(1,8)],
+    }
+
+
+class SecondRaceResearchInputTests(unittest.TestCase):
+    def test_reconstruct_14_of_84_not_210_pr71_predictions(self):
+        a=probe_saved_second_race_reference(second_reference())
+        summary=a["public_summary"]
+        count=summary["counts"]
+        self.assertEqual(count["model_required_feature_slots"],84)
+        self.assertEqual(count["required_candidates_normalized_not_admitted"],14)
+        self.assertEqual(count["required_slots_not_supported"],70)
+        self.assertEqual(count["environment_candidates"],0)
+        self.assertEqual(count["optional_candidate_slots"],49)
+        self.assertEqual(count["all_candidate_slots"],63)
+        one=a["private_candidate_values_by_rider"][1]
+        self.assertAlmostEqual(one["ability"],71/171)
+        self.assertAlmostEqual(one["consistency"],6/21)
+        self.assertAlmostEqual(one["recent_win_form"],2/21)
+        self.assertFalse(summary["full_pr71_four_model_replay_eligible"])
+        self.assertFalse(summary["existing_pr71_model_executed"])
+        self.assertTrue(summary["historical_210_from_other_model_not_PR71"])
+        self.assertNotIn("fictional_1",json.dumps(summary))
+
+    def test_refuse_post_deadline_source_and_fake_rights(self):
+        for patch in [
+            ("race","as_of_jst","2026-11-08T20:55:00+09:00"),
+            ("methodology","source_admission_verified_for_RACE_AI",True),
+        ]:
+            source=second_reference()
+            source[patch[0]][patch[1]]=patch[2]
+            with self.assertRaises(HistoricalSparseProbeError):
+                probe_saved_second_race_reference(source)
+
+    def test_no_fabricated_stat_and_no_lineup_mismatch(self):
+        for field,value in [
+            ("p3",100),("w",100),("nr",0),("p",float("nan")),
+            ("b",-1),("sashi",1.5),("recent",[1,2]),
+        ]:
+            source=second_reference()
+            source["participants"][0][field]=value
+            with self.subTest(field=field):
+                with self.assertRaises(HistoricalSparseProbeError):
+                    probe_saved_second_race_reference(source)
+        source=second_reference()
+        source["participants"][0]["line"]=2
+        with self.assertRaisesRegex(HistoricalSparseProbeError,
+                                    "LINE_ROLE_CONFLICT"):
+            probe_saved_second_race_reference(source)
 
 if __name__=="__main__":
     unittest.main()
