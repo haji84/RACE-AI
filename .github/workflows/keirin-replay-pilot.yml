@@ -15,7 +15,7 @@ permissions:
 jobs:
   bounded-recording-proof:
     runs-on: ubuntu-24.04
-    timeout-minutes: 12
+    timeout-minutes: 18
     steps:
       - uses: actions/checkout@v4
         with:
@@ -42,7 +42,7 @@ jobs:
         env:
           RACE_AI_BROWSER_CHANNEL: chrome
         run: |
-          python scripts/keirin_replay_probe.py --seconds 300 --report "$RUNNER_TEMP/matsuyama-1r-probe.json" --encrypted-dir "$RUNNER_TEMP/matsuyama1r-encrypted" --public-key docs/keirin-replay-pilot-public.pem
+          python scripts/keirin_replay_probe.py --seconds 540 --report "$RUNNER_TEMP/matsuyama-1r-probe.json" --encrypted-dir "$RUNNER_TEMP/matsuyama1r-encrypted" --public-key docs/keirin-replay-pilot-public.pem
       - name: Save ciphertext artifact only (research pilot)
         if: steps.replay.outcome == 'success'
         uses: actions/upload-artifact@v4
@@ -62,6 +62,9 @@ jobs:
           lines=[
             '## Matsuyama 2026-11-08 1R replay pilot',
             f"- Technical playback: {item.get('playback_state','NOT_EXECUTED')}",
+            f"- Player natural end confirmed: {item.get('player_clip_completed','UNKNOWN')}",
+            f"- End reason: {item.get('video_end_reason','UNKNOWN')}",
+            f"- Entire unedited race independently verified: {item.get('whole_unedited_race_verified','UNKNOWN')}",
             f"- Browser video time advanced: {item.get('html_video_advanced','UNKNOWN')}",
             f"- HTTP status: {item.get('http_status','UNKNOWN')}",
             f"- Page title: {item.get('page_title','UNKNOWN')}",
@@ -89,7 +92,7 @@ jobs:
           import json,os,sys
           path=Path(os.environ['RUNNER_TEMP'])/'matsuyama-1r-probe.json'
           data=json.loads(path.read_text()) if path.exists() else {}
-          if data.get('playback_state')!='VIDEO_ADVANCED_AND_RECORDED':
-              sys.exit('NOT_VERIFIED: actual race playback NOT established')
-          print('Only technical HTML video playback verified; visual race analysis STILL NOT complete.')
+          if data.get('playback_state')!='COMPLETE_PLAYER_CLIP_RECORDED':
+              sys.exit('NOT_VERIFIED: player clip was not recorded from start through natural end')
+          print('Player video recorded to natural end; entire unedited race and visual tactical analysis STILL NOT verified.')
           PY
