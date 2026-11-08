@@ -23,5 +23,7 @@ jobs:
         run: python -m unittest discover -s tests -p test_keirin_owner_sqlite.py -v
       - name: Guard source-to-model integrity
         run: python -m unittest discover -s tests -p test_keirin_pr71_model_adapter.py -v
+      - name: All-factor KEIRIN pre-race audit and real-model fail-closed gate
+        run: python -m unittest discover -s tests -p test_keirin_preflight.py -v
       - name: Operator-private service CLI and no unauthenticated provider access
         run: python -m unittest discover -s tests -p test_keirin_private_agent.py -v
