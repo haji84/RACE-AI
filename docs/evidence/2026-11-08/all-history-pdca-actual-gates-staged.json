@@ -1,0 +1,76 @@
+{
+  "schema": "RACE_AI_ALL_HISTORY_PDCA_STAGED_EVIDENCE_V1",
+  "record_date_jst": "2026-11-08",
+  "status": "STAGED_CODE_REVIEW_ONLY_NOT_LIVE_ACCEPTED",
+  "repo": "haji84/RACE-AI",
+  "pr": 71,
+  "main_or_pr_ref_modified": false,
+  "base_sha": "9375d89142829340d871fc1145c04ffc3a72f680",
+  "protected_source_boundary": "ACTIVE_FULL_FIRST_TO_FIXED_ATTEMPT_TWO_BOUNDARY",
+  "scope": "BOAT saved forecast history; other sports not yet proven",
+  "source_code": {
+    "tested_in_existing_source_bundle_run": 42450915404,
+    "local_focused_unittest_total": 90,
+    "local_unittest_result": "OK",
+    "test_only_stubs": [
+      "lhafile lh0 fixture only",
+      "retired seller shadow import stub"
+    ],
+    "real_github_actions_ci_for_candidate": false
+  },
+  "production_observation": {
+    "official_result_sync_run": 42473558831,
+    "official_result_sync_whole_success": true,
+    "production_implementation_pin": "914941a6244364480370ac392441ad4bb5781f83",
+    "latest_confirmed_races_20261108": 77,
+    "latest_pending_races_20261108": 55,
+    "two_day_confirmed_races": 249,
+    "two_day_pending_races": 15,
+    "two_day_checked_races": 264,
+    "encrypted_source_generation": 31,
+    "actual_all_history_code_run": false
+  },
+  "pinned_model_source_inputs": {
+    "manifest_blob_sha": "b4870e46fd9d244a04681156f5c77fd4e621d35f",
+    "native_artifacts": 4,
+    "official_result_artifacts": 6,
+    "metadata_digest_matches": 10,
+    "unexpired": 10,
+    "owner_AES_decryption_verified_in_this_candidate": false
+  },
+  "official_result_retention": {
+    "last_run": 42464724285,
+    "whole_run_success": true,
+    "latest_retention_artifact": 13614930324,
+    "retention_state": "HOLD_OFFICIAL_RESULT_RETENTION",
+    "retention_reason": "RETAIN_OPERATION_REJECTED",
+    "ready": false,
+    "previously_retained_result_pointers": 3,
+    "first_not_retained_pin_index": 4,
+    "first_not_retained_pin_artifact_id": 13578691832,
+    "failed_phase_unconfirmed_in_old_run": true,
+    "no_auto_retry_of_signed_hold": true
+  },
+  "changes": {
+    "all_saved_days_compact_due_ledger": true,
+    "older_due_fairness_without_new_GET": true,
+    "AES_only_model_PDCA_counts": true,
+    "model_PDCA_hold_for_final_physical_result": true,
+    "sanitized_failure_phase_for_future_authorized_epoch": true,
+    "returning_private_race_ids_in_public_report": false,
+    "source_provider_requests_executed_by_this_staged_candidate": 0,
+    "actual_bets": false,
+    "model_promotion": false
+  },
+  "required_live_acceptance": [
+    "Owner must explicitly release fixed source boundary after actual source and authenticated independent journal readback",
+    "Integrate staged code non-destructively with fresh PR head; preserve original source and protected refs",
+    "Exact-code full CI with production dependencies, no fixture shim",
+    "Within existing GitHub Actions with RACE_AI_STATE_KEY secret only authenticate an actual past saved forecast and corresponding source result",
+    "Verify per-model hit/miss/refunds, frozen hypothetical stake, original SHA and clock and make no postdeadline forecast",
+    "Retain official result and PDCA in existing private encrypted Git with independent readback in a fresh process",
+    "Check all saved history dates for missing/held, preserve unresolved and official revisions",
+    "After exact code passed, update existing boat-racer-daily.yml fixed nonpush checkout ref without changing triggers, schedule, privileges or jobs",
+    "Run scheduled existing workflow to prove all-date auto continuation; apply same proof per other sport"
+  ]
+}
