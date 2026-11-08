@@ -142,7 +142,7 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual([r for r in out['records'] if r['race_id']=='20261104-01-01'][0]['result']['status'],'final')
         final=SavedResultBridge(self.repo,now=at+timedelta(minutes=10),transport=self.git,bootstrap=self.boot)
         final.prepare(state)
-        self.assertNotIn('20261104-01-01',state.control['result_due_ledger']['pending'])
+        self.assertNotIn('2026-11-04',state.control['result_due_ledger']['pending_days'])
         self.assertEqual(final.publish(state,now=at+timedelta(minutes=10))['races'],2)
 
     def test_restored_identical_bytes_with_a_new_receipt_do_not_block_result_publication(self):

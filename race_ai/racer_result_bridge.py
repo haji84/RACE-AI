@@ -61,7 +61,7 @@ class SavedResultBridge:
             D.record_scanned(due,older)
             self.backfill_day=older
         self.ledger_summary=D.update(due,self.rows,now=self.now.isoformat())
-        self.ledger_summary['older_unresolved']=sum(1 for rid in due['pending'] if D._rid_day(rid) not in self.recent_days)
+        self.ledger_summary['older_unresolved']=D.count_older(due,self.recent_days)
         self.ledger_summary['unavailable_saved_days']=D.unavailable_days(due,self.available_days)
         self._prepared=True
         pointers=state.control.get('settlement_captures',{})

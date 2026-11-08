@@ -10,6 +10,7 @@ from .racer_intraday_source import result_url,parse_result,row_facts
 from .official_archive_probe import official_url
 from .official_k_archive import parse_archive
 from .source_retry_policy import SourceWait
+from . import result_due_ledger as D
 
 REFERENCE=str(Path(__file__).resolve().parents[1]/'pr64-reference/race_ai')
 if REFERENCE not in race_ai.__path__:race_ai.__path__.append(REFERENCE)
@@ -169,7 +170,10 @@ class IntradayState:
         old=[rid for rid in result_due if targets[rid]['pending'] and rid not in fresh]
         revisions=[rid for rid in result_due if not targets[rid]['pending']]
         new_stats=[rid for rid in due if rid not in c['results']]
-        for target in fresh+bootstrap+new_stats+old+[rid for rid in due if rid not in new_stats]+revisions:
+        for target in D.ordered_result_targets(
+            fresh=fresh,bootstrap=bootstrap,new_stats=new_stats,old=old,
+            other_due=[rid for rid in due if rid not in new_stats],
+            revisions=revisions,max_requests=max_requests,used_requests=requests):
             if requests>=max_requests or waiting('boatrace'):break
             venue=target[9:11];number=int(target[-2:])
             if target in picked:continue
