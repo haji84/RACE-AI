@@ -132,6 +132,28 @@ class SparseRealRiderShadowTests(unittest.TestCase):
         self.assertFalse(item["used_optional_win_rate_all_riders"])
         self.assertEqual(len(item["ordered_top8"]),8)
 
+    def test_private_shadow_intake_is_create_once_separate_from_pr71(self):
+        from race_ai.keirin_real_shadow_intake import stage_sourced_shadows
+        from race_ai.keirin_result_delivery import canonical
+        with tempfile.TemporaryDirectory() as d:
+            inbox=Path(d)
+            (inbox/"raw").mkdir()
+            (inbox/"raw"/"owner.json").write_bytes(canonical(fixture()))
+            one=stage_sourced_shadows(inbox,grant_check=grants().allowed,now=ISSUED)
+            self.assertEqual(one["counts"].get("private_shadow_research_saved"),1)
+            self.assertEqual(one["official_PR71_forecasts_generated"],0)
+            self.assertEqual(one["source_network_requests"],0)
+            saved=list((inbox/"shadow_pre").glob("*.json"))
+            self.assertEqual(len(saved),1)
+            persisted=json.loads(saved[0].read_text())
+            self.assertEqual(persisted["model_id"],MODEL)
+            self.assertEqual(len(persisted["ordered_top8"]),8)
+            self.assertFalse(persisted["eligible_for_formal_hit_at_8"])
+            twice=stage_sourced_shadows(
+                inbox,grant_check=grants().allowed,now=ISSUED)
+            self.assertEqual(twice["counts"].get("already_shadow_saved"),1)
+            self.assertEqual(saved[0].read_bytes(),saved[0].read_bytes())
+
     def test_immutable_private_research_does_not_replace_history(self):
         item=execute()
         with tempfile.TemporaryDirectory() as d:
