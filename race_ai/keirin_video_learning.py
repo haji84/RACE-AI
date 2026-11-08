@@ -190,6 +190,10 @@ def train_reviewed_classifier(docs, *, minimum_races=3, min_f1=.85):
     need(len({x["recording_sha256"] for x in tr})>=2,
          "TRAINING_RACE_SOURCE_VARIETY_REQUIRED")
     need(holdout not in {x["race_id"] for x in tr},"RACE_LEAKAGE")
+    need({x["recording_sha256"] for x in tr}.isdisjoint(
+         {x["recording_sha256"] for x in te}),"RECORDING_CONTENT_LEAKAGE")
+    need({x["frame_sha256"] for x in tr}.isdisjoint(
+         {x["frame_sha256"] for x in te}),"FRAME_CONTENT_LEAKAGE")
     scaler=StandardScaler().fit(np.array([r["vector"] for r in tr]))
     x=scaler.transform(np.array([r["vector"] for r in tr]))
     model=LogisticRegression(C=0.5,class_weight="balanced",max_iter=700,
