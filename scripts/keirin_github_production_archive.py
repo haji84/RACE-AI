@@ -172,6 +172,26 @@ def check_private_pair(db, proof, grants):
                 available.add(combo)
             need(available==universe,
                  "PRODUCTION_PRICE_UNIVERSE_MISSING")
+            # Before using the production key or publishing ciphertext,
+            # regenerate both versions from the EXACT stored pre-race input.
+            # This prevents retroactive relabelling of a saved JSON as a
+            # model output and rejects odds/result leakage into features.
+            from race_ai.keirin_real_rider_shadow import (
+                forecast_from_real_observations
+            )
+            from race_ai.keirin_shadow_variable_pair import (
+                choose_shadow_variable
+            )
+            recalculated_shadow=forecast_from_real_observations(
+                packet,grant_check=grants.allowed,
+                issued_at=shadow["generated_at"])
+            need(recalculated_shadow==shadow,
+                 "PRODUCTION_SHADOW_NOT_REPRODUCIBLE_FROM_SOURCE")
+            recalculated_variable=choose_shadow_variable(
+                shadow,odds,decided_at=variable["selected_at"],
+                odds_allowed=grants.allowed)
+            need(recalculated_variable==variable,
+                 "PRODUCTION_VARIABLE_NOT_REPRODUCIBLE")
             frozen=utc(p0["persisted_at"])
             cutoff=utc(shadow["declared_cutoff"])
             need(utc(shadow["generated_at"])<=utc(
