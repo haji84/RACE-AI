@@ -145,7 +145,8 @@ class OwnerOddsCsvTests(unittest.TestCase):
                 root,now=NOW,grant_check=admitted())["created"],1)
             saved=next((root/"odds").glob("*.json"))
             prior=saved.read_bytes()
-            altered=raw.replace(b",100.0\\n",b",101.0\\n",1)
+            altered=raw.replace(b",100.0"+bytes([10]), b",101.0"+bytes([10]), 1)
+            self.assertNotEqual(altered,raw)
             # Preserve accurate SHA for the altered bytes. The immutable
             # source binding still refuses a different value after freeze.
             src.write_bytes(altered)
