@@ -164,21 +164,24 @@ async def click_digest(page, fixture):
     return {"clicked":False,"reason":"NO_DIGEST_TRIGGER"}
 
 def encrypt_recordings(recordings: list[Path], public_key_path: Path,
-                       encrypted_dir: Path) -> int:
+                       encrypted_dir: Path, *, race_id: str|None=None) -> int:
     """Only ciphertext may leave the runner. One-off pilot public RSA key."""
     import secrets
     from cryptography.hazmat.primitives.ciphers.aead import AESGCM
     from cryptography.hazmat.primitives import hashes, serialization
     from cryptography.hazmat.primitives.asymmetric import padding
     public = serialization.load_pem_public_key(public_key_path.read_bytes())
+    actual_race_id=RACE_ID if race_id is None else race_id
+    if not re.fullmatch(r"[A-Za-z0-9._-]{6,100}", actual_race_id):
+        raise ValueError("INVALID_ENCRYPTED_RACE_ID")
     encrypted_dir.mkdir(parents=True, exist_ok=True)
     metadata = {"schema":"RACE_AI_REPLAY_CIPHER_MANIFEST_V1",
-                "race_id":RACE_ID,"files":[]}
+                "race_id":actual_race_id,"files":[]}
     for idx, recording in enumerate(recordings):
         # Never upload plaintext captures, even when there is no video.
         key=secrets.token_bytes(32)
         nonce=secrets.token_bytes(12)
-        aad=(RACE_ID+":webm:"+str(idx)).encode("ascii")
+        aad=(actual_race_id+":webm:"+str(idx)).encode("ascii")
         raw=recording.read_bytes()
         cipher=AESGCM(key).encrypt(nonce,raw,aad)
         sealed=public.encrypt(key,padding.OAEP(
