@@ -161,9 +161,14 @@ def update_view(view,observations,*,synced_at,captures=()):
         if not incoming:continue
         old=row['result_observations'];merged=_merge([*old,*incoming]);row['result_observations']=merged
         latest=max(merged,key=lambda o:instant(o['captured_at']))
+        previous_result=row.get('result') or {}
+        receipt_unchanged=(previous_result.get('source_sha256')==latest.get('source_sha256') and
+                           previous_result.get('observed_at')==latest.get('captured_at'))
         if old and digest(latest)==digest(max(old,key=lambda o:instant(o['captured_at']))) and \
-           (row.get('result') or {}).get('status') in ('final','void','pending') and \
-           (row.get('cutoff_at') is not None or (row.get('result') or {}).get('cutoff_reconciliation')):
+           previous_result.get('status') in ('final','void','pending') and \
+           receipt_unchanged and (previous_result.get('status')=='pending' or
+                                  latest.get('body_identity_verified') is True) and \
+           (row.get('cutoff_at') is not None or previous_result.get('cutoff_reconciliation')):
             continue
         need(instant(latest['captured_at'])<=instant(synced_at),'FEED_FUTURE_OBSERVATION')
         row['result_observation_rejections']=[]

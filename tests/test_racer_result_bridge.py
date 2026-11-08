@@ -91,6 +91,21 @@ class BridgeTests(unittest.TestCase):
         self.assertEqual(F.originals_sha(out),F.originals_sha(retained));self.assertEqual(state.control,controls);self.assertEqual(state.new_captures,sources)
         self.assertEqual(self.git.read(parent,'views/'+previous+'.json',F.MAX_WIRE),old_cipher)
         self.assertEqual(self.bridge().publish(state,now=NOW+timedelta(minutes=2))['changed_races'],0);self.assertEqual(self.git.head(),head)
+
+    def test_same_retained_raw_reprojects_an_inconsistent_stored_result_receipt(self):
+        raw,receipt=packet(document(),captured=NOW.isoformat())
+        original=F.update_view(self.view,[],captures=[(raw,receipt)],synced_at=NOW.isoformat())
+        damaged=deepcopy(original)
+        damaged['records'][0]['result']['source_sha256']='f'*64
+        updated=F.update_view(damaged,[],captures=[(raw,receipt)],
+                              synced_at=(NOW+timedelta(minutes=1)).isoformat())
+        row=updated['records'][0]
+        self.assertEqual(row['result']['source_sha256'],receipt['source_sha256'])
+        self.assertEqual(row['result']['observed_at'],receipt['captured_at'])
+        self.assertEqual(row['result']['status'],'final')
+        self.assertEqual(row['prediction'],self.view['records'][0]['prediction'])
+        self.assertEqual(row['result_observations'],original['records'][0]['result_observations'])
+
     def test_same_clock_with_a_different_hash_or_url_cannot_be_repaired_as_the_same_capture(self):
         raw,receipt=packet(no_contest_document(),captured=NOW.isoformat())
         state=IntradayState();parsed=parse_settlement(raw,receipt,now=NOW);pointer=state.remember('RESULT',raw,receipt)

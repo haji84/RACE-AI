@@ -89,6 +89,12 @@ def stage_existing_pdca_without_source(repo,*,now=None,intraday_transport=None,b
     loaded=load_intraday(repo,transport=intraday_transport,now=current,key=key)
     prior=loaded['previous'];need(prior is not None,'MODEL_PDCA_EXISTING_STATE_REQUIRED')
     state=loaded['state'];before=wire(state.control)
+    # Only an explicit source-free stage replays existing authenticated bytes.
+    # Real calls have no injected bridge; fixture calls preserve old behavior.
+    replay_report=None
+    if bridge is None:
+        from race_ai.retained_case_repair import repair_saved_receipt_mismatches
+        replay_report=repair_saved_receipt_mismatches(repo,state=state,now=current)
     bridge=bridge or SavedResultBridge(repo,now=current)
     bridge.prepare(state)
     audit=H.latest(state.control)
@@ -104,6 +110,7 @@ def stage_existing_pdca_without_source(repo,*,now=None,intraday_transport=None,b
         archived_revisions=audit['revisions'],model_group_count=len(audit['model_groups']),
         formally_scored_forecasts=sum(g['eligible'] for g in audit['model_groups']),
         outstanding_unscored=audit['unscored'],source_requests=0,source_provider_requests=0,
+        offline_model_receipt_replay=replay_report,
         forecast_rewrites=0,actual_purchases=False,independent_readback_verified=False)
 
 def replay_retained_results(repo,*,now=None,intraday_transport=None,bridge=None):
