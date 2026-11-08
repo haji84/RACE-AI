@@ -3,10 +3,12 @@ import argparse
 import base64
 from datetime import date,datetime,timezone,timedelta
 import json
+import math
 import os
 from pathlib import Path
 import re
 import sys
+import subprocess
 
 ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
@@ -15,6 +17,11 @@ from scripts import boat_private_original_vault as VCLI
 from race_ai.existing_model_coverage import is_retired
 
 JST=timezone(timedelta(hours=9))
+SIMULATION_SCHEMA='RACE_AI_SAVED_SITE_SIMULATION_EXPECTED_V1'
+COMPARISON_FIELDS={'hits','misses','pending','void','noForecast','review'}
+FINANCIAL_FIELDS={'budgetPerDay','raceBudget','budgetTotal','spent','reserved','held','unspent',
+    'payout','refund','settledStake','settledCount','pendingStake','bought','skippedBudget',
+    'balance','settledNet','net','roi'}
 
 
 def _need(value,reason):
@@ -96,6 +103,64 @@ def build_context(bootstrap,view,generation,*,now,require_future=False,event_day
             and r['event_date_jst']==old_day]),future_native=future)
 
 
+def _simulation_context(view,context):
+    """Keep authenticated rows in process pipes; accept only aggregate fields."""
+    def count(value):return type(value) is int and 0<=value<=9007199254740991
+    def counts(value,fields):
+        return type(value) is dict and set(value)==fields and all(count(v) for v in value.values())
+    try:
+        request=dict(view=view,day=context['day'],generation=context['generation'],as_of=context['simulation_as_of'],native_groups=context['native_groups'])
+        child_environment={'PATH':os.environ.get('PATH',''),'LANG':'C.UTF-8','TZ':'UTC'}
+        result=subprocess.run(['node',str(ROOT/'scripts/boat_saved_simulation_context.cjs')],
+            input=json.dumps(request,ensure_ascii=False),text=True,capture_output=True,check=False,timeout=45,env=child_environment)
+        if result.returncode!=0 or result.stderr or len(result.stdout.encode('utf-8'))>65536:raise ValueError()
+        value=json.loads(result.stdout)
+        if type(value) is not dict or set(value)!={'schema','day','generation','group_sha256',
+            'eligible_native_races','issued_races','observed','observed_closed','lifecycle','scenarios','budget_cap_exercised','budget_cap_coverage'}:raise ValueError()
+        if value['schema']!=SIMULATION_SCHEMA or value['day']!=context['day'] or \
+            type(value['generation']) is not int or value['generation']!=context['generation']:raise ValueError()
+        if type(value['group_sha256']) is not str or not re.fullmatch('[a-f0-9]{64}',value['group_sha256']):raise ValueError()
+        if not count(value['eligible_native_races']) or value['eligible_native_races']<1 or not count(value['issued_races']):raise ValueError()
+        observed=value['observed']
+        if not counts(observed,COMPARISON_FIELDS|{'races','available'}) or \
+            not value['eligible_native_races']<=value['issued_races']<=observed['races'] or \
+            observed['races']!=context['day_races'] or observed['available']>observed['races'] or \
+            sum(observed[k] for k in COMPARISON_FIELDS)!=observed['races']:raise ValueError()
+        lifecycle=value['lifecycle'];closed=value['observed_closed']
+        if type(lifecycle) is not dict or set(lifecycle)!={'as_of','closed','upcoming','unknown'} or \
+            _aware(lifecycle['as_of'])!=_aware(context['simulation_as_of']) or \
+            not all(count(lifecycle[k]) for k in ('closed','upcoming','unknown')) or \
+            sum(lifecycle[k] for k in ('closed','upcoming','unknown'))!=observed['races']:raise ValueError()
+        if not counts(closed,COMPARISON_FIELDS|{'races','available'}) or closed['races']!=lifecycle['closed'] or \
+            closed['available']>closed['races'] or sum(closed[k] for k in COMPARISON_FIELDS)!=closed['races'] or \
+            any(closed[k]>observed[k] for k in COMPARISON_FIELDS|{'available'}):raise ValueError()
+        scenarios=value['scenarios']
+        if type(scenarios) is not list or len(scenarios)!=4:raise ValueError()
+        combinations=set()
+        for scenario in scenarios:
+            if type(scenario) is not dict or set(scenario)!=FINANCIAL_FIELDS|{'comparison','boughtComparison'}:raise ValueError()
+            if any(not count(scenario[k]) for k in FINANCIAL_FIELDS-{'settledNet','net','roi'}):raise ValueError()
+            for name in ('settledNet','net'):
+                if scenario[name] is not None and not (type(scenario[name]) is int and abs(scenario[name])<=9007199254740991):raise ValueError()
+            roi=scenario['roi']
+            if roi is not None and not (type(roi) in (int,float) and math.isfinite(roi) and roi>=0):raise ValueError()
+            for name in ('comparison','boughtComparison'):
+                if not counts(scenario[name],COMPARISON_FIELDS):raise ValueError()
+            if scenario['comparison']!={k:observed[k] for k in COMPARISON_FIELDS} or \
+                sum(scenario['boughtComparison'].values())!=scenario['bought'] or scenario['bought']>observed['races']:raise ValueError()
+            pair=(scenario['budgetPerDay'],scenario['raceBudget'])
+            if pair in combinations:raise ValueError()
+            combinations.add(pair)
+        if combinations!={(10000,800),(10000,1000),(5000,800),(5000,1000)}:raise ValueError()
+        capped=all(next(s['bought'] for s in scenarios if (s['budgetPerDay'],s['raceBudget'])==(10000,race))>
+                   next(s['bought'] for s in scenarios if (s['budgetPerDay'],s['raceBudget'])==(5000,race)) for race in (800,1000))
+        if type(value['budget_cap_exercised']) is not bool or value['budget_cap_exercised']!=capped or \
+            value['budget_cap_coverage']!=('EXERCISED' if capped else 'INSUFFICIENT_ELIGIBLE_RACES'):raise ValueError()
+        return value
+    except Exception:
+        raise ValueError('SAVED_SITE_SIMULATION_CONTEXT_REJECTED') from None
+
+
 def main(argv=None,*,now=None):
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output',required=True)
@@ -126,6 +191,9 @@ def main(argv=None,*,now=None):
                 view=dict(view,records=[*view['records'],*old['records']])
         context=build_context(bootstrap,view,generation,now=clock,event_day=day if args.latest_saved_day else args.day)
         _need(not args.require_future or context['future_native'] is not None,'FUTURE_NATIVE_REQUIRED')
+        context['simulation_as_of']=clock.isoformat()
+        context['simulation_expected']=_simulation_context(view,context)
+        context['numeric_simulation_required']=True
         fd=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
         with os.fdopen(fd,'w',encoding='utf-8') as stream:
             json.dump(context,stream,ensure_ascii=False,sort_keys=True);stream.write('\n')
@@ -134,6 +202,8 @@ def main(argv=None,*,now=None):
             native_p1_groups=context['native_p1_groups'],completed_results=context['minimum_results'],
             native_p1_races=context['native_p1_races'],future_native_races=context['future_native_races'],
             latest_native_cutoff_lead_seconds=context['latest_native_cutoff_lead_seconds'],
+            numeric_simulation_required=True,numeric_simulation_scenarios=len(context['simulation_expected']['scenarios']),
+            numeric_budget_cap_coverage=context['simulation_expected']['budget_cap_coverage'],
             future_native_available=context['future_native'] is not None,plaintext_published=False,
             official_source_requests=0),sort_keys=True))
         return 0

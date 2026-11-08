@@ -42,3 +42,17 @@ test('CLI prints only safe aggregates and never echoes malformed input contents'
   fs.writeFileSync(input,'SECRET-PRIVATE-MALFORMED');run=cp.spawnSync(process.execPath,[file,'--input',input],{encoding:'utf8'});assert.notEqual(run.status,0);assert.ok(!run.stdout.includes('SECRET-'));assert.ok(!run.stderr.includes('SECRET-'));
  }finally{fs.rmSync(root,{recursive:true,force:true});}
 });
+test('CLI accepts explicit comparison budgets without changing the saved forecasts or exposing originals',()=>{
+ const root=fs.mkdtempSync(path.join(os.tmpdir(),'saved-report-options-'));
+ try{
+  const input=path.join(root,'private.json'),source=JSON.stringify(fixture());fs.writeFileSync(input,source);
+  const run=cp.spawnSync(process.execPath,[file,'--input',input,'--daily-budgets','10000,5000'],{encoding:'utf8'});
+  assert.equal(run.status,0,run.stderr);const result=JSON.parse(run.stdout);
+  assert.deepEqual(result.groups[0].simulations.map(s=>[s.budgetPerDay,s.raceBudget]),[[10000,800],[10000,1000],[5000,800],[5000,1000]]);
+  assert.equal(fs.readFileSync(input,'utf8'),source);assert.ok(!run.stdout.includes('SECRET-'));
+  for(const bad of ['0','5001','10000,10000','10000,SECRET']){
+   const rejected=cp.spawnSync(process.execPath,[file,'--input',input,'--daily-budgets',bad],{encoding:'utf8'});
+   assert.notEqual(rejected.status,0);assert.equal(rejected.stdout,'');assert.equal(rejected.stderr,'SAVED_PERFORMANCE_REPORT_REJECTED\n');
+  }
+ }finally{fs.rmSync(root,{recursive:true,force:true});}
+});

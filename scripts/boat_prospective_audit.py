@@ -1,8 +1,9 @@
-"""Actions-only count audit of an existing frozen plan and authenticated feed.
+"""Actions-only count audits of authenticated saved forecasts and frozen plans.
 
 The owner key is checked before private I/O and stays out of Node environments.
-This reader uses the already restored runtime; it never repairs missing state,
-requests original artifacts, generates forecasts, or changes a frozen plan.
+Prospective-plan mode uses the already restored runtime. Explicit saved-data
+comparison needs only the authenticated feed. Neither mode repairs missing
+state, requests original artifacts, generates forecasts, or changes a plan.
 """
 import argparse
 import base64
@@ -174,10 +175,15 @@ def _owner_view(day):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', required=True)
+    parser.add_argument('--saved-comparison-day', help='Compare authenticated saved data without a fitted runtime or prospective plan')
+    parser.add_argument('--daily-budgets', help='Distinct comma-separated daily budgets for saved-data comparison only')
     args = parser.parse_args(argv)
     try:
         repo = VCLI._environment(ROOT)
+        _need(args.daily_budgets is None or args.saved_comparison_day is not None, 'COMPARISON_OPTIONS_INVALID')
         output = VCLI._private_path(args.output, repo, exists=False)
+        if args.saved_comparison_day is not None:
+            return _saved_comparison(args.saved_comparison_day, args.daily_budgets, repo, output)
         marker = CLI.restore_ready()  # Strict existing cache; no recovery or fallback.
         _need(type(marker) is dict and type(marker.get('runtime_files')) is dict, 'RUNTIME_MARKER_INVALID')
         plan_file = marker['runtime_files'].get('prospective-budget-plan.json')
@@ -225,6 +231,42 @@ def main(argv=None):
             r'(?:PROSPECTIVE_AUDIT|GITHUB|FEED|ALL_MODEL_CLI|MODEL_RUNTIME|HISTORY|VAULT|STATE)_[A-Z0-9_]{1,100}', str(exc)) else 'PROSPECTIVE_AUDIT_REJECTED'
         print(wire(dict(schema=SCHEMA, status='PROSPECTIVE_AUDIT_REJECTED', reason=reason, source_requests=0)))
         return 2
+
+
+def _saved_comparison(day, daily_budgets, repo, output):
+    """Read saved originals only; never infer a prospective plan or its receipts."""
+    try: valid_day = date.fromisoformat(day).isoformat() == day
+    except ValueError: valid_day = False
+    _need(valid_day, 'COMPARISON_DAY_INVALID')
+    budget_text = daily_budgets if daily_budgets is not None else '10000'
+    _need(re.fullmatch(r'[1-9][0-9]*(?:,[1-9][0-9]*){0,9}', budget_text) is not None,
+          'COMPARISON_OPTIONS_INVALID')
+    budgets = [int(value) for value in budget_text.split(',')]
+    _need(len(set(budgets)) == len(budgets) and all(100 <= value <= 10000000 and value % 100 == 0 for value in budgets),
+          'COMPARISON_OPTIONS_INVALID')
+    generation, view = _owner_view(day)
+    _need(bool(view['records']), 'COMPARISON_DAY_EMPTY')
+    view_raw = wire(view).encode()
+    _need(0 < len(view_raw) <= MAX_VIEW, 'OWNER_VIEW_BOUND_INVALID')
+    view_file = VCLI._private_path(output.with_name(output.stem+'.saved-view-'+uuid.uuid4().hex+'.json'), repo, exists=False)
+    VCLI._write(view_file, view_raw)
+    _, descriptive = _run_node('saved_performance_report.cjs', ['--input', str(view_file), '--daily-budgets', budget_text])
+    _need(descriptive.get('schema') == 'RACE_AI_SAVED_PERFORMANCE_AGGREGATES_V1'
+          and type(descriptive.get('coverage')) is dict and type(descriptive.get('groups')) is list
+          and type(descriptive.get('paired_comparisons')) is list, 'NODE_DESCRIPTIVE_SCHEMA_INVALID')
+    _need(descriptive['coverage'].get('races') == len(view['records'])
+          and type(descriptive['coverage'].get('days')) is list
+          and len(descriptive['coverage']['days']) == 1
+          and descriptive['coverage']['days'][0].get('day') == day, 'NODE_DESCRIPTIVE_SCHEMA_INVALID')
+    report = dict(schema=SCHEMA, status='SAVED_COMPARISON_ONLY', day=day, feed_generation=generation,
+        descriptive=descriptive, frozen_plan_evaluated=False, frozen_plan_reallocated=False,
+        forecasting_performed=False, official_source_requests=0, source_requests=0,
+        independent_pre_cutoff_receipt_verified=False, accuracy_improvement_proven=False,
+        promotion_allowed=False, actual_purchases=False)
+    raw = (wire(report)+'\n').encode()
+    VCLI._write(output, raw)
+    print(raw.decode().rstrip('\n'))
+    return 0
 
 
 if __name__ == '__main__':

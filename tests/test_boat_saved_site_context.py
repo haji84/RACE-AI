@@ -11,6 +11,7 @@ from pathlib import Path
 import shutil
 import stat
 import subprocess
+import sys
 import tempfile
 from types import SimpleNamespace
 import unittest
@@ -36,6 +37,26 @@ def invented_view():
     past=p('invented-one','2030-03-31T23:40:00Z','2030-03-31T23:30:00Z')
     return dict(records=[row(1,None,comparisons=[first]),row(2,later),row(3,past,status='final'),
                          row(1,None,day='2030-03-31',status='void')])
+
+
+def simulation_expected(day='2030-04-01',*,as_of=NOW):
+    counts=dict(hits=0,misses=0,pending=1,void=0,noForecast=0,review=0)
+    observed_counts=dict(counts,noForecast=2)
+    scenarios=[]
+    for daily in (10000,5000):
+        for race in (800,1000):
+            scenarios.append(dict(budgetPerDay=daily,raceBudget=race,budgetTotal=daily,
+                spent=800,reserved=race,held=race-800,unspent=daily-800,payout=0,refund=0,
+                settledStake=0,settledCount=0,pendingStake=800,bought=1,skippedBudget=0,
+                balance=daily-800,settledNet=None,net=None,roi=None,
+                comparison=observed_counts.copy(),boughtComparison=counts.copy()))
+    return dict(schema='RACE_AI_SAVED_SITE_SIMULATION_EXPECTED_V1',day=day,generation=12,
+        group_sha256='a'*64,eligible_native_races=1,issued_races=1,
+        observed=dict(races=3,available=1,**observed_counts),
+        observed_closed=(dict(races=1,available=1,hits=0,misses=0,pending=0,void=0,noForecast=1,review=0)
+            if as_of==NOW else dict(races=3,available=1,**observed_counts)),
+        lifecycle=dict(as_of=as_of.isoformat(),closed=1 if as_of==NOW else 3,upcoming=2 if as_of==NOW else 0,unknown=0),scenarios=scenarios,
+        budget_cap_exercised=False,budget_cap_coverage='INSUFFICIENT_ELIGIBLE_RACES')
 
 
 class ContextTests(unittest.TestCase):
@@ -114,7 +135,7 @@ class ContextTests(unittest.TestCase):
 
 
 class CLITests(unittest.TestCase):
-    def execute(self,*,outside=False,failure=None,history=False,day=None,now=NOW,require_future=False):
+    def execute(self,*,outside=False,failure=None,history=False,day=None,now=NOW,require_future=False,simulation_failure=None):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);state=root/'audit/state';state.mkdir(parents=True)
             raw=b'invented-bootstrap'
@@ -133,6 +154,8 @@ class CLITests(unittest.TestCase):
                     return_value=BOOTSTRAP,side_effect=failure),\
                  patch.object(C.CLI.F,'FeedRepository',return_value=git),\
                  patch.object(C.CLI.F,'current_view',side_effect=values) as read,\
+                 patch.object(C,'_simulation_context',create=True,
+                    return_value=simulation_expected(day or '2030-04-01',as_of=now),side_effect=simulation_failure),\
                  patch.dict(os.environ,RUNNER_TEMP=folder),redirect_stdout(output):
                 code=C.main(['--output',str(target),*(['--day',day] if day is not None else []),*(['--require-future'] if require_future else [])],now=now)
             context=json.loads(target.read_text()) if target.exists() else None
@@ -145,6 +168,21 @@ class CLITests(unittest.TestCase):
         self.assertNotIn(context['owner_url'],output);self.assertNotIn('#saved=',output)
         report=json.loads(output);self.assertEqual(report['native_p1_groups'],2)
         self.assertFalse(report['plaintext_published']);self.assertEqual(len(calls),1)
+
+    def test_numeric_expectations_are_required_in_the_private_context_and_stdout_is_only_a_summary(self):
+        code,output,context,mode,_=self.execute()
+        self.assertEqual(code,0);self.assertEqual(mode,0o600)
+        self.assertEqual(context.get('simulation_expected'),simulation_expected())
+        self.assertIs(context.get('numeric_simulation_required'),True)
+        report=json.loads(output);self.assertIs(report.get('numeric_simulation_required'),True)
+        self.assertEqual(report.get('numeric_simulation_scenarios'),4)
+        self.assertEqual(report.get('numeric_budget_cap_coverage'),'INSUFFICIENT_ELIGIBLE_RACES')
+        self.assertNotIn('simulation_expected',report);self.assertNotIn('group_sha256',report)
+
+    def test_an_oracle_failure_creates_no_context_and_never_prints_private_process_text(self):
+        code,output,context,_,_=self.execute(simulation_failure=RuntimeError('PRIVATE-ORACLE-INPUT-AND-KEY'))
+        self.assertEqual(code,2);self.assertIsNone(context)
+        self.assertNotIn('PRIVATE-ORACLE-INPUT-AND-KEY',output)
 
     def test_missing_future_reports_counts_without_creating_or_leaking_private_context(self):
         code,output,context,_,_=self.execute(now=NOW+timedelta(hours=1),require_future=True)
@@ -164,6 +202,8 @@ class CLITests(unittest.TestCase):
         code,_,context,_,calls=self.execute(history=True,day='2030-04-01',now=NOW+timedelta(days=1))
         self.assertEqual(code,0);self.assertEqual(context['day_races'],3)
         self.assertEqual(context['current_day'],'2030-04-02')
+        self.assertEqual(context['simulation_as_of'],(NOW+timedelta(days=1)).isoformat())
+        self.assertEqual(context['simulation_expected']['lifecycle']['as_of'],context['simulation_as_of'])
         self.assertEqual(calls[0].kwargs,dict(day='2030-04-01'))
         self.assertEqual(calls[1].kwargs,dict(day='2030-03-31'))
 
@@ -181,6 +221,66 @@ class CLITests(unittest.TestCase):
              redirect_stdout(output):
             self.assertEqual(C.main(['--output','/tmp/boat-saved-site-context.json'],now=NOW),2)
         read.assert_not_called()
+
+
+class SimulationContextTests(unittest.TestCase):
+    def call(self,value,*,failure=None):
+        self.assertTrue(callable(getattr(C,'_simulation_context',None)),'the private stdin oracle adapter is available')
+        context=C.build_context(BOOTSTRAP,invented_view(),12,now=NOW)
+        context['simulation_as_of']=NOW.isoformat()
+        view=invented_view();view['owner_secret']='PRIVATE-STDIN-ONLY'
+        before=deepcopy(view);emitted=io.StringIO()
+        result=SimpleNamespace(returncode=0,stdout=json.dumps(value),stderr='')
+        with patch('subprocess.run',return_value=result,side_effect=failure) as run,redirect_stdout(emitted):
+            actual=C._simulation_context(view,context)
+        self.assertEqual(view,before);self.assertEqual(emitted.getvalue(),'')
+        self.assertEqual(len(run.call_args.args[0]),2)
+        self.assertEqual(run.call_args.args[0][0],'node')
+        self.assertNotIn('PRIVATE-STDIN-ONLY',' '.join(run.call_args.args[0]))
+        sent=json.loads(run.call_args.kwargs['input'])
+        self.assertEqual(sent,dict(view=view,day=context['day'],generation=12,as_of=NOW.isoformat(),native_groups=context['native_groups']))
+        self.assertTrue(run.call_args.kwargs['capture_output'])
+        return actual
+
+    def test_authenticated_view_is_sent_only_in_stdin_and_only_bound_aggregate_expectations_return(self):
+        expected=simulation_expected()
+        self.assertEqual(self.call(expected),expected)
+
+    def test_missing_scenarios_stale_binding_private_fields_and_nonfinite_money_are_rejected(self):
+        for edit in (
+            lambda v:v.update(day='2030-04-02'),lambda v:v.update(generation=11),
+            lambda v:v.update(group_sha256='PRIVATE-NAME'),lambda v:v.update(records=['PRIVATE-PICKS']),
+            lambda v:v['scenarios'].pop(),lambda v:v['scenarios'].__setitem__(1,deepcopy(v['scenarios'][0])),
+            lambda v:v['scenarios'][0].update(refund=True),lambda v:v['scenarios'][0].update(roi=float('nan')),
+            lambda v:v['lifecycle'].update(as_of='2030-04-02T00:00:00Z'),
+            lambda v:v['observed'].update(races=2),
+        ):
+            expected=simulation_expected();edit(expected)
+            with self.subTest(value=expected.get('generation')),self.assertRaisesRegex(ValueError,'SAVED_SITE_SIMULATION_'):
+                self.call(expected)
+
+    @unittest.skipUnless(shutil.which('node'),'Node is unavailable')
+    def test_real_node_child_receives_no_owner_credentials_or_unlisted_environment(self):
+        context=C.build_context(BOOTSTRAP,invented_view(),12,now=NOW);context['simulation_as_of']=NOW.isoformat()
+        with tempfile.TemporaryDirectory() as folder:
+            script=Path(folder)/'scripts/boat_saved_simulation_context.cjs';script.parent.mkdir()
+            script.write_text("const fs=require('node:fs');fs.readFileSync(0,'utf8');"
+                "const poisoned=Object.keys(process.env).some(k=>!['PATH','LANG','TZ'].includes(k));"
+                "process.stdout.write("+json.dumps(json.dumps(simulation_expected()))+"+'\\n');if(poisoned)process.exitCode=3;")
+            program="""import json,sys
+from pathlib import Path
+from scripts import boat_saved_site_context as C
+C.ROOT=Path(sys.argv[1]);payload=json.load(sys.stdin)
+try:C._simulation_context(payload['view'],payload['context'])
+except ValueError:print(json.dumps({'accepted':False}));raise SystemExit(3)
+print(json.dumps({'accepted':True}))
+"""
+            environment=dict(PATH=os.environ.get('PATH',''),LANG='C.UTF-8',TZ='UTC',
+                RACE_AI_STATE_KEY='PUBLIC-FIXTURE-STATE',GH_TOKEN='PUBLIC-FIXTURE-GH',GITHUB_TOKEN='PUBLIC-FIXTURE-GITHUB')
+            result=subprocess.run([sys.executable,'-c',program,folder],cwd=Path(C.__file__).resolve().parents[1],
+                input=json.dumps(dict(view=invented_view(),context=context)),text=True,capture_output=True,env=environment)
+        self.assertEqual(result.returncode,0,'the real Node helper inherited owner credentials')
+        self.assertEqual(json.loads(result.stdout),{'accepted':True});self.assertEqual(result.stderr,'')
 
 
 @unittest.skipUnless(shutil.which('node'),'Node is unavailable')
