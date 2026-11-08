@@ -269,7 +269,8 @@ class OwnerRealShadowVariableResearchTests(unittest.TestCase):
             # PR71 forecast when only a PR101 partial shadow exists.
             spool=KeirinPrivateSpool(store,clock=self.clock)
             tick=spool.tick(self.root)
-            self.assertEqual(tick["processed_files"],1)
+            self.assertEqual(
+                tick["states"].get("RESULT_SAVED_FORECAST_OR_SETTLEMENT_MISSING"),1)
             self.assertEqual(store.db.execute(
                 "SELECT COUNT(*) FROM result_revisions").fetchone()[0],1)
             dual=stage_shadow_variable_pairs(
