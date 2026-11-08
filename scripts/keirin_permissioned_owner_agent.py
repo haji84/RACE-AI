@@ -31,6 +31,9 @@ from race_ai.keirin_shadow_variable_intake import (
     ShadowPairIntakeError, stage_shadow_variable_pairs
 )
 from race_ai.keirin_open_meteo_stage import stage_one_free_weather
+from race_ai.keirin_pr71_four_model_rank import (
+    FourModelRankLedger, stage_existing_owner_pre_races
+)
 
 
 def main(argv=None):
@@ -149,6 +152,10 @@ def main(argv=None):
                     stage_one_free_weather(inbox,coords,now=now)
                     if args.free_modelled_weather else None)
                 stage = stage_permissioned_deliveries(inbox, grants, now=now)
+                # Freeze original PR71 four-model full rankings while the
+                # race is still future, independent of odds availability.
+                four_rank = stage_existing_owner_pre_races(
+                    inbox,store,source_admission=grants.allowed)
                 shadow = stage_sourced_shadows(
                     inbox,grant_check=grants.allowed,now=now,store=store)
                 engine = KeirinPrivateSpool(
@@ -166,6 +173,9 @@ def main(argv=None):
                 # frozen together before cutoff in the owner SQLite file.
                 dual = stage_shadow_variable_pairs(
                     inbox,store,grant_check=grants.allowed,now=now)
+                # Post-result audit reads only previously frozen ranks,
+                # including all four existing PR71 models.
+                four_audit = FourModelRankLedger(store).replay_all()
                 # No filenames, source URLs, rider names, or buy picks in logs.
                 print(json.dumps({
                     "schema": "RACE_AI_KEIRIN_LICENSED_LOCAL_CYCLE_V1",
@@ -175,6 +185,10 @@ def main(argv=None):
                     "owner_saved_markdown_stage": owner_markdown,
                     "source_grounded_private_shadow":shadow,
                     "same_race_shadow8_variable_research":dual,
+                    "existing_pr71_four_model_ranking":four_rank,
+                    "four_model_ranked_races":four_audit["ranked_forecast_races"],
+                    "four_model_result_revision_count":
+                        four_audit["replayed_result_revisions"],
                     "modelled_weather_stage": modelled_weather,
                     "automatic_provider_fetch": fetch_report is not None,
                     "provider_network_requests": (
