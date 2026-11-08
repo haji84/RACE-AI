@@ -71,8 +71,8 @@ jobs:
         run: |
           {
             echo '## Scheduled offline KEIRIN verification'
-            printf 'Source commit: \`%s\`\\n' "$SOURCE_SHA"
-            printf 'Job status: **%s**\\n' "$JOB_STATUS"
+            echo "Source commit: $SOURCE_SHA"
+            echo "Job status: $JOB_STATUS"
             echo 'Scope: synthetic fixture tests only; no provider GET, real forecasts, real PDCA, official accuracy, or production model promotion.'
             echo 'Security: no private forecast originals, SQLite databases or encryption keys are uploaded as artifacts.'
           } >> "$GITHUB_STEP_SUMMARY"
