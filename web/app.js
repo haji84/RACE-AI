@@ -702,12 +702,15 @@
     return nav;
   }
   const venueEntries = () => U.venueOverview(scoped(), {sport: state.sport, favorites: state.favoriteVenues});
-  function chooseVenue(venue, toggle = false) {
+  function chooseVenue(venue, toggle = false, fromHome = false) {
     state.venue = toggle && state.venue === venue ? "" : venue; state.visible = 60;
     refreshSelects(); renderAll(); showPage("races", true);
+    // A direct venue shortcut should reveal the first actual race, especially
+    // on 320px screens with a long navigation and venue-picker header.
+    if (fromHome) $("all-races").querySelector(".race-card h3")?.scrollIntoView({block:"center"});
   }
   function venueButton(entry, home = false) {
-    const action = button("", "venue-button" + (home ? " home-venue-button" : "") + (entry.venue === state.venue ? " active" : "") + (entry.favorite ? " favorite-venue" : ""), () => { if (home) state.raceView = state.day < A.jstToday() ? "results" : "upcoming"; chooseVenue(entry.venue, !home); });
+    const action = button("", "venue-button" + (home ? " home-venue-button" : "") + (entry.venue === state.venue ? " active" : "") + (entry.favorite ? " favorite-venue" : ""), () => { if (home) state.raceView = state.day < A.jstToday() ? "results" : "upcoming"; chooseVenue(entry.venue, !home, home); });
     action.dataset.venue = entry.venue;
     action.setAttribute("aria-pressed", String(entry.venue === state.venue));
     action.append(node("span", "venue-name", entry.venue));
