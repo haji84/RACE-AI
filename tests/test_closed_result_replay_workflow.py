@@ -14,6 +14,7 @@ from tests.test_five_gate_saved_view_workflow import admits, REF, SUBJECT, RETEN
 
 ROOT = Path(__file__).resolve().parents[1]
 RECONCILE = 'saved-view: forecasts-first reconcile-closed verified saved results'
+VERIFY_CURRENT = 'saved-view: forecasts-first verify-current saved site only'
 ORDINARY = 'saved-view: forecasts-first current forecast display'
 CANONICAL = 'refs/heads/feat/four-sport-forecast-audit-view-20261022'
 INITIALIZE = 'Initialize encrypted display feed'
@@ -60,6 +61,7 @@ class ClosedResultReplayWorkflowTests(unittest.TestCase):
                     'audit/state/boat-closed-result-replay-input.json', '--day', '2026-11-08']),
                  (ORDINARY, REF, ['-m', 'scripts.boat_saved_view_feed', '--forecasts-only',
                     '--hydrate-originals', '--day', '2026-11-08', '--recover-model-run', '42411771346']),
+                 (VERIFY_CURRENT, REF, None),
                  (SUBJECT, REF, None), (RETENTION_SUBJECT, REF, None),
                  ('saved-view: publish', CANONICAL, ['-m', 'scripts.boat_saved_view_feed', '--seed-only'])]
         for subject, ref, expected in cases:
@@ -67,6 +69,22 @@ class ClosedResultReplayWorkflowTests(unittest.TestCase):
                 result, calls = self.shell(INITIALIZE, subject=subject, ref=ref)
                 self.assertEqual(result.returncode, 0, result.stderr)
                 self.assertEqual(calls, [] if expected is None else [dict(tool='python', args=expected)])
+
+    def test_verify_current_readiness_is_count_only_and_requires_the_existing_guards(self):
+        result, calls = self.shell(INITIALIZE, subject=VERIFY_CURRENT)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, [])
+        self.assertEqual(json.loads(result.stdout),
+            dict(status='CURRENT_SAVED_SITE_VERIFICATION_READY', official_source_requests=0))
+        for changes in ({'GITHUB_ACTOR_ID':'1'}, {'GITHUB_REPOSITORY_ID':'1'},
+                        {'GITHUB_EVENT_NAME':'workflow_dispatch'}, {'SUBJECT':'saved-view: unknown'}, {'SUBJECT':''}):
+            with self.subTest(changes=changes):
+                result, calls = self.shell(INITIALIZE, subject=VERIFY_CURRENT, overrides=changes)
+                self.assertEqual(result.returncode, 2); self.assertEqual(calls, [])
+        for key in ('GITHUB_ACTOR_ID', 'GITHUB_REPOSITORY_ID', 'GITHUB_EVENT_NAME'):
+            with self.subTest(missing=key):
+                result, calls = self.shell(INITIALIZE, subject=VERIFY_CURRENT, missing=(key,))
+                self.assertEqual(result.returncode, 2); self.assertEqual(calls, [])
 
     def test_missing_or_wrong_owner_event_repository_and_unknown_subject_stop_before_the_adapter(self):
         for changes in ({'GITHUB_ACTOR_ID':'1'}, {'GITHUB_REPOSITORY_ID':'1'},
@@ -88,12 +106,15 @@ class ClosedResultReplayWorkflowTests(unittest.TestCase):
         allowed = {'Exact reviewed display publisher', 'Pinned official parser for retained result bytes',
             'Install pinned encrypted display dependencies', INITIALIZE, 'Install the existing pinned browser checker',
             OWNER, 'Require verified site display and unchanged frozen settlement'}
-        active = {step['name'] for step in self.steps if 'if' not in step or admits(step['if'], subject=RECONCILE)}
-        self.assertEqual(active, allowed)
-        self.assertEqual(admits(self.step(OWNER)['timeout-minutes'], subject=RECONCILE), 4)
+        for subject in (RECONCILE, VERIFY_CURRENT):
+            with self.subTest(subject=subject):
+                active = {step['name'] for step in self.steps if 'if' not in step or admits(step['if'], subject=subject)}
+                self.assertEqual(active, allowed)
+                self.assertEqual(admits(self.step(OWNER)['timeout-minutes'], subject=subject), 4)
 
     def test_current_result_day_and_four_old_verification_modes_keep_their_distinct_clocks(self):
         cases = [(RECONCILE, REF, ['--day','2026-11-08'], 2),
+                 (VERIFY_CURRENT, REF, ['--day','2026-11-08'], 2),
                  (ORDINARY, REF, ['--require-future'], 2),
                  (SUBJECT, REF, ['--day','2026-11-07'], 4),
                  (RETENTION_SUBJECT, REF, None, 1),
@@ -107,20 +128,21 @@ class ClosedResultReplayWorkflowTests(unittest.TestCase):
                 contexts = [call['args'] for call in operations if call['args'][:2] == ['-m','scripts.boat_saved_site_context']]
                 self.assertEqual(contexts, [] if dates is None else [['-m','scripts.boat_saved_site_context', *dates,
                     '--output','<TEMP>/boat-saved-site-context.json']])
-                if subject == RECONCILE:
+                if subject in (RECONCILE, VERIFY_CURRENT):
                     self.assertEqual(operations[-1]['tool'], 'node')
                     self.assertEqual(operations[-1]['args'][-2:], ['--compact-results','--check-current-day'])
 
     def test_source_job_stays_excluded_for_every_subject_on_the_owned_ref(self):
         expression = self.workflow['jobs']['official_national']['if']
-        for subject in (RECONCILE, ORDINARY, SUBJECT, RETENTION_SUBJECT, 'chore: unrelated', ''):
+        for subject in (RECONCILE, VERIFY_CURRENT, ORDINARY, SUBJECT, RETENTION_SUBJECT, 'chore: unrelated', ''):
             with self.subTest(subject=subject): self.assertFalse(admits(expression, subject=subject))
 
     def test_adapter_and_browser_holds_propagate_to_the_existing_final_gate(self):
         result, _ = self.shell(INITIALIZE, overrides={'FAIL_MODULE':'scripts.boat_saved_view_feed'})
         self.assertEqual(result.returncode, 2)
-        result, _ = self.shell(OWNER, overrides={'FAIL_MODULE':'node'})
-        self.assertEqual(result.returncode, 2)
+        for subject in (RECONCILE, VERIFY_CURRENT):
+            result, _ = self.shell(OWNER, subject=subject, overrides={'FAIL_MODULE':'node'})
+            self.assertEqual(result.returncode, 2)
         for outcome in ('failure', 'skipped', 'cancelled', ''):
             result, calls = self.shell('Require verified site display and unchanged frozen settlement',
                                       overrides={'SITE_CHECK_OUTCOME':outcome})

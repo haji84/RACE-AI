@@ -1,0 +1,35 @@
+{
+  "schema": "RACE_AI_CURRENT_DAY_REPLAY_READBACK_HOLD_V1",
+  "run_id": 42452461333,
+  "job_id": 128644393787,
+  "head_sha": "baa0f89939ad76ceb7f3ef0a33790a50178b5551",
+  "run_conclusion": "failure",
+  "replay_started_at": "2026-11-08T05:52:48.4685808Z",
+  "replay_rejected_at": "2026-11-08T05:55:22.5324202Z",
+  "report": {
+    "failure_at": "boat_vault_result_replay.py:19",
+    "failure_class": "ValueError",
+    "reason": "FEED_VAULT_REPLAY_READBACK_MISMATCH",
+    "status": "ENCRYPTED_VIEW_REJECTED"
+  },
+  "browser_step_conclusion": "skipped",
+  "current_day_numeric_browser_verified": false,
+  "future_forecast_site_verified": false,
+  "replay_success_claimed": false,
+  "concurrency_as_root_cause_proven": false,
+  "public_feed_metadata_during_replay": [
+    {
+      "commit": "4a8ac02b8b9a5edecd8e79b687d6947e8f767f6d",
+      "committed_at": "2026-11-08T05:53:13Z"
+    },
+    {
+      "commit": "e9b8cc6896ae94a554c5419e4c1d10637de1158f",
+      "committed_at": "2026-11-08T05:53:17Z"
+    }
+  ],
+  "feed_commit_writer_attributed": false,
+  "strict_readback_and_generation_guards_retained": true,
+  "all_models_fitted": 19,
+  "all_models_applicable": 30,
+  "accuracy_improvement_proven": false
+}
