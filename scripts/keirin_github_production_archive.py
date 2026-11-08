@@ -279,6 +279,10 @@ def archive_production_in_git(artifact, *, repo, license_manifest,
         artifact,repo=root,license_manifest=license_manifest,
         expected_run_id=expected_run_id,
         expected_commit=expected_commit)
+    from datetime import datetime,timezone
+    need(datetime.now(timezone.utc)+timedelta(seconds=MAX_SECONDS)<
+         utc(proof["forecast_cutoff_at"]),
+         "PRODUCTION_ARCHIVE_TOO_LATE_TO_ASSERT_PRE_CUTOFF")
     git=lambda *a,cwd=root:command(["git",*a],cwd=cwd)
     url=git("remote","get-url","origin")
     need(url in (
