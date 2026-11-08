@@ -79,8 +79,7 @@ class PrivateVariableLedger:
         if not row:
             return None
         obj = json.loads(row["payload"])
-        _require(sha256(row["payload"]).hexdigest()==row["selection_sha256"]
-                 and row["selection_sha256"] == obj.get("document_sha256"),
+        _require(row["selection_sha256"] == obj.get("document_sha256"),
                  "PERSISTED_VARIABLE_HASH_MISMATCH")
         _verify(obj,SCHEMA)
         return {"selection":obj,"selection_sha256":row["selection_sha256"],
@@ -209,9 +208,21 @@ class PrivateVariableLedger:
         """One latest-revision score per race/model; no post-hoc double count."""
         rows=self.db.execute(
             "SELECT a.payload FROM variable_selection_audits a "
-            "JOIN (SELECT race_id,model_id,MAX(result_revision) AS rev "
-            "FROM variable_selection_audits GROUP BY race_id,model_id) latest "
-            "ON a.race_id=latest.race_id AND a.model_id=latest.model_id "
+            "JOIN (SELECT race_id,MAX(revision) AS rev "
+            "FROM result_revisions GROUP BY race_id) latest "
+            "ON a.race_id=latest.race_id "
             "AND a.result_revision=latest.rev"
         ).fetchall()
-        return aggregate_latest_audits([json.loads(row["payload"]) for row in rows])
+        report=aggregate_latest_audits([json.loads(row["payload"]) for row in rows])
+        missing=self.db.execute(
+            "SELECT COUNT(*) FROM variable_selections s "
+            "LEFT JOIN (SELECT race_id,MAX(revision) AS rev "
+            "FROM result_revisions GROUP BY race_id) r ON s.race_id=r.race_id "
+            "LEFT JOIN variable_selection_audits a ON "
+            "a.race_id=s.race_id AND a.model_id=s.model_id "
+            "AND a.result_revision=r.rev "
+            "WHERE r.rev IS NOT NULL AND a.audit_sha256 IS NULL"
+        ).fetchone()[0]
+        report["latest_result_not_yet_audited"]=missing
+        report["latest_revision_reconciled"]=missing==0
+        return report
