@@ -153,7 +153,7 @@ class OperatorLicenseGrants:
         for row in facts["keirin_pre_race_audit_v1"]["items"]:
             if row["status"] == "verified":
                 _need(all(self.allowed(row["source_url"], row["rights_ref"], p)
-                          for p in PURPOSES),
+                          for p in BASE_PURPOSES),
                       "ATTESTATION_SOURCE_RIGHTS_MISMATCH")
         original = sha256(canonical(snapshot)).hexdigest()
         _need(intent["pre_race_snapshot_sha256"] == original,
