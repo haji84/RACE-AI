@@ -79,7 +79,7 @@ def choose_older_day(doc, *, all_days, recent_days):
     # An unavailable original is a count-only HOLD, not a reason to skip
     # unrelated current results or to invent a successful reconciliation.
     due = [day for day in older if day in pending_days]
-    unchecked = [day for day in reversed(older) if day not in doc['scanned_days']]
+    unchecked = [day for day in older if day not in doc['scanned_days']]
     n = doc['scan_round']
     if due and (n % 2 == 0 or not unchecked):
         selected = due[(n // 2) % len(due)]

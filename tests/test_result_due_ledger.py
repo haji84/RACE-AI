@@ -31,7 +31,7 @@ class ResultDueLedgerTests(unittest.TestCase):
         days=['2026-10-30','2026-10-31','2026-11-07','2026-11-08']
         a=L.choose_older_day(d, all_days=days, recent_days=days[-2:]); L.record_scanned(d,a)
         b=L.choose_older_day(d, all_days=days, recent_days=days[-2:]); L.record_scanned(d,b)
-        self.assertEqual([a,b],['2026-10-30','2026-10-31'])
+        self.assertEqual([a,b],['2026-10-31','2026-10-30'])
         self.assertIsNone(L.choose_older_day(d,all_days=days,recent_days=days[-2:]))
 
     def test_old_unresolved_and_unscanned_are_not_starved(self):

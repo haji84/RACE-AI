@@ -25,7 +25,6 @@ class SavedResultBridge:
             reader=F._history_reader(self.git);load=lambda loc:H.decrypt_catalog(reader(loc),self.bootstrap['key'],view_id=self.bootstrap['view_id']);dates=[]
             for index in H._indexes(context['index'],load):
                 dates.extend(day for day in index['days'] if day<=today)
-                if len(dates)>=2:break
             self.available_days=sorted(set(dates),reverse=True);self.days=self.available_days[:2];self.views={d:F.current_view(self.git,self.bootstrap,day=d)[3] for d in self.days};self.history=True
         else:
             self.available_days=sorted({r['event_date_jst'] for r in view['records'] if r['event_date_jst']<=today},reverse=True);self.days=self.available_days[:2];self.views={None:view};self.history=False
