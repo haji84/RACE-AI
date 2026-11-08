@@ -1,0 +1,8 @@
+AUDIT ADDENDUM (append-only; do not alter original forecasts or earlier commitment files)
+Date: 2026-11-08 JST
+SOURCE: https://www.kawaguchiauto.jp/download/program/20261108.pdf (Kawaguchi organizer official racecard, PDF page 1)
+The official PDF lists the 1R scheduled cutoff at 10:53 JST and the 3R scheduled cutoff at 11:44 JST.
+Earlier forecast commitment files had cutoff 1R 10:54 and 3R 11:45 sourced from other racing pages. Those figures conflict with organizer's official PDF by one minute and should be treated as erroneous metadata. Corrections apply ONLY to reference cutoff metadata. Do not modify issued_at time, picks, SHA256, or originally committed files.
+1R SHA256 fda243a31434d3e18a5a34dd60ed02006f20b2d4edaf47ff66e79b90b2e9ac30; committed 2026-11-08 09:40:21 JST. Organizer cutoff 10:53 JST. Timely.
+3R SHA256 b18cd2e72fb7fc512f4115446af6dd290c65c1317dcaf9fea6d2c67701e858ef; committed 2026-11-08 11:09:23 JST. Organizer cutoff 11:44 JST. Timely.
+3R A pre-actual-trial status remains NOT independently verified; research only.
