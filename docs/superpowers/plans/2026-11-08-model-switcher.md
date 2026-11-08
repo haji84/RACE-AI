@@ -9,5 +9,5 @@ Constraints: GitHub only, existing private feed/key, immutable originals/history
 - [x] Read selection/rendering paths and preserve current published app/ui-model changes.
 - [x] Add failing pure/browser regressions: model B changes tickets and rationale, race navigation keeps the model, unavailable B never shows A, original version choice survives returning, retired models remain absent, 320/390/1440px fit.
 - [x] Implement pure model option/resolution helpers and the two visible selection surfaces, preserving existing original selector indices and stable identity handling.
-- [ ] Verify related model/result/UI/WebCrypto regressions and review the change.
-- [ ] Publish scoped frontend assets, verify HTTP bytes and private real-data model switching with count-only Actions checks, record evidence and preserve unrelated draft work.
+- [x] Verify related model/result/UI/WebCrypto regressions and review the change.
+- [x] Publish scoped frontend assets, verify HTTP bytes and private real-data model switching with count-only Actions checks, record evidence and preserve unrelated draft work.

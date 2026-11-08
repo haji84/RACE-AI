@@ -1,0 +1,208 @@
+{
+  "schema": "RACE_AI_MODEL_SWITCHER_VERIFICATION_V1",
+  "verified_at": "2026-11-08T07:07:18.284Z",
+  "scope": "SAVED_PREDICTION_MODEL_SELECTION_ONLY",
+  "source_commits": [
+    "cd7c09f900787ec6541efba192132ffa4a880909",
+    "da2ad80de44dfe78cd20a2fe17f8760265f2a8ad",
+    "81694d5749710f7a5899a524e801aee155eee37f",
+    "daf962fa744ee8c842d8bd3b4a62493fea0f5b4c"
+  ],
+  "production": {
+    "run_id": 42457128524,
+    "job_id": 128658435966,
+    "conclusion": "success",
+    "collector": {
+      "schema": "RACE_AI_RACER_INTRADAY_RUN_V1",
+      "status": "INTRADAY_REFRESHED",
+      "implementation_commit": "daf962fa744ee8c842d8bd3b4a62493fea0f5b4c",
+      "checked_at": "2026-11-08T07:03:36.269326+00:00",
+      "source_requests": 12,
+      "beforeinfo": {
+        "forecast_inputs_used": false,
+        "parsed": 4,
+        "published_races": 33,
+        "rejected": 0,
+        "requests": 4
+      },
+      "result_sync": {
+        "changed_races": 14,
+        "checked_at": "2026-11-08T07:03:36.269326+00:00",
+        "confirmed": 224,
+        "held": 2,
+        "pending": 38,
+        "races": 264,
+        "schema": "RACE_AI_RESULT_SYNC_V1",
+        "state": "READY"
+      },
+      "forecast_inputs_changed": false,
+      "private_sources_published": false
+    },
+    "context_counts": {
+      "checked_day": "2026-11-08",
+      "completed_results": 92,
+      "current_day": "2026-11-08",
+      "date_scope": "CURRENT_DAY",
+      "future_native_available": false,
+      "generation": 99,
+      "live_beforeinfo_races": 19,
+      "model_family_counts": {
+        "7": 103,
+        "10": 2,
+        "14": 27
+      },
+      "model_switch_probe_available": true,
+      "native_p1_groups": 15,
+      "official_source_requests": 0,
+      "plaintext_published": false,
+      "status": "SAVED_SITE_PRIVATE_CONTEXT_READY"
+    },
+    "site": {
+      "schema": "RACE_AI_LIVE_SITE_CHECK_COUNTS_V1",
+      "status": "LIVE_OWNER_SITE_VERIFIED",
+      "verified_at": "2026-11-08T07:07:18.284Z",
+      "widths_checked": 3,
+      "feed_generation": 99,
+      "checked_day": "2026-11-08",
+      "current_day": "2026-11-08",
+      "date_scope": "CURRENT_DAY",
+      "checked_day_results": 92,
+      "checked_day_p1_groups": 41,
+      "current_day_results": 92,
+      "current_day_p1_groups": 41,
+      "lifecycle_checked_day": null,
+      "selected_saved_day": "2026-11-08",
+      "current_day_lifecycle_views_checked": 0,
+      "current_day_upcoming_rows_checked": 0,
+      "current_day_upcoming_races": null,
+      "current_day_closed_races": null,
+      "current_day_pending_result_races": null,
+      "race_lifecycle_tabs_verified": true,
+      "upcoming_rows_checked": 93,
+      "venue_result_views_checked": 3,
+      "ai_results_navigation_verified": true,
+      "compact_result_ui_verified": true,
+      "research_audit_verified": true,
+      "available_rationale_preserved": true,
+      "rationale_views_checked": 3,
+      "probe_result_matched": false,
+      "native_p1_groups_required": 15,
+      "native_p1_detail_visible": true,
+      "future_native_visible_before_cutoff": false,
+      "previous_day_checked": true,
+      "active_model_families": 15,
+      "removed_seller_hidden": true,
+      "live_beforeinfo_views_checked": 0,
+      "live_beforeinfo_times_checked": 0,
+      "model_switch_views_checked": 3,
+      "model_switch_originals_checked": 6,
+      "participant_names": true,
+      "editable_daily_budget": true,
+      "per_race_1000_simulation": true,
+      "hit_miss_rate_roi_and_settled_pending_net_visible": true,
+      "key_in_requests_or_storage": false,
+      "blocked_external_requests": 0,
+      "official_source_requests": 0,
+      "plaintext_published": false
+    }
+  },
+  "frontend": {
+    "release": {
+      "status": "PAGES_PRESENTATION_REFRESHED",
+      "source_commit": "58b47bb03f0277388f049ae5ed333462726106c8",
+      "parent_commit": "4511f7868084b181217649686e9622c89870efd0",
+      "cipher_sha256": "1cc763080b7efc2cd0327efbf789312558086db8f60d6088504c70262acb0aec",
+      "manifest_sha256": "74e02bfd30520d1ed68415dedd249687b5789803ee30196d2d30c0fb8561b991",
+      "portrait_count": 1669,
+      "ciphertext_unchanged": true,
+      "plaintext_published": false,
+      "changed_files": [
+        "app.js",
+        "index.html",
+        "site-build.json",
+        "style.css",
+        "ui-model.js"
+      ],
+      "ciphertext_files_preserved": 7,
+      "portrait_files_preserved": 57,
+      "published": true,
+      "ui_source_commit": "da2ad80de44dfe78cd20a2fe17f8760265f2a8ad"
+    },
+    "readback": {
+      "pages_commit": "6a5f1e0249bd75756c0bb97476d469b8cc3211a8",
+      "public_http_assets_match": true,
+      "protected_ciphertext_files": 7,
+      "protected_portrait_files": 57
+    },
+    "verified_before_private_browser_check": true
+  },
+  "behavior": {
+    "race_list_model_selector": true,
+    "detail_and_research_model_selectors": true,
+    "selection_retained_per_sport": true,
+    "stored_original_identity_retained_per_race_and_model": true,
+    "missing_model_falls_back_to_other_model": false,
+    "anonymous_legacy_originals_selectable": true,
+    "retired_models_excluded": true,
+    "filter_counts_selected_model_predictions": true,
+    "existing_original_option_indices_preserved": true,
+    "new_models_executed": 0
+  },
+  "validation": {
+    "node_unit_contract_tests": 86,
+    "python_private_context_tests": 16,
+    "beforeinfo_ui_tests": 16,
+    "model_browser_widths": [
+      320,
+      390,
+      1440
+    ],
+    "result_layout_widths": [
+      320,
+      390,
+      1440
+    ],
+    "real_webcrypto_feed": true,
+    "append_and_reordered_originals": true,
+    "two_month_history": true,
+    "offline_four_originals_and_profiles": true,
+    "independent_review_remaining_blockers": 0,
+    "regression_failed_before_fix": true,
+    "review_fixes": [
+      "Anonymous saved original selection clears named-model mode.",
+      "Live proof seeds original choices first, then asserts tickets after model-selector changes alone."
+    ],
+    "private_browser_diagnostics": "Only fixed error kinds and numeric checker locations are exposed; messages, stacks, owner URLs and saved values are excluded.",
+    "earlier_live_check_attempts": [
+      {
+        "run_id": 42456422074,
+        "status": "CHECKER_REJECTED"
+      },
+      {
+        "run_id": 42456810176,
+        "status": "CHECKER_REJECTED",
+        "checker_line": 199,
+        "cause": "A preexisting single-heading locator became ambiguous after preserving the deployed rationale and outlook headings. The checker now requires exactly one visible accessible rationale heading and retains the outlook heading."
+      }
+    ],
+    "existing_fixture_maintenance": "Historical fixture dates and profile navigation were made explicit, and late-publication checks await actual content. This preserves the already-deployed current-day-first opening behavior.",
+    "browser_live_count_scope": "Two actual model originals on one selected race at each of three widths; six switch checks, not six unique models.",
+    "unrelated_full_suite_rerun": false
+  },
+  "preservation": {
+    "original_forecasts_and_ordered_tickets": true,
+    "financial_and_comparison_modules_changed": false,
+    "existing_deployed_opening_and_explanations_preserved": true,
+    "beforeinfo_and_profile_paths_verified": true,
+    "portrait_files": 57,
+    "athlete_profiles": 1669,
+    "encrypted_presentation_files": 7,
+    "new_provider_or_permissions": false,
+    "owner_url_raw_predictions_or_keys_published": false,
+    "bets_placed": false
+  },
+  "limitations": [
+    "Model selection displays stored originals. A catalogue entry is not a generated prediction; absent race/model combinations remain explicitly missing.",
+    "The bounded production browser check verifies two actual models, not all model/race combinations or prediction accuracy."
+  ]
+}
