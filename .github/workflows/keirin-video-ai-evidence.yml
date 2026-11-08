@@ -1,0 +1,50 @@
+name: KEIRIN video four-lap AI evidence and learning contracts
+
+on:
+  pull_request:
+    paths:
+      - 'race_ai/keirin_video_events.py'
+      - 'race_ai/keirin_video_learning.py'
+      - 'race_ai/keirin_video_inference.py'
+      - 'race_ai/keirin_video_postrace_pdca.py'
+      - 'tests/test_keirin_video_events.py'
+      - 'tests/test_keirin_video_learning.py'
+      - '.github/workflows/keirin-video-ai-evidence.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-private-data-contracts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install numeric/vision runtime
+        run: |
+          python -m pip install --disable-pip-version-check \
+            numpy==1.26.4 \
+            opencv-python-headless==4.10.0.84 \
+            scikit-learn==1.6.1
+          sudo apt-get update -qq
+          sudo apt-get install -qq -y ffmpeg
+      - name: Import and compile evidence and classifier modules
+        run: |
+          python -m py_compile race_ai/keirin_video_events.py
+          python -m py_compile race_ai/keirin_video_learning.py
+          python -m py_compile race_ai/keirin_video_inference.py
+          python -m py_compile race_ai/keirin_video_postrace_pdca.py
+      - name: Explicit synthetic replay/finish/lap proof tests
+        run: python -m unittest discover -s tests -p 'test_keirin_video_events.py' -v
+      - name: Train/holdout and feature-vector synthetic tests
+        run: python -m unittest discover -s tests -p 'test_keirin_video_learning.py' -v
+      - name: No official claims or public video
+        run: |
+          printf '%s\n' 'Synthetic 4-lap and scene-learning contracts passed.' >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' 'No original race footage, real frame training rows, secret or licensed media used.' >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' 'Actual Matsuyama 9R autonomous four-lap model verification remains NOT PROVEN.' >> "$GITHUB_STEP_SUMMARY"
+          printf '%s\n' 'No PR71 prediction model changed; post-cutoff inference is isolated.' >> "$GITHUB_STEP_SUMMARY"
