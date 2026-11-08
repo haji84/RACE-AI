@@ -28,6 +28,10 @@ class IndependentReadbackTests(unittest.TestCase):
         self.assertEqual(report['status'],'AES_AUTHENTICATED_HISTORICAL_PDCA_READBACK_VERIFIED')
         self.assertGreaterEqual(report['historical_days_with_formal_scores'],1)
         self.assertFalse(report['all_history_completion_proven'])
+        self.assertEqual(report['full_period_saved_days'],len(bridge.available_days))
+        self.assertEqual(report['full_period_missing_pdca_days'],0)
+        self.assertEqual(report['full_period_orphan_pdca_days'],0)
+        self.assertTrue(report['full_period_readback_coverage_proven'])
         self.assertEqual(report['source_provider_requests'],0)
         self.assertGreaterEqual(report['archived_days'],1)
         self.assertGreaterEqual(report['independent_day_readbacks'],1)
@@ -47,6 +51,15 @@ class IndependentReadbackTests(unittest.TestCase):
         self.assertEqual(report['held_days'],1)
         self.assertGreater(report['formally_scored_forecasts'],0)
         self.assertFalse(report['all_history_completion_proven'])
+
+    def test_full_period_gap_does_not_disappear_from_authenticated_readback(self):
+        state,bridge,now=self.setUpFixture()
+        bridge.available_days=list(bridge.available_days)+['2017-01-01']
+        report=verify_snapshot(state,bridge,now=now)
+        self.assertEqual(report['full_period_missing_pdca_days'],1)
+        self.assertFalse(report['full_period_readback_coverage_proven'])
+        self.assertFalse(report['all_history_completion_proven'])
+        self.assertEqual(report['source_provider_requests'],0)
 
     def test_reject_modified_model_return_amount(self):
         state,bridge,now=self.setUpFixture()

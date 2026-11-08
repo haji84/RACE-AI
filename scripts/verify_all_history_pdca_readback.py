@@ -88,6 +88,60 @@ def _count_only_day_pdca(view, score):
         first_rank_basis='FIRST_DISTINCT_FIRST_PLACE_APPEARANCE_NOT_ALL_RACER_RANK',
         model_groups=groups)
 
+
+def _entire_saved_period_coverage(state, bridge, *, now, independently_verified, snapshot_holds):
+    """Verify all indexed saved days, not only the latest two plus one older day.
+
+    This only reads existing authenticated AES/Git data, never uses a provider,
+    and never exports saved race IDs or guesses missing official results.
+    """
+    from race_ai import model_pdca_history as H, retained_model_pdca_audit as P
+    from race_ai import result_due_ledger as D, saved_view_feed as F
+    available=sorted(set(bridge.available_days))
+    archived=set(H._unwrap(state.control)['days'])
+    indexed=set(available)
+    verified=set(independently_verified)&indexed
+    failed=0
+    current_view=None
+    if not bridge.history and any(day not in verified and day in archived for day in available):
+        current_view=F.current_view(bridge.git,bridge.bootstrap)[3]
+    for day in available:
+        if day in verified or day not in archived:
+            continue
+        try:
+            if bridge.history:
+                view=F.current_view(bridge.git,bridge.bootstrap,day=day)[3]
+            else:
+                view=dict(current_view,records=[r for r in current_view['records']
+                    if r.get('sport')=='boat' and r.get('event_date_jst')==day])
+            score=P.score_view(view,authenticated=True)
+            H.verify_day(state.control,day=day,view=view,summary=score)
+        except (ValueError,TypeError,KeyError):
+            # A failed old-day readback never counts as a zero or an exclusion.
+            failed+=1
+        else:
+            verified.add(day)
+    due=D.ledger(deepcopy(state.control),now=now.isoformat())
+    all_scores=H.latest(state.control)
+    backlog=D.pending_count(due)
+    unavailable=D.unavailable_days(due,available)
+    unscored=all_scores['unscored']
+    index_complete=bool(available) and indexed==archived
+    readback_complete=index_complete and len(verified)==len(available) and failed==0
+    fully_resolved=readback_complete and backlog==0 and unscored==0 and snapshot_holds==0 and unavailable==0
+    return dict(
+        full_period_saved_days=len(available),
+        full_period_pdca_archived_days=len(archived),
+        full_period_independently_read_days=len(verified),
+        full_period_missing_pdca_days=len(indexed-archived),
+        full_period_orphan_pdca_days=len(archived-indexed),
+        full_period_readback_holds=failed,
+        full_period_unavailable_backlog_days=unavailable,
+        full_period_ledger_open_races=backlog,
+        full_period_unscored_model_forecasts=unscored,
+        full_period_readback_coverage_proven=bool(readback_complete),
+        all_history_completion_proven=bool(fully_resolved))
+
 def verify_snapshot(state,bridge,*,now):
     from race_ai import result_due_ledger as D,retained_model_pdca_audit as P,model_pdca_history as H
     from race_ai import saved_view_feed as F
@@ -143,6 +197,8 @@ def verify_snapshot(state,bridge,*,now):
             if previous and P.score_view(dict(view,records=previous),authenticated=True)['total_scored']:
                 historical+=1
     _need(scored>0 and historical>0,'NO_REAL_HISTORICAL_MODEL_SCORE')
+    coverage=_entire_saved_period_coverage(state,bridge,now=now,
+        independently_verified=verified_daily,snapshot_holds=held_days)
     _need(wire(state.control)==original,'SOURCE_CONTROL_MUTATED')
     eligible_days=sorted(day for day,detail in verified_daily.items() if detail['eligible']>0)
     focus_day=eligible_days[-1] if eligible_days else None
@@ -162,7 +218,7 @@ def verify_snapshot(state,bridge,*,now):
         archived_revisions=H.latest(state.control)['revisions'],independent_day_readbacks=archived_readbacks,held_days=held_days,
         source_provider_requests=0,
         forecast_rewrites=0,actual_purchases=False,
-        secret_or_private_original_logged=False,all_history_completion_proven=False)
+        secret_or_private_original_logged=False,**coverage)
 
 
 def _safe_same_race_shadow_comparison(view):
