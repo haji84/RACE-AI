@@ -108,6 +108,17 @@ class OwnerCsvTests(unittest.TestCase):
         self.assertAlmostEqual(observed["rider/1/win_rate"],9/20)
         self.assertAlmostEqual(observed["rider/1/top_three_rate"],14/20)
         self.assertEqual(observed["rider/1/back_B_count"],8)
+        self.assertEqual(
+            observed["rider/1/line_leader_or_follow_role"]["role"],"leader")
+        self.assertEqual(
+            observed["rider/2/line_leader_or_follow_role"]["role"],"second")
+        self.assertTrue(
+            observed["race/line_roles_and_solo_riders"][
+                "is_expected_lineup_not_official_result"])
+        self.assertNotIn(
+            "rider/1/line_leader_or_follow_role",
+            decoded["status"]["unverified_critical_keys"])
+
 
     def test_conflicting_win_counts_do_not_get_promoted(self):
         raw=fictitious_csv(contradict=True)
