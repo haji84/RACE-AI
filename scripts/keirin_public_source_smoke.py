@@ -13,6 +13,7 @@ from hashlib import sha256
 from html.parser import HTMLParser
 import json
 import os
+import re
 import sys
 from urllib import error, request
 from urllib.parse import urlsplit
@@ -98,6 +99,35 @@ def summarize_html(body):
     analyzer=HtmlIndicators()
     analyzer.feed(text)
     analyzer.close()
+    # Structural-only diagnostics: no public-source or rider payload is logged.
+    marker_tokens = {
+        "next_data": "__NEXT_DATA__",
+        "next_flight": "self.__next_f.push",
+        "nuxt": "__NUXT__",
+        "ld_json": "application/ld+json",
+        "trifecta_jp": "3連単",
+        "trifecta_en": "trifecta",
+        "odds_field": "odds",
+        "decimal_odds": "decimal_odds",
+        "odds_table": "OddsTable",
+        "winning_triple": "triple",
+    }
+    markers={key:min(text.count(token),99999)
+             for key,token in marker_tokens.items()}
+    script_meta=[]
+    class MetadataScripts(HTMLParser):
+        def handle_starttag(self,tag,attrs):
+            if tag == "script":
+                d=dict(attrs)
+                value={
+                    "id":str(d.get("id",""))[:60],
+                    "type":str(d.get("type",""))[:60],
+                    "has_src":bool(d.get("src")),
+                }
+                if value not in script_meta and len(script_meta)<12:
+                    script_meta.append(value)
+    meta=MetadataScripts()
+    meta.feed(text)
     # Structural hints are deliberately NOT counted as 210 price records.
     return {
         "response_bytes":len(body),
@@ -106,6 +136,8 @@ def summarize_html(body):
         "html_row_count":analyzer.rows,
         "script_count":analyzer.script_tags,
         "json_script_count":analyzer.json_script_tags,
+        "page_structure_markers":markers,
+        "script_shape_samples":script_meta,
         "input_count":analyzer.inputs,
         "contains_trifecta_label":("3連単" in text),
         "contains_aomori_label":("青森" in text),
