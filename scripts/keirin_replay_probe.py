@@ -96,8 +96,44 @@ async def click_digest(page, fixture):
             return {"clicked":False,"selector":selector,"error":type(exc).__name__}
     return {"clicked":False,"reason":"NO_DIGEST_TRIGGER"}
 
+def encrypt_recordings(recordings: list[Path], public_key_path: Path,
+                       encrypted_dir: Path) -> int:
+    """Only ciphertext may leave the runner. One-off pilot public RSA key."""
+    import secrets
+    from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+    from cryptography.hazmat.primitives import hashes, serialization
+    from cryptography.hazmat.primitives.asymmetric import padding
+    public = serialization.load_pem_public_key(public_key_path.read_bytes())
+    encrypted_dir.mkdir(parents=True, exist_ok=True)
+    metadata = {"schema":"RACE_AI_REPLAY_CIPHER_MANIFEST_V1",
+                "race_id":RACE_ID,"files":[]}
+    for idx, recording in enumerate(recordings):
+        # Never upload plaintext captures, even when there is no video.
+        key=secrets.token_bytes(32)
+        nonce=secrets.token_bytes(12)
+        aad=(RACE_ID+":webm:"+str(idx)).encode("ascii")
+        raw=recording.read_bytes()
+        cipher=AESGCM(key).encrypt(nonce,raw,aad)
+        sealed=public.encrypt(key,padding.OAEP(
+            mgf=padding.MGF1(algorithm=hashes.SHA256()),
+            algorithm=hashes.SHA256(),label=None))
+        name=f"capture-{idx}.webm.aesgcm"
+        (encrypted_dir/name).write_bytes(cipher)
+        metadata["files"].append({
+            "file":name,"nonce":base64.b64encode(nonce).decode("ascii"),
+            "wrapped_key":base64.b64encode(sealed).decode("ascii"),
+            "aad":base64.b64encode(aad).decode("ascii"),
+            "plaintext_sha256":hashlib.sha256(raw).hexdigest(),
+            "ciphertext_sha256":hashlib.sha256(cipher).hexdigest(),
+        })
+    (encrypted_dir/"manifest.json").write_text(
+        json.dumps(metadata,ensure_ascii=False,indent=2),encoding="utf-8")
+    return len(metadata["files"])
+
+
 async def probe(url: str, report_path: Path, seconds: int, fixture: bool,
-                keep_video: bool=False) -> dict:
+                keep_video: bool=False, encrypted_dir: Path|None=None,
+                public_key: Path|None=None) -> dict:
     if not source_allowed(url,fixture):
         raise ValueError("SOURCE_NOT_ALLOWLISTED")
     report_path.parent.mkdir(parents=True,exist_ok=True)
@@ -179,6 +215,10 @@ async def probe(url: str, report_path: Path, seconds: int, fixture: bool,
             "VIDEO_ADVANCED_AND_RECORDED" if result.get("html_video_advanced")
                  and result["captures"] else
             "CAPTURED_BUT_PLAYBACK_UNPROVEN" if result["captures"] else "NO_RECORDING")
+        if encrypted_dir is not None and public_key is not None and (
+                result["playback_state"] == "VIDEO_ADVANCED_AND_RECORDED"):
+            result["encrypted_capture_count"]=encrypt_recordings(
+                recordings, public_key, encrypted_dir)
         if keep_video and recordings and not os.environ.get("GITHUB_ACTIONS"):
             saved=report_path.parent/"matsuyama-1r-screencast.webm"
             shutil.copyfile(recordings[0],saved)
@@ -193,10 +233,15 @@ def main():
     parser.add_argument("--seconds",type=int,default=16)
     parser.add_argument("--fixture-only",action="store_true")
     parser.add_argument("--keep-video",action="store_true")
+    parser.add_argument("--encrypted-dir",type=Path)
+    parser.add_argument("--public-key",type=Path)
     a=parser.parse_args()
     if not 6<=a.seconds<=40:
         parser.error("seconds must be 6..40")
-    r=asyncio.run(probe(a.url,a.report,a.seconds,a.fixture_only,a.keep_video))
+    if bool(a.encrypted_dir) != bool(a.public_key):
+        parser.error("--encrypted-dir and --public-key are required together")
+    r=asyncio.run(probe(a.url,a.report,a.seconds,a.fixture_only,a.keep_video,
+                        a.encrypted_dir,a.public_key))
     print(json.dumps({"race_id":r["race_id"],"fixture":r["fixture_only"],
                       "playback_state":r["playback_state"],
                       "error":r.get("error")},ensure_ascii=False))
