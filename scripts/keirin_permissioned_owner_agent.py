@@ -150,7 +150,7 @@ def main(argv=None):
                     if args.free_modelled_weather else None)
                 stage = stage_permissioned_deliveries(inbox, grants, now=now)
                 shadow = stage_sourced_shadows(
-                    inbox,grant_check=grants.allowed,now=now)
+                    inbox,grant_check=grants.allowed,now=now,store=store)
                 engine = KeirinPrivateSpool(
                     store, model_suite=run_suite, model_verifier=verify_suite,
                     source_observation_gate=grants.allowed,
