@@ -72,10 +72,11 @@ def fetch_licensed_export_once(inbox, grants, *, endpoint, rights_ref,
         # are never legitimate targets for this generic public HTTPS collector.
         try:
             ipaddress.ip_address(host)
-            raise LicenseDeliveryError("IP_LITERAL_ENDPOINT_FORBIDDEN")
         except ValueError:
             pass
-    except ValueError as exc:
+        else:
+            raise LicenseDeliveryError("IP_LITERAL_ENDPOINT_FORBIDDEN")
+    except (TypeError, AttributeError) as exc:
         raise LicenseDeliveryError("UNSAFE_LICENSED_ENDPOINT") from exc
     _need(grants.allowed(endpoint, rights_ref, "automated_fetch"),
           "AUTOMATED_SOURCE_ACCESS_NOT_AUTHORIZED")
