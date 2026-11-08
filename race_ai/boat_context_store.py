@@ -69,8 +69,13 @@ def _text(value, limit):
     return type(value) is str and len(value) <= limit and not any(ord(c) < 32 for c in value)
 
 
-def _roster(value, *, view=False):
-    _need(type(value) is list and len(value) == 6)
+def _roster(value, *, view=False, program=None):
+    expected = None
+    if program is not None:
+        from .boat_active_exhibition import _program
+        active, _, _ = _program(program, program['captured_at'])
+        expected = {p['lane']: p['registration_number'] for p in active}
+    _need(type(value) is list and len(value) == (len(expected) if expected is not None else 6))
     result = {}
     for row in value:
         _need(type(row) is dict)
@@ -79,7 +84,8 @@ def _roster(value, *, view=False):
         _need(type(lane) is int and 1 <= lane <= 6 and lane not in result and
               type(registration) is str and _REGISTRATION.fullmatch(registration))
         result[lane] = registration
-    _need(set(result) == set(range(1, 7)) and len(set(result.values())) == 6)
+    _need(len(set(result.values())) == len(result))
+    _need(result == expected if expected is not None else set(result) == set(range(1, 7)))
     return result
 
 
@@ -178,7 +184,7 @@ def _profile(profile, roster, race_day):
 def _context(value):
     """Validate identity and derive capture admission without touching the input."""
     _need(type(value) is dict and _FIELDS <= value.keys() and
-          value.keys() <= _FIELDS | {"pitreport_collection_status"} and value.get("schema") == SCHEMA and
+          value.keys() <= _FIELDS | {"pitreport_collection_status", "program"} and value.get("schema") == SCHEMA and
           value.get("forecast_inputs_used") is False)
     result = deepcopy(value)
     race = result["race_id"]
@@ -188,7 +194,21 @@ def _context(value):
     _need(cutoff.astimezone(_JST).date().isoformat() == race_day)
     if "pitreport_collection_status" in result:
         _need(result["pitreport_collection_status"] in _COLLECTION_STATUSES)
-    roster = _roster(result["roster"])
+    program = result.get('program')
+    if 'program' in result:
+        from .boat_active_exhibition import _program
+        before = result['beforeinfo']
+        _need(type(program) is dict and type(before) is dict)
+        _program(program, before['source']['captured_at'])
+        _need(program['race_id'] == race and _time(program['closed_at']) == cutoff
+              and _time(before['source_cutoff_at']) == cutoff
+              and type(program.get('active_entrant_count')) is int
+              and all(type(n) is int for n in program['active_lanes']))
+        source = program.get('source')
+        _need(type(source) is dict and source.get('source_url') == program['source_url']
+              and source.get('sha256') == program['source_sha256']
+              and _time(source.get('captured_at')) == _time(program['captured_at']))
+    roster = _roster(result["roster"], program=program)
     captures = []
     for kind in ("beforeinfo", "pitreport"):
         parser = result[kind]
@@ -332,10 +352,13 @@ def _merge_versions(values):
         races.setdefault(checked["race_id"], []).append((captured, sha256(_wire(checked)).hexdigest(), checked))
     contexts = {}
     for race, versions in races.items():
-        _, _, anchor = max(versions, key=lambda item: item[:2])
-        roster, cutoff = _roster(anchor["roster"]), _time(anchor["cutoff_at"])
+        _, _, anchor = max(versions, key=lambda item: (
+            _time(item[2]['program']['captured_at']) if item[2].get('program') else
+            datetime.min.replace(tzinfo=timezone.utc), *item[:2]))
+        roster, cutoff = _roster(anchor["roster"], program=anchor.get('program')), _time(anchor["cutoff_at"])
         compatible = [value for _, _, value in versions
-                      if _roster(value["roster"]) == roster and _time(value["cutoff_at"]) == cutoff]
+                      if _roster(value["roster"], program=value.get('program')) == roster
+                      and _time(value["cutoff_at"]) == cutoff]
         merged = deepcopy(anchor)
         for kind in ("beforeinfo", "pitreport"):
             candidates = [value for value in compatible if value[kind] is not None]
@@ -421,8 +444,13 @@ def attach_contexts(view, snapshot):
         try:
             checked, _ = _context(value)
             cutoff = _time(row.get("cutoff_at"))
+            if checked.get('program') is not None:
+                from .racer_beforeinfo import _roster as current_roster
+                matched = {p['lane']:p['registration_number'] for p in current_roster(row,checked['program'])}
+            else:
+                matched = _roster(row.get('participants'),view=True)
             _need(cutoff == _time(checked["cutoff_at"]) and
-                  _roster(row.get("participants"), view=True) == _roster(checked["roster"]))
+                  matched == _roster(checked["roster"], program=checked.get('program')))
             for field in ("saved_cutoff_variants", "saved_schedule_cutoff_variants"):
                 _need(all(_time(value) == cutoff for value in row.get(field, [])))
         except (ValueError, TypeError, KeyError, OverflowError, RecursionError):

@@ -534,6 +534,25 @@ def _merge_record(rows, race_names, registry):
             row.update(withdrawn_lanes=withdrawn, withdrawn_participants=withdrawn_people, roster_status="OFFICIAL_ACTIVE")
         if aliases: row[ALIAS_FIELD] = aliases
         _apply_names(row, named, race_names, registry, aliases)
+        if any('live_boat_observation' in source for source in rows):
+            from .racer_beforeinfo import _checked_live_context, _context_clock
+            observations=[]
+            for source in rows:
+                live=source.get('live_boat_observation')
+                if live is None:continue
+                try:
+                    checked=_checked_live_context(row,live)
+                    if checked is None:
+                        _need({p['number']:_registration(p) for p in _participants(source)}==
+                              {p['number']:_registration(p) for p in people},'live observation roster')
+                    observations.append(live)
+                except (ValueError,KeyError,TypeError,OverflowError):continue
+            if observations:
+                row['live_boat_observation']=deepcopy(max(observations,key=lambda live:
+                    (_context_clock(live['context']) if live.get('context') else
+                     (datetime.min.replace(tzinfo=timezone.utc),datetime.min.replace(tzinfo=timezone.utc)),
+                     _clock(live['checked_at']),_wire(live))))
+            else:row.pop('live_boat_observation',None)
     row["result_observations"] = _observations(rows, "result_observations")
     row["result_observation_rejections"] = _observations(rows, "result_observation_rejections", rejection=True)
     for source in rows: _need(not source.get("result_revisions"), "official result revisions in private view")
