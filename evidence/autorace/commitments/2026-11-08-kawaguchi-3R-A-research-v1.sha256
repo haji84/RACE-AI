@@ -1,0 +1,10 @@
+SHA256 b18cd2e72fb7fc512f4115446af6dd290c65c1317dcaf9fea6d2c67701e858ef  autorace_20261108_kawaguchi_3R_A_research_v1.json
+race=2026-11-08 kawaguchi 3R
+issued_at_jst=2026-11-08T11:09:02+09:00
+betting_cutoff_jst=2026-11-08T11:45:00+09:00
+forecast_class=A_PROVISIONAL_TRIAL_NOT_INDEPENDENTLY_CERTIFIED
+research_only=true
+trained_model_output=false
+no_post_result_edits=true
+public_branch_contains_hash_only=true
+private_original_remains_outside_public_repository=true
