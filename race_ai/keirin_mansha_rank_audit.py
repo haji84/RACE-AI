@@ -327,7 +327,13 @@ class KeirinManshaRankLedger:
                     if r["modes"][mode]["state"] == "REFERENCE_PURCHASE"]
             spent = sum(t["investment_yen"] for t in used)
             paid = sum(t["payout_yen"] for t in used)
-            caught = sum(r["modes"][mode]["mansha_captured"] for r in manshas)
+            # Missing odds is unassessable, not a zero-pick choice or loss.
+            # An explicit prospective 0-pick SKIPPED event is assessable
+            # and remains a non-capture in the mansha denominator.
+            eligible_mansha = [r for r in manshas
+                               if r["modes"][mode]["mansha_captured"] is not None]
+            caught = sum(r["modes"][mode]["mansha_captured"] is True
+                         for r in eligible_mansha)
             hits = sum(t["hit"] is True for t in used)
             modes[mode] = {
                 "active_races": len(used),
@@ -336,8 +342,10 @@ class KeirinManshaRankLedger:
                 "hits": hits,
                 "hit_rate_on_active_races": hits/len(used) if used else None,
                 "mansha_races_captured": caught,
+                "mansha_races_evaluable": len(eligible_mansha),
+                "mansha_races_unassessable": len(manshas)-len(eligible_mansha),
                 "mansha_capture_rate_on_mansha_races":
-                    caught/len(manshas) if manshas else None,
+                    caught/len(eligible_mansha) if eligible_mansha else None,
                 "reference_investment_yen": spent,
                 "reference_payout_yen": paid,
                 "reference_profit_yen": paid-spent,
