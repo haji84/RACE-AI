@@ -1,0 +1,65 @@
+{
+  "schema": "RACE_AI_KEIRIN_OWNER_AUTO_ACQUISITION_GATE_20261109_V1",
+  "updated_jst": "2026-11-09T08:17:00+09:00",
+  "owner_instruction": "API制限すな！自動取得OKだった。",
+  "owner_confirmed_private_automatic_sources": [
+    "https://www.winticket.jp/keirin/",
+    "https://keirin.jp/pc/"
+  ],
+  "owner_attestation_received": true,
+  "external_provider_api_contract_independently_verified": false,
+  "machine_fetch_mode_implemented": true,
+  "explicit_owner_activation_required": true,
+  "old_artificial_one_get_per_cycle_restriction_removed": true,
+  "multi_explicit_authorized_endpoints_supported": true,
+  "ordinary_public_html_get_private_sha_and_timestamp_capture_supported": true,
+  "internal_undocumented_api_discovery": false,
+  "rate_limit_or_403_bypass": false,
+  "public_plaintext_retention": false,
+  "new_unapproved_sites_added": false,
+  "existing_legal_provider_limits_respected": true,
+  "source_count_safety_limits_expanded": {
+    "max_verified_json_response_bytes": 32000000,
+    "max_deliveries_per_response": 5000,
+    "max_private_raw_files_per_cycle": 10000,
+    "max_licensed_odds_snapshots_per_batch": 5000
+  },
+  "integration": [
+    "race_ai/keirin_owner_auto_sources.py",
+    "race_ai/keirin_owner_public_page_fetch.py",
+    "race_ai/keirin_licensed_api_ingest.py",
+    "scripts/keirin_permissioned_owner_agent.py",
+    "race_ai/keirin_non_rakuten_sources.py"
+  ],
+  "ci": {
+    "head_sha": "ca1a7f80be41278c37130ad6f00c2ddbdb1457bc",
+    "url": "https://github.com/haji84/RACE-AI/actions/runs/42534377236",
+    "status": "completed",
+    "conclusion": "success",
+    "unit_tests_group_a": 171,
+    "unit_tests_group_b": 70,
+    "unit_tests_total": 241,
+    "actual_network_fetches_in_ci": 0,
+    "ci_test_data": "synthetic"
+  },
+  "actual_race": {
+    "target": "2026-11-09 Aomori 3R",
+    "race_id": "202611091203",
+    "admitted_210_real_odds_rows_verified": 0,
+    "all_347_preflight_with_real_sources_verified": false,
+    "live_pinned_production_state_written": false,
+    "trusted_main_producer_activated": false
+  },
+  "production_store": {
+    "repository": "haji84/RACE-AI",
+    "public_ciphertext_owner_consented": true,
+    "key_format_readiness_observed": true,
+    "production_aead_readback_of_actual_keirin_forecasts_verified": false,
+    "synthetic_state_ref_unchanged": "state/keirin-encrypted-history"
+  },
+  "limitations": [
+    "Owner permission statement is recorded; provider-issued API documentation and the actual machine endpoint remain unidentified.",
+    "Ordinary public HTML capture does not itself extract all 210 odds or authenticate provider publication time.",
+    "This proof records code-and-test changes, not actual live A/B forecast."
+  ]
+}
