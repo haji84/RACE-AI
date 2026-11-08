@@ -128,6 +128,8 @@ def non_rakuten_source_status(url):
         return "INVALID_SOURCE_URL"
     if is_rakuten_domain(host):
         return "RAKUTEN_SOURCE_EXCLUDED_BY_OWNER"
+    if source_id(url) in ("keirin_official","winticket"):
+        return "OWNER_ATTESTED_PERSONAL_USE_PROVIDER_PROOF_UNVERIFIED"
     if source_id(url) is not None:
         return "NON_RAKUTEN_CANDIDATE_NOT_MACHINE_AUTHORIZED"
     return "NON_RAKUTEN_UNKNOWN_SOURCE_NEEDS_REVIEW"
