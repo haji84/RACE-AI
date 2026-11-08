@@ -19,7 +19,10 @@ from race_ai.keirin_permissioned_owner import (
     LicenseDeliveryError, load_operator_grants, stage_permissioned_deliveries
 )
 from race_ai.four_sport_model_suite import run_suite, verify_suite
-from race_ai.keirin_licensed_api_ingest import fetch_licensed_export_once
+from race_ai.keirin_licensed_api_ingest import fetch_authorized_exports
+from race_ai.keirin_owner_auto_sources import (
+    OwnerAttestedAutomaticSources, AUTOMATION_CONSENT,
+)
 from race_ai.keirin_owner_manual import PersonalOwnerObservations
 from race_ai.keirin_owner_approved_sources import (
     PROFILE_ID, approved_source_hosts,
@@ -56,10 +59,15 @@ def main(argv=None):
                              "private manual reference hosts; no HTTP")
     parser.add_argument("--operator-reviewed-licenses", action="store_true",
                         help="Owner verified origin, permitted purposes and expiry out-of-band")
-    parser.add_argument("--provider-endpoint", default=None,
-                        help="explicitly licensed machine JSON feed endpoint; omitted means NO HTTP")
-    parser.add_argument("--provider-rights-ref", default=None,
-                        help="exact machine-acquisition rights reference in private grant")
+    parser.add_argument("--owner-automatic-fetch-confirmed", action="store_true",
+                        help="owner confirms automated acquisition of WINTICKET "
+                             "and KEIRIN.JP for private research; no provider API "
+                             "endpoint is invented, no access controls bypassed")
+    parser.add_argument("--provider-endpoint", action="append",
+                        help="repeat for EVERY explicitly approved JSON data "
+                             "endpoint; no fixed single-GET application quota")
+    parser.add_argument("--provider-rights-ref", action="append",
+                        help="repeat corresponding rights reference for each endpoint")
     parser.add_argument("--api-token-env", default=None,
                         help="environment VARIABLE NAME containing optional provider bearer token")
     parser.add_argument("--free-modelled-weather", action="store_true",
@@ -75,8 +83,8 @@ def main(argv=None):
     if args.free_modelled_weather and not args.personal_manual:
         print('{"state":"WEATHER_PRIVATE_NONCOMMERCIAL_SCOPE_REQUIRED"}')
         return 2
-    # Explicit source profile means owner-saved local research only.
-    # It never grants machine-fetch, commercial-use, or provider licences.
+    # Owner-confirmed automated use is confined to the two selected domains.
+    # It is not independent proof of commercial/bulk provider data licensing.
     if args.owner_approved_source_profile and args.personal_source_host:
         print('{"state":"OWNER_SOURCE_PROFILE_AND_EXPLICIT_HOSTS_CONFLICT"}')
         return 2
@@ -84,10 +92,23 @@ def main(argv=None):
         approved_source_hosts(args.owner_approved_source_profile)
         if args.owner_approved_source_profile else args.personal_source_host
     )
+    auto_owner = args.owner_automatic_fetch_confirmed
+    endpoints = args.provider_endpoint or []
+    rights = args.provider_rights_ref or []
+    if len(endpoints) != len(rights):
+        print('{"state":"ENDPOINT_RIGHTS_PAIR_COUNT_MISMATCH"}')
+        return 2
+    if auto_owner and (not args.personal_manual or
+                       args.owner_approved_source_profile != PROFILE_ID or
+                       not args.owner_private_use_confirmed):
+        print('{"state":"OWNER_AUTOMATED_SOURCE_SCOPE_REQUIRED"}')
+        return 2
     if args.personal_manual:
         if (not args.owner_private_use_confirmed or
-            not personal_hosts or args.provider_endpoint or
-            args.provider_rights_ref or args.api_token_env or
+            not personal_hosts or
+            (bool(endpoints) and not auto_owner) or
+            (bool(rights) and not auto_owner) or
+            (args.api_token_env and not auto_owner) or
             args.grant_manifest or args.operator_reviewed_licenses):
             print('{"state":"OWNER_MANUAL_ONLY_OR_PRIVATE_SCOPE_NOT_CONFIRMED"}')
             return 2
@@ -96,7 +117,7 @@ def main(argv=None):
           args.owner_private_use_confirmed):
         print('{"state":"SOURCE_LICENSE_REVIEW_NOT_ACKNOWLEDGED"}')
         return 2
-    if bool(args.provider_endpoint) != bool(args.provider_rights_ref):
+    if bool(endpoints) != bool(rights):
         print('{"state":"INCOMPLETE_LICENSED_PROVIDER_CONFIG"}')
         return 2
     if args.api_token_env is not None and (
@@ -137,23 +158,25 @@ def main(argv=None):
                 now = datetime.now(timezone.utc).isoformat()
                 # Reload grants every cycle; expired rights never remain valid
                 # in an unattended long-running process.
-                grants = (PersonalOwnerObservations(
-                    source_hosts=personal_hosts, now=now,
-                    allow_noncommercial_modelled_weather=args.free_modelled_weather)
+                grants = (
+                    OwnerAttestedAutomaticSources(
+                        profile=PROFILE_ID,consent=AUTOMATION_CONSENT,now=now)
+                    if auto_owner else
+                    PersonalOwnerObservations(
+                        source_hosts=personal_hosts, now=now,
+                        allow_noncommercial_modelled_weather=args.free_modelled_weather)
                     if args.personal_manual else
                     load_operator_grants(manifest, now=now))
                 fetch_report = None
-                if args.provider_endpoint:
+                if endpoints:
                     token = (os.environ.get(args.api_token_env)
                              if args.api_token_env else None)
                     if args.api_token_env and not token:
                         print('{"state":"LICENSED_FEED_TOKEN_UNCONFIGURED"}')
                         return 2
-                    fetch_report = fetch_licensed_export_once(
+                    fetch_report = fetch_authorized_exports(
                         inbox, grants,
-                        endpoint=args.provider_endpoint,
-                        rights_ref=args.provider_rights_ref,
-                        token=token,
+                        sources=list(zip(endpoints,rights)),token=token,
                     )
                 owner_markdown = (stage_owner_saved_hex_markdown(inbox, now=now)
                                   if args.personal_manual else None)
@@ -213,6 +236,7 @@ def main(argv=None):
                          if modelled_weather else 0)),
                     "official_pre_cutoff_witness": False,
                     "licensed_rights_verified_by_program": False,
+                    "owner_confirmed_automated_fetch": auto_owner,
                     "commercial_use_authorized_by_program": False,
                     "owner_self_attested_private_only": args.personal_manual,
                     "provider_permission_inferred_from_personal_use": False,
