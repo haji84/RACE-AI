@@ -24,7 +24,7 @@ RIGHTS = "FICTIONAL_TEST_RIGHTS_ONLY"
 
 
 def data():
-    from tests.test_keirin_allowed_delivery import fixture
+    from test_keirin_allowed_delivery import fixture
     d = fixture()
     for o in d["observations"]:
         o["source_url"] = SOURCE
