@@ -83,6 +83,9 @@ def _csv_from_markdown(markdown,meta):
     _need(type(meta) is dict and
           source_id(meta.get("source_url"))=="keirin_hex",
           "KEIRIN_HEX_OWNER_SOURCE_REQUIRED")
+    _need(meta.get("source_sha256") ==
+          sha256(markdown.encode("utf-8")).hexdigest(),
+          "OWNER_SAVED_MARKDOWN_SHA_MISMATCH")
     try:
         entrants=meta["race"]["starters"]
     except (KeyError,TypeError):
