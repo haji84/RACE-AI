@@ -23,6 +23,7 @@ from race_ai.keirin_licensed_api_ingest import fetch_licensed_export_once
 from race_ai.keirin_owner_manual import PersonalOwnerObservations
 from race_ai.keirin_owner_saved_csv import stage_owner_saved_csv
 from race_ai.keirin_owner_saved_hex import stage_owner_saved_hex_markdown
+from race_ai.keirin_real_shadow_intake import stage_sourced_shadows
 from race_ai.keirin_open_meteo_stage import stage_one_free_weather
 
 
@@ -137,6 +138,8 @@ def main(argv=None):
                     stage_one_free_weather(inbox,coords,now=now)
                     if args.free_modelled_weather else None)
                 stage = stage_permissioned_deliveries(inbox, grants, now=now)
+                shadow = stage_sourced_shadows(
+                    inbox,grant_check=grants.allowed,now=now)
                 engine = KeirinPrivateSpool(
                     store, model_suite=run_suite, model_verifier=verify_suite,
                     source_observation_gate=grants.allowed,
@@ -150,6 +153,7 @@ def main(argv=None):
                     "stage": stage, "spool": settled,
                     "owner_saved_csv_stage": owner_csv,
                     "owner_saved_markdown_stage": owner_markdown,
+                    "source_grounded_private_shadow":shadow,
                     "modelled_weather_stage": modelled_weather,
                     "automatic_provider_fetch": fetch_report is not None,
                     "provider_network_requests": (
