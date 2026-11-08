@@ -7,7 +7,8 @@ function fixture(){
  const p={model_id:A,model_version:'1',stage:'P0',generated_at:'2030-01-01T07:00:00+09:00',as_of:'2030-01-01T07:00:00+09:00',persisted_at:'2030-01-01T07:01:00+09:00',cutoff_at:'2030-01-01T09:00:00+09:00',ordered_top8:a,prediction_sha256:'a'.repeat(64),input_sha256:'b'.repeat(64),odds_independent:true,rationale:'A 朝の保存根拠'};
  const peer={...p,model_id:B,stage:'P1',ordered_top8:b,prediction_sha256:'c'.repeat(64),rationale:'B の保存根拠'};
  const later={...p,stage:'P1',as_of:'2030-01-01T08:00:00+09:00',generated_at:'2030-01-01T08:00:00+09:00',persisted_at:'2030-01-01T08:01:00+09:00',prediction_sha256:'d'.repeat(64),ordered_top8:[a[1],a[0],...a.slice(2)],rationale:'A 展示後の保存根拠'};
- const r={race_id:'20300101-11-01',sport:'boat',venue:'びわこ',race_no:1,event_date_jst:'2030-01-01',cutoff_at:p.cutoff_at,scope:'research',offering_status:'TRIFECTA_OFFERED',source_provenance:'INVENTED_MODEL_SWITCH_TEST_ONLY',source_sha256:'e'.repeat(64),prediction:p,comparison_predictions:[peer,later,{...p,model_id:'seller-shadow-v1-20261104',prediction_sha256:'f'.repeat(64)}],result:{status:'final',winning_combinations:[[1,2,3]],payout_yen_per_100:1200,observed_at:'2030-01-01T09:05:00+09:00'},participants:Array.from({length:6},(_,i)=>({number:i+1,registration_no:String(4001+i),name:'架空選手'+(i+1)}))};
+ const legacy={...p,model_id:undefined,model_version:'legacy',prediction_sha256:'9'.repeat(64),ordered_top8:[[3,2,1],...b.slice(1)],rationale:'モデル名未記録の保存根拠'};
+ const r={race_id:'20300101-11-01',sport:'boat',venue:'びわこ',race_no:1,event_date_jst:'2030-01-01',cutoff_at:p.cutoff_at,scope:'research',offering_status:'TRIFECTA_OFFERED',source_provenance:'INVENTED_MODEL_SWITCH_TEST_ONLY',source_sha256:'e'.repeat(64),prediction:p,comparison_predictions:[peer,later,legacy,{...p,model_id:'seller-shadow-v1-20261104',prediction_sha256:'f'.repeat(64)}],result:{status:'final',winning_combinations:[[1,2,3]],payout_yen_per_100:1200,observed_at:'2030-01-01T09:05:00+09:00'},participants:Array.from({length:6},(_,i)=>({number:i+1,registration_no:String(4001+i),name:'架空選手'+(i+1)}))};
  return {schema:'RACE_AI_FORECAST_AUDIT_V1',dataset_status:'REAL_REPORTED',records:[r,{...r,race_id:'20300101-11-02',race_no:2,comparison_predictions:[]}]};
 }
 let browser,server;
@@ -37,6 +38,9 @@ let browser,server;
   assert.equal(await page.locator('#detail-model-select').inputValue(),B);assert.equal(await panel.locator('.saved-ticket').count(),0);assert.match(await panel.innerText(),/このモデル.*保存/);assert.equal(await page.locator('#prediction-select').inputValue(),'');
   await page.locator('#detail-model-select').selectOption(A);await list();await open('20300101-11-01');assert.equal(await page.locator('#prediction-select').inputValue(),'2');
   assert.equal(await page.locator('#detail-model-select option[value="seller-shadow-v1-20261104"]').count(),0);
+  await page.locator('#prediction-select').selectOption('3');assert.equal(await page.locator('#prediction-select').inputValue(),'3');assert.match(await panel.innerText(),/モデル名未記録の保存根拠/);
+  assert.deepEqual(await panel.locator('.saved-ticket .combo').first().locator('.lane').allTextContents(),['3','2','1']);
+  await page.locator('#detail-model-select').selectOption(A);assert.equal(await page.locator('#prediction-select').inputValue(),'2');
   assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);assert.deepEqual(errors,[]);
   await page.screenshot({path:path.join(artifacts,'model-switcher-'+width+'.png'),fullPage:true});await page.close();
   console.log('PASS model selection '+width+'px: tickets/rationale, missing model, history, race/research continuity and retired model exclusion');

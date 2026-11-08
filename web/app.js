@@ -903,6 +903,7 @@
       const index = Number(select.value), p = list[index]; if (!p) return;
       rememberModelSelections(r.sport);state.predictionKeys[r.race_id] = index;
       if (p.model_id) { state.modelBySport[r.sport] = p.model_id;state.modelOriginals[modelMemoryKey(r,p.model_id)] = M.savedPredictionIdentity(p); }
+      else delete state.modelBySport[r.sport];
       renderAll(); $(id)?.focus();
     });
     label.append(select); wrapper.append(label); return wrapper;

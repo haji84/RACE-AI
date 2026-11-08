@@ -250,8 +250,12 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
         if(await page.locator('#all-venues').isVisible())await page.locator('#all-venues').click();
         await page.locator('[data-race-view="'+(Date.parse(modelProbe.cutoff_at)>Date.now()?'upcoming':'results')+'"]').click();
         await (await revealRace(page,modelProbe.race_id,context.day_races)).click();await page.locator('[data-detail-tab="outlook"]').click();
+        // Bind each model to its expected stored version, then exercise only
+        // the model selector. The original picker must not mask a broken switch.
+        for(const choice of modelProbe.choices)await page.locator('#prediction-select').selectOption(String(choice.index));
         for(const choice of modelProbe.choices){
-          await page.locator('#detail-model-select').selectOption(choice.model_id);await page.locator('#prediction-select').selectOption(String(choice.index));
+          await page.locator('#detail-model-select').selectOption(choice.model_id);
+          assert.equal(await page.locator('#prediction-select').inputValue(),String(choice.index));
           const panel=page.locator('#detail-tab-content .forecast-panel');assert.equal(await panel.getAttribute('data-model-id'),choice.model_id);
           const tickets=await panel.locator('.saved-ticket .combo').evaluateAll(nodes=>nodes.map(node=>[...node.querySelectorAll('.lane')].map(n=>Number(n.textContent))));
           assert.equal(require('node:crypto').createHash('sha256').update(JSON.stringify(tickets)).digest('hex'),choice.tickets_sha256);modelSwitchOriginals++;
