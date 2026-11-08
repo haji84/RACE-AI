@@ -1,8 +1,10 @@
-"""One explicitly license-authorized HTTPS JSON feed GET per owner cycle.
+"""Owner-authorized HTTPS JSON export intake for private KEIRIN research.
 
-No website crawling, robots bypass, redirected fetches, endpoint discovery,
-arbitrary multi-URL downloads, automatic retries, or real credential logs.
-A licensed provider must supply the declared normalized JSON export format.
+Multiple explicit, authorized endpoints can be queried in one cycle. There is
+no arbitrary API call-count quota in RACE-AI. Each request still validates
+host, rights, credentials, response size, schema, source SHA and odds.
+Published provider rate limits, 429/403, and access-control remain binding.
+No endpoint discovery, internal/private API probing or page scraping.
 """
 from __future__ import annotations
 
@@ -61,7 +63,7 @@ def fetch_licensed_export_once(inbox, grants, *, endpoint, rights_ref,
     independently verify that grant from the provider; a local manifest
     and a matching SHA do not certify its legality.
     """
-    _need(type(endpoint) is str and len(endpoint) <= 256 and
+    _need(type(endpoint) is str and len(endpoint) <= 2048 and
           type(rights_ref) is str, "ENDPOINT_CONFIG_INVALID")
     try:
         target = urlsplit(endpoint)
@@ -151,4 +153,69 @@ def fetch_licensed_export_once(inbox, grants, *, endpoint, rights_ref,
         "commercial_or_model_rights_independently_certified": False,
         "provider_license_required": True,
         "auto_wager": False,
+    }
+
+
+def fetch_authorized_exports(inbox, grants, *, sources, token=None,
+                             transport=None):
+    """Fetch each explicitly approved endpoint, not an artificial single-GET cap.
+
+    All endpoints are validated for owner-granted automated_fetch BEFORE any
+    network activity. This is not a provider-rate-limit bypass. The caller
+    selects a supported API path; no internal endpoints are discovered.
+    """
+    _need(type(sources) in (list,tuple) and bool(sources),
+          "AUTHORIZED_SOURCES_REQUIRED")
+    checked=[]
+    for pair in sources:
+        _need(type(pair) in (tuple,list) and len(pair)==2,
+              "SOURCE_ENDPOINT_RIGHTS_PAIR_REQUIRED")
+        endpoint, rights_ref=pair
+        _need(type(endpoint) is str and 1<=len(endpoint)<=2048 and
+              type(rights_ref) is str and bool(rights_ref),
+              "EXPLICIT_ENDPOINT_AND_RIGHTS_REQUIRED")
+        parts=urlsplit(endpoint)
+        try:
+            host=parts.hostname
+            unsafe=(parts.scheme!="https" or not host or
+                    parts.username is not None or
+                    parts.password is not None or
+                    parts.port is not None or parts.fragment)
+            _need(not unsafe,"UNSAFE_AUTHORIZED_ENDPOINT")
+            try:
+                ipaddress.ip_address(host)
+            except ValueError:
+                pass
+            else:
+                raise LicenseDeliveryError("IP_LITERAL_ENDPOINT_FORBIDDEN")
+        except ValueError:
+            raise LicenseDeliveryError("UNSAFE_AUTHORIZED_ENDPOINT") from None
+        _need(not is_rakuten_url(endpoint),
+              "RAKUTEN_SOURCE_EXCLUDED_BY_OWNER")
+        _need(grants.allowed(endpoint,rights_ref,"automated_fetch") is True,
+              "AUTOMATED_SOURCE_ACCESS_NOT_AUTHORIZED")
+        checked.append((endpoint,rights_ref))
+    # Do not create endless duplicate requests by mistake.
+    _need(len(set(checked))==len(checked),
+          "DUPLICATE_SAME_CYCLE_REQUEST")
+    reports=[]
+    for endpoint,rights_ref in checked:
+        reports.append(fetch_licensed_export_once(
+            inbox,grants,endpoint=endpoint,rights_ref=rights_ref,
+            token=token,transport=transport))
+    return {
+        "schema":"RACE_AI_KEIRIN_AUTHORIZED_MULTI_SOURCE_CYCLE_V1",
+        "authorized_endpoint_count":len(checked),
+        "http_requests":sum(x["http_requests"] for x in reports),
+        "provider_packets_created":sum(
+            x["provider_packets_created"] for x in reports),
+        "provider_packets_already_present":sum(
+            x["provider_packets_already_present"] for x in reports),
+        "licensed_full_odds_staged":[
+            x["licensed_full_odds_staged"] for x in reports
+            if x["licensed_full_odds_staged"] is not None
+        ],
+        "internal_api_discovery":False,
+        "provider_rate_limits_bypassed":False,
+        "automatic_wagering":False,
     }
