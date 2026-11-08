@@ -13,6 +13,10 @@ The owner explicitly requested: 「予想する時は今の情報を必ず全て
 - Confirm rights through independent authorization; a source URL or rights_ref string does not itself grant rights. The documentation/audit does not make a currently missing legal feeder or live execution operational.
 - Keep <=8 ordered trifecta picks, original pre-cutoff prediction immutable, results and revisions separate, reference virtual losses distinct from any verified real wagers, and A/B comparisons prospective on the same future races.
 - Changes to docs and tests are NOT evidence that every item is collected or used by the existing predictor. Do not claim full operation until a real permitted feeder, evidence/forecast readback, independent timestamp and forward-test quality are demonstrated.
+- Personal research: owner-captured, privately supplied observations MAY be processed offline through `race_ai/keirin_owner_manual.py` without a commercial API or provider licence manifest; this grants NO automatic remote collection, publication, or commercial rights. Every source must retain true source URL and as-of provenance, and missing values remain explicit.
+- 347 checked items != 347 separately published or automatically retrievable facts. In `race_ai/keirin_field_acquisition.py`, scenario hypotheses and calculated indicators are classified separately from direct source facts. Never call unobserved future scenarios "collected".
+- Actual KEIRIN race scores exceed 100. Do not silently cap at 100. The provisional adapter now traces `keirin-audit-score200-v1` as UNTRAINED engineering normalization and requires prospective calibration/validation.
+
 
 ## Cloudflare is prohibited
 
