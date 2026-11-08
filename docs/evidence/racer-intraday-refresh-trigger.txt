@@ -31,3 +31,5 @@
 2026-11-09 JST: stage-model-pdca report source-free authenticated model result replay rejection cause codes only; preserve 62 original HOLDs until their strict proofs pass. Also restore first-race visibility on 320px venue shortcuts.
 
 2026-11-09 JST: stage-model-pdca validate immutable same-clock source facts before allowing metadata-only parser re-projection; conflicting official payout/roster/cutoff remains HOLD with count-only diagnostics, never source GET.
+
+2026-11-09 JST: stage-model-pdca Reuse existing core owner-AES real assessment. Confirm verified_bulk_backtest.settle canonical Top8/multi-winner/refund/full-refund accounting and independent readback; do not fetch official provider, modify original forecasts or loosen HOLD.
