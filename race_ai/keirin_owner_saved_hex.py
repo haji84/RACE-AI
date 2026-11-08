@@ -175,3 +175,68 @@ def convert_owner_saved_hex_markdown(markdown,meta):
         "provider_data_rights_independently_proven":False,
         "prospective_forecast_ready":False,
     }
+
+
+def stage_owner_saved_hex_markdown(inbox, *, now):
+    """Private, create-only translation of owner-saved pages to CSV inbox.
+
+    The owner supplies the visible Markdown and separately sourced race
+    metadata. No pages are retrieved, no predictions or forecasts are
+    generated here. A late capture is not a historical pre-race forecast.
+    """
+    from pathlib import Path
+    import json
+    import os
+    from .keirin_permissioned_owner import _write_private_once
+    from .keirin_result_delivery import utc
+
+    root=Path(inbox).expanduser()
+    _need(root.is_absolute() and root.is_dir() and
+          not root.is_symlink(),"PRIVATE_OWNER_INBOX_REQUIRED")
+    folder=root/"markdown"
+    if not folder.exists():
+        return {"translated_markdown":0,"already_translated":0,
+                "rejected_markdown":0,"provider_http_requests":0}
+    _need(folder.is_dir() and not folder.is_symlink(),
+          "MARKDOWN_INBOX_SYMLINK_OR_TYPE_INVALID")
+    files=sorted(folder.glob("*.md"))
+    _need(len(files)<=50,"MARKDOWN_BATCH_LIMIT")
+    (root/"csv").mkdir(mode=0o700,exist_ok=True)
+    result={"translated_markdown":0,"already_translated":0,
+            "rejected_markdown":0,"provider_http_requests":0}
+    for path in files:
+        try:
+            _need(not path.is_symlink() and
+                  0<path.stat().st_size<=500_000,
+                  "MARKDOWN_SOURCE_FILE_INVALID")
+            metadata=path.with_suffix(".meta.json")
+            _need(metadata.is_file() and not metadata.is_symlink() and
+                  0<metadata.stat().st_size<=100_000,
+                  "SOURCE_METADATA_REQUIRED")
+            page=path.read_text(encoding="utf-8")
+            info=json.loads(metadata.read_text(encoding="utf-8"))
+            _need(utc(info["source_observed_at"])<=utc(now)<
+                  utc(info["race"]["official_cutoff_at"]),
+                  "NOT_A_VALID_PRE_CUTOFF_OBSERVATION")
+            converted=convert_owner_saved_hex_markdown(page,info)
+            key=converted["original_markdown_sha256"]
+            target=root/"csv"/(key+".csv")
+            targetmeta=root/"csv"/(key+".meta.json")
+            _write_private_once(targetmeta,converted["meta"])
+            data=converted["csv"]
+            try:
+                fd=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+            except FileExistsError:
+                _need(target.is_file() and not target.is_symlink() and
+                      target.read_bytes()==data,
+                      "OWNER_CSV_READBACK_CONFLICT")
+                result["already_translated"]+=1
+            else:
+                with os.fdopen(fd,"wb") as handle:
+                    handle.write(data)
+                    handle.flush()
+                    os.fsync(handle.fileno())
+                result["translated_markdown"]+=1
+        except (OSError,ValueError,TypeError,KeyError,UnicodeError):
+            result["rejected_markdown"]+=1
+    return result
