@@ -38,7 +38,7 @@ def doc(source="WINTICKET_LIVE"):
 
 class FourLapEvidenceTests(unittest.TestCase):
     def test_four_passes_with_replay_ignored(self):
-        r=audit(doc(),independent_visual_receipt=True)
+        r=audit(doc(),trusted_visual_verifier=lambda evidence: True)
         self.assertEqual(r["status"],"FOUR_LAPS_VISUALLY_VERIFIED")
         self.assertEqual(r["pass_count"],4)
         self.assertEqual(r["candidate_count"],5)
@@ -58,25 +58,25 @@ class FourLapEvidenceTests(unittest.TestCase):
         x=doc()
         x["observations"][3]["scene"]="REPLAY"
         self.assertIn("NOT_FOUR_DISTINCT_LIVE_PASSES",
-                      audit(x,independent_visual_receipt=True)["reasons"])
+                      audit(x,trusted_visual_verifier=lambda evidence: True)["reasons"])
 
     def test_identical_image_not_new_lap(self):
         x=doc()
         x["observations"][3]["frame_sha256"]=x["observations"][2]["frame_sha256"]
         self.assertIn("NOT_FOUR_DISTINCT_LIVE_PASSES",
-                      audit(x,independent_visual_receipt=True)["reasons"])
+                      audit(x,trusted_visual_verifier=lambda evidence: True)["reasons"])
 
     def test_phash_replay_not_new_lap(self):
         x=doc()
         x["observations"][3]["phash64"]=x["observations"][2]["phash64"]
-        out=audit(x,independent_visual_receipt=True)
+        out=audit(x,trusted_visual_verifier=lambda evidence: True)
         self.assertEqual(out["pass_count"],3)
         self.assertIn("REPEATED_IMAGE",
                       [p["reason"] for p in out["excluded_passes"]])
 
     def test_edited_digest_not_full_race(self):
         x=doc(source="SYNTHETIC_FIXTURE")
-        result=audit(x,independent_visual_receipt=True)
+        result=audit(x,trusted_visual_verifier=lambda evidence: True)
         self.assertIn("SYNTHETIC_SOURCE_NOT_REAL_EVIDENCE",result["reasons"])
 
     def test_out_of_order_rejected(self):
@@ -88,13 +88,13 @@ class FourLapEvidenceTests(unittest.TestCase):
     def test_missing_goal_or_result_is_failure(self):
         x=doc()
         x["observations"]=[a for a in x["observations"] if a["event"]!="GOAL"]
-        out=audit(x,independent_visual_receipt=True)
+        out=audit(x,trusted_visual_verifier=lambda evidence: True)
         self.assertIn("GOAL_NOT_UNIQUE",out["reasons"])
 
     def test_learning_cannot_accept_unverified(self):
         with self.assertRaisesRegex(EvidenceError,"UNVERIFIED_VIDEO_MUST_NOT_TRAIN"):
             create_postrace_learning_candidate(audit(doc()),{},{})
-        report=audit(doc(),independent_visual_receipt=True)
+        report=audit(doc(),trusted_visual_verifier=lambda evidence: True)
         cutoff=datetime(2026,11,8,23,15,tzinfo=timezone(timedelta(hours=9)))
         frozen={"race_id":doc()["race_id"],"original_sha256":sha("forecast"),
                 "saved_at":(cutoff-timedelta(minutes=5)).isoformat(),
