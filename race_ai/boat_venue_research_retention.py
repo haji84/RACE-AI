@@ -15,7 +15,7 @@ import re
 import stat
 
 from .boat_pdca_state import state_key
-from .boat_venue_learning_handoff import FILES, publish_learning_candidate
+from .boat_venue_learning_handoff import FILES, publish_learning_candidates
 from .boat_venue_history_handoff import GitStateRepository, PREFIX, TRANSFER_REF
 from .boat_venue_dataset import _bytes, _sha
 from .boat_venue_research_receipt import MAX_ARCHIVE_BYTES, verify_private_p1_artifact
@@ -94,10 +94,8 @@ def retain_private_research(folders, repo, *, token=None):
     _need(type(token) is str and re.fullmatch('[A-Za-z0-9_.-]{20,512}', token),
           'GITHUB_TOKEN_REQUIRED')
     roots = _folders(folders)
-    pointers = []
     with _git_auth(token):
-        for root in roots:
-            pointers.append(publish_learning_candidate(root, repo))
+        pointers = publish_learning_candidates(roots, repo) if roots else []
     return dict(status='OWNER_PRIVATE_RESEARCH_RETENTION_VERIFIED',
                 requested_folders=len(folders), retained_folders=len(roots), pointers=pointers,
                 plaintext_published=False, production_promoted=False)

@@ -122,7 +122,8 @@ def _validate_forecast_only_view(view):
     """
     try:
         checked=subprocess.run(['node','-e',code,str(ROOT/'web/product-data.js')],
-            cwd=ROOT,input=wire(view).encode(),capture_output=True,timeout=30,check=False)
+            cwd=ROOT,input=wire(view).encode(),capture_output=True,timeout=30,check=False,
+            env={'PATH':os.environ.get('PATH') or os.defpath,'LANG':'C.UTF-8','TZ':'UTC'})
     except (OSError,subprocess.SubprocessError):
         raise ValueError('FEED_FORECASTS_ONLY_READER_REJECTED') from None
     need(checked.returncode==0 and not checked.stdout and not checked.stderr,'FEED_FORECASTS_ONLY_READER_REJECTED')

@@ -21,6 +21,8 @@ FILES = {'learning.json': 1_000_000, 'learning.enc': 12 * 1024 * 1024,
          'summary.json': 1_000_000}
 POINTER_FIELDS = {'schema', 'status', 'repository_id', 'source_commit',
                   'manifest_path', 'manifest_sha256', 'training_sha256'}
+MAX_BATCH_BYTES = 64 * 1024 * 1024
+MAX_BATCH_CANDIDATES = 256
 
 
 def _path(value):
@@ -129,6 +131,86 @@ def publish_learning_candidate(folder, repo, *, transport=None):
         need(_bounded(git.read(commit, prefix + name, FILES[name]), FILES[name]) == raw,
              'VENUE_LEARNING_REMOTE_READBACK_MISMATCH')
     return _pointer(commit, identity, training_sha)
+
+
+def _candidate_snapshot(folder):
+    root = _path(folder)
+    files = {name: _bounded(_read(root/name, limit), limit) for name, limit in FILES.items()}
+    training_sha, _ = _verified(files)
+    return files, _sha(files['learning.json']), training_sha
+
+
+def _publish_candidate_batch(batch, repo, transport):
+    expected = {}
+    for identity, _, files in batch:
+        prefix = PREFIX + 'learning/' + identity + '/'
+        for name, raw in files.items():
+            path = prefix + name
+            if path in expected:
+                need(expected[path][0] == raw, 'VENUE_LEARNING_IMMUTABLE_FILE_CHANGED')
+            else:
+                expected[path] = (raw, FILES[name])
+    git = _git(repo, transport)
+    parent = git.head()
+    need(type(parent) is str and re.fullmatch('[a-f0-9]{40}', parent),
+         'VENUE_EXISTING_TRANSFER_REF_REQUIRED')
+    git.fetch(parent)
+    additions = {}
+    for path, (raw, limit) in expected.items():
+        if git.exists(parent, path):
+            need(_bounded(git.read(parent, path, limit), limit) == raw,
+                 'VENUE_LEARNING_IMMUTABLE_FILE_CHANGED')
+        else:
+            additions[path] = raw
+    commit = parent
+    if additions:
+        commit = git.commit(additions, parent)
+        need(type(commit) is str and re.fullmatch('[a-f0-9]{40}', commit),
+             'VENUE_LEARNING_COMMIT_INVALID')
+        git.push(commit, parent)
+        git.fetch(commit)
+    for identity, _, files in batch:
+        prefix = PREFIX + 'learning/' + identity + '/'
+        for name, raw in files.items():
+            need(_bounded(git.read(commit, prefix+name, FILES[name]), FILES[name]) == raw,
+                 'VENUE_LEARNING_REMOTE_READBACK_MISMATCH')
+    return [_pointer(commit, identity, training_sha) for identity, training_sha, _ in batch]
+
+
+def publish_learning_candidates(folders, repo, *, transport=None):
+    """Retain exact candidates with bounded bytes and one ref update per batch.
+
+    Preflight all candidates with only fingerprints retained, then authenticate
+    the unchanged snapshots again in bounded batches. A failed batch raises;
+    previously committed batches never become a partial-success report.
+    """
+    need(_key_ready(), 'OWNER_STATE_KEY_REQUIRED')
+    need(type(folders) is list and len(folders) <= 10000,
+         'VENUE_LEARNING_BOUNDED_FOLDER_LIST_REQUIRED')
+    prepared = []
+    for folder in folders:
+        files, _, _ = _candidate_snapshot(folder)
+        size = sum(map(len, files.values()))
+        need(size <= MAX_BATCH_BYTES, 'VENUE_LEARNING_BATCH_SIZE_INVALID')
+        prepared.append((folder, {name: _sha(raw) for name, raw in files.items()}, size))
+        del files
+    pointers = []
+    batch = []
+    batch_bytes = 0
+    for folder, fingerprints, size in prepared:
+        if batch and (len(batch) >= MAX_BATCH_CANDIDATES or batch_bytes+size > MAX_BATCH_BYTES):
+            pointers.extend(_publish_candidate_batch(batch, repo, transport))
+            batch.clear()
+            batch_bytes = 0
+        files, identity, training_sha = _candidate_snapshot(folder)
+        need({name: _sha(raw) for name, raw in files.items()} == fingerprints and
+             sum(map(len, files.values())) == size, 'VENUE_LEARNING_SOURCE_CHANGED')
+        batch.append((identity, training_sha, files))
+        batch_bytes += size
+        del files
+    if batch:
+        pointers.extend(_publish_candidate_batch(batch, repo, transport))
+    return pointers
 
 
 def restore_learning_candidate(pointer, output, repo, *, transport=None):

@@ -354,7 +354,7 @@ def _capture_url(url):
     archive=re.fullmatch(r'https://www1\.mbrace\.or\.jp/od2/B/([0-9]{4})([0-9]{2})/b([0-9]{2})([0-9]{2})([0-9]{2})\.lzh',url)
     if archive:
         from datetime import date
-        from scripts.existing_day_program import official_url
+        from race_ai.official_archive_probe import official_url
         try:
             day=date(int(archive[1]),int(archive[2]),int(archive[5]))
         except ValueError:
