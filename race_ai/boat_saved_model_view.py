@@ -382,8 +382,11 @@ def validate_cutoff_reconciliation(row, result):
           set(originals) == set(cutoffs) and len({_clock(c) for c in cutoffs}) > 1, "cutoff reconciliation originals")
     clocks = [_clock(c) for c in originals]
     schedule = {_clock(c) for c in row.get("saved_schedule_cutoff_variants", [])}
-    _need(len(schedule) <= 1 and schedule <= set(clocks) and not row.get("saved_observation_cutoff_variants") and
-          "SAVED_SCHEDULE_CUTOFF_CONFLICT" not in row.get("missing_reasons", []), "cutoff reconciliation schedule")
+    # SP can reconcile saved schedule revisions only when every schedule clock
+    # is already an original model cutoff. Keep the conflict/history intact;
+    # unknown schedule or observation clocks remain a hold.
+    schedule_bound = (len(schedule) <= 1 and "SAVED_SCHEDULE_CUTOFF_CONFLICT" not in row.get("missing_reasons", [])) or (per_model and len(schedule) > 1)
+    _need(schedule_bound and schedule <= set(clocks) and not row.get("saved_observation_cutoff_variants"), "cutoff reconciliation schedule")
     maximum = proof.get("maximum_offset_seconds")
     _need(type(maximum) in (int,float) and 0 <= maximum <= (86400 if per_model else 60), "cutoff reconciliation maximum offset")
     _sha(proof.get("source_sha256"))

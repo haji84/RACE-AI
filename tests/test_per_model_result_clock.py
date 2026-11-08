@@ -41,6 +41,30 @@ class ClockTests(unittest.TestCase):
         self.assertEqual(r['result_observations'],[before]);self.assertEqual(F.originals_sha(out),pin)
         self.assertTrue(validate_cutoff_reconciliation(r,r['result']))
 
+    def test_saved_schedule_revisions_must_bind_to_the_existing_model_cutoffs(self):
+        view,capture=fixture();row=view['records'][0]
+        row['saved_schedule_cutoff_variants']=list(row['saved_cutoff_variants'])
+        row['missing_reasons'].append('SAVED_SCHEDULE_CUTOFF_CONFLICT')
+        original=deepcopy(row);pin=F.originals_sha(view)
+        out=project(view,capture);matched=out['records'][0]
+        self.assertEqual(matched['result']['status'],'final')
+        self.assertEqual(F.originals_sha(out),pin)
+        self.assertEqual(matched['saved_schedule_cutoff_variants'],original['saved_schedule_cutoff_variants'])
+        self.assertIn('SAVED_SCHEDULE_CUTOFF_CONFLICT',matched['missing_reasons'])
+        self.assertTrue(validate_cutoff_reconciliation(matched,matched['result']))
+        rejected=[]
+        for field,values in [('saved_schedule_cutoff_variants',['2026-11-07T10:09:00+09:00']),('saved_schedule_cutoff_variants',[row['saved_cutoff_variants'][0]]),('saved_observation_cutoff_variants',[row['saved_cutoff_variants'][0]])]:
+            bad=deepcopy(view);bad['records'][0][field]=values
+            self.assertEqual(project(bad,capture)['records'][0]['result']['status'],'unsupported')
+            bad=deepcopy(matched);bad[field]=values;rejected.append(bad)
+            with self.assertRaises(ValueError):validate_cutoff_reconciliation(bad,bad['result'])
+        legacy=deepcopy(matched);legacy['result']['cutoff_reconciliation']['basis']='RAW_OFFICIAL_RESULT_PER_ORIGINAL_CUTOFF'
+        with self.assertRaises(ValueError):validate_cutoff_reconciliation(legacy,legacy['result'])
+        rejected.append(legacy)
+        code="""const assert=require('node:assert/strict'),M=require('./web/product-data.js');let s='';process.stdin.on('data',c=>s+=c);process.stdin.on('end',()=>{const x=JSON.parse(s);assert.equal(M.parse(x.view).records[0].result.status,'final');for(const r of x.bad)assert.throws(()=>M.parse({...x.view,records:[r]}));});"""
+        result=subprocess.run(['node','-e',code],cwd=Path(__file__).resolve().parents[1],input=json.dumps({'view':out,'bad':rejected}),text=True,capture_output=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+
     def test_a_model_saved_after_its_own_or_the_official_cutoff_still_cannot_be_settled(self):
         for field,value in [('cutoff_at','2026-11-07T10:04:00+09:00'),('persisted_at','2026-11-07T10:11:00+09:00'),('generated_at','2026-11-07T10:11:00+09:00')]:
             view,capture=fixture();p=view['records'][0]['comparison_predictions'][0];p[field]=value
