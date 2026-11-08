@@ -12,21 +12,30 @@ const errorCodes=new Set(['ERR_ASSERTION','ENOENT','EACCES','ENOTDIR','EINVAL','
 const browserScripts=new Set(['forecast-audit-model.js','product-data.js','existing-model-catalog.js','ui-model.js','saved-performance.js','racer-portraits-data.js','racer-portraits.js','racer-profiles-data.js','racer-profiles.js','racer-daily.js','app.js','saved-view-crypto.js']);
 function installBrowserErrors({scripts,classes}){
   const records=[];Object.defineProperty(globalThis,'__raceSavedSiteBrowserErrors',{value:records});
-  globalThis.addEventListener('error',event=>{
+  const capture=(event,kind)=>{
     if(records.length>=8)return;
     try{
-      const name=event.error?.name,script=scripts.find(name=>event.filename==='https://haji84.github.io/RACE-AI/'+name)||null;
+      const name=kind==='error'?event.error?.name:event.reason?.name,filename=kind==='error'?event.filename:null;
+      const script=typeof filename==='string'?scripts.find(name=>{
+        const base='https://haji84.github.io/RACE-AI/'+name;
+        if(filename===base)return true;
+        if(!filename.startsWith(base+'?v='))return false;
+        const version=filename.slice(base.length+3);
+        return version.length>=12&&version.length<=64&&!/[^a-f0-9]/.test(version);
+      })||null:null;
       const line=script&&Number.isSafeInteger(event.lineno)&&event.lineno>0&&event.lineno<1000000?event.lineno:null;
-      records.push({error_class:classes.includes(name)?name:'UNRECOGNIZED_ERROR',script,line});
-    }catch{records.push({error_class:'UNRECOGNIZED_ERROR',script:null,line:null});}
-  });
+      records.push({kind,error_class:classes.includes(name)?name:'UNRECOGNIZED_ERROR',script,line});
+    }catch{records.push({kind,error_class:'UNRECOGNIZED_ERROR',script:null,line:null});}
+  };
+  globalThis.addEventListener('error',event=>capture(event,'error'));
+  globalThis.addEventListener('unhandledrejection',event=>capture(event,'unhandledrejection'));
 }
 function safeBrowserErrors(value){
   if(!Array.isArray(value))return [];
   return value.slice(0,8).map(record=>{
-    let name,script,line;try{name=record?.error_class;script=record?.script;line=record?.line;}catch{}
+    let kind,name,script,line;try{kind=record?.kind;name=record?.error_class;script=record?.script;line=record?.line;}catch{}
     const known=browserScripts.has(script);
-    return {error_class:errorClasses.has(name)?name:'UNRECOGNIZED_ERROR',script:known?script:null,
+    return {...(['error','unhandledrejection'].includes(kind)?{kind}:{}),error_class:errorClasses.has(name)?name:'UNRECOGNIZED_ERROR',script:known?script:null,
       line:known&&Number.isSafeInteger(line)&&line>0&&line<1000000?line:null};
   });
 }

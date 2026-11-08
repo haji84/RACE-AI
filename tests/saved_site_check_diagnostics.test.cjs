@@ -88,18 +88,18 @@ test('second-scenario snapshot failures report capture rather than the preceding
   const diagnostic=safeReport(numericFailure({snapshotFailure:true}));assert.equal(diagnostic.phase,'numeric_capture');assert.equal(diagnostic.numeric_field,null);
   assert.equal(diagnostic.completed_numeric_scenarios,1);assert.equal(diagnostic.error_class,'Error');assert.equal(diagnostic.error_code,null);
 });
-function researchFailure({operation=null,browserErrors=false}={}){
+function researchFailure({operation=null,browserErrors=false,events=null}={}){
   const folder=fs.mkdtempSync(path.join(os.tmpdir(),'site-research-diagnostic-'));
   try{
     const script=path.join(folder,'boat_saved_site_check.cjs');fs.copyFileSync(checker,script);
     fs.writeFileSync(path.join(folder,'boat_saved_simulation_context.cjs'),'module.exports={};\n');
     const modules=path.join(folder,'modules'),playwright=path.join(modules,'playwright');fs.mkdirSync(playwright,{recursive:true});
-    fs.writeFileSync(path.join(playwright,'fixture.json'),JSON.stringify({poisonKey,poisonUrl,poisonPath,operation,browserErrors}));
+    fs.writeFileSync(path.join(playwright,'fixture.json'),JSON.stringify({poisonKey,poisonUrl,poisonPath,operation,browserErrors:browserErrors||events!==null,events}));
     fs.writeFileSync(path.join(playwright,'index.js'),String.raw`
 const fs=require('node:fs'),vm=require('node:vm'),p=require('./fixture.json'),exists=fs.existsSync;
 fs.existsSync=value=>['/usr/bin/google-chrome','/opt/google/chrome/google-chrome','/opt/google/chrome/chrome','/usr/bin/chromium'].includes(value)||exists(value);
-let returned=false,listener;
-const frame={addEventListener:(name,handler)=>{if(name==='error')listener=handler;}};
+let returned=false;const listeners=new Map();
+const frame={addEventListener:(name,handler)=>listeners.set(name,handler)};
 const fail=name=>{if(p.operation===name){const error=new Error(p.poisonKey+' '+p.poisonUrl);error.actual='PRIVATE_ACTUAL';error.expected='PRIVATE_EXPECTED';Object.defineProperty(error,'stack',{get(){throw new Error(p.poisonPath);}});throw error;}};
 function locator(selector){return {
  filter:()=>locator(selector),first:()=>locator(selector),locator:child=>locator(selector+' '+child),
@@ -115,11 +115,18 @@ function locator(selector){return {
 };}
 const page={setDefaultTimeout:()=>{},on:()=>{},route:async()=>{},setViewportSize:async()=>{},waitForFunction:async()=>{},locator,
  addInitScript:async(fn,arg)=>vm.runInNewContext('('+fn.toString()+')(__arg)',{globalThis:frame,__arg:arg}),
- goto:async()=>{if(p.browserErrors){if(listener)for(let i=0;i<12;i++){
+ goto:async()=>{if(p.browserErrors){if(p.events)for(const entry of p.events){
+   const reason={name:entry.name||'TypeError'};for(const key of ['message','stack'])Object.defineProperty(reason,key,{get(){throw new Error(p.poisonKey+' '+p.poisonUrl);}});
+   if(entry.throwName)Object.defineProperty(reason,'name',{get(){throw new Error(p.poisonPath);}});
+   const kind=entry.kind||'error',event=kind==='unhandledrejection'?{reason}:{error:reason,filename:entry.filename,lineno:entry.line};
+   if(entry.throwReason)Object.defineProperty(event,'reason',{get(){throw new Error(p.poisonKey);}});
+   if(entry.throwFilename)Object.defineProperty(event,'filename',{get(){throw new Error(p.poisonUrl);}});
+   Object.defineProperty(event,'message',{get(){throw new Error(p.poisonPath);}});listeners.get(kind)?.(event);
+ }else if(listeners.has('error'))for(let i=0;i<12;i++){
    const error={name:i===1?p.poisonKey:'TypeError'};Object.defineProperty(error,'stack',{get(){throw new Error(p.poisonPath);}});
    if(i===7)Object.defineProperty(error,'name',{get(){throw new Error(p.poisonKey);}});
    const event={error,filename:i===0||i>=3?'https://haji84.github.io/RACE-AI/app.js':i===2?'https://haji84.github.io/RACE-AI/app.js?'+p.poisonKey:p.poisonUrl,lineno:i===0?77:i===3?p.poisonKey:i===4?-1:i===5?1000000:i===6?1.25:123};
-   Object.defineProperty(event,'message',{get(){throw new Error(p.poisonKey+' '+p.poisonUrl);}});listener(event);
+   Object.defineProperty(event,'message',{get(){throw new Error(p.poisonKey+' '+p.poisonUrl);}});listeners.get('error')(event);
  }throw new Error(p.poisonKey+' '+p.poisonUrl);}},
  evaluate:async(fn)=>p.browserErrors?vm.runInNewContext('('+fn.toString()+')()',{globalThis:frame}):({ids:Array.from({length:15},(_,i)=>'fixture-'+i),retired:['seller-shadow-v1-20261104']})
 };
@@ -151,9 +158,46 @@ test('research diagnostics pinpoint each failing operation without changing its 
 test('real CLI ErrorEvent diagnostics are bounded and never expose poisoned message, stack, name or filename',()=>{
   const diagnostic=safeReport(researchFailure({browserErrors:true}),{browserErrors:true});
   assert.equal(diagnostic.phase,'owner_navigation');assert.equal(diagnostic.error_class,'Error');assert.equal(diagnostic.browser_errors.length,8);
-  assert.deepEqual(diagnostic.browser_errors[0],{error_class:'TypeError',script:'app.js',line:77});
-  assert.deepEqual(diagnostic.browser_errors[1],{error_class:'UNRECOGNIZED_ERROR',script:null,line:null});
-  assert.deepEqual(diagnostic.browser_errors[2],{error_class:'TypeError',script:null,line:null});
-  for(const event of diagnostic.browser_errors.slice(3,7))assert.deepEqual(event,{error_class:'TypeError',script:'app.js',line:null});
-  assert.deepEqual(diagnostic.browser_errors[7],{error_class:'UNRECOGNIZED_ERROR',script:null,line:null});
+  assert.deepEqual(diagnostic.browser_errors[0],{kind:'error',error_class:'TypeError',script:'app.js',line:77});
+  assert.deepEqual(diagnostic.browser_errors[1],{kind:'error',error_class:'UNRECOGNIZED_ERROR',script:null,line:null});
+  assert.deepEqual(diagnostic.browser_errors[2],{kind:'error',error_class:'TypeError',script:null,line:null});
+  for(const event of diagnostic.browser_errors.slice(3,7))assert.deepEqual(event,{kind:'error',error_class:'TypeError',script:'app.js',line:null});
+  assert.deepEqual(diagnostic.browser_errors[7],{kind:'error',error_class:'UNRECOGNIZED_ERROR',script:null,line:null});
+});
+test('versioned public ErrorEvent locations accept exactly one lowercase hex v query',()=>{
+  const origin='https://haji84.github.io/RACE-AI/',version='b677fde4cfe6';
+  const valid=['app.js?v='+version,'app.js','app.js?v='+'a'.repeat(64),'ui-model.js?v=cb4c6bed3082'];
+  const diagnostic=safeReport(researchFailure({events:valid.map(filename=>({filename:origin+filename,line:91}))}),{browserErrors:true});
+  assert.equal(diagnostic.browser_errors.length,valid.length);
+  assert.equal(diagnostic.browser_errors[0].script,'app.js','the actual deployed version query retains its public location');
+  for(let i=0;i<valid.length;i++)assert.deepEqual(diagnostic.browser_errors[i],{kind:'error',error_class:'TypeError',script:valid[i].split('?')[0],line:91});
+  const invalid=[
+    origin+'app.js?v='+'a'.repeat(11),origin+'app.js?v='+'a'.repeat(65),origin+'app.js?v='+version.toUpperCase(),
+    origin+'app.js?version='+version,origin+'app.js?v='+version+'&v='+version,origin+'app.js?v='+version+'&owner='+poisonKey,
+    origin+'app.js?v='+version+'#'+poisonKey,origin+'app.js#'+poisonKey,origin+'app.js?v='+version+'\n',
+    'https://operator@haji84.github.io/RACE-AI/app.js?v='+version,poisonUrl+'/app.js?v='+version,
+    origin+'../RACE-AI/app.js?v='+version,origin+'%61pp.js?v='+version,origin+'private.js?v='+version
+  ];
+  for(let start=0;start<invalid.length;start+=8){
+    const records=safeReport(researchFailure({events:invalid.slice(start,start+8).map(filename=>({filename,line:91}))}),{browserErrors:true}).browser_errors;
+    for(const record of records)assert.deepEqual(record,{kind:'error',error_class:'TypeError',script:null,line:null});
+  }
+});
+test('error and unhandled-rejection diagnostics share the eight-record cap without reading poisoned reason properties',()=>{
+  const events=[
+    {kind:'unhandledrejection'},
+    {filename:'https://haji84.github.io/RACE-AI/ui-model.js?v=cb4c6bed3082',line:22},
+    {kind:'unhandledrejection',name:poisonKey},{kind:'unhandledrejection',throwName:true},
+    {throwFilename:true},{kind:'unhandledrejection',throwReason:true},
+    {filename:'https://haji84.github.io/RACE-AI/app.js?v=b677fde4cfe6',line:poisonKey},
+    {kind:'unhandledrejection'},{kind:'unhandledrejection'},
+    {filename:'https://haji84.github.io/RACE-AI/app.js',line:77}
+  ];
+  const records=safeReport(researchFailure({events}),{browserErrors:true}).browser_errors;assert.equal(records.length,8);
+  assert.deepEqual(records[0],{kind:'unhandledrejection',error_class:'TypeError',script:null,line:null});
+  assert.deepEqual(records[1],{kind:'error',error_class:'TypeError',script:'ui-model.js',line:22});
+  for(const index of [2,3,5])assert.deepEqual(records[index],{kind:'unhandledrejection',error_class:'UNRECOGNIZED_ERROR',script:null,line:null});
+  assert.deepEqual(records[4],{kind:'error',error_class:'UNRECOGNIZED_ERROR',script:null,line:null});
+  assert.deepEqual(records[6],{kind:'error',error_class:'TypeError',script:'app.js',line:null});
+  assert.deepEqual(records[7],{kind:'unhandledrejection',error_class:'TypeError',script:null,line:null});
 });

@@ -352,7 +352,9 @@ jobs:
       - name: Mirror the previous completed worker without exposing its private payload
         continue-on-error: true
         env: {GH_TOKEN: '${{ github.token }}'}
-        run: python -m scripts.boat_source_control_mirror latest-closed --repo-root . --output '${{ runner.temp }}/boat-source-control-previous.json'
+        run: |
+          python -m scripts.boat_original_maintenance backfill --repo-root . --output '${{ runner.temp }}/boat-original-before-handoff.json'
+          python -m scripts.boat_source_control_mirror latest-closed --repo-root . --output '${{ runner.temp }}/boat-source-control-previous.json'
       - name: Wait without source requests for the authenticated exhibition window
         id: exhibition_window
         if: steps.restore.conclusion == 'success'
