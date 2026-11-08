@@ -60,13 +60,35 @@ def inspect_archive_document(document):
         rider_count=len(document.get("riders",[]))
         need(rider_count in (7,9),
              "LEGACY_SPARSE_RIDER_COUNT_INVALID")
-        return {"source_kind":"SPARSE_OBSERVED_RIDERS_NOT_PR71",
+        summary={"source_kind":"SPARSE_OBSERVED_RIDERS_NOT_PR71",
                 "historic_race_count":1,
                 "observed_riders":rider_count,
                 "full_other_model_rankings_present":False,
                 "original_pr71_four_model_input_count":0,
                 "ready_for_pr71_asof_comparison":False,
                 "missing":"PR71_347_FACTOR_AND_REQUIRED_MODEL_FEATURES"}
+        # Only full archived numeric observations can be reconstructed.
+        # Simple old placeholder fixtures remain explicitly unavailable.
+        expected={"number","name","race_score","observed_4mo_starts",
+                  "B_count","escape_count","makuri_count"}
+        if (all(type(r) is dict and set(r)==expected for r in document["riders"])
+                and "issued_at_jst" in document
+                and "published_sales_cutoff_at" in document):
+            from .keirin_historical_sparse_feature_probe import (
+                HistoricalSparseProbeError, probe_saved_sparse_research
+            )
+            try:
+                probe=probe_saved_sparse_research(document)["public_summary"]
+            except (HistoricalSparseProbeError,ValueError,KeyError,TypeError):
+                summary["strict_sparse_probe_status"]="BLOCKED_UNVERIFIED_SOURCE"
+            else:
+                summary["strict_sparse_probe_status"]="CANDIDATES_ONLY"
+                summary["candidate_feature_counts"]=probe["counts"]
+                summary["source_asof_independently_verified"]=False
+                summary["source_rights_independently_verified"]=False
+        else:
+            summary["strict_sparse_probe_status"]="MISSING_NUMERIC_RAW_SOURCE"
+        return summary
     if shape == "RACE_AI_KEIRIN_PRIVATE_PRE_RACE_V1":
         evidence = document.get("facts",{}).get("pr71_evidenced_snapshot",{})
         participants=evidence.get("participants",[])
@@ -124,6 +146,10 @@ def private_batch_inventory(documents):
             "archived_historic_race_references":
                 sum(r["historic_race_count"] for r in rows),
             "pr71_real_full_sources_admitted":0,
+            "sparse_required_model_slots_reconstructed_as_candidates":sum(
+                r.get("candidate_feature_counts",{}).get(
+                    "required_candidates_normalized_not_admitted",0)
+                for r in rows),
             "prospective_original_past_predictions_certified":0,
             "historical_asof_holdout_four_model_count":0,
             "invented_missing_inputs":0,
