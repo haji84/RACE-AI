@@ -65,6 +65,9 @@ export_view(SavedPdcaService(p).saved_projection(),r/'reference.html')
   page.on('pageerror',e=>errors.push(e.message));page.on('request',r=>requests.push({method:r.method(),url:r.url()}));
   await page.goto('http://127.0.0.1:'+server.address().port+'/');
   await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'));
+  // This fixture is a saved historical day, not the current-day landing view.
+  await page.locator('#selected-date').fill(original.records[0].event_date_jst);
+  await page.locator('#selected-date').dispatchEvent('change');
   assert.equal(await page.locator('#page-races .saved-outcome').count(),2);
   await page.locator('#race-filters>summary').click();
   await page.locator('#status-filter').selectOption('HIT');assert.equal(await page.locator('#all-races .saved-outcome').count(),1);
@@ -114,12 +117,18 @@ export_view(SavedPdcaService(p).saved_projection(),r/'reference.html')
   assert.equal(await page.locator('#saved-results-table tbody tr').count(),2);
   await page.goto('http://127.0.0.1:'+server.address().port+'/multi.html');
   await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'));
+  // This fixture is a saved historical day, not the current-day landing view.
+  await page.locator('#selected-date').fill(original.records[0].event_date_jst);
+  await page.locator('#selected-date').dispatchEvent('change');
   await page.locator('[data-page="results"]').filter({visible:true}).first().click();
   assert.match(await page.locator('#saved-results-table').innerText(),/1,230円/);assert.match(await page.locator('#saved-results-table').innerText(),/4,560円/);
   assert.match(await page.locator('#simulation-metrics').innerText(),/5,790円/);
   await page.locator('#saved-results-table button').filter({visible:true}).first().click();assert.match(await page.locator('#race-detail').innerText(),/4,560円/);
   await page.goto('http://127.0.0.1:'+server.address().port+'/no-forecast.html');
   await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'));
+  // This fixture is a saved historical day, not the current-day landing view.
+  await page.locator('#selected-date').fill(original.records[0].event_date_jst);
+  await page.locator('#selected-date').dispatchEvent('change');
   await page.locator('[data-page="results"]').filter({visible:true}).first().click();
   assert.equal(await page.locator('#saved-results-table tbody tr').count(),1);
   assert.match(await page.locator('#result-coverage').innerText(),/対象 1レース/);
@@ -127,12 +136,18 @@ export_view(SavedPdcaService(p).saved_projection(),r/'reference.html')
   assert.match(await savedRate.innerText(),/算出対象なし/);
   await page.goto('http://127.0.0.1:'+server.address().port+'/cancelled.html');
   await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'));
+  // This fixture is a saved historical day, not the current-day landing view.
+  await page.locator('#selected-date').fill(original.records[0].event_date_jst);
+  await page.locator('#selected-date').dispatchEvent('change');
   await page.locator('[data-page="results"]').filter({visible:true}).first().click();
   assert.match(await page.locator('#saved-results-table').innerText(),/中止・返還/);
   assert.match(await page.locator('#simulation-metrics').innerText(),/返還 800円/);
   assert.match(await page.locator('#result-coverage').innerText(),/最終同期/);
   await page.goto('http://127.0.0.1:'+server.address().port+'/reference.html');
   await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'));
+  // This fixture is a saved historical day, not the current-day landing view.
+  await page.locator('#selected-date').fill(original.records[0].event_date_jst);
+  await page.locator('#selected-date').dispatchEvent('change');
   await page.locator('[data-page="results"]').filter({visible:true}).first().click();
   assert.match(await page.locator('#saved-results-table').innerText(),/参考照合/);
   const referenceCard=page.locator('#saved-results-table .result-mobile-card').filter({hasText:'宮島 1R'});
