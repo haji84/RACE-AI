@@ -73,7 +73,9 @@ jobs:
       - uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
         with:
           node-version: '22'
-      - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Install original BOAT result collector dependencies
+        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
       - name: Reflect confirmed races and retain encrypted incremental source packets
         # Main's one-time owner PDCA verification does not make any provider GET.
         if: github.event_name != 'push' || github.ref != 'refs/heads/main'

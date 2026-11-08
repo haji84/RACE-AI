@@ -2,3 +2,5 @@ RACE-AI owner approved 2026-11-09: one-time source-free validation of the existi
 No official result provider GET, new source issuance, source budget reset, synthetic forecast promotion, or original alteration.
 Run previously tested 0317235eadc851b73913c537b7c09a32dc7c208c for genuine AES/Git full-period PDCA, separately persisted and cold-read.
 Future normal scheduled runs retain the original official result collector and append authenticated all-day PDCA at the existing daily cron.
+
+2026-11-09: source-free protected main verification retry; skip historical main root requirements install on the one-shot push. The validated readback checkout installs its own pinned dependencies. No official source GET.
