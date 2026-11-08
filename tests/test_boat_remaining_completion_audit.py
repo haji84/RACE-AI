@@ -104,7 +104,10 @@ class RemainingCompletionAuditTests(unittest.TestCase):
         view,state,now=self.sp_fixture();saved=view['records'][0]
         saved['cutoff_at']=None;saved['saved_cutoff_variants'].append('2026-11-07T10:10:00+09:00')
         value=audit.audit_retained_sp_holds(view,state=state,now=now)
-        self.assertEqual(value['projection_reason_counts'],{'RESULT_CUTOFF_MISMATCH':1})
+        # An explicit SP header still cannot invent each original's own clock.
+        self.assertNotIn('cutoff_at',saved['prediction'])
+        self.assertEqual(value['projection_reason_counts'],{'RESULT_CUTOFF_REFERENCE_CHRONOLOGY':1})
+        self.assertEqual(value['results_admitted'],0)
         self.assertEqual(saved['result']['status'],'unsupported')
 
     def test_payout_shape_audit_emits_only_fixed_classes(self):
@@ -130,7 +133,8 @@ class RemainingCompletionAuditTests(unittest.TestCase):
         result=audit.audit_retained_sp_holds(view,state=state,now=now)
         self.assertEqual(result['per_original_cutoff_projection_reason_counts'],{'SUPPORTED':1,'SUPPORTED_REFERENCE':1})
         self.assertEqual(result['forecast_chronology_counts'],{'ALL_BEFORE_ALL_CUTOFFS':1})
-        self.assertEqual(result['projection_reason_counts'],{'RESULT_CUTOFF_MISMATCH':1})
+        self.assertNotIn('cutoff_at',saved['prediction'])
+        self.assertEqual(result['projection_reason_counts'],{'RESULT_CUTOFF_REFERENCE_CHRONOLOGY':1})
         self.assertEqual(result['results_admitted'],0);self.assertEqual(view,before)
 
     def test_retained_sp_chronology_checks_every_original_model_clock(self):

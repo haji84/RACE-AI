@@ -13,7 +13,9 @@ from . import manual_official_capture as policy
 from .permissioned_source_delivery import read_json_bytes
 
 SCHEMA='RACE_AI_OFFICIAL_RESULT_PLAN_PREPARE_REQUEST_V1'
+SCHEMA_V2='RACE_AI_OFFICIAL_RESULT_PLAN_PREPARE_REQUEST_V2'
 COUNTS='RACE_AI_OFFICIAL_RESULT_PLAN_PREPARATION_COUNTS_V1'
+COUNTS_V2='RACE_AI_OFFICIAL_RESULT_PLAN_PREPARATION_COUNTS_V2'
 PATH='audit/state/official-result-recovery-prepare-request.json'
 PREFIX='official-results-prepare:'
 SINGLE='KEIRIN_SINGLE_SIXTEEN_PROBE'
@@ -27,12 +29,14 @@ def need(ok,reason):
 
 def validate_prepare_request(value):
     from scripts.all_existing_model_official_result_collect import _pins
-    fields={'schema','repository_id','workflow_id','pull_request','verified_parent','kind','target_event_day','previous_source'}
-    need(type(value) is dict and set(value)==fields and value['schema']==SCHEMA and
+    reused=type(value) is dict and value.get('schema')==SCHEMA_V2
+    parent_key='verified_code_ancestor' if reused else 'verified_parent'
+    fields={'schema','repository_id','workflow_id','pull_request',parent_key,'kind','target_event_day','previous_source'}
+    need(type(value) is dict and set(value)==fields and value['schema'] in (SCHEMA,SCHEMA_V2) and
         type(value['repository_id']) is int and value['repository_id']==I.REPOSITORY_ID and
         type(value['workflow_id']) is int and value['workflow_id']==I.WORKFLOW and
         type(value['pull_request']) is int and value['pull_request']==71 and value['kind'] in (SINGLE,EIGHT),'REQUEST')
-    parent=value['verified_parent'];source=value['previous_source']
+    parent=value[parent_key];source=value['previous_source']
     need(type(parent) is dict and set(parent)=={'head_sha','run_id','run_attempt','first_viewer_job_id'} and
         I._hex(parent['head_sha']) and I._id(parent['run_id']) and type(parent['run_attempt']) is int and
         parent['run_attempt']==1 and I._id(parent['first_viewer_job_id']),'VERIFIED_PARENT')
@@ -44,6 +48,8 @@ def validate_prepare_request(value):
     _pins([source['journal_artifact'],source['result_artifact']])
     need(all(p['run_id']==source['run_id'] and p['head_sha']==source['head_sha'] for p in
         (source['journal_artifact'],source['result_artifact'])),'PREVIOUS_OUTPUT_PINS')
+    if reused:need(all(parent[k]==source[k] for k in ('head_sha','run_id','first_viewer_job_id')),
+                   'EXACT_SOURCE_CODE_ANCESTOR')
     from datetime import date
     need(type(value['target_event_day']) is str and date.fromisoformat(value['target_event_day']).isoformat()==
         value['target_event_day'],'TARGET_EVENT_DAY')
@@ -64,8 +70,9 @@ def _full(value,current,first,jobs,now):
 
 
 def admit_context(value,*,prepare_run,current_pr,snapshot,parent_current,parent_first,parent_jobs,
-                  source_current,source_first,source_jobs,now):
-    value=validate_prepare_request(value);now=R.clock(now);parent=value['verified_parent'];source=value['previous_source']
+                  source_current,source_first,source_jobs,now,executed_workflow=None):
+    value=validate_prepare_request(value);now=R.clock(now);reused=value['schema']==SCHEMA_V2
+    parent=value['verified_code_ancestor' if reused else 'verified_parent'];source=value['previous_source']
     active=I.run_scope(prepare_run)
     need(active['run_attempt']==1 and active['status'] in ('queued','in_progress') and
         active['id'] not in (parent['run_id'],source['run_id']) and active['head_sha']==snapshot.get('head_sha'),'PREPARE_RUN')
@@ -75,9 +82,24 @@ def admit_context(value,*,prepare_run,current_pr,snapshot,parent_current,parent_
         pr.get('head',{}).get('sha')==active['head_sha'] and pr['head'].get('ref')==I.BRANCH and
         pr.get('base',{}).get('ref')==I.BASE and all(pr.get(side,{}).get('repo',{}).get('id')==I.REPOSITORY_ID and
         pr[side]['repo'].get('full_name')==I.REPOSITORY for side in ('head','base')),'CURRENT_OWNER_PR')
-    need(snapshot.get('parents')==[parent['head_sha']] and snapshot.get('changed_files')==[PATH] and
+    immediate=snapshot.get('issuer_parent') if reused else None
+    need((not reused or type(immediate) is dict and I._hex(immediate.get('head_sha'))) and
+        snapshot.get('parents')==[immediate['head_sha'] if reused else parent['head_sha']] and snapshot.get('changed_files')==[PATH] and
         type(snapshot.get('subject')) is str and snapshot['subject'].startswith(PREFIX) and
         snapshot.get('source_is_ancestor') is True,'PREPARE_ONLY_CHILD')
+    if reused:
+        need(immediate.get('parents')==[parent['head_sha']] and immediate.get('changed_files')==[I.ISSUE_PATH] and
+            type(immediate.get('subject')) is str and immediate['subject'].startswith(I.PREFIX) and
+            immediate.get('issue_raw')==snapshot.get('latest_issue_raw'),'EXACT_ISSUE_ONLY_PARENT')
+        changes=snapshot.get('data_only_changes')
+        need(type(changes) is list and len(changes)==2 and [c.get('path') for c in changes]==[I.ISSUE_PATH,PATH] and
+            all(type(c) is dict and set(c)=={'path','old_mode','new_mode','status'} and c['new_mode']=='100644' and
+                (c['status']=='M' and c['old_mode']=='100644' or c['status']=='A' and c['old_mode']=='000000')
+                for c in changes),'EXACT_TWO_DATA_ONLY_CHANGES')
+        need(type(executed_workflow) is dict and set(executed_workflow)=={'commit_sha','head_sha','blob_sha'} and
+            I._hex(executed_workflow['commit_sha']) and executed_workflow['head_sha']==active['head_sha'] and
+            I._hex(snapshot.get('tested_workflow_blob')) and
+            executed_workflow['blob_sha']==snapshot['tested_workflow_blob'],'EXECUTED_TESTED_WORKFLOW')
     prior,_,source_proof=_full(source,source_current,source_first,source_jobs,now)
     need(prior['run_attempt']==2,'ACTUAL_SOURCE_ATTEMPT_TWO')
     current,first,parent_proof=_full(parent,parent_current,parent_first,parent_jobs,now)
@@ -97,6 +119,11 @@ def admit_context(value,*,prepare_run,current_pr,snapshot,parent_current,parent_
     else:
         need(request.get('schema')==S.REQUEST and request.get('mode')==S.HISTORICAL_MODE and
             request.get('probe_sport')=='keirin','ACTUAL_KEIRIN_SIXTEEN_SOURCE_REQUIRED')
+    if reused:
+        return dict(verified_code_ancestor=deepcopy(parent),previous_source=deepcopy(source),
+            verified_code_ancestor_proof=parent_proof,previous_source_first_proof=source_proof,
+            immediate_issuer_parent=immediate['head_sha'],reused_code_ancestor=True,
+            parent_whole_first_verified=False,executed_workflow=deepcopy(executed_workflow))
     return dict(verified_parent=deepcopy(parent),previous_source=deepcopy(source),
         verified_parent_proof=parent_proof,previous_source_first_proof=source_proof)
 
@@ -232,10 +259,12 @@ def prepare_from_evidence(value,data,*,context,run_id,head_sha,now,key):
     if value['kind']==EIGHT:need(len(normal)==1 and len(normal[0]['roster']) in (7,9),'ACTUAL_KEIRIN_NORMAL_ROSTER')
     latest=max(*(R.clock(r['updated_at'])+timedelta(seconds=1) for r in runs),
         *(R.clock(r['artifact_metadata']['created_at'])+timedelta(seconds=1) for r in receipts.values()))
-    counts=dict(schema=COUNTS,state='AUTHENTICATED_KEIRIN_PLAN_PREPARED_NOT_AUTHORIZATION',ready=True,
+    reused=value['schema']==SCHEMA_V2
+    counts=dict(schema=COUNTS_V2 if reused else COUNTS,state='AUTHENTICATED_KEIRIN_PLAN_PREPARED_NOT_AUTHORIZATION',ready=True,
         kind=value['kind'],prepare_run_id=run_id,prepare_head_sha=head_sha,prepared_at=now.isoformat(),
         preparation_request_sha256=digest(value),previous_source=deepcopy(source),
-        verified_parent=deepcopy(value['verified_parent']),context_sha256=digest(context),evidence_sha256=digest(verified),
+        **({'verified_code_ancestor':deepcopy(value['verified_code_ancestor'])} if reused else
+           {'verified_parent':deepcopy(value['verified_parent'])}),context_sha256=digest(context),evidence_sha256=digest(verified),
         source_owner_authorization_sha256=digest(owner),original_plan_sha256=old_body['manifest']['plan_sha256'],
         selected_case_sha256=[digest(c) for c in new_plan['cases']],plan_plaintext_sha256=digest(new_plan),
         plan_cipher_sha256=sha256(raw).hexdigest(),recovery_request_sha256=digest(request),
@@ -243,8 +272,13 @@ def prepare_from_evidence(value,data,*,context,run_id,head_sha,now,key):
         maximum_new_requests=new_plan['maximum_requests'],previous_normal_observation_count=len(normal),
         source_requests=0,grants_issued=0,public_files_written=0,old_source_requests_actual=None,
         old_source_requests_upper_bound=32,plaintext_published=False,production_promoted=False,actual_purchases=False)
+    if reused:
+        need(context.get('reused_code_ancestor') is True and context.get('parent_whole_first_verified') is False,
+             'REUSED_CODE_CONTEXT')
+        counts.update({k:deepcopy(context[k]) for k in ('immediate_issuer_parent','reused_code_ancestor',
+            'parent_whole_first_verified','executed_workflow')})
     if value['kind']==EIGHT:
         from .keirin_future_selector import selector_metadata
         counts['future_selector']=selector_metadata(journal,receipts[source['journal_artifact']['id']],
-            probe_case=source_plan['cases'][0],now=now)
+            probe_case=source_plan['cases'][0],now=now,include_alternatives=True)
     return dict(plan_cipher=raw,request=request,counts=counts)

@@ -42,14 +42,67 @@ class PrepareSnapshot(issue.GitSnapshot):
         size=int(self._git(['cat-file','-s',head+':'+path]));P.need(0<size<=limit,'PREPARATION_BOUND')
         raw=self._git(['show',head+':'+path]);P.need(len(raw)==size,'PREPARATION_BYTES');return raw
     def prepare_facts(self,value):
+        if value['schema']==P.SCHEMA_V2:return self._reused_facts(value)
         source=value['previous_source'];parent=value['verified_parent']
         self._git(['merge-base','--is-ancestor',source['head_sha'],parent['head_sha']])
         return dict(self.facts,source_is_ancestor=True,recovery_raw=self.read(source['head_sha'],I.REQUEST_PATH,32768),
             latest_issue_raw=self.previous_issue(parent['head_sha']))
 
+    def _reused_facts(self,value):
+        source=value['previous_source'];code=value['verified_code_ancestor']['head_sha'];head=self.facts['head_sha']
+        immediate=self.facts['parents'][0]
+        parents=self._git(['show','-s','--format=%P',immediate]).decode().strip().split()
+        P.need(parents==[code],'EXACT_TWO_HOP_LINEAGE')
+        subject=self._git(['show','-s','--format=%s',immediate]).decode().strip()
+        P.need(subject.startswith(I.PREFIX),'EXACT_ISSUE_ONLY_PARENT')
+        changes=[]
+        for before,after,path in ((code,immediate,I.ISSUE_PATH),(immediate,head,P.PATH)):
+            raw=self._git(['diff-tree','--no-commit-id','--raw','--no-abbrev','--no-renames','-r','-z',before,after])
+            parts=raw.split(b'\0');P.need(len(parts)==3 and parts[-1]==b'' and parts[1]==path.encode(),'EXACT_TWO_DATA_ONLY_CHANGES')
+            fields=parts[0].decode().split()
+            P.need(len(fields)==5 and fields[0] in (':100644',':000000') and fields[1]=='100644' and
+                fields[4] in ('M','A') and I._hex(fields[2]) and I._hex(fields[3]),'EXACT_DATA_MODES')
+            changes.append(dict(path=path,old_mode=fields[0][1:],new_mode=fields[1],status=fields[4]))
+        issue_raw=self.read(immediate,I.ISSUE_PATH,16384);I.validate_issue_request(read_json_bytes(issue_raw))
+        row=self._git(['ls-tree',code,'--',I.WORKFLOW_PATH]).decode().strip()
+        match=re.fullmatch('100644 blob ([a-f0-9]{40})\\t'+re.escape(I.WORKFLOW_PATH),row)
+        P.need(match is not None,'TESTED_WORKFLOW_REGULAR_BLOB')
+        return dict(self.facts,source_is_ancestor=True,recovery_raw=self.read(code,I.REQUEST_PATH,32768),
+            latest_issue_raw=self.previous_issue(immediate),tested_workflow_blob=match[1],data_only_changes=changes,
+            issuer_parent=dict(head_sha=immediate,parents=parents,changed_files=[I.ISSUE_PATH],subject=subject,issue_raw=issue_raw))
+
+
+def executed_workflow(reader,head,tested_blob):
+    """Bind actual PR-merge workflow to the tested code using existing GETs."""
+    commit=os.environ.get('GITHUB_WORKFLOW_SHA')
+    P.need(I._hex(commit) and commit==os.environ.get('GITHUB_SHA') and I._hex(head) and I._hex(tested_blob),
+        'ACTUAL_WORKFLOW_ENVIRONMENT')
+    value=reader.json('git/commits/'+commit);parents=value.get('parents');tree=value.get('tree')
+    P.need(value.get('sha')==commit and type(parents) is list and 0<=len(parents)<=2 and
+        all(type(p) is dict and I._hex(p.get('sha')) for p in parents) and
+        (commit==head or any(p['sha']==head for p in parents)) and type(tree) is dict and I._hex(tree.get('sha')),
+        'ACTUAL_WORKFLOW_COMMIT')
+    tree=tree['sha']
+    for index,name in enumerate(('.github','workflows','forecast-audit-ui.yml')):
+        value=reader.json('git/trees/'+tree);rows=value.get('tree')
+        P.need(value.get('sha')==tree and value.get('truncated') is False and type(rows) is list and
+            1<=len(rows)<=32768 and all(type(r) is dict and type(r.get('path')) is str and
+                0<len(r['path'])<=255 and '/' not in r['path'] and '\0' not in r['path'] and r['path'] not in ('.','..')
+                for r in rows) and len({r['path'] for r in rows})==len(rows),'ACTUAL_WORKFLOW_TREE')
+        matches=[r for r in rows if r['path']==name];P.need(len(matches)==1,'ACTUAL_WORKFLOW_PATH');row=matches[0]
+        P.need(I._hex(row.get('sha')),'ACTUAL_WORKFLOW_OBJECT')
+        if index<2:
+            P.need(row.get('type')=='tree' and row.get('mode')=='040000','ACTUAL_WORKFLOW_TREE_MODE');tree=row['sha']
+        else:
+            P.need(row.get('type')=='blob' and row.get('mode')=='100644' and row['sha']==tested_blob and
+                type(row.get('size')) is int and 0<row['size']<=1024*1024,'ACTUAL_WORKFLOW_BLOB')
+    return dict(commit_sha=commit,head_sha=head,blob_sha=tested_blob)
+
 
 def _context(value,snapshot,prepare_run_id,reader,now):
-    parent=value['verified_parent'];source=value['previous_source'];facts=snapshot.prepare_facts(value)
+    reused=value['schema']==P.SCHEMA_V2
+    parent=value['verified_code_ancestor' if reused else 'verified_parent'];source=value['previous_source'];facts=snapshot.prepare_facts(value)
+    extra={'executed_workflow':executed_workflow(reader,facts['head_sha'],facts['tested_workflow_blob'])} if reused else {}
     context=P.admit_context(value,prepare_run=reader.json('actions/runs/'+str(prepare_run_id)),
         current_pr=reader.json('pulls/71'),snapshot=facts,
         parent_current=reader.json('actions/runs/'+str(parent['run_id'])),
@@ -57,7 +110,7 @@ def _context(value,snapshot,prepare_run_id,reader,now):
         parent_jobs=reader.json('actions/runs/'+str(parent['run_id'])+'/attempts/1/jobs?per_page=100'),
         source_current=reader.json('actions/runs/'+str(source['run_id'])),
         source_first=reader.json('actions/runs/'+str(source['run_id'])+'/attempts/1'),
-        source_jobs=reader.json('actions/runs/'+str(source['run_id'])+'/attempts/1/jobs?per_page=100'),now=now)
+        source_jobs=reader.json('actions/runs/'+str(source['run_id'])+'/attempts/1/jobs?per_page=100'),now=now,**extra)
     return context,facts
 
 
@@ -129,16 +182,24 @@ COUNT_FIELDS=frozenset(('schema','state','ready','kind','prepare_run_id','prepar
     'plan_cipher_sha256','recovery_request_sha256','earliest_issue_at','case_count','maximum_new_requests',
     'previous_normal_observation_count','source_requests','grants_issued','public_files_written','old_source_requests_actual',
     'old_source_requests_upper_bound','plaintext_published','production_promoted','actual_purchases','future_selector'))
+REUSED_COUNT_FIELDS=frozenset(('verified_code_ancestor','immediate_issuer_parent','reused_code_ancestor',
+    'parent_whole_first_verified','executed_workflow'))
 
 
 def write_outputs(root,value):
     from race_ai.actions_contract import digest
     P.need(type(value) is dict and set(value)=={'plan_cipher','request','counts'},'EXACT_PREPARATION_OUTPUTS')
     counts=value['counts'];raw=value['plan_cipher'];request=value['request']
-    P.need(type(counts) is dict and set(counts)<=COUNT_FIELDS and counts.get('schema')==P.COUNTS and
+    reused=type(counts) is dict and counts.get('schema')==P.COUNTS_V2
+    P.need(type(counts) is dict and set(counts)<=COUNT_FIELDS|(REUSED_COUNT_FIELDS if reused else frozenset()) and
+        counts.get('schema') in (P.COUNTS,P.COUNTS_V2) and
         counts.get('ready') is True and type(raw) is bytes and 0<len(raw)<=MAX_WIRE and
         counts.get('plan_cipher_sha256')==request['manifest']['plan_sha256']==sha256(raw).hexdigest() and
         counts.get('recovery_request_sha256')==digest(request),'OUTPUT_HASHES_OR_FIELDS')
+    if reused:
+        P.need(REUSED_COUNT_FIELDS<=set(counts) and 'verified_parent' not in counts and
+            counts['reused_code_ancestor'] is True and counts['parent_whole_first_verified'] is False,
+            'REUSED_CODE_OUTPUT_SCOPE')
     if 'future_selector' in counts:
         from race_ai.keirin_future_selector import validate_metadata
         selector=validate_metadata(counts['future_selector'])

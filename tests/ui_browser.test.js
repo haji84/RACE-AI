@@ -139,6 +139,10 @@ async function main() {
     await page.locator('[data-sport="boat"]').first().click();
     const nav = async name => page.locator(`[data-page="${name}"]`).filter({visible:true}).first().click();
     await nav('races');
+    assert.equal(await page.locator('[data-race-view="upcoming"]').getAttribute('aria-selected'),'true');
+    assert.equal(await page.locator('#page-races .race-card').count(),0,'the fixture already has a final result, so it is not an upcoming race');
+    await page.locator('[data-race-view="results"]').click();
+    assert.equal(await page.locator('#page-races .race-card').count(),1,'the saved final fixture is available in race results');
     await page.locator('#race-search').fill('not-present');
     assert.equal(await page.locator('#page-races .race-card').count(),0);
     await page.locator('#race-search').fill('');
@@ -147,7 +151,10 @@ async function main() {
     assert.equal(await page.locator('#page-races .race-card').count(),1);
     await page.locator('#race-filters>summary').click();
     await page.locator('#status-filter').selectOption('HIT');
-    assert.equal(await page.locator('#page-races .race-card').count(),0,'synthetic match cannot be official HIT');
+    assert.equal(await page.locator('#page-races .race-card').count(),1,'the obtained-result filter keeps the matching synthetic example');
+    assert.equal(await page.locator('#page-races .saved-outcome').innerText(),'合成・的中','a synthetic match remains explicitly synthetic');
+    assert.match(await page.locator('#data-banner').innerText(),/架空.*実績には含みません/);
+    assert.equal(await page.locator('#result-metrics .metric').filter({has:page.getByText('公式・評価可能',{exact:true})}).locator('strong').textContent(),'0件','synthetic matches never enter official evaluation');
     await page.locator('#status-filter').selectOption('all');
     await page.locator('#period-filter').selectOption('day');
     mark(`${width}: local import, four sports and search`);
@@ -238,6 +245,7 @@ async function main() {
       await nav('races');
       await page.locator('#selected-date').fill(saved.event_date_jst);
       await page.locator('#selected-date').dispatchEvent('change');
+      await page.locator('[data-race-view="results"]').click();
       await page.locator('#page-races [data-open-race]').first().click();
       assert.equal(await page.locator('#prediction-select option').count(),variants.length,'every saved baseline/P0/P1/learned variant selectable');
       await page.locator('[data-detail-tab="analysis"]').click();
@@ -272,6 +280,7 @@ async function main() {
       const privateStorage=await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}));
       assert.ok(variants.every(p=>!privateStorage.includes(p.prediction_sha256)),'saved originals stay out of browser persistence');
       await nav('races');
+      await page.locator('[data-race-view="upcoming"]').click();
       await page.locator(`#page-races [data-open-race="${learnedRace.race_id}"]`).click();
       const learnedVariants=[learnedRace.prediction,...learnedRace.comparison_predictions];
       await page.locator('[data-detail-tab="analysis"]').click();
@@ -350,6 +359,7 @@ async function main() {
       await page.locator('#selected-date').fill(sourceView.event_date_jst);await page.locator('#selected-date').dispatchEvent('change');
       for(const sport of ['keirin','autorace','horse']) {
         await page.locator(`[data-sport="${sport}"]`).first().click();await nav('races');
+        await page.locator('[data-race-view="unknown"]').click();
         await page.locator('#page-races [data-open-race]').first().click();
         await page.locator('[data-detail-tab="analysis"]').click();
         assert.equal(await page.locator('#prediction-select').isDisabled(),true,'observed pages cannot become forecasts');
@@ -377,6 +387,7 @@ async function main() {
     assert.deepEqual(generationCalls[0],{body:{sport:'boat',stage:'P1'},nonce:'synthetic-ui-nonce'},'browser supplies no source grants, clock, model list or private path');
     assert.match(await page.locator('#source-state').innerText(),/合成/);
     await page.locator('[data-page="races"]').filter({visible:true}).first().click();
+    await page.locator('[data-race-view="results"]').click();
     await page.locator('#page-races [data-open-race]').first().click();
     assert.ok((await raceAuditText(page)).includes(fixture.records[0].prediction.prediction_sha256),'returned exact original hash appears in app details');
     await page.locator('#forecast-generate').click();
@@ -428,7 +439,7 @@ async function main() {
     }
     automaticOverride=null;automaticRevision=1;
     const nav=async name=>page.locator(`[data-page="${name}"]`).filter({visible:true}).first().click();
-    await nav('races');await page.locator('#page-races [data-open-race]').first().click();
+    await nav('races');await page.locator('[data-race-view="results"]').click();await page.locator('#page-races [data-open-race]').first().click();
     await page.locator('[data-detail-tab="analysis"]').click();
     const nativeSha=fixture.records[0].prediction.prediction_sha256;
     assert.ok((await raceAuditText(page)).includes(nativeSha));
@@ -546,7 +557,7 @@ async function main() {
     assert.match(await page.locator('#delivery-next').innerText(),/次の締切.*10:00.*09:45.*09:50/);
     assert.doesNotMatch(await page.locator('#delivery-record').innerText(),/目標内/,'a target alone is not saved-delivery evidence');
     const nav=async name=>page.locator(`[data-page="${name}"]`).filter({visible:true}).first().click();
-    await nav('races');await page.locator('#page-races [data-open-race]').first().click();await nav('picks');await page.locator('#copy-top8').click();
+    await nav('races');await page.locator('[data-race-view="results"]').click();await page.locator('#page-races [data-open-race]').first().click();await nav('picks');await page.locator('#copy-top8').click();
     await page.locator('#ticket-list .ticket-amount').first().fill('300');await page.locator('#ticket-list .ticket-amount').first().dispatchEvent('change');await page.locator('#confirm-candidates').click();
     const amounts=await page.locator('#ticket-list .ticket-amount').evaluateAll(ns=>ns.map(n=>n.value));
     await nav('races');await page.locator('#page-races [data-open-race]').first().click();await page.locator('[data-detail-tab="analysis"]').click();

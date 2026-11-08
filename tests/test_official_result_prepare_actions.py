@@ -37,12 +37,18 @@ class PreparationActionsTests(unittest.TestCase):
         base.head.assert_called_once();base.read_file.assert_called_once_with('a'*40,'path',10)
 
     def test_real_crypto_cli_prepares_from_read_only_memory_github_without_publication(self):
+        self._real_crypto_preparation()
+
+    def _real_crypto_preparation(self,reuse_code=False):
         """Transport/topology are authored; MAC/native/RESULT/AES are real."""
         from datetime import timedelta
         from tests.official_result_prepare_fixtures import single_fixture
         from tests.test_official_result_issue import actual_run,BRANCH,REPO
         from tests.test_official_recovery_preflight import jobs
         api=self.api();value,data,_,now=single_fixture();source=value['previous_source'];parent=value['verified_parent']
+        if reuse_code:
+            parent=dict(head_sha=source['head_sha'],run_id=source['run_id'],run_attempt=1,first_viewer_job_id=source['first_viewer_job_id'])
+            value.pop('verified_parent');value.update(schema=api.P.SCHEMA_V2,verified_code_ancestor=parent)
         raw=api.collector.future.wire(data['source_request'])
         previous=dict(schema=api.I.SCHEMA,repository_id=api.I.REPOSITORY_ID,workflow_id=api.I.WORKFLOW,pull_request=71,
             target={k:source[k] for k in ('head_sha','run_id','run_attempt')},target_first_viewer_job_id=source['first_viewer_job_id'],
@@ -50,6 +56,12 @@ class PreparationActionsTests(unittest.TestCase):
         facts=dict(head_sha='8'*40,parents=[parent['head_sha']],changed_files=[api.P.PATH],
             subject='official-results-prepare: authored exact parent',source_is_ancestor=True,
             recovery_raw=raw,current_recovery_raw=raw,latest_issue_raw=api.collector.future.wire(previous))
+        if reuse_code:
+            facts.update(parents=['9'*40],tested_workflow_blob='b'*40,
+                issuer_parent=dict(head_sha='9'*40,parents=[source['head_sha']],changed_files=[api.I.ISSUE_PATH],
+                    subject='official-results-issue: authored C',issue_raw=facts['latest_issue_raw']),
+                data_only_changes=[dict(path=api.I.ISSUE_PATH,old_mode='100644',new_mode='100644',status='M'),
+                    dict(path=api.P.PATH,old_mode='000000',new_mode='100644',status='A')])
         plans_by_path={data['source_request']['manifest']['plan_path']:data['source_plan_raw']}
         old_body=open_forecasts(api.collector._journal_cipher(next(a for a in data['groups']['prior_journal_artifacts']
             if a['metadata']['id']==api.R.OLD_ARTIFACT)['raw']),key=KEY)
@@ -60,15 +72,24 @@ class PreparationActionsTests(unittest.TestCase):
             def read(self,head,path,limit):return api.collector.future.wire(value) if path==api.P.PATH else plans_by_path[path]
         firsts={source['run_id']:data['source_first_attempt']}
         firsts[data['probe_first_attempt']['id']]=data['probe_first_attempt']
-        firsts[parent['run_id']]=actual_run(dict(data['source_first_attempt'],id=parent['run_id'],head_sha=parent['head_sha'],
-            run_attempt=1,updated_at=(now-timedelta(seconds=5)).isoformat()))
-        runs={r['id']:r for r in (data['old_run'],*data['prior_runs'])};runs[parent['run_id']]=firsts[parent['run_id']]
+        if not reuse_code:
+            firsts[parent['run_id']]=actual_run(dict(data['source_first_attempt'],id=parent['run_id'],head_sha=parent['head_sha'],
+                run_attempt=1,updated_at=(now-timedelta(seconds=5)).isoformat()))
+        runs={r['id']:r for r in (data['old_run'],*data['prior_runs'])}
+        if not reuse_code:runs[parent['run_id']]=firsts[parent['run_id']]
         runs[501]=actual_run(dict(firsts[parent['run_id']],id=501,head_sha='8'*40,status='in_progress',conclusion=None))
         archives={a['metadata']['id']:a for rows in data['groups'].values() for a in rows}
         class Reader:
             def __init__(self):self.calls=[]
             def json(self,path):
                 self.calls.append(path)
+                if path=='git/commits/'+'e'*40:return dict(sha='e'*40,parents=[dict(sha='8'*40)],tree=dict(sha='1'*40))
+                if path.startswith('git/trees/'):
+                    index=['1'*40,'2'*40,'3'*40].index(path.rsplit('/',1)[1]);last=index==2
+                    return dict(sha=path.rsplit('/',1)[1],truncated=False,tree=[dict(
+                        path=['.github','workflows','forecast-audit-ui.yml'][index],mode='100644' if last else '040000',
+                        type='blob' if last else 'tree',sha='b'*40 if last else ['2'*40,'3'*40][index],
+                        **({'size':123} if last else {}))])
                 if path=='pulls/71':return dict(number=71,state='open',user=dict(id=173585154,login='haji84'),
                     head=dict(sha='8'*40,ref=BRANCH,repo=dict(id=1416489937,full_name=REPO)),
                     base=dict(ref='codex/actions-four-sport-e2e',repo=dict(id=1416489937,full_name=REPO)))
@@ -87,9 +108,14 @@ class PreparationActionsTests(unittest.TestCase):
             def read_file(self,commit,path,limit):
                 return data['source_capsule_raw'] if path.endswith('/'+str(source['run_id'])+'/2.enc') else data['probe_capsule_raw']
         reader=Reader();key=Mock(return_value=KEY)
-        result=api.prepare_once(snapshot=Snapshot(),prepare_run_id=501,reader=reader,key_loader=key,clock=lambda:now)
+        with patch.dict(os.environ,dict(GITHUB_SHA='e'*40,GITHUB_WORKFLOW_SHA='e'*40)):
+            result=api.prepare_once(snapshot=Snapshot(),prepare_run_id=501,reader=reader,key_loader=key,clock=lambda:now)
         self.assertTrue(result['counts']['ready']);self.assertEqual(result['counts']['source_requests'],0)
         self.assertEqual(result['counts']['grants_issued'],0);key.assert_called_once()
+        if reuse_code:
+            self.assertEqual(result['counts']['schema'],api.P.COUNTS_V2)
+            self.assertTrue(result['counts']['reused_code_ancestor']);self.assertFalse(result['counts']['parent_whole_first_verified'])
+            self.assertNotIn('verified_parent',result['counts'])
         with tempfile.TemporaryDirectory() as directory:
             root=Path(directory)/'prepared';api.write_outputs(root,result)
             self.assertEqual({p.name for p in root.iterdir()},{'sealedplan.enc','request.json','counts.json'})

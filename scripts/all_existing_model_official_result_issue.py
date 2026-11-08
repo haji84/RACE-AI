@@ -70,6 +70,20 @@ class GitSnapshot:
         I.need(I._hex(head),'HISTORY_HEAD')
         changes=self._git(['rev-list','--topo-order','--full-history','--max-count=129',head,'--',I.ISSUE_PATH]).decode().splitlines()
         I.need(len(changes)<=128,'ISSUE_HISTORY_BOUND')
+        retained=[]
+        for change in changes:
+            parents=self._git(['show','-s','--format=%P',change]).decode().strip().split()
+            if len(parents)>1:
+                merged=self.read(change,I.ISSUE_PATH,16384)
+                inherited=[self.read(parent,I.ISSUE_PATH,16384) for parent in parents]
+                # Full-history reports an unchanged adoption when another
+                # branch has no marker. Ignore only this transparent merge;
+                # every nonmerge issue, deletion and reversion stays visible.
+                # read() also requires the marker's original regular-file mode.
+                if type(merged) is bytes and merged in inherited and all(
+                    raw is None or raw==merged for raw in inherited):continue
+            retained.append(change)
+        changes=retained
         current=self.read(head,I.ISSUE_PATH,16384)
         if not changes:
             I.need(current is None,'BOOTSTRAP_HISTORY_MISSING');return None

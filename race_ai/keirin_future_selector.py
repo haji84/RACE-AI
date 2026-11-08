@@ -17,6 +17,7 @@ from .manual_official_capture import _url
 from .official_future_source_packet import _no_dynamic_replay
 
 SCHEMA='RACE_AI_KEIRIN_FUTURE_SELECTOR_METADATA_V1'
+SCHEMA_V2='RACE_AI_KEIRIN_FUTURE_SELECTOR_METADATA_V2'
 REASONS=frozenset(('NO_INITIAL_LIST','AMBIGUOUS_INITIAL_LIST','NOT_CURRENT_EVENT_DAY',
                   'MEETING_CANCELLED','NO_PUBLISHED_AFTERNOON_RACE'))
 BASE={'schema','state','selector_only','fresh_future_input','fresh_post_f30_capture_required',
@@ -59,6 +60,23 @@ def _base(evidence,now):
 
 def validate_metadata(value):
     from scripts.all_existing_model_official_result_collect import _pins
+    if type(value) is dict and value.get('schema')==SCHEMA_V2:
+        alternatives=value.get('published_alternatives')
+        need(value.get('state')=='published_selector' and type(alternatives) is list and
+            0<=len(alternatives)<=11,'ALTERNATIVE_BOUND')
+        primary=dict(value);primary['schema']=SCHEMA;primary.pop('published_alternatives')
+        validate_metadata(primary);case=primary['case']
+        seen={case['race_no']};previous=(keirin._clock(case['cutoff_at']),case['race_no'])
+        for item in alternatives:
+            need(type(item) is dict and {'case'}<=set(item)<={'case','published_start_at'},'ALTERNATIVE_FIELDS')
+            row=dict(primary,case=item['case']);row.pop('published_start_at',None)
+            if 'published_start_at' in item:row['published_start_at']=item['published_start_at']
+            validate_metadata(row);other=row['case']
+            need(all(other.get(k)==case.get(k) for k in ('sport','expected_date','venue','ui_entry_url','ui_venue_name')) and
+                other['race_no'] not in seen,'ALTERNATIVE_CONTEXT')
+            order=(keirin._clock(other['cutoff_at']),other['race_no'])
+            need(previous<order,'ALTERNATIVE_ORDER');seen.add(other['race_no']);previous=order
+        return value
     need(type(value) is dict and value.get('schema')==SCHEMA and value.get('selector_only') is True and
         value.get('fresh_future_input') is False and value.get('fresh_post_f30_capture_required') is True,'OUTPUT_FLAGS')
     need(value.get('state') in ('selector_absent','published_selector'),'OUTPUT_STATE')
@@ -99,9 +117,9 @@ def validate_metadata(value):
     return value
 
 
-def selector_metadata(journal,evidence,*,probe_case,now):
+def selector_metadata(journal,evidence,*,probe_case,now,include_alternatives=False):
     """Return only a selector, preserving every original wire and source clock."""
-    now=keirin._clock(now)
+    need(type(include_alternatives) is bool,'ALTERNATIVE_OPT_IN');now=keirin._clock(now)
     need(evidence.get('payload_sha256')==digest(journal),'ADMITTED_JOURNAL_BINDING')
     continuation.probe.no_known_denial(journal)
     continuation._complete(journal,evidence['artifact_metadata'],now,required=True,expected_limit=16)
@@ -174,4 +192,13 @@ def selector_metadata(journal,evidence,*,probe_case,now):
         returned_index_sha256=digest(index),ui_event_sha256=digest(events[0]))
     result.update(state='published_selector',case=case,source=source)
     if started is not None:result['published_start_at']=started.isoformat()
+    if include_alternatives:
+        alternatives=[]
+        for later,_,number,started in sorted(choices,key=lambda v:v[:3])[1:]:
+            alternative=dict(case,race_id=f'keirin:{event_day.isoformat()}:keirin-jyo-{venue}:{number}',
+                race_no=number,cutoff_at=later.isoformat())
+            item=dict(case=alternative)
+            if started is not None:item['published_start_at']=started.isoformat()
+            alternatives.append(item)
+        result.update(schema=SCHEMA_V2,published_alternatives=alternatives)
     return validate_metadata(result)
