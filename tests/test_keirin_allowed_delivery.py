@@ -275,6 +275,17 @@ class AllowedFeedTests(unittest.TestCase):
                         "RACE_SCORE_NONNEGATIVE_FINITE_REQUIRED"):
                     assemble(data)
 
+    def test_rakuten_observation_is_never_admitted_even_with_grant_callback(self):
+        data = fixture()
+        data["observations"][0]["source_url"] = (
+            "https://keirin.kdreams.jp/odawara/racecard/forbidden"
+        )
+        out = assemble(data, grant=lambda *_: True)
+        self.assertIsNone(out["private_snapshot"])
+        self.assertEqual(out["audit"]["items"][0]["status"], "rights_blocked")
+        self.assertEqual(out["audit"]["items"][0]["reason"],
+                         "RAKUTEN_SOURCE_EXCLUDED_BY_OWNER")
+
     def test_unjustified_winning_probability_rejected(self):
         data = fixture()
         row = next(o for o in data["observations"]
