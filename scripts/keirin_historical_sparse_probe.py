@@ -38,6 +38,8 @@ def main(argv=None):
                         object_pairs_hook=_unique,
                         parse_constant=lambda x: (_ for _ in ()).throw(
                             HistoricalSparseProbeError("NONFINITE_SOURCE_JSON")))
+        if type(data) is not dict:
+            raise HistoricalSparseProbeError("HISTORICAL_OBJECT_REQUIRED")
         if data.get("schema") == "RACE_AI_KEIRIN_REAL_RIDER_SHADOW_ONE_SHOT_V1":
             result=probe_saved_sparse_research(data)
         elif data.get("schema") == "MATS2R_RESEARCH_SCENARIO_PREDICTION_V1":
