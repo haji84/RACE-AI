@@ -9,6 +9,11 @@ from .source_retry_policy import SourceWait,plan_http_wait
 
 def allowed(url):
     u=urlsplit(url);q=parse_qs(u.query,keep_blank_values=True)
+    if u.scheme=='https' and u.netloc=='www.boatrace.jp' and u.path=='/owpc/pc/race/beforeinfo' and not u.fragment and set(q)=={'hd','jcd','rno'} and all(len(v)==1 for v in q.values()):
+        from .racer_beforeinfo import RACE
+        rid=q['hd'][0]+'-'+q['jcd'][0]+'-'+q['rno'][0].zfill(2)
+        need(RACE.fullmatch(rid) and re.fullmatch('[1-9]|1[0-2]',q['rno'][0]),'BEFOREINFO_HTTP_IDENTITY')
+        datetime.strptime(q['hd'][0],'%Y%m%d');return 1000000
     if u.path=='/owsp/sp/spdata':identity(url);return MAX_RESULT
     if u.scheme=='https' and u.netloc=='www.boatrace.jp' and u.path=='/owpc/pc/race/index' and not u.fragment and set(q)=={'hd'} and len(q['hd'])==1 and re.fullmatch('[0-9]{8}',q['hd'][0]):
         datetime.strptime(q['hd'][0],'%Y%m%d');return 1024*1024

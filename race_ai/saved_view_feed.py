@@ -23,7 +23,7 @@ APPEND_FEED='RACE_AI_SAVED_WEB_VIEW_V4'
 REF='state/boat-saved-view'
 HISTORY_READER_PROTOCOL = 5
 DOMAIN=b'RACE_AI_SAVED_VIEW_BOOTSTRAP_V1'
-MUTABLE={'result','result_revisions','result_observations','result_observation_rejections','missing_reasons'}
+MUTABLE={'result','result_revisions','result_observations','result_observation_rejections','missing_reasons','live_boat_observation'}
 
 def originals_sha(view):
     need(type(view) is dict and view.get('schema')=='RACE_AI_PRIVATE_CYCLE_VIEW_V1'
