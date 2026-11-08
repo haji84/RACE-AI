@@ -1,8 +1,52 @@
 'use strict';
 /* Read-only proof against the existing private owner view. Never print its URL. */
 const fs=require('node:fs'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const {AsyncLocalStorage}=require('node:async_hooks');
 const Simulation=require('./boat_saved_simulation_context.cjs');
 
+const diagnosticStore=new AsyncLocalStorage(),diagnosticErrors=new WeakMap();
+const phases=new Set(['context_read','context_validation','browser_launch','page_setup','owner_navigation','saved_view_load','presentation','feed_generation','selected_day','race_lifecycle','venue_results','race_detail','native_probe','compact_results','research_audit','saved_result_metrics','simulation_controls','simulation_labels','numeric_capture','numeric_snapshot','historical_day','current_day_lifecycle','viewport_overflow','final_integrity','final_generation','final_day','browser_cleanup']);
+const fields=new Set(['day','generation','group_sha256','daily_budget','race_budget','metric_layout','observed.available','observed.hits','observed.misses','observed.pending','observed.void','observed.review','observed.hit_rate','observed.denominator','observed.races','observed.no_forecast_review','lifecycle.upcoming','lifecycle.unknown','lifecycle.closed','spent','bought','held','unspent','payout','refund','settledNet','settledStake','pendingStake','net','balance','roi','settledCount','bought_hit_rate','bought_denominator','budget_per_day','budget_days']);
+const errorClasses=new Set(['Error','AssertionError','TimeoutError','TypeError','RangeError','SyntaxError','ReferenceError','URIError']);
+const errorCodes=new Set(['ERR_ASSERTION','ENOENT','EACCES','ENOTDIR','EINVAL','ETIMEDOUT','ECONNRESET','MODULE_NOT_FOUND','ERR_MODULE_NOT_FOUND','ERR_INVALID_URL','ERR_INVALID_ARG_TYPE','ERR_INVALID_ARG_VALUE','ERR_OUT_OF_RANGE']);
+function ownedLine(skip){
+  try{
+    const site={};Error.captureStackTrace(site,skip);
+    const escaped=__filename.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const found=site.stack.match(new RegExp(escaped+':(\\d+):\\d+'));const line=Number(found?.[1]);
+    return Number.isSafeInteger(line)&&line>0&&line<100000?line:1;
+  }catch{return 1;}
+}
+function diagnosticPhase(phase,width){
+  const state=diagnosticStore.getStore();if(!state)return;
+  state.phase=phases.has(phase)?phase:'context_validation';state.line=ownedLine(diagnosticPhase);state.numeric_field=null;
+  if(width!==undefined)state.width=[320,390,1440,1920].includes(width)?width:null;
+}
+function diagnosticField(field){
+  const state=diagnosticStore.getStore();if(!state)return;
+  state.numeric_field=fields.has(field)?field:null;state.line=ownedLine(diagnosticField);
+}
+function diagnosticCompleted(){const state=diagnosticStore.getStore();if(state)state.completed_numeric_scenarios++;}
+function safeDiagnostic(error,state){
+  const trait=(key,allowed,fallback)=>{let value;try{value=error?.[key];}catch{}return allowed.has(value)?value:fallback;};
+  return {phase:phases.has(state.phase)?state.phase:'context_read',width:[320,390,1440,1920].includes(state.width)?state.width:null,
+    completed_numeric_scenarios:Number.isSafeInteger(state.completed_numeric_scenarios)&&state.completed_numeric_scenarios>=0&&state.completed_numeric_scenarios<=12?state.completed_numeric_scenarios:0,
+    script:'boat_saved_site_check.cjs',line:Number.isSafeInteger(state.line)&&state.line>0&&state.line<100000?state.line:1,
+    error_class:trait('name',errorClasses,'UNRECOGNIZED_ERROR'),error_code:trait('code',errorCodes,null),numeric_field:fields.has(state.numeric_field)?state.numeric_field:null};
+}
+async function withDiagnostics(operation){
+  const state={phase:'context_validation',width:null,completed_numeric_scenarios:0,line:ownedLine(withDiagnostics),numeric_field:null};
+  return diagnosticStore.run(state,async()=>{
+    try{return await operation();}catch(error){
+      if(error!==null&&['object','function'].includes(typeof error))diagnosticErrors.set(error,safeDiagnostic(error,state));
+      throw error;
+    }
+  });
+}
+function failureReport(error){
+  const diagnostic=error!==null&&['object','function'].includes(typeof error)?diagnosticErrors.get(error):null;
+  return {status:'LIVE_OWNER_SITE_REJECTED',reason:'SAVED_SITE_BROWSER_CHECK_FAILED',diagnostic:diagnostic||safeDiagnostic(error,{phase:'context_read',line:ownedLine(failureReport)})};
+}
 
 const allowedHosts=new Set(['haji84.github.io','api.github.com','raw.githubusercontent.com']);
 function requestAdmission(request,key){
@@ -112,38 +156,64 @@ function percentage(text,expected,empty){
   const [digits]=capture(text,/^(\d+\.\d)%$/);assert.ok(Math.abs(Number(digits)-Number(expected.toFixed(1)))<1e-8);
 }
 function requireSimulationSnapshot(context,snapshot,dailyBudget,raceBudget){
+  diagnosticPhase('numeric_snapshot');
   const expected=validateSimulationExpected(context);assert.ok(expected);
-  assert.equal(snapshot.day,expected.day);assert.equal(snapshot.generation,expected.generation);assert.equal(snapshot.group_sha256,expected.group_sha256);
-  assert.equal(snapshot.daily_budget,dailyBudget);assert.equal(snapshot.race_budget,raceBudget);
+  diagnosticField('day');assert.equal(snapshot.day,expected.day);
+  diagnosticField('generation');assert.equal(snapshot.generation,expected.generation);
+  diagnosticField('group_sha256');assert.equal(snapshot.group_sha256,expected.group_sha256);
+  diagnosticField('daily_budget');assert.equal(snapshot.daily_budget,dailyBudget);
+  diagnosticField('race_budget');assert.equal(snapshot.race_budget,raceBudget);
   const s=expected.scenarios.find(s=>s.budgetPerDay===dailyBudget&&s.raceBudget===raceBudget);assert.ok(s);
+  diagnosticField('metric_layout');
   const saved=metricMap(snapshot.saved_metrics),sim=metricMap(snapshot.simulation_metrics);
   const get=(map,label)=>{const value=map.get(label);assert.ok(value);return value;};
   const closed=saved.has('レース前'),c=closed?expected.observed_closed:expected.observed;
-  for(const [label,key] of Object.entries({'取得結果':'available','的中':'hits','不的中':'misses','結果待ち':'pending','中止・返還':'void','照合保留':'review'}))
+  for(const [label,key] of Object.entries({'取得結果':'available','的中':'hits','不的中':'misses','結果待ち':'pending','中止・返還':'void','照合保留':'review'})){
+    diagnosticField('observed.'+key);
     assert.equal(get(saved,label).value,c[key]+'レース');
+  }
   const hit=get(saved,'保存Top8的中率'),denominator=c.hits+c.misses;
+  diagnosticField('observed.hit_rate');
   percentage(hit.value,denominator?c.hits/denominator*100:null,'算出対象なし');
+  diagnosticField('observed.denominator');
   assert.deepEqual(capture(hit.detail,/^(\d+) \/ (\d+)レース/).map(Number),[c.hits,denominator]);
+  diagnosticField('observed.races');
   assert.equal(Number(capture(snapshot.coverage,/対象\s+(\d+)レース/)[0]),expected.observed.races);
+  diagnosticField('observed.no_forecast_review');
   assert.equal(Number(capture(snapshot.coverage,/未予想・照合不可\s+(\d+)/)[0]),c.noForecast+c.review);
   if(closed){
+    diagnosticField('lifecycle.upcoming');
     assert.equal(get(saved,'レース前').value,expected.lifecycle.upcoming+'レース');
+    diagnosticField('lifecycle.unknown');
     if(expected.lifecycle.unknown||saved.has('締切未確認'))assert.equal(get(saved,'締切未確認').value,expected.lifecycle.unknown+'レース');
+    diagnosticField('lifecycle.closed');
     assert.equal(Number(capture(snapshot.coverage,/結果対象\s+(\d+)/)[0]),expected.lifecycle.closed);
   }
-  const stake=get(sim,'予定購入額');money(stake.value,s.spent);assert.equal(Number(capture(stake.detail,/^(\d+)レース/)[0]),s.bought);
+  diagnosticField('spent');const stake=get(sim,'予定購入額');money(stake.value,s.spent);
+  diagnosticField('bought');assert.equal(Number(capture(stake.detail,/^(\d+)レース/)[0]),s.bought);
+  diagnosticField('race_budget');
   money(capture(stake.detail,/上限([\d,]+円)\/レース/)[0],s.raceBudget);
-  const unused=get(sim,'未使用予算');money(unused.value,s.unspent);
-  const [perDay,days]=capture(unused.detail,/1日\s+([\d,]+円)\s*×\s*(\d+)日/);money(perDay,s.budgetPerDay);assert.equal(Number(days),1);
+  diagnosticField('unspent');const unused=get(sim,'未使用予算');money(unused.value,s.unspent);
+  diagnosticField('budget_per_day');const [perDay,days]=capture(unused.detail,/1日\s+([\d,]+円)\s*×\s*(\d+)日/);money(perDay,s.budgetPerDay);
+  diagnosticField('budget_days');assert.equal(Number(days),1);
+  diagnosticField('held');
   money(capture(unused.detail,/追加未配分\s+([\d,]+円)/)[0],s.held);
-  const payout=get(sim,'確認済み払戻');money(payout.value,s.payout);money(capture(payout.detail,/返還\s+([\d,]+円)/)[0],s.refund);
-  const settled=get(sim,'確定分の収支');money(settled.value,s.settledNet);money(capture(settled.detail,/購入額\s+([\d,]+円)/)[0],s.settledStake);
+  diagnosticField('payout');const payout=get(sim,'確認済み払戻');money(payout.value,s.payout);
+  diagnosticField('refund');money(capture(payout.detail,/返還\s+([\d,]+円)/)[0],s.refund);
+  diagnosticField('settledNet');const settled=get(sim,'確定分の収支');money(settled.value,s.settledNet);
+  diagnosticField('settledStake');money(capture(settled.detail,/購入額\s+([\d,]+円)/)[0],s.settledStake);
+  diagnosticField('pendingStake');
   money(get(sim,'未確定購入額').value,s.pendingStake);
-  const total=get(sim,'全体の収支');money(total.value,s.net);money(capture(total.detail,/仮の残高\s+([\d,]+円)/)[0],s.balance);
+  diagnosticField('net');const total=get(sim,'全体の収支');money(total.value,s.net);
+  diagnosticField('balance');money(capture(total.detail,/仮の残高\s+([\d,]+円)/)[0],s.balance);
+  diagnosticField('roi');
   percentage(get(sim,'確定分の回収率').value,s.roi,'未確定');
+  diagnosticField('settledCount');
   assert.deepEqual(capture(get(sim,'収支確定の購入予定').value,/^(\d+) \/ (\d+)レース$/).map(Number),[s.settledCount,s.bought]);
   const bought=get(sim,'購入予定分の的中率'),n=s.boughtComparison.hits+s.boughtComparison.misses;
+  diagnosticField('bought_hit_rate');
   percentage(bought.value,n?s.boughtComparison.hits/n*100:null,'算出対象なし');
+  diagnosticField('bought_denominator');
   assert.deepEqual(capture(bought.detail,/^(\d+) \/ (\d+)レース/).map(Number),[s.boughtComparison.hits,n]);
 }
 async function readSimulationSnapshot(page){
@@ -156,6 +226,7 @@ async function readSimulationSnapshot(page){
   const {group_value:group,...snapshot}=value;assert.equal(typeof group,'string');return {...snapshot,group_sha256:hash(group)};
 }
 async function checkSimulationMetrics(page,context){
+  diagnosticPhase('simulation_controls');
   const expected=validateSimulationExpected(context);let verified=0;
   if(expected){
     const group=requireSimulationGroup(context,await page.locator('#results-model option').evaluateAll(options=>options.map(option=>option.value)));
@@ -163,13 +234,15 @@ async function checkSimulationMetrics(page,context){
     assert.equal(await page.locator('#saved-result-metrics').isVisible(),true);assert.equal(await page.locator('#simulation-metrics').isVisible(),true);
   }
   for(const budget of ['10000','5000'])for(const race of expected?['800','1000']:['1000']){
+    diagnosticPhase('simulation_controls');
     await page.locator('#simulation-budget').fill(budget);await page.locator('#simulation-budget').dispatchEvent('change');
     await page.locator('#simulation-race-budget').selectOption(race);
     assert.equal(await page.locator('#simulation-budget').inputValue(),budget);
+    diagnosticPhase('simulation_labels');
     const simulation=await page.locator('#simulation-metrics').innerText();
     for(const label of ['確定分の収支','確定分の回収率','未確定購入額','全体の収支'])assert.ok(simulation.includes(label));
     assert.doesNotMatch(simulation,/試算を表示できません/);
-    if(expected){requireSimulationSnapshot(context,await readSimulationSnapshot(page),Number(budget),Number(race));verified++;}
+    if(expected){diagnosticPhase('numeric_capture');requireSimulationSnapshot(context,await readSimulationSnapshot(page),Number(budget),Number(race));verified++;diagnosticCompleted();}
   }
   assert.equal(verified,expected?4:0);
   return {numeric_simulation_verified:expected!==null,numeric_simulation_scenarios_checked:verified};
@@ -219,15 +292,18 @@ function dateEvidence(context,results,p1Groups,lifecycleDay){
     current_day_p1_groups:scope==='CURRENT_DAY'?p1Groups:null};
 }
 
-async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDay=false}={}){
+async function runChecked(context,{compactResults=false,probeRaceId=null,checkCurrentDay=false}={}){
+  diagnosticPhase('context_validation');
   const key=validate(context),{chromium}=require('playwright');
   if(probeRaceId){assert.match(probeRaceId,/^\d{8}-\d{2}-\d{2}$/);assert.equal(probeRaceId.slice(0,8),context.day.replaceAll('-',''));}
+  diagnosticPhase('browser_launch');
   const executablePath=['/usr/bin/google-chrome','/opt/google/chrome/google-chrome',
     '/opt/google/chrome/chrome','/usr/bin/chromium'].find(path=>fs.existsSync(path));
   assert.ok(executablePath,'installed browser required');
   const browser=await chromium.launch({headless:true,executablePath,args:['--no-sandbox']});
   let blocked=0,leaked=false,checked=0,futureVisible=false,nativeVisible=false,currentResults=0,p1Groups=0,rationaleViewsChecked=0,upcomingRowsChecked=0,venueResultsChecked=0,currentDayLifecycleViews=0,currentDayUpcomingRows=0,currentDayUpcomingCount=null,currentDayClosedCount=null,currentDayPendingCount=null,numericScenarios=0;
   try{
+    diagnosticPhase('page_setup');
     const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
     page.setDefaultTimeout(45000);
     page.on('pageerror',error=>errors.push(error.name));
@@ -238,11 +314,13 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
       if(admission.allowed)return route.continue();
       blocked++;return route.abort('blockedbyclient');
     });
-    await page.goto(context.owner_url,{waitUntil:'domcontentloaded'});
+    diagnosticPhase('owner_navigation');await page.goto(context.owner_url,{waitUntil:'domcontentloaded'});
     let currentPresentation=false;
     for(let attempt=0;attempt<5;attempt++){
+      diagnosticPhase('saved_view_load');
       if(attempt){await page.waitForTimeout(10000);await page.reload({waitUntil:'domcontentloaded'});}
       await page.waitForFunction(()=>document.querySelector('#file-message')?.textContent.includes('保存済み予想'),{},{timeout:90000});
+      diagnosticPhase('presentation');
       const selection=await page.evaluate(()=>({ids:globalThis.RaceExistingModelCatalog?.models.map(m=>m.model_id),
         retired:globalThis.RaceExistingModelCatalog?.retired_model_ids || []}));
       currentPresentation=selection.ids?.length===15 && !selection.ids.includes('seller-shadow-v1-20261104')
@@ -253,6 +331,7 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
         && selection.retired.length===0,'unexpected presentation selection');
     }
     assert.ok(currentPresentation,'retired seller still present in deployed assets');
+    diagnosticPhase('feed_generation');
     await page.waitForFunction(expected=>Number(document.querySelector('#saved-view-sync')?.dataset.generation)>=expected,
       context.generation,{timeout:compactResults?360000:90000});
     async function selectDate(day){
@@ -265,7 +344,9 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
       },day,{timeout:90000});
     }
     for(const width of compactResults?[320,390,1440]:[390,1440]){
+      diagnosticPhase('selected_day',width);
       await page.setViewportSize({width,height:1000});await selectDate(context.day);
+      diagnosticPhase('race_lifecycle');
       await page.locator('[data-page="races"]').filter({visible:true}).first().click();
       if(await page.locator('#all-venues').isVisible())await page.locator('#all-venues').click();
       await page.locator('[data-race-view="upcoming"]').click();
@@ -275,6 +356,7 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
       await page.locator('[data-race-view="results"]').click();
       if(context.minimum_results)assert.ok(await page.locator('#all-races .race-result-card').count()>0);
       if(await page.locator('#all-races .race-result-card').count()){
+        diagnosticPhase('venue_results');
         const venue=await page.locator('#all-races .race-result-card').first().getAttribute('data-venue');
         await page.locator('#venue-buttons [data-venue]').filter({has:page.getByText(venue,{exact:true})}).first().click();
         assert.equal(await page.locator('#venue-filter').inputValue(),venue);
@@ -283,6 +365,7 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
         await page.locator('[data-race-view="results"]').click();assert.equal(await page.locator('#venue-filter').inputValue(),venue);venueResultsChecked++;
         await page.locator('#all-venues').click();
       }
+      diagnosticPhase('race_detail');
       if(!await page.locator('#page-races [data-open-race]').count())await page.locator('[data-race-view="upcoming"]').click();
       await page.locator('#page-races [data-open-race]').first().click();
       const grid=page.locator('#detail-tab-content .racer-grid[data-entrants]');
@@ -298,6 +381,7 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
       }
       assert.ok(await page.locator('#prediction-select option').count()>=2);
       {
+        diagnosticPhase('native_probe');
         const probe=context.future_native||context.native_probe;
         await page.locator('[data-page="races"]').filter({visible:true}).first().click();
         await page.locator('[data-race-view="'+(Date.now()<Date.parse(probe.cutoff_at)?'upcoming':'results')+'"]').click();
@@ -312,6 +396,7 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
         }
       }
       if(compactResults){
+        diagnosticPhase('compact_results');
         if(probeRaceId){await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('[data-race-view="results"]').click();await (await revealRace(page,probeRaceId,context.day_races)).click();await page.locator('#prediction-select').selectOption('0');}
         assert.equal(await page.locator('.race-result-summary').isVisible(),true);
         if(probeRaceId)assert.match(await page.locator('.race-result-summary .saved-outcome').innerText(),/的中|不的中/);
@@ -320,6 +405,7 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
         const expectedRace=probeRaceId||(context.future_native||context.native_probe).race_id;
         const selected=await page.locator('#prediction-select').inputValue(),modelId=await page.locator('#race-detail .forecast-panel').getAttribute('data-model-id');
         const rationale=await page.locator('#race-detail .forecast-rationale').count()?await page.locator('#race-detail .forecast-rationale').innerText():null;
+        diagnosticPhase('research_audit');
         await page.locator('[data-page="research"]').filter({visible:true}).first().click();
         const audit=page.locator('#research-race-audit');assert.equal(await audit.isVisible(),true);assert.equal(await page.locator('#research-race-select').inputValue(),expectedRace);assert.equal(await page.locator('#research-prediction-select').inputValue(),selected);
         assert.equal(await audit.locator('.race-audit-details').evaluate(n=>n.tagName),'SECTION');assert.equal(await audit.locator('.race-audit-details').getAttribute('data-model-id'),modelId);assert.match(await audit.innerText(),/予想SHA/);
@@ -328,6 +414,7 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
         if(rationale){assert.equal(await page.locator('#race-detail .forecast-rationale-heading').innerText(),'予想根拠');rationaleViewsChecked++;}
 
       }
+      diagnosticPhase('saved_result_metrics');
       assert.match(await page.locator('[data-page="results"]').filter({visible:true}).first().innerText(),/AI予想結果/);
       await page.locator('[data-page="results"]').filter({visible:true}).first().click();
       p1Groups=await page.locator('#results-model option').evaluateAll(options=>options.filter(o=>o.textContent.startsWith('P1 ')).length);
@@ -339,11 +426,13 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
       for(const label of ['的中','不的中','保存Top8的中率','結果待ち'])assert.ok(metrics.includes(label));
       numericScenarios+=(await checkSimulationMetrics(page,context)).numeric_simulation_scenarios_checked;
       if(context.old_day){
+        diagnosticPhase('historical_day');
         await selectDate(context.old_day);await page.locator('[data-page="results"]').filter({visible:true}).first().click();
         const old=Number((await page.locator('#saved-result-metrics').innerText()).match(/取得結果\s*(\d+)レース/)?.[1]);
         assert.ok(old>=context.old_completed);
       }
       if(checkCurrentDay){
+        diagnosticPhase('current_day_lifecycle');
         await selectDate(context.current_day);
         await page.locator('[data-page="races"]').filter({visible:true}).first().click();
         if(await page.locator('#all-venues').isVisible())await page.locator('#all-venues').click();
@@ -363,12 +452,16 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
         if(!currentDayClosedCount){assert.equal(currentDayPendingCount,0);assert.equal(await page.locator('#saved-results-table .result-mobile-card').count(),0);}
         assert.equal(await page.locator('#saved-results-table .outcome-upcoming').count(),0);currentDayLifecycleViews++;
       }
+      diagnosticPhase('viewport_overflow');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);checked++;
     }
+    diagnosticPhase('final_integrity');
     assert.deepEqual(errors,[]);assert.equal(leaked,false);
     assert.equal((await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}))).includes(key),false);
     const numeric=validateSimulationExpected(context);assert.equal(numericScenarios,numeric?checked*4:0);
+    diagnosticPhase('final_generation');diagnosticField('generation');
     if(numeric)assert.equal(Number(await page.locator('#saved-view-sync').getAttribute('data-generation')),numeric.generation);
+    diagnosticPhase('final_day');
     const verifiedAt=new Date(),currentDay=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo'}).format(verifiedAt);
     return {schema:'RACE_AI_LIVE_SITE_CHECK_COUNTS_V1',status:'LIVE_OWNER_SITE_VERIFIED',
       verified_at:verifiedAt.toISOString(),widths_checked:checked,
@@ -384,12 +477,13 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
       numeric_budget_cap_exercised:numeric?.budget_cap_exercised??null,numeric_budget_cap_coverage:numeric?.budget_cap_coverage??'NOT_REQUESTED',
       hit_miss_rate_roi_and_settled_pending_net_visible:true,
       key_in_requests_or_storage:false,blocked_external_requests:blocked,official_source_requests:0,plaintext_published:false};
-  }finally{await browser.close();}
+  }finally{try{await browser.close();}catch(error){diagnosticPhase('browser_cleanup');throw error;}}
 }
+async function run(context,options={}){return withDiagnostics(()=>runChecked(context,options));}
 
 if(require.main===module){
   (async()=>run(JSON.parse(fs.readFileSync(process.argv[2],'utf8')),{compactResults:process.argv.includes('--compact-results'),checkCurrentDay:process.argv.includes('--check-current-day'),probeRaceId:process.argv.find(v=>v.startsWith('--race-id='))?.slice(10)||null}))()
     .then(report=>process.stdout.write(JSON.stringify(report)+'\n'))
-    .catch(()=>{process.stdout.write(JSON.stringify({status:'LIVE_OWNER_SITE_REJECTED',reason:'SAVED_SITE_BROWSER_CHECK_FAILED'})+'\n');process.exitCode=2;});
+    .catch(error=>{process.stdout.write(JSON.stringify(failureReport(error))+'\n');process.exitCode=2;});
 }
-module.exports={validate,dateEvidence,requestAdmission,revealRace,requireNativeGroups,validateSimulationExpected,requireSimulationGroup,requireSimulationSnapshot,readSimulationSnapshot,checkSimulationMetrics,run};
+module.exports={validate,dateEvidence,requestAdmission,revealRace,requireNativeGroups,validateSimulationExpected,requireSimulationGroup,requireSimulationSnapshot,readSimulationSnapshot,checkSimulationMetrics,withDiagnostics,failureReport,run};
