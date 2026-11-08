@@ -50,6 +50,8 @@ def to_review_queue(feature_doc, model, *, source="WINTICKET_LIVE"):
         raise SceneLearningError("FEATURE_OR_MODEL_SCHEMA_MISMATCH")
     if feature_doc.get("feature_version")!=model.get("feature_version"):
         raise SceneLearningError("FEATURE_VERSION_MISMATCH")
+    if feature_doc.get("race_id") in model.get("train_races",[]):
+        raise SceneLearningError("TRAINING_RACE_CANNOT_SELF_VERIFY_LAPS")
     samples=feature_doc["features"]
     if len(samples)<10:
         raise SceneLearningError("INSUFFICIENT_VIDEO_SAMPLES")
