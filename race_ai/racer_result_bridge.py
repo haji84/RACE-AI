@@ -68,6 +68,24 @@ class SavedResultBridge:
         self.ledger_summary['older_day_reviewed']=self.backfill_day is not None
         self.ledger_summary['unavailable_saved_days']=D.unavailable_days(due,self.available_days)
         self._prepared=True
+        # Existing authenticated, immutable results are independently scored
+        # by model/stage/version and retained only in the encrypted control.
+        # This is pre-source reconciliation; new terminal results enter the
+        # snapshot on the next run after the first durable feed publication.
+        from .retained_model_pdca_audit import score_view
+        reports=[]
+        for day,view in self.views.items():
+            try:
+                summary=score_view(view,authenticated=True)
+                reports.append(dict(day=day or 'CURRENT_VIEW',status='SCORED',
+                    forecast_inventory_sha256=F.inventory_sha(view),summary=summary))
+            except (ValueError,KeyError,TypeError):
+                reports.append(dict(day=day or 'CURRENT_VIEW',status='HOLD_MODEL_PDCA_INPUT',
+                    total_forecasts=None,total_scored=None))
+        candidate=dict(schema='RACE_AI_PRIVATE_MODEL_PDCA_SNAPSHOT_V1',
+                       verification='PRE_SOURCE_REPLAY',days=reports)
+        if state.control.get('model_pdca_recent_audit')!=candidate:
+            state.control['model_pdca_recent_audit']=candidate
         pointers=state.control.get('settlement_captures',{})
         if not pointers:return
         acknowledged=state.control.setdefault('settlement_published',{});active={r['race_id'] for r in self.rows if r['event_date_jst'] in self.recent_days or D.reconciled_status(r) not in ('final','void')}
