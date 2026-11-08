@@ -213,6 +213,8 @@ def outcome_metric(record, pred):
         "race_id":record["race_id"],
         "hit_at_8":int(any(item["order"]==actual for item in ranked[:8])),
         "log_loss":-math.log(selected["candidate_probability"]),
+        "multiclass_brier":1-2*selected["candidate_probability"]+
+            math.fsum(p["candidate_probability"]**2 for p in c),
         "top8": [p["order"] for p in ranked[:8]],
         "actual":actual,
     }
@@ -312,15 +314,20 @@ def evaluate_chronological(train, test, model, *, minimum_test=10,
                         "baseline_hit":base["hit_at_8"],
                         "candidate_hit":cand["hit_at_8"],
                         "baseline_loss":base["log_loss"],
-                        "candidate_loss":cand["log_loss"]})
+                        "candidate_loss":cand["log_loss"],
+                        "baseline_brier":base["multiclass_brier"],
+                        "candidate_brier":cand["multiclass_brier"]})
     n=len(results)
     hit_base=sum(r["baseline_hit"] for r in results)
     hit_candidate=sum(r["candidate_hit"] for r in results)
     base_loss=math.fsum(r["baseline_loss"] for r in results)/n
     candidate_loss=math.fsum(r["candidate_loss"] for r in results)/n
+    base_brier=math.fsum(r["baseline_brier"] for r in results)/n
+    candidate_brier=math.fsum(r["candidate_brier"] for r in results)/n
     # Strict paired uplift gate. Uncalibrated probabilities cannot be
     # called calibrated and ROI needs separate pre-cutoff market evidence.
     better=(hit_candidate>hit_base and candidate_loss<base_loss
+            and candidate_brier<base_brier
             and model["source_scope"]=="OPERATOR_SUPPLIED_RESEARCH")
     out={
         "schema":REPORT_SCHEMA,"model_sha256":model["model_sha256"],
@@ -328,6 +335,8 @@ def evaluate_chronological(train, test, model, *, minimum_test=10,
         "baseline_top8_hits":hit_base,"candidate_top8_hits":hit_candidate,
         "baseline_mean_logloss":base_loss,
         "candidate_mean_logloss":candidate_loss,
+        "baseline_mean_multiclass_brier":base_brier,
+        "candidate_mean_multiclass_brier":candidate_brier,
         "observed_top8_uplift":(hit_candidate-hit_base)/n,
         "research_promotion_gate":("BETTER_ON_HELDOUT_BUT_NOT_PRODUCTION_READY"
                                    if better else "NO_VERIFIED_IMPROVEMENT"),
