@@ -12,13 +12,20 @@ from race_ai.keirin_licensed_api_ingest import (
 from race_ai.keirin_permissioned_owner import (
     load_operator_grants, stage_permissioned_deliveries
 )
-from test_keirin_permissioned_owner import LicensedSourceStageTests, data, NOW
+import test_keirin_permissioned_owner as prior
+from test_keirin_permissioned_owner import data, NOW
 
 
-class LicenseApiFetchTests(LicensedSourceStageTests):
+class LicenseApiFetchTests(unittest.TestCase):
     def setUp(self):
-        super().setUp()
+        prior.LicensedSourceStageTests.setUp(self)
         self.endpoint = "https://example.invalid/fictional-feed/api/daily"
+
+    def tearDown(self):
+        prior.LicensedSourceStageTests.tearDown(self)
+
+    def grant(self):
+        return prior.LicensedSourceStageTests.grant(self)
 
     def allow_fetch(self):
         value = json.loads(self.manifest.read_text())
