@@ -142,13 +142,34 @@ def _csv_from_markdown(markdown,meta):
                   original_lineup["solos"])
         _need(expected==(source_lineup["lines"],source_lineup["solos"]),
               "LINEUP_SOURCE_DISAGREES_WITH_OPERATOR_METADATA")
+    # Extract only the pre-race lineup topology from the published page.
+    # Assign group identity only if it matches the operator-declared roster.
+    # Do NOT import the site's model probabilities, ◎ marks or buy picks.
+    derived=meta["observed_race_facts"].copy()
+    if source_lineup is not None and original_lineup is None:
+        detected=[]
+        for nums in source_lineup["lines"]:
+            group_id=meta["race"]["starters"][nums[0]-1]["group_id"]
+            _need(type(group_id) is str and group_id and
+                  all(meta["race"]["starters"][n-1]["group_id"]==group_id
+                      for n in nums),
+                  "PREDICTED_LINEUP_ROSTER_ID_MISMATCH")
+            detected.append({"group_id":group_id,"order":nums})
+        _need(all(meta["race"]["starters"][n-1]["group_id"] is None
+                  for n in source_lineup["solos"]),
+              "PREDICTED_SOLOS_ROSTER_ID_MISMATCH")
+        derived["line_order_all_riders"]={
+            "lines":detected,
+            "solos":source_lineup["solos"],
+        }
     output=io.StringIO()
     writer=csv.DictWriter(output,fieldnames=FIELDS,lineterminator="\n")
     writer.writeheader()
     for n in sorted(extracted):
         writer.writerow(extracted[n])
     data=output.getvalue().encode("utf-8")
-    doc={**meta,"source_sha256":sha256(data).hexdigest()}
+    doc={**meta,"source_sha256":sha256(data).hexdigest(),
+         "observed_race_facts":derived}
     # Never assume that a lineup in a preview is official. A copied line
     # is an independently authored guess by the page operator, not a
     # confirmed actual race formation.
