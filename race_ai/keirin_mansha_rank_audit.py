@@ -164,10 +164,90 @@ class KeirinManshaRankLedger:
             payload BLOB NOT NULL,
             PRIMARY KEY (race_id,model_id,model_version,revision)
           );
+          CREATE TABLE IF NOT EXISTS keirin_shadow_rank_snapshots (
+            race_id TEXT PRIMARY KEY,
+            model_id TEXT NOT NULL,
+            model_version TEXT NOT NULL,
+            shadow_sha256 TEXT NOT NULL,
+            source_sha256 TEXT NOT NULL,
+            shadow_payload BLOB NOT NULL,
+            source_payload BLOB NOT NULL,
+            persisted_at TEXT NOT NULL
+          );
         """)
+
+    def freeze_shadow_once(self, shadow, source_packet):
+        """Capture full ranks even if no odds were ever supplied."""
+        checked_shadow(shadow)
+        require(type(source_packet) is dict
+                and fingerprint(source_packet) == shadow["input_sha256"]
+                and source_packet.get("race", {}).get("race_id") ==
+                    shadow["race_id"], "SHADOW_ORIGINAL_INPUT_REQUIRED")
+        at = _checked_clock(self.store.clock)
+        require(utc(shadow["generated_at"]) <= at
+                and (utc(shadow["declared_cutoff"])-at).total_seconds() > 65,
+                "FULL_RANK_FREEZE_TOO_LATE")
+        self.db.execute("BEGIN IMMEDIATE")
+        try:
+            old = self.db.execute(
+                "SELECT shadow_sha256,source_sha256 FROM "
+                "keirin_shadow_rank_snapshots WHERE race_id=?",
+                (shadow["race_id"],)).fetchone()
+            if old is None:
+                at = _checked_clock(self.store.clock)
+                require((utc(shadow["declared_cutoff"])-at).total_seconds() > 65,
+                        "FULL_RANK_FREEZE_RACE_CLOSED_DURING_TRANSACTION")
+                self.db.execute(
+                    "INSERT INTO keirin_shadow_rank_snapshots VALUES "
+                    "(?,?,?,?,?,?,?,?)",
+                    (shadow["race_id"],shadow["model_id"],
+                     shadow["model_version"],shadow["research_sha256"],
+                     shadow["input_sha256"],canonical(shadow),
+                     canonical(source_packet),at.isoformat()))
+                event = "FULL_RANK_SAVED_ONCE"
+            else:
+                require(old["shadow_sha256"] == shadow["research_sha256"]
+                        and old["source_sha256"] == shadow["input_sha256"],
+                        "SHADOW_ALREADY_FROZEN_WITH_OTHER_INPUT")
+                event = "FULL_RANK_ALREADY_SAVED_IDENTICAL"
+            self.db.execute("COMMIT")
+        except BaseException:
+            self.db.execute("ROLLBACK")
+            raise
+        require(self.read_shadow(shadow["race_id"]) is not None,
+                "FROZEN_RANK_SOURCE_READBACK_FAILED")
+        return event
+
+    def read_shadow(self, race_id):
+        row = self.db.execute(
+            "SELECT * FROM keirin_shadow_rank_snapshots WHERE race_id=?",
+            (race_id,)).fetchone()
+        if row is None:
+            return None
+        require(sha256(row["shadow_payload"]).hexdigest() ==
+                    row["shadow_sha256"] and
+                sha256(row["source_payload"]).hexdigest() ==
+                    row["source_sha256"], "FROZEN_RANK_INPUT_TAMPER")
+        shadow = json.loads(row["shadow_payload"])
+        checked_shadow(shadow)
+        require(shadow["input_sha256"] == row["source_sha256"]
+                and shadow["research_sha256"] == row["shadow_sha256"]
+                and shadow["model_id"] == row["model_id"]
+                and shadow["model_version"] == row["model_version"],
+                "FROZEN_RANK_MODEL_IDENTITY_TAMPER")
+        return {"shadow": shadow, "variable": None, "odds": None,
+                "persisted_at": row["persisted_at"],
+                "input_snapshot_frozen": True}
 
     def audit_revision(self, race_id, revision=None):
         pair = ShadowVariablePairLedger(self.store).read_pair(race_id)
+        separate = self.read_shadow(race_id)
+        if separate is not None and pair is not None:
+            require(separate["shadow"]["research_sha256"] ==
+                    pair["shadow"]["research_sha256"],
+                    "PAIR_VS_FULL_RANK_FORECAST_CONFLICT")
+        if pair is None:
+            pair = separate
         if pair is None:
             return None
         if revision is None:
@@ -218,6 +298,7 @@ class KeirinManshaRankLedger:
                 "RANK_REPLAY_BOUNDS")
         races = self.db.execute(
             "SELECT race_id FROM keirin_shadow_variable_pairs "
+            "UNION SELECT race_id FROM keirin_shadow_rank_snapshots "
             "ORDER BY race_id LIMIT ?", (max_pairs+1,)).fetchall()
         require(len(races) <= max_pairs, "RANK_RACE_LIMIT")
         latest = []
@@ -262,7 +343,9 @@ class KeirinManshaRankLedger:
             }
         return {
             "schema": "RACE_AI_KEIRIN_MANSHA_RANK_SUMMARY_V1",
-            "paired_forecast_races": len(races),
+            "ranked_forecast_races": len(races),
+            "odds_available_races": self.db.execute(
+                "SELECT COUNT(*) FROM keirin_shadow_variable_pairs").fetchone()[0],
             "without_result": missing,
             "result_revisions_replayed": revised,
             "latest_settled_races": len(settled),
