@@ -33,6 +33,17 @@ jobs:
           python -m playwright install chromium
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg
+      - name: Independent cryptographic preflight before browser activity
+        run: |
+          openssl pkey -pubin -in docs/keirin-historical-batch-20261109-public.pem -noout
+          python - <<'PY'
+          from cryptography.hazmat.primitives.serialization import load_pem_public_key
+          from pathlib import Path
+          k=load_pem_public_key(Path('docs/keirin-historical-batch-20261109-public.pem').read_bytes())
+          if k.key_size!=3072:
+              raise SystemExit('INCORRECT_HISTORICAL_KEY_SIZE')
+          print('Research-only 3072-bit RSA public key validated')
+          PY
       - name: Syntax and strict per-race/historical holdout regression
         run: |
           python -m py_compile scripts/keirin_winticket_historical_batch_capture.py
