@@ -47,7 +47,33 @@ async def browse(browser,channel):
             p=await context.new_page()
             await p.goto(url,wait_until="domcontentloaded",timeout=20000)
             await p.wait_for_timeout(2000)
-            result[suffix]={
+            player=await p.evaluate("""() => {
+                const pr=window.ytInitialPlayerResponse||{};
+                const vd=pr.videoDetails||{};
+                const live=pr.microformat?.playerMicroformatRenderer?.liveBroadcastDetails||{};
+                const v=document.querySelector('video');
+                let ranges=[];
+                if (v && v.seekable) {
+                    for (let i=0;i<v.seekable.length;i++) {
+                        ranges.push([v.seekable.start(i),v.seekable.end(i)]);
+                    }
+                }
+                return {
+                  video_id:vd.videoId||null,
+                  channel_id:vd.channelId||null,
+                  video_title:vd.title||null,
+                  is_live:vd.isLive||false,
+                  is_live_content:vd.isLiveContent||false,
+                  start_timestamp:live.startTimestamp||null,
+                  actual_end_timestamp:live.endTimestamp||null,
+                  player_status:pr.playabilityStatus?.status||null,
+                  element_count:document.querySelectorAll('video').length,
+                  video_state:v?{current_time:v.currentTime,
+                    duration:Number.isFinite(v.duration)?v.duration:null,
+                    ended:v.ended,paused:v.paused,
+                    ready_state:v.readyState,seekable:ranges}:null
+                }; }""")
+            result[suffix]={"player":player,
                 "url":p.url[:350],
                 "title":(await p.title())[:250],
                 "watch_links":await p.evaluate("""() => [...document.querySelectorAll('a[href]')]
@@ -84,7 +110,7 @@ async def main():
             print(" ",entry)
         for tab in ("streams","live"):
             x=obj["browser"][tab]
-            print(tab,x.get("title"),x.get("url"),"links",x.get("watch_links",[])[:7])
+            print(tab,x.get("title"),x.get("url"),"player",x.get("player"),"links",x.get("watch_links",[])[:7])
 
 if __name__=="__main__":
     asyncio.run(main())
