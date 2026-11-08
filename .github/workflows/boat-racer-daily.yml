@@ -97,6 +97,9 @@ jobs:
             [[ "$GITHUB_EVENT_NAME" == 'push' && "$GITHUB_ACTOR_ID" == '173585154' && "$GITHUB_REPOSITORY_ID" == '1416489937' && "$(git log -1 --format=%s)" == retained-result-audit:\ verify-site* ]] || exit 2
             dates=(--day 2026-11-07)
             checks+=(--check-current-day)
+            if [[ "$(git log -1 --format=%s)" == retained-result-audit:\ verify-site\ current-day* ]]; then
+              dates=(--require-future)
+            fi
           fi
           python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" "${dates[@]}"
           probe=()

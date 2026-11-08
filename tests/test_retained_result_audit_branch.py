@@ -50,6 +50,12 @@ class RetainedResultAuditBranchTests(unittest.TestCase):
             code,calls=self.run_script(browser=True,**values)
             self.assertNotEqual(code,0);self.assertEqual(calls,[])
 
+    def test_current_day_check_requires_a_real_future_native_forecast(self):
+        code,calls=self.run_script(subject='retained-result-audit: verify-site current-day',browser=True)
+        self.assertEqual(code,0);self.assertEqual(len(calls),2)
+        self.assertIn('--require-future',calls[0]);self.assertNotIn('--latest-saved-day',calls[0])
+        self.assertNotIn('--day ',calls[0]);self.assertIn('--check-current-day',calls[1])
+
     def test_exact_repair_prefix_replays_then_audits_without_collecting_or_initializing(self):
         subject='retained-result-audit: verify-site repair-retained-results'
         code,calls=self.run_script(subject=subject,daily='true')

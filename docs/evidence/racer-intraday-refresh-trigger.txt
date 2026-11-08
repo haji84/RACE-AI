@@ -1,1 +1,1 @@
-retained-result-audit: verify-site repair-retained-results; preserve old observations, encrypted originals, cutoff guards and allocations; source requests 0
+retained-result-audit: verify-site current-day before-cutoff-native; read-only display verification; source requests 0
