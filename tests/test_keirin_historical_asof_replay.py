@@ -11,7 +11,7 @@ from race_ai.keirin_historical_asof_replay import (
 from test_keirin_pr71_model_adapter import make_sources, RID
 
 AFTER = "2030-01-16T13:00:00+09:00"
-PIN = "c73fa3d8fe4ee4a22fdb7c90451be215155768b8"
+PIN = "bd52a3ed7853cadd7090bd7e8737202f0bee2437"
 
 
 def historical():
@@ -46,6 +46,17 @@ class HistoricalTimeSplitAndReplayTests(unittest.TestCase):
         self.assertFalse(comparison["count_as_formal_accuracy"])
         self.assertEqual(selected["variable_mode"],
                          "NOT_EVALUABLE_NO_PRE_EVENT_SELECTION")
+
+    def test_core_code_is_pinned_to_pre_race_git_blob_not_claimed_receipt(self):
+        item=historical()
+        self.assertTrue(item["model_core_blob_hashes_verified"])
+        self.assertTrue(item["model_code_git_commit_precedes_asof"])
+        self.assertTrue(item["code_version_is_not_a_forecast_timestamp_receipt"])
+        other="0"*40
+        with self.assertRaisesRegex(HistoricalReplayGateError,
+                                    "UNREVIEWED_HISTORICAL_MODEL_CODE_REVISION"):
+            prepare_historical_pr71(make_sources()[0],performed_at=AFTER,
+                                    model_code_commit_sha=other)
 
     def test_historical_source_facts_later_than_asof_are_rejected(self):
         sample=make_sources()[0]
