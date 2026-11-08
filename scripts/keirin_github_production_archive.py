@@ -394,3 +394,32 @@ def archive_production_in_git(artifact, *, repo, license_manifest,
                 git("worktree","remove","--force",str(wt))
             except ArchiveError:
                 pass
+
+
+def main(argv=None):
+    """Trusted workflow_run consumer. Never accepts producer identity on CLI."""
+    import argparse
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--artifact",required=True)
+    p.add_argument("--repo",required=True)
+    p.add_argument("--license-manifest",required=True)
+    a=p.parse_args(argv)
+    try:
+        event=checked_json(os.environ.get("GITHUB_EVENT_PATH",""),
+                           max_size=200000)
+        producer=event.get("workflow_run")
+        need(type(producer) is dict,
+             "TRUSTED_PRODUCTION_WORKFLOW_EVENT_REQUIRED")
+        report=archive_production_in_git(
+            a.artifact,repo=a.repo,license_manifest=a.license_manifest,
+            expected_run_id=str(producer["id"]),
+            expected_commit=producer["head_sha"])
+        print(json.dumps(report,sort_keys=True,separators=(",",":")))
+        return 0
+    except (ArchiveError,KeyError,OSError,ValueError,TypeError):
+        print('{"state":"PRODUCTION_GIT_ARCHIVE_NOT_VERIFIED","plaintext_published":false}')
+        return 2
+
+
+if __name__=="__main__":
+    raise SystemExit(main())
