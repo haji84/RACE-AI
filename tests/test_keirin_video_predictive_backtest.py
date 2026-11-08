@@ -119,6 +119,8 @@ class VideoToForecastTests(unittest.TestCase):
         self.assertEqual(len(report["results"]),3)
         self.assertEqual(report["research_promotion_gate"],"NO_VERIFIED_IMPROVEMENT")
         self.assertFalse(report["roi_verified"])
+        self.assertTrue(math.isfinite(report["candidate_mean_multiclass_brier"]))
+        self.assertTrue(math.isfinite(report["baseline_mean_multiclass_brier"]))
         self.assertFalse(report["prediction_originals_modified"])
         self.assertTrue(all(math.isfinite(row["candidate_loss"])
                             for row in report["results"]))
