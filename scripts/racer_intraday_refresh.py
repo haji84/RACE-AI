@@ -3,7 +3,7 @@ from contextlib import nullcontext
 from copy import deepcopy
 from datetime import date,datetime,timezone
 from pathlib import Path
-import argparse,json,subprocess,sys
+import argparse,json,re,subprocess,sys
 ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
 from race_ai.racer_daily import wire,sha,clock,need
@@ -53,7 +53,11 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
         report=dict(schema='RACE_AI_RACER_INTRADAY_RUN_V1',status='INTRADAY_REFRESHED' if outcome['status']=='READY' else outcome['status'],implementation_commit=implementation,checked_at=finished.isoformat(),catalogue_at=catalogue['generated_at'],
           source_requests=outcome['requests']+(daily['source_requests'] if daily else 0),new_observations=outcome['new_observations'],public_profiles=len(catalogue['people']),period=catalogue['period'],
           today={k:v for k,v in meta.items() if k not in ('source_receipts',)},retained=retained,public=public,daily=daily,private_sources_published=False,forecast_inputs_changed=False)
-        if sync_results:report['result_sync']=result_sync
+        if sync_results:
+            report['result_sync']=result_sync
+            from collections import Counter
+            reasons=[e.get('reason','RESULT_OBSERVATION_INVALID') for row in (bridge.rows if bridge else []) if (row.get('result') or {}).get('status')=='unsupported' for e in row.get('result_observation_rejections',[])]
+            report['result_rejection_reason_counts']=dict(Counter(code for code in reasons if isinstance(code,str) and re.fullmatch(r'(?:RESULT|SAVED_MODEL_VIEW)_[A-Z0-9_]{1,190}',code)))
         save(root/'run-report.json',(wire(report)+'\n').encode());return report
     finally:base.close()
 
