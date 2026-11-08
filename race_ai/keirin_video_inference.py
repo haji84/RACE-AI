@@ -118,7 +118,7 @@ def to_review_queue(feature_doc, model, *, source="WINTICKET_LIVE"):
         "observations":observations
     }
     # A classifier cannot issue its own independent visual attestation.
-    report=audit(doc,independent_visual_receipt=False)
+    report=audit(doc)
     return {
         "input":doc,
         "audit":report,
