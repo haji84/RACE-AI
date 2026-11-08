@@ -11,6 +11,8 @@ import argparse
 import asyncio
 from datetime import datetime, timezone
 import json
+import subprocess
+import tempfile
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -67,6 +69,23 @@ def video_summary(states):
         "videos":videos[:4],
     }
 
+def recording_tech(path: Path) -> dict:
+    """Inspect an on-runner WebM file; never upload original pixels."""
+    result={"exists":path.is_file()}
+    if not path.is_file():
+        return result
+    result["bytes"]=path.stat().st_size
+    try:
+        probe=subprocess.run(["ffprobe","-v","error","-show_entries",
+                             "format=duration:stream=codec_name,width,height",
+                             "-of","json",str(path)],
+                             text=True,capture_output=True,timeout=15,check=True)
+        result["metadata"]=json.loads(probe.stdout)
+    except Exception as exc:
+        result["probe_error_type"]=type(exc).__name__
+    return result
+
+
 async def run(report_path: Path) -> dict:
     report={"schema":"RACE_AI_KEIRIN_WINTICKET_REPLAY_FEASIBILITY_V1",
             "race_id":RACE_ID,
@@ -77,11 +96,14 @@ async def run(report_path: Path) -> dict:
             "authentication_bypassed":False,
             "full_four_laps_verified":False,
             "race_cause_analysis":"NOT_STARTED"}
-    async with async_playwright() as pw:
+    temp_ctx=tempfile.TemporaryDirectory(prefix="winticket-temporary-recorder-")
+    try:
+      async with async_playwright() as pw:
         browser=await pw.chromium.launch(headless=True,channel="chrome",
             args=["--no-sandbox","--autoplay-policy=no-user-gesture-required"])
         context=await browser.new_context(locale="ja-JP",timezone_id="Asia/Tokyo",
-                                         viewport={"width":1280,"height":800})
+                  viewport={"width":1280,"height":800},
+                  record_video_dir=temp_ctx.name,record_video_size={"width":1280,"height":800})
         for label,url in (("live",LIVE_URL),("race_result",RACE_RESULT_URL)):
             if not source_allowed(url):
                 raise ValueError("SOURCE_NOT_ALLOWED")
@@ -155,14 +177,20 @@ async def run(report_path: Path) -> dict:
                 info["error_type"]=type(exc).__name__
                 info["error_preview"]=str(exc)[:180]
             finally:
-                report["pages"][label]=info
                 try:
                     for p in popups:
                         await p.close()
                     await page.close()
-                except Exception:pass
+                    if page.video:
+                        info["browser_recording"]=recording_tech(
+                            Path(await page.video.path()))
+                except Exception as exc:
+                    info["recording_probe_error_type"]=type(exc).__name__
+                report["pages"][label]=info
         await context.close()
         await browser.close()
+    finally:
+        temp_ctx.cleanup()
     report_path.parent.mkdir(parents=True,exist_ok=True)
     report_path.write_text(json.dumps(report,indent=2,ensure_ascii=False),encoding="utf-8")
     return report
@@ -185,6 +213,7 @@ def main():
             "video_after":page.get("after"),
             "video_later":page.get("later"),
             "video_time_advanced":page.get("video_time_advanced"),
+            "browser_recording":page.get("browser_recording"),
             "error_type":page.get("error_type"),
         },ensure_ascii=False))
     # Probe exit means metadata collection succeeded. It never implies recording.
