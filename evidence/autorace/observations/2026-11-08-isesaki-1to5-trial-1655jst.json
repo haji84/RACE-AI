@@ -1,0 +1,101 @@
+{
+  "schema": "autorace_public_trial_observation_v1",
+  "record_type": "trial_snapshot_no_prediction_no_result",
+  "date_jst": "2026-11-08",
+  "observed_at_jst": "2026-11-08T16:55:01+09:00",
+  "track": "isesaki",
+  "races": [
+    {
+      "race_number": 1,
+      "road_condition": "良走路",
+      "trial_time_seconds_by_car": {
+        "1": 3.5,
+        "2": 3.47,
+        "3": 3.43,
+        "4": 3.39,
+        "5": 3.4,
+        "6": 3.38,
+        "7": 3.36,
+        "8": 3.36
+      },
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/1",
+      "result": "UNVERIFIED",
+      "trifecta_payout": "UNVERIFIED",
+      "phase": "post_deadline_observation_only_no_retroactive_B"
+    },
+    {
+      "race_number": 2,
+      "road_condition": "良走路",
+      "trial_time_seconds_by_car": {
+        "1": 3.45,
+        "2": 3.45,
+        "3": 3.38,
+        "4": 3.4,
+        "5": 3.38,
+        "6": 3.37,
+        "7": 3.36,
+        "8": 3.37
+      },
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/2",
+      "result": "UNVERIFIED",
+      "trifecta_payout": "UNVERIFIED",
+      "phase": "post_deadline_observation_only_no_retroactive_B"
+    },
+    {
+      "race_number": 3,
+      "road_condition": "良走路",
+      "trial_time_seconds_by_car": {
+        "1": 3.48,
+        "2": 3.46,
+        "3": 3.38,
+        "4": 3.41,
+        "5": 3.36,
+        "6": 3.35,
+        "7": 3.41,
+        "8": 3.37
+      },
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/3",
+      "result": "UNVERIFIED",
+      "trifecta_payout": "UNVERIFIED",
+      "phase": "post_deadline_observation_only_no_retroactive_B"
+    },
+    {
+      "race_number": 4,
+      "road_condition": "良走路",
+      "trial_time_seconds_by_car": {
+        "1": 3.43,
+        "2": 3.4,
+        "3": 3.39,
+        "4": 3.38,
+        "5": 3.39,
+        "6": 3.36,
+        "7": 3.34,
+        "8": 3.35
+      },
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/4",
+      "result": "UNVERIFIED",
+      "trifecta_payout": "UNVERIFIED",
+      "phase": "post_deadline_observation_only_no_retroactive_B"
+    },
+    {
+      "race_number": 5,
+      "road_condition": "良走路",
+      "trial_time_seconds_by_car": {
+        "1": 3.49,
+        "2": 3.38,
+        "3": 3.41,
+        "4": 3.36,
+        "5": 3.36,
+        "6": 3.36,
+        "7": 3.4,
+        "8": 3.35
+      },
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/5",
+      "result": "UNVERIFIED",
+      "trifecta_payout": "UNVERIFIED",
+      "phase": "post_deadline_observation_only_no_retroactive_B"
+    }
+  ],
+  "audit_note": "Previously issued A research candidates must remain unchanged. This trial observation was obtained after betting closure for races 1-5, not a timely B. Do not count as post-trial forecasts or treat as result verification. Race 6 was still open with trial times unavailable at observation, so no B was issued.",
+  "official_check": "Official AUTORACE.JP program pages accessed but rendered no verifiable settled result or trifecta payout for today. WINTICKET racecard offered measured trial data only."
+}
