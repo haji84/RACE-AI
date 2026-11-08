@@ -181,7 +181,11 @@ class FourModelRankLedger:
         need(suite["models"]["multisport-scenario-ensemble-v1"][
                  "ordered_top8"] == baseline["top8"],
              "PR71_BASELINE_TOP8_MISMATCH")
-        source_data, suite_data = canonical(private_snapshot), canonical(suite)
+        source_data = canonical(private_snapshot)
+        # Retain the model roster order. verify_suite checks that order,
+        # whereas canonical(sorted-keys) would alphabetize the model dict.
+        suite_data = json.dumps(suite, ensure_ascii=False, allow_nan=False,
+                                separators=(",", ":")).encode("utf-8")
         source_sha = _hash_bytes(source_data)
         suite_body_sha = _hash_bytes(suite_data)
         self.db.execute("BEGIN IMMEDIATE")
