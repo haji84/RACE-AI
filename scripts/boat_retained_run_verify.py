@@ -11,6 +11,7 @@ import sys
 import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
+_CODE_ROOT = ROOT
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
@@ -30,6 +31,59 @@ REASONS = frozenset((
     'REQUIRED_CAPTURE_INVALID', 'REQUIRED_CAPTURE_NOT_IN_INVENTORY',
     'REQUIRED_CAPTURE_COUNT_MISMATCH', 'REQUIRED_CAPTURE_TYPE_MISMATCH',
 ))
+STAGES = frozenset(('OWNER_CONTEXT', 'INPUT', 'FRESH_REPOSITORY', 'READ_HEAD',
+                    'INVENTORY', 'CATALOGUE', 'ORIGINALS', 'MIRROR', 'OUTPUT'))
+ERROR_CLASSES = frozenset((ValueError, RuntimeError, TypeError, KeyError, OSError,
+                          FileNotFoundError, PermissionError, subprocess.TimeoutExpired))
+
+
+def _safe_error_code(exc):
+    if type(exc) not in (ValueError, RuntimeError):
+        return None
+    value = str(exc)
+    return value if value in REASONS or re.fullmatch(
+        r'(?:VAULT|ORIGINAL_RECOVERY|STATE_TRANSFER|STATE_GIT|SAFE_SOURCE_CONTROL|CONTROL_MIRROR)_[A-Z0-9_]{1,120}',
+        value) else None
+
+
+def _failure_diagnostics(exc, progress):
+    """Expose only static error codes and code locations, never frame data or text."""
+    sites = []
+    frame = exc.__traceback__
+    while frame is not None:
+        code = frame.tb_frame.f_code
+        try:
+            path = Path(code.co_filename).relative_to(_CODE_ROOT)
+        except ValueError:
+            path = None
+        if (path is not None and len(path.parts) >= 2
+                and path.parts[0] in ('scripts', 'race_ai', 'pr64-reference')
+                and re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{0,127}\.py', path.name)
+                and re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{0,127}', code.co_name)
+                and type(frame.tb_lineno) is int and 0 < frame.tb_lineno <= 1_000_000):
+            sites.append(f'{path.name}:{frame.tb_lineno}:{code.co_name}')
+            sites = sites[-3:]
+        frame = frame.tb_next
+    causes = []
+    seen = {id(exc)}
+    cause = exc.__cause__ or exc.__context__
+    for _ in range(3):
+        if cause is None or id(cause) in seen:
+            break
+        seen.add(id(cause))
+        value = _safe_error_code(cause)
+        if value is not None and value not in causes:
+            causes.append(value)
+        cause = cause.__cause__ or cause.__context__
+    counts = {}
+    for name, limit in (('blob_bytes_read', MAX_BYTES), ('originals_restored', MAX_ARCHIVES),
+                        ('capture_bundles_restored', MAX_ARCHIVES)):
+        value = progress.get(name)
+        counts[name] = value if type(value) is int and 0 <= value <= limit else None
+    return dict(stage=progress.get('stage') if progress.get('stage') in STAGES else 'UNKNOWN',
+                error_code=_safe_error_code(exc), cause_codes=causes,
+                exception_type=type(exc).__name__ if type(exc) in ERROR_CLASSES else 'OTHER',
+                code_sites=sites, **counts)
 
 
 def _need(ok, reason):
@@ -43,11 +97,12 @@ def _deny_live(_endpoint):
 
 class _ReadOnlyGit:
     """Pin one remote head and bound all blob reads, including repeated restores."""
-    def __init__(self, git, maximum):
+    def __init__(self, git, maximum, progress=None):
         _need(type(maximum) is int and 0 < maximum <= MAX_BYTES, 'INPUT_INVALID')
         self._git = git
         self.repo, self.ref = git.repo, git.ref
         self.maximum, self.used = maximum, 0
+        self.progress = progress
         self.commit_id = git.head()
         V._hex(self.commit_id, V._HEAD)
 
@@ -67,6 +122,8 @@ class _ReadOnlyGit:
         raw = self._git.read(commit, path, min(limit, remaining))
         _need(type(raw) is bytes and len(raw) <= remaining, 'READ_BUDGET_EXCEEDED')
         self.used += len(raw)
+        if self.progress is not None:
+            self.progress['blob_bytes_read'] = self.used
         return raw
 
 
@@ -107,7 +164,7 @@ def _locator_identity(locator):
     return {name: value for name, value in locator.items() if name != 'source_commit'}
 
 
-def verify(transport, *, run, day, head, key=None, max_bytes=MAX_BYTES, required_capture=None):
+def verify(transport, *, run, day, head, key=None, max_bytes=MAX_BYTES, required_capture=None, progress=None):
     """Authenticate originals in memory. No upstream writes or live fallback exist."""
     key = V.state_key('production', key)
     V._id(run)
@@ -115,7 +172,10 @@ def verify(transport, *, run, day, head, key=None, max_bytes=MAX_BYTES, required
     _need(type(day) is str and re.fullmatch(r'\d{4}-\d{2}-\d{2}', day), 'INPUT_INVALID')
     date.fromisoformat(day)
     required = _requirement(required_capture) if required_capture is not None else None
-    git = _ReadOnlyGit(transport, max_bytes)
+    progress = {} if progress is None else progress
+    progress.update(stage='READ_HEAD', blob_bytes_read=0, originals_restored=0, capture_bundles_restored=0)
+    git = _ReadOnlyGit(transport, max_bytes, progress)
+    progress['stage'] = 'INVENTORY'
     locators = V.list_originals(day[:7], git.repo, run_id=run,
                                source_commit=git.head(), key=key, transport=git)
     _need(0 < len(locators) <= MAX_ARCHIVES, 'INVENTORY_BOUND_EXCEEDED')
@@ -123,6 +183,7 @@ def verify(transport, *, run, day, head, key=None, max_bytes=MAX_BYTES, required
         required_identity = _locator_identity(required['locator'])
         _need(sum(_locator_identity(value) == required_identity for value in locators) == 1,
               'REQUIRED_CAPTURE_NOT_IN_INVENTORY')
+    progress['stage'] = 'CATALOGUE'
     recovery = R.ArtifactRecovery(_deny_live, git.repo, key=key, transport=git)
     _need(recovery.has_closed_run(run), 'CLOSED_RUN_CATALOGUE_REQUIRED')
     closed = recovery.closures[run]
@@ -146,6 +207,7 @@ def verify(transport, *, run, day, head, key=None, max_bytes=MAX_BYTES, required
     capture_types = dict(OFFICIAL_RACE_RESULT=0, GITHUB_METADATA=0, OTHER_RETAINED=0)
     required_official_count = None
     unique_receipts = set()
+    progress['stage'] = 'ORIGINALS'
     for locator in locators:
         is_required = required is not None and _locator_identity(locator) == required_identity
         if is_required:
@@ -191,6 +253,8 @@ def verify(transport, *, run, day, head, key=None, max_bytes=MAX_BYTES, required
                       'INVENTORY_COVERAGE_MISMATCH')
             counts[locator['kind']] += 1
         del restored
+        progress.update(originals_restored=sum(counts.values()), capture_bundles_restored=capture_bundles)
+    progress['stage'] = 'MIRROR'
     _need(git.exists(git.head(), M.LATEST), 'LATEST_MIRROR_REQUIRED')
     latest = M._validate_latest(M._decode(V._read(git, git.head(), M.LATEST, M.MAX_RECORD), key))
     _need(latest['run_id'] == run and latest['source_head'] == head and latest['day_jst'] == day,
@@ -249,10 +313,12 @@ def main(argv=None):
     parser.add_argument('--required-capture-locator')
     args = parser.parse_args(argv)
     phase = 'OWNER_CONTEXT_REQUIRED'
+    progress = dict(stage='OWNER_CONTEXT', blob_bytes_read=0, originals_restored=0, capture_bundles_restored=0)
     output = None
     try:
         repo = _environment(ROOT)
         phase = 'INPUT_INVALID'
+        progress['stage'] = 'INPUT'
         V._id(args.run)
         V._hex(args.head, V._HEAD)
         _need(re.fullmatch(r'\d{4}-\d{2}-\d{2}', args.day), 'INPUT_INVALID')
@@ -265,15 +331,18 @@ def main(argv=None):
         output = candidate
         required = _read_requirement(args.required_capture_locator, repo) if args.required_capture_locator else None
         phase = 'AUTHENTICATED_READ_FAILED'
+        progress['stage'] = 'FRESH_REPOSITORY'
         with _fresh_reader(repo, runner_temp) as git:
             report = verify(git, run=args.run, day=args.day, head=args.head,
-                            key=V.state_key('production', None), required_capture=required)
+                            key=V.state_key('production', None), required_capture=required, progress=progress)
+        progress['stage'] = 'OUTPUT'
         _write(output, V._wire(report)+b'\n')
         print(V._wire(report).decode())
         return 0
     except Exception as exc:
         reason = str(exc) if type(exc) is ValueError and str(exc) in REASONS else phase
         report = dict(status='RETAINED_RUN_VERIFICATION_HOLD', reason=reason,
+                      diagnostics=_failure_diagnostics(exc, progress),
                       official_source_requests=0, live_artifact_requests=0, upstream_writes=0,
                       plaintext_published=False)
         if output is not None and not output.exists():
