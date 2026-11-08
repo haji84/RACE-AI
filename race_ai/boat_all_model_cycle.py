@@ -526,6 +526,11 @@ def project_round(payload, receipt):
                              program_url=ctx["program"]["source_url"], beforeinfo_url=ctx["beforeinfo"]["source_url"])
                         if ctx else deepcopy(payload.get("input_origins", {}).get(row["race_id"], {})))
             row["withdrawn_participants"] = deepcopy(report["schedule"][0].get("withdrawn_participants", []))
+            if ctx is not None and ctx.get('beforeinfo') is not None:
+                from .racer_beforeinfo import project_program_observation
+                _context(ctx['program'],ctx['beforeinfo'],ctx['as_of'])
+                row['live_boat_observation']=project_program_observation(row,ctx['program'],ctx['beforeinfo'],
+                    checked_at=current_receipt['created_at'])
             row["missing_reasons"] = [reason for reason in row["missing_reasons"] if reason != "INDEPENDENT_RECEIPT_NOT_VERIFIED"]
             row.update(external_receipt_verified=True, source_provenance=deepcopy(bindings), source_sha256=digest(bindings))
             for p in ([row["prediction"]] if row["prediction"] else []) + row["comparison_predictions"]:

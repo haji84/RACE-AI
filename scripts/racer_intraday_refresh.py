@@ -38,7 +38,7 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
             with (OfficialClient() if fetch is None else nullcontext(fetch)) as source:
                 if sync_beforeinfo and bridge:
                     from race_ai.racer_beforeinfo import collect_beforeinfo
-                    beforeinfo=collect_beforeinfo(state,bridge.rows,now=current(),fetch=source,max_requests=4)
+                    beforeinfo=collect_beforeinfo(state,bridge.rows,now=current(),fetch=source,max_requests=4,completion_clock=current)
                 outcome=state.advance(base,now=current(),fetch=source,max_requests=12-beforeinfo['requests'],**(dict(result_targets=targets) if bridge else {}))
                 outcome['requests']+=beforeinfo['requests']
         finished=current();state.control['last_checked_at']=finished.isoformat()
