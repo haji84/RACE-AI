@@ -133,12 +133,16 @@ async def capture_one(browser, source, root, public_key):
                 entry["technical_status"]="ENCRYPTED_COMPLETE_PLAYER"
                 entry["encrypted_capture_count"]=count
             else:
+                entry["failure_before_integrity_check"]=entry["technical_status"]
                 entry["technical_status"]="INCOMPLETE_NOT_EXPORTED"
         return entry
 
 async def execute(report, root, public_key):
     if not public_key.is_file():
         raise FileNotFoundError("PUBLIC_KEY_NOT_FOUND")
+    # Verify the entire DER/ASN.1 public key before opening a page.
+    from cryptography.hazmat.primitives.serialization import load_pem_public_key
+    load_pem_public_key(public_key.read_bytes())
     report.parent.mkdir(parents=True,exist_ok=True)
     root.mkdir(parents=True,exist_ok=True)
     details={"schema":SCHEMA,
@@ -154,7 +158,14 @@ async def execute(report, root, public_key):
             args=["--no-sandbox","--autoplay-policy=no-user-gesture-required"])
         try:
             for source in SOURCES:
-                result=await capture_one(browser,source,root,public_key)
+                try:
+                    result=await capture_one(browser,source,root,public_key)
+                except Exception as exc:
+                    result=admission_manifest(source)
+                    result["technical_status"]="FAILED_SOURCE_CAPTURE"
+                    result["error_type"]=type(exc).__name__
+                    # One bad historical replay must not discard other
+                    # separately encrypted replay captures.
                 details["races"].append(result)
                 # Do not log playback pixels, cookies or keys.
                 print(json.dumps({k:result.get(k) for k in (
