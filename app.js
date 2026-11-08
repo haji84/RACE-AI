@@ -756,7 +756,7 @@
     saved.append(node("strong", "small", p ? p.native_top8_available === false ? "保存" + p.ordered_top8.length + "点プラン" : "保存Top8 · " + p.ordered_top8.length + "点" : "未予想"), node("p", "muted model-caption", modelName(p)), ticketPreview(p, featured ? 4 : 2));
     const open = button("レース詳細を見る →", "outline", () => openRace(r.race_id)); open.dataset.openRace = r.race_id;
     foot.append(saved, open); card.append(foot);
-    if (featured) card.append(node("p", "muted small card-rationale", p?.rationale || r.no_forecast_reason || "予想根拠は未取得です。"));
+    if (featured) card.append(node("p", "muted small card-rationale", U.forecastExplanation(r,p)?.rationale || r.no_forecast_reason || "保存予想の読み込みを待っています。"));
     return card;
   }
   function showPage(page, moveFocus = false) {
@@ -887,7 +887,19 @@
     const box = node("section", "forecast-panel");
     if(p){box.dataset.modelId=p.model_id || "";box.dataset.nativeDispatch=String(p.native_dispatch_prediction===true);}
     box.append(append(node("div", "section-heading"), node("h2", "", p?.native_dispatch_prediction ? "取り込んだ予想" : "予想の買い目"), node("span", "tag scope-" + r.scope, forecastStatus(r, p))));
-    if (p) { box.append(ticketPreview(p, 8)); if(p.rationale)box.append(node("h3", "forecast-rationale-heading", "予想根拠"),node("p", "forecast-rationale", text(p.rationale)));box.append(node("p", "muted small", "保存 " + stamp(p.persisted_at) + " JST · " + p.ordered_top8.length + "点")); }
+    if (p) {
+      box.append(ticketPreview(p, 8));
+      const explanation=U.forecastExplanation(r,p);
+      if(explanation){
+        const rationale=node("p", "forecast-rationale",text(explanation.rationale));rationale.id="forecast-rationale";
+        const outlook=node("p", "forecast-outlook",explanation.outlook);outlook.id="forecast-outlook";
+        const basis=node("p", "muted small",explanation.basis);basis.id="forecast-outlook-basis";
+        box.append(node("h3", "forecast-rationale-heading", "予想根拠"),rationale,node("p", "muted small",explanation.composition),node("h3", "forecast-rationale-heading", "展開予想"),outlook);
+        if(explanation.alternative){const other=node("p", "forecast-alternative",explanation.alternative);other.id="forecast-alternative";box.append(other);}
+        box.append(basis);
+      }
+      box.append(node("p", "muted small", "保存 " + stamp(p.persisted_at) + " JST · " + p.ordered_top8.length + "点"));
+    }
     else box.append(empty("予想原本は未取得です", "このモデル・時点の保存予想がありません。"));
     box.append(button("このレースの買い目を編集 →", "primary full", () => { state.selectedId = r.race_id; refreshSelects(); showPage("picks", true); }));
     return box;
@@ -1570,10 +1582,11 @@
       if (version !== importVersion) return;
       if (!parsed.records.length) throw new Error("saved originals empty");
       generation.savedState = "READY";
-      const dates = parsed.records.map(r=>r.event_date_jst).filter(Boolean).sort();
-      state.day = dates.at(-1) || state.day;state.raceView = state.day < A.jstToday() ? "results" : "upcoming";state.sport = parsed.records[0].sport;
-      state.followsToday = false;state.allDates = false;state.period = "day";
-      generation.message = "保存済み予想 " + parsed.records.length + "レースを表示しています。";
+      if(state.followsToday)state.day=A.jstToday();
+      state.raceView = state.day < A.jstToday() ? "results" : "upcoming";state.sport = parsed.records[0].sport;
+      state.allDates = false;state.period = "day";
+      const currentRows=parsed.records.filter(row=>row.event_date_jst===state.day);
+      generation.message = currentRows.length ? "保存済み予想・レース情報 " + currentRows.length + "レース · " + state.day : "保存済み予想を確認中 · " + state.day;
       adoptDataset(parsed);showPage("races",true);
       $("file-message").textContent = generation.message;
       if (encrypted) startSavedFeed(encrypted.content,version);
@@ -1588,7 +1601,7 @@
     if(!forecastSha||!window.SavedViewCrypto?.readLive)return;
     const status=node("p","muted small","結果の自動同期を確認しています。");status.id="saved-view-sync";status.setAttribute("role","status");
     $("result-coverage").after(status);
-    let previous={forecastSha,generation:0,cipherSha:path.split("/").at(-1).replace(".json","")},busy=false,queuedDay=null,followToday=true;
+    let previous={forecastSha,generation:0,cipherSha:path.split("/").at(-1).replace(".json","")},busy=false,queuedDay=null,followToday=state.followsToday;
     const choices=new Map();
     function rememberChoices() {
       if(!races().some(row=>row.event_date_jst===state.day))return;
@@ -1609,6 +1622,7 @@
         if(index<0)throw new Error("saved original selection unavailable");keys[row.race_id]=index;
       }
       dataset=parsed;state.day=day;state.predictionKeys=keys;
+      generation.message="保存済み予想・レース情報 " + parsed.records.filter(row=>row.event_date_jst===day).length + "レース · " + day;
       if(!sameDay)state.raceView=day<A.jstToday()?"results":"upcoming";
       if(choice){state.selectedId=choice.selectedId;state.resultGroupKey=choice.resultGroupKey;state.venue=choice.venue;}
       previous={forecastSha,generation:result.header.generation,cipherSha:result.cipherSha};
