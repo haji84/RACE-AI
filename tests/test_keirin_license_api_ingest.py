@@ -7,7 +7,8 @@ import tempfile
 import unittest
 
 from race_ai.keirin_licensed_api_ingest import (
-    EXPORT_SCHEMA, LicenseDeliveryError, fetch_licensed_export_once
+    EXPORT_SCHEMA, LicenseDeliveryError, fetch_licensed_export_once,
+    fetch_authorized_exports
 )
 from race_ai.keirin_permissioned_owner import (
     load_operator_grants, stage_permissioned_deliveries
@@ -39,6 +40,40 @@ class LicenseApiFetchTests(unittest.TestCase):
             "bundle_id": "FIXTURE_APPROVED_BUNDLE",
             "deliveries": [data()] if packets is None else packets
         }).encode("utf-8")
+
+    def test_multiple_explicitly_approved_api_endpoints_per_owner_cycle(self):
+        granted=self.allow_fetch()
+        requests=[]
+        entries=[
+            (self.endpoint+"?page=1","FICTIONAL_TEST_RIGHTS_ONLY"),
+            (self.endpoint+"?page=2","FICTIONAL_TEST_RIGHTS_ONLY"),
+            (self.endpoint+"?page=3","FICTIONAL_TEST_RIGHTS_ONLY"),
+        ]
+        report=fetch_authorized_exports(
+            self.root,granted,sources=entries,
+            transport=lambda url,token: requests.append(url) or self.batch())
+        self.assertEqual(requests,[u for u,_ in entries])
+        self.assertEqual(report["authorized_endpoint_count"],len(entries))
+        self.assertEqual(report["provider_packets_created"],1)
+        self.assertEqual(report["provider_packets_already_present"],2)
+        self.assertEqual(report["http_requests"],0)  # fake transport
+        self.assertFalse(report["provider_rate_limits_bypassed"])
+        self.assertFalse(report["internal_api_discovery"])
+
+    def test_all_api_endpoints_preflight_before_any_request(self):
+        granted=self.allow_fetch()
+        requests=[]
+        entries=[
+            (self.endpoint+"?page=1","FICTIONAL_TEST_RIGHTS_ONLY"),
+            ("https://other.example.invalid/api","FICTIONAL_TEST_RIGHTS_ONLY")
+        ]
+        with self.assertRaisesRegex(LicenseDeliveryError,
+                                    "AUTOMATED_SOURCE_ACCESS_NOT_AUTHORIZED"):
+            fetch_authorized_exports(
+                self.root,granted,sources=entries,
+                transport=lambda *_: requests.append(1) or self.batch())
+        self.assertEqual(requests,[])
+        self.assertEqual(list((self.root/"raw").glob("*.json")),[])
 
     def test_without_machine_fetch_license_no_network_even_if_offline_allowed(self):
         requests = []
