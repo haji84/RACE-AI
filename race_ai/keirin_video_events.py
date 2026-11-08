@@ -102,11 +102,11 @@ def is_replay(item, intervals):
     return (item["scene"]!="LIVE" or item["replay_confidence"]>0.20
             or any(a<=t<=b for a,b in intervals))
 
-def audit(doc, *, independent_visual_receipt=False):
+def audit(doc, *, trusted_visual_verifier=None):
     """Do not let the untrusted prediction document attest its own quality.
 
-    independent_visual_receipt=True may be provided ONLY by a separate trusted
-    reviewer/validated visual-model gateway after source and model checks.
+    A trusted host must independently verify source, frame/image evidence and
+    out-of-fold scene-model lineage. A raw boolean cannot grant approval.
     """
     validate(doc)
     items=doc["observations"]
@@ -165,7 +165,13 @@ def audit(doc, *, independent_visual_receipt=False):
         reasons.append("GOAL_LOW_CONFIDENCE")
     if doc["source"]=="SYNTHETIC_FIXTURE":
         reasons.append("SYNTHETIC_SOURCE_NOT_REAL_EVIDENCE")
-    if not independent_visual_receipt:
+    accepted=False
+    if callable(trusted_visual_verifier):
+        try:
+            accepted=trusted_visual_verifier(doc) is True
+        except Exception:
+            accepted=False
+    if not accepted:
         reasons.append("INDEPENDENT_VISUAL_RECEIPT_MISSING")
     # This document may suggest lap boundaries but may not approve itself.
     status=("FOUR_LAPS_VISUALLY_VERIFIED" if not reasons else
