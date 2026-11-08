@@ -31,6 +31,13 @@ class IndependentReadbackTests(unittest.TestCase):
         self.assertEqual(report['source_provider_requests'],0)
         self.assertGreaterEqual(report['archived_days'],1)
         self.assertGreaterEqual(report['independent_day_readbacks'],1)
+        self.assertTrue(report['pdca_day_counts'])
+        self.assertIsInstance(report['pdca_focus_groups'],list)
+        self.assertEqual(report['pdca_payout_threshold_yen_per_100'],10000)
+        for group in report['pdca_focus_groups']:
+            self.assertEqual(sum(group['first_candidate_rank_by_top8_order'].values()),group['eligible'])
+            self.assertEqual(sum(group['actual_winning_combo_rank_in_top8'].values()),group['eligible'])
+            self.assertEqual(group['high_payout_official_cases'],group['high_payout_captured']+group['high_payout_missed'])
 
     def test_one_real_day_proves_one_day_even_if_another_remains_hold(self):
         state,bridge,now=self.setUpFixture()

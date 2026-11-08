@@ -15,3 +15,5 @@
 2026-11-08: stage-model-pdca retry after repairing stage-only os import. Keep source GET zero and original encrypted history unchanged.
 
 2026-11-08: stage-model-pdca independently reopen encrypted old Top8 with the identical source-free credential scope; emit bounded code-only hold trace if a new gate fails.
+
+2026-11-09 JST: stage-model-pdca independently authenticated Nov8 aggregate model hit/miss, rank-of-first-in-frozen-Top8, high-payout >=10000 capture, and fixed 100-yen hypothetical model returns. No provider GET, new model, workflow, original rewrite, or wager.

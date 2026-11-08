@@ -9,6 +9,85 @@ ROOT=Path(__file__).resolve().parents[1]
 def _need(ok,code):
     if not ok:raise ValueError('ALL_HISTORY_PDCA_'+code)
 
+
+def _count_only_day_pdca(view, score):
+    """Count-only verified diagnostics; never log private race IDs or tickets.
+
+    First-place rank is appearance order of distinct first-place candidates
+    in the saved Top8, not a probability rank among all six racers.
+    High payout means official trifecta >= 10,000 yen per 100 yen.
+    """
+    from collections import Counter
+    from hashlib import sha256
+    from race_ai import retained_model_pdca_audit as P, saved_view_feed as F
+    from race_ai.actions_contract import digest
+    anchor=F.forecast_anchor(view)
+    inventory=F.inventory_sha(view)
+    indexed={}
+    for g in score['model_groups']:
+        key=(g['model_id'],g['stage'],g.get('version') or '',g.get('variant') or '')
+        _need(key not in indexed,'DUPLICATE_MODEL_GROUP')
+        indexed[key]=dict(first_rank=Counter(),winner_rank=Counter(),eligible=0,
+                          high_cases=0,high_hit=0,high_miss=0,high_first_absent=0,multi_winners=0)
+    seen=set()
+    for row in view['records']:
+        if row.get('sport')!='boat':continue
+        state,winners,refunds=P._result_context(row)
+        if state!='FINAL':continue
+        predictions=([row['prediction']] if row.get('prediction') is not None else [])+list(row.get('comparison_predictions') or [])
+        for p in predictions:
+            identity=digest([row['race_id'],anchor,inventory,p])
+            if identity in seen:continue
+            seen.add(identity)
+            try: cutoff=P._saved_clock(p,row)
+            except ValueError:continue
+            if P._clock(row['result']['observed_at'])<cutoff:continue
+            key=(p['model_id'],p['stage'],p.get('model_version') or '',p.get('variant') or '')
+            _need(key in indexed,'MISSING_MODEL_GROUP')
+            a=indexed[key]
+            a['eligible']+=1
+            tickets=[tuple(t) for t in p['ordered_top8']]
+            firsts=list(dict.fromkeys(t[0] for t in tickets))
+            positions=[firsts.index(w[0])+1 for w in winners if w[0] in firsts]
+            a['first_rank'][str(min(positions)) if positions else 'NOT_IN_TOP8']+=1
+            matching=[i+1 for i,t in enumerate(tickets) if t in winners]
+            a['winner_rank'][str(min(matching)) if matching else 'NOT_IN_TOP8']+=1
+            if len(winners)>1:a['multi_winners']+=1
+            if any(amount>=10000 for amount in winners.values()):
+                a['high_cases']+=1
+                if any(w in tickets and amount>=10000 for w,amount in winners.items()):
+                    a['high_hit']+=1
+                else:
+                    a['high_miss']+=1
+                    if not positions:a['high_first_absent']+=1
+    groups=[]
+    for g in score['model_groups']:
+        key=(g['model_id'],g['stage'],g.get('version') or '',g.get('variant') or '')
+        a=indexed[key]
+        _need(a['eligible']==g['eligible'] and
+              sum(a['first_rank'].values())==g['eligible'] and
+              sum(a['winner_rank'].values())==g['eligible'],'MODEL_ELIGIBILITY_NOT_REPRODUCED')
+        _need(a['high_cases']==a['high_hit']+a['high_miss'],'HIGH_PAYOUT_ACCOUNTING')
+        version=g.get('version')
+        groups.append(dict(model_id=g['model_id'],stage=g['stage'],
+            variant=g.get('variant'),version_ref=sha256(str(version).encode()).hexdigest()[:12] if version is not None else None,
+            forecasts=g['forecasts'],eligible=g['eligible'],hits=g['hits'],misses=g['misses'],
+            void=g['void'],pending=g['pending'],held=g['held'],
+            hit_rate=g['hit_rate'],miss_reasons=g['miss_reasons'],unresolved_reasons=g['unresolved_reasons'],
+            stake_yen_reference=g['stake_yen'],returned_yen_reference=g['returned_yen'],
+            refund_yen_reference=g['refund_yen'],net_yen_reference=g['net_yen'],roi_reference=g['roi'],
+            first_candidate_rank_by_top8_order=dict(sorted(a['first_rank'].items())),
+            actual_winning_combo_rank_in_top8=dict(sorted(a['winner_rank'].items())),
+            high_payout_official_cases=a['high_cases'],high_payout_captured=a['high_hit'],
+            high_payout_missed=a['high_miss'],high_payout_first_not_selected=a['high_first_absent'],
+            multi_winner_cases=a['multi_winners']))
+    return dict(races=sum(r.get('sport')=='boat' for r in view['records']),
+        forecasts=score['total_forecasts'],eligible=score['total_scored'],unresolved=score['unresolved'],
+        source_provider_requests=0,actual_purchases=False,
+        stake_policy='REFERENCE_100_YEN_PER_FROZEN_TICKET_WITH_OFFICIAL_REFUNDS',
+        first_rank_basis='FIRST_DISTINCT_FIRST_PLACE_APPEARANCE_NOT_ALL_RACER_RANK',
+        model_groups=groups)
+
 def verify_snapshot(state,bridge,*,now):
     from race_ai import result_due_ledger as D,retained_model_pdca_audit as P,model_pdca_history as H
     from race_ai import saved_view_feed as F
@@ -23,6 +102,7 @@ def verify_snapshot(state,bridge,*,now):
     _need('result_due_ledger' in state.control,'PERSISTENT_DUE_LEDGER_MISSING')
     due=D.ledger(deepcopy(state.control),now=now.isoformat())
     authenticated=models=scored=historical=holds=pending=archived_readbacks=0;held_days=0
+    verified_daily={}
     seen=set()
     for item in snapshot['days']:
         _need(type(item) is dict and item.get('status') in ('SCORED','HOLD_MODEL_PDCA_INPUT'),'MODEL_PDCA_SNAPSHOT_STATE_INVALID')
@@ -46,6 +126,10 @@ def verify_snapshot(state,bridge,*,now):
         for archive_day,part in slices:
             part_summary=P.score_view(part,authenticated=True)
             H.verify_day(state.control,day=archive_day,view=part,summary=part_summary)
+            details=_count_only_day_pdca(part,part_summary)
+            if archive_day in verified_daily:
+                _need(verified_daily[archive_day]==details,'DAY_SCORING_CONFLICT')
+            else:verified_daily[archive_day]=details
             archived_readbacks+=1
         authenticated+=1;models+=recomputed['model_group_count'];scored+=recomputed['total_scored']
         holds+=sum(g['held'] for g in recomputed['model_groups'])
@@ -60,11 +144,20 @@ def verify_snapshot(state,bridge,*,now):
                 historical+=1
     _need(scored>0 and historical>0,'NO_REAL_HISTORICAL_MODEL_SCORE')
     _need(wire(state.control)==original,'SOURCE_CONTROL_MUTATED')
+    eligible_days=sorted(day for day,detail in verified_daily.items() if detail['eligible']>0)
+    focus_day=eligible_days[-1] if eligible_days else None
+    day_counts=[dict(day=day,races=d['races'],forecasts=d['forecasts'],eligible=d['eligible'],unresolved=d['unresolved'])
+                for day,d in sorted(verified_daily.items())]
     return dict(schema='RACE_AI_INDEPENDENT_PDCA_READBACK_V1',
         status='AES_AUTHENTICATED_HISTORICAL_PDCA_READBACK_VERIFIED',
         saved_days_authenticated=authenticated,model_group_snapshots=models,
         historical_days_with_formal_scores=historical,formally_scored_forecasts=scored,
         pending_forecasts=pending,held_forecasts=holds,
+        pdca_day_counts=day_counts,pdca_focus_day=focus_day,
+        pdca_focus_groups=verified_daily[focus_day]['model_groups'] if focus_day is not None else [],
+        pdca_payout_threshold_yen_per_100=10000,
+        pdca_rank_definition='TOP8_FIRST_APPEARANCE_NOT_ALL_RACER_PROBABILITY_RANK',
+        pdca_stake_policy='REFERENCE_100_YEN_PER_SAVED_TICKET_NO_ACTUAL_BETS',
         ledger_outstanding=D.pending_count(due),archived_days=H.latest(state.control)['days'],
         archived_revisions=H.latest(state.control)['revisions'],independent_day_readbacks=archived_readbacks,held_days=held_days,
         source_provider_requests=0,
