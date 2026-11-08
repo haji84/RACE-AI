@@ -37,11 +37,11 @@ def historical_pair():
         "forecast_file_verified":False,"formal_hits":None,
         "fallback_sha256":digest,
         "races":[
-            {"race_id":rows[0]["id"],"ordered_top8":picks[0],
+            {"race_id":rows[0]["id"],"ordered_top8":list(picks[0]),
              "provider_trifecta":"1-2-3","payout_yen_per_100":16090,
              "hit8_research":1,"official_organizer_checked":False,
              "refund_and_revision_checked":False},
-            {"race_id":rows[1]["id"],"ordered_top8":picks[1],
+            {"race_id":rows[1]["id"],"ordered_top8":list(picks[1]),
              "provider_trifecta":"1-6-2","payout_yen_per_100":650,
              "hit8_research":0,"official_organizer_checked":False,
              "refund_and_revision_checked":False},
