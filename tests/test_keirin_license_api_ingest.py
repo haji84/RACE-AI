@@ -41,6 +41,40 @@ class LicenseApiFetchTests(unittest.TestCase):
             "deliveries": [data()] if packets is None else packets
         }).encode("utf-8")
 
+    def test_owner_confirms_winticket_and_keirinjp_automatic_source_scope(self):
+        from race_ai.keirin_owner_auto_sources import (
+            OwnerAttestedAutomaticSources,AUTOMATION_CONSENT,
+        )
+        from race_ai.keirin_owner_approved_sources import PROFILE_ID
+        from race_ai.keirin_owner_manual import PERSONAL_MARKER
+        confirmed=OwnerAttestedAutomaticSources(
+            profile=PROFILE_ID,consent=AUTOMATION_CONSENT,now=NOW)
+        urls=[
+            "https://www.winticket.jp/keirin/aomori/approved-export",
+            "https://keirin.jp/pc/dfw/portal/guest/approved-export",
+        ]
+        observed=[]
+        packet=data()
+        packet["race"]["permission_ref"]=PERSONAL_MARKER
+        for obs in packet["observations"]:
+            obs["source_url"]=urls[0]
+            obs["rights_ref"]=PERSONAL_MARKER
+        body=json.dumps({
+            "schema":EXPORT_SCHEMA,
+            "bundle_id":PERSONAL_MARKER,
+            "deliveries":[packet]
+        }).encode()
+        report=fetch_authorized_exports(
+            self.root,confirmed,
+            sources=[(url,PERSONAL_MARKER) for url in urls],
+            transport=lambda u,t: observed.append(u) or body)
+        self.assertEqual(observed,urls)
+        self.assertEqual(report["authorized_endpoint_count"],2)
+        self.assertEqual(report["provider_packets_created"],1)
+        self.assertEqual(report["provider_packets_already_present"],1)
+        self.assertFalse(report["provider_rate_limits_bypassed"])
+        self.assertFalse(confirmed.provider_terms_independently_verified)
+
     def test_multiple_explicitly_approved_api_endpoints_per_owner_cycle(self):
         granted=self.allow_fetch()
         requests=[]
