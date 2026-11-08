@@ -26,9 +26,10 @@ OUTER_SCHEMA = "RACE_AI_KEIRIN_PRIVATE_PRE_RACE_V1"
 
 # Target model feature -> (source registry field, exact documented transform).
 # "ratio" means the incoming evidence itself is a measured [0,1] ratio.
-# "score100" is a documented, NOT LEARNED engineering scale, not a win chance.
+# "score200" is an explicitly arbitrary, UNTRAINED 0..200 input scale,
+# not a probability. Published real KEIRIN race scores can exceed 100.
 RIDER_MAP = {
-    "ability": ("race_score", "score100"),
+    "ability": ("race_score", "score200"),
     "recent_form": ("recent_strength_or_form_change", "ratio"),
     "start_reliability": ("start_or_line_reliability", "ratio"),
     "finishing_power": ("last_lap_acceleration", "ratio"),
@@ -47,7 +48,7 @@ RIDER_MAP = {
     "home_count_form": ("home_H_count", "count_rate"),
     "back_count_form": ("back_B_count", "count_rate"),
     "hsb_form": ("back_B_count", "count_rate"),
-    "recent_points": ("race_score", "score100"),
+    "recent_points": ("race_score", "score200"),
     "recent_win_form": ("win_rate", "ratio"),
     "teammate_synergy": ("teammate_pair_history", "ratio"),
     "last_lap_kick": ("last_lap_acceleration", "ratio"),
@@ -113,8 +114,8 @@ def _number(value, low, high):
 def _convert(value, sample_n, method):
     if method == "ratio":
         return _number(value, 0, 1)
-    if method == "score100":
-        return _number(value, 0, 100) / 100
+    if method == "score200":
+        return _number(value, 0, 200) / 200
     if method == "count_rate":
         _require(type(value) is int and type(sample_n) is int and sample_n > 0,
                  "COUNT_AND_SAMPLE_MUST_BE_INTEGERS")
