@@ -2,6 +2,14 @@
 /* Read-only proof against the existing private owner view. Never print its URL. */
 const fs=require('node:fs'),assert=require('node:assert/strict');
 
+// Error messages and Playwright call logs can contain private owner URLs or
+// saved values. Expose only the local checker location and fixed error kinds.
+function browserFailure(error){
+  const location=String(error?.stack||'').match(/boat_saved_site_check\.cjs:(\d+):(\d+)/);
+  return {status:'LIVE_OWNER_SITE_REJECTED',reason:'SAVED_SITE_BROWSER_CHECK_FAILED',
+    error_kind:['AssertionError','TimeoutError','Error'].includes(error?.name)?error.name:'Error',
+    checker_line:location?Number(location[1]):null,checker_column:location?Number(location[2]):null};
+}
 
 const allowedHosts=new Set(['haji84.github.io','api.github.com','raw.githubusercontent.com']);
 function requestAdmission(request,key){
@@ -289,6 +297,6 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
 if(require.main===module){
   (async()=>run(JSON.parse(fs.readFileSync(process.argv[2],'utf8')),{compactResults:process.argv.includes('--compact-results'),checkCurrentDay:process.argv.includes('--check-current-day'),checkBeforeinfo:process.argv.includes('--check-beforeinfo'),probeRaceId:process.argv.find(v=>v.startsWith('--race-id='))?.slice(10)||null}))()
     .then(report=>process.stdout.write(JSON.stringify(report)+'\n'))
-    .catch(()=>{process.stdout.write(JSON.stringify({status:'LIVE_OWNER_SITE_REJECTED',reason:'SAVED_SITE_BROWSER_CHECK_FAILED'})+'\n');process.exitCode=2;});
+    .catch(error=>{process.stdout.write(JSON.stringify(browserFailure(error))+'\n');process.exitCode=2;});
 }
-module.exports={validate,dateEvidence,requestAdmission,revealRace,requireNativeGroups,run};
+module.exports={validate,dateEvidence,requestAdmission,revealRace,requireNativeGroups,browserFailure,run};

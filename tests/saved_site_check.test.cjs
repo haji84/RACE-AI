@@ -2,6 +2,13 @@
 const test=require('node:test'),assert=require('node:assert/strict');
 const C=require('../scripts/boat_saved_site_check.cjs');
 const key='fixture-viewer-key';
+test('private browser failures identify only checker lines and safe error kinds',()=>{
+  const error=new Error('private URL, key, model and tickets must never be logged');
+  error.name='TimeoutError';
+  error.stack='TimeoutError: private contents\n    at run (/runner/scripts/boat_saved_site_check.cjs:157:91)\n    at https://private.invalid/secret:4:8';
+  assert.deepEqual(C.browserFailure(error),{status:'LIVE_OWNER_SITE_REJECTED',reason:'SAVED_SITE_BROWSER_CHECK_FAILED',error_kind:'TimeoutError',checker_line:157,checker_column:91});
+  assert.deepEqual(C.browserFailure({name:'private-secret',stack:'private-secret'}),{status:'LIVE_OWNER_SITE_REJECTED',reason:'SAVED_SITE_BROWSER_CHECK_FAILED',error_kind:'Error',checker_line:null,checker_column:null});
+});
 test('historical checks report their selected day without claiming current-day results',()=>{
   const historical=C.dateEvidence({day:'2030-04-01',current_day:'2030-04-02'},98,30);
   assert.equal(historical.date_scope,'HISTORICAL_DAY');assert.equal(historical.checked_day_results,98);

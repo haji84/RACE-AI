@@ -3,3 +3,5 @@
 2026-11-08 beforeinfo publication diagnostic; retain sources and log safe codes only
 
 2026-11-08 verify independent saved-model switching after frontend HTTP readback
+
+2026-11-08 locate the private browser check failure using safe checker line numbers only
