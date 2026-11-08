@@ -10,6 +10,10 @@ function browserFailure(error){
     error_kind:['AssertionError','TimeoutError','Error'].includes(error?.name)?error.name:'Error',
     checker_line:location?Number(location[1]):null,checker_column:location?Number(location[2]):null};
 }
+async function assertRationaleHeading(page){
+  const heading=page.locator('#race-detail').getByRole('heading',{name:'予想根拠',exact:true});
+  assert.equal(await heading.count(),1);assert.equal(await heading.isVisible(),true);
+}
 
 const allowedHosts=new Set(['haji84.github.io','api.github.com','raw.githubusercontent.com']);
 function requestAdmission(request,key){
@@ -196,7 +200,7 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
         assert.equal(await audit.locator('.race-audit-details').evaluate(n=>n.tagName),'SECTION');assert.equal(await audit.locator('.race-audit-details').getAttribute('data-model-id'),modelId);assert.match(await audit.innerText(),/予想SHA/);
         await audit.locator('[data-return-to-race]').click();assert.equal(await page.locator('#prediction-select').inputValue(),selected);
         assert.equal(await page.locator('#race-detail .forecast-rationale').count()?await page.locator('#race-detail .forecast-rationale').innerText():null,rationale);
-        if(rationale){assert.equal(await page.locator('#race-detail .forecast-rationale-heading').innerText(),'予想根拠');rationaleViewsChecked++;}
+        if(rationale){await assertRationaleHeading(page);rationaleViewsChecked++;}
 
       }
       assert.match(await page.locator('[data-page="results"]').filter({visible:true}).first().innerText(),/AI予想結果/);
@@ -299,4 +303,4 @@ if(require.main===module){
     .then(report=>process.stdout.write(JSON.stringify(report)+'\n'))
     .catch(error=>{process.stdout.write(JSON.stringify(browserFailure(error))+'\n');process.exitCode=2;});
 }
-module.exports={validate,dateEvidence,requestAdmission,revealRace,requireNativeGroups,browserFailure,run};
+module.exports={validate,dateEvidence,requestAdmission,revealRace,requireNativeGroups,browserFailure,assertRationaleHeading,run};

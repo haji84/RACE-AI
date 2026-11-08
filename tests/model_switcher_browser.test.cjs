@@ -1,6 +1,7 @@
 /* Invented model originals only; no live sources or owner data. */
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),http=require('node:http'),{chromium}=require('playwright');
 const M=require('../web/product-data.js'),root=path.resolve(__dirname,'../web'),artifacts=process.env.UI_MODEL_EVIDENCE || path.resolve(__dirname,'../artifacts/ui-browser/model-switcher');
+const LiveCheck=require('../scripts/boat_saved_site_check.cjs');
 const A='boat-observed-pairwise-factor-v1',B='boat-observed-pairwise-start-v1';
 const a=[[1,2,3],[1,3,2],[1,2,4],[1,4,2],[1,2,5],[1,5,2],[1,2,6],[1,6,2]],b=[[2,1,3],[2,3,1],[2,1,4],[2,4,1],[2,1,5],[2,5,1],[2,1,6],[2,6,1]];
 function fixture(){
@@ -31,6 +32,7 @@ let browser,server;
   const panel=page.locator('#detail-tab-content .forecast-panel');
   assert.equal(await page.locator('#detail-model-select').inputValue(),B);assert.equal(await panel.getAttribute('data-model-id'),B);
   assert.deepEqual(await panel.locator('.saved-ticket .combo').first().locator('.lane').allTextContents(),['2','1','3']);assert.match(await panel.innerText(),/B の保存根拠/);
+  assert.deepEqual(await panel.locator('.forecast-rationale-heading').allTextContents(),['予想根拠','展開予想']);await LiveCheck.assertRationaleHeading(page);
   await page.locator('#prediction-select').selectOption('2');assert.equal(await page.locator('#detail-model-select').inputValue(),A);assert.match(await panel.innerText(),/A 展示後の保存根拠/);
   await page.locator('#detail-model-select').selectOption(B);await page.locator('#detail-model-select').selectOption(A);assert.equal(await page.locator('#prediction-select').inputValue(),'2');
   await page.locator('[data-page="research"]').filter({visible:true}).first().click();assert.equal(await page.locator('#research-model-select').inputValue(),A);assert.equal(await page.locator('#research-prediction-select').inputValue(),'2');

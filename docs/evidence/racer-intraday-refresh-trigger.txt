@@ -5,3 +5,5 @@
 2026-11-08 verify independent saved-model switching after frontend HTTP readback
 
 2026-11-08 locate the private browser check failure using safe checker line numbers only
+
+2026-11-08 verify saved model switching with both rationale and outlook headings retained
