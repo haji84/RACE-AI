@@ -1,7 +1,7 @@
 """Read-only independent AES/Git PDCA acceptance check. No source GET or bets."""
 from copy import deepcopy
 from datetime import datetime,timezone
-import argparse,json,os,re
+import argparse,json,os,re,traceback
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -79,6 +79,8 @@ def main(argv=None):
         _need(os.environ.get('GITHUB_ACTIONS')=='true' and
               os.environ.get('GITHUB_REPOSITORY')=='haji84/RACE-AI','EXISTING_ACTIONS_ONLY')
         _need(bool(os.environ.get('RACE_AI_STATE_KEY')),'EXISTING_SECRET_REQUIRED')
+        from scripts.racer_intraday_refresh import _stage_git_header_scope
+        _stage_git_header_scope()
         from scripts.boat_private_original_vault import _environment
         from scripts.boat_saved_view_feed import git_auth
         from race_ai.racer_intraday_handoff import load_intraday
@@ -93,9 +95,14 @@ def main(argv=None):
         reason=(str(exc) if type(exc) is ValueError and
                re.fullmatch(r'ALL_HISTORY_PDCA_[A-Z0-9_]+',str(exc))
                else 'ALL_HISTORY_PDCA_READBACK_UNAVAILABLE')
+        # Never log private race IDs, original payloads or auth exceptions. A
+        # bounded source-code-only trace identifies the failing acceptance gate.
+        trace=[Path(frame.filename).name+':'+str(frame.lineno)+':'+frame.name
+               for frame in traceback.extract_tb(exc.__traceback__)[-5:]]
         print(json.dumps(dict(schema='RACE_AI_INDEPENDENT_PDCA_READBACK_V1',
-          status='HOLD',reason=reason,source_provider_requests=0,
-          actual_purchases=False,all_history_completion_proven=False),sort_keys=True))
+          status='HOLD',reason=reason,exception_type=type(exc).__name__,code_trace=trace,
+          source_provider_requests=0,actual_purchases=False,
+          all_history_completion_proven=False),sort_keys=True))
         return 2
 
 if __name__=='__main__':raise SystemExit(main())

@@ -1,5 +1,8 @@
 """Independent AES/Git tests using fictional pre-cutoff races only."""
 import unittest
+import os,json,io
+from unittest.mock import patch
+from contextlib import redirect_stdout
 from datetime import timedelta
 from race_ai.racer_intraday import IntradayState
 from race_ai.racer_result_bridge import SavedResultBridge
@@ -59,3 +62,21 @@ class IndependentReadbackTests(unittest.TestCase):
         state.control['model_pdca_recent_audit']['days'][0]['summary']['total_scored']=0
         with self.assertRaisesRegex(ValueError,'ALL_HISTORY_PDCA_MODEL_PDCA_SNAPSHOT_MISMATCH'):
             verify_snapshot(state,bridge,now=now)
+
+
+class ActualReadbackAuthenticationGuardTests(unittest.TestCase):
+    def test_main_applies_owner_stage_header_isolation_before_any_git_read(self):
+        from scripts.verify_all_history_pdca_readback import main
+        output=io.StringIO()
+        with patch.dict(os.environ,{'GITHUB_ACTIONS':'true','GITHUB_REPOSITORY':'haji84/RACE-AI',
+                                     'RACE_AI_STATE_KEY':'test-only-nonproduction'},clear=True):
+            with patch('scripts.racer_intraday_refresh._stage_git_header_scope',
+                       side_effect=ValueError('MODEL_PDCA_CHECKOUT_HEADER_CONFLICT')) as guard:
+                with redirect_stdout(output):
+                    self.assertEqual(main([]),2)
+        guard.assert_called_once_with()
+        report=json.loads(output.getvalue())
+        self.assertEqual(report['status'],'HOLD')
+        self.assertEqual(report['source_provider_requests'],0)
+        self.assertNotIn('test-only-nonproduction',output.getvalue())
+        self.assertIn('code_trace',report)

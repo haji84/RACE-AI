@@ -13,3 +13,5 @@
 2026-11-08: stage-model-pdca rerun after source-free checkout Authorization header isolation, with original due ledger / saved Top8 / independent readback preserved.
 
 2026-11-08: stage-model-pdca retry after repairing stage-only os import. Keep source GET zero and original encrypted history unchanged.
+
+2026-11-08: stage-model-pdca independently reopen encrypted old Top8 with the identical source-free credential scope; emit bounded code-only hold trace if a new gate fails.
