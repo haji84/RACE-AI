@@ -3,7 +3,7 @@
 
 Purpose: determine whether public browser playback supplies a replay suitable for
 Matsuyama 2026-11-08 1R, and whether the /live page offers retrospective DVR.
-No screenshots, frames, video bytes, cookies, streams or credentials are saved.
+Browser screen is briefly recorded to a temporary runner directory and deleted.\nNo screenshots, frames, raw video, cookies, streams or credentials are published.
 """
 from __future__ import annotations
 
@@ -91,7 +91,7 @@ async def run(report_path: Path) -> dict:
             "race_id":RACE_ID,
             "observed_utc":datetime.now(timezone.utc).isoformat(),
             "pages":{},
-            "footage_copied":False,
+            "footage_uploaded":False,\n            "temporary_browser_recording":True,
             "stream_link_extracted":False,
             "authentication_bypassed":False,
             "full_four_laps_verified":False,
