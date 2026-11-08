@@ -5,7 +5,7 @@
 Private frame-feature extraction sanity run decoded 313 low-resolution frames at 2-second spacing without exporting frames or feeding any result. That proves only decode/feature feasibility, not reliable semantic labels.
 
 ## Implemented gates
-- race_ai/keirin_video_learning.py: bounded video feature extraction, SHA256 and pHash provenance, private reviewed-frame-only scene classifier with independent race holdout, identical source recording and frame duplicate checks. Only START, HOME_PASS, GOAL, REPLAY, RESULT, RACING and PRESTART classes can be learned.
+- race_ai/keirin_video_learning.py: bounded video feature extraction, SHA256 and pHash provenance, private reviewed-frame-only scene classifier with independent race holdout, identical source recording and frame duplicate checks. Reviewed label files cannot invent feature vectors: every label must join an exact private extracted frame SHA and source recording SHA. Only START, HOME_PASS, GOAL, REPLAY, RESULT, RACING and PRESTART classes can be learned.
 - race_ai/keirin_video_inference.py: a trained model proposes timestamped start, lap pass, finish, replay and result events. Isolated one-frame detections are discarded. The inference output cannot authorize itself.
 - race_ai/keirin_video_events.py: requires a chronological start, exactly four distinct live pass events, goal and post-goal result; rejects repeat-frame hashes/perceptual duplicates, replay intervals, weak confidence, implausible lap intervals, and spurious after-goal laps. A separate trusted_visual_verifier callback must verify the actual source and labeled frames for approval.
 - race_ai/keirin_video_postrace_pdca.py: produces only an owner-private postrace learning candidate after independent full-lap, frozen original forecast, verified official result, and permission checks. Never feeds post-race footage into the same race's pre-cutoff prediction.
@@ -20,7 +20,7 @@ Private frame-feature extraction sanity run decoded 313 low-resolution frames at
 
 ## Owner-local usage
 python -m scripts.keirin_video_ai_owner_cli extract --race-id 20261108-matsuyama-9R --video /private/9r.webm --every-seconds 2 --output /private/9r-features.json
-python -m scripts.keirin_video_ai_owner_cli train --reviewed-labels /private/review/raceA.json --reviewed-labels /private/review/raceB.json --reviewed-labels /private/review/raceC.json --output /private/scene-model.json
+python -m scripts.keirin_video_ai_owner_cli train --features /private/features/raceA.json --reviewed-labels /private/review/raceA.json --features /private/features/raceB.json --reviewed-labels /private/review/raceB.json --features /private/features/raceC.json --reviewed-labels /private/review/raceC.json --output /private/scene-model.json
 python -m scripts.keirin_video_ai_owner_cli infer --features /private/9r-features.json --model /private/scene-model.json --output /private/9r-candidates.json
 
 ## Current status
