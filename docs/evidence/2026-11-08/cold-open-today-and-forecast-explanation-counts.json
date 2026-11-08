@@ -1,0 +1,47 @@
+{
+  "schema": "RACE_AI_COLD_OPEN_TODAY_AND_FORECAST_EXPLANATION_V1",
+  "event_day_jst": "2026-11-08",
+  "source_base": "8704f12e34219882efc193b94beda81dceb0e16c",
+  "date_root_cause": "LOAD_SAVED_DATASET_SELECTED_HISTORICAL_SEED_BEFORE_LIVE_READ",
+  "cold_open_current_day": true,
+  "reload_returns_current_day": true,
+  "manual_history_selection_preserved": true,
+  "blocked_live_response_red_observed": true,
+  "blocked_live_response_green_observed": true,
+  "explanation_basis": "SOURCE_PROSE_WHERE_SAVED_ELSE_MODEL_METHOD_AND_SAVED_TICKET_ORDER",
+  "original_causal_attribution_invented": false,
+  "original_tactical_inference_added": false,
+  "rationale_source_precedence": true,
+  "post_race_result_independence": true,
+  "third_place_only_alternative_retained": true,
+  "validation": {
+    "unit_tests": 54,
+    "unit_failures": 0,
+    "encrypted_history_browser": true,
+    "encrypted_append_browser": true,
+    "encrypted_pages_browser": true,
+    "explanation_browser_widths": [
+      320,
+      390,
+      1440
+    ],
+    "result_detail_browser_widths": [
+      320,
+      390,
+      1440
+    ],
+    "independent_review": "CLEAR_AFTER_REPRODUCED_THIRD_PLACE_FIX",
+    "syntax_and_diff_check": true
+  },
+  "preserved_deployed_parent": "d014063deb102deb1fbed69832aff0d4b100d370",
+  "forecast_mutations": 0,
+  "provider_requests": 0,
+  "root_key_reads": 0,
+  "new_workers": 0,
+  "cancel_or_restart": false,
+  "observed_existing_boat_worker": {
+    "run_id": 42444478902,
+    "status": "IN_PROGRESS"
+  },
+  "source_branch_updated": false
+}

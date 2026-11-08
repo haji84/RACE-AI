@@ -60,14 +60,17 @@ save('dec-omitted',H.encrypt_history_router(bad_dec,key,view_id=vid,source_sha=p
 (p/'expected.json').write_text(wire(dict(catalog=catalog,revised_catalog=revised_catalog,novdays=novdays,revised_novdays=revised_novdays,decdays=decdays)))
 `,dir],{cwd:root,encoding:'utf8'});assert.equal(py.status,0,py.stderr);
  const expected=JSON.parse(fs.readFileSync(path.join(dir,'expected.json'))),requests=[],errors=[];
- let active='v4',corruptCatalog=false,missingDay=false,migrationGate=null;
+ let active='v4',corruptCatalog=false,missingDay=false,migrationGate=null,initialLatestGate=null;
  server=http.createServer((req,res)=>{const name=new URL(req.url,'http://local').pathname.slice(1)||'index.html',file=path.join(dir,'public',name);if(!fs.existsSync(file)){res.statusCode=404;return res.end();}res.setHeader('Content-Type',name.endsWith('.js')?'text/javascript':name.endsWith('.css')?'text/css':'text/html');res.end(fs.readFileSync(file));});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
  browser=await chromium.launch({headless:true,executablePath:process.env.CHROMIUM_PATH||'/usr/bin/chromium',args:['--no-sandbox']});
  const page=await browser.newPage({viewport:{width:390,height:844}});page.setDefaultTimeout(10000);page.on('pageerror',error=>errors.push(error.message));page.on('request',request=>requests.push({url:request.url(),headers:request.headers()}));
  const routeSaved=async route=>{
   const pathname=new URL(route.request().url()).pathname,prefix='/haji84/RACE-AI/';let body;
-  if(pathname===prefix+'state/boat-saved-view/latest.json')body=fs.readFileSync(path.join(dir,active+'-latest.json'));
+  if(pathname===prefix+'state/boat-saved-view/latest.json'){
+   body=fs.readFileSync(path.join(dir,active+'-latest.json'));
+   if(initialLatestGate){const gate=initialLatestGate;initialLatestGate=null;gate.seen();await gate.release;}
+  }
   else if(pathname.startsWith(prefix+'state/boat-saved-view/views/')) {
    body=fs.readFileSync(path.join(dir,active+'.json'));
    if(migrationGate&&active==='nov'){const gate=migrationGate;migrationGate=null;gate.seen();await gate.release;}
@@ -154,6 +157,22 @@ save('dec-omitted',H.encrypt_history_router(bad_dec,key,view_id=vid,source_sha=p
  await current.clock.fastForward(61000);
  assert.equal(await current.locator('#selected-date').inputValue(),'2026-11-06','automatic checks must preserve an explicitly selected historical date');
  await current.close();
+ // The historical static seed must never become the opening selection while
+ // the genuine current-day live view is still downloading.
+ const opening=await browser.newPage({viewport:{width:390,height:844}});
+ await opening.route('https://raw.githubusercontent.com/haji84/RACE-AI/**',routeSaved);
+ await opening.clock.install({time:new Date('2026-11-07T00:00:00Z')});active='nov';
+ let releaseOpening,seenOpening;
+ const openingHeld=new Promise(resolve=>{releaseOpening=resolve;}),openingSeen=new Promise(resolve=>{seenOpening=resolve;});
+ initialLatestGate={release:openingHeld,seen:seenOpening};
+ await opening.goto('http://127.0.0.1:'+server.address().port+'/#'+fragment);await openingSeen;
+ try{
+  assert.equal(await opening.locator('#selected-date').inputValue(),'2026-11-07','opening the old seed must prioritize today before the live response arrives');
+  assert.equal(await opening.locator('#all-races [data-open-race]').count(),0,'historical seed races must not masquerade as the current day');
+ }finally{releaseOpening();}
+ await opening.waitForFunction(()=>document.querySelector('#saved-view-sync')?.dataset.generation==='2');
+ assert.equal(await opening.locator('#selected-date').inputValue(),'2026-11-07');
+ await opening.close();
  for(const scenario of ['late-publication','midnight']) {
   const live=await browser.newPage({viewport:{width:390,height:844}});
   live.on('pageerror',error=>errors.push(error.message));
@@ -162,10 +181,10 @@ save('dec-omitted',H.encrypt_history_router(bad_dec,key,view_id=vid,source_sha=p
   active=scenario==='midnight'?'nov':'v4';
   await live.goto('http://127.0.0.1:'+server.address().port+'/#'+fragment);
   await live.waitForFunction(expected=>document.querySelector('#saved-view-sync')?.dataset.generation===expected,scenario==='midnight'?'2':'1');
-  assert.equal(await live.locator('#selected-date').inputValue(),'2026-11-06','missing or future dates must not displace the available current view');
+  assert.equal(await live.locator('#selected-date').inputValue(),scenario==='midnight'?'2026-11-06':'2026-11-07','today remains selected while its saved forecasts are not yet loaded');
   if(scenario==='midnight')await live.clock.setSystemTime(new Date('2026-11-07T00:00:00Z'));
   active='nov';await live.clock.fastForward(61000);
-  await live.waitForFunction(()=>document.querySelector('#selected-date').value==='2026-11-07');
+  await live.waitForFunction(()=>document.querySelector('#selected-date').value==='2026-11-07'&&document.querySelector('#saved-view-sync')?.dataset.historyDay==='2026-11-07'&&document.querySelector('#saved-view-sync')?.dataset.generation==='2');
   assert.equal(await live.locator('#source-date').textContent(),'対象日：2026-11-07',scenario+' must show today after synchronization');
   assert.ok(await live.locator('#page-races [data-open-race]').count()>0,scenario+' switches to the upcoming list');
   await live.close();
