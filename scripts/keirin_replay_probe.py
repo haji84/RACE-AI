@@ -147,6 +147,7 @@ async def probe(url: str, report_path: Path, seconds: int, fixture: bool,
             "drm_bypass":False,"raw_video_public_upload":False,
             "playback_state":"NOT_STARTED"}
     with tempfile.TemporaryDirectory(prefix="keirin-browser-pilot-") as temp:
+        player_recording_path=None
         try:
             async with async_playwright() as pw:
                 opts={"headless":True,
@@ -205,10 +206,23 @@ async def probe(url: str, report_path: Path, seconds: int, fixture: bool,
                         b["currentTime"]>a["currentTime"]+1 for a,b in zip(before,after))
                 finally:
                     await context.close()
+                    # The replay is a popup window. Keep its recording, not a
+                    # duplicate copy of the static racecard page.
+                    try:
+                        player_page = popups[-1] if popups else page
+                        if player_page.video is not None:
+                            player_recording_path=Path(await player_page.video.path())
+                    except Exception:
+                        pass
                     await browser.close()
         except Exception as exc:
             result["error"]=f"{type(exc).__name__}: {str(exc)[:250]}"
         recordings=sorted(Path(temp).glob("*.webm"))
+        if player_recording_path in recordings:
+            recordings=[player_recording_path]
+            result["player_video_only"]=True
+        else:
+            result["player_video_only"]=False
         result["captures"]=[{"recording":video_metadata(p),"motion":motion_score(p)}
                             for p in recordings]
         result["playback_state"]=(
