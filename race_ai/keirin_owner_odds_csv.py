@@ -120,6 +120,24 @@ def parse_full_odds_csv(content,meta,*,now,grant_check):
     }
 
 
+def private_staged_odds(file):
+    require(file.is_file() and not file.is_symlink()
+            and 0<file.stat().st_size<=MAX_BYTES,
+            "EXISTING_ODDS_PRIVATE_FILE_INVALID")
+    def unique(pairs):
+        obj={}
+        for key,val in pairs:
+            require(key not in obj,"EXISTING_ODDS_DUPLICATE_KEY")
+            obj[key]=val
+        return obj
+    value=json.loads(file.read_text(encoding="utf-8"),
+                     object_pairs_hook=unique)
+    require(type(value) is dict and value.get("schema")==ODDS_SCHEMA
+            and type(value.get("captured_at")) is str,
+            "EXISTING_ODDS_SCHEMA_INVALID")
+    return value
+
+
 def stage_owner_saved_odds_csv(inbox, *, grant_check, now):
     root=Path(inbox).expanduser()
     require(root.is_absolute() and root.is_dir() and not root.is_symlink(),
@@ -147,11 +165,27 @@ def stage_owner_saved_odds_csv(inbox, *, grant_check, now):
                     "ODDS_CSV_FILE_INVALID")
             content=file.read_bytes()
             meta=private_json(file.with_suffix(".meta.json"))
-            odds=parse_full_odds_csv(
-                content,meta,now=now,grant_check=grant_check)
+            require(type(meta) is dict and type(meta.get("race_id")) is str
+                    and bool(meta["race_id"]),
+                    "ODDS_META_RACE_MISSING")
             name=sha256(meta["race_id"].encode("utf-8")).hexdigest()+".json"
             output=target/name
             require(not output.is_symlink(),"ODDS_TARGET_SYMLINK_FORBIDDEN")
+            if output.exists():
+                # Repeated owner-agent cycles must not fabricate a second
+                # capture time for unchanged, previously sealed odds.
+                prior=private_staged_odds(output)
+                require(utc(prior["captured_at"])<=utc(now),
+                        "ODDS_FUTURE_PRIVATE_STATE")
+                replay=parse_full_odds_csv(
+                    content,meta,now=prior["captured_at"],
+                    grant_check=grant_check)
+                require(canonical(prior)==canonical(replay),
+                        "ODDS_IMMUTABLE_SOURCE_CONFLICT")
+                identical+=1
+                continue
+            odds=parse_full_odds_csv(
+                content,meta,now=now,grant_check=grant_check)
             body=canonical(odds)
             try:
                 flags=os.O_CREAT|os.O_EXCL|os.O_WRONLY|getattr(os,"O_NOFOLLOW",0)
