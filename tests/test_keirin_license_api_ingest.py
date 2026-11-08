@@ -236,6 +236,43 @@ class LicenseApiFetchTests(unittest.TestCase):
                 transport=lambda *_:altered)
         self.assertEqual(file.read_bytes(),frozen)
 
+    def test_single_authorized_export_prospectively_freezes_shadow8_and_variable_tickets(self):
+        from datetime import datetime
+        from race_ai.keirin_owner_sqlite import PrivateKeirinStore
+        from race_ai.keirin_real_shadow_intake import stage_sourced_shadows
+        from race_ai.keirin_shadow_variable_intake import stage_shadow_variable_pairs
+        from race_ai.keirin_shadow_variable_pair import ShadowVariablePairLedger
+        admitted=self.allow_fetch()
+        batch=self.full_v2()
+        delivery=fetch_licensed_export_once(
+            self.root,admitted,endpoint=self.endpoint,
+            rights_ref="FICTIONAL_TEST_RIGHTS_ONLY",
+            transport=lambda *_:batch)
+        self.assertEqual(delivery["licensed_full_odds_staged"]["full_odds_created"],1)
+        shadow=stage_sourced_shadows(
+            self.root,grant_check=admitted.allowed,
+            now="2030-01-15T09:20:00+09:00")
+        self.assertEqual(shadow["counts"].get("private_shadow_research_saved"),1)
+        clock=lambda:datetime.fromisoformat("2030-01-15T09:23:20+09:00")
+        with PrivateKeirinStore(self.root/"combined.sqlite3",clock=clock) as store:
+            stage=stage_shadow_variable_pairs(
+                self.root,store,grant_check=admitted.allowed,
+                now="2030-01-15T09:23:00+09:00")
+            self.assertEqual(stage["states"].get(
+                "dual_prospective_forecasts_saved"),1)
+            rid=data()["race"]["race_id"]
+            pair=ShadowVariablePairLedger(store).read_pair(rid)
+            self.assertIsNotNone(pair)
+            self.assertTrue(pair["input_snapshot_frozen"])
+            self.assertEqual(len(pair["shadow"]["ordered_top8"]),8)
+            self.assertEqual(len(pair["odds"]["prices"]),210)
+            self.assertLessEqual(pair["variable"]["pick_count"],12)
+            self.assertFalse(pair["variable"]["calibrated_probabilities"])
+            self.assertFalse(pair["variable"]["actual_expected_value_calculated"])
+            self.assertFalse(pair["variable"]["independent_forecast_timestamp_verified"])
+            self.assertEqual(pair["variable"]["original_shadow_sha256"],
+                             pair["shadow"]["research_sha256"])
+
     def test_v2_machine_permission_must_exist_before_any_transport(self):
         calls=[]
         with self.assertRaisesRegex(
