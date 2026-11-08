@@ -164,6 +164,69 @@ def verify_snapshot(state,bridge,*,now):
         forecast_rewrites=0,actual_purchases=False,
         secret_or_private_original_logged=False,all_history_completion_proven=False)
 
+
+def _safe_same_race_shadow_comparison(view):
+    """Run the existing strict paired reader on a private 0600 view in Actions.
+
+    The Node child receives PATH/LANG/TZ only; no GitHub or owner secret.
+    It returns counts, never race IDs, original predictions or bets.
+    """
+    import tempfile
+    from race_ai.boat_history_store import wire
+    from scripts.boat_prospective_audit import _run_node
+    root=Path(os.environ.get('RUNNER_TEMP',''))
+    _need(root.is_absolute() and root.is_dir(),'TEMP_DIRECTORY_UNAVAILABLE')
+    raw=wire(view).encode('utf-8')
+    _need(0<len(raw)<=64*1024*1024,'PAIRED_VIEW_BOUND')
+    with tempfile.TemporaryDirectory(dir=root,prefix='verified-boat-paired-') as folder:
+        path=Path(folder)/'owner-verified-view.json'
+        fd=os.open(path,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+        with os.fdopen(fd,'wb') as out:out.write(raw)
+        code,report=_run_node('saved_performance_report.cjs',['--input',str(path)])
+    _need(code==0 and report.get('schema')=='RACE_AI_SAVED_PERFORMANCE_AGGREGATES_V1',
+          'PAIRED_READER_UNAVAILABLE')
+    indexed={g['id']:g for g in report['groups']}
+    pairs=[]
+    for item in report['paired_comparisons']:
+        if item['axis']!='LEARNED_WEIGHT_VERSION':continue
+        original=indexed.get(item['baseline_group'])
+        learned=indexed.get(item['challenger_group'])
+        _need(original is not None and learned is not None and
+              original['model_id']==learned['model_id'] and
+              original['stage']==learned['stage'],'PAIRED_MODEL_IDENTITY')
+        sims=[]
+        for sim in item['simulations']:
+            if sim['daily_budget']!=10000 or sim['race_budget']!=800:continue
+            sims.append(dict(daily_budget_yen=sim['daily_budget'],
+                             per_race_limit_yen=sim['race_budget'],
+                             identical_selected_races=sim['identical_selected_races'],
+                             baseline_bought=sim['baseline']['bought'],
+                             learned_bought=sim['challenger']['bought'],
+                             baseline_spent_yen=sim['baseline']['spent'],
+                             learned_spent_yen=sim['challenger']['spent'],
+                             baseline_net_yen=sim['baseline']['net'],
+                             learned_net_yen=sim['challenger']['net'],
+                             baseline_roi=sim['baseline']['roi'],
+                             learned_roi=sim['challenger']['roi']))
+        pairs.append(dict(model_id=original['model_id'],stage=original['stage'],
+            baseline_variant=original['variant'],learned_variant=learned['variant'],
+            paired_races=item['paired_races'],both_hit=item['both_hit'],
+            baseline_only=item['baseline_only'],learned_only=item['challenger_only'],
+            both_miss=item['both_miss'],baseline_hits=item['baseline_hits'],
+            learned_hits=item['challenger_hits'],baseline_hit_rate=item['baseline_hit_rate'],
+            learned_hit_rate=item['challenger_hit_rate'],
+            learned_minus_baseline_rate=item['hit_rate_difference'],
+            exact_discordance_p_value=item['exact_discordance_p_value'],
+            exclusions=item['excluded'],identical_budget_scenarios=sims,
+            future_accuracy_improvement_proven=False))
+    return dict(status='STRICT_DESCRIPTIVE_PAIRED_REVIEW',
+        matched_pairs=sum(g['paired_races'] for g in pairs),
+        models_compared=len(pairs),per_model=pairs,
+        independent_prediction_receipts_verified_by_node=False,
+        input_view_AES_GIT_independent_readback=True,
+        future_accuracy_improvement_proven=False,actual_purchases=False,
+        provider_requests=0)
+
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--repository-root',default=str(ROOT))
@@ -183,6 +246,17 @@ def main(argv=None):
         state=load_intraday(root,now=instant)['state']
         bridge=SavedResultBridge(root,now=instant)
         result=verify_snapshot(state,bridge,now=instant)
+        day=result.get('pdca_focus_day')
+        if day is not None:
+            from race_ai import saved_view_feed as F,retained_model_pdca_audit as P
+            _,_,_,focus_view=F.current_view(bridge.git,bridge.bootstrap,day=day)
+            before=_count_only_day_pdca(focus_view,P.score_view(focus_view,authenticated=True))
+            _need(before['model_groups']==result['pdca_focus_groups'],'FOCUS_DAY_CHANGED')
+            try:result['pdca_focus_strict_pairs']=_safe_same_race_shadow_comparison(focus_view)
+            except Exception as error:
+                result['pdca_focus_strict_pairs']=dict(status='HOLD_PAIRED_READER_UNAVAILABLE',
+                    error_type=type(error).__name__,paired_improvement_proven=False,
+                    provider_requests=0,actual_purchases=False)
         print(json.dumps(result,sort_keys=True));return 0
     except Exception as exc:
         reason=(str(exc) if type(exc) is ValueError and
