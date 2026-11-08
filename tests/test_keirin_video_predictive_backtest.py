@@ -124,9 +124,11 @@ class VideoToForecastTests(unittest.TestCase):
                             for row in report["results"]))
         with self.assertRaisesRegex(VideoForecastError,"TRAIN_TEST_DUPLICATE_RACE"):
             evaluate_chronological(train,train[-3:],model,minimum_test=3)
+        early=[fixture(8),fixture(9),fixture(10)]
+        for i,row in enumerate(early):
+            row["race_id"]+=f"-distinct-holdout-{i}"
         with self.assertRaisesRegex(VideoForecastError,"TRAINING_POSTRACE_LABELS_LEAK_INTO_TEST"):
-            evaluate_chronological(train,[fixture(8),fixture(9),fixture(10)],
-                                   model,minimum_test=3)
+            evaluate_chronological(train,early,model,minimum_test=3)
 
     def test_minimum_real_history_gate(self):
         with self.assertRaisesRegex(VideoForecastError,"NOT_ENOUGH_REAL_TRAINING_RACES"):
