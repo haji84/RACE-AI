@@ -59,9 +59,20 @@ class SavedResultBridge:
         for day in sorted(self.views,key=lambda v:v or ''):
             parent,previous,generation,view=F.current_view(self.git,self.bootstrap,day=day)
             selected={r['race_id'] for r in view['records'] if r['event_date_jst'] in self.days and r.get('sport')=='boat'}
-            captures=[state.capture(pointer) for rid,pointer in pointers.items() if rid in selected]
+            retained={rid:state.capture(pointer) for rid,pointer in pointers.items() if rid in selected}
+            captures=list(retained.values())
             if captures:
-                updated=F.update_view(view,[],captures=captures,synced_at=now.isoformat());before={r['race_id']:wire(r) for r in view['records']}
+                observations=[]
+                for row in view['records']:
+                    capture=retained.get(row['race_id'])
+                    if capture is None:continue
+                    receipt=capture[1]
+                    observations.extend(o for o in row.get('result_observations',[])
+                        if o.get('race_id')==row['race_id'] and all(o.get(k)==receipt.get(k)
+                            for k in ('captured_at','source_sha256','source_url')))
+                # Keep the stored observation intact; matching retained bytes
+                # supply only the current parser's display projection.
+                updated=F.update_view(view,observations,captures=captures,synced_at=now.isoformat());before={r['race_id']:wire(r) for r in view['records']}
                 count=sum(before.get(r['race_id'])!=wire(r) for r in updated['records'])
                 if count:
                     F.publish_view(self.git,self.bootstrap,updated,parent=parent,previous=previous,generation=generation);view=updated;changed+=count

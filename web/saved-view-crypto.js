@@ -262,6 +262,7 @@
     }
   }
   async function readLive(fragment,previous,options={}) {
+    if(options.preferredDay!==undefined)dayValue(options.preferredDay);
     const m=/^#saved=([a-f0-9]{64})\.([A-Za-z0-9_-]{43})$/.exec(fragment);if(!m||!hex(previous.forecastSha))fail();
     const before=snapshots.get(previous.cipherSha);if(!before||before.anchor!==previous.forecastSha)fail();
     const url=new URL(BASE+"latest.json");url.searchParams.set("check",String(Date.now()));
@@ -269,12 +270,16 @@
     if(!fields(latest,["header","cipher_sha256"])||!hex(latest.cipher_sha256))fail();
     const h=latest.header;feedHeader(h);
     if(h.view_id!==m[1]||h.forecast_sha256!==previous.forecastSha||h.generation<previous.generation)fail();
-    if(h.generation===previous.generation){if(latest.cipher_sha256!==previous.cipherSha||h.schema===APPEND_FEED&&h.forecast_inventory_sha256!==before.digest||h.schema===HISTORY&&h.history_index_sha256!==before.digest)fail();return null;}
+    if(h.generation===previous.generation){
+      if(latest.cipher_sha256!==previous.cipherSha||h.schema===APPEND_FEED&&h.forecast_inventory_sha256!==before.digest||h.schema===HISTORY&&h.history_index_sha256!==before.digest)fail();
+      if(before.history&&options.preferredDay!==options.day&&Object.hasOwn(before.history.days,options.preferredDay))return readDay(fragment,previous,options.preferredDay);
+      return null;
+    }
     if(h.generation===previous.generation+1&&h.previous_cipher_sha256!==previous.cipherSha)fail();
     const result=await decode(await fetched(new URL(BASE+"views/"+latest.cipher_sha256+".json"),h.schema===HISTORY?INDEX_WIRE:LIMIT),latest.cipher_sha256,fragment,true);
     if(canonical(result.header)!==canonical(h))fail();
     if(h.schema===HISTORY) {
-      const day=options.day||Object.keys(result.view.days).sort().at(-1);
+      const day=Object.hasOwn(result.view.days,options.preferredDay)?options.preferredDay:options.day||Object.keys(result.view.days).sort().at(-1);
       // Retain at most the selected date while comparing other dates in turn.
       // A transition must not rebuild the whole historical view in memory.
       let selectedMarker=null,selectedValue=null;

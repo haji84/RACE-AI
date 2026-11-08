@@ -62,11 +62,12 @@ function validate(context){
   return url.hash.split('.')[1];
 }
 
-function dateEvidence(context,results,p1Groups){
+function dateEvidence(context,results,p1Groups,lifecycleDay){
   const valid=day=>typeof day==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(day)&&
     Number.isFinite(Date.parse(day+'T00:00:00Z'))&&new Date(day+'T00:00:00Z').toISOString().slice(0,10)===day;
   const current=context.current_day??context.day;
   assert.ok(valid(context.day)&&valid(current)&&context.day<=current);
+  if(lifecycleDay!==undefined)assert.equal(lifecycleDay,current,'lifecycle date changed during verification');
   const scope=context.day===current?'CURRENT_DAY':'HISTORICAL_DAY';
   if(context.date_scope!==undefined)assert.equal(context.date_scope,scope);
   assert.ok(Number.isSafeInteger(results)&&results>=0&&Number.isSafeInteger(p1Groups)&&p1Groups>=0);
@@ -235,7 +236,8 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
     return {schema:'RACE_AI_LIVE_SITE_CHECK_COUNTS_V1',status:'LIVE_OWNER_SITE_VERIFIED',
       verified_at:verifiedAt.toISOString(),widths_checked:checked,
       feed_generation:Number(await page.locator('#saved-view-sync').getAttribute('data-generation')),
-      ...dateEvidence({...context,current_day:currentDay,date_scope:undefined},currentResults,p1Groups),
+      ...dateEvidence({...context,current_day:currentDay,date_scope:undefined},currentResults,p1Groups,checkCurrentDay?context.current_day:undefined),
+      lifecycle_checked_day:checkCurrentDay?context.current_day:null,
       selected_saved_day:context.day,current_day_lifecycle_views_checked:currentDayLifecycleViews,current_day_upcoming_rows_checked:currentDayUpcomingRows,current_day_upcoming_races:currentDayUpcomingCount,current_day_closed_races:currentDayClosedCount,current_day_pending_result_races:currentDayPendingCount,race_lifecycle_tabs_verified:true,upcoming_rows_checked:upcomingRowsChecked,venue_result_views_checked:venueResultsChecked,ai_results_navigation_verified:true,compact_result_ui_verified:compactResults,research_audit_verified:compactResults,available_rationale_preserved:compactResults,rationale_views_checked:rationaleViewsChecked,probe_result_matched:Boolean(compactResults&&probeRaceId),
       native_p1_groups_required:context.native_p1_groups,native_p1_detail_visible:nativeVisible,
       future_native_visible_before_cutoff:futureVisible,previous_day_checked:context.old_day!==null,
