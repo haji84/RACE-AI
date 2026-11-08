@@ -41,6 +41,21 @@ class PublicSourceSmokeTests(unittest.TestCase):
         self.assertTrue(report["contains_aomori_label"])
         self.assertFalse(report["odds_210_all_values_validated"])
 
+    def test_long_inline_script_never_shadows_http_original_sha(self):
+        from hashlib import sha256
+        html=(
+            "<html><head><script>"
+            "window.PUBLIC_METADATA={" + '"odds":' + '"redacted-shape";'
+            + '"publicKey":"' + ("x"*500) + '"};'
+            + "</script></head></html>"
+        ).encode("utf-8")
+        report=summarize_html(html)
+        self.assertEqual(report["response_bytes"],len(html))
+        self.assertEqual(report["response_sha256"],sha256(html).hexdigest())
+        self.assertGreaterEqual(len(report["inline_script_structural_shapes"]),1)
+        self.assertTrue(report["inline_script_structural_shapes"][0][
+            "contains_odds_marker"])
+
     def test_one_shot_receipts_do_not_claim_real_forecasts(self):
         observed=[]
         def fake(url):
