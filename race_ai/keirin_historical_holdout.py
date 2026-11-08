@@ -8,6 +8,7 @@ No network, media retrieval, model fitting, result lookup or public file writes.
 from __future__ import annotations
 
 from hashlib import sha256
+from datetime import datetime
 import json
 import math
 import re
@@ -33,6 +34,15 @@ def canonical(doc):
 
 def sha(doc):
     return sha256(canonical(doc).encode("utf-8")).hexdigest()
+
+def aware_epoch(s):
+    check(isinstance(s,str) and bool(s),"TIMESTAMP_REQUIRED")
+    try:
+        dt=datetime.fromisoformat(s.replace("Z","+00:00"))
+        check(dt.utcoffset() is not None,"TIMEZONE_REQUIRED")
+        return dt.timestamp()
+    except (TypeError,ValueError):
+        raise HoldoutError("INVALID_TIMESTAMP") from None
 
 def check_events(events, duration, *, truth):
     check(type(events) is list and len(events)<=3000,"INVALID_EVENT_LIST")
@@ -87,8 +97,7 @@ def validate_predictions(p):
     check(p["video_input_labels_used"] is False and
           p["forecast_modified"] is False,
           "POSTRACE_OR_FORECAST_LEAK")
-    check(type(p["frozen_at"]) is str and p["frozen_at"],
-          "PREDICTIONS_NOT_FROZEN")
+    aware_epoch(p["frozen_at"])
     check_events(p["events"],p["duration_s"],truth=False)
     check(is_sha(p["prediction_sha256"]) and
           p["prediction_sha256"]==sha({k:v for k,v in p.items()
@@ -108,8 +117,7 @@ def validate_truth(t):
           "TRUTH_VIDEO_LENGTH_INVALID")
     check(t["review_type"] in ("INDEPENDENT_FRAME_REVIEW","SYNTHETIC_FIXTURE"),
           "TRUTH_REVIEW_TYPE_INVALID")
-    check(type(t["reviewed_at"]) is str and t["reviewed_at"],
-          "TRUTH_REVIEW_TIME_MISSING")
+    aware_epoch(t["reviewed_at"])
     check_events(t["events"],t["duration_s"],truth=True)
     check(is_sha(t["review_sha256"]) and t["review_sha256"]==
           sha({k:v for k,v in t.items() if k!="review_sha256"}),
@@ -199,6 +207,8 @@ def score(p,t, *, frozen_prediction_attestor=None,
           p["recording_sha256"]==t["recording_sha256"] and
           abs(p["duration_s"]-t["duration_s"])<=.5,
           "VIDEO_OR_RACE_MISMATCH")
+    check(aware_epoch(p["frozen_at"])<aware_epoch(t["reviewed_at"]),
+          "TRUTH_REVIEWED_BEFORE_BLIND_PREDICTION_FREEZE")
     check(type(tolerance_s) in (int,float) and 0<tolerance_s<=8,
           "INVALID_TIME_TOLERANCE")
     check(all(callable(x) for x in (frozen_prediction_attestor,
@@ -241,12 +251,14 @@ def score(p,t, *, frozen_prediction_attestor=None,
               metrics["START"]["false_positive"]==0)
     goal_ok=(metrics["GOAL"]["true_positive"]==1 and
              metrics["GOAL"]["false_positive"]==0)
-    replay_ok=(accidental==0 and
+    replay_label_count=sum(x["event"]=="REPLAY_START" for x in t["events"])
+    replay_ok=(replay_label_count>0 and accidental==0 and
                metrics["REPLAY_START"]["false_negative"]==0 and
                metrics["REPLAY_END"]["false_negative"]==0 and
                metrics["REPLAY_START"]["false_positive"]==0 and
                metrics["REPLAY_END"]["false_positive"]==0)
-    result_ok=metrics["RESULT"]["true_positive"]==1
+    result_ok=(metrics["RESULT"]["true_positive"]==1 and
+               metrics["RESULT"]["false_positive"]==0)
     # Synthetic fixtures test arithmetic only; never confer real model accuracy.
     real=t["review_type"]=="INDEPENDENT_FRAME_REVIEW"
     accepted=all((complete_laps,start_ok,goal_ok,replay_ok,result_ok,real))
