@@ -21,6 +21,7 @@ from .keirin_result_delivery import canonical
 from .keirin_non_rakuten_sources import is_rakuten_url
 
 EXPORT_SCHEMA = "RACE_AI_KEIRIN_LICENSED_PROVIDER_EXPORT_V1"
+EXPORT_SCHEMA_V2 = "RACE_AI_KEIRIN_LICENSED_PROVIDER_EXPORT_V2"
 MAX_BODY = 8_000_000
 MAX_DELIVERIES = 100
 
@@ -95,14 +96,24 @@ def fetch_licensed_export_once(inbox, grants, *, endpoint, rights_ref,
         body = transport(endpoint, token) if transport else _network_once(endpoint, token)
         _need(type(body) is bytes and 0 < len(body) <= MAX_BODY,
               "PROVIDER_RESPONSE_INVALID")
-        value = json.loads(body.decode("utf-8"),
-                           parse_constant=lambda _: (_ for _ in ()).throw(
-                               LicenseDeliveryError("NONFINITE_JSON_FORBIDDEN")))
+        def unique(pairs):
+            result = {}
+            for key, item in pairs:
+                _need(key not in result, "DUPLICATE_PROVIDER_JSON_KEY")
+                result[key] = item
+            return result
+        value = json.loads(
+            body.decode("utf-8"), object_pairs_hook=unique,
+            parse_constant=lambda _: (_ for _ in ()).throw(
+                LicenseDeliveryError("NONFINITE_JSON_FORBIDDEN")))
     except (OSError, UnicodeError, ValueError) as exc:
         raise LicenseDeliveryError("LICENSED_PROVIDER_GET_FAILED") from exc
-    _need(type(value) is dict and set(value) == {
-        "schema", "bundle_id", "deliveries"
-    } and value["schema"] == EXPORT_SCHEMA and
+    _need(type(value) is dict and
+          ((value.get("schema") == EXPORT_SCHEMA and
+            set(value) == {"schema", "bundle_id", "deliveries"}) or
+           (value.get("schema") == EXPORT_SCHEMA_V2 and
+            set(value) == {"schema", "bundle_id", "deliveries",
+                           "odds_snapshots"})) and
           value["bundle_id"] == grants.bundle_id and
           type(value["deliveries"]) is list and
           len(value["deliveries"]) <= MAX_DELIVERIES,
@@ -115,6 +126,16 @@ def fetch_licensed_export_once(inbox, grants, *, endpoint, rights_ref,
               type(packet.get("race")) is dict and
               packet["race"].get("permission_ref") == grants.bundle_id,
               "UNTRUSTED_RACE_PACKET")
+    # V2 odds share the SAME already-authorized provider response. Validate
+    # every market row before any raw/source file is promoted.
+    if value["schema"] == EXPORT_SCHEMA_V2:
+        from .keirin_licensed_odds_export import stage_licensed_odds_export
+        odds_report = stage_licensed_odds_export(
+            root, value["odds_snapshots"], value["deliveries"],
+            checked_at=grants.now.isoformat(), grant_check=grants.allowed)
+    else:
+        odds_report = None
+    for packet in value["deliveries"]:
         digest = sha256(canonical(packet)).hexdigest()
         made = _write_private_once(raw / (digest + ".json"), packet)
         if made:
@@ -123,6 +144,7 @@ def fetch_licensed_export_once(inbox, grants, *, endpoint, rights_ref,
             existing += 1
     return {
         "schema": "RACE_AI_KEIRIN_AUTHORIZED_FETCH_ONCE_V1",
+        "licensed_full_odds_staged": odds_report,
         "http_requests": 1 if transport is None else 0,
         "provider_packets_created": created,
         "provider_packets_already_present": existing,
