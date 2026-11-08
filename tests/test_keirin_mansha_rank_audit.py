@@ -49,7 +49,8 @@ class ManshaRankResearchTests(unittest.TestCase):
         self.temp = tempfile.TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.path = Path(self.temp.name)/"private.sqlite3"
-        self.clock = lambda: datetime.fromisoformat(NOW)
+        self.clocktime = [datetime.fromisoformat(NOW)]
+        self.clock = lambda: self.clocktime[0]
 
     def freeze(self, store, positive=2):
         raw, shadow, odds, selected = pair_fixture(positive)
@@ -66,6 +67,8 @@ class ManshaRankResearchTests(unittest.TestCase):
             pair = self.freeze(db)
             winner = pair["shadow"][
                 "ranked_candidates_untrained_not_probabilities"][9]["triple"]
+            self.clocktime[0] = datetime.fromisoformat(
+                "2030-01-15T10:20:00+09:00")
             db.add_result_observation(observed(winner))
             rank = KeirinManshaRankLedger(db)
             audit = rank.audit_revision(RID)
@@ -92,6 +95,8 @@ class ManshaRankResearchTests(unittest.TestCase):
             before = self.freeze(db)
             ranked = before["shadow"][
                 "ranked_candidates_untrained_not_probabilities"]
+            self.clocktime[0] = datetime.fromisoformat(
+                "2030-01-15T10:20:00+09:00")
             db.add_result_observation(observed(
                 ranked[0]["triple"], pay=12000))
             rank = KeirinManshaRankLedger(db)
@@ -116,6 +121,8 @@ class ManshaRankResearchTests(unittest.TestCase):
         with PrivateKeirinStore(self.path, clock=self.clock) as db:
             pair = self.freeze(db, positive=0)
             self.assertEqual(pair["variable"]["pick_count"], 0)
+            self.clocktime[0] = datetime.fromisoformat(
+                "2030-01-15T10:20:00+09:00")
             db.add_result_observation(observed(
                 status="PENDING", refund="UNKNOWN"))
             rank = KeirinManshaRankLedger(db)
