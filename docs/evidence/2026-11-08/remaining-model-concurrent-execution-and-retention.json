@@ -1,7 +1,7 @@
 {
   "schema": "RACE_AI_REMAINING_MODEL_CONCURRENT_EXECUTION_CHECKPOINT_V1",
-  "status": "CODE_INTEGRATED_LOCAL_CHECKS_PASS_ACTIONS_AND_REAL_SOURCE_PENDING",
-  "as_of_utc": "2026-11-08T05:31:17.255798+00:00",
+  "status": "ACTUAL_HISTORY_COMPATIBILITY_CORRECTED_NEW_OWN_FULL_CI_PENDING",
+  "as_of_utc": "2026-11-08T05:54:11.419824+00:00",
   "private_originals_included": false,
   "owner_key_included": false,
   "real_data_status": {
@@ -145,6 +145,22 @@
       "local_complete_git_history_verified": true,
       "owner_key_used": false,
       "model_data_acquisition": false
+    },
+    "history_followup_root": {
+      "tests": 56,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 24.984
+    },
+    "history_followup_independent": {
+      "tests": 40,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 20.263,
+      "original_private_regressions": 2,
+      "review": "CLEAR"
     }
   },
   "execution_constraints": {
@@ -179,5 +195,35 @@
     "halted_reason": null,
     "new_workflow_or_schedule": false,
     "activation_is_separate_from_new_model_learning": true
+  },
+  "historical_merge_normalization": {
+    "superseded_unissued_code_head": "0231a6d6be37f28579d26b7c79047ccbe284c7d9",
+    "superseded_first_run_id": 42451474763,
+    "must_not_create_issue_or_rerun_that_target": true,
+    "actual_owner_merge": "d143c45b474b2a9bc7938c94fab158981163b712",
+    "merged_regular_marker_inherited_from_parent": true,
+    "different_parent_marker_epoch_proved_ancestor": true,
+    "unique_latest_epoch_dominates_all_parent_history": true,
+    "actual_normalized_marker_history": [
+      "7e889c363604e65a02719db7e6e7e3d619620da2",
+      "adde0e463115dc08ffb8967d243fdbdfeb5f24fa"
+    ],
+    "explicit_failed_anchor_preserved": true,
+    "actual_d41_source_and_cumulative_pins_preserved": true,
+    "omitted_actual_source_epochs": 0,
+    "metadata_pin_count": 18,
+    "native_artifacts": 4,
+    "prior_journal_artifacts": 8,
+    "checkpoint_artifacts": 6,
+    "metadata_observed_at": "2026-11-08T05:42:19.657413+00:00",
+    "failed_proof_observed_at": "2026-11-08T05:08:43Z",
+    "offline_replay": "PASS",
+    "candidate_module_sha256": "52772627d5d8219904ccdeb214a632f360c337e5978d375f677b6933d4d997df",
+    "owner_key_used_for_audit": false,
+    "archive_mac_admission_claimed": false,
+    "new_capability_created": false,
+    "new_C_created": false,
+    "full_first_admission_claimed": false,
+    "model_provider_requests": 0
   }
 }

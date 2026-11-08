@@ -423,6 +423,109 @@ class FrozenSnapshotTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.snapshot().previous_issue(invalid)
 
+    def legacy_epoch_pair(self, *, incomparable=False):
+        """Actual d143 shape: one parent retains an older comparable V1 epoch."""
+        f = self.fixture
+        def marker(head, run):
+            value = f.marker(head, head, run=run)
+            value['schema'] = 'RACE_AI_OFFICIAL_RESULT_RECOVERY_ISSUE_REQUEST_V1'
+            for key in ('tested_execution_head_sha', 'intent_parent_sha', 'failed_issue_dispositions'):
+                del value[key]
+            return wire(value)
+        old_raw = marker(f.base, 31)
+        old_files = dict(f.files, **{ISSUE: old_raw})
+        old = f.commit(old_files, [f.base], 'official-results-issue: older actual epoch')
+        old_parent = f.commit(dict(old_files, **{'ui.txt': b'older branch UI'}), [old], 'older UI branch')
+        code_files = dict(old_files, **{'ui.txt': b'new source code'})
+        code = f.commit(code_files, [f.base if incomparable else old], 'official-results-collect: newer source code')
+        # In the incomparable case the source-code commit does not itself carry
+        # an authored issue marker; the two valid epochs are separate branches.
+        if incomparable:
+            code_files.pop(ISSUE)
+            code = f.commit(code_files, [f.base], 'official-results-collect: incomparable newer source code')
+        new_raw = marker(code, 32)
+        new_files = dict(code_files, **{ISSUE: new_raw})
+        new = f.commit(new_files, [code], 'official-results-issue: newer actual epoch')
+        new_parent = f.commit(dict(new_files, **{'ui.txt': b'newer branch UI'}), [new], 'newer UI branch')
+        return dict(old=old, new=new, old_parent=old_parent, new_parent=new_parent,
+                    old_files=old_files, new_files=new_files, old_raw=old_raw, new_raw=new_raw)
+
+    def test_merge_inheriting_unique_newest_comparable_epoch_keeps_both_real_epochs(self):
+        f = self.fixture
+        pair = self.legacy_epoch_pair()
+        merge = f.commit(dict(pair['new_files'], **{'pilot.txt': b'unrelated merge data'}),
+                         [pair['old_parent'], pair['new_parent']], 'merge older and newer current marker branches')
+        snap = self.snapshot()
+        self.assertEqual(snap.issue_history(merge), [pair['new'], pair['old']])
+        self.assertEqual(snap.previous_issue(merge), pair['new_raw'])
+
+    def test_merge_cannot_adopt_older_epoch_when_parent_contains_newer_epoch(self):
+        f = self.fixture
+        pair = self.legacy_epoch_pair()
+        merge = f.commit(pair['old_files'], [pair['old_parent'], pair['new_parent']], 'merge rolls back newest epoch')
+        history = self.snapshot().issue_history(merge)
+        self.assertIn(merge, history)
+        self.assertIn(pair['new'], history)
+        with self.assertRaises(ValueError):
+            self.snapshot().previous_issue(merge)
+
+    def test_merge_cannot_choose_between_incomparable_actual_epochs(self):
+        f = self.fixture
+        pair = self.legacy_epoch_pair(incomparable=True)
+        merge = f.commit(pair['new_files'], [pair['old_parent'], pair['new_parent']], 'merge incomparable issue branches')
+        history = self.snapshot().issue_history(merge)
+        self.assertIn(merge, history)
+        self.assertIn(pair['old'], history)
+        self.assertIn(pair['new'], history)
+        with self.assertRaises(ValueError):
+            self.snapshot().previous_issue(merge)
+
+    def test_newer_side_epoch_then_marker_restoration_is_never_hidden_by_adoption(self):
+        f = self.fixture
+        pair = self.legacy_epoch_pair()
+        code = f.commit(pair['old_files'], [pair['old_parent']], 'official-results-collect: hidden side target')
+        side_issue = {name: value for name, value in f.marker(code, code, run=33).items()
+                      if name not in ('tested_execution_head_sha', 'intent_parent_sha', 'failed_issue_dispositions')}
+        side_issue['schema'] = 'RACE_AI_OFFICIAL_RESULT_RECOVERY_ISSUE_REQUEST_V1'
+        hidden = f.commit(dict(pair['old_files'], **{ISSUE: wire(side_issue)}), [code], 'official-results-issue: hidden side epoch')
+        reverted = f.commit(pair['old_files'], [hidden], 'restore old marker after side source')
+        merge = f.commit(pair['new_files'], [reverted, pair['new_parent']], 'merge apparently newer adopted marker')
+        history = self.snapshot().issue_history(merge)
+        self.assertIn(merge, history)
+        self.assertIn(hidden, history)
+        self.assertIn(reverted, history)
+        with self.assertRaises(ValueError):
+            self.snapshot().previous_issue(merge)
+
+    def test_comparable_epoch_adoption_does_not_accept_nonregular_parent_marker(self):
+        f = self.fixture
+        pair = self.legacy_epoch_pair()
+        changed_mode = f.commit(pair['old_files'], [pair['old_parent']], 'change old marker executable mode',
+                                modes={ISSUE: '100755'})
+        merge = f.commit(pair['new_files'], [changed_mode, pair['new_parent']], 'merge with nonregular inherited marker')
+        with self.assertRaises(ValueError):
+            self.snapshot().issue_history(merge)
+
+    def test_nested_missing_marker_cannot_normalize_an_incomparable_epoch_frontier(self):
+        f = self.fixture
+        pair = self.legacy_epoch_pair()
+        code = f.commit(pair['old_files'], [pair['old_parent']], 'official-results-collect: incomparable side target')
+        side = {name: value for name, value in f.marker(code, code, run=34).items()
+                if name not in ('tested_execution_head_sha', 'intent_parent_sha', 'failed_issue_dispositions')}
+        side['schema'] = 'RACE_AI_OFFICIAL_RESULT_RECOVERY_ISSUE_REQUEST_V1'
+        side_files = dict(pair['old_files'], **{ISSUE: wire(side)})
+        hidden = f.commit(side_files, [code], 'official-results-issue: incomparable side epoch')
+        del side_files[ISSUE]
+        deleted = f.commit(side_files, [hidden], 'delete incomparable side marker')
+        inner = f.commit(pair['new_files'], [deleted, pair['new_parent']], 'merge marker from only present parent')
+        snap = self.snapshot()
+        self.assertEqual(snap.issue_history(inner)[0], pair['new'])
+        outer = f.commit(pair['new_files'], [inner, pair['old_parent']], 'merge apparently newer current marker')
+        history = snap.issue_history(outer)
+        self.assertIn(outer, history, 'The selected epoch must dominate every retained parent history entry')
+        self.assertIn(hidden, history)
+        self.assertIn(deleted, history)
+
 
 class FrozenBootstrapTests(unittest.TestCase):
     """Actual private checkout and workflow provenance, with synthetic metadata."""

@@ -99,6 +99,7 @@ class _GitObjects:
         self._blobs = {}
         self._local = {}
         self._ancestry = {}
+        self._histories = {}
         shallow = self.git(['rev-parse', '--is-shallow-repository']).strip()
         need(shallow in (b'false', b'true') and (not complete or shallow == b'false'), 'COMPLETE_GIT_HISTORY')
 
@@ -295,6 +296,8 @@ class _GitObjects:
 
     def history(self, head):
         need(_hex(head), 'HISTORY_HEAD')
+        if head in self._histories:
+            return list(self._histories[head])
         # Walk only unknown immutable tips. Local boundaries use Git's original
         # complete full-history query together, retaining topology across merges.
         boundaries = set()
@@ -336,8 +339,44 @@ class _GitObjects:
                 inherited = [self.read(p, ISSUE_PATH, 16384) for p in parents]
                 if type(merged) is bytes and merged in inherited and all(raw is None or raw == merged for raw in inherited):
                     continue
+                if type(merged) is bytes and merged in inherited and all(type(raw) is bytes for raw in inherited):
+                    epochs = [self._latest_actual_issue(parent, raw) for parent, raw in zip(parents, inherited)]
+                    selected = {epoch for epoch, raw in zip(epochs, inherited) if raw == merged}
+                    if None not in epochs and len(selected) == 1:
+                        latest = next(iter(selected))
+                        if all(self.ancestor(epoch, latest) for epoch in epochs):
+                            # A UI branch can still carry the older real issue
+                            # while another contains its later descendant. This
+                            # only removes the merge pseudo-change: both actual
+                            # epochs and every nonmerge/revocation stay above.
+                            continue
             retained.append(node)
-        return retained
+        self._histories[head] = tuple(retained)
+        return list(retained)
+
+    def _latest_actual_issue(self, head, expected_raw):
+        changes = self.history(head)
+        if not changes:
+            return None
+        latest = changes[0]
+        if not all(self.ancestor(epoch, latest) for epoch in changes[1:]):
+            return None
+        if self.read(latest, ISSUE_PATH, 16384) != expected_raw:
+            return None
+        facts = self.commit_facts(latest)
+        if len(facts['parents']) != 1 or facts['changed_files'] != [ISSUE_PATH] or not facts['subject'].startswith('official-results-issue:'):
+            return None
+        value = _json(expected_raw, 16384)
+        target = value.get('target')
+        if type(target) is not dict or not _hex(target.get('head_sha')):
+            return None
+        if value.get('schema') == 'RACE_AI_OFFICIAL_RESULT_RECOVERY_ISSUE_REQUEST_V1':
+            return latest if facts['parents'] == [target['head_sha']] else None
+        parent = value.get('intent_parent_sha')
+        if value.get('schema') == ISSUE_SCHEMA and _hex(parent) and facts['parents'] == [parent] \
+                and value.get('tested_execution_head_sha') == target['head_sha'] and self.ancestor(target['head_sha'], parent):
+            return latest
+        return None
 
     def term_paths(self, head):
         tree = self.commit(head)['tree_sha']
