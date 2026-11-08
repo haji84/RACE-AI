@@ -239,14 +239,14 @@ async def probe(url: str, report_path: Path, seconds: int, fixture: bool,
                         await page.set_content(
                             '<title>SYNTHETIC TEST ONLY</title><body style="background:#111">'
                             '<button id="start-fixture" onclick="document.querySelector(\'video\').play()">Play</button>'
-                            f'<video width="1000" height="560" muted playsinline loop src="data:video/webm;base64,{payload}"></video></body>')
+                            f'<video width="1000" height="560" muted playsinline src="data:video/webm;base64,{payload}"></video></body>')
                         result["http_status"]=None
                     else:
                         response=await page.goto(url,wait_until="domcontentloaded",timeout=25000)
                         result["http_status"]=response.status if response else None
                     result["page_title"]=(await page.title())[:140]
                     result["click"]=await click_digest(page,fixture)
-                    await page.wait_for_timeout(1500)
+                    await page.wait_for_timeout(200 if fixture else 1500)
                     pages=[page]+popups
                     result["browser_diagnostics"]={
                         "window_count":len(pages),
