@@ -60,6 +60,8 @@ def checked_existing_pair(db,race_id):
                 "forecast_cutoff_at":shadow["declared_cutoff"],
                 "pair_persisted_at":pair["persisted_at"],
             }
+    except ArchiveError:
+        raise
     except (sqlite3.Error,KeyError,ValueError):
         raise ArchiveError("EXISTING_OWNER_PAIR_READ_FAILED") from None
 
