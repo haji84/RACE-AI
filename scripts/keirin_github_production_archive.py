@@ -292,6 +292,16 @@ def archive_production_in_git(artifact, *, repo, license_manifest,
          "UNTRUSTED_OR_INCORRECT_PRODUCER_WORKFLOW")
     root=Path(repo).resolve()
     need((root/".git").exists(),"TRUSTED_CHECKOUT_REQUIRED")
+    # Approval is scoped to encrypted production SQLite only and must be
+    # present in the trusted main checkout. The environment flag by itself
+    # is not an authorization to expand the publication scope.
+    from race_ai.keirin_public_ciphertext_consent import (
+        read_trusted_main_ciphertext_consent, ConsentError
+    )
+    try:
+        read_trusted_main_ciphertext_consent(root)
+    except ConsentError:
+        raise ArchiveError("OWNER_PUBLIC_CIPHERTEXT_CONSENT_INVALID") from None
     private_paths=(Path(artifact).resolve(),Path(license_manifest).resolve())
     need(all(root not in p.parents and p!=root for p in private_paths),
          "PRODUCTION_PRIVATE_MATERIAL_INSIDE_PUBLIC_CHECKOUT")
