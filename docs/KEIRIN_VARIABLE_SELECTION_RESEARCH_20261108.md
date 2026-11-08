@@ -161,3 +161,33 @@ python3 -m scripts.keirin_variable_reconcile_private \
 加えて、歴史的な8点参照予想に事後のオッズを投入して0〜12点を
 後付けで再選択してはならない。可変方式の比較は**同じ未来レースの
 締切前に両方の選定を別々に凍結できた実績**だけで評価する。
+
+
+## 2026-11-08 PR #101 → #103 同一未来レースでの前向き A/B 接続
+
+PR #103はPR #101をbaseとするstacked Draft PR。PR #101の本人が保存した非楽天出走表→非公開raw JSON→347/437項目監査→実測値のみの研究シャドー8点という経路を、PR #103可変0～12点の選択と同一のオーナー専用SQLiteへ接続した。PR #101、main、旧PR71原本は変更しない。
+
+1. PR101: csv/markdown→raw/*.json→shadow_pre/*.json の既存入力を使用。後付け改変防止のため、shadow_preには8点と全210/504通りの未校正相対スコアを予想時点で保存する。
+2. PR103: odds/*.jsonに別途保存された全3連単の事前オッズ（race_id、captured_at、source_ref、source_rights_ref、prices）を読む。未確認オッズ・取得時刻・欠損券・重複・NaN・権利ゲート不合格は拒否。
+3. PR103: rawのSHAと元のshadowの入力SHAを照合し、同じ原データ/同じ生成時刻のshadowを再実行して完全一致することを検査。オッズを選手能力・展開モデルの特徴量へ入れない。
+4. PR103: 同一race_idのshadow8と可変0～12をShadowVariablePairLedgerにより同一SQLiteトランザクションで締切65秒以上前に保存し、SHA/readbackで確認。旧forecastsテーブルを変更しない。
+5. 結果確定後: 既存results/入力→SQLiteのresult_revisionsに訂正履歴を追記→ShadowVariablePairLedger.replay_allで同一結果改訂における8点均等と可変点数均等の仮想投資・払戻・収支・回収率を比較。予想は決して書き換えない。
+
+追加コード:
+- race_ai/keirin_shadow_variable_pair.py
+- race_ai/keirin_shadow_variable_intake.py
+- tests/test_keirin_shadow_variable_pair.py
+
+元のPR101シャドーは正式PR71ではない。相対スコアも的中確率ではないので「score×odds>1」は未校正の研究上の選定プロキシに過ぎず、利益の期待値が正である根拠にはならない。実際の車券購入は禁止・ユーザーの実収支は未確認。
+
+実レースの出走表・全券オッズの許諾条件に合う自動供給、外部独立時刻の事前証明、公式結果の真正性、ユーザーの非公開SQLiteの永続保存、校正済み着順確率はまだ未実証。GitHub-hostedの架空未来レース合格のみで「実レース完成」とは言わない。
+
+オーナー本人の非公開入力配置:
+- /private/race-ai/inbox/raw/ : 競走得点・S/H/B・想定ラインなど出典付きpacket
+- /private/race-ai/inbox/shadow_pre/ : 不可逆保存の8点と全候補スコア
+- /private/race-ai/inbox/odds/ : 別時点の全210/504券オッズ
+- /private/race-ai/inbox/results/ : 確定・返還・訂正の各版
+- /private/race-ai/owner.sqlite3 : 研究用のA/Bペア原本と結果監査
+
+odds JSONの形式はRACE_AI_KEIRIN_TRIFECTA_ODDS_SNAPSHOT_V1。prices配列の各項目はtriple=[1,2,3] と decimal_odds=10.5 の組。
+本人の非公開永続ディスクで既存 scripts.keirin_permissioned_owner_agent を実行する必要がある。GitHub Actions一時ディスクは実データ永久保存先ではない。
