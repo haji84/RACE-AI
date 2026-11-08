@@ -14,7 +14,7 @@ function fixture(index){
  const entries={},gaps={},standings=[];
  for(let c=1;c<=6;c++){
   const id=String(4100+c),tilt=c===5?2:c===6?3:0;
-  entries[c]={racer_id:id,tilt_deg:tilt,outer_high_tilt_marker:c>=5,
+  entries[c]={frame:c,racer_id:id,tilt_deg:tilt,outer_high_tilt_marker:c>=5,
    historical_inward_move_win_rate:.32+c*.05,
    historical_outward_move_top3_rate:.3+c*.05,
    inner_pressure_kept_course_rate:.2+c*.08};
@@ -86,6 +86,28 @@ function test(){
  throws(()=>overlay.predict(wrongDay),"EVENT_DAY_CLOCK_MISMATCH");
  const wrongFactors={...frozen,feature_names:[...overlay.FACTORS].reverse()};
  throws(()=>overlay.predict(data,wrongFactors),"TRAINING_OR_CLOCK_LEAKAGE");
+ const swapped=fixture(0);
+ const first=swapped.context.entry_tilt_cross_features["1"];
+ const sixth=swapped.context.entry_tilt_cross_features["6"];
+ // Boat 6 takes actual course 1; boat 1 shifts to actual course 6.
+ swapped.context.entry_tilt_cross_features["1"]={...sixth,frame:6,
+   outer_high_tilt_marker:false};
+ swapped.context.entry_tilt_cross_features["6"]={...first,frame:1,
+   outer_high_tilt_marker:false};
+ const escaping=Array(overlay.FACTORS.length).fill(0);
+ escaping[overlay.FACTORS.indexOf("1_nige")]=3;
+ const courseFavored=overlay.predict(swapped,{...frozen,coefficients:escaping});
+ assert(courseFavored.winner_by_boat_number[6]>courseFavored.winner_by_boat_number[1],
+   "boat 6 in course 1 receives inside advantage");
+ assert(Math.abs(courseFavored.first_course_win_probability-
+   courseFavored.winner_by_boat_number[6])<1e-12,
+   "course win probability must correspond to boat 6");
+ assert(Math.abs(courseFavored.first_boat_win_probability-
+   courseFavored.winner_by_boat_number[1])<1e-12,
+   "boat 1 win probability must not be confused with course 1");
+ const duplicateFrame=fixture(0);
+ duplicateFrame.context.entry_tilt_cross_features["6"].frame=1;
+ throws(()=>overlay.predict(duplicateFrame),"FRAME_COURSE_NOT_BIJECTIVE");
  const bank=Array.from({length:70},(_,i)=>{
   const input=fixture(i),ticket=i%3===0?"5-6-1":i%3===1?"1-2-3":"6-5-4";
   return {input,result_ticket:ticket,
@@ -109,7 +131,7 @@ function test(){
   "RESULT_CLOCK_OR_HASH_UNVERIFIED");
  assert(out.frozen.production_eligible===false&&
   out.future_performance_proven===false,"must not promote");
- return {test_cases:17,synthetic_train:out.train_races,
+ return {test_cases:21,synthetic_train:out.train_races,
   synthetic_holdout:out.holdout_races,holdout_log_loss:out.holdout.overlay.log_loss,
   source_verified:false,production_promotion:false};
 }

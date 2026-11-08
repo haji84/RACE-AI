@@ -46,14 +46,17 @@ function prepare(record){
   "SIXWAY_DYNAMIC_KADO_INVALID");
  const s=x.six_course_features;fields(s,STYLES);
  for(const key of STYLES)check(rate(s[key]),"SIXWAY_STYLE_HOLD_"+key);
- const entries=x.entry_tilt_cross_features,seen=new Set();
+ const entries=x.entry_tilt_cross_features,seen=new Set(),seenFrames=new Set(),courseByFrame={};
  for(let c=1;c<=6;c++){
   const e=entries?.[String(c)];
-  fields(e,["racer_id","tilt_deg","outer_high_tilt_marker",
+  fields(e,["frame","racer_id","tilt_deg","outer_high_tilt_marker",
    "historical_inward_move_win_rate","historical_outward_move_top3_rate",
    "inner_pressure_kept_course_rate"]);
   check(/^\d{4}$/.test(e.racer_id)&&!seen.has(e.racer_id),"SIXWAY_RACER_ID_DUPLICATE");
   seen.add(e.racer_id);
+  check(Number.isInteger(e.frame)&&e.frame>=1&&e.frame<=6&&
+   !seenFrames.has(e.frame),"SIXWAY_FRAME_COURSE_NOT_BIJECTIVE");
+  seenFrames.add(e.frame);courseByFrame[e.frame]=c;
   check(typeof e.tilt_deg==="number"&&Number.isFinite(e.tilt_deg)&&e.tilt_deg>=-.5&&
    e.tilt_deg<=3&&e.tilt_deg*2===Math.round(e.tilt_deg*2),"SIXWAY_TILT_UNKNOWN");
   check(e.outer_high_tilt_marker===(e.tilt_deg>=1.5&&(c>=4||c===f.kado_course)),
@@ -86,10 +89,13 @@ function prepare(record){
  const prior=TICKETS.map(ticket=>scores.get(ticket));
  check(Math.abs(prior.reduce((sum,v)=>sum+v,0)-1)<1e-7,"SIXWAY_BASELINE_NOT_NORMALIZED");
  return {race:x.race_id,asof,cutoff,prior,
-  vectors:TICKETS.map(t=>vector(t,s,entries,quality,f))};
+  frameByCourse:Object.fromEntries([1,2,3,4,5,6].map(c=>[c,entries[String(c)].frame])),
+  vectors:TICKETS.map(t=>vector(t,s,entries,quality,f,courseByFrame))};
 }
-function vector(ticket,s,e,q,f){
- const [a,b,c]=ticket.split("-").map(Number),out=Object.fromEntries(FACTORS.map(k=>[k,0]));
+function vector(ticket,s,e,q,f,courseByFrame){
+ // Official 3T ticket numbers are BOAT/FRAME numbers, not entry courses.
+ const [a,b,c]=ticket.split("-").map(n=>courseByFrame[Number(n)]);
+ const out=Object.fromEntries(FACTORS.map(k=>[k,0]));
  const attack=n=>n===1?s["1_nige"]:n===2?s["2_sashi"]+s["2_makuri"]:
   s[n+"_sashi"]+s[n+"_makuri"]+s[n+"_makurizashi"];
  for(const key of STYLES){
@@ -145,10 +151,12 @@ function predict(record,model=null){
  const result=softmax(p,coeff);
  const all=TICKETS.map((ticket,i)=>({ticket,probability:result[i]}))
   .sort((a,b)=>b.probability-a.probability||(a.ticket<b.ticket?-1:a.ticket>b.ticket?1:0));
- const byCourse={};
- for(let c=1;c<=6;c++)byCourse[c]=TICKETS.reduce((v,t,i)=>v+(t.startsWith(c+"-")?result[i]:0),0);
+ const byBoat={},byCourse={};
+ for(let boat=1;boat<=6;boat++)byBoat[boat]=TICKETS.reduce((v,t,i)=>v+(t.startsWith(boat+"-")?result[i]:0),0);
+ for(let c=1;c<=6;c++)byCourse[c]=byBoat[p.frameByCourse[c]];
  return {schema:SCHEMA,race_id:p.race,all_120:all,top8:all.slice(0,8),
-  winner_by_actual_course:byCourse,first_course_win_probability:byCourse[1],
+  winner_by_boat_number:byBoat,winner_by_actual_course:byCourse,
+  first_boat_win_probability:byBoat[1],first_course_win_probability:byCourse[1],
   first_course_nige_probability:null,sum_probability:result.reduce((a,b)=>a+b,0),
   research_mode:model===null?"UNCHANGED_BASELINE":"EXPERIMENTAL_OVERLAY",
   source_independently_verified:false,calibrated_probability:false,

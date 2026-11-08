@@ -3,7 +3,7 @@ const html=fs.readFileSync("web/boat-six-course-tactics-research.html","utf8");
 for(const s of ["connect-src 'none'","まくり差し","5・6コース","逃がし率",
 "チルト角度・スタート展示の進入","カド受け","前付けした時・外へ押し出された時",
 "今節の予選得点・暫定順位","RACE_AI_BOAT_EVENT_QUALIFYING_CONTEXT_V1",
-"RACE_AI_BOAT_P1_DYNAMIC_TACTICAL_CONTEXT_V1","最終の突破確定ではありません","3連単120通りの研究用確率","確率合計","校正済み・実未来精度改善の証拠はまだありません"])
+"RACE_AI_BOAT_P1_DYNAMIC_TACTICAL_CONTEXT_V1","最終の突破確定ではありません","3連単120通りの研究用確率","1号艇の1着率","確率合計","校正済み・実未来精度改善の証拠はまだありません"])
 assert.ok(html.includes(s),s);
 assert.doesNotMatch(html,/\bfetch\s*\(|\bXMLHttpRequest\b|<script[^>]+\bsrc=/);
 assert.ok(html.includes("textContent"));

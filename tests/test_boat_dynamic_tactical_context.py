@@ -122,6 +122,7 @@ class TacticalDynamicTests(unittest.TestCase):
             tilt(),profile,qualification=board())
         self.assertEqual(output["six_course_features"],features)
         self.assertEqual(output["formation"]["kado_course"],5)
+        self.assertEqual(output["entry_tilt_cross_features"]["6"]["frame"],6)
         self.assertIsNone(output["conditional_escape_probability"])
         self.assertFalse(output["future_calibration_completed"])
         bad=tilt();bad["rows"][0]["racer_id"]="4999"

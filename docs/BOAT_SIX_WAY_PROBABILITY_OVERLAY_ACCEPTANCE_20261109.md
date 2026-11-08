@@ -43,7 +43,11 @@ kado-uke, inward/outward prior success and current published ranking rates.
 This is an experimentally fitted statistical association, NOT causal proof
 that a specific racer actually blocked, attacked or altered the outcome.
 
-The model's first-course win share is P(1st finisher enters course 1), NOT
+Official 3T tickets denote BOAT/FRAME numbers, not actual entry courses.
+For example, if BOAT 6 enters actual course 1, that course's style features
+apply to BOAT 6, while the ticket remains 6-... . Explicit frame-to-course
+bijection is mandatory, including fronting/displacement.
+The first-course win share is P(the winner entered course 1), NOT
 P(winning method == nige). The latter is null until a separately verified,
 conditionally modeled winner-method result is available.
 

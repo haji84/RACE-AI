@@ -293,6 +293,7 @@ def six_way_research_context(matchup, tilt, entry_profiles, qualification=None):
     for row in tilt["rows"]:
         p = entry_profiles[row["racer_id"]]
         per_course[str(row["course"])] = {
+            "frame": row["frame"],
             "racer_id": row["racer_id"],
             "tilt_deg": row["tilt_deg"],
             "outer_high_tilt_marker": row["outer_high_tilt_marker"],

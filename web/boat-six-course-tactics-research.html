@@ -153,7 +153,7 @@ if(predicted){
     throw Error("確率合計または買い目の重複に不整合");
  const section120=section("3連単120通りの研究用確率");
  text(section120,"本体予想を上書きしない参考値。校正済み・実未来精度改善の証拠はまだありません。");
- text(section120,"確率合計："+(total*100).toFixed(6)+"%。1コースの1着率："+rate(predicted.first_course_win_probability)+"（逃げ決まり手の確率とは別）");
+ text(section120,"確率合計："+(total*100).toFixed(6)+"%。1号艇の1着率："+rate(predicted.first_boat_win_probability)+"、1コースの1着率："+rate(predicted.first_course_win_probability)+"（逃げ決まり手の確率とは別）");
  const details=el("details"),summary=el("summary",null,"120通りの確率をすべて表示");
  details.append(summary);
  const table=el("table"),body=el("tbody");table.append(body);
