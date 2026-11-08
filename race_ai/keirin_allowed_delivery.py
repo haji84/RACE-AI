@@ -398,6 +398,10 @@ def assemble_permitted_pre_race(delivery, *, grant_check, checked_at):
         "unverified_critical_keys": sorted(required_missing),
         "missing_model_inputs": sorted(missing_features),
         "model_inputs_generated": len(consumed),
+        "unique_verified_source_items_consumed": len(set(consumed.values())),
+        "verified_audit_only_items": len(set(approved) - set(consumed.values())),
+        "source_items_checked_but_not_used_as_numeric_features":
+            sorted(set(approved) - set(consumed.values())),
         "network_requests": 0,
         "model_status": "NOT_RUN",
         "rights_certified_by_this_module": False,
