@@ -19,6 +19,7 @@ from race_ai.keirin_permissioned_owner import (
     LicenseDeliveryError, load_operator_grants, stage_permissioned_deliveries
 )
 from race_ai.four_sport_model_suite import run_suite, verify_suite
+from race_ai.keirin_licensed_api_ingest import fetch_licensed_export_once
 
 
 def main(argv=None):
@@ -28,9 +29,24 @@ def main(argv=None):
     parser.add_argument("--grant-manifest", required=True)
     parser.add_argument("--operator-reviewed-licenses", action="store_true",
                         help="Owner verified origin, permitted purposes and expiry out-of-band")
+    parser.add_argument("--provider-endpoint", default=None,
+                        help="explicitly licensed machine JSON feed endpoint; omitted means NO HTTP")
+    parser.add_argument("--provider-rights-ref", default=None,
+                        help="exact machine-acquisition rights reference in private grant")
+    parser.add_argument("--api-token-env", default=None,
+                        help="environment VARIABLE NAME containing optional provider bearer token")
     parser.add_argument("--loop", action="store_true")
     parser.add_argument("--interval-seconds", type=int, default=120)
     args = parser.parse_args(argv)
+    if bool(args.provider_endpoint) != bool(args.provider_rights_ref):
+        print('{"state":"INCOMPLETE_LICENSED_PROVIDER_CONFIG"}')
+        return 2
+    if args.api_token_env is not None and (
+            not args.provider_endpoint or
+            not args.api_token_env.replace("_", "").isalnum() or
+            len(args.api_token_env) > 100):
+        print('{"state":"INVALID_PRIVATE_API_TOKEN_ENV"}')
+        return 2
     if not args.operator_reviewed_licenses or not 60 <= args.interval_seconds <= 3600:
         print('{"state":"SOURCE_LICENSE_REVIEW_NOT_ACKNOWLEDGED"}')
         return 2
@@ -61,6 +77,19 @@ def main(argv=None):
                 # Reload grants every cycle; expired rights never remain valid
                 # in an unattended long-running process.
                 grants = load_operator_grants(manifest, now=now)
+                fetch_report = None
+                if args.provider_endpoint:
+                    token = (os.environ.get(args.api_token_env)
+                             if args.api_token_env else None)
+                    if args.api_token_env and not token:
+                        print('{"state":"LICENSED_FEED_TOKEN_UNCONFIGURED"}')
+                        return 2
+                    fetch_report = fetch_licensed_export_once(
+                        inbox, grants,
+                        endpoint=args.provider_endpoint,
+                        rights_ref=args.provider_rights_ref,
+                        token=token,
+                    )
                 stage = stage_permissioned_deliveries(inbox, grants, now=now)
                 engine = KeirinPrivateSpool(
                     store, model_suite=run_suite, model_verifier=verify_suite,
@@ -73,7 +102,9 @@ def main(argv=None):
                 print(json.dumps({
                     "schema": "RACE_AI_KEIRIN_LICENSED_LOCAL_CYCLE_V1",
                     "stage": stage, "spool": settled,
-                    "automatic_provider_fetch": False,
+                    "automatic_provider_fetch": fetch_report is not None,
+                    "provider_network_requests": (fetch_report["http_requests"]
+                                                  if fetch_report else 0),
                     "official_pre_cutoff_witness": False,
                     "licensed_rights_verified_by_program": False,
                     "commercial_use_authorized_by_program": False,
