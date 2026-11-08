@@ -212,6 +212,13 @@ def ordered_result_targets(*,fresh,bootstrap,new_stats,old,other_due,revisions,
     remaining=max_requests-used_requests
     # Never displace today's venue/bootstrap headers to resolve older backlog.
     # After current venue discovery, spend at most one existing slot on old due cases.
+    protected=len(fresh)+len(bootstrap)
+    if old and remaining>protected:
+        # Keep urgent same-day results and venue discovery. One old day
+        # can use a slot otherwise spent on lower-priority statistics.
+        before=max(protected,remaining-1)
+        return (prioritized[:before]+old[:1]+prioritized[before:]+old[1:]+
+                list(other_due)+list(revisions))
     if old and remaining and not bootstrap and (remaining>1 or not prioritized):
         before=max(0,remaining-1)
         return (prioritized[:before]+old[:1]+prioritized[before:]+old[1:]+

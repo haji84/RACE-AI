@@ -176,6 +176,14 @@ class AllHistoryLedgerTests(unittest.TestCase):
             old=['old1'],other_due=[],revisions=[],max_requests=1,used_requests=0)
         self.assertEqual(q[:2],['current1','old1'])
 
+    def test_old_due_has_a_slot_after_current_venue_bootstrap(self):
+        q=L.ordered_result_targets(fresh=['current1','current2'],bootstrap=['venue1','venue2','venue3'],
+           new_stats=['stat'+str(i) for i in range(6)],old=['old1'],
+           other_due=[],revisions=[],max_requests=9,used_requests=0)
+        self.assertEqual(q[:5],['current1','current2','venue1','venue2','venue3'])
+        self.assertEqual(q[8],'old1')
+        self.assertEqual(len(q),12)
+
     def test_resume_does_not_reset_scanned_months(self):
         doc=self.fresh();L.record_scanned(doc,'2024-01-01');L.record_scanned(doc,'2025-01-01')
         again=L.ledger({'result_due_ledger':doc},now=NOW)
