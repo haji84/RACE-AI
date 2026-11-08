@@ -1,0 +1,91 @@
+name: WINTICKET Matsuyama 9R uncut live screencast pilot
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/keirin_winticket_9r_live_capture.py'
+      - 'tests/test_keirin_winticket_live_capture.py'
+      - '.github/workflows/keirin-winticket-9r-live-capture.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  timed-capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 16
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+            tests
+            docs
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install browser recording dependencies
+        run: |
+          python -m pip install playwright==1.56.0 'cryptography>=44,<48'
+          python -m playwright install chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Check synthetic pre-race/finish logic
+        run: |
+          python -m unittest discover -s tests -p 'test_keirin_winticket_live_capture.py' -v
+      - name: Record 2026-11-08 Matsuyama 9R before start to after finish
+        id: live_capture
+        continue-on-error: true
+        run: |
+          python -m scripts.keirin_winticket_9r_live_capture \
+            --report "$RUNNER_TEMP/matsuyama-9R-capture.json" \
+            --encrypted-dir "$RUNNER_TEMP/matsuyama-9R-sealed" \
+            --public-key docs/keirin-replay-pilot-public.pem
+      - name: Keep only encrypted screencast and wrapped key
+        if: steps.live_capture.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: winticket-matsuyama-9R-20261108-live-screen-sealed
+          path: ${{ runner.temp }}/matsuyama-9R-sealed/
+          retention-days: 2
+          if-no-files-found: error
+      - name: State clear evidence boundaries
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,os
+          p=Path(os.environ['RUNNER_TEMP'])/'matsuyama-9R-capture.json'
+          d=json.loads(p.read_text()) if p.exists() else {}
+          lines=[
+            '## WINTICKET Matsuyama 9R one-shot live browser recording',
+            '- Scheduled start: 2026-11-08 23:20 JST (verify current schedule for changes)',
+            f"- Attempt status: {d.get('status','NOT_RUN')}",
+            f"- Actual recording began: {d.get('first_capture_clock','UNVERIFIED')}",
+            f"- Actual recording ended: {d.get('last_capture_clock','UNVERIFIED')}",
+            f"- Start gate: {d.get('start_gate',False)}",
+            f"- Finish gate: {d.get('finish_gate',False)}",
+            f"- Temporal continuity: {d.get('technical_coverage',False)}",
+            f"- Verified browser samples: {d.get('sample_count',0)}",
+            f"- Encrypted recordings: {d.get('encrypted_count',0)}",
+            f"- Four racing laps visually confirmed: {d.get('whole_four_laps_visual_confirmation','NOT_VERIFIED')}",
+            '- A complete screen recording never by itself proves four complete racing laps.',
+            '- No public plaintext video, API stream extraction, or DRM bypass.',
+          ]
+          Path(os.environ['GITHUB_STEP_SUMMARY']).write_text('\n'.join(lines)+'\n')
+          print('\n'.join(lines))
+          PY
+      - name: Reject incomplete screen record
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import os,json
+          p=Path(os.environ['RUNNER_TEMP'])/'matsuyama-9R-capture.json'
+          d=json.loads(p.read_text()) if p.exists() else {}
+          if d.get('status')!='LIVE_WINDOW_CAPTURED' or d.get('encrypted_count')!=1:
+              raise SystemExit('NOT_VERIFIED: scheduled live recording incomplete')
+          print('Timing and encryption proven; full four-lap VISUAL audit remains independent.')
+          PY
