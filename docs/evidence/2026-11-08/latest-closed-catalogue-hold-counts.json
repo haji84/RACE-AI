@@ -1,0 +1,42 @@
+{
+  "schema": "RACE_AI_LATEST_CLOSED_CATALOGUE_HOLD_ACTUAL_V1",
+  "run_id": 42449229845,
+  "job_id": 128634658941,
+  "head_sha": "760c6b81a01590e51f515e27c1467132e90e2847",
+  "run_conclusion": "failure",
+  "reports": [
+    {
+      "status": "FIVE_GATES_SAVED_DATA_VERIFICATION_READY",
+      "official_source_requests": 0
+    },
+    {
+      "diagnostics": {
+        "blob_bytes_read": 11202,
+        "capture_bundles_restored": 0,
+        "cause_codes": [],
+        "code_sites": [
+          "boat_retained_run_verify.py:336:main",
+          "boat_retained_run_verify.py:188:verify",
+          "boat_retained_run_verify.py:91:_need"
+        ],
+        "error_code": "CLOSED_RUN_CATALOGUE_REQUIRED",
+        "exception_type": "ValueError",
+        "originals_restored": 0,
+        "stage": "CATALOGUE"
+      },
+      "live_artifact_requests": 0,
+      "official_source_requests": 0,
+      "plaintext_published": false,
+      "reason": "CLOSED_RUN_CATALOGUE_REQUIRED",
+      "status": "RETAINED_RUN_VERIFICATION_HOLD",
+      "upstream_writes": 0
+    }
+  ],
+  "selected_source_run_id": 42439206540,
+  "selected_source_head_sha": "ac3f302f646fdafede90565e6b6f32560ace062f",
+  "next_action": "EXISTING_BOUNDED_CLOSED_INVENTORY_BACKFILL_THEN_AUTHENTICATED_RESTORE",
+  "source_requests": 0,
+  "live_artifact_requests": 0,
+  "missing_original_payloads_proven": false,
+  "complete": false
+}
