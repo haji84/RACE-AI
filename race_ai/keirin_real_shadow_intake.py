@@ -38,16 +38,31 @@ def stage_sourced_shadows(inbox, *, grant_check, now, max_sources=150):
     dest.mkdir(mode=0o700,exist_ok=True)
     if dest.is_symlink():
         raise ShadowIntakeError("SYMLINKED_OUTPUT_DIR_NOT_ALLOWED")
-    candidates=sorted(source.glob("*.json"))
-    if len(candidates)>max_sources:
-        raise ShadowIntakeError("TOO_MANY_PRIVATE_SOURCES")
+    all_paths=list(source.glob("*.json"))
     found=set()
     states=Counter()
-    for p in candidates:
-        if p.is_symlink() or p.stat().st_size>2_000_000:
-            states["source_untrusted_or_too_large"]+=1
-            continue
+    # Bounded rolling window: a growing private archive must not disable the
+    # new-race monitoring loop. Skip oldest source files and disclose the
+    # coverage gap. Raw sources are never deleted or rewritten.
+    newest=[]
+    for p in all_paths:
         try:
+            if p.is_symlink():
+                states["source_untrusted_or_too_large"]+=1
+                continue
+            newest.append((p.stat().st_mtime_ns,p))
+        except OSError:
+            states["source_untrusted_or_too_large"]+=1
+    newest.sort(key=lambda x:(-x[0],str(x[1])))
+    candidates=[path for _,path in newest[:max_sources]]
+    skipped=max(0,len(newest)-len(candidates))
+    if skipped:
+        states["older_sources_outside_bounded_window"]=skipped
+    for p in candidates:
+        try:
+            if p.is_symlink() or p.stat().st_size>2_000_000:
+                states["source_untrusted_or_too_large"]+=1
+                continue
             packet=json.loads(p.read_text(encoding="utf-8"))
             if packet.get("schema")!="RACE_AI_KEIRIN_PERMISSIONED_DELIVERY_V1":
                 states["not_a_supported_pre_race_source"]+=1
@@ -82,7 +97,9 @@ def stage_sourced_shadows(inbox, *, grant_check, now, max_sources=150):
     return {
         "schema":"RACE_AI_KEIRIN_SOURCE_GROUNDED_SHADOW_STAGE_V1",
         "counts":dict(sorted(states.items())),
-        "all_races_checked_in_private_source_files":len(candidates),
+        "private_source_files_inspected":len(candidates),
+        "private_source_files_in_archive":len(all_paths),
+        "bounded_archive_coverage_complete":skipped==0,
         "model_id":MODEL,
         "source_network_requests":0,
         "official_PR71_forecasts_generated":0,
