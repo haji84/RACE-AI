@@ -154,6 +154,27 @@ class SparseRealRiderShadowTests(unittest.TestCase):
             self.assertEqual(twice["counts"].get("already_shadow_saved"),1)
             self.assertEqual(saved[0].read_bytes(),saved[0].read_bytes())
 
+    def test_private_archive_growth_does_not_block_new_future_race(self):
+        from race_ai.keirin_real_shadow_intake import stage_sourced_shadows
+        from race_ai.keirin_result_delivery import canonical
+        with tempfile.TemporaryDirectory() as d:
+            root=Path(d)
+            (root/"raw").mkdir()
+            for i in range(160):
+                (root/"raw"/("%03d.json"%i)).write_text('{"old":true}')
+            (root/"raw"/"newest_future.json").write_bytes(
+                canonical(fixture()))
+            report=stage_sourced_shadows(
+                root,grant_check=grants().allowed,now=ISSUED,
+                max_sources=150)
+            self.assertEqual(report["private_source_files_in_archive"],161)
+            self.assertFalse(report["bounded_archive_coverage_complete"])
+            self.assertEqual(
+                report["counts"]["older_sources_outside_bounded_window"],11)
+            self.assertEqual(
+                report["counts"]["private_shadow_research_saved"],1)
+            self.assertEqual(len(list((root/"shadow_pre").glob("*.json"))),1)
+
     def test_immutable_private_research_does_not_replace_history(self):
         item=execute()
         with tempfile.TemporaryDirectory() as d:
