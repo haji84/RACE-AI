@@ -92,6 +92,83 @@ def get_public_html_once(url):
         require(0<len(body)<=MAX_HTML,"BODY_EMPTY_OR_TOO_BIG")
         return body
 
+def preloaded_schema_only(text):
+    """Inspect JSON paths/counts only, never return original values."""
+    found=re.search(r'window\.__PRELOADED_STATE__\s*=\s*',text)
+    if not found:
+        return {"status":"NO_PRELOADED_STATE"}
+    raw=text[found.end():].lstrip()
+    decoder=json.JSONDecoder(
+        parse_constant=lambda v: (_ for _ in ()).throw(ValueError(
+            "NONFINITE_SOURCE_JSON")))
+    try:
+        if raw.startswith("{"):
+            tree,unused=decoder.raw_decode(raw)
+            assignment_kind="object"
+        elif raw.startswith("JSON.parse("):
+            encoded,unused=decoder.raw_decode(raw[len("JSON.parse("):])
+            if not isinstance(encoded,str):
+                return {"status":"JSON_PARSE_WRAPPER_NOT_STRING"}
+            tree=json.loads(encoded)
+            assignment_kind="json_parse"
+        else:
+            return {"status":"UNKNOWN_PRELOADED_ASSIGNMENT"}
+    except (ValueError,TypeError,RecursionError):
+        return {"status":"PRELOADED_PARSE_FAILED"}
+    if not isinstance(tree,dict):
+        return {"status":"PRELOADED_NOT_OBJECT"}
+    # Limit traversal to prevent giant nested source from occupying all CI.
+    top_keys=[k for k in tree if isinstance(k,str) and
+              re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{1,42}',k)]
+    stack=[("",tree,0)]
+    interesting=[]
+    exact_210=[]
+    exact_504=[]
+    inspected=0
+    while stack and inspected<120000:
+        path,node,depth=stack.pop()
+        inspected+=1
+        if depth>11:
+            continue
+        if isinstance(node,dict):
+            for key,value in list(node.items())[:900]:
+                name=(key if isinstance(key,str) and
+                      re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]{1,42}',key)
+                      else "[map-key]")
+                child_path=(path+"."+name) if path else name
+                is_candidate=any(term in name.lower() for term in (
+                    "odds","trifecta","bet","race","payout"))
+                if is_candidate and len(interesting)<65:
+                    interesting.append({
+                        "path":child_path,
+                        "value_type":type(value).__name__,
+                        "container_length":(
+                            len(value) if isinstance(value,(dict,list))
+                            else None),
+                    })
+                if depth<11 and isinstance(value,(list,dict)):
+                    stack.append((child_path,value,depth+1))
+        elif isinstance(node,list):
+            if len(node)==210 and len(exact_210)<14:
+                exact_210.append(path)
+            if len(node)==504 and len(exact_504)<14:
+                exact_504.append(path)
+            for item in node[:900]:
+                if isinstance(item,(dict,list)) and depth<11:
+                    stack.append((path+"[*]",item,depth+1))
+    return {
+        "status":"PRELOADED_JSON_PARSED",
+        "assignment_kind":assignment_kind,
+        "top_key_names":top_keys[:38],
+        "nodes_inspected":inspected,
+        "traversal_truncated":bool(stack),
+        "odds_and_race_key_paths":interesting,
+        "array_length_210_paths":exact_210,
+        "array_length_504_paths":exact_504,
+        "full_210_prices_verified":False,
+    }
+
+
 def summarize_html(body):
     require(type(body) is bytes and 0<len(body)<=MAX_HTML,
             "SOURCE_BYTES_INVALID")
@@ -183,6 +260,7 @@ def summarize_html(body):
         "page_structure_markers":markers,
         "script_shape_samples":script_meta,
         "inline_script_structural_shapes":shape_rows,
+        "preloaded_structure":preloaded_schema_only(text),
         "input_count":analyzer.inputs,
         "contains_trifecta_label":("3連単" in text),
         "contains_aomori_label":("青森" in text),
