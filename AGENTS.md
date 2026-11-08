@@ -70,3 +70,12 @@ The owner explicitly instructed after the Cloudflare shutdown: 「GitHubで出�
 - Continue to require `RACE_AI_STATE_KEY` only inside a trusted-main runtime. The production archiver must check both the exact owner consent record and the runtime acknowledgement token; neither is sufficient without independently reviewed source rights, real complete pre-cutoff data, trusted producer lineage and AEAD readback.
 - Preserve synthetic `state/keirin/v1/` history. Only approved encrypted production snapshots may use a separate `state/keirin/production/v1/` lineage on the existing state branch. Do not enable a producer, publish a live blob or promote main from PR CI alone.
 - Current source licensing and true 210/504-way odds delivery are **not verified**. No source rights or data are created by an owner ciphertext permission. Stop safely if absent.
+
+## 2026-11-09: WINTICKET / KEIRIN.JP approved as owner's PERSONAL reference sources
+
+- The owner explicitly confirmed: 「ウィンチケット、KEIRIN.JPは使用できる。OKだ！」. Use KEIRIN.JP for official schedule/entrant/result reference and WINTICKET for racecards, form, videos (subject to separate video terms) and odds cross-checking.
+- For **already owner-saved material**, use the exact-host profile `owner-approved-winticket-keirinjp-20261109` in `race_ai/keirin_owner_approved_sources.py`, with `--personal-manual --owner-private-use-confirmed` in `scripts.keirin_permissioned_owner_agent`. The profile lists only keirin.jp / www.keirin.jp / winticket.jp / www.winticket.jp.
+- This is the owner's use approval, NOT an independently authenticated provider machine-access grant. It must not be interpreted as permission for automated page scraping, internal/undocumented APIs, bulk downloads, paid distribution or website duplication. The existing licensed one-GET V2 feeder remains gated by independently checked provider rights for `automated_fetch`.
+- Keep separate source and capture timestamps, rights scope, all 347/437 preflight item statuses and first-forecast SHA. All 210/504 odds must be genuinely available and complete before variable-ticket research; no guessed prices or results information in model inputs.
+- Official WINTICKET terms: https://www.winticket.jp/terms (article 15); official KEIRIN.JP policy: https://keirin.jp/pc/dfw/portal/guest/policy/index.html. Personal reading/use and full automatic data export have different conditions.
+- This source selection does not start a GitHub real-data producer, create a live forecast, or change the owner's distinct consent for public AES-GCM ciphertext.
