@@ -84,6 +84,23 @@ class HistoricalInputInventoryTests(unittest.TestCase):
         self.assertEqual(batch["pr71_real_full_sources_admitted"],0)
         self.assertFalse(row["ready_for_pr71_asof_comparison"])
 
+    def test_second_race_reconstruction_from_other_model_still_blocks_pr71(self):
+        from tests.test_keirin_historical_sparse_feature_probe import second_reference
+        source=second_reference()
+        source["all_210"]=[{} for _ in range(210)]
+        one=inspect_archive_document(source)
+        self.assertEqual(one["strict_second_race_probe_status"],
+                         "CANDIDATES_ONLY")
+        self.assertEqual(one["candidate_feature_counts"][
+            "required_candidates_normalized_not_admitted"],14)
+        self.assertEqual(one["candidate_feature_counts"][
+            "required_slots_not_supported"],70)
+        self.assertFalse(one["ready_for_pr71_asof_comparison"])
+        batch=private_batch_inventory([source])
+        self.assertEqual(batch[
+            "observed_required_model_slots_reconstructed_as_candidates"],14)
+        self.assertEqual(batch["pr71_real_full_sources_admitted"],0)
+
     def test_invalid_historical_row_count_fail_closed(self):
         with self.assertRaisesRegex(HistoricalInventoryError,"RANK_COUNT"):
             inspect_archive_document({
