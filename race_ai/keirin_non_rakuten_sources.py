@@ -54,6 +54,16 @@ SOURCE_CATALOG = (
         "automated_machine_collection_status": "UNVERIFIED",
     },
     {
+        "source_id": "keirin_hex",
+        "name": "KEIRIN HEX",
+        "hosts": ("keirinhex.jp", "www.keirinhex.jp"),
+        "evidence_url": "https://keirinhex.jp/",
+        "direct_data": ("pre_race_line_guess", "racecard", "race_score",
+                        "starter_counts", "S_H_B", "style_counts",
+                        "gear_ratio", "bank_geometry"),
+        "automated_machine_collection_status": "UNVERIFIED",
+    },
+    {
         "source_id": "netkeirin",
         "name": "netkeirin",
         "hosts": ("keirin.netkeiba.com", "keirin.netkeiba.net"),
