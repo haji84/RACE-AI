@@ -216,8 +216,15 @@ class KeirinPrivateSpool:
         old=self.store.get_persisted_forecast(race_id)
         if old is None:
             return "VARIABLE_ORIGINAL_FORECAST_MISSING"
-        if self.variable_store.selection(race_id,MODEL) is not None:
-            return "VARIABLE_ALREADY_PRIVATE_FROZEN"
+        prior=self.variable_store.selection(race_id,MODEL)
+        if prior is not None:
+            try:
+                same=(model_digest(odds)==
+                      prior["selection"]["odds_snapshot_sha256"])
+            except (TypeError,ValueError):
+                same=False
+            return ("VARIABLE_ALREADY_PRIVATE_FROZEN" if same
+                    else "VARIABLE_POST_FREEZE_ODDS_CONFLICT")
         try:
             now=self._time()
             cutoff=utc(old["forecast"]["official_cutoff_at"])
@@ -275,13 +282,15 @@ class KeirinPrivateSpool:
         try:
             insertion=self.store.add_result_observation(result)
             scored=self.store.research_audit(result["race_id"])
-            # Sidecar audit always observes the same latest source revision.
-            # No rewrite of the original forecast or original audit.
-            self.variable_store.audit_latest(result["race_id"],MODEL)
-            if insertion.get("state")=="ALREADY_PRESENT":
-                return "RESULT_ALREADY_SEEN_NO_RECOUNT"
         except (ValueError,TypeError,KeyError):
             return "RESULT_REJECTED_OR_NOT_ADMITTED"
+        try:
+            # Separate audit of latest revision, never a rewrite of old results.
+            self.variable_store.audit_latest(result["race_id"],MODEL)
+        except (ValueError,TypeError,KeyError):
+            return "RESULT_SAVED_VARIABLE_AUDIT_NEEDS_RETRY"
+        if insertion.get("state")=="ALREADY_PRESENT":
+            return "RESULT_ALREADY_SEEN_NO_RECOUNT"
         if scored.get("research_hit8") is True:
             return "REFERENCE_HIT8_RESEARCH"
         if scored.get("research_hit8") is False:
