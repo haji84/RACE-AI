@@ -102,6 +102,7 @@ class LiveFourLapAuditTest(unittest.TestCase):
                          "PLAYER_UNHEALTHY")
         runtime=mocked_runtime(p)
         runtime["media_samples"].pop(5)
+        runtime["media_samples"].pop(5)
         self.assertEqual(coverage_gate(p,runtime,synthetic=True)["status"],
                          "HEARTBEAT_GAP")
         runtime=mocked_runtime(p)
