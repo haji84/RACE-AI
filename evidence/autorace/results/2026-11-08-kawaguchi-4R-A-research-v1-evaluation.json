@@ -1,0 +1,73 @@
+{
+  "schema": "autorace_research_result_audit_v1",
+  "observation_time_jst": "2026-11-08T15:24:02+09:00",
+  "race": "2026-11-08:kawaguchi:4R",
+  "original": {
+    "filename": "autorace_20261108_kawaguchi_4R_A_research_v1.json",
+    "sha256": "cd2282bc18a7f936ca454fd41b4a27f07ed2779a38ceb59f415957cb62ee5699",
+    "original_issue_time_jst": "2026-11-08T11:51:46+09:00",
+    "pre_cutoff_hash_commit": "46458db32b210a1caa89fdd7be8990634eb41d10",
+    "classification": "A_PROVISIONAL_trial_timing_not_independently_verified",
+    "trained_model_output": false
+  },
+  "official": {
+    "result_url": "https://autorace.jp/race_info/RaceResult/kawaguchi/2026-11-08_4",
+    "condition": "良走路",
+    "top_three": [
+      7,
+      6,
+      8
+    ],
+    "trifecta": "7-6-8",
+    "trifecta_payout_yen_per_100": 1120,
+    "refunds_confirmed": [],
+    "actual_trial_sec": {
+      "6": 3.34,
+      "7": 3.29,
+      "8": 3.34
+    },
+    "actual_st_sec": {
+      "6": 0.17,
+      "7": 0.25,
+      "8": 0.16
+    },
+    "competition_time_sec": {
+      "6": 3.424,
+      "7": 3.413,
+      "8": 3.422
+    }
+  },
+  "evaluation": {
+    "unit_stake_yen": 100,
+    "research_A_provisional": {
+      "basic8": {
+        "hits": 0,
+        "stake_yen": 800,
+        "payout_yen": 0,
+        "net_yen": -800,
+        "return_rate_percent": 0
+      },
+      "extended12": {
+        "hits": 0,
+        "stake_yen": 1200,
+        "payout_yen": 0,
+        "net_yen": -1200,
+        "return_rate_percent": 0
+      },
+      "winner7_in_first_position_picks": false
+    },
+    "certified_A": {
+      "status": "NOT_ELIGIBLE_PHASE_UNVERIFIED"
+    },
+    "B": {
+      "status": "NOT_ISSUED"
+    },
+    "actual_purchase": "UNCONFIRMED",
+    "model_scoreboard_update": false
+  },
+  "analysis": {
+    "observed": "7号車田中茂は試走3.29で8号車平田雅崇3.34を上回り、1着。8号車は3着。7号車を全買い目の1着候補から外したため全滅。",
+    "hypothesis": "最近10走の勝率と過去平均競走タイムへの重みが強すぎ、今回の7号車の当日試走上振れを取り込めなかった可能性。試走前Aとしては実試走を使えないため、これは次回B予想の評価項目として検証する。",
+    "caveats": "Aの試走実施前認定が独立確認されていない。成績は正式A/学習済みRACE-AIに混ぜない。失敗を確認しても既存予想原本を変更しない。"
+  }
+}
