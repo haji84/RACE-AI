@@ -22,9 +22,10 @@ MAX_GRANTS = 30
 MAX_DOC_BYTES = 1_000_000
 MAX_JSON_BYTES = 2_000_000
 MAX_RAW_FILES = 200
-PURPOSES = frozenset({
+BASE_PURPOSES = frozenset({
     "schedule", "pre_race", "analysis", "model_inference", "private_retention"
 })
+PURPOSES = BASE_PURPOSES | {"automated_fetch"}
 
 
 class LicenseDeliveryError(ValueError):
@@ -99,8 +100,8 @@ class OperatorLicenseGrants:
                   type(row["rights_ref"]) is str and
                   1 <= len(row["rights_ref"]) <= 256 and
                   type(row["purposes"]) is list and
-                  set(row["purposes"]) == PURPOSES and
-                  len(row["purposes"]) == len(PURPOSES),
+                  BASE_PURPOSES <= set(row["purposes"]) <= PURPOSES and
+                  len(row["purposes"]) == len(set(row["purposes"])),
                   "GRANT_SCOPE_INVALID")
             _need(utc(row["valid_from"]) <= self.now < utc(row["valid_until"]),
                   "GRANT_EXPIRED_OR_NOT_YET_VALID")
