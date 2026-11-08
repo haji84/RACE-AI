@@ -1,0 +1,12 @@
+SHA256(autorace_20261108_kawaguchi_12R_B_research_v1.json)=50bf5ac1d1bcdd237aad088f5e41949bfbcf1e4ccb9a09540ad912173a45c8e5
+race=2026-11-08:kawaguchi:12R
+version=20261108-kawaguchi-12r-B-research-v1
+created_at_jst=2026-11-08T16:23:16+09:00
+phase=B_POST_TRIAL_RESEARCH_UNCALIBRATED
+cutoff_jst=2026-11-08T16:33:00+09:00
+source=https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/2/12
+prior_A_version=20261108-kawaguchi-12r-A-research-v1
+prior_A_raw_sha256=81c8c0a6ba11d0cce197618a60599393d5512619bbcd446cd8e3e0e498b743fe
+model=RESEARCH_ONLY_UNCALIBRATED
+no_bets_or_raw_forecast_uploaded=true
+immutable_forecast=true
