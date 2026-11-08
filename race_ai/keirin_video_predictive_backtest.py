@@ -44,11 +44,21 @@ def when(s):
 def verified_id(x):
     return isinstance(x,str) and PATTERN.fullmatch(x) is not None
 
-def verify_record(r):
+def verify_record(r, *, trusted_source_admission=None):
     """Strictly separate pre-race facts from after-race labels and film."""
     demand(isinstance(r,dict) and set(r)=={
-        "schema","race_id","pre","post"},"PAIR_SCHEMA_INVALID")
+        "schema","race_id","source_scope","pre","post"},"PAIR_SCHEMA_INVALID")
     demand(r["schema"]==PAIR_SCHEMA,"PAIR_VERSION_INVALID")
+    demand(r["source_scope"] in ("SYNTHETIC_ONLY","OPERATOR_SUPPLIED_RESEARCH"),
+           "INVALID_SOURCE_SCOPE")
+    if r["source_scope"]=="OPERATOR_SUPPLIED_RESEARCH":
+        demand(callable(trusted_source_admission),
+               "TRUSTED_SOURCE_ADMISSION_REQUIRED")
+        try:
+            admitted=trusted_source_admission(r) is True
+        except Exception:
+            admitted=False
+        demand(admitted,"SOURCE_RIGHTS_AND_PROVENANCE_NOT_ATTESTED")
     pre,post=r["pre"],r["post"]
     demand(isinstance(pre,dict) and set(pre)=={
         "as_of","cutoff","snapshot_sha256","baseline_sha256",
@@ -105,6 +115,8 @@ def verify_record(r):
                "BASELINE_PROB_INVALID")
         total+=prob
     demand(abs(total-1.)<=1e-7,"BASELINE_MASS_NOT_ONE")
+    demand(pre["baseline_sha256"]==digest(candidate),
+           "BASELINE_PROBABILITIES_DIGEST_MISMATCH")
     order=post["result_ordered_top3"]
     demand(isinstance(order,list) and len(order)==3 and
            tuple(order) in combinations,"RESULT_ORDER_MISSING_IN_BASELINE")
@@ -123,11 +135,11 @@ def verify_record(r):
                    "TACTICAL_LABEL_NOT_BINARY")
     return r
 
-def _trait_history(previous, now):
+def _trait_history(previous, now, *, trusted_source_admission=None):
     """Only film already reviewed BEFORE the target as-of is available."""
     out={}
     for history in previous:
-        verify_record(history)
+        verify_record(history,trusted_source_admission=trusted_source_admission)
         if when(history["post"]["video_reviewed_at"])>=now:
             continue
         for tr in history["post"]["tactics"]:
@@ -154,9 +166,10 @@ def _pre_triplet_features(order,by_num,history):
         float(a==b==c),
     )
 
-def score_one(record, earlier_verified, weights):
+def score_one(record, earlier_verified, weights, *,
+              trusted_source_admission=None):
     """Produce all-triple probabilities without reading THIS race video labels."""
-    verify_record(record)
+    verify_record(record,trusted_source_admission=trusted_source_admission)
     demand(len(weights)==len(FIELD_NAMES) and
            all(type(x) in (int,float) and math.isfinite(x) and abs(x)<=2.0
                for x in weights),"WEIGHTS_INVALID")
@@ -165,7 +178,8 @@ def score_one(record, earlier_verified, weights):
         demand(earlier["race_id"]!=record["race_id"],"TARGET_VIDEO_LEAK")
         demand(when(earlier["post"]["video_reviewed_at"])<start,
                "FUTURE_VIDEO_LEAK")
-    history=_trait_history(earlier_verified,start)
+    history=_trait_history(earlier_verified,start,
+                           trusted_source_admission=trusted_source_admission)
     by_num={x["number"]:x for x in record["pre"]["participants"]}
     scores=[];features=[]
     for row in record["pre"]["baseline_probabilities"]:
@@ -212,7 +226,7 @@ def _gradient(record, pred):
     return [x[i][k]-avg[k] for k in range(len(FIELD_NAMES))]
 
 def fit_earlier_historical(records, *, min_races=20, epochs=60,
-                           rate=.07, regularization=.3):
+                           rate=.07, regularization=.3, trusted_source_admission=None):
     """Train sequentially without incorporating target film into its features.
 
     Training outcome can update coefficients AFTER its stored frozen pre-race
@@ -223,7 +237,8 @@ def fit_earlier_historical(records, *, min_races=20, epochs=60,
     ordered=sorted(records,key=lambda r:when(r["pre"]["as_of"]))
     demand(len({r["race_id"] for r in ordered})==len(ordered),
            "DUPLICATE_RACES")
-    for r in ordered:verify_record(r)
+    for r in ordered:
+        verify_record(r,trusted_source_admission=trusted_source_admission)
     w=[0.]*len(FIELD_NAMES)
     for epoch in range(epochs):
         gradient=[0.]*len(w)
@@ -232,7 +247,8 @@ def fit_earlier_historical(records, *, min_races=20, epochs=60,
             prev=[p for p in ordered[:i]
                   if when(p["post"]["video_reviewed_at"])<when(r["pre"]["as_of"])]
             if not prev:continue
-            pred=score_one(r,prev,w)
+            pred=score_one(r,prev,w,
+                trusted_source_admission=trusted_source_admission)
             g=_gradient(r,pred)
             for k in range(len(w)):gradient[k]+=g[k]
             used+=1
@@ -245,13 +261,17 @@ def fit_earlier_historical(records, *, min_races=20, epochs=60,
            "train_race_ids":[r["race_id"] for r in ordered],
            "trained_data_until":max(r["post"]["video_reviewed_at"] for r in ordered),
            "train_count":len(ordered),
+           "source_scope":("OPERATOR_SUPPLIED_RESEARCH"
+                           if any(r["source_scope"]!="SYNTHETIC_ONLY" for r in ordered)
+                           else "SYNTHETIC_ONLY"),
            "source_type":"REVIEWED_HISTORIC_VIDEO_AND_FROZEN_PRE_RACE",
            "calibrated":False,"official_prediction":False,
            "model_version":"0.1-RESEARCH-UNPROMOTED"}
     model["model_sha256"]=digest(model)
     return model
 
-def evaluate_chronological(train, test, model, *, minimum_test=10):
+def evaluate_chronological(train, test, model, *, minimum_test=10,
+                           trusted_source_admission=None):
     """Paired heldout comparison; no real improvement claim without support."""
     demand(type(test) is list and len(test)>=minimum_test,
            "NOT_ENOUGH_OUT_OF_TIME_TEST_RACES")
@@ -266,7 +286,12 @@ def evaluate_chronological(train, test, model, *, minimum_test=10):
     demand(len(ids)==len(set(ids)),"TRAIN_TEST_DUPLICATE_RACE")
     demand(set(ids[:len(train)])==set(model["train_race_ids"]),
            "TRAINING_COHORT_CONFLICT")
-    for r in all_records:verify_record(r)
+    for r in all_records:
+        verify_record(r,trusted_source_admission=trusted_source_admission)
+    demand(model.get("source_scope")==(
+        "OPERATOR_SUPPLIED_RESEARCH" if any(
+         r["source_scope"]!="SYNTHETIC_ONLY" for r in all_records)
+         else "SYNTHETIC_ONLY"),"TRAIN_TEST_SOURCE_SCOPE_CONFLICT")
     max_train_time=max(when(r["post"]["video_reviewed_at"]) for r in train)
     min_test_time=min(when(r["pre"]["as_of"]) for r in test)
     demand(max_train_time<min_test_time,
@@ -279,8 +304,10 @@ def evaluate_chronological(train, test, model, *, minimum_test=10):
     for target in test:
         prev=[r for r in train if when(r["post"]["video_reviewed_at"])<
               when(target["pre"]["as_of"])]
-        base=outcome_metric(target,score_one(target,prev,[0.]*len(weight)))
-        cand=outcome_metric(target,score_one(target,prev,weight))
+        base=outcome_metric(target,score_one(target,prev,[0.]*len(weight),
+             trusted_source_admission=trusted_source_admission))
+        cand=outcome_metric(target,score_one(target,prev,weight,
+             trusted_source_admission=trusted_source_admission))
         results.append({"race_id":target["race_id"],
                         "baseline_hit":base["hit_at_8"],
                         "candidate_hit":cand["hit_at_8"],
@@ -293,7 +320,8 @@ def evaluate_chronological(train, test, model, *, minimum_test=10):
     candidate_loss=math.fsum(r["candidate_loss"] for r in results)/n
     # Strict paired uplift gate. Uncalibrated probabilities cannot be
     # called calibrated and ROI needs separate pre-cutoff market evidence.
-    better=(hit_candidate>hit_base and candidate_loss<base_loss)
+    better=(hit_candidate>hit_base and candidate_loss<base_loss
+            and model["source_scope"]=="OPERATOR_SUPPLIED_RESEARCH")
     out={
         "schema":REPORT_SCHEMA,"model_sha256":model["model_sha256"],
         "train_count":len(train),"test_count":n,
@@ -303,6 +331,7 @@ def evaluate_chronological(train, test, model, *, minimum_test=10):
         "observed_top8_uplift":(hit_candidate-hit_base)/n,
         "research_promotion_gate":("BETTER_ON_HELDOUT_BUT_NOT_PRODUCTION_READY"
                                    if better else "NO_VERIFIED_IMPROVEMENT"),
+        "source_scope":model["source_scope"],
         "calibration_verified":False,"roi_verified":False,
         "prediction_originals_modified":False,"results":results,
     }
