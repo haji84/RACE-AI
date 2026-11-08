@@ -121,3 +121,43 @@ SQLite読み戻し、架空払い戻し、見送り・返還、改訂後収支�
 **このPR内では、既存の個人用ローカル保存／結果監査にコードを接続済み。**
 ただし正式本番・無人実データ自動取得・収益性が完成したという意味ではない。
 データ権利、実購入、公開・課金、外部サービスへの送信は追加していない。
+
+## 2026-11-08 過去の参考成績・全保存履歴の検証（追加）
+
+- `race_ai/keirin_reference_history_recheck.py` は、オーナーが手元で保存
+  した**3つの派生研究レポート**を全レースID・8点原本・掲載着順・掲載配当
+  の順で照合する。1レースでも不一致なら参考合計を報告せず失敗する。
+  3ファイルは同じ元資料から派生しているので、**独立した3データ提供元による
+  確認ではない**。公式結果の認証・締切前の第三者証明も不可能。
+- `scripts/keirin_reference_history_audit.py` では、持ち主だけが保存
+  している3つのJSONのファイル名を引数として渡す。通信なし・
+  原本更新なし・原本データの出力なしで、件数・的中率・参考投資額・
+  掲載配当による参考回収率・買い目の欠落分類だけを表示する。
+- `race_ai/keirin_variable_integration.py` の
+  `PrivateVariableLedger.reconcile_saved_history()` は同じ個人用
+  SQLiteの既存可変予想**全レース・全保存結果リビジョン**を再照合する。
+  重複せず何度でも再実行でき、オッズなしや予想未保存の欠落数を
+  隠さない。結果の改訂を過去の予想に上書きしない。
+- `scripts/keirin_variable_reconcile_private.py` は存在する非公開SQLite
+  に対して、この再照合を実行する。空のDBを新規作成せず、GitHub
+  Actionsの一時ディスク上の私有永続保存を仮定しない。
+
+```bash
+python3 -m scripts.keirin_reference_history_audit \
+  --owner-reference-a /private/research/history_a.json \
+  --owner-reference-b /private/research/history_b.json \
+  --owner-reference-c /private/research/history_c.json
+
+python3 -m scripts.keirin_variable_reconcile_private \
+  --db /private/race-ai/owner.sqlite3 --owner-private-research
+```
+
+**合成試験が通っただけで「実レース正式的中率・回収率」にはしない。**
+実際の保存済み研究レポートを再計算しても、独立した予想時刻の原本・
+主催者の公式確定結果（返還・同着・取消・全訂正）の確定検証・
+既存モデルの独立確率校正・合法なデータフィードが欠けている限り
+`formal_hit_rate` / `formal_return_rate` はnullのままにする。
+
+加えて、歴史的な8点参照予想に事後のオッズを投入して0〜12点を
+後付けで再選択してはならない。可変方式の比較は**同じ未来レースの
+締切前に両方の選定を別々に凍結できた実績**だけで評価する。
