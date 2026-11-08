@@ -127,6 +127,24 @@ class BridgeTests(unittest.TestCase):
         p,old,g,view=F.current_view(self.git,self.boot);new=deepcopy(view);new['records'].extend(saved_view(('2026-11-08','2026-11-09'))['records']);new['forecast_base_sha256']=self.boot['forecast_sha256'];F.publish_view(self.git,self.boot,new,parent=p,previous=old,generation=g)
         later=SavedResultBridge(self.repo,now=NOW+timedelta(days=2),transport=self.git,bootstrap=self.boot);later.prepare(state)
         self.assertNotIn('20261107-01-01',state.control['settlement_captures']);self.assertIn('20261105-01-01',state.control['settlement_captures'],'unpublished evidence must never be pruned')
+    def test_old_pending_day_is_kept_and_later_result_is_reconciled_without_source_get(self):
+        view=saved_view(('2026-11-04','2026-11-07','2026-11-08'));self.seed(view)
+        at=NOW+timedelta(days=1);state=IntradayState()
+        first=SavedResultBridge(self.repo,now=at,transport=self.git,bootstrap=self.boot)
+        first.prepare(state)
+        self.assertIn('20261104-01-01',[t['race_id'] for t in first.targets()])
+        self.assertEqual(first.publish(state,now=at)['races'],2)
+        self.assertEqual(first.ledger_summary['older_unresolved'],1)
+        self.capture(state,day='20261104',at=at)
+        later=SavedResultBridge(self.repo,now=at+timedelta(minutes=5),transport=self.git,bootstrap=self.boot)
+        later.prepare(state);later.publish(state,now=at+timedelta(minutes=5))
+        _,_,_,out=F.current_view(self.git,self.boot)
+        self.assertEqual([r for r in out['records'] if r['race_id']=='20261104-01-01'][0]['result']['status'],'final')
+        final=SavedResultBridge(self.repo,now=at+timedelta(minutes=10),transport=self.git,bootstrap=self.boot)
+        final.prepare(state)
+        self.assertNotIn('20261104-01-01',state.control['result_due_ledger']['pending'])
+        self.assertEqual(final.publish(state,now=at+timedelta(minutes=10))['races'],2)
+
     def test_restored_identical_bytes_with_a_new_receipt_do_not_block_result_publication(self):
         from tests.test_racer_intraday_handoff import FixtureGit
         from race_ai.boat_pdca_github_handoff import TRANSFER_REF

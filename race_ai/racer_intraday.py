@@ -123,7 +123,7 @@ class IntradayState:
         self.rollover(now)
         targets={}
         if result_targets:
-            need(len(result_targets)<=576,'SETTLEMENT_TARGET_BOUND');c.setdefault('settlement_captures',{});c.setdefault('settlement_next',{})
+            need(len(result_targets)<=864,'SETTLEMENT_TARGET_BOUND');c.setdefault('settlement_captures',{});c.setdefault('settlement_next',{})
             for target in result_targets:
                 rid=target['race_id'];need(type(rid) is str and re.fullmatch(r'[0-9]{8}-(0[1-9]|1[0-9]|2[0-4])-(0[1-9]|1[0-2])',rid) and type(target['pending']) is bool,'SETTLEMENT_TARGET_IDENTITY')
                 cutoff=clock(target['cutoff_at']) if target['cutoff_at'] else None

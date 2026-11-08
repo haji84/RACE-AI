@@ -27,10 +27,10 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
         result_sync=None;bridge=None;targets=();publication_error=None;publication_trace=[]
         if sync_results:
             from race_ai.racer_result_bridge import SavedResultBridge,status as result_status
-            try:bridge=result_bridge or SavedResultBridge(repo,now=current());targets=bridge.targets()
+            try:bridge=result_bridge or SavedResultBridge(repo,now=current())
             except Exception:bridge=None;result_sync=result_status(now=current(),state='HOLD')
         loaded=load_intraday(repo,initialize=initialize,transport=intraday_transport,now=current());state=loaded['state'];before={k:v for k,v in state.control.items() if k!='last_checked_at'};before=wire(before)
-        if bridge:bridge.prepare(state)
+        if bridge:bridge.prepare(state);targets=bridge.targets()
         beforeinfo=dict(requests=0,parsed=0,rejected=0)
         if daily_reconcile:
             state.rollover(current());state.control['last_checked_at']=current().isoformat();outcome=dict(status='READY' if daily['status']=='DAILY_RETAINED' else 'SOURCE_WAIT',requests=0,new_observations=0)
@@ -38,7 +38,7 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
             with (OfficialClient() if fetch is None else nullcontext(fetch)) as source:
                 if sync_beforeinfo and bridge:
                     from race_ai.racer_beforeinfo import collect_beforeinfo
-                    beforeinfo=collect_beforeinfo(state,bridge.rows,now=current(),fetch=source,max_requests=4)
+                    beforeinfo=collect_beforeinfo(state,getattr(bridge,'recent_rows',bridge.rows),now=current(),fetch=source,max_requests=4)
                 outcome=state.advance(base,now=current(),fetch=source,max_requests=12-beforeinfo['requests'],**(dict(result_targets=targets) if bridge else {}))
                 outcome['requests']+=beforeinfo['requests']
         finished=current();state.control['last_checked_at']=finished.isoformat()
@@ -66,6 +66,8 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
           today={k:v for k,v in meta.items() if k not in ('source_receipts',)},retained=retained,public=public,daily=daily,private_sources_published=False,forecast_inputs_changed=False)
         if sync_results:
             report['result_sync']=result_sync
+            if bridge and getattr(bridge,'ledger_summary',None) is not None:
+                report['result_due_ledger']=dict(bridge.ledger_summary)
             if publication_error:report.update(result_publication_error=publication_error,result_publication_trace=publication_trace)
             from collections import Counter
             reasons=[e.get('reason','RESULT_OBSERVATION_INVALID') for row in (bridge.rows if bridge else []) if (row.get('result') or {}).get('status')=='unsupported' for e in row.get('result_observation_rejections',[])]

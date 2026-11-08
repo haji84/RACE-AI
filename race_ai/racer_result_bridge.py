@@ -3,7 +3,7 @@ import base64,json
 from copy import deepcopy
 from datetime import date
 from pathlib import Path
-from . import saved_view_feed as F,saved_view_history as H
+from . import saved_view_feed as F,saved_view_history as H,result_due_ledger as D
 from .racer_daily import need,clock,wire,sha,JST
 from .racer_daily_handoff import _DailyFilteredFetch
 
@@ -26,10 +26,11 @@ class SavedResultBridge:
             for index in H._indexes(context['index'],load):
                 dates.extend(day for day in index['days'] if day<=today)
                 if len(dates)>=2:break
-            self.days=sorted(dates,reverse=True)[:2];self.views={d:F.current_view(self.git,self.bootstrap,day=d)[3] for d in self.days};self.history=True
+            self.available_days=sorted(set(dates),reverse=True);self.days=self.available_days[:2];self.views={d:F.current_view(self.git,self.bootstrap,day=d)[3] for d in self.days};self.history=True
         else:
-            self.days=sorted({r['event_date_jst'] for r in view['records'] if r['event_date_jst']<=today},reverse=True)[:2];self.views={None:view};self.history=False
+            self.available_days=sorted({r['event_date_jst'] for r in view['records'] if r['event_date_jst']<=today},reverse=True);self.days=self.available_days[:2];self.views={None:view};self.history=False
         self.rows=[r for v in self.views.values() for r in v['records'] if r['event_date_jst'] in self.days and r.get('sport')=='boat']
+        self.recent_days=tuple(self.days);self.recent_rows=list(self.rows);self.backfill_day=None;self.ledger_summary=None;self._prepared=False
         need(len(self.rows)<=576,'RESULT_FEED_RACE_BOUND')
 
     def targets(self):
@@ -37,17 +38,36 @@ class SavedResultBridge:
         for row in self.rows:
             times=[v for v in row.get('saved_cutoff_variants',[]) if v]
             cutoff=row.get('cutoff_at') or (min(times,key=clock) if times else None)
-            result=row.get('result') or {};pending=result.get('status') not in ('final','void')
+            result=row.get('result') or {};pending=D.reconciled_status(row) not in ('final','void')
+            if not pending and row['event_date_jst'] not in self.recent_days:continue
             captures=[o.get('captured_at') for o in row.get('result_observations',[]) if o.get('captured_at')]
             if result.get('observed_at'):captures.append(result['observed_at'])
             output.append(dict(race_id=row['race_id'],cutoff_at=cutoff,pending=pending,after=max(captures,key=clock) if captures else None))
         return output
 
     def prepare(self,state):
-        """Only a freshly authenticated feed acknowledges a retained capture."""
+        """Persist encrypted due IDs, then re-enter one older saved day per run.
+
+        Only authenticated saved views enter the existing bounded source queue.
+        """
+        need(not self._prepared,'RESULT_DUE_DUPLICATE_PREPARE')
+        due=D.ledger(state.control,now=self.now.isoformat())
+        older=D.choose_older_day(due,all_days=self.available_days,recent_days=self.recent_days)
+        if older is not None:
+            historical=F.current_view(self.git,self.bootstrap,day=older)[3] if self.history else self.views[None]
+            if self.history:self.views[older]=historical
+            self.days.append(older)
+            self.rows.extend(r for r in historical['records'] if r['event_date_jst']==older and r.get('sport')=='boat')
+            need(len(self.rows)<=864,'RESULT_FEED_RACE_BOUND')
+            D.record_scanned(due,older)
+            self.backfill_day=older
+        self.ledger_summary=D.update(due,self.rows,now=self.now.isoformat())
+        self.ledger_summary['older_unresolved']=sum(1 for rid in due['pending'] if D._rid_day(rid) not in self.recent_days)
+        self.ledger_summary['unavailable_saved_days']=D.unavailable_days(due,self.available_days)
+        self._prepared=True
         pointers=state.control.get('settlement_captures',{})
         if not pointers:return
-        acknowledged=state.control.setdefault('settlement_published',{});active={r['race_id'] for r in self.rows}
+        acknowledged=state.control.setdefault('settlement_published',{});active={r['race_id'] for r in self.rows if r['event_date_jst'] in self.recent_days or D.reconciled_status(r) not in ('final','void')}
         for row in self.rows:
             pointer=pointers.get(row['race_id']);result=row.get('result') or {}
             if pointer and result.get('status') in ('final','void') and result.get('source_sha256')==pointer['source_sha256'] and result.get('observed_at') and clock(result['observed_at'])>=clock(pointer['captured_at']):acknowledged[row['race_id']]=pointer['settlement_sha256']
@@ -86,4 +106,5 @@ class SavedResultBridge:
                     F.publish_view(self.git,self.bootstrap,updated,parent=parent,previous=previous,generation=generation);view=updated;changed+=count
             rows.extend(r for r in view['records'] if r['event_date_jst'] in self.days)
         self.rows=[r for r in rows if r.get('sport')=='boat']
-        return status(now=now,rows=self.rows,changed=changed)
+        self.recent_rows=[r for r in self.rows if r['event_date_jst'] in self.recent_days]
+        return status(now=now,rows=self.recent_rows,changed=changed)
