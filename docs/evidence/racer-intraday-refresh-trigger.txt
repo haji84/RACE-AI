@@ -1,3 +1,5 @@
 2026-11-08: verify the private result viewer after successful result-only catch-up; retain existing state and report safe failure locations only.
 
 2026-11-08 beforeinfo publication diagnostic; retain sources and log safe codes only
+
+2026-11-08 verify independent saved-model switching after frontend HTTP readback
