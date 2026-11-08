@@ -71,9 +71,9 @@ def validate(clip):
            "REVIEW_TIME_REQUIRED")
     try:
         dt=datetime.fromisoformat(clip["reviewed_at"].replace("Z","+00:00"))
-        insist(dt.utcoffset() is not None,"REVIEW_TIMEZONE_REQUIRED")
     except ValueError:
         raise ClipPolicyError("INVALID_REVIEW_TIME") from None
+    insist(dt.utcoffset() is not None,"REVIEW_TIMEZONE_REQUIRED")
     insist(type(clip["events"]) is list and
            len(clip["events"])<=10000,"INVALID_FRAME_EVENTS")
     ids=set(); actions=set(); prev=-1.
