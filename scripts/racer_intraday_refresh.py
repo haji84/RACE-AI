@@ -3,7 +3,7 @@ from contextlib import nullcontext
 from copy import deepcopy
 from datetime import date,datetime,timezone
 from pathlib import Path
-import argparse,json,re,subprocess,sys,traceback
+import argparse,json,os,re,subprocess,sys,traceback
 ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
 from race_ai.racer_daily import wire,sha,clock,need
