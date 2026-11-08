@@ -13,6 +13,7 @@ import math
 from urllib.parse import urlsplit
 
 from .comprehensive_four_sport_models import feature_inventory
+from .keirin_field_acquisition import acquisition_summary
 from .keirin_preflight import (
     SCHEMA as AUDIT_SCHEMA, RACE_ITEMS, RIDER_ITEMS, CRITICAL_RACE,
     CRITICAL_RIDER, audit_pre_race, expected_keys,
@@ -393,6 +394,8 @@ def assemble_permitted_pre_race(delivery, *, grant_check, checked_at):
         "schema": "RACE_AI_KEIRIN_PERMISSIONED_FEED_STATUS_V1",
         "race_id": race["race_id"],
         "checked_count": len(items),
+        "acquisition_type_counts": acquisition_summary(starters)["categories"],
+        "all_checklist_fields_have_public_raw_values": False,
         "verified_items": len(approved),
         "unavailable_items": len(items) - len(approved),
         "unverified_critical_keys": sorted(required_missing),
