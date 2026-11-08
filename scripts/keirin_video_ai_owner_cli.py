@@ -51,6 +51,8 @@ def main(argv=None):
     train.add_argument("--reviewed-labels",action="append",required=True)
     train.add_argument("--features",action="append",required=True,
                        help="Exactly one private feature file per reviewed-label file")
+    train.add_argument("--development-race",action="append",default=[],
+                       help="Race(s) already used during algorithm development. Never claim these as unseen.")
     train.add_argument("--output",required=True)
     infer=subs.add_parser("infer")
     infer.add_argument("--features",required=True)
@@ -73,7 +75,7 @@ def main(argv=None):
             raise ValueError("FEATURE_REVIEW_PAIR_COUNT_MISMATCH")
         docs=[bind_reviewed_labels_to_frames(load_private(f),load_private(l))
               for f,l in zip(args.features,args.reviewed_labels)]
-        model=train_reviewed_classifier(docs)
+        model=train_reviewed_classifier(docs,dev_races=args.development_race)
         private_output(Path(args.output),model)
         print(json.dumps({"phase":"TRAIN","status":model["validation_status"],
               "heldout_races":len(model["heldout_races"]),
