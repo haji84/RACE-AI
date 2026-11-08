@@ -1,8 +1,8 @@
 name: BOAT per-race results and athlete statistics
 on:
   push:
-    branches: [feat/four-sport-forecast-audit-view-20261022]
-    paths: [docs/evidence/racer-daily-refresh-trigger.txt, docs/evidence/racer-intraday-refresh-trigger.txt]
+    branches: [feat/four-sport-forecast-audit-view-20261022, main]
+    paths: [docs/evidence/racer-daily-refresh-trigger.txt, docs/evidence/racer-intraday-refresh-trigger.txt, docs/evidence/owner-pdca-main-trigger.txt]
   workflow_run:
     workflows: ['BOAT nationwide cutoff-ordered A/B research (no Vercel)']
     types: [completed]
@@ -46,7 +46,11 @@ jobs:
        (github.event.workflow_run.event == 'push' &&
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'feat/four-sport-forecast-audit-view-20261022' &&
-        github.event.workflow_run.conclusion == 'success'))
+        github.event.workflow_run.conclusion == 'success')) &&
+      (github.event_name != 'push' ||
+       github.ref == 'refs/heads/feat/four-sport-forecast-audit-view-20261022' ||
+       (github.ref == 'refs/heads/main' &&
+        startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca')))
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -71,6 +75,8 @@ jobs:
           node-version: '22'
       - run: python -m pip install --disable-pip-version-check -r requirements-history.txt
       - name: Reflect confirmed races and retain encrypted incremental source packets
+        # Main's one-time owner PDCA verification does not make any provider GET.
+        if: github.event_name != 'push' || github.ref != 'refs/heads/main'
         env:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
           GH_TOKEN: ${{ github.token }}
@@ -114,3 +120,61 @@ jobs:
           if [[ "$CHECK_CURRENT_DAY" == 'true' ]]; then probe+=(--check-current-day); fi
           if [[ "$CHECK_BEFOREINFO" == 'true' ]]; then probe+=(--check-beforeinfo); fi
           env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results "${probe[@]}"
+      # Only the CODE+AES readback uses independently verified 0317235e.
+      # Keep the official-result collector above pinned to its old source-bound code.
+      - name: Checkout certified full-period model PDCA code (no source GET)
+        if: >-
+          (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+           startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca'))
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 0317235eadc851b73913c537b7c09a32dc7c208c
+          path: pdca-verified
+          persist-credentials: false
+      - name: Checkout original BOAT parser for existing full-period scorer
+        if: >-
+          (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+           startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca'))
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pdca-verified/pr64-reference
+          persist-credentials: false
+      - name: Checkout original result adapter for existing full-period scorer
+        if: >-
+          (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+           startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca'))
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pdca-verified/pr72-reference
+          persist-credentials: false
+      - name: Set up verified source-free PDCA dependencies
+        if: >-
+          (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+           startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca'))
+        run: python -m pip install --disable-pip-version-check -r pdca-verified/requirements-history.txt
+      - name: Seal authenticated full-period historical Top8 by original scorer
+        if: >-
+          (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+           startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca'))
+        working-directory: pdca-verified
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --stage-existing-pdca
+      - name: Independently decrypt AES Git and verify every indexed historical result
+        if: >-
+          (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') ||
+          (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+           startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca'))
+        working-directory: pdca-verified
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: python -m scripts.verify_all_history_pdca_readback --repository-root .
