@@ -75,7 +75,9 @@ async def media_state(page) -> list:
         try:
             state = await frame.evaluate("""() => Array.from(document.querySelectorAll('video'))
               .slice(0,8).map(v=>({currentTime:v.currentTime, paused:v.paused,
-                readyState:v.readyState,width:v.videoWidth,height:v.videoHeight}))""")
+                readyState:v.readyState,networkState:v.networkState,
+                mediaError:v.error ? v.error.code : null,sourceSet:!!v.currentSrc,
+                width:v.videoWidth,height:v.videoHeight}))""")
             output.extend(state)
         except Exception:
             pass
@@ -115,6 +117,8 @@ async def probe(url: str, report_path: Path, seconds: int, fixture: bool,
                       "args":["--no-sandbox","--autoplay-policy=no-user-gesture-required"]}
                 if os.environ.get("RACE_AI_CHROMIUM_PATH"):
                     opts["executable_path"]=os.environ["RACE_AI_CHROMIUM_PATH"]
+                elif os.environ.get("RACE_AI_BROWSER_CHANNEL") == "chrome":
+                    opts["channel"]="chrome"
                 browser=await pw.chromium.launch(**opts)
                 context=await browser.new_context(viewport={"width":1280,"height":720},
                     record_video_size={"width":1280,"height":720},
