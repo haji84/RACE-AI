@@ -107,8 +107,8 @@ class OwnerAutomaticPublicHtmlTests(unittest.TestCase):
             capture_approved_public_pages(
                 self.root,self.grants,urls=[URLS[0]],
                 transport=lambda _:b"")
-        self.assertFalse((self.root/"owner_public_capture").glob("*.html").__next__() if
-                         False else False)
+        self.assertEqual(list(
+            (self.root/"owner_public_capture").glob("*.html")),[])
 
 
 if __name__=="__main__":
