@@ -160,7 +160,7 @@ def coverage_gate(plan, runtime, *, synthetic=False):
     }
 
 
-def lap_visual_gate(capture_result, evidence, *, synthetic=False):
+def lap_visual_gate(capture_result, evidence, *, synthetic=False, independent_attestor=None):
     """Accept independent visual timestamp/frame observations ONLY.
 
     The observation/recognition engine must be independently validated on real
@@ -210,12 +210,45 @@ def lap_visual_gate(capture_result, evidence, *, synthetic=False):
             result["status"]="VISUAL_FRAME_PROOF_INVALID"
             return result
         last=t
-    # Even with observations, independent visual model verification and
-    # actual footage provenance are external obligations.
-    if evidence.get("real_capture_sha256") is None or (
-        evidence.get("identity_attested") is not True
+    # A reported label by itself is NOT proof. Every observation must bind to
+    # frames actually decoded from this exact recording, and the trusted host
+    # must independently attest provenance. JSON flags do not grant trust.
+    digest=capture_result.get("recording_sha256")
+    samples=capture_result.get("frame_inventory")
+    if not isinstance(digest,str) or not re.fullmatch(r"[a-f0-9]{64}",digest):
+        result["status"]="RAW_RECORDING_DIGEST_NOT_ATTESTED"
+        return result
+    if evidence.get("real_capture_sha256") != digest:
+        result["status"]="VISION_SOURCE_DIGEST_MISMATCH"
+        return result
+    if not isinstance(samples,list) or len(samples)<6:
+        result["status"]="VISUAL_FRAMES_NOT_BOUND_TO_RECORDING"
+        return result
+    used=set()
+    for o in observations:
+        candidates=[(j,frame) for j,frame in enumerate(samples)
+                    if isinstance(frame,dict)
+                    and type(frame.get("recording_sec")) in (int,float)
+                    and abs(frame["recording_sec"]-o["recording_sec"])<=2.0
+                    and frame.get("frame_sha256")==o["frame_sha256"]]
+        if not candidates or candidates[0][0] in used:
+            result["status"]="VISUAL_FRAMES_NOT_BOUND_TO_RECORDING"
+            return result
+        used.add(candidates[0][0])
+    if evidence.get("identity_attested") is not True or (
+        evidence.get("race_id") != capture_result.get("race_id")
     ):
         result["status"]="RACE_VIDEO_IDENTITY_NOT_VERIFIED"
+        return result
+    if not callable(independent_attestor):
+        result["status"]="INDEPENDENT_ATTESTATION_MISSING"
+        return result
+    try:
+        accepted=independent_attestor(evidence,capture_result)
+    except Exception:
+        accepted=False
+    if accepted is not True:
+        result["status"]="INDEPENDENT_ATTESTATION_REJECTED"
         return result
     result["status"]="FOUR_LAPS_VISUALLY_EVIDENCED"
     result["four_laps_verified"]=True
