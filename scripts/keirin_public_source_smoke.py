@@ -395,6 +395,30 @@ def probe(*,fetcher=None,clock=None):
             body=receive(url)
             row.update(summarize_html(body))
             row["status"]="PUBLIC_HTML_RECEIVED"
+            if name=="winticket_aomori_3r_odds":
+                from race_ai.keirin_winticket_embedded_odds import (
+                    private_winticket_trifecta,EmbeddedOddsError
+                )
+                at=(datetime.now(timezone.utc) if clock is None else clock())
+                try:
+                    verified=private_winticket_trifecta(
+                        body,url=url,race_id=RACE_ID,
+                        captured_at=at.isoformat(),
+                        official_cutoff_at=CUTOFF)
+                    proof=verified["receipt"]
+                    row["actual_210_odds_full_universe_verified"]=True
+                    row["actual_210_odds_price_sha256"]=proof[
+                        "full_210_prices_sha256"]
+                    row["actual_210_odds_source_updated_at"]=proof[
+                        "source_odds_updated_at_utc"]
+                    row["actual_210_odds_capture_at"]=proof[
+                        "owner_capture_at_utc"]
+                    row["actual_odds_private_snapshot_sha256"]=proof[
+                        "private_odds_snapshot_sha256"]
+                    row["odds_210_all_values_validated"]=True
+                except EmbeddedOddsError as exc:
+                    row["actual_210_odds_full_universe_verified"]=False
+                    row["odds_integrity_reason"]=str(exc)
         except error.HTTPError as exc:
             row["status"]="HTTP_ERROR"
             row["http_status"]=exc.code
@@ -419,6 +443,10 @@ def probe(*,fetcher=None,clock=None):
         "successful_public_html_pages":sum(
             r["status"]=="PUBLIC_HTML_RECEIVED" for r in rows),
         "independently_admitted_trifecta_210_count":0,
+        "actual_210_public_source_odds_parsed":any(
+            row.get("actual_210_odds_full_universe_verified") is True
+            for row in rows),
+        "provider_api_rights_independently_verified":False,
         "full_347_factor_preflight_verified":False,
         "trusted_main_owner_sqlite_readback_done":False,
         "actual_two_version_forecast_saved":False,
