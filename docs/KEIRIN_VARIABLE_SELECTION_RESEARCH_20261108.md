@@ -191,3 +191,15 @@ PR #103はPR #101をbaseとするstacked Draft PR。PR #101の本人が保存し
 
 odds JSONの形式はRACE_AI_KEIRIN_TRIFECTA_ODDS_SNAPSHOT_V1。prices配列の各項目はtriple=[1,2,3] と decimal_odds=10.5 の組。
 本人の非公開永続ディスクで既存 scripts.keirin_permissioned_owner_agent を実行する必要がある。GitHub Actions一時ディスクは実データ永久保存先ではない。
+
+## 2026-11-08 深夜：実データ接続ゲートと新規パイロット私有DBの区別
+
+実証対象は2026-11-09 青森3R（race_id 202611091203、締切09:26 JST、7車・3連単210通り）。
+
+WINTICKETの該当ページ https://www.winticket.jp/keirin/aomori/odds/2026110812/2/3 は2026-11-08夜に「オッズはありません」と表示された。よって実測210件は未取得。値がない組を仮の倍率、9999.9のような表示上限、またはゼロで埋めることは禁止。
+
+追加した race_ai/keirin_owner_odds_csv.py は、本人が取得権限・時点・出典を確認して個人保管した非楽天CSVを「first,second,third,decimal_odds」の4列、全210/504行、元ファイルSHA256、権利ゲート、締切65秒の余裕、重複なし、有限実数、全券集合一致で検証する。HTTPアクセスなし。入力済みCSVとrace_id/公式締切/出走車番/source_url/rights_ref/csv_sha256のmeta.jsonが揃って初めて同じ非公開inboxのoddsへ一度だけ転記し、SHA再読戻しする。captured_atには実際の処理時刻を使い、発表時刻を捏造しない。この処理は提供元の自動取得許諾を新たに作るものではない。
+
+既存owner.sqlite3の本人端末への直接接続は未達。その代わり、**実レース原本とは別**の青森3R用空パイロットDBを非公開ChatGPT Library /RACE-AI/KeirinAudit/keirin_aomori3r_20261109_private_pilot.sqlite3 に作成し、Libraryから独立に取り出して完全同一SHA256とSQLite integrity_check=okを確認した。元のユーザー機器内DBへの接続ではない。そこに保存された予想0件、事前オッズ0件、二版凍結0件、独立外部時刻証明0件。
+
+これらが揃わないならFAIL_CLOSEDを維持。Synthetic CIの成功を本番レースの実証成功に言い換えない。main統合・実購入・新規課金・公開原本は行わない。
