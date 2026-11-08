@@ -77,6 +77,35 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
         save(root/'run-report.json',(wire(report)+'\n').encode());return report
     finally:base.close()
 
+def stage_existing_pdca_without_source(repo,*,now=None,intraday_transport=None,bridge=None,key=None):
+    """Authenticate retained results, archive model PDCA, and seal state without GET.
+
+    Run with existing Actions owner credentials. The independent readback must
+    happen in a NEW invocation; this producer does not declare acceptance.
+    """
+    from race_ai import model_pdca_history as H
+    from race_ai.racer_result_bridge import SavedResultBridge
+    current=clock(now or datetime.now(timezone.utc))
+    loaded=load_intraday(repo,transport=intraday_transport,now=current,key=key)
+    prior=loaded['previous'];need(prior is not None,'MODEL_PDCA_EXISTING_STATE_REQUIRED')
+    state=loaded['state'];before=wire(state.control)
+    bridge=bridge or SavedResultBridge(repo,now=current)
+    bridge.prepare(state)
+    audit=H.latest(state.control)
+    # Existing signed catalogue binding is unchanged: this mode doesn't
+    # alter the daily catalogue, fetch a source or publish any page.
+    if wire(state.control)!=before:
+        saved=save_intraday(loaded,catalogue_sha256=prior['catalogue_sha256'],now=current,key=key)
+    else:
+        saved=dict(status='INTRADAY_STATE_UNCHANGED',generation=prior['head']['generation'],
+                   source_commit=loaded['parent'],new_capture_count=0,plaintext_published=False)
+    return dict(schema='RACE_AI_SOURCE_FREE_MODEL_PDCA_STAGE_V1',status='STAGED_NEEDS_INDEPENDENT_READBACK',
+        saved_state=saved['status'],generation=saved['generation'],archived_days=audit['days'],
+        archived_revisions=audit['revisions'],model_group_count=len(audit['model_groups']),
+        formally_scored_forecasts=sum(g['eligible'] for g in audit['model_groups']),
+        outstanding_unscored=audit['unscored'],source_requests=0,source_provider_requests=0,
+        forecast_rewrites=0,actual_purchases=False,independent_readback_verified=False)
+
 def replay_retained_results(repo,*,now=None,intraday_transport=None,bridge=None):
     """Reproject authenticated retained bytes; do not collect or save source state."""
     from race_ai import saved_view_feed as F
@@ -108,8 +137,15 @@ def replay_retained_results(repo,*,now=None,intraday_transport=None,bridge=None)
 
 
 def main(argv=None):
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--repo',type=Path,default=ROOT);p.add_argument('--private-dir',type=Path,required=True);p.add_argument('--initialize',action='store_true');p.add_argument('--daily-reconcile',action='store_true');p.add_argument('--verify-public',action='store_true');p.add_argument('--sync-results',action='store_true');p.add_argument('--sync-beforeinfo',action='store_true');p.add_argument('--replay-retained-results',action='store_true');a=p.parse_args(argv)
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--repo',type=Path,default=ROOT);p.add_argument('--private-dir',type=Path,required=True);p.add_argument('--initialize',action='store_true');p.add_argument('--daily-reconcile',action='store_true');p.add_argument('--verify-public',action='store_true');p.add_argument('--sync-results',action='store_true');p.add_argument('--sync-beforeinfo',action='store_true');p.add_argument('--replay-retained-results',action='store_true');p.add_argument('--stage-existing-pdca',action='store_true');a=p.parse_args(argv)
     try:
+        if a.stage_existing_pdca:
+            need(not any((a.initialize,a.daily_reconcile,a.verify_public,a.sync_results,a.sync_beforeinfo,a.replay_retained_results)),'MODEL_PDCA_STAGE_MODE_CONFLICT')
+            from scripts.boat_private_original_vault import _environment
+            from scripts.boat_saved_view_feed import git_auth
+            repo=_environment(a.repo);git_auth()
+            report=stage_existing_pdca_without_source(repo)
+            print(wire(report));return 0
         if a.replay_retained_results:
             need(not any((a.initialize,a.daily_reconcile,a.verify_public,a.sync_results,a.sync_beforeinfo)),'RESULT_REPLAY_MODE_CONFLICT')
             from scripts.boat_private_original_vault import _environment

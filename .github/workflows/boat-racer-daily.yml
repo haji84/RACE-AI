@@ -76,12 +76,26 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           INITIALIZE: "${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: initialize') }}"
           DAILY_RECONCILE: "${{ (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') || (github.event_name == 'workflow_dispatch' && inputs.mode == 'daily') || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-daily-refresh:')) }}"
+          STAGE_MODEL_PDCA: "${{ github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca') }}"
         shell: bash
         run: |
-          args=()
-          if [[ "$INITIALIZE" == 'true' ]]; then args+=(--initialize); fi
-          if [[ "$DAILY_RECONCILE" == 'true' ]]; then args+=(--daily-reconcile); fi
-          python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results --sync-beforeinfo "${args[@]}"
+          if [[ "$STAGE_MODEL_PDCA" == 'true' ]]; then
+            # Existing authenticated Git state only, zero official provider GET.
+            python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --stage-existing-pdca
+          else
+            args=()
+            if [[ "$INITIALIZE" == 'true' ]]; then args+=(--initialize); fi
+            if [[ "$DAILY_RECONCILE" == 'true' ]]; then args+=(--daily-reconcile); fi
+            python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results --sync-beforeinfo "${args[@]}"
+          fi
+      - name: Independently reopen AES Git and verify actual historical Top8 by model
+        if: >-
+          github.event_name == 'push' &&
+          startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca')
+        env:
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: python -m scripts.verify_all_history_pdca_readback --repository-root .
       - name: Install browser check only for an explicit verification run
         if: >-
           (github.event_name == 'workflow_dispatch' && inputs.verify_site) || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results'))
