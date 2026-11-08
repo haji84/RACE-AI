@@ -1,0 +1,12 @@
+SHA256 cd2282bc18a7f936ca454fd41b4a27f07ed2779a38ceb59f415957cb62ee5699  autorace_20261108_kawaguchi_4R_A_research_v1.json
+race=2026-11-08 kawaguchi 4R
+issued_at_jst=2026-11-08T11:51:46+09:00
+betting_cutoff_jst=2026-11-08T12:13:00+09:00
+forecast_class=A_PROVISIONAL_TRIAL_NOT_INDEPENDENTLY_CERTIFIED
+research_only=true
+trained_model_output=false
+actual_trial_at_issue_independently_verified=false
+no_post_result_edits=true
+private_library_upload_failed=AccessDeny
+original_json_outside_public_git_repo=true
+source=https://autorace.tokyo-sports.co.jp/list/race/20261108024
