@@ -24,6 +24,9 @@ from race_ai.keirin_owner_manual import PersonalOwnerObservations
 from race_ai.keirin_owner_saved_csv import stage_owner_saved_csv
 from race_ai.keirin_owner_saved_hex import stage_owner_saved_hex_markdown
 from race_ai.keirin_real_shadow_intake import stage_sourced_shadows
+from race_ai.keirin_shadow_variable_intake import (
+    ShadowPairIntakeError, stage_shadow_variable_pairs
+)
 from race_ai.keirin_open_meteo_stage import stage_one_free_weather
 
 
@@ -143,10 +146,18 @@ def main(argv=None):
                 engine = KeirinPrivateSpool(
                     store, model_suite=run_suite, model_verifier=verify_suite,
                     source_observation_gate=grants.allowed,
+                    source_odds_gate=lambda url,rights,purpose: (
+                        purpose == "private_odds_research" and
+                        grants.allowed(url,rights,"analysis")),
                     source_attestor=grants.certificate,
                     witness=None,  # Private research until independent receipt.
                 )
                 settled = engine.tick(inbox)
+                # Prospective shadow8 and variable 0..12 points share the
+                # same race/PR101 source hash. Both stay private and are
+                # frozen together before cutoff in the owner SQLite file.
+                dual = stage_shadow_variable_pairs(
+                    inbox,store,grant_check=grants.allowed,now=now)
                 # No filenames, source URLs, rider names, or buy picks in logs.
                 print(json.dumps({
                     "schema": "RACE_AI_KEIRIN_LICENSED_LOCAL_CYCLE_V1",
@@ -154,6 +165,7 @@ def main(argv=None):
                     "owner_saved_csv_stage": owner_csv,
                     "owner_saved_markdown_stage": owner_markdown,
                     "source_grounded_private_shadow":shadow,
+                    "same_race_shadow8_variable_research":dual,
                     "modelled_weather_stage": modelled_weather,
                     "automatic_provider_fetch": fetch_report is not None,
                     "provider_network_requests": (
@@ -170,7 +182,7 @@ def main(argv=None):
                     break
                 time.sleep(args.interval_seconds)
     except (LicenseDeliveryError, OwnerStoreError, InboxError,
-            OSError, ValueError, KeyError, TypeError):
+            ShadowPairIntakeError, OSError, ValueError, KeyError, TypeError):
         print('{"state":"LICENSED_OWNER_CYCLE_FAILED_CLOSED"}')
         return 2
     except KeyboardInterrupt:
