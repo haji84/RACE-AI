@@ -10,6 +10,7 @@ from hashlib import sha256
 from urllib.parse import urlsplit
 
 from .keirin_preflight import audit_pre_race
+from .keirin_open_meteo_weather import SOURCE as MODELLED_WEATHER_SOURCE
 from .keirin_non_rakuten_sources import is_rakuten_domain, is_rakuten_url
 from .keirin_result_delivery import canonical, utc
 
@@ -25,7 +26,7 @@ class PersonalOwnerError(ValueError):
 class PersonalOwnerObservations:
     """Owner-selected origin hosts for self-captured, private research only."""
 
-    def __init__(self, *, source_hosts, now):
+    def __init__(self, *, source_hosts, now, allow_noncommercial_modelled_weather=False):
         if not isinstance(source_hosts, (tuple, list)) or not (1 <= len(source_hosts) <= 20):
             raise PersonalOwnerError("OWNER_SOURCE_HOSTS_REQUIRED")
         hosts = set()
@@ -41,18 +42,26 @@ class PersonalOwnerObservations:
         self.hosts = frozenset(hosts)
         self.now = utc(now)
         self.bundle_id = PERSONAL_MARKER
+        self.allow_noncommercial_modelled_weather = (allow_noncommercial_modelled_weather is True)
 
     def allowed(self, source_url, rights_ref, purpose):
         # This is acceptance of user-owned local input for PRIVATE research.
         # It is not an approval for remote automated retrieval, commercial
         # redistribution, or an assertion that third parties licensed data.
-        if purpose not in PURPOSES or rights_ref != PERSONAL_MARKER:
+        if purpose not in PURPOSES:
             return False
         try:
             p = urlsplit(source_url)
-            return (not is_rakuten_url(source_url) and
-                    p.scheme == "https" and p.hostname in self.hosts and
-                    p.username is None and p.password is None and p.port is None)
+            if p.scheme != "https" or p.username or p.password or (
+                    p.port not in (None, 443)) or is_rakuten_url(source_url):
+                return False
+            if (self.allow_noncommercial_modelled_weather and
+                rights_ref == MODELLED_WEATHER_SOURCE and
+                p.hostname == "api.open-meteo.com" and
+                p.path == "/v1/forecast" and
+                p.query.startswith("latitude=")):
+                return True
+            return rights_ref == PERSONAL_MARKER and p.hostname in self.hosts
         except (ValueError, TypeError):
             return False
 
