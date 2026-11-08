@@ -128,6 +128,50 @@ def summarize_html(body):
                     script_meta.append(value)
     meta=MetadataScripts()
     meta.feed(text)
+    # Look at inline script SHAPES only. No source data or odds values
+    # are emitted to the public GitHub CI log.
+    from collections import Counter
+    script_bodies=[]
+    class ScriptBodyShapes(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.current=None
+            self.attrs={}
+            self.buffer=[]
+        def handle_starttag(self,tag,attrs):
+            if tag=="script":
+                self.current="script"
+                self.attrs=dict(attrs)
+                self.buffer=[]
+        def handle_data(self,data):
+            if self.current=="script":
+                self.buffer.append(data)
+        def handle_endtag(self,tag):
+            if tag=="script" and self.current=="script":
+                body="".join(self.buffer)
+                if len(body)>100:
+                    script_bodies.append((self.attrs,body))
+                self.current=None
+                self.buffer=[]
+    scripts=ScriptBodyShapes()
+    scripts.feed(text)
+    shape_rows=[]
+    for attributes,body in sorted(
+        script_bodies,key=lambda x:-len(x[1]))[:5]:
+        key_counter=Counter(re.findall(
+            r'["\x27]([A-Za-z_][A-Za-z0-9_]{2,45})["\x27]\s*:',
+            body[:2_000_000]))
+        shape_rows.append({
+            "script_bytes":len(body.encode("utf-8")),
+            "script_type":attributes.get("type",""),
+            "script_id":attributes.get("id",""),
+            "contains_odds_marker":"odds" in body.lower(),
+            "odds_marker_count":body.lower().count("odds"),
+            "javascript_assignment_names":list(dict.fromkeys(
+                re.findall(r'(?:window|globalThis)\.([A-Za-z_$][A-Za-z0-9_$]{2,50})\s*=',
+                           body[:1_000_000])))[:12],
+            "json_key_name_samples":[k for k,v in key_counter.most_common(25)],
+        })
     # Structural hints are deliberately NOT counted as 210 price records.
     return {
         "response_bytes":len(body),
@@ -138,6 +182,7 @@ def summarize_html(body):
         "json_script_count":analyzer.json_script_tags,
         "page_structure_markers":markers,
         "script_shape_samples":script_meta,
+        "inline_script_structural_shapes":shape_rows,
         "input_count":analyzer.inputs,
         "contains_trifecta_label":("3連単" in text),
         "contains_aomori_label":("青森" in text),
