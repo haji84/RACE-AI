@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; form-action 'none'; img-src 'none'">
+<title>RACE-AI | 6コース戦法研究ビュー（ローカル専用）</title>
+<style>
+:root{font-family:system-ui,"Hiragino Kaku Gothic ProN",sans-serif;background:#f5f6f8;color:#162333}
+body{max-width:1050px;padding:16px;margin:auto}h1{font-size:1.4rem}h2{font-size:1.05rem}
+main{display:grid;gap:12px}.note{background:#fff0de;padding:12px;border-radius:8px}
+.card{background:white;border:1px solid #e2e6eb;padding:15px;border-radius:10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px}
+.small{font-size:.83rem;color:#556476}.big{font-weight:700;font-size:1.4rem}
+table{width:100%;border-collapse:collapse;display:block;overflow-x:auto;white-space:nowrap}
+td,th{text-align:left;padding:9px;border-bottom:1px solid #eee;font-size:.85rem}
+label{font-weight:650}input{margin:10px 0}.bar{height:6px;background:#dbe2e9;border-radius:5px}
+.bar>span{display:block;height:100%;border-radius:5px;background:#315a89}
+</style>
+</head>
+<body>
+<h1>RACE-AI｜6コース戦法分析</h1>
+<p class="note">研究専用・非公開プレビュー。P0/P1予想や係数は変更しません。数値は選択したローカルJSONからのみ表示。結果の決まり手は「誰が誰を止めたか」の直接証拠ではありません。</p>
+<label for="file">ローカルJSONを選択（通信しません）</label>
+<input type="file" id="file" accept=".json,application/json">
+<p class="small">形式：profiles（6人のanalyze_racer結果）、matchup（matchup_features結果）、任意のanalogue（prior_analogue_escape結果）。実データの認証は別工程です。</p>
+<div id="status" role="status">未読込。未確認データを0%表示しません。</div>
+<main id="cards"></main>
+<script>
+(function(){
+"use strict";
+const schemas={profile:"RACE_AI_BOAT_SIX_COURSE_TACTICS_V1",matchup:"RACE_AI_BOAT_SIX_COURSE_MATCHUP_V1"};
+const file=document.getElementById("file"),status=document.getElementById("status"),main=document.getElementById("cards");
+function el(tag,cls,text){const x=document.createElement(tag);if(cls)x.className=cls;if(text!==undefined)x.textContent=String(text);return x;}
+function rate(x){return typeof x==="number"&&Number.isFinite(x)&&x>=0&&x<=1?(x*100).toFixed(1)+"%":"未確認";}
+function metric(label,value,den){const card=el("div","card");card.append(el("div","small",label),el("div","big",rate(value)),el("div","small",den));return card;}
+function section(title){const x=el("section","card");x.append(el("h2",null,title));main.append(x);return x;}
+function text(parent,value){parent.append(el("p","small",value));}
+function show(data){
+main.replaceChildren();
+if(!data||!Array.isArray(data.profiles)||data.profiles.length!==6||
+ !data.profiles.every(p=>p&&p.schema===schemas.profile)||
+ !data.matchup||data.matchup.schema!==schemas.matchup)
+ throw Error("分析データの形式・6人の登録番号が不一致");
+const profiles=new Map(data.profiles.map(p=>[p.racer_id,p]));
+const entries=data.matchup.by_course_racer_ids;
+if(!entries||Object.keys(entries).length!==6||profiles.size!==6||
+ [1,2,3,4,5,6].some(c=>!profiles.has(entries[c])))
+ throw Error("6コースの選手対応が不完全");
+const headings={1:"逃げ・負け方",2:"逃がし・差し・まくり",3:"差し・まくり・まくり差し／カド受け",
+ 4:"差し・まくり・まくり差し",5:"差し・まくり・まくり差し",6:"差し・まくり・まくり差し"};
+const methods={nige:"逃げ",sashi:"差し",makuri:"まくり",makurizashi:"まくり差し"};
+for(let c=1;c<=6;c++){
+const p=profiles.get(entries[c]), course=p.by_actual_course[String(c)];
+if(!course)throw Error("実進入コース別成績が不足");
+const card=section(c+"コース｜登録番号 "+p.racer_id);
+card.append(el("div","small",headings[c]));
+const grid=el("div","grid");card.append(grid);
+const win=course.win_rate;
+grid.append(metric("実進入コース1着率",win,"対象 "+course.starts+"走"));
+for(const key of (c===1?["nige"]:c===2?["sashi","makuri"]:["sashi","makuri","makurizashi"])){
+const v=course.winning_methods&&course.winning_methods[key];
+grid.append(metric(methods[key]+"による1着率",v?.per_start,
+"対象 "+course.starts+"走、成功 "+(v?.wins??"未確認")+"回"));
+}
+if(c===1){
+const loss=p.first_course_losses;
+const sub=el("div","grid");card.append(sub);
+for(const key of ["makuri","sashi","makurizashi"]){
+const v=loss?.winner_method_NOT_proof_of_direct_attack?.[key];
+sub.append(metric(key==="makuri"?"まくられ":key==="sashi"?"差され":"まくり差され",
+v?.per_course_start,"勝者の決まり手に基づく参考値"));
+}
+}
+if(c===2)grid.append(metric("逃がし率",p.second_course_nigashi?.rate,
+"対象 "+(p.second_course_nigashi?.starts??"不明")+"走"));
+if(c===3)grid.append(metric("4カドまくり勝ち発生率",p.third_course_kado_uke_proxy?.fourth_course_makuri_win_rate,
+"3対3の進入証拠付き "+(p.third_course_kado_uke_proxy?.formation_proven_starts??"不明")+"走。ブロック実証ではありません"));
+const windows=p.windows||{};
+text(card,"直近10走："+(windows.last_10?.starts??"未確認")+"走、1着"+(windows.last_10?.wins??"未確認")+"回、3連対率 "+rate(windows.last_10?.top3_rate));
+text(card,"今節："+(windows.current_meeting? windows.current_meeting.starts+"走、1着"+windows.current_meeting.wins+"回、3連対率 "+rate(windows.current_meeting.top3_rate):"開催開始日の出典未確認"));
+const st=windows.current_meeting_with_st;
+if(st)text(card,"今節平均ST："+(typeof st.mean_st==="number"?st.mean_st.toFixed(3):"未確認")+"、ST確認 "+st.st_samples+"走");
+}
+
+// Optional P1 dynamic context is source-free local JSON, never a live fetch.
+const dynamic=data.dynamic_context;
+if(dynamic&&dynamic.schema==="RACE_AI_BOAT_P1_DYNAMIC_TACTICAL_CONTEXT_V1"){
+ const p=section("チルト角度・スタート展示の進入");
+ text(p,"場別チルト基準：2025-08-12の公式参照値。現在の上限は当該開催の証拠で確認する必要があります。");
+ text(p,"開催時の上限確認："+dynamic.rule_status);
+ const formation=dynamic.formation||{};
+ text(p,"スロー "+(formation.slow_count??"不明")+"艇／ダッシュ "+(formation.dash_count??"不明")+"艇。カド "+(formation.kado_course??"不明")+"コース、カド受け "+(formation.kado_uke_course??"不明")+"コース（スタート展示時点）");
+ const t=el("table"),body=el("tbody");t.append(body);
+ const titles=el("tr");for(const s of ["コース","選手登録番号","チルト","外攻め注意"])titles.append(el("th",null,s));body.append(titles);
+ for(const r of dynamic.rows||[]){
+  const tr=el("tr");
+  for(const value of [r.course,r.racer_id,typeof r.tilt_deg==="number"?(r.tilt_deg>=0?"+":"")+r.tilt_deg+"°":"未確認",
+      r.outer_high_tilt_marker?"参考：高チルト":"なし（危険0の意味ではない）"]){tr.append(el("td",null,value));}
+  body.append(tr);
+ }
+ p.append(t);
+ text(p,"高チルトは攻撃成功率ではなく研究上の注意マーカー。展示の進入が本番でも維持されるとは限りません。");
+}
+const entriesResearch=data.entry_responses;
+if(entriesResearch&&typeof entriesResearch==="object"){
+ const s=section("前付けした時・外へ押し出された時");
+ text(s,"実際の過去進入コースに基づく観測結果。相手の意図や直接のブロックの証明ではありません。");
+ const t=el("table"),body=el("tbody");t.append(body);
+ const titles=el("tr");for(const k of ["選手","前付け相当（内に入った）","外へ動いた","他艇が内に入った際の3連対"])titles.append(el("th",null,k));body.append(titles);
+ for(const r of data.profiles){
+  const x=entriesResearch[r.racer_id];
+  if(!x)continue;
+  const tr=el("tr"),cells=[r.racer_id,
+   (x.moved_inward?.starts??"未確認")+"走／1着率 "+rate(x.moved_inward?.win_rate),
+   (x.moved_outward?.starts??"未確認")+"走／3連対率 "+rate(x.moved_outward?.top3_rate),
+   (x.outer_racer_entered_inside_original_frame?.starts??"未確認")+"走／3連対率 "+rate(x.outer_racer_entered_inside_original_frame?.top3_rate)];
+  for(const v of cells)tr.append(el("td",null,v));body.append(tr);
+ }
+ s.append(t);
+}
+const quali=data.event_qualifying;
+if(quali&&quali.schema==="RACE_AI_BOAT_EVENT_QUALIFYING_CONTEXT_V1"){
+ const q=section("今節の予選得点・暫定順位");
+ text(q,"開催ごとの規則を使用。進出枠 "+quali.qualifying_slots+"人。現在の暫定ボーダー："+(typeof quali.provisional_cutline_rate==="number"?quali.provisional_cutline_rate:"未確認")+"点（最終の突破確定ではありません）");
+ text(q,"順位表の確認状態："+quali.border_status);
+ const t=el("table"),body=el("tbody");t.append(body);
+ const titles=el("tr");for(const x of ["順位","登録番号","合計点","減点","得点率","残り予選走数","資格"])titles.append(el("th",null,x));body.append(titles);
+ for(const r of quali.participants||[]){
+  const tr=el("tr");
+  for(const value of [r.official_rank??"未確認",r.racer_id,r.total_points,r.deductions,
+    r.official_rate??"未確認",r.remaining_starts??"未確認",r.eligibility])tr.append(el("td",null,value));
+  body.append(tr);
+ }
+ q.append(t);
+ text(q,"得点率の最終必要点、確定順位、賞典除外や同点時の扱いは開催固有の規則と確定情報が必要です。");
+}
+
+const predicted=data.probability_120;
+if(predicted){
+ if(predicted.schema!=="RACE_AI_BOAT_SIXWAY_OVERLAY_V1"||
+    !Array.isArray(predicted.all_120)||predicted.all_120.length!==120)
+    throw Error("120通りの研究用確率が不足");
+ const unique=new Set(),valid=predicted.all_120.every(row=>{
+    if(!row||typeof row.ticket!=="string"||!/^([1-6])-([1-6])-([1-6])$/.test(row.ticket)||
+       unique.has(row.ticket)||typeof row.probability!=="number"||
+       !Number.isFinite(row.probability)||row.probability<0)return false;
+    const parts=row.ticket.split("-");if(new Set(parts).size!==3)return false;
+    unique.add(row.ticket);return true;
+ });
+ const total=predicted.all_120.reduce((a,row)=>a+row.probability,0);
+ if(!valid||unique.size!==120||Math.abs(total-1)>1e-8)
+    throw Error("確率合計または買い目の重複に不整合");
+ const section120=section("3連単120通りの研究用確率");
+ text(section120,"本体予想を上書きしない参考値。校正済み・実未来精度改善の証拠はまだありません。");
+ text(section120,"確率合計："+(total*100).toFixed(6)+"%。1コースの1着率："+rate(predicted.first_course_win_probability)+"（逃げ決まり手の確率とは別）");
+ const details=el("details"),summary=el("summary",null,"120通りの確率をすべて表示");
+ details.append(summary);
+ const table=el("table"),body=el("tbody");table.append(body);
+ const header=el("tr");header.append(el("th",null,"3連単"),el("th",null,"研究用確率"));body.append(header);
+ for(const entry of predicted.all_120){
+  const tr=el("tr");tr.append(el("td",null,entry.ticket),
+    el("td",null,(100*entry.probability).toFixed(3)+"%"));body.append(tr);
+ }
+ details.append(table);section120.append(details);
+}
+
+const m=section("6艇の組み合わせ");
+text(m,"相互作用20指標。5・6コースのまくり・まくり差しは別々に評価。計算前の実進入と出典の照合が必須。");
+const f=data.matchup.features||{};
+const table=el("table"),body=el("tbody");table.append(body);
+for(const [key,val] of Object.entries(f)){const tr=el("tr");tr.append(el("td",null,key),el("td",null,rate(val)));body.append(tr);}
+m.append(table);
+const a=section("条件付き逃げ率（過去の類似事例）");
+const obs=data.analogue;
+text(a,obs?.status==="DESCRIPTIVE_ANALOGUES_ONLY"
+ ?"類似過去"+obs.support+"レースでの逃げ成功率："+rate(obs.empirical_escape_rate)+"。未来予測の校正済み確率ではありません。"
+ :"保留。十分な独立認証済み類似レースがなく、条件付き確率は算出しません。");
+status.textContent="読込完了（研究データ）。公式原本の真正性・未来精度は未認定";
+}
+file.addEventListener("change",async()=>{
+const f=file.files?.[0];if(!f)return;
+main.replaceChildren();
+try{
+ if(f.size>2000000)throw Error("入力容量超過");
+ const data=JSON.parse(await f.text());
+ show(data);
+}catch(e){status.textContent="読込拒否："+(e instanceof SyntaxError?"JSON構文不正":"形式・整合性を確認してください");main.replaceChildren();}
+});
+})();
+</script>
+</body>
+</html>
