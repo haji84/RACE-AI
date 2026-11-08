@@ -365,14 +365,16 @@ def _observations(rows, field, *, rejection=False):
 def validate_cutoff_reconciliation(row, result):
     """Validate a caller's raw-bound reference projection, never authenticate it.
 
-    The raw parser/retainer owns provenance verification. This check preserves
-    the one-minute, same-roster, before-both-cutoffs limits at the union boundary.
-    It never creates an official result or repairs an original prediction clock.
+    The raw parser/retainer owns provenance verification. Legacy references keep
+    their one-minute bound. An explicit SP race header can bind each saved model
+    to its own cutoff and the source cutoff, with the same roster and chronology.
+    No original clock or formal evaluation eligibility is changed.
     """
     proof = result.get("cutoff_reconciliation")
     if proof is None: return False
+    per_model = type(proof) is dict and proof.get("basis") == "RAW_OFFICIAL_SP_RESULT_PER_SAVED_MODEL_CUTOFF"
     _need(type(proof) is dict and result.get("status") == "final" and row.get("sport") == "boat" and
-          proof.get("basis") == "RAW_OFFICIAL_RESULT_PER_ORIGINAL_CUTOFF" and proof.get("formal_eligible") is False and
+          (per_model or proof.get("basis") == "RAW_OFFICIAL_RESULT_PER_ORIGINAL_CUTOFF") and proof.get("formal_eligible") is False and
           proof.get("roster_identity_verified") is True and proof.get("all_originals_saved_before_both") is True,
           "cutoff reconciliation scope")
     cutoffs, originals = row.get("saved_cutoff_variants", []), proof.get("original_cutoffs")
@@ -380,10 +382,13 @@ def validate_cutoff_reconciliation(row, result):
           set(originals) == set(cutoffs) and len({_clock(c) for c in cutoffs}) > 1, "cutoff reconciliation originals")
     clocks = [_clock(c) for c in originals]
     schedule = {_clock(c) for c in row.get("saved_schedule_cutoff_variants", [])}
-    _need(len(schedule) <= 1 and schedule <= set(clocks) and not row.get("saved_observation_cutoff_variants") and
-          "SAVED_SCHEDULE_CUTOFF_CONFLICT" not in row.get("missing_reasons", []), "cutoff reconciliation schedule")
+    # SP can reconcile saved schedule revisions only when every schedule clock
+    # is already an original model cutoff. Keep the conflict/history intact;
+    # unknown schedule or observation clocks remain a hold.
+    schedule_bound = (len(schedule) <= 1 and "SAVED_SCHEDULE_CUTOFF_CONFLICT" not in row.get("missing_reasons", [])) or (per_model and len(schedule) > 1)
+    _need(schedule_bound and schedule <= set(clocks) and not row.get("saved_observation_cutoff_variants"), "cutoff reconciliation schedule")
     maximum = proof.get("maximum_offset_seconds")
-    _need(type(maximum) in (int,float) and 0 <= maximum <= 60, "cutoff reconciliation maximum offset")
+    _need(type(maximum) in (int,float) and 0 <= maximum <= (86400 if per_model else 60), "cutoff reconciliation maximum offset")
     _sha(proof.get("source_sha256"))
     _need(proof["source_sha256"] == result.get("source_sha256"), "cutoff reconciliation source")
     people = _participants(row)
@@ -418,16 +423,30 @@ def validate_cutoff_reconciliation(row, result):
     if result.get("payouts") is not None: _need(_wire(result["payouts"]) == _wire(payouts), "cutoff reconciliation payout details")
     for field in ("refund_boats", "refunds", "refund_combinations", "dead_heat"):
         _need(_wire(result.get(field)) == _wire(data.get(field)), "cutoff reconciliation refund binding")
-    clocks.append(_clock(observation.get("closed_at")))
+    source_cutoff = _clock(observation.get("closed_at"))
+    if per_model:
+        binding=proof.get("source_schedule_binding",observation.get("schedule_binding"))
+        _need(binding == "SP_EXPLICIT_RACE_HEADER" and observation.get("schedule_binding") in (None,"SP_EXPLICIT_RACE_HEADER") and
+              _clock(proof.get("source_cutoff_at")) == source_cutoff, "cutoff reconciliation explicit source cutoff")
+        from .racer_intraday_source import identity
+        try:
+            day,venue,number=identity(observation.get("source_url"))
+        except (ValueError,TypeError,AttributeError):
+            _need(False,"cutoff reconciliation explicit source URL")
+        _need(day.replace('-','')+f'-{venue}-{number:02d}' == row['race_id'],"cutoff reconciliation explicit source URL")
+    clocks.append(source_cutoff)
     _need(all(c.astimezone(_JST).date().isoformat() == row["event_date_jst"] for c in clocks) and
           (max(clocks)-min(clocks)).total_seconds() <= maximum and captured >= max(clocks), "cutoff reconciliation clock span")
     predictions = _predictions(row)
     _need(predictions, "cutoff reconciliation predictions")
     for p in predictions:
+        if per_model:
+            _need(p.get("cutoff_at") is not None and _clock(p["cutoff_at"]) in clocks[:-1], "cutoff reconciliation model cutoff")
+        limit = min(_clock(p["cutoff_at"]),source_cutoff) if per_model else min(clocks)
         saved = p.get("persisted_at") or p.get("server_saved_at")
-        _need(saved is not None and _clock(saved) < min(clocks), "cutoff reconciliation saved chronology")
+        _need(saved is not None and _clock(saved) < limit, "cutoff reconciliation saved chronology")
         for field in ("as_of", "generated_at", "source_captured_at", "server_saved_at"):
-            _need(p.get(field) is None or _clock(p[field]) < min(clocks), "cutoff reconciliation original chronology")
+            _need(p.get(field) is None or _clock(p[field]) < limit, "cutoff reconciliation original chronology")
     return True
 
 

@@ -103,8 +103,12 @@ class RemainingCompletionAuditTests(unittest.TestCase):
     def test_retained_sp_hold_audit_keeps_ambiguous_saved_cutoff_rejection(self):
         view,state,now=self.sp_fixture();saved=view['records'][0]
         saved['cutoff_at']=None;saved['saved_cutoff_variants'].append('2026-11-07T10:10:00+09:00')
+        before=deepcopy(view)
         value=audit.audit_retained_sp_holds(view,state=state,now=now)
-        self.assertEqual(value['projection_reason_counts'],{'RESULT_CUTOFF_MISMATCH':1})
+        # This old fixture has no per-model cutoff. The SP reference path
+        # must keep it held rather than infer a model's own saved deadline.
+        self.assertEqual(value['projection_reason_counts'],{'RESULT_CUTOFF_REFERENCE_CHRONOLOGY':1})
+        self.assertEqual(value['results_admitted'],0);self.assertEqual(view,before)
         self.assertEqual(saved['result']['status'],'unsupported')
 
     def test_stored_schedule_binding_counts_only_fixed_bins_without_changing_observations(self):
@@ -192,7 +196,7 @@ class RemainingCompletionAuditTests(unittest.TestCase):
         result=audit.audit_retained_sp_holds(view,state=state,now=now)
         self.assertEqual(result['source_deadline_chronology_counts'],{'ALL_BEFORE_SOURCE_CUTOFF':1})
         self.assertEqual(result['forecast_chronology_counts'],{'NOT_ALL_BEFORE_ALL_CUTOFFS':1})
-        self.assertEqual(result['projection_reason_counts'],{'RESULT_CUTOFF_MISMATCH':1})
+        self.assertEqual(result['projection_reason_counts'],{'RESULT_CUTOFF_REFERENCE_CHRONOLOGY':1})
         self.assertEqual(result['results_admitted'],0)
 
     def test_per_original_cutoff_diagnostic_keeps_the_global_hold(self):
@@ -202,7 +206,7 @@ class RemainingCompletionAuditTests(unittest.TestCase):
         result=audit.audit_retained_sp_holds(view,state=state,now=now)
         self.assertEqual(result['per_original_cutoff_projection_reason_counts'],{'SUPPORTED':1,'SUPPORTED_REFERENCE':1})
         self.assertEqual(result['forecast_chronology_counts'],{'ALL_BEFORE_ALL_CUTOFFS':1})
-        self.assertEqual(result['projection_reason_counts'],{'RESULT_CUTOFF_MISMATCH':1})
+        self.assertEqual(result['projection_reason_counts'],{'RESULT_CUTOFF_REFERENCE_CHRONOLOGY':1})
         self.assertEqual(result['results_admitted'],0);self.assertEqual(view,before)
 
     def test_retained_sp_chronology_checks_every_original_model_clock(self):

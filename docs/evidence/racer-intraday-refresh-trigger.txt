@@ -1,1 +1,3 @@
-retained-result-audit: verify-site current-day fast display proof and fixed-count diagnostics; source requests 0
+retained-result-audit: verify-site post-sync historical acceptance
+Read-only owner browser verification of 2026-11-07 after encrypted generation 74; preserve originals, outcomes and frozen allocation.
+Official source requests: 0. No new forecasts or native collector.

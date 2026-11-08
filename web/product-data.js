@@ -271,14 +271,16 @@
   }
   function cutoffReconciliation(row,result) {
     const proof=result?.cutoff_reconciliation;if(proof==null)return false;
+    const perModel=proof?.basis==="RAW_OFFICIAL_SP_RESULT_PER_SAVED_MODEL_CUTOFF";
     const reject=()=>fail("締切差の参考照合の出典・出走者・保存時刻が一致しません。");
     if(!proof || typeof proof!=="object" || Array.isArray(proof) || row.sport!=="boat" || !row.private_cycle_view || result.status!=="final" ||
-      proof.basis!=="RAW_OFFICIAL_RESULT_PER_ORIGINAL_CUTOFF" || proof.formal_eligible!==false || proof.roster_identity_verified!==true || proof.all_originals_saved_before_both!==true ||
-      !sha(proof.source_sha256) || proof.source_sha256!==result.source_sha256 || typeof proof.maximum_offset_seconds!=="number" || !Number.isFinite(proof.maximum_offset_seconds) || proof.maximum_offset_seconds<0 || proof.maximum_offset_seconds>60)reject();
+      (!perModel&&proof.basis!=="RAW_OFFICIAL_RESULT_PER_ORIGINAL_CUTOFF") || proof.formal_eligible!==false || proof.roster_identity_verified!==true || proof.all_originals_saved_before_both!==true ||
+      !sha(proof.source_sha256) || proof.source_sha256!==result.source_sha256 || typeof proof.maximum_offset_seconds!=="number" || !Number.isFinite(proof.maximum_offset_seconds) || proof.maximum_offset_seconds<0 || proof.maximum_offset_seconds>(perModel?86400:60))reject();
     const originals=proof.original_cutoffs,saved=row.saved_cutoff_variants||[];
     if(!Array.isArray(originals)||originals.some(c=>!stamp(c))||new Set(originals).size!==originals.length||canonical([...originals].sort())!==canonical([...saved].sort())||new Set(saved.map(Date.parse)).size<2)reject();
     const clocks=originals.map(Date.parse),scheduled=(row.saved_schedule_cutoff_variants||[]).map(Date.parse);
-    if(new Set(scheduled).size>1 || scheduled.some(c=>!clocks.includes(c)) || row.saved_observation_cutoff_variants?.length || row.missing_reasons?.includes("SAVED_SCHEDULE_CUTOFF_CONFLICT"))reject();
+    const scheduleCount=new Set(scheduled).size,scheduleBound=scheduleCount<=1&&!row.missing_reasons?.includes("SAVED_SCHEDULE_CUTOFF_CONFLICT")||perModel&&scheduleCount>1;
+    if(!scheduleBound || scheduled.some(c=>!clocks.includes(c)) || row.saved_observation_cutoff_variants?.length)reject();
     const people=row.participants,roster=new Map();
     if(!Array.isArray(people)||people.length<3||people.length>6)reject();
     for(const person of people){if(!Number.isInteger(person.number)||person.number<1||person.number>6||typeof person.registration_no!=="string"||!/^\d{4}$/.test(person.registration_no)||roster.has(person.number))reject();roster.set(person.number,person.registration_no);}
@@ -295,10 +297,15 @@
     if(payouts.length===1 ? result.payout_yen_per_100!==payouts[0].payout_per_100_yen : canonical(result.payouts)!==canonical(payouts))reject();
     if(result.payouts!=null && canonical(result.payouts)!==canonical(payouts))reject();
     for(const field of ["refund_boats","refunds","refund_combinations","dead_heat"])if(canonical(result[field]??null)!==canonical(data[field]??null))reject();
-    if(!stamp(observation.closed_at))reject();clocks.push(Date.parse(observation.closed_at));
+    if(!stamp(observation.closed_at))reject();
+    if(perModel){
+      if((Object.hasOwn(proof,"source_schedule_binding")?proof.source_schedule_binding:observation.schedule_binding)!=="SP_EXPLICIT_RACE_HEADER"||![undefined,null,"SP_EXPLICIT_RACE_HEADER"].includes(observation.schedule_binding)||!stamp(proof.source_cutoff_at)||Date.parse(proof.source_cutoff_at)!==Date.parse(observation.closed_at))reject();
+      try{const source=observation.source_url;if(typeof source!=="string"||!source.startsWith("https://www.boatrace.jp/owsp/sp/spdata?"))reject();const url=new URL(source),q=url.searchParams,number=q.get("rno"),day=q.get("hd"),venue=q.get("jcd");if(url.pathname!=="/owsp/sp/spdata"||url.hash||[...q].length!==4||new Set(q.keys()).size!==4||q.get("type")!=="raceresult"||!/^(?:[1-9]|1[0-2])$/.test(number)||!/^(0[1-9]|1[0-9]|2[0-4])$/.test(venue)||!/^\d{8}$/.test(day)||!validDay(day.slice(0,4)+"-"+day.slice(4,6)+"-"+day.slice(6,8))||day+"-"+venue+"-"+number.padStart(2,"0")!==row.race_id)reject();}catch{reject();}
+    }
+    clocks.push(Date.parse(observation.closed_at));
     if(clocks.some(c=>new Date(c+9*60*60*1000).toISOString().slice(0,10)!==row.event_date_jst)||(Math.max(...clocks)-Math.min(...clocks))/1000>proof.maximum_offset_seconds||observed<Math.max(...clocks))reject();
     const predictions=candidates(row);if(!predictions.length)reject();
-    for(const p of predictions){const saved=p.persisted_at??p.server_saved_at;if(!stamp(saved)||Date.parse(saved)>=Math.min(...clocks))reject();for(const field of ["as_of","generated_at","source_captured_at","server_saved_at"])if(p[field]!=null&&(!stamp(p[field])||Date.parse(p[field])>=Math.min(...clocks)))reject();}
+    for(const p of predictions){if(perModel&&(!stamp(p.cutoff_at)||!clocks.slice(0,-1).includes(Date.parse(p.cutoff_at))))reject();const limit=perModel?Math.min(Date.parse(p.cutoff_at),Date.parse(observation.closed_at)):Math.min(...clocks),saved=p.persisted_at??p.server_saved_at;if(!stamp(saved)||Date.parse(saved)>=limit)reject();for(const field of ["as_of","generated_at","source_captured_at","server_saved_at"])if(p[field]!=null&&(!stamp(p[field])||Date.parse(p[field])>=limit))reject();}
     return true;
   }
   function parsePrivateCycle(value) {
