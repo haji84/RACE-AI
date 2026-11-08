@@ -25,6 +25,10 @@ on:
         description: '公開画面確認時に当日のレース前・結果待ちの区別も確認'
         type: boolean
         default: false
+      check_beforeinfo:
+        description: '公開画面の直前情報・展示タイム・気象情報も確認'
+        type: boolean
+        default: false
       probe_race_id:
         description: '画面で照合するレースID（確認する場合だけ指定）'
         type: string
@@ -50,7 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: ${{ github.event_name == 'push' && github.sha || '89cb216ac737e024b35019bd668c4775b5ea5088' }}
+          ref: ${{ github.event_name == 'push' && github.sha || '914941a6244364480370ac392441ad4bb5781f83' }}
           persist-credentials: true
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -77,7 +81,7 @@ jobs:
           args=()
           if [[ "$INITIALIZE" == 'true' ]]; then args+=(--initialize); fi
           if [[ "$DAILY_RECONCILE" == 'true' ]]; then args+=(--daily-reconcile); fi
-          python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results "${args[@]}"
+          python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-intraday" --verify-public --sync-results --sync-beforeinfo "${args[@]}"
       - name: Install browser check only for an explicit verification run
         if: >-
           (github.event_name == 'workflow_dispatch' && inputs.verify_site) || (github.event_name == 'push' && startsWith(github.event.head_commit.message, 'racer-intraday-refresh: verify-results'))
@@ -92,6 +96,7 @@ jobs:
           NODE_PATH: ${{ runner.temp }}/result-site-tools/node_modules
           RESULT_PROBE_RACE: ${{ inputs.probe_race_id || '' }}
           CHECK_CURRENT_DAY: ${{ inputs.check_current_day || 'false' }}
+          CHECK_BEFOREINFO: ${{ inputs.check_beforeinfo || 'false' }}
           # The context installs its own repository-scoped credential.
           # Clear checkout's host header for this read-only step only.
           GIT_CONFIG_COUNT: '1'
@@ -107,4 +112,5 @@ jobs:
           probe=()
           if [[ -n "$RESULT_PROBE_RACE" ]]; then probe+=("--race-id=$RESULT_PROBE_RACE"); fi
           if [[ "$CHECK_CURRENT_DAY" == 'true' ]]; then probe+=(--check-current-day); fi
+          if [[ "$CHECK_BEFOREINFO" == 'true' ]]; then probe+=(--check-beforeinfo); fi
           env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results "${probe[@]}"
