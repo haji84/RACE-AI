@@ -1,11 +1,12 @@
 <!-- RACE_AI_NATIVE_COLLECTION_BOUNDARY_20261108 -->
-# 2026-11-08 08:51 JST｜実データ取得の検証境界：同じPRのHEADを固定
+# 2026-11-08 09:15 JST｜実データ取得の検証境界：同じPRのHEADを固定
 
 全既存モデル接続担当rootが、残るAUTO通常3件の取得用HEADを全初回CIで検証している。現行19／30枠学習済み、AUTO通常5／8・競輪0／8、新候補の実未来PDCA0件。既存の同HEAD全初回成功・唯一issue子・実capsule独立読戻し・固定attempt2・取得間隔／上限の条件は変更しない。
 
 BC・7ac・29eは並行する画面／動画更新で共有HEADが変わり、すべて新capsule・新取得を始める前に安全停止した。画面・動画・検証docsは全て保持している。全初回検証から発行・読戻し・実取得終了までが一つの実行境界になるため、**担当rootが下記状態を解除するまでPR71への追加pushを待機する**。並行開発・テストは別checkoutで進め、未反映の変更を保持して次の取得終了境界でまとめて取り込む。GitHub保護・権限・branch設定を変更する指示ではない。
 
 - 状態：`ACTIVE_FULL_FIRST_TO_FIXED_ATTEMPT_TWO_BOUNDARY`
+- 00:07Zの6d6db7d9結果照合修正と00:13Zの574c53af監査docsも保持。旧39c向けcontroller13は共有HEAD変更を検出して子commit作成・権限発行・取得の前に停止した。新cap・新provider通信0のまま、最新変更を含む検証HEADへ再設定する。
 - 取得request SHA：`bcbdaa8b350402d8753d23632709eee6a15b75d6402b1d4cb7108334ed4fa5e6`
 - 前の実source：`d41f505cb00557dd1a6173a19b0945d7849e57fd`／run42413260799／固定2回目全体SUCCESS。以後の新capsule・新provider通信は0。
 - 実行対象HEAD／run／firstViewerはPR71の全モデル接続ブロックと既存タスクの最新担当ブロックで更新する。この文書の自己SHAを推測して固定しない。
