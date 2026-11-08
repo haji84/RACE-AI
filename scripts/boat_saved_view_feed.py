@@ -1,4 +1,4 @@
-"""Publish encrypted result comparisons using the existing Actions writer only."""
+"""Publish encrypted saved forecasts and results using the existing Actions writer."""
 import argparse
 import base64
 from copy import deepcopy
@@ -84,11 +84,58 @@ def _runtime_name_aliases(files,*,now=None,include_sources=False):
             facts=build_name_aliases(manifest,files['racers.sqlite'],now=clock)
     return (facts,manifest) if include_sources else facts
 
-def intake_saved_models(view,*,hydrate=False,day=None,since_day=None,recover_runs=()):
+_OUTCOME_FIELDS=('result','result_revisions','result_observations','result_observation_rejections',
+                 'saved_observation_cutoff_variants')
+_OUTCOME_REASONS=frozenset(('NO_SAVED_RESULT_OBSERVATION','RESULT_OBSERVATION_REJECTED',
+    'LATEST_RESULT_OBSERVATION_REJECTED','SAVED_OBSERVATION_CUTOFF_CONFLICT'))
+
+def _forecast_only_view(view,previous=None):
+    """Discard incoming outcomes; restore the authenticated prior journals exactly."""
+    output=deepcopy(view)
+    old={row['race_id']:row for row in previous['records']} if previous is not None else {}
+    if previous is not None and 'results_synced_at' in previous:
+        output['results_synced_at']=deepcopy(previous['results_synced_at'])
+    else:output.pop('results_synced_at',None)
+    records=[]
+    for row in output['records']:
+        prior=old.get(row['race_id'])
+        if previous is not None and prior is None and not (row.get('prediction') or row.get('comparison_predictions')):
+            continue
+        for field in _OUTCOME_FIELDS:
+            if prior is not None:
+                if field in prior:row[field]=deepcopy(prior[field])
+                else:row.pop(field,None)
+            elif field=='saved_observation_cutoff_variants':row.pop(field,None)
+            else:row[field]=None if field=='result' else []
+        row['missing_reasons']=[reason for reason in row.get('missing_reasons',[]) if reason not in _OUTCOME_REASONS]
+        if prior is not None:
+            row['missing_reasons'].extend(reason for reason in prior.get('missing_reasons',[]) if reason in _OUTCOME_REASONS)
+        records.append(row)
+    output['records']=records
+    return output
+
+def _validate_forecast_only_view(view):
+    """Use the actual reader without exposing its private input or diagnostics."""
+    code="""try {
+      require(process.argv[1]).parse(require('node:fs').readFileSync(0,'utf8'));
+    } catch { process.exitCode=2; }
+    """
+    try:
+        checked=subprocess.run(['node','-e',code,str(ROOT/'web/product-data.js')],
+            cwd=ROOT,input=wire(view).encode(),capture_output=True,timeout=30,check=False)
+    except (OSError,subprocess.SubprocessError):
+        raise ValueError('FEED_FORECASTS_ONLY_READER_REJECTED') from None
+    need(checked.returncode==0 and not checked.stdout and not checked.stderr,'FEED_FORECASTS_ONLY_READER_REJECTED')
+
+def intake_saved_models(view,*,hydrate=False,day=None,since_day=None,recover_runs=(),forecasts_only=False):
     """Use authenticated private runtime/readback; never request official pages."""
+    previous=deepcopy(view) if forecasts_only else None
+    if forecasts_only:
+        view=_forecast_only_view(view)
+        view['forecast_base_sha256']=F.forecast_anchor(previous)
     additions=[];names=None;name_aliases=[];alias_sources=None;program_aliases=None
     config=ROOT/'audit/state/boat-model-runtime-input.json'
-    if config.exists():
+    if config.exists() and not forecasts_only:
         from scripts.boat_all_model_cycle import prepare_runtime
         runtime=prepare_runtime(round_no=0);files=runtime['runtime_files']
         if files.get('native-view.json'):
@@ -124,6 +171,10 @@ def intake_saved_models(view,*,hydrate=False,day=None,since_day=None,recover_run
             program_aliases=build_program_name_aliases(alias_sources,payload,record['receipt'],now=datetime.now(timezone.utc))
         additions.append(projected)
     additions=[intake_day_scope(part,day=day,since_day=since_day) for part in additions]
+    if forecasts_only:
+        additions=[_forecast_only_view(part) for part in additions]
+        for part in additions:
+            part['records']=[row for row in part['records'] if row.get('prediction') or row.get('comparison_predictions')]
     additions=[part for part in additions if part['records']]
     if name_aliases:
         from race_ai.boat_name_aliases import attach_name_aliases
@@ -139,13 +190,17 @@ def intake_saved_models(view,*,hydrate=False,day=None,since_day=None,recover_run
         output,counts=recover_saved_models(output,gh,run_ids=recover_runs,day=day,
             **(dict(name_alias_sources=alias_sources) if alias_sources is not None else {}))
         print(wire(dict(counts,intake_status='SAVED_MODEL_ARCHIVES_REPLAYED')))
-        from race_ai.boat_saved_result_recovery import recover_saved_results
-        output,counts=recover_saved_results(output,gh,run_ids=recover_runs)
-        print(wire(dict(counts,intake_status='SAVED_RESULT_ARCHIVES_REPLAYED')))
+        if not forecasts_only:
+            from race_ai.boat_saved_result_recovery import recover_saved_results
+            output,counts=recover_saved_results(output,gh,run_ids=recover_runs)
+            print(wire(dict(counts,intake_status='SAVED_RESULT_ARCHIVES_REPLAYED')))
     if hydrate:
         from race_ai.boat_saved_view_intake import hydrate_saved_originals
         output,counts=hydrate_saved_originals(output,gh)
         print(wire(dict(status='SAVED_ORIGINAL_EVIDENCE_VERIFIED',**counts)))
+    if forecasts_only:
+        output=_forecast_only_view(output,previous)
+        F.ensure_append_only(previous,output)
     return output
 
 def git_auth():
@@ -164,6 +219,7 @@ def git_auth():
 
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--seed-only',action='store_true');p.add_argument('--result-artifact',type=int)
+    p.add_argument('--forecasts-only',action='store_true',help='Append verified forecasts to an existing feed without reading or updating results')
     p.add_argument('--hydrate-originals',action='store_true')
     p.add_argument('--history',action='store_true',help='Require compatible active publishers before initial V5 activation')
     p.add_argument('--history-when-compatible',action='store_true',help='Keep V4 until all active pinned publishers support V5')
@@ -172,6 +228,7 @@ def main(argv=None):
     p.add_argument('--recover-model-config',action='store_true')
     a=p.parse_args(argv)
     try:
+        need(not a.forecasts_only or not (a.seed_only or a.result_artifact is not None),'FEED_FORECASTS_ONLY_OPTION_CONFLICT')
         config=_json(_read(ROOT/'audit/state/boat-saved-view-input.json',8192),8192)
         need(set(config)=={'schema','bootstrap','bootstrap_sha256','catchup_artifact_id','catchup_sha256'}
              and config['schema']=='RACE_AI_SAVED_VIEW_INPUT_V1','FEED_INPUT_INVALID')
@@ -179,6 +236,7 @@ def main(argv=None):
         bootstrap=F.open_bootstrap(raw);git_auth();git=F.FeedRepository(ROOT)
         if a.day is not None:need(date.fromisoformat(a.day).isoformat()==a.day,'FEED_DAY_INVALID')
         parent,previous,generation,view=F.current_view(git,bootstrap,day=a.day)
+        need(not a.forecasts_only or parent is not None and generation>0,'FEED_FORECASTS_ONLY_EXISTING_FEED_REQUIRED')
         previous_view=deepcopy(view)
         recover_runs=list(a.recover_model_run)
         if a.recover_model_config:
@@ -203,11 +261,15 @@ def main(argv=None):
             view=intake_saved_models(view,hydrate=a.hydrate_originals,
                 day=a.day if history_context else None,
                 since_day=history_context['selected_day'] if history_context and not a.day else None,
+                **(dict(forecasts_only=True) if a.forecasts_only else {}),
                 **(dict(recover_runs=recover_runs) if recover_runs else {}))
             changed=wire(view)!=wire(previous_view)
             days={r['event_date_jst'] for r in view['records']}
             missing={r['race_id'] for r in view['records'] if not r['result'] or r['result']['status'] in ('pending','unsupported')}
-            if not a.result_artifact and not missing and not changed:
+            if a.forecasts_only:
+                if not changed and not activate_history:
+                    print(wire(dict(status='SAVED_FORECASTS_UNCHANGED',generation=generation)));return 0
+            elif not a.result_artifact and not missing and not changed:
                 if not activate_history:
                     print(wire(dict(status='SAVED_RESULTS_ALREADY_COMPLETE',generation=generation)));return 0
             else:
@@ -226,6 +288,7 @@ def main(argv=None):
                     if not activate_history:
                         print(wire(dict(status='SAVED_DAY_UNCHANGED',generation=generation)));return 0
                 else:view=F.update_view(view,items,captures=captures,synced_at=datetime.now(timezone.utc).isoformat())
+        if a.forecasts_only:_validate_forecast_only_view(view)
         if os.environ.get('RACE_AI_ORIGINAL_VAULT_ENABLED')=='true':
             from scripts.boat_original_maintenance import protect_new_forecast_originals
             protection=protect_new_forecast_originals(previous_view,view,ROOT)

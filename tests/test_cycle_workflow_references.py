@@ -39,7 +39,13 @@ class WorkflowReferencesTest(unittest.TestCase):
         # Keep the original nine mandatory steps separate from optional retention.
         retention_steps=[step for step in steps if step.split('\n',1)[0] in RETENTION_NAMES]
         result_retention_steps=retention_steps
-        baseline_steps=[step for step in steps if step not in private_steps+model_steps+protection_steps+vault_steps+evaluation_steps+retention_steps]
+        forecast_publication=[step for step in steps if '--forecasts-only' in step]
+        self.assertEqual(len(forecast_publication),1)
+        early=forecast_publication[0]
+        self.assertIn('RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}',early)
+        self.assertIn("if: steps.ready.outputs.active == 'true'",early)
+        self.assertNotIn('--result-artifact',early)
+        baseline_steps=[step for step in steps if step not in private_steps+model_steps+protection_steps+vault_steps+evaluation_steps+retention_steps+forecast_publication]
         self.assertEqual(len(baseline_steps), 9)
         prepare, discovery, p0freeze, forecast, freeze, audit, result, complete, display = baseline_steps
         self.assertIn('id: ready', prepare)
@@ -68,6 +74,10 @@ class WorkflowReferencesTest(unittest.TestCase):
             self.assertIn('if-no-files-found: error', step)
             self.assertNotIn('overwrite: true', step)
         self.assertIn('github_existing_cycle.py audit', audit)
+        self.assertLess(text.index(early),text.index(audit))
+        for retained in vault_steps:
+            if 'Retain exact baseline and supplemental P0 originals' in retained or 'Retain exact additional model execution' in retained:
+                self.assertLess(text.index(retained),text.index(early))
         self.assertIn('P0_SUPPLEMENT_ARTIFACT: ${{ steps.discovery_freeze.outputs.artifact-id }}', audit)
         self.assertIn('supplement_args+=(--p0-supplement "$P0_SUPPLEMENT_ARTIFACT")', audit)
         self.assertIn("--p1-artifact '${{ steps.freeze.outputs.artifact-id }}'", audit)

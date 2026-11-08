@@ -27,6 +27,52 @@ let automaticSourceStatus = {};
 let automaticDelivery = null;
 const automaticStatusCalls = [];
 const automaticLatestCalls = [];
+async function showRaceList(page,view) {
+  await page.locator('[data-page="races"]').filter({visible:true}).first().click();
+  const tab=page.locator(`#race-view-${view}`);
+  await tab.click();
+  assert.equal(await tab.getAttribute('aria-selected'),'true');
+  assert.equal(await page.locator('#all-races').getAttribute('data-race-list-view'),view);
+}
+async function showOperations(page) {
+  await page.locator('[data-page="settings"]').filter({visible:true}).first().click();
+  for(const id of ['data-tools','operation-details']) {
+    const details=page.locator(`#${id}`);
+    if(!await details.evaluate(element=>element.open))await details.locator(':scope > summary').click();
+  }
+}
+async function openFixtureResult(page,tab='outlook') {
+  await showRaceList(page,'results');
+  await page.locator(`#page-races [data-open-race="${fixture.records[0].race_id}"]`).click();
+  if(tab!=='outlook')await page.locator(`[data-detail-tab="${tab}"]`).click();
+}
+async function checkUnverifiedOfficialMetrics(page) {
+  const details=page.locator('#result-data-details');
+  const open=await details.evaluate(element=>element.open);
+  if(!open)await details.locator(':scope > summary').click();
+  assert.equal(await page.locator('#result-metrics').isVisible(),true);
+  const text=await page.locator('#result-metrics').innerText();
+  assert.match(text,/未検証/);
+  assert.ok(!text.includes('100%'),'synthetic or unverified hits cannot become official metrics');
+  if(!open)await details.locator(':scope > summary').click();
+}
+async function withResearchAudit(page,check) {
+  const race=await page.locator('#ticket-race').inputValue();
+  const prediction=await page.locator('#prediction-select').inputValue();
+  const tab=await page.locator('[data-detail-tab][aria-selected="true"]').getAttribute('data-detail-tab');
+  assert.equal(await page.locator('#race-detail .race-audit-details').count(),0,'ordinary race detail contains no technical audit');
+  await page.locator('[data-page="research"]').filter({visible:true}).first().click();
+  const audit=page.locator('#research-race-audit');
+  assert.equal(await audit.isVisible(),true);
+  assert.equal(await audit.getAttribute('data-race-id'),race,'research audit keeps the selected original race');
+  assert.equal(await page.locator('#research-prediction-select').inputValue(),prediction,'research audit keeps the selected original model');
+  const result=await check(audit);
+  await audit.locator('[data-return-to-race]').click();
+  assert.equal(await page.locator('#prediction-select').inputValue(),prediction,'returning from research keeps the selected original model');
+  if(tab!=='outlook')await page.locator(`[data-detail-tab="${tab}"]`).click();
+  return result;
+}
+const raceAuditText=page=>withResearchAudit(page,audit=>audit.innerText());
 async function main() {
   fs.mkdirSync(output, {recursive:true});
   server = http.createServer((req,res) => {
@@ -112,6 +158,9 @@ async function main() {
     await page.locator('[data-sport="boat"]').first().click();
     const nav = async name => page.locator(`[data-page="${name}"]`).filter({visible:true}).first().click();
     await nav('races');
+    assert.equal(await page.locator('#race-view-upcoming').getAttribute('aria-selected'),'true');
+    assert.equal(await page.locator('#page-races .race-card').count(),0,'a final result is not an upcoming race, even before its fixture cutoff');
+    await showRaceList(page,'results');
     await page.locator('#race-search').fill('not-present');
     assert.equal(await page.locator('#page-races .race-card').count(),0);
     await page.locator('#race-search').fill('');
@@ -120,7 +169,12 @@ async function main() {
     assert.equal(await page.locator('#page-races .race-card').count(),1);
     await page.locator('#race-filters>summary').click();
     await page.locator('#status-filter').selectOption('HIT');
-    assert.equal(await page.locator('#page-races .race-card').count(),0,'synthetic match cannot be official HIT');
+    assert.equal(await page.locator('#page-races .race-card').count(),1,'the acquired-result filter shows the saved synthetic match');
+    assert.match(await page.locator('#page-races .race-card').innerText(),/合成・的中/,'the comparison remains visibly scoped to synthetic data');
+    assert.match(await page.locator('#status-filter option:checked').innerText(),/的中（取得結果）/);
+    assert.match(await page.locator('#data-banner').innerText(),/合成テスト専用.*架空.*実績には含みません/,'a synthetic match cannot become an official result');
+    await page.locator('#status-filter').selectOption('MISS');
+    assert.equal(await page.locator('#page-races .race-card').count(),0,'the result filter excludes a saved match from misses');
     await page.locator('#status-filter').selectOption('all');
     await page.locator('#period-filter').selectOption('day');
     mark(`${width}: local import, four sports and search`);
@@ -136,8 +190,12 @@ async function main() {
     }
     mark(`${width}: seven-page navigation and no horizontal overflow`);
     await nav('results');
-    assert.match(await page.locator('#result-metrics').innerText(), /未検証/);
-    assert.ok(!(await page.locator('#result-metrics').innerText()).includes('100%'),'synthetic hits cannot become official metrics');
+    assert.equal(await page.locator('#result-data-details').evaluate(element=>element.open),false,'ordinary results keep audit details collapsed');
+    assert.equal(await page.locator('#result-metrics').isVisible(),false);
+    assert.match(await page.locator('#result-coverage').innerText(),/対象 1レース/);
+    assert.match(await page.locator('#saved-result-metrics').innerText(),/保存Top8的中率/);
+    assert.match(await page.locator('#source-state').innerText(),/合成/);
+    await checkUnverifiedOfficialMetrics(page);
     await nav('races');await page.locator('#page-races [data-open-race]').first().click();
     for(const tab of ['outlook','participants','preview','analysis','history']) {
       await page.locator(`[data-detail-tab="${tab}"]`).click();
@@ -147,7 +205,7 @@ async function main() {
     assert.ok(options>=2,'saved comparison model selectable');
     await page.locator('#prediction-select').selectOption({index:1});
     await page.locator('#prediction-select').selectOption({index:0});
-    assert.ok((await page.locator('#race-detail').innerText()).includes(fixture.records[0].prediction.prediction_sha256),'original prediction SHA displayed');
+    assert.ok((await raceAuditText(page)).includes(fixture.records[0].prediction.prediction_sha256),'original prediction SHA is visible in explicitly opened details');
     mark(`${width}: detail tabs and saved model/stage switching`);
     await nav('picks');
     await page.locator('#race-budget').fill('2000');
@@ -187,7 +245,7 @@ async function main() {
       const saved=generated.records.find(r=>r.sport==='boat' && r.prediction);
       await page.waitForFunction(()=>document.querySelector('#page-races').textContent.includes('fixture'));
       await page.locator('#page-races [data-open-race]').first().click();
-      assert.ok((await page.locator('#race-detail').innerText()).includes(saved.prediction.prediction_sha256),'actual engine saved SHA is displayed unchanged');
+      assert.ok((await raceAuditText(page)).includes(saved.prediction.prediction_sha256),'actual engine saved SHA is displayed unchanged in details');
       await page.locator('[data-detail-tab="history"]').click();
       assert.ok((await page.locator('#race-detail').innerText()).includes('改訂'));
       assert.equal(generated.records.find(r=>r.race_id===saved.race_id).result_revisions.length,2);
@@ -207,6 +265,7 @@ async function main() {
       await nav('races');
       await page.locator('#selected-date').fill(saved.event_date_jst);
       await page.locator('#selected-date').dispatchEvent('change');
+      await showRaceList(page,'results');
       await page.locator('#page-races [data-open-race]').first().click();
       assert.equal(await page.locator('#prediction-select option').count(),variants.length,'every saved baseline/P0/P1/learned variant selectable');
       await page.locator('[data-detail-tab="analysis"]').click();
@@ -214,38 +273,43 @@ async function main() {
         await page.locator('#prediction-select').selectOption(String(index));
         const displayed=await page.locator('#race-detail .forecast-panel').first().locator('.saved-ticket .combo').evaluateAll(nodes=>nodes.map(n=>[...n.querySelectorAll('.lane')].map(x=>Number(x.textContent))));
         assert.deepEqual(displayed,p.ordered_top8,'saved original Top8 order unchanged');
-        const detail=await page.locator('#race-detail').innerText();
+        const detail=await raceAuditText(page);
         assert.ok(detail.includes(p.prediction_sha256) && detail.includes(p.original_json_sha256),'native SHA and member SHA preserved');
-        if(p.model_version==null) assert.match(await page.locator('#prediction-select option:checked').innerText(),/未取得/);
+        if(p.model_version==null) assert.ok(detail.includes(p.model_id+' / 未取得'),'missing technical model version stays explicit in opened audit details');
       }
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'saved-cycle detail has no horizontal overflow');
       await capture(`${width}-saved-cycle-detail.png`);
       await page.locator('[data-detail-tab="history"]').click();
-      assert.match(await page.locator('#result-observations').innerText(),/取得観測履歴（公式改訂番号なし）/);
-      assert.equal(await page.locator('#result-observations details').count(),saved.result_observations.length);
-      for (const details of await page.locator('#result-observations details').all()) await details.locator('summary').click();
-      for (const observation of saved.result_observations) assert.ok((await page.locator('#result-observations').innerText()).includes(observation.source_sha256));
-      const rawBodies=await page.locator('#result-observations [data-observation-raw]').allTextContents();
-      assert.deepEqual(rawBodies,saved.result_observations.map(o=>JSON.stringify(o)),'full raw captures cannot be truncated');
-      assert.match(await page.locator('#race-detail').innerText(),/結果確認 未取得/,'capture time must not become official confirmation time');
+      await withResearchAudit(page,async audit=>{
+        const observations=audit.locator('#result-observations');
+        assert.match(await observations.innerText(),/取得観測履歴（公式改訂番号なし）/);
+        assert.equal(await observations.locator('article').count(),saved.result_observations.length);
+        for (const observation of saved.result_observations) assert.ok((await observations.innerText()).includes(observation.source_sha256));
+        const rawBodies=await observations.locator('[data-observation-raw]').allTextContents();
+        assert.deepEqual(rawBodies,saved.result_observations.map(o=>JSON.stringify(o)),'full raw captures cannot be truncated');
+        assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'research raw observation history has no horizontal overflow');
+        await capture(`${width}-saved-cycle-research-history.png`);
+      });
+      assert.equal(saved.result.confirmed_at ?? null,null,'capture time must not become official confirmation time');
+      assert.match(await page.locator('#race-detail').innerText(),/結果取得/,'the visible result clock is labeled as acquisition');
+      assert.doesNotMatch(await page.locator('#race-detail').innerText(),/結果確認/,'the UI must not relabel acquisition as confirmation');
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'raw observation history has no horizontal overflow');
       await capture(`${width}-saved-cycle-history.png`);
       await nav('results');
-      assert.match(await page.locator('#result-metrics').innerText(),/未検証/);
-      assert.ok(!(await page.locator('#result-metrics').innerText()).includes('100%'));
+      await checkUnverifiedOfficialMetrics(page);
       const privateStorage=await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}));
       assert.ok(variants.every(p=>!privateStorage.includes(p.prediction_sha256)),'saved originals stay out of browser persistence');
-      await nav('races');
+      await showRaceList(page,'upcoming');
       await page.locator(`#page-races [data-open-race="${learnedRace.race_id}"]`).click();
       const learnedVariants=[learnedRace.prediction,...learnedRace.comparison_predictions];
       await page.locator('[data-detail-tab="analysis"]').click();
       for (const [index,p] of learnedVariants.entries()) if(p.variant==='LEARNED_SHADOW') {
         await page.locator('#prediction-select').selectOption(String(index));
-        assert.ok((await page.locator('#race-detail').innerText()).includes(p.prediction_sha256),'saved learned original hash selectable');
-        assert.match(await page.locator('#prediction-select option:checked').innerText(),/LEARNED_SHADOW/);
+        assert.ok((await raceAuditText(page)).includes(p.prediction_sha256),'saved learned original hash selectable in details');
+        assert.match(await raceAuditText(page),/LEARNED_SHADOW/,'technical learned variant remains in opened audit details');
         const displayed=await page.locator('#race-detail .forecast-panel').first().locator('.saved-ticket .combo').evaluateAll(nodes=>nodes.map(n=>[...n.querySelectorAll('.lane')].map(x=>Number(x.textContent))));
         assert.deepEqual(displayed,p.ordered_top8,'saved learned Top8 is never recomputed');
-        const facts=await page.locator('#race-detail').innerText();
+        const facts=await raceAuditText(page);
         for(const field of ['training_sha256','training_receipt_digest','baseline_model_sha256']) if(p[field]!=null)assert.ok(facts.includes(p[field]),`saved learned ${field} visible`);
       }
       mark(`${width}: sealed original ZIP -> private restore -> view -> browser, exact Top8/SHA, P1/learned selection and separate capture history`);
@@ -267,6 +331,7 @@ async function main() {
         await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('端末内で読み込みました'));
         await page.locator(`[data-sport="${saved.sport}"]`).first().click();await nav('races');
         await page.locator('#selected-date').fill(saved.event_date_jst);await page.locator('#selected-date').dispatchEvent('change');
+        await showRaceList(page,'upcoming');
         if(saved.prediction?.native_top8_available===false && !retiredIds.has(saved.prediction.model_id)) {
           const card=page.locator('#page-races .race-card').filter({has:page.locator(`[data-open-race="${saved.race_id}"]`)});
           assert.match(await card.innerText(),/保存5点プラン/);
@@ -274,14 +339,14 @@ async function main() {
         }
         await page.locator(`#page-races [data-open-race="${saved.race_id}"]`).click();
         await page.locator('[data-detail-tab="analysis"]').click();
-        assert.equal(await page.locator('#dispatch-slot-status tbody tr').count(),saved.dispatch_slots.filter(s=>!retiredIds.has(s.model_id)).length,'active model states displayed; raw originals retained');
+        await withResearchAudit(page,async audit=>assert.equal(await audit.locator('#dispatch-slot-status tbody tr').count(),saved.dispatch_slots.filter(s=>!retiredIds.has(s.model_id)).length,'active model states displayed in research; raw originals retained'));
         for(const [index,p] of variants.entries()) {
           families.add(p.model_id);if(p.prediction_sha256)nativeHashes.add(p.prediction_sha256);
           await page.locator('#prediction-select').selectOption(String(index));
           const shown=await page.locator('#race-detail .forecast-panel').first().locator('.saved-ticket .combo').evaluateAll(nodes=>nodes.map(n=>[...n.querySelectorAll('.lane')].map(x=>Number(x.textContent))));
           assert.deepEqual(shown,p.ordered_top8,'all active native families keep saved candidate order');
-          assert.ok((await page.locator('#race-detail').innerText()).includes(p.output_sha256),'output hash displayed separately');
-          if(p.prediction_sha256==null) assert.equal(await page.locator('#race-detail').evaluate(n=>[...n.querySelectorAll('dt')].find(x=>x.textContent==='予想SHA').nextElementSibling.textContent),'未取得');
+          assert.ok((await raceAuditText(page)).includes(p.output_sha256),'output hash displayed separately in details');
+          if(p.prediction_sha256==null) await withResearchAudit(page,async audit=>assert.equal(await audit.evaluate(n=>[...n.querySelectorAll('dt')].find(x=>x.textContent==='予想SHA').nextElementSibling.textContent),'未取得'));
           if(p.native_top8_available===false) assert.match(await page.locator('#race-detail').innerText(),/保存された5点プラン/);
           if(['A_PRE_TRIAL','B_POST_TRIAL'].includes(p.stage)) assert.match(await page.locator('#prediction-select option:checked').innerText(),/試走前|試走後/);
         }
@@ -313,11 +378,11 @@ async function main() {
       await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('端末内で読み込みました'));
       await page.locator('#selected-date').fill(sourceView.event_date_jst);await page.locator('#selected-date').dispatchEvent('change');
       for(const sport of ['keirin','autorace','horse']) {
-        await page.locator(`[data-sport="${sport}"]`).first().click();await nav('races');
+        await page.locator(`[data-sport="${sport}"]`).first().click();await showRaceList(page,'unknown');
         await page.locator('#page-races [data-open-race]').first().click();
         await page.locator('[data-detail-tab="analysis"]').click();
         assert.equal(await page.locator('#prediction-select').isDisabled(),true,'observed pages cannot become forecasts');
-        assert.match(await page.locator('#race-detail').innerText(),/モデル入力・締切・予想・結果は未接続/);
+        assert.match(await raceAuditText(page),/モデル入力・締切・予想・結果は未接続/);
         assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'observed source identifiers cannot overflow the detail title');
         await capture(`${width}-source-observation-${sport}.png`);
       }
@@ -335,32 +400,39 @@ async function main() {
     await page.goto(base+'?generation=1');
     await page.waitForFunction(()=>document.querySelector('#forecast-generate')?.disabled===false);
     assert.equal(generationCalls.length,0,'startup capability check must not generate a forecast');
+    await showOperations(page);
     await page.locator('#forecast-stage').selectOption('P1');
     await page.locator('#forecast-generate').click();
     await page.waitForFunction(()=>document.querySelector('#generation-message').textContent.includes('新規 1'));
     assert.deepEqual(generationCalls[0],{body:{sport:'boat',stage:'P1'},nonce:'synthetic-ui-nonce'},'browser supplies no source grants, clock, model list or private path');
     assert.match(await page.locator('#source-state').innerText(),/合成/);
-    await page.locator('[data-page="races"]').filter({visible:true}).first().click();
+    await showRaceList(page,'results');
     await page.locator('#page-races [data-open-race]').first().click();
-    assert.ok((await page.locator('#race-detail').innerText()).includes(fixture.records[0].prediction.prediction_sha256),'returned exact original hash appears in the app');
+    assert.ok((await raceAuditText(page)).includes(fixture.records[0].prediction.prediction_sha256),'returned exact original hash appears in app details');
+    await showOperations(page);
     await page.locator('#forecast-generate').click();
     await page.waitForFunction(()=>document.querySelector('#generation-message').textContent.includes('再利用 1'));
-    await page.locator('[data-page="races"]').filter({visible:true}).first().click();
+    await showRaceList(page,'results');
     await page.locator('#page-races [data-open-race]').first().click();
-    assert.ok((await page.locator('#race-detail').innerText()).includes(fixture.records[0].prediction.prediction_sha256),'reuse shows the same original hash');
+    assert.ok((await raceAuditText(page)).includes(fixture.records[0].prediction.prediction_sha256),'reuse shows the same original hash in details');
     const before=await page.locator('#race-detail').innerText();
+    await showOperations(page);
     failGeneration=true;await page.locator('#forecast-generate').click();
     await page.waitForFunction(()=>document.querySelector('#generation-message').textContent.includes('前の表示データ'));
     assert.match(await page.locator('#generation-message').innerText(),/対象レース・予想時点・必要な実入力を確認してください。/,'actual server error code provides an actionable input message');
+    await openFixtureResult(page);
     assert.equal(await page.locator('#race-detail').innerText(),before,'generation failure retains the loaded original');
     failGeneration=false;
     for(const [day,viewDay] of [['2030-99-99','2030-01-01'],['2030-01-01','2030-01-02']]) {
       generationOverride={day_jst:day,view:{schema:'RACE_AI_PRIVATE_CYCLE_VIEW_V1',dataset_status:'SYNTHETIC_ONLY',event_date_jst:viewDay,records:[]},summary:{generated:0,reused:0,missing:0}};
+      await showOperations(page);
       await page.locator('#forecast-generate').click();
       await page.waitForFunction(()=>document.querySelector('#generation-message').textContent.includes('応答を確認'));
+      await openFixtureResult(page);
       assert.equal(await page.locator('#race-detail').innerText(),before,'invalid response date must not clear the loaded original');
       assert.equal(await page.locator('#selected-date').inputValue(),'2030-01-01');
     }
+    await showOperations(page);
     await page.locator('[data-sport="horse"]').first().click();
     assert.equal(await page.locator('#forecast-generate').isDisabled(),true);
     assert.match(await page.locator('#generation-message').innerText(),/実入力|入力/);
@@ -392,10 +464,10 @@ async function main() {
     }
     automaticOverride=null;automaticRevision=1;
     const nav=async name=>page.locator(`[data-page="${name}"]`).filter({visible:true}).first().click();
-    await nav('races');await page.locator('#page-races [data-open-race]').first().click();
+    await showRaceList(page,'results');await page.locator('#page-races [data-open-race]').first().click();
     await page.locator('[data-detail-tab="analysis"]').click();
     const nativeSha=fixture.records[0].prediction.prediction_sha256;
-    assert.ok((await page.locator('#race-detail').innerText()).includes(nativeSha));
+    assert.ok((await raceAuditText(page)).includes(nativeSha));
     await nav('picks');await page.locator('#copy-top8').click();
     await page.locator('#ticket-list .ticket-amount').first().fill('200');await page.locator('#ticket-list .ticket-amount').first().dispatchEvent('change');
     await page.locator('#confirm-candidates').click();
@@ -414,9 +486,9 @@ async function main() {
     assert.match(await page.locator('#generation-message').innerText(),/取得 366回/,'saved-view updates continue beyond the old request cap');
     assert.deepEqual(await page.locator('#ticket-list .ticket-amount').evaluateAll(ns=>ns.map(n=>n.value)),beforeAmounts,'automatic refresh preserves edited amounts');
     assert.match(await page.locator('#confirmation-state').innerText(),/候補確定済み/,'automatic refresh preserves confirmation');
-    assert.ok((await page.locator('#race-detail').innerText()).includes(nativeSha),'selected original survives refresh');
+    assert.ok((await raceAuditText(page)).includes(nativeSha),'selected original survives refresh');
     assert.equal(await page.locator('[data-detail-tab="analysis"]').getAttribute('aria-selected'),'true');
-    assert.match(await page.locator('#race-detail').innerText(),/09:02/,'new saved observation is displayed');
+    assert.match(await raceAuditText(page),/09:02/,'new saved observation is displayed in research');
     let counterRound=3;
     for(const value of ['365',-1,1.5,Number.MAX_SAFE_INTEGER+1]) {
       automaticSourceStatus={source_limit:null,requests_used:value,round_no:counterRound};
@@ -448,6 +520,7 @@ async function main() {
     automaticRevision=3;automaticOverride={available:true,revision:'r3',day_jst:'2030-01-01',view:{schema:'RACE_AI_PRIVATE_CYCLE_VIEW_V1',dataset_status:'SYNTHETIC_ONLY',event_date_jst:'2030-01-01',records:[replacement]},summary:{generated:1,reused:0,missing:14}};
     await page.clock.fastForward(180001);
     await page.waitForFunction(()=>document.querySelector('#generation-message').textContent.includes('編集中の購入候補'));
+    await showOperations(page);
     assert.equal(await page.locator('#forecast-follow-latest').isVisible(),true,'draft-blocked update has a visible display-only recovery action');
     assert.equal(await page.locator('#forecast-generation').getAttribute('data-view-revision'),'r2');
     await nav('picks');await page.locator('#clear-tickets').click();
@@ -481,13 +554,16 @@ async function main() {
     await page.evaluate(()=>{window.dispatchEvent(new PageTransitionEvent('pagehide',{persisted:true}));window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}));});
     automaticRevision=7;await page.clock.fastForward(180001);await page.waitForTimeout(100);
     assert.equal(await page.locator('#forecast-generation').getAttribute('data-view-revision'),'r7','restored pages resume automatic saved-view polling');
+    await showOperations(page);
     await page.locator('#forecast-stage').selectOption('P1');await page.waitForTimeout(100);
+    await openFixtureResult(page,'analysis');
     assert.equal(await page.locator('#race-detail').innerText(),goodDetail,'pending P1 preserves the P0 display');
     const imported=structuredClone(fixture);imported.records[0].observed_at='2030-01-01T09:04:00+09:00';
     await page.locator('#race-file').setInputFiles({name:'manual-synthetic.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(imported))});
     await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('4件'));
     await nav('races');await page.locator('#page-races [data-open-race]').first().click();const importedDetail=await page.locator('#race-detail').innerText();
-    automaticRevision=8;await page.locator('#forecast-stage').selectOption('P0');await page.clock.fastForward(180001);await page.waitForTimeout(100);
+    automaticRevision=8;await showOperations(page);await page.locator('#forecast-stage').selectOption('P0');await page.clock.fastForward(180001);await page.waitForTimeout(100);
+    await openFixtureResult(page);
     assert.equal(await page.locator('#race-detail').innerText(),importedDetail,'manual import ownership is not overwritten by automatic refresh');
     assert.equal(generationCalls.length,0);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
     await page.screenshot({path:path.join(output,`${width}-automatic-forecast.png`),fullPage:true});
@@ -510,7 +586,7 @@ async function main() {
     assert.match(await page.locator('#delivery-next').innerText(),/次の締切.*10:00.*09:45.*09:50/);
     assert.doesNotMatch(await page.locator('#delivery-record').innerText(),/目標内/,'a target alone is not saved-delivery evidence');
     const nav=async name=>page.locator(`[data-page="${name}"]`).filter({visible:true}).first().click();
-    await nav('races');await page.locator('#page-races [data-open-race]').first().click();await nav('picks');await page.locator('#copy-top8').click();
+    await showRaceList(page,'results');await page.locator('#page-races [data-open-race]').first().click();await nav('picks');await page.locator('#copy-top8').click();
     await page.locator('#ticket-list .ticket-amount').first().fill('300');await page.locator('#ticket-list .ticket-amount').first().dispatchEvent('change');await page.locator('#confirm-candidates').click();
     const amounts=await page.locator('#ticket-list .ticket-amount').evaluateAll(ns=>ns.map(n=>n.value));
     await nav('races');await page.locator('#page-races [data-open-race]').first().click();await page.locator('[data-detail-tab="analysis"]').click();
@@ -524,7 +600,7 @@ async function main() {
     assert.doesNotMatch(await page.locator('#delivery-record').innerText(),/目標内/);
     assert.deepEqual(await page.locator('#ticket-list .ticket-amount').evaluateAll(ns=>ns.map(n=>n.value)),amounts);
     assert.match(await page.locator('#confirmation-state').innerText(),/候補確定済み/);
-    assert.ok((await page.locator('#race-detail').innerText()).includes(fixture.records[0].prediction.prediction_sha256));
+    assert.ok((await raceAuditText(page)).includes(fixture.records[0].prediction.prediction_sha256));
     assert.equal(await page.locator('[data-detail-tab="analysis"]').getAttribute('aria-selected'),'true');
     automaticDelivery.boat.P0={...automaticDelivery.boat.P0,source_captured_at:null};
     await page.clock.fastForward(60001);await page.waitForTimeout(100);
@@ -549,6 +625,7 @@ async function main() {
     assert.doesNotMatch(await page.locator('#delivery-next').innerText(),/10:00/,'no fake cutoff is retained when the next schedule is unavailable');
     const idleCalls=automaticStatusCalls.length;await page.clock.fastForward(60001);await page.waitForTimeout(50);assert.equal(automaticStatusCalls.length,idleCalls,'idle status polling returns to180 seconds');
     await page.clock.fastForward(120001);await page.waitForTimeout(100);assert.equal(automaticStatusCalls.length,idleCalls+1);
+    await showOperations(page);
     await page.locator('#forecast-stage').selectOption('P1');await page.waitForTimeout(100);
     const switchedCalls=automaticStatusCalls.length;
     await page.clock.fastForward(59999);await page.waitForTimeout(50);assert.equal(automaticStatusCalls.length,switchedCalls);

@@ -52,6 +52,9 @@ class ContextTests(unittest.TestCase):
         self.assertEqual(context['minimum_results'],1);self.assertEqual(context['old_completed'],1)
         self.assertEqual(context['old_day'],'2030-03-31')
         self.assertEqual(context['day_races'],3)
+        self.assertEqual(context['native_p1_races'],3)
+        self.assertEqual(context['future_native_races'],2)
+        self.assertEqual(context['latest_native_cutoff_lead_seconds'],1200)
         self.assertEqual(len(context['native_groups']),2)
         self.assertEqual(context['native_probe']['index'],0)
         self.assertEqual(context['future_native']['race_id'],'20300401-01-02')
@@ -111,7 +114,7 @@ class ContextTests(unittest.TestCase):
 
 
 class CLITests(unittest.TestCase):
-    def execute(self,*,outside=False,failure=None,history=False,day=None,now=NOW):
+    def execute(self,*,outside=False,failure=None,history=False,day=None,now=NOW,require_future=False):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);state=root/'audit/state';state.mkdir(parents=True)
             raw=b'invented-bootstrap'
@@ -131,7 +134,7 @@ class CLITests(unittest.TestCase):
                  patch.object(C.CLI.F,'FeedRepository',return_value=git),\
                  patch.object(C.CLI.F,'current_view',side_effect=values) as read,\
                  patch.dict(os.environ,RUNNER_TEMP=folder),redirect_stdout(output):
-                code=C.main(['--output',str(target),*(['--day',day] if day is not None else [])],now=now)
+                code=C.main(['--output',str(target),*(['--day',day] if day is not None else []),*(['--require-future'] if require_future else [])],now=now)
             context=json.loads(target.read_text()) if target.exists() else None
             mode=stat.S_IMODE(target.stat().st_mode) if target.exists() else None
             return code,output.getvalue(),context,mode,read.call_args_list
@@ -142,6 +145,15 @@ class CLITests(unittest.TestCase):
         self.assertNotIn(context['owner_url'],output);self.assertNotIn('#saved=',output)
         report=json.loads(output);self.assertEqual(report['native_p1_groups'],2)
         self.assertFalse(report['plaintext_published']);self.assertEqual(len(calls),1)
+
+    def test_missing_future_reports_counts_without_creating_or_leaking_private_context(self):
+        code,output,context,_,_=self.execute(now=NOW+timedelta(hours=1),require_future=True)
+        self.assertEqual(code,2);self.assertIsNone(context);report=json.loads(output)
+        self.assertEqual(report['reason'],'SAVED_SITE_FUTURE_NATIVE_REQUIRED')
+        self.assertEqual(report['native_p1_races'],3);self.assertEqual(report['future_native_races'],0)
+        self.assertEqual(report['latest_native_cutoff_lead_seconds'],-2400)
+        self.assertNotIn('owner_url',report);self.assertNotIn('#saved=',output)
+        self.assertNotIn(base64.urlsafe_b64encode(BOOTSTRAP['key']).decode().rstrip('='),output)
 
     def test_history_context_reads_an_existing_prior_day_without_publishing(self):
         code,_,context,_,calls=self.execute(history=True)
