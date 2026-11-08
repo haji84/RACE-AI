@@ -10,6 +10,8 @@ This is a private data gate, not a web scraper, license grant, or prediction.
 from __future__ import annotations
 
 from hashlib import sha256
+from datetime import datetime
+from urllib.parse import urlparse
 import json
 import math
 import re
@@ -50,10 +52,16 @@ def validate(clip):
     insist(clip["source_kind"] in ("WINTICKET_PAST_REPLAY","WINTICKET_LIVE",
             "AUTHORIZED_OTHER","SYNTHETIC_FIXTURE"),"INVALID_SOURCE_KIND")
     insist(clip["claimed_coverage"] in PRIORITY,"INVALID_COVERAGE_CLAIM")
-    insist(isinstance(clip["source_url"],str) and
-           clip["source_url"].startswith("https://") or
-           clip["source_kind"]=="SYNTHETIC_FIXTURE" and
-           clip["source_url"]=="synthetic://no-media","INVALID_SOURCE_URL")
+    u=urlparse(clip["source_url"]) if isinstance(clip["source_url"],str) else None
+    if clip["source_kind"]=="SYNTHETIC_FIXTURE":
+        insist(clip["source_url"]=="synthetic://no-media","INVALID_SOURCE_URL")
+    else:
+        insist(u is not None and u.scheme=="https" and u.hostname and
+               not u.username and not u.password and not u.fragment,
+               "INVALID_SOURCE_URL")
+        if clip["source_kind"].startswith("WINTICKET"):
+            insist(u.hostname=="www.winticket.jp" and
+                   u.path.startswith("/keirin/"),"SOURCE_HOST_MISMATCH")
     insist(isinstance(clip["recording_sha256"],str) and
            SHA.fullmatch(clip["recording_sha256"]),"INVALID_RECORDING_SHA")
     d=clip["duration_s"]
@@ -61,6 +69,11 @@ def validate(clip):
            "INVALID_VIDEO_DURATION")
     insist(isinstance(clip["reviewed_at"],str) and clip["reviewed_at"],
            "REVIEW_TIME_REQUIRED")
+    try:
+        dt=datetime.fromisoformat(clip["reviewed_at"].replace("Z","+00:00"))
+        insist(dt.utcoffset() is not None,"REVIEW_TIMEZONE_REQUIRED")
+    except ValueError:
+        raise ClipPolicyError("INVALID_REVIEW_TIME") from None
     insist(type(clip["events"]) is list and
            len(clip["events"])<=10000,"INVALID_FRAME_EVENTS")
     ids=set(); actions=set(); prev=-1.
@@ -178,6 +191,14 @@ def assess_clip(clip, *, independent_visual_verifier=None,
         "unseen_actions_mean_negative":False,
         "confidence_source":"INDEPENDENT_FRAME_REVIEW_REQUIRED",
         "reasons":sorted(set(reasons)),
+        "reviewed_scene_frames":([{
+             "label":("REPLAY" if row["scene"]=="REPLAY" else row["label"]),
+             "frame_sha256":row["frame_sha256"],
+             "review_ref":row["review_ref"],
+             "time_s":row["time_s"]}
+             for row in clip["events"] if row["scene"]!="UNKNOWN" and
+             ("REPLAY" if row["scene"]=="REPLAY" else row["label"]) in CLASSES]
+             if admitted else []),
         "reviewed_events":([{
              "id":row["id"],"time_s":row["time_s"],
              "label":row["label"],"rider_id":row["rider_id"],
