@@ -104,6 +104,18 @@ class MarkdownRacecardTests(unittest.TestCase):
             replay=stage_owner_saved_hex_markdown(p,now=NOW)
             self.assertEqual(replay["already_translated"],1)
 
+    def test_saved_page_can_supply_expected_line_roles_without_operator_lineup(self):
+        page=saved_page()
+        info=checked_meta(page)
+        del info["observed_race_facts"]["line_order_all_riders"]
+        converted=convert_owner_saved_hex_markdown(page,info)
+        self.assertEqual(converted["lineup_extracted"]["lines"],
+                         [[1,2,3],[4,5,6,7]])
+        self.assertEqual(
+            converted["meta"]["observed_race_facts"][
+                "line_order_all_riders"]["lines"][0]["order"],[1,2,3])
+        self.assertFalse(converted["upstream_marks_and_probabilities_used"])
+
     def test_source_lineup_mismatch_blocks(self):
         page=saved_page()
         info=checked_meta(page)
