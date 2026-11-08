@@ -103,6 +103,8 @@ class VariableOwnerIntegrationTests(unittest.TestCase):
                              original["sha256"])
             self.assertEqual(ledger.selection(RID,original["forecast"]["model_id"]),
                              selection)
+            self.assertEqual(ledger.odds_snapshot(
+                selection["selection"]["odds_snapshot_sha256"]),self.odds())
             self.assertEqual(reopened.db.execute(
                 "SELECT COUNT(*) FROM forecasts").fetchone()[0],1)
             self.assertEqual(reopened.db.execute(
@@ -126,6 +128,13 @@ class VariableOwnerIntegrationTests(unittest.TestCase):
             self.assertFalse(audit["result_auth_independently_verified"])
             self.assertEqual(ledger.aggregate()["reference_profit_yen"],490)
             self.assertTrue(ledger.aggregate()["latest_revision_reconciled"])
+            compared=ledger.compare_latest(RID,original["forecast"]["model_id"])
+            self.assertEqual(compared["state"],"SETTLED_UNVERIFIED_RESEARCH")
+            self.assertEqual(compared["fixed8_investment_yen"],800)
+            self.assertEqual(compared["variable_investment_yen"],200)
+            self.assertEqual(compared["variable_payout_yen"],690)
+            self.assertEqual(compared["variable_profit_yen"],490)
+            self.assertEqual(compared["original_forecast_sha256"],original["sha256"])
             self.assertEqual(store.get_persisted_forecast(RID)["sha256"],
                              original["sha256"])
         # Reopening for repeat audit does not duplicate results or selections.
@@ -208,13 +217,15 @@ class VariableOwnerIntegrationTests(unittest.TestCase):
             ledger=PrivateVariableLedger(store)
             with self.assertRaisesRegex(PrivateVariableBridgeError,"ORIGINAL"):
                 ledger.freeze_once(selection["selection"],
-                                   original_forecast_sha256="a"*64)
+                                   original_forecast_sha256="a"*64,
+                                   odds_snapshot=self.odds())
             modified=deepcopy(selection["selection"])
             modified["tickets"][0]["reference_stake_yen"]=200
             # Tampered digest is not accepted even for matching race.
             with self.assertRaisesRegex(PrivateVariableBridgeError,"HASH"):
                 ledger.freeze_once(modified,
-                                   original_forecast_sha256=original["sha256"])
+                                   original_forecast_sha256=original["sha256"],
+                                   odds_snapshot=self.odds())
             self.assertEqual(ledger.selection(
                 RID,original["forecast"]["model_id"]),selection)
 
