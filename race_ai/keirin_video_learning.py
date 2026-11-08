@@ -132,6 +132,57 @@ def sample_private_video(path, *, race_id, every_s=2, max_seconds=9000,
         "raw_video_exported":False,"source_outcomes_used":False,
     }
 
+def bind_reviewed_labels_to_frames(feature_doc,label_doc):
+    """Join human-reviewed labels to ACTUAL extracted-frame hashes.
+
+    Reviewed label documents are not allowed to provide arbitrary feature
+    vectors. Training uses features produced from the identified source clip.
+    """
+    need(type(feature_doc) is dict and feature_doc.get("schema")==FEATURE_SCHEMA,
+         "VIDEO_FEATURE_DOCUMENT_REQUIRED")
+    need(type(label_doc) is dict and set(label_doc)=={
+         "schema","race_id","recording_sha256","feature_version","labels"},
+         "INVALID_REVIEW_DOCUMENT")
+    need(label_doc["schema"]=="RACE_AI_KEIRIN_FRAME_REVIEW_V1",
+         "INVALID_FRAME_REVIEW_SCHEMA")
+    need(feature_doc["race_id"]==label_doc["race_id"] and
+         feature_doc["recording_sha256"]==label_doc["recording_sha256"] and
+         feature_doc["feature_version"]==label_doc["feature_version"],
+         "FEATURE_REVIEW_SOURCE_CONFLICT")
+    frames=feature_doc.get("features",[])
+    by_hash={}
+    for row in frames:
+        key=row.get("frame_sha256")
+        need(isinstance(key,str) and len(key)==64 and key not in by_hash,
+             "DUPLICATE_OR_INVALID_FRAME_SOURCE")
+        by_hash[key]=row
+    chosen=[]
+    seen=set()
+    need(type(label_doc["labels"]) is list and label_doc["labels"],
+         "NO_REVIEWED_LABELS")
+    for label in label_doc["labels"]:
+        need(type(label) is dict and set(label)=={
+             "frame_sha256","label","reviewed","review_ref"},
+             "INVALID_REVIEW_LABEL")
+        token=label["frame_sha256"]
+        need(token in by_hash and token not in seen,
+             "LABEL_NOT_IN_SAME_VERIFIED_VIDEO")
+        seen.add(token)
+        need(label["reviewed"] is True and label["label"] in CLASSES and
+             isinstance(label["review_ref"],str) and label["review_ref"],
+             "UNREVIEWED_OR_UNSUPPORTED_LABEL")
+        chosen.append({
+             "frame_sha256":token,"label":label["label"],
+             "vector":by_hash[token]["vector"],"reviewed":True,
+             "review_ref":label["review_ref"]})
+    return {
+        "schema":"RACE_AI_KEIRIN_REVIEWED_SCENES_V1",
+        "race_id":label_doc["race_id"],
+        "recording_sha256":label_doc["recording_sha256"],
+        "samples":chosen
+    }
+
+
 def validated_rows(docs):
     """Join labels by exact frame digest; AI outputs are not training labels."""
     need(isinstance(docs,list) and docs,"TRAINING_DOCUMENTS_REQUIRED")
