@@ -44,10 +44,13 @@ class PublicSourceSmokeTests(unittest.TestCase):
 
     def test_embedded_preloaded_state_exposes_only_structure_not_odds_values(self):
         import json
+        rows=[{"triple":[1,2,3],"decimal":17.8} for _ in range(210)]
         raw=json.dumps({
             "schedule":{"raceId":"fictional"},
-            "oddsState":{"trifectaOdds":[{"triple":[1,2,3],
-                                         "decimal":17.8} for _ in range(210)]}
+            "oddsState":{"trifectaOdds":rows},
+            "tanStackQuery":{"queries":[{"state":{"data":{
+                "trifecta":rows
+            }}}]},
         },separators=(",",":"))
         shape=preloaded_schema_only("window.__PRELOADED_STATE__ = "+raw+";")
         self.assertEqual(shape["status"],"PRELOADED_JSON_PARSED")
