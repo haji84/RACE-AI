@@ -10,6 +10,7 @@ from hashlib import sha256
 from urllib.parse import urlsplit
 
 from .keirin_preflight import audit_pre_race
+from .keirin_non_rakuten_sources import is_rakuten_domain, is_rakuten_url
 from .keirin_result_delivery import canonical, utc
 
 PERSONAL_MARKER = "RACE_AI_PRIVATE_OWNER_MANUAL_OBSERVATION_V1"
@@ -34,6 +35,8 @@ class PersonalOwnerObservations:
             parsed = urlsplit("https://" + h)
             if parsed.hostname != h.lower() or parsed.username or parsed.password or parsed.port:
                 raise PersonalOwnerError("INVALID_OWNER_SOURCE_HOST")
+            if is_rakuten_domain(h):
+                raise PersonalOwnerError("RAKUTEN_SOURCE_EXCLUDED_BY_OWNER")
             hosts.add(h.lower())
         self.hosts = frozenset(hosts)
         self.now = utc(now)
@@ -47,7 +50,8 @@ class PersonalOwnerObservations:
             return False
         try:
             p = urlsplit(source_url)
-            return (p.scheme == "https" and p.hostname in self.hosts and
+            return (not is_rakuten_url(source_url) and
+                    p.scheme == "https" and p.hostname in self.hosts and
                     p.username is None and p.password is None and p.port is None)
         except (ValueError, TypeError):
             return False
