@@ -73,12 +73,11 @@ def validate_plan(plan, *, synthetic=False):
             "race_start_at", "record_from_at", "record_until_at"
         )
     )
-    if plan["race_id"][:8] != start.strftime("%Y%m%d"):
-        # Race date must be the event's local JST date, not UTC date.
-        from datetime import timezone
-        jst = timezone(timedelta(hours=9))
-        if plan["race_id"][:8] != start.astimezone(jst).strftime("%Y%m%d"):
-            raise VideoGateError("RACE_JST_DATE_MISMATCH")
+    # Race date is always JST, including when the timestamp is written in UTC.
+    from datetime import timezone
+    jst = timezone(timedelta(hours=9))
+    if plan["race_id"][:8] != start.astimezone(jst).strftime("%Y%m%d"):
+        raise VideoGateError("RACE_JST_DATE_MISMATCH")
     pre = (start - begin).total_seconds()
     post = (end - start).total_seconds()
     if not 90 <= pre <= 600 or not 300 <= post <= 960 or (
