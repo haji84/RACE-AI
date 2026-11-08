@@ -1,0 +1,55 @@
+{
+  "schema": "RACE_AI_LATEST_AA_RESTORE_ACTUAL_ACCEPTANCE_V1",
+  "run_id": 42452256640,
+  "job_id": 128643788040,
+  "head_sha": "6e57b5d717d3874bb65cba6fa512a4a7dd84d4f8",
+  "run_conclusion": "success",
+  "completed_at": "2026-11-08T05:50:14Z",
+  "source_run_id": 42444478902,
+  "source_head_sha": "aa57a9299340230ccd7764effb51c79edb182b5e",
+  "report": {
+    "automatic_continuation_proven": false,
+    "blob_bytes_read": 19719421,
+    "capture_bundles_restored": 4,
+    "capture_records_by_type": {
+      "GITHUB_METADATA": 2,
+      "OFFICIAL_RACE_RESULT": 63,
+      "OTHER_RETAINED": 0
+    },
+    "captures_restored": 65,
+    "closed_listing_pages": 1,
+    "closed_run_catalogue_verified": true,
+    "listed_artifacts": 25,
+    "listed_native_originals": 12,
+    "live_artifact_requests": 0,
+    "max_blob_bytes": 536870912,
+    "mirror_cipher_binding_verified": true,
+    "official_source_requests": 0,
+    "originals_by_kind": {
+      "ALL_MODEL": 4,
+      "CONTINUITY": 1,
+      "P0": 0,
+      "P1": 3,
+      "PRIVATE_PAIRS": 0,
+      "RESULT": 3,
+      "SOURCE_CONTROL": 1
+    },
+    "originals_restored": 12,
+    "plaintext_published": false,
+    "raw_capture_completeness_verified": true,
+    "required_official_result_captures": 32,
+    "schema": "RACE_AI_BOAT_RETAINED_RUN_VERIFICATION_V1",
+    "status": "RETAINED_RUN_VERIFIED",
+    "unique_capture_receipts": 34,
+    "upstream_writes": 0
+  },
+  "normal_source_handoff_patch": {
+    "public_commit": "658da56d306559b1ab91f40e92e83af952be2037",
+    "adopted_by_active_source": false
+  },
+  "current_numeric_browser_verified": false,
+  "future_forecast_site_verified": false,
+  "all_models_fitted": 19,
+  "all_models_applicable": 30,
+  "accuracy_improvement_proven": false
+}
