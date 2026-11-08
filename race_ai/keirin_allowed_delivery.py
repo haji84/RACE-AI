@@ -26,10 +26,11 @@ OUTER_SCHEMA = "RACE_AI_KEIRIN_PRIVATE_PRE_RACE_V1"
 
 # Target model feature -> (source registry field, exact documented transform).
 # "ratio" means the incoming evidence itself is a measured [0,1] ratio.
-# "score200" is an explicitly arbitrary, UNTRAINED 0..200 input scale,
-# not a probability. Published real KEIRIN race scores can exceed 100.
+# "score_open_v2" is a positive, strictly increasing transform for ANY
+# finite nonnegative race score: raw_score / (100 + raw_score). It is not a
+# probability, a calibration, a 200pt cap, or a claim about ability.
 RIDER_MAP = {
-    "ability": ("race_score", "score200"),
+    "ability": ("race_score", "score_open_v2"),
     "recent_form": ("recent_strength_or_form_change", "ratio"),
     "start_reliability": ("start_or_line_reliability", "ratio"),
     "finishing_power": ("last_lap_acceleration", "ratio"),
@@ -48,7 +49,7 @@ RIDER_MAP = {
     "home_count_form": ("home_H_count", "count_rate"),
     "back_count_form": ("back_B_count", "count_rate"),
     "hsb_form": ("back_B_count", "count_rate"),
-    "recent_points": ("race_score", "score200"),
+    "recent_points": ("race_score", "score_open_v2"),
     "recent_win_form": ("win_rate", "ratio"),
     "teammate_synergy": ("teammate_pair_history", "ratio"),
     "last_lap_kick": ("last_lap_acceleration", "ratio"),
@@ -114,8 +115,15 @@ def _number(value, low, high):
 def _convert(value, sample_n, method):
     if method == "ratio":
         return _number(value, 0, 1)
-    if method == "score200":
-        return _number(value, 0, 200) / 200
+    if method == "score_open_v2":
+        # No upper cutoff for raw race scores. The existing PR71 model expects
+        # feature values in [0, 1]. A monotone, invertible transform works
+        # for ordinary positive scores without clipping at 100, 200 or 999.
+        # Very large Python integers are supported too (float inf is NOT).
+        _require(type(value) in (int, float) and value >= 0 and
+                 (type(value) is int or math.isfinite(value)),
+                 "RACE_SCORE_NONNEGATIVE_FINITE_REQUIRED")
+        return value / (100 + value)
     if method == "count_rate":
         _require(type(value) is int and type(sample_n) is int and sample_n > 0,
                  "COUNT_AND_SAMPLE_MUST_BE_INTEGERS")
