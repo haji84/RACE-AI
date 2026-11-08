@@ -194,6 +194,48 @@ class LicenseApiFetchTests(unittest.TestCase):
                 self.assertEqual(len(list((self.root/"odds").glob("*.json"))),0)
                 self.assertEqual(len(list((self.root/"raw").glob("*.json"))),0)
 
+    def test_licensed_odds_polls_after_cutoff_preserve_first_capture_without_new_sidecar(self):
+        granted=self.allow_fetch()
+        body=self.full_v2()
+        fetch_licensed_export_once(
+            self.root,granted,endpoint=self.endpoint,
+            rights_ref="FICTIONAL_TEST_RIGHTS_ONLY",
+            transport=lambda *_:body)
+        archived=list((self.root/"odds").glob("*.json"))
+        self.assertEqual(len(archived),1)
+        first=archived[0].read_bytes()
+        next_grant=load_operator_grants(
+            self.manifest,now="2030-01-15T10:05:00+09:00")
+        again=fetch_licensed_export_once(
+            self.root,next_grant,endpoint=self.endpoint,
+            rights_ref="FICTIONAL_TEST_RIGHTS_ONLY",
+            transport=lambda *_:body)
+        self.assertEqual(again["licensed_full_odds_staged"][
+            "full_odds_already_staged"],1)
+        self.assertEqual(again["licensed_full_odds_staged"][
+            "full_odds_created"],0)
+        self.assertEqual(archived[0].read_bytes(),first)
+
+    def test_licensed_odds_changed_after_first_save_is_never_rewritten(self):
+        granted=self.allow_fetch()
+        body=self.full_v2()
+        fetch_licensed_export_once(
+            self.root,granted,endpoint=self.endpoint,
+            rights_ref="FICTIONAL_TEST_RIGHTS_ONLY",
+            transport=lambda *_:body)
+        file=next((self.root/"odds").glob("*.json"))
+        frozen=file.read_bytes()
+        def different(odds):
+            odds["prices"][0]["decimal_odds"]=111.1
+        altered=self.full_v2(mutate=different)
+        with self.assertRaisesRegex(LicenseDeliveryError,
+                                    "IMMUTABLE_CONFLICT"):
+            fetch_licensed_export_once(
+                self.root,granted,endpoint=self.endpoint,
+                rights_ref="FICTIONAL_TEST_RIGHTS_ONLY",
+                transport=lambda *_:altered)
+        self.assertEqual(file.read_bytes(),frozen)
+
     def test_v2_machine_permission_must_exist_before_any_transport(self):
         calls=[]
         with self.assertRaisesRegex(
