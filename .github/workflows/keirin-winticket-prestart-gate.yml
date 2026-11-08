@@ -30,7 +30,7 @@ jobs:
           python-version: '3.11'
       - name: Install test-only browser
         run: |
-          python -m pip install playwright==1.56.0
+          python -m pip install playwright==1.56.0 opencv-python-headless==4.10.0.84 numpy==1.26.4
           python -m playwright install chromium
           sudo apt-get update -qq
           sudo apt-get install -y -qq ffmpeg
@@ -56,6 +56,9 @@ jobs:
           assert obj["synthetic_only"] is True
           assert obj["four_laps_verified"] is False
           assert obj["four_lap_evidence_gate"]["four_laps_verified"] is False
+          assert obj["frame_sampling"]["status"] == "DECODED_FRAMES_SAMPLED"
+          assert obj["frame_sampling"]["count"] >= 2
+          assert obj["frame_sampling"]["moving_count"] >= 1
           assert obj.get("raw_footage_public") is False
           assert obj.get("sealed_capture") is None
           with open(os.environ["GITHUB_STEP_SUMMARY"],"w") as out:
