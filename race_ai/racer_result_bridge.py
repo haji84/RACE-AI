@@ -73,15 +73,26 @@ class SavedResultBridge:
         # This is pre-source reconciliation; new terminal results enter the
         # snapshot on the next run after the first durable feed publication.
         from .retained_model_pdca_audit import score_view
-        reports=[]
+        reports=[];model_pdca_due_count=0
         for day,view in self.views.items():
             try:
-                summary=score_view(view,authenticated=True)
+                summary=score_view(view,authenticated=True,include_private_due=True)
+                due_ids=summary.pop('_private_due_race_ids')
+                model_pdca_due_count+=D.hold_model_ids(due,view['records'],due_ids,now=self.now.isoformat())
                 reports.append(dict(day=day or 'CURRENT_VIEW',status='SCORED',
                     forecast_inventory_sha256=F.inventory_sha(view),summary=summary))
             except (ValueError,KeyError,TypeError):
+                # Fail closed: even a final official result remains a PDCA HOLD
+                # when any saved prediction on that day cannot be audited.
+                protected=[r['race_id'] for r in view['records'] if r.get('sport')=='boat'
+                    and (r.get('prediction') is not None or r.get('comparison_predictions'))]
+                model_pdca_due_count+=D.hold_model_ids(due,view['records'],protected,now=self.now.isoformat())
                 reports.append(dict(day=day or 'CURRENT_VIEW',status='HOLD_MODEL_PDCA_INPUT',
                     total_forecasts=None,total_scored=None))
+        self.ledger_summary['model_pdca_formal_holds']=model_pdca_due_count
+        self.ledger_summary['pending']=D.pending_count(due)
+        self.ledger_summary['pending_days']=len(due['pending_days'])
+        self.ledger_summary['older_unresolved']=D.count_older(due,self.recent_days)
         candidate=dict(schema='RACE_AI_PRIVATE_MODEL_PDCA_SNAPSHOT_V1',
                        verification='PRE_SOURCE_REPLAY',days=reports)
         if state.control.get('model_pdca_recent_audit')!=candidate:

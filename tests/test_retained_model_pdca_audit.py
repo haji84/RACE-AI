@@ -96,6 +96,34 @@ class HistoricalModelPdcaAudit(unittest.TestCase):
         finally:
             fixture.doCleanups()
 
+    def test_model_hold_stays_backlogged_even_when_official_result_is_final(self):
+        from tests.test_racer_result_bridge import BridgeTests
+        from race_ai.racer_intraday import IntradayState
+        from race_ai.racer_result_bridge import SavedResultBridge
+        fixture=BridgeTests('test_confirmed_result_reaches_saved_forecast_without_intake_and_quiet_replay_is_identical')
+        fixture.setUp()
+        try:
+            finalized=self.capture(fixture.view)
+            finalized['records'][0]['prediction']['persisted_at']='2026-11-07T10:01:00+09:00'
+            fixture.seed(finalized)
+            state=IntradayState()
+            bridge=SavedResultBridge(fixture.repo,now=NOW+timedelta(minutes=3),transport=fixture.git,bootstrap=fixture.boot)
+            bridge.prepare(state)
+            self.assertEqual(bridge.ledger_summary['model_pdca_formal_holds'],1)
+            self.assertEqual(bridge.ledger_summary['pending'],1)
+            self.assertEqual(state.control['result_due_ledger']['pending_days']['2026-11-07']['u'],'1')
+            self.assertEqual(bridge.targets()[0]['pending'],False,'a valid final must never trigger unnecessary refetch')
+            report=state.control['model_pdca_recent_audit']['days'][0]['summary']
+            self.assertEqual(report['model_groups'][0]['held'],1)
+            self.assertEqual(report['model_groups'][0]['hits'],0)
+            self.assertEqual(report['model_groups'][0]['stake_yen'],0)
+            self.assertNotIn('_private_due_race_ids',str(report))
+            self.assertEqual(F.current_view(fixture.git,fixture.boot)[3]['records'][0]['result']['status'],'final')
+            bridge.publish(state,now=NOW+timedelta(minutes=3))
+            self.assertEqual(F.current_view(fixture.git,fixture.boot)[3]['records'][0]['prediction'],finalized['records'][0]['prediction'])
+        finally:
+            fixture.doCleanups()
+
     def test_private_model_pdca_snapshot_survives_encrypted_git_state_restart(self):
         from tests.test_racer_result_bridge import BridgeTests
         from tests.test_racer_intraday_handoff import FixtureGit

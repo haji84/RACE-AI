@@ -193,6 +193,31 @@ def update(doc,rows,*,now):
                 scanned_months=len(doc['scanned_months']),all_saved_dates_retained=True)
 
 
+def hold_model_ids(doc, rows, due_ids, *, now):
+    """Retain model-level HOLD even if the physical race is final/void.
+
+    This does not alter the official result or authorize another provider GET.
+    All private IDs stay inside the encrypted source control.
+    """
+    at=_clock(now)
+    today=at.astimezone(JST).date().isoformat()
+    index={r['race_id']:r for r in rows if r.get('sport')=='boat'}
+    need(type(due_ids) in (list,set,tuple),'RESULT_DUE_MODEL_IDS_INVALID')
+    count=0
+    for rid in set(due_ids):
+        day,mask=_slot(rid)
+        need(day<=today and rid in index and index[rid].get('event_date_jst')==day,
+             'RESULT_DUE_MODEL_IDENTITY_INVALID')
+        if reconciled_status(index[rid]) not in ('final','void'):
+            continue
+        entry=doc['pending_days'].setdefault(day,_entry(day,at.isoformat()))
+        state={k:_mask(entry[k])&~mask for k in ('m','p','u')}
+        state['u']|=mask
+        entry.update({k:format(v,'x') for k,v in state.items()})
+        count+=1
+    return count
+
+
 def unavailable_days(doc,all_days):
     available={_day(x) for x in all_days}
     return len(set(doc['pending_days'])-available)

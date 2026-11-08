@@ -101,7 +101,7 @@ def _miss_reason(tickets,winners):
     return 'FIRST_PLACE_NOT_SELECTED'
 
 
-def score_view(view,*,authenticated):
+def score_view(view,*,authenticated,include_private_due=False):
     """Return only count-only model-stage-version summaries, no tickets or URLs."""
     need(authenticated is True,'AUTHENTICATED_INPUT_REQUIRED')
     F.originals_sha(view)
@@ -109,6 +109,7 @@ def score_view(view,*,authenticated):
     anchor=F.forecast_anchor(view)
     summary={}
     seen=set()
+    private_due_ids=set()
     for row in view['records']:
         if row.get('sport')!='boat':continue
         rid=row.get('race_id')
@@ -131,13 +132,13 @@ def score_view(view,*,authenticated):
             a['forecasts']+=1
             try: cutoff=_saved_clock(prediction,row)
             except ValueError as exc:
-                a['held']+=1;a['unresolved_reasons']['PRE_CUTOFF_PROOF_MISSING']+=1;continue
+                a['held']+=1;a['unresolved_reasons']['PRE_CUTOFF_PROOF_MISSING']+=1;private_due_ids.add(rid);continue
             if state=='PENDING_OFFICIAL_RESULT':
-                a['pending']+=1;continue
+                a['pending']+=1;private_due_ids.add(rid);continue
             if state.startswith('HOLD_'):
-                a['held']+=1;a['unresolved_reasons'][state]+=1;continue
+                a['held']+=1;a['unresolved_reasons'][state]+=1;private_due_ids.add(rid);continue
             if _clock(row['result']['observed_at'])<cutoff:
-                a['held']+=1;a['unresolved_reasons']['RESULT_BEFORE_CUTOFF']+=1;continue
+                a['held']+=1;a['unresolved_reasons']['RESULT_BEFORE_CUTOFF']+=1;private_due_ids.add(rid);continue
             if state=='VOID':
                 a['void']+=1
                 gross=100*len(tickets)
@@ -163,8 +164,13 @@ def score_view(view,*,authenticated):
         b['roi']=b['returned_yen']/b['stake_yen'] if b['stake_yen'] else None
         b['actual_purchases']=False
         groups.append(b)
-    return dict(schema=SCHEMA,source='AES_AUTHENTICATED_SAVED_VIEW_ONLY',model_groups=groups,
+    report=dict(schema=SCHEMA,source='AES_AUTHENTICATED_SAVED_VIEW_ONLY',model_groups=groups,
         model_group_count=len(groups),total_forecasts=sum(a['forecasts'] for a in groups),
         total_scored=sum(a['eligible'] for a in groups),unresolved=sum(a['held']+a['pending'] for a in groups),
         actual_purchases=False,accuracy_improvement_proven=False,
         no_provider_requests=True,rewrote_predictions=False)
+    # Race IDs never belong in the count-only audit or public output. A trusted
+    # encrypted-only caller may explicitly request them to retain PDCA HOLDs.
+    if include_private_due is True:
+        report['_private_due_race_ids']=sorted(private_due_ids)
+    return report
