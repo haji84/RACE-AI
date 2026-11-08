@@ -44,6 +44,12 @@ class BoatSixWayNodeContractTests(unittest.TestCase):
             "Source-free 6-course view contract PASS",
         )
 
+    def test_grade_transition_research_standalone(self):
+        self._node(
+            "tests/boat_grade_transition_research.test.cjs",
+            "GRADE_TRANSITION_RESEARCH_SYNTHETIC_PASS",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -165,6 +165,46 @@ if(predicted){
  details.append(table);section120.append(details);
 }
 
+
+const grade=data.grade_transition;
+if(grade){
+ if(grade.schema!=="RACE_AI_BOAT_GRADE_TRANSITION_RESEARCH_V1"||
+    !Array.isArray(grade.all_six)||grade.all_six.length!==6)
+    throw Error("級別研究データの形式が不正");
+ const sectionG=section("来期級別・過去A級実績・出走間隔");
+ text(sectionG,"現在級、来期発表、正式確定を分けて表示。A級だった履歴と休養理由は別問題。級別を勝率の代用として加点しません。");
+ const table=el("table"),body=el("tbody");table.append(body);
+ const h=el("tr");
+ for(const label of ["艇番","登録番号","現在級","来期発表","発表状態","過去最高A級","直近10走","長い出走間隔の観測","注意"])
+  h.append(el("th",null,label));
+ body.append(h);
+ const seen=new Set();
+ for(const g of grade.all_six){
+  if(!g||seen.has(g.boat)||g.boat<1||g.boat>6||g.racer_id!==entries[g.boat])
+   throw Error("級別と登録番号の対応が不一致");
+  seen.add(g.boat);
+  const row=el("tr");
+  const status=g.next_grade_publication_status==="OFFICIALLY_CONFIRMED"?"正式確認済とする提供記録":
+    g.next_grade_publication_status==="ANNOUNCED_SUBJECT_TO_CONFIRMATION"?"発表済・正式確定待ち":
+    "未確認";
+  const gap=g.observed_start_gap||{};
+  const info=gap.return_candidate;
+  const gapText=info?String(info.gap_days)+"日間隔（休養理由は不明）":"未確認";
+  const recent=g.observed_recent_form||{};
+  for(const value of [g.boat,g.racer_id,
+   g.official_current_grade??"未確認",
+   g.next_official_announcement_grade??"未確認",status,
+   g.highest_previous_official_grade??"記録不足",
+   (recent.observed_last_10_starts??"不明")+"走・3連対率 "+rate(recent.top3_rate),
+   gapText,(g.research_tags||[]).join(" / ")||"なし"]){
+   row.append(el("td",null,value));
+  }
+  body.append(row);
+ }
+ sectionG.append(table);
+ text(sectionG,"記録のSHAや正式発表日の確認は別工程。記録されていない出走があれば長い間隔の判断も保留。");
+}
+
 const m=section("6艇の組み合わせ");
 text(m,"相互作用20指標。5・6コースのまくり・まくり差しは別々に評価。計算前の実進入と出典の照合が必須。");
 const f=data.matchup.features||{};
