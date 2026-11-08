@@ -10,7 +10,8 @@ import unittest
 
 from race_ai.keirin_video_learning import (
     CLASSES,FEATURE_SCHEMA,SceneLearningError,train_reviewed_classifier,
-    validated_rows, predict_scene,sample_private_video)
+    validated_rows, predict_scene,sample_private_video,
+    bind_reviewed_labels_to_frames)
 from race_ai.keirin_video_inference import to_review_queue
 
 def sha(x):return hashlib.sha256(x.encode()).hexdigest()
@@ -49,6 +50,29 @@ class LearningTests(unittest.TestCase):
         bad[0]["samples"][0]["reviewed"]=False
         with self.assertRaisesRegex(SceneLearningError,"TRAINING_LABEL_NOT_HUMAN_REVIEWED"):
             train_reviewed_classifier(bad)
+
+    def test_review_labels_must_match_real_feature_hashes(self):
+        recording=sha("video-1")
+        h=sha("frame-1")
+        feature={"schema":FEATURE_SCHEMA,"race_id":"race-A",
+                 "recording_sha256":recording,
+                 "feature_version":"HSV_GRID_EDGE_7x28_v1",
+                 "features":[{"frame_sha256":h,"vector":vec("START")}]}
+        review={"schema":"RACE_AI_KEIRIN_FRAME_REVIEW_V1",
+                "race_id":"race-A","recording_sha256":recording,
+                "feature_version":"HSV_GRID_EDGE_7x28_v1",
+                "labels":[{"frame_sha256":h,"label":"START",
+                           "reviewed":True,"review_ref":"private-review-1"}]}
+        bound=bind_reviewed_labels_to_frames(feature,review)
+        self.assertEqual(bound["samples"][0]["vector"],vec("START"))
+        altered=copy.deepcopy(review)
+        altered["labels"][0]["frame_sha256"]=sha("other image")
+        with self.assertRaisesRegex(SceneLearningError,"LABEL_NOT_IN_SAME_VERIFIED_VIDEO"):
+            bind_reviewed_labels_to_frames(feature,altered)
+        wrong_clip=copy.deepcopy(review)
+        wrong_clip["recording_sha256"]=sha("different recording")
+        with self.assertRaisesRegex(SceneLearningError,"FEATURE_REVIEW_SOURCE_CONFLICT"):
+            bind_reviewed_labels_to_frames(feature,wrong_clip)
 
     def test_train_with_heldout_race_and_predict(self):
         model=train_reviewed_classifier(docs())
