@@ -11,6 +11,26 @@
     return Number.isFinite(clock) && new Date(clock).toISOString().slice(0, 10) === value;
   };
   const model = {
+    modelOptions(rows, catalog, sport) {
+      const retired = new Set(catalog?.retired_model_ids || []), counts = new Map(), specs = new Map();
+      for (const spec of catalog?.models || []) if (!retired.has(spec.model_id) && spec.applicable_sports.includes(sport)) specs.set(spec.model_id, spec);
+      for (const row of rows || []) {
+        if (row.sport !== sport) continue;
+        for (const p of [row.prediction, ...(row.comparison_predictions || [])]) {
+          if (!p || typeof p.model_id !== "string" || !p.model_id || retired.has(p.model_id)) continue;
+          if (!specs.has(p.model_id)) specs.set(p.model_id, {model_id:p.model_id});
+          if (!counts.has(p.model_id)) counts.set(p.model_id, new Set());
+          counts.get(p.model_id).add(row.race_id);
+        }
+      }
+      return [...specs.keys()].map(model_id => ({model_id,races:counts.get(model_id)?.size || 0}))
+        .sort((a,b) => b.races-a.races);
+    },
+    modelPrediction(list, modelId, preferredIndex) {
+      const preferred = Number.isInteger(preferredIndex) ? list[preferredIndex] : null;
+      if (preferred && (!modelId || preferred.model_id === modelId)) return preferred;
+      return modelId ? list.find(p => p.model_id === modelId) || null : list[0] || null;
+    },
     venueName(row) {
       // Resolve the saved BOAT code for display without rewriting the original record.
       const code = row?.sport === "boat" && typeof row.venue === "string" ? /^(?:場コード|boatrace-jcd-)(0[1-9]|1[0-9]|2[0-4])$/.exec(row.venue) : null;

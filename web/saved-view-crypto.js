@@ -29,7 +29,7 @@
   const hex=v=>typeof v==="string"&&/^[a-f0-9]{64}$/.test(v);
   const canonical=h=>JSON.stringify(Object.fromEntries(Object.keys(h).sort().map(k=>[k,h[k]])));
   const snapshots=new Map(),encoder=new TextEncoder();
-  const MUTABLE=new Set(["result","result_revisions","result_observations","result_observation_rejections","missing_reasons"]);
+  const MUTABLE=new Set(["result","result_revisions","result_observations","result_observation_rejections","missing_reasons","live_boat_observation"]);
   const IDENTITY=["stage","native_stage","model_id","model_version","variant","source_code_commit","as_of","cutoff_at",
     "input_sha256","source_sha256","source_captured_at","source_provenance","artifact_id","original_json_sha256",
     "physical_receipt_sha256","pair_sha256","persisted_at","server_saved_at","training_sha256","training_artifact_id","training_receipt_digest"];
