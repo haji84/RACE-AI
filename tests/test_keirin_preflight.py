@@ -125,5 +125,68 @@ class KeirinPreflightTests(unittest.TestCase):
             check(audit)
 
 
+
+class RealAdapterPreflightGateTests(unittest.TestCase):
+    def make_real_snapshot(self, include_audit):
+        from hashlib import sha256
+        from race_ai.keirin_result_delivery import canonical
+        evidence = {
+            "schema": "RACE_AI_FOUR_SPORT_EVIDENCED_SNAPSHOT_V1",
+            "scope": "OPERATOR_SUPPLIED_RESEARCH",
+            "race": {"race_id": RID, "sport": "keirin",
+                     "surface": "velodrome", "sales_cutoff_at": CUTOFF,
+                     "as_of": ASOF},
+            "participants": [{"number": n} for n in STARTERS]
+        }
+        facts = {"pr71_evidenced_snapshot": evidence}
+        if include_audit:
+            audit = make_audit()
+            audit["evidence_sha256"] = sha256(canonical(evidence)).hexdigest()
+            facts["keirin_pre_race_audit_v1"] = audit
+        return {
+            "schema": "RACE_AI_KEIRIN_PRIVATE_PRE_RACE_V1",
+            "race_id": RID, "starters": STARTERS,
+            "as_of": ASOF, "official_cutoff_at": CUTOFF,
+            "facts": facts
+        }
+
+    def call_model(self, snap, run_suite):
+        from race_ai.keirin_pr71_model_adapter import run_pr71_for_next_race
+        return run_pr71_for_next_race(
+            snap, run_suite=run_suite, verify_suite=lambda _x: False,
+            source_admission=lambda _obs: True,
+            model_id="multisport-scenario-ensemble-v1",
+            issued_at=ISSUED
+        )
+
+    def test_real_model_rejects_absent_audit_before_inference(self):
+        from race_ai.keirin_pr71_model_adapter import Pr71AdapterError
+        called = []
+        with self.assertRaisesRegex(Pr71AdapterError,
+                                    "COMPLETE_KEIRIN_PRE_RACE_AUDIT_REQUIRED"):
+            self.call_model(self.make_real_snapshot(False),
+                            lambda *_args, **_kwargs: called.append(True))
+        self.assertEqual(called, [])
+
+    def test_real_model_rejects_missing_core_before_inference(self):
+        from race_ai.keirin_pr71_model_adapter import Pr71AdapterError
+        snap = self.make_real_snapshot(True)
+        missing(next(r for r in snap["facts"]["keirin_pre_race_audit_v1"]["items"]
+                     if r["key"] == "race/official_sales_cutoff"))
+        called = []
+        with self.assertRaisesRegex(Pr71AdapterError,
+                                    "KEIRIN_PRE_RACE_CORE_FACTORS_NOT_VERIFIED"):
+            self.call_model(snap, lambda *_args, **_kwargs: called.append(True))
+        self.assertEqual(called, [])
+
+    def test_complete_real_audit_reaches_model_but_is_not_a_rights_grant(self):
+        from race_ai.keirin_pr71_model_adapter import Pr71AdapterError
+        called = []
+        with self.assertRaisesRegex(Pr71AdapterError,
+                                    "PR71_SUITE_VERIFICATION_FAILED"):
+            self.call_model(self.make_real_snapshot(True),
+                            lambda *_args, **_kwargs: called.append(True) or {})
+        self.assertEqual(called, [True])
+
 if __name__ == "__main__":
     unittest.main()
