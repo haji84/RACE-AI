@@ -257,7 +257,8 @@ class KeirinPrivateSpool:
                 suite,MODEL,odds,decision_at=now.isoformat(),
                 source_admission=self.source_odds_gate)
             outcome=self.variable_store.freeze_once(
-                selection,original_forecast_sha256=old["sha256"])
+                selection,original_forecast_sha256=old["sha256"],
+                odds_snapshot=odds)
             return ("VARIABLE_PRIVATE_SELECTION_SAVED" if
                     outcome=="CREATED_ONCE" else "VARIABLE_ALREADY_PRIVATE_FROZEN")
         except (ValueError,TypeError,KeyError,AttributeError,IndexError,
