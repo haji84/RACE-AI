@@ -1,0 +1,11 @@
+date_jst=2026-11-08
+race=isesaki-8R
+phase=B_POST_TRIAL_RESEARCH_UNCALIBRATED
+prediction_created_at_jst=2026-11-08T18:12:31+09:00
+betting_cutoff_jst=2026-11-08T18:14:00+09:00
+sha256=1bd99d7d999827e00188ffb90ab928665aed40376e29cce5d0cfee5dd92e6957
+original=autorace_20261108_isesaki_8R_B_research_v1.json
+bets_not_in_public_repo=true
+source=https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/8
+model=research_uncalibrated
+immutable_original=true
