@@ -9,6 +9,7 @@ import unittest
 
 from race_ai.keirin_winticket_embedded_odds import (
     EmbeddedOddsError,private_winticket_trifecta,
+    stage_private_winticket_odds,
 )
 from race_ai.keirin_variable_selection import ODDS_SCHEMA
 
@@ -89,6 +90,60 @@ class EmbeddedTrifectaOddsTests(unittest.TestCase):
         self.assertFalse(r["production_forecasts_saved"])
         self.assertEqual(r["source_odds_updated_at_utc"],
                          datetime.fromtimestamp(UPDATED,timezone.utc).isoformat())
+
+    def test_private_existing_odds_path_saved_once_and_sha_readback(self):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+        import os
+        from hashlib import sha256
+        with TemporaryDirectory() as temp:
+            root=Path(temp)
+            verified=self.parse()
+            with patch.dict(os.environ,{
+                "GITHUB_ACTIONS":"false","GITHUB_WORKSPACE":""
+            }):
+                first=stage_private_winticket_odds(root,verified)
+                self.assertEqual(first["private_odds_created"],1)
+                self.assertTrue(first["full_210_observed_rows"]==210)
+                files=list((root/"odds").glob("*.json"))
+                self.assertEqual(len(files),1)
+                original=files[0].read_bytes()
+                self.assertEqual(len(json.loads(original)["prices"]),210)
+                second=stage_private_winticket_odds(root,verified)
+                self.assertEqual(second["private_odds_created"],0)
+                self.assertEqual(files[0].read_bytes(),original)
+                self.assertEqual(len(list(
+                    (root/"odds_winticket_receipts").glob("*.json"))),1)
+                self.assertEqual(first["observed_price_set_sha256"],
+                                 verified["receipt"]["full_210_prices_sha256"])
+            self.assertFalse(first["actual_forecast_saved"])
+
+    def test_changed_subsequent_odds_do_not_rewrite_first_saved(self):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+        import os
+        with TemporaryDirectory() as temp:
+            root=Path(temp)
+            with patch.dict(os.environ,{
+                "GITHUB_ACTIONS":"false","GITHUB_WORKSPACE":""
+            }):
+                original=self.parse()
+                stage_private_winticket_odds(root,original)
+                file=next((root/"odds").glob("*.json"))
+                original_bytes=file.read_bytes()
+                def changed(data):
+                    data["trifecta"][0]["odds"]=27.7
+                    data["trifecta"][0]["oddsStr"]="27.7"
+                    data["oddsUpdatedAt"]=UPDATED+30
+                newer=self.parse(page(changed),
+                                 captured_at="2026-11-09T08:52:00+09:00")
+                report=stage_private_winticket_odds(root,newer)
+                self.assertTrue(report["newer_price_candidate_not_overwritten"])
+                self.assertEqual(file.read_bytes(),original_bytes)
+                self.assertEqual(len(list(
+                    (root/"odds_winticket_receipts").glob("*.json"))),2)
 
     def test_price_injection_and_undocumented_origin_denied(self):
         for change in (
