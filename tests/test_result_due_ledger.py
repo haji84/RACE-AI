@@ -21,6 +21,37 @@ class AllHistoryLedgerTests(unittest.TestCase):
         self.assertFalse(any(rid in str(result) for rid in ids))
         self.assertTrue(result['all_saved_dates_retained'])
 
+    def test_actual_local_encrypted_git_restart_preserves_2017_backlog(self):
+        from pathlib import Path
+        import tempfile,subprocess
+        from tests.test_racer_intraday_handoff import FixtureGit
+        from race_ai.boat_pdca_github_handoff import TRANSFER_REF
+        from race_ai.racer_intraday_handoff import load_intraday,save_intraday
+        stamp=datetime(2026,11,8,9,tzinfo=timezone.utc)
+        key=bytes(range(32))   # Test-only ephemeral key, never a real owner key.
+        with tempfile.TemporaryDirectory() as folder:
+            root=Path(folder);repo=root/'repo';repo.mkdir();remote=root/'remote.git'
+            for command in (['git','init','--bare',str(remote)],
+                    ['git','-C',str(remote),'config','uploadpack.allowFilter','true'],
+                    ['git','init',str(repo)],['git','-C',str(repo),'remote','add','origin',remote.as_uri()]):
+                subprocess.run(command,check=True,capture_output=True)
+            git=FixtureGit(repo,ref=TRANSFER_REF)
+            rootsha=git.commit({'state/other/unchanged.enc':b'ORIGINAL'},None);git.push(rootsha,None)
+            original=load_intraday(repo,initialize=True,key=key,transport=git,now=stamp)
+            ledger=L.ledger(original['state'].control,now=stamp.isoformat())
+            L.update(ledger,[row('20170101-01-01','missing')],now=stamp.isoformat())
+            one=save_intraday(original,catalogue_sha256='a'*64,now=stamp,key=key)
+            rawcipher=git.read(one['source_commit'],one['cipher_path'],32*1024*1024)
+            later=load_intraday(repo,key=key,transport=git,now=stamp+timedelta(minutes=5))
+            self.assertEqual(L.pending_count(L.ledger(later['state'].control,now=(stamp+timedelta(minutes=5)).isoformat())),1)
+            L.update(later['state'].control['result_due_ledger'],
+                     [row('20170101-01-01','final')],now=(stamp+timedelta(minutes=5)).isoformat())
+            two=save_intraday(later,catalogue_sha256='a'*64,now=stamp+timedelta(minutes=5),key=key)
+            reopened=load_intraday(repo,key=key,transport=git,now=stamp+timedelta(minutes=6))
+            self.assertEqual(L.pending_count(reopened['state'].control['result_due_ledger']),0)
+            self.assertEqual(git.read(two['source_commit'],one['cipher_path'],32*1024*1024),rawcipher)
+            self.assertEqual(git.read(two['source_commit'],'state/other/unchanged.enc',64),b'ORIGINAL')
+
     def test_new_old_pending_and_formal_close(self):
         doc=self.fresh();rid='20261104-01-01'
         L.update(doc,[row(rid,'pending')],now=NOW)
