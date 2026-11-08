@@ -10,6 +10,7 @@ on:
       - "tests/test_keirin_mansha_rank_audit.py"
       - "race_ai/keirin_existing_asset_reuse.py"
       - "tests/test_keirin_existing_asset_reuse.py"
+      - "scripts/keirin_existing_asset_preflight.py"
       - "race_ai/keirin_shadow_variable_intake.py"
       - "race_ai/keirin_owner_odds_csv.py"
       - "tests/test_keirin_owner_odds_csv.py"
@@ -22,7 +23,7 @@ on:
       - "tests/test_keirin_reference_history_recheck.py"
       - "race_ai/keirin_reference_history_recheck.py"
       - "scripts/keirin_reference_history_audit.py"
-      - "scripts/keirin_variable_reconcile_private.py"
+      - "scripts/keirin_variable_reconcile_private.py scripts/keirin_existing_asset_preflight.py"
       - "docs/KEIRIN_VARIABLE_SELECTION_RESEARCH_20261108.md"
       - ".github/workflows/keirin-variable-picks-research.yml"
   workflow_dispatch:
@@ -41,6 +42,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Read existing GitHub KEIRIN archive state (ciphertext only)
+        uses: actions/checkout@v4
+        with:
+          ref: state/keirin-encrypted-history
+          path: existing-keirin-history
+          persist-credentials: false
+      - name: Audit existing encrypted history without new DB or real-data assertions
+        run: python -m scripts.keirin_existing_asset_preflight --state-tree "$GITHUB_WORKSPACE/existing-keirin-history"
       - name: Synthetic only, never actual race profit
         env:
           PYTHONPATH: ".:tests"
