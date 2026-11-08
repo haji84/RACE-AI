@@ -1,0 +1,51 @@
+{
+  "schema": "RACE_AI_RETAINED_RUN_ACTUAL_ACCEPTANCE_COUNTS_V1",
+  "run_id": 42443965999,
+  "job_id": 128618888185,
+  "head_sha": "8f9b37f128b61745bae22eb0ac30126739dc7b8a",
+  "run_conclusion": "success",
+  "completed_at": "2026-11-08T03:46:08Z",
+  "report_at": "2026-11-08T03:46:04.1066497Z",
+  "selected_source_run_id": 42411771346,
+  "selected_source_head_sha": "7f12c9da9cbfa616a79631eea3d5744dbbc60de2",
+  "selected_source_day": "2026-11-08",
+  "restoration": {
+    "automatic_continuation_proven": false,
+    "blob_bytes_read": 41334586,
+    "capture_bundles_restored": 11,
+    "capture_records_by_type": {
+      "GITHUB_METADATA": 2,
+      "OFFICIAL_RACE_RESULT": 52,
+      "OTHER_RETAINED": 1
+    },
+    "captures_restored": 55,
+    "closed_listing_pages": 1,
+    "closed_run_catalogue_verified": true,
+    "listed_artifacts": 90,
+    "listed_native_originals": 39,
+    "live_artifact_requests": 0,
+    "max_blob_bytes": 536870912,
+    "mirror_cipher_binding_verified": true,
+    "official_source_requests": 0,
+    "originals_by_kind": {
+      "ALL_MODEL": 6,
+      "CONTINUITY": 1,
+      "P0": 1,
+      "P1": 15,
+      "PRIVATE_PAIRS": 0,
+      "RESULT": 15,
+      "SOURCE_CONTROL": 1
+    },
+    "originals_restored": 39,
+    "plaintext_published": false,
+    "raw_capture_completeness_verified": true,
+    "required_official_result_captures": 11,
+    "schema": "RACE_AI_BOAT_RETAINED_RUN_VERIFICATION_V1",
+    "status": "RETAINED_RUN_VERIFIED",
+    "unique_capture_receipts": 14,
+    "upstream_writes": 0
+  },
+  "current_day_future_site_proven": false,
+  "model_improvement_demonstrated": false,
+  "remaining_unfitted_native_models": 11
+}
