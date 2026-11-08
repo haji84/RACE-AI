@@ -39,5 +39,7 @@ jobs:
         run: python -m unittest discover -s tests -p test_keirin_owner_saved_csv.py -v
       - name: Owner-saved non-Rakuten visible racecard to private CSV and 347-field audit
         run: python -m unittest discover -s tests -p test_keirin_owner_saved_hex.py -v
+      - name: Validate Open-Meteo noncommercial modeled weather feed and forbid cutoff leaks
+        run: python -m unittest discover -s tests -p test_keirin_open_meteo_weather.py -v
       - name: Operator-private service CLI and no unauthenticated provider access
         run: python -m unittest discover -s tests -p test_keirin_private_agent.py -v
