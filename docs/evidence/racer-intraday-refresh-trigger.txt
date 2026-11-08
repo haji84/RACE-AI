@@ -9,3 +9,5 @@
 2026-11-08 verify saved model switching with both rationale and outlook headings retained
 
 2026-11-08: stage-model-pdca verified old Top8 20261108. Source-free owner-AES historical due-ledger and model PDCA readback acceptance; no provider GET or forecast rewrite.
+
+2026-11-08: stage-model-pdca rerun after source-free checkout Authorization header isolation, with original due ledger / saved Top8 / independent readback preserved.

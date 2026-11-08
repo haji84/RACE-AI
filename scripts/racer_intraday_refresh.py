@@ -136,6 +136,24 @@ def replay_retained_results(repo,*,now=None,intraday_transport=None,bridge=None)
         source_state_saved=False,public_catalogue_published=False,forecasting_performed=False,plaintext_published=False)
 
 
+
+def _stage_git_header_scope():
+    """Remove only checkout's host-wide auth for the existing source-free PDCA step.
+
+    The existing owner Actions token is re-added by git_auth() for this
+    exact repository. No disk Git config, source credential or URL is changed.
+    """
+    count=int(os.environ.get('GIT_CONFIG_COUNT','0'))
+    need(0<=count<=30,'MODEL_PDCA_GIT_CONFIG_BOUND')
+    key='http.https://github.com/.extraheader'
+    existing=[os.environ.get('GIT_CONFIG_VALUE_'+str(i)) for i in range(count)
+              if os.environ.get('GIT_CONFIG_KEY_'+str(i))==key]
+    need(not any(existing),'MODEL_PDCA_CHECKOUT_HEADER_CONFLICT')
+    if existing:return
+    os.environ.update({'GIT_CONFIG_KEY_'+str(count):key,
+                       'GIT_CONFIG_VALUE_'+str(count):'',
+                       'GIT_CONFIG_COUNT':str(count+1)})
+
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--repo',type=Path,default=ROOT);p.add_argument('--private-dir',type=Path,required=True);p.add_argument('--initialize',action='store_true');p.add_argument('--daily-reconcile',action='store_true');p.add_argument('--verify-public',action='store_true');p.add_argument('--sync-results',action='store_true');p.add_argument('--sync-beforeinfo',action='store_true');p.add_argument('--replay-retained-results',action='store_true');p.add_argument('--stage-existing-pdca',action='store_true');a=p.parse_args(argv)
     try:
@@ -143,6 +161,7 @@ def main(argv=None):
             need(not any((a.initialize,a.daily_reconcile,a.verify_public,a.sync_results,a.sync_beforeinfo,a.replay_retained_results)),'MODEL_PDCA_STAGE_MODE_CONFLICT')
             from scripts.boat_private_original_vault import _environment
             from scripts.boat_saved_view_feed import git_auth
+            _stage_git_header_scope()
             repo=_environment(a.repo);git_auth()
             report=stage_existing_pdca_without_source(repo)
             print(wire(report));return 0

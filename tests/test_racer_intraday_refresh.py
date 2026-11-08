@@ -92,3 +92,35 @@ class RefreshTests(unittest.TestCase):
                 current=json.loads(pages.read(c['public']['pages_commit'],'data/racer-daily.json',4000000));self.assertEqual(current['people'][0]['summary']['starts'],25)
                 self.assertEqual(pages._run(['rev-list','--count',c['public']['pages_commit']]).strip(),b'4','morning stage must publish only the recombined snapshot once')
                 self.assertEqual(pages._run(['ls-tree','-r',c['public']['pages_commit'],'--','views']),views)
+
+
+class StageCredentialScopeTests(unittest.TestCase):
+    def test_stage_only_resets_checkout_host_authorization_and_keeps_repo_scope(self):
+        from scripts.racer_intraday_refresh import _stage_git_header_scope
+        from scripts.boat_saved_view_feed import git_auth
+        token='TEST_STAGE_OWNER_GITHUB_TOKEN_1234567890'
+        with tempfile.TemporaryDirectory() as folder:
+            subprocess.run(['git','init','-q',folder],check=True,capture_output=True)
+            subprocess.run(['git','-C',folder,'config','http.https://github.com/.extraheader',
+                            'AUTHORIZATION: basic checkout-placeholder'],check=True,capture_output=True)
+            with patch.dict(os.environ,{'GH_TOKEN':token,'GIT_CONFIG_COUNT':'0'},clear=True):
+                _stage_git_header_scope()
+                self.assertEqual(os.environ['GIT_CONFIG_VALUE_0'],'')
+                git_auth()
+                expected='AUTHORIZATION: basic '+base64.b64encode(('x-access-token:'+token).encode()).decode()
+                def matched(url):
+                    result=subprocess.run(['git','-C',folder,'config','--get-urlmatch',
+                        'http.extraheader',url],capture_output=True,text=True)
+                    return result.stdout.strip()
+                self.assertEqual(matched('https://github.com/haji84/RACE-AI'),expected)
+                self.assertEqual(matched('https://github.com/unrelated/repository'),'')
+                _stage_git_header_scope()
+                self.assertEqual(os.environ['GIT_CONFIG_COUNT'],'2')
+
+    def test_stage_rejects_injected_nonempty_host_header_in_environment(self):
+        from scripts.racer_intraday_refresh import _stage_git_header_scope
+        with patch.dict(os.environ,{'GIT_CONFIG_COUNT':'1',
+            'GIT_CONFIG_KEY_0':'http.https://github.com/.extraheader',
+            'GIT_CONFIG_VALUE_0':'AUTHORIZATION: basic unexpected'},clear=True):
+            with self.assertRaisesRegex(ValueError,'MODEL_PDCA_CHECKOUT_HEADER_CONFLICT'):
+                _stage_git_header_scope()
