@@ -1,5 +1,19 @@
 # RACE-AI: owner constraints
 
+## KEIRIN: mandatory every-race, every-rider pre-race inspection (2026-11-08)
+
+The owner explicitly requested: 「予想する時は今の情報を必ず全て確認すること」.
+
+- Before ANY KEIRIN 3連単 forecast or model A/B comparison, follow docs/KEIRIN_PRE_RACE_ALL_FACTORS_POLICY_20261108.md and the authoritative identifiers in race_ai/keirin_preflight.py.
+- Inspect ALL race-level items and ALL rider-level items for EACH starter. For 7 riders that means 347 audit statuses; for 9 riders, 437. Count changes if the registry is amended.
+- Every item must have a verifiable status: verified, unavailable, stale, rights_blocked, or not_applicable. Record why any item is not verified. Do NOT invent, impute as zero, quietly skip, or call unavailable information "checked and known".
+- In real-data PR71 research inference, the audit must be present in the hashed private pre-race snapshot. Missing entries, a cutoff/time/provenance failure, or an unverified CORE factor must fail closed BEFORE the forecast model runs. Optional unknowns must be disclosed.
+- Check date/venue/race/stage and advancement rules, deadline, official entrants and revisions, ALL lines/solo riders/roles, leader contests and alternative scenarios; per rider compare scoring, recent 3/10 races, S/H/B, escape/makuri/sashi/mark tactics, teammates, head-to-head, bank fit, direct comments, injuries/absence/return status, rest/fatigue, gear; track geometry and actual weather. See the full registry for every item.
+- No odds, popularity, tips, market-derived numbers, or post-result payouts may enter prediction features, learning, or model selection. Payouts may be used separately to compute POST-result research settlement only.
+- Confirm rights through independent authorization; a source URL or rights_ref string does not itself grant rights. The documentation/audit does not make a currently missing legal feeder or live execution operational.
+- Keep <=8 ordered trifecta picks, original pre-cutoff prediction immutable, results and revisions separate, reference virtual losses distinct from any verified real wagers, and A/B comparisons prospective on the same future races.
+- Changes to docs and tests are NOT evidence that every item is collected or used by the existing predictor. Do not claim full operation until a real permitted feeder, evidence/forecast readback, independent timestamp and forward-test quality are demonstrated.
+
 ## Cloudflare is prohibited
 
 The owner explicitly instructed on 2026-11-03: 「Cloudflare使わない！」.
