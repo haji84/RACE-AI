@@ -1,0 +1,82 @@
+name: Matsuyama 1R uncut four-lap official broadcast capture
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/keirin_full_four_lap_capture.py'
+      - 'tests/test_keirin_full_four_lap_capture.py'
+      - '.github/workflows/keirin-full-four-lap-capture.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  single-broadcast-capture:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Browser and encrypted screenshot recorder dependencies
+        run: |
+          python -m pip install playwright==1.56.0 'cryptography>=44,<48'
+          python -m playwright install chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Source integrity and DVR interval unit tests
+        run: python -m unittest discover -s tests -p 'test_keirin_full_four_lap_capture.py' -v
+      - name: Attempt official full-broadcast replay in ordinary browser
+        id: official_source_capture
+        continue-on-error: true
+        run: |
+          python -m scripts.keirin_full_four_lap_capture \
+            --report "$RUNNER_TEMP/official-4laps-20261108-1R.json" \
+            --capture --max-seconds 520 \
+            --encrypted-dir "$RUNNER_TEMP/matsuyama1r-four-lap-cipher" \
+            --public-key docs/keirin-replay-pilot-public.pem
+      - name: Keep only encrypted frames when the real video worked
+        if: steps.official_source_capture.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: matsuyama-1r-20261108-official-four-lap-window-encrypted
+          path: ${{ runner.temp }}/matsuyama1r-four-lap-cipher/
+          retention-days: 2
+          if-no-files-found: error
+      - name: Show outcome and remaining all-four-lap acceptance gate
+        if: always()
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          p=Path(os.environ["RUNNER_TEMP"])/"official-4laps-20261108-1R.json"
+          info=json.loads(p.read_text()) if p.exists() else {}
+          lines=[
+             "## Matsuyama 2026-11-08 1R official 4-lap source pilot",
+             "- Video: https://www.youtube.com/watch?v=BhwmwNby6Ow",
+             "- This is the official entire broadcast source, NOT a Kdreams 92s digest.",
+             f"- Actual browser screen capture: {info.get('status','NOT_EXECUTED')}",
+             f"- YouTube player status: {info.get('player_status','UNKNOWN')}",
+             f"- Target JST window: {info.get('recording_window_jst','UNAVAILABLE')}",
+             f"- Encrypted recording count: {info.get('encrypted_files','NONE')}",
+             f"- Four complete laps independently observed: {info.get('uncut_four_laps_verified',False)}",
+             "- A complete time-window is NOT proof of 4 laps until visual race-start/lap-count/finish auditing.",
+             "- No YouTube authentication, access control, or DRM bypass; no stream extraction or plaintext upload.",
+          ]
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text("\n".join(lines)+"\n")
+          print("\n".join(lines))
+          PY
+      - name: Require actual recorded broadcast window
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path(os.environ["RUNNER_TEMP"])/"official-4laps-20261108-1R.json"
+          info=json.loads(p.read_text()) if p.exists() else {}
+          if info.get("status") != "TIMED_BROADCAST_WINDOW_RECORDED":
+              raise SystemExit("NOT_COMPLETE: full race window not recorded")
+          print("Time-window recording completed. Four-lap visual audit remains required.")
+          PY
