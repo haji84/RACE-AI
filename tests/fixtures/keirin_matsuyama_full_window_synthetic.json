@@ -1,0 +1,13 @@
+{
+  "schema": "RACE_AI_KEIRIN_LIVE_SCREEN_CAPTURE_PLAN_V1",
+  "race_id": "20261109-matsuyama-01",
+  "venue": "matsuyama",
+  "race_number": 1,
+  "race_start_at": "2026-11-09T20:40:00+09:00",
+  "record_from_at": "2026-11-09T20:37:00+09:00",
+  "record_until_at": "2026-11-09T20:47:00+09:00",
+  "expected_laps": 4,
+  "source_url": "https://www.winticket.jp/keirin/matsuyama/live",
+  "schedule_evidence_ref": "SYNTHETIC_TEST_ONLY_NOT_OFFICIAL",
+  "recording_rights_ref": null
+}
