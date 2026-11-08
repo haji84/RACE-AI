@@ -41,6 +41,8 @@ jobs:
         run: python -m unittest discover -s tests -p test_keirin_owner_saved_hex.py -v
       - name: Validate Open-Meteo noncommercial modeled weather feed and forbid cutoff leaks
         run: python -m unittest discover -s tests -p test_keirin_open_meteo_weather.py -v
+      - name: Bind modeled free weather source to 347-key audit and existing PR71 eight picks
+        run: python -m unittest discover -s tests -p test_keirin_open_meteo_stage.py -v
       - name: Operator-private service CLI and no unauthenticated provider access
         run: python -m unittest discover -s tests -p test_keirin_private_agent.py -v
 
