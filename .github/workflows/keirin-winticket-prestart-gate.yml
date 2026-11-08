@@ -1,0 +1,70 @@
+name: WINTICKET full-race prestart recording and four-lap gates
+
+on:
+  pull_request:
+    paths:
+      - 'race_ai/keirin_video_lap_gate.py'
+      - 'scripts/keirin_winticket_prestart_recorder.py'
+      - 'tests/test_keirin_winticket_prestart.py'
+      - 'tests/fixtures/keirin_matsuyama_full_window_synthetic.json'
+      - '.github/workflows/keirin-winticket-prestart-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  synthetic-e2e-only:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            race_ai
+            scripts
+            tests
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test-only browser
+        run: |
+          python -m pip install playwright==1.56.0
+          python -m playwright install chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Reject incomplete windows and forged lap evidence
+        run: |
+          python -m unittest discover -s tests -p 'test_keirin_winticket_prestart.py' -v
+      - name: Synthetic full-window browser screen-recording test
+        run: |
+          python -m scripts.keirin_winticket_prestart_recorder \
+            --synthetic-test-only \
+            --test-seconds 9 \
+            --plan tests/fixtures/keirin_matsuyama_full_window_synthetic.json \
+            --report "$RUNNER_TEMP/winticket-synthetic-window.json"
+      - name: Require successful synthetic recording but NOT a race-pass claim
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import json,os
+          f=Path(os.environ["RUNNER_TEMP"])/"winticket-synthetic-window.json"
+          obj=json.loads(f.read_text())
+          assert obj["status"]=="SYNTHETIC_BROWSER_RECORDING_TEST"
+          assert obj.get("synthetic_capture_ok") is True
+          assert obj["synthetic_only"] is True
+          assert obj["four_laps_verified"] is False
+          assert obj["four_lap_evidence_gate"]["four_laps_verified"] is False
+          assert obj.get("raw_footage_public") is False
+          assert obj.get("sealed_capture") is None
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"w") as out:
+              out.write("## WINTICKET prestart recorder: synthetic mechanism only\n")
+              out.write("- Browser video WebM recording: TEST PASS (invented test pattern)\n")
+              out.write("- Window health/continuity + false-lap rejection: TEST PASS\n")
+              out.write("- Real WINTICKET full-race footage: NOT TESTED\n")
+              out.write("- Visual proof of four real laps: NOT VERIFIED\n")
+              out.write("- Upload of plaintext video: NONE\n")
+              out.write("- External rights gate: NOT APPROVED\n")
+          print("SYNTHETIC_ONLY: no four-lap or official race success claimed")
+          PY
