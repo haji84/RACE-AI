@@ -43,3 +43,34 @@ jobs:
         run: python -m unittest discover -s tests -p test_keirin_open_meteo_weather.py -v
       - name: Operator-private service CLI and no unauthenticated provider access
         run: python -m unittest discover -s tests -p test_keirin_private_agent.py -v
+
+  open_meteo_weather_one_real_source:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: ONE real free Open-Meteo forecast read for Matsuyama area 2026-11-08 9R
+        env:
+          RACE_INFO_SOURCE: 'https://keirin.netkeiba.com/race/course/?jyo_cd=75'
+          PARK_COORD_SOURCE: 'https://matsuyamacentralpark.com/access/'
+        run: |
+          # Park coordinates are approximate, not a verified velodrome sensor.
+          # Clock check skips instead of backdating after the race's cutoff.
+          # NO rider data, no lineup data, no paid API, no wagering.
+          python -m scripts.keirin_weather_live_smoke \
+            --race-id 202611087509 \
+            --latitude 33.8093572 --longitude 132.7459764 \
+            --start-at '2026-11-08T23:20:00+09:00' \
+            --cutoff-at '2026-11-08T23:15:00+09:00' \
+            --owner-private-noncommercial \
+            --output weather_proof.json
+      - name: Retain only CC-BY weather evidence, not rider source or predictions
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: keirin-public-modelled-weather-proof-${{ github.run_id }}
+          path: weather_proof.json
+          retention-days: 3
+          if-no-files-found: error
