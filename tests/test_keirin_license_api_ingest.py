@@ -94,6 +94,17 @@ class LicenseApiFetchTests(unittest.TestCase):
                     endpoint=url, rights_ref=rights, transport=fake)
         self.assertEqual(calls, [])
 
+    def test_rakuten_api_never_requested_even_with_approved_other_feed(self):
+        requests = []
+        with self.assertRaisesRegex(LicenseDeliveryError, "RAKUTEN_SOURCE_EXCLUDED"):
+            fetch_licensed_export_once(
+                self.root, self.allow_fetch(),
+                endpoint="https://keirin.kdreams.jp/fictional-feed/api/daily",
+                rights_ref="FICTIONAL_TEST_RIGHTS_ONLY",
+                transport=lambda *_: requests.append(1) or self.batch()
+            )
+        self.assertEqual(requests, [])
+
     def test_invalid_json_denied_without_partial_raw_files(self):
         granted = self.allow_fetch()
         with self.assertRaises(LicenseDeliveryError):
