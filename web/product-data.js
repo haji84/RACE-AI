@@ -279,7 +279,8 @@
     const originals=proof.original_cutoffs,saved=row.saved_cutoff_variants||[];
     if(!Array.isArray(originals)||originals.some(c=>!stamp(c))||new Set(originals).size!==originals.length||canonical([...originals].sort())!==canonical([...saved].sort())||new Set(saved.map(Date.parse)).size<2)reject();
     const clocks=originals.map(Date.parse),scheduled=(row.saved_schedule_cutoff_variants||[]).map(Date.parse);
-    if(new Set(scheduled).size>1 || scheduled.some(c=>!clocks.includes(c)) || row.saved_observation_cutoff_variants?.length || row.missing_reasons?.includes("SAVED_SCHEDULE_CUTOFF_CONFLICT"))reject();
+    const scheduleCount=new Set(scheduled).size,scheduleBound=scheduleCount<=1&&!row.missing_reasons?.includes("SAVED_SCHEDULE_CUTOFF_CONFLICT")||perModel&&scheduleCount>1;
+    if(!scheduleBound || scheduled.some(c=>!clocks.includes(c)) || row.saved_observation_cutoff_variants?.length)reject();
     const people=row.participants,roster=new Map();
     if(!Array.isArray(people)||people.length<3||people.length>6)reject();
     for(const person of people){if(!Number.isInteger(person.number)||person.number<1||person.number>6||typeof person.registration_no!=="string"||!/^\d{4}$/.test(person.registration_no)||roster.has(person.number))reject();roster.set(person.number,person.registration_no);}
