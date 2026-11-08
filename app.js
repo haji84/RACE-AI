@@ -105,7 +105,7 @@
     const registration = participantRegistration(p), number = participantNumber(p);
     const bound = registration ? knownParticipants(r).find(person => participantRegistration(person) === registration &&
       (number == null || participantNumber(person) === number)) : null;
-    const name = U.participantName(r,p) || U.participantName(r,bound);
+    const name = p.name || bound?.name;
     return (name ? text(name) : "名前 未取得") + (registration ? "（登録 " + text(registration) + "）" : "");
   };
   const maxNumber = r => {
@@ -154,7 +154,7 @@
     const value = v => typeof v === "number" && Number.isFinite(v) ? v.toFixed(2) : text(v);
     for (const person of people) {
       const card = node("article", "preview-boat"), header = node("div", "preview-person");
-      const trigger = button(U.participantName(race,person) || "出走者情報", "text-button", () => openParticipant(person, race, trigger));
+      const trigger = button(person.name || "出走者情報", "text-button", () => openParticipant(person, race, trigger));
       trigger.dataset.openParticipant = participantRegistration(person) || "unverified";
       const number = participantNumber(person); if (Number.isInteger(number)) header.append(badge(number));
       header.append(trigger); card.append(header);
@@ -477,7 +477,7 @@
     }
     const dialog = participantDialog, portrait = globalThis.RaceRacerPortraits?.get(race, person), registration = participantRegistration(person);
     participantOpener = opener;
-    const header = node("header", "profile-header"), heading = node("div"), title = node("h2", "", U.participantName(race,person) || "選手情報");
+    const header = node("header", "profile-header"), heading = node("div"), title = node("h2", "", portrait?.name || person.name || "選手情報");
     title.id = "participant-dialog-title";
     heading.append(node("p", "eyebrow", "RACER CARD"), title);
     const close = button("×", "profile-close", closeParticipant); close.dataset.closeParticipant = ""; close.setAttribute("aria-label", "選手カルテを閉じる");
@@ -567,12 +567,12 @@
       img.addEventListener("error", () => { artwork.remove(); avatar.append(silhouette); status.textContent = "イラスト読込待ち"; status.hidden = false; }, {once: true});
       img.src = portrait.src; avatar.append(artwork); status.textContent = ""; status.hidden = true;
     } else avatar.append(silhouette);
-    const registration = participantRegistration(p), displayName = U.participantName(race,p);
-    const identity = [avatar, node("strong", "racer-name", p.placeholder ? "出走者 未取得" : displayName ? text(displayName) : "名前 未取得"), node("small", "muted", p.placeholder ? "表示用の枠" : registration ? "登録 " + text(registration) : "登録 未取得")];
+    const registration = participantRegistration(p);
+    const identity = [avatar, node("strong", "racer-name", p.placeholder ? "出走者 未取得" : p.name ? text(p.name) : "名前 未取得"), node("small", "muted", p.placeholder ? "表示用の枠" : registration ? "登録 " + text(registration) : "登録 未取得")];
     if (interactive && !p.placeholder) {
       const trigger = button("", "racer-identity", () => openParticipant(p, race, trigger));
       trigger.dataset.openParticipant = registration || "unverified";
-      trigger.setAttribute("aria-label", (displayName || "出走者") + "の選手情報を開く");
+      trigger.setAttribute("aria-label", (p.name || "出走者") + "の選手情報を開く");
       trigger.append(...identity); card.append(trigger);
     } else card.append(...identity);
     if (!p.placeholder) card.append(status);
@@ -877,7 +877,7 @@
     if (state.detailTab === "outlook") content.append(forecastPanel(r, p), append(node("div", "section-heading member-heading"), node("h2", "", "出走メンバー"), node("span", "tag", knownParticipants(r).length ? knownParticipants(r).length + "名の読込値" : "出走表 未取得")), participantGrid(r, true));
     if (state.detailTab === "participants") {
       content.append(participantGrid(r, true));
-      if (knownParticipants(r).length) content.append(table(["番号", "名前", "登録", "モーター", "平均ST", "展示"], knownParticipants(r).map(person => [participantNumber(person), U.participantName(r,person) || "名前 未取得", participantRegistration(person), person.motor_no, person.average_st, person.display_time])));
+      if (knownParticipants(r).length) content.append(table(["番号", "名前", "登録", "モーター", "平均ST", "展示"], knownParticipants(r).map(person => [participantNumber(person), person.name || "名前 未取得", participantRegistration(person), person.motor_no, person.average_st, person.display_time])));
     }
     if (state.detailTab === "preview") {
       const people = knownParticipants(r), observationContext = boatObservationContext(r);
@@ -964,7 +964,7 @@
     const result=r.result,reference=result?.cutoff_reference;
     if(result?.cutoff_reconciliation){
       const proof=result.cutoff_reconciliation;
-      return "原本締切 "+proof.original_cutoffs.map(stamp).join(" / ")+" JST。公式結果と登録出走者を照合。全原本が両方の締切前に保存済み。最大"+proof.maximum_offset_seconds+"秒の記録差を残した参考照合です。";
+      return "原本締切 "+proof.original_cutoffs.map(stamp).join(" / ")+" JST。公式結果と登録出走者を照合。各予想が自身の締切と公式締切の前に保存済み。最大"+proof.maximum_offset_seconds+"秒の記録差を残した参考照合です。";
     }
     if(reference) {
       const clocks="原本締切 "+stamp(reference.original_cutoff_at)+" JST／結果ページ "+stamp(reference.result_schedule_cutoff_at)+" JST（差 "+reference.offset_seconds/60+"分）。";
