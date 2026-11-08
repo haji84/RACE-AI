@@ -208,6 +208,11 @@ class ShadowVariablePairLedger:
             payload BLOB NOT NULL,
             PRIMARY KEY(race_id,revision)
           );
+          CREATE TABLE IF NOT EXISTS keirin_shadow_source_inputs (
+            race_id TEXT PRIMARY KEY,
+            source_sha256 TEXT NOT NULL,
+            source_payload BLOB NOT NULL
+          );
         """)
 
     def read_pair(self,race_id):
@@ -228,10 +233,19 @@ class ShadowVariablePairLedger:
                     shadow["research_sha256"]
                 and selection["odds_sha256"]==fingerprint(odds),
                 "PRIVATE_PAIR_READBACK_HASH_MISMATCH")
+        source=self.db.execute(
+            "SELECT source_sha256,source_payload FROM "
+            "keirin_shadow_source_inputs WHERE race_id=?",
+            (race_id,)).fetchone()
+        if source is not None:
+            require(sha256(source["source_payload"]).hexdigest()==
+                    source["source_sha256"]==shadow["input_sha256"],
+                    "PRIVATE_SOURCE_HASH_MISMATCH")
         return {"shadow":shadow,"variable":selection,"odds":odds,
-                "persisted_at":row["persisted_at"]}
+                "persisted_at":row["persisted_at"],
+                "input_snapshot_frozen":source is not None}
 
-    def freeze_pair_once(self, shadow, variable, odds):
+    def freeze_pair_once(self, shadow, variable, odds, *, source_packet=None):
         checked_shadow(shadow)
         checked_selection(variable)
         require(shadow["race_id"]==variable["race_id"]==odds["race_id"]
@@ -241,6 +255,10 @@ class ShadowVariablePairLedger:
                     variable["source_packet_sha256"]
                 and fingerprint(odds)==variable["odds_sha256"],
                 "SHADOW_VARIABLE_SOURCE_PROVENANCE_MISMATCH")
+        require(type(source_packet) is dict and
+                fingerprint(source_packet)==shadow["input_sha256"] and
+                source_packet.get("race",{}).get("race_id")==shadow["race_id"],
+                "FROZEN_SOURCE_INPUT_MISSING_OR_MISMATCH")
         at=_checked_clock(self.store.clock)
         require(utc(shadow["generated_at"])<=utc(variable["selected_at"])<=at
                 and (utc(shadow["declared_cutoff"])-at).total_seconds()>
@@ -273,6 +291,10 @@ class ShadowVariablePairLedger:
                  variable["selection_sha256"],fingerprint(odds),
                  canonical(shadow),canonical(variable),canonical(odds),
                  at.isoformat()))
+            self.db.execute(
+                "INSERT INTO keirin_shadow_source_inputs VALUES (?,?,?)",
+                (shadow["race_id"],shadow["input_sha256"],
+                 canonical(source_packet)))
             self.db.execute("COMMIT")
         except BaseException:
             self.db.execute("ROLLBACK")
@@ -447,4 +469,9 @@ class ShadowVariablePairLedger:
             "formal_roi":None,
             "actual_purchases":None,
         }
+        # Separate append-only rank audit; older prediction/audit SHA stay fixed.
+        from .keirin_mansha_rank_audit import KeirinManshaRankLedger
+        result["mansha_ranking_reference"]=KeirinManshaRankLedger(
+            self.store).replay_all(max_pairs=max_pairs,
+                                   max_revisions=max_revisions)
         return result
