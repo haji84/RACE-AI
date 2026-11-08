@@ -106,6 +106,10 @@ class SavedResultBridge:
         self.ledger_summary['model_pdca_all_unscored']=historical['unscored']
         self.ledger_summary['model_pdca_new_revisions']=history_appended
         self.ledger_summary['model_pdca_formal_holds']=model_pdca_due_count
+        # Private race-by-race HOLD reasons share the existing AES Git control.
+        # Only the aggregate counts, never individual IDs or tickets, may log.
+        from . import result_due_case_audit as RC
+        self.ledger_summary['case_reason_audit']=RC.record(state.control,due,self.rows)
         self.ledger_summary['pending']=D.pending_count(due)
         self.ledger_summary['pending_days']=len(due['pending_days'])
         self.ledger_summary['older_unresolved']=D.count_older(due,self.recent_days)

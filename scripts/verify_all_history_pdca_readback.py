@@ -199,6 +199,12 @@ def verify_snapshot(state,bridge,*,now):
     _need(scored>0 and historical>0,'NO_REAL_HISTORICAL_MODEL_SCORE')
     coverage=_entire_saved_period_coverage(state,bridge,now=now,
         independently_verified=verified_daily,snapshot_holds=held_days)
+    # Revalidate every private unresolved case against the authenticated AES
+    # due-bitset. A case cannot vanish without an explicit formal resolution.
+    from race_ai import result_due_case_audit as RC
+    reasons=RC.summary(state.control,due)
+    _need(reasons['outstanding']==coverage['full_period_ledger_open_races'],
+          'RESULT_DUE_CASE_COVERAGE_MISMATCH')
     _need(wire(state.control)==original,'SOURCE_CONTROL_MUTATED')
     eligible_days=sorted(day for day,detail in verified_daily.items() if detail['eligible']>0)
     focus_day=eligible_days[-1] if eligible_days else None
@@ -214,6 +220,7 @@ def verify_snapshot(state,bridge,*,now):
         pdca_payout_threshold_yen_per_100=10000,
         pdca_rank_definition='TOP8_FIRST_APPEARANCE_NOT_ALL_RACER_PROBABILITY_RANK',
         pdca_stake_policy='REFERENCE_100_YEN_PER_SAVED_TICKET_NO_ACTUAL_BETS',
+        unresolved_case_audit=reasons,
         ledger_outstanding=D.pending_count(due),archived_days=H.latest(state.control)['days'],
         archived_revisions=H.latest(state.control)['revisions'],independent_day_readbacks=archived_readbacks,held_days=held_days,
         source_provider_requests=0,
