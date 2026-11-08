@@ -22,6 +22,9 @@ from race_ai.four_sport_model_suite import run_suite, verify_suite
 from race_ai.keirin_licensed_api_ingest import fetch_licensed_export_once
 from race_ai.keirin_owner_manual import PersonalOwnerObservations
 from race_ai.keirin_owner_saved_csv import stage_owner_saved_csv
+from race_ai.keirin_owner_odds_csv import (
+    stage_owner_saved_odds_csv, OwnerOddsCsvError
+)
 from race_ai.keirin_owner_saved_hex import stage_owner_saved_hex_markdown
 from race_ai.keirin_real_shadow_intake import stage_sourced_shadows
 from race_ai.keirin_shadow_variable_intake import (
@@ -137,6 +140,11 @@ def main(argv=None):
                                   if args.personal_manual else None)
                 owner_csv = (stage_owner_saved_csv(inbox, now=now)
                              if args.personal_manual else None)
+                # This does NOT fetch a market. Owner-supplied permitted
+                # full-odds CSV is only staged after 210/504 completeness,
+                # SHA, cutoff and distinct source admission have passed.
+                owner_odds_csv = stage_owner_saved_odds_csv(
+                    inbox,grant_check=grants.allowed,now=now)
                 modelled_weather = (
                     stage_one_free_weather(inbox,coords,now=now)
                     if args.free_modelled_weather else None)
@@ -163,6 +171,7 @@ def main(argv=None):
                     "schema": "RACE_AI_KEIRIN_LICENSED_LOCAL_CYCLE_V1",
                     "stage": stage, "spool": settled,
                     "owner_saved_csv_stage": owner_csv,
+                    "owner_saved_full_odds_csv_stage": owner_odds_csv,
                     "owner_saved_markdown_stage": owner_markdown,
                     "source_grounded_private_shadow":shadow,
                     "same_race_shadow8_variable_research":dual,
@@ -182,7 +191,8 @@ def main(argv=None):
                     break
                 time.sleep(args.interval_seconds)
     except (LicenseDeliveryError, OwnerStoreError, InboxError,
-            ShadowPairIntakeError, OSError, ValueError, KeyError, TypeError):
+            ShadowPairIntakeError, OwnerOddsCsvError,
+            OSError, ValueError, KeyError, TypeError):
         print('{"state":"LICENSED_OWNER_CYCLE_FAILED_CLOSED"}')
         return 2
     except KeyboardInterrupt:
