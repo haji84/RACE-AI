@@ -18,6 +18,7 @@ from .keirin_permissioned_owner import (
     LicenseDeliveryError, _need, _write_private_once, _valid_prefix
 )
 from .keirin_result_delivery import canonical
+from .keirin_non_rakuten_sources import is_rakuten_url
 
 EXPORT_SCHEMA = "RACE_AI_KEIRIN_LICENSED_PROVIDER_EXPORT_V1"
 MAX_BODY = 8_000_000
@@ -78,6 +79,7 @@ def fetch_licensed_export_once(inbox, grants, *, endpoint, rights_ref,
             raise LicenseDeliveryError("IP_LITERAL_ENDPOINT_FORBIDDEN")
     except (TypeError, AttributeError) as exc:
         raise LicenseDeliveryError("UNSAFE_LICENSED_ENDPOINT") from exc
+    _need(not is_rakuten_url(endpoint), "RAKUTEN_SOURCE_EXCLUDED_BY_OWNER")
     _need(grants.allowed(endpoint, rights_ref, "automated_fetch"),
           "AUTOMATED_SOURCE_ACCESS_NOT_AUTHORIZED")
     root = Path(inbox).expanduser()
