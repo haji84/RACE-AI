@@ -103,6 +103,7 @@ const frame={addEventListener:(name,handler)=>listeners.set(name,handler)};
 const fail=name=>{if(p.operation===name){const error=new Error(p.poisonKey+' '+p.poisonUrl);error.actual='PRIVATE_ACTUAL';error.expected='PRIVATE_EXPECTED';Object.defineProperty(error,'stack',{get(){throw new Error(p.poisonPath);}});throw error;}};
 function locator(selector){return {
  filter:()=>locator(selector),first:()=>locator(selector),locator:child=>locator(selector+' '+child),
+ getByRole:(role,options)=>{if(role!=='heading'||options.name!=='予想根拠'||options.exact!==true)throw new Error('unexpected fixture heading selector');return locator(selector+' >> heading=予想根拠');},
  click:async()=>{if(selector==='[data-page="research"]')fail('nav');if(selector.endsWith('[data-return-to-race]')){fail('return');returned=true;}},
  fill:async()=>{},dispatchEvent:async()=>{},selectOption:async()=>{},
  isVisible:async()=>{if(selector==='#research-race-audit')fail('visible');return selector!=='#all-venues';},
@@ -111,7 +112,7 @@ function locator(selector){return {
  getAttribute:async name=>{if(selector==='#research-race-audit .race-audit-details')fail('sectionmodel');return name==='data-entrants'?'3':name==='data-native-dispatch'?'true':'fixture';},
  allTextContents:async()=>['Fixture Alpha','Fixture Beta','Fixture Gamma'],evaluateAll:async()=>[],
  evaluate:async()=>{fail('section');return 'SECTION';},
- innerText:async()=>{if(selector==='#research-race-audit'){fail('sha');return '予想SHA';}if(selector==='#race-detail .forecast-rationale'){if(returned)fail('rationale');return 'fixture rationale';}if(selector==='#race-detail .forecast-rationale-heading')return '予想根拠';return selector.startsWith('#prediction-select option')?'P1 Fixture':'通常の予想';}
+ innerText:async()=>{if(selector==='#research-race-audit'){fail('sha');return '予想SHA';}if(selector==='#race-detail .forecast-rationale'){if(returned)fail('rationale');return 'fixture rationale';}if(selector==='#race-detail .forecast-rationale-heading'||selector==='#race-detail .forecast-panel >> heading=予想根拠')return '予想根拠';return selector.startsWith('#prediction-select option')?'P1 Fixture':'通常の予想';}
 };}
 const page={setDefaultTimeout:()=>{},on:()=>{},route:async()=>{},setViewportSize:async()=>{},waitForFunction:async()=>{},locator,
  addInitScript:async(fn,arg)=>vm.runInNewContext('('+fn.toString()+')(__arg)',{globalThis:frame,__arg:arg}),
@@ -200,4 +201,24 @@ test('error and unhandled-rejection diagnostics share the eight-record cap witho
   assert.deepEqual(records[4],{kind:'error',error_class:'UNRECOGNIZED_ERROR',script:null,line:null});
   assert.deepEqual(records[6],{kind:'error',error_class:'TypeError',script:'app.js',line:null});
   assert.deepEqual(records[7],{kind:'unhandledrejection',error_class:'TypeError',script:null,line:null});
+});
+let chromium;try{({chromium}=require('playwright'));}catch{}
+const executablePath=[process.env.CHROMIUM_PATH,'/usr/bin/chromium','/usr/bin/google-chrome'].find(value=>value&&fs.existsSync(value));
+test('actual DOM accepts the outlook heading alongside one exact scoped rationale heading and rejects missing or duplicate rationale headings',{skip:!chromium||!executablePath},async()=>{
+  const C=require(checker),requireHeading=C.requireForecastRationaleHeading;assert.equal(typeof requireHeading,'function');
+  const browser=await chromium.launch({headless:true,executablePath,args:['--no-sandbox']});
+  try{
+    const page=await browser.newPage(),heading=text=>'<h3 class="forecast-rationale-heading">'+text+'</h3>';
+    const set=async(inside,outside='')=>page.setContent('<div id="race-detail"><section class="forecast-panel">'+inside+'</section>'+outside+'</div>');
+    await set(heading('予想根拠')+heading('展開予想'));
+    await requireHeading(page);
+    await set(heading('予想根拠')+heading('展開予想'),heading('予想根拠'));
+    await requireHeading(page);
+    for(const [inside,outside] of [
+      ['', ''],[heading('展開予想'),''],[heading('予想根拠')+heading('予想根拠')+heading('展開予想'),''],
+      [heading('展開予想'),heading('予想根拠')],['<h3 class="forecast-rationale-heading" aria-label="予想根拠">展開予想</h3>','']
+    ]){
+      await set(inside,outside);await assert.rejects(requireHeading(page));
+    }
+  }finally{await browser.close();}
 });

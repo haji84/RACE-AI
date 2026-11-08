@@ -67,29 +67,38 @@ class FiveGateWorkflowTests(unittest.TestCase):
         self.assertTrue(admits(retention['if'])); self.assertTrue(admits(mirror['if']))
         self.assertFalse(admits(retention['if'], subject='saved-view: forecasts-first prior mode'))
         self.assertFalse(admits(mirror['if'], subject='saved-view: forecasts-first prior mode'))
-        self.assertIn('--run-id 42439206540', retention['run'])
-        self.assertIn('publish --run-id 42439206540', mirror['run'])
+        self.assertIn('--run-id 42444478902', retention['run'])
+        self.assertIn('publish --run-id 42444478902', mirror['run'])
 
     def test_historical_money_and_full_restore_are_explicit_not_future_fallback(self):
         body = self.named('Verify the actual private owner site without the local workspace')['run']
         self.assertIn('--day 2026-11-07', body)
         self.assertIn('--saved-comparison-day 2026-11-07', body)
         self.assertIn('--daily-budgets 10000,5000', body)
-        self.assertIn('--required-capture-locator audit/state/boat-retained-ac3-required-capture.json', body)
+        self.assertIn('--required-capture-locator audit/state/boat-retained-aa57-required-capture.json', body)
         self.assertIn('--require-future', body)
         self.assertIn('SITE_CHECK_OUTCOME', self.named('Require verified site display and unchanged frozen settlement')['run'])
 
-    def test_selected_closed_capture_requirement_uses_exact_replay_locator_and_active_display_stays_separate(self):
-        path = ROOT/'audit/state/boat-retained-ac3-required-capture.json'
+    def test_current_closed_aa57_capture_is_distinct_from_ac3_replay_and_active_display(self):
+        path = ROOT/'audit/state/boat-retained-aa57-required-capture.json'
         self.assertTrue(path.is_file(), 'selected closed-run capture requirement is missing')
         required = json.loads(path.read_text())
         replay = json.loads((ROOT/'audit/state/boat-closed-result-replay-input.json').read_text())
         self.assertEqual(required, dict(schema='RACE_AI_BOAT_REQUIRED_CAPTURE_V1',
-            locator=replay['capture_locator'], expected_capture_count=53))
+            expected_capture_count=32, locator=dict(schema='RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1',
+                status='READY', kind='SOURCE_CAPTURES', artifact_id=None, repository_id='1416489937',
+                ref='state/boat-private-originals', source_commit='c8a8b13ec0702b06642937fd5b0ed09f40050159',
+                batch_path='state/boat-private-originals/v1/2026-11/batches/1f7bac03a8436875b136c9a9798121787653cea14ed6a3d37170d0b8058df558.json',
+                batch_sha256='1f7bac03a8436875b136c9a9798121787653cea14ed6a3d37170d0b8058df558',
+                entry_sha256='17b5a79529e6611daa927be1209eede089f14e146c25f0c56dee7bfb46ed702c')))
         self.assertEqual(replay['run_id'], 42439206540)
         self.assertEqual(replay['head_sha'], 'ac3f302f646fdafede90565e6b6f32560ace062f')
+        self.assertEqual(replay['expected_capture_count'], 53)
+        self.assertEqual(json.loads((ROOT/'audit/state/boat-retained-ac3-required-capture.json').read_text()),
+            dict(schema='RACE_AI_BOAT_REQUIRED_CAPTURE_V1', locator=replay['capture_locator'], expected_capture_count=53))
+        self.assertNotEqual(required['locator'], replay['capture_locator'])
         self.assertEqual(self.named('Initialize encrypted display feed')['env']['FORECAST_DISPLAY_RUN_ID'],
-                         '42444478902')
+                         '42450915404')
 
     def test_verification_does_not_republish_forecasts_and_checks_owner_again(self):
         body = self.named('Initialize encrypted display feed')['run']
@@ -139,9 +148,9 @@ class FiveGateWorkflowTests(unittest.TestCase):
                         env=dict(base, VERIFY_EXIT=str(code)), capture_output=True, text=True)
                     self.assertEqual(run.returncode, code, run.stderr)
                     self.assertEqual(log.read_text().splitlines(), [
-                        '-m scripts.boat_retained_run_verify --run 42439206540 --day 2026-11-08 '
-                        '--head ac3f302f646fdafede90565e6b6f32560ace062f '
-                        '--required-capture-locator audit/state/boat-retained-ac3-required-capture.json '
+                        '-m scripts.boat_retained_run_verify --run 42444478902 --day 2026-11-08 '
+                        '--head aa57a9299340230ccd7764effb51c79edb182b5e '
+                        '--required-capture-locator audit/state/boat-retained-aa57-required-capture.json '
                         '--output '+temporary+'/boat-retained-run-verification.json'])
                     final = subprocess.run(['bash', '-e', '-o', 'pipefail', '-c', gate],
                         env=dict(base, SITE_CHECK_OUTCOME='success' if code == 0 else 'failure'),

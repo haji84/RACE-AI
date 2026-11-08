@@ -279,6 +279,13 @@ async function checkSimulationMetrics(page,context){
   assert.equal(verified,expected?4:0);
   return {numeric_simulation_verified:expected!==null,numeric_simulation_scenarios_checked:verified};
 }
+async function requireForecastRationaleHeading(page){
+  const heading=page.locator('#race-detail .forecast-panel').getByRole('heading',{name:'予想根拠',exact:true});
+  diagnosticPhase('research_audit');
+  assert.equal(await heading.count(),1);
+  diagnosticPhase('research_audit');
+  assert.equal(await heading.innerText(),'予想根拠');
+}
 
 function validate(context){
   assert.equal(context.schema,'RACE_AI_PRIVATE_LIVE_SITE_CHECK_CONTEXT_V1');
@@ -466,7 +473,7 @@ async function runChecked(context,{compactResults=false,probeRaceId=null,checkCu
         assert.equal(returnedRationale,rationale);
         if(rationale){
           diagnosticPhase('research_audit');
-          assert.equal(await page.locator('#race-detail .forecast-rationale-heading').innerText(),'予想根拠');rationaleViewsChecked++;
+          await requireForecastRationaleHeading(page);rationaleViewsChecked++;
         }
 
       }
@@ -548,4 +555,4 @@ if(require.main===module){
     .then(report=>process.stdout.write(JSON.stringify(report)+'\n'))
     .catch(error=>{process.stdout.write(JSON.stringify(failureReport(error))+'\n');process.exitCode=2;});
 }
-module.exports={validate,dateEvidence,requestAdmission,revealRace,requireNativeGroups,validateSimulationExpected,requireSimulationGroup,requireSimulationSnapshot,readSimulationSnapshot,checkSimulationMetrics,withDiagnostics,failureReport,run};
+module.exports={validate,dateEvidence,requestAdmission,revealRace,requireNativeGroups,validateSimulationExpected,requireSimulationGroup,requireSimulationSnapshot,readSimulationSnapshot,checkSimulationMetrics,requireForecastRationaleHeading,withDiagnostics,failureReport,run};
