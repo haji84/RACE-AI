@@ -1,0 +1,72 @@
+{
+  "schema": "RACE_AI_KEIRIN_PRODUCTION_STATE_TRUSTED_GATE_20261109_V1",
+  "checked_at_jst": "2026-11-09T02:08:04+09:00",
+  "check_scope": "GitHub trusted main key readiness; repository archive and source-retention metadata; no private plaintext",
+  "trusted_main_check": {
+    "trusted_ref": "refs/heads/main",
+    "run_id": 41661810084,
+    "run_attempt": 2,
+    "head_sha": "0e45c029e18d5f3f1e7a04aecedab3c4af261748",
+    "job_id": 128800791820,
+    "checked_at_utc": "2026-11-08T17:08:04Z",
+    "url": "https://github.com/haji84/RACE-AI/actions/runs/41661810084",
+    "production_key_ready": true,
+    "key_material_read_or_exposed": false,
+    "validated": "Existing Node readKey() accepts secret format/length and rejects public synthetic key; no production ciphertext was decrypted."
+  },
+  "keirin_git_archive": {
+    "ref": "state/keirin-encrypted-history",
+    "head_path": "state/keirin/v1/latest.json",
+    "generation": 1,
+    "mode": "synthetic",
+    "proof_synthetic_only": true,
+    "cipher_sha256": "c1bddac6a6b18b7a88a5eac1509ec27dcead28f4ecdb1a0b5fc9503dac84885b",
+    "synthetic_restore_verified": true,
+    "production_original_restored": false
+  },
+  "archive_writer": {
+    "path": "scripts/keirin_github_git_archive.py",
+    "production_auto_archive_disabled": true,
+    "production_validation_disabled": true,
+    "status": "PRODUCTION_ARCHIVE_NOT_YET_AUTHORIZED",
+    "trusted_activation_verified": false
+  },
+  "existing_real_source_data": {
+    "source_pr": 71,
+    "evidence_file": "docs/evidence/2026-11-07/nonboat-source-packet-preparation-counts.json",
+    "scope": "PR71 archived source-packet evidence, not an independently decrypted forecast original",
+    "keirin_races_reported": 8,
+    "autorace_races_reported": 8,
+    "native_input_fields_reported": 88,
+    "forecast_originals_created_reported": 0,
+    "source_receipt_external_pre_cutoff_verified": false,
+    "associated_archived_manifest": "state/boat-private-originals/v1/2026-11/batches/4d81eacb052090d6ba4954a01028ba314e3c63fd0e9fcd8a346ecd5956eba7b6.json",
+    "caveat": "Named boat vault has a nonboat source-retention reference; it is not a KEIRIN production forecast archive and has not been decrypted using the tested key."
+  },
+  "prospective_gate": {
+    "example": "2026-11-09 Aomori 3R (race_id 202611091203)",
+    "all_210_authorized_source_odds_verified": false,
+    "complete_source_packet_347_status_verified": false,
+    "owner_db_existing_production_checkpoint_verified": false,
+    "trusted_production_writer_enabled": false,
+    "two_versions_frozen_before_cutoff": false,
+    "independent_pre_cutoff_receipt_verified": false,
+    "official_result_authenticated": false,
+    "first_real_production_archive_created": false,
+    "action": "FAIL_CLOSED_NO_PREDICTION_BACKFILL"
+  },
+  "safe_next_work": {
+    "1": "Retain both existing PR101 intake and PR103 dual research freeze. Obtain a complete admitted current source packet and all 210 odds before the deadline; reject missing fields.",
+    "2": "Independently review/public-ciphertext policy and restrict production AES-GCM sealing and Git writes to a pinned, trusted main workflow with the existing secret, never an untrusted PR.",
+    "3": "On first eligible future race, seal/create-once an encrypted owner SQLite and verify a second-trust-context readback of both frozen originals before claiming completed production save.",
+    "4": "Authenticate official final results/revisions and compare forecast P&L, without revising frozen predictions."
+  },
+  "security": {
+    "new_private_db_created": false,
+    "public_plaintext_uploaded": false,
+    "production_key_printed": false,
+    "real_bets_placed": false,
+    "main_merged": false,
+    "additional_paid_services": false
+  }
+}
