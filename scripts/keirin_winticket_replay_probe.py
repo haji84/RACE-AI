@@ -117,6 +117,22 @@ async def run(report_path: Path) -> dict:
                             info["click_error"]=type(exc).__name__
                     await page.wait_for_timeout(4500)
                 else:
+                    # Confirm ordinary user-facing playback. No stream URL inspection.
+                    try:
+                        info["play_click"] = await page.evaluate("""async () => {
+                          const v=document.querySelector('video');
+                          if (!v) return "VIDEO_ELEMENT_MISSING";
+                          v.muted=true;
+                          try {
+                            await Promise.race([
+                              v.play().then(()=>true),
+                              new Promise((resolve)=>setTimeout(()=>resolve(false),3000))
+                            ]);
+                            return v.paused?"VIDEO_STILL_PAUSED":"PLAY_REQUEST_ACCEPTED";
+                          } catch(e) {return String(e.name||"PLAY_ERROR").slice(0,60);}
+                        }""")
+                    except Exception as exc:
+                        info["play_click_error"]=type(exc).__name__
                     await page.wait_for_timeout(2500)
                 info["new_windows"]=len(popups)
                 states=[]
@@ -162,6 +178,7 @@ def main():
             "http_code":page.get("http_code"),
             "title":page.get("title"),
             "replay_clicked":page["replay_clicked"],
+            "play_click":page.get("play_click"),
             "dom_evidence":page.get("dom_evidence"),
             "new_windows":page.get("new_windows"),
             "video_before":page.get("before"),
