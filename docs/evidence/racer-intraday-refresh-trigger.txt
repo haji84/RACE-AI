@@ -21,3 +21,5 @@
 2026-11-09 JST: stage-model-pdca repeat authenticated Nov8 evidence with source-free same-race LEARNED_SHADOW versus matching baseline using existing strict saved-performance reader and independent AES/Git readback. No source GET, new worker or private ticket export.
 
 2026-11-09 JST: stage-model-pdca verify the entire indexed saved-period AES/Git Top8 PDCA history at source GET zero; explicitly keep all old race and model HOLDs, do not mark full completion until the due ledger is empty.
+
+2026-11-09 JST: stage-model-pdca verify all 62 unresolved BOAT race IDs in the existing encrypted private reason ledger and independently read back safe aggregate causes; no source GET, secrets, public race IDs or new workflow.
