@@ -62,3 +62,11 @@ The owner explicitly instructed after the Cloudflare shutdown: 「GitHubで出�
 - A runner filesystem is temporary. Restore verified previous state before executing the existing model, and preserve the original prediction and revision history. Missing/expired state is a stop condition, not permission to reset the DB.
 - GitHub artifacts expire. The three-day synthetic proof is not a permanent production backup. Indefinite encrypted retention and real-data feeder integration remain separate acceptance gates.
 - No new private repository, unrelated project vault, changed repository visibility, paid runner or storage plan is authorized by the test implementation.
+
+## 2026-11-09: explicit owner permission for public ciphertext ONLY
+
+- The owner explicitly approves storing **AES-256-GCM-encrypted production forecast SQLite** on the existing PUBLIC GitHub repository, with acknowledgement that ciphertext existence, file size, commit times and future key-compromise risks remain public. This is scoped by `docs/evidence/2026-11-09/keirin_public_ciphertext_owner_consent_v1.json`.
+- This approval does NOT authorize plaintext forecast/source/odds uploads, source licences, automated unapproved site requests, credential exposure, commercial use, purchases or paid provider contracts.
+- Continue to require `RACE_AI_STATE_KEY` only inside a trusted-main runtime. The production archiver must check both the exact owner consent record and the runtime acknowledgement token; neither is sufficient without independently reviewed source rights, real complete pre-cutoff data, trusted producer lineage and AEAD readback.
+- Preserve synthetic `state/keirin/v1/` history. Only approved encrypted production snapshots may use a separate `state/keirin/production/v1/` lineage on the existing state branch. Do not enable a producer, publish a live blob or promote main from PR CI alone.
+- Current source licensing and true 210/504-way odds delivery are **not verified**. No source rights or data are created by an owner ciphertext permission. Stop safely if absent.
