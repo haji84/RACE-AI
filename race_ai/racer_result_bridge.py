@@ -62,6 +62,10 @@ class SavedResultBridge:
             self.backfill_day=older
         self.ledger_summary=D.update(due,self.rows,now=self.now.isoformat())
         self.ledger_summary['older_unresolved']=D.count_older(due,self.recent_days)
+        self.ledger_summary['missing_verified_cutoff']=sum(
+            1 for r in self.rows if D.reconciled_status(r) not in ('final','void')
+            and not (r.get('cutoff_at') or any(r.get('saved_cutoff_variants') or [])))
+        self.ledger_summary['older_day_reviewed']=self.backfill_day is not None
         self.ledger_summary['unavailable_saved_days']=D.unavailable_days(due,self.available_days)
         self._prepared=True
         pointers=state.control.get('settlement_captures',{})

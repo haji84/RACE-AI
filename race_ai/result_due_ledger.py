@@ -184,7 +184,12 @@ def update(doc,rows,*,now):
             del doc['pending_days'][day]
         else:
             entry.update({k:format(v,'x') for k,v in values.items()})
-    return dict(pending=pending_count(doc),pending_days=len(doc['pending_days']),
+    types={label:0 for label in MASKS}
+    for entry in doc['pending_days'].values():
+        for label,mask in MASKS.items():
+            types[label]+=_mask(entry[mask]).bit_count()
+    return dict(pending=sum(types.values()),pending_by_status=types,
+                pending_days=len(doc['pending_days']),
                 scanned_months=len(doc['scanned_months']),all_saved_dates_retained=True)
 
 

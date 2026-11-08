@@ -12,6 +12,15 @@ class AllHistoryLedgerTests(unittest.TestCase):
     def fresh(self):
         return L.ledger({},now=NOW)
 
+    def test_private_aggregate_counts_without_exporting_race_ids(self):
+        d=self.fresh()
+        ids=['20261104-01-01','20261104-01-02','20261104-01-03']
+        result=L.update(d,[row(ids[0],'missing'),row(ids[1],'pending'),row(ids[2],'unsupported')],now=NOW)
+        self.assertEqual(result['pending_by_status'],{'missing':1,'pending':1,'unsupported':1})
+        self.assertEqual(result['pending'],3)
+        self.assertFalse(any(rid in str(result) for rid in ids))
+        self.assertTrue(result['all_saved_dates_retained'])
+
     def test_new_old_pending_and_formal_close(self):
         doc=self.fresh();rid='20261104-01-01'
         L.update(doc,[row(rid,'pending')],now=NOW)
