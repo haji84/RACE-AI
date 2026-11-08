@@ -1,0 +1,23 @@
+date_jst=2026-11-08
+created_at_jst=2026-11-08T13:43:05+09:00
+phase=A_RESEARCH_PROVISIONAL
+trial_execution_timestamp_independently_verified=false
+historical_race_statistics_source=WINTICKET
+heuristic=uncalibrated competition-time handicap ST last10 rank; exact formula in originals
+trained_model=false
+calibrated_probabilities=false
+public_repository_contains_sha256_only=true
+private_original=not_uploaded_to_Library_AccessDeny
+source=https://autorace.jp/race_info/Program/kawaguchi/2026-11-08
+race=8R; deadline_jst=2026-11-08T14:12:00+09:00; SHA256 ca7477444747db9020937a5c5c89c5d83418183166a864cf0394e6e34a200604 autorace_20261108_kawaguchi_8R_A_research_v1.json
+source_race=https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/2/8
+race=9R; deadline_jst=2026-11-08T14:44:00+09:00; SHA256 e54cbc64e618bd4d0646cae0b709078ff509ed53af351918ed8cbaaf323691f6 autorace_20261108_kawaguchi_9R_A_research_v1.json
+source_race=https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/2/9
+race=10R; deadline_jst=2026-11-08T15:16:00+09:00; SHA256 6acfb421daa6de4b5e0b0b4fff9ce5603d5eb7611f72889e44c59e5cad87fc93 autorace_20261108_kawaguchi_10R_A_research_v1.json
+source_race=https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/2/10
+race=11R; deadline_jst=2026-11-08T15:54:00+09:00; SHA256 13b07fec8ee35a963da79422d053c930a299f300b80d96ff186350e300856188 autorace_20261108_kawaguchi_11R_A_research_v1.json
+source_race=https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/2/11
+race=12R; deadline_jst=2026-11-08T16:33:00+09:00; SHA256 81c8c0a6ba11d0cce197618a60599393d5512619bbcd446cd8e3e0e498b743fe autorace_20261108_kawaguchi_12R_A_research_v1.json
+source_race=https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/2/12
+result_and_phase_validation_pending=true
+do_not_retroactively_revise_predictions=true
