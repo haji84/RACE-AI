@@ -104,6 +104,7 @@ def _miss_reason(tickets,winners):
 def score_view(view,*,authenticated,include_private_due=False):
     """Return only count-only model-stage-version summaries, no tickets or URLs."""
     need(authenticated is True,'AUTHENTICATED_INPUT_REQUIRED')
+    need(view.get('dataset_status')=='REAL_REPORTED','REAL_DATASET_REQUIRED')
     F.originals_sha(view)
     inventory_hash=F.inventory_sha(view)  # immutable original identities and digest guard
     anchor=F.forecast_anchor(view)
@@ -112,6 +113,7 @@ def score_view(view,*,authenticated,include_private_due=False):
     private_due_ids=set()
     for row in view['records']:
         if row.get('sport')!='boat':continue
+        need(row.get('scope')=='research','REAL_RACE_SCOPE_REQUIRED')
         rid=row.get('race_id')
         need(type(rid) is str and D._rid_day(rid)==row.get('event_date_jst'),'RACE_DATE_MISMATCH')
         state,winners,refunds=_result_context(row)

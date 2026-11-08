@@ -167,6 +167,16 @@ class HistoricalModelPdcaAudit(unittest.TestCase):
         finally:
             fixture.doCleanups()
 
+    def test_synthetic_dataset_or_unverified_scope_cannot_create_formal_hit(self):
+        view=self.capture(self.view())
+        view['dataset_status']='SYNTHETIC_ONLY'
+        with self.assertRaisesRegex(ValueError,'RETAINED_MODEL_PDCA_REAL_DATASET_REQUIRED'):
+            A.score_view(view,authenticated=True)
+        view['dataset_status']='REAL_REPORTED'
+        view['records'][0]['scope']='synthetic'
+        with self.assertRaisesRegex(ValueError,'RETAINED_MODEL_PDCA_REAL_RACE_SCOPE_REQUIRED'):
+            A.score_view(view,authenticated=True)
+
     def test_authentication_is_mandatory_before_scoring(self):
         with self.assertRaisesRegex(ValueError,'RETAINED_MODEL_PDCA_AUTHENTICATED_INPUT_REQUIRED'):
             A.score_view(self.view(),authenticated=False)
