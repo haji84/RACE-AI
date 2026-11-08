@@ -67,6 +67,10 @@ def main(argv=None):
     parser.add_argument("--owner-public-page-url", action="append",
                         help="repeat authorized public HTTPS webpage URLs to "
                              "archive as immutable private source HTML")
+    parser.add_argument("--target-race-id",
+                        help="canonical 12-digit race ID for prospective WINTICKET 210-odds intake")
+    parser.add_argument("--target-cutoff-at",
+                        help="already source-verified official sales cutoff (timezone aware)")
     parser.add_argument("--provider-endpoint", action="append",
                         help="repeat for EVERY explicitly approved JSON data "
                              "endpoint; no fixed single-GET application quota")
@@ -104,6 +108,14 @@ def main(argv=None):
         return 2
     if args.owner_public_page_url and not auto_owner:
         print('{"state":"PUBLIC_FETCH_REQUIRES_OWNER_AUTOMATIC_APPROVAL"}')
+        return 2
+    if bool(args.target_race_id) != bool(args.target_cutoff_at):
+        print('{"state":"PROSPECTIVE_ODDS_RACE_CUTOFF_PAIR_REQUIRED"}')
+        return 2
+    if args.target_race_id and not (
+        auto_owner and args.owner_public_page_url
+    ):
+        print('{"state":"PROSPECTIVE_ODDS_NEEDS_PUBLIC_SOURCE"}')
         return 2
     if auto_owner and (not args.personal_manual or
                        args.owner_approved_source_profile != PROFILE_ID or
@@ -187,7 +199,9 @@ def main(argv=None):
                     )
                 public_pages = (
                     capture_approved_public_pages(
-                        inbox,grants,urls=args.owner_public_page_url)
+                        inbox,grants,urls=args.owner_public_page_url,
+                        odds_race_id=args.target_race_id,
+                        odds_official_cutoff_at=args.target_cutoff_at)
                     if args.owner_public_page_url else None)
                 owner_markdown = (stage_owner_saved_hex_markdown(inbox, now=now)
                                   if args.personal_manual else None)
