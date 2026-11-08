@@ -156,20 +156,20 @@ def summarize_html(body):
     scripts=ScriptBodyShapes()
     scripts.feed(text)
     shape_rows=[]
-    for attributes,body in sorted(
+    for attributes,script_body in sorted(
         script_bodies,key=lambda x:-len(x[1]))[:5]:
         key_counter=Counter(re.findall(
             r'["\x27]([A-Za-z_][A-Za-z0-9_]{2,45})["\x27]\s*:',
-            body[:2_000_000]))
+            script_body[:2_000_000]))
         shape_rows.append({
-            "script_bytes":len(body.encode("utf-8")),
+            "script_bytes":len(script_body.encode("utf-8")),
             "script_type":attributes.get("type",""),
             "script_id":attributes.get("id",""),
-            "contains_odds_marker":"odds" in body.lower(),
-            "odds_marker_count":body.lower().count("odds"),
+            "contains_odds_marker":"odds" in script_body.lower(),
+            "odds_marker_count":script_body.lower().count("odds"),
             "javascript_assignment_names":list(dict.fromkeys(
                 re.findall(r'(?:window|globalThis)\.([A-Za-z_$][A-Za-z0-9_$]{2,50})\s*=',
-                           body[:1_000_000])))[:12],
+                           script_body[:1_000_000])))[:12],
             "json_key_name_samples":[k for k,v in key_counter.most_common(25)],
         })
     # Structural hints are deliberately NOT counted as 210 price records.
