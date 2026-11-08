@@ -203,3 +203,13 @@ WINTICKETの該当ページ https://www.winticket.jp/keirin/aomori/odds/20261108
 既存owner.sqlite3の本人端末への直接接続は未達。その代わり、**実レース原本とは別**の青森3R用空パイロットDBを非公開ChatGPT Library /RACE-AI/KeirinAudit/keirin_aomori3r_20261109_private_pilot.sqlite3 に作成し、Libraryから独立に取り出して完全同一SHA256とSQLite integrity_check=okを確認した。元のユーザー機器内DBへの接続ではない。そこに保存された予想0件、事前オッズ0件、二版凍結0件、独立外部時刻証明0件。
 
 これらが揃わないならFAIL_CLOSEDを維持。Synthetic CIの成功を本番レースの実証成功に言い換えない。main統合・実購入・新規課金・公開原本は行わない。
+
+## 2026-11-09: 全候補順位の万車券照合とTop8・Top12・見送り比較
+
+- 既存PR101の締切前210/504通りの順位とスコアを利用する。新しい予想モデルは追加しない。
+- 新規A/Bペアを保存する際、入力元の正規化JSONを同一トランザクションでprivate SQLiteに固定し、input_sha256の独立読戻しで検査。以前に保存された入力が欠けるレースを後から埋めない。SHAとローカル時計のみでは第三者の締切前時刻証明ではない。
+- 新規 race_ai/keirin_mansha_rank_audit.py は結果改訂ごとに固定予想から的中3連単の事前順位を照合する。100円あたり10,000円以上を万車券とする。同着複数券を区別して記録する。
+- 固定Top8・固定Top12・事前選定済み可変0～12点を、全て各買い目100円の仮想投資として比較する。見送りはactive hit率の分母から除外し見送り件数を報告。万車券捕捉率は確定万車券発生レース数を分母とする。返還、未確定、取消は負けにしない。
+- 再照合結果を元PR103監査とは別の私有テーブル keirin_mansha_rank_audits にレースID×モデルID×モデル版×結果revisionでcreate-only保存。既存事前予想を更新しない。最新結果改訂のみ比較集計する。公開Actionsへ実入力/配当原本/私有DBを送らない。
+- ShadowVariablePairLedger.replay_all() が mansha_ranking_reference に統計のみ追加する。 tests/test_keirin_mansha_rank_audit.py は架空レースだけのテスト。
+- **到達範囲**：PR101の研究用シャドーモデル＋PR103可変選択の保存ペア。PR71を含む他モデルの全候補ランキング自動接続、権限付き実データの継続取得、独立外部時刻証明、本物の全件比較、モデルの確率校正は未実証。Draft維持、main未統合、無課金・無投票。
