@@ -178,6 +178,19 @@ class OwnerRealShadowVariableResearchTests(unittest.TestCase):
             ).fetchone()[0],2)
             self.assertEqual(ledger.read_pair(RID),pair)
 
+    def test_prospective_wide_race_all_positive_proxy_capped_at_twelve(self):
+        shadow,odds,report,pair=self.dual(positive=210)
+        self.assertEqual(report["states"].get(
+            "dual_prospective_forecasts_saved"),1)
+        self.assertEqual(len(shadow["ordered_top8"]),8)
+        self.assertEqual(pair["variable"]["limit"],12)
+        self.assertEqual(pair["variable"]["pick_count"],12)
+        self.assertEqual(pair["variable"]["reference_investment_yen"],1200)
+        self.assertFalse(pair["variable"]["actual_expected_value_calculated"])
+        with PrivateKeirinStore(self.dbpath,clock=self.clock) as store:
+            self.assertEqual(ShadowVariablePairLedger(store).read_pair(RID),
+                             pair)
+
     def test_no_odds_still_freezes_original_eight_but_no_pair(self):
         shadow=self.original()
         with PrivateKeirinStore(self.dbpath,clock=self.clock) as store:
