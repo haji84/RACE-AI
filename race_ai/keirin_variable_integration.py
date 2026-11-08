@@ -213,15 +213,28 @@ class PrivateVariableLedger:
         return "CREATED_ONCE"
 
     def audit_latest(self, race_id, model_id):
-        """Append new result revision audit, not touching the source result."""
+        """Append only the current result revision; no source changes."""
+        return self.audit_revision(race_id,model_id)
+
+    def audit_revision(self, race_id, model_id, revision=None):
+        """Reconcile a historical result revision against original picks."""
         saved=self.selection(race_id,model_id)
         if saved is None:
             return None
-        row=self.db.execute(
-            "SELECT revision,payload,payload_sha256 FROM result_revisions "
-            "WHERE race_id=? ORDER BY revision DESC LIMIT 1",
-            (race_id,)
-        ).fetchone()
+        if revision is None:
+            row=self.db.execute(
+                "SELECT revision,payload,payload_sha256 FROM result_revisions "
+                "WHERE race_id=? ORDER BY revision DESC LIMIT 1",
+                (race_id,)
+            ).fetchone()
+        else:
+            _require(type(revision) is int and revision>=1,
+                     "INVALID_RESULT_REVISION")
+            row=self.db.execute(
+                "SELECT revision,payload,payload_sha256 FROM result_revisions "
+                "WHERE race_id=? AND revision=?",
+                (race_id,revision)
+            ).fetchone()
         if row is None:
             return None
         _require(sha256(row["payload"]).hexdigest()==row["payload_sha256"],
@@ -317,6 +330,86 @@ class PrivateVariableLedger:
                 "variable_profit_yen":
                     variable_audit["reference_profit_yen"],
                 "variable_roi":variable_audit["reference_roi"]}
+
+    def reconcile_saved_history(self, *, max_pairs=50000, max_revisions=500000):
+        """Replay every *available* owner-private result revision, no site GETs.
+
+        Does not assert official race coverage or authenticated result origin.
+        Existing immutable forecasts and per-revision audits remain unchanged.
+        Raise on mismatches rather than silently skipping history.
+        """
+        _require(type(max_pairs) is int and 1<=max_pairs<=50000
+                 and type(max_revisions) is int
+                 and 1<=max_revisions<=500000,
+                 "INVALID_RECONCILE_BOUND")
+        candidates=self.db.execute(
+            "SELECT race_id,model_id FROM variable_selections "
+            "ORDER BY race_id,model_id LIMIT ?",(max_pairs+1,)
+        ).fetchall()
+        _require(len(candidates)<=max_pairs,
+                 "OWNER_HISTORY_PAIR_LIMIT_REACHED")
+        totals={
+            "saved_variable_race_model_pairs":len(candidates),
+            "no_result_yet":0,
+            "replayed_result_revisions":0,
+            "settled_result_revisions":0,
+            "pending_or_refund_revisions":0,
+            "newly_reconciled_audit_rows":0,
+        }
+        for row in candidates:
+            rid,mid=row["race_id"],row["model_id"]
+            revisions=self.db.execute(
+                "SELECT revision FROM result_revisions WHERE race_id=? "
+                "ORDER BY revision",(rid,)
+            ).fetchall()
+            if not revisions:
+                totals["no_result_yet"]+=1
+                continue
+            for rev in revisions:
+                _require(totals["replayed_result_revisions"]<max_revisions,
+                         "OWNER_RESULT_REVISION_LIMIT_REACHED")
+                count_before=self.db.execute(
+                    "SELECT COUNT(*) FROM variable_selection_audits "
+                    "WHERE race_id=? AND model_id=? AND result_revision=?",
+                    (rid,mid,rev["revision"])
+                ).fetchone()[0]
+                audit=self.audit_revision(rid,mid,rev["revision"])
+                _require(audit is not None,"EXPECTED_RESULT_REVISION_MISSING")
+                totals["replayed_result_revisions"]+=1
+                totals["newly_reconciled_audit_rows"]+=int(count_before==0)
+                if audit["status"] in ("SETTLED_RESEARCH",
+                                      "SETTLED_SKIPPED_RESEARCH"):
+                    totals["settled_result_revisions"]+=1
+                else:
+                    totals["pending_or_refund_revisions"]+=1
+        report=self.aggregate()
+        report.update({
+            "reconciliation_schema":"RACE_AI_KEIRIN_PRIVATE_RECONCILIATION_V1",
+            "observed_source_races_in_owner_db":self.db.execute(
+                "SELECT COUNT(DISTINCT race_id) FROM result_revisions"
+            ).fetchone()[0],
+            "saved_original_eight_point_races_in_owner_db":self.db.execute(
+                "SELECT COUNT(*) FROM forecasts"
+            ).fetchone()[0],
+            "originals_without_variable_sidecar":self.db.execute(
+                "SELECT COUNT(*) FROM forecasts f WHERE NOT EXISTS "
+                "(SELECT 1 FROM variable_selections v "
+                "WHERE v.race_id=f.race_id)"
+            ).fetchone()[0],
+            "discovered_race_records_unverified":self.db.execute(
+                "SELECT COUNT(*) FROM race_index"
+            ).fetchone()[0],
+            "saved_history_research_reconciled":bool(candidates) and
+                report["latest_revision_reconciled"],
+            "complete_official_race_coverage":False,
+            "official_result_authenticity_verified":False,
+            "independent_forecast_timestamp_verified":False,
+            "real_auto_feeder_verified":False,
+            "formal_hit_rate":None,
+            "formal_return_rate":None,
+            **totals,
+        })
+        return report
 
     def aggregate(self):
         """One latest-revision score per race/model; no post-hoc double count."""
