@@ -171,6 +171,14 @@ if(grade){
  if(grade.schema!=="RACE_AI_BOAT_GRADE_TRANSITION_RESEARCH_V1"||
     !Array.isArray(grade.all_six)||grade.all_six.length!==6)
     throw Error("級別研究データの形式が不正");
+ // A registered BOAT/FRAME cannot be resolved through entry COURSE during fronting.
+ // Require the same explicit pre-close frame/course identity as the P1 context.
+ const dynamicGradeRows=dynamic&&Array.isArray(dynamic.rows)?dynamic.rows:null;
+ if(!dynamicGradeRows||dynamicGradeRows.length!==6)
+    throw Error("級別と艇番の対応には出走表と展示の同一性証拠が必要");
+ const frameGradeMap=new Map(dynamicGradeRows.map(r=>[r.frame,r.racer_id]));
+ if(frameGradeMap.size!==6)
+    throw Error("級別と艇番の対応が重複");
  const sectionG=section("来期級別・過去A級実績・出走間隔");
  text(sectionG,"現在級、来期発表、正式確定を分けて表示。A級だった履歴と休養理由は別問題。級別を勝率の代用として加点しません。");
  const table=el("table"),body=el("tbody");table.append(body);
@@ -180,7 +188,7 @@ if(grade){
  body.append(h);
  const seen=new Set();
  for(const g of grade.all_six){
-  if(!g||seen.has(g.boat)||g.boat<1||g.boat>6||g.racer_id!==entries[g.boat])
+  if(!g||seen.has(g.boat)||g.boat<1||g.boat>6||g.racer_id!==frameGradeMap.get(g.boat))
    throw Error("級別と登録番号の対応が不一致");
   seen.add(g.boat);
   const row=el("tr");
