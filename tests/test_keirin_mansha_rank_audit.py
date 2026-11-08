@@ -141,6 +141,43 @@ class ManshaRankResearchTests(unittest.TestCase):
             self.assertIsNone(summary["modes"]["variable"]["reference_roi"])
             self.assertEqual(summary["mansha_rank_bands"], {"101+": 1})
 
+    def test_no_odds_still_freezes_rank_and_compares_top8_top12(self):
+        from race_ai.keirin_real_shadow_intake import stage_sourced_shadows
+        from race_ai.keirin_result_delivery import canonical
+        root = Path(self.temp.name)
+        (root/"raw").mkdir()
+        (root/"raw"/"source.json").write_bytes(canonical(fixture()))
+        self.clocktime[0] = datetime.fromisoformat(NOW)
+        with PrivateKeirinStore(self.path, clock=self.clock) as db:
+            report = stage_sourced_shadows(
+                root, grant_check=grants().allowed, now=ISSUED, store=db)
+            self.assertEqual(report["counts"]["private_complete_ranking_frozen"], 1)
+            rank = KeirinManshaRankLedger(db)
+            saved = rank.read_shadow(RID)
+            self.assertIsNotNone(saved)
+            self.assertIsNone(saved["variable"])
+            self.assertIsNone(saved["odds"])
+            self.assertEqual(saved["shadow"]["candidate_count"], 210)
+            winning = saved["shadow"][
+                "ranked_candidates_untrained_not_probabilities"][9]["triple"]
+            self.clocktime[0] = datetime.fromisoformat(
+                "2030-01-15T10:20:00+09:00")
+            db.add_result_observation(observed(winning, pay=18700))
+            audit = rank.audit_revision(RID)
+            self.assertEqual(audit["winners"][0]["pre_cutoff_model_rank"], 10)
+            self.assertIsNone(audit["winners"][0][
+                "pre_cutoff_odds_rank_not_final_market_popularity"])
+            self.assertEqual(audit["modes"]["variable"]["state"],
+                             "NO_PRE_CUTOFF_ODDS")
+            self.assertFalse(audit["modes"]["top8"]["hit"])
+            self.assertTrue(audit["modes"]["top12"]["hit"])
+            summary = rank.replay_all()
+            self.assertEqual(summary["ranked_forecast_races"], 1)
+            self.assertEqual(summary["odds_available_races"], 0)
+            self.assertEqual(summary["mansha_races"], 1)
+            self.assertEqual(summary["modes"]["top12"][
+                "mansha_races_captured"], 1)
+
     def test_private_original_input_tampering_fails_closed(self):
         with PrivateKeirinStore(self.path, clock=self.clock) as db:
             self.freeze(db)
