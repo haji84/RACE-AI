@@ -67,6 +67,23 @@ class HistoricalInputInventoryTests(unittest.TestCase):
         self.assertNotIn("PRIVATE_SOURCE_NAME",str(a))
         self.assertFalse(a["source_bytes_logged"])
 
+    def test_sourced_sparse_riders_report_7_of_84_only_and_no_promotion(self):
+        from tests.test_keirin_historical_sparse_feature_probe import source
+        doc=source()
+        row=inspect_archive_document(doc)
+        self.assertEqual(row["strict_sparse_probe_status"],"CANDIDATES_ONLY")
+        self.assertEqual(row["candidate_feature_counts"][
+            "required_candidates_normalized_not_admitted"],7)
+        self.assertEqual(row["candidate_feature_counts"][
+            "required_slots_not_supported"],77)
+        self.assertEqual(row["candidate_feature_counts"][
+            "environment_candidates"],0)
+        batch=private_batch_inventory([doc])
+        self.assertEqual(batch[
+            "sparse_required_model_slots_reconstructed_as_candidates"],7)
+        self.assertEqual(batch["pr71_real_full_sources_admitted"],0)
+        self.assertFalse(row["ready_for_pr71_asof_comparison"])
+
     def test_invalid_historical_row_count_fail_closed(self):
         with self.assertRaisesRegex(HistoricalInventoryError,"RANK_COUNT"):
             inspect_archive_document({
