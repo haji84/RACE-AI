@@ -5,7 +5,8 @@ from hashlib import sha256 as hash_fn
 import unittest
 
 from race_ai.keirin_historical_holdout import (
-    BLIND,TRUTH,HoldoutError,sha,validate_predictions,validate_truth,score)
+    BLIND,TRUTH,HoldoutError,sha,validate_predictions,validate_truth,score,
+    build_blind)
 
 LABELS=("START","HOME_PASS","HOME_PASS","HOME_PASS","HOME_PASS",
         "GOAL","REPLAY_START","REPLAY_END","RESULT")
@@ -66,6 +67,35 @@ class BlindedHistoricalHoldoutTests(unittest.TestCase):
         self.assertEqual(out["metrics"]["HOME_PASS"]["false_positive"],0)
         self.assertEqual(out["metrics"]["GOAL"]["true_positive"],1)
         self.assertEqual(out["learning_policy"],"DO_NOT_TRAIN_ON_HELDOUT_RACE")
+
+    def test_model_freeze_excludes_dev_race_before_truth_is_available(self):
+        from race_ai.keirin_video_learning import MODEL_SCHEMA,digest
+        model={"schema":MODEL_SCHEMA,"validation_status":"RESEARCH_HOLDOUT_PASSED",
+               "train_races":["20261105-example-1R"],
+               "dev_races":["20261108-matsuyama-9R"]}
+        model["model_sha256"]=digest(model)
+        p=blank()
+        queue={"input":{
+            "race_id":p["race_id"],"recording_sha256":p["recording_sha256"],
+            "duration_s":p["duration_s"],"source":"WINTICKET_LIVE",
+            "inference_model":model["model_sha256"],
+            "observations":[{
+                "id":row["id"],"recording_sec":row["time_s"],
+                "event":row["event"],"frame_sha256":row["frame_sha256"],
+                "confidence":row["confidence"]}
+                for row in p["events"]]}}
+        with self.assertRaisesRegex(HoldoutError,"HOLDOUT_NOT_INDEPENDENT"):
+            build_blind(queue,model,frozen_at=STAMP)
+        model["dev_races"]=[]
+        model["model_sha256"]=digest({k:v for k,v in model.items()
+                                      if k!="model_sha256"})
+        queue["input"]["inference_model"]=model["model_sha256"]
+        prediction=build_blind(queue,model,frozen_at=STAMP)
+        self.assertEqual(prediction["prediction_sha256"],
+                         sha({k:v for k,v in prediction.items()
+                              if k!="prediction_sha256"}))
+        self.assertFalse(prediction["video_input_labels_used"])
+        self.assertNotIn("ordered_top3",prediction)
 
     def test_replay_home_pass_cannot_be_counted_as_new_lap(self):
         p,t=blank(),labels()
