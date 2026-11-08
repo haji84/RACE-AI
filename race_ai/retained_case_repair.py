@@ -5,6 +5,7 @@ forecast and official proof then pass every formal check. No HTTP/provider
 request, no editing forecast/real source, no reference-only promotion.
 """
 from collections import defaultdict
+import re
 from copy import deepcopy
 from . import result_due_ledger as D, result_due_case_audit as C
 from . import saved_view_feed as F, retained_model_pdca_audit as P
@@ -28,8 +29,16 @@ def repair_saved_receipt_mismatches(repo,*,state,now,bridge=None):
     report=dict(schema='RACE_AI_OFFLINE_MODEL_RECEIPT_REPAIR_V1',
         replay_candidates=len(candidates),source_bytes_authenticated=0,
         formal_result_repairs=0,formal_preview_holds=0,unavailable_saved_day=0,
-        view_commits=0,source_provider_requests=0,forecast_rewrites=0,
+        view_commits=0,formal_hold_reason_counts={},source_provider_requests=0,forecast_rewrites=0,
         public_originals_changed=False,actual_purchases=False)
+    def add_hold(reason):
+        # Whitelisted static reason codes only. Never echo an exception body,
+        # exact race ID, URL, source content, forecast ticket, or owner key.
+        code=reason if type(reason) is str and re.fullmatch(
+            r'(?:RESULT|FEED|HISTORY|MODEL_REPLAY|RETAINED_MODEL_PDCA|INTRADAY)_[A-Z0-9_]{2,99}',reason) else 'MODEL_REPLAY_OTHER_HOLD'
+        reasons=report['formal_hold_reason_counts']
+        reasons[code]=reasons.get(code,0)+1
+        report['formal_preview_holds']+=1
     if not candidates:return report
     bridge=bridge or SavedResultBridge(repo,now=now)
     available=set(bridge.available_days)
@@ -48,11 +57,11 @@ def repair_saved_receipt_mismatches(repo,*,state,now,bridge=None):
         for rid in ids:
             matches=[r for r in current['records'] if r.get('race_id')==rid and r.get('sport')=='boat']
             if len(matches)!=1:
-                report['formal_preview_holds']+=1;continue
+                add_hold('MODEL_REPLAY_RACE_IDENTITY_INVALID');continue
             try:
                 if P._result_context(matches[0])[0] in ('FINAL','VOID'):
                     # Never re-publish an already proved formal result.
-                    report['formal_preview_holds']+=1;continue
+                    add_hold('MODEL_REPLAY_ALREADY_FORMAL');continue
             except (ValueError,TypeError,KeyError):
                 pass
             try:
@@ -64,15 +73,15 @@ def repair_saved_receipt_mismatches(repo,*,state,now,bridge=None):
                 original=[r for r in revised['records'] if r.get('race_id')==rid]
                 need(len(original)==1,'MODEL_REPLAY_RACE_IDENTITY_INVALID')
                 row=original[0]
-                need(P._result_context(row)[0] in ('FINAL','VOID'),
-                     'MODEL_REPLAY_OFFICIAL_PROOF_NOT_FORMAL')
+                outcome=P._result_context(row)[0]
+                need(outcome in ('FINAL','VOID'),'MODEL_REPLAY_'+outcome)
                 forecasts=([row['prediction']] if row.get('prediction') is not None else []
                     )+list(row.get('comparison_predictions') or [])
                 need(bool(forecasts),'MODEL_REPLAY_NO_SAVED_PREDICTION')
                 for forecast in forecasts:P._saved_clock(forecast,row)
                 need(F.originals_sha(revised)==pin,'MODEL_REPLAY_ORIGINAL_FORECAST_CHANGED')
-            except (ValueError,TypeError,KeyError,IndexError):
-                report['formal_preview_holds']+=1
+            except (ValueError,TypeError,KeyError,IndexError) as error:
+                add_hold(str(error) if type(error) is ValueError else 'MODEL_REPLAY_OTHER_HOLD')
                 continue
             current=revised;accepted.append(rid)
         if not accepted:continue

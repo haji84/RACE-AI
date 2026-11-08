@@ -27,3 +27,5 @@
 2026-11-09 JST: stage-model-pdca identify which unresolved real BOAT cases have authenticated retained official result bytes for an entirely source-free replay; do not convert reference-only results into formal outcomes.
 
 2026-11-09 JST: stage-model-pdca replay ONLY previously AES authenticated model-result-evidence mismatches, requiring SHA/clock/pre-cutoff/formal-payout proof before appending an official result revision. Other 60 case HOLDs preserved, zero new source GET.
+
+2026-11-09 JST: stage-model-pdca report source-free authenticated model result replay rejection cause codes only; preserve 62 original HOLDs until their strict proofs pass. Also restore first-race visibility on 320px venue shortcuts.
