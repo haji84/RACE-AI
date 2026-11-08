@@ -1,8 +1,10 @@
-"""KEIRIN sources outside Rakuten. A source catalog is NOT a scraping license.
+"""KEIRIN sources outside Rakuten. A catalog is not provider API proof.
 
-All third-party providers are MANUAL_CAPTURE_ONLY until their particular
-machine-access terms are independently validated. This module performs
-no HTTP calls. It hard-excludes Rakuten/KDreams origins from the owner input.
+The owner confirmed WINTICKET and KEIRIN.JP can be automatically read for
+personal research on 2026-11-09; other sites remain unverified. The exact
+automated intake is explicitly opt-in and must not bypass provider rate limits,
+access controls, or infer commercial redistribution rights.
+No HTTP calls in this pure source classifier.
 """
 from __future__ import annotations
 
@@ -24,7 +26,7 @@ SOURCE_CATALOG = (
         "evidence_url": "https://keirin.jp/pc/dfw/portal/guest/policy/index.html",
         "direct_data": ("official_schedule", "racecard", "race_score",
                         "decisive_style", "rider_grade", "race_results"),
-        "automated_machine_collection_status": "UNVERIFIED",
+        "automated_machine_collection_status": "OWNER_ATTESTED_PERSONAL_USE_PROVIDER_PROOF_UNVERIFIED",
     },
     {
         "source_id": "winticket",
@@ -33,7 +35,7 @@ SOURCE_CATALOG = (
         "evidence_url": "https://www.winticket.jp/keirin/topics/9f4QV3dmkfQ8CZtLr1Fb52",
         "direct_data": ("race_score", "recent_10_results", "venue_record",
                         "head_to_head", "published_comments", "score_trend"),
-        "automated_machine_collection_status": "UNVERIFIED",
+        "automated_machine_collection_status": "OWNER_ATTESTED_PERSONAL_USE_PROVIDER_PROOF_UNVERIFIED",
     },
     {
         "source_id": "oddspark",
