@@ -49,7 +49,20 @@ def fixture(full=True):
              "/style_mark")
         )):
             continue
-        if key.endswith("/identity_number_and_grade"):
+        if key == "race/race_id_date_venue_no":
+            value = {"race_id": RID, "event_date_jst": "2030-01-15",
+                     "venue": "fictional-venue"}
+        elif key == "race/official_sales_cutoff": value = CUTOFF
+        elif key == "race/race_distance": value = 2000
+        elif key == "race/all_entrants_and_vehicle_numbers":
+            value = [{"number": n, "identity": NAMES[n]} for n in STARTERS]
+        elif key == "race/late_scratches_substitutions_revisions":
+            value = {"race_revision": 1, "active_numbers": STARTERS}
+        elif key == "race/line_order_all_riders":
+            value = {"lines": [{"group_id": "L1", "order": [1, 2, 3]},
+                               {"group_id": "L2", "order": [4, 5, 6]}],
+                     "solos": [7]}
+        elif key.endswith("/identity_number_and_grade"):
             n = int(key.split("/")[1])
             value = {"number": n, "identity": NAMES[n], "grade": "fixture"}
         elif key == "race/wind_speed": value = 3
@@ -168,6 +181,31 @@ class AllowedFeedTests(unittest.TestCase):
         out = assemble(data)
         self.assertIsNone(out["private_snapshot"])
         self.assertEqual(out["audit"]["items"][0]["status"], "stale")
+
+    def test_line_topology_mismatch_never_reaches_model(self):
+        data = fixture()
+        row = next(x for x in data["observations"]
+                   if x["key"] == "race/line_order_all_riders")
+        row["value"]["lines"][0]["order"] = [1, 2, 4]
+        with self.assertRaisesRegex(PermittedDeliveryError,
+                                    "LINE_GROUP_DISAGREEMENT"):
+            assemble(data)
+
+    def test_changed_roster_rejected(self):
+        data = fixture()
+        data["race"]["starters"][0]["identity"] = "forged"
+        with self.assertRaisesRegex(PermittedDeliveryError,
+                                    "SOURCE_ENTRANT_LIST_DISAGREEMENT"):
+            assemble(data)
+
+    def test_changed_cutoff_rejected(self):
+        data = fixture()
+        row = next(x for x in data["observations"]
+                   if x["key"] == "race/official_sales_cutoff")
+        row["value"] = "2030-01-15T10:30:00+09:00"
+        with self.assertRaisesRegex(PermittedDeliveryError,
+                                    "RACE_SOURCE_TIMING_OR_DISTANCE_MISMATCH"):
+            assemble(data)
 
     def test_odds_and_outcomes_rejected_even_as_extra_source(self):
         data = fixture()
