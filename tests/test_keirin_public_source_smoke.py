@@ -54,6 +54,8 @@ class PublicSourceSmokeTests(unittest.TestCase):
         self.assertIn("oddsState.trifectaOdds",
                       shape["array_length_210_paths"])
         self.assertFalse(shape["full_210_prices_verified"])
+        self.assertEqual(shape["trifecta_row_shapes"][0]["count"],210)
+        self.assertEqual(shape["trifecta_row_shapes"][0]["field_type_histograms"]["decimal"]["numeric_rows"],210)
         self.assertNotIn("17.8",json.dumps(shape))
         self.assertEqual(preloaded_schema_only("no state")["status"],
                          "NO_PRELOADED_STATE")
