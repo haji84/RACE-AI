@@ -194,6 +194,10 @@ class ExistingProductionGateSyntheticTests(unittest.TestCase):
         shutil.copy2(self.src/"scripts/keirin_github_checkpoint.mjs",
                      work/"scripts/keirin_github_checkpoint.mjs")
         (work/"README.md").write_text("EXISTING code only\n")
+        from race_ai.keirin_public_ciphertext_consent import CONSENT_PATH
+        consent=work/CONSENT_PATH
+        consent.parent.mkdir(parents=True)
+        shutil.copy2(self.src/CONSENT_PATH,consent)
         sh("git","add",".",cwd=work)
         sh("git","-c","user.name=test","-c","user.email=test@example.invalid",
            "commit","-m","main",cwd=work)
