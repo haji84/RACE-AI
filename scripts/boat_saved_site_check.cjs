@@ -1,6 +1,7 @@
 'use strict';
 /* Read-only proof against the existing private owner view. Never print its URL. */
-const fs=require('node:fs'),assert=require('node:assert/strict');
+const fs=require('node:fs'),assert=require('node:assert/strict'),crypto=require('node:crypto');
+const Simulation=require('./boat_saved_simulation_context.cjs');
 
 
 const allowedHosts=new Set(['haji84.github.io','api.github.com','raw.githubusercontent.com']);
@@ -34,6 +35,146 @@ function requireNativeGroups(context,values){
   for(const expected of context.native_groups)assert.ok(actual.has(JSON.stringify(expected)));
 }
 
+const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
+const count=value=>Number.isSafeInteger(value)&&value>=0;
+function keys(value,expected){
+  assert.ok(value&&typeof value==='object'&&!Array.isArray(value));
+  assert.deepEqual(Object.keys(value).sort(),[...expected].sort());
+}
+function counts(value,fields){keys(value,fields);for(const v of Object.values(value))assert.ok(count(v));}
+function validateSimulationExpected(context){
+  if(!Object.hasOwn(context,'simulation_expected')){
+    assert.ok(context.numeric_simulation_required===undefined||context.numeric_simulation_required===false);return null;
+  }
+  assert.equal(context.numeric_simulation_required,true);
+  const value=context.simulation_expected;
+  keys(value,['schema','day','generation','group_sha256','eligible_native_races','issued_races','observed','observed_closed','lifecycle','scenarios','budget_cap_exercised','budget_cap_coverage']);
+  assert.equal(value.schema,Simulation.schema);assert.equal(value.day,context.day);assert.equal(value.generation,context.generation);
+  assert.ok(count(value.generation)&&value.generation>0);assert.match(value.group_sha256,/^[a-f0-9]{64}$/);
+  counts(value.observed,Simulation.observedFields);counts(value.observed_closed,Simulation.observedFields);
+  assert.equal(value.observed.races,context.day_races);assert.ok(value.observed.available<=value.observed.races);
+  for(const c of [value.observed,value.observed_closed]){
+    assert.equal(Simulation.comparisonFields.reduce((n,k)=>n+c[k],0),c.races);assert.ok(c.available<=c.races);
+  }
+  assert.ok(count(value.eligible_native_races)&&value.eligible_native_races>0&&count(value.issued_races));
+  assert.ok(value.eligible_native_races<=value.issued_races&&value.issued_races<=value.observed.races);
+  keys(value.lifecycle,['as_of','closed','upcoming','unknown']);
+  assert.equal(value.lifecycle.as_of,context.simulation_as_of);
+  assert.match(value.lifecycle.as_of,/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?(?:Z|[+-]\d\d:\d\d)$/);
+  assert.ok(Number.isFinite(Date.parse(value.lifecycle.as_of)));
+  for(const k of ['closed','upcoming','unknown'])assert.ok(count(value.lifecycle[k]));
+  assert.equal(value.lifecycle.closed+value.lifecycle.upcoming+value.lifecycle.unknown,value.observed.races);
+  assert.equal(value.observed_closed.races,value.lifecycle.closed);
+  for(const k of ['available',...Simulation.comparisonFields])assert.ok(value.observed_closed[k]<=value.observed[k]);
+  assert.ok(Array.isArray(value.scenarios)&&value.scenarios.length===4);
+  const pairs=new Set();
+  for(const s of value.scenarios){
+    keys(s,[...Simulation.financialFields,'comparison','boughtComparison']);
+    for(const k of Simulation.financialFields.filter(k=>!['settledNet','net','roi'].includes(k)))assert.ok(count(s[k]));
+    for(const k of ['settledNet','net'])assert.ok(s[k]===null||Number.isSafeInteger(s[k]));
+    assert.ok(s.roi===null||typeof s.roi==='number'&&Number.isFinite(s.roi)&&s.roi>=0);
+    counts(s.comparison,Simulation.comparisonFields);counts(s.boughtComparison,Simulation.comparisonFields);
+    for(const k of Simulation.comparisonFields)assert.equal(s.comparison[k],value.observed[k]);
+    assert.equal(Object.values(s.boughtComparison).reduce((a,b)=>a+b,0),s.bought);assert.ok(s.bought<=value.observed.races);
+    assert.equal(s.budgetTotal,s.budgetPerDay);
+    const pair=s.budgetPerDay+':'+s.raceBudget;assert.ok(!pairs.has(pair));pairs.add(pair);
+  }
+  assert.deepEqual([...pairs].sort(),['10000:1000','10000:800','5000:1000','5000:800']);
+  const capped=[800,1000].every(r=>value.scenarios.find(s=>s.budgetPerDay===10000&&s.raceBudget===r).bought>
+    value.scenarios.find(s=>s.budgetPerDay===5000&&s.raceBudget===r).bought);
+  assert.equal(value.budget_cap_exercised,capped);
+  assert.equal(value.budget_cap_coverage,capped?'EXERCISED':'INSUFFICIENT_ELIGIBLE_RACES');return value;
+}
+function requireSimulationGroup(context,values){
+  const expected=validateSimulationExpected(context);assert.ok(expected&&Array.isArray(values));
+  const matching=values.filter(value=>typeof value==='string'&&hash(value)===expected.group_sha256);
+  assert.equal(matching.length,1);const parts=JSON.parse(matching[0]);
+  assert.ok(Array.isArray(parts)&&[6,7].includes(parts.length));assert.equal(parts[1],'boat');assert.equal(parts[2],'P1');
+  const identity=JSON.stringify([parts[3]??null,parts[4]??null,parts[5]??null,parts[6]??null]);
+  assert.ok(context.native_groups.some(group=>JSON.stringify(group)===identity));return matching[0];
+}
+function metricMap(values){
+  assert.ok(Array.isArray(values));const result=new Map();
+  for(const value of values){
+    for(const k of ['label','value','detail'])assert.equal(typeof value[k],'string');
+    assert.ok(!result.has(value.label));result.set(value.label,value);
+  }
+  return result;
+}
+function capture(text,pattern){const found=text.match(pattern);assert.ok(found);return found.slice(1);}
+function money(text,expected){
+  if(expected===null){assert.equal(text,'未確定');return;}
+  const [sign,digits]=capture(text,/^([＋-]?)(\d{1,3}(?:,\d{3})*|\d+)円$/);
+  const value=Number((sign==='-'?'-':'')+digits.replaceAll(',',''));assert.ok(Number.isSafeInteger(value));assert.equal(value,expected);
+}
+function percentage(text,expected,empty){
+  if(expected===null){assert.equal(text,empty);return;}
+  const [digits]=capture(text,/^(\d+\.\d)%$/);assert.ok(Math.abs(Number(digits)-Number(expected.toFixed(1)))<1e-8);
+}
+function requireSimulationSnapshot(context,snapshot,dailyBudget,raceBudget){
+  const expected=validateSimulationExpected(context);assert.ok(expected);
+  assert.equal(snapshot.day,expected.day);assert.equal(snapshot.generation,expected.generation);assert.equal(snapshot.group_sha256,expected.group_sha256);
+  assert.equal(snapshot.daily_budget,dailyBudget);assert.equal(snapshot.race_budget,raceBudget);
+  const s=expected.scenarios.find(s=>s.budgetPerDay===dailyBudget&&s.raceBudget===raceBudget);assert.ok(s);
+  const saved=metricMap(snapshot.saved_metrics),sim=metricMap(snapshot.simulation_metrics);
+  const get=(map,label)=>{const value=map.get(label);assert.ok(value);return value;};
+  const closed=saved.has('レース前'),c=closed?expected.observed_closed:expected.observed;
+  for(const [label,key] of Object.entries({'取得結果':'available','的中':'hits','不的中':'misses','結果待ち':'pending','中止・返還':'void','照合保留':'review'}))
+    assert.equal(get(saved,label).value,c[key]+'レース');
+  const hit=get(saved,'保存Top8的中率'),denominator=c.hits+c.misses;
+  percentage(hit.value,denominator?c.hits/denominator*100:null,'算出対象なし');
+  assert.deepEqual(capture(hit.detail,/^(\d+) \/ (\d+)レース/).map(Number),[c.hits,denominator]);
+  assert.equal(Number(capture(snapshot.coverage,/対象\s+(\d+)レース/)[0]),expected.observed.races);
+  assert.equal(Number(capture(snapshot.coverage,/未予想・照合不可\s+(\d+)/)[0]),c.noForecast+c.review);
+  if(closed){
+    assert.equal(get(saved,'レース前').value,expected.lifecycle.upcoming+'レース');
+    if(expected.lifecycle.unknown||saved.has('締切未確認'))assert.equal(get(saved,'締切未確認').value,expected.lifecycle.unknown+'レース');
+    assert.equal(Number(capture(snapshot.coverage,/結果対象\s+(\d+)/)[0]),expected.lifecycle.closed);
+  }
+  const stake=get(sim,'予定購入額');money(stake.value,s.spent);assert.equal(Number(capture(stake.detail,/^(\d+)レース/)[0]),s.bought);
+  money(capture(stake.detail,/上限([\d,]+円)\/レース/)[0],s.raceBudget);
+  const unused=get(sim,'未使用予算');money(unused.value,s.unspent);
+  const [perDay,days]=capture(unused.detail,/1日\s+([\d,]+円)\s*×\s*(\d+)日/);money(perDay,s.budgetPerDay);assert.equal(Number(days),1);
+  money(capture(unused.detail,/追加未配分\s+([\d,]+円)/)[0],s.held);
+  const payout=get(sim,'確認済み払戻');money(payout.value,s.payout);money(capture(payout.detail,/返還\s+([\d,]+円)/)[0],s.refund);
+  const settled=get(sim,'確定分の収支');money(settled.value,s.settledNet);money(capture(settled.detail,/購入額\s+([\d,]+円)/)[0],s.settledStake);
+  money(get(sim,'未確定購入額').value,s.pendingStake);
+  const total=get(sim,'全体の収支');money(total.value,s.net);money(capture(total.detail,/仮の残高\s+([\d,]+円)/)[0],s.balance);
+  percentage(get(sim,'確定分の回収率').value,s.roi,'未確定');
+  assert.deepEqual(capture(get(sim,'収支確定の購入予定').value,/^(\d+) \/ (\d+)レース$/).map(Number),[s.settledCount,s.bought]);
+  const bought=get(sim,'購入予定分の的中率'),n=s.boughtComparison.hits+s.boughtComparison.misses;
+  percentage(bought.value,n?s.boughtComparison.hits/n*100:null,'算出対象なし');
+  assert.deepEqual(capture(bought.detail,/^(\d+) \/ (\d+)レース/).map(Number),[s.boughtComparison.hits,n]);
+}
+async function readSimulationSnapshot(page){
+  const value=await page.evaluate(()=>{
+    const metrics=id=>[...document.querySelectorAll('#'+id+' .metric')].map(card=>({label:card.querySelector('.metric-label')?.textContent.trim(),value:card.querySelector('strong')?.textContent.trim(),detail:card.querySelector('small')?.textContent.trim()}));
+    return {day:document.querySelector('#selected-date')?.value,generation:Number(document.querySelector('#saved-view-sync')?.dataset.generation),group_value:document.querySelector('#results-model')?.value,
+      daily_budget:Number(document.querySelector('#simulation-budget')?.value),race_budget:Number(document.querySelector('#simulation-race-budget')?.value),coverage:document.querySelector('#result-coverage')?.textContent,
+      saved_metrics:metrics('saved-result-metrics'),simulation_metrics:metrics('simulation-metrics')};
+  });
+  const {group_value:group,...snapshot}=value;assert.equal(typeof group,'string');return {...snapshot,group_sha256:hash(group)};
+}
+async function checkSimulationMetrics(page,context){
+  const expected=validateSimulationExpected(context);let verified=0;
+  if(expected){
+    const group=requireSimulationGroup(context,await page.locator('#results-model option').evaluateAll(options=>options.map(option=>option.value)));
+    await page.locator('#results-model').selectOption(group);
+    assert.equal(await page.locator('#saved-result-metrics').isVisible(),true);assert.equal(await page.locator('#simulation-metrics').isVisible(),true);
+  }
+  for(const budget of ['10000','5000'])for(const race of expected?['800','1000']:['1000']){
+    await page.locator('#simulation-budget').fill(budget);await page.locator('#simulation-budget').dispatchEvent('change');
+    await page.locator('#simulation-race-budget').selectOption(race);
+    assert.equal(await page.locator('#simulation-budget').inputValue(),budget);
+    const simulation=await page.locator('#simulation-metrics').innerText();
+    for(const label of ['確定分の収支','確定分の回収率','未確定購入額','全体の収支'])assert.ok(simulation.includes(label));
+    assert.doesNotMatch(simulation,/試算を表示できません/);
+    if(expected){requireSimulationSnapshot(context,await readSimulationSnapshot(page),Number(budget),Number(race));verified++;}
+  }
+  assert.equal(verified,expected?4:0);
+  return {numeric_simulation_verified:expected!==null,numeric_simulation_scenarios_checked:verified};
+}
+
 function validate(context){
   assert.equal(context.schema,'RACE_AI_PRIVATE_LIVE_SITE_CHECK_CONTEXT_V1');
   const url=new URL(context.owner_url);
@@ -59,6 +200,7 @@ function validate(context){
     assert.ok(Number.isSafeInteger(future.index)&&future.index>=0&&future.index<32768);
     assert.ok(Number.isFinite(Date.parse(future.cutoff_at)));
   }
+  validateSimulationExpected(context);
   return url.hash.split('.')[1];
 }
 
@@ -84,7 +226,7 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
     '/opt/google/chrome/chrome','/usr/bin/chromium'].find(path=>fs.existsSync(path));
   assert.ok(executablePath,'installed browser required');
   const browser=await chromium.launch({headless:true,executablePath,args:['--no-sandbox']});
-  let blocked=0,leaked=false,checked=0,futureVisible=false,nativeVisible=false,currentResults=0,p1Groups=0,rationaleViewsChecked=0,upcomingRowsChecked=0,venueResultsChecked=0,currentDayLifecycleViews=0,currentDayUpcomingRows=0,currentDayUpcomingCount=null,currentDayClosedCount=null,currentDayPendingCount=null;
+  let blocked=0,leaked=false,checked=0,futureVisible=false,nativeVisible=false,currentResults=0,p1Groups=0,rationaleViewsChecked=0,upcomingRowsChecked=0,venueResultsChecked=0,currentDayLifecycleViews=0,currentDayUpcomingRows=0,currentDayUpcomingCount=null,currentDayClosedCount=null,currentDayPendingCount=null,numericScenarios=0;
   try{
     const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
     page.setDefaultTimeout(45000);
@@ -195,14 +337,7 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
       currentResults=Number(metrics.match(/取得結果\s*(\d+)レース/)?.[1]);
       assert.ok(currentResults>=context.minimum_results);
       for(const label of ['的中','不的中','保存Top8的中率','結果待ち'])assert.ok(metrics.includes(label));
-      for(const budget of ['10000','5000']){
-        await page.locator('#simulation-budget').fill(budget);await page.locator('#simulation-budget').dispatchEvent('change');
-        await page.locator('#simulation-race-budget').selectOption('1000');
-        assert.equal(await page.locator('#simulation-budget').inputValue(),budget);
-        const simulation=await page.locator('#simulation-metrics').innerText();
-        for(const label of ['確定分の収支','確定分の回収率','未確定購入額','全体の収支'])assert.ok(simulation.includes(label));
-        assert.doesNotMatch(simulation,/試算を表示できません/);
-      }
+      numericScenarios+=(await checkSimulationMetrics(page,context)).numeric_simulation_scenarios_checked;
       if(context.old_day){
         await selectDate(context.old_day);await page.locator('[data-page="results"]').filter({visible:true}).first().click();
         const old=Number((await page.locator('#saved-result-metrics').innerText()).match(/取得結果\s*(\d+)レース/)?.[1]);
@@ -232,6 +367,8 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
     }
     assert.deepEqual(errors,[]);assert.equal(leaked,false);
     assert.equal((await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}))).includes(key),false);
+    const numeric=validateSimulationExpected(context);assert.equal(numericScenarios,numeric?checked*4:0);
+    if(numeric)assert.equal(Number(await page.locator('#saved-view-sync').getAttribute('data-generation')),numeric.generation);
     const verifiedAt=new Date(),currentDay=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo'}).format(verifiedAt);
     return {schema:'RACE_AI_LIVE_SITE_CHECK_COUNTS_V1',status:'LIVE_OWNER_SITE_VERIFIED',
       verified_at:verifiedAt.toISOString(),widths_checked:checked,
@@ -243,6 +380,8 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
       future_native_visible_before_cutoff:futureVisible,previous_day_checked:context.old_day!==null,
       active_model_families:15,removed_seller_hidden:true,
       participant_names:true,editable_daily_budget:true,per_race_1000_simulation:true,
+      numeric_simulation_verified:numeric!==null,numeric_simulation_scenarios_checked:numericScenarios,
+      numeric_budget_cap_exercised:numeric?.budget_cap_exercised??null,numeric_budget_cap_coverage:numeric?.budget_cap_coverage??'NOT_REQUESTED',
       hit_miss_rate_roi_and_settled_pending_net_visible:true,
       key_in_requests_or_storage:false,blocked_external_requests:blocked,official_source_requests:0,plaintext_published:false};
   }finally{await browser.close();}
@@ -253,4 +392,4 @@ if(require.main===module){
     .then(report=>process.stdout.write(JSON.stringify(report)+'\n'))
     .catch(()=>{process.stdout.write(JSON.stringify({status:'LIVE_OWNER_SITE_REJECTED',reason:'SAVED_SITE_BROWSER_CHECK_FAILED'})+'\n');process.exitCode=2;});
 }
-module.exports={validate,dateEvidence,requestAdmission,revealRace,requireNativeGroups,run};
+module.exports={validate,dateEvidence,requestAdmission,revealRace,requireNativeGroups,validateSimulationExpected,requireSimulationGroup,requireSimulationSnapshot,readSimulationSnapshot,checkSimulationMetrics,run};

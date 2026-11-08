@@ -1,0 +1,16 @@
+{
+  "schema": "RACE_AI_BOAT_REQUIRED_CAPTURE_V1",
+  "locator": {
+    "artifact_id": null,
+    "batch_path": "state/boat-private-originals/v1/2026-11/batches/1e551d3bd14b8d747eec47bdc7f77f5a0ddfbdc06174c4e9a5787aa7def11214.json",
+    "batch_sha256": "1e551d3bd14b8d747eec47bdc7f77f5a0ddfbdc06174c4e9a5787aa7def11214",
+    "entry_sha256": "ece1320291d1572bee470b3ed2e3db4eb975fa809647a493efdeaa5d6df4f674",
+    "kind": "SOURCE_CAPTURES",
+    "ref": "state/boat-private-originals",
+    "repository_id": "1416489937",
+    "schema": "RACE_AI_BOAT_PRIVATE_ORIGINAL_LOCATOR_V1",
+    "source_commit": "4e5d0a92d65f0acaac2251540321b56da7088b74",
+    "status": "READY"
+  },
+  "expected_capture_count": 11
+}

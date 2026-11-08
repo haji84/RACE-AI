@@ -97,9 +97,16 @@ function report(view,options={}){
 }
 if(require.main===module){
  try{
-  const args=process.argv.slice(2);if(args.length!==2||args[0]!=='--input')throw new Error('ARGUMENTS');
+  const args=process.argv.slice(2);
+  if(args[0]!=='--input'||!(args.length===2||args.length===4&&args[2]==='--daily-budgets'))throw new Error('ARGUMENTS');
+  const options={};
+  if(args.length===4){
+   if(!/^[1-9][0-9]*(?:,[1-9][0-9]*){0,9}$/.test(args[3]))throw new Error('ARGUMENTS');
+   options.dailyBudgets=args[3].split(',').map(Number);
+   if(new Set(options.dailyBudgets).size!==options.dailyBudgets.length)throw new Error('ARGUMENTS');
+  }
   const stat=fs.statSync(args[1]);if(!stat.isFile()||stat.size>64*1024*1024)throw new Error('INPUT');
-  process.stdout.write(JSON.stringify(report(fs.readFileSync(args[1],'utf8')))+'\n');
+  process.stdout.write(JSON.stringify(report(fs.readFileSync(args[1],'utf8'),options))+'\n');
  }catch{process.stderr.write('SAVED_PERFORMANCE_REPORT_REJECTED\n');process.exitCode=1;}
 }
 module.exports=Object.freeze({report});

@@ -1,0 +1,96 @@
+"""Real-data acceptance reuses the existing source-free display job."""
+import os
+from pathlib import Path
+import re
+import subprocess
+import tempfile
+from types import SimpleNamespace as N
+import unittest
+import yaml
+
+ROOT = Path(__file__).resolve().parents[1]
+REF = 'refs/heads/codex/forecast-first-display-20261108'
+SUBJECT = 'saved-view: forecasts-first five-gates actual acceptance'
+
+
+def admits(expression, *, subject=SUBJECT, actor='173585154', ref=REF):
+    code = expression.removeprefix('${{').removesuffix('}}').strip()
+    code = re.sub(r'!(?!=)', ' not ', code).replace('&&', ' and ').replace('||', ' or ')
+    github = N(repository='haji84/RACE-AI', repository_id='1416489937', actor_id=actor,
+        event_name='push', ref=ref, event=N(head_commit=N(message=subject)))
+    good = N(outcome='success', outputs=N(ready='false'))
+    steps = N(forecast_only_publication=good, saved_model_publication=good, browser_tooling=good,
+              prospective_policy=good, all_models_bootstrap=good, all_models_bootstrap_freeze=N(outputs={'artifact-id': ''}))
+    return eval(code, {'__builtins__': {}}, {'github': github, 'steps': steps,
+        'startsWith': lambda value, prefix: value.startswith(prefix), 'always': lambda: True, 'hashFiles': lambda _: ''})
+
+
+class FiveGateWorkflowTests(unittest.TestCase):
+    def setUp(self):
+        self.workflow = yaml.load((ROOT/'.github/workflows/boat-nationwide-ab-one-shot.yml').read_text(), Loader=yaml.BaseLoader)
+        self.steps = self.workflow['jobs']['saved_view_publication']['steps']
+
+    def named(self, name):
+        return next(step for step in self.steps if step.get('name') == name)
+
+    def test_owner_only_mode_never_starts_an_official_collector(self):
+        self.assertIn(REF.removeprefix('refs/heads/'), self.workflow['on']['push']['branches'])
+        display = self.workflow['jobs']['saved_view_publication']['if']
+        source = self.workflow['jobs']['official_national']['if']
+        self.assertTrue(admits(display)); self.assertFalse(admits(source))
+        for values in (dict(actor='1'), dict(subject='chore: unrelated'), dict(subject='saved-view: other')):
+            self.assertFalse(admits(display, **values)); self.assertFalse(admits(source, **values))
+
+    def test_same_jobs_permissions_concurrency_and_source_timeout(self):
+        self.assertEqual(set(self.workflow['jobs']), {'saved_view_publication', 'official_national'})
+        self.assertEqual(self.workflow['permissions'], {'contents': 'write', 'actions': 'read'})
+        self.assertEqual(self.workflow['jobs']['saved_view_publication']['timeout-minutes'], '20')
+        self.assertEqual(self.workflow['jobs']['official_national']['timeout-minutes'], '360')
+        self.assertEqual(self.workflow['concurrency']['cancel-in-progress'], 'false')
+
+    def test_only_existing_retention_readers_browser_and_final_gate_run(self):
+        allowed = {'Exact reviewed display publisher', 'Pinned official parser for retained result bytes',
+            'Install pinned encrypted display dependencies', 'Initialize encrypted display feed',
+            'Retain and independently restore exact saved originals without taking over the active worker',
+            'Retain safe completed-worker control for the existing hourly coordinator',
+            'Install the existing pinned browser checker', 'Verify the actual private owner site without the local workspace',
+            'Require verified site display and unchanged frozen settlement'}
+        for step in self.steps:
+            if 'if' not in step or admits(step['if']):
+                self.assertIn(step.get('name'), allowed)
+        retention = self.named('Retain and independently restore exact saved originals without taking over the active worker')
+        mirror = self.named('Retain safe completed-worker control for the existing hourly coordinator')
+        self.assertTrue(admits(retention['if'])); self.assertTrue(admits(mirror['if']))
+        self.assertFalse(admits(retention['if'], subject='saved-view: forecasts-first prior mode'))
+        self.assertFalse(admits(mirror['if'], subject='saved-view: forecasts-first prior mode'))
+        self.assertIn('--run-id 42411771346', retention['run'])
+        self.assertIn('publish --run-id 42411771346', mirror['run'])
+
+    def test_historical_money_and_full_restore_are_explicit_not_future_fallback(self):
+        body = self.named('Verify the actual private owner site without the local workspace')['run']
+        self.assertIn('--day 2026-11-07', body)
+        self.assertIn('--saved-comparison-day 2026-11-07', body)
+        self.assertIn('--daily-budgets 10000,5000', body)
+        self.assertIn('--required-capture-locator audit/state/boat-retained-run-required-capture.json', body)
+        self.assertIn('--require-future', body)
+        self.assertIn('SITE_CHECK_OUTCOME', self.named('Require verified site display and unchanged frozen settlement')['run'])
+
+    def test_verification_does_not_republish_forecasts_and_checks_owner_again(self):
+        body = self.named('Initialize encrypted display feed')['run']
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary); binary = folder/'bin'; binary.mkdir(); log = folder/'calls'
+            for name, text in [('git', 'printf "%s\\n" "$SUBJECT"'), ('python', 'printf "%s\\n" "$*" >> "$LOG"')]:
+                file = binary/name; file.write_text('#!/bin/sh\n'+text+'\n'); file.chmod(0o700)
+            base = dict(os.environ, PATH=str(binary)+os.pathsep+os.environ['PATH'], LOG=str(log),
+                GITHUB_REF=REF, GITHUB_EVENT_NAME='push', GITHUB_ACTOR_ID='173585154',
+                GITHUB_REPOSITORY_ID='1416489937', SUBJECT=SUBJECT,
+                FORECAST_DISPLAY_RUN_ID='42411771346', FORECAST_DISPLAY_DAY='2026-11-08')
+            run = subprocess.run(['bash', '-e', '-o', 'pipefail', '-c', body], env=base, capture_output=True, text=True)
+            self.assertEqual(run.returncode, 0, run.stderr)
+            self.assertFalse(log.exists(), 'acceptance-only route must not invoke the feed publisher')
+            bad = dict(base, GITHUB_ACTOR_ID='1')
+            run = subprocess.run(['bash', '-e', '-o', 'pipefail', '-c', body], env=bad, capture_output=True, text=True)
+            self.assertEqual(run.returncode, 2); self.assertFalse(log.exists())
+
+
+if __name__ == '__main__': unittest.main()
