@@ -148,7 +148,8 @@ def stage_shadow_variable_pairs(inbox, store, *, grant_check, now, max_files=150
             selected=choose_shadow_variable(
                 shadow,ticket_prices,decided_at=now_dt.isoformat(),
                 odds_allowed=grant_check)
-            event=ledger.freeze_pair_once(shadow,selected,ticket_prices)
+            event=ledger.freeze_pair_once(
+                shadow,selected,ticket_prices,source_packet=packet)
             state["dual_prospective_forecasts_saved" if event==(
                 "CREATED_PAIR_ONCE") else "already_frozen_identical"]+=1
         except (ShadowPairError,SparseRealForecastError,ValueError,
