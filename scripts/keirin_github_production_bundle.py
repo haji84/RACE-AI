@@ -38,7 +38,7 @@ def checked_existing_pair(db,race_id):
                              uri=True,timeout=4) as con:
             con.row_factory=sqlite3.Row
             con.execute("PRAGMA trusted_schema=OFF")
-            need(con.execute("PRAGMA quick_check").fetchall()==[("ok",)],
+            need(con.execute("PRAGMA quick_check").fetchone()[0]=="ok",
                  "OWNER_DATABASE_NOT_INTEGRITY_VALID")
             pair=con.execute(
                 "SELECT shadow_sha256,variable_sha256,odds_sha256,"
