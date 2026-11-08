@@ -82,12 +82,12 @@ def repair_saved_receipt_mismatches(repo,*,state,now,bridge=None):
                     parsed=F.parse_capture(raw,receipt)
                     found=[o for o in current['records'] if o.get('race_id')==rid]
                     need(len(found)==1,'MODEL_REPLAY_RACE_IDENTITY_INVALID')
-                    previous=[o for o in found[0].get('result_observations',[]) if
+                    matching_observations=[o for o in found[0].get('result_observations',[]) if
                         o.get('source_sha256')==receipt['source_sha256'] and
                         o.get('captured_at')==receipt['captured_at'] and
                         o.get('source_url')==receipt['source_url']]
-                    need(len(previous)==1,'MODEL_REPLAY_PARSER_SOURCE_RECEIPT_MISMATCH')
-                    old_observation=previous[0]
+                    need(len(matching_observations)==1,'MODEL_REPLAY_PARSER_SOURCE_RECEIPT_MISMATCH')
+                    old_observation=matching_observations[0]
                     differences=result_conflict_counts(old_observation,parsed)
                     for field,count in differences['differing_fields'].items():
                         report['parser_conflict_field_counts'][field]=report['parser_conflict_field_counts'].get(field,0)+count
