@@ -75,7 +75,9 @@ def network_page_once(url):
         raise PublicPageFetchError("PUBLIC_PAGE_NETWORK_UNAVAILABLE") from exc
 
 
-def capture_approved_public_pages(inbox,grant,*,urls,transport=None,clock=None):
+def capture_approved_public_pages(inbox,grant,*,urls,transport=None,clock=None,
+                                  odds_race_id=None,
+                                  odds_official_cutoff_at=None):
     """Capture owner-approved pages only. No odds/rider parsing or false clock.
 
     Body and metadata are stored create-once, private mode 0600. A changed
@@ -85,6 +87,8 @@ def capture_approved_public_pages(inbox,grant,*,urls,transport=None,clock=None):
     require(root.is_absolute() and root.is_dir() and not root.is_symlink(),
             "PRIVATE_INBOX_REQUIRED")
     require(type(urls) in (tuple,list),"PUBLIC_URLS_LIST_REQUIRED")
+    require((odds_race_id is None)==(odds_official_cutoff_at is None),
+            "ODDS_RACE_AND_CUTOFF_BOTH_REQUIRED")
     checked=[]
     for url in urls:
         checked.append(approved_public_url(url,grant))
@@ -157,10 +161,26 @@ def capture_approved_public_pages(inbox,grant,*,urls,transport=None,clock=None):
             require(sha256(target.read_bytes()).hexdigest()==digest,
                     "PUBLIC_CAPTURE_READBACK_FAILED")
             added=True
+        private_odds_stage=None
+        if odds_race_id is not None and (
+            "/keirin/aomori/odds/" in url and
+            "winticket.jp" in (urlsplit(url).hostname or "")
+        ):
+            from .keirin_winticket_embedded_odds import (
+                private_winticket_trifecta,stage_private_winticket_odds
+            )
+            verified=private_winticket_trifecta(
+                body,url=url,race_id=odds_race_id,
+                captured_at=at,
+                official_cutoff_at=odds_official_cutoff_at)
+            private_odds_stage=stage_private_winticket_odds(root,verified)
         receipts.append({
             "new_capture":added,
             "capture_sha256":digest,
-            "full_210_odds_parsed":False,
+            "full_210_odds_parsed":bool(private_odds_stage),
+            "private_odds_created":(
+                private_odds_stage["private_odds_created"]
+                if private_odds_stage else 0),
             "source_published_at_independently_proven":False,
         })
     return {
@@ -169,6 +189,9 @@ def capture_approved_public_pages(inbox,grant,*,urls,transport=None,clock=None):
         "network_requests":0 if transport is not None else len(checked),
         "captures_created":sum(int(x["new_capture"]) for x in receipts),
         "captures_already_retained":sum(int(not x["new_capture"]) for x in receipts),
-        "complete_real_race_odds_verified":False,
+        "complete_real_race_odds_verified":any(
+            r["full_210_odds_parsed"] for r in receipts),
+        "private_odds_originals_created":sum(
+            r["private_odds_created"] for r in receipts),
         "private_plaintext_uploaded_to_public_repo":False,
     }
