@@ -279,7 +279,8 @@
     const originals=proof.original_cutoffs,saved=row.saved_cutoff_variants||[];
     if(!Array.isArray(originals)||originals.some(c=>!stamp(c))||new Set(originals).size!==originals.length||canonical([...originals].sort())!==canonical([...saved].sort())||new Set(saved.map(Date.parse)).size<2)reject();
     const clocks=originals.map(Date.parse),scheduled=(row.saved_schedule_cutoff_variants||[]).map(Date.parse);
-    if(new Set(scheduled).size>1 || scheduled.some(c=>!clocks.includes(c)) || row.saved_observation_cutoff_variants?.length || row.missing_reasons?.includes("SAVED_SCHEDULE_CUTOFF_CONFLICT"))reject();
+    const scheduleCount=new Set(scheduled).size,scheduleBound=scheduleCount<=1&&!row.missing_reasons?.includes("SAVED_SCHEDULE_CUTOFF_CONFLICT")||perModel&&scheduleCount>1;
+    if(!scheduleBound || scheduled.some(c=>!clocks.includes(c)) || row.saved_observation_cutoff_variants?.length)reject();
     const people=row.participants,roster=new Map();
     if(!Array.isArray(people)||people.length<3||people.length>6)reject();
     for(const person of people){if(!Number.isInteger(person.number)||person.number<1||person.number>6||typeof person.registration_no!=="string"||!/^\d{4}$/.test(person.registration_no)||roster.has(person.number))reject();roster.set(person.number,person.registration_no);}
@@ -297,7 +298,10 @@
     if(result.payouts!=null && canonical(result.payouts)!==canonical(payouts))reject();
     for(const field of ["refund_boats","refunds","refund_combinations","dead_heat"])if(canonical(result[field]??null)!==canonical(data[field]??null))reject();
     if(!stamp(observation.closed_at))reject();
-    if(perModel&&(observation.schedule_binding!=="SP_EXPLICIT_RACE_HEADER"||!stamp(proof.source_cutoff_at)||Date.parse(proof.source_cutoff_at)!==Date.parse(observation.closed_at)))reject();
+    if(perModel){
+      if((Object.hasOwn(proof,"source_schedule_binding")?proof.source_schedule_binding:observation.schedule_binding)!=="SP_EXPLICIT_RACE_HEADER"||![undefined,null,"SP_EXPLICIT_RACE_HEADER"].includes(observation.schedule_binding)||!stamp(proof.source_cutoff_at)||Date.parse(proof.source_cutoff_at)!==Date.parse(observation.closed_at))reject();
+      try{const source=observation.source_url;if(typeof source!=="string"||!source.startsWith("https://www.boatrace.jp/owsp/sp/spdata?"))reject();const url=new URL(source),q=url.searchParams,number=q.get("rno"),day=q.get("hd"),venue=q.get("jcd");if(url.pathname!=="/owsp/sp/spdata"||url.hash||[...q].length!==4||new Set(q.keys()).size!==4||q.get("type")!=="raceresult"||!/^(?:[1-9]|1[0-2])$/.test(number)||!/^(0[1-9]|1[0-9]|2[0-4])$/.test(venue)||!/^\d{8}$/.test(day)||!validDay(day.slice(0,4)+"-"+day.slice(4,6)+"-"+day.slice(6,8))||day+"-"+venue+"-"+number.padStart(2,"0")!==row.race_id)reject();}catch{reject();}
+    }
     clocks.push(Date.parse(observation.closed_at));
     if(clocks.some(c=>new Date(c+9*60*60*1000).toISOString().slice(0,10)!==row.event_date_jst)||(Math.max(...clocks)-Math.min(...clocks))/1000>proof.maximum_offset_seconds||observed<Math.max(...clocks))reject();
     const predictions=candidates(row);if(!predictions.length)reject();

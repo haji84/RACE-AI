@@ -32,6 +32,39 @@ class ClockTests(unittest.TestCase):
         self.assertEqual(row['result']['cutoff_reconciliation']['basis'],'RAW_OFFICIAL_SP_RESULT_PER_SAVED_MODEL_CUTOFF')
         self.assertTrue(validate_cutoff_reconciliation(row,row['result']))
 
+    def test_retained_available_observation_without_new_header_metadata_is_preserved(self):
+        view,capture=fixture();row=view['records'][0];old=S.parse_capture(*capture);old.pop('schedule_binding')
+        row['result_observations']=[old];row['result']=dict(status='unsupported',winning_combinations=[],confirmed_at=None,observed_at=old['captured_at'],source_sha256=old['source_sha256'],official=False)
+        before=deepcopy(old);pin=F.originals_sha(view)
+        out=F.update_view(view,[old],captures=[capture],synced_at='2026-11-07T01:21:00Z');r=out['records'][0]
+        self.assertEqual(r['result']['status'],'final')
+        self.assertEqual(r['result_observations'],[before]);self.assertEqual(F.originals_sha(out),pin)
+        self.assertTrue(validate_cutoff_reconciliation(r,r['result']))
+
+    def test_saved_schedule_revisions_must_bind_to_the_existing_model_cutoffs(self):
+        view,capture=fixture();row=view['records'][0]
+        row['saved_schedule_cutoff_variants']=list(row['saved_cutoff_variants'])
+        row['missing_reasons'].append('SAVED_SCHEDULE_CUTOFF_CONFLICT')
+        original=deepcopy(row);pin=F.originals_sha(view)
+        out=project(view,capture);matched=out['records'][0]
+        self.assertEqual(matched['result']['status'],'final')
+        self.assertEqual(F.originals_sha(out),pin)
+        self.assertEqual(matched['saved_schedule_cutoff_variants'],original['saved_schedule_cutoff_variants'])
+        self.assertIn('SAVED_SCHEDULE_CUTOFF_CONFLICT',matched['missing_reasons'])
+        self.assertTrue(validate_cutoff_reconciliation(matched,matched['result']))
+        rejected=[]
+        for field,values in [('saved_schedule_cutoff_variants',['2026-11-07T10:09:00+09:00']),('saved_schedule_cutoff_variants',[row['saved_cutoff_variants'][0]]),('saved_observation_cutoff_variants',[row['saved_cutoff_variants'][0]])]:
+            bad=deepcopy(view);bad['records'][0][field]=values
+            self.assertEqual(project(bad,capture)['records'][0]['result']['status'],'unsupported')
+            bad=deepcopy(matched);bad[field]=values;rejected.append(bad)
+            with self.assertRaises(ValueError):validate_cutoff_reconciliation(bad,bad['result'])
+        legacy=deepcopy(matched);legacy['result']['cutoff_reconciliation']['basis']='RAW_OFFICIAL_RESULT_PER_ORIGINAL_CUTOFF'
+        with self.assertRaises(ValueError):validate_cutoff_reconciliation(legacy,legacy['result'])
+        rejected.append(legacy)
+        code="""const assert=require('node:assert/strict'),M=require('./web/product-data.js');let s='';process.stdin.on('data',c=>s+=c);process.stdin.on('end',()=>{const x=JSON.parse(s);assert.equal(M.parse(x.view).records[0].result.status,'final');for(const r of x.bad)assert.throws(()=>M.parse({...x.view,records:[r]}));});"""
+        result=subprocess.run(['node','-e',code],cwd=Path(__file__).resolve().parents[1],input=json.dumps({'view':out,'bad':rejected}),text=True,capture_output=True)
+        self.assertEqual(result.returncode,0,result.stderr)
+
     def test_a_model_saved_after_its_own_or_the_official_cutoff_still_cannot_be_settled(self):
         for field,value in [('cutoff_at','2026-11-07T10:04:00+09:00'),('persisted_at','2026-11-07T10:11:00+09:00'),('generated_at','2026-11-07T10:11:00+09:00')]:
             view,capture=fixture();p=view['records'][0]['comparison_predictions'][0];p[field]=value
@@ -57,9 +90,14 @@ class ClockTests(unittest.TestCase):
         view,capture=fixture();out=project(view,capture);row=out['records'][0]
         self.assertEqual(row['result']['status'],'final')
         bad=[]
-        for mutate in [lambda r:r['result']['cutoff_reconciliation'].update(source_cutoff_at='2026-11-07T10:09:00+09:00'),lambda r:r['result_observations'][0].pop('schedule_binding'),lambda r:r['comparison_predictions'][0].update(persisted_at='2026-11-07T10:11:00+09:00')]:
+        for mutate in [lambda r:r['result']['cutoff_reconciliation'].update(source_cutoff_at='2026-11-07T10:09:00+09:00'),lambda r:(r['result_observations'][0].pop('schedule_binding'),r['result']['cutoff_reconciliation'].pop('source_schedule_binding',None)),lambda r:r['comparison_predictions'][0].update(persisted_at='2026-11-07T10:11:00+09:00')]:
             r=deepcopy(row);mutate(r);bad.append(r)
             with self.subTest(),self.assertRaises(ValueError):validate_cutoff_reconciliation(r,r['result'])
+        for url in [row['result_observations'][0]['source_url'].replace('www.boatrace.jp','user:pass@www.boatrace.jp'),row['result_observations'][0]['source_url'].replace('www.boatrace.jp','www.boatrace.jp:443'),row['result_observations'][0]['source_url'].replace('www.boatrace.jp','WWW.BOATRACE.JP')]:
+            r=deepcopy(row);r['result_observations'][0]['source_url']=url;bad.append(r)
+            with self.subTest(),self.assertRaises(ValueError):validate_cutoff_reconciliation(r,r['result'])
+        r=deepcopy(row);r['result']['cutoff_reconciliation']['source_schedule_binding']=None;bad.append(r)
+        with self.assertRaises(ValueError):validate_cutoff_reconciliation(r,r['result'])
         code="""const assert=require('node:assert/strict'),M=require('./web/product-data.js'),P=require('./web/saved-performance.js');let s='';process.stdin.on('data',c=>s+=c);process.stdin.on('end',()=>{const x=JSON.parse(s),v=M.parse(x.view),r=v.records[0];assert.equal(r.result.status,'final');for(const p of [r.prediction,...r.comparison_predictions])assert.equal(P.compare(r,p).status,'HIT');assert.equal(M.summary(v.records).overall.evaluable,0);for(const b of x.bad)assert.throws(()=>M.parse({...x.view,records:[b]}));});"""
         result=subprocess.run(['node','-e',code],cwd=Path(__file__).resolve().parents[1],input=json.dumps({'view':out,'bad':bad}),text=True,capture_output=True)
         self.assertEqual(result.returncode,0,result.stderr)

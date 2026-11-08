@@ -382,8 +382,11 @@ def validate_cutoff_reconciliation(row, result):
           set(originals) == set(cutoffs) and len({_clock(c) for c in cutoffs}) > 1, "cutoff reconciliation originals")
     clocks = [_clock(c) for c in originals]
     schedule = {_clock(c) for c in row.get("saved_schedule_cutoff_variants", [])}
-    _need(len(schedule) <= 1 and schedule <= set(clocks) and not row.get("saved_observation_cutoff_variants") and
-          "SAVED_SCHEDULE_CUTOFF_CONFLICT" not in row.get("missing_reasons", []), "cutoff reconciliation schedule")
+    # SP can reconcile saved schedule revisions only when every schedule clock
+    # is already an original model cutoff. Keep the conflict/history intact;
+    # unknown schedule or observation clocks remain a hold.
+    schedule_bound = (len(schedule) <= 1 and "SAVED_SCHEDULE_CUTOFF_CONFLICT" not in row.get("missing_reasons", [])) or (per_model and len(schedule) > 1)
+    _need(schedule_bound and schedule <= set(clocks) and not row.get("saved_observation_cutoff_variants"), "cutoff reconciliation schedule")
     maximum = proof.get("maximum_offset_seconds")
     _need(type(maximum) in (int,float) and 0 <= maximum <= (86400 if per_model else 60), "cutoff reconciliation maximum offset")
     _sha(proof.get("source_sha256"))
@@ -422,8 +425,15 @@ def validate_cutoff_reconciliation(row, result):
         _need(_wire(result.get(field)) == _wire(data.get(field)), "cutoff reconciliation refund binding")
     source_cutoff = _clock(observation.get("closed_at"))
     if per_model:
-        _need(observation.get("schedule_binding") == "SP_EXPLICIT_RACE_HEADER" and
+        binding=proof.get("source_schedule_binding",observation.get("schedule_binding"))
+        _need(binding == "SP_EXPLICIT_RACE_HEADER" and observation.get("schedule_binding") in (None,"SP_EXPLICIT_RACE_HEADER") and
               _clock(proof.get("source_cutoff_at")) == source_cutoff, "cutoff reconciliation explicit source cutoff")
+        from .racer_intraday_source import identity
+        try:
+            day,venue,number=identity(observation.get("source_url"))
+        except (ValueError,TypeError,AttributeError):
+            _need(False,"cutoff reconciliation explicit source URL")
+        _need(day.replace('-','')+f'-{venue}-{number:02d}' == row['race_id'],"cutoff reconciliation explicit source URL")
     clocks.append(source_cutoff)
     _need(all(c.astimezone(_JST).date().isoformat() == row["event_date_jst"] for c in clocks) and
           (max(clocks)-min(clocks)).total_seconds() <= maximum and captured >= max(clocks), "cutoff reconciliation clock span")
