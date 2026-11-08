@@ -153,6 +153,9 @@ def coverage_gate(plan, runtime, *, synthetic=False):
     if runtime.get("video_container_ok") is not True:
         return {"status":"RECORDING_FILE_INVALID",
                 "capture_window_complete":False}
+    if runtime.get("frames_checked") is not True:
+        return {"status":"RENDERED_VIDEO_FRAMES_NOT_VERIFIED",
+                "capture_window_complete":False}
     return {
         "status":"CAPTURE_WINDOW_HEALTHY",
         "capture_window_complete":True,
