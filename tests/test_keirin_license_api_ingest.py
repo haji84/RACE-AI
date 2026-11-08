@@ -116,5 +116,96 @@ class LicenseApiFetchTests(unittest.TestCase):
         self.assertEqual(list((self.root/"raw").glob("*.json")), [])
 
 
+    def full_v2(self, *, mutate=None):
+        from itertools import permutations
+        from race_ai.keirin_licensed_api_ingest import EXPORT_SCHEMA_V2
+        from race_ai.keirin_licensed_odds_export import SCHEMA as ODDS_V2
+        original=data()
+        odds={
+            "schema":ODDS_V2,
+            "race_id":original["race"]["race_id"],
+            "official_cutoff_at":original["race"]["official_cutoff_at"],
+            "published_at":"2030-01-15T09:14:00+09:00",
+            "source_url":"https://example.invalid/fictional-feed/odds",
+            "rights_ref":"FICTIONAL_TEST_RIGHTS_ONLY",
+            "prices":[{"triple":list(t),"decimal_odds":100+i/10}
+                      for i,t in enumerate(permutations(range(1,8),3))]
+        }
+        if mutate:
+            mutate(odds)
+        return json.dumps({
+            "schema":EXPORT_SCHEMA_V2,
+            "bundle_id":"FIXTURE_APPROVED_BUNDLE",
+            "deliveries":[original],
+            "odds_snapshots":[odds],
+        }).encode("utf-8")
+
+    def test_one_permitted_get_carries_full_210_odds_plus_real_shaped_pre_input(self):
+        from race_ai.keirin_variable_selection import ODDS_SCHEMA
+        granted=self.allow_fetch()
+        calls=[]
+        body=self.full_v2()
+        first=fetch_licensed_export_once(
+            self.root,granted,
+            endpoint=self.endpoint,rights_ref="FICTIONAL_TEST_RIGHTS_ONLY",
+            transport=lambda *args:calls.append(args) or body)
+        self.assertEqual(len(calls),1)
+        self.assertEqual(first["provider_packets_created"],1)
+        self.assertEqual(first["licensed_full_odds_staged"]["full_odds_created"],1)
+        saved=list((self.root/"odds").glob("*.json"))
+        self.assertEqual(len(saved),1)
+        odds=json.loads(saved[0].read_text())
+        self.assertEqual(odds["schema"],ODDS_SCHEMA)
+        self.assertEqual(len(odds["prices"]),210)
+        self.assertEqual(odds["captured_at"],granted.now.isoformat())
+        self.assertEqual(len({tuple(v["triple"]) for v in odds["prices"]}),210)
+        staged=stage_permissioned_deliveries(self.root,granted,now=NOW)
+        self.assertEqual(staged["new_pre_race_inputs"],1)
+        again=fetch_licensed_export_once(
+            self.root,granted,endpoint=self.endpoint,
+            rights_ref="FICTIONAL_TEST_RIGHTS_ONLY",
+            transport=lambda *args:calls.append(args) or body)
+        self.assertEqual(again["licensed_full_odds_staged"][
+            "full_odds_already_staged"],1)
+        self.assertEqual(len(calls),2)
+        self.assertEqual(saved[0].read_text(),
+                         json.dumps(odds,sort_keys=True,separators=(",",":"),
+                                    ensure_ascii=False))
+
+    def test_missing_or_invalid_licensed_odds_never_promotes_raw_packet(self):
+        granted=self.allow_fetch()
+        cases=[
+            lambda x:x["prices"].pop(),
+            lambda x:x["prices"].append(x["prices"][0]),
+            lambda x:x["prices"][0].update(decimal_odds=9999.9),
+            lambda x:x.update(source_url="https://keirin.kdreams.jp/api"),
+            lambda x:x.update(published_at="2030-01-15T09:16:00+09:00"),
+            lambda x:x.update(race_id="keirin:2030-01-15:other:1"),
+        ]
+        for alter in cases:
+            with self.subTest(alter=repr(alter)):
+                body=self.full_v2(mutate=alter)
+                with self.assertRaises(LicenseDeliveryError):
+                    fetch_licensed_export_once(
+                        self.root,granted,
+                        endpoint=self.endpoint,
+                        rights_ref="FICTIONAL_TEST_RIGHTS_ONLY",
+                        transport=lambda *_:body)
+                self.assertEqual(len(list((self.root/"odds").glob("*.json"))),0)
+                self.assertEqual(len(list((self.root/"raw").glob("*.json"))),0)
+
+    def test_v2_machine_permission_must_exist_before_any_transport(self):
+        calls=[]
+        with self.assertRaisesRegex(
+                LicenseDeliveryError,
+                "AUTOMATED_SOURCE_ACCESS_NOT_AUTHORIZED"):
+            fetch_licensed_export_once(
+                self.root,self.grant(),
+                endpoint=self.endpoint,
+                rights_ref="FICTIONAL_TEST_RIGHTS_ONLY",
+                transport=lambda *args:calls.append(args) or self.full_v2())
+        self.assertEqual(calls,[])
+
+
 if __name__ == "__main__":
     unittest.main()
