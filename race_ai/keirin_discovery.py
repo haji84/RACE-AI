@@ -119,9 +119,14 @@ def discover_from_html(body, *, event_day, source_url):
 
 
 def get_single_day(event_day, *, opener=None):
-    """One GET per invocation; no retry, redirect, raw page archive or loop."""
+    """Historical parser only; live Rakuten GET disabled by explicit owner choice.
+
+    A supplied injected opener can be used for isolated offline fixtures.
+    No regular caller can accidentally fetch the excluded origin.
+    """
+    if opener is None:
+        raise DiscoveryError("RAKUTEN_LIVE_FETCH_DISABLED_BY_OWNER")
     url=index_url(event_day)
-    opener=opener or build_opener(NoRedirect(), HTTPSHandler())
     request=Request(url,method="GET",headers={
         "Accept":"text/html",
         "Accept-Language":"ja",
