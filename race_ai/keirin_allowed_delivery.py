@@ -153,6 +153,10 @@ def _status_for_item(row, cutoff, as_of, grant):
                           "published_at", "captured_at", "sample_n"},
              "OBSERVATION_SHAPE_INVALID")
     _no_market_features(row["value"])
+    # Reject invalid raw scores *before* provenance hashing, so NaN/Infinity
+    # cannot turn into a serialization failure or bypass the score contract.
+    if type(row["key"]) is str and row["key"].endswith("/race_score"):
+        _convert(row["value"], row["sample_n"], "score_open_v2")
     src, rights = row["source_url"], row["rights_ref"]
     _require(_valid_url(src) and type(rights) is str and
              1 <= len(rights) <= 256 and
