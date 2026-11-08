@@ -60,6 +60,56 @@ class OwnerSourceProfileTests(unittest.TestCase):
         self.assertFalse(p["commercial_or_redistribution_authorized"])
         self.assertFalse(p["real_forecast_or_pre_cutoff_witness_proven"])
 
+    def test_owner_manual_profile_runs_without_any_provider_request(self):
+        import contextlib
+        import io
+        import json
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+        from scripts.keirin_permissioned_owner_agent import main
+        with TemporaryDirectory() as folder:
+            path=Path(folder)
+            stdout=io.StringIO()
+            with patch(
+                "scripts.keirin_permissioned_owner_agent.fetch_licensed_export_once",
+                side_effect=AssertionError("MUST_NOT_USE_REMOTE_PROVIDER")):
+                with contextlib.redirect_stdout(stdout):
+                    status=main([
+                        "--db", str(path/"owner.sqlite3"),
+                        "--inbox", str(path),
+                        "--personal-manual",
+                        "--owner-private-use-confirmed",
+                        "--owner-approved-source-profile", PROFILE_ID
+                    ])
+            self.assertEqual(status,0,stdout.getvalue())
+            report=json.loads(stdout.getvalue().strip().splitlines()[-1])
+            self.assertEqual(report["provider_network_requests"],0)
+            self.assertFalse(report["automatic_provider_fetch"])
+            self.assertTrue(report["owner_self_attested_private_only"])
+            self.assertFalse(report["provider_permission_inferred_from_personal_use"])
+            self.assertFalse(report["official_pre_cutoff_witness"])
+
+    def test_profile_conflict_and_machine_mode_are_rejected(self):
+        import contextlib
+        import io
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from scripts.keirin_permissioned_owner_agent import main
+        with TemporaryDirectory() as folder:
+            path=Path(folder)
+            common=["--db",str(path/"owner.sqlite3"),
+                    "--inbox",str(path),
+                    "--owner-approved-source-profile",PROFILE_ID]
+            for options in (
+                common + ["--personal-manual","--owner-private-use-confirmed",
+                          "--personal-source-host","other.example"],
+                common + ["--operator-reviewed-licenses"],
+            ):
+                with self.subTest(options=options),contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(main(options),2)
+                self.assertFalse((path/"owner.sqlite3").exists())
+
     def test_other_profile_rejected(self):
         with self.assertRaises(OwnerApprovedSourceError):
             approved_source_hosts("all_sites_machine_fetch_approved")
