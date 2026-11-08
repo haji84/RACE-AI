@@ -26,3 +26,10 @@ python -m scripts.keirin_video_ai_owner_cli infer --features /private/9r-feature
 ## Current status
 Synthetic tests passed for frame decoding, candidate production, replay/duplicate rejection, scene classifier holdout, and post-race leakage guards. Real 9R video frame extraction was checked privately, but a real independently validated multi-race scene model has not yet been trained. Actual hands-free four-lap count and replay detection accuracy remain NOT VERIFIED.
 Only advance to broader races after the heldout test and private evidentiary review pass. Never touch existing PR71 forecast weights or pre-cutoff originals merely to claim progress.
+
+## 2026-11-09 owner policy update: verified short clips
+- **Full four-lap footage has priority, not exclusivity.** If all laps are not accessible, an independently reviewed short historic replay can still train attack, final sprint, positioning, finish/goal and replay SCENE categories that are visibly present.
+- Partial highlights NEVER establish four full laps or the non-occurrence of an unseen tactic. Review-derived positives are stored separately from unknown/off-camera actions, without setting missing=0.
+- Implementation: race_ai/keirin_video_clip_policy.py, race_ai/keirin_video_partial_learning.py and create_partial_postrace_learning_candidate in race_ai/keirin_video_postrace_pdca.py. Older full-lap proof and official-model-promotion gates remain strict.
+- Detailed authoritative rules: docs/KEIRIN_PARTIAL_VIDEO_TRAINING_POLICY_20261109.md.
+- WINTICKET 2026-10-30 Yahiko 1R was played successfully at 80.164s; it is a PARTIAL_HIGHLIGHTS **candidate**, NOT yet an externally permitted, reviewed or trained video. Do not claim improved forecast accuracy.
