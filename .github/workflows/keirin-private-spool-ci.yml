@@ -35,5 +35,7 @@ jobs:
         run: python -m unittest discover -s tests -p test_keirin_owner_manual.py -v
       - name: Distinguish published facts from 347 audit/derived/scenario checks
         run: python -m unittest discover -s tests -p test_keirin_field_acquisition.py -v
+      - name: Non-Rakuten owner-saved racecard CSV -> 347 field audit / no invention
+        run: python -m unittest discover -s tests -p test_keirin_owner_saved_csv.py -v
       - name: Operator-private service CLI and no unauthenticated provider access
         run: python -m unittest discover -s tests -p test_keirin_private_agent.py -v
