@@ -9,6 +9,9 @@ from race_ai.keirin_owner_approved_sources import (
 from race_ai.keirin_owner_manual import (
     PERSONAL_MARKER, PersonalOwnerObservations
 )
+from race_ai.keirin_owner_auto_sources import (
+    OwnerAttestedAutomaticSources,OwnerAutomationError,AUTOMATION_CONSENT
+)
 
 
 class OwnerSourceProfileTests(unittest.TestCase):
@@ -77,7 +80,7 @@ class OwnerSourceProfileTests(unittest.TestCase):
             with patch.dict(os.environ,
                             {"GITHUB_ACTIONS":"false","GITHUB_WORKSPACE":""}):
                 with patch(
-                    "scripts.keirin_permissioned_owner_agent.fetch_licensed_export_once",
+                    "scripts.keirin_permissioned_owner_agent.fetch_authorized_exports",
                     side_effect=AssertionError("MUST_NOT_USE_REMOTE_PROVIDER")):
                     with contextlib.redirect_stdout(stdout):
                         status=main([
@@ -114,6 +117,55 @@ class OwnerSourceProfileTests(unittest.TestCase):
                 with self.subTest(options=options),contextlib.redirect_stdout(io.StringIO()):
                     self.assertEqual(main(options),2)
                 self.assertFalse((path/"owner.sqlite3").exists())
+
+    def test_owner_attested_two_sources_allow_repeated_automatic_fetch_scope(self):
+        grants=OwnerAttestedAutomaticSources(
+            profile=PROFILE_ID,consent=AUTOMATION_CONSENT,
+            now="2030-01-15T09:10:00+09:00")
+        for source in (
+            "https://www.winticket.jp/keirin/aomori/odds/",
+            "https://keirin.jp/pc/dfw/portal/guest/"
+        ):
+            self.assertTrue(grants.allowed(source,PERSONAL_MARKER,"automated_fetch"))
+            self.assertTrue(grants.allowed(source,PERSONAL_MARKER,"analysis"))
+        self.assertFalse(grants.allowed(
+            "https://keirin.kdreams.jp/","x","automated_fetch"))
+        self.assertFalse(grants.allowed(
+            "https://api.other.example/","x","automated_fetch"))
+        self.assertFalse(grants.allowed(
+            "https://www.winticket.jp/keirin","x","automated_fetch"))
+        status=grants.acquisition_status()
+        self.assertTrue(status["owner_confirmed_automated_retrieval"])
+        self.assertFalse(status["actual_provider_machine_permission_independently_verified"])
+        self.assertFalse(status["commercial_or_redistribution_permitted"])
+        with self.assertRaises(OwnerAutomationError):
+            OwnerAttestedAutomaticSources(
+                profile=PROFILE_ID,consent="unapproved",now="2030-01-15T09:10:00+09:00")
+
+    def test_automatic_get_profile_requires_explicit_owner_flag(self):
+        import contextlib
+        import io
+        import os
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+        from scripts.keirin_permissioned_owner_agent import main
+        with TemporaryDirectory() as folder:
+            root=Path(folder)
+            base=["--db",str(root/"owner.sqlite3"),"--inbox",str(root),
+                  "--personal-manual","--owner-private-use-confirmed",
+                  "--owner-approved-source-profile",PROFILE_ID]
+            with patch.dict(os.environ,{"GITHUB_ACTIONS":"false","GITHUB_WORKSPACE":""}):
+                out=io.StringIO()
+                with contextlib.redirect_stdout(out):
+                    result=main(base+["--owner-automatic-fetch-confirmed"])
+                self.assertEqual(result,0,out.getvalue())
+                self.assertIn('"owner_confirmed_automated_fetch": true',
+                              out.getvalue())
+                with contextlib.redirect_stdout(io.StringIO()):
+                    self.assertEqual(main(base[:-4]+[
+                        "--owner-approved-source-profile",PROFILE_ID,
+                        "--owner-automatic-fetch-confirmed"]),2)
 
     def test_other_profile_rejected(self):
         with self.assertRaises(OwnerApprovedSourceError):
