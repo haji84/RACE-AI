@@ -7,6 +7,8 @@ on:
       - 'race_ai/keirin_video_partial_learning.py'
       - 'tests/test_keirin_video_clip_policy.py'
       - 'tests/test_keirin_video_partial_learning.py'
+      - 'race_ai/keirin_video_postrace_pdca.py'
+      - 'tests/test_keirin_video_partial_postrace.py'
       - '.github/workflows/keirin-video-short-scene-learning.yml'
   workflow_dispatch:
 
@@ -34,6 +36,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_keirin_video_clip_policy.py' -v
       - name: Reviewed short highlight classification on never-seen synthetic race
         run: python -m unittest discover -s tests -p 'test_keirin_video_partial_learning.py' -v
+      - name: Short video tactical/goal postrace candidate admission
+        run: python -m unittest discover -s tests -p 'test_keirin_video_partial_postrace.py' -v
       - name: Report acceptance boundary
         run: |
           {
