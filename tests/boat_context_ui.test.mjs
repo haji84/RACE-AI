@@ -75,6 +75,95 @@ function contextFixture(row) {
   };
 }
 
+function liveFixture() {
+  const data=fixture(),row=data.records[0];row.race_id='20300101-01-01';row.race_no=1;
+  row.participants=Array.from({length:6},(_,i)=>({number:i+1,registration_no:String(4201+i),name:'合成選手'+(i+1)}));
+  delete row.weather;delete row.weather_preview;
+  const context=contextFixture(row);
+  context.schema='RACE_AI_BOAT_SUPPLEMENTAL_CONTEXT_V1';context.race_id=row.race_id;context.cutoff_at=context.beforeinfo.source_cutoff_at;
+  context.roster=row.participants.map(p=>({lane:p.number,registration_number:p.registration_no}));
+  context.beforeinfo.body_identity_verified=true;
+  const template=context.beforeinfo.participants[0];
+  context.beforeinfo.participants=row.participants.map((p,i)=>({...template,lane:p.number,registration_number:p.registration_no,name:p.name,display_time:6.71+i/100,exhibition_st_raw:i?'.12':'F.04',exhibition_st_status:i?'OK':'F'}));
+  row.live_boat_observation={schema:'RACE_AI_LIVE_BOAT_OBSERVATION_V1',state:'READY',checked_at:'2030-01-01T09:22:00+09:00',context,forecast_inputs_used:false};
+  return data;
+}
+function registeredLiveFixture() {
+  const data=liveFixture(),row=data.records[0];data.dataset_status='REAL_REPORTED';row.scope='research';row.source_provenance='INVENTED_CONTEXT_TEST_ONLY';
+  const identities=[['4320','峰竜太'],['3415','松井繁'],['3897','白井英治'],['3941','池田浩二'],['4238','毒島誠'],['4444','桐生順平']];
+  row.participants=identities.map(([registration_no,name],i)=>({number:i+1,registration_no,name}));
+  const context=row.live_boat_observation.context;
+  context.roster=row.participants.map(p=>({lane:p.number,registration_number:p.registration_no}));
+  context.beforeinfo.participants=row.participants.map((p,i)=>({...context.beforeinfo.participants[i],lane:p.number,registration_number:p.registration_no,name:p.name}));
+  return data;
+}
+
+test('live official facts lead the pre-race tab when the original forecast has no exhibition',async()=>{
+  const data=liveFixture(),tickets=structuredClone(data.records[0].prediction.ordered_top8);
+  await withPreview(data,async page=>{
+    for(const width of [320,390,1440]){
+      await page.setViewportSize({width,height:1000});
+      const panel=page.locator('#live-beforeinfo');assert.equal(await panel.count(),1);
+      const text=await panel.innerText();assert.match(text,/6\.71/);assert.match(text,/F\.04/);assert.match(text,/09:21/);assert.match(text,/0 m\/s/);
+      assert.doesNotMatch(await page.locator('#detail-tab-content').innerText(),/保存予想原本の気象・直前情報は未取得|元ページSHA/);
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    }
+    await page.locator('[data-detail-tab="outlook"]').click();
+    const rendered=await page.locator('#detail-tab-content .saved-ticket .combo').evaluateAll(nodes=>nodes.map(n=>[...n.querySelectorAll('.lane')].map(e=>Number(e.textContent))));
+    assert.deepEqual(rendered,tickets);
+  });
+});
+
+test('live unpublished exhibition shows weather and the publication state instead of a total missing notice',async()=>{
+  const data=liveFixture(),live=data.records[0].live_boat_observation;live.state='AWAITING_EXHIBITION';
+  for(const p of live.context.beforeinfo.participants){p.display_time=null;p.exhibition_st=null;p.exhibition_st_raw=null;p.exhibition_st_status='NOT_PUBLISHED';}
+  await withPreview(data,async page=>{
+    const text=await page.locator('#live-beforeinfo').innerText();assert.match(text,/展示発表待ち/);assert.match(text,/17\.5/);assert.match(text,/0 m\/s/);
+  });
+});
+
+test('a live context for a different registered racer never reaches the visible preview',async()=>{
+  const data=liveFixture();data.records[0].live_boat_observation.context.beforeinfo.participants[0].registration_number='4999';
+  await withPreview(data,async page=>{assert.equal(await page.locator('#live-beforeinfo').count(),0);assert.doesNotMatch(await page.locator('#detail-tab-content').innerText(),/6\.71|F\.04/);});
+});
+
+test('course scenarios use live exhibition only when captured before both saved and official cutoffs',async()=>{
+  for(const [officialLater,early] of [[false,false],[true,false],[false,true]]){
+    const data=registeredLiveFixture(),row=data.records[0];row.cutoff_at='2030-01-01T10:00:00+09:00';
+    const live=row.live_boat_observation,context=live.context,page=context.beforeinfo;
+    live.checked_at='2030-01-01T10:06:00+09:00';context.cutoff_at=page.source_cutoff_at=officialLater?'2030-01-01T10:20:00+09:00':row.cutoff_at;
+    page.source.captured_at=early?'2030-01-01T09:21:00+09:00':'2030-01-01T10:05:00+09:00';page.cutoff_eligibility={captured_before_cutoff:officialLater||early,pre_cutoff_eligible:officialLater||early};
+    context.roster=row.participants.map(p=>({lane:p.number,registration_number:p.registration_no}));
+    page.participants=row.participants.map((p,i)=>({...page.participants[i],lane:p.number,registration_number:p.registration_no,name:p.name,exhibition_course:[2,1,3,4,5,6][i]}));
+    await withPreview(data,async browser=>{
+      await browser.clock.setFixedTime(new Date('2030-01-01T01:10:00Z'));
+      assert.match(await browser.locator('#live-beforeinfo').innerText(),early?/09:21/:/10:05/);
+      await browser.locator('#live-beforeinfo [data-open-participant="4320"]').click();
+      const scenario=await browser.locator('.reference-scenario').first().innerText();
+      if(early)assert.match(scenario,/展示進入の並びを参照/);else assert.doesNotMatch(scenario,/展示進入の並びを参照/);
+      assert.equal(await browser.locator('[data-study-course][aria-pressed="true"]').first().getAttribute('data-study-course'),early?'2':'1');
+      assert.match(await browser.locator('#profile-supplement').innerText(),early?/09:21/:/10:05/);
+    });
+  }
+});
+
+test('live exhibition preserves independently captured comments and their original source time',async()=>{
+  const data=registeredLiveFixture(),row=data.records[0],legacy=structuredClone(row.live_boat_observation.context);
+  legacy.cutoff_at='2030-01-01T09:00:00+09:00';legacy.beforeinfo=null;
+  const page=structuredClone(row.live_boat_observation.context.beforeinfo);
+  Object.assign(page,{kind:'pitreport',source_cutoff_at:legacy.cutoff_at,cutoff_eligibility:{captured_before_cutoff:false,pre_cutoff_eligible:false},reporter:'架空記者'});
+  page.source={...page.source,source_url:page.source.source_url.replace('/beforeinfo?','/pitreport?'),captured_at:'2030-01-01T09:10:00+09:00',sha256:'c'.repeat(64)};
+  page.participants=[{lane:1,registration_number:'4320',name:'峰竜太',comment:'架空の保存済みコメント',comment_status:'REPORTED',comment_attribution:{racer_name:'峰竜太',reporter:'架空記者',kind:'OFFICIAL_PIT_REPORT'}}];
+  legacy.pitreport=page;row.boat_observation_context=legacy;
+  await withPreview(data,async browser=>{
+    await browser.locator('#live-beforeinfo [data-open-participant="4320"]').click();
+    const text=await browser.locator('#profile-supplement').innerText();assert.match(text,/架空の保存済みコメント/);assert.match(text,/09:10/);assert.match(text,/締切後/);assert.match(text,/09:21/);
+    await browser.locator('#participant-dialog').evaluate(dialog=>dialog.close());
+    await browser.locator('[data-page="research"]').filter({visible:true}).first().click();
+    const audit=browser.locator('#research-race-audit');assert.match(await audit.innerText(),/架空の保存済みコメント/);
+  });
+});
+
 test('preview renders separately captured BOAT context without changing saved forecast order', async () => {
   const data = fixture(), row = data.records[0];
   row.boat_observation_context = contextFixture(row);

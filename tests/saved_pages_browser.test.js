@@ -8,6 +8,8 @@ let browser,server;
  const py=spawnSync(process.env.RACE_AI_TEST_PYTHON||'python',['-c',`
 import sys,json
 from pathlib import Path
+import race_ai
+race_ai.__path__.extend(str(Path(reference)/'race_ai') for reference in ('pr64-reference','pr72-reference'))
 from tests.test_boat_pdca_github_handoff import invented_research_state
 from race_ai.boat_pdca_state import PdcaState
 from race_ai.saved_pages import build_site
@@ -34,12 +36,17 @@ build_site(p,r/'updated-public',r/'updated-private',expected_source_sha256=pin,v
  const page=await browser.newPage({viewport:{width:390,height:844}});page.on('pageerror',e=>errors.push(e.message));
  await page.clock.install({time:new Date('2030-01-01T00:00:00Z')});await page.goto(base+'#'+fragment);
  await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'),{},{timeout:7000});
- assert.equal(await page.locator('#selected-date').inputValue(),'2026-11-06');
+ assert.equal(await page.locator('#selected-date').inputValue(),'2030-01-01','cold opening must prefer today even when the immutable seed is historical');
+ assert.equal(await page.locator('#page-races .race-card').count(),0);
+ async function chooseOriginalDay(){
+  await page.locator('#selected-date').fill('2026-11-06');await page.locator('#selected-date').dispatchEvent('change');
+ }
+ await chooseOriginalDay();
  assert.equal(await page.locator('#page-races .race-card').count(),1);
  assert.equal(await page.locator('.import-panel').isVisible(),false,'an automatically opened owner view must not ask for data files');
  assert.equal(await page.locator('#load-synthetic').isVisible(),false);
  for(const name of ['home','races','detail','picks','results','research','settings']){
-  if(name==='detail'){await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('#page-races [data-open-race]').first().click();}
+  if(name==='detail'){await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('[data-race-view="results"]').click();await page.locator('#page-races [data-open-race]').first().click();}
   else await page.locator(`[data-page="${name}"]`).filter({visible:true}).first().click();
   assert.equal(await page.locator('#page-'+name).isVisible(),true);
   assert.equal(new URL(page.url()).hash,'#'+fragment);
@@ -49,6 +56,8 @@ build_site(p,r/'updated-public',r/'updated-private',expected_source_sha256=pin,v
  await page.locator('.brand').filter({visible:true}).first().click();assert.equal(new URL(page.url()).hash,'#'+fragment);
  await page.locator('.skip-link').focus();await page.keyboard.press('Enter');assert.equal(new URL(page.url()).hash,'#'+fragment);
  await page.reload();await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'));
+ assert.equal(await page.locator('#selected-date').inputValue(),'2030-01-01','reloading must return to today rather than retain the historical selection');
+ await chooseOriginalDay();
  await page.locator('#page-races [data-open-race]').first().click();assert.equal(await page.locator('#prediction-select option').count(),4);
  for(let i=0;i<4;i++)await page.locator('#prediction-select').selectOption(String(i));
  assert.equal((await page.evaluate(()=>JSON.stringify({...localStorage,...sessionStorage}))).includes(secret.key),false);
@@ -57,6 +66,8 @@ build_site(p,r/'updated-public',r/'updated-private',expected_source_sha256=pin,v
  activeRoot='updated-public';await page.reload();
  await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'));
  assert.equal(new URL(page.url()).hash,'#'+fragment,'original V1 owner link must open the updated V2 payload');
+ assert.equal(await page.locator('#selected-date').inputValue(),'2030-01-01');
+ await chooseOriginalDay();
  assert.equal(await page.locator('#page-races .race-card').count(),1);
  for(const suffix of ['',fragment.replace(/\.[A-Za-z0-9_-]{43}$/,'.'+ 'A'.repeat(43)),fragment]){
   const before=requests.length;tamper=suffix===fragment;await page.goto(base+(suffix?'#'+suffix:''));
