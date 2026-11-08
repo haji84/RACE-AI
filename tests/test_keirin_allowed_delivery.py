@@ -41,11 +41,12 @@ def fixture(full=True):
                 "all_entrants_and_vehicle_numbers",
                 "late_scratches_substitutions_revisions",
                 "line_order_all_riders", "line_roles_and_solo_riders",
-                "source_access_permission_and_asof",
+                "source_access_permission_and_asof", "start_time",
             }
         ) and not (key.startswith("rider/") and key.endswith(
             ("/identity_number_and_grade", "/last_3_races_rank_and_rivals",
-             "/athlete_comments_and_intent", "/line_leader_or_follow_role")
+             "/athlete_comments_and_intent", "/line_leader_or_follow_role",
+             "/style_mark")
         )):
             continue
         if key.endswith("/identity_number_and_grade"):
