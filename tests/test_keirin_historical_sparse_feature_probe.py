@@ -197,5 +197,47 @@ class SecondRaceResearchInputTests(unittest.TestCase):
                                     "LINE_ROLE_CONFLICT"):
             probe_saved_second_race_reference(source)
 
+
+
+class OwnerPrivateHistoricalProbeCliTests(unittest.TestCase):
+    def test_only_counts_and_sha_are_printed_for_real_shaped_sources(self):
+        import tempfile
+        from pathlib import Path
+        import io
+        from contextlib import redirect_stdout
+        from scripts.keirin_historical_sparse_probe import main
+        with tempfile.TemporaryDirectory() as directory:
+            sourcefile=Path(directory)/"research.json"
+            sourcefile.write_text(json.dumps(second_reference()),
+                                  encoding="utf-8")
+            buffer=io.StringIO()
+            with redirect_stdout(buffer):
+                outcome=main(["--owner-archive",str(sourcefile)])
+            self.assertEqual(outcome,0)
+            report=json.loads(buffer.getvalue())
+            self.assertEqual(report["counts"][
+                "required_candidates_normalized_not_admitted"],14)
+            self.assertNotIn("fictional_1",buffer.getvalue())
+            self.assertNotIn("race_score",buffer.getvalue())
+            self.assertFalse(report["existing_pr71_model_executed"])
+
+    def test_invalid_json_refuses_without_exposing_private_bytes(self):
+        import tempfile
+        from pathlib import Path
+        import io
+        from contextlib import redirect_stdout
+        from scripts.keirin_historical_sparse_probe import main
+        with tempfile.TemporaryDirectory() as directory:
+            file=Path(directory)/"bad.json"
+            for body in ('[]','{"x":1,"x":2}',"PRIVATE_INVALID_FORMAT"):
+                file.write_text(body,encoding="utf-8")
+                output=io.StringIO()
+                with redirect_stdout(output):
+                    code=main(["--owner-archive",str(file)])
+                self.assertEqual(code,2)
+                self.assertNotIn(body,output.getvalue())
+                self.assertIn("HISTORICAL_SOURCE_RECONSTRUCTION_BLOCKED",
+                              output.getvalue())
+
 if __name__=="__main__":
     unittest.main()
