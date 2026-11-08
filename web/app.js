@@ -24,7 +24,7 @@
   const state = {
     page: "home", sport: Object.hasOwn(sports, preferences.sport) ? preferences.sport : "boat",
     day: A.jstToday(), allDates: false, period: "day", statusFilter: "all", followsToday: true, query: "", venue: "", sort: "time",
-    raceView: "upcoming", forecastOnly: false, candidatesOnly: false, selectedId: "", detailTab: "outlook", predictionKeys: {},
+    raceView: "upcoming", forecastOnly: false, candidatesOnly: false, selectedId: "", detailTab: "outlook", predictionKeys: {}, modelBySport: {}, modelOriginals: {},
     budget: validBudget(preferences.budget) ? preferences.budget : 10000,
     raceBudget: validBudget(preferences.raceBudget) ? preferences.raceBudget : 2000,
     simulationBudget: validBudget(preferences.simulationBudget) ? preferences.simulationBudget : 10000, resultGroupKey: "",
@@ -77,10 +77,23 @@
   const storedPredictions = r => r ? (M.candidates ? M.candidates(r) : [r.prediction, ...(r.comparison_predictions || [])].filter(Boolean)) : [];
   const predictions = r => storedPredictions(r).filter(activeModel);
   const displayRows = rows => rows.map(C.forDisplay);
+  const modelMemoryKey = (r, modelId) => JSON.stringify([r.race_id, modelId]);
+  const selectedModelId = r => state.modelBySport[r?.sport] ?? (predictions(r)[state.predictionKeys[r?.race_id]] || predictions(r)[0])?.model_id ?? "";
   const prediction = r => {
-    const list = predictions(r), saved = state.predictionKeys[r?.race_id];
-    return saved === undefined ? list[0] || null : list[saved] || null;
+    const list = predictions(r), modelId = selectedModelId(r), identity = r && state.modelOriginals[modelMemoryKey(r, modelId)];
+    const remembered = identity ? list.findIndex(p => M.savedPredictionIdentity(p) === identity) : -1;
+    return U.modelPrediction(list, modelId, remembered >= 0 ? remembered : state.predictionKeys[r?.race_id]);
   };
+  function rememberModelSelections(sport) {
+    for (const r of races().filter(row => row.sport === sport)) {
+      const p = prediction(r); if (p?.model_id) state.modelOriginals[modelMemoryKey(r,p.model_id)] = M.savedPredictionIdentity(p);
+    }
+  }
+  function chooseModel(sport, modelId, focusId) {
+    rememberModelSelections(sport);
+    if (modelId) state.modelBySport[sport] = modelId; else delete state.modelBySport[sport];
+    renderAll(); $(focusId)?.focus();
+  }
   const modelTechnicalName = p => {
     if(!p)return "未予想";
     const code=p.code_identity || M.codeIdentity?.(p), version=p.model_version ?? (code ? "保存コード "+code.slice(0,7) : "未取得");
@@ -756,7 +769,7 @@
     saved.append(node("strong", "small", p ? p.native_top8_available === false ? "保存" + p.ordered_top8.length + "点プラン" : "保存Top8 · " + p.ordered_top8.length + "点" : "未予想"), node("p", "muted model-caption", modelName(p)), ticketPreview(p, featured ? 4 : 2));
     const open = button("レース詳細を見る →", "outline", () => openRace(r.race_id)); open.dataset.openRace = r.race_id;
     foot.append(saved, open); card.append(foot);
-    if (featured) card.append(node("p", "muted small card-rationale", p?.rationale || r.no_forecast_reason || "予想根拠は未取得です。"));
+    if (featured) card.append(node("p", "muted small card-rationale", U.forecastExplanation(r,p)?.rationale || r.no_forecast_reason || "保存予想の読み込みを待っています。"));
     return card;
   }
   function showPage(page, moveFocus = false) {
@@ -836,9 +849,13 @@
     raceBoundaryTimer = setTimeout(() => { raceBoundaryTimer = null; if (state.page === "races") renderRaces(); },delay);
   }
   function renderRaces() {
-    const now = Date.now(), all = scoped(), matches = U.filterRaces(displayRows(races()), {sport: state.sport, day: state.day, allDates: state.allDates, period: state.period, query: state.query, venue: state.venue, sort: state.sort, forecastOnly: state.forecastOnly, candidatesOnly: state.candidatesOnly, candidateRaceIds: state.candidates.map(t => t.raceId)}), lists = U.raceLists(matches,{now});
+    const now = Date.now(), all = scoped(), baseMatches = U.filterRaces(displayRows(races()), {sport: state.sport, day: state.day, allDates: state.allDates, period: state.period, query: state.query, venue: state.venue, sort: state.sort, candidatesOnly: state.candidatesOnly, candidateRaceIds: state.candidates.map(t => t.raceId)});
+    const matches = state.forecastOnly ? baseMatches.filter(r => prediction(r)) : baseMatches, lists = U.raceLists(matches,{now});
     if (state.raceView === "unknown" && !lists.unknown.length) state.raceView = "upcoming";
     const phase = state.raceView, status = state.statusFilter === "PREDICTION_UNVERIFIED" ? "REVIEW" : state.statusFilter;
+    let modelControls = $("race-model-controls");
+    if (!modelControls) { modelControls = node("section", "model-switch-bar"); modelControls.id = "race-model-controls"; $("page-races").querySelector(".race-view-tabs").before(modelControls); }
+    modelControls.replaceChildren(modelPicker(lists[phase],state.sport,"race-model-select",state.modelBySport[state.sport] || "",true));
     let filtered = phase === "results" && status !== "all" ? lists.results.filter(r => P.compare(r,prediction(r)).status === status) : lists[phase];
     if (state.sort !== "time") { const ids = new Map(matches.map((r,i)=>[r.race_id,i])); filtered = [...filtered].sort((a,b)=>ids.get(a.race_id)-ids.get(b.race_id)); }
     for (const [view,label] of [["upcoming","これからのレース"],["results","レース結果"],["unknown","締切未確認"]]) {
@@ -870,25 +887,55 @@
     $("all-races").replaceChildren(...content); renderVenueExplorer(venueEntries()); $("candidate-count").replaceChildren(...candidateItems()); scheduleRaceBoundary(all,now);
   }
   function predictionPicker(r, id = "prediction-select") {
-    const label = node("label", "prediction-picker", "表示する予想"), select = node("select"); select.id = id;
-    const list = predictions(r);
-    if (!list.length) select.append(new Option("未予想・保存原本なし", ""));
+    const wrapper = node("div", "prediction-controls"), label = node("label", "prediction-picker", "予想の時点・保存履歴"), select = node("select"); select.id = id;
+    const list = predictions(r), chosen = prediction(r), modelId = selectedModelId(r);
+    wrapper.append(modelPicker([r],r.sport,id === "prediction-select" ? "detail-model-select" : "research-model-select",modelId));
+    if (!chosen) select.append(new Option("このモデルの保存予想はありません", ""));
     const modelIdentity=p=>JSON.stringify([p.stage,p.model_id,p.model_version,p.variant,M.codeIdentity?.(p)]);
     list.forEach((p, i) => {
       const repeated=list.filter(other=>modelIdentity(other)===modelIdentity(p)).length>1;
       const clock=p.as_of && Number.isFinite(Date.parse(p.as_of)) ? new Intl.DateTimeFormat("ja-JP",{timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(new Date(p.as_of)) : "未取得";
       select.append(new Option(stageName(p) + " · " + modelName(p) + (repeated ? " · " + clock + " · " + (i+1) : ""), String(i)));
     });
-    select.disabled = !list.length; select.value = String(state.predictionKeys[r.race_id] ?? 0);
-    select.addEventListener("change", () => { state.predictionKeys[r.race_id] = Number(select.value); renderAll(); });
-    label.append(select); return label;
+    select.disabled = !list.length; select.value = chosen ? String(list.indexOf(chosen)) : "";
+    select.addEventListener("change", () => {
+      if (select.value === "") return;
+      const index = Number(select.value), p = list[index]; if (!p) return;
+      rememberModelSelections(r.sport);state.predictionKeys[r.race_id] = index;
+      if (p.model_id) { state.modelBySport[r.sport] = p.model_id;state.modelOriginals[modelMemoryKey(r,p.model_id)] = M.savedPredictionIdentity(p); }
+      renderAll(); $(id)?.focus();
+    });
+    label.append(select); wrapper.append(label); return wrapper;
+  }
+  function modelPicker(rows,sport,id,selected,allowDefault=false) {
+    const label = node("label", "model-picker", "予想モデルを切り替える"), select = node("select"); select.id = id;
+    const options = U.modelOptions(rows,C,sport);
+    if (allowDefault || !selected) select.append(new Option(sport === "all" ? "競技を選ぶとモデルを切り替えられます" : "各レースの保存予想", ""));
+    for (const item of options) select.append(new Option(modelName(item) + (item.races ? allowDefault ? " · " + item.races + "レース" : " · 予想あり" : " · 未保存"),item.model_id));
+    if (selected && !options.some(item => item.model_id === selected)) select.append(new Option(modelName({model_id:selected}) + " · この一覧は未保存",selected));
+    select.value = selected;select.disabled = sport === "all";
+    select.addEventListener("change", () => chooseModel(sport,select.value,id));
+    label.append(select,node("small","muted small",allowDefault ? "保存件数はこの一覧の対象です。選んだモデルを同じ競技で引き継ぎます。" : "モデルを選ぶと買い目・根拠・照合表示が切り替わります。"));
+    return label;
   }
   function forecastPanel(r, p) {
     const box = node("section", "forecast-panel");
     if(p){box.dataset.modelId=p.model_id || "";box.dataset.nativeDispatch=String(p.native_dispatch_prediction===true);}
     box.append(append(node("div", "section-heading"), node("h2", "", p?.native_dispatch_prediction ? "取り込んだ予想" : "予想の買い目"), node("span", "tag scope-" + r.scope, forecastStatus(r, p))));
-    if (p) { box.append(ticketPreview(p, 8)); if(p.rationale)box.append(node("h3", "forecast-rationale-heading", "予想根拠"),node("p", "forecast-rationale", text(p.rationale)));box.append(node("p", "muted small", "保存 " + stamp(p.persisted_at) + " JST · " + p.ordered_top8.length + "点")); }
-    else box.append(empty("予想原本は未取得です", "このモデル・時点の保存予想がありません。"));
+    if (p) {
+      box.append(ticketPreview(p, 8));
+      const explanation=U.forecastExplanation(r,p);
+      if(explanation){
+        const rationale=node("p", "forecast-rationale",text(explanation.rationale));rationale.id="forecast-rationale";
+        const outlook=node("p", "forecast-outlook",explanation.outlook);outlook.id="forecast-outlook";
+        const basis=node("p", "muted small",explanation.basis);basis.id="forecast-outlook-basis";
+        box.append(node("h3", "forecast-rationale-heading", "予想根拠"),rationale,node("p", "muted small",explanation.composition),node("h3", "forecast-rationale-heading", "展開予想"),outlook);
+        if(explanation.alternative){const other=node("p", "forecast-alternative",explanation.alternative);other.id="forecast-alternative";box.append(other);}
+        box.append(basis);
+      }
+      box.append(node("p", "muted small", "保存 " + stamp(p.persisted_at) + " JST · " + p.ordered_top8.length + "点"));
+    }
+    else box.append(empty("このモデルの予想は未保存です", modelName({model_id:selectedModelId(r)}) + "の保存予想は、このレースにはありません。モデル選択で保存状況を確認できます。"));
     box.append(button("このレースの買い目を編集 →", "primary full", () => { state.selectedId = r.race_id; refreshSelects(); showPage("picks", true); }));
     return box;
   }
@@ -1285,7 +1332,7 @@
   function adoptDataset(parsed) {
     refreshSavedResults=null;resultCheck.busy=false;resultCheck.failed=false;
     generation.ownsDisplay = false;generation.suppressed = true;generation.pausedForDrafts = false;generation.pausedForEditing = false;
-    dataset = parsed; state.selectedId = ""; state.predictionKeys = {}; state.candidates = []; state.confirmed.clear(); state.venue = ""; state.visible = 60; $("purchase-ack").checked = false;
+    dataset = parsed; state.selectedId = ""; state.predictionKeys = {}; state.modelOriginals = {}; state.candidates = []; state.confirmed.clear(); state.venue = ""; state.visible = 60; $("purchase-ack").checked = false;
     refreshSelects(); renderAll();
   }
   function selectedDelivery() { return generation.delivery[state.sport]?.[$("forecast-stage").value] || null; }
@@ -1570,10 +1617,11 @@
       if (version !== importVersion) return;
       if (!parsed.records.length) throw new Error("saved originals empty");
       generation.savedState = "READY";
-      const dates = parsed.records.map(r=>r.event_date_jst).filter(Boolean).sort();
-      state.day = dates.at(-1) || state.day;state.raceView = state.day < A.jstToday() ? "results" : "upcoming";state.sport = parsed.records[0].sport;
-      state.followsToday = false;state.allDates = false;state.period = "day";
-      generation.message = "保存済み予想 " + parsed.records.length + "レースを表示しています。";
+      if(state.followsToday)state.day=A.jstToday();
+      state.raceView = state.day < A.jstToday() ? "results" : "upcoming";state.sport = parsed.records[0].sport;
+      state.allDates = false;state.period = "day";
+      const currentRows=parsed.records.filter(row=>row.event_date_jst===state.day);
+      generation.message = currentRows.length ? "保存済み予想・レース情報 " + currentRows.length + "レース · " + state.day : "保存済み予想を確認中 · " + state.day;
       adoptDataset(parsed);showPage("races",true);
       $("file-message").textContent = generation.message;
       if (encrypted) startSavedFeed(encrypted.content,version);
@@ -1588,7 +1636,7 @@
     if(!forecastSha||!window.SavedViewCrypto?.readLive)return;
     const status=node("p","muted small","結果の自動同期を確認しています。");status.id="saved-view-sync";status.setAttribute("role","status");
     $("result-coverage").after(status);
-    let previous={forecastSha,generation:0,cipherSha:path.split("/").at(-1).replace(".json","")},busy=false,queuedDay=null,followToday=true;
+    let previous={forecastSha,generation:0,cipherSha:path.split("/").at(-1).replace(".json","")},busy=false,queuedDay=null,followToday=state.followsToday;
     const choices=new Map();
     function rememberChoices() {
       if(!races().some(row=>row.event_date_jst===state.day))return;
@@ -1609,6 +1657,7 @@
         if(index<0)throw new Error("saved original selection unavailable");keys[row.race_id]=index;
       }
       dataset=parsed;state.day=day;state.predictionKeys=keys;
+      generation.message="保存済み予想・レース情報 " + parsed.records.filter(row=>row.event_date_jst===day).length + "レース · " + day;
       if(!sameDay)state.raceView=day<A.jstToday()?"results":"upcoming";
       if(choice){state.selectedId=choice.selectedId;state.resultGroupKey=choice.resultGroupKey;state.venue=choice.venue;}
       previous={forecastSha,generation:result.header.generation,cipherSha:result.cipherSha};
@@ -1733,7 +1782,7 @@
   $("forecast-stage").addEventListener("change", () => { generation.message = "";renderGeneration();if (automaticMode()) { loadAutomaticLatest(true);scheduleAutomaticPoll(); } });
   $("forecast-follow-latest").addEventListener("click",()=>loadAutomaticLatest(true,true));
   $("load-synthetic").addEventListener("click", loadSynthetic);
-  $("clear-data").addEventListener("click", () => { ++importVersion;refreshSavedResults=null;resultCheck.busy=false;resultCheck.failed=false;generation.savedState = savedViewConfigured ? "CLEARED" : null;generation.ownsDisplay = false;generation.suppressed = true; dataset = null; state.selectedId = ""; state.predictionKeys = {}; state.candidates = []; state.confirmed.clear(); $("purchase-ack").checked = false; refreshSelects(); renderAll(); $("file-message").textContent = "読み込んだ予想と候補をメモリから消去しました。手動購入記録は再読込まで保持します。"; });
+  $("clear-data").addEventListener("click", () => { ++importVersion;refreshSavedResults=null;resultCheck.busy=false;resultCheck.failed=false;generation.savedState = savedViewConfigured ? "CLEARED" : null;generation.ownsDisplay = false;generation.suppressed = true; dataset = null; state.selectedId = ""; state.predictionKeys = {}; state.modelOriginals = {}; state.modelBySport = {}; state.candidates = []; state.confirmed.clear(); $("purchase-ack").checked = false; refreshSelects(); renderAll(); $("file-message").textContent = "読み込んだ予想と候補をメモリから消去しました。手動購入記録は再読込まで保持します。"; });
   $("results-model").addEventListener("change",e=>{state.resultGroupKey=e.target.value;renderResults();});
   $("simulation-race-budget").addEventListener("change",e=>{
     const value=Number(e.target.value);if(![800,1000].includes(value))return;

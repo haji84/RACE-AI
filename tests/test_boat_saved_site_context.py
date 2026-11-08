@@ -39,6 +39,15 @@ def invented_view():
 
 
 class ContextTests(unittest.TestCase):
+    def test_model_switch_probe_binds_distinct_models_to_their_stored_ticket_hashes(self):
+        view=invented_view();row=view['records'][0];first=row['comparison_predictions'][0];first['ordered_top8']=[[1,2,3],[1,3,2]];row['cutoff_at']=first['cutoff_at']
+        peer=deepcopy(first);peer.update(model_id='invented-peer',ordered_top8=[[2,1,3]]);row['comparison_predictions'].append(peer)
+        before=deepcopy(view);context=C.build_context(BOOTSTRAP,view,12,now=NOW)
+        probe=context.get('model_switch_probe');self.assertIsNotNone(probe)
+        self.assertEqual([p['model_id'] for p in probe['choices']],['invented-one','invented-peer'])
+        self.assertEqual(probe['choices'][0]['tickets_sha256'],hashlib.sha256(b'[[1,2,3],[1,3,2]]').hexdigest())
+        self.assertEqual(probe['choices'][1]['index'],1);self.assertEqual(view,before)
+
     def test_live_beforeinfo_probe_is_private_and_keeps_the_original_view_unchanged(self):
         from tests.test_racer_beforeinfo import preview_view,html,AT
         from race_ai.racer_intraday import IntradayState

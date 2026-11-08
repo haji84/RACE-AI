@@ -46,6 +46,7 @@ export_view(refs,root/'profiles.html')
     await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'),{},{timeout:5000});
     assert.equal(await page.evaluate(()=>globalThis.RaceRacerProfiles?.all.length),1669,'official reference data is available in ordinary and offline views');
     assert.equal(await page.evaluate(()=>typeof globalThis.RaceRacerDaily?.load),'function','daily reference API is available in ordinary and offline views');
+    await page.locator('#selected-date').fill('2026-11-06');await page.locator('#selected-date').dispatchEvent('change');
     assert.equal(await page.locator('#selected-date').inputValue(),'2026-11-06');
     assert.equal(await page.locator('#page-races .race-card').count(),1);
     await page.locator('#page-races [data-open-race]').first().click();
@@ -67,8 +68,10 @@ export_view(refs,root/'profiles.html')
   offline.on('request',req=>offlineRequests.push(req.url()));offline.on('pageerror',e=>errors.push(e.message));
   await offline.goto(base+'/profiles.html');
   await offline.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'),{},{timeout:5000});
-  await offline.locator('[data-page="home"]').filter({visible:true}).first().click();
-  await offline.locator('#page-home [data-open-participant="4320"]').click();
+  await offline.locator('#selected-date').fill('2026-11-06');await offline.locator('#selected-date').dispatchEvent('change');
+  await offline.locator('[data-page="races"]').filter({visible:true}).first().click();
+  await offline.locator('[data-race-view="results"]').click();await offline.locator('#page-races [data-open-race]').first().click();
+  await offline.locator('#detail-tab-content [data-open-participant="4320"]').first().click();
   assert.match(await offline.locator('#racer-reference').innerText(),/8\.05/);
   assert.equal(await offline.locator('#racer-reference .reference-course').count(),6);
   await offline.locator('[data-study-course="4"]').click();

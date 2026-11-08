@@ -162,10 +162,12 @@ save('dec-omitted',H.encrypt_history_router(bad_dec,key,view_id=vid,source_sha=p
   active=scenario==='midnight'?'nov':'v4';
   await live.goto('http://127.0.0.1:'+server.address().port+'/#'+fragment);
   await live.waitForFunction(expected=>document.querySelector('#saved-view-sync')?.dataset.generation===expected,scenario==='midnight'?'2':'1');
-  assert.equal(await live.locator('#selected-date').inputValue(),'2026-11-06','missing or future dates must not displace the available current view');
+  assert.equal(await live.locator('#selected-date').inputValue(),scenario==='midnight'?'2026-11-06':'2026-11-07','opening preserves today while waiting for its saved races');
+  if(scenario==='late-publication')assert.equal(await live.locator('#page-races [data-open-race]').count(),0,'an older seed must not fill today with historical races');
   if(scenario==='midnight')await live.clock.setSystemTime(new Date('2026-11-07T00:00:00Z'));
   active='nov';await live.clock.fastForward(61000);
   await live.waitForFunction(()=>document.querySelector('#selected-date').value==='2026-11-07');
+  await live.waitForFunction(()=>document.querySelector('#source-date').textContent==='対象日：2026-11-07');
   assert.equal(await live.locator('#source-date').textContent(),'対象日：2026-11-07',scenario+' must show today after synchronization');
   assert.ok(await live.locator('#page-races [data-open-race]').count()>0,scenario+' switches to the upcoming list');
   await live.close();

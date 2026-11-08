@@ -81,6 +81,9 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
   const key=validate(context),{chromium}=require('playwright');
   if(checkBeforeinfo){assert.ok(context.live_beforeinfo_races>0);assert.match(context.live_beforeinfo_probe?.race_id,/^\d{8}-\d{2}-\d{2}$/);assert.ok(Number.isFinite(Date.parse(context.live_beforeinfo_probe.cutoff_at)));}
   let beforeinfoViews=0,beforeinfoTimes=0;
+  let modelSwitchViews=0,modelSwitchOriginals=0;
+  const modelProbe=context.model_switch_probe;
+  if(modelProbe){assert.match(modelProbe.race_id,/^\d{8}-\d{2}-\d{2}$/);assert.ok(Number.isFinite(Date.parse(modelProbe.cutoff_at)));assert.equal(modelProbe.choices.length,2);assert.notEqual(modelProbe.choices[0].model_id,modelProbe.choices[1].model_id);for(const p of modelProbe.choices){assert.ok(Number.isSafeInteger(p.index)&&p.index>=0);assert.match(p.tickets_sha256,/^[a-f0-9]{64}$/);}}
   if(probeRaceId){assert.match(probeRaceId,/^\d{8}-\d{2}-\d{2}$/);assert.equal(probeRaceId.slice(0,8),context.day.replaceAll('-',''));}
   const executablePath=['/usr/bin/google-chrome','/opt/google/chrome/google-chrome',
     '/opt/google/chrome/chrome','/usr/bin/chromium'].find(path=>fs.existsSync(path));
@@ -242,6 +245,21 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
         assert.ok(await live.locator('.weather-panel').count()>0);assert.match(await live.innerText(),/公式情報の取得/);
         assert.doesNotMatch(await page.locator('#detail-tab-content').innerText(),/保存予想原本の気象・直前情報は未取得|元ページSHA/);beforeinfoViews++;
       }
+      if(modelProbe){
+        await selectDate(context.day);await page.locator('[data-page="races"]').filter({visible:true}).first().click();
+        if(await page.locator('#all-venues').isVisible())await page.locator('#all-venues').click();
+        await page.locator('[data-race-view="'+(Date.parse(modelProbe.cutoff_at)>Date.now()?'upcoming':'results')+'"]').click();
+        await (await revealRace(page,modelProbe.race_id,context.day_races)).click();await page.locator('[data-detail-tab="outlook"]').click();
+        for(const choice of modelProbe.choices){
+          await page.locator('#detail-model-select').selectOption(choice.model_id);await page.locator('#prediction-select').selectOption(String(choice.index));
+          const panel=page.locator('#detail-tab-content .forecast-panel');assert.equal(await panel.getAttribute('data-model-id'),choice.model_id);
+          const tickets=await panel.locator('.saved-ticket .combo').evaluateAll(nodes=>nodes.map(node=>[...node.querySelectorAll('.lane')].map(n=>Number(n.textContent))));
+          assert.equal(require('node:crypto').createHash('sha256').update(JSON.stringify(tickets)).digest('hex'),choice.tickets_sha256);modelSwitchOriginals++;
+        }
+        await page.locator('[data-page="research"]').filter({visible:true}).first().click();
+        assert.equal(await page.locator('#research-model-select').inputValue(),modelProbe.choices[1].model_id);
+        await page.locator('#research-race-audit [data-return-to-race]').click();assert.equal(await page.locator('#detail-model-select').inputValue(),modelProbe.choices[1].model_id);modelSwitchViews++;
+      }
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);checked++;
     }
     assert.deepEqual(errors,[]);assert.equal(leaked,false);
@@ -257,6 +275,7 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
       future_native_visible_before_cutoff:futureVisible,previous_day_checked:context.old_day!==null,
       active_model_families:15,removed_seller_hidden:true,
       live_beforeinfo_views_checked:beforeinfoViews,live_beforeinfo_times_checked:beforeinfoTimes,
+      model_switch_views_checked:modelSwitchViews,model_switch_originals_checked:modelSwitchOriginals,
       participant_names:true,editable_daily_budget:true,per_race_1000_simulation:true,
       hit_miss_rate_roi_and_settled_pending_net_visible:true,
       key_in_requests_or_storage:false,blocked_external_requests:blocked,official_source_requests:0,plaintext_published:false};

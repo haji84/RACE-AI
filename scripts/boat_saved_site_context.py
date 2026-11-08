@@ -1,6 +1,8 @@
 """Prepare a private context for the existing owner's live GitHub Pages check."""
 import argparse
 import base64
+import hashlib
+from collections import Counter
 from datetime import date,datetime,timezone,timedelta
 import json
 import os
@@ -50,10 +52,18 @@ def build_context(bootstrap,view,generation,*,now,require_future=False,event_day
     current=now.astimezone(JST).date().isoformat();day=_selected_day(event_day,now)
     rows=[r for r in view['records'] if r.get('sport')=='boat' and r['event_date_jst']==day]
     _need(bool(rows),'CURRENT_DAY_REQUIRED' if event_day is None else 'SELECTED_DAY_REQUIRED')
-    native=set();future=None;probe=None
+    native=set();future=None;probe=None;model_probe=None;model_counts=Counter()
     for row in rows:
         predictions=[p for p in [row.get('prediction'),*row.get('comparison_predictions',[])]
                      if p is not None and not is_retired(p.get('model_id'))]
+        families={}
+        for index,p in enumerate(predictions):
+            tickets=p.get('ordered_top8');model_id=p.get('model_id')
+            if isinstance(model_id,str) and model_id and isinstance(tickets,list) and 1<=len(tickets)<=8:
+                families.setdefault(model_id,dict(model_id=model_id,index=index,tickets_sha256=hashlib.sha256(json.dumps(tickets,separators=(',',':')).encode()).hexdigest()))
+        model_counts[len(families)]+=1
+        if model_probe is None and len(families)>1 and row.get('cutoff_at'):
+            model_probe=dict(race_id=row['race_id'],cutoff_at=row['cutoff_at'],choices=list(families.values())[:2])
         for index,p in enumerate(predictions):
             if not p or p.get('stage')!='P1' or p.get('native_dispatch_prediction') is not True or \
                p.get('external_receipt_verified') is not True or p.get('eligible_pre_cutoff') is not True:continue
@@ -93,6 +103,7 @@ def build_context(bootstrap,view,generation,*,now,require_future=False,event_day
         generation=generation,day_races=len(rows),minimum_results=completed(rows),native_p1_groups=len(native),
         native_groups=[list(group) for group in sorted(native,key=lambda group:json.dumps(group))],native_probe=probe,
         live_beforeinfo_races=len(previews),live_beforeinfo_probe=preview_probe,
+        model_switch_probe=model_probe,model_family_counts=dict(sorted(model_counts.items())),
         old_day=old_day,old_completed=completed([r for r in view['records'] if r.get('sport')=='boat'
             and r['event_date_jst']==old_day]),future_native=future)
 
@@ -133,6 +144,7 @@ def main(argv=None,*,now=None):
             checked_day=context['day'],current_day=context['current_day'],date_scope=context['date_scope'],
             native_p1_groups=context['native_p1_groups'],completed_results=context['minimum_results'],
             live_beforeinfo_races=context['live_beforeinfo_races'],
+            model_family_counts=context['model_family_counts'],model_switch_probe_available=context['model_switch_probe'] is not None,
             future_native_available=context['future_native'] is not None,plaintext_published=False,
             official_source_requests=0),sort_keys=True))
         return 0

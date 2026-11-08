@@ -11,6 +11,26 @@
     return Number.isFinite(clock) && new Date(clock).toISOString().slice(0, 10) === value;
   };
   const model = {
+    modelOptions(rows, catalog, sport) {
+      const retired = new Set(catalog?.retired_model_ids || []), counts = new Map(), specs = new Map();
+      for (const spec of catalog?.models || []) if (!retired.has(spec.model_id) && spec.applicable_sports.includes(sport)) specs.set(spec.model_id, spec);
+      for (const row of rows || []) {
+        if (row.sport !== sport) continue;
+        for (const p of [row.prediction, ...(row.comparison_predictions || [])]) {
+          if (!p || typeof p.model_id !== "string" || !p.model_id || retired.has(p.model_id)) continue;
+          if (!specs.has(p.model_id)) specs.set(p.model_id, {model_id:p.model_id});
+          if (!counts.has(p.model_id)) counts.set(p.model_id, new Set());
+          counts.get(p.model_id).add(row.race_id);
+        }
+      }
+      return [...specs.keys()].map(model_id => ({model_id,races:counts.get(model_id)?.size || 0}))
+        .sort((a,b) => b.races-a.races);
+    },
+    modelPrediction(list, modelId, preferredIndex) {
+      const preferred = Number.isInteger(preferredIndex) ? list[preferredIndex] : null;
+      if (preferred && (!modelId || preferred.model_id === modelId)) return preferred;
+      return modelId ? list.find(p => p.model_id === modelId) || null : list[0] || null;
+    },
     venueName(row) {
       // Resolve the saved BOAT code for display without rewriting the original record.
       const code = row?.sport === "boat" && typeof row.venue === "string" ? /^(?:場コード|boatrace-jcd-)(0[1-9]|1[0-9]|2[0-4])$/.exec(row.venue) : null;
@@ -20,6 +40,31 @@
       // The existing catalogue checks every supplied registration field and
       // exact observed name alias before returning the full public name.
       return root.RaceRacerPortraits?.get(row, person)?.name || person?.name || null;
+    },
+    forecastExplanation(row, prediction) {
+      const tickets=prediction?.ordered_top8;
+      if(!Array.isArray(tickets)||!tickets.length||tickets.length>8||tickets.some(t=>!Array.isArray(t)||t.length!==3||t.some(n=>!Number.isInteger(n)||n<1||n>99)||new Set(t).size!==3))return null;
+      const unit=row?.sport==="boat"?"号艇":row?.sport==="horse"?"番":"番車",label=n=>n+unit;
+      const method={
+        "boat-observed-pairwise-factor-v1":"出走表と取得できた観測値を、選手間で比較する方式です。",
+        "boat-observed-pairwise-start-v1":"スタート関連の観測値を重視し、選手間で比較する方式です。",
+        "boat-comprehensive-v1":"複数の要素をまとめて評価し、3連単を順位付けする方式です。",
+        "boat-scenario-mixture-v1":"前残り・攻め・荒れた条件の複数の想定を組み合わせる方式です。",
+        "boat-course-entry-method-scenarios-v0.1-UNTRAINED":"進入コースや決まり手の履歴から、複数の展開を比較する方式です。",
+        "multisport-conditional-duel-v1":"出走者どうしの相性と着順の組み合わせを比較する方式です。",
+        "multisport-race-trajectory-v1":"先行・追走などの複数の流れを組み合わせて比較する方式です。"
+      }[prediction.model_id]||"モデルが保存した3連単の順位と、上位買い目の構成をもとにしています。";
+      const saved=[prediction.rationale,prediction.explanation].find(v=>typeof v==="string"&&v.trim());
+      const counts=new Map();for(const ticket of tickets)counts.set(ticket[0],(counts.get(ticket[0])||0)+1);
+      const main=tickets[0],other=tickets.find(t=>t[0]!==main[0])||tickets.find(t=>t[1]!==main[1])||tickets.find(t=>t.some((n,i)=>n!==main[i]));
+      const sequence=t=>t.map(label).join(" → ");
+      return {
+        rationale:saved||method+" 保存された上位"+tickets.length+"点を表示しています。",
+        composition:"1着に置く買い目の内訳："+[...counts].map(([n,count])=>label(n)+"を"+count+"点").join("、")+"。",
+        outlook:"本線は "+sequence(main)+" の決着を想定。"+label(main[0])+"を中心に、"+label(main[1])+"と"+label(main[2])+"が続く組み立てです。",
+        alternative:other?"対抗は "+sequence(other)+"。"+(other[0]!==main[0]?label(other[0])+"が本線の先頭に代わる形も買い目に残しています。":label(other[1])+"と"+label(other[2])+"を続く相手に置く別の組み立てです。"):null,
+        basis:"保存買い目の着順から整理した想定です。進入や具体的な仕掛けの判断までは、この買い目だけでは分かりません。"
+      };
     },
     raceDeadline(row = {}) {
       const valid = value => typeof value === "string" && Number.isFinite(Date.parse(value));
