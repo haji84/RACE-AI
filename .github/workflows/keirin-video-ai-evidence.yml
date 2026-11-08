@@ -9,6 +9,8 @@ on:
       - 'race_ai/keirin_video_postrace_pdca.py'
       - 'tests/test_keirin_video_events.py'
       - 'tests/test_keirin_video_learning.py'
+      - 'tests/test_keirin_video_ai_owner_cli.py'
+      - 'scripts/keirin_video_ai_owner_cli.py'
       - '.github/workflows/keirin-video-ai-evidence.yml'
   workflow_dispatch:
 
@@ -38,10 +40,13 @@ jobs:
           python -m py_compile race_ai/keirin_video_learning.py
           python -m py_compile race_ai/keirin_video_inference.py
           python -m py_compile race_ai/keirin_video_postrace_pdca.py
+          python -m py_compile scripts/keirin_video_ai_owner_cli.py
       - name: Explicit synthetic replay/finish/lap proof tests
         run: python -m unittest discover -s tests -p 'test_keirin_video_events.py' -v
       - name: Train/holdout and feature-vector synthetic tests
         run: python -m unittest discover -s tests -p 'test_keirin_video_learning.py' -v
+      - name: Private CLI access and no-public-video guard
+        run: python -m unittest discover -s tests -p 'test_keirin_video_ai_owner_cli.py' -v
       - name: No official claims or public video
         run: |
           printf '%s\n' 'Synthetic 4-lap and scene-learning contracts passed.' >> "$GITHUB_STEP_SUMMARY"
