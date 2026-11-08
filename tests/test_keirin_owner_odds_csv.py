@@ -121,12 +121,41 @@ class OwnerOddsCsvTests(unittest.TestCase):
             next_cycle=stage_owner_saved_odds_csv(
                 root,now="2030-01-15T09:23:00+09:00",
                 grant_check=admitted())
-            self.assertEqual(next_cycle["rejected"],1)
+            self.assertEqual(next_cycle["rejected"],0)
+            self.assertEqual(next_cycle["already_same"],1)
+            old_at_cutoff=stage_owner_saved_odds_csv(
+                root,now="2030-01-15T10:05:00+09:00",
+                grant_check=admitted())
+            self.assertEqual(old_at_cutoff["already_same"],1)
             self.assertEqual(private[0].read_text(),
                              json.dumps(doc,ensure_ascii=False,
                                         separators=(",",":"),sort_keys=True))
             self.assertFalse(first["official_rights_verified"])
             self.assertFalse(first["external_capture_time_verified"])
+
+    def test_modified_owner_csv_does_not_replace_frozen_first_odds(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp); (root/"odds_csv").mkdir()
+            raw,meta=fixture()
+            src=root/"odds_csv"/"one.csv"
+            entry=root/"odds_csv"/"one.meta.json"
+            src.write_bytes(raw)
+            entry.write_text(json.dumps(meta),encoding="utf8")
+            self.assertEqual(stage_owner_saved_odds_csv(
+                root,now=NOW,grant_check=admitted())["created"],1)
+            saved=next((root/"odds").glob("*.json"))
+            prior=saved.read_bytes()
+            altered=raw.replace(b",100.0\\n",b",101.0\\n",1)
+            # Preserve accurate SHA for the altered bytes. The immutable
+            # source binding still refuses a different value after freeze.
+            src.write_bytes(altered)
+            meta["csv_sha256"]=sha256(altered).hexdigest()
+            entry.write_text(json.dumps(meta),encoding="utf8")
+            again=stage_owner_saved_odds_csv(
+                root,now="2030-01-15T09:23:00+09:00",
+                grant_check=admitted())
+            self.assertEqual(again["rejected"],1)
+            self.assertEqual(saved.read_bytes(),prior)
 
     def test_invalid_metadata_never_creates_output(self):
         with tempfile.TemporaryDirectory() as temp:
