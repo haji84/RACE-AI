@@ -122,7 +122,8 @@ def _validate_forecast_only_view(view):
     """
     try:
         checked=subprocess.run(['node','-e',code,str(ROOT/'web/product-data.js')],
-            cwd=ROOT,input=wire(view).encode(),capture_output=True,timeout=30,check=False)
+            cwd=ROOT,input=wire(view).encode(),capture_output=True,timeout=30,check=False,
+            env={'PATH':os.environ.get('PATH') or os.defpath,'LANG':'C.UTF-8','TZ':'UTC'})
     except (OSError,subprocess.SubprocessError):
         raise ValueError('FEED_FORECASTS_ONLY_READER_REJECTED') from None
     need(checked.returncode==0 and not checked.stdout and not checked.stderr,'FEED_FORECASTS_ONLY_READER_REJECTED')
@@ -220,6 +221,7 @@ def git_auth():
 def main(argv=None):
     p=argparse.ArgumentParser(description=__doc__);p.add_argument('--seed-only',action='store_true');p.add_argument('--result-artifact',type=int)
     p.add_argument('--forecasts-only',action='store_true',help='Append verified forecasts to an existing feed without reading or updating results')
+    p.add_argument('--replay-vault-config',help='Replay only the explicitly pinned retained RESULT and PC captures')
     p.add_argument('--hydrate-originals',action='store_true')
     p.add_argument('--history',action='store_true',help='Require compatible active publishers before initial V5 activation')
     p.add_argument('--history-when-compatible',action='store_true',help='Keep V4 until all active pinned publishers support V5')
@@ -228,6 +230,12 @@ def main(argv=None):
     p.add_argument('--recover-model-config',action='store_true')
     a=p.parse_args(argv)
     try:
+        if a.replay_vault_config is not None:
+            need(a.day is not None and not any((a.seed_only,a.forecasts_only,a.result_artifact is not None,
+                a.recover_model_run,a.recover_model_config,a.hydrate_originals,a.history,a.history_when_compatible)),
+                'FEED_VAULT_REPLAY_OPTION_CONFLICT')
+            from scripts.boat_private_original_vault import _environment
+            _environment(ROOT)
         need(not a.forecasts_only or not (a.seed_only or a.result_artifact is not None),'FEED_FORECASTS_ONLY_OPTION_CONFLICT')
         config=_json(_read(ROOT/'audit/state/boat-saved-view-input.json',8192),8192)
         need(set(config)=={'schema','bootstrap','bootstrap_sha256','catchup_artifact_id','catchup_sha256'}
@@ -235,6 +243,11 @@ def main(argv=None):
         raw=base64.b64decode(config['bootstrap'],validate=True);need(sha(raw)==config['bootstrap_sha256'],'FEED_BOOTSTRAP_HASH')
         bootstrap=F.open_bootstrap(raw);git_auth();git=F.FeedRepository(ROOT)
         if a.day is not None:need(date.fromisoformat(a.day).isoformat()==a.day,'FEED_DAY_INVALID')
+        if a.replay_vault_config is not None:
+            from race_ai.boat_vault_result_replay import read_config,replay
+            report=replay(ROOT,read_config(ROOT,a.replay_vault_config),day=a.day,bootstrap=bootstrap,
+                          feed=git,validate_view=_validate_forecast_only_view)
+            print(wire(report));return 0
         parent,previous,generation,view=F.current_view(git,bootstrap,day=a.day)
         need(not a.forecasts_only or parent is not None and generation>0,'FEED_FORECASTS_ONLY_EXISTING_FEED_REQUIRED')
         previous_view=deepcopy(view)

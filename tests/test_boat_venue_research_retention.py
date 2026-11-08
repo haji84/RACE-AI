@@ -54,15 +54,15 @@ class PrivateResearchRetentionTests(unittest.TestCase):
         self.assertEqual(base64.b64decode(encoded), ('x-access-token:'+token).encode())
         self.assertEqual(os.environ['GIT_TERMINAL_PROMPT'], '0')
 
-    def test_forecast_and_pdca_publish_once_each_with_temporary_auth_and_no_stdout(self):
+    def test_forecast_and_pdca_publish_as_a_batch_with_temporary_auth_and_no_stdout(self):
         api = self.api(); before = dict(os.environ); seen = []
-        def publish(folder, repo):
+        def publish(folders, repo):
             self.assert_auth(TOKEN)
             self.assertEqual(repo, self.repo)
-            seen.append(folder)
-            return dict(POINTER)
+            seen.extend(folders)
+            return [dict(POINTER) for _ in folders]
         output = io.StringIO()
-        with patch.object(api, 'publish_learning_candidate', side_effect=publish), contextlib.redirect_stdout(output):
+        with patch.object(api, 'publish_learning_candidates', side_effect=publish), contextlib.redirect_stdout(output):
             result = api.retain_private_research([self.forecast, self.pdca, self.forecast], self.repo)
         self.assertEqual(seen, [self.forecast, self.pdca])
         self.assertEqual(result['status'], 'OWNER_PRIVATE_RESEARCH_RETENTION_VERIFIED')
@@ -82,12 +82,12 @@ class PrivateResearchRetentionTests(unittest.TestCase):
                           GIT_CONFIG_KEY_2='old.unused', GIT_CONFIG_VALUE_2='old-value',
                           GIT_TERMINAL_PROMPT='1', GCM_INTERACTIVE='old-choice')
         before = dict(os.environ)
-        def fail(folder, repo):
+        def fail(folders, repo):
             self.assert_auth(TOKEN, index=2)
             self.assertEqual(os.environ['GIT_CONFIG_VALUE_0'], 'first')
             self.assertEqual(os.environ['GIT_CONFIG_VALUE_1'], 'second')
             raise ValueError('synthetic publish failure')
-        with patch.object(api, 'publish_learning_candidate', side_effect=fail), \
+        with patch.object(api, 'publish_learning_candidates', side_effect=fail), \
              self.assertRaisesRegex(ValueError, 'synthetic publish failure'):
             api.retain_private_research([self.forecast], self.repo)
         self.assertEqual(dict(os.environ), before)
@@ -95,17 +95,17 @@ class PrivateResearchRetentionTests(unittest.TestCase):
     def test_explicit_token_overrides_gh_token_only_for_scoped_git_auth(self):
         api = self.api(); token = 'different-synthetic-retention-token'
         before = dict(os.environ)
-        def publish(folder, repo):
+        def publish(folders, repo):
             self.assert_auth(token)
             self.assertEqual(os.environ['GH_TOKEN'], TOKEN)
-            return dict(POINTER)
-        with patch.object(api, 'publish_learning_candidate', side_effect=publish):
+            return [dict(POINTER) for _ in folders]
+        with patch.object(api, 'publish_learning_candidates', side_effect=publish):
             api.retain_private_research([self.forecast], self.repo, token=token)
         self.assertEqual(dict(os.environ), before)
 
     def test_invalid_key_token_and_git_count_stop_before_any_publisher(self):
         api = self.api(); before = dict(os.environ)
-        with patch.object(api, 'publish_learning_candidate', side_effect=AssertionError('preflight must finish first')):
+        with patch.object(api, 'publish_learning_candidates', side_effect=AssertionError('preflight must finish first')):
             for key in ('', 'not-base64'):
                 with self.subTest(key='missing-or-malformed'), patch.dict(os.environ, RACE_AI_STATE_KEY=key), self.assertRaises(ValueError):
                     api.retain_private_research([self.forecast], self.repo)
@@ -132,7 +132,7 @@ class PrivateResearchRetentionTests(unittest.TestCase):
         public_file = self.folder('public-file'); (public_file/'learning.enc').chmod(0o644)
         invalid = [self.root/'missing', inside, candidate, symlink, missing_file, public_file,
                    self.forecast/'..'/'forecast']
-        with patch.object(api, 'publish_learning_candidate', side_effect=AssertionError('no partial publication')):
+        with patch.object(api, 'publish_learning_candidates', side_effect=AssertionError('no partial publication')):
             for root in invalid:
                 with self.subTest(path=root.name), self.assertRaises(ValueError):
                     api.retain_private_research([self.forecast, root], self.repo)
@@ -140,10 +140,12 @@ class PrivateResearchRetentionTests(unittest.TestCase):
 
     def test_requires_bounded_explicit_list_and_empty_list_performs_no_git(self):
         api = self.api()
-        with patch.object(api, 'publish_learning_candidate', side_effect=AssertionError('no publisher call')):
+        with patch.object(api, 'publish_learning_candidates', side_effect=AssertionError('no publisher call')):
             for folders in (None, str(self.forecast), (self.forecast,), [self.forecast]*10001):
                 with self.subTest(kind=type(folders).__name__), self.assertRaises(ValueError):
                     api.retain_private_research(folders, self.repo)
+        with patch('race_ai.boat_venue_learning_handoff.GitStateRepository',
+                   side_effect=AssertionError('empty input must not access Git')):
             result = api.retain_private_research([], self.repo)
         self.assertEqual(result['retained_folders'], 0)
         self.assertEqual(result['pointers'], [])

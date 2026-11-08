@@ -1,0 +1,171 @@
+{
+  "schema": "RACE_AI_BOAT_CLOSED_SOURCE_OPERATION_COUNTS_V1",
+  "source": {
+    "run_id": 42439206540,
+    "head_sha": "ac3f302f646fdafede90565e6b6f32560ace062f",
+    "job_id": 128604594483,
+    "run_conclusion": "success",
+    "completed_at": "2026-11-08T03:49:52Z",
+    "saved_rounds": 5,
+    "session_requests": 155,
+    "end_reason": "BOUNDED_SESSION_END",
+    "source_control_artifact_id": 13603131488,
+    "continuity_artifact_id": 13602514356
+  },
+  "current_day_site": {
+    "run_id": 42444232865,
+    "head_sha": "ce49426c6226064e2d04683694adc028567cd9dc",
+    "job_id": 128619691426,
+    "run_conclusion": "failure",
+    "reports": [
+      {
+        "already_projected_artifacts": 6,
+        "appended_eligible_pre_cutoff_forecasts": 0,
+        "appended_forecasts": 0,
+        "appended_p0_forecasts": 0,
+        "appended_p1_forecasts": 0,
+        "archived_artifacts": 0,
+        "archives_verified": 0,
+        "coverage_reused_artifacts": 6,
+        "coverage_scopes_written": 0,
+        "deferred_artifacts": 0,
+        "deferred_runs": 0,
+        "empty_prediction_archives": 0,
+        "empty_scope_acknowledgments": 0,
+        "generated_forecasts_reported": 0,
+        "intake_status": "SAVED_MODEL_ARCHIVES_REPLAYED",
+        "listed_artifacts": 90,
+        "matched_model_artifacts": 6,
+        "max_artifacts": 128,
+        "max_metadata_bytes": 67108864,
+        "max_zip_bytes": 67108864,
+        "metadata_response_bytes": 78358,
+        "official_source_requests": 0,
+        "originals_unchanged": true,
+        "out_of_scope_records": 0,
+        "plaintext_published": false,
+        "projected_forecasts": 0,
+        "reused_forecasts_reported": 0,
+        "runs_requested": 1,
+        "runs_scanned": 1,
+        "schema": "RACE_AI_BOAT_SAVED_MODEL_RECOVERY_COUNTS_V1",
+        "status": "SAVED_MODEL_RECOVERY_COMPLETE",
+        "unrepresented_scoped_forecasts": 0,
+        "zero_generated_archives": 0,
+        "zip_bytes_reserved": 0
+      },
+      {
+        "accuracy_improvement_proven": false,
+        "actual_purchases": false,
+        "authenticated_archives": 0,
+        "completion_upper_bounds": 264,
+        "deferred_archives": 0,
+        "evidenced_predictions": 344,
+        "exact_generation_clocks": 28,
+        "native_asof_clocks": 316,
+        "originals_unchanged": true,
+        "saved_predictions": 1130,
+        "schema": "RACE_AI_SAVED_PREDICTION_EVIDENCE_COUNTS_V1",
+        "status": "SAVED_ORIGINAL_EVIDENCE_VERIFIED",
+        "unsupported_archives": 9
+      },
+      {
+        "generation": 80,
+        "status": "SAVED_FORECASTS_UNCHANGED"
+      },
+      {
+        "checked_day": "2026-11-08",
+        "current_day": "2026-11-08",
+        "date_scope": "CURRENT_DAY",
+        "future_native_races": 0,
+        "generation": 80,
+        "latest_native_cutoff_lead_seconds": -1650,
+        "native_p1_groups": 11,
+        "native_p1_races": 14,
+        "official_source_requests": 0,
+        "plaintext_published": false,
+        "reason": "SAVED_SITE_FUTURE_NATIVE_REQUIRED",
+        "status": "SAVED_SITE_CONTEXT_REJECTED"
+      }
+    ],
+    "gate1_complete": false
+  },
+  "publication_timing": [
+    {
+      "round": 3,
+      "archive_created_at": "2026-11-08T03:02:17Z",
+      "site_published_at": "2026-11-08T03:18:55.8016279Z",
+      "site_generation": 79
+    },
+    {
+      "round": 4,
+      "archive_created_at": "2026-11-08T03:19:27Z",
+      "site_published_at": "2026-11-08T03:35:14.8666332Z",
+      "site_generation": 80
+    }
+  ],
+  "learning_retention": {
+    "reported_folders": 210,
+    "step_started_at": "2026-11-08T03:23:32.209Z",
+    "proof_reported_at": "2026-11-08T03:33:54.489Z",
+    "concurrent_writer_class": "LEARNING_CANDIDATE_RETENTION",
+    "exact_commit_to_job_attribution_proven": false
+  },
+  "last_result_publisher": {
+    "conflict_counts": {
+      "differing_data_fields": {},
+      "differing_fields": {
+        "reason": 1
+      },
+      "differing_finish_fields": {},
+      "observations_reconciled": 0,
+      "originals_changed": false,
+      "same_source_bytes": true
+    },
+    "failure_at": "boat_saved_model_view.py:47",
+    "failure_class": "SavedModelViewError",
+    "reason": "SAVED_MODEL_VIEW_CONFLICTING_RESULT_OBSERVATION",
+    "status": "ENCRYPTED_VIEW_REJECTED"
+  },
+  "automatic_reflector": {
+    "run_id": 42444327366,
+    "job_id": 128619970762,
+    "event": "workflow_run",
+    "run_conclusion": "success",
+    "status": "INTRADAY_REFRESHED",
+    "implementation_commit": "89cb216ac737e024b35019bd668c4775b5ea5088",
+    "checked_at": "2026-11-08T03:50:53.488679+00:00",
+    "new_observations": 9,
+    "source_requests": 12,
+    "result_sync": {
+      "changed_races": 12,
+      "checked_at": "2026-11-08T03:50:53.488679+00:00",
+      "confirmed": 176,
+      "held": 1,
+      "pending": 87,
+      "races": 264,
+      "schema": "RACE_AI_RESULT_SYNC_V1",
+      "state": "READY"
+    },
+    "today": {
+      "confirmed_races": 13,
+      "day": "2026-11-08",
+      "expected_races": 132,
+      "last_checked_at": "2026-11-08T03:50:53.488679+00:00",
+      "latest_result_at": "2026-11-08T03:50:47.597094+00:00",
+      "pending_races": 119,
+      "revision_conflicts": 0,
+      "schedule_complete": true,
+      "source_state": "READY"
+    },
+    "result_rejection_reason_counts": {
+      "RESULT_CUTOFF_REFERENCE_ROSTER_REQUIRED": 1
+    },
+    "forecast_inputs_changed": false,
+    "private_sources_published": false,
+    "prediction_ciphertext_unchanged": true
+  },
+  "fully_automatic_continuation_proven": false,
+  "remaining_unfitted_native_models": 11,
+  "accuracy_improvement_proven": false
+}
