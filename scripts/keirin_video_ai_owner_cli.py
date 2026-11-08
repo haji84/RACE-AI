@@ -14,7 +14,8 @@ from pathlib import Path
 import sys
 
 from race_ai.keirin_video_learning import (
-    sample_private_video,train_reviewed_classifier,SceneLearningError)
+    sample_private_video,train_reviewed_classifier,
+    bind_reviewed_labels_to_frames,SceneLearningError)
 from race_ai.keirin_video_inference import to_review_queue
 
 def private_output(p:Path, obj:dict):
@@ -48,6 +49,8 @@ def main(argv=None):
     extract.add_argument("--output",required=True)
     train=subs.add_parser("train")
     train.add_argument("--reviewed-labels",action="append",required=True)
+    train.add_argument("--features",action="append",required=True,
+                       help="Exactly one private feature file per reviewed-label file")
     train.add_argument("--output",required=True)
     infer=subs.add_parser("infer")
     infer.add_argument("--features",required=True)
@@ -66,7 +69,10 @@ def main(argv=None):
               "frames":len(doc["features"]),"raw_video_exported":False,
               "features_kept_owner_private":True},ensure_ascii=False))
     elif args.command=="train":
-        docs=[load_private(x) for x in args.reviewed_labels]
+        if len(args.features)!=len(args.reviewed_labels):
+            raise ValueError("FEATURE_REVIEW_PAIR_COUNT_MISMATCH")
+        docs=[bind_reviewed_labels_to_frames(load_private(f),load_private(l))
+              for f,l in zip(args.features,args.reviewed_labels)]
         model=train_reviewed_classifier(docs)
         private_output(Path(args.output),model)
         print(json.dumps({"phase":"TRAIN","status":model["validation_status"],
