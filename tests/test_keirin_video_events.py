@@ -14,7 +14,7 @@ def sha(s):
 def e(label,time,idx,*,phash=None,scene="LIVE",replay=0.03,score=0.97):
     return {"id":f"e{idx}","recording_sec":time,"event":label,
             "confidence":score,"frame_sha256":sha(f"synthetic frame {idx}"),
-            "phash64":phash or f"{idx+65536:016x}",
+            "phash64":phash or f"{(idx*0x9e3779b97f4a7c15)&((1<<64)-1):016x}",
             "scene":scene,"replay_confidence":replay,
             "origin":"SYNTHETIC_FIXTURE"}
 
