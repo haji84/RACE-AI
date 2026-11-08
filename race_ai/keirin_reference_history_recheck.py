@@ -140,3 +140,106 @@ def recheck_derived_references(first, second, third):
         "actual_purchase_profit_yen":None,
         "valid_for_model_promotion":False,
     }
+
+
+def recheck_original_saved_baseline_against_published(earliest, published):
+    """Recheck saved *historical* Top8 against later research result records.
+
+    Original prediction source core is still absent; this verifies the
+    immutable 76-row Top8 reference fingerprint against the earliest owner
+    ledger, NOT an independent pre-cutoff forecast receipt. No web I/O.
+    Full Top12/variable 0..12 cannot be derived from only Top8.
+    """
+    from hashlib import sha256
+    _need(type(earliest) is dict and type(published) is dict
+          and earliest.get("prediction_origin") ==
+            "conversation-generated reference, not official sealed"
+          and earliest.get("results_status") == "NOT_VERIFIED"
+          and earliest.get("source_version") ==
+            "20261103-am-reference-v1"
+          and earliest.get("date_jst") == "2026-11-03"
+          and published.get("forecast_file_verified") is False
+          and published.get("formal_hits") is None,
+          "ORIGINAL_REFERENCE_STATUS_NOT_TRUSTED")
+    original=earliest.get("races")
+    results=published.get("races")
+    _need(type(original) is list and type(results) is list
+          and 1 <= len(original) <= 200 and
+          len(original) == len(results), "ORIGINAL_REFERENCE_COVERAGE_GAP")
+    old={}
+    line_parts=[]
+    for row in original:
+        _need(type(row) is dict and type(row.get("id")) is str
+              and ID.fullmatch(row["id"]) and row["id"] not in old,
+              "ORIGINAL_REFERENCE_DUPLICATE_ID")
+        picks=row.get("baseline_top8")
+        _need(type(picks) is list and len(picks)==8 and
+              len({_ticket(t) for t in picks})==8,
+              "ORIGINAL_REFERENCE_TOP8_INVALID")
+        probs=row.get("baseline_probabilities_unvalidated")
+        _need(type(probs) is list and len(probs)==8 and
+              all(type(v) in (int,float) and math.isfinite(v)
+                  and 0 <= v <= 1 for v in probs),
+              "ORIGINAL_REFERENCE_NOT_SAVED_EIGHT_SCORES")
+        old[row["id"]]=row
+        line_parts.append(row["id"]+":"+",".join(picks))
+    # Preserve original row order; sorting would alter the fixed legacy digest.
+    recalculated=sha256("\n".join(line_parts).encode("utf-8")).hexdigest()
+    _need(type(published.get("fallback_sha256")) is str and
+          recalculated == published["fallback_sha256"],
+          "ORIGINAL_REFERENCE_FALLBACK_SHA_MISMATCH")
+    updated={}
+    for row in results:
+        _need(type(row) is dict and type(row.get("race_id")) is str
+              and row["race_id"] in old and row["race_id"] not in updated,
+              "PUBLISHED_REFERENCE_DUPLICATE_OR_UNMATCHED")
+        updated[row["race_id"]]=row
+    _need(set(updated)==set(old),"PUBLISHED_REFERENCE_COVERAGE_DIFFERENT")
+    hits=mansha=mansha_hit=return_yen=0
+    for rid,row in old.items():
+        result=updated[rid]
+        tickets=row["baseline_top8"]
+        _need(result.get("ordered_top8")==tickets
+              and result.get("official_organizer_checked") is False
+              and result.get("refund_and_revision_checked") is False,
+              "PUBLISHED_REFERENCE_CHANGED_OR_UNVERIFIED_FLAGS")
+        win=result.get("provider_trifecta")
+        _ticket(win)
+        paid=result.get("payout_yen_per_100")
+        _need(type(paid) is int and 1<=paid<=1_000_000_000,
+              "PUBLISHED_REFERENCE_PAYOUT_INVALID")
+        captured=win in tickets
+        _need(result.get("hit8_research") == int(captured),
+              "PUBLISHED_REFERENCE_HIT_FLAG_CHANGED")
+        hits+=captured
+        mansha+=(paid>=10000)
+        mansha_hit+=(captured and paid>=10000)
+        if captured:
+            return_yen+=paid
+    total=len(old)
+    spent=total*800
+    return {
+        "schema":"RACE_AI_KEIRIN_SAVED_HISTORICAL_BASELINE_REPLAY_V1",
+        "scope":"OWNER_REFERENCE_ONLY_NOT_PROSPECTIVE_FORMAL",
+        "source_version":earliest["source_version"],
+        "baseline_record_count":total,
+        "fallback_pre_result_top8_sha256":recalculated,
+        "fallback_sha_recomputed_and_equal":True,
+        "matched_published_result_rows":len(updated),
+        "source_full_original_file_verified":False,
+        "independent_pre_cutoff_all_races_verified":False,
+        "third_party_result_match_crosschecked_by_this_function":False,
+        "top8_hits":hits,"top8_hit_rate":hits/total,
+        "mansha_races":mansha,"mansha_top8_captured":mansha_hit,
+        "mansha_capture_rate":mansha_hit/mansha if mansha else None,
+        "top12_hit_rate":None,
+        "variable_pick_hit_rate":None,
+        "reference_investment_yen":spent,
+        "reference_return_yen":return_yen,
+        "reference_profit_yen":return_yen-spent,
+        "reference_roi":return_yen/spent,
+        "formal_hit_rate":None,"formal_roi":None,
+        "actual_purchase_profit_yen":None,
+        "new_model_trained_on_results":False,
+        "valid_for_model_promotion":False,
+    }
