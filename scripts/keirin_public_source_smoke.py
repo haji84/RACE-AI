@@ -156,6 +156,59 @@ def preloaded_schema_only(text):
             for item in node[:900]:
                 if isinstance(item,(dict,list)) and depth<11:
                     stack.append((path+"[*]",item,depth+1))
+    odds_shape=[]
+    queries=tree.get("tanStackQuery",{})
+    query_list=queries.get("queries",[]) if isinstance(queries,dict) else []
+    if isinstance(query_list,list):
+        for query in query_list[:160]:
+            if not isinstance(query,dict):
+                continue
+            state=query.get("state")
+            data=state.get("data") if isinstance(state,dict) else None
+            if not isinstance(data,dict):
+                continue
+            rows=data.get("trifecta")
+            if not isinstance(rows,list) or len(rows) not in (210,504):
+                continue
+            def describe_one(record,depth=0):
+                if isinstance(record,dict):
+                    return {
+                        str(k)[:48]:(
+                            describe_one(v,depth+1) if depth<2
+                            else type(v).__name__
+                        )
+                        for k,v in list(record.items())[:25]
+                    }
+                if isinstance(record,list):
+                    return {
+                        "array_length":len(record),
+                        "first_element_shape":(
+                            describe_one(record[0],depth+1)
+                            if record and depth<2 else None),
+                    }
+                return type(record).__name__
+            counts={}
+            if all(isinstance(v,dict) for v in rows):
+                names=set().union(*(set(v.keys()) for v in rows))
+                for name in sorted(names)[:36]:
+                    vals=[v.get(name) for v in rows]
+                    counts[str(name)[:48]]={
+                        "null_rows":sum(v is None for v in vals),
+                        "numeric_rows":sum(type(v) in (int,float) for v in vals),
+                        "str_rows":sum(isinstance(v,str) for v in vals),
+                        "array_rows":sum(isinstance(v,list) for v in vals),
+                        "dict_rows":sum(isinstance(v,dict) for v in vals),
+                    }
+            qkey=query.get("queryKey")
+            odds_shape.append({
+                "count":len(rows),
+                "first_row_shape":describe_one(rows[0]) if rows else None,
+                "field_type_histograms":counts,
+                "query_key_shape":describe_one(qkey),
+                "source_data_keys":[str(k)[:50] for k in list(data)[:28]],
+            })
+            if len(odds_shape)>=3:
+                break
     return {
         "status":"PRELOADED_JSON_PARSED",
         "assignment_kind":assignment_kind,
@@ -165,6 +218,7 @@ def preloaded_schema_only(text):
         "odds_and_race_key_paths":interesting,
         "array_length_210_paths":exact_210,
         "array_length_504_paths":exact_504,
+        "trifecta_row_shapes":odds_shape,
         "full_210_prices_verified":False,
     }
 
