@@ -115,7 +115,8 @@ def _convert(value, sample_n, method):
     if method == "score100":
         return _number(value, 0, 100) / 100
     if method == "count_rate":
-        _require(type(sample_n) is int and sample_n > 0, "INVALID_SAMPLE_N")
+        _require(type(value) is int and type(sample_n) is int and sample_n > 0,
+                 "COUNT_AND_SAMPLE_MUST_BE_INTEGERS")
         return _number(value, 0, sample_n) / sample_n
     if method == "physical":
         return _number(value, -30, 150)
@@ -185,6 +186,73 @@ def _model_observation(row, value, transform):
         "sample_n": row["sample_n"],
         "transform_id": "keirin-audit-" + transform + "-v1",
     }
+
+
+
+def _bind_roster_and_lines(race, approved):
+    """Prevent verified-but-unrelated source rows from certifying a roster."""
+    roster = race["starters"]
+    by_number = {p["number"]: p for p in roster}
+    current = sorted(by_number)
+    for key, expected in (
+        ("race/race_id_date_venue_no",
+         {"race_id": race["race_id"], "event_date_jst": race["event_date_jst"],
+          "venue": race["venue"]}),
+        ("race/official_sales_cutoff", race["official_cutoff_at"]),
+        ("race/race_distance", race["distance_m"]),
+    ):
+        if key not in approved:
+            continue
+        actual = approved[key]["value"]
+        if isinstance(expected, dict):
+            _require(isinstance(actual, dict) and
+                     all(actual.get(k) == v for k, v in expected.items()),
+                     "RACE_SOURCE_IDENTITY_MISMATCH")
+        else:
+            _require(actual == expected, "RACE_SOURCE_TIMING_OR_DISTANCE_MISMATCH")
+    key = "race/all_entrants_and_vehicle_numbers"
+    if key in approved:
+        entries = approved[key]["value"]
+        _require(type(entries) is list and
+                 entries == [{"number": n, "identity": by_number[n]["identity"]}
+                             for n in current],
+                 "SOURCE_ENTRANT_LIST_DISAGREEMENT")
+    key = "race/late_scratches_substitutions_revisions"
+    if key in approved:
+        revision = approved[key]["value"]
+        _require(type(revision) is dict and
+                 revision.get("race_revision") == race["race_revision"] and
+                 revision.get("active_numbers") == current,
+                 "SOURCE_REVISION_OR_SCRATCH_MISMATCH")
+    key = "race/line_order_all_riders"
+    if key in approved:
+        topology = approved[key]["value"]
+        _require(type(topology) is dict and
+                 set(topology) == {"lines", "solos"} and
+                 type(topology["lines"]) is list and
+                 type(topology["solos"]) is list,
+                 "LINE_TOPOLOGY_INVALID")
+        seen = []
+        for line in topology["lines"]:
+            _require(type(line) is dict and
+                     set(line) == {"group_id", "order"} and
+                     type(line["group_id"]) is str and
+                     1 <= len(line["group_id"]) <= 30 and
+                     type(line["order"]) is list and
+                     2 <= len(line["order"]) <= len(current),
+                     "LINE_SHAPE_INVALID")
+            for n in line["order"]:
+                _require(type(n) is int and n in by_number and
+                         by_number[n]["group_id"] == line["group_id"],
+                         "LINE_GROUP_DISAGREEMENT")
+                seen.append(n)
+        for n in topology["solos"]:
+            _require(type(n) is int and n in by_number and
+                     by_number[n]["group_id"] is None,
+                     "SOLO_RIDER_DISAGREEMENT")
+            seen.append(n)
+        _require(sorted(seen) == current and len(seen) == len(set(seen)),
+                 "LINE_ROSTER_COVERAGE_INVALID")
 
 
 def assemble_permitted_pre_race(delivery, *, grant_check, checked_at):
@@ -258,6 +326,7 @@ def assemble_permitted_pre_race(delivery, *, grant_check, checked_at):
             continue
         items.append(_stored(key, rows[key]))
         approved[key] = rows[key]
+    _bind_roster_and_lines(race, approved)
     required_missing = [
         i["key"] for i in items if
         ((i["key"].startswith("race/") and i["key"].split("/")[1] in CRITICAL_RACE) or
