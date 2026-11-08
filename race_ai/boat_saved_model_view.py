@@ -422,8 +422,15 @@ def validate_cutoff_reconciliation(row, result):
         _need(_wire(result.get(field)) == _wire(data.get(field)), "cutoff reconciliation refund binding")
     source_cutoff = _clock(observation.get("closed_at"))
     if per_model:
-        _need(observation.get("schedule_binding") == "SP_EXPLICIT_RACE_HEADER" and
+        binding=proof.get("source_schedule_binding",observation.get("schedule_binding"))
+        _need(binding == "SP_EXPLICIT_RACE_HEADER" and observation.get("schedule_binding") in (None,"SP_EXPLICIT_RACE_HEADER") and
               _clock(proof.get("source_cutoff_at")) == source_cutoff, "cutoff reconciliation explicit source cutoff")
+        from .racer_intraday_source import identity
+        try:
+            day,venue,number=identity(observation.get("source_url"))
+        except (ValueError,TypeError,AttributeError):
+            _need(False,"cutoff reconciliation explicit source URL")
+        _need(day.replace('-','')+f'-{venue}-{number:02d}' == row['race_id'],"cutoff reconciliation explicit source URL")
     clocks.append(source_cutoff)
     _need(all(c.astimezone(_JST).date().isoformat() == row["event_date_jst"] for c in clocks) and
           (max(clocks)-min(clocks)).total_seconds() <= maximum and captured >= max(clocks), "cutoff reconciliation clock span")

@@ -174,7 +174,8 @@ def update_view(view,observations,*,synced_at,captures=()):
         selected=by_capture.get((latest['race_id'],instant(latest['captured_at'])),latest)
         try:row['result']=project_observation(selected,row,freeze_at=row['prediction']['persisted_at'],raw_bound=digest(selected) in raw_ids)
         except (KeyError,ValueError,TypeError) as error:
-            reason=str(error) if re.fullmatch('[A-Z][A-Z0-9_]{1,199}',str(error)) else 'RESULT_OBSERVATION_INVALID'
+            code=getattr(error,'reason_code',None) or str(error)
+            reason=code if re.fullmatch('[A-Z][A-Z0-9_]{1,199}',code) else 'RESULT_OBSERVATION_INVALID'
             row['result']=dict(status='unsupported',winning_combinations=[],confirmed_at=None,observed_at=latest['captured_at'],official=False,source_sha256=latest.get('source_sha256'))
             row['result_observation_rejections']=[dict(captured_at=latest['captured_at'],source_sha256=latest.get('source_sha256'),reason=reason)]
             row['missing_reasons'].append('LATEST_RESULT_OBSERVATION_REJECTED')

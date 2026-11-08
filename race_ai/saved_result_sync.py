@@ -191,6 +191,7 @@ def _reconcile_original_cutoffs(observation,row):
         original_cutoffs=list(variants),source_sha256=observation['source_sha256'],
         maximum_offset_seconds=(max(clocks)-min(clocks)).total_seconds(),
         roster_identity_verified=True,all_originals_saved_before_both=True)
-    if per_model:result['cutoff_reconciliation']['source_cutoff_at']=observation['closed_at']
+    if per_model:
+        result['cutoff_reconciliation'].update(source_cutoff_at=observation['closed_at'],source_schedule_binding='SP_EXPLICIT_RACE_HEADER')
     validate_cutoff_reconciliation(row,result)
     return result
