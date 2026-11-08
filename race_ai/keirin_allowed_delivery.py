@@ -14,6 +14,7 @@ from urllib.parse import urlsplit
 
 from .comprehensive_four_sport_models import feature_inventory
 from .keirin_field_acquisition import acquisition_summary
+from .keirin_non_rakuten_sources import is_rakuten_url
 from .keirin_preflight import (
     SCHEMA as AUDIT_SCHEMA, RACE_ITEMS, RIDER_ITEMS, CRITICAL_RACE,
     CRITICAL_RIDER, audit_pre_race, expected_keys,
@@ -164,6 +165,8 @@ def _status_for_item(row, cutoff, as_of, grant):
     # even if the race itself has yet to start.
     if captured > as_of or published >= cutoff:
         return "stale", "PUBLISHED_OR_CAPTURED_AFTER_AS_OF"
+    if is_rakuten_url(src):
+        return "rights_blocked", "RAKUTEN_SOURCE_EXCLUDED_BY_OWNER"
     if not _allow_source(grant, src, rights):
         return "rights_blocked", "INDEPENDENT_PURPOSE_GRANT_NOT_VERIFIED"
     return "verified", None
