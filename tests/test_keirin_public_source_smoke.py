@@ -7,6 +7,7 @@ import unittest
 
 from scripts.keirin_public_source_smoke import (
     TARGETS, SourceProbeError, probe, summarize_html, validate_public_url,
+    preloaded_schema_only,
 )
 
 BEFORE="2026-11-09T08:40:00+09:00"
@@ -40,6 +41,22 @@ class PublicSourceSmokeTests(unittest.TestCase):
         self.assertTrue(report["contains_trifecta_label"])
         self.assertTrue(report["contains_aomori_label"])
         self.assertFalse(report["odds_210_all_values_validated"])
+
+    def test_embedded_preloaded_state_exposes_only_structure_not_odds_values(self):
+        import json
+        raw=json.dumps({
+            "schedule":{"raceId":"fictional"},
+            "oddsState":{"trifectaOdds":[{"triple":[1,2,3],
+                                         "decimal":17.8} for _ in range(210)]}
+        },separators=(",",":"))
+        shape=preloaded_schema_only("window.__PRELOADED_STATE__ = "+raw+";")
+        self.assertEqual(shape["status"],"PRELOADED_JSON_PARSED")
+        self.assertIn("oddsState.trifectaOdds",
+                      shape["array_length_210_paths"])
+        self.assertFalse(shape["full_210_prices_verified"])
+        self.assertNotIn("17.8",json.dumps(shape))
+        self.assertEqual(preloaded_schema_only("no state")["status"],
+                         "NO_PRELOADED_STATE")
 
     def test_long_inline_script_never_shadows_http_original_sha(self):
         from hashlib import sha256
