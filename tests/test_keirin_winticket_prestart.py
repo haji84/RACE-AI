@@ -149,6 +149,25 @@ class LiveFourLapAuditTest(unittest.TestCase):
                    independent_attestor=lambda e,c:False)
         self.assertEqual(r["status"],"INDEPENDENT_ATTESTATION_REJECTED")
 
+    def test_live_capture_cannot_start_without_owner_rights_gate(self):
+        import asyncio
+        import os
+        import tempfile
+        from unittest.mock import patch
+        from scripts.keirin_winticket_prestart_recorder import run_live
+        p=fixture_plan()
+        p["recording_rights_ref"]="INDEPENDENT_RIGHTS_EVIDENCE_REQUIRED"
+        with tempfile.TemporaryDirectory() as t:
+            report=Path(t)/"status.json"
+            with patch.dict(os.environ,{},clear=True):
+                answer=asyncio.run(run_live(
+                    p,report,fixture=False,test_seconds=9))
+            self.assertEqual(answer["status"],
+                             "SOURCE_RECORDING_RIGHTS_GATE_BLOCKED")
+            self.assertFalse(answer["four_laps_verified"])
+            self.assertTrue(report.exists())
+            self.assertNotIn("recording_file",answer)
+
     def test_video_garbage_is_not_a_recording(self):
         import tempfile
         with tempfile.TemporaryDirectory() as t:
