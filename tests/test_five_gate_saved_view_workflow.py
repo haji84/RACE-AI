@@ -11,15 +11,18 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 REF = 'refs/heads/codex/forecast-first-display-20261108'
 SUBJECT = 'saved-view: forecasts-first five-gates actual acceptance'
+RETENTION_SUBJECT = 'saved-view: forecasts-first five-gates retention-only diagnostic'
 
 
-def admits(expression, *, subject=SUBJECT, actor='173585154', ref=REF):
+def admits(expression, *, subject=SUBJECT, actor='173585154', ref=REF,
+           browser='success', publication='success'):
     code = expression.removeprefix('${{').removesuffix('}}').strip()
     code = re.sub(r'!(?!=)', ' not ', code).replace('&&', ' and ').replace('||', ' or ')
     github = N(repository='haji84/RACE-AI', repository_id='1416489937', actor_id=actor,
         event_name='push', ref=ref, event=N(head_commit=N(message=subject)))
     good = N(outcome='success', outputs=N(ready='false'))
-    steps = N(forecast_only_publication=good, saved_model_publication=good, browser_tooling=good,
+    steps = N(forecast_only_publication=N(outcome=publication), saved_model_publication=good,
+              browser_tooling=N(outcome=browser),
               prospective_policy=good, all_models_bootstrap=good, all_models_bootstrap_freeze=N(outputs={'artifact-id': ''}))
     return eval(code, {'__builtins__': {}}, {'github': github, 'steps': steps,
         'startsWith': lambda value, prefix: value.startswith(prefix), 'always': lambda: True, 'hashFiles': lambda _: ''})
@@ -91,6 +94,46 @@ class FiveGateWorkflowTests(unittest.TestCase):
             bad = dict(base, GITHUB_ACTOR_ID='1')
             run = subprocess.run(['bash', '-e', '-o', 'pipefail', '-c', body], env=bad, capture_output=True, text=True)
             self.assertEqual(run.returncode, 2); self.assertFalse(log.exists())
+
+    def test_retention_only_runs_with_skipped_browser_and_skips_all_writers_and_browser_install(self):
+        for name in ('Retain and independently restore exact saved originals without taking over the active worker',
+                     'Retain safe completed-worker control for the existing hourly coordinator',
+                     'Install the existing pinned browser checker'):
+            self.assertFalse(admits(self.named(name)['if'], subject=RETENTION_SUBJECT, browser='skipped'))
+        owner = self.named('Verify the actual private owner site without the local workspace')
+        self.assertTrue(admits(owner['if'], subject=RETENTION_SUBJECT, browser='skipped'))
+        self.assertFalse(admits(owner['if'], subject=SUBJECT, browser='skipped'))
+        for outcome in ('failure', 'skipped', 'cancelled'):
+            self.assertFalse(admits(owner['if'], subject=RETENTION_SUBJECT,
+                                    browser='skipped', publication=outcome))
+
+    def test_retention_only_shell_calls_exact_verifier_and_keeps_a_hold_failed(self):
+        body = self.named('Verify the actual private owner site without the local workspace')['run']
+        gate = self.named('Require verified site display and unchanged frozen settlement')['run']
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary); binary = folder/'bin'; binary.mkdir(); log = folder/'calls'
+            commands = [('git', 'printf "%s\\n" "$SUBJECT"'),
+                ('python', 'printf "%s\\n" "$*" >> "$LOG"\nif [ "$2" = scripts.boat_retained_run_verify ]; then exit "$VERIFY_EXIT"; fi'),
+                ('node', 'printf "%s\\n" NODE >> "$LOG"\nexit 99')]
+            for name, text in commands:
+                file = binary/name; file.write_text('#!/bin/sh\n'+text+'\n'); file.chmod(0o700)
+            base = dict(os.environ, PATH=str(binary)+os.pathsep+os.environ['PATH'], LOG=str(log),
+                        SUBJECT=RETENTION_SUBJECT, GITHUB_REF=REF, RUNNER_TEMP=temporary)
+            for code in (0, 2):
+                with self.subTest(verifier_exit=code):
+                    if log.exists(): log.unlink()
+                    run = subprocess.run(['bash', '-e', '-o', 'pipefail', '-c', body],
+                        env=dict(base, VERIFY_EXIT=str(code)), capture_output=True, text=True)
+                    self.assertEqual(run.returncode, code, run.stderr)
+                    self.assertEqual(log.read_text().splitlines(), [
+                        '-m scripts.boat_retained_run_verify --run 42411771346 --day 2026-11-08 '
+                        '--head 7f12c9da9cbfa616a79631eea3d5744dbbc60de2 '
+                        '--required-capture-locator audit/state/boat-retained-run-required-capture.json '
+                        '--output '+temporary+'/boat-retained-run-verification.json'])
+                    final = subprocess.run(['bash', '-e', '-o', 'pipefail', '-c', gate],
+                        env=dict(base, SITE_CHECK_OUTCOME='success' if code == 0 else 'failure'),
+                        capture_output=True, text=True)
+                    self.assertEqual(final.returncode, code, final.stderr)
 
 
 if __name__ == '__main__': unittest.main()

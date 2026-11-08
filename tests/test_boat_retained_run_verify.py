@@ -179,6 +179,77 @@ class RetainedRunTests(TestCase):
         self.assertEqual(value['status'], 'RETAINED_RUN_VERIFICATION_HOLD')
         self.assertEqual(value['reason'], 'AUTHENTICATED_READ_FAILED')
         self.assertNotIn('PRIVATE', output.read_text())
+        self.assertIsNone(value['diagnostics']['error_code'])
+        self.assertEqual(value['diagnostics']['exception_type'], 'ValueError')
+        self.assertEqual(value['diagnostics']['stage'], 'FRESH_REPOSITORY')
+
+    def test_real_read_failure_reports_safe_stage_cause_and_bounded_code_sites(self):
+        output = self.f.root/'read-failure-counts.json'
+        def local_git(repo, *, ref=V.VAULT_REF):
+            git = F.fixtures.LocalGit(repo, ref=self.f.writer.ref)
+            def fail_read(commit, path, limit):
+                raise ValueError('STATE_GIT_BLOB_BOUND_EXCEEDED')
+            git.read = fail_read
+            return git
+        with patch.dict(os.environ, self.fixture.env, clear=True), \
+                patch.object(cli, 'ROOT', self.f.writer.repo), \
+                patch.object(V, 'VaultGitRepository', side_effect=local_git), \
+                redirect_stdout(io.StringIO()) as stream:
+            code = cli.main(['--run','7','--day','2030-04-01','--head',F.HEAD,'--output',str(output)])
+        self.assertEqual(code, 2)
+        report = json.loads(stream.getvalue())
+        self.assertEqual(report['status'], 'RETAINED_RUN_VERIFICATION_HOLD')
+        diagnostics = report['diagnostics']
+        self.assertEqual(diagnostics['stage'], 'INVENTORY')
+        self.assertEqual(diagnostics['error_code'], 'VAULT_RETAINED_BYTES_MISSING_OR_INVALID')
+        self.assertIn('STATE_GIT_BLOB_BOUND_EXCEEDED', diagnostics['cause_codes'])
+        self.assertEqual(diagnostics['originals_restored'], 0)
+        self.assertEqual(diagnostics['blob_bytes_read'], 0)
+        self.assertGreater(len(diagnostics['code_sites']), 0)
+        self.assertLessEqual(len(diagnostics['code_sites']), 3)
+        for site in diagnostics['code_sites']:
+            self.assertRegex(site, r'^[A-Za-z_][A-Za-z0-9_]*\.py:[1-9][0-9]*:[A-Za-z_][A-Za-z0-9_]*$')
+        self.assertNotIn(str(self.f.root), json.dumps(report))
+
+    def test_mirror_failure_reports_completed_original_counts_without_success(self):
+        output = self.f.root/'mirror-failure-counts.json'
+        latest = M._decode(self.f.writer.read(self.parent, M.LATEST, M.MAX_RECORD), F.KEY)
+        latest['run_id'] = 8
+        latest['record_path'] = M._path('2030-04-01', 8)
+        self.rewrite({M.LATEST: M._encode(latest, F.KEY)})
+        def local_git(repo, *, ref=V.VAULT_REF):
+            return F.fixtures.LocalGit(repo, ref=self.f.writer.ref)
+        with patch.dict(os.environ, self.fixture.env, clear=True), \
+                patch.object(cli, 'ROOT', self.f.writer.repo), \
+                patch.object(V, 'VaultGitRepository', side_effect=local_git), \
+                redirect_stdout(io.StringIO()) as stream:
+            code = cli.main(['--run','7','--day','2030-04-01','--head',F.HEAD,'--output',str(output)])
+        self.assertEqual(code, 2)
+        report = json.loads(stream.getvalue())
+        self.assertEqual(report['reason'], 'LATEST_MIRROR_SCOPE_MISMATCH')
+        diagnostics = report['diagnostics']
+        self.assertEqual(diagnostics['stage'], 'MIRROR')
+        self.assertEqual(diagnostics['originals_restored'], 2)
+        self.assertEqual(diagnostics['capture_bundles_restored'], 1)
+        self.assertGreater(diagnostics['blob_bytes_read'], 0)
+        self.assertEqual(report['status'], 'RETAINED_RUN_VERIFICATION_HOLD')
+
+    def test_diagnostic_whitelist_drops_private_messages_and_external_code_paths(self):
+        # Neither an approved-looking prefix nor an exception chain permits arbitrary text.
+        for secret in ('VAULT_PRIVATE https://secret.invalid/key', 'VAULT_PRIVATE\nKEY',
+                       'UNAPPROVED_SECRET', 'a'*500):
+            with self.subTest(secret=secret):
+                try:
+                    try:
+                        raise RuntimeError(secret)
+                    except RuntimeError:
+                        raise ValueError(secret)
+                except ValueError as exc:
+                    report = cli._failure_diagnostics(exc, {})
+                self.assertIsNone(report['error_code'])
+                self.assertEqual(report['cause_codes'], [])
+                self.assertNotIn(secret, json.dumps(report))
+                self.assertEqual(report['code_sites'], [])
 
     def official_requirement(self):
         raw = b'<html>invented private result, unchanged bytes</html>'

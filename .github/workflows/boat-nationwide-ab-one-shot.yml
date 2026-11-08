@@ -82,7 +82,7 @@ jobs:
           fi
       - name: Retain and independently restore exact saved originals without taking over the active worker
         if: >-
-          github.ref != 'refs/heads/codex/forecast-first-display-20261108' || (startsWith(github.event.head_commit.message, 'saved-view: forecasts-first five-gates') && steps.forecast_only_publication.outcome == 'success')
+          github.ref != 'refs/heads/codex/forecast-first-display-20261108' || (startsWith(github.event.head_commit.message, 'saved-view: forecasts-first five-gates') && !startsWith(github.event.head_commit.message, 'saved-view: forecasts-first five-gates retention-only') && steps.forecast_only_publication.outcome == 'success')
         timeout-minutes: 12
         env:
           GH_TOKEN: ${{ github.token }}
@@ -99,7 +99,7 @@ jobs:
           fi
       - name: Retain safe completed-worker control for the existing hourly coordinator
         if: >-
-          github.ref != 'refs/heads/codex/forecast-first-display-20261108' || (startsWith(github.event.head_commit.message, 'saved-view: forecasts-first five-gates') && steps.forecast_only_publication.outcome == 'success')
+          github.ref != 'refs/heads/codex/forecast-first-display-20261108' || (startsWith(github.event.head_commit.message, 'saved-view: forecasts-first five-gates') && !startsWith(github.event.head_commit.message, 'saved-view: forecasts-first five-gates retention-only') && steps.forecast_only_publication.outcome == 'success')
         id: handoff_mirror
         continue-on-error: true
         env:
@@ -162,13 +162,15 @@ jobs:
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
         run: python -m scripts.boat_saved_view_feed --hydrate-originals --history-when-compatible --recover-model-config
       - name: Install the existing pinned browser checker
-        if: always() && ((github.ref == 'refs/heads/codex/forecast-first-display-20261108' && steps.forecast_only_publication.outcome == 'success') || (github.ref != 'refs/heads/codex/forecast-first-display-20261108' && steps.saved_model_publication.outcome == 'success'))
+        if: >-
+          always() && !(github.ref == 'refs/heads/codex/forecast-first-display-20261108' && startsWith(github.event.head_commit.message, 'saved-view: forecasts-first five-gates retention-only')) && ((github.ref == 'refs/heads/codex/forecast-first-display-20261108' && steps.forecast_only_publication.outcome == 'success') || (github.ref != 'refs/heads/codex/forecast-first-display-20261108' && steps.saved_model_publication.outcome == 'success'))
         id: browser_tooling
         continue-on-error: true
         timeout-minutes: 3
         run: npm install --prefix "$RUNNER_TEMP/boat-live-ui-tools" --no-package-lock --ignore-scripts playwright@1.62.1
       - name: Verify the actual private owner site without the local workspace
-        if: always() && steps.browser_tooling.outcome == 'success' && ((github.ref == 'refs/heads/codex/forecast-first-display-20261108' && steps.forecast_only_publication.outcome == 'success') || (github.ref != 'refs/heads/codex/forecast-first-display-20261108' && steps.saved_model_publication.outcome == 'success'))
+        if: >-
+          always() && (steps.browser_tooling.outcome == 'success' || (github.ref == 'refs/heads/codex/forecast-first-display-20261108' && startsWith(github.event.head_commit.message, 'saved-view: forecasts-first five-gates retention-only'))) && ((github.ref == 'refs/heads/codex/forecast-first-display-20261108' && steps.forecast_only_publication.outcome == 'success') || (github.ref != 'refs/heads/codex/forecast-first-display-20261108' && steps.saved_model_publication.outcome == 'success'))
         id: owner_site_check
         continue-on-error: true
         timeout-minutes: >-
@@ -179,6 +181,10 @@ jobs:
           NODE_PATH: ${{ runner.temp }}/boat-live-ui-tools/node_modules
         run: |
           set -o pipefail
+          if [[ "$GITHUB_REF" == 'refs/heads/codex/forecast-first-display-20261108' && "$(git log -1 --format=%s)" == saved-view:\ forecasts-first\ five-gates\ retention-only* ]]; then
+            timeout 600s python -m scripts.boat_retained_run_verify --run 42411771346 --day 2026-11-08 --head 7f12c9da9cbfa616a79631eea3d5744dbbc60de2 --required-capture-locator audit/state/boat-retained-run-required-capture.json --output "$RUNNER_TEMP/boat-retained-run-verification.json"
+            exit 0
+          fi
           if [[ "$GITHUB_REF" == 'refs/heads/codex/forecast-first-display-20261108' ]]; then
             if [[ "$(git log -1 --format=%s)" == saved-view:\ forecasts-first\ five-gates* ]]; then
               dates=(--day 2026-11-07)
