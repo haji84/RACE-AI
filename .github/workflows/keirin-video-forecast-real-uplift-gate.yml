@@ -1,0 +1,36 @@
+name: KEIRIN actual-video tactical uplift eligibility gate
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/keirin_video_forecast_real_uplift_gate.py'
+      - 'tests/test_keirin_video_forecast_real_uplift_gate.py'
+      - '.github/workflows/keirin-video-forecast-real-uplift-gate.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  no-fabricated-ab:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Check syntax and no-secrets source
+        run: |
+          python -m py_compile scripts/keirin_video_forecast_real_uplift_gate.py
+          python -m py_compile tests/test_keirin_video_forecast_real_uplift_gate.py
+      - name: Full 210 scenarios, no after-race movie target leak, no invented B accuracy
+        run: python -m unittest discover -s tests -p 'test_keirin_video_forecast_real_uplift_gate.py' -v
+      - name: Distinguish synthetic policy tests from actual measured uplift
+        run: |
+          {
+             echo 'Five synthetic guard tests only; not empirical predictive uplift.'
+             echo 'Actual evidence audit of private Matsuyama2R baseline: NO eligible video-based A/B forecast; research Top8 baseline misses actual 2-3-1 (rank 9/210).'
+             echo 'Three Oct30 training clips have 21 rider rosters, zero rider overlap with Matsuyama 2R 7 riders, scene classifier has no rider tactical labels, and model frozen after test as-of.'
+             echo 'No video B slate, no official PR71 model changes, no new wagers.'
+          } >> "$GITHUB_STEP_SUMMARY"
