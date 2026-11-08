@@ -12,6 +12,7 @@ import tempfile
 import unittest
 
 from race_ai.keirin_owner_sqlite import PrivateKeirinStore
+from race_ai.keirin_private_spool import KeirinPrivateSpool
 from race_ai.keirin_real_shadow_intake import stage_sourced_shadows
 from race_ai.keirin_shadow_variable_pair import (
     ShadowVariablePairLedger, ShadowPairError
@@ -251,6 +252,37 @@ class OwnerRealShadowVariableResearchTests(unittest.TestCase):
             self.assertEqual(store.db.execute(
                 "SELECT COUNT(*) FROM keirin_shadow_variable_pairs"
             ).fetchone()[0],1)
+
+    def test_existing_results_inbox_creates_separate_shadow_variable_audit(self):
+        _,_,_,pair=self.dual(positive=2)
+        result=self.result(pair["variable"]["tickets"][0]["triple"],
+                           paid=2180)
+        (self.root/"results").mkdir()
+        (self.root/"results"/"finish.json").write_text(
+            json.dumps({
+                "schema":"RACE_AI_PRIVATE_KEIRIN_RESULT_OBSERVATION_V1",
+                "observation":result
+            },sort_keys=True),encoding="utf-8")
+        self.clocktime[0]=datetime.fromisoformat("2030-01-15T10:20:00+09:00")
+        with PrivateKeirinStore(self.dbpath,clock=self.clock) as store:
+            # The existing intake handles results once. It need not invent a
+            # PR71 forecast when only a PR101 partial shadow exists.
+            spool=KeirinPrivateSpool(store,clock=self.clock)
+            tick=spool.tick(self.root)
+            self.assertEqual(tick["processed_files"],1)
+            self.assertEqual(store.db.execute(
+                "SELECT COUNT(*) FROM result_revisions").fetchone()[0],1)
+            dual=stage_shadow_variable_pairs(
+                self.root,store,grant_check=self.grant,
+                now="2030-01-15T10:20:00+09:00")
+            self.assertEqual(dual["reference_comparisons_settled"],1)
+            ledger=ShadowVariablePairLedger(store)
+            summary=ledger.replay_all()
+            self.assertEqual(summary["variable_profit_yen"],1980)
+            self.assertEqual(summary["variable_investment_yen"],200)
+            self.assertFalse(summary["full_official_source_coverage_verified"])
+            self.assertIsNone(summary["formal_roi"])
+            self.assertEqual(ledger.read_pair(RID),pair)
 
     def test_pending_refund_not_loss_and_zero_variable_skip(self):
         _,_,_,pair=self.dual(positive=0)
