@@ -1,13 +1,10 @@
-"""Owner-approved public reference sources for PRIVATE manual KEIRIN research.
+"""Owner-approved WINTICKET and KEIRIN.JP sources for private RACE-AI research.
 
-User confirmed on 2026-11-09 that WINTICKET and KEIRIN.JP can be used.
-This selects exact domain names for existing *owner-saved* observations.
-It does not certify an upstream license for automated requests, API reverse
-engineering, redistribution, paid distribution, or source bulk archival.
-
-All collection is offline/manual until a separately authenticated machine
-acquisition grant exists. Public exposure of production AES-GCM ciphertext
-is a different, independently scoped owner instruction.
+On 2026-11-09 the owner confirmed that automatic acquisition is allowed.
+An explicit owner-attested mode can now request approved, provided URLs.
+This is NOT independent provider licensing or permission to bypass access
+controls, probe undocumented internal APIs or redistribute source content.
+GitHub public AES-GCM ciphertext consent is a separate instruction.
 """
 from __future__ import annotations
 
@@ -60,7 +57,9 @@ def owner_approved_source_profile():
         "profile_id": PROFILE_ID,
         "source_hosts": list(PROFILE_HOSTS),
         "source_ids": ["keirin_official", "winticket"],
-        "allowed_context": "OWNER_PERSONAL_OFFLINE_RESEARCH",
+        "allowed_context": "OWNER_PERSONAL_RESEARCH_INCLUDING_ATTESTED_AUTOMATED_FETCH",
+        "owner_confirmed_automated_fetch": True,
+        "provider_machine_permission_independently_verified": False,
         "owner_confirmed_date_jst": "2026-11-09",
         "direct_html_machine_fetch_authorized": False,
         "third_party_api_authorized": False,
