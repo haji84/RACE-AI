@@ -208,3 +208,96 @@ def private_winticket_trifecta(html,*,url,race_id,captured_at,
         "private_plaintext_published":False,
     }
     return {"odds":normalized,"receipt":receipt}
+
+
+def stage_private_winticket_odds(inbox, verified):
+    """Create-once complete odds at the existing owner-agent inbox/odds path.
+
+    Never replace a historical first-capture odds record: later prices may
+    arrive, but a previously frozen prediction must remain reproducible.
+    The caller supplies validated data from private_winticket_trifecta().
+    No provider data is written into a public Git checkout or CI artifact.
+    """
+    from pathlib import Path
+    import os
+    from .keirin_permissioned_owner import _write_private_once
+    root=Path(inbox).expanduser()
+    require(root.is_absolute() and root.is_dir() and not root.is_symlink(),
+            "OWNER_PRIVATE_INBOX_REQUIRED")
+    workspace=os.environ.get("GITHUB_WORKSPACE")
+    if workspace:
+        public=Path(workspace).resolve()
+        private=root.resolve()
+        require(public!=private and public not in private.parents,
+                "PUBLIC_GIT_WORKSPACE_PRIVATE_INPUT_FORBIDDEN")
+    if os.environ.get("GITHUB_ACTIONS")=="true":
+        require(os.environ.get("RACE_AI_PERSISTENT_PRIVATE_VOLUME")==
+                "ACKNOWLEDGED",
+                "EPHEMERAL_ACTIONS_DB_NOT_PERSISTENT")
+    require(type(verified) is dict and
+            set(verified)=={"odds","receipt"},
+            "VERIFIED_PRICE_AND_RECEIPT_REQUIRED")
+    odds=verified["odds"]
+    evidence=verified["receipt"]
+    require(type(odds) is dict and type(evidence) is dict and
+            odds.get("schema")==ODDS_SCHEMA and
+            odds.get("race_id")==evidence.get("race_id") and
+            len(odds.get("prices",[]))==210 and
+            evidence.get("combination_count")==210 and
+            sha256(canonical(odds)).hexdigest()==
+                evidence.get("private_odds_snapshot_sha256") and
+            sha256(canonical(odds["prices"])).hexdigest()==
+                evidence.get("full_210_prices_sha256"),
+            "ODDS_SNAPSHOT_OR_SHA_NOT_AUTHENTICATED")
+    folder=root/"odds"
+    audit=root/"odds_winticket_receipts"
+    for directory in (folder,audit):
+        require(not directory.is_symlink(),"PRIVATE_ODDS_SYMLINK_REFUSED")
+        if not directory.exists():
+            directory.mkdir(mode=0o700)
+        require(directory.is_dir(),"PRIVATE_ODDS_NOT_DIRECTORY")
+    rid=odds["race_id"]
+    file=folder/(sha256(rid.encode("utf-8")).hexdigest()+".json")
+    require(not file.is_symlink(),"PRIVATE_ODDS_ORIGINAL_SYMLINK")
+    fresh=False
+    changed_candidate=False
+    if file.exists():
+        require(file.is_file() and file.stat().st_size<=250000,
+                "PRIVATE_ODDS_ORIGINAL_INVALID")
+        try:
+            old=json.loads(file.read_text(encoding="utf-8"))
+        except (OSError,ValueError):
+            raise EmbeddedOddsError("PRIVATE_ODDS_ORIGINAL_UNREADABLE") from None
+        require(type(old) is dict and
+                old.get("schema")==ODDS_SCHEMA and
+                old.get("race_id")==rid and
+                old.get("source_ref")==odds["source_ref"] and
+                type(old.get("prices")) is list and
+                len(old["prices"])==210,
+                "PRIVATE_ODDS_ORIGINAL_NOT_SAME_RACE")
+        require(utc(old["captured_at"])<=utc(odds["captured_at"]),
+                "PRIVATE_ODDS_EXISTING_FUTURE_CLOCK")
+        changed_candidate=canonical(old["prices"])!=canonical(odds["prices"])
+        # Capture history must never alter the original used by an earlier
+        # forecast. Changing the source price is ordinary, not an overwrite.
+    else:
+        fresh=_write_private_once(file,odds)
+        require(fresh and file.read_bytes()==canonical(odds),
+                "PRIVATE_ODDS_CREATE_AND_READBACK_FAILED")
+    receipt_name=sha256(canonical(evidence)).hexdigest()+".json"
+    saved=_write_private_once(audit/receipt_name,evidence)
+    require((audit/receipt_name).read_bytes()==canonical(evidence),
+            "PRIVATE_ODDS_RECEIPT_READBACK_FAILED")
+    return {
+        "schema":"RACE_AI_KEIRIN_WINTICKET_ODDS_PRIVATE_STAGE_V1",
+        "race_id":rid,
+        "full_210_observed_rows":210,
+        "private_odds_created":int(fresh),
+        "private_odds_original_preserved":not fresh,
+        "newer_price_candidate_not_overwritten":changed_candidate,
+        "private_provenance_receipt_created":bool(saved),
+        "observed_price_set_sha256":evidence["full_210_prices_sha256"],
+        "plaintext_public_git_written":False,
+        "official_pre_cutoff_timestamp_witness":False,
+        "actual_forecast_saved":False,
+    }
