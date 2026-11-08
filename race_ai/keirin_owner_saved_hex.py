@@ -149,13 +149,13 @@ def _csv_from_markdown(markdown,meta):
     if source_lineup is not None and original_lineup is None:
         detected=[]
         for nums in source_lineup["lines"]:
-            group_id=meta["race"]["starters"][nums[0]-1]["group_id"]
+            group_id=roster[nums[0]]["group_id"]
             _need(type(group_id) is str and group_id and
-                  all(meta["race"]["starters"][n-1]["group_id"]==group_id
+                  all(roster[n]["group_id"]==group_id
                       for n in nums),
                   "PREDICTED_LINEUP_ROSTER_ID_MISMATCH")
             detected.append({"group_id":group_id,"order":nums})
-        _need(all(meta["race"]["starters"][n-1]["group_id"] is None
+        _need(all(roster[n]["group_id"] is None
                   for n in source_lineup["solos"]),
               "PREDICTED_SOLOS_ROSTER_ID_MISMATCH")
         derived["line_order_all_riders"]={
