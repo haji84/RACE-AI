@@ -71,6 +71,8 @@ def check_public_ciphertext_consent(doc):
         and doc["target_branch"]==BRANCH
         and doc["allowed_material"]==ALLOWED
         and doc["status"]==STATUS
+        and doc["production_mode_activation"]==
+            "only after separate rights verification, trusted-main producer, encrypted readback and pre-cutoff checks"
         and type(doc["risks_acknowledged"]) is list
         and set(doc["risks_acknowledged"])==RISKS
         and len(doc["risks_acknowledged"])==len(RISKS)
