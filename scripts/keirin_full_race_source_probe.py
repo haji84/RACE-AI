@@ -88,6 +88,35 @@ async def browse(browser,channel):
     await context.close()
     return result
 
+async def inspect_official_embed(browser, video_id):
+    """Use YouTube's standard public embed, not media extraction or auth bypass."""
+    p=await browser.new_page()
+    try:
+        url=f"https://www.youtube-nocookie.com/embed/{video_id}?autoplay=1&mute=1"
+        response=await p.goto(url,wait_until="domcontentloaded",timeout=20000)
+        await p.wait_for_timeout(5000)
+        return {
+            "url":p.url[:220],
+            "status":response.status if response else None,
+            "title":(await p.title())[:180],
+            "visible_error_text":(await p.locator("body").inner_text())[:220],
+            "player":await p.evaluate("""() => {
+               let r=window.ytInitialPlayerResponse||{};
+               let v=document.querySelector('video');
+               return {status:r.playabilityStatus?.status||null,
+                 reason:(r.playabilityStatus?.reason||'').slice(0,120),
+                 video_count:document.querySelectorAll('video').length,
+                 duration:v?.duration||null,
+                 ready_state:v?.readyState||0,
+                 current_time:v?.currentTime||0};
+             }""")
+        }
+    except Exception as exc:
+        return {"error_type":type(exc).__name__}
+    finally:
+        await p.close()
+
+
 async def main():
     report={"schema":"RACE_AI_FULL_RACE_SOURCE_DISCOVERY_V1",
       "race_id":"20261108-matsuyama-01",
@@ -101,9 +130,15 @@ async def main():
             report["channels"][label]={
                 "rss":rss_feed(channel),
                 "browser":await browse(browser,channel)}
+        report["official_embed"]=await inspect_official_embed(
+            browser,"BhwmwNby6Ow")
+        report["chariloto_embed"]=await inspect_official_embed(
+            browser,"8K1IxluvFpU")
         await browser.close()
     with open(sys.argv[1],"w",encoding="utf-8") as f:
         json.dump(report,f,indent=2,ensure_ascii=False)
+    print("OFFICIAL_EMBED",report["official_embed"])
+    print("CHARILOTO_EMBED",report["chariloto_embed"])
     for label,obj in report["channels"].items():
         print(label,"RSS",obj["rss"]["status"],"entries",len(obj["rss"].get("entries",[])))
         for entry in obj["rss"].get("entries",[])[:6]:
