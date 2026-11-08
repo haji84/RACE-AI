@@ -67,21 +67,26 @@ class OwnerSourceProfileTests(unittest.TestCase):
         from pathlib import Path
         from tempfile import TemporaryDirectory
         from unittest.mock import patch
+        import os
         from scripts.keirin_permissioned_owner_agent import main
         with TemporaryDirectory() as folder:
             path=Path(folder)
             stdout=io.StringIO()
-            with patch(
-                "scripts.keirin_permissioned_owner_agent.fetch_licensed_export_once",
-                side_effect=AssertionError("MUST_NOT_USE_REMOTE_PROVIDER")):
-                with contextlib.redirect_stdout(stdout):
-                    status=main([
-                        "--db", str(path/"owner.sqlite3"),
-                        "--inbox", str(path),
-                        "--personal-manual",
-                        "--owner-private-use-confirmed",
-                        "--owner-approved-source-profile", PROFILE_ID
-                    ])
+            # CI GitHub runners are intentionally rejected as owner stores.
+            # This unit case simulates an already protected owner-local disk.
+            with patch.dict(os.environ,
+                            {"GITHUB_ACTIONS":"false","GITHUB_WORKSPACE":""}):
+                with patch(
+                    "scripts.keirin_permissioned_owner_agent.fetch_licensed_export_once",
+                    side_effect=AssertionError("MUST_NOT_USE_REMOTE_PROVIDER")):
+                    with contextlib.redirect_stdout(stdout):
+                        status=main([
+                            "--db", str(path/"owner.sqlite3"),
+                            "--inbox", str(path),
+                            "--personal-manual",
+                            "--owner-private-use-confirmed",
+                            "--owner-approved-source-profile", PROFILE_ID
+                        ])
             self.assertEqual(status,0,stdout.getvalue())
             report=json.loads(stdout.getvalue().strip().splitlines()[-1])
             self.assertEqual(report["provider_network_requests"],0)
