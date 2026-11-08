@@ -20,13 +20,20 @@ from race_ai.keirin_permissioned_owner import (
 )
 from race_ai.four_sport_model_suite import run_suite, verify_suite
 from race_ai.keirin_licensed_api_ingest import fetch_licensed_export_once
+from race_ai.keirin_owner_manual import PersonalOwnerObservations
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--db", required=True)
     parser.add_argument("--inbox", required=True)
-    parser.add_argument("--grant-manifest", required=True)
+    parser.add_argument("--grant-manifest")
+    parser.add_argument("--personal-manual", action="store_true",
+                        help="consume locally owner-captured data only; NO API, NO provider GET")
+    parser.add_argument("--owner-private-use-confirmed", action="store_true",
+                        help="operator asserts use is limited to private personal research")
+    parser.add_argument("--personal-source-host", action="append",
+                        help="exact HTTPS host shown in owner's manual source material")
     parser.add_argument("--operator-reviewed-licenses", action="store_true",
                         help="Owner verified origin, permitted purposes and expiry out-of-band")
     parser.add_argument("--provider-endpoint", default=None,
@@ -38,6 +45,18 @@ def main(argv=None):
     parser.add_argument("--loop", action="store_true")
     parser.add_argument("--interval-seconds", type=int, default=120)
     args = parser.parse_args(argv)
+    if args.personal_manual:
+        if (not args.owner_private_use_confirmed or
+            not args.personal_source_host or args.provider_endpoint or
+            args.provider_rights_ref or args.api_token_env or
+            args.grant_manifest or args.operator_reviewed_licenses):
+            print('{"state":"OWNER_MANUAL_ONLY_OR_PRIVATE_SCOPE_NOT_CONFIRMED"}')
+            return 2
+    elif (not args.operator_reviewed_licenses or
+          not args.grant_manifest or args.personal_source_host or
+          args.owner_private_use_confirmed):
+        print('{"state":"SOURCE_LICENSE_REVIEW_NOT_ACKNOWLEDGED"}')
+        return 2
     if bool(args.provider_endpoint) != bool(args.provider_rights_ref):
         print('{"state":"INCOMPLETE_LICENSED_PROVIDER_CONFIG"}')
         return 2
@@ -47,13 +66,13 @@ def main(argv=None):
             len(args.api_token_env) > 100):
         print('{"state":"INVALID_PRIVATE_API_TOKEN_ENV"}')
         return 2
-    if not args.operator_reviewed_licenses or not 60 <= args.interval_seconds <= 3600:
-        print('{"state":"SOURCE_LICENSE_REVIEW_NOT_ACKNOWLEDGED"}')
+    if not 60 <= args.interval_seconds <= 3600:
+        print('{"state":"INVALID_RESEARCH_INTERVAL"}')
         return 2
     db = Path(args.db).expanduser()
     inbox = Path(args.inbox).expanduser()
-    manifest = Path(args.grant_manifest).expanduser()
-    if not all(x.is_absolute() for x in (db, inbox, manifest)):
+    manifest = Path(args.grant_manifest).expanduser() if args.grant_manifest else None
+    if not all(x.is_absolute() for x in (db, inbox) + ((manifest,) if manifest else ())) :
         print('{"state":"ABSOLUTE_PRIVATE_PATHS_REQUIRED"}')
         return 2
     if os.environ.get("GITHUB_ACTIONS") == "true" and (
@@ -66,7 +85,7 @@ def main(argv=None):
     workspace = os.environ.get("GITHUB_WORKSPACE")
     if workspace:
         public_root = Path(workspace).resolve()
-        for p in (db, inbox, manifest):
+        for p in (db, inbox) + ((manifest,) if manifest else ()) :
             if p.resolve() == public_root or public_root in p.resolve().parents:
                 print('{"state":"PUBLIC_WORKSPACE_PRIVATE_SOURCE_FORBIDDEN"}')
                 return 2
@@ -76,7 +95,10 @@ def main(argv=None):
                 now = datetime.now(timezone.utc).isoformat()
                 # Reload grants every cycle; expired rights never remain valid
                 # in an unattended long-running process.
-                grants = load_operator_grants(manifest, now=now)
+                grants = (PersonalOwnerObservations(
+                    source_hosts=args.personal_source_host, now=now)
+                    if args.personal_manual else
+                    load_operator_grants(manifest, now=now))
                 fetch_report = None
                 if args.provider_endpoint:
                     token = (os.environ.get(args.api_token_env)
@@ -108,6 +130,8 @@ def main(argv=None):
                     "official_pre_cutoff_witness": False,
                     "licensed_rights_verified_by_program": False,
                     "commercial_use_authorized_by_program": False,
+                    "owner_self_attested_private_only": args.personal_manual,
+                    "provider_permission_inferred_from_personal_use": False,
                 }, ensure_ascii=False, sort_keys=True), flush=True)
                 if not args.loop:
                     break
