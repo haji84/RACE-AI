@@ -1,0 +1,93 @@
+{
+  "schema": "RACE_AI_OWNER_RESEARCH_BROWSER_DIAGNOSTIC_ACTUAL_V1",
+  "run_id": 42448077548,
+  "head_sha": "a36b334b763bca5e2762fba77c937a38a8f5fb25",
+  "job_id": 128631163511,
+  "run_conclusion": "failure",
+  "context_at": "2026-11-08T04:47:39.2228671Z",
+  "browser_failure_at": "2026-11-08T04:48:17.7992617Z",
+  "reports": [
+    {
+      "applied_capture_records": 51,
+      "capture_completeness_claimed": false,
+      "changed_races": 0,
+      "duplicate_observations": 57,
+      "forecasting_performed": false,
+      "generation": 87,
+      "journal_observations": 57,
+      "live_artifact_requests": 0,
+      "metadata_captures": 0,
+      "new_observations": 0,
+      "original_observations_preserved": true,
+      "originals_changed": false,
+      "out_of_scope_captures": 0,
+      "out_of_scope_observations": 0,
+      "plaintext_published": false,
+      "previous_generation_verified": true,
+      "readback_verified": true,
+      "retained_capture_records": 53,
+      "schema": "RACE_AI_BOAT_VAULT_RESULT_REPLAY_COUNTS_V1",
+      "selected_journal_observations": 57,
+      "source_requests": 0,
+      "source_state_saved": false,
+      "status": "VAULT_RESULTS_REPLAYED",
+      "unmatched_not_newer_captures": 2,
+      "unselected_captures": 0,
+      "vault_blob_bytes_read": 3866921
+    },
+    {
+      "checked_day": "2026-11-08",
+      "completed_results": 50,
+      "current_day": "2026-11-08",
+      "date_scope": "CURRENT_DAY",
+      "future_native_available": false,
+      "future_native_races": 0,
+      "generation": 87,
+      "latest_native_cutoff_lead_seconds": -1532,
+      "native_p1_groups": 13,
+      "native_p1_races": 20,
+      "numeric_budget_cap_coverage": "EXERCISED",
+      "numeric_simulation_required": true,
+      "numeric_simulation_scenarios": 4,
+      "official_source_requests": 0,
+      "plaintext_published": false,
+      "status": "SAVED_SITE_PRIVATE_CONTEXT_READY"
+    },
+    {
+      "status": "LIVE_OWNER_SITE_REJECTED",
+      "reason": "SAVED_SITE_BROWSER_CHECK_FAILED",
+      "diagnostic": {
+        "phase": "research_audit",
+        "width": 320,
+        "completed_numeric_scenarios": 0,
+        "script": "boat_saved_site_check.cjs",
+        "line": 408,
+        "error_class": "Error",
+        "error_code": null,
+        "numeric_field": null
+      }
+    }
+  ],
+  "actual_failure_operation_proven": false,
+  "public_static_app": {
+    "url": "https://haji84.github.io/RACE-AI/app.js",
+    "sha256": "b677fde4cfe660c44808f39476edeacda4f9ec122b7966718a79e5c1909fb9f2",
+    "fetched_without_owner_link": true
+  },
+  "synthetic_research_with_matching_public_assets": {
+    "widths": [
+      320,
+      390
+    ],
+    "races": 20,
+    "model_identities": 13,
+    "max_predictions_per_race": 52,
+    "max_observations_per_race": 100,
+    "live_and_legacy_contexts": true,
+    "page_errors": 0,
+    "passed": true
+  },
+  "numeric_browser_verified": false,
+  "future_native_site_verified": false,
+  "model_improvement_proven": false
+}

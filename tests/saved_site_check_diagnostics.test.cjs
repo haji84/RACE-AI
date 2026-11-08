@@ -7,13 +7,13 @@ const poisonPath='/private/operator/'+poisonKey+'/context.json';
 function context(){return {schema:'RACE_AI_PRIVATE_LIVE_SITE_CHECK_CONTEXT_V1',owner_url:'https://haji84.github.io/RACE-AI/#saved='+'a'.repeat(64)+'.'+'e'.repeat(43),
   day:'2030-04-01',current_day:'2030-04-01',generation:12,day_races:1,minimum_results:0,native_p1_groups:1,native_groups:[['fixture','v1',null,null]],
   native_probe:{race_id:'20300401-01-01',index:0,cutoff_at:'2030-04-01T12:00:00+09:00'},future_native:null,old_day:null,old_completed:0};}
-function safeReport(result){
+function safeReport(result,{browserErrors=false}={}){
   assert.equal(result.status,2);assert.equal(result.stderr,'');
   for(const privateText of [poisonKey,poisonUrl,poisonPath,'PRIVATE_ACTUAL','PRIVATE_EXPECTED'])assert.equal(result.stdout.includes(privateText),false,'private error properties must never leave the child');
   const report=JSON.parse(result.stdout);assert.equal(report.status,'LIVE_OWNER_SITE_REJECTED');assert.equal(report.reason,'SAVED_SITE_BROWSER_CHECK_FAILED');
   assert.ok(report.diagnostic,'the failure has safe branch diagnostics');
   assert.deepEqual(Object.keys(report).sort(),['diagnostic','reason','status']);
-  assert.deepEqual(Object.keys(report.diagnostic).sort(),['completed_numeric_scenarios','error_class','error_code','line','numeric_field','phase','script','width']);
+  assert.deepEqual(Object.keys(report.diagnostic).sort(),[...(browserErrors?['browser_errors']:[]),'completed_numeric_scenarios','error_class','error_code','line','numeric_field','phase','script','width']);
   assert.equal(report.diagnostic.script,'boat_saved_site_check.cjs');assert.ok(Number.isSafeInteger(report.diagnostic.line)&&report.diagnostic.line>0);
   return report.diagnostic;
 }
@@ -87,4 +87,73 @@ test('second-scenario control failures clear the previous numeric field and reta
 test('second-scenario snapshot failures report capture rather than the preceding numeric field',()=>{
   const diagnostic=safeReport(numericFailure({snapshotFailure:true}));assert.equal(diagnostic.phase,'numeric_capture');assert.equal(diagnostic.numeric_field,null);
   assert.equal(diagnostic.completed_numeric_scenarios,1);assert.equal(diagnostic.error_class,'Error');assert.equal(diagnostic.error_code,null);
+});
+function researchFailure({operation=null,browserErrors=false}={}){
+  const folder=fs.mkdtempSync(path.join(os.tmpdir(),'site-research-diagnostic-'));
+  try{
+    const script=path.join(folder,'boat_saved_site_check.cjs');fs.copyFileSync(checker,script);
+    fs.writeFileSync(path.join(folder,'boat_saved_simulation_context.cjs'),'module.exports={};\n');
+    const modules=path.join(folder,'modules'),playwright=path.join(modules,'playwright');fs.mkdirSync(playwright,{recursive:true});
+    fs.writeFileSync(path.join(playwright,'fixture.json'),JSON.stringify({poisonKey,poisonUrl,poisonPath,operation,browserErrors}));
+    fs.writeFileSync(path.join(playwright,'index.js'),String.raw`
+const fs=require('node:fs'),vm=require('node:vm'),p=require('./fixture.json'),exists=fs.existsSync;
+fs.existsSync=value=>['/usr/bin/google-chrome','/opt/google/chrome/google-chrome','/opt/google/chrome/chrome','/usr/bin/chromium'].includes(value)||exists(value);
+let returned=false,listener;
+const frame={addEventListener:(name,handler)=>{if(name==='error')listener=handler;}};
+const fail=name=>{if(p.operation===name){const error=new Error(p.poisonKey+' '+p.poisonUrl);error.actual='PRIVATE_ACTUAL';error.expected='PRIVATE_EXPECTED';Object.defineProperty(error,'stack',{get(){throw new Error(p.poisonPath);}});throw error;}};
+function locator(selector){return {
+ filter:()=>locator(selector),first:()=>locator(selector),locator:child=>locator(selector+' '+child),
+ click:async()=>{if(selector==='[data-page="research"]')fail('nav');if(selector.endsWith('[data-return-to-race]')){fail('return');returned=true;}},
+ fill:async()=>{},dispatchEvent:async()=>{},selectOption:async()=>{},
+ isVisible:async()=>{if(selector==='#research-race-audit')fail('visible');return selector!=='#all-venues';},
+ inputValue:async()=>{if(selector==='#research-race-select'){fail('race');return '20300401-01-01';}if(selector==='#research-prediction-select')fail('model');if(selector==='#prediction-select'&&returned)fail('postmodel');return '0';},
+ count:async()=>selector.includes('placeholder-entrants')||selector==='#all-races .race-result-card'||selector==='#race-detail .race-audit-details'?0:selector==='#prediction-select option'?2:1,
+ getAttribute:async name=>{if(selector==='#research-race-audit .race-audit-details')fail('sectionmodel');return name==='data-entrants'?'3':name==='data-native-dispatch'?'true':'fixture';},
+ allTextContents:async()=>['Fixture Alpha','Fixture Beta','Fixture Gamma'],evaluateAll:async()=>[],
+ evaluate:async()=>{fail('section');return 'SECTION';},
+ innerText:async()=>{if(selector==='#research-race-audit'){fail('sha');return '予想SHA';}if(selector==='#race-detail .forecast-rationale'){if(returned)fail('rationale');return 'fixture rationale';}if(selector==='#race-detail .forecast-rationale-heading')return '予想根拠';return selector.startsWith('#prediction-select option')?'P1 Fixture':'通常の予想';}
+};}
+const page={setDefaultTimeout:()=>{},on:()=>{},route:async()=>{},setViewportSize:async()=>{},waitForFunction:async()=>{},locator,
+ addInitScript:async(fn,arg)=>vm.runInNewContext('('+fn.toString()+')(__arg)',{globalThis:frame,__arg:arg}),
+ goto:async()=>{if(p.browserErrors){if(listener)for(let i=0;i<12;i++){
+   const error={name:i===1?p.poisonKey:'TypeError'};Object.defineProperty(error,'stack',{get(){throw new Error(p.poisonPath);}});
+   if(i===7)Object.defineProperty(error,'name',{get(){throw new Error(p.poisonKey);}});
+   const event={error,filename:i===0||i>=3?'https://haji84.github.io/RACE-AI/app.js':i===2?'https://haji84.github.io/RACE-AI/app.js?'+p.poisonKey:p.poisonUrl,lineno:i===0?77:i===3?p.poisonKey:i===4?-1:i===5?1000000:i===6?1.25:123};
+   Object.defineProperty(event,'message',{get(){throw new Error(p.poisonKey+' '+p.poisonUrl);}});listener(event);
+ }throw new Error(p.poisonKey+' '+p.poisonUrl);}},
+ evaluate:async(fn)=>p.browserErrors?vm.runInNewContext('('+fn.toString()+')()',{globalThis:frame}):({ids:Array.from({length:15},(_,i)=>'fixture-'+i),retired:['seller-shadow-v1-20261104']})
+};
+exports.chromium={launch:async()=>({newPage:async()=>page,close:async()=>{}})};
+`);
+    const input=path.join(folder,'context.json');fs.writeFileSync(input,JSON.stringify(context()));
+    return cp.spawnSync(process.execPath,[script,input,'--compact-results'],{encoding:'utf8',env:{PATH:process.env.PATH||'/usr/bin:/bin',LANG:'C.UTF-8',TZ:'UTC',NODE_PATH:modules}});
+  }finally{fs.rmSync(folder,{recursive:true,force:true});}
+}
+test('research diagnostics pinpoint each failing operation without changing its rejection',()=>{
+  const lines=fs.readFileSync(checker,'utf8').split('\n');
+  for(const [operation,statement] of [
+    ['nav','await page.locator(\'[data-page="research"]\').filter({visible:true}).first().click();'],
+    ['visible','assert.equal(await audit.isVisible(),true);'],
+    ['race','assert.equal(await page.locator(\'#research-race-select\').inputValue(),expectedRace);'],
+    ['model','assert.equal(await page.locator(\'#research-prediction-select\').inputValue(),selected);'],
+    ['section',"assert.equal(await audit.locator('.race-audit-details').evaluate(n=>n.tagName),'SECTION');"],
+    ['sectionmodel',"assert.equal(await audit.locator('.race-audit-details').getAttribute('data-model-id'),modelId);"],
+    ['sha','assert.match(await audit.innerText(),/予想SHA/);'],
+    ['return',"await audit.locator('[data-return-to-race]').click();"],
+    ['postmodel',"assert.equal(await page.locator('#prediction-select').inputValue(),selected);"],
+    ['rationale',"const returnedRationale=returnedRationaleCount?await page.locator('#race-detail .forecast-rationale').innerText():null;"]
+  ]){
+    const diagnostic=safeReport(researchFailure({operation})),line=lines.findIndex(text=>text.trim()===statement);
+    assert.equal(diagnostic.phase,'research_audit',operation);assert.equal(diagnostic.width,320);assert.equal(diagnostic.completed_numeric_scenarios,0);
+    assert.ok(line>0,'each operation occupies its own marked line');assert.equal(lines[line-1].trim(),"diagnosticPhase('research_audit');");assert.equal(diagnostic.line,line,operation);
+  }
+});
+test('real CLI ErrorEvent diagnostics are bounded and never expose poisoned message, stack, name or filename',()=>{
+  const diagnostic=safeReport(researchFailure({browserErrors:true}),{browserErrors:true});
+  assert.equal(diagnostic.phase,'owner_navigation');assert.equal(diagnostic.error_class,'Error');assert.equal(diagnostic.browser_errors.length,8);
+  assert.deepEqual(diagnostic.browser_errors[0],{error_class:'TypeError',script:'app.js',line:77});
+  assert.deepEqual(diagnostic.browser_errors[1],{error_class:'UNRECOGNIZED_ERROR',script:null,line:null});
+  assert.deepEqual(diagnostic.browser_errors[2],{error_class:'TypeError',script:null,line:null});
+  for(const event of diagnostic.browser_errors.slice(3,7))assert.deepEqual(event,{error_class:'TypeError',script:'app.js',line:null});
+  assert.deepEqual(diagnostic.browser_errors[7],{error_class:'UNRECOGNIZED_ERROR',script:null,line:null});
 });
