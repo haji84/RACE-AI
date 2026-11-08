@@ -75,6 +75,49 @@ function contextFixture(row) {
   };
 }
 
+function liveFixture() {
+  const data=fixture(),row=data.records[0];row.race_id='20300101-01-01';row.race_no=1;
+  row.participants=Array.from({length:6},(_,i)=>({number:i+1,registration_no:String(4201+i),name:'合成選手'+(i+1)}));
+  delete row.weather;delete row.weather_preview;
+  const context=contextFixture(row);
+  context.schema='RACE_AI_BOAT_SUPPLEMENTAL_CONTEXT_V1';context.race_id=row.race_id;context.cutoff_at=context.beforeinfo.source_cutoff_at;
+  context.roster=row.participants.map(p=>({lane:p.number,registration_number:p.registration_no}));
+  context.beforeinfo.body_identity_verified=true;
+  const template=context.beforeinfo.participants[0];
+  context.beforeinfo.participants=row.participants.map((p,i)=>({...template,lane:p.number,registration_number:p.registration_no,name:p.name,display_time:6.71+i/100,exhibition_st_raw:i?'.12':'F.04',exhibition_st_status:i?'OK':'F'}));
+  row.live_boat_observation={schema:'RACE_AI_LIVE_BOAT_OBSERVATION_V1',state:'READY',checked_at:'2030-01-01T09:22:00+09:00',context,forecast_inputs_used:false};
+  return data;
+}
+
+test('live official facts lead the pre-race tab when the original forecast has no exhibition',async()=>{
+  const data=liveFixture(),tickets=structuredClone(data.records[0].prediction.ordered_top8);
+  await withPreview(data,async page=>{
+    for(const width of [320,390,1440]){
+      await page.setViewportSize({width,height:1000});
+      const panel=page.locator('#live-beforeinfo');assert.equal(await panel.count(),1);
+      const text=await panel.innerText();assert.match(text,/6\.71/);assert.match(text,/F\.04/);assert.match(text,/09:21/);assert.match(text,/0 m\/s/);
+      assert.doesNotMatch(await page.locator('#detail-tab-content').innerText(),/保存予想原本の気象・直前情報は未取得|元ページSHA/);
+      assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);
+    }
+    await page.locator('[data-detail-tab="outlook"]').click();
+    const rendered=await page.locator('#detail-tab-content .saved-ticket .combo').evaluateAll(nodes=>nodes.map(n=>[...n.querySelectorAll('.lane')].map(e=>Number(e.textContent))));
+    assert.deepEqual(rendered,tickets);
+  });
+});
+
+test('live unpublished exhibition shows weather and the publication state instead of a total missing notice',async()=>{
+  const data=liveFixture(),live=data.records[0].live_boat_observation;live.state='AWAITING_EXHIBITION';
+  for(const p of live.context.beforeinfo.participants){p.display_time=null;p.exhibition_st=null;p.exhibition_st_raw=null;p.exhibition_st_status='NOT_PUBLISHED';}
+  await withPreview(data,async page=>{
+    const text=await page.locator('#live-beforeinfo').innerText();assert.match(text,/展示発表待ち/);assert.match(text,/17\.5/);assert.match(text,/0 m\/s/);
+  });
+});
+
+test('a live context for a different registered racer never reaches the visible preview',async()=>{
+  const data=liveFixture();data.records[0].live_boat_observation.context.beforeinfo.participants[0].registration_number='4999';
+  await withPreview(data,async page=>{assert.equal(await page.locator('#live-beforeinfo').count(),0);assert.doesNotMatch(await page.locator('#detail-tab-content').innerText(),/6\.71|F\.04/);});
+});
+
 test('preview renders separately captured BOAT context without changing saved forecast order', async () => {
   const data = fixture(), row = data.records[0];
   row.boat_observation_context = contextFixture(row);

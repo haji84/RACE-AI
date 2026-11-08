@@ -1,5 +1,6 @@
 """Match retained official results to existing encrypted saved forecasts only."""
 import base64,json
+from copy import deepcopy
 from datetime import date
 from pathlib import Path
 from . import saved_view_feed as F,saved_view_history as H
@@ -61,7 +62,7 @@ class SavedResultBridge:
             selected={r['race_id'] for r in view['records'] if r['event_date_jst'] in self.days and r.get('sport')=='boat'}
             retained={rid:state.capture(pointer) for rid,pointer in pointers.items() if rid in selected}
             captures=list(retained.values())
-            if captures:
+            if captures or any(rid in state.control.get('beforeinfo_checks',{}) for rid in selected):
                 observations=[]
                 for row in view['records']:
                     capture=retained.get(row['race_id'])
@@ -72,7 +73,14 @@ class SavedResultBridge:
                             for k in ('captured_at','source_sha256','source_url')))
                 # Keep the stored observation intact; matching retained bytes
                 # supply only the current parser's display projection.
-                updated=F.update_view(view,observations,captures=captures,synced_at=now.isoformat());before={r['race_id']:wire(r) for r in view['records']}
+                updated=F.update_view(view,observations,captures=captures,synced_at=now.isoformat()) if captures else deepcopy(view)
+                from .racer_beforeinfo import project_beforeinfo
+                for row in updated['records']:
+                    if row.get('sport')=='boat':
+                        live=project_beforeinfo(row,state,now=now)
+                        if live is not None:row['live_boat_observation']=live
+                need(F.originals_sha(updated)==F.originals_sha(view),'RESULT_FEED_ORIGINAL_CHANGED')
+                before={r['race_id']:wire(r) for r in view['records']}
                 count=sum(before.get(r['race_id'])!=wire(r) for r in updated['records'])
                 if count:
                     F.publish_view(self.git,self.bootstrap,updated,parent=parent,previous=previous,generation=generation);view=updated;changed+=count

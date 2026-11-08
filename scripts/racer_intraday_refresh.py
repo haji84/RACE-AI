@@ -15,7 +15,8 @@ from race_ai.official_archive_probe import official_url
 from scripts.boat_history_collect import private_root,save
 from scripts.racer_daily_refresh import refresh as retain_daily,verify_public
 
-def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,fetch=None,base_transport=None,intraday_transport=None,pages_transport=None,roster=None,verify=False,sync_results=False,result_bridge=None):
+def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,fetch=None,base_transport=None,intraday_transport=None,pages_transport=None,roster=None,verify=False,sync_results=False,result_bridge=None,sync_beforeinfo=False):
+    need(not sync_beforeinfo or sync_results,'BEFOREINFO_RESULT_FEED_REQUIRED')
     current=(lambda:clock(now)) if now is not None else (lambda:datetime.now(timezone.utc));started=current();root=private_root(private_dir)
     daily=None
     if daily_reconcile:
@@ -30,10 +31,16 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
             except Exception:bridge=None;result_sync=result_status(now=current(),state='HOLD')
         loaded=load_intraday(repo,initialize=initialize,transport=intraday_transport,now=current());state=loaded['state'];before={k:v for k,v in state.control.items() if k!='last_checked_at'};before=wire(before)
         if bridge:bridge.prepare(state)
+        beforeinfo=dict(requests=0,parsed=0,rejected=0)
         if daily_reconcile:
             state.rollover(current());state.control['last_checked_at']=current().isoformat();outcome=dict(status='READY' if daily['status']=='DAILY_RETAINED' else 'SOURCE_WAIT',requests=0,new_observations=0)
         else:
-            with (OfficialClient() if fetch is None else nullcontext(fetch)) as source:outcome=state.advance(base,now=current(),fetch=source,max_requests=12,**(dict(result_targets=targets) if bridge else {}))
+            with (OfficialClient() if fetch is None else nullcontext(fetch)) as source:
+                if sync_beforeinfo and bridge:
+                    from race_ai.racer_beforeinfo import collect_beforeinfo
+                    beforeinfo=collect_beforeinfo(state,bridge.rows,now=current(),fetch=source,max_requests=4)
+                outcome=state.advance(base,now=current(),fetch=source,max_requests=12-beforeinfo['requests'],**(dict(result_targets=targets) if bridge else {}))
+                outcome['requests']+=beforeinfo['requests']
         finished=current();state.control['last_checked_at']=finished.isoformat()
         roster=roster if roster is not None else json.loads((ROOT/'web/data/racer-profiles.json').read_text())['people']
         catalogue=build_catalogue(base,state,roster,now=finished,base_sha=loaded_base['previous']['cipher_sha256']);raw=(wire(catalogue)+'\n').encode();digest=sha(raw)
@@ -58,6 +65,8 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
             from collections import Counter
             reasons=[e.get('reason','RESULT_OBSERVATION_INVALID') for row in (bridge.rows if bridge else []) if (row.get('result') or {}).get('status')=='unsupported' for e in row.get('result_observation_rejections',[])]
             report['result_rejection_reason_counts']=dict(Counter(code for code in reasons if isinstance(code,str) and re.fullmatch(r'(?:RESULT|SAVED_MODEL_VIEW)_[A-Z0-9_]{1,190}',code)))
+        if sync_beforeinfo:
+            report['beforeinfo']=dict(beforeinfo,**dict(published_races=sum(bool((r.get('live_boat_observation') or {}).get('context')) for r in (bridge.rows if bridge else [])),forecast_inputs_used=False))
         save(root/'run-report.json',(wire(report)+'\n').encode());return report
     finally:base.close()
 
@@ -92,14 +101,14 @@ def replay_retained_results(repo,*,now=None,intraday_transport=None,bridge=None)
 
 
 def main(argv=None):
-    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--repo',type=Path,default=ROOT);p.add_argument('--private-dir',type=Path,required=True);p.add_argument('--initialize',action='store_true');p.add_argument('--daily-reconcile',action='store_true');p.add_argument('--verify-public',action='store_true');p.add_argument('--sync-results',action='store_true');p.add_argument('--replay-retained-results',action='store_true');a=p.parse_args(argv)
+    p=argparse.ArgumentParser(description=__doc__);p.add_argument('--repo',type=Path,default=ROOT);p.add_argument('--private-dir',type=Path,required=True);p.add_argument('--initialize',action='store_true');p.add_argument('--daily-reconcile',action='store_true');p.add_argument('--verify-public',action='store_true');p.add_argument('--sync-results',action='store_true');p.add_argument('--sync-beforeinfo',action='store_true');p.add_argument('--replay-retained-results',action='store_true');a=p.parse_args(argv)
     try:
         if a.replay_retained_results:
-            need(not any((a.initialize,a.daily_reconcile,a.verify_public,a.sync_results)),'RESULT_REPLAY_MODE_CONFLICT')
+            need(not any((a.initialize,a.daily_reconcile,a.verify_public,a.sync_results,a.sync_beforeinfo)),'RESULT_REPLAY_MODE_CONFLICT')
             from scripts.boat_private_original_vault import _environment
             repo=_environment(a.repo)
             report=replay_retained_results(repo);print(wire(report));return 0
-        report=refresh(a.repo,a.private_dir,initialize=a.initialize,daily_reconcile=a.daily_reconcile,verify=a.verify_public,sync_results=a.sync_results);print(wire(report));return 0 if report['status']=='INTRADAY_REFRESHED' and (not a.sync_results or report['result_sync']['state']=='READY') else 2
+        report=refresh(a.repo,a.private_dir,initialize=a.initialize,daily_reconcile=a.daily_reconcile,verify=a.verify_public,sync_results=a.sync_results,sync_beforeinfo=a.sync_beforeinfo);print(wire(report));return 0 if report['status']=='INTRADAY_REFRESHED' and (not a.sync_results or report['result_sync']['state']=='READY') else 2
     except Exception as exc:
         reason=str(exc) if isinstance(exc,ValueError) and str(exc).isupper() and len(str(exc))<=100 else 'INTRADAY_REFRESH_FAILED';trace=[];frame=exc.__traceback__
         while frame:

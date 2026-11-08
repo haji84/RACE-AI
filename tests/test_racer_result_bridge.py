@@ -39,6 +39,20 @@ class BridgeTests(unittest.TestCase):
     def bridge(self):return SavedResultBridge(self.repo,now=NOW,transport=self.git,bootstrap=self.boot)
     def capture(self,state,day='20261107',price='1250',at=NOW):
         d=document(day=day);d['maindata']['infolist3t'][0]['dividend']=price;raw,r=packet(d,captured=at.isoformat());out=parse_settlement(raw,r,now=at);p=state.remember('RESULT',raw,r);p.update(settlement_sha256=settlement_digest(out),settlement_status=out['status']);state.control.setdefault('settlement_captures',{})[out['race_id']]=p
+    def test_live_beforeinfo_reaches_the_encrypted_feed_when_no_result_has_arrived(self):
+        from tests.test_racer_beforeinfo import preview_view,html,AT,URL
+        from race_ai.racer_beforeinfo import collect_beforeinfo
+        self.view=preview_view();self.seed(self.view);pin=F.originals_sha(self.view);inventory=F.forecast_inventory(self.view)
+        state=IntradayState()
+        collect_beforeinfo(state,self.view['records'],now=AT,fetch=lambda u:(html(),AT.isoformat()),max_requests=4)
+        bridge=SavedResultBridge(self.repo,now=AT,transport=self.git,bootstrap=self.boot)
+        report=bridge.publish(state,now=AT);self.assertEqual(report['changed_races'],1)
+        _,_,_,readback=F.current_view(self.git,self.boot)
+        self.assertEqual(readback['records'][0]['live_boat_observation']['context']['beforeinfo']['participants'][0]['display_time'],6.72)
+        self.assertIsNone(readback['records'][0]['result']);self.assertEqual(readback['records'][0]['result_observations'],[])
+        self.assertEqual(F.originals_sha(readback),pin);self.assertEqual(F.forecast_inventory(readback),inventory)
+        parent=self.git.head();report=bridge.publish(state,now=AT+timedelta(minutes=1))
+        self.assertEqual(report['changed_races'],0);self.assertEqual(self.git.head(),parent)
     def test_confirmed_result_reaches_saved_forecast_without_intake_and_quiet_replay_is_identical(self):
         bridge=self.bridge();self.assertEqual(len(bridge.targets()),1);state=IntradayState();self.capture(state);pin=F.forecast_inventory(self.view)
         report=bridge.publish(state,now=NOW);self.assertEqual(report['confirmed'],1);self.assertEqual(report['pending'],0)
