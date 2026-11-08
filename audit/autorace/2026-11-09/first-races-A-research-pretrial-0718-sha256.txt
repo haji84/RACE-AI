@@ -1,0 +1,42 @@
+# 2026-11-09 research-only auto-race A forecast receipts
+generated_at_jst=2026-11-09T07:18:58+09:00
+phase=A_PRE_TRIAL_RESEARCH
+source_snapshot=manually_checked_venue_PDF_and_WINTICKET_html
+official_RACE_AI_model_ran=false
+calibrated_probability=false
+verified_pre_trial_at_snapshot=true
+final_entry_changes_possible=true
+bets_per_race=8_plus_4
+private_forecast_originals_not_uploaded_to_public_repo=true
+audited_races=3_of_32
+NO_RESULT_OR_TRIAL_USED=true
+actual_bets=NONE
+local_originals_lifetime=working_environment_only_NOT_PERMANENT
+
+race_id=20261109_kawaguchi_1
+filename=autorace_20261109_kawaguchi_1r_A_research_v1.json
+sha256=b5008460070d1a0ffb10664944a916d97431547c9b820dea790a009d7ce21d5c
+venue_pdf_cutoff_jst=2026-11-09T10:53:00+09:00
+winticket_cutoff_jst=2026-11-09T10:54:00+09:00
+source_official=https://www.iizuka-auto.jp/images/20261109%E5%B7%9D.pdf
+source_stats=https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/3/1
+
+race_id=20261109_isesaki_1
+filename=autorace_20261109_isesaki_1r_A_research_v1.json
+sha256=143c3602e54a03a8b957adb40b6398124e56385d2321f7d7492042b95599bbf7
+venue_pdf_cutoff_jst=2026-11-09T14:57:00+09:00
+winticket_cutoff_jst=2026-11-09T14:58:00+09:00
+source_official=https://www.iizuka-auto.jp/images/20261109%E4%BC%8A.pdf
+source_stats=https://www.winticket.jp/autorace/isesaki/racecard/2026110603/4/1
+
+race_id=20261109_iizuka_1
+filename=autorace_20261109_iizuka_1r_A_research_v1.json
+sha256=634cce404037b14d60ed60473dfc90c4a768f8083f316220ddcdfb02af18d7ab
+venue_pdf_cutoff_jst=2026-11-09T21:25:00+09:00
+winticket_cutoff_jst=2026-11-09T21:26:00+09:00
+source_official=https://www.iizuka-auto.jp/images/20261109%E9%A3%AF.pdf
+source_stats=https://www.winticket.jp/autorace/iizuka/racecard/2026110905/1/1
+
+All differences in cutoffs resolved conservatively by using the earlier printed schedule.
+Racing A predictions not a trained RACE-AI model and not independently calibrated.
+No B issued, no results, no retroactive editing.
