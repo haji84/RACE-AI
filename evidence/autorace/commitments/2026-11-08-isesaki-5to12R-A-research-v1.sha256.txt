@@ -1,0 +1,31 @@
+date_jst=2026-11-08
+created_at_jst=2026-11-08T13:41:05+09:00
+phase=A_RESEARCH_PROVISIONAL
+trial_execution_timestamp_independently_verified=false
+basis=WINTICKET good-road average competition times + handicap + historical ST + 10-race finish ranks
+trained_RACE_AI_model=false
+calibrated_probabilities=false
+prediction_method=Transparent uncalibrated deterministic research score and rank combinations. Exact formula in each private JSON.
+no_prior_immutable_predictions_changed=true
+public_repo_contains_hash_only_not_private_bets=true
+source=https://autorace.jp/race_info/Program/isesaki/2026-11-08
+race=5R; deadline_jst=2026-11-08T16:44:00+09:00; SHA256 85ca9d1d64eebcd908e4a55171d1f75774e18a054b221b3425ce18ba0a64b620 autorace_20261108_isesaki_5R_A_research_v1.json
+source_race=https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/5
+race=6R; deadline_jst=2026-11-08T17:13:00+09:00; SHA256 f2c5da6bbc39ae50c410cc44b2a4bc43c2620167e62275b2798222606df3c3f6 autorace_20261108_isesaki_6R_A_research_v1.json
+source_race=https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/6
+race=7R; deadline_jst=2026-11-08T17:43:00+09:00; SHA256 8b5ae0569af7f437e9d40795d43f2d928e8371cc80360a5096ee866ec3442df1 autorace_20261108_isesaki_7R_A_research_v1.json
+source_race=https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/7
+race=8R; deadline_jst=2026-11-08T18:14:00+09:00; SHA256 926811890d0ae92d96466e2bb76db517eeb2b4831d60d59c8f242e96f0287789 autorace_20261108_isesaki_8R_A_research_v1.json
+source_race=https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/8
+race=9R; deadline_jst=2026-11-08T18:46:00+09:00; SHA256 4ce6aeac3abbf91662b2d87dd2b435c7b0600f9e98dbc060d4bad62e2ab4d96d autorace_20261108_isesaki_9R_A_research_v1.json
+source_race=https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/9
+race=10R; deadline_jst=2026-11-08T19:19:00+09:00; SHA256 313dbbfcf1f80a6561dc83c8539f83f099bb58e6e4cb58891562708a6b76b436 autorace_20261108_isesaki_10R_A_research_v1.json
+source_race=https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/10
+race=11R; deadline_jst=2026-11-08T19:53:00+09:00; SHA256 a929fba3258d2edf5095a382d4929e8d562038f208ea0c7d956c2138a339a5c1 autorace_20261108_isesaki_11R_A_research_v1.json
+source_race=https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/11
+race=12R; deadline_jst=2026-11-08T20:28:00+09:00; SHA256 97608ff947bbc64c4e0083b7e60533aa4fbb22268b5acfbbb34382cfe76235f4 autorace_20261108_isesaki_12R_A_research_v1.json
+source_race=https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/12
+result_not_checked_to_revise_predictions=true
+late_changes_trail_weather_and_trial_currently_unverified=true
+OFFICIAL_A_STATUS=NOT_CERTIFIED
+Historical predictions must not be retrospectively inserted after cutoff.
