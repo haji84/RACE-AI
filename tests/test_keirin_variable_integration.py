@@ -204,6 +204,51 @@ class VariableOwnerIntegrationTests(unittest.TestCase):
             self.assertIsNone(summary["reference_roi"])
             self.assertEqual(summary["reference_investment_yen"],0)
 
+    def test_reconcile_all_owner_history_revisions_without_overwriting(self):
+        _,original,selection=self.begin(positive=2)
+        picked=selection["selection"]["tickets"][0]["triple"]
+        missed=[7,6,5] if picked!=[7,6,5] else [6,7,5]
+        self.now[0]=datetime.fromisoformat("2030-01-15T10:20:00+09:00")
+        with PrivateKeirinStore(self.dbpath,clock=self.clock) as store:
+            store.add_result_observation(self.result(
+                picked,payout=690,source="a",
+                at="2030-01-15T10:10:00+09:00")["observation"])
+            store.add_result_observation(self.result(
+                missed,payout=2200,source="b",
+                at="2030-01-15T10:11:00+09:00")["observation"])
+            ledger=PrivateVariableLedger(store)
+            self.assertEqual(store.db.execute(
+                "SELECT COUNT(*) FROM variable_selection_audits").fetchone()[0],0)
+            first=ledger.reconcile_saved_history()
+            self.assertEqual(first["replayed_result_revisions"],2)
+            self.assertEqual(first["newly_reconciled_audit_rows"],2)
+            self.assertTrue(first["saved_history_research_reconciled"])
+            self.assertFalse(first["complete_official_race_coverage"])
+            self.assertFalse(first["official_result_authenticity_verified"])
+            self.assertIsNone(first["formal_return_rate"])
+            self.assertEqual(first["reference_profit_yen"],-200)
+            self.assertEqual(store.db.execute(
+                "SELECT COUNT(*) FROM variable_selection_audits").fetchone()[0],2)
+            again=ledger.reconcile_saved_history()
+            self.assertEqual(again["newly_reconciled_audit_rows"],0)
+            self.assertEqual(again["reference_profit_yen"],-200)
+            self.assertEqual(store.get_persisted_forecast(RID)["sha256"],
+                             original["sha256"])
+        with PrivateKeirinStore(self.dbpath,clock=self.clock) as reopened:
+            report=PrivateVariableLedger(reopened).reconcile_saved_history()
+            self.assertEqual(report["reference_profit_yen"],-200)
+            self.assertEqual(report["newly_reconciled_audit_rows"],0)
+
+    def test_reconcile_missing_original_odds_stays_reported(self):
+        _,original,selection=self.begin(positive=None)
+        self.assertIsNone(selection)
+        with PrivateKeirinStore(self.dbpath,clock=self.clock) as store:
+            report=PrivateVariableLedger(store).reconcile_saved_history()
+            self.assertEqual(report["saved_variable_race_model_pairs"],0)
+            self.assertEqual(report["originals_without_variable_sidecar"],1)
+            self.assertFalse(report["saved_history_research_reconciled"])
+            self.assertIsNone(report["formal_hit_rate"])
+
     def test_missing_odds_never_blocks_original_private_forecast(self):
         tick,original,selection=self.begin(positive=None)
         self.assertIsNotNone(original)
