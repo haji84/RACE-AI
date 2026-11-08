@@ -22,6 +22,16 @@ class DailyLedgerTests(unittest.TestCase):
                      "venue_code":63,"race_no":i} for i in range(1,13)],
         }
 
+    def test_default_legacy_rakuten_collection_is_disabled(self):
+        from race_ai.keirin_daily_ledger import main
+        with self.assertRaisesRegex(
+                DiscoveryError, "RAKUTEN_AUTOMATIC_DISCOVERY_DISABLED"):
+            daily_run(today=DAY)
+        with tempfile.TemporaryDirectory() as root:
+            output = Path(root) / "no-source.json"
+            self.assertEqual(main(["--day", DAY, "--output", str(output)]), 2)
+            self.assertFalse(output.exists())
+
     def test_all_races_keep_unknown_prediction_and_results(self):
         report=daily_run(today=DAY,collector=self.sample)
         self.assertEqual(report["discovered_count"],19)
