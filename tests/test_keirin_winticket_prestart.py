@@ -38,7 +38,8 @@ def mocked_runtime(plan):
         "recording_started_at":start.isoformat(),
         "recording_ended_at":end.isoformat(),
         "media_samples":samples,
-        "video_container_ok":True
+        "video_container_ok":True,
+        "frames_checked":True
     }
 
 
@@ -106,6 +107,10 @@ class LiveFourLapAuditTest(unittest.TestCase):
         self.assertEqual(coverage_gate(p,runtime,synthetic=True)["status"],
                          "HEARTBEAT_GAP")
         runtime=mocked_runtime(p)
+        runtime["frames_checked"]=False
+        self.assertEqual(coverage_gate(p,runtime,synthetic=True)["status"],
+                         "RENDERED_VIDEO_FRAMES_NOT_VERIFIED")
+        runtime=mocked_runtime(p)
         runtime["video_container_ok"]=False
         self.assertEqual(coverage_gate(p,runtime,synthetic=True)["status"],
                          "RECORDING_FILE_INVALID")
@@ -128,6 +133,21 @@ class LiveFourLapAuditTest(unittest.TestCase):
         visual["observations"][2]["event"]="lap4"
         r=lap_visual_gate(complete,visual)
         self.assertEqual(r["status"],"FOUR_LAP_VISUAL_SEQUENCE_MISSING")
+        visual["observations"][2]["event"]="lap3"
+        visual["race_id"]=p["race_id"]
+        r=lap_visual_gate(complete,visual)
+        self.assertEqual(r["status"],"RAW_RECORDING_DIGEST_NOT_ATTESTED")
+        bound=dict(complete,recording_sha256="d"*64,
+                   frame_inventory=[{
+                      "recording_sec":i*40.,
+                      "frame_sha256":f"{i+1:064x}"}
+                      for i in range(6)],race_id=p["race_id"])
+        r=lap_visual_gate(bound,visual)
+        self.assertEqual(r["status"],"INDEPENDENT_ATTESTATION_MISSING")
+        self.assertFalse(r["four_laps_verified"])
+        r=lap_visual_gate(bound,visual,
+                   independent_attestor=lambda e,c:False)
+        self.assertEqual(r["status"],"INDEPENDENT_ATTESTATION_REJECTED")
 
     def test_video_garbage_is_not_a_recording(self):
         import tempfile
