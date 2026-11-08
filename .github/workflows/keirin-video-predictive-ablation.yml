@@ -1,0 +1,33 @@
+name: KEIRIN prior-video predictive uplift chronological contract
+
+on:
+  pull_request:
+    paths:
+      - 'race_ai/keirin_video_predictive_backtest.py'
+      - 'tests/test_keirin_video_predictive_backtest.py'
+      - '.github/workflows/keirin-video-predictive-ablation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  offline-no-leakage-ablation:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 7
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile isolated chronological experiment
+        run: python -m py_compile race_ai/keirin_video_predictive_backtest.py tests/test_keirin_video_predictive_backtest.py
+      - name: Prove real-source and as-of fail-closed contracts with invented races
+        run: python -m unittest discover -s tests -p 'test_keirin_video_predictive_backtest.py' -v
+      - name: Report limitations, do not promote a model
+        run: |
+          printf '%s\n' \
+            'Only synthetic video-tactics-to-forecast ablation contracts passed.' \
+            'Real previous video training and real predictive uplift remain NOT MEASURED.' \
+            'No frozen official predictions, licensed raw footage, real labels, or decrypted artifacts touched.' \
+            'No production predictions updated and no wagers or new external services.' >> "$GITHUB_STEP_SUMMARY"
