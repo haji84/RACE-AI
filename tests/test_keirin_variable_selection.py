@@ -94,10 +94,11 @@ class VariableKeirinSelectionTests(unittest.TestCase):
 
     def test_duplicate_and_nonfinite_odds_fail_closed(self):
         suite, mid, odds = fixture()
-        odds["prices"].append(deepcopy(odds["prices"][0]))
+        second = deepcopy(odds["prices"][1])
+        odds["prices"][1] = deepcopy(odds["prices"][0])
         with self.assertRaisesRegex(VariableSelectionError, "DUPLICATE_ODDS"):
             select_research_tickets(suite, mid, odds, decision_at=DECISION)
-        odds["prices"].pop()
+        odds["prices"][1] = second
         odds["prices"][0]["decimal_odds"] = float("nan")
         with self.assertRaisesRegex(VariableSelectionError, "FINITE"):
             select_research_tickets(suite, mid, odds, decision_at=DECISION)
