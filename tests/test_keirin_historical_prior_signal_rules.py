@@ -81,6 +81,12 @@ class FixedHistoricalSignalTests(unittest.TestCase):
         self.assertEqual(features["bank_fit"]["other_venue_count"],5)
         self.assertAlmostEqual(features["finishing_power"]["candidate_value"],1)
         self.assertTrue(0<=features["sprint_acceleration"]["candidate_value"]<=1)
+        # Fixed v1 baseline: home 3/6 vs other 3/5, with Beta(1,1)
+        # rates 4/8 and 4/7; one and only one agreed transformation.
+        self.assertAlmostEqual(features["bank_fit"]["candidate_value"],
+                               .5+.5*(4/8-4/7))
+        self.assertAlmostEqual(features["line_coordination"]["candidate_value"],
+                               4/11)
         for name in ("finishing_power","sprint_acceleration",
                      "line_coordination","bank_fit"):
             self.assertIsNotNone(features[name]["candidate_value"])
@@ -186,6 +192,56 @@ class FixedHistoricalSignalTests(unittest.TestCase):
         for r in out["features"].values():
             self.assertIsNone(r["candidate_value"])
 
+
+
+
+
+class PrivateCommandLineTests(unittest.TestCase):
+    def test_private_cli_prints_presence_not_rider_id_or_feature_values(self):
+        from scripts.keirin_historical_prior_signal_probe import main
+        from contextlib import redirect_stdout
+        from pathlib import Path
+        import tempfile
+        import io
+        import json
+
+        with tempfile.TemporaryDirectory() as d:
+            p=Path(d)/"prior.json"
+            p.write_text(json.dumps(example()),encoding="utf-8")
+            stdout=io.StringIO()
+            with redirect_stdout(stdout):
+                code=main(["--owner-prior-events",str(p)])
+            self.assertEqual(code,0)
+            info=json.loads(stdout.getvalue())
+            self.assertEqual(info["event_count_provided"],11)
+            self.assertEqual(info["feature_coverage"]["line_coordination"][
+                "sample_count"],11)
+            self.assertTrue(info["feature_coverage"]["bank_fit"][
+                "meets_fixed_minimum"])
+            self.assertFalse(info["feature_coverage"]["bank_fit"][
+                "approved_for_pr71_input"])
+            self.assertNotIn("fictional-",stdout.getvalue())
+            self.assertNotIn("candidate_value",stdout.getvalue())
+            self.assertNotIn("result_source_url",stdout.getvalue())
+
+    def test_invalid_archive_refused_without_source_echo(self):
+        from scripts.keirin_historical_prior_signal_probe import main
+        from contextlib import redirect_stdout
+        from pathlib import Path
+        import tempfile
+        import io
+
+        with tempfile.TemporaryDirectory() as d:
+            p=Path(d)/"bad.json"
+            for bad in ("[]", '{"tag":"one","tag":"two"}', "{INVALID_PRIVATE_ID}"):
+                p.write_text(bad,encoding="utf-8")
+                stdout=io.StringIO()
+                with redirect_stdout(stdout):
+                    code=main(["--owner-prior-events",str(p)])
+                self.assertEqual(code,2)
+                self.assertIn("HISTORICAL_PRIOR_SIGNAL_INPUT_HOLD",
+                              stdout.getvalue())
+                self.assertNotIn("INVALID_PRIVATE_ID",stdout.getvalue())
 
 if __name__=="__main__":
     unittest.main()
