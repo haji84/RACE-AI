@@ -1,0 +1,10 @@
+SHA256 fda243a31434d3e18a5a34dd60ed02006f20b2d4edaf47ff66e79b90b2e9ac30  autorace_20261108_kawaguchi_1R_A_research_v1.json
+race=2026-11-08 kawaguchi 1R
+issued_at_jst=2026-11-08T09:38:45+09:00
+betting_cutoff_jst=2026-11-08T10:54:00+09:00
+phase=A (before actual trial)
+research_only=true
+trained_model_output=false
+public_branch_contains_hash_only=true
+private_original_remains_outside_public_repository=true
+approval_status=research_unverified_not_official_model_forecast
