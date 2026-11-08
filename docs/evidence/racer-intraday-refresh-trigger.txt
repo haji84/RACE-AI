@@ -23,3 +23,5 @@
 2026-11-09 JST: stage-model-pdca verify the entire indexed saved-period AES/Git Top8 PDCA history at source GET zero; explicitly keep all old race and model HOLDs, do not mark full completion until the due ledger is empty.
 
 2026-11-09 JST: stage-model-pdca verify all 62 unresolved BOAT race IDs in the existing encrypted private reason ledger and independently read back safe aggregate causes; no source GET, secrets, public race IDs or new workflow.
+
+2026-11-09 JST: stage-model-pdca identify which unresolved real BOAT cases have authenticated retained official result bytes for an entirely source-free replay; do not convert reference-only results into formal outcomes.

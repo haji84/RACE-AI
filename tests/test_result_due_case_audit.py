@@ -73,5 +73,45 @@ class DueCaseReasonTests(unittest.TestCase):
         self.assertEqual(set(control['result_due_case_reasons']['cases']),{y['race_id']})
         self.assertTrue(result['all_cases_accounted_for'])
 
+
+    def test_retained_source_candidates_are_counted_without_ids_or_raw_leaks(self):
+        from types import SimpleNamespace
+        import hashlib
+        control,due=self.fresh()
+        x=row('20261107-01-01','missing')
+        y=row('20261107-01-02','missing')
+        z=row('20261107-01-03','unsupported')
+        z['result_observation_rejections']=[dict(reason='RESULT_UNSUPPORTED')]
+        D.update(due,[x,y,z],now=NOW)
+        C.record(control,due,[x,y,z])
+        sample=b'EXPLICIT_TEST_ONLY_CAPTURE'
+        sha=hashlib.sha256(sample).hexdigest()
+        control['settlement_captures']={x['race_id']:dict(source_sha256=sha)}
+        state=SimpleNamespace(control=control,
+            capture=lambda pointer:(sample,dict(source_sha256=pointer['source_sha256'])))
+        before=C.summary(control,due)
+        proof=C.retained_source_inventory(state,due)
+        self.assertEqual(proof['outstanding'],3)
+        self.assertEqual(proof['replay_candidate_cases'],3)
+        self.assertEqual(proof['authenticated_retained_bytes'],1)
+        self.assertEqual(proof['no_retained_capture'],2)
+        self.assertFalse(proof['cases_auto_resolved'])
+        self.assertEqual(C.summary(control,due),before)
+        self.assertNotIn(x['race_id'],str(proof))
+        self.assertNotIn(sample.decode(),str(proof))
+
+    def test_unverified_existing_capture_is_not_counted_as_replayable(self):
+        from types import SimpleNamespace
+        control,due=self.fresh()
+        x=row('20261107-02-01','missing')
+        D.update(due,[x],now=NOW);C.record(control,due,[x])
+        control['settlement_captures']={x['race_id']:dict(source_sha256='a'*64)}
+        state=SimpleNamespace(control=control,
+            capture=lambda pointer: (_ for _ in ()).throw(ValueError('INVALID_CAPTURE')))
+        proof=C.retained_source_inventory(state,due)
+        self.assertEqual(proof['authenticated_retained_bytes'],0)
+        self.assertEqual(proof['capture_authentication_hold'],1)
+        self.assertEqual(proof['cases_auto_resolved'],0)
+
 if __name__=='__main__':
     unittest.main()

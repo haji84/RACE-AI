@@ -221,6 +221,7 @@ def verify_snapshot(state,bridge,*,now):
         pdca_rank_definition='TOP8_FIRST_APPEARANCE_NOT_ALL_RACER_PROBABILITY_RANK',
         pdca_stake_policy='REFERENCE_100_YEN_PER_SAVED_TICKET_NO_ACTUAL_BETS',
         unresolved_case_audit=reasons,
+        unresolved_replay_inventory=RC.retained_source_inventory(state,due),
         ledger_outstanding=D.pending_count(due),archived_days=H.latest(state.control)['days'],
         archived_revisions=H.latest(state.control)['revisions'],independent_day_readbacks=archived_readbacks,held_days=held_days,
         source_provider_requests=0,

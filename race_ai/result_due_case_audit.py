@@ -155,3 +155,48 @@ def summary(control, ledger):
                 reason_counts=dict(sorted(reasons.items())), resolved_total=state['resolved_total'],
                 unattributed=sum(reasons.get(x,0) for x in ('UNSCANNED_SAVED_DAY','SAVED_DAY_EVIDENCE_UNAVAILABLE','INPUT_REASON_UNVERIFIED')),
                 all_cases_accounted_for=True, source_provider_requests=0, actual_purchases=False)
+
+def retained_source_inventory(state, ledger):
+    """Count authenticated retained result pages that might be replayed offline.
+
+    This is deliberately a *candidate* inventory, not a formal result label.
+    The function only reads the existing encrypted capture store and never
+    publishes exact race IDs or observes an online provider.
+    """
+    original=summary(state.control, ledger)
+    cases=_validate(state.control.get('result_due_case_reasons'))['cases']
+    pointers=state.control.get('settlement_captures', {})
+    need(isinstance(pointers,dict),'CAPTURE_POINTER_MAP_INVALID')
+    target={'RESULT_SOURCE_NOT_OBSERVED','RESULT_SOURCE_REJECTED',
+            'MODEL_RESULT_EVIDENCE_MISMATCH'}
+    by_reason={}
+    authenticated=missing=failed=0
+    for rid,case in sorted(cases.items()):
+        reason=case['reason']
+        if reason not in target:
+            continue
+        bucket=by_reason.setdefault(reason,dict(cases=0,authenticated_retained_bytes=0,
+                                                no_retained_capture=0,capture_authentication_hold=0))
+        bucket['cases']+=1
+        pointer=pointers.get(rid)
+        if pointer is None:
+            missing+=1;bucket['no_retained_capture']+=1
+            continue
+        try:
+            raw,receipt=state.capture(pointer)
+            valid=isinstance(raw,bytes) and isinstance(receipt,dict) and (
+                receipt.get('source_sha256') == hashlib.sha256(raw).hexdigest())
+            if not valid:raise ValueError('CAPTURE_HASH')
+        except (KeyError,TypeError,ValueError):
+            failed+=1;bucket['capture_authentication_hold']+=1
+        else:
+            authenticated+=1;bucket['authenticated_retained_bytes']+=1
+    need(sum(v['cases'] for v in by_reason.values())==authenticated+missing+failed,
+         'REPLAY_INVENTORY_ACCOUNTING')
+    return dict(schema='RACE_AI_RETAINED_SOURCE_REPLAY_INVENTORY_V1',
+                outstanding=original['outstanding'],replay_candidate_cases=authenticated+missing+failed,
+                authenticated_retained_bytes=authenticated,
+                no_retained_capture=missing,capture_authentication_hold=failed,
+                by_reason=dict(sorted(by_reason.items())),
+                requires_formal_source_validation=True,
+                cases_auto_resolved=0,source_provider_requests=0,actual_purchases=False)
