@@ -77,8 +77,10 @@ function dateEvidence(context,results,p1Groups,lifecycleDay){
     current_day_p1_groups:scope==='CURRENT_DAY'?p1Groups:null};
 }
 
-async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDay=false}={}){
+async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDay=false,checkBeforeinfo=false}={}){
   const key=validate(context),{chromium}=require('playwright');
+  if(checkBeforeinfo){assert.ok(context.live_beforeinfo_races>0);assert.match(context.live_beforeinfo_probe?.race_id,/^\d{8}-\d{2}-\d{2}$/);assert.ok(Number.isFinite(Date.parse(context.live_beforeinfo_probe.cutoff_at)));}
+  let beforeinfoViews=0,beforeinfoTimes=0;
   if(probeRaceId){assert.match(probeRaceId,/^\d{8}-\d{2}-\d{2}$/);assert.equal(probeRaceId.slice(0,8),context.day.replaceAll('-',''));}
   const executablePath=['/usr/bin/google-chrome','/opt/google/chrome/google-chrome',
     '/opt/google/chrome/chrome','/usr/bin/chromium'].find(path=>fs.existsSync(path));
@@ -228,6 +230,18 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
         if(!currentDayClosedCount){assert.equal(currentDayPendingCount,0);assert.equal(await page.locator('#saved-results-table .result-mobile-card').count(),0);}
         assert.equal(await page.locator('#saved-results-table .outcome-upcoming').count(),0);currentDayLifecycleViews++;
       }
+      if(checkBeforeinfo){
+        await selectDate(context.day);await page.locator('[data-page="races"]').filter({visible:true}).first().click();
+        if(await page.locator('#all-venues').isVisible())await page.locator('#all-venues').click();
+        const probe=context.live_beforeinfo_probe;
+        await page.locator('[data-race-view="'+(Date.parse(probe.cutoff_at)>Date.now()?'upcoming':'results')+'"]').click();
+        await (await revealRace(page,probe.race_id,context.day_races)).click();await page.locator('[data-detail-tab="preview"]').click();
+        const live=page.locator('#live-beforeinfo');assert.equal(await live.isVisible(),true);assert.equal(await live.locator('.preview-boat').count(),6);
+        const values=await live.locator('.preview-metrics div').filter({has:page.getByText('展示タイム',{exact:true})}).locator('dd').allTextContents();
+        const count=values.filter(value=>/^\d+\.\d+$/.test(value.trim())).length;assert.ok(count>0);beforeinfoTimes+=count;
+        assert.ok(await live.locator('.weather-panel').count()>0);assert.match(await live.innerText(),/公式情報の取得/);
+        assert.doesNotMatch(await page.locator('#detail-tab-content').innerText(),/保存予想原本の気象・直前情報は未取得|元ページSHA/);beforeinfoViews++;
+      }
       assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false);checked++;
     }
     assert.deepEqual(errors,[]);assert.equal(leaked,false);
@@ -242,6 +256,7 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
       native_p1_groups_required:context.native_p1_groups,native_p1_detail_visible:nativeVisible,
       future_native_visible_before_cutoff:futureVisible,previous_day_checked:context.old_day!==null,
       active_model_families:15,removed_seller_hidden:true,
+      live_beforeinfo_views_checked:beforeinfoViews,live_beforeinfo_times_checked:beforeinfoTimes,
       participant_names:true,editable_daily_budget:true,per_race_1000_simulation:true,
       hit_miss_rate_roi_and_settled_pending_net_visible:true,
       key_in_requests_or_storage:false,blocked_external_requests:blocked,official_source_requests:0,plaintext_published:false};
@@ -249,7 +264,7 @@ async function run(context,{compactResults=false,probeRaceId=null,checkCurrentDa
 }
 
 if(require.main===module){
-  (async()=>run(JSON.parse(fs.readFileSync(process.argv[2],'utf8')),{compactResults:process.argv.includes('--compact-results'),checkCurrentDay:process.argv.includes('--check-current-day'),probeRaceId:process.argv.find(v=>v.startsWith('--race-id='))?.slice(10)||null}))()
+  (async()=>run(JSON.parse(fs.readFileSync(process.argv[2],'utf8')),{compactResults:process.argv.includes('--compact-results'),checkCurrentDay:process.argv.includes('--check-current-day'),checkBeforeinfo:process.argv.includes('--check-beforeinfo'),probeRaceId:process.argv.find(v=>v.startsWith('--race-id='))?.slice(10)||null}))()
     .then(report=>process.stdout.write(JSON.stringify(report)+'\n'))
     .catch(()=>{process.stdout.write(JSON.stringify({status:'LIVE_OWNER_SITE_REJECTED',reason:'SAVED_SITE_BROWSER_CHECK_FAILED'})+'\n');process.exitCode=2;});
 }

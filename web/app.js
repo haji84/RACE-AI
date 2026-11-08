@@ -154,7 +154,8 @@
     const value = v => typeof v === "number" && Number.isFinite(v) ? v.toFixed(2) : v == null && live ? "未公表" : text(v);
     for (const person of people) {
       const card = node("article", "preview-boat"), header = node("div", "preview-person");
-      const trigger = button(person.name || "出走者情報", "text-button", () => openParticipant(person, race, trigger));
+      const profilePerson = live ? knownParticipants(race).find(p => participantNumber(p) === participantNumber(person) && participantRegistration(p) === participantRegistration(person)) || person : person;
+      const trigger = button(person.name || "出走者情報", "text-button", () => openParticipant(profilePerson, race, trigger));
       trigger.dataset.openParticipant = participantRegistration(person) || "unverified";
       const number = participantNumber(person); if (Number.isInteger(number)) header.append(badge(number));
       header.append(trigger); card.append(header);
@@ -248,7 +249,18 @@
     return live;
   }
   function selectedBoatContext(r) {
-    return liveBoatObservation(r)?.context || r.boat_observation_context;
+    const live = liveBoatObservation(r)?.context, legacy = r.boat_observation_context;
+    if (!live) return legacy;
+    if (!legacy || !validBoatObservationContext(legacy, r.race_id)) return live;
+    const people = knownParticipants(r), registrations = new Set(people.map(participantRegistration));
+    const matches = person => people.some(p => participantNumber(p) === person.lane && participantRegistration(p) === person.registration_number);
+    const pit = legacy.pitreport?.participants.every(matches) ? legacy.pitreport : null;
+    const history = legacy.entry_history?.profiles.every(profile => registrations.has(profile.racer_id)) ? legacy.entry_history : null;
+    // This is a display composition, never a new capture. Each independently
+    // validated component retains its own clock, source and admission flags.
+    const composed = {...live,pitreport:live.pitreport || pit,entry_history:live.entry_history || history};
+    if (legacy.cutoff_at !== live.cutoff_at) delete composed.cutoff_at;
+    return composed;
   }
   function liveBeforeinfoPanel(r) {
     const live = liveBoatObservation(r); if (!live) return null;
@@ -360,7 +372,15 @@
   }
   function referenceEntryMap(race, api) {
     let entryMap = null;
-    const people = knownParticipants(race), context = selectedBoatContext(race);
+    const people = knownParticipants(race), live = liveBoatObservation(race);
+    let context = live?.context || race.boat_observation_context;
+    if (live?.context) {
+      const page = context.beforeinfo, captured = Date.parse(page.source.captured_at);
+      const originals = [race.cutoff_at, ...(race.saved_cutoff_variants || []), ...(race.saved_schedule_cutoff_variants || [])].filter(Boolean);
+      const limits = [...originals, context.cutoff_at, page.source_cutoff_at].map(Date.parse);
+      if (!originals.length || !limits.every(Number.isFinite) || page.cutoff_eligibility?.captured_before_cutoff !== true ||
+          page.cutoff_eligibility?.pre_cutoff_eligible !== true || captured >= Math.min(...limits)) context = race.boat_observation_context;
+    }
     const reported = people.filter(p => p.preview_course !== null && p.preview_course !== undefined);
     if (reported.length) entryMap = Object.fromEntries(reported.map(p => [participantNumber(p), p.preview_course]));
     else if (people.length === 6 && context && validBoatObservationContext(context, race.race_id) && context.beforeinfo?.status === "PARSED" && context.beforeinfo.roster_binding_status === "VERIFIED") {
