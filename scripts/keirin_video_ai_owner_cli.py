@@ -46,6 +46,9 @@ def main(argv=None):
     extract.add_argument("--video",required=True)
     extract.add_argument("--race-id",required=True)
     extract.add_argument("--every-seconds",type=int,default=2)
+    extract.add_argument("--panel",type=float,nargs=4,default=None,
+       metavar=("X0","Y0","X1","Y1"),
+       help="Relative browser video region, e.g. WINTICKET Yahiko popup: 0.30 0.30 0.70 0.71")
     extract.add_argument("--output",required=True)
     train=subs.add_parser("train")
     train.add_argument("--reviewed-labels",action="append",required=True)
@@ -64,8 +67,9 @@ def main(argv=None):
         and not args.race_id.startswith("synthetic-")):
         raise SystemExit("REAL_VIDEO_EXTRACTION_REQUIRES_PRIVATE_OWNER_RUNTIME")
     if args.command=="extract":
+        args_panel=tuple(args.panel) if args.panel is not None else (.19,.42,.81,.93)
         doc=sample_private_video(args.video,race_id=args.race_id,
-                                 every_s=args.every_seconds)
+                                 every_s=args.every_seconds,panel=args_panel)
         private_output(Path(args.output),doc)
         print(json.dumps({"phase":"EXTRACT","race_id":doc["race_id"],
               "frames":len(doc["features"]),"raw_video_exported":False,
