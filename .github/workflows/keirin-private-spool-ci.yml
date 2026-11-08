@@ -27,5 +27,7 @@ jobs:
         run: python -m unittest discover -s tests -p test_keirin_preflight.py -v
       - name: Verify permissioned source delivery -> exhaustive audit -> actual PR71
         run: python -m unittest discover -s tests -p test_keirin_allowed_delivery.py -v
+      - name: SHA-checked owner licence manifest, private authorized-inbox staging and real PR71
+        run: python -m unittest discover -s tests -p test_keirin_permissioned_owner.py -v
       - name: Operator-private service CLI and no unauthenticated provider access
         run: python -m unittest discover -s tests -p test_keirin_private_agent.py -v
