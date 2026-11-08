@@ -215,3 +215,12 @@ WINTICKETの該当ページ https://www.winticket.jp/keirin/aomori/odds/20261108
 - **到達範囲**：PR101の研究用シャドーモデル＋PR103可変選択の保存ペア。PR71を含む他モデルの全候補ランキング自動接続、権限付き実データの継続取得、独立外部時刻証明、本物の全件比較、モデルの確率校正は未実証。Draft維持、main未統合、無課金・無投票。
 
 - オッズ欠測でもランキング保存を止めない: owner agent が stage_sourced_shadows に既存私有SQLiteを渡し、keirin_shadow_rank_snapshots に全210/504順位・原入力・作成時刻・SHAを締切前に一度だけ固定する。結果受領後Top8とTop12だけ比較し、可変券はNO_PRE_CUTOFF_ODDSとして未評価（0点見送りと混同しない）。結果が到着してから初めて予想を作ることは禁止。
+
+## 2026-11-09：既存PR71の4モデル全順位を同一未来レースで凍結
+
+- 新規予想モデルは作成せず、PR71 `four_sport_model_suite.run_suite` の既存4モデルを同じ事前evidenceから実行し、各モデルの全210/504通り・順位・未校正スコア・prediction_sha256・model_versionをまとめて非公開SQLiteへ書込む。保存前に既存 `keirin_pr71_model_adapter.run_pr71_for_next_race` を通して実データの347項目/権限/締切ゲートを再利用する。
+- 追加 `race_ai/keirin_pr71_four_model_rank.py` は、スナップショット原本SHA・suite SHA・保存SQLite原本SHAを読み戻し照合し、事後結果の各revisionにつき各モデルの的中券評価順位・万車券（100円払戻1万円以上）・Top8/Top12・締切前可変選定が存在する場合のみ可変0〜12点を評価する。
+- `tests/test_keirin_pr71_four_model_rank.py` は架空7車・9車、同じ未来レースの4モデル、事前凍結後の万車券、改訂版、結果保留、改ざん・締切後拒否、保存再読込を検証。合成テストの合格は現実の取得・正式予想を意味しない。
+- 既存オーナー処理 `scripts/keirin_permissioned_owner_agent.py` の `pre/` で事前入力を受け取った場合のみPR71の独立順位保存を試行し、結果は既存の `result_revisions` から読み取って追記専用の `keirin_pr71_four_model_rank_audits` に保存する。既存PR101疎入力研究版・PR103ペア・元PR71予想テーブルは書き換えない。
+- 変動するオッズの未取得は、0点の意思決定ではない。モデル選択が締切前に別保存されていなければ `NO_PRE_CUTOFF_VARIABLE_SELECTION` として未評価。独立外部時刻証明・結果提供元による署名・合法自動フィード・本番の一巡実証は **未完成**。
+- 新規データ取得/転送なし。公開GitHub・Actions・artifactに選手原本/オッズ/私有SQLiteを含めない。既存Draft PR内で検証し、main統合・有料サービス・自動購入はしない。
