@@ -2,6 +2,7 @@
 from copy import deepcopy
 from datetime import timedelta
 import unittest
+from unittest.mock import patch
 from race_ai import retained_model_pdca_audit as A,saved_view_feed as F
 from tests.test_racer_result_bridge import saved_view
 from tests.test_boat_sp_settlement import document,no_contest_document
@@ -32,6 +33,61 @@ class HistoricalModelPdcaAudit(unittest.TestCase):
         self.assertEqual(g['net_yen'],450)
         self.assertEqual(g['roi'],1250/800)
         self.assertFalse(g['actual_purchases'])
+
+    def test_authenticated_view_calls_the_existing_bulk_scoring_engine(self):
+        from race_ai import verified_bulk_backtest as B
+        view=self.capture(self.view())
+        with patch.object(B,'settle',wraps=B.settle) as existing:
+            g=A.score_view(view,authenticated=True)['model_groups'][0]
+        existing.assert_called_once()
+        self.assertEqual((g['eligible'],g['hits'],g['stake_yen'],g['returned_yen'],g['net_yen']),
+                         (1,1,800,1250,450))
+
+    def test_unknown_or_reference_only_result_does_not_call_existing_scorer(self):
+        from race_ai import verified_bulk_backtest as B
+        view=self.capture(self.view())
+        view['records'][0]['result']['cutoff_reconciliation']={'formal_eligible':False}
+        with patch.object(B,'settle',side_effect=AssertionError('formal score forbidden')) as existing:
+            g=A.score_view(view,authenticated=True)['model_groups'][0]
+        existing.assert_not_called()
+        self.assertEqual((g['eligible'],g['held'],g['stake_yen']),(0,1,0))
+
+    def test_existing_bulk_engine_handles_multiwinning_official_trifecta(self):
+        from race_ai import verified_bulk_backtest as B
+        view=self.view()
+        document_with_two_winners=document()
+        d=document_with_two_winners['maindata']
+        d['teiinfolist'][1]['chk']='1'
+        d['teiinfolist'][2]['chk']='3'
+        d['infolist3t']=[
+            dict(winno='1-2-3',dividend='1250円'),
+            dict(winno='2-1-3',dividend='1500円')]
+        view=self.capture(view,doc=document_with_two_winners)
+        with patch.object(B,'settle',wraps=B.settle) as existing:
+            result=A.score_view(view,authenticated=True)
+        existing.assert_called_once()
+        g=result['model_groups'][0]
+        self.assertEqual(g['eligible'],1)
+        self.assertEqual(g['hits']+g['misses'],1)
+        self.assertEqual(g['net_yen'],g['returned_yen']-g['stake_yen'])
+
+    def test_full_refund_of_every_saved_ticket_is_not_a_miss(self):
+        v=self.view()
+        v['records'][0]['prediction']['ordered_top8']=[
+            [6,1,2],[6,1,3],[6,2,1]]
+        d=document()
+        d['maindata']['teiinfolist'][-1]['chk']='欠'
+        d['maindata']['stinfolist'][0].update(csdisp='0',st='')
+        d['maindata']['returnlist']=['6']
+        v=self.capture(v,doc=d)
+        from race_ai import verified_bulk_backtest as B
+        with patch.object(B,'settle',wraps=B.settle) as existing:
+            g=A.score_view(v,authenticated=True)['model_groups'][0]
+        existing.assert_called_once()
+        self.assertEqual((g['void'],g['eligible'],g['hits'],g['misses']),
+                         (1,0,0,0))
+        self.assertEqual((g['stake_yen'],g['returned_yen'],g['refund_yen'],g['net_yen']),
+                         (300,300,300,0))
 
     def test_forecast_excluding_first_place_has_safely_classified_miss(self):
         v=self.view();v['records'][0]['prediction']['ordered_top8']=[[2,1,3],[2,3,1],[3,1,2],[3,2,1],[4,1,2]]

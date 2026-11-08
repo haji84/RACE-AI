@@ -88,6 +88,42 @@ def _result_context(row):
     return ('FINAL',mapped,set(refunds))
 
 
+def _score_using_existing_bulk_engine(row,prediction,tickets,winners,refunds,state,identity):
+    """Adapt an already AES-authenticated, pre-cutoff BOAT view to the ORIGINAL bulk scorer.
+
+    Only _saved_clock and _result_context verify receipt, race, clock,
+    official revision and refunds. The old bulk scorer does NOT verify them.
+    Its result is strictly private and only numeric/status fields may escape.
+    """
+    from . import verified_bulk_backtest as B
+    need(state in ('FINAL','VOID'),'FORMAL_RESULT_REQUIRED')
+    rid=row['race_id']
+    physical='ボート:'+row['event_date_jst']+':'+rid[9:11]+':'+str(int(rid[-2:]))
+    frozen=dict(race_id=physical,forecast_id=identity,
+                model_id=prediction['model_id'],
+                picks=['-'.join(map(str,t)) for t in tickets],
+                frozen_at=prediction.get('persisted_at') or prediction.get('server_saved_at'),
+                cutoff_at=prediction.get('cutoff_at') or row.get('cutoff_at'))
+    observed=dict(race_id=physical,
+                  status='CANCELLED' if state=='VOID' else 'SETTLED',
+                  payouts={'-'.join(map(str,t)):money for t,money in sorted(winners.items())},
+                  refunded_numbers=sorted(refunds),
+                  source_grade='official_observed',revision=1)
+    try:
+        scored=B.settle(frozen,B.validate_result(observed))
+    except B.BadRecord:
+        raise ValueError('RETAINED_MODEL_PDCA_EXISTING_SETTLEMENT_REJECTED') from None
+    need(scored['status'] in ('HIT','HIT_PLUS_REFUND','MISS','MISS_PLUS_REFUND','FULL_REFUND'),
+         'EXISTING_SETTLEMENT_STATUS_INVALID')
+    need(all(type(scored[k]) is int for k in ('gross_yen','win_yen','refund_yen','received_yen','net_yen')),
+         'EXISTING_SETTLEMENT_MONEY_INVALID')
+    need(scored['gross_yen']==100*len(tickets) and
+         scored['received_yen']==scored['win_yen']+scored['refund_yen'] and
+         scored['net_yen']==scored['received_yen']-scored['gross_yen'],
+         'EXISTING_SETTLEMENT_ACCOUNTING_MISMATCH')
+    return scored
+
+
 def _miss_reason(tickets,winners):
     # A diagnostic partition based on saved Top8 only. This is NOT a causal
     # claim about driver ability, equipment, weather, odds, or model weights.
@@ -141,22 +177,25 @@ def score_view(view,*,authenticated,include_private_due=False):
                 a['held']+=1;a['unresolved_reasons'][state]+=1;private_due_ids.add(rid);continue
             if _clock(row['result']['observed_at'])<cutoff:
                 a['held']+=1;a['unresolved_reasons']['RESULT_BEFORE_CUTOFF']+=1;private_due_ids.add(rid);continue
-            if state=='VOID':
-                a['void']+=1
-                gross=100*len(tickets)
-                a['stake_yen']+=gross;a['returned_yen']+=gross;a['refund_yen']+=gross
-                continue  # Full refund is excluded from hit-rate; net is zero.
+            # Reuse verified_bulk_backtest.settle instead of independently
+            # recomputing payout, refund and hit logic here. Strict AES source
+            # authentication and pre-cutoff validation have ALREADY passed.
             ticket_set=[tuple(t) for t in tickets]
-            hit_tickets=[t for t in ticket_set if t in winners]
-            returned=sum(winners[t] for t in hit_tickets)
-            refunded=sum(100 for t in ticket_set if set(t)&refunds)
-            gross=100*len(ticket_set)
-            a['eligible']+=1
-            a['stake_yen']+=gross;a['returned_yen']+=returned+refunded
-            a['refund_yen']+=refunded;a['net_yen']+=returned+refunded-gross
-            if hit_tickets:a['hits']+=1
+            settled=_score_using_existing_bulk_engine(
+                row,prediction,ticket_set,winners,refunds,state,ident)
+            a['stake_yen']+=settled['gross_yen']
+            a['returned_yen']+=settled['received_yen']
+            a['refund_yen']+=settled['refund_yen']
+            a['net_yen']+=settled['net_yen']
+            if settled['status']=='FULL_REFUND':
+                # Fully refunded tickets, whether due to cancellation or all
+                # selections refunded, never enter the miss denominator.
+                a['void']+=1
+            elif settled['status'] in ('HIT','HIT_PLUS_REFUND'):
+                a['eligible']+=1;a['hits']+=1
             else:
-                a['misses']+=1;a['miss_reasons'][_miss_reason(ticket_set,winners)]+=1
+                a['eligible']+=1;a['misses']+=1
+                a['miss_reasons'][_miss_reason(ticket_set,winners)]+=1
     groups=[]
     for key,a in sorted(summary.items()):
         b=dict(a,unresolved_reasons=dict(sorted(a['unresolved_reasons'].items())),miss_reasons=dict(sorted(a['miss_reasons'].items())))
