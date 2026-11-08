@@ -1,0 +1,54 @@
+{
+  "schema": "RACE_AI_RETAINED_RUN_RESTORE_DIAGNOSTIC_COUNTS_V1",
+  "run_id": 42442895611,
+  "head_sha": "a1b00b42ac3600569410844878f1b1ba22ba1322",
+  "run_conclusion": "failure",
+  "job_id": 128615700442,
+  "completed_at": "2026-11-08T03:30:40Z",
+  "reports": [
+    {
+      "status": "FIVE_GATES_SAVED_DATA_VERIFICATION_READY",
+      "official_source_requests": 0
+    },
+    {
+      "diagnostics": {
+        "blob_bytes_read": 40330109,
+        "capture_bundles_restored": 8,
+        "cause_codes": [],
+        "code_sites": [
+          "boat_private_original_vault.py:823:restore_capture_bundle",
+          "boat_private_original_vault.py:336:_capture_record",
+          "boat_private_original_vault.py:357:_capture_url"
+        ],
+        "error_code": null,
+        "exception_type": "OTHER",
+        "originals_restored": 39,
+        "stage": "ORIGINALS"
+      },
+      "live_artifact_requests": 0,
+      "official_source_requests": 0,
+      "plaintext_published": false,
+      "reason": "AUTHENTICATED_READ_FAILED",
+      "status": "RETAINED_RUN_VERIFICATION_HOLD",
+      "upstream_writes": 0
+    }
+  ],
+  "diagnosis": {
+    "category": "OPTIONAL_MODEL_COLLECTOR_IMPORT_REQUIRED_FOR_ARCHIVE_URL_VALIDATION",
+    "existing_dependency": "scripts.existing_day_program",
+    "required_url_helper": "race_ai.official_archive_probe.official_url",
+    "pinned_parser_commit": "761247bee0209e37b1af6b8885e92cad3e9260a5",
+    "changed_capture_bytes": false,
+    "changed_authentication": false,
+    "changed_limits": false,
+    "new_checkout": false
+  },
+  "regression": {
+    "before": "FAIL",
+    "after": "PASS",
+    "scoped_tests_passed": 44,
+    "scoped_tests_skipped": 0
+  },
+  "fresh_runner_fix_verified": false,
+  "model_improvement_demonstrated": false
+}

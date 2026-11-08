@@ -32,7 +32,7 @@ Produces: private bounded aggregate expectations and actual browser comparisons 
 - [x] Reproduce the gap: the old checker verifies labels/input values, not financial equality.
 - [x] Add failing stale-budget, wrong payout/refund/pending, and wrong-group cases.
 - [x] Implement numeric matching without changing financial calculation or exposing picks.
-- [ ] Verify local tests, independent review and actual three-width Actions browser.
+- [x] Verify local tests, independent review and actual three-width Actions browser.
 
 ## Task 2: Saved-data PDCA without a fitted-runtime dependency
 
@@ -42,7 +42,7 @@ Interface: `--saved-comparison-day YYYY-MM-DD --daily-budgets 10000,5000 --outpu
 - [x] Test absent runtime/frozen plan, genuine Node aggregates, budgets, zero source access, privacy and no mutation; observe RED.
 - [x] Implement the explicit descriptive mode, preserving false improvement/receipt/promotion flags.
 - [x] Run new and existing Python/Node suites; obtain independent review.
-- [ ] Run once in the existing guarded audit job and retain safe real-data counts.
+- [x] Run once in the existing guarded audit job and retain safe real-data counts.
 
 ## Task 3: Retention and environment-independent continuation
 
@@ -76,3 +76,5 @@ Files: existing source/evaluation operator plans and count-only evidence.
 - Task 3 implementation verified: 71 scoped retention/recovery/mirror tests passed; independent and root runs each passed the 16 new cases. Full status requires the terminal 7f locator and 11 unique official result receipts. Generic restoration remains explicitly partial. Actual fresh GitHub-runner proof is pending.
 - Ruling: live acceptance uses the existing BOAT display job because it already has `contents:write` and `actions:read`; the daily result job does not have the artifact-read permission needed for closure maintenance. Reuse the isolated display branch and guard; do not increase permission scope. Keep the job's 20-minute limit and the source job's 360-minute limit.
 - Task 1 implementation verified: explicit key-free Node child, bounded input, aggregate-only private context, exact group/day/generation and four-scenario DOM checks. Independent review is clear. Root combined verification passed 63 Python and 54 Node tests, including actual browser DOM with zero skips. Actual deployed-site numeric verification remains pending.
+- Actual Tasks 1/2: run 42441153938 verified the Nov7 generation78 owner site at 320/390/1440, including 12 exact numeric budget cases (10000/5000 daily and 800/1000 per race), with the cap exercised. Saved comparison read 1559 forecasts in 64 model/stage/variant/version groups. Six matched weight-version comparisons had zero hit difference; no improvement was demonstrated. This run remained failed because independent retention verification held. Count-only evidence: `docs/evidence/2026-11-08/five-gate-numeric-pdca-actual-counts.json`.
+- Actual Task 3 diagnostic: retention-only run 42442895611 restored all 39 selected originals and 8 source-capture bundles, reading 40330109 bytes, then failed in the official B capture URL validator. Its import of the complete day collector required an absent optional PR72 bridge. Replace only that dependency with the already pinned PR64 archive URL helper; never increase limits, introduce a checkout, or alter source captures. The regression failed before the fix, then new/vault/verifier suites passed 44 tests with zero skips. Fresh-runner acceptance remains pending until the repaired job passes.
