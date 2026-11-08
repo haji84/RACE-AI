@@ -22,7 +22,9 @@ from scripts.boat_all_racers import _read,_write
 from scripts.boat_history_collect import save
 
 SCHEMA='RACE_AI_ALL_THIRTY_ORDER_PDCA_INPUT_V1'
+SCHEMA_V2='RACE_AI_ALL_THIRTY_ORDER_PDCA_INPUT_V2'
 STATUS='RACE_AI_ALL_THIRTY_ORDER_PDCA_ACTIONS_COUNTS_V1'
+STATUS_V2='RACE_AI_ALL_THIRTY_ORDER_PDCA_ACTIONS_COUNTS_V2'
 ROUND=900023
 COUNT_FIELDS=('scope','candidate_cell_count','evaluation_scope','monetary_evaluation_available',
     'partition_count','baseline_forecast_count','learned_forecast_count','paired_forecasts','teacher_matched_forecasts',
@@ -31,7 +33,8 @@ COUNT_FIELDS=('scope','candidate_cell_count','evaluation_scope','monetary_evalua
     'training_sha256','origin_artifact_id','origin_artifact_digest','source_context_sha256','all_thirty_cells_produced',
     'all_thirty_cells_scored','independent_pre_cutoff_receipt_verified','independent_origin_receipt_verified',
     'independent_result_artifact_receipt_verified','independent_pdca_artifact_receipt_verified',
-    'paired_cohorts_within_cells_only','cross_model_equal_cohort_comparison_claimed','encrypted_readback_verified')
+    'paired_cohorts_within_cells_only','cross_model_equal_cohort_comparison_claimed','encrypted_readback_verified',
+    'forecast_batch_count','forecast_counts_by_sport')
 
 
 def need(ok,reason):
@@ -42,12 +45,19 @@ def utc_now():return datetime.now(timezone.utc)
 
 
 def validate_manifest(value):
-    fields={'schema','candidate_cell_count','future_artifact','origin_artifact','result_artifacts','additional_native_artifacts'}
-    need(type(value) is dict and set(value)==fields and value['schema']==SCHEMA and
+    multi=type(value) is dict and value.get('schema')==SCHEMA_V2
+    fields={'schema','candidate_cell_count','result_artifacts','additional_native_artifacts'}|(
+        {'forecast_batches'} if multi else {'future_artifact','origin_artifact'})
+    need(type(value) is dict and set(value)==fields and value['schema'] in (SCHEMA,SCHEMA_V2) and
         type(value['candidate_cell_count']) is int and value['candidate_cell_count']==30 and
         type(value['result_artifacts']) is list and 1<=len(value['result_artifacts'])<=16 and
         type(value['additional_native_artifacts']) is list and len(value['additional_native_artifacts'])<=16,'MANIFEST_SCHEMA')
-    ordinary=[value['future_artifact'],value['origin_artifact'],*value['additional_native_artifacts']]
+    if multi:
+        from race_ai.all_existing_model_future_batches import validate_forecast_batches
+        batches=validate_forecast_batches(value['forecast_batches'])
+        need(len(value['additional_native_artifacts'])+len(batches)-1<=16,'TEACHER_NATIVE_BOUND')
+        ordinary=[pin for batch in batches for pin in batch.values()]+value['additional_native_artifacts']
+    else:ordinary=[value['future_artifact'],value['origin_artifact'],*value['additional_native_artifacts']]
     for pin in ordinary:shared._pin(pin)
     results=[]
     for source in value['result_artifacts']:
@@ -98,7 +108,9 @@ def _actual(value,pin,kind,now):
 
 
 def _sources(manifest,now):
-    entries=[('native',manifest['future_artifact']),('origin',manifest['origin_artifact'])]
+    entries=([entry for batch in manifest['forecast_batches'] for entry in
+        (('native',batch['future_artifact']),('origin',batch['origin_artifact']))]
+        if manifest['schema']==SCHEMA_V2 else [('native',manifest['future_artifact']),('origin',manifest['origin_artifact'])])
     entries.extend((source['kind'],{k:v for k,v in source.items() if k!='kind'}) for source in manifest['result_artifacts'])
     entries.extend(('native',pin) for pin in manifest['additional_native_artifacts'])
     # Admit every actual metadata object before downloading even the first ZIP.
@@ -114,6 +126,9 @@ def _counts(summary):return {field:summary[field] for field in COUNT_FIELDS if f
 
 
 def _local_members(root,manifest):
+    if manifest['schema']==SCHEMA_V2:
+        from race_ai.all_existing_model_thirty_order_aggregate import verify_local
+        return verify_local(root,manifest)[1]
     _private_directory(root);folders=list(root.iterdir());members={};total=0
     need(0<len(folders)<=30 and all(p.is_dir() and not p.is_symlink() and re.fullmatch('[a-f0-9]{64}',p.name)
         for p in folders),'OPAQUE_NATIVE_PARTITIONS')
@@ -140,10 +155,25 @@ def generate(root,env,manifest,*,now):
     state_key('production')
     need(not root.exists() and not any(root.with_name(root.name+suffix).exists() for suffix in
         ('.status.json','.summary.json','.generation.json')),'OUTPUT_EXISTS_DO_NOT_RESET')
+    if manifest['schema']==SCHEMA_V2:validate_manifest(manifest)
     entries,raws,metas,total=_sources(manifest,now);nresults=len(manifest['result_artifacts'])
     def item(index):
         pin=entries[index][1]
         return dict(raw=raws[index],metadata=metas[index],expected_run_id=pin['run_id'],expected_head_sha=pin['head_sha'])
+    if manifest['schema']==SCHEMA_V2:
+        from race_ai import all_existing_model_thirty_order_aggregate as aggregate
+        count=len(manifest['forecast_batches']);offset=2*count
+        archives=[dict(future={k:v for k,v in item(2*i).items() if k in ('raw','metadata')},
+                       origin={k:v for k,v in item(2*i+1).items() if k in ('raw','metadata')}) for i in range(count)]
+        results=[dict(item(i),kind=entries[i][0]) for i in range(offset,offset+nresults)]
+        extras=[item(i) for i in range(offset+nresults,len(entries))]
+        summary=aggregate.score(manifest,archives,results,extras,root,now=now,
+            producer={k:env[k] for k in ('run_id','head_sha')})
+        members=_local_members(root,manifest)
+        return dict(_counts(summary),ready=summary['all_thirty_cells_scored'],manifest_sha256=digest(manifest),
+            state=summary['state'],core_summary_sha256=digest(summary),local_members_sha256=shared._fingerprint(members),
+            local_member_count=len(members),local_uncompressed_output_bytes=sum(map(len,members.values())),
+            source_archive_bytes=total,actual_uploaded_archive_capacity_verified=False)
     results=[dict(item(index),kind=entries[index][0]) for index in range(2,2+nresults)]
     extras=[item(index) for index in range(2+nresults,len(entries))]
     native=manifest['future_artifact']
@@ -161,7 +191,7 @@ def readback(ident,root,env,manifest,*,now):
     state_key('production');members=_local_members(root,manifest)
     generation=root.with_name(root.name+'.generation.json');_private_file(generation)
     previous=read_json_bytes(_read(generation,256*1024))
-    need(type(previous) is dict and previous.get('schema')==STATUS and previous.get('ready') is True and
+    need(type(previous) is dict and previous.get('schema')==(STATUS_V2 if manifest['schema']==SCHEMA_V2 else STATUS) and previous.get('ready') is True and
         previous.get('workflow_run_id')==env['run_id'] and previous.get('expected_head_sha')==env['head_sha'] and
         previous.get('manifest_sha256')==digest(manifest) and previous.get('local_members_sha256')==shared._fingerprint(members) and
         previous.get('local_member_count')==len(members),'LOCAL_IMMUTABLE_GENERATION')
@@ -171,9 +201,17 @@ def readback(ident,root,env,manifest,*,now):
         summary['teacher_matched_forecasts']>0,'LOCAL_SUMMARY_BINDING')
     actual=future.metadata(ident);pin=shared._pin(dict(id=ident,digest=actual.get('digest'),run_id=env['run_id'],head_sha=env['head_sha']))
     _actual(actual,pin,'pdca',now);raw=shared._download(pin,actual)
-    checked=core.verify_thirty_order_pdca_artifact(raw,actual,now=now,expected_run_id=env['run_id'],expected_head_sha=env['head_sha'],
+    if manifest['schema']==SCHEMA_V2:
+        from race_ai.all_existing_model_thirty_order_aggregate import verify_artifact
+        verifier=verify_artifact
+    else:verifier=core.verify_thirty_order_pdca_artifact
+    checked=verifier(raw,actual,now=now,expected_run_id=env['run_id'],expected_head_sha=env['head_sha'],
         expected_source_context_sha256=summary['source_context_sha256'])
-    need(shared._remote_members(raw)==members and all(checked.get(k)==v for k,v in summary.items()
+    if manifest['schema']==SCHEMA_V2:
+        import io,zipfile
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:remote={e.filename:archive.read(e) for e in archive.infolist()}
+    else:remote=shared._remote_members(raw)
+    need(remote==members and all(checked.get(k)==v for k,v in summary.items()
         if k not in ('independent_pdca_artifact_receipt_verified','source_archive_bytes')),'ACTUAL_ORIGINAL_READBACK')
     return dict(_counts(checked),manifest_sha256=digest(manifest),state='THIRTY_ORDER_PDCA_ACTUAL_ARTIFACT_VERIFIED',ready=True,
         pdca_artifact_id=ident,pdca_artifact_digest=actual['digest'],pdca_saved_at=actual['created_at'],
@@ -194,6 +232,7 @@ def main(argv=None):
     root=None
     try:
         env=environment();root=future.output_path(args.out_dir,env);manifest=load_manifest(args.input)
+        if manifest['schema']==SCHEMA_V2:status['schema']=STATUS_V2
         status.update(workflow_run_id=env['run_id'],expected_head_sha=env['head_sha'],
                       artifact_name=f'all-existing-model-thirty-order-pdca-{env["run_id"]}-{ROUND}')
         now=utc_now();status.update(generate(root,env,manifest,now=now) if args.readback_artifact is None else

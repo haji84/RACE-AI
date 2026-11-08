@@ -9,7 +9,6 @@ from datetime import datetime,timedelta,timezone
 from hashlib import sha256
 import io
 import json
-import math
 import os
 from pathlib import Path
 import re
@@ -20,6 +19,7 @@ from urllib.request import build_opener
 import zipfile
 
 from race_ai.actions_contract import digest
+from race_ai import future_source_cooldown as cooldown
 from race_ai import jra_future_source_capture as core
 from race_ai import manual_official_capture as capture
 from race_ai.jra_capture_metadata import build_jra_http_metadata
@@ -42,82 +42,9 @@ def utc_now():return datetime.now(timezone.utc)
 
 
 def wait_for_prior_window(manifest,env,*,reader=None,marker_transport=None,clock=None,sleeper=None,monotonic=None):
-    """Wait using public facts only; the unchanged generator must still admit.
-
-    All prior runs must already be terminal. No source request, marker write,
-    output file, owner-key lookup or capture status is performed here.
-    """
-    from race_ai import all_existing_model_official_issue as issue
-    clock=clock or utc_now;sleeper=sleeper or time.sleep;monotonic=monotonic or time.monotonic
-    need(type(env.get('run_id')) is int and env['run_id']>0 and env.get('run_attempt')==1 and
-        type(env.get('head_sha')) is str and re.fullmatch('[a-f0-9]{40}',env['head_sha']),'WAIT_CURRENT_RUN')
-    start=monotonic();last_tick=start;last_utc=None;origin=None;origin_tick=None;expires=None;snapshots=0
-    need(type(start) in (int,float) and math.isfinite(start),'WAIT_CLOCK')
-    def moment():
-        nonlocal last_tick,last_utc,origin,origin_tick
-        tick=monotonic()
-        need(type(tick) in (int,float) and math.isfinite(tick) and last_tick<=tick<=start+3605,'WAIT_BUDGET')
-        now=clock();need(type(now) is datetime and now.utcoffset() is not None and
-            (last_utc is None or last_utc<=now),'WAIT_CLOCK')
-        if origin is None:origin=now;origin_tick=tick
-        last_tick=tick;last_utc=now
-        core.validate_manifest(manifest,now=now)
-        need(now+timedelta(seconds=700)<=core.clock(manifest['cutoff_at']),'WAIT_CAPTURE_MARGIN')
-        if expires is not None:need(now<expires,'WAIT_EVIDENCE_EXPIRED')
-        return now
-    moment()
-    transport=marker_transport or core.MarkerTransport()
-    # Existing fixed-host transport is single-attempt and never selects an
-    # archived receipt. The final history() still authenticates original ZIPs.
-    reader=reader or transport.json
-    need(transport.read_file(transport.head(),core.PATH,MAX_WIRE) is None,'ONCE_ALREADY_CONSUMED')
-    moment()
-    def snapshot():
-        nonlocal snapshots
-        snapshots+=1;need(snapshots<=4,'WAIT_METADATA_REVISION_BOUND')
-        latest=[];expiries=[]
-        for pin in manifest['prior_journal_artifacts']:
-            need(pin['run_id']!=env['run_id'],'WAIT_FRESH_CURRENT_RUN')
-            actual=reader('actions/artifacts/'+str(pin['id']));now=moment()
-            need(type(actual) is dict and actual.get('id')==pin['id'] and actual.get('digest')==pin['digest'] and
-                actual.get('expired') is False and type(actual.get('size_in_bytes')) is int and
-                0<actual['size_in_bytes']<=MAX_ARCHIVE and actual.get('name') in (
-                    'official-result-collection-journal-'+str(pin['run_id']),
-                    'official-future-source-capture-'+str(pin['run_id']),
-                    'official-jra-future-source-capture-'+str(pin['run_id']),
-                    'official-future-result-capture-'+str(pin['run_id'])),'WAIT_PRIOR_ARTIFACT')
-            binding=actual.get('workflow_run',{})
-            need(type(binding) is dict and binding.get('id')==pin['run_id'] and binding.get('head_sha')==pin['head_sha'] and
-                all(type(binding.get(k)) is int and binding[k]==1416489937 for k in ('repository_id','head_repository_id')),
-                'WAIT_PRIOR_ARTIFACT_SCOPE')
-            saved=core.clock(actual['created_at']);expiry=core.clock(actual['expires_at'])
-            need(saved<=now<expiry,'WAIT_PRIOR_ARTIFACT_CLOCK')
-            run=issue.run_scope(reader('actions/runs/'+str(pin['run_id'])));moment()
-            # Legacy UNKNOWN/cancelled epochs remain terminal evidence. Their
-            # original outcome and MAC are checked by history(), not relabelled.
-            need(run['id']==pin['run_id'] and run['head_sha']==pin['head_sha'] and run['status']=='completed',
-                'WAIT_PRIOR_NOT_TERMINAL')
-            updated=core.clock(run['updated_at'])
-            need(core.clock(run['run_started_at'])<=saved+timedelta(seconds=1) and saved<=updated+timedelta(seconds=1),
-                'WAIT_PRIOR_SAVE_CLOCK')
-            latest.extend((updated,saved));expiries.append(expiry)
-        return max(latest)+timedelta(seconds=3601),min(expiries)
-    boundary,expires=snapshot();refreshed=False
-    while True:
-        now=moment()
-        # A forward UTC jump cannot shorten a physical interval. Any updated
-        # prior boundary uses the same initial UTC/monotonic origin and budget.
-        ready_tick=origin_tick+max(0,(boundary-origin).total_seconds())
-        need(ready_tick<=start+3605,'WAIT_BUDGET')
-        need(boundary+timedelta(seconds=700)<=core.clock(manifest['cutoff_at']) and boundary<expires,
-            'WAIT_WINDOW_UNAVAILABLE')
-        remaining=max((boundary-now).total_seconds(),ready_tick-last_tick)
-        if remaining<=0:
-            if refreshed:return None
-            boundary,expires=snapshot();refreshed=True
-            continue
-        budget=start+3605-last_tick;need(budget>0,'WAIT_BUDGET')
-        sleeper(min(45,remaining,budget));refreshed=False
+    need(type(manifest) is dict and manifest.get('schema')==core.SCHEMA,'WAIT_SCHEMA')
+    return cooldown.wait_for_prior_window(manifest,env,reader=reader,marker_transport=marker_transport,
+        clock=clock or utc_now,sleeper=sleeper,monotonic=monotonic)
 
 
 def guarded_opener(plan,opener,*,clock=utc_now,before=None):
@@ -179,6 +106,17 @@ def _staging(source,fm,directory):
 def _margin(manifest,now):need(now+timedelta(seconds=600)<core.clock(manifest['cutoff_at']),'INDEPENDENT_RECEIPT_MARGIN')
 
 
+def _exact_native_case(records,manifest):
+    need(len(records)==1 and records[0]['race_id']==manifest['race_id'],'EXACT_NATIVE_CASE_CUTOFF')
+    native=records[0]['captured_native_inputs']
+    asofs={c['native_payload']['snapshot']['race']['as_of'] for c in native}
+    need(len(native)==5 and len(asofs)==1 and all(
+        c['native_payload']['snapshot']['race']['race_id']==manifest['race_id'] and
+        core.clock(c['native_payload']['snapshot']['race']['sales_cutoff_at'])==core.clock(manifest['cutoff_at'])
+        for c in native),'EXACT_NATIVE_CASE_CUTOFF')
+    return asofs.pop()
+
+
 def generate(manifest,root,env,*,marker_transport=None,opener=None,sleeper=time.sleep,monotonic=time.monotonic):
     cache_dir=root.with_name(root.name+'.jra-cache');stage=root.with_name(root.name+'.jra-staging')
     need(not root.exists() and not cache_dir.exists() and not stage.exists(),'OUTPUT_EXISTS_DO_NOT_RESET')
@@ -235,14 +173,11 @@ def generate(manifest,root,env,*,marker_transport=None,opener=None,sleeper=time.
             excluded_native_artifacts=deepcopy(manifest['excluded_native_artifacts']))
         staged=_staging({p.name:p.read_bytes() for p in source.iterdir()},fm,stage)
         _margin(manifest,utc_now())
-        status=freeze.generate(manifest['carrier_artifact']['id'],root/'native',env,fm,source_root=staged)
+        status=freeze.generate(manifest['carrier_artifact']['id'],root/'native',env,fm,source_root=staged,
+            target_case={k:manifest[k] for k in ('race_id','cutoff_at','card_url')})
         need(status['ready'] and status['captured_native_input_count']==5,'FIVE_NATIVE_INPUTS_REQUIRED')
-        records=freeze.local_records(root/'native');native=records[0]['captured_native_inputs']
-        asofs={c['native_payload']['snapshot']['race']['as_of'] for c in native}
-        need(len(asofs)==1 and records[0]['race_id']==manifest['race_id'] and
-            all(core.clock(c['native_payload']['snapshot']['race']['sales_cutoff_at'])==core.clock(manifest['cutoff_at']) for c in native),
-            'EXACT_NATIVE_CASE_CUTOFF')
-        _margin(manifest,utc_now());fixed=asofs.pop()
+        records=freeze.local_records(root/'native');fixed=_exact_native_case(records,manifest)
+        _margin(manifest,utc_now())
         generation=dict(status,schema=freeze.STATUS,workflow_run_id=env['run_id'],expected_head_sha=env['head_sha'])
         _write(root/'native.status.json',future.wire(generation))
         journal.update(native_ready=True,fixed_as_of=fixed,freeze_manifest=fm,native_generation=generation)
@@ -349,6 +284,7 @@ def readback(native_id,source_id,root,env,manifest,*,marker_transport=None):
         _margin(manifest,max(now,core.clock(actual['created_at'])+timedelta(seconds=1)))
         result=freeze.readback(native_id,root/'native',env,manifest=fm,source_root=staged)
         records=freeze.local_records(root/'native')
+        need(_exact_native_case(records,manifest)==journal['fixed_as_of'],'EXACT_NATIVE_CASE_CUTOFF')
         need(all(c['native_payload']['snapshot']['race']['as_of']==journal['fixed_as_of'] for r in records for c in r['captured_native_inputs']),
             'FIXED_NATIVE_ASOF')
         native=future.metadata(native_id);_margin(manifest,max(utc_now(),core.clock(native['created_at'])+timedelta(seconds=1)))
@@ -365,7 +301,8 @@ def main(argv=None):
         plaintext_published=False,actual_purchases=False,production_promoted=False,independent_pre_cutoff_receipt_verified=False,
         old_source_requests_actual=None,old_source_requests_upper_bound=32,old_browser_outcome='UNKNOWN');root=None
     try:
-        env=environment();root=future.output_path(args.out_dir,env)
+        env=environment(check_owner_key=args.readback_source is not None or args.readback_native is not None)
+        root=future.output_path(args.out_dir,env)
         manifest=core.validate_manifest(read_json_bytes(_read(Path(args.input),65536)),now=utc_now())
         need(args.readback_native is None or args.readback_source is not None,'BOTH_READBACK_ARTIFACTS_REQUIRED')
         if args.readback_native is not None:

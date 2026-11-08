@@ -20,9 +20,12 @@ from .all_existing_model_cash_pdca_origin import verify_origin_artifact
 from .all_existing_model_official_issue_transport import GithubIssueTransport
 from .boat_all_model_store import seal_forecasts,open_forecasts,forecast_header,MAX_WIRE
 from .existing_model_dispatch import _race_key
+from .all_existing_model_future_batches import admit_batch_origins as admit_forecast_batches,validate_forecast_batches
 
 SCHEMA='RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_INPUT_V1'
+SCHEMA_V2='RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_INPUT_V2'
 JOURNAL='RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_JOURNAL_V1'
+JOURNAL_V2='RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_JOURNAL_V2'
 STATUS='RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_COUNTS_V1'
 ONCE='RACE_AI_ALL_NATIVE_FUTURE_RESULT_ONCE_V1'
 PURPOSE='ALL_THIRTY_FIRST_FORWARD_RESULTS_V1'
@@ -42,16 +45,19 @@ def need(ok,reason):
 def validate_manifest(value,*,now):
     now=clock(now);fields={'schema','execution_day','target_event_day','forecast_artifact','origin_artifact',
         'cases','terms_manifest','prior_journal_artifacts','maximum_requests','allow_order_only'}
-    need(type(value) is dict and set(value)==fields and value['schema']==SCHEMA and
+    need(type(value) is dict and (set(value)==fields and value.get('schema')==SCHEMA or
+        set(value)==fields-{'forecast_artifact','origin_artifact'}|{'forecast_batches'} and value.get('schema')==SCHEMA_V2) and
         value['execution_day']==now.astimezone(policy.JST).date().isoformat() and
         type(value['maximum_requests']) is int and value['maximum_requests']==32 and
         value['allow_order_only'] is True,'MANIFEST_SCHEMA_DAY_OR_BOUND')
     target=date.fromisoformat(value['target_event_day']);execution=date.fromisoformat(value['execution_day'])
     need(0<=(execution-target).days<=7,'TARGET_EVENT_DAY')
-    for name in ('forecast_artifact','origin_artifact'):validate_pin(value[name])
-    need(value['forecast_artifact']['id']!=value['origin_artifact']['id'] and
-        all(value['forecast_artifact'][k]==value['origin_artifact'][k] for k in ('run_id','head_sha')),
-        'FORECAST_ORIGIN_PINS')
+    if value['schema']==SCHEMA_V2:validate_forecast_batches(value['forecast_batches'])
+    else:
+        for name in ('forecast_artifact','origin_artifact'):validate_pin(value[name])
+        need(value['forecast_artifact']['id']!=value['origin_artifact']['id'] and
+            all(value['forecast_artifact'][k]==value['origin_artifact'][k] for k in ('run_id','head_sha')),
+            'FORECAST_ORIGIN_PINS')
     from scripts.all_existing_model_official_result_collect import _pins
     _pins(value['prior_journal_artifacts'])
     cases=value['cases'];need(type(cases) is list and len(cases)==3 and
@@ -95,9 +101,27 @@ def _pin_metadata(pin,metadata):
         (pin['id'],pin['digest'],pin['run_id'],pin['head_sha']),'ACTUAL_PIN')
 
 
-def admit_forecast(manifest,*,forecast_raw,forecast_metadata,origin_raw,origin_metadata,now,key,manifest_at=None):
+def admit_forecast(manifest,*,forecast_raw=None,forecast_metadata=None,origin_raw=None,origin_metadata=None,
+                   batch_archives=None,now,key,manifest_at=None):
     """Authenticate immutable saved thirty-cell forecast/origin before source I/O."""
     now=clock(now);validate_manifest(manifest,now=clock(manifest_at) if manifest_at is not None else now)
+    if manifest['schema']==SCHEMA_V2:
+        need(all(value is None for value in (forecast_raw,forecast_metadata,origin_raw,origin_metadata)),
+             'NO_SINGLE_ORIGIN_WITH_BATCHES')
+        union=admit_forecast_batches(manifest['forecast_batches'],batch_archives,now=now,key=key)
+        records=union['records'];bysport,joined=_join_cases(manifest,records,now)
+        identities=[dict(forecast_artifact=deepcopy(archive['future']['metadata']),
+            origin_artifact=deepcopy(archive['origin']['metadata']),forecast_receipt=deepcopy(batch['admission']),
+            origin_summary=deepcopy(batch['origin']['summary']),record_sha256=sorted(digest(r) for r in batch['records']))
+            for archive,batch in zip(batch_archives,union['batches'],strict=True)]
+        identity=dict(schema='RACE_AI_FORWARD_MULTI_ORIGIN_IDENTITY_V1',atomic_all_thirty_origin=False,
+            candidate_context_sha256=union['candidate_context_sha256'],training_sha256=union['training_sha256'],
+            candidate_receipt=deepcopy(union['candidate_receipt']),owner_record_sha256=union['owner_record_sha256'],
+            forecast_counts_by_sport=deepcopy(union['forecast_counts_by_sport']),forecast_batches=identities,
+            record_sha256=sorted(digest(r) for r in records))
+        return dict(batch_contexts=union['batches'],records=records,natives=list(bysport.values()),cases=joined,
+            source_input_artifacts=deepcopy(union['source_input_artifacts']),forecast_identity=identity)
+    need(batch_archives is None,'NO_BATCHES_WITH_SINGLE_ORIGIN')
     _pin_metadata(manifest['forecast_artifact'],forecast_metadata);_pin_metadata(manifest['origin_artifact'],origin_metadata)
     pin=manifest['forecast_artifact']
     admission,records=_verified_private_pairs_artifact(forecast_raw,forecast_metadata,now=now,
@@ -108,6 +132,15 @@ def admit_forecast(manifest,*,forecast_raw,forecast_metadata,origin_raw,origin_m
     need(summary['all_candidate_cells_produced'] is True and summary['forecast_partition_count']==30 and
         summary['forecast_counts_by_sport']==expected and not origin['generation']['held_sports'],
         'COMPLETE_THIRTY_FORECAST_REQUIRED')
+    bysport,joined=_join_cases(manifest,records,now)
+    identity=dict(forecast_artifact=deepcopy(forecast_metadata),origin_artifact=deepcopy(origin_metadata),
+        forecast_receipt=deepcopy(admission),origin_summary=deepcopy(summary),
+        record_sha256=sorted(digest(r) for r in records))
+    return dict(forecast_admission=admission,records=records,origin=origin,natives=list(bysport.values()),
+        cases=joined,source_input_artifacts=deepcopy(origin['manifest']['source_input_artifacts']),forecast_identity=identity)
+
+
+def _join_cases(manifest,records,now):
     bysport={}
     from .four_sport_model_suite import ALL_MODELS
     for record in records:
@@ -121,11 +154,7 @@ def admit_forecast(manifest,*,forecast_raw,forecast_metadata,origin_raw,origin_m
         need(_race_key(case['race_id'],sport)==_race_key(info['race_id'],sport),'FORECAST_CASE_BINDING')
         need(clock(info['race_cutoff_at'])+timedelta(seconds=120)<=now,'ORIGINAL_FORECAST_NOT_DUE')
         joined.append(dict(case=deepcopy(case),native_payload=deepcopy(native),identity=deepcopy(info)))
-    identity=dict(forecast_artifact=deepcopy(forecast_metadata),origin_artifact=deepcopy(origin_metadata),
-        forecast_receipt=deepcopy(admission),origin_summary=deepcopy(summary),
-        record_sha256=sorted(digest(r) for r in records))
-    return dict(forecast_admission=admission,records=records,origin=origin,natives=list(bysport.values()),
-        cases=joined,source_input_artifacts=deepcopy(origin['manifest']['source_input_artifacts']),forecast_identity=identity)
+    return bysport,joined
 
 
 def admit_native_sources(admitted,archives,*,now,key):
@@ -137,9 +166,10 @@ def admit_native_sources(admitted,archives,*,now,key):
         item=known.get(pin['id']);need(item is not None,'SOURCE_ARCHIVE_MISSING');_pin_metadata(pin,item['metadata'])
         receipt,rows=_verified_private_pairs_artifact(item['raw'],item['metadata'],now=now,
             expected_run_id=pin['run_id'],expected_head_sha=pin['head_sha'],key=key)
-        audit=next(a for a in admitted['origin']['source_audit']['source_admissions'] if a['artifact_id']==pin['id'])
-        need(receipt['artifact_digest']==audit['artifact_digest'] and receipt['saved_at']==audit['saved_at'] and
-            sorted(receipt['record_sha256'])==sorted(audit['record_sha256']),'SOURCE_ACTUAL_RECEIPT')
+        origins=[batch['origin'] for batch in admitted['batch_contexts']] if 'batch_contexts' in admitted else [admitted['origin']]
+        audits=[a for origin in origins for a in origin['source_audit']['source_admissions'] if a['artifact_id']==pin['id']]
+        need(bool(audits) and all(receipt['artifact_digest']==audit['artifact_digest'] and receipt['saved_at']==audit['saved_at'] and
+            sorted(receipt['record_sha256'])==sorted(audit['record_sha256']) for audit in audits),'SOURCE_ACTUAL_RECEIPT')
         capsules=[c for row in rows for c in row.get('captured_native_inputs',[])]
         originals.extend(capsules)
         bindings.append(dict(pin=deepcopy(pin),receipt=deepcopy(receipt),

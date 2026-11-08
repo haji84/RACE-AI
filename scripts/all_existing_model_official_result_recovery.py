@@ -30,6 +30,12 @@ PREFLIGHT_SCHEMA='RACE_AI_FIXED_RECOVERY_VERIFICATION_PREFLIGHT_V1'
 FULL_CHECK_STEPS=('Python synthetic journal to viewer projection tests',
     'Verify isolated experimental video decoding and measurements')
 
+def _diagnostic(exc):
+    result=collector.future.safe_diagnostic(exc)
+    if isinstance(exc,ValueError) and re.fullmatch(r'(?:OFFICIAL_FROZEN_|OFFICIAL_ISSUE_)[A-Z0-9_]{1,120}',str(exc)):
+        result['error_code']=str(exc)
+    return result
+
 def _api(path):
     recovery.need(type(path) is str and re.fullmatch(r'(?:actions/runs/[1-9][0-9]*(?:/attempts/[1-9][0-9]*(?:/jobs\?per_page=100)?)?|'
         r'git/ref/heads/state/boat-pdca-transfer|git/(?:commits|trees|blobs)/[a-f0-9]{40})',path),'GITHUB_ROUTE')
@@ -73,7 +79,7 @@ def _capsule(request,env,*,fetch=None,request_sha256=None):
                 sha1(b'blob '+str(len(raw)).encode()+b'\0'+raw).hexdigest()==ident,'CAPSULE_IMMUTABLE_BYTES')
             return raw
 
-def _trusted_environment():
+def _trusted_environment(*,check_owner_key=True):
     # No local-key fallback: inspect trusted Actions scope before key lookup.
     recovery.need(os.environ.get('GITHUB_ACTIONS')=='true' and os.environ.get('GITHUB_REPOSITORY')=='haji84/RACE-AI' and
         os.environ.get('GITHUB_REPOSITORY_ID')=='1416489937' and os.environ.get('GITHUB_EVENT_NAME')=='pull_request',
@@ -81,14 +87,60 @@ def _trusted_environment():
     event=read_json_bytes(_read(Path(os.environ.get('GITHUB_EVENT_PATH','')),1024*1024))
     recovery.need(event.get('number')==71 and event.get('pull_request',{}).get('head',{}).get('repo',{}).get('full_name')=='haji84/RACE-AI',
         'PULL_REQUEST_EVENT')
-    env=collector.future.environment();current=_api('actions/runs/'+str(env['run_id']))
+    env=(collector.future.environment() if check_owner_key else collector.future.environment(check_owner_key=False))
+    current=_api('actions/runs/'+str(env['run_id']))
     recovery.need(recovery.run_receipt(current)['run_attempt']==2 and
         current['head_sha']==env['head_sha'],'ACTUAL_ATTEMPT_TWO')
     return env,current
 
-def _admit(request,env,current,now,key):
+def _frozen_source_context(env,request,raw):
+    """Public Git/current-intent admission before the first owner-key lookup."""
+    from scripts.official_frozen_execution import source_admission
+    from scripts.all_existing_model_official_result_issue import failed_dispositions,source_continuity
+    from race_ai import all_existing_model_official_issue as issue
+    from race_ai.all_existing_model_official_issue_transport import GithubIssueTransport
+    from race_ai.all_existing_model_official_frozen_capsule import validate_binding
+    reader=GithubIssueTransport()
+    snapshot=source_admission(Path(__file__).resolve().parents[1],env['head_sha'],env['run_id'],reader=reader)
+    facts=snapshot.facts;scope=validate_binding(facts['source_frozen_binding'])
+    intent=issue.validate_issue_request(read_json_bytes(snapshot.read(facts['source_issue_head'],issue.ISSUE_PATH,16384)))
+    recovery.need(intent['schema']=='RACE_AI_OFFICIAL_RESULT_RECOVERY_ISSUE_REQUEST_V2' and
+        scope['target']==dict(head_sha=env['head_sha'],run_id=env['run_id'],run_attempt=2) and
+        intent['target']==scope['target'] and digest(request)==intent['recovery_request_sha256'] and
+        sha256(raw).hexdigest()==scope['recovery_request_blob_sha256'],'FROZEN_SOURCE_REQUEST')
+    failed=failed_dispositions(snapshot,intent,reader,now=collector.utc_now(),published=True)
+    source_continuity(snapshot,intent,request,reader,verified_failed=failed)
+    return dict(snapshot=snapshot,reader=reader,issue=intent,binding=scope)
+
+
+def _refresh_frozen(context,env,request):
+    from scripts.all_existing_model_official_result_issue import failed_dispositions,source_continuity
+    facts=context['snapshot'].refresh(context['reader'].json('pulls/71'))
+    recovery.need(facts['source_frozen_binding']==context['binding'] and
+        context['binding']['target']==dict(head_sha=env['head_sha'],run_id=env['run_id'],run_attempt=2) and
+        context['issue']['recovery_request_sha256']==digest(request),'FROZEN_SOURCE_REVOKED')
+    failed=failed_dispositions(context['snapshot'],context['issue'],context['reader'],now=collector.utc_now(),published=True)
+    source_continuity(context['snapshot'],context['issue'],request,context['reader'],verified_failed=failed)
+    return facts
+
+
+def _frozen_counts(context):
+    binding=context['binding'];facts=context['snapshot'].facts
+    return dict(frozen_source_execution=True,tested_execution_head_sha=binding['tested_execution_head_sha'],
+        intent_head_sha=binding['intent_head_sha'],intent_parent_sha=binding['intent_parent_sha'],
+        admitted_current_pr_head_sha=facts['current_head_sha'],protected_files_sha256=binding['protected_files_sha256'],
+        source_frozen_binding_sha256=digest(binding),current_pr_code_executed=False)
+
+
+def _admit(request,env,current,now,key,*,expected_binding=None,archival_wrapper=False):
     raw=_capsule(request,env)
     if raw is None:return None
+    if expected_binding is not None:
+        from race_ai.all_existing_model_official_frozen_capsule import unwrap_capsule
+        raw=unwrap_capsule(raw,expected_binding=expected_binding,key=key)
+    elif archival_wrapper:
+        from race_ai.all_existing_model_official_frozen_capsule import archival_inner
+        raw=archival_inner(raw,request=request,target=dict(head_sha=env['head_sha'],run_id=env['run_id'],run_attempt=2),key=key)
     first=_api('actions/runs/'+str(env['run_id'])+'/attempts/1')
     old=_api('actions/runs/'+str(recovery.OLD_RUN))
     prior_ids=sorted({pin['run_id'] for pin in request['manifest']['prior_journal_artifacts']}-{recovery.OLD_RUN})
@@ -136,6 +188,9 @@ def _admit_continuation(raw,request,env,current,first,old,prior_runs,now,key):
     manifest=request['manifest'];probe_pin=next(p for p in manifest['prior_journal_artifacts'] if p['id']==request['probe_journal_artifact_id'])
     original=_capsule(None,dict(head_sha=probe_pin['head_sha'],run_id=probe_pin['run_id']),request_sha256=request['probe_request_sha256'])
     recovery.need(original is not None,'ORIGINAL_PROBE_CAPSULE_REQUIRED')
+    from race_ai.all_existing_model_official_frozen_capsule import archival_probe_inner
+    original=archival_probe_inner(original,request_sha256=request['probe_request_sha256'],
+        target=dict(head_sha=probe_pin['head_sha'],run_id=probe_pin['run_id'],run_attempt=2),key=key)
     groups={};total=len(raw)+len(original)
     for field in ('prior_journal_artifacts','native_artifacts','checkpoint_artifacts'):
         items=[]
@@ -197,16 +252,23 @@ def _full_first_attempt(first,document,env):
         prior_full_jobs_sha256=digest(document),prior_full_verification_sha256=digest(proof))
 
 
-def preflight(input_path):
+def preflight(input_path,*,frozen_source=False):
     """Read existing authority only; no marker, issuance or source dispatch."""
     status=dict(schema=PREFLIGHT_SCHEMA,state='FULL_VERIFICATION_REQUIRED',ready=False,
         reuse_prior_verification=False,source_requests=0,full_verification_executed_in_this_attempt=False,
         plaintext_published=False,production_promoted=False,actual_purchases=False)
     try:
         recovery.need(os.environ.get('GITHUB_RUN_ATTEMPT')=='2','FIXED_ATTEMPT_TWO_ONLY')
-        env,current=_trusted_environment();now=collector.utc_now();key=state_key('production')
-        request=recovery.validate_request(read_json_bytes(_read(Path(input_path),32768)),now)
-        auth=_admit(request,env,current,now,key);recovery.need(auth is not None,'CONSUMED_CAPSULE_ABSENT')
+        if frozen_source:
+            env,current=_trusted_environment(check_owner_key=False);now=collector.utc_now()
+            raw_request=_read(Path(input_path),32768);request=recovery.validate_request(read_json_bytes(raw_request),now)
+            frozen=_frozen_source_context(env,request,raw_request);key=state_key('production')
+            auth=_admit(request,env,current,now,key,expected_binding=frozen['binding'])
+        else:
+            env,current=_trusted_environment();now=collector.utc_now();key=state_key('production')
+            request=recovery.validate_request(read_json_bytes(_read(Path(input_path),32768)),now)
+            frozen=None;auth=_admit(request,env,current,now,key)
+        recovery.need(auth is not None,'CONSUMED_CAPSULE_ABSENT')
         first=_api('actions/runs/'+str(env['run_id'])+'/attempts/1')
         recovery.need(recovery.run_receipt(first)==auth._body['first_attempt'],'FIRST_ATTEMPT_AUTHORIZATION_BINDING')
         document=_api('actions/runs/'+str(env['run_id'])+'/attempts/1/jobs?per_page=100')
@@ -216,18 +278,23 @@ def preflight(input_path):
         plan=collector.load_plan(request['manifest'],key=key,now=collector.utc_now())
         fresh=collector.utc_now()
         auth.validate_collector(request['manifest'],plan,env,fresh)
+        if frozen is not None:
+            _refresh_frozen(frozen,env,request)
+            fresh=collector.utc_now()
+            auth.validate_collector(request['manifest'],plan,env,fresh)
         audit=auth.audit();remaining=(recovery.clock(audit['expires_at'])-fresh).total_seconds()
         recovery.need(remaining>=180,'PREFLIGHT_REMAINING_WINDOW')
+        frozen_counts=_frozen_counts(frozen) if frozen is not None else {}
         status.update(proof,state='PRIOR_SAME_HEAD_FULL_VERIFICATION_REUSED',reuse_prior_verification=True,
             recovery_authorization_sha256=audit['authorization_sha256'],recovery_request_sha256=audit['request_sha256'],
-            remaining_authorization_seconds=int(remaining),reused_verification_steps=list(FULL_CHECK_STEPS))
+            remaining_authorization_seconds=int(remaining),reused_verification_steps=list(FULL_CHECK_STEPS),**frozen_counts)
     except Exception as exc:
-        status.update(**collector.future.safe_diagnostic(exc))
+        status.update(**_diagnostic(exc))
     return status
 
 
-def _preflight_main(input_path):
-    status=preflight(input_path)
+def _preflight_main(input_path,*,frozen_source=False):
+    status=preflight(input_path,frozen_source=frozen_source)
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'],'a') as output:
             output.write('reuse_prior_verification='+str(status['reuse_prior_verification']).lower()+'\n')
@@ -240,17 +307,28 @@ def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--input',default=REQUEST_PATH)
     parser.add_argument('--out-dir',required=True);parser.add_argument('--readback-artifact',type=int)
     parser.add_argument('--readback-journal-artifact',type=int);parser.add_argument('--preflight',action='store_true')
+    parser.add_argument('--frozen-source',action='store_true')
     args=parser.parse_args(argv)
-    if args.preflight:return _preflight_main(args.input)
+    if args.preflight:return _preflight_main(args.input,frozen_source=args.frozen_source)
     status=dict(schema=collector.STATUS,state='HOLD_FIXED_RECOVERY_NOT_ISSUED',ready=False,source_requests=0,
         plaintext_published=False,production_promoted=False,actual_purchases=False)
-    root=None;manifest=None;authorized=False
+    root=None;manifest=None;authorized=False;frozen=None
     try:
         # Attempt one can pass complete CI without any owner key or source access.
         recovery.need(os.environ.get('GITHUB_RUN_ATTEMPT')=='2','FIXED_ATTEMPT_TWO_ONLY')
-        env,current=_trusted_environment();now=collector.utc_now();key=state_key('production')
-        request=recovery.validate_request(read_json_bytes(_read(Path(args.input),32768)),now)
-        auth=_admit(request,env,current,now,key)
+        if args.frozen_source:
+            recovery.need(args.readback_artifact is None and args.readback_journal_artifact is None,'FROZEN_SOURCE_DISPATCH_ONLY')
+            env,current=_trusted_environment(check_owner_key=False);now=collector.utc_now()
+            raw_request=_read(Path(args.input),32768);request=recovery.validate_request(read_json_bytes(raw_request),now)
+            frozen=_frozen_source_context(env,request,raw_request);key=state_key('production')
+            auth=_admit(request,env,current,now,key,expected_binding=frozen['binding'])
+        else:
+            env,current=_trusted_environment();now=collector.utc_now();key=state_key('production')
+            request=recovery.validate_request(read_json_bytes(_read(Path(args.input),32768)),now)
+            frozen=None
+            if args.readback_artifact is not None or args.readback_journal_artifact is not None:
+                auth=_admit(request,env,current,now,key,archival_wrapper=True)
+            else:auth=_admit(request,env,current,now,key)
         recovery.need(auth is not None,'CONSUMED_CAPSULE_ABSENT')
         root=collector.future.output_path(args.out_dir,env);manifest=request['manifest'];authorized=True
         status.update(workflow_run_id=env['run_id'],expected_head_sha=env['head_sha'],
@@ -260,10 +338,16 @@ def main(argv=None):
             old_source_requests_actual=None,old_source_requests_upper_bound=32,old_browser_outcome='UNKNOWN',
             maximum_new_requests=auth.audit()['maximum_new_requests'])
         if args.readback_artifact is None and args.readback_journal_artifact is None:
+            if frozen is not None:_refresh_frozen(frozen,env,request)
             # A second call within this fixed runner cannot dispatch again.
             marker=env['temp']/('official-recovery-consumed-'+auth.audit()['request_sha256']+'-'+env['head_sha']+'-'+str(env['run_id'])+'-2.json')
             _write(marker,collector.future.wire(auth.audit()))
-            status.update(collector.collect(root,env,manifest,recovery_authorization=auth))
+            if frozen is None:status.update(collector.collect(root,env,manifest,recovery_authorization=auth))
+            else:
+                def before_source():
+                    _refresh_frozen(frozen,env,request)
+                    auth.validate_collector(manifest,auth._body['new_plan'],env,collector.utc_now())
+                status.update(collector.collect(root,env,manifest,recovery_authorization=auth,before_source=before_source))
         elif args.readback_artifact is not None:
             status.update(collector.readback(args.readback_artifact,root,env,manifest))
         else:
@@ -276,7 +360,7 @@ def main(argv=None):
             local=collector.open_forecasts(_read(root.with_name(root.name+'.collection.enc'),MAX_WIRE),key=key)
             recovery.need(local.get('recovery_authorization')==auth.audit(),'LOCAL_RECOVERY_JOURNAL_BINDING')
     except Exception as exc:
-        status.update(state='HOLD_FIXED_OFFICIAL_RESULT_RECOVERY',ready=False,**collector.future.safe_diagnostic(exc))
+        status.update(state='HOLD_FIXED_OFFICIAL_RESULT_RECOVERY',ready=False,**_diagnostic(exc))
         if authorized and root is not None and manifest is not None:
             path=root.with_name(root.name+'.collection.enc')
             if path.exists():
@@ -285,10 +369,11 @@ def main(argv=None):
                 except Exception:status['source_requests']=None
     if authorized and root is not None:
         try:
+            if frozen is not None:status.update(_frozen_counts(frozen))
             if args.readback_artifact is None and args.readback_journal_artifact is None and status['ready']:
                 _write(root.with_name(root.name+'.generation.json'),collector.future.wire(status))
             path=root.with_name(root.name+'.status.json');collector.save(path,collector.future.wire(status),replace=path.exists())
-        except Exception as exc:status.update(state='HOLD_FIXED_OFFICIAL_RESULT_RECOVERY',ready=False,**collector.future.safe_diagnostic(exc))
+        except Exception as exc:status.update(state='HOLD_FIXED_OFFICIAL_RESULT_RECOVERY',ready=False,**_diagnostic(exc))
     if os.environ.get('GITHUB_OUTPUT'):
         with open(os.environ['GITHUB_OUTPUT'],'a') as output:
             output.write('ready='+str(status['ready']).lower()+'\n')

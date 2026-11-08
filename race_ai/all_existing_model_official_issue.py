@@ -18,7 +18,9 @@ from .boat_all_model_store import open_forecasts,forecast_header
 from .permissioned_source_delivery import read_json_bytes
 
 SCHEMA='RACE_AI_OFFICIAL_RESULT_RECOVERY_ISSUE_REQUEST_V1'
+SCHEMA_V2='RACE_AI_OFFICIAL_RESULT_RECOVERY_ISSUE_REQUEST_V2'
 PROOF='RACE_AI_OFFICIAL_RESULT_RECOVERY_ISSUE_PROOF_V1'
+PROOF_V2='RACE_AI_OFFICIAL_RESULT_RECOVERY_ISSUE_PROOF_V2'
 ISSUE_PATH='audit/state/official-result-recovery-issue-request.json'
 REQUEST_PATH='audit/state/official-result-recovery-request.json'
 REPOSITORY='haji84/RACE-AI'
@@ -52,7 +54,9 @@ def _hex(value,length=40):return type(value) is str and re.fullmatch('[a-f0-9]{'
 def validate_issue_request(value):
     fields={'schema','repository_id','workflow_id','pull_request','target','target_first_viewer_job_id',
             'recovery_request_sha256','recovery_request_blob_sha256'}
-    need(type(value) is dict and set(value)==fields and value['schema']==SCHEMA and
+    frozen=type(value) is dict and value.get('schema')==SCHEMA_V2
+    expected=fields|{'tested_execution_head_sha','intent_parent_sha','failed_issue_dispositions'} if frozen else fields
+    need(type(value) is dict and set(value)==expected and value['schema'] in (SCHEMA,SCHEMA_V2) and
          type(value['repository_id']) is int and value['repository_id']==REPOSITORY_ID and
          type(value['workflow_id']) is int and value['workflow_id']==WORKFLOW and
          type(value['pull_request']) is int and value['pull_request']==71,'REQUEST')
@@ -61,6 +65,13 @@ def validate_issue_request(value):
          _hex(target['head_sha']) and _id(target['run_id']) and type(target['run_attempt']) is int and
          target['run_attempt']==2 and _id(value['target_first_viewer_job_id']) and
          _hex(value['recovery_request_sha256'],64) and _hex(value['recovery_request_blob_sha256'],64),'TARGET')
+    if frozen:
+        need(value['tested_execution_head_sha']==target['head_sha'] and _hex(value['intent_parent_sha']),'FROZEN_TARGET')
+        failed=value['failed_issue_dispositions']
+        need(type(failed) is list and len(failed)<=8 and all(type(item) is dict and
+            set(item)=={'intent_head_sha','issue_blob_sha256'} and _hex(item['intent_head_sha']) and
+            _hex(item['issue_blob_sha256'],64) for item in failed) and
+            len({item['intent_head_sha'] for item in failed})==len(failed),'FAILED_DISPOSITIONS')
     return deepcopy(value)
 
 
@@ -94,16 +105,17 @@ def admit_context(value,*,issuer_run,current_pr,snapshot,target_run,first_attemp
     issuer=run_scope(issuer_run)
     need(issuer['run_attempt']==1 and issuer['status'] in ('queued','in_progress') and
          issuer['id']!=target['run_id'] and issuer['head_sha']==snapshot.get('head_sha'),'ISSUER_ATTEMPT')
-    pr=current_pr
+    pr=current_pr;frozen=value['schema']==SCHEMA_V2
     need(type(pr) is dict and pr.get('number')==71 and pr.get('state')=='open' and
          pr.get('user',{}).get('id')==OWNER_ID and pr.get('user',{}).get('login')==OWNER and
-         pr.get('head',{}).get('sha')==issuer['head_sha'] and pr['head'].get('ref')==BRANCH and
+         (frozen or pr.get('head',{}).get('sha')==issuer['head_sha']) and pr['head'].get('ref')==BRANCH and
          pr.get('base',{}).get('ref')==BASE and all(pr.get(side,{}).get('repo',{}).get('id')==REPOSITORY_ID and
          pr[side]['repo'].get('full_name')==REPOSITORY for side in ('head','base')),'CURRENT_PR')
-    need(snapshot.get('parents')==[target['head_sha']] and snapshot.get('changed_files')==[ISSUE_PATH] and
+    need(snapshot.get('parents')==[value['intent_parent_sha'] if frozen else target['head_sha']] and snapshot.get('changed_files')==[ISSUE_PATH] and
          type(snapshot.get('subject')) is str and snapshot['subject'].startswith(PREFIX) and
          type(snapshot.get('target_subject')) is str and snapshot['target_subject'].startswith('official-results-collect:'),
          'ISSUE_ONLY_PARENT')
+    if frozen:_frozen_context(value,snapshot,pr)
     raw=snapshot.get('recovery_raw')
     need(type(raw) is bytes and 0<len(raw)<=32768 and raw==snapshot.get('current_recovery_raw') and
          sha256(raw).hexdigest()==value['recovery_request_blob_sha256'],'IMMUTABLE_REQUEST_BYTES')
@@ -117,7 +129,39 @@ def admit_context(value,*,issuer_run,current_pr,snapshot,target_run,first_attemp
     proof=_full_first_attempt(first_attempt,jobs,dict(run_id=target['run_id'],head_sha=target['head_sha']))
     viewers=[job for job in jobs['jobs'] if job.get('name')=='Viewer audit contract']
     need(viewers[0]['id']==value['target_first_viewer_job_id'],'EXACT_VIEWER_JOB')
-    return dict(proof,target=deepcopy(target),target_first_viewer_job_id=value['target_first_viewer_job_id'])
+    result=dict(proof,target=deepcopy(target),target_first_viewer_job_id=value['target_first_viewer_job_id'])
+    if frozen:result.update(tested_execution_head_sha=target['head_sha'],intent_head_sha=issuer['head_sha'],
+        intent_parent_sha=value['intent_parent_sha'],admitted_current_pr_head=pr['head']['sha'],
+        protected_files_sha256=snapshot['protected_files_sha256'],frozen_code_execution=True,current_pr_code_executed=False)
+    return result
+
+
+def _frozen_context(value,snapshot,pr):
+    """Consume only freshly proven Git facts, never substitute current code."""
+    from .all_existing_model_official_frozen_capsule import validate_binding
+    target=value['target'];head=snapshot['head_sha'];live=pr['head']['sha']
+    need(snapshot.get('execution_head_sha')==target['head_sha']==value['tested_execution_head_sha'] and
+        snapshot.get('intent_head_sha')==head and snapshot.get('source_issue_head')==head and
+        snapshot.get('latest_issue_head_sha')==head and snapshot.get('current_head_sha')==live and
+        snapshot.get('source_is_ancestor') is True and snapshot.get('intent_is_ancestor_of_current') is True and
+        snapshot.get('frozen_code_execution') is True and snapshot.get('current_pr_code_executed') is False,
+        'FROZEN_EXECUTION_AND_ACTIVE_INTENT')
+    current=snapshot.get('current_admission')
+    need(type(current) is dict and current.get('current_pr_head_sha')==live and
+        current.get('intent_is_ancestor') is True and current.get('current_issue_head_sha')==head,'FRESH_CURRENT_INTENT')
+    workflow=snapshot.get('executed_workflow')
+    need(type(workflow) is dict and set(workflow)=={'commit_sha','head_sha','blob_sha'} and
+        _hex(workflow['commit_sha']) and workflow['head_sha']==head and _hex(snapshot.get('tested_workflow_blob')) and
+        workflow['blob_sha']==snapshot['tested_workflow_blob'],'FROZEN_EXECUTED_WORKFLOW')
+    binding=validate_binding(snapshot.get('source_frozen_binding'))
+    need(binding['tested_execution_head_sha']==target['head_sha'] and binding['intent_head_sha']==head and
+        binding['intent_parent_sha']==value['intent_parent_sha'] and binding['target']==target and
+        binding['recovery_request_blob_sha256']==value['recovery_request_blob_sha256'] and
+        _hex(snapshot.get('protected_files_sha256'),64) and
+        binding['protected_files_sha256']==snapshot['protected_files_sha256'],'FROZEN_AUTHORITY_CLOSURE')
+    raw=snapshot.get('latest_issue_raw')
+    need(type(raw) is bytes and read_json_bytes(raw)==value and sha256(raw).hexdigest()==binding['issue_request_blob_sha256'],
+         'FROZEN_IMMUTABLE_ISSUE')
 
 
 def pin_from_metadata(metadata):
@@ -162,6 +206,20 @@ def check_pin_continuity(manifest,*,previous_request=None,previous_run=None,prev
 
 def archival_authority(raw,*,request,target,first_attempt,key):
     """Authenticate a retained issuer body without creating live authority."""
+    from .all_existing_model_official_frozen_capsule import archival_inner
+    inner=archival_inner(raw,request=request,target=target,key=key)
+    return _archival_legacy_authority(inner,request=request,target=target,first_attempt=first_attempt,key=key)
+
+
+def archival_capsule_bytes(raw,*,request,target,first_attempt,key):
+    """Preserve the exact legacy evidence bytes for original C/S readers."""
+    from .all_existing_model_official_frozen_capsule import archival_inner
+    inner=archival_inner(raw,request=request,target=target,key=key)
+    _archival_legacy_authority(inner,request=request,target=target,first_attempt=first_attempt,key=key)
+    return inner
+
+
+def _archival_legacy_authority(raw,*,request,target,first_attempt,key):
     authority=authority_for(request);value=open_forecasts(raw,key=key);header=forecast_header(raw)
     need(type(value) is dict and set(value)=={'schema','body','mac'} and value['schema']==authority.SCHEMA and
          type(value['body']) is dict and type(value['mac']) is str and

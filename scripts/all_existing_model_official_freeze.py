@@ -252,8 +252,16 @@ def _replay_original_inputs(manifest,records,baseline,env,*,source_root=None):
                 need(capsule['native_payload']==wanted,'RAW_SOURCE_NATIVE_BINDING')
 
 
-def generate(ident,root,env,manifest,*,source_root=None):
+def generate(ident,root,env,manifest,*,source_root=None,target_case=None):
     need(not root.exists(),'OUTPUT_EXISTS_DO_NOT_RESET')
+    if target_case is not None:
+        need(manifest['schema']==V3_SCHEMA and manifest['maximum_races']==1 and
+            type(target_case) is dict and set(target_case)=={'race_id','cutoff_at','card_url'} and
+            type(target_case['race_id']) is str and 0<len(target_case['race_id'])<=200 and
+            type(target_case['cutoff_at']) is str and 0<len(target_case['cutoff_at'])<=64 and
+            type(target_case['card_url']) is str and len(target_case['card_url'])<=2048,
+            'EXACT_TARGET_CASE_SCOPE')
+        future.stamp(target_case['cutoff_at'])
     key=state_key('production')
     if manifest['schema']==V3_SCHEMA:
         need(ident==manifest['carrier_artifact']['id'],'CARRIER_ARGUMENT_MISMATCH')
@@ -281,6 +289,14 @@ def generate(ident,root,env,manifest,*,source_root=None):
         capture.restore_cache(private/'sealed',restored,key=key,expected_index_sha256=manifest['index_sha256'])
         cache=capture._load(restored);need(cache['execution_day']==manifest['execution_day'],'CACHE_EXECUTION_DAY')
         originals=original_metadata(manifest,key=key,source_root=source_root)
+        if target_case is not None:
+            # Discovery may itself be an earlier race card. Authenticate the
+            # complete original closure before applying the explicit target;
+            # no response is excluded, replaced or relabelled by this filter.
+            need(set(originals)==set(cache['captures']),'EXACT_TARGET_SOURCE_CLOSURE')
+            for url in cache['captures']:
+                source=capture.read_capture(restored,url)
+                bind_metadata(source['raw'],source['metadata'],originals[url])
         proof=capture.read_capture(restored,jra.RULE_URL)
         rule=bind_metadata(proof['raw'],proof['metadata'],originals.get(jra.RULE_URL))
         evidence=dict(raw=proof['raw'],metadata=rule,sales_channel=jra.CHANNEL,
@@ -299,6 +315,8 @@ def generate(ident,root,env,manifest,*,source_root=None):
                 need(race['event_date_jst']==manifest['execution_day'],'CARD_EXECUTION_DAY')
                 if excluded and _race_key(race['race_id'],'horse') in excluded:
                     exclusion_counts['excluded_cached_card_count']+=1;continue
+                if target_case is not None and (url!=target_case['card_url'] or race['race_id']!=target_case['race_id'] or
+                    future.stamp(race['sales_cutoff_at'])!=future.stamp(target_case['cutoff_at'])):continue
                 cutoff=future.stamp(race['sales_cutoff_at'])
                 if cutoff<utc_now()+timedelta(seconds=120):holds+=1;continue
                 if baseline is not None:

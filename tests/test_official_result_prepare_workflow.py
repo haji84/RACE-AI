@@ -48,8 +48,10 @@ class PreparationWorkflowTests(unittest.TestCase):
     def test_shared_pr64_and_dependencies_cover_both_routes_but_secret_steps_do_not(self):
         shared="if: steps.issue_route.outputs.requested == 'true' || steps.issue_route.outputs.prepare_requested == 'true'"
         parser=next(s for s in self.steps if 'path: pr64-reference' in s)
-        dependencies=next(s for s in self.steps if 'python -m pip install' in s)
-        self.assertIn(shared,parser);self.assertIn(shared,dependencies)
+        dependencies=next(s for s in self.steps if 'pip install' in s)
+        self.assertIn(shared,parser)
+        for condition in ("steps.issue_route.outputs.requested == 'true'","steps.issue_route.outputs.prepare_requested == 'true'","steps.frozen_execution.outputs.ready == 'true'"):
+            self.assertIn(condition,dependencies)
         issue=ident(self.steps,'issue');prepare=ident(self.steps,'prepare')
         self.assertIsNotNone(prepare,'preparation must have its own secret-scoped step')
         self.assertIn("if: steps.issue_route.outputs.requested == 'true'",issue)
@@ -61,9 +63,15 @@ class PreparationWorkflowTests(unittest.TestCase):
     def test_preparation_shell_uses_fixed_temp_output_and_keeps_hold_counts(self):
         prepare=ident(self.steps,'prepare');self.assertIsNotNone(prepare,'preparation shell missing')
         with tempfile.TemporaryDirectory() as directory:
-            root=Path(directory);(root/'race_ai').mkdir();(root/'race_ai/__init__.py').write_text('')
-            (root/'scripts').mkdir();(root/'scripts/__init__.py').write_text('')
-            (root/'scripts/all_existing_model_official_result_prepare.py').write_text(
+            root=Path(directory);current=root/'mutable';current.mkdir()
+            (current/'race_ai.py').write_text('raise AssertionError(\"MUTABLE_PROJECT_IMPORTED\")')
+            execution=root/'trusted-fixture';execution.mkdir()
+            reference=root/'pr64-reference/race_ai';reference.mkdir(parents=True)
+            (execution/'race_ai').mkdir();(execution/'race_ai/__init__.py').write_text('')
+            (execution/'scripts').mkdir();(execution/'scripts/__init__.py').write_text('')
+            # This authored invocation stub checks the old counts/upload contract.
+            # Actual bootstrap provenance is exercised by test_official_frozen_workflow.
+            (execution/'scripts/all_existing_model_official_result_prepare.py').write_text(
                 'import json,os\nfrom pathlib import Path\n'
                 'def main(args):\n'
                 ' Path(os.environ["FIXTURE_ARGS"]).write_text(json.dumps(args))\n'
@@ -75,11 +83,11 @@ class PreparationWorkflowTests(unittest.TestCase):
                 ' return 0 if os.environ["FIXTURE_READY"]=="true" else 1\n')
             for ready in ('true','false'):
                 temp=root/('runner '+ready);temp.mkdir();args=root/'args.json'
-                env=dict(PATH=os.environ.get('PATH',''),PYTHONPATH=str(root),RUNNER_TEMP=str(temp),FIXTURE_ARGS=str(args),FIXTURE_READY=ready)
-                result=subprocess.run(['bash','-e','-o','pipefail','-c',script(prepare)],cwd=root,env=env,capture_output=True,text=True)
+                env=dict(PATH=os.environ.get('PATH',''),PYTHONPATH=str(current),RUNNER_TEMP=str(temp),FIXTURE_ARGS=str(args),FIXTURE_READY=ready,FROZEN_EXECUTION_ROOT=str(execution),FROZEN_GIT_ROOT=str(current),FROZEN_INTENT_HEAD='a'*40,FROZEN_EXECUTION_HEAD='b'*40)
+                result=subprocess.run(['bash','-e','-o','pipefail','-c',script(prepare)],cwd=current,env=env,capture_output=True,text=True)
                 self.assertEqual(result.returncode,0 if ready=='true' else 1,result.stderr)
                 output=temp/'official-result-recovery-preparation'
-                self.assertEqual(json.loads(args.read_text()),['--out-dir',str(output)])
+                self.assertEqual(json.loads(args.read_text()),['--out-dir',str(output),'--frozen-git-root',str(current),'--frozen-intent-head','a'*40,'--frozen-execution-head','b'*40])
                 self.assertEqual({p.name for p in output.iterdir()},
                     {'sealedplan.enc','request.json','counts.json'} if ready=='true' else {'counts.json'})
 
@@ -104,7 +112,9 @@ class PreparationWorkflowTests(unittest.TestCase):
             self.assertIn(clause,self.job)
         self.assertIn('contents: write',self.job);self.assertIn('actions: read',self.job)
         issue=ident(self.steps,'issue');self.assertIn('from scripts.all_existing_model_official_result_issue import main',issue)
-        self.assertIn("main(['--proof', str(Path(os.environ['RUNNER_TEMP']) / 'official-result-recovery-issue-proof.json')])",issue)
+        self.assertIn("main(['--proof', str(Path(os.environ['RUNNER_TEMP']) / 'official-result-recovery-issue-proof.json'),",issue)
+        for flag in ('--frozen-git-root','--frozen-intent-head','--frozen-execution-head'):
+            self.assertIn(flag,issue)
         upload=next(s for s in self.steps if 'name: official-result-recovery-issue-proof-' in s)
         self.assertIn("if: always() && steps.issue_route.outputs.requested == 'true'",upload)
         self.assertIn('path: ${{ runner.temp }}/official-result-recovery-issue-proof.json',upload)

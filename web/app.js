@@ -133,7 +133,7 @@
     if (Array.isArray(value)) return value.map(v => typeof v === "string" ? v : JSON.stringify(v)).join(" / ");
     return value && typeof value === "object" ? JSON.stringify(value) : text(value);
   }
-  function weatherPanel(weather, label) {
+  function weatherPanel(weather, label, includeDetails = true) {
     const panel = node("section", "weather-panel"); panel.setAttribute("aria-label", label);
     panel.append(node("h3", "", "気象・水面"));
     const grid = node("div", "weather-metrics");
@@ -146,20 +146,23 @@
     panel.append(grid.childElementCount ? grid : node("p", "muted small", "気象の保存項目は詳細で確認できます。"));
     const details = node("details", "weather-details");
     details.append(node("summary", "", "気象の保存項目をすべて確認"), facts(Object.entries(weather).map(([key, value]) => [key, sourceText(value)])));
-    panel.append(details);
+    if (includeDetails) panel.append(details);
     return panel;
   }
-  function previewCards(race, people) {
+  function previewCards(race, people, live = false) {
     const grid = node("div", "preview-people");
-    const value = v => typeof v === "number" && Number.isFinite(v) ? v.toFixed(2) : text(v);
+    const value = v => typeof v === "number" && Number.isFinite(v) ? v.toFixed(2) : v == null && live ? "未公表" : text(v);
     for (const person of people) {
       const card = node("article", "preview-boat"), header = node("div", "preview-person");
-      const trigger = button(person.name || "出走者情報", "text-button", () => openParticipant(person, race, trigger));
+      const profilePerson = live ? knownParticipants(race).find(p => participantNumber(p) === participantNumber(person) && participantRegistration(p) === participantRegistration(person)) || person : person;
+      const trigger = button(person.name || "出走者情報", "text-button", () => openParticipant(profilePerson, race, trigger));
       trigger.dataset.openParticipant = participantRegistration(person) || "unverified";
       const number = participantNumber(person); if (Number.isInteger(number)) header.append(badge(number));
       header.append(trigger); card.append(header);
       const metrics = node("dl", "preview-metrics");
-      for (const [label, item] of [["展示タイム", value(person.display_time)], ["展示ST", value(person.preview_st)], ["進入", text(person.preview_course)]]) {
+      const fields = [["展示タイム", value(person.display_time)], ["展示ST", value(person.preview_st)], [live ? "展示コース" : "進入", value(person.preview_course)]];
+      if (live) fields.push(["体重 kg", value(person.bodyweight_kg)], ["チルト 度", value(person.tilt)]);
+      for (const [label, item] of fields) {
         metrics.append(append(node("div"), node("dt", "", label), node("dd", "", item)));
       }
       card.append(metrics);
@@ -223,8 +226,63 @@
     }
     return true;
   }
+  function liveBoatObservation(r) {
+    const live = r.sport === "boat" ? r.live_boat_observation : null;
+    if (!live || live.schema !== "RACE_AI_LIVE_BOAT_OBSERVATION_V1" || live.forecast_inputs_used !== false ||
+        !["READY", "AWAITING_EXHIBITION", "SOURCE_WAIT", "SOURCE_ERROR"].includes(live.state) || !Number.isFinite(Date.parse(live.checked_at))) return null;
+    if (live.context === null) return live.state === "READY" ? null : live;
+    const context = live.context, page = context?.beforeinfo, people = knownParticipants(r);
+    if (!validBoatObservationContext(context, r.race_id) || context.schema !== "RACE_AI_BOAT_SUPPLEMENTAL_CONTEXT_V1" ||
+        context.race_id !== r.race_id || context.forecast_inputs_used !== false || page?.body_identity_verified !== true || page.status !== "PARSED" || page.roster_binding_status !== "VERIFIED" ||
+        people.length !== 6 || page.participants.length !== 6 || !Array.isArray(context.roster) || context.roster.length !== 6) return null;
+    for (const person of people) {
+      const number = participantNumber(person), registration = participantRegistration(person);
+      if (typeof registration !== "string" || !/^\d{4}$/.test(registration) ||
+          context.roster.filter(p => p.lane === number && p.registration_number === registration).length !== 1 ||
+          page.participants.filter(p => p.lane === number && p.registration_number === registration).length !== 1) return null;
+    }
+    try {
+      const url = new URL(page.source.source_url), q = url.searchParams, rid = r.race_id;
+      if (url.origin !== "https://www.boatrace.jp" || url.username || url.password || url.hash || url.pathname !== "/owpc/pc/race/beforeinfo" ||
+          [...q].length !== 3 || new Set(q.keys()).size !== 3 || q.get("hd") !== rid.slice(0,8) || q.get("jcd") !== rid.slice(9,11) || q.get("rno") !== String(Number(rid.slice(-2)))) return null;
+    } catch { return null; }
+    return live;
+  }
+  function selectedBoatContext(r) {
+    const live = liveBoatObservation(r)?.context, legacy = r.boat_observation_context;
+    if (!live) return legacy;
+    if (!legacy || !validBoatObservationContext(legacy, r.race_id)) return live;
+    const people = knownParticipants(r), registrations = new Set(people.map(participantRegistration));
+    const matches = person => people.some(p => participantNumber(p) === person.lane && participantRegistration(p) === person.registration_number);
+    const pit = legacy.pitreport?.participants.every(matches) ? legacy.pitreport : null;
+    const history = legacy.entry_history?.profiles.every(profile => registrations.has(profile.racer_id)) ? legacy.entry_history : null;
+    // This is a display composition, never a new capture. Each independently
+    // validated component retains its own clock, source and admission flags.
+    const composed = {...live,pitreport:live.pitreport || pit,entry_history:live.entry_history || history};
+    if (legacy.cutoff_at !== live.cutoff_at) delete composed.cutoff_at;
+    return composed;
+  }
+  function liveBeforeinfoPanel(r) {
+    const live = liveBoatObservation(r); if (!live) return null;
+    const panel = node("section"); panel.id = "live-beforeinfo"; panel.dataset.previewState = live.state;
+    panel.append(node("h2", "", "直前情報"));
+    const labels = {READY:"公式情報を取得済み", AWAITING_EXHIBITION:"展示発表待ち · 公表済みの情報を表示", SOURCE_WAIT:"次の取得確認を待っています", SOURCE_ERROR:"直前情報の取得を再確認しています"};
+    if (live.state === "AWAITING_EXHIBITION" && live.context?.beforeinfo?.participants.some(person => person.display_time != null || person.exhibition_st_raw != null)) labels.AWAITING_EXHIBITION = "一部の展示情報は未公表 · 取得済みの項目を表示";
+    panel.append(node("p", "muted small", labels[live.state]));
+    const before = live.context?.beforeinfo;
+    if (before) {
+      panel.append(node("p", "muted small", "公式情報の取得 " + stamp(before.source.captured_at) + " JST"));
+      if (["SOURCE_WAIT", "SOURCE_ERROR"].includes(live.state)) panel.append(node("p", "notice", "前回取得した情報です。取得時刻を確認してください。"));
+      panel.append(previewCards(r, before.participants.map(person => ({...person,number:person.lane,registration_no:person.registration_number,
+        preview_st:person.exhibition_st_raw ?? person.exhibition_st,preview_course:person.exhibition_course})), true));
+      if (before.weather) panel.append(weatherPanel(before.weather, "公式の直前気象・水面", false));
+      const source = node("a", "source-link", "公式の直前情報を開く ↗"); source.href = before.source.source_url; source.target = "_blank"; source.rel = "noopener noreferrer";
+      panel.append(source);
+    } else panel.append(node("p", "muted", "取得でき次第、自動で表示します。"));
+    return panel;
+  }
   function boatObservationContext(r) {
-    const context = r.sport === "boat" ? r.boat_observation_context : null;
+    const context = r.sport === "boat" ? selectedBoatContext(r) : null;
     if (context == null) return null;
     const box = node("section"); box.id = "boat-observation-context";
     box.append(node("h2", "member-heading", "補足観測"), node("p", "notice", "保存予想への反映は未検証です。補足の取得時刻・出典を個別に表示します。"));
@@ -314,7 +372,15 @@
   }
   function referenceEntryMap(race, api) {
     let entryMap = null;
-    const people = knownParticipants(race), context = race.boat_observation_context;
+    const people = knownParticipants(race), live = liveBoatObservation(race);
+    let context = live?.context || race.boat_observation_context;
+    if (live?.context) {
+      const page = context.beforeinfo, captured = Date.parse(page.source.captured_at);
+      const originals = [race.cutoff_at, ...(race.saved_cutoff_variants || []), ...(race.saved_schedule_cutoff_variants || [])].filter(Boolean);
+      const limits = [...originals, context.cutoff_at, page.source_cutoff_at].map(Date.parse);
+      if (!originals.length || !limits.every(Number.isFinite) || page.cutoff_eligibility?.captured_before_cutoff !== true ||
+          page.cutoff_eligibility?.pre_cutoff_eligible !== true || captured >= Math.min(...limits)) context = race.boat_observation_context;
+    }
     const reported = people.filter(p => p.preview_course !== null && p.preview_course !== undefined);
     if (reported.length) entryMap = Object.fromEntries(reported.map(p => [participantNumber(p), p.preview_course]));
     else if (people.length === 6 && context && validBoatObservationContext(context, race.race_id) && context.beforeinfo?.status === "PARSED" && context.beforeinfo.roster_binding_status === "VERIFIED") {
@@ -514,7 +580,7 @@
     group("このレースの直前情報", [["展示タイム", decimal(person.display_time)], ["展示ST", person.preview_st], ["展示進入", person.preview_course],
       ["選手コメント", person.comment || person.last_comment]]);
     body.append(values);
-    const context = race.boat_observation_context, lane = participantNumber(person);
+    const context = selectedBoatContext(race), lane = participantNumber(person);
     if (portrait && registration && Number.isInteger(lane) && context && validBoatObservationContext(context, race.race_id)) {
       const supplement = node("section", "profile-supplement"); supplement.id = "profile-supplement";
       supplement.append(node("h3", "", "補足として取得した直前情報"), node("p", "muted small", "保存予想への反映は未検証です。以下の観測値は保存予想の入力とは別に表示しています。"));
@@ -603,7 +669,7 @@
     return list;
   }
   function informationButtons(race) {
-    const context = race.boat_observation_context;
+    const context = selectedBoatContext(race);
     const supplement = race.sport === "boat" && context && validBoatObservationContext(context, race.race_id) &&
       [context.beforeinfo, context.pitreport].some(page => page?.status === "PARSED" && (page.participants?.length || page.weather && Object.values(page.weather).some(value => value != null)));
     const nav = node("nav", "race-information"); nav.setAttribute("aria-label", raceName(race) + "の情報");
@@ -880,6 +946,9 @@
       if (knownParticipants(r).length) content.append(table(["番号", "名前", "登録", "モーター", "平均ST", "展示"], knownParticipants(r).map(person => [participantNumber(person), person.name || "名前 未取得", participantRegistration(person), person.motor_no, person.average_st, person.display_time])));
     }
     if (state.detailTab === "preview") {
+      const livePanel = liveBeforeinfoPanel(r);
+      if (livePanel) content.append(livePanel);
+      else {
       const people = knownParticipants(r), observationContext = boatObservationContext(r);
       content.append(node("h2", "", observationContext ? "保存予想原本の直前情報" : "直前情報"), node("p", "muted small", "出走情報の取得 " + stamp(r.observed_at || r.as_of) + " JST · 保存された項目を表示しています。"));
       if (people.some(person => [person.display_time, person.preview_st, person.preview_course, person.comment, person.last_comment].some(value => value !== undefined && value !== null && value !== ""))) content.append(previewCards(r, people));
@@ -893,6 +962,7 @@
       else content.append(empty(observationContext ? "保存予想原本の気象・直前情報は未取得です" : "気象・直前情報は未取得です", "保存原本に存在する項目だけを表示します。"));
       content.append(node("p", "muted small", "展示・試走の原本値は取得時点の記録です。予想への反映状況はモデル版と時点を確認してください。"));
       if (observationContext) content.append(observationContext);
+      }
       const videoMeasurements = globalThis.RaceBoatVideoView?.createPanel(r);
       if (videoMeasurements) content.append(videoMeasurements);
     }
@@ -1101,6 +1171,7 @@
     const audit = node("section", "race-audit-details"), auditBody = node("div", "race-audit-body");
     audit.dataset.modelId = p?.model_id || ""; audit.dataset.predictionStage = p?.stage || "";
     auditBody.append(facts([["モデル", modelTechnicalName(p)], ["データ区分", r.scope], ...evidenceFields(r, p)]));
+    if (liveBoatObservation(r)?.context) auditBody.append(boatObservationContext(r));
     const missing = [...new Set([...(r.missing_reasons || []), ...(p?.missing_reasons || []), ...(r.no_forecast_reason ? [r.no_forecast_reason] : [])])];
     if (missing.length) auditBody.append(node("h3", "", "保存情報の補足"), node("p", "audit-codes", missing.join(" / ")));
     auditBody.append(node("p", "muted small", "参考予想や取得した結果の照合は、公式な予想成績の証明とは別です。保存時刻や元の記録は変更しません。"));

@@ -12,6 +12,13 @@ class FutureResultWorkflowTests(unittest.TestCase):
         self.fixture=fixtures.FutureSourceWorkflowTests('runTest');self.fixture.setUp()
         self.steps=self.fixture.steps;self.text=self.fixture.text;self.job=self.fixture.job
     def execute(self,step,**kwargs):return self.fixture.execute(step,scope='official-result',**kwargs)
+    def test_v2_uses_the_same_keyless_result_scope_and_purpose_gate(self):
+        step=ident(self.steps,'future_source_scope')
+        result,calls,values,_,_=self.execute(step,schema='RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_INPUT_V2')
+        self.assertEqual(result.returncode,0,result.stderr);self.assertEqual(calls,[])
+        self.assertEqual(values,dict(scope='official-result',source_artifact_prefix='official-future-result-capture'))
+        result,calls,values,_,_=self.execute(step,schema='RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_INPUT_V2',capture_kind='SOURCE')
+        self.assertNotEqual(result.returncode,0);self.assertEqual(calls,[]);self.assertEqual(values,{})
     def test_result_prefix_is_explicit_and_ordinary_source_prefix_outputs_are_unchanged(self):
         route=ident(self.steps,'future_source_route')
         result,calls,values,_,_=self.execute(route,subject='official-future-result-capture: fixture')

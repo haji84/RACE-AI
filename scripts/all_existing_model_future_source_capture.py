@@ -19,6 +19,7 @@ import subprocess
 import zipfile
 
 from race_ai.actions_contract import digest
+from race_ai import future_source_cooldown as cooldown
 from race_ai import all_existing_model_future_source_capture as core
 from race_ai import all_existing_model_future_source_once as once
 from race_ai import official_future_source_packet as builder
@@ -41,7 +42,12 @@ MAX_ARCHIVE=96*1024*1024
 def utc_now():return datetime.now(timezone.utc)
 
 
-def environment():
+def wait_for_prior_window(manifest,env,*,reader=None,marker_transport=None,clock=None,sleeper=None,monotonic=None):
+    need(type(manifest) is dict and manifest.get('schema')==core.SCHEMA,'WAIT_SCHEMA')
+    return cooldown.wait_for_prior_window(manifest,env,reader=reader,marker_transport=marker_transport,
+        clock=clock or utc_now,sleeper=sleeper,monotonic=monotonic)
+
+def environment(*,check_owner_key=True):
     # Scope is checked before the first owner-secret lookup.
     need(os.environ.get('GITHUB_ACTIONS')=='true' and os.environ.get('GITHUB_REPOSITORY')=='haji84/RACE-AI' and
         os.environ.get('GITHUB_REPOSITORY_ID')=='1416489937' and os.environ.get('GITHUB_EVENT_NAME')=='pull_request',
@@ -49,7 +55,7 @@ def environment():
     event=read_json_bytes(_read(Path(os.environ.get('GITHUB_EVENT_PATH','')),1024*1024))
     need(event.get('number')==71 and event.get('pull_request',{}).get('head',{}).get('repo',{}).get('full_name')=='haji84/RACE-AI',
         'SAME_REPOSITORY_PR71')
-    env=future.environment()
+    env=future.environment(check_owner_key=check_owner_key)
     current=read_json_bytes(future.gh('actions/runs/'+str(env['run_id'])))
     receipt=recovery.run_receipt(current)
     need(receipt['id']==env['run_id'] and receipt['head_sha']==env['head_sha'] and
@@ -403,10 +409,16 @@ def main(argv=None):
         old_source_requests_actual=None,old_source_requests_upper_bound=32,old_browser_outcome='UNKNOWN')
     root=None
     try:
-        env=environment();root=future.output_path(args.out_dir,env);manifest=load_manifest(args.input,now=utc_now())
+        env=environment(check_owner_key=args.readback_source is not None or args.readback_native is not None)
+        root=future.output_path(args.out_dir,env);manifest=load_manifest(args.input,now=utc_now())
         need(args.readback_native is None or args.readback_source is not None,'BOTH_READBACK_ARTIFACTS_REQUIRED')
-        result.update(readback(args.readback_native,args.readback_source,root,env,manifest) if args.readback_native is not None else
-            readback_source(args.readback_source,root,env,manifest) if args.readback_source is not None else generate(manifest,root,env))
+        if args.readback_native is not None:
+            result.update(readback(args.readback_native,args.readback_source,root,env,manifest))
+        elif args.readback_source is not None:
+            result.update(readback_source(args.readback_source,root,env,manifest))
+        else:
+            wait_for_prior_window(manifest,env)
+            result.update(generate(manifest,root,env))
     except Exception as exc:
         code=str(exc)
         result['reason']=code if re.fullmatch(r'(?:ALL_MODEL_FUTURE_SOURCE|OFFICIAL_ISSUE_TRANSPORT)_[A-Z_]{1,100}',code) else 'FUTURE_SOURCE_OPERATION_REJECTED'

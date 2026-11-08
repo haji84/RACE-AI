@@ -21,6 +21,7 @@ for gen,status in [(1,'PENDING'),(2,'AVAILABLE')]:
  o=result(pair);o['captured_at']=f'2026-11-06T11:{40+gen}:00+09:00'
  if status=='PENDING':o.update(status=status,data=None)
  view=F.update_view(view,[o],synced_at=f'2026-11-06T03:{gen:02}:00Z')
+ view['records'][0]['live_boat_observation']=dict(schema='RACE_AI_LIVE_BOAT_OBSERVATION_V1',state='SOURCE_WAIT',checked_at=f'2026-11-06T03:{gen:02}:00Z',context=None,forecast_inputs_used=False)
  raw=F.encrypt_view(view,key,view_id=vid,source_sha=pin,generation=gen,previous=previous);ident=sha(raw)
  (p/f'feed{gen}.json').write_bytes(raw);(p/f'latest{gen}.json').write_text(json.dumps(dict(header=json.loads(raw)['header'],cipher_sha256=ident)))
  previous=ident
@@ -42,6 +43,7 @@ for gen,status in [(1,'PENDING'),(2,'AVAILABLE')]:
  await page.clock.install({time:new Date('2026-11-06T04:00:00Z')});await page.goto('http://127.0.0.1:'+server.address().port+'/#'+fragment);
  await page.waitForFunction(()=>document.querySelector('#file-message').textContent.includes('保存済み予想'));
  await page.waitForFunction(()=>document.querySelector('#saved-view-sync')?.dataset.generation==='1',{},{timeout:6000}).catch(async e=>{console.error(await page.locator('#saved-view-sync').textContent(),requests.map(r=>new URL(r.url).hostname),errors);throw e;});
+ await page.locator('[data-page="races"]').filter({visible:true}).first().click();await page.locator('[data-race-view="results"]').click();
  await page.locator('#page-races [data-open-race]').first().click();await page.locator('#prediction-select').selectOption('2');
  await page.locator('[data-page="picks"]').filter({visible:true}).first().click();
  await page.locator('#copy-top8').click();

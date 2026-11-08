@@ -83,12 +83,16 @@ def build_context(bootstrap,view,generation,*,now,require_future=False,event_day
                      if r.get('sport')=='boat' and r['event_date_jst']<day})
     old_day=previous[0] if previous else None
     completed=lambda records:sum((r.get('result') or {}).get('status') in ('final','void') for r in records)
+    previews=[r for r in rows if r.get('cutoff_at') and isinstance((r.get('live_boat_observation') or {}).get('context'),dict)
+        and any(p.get('display_time') is not None for p in ((r['live_boat_observation']['context'].get('beforeinfo') or {}).get('participants') or []))]
+    preview_probe=dict(race_id=previews[0]['race_id'],cutoff_at=previews[0]['cutoff_at']) if previews else None
     key=base64.urlsafe_b64encode(bootstrap['key']).rstrip(b'=').decode('ascii')
     return dict(schema='RACE_AI_PRIVATE_LIVE_SITE_CHECK_CONTEXT_V1',
         owner_url='https://haji84.github.io/RACE-AI/#saved='+bootstrap['view_id']+'.'+key,
         day=day,current_day=current,date_scope='CURRENT_DAY' if day==current else 'HISTORICAL_DAY',
         generation=generation,day_races=len(rows),minimum_results=completed(rows),native_p1_groups=len(native),
         native_groups=[list(group) for group in sorted(native,key=lambda group:json.dumps(group))],native_probe=probe,
+        live_beforeinfo_races=len(previews),live_beforeinfo_probe=preview_probe,
         old_day=old_day,old_completed=completed([r for r in view['records'] if r.get('sport')=='boat'
             and r['event_date_jst']==old_day]),future_native=future)
 
@@ -128,6 +132,7 @@ def main(argv=None,*,now=None):
         print(json.dumps(dict(status='SAVED_SITE_PRIVATE_CONTEXT_READY',generation=generation,
             checked_day=context['day'],current_day=context['current_day'],date_scope=context['date_scope'],
             native_p1_groups=context['native_p1_groups'],completed_results=context['minimum_results'],
+            live_beforeinfo_races=context['live_beforeinfo_races'],
             future_native_available=context['future_native'] is not None,plaintext_published=False,
             official_source_requests=0),sort_keys=True))
         return 0

@@ -108,6 +108,41 @@ class OfficialResultRetentionTests(unittest.TestCase):
         with self.assertRaises(ValueError):self.retain(expected_parent=first['source_commit'])
         self.assertEqual(len(self.writer.commits),1)
 
+    def test_existing_exact_original_survives_additional_unrelated_admitted_native_inputs(self):
+        first=self.retain();before=deepcopy(self.remote.trees[first['source_commit']])
+        extra=deepcopy(self.native[0])
+        extra['snapshot']['race']['race_id']='horse:2026-11-07:jra-03:10'
+        # Another independently admitted race changes the current admission
+        # context, not these exact RESULT ZIP/metadata original bytes.
+        second=self.retain(frozen=self.native+[extra],expected_parent=first['source_commit'])
+        self.assertEqual(second,first)
+        self.assertEqual(self.remote.trees[first['source_commit']],before)
+        self.assertEqual(len(self.writer.commits),1)
+        self.assertEqual(self.restore(second)['raw_zip'],self.raw)
+
+    def test_existing_full_result_original_keeps_original_mode_when_current_mode_is_order_only(self):
+        first=self.retain(allow_order_only=False)
+        second=self.retain(allow_order_only=True,expected_parent=first['source_commit'])
+        self.assertEqual(second,first)
+        self.assertEqual(len(self.writer.commits),1)
+        restored=self.restore(second)
+        self.assertFalse(restored['provenance']['original_allow_order_only'])
+        self.assertEqual(restored['metadata_raw'],self.metadata_raw)
+
+    def test_existing_original_still_requires_current_native_and_stored_admission_replay(self):
+        pointer=self.retain();commit=pointer['source_commit'];path=pointer['cipher_path']
+        changed=deepcopy(self.native)
+        changed[0]['snapshot']['participants'][0]['identity']='jra:9999999999'
+        with self.assertRaises(ValueError):
+            self.retain(frozen=changed,expected_parent=commit)
+        original=self.remote.trees[commit][path]
+        payload=store.open_forecasts(original,key=KEY)
+        payload['admission_receipt']['frozen_inputs_sha256']='0'*64
+        self.remote.trees[commit][path]=store.seal_forecasts(payload,run_id='42',round_no=1,key=KEY)
+        with self.assertRaisesRegex(ValueError,'ORIGINAL_ADMISSION_BINDING_INVALID'):
+            self.retain(expected_parent=commit)
+        self.assertEqual(len(self.writer.commits),1)
+
     def test_duplicate_native_inputs_are_deduplicated_without_mutating_callers(self):
         frozen=deepcopy(self.native)*5;before=deepcopy(frozen)
         pointer=self.retain(frozen=frozen)
@@ -194,6 +229,9 @@ class OfficialResultRetentionTests(unittest.TestCase):
         self.assertEqual((restored['raw_zip'],restored['metadata_raw']),(original,encoded))
         self.assertTrue(restored['provenance']['original_allow_order_only'])
         self.assertFalse(restored['provenance']['current_training_authorization_granted'])
+        with self.assertRaises(ValueError):
+            self.retain(original,encoded,frozen,now=now,expected_parent=pointer['source_commit'])
+        self.assertEqual(len(self.writer.commits),1)
 
 
 if __name__=='__main__':unittest.main()

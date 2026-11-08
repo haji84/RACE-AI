@@ -30,6 +30,12 @@ ROOT=Path(__file__).resolve().parents[1]
 def utc_now():return datetime.now(timezone.utc)
 
 
+def failed_dispositions(snapshot,issue,reader,*,now,published=False):
+    """Freshly authenticate explicit non-source anchors without using a key."""
+    from race_ai.all_existing_model_official_failed_issue import verify_failed_dispositions
+    return verify_failed_dispositions(snapshot,issue,reader,now=now,published=published)
+
+
 class GitSnapshot:
     """Read only fixed paths at exact local Git objects; never fetch or checkout."""
     def __init__(self,root,head):
@@ -136,7 +142,7 @@ def _artifact_list(reader,run_id):
     I.need(False,'ARTIFACT_LIST_BOUND')
 
 
-def _continuity(snapshot,issue,request,reader):
+def _legacy_continuity(snapshot,issue,request,reader):
     previous_raw=snapshot.previous_issue(issue['target']['head_sha'])
     if previous_raw is None:
         I.check_pin_continuity(request['manifest']);return None
@@ -153,6 +159,53 @@ def _continuity(snapshot,issue,request,reader):
         if row.get('name') in names]
     I.check_pin_continuity(request['manifest'],previous_request=original,previous_run=current,previous_artifacts=artifacts)
     return dict(issue=previous,request=original,current_run=current)
+
+
+def source_continuity(snapshot,issue,request,reader,*,verified_failed=None):
+    """Keep every actual source epoch, not just the latest manifest's claims."""
+    issue=I.validate_issue_request(issue)
+    if issue['schema']!=I.SCHEMA_V2:return _legacy_continuity(snapshot,issue,request,reader)
+    declared={row['intent_head_sha']:row['issue_blob_sha256'] for row in issue['failed_issue_dispositions']}
+    failed={} if verified_failed is None else {row['intent_head_sha']:row for row in verified_failed['failed_issues']}
+    I.need(set(failed)==set(declared) and all(failed[head]['issue_blob_sha256']==checksum
+        for head,checksum in declared.items()),'EXPLICIT_FAILED_HISTORY_PROOFS')
+    history=snapshot.issue_history(issue['intent_parent_sha']);I.need(type(history) is list and len(history)<=128,'ISSUE_HISTORY_BOUND')
+    epochs=[];seen=set()
+    for position,head in enumerate(history):
+        if position:I.need(snapshot.is_ancestor(head,history[position-1]),'INCOMPARABLE_ISSUE_HISTORY')
+        raw=snapshot.read(head,I.ISSUE_PATH,16384);I.need(type(raw) is bytes,'SOURCE_ISSUE_HISTORY_BYTES')
+        previous=I.validate_issue_request(read_json_bytes(raw));facts=snapshot.commit_facts(head)
+        parent=previous['intent_parent_sha'] if previous['schema']==I.SCHEMA_V2 else previous['target']['head_sha']
+        I.need(facts.get('parents')==[parent] and facts.get('changed_files')==[I.ISSUE_PATH] and
+            type(facts.get('subject')) is str and facts['subject'].startswith(I.PREFIX),'SOURCE_ISSUE_HISTORY_LINEAGE')
+        if previous['schema']==I.SCHEMA_V2:
+            I.need(snapshot.is_ancestor(previous['target']['head_sha'],parent),'SOURCE_EXECUTION_ANCESTOR')
+        if head in failed:
+            I.need(sha256(raw).hexdigest()==declared[head] and failed[head]['target']==previous['target'],
+                'EXACT_FAILED_HISTORY_BYTES')
+            continue
+        target=previous['target'];identity=(target['head_sha'],target['run_id'])
+        I.need(identity not in seen and target['run_id']!=issue['target']['run_id'],'SOURCE_EPOCH_REUSE')
+        seen.add(identity)
+        original_raw=snapshot.read(target['head_sha'],I.REQUEST_PATH,32768)
+        I.need(type(original_raw) is bytes and sha256(original_raw).hexdigest()==previous['recovery_request_blob_sha256'],
+            'PREVIOUS_REQUEST_BYTES')
+        original=read_json_bytes(original_raw);I.need(digest(original)==previous['recovery_request_sha256'],'PREVIOUS_REQUEST_DIGEST')
+        current=reader.json('actions/runs/'+str(target['run_id']))
+        I.need(current.get('head_sha')==target['head_sha'],'PREVIOUS_RUN_HEAD')
+        names={'official-result-collection-journal-'+str(target['run_id']),
+            'all-existing-official-results-'+str(target['run_id'])+'-900005'}
+        artifacts=[reader.json('actions/artifacts/'+str(row['id'])) for row in _artifact_list(reader,target['run_id'])
+            if row.get('name') in names]
+        I.check_pin_continuity(request['manifest'],previous_request=original,previous_run=current,previous_artifacts=artifacts)
+        epochs.append(dict(issue=previous,request=original,current_run=current,intent_head_sha=head))
+    I.need(set(declared)<=set(history),'FAILED_ANCHOR_NOT_IN_HISTORY')
+    if not epochs:I.check_pin_continuity(request['manifest']);return None
+    return dict(epochs[0],actual_source_epochs=epochs)
+
+
+def _continuity(snapshot,issue,request,reader):
+    return source_continuity(snapshot,issue,request,reader)
 
 
 def _load_plan(snapshot,head,manifest,key,now):
@@ -204,14 +257,15 @@ def prepare_data(snapshot,issue,request,first,reader,*,key,now,continuity=None):
         results.observations_from_official_result_artifact(item['raw'],item['metadata'],now=now,
             expected_run_id=pin['run_id'],expected_head_sha=pin['head_sha'],frozen_native_payloads=frozen,key=key,allow_order_only=True)
     if continuity is not None:
-        previous=continuity['issue'];target=previous['target'];original=continuity['request']
-        first_old=reader.json('actions/runs/'+str(target['run_id'])+'/attempts/1')
-        path=R.capsule_path(original,target['head_sha'],target['run_id'])
-        raw=reader.read_file(reader.head(),path,MAX_WIRE);I.need(raw is not None,'PREVIOUS_CAPSULE_REQUIRED')
-        body=I.archival_authority(raw,request=original,target=target,first_attempt=first_old,key=key)
-        jp=[p for p in manifest['prior_journal_artifacts'] if p['run_id']==target['run_id']]
-        I.need(len(jp)==1 and bodies[jp[0]['id']].get('recovery_authorization',{}).get('authorization_sha256')==digest(body),
-            'PREVIOUS_JOURNAL_AUTHORITY')
+        for epoch in continuity.get('actual_source_epochs',[continuity]):
+            previous=epoch['issue'];target=previous['target'];original=epoch['request']
+            first_old=reader.json('actions/runs/'+str(target['run_id'])+'/attempts/1')
+            path=R.capsule_path(original,target['head_sha'],target['run_id'])
+            raw=reader.read_file(reader.head(),path,MAX_WIRE);I.need(raw is not None,'PREVIOUS_CAPSULE_REQUIRED')
+            body=I.archival_authority(raw,request=original,target=target,first_attempt=first_old,key=key)
+            jp=[p for p in manifest['prior_journal_artifacts'] if p['run_id']==target['run_id']]
+            I.need(len(jp)==1 and bodies[jp[0]['id']].get('recovery_authorization',{}).get('authorization_sha256')==digest(body),
+                'PREVIOUS_JOURNAL_AUTHORITY')
     latest=max([R.clock(run['updated_at'])+timedelta(seconds=1) for run in runs]+
         [R.clock(a['metadata']['created_at'])+timedelta(seconds=1) for a in groups['prior_journal_artifacts']])
     before=latest+timedelta(hours=1);I.need(before<=now,'COOLDOWN')
@@ -227,8 +281,11 @@ def prepare_data(snapshot,issue,request,first,reader,*,key,now,continuity=None):
             journal_archives=groups['prior_journal_artifacts'],native_archives=groups['native_artifacts'],
             checkpoint_archives=groups['checkpoint_artifacts'])
         path='recovery/official-results/'+request['probe_request_sha256']+'/'+probe['head_sha']+'/'+str(probe['run_id'])+'/2.enc'
-        data['probe_capsule_raw']=reader.read_file(reader.head(),path,MAX_WIRE)
-        I.need(data['probe_capsule_raw'] is not None,'ORIGINAL_PROBE_CAPSULE_REQUIRED')
+        original_probe=reader.read_file(reader.head(),path,MAX_WIRE)
+        I.need(original_probe is not None,'ORIGINAL_PROBE_CAPSULE_REQUIRED')
+        from race_ai.all_existing_model_official_frozen_capsule import archival_probe_inner
+        data['probe_capsule_raw']=archival_probe_inner(original_probe,request_sha256=request['probe_request_sha256'],
+            target=dict(head_sha=probe['head_sha'],run_id=probe['run_id'],run_attempt=2),key=key)
     else:
         data.update(old_journal_raw=old['raw'],old_journal_metadata=old['metadata'])
         if request['schema']=='RACE_AI_OFFICIAL_RESULT_RECOVERY_REQUEST_V4':
@@ -238,30 +295,56 @@ def prepare_data(snapshot,issue,request,first,reader,*,key,now,continuity=None):
 
 def issue_once(*,snapshot,issuer_run_id,reader,writer,readback,key_loader,clock=utc_now):
     issue=I.validate_issue_request(read_json_bytes(snapshot.read(snapshot.facts['head_sha'],I.ISSUE_PATH,16384)))
-    target=issue['target'];current=reader.json('actions/runs/'+str(target['run_id']))
+    frozen=issue['schema']==I.SCHEMA_V2;target=issue['target']
     first=reader.json('actions/runs/'+str(target['run_id'])+'/attempts/1')
     jobs=reader.json('actions/runs/'+str(target['run_id'])+'/attempts/1/jobs?per_page=100')
-    issuer=reader.json('actions/runs/'+str(issuer_run_id));pr=reader.json('pulls/71');now=clock()
-    proof=I.admit_context(issue,issuer_run=issuer,current_pr=pr,snapshot=snapshot.facts,
-        target_run=current,first_attempt=first,jobs=jobs,now=now)
-    request=read_json_bytes(snapshot.facts['recovery_raw']);continuity=_continuity(snapshot,issue,request,reader)
+    binding=None;failed=None
+    def fresh_admission(*,before_publication=False):
+        nonlocal binding
+        if frozen and before_publication:
+            observed=failed_dispositions(snapshot,issue,reader,now=clock())
+            I.need(digest(observed)==digest(failed),'STABLE_FAILED_ISSUE_PROOFS')
+        pr=reader.json('pulls/71')
+        if frozen:snapshot.refresh(pr)
+        result=I.admit_context(issue,issuer_run=reader.json('actions/runs/'+str(issuer_run_id)),
+            current_pr=pr,snapshot=snapshot.facts,
+            target_run=reader.json('actions/runs/'+str(target['run_id'])),first_attempt=first,jobs=jobs,now=clock())
+        if frozen:
+            current_binding=deepcopy(snapshot.facts['source_frozen_binding'])
+            if binding is None:binding=current_binding
+            I.need(current_binding==binding,'STABLE_FROZEN_SOURCE_BINDING')
+        return result
+    proof=fresh_admission()
+    request=read_json_bytes(snapshot.facts['recovery_raw'])
+    if frozen:failed=failed_dispositions(snapshot,issue,reader,now=clock())
+    continuity=source_continuity(snapshot,issue,request,reader,verified_failed=failed)
     path=R.capsule_path(request,target['head_sha'],target['run_id']);parent=writer.head()
     I.need(reader.read_file(parent,path,MAX_WIRE) is None,'CANONICAL_CAPSULE_ALREADY_ISSUED')
+    if frozen:fresh_admission(before_publication=True)  # Recheck after long keyless reads.
     key=key_loader();data=prepare_data(snapshot,issue,request,first,reader,key=key,now=clock(),continuity=continuity)
-    raw=I.authority_for(request).issue_consume_capsule(data,key)
-    # No target run or PR lock spans Git. Repeat exact admission before the only
-    # publication, then again after independent remote authenticated readback.
-    def fresh_admission():
-        return I.admit_context(issue,issuer_run=reader.json('actions/runs/'+str(issuer_run_id)),
-            current_pr=reader.json('pulls/71'),snapshot=snapshot.facts,
-            target_run=reader.json('actions/runs/'+str(target['run_id'])),first_attempt=first,jobs=jobs,now=clock())
-    fresh_admission();I.verify_publication(raw,data=data,current_run=current,now=clock(),key=key,expected_raw=raw)
-    commit=writer.publish_capsule(path,raw,parent)
+    inner=I.authority_for(request).issue_consume_capsule(data,key)
+    if frozen:
+        from race_ai.all_existing_model_official_frozen_capsule import wrap_capsule
+        raw=wrap_capsule(inner,binding,key=key)
+    else:raw=inner
+    # Only immutable intent/authority is bound into the one ciphertext. Current
+    # unrelated PR tips are freshly admitted and reported, never signed as code.
+    def publication_admission():
+        if frozen:source_continuity(snapshot,issue,request,reader,verified_failed=failed)
+        fresh_admission(before_publication=frozen)
+        I.verify_publication(raw,data=data,
+            current_run=reader.json('actions/runs/'+str(target['run_id'])),
+            now=clock(),key=key,expected_raw=raw)
+    publication_admission()
+    commit=writer.publish_capsule(path,raw,parent,before_publish=publication_admission)
     remote=readback.read_file(commit,path,MAX_WIRE);I.need(remote is not None,'REMOTE_CAPSULE_REQUIRED')
+    # Our own new canonical capability now exists. Keep the authenticated
+    # prepublication failed proof, rather than falsely demanding its absence.
+    if frozen:source_continuity(snapshot,issue,request,reader,verified_failed=failed)
+    final=fresh_admission()
     verified=I.verify_publication(remote,data=data,current_run=reader.json('actions/runs/'+str(target['run_id'])),
         now=clock(),key=key,expected_raw=raw)
-    fresh_admission()
-    return dict(schema=I.PROOF,state='CONSUMED_CAPSULE_PUBLISHED_AND_READ_BACK',ready=True,
+    result=dict(schema=I.PROOF_V2 if frozen else I.PROOF,state='CONSUMED_CAPSULE_PUBLISHED_AND_READ_BACK',ready=True,
         repository_id=I.REPOSITORY_ID,workflow_id=I.WORKFLOW,pull_request=71,issuer_run_id=issuer_run_id,
         issuer_run_attempt=1,issuer_head_sha=snapshot.facts['head_sha'],issuer_actor_id=I.OWNER_ID,
         issue_request_sha256=digest(issue),recovery_request_sha256=digest(request),target=deepcopy(target),
@@ -270,21 +353,46 @@ def issue_once(*,snapshot,issuer_run_id,reader,writer,readback,key_loader,clock=
         prior_full_jobs_sha256=proof['prior_full_jobs_sha256'],source_commit=commit,capsule_path=path,
         independent_git_readback_verified=True,source_requests=0,plaintext_published=False,
         production_promoted=False,actual_purchases=False,**verified)
+    if frozen:result.update(tested_execution_head_sha=target['head_sha'],intent_parent_sha=issue['intent_parent_sha'],
+        intent_head_sha=snapshot.facts['head_sha'],admitted_current_pr_head=final['admitted_current_pr_head'],
+        protected_files_sha256=snapshot.facts['protected_files_sha256'],
+        executed_workflow=deepcopy(snapshot.facts['executed_workflow']),
+        frozen_code_execution=True,current_pr_code_executed=False,
+        source_frozen_binding_sha256=digest(binding),outer_capsule_sha256=sha256(raw).hexdigest(),
+        inner_capsule_sha256=sha256(inner).hexdigest(),failed_issue_dispositions=deepcopy(failed['failed_issues']),
+        failed_issue_dispositions_sha256=digest(failed['failed_issues']),
+        verified_failed_issue_count=failed['verified_failed_issue_count'])
+    return result
 
 
 def main(argv=None):
     parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--proof',type=Path,required=True)
+    parser.add_argument('--frozen-git-root',type=Path);parser.add_argument('--frozen-intent-head')
+    parser.add_argument('--frozen-execution-head')
     args=parser.parse_args(argv);trusted=False
-    status=dict(schema=I.PROOF,state='HOLD_FIXED_RECOVERY_ISSUANCE',ready=False,source_requests=0,
+    flags=(args.frozen_git_root,args.frozen_intent_head,args.frozen_execution_head);frozen=any(value is not None for value in flags)
+    status=dict(schema=I.PROOF_V2 if frozen else I.PROOF,state='HOLD_FIXED_RECOVERY_ISSUANCE',ready=False,source_requests=0,
         independent_git_readback_verified=False,plaintext_published=False,production_promoted=False,actual_purchases=False)
     try:
-        env=trusted_environment();trusted=True;snapshot=GitSnapshot(ROOT,env['head_sha'])
-        status=issue_once(snapshot=snapshot,issuer_run_id=env['run_id'],reader=GithubIssueTransport(),
+        I.need(not frozen or all(value is not None for value in flags),'FROZEN_RUNTIME_FLAGS')
+        env=trusted_environment();trusted=True;reader=GithubIssueTransport()
+        if frozen:
+            from scripts import official_frozen_execution as F
+            I.need(args.frozen_intent_head==env['head_sha'],'FROZEN_EVENT_INTENT')
+            snapshot=F.FrozenGitSnapshot(args.frozen_git_root,args.frozen_intent_head,
+                args.frozen_execution_head,reader=reader,kind='issue')
+            snapshot.facts.update(F.execution_witness(args.frozen_git_root,ROOT,args.frozen_intent_head,
+                args.frozen_execution_head,reader=reader))
+        else:snapshot=GitSnapshot(ROOT,env['head_sha'])
+        status=issue_once(snapshot=snapshot,issuer_run_id=env['run_id'],reader=reader,
             writer=GithubIssueTransport(),readback=GithubIssueTransport(),
             key_loader=lambda:state_key('production'),clock=utc_now)
     except Exception as exc:
         reason=str(exc)
-        status['reason']=reason if re.fullmatch(r'(?:OFFICIAL_ISSUE|ALL_MODEL_[A-Z_]+)_[A-Z0-9_]{1,100}',reason) else 'ISSUANCE_UNAVAILABLE'
+        status['reason']=reason if re.fullmatch(r'(?:OFFICIAL_ISSUE|OFFICIAL_FROZEN|ALL_MODEL_[A-Z_]+)_[A-Z0-9_]{1,100}',reason) else 'ISSUANCE_UNAVAILABLE'
+        from race_ai.all_existing_model_official_issue_transport import PublicationUnconfirmed
+        if isinstance(exc,PublicationUnconfirmed):
+            status['publication_attempt']=exc.publication_attempt
     if trusted:
         try:
             out=args.proof.absolute();I.need(out.is_relative_to(Path(os.environ['RUNNER_TEMP']).resolve()) and

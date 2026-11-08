@@ -90,10 +90,11 @@ class FutureSourceWorkflowTests(unittest.TestCase):
             for fixture_scope,core_name,cli in (
                 ('autorace-keirin','all_existing_model_future_source_capture',MODULE),('horse','jra_future_source_capture',JRA_MODULE),
                 ('official-result','all_existing_model_future_result_capture',RESULT_MODULE)):
+                accepted=(SCHEMAS[fixture_scope],)+(('RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_INPUT_V2',) if fixture_scope=='official-result' else ())
                 (root/'race_ai'/(core_name+'.py')).write_text(
                     'def validate_manifest(value,*,now):\n'
                     ' assert now.utcoffset() is not None\n'
-                    ' if value["schema"]!='+repr(SCHEMAS[fixture_scope])+' or value.get("reject"):raise ValueError("private fixture error")\n'
+                    ' if value["schema"] not in '+repr(accepted)+' or value.get("reject"):raise ValueError("private fixture error")\n'
                     ' return value\n')
                 (root/'scripts'/(cli.split('.')[-1]+'.py')).write_text(
                     'import json,os\nfrom pathlib import Path\n'
