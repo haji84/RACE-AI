@@ -217,6 +217,50 @@ def import_owner_saved_csv(raw:bytes, meta:dict):
     add("race/all_entrants_and_vehicle_numbers",
         [{"number":n,"identity":starters[n]["identity"]}
          for n in sorted(starters)])
+
+    # Expected lineup from the owner's saved pre-race source, NOT an
+    # official observed formation or a competing model's probabilities.
+    # Only derive the position/leader/second/third when a full, validated
+    # lineup is actually present in the supplied evidence.
+    line = facts.get("line_order_all_riders")
+    if line is not None:
+        _need(type(line) is dict and set(line)=={"lines","solos"} and
+              type(line["lines"]) is list and type(line["solos"]) is list,
+              "SOURCE_LINEUP_STRUCTURE_INVALID")
+        roles=[]
+        seen_roles=[]
+        for group in line["lines"]:
+            _need(type(group) is dict and set(group)=={"group_id","order"} and
+                  type(group["group_id"]) is str and
+                  type(group["order"]) is list and
+                  len(group["order"])>=2,"LINE_SOURCE_GROUP_INVALID")
+            for pos,n in enumerate(group["order"],start=1):
+                _need(n in starters and
+                      starters[n]["group_id"]==group["group_id"],
+                      "LINE_SOURCE_ROSTER_CONTRADICTION")
+                role="leader" if pos==1 else "second" if pos==2 else "follow"
+                value={"number":n,"group_id":group["group_id"],
+                       "line_position":pos,"role":role,
+                       "is_expected_lineup_not_official_result":True}
+                roles.append(value)
+                add("rider/%d/line_leader_or_follow_role"%n,value)
+                seen_roles.append(n)
+        for n in line["solos"]:
+            _need(n in starters and starters[n]["group_id"] is None,
+                  "SOLO_SOURCE_ROSTER_CONTRADICTION")
+            value={"number":n,"group_id":None,
+                   "line_position":None,"role":"solo",
+                   "is_expected_lineup_not_official_result":True}
+            roles.append(value)
+            add("rider/%d/line_leader_or_follow_role"%n,value)
+            seen_roles.append(n)
+        _need(sorted(seen_roles)==sorted(starters) and
+              len(set(seen_roles))==len(starters),
+              "LINE_ROLES_NOT_COMPLETE")
+        if "line_roles_and_solo_riders" not in facts:
+            add("race/line_roles_and_solo_riders",
+                {"roles":roles,"is_expected_lineup_not_official_result":True})
+
     output_race = {k:v for k,v in race.items()}
     output_race["permission_ref"] = PERSONAL_MARKER
     delivery = {
