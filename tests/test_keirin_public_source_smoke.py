@@ -78,6 +78,23 @@ class PublicSourceSmokeTests(unittest.TestCase):
         self.assertTrue(report["inline_script_structural_shapes"][0][
             "contains_odds_marker"])
 
+    def test_one_shot_embedded_full_210_uses_sha_only_and_no_private_payload(self):
+        from tests.test_keirin_winticket_embedded_odds import page
+        expected_url=dict(TARGETS)["winticket_aomori_3r_odds"]
+        def fake(url):
+            return (page() if url==expected_url else
+                    b"<html><body>fiction</body></html>")
+        report=probe(fetcher=fake,clock=lambda:datetime.fromisoformat(
+            "2026-11-09T08:50:36+09:00"))
+        self.assertTrue(report["actual_210_public_source_odds_parsed"])
+        record=next(r for r in report["results"]
+                    if r["source"]=="winticket_aomori_3r_odds")
+        self.assertTrue(record["actual_210_odds_full_universe_verified"])
+        self.assertEqual(len(record["actual_210_odds_price_sha256"]),64)
+        self.assertFalse(report["actual_two_version_forecast_saved"])
+        self.assertFalse(report["provider_api_rights_independently_verified"])
+        self.assertNotIn("25.2",str(record))
+
     def test_one_shot_receipts_do_not_claim_real_forecasts(self):
         observed=[]
         def fake(url):
