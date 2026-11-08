@@ -1,0 +1,50 @@
+{
+  "date_jst": "2026-11-08",
+  "observed_at_jst": "2026-11-08T18:13:43+09:00",
+  "venue": "isesaki",
+  "trials": [
+    {
+      "race": 6,
+      "trial_time_car1_to8": [
+        3.5,
+        3.48,
+        3.43,
+        3.41,
+        3.39,
+        3.39,
+        3.37,
+        3.34
+      ],
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/6"
+    },
+    {
+      "race": 7,
+      "trial_time_car1_to8": [
+        3.4,
+        3.43,
+        3.38,
+        3.39,
+        3.39,
+        3.35,
+        3.37,
+        3.39
+      ],
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/7"
+    },
+    {
+      "race": 8,
+      "trial_time_car1_to8": [
+        3.47,
+        3.4,
+        3.38,
+        3.41,
+        3.43,
+        3.38,
+        3.38,
+        3.33
+      ],
+      "source": "https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/8"
+    }
+  ],
+  "note": "trial observations only; result, payout and final outcome unverified; original A/B not edited"
+}
