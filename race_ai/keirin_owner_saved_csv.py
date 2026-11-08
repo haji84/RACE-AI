@@ -10,6 +10,7 @@ from __future__ import annotations
 from datetime import datetime
 from decimal import Decimal, InvalidOperation
 from hashlib import sha256
+import math
 import csv
 import io
 import json
@@ -59,8 +60,14 @@ def _decimal(raw, label):
     except InvalidOperation as exc:
         raise OwnerRacecardError(label+"_NOT_NUMERIC") from exc
     _need(x.is_finite() and x >= 0, label+"_NONFINITE_OR_NEGATIVE")
-    _need(x <= Decimal("1e100"), label+"_OVERFLOW_FOR_FINITE_MODEL_INPUT")
-    return float(x)
+    # No artificial race score ceiling. Only reject numbers that cannot be
+    # represented as a finite float by the existing PR71 engine.
+    try:
+        value=float(x)
+    except (OverflowError, ValueError) as exc:
+        raise OwnerRacecardError(label+"_MODEL_FLOAT_NOT_REPRESENTABLE") from exc
+    _need(math.isfinite(value), label+"_MODEL_FLOAT_NOT_REPRESENTABLE")
+    return value
 
 
 def _meta(meta):
