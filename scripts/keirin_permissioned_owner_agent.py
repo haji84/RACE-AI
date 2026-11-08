@@ -22,6 +22,7 @@ from race_ai.four_sport_model_suite import run_suite, verify_suite
 from race_ai.keirin_licensed_api_ingest import fetch_licensed_export_once
 from race_ai.keirin_owner_manual import PersonalOwnerObservations
 from race_ai.keirin_owner_saved_csv import stage_owner_saved_csv
+from race_ai.keirin_owner_saved_hex import stage_owner_saved_hex_markdown
 
 
 def main(argv=None):
@@ -113,6 +114,8 @@ def main(argv=None):
                         rights_ref=args.provider_rights_ref,
                         token=token,
                     )
+                owner_markdown = (stage_owner_saved_hex_markdown(inbox, now=now)
+                                  if args.personal_manual else None)
                 owner_csv = (stage_owner_saved_csv(inbox, now=now)
                              if args.personal_manual else None)
                 stage = stage_permissioned_deliveries(inbox, grants, now=now)
@@ -128,6 +131,7 @@ def main(argv=None):
                     "schema": "RACE_AI_KEIRIN_LICENSED_LOCAL_CYCLE_V1",
                     "stage": stage, "spool": settled,
                     "owner_saved_csv_stage": owner_csv,
+                    "owner_saved_markdown_stage": owner_markdown,
                     "automatic_provider_fetch": fetch_report is not None,
                     "provider_network_requests": (fetch_report["http_requests"]
                                                   if fetch_report else 0),
