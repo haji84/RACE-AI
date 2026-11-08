@@ -114,6 +114,12 @@ class AllowedFeedTests(unittest.TestCase):
         self.assertEqual(status["checked_count"], 347)
         self.assertEqual(status["verified_items"], 347)
         self.assertEqual(status["unavailable_items"], 0)
+        self.assertEqual(status["model_inputs_generated"], 205)
+        self.assertGreater(status["verified_audit_only_items"], 0)
+        self.assertEqual(
+            status["verified_audit_only_items"] +
+            status["unique_verified_source_items_consumed"], 347
+        )
         self.assertEqual(status["state"],
                          "PRIVATE_PR71_INPUT_READY_RIGHTS_AND_FREEZE_STILL_EXTERNAL")
         self.assertEqual(status["model_status"], "READY_NOT_EXECUTED")
