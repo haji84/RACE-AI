@@ -60,6 +60,59 @@ def safe_file_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def decoded_frame_inventory(path:Path,*,interval_seconds:int=3):
+    """Obtain private frame fingerprints, never upload copyrighted stills.
+
+    The fingerprints make later vision observations traceable to actual frames;
+    they do NOT recognize riders, lap numbers, starts or the finish.
+    """
+    try:
+        import cv2
+        import numpy as np
+        capture=cv2.VideoCapture(str(path))
+        if not capture.isOpened():
+            return {"status":"FRAME_DECODING_FAILED","samples":[]}
+        try:
+            fps=float(capture.get(cv2.CAP_PROP_FPS))
+            total=int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
+            if not 1<=fps<=120 or total<3:
+                return {"status":"VIDEO_FRAME_RATE_INVALID","samples":[]}
+            seconds=min(int(total/fps),1200)
+            samples=[]
+            previous=None
+            for t in range(0,seconds+1,interval_seconds):
+                capture.set(cv2.CAP_PROP_POS_MSEC,t*1000)
+                ok,frame=capture.read()
+                if not ok:continue
+                reduced=cv2.resize(frame,(160,90),interpolation=cv2.INTER_AREA)
+                gray=cv2.cvtColor(reduced,cv2.COLOR_BGR2GRAY)
+                delta=(float(np.mean(np.abs(gray.astype("int16")-
+                             previous.astype("int16")))) if previous is not None
+                             else None)
+                samples.append({
+                  "recording_sec":float(t),
+                  "frame_sha256":sha256(reduced.tobytes()).hexdigest(),
+                  "mean_luma":round(float(np.mean(gray)),2),
+                  "mean_frame_delta":round(delta,2) if delta is not None else None
+                })
+                previous=gray
+            moving=sum(1 for x in samples if x["mean_frame_delta"] is not None
+                       and x["mean_frame_delta"]>=1.2)
+            dark=sum(1 for x in samples if x["mean_luma"]<7)
+            return {"status":"DECODED_FRAMES_SAMPLED",
+                    "samples":samples,
+                    "count":len(samples),
+                    "moving_count":moving,
+                    "near_black_count":dark,
+                    "resolution":"BGR160x90",
+                    "sample_period_seconds":interval_seconds}
+        finally:
+            capture.release()
+    except Exception as exc:
+        return {"status":"FRAME_SAMPLING_ERROR",
+                "error_type":type(exc).__name__,"samples":[]}
+
+
 def inspect_webm(path: Path):
     if not path.is_file() or path.stat().st_size<40_000:
         return {"valid":False,"reason":"MISSING_OR_TINY_WEBM"}
@@ -246,6 +299,8 @@ async def run_live(plan,report_path:Path, *, fixture:bool, test_seconds:int,
         result["recording_ended_at"]=utc_str(now_utc())
         if video_path is not None:
             result["recording_file"]=inspect_webm(video_path)
+            if result["recording_file"].get("valid"):
+                result["frame_sampling"]=decoded_frame_inventory(video_path)
         if fixture:
             result["status"]="SYNTHETIC_BROWSER_RECORDING_TEST"
             result["synthetic_capture_ok"]=bool(
@@ -255,8 +310,18 @@ async def run_live(plan,report_path:Path, *, fixture:bool, test_seconds:int,
             runtime={"recording_started_at":result["recording_started_at"],
                 "recording_ended_at":result["recording_ended_at"],
                 "media_samples":result.get("media_samples",[]),
-                "video_container_ok":result["recording_file"]["valid"]}
+                "video_container_ok":result["recording_file"]["valid"],
+                "frames_checked":(
+                    result.get("frame_sampling",{}).get("status")
+                       =="DECODED_FRAMES_SAMPLED" and
+                    result.get("frame_sampling",{}).get("count",0)>=6 and
+                    result.get("frame_sampling",{}).get("moving_count",0)>=2)}
             result["capture_gate"]=coverage_gate(plan,runtime)
+            # Hash-bound evidence can be reviewed independently later.
+            result["capture_gate"]["race_id"]=result["race_id"]
+            result["capture_gate"]["recording_sha256"]=result["recording_file"]["sha256"]
+            result["capture_gate"]["frame_inventory"]=result.get(
+                "frame_sampling",{}).get("samples",[])
             if result["capture_gate"].get("capture_window_complete") is True:
                 result["status"]="SCREEN_CAPTURE_TIME_WINDOW_COMPLETE_VISUAL_PENDING"
                 if sealed_dir and public_key and video_path:
