@@ -111,7 +111,7 @@ def stage_licensed_odds_export(inbox, odds_rows, deliveries, *,
     require(root.is_absolute() and root.is_dir() and not root.is_symlink()
             and callable(grant_check),
             "PRIVATE_ODDS_ROOT_REQUIRED")
-    require(type(odds_rows) is list and 0<=len(odds_rows)<=100
+    require(type(odds_rows) is list and 0<=len(odds_rows)<=5000
             and type(deliveries) is list,
             "LICENSED_ODDS_BATCH_INVALID")
     races={}
