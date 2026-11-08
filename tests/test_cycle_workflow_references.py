@@ -61,7 +61,12 @@ class WorkflowReferencesTest(unittest.TestCase):
         self.assertLess(text.index(forward_steps[0]),text.index('github_existing_cycle.py audit'))
         self.assertIn('scripts.boat_prospective_forward prove --round',forward_steps[0])
         self.assertIn("--artifact '${{ steps.venue_research_freeze.outputs.artifact-id }}'",forward_steps[0])
-        baseline_steps=[step for step in steps if step not in private_steps+model_steps+protection_steps+vault_steps+evaluation_steps+retention_steps+forward_steps]
+        forecast_publication=[step for step in steps if step.startswith('Publish retained forecast originals before result work\n')]
+        self.assertEqual(len(forecast_publication),1)
+        self.assertIn("if: steps.ready.outputs.active == 'true'",forecast_publication[0])
+        self.assertIn('scripts.boat_saved_view_feed --forecasts-only --hydrate-originals --recover-model-run',forecast_publication[0])
+        self.assertNotIn('--result-artifact',forecast_publication[0])
+        baseline_steps=[step for step in steps if step not in private_steps+model_steps+protection_steps+vault_steps+evaluation_steps+retention_steps+forward_steps+forecast_publication]
         self.assertEqual(len(baseline_steps), 9)
         prepare, discovery, p0freeze, forecast, freeze, audit, result, complete, display = baseline_steps
         self.assertIn('id: ready', prepare)

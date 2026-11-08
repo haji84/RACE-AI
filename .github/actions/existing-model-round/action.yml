@@ -152,6 +152,15 @@ runs:
       env:
         RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
       run: python -m scripts.boat_prospective_forward prove --round '${{ inputs.round }}' --artifact '${{ steps.venue_research_freeze.outputs.artifact-id }}'
+    - name: Publish retained forecast originals before result work
+      if: steps.ready.outputs.active == 'true'
+      shell: bash
+      env:
+        RACE_AI_STATE_KEY: ${{ inputs.saved-view-key }}
+      run: |
+        if ! python -m scripts.boat_saved_view_feed --forecasts-only --hydrate-originals --recover-model-run '${{ github.run_id }}'; then
+          echo '::warning::Encrypted forecast display update held; original source collection continues.'
+        fi
     - name: Read back original and independently check later official results
       if: steps.ready.outputs.active == 'true'
       shell: bash
