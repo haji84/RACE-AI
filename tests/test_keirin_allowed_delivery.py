@@ -225,6 +225,28 @@ class AllowedFeedTests(unittest.TestCase):
         with self.assertRaisesRegex(PermittedDeliveryError, "TOO_MANY"):
             assemble(data)
 
+    def test_realistic_above_100_race_score_is_accepted(self):
+        data = fixture()
+        candidate = next(o for o in data["observations"]
+                         if o["key"] == "rider/1/race_score")
+        candidate["value"] = 121.33
+        got = assemble(data)
+        self.assertIsNotNone(got["private_snapshot"])
+        p = next(p for p in got["private_snapshot"]["facts"][
+            "pr71_evidenced_snapshot"]["participants"] if p["number"] == 1)
+        self.assertAlmostEqual(p["features"]["ability"]["value"], 121.33 / 200)
+        self.assertEqual(p["features"]["ability"]["transform_id"],
+                         "keirin-audit-score200-v1")
+
+    def test_out_of_range_score_rejected_instead_of_clamped(self):
+        data = fixture()
+        candidate = next(o for o in data["observations"]
+                         if o["key"] == "rider/1/race_score")
+        candidate["value"] = 201
+        with self.assertRaisesRegex(PermittedDeliveryError,
+                                    "NONFINITE_OR_UNDOCUMENTED_NORMALIZATION"):
+            assemble(data)
+
     def test_unjustified_winning_probability_rejected(self):
         data = fixture()
         row = next(o for o in data["observations"]
