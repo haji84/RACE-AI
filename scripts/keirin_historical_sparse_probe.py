@@ -11,7 +11,8 @@ import json
 from pathlib import Path
 
 from race_ai.keirin_historical_sparse_feature_probe import (
-    HistoricalSparseProbeError, probe_saved_sparse_research
+    HistoricalSparseProbeError, probe_saved_sparse_research,
+    probe_saved_second_race_reference
 )
 
 
@@ -37,7 +38,12 @@ def main(argv=None):
                         object_pairs_hook=_unique,
                         parse_constant=lambda x: (_ for _ in ()).throw(
                             HistoricalSparseProbeError("NONFINITE_SOURCE_JSON")))
-        result=probe_saved_sparse_research(data)
+        if data.get("schema") == "RACE_AI_KEIRIN_REAL_RIDER_SHADOW_ONE_SHOT_V1":
+            result=probe_saved_sparse_research(data)
+        elif data.get("schema") == "MATS2R_RESEARCH_SCENARIO_PREDICTION_V1":
+            result=probe_saved_second_race_reference(data)
+        else:
+            raise HistoricalSparseProbeError("UNSUPPORTED_HISTORICAL_ARCHIVE")
         print(json.dumps(result["public_summary"],ensure_ascii=False,
                          separators=(",",":"),sort_keys=True,allow_nan=False))
         return 0
