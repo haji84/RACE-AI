@@ -224,11 +224,13 @@ class KeirinManshaRankLedger:
             (race_id,)).fetchone()
         if row is None:
             return None
-        require(sha256(row["shadow_payload"]).hexdigest() ==
-                    row["shadow_sha256"] and
-                sha256(row["source_payload"]).hexdigest() ==
+        require(sha256(row["source_payload"]).hexdigest() ==
                     row["source_sha256"], "FROZEN_RANK_INPUT_TAMPER")
         shadow = json.loads(row["shadow_payload"])
+        require(canonical(shadow) == row["shadow_payload"],
+                "FROZEN_RANK_NONCANONICAL")
+        # research_sha256 seals the forecast EXCLUDING its own hash field;
+        # it is not sha256(canonical(full document)).
         checked_shadow(shadow)
         require(shadow["input_sha256"] == row["source_sha256"]
                 and shadow["research_sha256"] == row["shadow_sha256"]
