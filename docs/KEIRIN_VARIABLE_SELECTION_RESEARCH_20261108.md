@@ -44,21 +44,80 @@ evaluate_settled_result は別途入力した結果改訂番号・確定3連単�
 aggregate_latest_audits には同一レース・同一モデルの最新リビジョン
 だけを渡す。古い予想は一切変更しない。正式的中率と実購入損益は未確認。
 
-## 自動回帰テスト
+## 2026-11-08 既存の保存・結果照合への接続（PR #103内）
 
-python3 -m unittest -v tests.test_keirin_variable_selection
+- `race_ai/keirin_private_spool.py` の既存個人用処理に、
+  **任意の `odds/*.json` 段階**を追加。既存 `pre/` の8点予想保存が
+  終わった後で実行する。オッズ未供給でも元の8点処理は継続する。
+- `scripts/keirin_private_agent.py` に、本人保存の非楽天オッズ入力
+  用ゲートを追加。既存サイトへ新規HTTPアクセスは行わない。
+  本人による保存と、自動取得・転載・再利用の権利は同一ではない。
+- `race_ai/keirin_variable_integration.py` で、**既存と同じ個人専用
+  SQLite**に3つの追加テーブルを作る：
+  `variable_odds_snapshots`、`variable_selections`、
+  `variable_selection_audits`。
+  事前オッズ全券（7車なら210組合せ）・当時の選定・結果リビジョン別
+  の仮想収支を別々に保持する。予想原本と既存監査テーブルは変更しない。
+- 同レース・同モデルの原本SHA256と予想Top8を、元のソースから
+  再計算した研究モデルに照合。元予想とは別の可変買い目を
+  create-onlyで確定し、保存した後にSQLiteを再読込してSHAを確認する。
+- 結果は従来の `results/` → `result_revisions` に記録され、
+  既存Top8監査に加えて可変選定の監査をリビジョン単位で追記する。
+  結果訂正時も過去の予想は変更しない。
+- `PrivateVariableLedger.compare_latest(race_id,model_id)` で、
+  **8点固定×各100円**と**可変点数×各100円**を同一の確定結果で
+  比較する。投資・払戻・収支・回収率は全て架空購入の参考値。
+  `aggregate()` は最後の結果改訂のみを集計。最新改訂の監査が
+  欠けていたら `latest_revision_reconciled=False` として隠さない。
 
-架空7車・架空オッズを使い、0点／2点／8点／12点、締切後拒否、
-同一券重複、NaN、未承認データ、的中収支、見送り、返還、
-リビジョン二重算入、ローカル原本の上書き拒否を試す。
+### 接続済みのローカル処理順
 
-## 現状の未達
+`daily/`（任意）→ `results/`（結果受信と旧／新監査）
+→ `pre/`（事前入力から8点原本を非公開保存）
+→ `odds/`（事前オッズから0～12点を別保存）。
 
-この変更は独立の研究用サイドカーで、現行の本番予想ワーカー、
-個人SQLite、結果自動取得、UIには未接続。既存の8点保存機能もそのまま。
-非楽天の合法的な実出走データ自動供給、事前オッズ保存、校正済み
-着順確率、独立した締切前保存証明、公式結果の全期間照合、
-実レースのROIと新買い目選抜精度はまだ実証していない。
+既存CLI：
+```bash
+python3 -m scripts.keirin_private_agent \
+  --db "$HOME/.race-ai/private/owner.sqlite3" \
+  --inbox "$HOME/.race-ai/private" \
+  --personal-only
+```
 
-GitHub Actionsで通っても、架空試験の成功であり、
-実際の長期回収率や無人本番システムの完成を意味しない。
+`odds/*.json` は
+`RACE_AI_KEIRIN_TRIFECTA_ODDS_SNAPSHOT_V1` スキーマで
+`race_id`, `captured_at`（タイムゾーン付き）,
+`source_ref`, `source_rights_ref`, `prices`（全3連単の
+`triple` と `decimal_odds`）を含める。8点原本保存後で、
+締切より60秒以上前に全券を入力する必要がある。
+ファイル監視は既存ループ `--loop` のオプションで実行できるが、
+GitHub Actions上での私有DBの持続性は未解決なので、
+短命runnerを永続保存先と誤認しない。
+
+### 自動回帰テスト
+
+```bash
+python3 -m unittest -v \
+  tests.test_keirin_variable_selection \
+  tests.test_keirin_variable_integration \
+  tests.test_keirin_private_spool \
+  tests.test_keirin_private_agent
+```
+
+架空7車・架空オッズに限定。0／1／2／8／12点、締切後拒否、
+重複・NaN・不足券、SHA取り違え、事前原本を維持したままの
+SQLite読み戻し、架空払い戻し、見送り・返還、改訂後収支、
+8点固定との比較、原本保護、旧パイプラインの回帰を検証。
+
+### まだ未完成の本番GOAL
+
+- 非楽天の実出走表・オッズの条件適合な**自動供給元と入手経路**。
+- 実際の締切前に保存した全レースのオッズと、外部独立時刻の証明。
+- 既存の未学習・未校正モデルを十分な実レースで検証・校正すること。
+- 公式結果の真正性確認と、全保存期間に対する自動再照合の実証。
+- GitHub上での秘密鍵保護・暗号化状態の安全な継続保存と読み戻し。
+- UI反映と、現実の的中率・参考回収率の測定。
+
+**このPR内では、既存の個人用ローカル保存／結果監査にコードを接続済み。**
+ただし正式本番・無人実データ自動取得・収益性が完成したという意味ではない。
+データ権利、実購入、公開・課金、外部サービスへの送信は追加していない。
