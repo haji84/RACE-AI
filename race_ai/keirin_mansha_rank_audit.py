@@ -7,7 +7,7 @@ from collections import Counter
 from hashlib import sha256
 import json
 
-from .keirin_owner_sqlite import PrivateKeirinStore
+from .keirin_owner_sqlite import PrivateKeirinStore, _checked_clock
 from .keirin_result_delivery import canonical, utc
 from .keirin_shadow_variable_pair import (
     ShadowVariablePairLedger, checked_shadow, fingerprint, require
@@ -43,19 +43,23 @@ def evaluate(pair, result, revision, result_sha256):
             "PAIR_NOT_FROZEN_BEFORE_CUTOFF")
     index = {tuple(r["triple"]): i+1 for i, r in enumerate(ranks)}
     require(len(index) == len(ranks), "RANKING_DUPLICATED")
-    market = {tuple(x["triple"]): x["decimal_odds"]
-              for x in pair["odds"]["prices"]}
-    require(len(market) == len(index) and set(market) == set(index),
-            "UNFROZEN_MARKET_UNIVERSE")
-    market_rank = {t: i+1 for i, t in enumerate(
-        sorted(market, key=lambda t: (market[t], t)))}
-    selections = [tuple(t["triple"]) for t in pair["variable"]["tickets"]]
-    require(len(selections) <= 12 and len(set(selections)) == len(selections)
-            and set(selections).issubset(index)
-            and len(selections) == pair["variable"]["pick_count"]
-            and all(t["reference_stake_yen"] == 100
-                    for t in pair["variable"]["tickets"]),
-            "UNTRUSTED_VARIABLE_SELECTION")
+    if pair.get("odds") is None or pair.get("variable") is None:
+        market_rank = {}
+        selections = None  # Absent odds is NOT a pre-decided zero-pick skip.
+    else:
+        market = {tuple(x["triple"]): x["decimal_odds"]
+                  for x in pair["odds"]["prices"]}
+        require(len(market) == len(index) and set(market) == set(index),
+                "UNFROZEN_MARKET_UNIVERSE")
+        market_rank = {t: i+1 for i, t in enumerate(
+            sorted(market, key=lambda t: (market[t], t)))}
+        selections = [tuple(t["triple"]) for t in pair["variable"]["tickets"]]
+        require(len(selections) <= 12 and len(set(selections)) == len(selections)
+                and set(selections).issubset(index)
+                and len(selections) == pair["variable"]["pick_count"]
+                and all(t["reference_stake_yen"] == 100
+                        for t in pair["variable"]["tickets"]),
+                "UNTRUSTED_VARIABLE_SELECTION")
     settled = (result.get("status") == "FINAL_NORMAL"
                and result.get("refund_status") == "NONE")
     payouts = {}
@@ -82,13 +86,18 @@ def evaluate(pair, result, revision, result_sha256):
             "pre_cutoff_model_rank": index[t],
             "pre_cutoff_relative_score_uncalibrated": ranks[index[t]-1][
                 "relative_score"],
-            "pre_cutoff_odds_rank_not_final_market_popularity": market_rank[t],
+            "pre_cutoff_odds_rank_not_final_market_popularity": market_rank.get(t),
             "rank_band": rank_band(index[t]),
         } for t, yen in sorted(payouts.items(), key=lambda r: index[r[0]])]
     mansha = {t for t, yen in payouts.items()
               if yen >= MANSHA_THRESHOLD_YEN_PER_100}
 
     def calculate(tickets):
+        if tickets is None:
+            return {"state": "NO_PRE_CUTOFF_ODDS", "picks": None,
+                    "hit": None, "mansha_captured": None,
+                    "investment_yen": None, "payout_yen": None,
+                    "profit_yen": None, "roi": None}
         if not settled:
             return {"state": "UNSETTLED", "picks": len(tickets),
                     "hit": None, "mansha_captured": None,
@@ -128,7 +137,7 @@ def evaluate(pair, result, revision, result_sha256):
             "top8": calculate([tuple(r["triple"]) for r in ranks[:8]]),
             "top12": calculate([tuple(r["triple"]) for r in ranks[:12]]),
             "variable": calculate(selections)},
-        "variable_skip_pre_decided": not selections,
+        "variable_skip_pre_decided": (not selections) if selections is not None else None,
         "independent_pre_cutoff_time_proven": False,
         "official_result_independently_authenticated": False,
         "formal_hit_rate": None, "formal_roi": None,
