@@ -21,6 +21,9 @@ from race_ai.keirin_permissioned_owner import (
 from race_ai.four_sport_model_suite import run_suite, verify_suite
 from race_ai.keirin_licensed_api_ingest import fetch_licensed_export_once
 from race_ai.keirin_owner_manual import PersonalOwnerObservations
+from race_ai.keirin_owner_approved_sources import (
+    PROFILE_ID, approved_source_hosts,
+)
 from race_ai.keirin_owner_saved_csv import stage_owner_saved_csv
 from race_ai.keirin_owner_odds_csv import (
     stage_owner_saved_odds_csv, OwnerOddsCsvError
@@ -47,6 +50,10 @@ def main(argv=None):
                         help="operator asserts use is limited to private personal research")
     parser.add_argument("--personal-source-host", action="append",
                         help="exact HTTPS host shown in owner's manual source material")
+    parser.add_argument("--owner-approved-source-profile",
+                        choices=(PROFILE_ID,), default=None,
+                        help="use owner's 2026-11-09 WINTICKET/KEIRIN.JP "
+                             "private manual reference hosts; no HTTP")
     parser.add_argument("--operator-reviewed-licenses", action="store_true",
                         help="Owner verified origin, permitted purposes and expiry out-of-band")
     parser.add_argument("--provider-endpoint", default=None,
@@ -68,15 +75,24 @@ def main(argv=None):
     if args.free_modelled_weather and not args.personal_manual:
         print('{"state":"WEATHER_PRIVATE_NONCOMMERCIAL_SCOPE_REQUIRED"}')
         return 2
+    # Explicit source profile means owner-saved local research only.
+    # It never grants machine-fetch, commercial-use, or provider licences.
+    if args.owner_approved_source_profile and args.personal_source_host:
+        print('{"state":"OWNER_SOURCE_PROFILE_AND_EXPLICIT_HOSTS_CONFLICT"}')
+        return 2
+    personal_hosts = (
+        approved_source_hosts(args.owner_approved_source_profile)
+        if args.owner_approved_source_profile else args.personal_source_host
+    )
     if args.personal_manual:
         if (not args.owner_private_use_confirmed or
-            not args.personal_source_host or args.provider_endpoint or
+            not personal_hosts or args.provider_endpoint or
             args.provider_rights_ref or args.api_token_env or
             args.grant_manifest or args.operator_reviewed_licenses):
             print('{"state":"OWNER_MANUAL_ONLY_OR_PRIVATE_SCOPE_NOT_CONFIRMED"}')
             return 2
     elif (not args.operator_reviewed_licenses or
-          not args.grant_manifest or args.personal_source_host or
+          not args.grant_manifest or personal_hosts or
           args.owner_private_use_confirmed):
         print('{"state":"SOURCE_LICENSE_REVIEW_NOT_ACKNOWLEDGED"}')
         return 2
@@ -122,7 +138,7 @@ def main(argv=None):
                 # Reload grants every cycle; expired rights never remain valid
                 # in an unattended long-running process.
                 grants = (PersonalOwnerObservations(
-                    source_hosts=args.personal_source_host, now=now,
+                    source_hosts=personal_hosts, now=now,
                     allow_noncommercial_modelled_weather=args.free_modelled_weather)
                     if args.personal_manual else
                     load_operator_grants(manifest, now=now))
