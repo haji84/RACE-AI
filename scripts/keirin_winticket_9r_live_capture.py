@@ -35,6 +35,9 @@ def coverage_ok(samples, started, finished, expected_race=RACE_START):
     """Technical continuity gate only; NOT a four-lap visual verification."""
     if not started or not finished or not started < expected_race < finished:
         return False
+    # Never accept a clip that stopped before the post-race capture boundary.
+    if finished < END:
+        return False
     if len(samples)<8:return False
     times=[datetime.fromisoformat(x["utc"]) for x in samples]
     if (times[-1]-times[0]).total_seconds()<210:return False
