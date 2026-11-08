@@ -239,6 +239,45 @@
     }
     return true;
   }
+  function officialBoatRoster(context, raceId, page, checkedAt) {
+    const program = context.program;
+    const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
+    const stamp = value => typeof value === "string" && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,6})?(?:Z|[+-]\d\d:\d\d)$/.test(value) && Number.isFinite(Date.parse(value));
+    if (!record(program) || program.schema !== "RACE_AI_BOAT_OFFICIAL_PROGRAM_V1" || program.body_identity_verified !== true ||
+        program.status !== "OFFICIAL_BODY_IDENTITY_VERIFIED" || program.race_status !== "LISTED" || program.race_id !== raceId ||
+        program.date_jst !== raceId.slice(0,4)+"-"+raceId.slice(4,6)+"-"+raceId.slice(6,8) || program.venue !== raceId.slice(9,11) ||
+        !stamp(program.captured_at) || !stamp(program.closed_at) || !stamp(checkedAt) || program.closed_at !== context.cutoff_at || program.closed_at !== page.source_cutoff_at ||
+        !/^[a-f0-9]{64}$/.test(program.source_sha256) || !record(program.source) || program.source.sha256 !== program.source_sha256 ||
+        program.source.source_url !== program.source_url || !stamp(program.source.captured_at) ||
+        Date.parse(program.source.captured_at) !== Date.parse(program.captured_at) ||
+        Date.parse(program.captured_at) > Date.parse(page.source.captured_at) || Date.parse(page.source.captured_at) > Date.parse(checkedAt) ||
+        !Array.isArray(program.boats) || program.boats.length < 3 || program.boats.length > 6 ||
+        !Array.isArray(program.active_lanes) || !Number.isInteger(program.active_entrant_count)) return null;
+    try {
+      const url = new URL(program.source_url), q = url.searchParams;
+      if (url.origin !== "https://www.boatrace.jp" || url.username || url.password || url.hash || url.pathname !== "/owpc/pc/race/racelist" ||
+          [...q].length !== 3 || new Set(q.keys()).size !== 3 || q.get("hd") !== raceId.slice(0,8) || q.get("jcd") !== raceId.slice(9,11) || q.get("rno") !== String(Number(raceId.slice(-2)))) return null;
+    } catch { return null; }
+    const active = new Map(), full = new Map(), withdrawn = new Set(), lanes = new Set(), registrations = new Set();
+    for (const person of program.boats) {
+      if (!record(person) || !Number.isInteger(person.lane) || person.lane < 1 || person.lane > 6 || lanes.has(person.lane) ||
+          !["listed", "withdrawn"].includes(person.entry_status) || person.race_id !== raceId || person.closed_at !== program.closed_at ||
+          person.source_url !== program.source_url || person.verified_source !== true || !stamp(person.captured_at) ||
+          Date.parse(person.captured_at) !== Date.parse(program.captured_at)) return null;
+      lanes.add(person.lane);
+      const registration = person.racer_registration_id;
+      full.set(person.lane, registration);
+      if (person.entry_status === "withdrawn") withdrawn.add(person.lane);
+      if (registration === null && person.entry_status === "withdrawn") continue;
+      if (typeof registration !== "string" || !/^[0-9]{4}$/.test(registration) || registrations.has(registration)) return null;
+      registrations.add(registration);
+      if (person.entry_status === "listed") active.set(person.lane, registration);
+    }
+    const expected = [...active.keys()].sort((a,b) => a-b);
+    if (active.size < 3 || active.size > 6 || program.active_entrant_count !== active.size || program.active_lanes.length !== active.size ||
+        !expected.every((lane, index) => program.active_lanes[index] === lane)) return null;
+    return {active, full, withdrawn};
+  }
   function liveBoatObservation(r) {
     const live = r.sport === "boat" ? r.live_boat_observation : null;
     if (!live || live.schema !== "RACE_AI_LIVE_BOAT_OBSERVATION_V1" || live.forecast_inputs_used !== false ||
@@ -247,13 +286,43 @@
     const context = live.context, page = context?.beforeinfo, people = knownParticipants(r);
     if (!validBoatObservationContext(context, r.race_id) || context.schema !== "RACE_AI_BOAT_SUPPLEMENTAL_CONTEXT_V1" ||
         context.race_id !== r.race_id || context.forecast_inputs_used !== false || page?.body_identity_verified !== true || page.status !== "PARSED" || page.roster_binding_status !== "VERIFIED" ||
-        people.length !== 6 || page.participants.length !== 6 || !Array.isArray(context.roster) || context.roster.length !== 6) return null;
-    for (const person of people) {
-      const number = participantNumber(person), registration = participantRegistration(person);
-      if (typeof registration !== "string" || !/^\d{4}$/.test(registration) ||
-          context.roster.filter(p => p.lane === number && p.registration_number === registration).length !== 1 ||
-          page.participants.filter(p => p.lane === number && p.registration_number === registration).length !== 1) return null;
+        people.length < 3 || people.length > 6 || page.participants.length < 3 || page.participants.length > 6 ||
+        !Array.isArray(context.roster) || context.roster.length !== page.participants.length) return null;
+    const bound = Object.hasOwn(context, "program") ? officialBoatRoster(context, r.race_id, page, live.checked_at) : null;
+    if (Object.hasOwn(context, "program") ? !bound || bound.active.size !== page.participants.length : people.length !== 6 || page.participants.length !== 6) return null;
+    if (bound && (r.event_date_jst !== context.program.date_jst ||
+        r.race_no != null && (!Number.isInteger(r.race_no) || r.race_no !== Number(r.race_id.slice(-2))))) return null;
+    if (bound && Object.hasOwn(r, "withdrawn_lanes") && (!Array.isArray(r.withdrawn_lanes) ||
+        new Set(r.withdrawn_lanes).size !== r.withdrawn_lanes.length ||
+        r.withdrawn_lanes.some(lane => !Number.isInteger(lane) || !bound.withdrawn.has(lane)))) return null;
+    if (bound && Object.hasOwn(r, "withdrawn_participants")) {
+      if (!Array.isArray(r.withdrawn_participants) || r.withdrawn_participants.length > 6) return null;
+      const absent = new Set();
+      for (const person of r.withdrawn_participants) {
+        if (!person || typeof person !== "object" || !Number.isInteger(person.number) || absent.has(person.number) ||
+            !bound.withdrawn.has(person.number) || person.lane != null && person.lane !== person.number) return null;
+        const keys = ["registration_no", "registration_number", "registration_id", "racer_registration_id", "racer_id"];
+        const registration = keys.map(key => person[key]).find(value => value != null) ?? null;
+        if (registration !== bound.full.get(person.number) || keys.some(key => person[key] != null && person[key] !== registration)) return null;
+        absent.add(person.number);
+      }
     }
+    const lanes = new Set(), registrations = new Set();
+    for (const person of people) {
+      if (!person || typeof person !== "object") return null;
+      const number = participantNumber(person), registration = participantRegistration(person);
+      if (!Number.isInteger(number) || number < 1 || number > 6 || lanes.has(number) ||
+          typeof registration !== "string" || !/^[0-9]{4}$/.test(registration) || registrations.has(registration) ||
+          ["number", "lane"].some(key => person[key] != null && person[key] !== number) ||
+          ["registration_no", "registration_number", "registration_id", "racer_registration_id", "racer_id"].some(key => person[key] != null && person[key] !== registration) ||
+          bound && (bound.full.get(number) !== registration ||
+            bound.active.has(number) && (person.active === false || person.withdrawn === true)) ||
+          (!bound || bound.active.has(number)) && (
+            context.roster.filter(p => p && p.lane === number && p.registration_number === registration).length !== 1 ||
+            page.participants.filter(p => p.lane === number && p.registration_number === registration).length !== 1)) return null;
+      lanes.add(number); registrations.add(registration);
+    }
+    if (bound && [...bound.active.keys()].some(lane => !lanes.has(lane))) return null;
     try {
       const url = new URL(page.source.source_url), q = url.searchParams, rid = r.race_id;
       if (url.origin !== "https://www.boatrace.jp" || url.username || url.password || url.hash || url.pathname !== "/owpc/pc/race/beforeinfo" ||
@@ -396,7 +465,7 @@
     }
     const reported = people.filter(p => p.preview_course !== null && p.preview_course !== undefined);
     if (reported.length) entryMap = Object.fromEntries(reported.map(p => [participantNumber(p), p.preview_course]));
-    else if (people.length === 6 && context && validBoatObservationContext(context, race.race_id) && context.beforeinfo?.status === "PARSED" && context.beforeinfo.roster_binding_status === "VERIFIED") {
+    else if ((people.length === 6 || live?.context === context) && context && validBoatObservationContext(context, race.race_id) && context.beforeinfo?.status === "PARSED" && context.beforeinfo.roster_binding_status === "VERIFIED") {
       const observed = people.map(p => {
         const expected = api.get(race, p);
         return expected && context.beforeinfo.participants.find(value => value.lane === participantNumber(p) && value.registration_number === participantRegistration(p) && api.get(race, value) === expected);
