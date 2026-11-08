@@ -29,6 +29,9 @@ from race_ai.keirin_result_delivery import utc, canonical
 from race_ai.keirin_shadow_variable_pair import (
     checked_shadow,checked_selection
 )
+from race_ai.keirin_permissioned_owner import (
+    load_operator_grants, OperatorLicenseGrants
+)
 
 PROD="state/keirin/production/v1"
 HEAD=PROD+"/latest.json"
@@ -44,8 +47,10 @@ def need(ok,code):
         raise ArchiveError(code)
 
 
-def check_private_pair(db, proof):
+def check_private_pair(db, proof, grants):
     """Read only. This cannot create a missing DB or amend a frozen forecast."""
+    need(isinstance(grants,OperatorLicenseGrants),
+         "CURRENT_MACHINE_SOURCE_GRANTS_REQUIRED")
     need(type(proof) is dict and set(proof)=={
         "schema","repository_id","synthetic_only","mode",
         "producer_run_id","producer_sha","cipher_sha256",
@@ -122,13 +127,32 @@ def check_private_pair(db, proof):
                  sha256(source["source_payload"]).hexdigest(),
                  "PRODUCTION_FROZEN_SOURCE_PACKET_MISSING")
             packet=json.loads(source["source_payload"])
-            need(packet.get("race",{}).get("race_id")==p0["race_id"],
-                 "PRODUCTION_SOURCE_RACE_MISMATCH")
+            need(packet.get("race",{}).get("race_id")==p0["race_id"] and
+                 packet["race"].get("permission_ref")==grants.bundle_id,
+                 "PRODUCTION_SOURCE_RACE_OR_GRANT_MISMATCH")
             # Do not accept a packet that claims only owner personal/manual
             # acceptance as a machine-feed licence for unattended production.
             need(packet["race"].get("permission_ref") not in (
                 None,"","RACE_AI_PRIVATE_OWNER_MANUAL_OBSERVATION_V1"
             ), "PRODUCTION_NON_MACHINE_SOURCE_NOT_CERTIFIED")
+            need(type(packet.get("observations")) is list and
+                 len(packet["observations"])>0,
+                 "PRODUCTION_SOURCE_EVIDENCE_REQUIRED")
+            for item in packet["observations"]:
+                need(type(item) is dict and
+                     all(grants.allowed(item.get("source_url"),
+                                        item.get("rights_ref"),purpose)
+                         for purpose in (
+                             "automated_fetch","analysis","pre_race",
+                             "model_inference","private_retention")),
+                     "PRODUCTION_SOURCE_MACHINE_RIGHTS_MISSING")
+            need(all(grants.allowed(
+                         odds.get("source_ref"),
+                         odds.get("source_rights_ref"),purpose)
+                     for purpose in (
+                         "automated_fetch","analysis","pre_race",
+                         "private_retention")),
+                 "PRODUCTION_ODDS_MACHINE_RIGHTS_MISSING")
             starters=[r["number"] for r in packet["race"]["starters"]]
             universe=set(permutations(starters,3))
             need(len(starters) in (7,9) and len(universe) in (210,504)
@@ -167,7 +191,7 @@ def check_private_pair(db, proof):
         raise ArchiveError("PRODUCTION_DB_RESTORE_AUDIT_FAILED") from None
 
 
-def validate_production_bundle(artifact, *, repo,
+def validate_production_bundle(artifact, *, repo, license_manifest,
                                expected_run_id,expected_commit):
     """Strong key is needed at the trusted runner. Never output plaintext."""
     artifact=Path(artifact)
@@ -176,6 +200,11 @@ def validate_production_bundle(artifact, *, repo,
     scope=_scope(checked_json(artifact/"scope.json"))
     need(scope["mode"]=="production","PRODUCTION_SCOPE_REQUIRED")
     proof=checked_json(artifact/"proof.json")
+    # Strong proof must be accompanied by a SHA-checked private licence
+    # manifest and the operator-verified document. URLs alone grant nothing.
+    from datetime import datetime,timezone
+    grants=load_operator_grants(
+        license_manifest,now=datetime.now(timezone.utc).isoformat())
     need(proof.get("schema")==PROOF_SCHEMA and
          proof.get("synthetic_only") is False and
          proof.get("mode")=="production" and
@@ -200,12 +229,12 @@ def validate_production_bundle(artifact, *, repo,
             "unseal",str(artifact/"state.enc"),str(restored),
             str(artifact/"scope.json")
         ],cwd=repo,env=env)
-        check_private_pair(restored,proof)
+        check_private_pair(restored,proof,grants)
     return scope,proof,cipher,digest
 
 
-def archive_production_in_git(artifact, *, repo, expected_run_id,
-                              expected_commit):
+def archive_production_in_git(artifact, *, repo, license_manifest,
+                              expected_run_id, expected_commit):
     """Separate production head under existing state ref; never overwrite.
 
     Requires operator's explicit acknowledgement that ciphertext, sizes and
@@ -221,10 +250,34 @@ def archive_production_in_git(artifact, *, repo, expected_run_id,
          env.get("GITHUB_EVENT_NAME")=="workflow_run" and
          env.get("RACE_AI_PUBLIC_CIPHERTEXT_APPROVED")==ACK,
          "TRUSTED_MAIN_AND_EXPLICIT_CIPHERTEXT_APPROVAL_REQUIRED")
+    event=env.get("GITHUB_EVENT_PATH")
+    need(type(event) is str and Path(event).is_file() and
+         not Path(event).is_symlink(),
+         "TRUSTED_PRODUCER_WORKFLOW_EVENT_REQUIRED")
+    event_json=checked_json(event,max_size=200000)
+    workflow=event_json.get("workflow_run")
+    repository=event_json.get("repository")
+    need(type(workflow) is dict and type(repository) is dict and
+         str(repository.get("id"))==REPOSITORY_ID and
+         str(workflow.get("id"))==expected_run_id and
+         workflow.get("head_sha")==expected_commit and
+         workflow.get("head_branch")=="main" and
+         workflow.get("conclusion")=="success" and
+         workflow.get("event") in ("push","workflow_dispatch") and
+         workflow.get("name")==
+            "KEIRIN admitted real-race private producer" and
+         not workflow.get("pull_requests") and
+         type(workflow.get("head_repository")) is dict and
+         str(workflow["head_repository"].get("id"))==REPOSITORY_ID,
+         "UNTRUSTED_OR_INCORRECT_PRODUCER_WORKFLOW")
     root=Path(repo).resolve()
     need((root/".git").exists(),"TRUSTED_CHECKOUT_REQUIRED")
+    private_paths=(Path(artifact).resolve(),Path(license_manifest).resolve())
+    need(all(root not in p.parents and p!=root for p in private_paths),
+         "PRODUCTION_PRIVATE_MATERIAL_INSIDE_PUBLIC_CHECKOUT")
     scope,proof,cipher,digest=validate_production_bundle(
-        artifact,repo=root,expected_run_id=expected_run_id,
+        artifact,repo=root,license_manifest=license_manifest,
+        expected_run_id=expected_run_id,
         expected_commit=expected_commit)
     git=lambda *a,cwd=root:command(["git",*a],cwd=cwd)
     url=git("remote","get-url","origin")
