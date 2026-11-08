@@ -195,7 +195,15 @@ def evaluate_historical_without_repredicting(prepared, published_result):
                 sha256(canonical({k:v for k,v in prepared.items()
                                   if k!="retrospective_record_sha256"})).hexdigest(),
             "HISTORICAL_FROZEN_RESEARCH_SUITE_MISSING_OR_TAMPERED")
-    suite = prepared["full_model_suite"]
+    raw_suite = prepared["full_model_suite"]
+    require(type(raw_suite) is dict and type(raw_suite.get("models")) is dict
+            and set(raw_suite["models"]) == set(ALL_MODELS),
+            "HISTORICAL_MODEL_SET_MISMATCH")
+    # An owner-private JSON readback may sort object keys. The suite's
+    # signed SHA is canonical and order-independent; its verifier expects
+    # the explicit roster order. Restore just that verified roster order.
+    suite = {**raw_suite, "models":{
+        mid:raw_suite["models"][mid] for mid in ALL_MODELS}}
     require(verify_suite(suite) is True and
             suite["race_id"] == prepared["race_id"],
             "HISTORICAL_SUITE_INVALID")
