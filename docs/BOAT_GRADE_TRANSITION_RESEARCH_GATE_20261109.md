@@ -81,3 +81,33 @@ private URL, key, raw records or entrant history.
 
 This is an analysis feature, NOT a new betting prediction family, producer,
 workflow, cron, PR, source collector or production auto-promotion.
+
+## Existing private-source read-only bridge (new)
+
+race_ai/boat_grade_saved_sources_bridge.py:
+build_saved_grade_input(racer_database, history_store, race_id, as_of,
+roster, allow_source) prepares normalized input using only already stored,
+source-versioned official TERM documents and historical B/K opportunity
+records. It uses existing source admissions, exact URL/term match, stored
+archive hashes and cutoff clocks; no separate provider GET or new vault.
+
+For 2026-11-09:
+- 2026-2 is CURRENT official application term (July to December 2026).
+- 2027-1 is a NEXT application term. Its observed fan-term record does not
+  itself prove the allocation committee's final certification, so always
+  normalize it as ANNOUNCED_PENDING unless a separate independently
+  authenticated final official receipt is available.
+- previous_classes on the official current TERM record catches former A
+  even when an earlier entire archive was not imported. Its 3 slots do not
+  justify fabricating the exact terms of past grade changes.
+- B printed cutoff is used only as a date-level chronological proxy for
+  confirmed K starts; it is NOT claimed to be the actual race start time.
+- incomplete dates, missing result evidence, F/L, captured-after-asof,
+  source/roster conflicts and permission denials remain HOLD.
+- an interrupted or unrepresented recorded-start period does NOT prove
+  medical leave, career break or why current grade fell.
+
+tests/test_boat_grade_saved_sources_bridge.py provides eight fake-data
+contract tests. Real data connection and independent Actions-only AES
+readback have not been performed merely by writing this module. This is a
+non-destructive source-free research adapter, not new collector/scheduler.
