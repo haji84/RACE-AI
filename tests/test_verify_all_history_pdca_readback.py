@@ -29,6 +29,15 @@ class IndependentReadbackTests(unittest.TestCase):
         self.assertGreaterEqual(report['archived_days'],1)
         self.assertGreaterEqual(report['independent_day_readbacks'],1)
 
+    def test_one_real_day_proves_one_day_even_if_another_remains_hold(self):
+        state,bridge,now=self.setUpFixture()
+        state.control['model_pdca_recent_audit']['days'].append(dict(
+            day='2017-01-01',status='HOLD_MODEL_PDCA_INPUT',total_forecasts=None,total_scored=None))
+        report=verify_snapshot(state,bridge,now=now)
+        self.assertEqual(report['held_days'],1)
+        self.assertGreater(report['formally_scored_forecasts'],0)
+        self.assertFalse(report['all_history_completion_proven'])
+
     def test_reject_modified_model_return_amount(self):
         state,bridge,now=self.setUpFixture()
         state.control['model_pdca_recent_audit']['days'][0]['summary']['model_groups'][0]['net_yen']+=1

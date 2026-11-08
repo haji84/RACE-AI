@@ -22,10 +22,13 @@ def verify_snapshot(state,bridge,*,now):
     _need(0<len(snapshot['days'])<=4,'SNAPSHOT_DAY_BOUND')
     _need('result_due_ledger' in state.control,'PERSISTENT_DUE_LEDGER_MISSING')
     due=D.ledger(deepcopy(state.control),now=now.isoformat())
-    authenticated=models=scored=historical=holds=pending=archived_readbacks=0
+    authenticated=models=scored=historical=holds=pending=archived_readbacks=0;held_days=0
     seen=set()
     for item in snapshot['days']:
-        _need(type(item) is dict and item.get('status')=='SCORED','MODEL_PDCA_PARTIAL_HOLD')
+        _need(type(item) is dict and item.get('status') in ('SCORED','HOLD_MODEL_PDCA_INPUT'),'MODEL_PDCA_SNAPSHOT_STATE_INVALID')
+        if item['status']=='HOLD_MODEL_PDCA_INPUT':
+            held_days+=1
+            continue
         day=item.get('day')
         _need(type(day) is str and (day=='CURRENT_VIEW' or
             re.fullmatch(r'\d{4}-\d{2}-\d{2}',day)),'MODEL_PDCA_DAY_INVALID')
@@ -63,7 +66,7 @@ def verify_snapshot(state,bridge,*,now):
         historical_days_with_formal_scores=historical,formally_scored_forecasts=scored,
         pending_forecasts=pending,held_forecasts=holds,
         ledger_outstanding=D.pending_count(due),archived_days=H.latest(state.control)['days'],
-        archived_revisions=H.latest(state.control)['revisions'],independent_day_readbacks=archived_readbacks,
+        archived_revisions=H.latest(state.control)['revisions'],independent_day_readbacks=archived_readbacks,held_days=held_days,
         source_provider_requests=0,
         forecast_rewrites=0,actual_purchases=False,
         secret_or_private_original_logged=False,all_history_completion_proven=False)
