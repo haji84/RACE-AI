@@ -116,6 +116,46 @@ class LicensedSourceStageTests(unittest.TestCase):
         )
         self.assertEqual(len(result["top8"]), 8)
 
+    def test_full_private_spool_uses_staged_input_without_http(self):
+        from datetime import datetime
+        from race_ai.keirin_owner_sqlite import PrivateKeirinStore
+        from race_ai.keirin_private_spool import KeirinPrivateSpool
+        from race_ai.four_sport_model_suite import run_suite, verify_suite
+        self.deposit(data())
+        g = self.grant()
+        staged = stage_permissioned_deliveries(self.root, g, now=NOW)
+        self.assertEqual(staged["new_pre_race_inputs"], 1)
+        clock = lambda: datetime.fromisoformat("2030-01-15T09:16:00+09:00")
+        with PrivateKeirinStore(self.root / "owner.sqlite3",
+                                clock=clock) as store:
+            engine = KeirinPrivateSpool(
+                store, clock=clock, model_suite=run_suite,
+                model_verifier=verify_suite,
+                source_attestor=g.certificate,
+                source_observation_gate=g.allowed,
+                witness=None,
+            )
+            tick = engine.tick(self.root)
+            self.assertEqual(tick["private_forecasts_saved_this_tick"], 1)
+            self.assertEqual(tick["provider_network_requests"], 0)
+            self.assertIsNone(tick["official_hit_at_8_all"])
+            original = store.get_persisted_forecast(RID)
+            self.assertEqual(len(original["forecast"]["top8"]), 8)
+            self.assertFalse(original["forecast"]["officially_frozen"])
+            first_sha = original["sha256"]
+            again = engine.tick(self.root)
+            self.assertEqual(again["private_forecasts_saved_this_tick"], 0)
+            self.assertEqual(store.get_persisted_forecast(RID)["sha256"], first_sha)
+
+    def test_cli_fails_closed_without_owner_license_review(self):
+        from scripts.keirin_permissioned_owner_agent import main
+        code = main([
+            "--db", str(self.root / "owner.sqlite3"),
+            "--inbox", str(self.root),
+            "--grant-manifest", str(self.manifest),
+        ])
+        self.assertEqual(code, 2)
+
     def test_incomplete_input_audited_but_never_staged_as_prediction(self):
         d = data()
         d["observations"] = [
