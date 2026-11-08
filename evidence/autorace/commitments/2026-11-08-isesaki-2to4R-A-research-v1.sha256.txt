@@ -1,0 +1,17 @@
+race_date_jst=2026-11-08
+created_at_jst=2026-11-08T13:38:41+09:00
+phase=A_RESEARCH_PROVISIONAL
+trial_execution_timestamp_not_independently_verified=true
+public_git_contains_sha256_only=true
+real_betting_status=not_confirmed
+trained_model_output=false
+calibrated_probabilities=false
+source_authority=WINTICKET; JKA official 1R page confirmed event only
+source=https://autorace.jp/race_info/Program/isesaki/2026-11-08
+race=2R; cutoff_jst=2026-11-08T15:23:00+09:00; SHA256 f46363d504e68d99117b1c49e7e9bb1509ff09374de86172f462ef05ed26dc75 autorace_20261108_isesaki_2R_A_research_v1.json
+race_source=https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/2
+race=3R; cutoff_jst=2026-11-08T15:48:00+09:00; SHA256 cfa247577dad27f64cb327ebb49334fbc120281f0694f84f55c389141bb641a0 autorace_20261108_isesaki_3R_A_research_v1.json
+race_source=https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/3
+race=4R; cutoff_jst=2026-11-08T16:16:00+09:00; SHA256 70fbf1699aed9c03143a40f1b1ffcb66800ce51f8777a558c06ee3d70c2a92a9 autorace_20261108_isesaki_4R_A_research_v1.json
+race_source=https://www.winticket.jp/autorace/isesaki/racecard/2026110603/3/4
+HISTORICAL_PREDICTION_CONTENT_NOT_IN_REPOSITORY; changes/results require distinct immutable records.
