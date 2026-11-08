@@ -1,0 +1,15 @@
+race_key=autorace:isesaki:2026-11-08:1
+forecast_version=20261108-isesaki-1r-A-research-v1
+phase=A_RESEARCH_PROVISIONAL
+phase_warning=independent_trial_timestamp_unverified; exclude_from_certified_A_score_until_verified
+created_at_jst=2026-11-08T13:28:40+09:00
+betting_deadline_jst=2026-11-08T14:58:00+09:00
+forecast_private_filename=autorace_20261108_isesaki_1R_A_research_v1.json
+private_original_sha256=48918e85cd194f0045df0c9d769ee6179ebd2d37a9a5188d56727d455c70af23
+private_original_byte_count=2018
+basic_count=8
+additional_count=4
+forecast_method=untrained_research_rules_uncalibrated
+official_source=https://autorace.jp/race_info/Program/isesaki/2026-11-08
+independent_entry_check=https://www.winticket.jp/autorace/isesaki/racecard/2026110603
+append_only_note=no raw selections are published in GitHub; do not rewrite after cutoff
