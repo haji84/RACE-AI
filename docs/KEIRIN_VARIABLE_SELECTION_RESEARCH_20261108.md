@@ -213,3 +213,5 @@ WINTICKETの該当ページ https://www.winticket.jp/keirin/aomori/odds/20261108
 - 再照合結果を元PR103監査とは別の私有テーブル keirin_mansha_rank_audits にレースID×モデルID×モデル版×結果revisionでcreate-only保存。既存事前予想を更新しない。最新結果改訂のみ比較集計する。公開Actionsへ実入力/配当原本/私有DBを送らない。
 - ShadowVariablePairLedger.replay_all() が mansha_ranking_reference に統計のみ追加する。 tests/test_keirin_mansha_rank_audit.py は架空レースだけのテスト。
 - **到達範囲**：PR101の研究用シャドーモデル＋PR103可変選択の保存ペア。PR71を含む他モデルの全候補ランキング自動接続、権限付き実データの継続取得、独立外部時刻証明、本物の全件比較、モデルの確率校正は未実証。Draft維持、main未統合、無課金・無投票。
+
+- オッズ欠測でもランキング保存を止めない: owner agent が stage_sourced_shadows に既存私有SQLiteを渡し、keirin_shadow_rank_snapshots に全210/504順位・原入力・作成時刻・SHAを締切前に一度だけ固定する。結果受領後Top8とTop12だけ比較し、可変券はNO_PRE_CUTOFF_ODDSとして未評価（0点見送りと混同しない）。結果が到着してから初めて予想を作ることは禁止。
