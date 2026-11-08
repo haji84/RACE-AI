@@ -16,6 +16,7 @@ from __future__ import annotations
 from datetime import datetime
 from hashlib import sha256
 from itertools import permutations
+from pathlib import Path
 import math
 import re
 
@@ -29,6 +30,19 @@ SCHEMA = "RACE_AI_KEIRIN_PR71_HISTORICAL_ASOF_REPLAY_V1"
 REPORT = "RACE_AI_KEIRIN_PR71_HISTORICAL_ASOF_SETTLEMENT_V1"
 SHA = re.compile(r"^[a-f0-9]{40}$")
 MANSHA_THRESHOLD = 10000
+# GitHub-verified pre-race core source at 2026-11-01T08:45:04Z.
+# The exact same Git blobs are used by PR103 in this research branch.
+# Git commit age only pins MODEL CODE, not source capture or old predictions.
+PINNED_CORE_COMMIT = "bd52a3ed7853cadd7090bd7e8737202f0bee2437"
+PINNED_CORE_COMMITTED_UTC = "2026-11-01T08:45:04+00:00"
+PINNED_CORE_BLOBS = {
+    "comprehensive_four_sport_models.py":
+        "4129023e14db169baca2149b9048a09f7510b424",
+    "four_sport_matchup_models.py":
+        "ce10d2ef9f65ac985038b31ab6c5e15423e7507d",
+    "four_sport_model_suite.py":
+        "1e400cb91966580e3fbad1950d7e0afac553f535",
+}
 
 
 class HistoricalReplayGateError(ValueError):
@@ -46,6 +60,19 @@ def _clock(value):
         return utc(value)
     except (ValueError,TypeError,KeyError) as exc:
         raise HistoricalReplayGateError("INVALID_AWARE_CLOCK") from exc
+
+
+def verify_pinned_model_code():
+    """Match the checkout's exact Git blob hashes, not a caller flag."""
+    home=Path(__file__).resolve().parent
+    for name, expected in PINNED_CORE_BLOBS.items():
+        data=(home/name).read_bytes()
+        actual=sha256(data).hexdigest()  # extra local integrity trace
+        from hashlib import sha1
+        gitblob=sha1(("blob "+str(len(data))+"\0").encode()+data).hexdigest()
+        require(len(actual)==64 and gitblob == expected,
+                "MODEL_CODE_NOT_PRE_EVENT_PIN")
+    return True
 
 
 def select_out_of_time_cohorts(training_days, holdout_days, *,
@@ -89,11 +116,16 @@ def prepare_historical_pr71(snapshot, *, performed_at,
     require(type(model_code_commit_sha) is str
             and SHA.fullmatch(model_code_commit_sha) is not None,
             "EXACT_MODEL_COMMIT_SHA_REQUIRED")
+    require(model_code_commit_sha == PINNED_CORE_COMMIT,
+            "UNREVIEWED_HISTORICAL_MODEL_CODE_REVISION")
+    verify_pinned_model_code()
     now = _clock(performed_at)
     asof = _clock(snapshot.get("as_of"))
     cutoff = _clock(snapshot.get("official_cutoff_at"))
     require(asof < cutoff <= now,
             "THIS_IS_NOT_A_PAST_EVENT_OR_INVALID_ASOF")
+    require(_clock(PINNED_CORE_COMMITTED_UTC) < asof,
+            "MODEL_CORE_CODE_CREATED_AFTER_EVENT_ASOF")
     evidence = snapshot["facts"]["pr71_evidenced_snapshot"]
     require(type(evidence) is dict and
             evidence.get("scope") in ("SYNTHETIC_ONLY",
@@ -138,7 +170,9 @@ def prepare_historical_pr71(snapshot, *, performed_at,
         "official_cutoff_claimed":snapshot["official_cutoff_at"],
         "actually_recomputed_at":performed_at,
         "model_code_commit_sha_selected":model_code_commit_sha,
-        "model_commit_precedes_race_independently_proven":False,
+        "model_code_git_commit_precedes_asof":True,
+        "model_core_blob_hashes_verified":True,
+        "code_version_is_not_a_forecast_timestamp_receipt":True,
         "historical_source_retrieval_before_cutoff_proven":False,
         "independent_original_pre_cutoff_forecast_receipt":None,
         "snapshot_sha256":sha256(canonical(snapshot)).hexdigest(),
