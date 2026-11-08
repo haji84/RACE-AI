@@ -136,7 +136,7 @@ class LicensedSourceStageTests(unittest.TestCase):
                 witness=None,
             )
             tick = engine.tick(self.root)
-            self.assertEqual(tick["private_forecasts_saved_this_tick"], 1)
+            self.assertEqual(tick["private_forecasts_saved_this_tick"], 1, tick)
             self.assertEqual(tick["provider_network_requests"], 0)
             self.assertIsNone(tick["official_hit_at_8_all"])
             original = store.get_persisted_forecast(RID)
