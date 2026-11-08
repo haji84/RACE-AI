@@ -3,7 +3,7 @@ from contextlib import nullcontext
 from copy import deepcopy
 from datetime import date,datetime,timezone
 from pathlib import Path
-import argparse,json,re,subprocess,sys
+import argparse,json,re,subprocess,sys,traceback
 ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
 from race_ai.racer_daily import wire,sha,clock,need
@@ -24,7 +24,7 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
             daily=retain_daily(repo,root/'daily',now=now,publish=False,transport=base_transport,fetch=lambda day:source(official_url(date.fromisoformat(day),'K')))
     loaded_base=load_daily(repo,transport=base_transport,now=current());base=loaded_base['store'];base.clock=current
     try:
-        result_sync=None;bridge=None;targets=()
+        result_sync=None;bridge=None;targets=();publication_error=None;publication_trace=[]
         if sync_results:
             from race_ai.racer_result_bridge import SavedResultBridge,status as result_status
             try:bridge=result_bridge or SavedResultBridge(repo,now=current());targets=bridge.targets()
@@ -52,7 +52,11 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
             retained=dict(status='INTRADAY_STATE_UNCHANGED',source_commit=loaded['parent'],cipher_path=prior['cipher_path'],cipher_sha256=prior['head']['cipher_sha256'],generation=prior['head']['generation'],new_capture_count=0,plaintext_published=False)
         if bridge:
             try:result_sync=bridge.publish(state,now=finished)
-            except Exception:result_sync=result_status(now=finished,state='RETRY',rows=bridge.rows)
+            except Exception as error:
+                code=getattr(error,'reason_code',None) or str(error)
+                publication_error=code if re.fullmatch(r'(?:RESULT|FEED|HISTORY|SAVED_MODEL_VIEW|BEFOREINFO)_[A-Z0-9_]{1,190}',code) else 'RESULT_FEED_OPERATION_FAILED'
+                publication_trace=[Path(frame.filename).name+':'+str(frame.lineno)+':'+frame.name for frame in traceback.extract_tb(error.__traceback__)[-5:]]
+                result_sync=result_status(now=finished,state='RETRY',rows=bridge.rows)
             if result_sync['state']=='READY' and outcome['status']!='READY':result_sync['state']='SOURCE_WAIT'
         public=publish_daily_catalogue(repo,catalogue,transport=pages_transport,checked_at=finished.isoformat(),state=outcome['status'],**(dict(result_sync=result_sync) if sync_results else {}))
         if verify:verify_public(public)
@@ -62,6 +66,7 @@ def refresh(repo,private_dir,*,initialize=False,daily_reconcile=False,now=None,f
           today={k:v for k,v in meta.items() if k not in ('source_receipts',)},retained=retained,public=public,daily=daily,private_sources_published=False,forecast_inputs_changed=False)
         if sync_results:
             report['result_sync']=result_sync
+            if publication_error:report.update(result_publication_error=publication_error,result_publication_trace=publication_trace)
             from collections import Counter
             reasons=[e.get('reason','RESULT_OBSERVATION_INVALID') for row in (bridge.rows if bridge else []) if (row.get('result') or {}).get('status')=='unsupported' for e in row.get('result_observation_rejections',[])]
             report['result_rejection_reason_counts']=dict(Counter(code for code in reasons if isinstance(code,str) and re.fullmatch(r'(?:RESULT|SAVED_MODEL_VIEW)_[A-Z0-9_]{1,190}',code)))
