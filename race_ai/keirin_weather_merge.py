@@ -48,7 +48,8 @@ def merge_weather_into_owner_packet(packet, forecast):
           "MODELLED_WEATHER_PROVENANCE_NOT_VERIFIED")
     race=packet["race"]
     _need(race.get("race_id")==forecast.get("race_id") and
-          race.get("official_cutoff_at")==forecast.get("official_cutoff_at"),
+          utc(race["official_cutoff_at"])==
+              utc(forecast["official_cutoff_at"]),
           "WEATHER_WRONG_RACE_OR_CUTOFF")
     before=utc(race["as_of"])
     captured=utc(forecast["captured_at"])
@@ -58,7 +59,7 @@ def merge_weather_into_owner_packet(packet, forecast):
     matches=[o for o in packet["observations"]
              if o.get("key")=="race/start_time"]
     _need(len(matches)==1 and
-          matches[0].get("value")==forecast["race_start_at"] and
+          utc(matches[0]["value"])==utc(forecast["race_start_at"]) and
           utc(matches[0]["captured_at"])<=before,
           "RACE_START_NOT_INDEPENDENTLY_PRESENT_IN_OWNER_INPUT")
     keys={p.get("key") for p in packet["observations"]}
