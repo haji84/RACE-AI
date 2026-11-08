@@ -80,7 +80,7 @@ def check_private_pair(db, proof, grants):
                              uri=True,timeout=4) as con:
             con.row_factory=sqlite3.Row
             con.execute("PRAGMA trusted_schema=OFF")
-            need(con.execute("PRAGMA integrity_check").fetchall()==[("ok",)],
+            need(con.execute("PRAGMA integrity_check").fetchone()[0]=="ok",
                  "PRODUCTION_SQLITE_INTEGRITY_FAILED")
             names={r[0] for r in con.execute(
                 "SELECT name FROM sqlite_master WHERE type='table'")}
