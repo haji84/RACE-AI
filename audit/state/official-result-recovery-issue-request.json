@@ -1,14 +1,14 @@
 {
-  "pull_request": 71,
-  "recovery_request_blob_sha256": "4eb159f45c6c7dbd06dfd3b7844b6dc2acd34c15a6c093497b7e4583c2ed4466",
-  "recovery_request_sha256": "499cc66a86fa7009102b02243ef9c238b26577c89fd1b469acb61b4d33ef8a79",
-  "repository_id": 1416489937,
   "schema": "RACE_AI_OFFICIAL_RESULT_RECOVERY_ISSUE_REQUEST_V1",
+  "repository_id": 1416489937,
+  "workflow_id": 392270247,
+  "pull_request": 71,
   "target": {
-    "head_sha": "d41f505cb00557dd1a6173a19b0945d7849e57fd",
-    "run_attempt": 2,
-    "run_id": 42413260799
+    "head_sha": "bb0846b79320893d0edcc40d2fb4a7dbcc983680",
+    "run_id": 42439911527,
+    "run_attempt": 2
   },
-  "target_first_viewer_job_id": 128525726971,
-  "workflow_id": 392270247
+  "target_first_viewer_job_id": 128606713081,
+  "recovery_request_sha256": "bcbdaa8b350402d8753d23632709eee6a15b75d6402b1d4cb7108334ed4fa5e6",
+  "recovery_request_blob_sha256": "deb8a5d147ed3ae138d2331509806f74ad89acc7e3aeef9471194bf6dfe93c6a"
 }
