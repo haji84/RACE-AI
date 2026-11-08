@@ -71,8 +71,20 @@ class FourLapEvidenceTests(unittest.TestCase):
         x["observations"][3]["phash64"]=x["observations"][2]["phash64"]
         out=audit(x,trusted_visual_verifier=lambda evidence: True)
         self.assertEqual(out["pass_count"],3)
-        self.assertIn("REPEATED_IMAGE",
+        self.assertIn("REPEATED_IMAGE_OR_SUSPECTED_REPLAY",
                       [p["reason"] for p in out["excluded_passes"]])
+
+    def test_real_dev_like_replay_does_not_double_count_near_images(self):
+        x=doc()
+        # Source 9R visual DEV showed hamming 2-4 for replayed finish frames
+        # even though exact SHA was different. This test is synthetic.
+        old=int(x["observations"][2]["phash64"],16)
+        x["observations"][4]["phash64"]=f"{old ^ 0b1111:016x}"
+        out=audit(x,trusted_visual_verifier=lambda reviewed:True)
+        self.assertEqual(out["pass_count"],3)
+        self.assertIn("REPEATED_IMAGE_OR_SUSPECTED_REPLAY",
+            [v["reason"] for v in out["excluded_passes"]])
+        self.assertIn("NOT_FOUR_DISTINCT_LIVE_PASSES",out["reasons"])
 
     def test_edited_digest_not_full_race(self):
         x=doc(source="SYNTHETIC_FIXTURE")
