@@ -1,3 +1,13 @@
+<!-- RACE_AI_OWNER_CODE_ONLY_UNISSUED_RELEASE_20261108 -->
+# 2026-11-08｜オーナー指示によるCODE専用再開、公式取得の固定境界は継続
+
+PR #71 の取得担当が凍結していた厳密な公式ソース認証・発行は**解除していない**。現在HEAD 9375d89142829340d871fc1145c04ffc3a72f680 の初回CI run42464729698 は画面 fixture の日付期待値不一致で全体FAIL、issuer job は権限発行・source取得・capsule保存を全てSKIPPED。旧 V2 issue attempt run42457957612 は依存インストール権限で失敗、旧target8d880c9について転送refの既存capsule階層から発行済み対象は確認されない。過去6個のcapsuleを保全、UNKNOWN/拒否履歴・旧epochの取得枠は変更しない。
+
+ユーザーの最新指示に限り、現在のbranchに実provider・issuer・workflow・trigger・secret・モデル係数を変更しない**CODE専用の非強制fast-forward統合とCI実行**を認める。これはsource ownerの通常fixed issue/replayの解除ではない。新headで公式source GET/権限発行を開始してはならない。ユーザーの目的は実公式結果に基づく保存Top8→モデル別PDCA→暗号Git→独立読戻しだが、正規Actions受入を新HEADで確認するまで成功扱い禁止。
+
+細部証拠: docs/evidence/2026-11-08/owner-code-only-source-hold-release-preflight.json 。元の `ACTIVE_FULL_FIRST_TO_FIXED_ATTEMPT_TWO_BOUNDARY` ブロックを下に保持し、*公式ソースに関するHOLD* として引き続き有効とする。
+<!-- /RACE_AI_OWNER_CODE_ONLY_UNISSUED_RELEASE_20261108 -->
+
 <!-- RACE_AI_NATIVE_COLLECTION_BOUNDARY_20261108 -->
 # 2026-11-08 10:15 JST｜実データ取得の検証境界：同じPRのHEADを固定
 
