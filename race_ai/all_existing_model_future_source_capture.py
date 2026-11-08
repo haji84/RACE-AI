@@ -94,12 +94,13 @@ def authenticate_future_history(manifest,*,journal_archives,old_run,prior_runs,n
         prior_runs=[r for r in prior_runs if r['id'] in result_ids],
         prior_journal_archives=[archives[p['id']] for p in result_pins],old_journal_raw=old['raw'],old_journal_metadata=old['metadata'])
     bodies,receipts,_=prior._prior_evidence(data,key,now)
-    runs=recovery._prior_runs(dict(manifest=manifest),old_run,prior_runs)
+    runs=recovery._prior_runs(dict(manifest=manifest),old_run,prior_runs);future_sources={}
     for pin in pins:
         if pin in result_pins:continue
         item=archives[pin['id']];meta=item['metadata']
         need(meta.get('id')==pin['id'] and meta.get('digest')==pin['digest'],'FUTURE_PRIOR_PIN')
         journal,source=_future_epoch(item,pin,now=now,key=key)
+        future_sources[pin['id']]=source
         bodies[pin['id']]=journal;receipts[pin['id']]=dict(pin=deepcopy(pin),artifact_metadata=deepcopy(meta),
             cipher_sha256=sha256(source['collection.enc']).hexdigest(),payload_sha256=digest(journal))
     for pin in pins:
@@ -115,6 +116,17 @@ def authenticate_future_history(manifest,*,journal_archives,old_run,prior_runs,n
         not any(k in body for k in ('browser_index','browser_request_checkpoint')),'FIXED_UNKNOWN_SHAPE')
     for body in bodies.values():
         need(all(p in pins for p in body['manifest']['prior_journal_artifacts']),'TRANSITIVE_PRIOR_PIN_CLOSURE')
+    # V2 keeps each original P/O and native source archive. Rejoin that derived
+    # context to the actual recursively authenticated source journals as well.
+    from . import all_existing_model_future_result_capture as result_core
+    from scripts import all_existing_model_future_result_capture as result_wrapper
+    for pin in pins:
+        body=bodies[pin['id']]
+        if body.get('schema')!=result_core.JOURNAL_V2:continue
+        admitted,proof=result_wrapper.replay_retained_forecasts(body,future_sources[pin['id']],
+            dict(run_id=pin['run_id'],head_sha=pin['head_sha']),now=now,key=key)
+        joined=result_core.bind_source_history(admitted,proof,dict(bodies=bodies,receipts=receipts))
+        need(all(body['native_source_proof'].get(k)==v for k,v in joined.items()),'FUTURE_RESULT_RECURSIVE_SOURCE_BINDING')
     need(current_run is None or current_run not in {r['id'] for r in runs},'FRESH_CURRENT_RUN')
     latest=max(*(clock(r['updated_at'])+timedelta(seconds=1) for r in runs),
         *(clock(r['artifact_metadata']['created_at'])+timedelta(seconds=1) for r in receipts.values()))

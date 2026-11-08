@@ -353,10 +353,11 @@ def _lineage(manifest):
 
 
 class Budget:
-    def __init__(self,maximum,journal,persist,clock,sleeper,opener):
+    def __init__(self,maximum,journal,persist,clock,sleeper,opener,*,before_source=None):
         self.maximum=maximum;self.journal=journal;self.persist=persist;self.clock=clock;self.sleeper=sleeper
         self.opener=opener or build_opener(policy._NoRedirect()).open;self.used=0;self.last=None;self.last_mono=None;self.denied=set()
         self.epoch=stamp(journal['epoch_started_at'])
+        self.before_source=before_source
     @property
     def remaining(self):return self.maximum-self.used
     def wait(self):
@@ -368,11 +369,16 @@ class Budget:
     def get(self,url):
         sport,_=policy._url(url)
         if self.remaining<=0 or sport in self.denied:return None
+        if self.before_source is not None:self.before_source()
         self.wait();started=self.clock()
         need(started>=self.epoch,'CLOCK_REGRESSED_BEFORE_SOURCE')
         need(started.astimezone(JST).date().isoformat()==self.journal['execution_day'],'DAY_ELAPSED')
         entry=dict(url=url,started_at=started.isoformat(),state='RESERVED',http_status=None)
         self.journal['attempts'].append(entry);self.used+=1;self.persist();response=None
+        # If revoked after the durable checkpoint, preserve RESERVED/UNKNOWN.
+        # No request has been dispatched and the existing conservative journal
+        # reader must never turn the reserved slot into an invented zero.
+        if self.before_source is not None:self.before_source()
         try:
             try:response=self.opener(Request(url,headers={'User-Agent':'RACE-AI-owner-private-official-results/1.0',
                 'Accept':'text/html,application/json;q=0.8','Accept-Encoding':'identity'}),timeout=TIMEOUT)
@@ -765,7 +771,8 @@ def _status(journal,manifest,*,ready=False,state='NO_NEW_AUTHENTICATED_RESULTS')
     return status
 
 
-def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,browser=browser_capture,recovery_authorization=None):
+def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,browser=browser_capture,recovery_authorization=None,
+            before_source=None):
     key=state_key('production');now=clock();_manifest(manifest,now)
     need(manifest['schema']!=SCHEMA_V3 or recovery_authorization is not None,'HISTORICAL_REVIEWED_AUTHORITY_REQUIRED')
     plan=load_plan(manifest,key=key,now=now)
@@ -776,6 +783,7 @@ def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,bro
         from race_ai.all_existing_model_official_probe16 import ValidatedProbe16
         need(type(recovery_authorization) in (ValidatedRecovery,ValidatedContinuation,ValidatedProbe16),'VALIDATED_RECOVERY_REQUIRED')
         recovery=recovery_authorization.validate_collector(manifest,plan,env,now)
+    need(before_source is None or recovery is not None and callable(before_source),'REVIEWED_SOURCE_CALLBACK')
     private_prior_cache={}
     prior=prior_journals(manifest,now=now,key=key,recovery_authorization=recovery_authorization,
         private_static_cache_out=private_prior_cache)
@@ -803,7 +811,7 @@ def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,bro
     if recovery is not None:journal['recovery_authorization']=deepcopy(recovery)
     journal_path=root.with_name(root.name+'.collection.enc')
     def persist():save(journal_path,seal_forecasts(journal,run_id=str(env['run_id']),round_no=900006,key=key),replace=journal_path.exists())
-    budget=Budget(plan['maximum_requests'],journal,persist,clock,sleeper,opener);due=[]
+    budget=Budget(plan['maximum_requests'],journal,persist,clock,sleeper,opener,before_source=before_source);due=[]
     for case in plan['cases']:
         identity=(case['sport'],_race_key(case['race_id'],case['sport']));native=known.get(identity)
         need(native is not None and native['snapshot']['race']['event_date_jst']==target_event_day(manifest),'CASE_WITHOUT_NATIVE_INPUT')
@@ -880,6 +888,7 @@ def collect(root,env,manifest,*,clock=utc_now,sleeper=time.sleep,opener=None,bro
             def process_diagnostic(value):
                 journal['browser_process_diagnostic']=deepcopy(value);persist()
             try:
+                if before_source is not None:before_source()
                 index=(browser(browser_plan,directory,diagnostic_sink=process_diagnostic) if browser is browser_capture
                     else browser(browser_plan,directory));finished=clock();stage='INDEX_VALIDATION'
                 if index.get('schema')=='RACE_AI_OFFICIAL_RESULT_BROWSER_INTERRUPTED_V1':

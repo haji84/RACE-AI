@@ -731,40 +731,165 @@ jobs:
           persist-credentials: false
           ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
           path: pr64-reference
-      - name: Install existing pinned archive authentication dependencies
+      - name: Verify tested execution before dependencies or owner key
+        id: frozen_execution
         if: steps.issue_route.outputs.requested == 'true' || steps.issue_route.outputs.prepare_requested == 'true'
-        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
-      - name: Issue one consumed exact-parent capsule and authenticate remote readback
-        id: issue
-        if: steps.issue_route.outputs.requested == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
-          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          FROZEN_KIND: ${{ steps.issue_route.outputs.requested == 'true' && 'issue' || 'prepare' }}
         shell: bash
         run: |
           umask 077
-          python - <<'PY'
+          python -I -S - <<'PYTHON'
+          import base64, hashlib, json, os, re, subprocess, sys
           from pathlib import Path
-          import os, race_ai
-          race_ai.__path__.append(str(Path('pr64-reference/race_ai').resolve()))
+          root = Path.cwd().resolve()
+          workflow = '.github/workflows/forecast-audit-ui.yml'
+          bootstrap = 'scripts/official_frozen_execution.py'
+          def need(ok):
+              if not ok:
+                  raise SystemExit('HOLD_FROZEN_BOOTSTRAP_PROVENANCE')
+          def git(*args):
+              value = subprocess.run(['git', '--no-replace-objects', *args], cwd=root, capture_output=True, timeout=30)
+              need(value.returncode == 0 and len(value.stdout) <= 36 * 1024 * 1024)
+              return value.stdout
+          def sha(value):
+              need(type(value) is str and re.fullmatch(r'[a-f0-9]{40}', value) is not None)
+              return value
+          def blob(head, path):
+              head = sha(head)
+              row = git('ls-tree', '-z', head, '--', path).split(b'\0')
+              need(len(row) == 2 and row[1] == b'')
+              attrs, name = row[0].split(b'\t', 1)
+              mode, kind, ident = attrs.decode('ascii').split()
+              need(mode == '100644' and kind == 'blob' and name.decode() == path)
+              return sha(ident), git('cat-file', 'blob', ident)
+          def github(path):
+              need(re.fullmatch(r'git/(?:commits|trees|blobs)/[a-f0-9]{40}', path) is not None)
+              value = subprocess.run(['gh', 'api', 'repos/haji84/RACE-AI/' + path], capture_output=True, timeout=50)
+              need(value.returncode == 0 and 0 < len(value.stdout) <= 36 * 1024 * 1024)
+              result = json.loads(value.stdout)
+              need(type(result) is dict)
+              return result
+          def executed_workflow(head):
+              local = subprocess.run(['git', '--no-replace-objects', 'cat-file', '-e', head + '^{commit}'], cwd=root, capture_output=True, timeout=30)
+              if local.returncode == 0:
+                  return blob(head, workflow)
+              commit = github('git/commits/' + head)
+              need(commit.get('sha') == head and type(commit.get('tree')) is dict)
+              tree = sha(commit['tree'].get('sha'))
+              for number, part in enumerate(workflow.split('/')):
+                  obj = github('git/trees/' + tree)
+                  need(obj.get('sha') == tree and obj.get('truncated') is False and type(obj.get('tree')) is list)
+                  rows = [row for row in obj['tree'] if type(row) is dict and row.get('path') == part]
+                  need(len(rows) == 1)
+                  row = rows[0]
+                  if number < 2:
+                      need(row.get('mode') == '040000' and row.get('type') == 'tree')
+                      tree = sha(row.get('sha'))
+                  else:
+                      need(row.get('mode') == '100644' and row.get('type') == 'blob')
+                      ident = sha(row.get('sha'))
+                      obj = github('git/blobs/' + ident)
+                      need(obj.get('sha') == ident and obj.get('encoding') == 'base64')
+                      raw = base64.b64decode(obj.get('content'), validate=False)
+                      need(type(obj.get('size')) is int and obj['size'] == len(raw))
+                      need(hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest() == ident)
+                      return ident, raw
+          need('RACE_AI_STATE_KEY' not in os.environ)
+          intent = sha(git('rev-parse', 'HEAD').decode().strip())
+          kind = os.environ.get('FROZEN_KIND')
+          need(kind in ('issue', 'prepare'))
+          path = 'audit/state/official-result-recovery-' + ('issue-request.json' if kind == 'issue' else 'prepare-request.json')
+          def pairs(rows):
+              result = {}
+              for key, value in rows:
+                  need(key not in result)
+                  result[key] = value
+              return result
+          request = json.loads(blob(intent, path)[1], object_pairs_hook=pairs)
+          need(type(request) is dict)
+          if kind == 'issue':
+              need(request.get('schema') == 'RACE_AI_OFFICIAL_RESULT_RECOVERY_ISSUE_REQUEST_V2')
+              tested = sha(request.get('tested_execution_head_sha'))
+              need(type(request.get('target')) is dict and request['target'].get('head_sha') == tested)
+          else:
+              need(request.get('schema') == 'RACE_AI_OFFICIAL_RESULT_PLAN_PREPARE_REQUEST_V3')
+              need(type(request.get('verified_code_ancestor')) is dict)
+              tested = sha(request['verified_code_ancestor'].get('head_sha'))
+          actual_workflow = sha(os.environ.get('GITHUB_WORKFLOW_SHA'))
+          need(actual_workflow == os.environ.get('GITHUB_SHA'))
+          for protected in (workflow, bootstrap, 'requirements-history.txt'):
+              expected = blob(tested, protected)
+              need(blob(intent, protected) == expected)
+              if protected == workflow:
+                  need(executed_workflow(actual_workflow) == expected)
+              else:
+                  local = root / protected
+                  need(local.is_file() and not any(p.is_symlink() for p in (local, *local.parents)))
+                  need(local.read_bytes() == expected[1])
+          raw = blob(tested, bootstrap)[1]
+          sys.argv = [str(root / bootstrap), '--git-root', str(root), '--intent-head', intent,
+                      '--kind', kind, '--out-dir', str(Path(os.environ['RUNNER_TEMP']) / 'official-frozen-execution')]
+          exec(compile(raw, str(root / bootstrap), 'exec'), {'__name__': '__main__', '__file__': str(root / bootstrap)})
+          PYTHON
+      - name: Install existing pinned archive authentication dependencies
+        if: (steps.issue_route.outputs.requested == 'true' || steps.issue_route.outputs.prepare_requested == 'true') && steps.frozen_execution.outputs.ready == 'true'
+        working-directory: ${{ steps.frozen_execution.outputs.execution_root }}
+        run: python -I -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Issue one consumed exact-parent capsule and authenticate remote readback
+        id: issue
+        if: steps.issue_route.outputs.requested == 'true' && steps.frozen_execution.outputs.ready == 'true'
+        working-directory: ${{ steps.frozen_execution.outputs.execution_root }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          FROZEN_EXECUTION_ROOT: ${{ steps.frozen_execution.outputs.execution_root }}
+          FROZEN_GIT_ROOT: ${{ steps.frozen_execution.outputs.git_root }}
+          FROZEN_INTENT_HEAD: ${{ steps.frozen_execution.outputs.intent_head }}
+          FROZEN_EXECUTION_HEAD: ${{ steps.frozen_execution.outputs.execution_head }}
+        shell: bash
+        run: |
+          umask 077
+          python -I - <<'PY'
+          from pathlib import Path
+          import os, sys
+          execution = Path(os.environ['FROZEN_EXECUTION_ROOT']).resolve(strict=True)
+          os.chdir(execution)
+          sys.path.insert(0, str(execution))
+          import race_ai
+          race_ai.__path__.append(str(execution.parent / 'pr64-reference' / 'race_ai'))
           from scripts.all_existing_model_official_result_issue import main
-          raise SystemExit(main(['--proof', str(Path(os.environ['RUNNER_TEMP']) / 'official-result-recovery-issue-proof.json')]))
+          raise SystemExit(main(['--proof', str(Path(os.environ['RUNNER_TEMP']) / 'official-result-recovery-issue-proof.json'),
+              '--frozen-git-root', os.environ['FROZEN_GIT_ROOT'], '--frozen-intent-head', os.environ['FROZEN_INTENT_HEAD'],
+              '--frozen-execution-head', os.environ['FROZEN_EXECUTION_HEAD']]))
           PY
       - name: Prepare authenticated unchanged KEIRIN plan without source or issuance
         id: prepare
-        if: steps.issue_route.outputs.prepare_requested == 'true'
+        if: steps.issue_route.outputs.prepare_requested == 'true' && steps.frozen_execution.outputs.ready == 'true'
+        working-directory: ${{ steps.frozen_execution.outputs.execution_root }}
         env:
           GH_TOKEN: ${{ github.token }}
           RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+          FROZEN_EXECUTION_ROOT: ${{ steps.frozen_execution.outputs.execution_root }}
+          FROZEN_GIT_ROOT: ${{ steps.frozen_execution.outputs.git_root }}
+          FROZEN_INTENT_HEAD: ${{ steps.frozen_execution.outputs.intent_head }}
+          FROZEN_EXECUTION_HEAD: ${{ steps.frozen_execution.outputs.execution_head }}
         shell: bash
         run: |
           umask 077
-          python - <<'PY'
+          python -I - <<'PY'
           from pathlib import Path
-          import os, race_ai
-          race_ai.__path__.append(str(Path('pr64-reference/race_ai').resolve()))
+          import os, sys
+          execution = Path(os.environ['FROZEN_EXECUTION_ROOT']).resolve(strict=True)
+          os.chdir(execution)
+          sys.path.insert(0, str(execution))
+          import race_ai
+          race_ai.__path__.append(str(execution.parent / 'pr64-reference' / 'race_ai'))
           from scripts.all_existing_model_official_result_prepare import main
-          raise SystemExit(main(['--out-dir', str(Path(os.environ['RUNNER_TEMP']) / 'official-result-recovery-preparation')]))
+          raise SystemExit(main(['--out-dir', str(Path(os.environ['RUNNER_TEMP']) / 'official-result-recovery-preparation'),
+              '--frozen-git-root', os.environ['FROZEN_GIT_ROOT'], '--frozen-intent-head', os.environ['FROZEN_INTENT_HEAD'],
+              '--frozen-execution-head', os.environ['FROZEN_EXECUTION_HEAD']]))
           PY
       - name: Retain only public hashes, counts and exact target issuance proof
         if: always() && steps.issue_route.outputs.requested == 'true'
@@ -792,14 +917,17 @@ jobs:
       contents: read
       actions: read
     runs-on: ubuntu-24.04
-    # Full Python discovery alone takes over 15 minutes; keep the existing
-    # video/browser checks reachable without adding jobs or source polling.
-    timeout-minutes: 60
+    # Observed full Python runs reached 2,305s; real-codec regressions add
+    # roughly 1,251s. Keep video/browser checks within this same existing job.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           persist-credentials: false
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          filter: blob:none
+          fetch-tags: false
       - name: Checkout pinned PR64 parser for complete Python discovery
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -874,7 +1002,7 @@ jobs:
         shell: bash
         run: |
           if [[ "$(git log -1 --format=%s)" == official-results-collect:* ]]; then
-            python -m scripts.all_existing_model_official_result_recovery --preflight --input audit/state/official-result-recovery-request.json --out-dir "$RUNNER_TEMP/official-result-preflight"
+            python -m scripts.all_existing_model_official_result_recovery --frozen-source --preflight --input audit/state/official-result-recovery-request.json --out-dir "$RUNNER_TEMP/official-result-preflight"
           fi
       - name: Validate history formats, official reconciliation and unchanged model contracts offline
         run: python -m unittest discover -s tests -p 'test_teiai*.py' -v
@@ -924,7 +1052,7 @@ jobs:
           if [[ "$(git log -1 --format=%s)" == official-results-collect:* ]]; then
             export CHROMIUM_PATH="$(node -e 'process.stdout.write(require("playwright").chromium.executablePath())')"
             if [[ -f audit/state/official-result-recovery-request.json ]]; then
-              python -m scripts.all_existing_model_official_result_recovery --input audit/state/official-result-recovery-request.json --out-dir "$RUNNER_TEMP/official-result-collection"
+              python -m scripts.all_existing_model_official_result_recovery --frozen-source --input audit/state/official-result-recovery-request.json --out-dir "$RUNNER_TEMP/official-result-collection"
             else
               echo 'requested=true' >> "$GITHUB_OUTPUT"
               python -m scripts.all_existing_model_official_result_collect --input audit/state/official-result-collect-input.json --out-dir "$RUNNER_TEMP/official-result-collection"
@@ -1122,7 +1250,7 @@ jobs:
               elif kind=='SOURCE' and value.get('schema')=='RACE_AI_JRA_FUTURE_SOURCE_CAPTURE_INPUT_V1':
                   from race_ai.jra_future_source_capture import validate_manifest
                   scope,prefix='horse','official-jra-future-source-capture'
-              elif kind=='RESULT' and value.get('schema')=='RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_INPUT_V1':
+              elif kind=='RESULT' and value.get('schema') in ('RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_INPUT_V1','RACE_AI_ALL_NATIVE_FUTURE_RESULT_CAPTURE_INPUT_V2'):
                   from race_ai.all_existing_model_future_result_capture import validate_manifest
                   scope,prefix='official-result','official-future-result-capture'
               else:raise ValueError('INPUT_SCHEMA')

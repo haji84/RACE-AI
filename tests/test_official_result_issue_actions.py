@@ -76,8 +76,9 @@ class MemoryGithub:
     def read_file(self,commit,path,limit):
         if '/77/2.enc' in path:return self.data['probe_capsule_raw']
         return self.raw
-    def publish_capsule(self,path,raw,expected_parent):
+    def publish_capsule(self,path,raw,expected_parent,*,before_publish=None):
         if self.raw is not None:raise AssertionError('overwrite')
+        if before_publish is not None:before_publish()
         self.published.append(path);self.raw=raw;self.commit='d'*40;return self.commit
 
 
@@ -195,6 +196,49 @@ class ActionsIssueTests(unittest.TestCase):
             reader=github,writer=github,readback=github,key_loader=lambda:KEY,clock=lambda:now)
         self.assertEqual(github.published,[])
 
+    def test_publication_callback_rechecks_real_scope_and_expiry_before_writing(self):
+        api=self.api()
+        for change in ('pr','expired'):
+            data,now=self.fixture();clock=[now]
+            class LateChange(MemoryGithub):
+                callback_seen=False
+                def publish_capsule(self,path,raw,expected_parent,*,before_publish=None):
+                    self.callback_seen=callable(before_publish)
+                    if change=='pr':self.pr['head']['sha']='c'*40
+                    else:clock[0]=now+timedelta(hours=2)
+                    before_publish()
+                    raise AssertionError('changed permission was published')
+            github=LateChange(data)
+            with tempfile.TemporaryDirectory() as directory:
+                root=Path(directory)
+                for path,raw in PLAN_BYTES.items():
+                    target=root/path;target.parent.mkdir(parents=True,exist_ok=True);target.write_bytes(raw)
+                with self.subTest(change=change),patch.object(api.collector,'ROOT',root),self.assertRaises(ValueError):
+                    api.issue_once(snapshot=MemorySnapshot(data),issuer_run_id=99,reader=github,
+                        writer=github,readback=github,key_loader=lambda:KEY,clock=lambda:clock[0])
+            self.assertTrue(github.callback_seen)
+            self.assertEqual(github.published,[])
+
+    def test_unconfirmed_publication_hashes_remain_a_hold_not_a_source_grant(self):
+        from race_ai.all_existing_model_official_issue_transport import PublicationUnconfirmed
+        api=self.api();output=io.StringIO()
+        error=PublicationUnconfirmed('f'*40,'recovery/official-results/'+'1'*64+'/'+
+            '2'*40+'/77/2.enc',b'synthetic-cipher','a'*40)
+        with tempfile.TemporaryDirectory() as directory:
+            proof=Path(directory)/'proof.json'
+            with patch.dict(os.environ,{'RUNNER_TEMP':directory}), \
+                    patch.object(api,'trusted_environment',return_value={'head_sha':ISSUER,'run_id':99}), \
+                    patch.object(api,'GitSnapshot'),patch.object(api,'GithubIssueTransport'), \
+                    patch.object(api,'issue_once',side_effect=error),redirect_stdout(output):
+                self.assertEqual(api.main(['--proof',str(proof)]),0)
+            result=json.loads(proof.read_bytes())
+        self.assertFalse(result['ready']);self.assertEqual(result['source_requests'],0)
+        self.assertFalse(result['independent_git_readback_verified'])
+        self.assertEqual(result['reason'],'OFFICIAL_ISSUE_TRANSPORT_PUBLICATION_UNCONFIRMED')
+        self.assertEqual(result['publication_attempt']['commit_sha'],'f'*40)
+        self.assertEqual(result['publication_attempt']['state'],'UNCONFIRMED_DO_NOT_REISSUE')
+        self.assertNotIn('synthetic-cipher',output.getvalue())
+
     def test_previous_missing_journal_or_incomplete_source_outcome_cannot_be_skipped(self):
         api=self.api()
         for change in ('missing','unknown','denied'):
@@ -234,9 +278,9 @@ class IssuerWorkflowTests(unittest.TestCase):
         route=next(block for block in steps if re.search(r'^        id: issue_route$',block,re.M))
         execute=next(block for block in steps if re.search(r'^        id: issue$',block,re.M))
         self.assertLess(steps.index(route),steps.index(execute))
-        self.assertIn("        if: steps.issue_route.outputs.requested == 'true'\n",execute)
+        self.assertIn("        if: steps.issue_route.outputs.requested == 'true' && steps.frozen_execution.outputs.ready == 'true'\n",execute)
         prepare=next(block for block in steps if re.search(r'^        id: prepare$',block,re.M))
-        self.assertIn("        if: steps.issue_route.outputs.prepare_requested == 'true'\n",prepare)
+        self.assertIn("        if: steps.issue_route.outputs.prepare_requested == 'true' && steps.frozen_execution.outputs.ready == 'true'\n",prepare)
         self.assertEqual([block for block in steps if 'RACE_AI_STATE_KEY:' in block],[execute,prepare])
         self.assertFalse(re.search(r'^  schedule:',raw,re.M))
         for name,other in jobs.items():

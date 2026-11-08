@@ -72,6 +72,41 @@ class PrepareSnapshot(issue.GitSnapshot):
             issuer_parent=dict(head_sha=immediate,parents=parents,changed_files=[I.ISSUE_PATH],subject=subject,issue_raw=issue_raw))
 
 
+class FrozenPrepareSnapshot:
+    """Read intent data separately from the whole tested package executing us."""
+    def __init__(self,git_root,intent_head,execution_head,*,reader):
+        from scripts.official_frozen_execution import FrozenGitSnapshot
+        self._git_root=Path(git_root);self._intent_head=intent_head;self._execution_head=execution_head
+        self._source=FrozenGitSnapshot(git_root,intent_head,execution_head,reader=reader,kind='prepare')
+        self.facts=self._source.facts
+    def read(self,head,path,limit):return self._source.read(head,path,limit)
+    def commit_facts(self,head):return self._source.commit_facts(head)
+    def is_ancestor(self,before,after):return self._source.is_ancestor(before,after)
+    def issue_history(self,head):return self._source.issue_history(head)
+    def refresh(self,current_pr):
+        self.facts=self._source.refresh(current_pr);return self.facts
+    def execution_witness(self,reader):
+        from scripts.official_frozen_execution import execution_witness
+        proof=execution_witness(self._git_root,ROOT,self._intent_head,self._execution_head,reader=reader)
+        self._source.facts.update(proof);self.facts=self._source.facts;return proof
+    def prepare_facts(self,value):
+        P.need(value['schema']==P.SCHEMA_V3,'FROZEN_REQUEST_REQUIRED')
+        head=self.facts['head_sha'];code=value['verified_code_ancestor']['head_sha']
+        binding=self.facts.get('frozen_binding');P.need(type(binding) is dict,'FROZEN_BINDING_FIELDS')
+        source=self.facts.get('source_issue_head');P.need(I._hex(source),'FROZEN_SOURCE_ISSUE')
+        current=self.commit_facts(head);anchor=self.commit_facts(source);history=self.issue_history(head)
+        P.need(type(current.get('parents')) is list and len(current['parents'])==1 and
+            type(anchor.get('parents')) is list and len(anchor['parents'])==1 and
+            type(history) is list and history and history[0]==source,'FROZEN_PREPARATION_LINEAGE')
+        raw=self.read(source,I.ISSUE_PATH,16384)
+        P.need(type(raw) is bytes and raw==self.facts.get('latest_issue_raw'),'FROZEN_ACTIVE_ISSUE_BYTES')
+        return dict(self.facts,**{k:current[k] for k in ('parents','subject','changed_files')},
+            source_issue_head=source,latest_issue_head_sha=source,source_issue_commit=anchor,
+            preparation_raw=self.read(head,P.PATH,32768),
+            source_is_ancestor=self.is_ancestor(code,head),source_issue_is_ancestor=self.is_ancestor(source,current['parents'][0]),
+            source_parent_is_code_descendant=self.is_ancestor(code,anchor['parents'][0]))
+
+
 def executed_workflow(reader,head,tested_blob):
     """Bind actual PR-merge workflow to the tested code using existing GETs."""
     commit=os.environ.get('GITHUB_WORKFLOW_SHA')
@@ -100,17 +135,30 @@ def executed_workflow(reader,head,tested_blob):
 
 
 def _context(value,snapshot,prepare_run_id,reader,now):
-    reused=value['schema']==P.SCHEMA_V2
+    frozen=value['schema']==P.SCHEMA_V3;reused=value['schema'] in (P.SCHEMA_V2,P.SCHEMA_V3)
+    current_pr=reader.json('pulls/71') if frozen else None
+    if frozen:
+        snapshot.refresh(current_pr);witness=snapshot.execution_witness(reader)
+        P.need(type(witness) is dict and set(witness)=={'frozen_code_execution','current_pr_code_executed','executed_workflow'} and
+            witness['frozen_code_execution'] is True and witness['current_pr_code_executed'] is False,'FROZEN_RUNTIME_WITNESS')
     parent=value['verified_code_ancestor' if reused else 'verified_parent'];source=value['previous_source'];facts=snapshot.prepare_facts(value)
-    extra={'executed_workflow':executed_workflow(reader,facts['head_sha'],facts['tested_workflow_blob'])} if reused else {}
+    extra=({'executed_workflow':witness['executed_workflow']} if frozen else
+        {'executed_workflow':executed_workflow(reader,facts['head_sha'],facts['tested_workflow_blob'])} if reused else {})
+    if frozen:extra['source_second_jobs']=reader.json('actions/runs/'+str(source['run_id'])+'/attempts/2/jobs?per_page=100')
     context=P.admit_context(value,prepare_run=reader.json('actions/runs/'+str(prepare_run_id)),
-        current_pr=reader.json('pulls/71'),snapshot=facts,
+        current_pr=current_pr if frozen else reader.json('pulls/71'),snapshot=facts,
         parent_current=reader.json('actions/runs/'+str(parent['run_id'])),
         parent_first=reader.json('actions/runs/'+str(parent['run_id'])+'/attempts/1'),
         parent_jobs=reader.json('actions/runs/'+str(parent['run_id'])+'/attempts/1/jobs?per_page=100'),
         source_current=reader.json('actions/runs/'+str(source['run_id'])),
         source_first=reader.json('actions/runs/'+str(source['run_id'])+'/attempts/1'),
         source_jobs=reader.json('actions/runs/'+str(source['run_id'])+'/attempts/1/jobs?per_page=100'),now=now,**extra)
+    if frozen:
+        latest=I.validate_issue_request(read_json_bytes(facts['latest_issue_raw']))
+        failed=issue.failed_dispositions(snapshot,latest,reader,now=now,published=True)
+        context['failed_issue_dispositions']=failed
+        context['source_issue_continuity']=issue.source_continuity(snapshot,latest,
+            read_json_bytes(facts['recovery_raw']),reader,verified_failed=failed)
     return context,facts
 
 
@@ -162,18 +210,36 @@ def prepare_once(*,snapshot,prepare_run_id,reader,key_loader,clock=utc_now):
     result=P.prepare_from_evidence(value,data,context=context,run_id=prepare_run_id,head_sha=snapshot.facts['head_sha'],now=clock(),key=key)
     fresh,_=_context(value,snapshot,prepare_run_id,reader,clock())
     P.need(digest_context(context)==digest_context(fresh),'PREPARATION_CONTEXT_CHANGED')
+    if value['schema']==P.SCHEMA_V3:
+        result['counts']['admitted_current_pr_head']=fresh['admitted_current_pr_head'];P.validate_frozen_counts(result['counts'])
     P.need(all(R.run_receipt(reader.json('actions/runs/'+str(n)))==R.run_receipt(run) for n,run in runs.items()),'PRIOR_TERMINAL_CHANGED')
     return result
 
 
 def digest_context(value):
-    from race_ai.actions_contract import digest
-    return digest(value)
+    return P.context_digest(value)
 
 
 def output_root(value,env):
     raw=Path(value);P.need(raw.is_absolute(),'ABSOLUTE_PRIVATE_OUTPUT')
     root=future.output_path(raw,env);P.need(not root.exists(),'FRESH_PRIVATE_OUTPUT');return root
+
+
+def frozen_options(args,env):
+    values=(args.frozen_git_root,args.frozen_intent_head,args.frozen_execution_head)
+    if not any(value is not None for value in values):return None
+    P.need(all(type(value) is str and value for value in values) and I._hex(args.frozen_intent_head) and
+        I._hex(args.frozen_execution_head) and args.frozen_intent_head==env['head_sha'],'FROZEN_OPTIONS')
+    data=Path(args.frozen_git_root);code=ROOT.resolve();temp=Path(env['temp']).resolve()
+    P.need(data.is_absolute() and '..' not in data.parts and data.is_dir() and
+        not any(p.is_symlink() for p in (data,*data.parents)) and data.resolve()!=code and
+        code.is_relative_to(temp) and not any(p.is_symlink() for p in (ROOT,*ROOT.parents)) and
+        stat.S_ISDIR(ROOT.lstat().st_mode) and ROOT.lstat().st_uid==os.getuid() and
+        stat.S_IMODE(ROOT.lstat().st_mode)==0o700,'PRIVATE_FROZEN_CODE_ROOT')
+    result=issue.subprocess.run(['git','--no-replace-objects','rev-parse','HEAD'],cwd=code,capture_output=True,
+        check=False,timeout=30,env=dict(PATH=os.environ.get('PATH',''),GIT_CONFIG_NOSYSTEM='1',GIT_CONFIG_GLOBAL=os.devnull))
+    P.need(result.returncode==0 and result.stdout.strip()==args.frozen_execution_head.encode(),'FROZEN_EXECUTION_HEAD')
+    return dict(git_root=data.resolve(),intent_head=args.frozen_intent_head,execution_head=args.frozen_execution_head)
 
 
 COUNT_FIELDS=frozenset(('schema','state','ready','kind','prepare_run_id','prepare_head_sha','prepared_at',
@@ -190,12 +256,15 @@ def write_outputs(root,value):
     from race_ai.actions_contract import digest
     P.need(type(value) is dict and set(value)=={'plan_cipher','request','counts'},'EXACT_PREPARATION_OUTPUTS')
     counts=value['counts'];raw=value['plan_cipher'];request=value['request']
+    frozen=type(counts) is dict and counts.get('schema')==P.COUNTS_V3
     reused=type(counts) is dict and counts.get('schema')==P.COUNTS_V2
-    P.need(type(counts) is dict and set(counts)<=COUNT_FIELDS|(REUSED_COUNT_FIELDS if reused else frozenset()) and
-        counts.get('schema') in (P.COUNTS,P.COUNTS_V2) and
+    extra=P.FROZEN_COUNT_FIELDS if frozen else REUSED_COUNT_FIELDS if reused else frozenset()
+    P.need(type(counts) is dict and set(counts)<=COUNT_FIELDS|extra|({'verified_code_ancestor'} if frozen else set()) and
+        counts.get('schema') in (P.COUNTS,P.COUNTS_V2,P.COUNTS_V3) and
         counts.get('ready') is True and type(raw) is bytes and 0<len(raw)<=MAX_WIRE and
         counts.get('plan_cipher_sha256')==request['manifest']['plan_sha256']==sha256(raw).hexdigest() and
         counts.get('recovery_request_sha256')==digest(request),'OUTPUT_HASHES_OR_FIELDS')
+    if frozen:P.validate_frozen_counts(counts)
     if reused:
         P.need(REUSED_COUNT_FIELDS<=set(counts) and 'verified_parent' not in counts and
             counts['reused_code_ancestor'] is True and counts['parent_whole_first_verified'] is False,
@@ -231,17 +300,24 @@ def hold_counts(root,status):
 
 
 def main(argv=None):
-    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--out-dir',required=True);args=parser.parse_args(argv)
+    parser=argparse.ArgumentParser(description=__doc__);parser.add_argument('--out-dir',required=True)
+    parser.add_argument('--frozen-git-root');parser.add_argument('--frozen-intent-head');parser.add_argument('--frozen-execution-head')
+    args=parser.parse_args(argv)
     status=dict(schema=P.COUNTS,state='HOLD_SOURCE_FREE_PREPARATION',ready=False,source_requests=0,grants_issued=0,
         public_files_written=0,old_source_requests_actual=None,old_source_requests_upper_bound=32,
         plaintext_published=False,production_promoted=False,actual_purchases=False);trusted=False;root=None
     try:
         env=issue.trusted_environment();trusted=True
         env['temp']=Path(os.environ['RUNNER_TEMP']).resolve();root=output_root(args.out_dir,env)
-        snapshot=PrepareSnapshot(ROOT,env['head_sha'])
-        # Working input must still be the sole committed intent byte-for-byte.
-        P.need(snapshot.read(env['head_sha'],P.PATH,32768)==_read(ROOT/P.PATH,32768),'IMMUTABLE_PREPARATION_INTENT')
-        result=prepare_once(snapshot=snapshot,prepare_run_id=env['run_id'],reader=ReadOnlyGithub(),
+        options=frozen_options(args,env)
+        if options is None:
+            snapshot=PrepareSnapshot(ROOT,env['head_sha'])
+            # Legacy working input remains the sole committed intent.
+            P.need(snapshot.read(env['head_sha'],P.PATH,32768)==_read(ROOT/P.PATH,32768),'IMMUTABLE_PREPARATION_INTENT')
+            reader=ReadOnlyGithub()
+        else:
+            reader=ReadOnlyGithub();snapshot=FrozenPrepareSnapshot(**options,reader=reader)
+        result=prepare_once(snapshot=snapshot,prepare_run_id=env['run_id'],reader=reader,
             key_loader=lambda:state_key('production'),clock=utc_now)
         write_outputs(root,result);status=result['counts']
     except Exception as exc:

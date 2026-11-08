@@ -89,9 +89,11 @@ def wire(value):
     return (json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(',', ':'), allow_nan=False)+'\n').encode()
 
 
-def environment(*, phase=None):
-    mark(phase, 'OWNER_KEY')
-    state_key('production')
+def environment(*, phase=None, check_owner_key=True):
+    need(type(check_owner_key) is bool, 'OWNER_KEY_CHECK_FLAG')
+    if check_owner_key:
+        mark(phase, 'OWNER_KEY')
+        state_key('production')
     mark(phase, 'ENVIRONMENT')
     need(os.environ.get('GITHUB_ACTIONS') == 'true' and os.environ.get('GITHUB_REPOSITORY') == 'haji84/RACE-AI'
          and os.environ.get('GITHUB_REPOSITORY_ID') == '1416489937', 'TRUSTED_ACTIONS_REQUIRED')

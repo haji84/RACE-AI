@@ -162,9 +162,13 @@ def retain(raw_zip,exactmetadata_raw,frozen_native_payloads,repo,*,expected_pare
         if git.exists(parent,path):
             cipher=git.read(parent,path,store.MAX_WIRE)
             previous=_material(store.open_forecasts(cipher,key=key),key=key)
-            need(previous['raw_zip']==raw_zip and previous['metadata_raw']==exactmetadata_raw and
-                 previous['payload']['admission_receipt']==admitted['receipt'] and
-                 previous['payload']['allow_order_only']==allow_order_only,'IMMUTABLE_ORIGINAL_CONFLICT')
+            # Both admissions have already replayed independently: the current
+            # inputs above, and the stored original context in _material. A
+            # larger current native cohort or research-mode flag is not a
+            # change to these exact immutable ZIP/metadata bytes. Keep the
+            # original admission receipt, mode and archive clock untouched.
+            need(previous['raw_zip']==raw_zip and previous['metadata_raw']==exactmetadata_raw,
+                 'IMMUTABLE_ORIGINAL_CONFLICT')
             pointer=_pointer(cipher,parent,previous)
         else:
             round_no=int(metadata['name'].rsplit('-',1)[1])

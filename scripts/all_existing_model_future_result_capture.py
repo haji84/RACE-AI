@@ -25,6 +25,7 @@ from race_ai import all_existing_model_official_recovery as recovery
 from race_ai import official_future_horse_result as horse
 from race_ai.boat_all_model_store import seal_forecasts,open_forecasts,forecast_header,MAX_WIRE
 from race_ai.boat_pdca_state import state_key
+from race_ai import boat_private_original_archive as originals
 from race_ai.permissioned_source_delivery import read_json_bytes
 from scripts import all_existing_model_future_source_capture as common
 from scripts import all_existing_model_official_result_collect as C
@@ -34,6 +35,8 @@ from scripts.boat_history_collect import save
 
 need=core.need
 MAX_ARCHIVE=common.MAX_ARCHIVE
+REPLAY_SCHEMA='RACE_AI_FORWARD_ORIGINAL_BATCH_ARCHIVES_V1'
+MAX_REPLAY_CIPHER=48*1024*1024
 
 
 def utc_now():return datetime.now(timezone.utc)
@@ -49,10 +52,87 @@ def _open(raw,env,key):
 
 
 def _admit(manifest,*,now,key,transport,manifest_at=None):
-    forecast=transport.archive(manifest['forecast_artifact']);origin=transport.archive(manifest['origin_artifact'])
-    admitted=core.admit_forecast(manifest,forecast_raw=forecast['raw'],forecast_metadata=forecast['metadata'],
-        origin_raw=origin['raw'],origin_metadata=origin['metadata'],now=now,key=key,manifest_at=manifest_at)
-    proof=core.admit_native_sources(admitted,[transport.archive(p) for p in admitted['source_input_artifacts']],now=now,key=key)
+    if manifest['schema']==core.SCHEMA_V2:
+        batches=[dict(future=transport.archive(p['future_artifact']),origin=transport.archive(p['origin_artifact']))
+                 for p in manifest['forecast_batches']]
+        admitted=core.admit_forecast(manifest,batch_archives=batches,now=now,key=key,manifest_at=manifest_at)
+    else:
+        forecast=transport.archive(manifest['forecast_artifact']);origin=transport.archive(manifest['origin_artifact'])
+        admitted=core.admit_forecast(manifest,forecast_raw=forecast['raw'],forecast_metadata=forecast['metadata'],
+            origin_raw=origin['raw'],origin_metadata=origin['metadata'],now=now,key=key,manifest_at=manifest_at)
+    sources=[transport.archive(p) for p in admitted['source_input_artifacts']]
+    proof=core.admit_native_sources(admitted,sources,now=now,key=key)
+    if manifest['schema']==core.SCHEMA_V2:
+        need(sum(len(item['raw']) for batch in batches for item in batch.values())+
+             sum(len(item['raw']) for item in sources)<=MAX_REPLAY_CIPHER,'ORIGINAL_BATCH_REPLAY_BOUND')
+        admitted['_replay_originals']=dict(batches=batches,source_archives=sources)
+    return admitted,proof
+
+
+def seal_retained_forecasts(admitted,env,key):
+    """Retain exact ZIP bytes under a specific existing-AES envelope kind."""
+    private=admitted['_replay_originals'];members={};total=0
+    def retained(item):
+        nonlocal total
+        name='forecast-original-'+str(len(members)).zfill(3)+'.enc';raw=item['raw']
+        need(len(members)<24 and 0<len(raw)<MAX_WIRE-65536,'ORIGINAL_BATCH_MEMBER_BOUND')
+        cipher=originals.seal_forecast_batch_original_zip(raw,run_id=env['run_id'],head_sha=env['head_sha'],key=key)
+        total+=len(cipher);need(len(cipher)<=MAX_WIRE and total<=MAX_REPLAY_CIPHER,'ORIGINAL_BATCH_REPLAY_BOUND')
+        members[name]=cipher
+        return dict(file=name,raw_size=len(raw),raw_sha256=sha256(raw).hexdigest(),cipher_sha256=sha256(cipher).hexdigest(),
+                    metadata=deepcopy(item['metadata']))
+    index=dict(schema=REPLAY_SCHEMA,batches=[{k:retained(batch[k]) for k in ('future','origin')} for batch in private['batches']],
+               source_archives=[retained(item) for item in private['source_archives']])
+    members['forecast-batches.enc']=_seal(index,env,key)
+    return members
+
+
+def _source_capacity(members,plan_cipher,reservation_cipher,once_cipher):
+    # Existing MAX_RAW is 8 MiB: reserve 16 MiB for its base64, all 128 file
+    # headers/paths, and inventory overhead; collection keeps its old 24 MiB.
+    need(common.MAX_RAW<=8*1024*1024,'ORIGINAL_RAW_BUDGET_CHANGED')
+    fixed=sum(map(len,members.values()))+len(plan_cipher)+len(reservation_cipher)+len(once_cipher)
+    need(fixed+24*1024*1024+65536+16*1024*1024+1024*1024<=MAX_ARCHIVE,
+         'WHOLE_SOURCE_ARCHIVE_CAPACITY_BEFORE_DISPATCH')
+
+
+def replay_retained_forecasts(journal,source,env,*,now,key):
+    """Re-admit exact original ZIP bytes, never construct a combined origin."""
+    need(journal['manifest']['schema']==core.SCHEMA_V2 and 'forecast-batches.enc' in source,'ORIGINAL_BATCH_BUNDLE_REQUIRED')
+    bundle=_open(source['forecast-batches.enc'],env,key)
+    need(type(bundle) is dict and set(bundle)=={'schema','batches','source_archives'} and
+        bundle['schema']==REPLAY_SCHEMA and type(bundle['batches']) is list and
+        len(bundle['batches'])==len(journal['manifest']['forecast_batches']) and
+        type(bundle['source_archives']) is list and 1<=len(bundle['source_archives'])<=16,'ORIGINAL_BATCH_BUNDLE_FIELDS')
+    used=[];total=0
+    def original(value):
+        nonlocal total
+        need(type(value) is dict and set(value)=={'file','raw_size','raw_sha256','cipher_sha256','metadata'} and
+            type(value['metadata']) is dict and value['file']=='forecast-original-'+str(len(used)).zfill(3)+'.enc' and
+            len(used)<24 and value['file'] in source,'ORIGINAL_BATCH_MEMBER')
+        name=value['file'];cipher=source[name];total+=len(cipher)
+        need(0<len(cipher)<=MAX_WIRE and total<=MAX_REPLAY_CIPHER and
+            sha256(cipher).hexdigest()==value['cipher_sha256'],'ORIGINAL_BATCH_CIPHER')
+        raw=originals.open_forecast_batch_original_zip(cipher,run_id=env['run_id'],head_sha=env['head_sha'],
+            key=key,max_plain_zip_bytes=MAX_WIRE)
+        need(type(value['raw_size']) is int and len(raw)==value['raw_size'] and
+            sha256(raw).hexdigest()==value['raw_sha256'],'ORIGINAL_BATCH_BYTES')
+        used.append(name)
+        return dict(raw=raw,metadata=deepcopy(value['metadata']))
+    batches=[]
+    for batch in bundle['batches']:
+        need(type(batch) is dict and set(batch)=={'future','origin'},'ORIGINAL_BATCH_PAIR')
+        batches.append({k:original(v) for k,v in batch.items()})
+    admitted=core.admit_forecast(journal['manifest'],batch_archives=batches,now=now,key=key,
+        manifest_at=journal['epoch_started_at'])
+    proof=core.admit_native_sources(admitted,[original(v) for v in bundle['source_archives']],now=now,key=key)
+    need({name for name in source if re.fullmatch(r'forecast-original-[0-9]{3}\.enc',name)}==set(used),
+         'ORIGINAL_BATCH_EXACT_MEMBERS')
+    retained=journal['native_source_proof'];history_fields={'authenticated_future_source_sports','original_future_source_journals_joined'}
+    need(admitted['forecast_identity']==journal['forecast_identity'] and set(retained)==set(proof)|history_fields and
+        all(retained[k]==v for k,v in proof.items()) and retained['authenticated_future_source_sports']==sorted(core.SPORTS) and
+        retained['original_future_source_journals_joined'] is True,'ORIGINAL_BATCH_REPLAY_BINDING')
+    admitted['_replay_member_names']=used
     return admitted,proof
 
 
@@ -216,6 +296,7 @@ def generate(manifest,root,env,*,marker_transport=None,clock=utc_now,browser=com
     common._node_environment();key=state_key('production');transport=marker_transport or core.MarkerTransport()
     need(transport.read_file(transport.head(),core.PATH,MAX_WIRE) is None,'ONCE_ALREADY_CONSUMED')
     admitted,source_proof=_admit(manifest,now=now,key=key,transport=transport)
+    now=clock();core.validate_manifest(manifest,now=now)
     need(all(r['training']['scope']=='OPERATOR_SUPPLIED_RESEARCH' for r in admitted['records']),'REAL_THIRTY_FORECAST_REQUIRED')
     selected_horse=next(i for i in admitted['cases'] if i['case']['sport']=='horse')
     horse._case(selected_horse['case'],selected_horse['native_payload'],now)
@@ -225,9 +306,9 @@ def generate(manifest,root,env,*,marker_transport=None,clock=utc_now,browser=com
     midnight=now.astimezone(C.JST).replace(hour=0,minute=0,second=0,microsecond=0)+timedelta(days=1)
     plan=core.prepare_plan(manifest,admitted,now=now,expires_at=min(now+timedelta(hours=1),midnight),static_cache=assets)
     body=core.marker_body(manifest,env,admitted,history,plan,now=now)
-    root.mkdir(mode=0o700);source=root/'source';source.mkdir(mode=0o700)
+    source=root/'source'
     directory=root.with_name(root.name+'.browser')
-    journal=dict(schema=core.JOURNAL,state='RESERVED',manifest=deepcopy(manifest),manifest_sha256=digest(manifest),
+    journal=dict(schema=core.JOURNAL_V2 if manifest['schema']==core.SCHEMA_V2 else core.JOURNAL,state='RESERVED',manifest=deepcopy(manifest),manifest_sha256=digest(manifest),
         workflow_run_id=env['run_id'],code_sha=env['head_sha'],execution_day=manifest['execution_day'],
         epoch_started_at=now.isoformat(),completed_at=now.isoformat(),maximum_requests=32,
         forecast_identity=admitted['forecast_identity'],native_source_proof=source_proof,
@@ -236,7 +317,14 @@ def generate(manifest,root,env,*,marker_transport=None,clock=utc_now,browser=com
         attempts=[],captures=[],direct_captures=[],observations=[],capture_inventory=[],capture_directory_present=False,
         raw_retention_complete=False,source_requests_actual=None,source_request_upper_bound=32)
     def persist():save(source/'collection.enc',_seal(journal,env,key),replace=(source/'collection.enc').exists())
-    _write(source/'reservation.enc',_seal(journal,env,key));_write(source/'plan.enc',_seal(plan,env,key));persist()
+    plan_cipher=_seal(plan,env,key);reservation_cipher=_seal(journal,env,key);retained={}
+    if manifest['schema']==core.SCHEMA_V2:
+        retained=seal_retained_forecasts(admitted,env,key)
+        _source_capacity(retained,plan_cipher,reservation_cipher,core.issue_marker(body,key))
+    _wire_window(plan,clock())
+    root.mkdir(mode=0o700);source.mkdir(mode=0o700)
+    for name,cipher in retained.items():_write(source/name,cipher)
+    _write(source/'reservation.enc',reservation_cipher);_write(source/'plan.enc',plan_cipher);persist()
     index=None;process_finished=False;browser_count=None;observations=[];captures=[]
     try:
         once=core.reserve(body,key,transport,now=clock());raw=once.pop('_ciphertext');_write(source/'once.enc',raw)
@@ -322,18 +410,20 @@ def source_archive(raw,actual,env,*,now,key):
     source={};used=0
     need(raw.startswith(b'PK\x03\x04') and raw[-22:-18]==b'PK\x05\x06' and raw[-2:]==b'\0\0','SOURCE_ZIP_ENVELOPE')
     with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-        entries=archive.infolist();need(3<=len(entries)<=132 and not archive.comment,'SOURCE_ZIP_BOUND')
+        entries=archive.infolist();limit=157 if any(e.filename=='forecast-batches.enc' for e in entries) else 132
+        need(3<=len(entries)<=limit and not archive.comment,'SOURCE_ZIP_BOUND')
         for entry in entries:
             name=entry.filename
             need(name==entry.orig_filename and name not in source and re.fullmatch(
-                r'(?:reservation|plan|collection|once|raw-[0-9]{3}-[a-f0-9]{64})\.enc',name) and
+                r'(?:reservation|plan|collection|once|forecast-batches|forecast-original-[0-9]{3}|raw-[0-9]{3}-[a-f0-9]{64})\.enc',name) and
                 stat.S_IFMT(entry.external_attr>>16) in (0,stat.S_IFREG) and not entry.flag_bits&0x41 and
                 entry.compress_type in (zipfile.ZIP_STORED,zipfile.ZIP_DEFLATED) and 0<entry.file_size<=MAX_WIRE,'SOURCE_ZIP_MEMBER')
             used+=entry.file_size;need(used<=MAX_ARCHIVE,'SOURCE_ZIP_TOTAL')
             with archive.open(entry) as member:source[name]=member.read(MAX_WIRE+1)
             need(len(source[name])==entry.file_size,'SOURCE_ZIP_SIZE')
     journal=_open(source['collection.enc'],env,key);reservation=_open(source['reservation.enc'],env,key)
-    need(journal['schema']==reservation['schema']==core.JOURNAL and reservation['state']=='RESERVED' and
+    expected_schema=core.JOURNAL_V2 if journal['manifest'].get('schema')==core.SCHEMA_V2 else core.JOURNAL
+    need(journal['schema']==reservation['schema']==expected_schema and reservation['state']=='RESERVED' and
         journal['state']=='CAPTURE_RETAINED' and journal['manifest_sha256']==digest(journal['manifest']) and
         type(journal['maximum_requests']) is int and journal['maximum_requests']==32 and
         type(journal['browser_reserved_upper_bound']) is int and journal['browser_reserved_upper_bound']==30 and
@@ -361,6 +451,9 @@ def source_archive(raw,actual,env,*,now,key):
         count==journal['browser_index']['actual_request_count']+len(journal['attempts']) and
         _direct_known(journal,files,plan),'SOURCE_COUNT_TRUTH')
     expected={'reservation.enc','plan.enc','collection.enc'}|{i['cipher_file'] for i in journal['capture_inventory'] if i['status']=='RETAINED'}
+    if journal['manifest']['schema']==core.SCHEMA_V2:
+        replayed,_=replay_retained_forecasts(journal,source,env,now=now,key=key)
+        expected|={'forecast-batches.enc',*replayed['_replay_member_names']}
     if 'once.enc' in source:
         audit=core.validate_marker(source['once.enc'],journal['once_body'],key,now=core.clock(journal['epoch_started_at']))
         need(set(journal['once_proof'])==set(audit)|{'commit_sha'} and all(journal['once_proof'][k]==v for k,v in audit.items()),'SOURCE_MARKER_PROOF')

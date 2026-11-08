@@ -239,6 +239,17 @@ class TransportTests(unittest.TestCase):
                 module.GithubIssueTransport().head()
         self.assertEqual(run.call_count, 1)
 
+    def test_default_gh_denial_statuses_stop_without_exposing_private_stderr(self):
+        module = self.module()
+        for status in (401, 403, 429):
+            with self.subTest(status=status):
+                result = subprocess.CompletedProcess([], 1, b'private output',
+                    ('private token (HTTP ' + str(status) + ')').encode())
+                with patch.object(module.subprocess, 'run', return_value=result) as run:
+                    with self.assertRaisesRegex(ValueError, '^OFFICIAL_ISSUE_TRANSPORT_GITHUB_DENIED$'):
+                        module.GithubIssueTransport().head()
+                self.assertEqual(run.call_count, 1)
+
 
 if __name__ == '__main__':
     unittest.main()

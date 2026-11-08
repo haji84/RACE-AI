@@ -32,6 +32,7 @@ MAX_ENTRIES = 10000
 MAX_HEADER = 8192
 MAX_OVERHEAD = 64*1024
 KINDS = frozenset(('P0', 'P1', 'RESULT', 'CONTINUITY'))
+FORECAST_BATCH_ORIGINAL_KIND = 'FORECAST_BATCH_ORIGINAL'
 PREFIXES = {'P0': 'boat-p0-existing', 'P1': 'boat-national-cutoff',
             'RESULT': 'race-existing-cycle', 'CONTINUITY': 'race-cycle-continuity'}
 _HEAD = re.compile(r'[a-f0-9]{40}\Z')
@@ -124,13 +125,14 @@ def _checked_zip(raw, *, max_zip_bytes, max_expanded=None):
         raise
 
 
-def _header(value):
+def _header(value, *, allow_forecast_batch_original=False):
     fields = {'schema', 'purpose', 'repository_id', 'run_id', 'head_sha', 'kind',
               'plain_zip_sha256', 'plain_zip_size', 'encoding'}
     _need(type(value) is dict and set(value) == fields and value['schema'] == SCHEMA
           and value['purpose'] == PURPOSE and value['repository_id'] == REPO_ID
           and value['encoding'] == 'zip' and type(value['kind']) is str
-          and value['kind'] in KINDS, 'HEADER_INVALID')
+          and (value['kind'] in KINDS or allow_forecast_batch_original and
+               value['kind'] == FORECAST_BATCH_ORIGINAL_KIND), 'HEADER_INVALID')
     _need(type(value['run_id']) is str and _run(value['run_id']) == value['run_id']
           and type(value['head_sha']) is str and _HEAD.fullmatch(value['head_sha'])
           and type(value['plain_zip_sha256']) is str and _SHA.fullmatch(value['plain_zip_sha256']), 'HEADER_IDENTITY_INVALID')
@@ -151,7 +153,7 @@ def _key(key=None):
                 info=DOMAIN).derive(state_key('production', key))
 
 
-def _split(raw):
+def _split(raw, *, allow_forecast_batch_original=False):
     _need(type(raw) is bytes and 40 < len(raw) <= min(MAX_WIRE, MAX_PLAIN_ZIP+MAX_OVERHEAD)
           and raw.startswith(MAGIC), 'ENVELOPE_INVALID')
     size = struct.unpack('>I', raw[8:12])[0]
@@ -167,7 +169,8 @@ def _split(raw):
         # Header parsing is stdlib-only too: the shared recipient JSON helper
         # belongs to a crypto-backed module that legacy readers do not need.
         header = _header(json.loads(encoded.decode('utf-8'), object_pairs_hook=unique,
-                                    parse_constant=lambda _: _need(False, 'HEADER_INVALID')))
+                                    parse_constant=lambda _: _need(False, 'HEADER_INVALID')),
+                         allow_forecast_batch_original=allow_forecast_batch_original)
     except (ValueError, TypeError, RecursionError, OverflowError):
         raise ValueError('PRIVATE_ORIGINAL_HEADER_INVALID') from None
     _need(_wire(header) == encoded, 'HEADER_NONCANONICAL')
@@ -176,12 +179,12 @@ def _split(raw):
     return header, encoded, nonce, cipher
 
 
-def _open_envelope(raw, *, key=None, max_plain_zip_bytes=MAX_PLAIN_ZIP):
+def _open_envelope(raw, *, key=None, max_plain_zip_bytes=MAX_PLAIN_ZIP,allow_forecast_batch_original=False):
     try:
         from cryptography.hazmat.primitives.ciphers.aead import AESGCM
     except ImportError:
         raise ValueError('PRIVATE_ORIGINAL_CRYPTO_RUNTIME_UNAVAILABLE') from None
-    header, encoded, nonce, cipher = _split(raw)
+    header, encoded, nonce, cipher = _split(raw,allow_forecast_batch_original=allow_forecast_batch_original)
     _need(header['plain_zip_size'] <= _limit(max_plain_zip_bytes), 'PLAIN_ZIP_BOUND_INVALID')
     derived = _key(key)
     try:
@@ -195,6 +198,10 @@ def _open_envelope(raw, *, key=None, max_plain_zip_bytes=MAX_PLAIN_ZIP):
 
 def seal_original_zip(private_zip_bytes, *, run_id, head_sha, kind, key=None):
     """Seal exact native ZIP bytes; no file contents or save clock enter header."""
+    return _seal_original_zip(private_zip_bytes,run_id=run_id,head_sha=head_sha,kind=kind,key=key)
+
+
+def _seal_original_zip(private_zip_bytes, *, run_id, head_sha, kind, key=None,allow_forecast_batch_original=False):
     try:
         from cryptography.hazmat.primitives.ciphers.aead import AESGCM
     except ImportError:
@@ -204,7 +211,8 @@ def seal_original_zip(private_zip_bytes, *, run_id, head_sha, kind, key=None):
     header = _header(dict(schema=SCHEMA, purpose=PURPOSE, repository_id=REPO_ID,
                           run_id=_run(run_id), head_sha=head_sha, kind=kind,
                           plain_zip_sha256=sha256(private_zip_bytes).hexdigest(),
-                          plain_zip_size=len(private_zip_bytes), encoding='zip'))
+                          plain_zip_size=len(private_zip_bytes), encoding='zip'),
+                     allow_forecast_batch_original=allow_forecast_batch_original)
     encoded = _wire(header)
     _need(len(encoded) <= MAX_HEADER, 'HEADER_BOUND_INVALID')
     nonce = os.urandom(12)
@@ -212,6 +220,19 @@ def seal_original_zip(private_zip_bytes, *, run_id, head_sha, kind, key=None):
     raw = MAGIC+struct.pack('>I', len(encoded))+encoded+nonce+cipher
     _need(len(raw) <= min(MAX_WIRE, MAX_PLAIN_ZIP+MAX_OVERHEAD), 'ENVELOPE_BOUND_INVALID')
     return raw
+
+
+def seal_forecast_batch_original_zip(raw, *, run_id, head_sha, key=None):
+    """Seal a retained V2 forecast/source ZIP; legacy archive kinds stay closed."""
+    return _seal_original_zip(raw,run_id=run_id,head_sha=head_sha,kind=FORECAST_BATCH_ORIGINAL_KIND,
+                              key=key,allow_forecast_batch_original=True)
+
+
+def open_forecast_batch_original_zip(raw, *, run_id, head_sha, key=None,max_plain_zip_bytes=MAX_PLAIN_ZIP):
+    plain,header=_open_envelope(raw,key=key,max_plain_zip_bytes=max_plain_zip_bytes,allow_forecast_batch_original=True)
+    _need(header['kind']==FORECAST_BATCH_ORIGINAL_KIND and header['run_id']==_run(run_id) and
+          header['head_sha']==head_sha,'FORECAST_BATCH_ORIGINAL_SCOPE_INVALID')
+    return plain
 
 
 def _receipt(raw, receipt):
