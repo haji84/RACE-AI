@@ -93,6 +93,19 @@
       "blocked_external_requests": 0,
       "official_source_requests": 0,
       "plaintext_published": false
+    },
+    "context_counts": {
+      "checked_day": "2026-11-08",
+      "completed_results": 49,
+      "current_day": "2026-11-08",
+      "date_scope": "CURRENT_DAY",
+      "future_native_available": false,
+      "generation": 85,
+      "live_beforeinfo_races": 6,
+      "native_p1_groups": 11,
+      "official_source_requests": 0,
+      "plaintext_published": false,
+      "status": "SAVED_SITE_PRIVATE_CONTEXT_READY"
     }
   },
   "frontend": {
@@ -117,8 +130,14 @@
       "ui_source_commit": "914941a6244364480370ac392441ad4bb5781f83"
     },
     "readback": {
-      "pages_commit": "1c7f781dbb8751f6af7aaa382879b098cd1d338c",
+      "pages_commit": "7c1a7e265096fb0cb8f865f302658fee099b1f46",
       "public_http_assets_match": true,
+      "beforeinfo_code_matches_reviewed_runtime": true,
+      "newer_presentation_preserved": true,
+      "served_asset_commits": [
+        "66d69164f278a3943d38cc05d85041faf38a5bb7",
+        "7c1a7e265096fb0cb8f865f302658fee099b1f46"
+      ],
       "protected_ciphertext_files": 7,
       "protected_portrait_files": 57
     },
