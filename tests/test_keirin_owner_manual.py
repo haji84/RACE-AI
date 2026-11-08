@@ -108,11 +108,16 @@ class ManualOnlyTests(unittest.TestCase):
         # This test exercises the actual CLI with synthetic input and one-shot
         # execution. The CLI uses wall clock (2026 in CI); the fixed 2030
         # synthetic race MUST fail closed instead of fabricating a future source.
-        self.assertEqual(main([
-            "--db", str(self.root/"owner.sqlite3"), "--inbox", str(self.root),
-            "--personal-manual", "--owner-private-use-confirmed",
-            "--personal-source-host", "example.invalid",
-        ]), 0)
+        import os
+        from unittest.mock import patch
+        # Isolate this local-process CLI test from the GitHub Actions
+        # ephemeral-storage protection. Production guard stays unchanged.
+        with patch.dict(os.environ, {"GITHUB_ACTIONS": "false"}):
+            self.assertEqual(main([
+                "--db", str(self.root/"owner.sqlite3"), "--inbox", str(self.root),
+                "--personal-manual", "--owner-private-use-confirmed",
+                "--personal-source-host", "example.invalid",
+            ]), 0)
         self.assertEqual(main([
             "--db", str(self.root/"owner.sqlite3"), "--inbox", str(self.root),
             "--personal-manual", "--owner-private-use-confirmed",
