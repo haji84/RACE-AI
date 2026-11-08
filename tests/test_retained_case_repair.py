@@ -57,6 +57,34 @@ class StrictRetainedCaseRepairTests(unittest.TestCase):
         D.update(due,view['records'],now=(NOW+timedelta(minutes=1)).isoformat())
         self.assertEqual(D.pending_count(due),0)
 
+    def test_compatible_parser_metadata_conflict_keeps_original_observation(self):
+        fixture,state,row,receipt,due=self.setup()
+        original=F.current_view(fixture.git,fixture.boot)[3]
+        changed=deepcopy(original)
+        changed['records'][0]['result_observations'][0]['source_format']='OLDER_PARSER_PROVENANCE'
+        fixture.seed(changed)
+        out=repair_saved_receipt_mismatches(fixture.repo,state=state,
+                       now=NOW+timedelta(minutes=1),bridge=fixture.bridge())
+        self.assertEqual(out['source_bytes_authenticated'],1)
+        self.assertEqual(out['metadata_only_reprojections'],1)
+        self.assertEqual(out['formal_result_repairs'],1)
+        _,_,_,read=F.current_view(fixture.git,fixture.boot)
+        self.assertEqual(read['records'][0]['result_observations'],
+                         changed['records'][0]['result_observations'])
+        self.assertEqual(read['records'][0]['result']['source_sha256'],receipt['source_sha256'])
+
+    def test_material_parser_conflict_does_not_overwrite_result(self):
+        fixture,state,row,receipt,due=self.setup()
+        original=F.current_view(fixture.git,fixture.boot)[3]
+        changed=deepcopy(original)
+        changed['records'][0]['result_observations'][0]['data']['payouts'][0]['payout_per_100_yen']=999999
+        fixture.seed(changed);before=fixture.git.head()
+        out=repair_saved_receipt_mismatches(fixture.repo,state=state,
+                       now=NOW+timedelta(minutes=1),bridge=fixture.bridge())
+        self.assertEqual(out['formal_result_repairs'],0)
+        self.assertEqual(out['formal_hold_reason_counts']['MODEL_REPLAY_PARSER_MATERIAL_CONFLICT'],1)
+        self.assertEqual(fixture.git.head(),before)
+
     def test_reference_only_result_is_never_reclassified_to_formal_hit(self):
         fixture,state,row,receipt,due=self.setup(reference_only=True)
         original=fixture.git.head()

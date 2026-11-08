@@ -29,7 +29,8 @@ def repair_saved_receipt_mismatches(repo,*,state,now,bridge=None):
     report=dict(schema='RACE_AI_OFFLINE_MODEL_RECEIPT_REPAIR_V1',
         replay_candidates=len(candidates),source_bytes_authenticated=0,
         formal_result_repairs=0,formal_preview_holds=0,unavailable_saved_day=0,
-        view_commits=0,formal_hold_reason_counts={},source_provider_requests=0,forecast_rewrites=0,
+        view_commits=0,formal_hold_reason_counts={},parser_conflict_field_counts={},metadata_only_reprojections=0,
+        source_provider_requests=0,forecast_rewrites=0,
         public_originals_changed=False,actual_purchases=False)
     def add_hold(reason):
         # Whitelisted static reason codes only. Never echo an exception body,
@@ -68,8 +69,38 @@ def repair_saved_receipt_mismatches(repo,*,state,now,bridge=None):
                 raw,receipt=state.capture(pointers[rid])
                 need(sha(raw)==receipt.get('source_sha256'),'MODEL_REPLAY_SOURCE_SHA_CHANGED')
                 report['source_bytes_authenticated']+=1
-                revised=F.update_view(current,[],captures=[(raw,receipt)],
-                                      synced_at=now.isoformat())
+                try:
+                    revised=F.update_view(current,[],captures=[(raw,receipt)],
+                                          synced_at=now.isoformat())
+                except ValueError as parser_conflict:
+                    if str(parser_conflict)!='RESULT_CAPTURE_CONFLICT':raise
+                    # Preserve the original observation at its real source
+                    # clock. An identical authenticated settlement can be
+                    # reprojected when ONLY non-material parser metadata differs.
+                    # Conflicting winners/payouts/identity/cutoff remain HOLD.
+                    from .result_observation_conflict_diagnostics import result_conflict_counts
+                    parsed=F.parse_capture(raw,receipt)
+                    found=[o for o in current['records'] if o.get('race_id')==rid]
+                    need(len(found)==1,'MODEL_REPLAY_RACE_IDENTITY_INVALID')
+                    previous=[o for o in found[0].get('result_observations',[]) if
+                        o.get('source_sha256')==receipt['source_sha256'] and
+                        o.get('captured_at')==receipt['captured_at'] and
+                        o.get('source_url')==receipt['source_url']]
+                    need(len(previous)==1,'MODEL_REPLAY_PARSER_SOURCE_RECEIPT_MISMATCH')
+                    old_observation=previous[0]
+                    differences=result_conflict_counts(old_observation,parsed)
+                    for field,count in differences['differing_fields'].items():
+                        report['parser_conflict_field_counts'][field]=report['parser_conflict_field_counts'].get(field,0)+count
+                    immutable_fields=('race_id','captured_at','closed_at','source_sha256',
+                        'source_url','body_identity_verified','status','schedule_binding')
+                    compatible=(all(old_observation.get(field)==parsed.get(field)
+                        for field in immutable_fields) and
+                        old_observation.get('body_identity_verified') is True and
+                        wire(old_observation.get('data'))==wire(parsed.get('data')))
+                    need(compatible,'MODEL_REPLAY_PARSER_MATERIAL_CONFLICT')
+                    revised=F.update_view(current,[old_observation],captures=[],
+                                          synced_at=now.isoformat())
+                    report['metadata_only_reprojections']+=1
                 original=[r for r in revised['records'] if r.get('race_id')==rid]
                 need(len(original)==1,'MODEL_REPLAY_RACE_IDENTITY_INVALID')
                 row=original[0]

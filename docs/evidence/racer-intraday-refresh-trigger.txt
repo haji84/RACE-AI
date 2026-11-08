@@ -29,3 +29,5 @@
 2026-11-09 JST: stage-model-pdca replay ONLY previously AES authenticated model-result-evidence mismatches, requiring SHA/clock/pre-cutoff/formal-payout proof before appending an official result revision. Other 60 case HOLDs preserved, zero new source GET.
 
 2026-11-09 JST: stage-model-pdca report source-free authenticated model result replay rejection cause codes only; preserve 62 original HOLDs until their strict proofs pass. Also restore first-race visibility on 320px venue shortcuts.
+
+2026-11-09 JST: stage-model-pdca validate immutable same-clock source facts before allowing metadata-only parser re-projection; conflicting official payout/roster/cutoff remains HOLD with count-only diagnostics, never source GET.
