@@ -140,9 +140,13 @@ def audit(doc, *, trusted_visual_verifier=None):
                                              item["recording_sec"]<=goal["recording_sec"]):
             cause="OUTSIDE_START_GOAL"
         elif any((item["frame_sha256"]==earlier["frame_sha256"] or
-                   phash_distance(item["phash64"],earlier["phash64"])<=1)
+                   phash_distance(item["phash64"],earlier["phash64"])<=5)
                   for earlier in eligible):
-            cause="REPEATED_IMAGE"
+            # A development-only Matsuyama 9R clip yielded matching replay
+            # images with Hamming distances 2 to 4 over distinct frame hashes.
+            # Fail closed on a near-repeat; this is NOT an independently
+            # calibrated false-positive rate for all banks/camera angles.
+            cause="REPEATED_IMAGE_OR_SUSPECTED_REPLAY"
         elif eligible and item["recording_sec"]-eligible[-1]["recording_sec"]<18:
             cause="TOO_CLOSE_TO_PREVIOUS_PASS"
         if cause:
