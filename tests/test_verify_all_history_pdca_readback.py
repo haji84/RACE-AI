@@ -6,7 +6,7 @@ from contextlib import redirect_stdout
 from datetime import timedelta
 from race_ai.racer_intraday import IntradayState
 from race_ai.racer_result_bridge import SavedResultBridge
-from scripts.verify_all_history_pdca_readback import verify_snapshot
+from scripts.verify_all_history_pdca_readback import verify_snapshot, _count_only_day_pdca
 from tests.test_racer_result_bridge import BridgeTests,saved_view
 from tests.test_racer_daily import NOW
 from tests.test_retained_model_pdca_audit import HistoricalModelPdcaAudit
@@ -60,6 +60,25 @@ class IndependentReadbackTests(unittest.TestCase):
         self.assertFalse(report['full_period_readback_coverage_proven'])
         self.assertFalse(report['all_history_completion_proven'])
         self.assertEqual(report['source_provider_requests'],0)
+
+    def test_count_only_independent_audit_excludes_fully_refunded_forecast(self):
+        from race_ai import retained_model_pdca_audit as P
+        from tests.test_boat_sp_settlement import document
+        helper=HistoricalModelPdcaAudit()
+        view=saved_view()
+        view['records'][0]['prediction']['ordered_top8']=[
+            [6,1,2],[6,1,3],[6,2,1]]
+        source=document()
+        source['maindata']['teiinfolist'][-1]['chk']='欠'
+        source['maindata']['stinfolist'][0].update(csdisp='0',st='')
+        source['maindata']['returnlist']=['6']
+        view=helper.capture(view,doc=source)
+        summary=P.score_view(view,authenticated=True)
+        details=_count_only_day_pdca(view,summary)
+        self.assertEqual(summary['model_groups'][0]['void'],1)
+        self.assertEqual(summary['total_scored'],0)
+        self.assertEqual(details['eligible'],0)
+        self.assertEqual(details['model_groups'][0]['actual_winning_combo_rank_in_top8'],{})
 
     def test_reject_modified_model_return_amount(self):
         state,bridge,now=self.setUpFixture()

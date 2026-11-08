@@ -45,13 +45,19 @@ def _count_only_day_pdca(view, score):
             key=(p['model_id'],p['stage'],p.get('model_version') or '',p.get('variant') or '')
             _need(key in indexed,'MISSING_MODEL_GROUP')
             a=indexed[key]
-            a['eligible']+=1
             tickets=[tuple(t) for t in p['ordered_top8']]
+            # Use the SAME pre-existing bulk settlement contract as the
+            # authenticated day scorer. Do not independently count a ticket
+            # refunded in full as a genuine miss, even in a settled race.
+            settlement=P._score_using_existing_bulk_engine(
+                row,p,tickets,winners,refunds,state,identity)
+            if settlement['status']=='FULL_REFUND':
+                continue
+            a['eligible']+=1
             firsts=list(dict.fromkeys(t[0] for t in tickets))
             positions=[firsts.index(w[0])+1 for w in winners if w[0] in firsts]
             a['first_rank'][str(min(positions)) if positions else 'NOT_IN_TOP8']+=1
-            matching=[i+1 for i,t in enumerate(tickets) if t in winners]
-            a['winner_rank'][str(min(matching)) if matching else 'NOT_IN_TOP8']+=1
+            a['winner_rank'][str(settlement['hit_rank']) if settlement['hit_rank'] else 'NOT_IN_TOP8']+=1
             if len(winners)>1:a['multi_winners']+=1
             if any(amount>=10000 for amount in winners.values()):
                 a['high_cases']+=1
