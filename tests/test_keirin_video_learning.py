@@ -102,6 +102,10 @@ class LearningTests(unittest.TestCase):
             "feature_version":"HSV_GRID_EDGE_7x28_v1",
             "features":features}
         out=to_review_queue(feature_doc,model,source="SYNTHETIC_FIXTURE")
+        cannot_self=copy.deepcopy(feature_doc)
+        cannot_self["race_id"]=model["train_races"][0]
+        with self.assertRaisesRegex(SceneLearningError,"TRAINING_RACE_CANNOT_SELF_VERIFY_LAPS"):
+            to_review_queue(cannot_self,model,source="SYNTHETIC_FIXTURE")
         self.assertEqual(out["audit"]["status"],"FOUR_LAPS_UNVERIFIED")
         self.assertTrue(out["private_review_required"])
         self.assertFalse(out["model_may_self_certify_four_laps"])
