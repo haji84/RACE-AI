@@ -1,0 +1,28 @@
+name: KEIRIN variable picks research regression
+on:
+  pull_request:
+    paths:
+      - "race_ai/keirin_variable_selection.py"
+      - "tests/test_keirin_variable_selection.py"
+      - "docs/KEIRIN_VARIABLE_SELECTION_RESEARCH_20261108.md"
+      - ".github/workflows/keirin-variable-picks-research.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  variable-picks-research:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout proposed source
+        uses: actions/checkout@v4
+      - name: Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Synthetic only, never actual race profit
+        run: |
+          python -m unittest -v tests.test_keirin_variable_selection
+          python -m compileall -q race_ai/keirin_variable_selection.py
