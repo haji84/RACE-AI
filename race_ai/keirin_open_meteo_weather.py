@@ -80,9 +80,10 @@ def request_url(latitude, longitude):
         "longitude": round(longitude, 5),
         "hourly": ",".join(WEATHER_KEYS),
         "timezone": "Asia/Tokyo",
-        "temperature_unit": "celsius",
+        # Celsius and mm are Open-Meteo's documented defaults. Omitting
+        # the defaults keeps the full source URL below the existing 256-byte
+        # provenance bound; explicit wind speed m/s is still required.
         "wind_speed_unit": "ms",
-        "precipitation_unit": "mm",
         "forecast_days": 3,
     })
     return API + "?" + q
