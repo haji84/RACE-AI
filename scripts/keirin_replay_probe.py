@@ -140,6 +140,11 @@ async def probe(url: str, report_path: Path, seconds: int, fixture: bool,
                     result["click"]=await click_digest(page,fixture)
                     await page.wait_for_timeout(1500)
                     pages=[page]+popups
+                    result["browser_diagnostics"]={
+                        "window_count":len(pages),
+                        "frame_count":sum(len(p.frames) for p in pages),
+                        "titles":[(await p.title())[:100] for p in pages],
+                    }
                     before=[]
                     for candidate in pages:
                         before.extend(await media_state(candidate))
