@@ -42,7 +42,7 @@ jobs:
         env:
           RACE_AI_BROWSER_CHANNEL: chrome
         run: |
-          python scripts/keirin_replay_probe.py --seconds 16 --report "$RUNNER_TEMP/matsuyama-1r-probe.json" --encrypted-dir "$RUNNER_TEMP/matsuyama1r-encrypted" --public-key docs/keirin-replay-pilot-public.pem
+          python scripts/keirin_replay_probe.py --seconds 300 --report "$RUNNER_TEMP/matsuyama-1r-probe.json" --encrypted-dir "$RUNNER_TEMP/matsuyama1r-encrypted" --public-key docs/keirin-replay-pilot-public.pem
       - name: Save ciphertext artifact only (research pilot)
         if: steps.replay.outcome == 'success'
         uses: actions/upload-artifact@v4
@@ -69,6 +69,7 @@ jobs:
             f"- Windows/frames: {item.get('browser_diagnostics','UNKNOWN')}",
             f"- Video elements before: {item.get('media_before','UNKNOWN')}",
             f"- Video elements after: {item.get('media_after','UNKNOWN')}",
+            f"- Only player recording kept: {item.get('player_video_only','UNKNOWN')}",
             f"- Capture motion: {[x.get('motion') for x in item.get('captures',[])]}",
             f"- Encrypted WebM copies: {item.get('encrypted_capture_count','NONE')}",
             f"- Visual rider tracking: {item.get('rider_tracking','NOT_VERIFIED')}",
