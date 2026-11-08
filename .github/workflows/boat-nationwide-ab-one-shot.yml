@@ -95,7 +95,7 @@ jobs:
         shell: bash
         run: |
           if [[ "$GITHUB_REF" == 'refs/heads/codex/forecast-first-display-20261108' ]]; then
-            python -m scripts.boat_original_maintenance backfill --repo-root . --run-id 42411771346 --output "$RUNNER_TEMP/boat-original-maintenance.json"
+            python -m scripts.boat_original_maintenance backfill --repo-root . --run-id 42439206540 --output "$RUNNER_TEMP/boat-original-maintenance.json"
           else
             python -m scripts.boat_original_maintenance backfill --repo-root . --run-config audit/state/boat-model-recovery-input.json --output "$RUNNER_TEMP/boat-original-maintenance.json"
           fi
@@ -110,7 +110,7 @@ jobs:
         shell: bash
         run: |
           if [[ "$GITHUB_REF" == 'refs/heads/codex/forecast-first-display-20261108' ]]; then
-            python -m scripts.boat_source_control_mirror publish --run-id 42411771346 --repo-root . --output "$RUNNER_TEMP/boat-source-control-display.json"
+            python -m scripts.boat_source_control_mirror publish --run-id 42439206540 --repo-root . --output "$RUNNER_TEMP/boat-source-control-display.json"
           else
             python -m scripts.boat_source_control_mirror latest-closed --repo-root . --output "$RUNNER_TEMP/boat-source-control-display.json"
           fi
@@ -184,7 +184,7 @@ jobs:
         run: |
           set -o pipefail
           if [[ "$GITHUB_REF" == 'refs/heads/codex/forecast-first-display-20261108' && "$(git log -1 --format=%s)" == saved-view:\ forecasts-first\ five-gates\ retention-only* ]]; then
-            timeout 600s python -m scripts.boat_retained_run_verify --run 42411771346 --day 2026-11-08 --head 7f12c9da9cbfa616a79631eea3d5744dbbc60de2 --required-capture-locator audit/state/boat-retained-run-required-capture.json --output "$RUNNER_TEMP/boat-retained-run-verification.json"
+            timeout 600s python -m scripts.boat_retained_run_verify --run 42439206540 --day 2026-11-08 --head ac3f302f646fdafede90565e6b6f32560ace062f --required-capture-locator audit/state/boat-retained-ac3-required-capture.json --output "$RUNNER_TEMP/boat-retained-run-verification.json"
             exit 0
           fi
           if [[ "$GITHUB_REF" == 'refs/heads/codex/forecast-first-display-20261108' ]]; then
@@ -205,7 +205,7 @@ jobs:
           env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" "${checks[@]}" | tee "$RUNNER_TEMP/boat-live-site-check-counts.json"
           if [[ "$GITHUB_REF" == 'refs/heads/codex/forecast-first-display-20261108' && "$(git log -1 --format=%s)" == saved-view:\ forecasts-first\ five-gates* ]]; then
             python -m scripts.boat_prospective_audit --saved-comparison-day 2026-11-07 --daily-budgets 10000,5000 --output "$RUNNER_TEMP/boat-saved-comparison.json"
-            timeout 600s python -m scripts.boat_retained_run_verify --run 42411771346 --day 2026-11-08 --head 7f12c9da9cbfa616a79631eea3d5744dbbc60de2 --required-capture-locator audit/state/boat-retained-run-required-capture.json --output "$RUNNER_TEMP/boat-retained-run-verification.json"
+            timeout 600s python -m scripts.boat_retained_run_verify --run 42439206540 --day 2026-11-08 --head ac3f302f646fdafede90565e6b6f32560ace062f --required-capture-locator audit/state/boat-retained-ac3-required-capture.json --output "$RUNNER_TEMP/boat-retained-run-verification.json"
           fi
       - name: Retain aggregate evaluation counts without private plans or source rows
         if: github.ref != 'refs/heads/codex/forecast-first-display-20261108' && (always() && steps.prospective_audit.outcome != 'skipped')

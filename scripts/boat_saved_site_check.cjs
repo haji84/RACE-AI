@@ -9,6 +9,27 @@ const phases=new Set(['context_read','context_validation','browser_launch','page
 const fields=new Set(['day','generation','group_sha256','daily_budget','race_budget','metric_layout','observed.available','observed.hits','observed.misses','observed.pending','observed.void','observed.review','observed.hit_rate','observed.denominator','observed.races','observed.no_forecast_review','lifecycle.upcoming','lifecycle.unknown','lifecycle.closed','spent','bought','held','unspent','payout','refund','settledNet','settledStake','pendingStake','net','balance','roi','settledCount','bought_hit_rate','bought_denominator','budget_per_day','budget_days']);
 const errorClasses=new Set(['Error','AssertionError','TimeoutError','TypeError','RangeError','SyntaxError','ReferenceError','URIError']);
 const errorCodes=new Set(['ERR_ASSERTION','ENOENT','EACCES','ENOTDIR','EINVAL','ETIMEDOUT','ECONNRESET','MODULE_NOT_FOUND','ERR_MODULE_NOT_FOUND','ERR_INVALID_URL','ERR_INVALID_ARG_TYPE','ERR_INVALID_ARG_VALUE','ERR_OUT_OF_RANGE']);
+const browserScripts=new Set(['forecast-audit-model.js','product-data.js','existing-model-catalog.js','ui-model.js','saved-performance.js','racer-portraits-data.js','racer-portraits.js','racer-profiles-data.js','racer-profiles.js','racer-daily.js','app.js','saved-view-crypto.js']);
+function installBrowserErrors({scripts,classes}){
+  const records=[];Object.defineProperty(globalThis,'__raceSavedSiteBrowserErrors',{value:records});
+  globalThis.addEventListener('error',event=>{
+    if(records.length>=8)return;
+    try{
+      const name=event.error?.name,script=scripts.find(name=>event.filename==='https://haji84.github.io/RACE-AI/'+name)||null;
+      const line=script&&Number.isSafeInteger(event.lineno)&&event.lineno>0&&event.lineno<1000000?event.lineno:null;
+      records.push({error_class:classes.includes(name)?name:'UNRECOGNIZED_ERROR',script,line});
+    }catch{records.push({error_class:'UNRECOGNIZED_ERROR',script:null,line:null});}
+  });
+}
+function safeBrowserErrors(value){
+  if(!Array.isArray(value))return [];
+  return value.slice(0,8).map(record=>{
+    let name,script,line;try{name=record?.error_class;script=record?.script;line=record?.line;}catch{}
+    const known=browserScripts.has(script);
+    return {error_class:errorClasses.has(name)?name:'UNRECOGNIZED_ERROR',script:known?script:null,
+      line:known&&Number.isSafeInteger(line)&&line>0&&line<1000000?line:null};
+  });
+}
 function ownedLine(skip){
   try{
     const site={};Error.captureStackTrace(site,skip);
@@ -29,10 +50,12 @@ function diagnosticField(field){
 function diagnosticCompleted(){const state=diagnosticStore.getStore();if(state)state.completed_numeric_scenarios++;}
 function safeDiagnostic(error,state){
   const trait=(key,allowed,fallback)=>{let value;try{value=error?.[key];}catch{}return allowed.has(value)?value:fallback;};
+  const browserErrors=safeBrowserErrors(state.browser_errors);
   return {phase:phases.has(state.phase)?state.phase:'context_read',width:[320,390,1440,1920].includes(state.width)?state.width:null,
     completed_numeric_scenarios:Number.isSafeInteger(state.completed_numeric_scenarios)&&state.completed_numeric_scenarios>=0&&state.completed_numeric_scenarios<=12?state.completed_numeric_scenarios:0,
     script:'boat_saved_site_check.cjs',line:Number.isSafeInteger(state.line)&&state.line>0&&state.line<100000?state.line:1,
-    error_class:trait('name',errorClasses,'UNRECOGNIZED_ERROR'),error_code:trait('code',errorCodes,null),numeric_field:fields.has(state.numeric_field)?state.numeric_field:null};
+    error_class:trait('name',errorClasses,'UNRECOGNIZED_ERROR'),error_code:trait('code',errorCodes,null),numeric_field:fields.has(state.numeric_field)?state.numeric_field:null,
+    ...(browserErrors.length?{browser_errors:browserErrors}:{})};
 }
 async function withDiagnostics(operation){
   const state={phase:'context_validation',width:null,completed_numeric_scenarios:0,line:ownedLine(withDiagnostics),numeric_field:null};
@@ -301,12 +324,14 @@ async function runChecked(context,{compactResults=false,probeRaceId=null,checkCu
     '/opt/google/chrome/chrome','/usr/bin/chromium'].find(path=>fs.existsSync(path));
   assert.ok(executablePath,'installed browser required');
   const browser=await chromium.launch({headless:true,executablePath,args:['--no-sandbox']});
+  let page;
   let blocked=0,leaked=false,checked=0,futureVisible=false,nativeVisible=false,currentResults=0,p1Groups=0,rationaleViewsChecked=0,upcomingRowsChecked=0,venueResultsChecked=0,currentDayLifecycleViews=0,currentDayUpcomingRows=0,currentDayUpcomingCount=null,currentDayClosedCount=null,currentDayPendingCount=null,numericScenarios=0;
   try{
     diagnosticPhase('page_setup');
-    const page=await browser.newPage({viewport:{width:390,height:844}}),errors=[];
+    page=await browser.newPage({viewport:{width:390,height:844}});const errors=[];
     page.setDefaultTimeout(45000);
     page.on('pageerror',error=>errors.push(error.name));
+    try{await page.addInitScript(installBrowserErrors,{scripts:[...browserScripts],classes:[...errorClasses]});}catch{}
     page.on('request',request=>{if((request.url()+JSON.stringify(request.headers())).includes(key))leaked=true;});
     await page.route('**/*',route=>{
       const admission=requestAdmission(route.request(),key);
@@ -407,11 +432,33 @@ async function runChecked(context,{compactResults=false,probeRaceId=null,checkCu
         const rationale=await page.locator('#race-detail .forecast-rationale').count()?await page.locator('#race-detail .forecast-rationale').innerText():null;
         diagnosticPhase('research_audit');
         await page.locator('[data-page="research"]').filter({visible:true}).first().click();
-        const audit=page.locator('#research-race-audit');assert.equal(await audit.isVisible(),true);assert.equal(await page.locator('#research-race-select').inputValue(),expectedRace);assert.equal(await page.locator('#research-prediction-select').inputValue(),selected);
-        assert.equal(await audit.locator('.race-audit-details').evaluate(n=>n.tagName),'SECTION');assert.equal(await audit.locator('.race-audit-details').getAttribute('data-model-id'),modelId);assert.match(await audit.innerText(),/予想SHA/);
-        await audit.locator('[data-return-to-race]').click();assert.equal(await page.locator('#prediction-select').inputValue(),selected);
-        assert.equal(await page.locator('#race-detail .forecast-rationale').count()?await page.locator('#race-detail .forecast-rationale').innerText():null,rationale);
-        if(rationale){assert.equal(await page.locator('#race-detail .forecast-rationale-heading').innerText(),'予想根拠');rationaleViewsChecked++;}
+        const audit=page.locator('#research-race-audit');
+        diagnosticPhase('research_audit');
+        assert.equal(await audit.isVisible(),true);
+        diagnosticPhase('research_audit');
+        assert.equal(await page.locator('#research-race-select').inputValue(),expectedRace);
+        diagnosticPhase('research_audit');
+        assert.equal(await page.locator('#research-prediction-select').inputValue(),selected);
+        diagnosticPhase('research_audit');
+        assert.equal(await audit.locator('.race-audit-details').evaluate(n=>n.tagName),'SECTION');
+        diagnosticPhase('research_audit');
+        assert.equal(await audit.locator('.race-audit-details').getAttribute('data-model-id'),modelId);
+        diagnosticPhase('research_audit');
+        assert.match(await audit.innerText(),/予想SHA/);
+        diagnosticPhase('research_audit');
+        await audit.locator('[data-return-to-race]').click();
+        diagnosticPhase('research_audit');
+        assert.equal(await page.locator('#prediction-select').inputValue(),selected);
+        diagnosticPhase('research_audit');
+        const returnedRationaleCount=await page.locator('#race-detail .forecast-rationale').count();
+        diagnosticPhase('research_audit');
+        const returnedRationale=returnedRationaleCount?await page.locator('#race-detail .forecast-rationale').innerText():null;
+        diagnosticPhase('research_audit');
+        assert.equal(returnedRationale,rationale);
+        if(rationale){
+          diagnosticPhase('research_audit');
+          assert.equal(await page.locator('#race-detail .forecast-rationale-heading').innerText(),'予想根拠');rationaleViewsChecked++;
+        }
 
       }
       diagnosticPhase('saved_result_metrics');
@@ -477,6 +524,12 @@ async function runChecked(context,{compactResults=false,probeRaceId=null,checkCu
       numeric_budget_cap_exercised:numeric?.budget_cap_exercised??null,numeric_budget_cap_coverage:numeric?.budget_cap_coverage??'NOT_REQUESTED',
       hit_miss_rate_roi_and_settled_pending_net_visible:true,
       key_in_requests_or_storage:false,blocked_external_requests:blocked,official_source_requests:0,plaintext_published:false};
+  }catch(error){
+    try{
+      const state=diagnosticStore.getStore();
+      if(state&&page)state.browser_errors=safeBrowserErrors(await page.evaluate(()=>globalThis.__raceSavedSiteBrowserErrors));
+    }catch{}
+    throw error;
   }finally{try{await browser.close();}catch(error){diagnosticPhase('browser_cleanup');throw error;}}
 }
 async function run(context,options={}){return withDiagnostics(()=>runChecked(context,options));}
