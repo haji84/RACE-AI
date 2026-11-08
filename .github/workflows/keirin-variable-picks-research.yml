@@ -11,6 +11,7 @@ on:
       - "tests/test_keirin_reference_history_recheck.py"
       - "race_ai/keirin_reference_history_recheck.py"
       - "scripts/keirin_reference_history_audit.py"
+      - "scripts/keirin_variable_reconcile_private.py"
       - "docs/KEIRIN_VARIABLE_SELECTION_RESEARCH_20261108.md"
       - ".github/workflows/keirin-variable-picks-research.yml"
   workflow_dispatch:
@@ -32,4 +33,4 @@ jobs:
       - name: Synthetic only, never actual race profit
         run: |
           python -m unittest -v tests.test_keirin_variable_selection tests.test_keirin_variable_integration tests.test_keirin_private_spool tests.test_keirin_private_agent tests.test_keirin_reference_history_recheck
-          python -m compileall -q race_ai/keirin_variable_selection.py race_ai/keirin_variable_integration.py race_ai/keirin_private_spool.py race_ai/keirin_reference_history_recheck.py scripts/keirin_private_agent.py scripts/keirin_reference_history_audit.py
+          python -m compileall -q race_ai/keirin_variable_selection.py race_ai/keirin_variable_integration.py race_ai/keirin_private_spool.py race_ai/keirin_reference_history_recheck.py scripts/keirin_private_agent.py scripts/keirin_reference_history_audit.py scripts/keirin_variable_reconcile_private.py
