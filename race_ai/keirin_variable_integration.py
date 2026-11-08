@@ -10,12 +10,12 @@ from __future__ import annotations
 from hashlib import sha256
 from datetime import timedelta
 import json
-import sqlite3
+
 
 from .keirin_owner_sqlite import PrivateKeirinStore, _checked_clock
 from .keirin_result_delivery import canonical, utc
 from .keirin_variable_selection import (
-    SCHEMA, AUDIT_SCHEMA, VariableSelectionError, aggregate_latest_audits,
+    SCHEMA, AUDIT_SCHEMA, ODDS_SCHEMA, aggregate_latest_audits,
     evaluate_settled_result, instant, seal
 )
 
@@ -58,6 +58,13 @@ class PrivateVariableLedger:
                 persisted_at TEXT NOT NULL,
                 PRIMARY KEY (race_id,model_id)
             );
+            CREATE TABLE IF NOT EXISTS variable_odds_snapshots (
+                odds_sha256 TEXT PRIMARY KEY,
+                race_id TEXT NOT NULL,
+                captured_at TEXT NOT NULL,
+                payload BLOB NOT NULL,
+                stored_at TEXT NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS variable_selection_audits (
                 race_id TEXT NOT NULL,
                 model_id TEXT NOT NULL,
@@ -86,13 +93,40 @@ class PrivateVariableLedger:
                 "original_forecast_sha256":row["original_forecast_sha256"],
                 "persisted_at":row["persisted_at"]}
 
-    def freeze_once(self, selection, *, original_forecast_sha256):
+    def odds_snapshot(self, odds_sha256):
+        row=self.db.execute(
+            "SELECT payload FROM variable_odds_snapshots WHERE odds_sha256=?",
+            (odds_sha256,)
+        ).fetchone()
+        if row is None:
+            return None
+        _require(sha256(row["payload"]).hexdigest()==odds_sha256,
+                 "PERSISTED_ODDS_HASH_MISMATCH")
+        data=json.loads(row["payload"])
+        _require(data.get("schema")==ODDS_SCHEMA,"PERSISTED_ODDS_SCHEMA_MISMATCH")
+        return data
+
+    def freeze_once(self, selection, *, original_forecast_sha256, odds_snapshot):
         """Bind 0..12 selection to an already saved original, never overwrite.
 
         The upstream caller must separately verify the full model suite and
         unchanged original top8 against the same source snapshot.
         """
         body = _verify(selection, SCHEMA)
+        _require(type(odds_snapshot) is dict and
+                 odds_snapshot.get("schema")==ODDS_SCHEMA,
+                 "PRIVATE_ODDS_SNAPSHOT_REQUIRED")
+        odds_body=canonical(odds_snapshot)
+        odds_sha=sha256(odds_body).hexdigest()
+        _require(odds_sha==selection["odds_snapshot_sha256"] and
+                 odds_snapshot.get("race_id")==selection["race_id"] and
+                 instant(odds_snapshot["captured_at"])==
+                    instant(selection["odds_captured_at"]) and
+                 len(odds_snapshot.get("prices",[]))==
+                    selection["pre_cutoff_odds_rows"] and
+                 instant(odds_snapshot["captured_at"])<=
+                    instant(selection["selection_at"]),
+                 "ODDS_SNAPSHOT_BINDING_FAILED")
         rid,mid = selection["race_id"],selection["model_id"]
         old = self.store.get_persisted_forecast(rid)
         _require(old is not None and old["sha256"]==original_forecast_sha256,
@@ -136,6 +170,13 @@ class PrivateVariableLedger:
                          and prior["original_forecast_sha256"]==
                             original_forecast_sha256,
                          "IMMUTABLE_VARIABLE_CONFLICT")
+                odds_prior=self.db.execute(
+                    "SELECT payload FROM variable_odds_snapshots WHERE odds_sha256=?",
+                    (odds_sha,)
+                ).fetchone()
+                _require(odds_prior is not None and
+                         odds_prior["payload"]==odds_body,
+                         "IMMUTABLE_ODDS_READBACK_MISSING")
                 self.db.execute("COMMIT")
                 _require(self.selection(rid,mid)["selection"]==selection,
                          "VARIABLE_READBACK_MISMATCH")
@@ -144,6 +185,19 @@ class PrivateVariableLedger:
             at = _checked_clock(self.store.clock)
             _require(decision<=at and at+timedelta(seconds=60)<cutoff,
                      "VARIABLE_CUTOFF_DURING_WRITE")
+            odds_prior=self.db.execute(
+                "SELECT payload FROM variable_odds_snapshots WHERE odds_sha256=?",
+                (odds_sha,)
+            ).fetchone()
+            if odds_prior is None:
+                self.db.execute(
+                    "INSERT INTO variable_odds_snapshots VALUES (?,?,?,?,?)",
+                    (odds_sha,rid,odds_snapshot["captured_at"],
+                     odds_body,at.isoformat())
+                )
+            else:
+                _require(odds_prior["payload"]==odds_body,
+                         "IMMUTABLE_ODDS_CONFLICT")
             self.db.execute(
                 "INSERT INTO variable_selections VALUES (?,?,?,?,?,?)",
                 (rid,mid,selection["document_sha256"],
@@ -153,8 +207,9 @@ class PrivateVariableLedger:
         except BaseException:
             self.db.execute("ROLLBACK")
             raise
-        _require(self.selection(rid,mid)["selection"]==selection,
-                 "VARIABLE_READBACK_MISMATCH")
+        _require(self.selection(rid,mid)["selection"]==selection
+                 and self.odds_snapshot(odds_sha)==odds_snapshot,
+                 "VARIABLE_OR_ODDS_READBACK_MISMATCH")
         return "CREATED_ONCE"
 
     def audit_latest(self, race_id, model_id):
@@ -203,6 +258,65 @@ class PrivateVariableLedger:
             self.db.execute("ROLLBACK")
             raise
         return audit
+
+    def compare_latest(self, race_id, model_id):
+        """Same race: original fixed 8 vs frozen variable tickets at 100yen.
+
+        Research-only reference. Does not authenticate a result provider or
+        prove a pre-cutoff independent witness. Never reports an actual bet.
+        """
+        fixed=self.store.get_persisted_forecast(race_id)
+        variable=self.selection(race_id,model_id)
+        if fixed is None or variable is None:
+            return {"race_id":race_id,"state":"FORECAST_OR_VARIABLE_MISSING",
+                    "formal_kpi":None}
+        _require(fixed["sha256"]==variable["original_forecast_sha256"]
+                 and fixed["forecast"]["model_id"]==model_id,
+                 "ORIGINAL_FORECAST_REFERENCE_CHANGED")
+        row=self.db.execute(
+            "SELECT revision,payload FROM result_revisions WHERE race_id=? "
+            "ORDER BY revision DESC LIMIT 1",(race_id,)
+        ).fetchone()
+        if row is None:
+            return {"race_id":race_id,"state":"RESULT_MISSING",
+                    "formal_kpi":None}
+        result=json.loads(row["payload"])
+        variable_audit=self.audit_latest(race_id,model_id)
+        base={"race_id":race_id,"model_id":model_id,
+              "original_forecast_sha256":fixed["sha256"],
+              "variable_selection_sha256":variable["selection_sha256"],
+              "result_revision":row["revision"],
+              "result_officially_authenticated":False,
+              "external_pre_cutoff_witness_verified":False,
+              "actual_purchase_profit_yen":None,"formal_kpi":None}
+        if result.get("status")!="FINAL_NORMAL" or (
+                result.get("refund_status")!="NONE"):
+            return {**base,"state":"PENDING_OR_REFUND",
+                    "fixed8_profit_yen":None,
+                    "variable_profit_yen":None}
+        tickets=fixed["forecast"]["top8"]
+        _require(type(tickets) is list and len(tickets)==8 and
+                 all(type(x) is list and len(x)==3 and
+                     len(set(x))==3 for x in tickets) and
+                 len({tuple(x) for x in tickets})==8,
+                 "INVALID_ORIGINAL_TOP8")
+        paid={tuple(x["triple"]):x["yen"]
+              for x in result["payouts_100yen"]}
+        fixed_payout=sum(paid.get(tuple(p),0) for p in tickets)
+        return {**base,"state":"SETTLED_UNVERIFIED_RESEARCH",
+                "fixed8_hit":bool(set(map(tuple,tickets)) & set(paid)),
+                "fixed8_investment_yen":800,
+                "fixed8_payout_yen":fixed_payout,
+                "fixed8_profit_yen":fixed_payout-800,
+                "fixed8_roi":fixed_payout/800,
+                "variable_hit":variable_audit["research_hit"],
+                "variable_investment_yen":
+                    variable_audit["reference_investment_yen"],
+                "variable_payout_yen":
+                    variable_audit["reference_payout_yen"],
+                "variable_profit_yen":
+                    variable_audit["reference_profit_yen"],
+                "variable_roi":variable_audit["reference_roi"]}
 
     def aggregate(self):
         """One latest-revision score per race/model; no post-hoc double count."""
