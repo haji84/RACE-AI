@@ -1,0 +1,91 @@
+name: WINTICKET Yahiko 1R owner-approved replay sealed pilot
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/keirin_yahiko_1r_encrypted_replay_capture.py'
+      - 'scripts/keirin_replay_probe.py'
+      - 'docs/keirin-winticket-yahiko-pilot-public.pem'
+      - '.github/workflows/keirin-yahiko-encrypted-replay-pilot.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  one-race-private-review-proof:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            scripts
+            docs
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Chrome browser recording and cryptographic dependencies
+        run: |
+          python -m pip install playwright==1.56.0 'cryptography>=44,<48'
+          python -m playwright install chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Validate encrypted recorder source
+        run: |
+          python -m py_compile scripts/keirin_replay_probe.py
+          python -m py_compile scripts/keirin_yahiko_1r_encrypted_replay_capture.py
+      - name: Capture the user-identified public historic replay in browser
+        id: replay
+        continue-on-error: true
+        run: |
+          python -m scripts.keirin_yahiko_1r_encrypted_replay_capture \
+            --report "$RUNNER_TEMP/yahiko-20261030-1r-report.json" \
+            --encrypted-dir "$RUNNER_TEMP/yahiko-1r-sealed" \
+            --public-key docs/keirin-winticket-yahiko-pilot-public.pem
+      - name: Upload ONLY encrypted playback, never unencrypted footage
+        if: steps.replay.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: yahiko-20261030-1R-historical-player-AESGCM-ciphertext
+          path: ${{ runner.temp }}/yahiko-1r-sealed/
+          retention-days: 2
+          if-no-files-found: error
+      - name: Technical outcome; no unauthorized training claims
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path(os.environ['RUNNER_TEMP'])/'yahiko-20261030-1r-report.json'
+          r=json.loads(p.read_text()) if p.exists() else {}
+          lines=[
+            '## WINTICKET Yahiko 2026-10-30 1R replay research capture',
+            '- Owner reports WINTICKET usage OK. Exact permission scope is owner-reported and was not supplied as written evidence.',
+            f"- Browser status: {r.get('status','NO_REPORT')}",
+            f"- Replay duration: {r.get('player_duration','UNKNOWN')}s",
+            f"- Replay player ended: {r.get('player_ended',False)}",
+            f"- Encrypted recordings: {r.get('encrypted_capture_count',0)}",
+            f"- Race identity: {r.get('race_id','UNKNOWN')}",
+            '- Raw frames uploaded: NO',
+            '- Four complete laps verified: NO',
+            '- Independently reviewed attacks/goals: NOT YET',
+            '- Training/prediction weights modified: NO',
+          ]
+          Path(os.environ['GITHUB_STEP_SUMMARY']).write_text('\n'.join(lines)+'\n')
+          print('\n'.join(lines))
+          PY
+      - name: Require actual ciphertext artifact and full player end
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path(os.environ['RUNNER_TEMP'])/'yahiko-20261030-1r-report.json'
+          r=json.loads(p.read_text()) if p.exists() else {}
+          if (r.get('status')!='ENCRYPTED_FULL_REPLAY_PLAYER_CAPTURED'
+              or r.get('encrypted_capture_count')!=1):
+              raise SystemExit('NOT_PROVEN: historic browser replay capture incomplete')
+          print('Entire 80s historic player and ciphertext proven. Visible frame review still required.')
+          PY
