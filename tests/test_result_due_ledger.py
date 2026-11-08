@@ -134,6 +134,17 @@ class AllHistoryLedgerTests(unittest.TestCase):
             L.ordered_result_targets(fresh=[],bootstrap=[],new_stats=[],old=[],other_due=[],
                                      revisions=[],max_requests=13,used_requests=0)
 
+    def test_venue_bootstrap_is_not_displaced_by_old_backlog(self):
+        q=L.ordered_result_targets(fresh=[],bootstrap=['v1','v2','v3','v4'],new_stats=[],
+            old=['old1','old2'],other_due=[],revisions=[],max_requests=4,used_requests=1)
+        self.assertEqual(q[:4],['v1','v2','v3','v4'])
+        self.assertEqual(q[4:],['old1','old2'])
+
+    def test_single_current_slot_is_not_stolen_by_old_backlog(self):
+        q=L.ordered_result_targets(fresh=['current1'],bootstrap=[],new_stats=[],
+            old=['old1'],other_due=[],revisions=[],max_requests=1,used_requests=0)
+        self.assertEqual(q[:2],['current1','old1'])
+
     def test_resume_does_not_reset_scanned_months(self):
         doc=self.fresh();L.record_scanned(doc,'2024-01-01');L.record_scanned(doc,'2025-01-01')
         again=L.ledger({'result_due_ledger':doc},now=NOW)
