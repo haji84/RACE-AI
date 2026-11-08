@@ -14,9 +14,10 @@ def beforeinfo_url(rid):
     return f'https://www.boatrace.jp/owpc/pc/race/beforeinfo?hd={day}&jcd={venue}&rno={int(number)}'
 
 def _roster(row):
+    from .boat_saved_model_view import _registration
     people=row.get('participants',[])
     need(row.get('sport')=='boat' and len(people)==6,'BEFOREINFO_ROSTER_REQUIRED')
-    values=[dict(lane=p['number'],registration_number=p['registration_no']) for p in people]
+    values=[dict(lane=p['number'],registration_number=_registration(p)) for p in people]
     need({p['lane'] for p in values}==set(range(1,7)) and len({p['registration_number'] for p in values})==6 and
          all(isinstance(p['registration_number'],str) and re.fullmatch('[0-9]{4}',p['registration_number']) for p in values),'BEFOREINFO_ROSTER_REQUIRED')
     return values
@@ -72,7 +73,7 @@ def collect_beforeinfo(state,rows,*,now,fetch,max_requests=4):
             captures[rid]=state.remember('BEFOREINFO',raw,receipt)
             people=context['beforeinfo']['participants']
             complete=all(p.get('display_time') is not None and p.get('exhibition_st_status') in ('OK','F','L') for p in people)
-            check.update(state='READY' if complete else 'AWAITING_EXHIBITION',reason=None,finished=cutoff<=now)
+            check.update(state='READY' if complete else 'AWAITING_EXHIBITION',reason=None,finished=cutoff<=now and complete)
             parsed+=1
         except SourceWait as error:
             status=getattr(error,'plan',{}).get('http_status')

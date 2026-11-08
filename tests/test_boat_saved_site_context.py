@@ -39,6 +39,17 @@ def invented_view():
 
 
 class ContextTests(unittest.TestCase):
+    def test_live_beforeinfo_probe_is_private_and_keeps_the_original_view_unchanged(self):
+        from tests.test_racer_beforeinfo import preview_view,html,AT
+        from race_ai.racer_intraday import IntradayState
+        from race_ai.racer_beforeinfo import collect_beforeinfo,project_beforeinfo
+        view=invented_view();row=preview_view()['records'][0];row['prediction']=deepcopy(view['records'][0]['comparison_predictions'][0]);row['prediction']['cutoff_at']=row['cutoff_at'];view['records'].append(row)
+        state=IntradayState();collect_beforeinfo(state,[row],now=AT,fetch=lambda u:(html(),AT.isoformat()),max_requests=4);row['live_boat_observation']=project_beforeinfo(row,state,now=AT)
+        before=deepcopy(view);context=C.build_context(BOOTSTRAP,view,12,now=AT)
+        self.assertEqual(context['live_beforeinfo_races'],1)
+        self.assertEqual(context['live_beforeinfo_probe'],dict(race_id='20300401-12-12',cutoff_at='2030-04-01T20:30:00+09:00'))
+        self.assertEqual(view,before)
+
     def test_explicit_saved_day_after_midnight_keeps_the_actual_clock(self):
         later=NOW+timedelta(days=1)
         with self.assertRaisesRegex(ValueError,'SAVED_SITE_CURRENT_DAY_REQUIRED'):C.build_context(BOOTSTRAP,invented_view(),12,now=later)

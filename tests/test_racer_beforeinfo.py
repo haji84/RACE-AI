@@ -103,9 +103,25 @@ class BeforeinfoTests(unittest.TestCase):
         self.assertEqual(report['requests'],1)
         self.assertEqual(project_beforeinfo(self.row,self.state,now=later)['state'],'READY')
 
+    def test_post_cutoff_empty_exhibition_retries_until_the_official_values_arrive(self):
+        after=AT+timedelta(minutes=50)
+        collect_beforeinfo(self.state,[self.row],now=after,fetch=self.fetch(html(published=False),after),max_requests=4)
+        later=after+timedelta(minutes=6)
+        report=collect_beforeinfo(self.state,[self.row],now=later,fetch=self.fetch(html(),later),max_requests=4)
+        self.assertEqual(report['requests'],1)
+        self.assertEqual(project_beforeinfo(self.row,self.state,now=later)['state'],'READY')
+
     def test_transport_accepts_only_exact_official_beforeinfo_race_queries(self):
         self.assertGreater(allowed(URL),0)
         for url in [URL.replace('beforeinfo','purchase'),URL+'&token=x',URL.replace('www.boatrace.jp','evil.test'),URL.replace('jcd=12','jcd=25'),URL.replace('rno=12','rno=13')]:
             with self.assertRaises(ValueError):allowed(url)
+
+    def test_supported_registration_aliases_collect_but_conflicting_aliases_do_not(self):
+        for person in self.row['participants']:person['registration_number']=person.pop('registration_no')
+        report=collect_beforeinfo(self.state,[self.row],now=AT,fetch=self.fetch(html()),max_requests=4)
+        self.assertEqual(report['parsed'],1)
+        bad=deepcopy(self.row);bad['participants'][0]['registration_no']='4999'
+        calls=[];report=collect_beforeinfo(IntradayState(),[bad],now=AT,fetch=lambda u:calls.append(u),max_requests=4)
+        self.assertEqual(report['requests'],0);self.assertEqual(calls,[])
 
 if __name__=='__main__':unittest.main()
