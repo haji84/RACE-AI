@@ -1,6 +1,7 @@
 """Synthetic archived-input retrospective PR71: never a live backtest claim."""
 from copy import deepcopy
 from hashlib import sha256
+import json
 import unittest
 
 from race_ai.four_sport_model_suite import ALL_MODELS
@@ -57,6 +58,18 @@ class HistoricalTimeSplitAndReplayTests(unittest.TestCase):
                                     "UNREVIEWED_HISTORICAL_MODEL_CODE_REVISION"):
             prepare_historical_pr71(make_sources()[0],performed_at=AFTER,
                                     model_code_commit_sha=other)
+
+    def test_canonical_json_private_readback_retains_immutable_model_ranks(self):
+        original=historical()
+        revived=json.loads(json.dumps(original,sort_keys=True))
+        self.assertEqual(original["retrospective_record_sha256"],
+                         revived["retrospective_record_sha256"])
+        target=original["full_model_suite"]["models"][ALL_MODELS[0]][
+            "candidates"][9]["combination"]
+        audit=evaluate_historical_without_repredicting(revived,result(target))
+        self.assertTrue(audit["historical_retrospective_only"])
+        self.assertEqual(audit["four_existing_models"][ALL_MODELS[0]][
+            "winning_rank_and_payout"][0]["rank"],10)
 
     def test_historical_source_facts_later_than_asof_are_rejected(self):
         sample=make_sources()[0]
