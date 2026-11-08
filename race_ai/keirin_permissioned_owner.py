@@ -15,6 +15,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from .keirin_allowed_delivery import assemble_permitted_pre_race
+from .keirin_non_rakuten_sources import is_rakuten_url
 from .keirin_result_delivery import canonical, utc
 
 MANIFEST = "RACE_AI_KEIRIN_OPERATOR_LICENSE_MANIFEST_V1"
@@ -111,7 +112,7 @@ class OperatorLicenseGrants:
             self.grants.append(row)
 
     def allowed(self, source_url, rights_ref, purpose):
-        if purpose not in PURPOSES or type(source_url) is not str:
+        if purpose not in PURPOSES or type(source_url) is not str or is_rakuten_url(source_url):
             return False
         try:
             u = urlsplit(source_url)
