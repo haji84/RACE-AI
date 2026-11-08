@@ -23,6 +23,7 @@ from race_ai.keirin_licensed_api_ingest import fetch_authorized_exports
 from race_ai.keirin_owner_auto_sources import (
     OwnerAttestedAutomaticSources, AUTOMATION_CONSENT,
 )
+from race_ai.keirin_owner_public_page_fetch import capture_approved_public_pages
 from race_ai.keirin_owner_manual import PersonalOwnerObservations
 from race_ai.keirin_owner_approved_sources import (
     PROFILE_ID, approved_source_hosts,
@@ -63,6 +64,9 @@ def main(argv=None):
                         help="owner confirms automated acquisition of WINTICKET "
                              "and KEIRIN.JP for private research; no provider API "
                              "endpoint is invented, no access controls bypassed")
+    parser.add_argument("--owner-public-page-url", action="append",
+                        help="repeat authorized public HTTPS webpage URLs to "
+                             "archive as immutable private source HTML")
     parser.add_argument("--provider-endpoint", action="append",
                         help="repeat for EVERY explicitly approved JSON data "
                              "endpoint; no fixed single-GET application quota")
@@ -97,6 +101,9 @@ def main(argv=None):
     rights = args.provider_rights_ref or []
     if len(endpoints) != len(rights):
         print('{"state":"ENDPOINT_RIGHTS_PAIR_COUNT_MISMATCH"}')
+        return 2
+    if args.owner_public_page_url and not auto_owner:
+        print('{"state":"PUBLIC_FETCH_REQUIRES_OWNER_AUTOMATIC_APPROVAL"}')
         return 2
     if auto_owner and (not args.personal_manual or
                        args.owner_approved_source_profile != PROFILE_ID or
@@ -178,6 +185,10 @@ def main(argv=None):
                         inbox, grants,
                         sources=list(zip(endpoints,rights)),token=token,
                     )
+                public_pages = (
+                    capture_approved_public_pages(
+                        inbox,grants,urls=args.owner_public_page_url)
+                    if args.owner_public_page_url else None)
                 owner_markdown = (stage_owner_saved_hex_markdown(inbox, now=now)
                                   if args.personal_manual else None)
                 owner_csv = (stage_owner_saved_csv(inbox, now=now)
@@ -220,6 +231,7 @@ def main(argv=None):
                     "schema": "RACE_AI_KEIRIN_LICENSED_LOCAL_CYCLE_V1",
                     "stage": stage, "spool": settled,
                     "owner_saved_csv_stage": owner_csv,
+                    "owner_automatic_public_page_capture": public_pages,
                     "owner_saved_full_odds_csv_stage": owner_odds_csv,
                     "owner_saved_markdown_stage": owner_markdown,
                     "source_grounded_private_shadow":shadow,
@@ -232,6 +244,7 @@ def main(argv=None):
                     "automatic_provider_fetch": fetch_report is not None,
                     "provider_network_requests": (
                         (fetch_report["http_requests"] if fetch_report else 0) +
+                        (public_pages["network_requests"] if public_pages else 0) +
                         (modelled_weather["provider_get_requests"]
                          if modelled_weather else 0)),
                     "official_pre_cutoff_witness": False,
