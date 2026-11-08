@@ -50,12 +50,27 @@ def inspect_archive_document(document):
             and type(document.get("all_210")) is list):
         need(len(document["all_210"]) == 210,
              "OTHER_MODEL_RANK_COUNT_UNEXPECTED")
-        return {"source_kind":"OTHER_MODEL_210_RANK_RESEARCH",
+        summary={"source_kind":"OTHER_MODEL_210_RANK_RESEARCH",
                 "historic_race_count":1,
                 "full_other_model_rankings_present":True,
                 "original_pr71_four_model_input_count":0,
                 "ready_for_pr71_asof_comparison":False,
                 "missing":"PR71_ORIGINAL_NORMALIZED_12_PER_RIDER_9_ENV"}
+        if type(document.get("participants")) is list and (
+                type(document.get("race")) is dict):
+            from .keirin_historical_sparse_feature_probe import (
+                probe_saved_second_race_reference,HistoricalSparseProbeError
+            )
+            try:
+                probe=probe_saved_second_race_reference(document)[
+                    "public_summary"]
+            except (HistoricalSparseProbeError,ValueError,TypeError,KeyError):
+                summary["strict_second_race_probe_status"]="BLOCKED_INVALID_SOURCE"
+            else:
+                summary["strict_second_race_probe_status"]="CANDIDATES_ONLY"
+                summary["candidate_feature_counts"]=probe["counts"]
+                summary["source_asof_independently_verified"]=False
+        return summary
     if shape == "RACE_AI_KEIRIN_REAL_RIDER_SHADOW_ONE_SHOT_V1":
         rider_count=len(document.get("riders",[]))
         need(rider_count in (7,9),
@@ -146,10 +161,15 @@ def private_batch_inventory(documents):
             "archived_historic_race_references":
                 sum(r["historic_race_count"] for r in rows),
             "pr71_real_full_sources_admitted":0,
-            "sparse_required_model_slots_reconstructed_as_candidates":sum(
+            "observed_required_model_slots_reconstructed_as_candidates":sum(
                 r.get("candidate_feature_counts",{}).get(
                     "required_candidates_normalized_not_admitted",0)
                 for r in rows),
+            "sparse_required_model_slots_reconstructed_as_candidates":sum(
+                r.get("candidate_feature_counts",{}).get(
+                    "required_candidates_normalized_not_admitted",0)
+                for r in rows if r["source_kind"]==
+                    "SPARSE_OBSERVED_RIDERS_NOT_PR71"),
             "prospective_original_past_predictions_certified":0,
             "historical_asof_holdout_four_model_count":0,
             "invented_missing_inputs":0,
