@@ -52,6 +52,18 @@ class AllHistoryLedgerTests(unittest.TestCase):
             self.assertEqual(git.read(two['source_commit'],one['cipher_path'],32*1024*1024),rawcipher)
             self.assertEqual(git.read(two['source_commit'],'state/other/unchanged.enc',64),b'ORIGINAL')
 
+    def test_legacy_cutoff_reference_is_unverified_and_retained_as_due(self):
+        doc=self.fresh()
+        result=row('20261104-01-01','final')
+        result['result']['cutoff_reference']={'formal_eligible':False}
+        self.assertEqual(L.reconciled_status(result),'unsupported')
+        out=L.update(doc,[result],now=NOW)
+        self.assertEqual(out['pending_by_status']['unsupported'],1)
+        self.assertEqual(L.pending_count(doc),1)
+        result['result'].pop('cutoff_reference')
+        L.update(doc,[result],now=NOW)
+        self.assertEqual(L.pending_count(doc),0)
+
     def test_new_old_pending_and_formal_close(self):
         doc=self.fresh();rid='20261104-01-01'
         L.update(doc,[row(rid,'pending')],now=NOW)

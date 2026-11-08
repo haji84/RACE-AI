@@ -151,8 +151,12 @@ def reconciled_status(row):
     result=row.get('result') or {}
     status=result.get('status') or 'missing'
     reference=result.get('cutoff_reconciliation') or {}
+    legacy_reference=result.get('cutoff_reference')
     if status in ('final','void') and (result.get('formal_eligible') is False or
-        type(reference) is dict and reference.get('formal_eligible') is False):
+        type(reference) is dict and reference.get('formal_eligible') is False or
+        legacy_reference is not None):
+        # cutoff_reference is a display-only schedule reconciliation.
+        # Its existence never authorizes formal result/PDCA settlement.
         return 'unsupported'
     return status
 

@@ -52,6 +52,16 @@ class HistoricalModelPdcaAudit(unittest.TestCase):
         g=A.score_view(v,authenticated=True)['model_groups'][0]
         self.assertEqual((g['held'],g['eligible'],g['stake_yen']),(1,0,0))
 
+    def test_legacy_cutoff_reference_never_counts_as_formal_hit(self):
+        view=self.capture(self.view())
+        result=view['records'][0]['result']
+        result['cutoff_reference']={'formal_eligible':False,
+            'basis':'RAW_OFFICIAL_PAGE_SAME_ROSTER_SAVED_BEFORE_BOTH'}
+        score=A.score_view(view,authenticated=True,include_private_due=True)
+        item=score['model_groups'][0]
+        self.assertEqual((item['held'],item['eligible'],item['hits'],item['stake_yen']),(1,0,0,0))
+        self.assertEqual(score['_private_due_race_ids'],[view['records'][0]['race_id']])
+
     def test_latest_source_mismatch_is_held_with_zero_scorable_stake(self):
         v=self.capture(self.view());v['records'][0]['result']['source_sha256']='f'*64
         g=A.score_view(v,authenticated=True)['model_groups'][0]
