@@ -229,6 +229,23 @@ class VariableOwnerIntegrationTests(unittest.TestCase):
             self.assertEqual(ledger.selection(
                 RID,original["forecast"]["model_id"]),selection)
 
+    def test_post_freeze_changed_odds_are_not_silently_accepted(self):
+        _,original,selection=self.begin(positive=2)
+        self.now[0]=datetime.fromisoformat("2030-01-15T09:25:00+09:00")
+        changed=self.odds(positive=3)
+        self.save("odds","second.json",changed)
+        with PrivateKeirinStore(self.dbpath,clock=self.clock) as store:
+            tick=self.agent(store).tick(self.inbox)
+            self.assertEqual(
+                tick["states"].get("VARIABLE_POST_FREEZE_ODDS_CONFLICT"),1)
+            ledger=PrivateVariableLedger(store)
+            saved=ledger.selection(RID,original["forecast"]["model_id"])
+            self.assertEqual(saved,selection)
+            self.assertEqual(ledger.odds_snapshot(
+                selection["selection"]["odds_snapshot_sha256"]),self.odds(positive=2))
+            self.assertEqual(store.db.execute(
+                "SELECT COUNT(*) FROM variable_odds_snapshots").fetchone()[0],1)
+
     def test_after_cutoff_new_odds_cannot_recreate_selection(self):
         tick,original,selection=self.begin(positive=None)
         self.assertIsNone(selection)
