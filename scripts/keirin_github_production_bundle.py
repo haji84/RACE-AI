@@ -70,6 +70,8 @@ def create_production_bundle(db, license_manifest, output, *,
                              producer_sha, checked_at=None):
     """Seal a single existing source-linked future race. No Git write."""
     from scripts.keirin_github_production_archive import REPO
+    need(os.environ.get("GITHUB_ACTIONS")!="true" or
+         checked_at is None,"UNTRUSTED_PRODUCTION_CLOCK_OVERRIDE")
     now=utc(checked_at or datetime.now(timezone.utc).isoformat())
     need(type(generation) is int and 1<=generation<=100000 and
          (previous_cipher_sha256 is None if generation==1 else
