@@ -200,7 +200,61 @@ def preloaded_schema_only(text):
                         "dict_rows":sum(isinstance(v,dict) for v in vals),
                     }
             qkey=query.get("queryKey")
+            from itertools import permutations
+            import math
+            combos=[]
+            for item in rows:
+                combo=item.get("key") if isinstance(item,dict) else None
+                if (type(combo) is list and len(combo)==3 and
+                    all(type(n) is int and 1<=n<=9 for n in combo)
+                    and len(set(combo))==3):
+                    combos.append(tuple(combo))
+            starters=set(n for triple in combos for n in triple)
+            universe=set(permutations(starters,3))
+            numeric_valid=sum(
+                isinstance(item,dict) and
+                type(item.get("odds")) in (float,int) and
+                math.isfinite(item["odds"]) and
+                1 < item["odds"] < 1_000_000 and
+                item["odds"]!=9999.9
+                for item in rows
+            )
+            odds_str_matched=0
+            for item in rows:
+                if not isinstance(item,dict):
+                    continue
+                val=item.get("oddsStr")
+                try:
+                    if isinstance(val,str) and abs(
+                        float(val.replace(",",""))-item.get("odds",float("nan"))
+                    )<1e-5:
+                        odds_str_matched+=1
+                except (TypeError,ValueError):
+                    pass
+            all_ids=sorted({
+                item.get("raceId") for item in rows
+                if isinstance(item,dict) and isinstance(item.get("raceId"),str)
+            })
+            odd_time=data.get("oddsUpdatedAt")
             odds_shape.append({
+                "source_race_ids":all_ids[:3],
+                "odds_updated_at":odd_time if isinstance(odd_time,(int,str)) else None,
+                "odds_updated_at_type":type(odd_time).__name__,
+                "odds_delayed":data.get("oddsDelayed") if type(data.get("oddsDelayed")) is bool else None,
+                "final_odds":data.get("finalOdds") if type(data.get("finalOdds")) is bool else None,
+                "is_aggregated":data.get("isAggregated") if type(data.get("isAggregated")) is bool else None,
+                "unique_valid_combinations":len(set(combos)),
+                "matches_entire_permutation_universe":(
+                    len(starters) in (7,9) and
+                    set(combos)==universe and
+                    len(combos)==len(universe)
+                ),
+                "starter_count_from_keys":len(starters),
+                "valid_priced_rows":numeric_valid,
+                "display_string_numeric_matches":odds_str_matched,
+                "absent_true_rows":sum(
+                    item.get("absent") is True for item in rows
+                    if isinstance(item,dict)),
                 "count":len(rows),
                 "first_row_shape":describe_one(rows[0]) if rows else None,
                 "field_type_histograms":counts,
