@@ -167,3 +167,141 @@ def probe_saved_sparse_research(record):
     }
     return {"public_summary":summary,
             "private_candidate_values_by_rider":values}
+
+
+
+SECOND_RACE_SCHEMA = "MATS2R_RESEARCH_SCENARIO_PREDICTION_V1"
+SECOND_RACE_COLUMNS = frozenset({
+    "n", "name", "p", "w", "nr", "p3", "b", "esc", "mak",
+    "sashi", "mark", "recent", "line", "role",
+})
+SECOND_RACE_MAP = {
+    **EXPECTED,
+    "consistency": ("top_three_rate", "ratio"),
+    "recent_win_form": ("win_rate", "ratio"),
+    "sashi_style": ("style_sashi", "ratio"),
+}
+
+
+def probe_saved_second_race_reference(document):
+    """Reconstruct candidate-only R2 features from a DIFFERENT research model.
+
+    Legacy six-scenario outcomes and market odds are never read as PR71 inputs.
+    The complete 210 predictions do not imply 210 original PR71 rankings.
+    """
+    need(type(document) is dict and
+         document.get("schema") == SECOND_RACE_SCHEMA and
+         document.get("status") ==
+             "research_only_uncalibrated_no_official_frozen_proof",
+         "WRONG_SECOND_RACE_RESEARCH_ARCHIVE")
+    methodology=document.get("methodology",{})
+    need(type(methodology) is dict and
+         methodology.get("source_admission_verified_for_RACE_AI") is False
+         and methodology.get("independent_validation") is False
+         and methodology.get("calibrated") is False,
+         "SECOND_RACE_UNEXPECTED_ADMISSION_OR_CALIBRATION")
+    race=document.get("race",{})
+    need(type(race) is dict and race.get("date_jst")=="2026-11-08"
+         and race.get("venue")=="松山" and race.get("race_number")==2,
+         "SECOND_RACE_UNMATCHED_TARGET")
+    issued=utc(race["as_of_jst"])
+    cutoff=utc(race["date_jst"]+"T"+race["sales_cutoff_jst"]+":00+09:00")
+    need(issued<cutoff, "SECOND_RACE_NOT_CLAIMED_PRE_CUTOFF")
+    need(all(RIDER_MAP.get(k) == v for k,v in SECOND_RACE_MAP.items()),
+         "PR71_SECOND_RACE_MAPPING_CHANGED")
+    riders=document.get("participants")
+    need(type(riders) is list and len(riders)==7,
+         "SECOND_RACE_FULL_SEVEN_RIDERS_REQUIRED")
+    numbers=set()
+    values={}
+    for row in riders:
+        need(type(row) is dict and set(row)==SECOND_RACE_COLUMNS,
+             "SECOND_RACE_RIDER_SOURCE_SHAPE_MISSING")
+        number=row["n"]
+        need(type(number) is int and number in range(1,8)
+             and number not in numbers,
+             "SECOND_RACE_DUPLICATE_NUMBER")
+        numbers.add(number)
+        need(type(row["name"]) is str and len(row["name"])>=1,
+             "SECOND_RACE_RIDER_IDENTITY_MISSING")
+        starts=_numeric(row["nr"],integer=True)
+        need(starts>0, "SECOND_RACE_SAMPLE_MISSING")
+        counts={field:_numeric(row[field],integer=True) for field in
+                ("w","p3","b","esc","mak","sashi","mark")}
+        need(all(n<=starts for n in counts.values()) and
+             counts["w"]<=counts["p3"] and
+             counts["esc"]+counts["mak"]+
+             counts["sashi"]+counts["mark"]<=starts,
+             "SECOND_RACE_COUNTS_INCONSISTENT")
+        recent=row["recent"]
+        need(type(recent) is list and len(recent)==6 and
+             all(type(v) is int and 1<=v<=9 for v in recent),
+             "SECOND_RACE_UNVERIFIED_RECENT_RESULTS")
+        score=_numeric(row["p"])
+        raw={
+            "race_score":score,
+            "top_three_rate":counts["p3"]/starts,
+            "win_rate":counts["w"]/starts,
+            "back_B_count":counts["b"],
+            "style_escape":counts["esc"]/starts,
+            "style_makuri":counts["mak"]/starts,
+            "style_sashi":counts["sashi"]/starts,
+        }
+        normalized={}
+        for feature,(origin,transform) in SECOND_RACE_MAP.items():
+            sample=starts if transform=="count_rate" else 1
+            normalized[feature]=_convert(raw[origin],sample,transform)
+        need(all(math.isfinite(v) and 0<=v<=1
+                 for v in normalized.values()),
+             "SECOND_RACE_NAN_NORMALIZATION")
+        values[number]=normalized
+    need(numbers==set(range(1,8)), "SECOND_RACE_ROSTER_INCOMPLETE")
+    lines=race.get("line_assumptions")
+    need(type(lines) is list and
+         all(type(group) is list and len(group)>=2
+             and all(type(n) is int for n in group) for group in lines)
+         and sorted(n for group in lines for n in group)==list(range(1,8)),
+         "SECOND_RACE_LINE_ROSTER_INCOMPLETE")
+    # Expected line roles may not be promoted into line-coordination skill.
+    for group in lines:
+        for index,n in enumerate(group):
+            row=next(r for r in riders if r["n"]==n)
+            need(row["line"]==group[0] and row["role"]==index,
+                 "SECOND_RACE_LINE_ROLE_CONFLICT")
+    required=sorted(MODEL_REQUIRED)
+    present=sorted(set(required) & set(SECOND_RACE_MAP))
+    return {
+        "public_summary":{
+            "schema":SCHEMA,
+            "source_kind":"MATS2R_DIFFERENT_UNTRAINED_RESEARCH_ARCHIVE",
+            "source_archive_canonical_sha256":
+                sha256(canonical(document)).hexdigest(),
+            "race_id":"202611087502",
+            "claimed_pre_cutoff_generation":True,
+            "independent_field_publication_and_capture_proven":False,
+            "independent_original_forecast_witness_proven":False,
+            "rights_per_purpose_independently_confirmed":False,
+            "existing_pr71_model_executed":False,
+            "candidate_feature_names":sorted(SECOND_RACE_MAP),
+            "missing_required_feature_names":sorted(
+                set(required)-set(present)),
+            "counts":{
+                "source_observed_riders":7,
+                "model_required_feature_slots":7*len(required),
+                "required_candidates_normalized_not_admitted":7*len(present),
+                "required_slots_not_supported":
+                    7*(len(required)-len(present)),
+                "environment_required_slots":len(ENV_REQUIRED),
+                "environment_candidates":0,
+                "optional_candidate_slots":
+                    7*len(set(SECOND_RACE_MAP)-set(required)),
+                "all_candidate_slots":7*len(SECOND_RACE_MAP),
+            },
+            "full_pr71_four_model_replay_eligible":False,
+            "historical_210_from_other_model_not_PR71":True,
+            "model_inference_executed":False,
+            "formal_accuracy":None,
+            "state":"BLOCKED_"+NO_ADMISSION,
+        },
+        "private_candidate_values_by_rider":values,
+    }
