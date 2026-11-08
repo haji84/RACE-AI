@@ -31,5 +31,7 @@ jobs:
         run: python -m unittest discover -s tests -p test_keirin_permissioned_owner.py -v
       - name: One GET only if provider explicitly grants machine access; no site crawl
         run: python -m unittest discover -s tests -p test_keirin_license_api_ingest.py -v
+      - name: Personal owner-captured 347-field input without provider API or licence contract
+        run: python -m unittest discover -s tests -p test_keirin_owner_manual.py -v
       - name: Operator-private service CLI and no unauthenticated provider access
         run: python -m unittest discover -s tests -p test_keirin_private_agent.py -v
