@@ -215,7 +215,7 @@ def validated_rows(docs):
     need(len(rows)<=30000,"EXCESSIVE_TRAINING_ROWS")
     return rows,races
 
-def train_reviewed_classifier(docs, *, minimum_races=3, min_f1=.85):
+def train_reviewed_classifier(docs, *, minimum_races=3, min_f1=.85, dev_races=None):
     """Group-held-out by race. Promotion is blocked if accuracy is unproven.
 
     Even a validated classifier proposes scenes; separate independent visual
@@ -226,6 +226,10 @@ def train_reviewed_classifier(docs, *, minimum_races=3, min_f1=.85):
     from sklearn.metrics import f1_score,classification_report
     from sklearn.preprocessing import StandardScaler
     rows,races=validated_rows(docs)
+    if dev_races is None: dev_races=[]
+    need(type(dev_races) is list and all(type(x) is str and x for x in dev_races)
+         and len(set(dev_races))==len(dev_races),"INVALID_DEVELOPMENT_COHORT")
+    need(races.isdisjoint(set(dev_races)),"DEVELOPMENT_RACE_CONTAMINATES_TRAINING")
     need(len(races)>=minimum_races,"NOT_ENOUGH_DISTINCT_VERIFIED_RACES")
     need(set(x["label"] for x in rows)==set(CLASSES),
          "INCOMPLETE_SCENE_CLASSES")
@@ -264,6 +268,7 @@ def train_reviewed_classifier(docs, *, minimum_races=3, min_f1=.85):
        "mean":scaler.mean_.tolist(),"scale":scaler.scale_.tolist(),
        "weights":model.coef_.tolist(),"intercepts":model.intercept_.tolist(),
        "train_races":sorted(races-{holdout}),
+       "dev_races":list(dev_races),
        "heldout_races":[holdout],
        "holdout_rows":len(te),"holdout_support":counts,
        "holdout_macro_f1":round(measured,5),
