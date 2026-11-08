@@ -147,32 +147,44 @@ def retain_manifest(manifest,root,env,*,transport=None,readback_transport=None):
         source_provider_requests=0,retained_result_artifact_count=0,pointers=[],manifest_sha256=scope['manifest_sha256'],
         current_label_or_training_admission_created=False,production_promoted=False,actual_purchases=False,
         plaintext_published=False)
+    failure_phase='VERIFY_ACTIONS_RUN'
     try:
         actual=future.environment()
         need(actual==env,'ACTUAL_CURRENT_RUN_BINDING')
+        failure_phase='AUTHENTICATE_NATIVE_PINS'
         frozen=freeze.frozen_inputs(manifest,now=now)
         originals=[];total=0
         for pin in manifest['result_artifacts']:
+            failure_phase='READ_RESULT_PIN'
             raw,metadata_raw,metadata=_result_original(pin,now);total+=len(raw)
             need(total<=256*1024*1024,'TOTAL_RESULT_ARCHIVE_BOUND')
             # Admit every pinned original before touching the state writer.
+            failure_phase='AUTHENTICATE_RESULT_OBSERVATIONS'
             results.observations_from_official_result_artifact(raw,metadata,now=now,
                 expected_run_id=pin['run_id'],expected_head_sha=pin['head_sha'],frozen_native_payloads=frozen,
                 key=key,allow_order_only=manifest['allow_order_only'])
             originals.append((raw,metadata_raw))
-        git_auth();git=retention._transport(ROOT,transport);parent=git.head()
+        failure_phase='AUTHORIZE_EXISTING_GIT_REF'
+        git_auth()
+        failure_phase='READ_EXISTING_GIT_REF'
+        git=retention._transport(ROOT,transport);parent=git.head()
         need(type(parent) is str and re.fullmatch('[a-f0-9]{40}',parent),'EXISTING_TRANSFER_PARENT_REQUIRED')
         for raw,metadata_raw in originals:
+            failure_phase='ENCRYPT_APPEND_AND_INDEPENDENT_READBACK'
             pointer=retention.retain(raw,metadata_raw,frozen,ROOT,expected_parent=parent,
                 allow_order_only=manifest['allow_order_only'],key=key,transport=git,
                 readback_transport=readback_transport,now=now)
             summary['pointers'].append(pointer);summary['retained_result_artifact_count']+=1
             parent=pointer['source_commit']
         summary.update(state='OFFICIAL_RESULT_ORIGINALS_RETAINED',ready=True)
+        failure_phase='SEAL_COMPLETE_MARKER'
         _write_marker(done,scope,key,'DONE',summary,utc_now())
         return summary
     except Exception as exc:
-        summary.update(state='HOLD_OFFICIAL_RESULT_RETENTION',ready=False,reason=_safe_error(exc))
+        # Fixed phase metadata only: no private URLs, source bytes, keys or error text.
+        # Preserve the signed HOLD marker and never retry its epoch.
+        summary.update(state='HOLD_OFFICIAL_RESULT_RETENTION',ready=False,reason=_safe_error(exc),
+                       failure_phase=failure_phase)
         if not held.exists():_write_marker(held,scope,key,'HOLD',summary,utc_now())
         raise
 
@@ -185,7 +197,9 @@ def main(argv=None):
     try:
         env=local_environment();manifest=validate_manifest(retention.vault._json(_read(Path(args.input),32768),32768))
         status=retain_manifest(manifest,Path(args.out_dir),env)
-    except Exception as exc:status['reason']=_safe_error(exc)
+    except Exception as exc:
+        status['reason']=_safe_error(exc)
+        status['failure_phase']='RUNNER_PREFLIGHT'
     print(json.dumps(status,sort_keys=True));return 0
 
 

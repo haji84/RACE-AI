@@ -58,6 +58,40 @@ class WorkerOfficialResultRetainTests(unittest.TestCase):
                        {'native_artifacts':[dict(self.native_pin,head_sha='x'*40)]}):
             with self.subTest(change=change),self.assertRaises(ValueError):self.cli.validate_manifest(dict(self.manifest,**change))
 
+    def test_failure_phase_reports_native_admission_without_disclosing_context(self):
+        with self.patches(),self.assertRaises(ValueError):
+            self.natives.side_effect=ValueError('private://owner/cannot-be-shown')
+            self.run_retention()
+        marker=next((self.root/'out').glob('hold-*.json'))
+        report=json.loads(marker.read_text())['state']['summary']
+        self.assertEqual(report['failure_phase'],'AUTHENTICATE_NATIVE_PINS')
+        self.assertEqual(report['reason'],'RETAIN_OPERATION_REJECTED')
+        self.assertNotIn('private://owner',marker.read_text())
+        with self.patches():
+            self.natives.side_effect=AssertionError('never retry a signed hold')
+            unchanged=self.run_retention()
+        self.assertFalse(unchanged['ready']);self.assertTrue(unchanged['skipped'])
+
+    def test_failure_phase_reports_raw_result_admission(self):
+        with self.patches(),patch.object(self.cli.results,'observations_from_official_result_artifact',
+                side_effect=RuntimeError('private official result body')) as rejecting,self.assertRaises(RuntimeError):
+            self.run_retention()
+        rejecting.assert_called_once()
+        report=json.loads(next((self.root/'out').glob('hold-*.json')).read_text())['state']['summary']
+        self.assertEqual(report['failure_phase'],'AUTHENTICATE_RESULT_OBSERVATIONS')
+        self.assertNotIn('private official result body',json.dumps(report))
+        self.assertEqual(self.writer.commits,[])
+
+    def test_failure_phase_reports_existing_git_readback_without_private_paths(self):
+        with self.patches(),patch.object(self.cli.retention,'retain',
+                side_effect=OSError('private encryption / owner ref path')) as failing,self.assertRaises(OSError):
+            self.run_retention()
+        failing.assert_called_once()
+        report=json.loads(next((self.root/'out').glob('hold-*.json')).read_text())['state']['summary']
+        self.assertEqual(report['failure_phase'],'ENCRYPT_APPEND_AND_INDEPENDENT_READBACK')
+        self.assertEqual(report['reason'],'RETAIN_OPERATION_REJECTED')
+        self.assertNotIn('private encryption',json.dumps(report))
+
     def test_real_result_retained_exactly_and_authenticated_done_skips_all_external_work(self):
         original=deepcopy(self.remote.trees[self.remote.head])
         with self.patches():first=self.run_retention()
