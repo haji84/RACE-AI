@@ -68,6 +68,16 @@ class LearningTests(unittest.TestCase):
             predict_scene(broken,{"vector":vec("START"),
                 "frame_sha256":sha("bad"),"t":1})
 
+    def test_holdout_must_not_share_source_or_image(self):
+        duplicate=docs()
+        duplicate[-1]["recording_sha256"]=duplicate[0]["recording_sha256"]
+        with self.assertRaisesRegex(SceneLearningError,"RECORDING_CONTENT_LEAKAGE"):
+            train_reviewed_classifier(duplicate)
+        shared_frame=docs()
+        shared_frame[-1]["samples"][0]["frame_sha256"]=shared_frame[0]["samples"][0]["frame_sha256"]
+        with self.assertRaisesRegex(SceneLearningError,"FRAME_CONTENT_LEAKAGE"):
+            train_reviewed_classifier(shared_frame)
+
     def test_scene_predictions_only_suggest_lap_evidence(self):
         model=train_reviewed_classifier(docs())
         blocks=[
