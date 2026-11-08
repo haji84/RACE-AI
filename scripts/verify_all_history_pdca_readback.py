@@ -10,7 +10,7 @@ def _need(ok,code):
     if not ok:raise ValueError('ALL_HISTORY_PDCA_'+code)
 
 def verify_snapshot(state,bridge,*,now):
-    from race_ai import result_due_ledger as D,retained_model_pdca_audit as P
+    from race_ai import result_due_ledger as D,retained_model_pdca_audit as P,model_pdca_history as H
     from race_ai import saved_view_feed as F
     from race_ai.racer_daily import wire
     _need(isinstance(now,datetime) and now.utcoffset() is not None,'CLOCK_INVALID')
@@ -22,7 +22,7 @@ def verify_snapshot(state,bridge,*,now):
     _need(0<len(snapshot['days'])<=4,'SNAPSHOT_DAY_BOUND')
     _need('result_due_ledger' in state.control,'PERSISTENT_DUE_LEDGER_MISSING')
     due=D.ledger(deepcopy(state.control),now=now.isoformat())
-    authenticated=models=scored=historical=holds=pending=0
+    authenticated=models=scored=historical=holds=pending=archived_readbacks=0
     seen=set()
     for item in snapshot['days']:
         _need(type(item) is dict and item.get('status')=='SCORED','MODEL_PDCA_PARTIAL_HOLD')
@@ -35,6 +35,15 @@ def verify_snapshot(state,bridge,*,now):
         _need(F.inventory_sha(view)==item.get('forecast_inventory_sha256'),'ORIGINAL_FORECAST_SHA_CHANGED')
         recomputed=P.score_view(view,authenticated=True)
         _need(wire(recomputed)==wire(item.get('summary')),'MODEL_PDCA_SNAPSHOT_MISMATCH')
+        # Reopen actual AES/Git objects and compare every day's immutable
+        # model/stage/version Top8 summary and official result revision.
+        slices=[(day,view)] if day!='CURRENT_VIEW' else [
+            (d,dict(view,records=[r for r in view['records'] if r.get('event_date_jst')==d]))
+            for d in sorted({r.get('event_date_jst') for r in view['records'] if r.get('sport')=='boat'})]
+        for archive_day,part in slices:
+            part_summary=P.score_view(part,authenticated=True)
+            H.verify_day(state.control,day=archive_day,view=part,summary=part_summary)
+            archived_readbacks+=1
         authenticated+=1;models+=recomputed['model_group_count'];scored+=recomputed['total_scored']
         holds+=sum(g['held'] for g in recomputed['model_groups'])
         pending+=sum(g['pending'] for g in recomputed['model_groups'])
@@ -53,7 +62,9 @@ def verify_snapshot(state,bridge,*,now):
         saved_days_authenticated=authenticated,model_group_snapshots=models,
         historical_days_with_formal_scores=historical,formally_scored_forecasts=scored,
         pending_forecasts=pending,held_forecasts=holds,
-        ledger_outstanding=D.pending_count(due),source_provider_requests=0,
+        ledger_outstanding=D.pending_count(due),archived_days=H.latest(state.control)['days'],
+        archived_revisions=H.latest(state.control)['revisions'],independent_day_readbacks=archived_readbacks,
+        source_provider_requests=0,
         forecast_rewrites=0,actual_purchases=False,
         secret_or_private_original_logged=False,all_history_completion_proven=False)
 

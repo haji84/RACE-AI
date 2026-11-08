@@ -73,22 +73,38 @@ class SavedResultBridge:
         # This is pre-source reconciliation; new terminal results enter the
         # snapshot on the next run after the first durable feed publication.
         from .retained_model_pdca_audit import score_view
-        reports=[];model_pdca_due_count=0
+        from . import model_pdca_history as MH
+        reports=[];model_pdca_due_count=0;history_appended=0
         for day,view in self.views.items():
             try:
                 summary=score_view(view,authenticated=True,include_private_due=True)
-                due_ids=summary.pop('_private_due_race_ids')
-                model_pdca_due_count+=D.hold_model_ids(due,view['records'],due_ids,now=self.now.isoformat())
-                reports.append(dict(day=day or 'CURRENT_VIEW',status='SCORED',
-                    forecast_inventory_sha256=F.inventory_sha(view),summary=summary))
             except (ValueError,KeyError,TypeError):
-                # Fail closed: even a final official result remains a PDCA HOLD
-                # when any saved prediction on that day cannot be audited.
+                # Fail closed: an unsupported saved record must not erase any
+                # previously sealed all-date model score or score it as MISS.
                 protected=[r['race_id'] for r in view['records'] if r.get('sport')=='boat'
                     and (r.get('prediction') is not None or r.get('comparison_predictions'))]
                 model_pdca_due_count+=D.hold_model_ids(due,view['records'],protected,now=self.now.isoformat())
                 reports.append(dict(day=day or 'CURRENT_VIEW',status='HOLD_MODEL_PDCA_INPUT',
                     total_forecasts=None,total_scored=None))
+                continue
+            due_ids=summary.pop('_private_due_race_ids')
+            model_pdca_due_count+=D.hold_model_ids(due,view['records'],due_ids,now=self.now.isoformat())
+            reports.append(dict(day=day or 'CURRENT_VIEW',status='SCORED',
+                forecast_inventory_sha256=F.inventory_sha(view),summary=summary))
+            # A flat legacy view may contain several saved days. Persist each
+            # day's score separately, never overwrite yesterday with today.
+            daily=[(day,view)] if day is not None else [
+                (d,dict(view,records=[r for r in view['records'] if r.get('event_date_jst')==d]))
+                for d in sorted({r.get('event_date_jst') for r in view['records'] if r.get('sport')=='boat'})]
+            for period,part in daily:
+                per_day=summary if day is not None else score_view(part,authenticated=True)
+                if MH.record(state.control,day=period,view=part,summary=per_day)['changed']:
+                    history_appended+=1
+        historical=MH.latest(state.control)
+        self.ledger_summary['model_pdca_all_days']=historical['days']
+        self.ledger_summary['model_pdca_all_revisions']=historical['revisions']
+        self.ledger_summary['model_pdca_all_unscored']=historical['unscored']
+        self.ledger_summary['model_pdca_new_revisions']=history_appended
         self.ledger_summary['model_pdca_formal_holds']=model_pdca_due_count
         self.ledger_summary['pending']=D.pending_count(due)
         self.ledger_summary['pending_days']=len(due['pending_days'])

@@ -26,6 +26,8 @@ class IndependentReadbackTests(unittest.TestCase):
         self.assertGreaterEqual(report['historical_days_with_formal_scores'],1)
         self.assertFalse(report['all_history_completion_proven'])
         self.assertEqual(report['source_provider_requests'],0)
+        self.assertGreaterEqual(report['archived_days'],1)
+        self.assertGreaterEqual(report['independent_day_readbacks'],1)
 
     def test_reject_modified_model_return_amount(self):
         state,bridge,now=self.setUpFixture()
