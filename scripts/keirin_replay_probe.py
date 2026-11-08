@@ -76,7 +76,7 @@ async def media_state(page) -> list:
             state = await frame.evaluate("""() => Array.from(document.querySelectorAll('video'))
               .slice(0,8).map(v=>({currentTime:v.currentTime, paused:v.paused,
                 readyState:v.readyState,networkState:v.networkState,
-                mediaError:v.error ? v.error.code : null,sourceSet:!!v.currentSrc,
+                mediaError:v.error ? v.error.code : null,sourceSet:!!v.currentSrc,\n                duration:Number.isFinite(v.duration)?v.duration:null,ended:v.ended,
                 width:v.videoWidth,height:v.videoHeight}))""")
             output.extend(state)
         except Exception:
@@ -236,8 +236,8 @@ def main():
     parser.add_argument("--encrypted-dir",type=Path)
     parser.add_argument("--public-key",type=Path)
     a=parser.parse_args()
-    if not 6<=a.seconds<=40:
-        parser.error("seconds must be 6..40")
+    if not 6<=a.seconds<=330:
+        parser.error("seconds must be 6..330")
     if bool(a.encrypted_dir) != bool(a.public_key):
         parser.error("--encrypted-dir and --public-key are required together")
     r=asyncio.run(probe(a.url,a.report,a.seconds,a.fixture_only,a.keep_video,
