@@ -1,0 +1,74 @@
+{
+  "schema": "RACE_AI_KEIRIN_HISTORICAL_MATSUYAMA_2R7R_SAFE_FEATURE_PROBE_V1",
+  "research_only": true,
+  "date_jst": "2026-11-09",
+  "scope": "Observed pre-race study archives from 2026-11-08, NOT PR71 original forecasts",
+  "source_evidence": [
+    {
+      "race_id": "202611087502",
+      "old_model": "MATS2R_RESEARCH_SCENARIO_PREDICTION_V1",
+      "source_file_sha256": "8e3628b6d970cc128b140fc55957986a1126959f86e403ccd33520f081725ce7",
+      "rider_count": 7,
+      "required_features_total": 84,
+      "normalizable_required_candidates": 14,
+      "missing_required_features": 70,
+      "optional_candidates": 49,
+      "required_environment_total": 9,
+      "available_required_environment": 0,
+      "candidate_feature_names": [
+        "ability",
+        "consistency",
+        "recent_points",
+        "recent_win_form",
+        "back_count_form",
+        "hsb_form",
+        "escape_style",
+        "makuri_style",
+        "sashi_style"
+      ],
+      "historical_source_published_at_per_field_independently_proven": false,
+      "original_full_210_is_from_PR71": false
+    },
+    {
+      "race_id": "202611087507",
+      "old_model": "RACE_AI_KEIRIN_REAL_RIDER_SHADOW_ONE_SHOT_V1",
+      "source_file_sha256": "bd8cc4c7b3b05f3d2d0c54380b9df353b0448315a102991178fed5172792f85e",
+      "rider_count": 7,
+      "required_features_total": 84,
+      "normalizable_required_candidates": 7,
+      "missing_required_features": 77,
+      "optional_candidates": 35,
+      "required_environment_total": 9,
+      "available_required_environment": 0,
+      "candidate_feature_names": [
+        "ability",
+        "recent_points",
+        "back_count_form",
+        "hsb_form",
+        "escape_style",
+        "makuri_style"
+      ],
+      "historical_source_published_at_per_field_independently_proven": false,
+      "original_full_210_is_from_PR71": false
+    }
+  ],
+  "model_asof_gate": {
+    "original_model_code_pinned_git_commit": "bd52a3ed7853cadd7090bd7e8737202f0bee2437",
+    "original_model_sha_match_verified_in_prior_CI": true,
+    "all_347_item_audits_verified_for_these_races": false,
+    "permissions_for_model_inference_and_private_retention_independently_confirmed": false,
+    "past_pre_cutoff_independent_prediction_receipts": false,
+    "per_field_published_at_and_captured_at_verified": false,
+    "real_race_formal_four_model_replay_completed": false,
+    "synthetic_only_CI_has_passed": true
+  },
+  "note": "Candidate normalizations use the existing keirin_allowed_delivery.RIDER_MAP transformations; values cannot be promoted to admitted inputs without point-in-time source provenance. No missing trait is filled. No result odds/payouts are used in model feature calculation.",
+  "source_urls_context_only": [
+    "https://www.chariloto.com/keirin/athletes/2026-11-08/75/2",
+    "https://keirin.tokyo-sports.co.jp/list/race/20261107_33248"
+  ],
+  "private_source_bytes_in_public_repo": false,
+  "actual_model_performance": null,
+  "result_leakage": false,
+  "main_merged": false
+}
