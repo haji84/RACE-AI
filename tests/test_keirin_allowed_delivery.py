@@ -225,27 +225,55 @@ class AllowedFeedTests(unittest.TestCase):
         with self.assertRaisesRegex(PermittedDeliveryError, "TOO_MANY"):
             assemble(data)
 
-    def test_realistic_above_100_race_score_is_accepted(self):
-        data = fixture()
-        candidate = next(o for o in data["observations"]
-                         if o["key"] == "rider/1/race_score")
-        candidate["value"] = 121.33
-        got = assemble(data)
-        self.assertIsNotNone(got["private_snapshot"])
-        p = next(p for p in got["private_snapshot"]["facts"][
-            "pr71_evidenced_snapshot"]["participants"] if p["number"] == 1)
-        self.assertAlmostEqual(p["features"]["ability"]["value"], 121.33 / 200)
-        self.assertEqual(p["features"]["ability"]["transform_id"],
-                         "keirin-audit-score200-v1")
+    def test_uncapped_competition_scores_are_monotone_and_reach_model(self):
+        # The user requested no hard ceiling, including >100, >200.
+        previous = -1
+        for points in (0, 79.25, 100, 121.33, 200, 201, 999.99, 1000000):
+            with self.subTest(points=points):
+                data = fixture()
+                row = next(o for o in data["observations"]
+                           if o["key"] == "rider/1/race_score")
+                row["value"] = points
+                result = assemble(data)
+                self.assertIsNotNone(result["private_snapshot"])
+                participant = next(p for p in result["private_snapshot"]["facts"][
+                    "pr71_evidenced_snapshot"]["participants"]
+                    if p["number"] == 1)
+                numeric = participant["features"]["ability"]["value"]
+                self.assertAlmostEqual(numeric, points / (points + 100))
+                self.assertEqual(
+                    participant["features"]["ability"]["transform_id"],
+                    "keirin-audit-score_open_v2-v1")
+                self.assertGreater(numeric, previous)
+                self.assertLess(numeric, 1)
+                previous = numeric
 
-    def test_out_of_range_score_rejected_instead_of_clamped(self):
+    def test_no_score_maximum_even_large_integer(self):
         data = fixture()
-        candidate = next(o for o in data["observations"]
-                         if o["key"] == "rider/1/race_score")
-        candidate["value"] = 201
-        with self.assertRaisesRegex(PermittedDeliveryError,
-                                    "NONFINITE_OR_UNDOCUMENTED_NORMALIZATION"):
-            assemble(data)
+        row = next(o for o in data["observations"]
+                   if o["key"] == "rider/1/race_score")
+        row["value"] = 10 ** 100
+        result = assemble(data)
+        self.assertIsNotNone(result["private_snapshot"])
+        self.assertEqual(
+            next(p for p in result["private_snapshot"]["facts"][
+                "pr71_evidenced_snapshot"]["participants"]
+                 if p["number"] == 1)["features"]["ability"]["value"], 1.0)
+        # Float precision at astronomical magnitudes is expected; this is
+        # not a hard eligibility cutoff for any athlete.
+
+    def test_negative_nonfinite_or_non_numeric_scores_rejected(self):
+        for invalid in (-1, float("inf"), float("-inf"), float("nan"),
+                        "120", True, None):
+            with self.subTest(invalid=str(invalid)):
+                data = fixture()
+                row = next(o for o in data["observations"]
+                           if o["key"] == "rider/1/race_score")
+                row["value"] = invalid
+                with self.assertRaisesRegex(
+                        PermittedDeliveryError,
+                        "RACE_SCORE_NONNEGATIVE_FINITE_REQUIRED"):
+                    assemble(data)
 
     def test_unjustified_winning_probability_rejected(self):
         data = fixture()
