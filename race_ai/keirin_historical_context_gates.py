@@ -7,7 +7,7 @@ athlete-specific track fitness or a same-day pre-cutoff forecast.
 """
 from __future__ import annotations
 
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timezone, timedelta, date
 import math
 
 SCHEMA = "RACE_AI_KEIRIN_HISTORICAL_CONTEXT_GATES_V1"
@@ -98,15 +98,24 @@ def contextual_track_geometry(record, *, race_cutoff):
     require(type(record) is dict and set(record)=={
         "venue","source_url","source_document_date",
         "track_length_m","straight_length_m","center_cant_deg",
-        "home_width_m","surface_resurfaced_at",
+        "home_width_m","surface_resurfaced_month",
     } and record["venue"]=="松山"
         and type(record["source_url"]) is str
         and record["source_url"].startswith("https://"),
         "VENUE_SOURCE_UNSUPPORTED")
     cutoff=aware(race_cutoff)
-    source_date=aware(record["source_document_date"])
-    resurfaced=aware(record["surface_resurfaced_at"])
-    require(source_date<cutoff and resurfaced<cutoff,
+    try:
+        source_date=date.fromisoformat(record["source_document_date"])
+        resurfaced=datetime.strptime(
+            record["surface_resurfaced_month"],"%Y-%m").date()
+    except (ValueError,TypeError) as exc:
+        raise HistoricalContextError("VENUE_DATE_OR_MONTH_INVALID") from exc
+    # Compare publication *dates*, never invent hour/minute of publication
+    # or exact resurfacing day. Require entire resurfacing month to precede.
+    local_cutoff=cutoff.astimezone(timezone(timedelta(hours=9))).date()
+    require(source_date < local_cutoff and
+            (resurfaced.year,resurfaced.month) <
+                (local_cutoff.year,local_cutoff.month),
             "VENUE_METADATA_CREATED_AFTER_RACE")
     for k in ("track_length_m","straight_length_m","center_cant_deg",
               "home_width_m"):
@@ -157,10 +166,12 @@ def classify_weather_evidence(*, issued_or_initialised_at, first_available_at,
         "kind":weather_kind,
         "weather_run_initialised_before_cutoff":init<cutoff,
         "actual_first_publication_time_verified":passed,
-        "asof_model_feature_accepted":passed,
-        "research_asof_candidate_only":init<cutoff and not passed,
-        "reason":("RUN_AND_RELEASE_VALIDATED" if passed else
-                  "WEATHER_MODEL_INIT_NOT_EVIDENCE_OF_PUBLIC_RELEASE"),
+        "release_timing_attestation_claimed":passed,
+        "asof_model_feature_accepted":False,
+        "research_asof_candidate_only":init<cutoff,
+        "legal_source_rights_and_independent_witness_external":True,
+        "reason":("PRE_CUTOFF_RELEASE_TIME_CONSISTENT_NOT_AUTHENTICATED"
+                  if passed else "WEATHER_MODEL_INIT_NOT_EVIDENCE_OF_PUBLIC_RELEASE"),
     }
 
 
