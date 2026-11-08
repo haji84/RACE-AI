@@ -76,12 +76,79 @@ async def media_state(page) -> list:
             state = await frame.evaluate("""() => Array.from(document.querySelectorAll('video'))
               .slice(0,8).map(v=>({currentTime:v.currentTime, paused:v.paused,
                 readyState:v.readyState,networkState:v.networkState,
-                mediaError:v.error ? v.error.code : null,sourceSet:!!v.currentSrc,\n                duration:Number.isFinite(v.duration)?v.duration:null,ended:v.ended,
+                mediaError:v.error ? v.error.code : null,sourceSet:!!v.currentSrc,
+                duration:Number.isFinite(v.duration)?v.duration:null,ended:v.ended,
                 width:v.videoWidth,height:v.videoHeight}))""")
             output.extend(state)
         except Exception:
             pass
     return output
+
+
+def full_player_video_seen(start: dict, finish: dict, fixture: bool=False) -> bool:
+    """Require terminal state, playback from near the beginning and no media errors.
+
+    This does NOT establish that the player carries the entire unedited race.
+    """
+    if not isinstance(start, dict) or not isinstance(finish, dict):
+        return False
+    duration = finish.get("duration")
+    if not isinstance(duration, (int, float)) or duration < (7 if fixture else 40):
+        return False
+    if start.get("mediaError") is not None or finish.get("mediaError") is not None:
+        return False
+    if start.get("currentTime") is None or finish.get("currentTime") is None:
+        return False
+    if start["currentTime"] > min(5.0, 0.08 * duration):
+        return False
+    if finish["currentTime"] < duration - max(0.65, 0.015 * duration):
+        return False
+    if finish["currentTime"] <= start["currentTime"] + 3:
+        return False
+    if not finish.get("ended"):
+        return False
+    if not finish.get("sourceSet"):
+        return False
+    if finish.get("width", 0) < 320 or finish.get("height", 0) < 180:
+        # Synthetic-only fixtures are deliberately small.
+        if not fixture:
+            return False
+    return True
+
+
+async def watch_to_player_end(player, seconds: int, fixture: bool):
+    """Observe the actual HTML5 player to completion; never rely on a fixed sleep.
+
+    The browser screen recorder is active throughout. Timeout/loop/media failure
+    must be reported as INCOMPLETE, not a successful capture.
+    """
+    import time
+    start_at=time.monotonic()
+    first=None
+    last=None
+    observations=0
+    end_proven=False
+    while time.monotonic()-start_at < seconds:
+        states=await media_state(player)
+        for state in states:
+            if state.get("mediaError") is not None:
+                return first,state,False,observations,"PLAYER_MEDIA_ERROR"
+        if states:
+            current=states[0]
+            if first is None and current.get("readyState",0)>=1:
+                first=current
+            last=current
+            observations+=1
+            if first and full_player_video_seen(first,current,fixture):
+                end_proven=True
+                break
+        await asyncio.sleep(1)
+    # Leave a short tail of the screen showing that playback ended.
+    if end_proven:
+        await asyncio.sleep(0.6)
+    return first,last,end_proven,observations,(
+        "HTML_VIDEO_ENDED" if end_proven else "PLAYER_END_NOT_PROVEN")
+
 
 async def click_digest(page, fixture):
     selectors=(["#start-fixture"] if fixture else
@@ -197,13 +264,16 @@ async def probe(url: str, report_path: Path, seconds: int, fixture: bool,
                                     if(v.paused)v.play().catch(()=>{});}}""")
                             except Exception:
                                 pass
-                    await page.wait_for_timeout(seconds*1000)
-                    after=[]
-                    for candidate in pages:
-                        after.extend(await media_state(candidate))
-                    result["media_after"]=after
-                    result["html_video_advanced"]=any(
-                        b["currentTime"]>a["currentTime"]+1 for a,b in zip(before,after))
+                    player_page = popups[-1] if popups else page
+                    first,last,end_proven,samples,end_reason=await watch_to_player_end(
+                        player_page, seconds, fixture)
+                    result["media_after"]=[last] if last else []
+                    result["media_first"]=[first] if first else []
+                    result["video_end_observations"]=samples
+                    result["video_end_reason"]=end_reason
+                    result["player_clip_completed"]=end_proven
+                    result["html_video_advanced"]=(bool(first and last) and
+                        last["currentTime"]>first["currentTime"]+1)
                 finally:
                     await context.close()
                     # The replay is a popup window. Keep its recording, not a
@@ -225,12 +295,18 @@ async def probe(url: str, report_path: Path, seconds: int, fixture: bool,
             result["player_video_only"]=False
         result["captures"]=[{"recording":video_metadata(p),"motion":motion_score(p)}
                             for p in recordings]
+        # A video element reaching its natural end is a technical clip boundary.
+        # It is not proof of a full race if the provider only offers a digest.
+        result["whole_unedited_race_verified"]=False
         result["playback_state"]=(
-            "VIDEO_ADVANCED_AND_RECORDED" if result.get("html_video_advanced")
-                 and result["captures"] else
-            "CAPTURED_BUT_PLAYBACK_UNPROVEN" if result["captures"] else "NO_RECORDING")
+            "COMPLETE_PLAYER_CLIP_RECORDED" if result.get("player_clip_completed")
+                 and result.get("html_video_advanced") and result.get("player_video_only")
+                 and result["captures"]
+            else "CAPTURED_BUT_END_UNVERIFIED" if result.get("html_video_advanced")
+                 and result["captures"]
+            else "CAPTURED_BUT_PLAYBACK_UNPROVEN" if result["captures"] else "NO_RECORDING")
         if encrypted_dir is not None and public_key is not None and (
-                result["playback_state"] == "VIDEO_ADVANCED_AND_RECORDED"):
+                result["playback_state"] == "COMPLETE_PLAYER_CLIP_RECORDED"):
             result["encrypted_capture_count"]=encrypt_recordings(
                 recordings, public_key, encrypted_dir)
         if keep_video and recordings and not os.environ.get("GITHUB_ACTIONS"):
@@ -244,14 +320,14 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument("--url",default=SOURCE_URL)
     parser.add_argument("--report",type=Path,required=True)
-    parser.add_argument("--seconds",type=int,default=16)
+    parser.add_argument("--seconds",type=int,default=540,help="Maximum seconds to wait for natural player video end")
     parser.add_argument("--fixture-only",action="store_true")
     parser.add_argument("--keep-video",action="store_true")
     parser.add_argument("--encrypted-dir",type=Path)
     parser.add_argument("--public-key",type=Path)
     a=parser.parse_args()
-    if not 6<=a.seconds<=330:
-        parser.error("seconds must be 6..330")
+    if not 6<=a.seconds<=660:
+        parser.error("seconds must be 6..660")
     if bool(a.encrypted_dir) != bool(a.public_key):
         parser.error("--encrypted-dir and --public-key are required together")
     r=asyncio.run(probe(a.url,a.report,a.seconds,a.fixture_only,a.keep_video,
@@ -259,7 +335,7 @@ def main():
     print(json.dumps({"race_id":r["race_id"],"fixture":r["fixture_only"],
                       "playback_state":r["playback_state"],
                       "error":r.get("error")},ensure_ascii=False))
-    if r["playback_state"]!="VIDEO_ADVANCED_AND_RECORDED":
+    if r["playback_state"]!="COMPLETE_PLAYER_CLIP_RECORDED":
         raise SystemExit(2)
 
 if __name__=="__main__":
