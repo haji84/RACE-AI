@@ -91,6 +91,21 @@ class ManualOnlyTests(unittest.TestCase):
             PersonalOwnerObservations(
                 source_hosts=["example.invalid@evil.example"], now=NOW)
 
+    def test_non_rakuten_hosts_only_even_for_local_owner_data(self):
+        for host in ("keirin.kdreams.jp", "kdreams.jp",
+                     "www.rakuten.co.jp"):
+            with self.subTest(host=host):
+                with self.assertRaisesRegex(PersonalOwnerError, "RAKUTEN"):
+                    PersonalOwnerObservations(source_hosts=[host], now=NOW)
+        owner = PersonalOwnerObservations(
+            source_hosts=["www.keirin.jp", "www.winticket.jp", "sp.oddspark.com"],
+            now=NOW)
+        self.assertTrue(owner.allowed(
+            "https://www.keirin.jp/pc/raceschedule", PERSONAL_MARKER,
+            "model_inference"))
+        self.assertFalse(owner.allowed(
+            "https://keirin.kdreams.jp/a", PERSONAL_MARKER, "analysis"))
+
     def test_missing_core_still_blocks_prediction(self):
         d = manual_fixture()
         d["observations"] = [
