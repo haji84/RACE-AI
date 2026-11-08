@@ -239,5 +239,7 @@ def predict_scene(model,frame):
     p=np.exp(z);p=p/p.sum()
     idx=int(p.argmax())
     return {"label":model["classes"][idx],"score":round(float(p[idx]),6),
+            "class_scores":{label:round(float(prob),6)
+                for label,prob in zip(model["classes"],p)},
             "score_not_calibrated":True,"model_sha256":model["model_sha256"],
             "frame_sha256":frame["frame_sha256"],"t":frame["t"]}
