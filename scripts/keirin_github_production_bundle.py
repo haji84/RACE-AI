@@ -151,3 +151,41 @@ def create_production_bundle(db, license_manifest, output, *,
         "provider_license_independently_certified_by_code":False,
         "plaintext_published":False,
     }
+
+
+def main(argv=None):
+    """Trusted main producer only. No user-supplied time or identity override."""
+    import argparse
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--db",required=True)
+    p.add_argument("--license-manifest",required=True)
+    p.add_argument("--output",required=True)
+    p.add_argument("--source-repo",required=True)
+    p.add_argument("--race-id",required=True)
+    p.add_argument("--generation",type=int,required=True)
+    p.add_argument("--previous-cipher-sha256")
+    a=p.parse_args(argv)
+    env=os.environ
+    try:
+        need(env.get("GITHUB_ACTIONS")=="true" and
+             env.get("GITHUB_REPOSITORY")=="haji84/RACE-AI" and
+             env.get("GITHUB_REPOSITORY_ID")==REPOSITORY_ID and
+             env.get("GITHUB_REF")=="refs/heads/main" and
+             env.get("GITHUB_EVENT_NAME") in ("push","workflow_dispatch"),
+             "UNTRUSTED_PRODUCTION_PRODUCER")
+        report=create_production_bundle(
+            a.db,a.license_manifest,a.output,
+            source_repo=a.source_repo,race_id=a.race_id,
+            generation=a.generation,
+            previous_cipher_sha256=a.previous_cipher_sha256,
+            producer_run_id=env["GITHUB_RUN_ID"],
+            producer_sha=env["GITHUB_SHA"])
+        print(json.dumps(report,sort_keys=True,separators=(",",":")))
+        return 0
+    except (ArchiveError,KeyError,OSError,ValueError,TypeError):
+        print('{"state":"PRODUCTION_BUNDLE_NOT_CREATED","live_deployment":false}')
+        return 2
+
+
+if __name__=="__main__":
+    raise SystemExit(main())
