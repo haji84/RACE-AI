@@ -123,51 +123,65 @@ def stage_licensed_odds_export(inbox, odds_rows, deliveries, *,
         require(type(rid) is str and rid not in races,
                 "DUPLICATE_DELIVERY_RACE")
         races[rid]=race
-    staged={}
-    for row in odds_rows:
-        require(type(row) is dict and row.get("race_id") in races,
-                "ORPHAN_ODDS_OUTSIDE_AUTHORIZED_DELIVERY")
-        rid=row["race_id"]
-        require(rid not in staged,"DUPLICATE_ODDS_SNAPSHOT_RACE")
-        staged[rid]=normalize_licensed_odds(
-            row,races[rid],checked_at=checked_at,admitted=grant_check)
     folder=root/"odds"
     require(not folder.is_symlink(), "ODDS_OUTPUT_SYMLINK")
     if not folder.exists():
         folder.mkdir(mode=0o700)
     require(folder.is_dir(), "ODDS_OUTPUT_NOT_A_DIRECTORY")
-    new=old=0
-    for rid,row in sorted(staged.items()):
-        name=sha256(rid.encode("utf-8")).hexdigest()+".json"
-        dest=folder/name
+    # Check all V2 snapshots first: no partial write when another row is
+    # invalid. A previously frozen original is tested with its ORIGINAL
+    # capture clock, so later provider polls cannot silently re-time it.
+    staged={}
+    existing=0
+    for row in odds_rows:
+        require(type(row) is dict and row.get("race_id") in races,
+                "ORPHAN_ODDS_OUTSIDE_AUTHORIZED_DELIVERY")
+        rid=row["race_id"]
+        require(rid not in staged,"DUPLICATE_ODDS_SNAPSHOT_RACE")
+        dest=folder/(sha256(rid.encode("utf-8")).hexdigest()+".json")
         require(not dest.is_symlink(),"ODDS_OUTPUT_SYMLINK")
         if dest.exists():
             require(dest.is_file() and dest.stat().st_size<=2_000_000,
                     "ODDS_ORIGINAL_UNSAFE")
             from json import loads
-            previous=loads(dest.read_text(encoding="utf-8"))
+            def unique(pairs):
+                obj={}
+                for key,value in pairs:
+                    require(key not in obj,"DUPLICATE_EXISTING_ODDS_KEY")
+                    obj[key]=value
+                return obj
+            previous=loads(dest.read_text(encoding="utf-8"),
+                           object_pairs_hook=unique)
             require(type(previous) is dict and
                     previous.get("schema")==ODDS_SCHEMA and
                     previous.get("race_id")==rid,
                     "EXISTING_ODDS_PROVENANCE_INVALID")
-            # Preserve original capture time. Exact repeat from the same
-            # provider source is idempotent even across agent restarts.
-            require(all(previous.get(k)==row[k] for k in (
-                "source_ref","source_rights_ref","prices")),
-                "EXISTING_ODDS_IMMUTABLE_CONFLICT")
             require(utc(previous["captured_at"])<=utc(checked_at),
                     "ODDS_EXISTING_RECORD_FROM_FUTURE")
-            old+=1
+            proposed=normalize_licensed_odds(
+                row,races[rid],checked_at=previous["captured_at"],
+                admitted=grant_check)
+            require(canonical(previous)==canonical(proposed),
+                    "EXISTING_ODDS_IMMUTABLE_CONFLICT")
+            existing+=1
+            staged[rid]=(dest,previous,True)
         else:
-            require(_write_private_once(dest,row),
-                    "ODDS_CREATE_ONCE_FAILED")
-            require(dest.read_bytes()==canonical(row),
-                    "ODDS_FIRST_WRITE_READBACK_FAILED")
-            new+=1
+            proposed=normalize_licensed_odds(
+                row,races[rid],checked_at=checked_at,admitted=grant_check)
+            staged[rid]=(dest,proposed,False)
+    new=0
+    for rid,(dest,odds,old) in sorted(staged.items()):
+        if old:
+            continue
+        require(_write_private_once(dest,odds),
+                "ODDS_CREATE_ONCE_FAILED")
+        require(dest.read_bytes()==canonical(odds),
+                "ODDS_FIRST_WRITE_READBACK_FAILED")
+        new+=1
     return {
         "schema":"RACE_AI_KEIRIN_LICENSED_FULL_ODDS_STAGE_V1",
         "full_odds_created":new,
-        "full_odds_already_staged":old,
+        "full_odds_already_staged":existing,
         "full_odds_validated":len(staged),
         "network_requests":0,
         "official_provider_legal_rights_certified_by_code":False,
