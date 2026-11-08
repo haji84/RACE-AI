@@ -49,7 +49,7 @@ def build_context(bootstrap,view,generation,*,now,require_future=False,event_day
     current=now.astimezone(JST).date().isoformat();day=_selected_day(event_day,now)
     rows=[r for r in view['records'] if r.get('sport')=='boat' and r['event_date_jst']==day]
     _need(bool(rows),'CURRENT_DAY_REQUIRED' if event_day is None else 'SELECTED_DAY_REQUIRED')
-    native=set();future=None;probe=None
+    native=set();native_races=set();future_races=set();native_cutoffs=[];future=None;probe=None
     for row in rows:
         predictions=[p for p in [row.get('prediction'),*row.get('comparison_predictions',[])]
                      if p is not None and not is_retired(p.get('model_id'))]
@@ -71,11 +71,13 @@ def build_context(bootstrap,view,generation,*,now,require_future=False,event_day
                   'MODEL_ID_INVALID')
             native.add((p['model_id'],version,variant,code))
             _need(re.fullmatch(r'[0-9]{8}-[0-9]{2}-[0-9]{2}',row['race_id']),'RACE_ID_INVALID')
+            native_races.add(row['race_id']);native_cutoffs.append(cutoff)
             if probe is None:
                 probe=dict(race_id=row['race_id'],index=index,cutoff_at=p.get('cutoff_at') or row.get('cutoff_at'))
             if now<cutoff and (future is None or cutoff>_aware(future['cutoff_at'])):
                 _need(re.fullmatch(r'[0-9]{8}-[0-9]{2}-[0-9]{2}',row['race_id']),'RACE_ID_INVALID')
                 future=dict(race_id=row['race_id'],index=index,cutoff_at=p.get('cutoff_at') or row['cutoff_at'])
+            if now<cutoff:future_races.add(row['race_id'])
     _need(bool(native),'NATIVE_P1_REQUIRED')
     _need(not require_future or future is not None,'FUTURE_NATIVE_REQUIRED')
     previous=sorted({r['event_date_jst'] for r in view['records']
@@ -87,6 +89,8 @@ def build_context(bootstrap,view,generation,*,now,require_future=False,event_day
         owner_url='https://haji84.github.io/RACE-AI/#saved='+bootstrap['view_id']+'.'+key,
         day=day,current_day=current,date_scope='CURRENT_DAY' if day==current else 'HISTORICAL_DAY',
         generation=generation,day_races=len(rows),minimum_results=completed(rows),native_p1_groups=len(native),
+        native_p1_races=len(native_races),future_native_races=len(future_races),
+        latest_native_cutoff_lead_seconds=int((max(native_cutoffs)-now).total_seconds()),
         native_groups=[list(group) for group in sorted(native,key=lambda group:json.dumps(group))],native_probe=probe,
         old_day=old_day,old_completed=completed([r for r in view['records'] if r.get('sport')=='boat'
             and r['event_date_jst']==old_day]),future_native=future)
@@ -120,20 +124,29 @@ def main(argv=None,*,now=None):
             if earlier:
                 _,_,_,old=CLI.F.current_view(git,bootstrap,day=earlier[0])
                 view=dict(view,records=[*view['records'],*old['records']])
-        context=build_context(bootstrap,view,generation,now=clock,require_future=args.require_future,event_day=day if args.latest_saved_day else args.day)
+        context=build_context(bootstrap,view,generation,now=clock,event_day=day if args.latest_saved_day else args.day)
+        _need(not args.require_future or context['future_native'] is not None,'FUTURE_NATIVE_REQUIRED')
         fd=os.open(target,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
         with os.fdopen(fd,'w',encoding='utf-8') as stream:
             json.dump(context,stream,ensure_ascii=False,sort_keys=True);stream.write('\n')
         print(json.dumps(dict(status='SAVED_SITE_PRIVATE_CONTEXT_READY',generation=generation,
             checked_day=context['day'],current_day=context['current_day'],date_scope=context['date_scope'],
             native_p1_groups=context['native_p1_groups'],completed_results=context['minimum_results'],
+            native_p1_races=context['native_p1_races'],future_native_races=context['future_native_races'],
+            latest_native_cutoff_lead_seconds=context['latest_native_cutoff_lead_seconds'],
             future_native_available=context['future_native'] is not None,plaintext_published=False,
             official_source_requests=0),sort_keys=True))
         return 0
     except Exception as error:
         reason=str(error) if isinstance(error,ValueError) and re.fullmatch(
             r'(?:SAVED_SITE|FEED|HISTORY|VAULT|STATE)_[A-Z0-9_]{1,100}',str(error)) else 'SAVED_SITE_OPERATION_FAILED'
-        print(json.dumps(dict(status='SAVED_SITE_CONTEXT_REJECTED',reason=reason),sort_keys=True))
+        report=dict(status='SAVED_SITE_CONTEXT_REJECTED',reason=reason)
+        if reason=='SAVED_SITE_FUTURE_NATIVE_REQUIRED' and 'context' in locals():
+            report.update({k:context[k] for k in ('generation','native_p1_groups','native_p1_races',
+                'future_native_races','latest_native_cutoff_lead_seconds')})
+            report.update(checked_day=context['day'],current_day=context['current_day'],
+                date_scope=context['date_scope'],official_source_requests=0,plaintext_published=False)
+        print(json.dumps(report,sort_keys=True))
         return 2
 
 

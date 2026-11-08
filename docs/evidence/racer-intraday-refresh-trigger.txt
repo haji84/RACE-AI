@@ -1,1 +1,1 @@
-retained-result-audit: verify-site current-day before-cutoff-native; read-only display verification; source requests 0
+retained-result-audit: verify-site current-day fast display proof and fixed-count diagnostics; source requests 0

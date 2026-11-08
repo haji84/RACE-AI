@@ -183,6 +183,7 @@ def audit_retained_sp_holds(view,*,state,now):
     if len(held)>288:raise ValueError('AUDIT_SP_HOLD_BOUND')
     captures=Counter();parsers=Counter();projections=Counter();matched=0
     shapes=Counter();per_original=Counter();chronology=Counter();source_chronology=Counter();amounts=Counter();refunds=Counter()
+    stored_bindings=Counter()
     pointers=state.control.get('settlement_captures',{})
     for row in held:
         result=row['result'];pointer=pointers.get(row['race_id'])
@@ -203,6 +204,14 @@ def audit_retained_sp_holds(view,*,state,now):
             _clock(receipt['captured_at'])!=_clock(result.get('observed_at'))):
             captures['CURRENT_RESULT_RECEIPT_MISMATCH']+=1;continue
         matched+=1
+        stored=[o for o in row.get('result_observations',[]) if type(o) is dict and
+                o.get('race_id')==row['race_id'] and all(o.get(k)==receipt[k]
+                for k in ('captured_at','source_sha256','source_url'))]
+        binding='NO_UNIQUE_MATCH'
+        if len(stored)==1:
+            marker=stored[0].get('schedule_binding')
+            binding='SP_EXPLICIT_RACE_HEADER' if marker=='SP_EXPLICIT_RACE_HEADER' else 'ABSENT' if marker is None else 'OTHER'
+        stored_bindings[binding]+=1
         shapes.update(_payout_shapes(raw))
         fields=_settlement_field_shapes(raw);amounts.update(fields['amounts']);refunds[fields['refunds']]+=1
         try:observation=parse_settlement(raw,receipt,now=now)
@@ -241,6 +250,7 @@ def audit_retained_sp_holds(view,*,state,now):
         forecast_chronology_counts=dict(chronology),
         source_deadline_chronology_counts=dict(source_chronology),payout_amount_shape_counts=dict(amounts),
         refund_coverage_counts=dict(refunds),
+        stored_schedule_binding_counts=dict(stored_bindings),
         source_requests=0,results_admitted=0,originals_changed=False)
 
 

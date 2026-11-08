@@ -107,6 +107,54 @@ class RemainingCompletionAuditTests(unittest.TestCase):
         self.assertEqual(value['projection_reason_counts'],{'RESULT_CUTOFF_MISMATCH':1})
         self.assertEqual(saved['result']['status'],'unsupported')
 
+    def test_stored_schedule_binding_counts_only_fixed_bins_without_changing_observations(self):
+        from race_ai.boat_sp_settlement import parse_settlement
+        cases=[({},'ABSENT'),({'schedule_binding':None},'ABSENT'),
+               ({'schedule_binding':'SP_EXPLICIT_RACE_HEADER'},'SP_EXPLICIT_RACE_HEADER'),
+               ({'schedule_binding':'https://private.invalid/SECRET_MARKER'},'OTHER')]
+        for marker,expected in cases:
+            with self.subTest(expected=expected,missing=not marker):
+                view,state,now=self.sp_fixture();raw,receipt=state.capture.return_value
+                stored=parse_settlement(raw,receipt,now=now);stored.pop('schedule_binding');stored.update(marker)
+                view['records'][0]['result_observations']=[stored];before=deepcopy((view,state.control))
+                result=audit.audit_retained_sp_holds(view,state=state,now=now)
+                self.assertEqual(result.get('stored_schedule_binding_counts'),{expected:1})
+                self.assertEqual(result['authenticated_matching_captures'],1)
+                self.assertEqual((view,state.control),before)
+                self.assertEqual(result['results_admitted'],0)
+                for private in ('SECRET_MARKER',receipt['source_url'],receipt['source_sha256'],stored['race_id']):
+                    self.assertNotIn(private,json.dumps(result))
+
+    def test_stored_schedule_binding_requires_one_exact_four_field_receipt_match(self):
+        from race_ai.boat_sp_settlement import parse_settlement
+        cases=[('race_id','20261107-02-01'),('captured_at','2026-11-07T00:00:00Z'),
+               ('source_sha256','f'*64),('source_url','https://private.invalid/SECRET_RECEIPT'),
+               ('duplicate',None),('missing',None)]
+        for field,value in cases:
+            with self.subTest(field=field):
+                view,state,now=self.sp_fixture();raw,receipt=state.capture.return_value
+                stored=parse_settlement(raw,receipt,now=now);observations=[stored]
+                if field=='duplicate':observations.append(dict(stored,schedule_binding='SECRET_CONFLICT'))
+                elif field=='missing':observations=[]
+                else:stored[field]=value
+                view['records'][0]['result_observations']=observations;before=deepcopy(view)
+                result=audit.audit_retained_sp_holds(view,state=state,now=now)
+                self.assertEqual(result.get('stored_schedule_binding_counts'),{'NO_UNIQUE_MATCH':1})
+                self.assertEqual(view,before);self.assertNotIn('SECRET',json.dumps(result))
+
+    def test_stored_schedule_binding_is_not_counted_before_current_capture_authentication(self):
+        from race_ai.boat_sp_settlement import parse_settlement
+        for failure in ('raw_hash','current_hash','current_clock','unavailable'):
+            with self.subTest(failure=failure):
+                view,state,now=self.sp_fixture();raw,receipt=state.capture.return_value
+                view['records'][0]['result_observations']=[parse_settlement(raw,receipt,now=now)]
+                if failure=='raw_hash':state.capture.return_value=(raw+b'x',receipt)
+                elif failure=='current_hash':view['records'][0]['result']['source_sha256']='0'*64
+                elif failure=='current_clock':view['records'][0]['result']['observed_at']='2026-11-07T00:00:00Z'
+                else:state.control['settlement_captures']={}
+                result=audit.audit_retained_sp_holds(view,state=state,now=now)
+                self.assertEqual(result.get('stored_schedule_binding_counts'),{})
+
     def test_payout_shape_audit_emits_only_fixed_classes(self):
         raw=json.dumps({'maindata':{'infolist3t':[
             {'winno':'1-2-3'},{'winno':'特払'},{'winno':'1−2−3'},

@@ -15,14 +15,14 @@ class RetainedResultAuditBranchTests(unittest.TestCase):
         self.workflow=yaml.load((ROOT/'.github/workflows/boat-racer-daily.yml').read_text(),Loader=yaml.BaseLoader)
         self.step=next(s for s in self.workflow['jobs']['daily']['steps'] if s.get('name','').startswith('Reflect confirmed'))
 
-    def run_script(self,*,branch=BRANCH,subject='retained-result-audit: inspect retained fields',actor='173585154',daily='false',browser=False,fail_replay=False):
+    def run_script(self,*,branch=BRANCH,subject='retained-result-audit: inspect retained fields',actor='173585154',daily='false',browser=False,fail_replay=False,fail_context=False):
         with tempfile.TemporaryDirectory() as temporary:
             root=Path(temporary);commands=root/'bin';commands.mkdir();log=root/'calls'
-            for name,body in [('git','printf "%s\\n" "$SUBJECT"'),('python','printf "%s\\n" "$*" >> "$LOG"\ncase "$*" in *--replay-retained-results*) [ "$FAIL_REPLAY" != true ] || exit 2;; esac'),('node','printf "node %s\\n" "$*" >> "$LOG"')]:
+            for name,body in [('git','printf "%s\\n" "$SUBJECT"'),('python','printf "%s\\n" "$*" >> "$LOG"\ncase "$*" in *--replay-retained-results*) [ "$FAIL_REPLAY" != true ] || exit 2;; *scripts.boat_saved_site_context*) [ "$FAIL_CONTEXT" != true ] || exit 2;; esac'),('node','printf "node %s\\n" "$*" >> "$LOG"')]:
                 path=commands/name;path.write_text('#!/bin/sh\n'+body+'\n');path.chmod(0o700)
             env=dict(os.environ,PATH=str(commands)+os.pathsep+os.environ['PATH'],LOG=str(log),SUBJECT=subject,
                      GITHUB_REF='refs/heads/'+branch,GITHUB_EVENT_NAME='push',GITHUB_ACTOR_ID=actor,
-                     GITHUB_REPOSITORY_ID='1416489937',INITIALIZE='false',DAILY_RECONCILE=daily,RUNNER_TEMP=str(root),RESULT_PROBE_RACE='',FAIL_REPLAY=str(fail_replay).lower())
+                     GITHUB_REPOSITORY_ID='1416489937',INITIALIZE='false',DAILY_RECONCILE=daily,RUNNER_TEMP=str(root),RESULT_PROBE_RACE='',FAIL_REPLAY=str(fail_replay).lower(),FAIL_CONTEXT=str(fail_context).lower())
             step=next(s for s in self.workflow['jobs']['daily']['steps'] if s.get('name','').startswith('Verify private')) if browser else self.step
             result=subprocess.run(['bash','-e','-o','pipefail','-c',step['run']],env=env,cwd=root,capture_output=True,text=True)
             return result.returncode,log.read_text().splitlines() if log.exists() else []
@@ -51,10 +51,19 @@ class RetainedResultAuditBranchTests(unittest.TestCase):
             self.assertNotEqual(code,0);self.assertEqual(calls,[])
 
     def test_current_day_check_requires_a_real_future_native_forecast(self):
+        code,calls=self.run_script(subject='retained-result-audit: verify-site current-day')
+        self.assertEqual(code,0);self.assertEqual(calls,[],'current display proof must not wait on an unrelated historical audit')
         code,calls=self.run_script(subject='retained-result-audit: verify-site current-day',browser=True)
-        self.assertEqual(code,0);self.assertEqual(len(calls),2)
+        self.assertEqual(code,0);self.assertEqual(len(calls),3)
         self.assertIn('--require-future',calls[0]);self.assertNotIn('--latest-saved-day',calls[0])
         self.assertNotIn('--day ',calls[0]);self.assertIn('--check-current-day',calls[1])
+        self.assertIn('--retained-sp-only',calls[2])
+
+    def test_current_day_context_failure_remains_failed_and_only_adds_safe_read_only_diagnostics(self):
+        code,calls=self.run_script(subject='retained-result-audit: verify-site current-day',browser=True,fail_context=True)
+        self.assertNotEqual(code,0);self.assertEqual(len(calls),2)
+        self.assertIn('scripts.boat_saved_site_context',calls[0]);self.assertIn('--retained-sp-only',calls[1])
+        self.assertFalse(any(c.startswith('node ') or '--sync-results' in c for c in calls))
 
     def test_exact_repair_prefix_replays_then_audits_without_collecting_or_initializing(self):
         subject='retained-result-audit: verify-site repair-retained-results'

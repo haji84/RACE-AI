@@ -62,6 +62,7 @@ jobs:
         run: |
           if [[ "$GITHUB_REF" == 'refs/heads/codex/retained-result-audit-20261108' ]]; then
             [[ "$GITHUB_EVENT_NAME" == 'push' && "$GITHUB_ACTOR_ID" == '173585154' && "$GITHUB_REPOSITORY_ID" == '1416489937' && "$(git log -1 --format=%s)" == retained-result-audit:* ]] || exit 2
+            if [[ "$(git log -1 --format=%s)" == retained-result-audit:\ verify-site\ current-day* ]]; then exit 0; fi
             if [[ "$(git log -1 --format=%s)" == retained-result-audit:\ verify-site\ repair-retained-results* ]]; then
               env GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=http.https://github.com/.extraheader GIT_CONFIG_VALUE_0='' timeout 180s python -m scripts.racer_intraday_refresh --private-dir "$RUNNER_TEMP/racer-retained-replay" --replay-retained-results
             fi
@@ -101,7 +102,15 @@ jobs:
               dates=(--require-future)
             fi
           fi
-          python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" "${dates[@]}"
+          if ! python -m scripts.boat_saved_site_context --output "$RUNNER_TEMP/boat-saved-site-context.json" "${dates[@]}"; then
+            if [[ "$GITHUB_REF" == 'refs/heads/codex/retained-result-audit-20261108' && "$(git log -1 --format=%s)" == retained-result-audit:\ verify-site\ current-day* ]]; then
+              timeout 150s python -m scripts.boat_remaining_completion_audit --input audit/state/remaining-completion-audit-input.json --retained-sp-only
+            fi
+            exit 2
+          fi
           probe=()
           if [[ -n "$RESULT_PROBE_RACE" ]]; then probe+=("--race-id=$RESULT_PROBE_RACE"); fi
           env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results "${checks[@]}" "${probe[@]}"
+          if [[ "$GITHUB_REF" == 'refs/heads/codex/retained-result-audit-20261108' && "$(git log -1 --format=%s)" == retained-result-audit:\ verify-site\ current-day* ]]; then
+            timeout 150s python -m scripts.boat_remaining_completion_audit --input audit/state/remaining-completion-audit-input.json --retained-sp-only
+          fi
