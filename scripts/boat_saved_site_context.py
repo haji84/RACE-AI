@@ -9,6 +9,7 @@ from pathlib import Path
 import re
 import sys
 import subprocess
+import tempfile
 
 ROOT=Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:sys.path.insert(0,str(ROOT))
@@ -26,6 +27,43 @@ FINANCIAL_FIELDS={'budgetPerDay','raceBudget','budgetTotal','spent','reserved','
 
 def _need(value,reason):
     if not value:raise ValueError('SAVED_SITE_'+reason)
+
+
+class SnapshotFeedRepository(CLI.F.FeedRepository):
+    """Pin one read-only feed generation and fetch only needed snapshots."""
+    def __init__(self,repo,*,snapshot):
+        self._snapshot_parent=None
+        super().__init__(repo)
+        target=Path(snapshot)
+        _need(target.is_dir() and not target.is_symlink() and not any(target.iterdir())
+              and target.stat().st_mode&0o077==0,'SNAPSHOT_DIRECTORY_REQUIRED')
+        self.repo=target.resolve()
+        self._run(['init','--bare'])
+
+    def head(self):
+        if self._snapshot_parent is None:
+            parent=super().head()
+            _need(type(parent) is str and re.fullmatch('[a-f0-9]{40}',parent),'SNAPSHOT_REF_REQUIRED')
+            self._snapshot_parent=parent
+        return self._snapshot_parent
+
+    def fetch(self,commit):
+        _need(type(commit) is str and re.fullmatch('[a-f0-9]{40}',commit),'SNAPSHOT_COMMIT_INVALID')
+        present=subprocess.run(['git','cat-file','-t',commit],cwd=self.repo,
+            stdout=subprocess.PIPE,stderr=subprocess.PIPE,timeout=15)
+        _need(present.returncode in (0,128),'SNAPSHOT_COMMIT_INSPECTION_FAILED')
+        target='refs/race-ai/pinned-state/'+commit
+        if present.returncode==0:
+            _need(present.stdout==b'commit\n','SNAPSHOT_COMMIT_INVALID')
+            self._run(['update-ref',target,commit])
+            return
+        self._run(['fetch','--no-tags','--no-write-fetch-head','--depth=1',
+            self.fetch_url,commit+':'+target])
+        _need(self._run(['cat-file','-t',commit])==b'commit\n','SNAPSHOT_COMMIT_INVALID')
+
+    def commit(self,*args,**kwargs):raise ValueError('SAVED_SITE_READ_ONLY_TRANSPORT')
+    def commit_snapshot(self,*args,**kwargs):raise ValueError('SAVED_SITE_READ_ONLY_TRANSPORT')
+    def push(self,*args,**kwargs):raise ValueError('SAVED_SITE_READ_ONLY_TRANSPORT')
 
 
 def _aware(value):
@@ -178,17 +216,20 @@ def main(argv=None,*,now=None):
         _need(config.get('schema')=='RACE_AI_SAVED_VIEW_INPUT_V1','INPUT_INVALID')
         raw=base64.b64decode(config['bootstrap'],validate=True)
         _need(CLI.sha(raw)==config['bootstrap_sha256'],'BOOTSTRAP_HASH_INVALID')
-        bootstrap=CLI.F.open_bootstrap(raw);CLI.git_auth();git=CLI.F.FeedRepository(repo)
-        _,_,generation,view=CLI.F.current_view(git,bootstrap,**(dict(day=day) if args.day is not None else {}))
-        if args.latest_saved_day:
-            day=max((r['event_date_jst'] for r in view['records'] if r.get('sport')=='boat' and r['event_date_jst']<=day),default=None)
-            _need(day is not None,'CURRENT_DAY_REQUIRED')
-        history=getattr(git,'_saved_history_context',None)
-        if history:
-            earlier=sorted(d for d in history['index']['days'] if d<day)
-            if earlier:
-                _,_,_,old=CLI.F.current_view(git,bootstrap,day=earlier[0])
-                view=dict(view,records=[*view['records'],*old['records']])
+        bootstrap=CLI.F.open_bootstrap(raw);CLI.git_auth()
+        with tempfile.TemporaryDirectory(prefix='boat-site-snapshot-',dir=folder) as snapshot:
+            git=SnapshotFeedRepository(repo,snapshot=snapshot)
+            parent,_,generation,view=CLI.F.current_view(git,bootstrap,**(dict(day=day) if args.day is not None else {}))
+            if args.latest_saved_day:
+                day=max((r['event_date_jst'] for r in view['records'] if r.get('sport')=='boat' and r['event_date_jst']<=day),default=None)
+                _need(day is not None,'CURRENT_DAY_REQUIRED')
+            history=getattr(git,'_saved_history_context',None)
+            if history:
+                earlier=sorted(d for d in history['index']['days'] if d<day)
+                if earlier:
+                    old_parent,_,old_generation,old=CLI.F.current_view(git,bootstrap,day=earlier[0])
+                    _need((old_parent,old_generation)==(parent,generation),'SNAPSHOT_GENERATION_CHANGED')
+                    view=dict(view,records=[*view['records'],*old['records']])
         context=build_context(bootstrap,view,generation,now=clock,event_day=day if args.latest_saved_day else args.day)
         _need(not args.require_future or context['future_native'] is not None,'FUTURE_NATIVE_REQUIRED')
         context['simulation_as_of']=clock.isoformat()

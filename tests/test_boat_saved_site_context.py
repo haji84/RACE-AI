@@ -135,7 +135,7 @@ class ContextTests(unittest.TestCase):
 
 
 class CLITests(unittest.TestCase):
-    def execute(self,*,outside=False,failure=None,history=False,day=None,now=NOW,require_future=False,simulation_failure=None):
+    def execute(self,*,outside=False,failure=None,history=False,day=None,now=NOW,require_future=False,simulation_failure=None,history_mismatch=False):
         with tempfile.TemporaryDirectory() as folder:
             root=Path(folder);state=root/'audit/state';state.mkdir(parents=True)
             raw=b'invented-bootstrap'
@@ -148,11 +148,12 @@ class CLITests(unittest.TestCase):
             view=invented_view();current=dict(records=view['records'][:-1])
             old=dict(records=view['records'][-1:])
             values=[('b'*40,'c'*64,12,current),('b'*40,'c'*64,12,old)] if history else [('b'*40,'c'*64,12,view)]
+            if history_mismatch:values[1]=('d'*40,'e'*64,13,old)
             output=io.StringIO()
             with patch.object(C,'ROOT',root),patch.object(C.VCLI,'_environment',return_value=root),\
                  patch.object(C.CLI,'git_auth'),patch.object(C.CLI.F,'open_bootstrap',
                     return_value=BOOTSTRAP,side_effect=failure),\
-                 patch.object(C.CLI.F,'FeedRepository',return_value=git),\
+                 patch.object(C,'SnapshotFeedRepository',return_value=git),\
                  patch.object(C.CLI.F,'current_view',side_effect=values) as read,\
                  patch.object(C,'_simulation_context',create=True,
                     return_value=simulation_expected(day or '2030-04-01',as_of=now),side_effect=simulation_failure),\
@@ -197,6 +198,12 @@ class CLITests(unittest.TestCase):
         code,_,context,_,calls=self.execute(history=True)
         self.assertEqual(code,0);self.assertEqual(context['old_completed'],1)
         self.assertEqual(calls[1].kwargs,dict(day='2030-03-31'))
+
+    def test_a_mixed_history_generation_cannot_create_a_private_context(self):
+        code,output,context,_,_=self.execute(history=True,history_mismatch=True)
+        self.assertEqual(code,2);self.assertIsNone(context)
+        self.assertEqual(json.loads(output)['reason'],'SAVED_SITE_SNAPSHOT_GENERATION_CHANGED')
+        self.assertNotIn('#saved=',output)
 
     def test_explicit_day_selects_its_history_and_earlier_day_once_after_midnight(self):
         code,_,context,_,calls=self.execute(history=True,day='2030-04-01',now=NOW+timedelta(days=1))
