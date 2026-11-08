@@ -132,6 +132,27 @@ class VariableKeirinSelectionTests(unittest.TestCase):
         self.assertEqual(summary["reference_profit_yen"], 490)
         self.assertEqual(summary["reference_roi"], 3.45)
 
+    def test_one_point_miss_charges_only_one_hundred_yen(self):
+        sel = self.pick(positive=1)
+        self.assertEqual(sel["pick_count"], 1)
+        self.assertEqual(sel["reference_investment_yen"], 100)
+        chosen = {tuple(row["triple"]) for row in sel["tickets"]}
+        losing = next([a, b, c] for a in range(1, 8)
+                      for b in range(1, 8) for c in range(1, 8)
+                      if len({a, b, c}) == 3 and (a, b, c) not in chosen)
+        result = {
+            "race_id": sel["race_id"],
+            "observed_at": "2030-01-15T10:10:00+09:00",
+            "status": "FINAL_NORMAL", "refund_status": "NONE",
+            "winning_triples": [losing],
+            "payouts_100yen": [{"triple": losing, "yen": 1000}],
+        }
+        audit = evaluate_settled_result(sel, result, revision=1)
+        self.assertFalse(audit["research_hit"])
+        self.assertEqual(audit["reference_payout_yen"], 0)
+        self.assertEqual(audit["reference_profit_yen"], -100)
+        self.assertEqual(audit["reference_roi"], 0.0)
+
     def test_refund_does_not_become_fake_loss(self):
         sel = self.pick(positive=2)
         audit = evaluate_settled_result(sel, {
