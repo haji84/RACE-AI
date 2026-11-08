@@ -1,0 +1,69 @@
+"""Owner approved personal-use WINTICKET/KEIRIN.JP sources, no live HTTP."""
+from __future__ import annotations
+
+import unittest
+from race_ai.keirin_owner_approved_sources import (
+    PROFILE_ID, PROFILE_HOSTS, OwnerApprovedSourceError,
+    approved_source_hosts, classify_owner_source, owner_approved_source_profile
+)
+from race_ai.keirin_owner_manual import (
+    PERSONAL_MARKER, PersonalOwnerObservations
+)
+
+
+class OwnerSourceProfileTests(unittest.TestCase):
+    def test_approved_sites_allow_private_locally_saved_observations(self):
+        grants = PersonalOwnerObservations(
+            source_hosts=approved_source_hosts(PROFILE_ID),
+            now="2030-01-15T09:12:00+09:00")
+        for origin in (
+            "https://keirin.jp/pc/dfw/portal/guest/race/",
+            "https://www.keirin.jp/pc/",
+            "https://www.winticket.jp/keirin/aomori/racecard/",
+            "https://winticket.jp/keirin/aomori/odds/"
+        ):
+            self.assertEqual(
+                classify_owner_source(origin),
+                "OWNER_APPROVED_PRIVATE_MANUAL_REFERENCE_ONLY")
+            self.assertTrue(grants.allowed(origin,PERSONAL_MARKER,"analysis"))
+            self.assertTrue(grants.allowed(
+                origin,PERSONAL_MARKER,"private_retention"))
+            self.assertFalse(grants.allowed(
+                origin,PERSONAL_MARKER,"automated_fetch"))
+            self.assertFalse(grants.allowed(
+                origin,PERSONAL_MARKER,"public_redistribution"))
+
+    def test_no_subdomain_spoofing_other_sites_or_unapproved_paths(self):
+        grants=PersonalOwnerObservations(
+            source_hosts=PROFILE_HOSTS,now="2030-01-15T09:12:00+09:00")
+        for origin in (
+            "https://winticket.jp.evil.example/keirin",
+            "https://notwinticket.jp/keirin",
+            "https://evil.keirin.jp/race",
+            "https://keirin.kdreams.jp/",
+            "https://www.winticket.jp.evil.test",
+            "http://www.winticket.jp/keirin",
+            "https://user:password@keirin.jp/pc",
+            "https://www.winticket.jp:444/keirin"
+        ):
+            self.assertNotEqual(
+                classify_owner_source(origin),
+                "OWNER_APPROVED_PRIVATE_MANUAL_REFERENCE_ONLY")
+            self.assertFalse(grants.allowed(origin,PERSONAL_MARKER,"analysis"))
+
+    def test_profile_not_a_provider_machine_fetch_licence(self):
+        p=owner_approved_source_profile()
+        self.assertEqual(p["source_ids"],["keirin_official","winticket"])
+        self.assertEqual(p["source_hosts"],list(PROFILE_HOSTS))
+        self.assertFalse(p["direct_html_machine_fetch_authorized"])
+        self.assertFalse(p["third_party_api_authorized"])
+        self.assertFalse(p["commercial_or_redistribution_authorized"])
+        self.assertFalse(p["real_forecast_or_pre_cutoff_witness_proven"])
+
+    def test_other_profile_rejected(self):
+        with self.assertRaises(OwnerApprovedSourceError):
+            approved_source_hosts("all_sites_machine_fetch_approved")
+
+
+if __name__=="__main__":
+    unittest.main()
