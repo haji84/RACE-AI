@@ -365,17 +365,31 @@ def cycle(repo,source_root):
             return {"state":"HOLD_NO_COMPLETE_PRE_CUTOFF_INPUT",
                     "new_forecasts":0,"source_state":status}
         from race_ai.keirin_pr71_four_model_rank import stage_existing_owner_pre_races
+        # Results share the already authorized source feed, but are not model
+        # features. Only an ORIGINAL four-model suite frozen before the cutoff
+        # can receive a later source result. Never create a retroactive model.
+        from race_ai.keirin_licensed_result_stage import (
+            apply_existing_frozen_results
+        )
         with PrivateKeirinStore(db) as store:
             before=old
             frozen=stage_existing_owner_pre_races(
                 inbox,store,source_admission=grants.allowed
                 if grants is not None else None)
+            results=(apply_existing_frozen_results(
+                inbox,store,grants,checked_at=store.clock().isoformat())
+                if grants is not None else {
+                    "results_appended":0,"results_already_present":0,
+                    "results_held":0,"no_forecast_backfilled":True})
             replay=FourModelRankLedger(store).replay_all()
         after=_pr71_inventory(db)
         if before is not None and after==before:
             return {"state":"CLOUD_PR71_RESTORED_NO_CHANGED_MODEL_OR_RESULT",
                     "originals_preserved":True,"new_forecasts":0,
-                    "source_state":status}
+                    "source_state":status,
+                    "result_rows_appended":results["results_appended"],
+                    "result_rows_held":results["results_held"],
+                    "official_result_independently_authenticated":False}
         if prior is None and frozen.get("private_four_model_predictions_saved",0)==0:
             return {"state":"HOLD_NOTHING_PRE_CUTOFF_TO_ARCHIVE",
                     "new_forecasts":0,"source_state":status}
@@ -385,6 +399,11 @@ def cycle(repo,source_root):
                 "new_forecast_stage_nonzero":bool(
                     frozen.get("private_four_model_predictions_saved",0)),
                 "existing_pdca_invoked":True,
+                "result_rows_appended":results["results_appended"],
+                "result_rows_held":results["results_held"],
+                # A configured provider URL and a local licence manifest
+                # are not independently authenticated official results.
+                "official_result_independently_authenticated":False,
                 "legal_provider_rights_independently_certified_by_code":False,
                 "all_race_results_acquired":False,
                 "formal_accuracy_calculated":False}

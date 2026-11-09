@@ -54,3 +54,12 @@ RACE-AIはPublicを維持し、個人PC、Windows/ZBook/MacBook、自前self-hos
 - 固定先の差分は出走表の累積着順率の誤計算修正、観測できるH/年齢/期別/明示単位風速の取込、既存4モデルのGitHub-hosted AES/結果照合合成試験と不足項目分類に限定。実モデル重み/元データ/権限を変更しない。元 source HEAD の347検査・既存4モデル保護とGitHub AES復元を再実行する。
 - 公開 source probe は不足モデル項目の種類ごとの件数を出すが、個々の選手数値/名前/元オッズ/HTMLは絶対に記録しない。
 - これはCIで検証した固定SHAの昇格であり、実レースの許諾・全93必須入力・公式結果・本番AES世代を作るものではない。SOURCE_FEED_NOT_CONFIGURED と未確認の本番はHOLD。
+
+## 結果改訂の既存本番経路への接続（2026-11-10）
+
+- 公開GitHub上の既存Ubuntu実行は、予想源を固定した `9604fa4a047b4e0c2a7687a5356d975013413924` に更新。旧固定 `1b50a851726f3e061757fa670687af4c211c9005` は変更履歴として保持。固定SHAの先にあるモデルの係数・認証許可を自動的に変更しない。
+- 既存の「認可済み同一JSONエクスポート1回GET」へ、オプションのV3結果 `RACE_AI_KEIRIN_LICENSED_PROVIDER_EXPORT_V3` を追加（`deliveries`, `odds_snapshots`, `result_observations`）。結果目的 `result_collection` および `result_analysis` は台帳の実ソース許可に明記されていなければ受け入れない。結果用の別サービス、別有料APIや秘密設定は追加しない。
+- 結果は本物の事前PR71四モデル原本の存在、レースID、車番、発表/捕獲時刻と販売締切の後先、提供元改訂IDを照合し、既存 `PrivateKeirinStore.add_result_observation` と `FourModelRankLedger.replay_all` に接続。既存結果を予想へ混ぜない。結果の元ソースSHAは私有SQLiteに保持し、同一改訂の繰り返しは二重加算せず、異なる訂正は追加改訂として残す。
+- 公開ログは新規結果改訂件数・保留件数のみ。結果の詳細、払戻額、予想原本、ライセンス資料はGitHubの平文に出さず、AESで密封した既存Git履歴にのみ格納（実データ投入は未達）。
+- URL・ローカル許諾資料のSHA照合は提供者の公式結果署名の独立認証ではない。 `official_result_independently_authenticated=false`、正式成績は未確定のまま。最優先は今なお真の許諾済み必要93入力枠、実際の4モデル事前凍結、暗号保存独立読戻し、主催者公式結果・訂正の独立認証。
+- synthetic CIで架空の4モデル事前原本→既存AES Git世代→結果到着→既存PDCA 4モデル→次世代暗号保存→別読戻しを実行。実レースの到達証明ではない。
