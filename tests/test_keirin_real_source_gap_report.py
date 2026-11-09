@@ -60,7 +60,8 @@ class SourceOnlyPreflightTests(unittest.TestCase):
             counts["model_B_source_coverage"]["all_required_fields_observed"])
 
     def test_tampered_347_count_or_roster_rejected(self):
-        for mutation in ("count","roster","unknown","wrong_schema"):
+        for mutation in ("count","roster","unknown","wrong_schema",
+                         "missing_list","duplicate_verified","fake_complete"):
             data=deepcopy(source())
             if mutation=="count":
                 data["registry_verified_count"]+=1
@@ -70,6 +71,16 @@ class SourceOnlyPreflightTests(unittest.TestCase):
                 data["direct_verified_fields"]["rider/1/fake_rating"]=.99
             if mutation=="wrong_schema":
                 data["schema"]="SUPER_ACCURATE_AI"
+            if mutation=="missing_list":
+                # Same counts, but a missing factor is silently omitted.
+                data["unavailable_registry_keys"].pop()
+            if mutation=="duplicate_verified":
+                # A set comparison alone accepts a duplicated source key.
+                data["verified_registry_keys"].append(
+                    data["verified_registry_keys"][0])
+            if mutation=="fake_complete":
+                # Never allow an upstream source flag to claim 347/347.
+                data["full_347_or_437_verified"]=True
             with self.subTest(mutation=mutation),self.assertRaises(
                     RealSourceGapError):
                 inspect_source_gaps(data)
