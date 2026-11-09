@@ -1,0 +1,78 @@
+{
+  "schema": "RACE_AI_AUTORACE_RESULT_OBSERVATION_V1",
+  "event": "CONFIRMED_RESULT_APPEND_ONLY",
+  "race_day_jst": "2026-11-09",
+  "observed_at_jst": "2026-11-10T07:52:39+09:00",
+  "venue": "isesaki",
+  "results_source_url": "https://www.chariloto.com/auto/results/003/2026-11-09",
+  "source_kind": "public_result_page",
+  "results_confirmed": [
+    {
+      "race": 1,
+      "trifecta": "6-8-2",
+      "trifecta_payout_100yen": 1420
+    },
+    {
+      "race": 2,
+      "trifecta": "6-7-2",
+      "trifecta_payout_100yen": 7740
+    },
+    {
+      "race": 3,
+      "trifecta": "2-5-3",
+      "trifecta_payout_100yen": 23640
+    },
+    {
+      "race": 4,
+      "trifecta": "6-7-2",
+      "trifecta_payout_100yen": 38760
+    },
+    {
+      "race": 5,
+      "trifecta": "8-4-7",
+      "trifecta_payout_100yen": 6380
+    },
+    {
+      "race": 6,
+      "trifecta": "8-3-6",
+      "trifecta_payout_100yen": 16010
+    },
+    {
+      "race": 7,
+      "trifecta": "6-8-3",
+      "trifecta_payout_100yen": 3460
+    },
+    {
+      "race": 8,
+      "trifecta": "4-5-8",
+      "trifecta_payout_100yen": 18880
+    },
+    {
+      "race": 9,
+      "trifecta": "5-4-2",
+      "trifecta_payout_100yen": 38340
+    },
+    {
+      "race": 10,
+      "trifecta": "2-4-1",
+      "trifecta_payout_100yen": 64450
+    },
+    {
+      "race": 11,
+      "trifecta": "1-5-8",
+      "trifecta_payout_100yen": 5310
+    }
+  ],
+  "excluded_existing_result": [
+    {
+      "race": 12,
+      "trifecta": "8-7-5",
+      "trifecta_payout_100yen": 4700,
+      "reason": "separately archived B result and PDCA in this PR"
+    }
+  ],
+  "original_forecast_files_modified": false,
+  "forecast_A_or_B_created_after_result": false,
+  "per_race_forecast_PDCA_status": "HOLD until a pre-cutoff authenticated pick list is independently read and verified",
+  "disclaimer": "Public repository stores outcomes, not confidential picks. Do not interpret results as forecasts or claim ROI without independently recoverable pre-cutoff originals."
+}
