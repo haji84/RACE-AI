@@ -135,6 +135,12 @@ def collect(repo,day,*,mode,output_dir,items=None,reader=None):
     }
     (output_dir/"temporary-artifact-receipts.json").write_text(
         json.dumps(target,ensure_ascii=False,indent=2))
+    if manifests:
+        # The latest index is taken from a previous completed workflow,
+        # not guessed from yesterday's changed WINTICKET current-day page.
+        most_recent=max(manifests,key=lambda x:x[0])[1]
+        (output_dir/"day-source-manifest.json").write_text(
+           json.dumps(most_recent,ensure_ascii=False,indent=2))
     if mode=="archive":
         # Download selected SEALED artifacts without decrypting, then
         # assemble a single owner-private bundle with each unique race once.
@@ -175,10 +181,7 @@ def collect(repo,day,*,mode,output_dir,items=None,reader=None):
                         chosen.add(rid)
         ensure(chosen==set(source_rows),
                "NO_MATCHING_ENCRYPTED_ASSET_FOR_CAPTURE")
-        if manifests:
-            most_recent=max(manifests,key=lambda x:x[0])[1]
-            (output_dir/"day-source-manifest.json").write_text(
-               json.dumps(most_recent,ensure_ascii=False,indent=2))
+
     print(json.dumps({
         "date_jst":day,"temporary_github_unique_races":len(source_rows),
         "completed_wave_runs":len(selected_zips),
