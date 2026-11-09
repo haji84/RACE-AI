@@ -1,9 +1,9 @@
-"""Actual WINTICKET publicly rendered, preloaded 210-trifecta odds -> private snapshot.
+"""Actual WINTICKET SSR 210/504-trifecta odds -> private snapshot.
 
 No hidden API, HTTP GET, credentials or HTML logging. The caller supplies
-already obtained ordinary public-page HTML. Vetted only for exact WINTICKET
-Aomori URLs and their day/race identity. A snapshot is withheld unless ALL
-210 ordered triples and each real decimal price pass, source update time is
+already obtained ordinary public-page HTML. Vetted for the exact
+WINTICKET venue/date/day/race identity. A snapshot is withheld unless ALL
+210/504 ordered triples and each real decimal price pass, source update time is
 fresh, and observation was genuinely before the published sales cutoff.
 
 This is only an odds extractor, NOT a legal machine licence, independent
@@ -28,7 +28,7 @@ MARGIN_SECONDS=65
 MAX_AGE_SECONDS=1800
 RACE_ID=re.compile(r"^[0-9]{12}$")
 EVENT_PATH=re.compile(
-    r"^/keirin/aomori/odds/([0-9]{10})/([1-3])/([1-9][0-9]?)$"
+    r"^/keirin/([a-z][a-z0-9-]{2,30})/odds/([0-9]{10})/([1-3])/([1-9][0-9]?)$"
 )
 PRELOADED=re.compile(r"window\.__PRELOADED_STATE__\s*=\s*")
 
@@ -55,7 +55,9 @@ def checked_race_and_url(*, url,race_id):
             "UNTRUSTED_WINTICKET_ODDS_ORIGIN")
     m=EVENT_PATH.fullmatch(parts.path)
     require(m is not None,"WINTICKET_PUBLIC_ODDS_RACE_URL_REQUIRED")
-    event,day_str,race_no=m.groups()
+    venue_slug,event,day_str,race_no=m.groups()
+    require(venue_slug not in ("internal","api","auth"),
+            "WINTICKET_VENUE_SLUG_INVALID")
     require(event[-2:]==race_id[8:10] and
             int(race_no)==int(race_id[10:12]),
             "WINTICKET_VENUE_OR_RACE_NO_MISMATCH")
@@ -123,7 +125,7 @@ def private_winticket_trifecta(html,*,url,race_id,captured_at,
         rows=data.get("trifecta")
         if not isinstance(rows,list) or len(rows) not in (210,504):
             continue
-        require(len(rows)==210,"AOMORI_7_RIDER_210_ONLY")
+        entrants=7 if len(rows)==210 else 9
         require(all(isinstance(row,dict) and
                     row.get("raceId")==expected_site_id for row in rows),
                 "SOURCE_RACE_ID_MISMATCH")
@@ -141,12 +143,12 @@ def private_winticket_trifecta(html,*,url,race_id,captured_at,
                 data.get("isAggregated") is True and
                 data.get("finalOdds") is False,
                 "ODDS_PROVIDER_STATUS_NOT_LIVE")
-        universe=set(permutations(range(1,8),3))
+        universe=set(permutations(range(1,entrants+1),3))
         odds={}
         for row in rows:
             combo=row.get("key")
             require(type(combo) is list and len(combo)==3 and
-                    all(type(n) is int and 1<=n<=7 for n in combo) and
+                    all(type(n) is int and 1<=n<=entrants for n in combo) and
                     len(set(combo))==3,
                     "ODDS_SOURCE_TRIPLE_INVALID")
             key=tuple(combo)
@@ -169,13 +171,13 @@ def private_winticket_trifecta(html,*,url,race_id,captured_at,
             require(math.isclose(price,displayed,rel_tol=0,abs_tol=1e-7),
                     "ODDS_SOURCE_DISPLAY_NUMERIC_MISMATCH")
             odds[key]=float(price)
-        require(set(odds)==universe and len(odds)==210,
+        require(set(odds)==universe and len(odds)==len(universe),
                 "ODDS_FULL_UNIVERSE_MISSING")
         prices=[{"triple":list(key),"decimal_odds":odds[key]}
                 for key in sorted(universe)]
         digest=sha256(canonical(prices)).hexdigest()
         admitted.append((digest,prices,source_time))
-    require(bool(admitted),"NO_FULL_210_LIVE_ODDS_IN_EMBEDDED_STATE")
+    require(bool(admitted),"NO_FULL_210_OR_504_LIVE_ODDS_IN_EMBEDDED_STATE")
     require(len({x[0] for x in admitted})==1,
             "CONFLICTING_EMBEDDED_ODDS_SNAPSHOTS")
     price_sha,prices,updated=admitted[0]
@@ -188,16 +190,16 @@ def private_winticket_trifecta(html,*,url,race_id,captured_at,
         "prices":prices,
     }
     receipt={
-        "schema":"RACE_AI_KEIRIN_WINTICKET_210_VERIFIED_RECEIPT_V1",
+        "schema":f"RACE_AI_KEIRIN_WINTICKET_{len(prices)}_VERIFIED_RECEIPT_V1",
         "race_id":race_id,
         "winticket_race_id":expected_site_id,
         "html_sha256":sha256(html).hexdigest(),
-        "full_210_prices_sha256":price_sha,
+        f"full_{len(prices)}_prices_sha256":price_sha,
         "private_odds_snapshot_sha256":sha256(canonical(normalized)).hexdigest(),
         "source_odds_updated_at_utc":updated.isoformat(),
         "owner_capture_at_utc":observed.isoformat(),
         "official_cutoff_at":cutoff.isoformat(),
-        "combination_count":210,
+        "combination_count":len(prices),
         "all_combinations_unique":True,
         "all_observed_price_numbers_valid":True,
         "all_source_display_odds_equal":True,
@@ -242,12 +244,14 @@ def stage_private_winticket_odds(inbox, verified):
     require(type(odds) is dict and type(evidence) is dict and
             odds.get("schema")==ODDS_SCHEMA and
             odds.get("race_id")==evidence.get("race_id") and
-            len(odds.get("prices",[]))==210 and
-            evidence.get("combination_count")==210 and
+            len(odds.get("prices",[])) in (210,504) and
+            evidence.get("combination_count")==len(odds["prices"]) and
+            evidence.get("schema")==(
+                f"RACE_AI_KEIRIN_WINTICKET_{len(odds['prices'])}_VERIFIED_RECEIPT_V1") and
             sha256(canonical(odds)).hexdigest()==
                 evidence.get("private_odds_snapshot_sha256") and
             sha256(canonical(odds["prices"])).hexdigest()==
-                evidence.get("full_210_prices_sha256"),
+                evidence.get(f"full_{len(odds['prices'])}_prices_sha256"),
             "ODDS_SNAPSHOT_OR_SHA_NOT_AUTHENTICATED")
     folder=root/"odds"
     audit=root/"odds_winticket_receipts"
@@ -273,7 +277,7 @@ def stage_private_winticket_odds(inbox, verified):
                 old.get("race_id")==rid and
                 old.get("source_ref")==odds["source_ref"] and
                 type(old.get("prices")) is list and
-                len(old["prices"])==210,
+                len(old["prices"])==len(odds["prices"]),
                 "PRIVATE_ODDS_ORIGINAL_NOT_SAME_RACE")
         require(utc(old["captured_at"])<=utc(odds["captured_at"]),
                 "PRIVATE_ODDS_EXISTING_FUTURE_CLOCK")
@@ -291,12 +295,15 @@ def stage_private_winticket_odds(inbox, verified):
     return {
         "schema":"RACE_AI_KEIRIN_WINTICKET_ODDS_PRIVATE_STAGE_V1",
         "race_id":rid,
-        "full_210_observed_rows":210,
+        "full_210_observed_rows":210 if len(odds["prices"])==210 else 0,
+        "full_504_observed_rows":504 if len(odds["prices"])==504 else 0,
+        "observed_trifecta_rows":len(odds["prices"]),
         "private_odds_created":int(fresh),
         "private_odds_original_preserved":not fresh,
         "newer_price_candidate_not_overwritten":changed_candidate,
         "private_provenance_receipt_created":bool(saved),
-        "observed_price_set_sha256":evidence["full_210_prices_sha256"],
+        "observed_price_set_sha256":
+            evidence[f"full_{len(odds['prices'])}_prices_sha256"],
         "plaintext_public_git_written":False,
         "official_pre_cutoff_timestamp_witness":False,
         "actual_forecast_saved":False,
