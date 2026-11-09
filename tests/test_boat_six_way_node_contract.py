@@ -44,6 +44,12 @@ class BoatSixWayNodeContractTests(unittest.TestCase):
             "Source-free 6-course view contract PASS",
         )
 
+    def test_six_way_matched_three_variant_research_standalone(self):
+        self._node(
+            "tests/boat_six_way_matched_ablation.test.cjs",
+            "SIX_WAY_MATCHED_ABLATION_SYNTHETIC_PASS",
+        )
+
     def test_grade_transition_research_standalone(self):
         self._node(
             "tests/boat_grade_transition_research.test.cjs",

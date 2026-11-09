@@ -97,6 +97,17 @@ def stage_existing_pdca_without_source(repo,*,now=None,intraday_transport=None,b
         replay_report=repair_saved_receipt_mismatches(repo,state=state,now=current)
     bridge=bridge or SavedResultBridge(repo,now=current)
     bridge.prepare(state)
+    # Source-free, count-only readiness of the already-decrypted saved views.
+    # This cannot score a new six-way forecast or authenticate a later
+    # tactical/grade feature merely from a supplied metadata flag.
+    from race_ai.boat_six_way_real_readiness import scan_views
+    try:
+        readiness=scan_views(list(bridge.views.values()),aes_saved_view_authenticated=True)
+    except (ValueError,TypeError,KeyError,AttributeError):
+        readiness=dict(schema='RACE_AI_BOAT_SIX_WAY_REAL_READINESS_V1',
+                       status='HOLD_UNSUPPORTED_SAVED_VIEW_RESEARCH_INPUT',
+                       counted_races=None,actual_three_way_120_results_scored=0,
+                       new_provider_requests=0,originals_modified=False)
     audit=H.latest(state.control)
     # Existing signed catalogue binding is unchanged: this mode doesn't
     # alter the daily catalogue, fetch a source or publish any page.
@@ -111,6 +122,7 @@ def stage_existing_pdca_without_source(repo,*,now=None,intraday_transport=None,b
         formally_scored_forecasts=sum(g['eligible'] for g in audit['model_groups']),
         outstanding_unscored=audit['unscored'],source_requests=0,source_provider_requests=0,
         offline_model_receipt_replay=replay_report,
+        six_way_research_readiness=readiness,
         forecast_rewrites=0,actual_purchases=False,independent_readback_verified=False)
 
 def replay_retained_results(repo,*,now=None,intraday_transport=None,bridge=None):

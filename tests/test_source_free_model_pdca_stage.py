@@ -32,6 +32,12 @@ class StageTests(unittest.TestCase):
             self.assertEqual(result['status'],'STAGED_NEEDS_INDEPENDENT_READBACK')
             self.assertEqual(result['source_provider_requests'],0)
             self.assertEqual(result['formally_scored_forecasts'],1)
+            # Existing AES source is real/fixture authenticated at caller,
+            # but this additional tactical-grade comparison stays in HOLD.
+            self.assertEqual(result['six_way_research_readiness']['schema'],
+                             'RACE_AI_BOAT_SIX_WAY_REAL_READINESS_V1')
+            self.assertEqual(result['six_way_research_readiness']['new_provider_requests'],0)
+            self.assertEqual(result['six_way_research_readiness']['actual_three_way_120_results_scored'],0)
             from scripts.verify_all_history_pdca_readback import verify_snapshot
             restored=load_intraday(fixture.repo,key=key,transport=FixtureGit(fixture.repo,ref=TRANSFER_REF),now=now+timedelta(minutes=3))
             newBridge=SavedResultBridge(fixture.repo,now=now+timedelta(minutes=3),transport=fixture.git,bootstrap=fixture.boot)
