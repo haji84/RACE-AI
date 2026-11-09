@@ -1,0 +1,65 @@
+"""Cloud-only GitHub workflow safety, not a source grant or prediction test."""
+from pathlib import Path
+import unittest
+
+ROOT=Path(__file__).resolve().parents[1]
+FLOW=ROOT/".github/workflows/keirin-pr71-owner-autonomous.yml"
+STATE=ROOT/"scripts/keirin_cloud_pr71_state.py"
+
+
+class CloudGuardTests(unittest.TestCase):
+    def test_public_repo_keeps_github_hosted_only(self):
+        y=FLOW.read_text(encoding="utf-8")
+        self.assertIn("name: KEIRIN PR71 GitHub-only forecast and PDCA",y)
+        self.assertIn("runs-on: ubuntu-24.04",y)
+        self.assertNotIn("self-hosted",y)
+        self.assertNotIn("runs-on: [",y)
+        self.assertNotIn("keirin-owner-private",y)
+        self.assertNotIn("OWNER_RUNTIME_ENABLED",y)
+        self.assertNotIn("github.event.repository.private == true",y)
+        self.assertIn("schedule:",y)
+        self.assertIn("11,41 * * * *",y)
+        self.assertIn("cancel-in-progress: false",y)
+
+    def test_secret_write_job_never_runs_on_pr(self):
+        y=FLOW.read_text(encoding="utf-8")
+        cloud=y.split("\n  github-hosted-pr71-cycle:\n",1)[1].split(
+            "\n  independent-cloud-readback:\n",1)[0]
+        self.assertIn("github.ref == 'refs/heads/main'",cloud)
+        self.assertIn("github.event_name == 'schedule'",cloud)
+        self.assertIn("github.event_name == 'workflow_dispatch'",cloud)
+        self.assertNotIn("github.event_name == 'pull_request'",cloud)
+        self.assertIn("contents: write",cloud)
+        self.assertIn("secrets.RACE_AI_STATE_KEY",cloud)
+        self.assertNotIn("actions/upload-artifact",cloud)
+        self.assertNotIn("git push --force",cloud)
+        self.assertIn("source-root",cloud)
+        self.assertIn("60b739bfb9861cbc48864b83651cfc2fb89c0fe7",cloud)
+
+    def test_independent_reader_is_separate_ubuntu_job_and_read_only(self):
+        y=FLOW.read_text(encoding="utf-8")
+        independent=y.split("\n  independent-cloud-readback:\n",1)[1]
+        self.assertIn("needs: github-hosted-pr71-cycle",independent)
+        self.assertIn("outputs.committed == 'true'",independent)
+        self.assertIn("runs-on: ubuntu-24.04",independent)
+        self.assertIn("contents: read",independent)
+        self.assertNotIn("contents: write",independent)
+        self.assertIn("verify --repo",independent)
+
+    def test_original_codec_and_git_state_reused_with_production_separation(self):
+        s=STATE.read_text(encoding="utf-8")
+        self.assertIn("from scripts.keirin_github_git_archive import",s)
+        self.assertIn("from scripts.keirin_github_sqlite_snapshot import",s)
+        self.assertIn("state/keirin/pr71-production/v1",s)
+        self.assertIn("FourModelRankLedger",s)
+        self.assertIn("stage_existing_owner_pre_races",s)
+        self.assertIn("STATE_BRANCH",s)
+        self.assertIn("RACE_AI_STATE_KEY",s)
+        self.assertIn("RACE_AI_EXPECTED_CIPHER_SHA256",s)
+        self.assertNotIn("def predict_new_model",s)
+        self.assertNotIn("syntheticKey",s)
+        self.assertIn("git(tree,\"push\",\"origin\"",s)
+        self.assertNotIn("force=True",s)
+
+if __name__=="__main__":
+    unittest.main()
