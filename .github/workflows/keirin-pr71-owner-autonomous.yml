@@ -1,77 +1,65 @@
-# GitHub Actions is the only timer. ChatGPT tasks do not trigger this.
-# Existing PR71 model weights/algorithms are untouched.
-# Pinned, CI-tested source code is checked out on trusted runners.
+# Public RACE-AI: GitHub-hosted Ubuntu only. No Windows, no owner PC.
+# Production PR71 state uses existing AES-GCM/SQLite code and a separate
+# lineage on the SAME state/keirin-encrypted-history Git branch.
 name: KEIRIN PR71 GitHub-only forecast and PDCA
 
 on:
   schedule:
-    # UTC, approx. twice hourly. GitHub schedules may be delayed.
     - cron: '11,41 * * * *'
   workflow_dispatch:
   push:
     branches: [main]
     paths:
       - '.github/workflows/keirin-pr71-owner-autonomous.yml'
+      - 'scripts/keirin_cloud_pr71_state.py'
+      - 'tests/test_keirin_cloud_pr71_state.py'
+      - 'tests/test_keirin_cloud_workflow_guard.py'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
-      - 'scripts/setup_keirin_owner_runner_windows.ps1'
-      - 'tests/test_keirin_owner_bootstrap_guard.py'
   pull_request:
     paths:
       - '.github/workflows/keirin-pr71-owner-autonomous.yml'
+      - 'scripts/keirin_cloud_pr71_state.py'
+      - 'tests/test_keirin_cloud_pr71_state.py'
+      - 'tests/test_keirin_cloud_workflow_guard.py'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
-      - 'scripts/setup_keirin_owner_runner_windows.ps1'
-      - 'tests/test_keirin_owner_bootstrap_guard.py'
 
 permissions:
   contents: read
 
 concurrency:
-  group: keirin-pr71-owner-${{ github.event_name == 'pull_request' && github.ref || 'main-writer' }}
+  group: keirin-pr71-cloud-${{ github.event_name == 'pull_request' && github.ref || 'main-git-writer' }}
   cancel-in-progress: false
 
 jobs:
   synthetic-ci:
     if: github.event_name == 'push' || github.event_name == 'pull_request'
     runs-on: ubuntu-24.04
-    timeout-minutes: 9
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
           ref: 60b739bfb9861cbc48864b83651cfc2fb89c0fe7
+          path: pr71-source
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Existing source, owner-intake, PR71 and PDCA invariants
-        env:
-          PYTHONPATH: '.:tests'
+      - name: Existing PR71 and GitHub-only encrypted production state regressions
+        shell: bash
         run: |
-          python -m unittest -v tests.test_keirin_github_owner_future_intake tests.test_keirin_owner_captured_ssr_intake tests.test_keirin_winticket_embedded_racecard tests.test_keirin_next_published_race_probe tests.test_keirin_allowed_delivery tests.test_keirin_pr71_four_model_rank tests.test_keirin_permissioned_owner
-      - name: No real forecast claim
-        run: |
-          echo 'Only synthetic tests. Production four-model forecast not proven.' >> "$GITHUB_STEP_SUMMARY"
-
-  bootstrap-safety-ci:
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 5
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - name: Verify no private runner use on public repository
-        run: python -m unittest -v tests.test_keirin_owner_bootstrap_guard
-      - name: Parse PowerShell bootstrap syntax without running it
-        shell: pwsh
-        run: |
-          $tokens = $null
-          $errors = $null
-          [System.Management.Automation.Language.Parser]::ParseFile('scripts/setup_keirin_owner_runner_windows.ps1', [ref]$tokens, [ref]$errors) | Out-Null
-          if ($errors.Count -gt 0) {
-            $errors | ForEach-Object { Write-Output $_.Message }
-            exit 1
-          }
-          Write-Output 'WINDOWS_BOOTSTRAP_POWERSHELL_PARSE_OK_NO_EXECUTION'
+          set -euo pipefail
+          export RACE_AI_PR71_PINNED_SOURCE_ROOT="$GITHUB_WORKSPACE/pr71-source"
+          export PYTHONPATH="$GITHUB_WORKSPACE/pr71-source:$GITHUB_WORKSPACE/pr71-source/tests:$GITHUB_WORKSPACE:$GITHUB_WORKSPACE/tests"
+          cd "$GITHUB_WORKSPACE/pr71-source"
+          python -m unittest -v tests.test_keirin_pr71_four_model_rank tests.test_keirin_allowed_delivery tests.test_keirin_permissioned_owner
+          python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_pr71_state.py' -v
+          python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_workflow_guard.py' -v
+          python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_state.py"
+      - name: Do not claim synthetic results as live
+        run: echo 'Only synthetic model + AES Git-state tests. No actual real-race prediction verified.' >> "$GITHUB_STEP_SUMMARY"
 
   public-preflight:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
@@ -109,87 +97,100 @@ jobs:
               f.write("Source probe cannot produce PR71 predictions or legal permissions.\n")
           PY
 
-  # Production data is NEVER staged on the public hosted runner. The owner's
-  # existing Windows private DB/inbox are used only with an explicit opt-in.
-  # Label "keirin-owner-private" must be registered on the trusted machine.
-  private-owner-PR71:
+  # Production secrets are used only from trusted main GitHub-hosted jobs.
+  # Secrets never reach pull_request jobs. This is a GitHub-hosted machine.
+  github-hosted-pr71-cycle:
     if: >-
-      github.event.repository.private == true &&
       github.ref == 'refs/heads/main' &&
-      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') &&
-      vars.RACE_AI_KEIRIN_OWNER_RUNTIME_ENABLED == 'true'
-    runs-on: [self-hosted, Windows, X64, keirin-owner-private]
-    timeout-minutes: 25
+      (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    outputs:
+      committed: ${{ steps.archive.outputs.committed }}
     env:
-      OWNER_DB: ${{ secrets.RACE_AI_KEIRIN_OWNER_DB }}
-      OWNER_INBOX: ${{ secrets.RACE_AI_KEIRIN_OWNER_INBOX }}
-      OWNER_MANIFEST: ${{ secrets.RACE_AI_KEIRIN_OWNER_GRANT_MANIFEST }}
-      RACE_AI_PERSISTENT_PRIVATE_VOLUME: ACKNOWLEDGED
+      RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+      RACE_AI_KEIRIN_FEED_ENDPOINT: ${{ secrets.RACE_AI_KEIRIN_FEED_ENDPOINT }}
+      RACE_AI_KEIRIN_FEED_RIGHTS_REF: ${{ secrets.RACE_AI_KEIRIN_FEED_RIGHTS_REF }}
+      RACE_AI_KEIRIN_LICENSE_MANIFEST_B64: ${{ secrets.RACE_AI_KEIRIN_LICENSE_MANIFEST_B64 }}
+      RACE_AI_KEIRIN_LICENSE_DOCUMENT_B64: ${{ secrets.RACE_AI_KEIRIN_LICENSE_DOCUMENT_B64 }}
+      RACE_AI_KEIRIN_FEED_TOKEN: ${{ secrets.RACE_AI_KEIRIN_FEED_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
+          persist-credentials: true
+      - uses: actions/checkout@v4
+        with:
           ref: 60b739bfb9861cbc48864b83651cfc2fb89c0fe7
+          path: pr71-source
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      - name: Require existing private permanent DB, inbox and grants
-        id: owner
-        shell: pwsh
+      - name: Restore Git AES state, run existing four models, encrypt only verified changes
+        id: archive
+        shell: bash
         run: |
-          $ErrorActionPreference = 'Stop'
-          $ready = (-not [string]::IsNullOrWhiteSpace($env:OWNER_DB)) -and (-not [string]::IsNullOrWhiteSpace($env:OWNER_INBOX))
-          if ($ready) {
-            $ready = (Test-Path -LiteralPath $env:OWNER_DB -PathType Leaf) -and (Test-Path -LiteralPath $env:OWNER_INBOX -PathType Container)
-          }
-          if ($ready -and (-not [string]::IsNullOrWhiteSpace($env:OWNER_MANIFEST))) {
-            $ready = Test-Path -LiteralPath $env:OWNER_MANIFEST -PathType Leaf
-          }
-          if (-not $ready) {
-            "ready=false" >> $env:GITHUB_OUTPUT
-            "HOLD: Existing private SQLite, inbox or license proof is not connected." >> $env:GITHUB_STEP_SUMMARY
+          set -euo pipefail
+          if [[ -z "$RACE_AI_STATE_KEY" ]]; then
+            echo 'NO_PRIVATE_AES_KEY_HOLD' >> "$GITHUB_STEP_SUMMARY"
+            echo 'committed=false' >> "$GITHUB_OUTPUT"
             exit 0
-          }
-          "ready=true" >> $env:GITHUB_OUTPUT
-      - name: Save actual public pre-race pages into owner-private inbox
-        if: >-
-          steps.owner.outputs.ready == 'true' &&
-          vars.RACE_AI_KEIRIN_OWNER_PUBLIC_FETCH_ENABLED == 'true'
-        shell: pwsh
+          fi
+          export PYTHONPATH="$GITHUB_WORKSPACE/pr71-source:$GITHUB_WORKSPACE/pr71-source/tests:$GITHUB_WORKSPACE"
+          cd "$GITHUB_WORKSPACE/pr71-source"
+          python "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_state.py" cycle --repo "$GITHUB_WORKSPACE" --source-root "$GITHUB_WORKSPACE/pr71-source" > "$RUNNER_TEMP/pr71-cycle.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          r=json.loads((Path(os.environ["RUNNER_TEMP"])/"pr71-cycle.json").read_text())
+          yes=r["state"]=="CLOUD_PR71_ENCRYPTED_GIT_HISTORY_READBACK_VERIFIED"
+          with open(os.environ["GITHUB_OUTPUT"],"a") as f:
+              f.write("committed="+("true" if yes else "false")+"\n")
+          safe={k:r.get(k) for k in ("state","generation","source_state","new_forecast_stage_nonzero","existing_pdca_invoked")}
+          print(json.dumps(safe,ensure_ascii=False,sort_keys=True))
+          with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as f:
+              f.write("GitHub-hosted PR71 state: "+str(r["state"])+"\n")
+              f.write("4-model originals only when complete permitted pre-race source is available.\n")
+              f.write("No source values, prediction tickets or private SQLite released.\n")
+          PY
+
+  independent-cloud-readback:
+    needs: github-hosted-pr71-cycle
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      needs.github-hosted-pr71-cycle.outputs.committed == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    env:
+      RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: 60b739bfb9861cbc48864b83651cfc2fb89c0fe7
+          path: pr71-source
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Fresh GitHub runner verifies AES-GCM SHA, SQLite and unchanged four models
+        shell: bash
         run: |
-          $ErrorActionPreference = 'Continue'
-          & python -m scripts.keirin_github_owner_future_intake --inbox "$env:OWNER_INBOX" --lookahead-minutes 90 --max-races 16 > "$env:RUNNER_TEMP\owner-source-status.json"
-          if ($LASTEXITCODE -ne 0) {
-            "HOLD: Some real public sources were unavailable. No fake inputs added." >> $env:GITHUB_STEP_SUMMARY
-          } else {
-            "Source intake recorded. See existing private inbox for SHA originals." >> $env:GITHUB_STEP_SUMMARY
-          }
-          exit 0
-      - name: Existing four PR71 models, immutable original and existing result PDCA
-        if: steps.owner.outputs.ready == 'true'
-        shell: pwsh
-        run: |
-          $ErrorActionPreference = 'Stop'
-          $arguments = @("--db", $env:OWNER_DB, "--inbox", $env:OWNER_INBOX)
-          if (-not [string]::IsNullOrWhiteSpace($env:OWNER_MANIFEST)) {
-            $arguments += @("--operator-reviewed-licenses", "--grant-manifest", $env:OWNER_MANIFEST)
-          } else {
-            $arguments += @("--personal-manual", "--owner-private-use-confirmed", "--owner-approved-source-profile", "owner-approved-winticket-keirinjp-20261109", "--owner-automatic-fetch-confirmed")
-          }
-          & python -m scripts.keirin_permissioned_owner_agent @arguments > "$env:RUNNER_TEMP\owner-cycle-status.json"
-          if ($LASTEXITCODE -ne 0) {
-            "HOLD: No verified complete owner model input. No default-zero prediction." >> $env:GITHUB_STEP_SUMMARY
-            exit 1
-          }
-          $r = Get-Content -LiteralPath "$env:RUNNER_TEMP\owner-cycle-status.json" -Raw | ConvertFrom-Json
-          $count = [int]$r.four_model_ranked_races
-          $revisions = [int]$r.four_model_result_revision_count
-          "Private owner PR71 four-model ranked race count: $count" >> $env:GITHUB_STEP_SUMMARY
-          "Existing result revision audit count: $revisions" >> $env:GITHUB_STEP_SUMMARY
-          "No model coefficients changed; no post-result refreezing allowed." >> $env:GITHUB_STEP_SUMMARY
-      - name: Keep originals private
-        if: always()
-        shell: pwsh
-        run: |
-          "All owner source HTML, forecasts, original SQLite and licensing files remain private." >> $env:GITHUB_STEP_SUMMARY
-          "No ChatGPT automation is involved." >> $env:GITHUB_STEP_SUMMARY
+          set -euo pipefail
+          export PYTHONPATH="$GITHUB_WORKSPACE/pr71-source:$GITHUB_WORKSPACE/pr71-source/tests:$GITHUB_WORKSPACE"
+          cd "$GITHUB_WORKSPACE/pr71-source"
+          python "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_state.py" verify --repo "$GITHUB_WORKSPACE" --source-root "$GITHUB_WORKSPACE/pr71-source" > "$RUNNER_TEMP/pr71-readback.json"
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          r=json.loads((Path(os.environ["RUNNER_TEMP"])/"pr71-readback.json").read_text())
+          if r["state"]!="PR71_SEPARATE_GITHUB_RUNNER_AES_GCM_READBACK_OK":
+              raise SystemExit("INDEPENDENT_CLOUD_READBACK_NOT_VERIFIED")
+          print(json.dumps({"state":r["state"],"generation":r["generation"]}))
+          PY
