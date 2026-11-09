@@ -172,7 +172,7 @@ jobs:
           yes=r["state"]=="CLOUD_PR71_ENCRYPTED_GIT_HISTORY_READBACK_VERIFIED"
           with open(os.environ["GITHUB_OUTPUT"],"a") as f:
               f.write("committed="+("true" if yes else "false")+"\n")
-          safe={k:r.get(k) for k in ("state","generation","source_state","new_forecast_stage_nonzero","existing_pdca_invoked","result_rows_appended","result_rows_held","official_result_independently_authenticated")}
+          safe={k:r.get(k) for k in ("state","generation","source_state","new_forecast_stage_nonzero","existing_pdca_invoked","result_rows_appended","result_rows_held","four_model_variable_saved","four_model_variable_held","official_result_independently_authenticated")}
           print(json.dumps(safe,ensure_ascii=False,sort_keys=True))
           with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as f:
               f.write("GitHub-hosted PR71 state: "+str(r["state"])+"\n")

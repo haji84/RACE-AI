@@ -125,11 +125,13 @@ def audit_day(cohort, db_file=None, *, include_private=False):
         from race_ai.keirin_owner_sqlite import PrivateKeirinStore
         from race_ai.keirin_pr71_four_model_rank import FourModelRankLedger
         from race_ai.keirin_variable_integration import PrivateVariableLedger
+        from scripts.keirin_cloud_pr71_variable import FourModelVariableLedger
         from race_ai.four_sport_model_suite import ALL_MODELS
         need(tuple(ALL_MODELS)==MODELS,"EXISTING_FOUR_MODEL_ROSTER_CHANGED")
         store=PrivateKeirinStore(db_file)
         ledger=FourModelRankLedger(store)
-        variable=PrivateVariableLedger(store)
+        variable=FourModelVariableLedger(store)
+        legacy_variable=PrivateVariableLedger(store)
     try:
         for source in cohort["races"]:
             rid=source["race_id"]
@@ -175,7 +177,8 @@ def audit_day(cohort, db_file=None, *, include_private=False):
                 top12=[list(r["combination"]) for r in m["candidates"][:12]]
                 need(top8==top12[:8] and len(top8)==8 and len(top12)==12,
                      "EXISTING_MODEL_TOP8_TOP12_DISAGREEMENT")
-                selected=variable.selection(rid,mid)
+                selected=(variable.selection(rid,mid) or
+                          legacy_variable.selection(rid,mid))
                 chosen=None
                 if selected:
                     document=selected["selection"]
@@ -194,8 +197,18 @@ def audit_day(cohort, db_file=None, *, include_private=False):
                 elif row["result_state"].startswith("SETTLED"):
                     mstats["settled_research_races"]+=1
                     a=audits[mid]
+                    variable_settlement=a["modes"]["variable"]
+                    if chosen is not None:
+                        # Existing PR71 settlement method, not a new scorer.
+                        from race_ai.keirin_pr71_four_model_rank import _payout_modes
+                        payments={tuple(t["triple"]):t["payout_yen_per_100"]
+                                  for t in a["winning_tickets"]}
+                        variable_settlement=_payout_modes(
+                            m,payments,[tuple(x) for x in chosen],
+                            settled=True)["variable"]
                     for mode in MODES:
-                        val=a["modes"][mode]
+                        val=(variable_settlement if mode=="variable"
+                             else a["modes"][mode])
                         st=mstats["modes"][mode]
                         if val["state"]=="REFERENCE_PURCHASE":
                             st["active_races"]+=1
@@ -221,7 +234,11 @@ def audit_day(cohort, db_file=None, *, include_private=False):
                 if include_private:
                     status.update(top8=top8,top12=top12,variable_0_to_12=chosen)
                     if audits:
-                        status["research_settlement"]=audits[mid]["modes"]
+                        modes=dict(audits[mid]["modes"])
+                        if (chosen is not None and
+                                row["result_state"].startswith("SETTLED")):
+                            modes["variable"]=variable_settlement
+                        status["research_settlement"]=modes
                 row["models"][mid]=status
             records.append(row)
     finally:
