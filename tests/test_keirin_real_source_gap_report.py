@@ -72,6 +72,45 @@ class SourceOnlyPreflightTests(unittest.TestCase):
         self.assertFalse(
             counts["model_B_source_coverage"]["all_required_fields_observed"])
 
+    def test_required_numeric_sources_cannot_claim_coverage_from_bad_values(self):
+        # Keep registry keys and counts perfectly consistent, but inject
+        # invalid model inputs. Membership checks alone used to count these.
+        for key,invalid in (
+            ("rider/1/race_score","101.4"),
+            ("rider/1/race_score",True),
+            ("rider/1/race_score",-1),
+            ("rider/1/top_three_rate",1.2),
+            ("rider/1/top_three_rate",-0.1),
+            ("rider/1/top_three_rate",float("nan")),
+        ):
+            packet=deepcopy(source())
+            packet["direct_verified_fields"][key]=invalid
+            with self.subTest(key=key,invalid=str(invalid)),self.assertRaisesRegex(
+                    RealSourceGapError,"SOURCE_MODEL_INPUT_VALUE_NOT_ADMISSIBLE"):
+                inspect_source_gaps(packet)
+
+    def test_new_measured_environment_count_does_not_authorize_forecast(self):
+        packet=deepcopy(source())
+        packet["direct_verified_fields"]["race/wind_speed"]=3.2
+        packet["verified_registry_keys"].append("race/wind_speed")
+        packet["verified_registry_keys"].sort()
+        packet["unavailable_registry_keys"].remove("race/wind_speed")
+        packet["registry_verified_count"]+=1
+        packet["registry_unavailable_count"]-=1
+        count=inspect_source_gaps(packet)
+        for mode in ("model_A_source_coverage","model_B_source_coverage"):
+            model=count[mode]
+            self.assertEqual(model["source_observed_required_slots"],15)
+            self.assertEqual(model["source_unobserved_required_slots"],78)
+            self.assertFalse(model["all_required_fields_observed"])
+        self.assertFalse(count["source_usage_rights_independently_verified"])
+        self.assertFalse(count["real_pr71_four_models_ran"])
+        self.assertFalse(count["owner_private_actual_prediction_frozen"])
+        packet["direct_verified_fields"]["race/wind_speed"]="unmeasured"
+        with self.assertRaisesRegex(
+                RealSourceGapError,"SOURCE_MODEL_INPUT_VALUE_NOT_ADMISSIBLE"):
+            inspect_source_gaps(packet)
+
     def test_tampered_347_count_or_roster_rejected(self):
         for mutation in ("count","roster","unknown","wrong_schema",
                          "missing_list","duplicate_verified","fake_complete"):
