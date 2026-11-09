@@ -33,11 +33,22 @@ def inspect_source_gaps(partial):
     observed=partial.get("direct_verified_fields")
     if type(observed) is not dict or not set(observed).issubset(registry):
         raise RealSourceGapError("SOURCE_FIELDS_NOT_IN_347_REGISTRY")
-    if (partial.get("registry_checked_count")!=len(registry)
-            or partial.get("registry_verified_count")!=len(observed)
-            or partial.get("registry_unavailable_count")!=
-                    len(registry)-len(observed)
-            or set(partial.get("verified_registry_keys",[]))!=set(observed)):
+    claimed_verified=partial.get("verified_registry_keys")
+    claimed_unavailable=partial.get("unavailable_registry_keys")
+    if (type(claimed_verified) is not list or
+            type(claimed_unavailable) is not list or
+            any(type(k) is not str for k in
+                claimed_verified+claimed_unavailable) or
+            len(set(claimed_verified))!=len(claimed_verified) or
+            len(set(claimed_unavailable))!=len(claimed_unavailable) or
+            set(claimed_verified)!=set(observed) or
+            set(claimed_unavailable)!=registry-set(observed) or
+            partial.get("registry_checked_count")!=len(registry) or
+            partial.get("registry_verified_count")!=len(observed) or
+            partial.get("registry_unavailable_count")!=
+                    len(registry)-len(observed) or
+            partial.get("full_347_or_437_verified") is not
+                    (len(observed)==len(registry))):
         raise RealSourceGapError("SOURCE_347_COUNTS_OR_KEYS_MISMATCH")
     keys=set(observed)
     required_critical={
