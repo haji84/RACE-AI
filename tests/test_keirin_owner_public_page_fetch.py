@@ -43,6 +43,31 @@ class OwnerAutomaticPublicHtmlTests(unittest.TestCase):
         self.calls.append(url)
         return ('<html><body>fixture '+url+'</body></html>').encode()
 
+    def test_winticket_real_shaped_full_210_auto_stages_existing_private_odds(self):
+        from tests.test_keirin_winticket_embedded_odds import (
+            page,URL,RACE,CUTOFF
+        )
+        from unittest.mock import patch
+        import os
+        at=datetime.fromisoformat("2026-11-09T08:50:36+09:00")
+        with patch.dict(os.environ,{
+            "GITHUB_ACTIONS":"false","GITHUB_WORKSPACE":""
+        }):
+            report=capture_approved_public_pages(
+                self.root,self.grants,urls=[URL],
+                transport=lambda _:page(),
+                clock=lambda:at,
+                odds_race_id=RACE,
+                odds_official_cutoff_at=CUTOFF)
+        self.assertTrue(report["complete_real_race_odds_verified"])
+        self.assertEqual(report["private_odds_originals_created"],1)
+        self.assertEqual(len(list((self.root/"odds").glob("*.json"))),1)
+        data=json.loads(next((self.root/"odds").glob("*.json")).read_text())
+        self.assertEqual(data["race_id"],RACE)
+        self.assertEqual(len(data["prices"]),210)
+        self.assertEqual(len(list(
+            (self.root/"odds_winticket_receipts").glob("*.json"))),1)
+
     def test_multiple_normal_https_pages_single_cycle_retained_privately(self):
         report=capture_approved_public_pages(
             self.root,self.grants,urls=URLS,transport=self.fake,
