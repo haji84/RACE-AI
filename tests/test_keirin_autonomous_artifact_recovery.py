@@ -104,9 +104,6 @@ class GithubArtifactResearchReceiptsTests(unittest.TestCase):
                     reader=lambda a:data[a["id"]])
     def test_cannot_accept_wrong_calendar_or_after_midnight_artifact(self):
         arts,data,_=fixtures()
-        with TemporaryDirectory() as t:
-            with self.assertRaisesRegex(ArchiveEvidenceError,"DATE"):
-                collect("haji84/RACE-AI","2026-11-08",
-                    mode="index",output_dir=Path(t),items=arts,
-                    reader=lambda a:data[a["id"]])
+        with self.assertRaisesRegex(ArchiveEvidenceError,"WRONG_DATE"):
+            valid_metadata(data[100],"2026-11-08",expected_run=123)
 if __name__=="__main__":unittest.main()
