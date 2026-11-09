@@ -93,8 +93,13 @@ def main():
     ap.add_argument("--previous-features",action="append",type=Path,default=[])
     ap.add_argument("--min-train-races",type=int,default=2)
     args=ap.parse_args()
-    if os.environ.get("GITHUB_ACTIONS")=="true":
-        raise SystemExit("OWNER_PRIVATE_KEY_AND_FEATURES_NOT_ALLOWED_IN_GITHUB_ACTIONS")
+    if os.environ.get("GITHUB_ACTIONS")=="true" and (
+       os.environ.get("RACE_AI_PRIVATE_ACTIONS_RESEARCH_CONSENT") !=
+       "OWNER_SET_SECRET_TRUSTED_DEFAULT_BRANCH_ONLY"):
+        raise SystemExit("OWNER_PRIVATE_KEY_ACTIONS_OPT_IN_REQUIRED")
+    # Never print or publish decrypted images/features. In Actions the
+    # owner provides their RSA key through a repository secret and the
+    # default-branch schedule checks out the pinned, reviewed source SHA.
     need(args.owner_private_key.is_file(),"OWNER_PRIVATE_KEY_REQUIRED")
     need(args.out_private.is_absolute(),"OWNER_PRIVATE_OUTPUT_MUST_BE_ABSOLUTE")
     private=serialization.load_pem_private_key(
