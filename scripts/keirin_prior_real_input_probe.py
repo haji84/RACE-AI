@@ -1,8 +1,8 @@
 """Actual prior results -> existing PR71 partial inputs; public counts only.
 
-Only ordinary owner-approved WINTICKET pages. No internal API, guessed input,
-late prediction, plaintext public source or changed model. Matched finishing
-percentiles enter only B's existing finishing input, never A's acceleration.
+Only ordinary owner-approved WINTICKET pages. Optional weather reuses the
+existing Open-Meteo personal noncommercial adapter and is explicitly labelled
+as a numerical-grid forecast, not track measurement. No target-result input.
 """
 from __future__ import annotations
 
@@ -75,7 +75,8 @@ def select_references(reference, documents):
 
 
 def probe(*, race_id, racecard_url, max_pages=32, fetch=None, clock=None,
-          private_evidence_dir=None):
+          private_evidence_dir=None, include_modelled_weather=False,
+          weather_fetch=None):
     if type(max_pages) is not int or not 1 <= max_pages <= 100:
         raise ValueError('PRIOR_PAGE_BUDGET_INVALID')
     if fetch is None:
@@ -125,18 +126,49 @@ def probe(*, race_id, racecard_url, max_pages=32, fetch=None, clock=None,
     private_packet = private_research_packet(reference, events, derived,
         racecard_sha256=sha256(body).hexdigest(),
         day_index_sha256=sha256(index).hexdigest(), as_of=as_of)
-    # Joining a reproducible derivative is not a full live-source admission.
-    # Existing A gets no bogus acceleration. B gets only actual finishing
-    # values with the original formula, rider identity, sample count and SHA.
     connected = attach_prior_finishing_input(validated, private_packet)
     gap_before = inspect_source_gaps(validated)
-    gap_after = inspect_source_gaps(connected)
-    retained = staged = None
+    retained = staged = weather_stage = None
     if private_evidence_dir is not None:
         retained = stage_owner_private_prior_research(private_evidence_dir, private_packet)
         staged = stage_connected_prior_input(private_evidence_dir, validated, private_packet)
+    weather_summary = {'state': 'NOT_REQUESTED', 'required_slots_connected': 0,
+                       'on_site_measurements_created': 0}
+    if include_modelled_weather:
+        from race_ai.keirin_weather_input_connection import (
+            collect_modelled_weather, attach_modelled_weather_input,
+            stage_modelled_weather_input,
+        )
+        try:
+            weather_raw, weather_at = collect_modelled_weather(connected,
+                owner_noncommercial=True, fetch=weather_fetch, clock=clock)
+            next_input = attach_modelled_weather_input(connected, weather_raw,
+                                                       captured_at=weather_at)
+            if private_evidence_dir is not None:
+                weather_stage = stage_modelled_weather_input(private_evidence_dir,
+                    connected, weather_raw, captured_at=weather_at)
+            added = len(set(next_input['direct_verified_fields']) - set(connected['direct_verified_fields']))
+            connected = next_input
+            weather_summary = {
+                'state': 'MODELLED_GRID_FORECAST_CONNECTED_NOT_ON_SITE_MEASUREMENT',
+                'required_slots_connected': sum(k in {
+                    'race/air_temperature', 'race/humidity', 'race/rainfall', 'race/wind_speed'}
+                    for k in connected['modelled_weather_input_evidence']),
+                'all_weather_slots_added': added,
+                'original_weather_sha256': sha256(weather_raw).hexdigest(),
+                'captured_at': weather_at,
+                'private_readback_verified': weather_stage is not None,
+                'on_site_measurements_created': 0,
+                'attribution': 'Weather data by Open-Meteo.com',
+            }
+        except (ValueError, TypeError, KeyError, OSError):
+            weather_summary = {'state': 'WEATHER_SOURCE_UNAVAILABLE_NO_GUESSED_VALUES',
+                               'required_slots_connected': 0,
+                               'on_site_measurements_created': 0}
+    gap_after = inspect_source_gaps(connected)
     counts = safe_prior_counts(reference, events)
     features = ('finishing_power', 'bank_fit', 'line_coordination', 'sprint_acceleration')
+    final_stage = weather_stage or staged
     return {
         **counts, 'race_id': race_id, 'observed_at': as_of,
         'racecard_sha256': sha256(body).hexdigest(),
@@ -155,14 +187,16 @@ def probe(*, race_id, racecard_url, max_pages=32, fetch=None, clock=None,
         'private_candidate_packet_sha256': retained['private_packet_sha256'] if retained else None,
         'private_candidate_replay_verified': retained is not None,
         'private_candidate_encrypted_git_archived': False,
-        'existing_private_partial_input_staged': staged is not None,
-        'connected_partial_input_sha256': staged['connected_input_sha256'] if staged else None,
+        'existing_private_partial_input_staged': final_stage is not None,
+        'connected_partial_input_sha256': final_stage['connected_input_sha256'] if final_stage else None,
         'derived_finishing_B_slots_connected': len(connected['prior_finishing_input_evidence']),
+        'modelled_weather_connection': weather_summary,
         'observed_or_derived_model_A_slots': gap_after['model_A_source_coverage']['source_observed_required_slots'],
         'observed_or_derived_model_B_slots': gap_after['model_B_source_coverage']['source_observed_required_slots'],
         'remaining_model_A_slots': gap_after['model_A_source_coverage']['source_unobserved_required_slots'],
         'remaining_model_B_slots': gap_after['model_B_source_coverage']['source_unobserved_required_slots'],
         'before_history_model_B_slots': gap_before['model_B_source_coverage']['source_observed_required_slots'],
+        'remaining_model_B_source_groups': gap_after['model_B_source_coverage']['missing_model_input_slots_by_source_field'],
         'required_model_slots': gap_after['model_B_source_coverage']['required_model_input_slots'],
         'full_model_input_admitted': False,
         'status': 'REAL_PRIOR_SOURCE_CHECKED_NOT_FULL_MODEL_ADMISSION',
@@ -175,10 +209,13 @@ def main():
     parser.add_argument('--racecard-url', required=True)
     parser.add_argument('--max-pages', type=int, default=32)
     parser.add_argument('--private-evidence-dir', help='existing private directory outside checkout')
+    parser.add_argument('--include-modelled-weather', action='store_true',
+                        help='personal noncommercial forecast; not on-site weather measurement')
     args = parser.parse_args()
     try:
         report = probe(race_id=args.race_id, racecard_url=args.racecard_url,
-            max_pages=args.max_pages, private_evidence_dir=args.private_evidence_dir)
+            max_pages=args.max_pages, private_evidence_dir=args.private_evidence_dir,
+            include_modelled_weather=args.include_modelled_weather)
     except (OSError, ValueError, TypeError, KeyError) as exc:
         report = {'status': 'REAL_PRIOR_INPUT_UNAVAILABLE_NO_INVENTED_VALUES',
                   'model_input_admitted': False, 'actual_four_model_forecast_saved': False,
