@@ -61,6 +61,18 @@ class DailyBatchTests(unittest.TestCase):
         m["races"][0]["video_captured"]=True
         with self.assertRaisesRegex(Exception,"MANIFEST_DIGEST_MISMATCH"):
             select(m)
+    def test_unexpired_github_artifact_skips_retry_but_is_not_durable(self):
+        m=fixture()
+        results=select(
+            m,progress=None,max_races=4,
+            temporary_captured_race_ids={"202611091201","202611091202"})
+        self.assertEqual(results["durably_archived_with_attested_readback"],0)
+        self.assertEqual(results["temporarily_captured_unexpired_artifact_races"],2)
+        self.assertEqual([x["race_id"] for x in results["selected"]],
+                         ["202611091203","202611091204"])
+        with self.assertRaisesRegex(BatchError,"INVALID_TEMPORARY_ARTIFACT_RACES"):
+            select(m,temporary_captured_race_ids={"202611081201"})
+
     def test_no_previous_day_carryover_counts(self):
         p=progress()
         self.assertEqual(readback_ids(p,day_jst="2026-11-10"),set())
