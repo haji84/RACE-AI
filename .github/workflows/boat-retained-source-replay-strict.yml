@@ -21,6 +21,19 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha }}
           persist-credentials: false
+      - name: Checkout independently pinned existing PR64 offline parser
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+          persist-credentials: false
+      - name: Expose only the missing trusted PR64 parser in test workspace
+        shell: bash
+        run: |
+          test ! -e race_ai/core.py
+          test -s pr64-reference/race_ai/core.py
+          cp --no-clobber pr64-reference/race_ai/core.py race_ai/core.py
+          python -c "from race_ai.core import parse_b, parse_k; print('PR64 legacy parser dependency available')"
       - name: Install pinned offline runtime dependencies
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
       - name: Run original settlement replay tests without credentials or network
