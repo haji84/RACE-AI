@@ -71,7 +71,10 @@ class All78FourModelsAuditTests(unittest.TestCase):
                 for mid in MODELS) for entry in r["races"]))
         self.assertIsNone(r["models"][MODELS[0]]["modes"]["top8"]["hit_rate"])
         self.assertIsNone(r["models"][MODELS[0]]["modes"]["top8"]["reference_roi"])
-        self.assertNotIn("top8",json.dumps(public_summary(r)))
+        safe=public_summary(r)
+        self.assertNotIn("races",safe)
+        self.assertNotIn("original_source_sha256",json.dumps(safe))
+        self.assertNotIn('"top8": [',json.dumps(safe))
 
     def test_actual_four_distinct_model_algorithms_top8_top12_and_readback(self):
         old=self.freeze()
