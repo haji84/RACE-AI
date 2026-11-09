@@ -23,6 +23,7 @@ from race_ai.keirin_winticket_embedded_racecard import (
     safe_public_racecard_counts,safe_public_racecard_key_inventory
 )
 from race_ai.keirin_real_source_gap_report import inspect_source_gaps
+from race_ai.keirin_result_delivery import utc
 
 SCHEMA="RACE_AI_KEIRIN_FUTURE_LIVE_PUBLIC_SSR_PROBE_V1"
 
@@ -60,25 +61,35 @@ def public_future_race_probe(*,race_id,racecard_url,odds_url,
     odds_at=clock()
     if not isinstance(odds_at,datetime) or odds_at.utcoffset() is None:
         raise EmbeddedOddsError("ODDS_CAPTURE_CLOCK_NOT_AWARE")
+    # The card was observed before the published cutoff, but the odds GET
+    # has its OWN timestamp. A slow/queued second request may cross closeAt.
+    # Never report a combined pre-cutoff observation from card time alone.
+    odds_before_published_cutoff=(
+        odds_at < utc(card["source_published_cutoff_at_utc"]))
     prices=None
     reason=None
-    try:
-        prices=private_winticket_trifecta(
-            odds_html,url=odds_url,race_id=race_id,
-            captured_at=odds_at.isoformat(),
-            official_cutoff_at=card["source_published_cutoff_at_utc"])
-    except EmbeddedOddsError as e:
-        reason=str(e)
+    if odds_before_published_cutoff:
+        try:
+            prices=private_winticket_trifecta(
+                odds_html,url=odds_url,race_id=race_id,
+                captured_at=odds_at.isoformat(),
+                official_cutoff_at=card["source_published_cutoff_at_utc"])
+        except EmbeddedOddsError as e:
+            reason=str(e)
+    else:
+        reason="ODDS_CAPTURE_AFTER_PUBLISHED_CUTOFF"
     counts=safe_public_racecard_counts(card)
     gaps=inspect_source_gaps(card)
     sources=safe_public_racecard_key_inventory(card,card_html)
     result={
         "schema":SCHEMA,"race_id":race_id,
-        "status":("LIVE_TRIFECTA_PRICE_UNIVERSE_VERIFIED"
-                  if prices else "ODDS_PENDING_OR_INCOMPLETE"),
+        "status":("ODDS_CAPTURE_AFTER_PUBLISHED_CUTOFF"
+                  if not odds_before_published_cutoff else
+                  "LIVE_TRIFECTA_PRICE_UNIVERSE_VERIFIED" if prices
+                  else "ODDS_PENDING_OR_INCOMPLETE"),
         "racecard_html_sha256":card["html_sha256"],
         "odds_html_sha256":sha256(odds_html).hexdigest(),
-        "observed_before_winticket_closeAt":True,
+        "observed_before_winticket_closeAt":odds_before_published_cutoff,
         "racecard_verified_riders":counts["rider_identity_count"],
         "preflight_checked_items":counts["registry_checked_count"],
         "preflight_source_verified_items":counts["registry_verified_count"],
