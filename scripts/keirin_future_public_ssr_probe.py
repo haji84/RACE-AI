@@ -84,6 +84,8 @@ def public_future_race_probe(*,race_id,racecard_url,odds_url,
         "preflight_source_verified_items":counts["registry_verified_count"],
         "preflight_unavailable_items":counts["registry_unavailable_count"],
         "ssr_collection_field_names_only":sources["collection_field_names"],
+        "ssr_collection_field_types_only":sources["collection_field_types_only"],
+        "ssr_selected_nested_field_names_only":sources["selected_nested_field_names_only"],
         "model_required_total_A":
             gaps["model_A_source_coverage"]["required_model_input_slots"],
         "model_required_observed_A":
