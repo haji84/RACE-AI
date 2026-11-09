@@ -119,8 +119,10 @@ def owner_future_public_intake(inbox, *, fetch=None, clock=None,
                 private,grant,urls=[row["candidate_odds_page_url"]],
                 transport=fetch,clock=clock,odds_race_id=row["race_id"],
                 odds_official_cutoff_at=row["public_close_at_utc"])
-            counts["complete_odds_stage"]+=int(
+            counts["complete_odds_source_verified"]+=int(
                 second["complete_real_race_odds_verified"])
+            counts["private_odds_created_by_collector"]+=int(
+                second["private_odds_originals_created"])
         except (PublicPageFetchError,EmbeddedOddsError,ValueError,OSError) as e:
             counts["odds_pending_or_hold"]+=1
             blocking.append(str(e))
@@ -142,7 +144,9 @@ def owner_future_public_intake(inbox, *, fetch=None, clock=None,
         "capture_counts":dict(sorted(counts.items())),
         "private_partial_racecards_staged":
             stage["private_partial_racecards_staged"],
-        "private_full_odds_races_staged":stage["full_odds_races_staged"],
+        "private_full_odds_races_staged":(
+            counts["private_odds_created_by_collector"]+
+            stage["full_odds_races_staged"]),
         "private_pending_or_incomplete":stage["incomplete_races"],
         "source_blocked_or_pending_count":len(blocking),
         "provider_machine_rights_independently_verified":False,
