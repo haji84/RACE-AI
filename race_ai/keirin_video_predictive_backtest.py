@@ -74,8 +74,9 @@ def verify_record(r, *, trusted_source_admission=None):
            "FROZEN_PREDICTION_DIGEST_REQUIRED")
     demand(all(verified_id(post[k]) for k in ("video_sha256","visual_audit_sha256")),
            "VIDEO_SOURCE_DIGEST_REQUIRED")
-    demand(post["visual_status"]=="FOUR_LAPS_VISUALLY_VERIFIED" and
-           post["source_use_admitted"] is True,
+    full=(post["visual_status"]=="FOUR_LAPS_VISUALLY_VERIFIED")
+    partial=(post["visual_status"]=="PARTIAL_HIGHLIGHTS_POSITIVE_ONLY_VERIFIED")
+    demand((full or partial) and post["source_use_admitted"] is True,
            "UNVERIFIED_FULL_VIDEO_OR_RIGHTS")
     riders=pre["participants"]
     demand(isinstance(riders,list) and 5<=len(riders)<=9,"STARTERS_INVALID")
@@ -131,8 +132,16 @@ def verify_record(r, *, trusted_source_admission=None):
         demand(rid in identities and rid not in seen,"TACTICAL_RIDER_INVALID")
         seen.add(rid)
         for key in TRAITS:
-            demand(type(tr[key]) is int and tr[key] in (0,1),
-                   "TACTICAL_LABEL_NOT_BINARY")
+            val=tr[key]
+            if partial:
+                demand(val is None or type(val) is int and val==1,
+                       "UNSEEN_PARTIAL_ACTION_MUST_BE_UNKNOWN")
+            else:
+                demand(val is None or type(val) is int and val in (0,1),
+                       "TACTICAL_LABEL_NOT_BINARY")
+    if partial:
+        demand(any(t[k] == 1 for t in tactics for k in TRAITS),
+               "PARTIAL_CLIP_HAS_NO_VISIBLE_RIDER_TACTIC")
     return r
 
 def _trait_history(previous, now, *, trusted_source_admission=None):
@@ -144,11 +153,14 @@ def _trait_history(previous, now, *, trusted_source_admission=None):
             continue
         for tr in history["post"]["tactics"]:
             rid=tr["rider_id"]
+            if not any(tr[k] is not None for k in TRAITS):
+                continue
             if rid not in out:
                 out[rid]={k:[1,2] for k in TRAITS}  # Beta(1,1) smoothing
             for k in TRAITS:
-                out[rid][k][0]+=tr[k]
-                out[rid][k][1]+=1
+                if tr[k] is not None:
+                    out[rid][k][0]+=tr[k]
+                    out[rid][k][1]+=1
     return {rid:{k:a/b for k,(a,b) in val.items()}
             for rid,val in out.items()}
 
@@ -181,10 +193,18 @@ def score_one(record, earlier_verified, weights, *,
     history=_trait_history(earlier_verified,start,
                            trusted_source_admission=trusted_source_admission)
     by_num={x["number"]:x for x in record["pre"]["participants"]}
+    visible_rider_overlap=sum(x["rider_id"] in history
+                              for x in record["pre"]["participants"])
+    # The two final features are line structures already known before
+    # the race. A "video" ablation must not claim line-only reweighting.
+    # If zero riders have prior observed video tactics, B == A exactly.
+    effective_weights=list(weights[:4])+[0.0,0.0]
+    if visible_rider_overlap==0:
+        effective_weights=[0.0]*len(weights)
     scores=[];features=[]
     for row in record["pre"]["baseline_probabilities"]:
         x=_pre_triplet_features(row["order"],by_num,history)
-        score=math.log(row["probability"])+math.fsum(a*b for a,b in zip(weights,x))
+        score=math.log(row["probability"])+math.fsum(a*b for a,b in zip(effective_weights,x))
         scores.append(score)
         features.append(x)
     shift=max(scores)
@@ -197,6 +217,8 @@ def score_one(record, earlier_verified, weights, *,
         "source_snapshot_sha256":record["pre"]["snapshot_sha256"],
         "prior_video_races_used":len(earlier_verified),
         "prior_rider_profiles_used":len(history),
+        "prior_riders_on_target_card":visible_rider_overlap,
+        "sparse_positive_only_supported":True,
         "ordered_candidates":[{"order":list(row["order"]),
                                "base_probability":row["probability"],
                                "candidate_probability":p}
@@ -251,10 +273,12 @@ def fit_earlier_historical(records, *, min_races=20, epochs=60,
             if not prev:continue
             pred=score_one(r,prev,w,
                 trusted_source_admission=trusted_source_admission)
+            if pred["prior_riders_on_target_card"]==0:
+                continue
             g=_gradient(r,pred)
-            for k in range(len(w)):gradient[k]+=g[k]
+            for k in range(4):gradient[k]+=g[k]
             used+=1
-        demand(used>0,"NO_PRIOR_REVIEWED_HISTORY_BEFORE_TARGET")
+        demand(used>0,"NO_SAME_RIDER_PRIOR_REVIEWED_VIDEO_BEFORE_TARGET")
         for k in range(len(w)):
             # Bounded coefficients and ridge penalty prevent runaway bets.
             w[k]=max(-2.,min(2.,w[k]+rate*(
@@ -267,8 +291,10 @@ def fit_earlier_historical(records, *, min_races=20, epochs=60,
                            if any(r["source_scope"]!="SYNTHETIC_ONLY" for r in ordered)
                            else "SYNTHETIC_ONLY"),
            "source_type":"REVIEWED_HISTORIC_VIDEO_AND_FROZEN_PRE_RACE",
+           "sparse_positive_only_supported":True,
+           "line_only_coefficients_are_not_video_evidence":True,
            "calibrated":False,"official_prediction":False,
-           "model_version":"0.1-RESEARCH-UNPROMOTED"}
+           "model_version":"0.2-SPARSE_POSITIVE_RESEARCH-UNPROMOTED"}
     model["model_sha256"]=digest(model)
     return model
 
@@ -306,11 +332,15 @@ def evaluate_chronological(train, test, model, *, minimum_test=10,
     for target in test:
         prev=[r for r in train if when(r["post"]["video_reviewed_at"])<
               when(target["pre"]["as_of"])]
-        base=outcome_metric(target,score_one(target,prev,[0.]*len(weight),
-             trusted_source_admission=trusted_source_admission))
-        cand=outcome_metric(target,score_one(target,prev,weight,
-             trusted_source_admission=trusted_source_admission))
+        pred_a=score_one(target,prev,[0.]*len(weight),
+             trusted_source_admission=trusted_source_admission)
+        pred_b=score_one(target,prev,weight,
+             trusted_source_admission=trusted_source_admission)
+        base=outcome_metric(target,pred_a)
+        cand=outcome_metric(target,pred_b)
         results.append({"race_id":target["race_id"],
+                        "prior_riders_on_target_card":pred_b[
+                            "prior_riders_on_target_card"],
                         "baseline_hit":base["hit_at_8"],
                         "candidate_hit":cand["hit_at_8"],
                         "baseline_loss":base["log_loss"],
@@ -326,7 +356,10 @@ def evaluate_chronological(train, test, model, *, minimum_test=10,
     candidate_brier=math.fsum(r["candidate_brier"] for r in results)/n
     # Strict paired uplift gate. Uncalibrated probabilities cannot be
     # called calibrated and ROI needs separate pre-cutoff market evidence.
-    better=(hit_candidate>hit_base and candidate_loss<base_loss
+    eligible_video_test_races=sum(r["prior_riders_on_target_card"]>0
+                                  for r in results)
+    better=(eligible_video_test_races>=max(5,n//2)
+            and hit_candidate>hit_base and candidate_loss<base_loss
             and candidate_brier<base_brier
             and model["source_scope"]=="OPERATOR_SUPPLIED_RESEARCH")
     out={
@@ -341,6 +374,8 @@ def evaluate_chronological(train, test, model, *, minimum_test=10,
         "research_promotion_gate":("BETTER_ON_HELDOUT_BUT_NOT_PRODUCTION_READY"
                                    if better else "NO_VERIFIED_IMPROVEMENT"),
         "source_scope":model["source_scope"],
+        "test_races_with_proven_prior_video_rider_overlap":eligible_video_test_races,
+        "no_clips_are_automatically_assigned_negative_traits":True,
         "calibration_verified":False,"roi_verified":False,
         "prediction_originals_modified":False,"results":results,
     }
