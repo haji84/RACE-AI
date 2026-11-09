@@ -153,6 +153,14 @@ jobs:
             --event-day-jst 2026-11-09 \
             --race-id 202611093108
 
+      - name: Probe 11/10 Aomori 3R one exact REAL future source before cutoff
+        if: github.event_name == 'pull_request'
+        timeout-minutes: 2
+        run: |
+          python -m scripts.keirin_next_published_race_probe \
+            --event-day-jst 2026-11-10 \
+            --race-id 202611101203
+
       - name: Probe NEXT genuinely upcoming 7/9-rider published event
         if: github.event_name == 'pull_request'
         timeout-minutes: 2
