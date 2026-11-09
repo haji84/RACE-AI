@@ -42,6 +42,15 @@ class CloudGuardTests(unittest.TestCase):
         self.assertIn("result_rows_held",cloud)
         self.assertIn("official_result_independently_authenticated",cloud)
 
+    def test_hosted_synthetic_ci_runs_pinned_result_source_regressions(self):
+        content=FLOW.read_text(encoding="utf-8")
+        synthetic=content.split("\\n  synthetic-ci:\\n",1)[1].split(
+            "\\n  public-preflight:\\n",1)[0]
+        self.assertIn("tests.test_keirin_licensed_result_stage",synthetic)
+        self.assertIn("tests.test_keirin_license_api_ingest",synthetic)
+        self.assertIn("test_keirin_cloud_pr71_state.py",synthetic)
+        self.assertNotIn("secrets.RACE_AI_STATE_KEY",synthetic)
+
     def test_independent_reader_is_separate_ubuntu_job_and_read_only(self):
         y=FLOW.read_text(encoding="utf-8")
         independent=y.split("\n  independent-cloud-readback:\n",1)[1]
