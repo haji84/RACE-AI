@@ -1,5 +1,8 @@
 name: BOAT per-race results and athlete statistics
 on:
+  pull_request:
+    branches: [main]
+    paths: [.github/workflows/boat-racer-daily.yml]
   push:
     branches: [feat/four-sport-forecast-audit-view-20261022, main]
     paths: [docs/evidence/racer-daily-refresh-trigger.txt, docs/evidence/racer-intraday-refresh-trigger.txt, docs/evidence/owner-pdca-main-trigger.txt]
@@ -39,6 +42,40 @@ concurrency:
   group: boat-racer-daily-statistics
   cancel-in-progress: false
 jobs:
+  mirror_contract:
+    name: BOAT mirror source-free PR regression
+    if: github.event_name == 'pull_request' && github.repository == 'haji84/RACE-AI'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: 914941a6244364480370ac392441ad4bb5781f83
+          persist-credentials: false
+      - name: Install pinned offline-only test dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Verify HMAC envelopes, immutable mirror CAS and denied-source state
+        run: python -m unittest tests.test_boat_source_control_mirror -v
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          path: proposed-workflow
+          persist-credentials: false
+      - name: Verify wiring without running any provider request
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          content = Path('proposed-workflow/.github/workflows/boat-racer-daily.yml').read_text()
+          assert content.count('Reconcile verified completed BOAT source handoff') == 1
+          assert 'python -m scripts.boat_source_control_mirror latest-closed' in content
+          assert 'github.event.workflow_run.conclusion == \'success\'' in content
+          assert "github.event.schedule == '20 21 * * *'" in content
+          assert 'continue-on-error: true' not in content
+          assert 'group: boat-racer-daily-statistics' in content
+          assert 'ref: ${{ github.event_name == \'push\' && github.sha || \'914941a6244364480370ac392441ad4bb5781f83\' }}' in content
+          PY
   daily:
     if: >-
       github.repository == 'haji84/RACE-AI' && github.event_name != 'pull_request' &&
