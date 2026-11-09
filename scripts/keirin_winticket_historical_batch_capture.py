@@ -77,7 +77,7 @@ def admission_manifest(source, *, technical=None):
         "forecasts_modified":False,
     }
 
-async def capture_one(browser, source, root, public_key):
+async def capture_one(browser, source, root, public_key, *, on_verified_plaintext=None):
     entry=admission_manifest(source)
     entry["technical_status"]="NOT_STARTED"
     with tempfile.TemporaryDirectory(prefix="race-ai-past-screen-") as temp_dir:
@@ -134,6 +134,19 @@ async def capture_one(browser, source, root, public_key):
             entry["screen_sha256"]=tech.get("sha256")
             if (entry["technical_status"]=="PLAYER_FINISHED"
                     and recording_complete(first,last,tech)):
+                # Optional, tightly scoped ephemeral visual feature extraction.
+                # The hook runs on the trusted browser runner before the
+                # TemporaryDirectory deletes all raw video bytes. Only the
+                # caller is responsible for encrypting its derived outputs.
+                if on_verified_plaintext is not None:
+                    try:
+                        on_verified_plaintext(selected,source,tech)
+                        entry["private_feature_extraction_status"]="SUCCEEDED_EPHEMERAL"
+                    except Exception as exc:
+                        # A scene research failure NEVER fabricates labels or
+                        # destroys a valid separately encrypted recording.
+                        entry["private_feature_extraction_status"]="NOT_PROVEN"
+                        entry["private_feature_error_type"]=type(exc).__name__
                 encrypted_dir=root/source["race_id"]
                 count=encrypt_recordings([selected],public_key,encrypted_dir,
                                          race_id=source["race_id"])
