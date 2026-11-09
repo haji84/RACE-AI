@@ -7,6 +7,7 @@ unique races: their denominator must never be labelled a race count.
 from __future__ import annotations
 
 from copy import deepcopy
+from decimal import Decimal, ROUND_DOWN, ROUND_HALF_UP
 from hashlib import sha256
 import math
 import re
@@ -15,9 +16,6 @@ FORMULA_VERSION = 'winticket-recorded-front-actions-success-ratio-v1-20261110'
 DEFINITION_URL = 'https://www.winticket.jp/keirin/column/ex_data'
 FIELDS = ('exSpurt', 'exThrust')
 MAX_COUNT = 10_000_000
-# Displayed source percentages can be rounded/truncated to one decimal place.
-# They only cross-check observed integers; they never supply a denominator.
-PERCENT_TOLERANCE = 0.100001
 
 
 class ExSourceError(ValueError):
@@ -37,6 +35,22 @@ def _percentage(value):
     if type(value) not in (int, float) or not math.isfinite(value):
         return None
     return float(value) if 0 <= value <= 100 else None
+
+
+def _matches_display(success, total, raw):
+    parsed = _percentage(raw)
+    if parsed is None:
+        return False
+    if not total:
+        return parsed == 0
+    # Match the precision actually encoded by the source. Rounding/truncation
+    # is only a consistency check; the value always comes from exact counts.
+    shown = Decimal(str(raw)).normalize()
+    exponent = min(0, shown.as_tuple().exponent)
+    quantum = Decimal(1).scaleb(exponent)
+    exact = Decimal(success) * 100 / Decimal(total)
+    return shown in (exact.quantize(quantum, rounding=ROUND_DOWN),
+                     exact.quantize(quantum, rounding=ROUND_HALF_UP))
 
 
 def attack_success_from_record(record):
@@ -69,7 +83,7 @@ def attack_success_from_record(record):
         percent = _percentage(row['percentage'])
         if percent is None or (total == 0 and percent != 0):
             return {**missing, 'reason': 'ACTION_PERCENTAGE_INVALID'}
-        if total and abs(percent - 100 * success / total) > PERCENT_TOLERANCE:
+        if total and not _matches_display(success, total, row['percentage']):
             return {**missing, 'reason': 'ACTION_PERCENTAGE_COUNT_MISMATCH'}
         observed[name] = {'succeeded': success, 'total': total,
                           'reported_percentage': row['percentage']}
@@ -150,6 +164,18 @@ def attach_observed_attack_counts(packet, html):
             'independent_source_rights_verified': False,
             'approved_for_pr71_input': False,
         }
+    # Structural field names, not athlete data, aid subsequent source joins.
+    shapes = {}
+    for field in ('exLeftBehind', 'exSplitLine', 'exSnatch', 'exCompete',
+                  'linePositionFirst', 'linePositionSecond',
+                  'linePositionThird', 'lineSingleHorseman'):
+        keys = set()
+        for record in records.values():
+            value = record.get(field)
+            if type(value) is dict:
+                keys.update(k for k in value if type(k) is str and
+                            re.fullmatch(r'[A-Za-z][A-Za-z0-9_]{0,39}', k))
+        shapes[field] = sorted(keys)
     registry = set(expected_keys([r['car_number'] for r in riders]))
     observed = set(enriched['direct_verified_fields'])
     _require(observed <= registry, 'EX_UNREGISTERED_SOURCE_FIELD')
@@ -162,6 +188,7 @@ def attach_observed_attack_counts(packet, html):
         'ex_action_ratio_evidence': lineage,
         'ex_action_ratio_unavailable_reasons': unavailable,
         'ex_action_ratio_transform': FORMULA_VERSION,
+        'ex_nested_source_key_names_only': shapes,
     })
     return enriched
 
