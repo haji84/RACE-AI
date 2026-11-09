@@ -1,0 +1,74 @@
+{
+  "schema": "research-autorace-results-public-observation/1",
+  "event_date_jst": "2026-11-09",
+  "observed_at_jst": "2026-11-10T06:30:26+09:00",
+  "venue": "川口",
+  "mode": "RESULTS_ONLY_APPEND_NO_FORECAST_MUTATION",
+  "source": {
+    "operator": "チャリロト公開レース結果",
+    "url": "https://www.chariloto.com/auto/results/002/2026-11-09",
+    "races_checked": [
+      10,
+      11,
+      12
+    ],
+    "source_status": "confirmed_finish_order_and_trifecta_payout_per_100_yen"
+  },
+  "previous_observation": "audit/autorace/2026-11-09/kawaguchi_09to10_results_partial_observed_20261110_0454JST.json",
+  "observations": [
+    {
+      "race": 10,
+      "race_id": "autorace:2026-11-09:kawaguchi:10",
+      "confirmed_trifecta": "5-8-1",
+      "confirmed_payout_jpy_per_100": 860,
+      "delta": "payout_newly_verified; confirmed_trifecta_unchanged",
+      "A_research_sha256": "d478a3778c7ae85c05b77f4c3ee4818af29198b20b8a9bb604386b156b683e5a",
+      "A_8": "HOLD_original_ticket_list_unavailable",
+      "A_12": "HOLD_original_ticket_list_unavailable",
+      "B_8": "HOLD_eligible_original_unverified",
+      "B_12": "HOLD_eligible_original_unverified"
+    },
+    {
+      "race": 11,
+      "race_id": "autorace:2026-11-09:kawaguchi:11",
+      "confirmed_trifecta": "6-4-1",
+      "confirmed_payout_jpy_per_100": 9180,
+      "delta": "trifecta_and_payout_newly_verified",
+      "A_research_sha256": "0ec205efc4550dc5d98ce579c31103bf85c8aeb02cb173e35327530b247ebed3",
+      "A_8": "HOLD_original_ticket_list_unavailable",
+      "A_12": "HOLD_original_ticket_list_unavailable",
+      "B_8": "HOLD_eligible_original_unverified",
+      "B_12": "HOLD_eligible_original_unverified"
+    },
+    {
+      "race": 12,
+      "race_id": "autorace:2026-11-09:kawaguchi:12",
+      "confirmed_trifecta": "3-4-2",
+      "confirmed_payout_jpy_per_100": 20080,
+      "delta": "trifecta_and_payout_newly_verified",
+      "A_research_sha256": "ca17db75c67044adb02e6e0fed035840be725470866feb187d5a6e000f9340aa",
+      "A_8": "HOLD_original_ticket_list_unavailable",
+      "A_12": "HOLD_original_ticket_list_unavailable",
+      "B_8": "HOLD_eligible_original_unverified",
+      "B_12": "HOLD_eligible_original_unverified",
+      "post_result_observed_factors": {
+        "winners_handicaps_m": [
+          10,
+          10,
+          10
+        ],
+        "trial_fastest_car": 8,
+        "trial_fastest_time": 3.57,
+        "trial_fastest_finish": 6,
+        "winning_car_start_timing": 0.03
+      },
+      "inference_limit": "Observed factors only, not a claimed forecast error without pre-cutoff original."
+    }
+  ],
+  "forecast_sha_ledger": "audit/autorace/2026-11-09/all-races-A-research-pretrial-0917-sha256.txt",
+  "prior_prediction_bytes_changed": false,
+  "new_A_or_B_predictions_created": false,
+  "scoring_update": "NONE; hold until matching actual pre-cutoff A/B ticket originals are retrieved and SHA checked",
+  "no_unverified_roi_or_accuracy_claims": true,
+  "actual_bets": "unknown"
+}
