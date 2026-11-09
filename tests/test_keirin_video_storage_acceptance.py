@@ -116,5 +116,38 @@ class StorageAcceptanceTests(unittest.TestCase):
             self.module.archive_job_id(valid)
 
 
+    def test_scheduled_capture_without_archive_is_not_green(self):
+        """A scheduled producer lacking an archive cannot pass acceptance."""
+        from unittest.mock import patch
+        import os
+
+        with TemporaryDirectory() as tmp:
+            evt = Path(tmp) / 'source-event.json'
+            evt.write_text(json.dumps(event()), encoding='utf-8')
+
+            def fake_github(route):
+                if route.endswith(f'/actions/runs/{RUN}'):
+                    return json.dumps(event()['workflow_run']).encode()
+                if route.endswith(f'/actions/runs/{RUN}/jobs?per_page=100'):
+                    return json.dumps({'jobs': [{
+                        'id': 23,
+                        'name': 'capture-completed-races',
+                        'steps': [{'name': self.module.ARCHIVE_STEP,
+                                   'conclusion': 'skipped'}]
+                    }]}).encode()
+                self.fail('Unexpected API route: ' + route)
+
+            env = {'GITHUB_EVENT_PATH': str(evt),
+                   'GITHUB_RUN_ID': str(RUN + 1),
+                   'GITHUB_REPOSITORY': 'haji84/RACE-AI',
+                   'GH_TOKEN': 'SYNTHETIC_ONLY'}
+            with patch.dict(os.environ, env), patch.object(
+                    self.module, 'github', side_effect=fake_github):
+                result, code = self.module.readback()
+            self.assertEqual(result['status'], 'SOURCE_ARCHIVE_NOT_ATTESTED')
+            self.assertFalse(result['independent_readback_verified'])
+            self.assertNotEqual(code, 0, 'Missing archive must not pass CI')
+
+
 if __name__ == '__main__':
     unittest.main()

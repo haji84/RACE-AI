@@ -203,7 +203,7 @@ def readback():
             raise
         return {'status': 'SOURCE_ARCHIVE_NOT_ATTESTED',
                 'source_run_id': source_id, 'consumer_run_id': consumer_id,
-                'independent_readback_verified': False}, 0
+                'independent_readback_verified': False}, 2
     logs = github(f'/repos/{REPO}/actions/jobs/{job_id}/logs').decode('utf-8-sig', 'replace')
     receipt = parse_attestation(logs, source_id)
     status = configuration_status(os.environ)
