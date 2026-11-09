@@ -34,7 +34,22 @@ class CloudGuardTests(unittest.TestCase):
         self.assertNotIn("actions/upload-artifact",cloud)
         self.assertNotIn("git push --force",cloud)
         self.assertIn("source-root",cloud)
-        self.assertIn("1b50a851726f3e061757fa670687af4c211c9005",cloud)
+        source_sha="97464792c2af28b39f9ffbe668019fb1482d5a8c"
+        self.assertIn(source_sha,cloud)
+        self.assertEqual(y.count(source_sha),4)
+        self.assertNotIn("1b50a851726f3e061757fa670687af4c211c9005",y)
+        self.assertIn("result_rows_appended",cloud)
+        self.assertIn("result_rows_held",cloud)
+        self.assertIn("official_result_independently_authenticated",cloud)
+
+    def test_hosted_synthetic_ci_runs_pinned_result_source_regressions(self):
+        content=FLOW.read_text(encoding="utf-8")
+        synthetic=content.split("\n  synthetic-ci:\n",1)[1].split(
+            "\n  public-preflight:\n",1)[0]
+        self.assertIn("tests.test_keirin_licensed_result_stage",synthetic)
+        self.assertIn("tests.test_keirin_license_api_ingest",synthetic)
+        self.assertIn("test_keirin_cloud_pr71_state.py",synthetic)
+        self.assertNotIn("secrets.RACE_AI_STATE_KEY",synthetic)
 
     def test_independent_reader_is_separate_ubuntu_job_and_read_only(self):
         y=FLOW.read_text(encoding="utf-8")
@@ -53,6 +68,9 @@ class CloudGuardTests(unittest.TestCase):
         self.assertIn("state/keirin/pr71-production/v1",s)
         self.assertIn("FourModelRankLedger",s)
         self.assertIn("stage_existing_owner_pre_races",s)
+        self.assertIn("apply_existing_frozen_results",s)
+        self.assertIn("result_rows_appended",s)
+        self.assertIn("official_result_independently_authenticated",s)
         self.assertIn("STATE_BRANCH",s)
         self.assertIn("RACE_AI_STATE_KEY",s)
         self.assertIn("RACE_AI_EXPECTED_CIPHER_SHA256",s)
