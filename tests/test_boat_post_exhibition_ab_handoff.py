@@ -69,7 +69,7 @@ def sample():
                for c in range(1,7) if len({a,b,c}) == 3]
     original = sorted((dict(ticket=t, score=1/120) for t in tickets),
                       key=lambda r:(-r["score"],r["ticket"]))
-    baseline = dict(prediction=dict(
+    baseline = dict(race_id=RACE, prediction=dict(
         model_id="boat-display-rating-PL-reference-v1-UNVALIDATED",
         race_id=RACE, as_of="2026-11-09T12:02:00+09:00",
         generated_at="2026-11-09T12:02:00+09:00",
@@ -121,6 +121,34 @@ class PostExhibitionABTests(unittest.TestCase):
         result = readback_candidate(c,receipt)
         self.assertEqual(result["state"],"B_ENCRYPTED_AND_RECEIPT_VERIFIED")
         self.assertTrue(result["external_source_authentication_separate"])
+
+    def test_outer_baseline_race_identity_is_required_and_exact(self):
+        for value in (None, "20261109-05-01"):
+            with self.subTest(race_id=value):
+                e,b,c = sample()
+                if value is None:
+                    b.pop("race_id")
+                else:
+                    b["race_id"] = value
+                called = []
+                def never_predict(record, frozen):
+                    called.append(True)
+                    return fake_predictor(record, frozen)
+                with self.assertRaisesRegex(ValueError, "RACE_IDENTITY_MISMATCH"):
+                    create_candidate(e,b,c,test_model(),at=AT,predictor=never_predict)
+                self.assertEqual(called, [])
+
+    def test_inner_baseline_prediction_cannot_belong_to_another_race(self):
+        e,b,c = sample()
+        b["prediction"]["race_id"] = "20261109-05-01"
+        with self.assertRaisesRegex(ValueError, "A_TOP8_OR_CUTOFF_MISMATCH"):
+            create_candidate(e,b,c,test_model(),at=AT,predictor=fake_predictor)
+
+    def test_tactical_context_cannot_belong_to_another_race(self):
+        e,b,c = sample()
+        c["race_id"] = "20261109-05-01"
+        with self.assertRaisesRegex(ValueError, "RACE_IDENTITY_MISMATCH"):
+            create_candidate(e,b,c,test_model(),at=AT,predictor=fake_predictor)
 
     def test_no_visual_course_proof_blocks(self):
         e,b,c = sample()
