@@ -329,7 +329,30 @@ def preloaded_schema_only(text):
                     isinstance(r,dict) and type(r.get(name)) is str
                     for r in records),
             }
+        def type_shape(value,depth=0):
+            if depth>=3:
+                return type(value).__name__
+            if isinstance(value,dict):
+                return {str(k)[:42]:type_shape(v,depth+1)
+                        for k,v in list(value.items())[:20]}
+            if isinstance(value,list):
+                return {"length":len(value),
+                        "first_shape":type_shape(value[0],depth+1)
+                        if value else None}
+            return type(value).__name__
+        span={}
+        for field in ("racePoint","back","standing","frontRunner",
+                      "stalker","deepCloser","marker","firstRate",
+                      "secondRate","thirdRate"):
+            values=[r[field] for r in records if type(r) is dict and
+                    type(r.get(field)) in (int,float)]
+            span[field]={
+                "min":round(min(values),4) if values else None,
+                "max":round(max(values),4) if values else None,
+            }
         racecard_shape.append({
+            "line_prediction_shape":type_shape(data.get("linePrediction")),
+            "numeric_field_ranges":span,
             "entries":len(entries),
             "players":len(players),
             "records":len(records),
