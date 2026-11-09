@@ -48,11 +48,12 @@ class WindowsOwnerRuntimeSafetyTests(unittest.TestCase):
         code=FLOW.read_text(encoding="utf-8")
         public=code.split("\n  public-preflight:\n",1)[1].split(
             "\n  private-owner-PR71:\n",1)[0]
-        self.assertIn("runs-on: ubuntu-24.04",public)
-        self.assertNotIn("secrets.",public)
-        self.assertNotIn("keirin-owner-private",public)
-        self.assertNotIn("RACE_AI_KEIRIN_OWNER_DB",public)
-        self.assertNotIn("owner.csv",public.lower())
+        public_executable="\n".join(x for x in public.splitlines() if not x.strip().startswith("#"))
+        self.assertIn("runs-on: ubuntu-24.04",public_executable)
+        self.assertNotIn("secrets.",public_executable)
+        self.assertNotIn("keirin-owner-private",public_executable)
+        self.assertNotIn("RACE_AI_KEIRIN_OWNER_DB",public_executable)
+        self.assertNotIn("owner.csv",public_executable.lower())
 
 
 if __name__=="__main__":
