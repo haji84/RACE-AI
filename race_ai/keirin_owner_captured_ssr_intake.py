@@ -20,8 +20,9 @@ from .keirin_winticket_embedded_odds import (
     private_winticket_trifecta,stage_private_winticket_odds,
     EmbeddedOddsError
 )
-from .keirin_winticket_embedded_racecard import (
-    racecard_from_public_html,EmbeddedRacecardError
+from .keirin_winticket_embedded_racecard import EmbeddedRacecardError
+from .keirin_winticket_ex_connection import (
+    racecard_with_observed_ex as racecard_from_public_html,ExSourceError
 )
 
 SOURCE_RE=re.compile(
@@ -135,20 +136,18 @@ def stage_private_captured_winticket(inbox):
                     body,url=url,race_id=rid,
                     captured_at=at.isoformat())
                 break
-            except EmbeddedRacecardError:
+            except (EmbeddedRacecardError,ExSourceError):
                 continue
         if admitted_card is None:
             incomplete+=1
             continue
-        # A partial 347/437-field source record is useful evidence, but
-        # MUST NOT be supplied as a complete full-factor PR71 forecast input.
+        # The observed EX fields retain exact denominators, source hash and
+        # capture time in this existing private partial evidence packet.
+        # This is NOT a complete 347/437-field or full-model input approval.
         h=sha256(canonical(admitted_card)).hexdigest()
-        partial_dir.joinpath(h+".json")
         if _write_private_once(partial_dir/(h+".json"),admitted_card):
             partial_riders+=1
-        # Odds can legitimately be pending many hours before the race.
-        # Preserve the authentic rider source packet now and process prices
-        # independently when the same race's public odds are later published.
+        # Odds may still be pending. Keep authentic source evidence anyway.
         if not prices:
             incomplete+=1
             continue
