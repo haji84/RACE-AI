@@ -70,14 +70,19 @@ def readback_ids(progress,*,day_jst):
         seen.add(rid)
     return seen
 
-def select(manifest, *,progress=None,max_races=24):
+def select(manifest, *,progress=None,max_races=24, temporary_captured_race_ids=None):
     day_jst=manifest.get("date_jst")
     assess_daily_manifest(manifest,target_day_jst=day_jst)
     check(type(max_races) is int and 1<=max_races<=30,
           "UNBOUNDED_RECORDING_BATCH")
     archived=readback_ids(progress,day_jst=day_jst)
+    pending=temporary_captured_race_ids or set()
+    check(type(pending) is set and
+          all(type(x) is str and x.startswith(day_jst.replace("-",""))
+              for x in pending),"INVALID_TEMPORARY_ARTIFACT_RACES")
     source=[r for r in manifest["races"] if r["listed_on_raceresult_index"]]
-    candidates=[r for r in source if r["race_id"] not in archived]
+    candidates=[r for r in source if
+                r["race_id"] not in archived and r["race_id"] not in pending]
     # Keep deterministic finite batches; cannot silently treat a capped list
     # as all video recorded or all scheduled races covered.
     selected=candidates[:max_races]
@@ -89,6 +94,8 @@ def select(manifest, *,progress=None,max_races=24):
        "day_jst":day_jst,
        "races_visible_on_result_index":len(source),
        "durably_archived_with_attested_readback":len(archived),
+       "temporarily_captured_unexpired_artifact_races":
+           len(set(r["race_id"] for r in source)&pending-archived),
        "candidates_waiting_after_result_page":len(candidates),
        "selected": [{
             "race_id":r["race_id"],
