@@ -31,29 +31,41 @@ jobs:
           node-version: '22'
       - name: Install existing offline test dependencies
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
-      - name: Snapshot public code and model catalogue without owner data
+      - name: Record code-only model inventory and exact repaired source
         run: |
-          mkdir -p "$RUNNER_TEMP/boat-recovery-public-code"
-          git archive HEAD > "$RUNNER_TEMP/boat-recovery-public-code/pr71.tar"
-          git -C pr64-reference archive HEAD > "$RUNNER_TEMP/boat-recovery-public-code/pr64.tar"
-          git -C pr72-reference archive HEAD > "$RUNNER_TEMP/boat-recovery-public-code/pr72.tar"
-          python - <<'PY'
+          mkdir -p "$RUNNER_TEMP/boat-recovery-evidence"
+          python - <<'PY_INVENTORY'
           import json, os
           from pathlib import Path
           from race_ai.existing_model_coverage import catalog, active_catalog, RETIRED_MODEL_IDS
           from race_ai.existing_model_dispatch import GROUPS
           value = dict(schema='RACE_AI_BOAT_RECOVERY_CODE_INVENTORY_V1', code_sha=os.environ['GITHUB_SHA'], catalogue=catalog(), active_boat=[s for s in active_catalog() if 'boat' in s['applicable_sports']], retired=sorted(RETIRED_MODEL_IDS), dispatch_groups=[dict(group=g, model_ids=list(ids)) for g, ids in GROUPS], real_forecasts_executed=False, official_source_get_count=0, owner_data_accessed=False)
-          text=json.dumps(value,ensure_ascii=False,indent=2)
-          Path(os.environ['RUNNER_TEMP'],'boat-recovery-public-code','inventory.json').write_text(text+'\n',encoding='utf-8')
-          print(text)
-          PY
-      - name: Retain exact public source for offline reproduction
+          Path(os.environ['RUNNER_TEMP'],'boat-recovery-evidence','inventory.json').write_text(json.dumps(value,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          PY_INVENTORY
+          cp race_ai/boat_post_exhibition_ab_handoff.py tests/test_boat_post_exhibition_ab_handoff.py docs/BOAT_ALL_MODEL_CONNECTION_AUDIT_20261110.md "$RUNNER_TEMP/boat-recovery-evidence/"
+          python -m pip download --disable-pip-version-check --no-deps --no-binary=:all: lhafile==0.3.1 --dest "$RUNNER_TEMP/boat-recovery-evidence"
+      - name: Verify all native families, preservation, readback and model PDCA contracts
+        run: |
+          set -o pipefail
+          python - <<'PY_TEST' 2>&1 | tee "$RUNNER_TEMP/boat-recovery-evidence/targeted-python.log"
+          from pathlib import Path
+          import unittest, race_ai
+          race_ai.__path__.extend(str(Path(root)/'race_ai') for root in ('pr64-reference','pr72-reference'))
+          names=['test_existing_model_coverage','test_existing_model_dispatch','test_boat_all_model_inputs','test_boat_all_model_cycle','test_boat_all_model_cycle_cli','test_boat_all_model_native_capsules','test_boat_all_model_observed_connection','test_boat_all_model_recovery','test_boat_all_model_store','test_dispatch_product_projection','test_seller_retirement','test_boat_post_exhibition_ab_handoff','test_boat_post_exhibition_ab_coverage','test_all_existing_model_generation_clock','test_all_existing_model_cycle_connection','test_all_existing_model_cash_pdca','test_boat_venue_future_grid','test_boat_video_forward']
+          suite=unittest.defaultTestLoader.loadTestsFromNames(['tests.'+n for n in names])
+          result=unittest.TextTestRunner(verbosity=2).run(suite)
+          raise SystemExit(not result.wasSuccessful())
+          PY_TEST
+      - name: Verify existing product selection and financial contracts
+        if: always()
+        run: |
+          set -o pipefail
+          node --test tests/product_data.test.cjs tests/model_catalog.test.cjs tests/existing_pdca_offline.test.mjs tests/saved_performance.test.cjs 2>&1 | tee "$RUNNER_TEMP/boat-recovery-evidence/targeted-node.log"
+      - name: Retain public code and synthetic test evidence only
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: boat-recovery-public-code-${{ github.sha }}
-          path: ${{ runner.temp }}/boat-recovery-public-code/
+          name: boat-recovery-offline-evidence-${{ github.sha }}
+          path: ${{ runner.temp }}/boat-recovery-evidence/
           retention-days: 3
           if-no-files-found: error
-      - name: Reproduce existing post-exhibition handshake tests unchanged
-        run: python -m unittest tests.test_boat_post_exhibition_ab_handoff -v

@@ -295,7 +295,7 @@ def prepare_round(current, originals, baseline_receipt, research_by_race, *,
             captured_at=before["captured_at"],
             beforeinfo=before,
             formation_evidence=source["formation_evidence"])
-        original = dict(prediction=p,physical_receipt=dict(
+        original = dict(race_id=rid,prediction=p,physical_receipt=dict(
             source_sha256=baseline_receipt["payload_sha256"],
             server_saved_at=baseline_receipt["created_at"]))
         try:
