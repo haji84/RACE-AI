@@ -36,6 +36,19 @@ class WinticketFutureSsrTest(unittest.TestCase):
         self.assertEqual(receipt["model_required_missing_A"],79)
         self.assertEqual(receipt["model_required_observed_B"],14)
         self.assertEqual(receipt["model_required_missing_B"],79)
+        for label in ("A","B"):
+            missing=receipt["missing_source_groups_"+label]
+            self.assertEqual(sum(missing.values()),79)
+            self.assertEqual(missing["race/wind_speed"],1)
+            self.assertEqual(missing["race/line_competition_and_lead_candidates"],1)
+            self.assertTrue(all("fictional" not in name and
+                                not name.startswith("rider/")
+                                for name in missing))
+        self.assertEqual(
+            receipt["missing_source_groups_A"]["last_lap_acceleration"],14)
+        self.assertEqual(
+            receipt["missing_source_groups_A"]["venue_and_distance_compatibility"],14)
+        self.assertTrue(receipt["missing_source_groups_are_counts_only"])
         self.assertGreater(receipt["preflight_core_required_missing"],0)
         self.assertGreater(receipt["preflight_unavailable_items"],200)
         self.assertFalse(receipt["full_official_model_preflight"])
