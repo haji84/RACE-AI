@@ -13,10 +13,14 @@ on:
     paths:
       - '.github/workflows/keirin-pr71-owner-autonomous.yml'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
+      - 'scripts/setup_keirin_owner_runner_windows.ps1'
+      - 'tests/test_keirin_owner_bootstrap_guard.py'
   pull_request:
     paths:
       - '.github/workflows/keirin-pr71-owner-autonomous.yml'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
+      - 'scripts/setup_keirin_owner_runner_windows.ps1'
+      - 'tests/test_keirin_owner_bootstrap_guard.py'
 
 permissions:
   contents: read
@@ -46,6 +50,28 @@ jobs:
       - name: No real forecast claim
         run: |
           echo 'Only synthetic tests. Production four-model forecast not proven.' >> "$GITHUB_STEP_SUMMARY"
+
+  bootstrap-safety-ci:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify no private runner use on public repository
+        run: python -m unittest -v tests.test_keirin_owner_bootstrap_guard
+      - name: Parse PowerShell bootstrap syntax without running it
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile('scripts/setup_keirin_owner_runner_windows.ps1', [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | ForEach-Object { Write-Output $_.Message }
+            exit 1
+          }
+          Write-Output 'WINDOWS_BOOTSTRAP_POWERSHELL_PARSE_OK_NO_EXECUTION'
 
   public-preflight:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
