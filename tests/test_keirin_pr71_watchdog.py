@@ -119,6 +119,8 @@ class WatchdogAccessBoundaryTests(unittest.TestCase):
         self.assertIn("cancel-in-progress: false", self.workflow)
         self.assertIn("DISPATCH_MISSING_TRUSTED_PRODUCER", self.privileged)
         self.assertIn("HOLD_PR71_WORKFLOW_NOT_ACTIVE", self.privileged)
+        self.assertIn("HOLD_MAIN_MOVED_NO_PRODUCER_DISPATCH", self.privileged)
+        self.assertEqual(self.privileged.count("if: steps.main-preflight.outputs.eligible == 'true'"), 2)
 
     def test_no_secret_access_vendor_network_or_new_predictor(self):
         self.assertNotIn("secrets.", self.workflow)
