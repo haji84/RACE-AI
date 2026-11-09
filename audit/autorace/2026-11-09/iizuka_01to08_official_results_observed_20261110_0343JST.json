@@ -1,0 +1,129 @@
+{
+  "schema": "research-autorace-results-official-evidence/1",
+  "event_date_jst": "2026-11-09",
+  "venue": "飯塚",
+  "meet": "令和8年度浜松市営 第19回 第1節 初日 オーバーミッドナイト",
+  "observed_at_jst": "2026-11-10T03:43:29+09:00",
+  "official_source": {
+    "operator": "飯塚オートレース場",
+    "url": "https://www.iizuka-auto.jp/images/20261110%E9%A3%AF.pdf",
+    "source_publication": "2026-11-10 2日目出走表・成績",
+    "pdf_pages_1_based": [
+      2,
+      3
+    ],
+    "source_page_2_timestamp": "2026/11/09 23:46",
+    "source_page_3_timestamp": "2026/11/10 00:37",
+    "visual_inspection": "Official PDF screenshots inspected; 3連単 組番 and 払戻金 read from each race's results block."
+  },
+  "races": [
+    {
+      "race": 1,
+      "race_id": "autorace:2026-11-09:iizuka:1",
+      "confirmed_trifecta": "4-3-6",
+      "confirmed_payout_jpy_per_100": 450,
+      "A_research_sha256": "634cce404037b14d60ed60473dfc90c4a768f8083f316220ddcdfb02af18d7ab",
+      "A_8": "HOLD_original_pick_list_not_accessible",
+      "A_12": "HOLD_original_pick_list_not_accessible",
+      "B_8": "HOLD_no_eligible_prerace_B_original_verified",
+      "B_12": "HOLD_no_eligible_prerace_B_original_verified",
+      "virtual_profit_jpy": null,
+      "virtual_return_pct": null
+    },
+    {
+      "race": 2,
+      "race_id": "autorace:2026-11-09:iizuka:2",
+      "confirmed_trifecta": "5-6-3",
+      "confirmed_payout_jpy_per_100": 1670,
+      "A_research_sha256": "5be30b5e19529ef5c87ff18e05937b5fa7da591f97aee4d5072fb732f1681847",
+      "A_8": "HOLD_original_pick_list_not_accessible",
+      "A_12": "HOLD_original_pick_list_not_accessible",
+      "B_8": "HOLD_no_eligible_prerace_B_original_verified",
+      "B_12": "HOLD_no_eligible_prerace_B_original_verified",
+      "virtual_profit_jpy": null,
+      "virtual_return_pct": null
+    },
+    {
+      "race": 3,
+      "race_id": "autorace:2026-11-09:iizuka:3",
+      "confirmed_trifecta": "5-2-3",
+      "confirmed_payout_jpy_per_100": 24750,
+      "A_research_sha256": "c4e6e1df8670a220ee033b32fa3c8aaaf4fec4556a1a71f7fc0d464e584aee08",
+      "A_8": "HOLD_original_pick_list_not_accessible",
+      "A_12": "HOLD_original_pick_list_not_accessible",
+      "B_8": "HOLD_no_eligible_prerace_B_original_verified",
+      "B_12": "HOLD_no_eligible_prerace_B_original_verified",
+      "virtual_profit_jpy": null,
+      "virtual_return_pct": null
+    },
+    {
+      "race": 4,
+      "race_id": "autorace:2026-11-09:iizuka:4",
+      "confirmed_trifecta": "5-2-1",
+      "confirmed_payout_jpy_per_100": 790,
+      "A_research_sha256": "3ea2e0c5efd3957286676c5558e8267fe8bf8a253c8eb8d51120f4474c9559c8",
+      "A_8": "HOLD_original_pick_list_not_accessible",
+      "A_12": "HOLD_original_pick_list_not_accessible",
+      "B_8": "HOLD_no_eligible_prerace_B_original_verified",
+      "B_12": "HOLD_no_eligible_prerace_B_original_verified",
+      "virtual_profit_jpy": null,
+      "virtual_return_pct": null
+    },
+    {
+      "race": 5,
+      "race_id": "autorace:2026-11-09:iizuka:5",
+      "confirmed_trifecta": "5-6-3",
+      "confirmed_payout_jpy_per_100": 970,
+      "A_research_sha256": "c887d6a50e29bddd2eac63a7c7b190f31617b0c5cead7dde33dacc16133d18cf",
+      "A_8": "HOLD_original_pick_list_not_accessible",
+      "A_12": "HOLD_original_pick_list_not_accessible",
+      "B_8": "HOLD_no_eligible_prerace_B_original_verified",
+      "B_12": "HOLD_no_eligible_prerace_B_original_verified",
+      "virtual_profit_jpy": null,
+      "virtual_return_pct": null
+    },
+    {
+      "race": 6,
+      "race_id": "autorace:2026-11-09:iizuka:6",
+      "confirmed_trifecta": "6-3-5",
+      "confirmed_payout_jpy_per_100": 1760,
+      "A_research_sha256": "15d67db56af6dfafa3b80344a3de5efcb6352dd3578a2da31c3f53009aa0e5f6",
+      "A_8": "HOLD_original_pick_list_not_accessible",
+      "A_12": "HOLD_original_pick_list_not_accessible",
+      "B_8": "HOLD_no_eligible_prerace_B_original_verified",
+      "B_12": "HOLD_no_eligible_prerace_B_original_verified",
+      "virtual_profit_jpy": null,
+      "virtual_return_pct": null
+    },
+    {
+      "race": 7,
+      "race_id": "autorace:2026-11-09:iizuka:7",
+      "confirmed_trifecta": "6-2-5",
+      "confirmed_payout_jpy_per_100": 430,
+      "A_research_sha256": "31f7d8c1cf399ebe46bbd6d0d0faddc347d1f62a6605f1e0beec311d7f3d92fb",
+      "A_8": "HOLD_original_pick_list_not_accessible",
+      "A_12": "HOLD_original_pick_list_not_accessible",
+      "B_8": "HOLD_no_eligible_prerace_B_original_verified",
+      "B_12": "HOLD_no_eligible_prerace_B_original_verified",
+      "virtual_profit_jpy": null,
+      "virtual_return_pct": null
+    },
+    {
+      "race": 8,
+      "race_id": "autorace:2026-11-09:iizuka:8",
+      "confirmed_trifecta": "4-5-3",
+      "confirmed_payout_jpy_per_100": 7290,
+      "A_research_sha256": "f0ebcf2bdc3787b8312c1e98788d89f961868cf9f9b120bf1ea8d8843af20e93",
+      "A_8": "HOLD_original_pick_list_not_accessible",
+      "A_12": "HOLD_original_pick_list_not_accessible",
+      "B_8": "HOLD_no_eligible_prerace_B_original_verified",
+      "B_12": "HOLD_no_eligible_prerace_B_original_verified",
+      "virtual_profit_jpy": null,
+      "virtual_return_pct": null
+    }
+  ],
+  "forecast_originals_modified": false,
+  "result_data_only": true,
+  "research_limit": "Hash receipt proves only matching when original bytes become accessible; forecast combinations cannot be reconstructed from SHA256. No backfilled picks, PDCA hits, or returns are asserted. Do not count as eight losses or wins.",
+  "followup": "Retrieve owner-retained autorace_20261109_all32_pretrial_A_research_snapshot_0917JST.zip, validate SHA256 against audit receipt, compare A8/A12 tickets per race, and only then append immutable graded PDCA."
+}
