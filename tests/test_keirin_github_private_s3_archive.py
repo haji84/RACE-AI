@@ -3,7 +3,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from zipfile import ZipFile
 import unittest
-from race_ai.keirin_github_private_s3_archive import package_cipher_only,DurableArchiveError
+from scripts.keirin_github_private_s3_archive import package_cipher_only,DurableArchiveError
 
 class CipherOnlyStorageTests(unittest.TestCase):
  def test_zip_preserves_only_cipher_and_manifests(self):
