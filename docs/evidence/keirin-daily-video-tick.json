@@ -1,0 +1,11 @@
+{
+  "schema": "RACE_AI_KEIRIN_DAILY_VIDEO_TICK_V1",
+  "trigger": "DYNAMIC_DAILY_RESULT_INDEX_REPLAY_CAPTURE",
+  "observed_jst": "2026-11-09T09:56:27+09:00",
+  "target_day_jst": "2026-11-09",
+  "previous_run": 42542055155,
+  "durable_private_library_archive_count_verified": 3,
+  "extra_capture_when_results_ready": true,
+  "official_forecast_originals_unchanged": true,
+  "source_clip_rights": "WINTICKET_OWNER_REPORTED_OK_SCOPE_NOT_DOCUMENTED"
+}
