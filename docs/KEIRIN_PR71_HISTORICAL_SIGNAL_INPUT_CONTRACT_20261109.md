@@ -30,7 +30,9 @@
 - 同じレースで5人以上の有効2区間データがあれば、\`a\` の大きい順の分位を計算。対象選手で3レース以上なければ \`None\`。
 - **上がりタイムだけ、B回数だけ、ゴール映像だけでは加速度を埋めない。** 実計測区間距離の根拠が無い動画から秒数を捏造しない。
 
-既存 \`RIDER_MAP\` は \`finishing_power\` と \`sprint_acceleration\` を同じ \`last_lap_acceleration\` に結び付けている。今回のv1ではそこへ値を書き込まない。代理上がりと実加速度を混ぜると同じ情報を二重に重み付けする可能性があるため、次段で**バージョン付きの入力マッピングを別途審査**する。
+既存 \`RIDER_MAP\`（A）は \`finishing_power\` と \`sprint_acceleration\` を同じ \`last_lap_acceleration\` に対応させていた。2026-11-09の研究用PR #103では、Aを上書きせずに新しい入力規則 \`distinct-source-evidence-b-v1-20261109\`（B）を追加。Bでは終盤の伸び→\`late_lap_and_agari_time\`、瞬発力→\`last_lap_acceleration\`、コース適性→\`bank_positioning_and_traffic\`、本人のバンク適性→\`venue_and_distance_compatibility\` と出典を分離した。また同じソースを再利用する補助入力6件を除外した。予想モデルそのものの係数は不変であり、Bの元データは正規化済みの独立した実測証拠を要求する。上がり秒数12.6を根拠なく0.126とするような変換は認めない。
+
+同じ未来レースのA/Bは \`race_ai/keirin_pr71_source_ab_stage.py\` で、既存4モデルを別々の所有者非公開SQLiteへ保存する方式。Aの証拠が足りればAのみを保存し、Bに必要な独立根拠が欠けていればBは停止する。結果との照合は既存 \`FourModelRankLedger.audit_revision\` をそれぞれの非公開ストアで再利用する。現時点で**実レースのA/B対戦0件**、CI合格だけでは予想精度向上は証明できない。
 
 ## 3. ライン連携（\`line_coordination\` 候補）
 
