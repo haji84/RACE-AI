@@ -38,6 +38,17 @@ class SourceOnlyPreflightTests(unittest.TestCase):
         self.assertEqual(b["source_observed_required_slots"],14)
         self.assertEqual(a["source_unobserved_required_slots"],79)
         self.assertEqual(b["source_unobserved_required_slots"],79)
+        # Source-gap prioritization must account for every missing model
+        # input WITHOUT leaking athlete names or substituting fake zeros.
+        for model in (a,b):
+            deficit=model["missing_model_input_slots_by_source_field"]
+            self.assertEqual(sum(deficit.values()),
+                             model["source_unobserved_required_slots"])
+            self.assertTrue(all(isinstance(key,str) and
+                                "rider/" not in key for key in deficit))
+            self.assertTrue(all(isinstance(count,int) and count>0
+                                for count in deficit.values()))
+        self.assertNotIn("fictional-rider",json.dumps(counts))
         self.assertFalse(counts["owner_private_actual_prediction_frozen"])
         self.assertFalse(counts["source_usage_rights_independently_verified"])
         self.assertFalse(counts["real_pr71_four_models_ran"])
