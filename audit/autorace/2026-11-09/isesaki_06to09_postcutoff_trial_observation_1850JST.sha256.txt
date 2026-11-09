@@ -1,0 +1,9 @@
+2026-11-09T18:50:47+09:00  isesaki 6-9R post-cutoff trial observations
+local_file: autorace_20261109_isesaki_06to09_postcutoff_trial_observation_1850JST.json
+sha256: ea42bb3943e3ab74ff6f8fcbcb804d8732ed44275517797444d8d1808ebdbe11
+source_6R: https://www.winticket.jp/autorace/isesaki/racecard/2026110603/4/6
+source_7R: https://www.winticket.jp/autorace/isesaki/racecard/2026110603/4/7
+source_8R: https://www.winticket.jp/autorace/isesaki/racecard/2026110603/4/8
+source_9R: https://www.winticket.jp/autorace/isesaki/racecard/2026110603/4/9
+status: historical observations, not prediction B; all cited races had already passed cutoff; official independent result verification pending.
+original_A_32_SHA256: matched 32 of 32; originals unchanged.
