@@ -110,6 +110,24 @@ class StrictRetainedCaseRepairTests(unittest.TestCase):
         D.update(due,view['records'],now=(NOW+timedelta(minutes=1)).isoformat())
         self.assertEqual(D.pending_count(due),0)
 
+    def test_rejected_source_cannot_override_prior_reference_only_decision(self):
+        fixture,state,row,receipt,due=self.setup(source_rejected=True)
+        altered=F.current_view(fixture.git,fixture.boot)[3]
+        altered['records'][0]['result']={
+            'status':'missing',
+            'cutoff_reference':dict(formal_eligible=False,original_cutoff_at=row['cutoff_at'])
+        }
+        fixture.seed(altered)
+        old_head=fixture.git.head()
+        report=repair_saved_receipt_mismatches(fixture.repo,state=state,
+                   now=NOW+timedelta(minutes=1),bridge=fixture.bridge())
+        self.assertEqual(report['replay_candidates'],1)
+        self.assertEqual(report['source_bytes_authenticated'],0)
+        self.assertEqual(report['formal_result_repairs'],0)
+        self.assertEqual(report['formal_hold_reason_counts']['MODEL_REPLAY_REFERENCE_ONLY_BARRIER'],1)
+        self.assertEqual(fixture.git.head(),old_head)
+        self.assertEqual(D.pending_count(due),1)
+
     def test_rejected_source_with_corrupt_retained_bytes_remains_unresolved(self):
         fixture,state,row,receipt,due=self.setup(source_rejected=True,corrupt_pointer=True)
         old_head=fixture.git.head()
