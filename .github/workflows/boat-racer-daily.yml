@@ -53,7 +53,7 @@ jobs:
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 914941a6244364480370ac392441ad4bb5781f83
+          ref: 08a166d982e8e7d16aa347be41f79f67be2ccdf3
           persist-credentials: false
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -77,7 +77,10 @@ jobs:
               package = Path(root, 'race_ai').resolve()
               assert package.is_dir(), 'PINNED_PARSER_NOT_INSTALLED'
               race_ai.__path__.append(str(package))
-          suite = unittest.defaultTestLoader.loadTestsFromNames(['tests.test_boat_source_control_mirror'])
+          suite = unittest.defaultTestLoader.loadTestsFromNames(['tests.test_boat_source_control_mirror',
+                  'tests.test_boat_all_period_no_age_cutoff',
+                  'tests.test_source_free_model_pdca_stage',
+                  'tests.test_verify_all_history_pdca_readback'])
           result = unittest.TextTestRunner(verbosity=2).run(suite)
           raise SystemExit(not result.wasSuccessful())
           PY
@@ -118,7 +121,9 @@ jobs:
         github.event.workflow_run.head_repository.full_name == github.repository &&
         github.event.workflow_run.head_branch == 'feat/four-sport-forecast-audit-view-20261022' &&
         github.event.workflow_run.conclusion == 'success') ||
-       (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *'))
+       (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *') ||
+       (github.event_name == 'push' && github.ref == 'refs/heads/main' &&
+        startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca')))
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
@@ -244,7 +249,7 @@ jobs:
           if [[ "$CHECK_CURRENT_DAY" == 'true' ]]; then probe+=(--check-current-day); fi
           if [[ "$CHECK_BEFOREINFO" == 'true' ]]; then probe+=(--check-beforeinfo); fi
           env -u RACE_AI_STATE_KEY -u GH_TOKEN -u GITHUB_TOKEN node scripts/boat_saved_site_check.cjs "$RUNNER_TEMP/boat-saved-site-context.json" --compact-results "${probe[@]}"
-      # Only the CODE+AES readback uses independently verified 0317235e.
+      # Only source-free CODE+AES replay uses the verified no-age-limit code.
       # Keep the official-result collector above pinned to its old source-bound code.
       - name: Checkout certified full-period model PDCA code (no source GET)
         if: >-
@@ -253,7 +258,7 @@ jobs:
            startsWith(github.event.head_commit.message, 'racer-intraday-refresh: stage-model-pdca'))
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
-          ref: 0317235eadc851b73913c537b7c09a32dc7c208c
+          ref: 08a166d982e8e7d16aa347be41f79f67be2ccdf3
           path: pdca-verified
           persist-credentials: false
       - name: Checkout original BOAT parser for existing full-period scorer
