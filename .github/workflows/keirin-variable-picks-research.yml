@@ -24,6 +24,7 @@ on:
       - "race_ai/keirin_historical_prior_signal_rules.py"
       - "race_ai/keirin_winticket_prior_events.py"
       - "tests/test_keirin_winticket_prior_events.py"
+      - "tests/test_keirin_prior_selection.py"
       - "scripts/keirin_prior_real_input_probe.py"
       - "tests/test_keirin_historical_prior_signal_rules.py"
       - "scripts/keirin_historical_prior_signal_probe.py"
@@ -128,7 +129,7 @@ jobs:
           PYTHONPATH: ".:tests"
         run: |
           python -m unittest -v tests.test_keirin_variable_selection tests.test_keirin_variable_integration tests.test_keirin_private_spool tests.test_keirin_private_agent tests.test_keirin_reference_history_recheck tests.test_keirin_saved_original_reference tests.test_keirin_shadow_variable_pair tests.test_keirin_mansha_rank_audit tests.test_keirin_pr71_four_model_rank tests.test_keirin_historical_asof_replay tests.test_keirin_historical_archive_inventory tests.test_keirin_historical_sparse_feature_probe tests.test_keirin_historical_context_gates tests.test_keirin_historical_prior_signal_rules tests.test_keirin_non_rakuten_sources tests.test_keirin_owner_approved_sources tests.test_keirin_owner_public_page_fetch tests.test_keirin_public_source_smoke tests.test_keirin_winticket_embedded_odds tests.test_keirin_winticket_embedded_racecard tests.test_keirin_real_source_gap_report tests.test_keirin_future_public_ssr_probe tests.test_keirin_owner_captured_ssr_intake tests.test_keirin_winticket_day_index tests.test_keirin_next_published_race_probe tests.test_keirin_github_owner_future_intake tests.test_keirin_owner_odds_csv tests.test_keirin_license_api_ingest tests.test_keirin_licensed_result_stage tests.test_keirin_existing_asset_reuse tests.test_keirin_github_production_archive tests.test_keirin_public_ciphertext_consent
-          python -m unittest -v tests.test_keirin_winticket_prior_events
+          python -m unittest -v tests.test_keirin_winticket_prior_events tests.test_keirin_prior_selection
           # Real existing PR71 four models, encrypted SQLite handoff and
           # restored model-specific synthetic result PDCA on hosted Actions.
           python -m unittest -v tests.test_keirin_github_four_model_encrypted_handoff
@@ -186,4 +187,4 @@ jobs:
           python -m scripts.keirin_prior_real_input_probe \
             --race-id 202611101203 \
             --racecard-url 'https://www.winticket.jp/keirin/aomori/racecard/2026110812/3/3' \
-            --max-pages 32
+            --max-pages 96
