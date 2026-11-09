@@ -1,0 +1,48 @@
+name: KEIRIN daily private video review and self-learning safety contracts
+
+on:
+  pull_request:
+    paths:
+      - 'race_ai/keirin_daily_video_research.py'
+      - 'scripts/keirin_daily_private_owner_research.py'
+      - 'tests/test_keirin_daily_video_research.py'
+      - '.github/workflows/keirin-daily-video-research-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  learn-research-not-forecast-from-invented-frames:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            race_ai
+            scripts
+            tests
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install numeric research dependencies; do not fetch any real video
+        run: |
+          python -m pip install numpy==1.26.4 \
+            opencv-python-headless==4.10.0.84 scikit-learn==1.6.1 \
+            'cryptography>=44,<48'
+      - name: Compile and run pure video features, provenance, holdout tests
+        run: |
+          python -m py_compile race_ai/keirin_daily_video_research.py
+          python -m py_compile scripts/keirin_daily_private_owner_research.py
+          python -m unittest discover -s tests -p 'test_keirin_daily_video_research.py' -v
+      - name: Report research-only boundaries
+        run: |
+          {
+            echo 'Synthetic in-memory videos ONLY. No real media or private decryption keys in CI.'
+            echo 'Daily scene representation self-training is NOT verified rider attack, makuri or sashi.'
+            echo 'A true unrelated holdout must remain outside training.'
+            echo 'A visual drift distance is NOT top8 hit rate, calibrated probabilities or return on investment.'
+            echo 'No official prediction model changed or new purchases made.'
+          } >> "$GITHUB_STEP_SUMMARY"
