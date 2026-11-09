@@ -59,8 +59,19 @@ function scoreBatch(payload, options = {}) {
     }
     // Existing overlay validates its own 44 features, 120-ticket baseline,
     // frozen model identity, chronological training boundary, and identities.
-    const baseline = overlay.predict(row);
-    const candidate = overlay.predict(row, payload.frozen_44_model);
+    // A malformed or incomplete single-race snapshot must not halt the
+    // remaining nationwide batch. Duplicate IDs and cross-race identity
+    // mismatch above remain fatal rather than being silently accepted.
+    let baseline, candidate;
+    try {
+      baseline = overlay.predict(row);
+      candidate = overlay.predict(row, payload.frozen_44_model);
+    } catch (_err) {
+      receipt.status = "HOLD_TACTICAL_INPUT_OR_MODEL_INVALID";
+      receipt.reason = ["overlay input, history, model, or time gate failed"];
+      out.push(receipt);
+      continue;
+    }
     receipt.status = "EXPERIMENTAL_TACTICAL_REPLAY_NOT_CERTIFIED";
     receipt.baseline_top8 = baseline.top8;
     receipt.tactical_top8 = candidate.top8;
@@ -74,9 +85,12 @@ function scoreBatch(payload, options = {}) {
     }
     out.push(receipt);
   }
+  // Counts contain no raw sources and allow all-day completeness checking.
+  const status_counts = {};
+  for (const r of out) status_counts[r.status] = (status_counts[r.status] || 0) + 1;
   return {schema: "RACE_AI_BOAT_44_P1_PRIVATE_BATCH_RESULT_V1",
     mode: payload.mode, count: out.length, evaluated: out.filter(x =>
-      x.full_120 !== null).length, rows: out,
+      x.full_120 !== null).length, status_counts, rows: out,
     independent_official_receipts_verified: false,
     model_better_than_baseline_proven: false,
     safe_to_promote_to_main: false,
