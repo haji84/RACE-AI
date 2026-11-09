@@ -1,0 +1,36 @@
+name: KEIRIN 2026-11-09 83 race archival coverage invariants
+
+on:
+  pull_request:
+    paths:
+      - 'race_ai/keirin_20261109_coverage_ledger.py'
+      - 'tests/test_keirin_20261109_coverage_ledger.py'
+      - '.github/workflows/keirin-20261109-coverage-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  honest-coverage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compile and test all scheduled-race coverage invariants
+        run: |
+          python -m py_compile race_ai/keirin_20261109_83_manifest.py
+          python -m py_compile race_ai/keirin_20261109_coverage_ledger.py
+          python -m unittest discover -s tests -p 'test_keirin_20261109_coverage_ledger.py' -v
+      - name: Distinguish encrypted from independently retained or reviewed
+        run: |
+          {
+            echo 'Only synthetic accounting contracts tested.'
+            echo '83 scheduled races never imply 83 video captures.'
+            echo 'Encrypted video does not imply real rider event learning.'
+            echo 'A screenshot hash is not a certified model accuracy figure.'
+            echo 'Private library ciphertext SHA readback is a separate gate.'
+          } >> "$GITHUB_STEP_SUMMARY"
