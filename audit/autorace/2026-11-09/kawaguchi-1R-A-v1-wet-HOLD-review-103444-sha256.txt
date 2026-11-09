@@ -1,0 +1,11 @@
+2026-11-09 autorace append-only risk review
+Race: kawaguchi 1R
+Recorded JST: 2026-11-09T10:34:44+09:00
+Previous state: pretrial research A v1; original picks and original receipt unchanged.
+New status: HOLD pending confirmed trial data (not a new A or B forecast).
+Reason: WINTICKET racecard showed light rain and wet track at the verification time; A v1 had unconfirmed track condition. Prioritize wet form review, do not silently repurpose old original picks.
+Original A SHA256: b5008460070d1a0ffb10664944a916d97431547c9b820dea790a009d7ce21d5c
+Append-only review JSON SHA256: c62e6569342164eaac70da3058b4e6def8313ffd2679764509610db8442cfde1
+Source: https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/3/1
+Trial state: unverified; no trial or result was used; official trained-model forecast not claimed.
+Note: review JSON is in owner-visible conversation, not published to this repository.
