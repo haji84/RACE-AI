@@ -217,13 +217,21 @@ def apply_existing_frozen_results(inbox,store,grants,*,checked_at):
                 "source_published_at":row["source_published_at"],
                 "provider_revision_ref":row["provider_revision_ref"],
             }
-            previous=store.db.execute(
+            history=store.db.execute(
                 "SELECT payload FROM result_revisions WHERE race_id=? "
-                "ORDER BY revision DESC LIMIT 1",(rid,)).fetchone()
-            if previous:
-                prior=json.loads(previous["payload"])
+                "ORDER BY revision",(rid,)).fetchall()
+            # Every old provider revision remains immutable after a corrected
+            # result arrives. A repeat of rev-1 is not a NEW rev-3.
+            matched=False
+            for record in history:
+                prior=json.loads(record["payload"])
                 if prior.get("provider_revision_ref")==row["provider_revision_ref"]:
                     need(prior==event,"SAME_PROVIDER_REVISION_CHANGED")
+                    matched=True
+                    break
+            if matched:
+                already+=1
+                continue
             report=store.add_result_observation(
                 event,independently_authenticated=False)
             if report["state"]=="ALREADY_PRESENT":
