@@ -113,9 +113,21 @@ def main(args=None):
             racecard_url=a.racecard_url,
             odds_url=a.odds_url)
     except (PublicPageFetchError,EmbeddedOddsError,
-            EmbeddedRacecardError,OSError,ValueError):
+            EmbeddedRacecardError,OSError,ValueError) as exc:
+        # Only defined, privacy-safe error class/code names are emitted.
+        allowed=(
+            "PUBLIC_PAGE_NOT_PUBLISHED_OR_GONE",
+            "PUBLIC_PAGE_BLOCKED_OR_RATE_LIMITED_NO_RETRY",
+            "PUBLIC_PAGE_HTTP_NOT_OK",
+            "PUBLIC_PAGE_NETWORK_UNAVAILABLE",
+            "UNTRUSTED_WINTICKET_ODDS_ORIGIN",
+            "WINTICKET_EVENT_DAY_MISMATCH",
+        )
+        kind=str(exc) if str(exc) in allowed else "UNVERIFIED_SOURCE"
         result={
-            "schema":SCHEMA,"status":"PUBLIC_SOURCE_UNAVAILABLE_FAIL_CLOSED",
+            "schema":SCHEMA,
+            "status":"PUBLIC_SOURCE_UNAVAILABLE_FAIL_CLOSED",
+            "source_failure_kind":kind,
             "actual_210_or_504_verified":False,
             "full_official_model_preflight":False,
             "two_version_prediction_saved":False,
