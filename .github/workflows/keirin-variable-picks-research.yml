@@ -2,6 +2,8 @@ name: KEIRIN variable picks research regression
 on:
   pull_request:
     paths:
+      - "race_ai/keirin_allowed_delivery.py"
+      - "tests/test_keirin_allowed_delivery.py"
       - "race_ai/keirin_variable_selection.py"
       - "race_ai/keirin_variable_integration.py"
       - "race_ai/keirin_real_rider_shadow.py"
