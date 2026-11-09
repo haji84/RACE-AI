@@ -4,3 +4,5 @@ Run previously tested 0317235eadc851b73913c537b7c09a32dc7c208c for genuine AES/G
 Future normal scheduled runs retain the original official result collector and append authenticated all-day PDCA at the existing daily cron.
 
 2026-11-09: source-free protected main verification retry; skip historical main root requirements install on the one-shot push. The validated readback checkout installs its own pinned dependencies. No official source GET.
+
+2026-11-10 owner request: retain and read back all authenticated saved dates without a three-day age horizon. Existing encrypted Git originals remain the authority; no automatic age purge. Reconcile the latest completed source control via the existing HMAC/CAS mirror, run source-free whole-period PDCA at exact code 08a166d982e8e7d16aa347be41f79f67be2ccdf3, and independently reopen the saved state. No new racing-provider GET, source-issuer authorization, forecast regeneration, model promotion, or source budget reset is authorized by this replay marker.
