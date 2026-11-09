@@ -15,6 +15,7 @@ from datetime import datetime,timezone,timedelta
 from zoneinfo import ZoneInfo
 import argparse
 import json
+import re
 
 from race_ai.keirin_winticket_day_index import (
     extract_owner_winticket_day,safe_day_index_summary,
@@ -32,7 +33,7 @@ SCHEMA="RACE_AI_KEIRIN_NEXT_PUBLISHED_RACE_SOURCE_GATE_V1"
 JST=ZoneInfo("Asia/Tokyo")
 
 
-def discover_and_probe(*,event_day=None,clock=None,fetch=None):
+def discover_and_probe(*,event_day=None,race_id=None,clock=None,fetch=None):
     if clock is None:clock=lambda:datetime.now(timezone.utc)
     if fetch is None:fetch=network_page_once
     now=clock()
@@ -40,6 +41,11 @@ def discover_and_probe(*,event_day=None,clock=None,fetch=None):
         raise ValueError("TRUSTED_AWARE_CLOCK_REQUIRED")
     now=now.astimezone(timezone.utc)
     day=event_day or now.astimezone(JST).date().isoformat()
+    if race_id is not None:
+        if (type(race_id) is not str or
+                re.fullmatch(r"20[0-9]{10}",race_id) is None or
+                race_id[:8] != day.replace("-","")):
+            raise ValueError("EXACT_FUTURE_RACE_AND_JST_DAY_REQUIRED")
     url="https://www.winticket.jp/keirin/odds/"+day.replace("-","")
     raw=fetch(url)
     roster=extract_owner_winticket_day(
@@ -59,7 +65,8 @@ def discover_and_probe(*,event_day=None,clock=None,fetch=None):
         except (TypeError,ValueError):return False
         return now+timedelta(minutes=6)<deadline
     candidates=sorted(
-        (r for r in roster["public_schedule_rows"] if eligible(r)),
+        (r for r in roster["public_schedule_rows"]
+         if eligible(r) and (race_id is None or r["race_id"]==race_id)),
         key=lambda r:(r["public_close_at_utc"],r["race_id"]))
     report={
         "schema":SCHEMA,"event_date_jst":day,
@@ -68,6 +75,12 @@ def discover_and_probe(*,event_day=None,clock=None,fetch=None):
         "source_races_observed":index["published_ssr_race_count"],
         "source_derived_candidate_page_count":
             index["published_ssr_candidate_url_count"],
+        "explicit_research_target": race_id,
+        "target_seen_in_public_index": (
+            race_id is None or any(
+                r["race_id"]==race_id
+                for r in roster["public_schedule_rows"])),
+        "target_page_source_confirmed": bool(candidates),
         "eligible_unstarted_races":len(candidates),
         "actual_model_prediction_saved":False,
         "actual_forecast_pre_cutoff_evidenced":False,
@@ -128,8 +141,11 @@ def discover_and_probe(*,event_day=None,clock=None,fetch=None):
 def main(args=None):
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument("--event-day-jst",default=None)
+    p.add_argument("--race-id",default=None,
+                   help="exact 12-digit official date/venue/R id; source joins only")
     opts=p.parse_args(args)
-    try:report=discover_and_probe(event_day=opts.event_day_jst)
+    try:report=discover_and_probe(
+        event_day=opts.event_day_jst, race_id=opts.race_id)
     except (PublicPageFetchError,WinticketDayIndexError,OSError,ValueError):
         report={"schema":SCHEMA,"status":"DAY_INDEX_SOURCE_UNAVAILABLE",
                 "real_full_odds_verified":False,
