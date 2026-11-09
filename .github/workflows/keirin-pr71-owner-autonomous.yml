@@ -41,7 +41,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: 60b739bfb9861cbc48864b83651cfc2fb89c0fe7
+          ref: 1b50a851726f3e061757fa670687af4c211c9005
           path: pr71-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -68,7 +68,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 60b739bfb9861cbc48864b83651cfc2fb89c0fe7
+          ref: 1b50a851726f3e061757fa670687af4c211c9005
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -89,6 +89,15 @@ jobs:
                  "critical_preflight_source_slots_missing","real_full_odds_verified",
                  "actual_model_prediction_saved")
           safe={k:d.get(k) for k in names}
+          # The new immutable reviewed source identifies WHICH model input
+          # families are missing, without disclosing individual rider data.
+          missing=d.get("required_source_gap_groups_A")
+          total=d.get("required_source_slots_A_missing")
+          if (type(missing) is dict and type(total) is int and
+              all(type(k) is str and type(v) is int and 0<v<=100
+                  for k,v in missing.items()) and
+              sum(missing.values())==total):
+              safe["missing_source_group_counts_A"]=missing
           print(json.dumps(safe,ensure_ascii=False,sort_keys=True))
           with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as f:
               f.write("## Source-only 347-factor gate\n")
@@ -122,7 +131,7 @@ jobs:
           persist-credentials: true
       - uses: actions/checkout@v4
         with:
-          ref: 60b739bfb9861cbc48864b83651cfc2fb89c0fe7
+          ref: 1b50a851726f3e061757fa670687af4c211c9005
           path: pr71-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -173,7 +182,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: 60b739bfb9861cbc48864b83651cfc2fb89c0fe7
+          ref: 1b50a851726f3e061757fa670687af4c211c9005
           path: pr71-source
           persist-credentials: false
       - uses: actions/setup-python@v5
