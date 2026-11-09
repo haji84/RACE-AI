@@ -138,10 +138,16 @@ def discover_and_probe(*,event_day=None,race_id=None,clock=None,fetch=None):
             probe.get("model_required_observed_A"),
         "required_source_slots_A_missing":
             probe.get("model_required_missing_A"),
+        "required_source_gap_groups_A":
+            probe.get("missing_source_groups_A"),
         "required_source_slots_B_observed":
             probe.get("model_required_observed_B"),
         "required_source_slots_B_missing":
             probe.get("model_required_missing_B"),
+        "required_source_gap_groups_B":
+            probe.get("missing_source_groups_B"),
+        "required_source_gap_groups_counts_only":
+            probe.get("missing_source_groups_are_counts_only"),
         "critical_preflight_source_slots_missing":
             probe.get("preflight_core_required_missing"),
         "odds_price_sha256":probe.get("real_price_sha256"),
