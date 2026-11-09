@@ -109,5 +109,51 @@ class NextSourceProbeTests(unittest.TestCase):
                          "NO_UPCOMING_SOURCE_ELIGIBLE_EVENT")
 
 
+
+    def test_explicit_future_target_can_use_existing_real_code_path(self):
+        report=discover_and_probe(
+            event_day="2026-11-10",race_id="202611101203",
+            clock=lambda:NOW,fetch=self.fake)
+        self.assertEqual(self.calls,[INDEX,CARD,ODDS])
+        self.assertEqual(report["race_id"],"202611101203")
+        self.assertEqual(report["explicit_research_target"],"202611101203")
+        self.assertTrue(report["target_seen_in_public_index"])
+        self.assertTrue(report["target_page_source_confirmed"])
+        self.assertEqual(report["preflight_checked_count"],347)
+        self.assertGreater(report["preflight_unavailable_count"],300)
+        self.assertFalse(report["actual_model_prediction_saved"])
+        self.assertFalse(report["formal_model_input_preflight_completed"])
+
+    def test_explicit_target_absent_must_not_probe_other_race(self):
+        report=discover_and_probe(
+            event_day="2026-11-10",race_id="202611102109",
+            clock=lambda:NOW,fetch=self.fake)
+        self.assertEqual(self.calls,[INDEX])
+        self.assertFalse(report["target_selected"])
+        self.assertFalse(report["target_seen_in_public_index"])
+        self.assertFalse(report["target_page_source_confirmed"])
+        self.assertFalse(report["real_full_odds_verified"])
+
+    def test_explicit_target_but_cutoff_too_close_no_extra_page_get(self):
+        approaching=datetime.fromisoformat("2026-11-10T09:23:00+09:00")
+        report=discover_and_probe(
+            event_day="2026-11-10",race_id="202611101203",
+            clock=lambda:approaching,fetch=self.fake)
+        self.assertEqual(self.calls,[INDEX])
+        self.assertFalse(report["target_selected"])
+        self.assertTrue(report["target_seen_in_public_index"])
+        self.assertFalse(report["actual_model_prediction_saved"])
+
+    def test_wrong_day_and_malformed_target_rejected_before_http(self):
+        for rid in ("202611091203","20261110120X","123","202611101203?x"):
+            with self.subTest(rid=rid):
+                self.calls.clear()
+                with self.assertRaises(ValueError):
+                    discover_and_probe(
+                        event_day="2026-11-10",race_id=rid,
+                        clock=lambda:NOW,fetch=self.fake)
+                self.assertEqual(self.calls,[])
+
+
 if __name__=="__main__":
     unittest.main()
