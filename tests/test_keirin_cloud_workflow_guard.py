@@ -44,8 +44,8 @@ class CloudGuardTests(unittest.TestCase):
 
     def test_hosted_synthetic_ci_runs_pinned_result_source_regressions(self):
         content=FLOW.read_text(encoding="utf-8")
-        synthetic=content.split("\\n  synthetic-ci:\\n",1)[1].split(
-            "\\n  public-preflight:\\n",1)[0]
+        synthetic=content.split("\n  synthetic-ci:\n",1)[1].split(
+            "\n  public-preflight:\n",1)[0]
         self.assertIn("tests.test_keirin_licensed_result_stage",synthetic)
         self.assertIn("tests.test_keirin_license_api_ingest",synthetic)
         self.assertIn("test_keirin_cloud_pr71_state.py",synthetic)
