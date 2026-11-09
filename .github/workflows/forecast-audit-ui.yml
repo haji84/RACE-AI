@@ -910,7 +910,49 @@ jobs:
             ${{ runner.temp }}/official-result-recovery-preparation/counts.json
           retention-days: 7
           if-no-files-found: error
+  viewer_python_full:
+    if: github.event_name == 'pull_request'
+    name: Viewer Python complete suite (shard ${{ matrix.shard }}/4)
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 0
+          filter: blob:none
+          fetch-tags: false
+      - name: Checkout pinned PR64 parser for offline tests
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 761247bee0209e37b1af6b8885e92cad3e9260a5
+          path: pr64-reference
+      - name: Checkout pinned PR72 adapters for offline tests
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+          ref: 7a432e5acc4d3495a0e82bd79726929e2f8085fe
+          path: pr72-reference
+      - name: Use Node24 for Python subprocess contracts
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: '24.19.0'
+          package-manager-cache: false
+      - name: Install existing offline dependencies
+        run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Execute deterministic full-suite shard
+        run: python -m scripts.ci_unittest_shard --index '${{ matrix.shard }}' --count 4
+
   viewer_contract:
+    needs: viewer_python_full
     if: github.event_name == 'pull_request'
     name: Viewer audit contract
     permissions:
@@ -1006,9 +1048,8 @@ jobs:
           fi
       - name: Validate history formats, official reconciliation and unchanged model contracts offline
         run: python -m unittest discover -s tests -p 'test_teiai*.py' -v
-      - name: Python synthetic journal to viewer projection tests
-        if: steps.official_recovery_preflight.outputs.reuse_prior_verification != 'true'
-        run: python -m unittest discover -s tests -v -f
+      # Full Python discovery is covered once per module by the isolated
+      # viewer_python_full matrix; video/browser validation may run promptly.
       - name: Verify isolated experimental video decoding and measurements
         if: steps.official_recovery_preflight.outputs.reuse_prior_verification != 'true'
         run: |

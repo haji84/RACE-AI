@@ -103,7 +103,7 @@ const missing=copy(cases[0]);missing.refund_boats=null;
 hold(missing,"REFUND_DISPOSITION_REQUIRED");
 const voided=copy(cases[0]);voided.result_status="VOID";
 hold(voided,"FINAL_RESULT_REQUIRED");
-const wrongDay=copy(cases[0]);wrongDay.input.context.as_of="2026-11-01T10:50:00+09:00";
+const wrongDay=copy(cases[0]);wrongDay.input.context.as_of="2026-10-31T10:50:00+09:00";
 hold(wrongDay,"BASELINE_ID_CLOCK_MISMATCH");
 const refund=copy(cases[0]);refund.refund_boats=[3];
 assert.equal(A.detail(refund).refunded[0],3);
