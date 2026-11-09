@@ -1,0 +1,47 @@
+{
+  "schema": "RACE_AI_KEIRIN_DAILY_VIDEO_TICK_V1",
+  "date_jst": "2026-11-09",
+  "tick_jst": "2026-11-09T11:32:47+09:00",
+  "tick_id": "20261109T113247JST-pr102-42546018114-followup",
+  "intent": "trigger_pull_request_video_wave_after_previous_run_completed",
+  "previous_run_id": 42546018114,
+  "previous_run_conclusion": "success",
+  "previous_run_completed_jst": "2026-11-09T10:53:55+09:00",
+  "previous_head_sha": "60f778b7f0e01ffeeb8ebc787fd14944d59a5dc0",
+  "manifest_total_races": 83,
+  "verified_unique_ciphertext_in_github_artifacts": 6,
+  "verified_unique_long_term_library_races": 3,
+  "race_ids_ciphertext": [
+    "202611091201",
+    "202611091202",
+    "202611091203",
+    "202611091204",
+    "202611091205",
+    "202611091206"
+  ],
+  "race_ids_library_confirmed": [
+    "202611091201",
+    "202611091202",
+    "202611091203"
+  ],
+  "race_ids_archive_pending": [
+    "202611091204",
+    "202611091205",
+    "202611091206"
+  ],
+  "uncollected_scheduled_races_count": 77,
+  "github_latest_artifact_id": 13644435885,
+  "github_latest_artifact_sha256": "587aac7485c786ad225d259375cd998a85971dcb76136e3efe8a9ddad0aabe56",
+  "private_library_upload_attempt": "FAILED_ACCESS_DENIED_NO_LONG_TERM_SAFETY_CLAIM",
+  "latest_clip_decryption_sha256_and_video_timestamps": "6_OF_6_VERIFIED_PRIVATELY",
+  "verified_rider_actions": 0,
+  "independently_verified_tactical_labels": 0,
+  "official_PR71_A_B_success": 0,
+  "model_weights_changed": false,
+  "forecast_originals_modified": false,
+  "narrow_window_hours": 2.2,
+  "maximum_attempts_per_wave": 40,
+  "start_guard": "planned_race_start_plus_at_least_5_minutes",
+  "stop_new_runs_after_jst": "2026-11-10T01:00:00+09:00",
+  "note": "No raw footage, frames, private keys, or post-result signals in pre-cutoff prediction."
+}
