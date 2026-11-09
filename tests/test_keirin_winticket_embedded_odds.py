@@ -91,6 +91,63 @@ class EmbeddedTrifectaOddsTests(unittest.TestCase):
         self.assertEqual(r["source_odds_updated_at_utc"],
                          datetime.fromtimestamp(UPDATED,timezone.utc).isoformat())
 
+    def test_nationwide_nine_riders_full_504_and_private_sha_readback(self):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from unittest.mock import patch
+        import os
+        source=page()
+        raw=source.decode("utf-8").split("window.__PRELOADED_STATE__ = ",1)[1].split(";</script>",1)[0]
+        pre=json.loads(raw)
+        data=pre["tanStackQuery"]["queries"][0]["state"]["data"]
+        site_id="037520261109"
+        data["trifecta"]=[]
+        for n,comb in enumerate(permutations(range(1,10),3)):
+            price=round(20.5+n/10,1)
+            data["trifecta"].append({
+                "id":"synthetic-9-"+str(n),
+                "key":list(comb),"raceId":site_id,
+                "absent":False,"type":3,"unitPrice":100,
+                "payoffUnitPrice":100,
+                "odds":price,"oddsStr":f"{price:.1f}"
+            })
+        html=("<html><script>window.__PRELOADED_STATE__ = "
+              + json.dumps(pre,separators=(",",":"))
+              + ";</script></html>").encode("utf-8")
+        kwargs={
+            "url":"https://www.winticket.jp/keirin/matsuyama/odds/2026110875/2/3",
+            "race_id":"202611097503",
+            "captured_at":NOW,"official_cutoff_at":CUTOFF,
+        }
+        result=private_winticket_trifecta(html,**kwargs)
+        self.assertEqual(len(result["odds"]["prices"]),504)
+        self.assertEqual(result["receipt"]["combination_count"],504)
+        self.assertEqual(result["receipt"]["winticket_race_id"],site_id)
+        self.assertEqual(result["receipt"]["schema"],
+                         "RACE_AI_KEIRIN_WINTICKET_504_VERIFIED_RECEIPT_V1")
+        self.assertEqual(len({tuple(x["triple"]) for x in
+                              result["odds"]["prices"]}),504)
+        with TemporaryDirectory() as tmp:
+            with patch.dict(os.environ,{"GITHUB_ACTIONS":"false","GITHUB_WORKSPACE":""}):
+                report=stage_private_winticket_odds(Path(tmp),result)
+                self.assertEqual(report["observed_trifecta_rows"],504)
+                self.assertEqual(report["full_210_observed_rows"],0)
+                self.assertEqual(report["full_504_observed_rows"],504)
+                self.assertEqual(report["private_odds_created"],1)
+                second=stage_private_winticket_odds(Path(tmp),result)
+                self.assertEqual(second["private_odds_created"],0)
+
+    def test_nationwide_url_does_not_accept_another_race_or_wrong_venue_code(self):
+        for source in (
+            "https://www.winticket.jp/keirin/matsuyama/odds/2026110875/2/3",
+            "https://www.winticket.jp/keirin/aomori/odds/2026110875/2/3",
+            "https://www.winticket.jp/keirin/aomori/odds/2026110812/3/3",
+            "https://www.winticket.jp/keirin/aomori/odds/2026110812/2/4",
+            "https://www.winticket.jp/keirin/internal/api/2026110812/2/3"
+        ):
+            with self.subTest(url=source),self.assertRaises(EmbeddedOddsError):
+                self.parse(url=source)
+
     def test_private_existing_odds_path_saved_once_and_sha_readback(self):
         from pathlib import Path
         from tempfile import TemporaryDirectory
