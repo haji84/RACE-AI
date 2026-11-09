@@ -297,6 +297,56 @@ def preloaded_schema_only(text):
                     break
         if len(interesting_collections)>=18:
             break
+    racecard_shape=[]
+    for query in query_list[:250] if isinstance(query_list,list) else []:
+        if not isinstance(query,dict):
+            continue
+        state_q=query.get("state")
+        data=state_q.get("data") if isinstance(state_q,dict) else None
+        if not isinstance(data,dict):
+            continue
+        if not all(type(data.get(key)) is list and
+                   len(data[key])==7 for key in ("entries","players","records")):
+            continue
+        entries,players,records=(
+            data["entries"],data["players"],data["records"])
+        entry_ids={e.get("playerId") for e in entries if isinstance(e,dict)}
+        player_ids={p.get("id") for p in players if isinstance(p,dict)}
+        record_ids={r.get("playerId") for r in records if isinstance(r,dict)}
+        names=("racePoint","back","standing","frontRunner","stalker",
+               "deepCloser","marker","firstRate","secondRate","thirdRate",
+               "style","gearRatio","comment")
+        types={}
+        for name in names:
+            types[name]={
+                "non_null":sum(
+                    isinstance(r,dict) and r.get(name) is not None
+                    for r in records),
+                "numeric":sum(
+                    isinstance(r,dict) and type(r.get(name)) in (int,float)
+                    for r in records),
+                "text":sum(
+                    isinstance(r,dict) and type(r.get(name)) is str
+                    for r in records),
+            }
+        racecard_shape.append({
+            "entries":len(entries),
+            "players":len(players),
+            "records":len(records),
+            "all_player_ids_join":(
+                len(entry_ids)==len(player_ids)==len(record_ids)==7
+                and entry_ids==player_ids==record_ids),
+            "entries_race_ids":list(sorted({
+                e.get("raceId") for e in entries
+                if isinstance(e,dict) and isinstance(e.get("raceId"),str)
+            }))[:3],
+            "measured_field_counts":types,
+            "top_level_line_related_keys":[
+                k for k in data if type(k) is str and
+                any(token in k.lower() for token in ("line","order"))][:20],
+        })
+        if len(racecard_shape)>=2:
+            break
     redux=tree.get("redux")
     redux_top_keys=(list(redux.keys())[:45] if isinstance(redux,dict) else [])
     return {
@@ -312,6 +362,7 @@ def preloaded_schema_only(text):
         "query_name_counts":dict(query_names.most_common(30)),
         "public_racecard_collections":interesting_collections,
         "redux_top_key_names":redux_top_keys,
+        "racecard_7_riders_join_proof":racecard_shape,
         "full_210_prices_verified":False,
     }
 
