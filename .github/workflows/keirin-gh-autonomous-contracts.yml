@@ -4,6 +4,9 @@ on:
   pull_request:
     paths:
       - 'scripts/keirin_autonomous_artifact_recovery.py'
+      - 'scripts/keirin_github_private_s3_archive.py'
+      - 'scripts/keirin_github_seal_owner_research.py'
+      - 'tests/test_keirin_github_private_s3_archive.py'
       - 'race_ai/keirin_private_sealed_payload.py'
       - 'race_ai/keirin_daily_clip_batch.py'
       - 'race_ai/keirin_daily_night_backfill.py'
@@ -33,6 +36,8 @@ jobs:
       - name: Compile on-demand and scheduled runtime modules
         run: |
           python -m py_compile scripts/keirin_autonomous_artifact_recovery.py
+          python -m py_compile scripts/keirin_github_private_s3_archive.py
+          python -m py_compile scripts/keirin_github_seal_owner_research.py
           python -m py_compile scripts/keirin_daily_dynamic_clip_collector.py
           python -m py_compile scripts/keirin_winticket_historical_batch_capture.py
           python -m py_compile race_ai/keirin_daily_clip_batch.py
@@ -43,6 +48,7 @@ jobs:
           python -m unittest discover -s tests -p 'test_keirin_autonomous_artifact_recovery.py' -v
           python -m unittest discover -s tests -p 'test_keirin_private_sealed_payload.py' -v
           python -m unittest discover -s tests -p 'test_keirin_daily_clip_batch.py' -v
+          python -m unittest discover -s tests -p 'test_keirin_github_private_s3_archive.py' -v
       - name: Safety statement
         run: |
           {
