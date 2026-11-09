@@ -103,10 +103,18 @@ def public_future_race_probe(*,race_id,racecard_url,odds_url,
             gaps["model_A_source_coverage"]["source_observed_required_slots"],
         "model_required_missing_A":
             gaps["model_A_source_coverage"]["source_unobserved_required_slots"],
+        # Counts grouped by source field, not private rider records or values.
+        "missing_source_groups_A":
+            gaps["model_A_source_coverage"][
+                "missing_model_input_slots_by_source_field"],
         "model_required_observed_B":
             gaps["model_B_source_coverage"]["source_observed_required_slots"],
         "model_required_missing_B":
             gaps["model_B_source_coverage"]["source_unobserved_required_slots"],
+        "missing_source_groups_B":
+            gaps["model_B_source_coverage"][
+                "missing_model_input_slots_by_source_field"],
+        "missing_source_groups_are_counts_only":True,
         "preflight_core_required_missing":
             gaps["source_unobserved_critical_slots"],
         "actual_210_or_504_verified":prices is not None,
