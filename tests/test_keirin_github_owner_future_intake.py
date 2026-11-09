@@ -2,6 +2,8 @@
 from datetime import datetime
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
+import os
 import json
 import unittest
 
@@ -19,6 +21,14 @@ class GitHubOwnerFutureIntakeTests(unittest.TestCase):
         self.temp=TemporaryDirectory()
         self.addCleanup(self.temp.cleanup)
         self.root=Path(self.temp.name)
+        # The owner-persistent runner is explicitly acknowledged. The
+        # synthetic fixture does not prove actual live runner connectivity.
+        self.persist=patch.dict(os.environ,{
+            "RACE_AI_PERSISTENT_PRIVATE_VOLUME":"ACKNOWLEDGED",
+            "GITHUB_WORKSPACE":"",
+        })
+        self.persist.start()
+        self.addCleanup(self.persist.stop)
         fixtures=NextSourceProbeTests()
         fixtures.setUp()
         self.files={INDEX:fixtures.index,CARD:fixtures.card,ODDS:fixtures.odds}
