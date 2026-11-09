@@ -25,8 +25,8 @@ class SourceOnlyPreflightTests(unittest.TestCase):
         self.assertEqual(counts["race_id"],RACE)
         self.assertEqual(counts["inspection_registry_total"],347)
         self.assertEqual(counts["entrant_count"],7)
-        self.assertEqual(counts["source_observed_registry_count"],68)
-        self.assertEqual(counts["not_source_observed_registry_count"],279)
+        self.assertEqual(counts["source_observed_registry_count"],75)
+        self.assertEqual(counts["not_source_observed_registry_count"],272)
         self.assertGreater(counts["source_unobserved_critical_slots"],0)
         a=counts["model_A_source_coverage"]
         b=counts["model_B_source_coverage"]
@@ -34,10 +34,10 @@ class SourceOnlyPreflightTests(unittest.TestCase):
         self.assertEqual(b["required_model_input_slots"],93)
         # Score and complete same-record top3 rate are actual source fields.
         # Others, including acceleration, line and venue fit, are absent.
-        self.assertEqual(a["source_observed_required_slots"],14)
-        self.assertEqual(b["source_observed_required_slots"],14)
-        self.assertEqual(a["source_unobserved_required_slots"],79)
-        self.assertEqual(b["source_unobserved_required_slots"],79)
+        self.assertEqual(a["source_observed_required_slots"],21)
+        self.assertEqual(b["source_observed_required_slots"],21)
+        self.assertEqual(a["source_unobserved_required_slots"],72)
+        self.assertEqual(b["source_unobserved_required_slots"],72)
         # Source-gap prioritization must account for every missing model
         # input WITHOUT leaking athlete names or substituting fake zeros.
         for model in (a,b):
@@ -64,9 +64,9 @@ class SourceOnlyPreflightTests(unittest.TestCase):
             captured_at=CAPTURE,expected_cutoff_at=CUTOFF)
         counts=inspect_source_gaps(packet)
         self.assertEqual(
-            counts["model_A_source_coverage"]["source_observed_required_slots"],13)
+            counts["model_A_source_coverage"]["source_observed_required_slots"],20)
         self.assertEqual(
-            counts["model_A_source_coverage"]["source_unobserved_required_slots"],80)
+            counts["model_A_source_coverage"]["source_unobserved_required_slots"],73)
         self.assertFalse(
             counts["model_B_source_coverage"]["all_required_fields_observed"])
 
