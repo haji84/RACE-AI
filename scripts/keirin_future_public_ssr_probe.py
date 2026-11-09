@@ -20,7 +20,7 @@ from race_ai.keirin_winticket_embedded_odds import (
 )
 from race_ai.keirin_winticket_embedded_racecard import (
     racecard_from_public_html,EmbeddedRacecardError,
-    safe_public_racecard_counts
+    safe_public_racecard_counts,safe_public_racecard_key_inventory
 )
 from race_ai.keirin_real_source_gap_report import inspect_source_gaps
 
@@ -71,6 +71,7 @@ def public_future_race_probe(*,race_id,racecard_url,odds_url,
         reason=str(e)
     counts=safe_public_racecard_counts(card)
     gaps=inspect_source_gaps(card)
+    sources=safe_public_racecard_key_inventory(card,card_html)
     result={
         "schema":SCHEMA,"race_id":race_id,
         "status":("LIVE_TRIFECTA_PRICE_UNIVERSE_VERIFIED"
@@ -82,6 +83,7 @@ def public_future_race_probe(*,race_id,racecard_url,odds_url,
         "preflight_checked_items":counts["registry_checked_count"],
         "preflight_source_verified_items":counts["registry_verified_count"],
         "preflight_unavailable_items":counts["registry_unavailable_count"],
+        "ssr_collection_field_names_only":sources["collection_field_names"],
         "model_required_total_A":
             gaps["model_A_source_coverage"]["required_model_input_slots"],
         "model_required_observed_A":
