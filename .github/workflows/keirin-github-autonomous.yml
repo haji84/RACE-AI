@@ -163,9 +163,8 @@ jobs:
             ${{ runner.temp }}/keirin-daily-source-inventory.json
           retention-days: 14
           if-no-files-found: warn
-      - name: Optional owner-private durable S3-compatible upload and full-byte readback
+      - name: Owner-private S3 upload must fail visibly if configured and readback fails
         if: steps.wave.outcome == 'success'
-        continue-on-error: true
         env:
           ARCHIVE_BUCKET: ${{ secrets.RACE_AI_KEIRIN_S3_BUCKET }}
           AWS_ACCESS_KEY_ID: ${{ secrets.RACE_AI_KEIRIN_S3_ACCESS_KEY_ID }}
