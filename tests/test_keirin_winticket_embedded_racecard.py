@@ -37,10 +37,10 @@ def fixture(*,size=7,mutation=None):
         players.append({"id":ident,"name":"fictional-rider-"+str(no)})
         records.append({
             "playerId":ident,"racePoint":100.5+no,
-            "standing":no%3,"back":no%4,
+            "standing":no%3,"home":no%5,"back":no%4,
             "gearRatio":3.92,"style":"両",
             "comment":"fictional research comment",
-            "firstRate":22.0,"secondRate":12.0,"thirdRate":18.0,
+            "firstRate":22.0,"secondRate":34.0,"thirdRate":52.0,
         })
     meta={"id":SITE_ID,"number":3,"closeAt":int(
             datetime.fromisoformat(CUTOFF).timestamp()),
@@ -91,6 +91,9 @@ class WinticketPublicRacecardTests(unittest.TestCase):
                          doc["direct_verified_fields"])
         self.assertNotIn("race/late_scratches_substitutions_revisions",
                          doc["direct_verified_fields"])
+        for no in range(1,8):
+            self.assertEqual(doc["direct_verified_fields"][
+                f"rider/{no}/home_H_count"],no%5)
         self.assertEqual(doc["direct_verified_fields"]["rider/1/race_score"],
                          101.5)
         self.assertFalse(doc["forecasts_created"])
@@ -155,13 +158,43 @@ class WinticketPublicRacecardTests(unittest.TestCase):
         self.assertEqual(datetime.fromisoformat(values["race/start_time"]),
                          datetime.fromisoformat(START))
         self.assertEqual(doc["rate_transform"],
-                         "SOURCE_REPORTED_PERCENT_TO_RATIO_V1_NO_DENOMINATOR_INFERENCE")
+                         "WINTICKET_CUMULATIVE_TOP1_TOP2_TOP3_TO_EXCLUSIVE_V2")
         self.assertFalse(doc["rate_denominator_and_reporting_period_independently_verified"])
         self.assertFalse(doc["source_field_rights_independently_verified"])
         self.assertFalse(doc["full_347_or_437_verified"])
         self.assertEqual(doc["registry_checked_count"],347)
         self.assertEqual(doc["registry_verified_count"]+
                          doc["registry_unavailable_count"],347)
+
+    def test_realistic_cumulative_rates_and_high_nonadditive_values(self):
+        # Real observed profile example: 8.3 / 19 / 41.6 percent.
+        # Top3 is 41.6%, NOT 8.3+19+41.6%.
+        def observed(data):
+            data["records"][0].update(
+                firstRate=8.3,secondRate=19.0,thirdRate=41.6)
+            data["records"][1].update(
+                firstRate=90.0,secondRate=95.0,thirdRate=99.0)
+        values=self.parse(fixture(mutation=observed))["direct_verified_fields"]
+        self.assertAlmostEqual(values["rider/1/win_rate"],.083)
+        self.assertAlmostEqual(values["rider/1/second_place_rate"],.107)
+        self.assertAlmostEqual(values["rider/1/third_place_rate"],.226)
+        self.assertAlmostEqual(values["rider/1/top_three_rate"],.416)
+        self.assertAlmostEqual(values["rider/2/top_three_rate"],.99)
+        self.assertAlmostEqual(values["rider/2/second_place_rate"],.05)
+        self.assertAlmostEqual(values["rider/2/third_place_rate"],.04)
+
+    def test_unavailable_or_invalid_home_count_does_not_create_zero(self):
+        for invalid in (None,-2,"7",4.5,True):
+            def absent(data):
+                data["records"][0]["home"]=invalid
+            doc=self.parse(fixture(mutation=absent))
+            self.assertNotIn("rider/1/home_H_count",
+                             doc["direct_verified_fields"])
+            self.assertFalse(doc["full_347_or_437_verified"])
+        def reported_zero(data):
+            data["records"][0]["home"]=0
+        doc=self.parse(fixture(mutation=reported_zero))
+        self.assertEqual(doc["direct_verified_fields"]["rider/1/home_H_count"],0)
 
     def test_missing_or_inconsistent_rates_cannot_fabricate_top_three(self):
         for value in (None, "74", 101, -1):
