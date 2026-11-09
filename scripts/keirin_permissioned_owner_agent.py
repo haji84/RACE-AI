@@ -24,6 +24,7 @@ from race_ai.keirin_owner_auto_sources import (
     OwnerAttestedAutomaticSources, AUTOMATION_CONSENT,
 )
 from race_ai.keirin_owner_public_page_fetch import capture_approved_public_pages
+from race_ai.keirin_owner_captured_ssr_intake import stage_private_captured_winticket
 from race_ai.keirin_owner_manual import PersonalOwnerObservations
 from race_ai.keirin_owner_approved_sources import (
     PROFILE_ID, approved_source_hosts,
@@ -203,6 +204,12 @@ def main(argv=None):
                         odds_race_id=args.target_race_id,
                         odds_official_cutoff_at=args.target_cutoff_at)
                     if args.owner_public_page_url else None)
+                # Reuse the private captured HTML to admit exact source-linked
+                # odds + partial rider evidence. If 347/437 facts are absent,
+                # neither this step nor the owner agent may invent a forecast.
+                captured_winticket_ssr = (
+                    stage_private_captured_winticket(inbox)
+                    if auto_owner else None)
                 owner_markdown = (stage_owner_saved_hex_markdown(inbox, now=now)
                                   if args.personal_manual else None)
                 owner_csv = (stage_owner_saved_csv(inbox, now=now)
@@ -246,6 +253,7 @@ def main(argv=None):
                     "stage": stage, "spool": settled,
                     "owner_saved_csv_stage": owner_csv,
                     "owner_automatic_public_page_capture": public_pages,
+                    "owner_captured_winticket_ssr_stage": captured_winticket_ssr,
                     "owner_saved_full_odds_csv_stage": owner_odds_csv,
                     "owner_saved_markdown_stage": owner_markdown,
                     "source_grounded_private_shadow":shadow,
