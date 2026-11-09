@@ -18,6 +18,9 @@ from race_ai.keirin_winticket_prior_events import (
     documents_from_html, history_references, normalize_result_event,
     observed_prior_candidates, safe_prior_counts, PriorSourceError,
 )
+from race_ai.keirin_prior_private_stage import (
+    private_research_packet, stage_owner_private_prior_research,
+)
 
 
 def select_references(reference, documents):
@@ -66,7 +69,8 @@ def select_references(reference, documents):
     return chosen,len(reference['references'])-len(eligible)
 
 
-def probe(*, race_id, racecard_url, max_pages=32, fetch=None, clock=None):
+def probe(*, race_id, racecard_url, max_pages=32, fetch=None, clock=None,
+          private_evidence_dir=None):
     if type(max_pages) is not int or not 1<=max_pages<=100:
         raise ValueError('PRIOR_PAGE_BUDGET_INVALID')
     if fetch is None: fetch=network_page_once
@@ -107,6 +111,17 @@ def probe(*, race_id, racecard_url, max_pages=32, fetch=None, clock=None):
             failures['PRIOR_RESULT_SCHEMA_OR_TIME_NOT_VERIFIED']+=1
     as_of=clock().isoformat()
     derived=observed_prior_candidates(reference,events,as_of=as_of)
+    # The owner may explicitly retain an evidence bundle OUTSIDE the public
+    # checkout. A runner-temporary directory is not a durable Git backup,
+    # and no such bundle can automatically become a PR71 model input.
+    retained=None
+    if private_evidence_dir is not None:
+        private_packet=private_research_packet(
+            reference,events,derived,
+            racecard_sha256=sha256(body).hexdigest(),
+            day_index_sha256=sha256(index).hexdigest(),as_of=as_of)
+        retained=stage_owner_private_prior_research(
+            private_evidence_dir,private_packet)
     counts=safe_prior_counts(reference,events)
     features=('finishing_power','bank_fit','line_coordination','sprint_acceleration')
     return {**counts,'race_id':race_id,'observed_at':as_of,
@@ -123,6 +138,11 @@ def probe(*, race_id, racecard_url, max_pages=32, fetch=None, clock=None):
         'prior_category_mismatches_excluded':category_excluded,
         'eligible_prior_references':len(chosen),
         'model_coefficients_changed':False,'actual_four_model_forecast_saved':False,
+        'private_candidate_packet_saved':retained is not None,
+        'private_candidate_packet_sha256':retained['private_packet_sha256']
+            if retained is not None else None,
+        'private_candidate_replay_verified':retained is not None,
+        'private_candidate_encrypted_git_archived':False,
         'status':'REAL_PRIOR_SOURCE_CHECKED_NOT_FULL_MODEL_ADMISSION'}
 
 
@@ -131,10 +151,13 @@ def main():
     parser.add_argument('--race-id',required=True)
     parser.add_argument('--racecard-url',required=True)
     parser.add_argument('--max-pages',type=int,default=32)
+    parser.add_argument('--private-evidence-dir',
+                        help='existing absolute private directory outside checkout; research only')
     args=parser.parse_args()
     try:
         report=probe(race_id=args.race_id,racecard_url=args.racecard_url,
-                     max_pages=args.max_pages)
+                     max_pages=args.max_pages,
+                     private_evidence_dir=args.private_evidence_dir)
     except (OSError,ValueError,TypeError,KeyError) as exc:
         report={'status':'REAL_PRIOR_INPUT_UNAVAILABLE_NO_INVENTED_VALUES',
                 'model_input_admitted':False,'actual_four_model_forecast_saved':False,
