@@ -64,6 +64,14 @@ def repair_saved_receipt_mismatches(repo,*,state,now,bridge=None):
             matches=[r for r in current['records'] if r.get('race_id')==rid and r.get('sport')=='boat']
             if len(matches)!=1:
                 add_hold('MODEL_REPLAY_RACE_IDENTITY_INVALID');continue
+            # A stale rejection index must never erase a prior explicit
+            # reference-only / non-formal decision during offline replay.
+            prior_result=matches[0].get('result') or {}
+            prior_ref=prior_result.get('cutoff_reconciliation') or {}
+            if (prior_result.get('cutoff_reference') is not None or
+                prior_result.get('formal_eligible') is False or
+                (isinstance(prior_ref,dict) and prior_ref.get('formal_eligible') is False)):
+                add_hold('MODEL_REPLAY_REFERENCE_ONLY_BARRIER');continue
             try:
                 if P._result_context(matches[0])[0] in ('FINAL','VOID'):
                     # Never re-publish an already proved formal result.
