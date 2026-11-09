@@ -208,6 +208,22 @@ def racecard_from_public_html(html,*,url,race_id,captured_at,
             verified[f"rider/{n}/back_B_count"]=recent["back"]
         if row["comment"]:
             verified[f"rider/{n}/athlete_comments_and_intent"]=row["comment"]
+        # WINTICKET SSR publicly displays firstRate, secondRate and thirdRate
+        # as percentages. These are *separate* finish categories from the
+        # same source record. Do not fabricate the missing denominator, infer
+        # those rates from B counts, or accept a self-contradictory >100% sum.
+        # The private owner ingestion/rights gate is still required.
+        rates=(row["first_rate"],row["second_rate"],row["third_rate"])
+        if all(type(v) in (int,float) and math.isfinite(v) and
+               0 <= v <= 100 for v in rates) and sum(rates)<=100+1e-7:
+            rate_values={
+                "win_rate":rates[0]/100,
+                "second_place_rate":rates[1]/100,
+                "third_place_rate":rates[2]/100,
+                "top_three_rate":sum(rates)/100,
+            }
+            for key,value in rate_values.items():
+                verified[f"rider/{n}/{key}"]=value
     verified["race/race_id_date_venue_no"]={
         "race_id":race_id,"event_date_jst":
             datetime.strptime(race_id[:8],"%Y%m%d").date().isoformat(),
@@ -219,6 +235,10 @@ def racecard_from_public_html(html,*,url,race_id,captured_at,
     # certification of the organizer's official cutoff.
     if expected_cutoff_at is not None:
         verified["race/official_sales_cutoff"]=published_cutoff.isoformat()
+    # Source-published event start is an observable pre-event schedule, not
+    # a signed organizer timestamp nor evidence of the earlier source release.
+    if scheduled_start is not None:
+        verified["race/start_time"]=scheduled_start.isoformat()
     distance=_number(racemeta.get("distance"),lo=1)
     if distance is not None:
         verified["race/race_distance"]=distance
@@ -245,6 +265,8 @@ def racecard_from_public_html(html,*,url,race_id,captured_at,
         "registry_verified_count":len(verified),
         "registry_unavailable_count":len(missing),
         "full_347_or_437_verified":len(missing)==0,
+        "rate_transform":"SOURCE_REPORTED_PERCENT_TO_RATIO_V1_NO_DENOMINATOR_INFERENCE",
+        "rate_denominator_and_reporting_period_independently_verified":False,
         "source_field_rights_independently_verified":False,
         "official_organizer_cutoff_certified":False,
         "independent_pre_cutoff_receipt_verified":False,
