@@ -29,7 +29,7 @@ class WindowsOwnerRuntimeSafetyTests(unittest.TestCase):
         code=BOOT.read_text(encoding="utf-8")
         self.assertIn("PUBLIC_REPOSITORY_UNSAFE_FOR_PRIVATE_SELF_HOSTED_RUNNER",code)
         self.assertIn('if (($privacy | Out-String)',code)
-        self.assertIn('EXISTING_PRIVATE_PATH_REQUIRED',code)
+        self.assertIn('PRIVATE_PATH_MISSING',code)
         self.assertIn('OWNER_SQLITE_PREEXISTING_SCHEMA_OR_INTEGRITY_FAILED',code)
         self.assertIn('mode=ro',code)
         self.assertIn('keirin-owner-private',code)
