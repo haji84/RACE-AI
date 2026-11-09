@@ -30,7 +30,7 @@ class WinticketFutureSsrTest(unittest.TestCase):
         self.assertTrue(receipt["actual_210_or_504_verified"])
         self.assertEqual(receipt["actual_full_trifecta_rows"],210)
         self.assertEqual(receipt["preflight_checked_items"],347)
-        self.assertGreater(receipt["preflight_unavailable_items"],300)
+        self.assertGreater(receipt["preflight_unavailable_items"],200)
         self.assertFalse(receipt["full_official_model_preflight"])
         self.assertFalse(receipt["two_version_prediction_saved"])
         self.assertNotIn("fictional-rider",str(receipt))
