@@ -101,6 +101,88 @@ def _provider_race(item,day):
     }
 
 
+def _published_candidate_pages(cache,hrefs,*,source_url,day):
+    """Source-bound candidate URLs, not proof that the page has been served.
+
+    WINTICKET's PUBLIC day SSR supplies schedules.id, schedules.cupId,
+    schedules.date, schedules.day, races.scheduleId and venues.id/slug.
+    An actual same-host venue-level /keirin/SLUG/odds link must also occur
+    in the page. Never guess a meeting start, venue slug or undocumented API.
+    """
+    schedules={}
+    venues={}
+    race_links={}
+    venue_links=set()
+    for href in hrefs:
+        u=urlsplit(urljoin(source_url,href))
+        if not (u.scheme=="https" and u.hostname in
+                ("www.winticket.jp","winticket.jp") and
+                u.username is None and u.password is None and
+                u.port is None and not u.query and not u.fragment):
+            continue
+        m=re.fullmatch(r"/keirin/([a-z][a-z0-9-]{2,30})/odds/?",u.path)
+        if m:venue_links.add(m.group(1))
+    for q in cache.get("queries",[]):
+        if type(q) is not dict or type(q.get("state")) is not dict:
+            continue
+        data=q["state"].get("data")
+        if type(data) is not dict:continue
+        for row in data.get("venues",[]) if type(data.get("venues")) is list else []:
+            if type(row) is not dict:continue
+            vid=row.get("id")
+            slug=row.get("slug")
+            if not (type(vid) in (str,int) and str(vid).isdigit() and
+                    1<=int(vid)<=99 and type(slug) is str and
+                    re.fullmatch(r"[a-z][a-z0-9-]{2,30}",slug)):
+                continue
+            code=int(vid)
+            if code in venues and venues[code]!=slug:
+                raise WinticketDayIndexError("CONFLICTING_PUBLISHED_VENUE_SLUG")
+            venues[code]=slug
+        for sch in data.get("schedules",[]) if type(data.get("schedules")) is list else []:
+            if type(sch) is not dict:continue
+            sid,cup,dt,dno=(
+                sch.get("id"),sch.get("cupId"),
+                sch.get("date"),sch.get("day"))
+            if not (type(sid) is str and len(sid)==10 and sid.isdigit()
+                    and type(cup) is str and len(cup)==10 and cup.isdigit()
+                    and type(dt) is str and len(dt)==8 and dt.isdigit()
+                    and type(dno) is int and 1<=dno<=3):
+                continue
+            try:
+                begin=datetime.strptime(cup[:8],"%Y%m%d").date()
+                sched_date=datetime.strptime(dt,"%Y%m%d").date()
+            except ValueError:continue
+            if not (begin+timedelta(days=dno-1)==sched_date==day
+                    and sid==dt+cup[-2:]
+                    and 1<=int(cup[-2:])<=99):
+                continue
+            info=(cup,dno,int(cup[-2:]))
+            if sid in schedules and schedules[sid]!=info:
+                raise WinticketDayIndexError("CONFLICTING_PUBLISHED_SCHEDULE")
+            schedules[sid]=info
+        for row in data.get("races",[]) if type(data.get("races")) is list else []:
+            parsed=_provider_race(row,day)
+            if parsed is None:continue
+            rid=parsed["race_id"]
+            sid=row.get("scheduleId")
+            if type(sid) is not str or sid not in schedules:
+                continue
+            cup,meeting_day,venue=schedules[sid]
+            if parsed["venue_code"]!=venue:
+                raise WinticketDayIndexError("RACE_SCHEDULE_VENUE_CONFLICT")
+            slug=venues.get(venue)
+            if not slug or slug not in venue_links:
+                continue
+            base=f"https://www.winticket.jp/keirin/{slug}/"
+            suffix=f"{cup}/{meeting_day}/{parsed['race_no']}"
+            result=(base+"odds/"+suffix,base+"racecard/"+suffix)
+            if rid in race_links and race_links[rid]!=result:
+                raise WinticketDayIndexError("RACE_PAGE_PUBLIC_JOIN_CONFLICT")
+            race_links[rid]=result
+    return race_links
+
+
 def extract_owner_winticket_day(html,*,source_url,event_day):
     need(type(html) is bytes and 0<len(html)<=8_000_000,
          "INDEX_HTML_BYTES_REQUIRED")
@@ -153,6 +235,8 @@ def extract_owner_winticket_day(html,*,source_url,event_day):
         presentations[sha256(code.encode()).hexdigest()]=keyed
     need(len(presentations)==1,"CONFLICTING_PUBLIC_DAY_ROSTERS")
     races=next(iter(presentations.values()))
+    source_candidates=_published_candidate_pages(
+        cache,links.hrefs,source_url=source_url,day=day)
     linked=sum(int(rid in urls) for rid in races)
     complete=(linked==len(races)
               and all(v["public_close_at_utc"] is not None and
@@ -160,11 +244,20 @@ def extract_owner_winticket_day(html,*,source_url,event_day):
                       for v in races.values()))
     result=[]
     for rid,v in sorted(races.items()):
+        derived=source_candidates.get(rid)
+        if rid in urls and derived:
+            need(urls[rid]==derived[0],
+                 "PUBLISHED_SCHEDULE_AND_RACE_HREF_CONFLICT")
         result.append({
             **v,
             "odds_public_url":urls.get(rid),
             "racecard_public_url":urls.get(rid).replace("/odds/","/racecard/",1)
                     if rid in urls else None,
+            "candidate_odds_page_url":derived[0] if derived else None,
+            "candidate_racecard_page_url":derived[1] if derived else None,
+            "candidate_page_http_get_verified":False,
+            "candidate_url_source":"PUBLISHED_SSR_CUP_SCHEDULE_VENUE_AND_PUBLIC_VENUE_LINK"
+                if derived else None,
         })
     return {
         "schema":"RACE_AI_KEIRIN_WINTICKET_DAY_DISCOVERY_SSR_V1",
@@ -172,6 +265,9 @@ def extract_owner_winticket_day(html,*,source_url,event_day):
         "index_html_sha256":sha256(html).hexdigest(),
         "published_ssr_race_count":len(races),
         "linked_races_verified":linked,
+        "published_ssr_candidate_url_count":sum(
+            int(rid in source_candidates) for rid in races),
+        "candidate_pages_actually_fetched":0,
         "unlinked_race_count":len(races)-linked,
         "matching_public_ssr_and_href_coverage":complete,
         "complete_national_schedule_independently_verified":False,
@@ -190,6 +286,8 @@ def safe_day_index_summary(day):
     return {k:day[k] for k in (
         "schema","event_day_jst","index_html_sha256",
         "published_ssr_race_count","linked_races_verified",
+        "published_ssr_candidate_url_count",
+        "candidate_pages_actually_fetched",
         "unlinked_race_count","matching_public_ssr_and_href_coverage",
         "complete_national_schedule_independently_verified",
         "official_cutoffs_independently_verified",
