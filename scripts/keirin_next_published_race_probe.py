@@ -132,6 +132,18 @@ def discover_and_probe(*,event_day=None,race_id=None,clock=None,fetch=None):
             probe.get("preflight_source_verified_items",0),
         "preflight_unavailable_count":
             probe.get("preflight_unavailable_items",0),
+        "required_source_slots_total":
+            probe.get("model_required_total_A"),
+        "required_source_slots_A_observed":
+            probe.get("model_required_observed_A"),
+        "required_source_slots_A_missing":
+            probe.get("model_required_missing_A"),
+        "required_source_slots_B_observed":
+            probe.get("model_required_observed_B"),
+        "required_source_slots_B_missing":
+            probe.get("model_required_missing_B"),
+        "critical_preflight_source_slots_missing":
+            probe.get("preflight_core_required_missing"),
         "odds_price_sha256":probe.get("real_price_sha256"),
         "actual_model_prediction_saved":False,
         "production_aead_checkpoint_saved":False,
