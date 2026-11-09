@@ -119,9 +119,10 @@ def structure(html,source_url):
         if type(v) is not dict:continue
         name=v.get("slug")
         no=v.get("id")
-        if type(no) is int and 1<=no<=99 and type(name) is str and re.fullmatch(
+        if type(no) in (str,int) and str(no).isdigit() and (
+            1<=int(no)<=99) and type(name) is str and re.fullmatch(
             "[a-z][a-z0-9-]{2,30}",name):
-            venue_ids.add(no)
+            venue_ids.add(int(no))
     schedule_linked_race_count=0
     schedule_and_venue_linked_count=0
     for row in raw_races:
