@@ -142,6 +142,97 @@ class CloudPr71GitHistoryTests(unittest.TestCase):
         self.assertIn(first["cipher_sha256"],snap_paths)
         self.assertIn(second["cipher_sha256"],snap_paths)
 
+    def test_hosted_cycle_consumes_authorized_v3_revisions_without_new_forecast(self):
+        # The actual cloud.cycle() must use the SAME source/4-model/AES code.
+        # Every rider, supplier, grant and result below is synthetic.
+        from hashlib import sha256
+        from race_ai.keirin_permissioned_owner import (
+            MANIFEST,load_operator_grants
+        )
+        from race_ai.keirin_licensed_result_stage import (
+            ROW_SCHEMA,stage_licensed_result_export
+        )
+        original=self.frozen()
+        first=cloud.commit(self.repo,self.source,self.db,None)
+        doc=self.root/"synthetic-provider-rights.txt"
+        doc.write_text("FICTIONAL TEST RECORD. NOT A REAL PROVIDER GRANT.")
+        origin="https://example.invalid/fictional-feed/"
+        grants_data={
+            "schema":MANIFEST,"bundle_id":"FICTIONAL_PROVIDER_TEST_ONLY",
+            "grants":[{
+                "source_url_prefix":origin,
+                "rights_ref":"FICTIONAL_RESULT_GRANT",
+                "purposes":[
+                    "schedule","pre_race","analysis","model_inference",
+                    "private_retention","automated_fetch",
+                    "result_collection","result_analysis"],
+                "valid_from":"2030-01-01T00:00:00+09:00",
+                "valid_until":"2030-02-01T00:00:00+09:00",
+                "license_document_path":str(doc),
+                "license_document_sha256":sha256(doc.read_bytes()).hexdigest(),
+            }]
+        }
+        grants_file=self.root/"synthetic-provider-manifest.json"
+        grants_file.write_text(json.dumps(grants_data))
+        now="2030-01-15T10:40:00+09:00"
+        grants=load_operator_grants(grants_file,now=now)
+        row={
+            "schema":ROW_SCHEMA,"race_id":RID,
+            "source_url":origin+"results/one",
+            "rights_ref":"FICTIONAL_RESULT_GRANT",
+            "source_published_at":"2030-01-15T10:15:00+09:00",
+            "observed_at":"2030-01-15T10:15:00+09:00",
+            "provider_revision_ref":"fictional-revision-1",
+            "status":"FINAL_NORMAL","refund_status":"NONE",
+            "winning_triples":[[1,2,3]],
+            "payouts_100yen":[{"triple":[1,2,3],"yen":18700}],
+        }
+        def fictitious_feed(inbox,_source_root):
+            admitted=stage_licensed_result_export(
+                inbox,[row],checked_at=now,grants=grants)
+            self.assertEqual(admitted["private_results_created"],1)
+            return grants,{"new_pre_race_inputs":0},"SYNTHETIC_FEED_FOR_CI_ONLY"
+        trusted_event={
+            "GITHUB_ACTIONS":"true","GITHUB_REPOSITORY":cloud.REPO,
+            "GITHUB_REPOSITORY_ID":cloud.REPOSITORY_ID,
+            "GITHUB_REF":"refs/heads/main",
+            "GITHUB_EVENT_NAME":"schedule",
+        }
+        with patch.dict(os.environ,trusted_event),patch.object(
+            cloud,"_licensed_inputs",side_effect=fictitious_feed
+        ),patch.object(cloud,"PrivateKeirinStore",
+                       side_effect=lambda path:PrivateKeirinStore(
+                           path,clock=lambda:datetime.fromisoformat(now))):
+            result=cloud.cycle(self.repo,self.source)
+            self.assertEqual(result["state"],
+                             "CLOUD_PR71_ENCRYPTED_GIT_HISTORY_READBACK_VERIFIED")
+            self.assertEqual(result["generation"],2)
+            self.assertEqual(result["result_rows_appended"],1)
+            self.assertFalse(result["official_result_independently_authenticated"])
+            self.assertFalse(result["formal_accuracy_calculated"])
+            repeated=cloud.cycle(self.repo,self.source)
+            self.assertEqual(repeated["state"],
+                             "CLOUD_PR71_RESTORED_NO_CHANGED_MODEL_OR_RESULT")
+            self.assertEqual(repeated["result_rows_appended"],0)
+        reread=self.root/"independent-real-code.sqlite3"
+        head,verified=cloud.restore(self.repo,self.source,reread)
+        self.assertEqual(head["generation"],2)
+        self.assertEqual(head["previous_cipher_sha256"],
+                         first["cipher_sha256"])
+        self.assertEqual(verified["revisions"],1)
+        with PrivateKeirinStore(reread) as store:
+            ledger=FourModelRankLedger(store)
+            self.assertEqual(ledger.read_suite(RID)["suite"]["suite_sha256"],
+                             original)
+            audited=ledger.audit_revision(RID)
+            self.assertEqual(set(audited),set(ALL_MODELS))
+            self.assertTrue(all(
+                record["result_status"]=="SETTLED_RESEARCH" and
+                record["result_revision"]==1 and
+                record["official_result_independently_authenticated"] is False
+                for record in audited.values()))
+            self.assertEqual(ledger.replay_all()["latest_model_race_audits"],4)
+
     def test_missing_original_refuses_production_archive(self):
         with PrivateKeirinStore(self.db):
             pass
