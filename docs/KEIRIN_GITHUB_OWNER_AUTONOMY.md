@@ -1,5 +1,42 @@
 # 競輪予想の GitHub Actions 単独自動化
 
+
+## 重要：現在はPublicリポジトリのため、秘密DBランナーを接続しない
+
+2026-11-10に確認した haji84/RACE-AI の公開状態は Public。GitHub公式は、公開リポジトリのself-hosted runnerがPR経由で侵害され得るため、利用を原則として推奨していない。
+
+ワークフローは private-owner-PR71 ジョブに `github.event.repository.private == true` と `github.ref == 'refs/heads/main'` を追加した。公開のまま Variable をtrueにしても、秘密DBを使うWindowsジョブは実行されない。公開ソース診断のみ継続。
+
+**実データの本番運転には、リポジトリをPrivateへ変更するか、専用の非公開リポジトリへワークフローを移す必要がある。** 非公開専用リポジトリ方式では、移設先の参照・シークレット・権限を別途審査する。ユーザーの明示的承認なく公開設定は変えない。
+
+現在接続されているGitHubツールでは、ランナーの登録・一覧、Repository Secrets・Variablesの取得・変更にアクセスできない。GitHub CIの合格はそれらが設定済みの証拠にならない。
+
+### Windowsでの一度きりの自動セットアップ
+
+リポジトリをPrivateに変更した後、ユーザー管理のWindows x64端末で管理者PowerShellを使う。
+
+1. Windows端末にGitHub CLI (`gh`) とPython 3をインストールし、端末上で `gh auth login` を済ませる。認証情報をChatGPTへ送信しない。
+2. https://github.com/haji84/RACE-AI/settings/actions/runners の「New self-hosted runner → Windows x64」にあるGitHub公式ランナーを `C:\actions-runner-keirin` にダウンロード・展開する。既存の別用途ランナーを上書きしない。
+3. 実在するプライベートSQLiteと入力フォルダを、ランナーの作業領域の外に保存。SQLiteには既存の `forecasts`、`result_revisions` テーブルが必要。空の本番DBを生成して合格扱いしない。
+4. リポジトリ内の `scripts/setup_keirin_owner_runner_windows.ps1` をWindows管理者PowerShellで実行。このスクリプトは、公開リポジトリ、未存在DB、壊れたSQLite、ランナー未接続を拒否する。GitHubから一時登録トークンを端末内で取得し、専用ラベルとサービスを登録。必要パスだけをSecretsへ設定してから実行Variableをtrueにする。
+
+利用権限を確認した元データ提供用のライセンス台帳がある場合：
+
+```powershell
+.\scripts\setup_keirin_owner_runner_windows.ps1 -DbPath 'C:\RACE-AI-Private\keirin.sqlite3' -InboxPath 'C:\RACE-AI-Private\inbox' -GrantManifestPath 'C:\RACE-AI-Private\source-grants.json' -RunnerRoot 'C:\actions-runner-keirin'
+```
+
+個人研究のみの場合（提供元の独立した機械利用許可や正式予想の成功を証明しない）：
+
+```powershell
+.\scripts\setup_keirin_owner_runner_windows.ps1 -DbPath 'C:\RACE-AI-Private\keirin.sqlite3' -InboxPath 'C:\RACE-AI-Private\inbox' -RunnerRoot 'C:\actions-runner-keirin' -PersonalResearchOnly
+```
+
+Web公開HTMLの自動取得まで使用する場合のみ、利用条件確認後に `-EnablePublicSourceFetch` を追加。取得がブロックされた場合に迂回しない。
+
+**本番合格条件:** (a)実選手データによる347項目検証と全必須入力、(b)既存4モデルの未来レース予想、(c)締切前非公開SQLite保存、(d)再起動後の独立読戻しと元SHA一致、(e)実際のGitHub cronによる無人実行。登録成功やCI成功だけでは達成ではない。
+
+
 ## 結論
 
 ChatGPTのタスクは使わない。GitHubの `.github/workflows/keirin-pr71-owner-autonomous.yml` がスケジュールを担当する。既存の競輪映像収集・夜間研究ワークフローはそのまま残す。ワークフロー内で予想アルゴリズムは新設せず、固定された PR #103 の既存 PR71 4モデル・347項目検査・SQLite読戻し・PDCA処理を使用する。
