@@ -143,6 +143,14 @@ jobs:
         timeout-minutes: 2
         run: python -m scripts.keirin_winticket_day_index_diagnostic --date 2026-11-10
 
+      - name: Probe one specific REAL 11/9 Matsudo 8R before cutoff (public source only)
+        if: github.event_name == 'pull_request'
+        timeout-minutes: 2
+        run: |
+          python -m scripts.keirin_next_published_race_probe \
+            --event-day-jst 2026-11-09 \
+            --race-id 202611093108
+
       - name: Probe NEXT genuinely upcoming 7/9-rider published event
         if: github.event_name == 'pull_request'
         timeout-minutes: 2
