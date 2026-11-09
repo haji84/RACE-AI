@@ -151,7 +151,8 @@ class WinticketPublicRacecardTests(unittest.TestCase):
                 self.assertAlmostEqual(values[f"rider/{car}/second_place_rate"],.12)
                 self.assertAlmostEqual(values[f"rider/{car}/third_place_rate"],.18)
                 self.assertAlmostEqual(values[f"rider/{car}/top_three_rate"],.52)
-        self.assertEqual(values["race/start_time"],START)
+        self.assertEqual(datetime.fromisoformat(values["race/start_time"]),
+                         datetime.fromisoformat(START))
         self.assertEqual(doc["rate_transform"],
                          "SOURCE_REPORTED_PERCENT_TO_RATIO_V1_NO_DENOMINATOR_INFERENCE")
         self.assertFalse(doc["rate_denominator_and_reporting_period_independently_verified"])
@@ -162,7 +163,7 @@ class WinticketPublicRacecardTests(unittest.TestCase):
                          doc["registry_unavailable_count"],347)
 
     def test_missing_or_inconsistent_rates_cannot_fabricate_top_three(self):
-        for value in (None, "74", float("nan"), 101, -1):
+        for value in (None, "74", 101, -1):
             def alter(data):
                 data["records"][0]["firstRate"]=value
             result=self.parse(fixture(mutation=alter))
@@ -171,6 +172,14 @@ class WinticketPublicRacecardTests(unittest.TestCase):
                 self.assertNotIn("rider/1/"+field,
                                  result["direct_verified_fields"])
             self.assertFalse(result["full_347_or_437_verified"])
+
+        # Nonfinite JavaScript NaN is not valid JSON. Reject the whole SSR,
+        # rather than attempting to treat its rate as a missing numeric value.
+        from race_ai.keirin_winticket_embedded_odds import EmbeddedOddsError
+        def nan_value(data):
+            data["records"][0]["firstRate"]=float("nan")
+        with self.assertRaises(EmbeddedOddsError):
+            self.parse(fixture(mutation=nan_value))
 
         def conflict(data):
             data["records"][0].update(firstRate=74.0,secondRate=37.0,
