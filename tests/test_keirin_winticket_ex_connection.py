@@ -46,6 +46,15 @@ class ObservedAttackCountsTests(unittest.TestCase):
         good['exSpurt']['percentage'] = 90
         self.assertIsNone(f(good)['value'])
 
+    def test_integer_display_rounding_uses_integer_precision(self):
+        f = self.method()
+        row = {'exSpurt': {'succeeded': 1, 'total': 3, 'percentage': 33},
+               'exThrust': {'succeeded': 2, 'total': 3, 'percentage': 67}}
+        self.assertIsNotNone(f(row)['value'])
+        self.assertAlmostEqual(f(row)['value'], .5)
+        row['exSpurt']['percentage'] = 34
+        self.assertIsNone(f(row)['value'])
+
     def test_bad_counts_and_nonfinite_rate_do_not_close_model_gaps(self):
         baseline = {'exSpurt': {'succeeded': 1, 'total': 2, 'percentage': 50},
                     'exThrust': {'succeeded': 0, 'total': 0, 'percentage': 0}}
@@ -133,6 +142,37 @@ class SourceToExistingModelSlotTests(unittest.TestCase):
         self.assertEqual(len(packet['ex_action_ratio_evidence']), 0)
         self.assertEqual(inspect_source_gaps(packet)['model_A_source_coverage'][
             'source_unobserved_required_slots'], 79)
+
+    def test_existing_private_capture_intake_persists_ex_lineage_without_generating_forecast(self):
+        from pathlib import Path
+        from tempfile import TemporaryDirectory
+        from hashlib import sha256
+        import json
+        from race_ai.keirin_owner_captured_ssr_intake import stage_private_captured_winticket
+        from tests.test_keirin_winticket_embedded_racecard import URL, CAPTURE
+        packet, html = self.source()
+        with TemporaryDirectory() as temp:
+            root = Path(temp)
+            capture = root / 'owner_public_capture'
+            capture.mkdir()
+            (capture / 'one.html').write_bytes(html)
+            (capture / 'one.json').write_text(json.dumps({
+                'schema': 'RACE_AI_KEIRIN_OWNER_PUBLIC_HTML_CAPTURE_V1',
+                'source_url': URL, 'captured_at_utc': CAPTURE,
+                'body_sha256': sha256(html).hexdigest(),
+                'body_size_bytes': len(html),
+            }))
+            first = stage_private_captured_winticket(root)
+            self.assertEqual(first['private_partial_racecards_staged'], 1)
+            files = list((root / 'winticket_racecard_partial').glob('*.json'))
+            self.assertEqual(len(files), 1)
+            saved = json.loads(files[0].read_text())
+            self.assertEqual(len(saved.get('ex_action_ratio_evidence', {})), 7)
+            self.assertEqual(saved['html_sha256'], packet['html_sha256'])
+            self.assertEqual(first['forecasts_created'], 0)
+            self.assertFalse(first['full_preflight_claimed'])
+            self.assertEqual(stage_private_captured_winticket(root)[
+                'private_partial_racecards_staged'], 0)
 
 
 if __name__ == '__main__':
