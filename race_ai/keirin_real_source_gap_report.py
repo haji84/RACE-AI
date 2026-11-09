@@ -9,6 +9,7 @@ from __future__ import annotations
 from .keirin_preflight import CRITICAL_RACE, CRITICAL_RIDER, expected_keys
 from .keirin_allowed_delivery import (
     MODEL_REQUIRED, ENV_REQUIRED, ENV_MAP, RIDER_MAP, RIDER_MAP_DISTINCT_B,
+    PermittedDeliveryError, _convert,
 )
 from .keirin_winticket_embedded_racecard import SCHEMA as PARTIAL_SCHEMA
 
@@ -59,6 +60,35 @@ def inspect_source_gaps(partial):
     observed_critical=required_critical & keys
 
     def count_required(mapping):
+        # Presence alone is not evidence of a usable numeric model input.
+        # Reuse the existing rights-gated adapter's numeric conversion rules
+        # for diagnostic validation only. This DOES NOT grant source rights,
+        # source publication timestamps, completeness, or model inference.
+        for no in car_numbers:
+            for feature in MODEL_REQUIRED:
+                field,transform=mapping[feature]
+                key=f"rider/{no}/{field}"
+                if key in observed:
+                    try:
+                        if transform=="count_rate":
+                            raise PermittedDeliveryError(
+                                "COUNT_RATE_DENOMINATOR_NOT_IN_PARTIAL_SOURCE")
+                        _convert(observed[key],1,transform)
+                    except (PermittedDeliveryError,ValueError,OverflowError,TypeError):
+                        raise RealSourceGapError(
+                            "SOURCE_MODEL_INPUT_VALUE_NOT_ADMISSIBLE") from None
+        for feature in ENV_REQUIRED:
+            field,transform=ENV_MAP[feature]
+            key="race/"+field
+            if key in observed:
+                try:
+                    if transform=="count_rate":
+                        raise PermittedDeliveryError(
+                            "COUNT_RATE_DENOMINATOR_NOT_IN_PARTIAL_SOURCE")
+                    _convert(observed[key],1,transform)
+                except (PermittedDeliveryError,ValueError,OverflowError,TypeError):
+                    raise RealSourceGapError(
+                        "SOURCE_MODEL_INPUT_VALUE_NOT_ADMISSIBLE") from None
         all_required=set()
         for no in car_numbers:
             for feature in MODEL_REQUIRED:
