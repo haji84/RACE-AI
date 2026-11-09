@@ -5,6 +5,11 @@
 name: KEIRIN GitHub-only daily capture and conservative research
 
 on:
+  workflow_call:
+    inputs:
+      mode:
+        required: true
+        type: string
   schedule:
     - cron: '21 0-19 * * *'   # JST 09:21 through 04:21 next day
     - cron: '50 19 * * *'     # JST 04:50, after overnight catch-up
@@ -33,6 +38,17 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  wiring-tests:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify same-worker schedule fallback and fail-closed archive
+        run: python -m unittest discover -s tests -p 'test_keirin_github_schedule_fallback.py' -v
+
   unit:
     name: unit
     if: >-
@@ -73,6 +89,7 @@ jobs:
   capture-completed-races:
     if: >-
       (github.event_name == 'schedule' && github.event.schedule == '21 0-19 * * *') ||
+      (github.event_name == 'schedule' && inputs.mode == 'capture') ||
       (github.event_name == 'workflow_dispatch' && inputs.mode == 'capture')
     runs-on: ubuntu-24.04
     timeout-minutes: 115
@@ -176,7 +193,7 @@ jobs:
           set -euo pipefail
           if [ -z "$ARCHIVE_BUCKET" ]; then
             echo "DURABLE_PRIVATE_STORAGE_NOT_CONFIGURED" >> "$GITHUB_STEP_SUMMARY"
-            exit 0
+            exit 1
           fi
           python -m pip install awscli
           python -m scripts.keirin_github_private_s3_archive \
