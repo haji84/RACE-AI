@@ -31,7 +31,10 @@ def public_future_race_probe(*,race_id,racecard_url,odds_url,
     """Returns structurally safe metadata, no private source rows."""
     if fetch is None:fetch=network_page_once
     if clock is None:clock=lambda:datetime.now(timezone.utc)
-    checked_race_and_url(url=odds_url,race_id=race_id)
+    try:
+        checked_race_and_url(url=odds_url,race_id=race_id)
+    except EmbeddedOddsError:
+        raise EmbeddedRacecardError("FUTURE_RACE_ODDS_URL_INVALID") from None
     if ("/racecard/" not in racecard_url or
         racecard_url.replace("/racecard/","/odds/",1)!=odds_url):
         raise EmbeddedRacecardError("RACECARD_ODDS_IDENTITY_MISMATCH")
