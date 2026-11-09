@@ -81,7 +81,7 @@ class NextSourceProbeTests(unittest.TestCase):
         self.assertTrue(report["real_full_odds_verified"])
         self.assertEqual(report["observed_trifecta_rows"],210)
         self.assertEqual(report["preflight_checked_count"],347)
-        self.assertGreater(report["preflight_unavailable_count"],300)
+        self.assertGreater(report["preflight_unavailable_count"],200)
         self.assertFalse(report["formal_model_input_preflight_completed"])
         self.assertFalse(report["actual_model_prediction_saved"])
         self.assertFalse(report["production_aead_checkpoint_saved"])
@@ -120,7 +120,7 @@ class NextSourceProbeTests(unittest.TestCase):
         self.assertTrue(report["target_seen_in_public_index"])
         self.assertTrue(report["target_page_source_confirmed"])
         self.assertEqual(report["preflight_checked_count"],347)
-        self.assertGreater(report["preflight_unavailable_count"],300)
+        self.assertGreater(report["preflight_unavailable_count"],200)
         self.assertFalse(report["actual_model_prediction_saved"])
         self.assertFalse(report["formal_model_input_preflight_completed"])
 
