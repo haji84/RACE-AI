@@ -76,6 +76,18 @@ jobs:
       - name: Install original BOAT result collector dependencies
         if: github.event_name != 'push' || github.ref != 'refs/heads/main'
         run: python -m pip install --disable-pip-version-check -r requirements-history.txt
+      - name: Reconcile verified completed BOAT source handoff (GitHub-only; no provider GET)
+        if: >-
+          (github.event_name == 'workflow_run' &&
+           github.event.workflow_run.event == 'push' &&
+           github.event.workflow_run.head_repository.full_name == github.repository &&
+           github.event.workflow_run.head_branch == 'feat/four-sport-forecast-audit-view-20261022' &&
+           github.event.workflow_run.conclusion == 'success') ||
+          (github.event_name == 'schedule' && github.event.schedule == '20 21 * * *')
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RACE_AI_STATE_KEY: ${{ secrets.RACE_AI_STATE_KEY }}
+        run: python -m scripts.boat_source_control_mirror latest-closed --repo-root . --output "$RUNNER_TEMP/boat-last-closed-control.json"
       - name: Reflect confirmed races and retain encrypted incremental source packets
         # Main's one-time owner PDCA verification does not make any provider GET.
         if: github.event_name != 'push' || github.ref != 'refs/heads/main'
