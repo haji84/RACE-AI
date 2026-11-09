@@ -58,7 +58,7 @@ def reviewed_run():
 
 class VerifiedPriorDayRecovery(unittest.TestCase):
     def test_trusted_prior_day_pr_metadata_is_source_only_not_recording(self):
-        legacy = {"id": 900, "expired": False,
+        legacy = {"id": 13662681646, "expired": False,
                   "name": "keirin-daily-wave-evidence-42584059802"}
         with TemporaryDirectory() as root:
             path = Path(root)
@@ -74,7 +74,7 @@ class VerifiedPriorDayRecovery(unittest.TestCase):
             self.assertFalse(outcome["readback_in_private_library_verified"])
 
     def test_modified_pr_sha_is_rejected_not_accepted_as_evidence(self):
-        legacy = {"id": 901, "expired": False,
+        legacy = {"id": 13662681646, "expired": False,
                   "name": "keirin-daily-wave-evidence-42584059802"}
         bad = reviewed_run()
         bad["head_sha"] = "0" * 40
