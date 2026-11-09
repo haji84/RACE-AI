@@ -1,0 +1,42 @@
+{
+  "schema": "RACE_AI_KEIRIN_PROSPECTIVE_RESEARCH_AB_HASH_COMMIT_V1",
+  "scope": "EXPERIMENTAL_NOT_EXISTING_PR71_A_OR_OFFICIAL_FORECAST",
+  "target_races": [
+    {
+      "race_id": "202611097403",
+      "venue": "高知",
+      "race_no": 3,
+      "cutoff_jst": "2026-11-09T11:58:00+09:00",
+      "start_jst": "2026-11-09T12:03:00+09:00",
+      "prior_technique": "SASHI",
+      "historical_rider": "坂上忠克",
+      "historical_race": "20261030-yahiko-3R",
+      "A_full_210_sha256": "b8b1f5df373984a6298bab050aec12051fc0417108358124430540ed327c3064",
+      "B_full_210_sha256": "4c9ab7655db4efe47ae352d17ba5d413fc0cbfb39f27ee23811047376f3bf3f4"
+    },
+    {
+      "race_id": "202611093102",
+      "venue": "松戸",
+      "race_no": 2,
+      "cutoff_jst": "2026-11-09T16:08:00+09:00",
+      "start_jst": "2026-11-09T16:13:00+09:00",
+      "prior_technique": "MAKURI",
+      "historical_rider": "山中秀将",
+      "historical_race": "20261030-yahiko-2R",
+      "A_full_210_sha256": "e91be080f132137cd0a6b9e258220eed62e3f933d91cf5c47eaabf5ca7dc5b00",
+      "B_full_210_sha256": "65064ba37d032c11752640e847179795253e79f98b2fe3df40b26d7b2cf8fe15"
+    }
+  ],
+  "actual_captured_source_as_of_jst": "2026-11-09T08:58:28+09:00",
+  "private_pre_race_receipt_file_sha256": "572471405b807d83cdae9055bc51db05ee8f1ab4b064b905354e47af2b053f37",
+  "private_rider_video_event_receipt_file_sha256": "b52096221db4b25adfecf0bcfa23ce4b542081e41b63f2c2c63e4a56960db646",
+  "distinct_real_video_positive_events": 3,
+  "independent_second_visual_review": false,
+  "live_same_race_outcome_used": false,
+  "model_type": "UNTRAINED_PRESPECIFIED_PL_HEURISTIC_WITH_WEAK_VIDEO_EVENT_BOOST",
+  "trained_video_model_coefficients": false,
+  "user_requested_existing_A_pr71": "NOT_AVAILABLE_IN_PRIVATE_SNAPSHOT_AT_TIME_OF_THIS_RESEARCH_FREEZE",
+  "probability_calibration_verified": false,
+  "odds_used": false,
+  "notes": "The two A/B full 210-way distributions were precomputed and no-overwrite frozen offline before each specified sales cutoff; the resulting research comparison must NOT be misrepresented as existing PR71 A versus fitted learned B. The source/model/video event files are owner-private. No race results used."
+}
