@@ -34,10 +34,12 @@ class SourceOnlyPreflightTests(unittest.TestCase):
         self.assertEqual(b["required_model_input_slots"],93)
         # Score and complete same-record top3 rate are actual source fields.
         # Others, including acceleration, line and venue fit, are absent.
-        self.assertEqual(a["source_observed_required_slots"],21)
-        self.assertEqual(b["source_observed_required_slots"],21)
-        self.assertEqual(a["source_unobserved_required_slots"],72)
-        self.assertEqual(b["source_unobserved_required_slots"],72)
+        # H is a sourced 347 inspection field but not in the pinned
+        # four-model mandatory subset. Never report it as filling the 79.
+        self.assertEqual(a["source_observed_required_slots"],14)
+        self.assertEqual(b["source_observed_required_slots"],14)
+        self.assertEqual(a["source_unobserved_required_slots"],79)
+        self.assertEqual(b["source_unobserved_required_slots"],79)
         # Source-gap prioritization must account for every missing model
         # input WITHOUT leaking athlete names or substituting fake zeros.
         for model in (a,b):
@@ -64,9 +66,9 @@ class SourceOnlyPreflightTests(unittest.TestCase):
             captured_at=CAPTURE,expected_cutoff_at=CUTOFF)
         counts=inspect_source_gaps(packet)
         self.assertEqual(
-            counts["model_A_source_coverage"]["source_observed_required_slots"],20)
+            counts["model_A_source_coverage"]["source_observed_required_slots"],13)
         self.assertEqual(
-            counts["model_A_source_coverage"]["source_unobserved_required_slots"],73)
+            counts["model_A_source_coverage"]["source_unobserved_required_slots"],80)
         self.assertFalse(
             counts["model_B_source_coverage"]["all_required_fields_observed"])
 
