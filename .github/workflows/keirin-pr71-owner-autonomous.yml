@@ -97,9 +97,7 @@ jobs:
               f.write("Source probe cannot produce PR71 predictions or legal permissions.\n")
           PY
 
-  # Production data is NEVER staged on the public hosted runner. The owner's
-  # existing Windows private DB/inbox are used only with an explicit opt-in.
-  # Label "keirin-owner-private" must be registered on the trusted machine.
+  # Production secrets are used only from trusted main GitHub-hosted jobs.
   # Secrets never reach pull_request jobs. This is a GitHub-hosted machine.
   github-hosted-pr71-cycle:
     if: >-
