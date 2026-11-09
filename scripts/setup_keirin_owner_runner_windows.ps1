@@ -84,7 +84,7 @@ $config=Join-Path $root 'config.cmd'
 if (-not (Test-Path -LiteralPath $config -PathType Leaf)) {
   throw 'EXTRACT_OFFICIAL_GITHUB_RUNNER_WINDOWS_X64_TO_RUNNER_ROOT'
 }
-$runName="$env:COMPUTERNAME-keirin-private"
+$runName = [string]$env:COMPUTERNAME + '-keirin-private'
 $localSettings=Join-Path $root '.runner'
 if (Test-Path -LiteralPath $localSettings -PathType Leaf) {
   $settings=Get-Content -LiteralPath $localSettings -Raw | ConvertFrom-Json
