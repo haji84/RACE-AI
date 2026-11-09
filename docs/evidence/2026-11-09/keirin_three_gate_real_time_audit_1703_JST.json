@@ -50,7 +50,7 @@
     "research_only_not_existing_PR71": true,
     "no_fitted_video_coefficients": true,
     "actual_pr71_A_vs_learned_B_pairs_with_proven_before_cutoff_provenance": 0,
-    "clinical_model_production_promotion_allowed": false,
+    "production_model_promotion_allowed": false,
     "kochi3r": {
       "race_id": "202611097403",
       "actual_top3": [
