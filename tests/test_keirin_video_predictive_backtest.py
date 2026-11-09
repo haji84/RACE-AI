@@ -132,6 +132,43 @@ class VideoToForecastTests(unittest.TestCase):
         with self.assertRaisesRegex(VideoForecastError,"TRAINING_POSTRACE_LABELS_LEAK_INTO_TEST"):
             evaluate_chronological(train,early,model,minimum_test=3)
 
+    def test_verified_partial_video_keeps_unseen_actions_unknown(self):
+        source=fixture(0)
+        source["post"]["visual_status"]="PARTIAL_HIGHLIGHTS_POSITIVE_ONLY_VERIFIED"
+        for x in source["post"]["tactics"]:
+            for key in TRAITS:
+                x[key]=None
+        source["post"]["tactics"][3]["attack"]=1
+        self.assertIs(verify_record(source),source)
+        future=fixture(1)
+        with_prior=score_one(future,[source],[1.0,0,0,0,0,0])
+        self.assertEqual(with_prior["prior_riders_on_target_card"],1)
+        self.assertTrue(with_prior["sparse_positive_only_supported"])
+        self.assertNotEqual(with_prior["ordered_candidates"][0]["candidate_probability"],
+                            with_prior["ordered_candidates"][0]["base_probability"])
+        source["post"]["tactics"][0]["position_gain"]=0
+        with self.assertRaisesRegex(VideoForecastError,
+                 "UNSEEN_PARTIAL_ACTION_MUST_BE_UNKNOWN"):
+            verify_record(source)
+
+    def test_no_overlapping_video_rider_must_leave_baseline_unchanged(self):
+        history=fixture(0)
+        history["post"]["visual_status"]="PARTIAL_HIGHLIGHTS_POSITIVE_ONLY_VERIFIED"
+        for x in history["post"]["tactics"]:
+            for key in TRAITS:
+                x[key]=None
+        history["post"]["tactics"][3]["attack"]=1
+        target=fixture(1)
+        for p in target["pre"]["participants"]:
+            p["rider_id"]+="-new"
+        for t in target["post"]["tactics"]:
+            t["rider_id"]+="-new"
+        pred=score_one(target,[history],[1,1,1,1,1,1])
+        self.assertEqual(pred["prior_riders_on_target_card"],0)
+        self.assertTrue(all(abs(x["candidate_probability"]-
+                          x["base_probability"])<1e-14
+                    for x in pred["ordered_candidates"]))
+
     def test_minimum_real_history_gate(self):
         with self.assertRaisesRegex(VideoForecastError,"NOT_ENOUGH_REAL_TRAINING_RACES"):
             fit_earlier_historical(self.history[:2])
