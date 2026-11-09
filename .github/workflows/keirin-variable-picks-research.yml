@@ -29,6 +29,9 @@ on:
       - "tests/test_keirin_prior_private_stage.py"
       - "race_ai/keirin_winticket_ex_connection.py"
       - "tests/test_keirin_winticket_ex_connection.py"
+      - "race_ai/keirin_prior_input_connection.py"
+      - "race_ai/keirin_weather_input_connection.py"
+      - "tests/test_keirin_weather_input_connection.py"
       - "scripts/keirin_prior_real_input_probe.py"
       - "tests/test_keirin_historical_prior_signal_rules.py"
       - "scripts/keirin_historical_prior_signal_probe.py"
@@ -133,17 +136,15 @@ jobs:
           PYTHONPATH: ".:tests"
         run: |
           python -m unittest -v tests.test_keirin_variable_selection tests.test_keirin_variable_integration tests.test_keirin_private_spool tests.test_keirin_private_agent tests.test_keirin_reference_history_recheck tests.test_keirin_saved_original_reference tests.test_keirin_shadow_variable_pair tests.test_keirin_mansha_rank_audit tests.test_keirin_pr71_four_model_rank tests.test_keirin_historical_asof_replay tests.test_keirin_historical_archive_inventory tests.test_keirin_historical_sparse_feature_probe tests.test_keirin_historical_context_gates tests.test_keirin_historical_prior_signal_rules tests.test_keirin_non_rakuten_sources tests.test_keirin_owner_approved_sources tests.test_keirin_owner_public_page_fetch tests.test_keirin_public_source_smoke tests.test_keirin_winticket_embedded_odds tests.test_keirin_winticket_embedded_racecard tests.test_keirin_real_source_gap_report tests.test_keirin_future_public_ssr_probe tests.test_keirin_owner_captured_ssr_intake tests.test_keirin_winticket_day_index tests.test_keirin_next_published_race_probe tests.test_keirin_github_owner_future_intake tests.test_keirin_owner_odds_csv tests.test_keirin_license_api_ingest tests.test_keirin_licensed_result_stage tests.test_keirin_existing_asset_reuse tests.test_keirin_github_production_archive tests.test_keirin_public_ciphertext_consent
-          python -m unittest -v tests.test_keirin_winticket_prior_events tests.test_keirin_prior_selection tests.test_keirin_prior_private_stage tests.test_keirin_winticket_ex_connection
-          # Real existing PR71 four models, encrypted SQLite handoff and
-          # restored model-specific synthetic result PDCA on hosted Actions.
+          python -m unittest -v tests.test_keirin_winticket_prior_events tests.test_keirin_prior_selection tests.test_keirin_prior_private_stage tests.test_keirin_winticket_ex_connection tests.test_keirin_weather_input_connection
+          # Existing four models, encrypted SQLite and restored synthetic PDCA.
           python -m unittest -v tests.test_keirin_github_four_model_encrypted_handoff
           python -m unittest -v tests.test_keirin_real_rider_shadow tests.test_keirin_allowed_delivery tests.test_keirin_pr71_source_ab_stage tests.test_keirin_83_reference_pdca_bridge tests.test_keirin_83_reference_pdca_runner tests.test_keirin_owner_manual tests.test_keirin_owner_saved_csv tests.test_keirin_owner_saved_hex tests.test_keirin_permissioned_owner tests.test_keirin_preflight
-          python -m compileall -q race_ai/keirin_winticket_ex_connection.py race_ai/keirin_prior_private_stage.py scripts/keirin_prior_real_input_probe.py scripts/keirin_next_published_race_probe.py scripts/keirin_github_owner_future_intake.py scripts/keirin_winticket_day_index_diagnostic.py race_ai/keirin_winticket_day_index.py scripts/keirin_future_day_index_probe.py race_ai/keirin_owner_captured_ssr_intake.py scripts/keirin_future_public_ssr_probe.py race_ai/keirin_winticket_embedded_odds.py race_ai/keirin_winticket_embedded_racecard.py race_ai/keirin_real_source_gap_report.py scripts/keirin_public_source_smoke.py race_ai/keirin_owner_approved_sources.py race_ai/keirin_owner_auto_sources.py race_ai/keirin_owner_public_page_fetch.py race_ai/keirin_public_ciphertext_consent.py scripts/keirin_github_production_archive.py scripts/keirin_github_production_bundle.py scripts/keirin_existing_archive_verify.py scripts/keirin_existing_asset_preflight.py race_ai/keirin_variable_selection.py race_ai/keirin_variable_integration.py race_ai/keirin_private_spool.py race_ai/keirin_reference_history_recheck.py race_ai/keirin_real_rider_shadow.py race_ai/keirin_real_shadow_intake.py race_ai/keirin_shadow_variable_pair.py race_ai/keirin_mansha_rank_audit.py race_ai/keirin_pr71_four_model_rank.py race_ai/keirin_historical_asof_replay.py race_ai/keirin_historical_archive_inventory.py race_ai/keirin_historical_sparse_feature_probe.py race_ai/keirin_historical_context_gates.py race_ai/keirin_historical_prior_signal_rules.py race_ai/keirin_pr71_source_ab_stage.py race_ai/keirin_83_reference_pdca_bridge.py scripts/keirin_83_reference_pdca.py scripts/keirin_historical_prior_signal_probe.py scripts/keirin_historical_archive_inventory.py scripts/keirin_historical_sparse_probe.py race_ai/keirin_existing_asset_reuse.py race_ai/keirin_shadow_variable_intake.py race_ai/keirin_owner_odds_csv.py race_ai/keirin_licensed_odds_export.py race_ai/keirin_licensed_result_stage.py race_ai/keirin_licensed_api_ingest.py scripts/keirin_private_agent.py scripts/keirin_permissioned_owner_agent.py scripts/keirin_reference_history_audit.py scripts/keirin_saved_historical_replay.py scripts/keirin_variable_reconcile_private.py
+          python -m compileall -q race_ai/keirin_weather_input_connection.py race_ai/keirin_prior_input_connection.py race_ai/keirin_winticket_ex_connection.py race_ai/keirin_prior_private_stage.py scripts/keirin_prior_real_input_probe.py scripts/keirin_next_published_race_probe.py scripts/keirin_github_owner_future_intake.py scripts/keirin_winticket_day_index_diagnostic.py race_ai/keirin_winticket_day_index.py scripts/keirin_future_day_index_probe.py race_ai/keirin_owner_captured_ssr_intake.py scripts/keirin_future_public_ssr_probe.py race_ai/keirin_winticket_embedded_odds.py race_ai/keirin_winticket_embedded_racecard.py race_ai/keirin_real_source_gap_report.py scripts/keirin_public_source_smoke.py race_ai/keirin_owner_approved_sources.py race_ai/keirin_owner_auto_sources.py race_ai/keirin_owner_public_page_fetch.py race_ai/keirin_public_ciphertext_consent.py scripts/keirin_github_production_archive.py scripts/keirin_github_production_bundle.py scripts/keirin_existing_archive_verify.py scripts/keirin_existing_asset_preflight.py race_ai/keirin_variable_selection.py race_ai/keirin_variable_integration.py race_ai/keirin_private_spool.py race_ai/keirin_reference_history_recheck.py race_ai/keirin_real_rider_shadow.py race_ai/keirin_real_shadow_intake.py race_ai/keirin_shadow_variable_pair.py race_ai/keirin_mansha_rank_audit.py race_ai/keirin_pr71_four_model_rank.py race_ai/keirin_historical_asof_replay.py race_ai/keirin_historical_archive_inventory.py race_ai/keirin_historical_sparse_feature_probe.py race_ai/keirin_historical_context_gates.py race_ai/keirin_historical_prior_signal_rules.py race_ai/keirin_pr71_source_ab_stage.py race_ai/keirin_83_reference_pdca_bridge.py scripts/keirin_83_reference_pdca.py scripts/keirin_historical_prior_signal_probe.py scripts/keirin_historical_archive_inventory.py scripts/keirin_historical_sparse_probe.py race_ai/keirin_existing_asset_reuse.py race_ai/keirin_shadow_variable_intake.py race_ai/keirin_owner_odds_csv.py race_ai/keirin_licensed_odds_export.py race_ai/keirin_licensed_result_stage.py race_ai/keirin_licensed_api_ingest.py scripts/keirin_private_agent.py scripts/keirin_permissioned_owner_agent.py scripts/keirin_reference_history_audit.py scripts/keirin_saved_historical_replay.py scripts/keirin_variable_reconcile_private.py
       - name: One-shot REAL public site GET pre-cutoff, SHA/structural counts only
         if: github.event_name == 'pull_request'
         timeout-minutes: 2
         run: python -m scripts.keirin_public_source_smoke --one-shot
-
       - name: Probe FUTURE 11/10 Aomori 3R (public HTML only; no secret)
         if: github.event_name == 'pull_request'
         timeout-minutes: 2
@@ -152,17 +153,14 @@ jobs:
             --race-id 202611101203 \
             --racecard-url 'https://www.winticket.jp/keirin/aomori/racecard/2026110812/3/3' \
             --odds-url 'https://www.winticket.jp/keirin/aomori/odds/2026110812/3/3'
-
       - name: Probe NEXT 11/10 WINTICKET nationwide public day index
         if: github.event_name == 'pull_request'
         timeout-minutes: 2
         run: python -m scripts.keirin_future_day_index_probe --date 2026-11-10
-
       - name: Diagnose only day index public path shapes, no original data
         if: github.event_name == 'pull_request'
         timeout-minutes: 2
         run: python -m scripts.keirin_winticket_day_index_diagnostic --date 2026-11-10
-
       - name: Probe one specific REAL 11/9 Matsudo 8R before cutoff (public source only)
         if: github.event_name == 'pull_request'
         timeout-minutes: 2
@@ -170,7 +168,6 @@ jobs:
           python -m scripts.keirin_next_published_race_probe \
             --event-day-jst 2026-11-09 \
             --race-id 202611093108
-
       - name: Probe 11/10 Aomori 3R one exact REAL future source before cutoff
         if: github.event_name == 'pull_request'
         timeout-minutes: 2
@@ -178,13 +175,11 @@ jobs:
           python -m scripts.keirin_next_published_race_probe \
             --event-day-jst 2026-11-10 \
             --race-id 202611101203
-
       - name: Probe NEXT genuinely upcoming 7/9-rider published event
         if: github.event_name == 'pull_request'
         timeout-minutes: 2
         run: python -m scripts.keirin_next_published_race_probe
-
-      - name: Real prior candidates, SHA-checked in ephemeral PRIVATE runner temp only
+      - name: Real prior candidates and modelled weather, ephemeral PRIVATE replay only
         if: github.event_name == 'pull_request'
         timeout-minutes: 2
         run: |
@@ -196,5 +191,6 @@ jobs:
             --race-id 202611101203 \
             --racecard-url 'https://www.winticket.jp/keirin/aomori/racecard/2026110812/3/3' \
             --max-pages 96 \
-            --private-evidence-dir "$private_dir"
-          echo 'Research-only temporary readback; NO provider licence, forecast, permanent AES or public artifact.' >> "$GITHUB_STEP_SUMMARY"
+            --private-evidence-dir "$private_dir" \
+            --include-modelled-weather
+          echo 'Personal noncommercial partial-source research. Open-Meteo forecast, NOT on-site measurements. No complete live forecast or permanent AES archival claimed.' >> "$GITHUB_STEP_SUMMARY"
