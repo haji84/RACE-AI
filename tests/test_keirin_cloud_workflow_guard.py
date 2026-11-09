@@ -34,7 +34,7 @@ class CloudGuardTests(unittest.TestCase):
         self.assertNotIn("actions/upload-artifact",cloud)
         self.assertNotIn("git push --force",cloud)
         self.assertIn("source-root",cloud)
-        self.assertIn("60b739bfb9861cbc48864b83651cfc2fb89c0fe7",cloud)
+        self.assertIn("1b50a851726f3e061757fa670687af4c211c9005",cloud)
 
     def test_independent_reader_is_separate_ubuntu_job_and_read_only(self):
         y=FLOW.read_text(encoding="utf-8")

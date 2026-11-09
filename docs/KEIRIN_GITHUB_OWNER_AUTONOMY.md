@@ -47,3 +47,10 @@ RACE-AIはPublicを維持し、個人PC、Windows/ZBook/MacBook、自前self-hos
 ## PC方式の廃止
 
 前回追加したWindows self-hosted runner、Private化強制、端末固有DBパスをGitHub Secretsに保存する方式は採用しない。旧Windowsセットアップスクリプトとそのテストも削除し、ここに記載したGitHub-hosted運用へ一本化する。
+
+## 固定したPR71ソースを新しい検証済み版へ更新（2026-11-10）
+
+- GitHub-hosted main producer/読戻しの既存 pinned source を旧 `60b739bfb…` から既存 Draft PR #103 のHEAD `1b50a851726f3e061757fa670687af4c211c9005` に固定更新。mainコードを引き続き実行本体として維持し、未審査のブランチ先頭を追跡しない。
+- 固定先の差分は出走表の累積着順率の誤計算修正、観測できるH/年齢/期別/明示単位風速の取込、既存4モデルのGitHub-hosted AES/結果照合合成試験と不足項目分類に限定。実モデル重み/元データ/権限を変更しない。元 source HEAD の347検査・既存4モデル保護とGitHub AES復元を再実行する。
+- 公開 source probe は不足モデル項目の種類ごとの件数を出すが、個々の選手数値/名前/元オッズ/HTMLは絶対に記録しない。
+- これはCIで検証した固定SHAの昇格であり、実レースの許諾・全93必須入力・公式結果・本番AES世代を作るものではない。SOURCE_FEED_NOT_CONFIGURED と未確認の本番はHOLD。
