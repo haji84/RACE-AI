@@ -5,9 +5,17 @@ on:
     branches: [feat/keirin-private-persistent-core-20261103]
   pull_request:
     branches: [main]
+  workflow_dispatch:
+  # 06:37 JST once daily; schedule always runs from default branch.
+  schedule:
+    - cron: '37 21 * * *'
 
 permissions:
   contents: read
+
+concurrency:
+  group: keirin-persistent-core-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   keirin_core:
@@ -31,3 +39,40 @@ jobs:
         run: |
           python -m unittest discover -s tests -p 'test_keirin_discovery.py' -v
           python -m unittest discover -s tests -p 'test_keirin_daily_ledger.py' -v
+
+  # Codex-free repeated verification. Runs on the existing core workflow only
+  # for the nightly schedule or when manually requested, avoiding duplicate PR CI.
+  nightly_offline_extended:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    needs: keirin_core
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Refuse silently skipped model E2E when source is absent
+        run: python -c 'from race_ai.four_sport_model_suite import run_suite, verify_suite; assert callable(run_suite) and callable(verify_suite)'
+      - name: Two synthetic future races with private SQLite restart and PDCA
+        run: |
+          python -m unittest discover -s tests -p 'test_keirin_private_spool.py' -v
+          python -m unittest discover -s tests -p 'test_keirin_private_agent.py' -v
+      - name: Local encrypted checkpoint and SQLite backup safety
+        run: |
+          node --test tests/test_keirin_github_checkpoint.mjs
+          python -m unittest discover -s tests -p 'test_keirin_github_sqlite_snapshot.py' -v
+          python -m unittest discover -s tests -p 'test_keirin_github_git_archive.py' -v
+      - name: Record immutable source commit and scope of this CI check
+        if: ${{ always() }}
+        env:
+          JOB_STATUS: ${{ job.status }}
+          SOURCE_SHA: ${{ github.sha }}
+        shell: bash
+        run: |
+          {
+            echo '## Scheduled offline KEIRIN verification'
+            echo "Source commit: $SOURCE_SHA"
+            echo "Job status: $JOB_STATUS"
+            echo 'Scope: synthetic fixture tests only; no provider GET, real forecasts, real PDCA, official accuracy, or production model promotion.'
+            echo 'Security: no private forecast originals, SQLite databases or encryption keys are uploaded as artifacts.'
+          } >> "$GITHUB_STEP_SUMMARY"
