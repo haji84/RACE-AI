@@ -2,7 +2,7 @@
 import unittest
 
 from scripts.keirin_winticket_historical_batch_capture import (
-    SOURCES, identity_ok, admission_manifest
+    SOURCES, AOMORI_20261109_1R_REVIEW, identity_ok, admission_manifest
 )
 
 class FourCandidateHistoricBatchTests(unittest.TestCase):
@@ -22,6 +22,22 @@ class FourCandidateHistoricBatchTests(unittest.TestCase):
             self.assertFalse(identity_ok(s,s["url"]+"/wrong",correct,200))
             self.assertFalse(identity_ok(s,s["url"],correct.replace(
                  str(s["race_no"])+"レース","9レース"),200))
+
+    def test_existing_one_shot_aomori_review_does_not_contaminate_training(self):
+        race=AOMORI_20261109_1R_REVIEW
+        self.assertNotIn(race["race_id"],{x["race_id"] for x in SOURCES})
+        self.assertEqual(race["cohort"],"POST_RESULT_PREDICTION_AUDIT_ONLY")
+        self.assertEqual(race["url"],
+                         "https://www.winticket.jp/keirin/aomori/raceresult/2026110812/2/1")
+        title="2026年11月9日 青森競輪 1レース 結果"
+        self.assertTrue(identity_ok(race,race["url"],title,200))
+        self.assertFalse(identity_ok(race,race["url"],title.replace(
+            "1レース","2レース"),200))
+        self.assertFalse(identity_ok(race,race["url"]+"/other",title,200))
+        state=admission_manifest(race)
+        self.assertFalse(state["training_eligible"])
+        self.assertFalse(state["forecasts_modified"])
+        self.assertFalse(state["full_four_laps_confirmed"])
 
     def test_ciphertext_is_not_automatic_training_license(self):
         for item in SOURCES:
