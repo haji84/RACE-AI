@@ -1,0 +1,11 @@
+{
+  "kind": "autorace_public_observation_receipt_only",
+  "race_day_jst": "2026-11-09",
+  "observed_at_jst": "2026-11-09T16:22:19+09:00",
+  "private_observation_basename": "autorace_20261109_kawaguchi_11R_trial_confirmed_12R_pending_observation.json",
+  "private_observation_sha256": "68e2485bd3098a9ebfec94a0abe49d6cadcac5192e8e2e84227ca639e53d2d4f",
+  "scope": "Kawaguchi 11R trial observed after cutoff; 12R trial unverified; no new prediction; no results PDCA",
+  "original_forecasts": "unchanged",
+  "source_page_11R": "https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/3/11",
+  "source_page_12R": "https://www.winticket.jp/autorace/kawaguchi/racecard/2026110702/3/12"
+}
