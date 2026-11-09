@@ -64,7 +64,7 @@ def _source_wind_mps(raw):
     """
     if type(raw) is not str:
         return None
-    m=re.fullmatch(r"\\s*(?:0|[1-9][0-9]?)(?:\\.[0-9]{1,3})?\\s*m/s\\s*",raw)
+    m=re.fullmatch(r"\s*(?:0|[1-9][0-9]?)(?:\.[0-9]{1,3})?\s*m/s\s*",raw)
     if m is None:
         return None
     try:
