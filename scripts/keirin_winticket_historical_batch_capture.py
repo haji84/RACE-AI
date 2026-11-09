@@ -43,6 +43,13 @@ SOURCES = (
      "venue":"松山","date":"2026年11月8日","race_no":2,
      "cohort":"UNSEEN_RESERVED"},
 )
+# A separately bounded post-result analysis, not a fifth training event.
+AOMORI_20261109_1R_REVIEW = {
+    "race_id": "20261109-aomori-1R",
+    "url": "https://www.winticket.jp/keirin/aomori/raceresult/2026110812/2/1",
+    "venue": "青森", "date": "2026年11月9日", "race_no": 1,
+    "cohort": "POST_RESULT_PREDICTION_AUDIT_ONLY",
+}
 SCHEMA = "RACE_AI_HISTORICAL_CLIP_BATCH_SCREEN_CAPTURE_V1"
 
 def identity_ok(source, url, title, code):
@@ -137,7 +144,7 @@ async def capture_one(browser, source, root, public_key):
                 entry["technical_status"]="INCOMPLETE_NOT_EXPORTED"
         return entry
 
-async def execute(report, root, public_key):
+async def execute(report, root, public_key, *, review_aomori1r=False):
     if not public_key.is_file():
         raise FileNotFoundError("PUBLIC_KEY_NOT_FOUND")
     # Verify the entire DER/ASN.1 public key before opening a page.
@@ -145,19 +152,20 @@ async def execute(report, root, public_key):
     load_pem_public_key(public_key.read_bytes())
     report.parent.mkdir(parents=True,exist_ok=True)
     root.mkdir(parents=True,exist_ok=True)
+    sources=(AOMORI_20261109_1R_REVIEW,) if review_aomori1r else SOURCES
     details={"schema":SCHEMA,
              "started_utc":datetime.now(timezone.utc).isoformat(),
              "captured_video_in_public_github":False,
              "user_reports_winticket_use_ok":True,
              "permission_scope_documented":False,
              "real_scene_training_completed":False,
-             "source_limit":len(SOURCES),"races":[]}
+             "source_limit":len(sources),"races":[]}
     async with async_playwright() as pw:
         browser=await pw.chromium.launch(
             headless=True,channel="chrome",
             args=["--no-sandbox","--autoplay-policy=no-user-gesture-required"])
         try:
-            for source in SOURCES:
+            for source in sources:
                 try:
                     result=await capture_one(browser,source,root,public_key)
                 except Exception as exc:
@@ -192,14 +200,22 @@ def main():
     parser.add_argument("--report",required=True,type=Path)
     parser.add_argument("--encrypted-dir",required=True,type=Path)
     parser.add_argument("--public-key",required=True,type=Path)
+    parser.add_argument("--review-aomori1r",action="store_true",
+                        help="Record only Aomori 2026-11-09 1R post-result")
     args=parser.parse_args()
-    result=asyncio.run(execute(args.report,args.encrypted_dir,args.public_key))
+    result=asyncio.run(execute(args.report,args.encrypted_dir,args.public_key,
+                               review_aomori1r=args.review_aomori1r))
     print(json.dumps({
         "recorded":result["encrypted_races"],
         "train_candidates":result["train_candidates"],
         "unseen_reserved":result["unseen_reserved"],
         "real_scene_training_completed":False},ensure_ascii=False))
-    if result["encrypted_races"]<2:
+    if args.review_aomori1r:
+        if (len(result["races"])!=1 or
+                result["races"][0]["race_id"]!=AOMORI_20261109_1R_REVIEW["race_id"]
+                or result["races"][0]["technical_status"]!="ENCRYPTED_COMPLETE_PLAYER"):
+            raise SystemExit("AOMORI_1R_REPLAY_NOT_RECORDED_NO_TACTICAL_CLAIM")
+    elif result["encrypted_races"]<2:
         raise SystemExit("NEED_AT_LEAST_TWO_DISTINCT_REPLAY_CAPTURED")
 
 if __name__=="__main__":
