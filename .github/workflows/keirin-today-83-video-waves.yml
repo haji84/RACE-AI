@@ -1,0 +1,120 @@
+name: KEIRIN 2026-11-09 nationwide 83 clip recording waves
+
+on:
+  pull_request:
+    paths:
+      - 'race_ai/keirin_20261109_83_manifest.py'
+      - 'scripts/keirin_today_83_clip_wave.py'
+      - 'tests/test_keirin_today_83_clip_wave.py'
+      - 'docs/evidence/2026-11-09/keirin_daily_video_tick.json'
+      - '.github/workflows/keirin-today-83-video-waves.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keirin-nov09-83-clip-research
+  cancel-in-progress: false
+
+jobs:
+  bounded-past-result-clips:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            race_ai
+            scripts
+            tests
+            docs
+          fetch-depth: 1
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Prepare owner-research browser encryption and metadata
+        run: |
+          python -m pip install --disable-pip-version-check \
+            playwright==1.56.0 'cryptography>=44,<48'
+          python -m playwright install chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Validate 83-race manifest, timezone safety and encryption
+        run: |
+          python -m py_compile race_ai/keirin_20261109_83_manifest.py
+          python -m py_compile scripts/keirin_today_83_clip_wave.py
+          python -m unittest discover -s tests \
+            -p 'test_keirin_today_83_clip_wave.py' -v
+          python - <<'PY'
+          from cryptography.hazmat.primitives.serialization import load_pem_public_key
+          from pathlib import Path
+          key=load_pem_public_key(Path('docs/keirin-historical-batch-20261109-public.pem').read_bytes())
+          assert key.key_size == 3072
+          print('Owner-side research encryption public key validated')
+          PY
+      - name: Record only races already scheduled to have finished
+        id: capture
+        run: |
+          python -m scripts.keirin_today_83_clip_wave \
+            --public-key docs/keirin-historical-batch-20261109-public.pem \
+            --report "$RUNNER_TEMP/keirin-nov09-wave-report.json" \
+            --encrypted-dir "$RUNNER_TEMP/keirin-nov09-encrypted-wave" \
+            --window-hours 2.2 --max-attempts 40
+      - name: Upload ciphertext only, not browser video or raw frames
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: keirin-20261109-83-sealed-wave-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-nov09-encrypted-wave/
+          retention-days: 2
+          if-no-files-found: warn
+      - name: Export public race counts and SHA evidence without clip media
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path(os.environ['RUNNER_TEMP'])/'keirin-nov09-wave-report.json'
+          data=json.loads(p.read_text()) if p.exists() else {}
+          lines=[
+            '## 2026-11-09 WINTICKET 83-race research video wave',
+            'Scheduled venues: 8; scheduled races: 83; exact live cancellations/changes NOT assumed',
+            'WINTICKET usage permission: owner-reported OK; scope not independently documented',
+            'Only public results-page browser playback; no direct stream extraction',
+            f"Eligible during this wave: {data.get('eligible_this_wave',0)}",
+            f"Attempted: {data.get('attempted_races',0)}",
+            f"Encrypted captures: {data.get('encrypted_capture_count',0)}",
+            'Unobserved tactic = UNKNOWN, never a zero outcome',
+            'Source frames and rider tactical identity independently labeled: NOT YET',
+            'No PR71 forecast model edited, no retroactive pre-cutoff forecast.',
+          ]
+          for row in data.get('race_rows',[]):
+             lines.append('- '+str(row.get('race_id'))+
+                          ': '+str(row.get('status'))+
+                          '; duration='+str(row.get('player_duration_s'))+
+                          '; capture SHA256='+str(row.get('recording_sha256'))+
+                          '; cohort='+str(row.get('cohort')))
+          Path(os.environ['GITHUB_STEP_SUMMARY']).write_text('\n'.join(lines)+'\n')
+          print('\n'.join(lines))
+          PY
+      - name: Publish bounded manifest report only, no results or video
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: keirin-20261109-83-wave-metadata-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-nov09-wave-report.json
+          retention-days: 2
+          if-no-files-found: warn
+      - name: Fail when playable completed races yielded zero captures
+        if: always()
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path(os.environ['RUNNER_TEMP'])/'keirin-nov09-wave-report.json'
+          data=json.loads(p.read_text()) if p.exists() else {}
+          if data.get('attempted_races',0)>0 and data.get('encrypted_capture_count',0)==0:
+              raise SystemExit('NO_HISTORIC_VIDEO_CAPTURE_PROVEN')
+          print('No official prediction accuracy or model promotion claimed.')
+          PY
