@@ -15,7 +15,9 @@ on:
       - 'tests/test_keirin_cloud_pr71_state.py'
       - 'tests/test_keirin_cloud_workflow_guard.py'
       - 'scripts/keirin_day_four_model_audit.py'
+      - 'scripts/keirin_cloud_pr71_variable.py'
       - 'tests/test_keirin_day_four_model_audit.py'
+      - 'tests/test_keirin_cloud_pr71_variable.py'
       - 'docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
   pull_request:
@@ -25,7 +27,9 @@ on:
       - 'tests/test_keirin_cloud_pr71_state.py'
       - 'tests/test_keirin_cloud_workflow_guard.py'
       - 'scripts/keirin_day_four_model_audit.py'
+      - 'scripts/keirin_cloud_pr71_variable.py'
       - 'tests/test_keirin_day_four_model_audit.py'
+      - 'tests/test_keirin_cloud_pr71_variable.py'
       - 'docs/evidence/2026-11-10/keirin_78r_source_only_cohort.json'
       - 'docs/KEIRIN_GITHUB_OWNER_AUTONOMY.md'
 
@@ -47,7 +51,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: 1b50a851726f3e061757fa670687af4c211c9005
+          ref: 97464792c2af28b39f9ffbe668019fb1482d5a8c
           path: pr71-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -61,10 +65,14 @@ jobs:
           export PYTHONPATH="$GITHUB_WORKSPACE/pr71-source:$GITHUB_WORKSPACE/pr71-source/tests:$GITHUB_WORKSPACE:$GITHUB_WORKSPACE/tests"
           cd "$GITHUB_WORKSPACE/pr71-source"
           python -m unittest -v tests.test_keirin_pr71_four_model_rank tests.test_keirin_allowed_delivery tests.test_keirin_permissioned_owner
+          # The exact pinned source must also execute its own V3 grant,
+          # immutable provider revision and no-retroactive-model regressions.
+          python -m unittest -v tests.test_keirin_licensed_result_stage tests.test_keirin_license_api_ingest
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_pr71_state.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_workflow_guard.py' -v
           python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_day_four_model_audit.py' -v
-          python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_state.py" "$GITHUB_WORKSPACE/scripts/keirin_day_four_model_audit.py"
+          python -m unittest discover -s "$GITHUB_WORKSPACE/tests" -p 'test_keirin_cloud_pr71_variable.py' -v
+          python -m py_compile "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_state.py" "$GITHUB_WORKSPACE/scripts/keirin_day_four_model_audit.py" "$GITHUB_WORKSPACE/scripts/keirin_cloud_pr71_variable.py"
       - name: Do not claim synthetic results as live
         run: echo 'Only synthetic model + AES Git-state tests. No actual real-race prediction verified.' >> "$GITHUB_STEP_SUMMARY"
 
@@ -75,7 +83,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 1b50a851726f3e061757fa670687af4c211c9005
+          ref: 97464792c2af28b39f9ffbe668019fb1482d5a8c
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -138,7 +146,7 @@ jobs:
           persist-credentials: true
       - uses: actions/checkout@v4
         with:
-          ref: 1b50a851726f3e061757fa670687af4c211c9005
+          ref: 97464792c2af28b39f9ffbe668019fb1482d5a8c
           path: pr71-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -164,7 +172,7 @@ jobs:
           yes=r["state"]=="CLOUD_PR71_ENCRYPTED_GIT_HISTORY_READBACK_VERIFIED"
           with open(os.environ["GITHUB_OUTPUT"],"a") as f:
               f.write("committed="+("true" if yes else "false")+"\n")
-          safe={k:r.get(k) for k in ("state","generation","source_state","new_forecast_stage_nonzero","existing_pdca_invoked")}
+          safe={k:r.get(k) for k in ("state","generation","source_state","new_forecast_stage_nonzero","existing_pdca_invoked","result_rows_appended","result_rows_held","official_result_independently_authenticated")}
           print(json.dumps(safe,ensure_ascii=False,sort_keys=True))
           with open(os.environ["GITHUB_STEP_SUMMARY"],"a") as f:
               f.write("GitHub-hosted PR71 state: "+str(r["state"])+"\n")
@@ -189,7 +197,7 @@ jobs:
           persist-credentials: false
       - uses: actions/checkout@v4
         with:
-          ref: 1b50a851726f3e061757fa670687af4c211c9005
+          ref: 97464792c2af28b39f9ffbe668019fb1482d5a8c
           path: pr71-source
           persist-credentials: false
       - uses: actions/setup-python@v5
@@ -210,6 +218,7 @@ jobs:
               raise SystemExit("INDEPENDENT_CLOUD_READBACK_NOT_VERIFIED")
           print(json.dumps({"state":r["state"],"generation":r["generation"]}))
           PY
+   PY
       - name: Reconcile all 78 races and four original PR71 models after independent encrypted-state readback
         shell: bash
         run: |
