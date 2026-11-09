@@ -75,7 +75,8 @@ def _provider_race(item,day):
     no=int(number)
     if not (1<=no<=12 and 1<=int(venue)<=99):
         return None
-    if item.get("number")!=no:return None
+    need(item.get("number")==no,
+         "PUBLISHED_RACE_NUMBER_CONFLICTS_WITH_SOURCE_ID")
     rid=f"{yyyymmdd}{venue}{no:02d}"
     def decode_time(v):
         try:
