@@ -8,6 +8,7 @@ rider data, prices or nonencrypted SQLite is published in CI.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 from datetime import datetime,timezone
 from hashlib import sha256
 import json
@@ -19,8 +20,11 @@ from race_ai.keirin_winticket_embedded_odds import (
     private_winticket_trifecta,checked_race_and_url,EmbeddedOddsError
 )
 from race_ai.keirin_winticket_embedded_racecard import (
-    racecard_from_public_html,EmbeddedRacecardError,
-    safe_public_racecard_counts,safe_public_racecard_key_inventory
+    EmbeddedRacecardError,safe_public_racecard_counts,
+    safe_public_racecard_key_inventory
+)
+from race_ai.keirin_winticket_ex_connection import (
+    racecard_with_observed_ex as racecard_from_public_html,ExSourceError,
 )
 from race_ai.keirin_real_source_gap_report import inspect_source_gaps
 from race_ai.keirin_result_delivery import utc
@@ -48,7 +52,7 @@ def public_future_race_probe(*,race_id,racecard_url,odds_url,
         card=racecard_from_public_html(
             card_html,url=racecard_url,race_id=race_id,
             captured_at=card_at.isoformat())
-    except EmbeddedRacecardError as e:
+    except (EmbeddedRacecardError,ExSourceError) as e:
         return {
             "schema":SCHEMA,"status":"RACECARD_PENDING_OR_CUTOFF_PASSED",
             "race_id":race_id,"racecard_html_sha256":sha256(card_html).hexdigest(),
@@ -61,9 +65,7 @@ def public_future_race_probe(*,race_id,racecard_url,odds_url,
     odds_at=clock()
     if not isinstance(odds_at,datetime) or odds_at.utcoffset() is None:
         raise EmbeddedOddsError("ODDS_CAPTURE_CLOCK_NOT_AWARE")
-    # The card was observed before the published cutoff, but the odds GET
-    # has its OWN timestamp. A slow/queued second request may cross closeAt.
-    # Never report a combined pre-cutoff observation from card time alone.
+    # A separate odds request can cross the cutoff. Never reuse card time.
     odds_before_published_cutoff=(
         odds_at < utc(card["source_published_cutoff_at_utc"]))
     prices=None
@@ -94,6 +96,11 @@ def public_future_race_probe(*,race_id,racecard_url,odds_url,
         "preflight_checked_items":counts["registry_checked_count"],
         "preflight_source_verified_items":counts["registry_verified_count"],
         "preflight_unavailable_items":counts["registry_unavailable_count"],
+        "ex_observed_attack_input_slots":len(card["ex_action_ratio_evidence"]),
+        "ex_attack_input_unavailable_reasons":dict(Counter(
+            card["ex_action_ratio_unavailable_reasons"].values())),
+        "ex_attack_transform":card["ex_action_ratio_transform"],
+        "ex_attack_denominator_kind":"recorded_actions_not_unique_races",
         "ssr_collection_field_names_only":sources["collection_field_names"],
         "ssr_collection_field_types_only":sources["collection_field_types_only"],
         "ssr_selected_nested_field_names_only":sources["selected_nested_field_names_only"],
@@ -103,7 +110,6 @@ def public_future_race_probe(*,race_id,racecard_url,odds_url,
             gaps["model_A_source_coverage"]["source_observed_required_slots"],
         "model_required_missing_A":
             gaps["model_A_source_coverage"]["source_unobserved_required_slots"],
-        # Counts grouped by source field, not private rider records or values.
         "missing_source_groups_A":
             gaps["model_A_source_coverage"][
                 "missing_model_input_slots_by_source_field"],
@@ -150,8 +156,7 @@ def main(args=None):
             racecard_url=a.racecard_url,
             odds_url=a.odds_url)
     except (PublicPageFetchError,EmbeddedOddsError,
-            EmbeddedRacecardError,OSError,ValueError) as exc:
-        # Only defined, privacy-safe error class/code names are emitted.
+            EmbeddedRacecardError,ExSourceError,OSError,ValueError) as exc:
         allowed=(
             "PUBLIC_PAGE_NOT_PUBLISHED_OR_GONE",
             "PUBLIC_PAGE_BLOCKED_OR_RATE_LIMITED_NO_RETRY",
@@ -171,8 +176,6 @@ def main(args=None):
         }
     print(json.dumps(result,sort_keys=True,separators=(",",":"),
                      ensure_ascii=False))
-    # Source may legitimately be unavailable before the event's odds market.
-    # This observer does not determine whether the CI's code is correct.
     return 0
 
 
