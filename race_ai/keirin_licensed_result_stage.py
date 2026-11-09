@@ -205,8 +205,9 @@ def apply_existing_frozen_results(inbox,store,grants,*,checked_at):
             roster=set(frozen["source"]["starters"])
             for triple in row["winning_triples"]:
                 need(set(triple)<=roster,"RESULT_WINNER_NOT_ON_FROZEN_CARD")
+            # Use this candidate's checked bytes, never the last scanned path.
             event={
-                "race_id":rid,"source_sha256":path.stem,
+                "race_id":rid,"source_sha256":digest,
                 "observed_at":row["observed_at"],
                 "status":row["status"],
                 "refund_status":row["refund_status"],
