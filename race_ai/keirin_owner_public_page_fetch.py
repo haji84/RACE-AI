@@ -171,8 +171,10 @@ def capture_approved_public_pages(inbox,grant,*,urls,transport=None,clock=None,
             added=True
         private_odds_stage=None
         if odds_race_id is not None and (
-            "/keirin/aomori/odds/" in url and
-            "winticket.jp" in (urlsplit(url).hostname or "")
+            "/keirin/" in urlsplit(url).path and
+            "/odds/" in urlsplit(url).path and
+            (urlsplit(url).hostname or "") in (
+                "winticket.jp","www.winticket.jp")
         ):
             from .keirin_winticket_embedded_odds import (
                 private_winticket_trifecta,stage_private_winticket_odds
