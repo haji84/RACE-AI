@@ -29,10 +29,10 @@ class GitHubScheduleFallbackContract(unittest.TestCase):
 
     def test_existing_hourly_canary_calls_same_capture_worker_only_on_schedule(self):
         self.assertIn("  actions: read", self.canary)
-        self.assertRegex(
-            self.canary,
-            r"(?m)^  fallback_nationwide_capture:\n    if: github.event_name == 'schedule'\n",
-        )
+        self.assertIn("  fallback_scheduling_gate:", self.canary)
+        self.assertIn("python -m scripts.keirin_schedule_fallback_gate", self.canary)
+        self.assertIn("needs: fallback_scheduling_gate", self.canary)
+        self.assertIn("needs.fallback_scheduling_gate.outputs.should_capture == 'true'", self.canary)
         self.assertIn(
             "uses: ./.github/workflows/keirin-github-autonomous.yml",
             self.canary,
