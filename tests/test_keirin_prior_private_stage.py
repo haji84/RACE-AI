@@ -121,6 +121,65 @@ class PriorPrivateStagingTests(unittest.TestCase):
                 racecard_sha256=self.cardsha,day_index_sha256=self.idxsha,
                 as_of=CAPTURE)
 
+    def test_source_url_and_race_identity_cannot_be_collusively_swapped(self):
+        # Matching fake reference URLs and event URLs must still be rejected.
+        refs=deepcopy(self.reference)
+        refs["references"][0]["url"]="https://example.invalid/old/result"
+        events=deepcopy(self.events)
+        events[0]["result_source_url"]=refs["references"][0]["url"]
+        with self.assertRaises(PriorSourceError):
+            private_research_packet(
+                refs,events,self.derived,racecard_sha256=self.cardsha,
+                day_index_sha256=self.idxsha,as_of=CAPTURE)
+
+    def test_source_probe_stage_returns_only_replay_counts_and_sha(self):
+        from datetime import datetime
+        from scripts import keirin_prior_real_input_probe as probe
+        target_url=(
+            "https://www.winticket.jp/keirin/aomori/racecard/2030011312/3/3"
+        )
+        past_url=self.reference["references"][0]["url"]
+        pages={target_url:b"FICTIONAL CARD",
+               "https://www.winticket.jp/keirin/odds/20300115":b"FICTIONAL INDEX",
+               past_url:b"FICTIONAL PAST RESULT"}
+        requests=[]
+        def fake_get(url):
+            requests.append(url)
+            return pages[url]
+        roster={"riders":[{"source_player_id":rid}
+                          for rid in self.reference["rider_ids"]]}
+        with patch.dict(os.environ,{"GITHUB_WORKSPACE":""}),patch.object(
+                probe,"racecard_from_public_html",return_value=roster
+        ),patch.object(
+                probe,"documents_from_html",return_value=[{"records":[]}]
+        ),patch.object(
+                probe,"history_references",return_value=self.reference
+        ),patch.object(
+                probe,"normalize_result_event",return_value=self.events[0]
+        ):
+            safe=probe.probe(
+                race_id=TARGET,racecard_url=target_url,max_pages=3,
+                fetch=fake_get,
+                clock=lambda:datetime.fromisoformat(CAPTURE),
+                private_evidence_dir=self.root)
+        self.assertEqual(len(requests),3)
+        self.assertTrue(safe["private_candidate_packet_saved"])
+        self.assertTrue(safe["private_candidate_replay_verified"])
+        self.assertFalse(safe["private_candidate_encrypted_git_archived"])
+        self.assertFalse(safe["actual_four_model_forecast_saved"])
+        self.assertEqual(safe["prior_result_pages_verified"],1)
+        self.assertNotIn("fiction-",str(safe))
+        self.assertNotIn("FICTIONAL PAST RESULT",str(safe))
+        out=self.root/"keirin_prior_research"/(
+            safe["private_candidate_packet_sha256"]+".json")
+        private=read_private_research_packet(
+            out,expected_sha256=safe["private_candidate_packet_sha256"])
+        self.assertEqual(private["racecard_original_sha256"],
+                         sha256(pages[target_url]).hexdigest())
+        self.assertEqual(private["day_index_original_sha256"],
+                         sha256(pages[requests[1]]).hexdigest())
+        self.assertFalse(private["provider_automated_training_rights_verified"])
+
     def test_symlink_rejected_and_untrusted_full_public_payload_never_returned(self):
         with patch.dict(os.environ,{"GITHUB_WORKSPACE":""}):
             root=self.root/"owner"
