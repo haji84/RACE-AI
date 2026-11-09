@@ -300,6 +300,37 @@ def safe_public_racecard_key_inventory(packet, html):
     entrant_count=len(packet["riders"])
     require(len(accepted)==entrant_count,"RIDER_ID_SET_INCONSISTENT")
     fields={k:set() for k in ("entries","players","records","races")}
+    types={k:{} for k in fields}
+    nested_shapes={}
+    # Names are public schema identifiers, never player IDs or observed scores.
+    known_nested=("currentCupResults","latestCupResults","latestVenueResults",
+                  "trackDistance400","frontRunner","deepCloser","stalker",
+                  "exCompete","exSnatch","exSpurt","exThrust","lineCompete",
+                  "raceTypeQualifyingRound","gradeRaceSummaries")
+    def safe_key(k):
+        return type(k) is str and bool(
+            re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,79}",k))
+    def shape(v):
+        return ("null" if v is None else "bool" if type(v) is bool else
+                "integer" if type(v) is int else
+                "number" if type(v) is float else
+                "string" if type(v) is str else
+                "object" if type(v) is dict else
+                "array" if type(v) is list else "unrecognized")
+    def observe(collection,row):
+        for k,v in row.items():
+            if not safe_key(k):continue
+            fields[collection].add(k)
+            types[collection].setdefault(k,set()).add(shape(v))
+            if collection=="records" and k in known_nested:
+                if type(v) is dict:
+                    children=[key for key in v if safe_key(key)]
+                elif type(v) is list:
+                    children=[key for obj in v[:4] if type(obj) is dict
+                              for key in obj if safe_key(key)]
+                else:
+                    children=[]
+                nested_shapes.setdefault(k,set()).update(children)
     source_counts={k:0 for k in fields}
     for entry in q:
         if type(entry) is not dict or type(entry.get("state")) is not dict:
@@ -323,9 +354,8 @@ def safe_public_racecard_key_inventory(packet, html):
             ):
                 continue
             source_counts[coll]+=1
-            for row in rows:fields[coll].update(
-                k for k in row if type(k) is str and
-                re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,79}",k))
+            for row in rows:
+                observe(coll,row)
         rr=data.get("races")
         if type(rr) is list:
             for row in rr:
@@ -335,9 +365,7 @@ def safe_public_racecard_key_inventory(packet, html):
                             packet["race_id"][8:10] +
                             packet["race_id"][:8])):
                     source_counts["races"]+=1
-                    fields["races"].update(
-                        k for k in row if type(k) is str and
-                        re.fullmatch(r"[A-Za-z][A-Za-z0-9_]{0,79}",k))
+                    observe("races",row)
     require(all(source_counts[k]>=1 for k in fields),
             "SOURCE_COLLECTIONS_NOT_JOINED_TO_EXACT_RACE")
     return {
@@ -345,6 +373,12 @@ def safe_public_racecard_key_inventory(packet, html):
         "race_id":packet["race_id"],
         "source_original_html_sha256":packet["html_sha256"],
         "collection_field_names":{k:sorted(v)[:120] for k,v in fields.items()},
+        "collection_field_types_only":{
+            k:{name:sorted(kinds) for name,kinds in sorted(types[k].items())}
+            for k in sorted(types)},
+        "selected_nested_field_names_only":{
+            key:sorted(value)[:70] for key,value in sorted(
+                nested_shapes.items())},
         "field_names_not_observation_values":True,
         "count_as_verified_347_factors":False,
         "new_source_rights_granted":False,
