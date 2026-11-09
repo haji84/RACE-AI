@@ -50,7 +50,7 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_keirin_github_schedule_fallback.py' -v
       - uses: actions/checkout@v4
         with:
-          ref: 42dbfd4ca37c50e6a447c6431ea041e8dba0bc1a
+          ref: c26ac0927647f317acf855e0c42cd1703232c19b
           path: immutable-research
           persist-credentials: false
       - name: Test previous-day manifest provenance without contacting providers
@@ -69,7 +69,7 @@ jobs:
       - name: Checkout locked, source-only research commit
         uses: actions/checkout@v4
         with:
-          ref: 42dbfd4ca37c50e6a447c6431ea041e8dba0bc1a
+          ref: c26ac0927647f317acf855e0c42cd1703232c19b
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -105,7 +105,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 42dbfd4ca37c50e6a447c6431ea041e8dba0bc1a
+          ref: c26ac0927647f317acf855e0c42cd1703232c19b
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -265,7 +265,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 42dbfd4ca37c50e6a447c6431ea041e8dba0bc1a
+          ref: c26ac0927647f317acf855e0c42cd1703232c19b
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
