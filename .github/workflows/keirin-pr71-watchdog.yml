@@ -1,0 +1,135 @@
+# RACE-AI Public: GitHub-hosted metadata-only fallback. No vendor calls.
+# Main PR71 schedule is the primary producer. Watchdog dispatches only after
+# absence of recent trusted main producer runs, using a single writer.
+name: KEIRIN PR71 monitored schedule fallback
+
+on:
+  schedule:
+    - cron: '25,55 * * * *'
+  workflow_run:
+    workflows: ['KEIRIN hourly personal research canary']
+    types: [completed]
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/keirin-pr71-watchdog.yml'
+  pull_request:
+    paths:
+      - '.github/workflows/keirin-pr71-watchdog.yml'
+      - 'scripts/keirin_pr71_watchdog.py'
+      - 'tests/test_keirin_pr71_watchdog.py'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keirin-pr71-monitored-watchdog-main
+  cancel-in-progress: false
+
+jobs:
+  watchdog-tests:
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 3
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Verify narrow fallback metadata logic and security boundary
+        run: python -m unittest discover -s tests -p 'test_keirin_pr71_watchdog.py' -v
+
+  trusted-fallback:
+    if: >-
+      github.repository == 'haji84/RACE-AI' &&
+      (
+        (github.event_name == 'schedule' && github.ref == 'refs/heads/main') ||
+        (github.event_name == 'workflow_run' &&
+         github.ref == 'refs/heads/main' &&
+         github.event.workflow_run.event == 'schedule' &&
+         github.event.workflow_run.conclusion == 'success' &&
+         github.event.workflow_run.head_branch == 'main' &&
+         github.event.workflow_run.head_repository.full_name == 'haji84/RACE-AI') ||
+        (github.event_name == 'push' &&
+         github.ref == 'refs/heads/main' &&
+         startsWith(github.event.head_commit.message,
+           'feat(keirin): continuous PR71 monitored fallback'))
+      )
+    runs-on: ubuntu-24.04
+    timeout-minutes: 4
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Verify current protected main and original PR71 producer active
+        id: main-preflight
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          remote_sha="$(gh api repos/haji84/RACE-AI/branches/main --jq '.commit.sha')"
+          if [[ "$remote_sha" != "$GITHUB_SHA" ]]; then
+            echo 'HOLD_MAIN_MOVED_NO_PRODUCER_DISPATCH' >> "$GITHUB_STEP_SUMMARY"
+            echo 'eligible=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          state="$(gh api repos/haji84/RACE-AI/actions/workflows/keirin-pr71-owner-autonomous.yml --jq '.state')"
+          if [[ "$state" != 'active' ]]; then
+            echo 'HOLD_PR71_WORKFLOW_NOT_ACTIVE' >> "$GITHUB_STEP_SUMMARY"
+            exit 2
+          fi
+          echo 'eligible=true' >> "$GITHUB_OUTPUT"
+          echo 'Current protected main and active original producer confirmed.'
+
+      - name: Check existing real PR71 schedule and dispatch runs before backup
+        if: steps.main-preflight.outputs.eligible == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh api 'repos/haji84/RACE-AI/actions/workflows/keirin-pr71-owner-autonomous.yml/runs?event=schedule&branch=main&per_page=30' > "$RUNNER_TEMP/primary-schedule.json"
+          gh api 'repos/haji84/RACE-AI/actions/workflows/keirin-pr71-owner-autonomous.yml/runs?event=workflow_dispatch&branch=main&per_page=30' > "$RUNNER_TEMP/primary-dispatch.json"
+          jq -s '{total_count: (.[0].total_count + .[1].total_count), workflow_runs: (.[0].workflow_runs + .[1].workflow_runs)}' \
+            "$RUNNER_TEMP/primary-schedule.json" "$RUNNER_TEMP/primary-dispatch.json" > "$RUNNER_TEMP/pr71-main-runs.json"
+          python scripts/keirin_pr71_watchdog.py --runs-json "$RUNNER_TEMP/pr71-main-runs.json" > "$RUNNER_TEMP/pr71-fallback-decision.json"
+          python - <<'PY'
+          from pathlib import Path
+          import json, os
+          d=json.loads((Path(os.environ['RUNNER_TEMP'])/'pr71-fallback-decision.json').read_text())
+          assert d['real_forecast_claimed'] is False
+          assert d['schedule_success_claimed'] is False
+          with open(os.environ['GITHUB_STEP_SUMMARY'],'a') as out:
+              out.write('PR71 watchdog: '+d['decision']+'\\n')
+              out.write('Recent main producer runs: '+str(d['recent_main_producer_runs'])+'\\n')
+              out.write('Active main producer runs: '+str(d['active_main_producer_runs'])+'\\n')
+          PY
+
+      - name: Dispatch pre-existing production workflow only when absent
+        if: steps.main-preflight.outputs.eligible == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          decision="$(python -c 'import json,os; from pathlib import Path; print(json.loads((Path(os.environ["RUNNER_TEMP"])/"pr71-fallback-decision.json").read_text())["decision"])')"
+          if [[ "$decision" == 'DISPATCH_MISSING_TRUSTED_PRODUCER' ]]; then
+            remote_sha="$(gh api repos/haji84/RACE-AI/branches/main --jq '.commit.sha')"
+            [[ "$remote_sha" == "$GITHUB_SHA" ]] || { echo 'HOLD_MAIN_MOVED'; exit 2; }
+            gh api --method POST \
+              repos/haji84/RACE-AI/actions/workflows/keirin-pr71-owner-autonomous.yml/dispatches \
+              -f ref=main --silent
+            echo 'One missing-run fallback workflow_dispatch was requested.' >> "$GITHUB_STEP_SUMMARY"
+          elif [[ "$decision" == 'SKIP_RECENT_TRUSTED_PRODUCER' ||
+                  "$decision" == 'HOLD_ACTIVE_TRUSTED_PRODUCER' ]]; then
+            echo 'No redundant producer dispatch. Original PR71 continues to own input/AES/results.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo 'HOLD_UNKNOWN_WATCHDOG_STATE' >&2
+            exit 2
+          fi
+          echo 'A dispatch acknowledgement is not a live forecast or schedule-success proof.' >> "$GITHUB_STEP_SUMMARY"
