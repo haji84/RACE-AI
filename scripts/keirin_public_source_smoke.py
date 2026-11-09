@@ -263,6 +263,42 @@ def preloaded_schema_only(text):
             })
             if len(odds_shape)>=3:
                 break
+    # Public field-name inventory for a future source-grounded racer importer.
+    # No rider name, score, race result, raw odds or source record is printed.
+    from collections import Counter
+    query_names=Counter()
+    interesting_collections=[]
+    for query in query_list[:250] if isinstance(query_list,list) else []:
+        if not isinstance(query,dict):
+            continue
+        qkey=query.get("queryKey")
+        if isinstance(qkey,list) and qkey and isinstance(qkey[0],str):
+            label=qkey[0]
+            if re.fullmatch(r"[A-Za-z_-]{2,55}",label):
+                query_names[label]+=1
+        node=query.get("state")
+        data=node.get("data") if isinstance(node,dict) else None
+        if not isinstance(data,dict):
+            continue
+        for field,value in data.items():
+            if not isinstance(field,str) or not re.fullmatch(
+                    r"[A-Za-z_][A-Za-z0-9_]{1,50}",field):
+                continue
+            if isinstance(value,list) and len(value) in (7,14,21):
+                first=value[0] if value else None
+                interesting_collections.append({
+                    "collection_key":field,
+                    "length":len(value),
+                    "first_item_field_names":(
+                        list(first.keys())[:35] if isinstance(first,dict)
+                        else []),
+                })
+                if len(interesting_collections)>=18:
+                    break
+        if len(interesting_collections)>=18:
+            break
+    redux=tree.get("redux")
+    redux_top_keys=(list(redux.keys())[:45] if isinstance(redux,dict) else [])
     return {
         "status":"PRELOADED_JSON_PARSED",
         "assignment_kind":assignment_kind,
@@ -273,6 +309,9 @@ def preloaded_schema_only(text):
         "array_length_210_paths":exact_210,
         "array_length_504_paths":exact_504,
         "trifecta_row_shapes":odds_shape,
+        "query_name_counts":dict(query_names.most_common(30)),
+        "public_racecard_collections":interesting_collections,
+        "redux_top_key_names":redux_top_keys,
         "full_210_prices_verified":False,
     }
 
