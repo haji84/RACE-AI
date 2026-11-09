@@ -189,18 +189,34 @@ class GitHubCLI:
     def final_control(self, run):
         from .cycle_recovery import artifact_pages, authenticated_source_control
         from .boat_source_control import read_summary, require_legacy_clear
-        rows = artifact_pages(self.raw, run["id"])
+        # Existing encrypted-Git vault has no age cutoff: try it before any
+        # live Actions artifact request, never as a fallback after a failed GET.
+        reader = self.raw
+        if os.environ.get("RACE_AI_ORIGINAL_VAULT_ENABLED") == "true":
+            from scripts.github_existing_cycle import original_reader
+            reader = original_reader()
+            if reader is None:
+                raise ValueError("WORKFLOW_ARCHIVE_READER_UNAVAILABLE")
+            descriptor = reader.closed_run_descriptor(run["id"])
+            if descriptor is not None:
+                identity = descriptor["state"]["identity"]
+                attempt = run.get("run_attempt", 1)
+                if (run.get("status") != "completed" or type(attempt) is not int or
+                        attempt != identity["run_attempt"] or
+                        run.get("head_sha") != identity["head_sha"]):
+                    raise ValueError("WORKFLOW_ARCHIVED_ATTEMPT_MISMATCH")
+        rows = artifact_pages(reader, run["id"])
         selected = [a for a in rows if a.get("name") == f"race-cycle-continuity-{run['id']}"]
         if len(selected) != 1: raise ValueError("WORKFLOW_CHECKPOINT_NOT_AVAILABLE")
-        meta = self.api(f"actions/artifacts/{selected[0]['id']}")
+        meta = json.loads(reader(f"actions/artifacts/{selected[0]['id']}"))
         if meta.get("id") != selected[0]["id"]: raise ValueError("WORKFLOW_CHECKPOINT_ID_INVALID")
-        raw = self.raw(f"actions/artifacts/{meta['id']}/zip")
+        raw = reader(f"actions/artifacts/{meta['id']}/zip")
         companions = [a for a in rows if a.get("name") == f"race-source-control-{run['id']}"]
         if len(companions) > 1: raise ValueError("WORKFLOW_CHECKPOINT_CONTROL_DUPLICATE")
         if companions:
-            public_meta = self.api(f"actions/artifacts/{companions[0]['id']}")
+            public_meta = json.loads(reader(f"actions/artifacts/{companions[0]['id']}"))
             if public_meta.get("id") != companions[0]["id"]: raise ValueError("WORKFLOW_CHECKPOINT_ID_INVALID")
-            public = self.raw(f"actions/artifacts/{public_meta['id']}/zip")
+            public = reader(f"actions/artifacts/{public_meta['id']}/zip")
             return read_summary(public, public_meta, raw, meta, run_id=run["id"], head_sha=run.get("head_sha"))
         require_legacy_clear(raw)
         value = authenticated_source_control(raw, meta, expected_run=run["id"])
