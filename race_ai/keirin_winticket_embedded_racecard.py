@@ -55,6 +55,25 @@ def _number(v,*,lo=0,hi=None):
     return v
 
 
+def _source_wind_mps(raw):
+    """Use only an explicitly labelled m/s reading, never bare digits.
+
+    Provider display may omit wind before the event, or return a different
+    unit. Such values remain unavailable rather than guessed or converted.
+    This is source observation only, not rights or forecast authorization.
+    """
+    if type(raw) is not str:
+        return None
+    m=re.fullmatch(r"\\s*(?:0|[1-9][0-9]?)(?:\\.[0-9]{1,3})?\\s*m/s\\s*",raw)
+    if m is None:
+        return None
+    try:
+        v=float(raw.strip().removesuffix("m/s").strip())
+    except ValueError:
+        return None
+    return v if math.isfinite(v) and 0<=v<=40 else None
+
+
 def _clock(v):
     try:
         if type(v) is int and 1_500_000_000<v<2_400_000_000:
@@ -199,6 +218,15 @@ def racecard_from_public_html(html,*,url,race_id,captured_at,
                     type(recent.get("comment")) is str else None,
         }
         starters.append(row)
+        # Age and training term are publicly observable when BOTH rider
+        # identity-matched fields are actually present. This is an optional
+        # audit fact, not the numeric required input for any PR71 model.
+        age=person.get("age")
+        term=person.get("term")
+        if (type(age) is int and 16<=age<=110 and
+                type(term) is int and 1<=term<=250):
+            verified[f"rider/{n}/age_term_experience"]={
+                "age_years":age,"training_term_number":term}
         if grade:
             verified[f"rider/{n}/identity_number_and_grade"]={
                 "number":n,"identity":name,"grade":grade}
@@ -252,6 +280,13 @@ def racecard_from_public_html(html,*,url,race_id,captured_at,
     distance=_number(racemeta.get("distance"),lo=1)
     if distance is not None:
         verified["race/race_distance"]=distance
+    # The published race detail can expose a wind-speed string. Require
+    # explicit m/s units. A numeric-only/unknown/postrace wind value does not
+    # establish a pre-race environmental reading. Timestamps and rights still
+    # require the independent source admission process.
+    wind=_source_wind_mps(racemeta.get("windSpeed"))
+    if wind is not None:
+        verified["race/wind_speed"]=wind
 
     keys=set(expected_keys(list(range(1,entrants+1))))
     verified={k:v for k,v in verified.items() if k in keys}
