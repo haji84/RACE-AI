@@ -37,6 +37,9 @@ from race_ai.keirin_owner_sqlite import PrivateKeirinStore
 from race_ai.keirin_pr71_four_model_rank import FourModelRankLedger
 from race_ai.four_sport_model_suite import ALL_MODELS
 from race_ai.keirin_result_delivery import canonical, utc
+from scripts.keirin_cloud_pr71_variable import (
+    FourModelVariableLedger, stage_four_model_variable_selections,
+)
 
 BASE=Path("state/keirin/pr71-production/v1")
 HEAD=BASE/"latest.json"
@@ -183,9 +186,26 @@ def _pr71_inventory(db):
         revision_rows=store.db.execute(
             "SELECT race_id,revision,payload_sha256 FROM result_revisions "
             "ORDER BY race_id,revision").fetchall()
+        variable_ledger=FourModelVariableLedger(store)
+        variable_rows=variable_ledger.inventory()
+        need(len(variable_rows)<=8000,"PR71_FOUR_MODEL_VARIABLE_LINEAGE_LIMIT")
+        variable_races={}
+        for rid,mid,doc_sha in variable_rows:
+            need(mid in ALL_MODELS,"UNKNOWN_VARIABLE_MODEL")
+            saved=ledger.read_suite(rid)
+            need(saved is not None,"VARIABLE_WITHOUT_ORIGINAL_SUITE")
+            doc=variable_ledger.selection(rid,mid)["selection"]
+            need(doc["suite_sha256"]==saved["suite"]["suite_sha256"] and
+                 doc["model_prediction_sha256"]==
+                 saved["suite"]["models"][mid]["prediction_sha256"],
+                 "VARIABLE_NOT_BOUND_TO_ORIGINAL_MODEL_SHA")
+            variable_races.setdefault(rid,set()).add(mid)
+        need(all(ids==set(ALL_MODELS) for ids in variable_races.values()),
+             "INCOMPLETE_ATOMIC_FOUR_MODEL_VARIABLE")
         digest=sha256(canonical({
             "four_model_originals":digests,
             "result_revision_digests":[tuple(r) for r in revision_rows],
+            "four_model_variable_digests":variable_rows,
         })).hexdigest()
     return {"internal_digest":digest,"frozen":len(rows),
             "revisions":len(revision_rows)}
@@ -376,6 +396,9 @@ def cycle(repo,source_root):
             frozen=stage_existing_owner_pre_races(
                 inbox,store,source_admission=grants.allowed
                 if grants is not None else None)
+            variable=stage_four_model_variable_selections(
+                inbox,store,source_admission=grants.allowed
+                if grants is not None else None)
             results=(apply_existing_frozen_results(
                 inbox,store,grants,checked_at=store.clock().isoformat())
                 if grants is not None else {
@@ -387,6 +410,8 @@ def cycle(repo,source_root):
             return {"state":"CLOUD_PR71_RESTORED_NO_CHANGED_MODEL_OR_RESULT",
                     "originals_preserved":True,"new_forecasts":0,
                     "source_state":status,
+                    "four_model_variable_saved":variable["four_model_variable_saved"],
+                    "four_model_variable_held":variable["four_model_variable_held"],
                     "result_rows_appended":results["results_appended"],
                     "result_rows_held":results["results_held"],
                     "official_result_independently_authenticated":False}
@@ -399,6 +424,8 @@ def cycle(repo,source_root):
                 "new_forecast_stage_nonzero":bool(
                     frozen.get("private_four_model_predictions_saved",0)),
                 "existing_pdca_invoked":True,
+                "four_model_variable_saved":variable["four_model_variable_saved"],
+                "four_model_variable_held":variable["four_model_variable_held"],
                 "result_rows_appended":results["results_appended"],
                 "result_rows_held":results["results_held"],
                 # A configured provider URL and a local licence manifest
