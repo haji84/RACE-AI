@@ -1,10 +1,10 @@
-"""Connect saved real WINTICKET SSR bytes to existing private odds inbox.
+"""Connect owner-private saved WINTICKET SSR bytes to existing intake.
 
-Uses pre-existing owner_public_capture/*.html + SHA receipt made by the
-public page collector. Both the racecard and odds page are required for the
-same venue/date/race. Stage complete 210/504 observed price set create-once
-through the existing private WINTICKET odds store; never backdate a forecast,
-auto-fill missing 347/437 rider factors or publish private source rows.
+Uses pre-existing owner_public_capture/*.html plus SHA receipt made by the
+public page collector. Source-grounded pre-race racecards are retained even
+before a live odds page is published. Both racecard AND a complete 210/504
+odds page are required only for staging price sets. No retroactive forecast,
+guessed 347/437 rider factors, public plaintext or private-source log.
 """
 from __future__ import annotations
 
@@ -125,7 +125,7 @@ def stage_private_captured_winticket(inbox):
     for rid,parts in sorted(race.items()):
         cards=sorted(parts.get("racecard",[]),key=lambda x:x[0])
         prices=sorted(parts.get("odds",[]),key=lambda x:x[0])
-        if not cards or not prices:
+        if not cards:
             incomplete+=1
             continue
         admitted_card=None
@@ -146,6 +146,12 @@ def stage_private_captured_winticket(inbox):
         partial_dir.joinpath(h+".json")
         if _write_private_once(partial_dir/(h+".json"),admitted_card):
             partial_riders+=1
+        # Odds can legitimately be pending many hours before the race.
+        # Preserve the authentic rider source packet now and process prices
+        # independently when the same race's public odds are later published.
+        if not prices:
+            incomplete+=1
+            continue
         qualified=False
         for at,url,body in prices:
             try:
