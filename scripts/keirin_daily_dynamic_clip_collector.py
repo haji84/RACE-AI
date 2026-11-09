@@ -195,7 +195,7 @@ async def run(args):
         sealed=seal_json(studies,args.owner_public_key.read_bytes(),
             aad="RACE_AI_PRIVATE_KEIRIN:"+today+":SCENE_RESEARCH_V1")
         args.sealed_research_dir.mkdir(parents=True,exist_ok=True)
-        envelope=args.sealed_research_dir/("keirin_"+today+"_sealed_research.json")
+        envelope=args.sealed_research_dir/("keirin_"+today+"_sealed_research.aesgcm.json")
         envelope.write_text(json.dumps(sealed,ensure_ascii=False))
         result["encrypted_private_research_documents"]=1
         result["scene_feature_races"]=len(private_feature_docs)
