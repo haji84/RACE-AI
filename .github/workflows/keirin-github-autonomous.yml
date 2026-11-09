@@ -1,0 +1,322 @@
+# Standalone default-branch dispatcher. Runs without a ChatGPT task.
+# The research engine is pinned to a reviewed immutable PR102 commit.
+# Without a configured owner-private object-store the temporary Actions
+# ciphertext artifacts expire and MUST NOT be called durable preservation.
+name: KEIRIN GitHub-only daily capture and conservative research
+
+on:
+  schedule:
+    - cron: '21 0-19 * * *'   # JST 09:21 through 04:21 next day
+    - cron: '50 19 * * *'     # JST 04:50, after overnight catch-up
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "capture, nightly, or smoke (research only)"
+        required: true
+        default: smoke
+        type: choice
+        options: [smoke, capture, nightly]
+  pull_request:
+    paths:
+      - '.github/workflows/keirin-github-autonomous.yml'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/keirin-github-autonomous.yml'
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: keirin-github-independent-main
+  cancel-in-progress: false
+
+jobs:
+  unit:
+    name: unit
+    if: >-
+      github.event_name == 'push' || github.event_name == 'pull_request' ||
+      (github.event_name == 'workflow_dispatch' && inputs.mode == 'smoke')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 9
+    steps:
+      - name: Checkout locked, source-only research commit
+        uses: actions/checkout@v4
+        with:
+          ref: 42dbfd4ca37c50e6a447c6431ea041e8dba0bc1a
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Offline regressions, never record a real race in PR CI
+        run: |
+          python -m pip install playwright==1.56.0 'cryptography>=44,<48'
+          python -m py_compile scripts/keirin_autonomous_artifact_recovery.py
+          python -m py_compile scripts/keirin_daily_dynamic_clip_collector.py
+          python -m py_compile race_ai/keirin_daily_clip_batch.py
+          python -m py_compile scripts/keirin_github_seal_owner_research.py
+          python -m unittest discover -s tests -p 'test_keirin_autonomous_artifact_recovery.py' -v
+          python -m unittest discover -s tests -p 'test_keirin_private_sealed_payload.py' -v
+          python -m unittest discover -s tests -p 'test_keirin_daily_clip_batch.py' -v
+          python -m unittest discover -s tests -p 'test_keirin_github_private_s3_archive.py' -v
+      - name: Record actual activation prerequisites
+        run: |
+          {
+            echo 'Scheduled GitHub-only dispatcher smoke: all tests synthetic.'
+            echo 'Scheduled video capture runs only after this workflow is on main.'
+            echo 'No raw footage, owner key, unverified tactics, or user forecasts loaded.'
+            echo 'Nightly owner research requires an explicit repository private-key Secret.'
+            echo 'True indefinite encrypted archival requires a configured private object store.'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  capture-completed-races:
+    if: >-
+      (github.event_name == 'schedule' && github.event.schedule == '21 0-19 * * *') ||
+      (github.event_name == 'workflow_dispatch' && inputs.mode == 'capture')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 115
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 42dbfd4ca37c50e6a447c6431ea041e8dba0bc1a
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Establish actual previous-day JST recovery boundary
+        id: day
+        shell: bash
+        run: |
+          set -euo pipefail
+          hour=$(TZ=Asia/Tokyo date +%H)
+          if (( 10#$hour < 5 )); then
+            echo "mode=prior" >> "$GITHUB_OUTPUT"
+            echo "target=$(TZ=Asia/Tokyo date --date='yesterday' +%F)" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=today" >> "$GITHUB_OUTPUT"
+            echo "target=$(TZ=Asia/Tokyo date +%F)" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Install browser recorder, numeric research and AES
+        run: |
+          python -m pip install --disable-pip-version-check \
+            playwright==1.56.0 'cryptography>=44,<48' \
+            numpy==1.26.4 opencv-python-headless==4.10.0.84 \
+            scikit-learn==1.6.1
+          python -m playwright install chromium
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Restore unexpired previous-wave SHA receipts, never fake private durability
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m scripts.keirin_autonomous_artifact_recovery \
+            --repo "$GITHUB_REPOSITORY" --date "${{ steps.day.outputs.target }}" \
+            --mode index --out "$RUNNER_TEMP/prior-clips"
+      - name: Record already-finished result pages, derive ephemeral scenes, seal both
+        id: wave
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(--owner-public-key docs/keirin-historical-batch-20261109-public.pem
+                --temporary-artifact-receipts "$RUNNER_TEMP/prior-clips/temporary-artifact-receipts.json"
+                --private-retention-receipts docs/evidence/keirin-daily-private-retention-receipts.json
+                --encrypted-dir "$RUNNER_TEMP/keirin-daily-sealed"
+                --sealed-research-dir "$RUNNER_TEMP/keirin-daily-sealed-research"
+                --manifest "$RUNNER_TEMP/keirin-daily-source-inventory.json"
+                --report "$RUNNER_TEMP/keirin-daily-wave.json"
+                --max-races 24)
+          if [ "${{ steps.day.outputs.mode }}" = prior ]; then
+            if [ ! -f "$RUNNER_TEMP/prior-clips/day-source-manifest.json" ]; then
+              echo "PREVIOUS_DAY_VERIFIED_SOURCE_MANIFEST_MISSING" >&2
+              exit 3
+            fi
+            args+=(--previous-day-manifest "$RUNNER_TEMP/prior-clips/day-source-manifest.json")
+          fi
+          python -m scripts.keirin_daily_dynamic_clip_collector "${args[@]}"
+      - name: Retain only RSA/AES-256-GCM screen recordings
+        if: steps.wave.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: keirin-github-capture-${{ steps.day.outputs.target }}-sealed-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-daily-sealed/
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Retain only RSA/AES sealed scene features and unpromoted model
+        if: steps.wave.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: keirin-github-capture-${{ steps.day.outputs.target }}-research-${{ github.run_id }}
+          path: ${{ runner.temp }}/keirin-daily-sealed-research/
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Store metadata to permit GitHub-only temporary dedup and midnight backfill
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: keirin-github-capture-${{ steps.day.outputs.target }}-metadata-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/keirin-daily-wave.json
+            ${{ runner.temp }}/keirin-daily-source-inventory.json
+          retention-days: 14
+          if-no-files-found: warn
+      - name: Optional owner-private durable S3-compatible upload and full-byte readback
+        if: steps.wave.outcome == 'success'
+        continue-on-error: true
+        env:
+          ARCHIVE_BUCKET: ${{ secrets.RACE_AI_KEIRIN_S3_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.RACE_AI_KEIRIN_S3_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.RACE_AI_KEIRIN_S3_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ vars.RACE_AI_KEIRIN_AWS_REGION || 'ap-northeast-1' }}
+          RACE_VIDEO_S3_ENDPOINT: ${{ vars.RACE_AI_KEIRIN_S3_ENDPOINT }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$ARCHIVE_BUCKET" ]; then
+            echo "DURABLE_PRIVATE_STORAGE_NOT_CONFIGURED" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          python -m pip install awscli
+          python -m scripts.keirin_github_private_s3_archive \
+            --source "$RUNNER_TEMP/keirin-daily-sealed" \
+            --source "$RUNNER_TEMP/keirin-daily-sealed-research" \
+            --bucket "$ARCHIVE_BUCKET" \
+            --date "${{ steps.day.outputs.target }}" \
+            --run-id "$GITHUB_RUN_ID" \
+            --report "$RUNNER_TEMP/owner-durable-readback.json"
+      - name: Report actual capture, source unknowns and durability separately
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          root=Path(os.environ["RUNNER_TEMP"])
+          p=root/"keirin-daily-wave.json"
+          d=json.loads(p.read_text()) if p.exists() else {}
+          persisted=(root/"owner-durable-readback.json").exists()
+          lines=["## GitHub-only KEIRIN daily WINTICKET replay wave",
+             f"- Target JST day: {d.get('date_jst','NOT_PROVEN')}",
+             f"- Venues actually indexed: {d.get('discovered_venue_count','UNKNOWN')}",
+             f"- Races actually indexed: {d.get('discovered_race_count','UNKNOWN')}",
+             f"- Finished result links: {d.get('result_page_links','UNKNOWN')}",
+             f"- Attempted video players: {d.get('attempted',0)}",
+             f"- Browser clip ended and AES-GCM sealed: {d.get('encrypted',0)}",
+             f"- Separate AES-sealed research scene rows: {d.get('scene_feature_frames',d.get('scene_feature_frame_count',0))}",
+             f"- Research model status: {d.get('scene_model_status','NOT_AVAILABLE')}",
+             f"- Private durable store independent download+SHA: {persisted}",
+             '- Actions artifact retention: 14 days; NEVER permanent storage',
+             '- Independently confirmed rider tackle/makuri/sashi: NO',
+             '- Actual before-cutoff PR71 A vs video model B uplift: NOT VERIFIED',
+             '- No published original video, owner RSA key or plaintext features']
+          Path(os.environ["GITHUB_STEP_SUMMARY"]).write_text("\n".join(lines)+"\n")
+          print("\n".join(lines))
+          PY
+      - name: Fail visible job when collector produced no valid report or no valid finished clip
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,os
+          from pathlib import Path
+          p=Path(os.environ['RUNNER_TEMP'])/'keirin-daily-wave.json'
+          if not p.is_file():
+              raise SystemExit('NO_VERIFIED_DAILY_CATALOG_OR_REPLAY')
+          d=json.loads(p.read_text())
+          if d.get('attempted',0)>0 and d.get('encrypted',0)==0:
+              raise SystemExit('NO_COMPLETED_REAL_RACE_REPLAY')
+          print('Video capture outcome recorded. NOT a forecasting result.')
+          PY
+
+  nightly-unattended-owner-research:
+    if: >-
+      (github.event_name == 'schedule' && github.event.schedule == '50 19 * * *') ||
+      (github.event_name == 'workflow_dispatch' && inputs.mode == 'nightly')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: 42dbfd4ca37c50e6a447c6431ea041e8dba0bc1a
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Compute prior Japanese calendar day
+        id: day
+        run: echo "target=$(TZ=Asia/Tokyo date --date='yesterday' +%F)" >> "$GITHUB_OUTPUT"
+      - name: Install private owner numeric and encryption dependencies
+        run: |
+          python -m pip install --disable-pip-version-check \
+            'cryptography>=44,<48' numpy==1.26.4 \
+            opencv-python-headless==4.10.0.84 scikit-learn==1.6.1
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Verify all unexpired previous-day encrypted video manifests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python -m scripts.keirin_autonomous_artifact_recovery \
+            --repo "$GITHUB_REPOSITORY" \
+            --date "${{ steps.day.outputs.target }}" \
+            --mode archive --out "$RUNNER_TEMP/recovered"
+      - name: Admit owner private RSA decryption only if explicitly configured
+        id: ownerkey
+        env:
+          KEY: ${{ secrets.RACE_AI_KEIRIN_PRIVATE_RSA_PEM }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$KEY" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "OWNER_PRIVATE_RSA_GITHUB_SECRET_NOT_CONFIGURED; no supervised video learning claimed" >> "$GITHUB_STEP_SUMMARY"
+          else
+            umask 077
+            printf '%s' "$KEY" > "$RUNNER_TEMP/owner-private-rsa.pem"
+            openssl pkey -in "$RUNNER_TEMP/owner-private-rsa.pem" -noout
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Decrypt full-day sealed source, analyze and fit unpromoted private study
+        if: steps.ownerkey.outputs.available == 'true'
+        env:
+          RACE_AI_PRIVATE_ACTIONS_RESEARCH_CONSENT: OWNER_SET_SECRET_TRUSTED_DEFAULT_BRANCH_ONLY
+        shell: bash
+        run: |
+          set -euo pipefail
+          python -m scripts.keirin_daily_private_owner_research \
+            --source-manifest "$RUNNER_TEMP/recovered/day-source-manifest.json" \
+            --cipher-artifact "$RUNNER_TEMP/recovered/${{ steps.day.outputs.target }}-sealed-unique-race-archive.zip" \
+            --owner-private-key "$RUNNER_TEMP/owner-private-rsa.pem" \
+            --out-private "$RUNNER_TEMP/owner-research-plaintext"
+          python -m scripts.keirin_github_seal_owner_research \
+            --private-input "$RUNNER_TEMP/owner-research-plaintext" \
+            --public-key docs/keirin-historical-batch-20261109-public.pem \
+            --day-jst "${{ steps.day.outputs.target }}" \
+            --sealed-output "$RUNNER_TEMP/sealed-nightly/owner-research.json.aesgcm"
+      - name: Upload ONLY RSA/AES private study envelope
+        if: steps.ownerkey.outputs.available == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: keirin-github-nightly-sealed-research-${{ steps.day.outputs.target }}-${{ github.run_id }}
+          path: ${{ runner.temp }}/sealed-nightly/
+          retention-days: 14
+          if-no-files-found: error
+      - name: Wipe decrypted owner inputs before job closes
+        if: always()
+        run: |
+          rm -rf "$RUNNER_TEMP/owner-research-plaintext"
+          rm -f "$RUNNER_TEMP/owner-private-rsa.pem"
+      - name: Explain exact nightly completion boundary
+        if: always()
+        run: |
+          {
+            echo '## Nightly owner-private video research'
+            echo 'Source day: ${{ steps.day.outputs.target }}'
+            echo 'Private RSA secret available: ${{ steps.ownerkey.outputs.available }}'
+            echo 'Any fitted model is self-supervised SCENE research, not a rider attack/makuri/sashi classifier.'
+            echo 'No video-based PR71 A/B Top8 improvement or automated production promotion claimed.'
+            echo 'All owner research artifacts are RSA/AES encrypted; full permanent retention requires a private store.'
+          } >> "$GITHUB_STEP_SUMMARY"
